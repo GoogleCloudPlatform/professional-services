@@ -1,0 +1,44 @@
+{
+  "insertId": "2016-04-03|16:06:31.253490-07|10.106.23.195|520937147",
+  "log": "compute.googleapis.com/activity_log",
+  "structPayload": {
+    "event_timestamp_us": "1459724791178670",
+    "resource": {
+      "type": "instance",
+      "id": "18082097775580039429",
+      "zone": "us-central1-a",
+      "name": "dns-sync-test"
+    },
+    "event_type": "GCE_OPERATION_DONE",
+    "request": {
+      "body": "null",
+      "url": "none"
+    },
+    "trace_id": "operation-1459724790791-52f9ca99ffb58-889d9c99-d3502642",
+    "actor": {
+      "user": "user@example.com"
+    },
+    "event_subtype": "compute.instances.start",
+    "version": "1.2",
+    "operation": {
+      "type": "operation",
+      "id": "3525163606719864600",
+      "zone": "us-central1-a",
+      "name": "operation-1459724790791-52f9ca99ffb58-889d9c99-d3502642"
+    },
+    "ip_address": ""
+  },
+  "metadata": {
+    "severity": "INFO",
+    "zone": "us-central1-a",
+    "projectId": "project-1",
+    "labels": {
+      "compute.googleapis.com/resource_zone": "us-central1-a",
+      "compute.googleapis.com/resource_type": "instance",
+      "compute.googleapis.com/resource_id": "18082097775580039429",
+      "compute.googleapis.com/resource_name": "dns-sync-test"
+    },
+    "serviceName": "compute.googleapis.com",
+    "timestamp": "2016-04-03T23:06:31.17867Z"
+  }
+}

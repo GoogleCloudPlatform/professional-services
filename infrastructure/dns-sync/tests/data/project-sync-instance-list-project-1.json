@@ -1,0 +1,470 @@
+{
+  "items": {
+    "zones/asia-east1-c": {
+      "warning": {
+        "message": "There are no results for scope 'zones/asia-east1-c' on this page.",
+        "code": "NO_RESULTS_ON_PAGE",
+        "data": [
+          {
+            "key": "scope",
+            "value": "zones/asia-east1-c"
+          }
+        ]
+      }
+    },
+    "zones/us-central1-f": {
+      "warning": {
+        "message": "There are no results for scope 'zones/us-central1-f' on this page.",
+        "code": "NO_RESULTS_ON_PAGE",
+        "data": [
+          {
+            "key": "scope",
+            "value": "zones/us-central1-f"
+          }
+        ]
+      }
+    },
+    "zones/europe-west1-d": {
+      "warning": {
+        "message": "There are no results for scope 'zones/europe-west1-d' on this page.",
+        "code": "NO_RESULTS_ON_PAGE",
+        "data": [
+          {
+            "key": "scope",
+            "value": "zones/europe-west1-d"
+          }
+        ]
+      }
+    },
+    "zones/asia-east1-a": {
+      "warning": {
+        "message": "There are no results for scope 'zones/asia-east1-a' on this page.",
+        "code": "NO_RESULTS_ON_PAGE",
+        "data": [
+          {
+            "key": "scope",
+            "value": "zones/asia-east1-a"
+          }
+        ]
+      }
+    },
+    "zones/asia-east1-b": {
+      "warning": {
+        "message": "There are no results for scope 'zones/asia-east1-b' on this page.",
+        "code": "NO_RESULTS_ON_PAGE",
+        "data": [
+          {
+            "key": "scope",
+            "value": "zones/asia-east1-b"
+          }
+        ]
+      }
+    },
+    "zones/us-east1-c": {
+      "warning": {
+        "message": "There are no results for scope 'zones/us-east1-c' on this page.",
+        "code": "NO_RESULTS_ON_PAGE",
+        "data": [
+          {
+            "key": "scope",
+            "value": "zones/us-east1-c"
+          }
+        ]
+      }
+    },
+    "zones/us-west1-b": {
+      "warning": {
+        "message": "There are no results for scope 'zones/us-west1-b' on this page.",
+        "code": "NO_RESULTS_ON_PAGE",
+        "data": [
+          {
+            "key": "scope",
+            "value": "zones/us-west1-b"
+          }
+        ]
+      }
+    },
+    "zones/europe-west1-b": {
+      "warning": {
+        "message": "There are no results for scope 'zones/europe-west1-b' on this page.",
+        "code": "NO_RESULTS_ON_PAGE",
+        "data": [
+          {
+            "key": "scope",
+            "value": "zones/europe-west1-b"
+          }
+        ]
+      }
+    },
+    "zones/europe-west1-c": {
+      "warning": {
+        "message": "There are no results for scope 'zones/europe-west1-c' on this page.",
+        "code": "NO_RESULTS_ON_PAGE",
+        "data": [
+          {
+            "key": "scope",
+            "value": "zones/europe-west1-c"
+          }
+        ]
+      }
+    },
+    "zones/us-central1-a": {
+      "instances": [
+        {
+          "status": "TERMINATED",
+          "cpuPlatform": "Unknown CPU Platform",
+          "kind": "compute#instance",
+          "machineType": "https://www.googleapis.com/compute/v1/projects/project-1/zones/us-central1-a/machineTypes/f1-micro",
+          "name": "instance-1",
+          "zone": "https://www.googleapis.com/compute/v1/projects/project-1/zones/us-central1-a",
+          "tags": {
+            "fingerprint": "42WmSpB8rSM="
+          },
+          "disks": [
+            {
+              "index": 0,
+              "kind": "compute#attachedDisk",
+              "autoDelete": false,
+              "deviceName": "persistent-disk-0",
+              "boot": true,
+              "source": "https://www.googleapis.com/compute/v1/projects/project-1/zones/us-central1-a/disks/instance-1",
+              "mode": "READ_WRITE",
+              "interface": "SCSI",
+              "licenses": [
+                "https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/licenses/ubuntu-1604-xenial"
+              ],
+              "type": "PERSISTENT"
+            }
+          ],
+          "scheduling": {
+            "automaticRestart": true,
+            "preemptible": false,
+            "onHostMaintenance": "MIGRATE"
+          },
+          "networkInterfaces": [
+            {
+              "networkIP": "10.240.0.8",
+              "network": "https://www.googleapis.com/compute/v1/projects/project-1/global/networks/default",
+              "name": "nic0"
+            }
+          ],
+          "creationTimestamp": "2017-01-03T10:24:37.168-08:00",
+          "id": "7713029729867420298",
+          "selfLink": "https://www.googleapis.com/compute/v1/projects/project-1/zones/us-central1-a/instances/instance-1",
+          "metadata": {
+            "kind": "compute#metadata",
+            "fingerprint": "DfW_wAsYGRk="
+          }
+        }
+      ]
+    },
+    "zones/us-central1-c": {
+      "instances": [
+        {
+          "status": "RUNNING",
+          "cpuPlatform": "Intel Haswell",
+          "kind": "compute#instance",
+          "machineType": "https://www.googleapis.com/compute/v1/projects/project-1/zones/us-central1-c/machineTypes/n1-highcpu-2",
+          "name": "instance-2",
+          "zone": "https://www.googleapis.com/compute/v1/projects/project-1/zones/us-central1-c",
+          "tags": {
+            "fingerprint": "0GYzZaWMgRk="
+          },
+          "disks": [
+            {
+              "index": 0,
+              "kind": "compute#attachedDisk",
+              "autoDelete": true,
+              "deviceName": "persistent-disk-0",
+              "boot": true,
+              "source": "https://www.googleapis.com/compute/v1/projects/project-1/zones/us-central1-c/disks/instance-2",
+              "mode": "READ_WRITE",
+              "interface": "SCSI",
+              "type": "PERSISTENT"
+            },
+            {
+              "index": 1,
+              "kind": "compute#attachedDisk",
+              "autoDelete": false,
+              "deviceName": "db-disk",
+              "boot": false,
+              "source": "https://www.googleapis.com/compute/v1/projects/project-1/zones/us-central1-c/disks/db-disk",
+              "mode": "READ_WRITE",
+              "interface": "SCSI",
+              "type": "PERSISTENT"
+            }
+          ],
+          "scheduling": {
+            "automaticRestart": true,
+            "preemptible": false,
+            "onHostMaintenance": "MIGRATE"
+          },
+          "canIpForward": true,
+          "serviceAccounts": [
+            {
+              "scopes": [
+                "https://www.googleapis.com/auth/compute",
+                "https://www.googleapis.com/auth/devstorage.read_only",
+                "https://www.googleapis.com/auth/service.management.readonly",
+                "https://www.googleapis.com/auth/servicecontrol",
+                "https://www.googleapis.com/auth/logging.write",
+                "https://www.googleapis.com/auth/monitoring"
+              ],
+              "email": "1@project.gserviceaccount.com"
+            }
+          ],
+          "networkInterfaces": [
+            {
+              "accessConfigs": [
+                {
+                  "kind": "compute#accessConfig",
+                  "type": "ONE_TO_ONE_NAT",
+                  "name": "external-nat",
+                  "natIP": "104.198.173.146"
+                }
+              ],
+              "networkIP": "10.240.0.6",
+              "network": "https://www.googleapis.com/compute/v1/projects/project-1/global/networks/default",
+              "name": "nic0"
+            }
+          ],
+          "creationTimestamp": "2016-12-13T09:46:43.451-08:00",
+          "id": "7746348673109166828",
+          "selfLink": "https://www.googleapis.com/compute/v1/projects/project-1/zones/us-central1-c/instances/instance-2",
+          "metadata": {
+            "kind": "compute#metadata",
+            "fingerprint": "xzpN-gViZfs="
+          }
+        },
+        {
+          "status": "RUNNING",
+          "cpuPlatform": "Intel Haswell",
+          "kind": "compute#instance",
+          "machineType": "https://www.googleapis.com/compute/v1/projects/project-1/zones/us-central1-c/machineTypes/n1-highmem-2",
+          "name": "instance-3",
+          "zone": "https://www.googleapis.com/compute/v1/projects/project-1/zones/us-central1-c",
+          "tags": {
+            "fingerprint": "0GYzZaWMgRk="
+          },
+          "disks": [
+            {
+              "index": 0,
+              "kind": "compute#attachedDisk",
+              "autoDelete": true,
+              "deviceName": "persistent-disk-0",
+              "boot": true,
+              "source": "https://www.googleapis.com/compute/v1/projects/project-1/zones/us-central1-c/disks/instance-3",
+              "mode": "READ_WRITE",
+              "interface": "SCSI",
+              "type": "PERSISTENT"
+            },
+            {
+              "index": 1,
+              "kind": "compute#attachedDisk",
+              "autoDelete": false,
+              "deviceName": "wp-disk-t01",
+              "boot": false,
+              "source": "https://www.googleapis.com/compute/v1/projects/project-1/zones/us-central1-c/disks/wp-disk-t01",
+              "mode": "READ_WRITE",
+              "interface": "SCSI",
+              "type": "PERSISTENT"
+            }
+          ],
+          "scheduling": {
+            "automaticRestart": true,
+            "preemptible": false,
+            "onHostMaintenance": "MIGRATE"
+          },
+          "canIpForward": true,
+          "serviceAccounts": [
+            {
+              "scopes": [
+                "https://www.googleapis.com/auth/compute",
+                "https://www.googleapis.com/auth/devstorage.read_only",
+                "https://www.googleapis.com/auth/service.management.readonly",
+                "https://www.googleapis.com/auth/servicecontrol",
+                "https://www.googleapis.com/auth/logging.write",
+                "https://www.googleapis.com/auth/monitoring"
+              ],
+              "email": "1@project.gserviceaccount.com"
+            }
+          ],
+          "networkInterfaces": [
+            {
+              "accessConfigs": [
+                {
+                  "kind": "compute#accessConfig",
+                  "type": "ONE_TO_ONE_NAT",
+                  "name": "external-nat",
+                  "natIP": "146.148.93.149"
+                }
+              ],
+              "networkIP": "10.240.0.5",
+              "network": "https://www.googleapis.com/compute/v1/projects/project-1/global/networks/default",
+              "name": "nic0"
+            }
+          ],
+          "creationTimestamp": "2016-12-13T09:38:25.883-08:00",
+          "id": "4454963123622612222",
+          "selfLink": "https://www.googleapis.com/compute/v1/projects/project-1/zones/us-central1-c/instances/instance-3",
+          "metadata": {
+            "kind": "compute#metadata",
+            "fingerprint": "FuxHe-5BV0w="
+          }
+        },
+        {
+          "status": "RUNNING",
+          "cpuPlatform": "Intel Haswell",
+          "kind": "compute#instance",
+          "machineType": "https://www.googleapis.com/compute/v1/projects/project-1/zones/us-central1-c/machineTypes/n1-highmem-2",
+          "name": "instance-4",
+          "zone": "https://www.googleapis.com/compute/v1/projects/project-1/zones/us-central1-c",
+          "tags": {
+            "fingerprint": "0GYzZaWMgRk="
+          },
+          "disks": [
+            {
+              "index": 0,
+              "kind": "compute#attachedDisk",
+              "autoDelete": true,
+              "deviceName": "persistent-disk-0",
+              "boot": true,
+              "source": "https://www.googleapis.com/compute/v1/projects/project-1/zones/us-central1-c/disks/instance-4",
+              "mode": "READ_WRITE",
+              "interface": "SCSI",
+              "type": "PERSISTENT"
+            }
+          ],
+          "scheduling": {
+            "automaticRestart": true,
+            "preemptible": false,
+            "onHostMaintenance": "MIGRATE"
+          },
+          "canIpForward": true,
+          "serviceAccounts": [
+            {
+              "scopes": [
+                "https://www.googleapis.com/auth/compute",
+                "https://www.googleapis.com/auth/devstorage.read_only",
+                "https://www.googleapis.com/auth/service.management.readonly",
+                "https://www.googleapis.com/auth/servicecontrol",
+                "https://www.googleapis.com/auth/logging.write",
+                "https://www.googleapis.com/auth/monitoring"
+              ],
+              "email": "1@project.gserviceaccount.com"
+            }
+          ],
+          "networkInterfaces": [
+            {
+              "accessConfigs": [
+                {
+                  "kind": "compute#accessConfig",
+                  "type": "ONE_TO_ONE_NAT",
+                  "name": "external-nat",
+                  "natIP": "35.184.29.216"
+                }
+              ],
+              "networkIP": "10.240.0.4",
+              "network": "https://www.googleapis.com/compute/v1/projects/project-1/global/networks/default",
+              "name": "nic0"
+            }
+          ],
+          "creationTimestamp": "2016-12-13T09:38:25.883-08:00",
+          "id": "9047888896699763966",
+          "selfLink": "https://www.googleapis.com/compute/v1/projects/project-1/zones/us-central1-c/instances/instance-4",
+          "metadata": {
+            "kind": "compute#metadata",
+            "fingerprint": "FuxHe-5BV0w="
+          }
+        }
+      ]
+    },
+    "zones/us-central1-b": {
+      "warning": {
+        "message": "There are no results for scope 'zones/us-central1-b' on this page.",
+        "code": "NO_RESULTS_ON_PAGE",
+        "data": [
+          {
+            "key": "scope",
+            "value": "zones/us-central1-b"
+          }
+        ]
+      }
+    },
+    "zones/asia-northeast1-a": {
+      "warning": {
+        "message": "There are no results for scope 'zones/asia-northeast1-a' on this page.",
+        "code": "NO_RESULTS_ON_PAGE",
+        "data": [
+          {
+            "key": "scope",
+            "value": "zones/asia-northeast1-a"
+          }
+        ]
+      }
+    },
+    "zones/asia-northeast1-b": {
+      "warning": {
+        "message": "There are no results for scope 'zones/asia-northeast1-b' on this page.",
+        "code": "NO_RESULTS_ON_PAGE",
+        "data": [
+          {
+            "key": "scope",
+            "value": "zones/asia-northeast1-b"
+          }
+        ]
+      }
+    },
+    "zones/asia-northeast1-c": {
+      "warning": {
+        "message": "There are no results for scope 'zones/asia-northeast1-c' on this page.",
+        "code": "NO_RESULTS_ON_PAGE",
+        "data": [
+          {
+            "key": "scope",
+            "value": "zones/asia-northeast1-c"
+          }
+        ]
+      }
+    },
+    "zones/us-east1-b": {
+      "warning": {
+        "message": "There are no results for scope 'zones/us-east1-b' on this page.",
+        "code": "NO_RESULTS_ON_PAGE",
+        "data": [
+          {
+            "key": "scope",
+            "value": "zones/us-east1-b"
+          }
+        ]
+      }
+    },
+    "zones/us-west1-a": {
+      "warning": {
+        "message": "There are no results for scope 'zones/us-west1-a' on this page.",
+        "code": "NO_RESULTS_ON_PAGE",
+        "data": [
+          {
+            "key": "scope",
+            "value": "zones/us-west1-a"
+          }
+        ]
+      }
+    },
+    "zones/us-east1-d": {
+      "warning": {
+        "message": "There are no results for scope 'zones/us-east1-d' on this page.",
+        "code": "NO_RESULTS_ON_PAGE",
+        "data": [
+          {
+            "key": "scope",
+            "value": "zones/us-east1-d"
+          }
+        ]
+      }
+    }
+  },
+  "kind": "compute#instanceAggregatedList",
+  "id": "projects/project-1/aggregated/instances",
+  "selfLink": "https://www.googleapis.com/compute/v1/projects/project-1/aggregated/instances"
+}
