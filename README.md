@@ -3,10 +3,9 @@ This respository is owned by Google's Professional Services team and is organize
 
 ## Service areas
  * [Application development](/application-development/README.md)
- * [Machine learning](/machine-learning/README.md)
- * [Infrastructure](/infrastructure/README.md)
  * [Data analytics](/data-analytics/README.md)
-
+ * [Infrastructure](/infrastructure/README.md)
+ * [Machine learning](/machine-learning/README.md)
 
 ## Contributing
 The team is currently not accepting contributions.
