@@ -1,3 +1,3 @@
 # Professional Services
-## Applicaiton development
-A repository of appplication development solutions.
+## Application development
+A repository of application development solutions.
