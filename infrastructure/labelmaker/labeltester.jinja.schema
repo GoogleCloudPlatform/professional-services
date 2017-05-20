@@ -1,0 +1,52 @@
+info:
+  title: Label Maker Tester
+  author: mwallman@google
+  description: |
+    Configuration to test labelmaker with different disk types
+  version: 0.1
+
+imports:
+  - path: labeltester.jinja
+
+required:
+  - zone
+  - network
+  - subnetwork
+  - machineType
+  - blankImage
+  - serviceAccount
+  - labelmaker
+
+properties:
+  zone:
+    type: string
+    description: i.e. us-east1-d
+  
+  network:
+    type: string
+    description: Network uri
+
+  subnetwork:
+    type: string
+    description: Subnet uri
+
+  sourceImage: 
+    type: string
+    description: Image uri
+    default: https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/images/ubuntu-1404-trusty-v20170202a
+  
+  machineType:
+    type: string
+    description: Image uri; i.e. zones/us-east1-d/machineTypes/n1-standard-1
+  
+  blankImage:
+    type: string 
+    description: Blank image uri. Output of gcloud compute images create blank-image --source-disk blank-disk
+
+  serviceAccount:
+    type: string
+    description: Service account with permissions to label resources i.e. Project editor.
+
+  labelmaker: 
+    type: string
+    description: GS path to labelMaker; Must be readable by service running service account. i.e. gs://pso/labelmaker.py
