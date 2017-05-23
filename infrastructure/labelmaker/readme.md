@@ -8,8 +8,8 @@ _labelmaker.py_ is a tool that reads key:value pairs from a json file, and label
 
 The package includes a DeploymentManager configuration that:
 
-  - Boots and instance and attached different type disks
-  - Install python dependencies
+  - Boots and instance and attaches different disk types
+  - Installs python dependencies
   - Creates a labels json file
 
 Best practice would be to store labelmaker in a repo or bucket, and download via a startup script.
