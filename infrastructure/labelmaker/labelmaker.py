@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright 2017 Google Inc. All Rights Reserved.
+# Copyright 2017 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import requests
 from googleapiclient import discovery
 from oauth2client.client import GoogleCredentials
 
+
 def label(self_link, access_token, data):
     """ Format and make label request
 
@@ -43,7 +44,7 @@ def label(self_link, access_token, data):
         "Content-Type":  "application/json"
     }
     try:
-        req = requests.post("%s/setLabels" % self_link, headers=headers,\
+        req = requests.post("%s/setLabels" % self_link, headers=headers,
             data=json.dumps(data))
         req.raise_for_status()
     except requests.exceptions.HTTPError as err:
@@ -81,7 +82,7 @@ def label_merge(current, fingerprint, new):
     return {"labels": labels, "labelFingerprint": fingerprint}
 
 def main(argv):
-    ## Load label file
+    # Load label file
     try:
         new_lables = json.load(open(argv[1]))
     except IndexError:
@@ -92,27 +93,27 @@ def main(argv):
         sys.exit(1)
 
 
-    ## Pull defaults from metadata
+    # Pull defaults from metadata
     metadata = get_metadata()
     project, zone = itemgetter(1, 3)(metadata['zone'].split("/"))
     instance_name = metadata['name']
 
-    ## Google Creds
+    # Google Creds
     creds = GoogleCredentials.get_application_default()
 
-    ## Describe Instance
+    # Describe Instance
     conn = discovery.build('compute', 'beta', credentials=creds)
     instance = conn.instances().get(project=project, zone=zone,
                                     instance=instance_name).execute()
 
-    ## Label Instance
+    # Label Instance
     label(instance['selfLink'], creds.get_access_token().access_token,
           label_merge(instance['labels'] if 'labels' in instance else {},
                       instance["labelFingerprint"], new_lables))
 
-    ## Label Disks
+    # Label Disks
     for i in instance['disks']:
-        ## Skip local disk
+        # Skip local disk
         if 'source' not in i:
             continue
         disk = conn.disks().get(project=project, zone=zone,

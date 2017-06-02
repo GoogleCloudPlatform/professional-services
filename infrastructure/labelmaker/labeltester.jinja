@@ -1,5 +1,5 @@
 {#
-Copyright 2017 Google Inc. All rights reserved.
+Copyright 2017 Google Inc.
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -13,15 +13,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 #}
 
-{% set COMPUTE_URL_BASE = 'https://www.googleapis.com/compute/v1/' %}
 {% set ID = env['deployment'] + '-' + env['name'] %}
+{% set SUBNET = true if properties["subnet"] else false %}
 
 resources:
-- name: {{ ID }}
+{% for i in ['xvde', 'xvdf'] -%}
+- name: {{ID}}-{{i}}
+  type: compute.v1.disk
+  properties:
+    zone: {{ properties["zone"] }}
+    sizeGb: 10
+    type: https://www.googleapis.com/compute/v1/projects/{{ env["project"] }}/zones/{{ properties["zone"] }}/diskTypes/pd-ssd
+{% endfor %}
+- name: {{ID}}
   type: compute.v1.instance
   properties:
     zone: {{ properties['zone'] }}
-    machineType: {{ properties["machineType"] }}
+    machineType: zones/{{ properties['zone'] }}/machineTypes/{{ properties["machineType"] }}
     metadata:
       items:
         - key: startup-script
@@ -29,8 +37,11 @@ resources:
             #!/bin/bash -e
             apt-get update
             apt-get -y install python-pip
-            pip install --upgrade google-api-python-client
-            gsutil cp {{ properties['labelmaker'] }} .
+            pip install --upgrade google-api-python-client requests
+            cat > labelmaker.py <<EOF
+            {{ imports["labelmaker.py"]|indent(12) }}
+            EOF
+            chmod +x labelmaker.py 
             ## Valid json please
             ## Only lowercase characters a-z, numbers 0-9 and dashes allowed
             cat <<EOF > /tmp/labels.json
@@ -39,45 +50,30 @@ resources:
               "looks-like-tag": ""
             }
             EOF
-            python labelmaker.py /tmp/labels.json
+            ./labelmaker.py /tmp/labels.json
     disks:
       - deviceName: boot
         boot: true
         autoDelete: true
-        mode: READ_WRITE
-        type: PERSISTENT
         initializeParams:
           diskSizeGb: 10
           sourceImage: {{ properties["sourceImage" ] }}
-      - deviceName: xvde
-        boot: false
+      {% for i in ['xvde', 'xvdf'] -%}
+      - deviceName: {{i}}
         autoDelete: true
-        mode: READ_WRITE
-        type: PERSISTENT
-        initializeParams:
-          diskSizeGb: 10
-          diskType: zones/{{ properties["zone"] }}/diskTypes/pd-ssd
-          sourceImage: {{ properties["blankImage" ] }}
-      - deviceName: xvdf
-        boot: false
-        autoDelete: true
-        mode: READ_WRITE
-        type: PERSISTENT
-        initializeParams:
-          diskSizeGb: 10
-          diskType: zones/{{ properties["zone"] }}/diskTypes/pd-ssd
-          sourceImage: {{ properties["blankImage" ] }}
+        source: $(ref.{{ID}}-{{i}}.selfLink)
+      {% endfor %}
       - deviceName: xvdg
-        boot: false
         autoDelete: true
-        mode: READ_WRITE
         type: SCRATCH
         initializeParams:
           diskType: zones/{{ properties["zone"] }}/diskTypes/local-ssd
     networkInterfaces:
       - name: {{ ID }}-eth0
         network: {{ properties["network"] }}
-        subnetwork: {{ properties["subnetwork"] }}
+        {% if SUBNET %}
+        subnetwork: {{ properties["subnet"] }}
+        {% endif %}
         accessConfigs:
           - name: eth0
             type: ONE_TO_ONE_NAT
@@ -87,4 +83,4 @@ resources:
           - "https://www.googleapis.com/auth/cloud-platform"
     tags:
       items:
-        - {{ ID }}
+        - {{ env['name'] }}
