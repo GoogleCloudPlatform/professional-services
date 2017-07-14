@@ -1,0 +1,73 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: Create VPN
+
+Parameters: 
+  PeerIp: 
+    Type: String
+    Description: IP Address of Peer
+  
+  VPNGatewayId: 
+    Type: String 
+  
+  BgpAsn: 
+    Type: Number
+    MinValue: 64512
+    MaxValue: 65534
+    Description: Use private ASN 64512-65534 not used elsewhere in the network
+    Default: 65534 
+   
+  StaticRoutesOnly:
+    Type: String
+    Default: false
+    AllowedValues: 
+      - false
+      - true
+  
+  StaticRoute: 
+    Type: String 
+    Default: ""
+
+Conditions: 
+  CreateStaticRoute: !Not [ !Equals [ !Ref StaticRoute, "" ] ]
+
+Resources:
+  GcpGw:
+    Type: "AWS::EC2::CustomerGateway"
+    Properties:
+      Type: ipsec.1
+      BgpAsn: 
+        !Ref BgpAsn
+      IpAddress: 
+        !Ref PeerIp
+      Tags:
+        - 
+          Key: Name
+          Value: !Ref "AWS::StackName" 
+
+  Vpn:
+    Type: "AWS::EC2::VPNConnection"
+    Properties: 
+      Type: ipsec.1
+      CustomerGatewayId: 
+        !Ref GcpGw
+      VpnGatewayId: 
+        !Ref VPNGatewayId
+      StaticRoutesOnly: 
+        !Ref StaticRoutesOnly
+      Tags:
+        - 
+          Key: Name
+          Value: !Ref "AWS::StackName"
+
+  Route0:
+    Type: "AWS::EC2::VPNConnectionRoute"
+    Condition: CreateStaticRoute
+    Properties: 
+      DestinationCidrBlock: !Ref StaticRoute
+      VpnConnectionId: 
+        !Ref Vpn
+
+Outputs:
+  VpnId:
+    Value: !Ref Vpn

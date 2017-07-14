@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: Create and attach VPN Gateway
+
+Parameters: 
+  VpcId: 
+    Type: "AWS::EC2::VPC::Id"
+    Description: VpcId that VPNGateway is attached
+  
+  RouteTableIds:
+    Type: CommaDelimitedList
+    Description: Propegate Routes to the following tables
+
+Resources:
+  VpnGw: 
+    Type: "AWS::EC2::VPNGateway"
+    Properties: 
+      Type: ipsec.1
+      Tags:
+        - 
+          Key: Name
+          Value: !Ref "AWS::StackName" 
+
+  VpnAttach: 
+    Type: "AWS::EC2::VPCGatewayAttachment"
+    Properties: 
+      VpcId: 
+        !Ref VpcId
+      VpnGatewayId: 
+        !Ref VpnGw
+
+  VpnRoutePropagate:
+    DependsOn:
+      - VpnAttach
+    Type: "AWS::EC2::VPNGatewayRoutePropagation"
+    Properties: 
+      RouteTableIds: 
+        !Ref RouteTableIds 
+      VpnGatewayId:
+        !Ref VpnGw
+
+Outputs:
+  VPNGatewayId:
+    Value: !Ref VpnGw
