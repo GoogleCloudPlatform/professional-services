@@ -61,7 +61,7 @@ resources:
     target: $(ref.{{ id }}.selfLink)
  
 {% for i in properties["tunnels"] %}
-  {% set oindex = loop.index %} 
+{% set oindex = loop.index %}
 - name:  {{ id }}-tunnel{{oindex}}
   type: compute.v1.vpnTunnel
   properties:
@@ -71,28 +71,28 @@ resources:
     # AWS supports only ike 1 https://forums.aws.amazon.com/thread.jspa?messageID=777039
     ikeVersion: 1
     targetVpnGateway: $(ref.{{ id }}.selfLink)
-  {% if bgp %}
+{% if bgp %}
     router: $(ref.{{ id }}-router.selfLink)
-  {% endif %}
-  {% if "localTrafficSelector" in i%}
+{% endif %}
+{% if "localTrafficSelector" in i%}
     localTrafficSelector: 
-    {% for j in i["localTrafficSelector"] %}
+{% for j in i["localTrafficSelector"] %}
     - {{ j }}
-    {% endfor %} 
-  {% endif %}
-  {% if "remoteTrafficSelector" in i%}
+{% endfor %}
+{% endif %}
+{% if "remoteTrafficSelector" in i%}
     remoteTrafficSelector: 
-    {% for j in i["remoteTrafficSelector"] %}
+{% for j in i["remoteTrafficSelector"] %}
     - {{ j }}
-    {% endfor %} 
-  {% endif %}
+{% endfor %}
+{% endif %}
   metadata:
     dependsOn:
     - {{ id }}-rule-esp
     - {{ id }}-rule-udp500
     - {{ id }}-rule-udp4500
-  {% if "remoteTrafficSelector" in i%}
-    {% for j in i["remoteTrafficSelector"] %}
+{% if "remoteTrafficSelector" in i%}
+{% for j in i["remoteTrafficSelector"] %}
 - name: {{ id }}-tunnel{{oindex}}-route{{loop.index}}
   type: compute.v1.route
   properties:
@@ -101,10 +101,9 @@ resources:
     nextHopVpnTunnel: $(ref.{{ id }}-tunnel{{oindex}}.selfLink)
     priority: 1000
     tags: []
-    {% endfor %}
-  {% endif %}
-
-{% endfor %} 
+{% endfor %}
+{% endif %}
+{% endfor %}
 
 {% if bgp %}
 - name: {{ id }}-patch-router
@@ -115,17 +114,17 @@ resources:
     project: {{ env["project"] }}
     name: {{ id }}-router
     bgpPeers:
-  {% for i in properties["tunnels"] %}
+{% for i in properties["tunnels"] %}
     - interfaceName: {{ id }}-int{{loop.index}}
       ipAddress: {{ i["bgpIpAddress"] }}
       name: {{ id }}-peer{{loop.index}}
       peerAsn: {{ i["peerAsn"] }}
       peerIpAddress: {{ i["peerBgpIpAddress"] }}
-  {% endfor %} 
+{% endfor %}
     interfaces:
-  {% for i in properties["tunnels"] %}
+{% for i in properties["tunnels"] %}
     - ipRange: {{ i["bgpIpAddress"] }}/30
       linkedVpnTunnel: $(ref.{{ id }}-tunnel{{loop.index}}.selfLink)
       name: {{ id }}-int{{loop.index}}
-  {% endfor %} 
+{% endfor %}
 {% endif %}
