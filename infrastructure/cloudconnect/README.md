@@ -128,6 +128,7 @@ This example establishes both _static_ and _bgp_ dual tunnel VPN connections. Th
     vpn-bgp-to-aws-tunnel2       compute.v1.vpnTunnel         COMPLETED  []
 
 
+
 ## Monitoring and Alerting with StackDriver
 
 By default, StackDriver provides VPN metrics. From the Console, select _StackDriver -> Monitoring_, which redirects to StackDriver site. Under resources, select _GCP->VPN_ to display the VPN landing page.
@@ -218,3 +219,23 @@ This test will be run on two nodes within the static route supported subnets.
 - On the one of the AWS, ping a corresponding GCP instance
 - Using gcloud, kill the static vpn deployments `gcloud deployment-manager deployments delete vpn-static-to-aws`
 - Verify that one gets an alert (if configured above), and ping reestablishes automatically within 1 minute.
+
+
+## Deletion
+
+> The following commands can be used to delete all stacks and templates created above
+
+    ## Delete Static Deployment
+    $ gcloud deployment-manager deployments delete vpn-static-to-aws
+
+    ## Delete BGP Deployment
+    $ gcloud deployment-manager deployments delete vpn-bgp-to-aws
+
+    ## Delete BGP Stack
+    $ aws cloudformation delete-stack --stack-name gcp-vpn-bgp
+
+    ## Delete Static Stack
+    $ aws cloudformation delete-stack --stack-name gcp-vpn-static
+
+    ## Upon BGP and Static Stack Deletion, delete the VPN gateway
+    $ aws cloudformation delete-stack --stack-name vpn-gw
