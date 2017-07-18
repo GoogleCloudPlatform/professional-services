@@ -42,15 +42,15 @@ PATHS = {
 }
 
 BGP_CONFIG = """
-imports: 
+imports:
   - path: gcp-vpn.jinja
-        
-resources: 
+
+resources:
   - name: vpn
     type: gcp-vpn.jinja
-    properties: 
+    properties:
       network: {{ network }}
-      region: {{ region }} 
+      region: {{ region }}
       address: {{ address }}
       asn: {{ asn }}
       tunnels:
@@ -64,15 +64,15 @@ resources:
 """
 
 STATIC_CONFIG = """
-imports: 
+imports:
   - path: gcp-vpn.jinja
-        
-resources: 
+
+resources:
   - name: vpn
     type: gcp-vpn.jinja
-    properties: 
+    properties:
       network: {{ network }}
-      region: {{ region }} 
+      region: {{ region }}
       address: {{ address }}
       tunnels:
       {%- for i in tunnels %}
@@ -88,6 +88,7 @@ resources:
           {%- endfor %}
       {%- endfor %}
 """
+
 
 def main():
     ''' main '''
@@ -121,8 +122,8 @@ def main():
         params['address'] = i.find(PATHS['address']).text
         if i.find(PATHS['asn']) is None:
             config = STATIC_CONFIG
-            tunnel = {k: i.find(v).text for k, v in \
-                    PATHS['static_tunnel'].items()}
+            tunnel = {k: i.find(v).text for k, v in
+                      PATHS['static_tunnel'].items()}
             tunnel['local_traffic_selector'] = args.local_traffic_selector
             tunnel['remote_traffic_selector'] = args.remote_traffic_selector
             params['tunnels'].append(tunnel)

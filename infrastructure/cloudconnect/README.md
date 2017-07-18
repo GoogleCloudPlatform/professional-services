@@ -19,7 +19,7 @@ A common practice is to have a _bgp_ enabled connection for network to network c
 
 ## Prerequisites
 
-This document assumes one has _compute.networkAdmin_ rights in the Shared VPC host project, and AWS Credentials to run CloudFormation that manages a VPC. For the static routes, must have the list of AWS and GCP subnet cidr blocks.
+This document assumes one has _compute.networkAdmin_ rights in the GCE VPC host project, and AWS Credentials to run CloudFormation that manages a VPC. For the static routes, must have the list of AWS and GCP subnet cidr blocks.
 
 
 ## Steps
@@ -28,20 +28,31 @@ This example establishes both _static_ and _bgp_ dual tunnel VPN connections. Th
 
 ![](./pics/cloudconnect.png "High Level System Diagram")
 
-> Create Static IP addresses within the GCP Shared VPC host project, in the region closest to the AWS VPC. These will be used as the PeerIp(s)  
+> Create Static IP addresses within the GCE VPC host project, in the region closest to the AWS VPC. These will be used as the PeerIp(s)  
 
-**NOTE:** Run within the Shared VPC host project
+**NOTE:** Run within the GCE VPC host project
 
     $ gcloud compute addresses create aws-vpn-static --description "VPN BGP Endpoint" --region us-east1
     address: 35.185.31.1
     ...
-    $ gcloud compute addresses create "aws-vpn-bgp" --description "VPN BGP Endpoint" --region "us-east1"
+    $ gcloud compute addresses create aws-vpn-bgp --description "VPN BGP Endpoint" --region us-east1
     address: 104.196.135.13
     ...
 
 
 > If a VPNGateway does not exist, use the CloudFormation template _aws-vpn-gateway.yaml_ to create and attach it to the VPC. One also controls the which Subnets see the VPN's propagated routes using the RouteTableIds parameter. In this example we want both public and private route tables to see GCP routes.  
 
+    ## Get a list of VpcIds, and select VPC to connect to GCP.
+    $ aws ec2 describe-vpcs
+    ...
+
+    ## Get a list of associated RouteTables  
+    $ aws ec2 describe-route-tables --filters Name=vpc-id,Values=vpc-ffdd6a99
+
+    ## Get a list of associated RouteTableIds and their associated Name tags
+    $ aws ec2 describe-route-tables --filters Name=vpc-id,Values=vpc-ffdd6a99 --query 'RouteTables[].[RouteTableId,Tags[?Key==`Name`].Value]'
+
+    ## In this example, we want to propagated VPN routes to the custom (private/public) tables
     $ aws cloudformation create-stack --stack-name vpn-gw --template-body file://aws-vpn-gateway.yaml --parameters ParameterKey=VpcId,ParameterValue=vpc-ffdd6a99 ParameterKey=RouteTableIds,ParameterValue="rtb-bbfe17c2\,rtb-4d1b8a34"
 
     ## Upon CREATE_COMPLETE, get the VPNGatewayId
@@ -50,6 +61,16 @@ This example establishes both _static_ and _bgp_ dual tunnel VPN connections. Th
 
 
 > Use the CloudFormation template _aws-vpn.yaml_ to create a CustomerGateway and enable the VPN connections. Both static and bgp configurations require the VPNGatewayId and PeerIp. For Static Routes, one is required to set StaticRoutesOnly to true, and the StaticRoute to the remote network cidr block. If multiple GCP static routes are required, go ahead and edit the template, using Route0 as an example.
+
+    ## List GCE Vpcs
+    $ gcloud compute networks list --uri
+    https://www.googleapis.com/compute/v1/projects/shared-vpc-host/global/networks/vpc
+
+    ## List GCE Subnets
+    $ gcloud compute networks subnets list
+    mgmt                   us-east1              shared-vpc-host      10.10.0.0/24
+    services               us-east1              shared-vpc-host      10.10.64.0/20
+    ...
 
     ## Static Route Example (10.10.0.0/24 is the GCP subnet)
     $ aws cloudformation create-stack --stack-name gcp-vpn-static --template-body file://aws-vpn.yaml --parameters ParameterKey=StaticRoutesOnly,ParameterValue=true ParameterKey=VPNGatewayId,ParameterValue=vgw-919078f8 ParameterKey=PeerIp,ParameterValue=35.185.31.1 ParameterKey=StaticRoute,ParameterValue="10.10.0.0/24"
@@ -68,19 +89,24 @@ This example establishes both _static_ and _bgp_ dual tunnel VPN connections. Th
 
 > Once the gcp-vpn* stacks are _COMPLETE_, pipe the CustomerGateway(XML) configuration into the `gcp-vpn-buildconf.py` command (Note: Requires python mod jinja2). This will output a yaml configuration file for the gcp-vpn.jinja DeploymentManager template. A Google network url, in the same project as the PeerIp created above is required. See `./gcp-vpn-buildconf.py -h` for more information. For static routes, both local and remote traffic selector options are required. Local being the GCP subnet cidr block(s), and remote being the AWS VPC subnet cidr block(s).
 
-    ## Static Route Example
-    $ aws ec2 describe-vpn-connections --filter Name=vpn-connection-id,Values=vpn-914251f0 --query VpnConnections[0].CustomerGatewayConfiguration --output text | ./gcp-vpn-buildconf.py --network https://www.googleapis.com/compute/v1/projects/shared-vpc-host/global/networks/vpc --local-traffic-selector 10.10.0.0/24 --remote-traffic-selector 10.0.0.0/24 >> config.static.yaml
+    ## Install Deps
+    $ pip install jinja2
 
-    ## BGP Example
-    $ aws ec2 describe-vpn-connections --filter Name=vpn-connection-id,Values=vpn-8e4251ef --query VpnConnections[0].CustomerGatewayConfiguration --output text | ./gcp-vpn-buildconf.py --network https://www.googleapis.com/compute/v1/projects/shared-vpc-host/global/networks/vpc >> config.bgp.yaml
+    ## Static Route Example (Use static route vpn gateway)
+    $ aws ec2 describe-vpn-connections --filter Name=vpn-connection-id,Values=vpn-914251f0 --query VpnConnections[0].CustomerGatewayConfiguration --output text | ./gcp-vpn-buildconf.py --network https://www.googleapis.com/compute/v1/projects/shared-vpc-host/global/networks/vpc --local-traffic-selector 10.10.0.0/24 --remote-traffic-selector 10.0.0.0/24 > config.static.yaml
+
+    ## BGP Example (Use bgp vpn gateway)
+    $ aws ec2 describe-vpn-connections --filter Name=vpn-connection-id,Values=vpn-8e4251ef --query VpnConnections[0].CustomerGatewayConfiguration --output text | ./gcp-vpn-buildconf.py --network https://www.googleapis.com/compute/v1/projects/shared-vpc-host/global/networks/vpc > config.bgp.yaml
 
 
 > Launch _gcp-vpn.jinja_ deployment
 
-**NOTE:** Run within the Shared VPC host project
+**NOTE:** Run within the GCE VPC host project
 
     ## Static Route Example
-    $ gcloud deployment-manager deployments create vpn-static-to-aws                 compute.v1.targetVpnGateway  COMPLETED  []
+    $ gcloud deployment-manager deployments create vpn-static-to-aws --config config.static.yaml
+    NAME                              TYPE                         STATE      ERRORS  INTENT
+    vpn-static-to-aws                 compute.v1.targetVpnGateway  COMPLETED  []
     vpn-static-to-aws-rule-esp        compute.v1.forwardingRule    COMPLETED  []
     vpn-static-to-aws-rule-udp4500    compute.v1.forwardingRule    COMPLETED  []
     vpn-static-to-aws-rule-udp500     compute.v1.forwardingRule    COMPLETED  []
@@ -94,23 +120,12 @@ This example establishes both _static_ and _bgp_ dual tunnel VPN connections. Th
     NAME                         TYPE                         STATE      ERRORS  INTENT
     vpn-bgp-to-aws               compute.v1.targetVpnGateway  COMPLETED  []
     vpn-bgp-to-aws-router        compute.v1.router            COMPLETED  []
+    vpn-bgp-to-aws-patch-router  gcp-types/compute-v1:compute.routers.patch  COMPLETED  []
     vpn-bgp-to-aws-rule-esp      compute.v1.forwardingRule    COMPLETED  []
     vpn-bgp-to-aws-rule-udp4500  compute.v1.forwardingRule    COMPLETED  []
     vpn-bgp-to-aws-rule-udp500   compute.v1.forwardingRule    COMPLETED  []
     vpn-bgp-to-aws-tunnel1       compute.v1.vpnTunnel         COMPLETED  []
     vpn-bgp-to-aws-tunnel2       compute.v1.vpnTunnel         COMPLETED  []
-
-    ## BGP requires one execute a number of gcloud commands to create the tunnels and bgp peers. One can use the following bash command to run the preconfigured outputs in sequence.
-
-    ## Show Outputs
-    $ gcloud deployment-manager manifests describe --deployment vpn-bgp-to-aws | sed -n 's@^.*finalValue: @@p'
-
-    ## Execute Outputs
-    $ gcloud deployment-manager manifests describe --deployment vpn-bgp-to-aws | sed -n 's@^.*finalValue: @@p' | xargs -L1 bash
-    Updated [https://www.googleapis.com/compute/v1/projects/shared-vpc-host/regions/us-east1/routers/vpn-bgp-to-aws-router].
-    Updated [https://www.googleapis.com/compute/v1/projects/shared-vpc-host/regions/us-east1/routers/vpn-bgp-to-aws-router].
-    Updated [https://www.googleapis.com/compute/v1/projects/shared-vpc-host/regions/us-east1/routers/vpn-bgp-to-aws-router].
-    Updated [https://www.googleapis.com/compute/v1/projects/shared-vpc-host/regions/us-east1/routers/vpn-bgp-to-aws-router].
 
 
 ## Monitoring and Alerting with StackDriver

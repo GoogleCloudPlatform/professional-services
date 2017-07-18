@@ -18,109 +18,114 @@ You may obtain a copy of the License at
 {% set bgp = true if properties["asn"] else false %}
 
 resources:
-  - name: {{ id }}
-    type: compute.v1.targetVpnGateway
-    properties:
-      network: {{ properties["network"] }}
-      region: {{ region }}
+- name: {{ id }}
+  type: compute.v1.targetVpnGateway
+  properties:
+    network: {{ properties["network"] }}
+    region: {{ region }}
  
-  {% if bgp %}
-  - name: {{ id }}-router
-    type: compute.v1.router
-    properties:
-      network: {{ properties["network"] }}
-      region: {{ region }}
-      bgp:
-        asn: {{ properties["asn"] }}
-  {% endif %}
+{% if bgp %}
+- name: {{ id }}-router
+  type: compute.v1.router
+  properties:
+    network: {{ properties["network"] }}
+    region: {{ region }}
+    bgp:
+      asn: {{ properties["asn"] }}
+{% endif %}
 
-  - name: {{ id }}-rule-esp
-    type: compute.v1.forwardingRule
-    properties:
-      IPAddress: {{ properties["address"] }}
-      IPProtocol: ESP
-      region: {{ region }}
-      target: $(ref.{{ id }}.selfLink)
+- name: {{ id }}-rule-esp
+  type: compute.v1.forwardingRule
+  properties:
+    IPAddress: {{ properties["address"] }}
+    IPProtocol: ESP
+    region: {{ region }}
+    target: $(ref.{{ id }}.selfLink)
   
-  - name: {{ id }}-rule-udp500
-    type: compute.v1.forwardingRule
-    properties:
-      IPAddress: {{ properties["address"] }}
-      IPProtocol: UDP
-      portRange: 500
-      region: {{ region }}
-      target: $(ref.{{ id }}.selfLink)
+- name: {{ id }}-rule-udp500
+  type: compute.v1.forwardingRule
+  properties:
+    IPAddress: {{ properties["address"] }}
+    IPProtocol: UDP
+    portRange: 500
+    region: {{ region }}
+    target: $(ref.{{ id }}.selfLink)
   
-  - name: {{ id }}-rule-udp4500
-    type: compute.v1.forwardingRule
-    properties:
-      IPAddress: {{ properties["address"] }}
-      IPProtocol: UDP
-      portRange: 4500
-      region: {{ region}}
-      target: $(ref.{{ id }}.selfLink)
+- name: {{ id }}-rule-udp4500
+  type: compute.v1.forwardingRule
+  properties:
+    IPAddress: {{ properties["address"] }}
+    IPProtocol: UDP
+    portRange: 4500
+    region: {{ region}}
+    target: $(ref.{{ id }}.selfLink)
  
 {% for i in properties["tunnels"] %}
   {% set oindex = loop.index %} 
-  - name:  {{ id }}-tunnel{{oindex}}
-    type: compute.v1.vpnTunnel
-    properties:
-      peerIp: {{ i["peerIp"] }}
-      region: {{ region }}
-      sharedSecret: {{ i["secret"] }}
-      ikeVersion: 1
-      targetVpnGateway: $(ref.{{ id }}.selfLink)
-    {% if bgp %}
-      router: $(ref.{{ id }}-router.selfLink)
-    {% endif %}
-    {% if "localTrafficSelector" in i%}
-      localTrafficSelector: 
-      {% for j in i["localTrafficSelector"] %}
-        - {{ j }}
-      {% endfor %} 
-    {% endif %}
-    {% if "remoteTrafficSelector" in i%}
-      remoteTrafficSelector: 
-      {% for j in i["remoteTrafficSelector"] %}
-        - {{ j }}
-      {% endfor %} 
-    {% endif %}
-    metadata:
-      dependsOn:
-        - {{ id }}-rule-esp
-        - {{ id }}-rule-udp500
-        - {{ id }}-rule-udp4500
+- name:  {{ id }}-tunnel{{oindex}}
+  type: compute.v1.vpnTunnel
+  properties:
+    peerIp: {{ i["peerIp"] }}
+    region: {{ region }}
+    sharedSecret: {{ i["secret"] }}
+    # AWS supports only ike 1 https://forums.aws.amazon.com/thread.jspa?messageID=777039
+    ikeVersion: 1
+    targetVpnGateway: $(ref.{{ id }}.selfLink)
+  {% if bgp %}
+    router: $(ref.{{ id }}-router.selfLink)
+  {% endif %}
+  {% if "localTrafficSelector" in i%}
+    localTrafficSelector: 
+    {% for j in i["localTrafficSelector"] %}
+    - {{ j }}
+    {% endfor %} 
+  {% endif %}
+  {% if "remoteTrafficSelector" in i%}
+    remoteTrafficSelector: 
+    {% for j in i["remoteTrafficSelector"] %}
+    - {{ j }}
+    {% endfor %} 
+  {% endif %}
+  metadata:
+    dependsOn:
+    - {{ id }}-rule-esp
+    - {{ id }}-rule-udp500
+    - {{ id }}-rule-udp4500
   {% if "remoteTrafficSelector" in i%}
     {% for j in i["remoteTrafficSelector"] %}
-  - name: {{ id }}-tunnel{{oindex}}-route{{loop.index}}
-    type: compute.v1.route
-    properties:
-      network: {{ properties["network"] }}
-      destRange: {{ j }}
-      nextHopVpnTunnel: $(ref.{{ id }}-tunnel{{oindex}}.selfLink)
-      priority: 1000
-      tags: []
+- name: {{ id }}-tunnel{{oindex}}-route{{loop.index}}
+  type: compute.v1.route
+  properties:
+    network: {{ properties["network"] }}
+    destRange: {{ j }}
+    nextHopVpnTunnel: $(ref.{{ id }}-tunnel{{oindex}}.selfLink)
+    priority: 1000
+    tags: []
     {% endfor %}
   {% endif %}
 
 {% endfor %} 
 
 {% if bgp %}
-outputs:
+- name: {{ id }}-patch-router
+  action: gcp-types/compute-v1:compute.routers.patch
+  properties:
+    router: {{ id }}-router
+    region: {{ region }}
+    project: {{ env["project"] }}
+    name: {{ id }}-router
+    bgpPeers:
   {% for i in properties["tunnels"] %}
-  - name: createInterface{{loop.index}}
-    value: gcloud compute routers add-interface {{ id }}-router 
-      --interface-name {{ id }}-int{{loop.index}} 
-      --vpn-tunnel $(ref.{{ id }}-tunnel{{loop.index}}.selfLink) 
-      --ip-address {{ i["bgpIpAddress"] }} --mask-length 30 
-      --region {{ region }}
-  
-  - name: addBgpPeer{{loop.index}}
-    value: gcloud compute routers add-bgp-peer {{ id }}-router 
-      --interface {{ id }}-int{{loop.index}} 
-      --peer-asn {{ i["peerAsn"] }} 
-      --peer-name {{ id }}-peer{{loop.index}}  
-      --peer-ip-address {{ i["peerBgpIpAddress"] }} 
-      --region {{ region }}
+    - interfaceName: {{ id }}-int{{loop.index}}
+      ipAddress: {{ i["bgpIpAddress"] }}
+      name: {{ id }}-peer{{loop.index}}
+      peerAsn: {{ i["peerAsn"] }}
+      peerIpAddress: {{ i["peerBgpIpAddress"] }}
+  {% endfor %} 
+    interfaces:
+  {% for i in properties["tunnels"] %}
+    - ipRange: {{ i["bgpIpAddress"] }}/30
+      linkedVpnTunnel: $(ref.{{ id }}-tunnel{{loop.index}}.selfLink)
+      name: {{ id }}-int{{loop.index}}
   {% endfor %} 
 {% endif %}
