@@ -225,11 +225,11 @@ This test will be run on two nodes within the static route supported subnets.
 
 > The following commands can be used to delete all stacks and templates created above
 
-    ## Delete Static Deployment
-    $ gcloud deployment-manager deployments delete vpn-static-to-aws
-
     ## Delete BGP Deployment
     $ gcloud deployment-manager deployments delete vpn-bgp-to-aws
+
+    ## Delete Static Deployment
+    $ gcloud deployment-manager deployments delete vpn-static-to-aws
 
     ## Delete BGP Stack
     $ aws cloudformation delete-stack --stack-name gcp-vpn-bgp
