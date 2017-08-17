@@ -38,7 +38,5 @@ resources:
                 sudo apt-get install python-pip build-essential libssl-dev libffi-dev python-dev -y;
                 sudo wget https://raw.githubusercontent.com/GoogleCloudPlatform/python-docs-samples/master/iap/requirements.txt;
                 sudo easy_install --upgrade pip;
-                sudo pip install virtualenv;
-                virtualenv virtualenv;
-                virtualenv/bin/pip install -r requirements.txt;
+                pip install --user -r requirements.txt;
                 sudo wget https://raw.githubusercontent.com/GoogleCloudPlatform/python-docs-samples/master/iap/make_iap_request.py? -O /home/make_iap_request.py;"
