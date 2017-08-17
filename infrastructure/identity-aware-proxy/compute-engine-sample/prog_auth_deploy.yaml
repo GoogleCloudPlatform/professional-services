@@ -36,5 +36,6 @@ resources:
       - key: startup-script
         value: "sudo apt-get update;
                 sudo apt-get install python-pip -y;
-                pip install --user google-auth;
-                sudo wget https://raw.githubusercontent.com/danieldeleo/professional-services/master/infrastructure/identity-aware-proxy/compute-engine-sample/iap_programmatic_auth.py? -O /home/iap_programmatic_auth.py;"
+                sudo wget https://raw.githubusercontent.com/GoogleCloudPlatform/python-docs-samples/master/iap/requirements.txt? -O /home/requirements.txt;
+                pip install --user -r /home/requirements.txt;
+                sudo wget https://raw.githubusercontent.com/GoogleCloudPlatform/python-docs-samples/master/iap/make_iap_request.py? -O /home/make_iap_request.py;"
