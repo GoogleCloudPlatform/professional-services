@@ -12,21 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
-import jwt
-import requests
 from validate_jwt import *
 
 class RequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
-        request_path = self.path
-        identity = (None, None, None)
-        request_proto = self.headers.get("X-Forwarded-Proto")
-        host = self.headers.get("Host")
-        user_jwt = self.headers.get("X-Goog-Authenticated-User-JWT")
-        
-        if request_proto and host and user_jwt:
-            base_url = request_proto + "://" + host
-            identity = validate_iap_jwt(base_url, user_jwt)
+        identity = validate_iap_jwt_from_compute_engine(
+                    self.headers.get("X-Goog-IAP-JWT-Assertion"),
+                    "209762747271",
+                    "935984280712707854")          
         if not identity[1]:
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
@@ -37,10 +30,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             self.send_header('Content-type', 'text/html')
             self.end_headers()
             self.wfile.write(
-                validate_iap_jwt_from_compute_engine(
-                    self.headers.get("X-Goog-IAP-JWT-Assertion"),
-                    "209762747271",
-                    "935984280712707854"))
+                )
         return
 
     do_POST = do_GET
