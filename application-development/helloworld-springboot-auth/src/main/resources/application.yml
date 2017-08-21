@@ -1,0 +1,16 @@
+security:
+  oauth2:
+    client:
+      clientId: CHANGE-ME
+      clientSecret: CHANGE-ME
+      accessTokenUri: https://www.googleapis.com/oauth2/v4/token
+      userAuthorizationUri: https://accounts.google.com/o/oauth2/v2/auth
+      authenticationScheme: form
+      scope:
+        - openid
+        - email
+        - profile
+        - https://www.googleapis.com/auth/cloud-platform
+    resource:
+      userInfoUri: https://www.googleapis.com/oauth2/v3/userinfo
+      preferTokenInfo: true
