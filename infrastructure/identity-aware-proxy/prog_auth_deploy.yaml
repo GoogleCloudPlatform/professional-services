@@ -38,7 +38,7 @@ resources:
         sudo apt-get install python-pip build-essential libssl-dev libffi-dev python-dev -y;
         sudo wget https://raw.githubusercontent.com/GoogleCloudPlatform/python-docs-samples/master/iap/requirements.txt;
         sudo wget https://raw.githubusercontent.com/GoogleCloudPlatform/python-docs-samples/master/iap/make_iap_request.py? -O /home/make_iap_request.py;
-        sudo sed -i 's/url,/url,verify=False/' /home/make_iap_request.py;
+        sudo sed -i 's/url,$/url,verify=False,/' /home/make_iap_request.py;
         sudo wget https://github.com/GoogleCloudPlatform/professional-services/raw/danieldeleo-identity-aware-proxy/infrastructure/identity-aware-proxy/main.py? -O /home/main.py;
         sudo easy_install --upgrade pip;
         sudo pip install virtualenv;
