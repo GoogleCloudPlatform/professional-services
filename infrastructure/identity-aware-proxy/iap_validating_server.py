@@ -16,10 +16,12 @@ from validate_jwt import *
 
 class RequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
+        backendServiceId = self.path.split("/")[-1] #209762747271
+        projectNumber = self.path.split("/")[-2]    #935984280712707854
         identity = validate_iap_jwt_from_compute_engine(
                     self.headers.get("X-Goog-IAP-JWT-Assertion"),
-                    "209762747271",
-                    "935984280712707854")          
+                    projectNumber,
+                    backendServiceId)          
         if not identity[1]:
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
@@ -29,8 +31,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
             self.end_headers()
-            self.wfile.write(
-                )
+            self.wfile.write("Hello " + identity[1] + "!")
         return
 
     do_POST = do_GET
