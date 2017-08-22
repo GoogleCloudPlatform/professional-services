@@ -16,8 +16,8 @@ from validate_jwt import *
 
 class RequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
-        backendServiceId = self.path.split("/")[-1] #209762747271
-        projectNumber = self.path.split("/")[-2]    #935984280712707854
+        backendServiceId = self.path.split("/")[-1]
+        projectNumber = self.path.split("/")[-2]
         identity = validate_iap_jwt_from_compute_engine(
                     self.headers.get("X-Goog-IAP-JWT-Assertion"),
                     projectNumber,
@@ -26,7 +26,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
             self.end_headers()
-            self.wfile.write("Unknown User")
+            self.wfile.write("IAP Validation Failed")
         else:
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
