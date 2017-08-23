@@ -16,6 +16,6 @@ A repository of Infrastructure solutions.
   CloudConnect is a package that automates the setup of dual VPN tunnels between AWS and GCP. While this connection is **NOT** meant for high throughput, low latency connections (1Gbps+), it can certainly support basic management and configuration traffic. Currently it supports the creation of both _static-routes_ and _bgp_ connections.
 
 ### [identity-aware proxy](identity-aware-proxy/)
-  identity-aware-proxy contains sample scripts which demo these IAP related functions:
-* Verifying signed headers on all web traffic to a server
+  identity-aware-proxy contains sample scripts which demo:
+* Verifying IAP-signed headers on all web reqeusts to a vm within compute engine
 * Programmatically communicating with IAP protected resources
