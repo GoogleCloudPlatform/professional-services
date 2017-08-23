@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
+# validate_jwt github link: 
+#    https://github.com/GoogleCloudPlatform/python-docs-samples/blob/master/iap/validate_jwt.py
 from validate_jwt import *
 
 
