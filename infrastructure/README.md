@@ -1,18 +1,21 @@
-# Identity-Aware Proxy Samples
+# Professional Services
+## Infrastructure
+A repository of Infrastructure solutions.
 
-## iap_validating_server.py
+ * [dns-sync](#dns-sync)
+ * [labelmaker](#labelmaker)
+ * [cloudconnect](#cloudconnect)
 
-This sample script runs a simple python web server which validates all GET requests to verify if they're being proxied through Google's Identity-Aware Proxy. This sample depends on and uses the [validate_iap_jwt_from_compute_engine](https://github.com/GoogleCloudPlatform/python-docs-samples/blob/3f5de8c8857784e90935379b63c352c0a5f7f8da/iap/validate_jwt.py#L49) function found in the [validate_jwt.py](https://github.com/GoogleCloudPlatform/python-docs-samples/blob/master/iap/validate_jwt.py) file.
+### [dns-sync](dns-sync/)
+  Sync a Cloud DNS zone with GCE resources. Instances and load balancers are added to the cloud DNS zone as they start from compute_engine_activity log events sent from a pub/sub push subscription. Can sync multiple projects to a single Cloud DNS zone.
 
-## main.py
+### [labelmaker](labelmaker/)
+  _labelmaker.py_ is a tool that reads key:value pairs from a json file and labels the running instance and all attached drives accordingly. It is designed to run on boot in a startup-script or userdata. Labels show up in billing exports to BigQuery, and allows organizations to run complex cost analysis over their cloud spend.
 
-This sample takes in two runtime arguments
+### [cloudconnect](cloudconnect/)
+  CloudConnect is a package that automates the setup of dual VPN tunnels between AWS and GCP. While this connection is **NOT** meant for high throughput, low latency connections (1Gbps+), it can certainly support basic management and configuration traffic. Currently it supports the creation of both _static-routes_ and _bgp_ connections.
 
-* URL - The URL corresponding to the resource sitting behind the Identity-Aware Proxy 
-* IAP Client Id - The OAuth Client Id of the service account assigned to Identity-Aware Proxy
-
-and then calls the [make_iap_request](https://github.com/GoogleCloudPlatform/python-docs-samples/blob/3f5de8c8857784e90935379b63c352c0a5f7f8da/iap/make_iap_request.py#L33) function found in [make_iap_request.py](https://github.com/GoogleCloudPlatform/python-docs-samples/blob/master/iap/make_iap_request.py)
-
-## prog_auth_deploy.yaml
-
-This deployment manager template creates a virtual machine instance in compute engine and runs a custom startup script with specific steps to prepare the environment for testing programmatic authentication with IAP. 
+### [identity-aware proxy](identity-aware-proxy/)
+  identity-aware-proxy contains sample scripts which demo these IAP related functions:
+* Verifying signed headers on all web traffic to a server
+* Programmatically communicating with IAP protected resources
