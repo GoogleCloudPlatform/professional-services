@@ -14,8 +14,20 @@
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 from validate_jwt import *
 
+
 class RequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
+        """Intercepts all GET requests and validates 
+        the IAP JWT that is present in the header.
+        For this example, all requests must have the
+        load balancer's backend service id and the 
+        project number present in the url. 
+
+        Example request: 
+        https:testdomain.com/projectNumber/backendServiceId
+
+        """
+        print self.headers
         backendServiceId = self.path.split("/")[-1]
         projectNumber = self.path.split("/")[-2]
         identity = validate_iap_jwt_from_compute_engine(
@@ -34,9 +46,6 @@ class RequestHandler(BaseHTTPRequestHandler):
             self.wfile.write("Hello " + identity[1] + "!")
         return
 
-    do_POST = do_GET
-    do_PUT = do_GET
-    do_DELETE = do_GET
 
 def main():
     port = 80
