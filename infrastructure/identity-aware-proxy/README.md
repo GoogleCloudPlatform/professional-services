@@ -29,6 +29,8 @@ making sure to replace the URL and IAP_CLIENT_ID placeholders with appropriate v
 
 ## Deploying with prog_auth_deploy.yaml
 
-This deployment manager template creates a virtual machine instance in compute engine and runs a custom startup script with specific steps to prepare the environment for testing programmatic authentication with IAP. 
+This deployment manager template creates a virtual machine instance in compute engine and runs a custom startup script with specific steps to prepare the environment for testing programmatic authentication with IAP.
+
+Use gcloud to create a deployment with this template:
 
     gcloud deployment-manager deployments create prog-auth-vm --config prog_auth_deploy.yaml
