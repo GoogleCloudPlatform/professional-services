@@ -10,6 +10,7 @@ Once the libraries are installed, you can run the server by calling:
 
     python iap_validating_server.py
 
+**Note: This web server requires that the IAP project number and the backend service ID be passed in every request url in the following form: `https://yourdomain.com/projectNumber/backendServiceId`**
 
 ## Running main.py
 
