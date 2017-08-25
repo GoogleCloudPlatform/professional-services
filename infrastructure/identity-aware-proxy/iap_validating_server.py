@@ -14,7 +14,7 @@
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 # validate_jwt github link: 
 #    https://github.com/GoogleCloudPlatform/python-docs-samples/blob/master/iap/validate_jwt.py
-from validate_jwt import *
+import validate_jwt
 
 
 class RequestHandler(BaseHTTPRequestHandler):
@@ -32,7 +32,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         print self.headers
         backendServiceId = self.path.split("/")[-1]
         projectNumber = self.path.split("/")[-2]
-        identity = validate_iap_jwt_from_compute_engine(
+        identity = validate_jwt.validate_iap_jwt_from_compute_engine(
                     self.headers.get("X-Goog-IAP-JWT-Assertion"),
                     projectNumber,
                     backendServiceId)          
