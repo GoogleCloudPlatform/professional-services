@@ -2,13 +2,12 @@
 
 ## Running iap_validating_server.py
 
-This sample script runs a simple python web server which validates all GET requests to verify if they're being proxied through Google's Identity-Aware Proxy. This sample depends on and uses the [validate_iap_jwt_from_compute_engine](https://github.com/GoogleCloudPlatform/python-docs-samples/blob/3f5de8c8857784e90935379b63c352c0a5f7f8da/iap/validate_jwt.py#L49) function found in [validate_jwt.py](https://github.com/GoogleCloudPlatform/python-docs-samples/blob/master/iap/validate_jwt.py). Make sure you install the necessary libraries found in [requirements.txt](https://github.com/GoogleCloudPlatform/python-docs-samples/blob/master/iap/requirements.txt) by running:
+This sample script runs a simple python web server which validates all GET requests to verify if they're being proxied through Google's Identity-Aware Proxy. This sample depends on and uses the [validate_iap_jwt_from_compute_engine](https://github.com/GoogleCloudPlatform/python-docs-samples/blob/3f5de8c8857784e90935379b63c352c0a5f7f8da/iap/validate_jwt.py#L49) function found in [validate_jwt.py](https://github.com/GoogleCloudPlatform/python-docs-samples/blob/master/iap/validate_jwt.py).
+The [server_deployment.jinja](server_deployment.jinja) deployment manager template is provided to quickly setup an environment with necessary libraries to run the server. 
 
-    pip install -r requirements.txt
+You can deploy and run the server using this template by calling:
 
-Once the libraries are installed, you can run the server by calling:
-
-    python iap_validating_server.py
+    gcloud deployment-manager deployments create iap-validating-server-deployment --template iap_validating_server_deploy.jinja --properties zone:us-east4-a # ZONE IS YOUR CHOICE
 
 **Note: This web server requires that the IAP project number and the backend service ID be passed in every request url in the following form: `https://yourdomain.com/projectNumber/backendServiceId`. This is only done for convenience since this example is intended to be generic and not specific to any project. In production, the project number and backend service ID should be passed as runtime arguments when starting your server.**
 
@@ -35,4 +34,5 @@ This deployment manager template creates a virtual machine instance in compute e
 
 Use gcloud to create a deployment with this template:
 
-gcloud deployment-manager deployments create prog-auth-vm --config prog_auth_deploy.yaml
+    gcloud deployment-manager deployments create iap-prog-auth --template iap_validating_server_deploy.jinja --properties zone:us-east4-a #ZONE IS YOUR CHOICE
+

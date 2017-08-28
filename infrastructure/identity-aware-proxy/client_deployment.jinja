@@ -13,11 +13,11 @@
 # limitations under the License.
 
 resources:
-- name: vm-created-by-deployment-manager
+- name: iap-client-vm
   type: compute.v1.instance
   properties:
-    zone: us-east4-a
-    machineType: zones/us-east4-a/machineTypes/n1-standard-1
+    zone: {{ properties["zone"] }}
+    machineType: zones/{{ properties["zone"] }}/machineTypes/n1-standard-1
     disks:
     - deviceName: boot
       type: PERSISTENT
@@ -39,7 +39,7 @@ resources:
                 wget https://raw.githubusercontent.com/GoogleCloudPlatform/python-docs-samples/master/iap/requirements.txt;
                 wget https://raw.githubusercontent.com/GoogleCloudPlatform/python-docs-samples/master/iap/make_iap_request.py? -O /home/make_iap_request.py;
                 sed -i 's/url,$/url, verify=False,/' /home/make_iap_request.py;
-                wget https://github.com/GoogleCloudPlatform/professional-services/raw/danieldeleo-identity-aware-proxy/infrastructure/identity-aware-proxy/main.py? -O /home/main.py;
+                wget https://raw.githubusercontent.com/GoogleCloudPlatform/professional-services/master/infrastructure/identity-aware-proxy/main.py? -O /home/main.py;
                 easy_install --upgrade pip;
                 pip install virtualenv;
                 virtualenv /home/virtualenv;
