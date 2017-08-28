@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Example use make_iap_request.py sample."""
+"""Example making GET request to IAP resource."""
 
 import argparse
 import make_iap_request as iap
