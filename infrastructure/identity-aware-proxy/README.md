@@ -40,7 +40,7 @@ The [client_deployment.jinja](clieint_deployment.jinja) deployment manager templ
     ```bash
     python main.py URL IAP_CLIENT_ID
     ```
-    * Make sure to replace the URL and IAP_CLIENT_ID placeholders with appropriate values.
+    * (Required) Replace URL and IAP_CLIENT_ID placeholders with appropriate values.
 
 
 
