@@ -10,6 +10,7 @@ The [server_deployment.jinja](server_deployment.jinja) deployment manager templa
     ```bash
     gcloud deployment-manager deployments iap-server --template server_deployment.jinja --properties zone:us-east4-a # ZONE IS YOUR CHOICE
     ```
+    * Set your desired zone with the ```--properties zone:YOUR_ZONE``` argument 
 1. [Setup a load balancer](https://cloud.google.com/iap/docs/load-balancer-howto#setting_up_the_load_balancer) with the backend service pointing to the managed instance group you just created.
 To expedite this sample and only for demo purposes:
     * Set the backend service to communicate over HTTP
@@ -33,6 +34,7 @@ The [client_deployment.jinja](clieint_deployment.jinja) deployment manager templ
     ```bash
     gcloud deployment-manager deployments create iap-client --template client_deployment.jinja --properties zone:us-east4-a #ZONE IS YOUR CHOICE
     ```
+    * Set your desired zone with the ```--properties zone:YOUR_ZONE``` argument 
 1. SSH into the IAP client virtual machine
 1. Once the libraries are installed, you can run the sample by calling:
     ```bash
