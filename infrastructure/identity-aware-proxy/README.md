@@ -12,7 +12,7 @@ You can deploy and run the server using this template by calling:
 gcloud deployment-manager deployments iap-server --template server_deployment.jinja --properties zone:us-east4-a # ZONE IS YOUR CHOICE
 ```
 
-**Note: This web server requires that the IAP project number and the backend service ID be passed in every request url in the following form: `https://yourdomain.com/projectNumber/backendServiceId`. This is only done for convenience since this example is intended to be generic and not specific to any project. In production, the project number and backend service ID should be passed as runtime arguments when starting your server.**
+**IMPORTANT: This web server requires that the IAP project number and the backend service ID be passed in every request url in the following form: `https://yourdomain.com/projectNumber/backendServiceId`. This is only done for convenience since this example is intended to be generic and not specific to any project. In production, the project number and backend service ID should be passed as runtime arguments when starting your server.**
 
 ## IAP Client
 
