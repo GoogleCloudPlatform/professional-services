@@ -40,5 +40,5 @@ The [client_deployment.jinja](clieint_deployment.jinja) deployment manager templ
     ```bash
     python main.py URL IAP_CLIENT_ID
     ```
-    * (Required) ```URL``` must be passed in the following form: `https://yourdomain.com/projectNumber/backendServiceId`. This is specific to this demo since the IAP Server expects this format.
+    * (Required) ```URL``` must be passed in the following form: `https://yourdomain.com/projectNumber/backendServiceId`. This is specific to this demo since the IAP Server expects this format. To locate your projectNumber and backendServiceId,  go to the Identity-Aware Proxy settings for your project, click **More** next to the Load Balancer resource, and then select **Signed Header JWT Audience**. The **Signed Header JWT** dialog that appears displays both the projectNumber and backendServiceId. 
     * (Required) ```IAP_CLIENT_ID``` can be found in the Identity-Aware Proxy interface. Locate the resource you want to access, click **More > OAuth Client** on the right side, then note the client ID on the Credentials page that appears. 
