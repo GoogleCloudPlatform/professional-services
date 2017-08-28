@@ -22,15 +22,15 @@ This sample script takes in two runtime arguments
 
 and passes them to the [make_iap_request](https://github.com/GoogleCloudPlatform/python-docs-samples/blob/3f5de8c8857784e90935379b63c352c0a5f7f8da/iap/make_iap_request.py#L33) function found in [make_iap_request.py](https://github.com/GoogleCloudPlatform/python-docs-samples/blob/master/iap/make_iap_request.py). Make sure you install the necessary libraries found in [requirements.txt](https://github.com/GoogleCloudPlatform/python-docs-samples/blob/master/iap/requirements.txt) by running:
 
-    ```bash
-    pip install -r requirements.txt
-    ```
+```bash
+pip install -r requirements.txt
+```
 
 Once the libraries are installed, you can run the sample by calling:
 
-    ```bash
-    python main.py URL IAP_CLIENT_ID
-    ```
+```bash
+python main.py URL IAP_CLIENT_ID
+```
 
 making sure to replace the URL and IAP_CLIENT_ID placeholders with appropriate values.
 
@@ -40,7 +40,7 @@ This deployment manager template creates a virtual machine instance in compute e
 
 Use gcloud to create a deployment with this template:
 
-    ```bash
-    gcloud deployment-manager deployments create iap-prog-auth --template client_deployment.jinja --properties zone:us-east4-a #ZONE IS YOUR CHOICE
-    ```
+```bash
+gcloud deployment-manager deployments create iap-prog-auth --template client_deployment.jinja --properties zone:us-east4-a #ZONE IS YOUR CHOICE
+```
 
