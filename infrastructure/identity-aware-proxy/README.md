@@ -40,7 +40,5 @@ The [client_deployment.jinja](clieint_deployment.jinja) deployment manager templ
     ```bash
     python main.py URL IAP_CLIENT_ID
     ```
-    * (Required) Replace URL and IAP_CLIENT_ID placeholders with appropriate values.
-
-
-
+    * (Required) ```URL``` must be passed in the following form: `https://yourdomain.com/projectNumber/backendServiceId`. This is specific to this demo since the IAP Server expects this format.
+    * (Required) ```IAP_CLIENT_ID``` can be found in the Identity-Aware Proxy interface. Locate the resource you want to access, click **More > OAuth Client** on the right side, then note the client ID on the Credentials page that appears. 
