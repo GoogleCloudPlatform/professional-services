@@ -34,7 +34,7 @@ The [client_deployment.jinja](clieint_deployment.jinja) deployment manager templ
     ```bash
     gcloud deployment-manager deployments create iap-client --template client_deployment.jinja --properties zone:us-east4-a #ZONE IS YOUR CHOICE
     ```
-    * Set your desired zone with the ```--properties zone:YOUR_ZONE``` argument 
+    * (Optional) Set your desired zone with the ```--properties zone:YOUR_ZONE``` argument 
 1. SSH into the IAP client virtual machine
 1. Once the libraries are installed, you can run the sample by calling:
     ```bash
