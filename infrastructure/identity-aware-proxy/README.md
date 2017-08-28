@@ -10,7 +10,10 @@ The [server_deployment.jinja](server_deployment.jinja) deployment manager templa
     ```bash
     gcloud deployment-manager deployments iap-server --template server_deployment.jinja --properties zone:us-east4-a # ZONE IS YOUR CHOICE
     ```
-1. [Setup a load balancer](https://cloud.google.com/iap/docs/load-balancer-howto#setting_up_the_load_balancer) with the backend service pointing to the instance group created in step 1. To expedite this sample, you can use a self-signed certificate for the front-end servie of your load balancer.
+1. [Setup a load balancer](https://cloud.google.com/iap/docs/load-balancer-howto#setting_up_the_load_balancer) with the backend service pointing to the instance group created in step 1. 
+    * To expedite this sample and only for demo purposes:
+      * Set the backend service to communicate over HTTP
+      * Set the frontend to communicate over HTTPS (a requirement for IAP) but use a self-signed certificate.
 1. [Enable IAP](https://cloud.google.com/iap/docs/enabling-gce-howto#enabling_short_product_name).
 
 **IMPORTANT: This web server requires that the IAP project number and the backend service ID be passed in every request url in the following form: `https://yourdomain.com/projectNumber/backendServiceId`. This is only done for convenience since this example is intended to be generic and not specific to any project. In production, the project number and backend service ID should be passed as runtime arguments when starting your server.**
