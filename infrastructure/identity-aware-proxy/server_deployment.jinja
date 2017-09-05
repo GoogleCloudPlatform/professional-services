@@ -36,7 +36,7 @@ resources:
         items:
         - key: startup-script
           value: "wget https://github.com/GoogleCloudPlatform/python-docs-samples/raw/master/iap/validate_jwt.py? -O /home/validate_jwt.py;
-                  wget https://github.com/GoogleCloudPlatform/professional-services/raw/danieldeleo-identity-aware-proxy/infrastructure/identity-aware-proxy/iap_validating_server.py? -O /home/iap_validating_server.py;
+                  wget https://github.com/GoogleCloudPlatform/professional-services/raw/master/infrastructure/identity-aware-proxy/iap_validating_server.py? -O /home/iap_validating_server.py;
                   wget https://raw.githubusercontent.com/GoogleCloudPlatform/python-docs-samples/master/iap/requirements.txt;\
                   apt-get update;
                   apt-get install python-pip build-essential libssl-dev libffi-dev python-dev -y;
@@ -45,7 +45,7 @@ resources:
                   virtualenv /home/virtualenv;
                   /home/virtualenv/bin/pip install -r requirements.txt;
                   /home/virtualenv/bin/python /home/iap_validating_server.py;"
-- name: iap-validating-server-instance-group
+- name: iap-server-instance-group
   type: compute.v1.instanceGroupManager
   properties:
     instanceTemplate: $(ref.iap-server-instance-template.selfLink)
