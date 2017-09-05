@@ -79,7 +79,7 @@ These settings should be revisited for production use.
 ## Change the OAuth client settings
 Follow the instructions as described [here][oauth-steps]
 
-Also add `http://[YOUR_PROJECT_ID].appspot.com/login` and `https://[YOUR_PROJECT_ID].appspot.com/login` to the Authorized redirect URIs 
+Also add `http://[YOUR_PROJECT_ID].appspot.com/login`, `https://[YOUR_PROJECT_ID].appspot.com/login` and `http://localhost:8080/login` the Authorized redirect URIs 
 
 Change the clientId and clientSecret in `src/main/resources/application.yml` 
 
@@ -95,7 +95,9 @@ Change the clientId and clientSecret in `src/main/resources/application.yml`
 
 1. `mvn appengine:deploy`
 1. Visit `http://YOUR_PROJECT.appspot.com`.
-* if this is the first deployment, you need to run `gcloud app create`
+* if this is the first deployment, the above mvn command will fail. 
+  You will need to run `gcloud app create --region <region>` or create the app from the console , to create the app first and rerun the above maven command.
+ Ig you encounter issue, try running `gcloud init` and follow the steps.
 
 Note that deployment to the App Engine flexible environment requires the new
 [`com.google.cloud.tools:appengine-maven-plugin` plugin][new-maven-plugin].
