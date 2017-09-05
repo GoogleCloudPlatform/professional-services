@@ -90,7 +90,6 @@ Change the clientId and clientSecret in `src/main/resources/application.yml`
 1. Run `mvn spring-boot:run`
 1. Visit http://localhost:8080
 
-
 ## Deploy to App Engine flexible environment
 
 1. `mvn appengine:deploy`
