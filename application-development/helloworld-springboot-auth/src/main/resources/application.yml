@@ -1,8 +1,8 @@
 security:
   oauth2:
     client:
-      clientId: CHANGE-ME
-      clientSecret: CHANGE-ME
+      clientId: 667713450471-6u065o1ph801fr80kqa0popiudsvathb.apps.googleusercontent.com
+      clientSecret: cqR_pUlx1BjEBumoE0o69WkF
       accessTokenUri: https://www.googleapis.com/oauth2/v4/token
       userAuthorizationUri: https://accounts.google.com/o/oauth2/v2/auth
       authenticationScheme: form

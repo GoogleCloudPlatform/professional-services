@@ -69,7 +69,7 @@ gcloud components update
 The [`app.yaml`][app-yaml] descriptor is used to describe URL
 dispatch and resource requirements.  This example sets
 [`manual_scaling`][manual-scaling] to 1 to minimize possible costs.
-Dont change the manual scaling to anything other than 1 , unleess you refactoir to code to have a shared session store.
+Dont change the manual scaling to anything other than 1 , unless you refactor to code to have a shared session store.
 These settings should be revisited for production use.
 
 [app-yaml]: https://cloud.google.com/appengine/docs/flexible/java/configuring-your-app-with-app-yaml
