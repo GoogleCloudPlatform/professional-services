@@ -2,11 +2,12 @@
 
 This sample shows how to run a [Spring Boot][spring-boot] application on [Google
 Cloud Platform][cloud-java] with Oauth2. It uses the [Google App Engine flexible
-environment][App Engine-flexible].
+environment][App Engine-flexible]. This is the Oauth2 version of the [sample one][unprotected-sample] .
 
 [App Engine-flexible]: https://cloud.google.com/appengine/docs/flexible/
 [cloud-java]: https://cloud.google.com/java/
 [spring-boot]: http://projects.spring.io/spring-boot/
+[unprotected-sample]: https://github.com/GoogleCloudPlatform/getting-started-java/tree/master/helloworld-springboot 
 
 
 ## Before you begin
