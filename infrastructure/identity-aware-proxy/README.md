@@ -8,7 +8,7 @@ The [server_deployment.jinja](server_deployment.jinja) deployment manager templa
 ### How to setup IAP Server
 1. Deploy the managed instance group by calling:
     ```bash
-    gcloud deployment-manager deployments iap-server --template server_deployment.jinja --properties zone:us-east4-a # ZONE IS YOUR CHOICE
+    gcloud deployment-manager deployments create iap-server --template server_deployment.jinja --properties zone:us-east4-a # ZONE IS YOUR CHOICE
     ```
     * (Optional) Set your desired zone with the ```--properties zone:YOUR_ZONE``` argument 
 1. [Setup a load balancer](https://cloud.google.com/iap/docs/load-balancer-howto#setting_up_the_load_balancer) with the backend service pointing to the managed instance group you just created.
@@ -40,5 +40,5 @@ The [client_deployment.jinja](clieint_deployment.jinja) deployment manager templ
     ```bash
     python main.py URL IAP_CLIENT_ID
     ```
-    * (Required) *URL* must be passed in the following form: `https://yourdomain.com/projectNumber/backendServiceId`. This is specific to this demo since the IAP Server expects this format. ```projectNumber``` and ```backendServiceId``` can be found in the Identity-Aware Proxy interface. Locate the resource you want to access, click **More** next to the Load Balancer resource, and then select **Signed Header JWT Audience**. The **Signed Header JWT** dialog that appears displays both the ```projectNumber``` and ```backendServiceId```. 
-    * (Required) *IAP_CLIENT_ID* can also be found in the Identity-Aware Proxy interface. Locate the resource you want to access, click **More > OAuth Client** on the right side, then note the client ID on the Credentials page that appears. 
+    * (Required) *URL* must be passed in the following form: `https://yourdomain.com/projectNumber/backendServiceId`. This is specific to this demo since the IAP Server expects this format. ```projectNumber``` and ```backendServiceId``` can be found in the [Identity-Aware Proxy settings](https://console.cloud.google.com/iam-admin/iap/). Locate the resource you want to access, click **More** next to the Load Balancer resource, and then select **Signed Header JWT Audience**. The **Signed Header JWT** dialog that appears displays both the ```projectNumber``` and ```backendServiceId```. 
+    * (Required) *IAP_CLIENT_ID* can also be found in the [Identity-Aware Proxy settings](https://console.cloud.google.com/iam-admin/iap/). Locate the resource you want to access, click **More > OAuth Client** on the right side, then note the client ID on the Credentials page that appears. 
