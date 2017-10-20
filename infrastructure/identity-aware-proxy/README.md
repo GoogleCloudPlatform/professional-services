@@ -8,7 +8,7 @@ The [server_deployment.py](server_deployment.py) deployment manager template is 
 ### How to setup IAP Server
 1. Deploy the managed instance group by calling:
     ```bash
-    gcloud deployment-manager deployments create iap-server --template server_deployment.jinja --properties zone:us-east4-a # ZONE IS YOUR CHOICE
+    gcloud deployment-manager deployments create iap-server --template server_deployment.py --properties zone:us-east4-a # ZONE IS YOUR CHOICE
     ```
     * (Optional) Set your desired zone with the ```--properties zone:YOUR_ZONE``` argument 
 1. [Setup a load balancer](https://cloud.google.com/iap/docs/load-balancer-howto#setting_up_the_load_balancer) with the backend service pointing to the managed instance group you just created.
@@ -32,7 +32,7 @@ The [client_deployment.py](clieint_deployment.py) deployment manager template is
 ### How to setup IAP Client
 1. Deploy the IAP client virtual machine
     ```bash
-    gcloud deployment-manager deployments create iap-client --template client_deployment.jinja --properties zone:us-east4-a #ZONE IS YOUR CHOICE
+    gcloud deployment-manager deployments create iap-client --template client_deployment.py --properties zone:us-east4-a #ZONE IS YOUR CHOICE
     ```
     * (Optional) Set your desired zone with the ```--properties zone:YOUR_ZONE``` argument 
 1. SSH into the IAP client virtual machine
