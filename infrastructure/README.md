@@ -18,5 +18,5 @@ A repository of Infrastructure solutions.
 
 ### [identity-aware proxy](identity-aware-proxy/)
   identity-aware-proxy contains sample scripts which demo:
-* Verifying IAP-signed headers on all web reqeusts to a vm within compute engine
+* Verifying IAP-signed headers on all web requests to a vm within compute engine
 * Programmatically communicating with IAP protected resources
