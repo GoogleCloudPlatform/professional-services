@@ -26,20 +26,13 @@ import validate_jwt
 
 class RequestHandler(BaseHTTPRequestHandler):
   
-  def __init__(self, *args, **kwargs):
-    super(RequestHandler, self).__init__(*args, **kwargs)
-    self.project_number = kwargs['project_number']
-    self.backend_service_id = kwargs['backend_service_id']
+  project_number = None
+  backend_service_id = None
 
   def do_GET(self):
     """Intercepts all GET requests and validates
     the IAP JWT that is present in the header.
-    For this example, all requests must have the
-    load balancer's backend service id and the
-    project number present in the url.
-
-    Example request:
-    https:testdomain.com/projectNumber/backendServiceId
+    
     """
     print self.headers
     print self.project_number
@@ -65,13 +58,17 @@ class RequestHandler(BaseHTTPRequestHandler):
 
 def main():
   port = 80
+  project_number = sys.argv[1]
+  project_id = sys.argv[2]
   print "Listening on localhost:%s" % port
-  print "Project Number: {}".format(sys.argv[1])
-  print "Project ID: {}".format(sys.argv[2])
+  print "Project Number: {}".format(project_number)
+  print "Project ID: {}".format(project_id)
   service = discovery.build('compute', 'v1')
   backend_service_id = service.backendServices().get(project=sys.argv[2], backendService='iap-backend-service').execute()['id']
   print "Backend Service: {}".format(backend_service_id)
-  server = HTTPServer(("", port), RequestHandler(project_number=sys.argv[1], backend_service_id=backend_service_id))
+  RequestHandler.project_number = project_number
+  RequestHandler.backend_service_id = backend_service_id
+  server = HTTPServer(("", port), RequestHandler)
   server.serve_forever()
 if __name__ == "__main__":
   main()

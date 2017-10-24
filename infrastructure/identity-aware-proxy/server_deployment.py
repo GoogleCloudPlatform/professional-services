@@ -58,7 +58,8 @@ def GenerateConfig(context):
             'type': 'ONE_TO_ONE_NAT',
           }],
         }],
-        'serviceAccounts': [{'email': '1038087001716-compute@developer.gserviceaccount.com'}],
+        'serviceAccounts': [{'email': '1038087001716-compute@developer.gserviceaccount.com',
+                             'scopes': ['https://www.googleapis.com/auth/compute.readonly']}],
         'metadata': { 
           'items':[{
             'key': 'startup-script',
@@ -72,6 +73,7 @@ def GenerateConfig(context):
                      'virtualenv /home/virtualenv;'
                      '/home/virtualenv/bin/pip install -r requirements.txt;'
                      '/home/virtualenv/bin/pip install --upgrade google-api-python-client;'
+                     '/home/virtualenv/bin/pip install --upgrade google-auth-httplib2;'
                      '/home/virtualenv/bin/python /home/iap_validating_server.py ' + context.env['project_number'] + ' ' + context.env['project']
           }]
         }
