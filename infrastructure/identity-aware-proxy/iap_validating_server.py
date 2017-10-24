@@ -37,12 +37,10 @@ class RequestHandler(BaseHTTPRequestHandler):
     print self.headers
     print self.project_number
     print self.backend_service_id
-    # project_number = self.path.split("/")[-2]
-    # backend_service_id = self.path.split("/")[-1]
     identity = validate_jwt.validate_iap_jwt_from_compute_engine(
-        self.headers.get("X-Goog-IAP-JWT-Assertion"),
-        self.project_number,
-        self.backend_service_id)
+      self.headers.get("X-Goog-IAP-JWT-Assertion"),
+      self.project_number,
+      self.backend_service_id)
     if not identity[1]:
       self.send_response(200)
       self.send_header("Content-type", "text/html")
@@ -61,11 +59,9 @@ def main():
   project_number = sys.argv[1]
   project_id = sys.argv[2]
   print "Listening on localhost:%s" % port
-  print "Project Number: {}".format(project_number)
-  print "Project ID: {}".format(project_id)
-  service = discovery.build('compute', 'v1')
-  backend_service_id = service.backendServices().get(project=sys.argv[2], backendService='iap-backend-service').execute()['id']
-  print "Backend Service: {}".format(backend_service_id)
+  compute_service = discovery.build('compute', 'v1')
+  backend_service_id = compute_service.backendServices().get(
+    project=sys.argv[2], backendService='iap-backend-service').execute().get('id')
   RequestHandler.project_number = project_number
   RequestHandler.backend_service_id = backend_service_id
   server = HTTPServer(("", port), RequestHandler)
