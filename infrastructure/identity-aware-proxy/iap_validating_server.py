@@ -68,8 +68,7 @@ def main():
   print "Listening on localhost:%s" % port
   print "Project Number: {}".format(sys.argv[1])
   print "Project ID: {}".format(sys.argv[2])
-  credentials = GoogleCredentials.get_application_default()
-  service = discovery.build('compute', 'v1', credentials=credentials)
+  service = discovery.build('compute', 'v1')
   backend_service_id = service.backendServices().get(project=sys.argv[2], backendService='iap-backend-service').execute()['id']
   print "Backend Service: {}".format(backend_service_id)
   server = HTTPServer(("", port), RequestHandler(project_number=sys.argv[1], backend_service_id=backend_service_id))

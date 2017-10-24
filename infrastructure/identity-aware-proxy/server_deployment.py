@@ -58,6 +58,7 @@ def GenerateConfig(context):
             'type': 'ONE_TO_ONE_NAT',
           }],
         }],
+        'serviceAccounts': [{'email': '1038087001716-compute@developer.gserviceaccount.com'}],
         'metadata': { 
           'items':[{
             'key': 'startup-script',
