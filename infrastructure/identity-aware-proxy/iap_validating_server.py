@@ -16,12 +16,20 @@
 
 from BaseHTTPServer import BaseHTTPRequestHandler
 from BaseHTTPServer import HTTPServer
+from googleapiclient import discovery
+from oauth2client.client import GoogleCredentials
+import sys
 # validate_jwt github link:
 #    https://github.com/GoogleCloudPlatform/python-docs-samples/blob/master/iap/validate_jwt.py
 import validate_jwt
 
 
 class RequestHandler(BaseHTTPRequestHandler):
+  
+  def __init__(self, *args, **kwargs):
+    super(RequestHandler, self).__init__(*args, **kwargs)
+    self.project_number = kwargs['project_number']
+    self.backend_service_id = kwargs['backend_service_id']
 
   def do_GET(self):
     """Intercepts all GET requests and validates
@@ -34,12 +42,14 @@ class RequestHandler(BaseHTTPRequestHandler):
     https:testdomain.com/projectNumber/backendServiceId
     """
     print self.headers
-    project_number = self.path.split("/")[-2]
-    backend_service_id = self.path.split("/")[-1]
+    print self.project_number
+    print self.backend_service_id
+    # project_number = self.path.split("/")[-2]
+    # backend_service_id = self.path.split("/")[-1]
     identity = validate_jwt.validate_iap_jwt_from_compute_engine(
         self.headers.get("X-Goog-IAP-JWT-Assertion"),
-        project_number,
-        backend_service_id)
+        self.project_number,
+        self.backend_service_id)
     if not identity[1]:
       self.send_response(200)
       self.send_header("Content-type", "text/html")
@@ -51,12 +61,18 @@ class RequestHandler(BaseHTTPRequestHandler):
       self.end_headers()
       self.wfile.write("Hello " + identity[1] + "!")
     return
-
+  
 
 def main():
   port = 80
   print "Listening on localhost:%s" % port
-  server = HTTPServer(("", port), RequestHandler)
+  print "Project Number: {}".format(sys.argv[1])
+  print "Project ID: {}".format(sys.argv[2])
+  credentials = GoogleCredentials.get_application_default()
+  service = discovery.build('compute', 'v1', credentials=credentials)
+  backend_service_id = service.backendServices().get(project=sys.argv[2], backendService='iap-backend-service').execute()['id']
+  print "Backend Service: {}".format(backend_service_id)
+  server = HTTPServer(("", port), RequestHandler(project_number=sys.argv[1], backend_service_id=backend_service_id))
   server.serve_forever()
 if __name__ == "__main__":
   main()

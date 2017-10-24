@@ -1,0 +1,12 @@
+imports:
+- path: ssl_cert/sample.key
+- path: ssl_cert/selfSigned.crt
+- path: server_deployment.py
+
+resources:
+- name: test
+  type: server_deployment.py
+  properties:
+    key: ssl_cert/sample.key
+    crt: ssl_cert/selfSigned.crt
+    zone: us-east4-a
