@@ -10,7 +10,8 @@ The [server_deployment.py](server_deployment.py) deployment manager template is 
     ```bash
     gcloud deployment-manager deployments create iap-server --template server_deployment.py --properties zone:us-east4-a # ZONE IS YOUR CHOICE
     ```
-    * (Optional) Set your desired zone with the ```--properties zone:YOUR_ZONE``` argument 
+    * (Optional) Set your desired zone with the ```--properties zone:YOUR_ZONE``` argument
+    * Ensure [Google Cloud Deployment Manager API](https://console.developers.google.com/apis/api/deploymentmanager.googleapis.com/overview) is enabled
 1. [Setup a load balancer](https://cloud.google.com/iap/docs/load-balancer-howto#setting_up_the_load_balancer) with the backend service pointing to the managed instance group you just created.
 To expedite this sample and only for demo purposes:
     * Set the backend service to communicate over HTTP
