@@ -58,7 +58,7 @@ def GenerateConfig(context):
             'type': 'ONE_TO_ONE_NAT',
           }],
         }],
-        'serviceAccounts': [{'email': '1038087001716-compute@developer.gserviceaccount.com',
+        'serviceAccounts': [{'email': context.env['project_number'] + '-compute@developer.gserviceaccount.com',
                              'scopes': ['https://www.googleapis.com/auth/compute.readonly']}],
         'metadata': { 
           'items':[{
@@ -98,12 +98,34 @@ def GenerateConfig(context):
     'name': 'iap-health-check',
     'type': 'compute.v1.httpHealthCheck',
   })
+  # resources.append({
+  #   'name': 'iap-service-account',
+  #   'type': 'iam.v1.serviceAccount',
+  #   'properties': {
+  #     'name': 'projects/*',
+  #     'accountId': 'iap-service-account',
+  #     'displayName': 'iap-service-account'
+  #   },
+  #   'accessControl': {
+  #     'gcpIamPolicy': {
+  #       'bindings': [{
+  #         'role': 'roles/iam.serviceAccountActor',
+  #         'members':['serviceAccount:iap-service-account@' + context.env['project'] + '.iam.gserviceaccount.com']
+  #       }]
+  #     }
+  #   }
+  # })
   resources.append({
     'name': 'iap-backend-service',
     'type': 'compute.v1.backendService',
     'properties': {
       'healthChecks': ['$(ref.iap-health-check.selfLink)'],
-      'backends':[{'group': '$(ref.iap-server-instance-group.instanceGroup)'}]
+      'backends':[{'group': '$(ref.iap-server-instance-group.instanceGroup)'}],
+      # 'iap': {
+      #   'enabled': True,
+      #   'oauth2ClientId': '$(ref.iap-service-account.oauth2ClientId)',
+      #   'oauth2ClientSecret': 'notasecret'
+      # }
     }
   })
   resources.append({
@@ -137,4 +159,9 @@ def GenerateConfig(context):
       'portRange': '443'
     }
   })
+  # resources.append({
+  #   'name': context.env['project'],
+  #   'type': 'cloudresourcemanager.v1.project',
+    
+  # })
   return {'resources':resources}
