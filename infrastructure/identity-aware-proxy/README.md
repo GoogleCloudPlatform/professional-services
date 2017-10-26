@@ -15,7 +15,7 @@ The [server_deployment.yaml](server_deployment.yaml) deployment manager template
     ```bash
     gcloud deployment-manager deployments create iap-server --config server_deployment.yaml
     ```
-    * (Optional) Set your desired zone by replacing the zone defined on line 12 in [server_deployment.yaml](server_deployment.yaml)
+    * (Optional) Set your desired zone by replacing the zone property on line 12 in [server_deployment.yaml](server_deployment.yaml)
     * Ensure [Google Cloud Deployment Manager API](https://console.developers.google.com/apis/api/deploymentmanager.googleapis.com/overview) is enabled
 1. [Enable IAP](https://cloud.google.com/iap/docs/enabling-gce-howto#enabling_short_product_name).
 
