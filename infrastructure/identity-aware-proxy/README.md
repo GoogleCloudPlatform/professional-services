@@ -19,8 +19,6 @@ The [server_deployment.yaml](server_deployment.yaml) deployment manager template
     * Ensure [Google Cloud Deployment Manager API](https://console.developers.google.com/apis/api/deploymentmanager.googleapis.com/overview) is enabled
 1. [Enable IAP](https://cloud.google.com/iap/docs/enabling-gce-howto#enabling_short_product_name).
 
-**IMPORTANT: This web server requires that the IAP project number and the backend service ID be passed in every request url in the following form: `https://yourdomain.com/projectNumber/backendServiceId`. This is only done for convenience since this example is intended to be generic and not specific to any project. In production, the project number and backend service ID should be passed as runtime arguments when starting your server.**
-
 ## IAP Client
 
 [main.py](main.py) takes in two runtime arguments
