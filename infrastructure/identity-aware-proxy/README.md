@@ -8,7 +8,7 @@ The [server_deployment.yaml](server_deployment.yaml) deployment manager template
 ### Quickstart IAP Server
 1. Create a self-signed certificate to use for the front end load balancer
     ```bash
-    bash ./createSelfSignedCert.sh
+    bash createSelfSignedCert.sh
     ```
     * Self-signed certificates are not secure and only used here for demo purposes
 1. Deploy the managed instance group by calling:
