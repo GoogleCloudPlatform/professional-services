@@ -9,4 +9,4 @@ resources:
   properties:
     privateKey: ssl_cert/sample.key
     certificate: ssl_cert/selfSigned.crt
-    zone: us-east4-a
+    zone: us-central-a
