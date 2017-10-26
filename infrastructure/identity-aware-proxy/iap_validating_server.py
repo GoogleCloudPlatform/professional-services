@@ -18,7 +18,7 @@ from BaseHTTPServer import BaseHTTPRequestHandler
 from BaseHTTPServer import HTTPServer
 from googleapiclient import discovery
 from oauth2client.client import GoogleCredentials
-import sys
+import argparse
 # validate_jwt github link:
 #    https://github.com/GoogleCloudPlatform/python-docs-samples/blob/master/iap/validate_jwt.py
 import validate_jwt
@@ -52,19 +52,30 @@ class RequestHandler(BaseHTTPRequestHandler):
       self.end_headers()
       self.wfile.write("Hello " + identity[1] + "!")
     return
-  
 
 def main():
-  port = 80
-  project_number = sys.argv[1]
-  project_id = sys.argv[2]
-  print "Listening on localhost:%s" % port
+  parser = argparse.ArgumentParser()
+  parser.add_argument("project_number", help="gcp project number")
+  parser.add_argument("project_id", help="gcp project id")
+  args = parser.parse_args()
+  
+  # backend_service_name below MUST match the same
+  # name defined in your deployment manager script
+  backend_service_name = 'iap-backend-service'
   compute_service = discovery.build('compute', 'v1')
   backend_service_id = compute_service.backendServices().get(
-    project=sys.argv[2], backendService='iap-backend-service').execute().get('id')
-  RequestHandler.project_number = project_number
+    project=args.project_id,
+    backendService=backend_service_name).execute().get('id')
+
+  # Store project number and backend service id inside 
+  # the RequestHandler class so that all IAP traffic can be 
+  # verified against the expected audience claim
+  RequestHandler.project_number = args.project_number
   RequestHandler.backend_service_id = backend_service_id
+  port = 80
   server = HTTPServer(("", port), RequestHandler)
+  print "Listening on localhost: {}".format(port)
   server.serve_forever()
+  
 if __name__ == "__main__":
   main()
