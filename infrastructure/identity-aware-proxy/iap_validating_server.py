@@ -17,7 +17,6 @@
 from BaseHTTPServer import BaseHTTPRequestHandler
 from BaseHTTPServer import HTTPServer
 from googleapiclient import discovery
-from oauth2client.client import GoogleCredentials
 import argparse
 # validate_jwt github link:
 #    https://github.com/GoogleCloudPlatform/python-docs-samples/blob/master/iap/validate_jwt.py
