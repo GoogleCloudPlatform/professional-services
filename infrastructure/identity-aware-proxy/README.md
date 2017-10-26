@@ -40,5 +40,5 @@ The [client_deployment.py](clieint_deployment.py) deployment manager template is
     ```bash
     python main.py URL IAP_CLIENT_ID
     ```
-    * (Required) *URL* must be passed in the following form: `https://yourdomain.com/projectNumber/backendServiceId`. This is specific to this demo since the IAP Server expects this format. ```projectNumber``` and ```backendServiceId``` can be found in the [Identity-Aware Proxy settings](https://console.cloud.google.com/iam-admin/iap/). Locate the resource you want to access, click **More** next to the Load Balancer resource, and then select **Signed Header JWT Audience**. The **Signed Header JWT** dialog that appears displays both the ```projectNumber``` and ```backendServiceId```. 
+    * (Required) *URL* must have the root domain pointing to your front end load balancer
     * (Required) *IAP_CLIENT_ID* can also be found in the [Identity-Aware Proxy settings](https://console.cloud.google.com/iam-admin/iap/). Locate the resource you want to access, click **More > OAuth Client** on the right side, then note the client ID on the Credentials page that appears. 
