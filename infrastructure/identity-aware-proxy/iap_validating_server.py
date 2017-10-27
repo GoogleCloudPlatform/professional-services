@@ -14,7 +14,7 @@
 
 """Example of verifying IAP signed headers in web requests."""
 
-import argparse
+import requests
 from BaseHTTPServer import BaseHTTPRequestHandler
 from BaseHTTPServer import HTTPServer
 from googleapiclient import discovery
