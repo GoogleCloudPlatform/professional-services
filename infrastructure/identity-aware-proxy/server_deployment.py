@@ -68,13 +68,13 @@ def GenerateConfig(context):
                      'wget https://raw.githubusercontent.com/GoogleCloudPlatform/python-docs-samples/master/iap/requirements.txt;'
                      'apt-get update;'
                      'apt-get install python-pip build-essential libssl-dev libffi-dev python-dev -y;'
-                     'easy_install --upgrade pip;'
                      'pip install virtualenv;'
-                     'virtualenv /home/virtualenv;'
-                     '/home/virtualenv/bin/pip install -r requirements.txt;'
-                     '/home/virtualenv/bin/pip install --upgrade google-api-python-client;'
-                     '/home/virtualenv/bin/pip install --upgrade google-auth-httplib2;'
-                     '/home/virtualenv/bin/python /home/iap_validating_server.py ' + context.env['project_number'] + ' ' + context.env['project']
+                     'virtualenv /home/iap_server_env;'
+                     'source /home/iap_server_env/bin/activate;'
+                     'pip install -r requirements.txt;'
+                     'pip install --upgrade google-api-python-client;'
+                     'pip install --upgrade google-auth-httplib2;'
+                     'python /home/iap_validating_server.py'
           }]
         }
       }
