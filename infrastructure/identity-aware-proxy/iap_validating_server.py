@@ -52,10 +52,10 @@ class RequestHandler(BaseHTTPRequestHandler):
 def main():
   project_number = requests.get(
       'http://metadata.google.internal/computeMetadata/v1/project/numeric-project-id',
-      headers={'Metadata-Flavor': 'Google'})
+      headers={'Metadata-Flavor': 'Google'}).text
   project_id = requests.get(
       'http://metadata.google.internal/computeMetadata/v1/project/project-id',
-      headers={'Metadata-Flavor': 'Google'})
+      headers={'Metadata-Flavor': 'Google'}).text
   # backend_service_name below MUST match the same
   # name defined in your deployment manager script
   backend_service_name = 'iap-backend-service'
