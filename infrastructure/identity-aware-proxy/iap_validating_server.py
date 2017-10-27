@@ -14,17 +14,16 @@
 
 """Example of verifying IAP signed headers in web requests."""
 
+import argparse
 from BaseHTTPServer import BaseHTTPRequestHandler
 from BaseHTTPServer import HTTPServer
 from googleapiclient import discovery
-import argparse
 # validate_jwt github link:
 #    https://github.com/GoogleCloudPlatform/python-docs-samples/blob/master/iap/validate_jwt.py
 import validate_jwt
 
 
 class RequestHandler(BaseHTTPRequestHandler):
-  
   project_number = None
   backend_service_id = None
 
@@ -34,8 +33,6 @@ class RequestHandler(BaseHTTPRequestHandler):
     
     """
     print self.headers
-    print self.project_number
-    print self.backend_service_id
     identity = validate_jwt.validate_iap_jwt_from_compute_engine(
       self.headers.get("X-Goog-IAP-JWT-Assertion"),
       self.project_number,
@@ -53,23 +50,24 @@ class RequestHandler(BaseHTTPRequestHandler):
     return
 
 def main():
-  parser = argparse.ArgumentParser()
-  parser.add_argument("project_number", help="gcp project number")
-  parser.add_argument("project_id", help="gcp project id")
-  args = parser.parse_args()
-  
+  project_number = requests.get(
+      'http://metadata.google.internal/computeMetadata/v1/project/numeric-project-id',
+      headers={'Metadata-Flavor: Google'})
+  project_id = requests.get(
+      'http://metadata.google.internal/computeMetadata/v1/project/project-id',
+      headers={'Metadata-Flavor: Google'})
   # backend_service_name below MUST match the same
   # name defined in your deployment manager script
   backend_service_name = 'iap-backend-service'
   compute_service = discovery.build('compute', 'v1')
   backend_service_id = compute_service.backendServices().get(
-    project=args.project_id,
+    project=project_id,
     backendService=backend_service_name).execute().get('id')
 
   # Store project number and backend service id inside 
   # the RequestHandler class so that all IAP traffic can be 
   # verified against the expected audience claim
-  RequestHandler.project_number = args.project_number
+  RequestHandler.project_number = project_number
   RequestHandler.backend_service_id = backend_service_id
   port = 80
   server = HTTPServer(("", port), RequestHandler)
