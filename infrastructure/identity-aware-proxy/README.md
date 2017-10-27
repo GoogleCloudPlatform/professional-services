@@ -10,8 +10,9 @@ The [server_deployment.yaml](server_deployment.yaml) deployment manager template
     ```bash
     bash createSelfSignedCert.sh
     ```
-    * During certificate creation, it's only required to enter your domain (make sure you can edit DNS for domain) in
-      the `Common Name (e.g. server FQDN or YOUR name) []:` prompt. You may leave all other fields empty.
+    * During certificate creation, it's only required to enter your domain in
+      the `Common Name (e.g. server FQDN or YOUR name) []:` prompt (make sure you can edit DNS for domain).
+      You may leave all other fields empty.
     * Self-signed certificates are not secure and only used here for demo purposes
 1. Deploy the managed instance group by calling:
     ```bash
@@ -21,7 +22,7 @@ The [server_deployment.yaml](server_deployment.yaml) deployment manager template
     * Ensure [Google Cloud Deployment Manager API](https://console.developers.google.com/apis/api/deploymentmanager.googleapis.com/overview) is enabled
 1. Add an A record to your domain (same domain used in certificate during step 1) which points to the [IP address of your 
    load balancer](https://console.cloud.google.com/net-services/loadbalancing/advanced/globalForwardingRules/details/iap-global-forwarding-rule) 
-1. [Enable IAP](https://cloud.google.com/iap/docs/enabling-gce-howto#enabling_short_product_name).
+1. [Enable IAP](https://cloud.google.com/iap/docs/enabling-gce-howto#enabling_short_product_name)
 
 ## IAP Client
 
@@ -45,4 +46,4 @@ The [client_deployment.py](clieint_deployment.py) deployment manager template is
     python main.py URL IAP_CLIENT_ID
     ```
     * (Required) *URL* must have the root domain pointing to your front end load balancer
-    * (Required) *IAP_CLIENT_ID* can also be found in the [Identity-Aware Proxy settings](https://console.cloud.google.com/iam-admin/iap/). Locate the resource you want to access, click **More > OAuth Client** on the right side, then note the client ID on the Credentials page that appears. 
+    * (Required) *IAP_CLIENT_ID* can also be found in the [Identity-Aware Proxy settings](https://console.cloud.google.com/iam-admin/iap/). Locate the resource you want to access, click **More > OAuth Client** on the right side, then note the client ID on the Credentials page that appears
