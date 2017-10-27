@@ -43,7 +43,7 @@ The [client_deployment.py](clieint_deployment.py) deployment manager template is
 1. SSH into the IAP client virtual machine
 1. Once the libraries are installed, you can run the sample by calling:
     ```bash
-    source /home/iap_client_env/bin/activate
+    source /home/iap_client_env/bin/activate;
     python /home/iap_authenticated_client.py URL IAP_CLIENT_ID
     ```
     * (Required) *URL* must have the root domain pointing to your front end load balancer
