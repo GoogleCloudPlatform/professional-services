@@ -11,29 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-'''Creates sample IAP Server'''
 
+"""Creates sample IAP Server"""
 
 def GenerateConfig(context):
   """Generate configuration."""
-  
   resources=[]
-  # You must create a firewall rule that allows traffic from your
-  # load balancer and health checker to reach your compute instances.
-  # IP ranges: 130.211.0.0/22 and 35.191.0.0/16 correspond
-  # to the load balancer and health checker.
-  resources.append({
-    'name': 'iap-firewall-allow-load-balancer',
-    'type': 'compute.v1.firewall',
-    'properties': {
-      'newtork': 'global/networks/default',
-      'sourceRanges': ['130.211.0.0/22','35.191.0.0/16'],
-      'allowed':[{
-        'IPProtocol': 'TCP',
-        'ports': [80]
-      }]
-    }
-  })
+
   resources.append({
     'name': 'iap-server-instance-template',
     'type': 'compute.v1.instanceTemplate',
@@ -80,6 +64,7 @@ def GenerateConfig(context):
       }
     }
   })
+  
   resources.append({
     'name': 'iap-server-instance-group',
     'type': 'compute.v1.instanceGroupManager',
@@ -94,48 +79,30 @@ def GenerateConfig(context):
       ]
     }
   })
+  
   resources.append({
     'name': 'iap-health-check',
     'type': 'compute.v1.httpHealthCheck',
   })
-  # resources.append({
-  #   'name': 'iap-service-account',
-  #   'type': 'iam.v1.serviceAccount',
-  #   'properties': {
-  #     'name': 'projects/*',
-  #     'accountId': 'iap-service-account',
-  #     'displayName': 'iap-service-account'
-  #   },
-  #   'accessControl': {
-  #     'gcpIamPolicy': {
-  #       'bindings': [{
-  #         'role': 'roles/iam.serviceAccountActor',
-  #         'members':['serviceAccount:iap-service-account@' + context.env['project'] + '.iam.gserviceaccount.com']
-  #       }]
-  #     }
-  #   }
-  # })
+  
   resources.append({
     'name': 'iap-backend-service',
     'type': 'compute.v1.backendService',
     'properties': {
       'healthChecks': ['$(ref.iap-health-check.selfLink)'],
-      'backends':[{'group': '$(ref.iap-server-instance-group.instanceGroup)'}],
-      # 'iap': {
-      #   'enabled': True,
-      #   'oauth2ClientId': '$(ref.iap-service-account.oauth2ClientId)',
-      #   'oauth2ClientSecret': 'notasecret'
-      # }
+      'backends':[{'group': '$(ref.iap-server-instance-group.instanceGroup)'}]
     }
   })
+  
   resources.append({
     'name': 'iap-self-signed-cert',
     'type': 'compute.v1.sslCertificate',
     'properties': {
       'privateKey': context.imports[context.properties['privateKey']],
-      'certificate': context.imports[context.properties['certificate']],
+      'certificate': context.imports[context.properties['certificate']]
     }
   })
+  
   resources.append({
     'name': 'iap-url-map',
     'type': 'compute.v1.urlMap',
@@ -143,6 +110,7 @@ def GenerateConfig(context):
       'defaultService': '$(ref.iap-backend-service.selfLink)',
     }
   })
+  
   resources.append({
     'name': 'iap-target-https-proxy',
     'type': 'compute.v1.targetHttpsProxy',
@@ -151,6 +119,7 @@ def GenerateConfig(context):
       'urlMap': '$(ref.iap-url-map.selfLink)'
     }
   })
+  
   resources.append({
     'name': 'iap-global-forwarding-rule',
     'type': 'compute.v1.globalForwardingRule',
@@ -159,9 +128,22 @@ def GenerateConfig(context):
       'portRange': '443'
     }
   })
-  # resources.append({
-  #   'name': context.env['project'],
-  #   'type': 'cloudresourcemanager.v1.project',
-    
-  # })
+  
+  # You must create a firewall rule that allows traffic from your
+  # load balancer and health checker to reach your compute instances.
+  # IP ranges: 130.211.0.0/22 and 35.191.0.0/16 correspond
+  # to the load balancer and health checker.
+  resources.append({
+    'name': 'iap-firewall-allow-load-balancer',
+    'type': 'compute.v1.firewall',
+    'properties': {
+      'newtork': 'global/networks/default',
+      'sourceRanges': ['130.211.0.0/22','35.191.0.0/16'],
+      'allowed':[{
+        'IPProtocol': 'TCP',
+        'ports': [80]
+      }]
+    }
+  })
+  
   return {'resources':resources}
