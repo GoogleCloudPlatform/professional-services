@@ -30,7 +30,7 @@
             <entry file="file://$PROJECT_DIR$/server_deployment.py">
               <provider selected="true" editor-type-id="text-editor">
                 <state relative-caret-position="432">
-                  <caret line="45" column="94" lean-forward="true" selection-start-line="44" selection-start-column="8" selection-end-line="45" selection-end-column="94" />
+                  <caret line="45" column="64" lean-forward="true" selection-start-line="44" selection-start-column="8" selection-end-line="45" selection-end-column="94" />
                   <folding />
                 </state>
               </provider>
@@ -39,8 +39,8 @@
           <file leaf-file-name="client_deployment.py" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/client_deployment.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="709">
-                  <caret line="55" column="40" lean-forward="false" selection-start-line="55" selection-start-column="40" selection-end-line="55" selection-end-column="40" />
+                <state relative-caret-position="485">
+                  <caret line="44" column="74" lean-forward="false" selection-start-line="44" selection-start-column="74" selection-end-line="44" selection-end-column="74" />
                   <folding />
                 </state>
               </provider>
@@ -511,14 +511,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/server_deployment.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="432">
-          <caret line="45" column="94" lean-forward="true" selection-start-line="44" selection-start-column="8" selection-end-line="45" selection-end-column="94" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/iap_authenticated_client.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -527,10 +519,18 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/server_deployment.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="432">
+          <caret line="45" column="64" lean-forward="true" selection-start-line="44" selection-start-column="8" selection-end-line="45" selection-end-column="94" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/client_deployment.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="709">
-          <caret line="55" column="40" lean-forward="false" selection-start-line="55" selection-start-column="40" selection-end-line="55" selection-end-column="40" />
+        <state relative-caret-position="485">
+          <caret line="44" column="74" lean-forward="false" selection-start-line="44" selection-start-column="74" selection-end-line="44" selection-end-column="74" />
           <folding />
         </state>
       </provider>
