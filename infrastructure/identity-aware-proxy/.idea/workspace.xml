@@ -29,8 +29,8 @@
           <file leaf-file-name="server_deployment.py" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/server_deployment.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="1552">
-                  <caret line="115" column="42" lean-forward="true" selection-start-line="115" selection-start-column="42" selection-end-line="115" selection-end-column="42" />
+                <state relative-caret-position="432">
+                  <caret line="45" column="94" lean-forward="true" selection-start-line="44" selection-start-column="8" selection-end-line="45" selection-end-column="94" />
                   <folding />
                 </state>
               </provider>
@@ -39,8 +39,18 @@
           <file leaf-file-name="client_deployment.py" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/client_deployment.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="661">
-                  <caret line="54" column="74" lean-forward="true" selection-start-line="54" selection-start-column="74" selection-end-line="54" selection-end-column="74" />
+                <state relative-caret-position="709">
+                  <caret line="55" column="40" lean-forward="false" selection-start-line="55" selection-start-column="40" selection-end-line="55" selection-end-column="40" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="iap_authenticated_client.py" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/iap_authenticated_client.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="0">
+                  <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
                   <folding />
                 </state>
               </provider>
@@ -503,16 +513,24 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/server_deployment.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1552">
-          <caret line="115" column="42" lean-forward="true" selection-start-line="115" selection-start-column="42" selection-end-line="115" selection-end-column="42" />
+        <state relative-caret-position="432">
+          <caret line="45" column="94" lean-forward="true" selection-start-line="44" selection-start-column="8" selection-end-line="45" selection-end-column="94" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/iap_authenticated_client.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/client_deployment.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="661">
-          <caret line="54" column="74" lean-forward="true" selection-start-line="54" selection-start-column="74" selection-end-line="54" selection-end-column="74" />
+        <state relative-caret-position="709">
+          <caret line="55" column="40" lean-forward="false" selection-start-line="55" selection-start-column="40" selection-end-line="55" selection-end-column="40" />
           <folding />
         </state>
       </provider>

@@ -41,6 +41,7 @@ def GenerateConfig(context):
           'type': 'ONE_TO_ONE_NAT',
         }],
       }],
+      'serviceAccounts': [{'email': context.env['project_number'] + '-compute@developer.gserviceaccount.com'}],
       'metadata': {
         'items': [{
           'key': 'startup-script',
@@ -49,10 +50,10 @@ def GenerateConfig(context):
                    'wget https://raw.githubusercontent.com/GoogleCloudPlatform/python-docs-samples/master/iap/requirements.txt;'
                    'wget https://raw.githubusercontent.com/GoogleCloudPlatform/python-docs-samples/master/iap/make_iap_request.py? -O /home/make_iap_request.py;'
                    'sed -i "s/url,$/url, verify=False,/" /home/make_iap_request.py;'
-                   'wget https://raw.githubusercontent.com/GoogleCloudPlatform/professional-services/master/infrastructure/identity-aware-proxy/iap_authenticated_client.py? -O /home/iap_authenticated_client.py;'
+                   'wget https://raw.githubusercontent.com/GoogleCloudPlatform/professional-services/danieldeleo-identity-aware-proxy/infrastructure/identity-aware-proxy/iap_authenticated_client.py? -O /home/iap_authenticated_client.py;'
                    'pip install virtualenv;'
-                   'virtualenv /home/virtualenv;'
-                   '/home/virtualenv/bin/pip install -r requirements.txt;'
+                   'virtualenv /home/iap_client_env;'
+                   '/home/iap_client_env/bin/pip install -r requirements.txt;'
         }]
       }
     }
