@@ -41,8 +41,10 @@ def GenerateConfig(context):
           'type': 'ONE_TO_ONE_NAT',
         }],
       }],
-      'serviceAccounts': [{'email': context.env['project_number'] + '-compute@developer.gserviceaccount.com',
-                           'scopes': ['https://www.googleapis.com/auth/iam']}],
+      'serviceAccounts': [{
+        'email': context.env['project_number'] + '-compute@developer.gserviceaccount.com',
+        'scopes': ['https://www.googleapis.com/auth/iam']
+      }],
       'metadata': {
         'items': [{
           'key': 'startup-script',
