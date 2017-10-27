@@ -25,7 +25,7 @@ The [server_deployment.yaml](server_deployment.yaml) deployment manager template
 
 ## IAP Client
 
-[main.py](main.py) takes in two runtime arguments
+[iap_authenticated_client.py](iap_authenticated_client.py) takes in two runtime arguments
 
 * URL - The URL corresponding to the resource sitting behind the Identity-Aware Proxy
 * IAP Client Id - The OAuth Client Id of the service account assigned to Identity-Aware Proxy
