@@ -135,7 +135,7 @@ def GenerateConfig(context):
     'type': 'compute.v1.globalForwardingRule',
     'properties': {
       'target': '$(ref.iap-target-https-proxy.selfLink)',
-      'IPAddress': '$(ref.iap-reserved-address.address)',
+      'IPAddress': '$(ref.iap-reserved-global-address.address)',
       'portRange': '443'
     }
   })
