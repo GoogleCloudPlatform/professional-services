@@ -121,12 +121,21 @@ def GenerateConfig(context):
       'urlMap': '$(ref.iap-url-map.selfLink)'
     }
   })
+
+  resources.append({
+    'name': 'iap-reserved-global-address',
+    'type': 'compute.v1.globalAddress',
+    'properties': {
+      'ipVersion': 'IPV4',
+    }
+  })
   
   resources.append({
     'name': 'iap-global-forwarding-rule',
     'type': 'compute.v1.globalForwardingRule',
     'properties': {
       'target': '$(ref.iap-target-https-proxy.selfLink)',
+      'IPAddress': '$(ref.iap-reserved-address.address)',
       'portRange': '443'
     }
   })
