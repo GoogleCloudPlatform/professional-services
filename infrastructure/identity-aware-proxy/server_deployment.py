@@ -148,7 +148,7 @@ def GenerateConfig(context):
     'name': 'iap-firewall-allow-load-balancer',
     'type': 'compute.v1.firewall',
     'properties': {
-      'newtork': 'global/networks/default',
+      'network': 'global/networks/default',
       'sourceRanges': ['130.211.0.0/22','35.191.0.0/16'],
       'allowed':[{
         'IPProtocol': 'TCP',
