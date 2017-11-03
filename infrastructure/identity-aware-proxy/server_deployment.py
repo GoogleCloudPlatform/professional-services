@@ -17,7 +17,6 @@
 def GenerateConfig(context):
   """Generate configuration."""
   resources=[]
-
   resources.append({
     'name': 'iap-server-instance-template',
     'type': 'compute.v1.instanceTemplate',
@@ -39,7 +38,7 @@ def GenerateConfig(context):
           # Access Config required to give the instance a public IP address
           'accessConfigs': [{
             'name': 'External NAT',
-            'type': 'ONE_TO_ONE_NAT',
+            'type': 'ONE_TO_ONE_NAT'
           }],
         }],
         'serviceAccounts': [{
@@ -84,7 +83,7 @@ def GenerateConfig(context):
   
   resources.append({
     'name': 'iap-health-check',
-    'type': 'compute.v1.httpHealthCheck',
+    'type': 'compute.v1.httpHealthCheck'
   })
   
   resources.append({
@@ -109,7 +108,7 @@ def GenerateConfig(context):
     'name': 'iap-url-map',
     'type': 'compute.v1.urlMap',
     'properties': {
-      'defaultService': '$(ref.iap-backend-service.selfLink)',
+      'defaultService': '$(ref.iap-backend-service.selfLink)'
     }
   })
   
@@ -126,7 +125,7 @@ def GenerateConfig(context):
     'name': 'iap-reserved-global-address',
     'type': 'compute.v1.globalAddress',
     'properties': {
-      'ipVersion': 'IPV4',
+      'ipVersion': 'IPV4'
     }
   })
   

@@ -32,8 +32,8 @@ def main():
   parser = argparse.ArgumentParser()
   parser.add_argument("url", help="the url of a resource "
                                   "sitting behind identity-aware proxy")
-  parser.add_argument("iapClientId", help="the client id of "
-                                          "the IAP service account")
+  parser.add_argument("iapClientId", help="the Client ID of "
+                                          "the IAP OAuth Client")
   args = parser.parse_args()
   print iap.make_iap_request(args.url, args.iapClientId)
 

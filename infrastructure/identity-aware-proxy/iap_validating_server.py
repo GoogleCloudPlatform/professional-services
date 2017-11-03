@@ -41,7 +41,8 @@ class RequestHandler(BaseHTTPRequestHandler):
       self.send_response(200)
       self.send_header("Content-type", "text/html")
       self.end_headers()
-      self.wfile.write("IAP Validation Failed")
+      self.wfile.write("<p>IAP Validation Error!</p>"+
+                       "<p>Either IAP is not enabled or JWT is malformed.")
     else:
       self.send_response(200)
       self.send_header("Content-type", "text/html")
