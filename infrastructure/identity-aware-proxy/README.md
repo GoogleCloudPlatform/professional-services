@@ -43,12 +43,16 @@ The [client_deployment.py](clieint_deployment.py) deployment manager template is
     ```
     * (Optional) Set your desired zone with the ```--properties zone:YOUR_ZONE``` argument 
 1. SSH into the IAP client virtual machine
-1. In order for client to make web requests via a service account with user-managed keys
+1. The client can make web requests to the IAP server using two forms of managed keys
+   **User-managed keys**
    * Upload the JSON private key file onto the client virtual machine
    * Point the environment variable `GOOGLE_APPLICATION_CREDENTIALS` to the private key file
      ```bash
      export GOOGLE_APPLICATION_CREDENTIALS=~/yourprivatekey.json
      ```
+   **Google-managed keys**
+   * Enable the [Google Identity and Access Management (IAM) API](https://console.developers.google.com/apis/library/iam.googleapis.com)
+   * Grant the default compute service account ```Service Account Token Creator``` role
 1. Once the libraries are installed, you can run the sample by calling:
     ```bash
     source /home/iap_client_env/bin/activate;
