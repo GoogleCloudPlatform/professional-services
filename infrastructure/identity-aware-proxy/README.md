@@ -55,4 +55,4 @@ The [client_deployment.py](clieint_deployment.py) deployment manager template is
     python /home/iap_authenticated_client.py URL IAP_CLIENT_ID
     ```
     * (Required) *URL* must have the root domain pointing to your front end load balancer
-    * (Required) *IAP_CLIENT_ID* can also be found in the [Identity-Aware Proxy settings](https://console.cloud.google.com/iam-admin/iap/). Locate the resource you want to access, click **More > OAuth Client** on the right side, then note the client ID on the Credentials page that appears
+    * (Required) *IAP_CLIENT_ID* can also be found in the [Identity-Aware Proxy settings](https://console.cloud.google.com/iam-admin/iap/project). Locate the resource you want to access, click **More > OAuth Client** on the right side, then note the client ID on the Credentials page that appears
