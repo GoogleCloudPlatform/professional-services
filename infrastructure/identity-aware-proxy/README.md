@@ -56,3 +56,8 @@ The [client_deployment.py](clieint_deployment.py) deployment manager template is
     ```
     * (Required) *URL* e.g. https://yourdomain.com
     * (Required) *IAP_CLIENT_ID* can also be found in the [Identity-Aware Proxy settings](https://console.cloud.google.com/iam-admin/iap/project). Locate the resource you want to access, click **More (3 stacked dots) > Edit OAuth Client** on the right side, then note the client ID on the Credentials page that appears
+
+1. Grant your service account access to IAP protected resources by adding it to the access list shown in the [IAP console](https://console.cloud.google.com/iam-admin/iap/project)
+    * The previous step should have returned the following error:
+      ```Exception: Service account serviceAcctId@yourproject.iam.gserviceaccount.com does not have permission to access the IAP-protected application.```. You received this error because IAP has an access control list which must be populated with all identities that should be allowed to pass the IAP proxy
+    * Allow a few minutes for changes to the access list to take effect
