@@ -17,11 +17,16 @@
 def GenerateConfig(context):
   """Generate configuration."""
   resources=[]
+
+  # Creates an instance template which will be used by an instance group manager
+  # to create and auto-scale VMs. The startup-script metadata property shows
+  # the script that runs on the VM whenever it is created.
   resources.append({
     'name': 'iap-server-instance-template',
     'type': 'compute.v1.instanceTemplate',
     'properties': {
       'properties': {
+        # zone specified in server_deployment.yaml file
         'zone': context.properties['zone'],
         'machineType': 'n1-standard-1',
         'disks': [{
@@ -42,12 +47,19 @@ def GenerateConfig(context):
           }],
         }],
         'serviceAccounts': [{
+          # Use the default compute engine service account that is auto-created
+          # for every project upon creation
           'email': context.env['project_number'] + '-compute@developer.gserviceaccount.com',
+          # compute.readonly scope is necessary in order to programmatically
+          # retrieve the backend service ID.
           'scopes': ['https://www.googleapis.com/auth/compute.readonly']
         }],
-        'metadata': { 
+        'metadata': {
           'items':[{
             'key': 'startup-script',
+            # startup script below will download necessary files from github to
+            # run a simple python web server. The web server will verify all
+            # requests by validating the X-Goog-IAP-JWT-Assertion header value.1
             'value': 'wget https://github.com/GoogleCloudPlatform/python-docs-samples/raw/master/iap/validate_jwt.py? -O /home/validate_jwt.py;'
                      'wget https://github.com/GoogleCloudPlatform/professional-services/raw/danieldeleo-identity-aware-proxy/infrastructure/identity-aware-proxy/iap_validating_server.py? -O /home/iap_validating_server.py;'
                      'wget https://raw.githubusercontent.com/GoogleCloudPlatform/python-docs-samples/master/iap/requirements.txt;'
@@ -65,7 +77,7 @@ def GenerateConfig(context):
       }
     }
   })
-  
+
   resources.append({
     'name': 'iap-server-instance-group',
     'type': 'compute.v1.instanceGroupManager',
