@@ -10,7 +10,7 @@ Note: The [server_deployment.py](server_deployment.py) deployment manager templa
 ### Quickstart IAP Server
 1. Create a self-signed certificate to use for the front end load balancer
     ```bash
-    bash createSelfSignedCert.sh
+    ./createSelfSignedCert.sh
     ```
     * During certificate creation, it's only required to enter your domain in
       the `Common Name (e.g. server FQDN or YOUR name) []:` prompt (make sure you can edit DNS for domain).
