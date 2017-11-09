@@ -44,8 +44,8 @@ The [client_deployment.py](clieint_deployment.py) deployment manager template is
     * (Optional) Set your desired zone with the ```--properties zone:YOUR_ZONE``` argument 
 1. SSH into the IAP client virtual machine
 1. In order for client to make web requests via a service account with user-managed keys
-   * Upload the JSON private key onto the client virtual machine
-   * Point the environment variable `GOOGLE_APPLICATION_CREDENTIALS` to this file
+   * Upload the JSON private key file onto the client virtual machine
+   * Point the environment variable `GOOGLE_APPLICATION_CREDENTIALS` to the private key file
      ```bash
      export GOOGLE_APPLICATION_CREDENTIALS=~/yourprivatekey.json
      ```
