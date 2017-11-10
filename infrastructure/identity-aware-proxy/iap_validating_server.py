@@ -61,7 +61,7 @@ def getBackendServiceId():
   # name defined in your deployment manager script
   backend_service_name = 'iap-backend-service'
   try:
-    backend_service_id = compute_service.backendServices().get(
+    return compute_service.backendServices().get(
       project=project_id,
       backendService=backend_service_name
     ).execute().get('id')  
