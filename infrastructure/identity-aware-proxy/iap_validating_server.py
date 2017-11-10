@@ -52,6 +52,7 @@ class RequestHandler(BaseHTTPRequestHandler):
     return
 
 def getBackendServiceId(project_id, backend_service_name):
+  compute_service = discovery.build('compute', 'v1')
   try:
     backend_service_id = compute_service.backendServices().get(
       project=project_id,
@@ -73,7 +74,6 @@ def main():
   # backend_service_name below MUST match the same
   # name defined in your deployment manager script
   backend_service_name = 'iap-backend-service'
-  compute_service = discovery.build('compute', 'v1')
   backend_service_id = getBackendServiceId(project_id,backend_service_name)
   while not backend_service_id:
     # Keep trying to retrieve backend service id as it's necessary
