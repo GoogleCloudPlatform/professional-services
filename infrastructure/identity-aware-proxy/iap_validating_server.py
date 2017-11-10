@@ -57,14 +57,13 @@ def getBackendServiceId():
   project_id = requests.get(
       'http://metadata.google.internal/computeMetadata/v1/project/project-id',
       headers={'Metadata-Flavor': 'Google'}).text
-  # backend_service_name below MUST match the same
-  # name defined in your deployment manager script
-  backend_service_name = 'iap-backend-service'
+  backend_service = None
   try:
-    return compute_service.backendServices().get(
-      project=project_id,
-      backendService=backend_service_name
-    ).execute().get('id')  
+    backend_services = compute_service.backendServices().list(
+        project=project_id
+    ).execute().get('items')
+    if len(backend_services):
+      return backend_services[0].get('id')
   except HttpError as e:
     if e.resp.status == 404:
       return None
