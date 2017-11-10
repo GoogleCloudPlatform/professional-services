@@ -15,7 +15,7 @@ Note: The [server_deployment.py](server_deployment.py) deployment manager templa
     * During certificate creation, it's only required to enter your domain in
       the `Common Name (e.g. server FQDN or YOUR name) []:` prompt (make sure you can edit DNS for domain).
       You may leave all other fields empty.
-    * Self-signed certificates are not secure and only used here for demo purposes
+    * Self-signed certificates are not secure and only used here to simplify this demo
 1. Deploy the managed instance group by calling:
     ```bash
     gcloud deployment-manager deployments create iap-server --config server_deployment.yaml
