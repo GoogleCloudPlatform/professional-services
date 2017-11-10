@@ -53,7 +53,8 @@ The [client_deployment.py](clieint_deployment.py) deployment manager template is
      ```
    **Google-managed private keys**
    * Enable the [Google Identity and Access Management (IAM) API](https://console.developers.google.com/apis/library/iam.googleapis.com)
-   * Grant the default compute service account ```Service Account Token Creator``` role
+   * Grant ```Service Account Token Creator``` role to the default compute service account (e.g. yourprojectnumber-compute@developer.gserviceaccount.com)
+     * Since the Compute Engine metadata service doesn't expose the default service account key, you use the IAM signBlob API to sign instead. The ```Service Account Token Creator``` role grants this access to sign blobs. 
 1. Once the libraries are installed, you can run the sample by calling:
     ```bash
     source /home/iap_client_env/bin/activate;
