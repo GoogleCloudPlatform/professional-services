@@ -60,7 +60,7 @@ def get_backend_service_id():
   backend_services = compute_service.backendServices().list(
       project=project_id
   ).execute().get('items')
-  if len(backend_services):
+  if backend_services:
     # Make sure your project has only one backend service created
     # since this sample picks the first one it finds
     return backend_services[0].get('id')
