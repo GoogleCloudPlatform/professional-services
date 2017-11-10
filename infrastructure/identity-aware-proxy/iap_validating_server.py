@@ -57,7 +57,7 @@ def getBackendServiceId(project_id, backend_service_name):
       project=project_id,
       backendService=backend_service_name
     ).execute().get('id')  
-  except HttpError as e:
+  except urllib2.HTTPError as e:
     if e.code == 404:
       return None
     else:
