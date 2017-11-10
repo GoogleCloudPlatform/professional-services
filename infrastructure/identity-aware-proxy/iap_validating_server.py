@@ -18,6 +18,7 @@ import requests
 from BaseHTTPServer import BaseHTTPRequestHandler
 from BaseHTTPServer import HTTPServer
 from googleapiclient import discovery
+from googleapiclient.errors import HttpError
 from time import sleep
 # validate_jwt github link:
 #    https://github.com/GoogleCloudPlatform/python-docs-samples/blob/master/iap/validate_jwt.py
@@ -58,8 +59,8 @@ def getBackendServiceId(project_id, backend_service_name):
       project=project_id,
       backendService=backend_service_name
     ).execute().get('id')  
-  except requests.exceptions.HTTPError as e:
-    if e.code == 404:
+  except HTTPError as e:
+    if e.resp.status == 404:
       return None
     else:
       raise
