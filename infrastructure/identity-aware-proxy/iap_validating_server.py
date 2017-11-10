@@ -18,7 +18,6 @@ import requests
 from BaseHTTPServer import BaseHTTPRequestHandler
 from BaseHTTPServer import HTTPServer
 from googleapiclient import discovery
-from googleapiclient.errors import HttpError
 from time import sleep
 # validate_jwt github link:
 #    https://github.com/GoogleCloudPlatform/python-docs-samples/blob/master/iap/validate_jwt.py
