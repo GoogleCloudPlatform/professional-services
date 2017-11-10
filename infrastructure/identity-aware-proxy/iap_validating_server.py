@@ -52,36 +52,33 @@ class RequestHandler(BaseHTTPRequestHandler):
       self.wfile.write("Hello " + identity[1] + "!")
     return
 
-def getBackendServiceId():
+def get_backend_service_id():
   compute_service = discovery.build('compute', 'v1')
   project_id = requests.get(
       'http://metadata.google.internal/computeMetadata/v1/project/project-id',
       headers={'Metadata-Flavor': 'Google'}).text
-  backend_service = None
-  try:
-    backend_services = compute_service.backendServices().list(
-        project=project_id
-    ).execute().get('items')
-    if len(backend_services):
-      return backend_services[0].get('id')
-  except HttpError as e:
-    if e.resp.status == 404:
-      return None
-    else:
-      raise
+  backend_services = compute_service.backendServices().list(
+      project=project_id
+  ).execute().get('items')
+  if len(backend_services):
+    # Make sure your project has only one backend service created
+    # since this sample picks the first one it finds
+    return backend_services[0].get('id')
+  else:
+    return None
 
 def main():
   project_number = requests.get(
       'http://metadata.google.internal/computeMetadata/v1/project/numeric-project-id',
       headers={'Metadata-Flavor': 'Google'}).text
   
-  backend_service_id = getBackendServiceId()
+  backend_service_id = get_backend_service_id()
   while not backend_service_id:
     print "Backend service not found, please create a load balancer with a backend service"
     # Keep trying to retrieve backend service id as it's necessary
     # for validating IAP JWTs
     sleep(2)
-    backend_service_id = getBackendServiceId()
+    backend_service_id = get_backend_service_id()
 
   # Store project number and backend service id inside 
   # the RequestHandler class so that all IAP traffic can be 
