@@ -14,6 +14,12 @@
 
 #!/bin/bash
 
+which openssl
+if [[ $? != 0 ]] ; then
+echo "This script requires openssl to be installed"
+exit 1
+fi
+
 mkdir ssl_cert;
 cd ssl_cert;
 openssl genrsa -out sample.key 2048;
