@@ -84,7 +84,7 @@ def main():
   RequestHandler.project_number = project_number
   RequestHandler.backend_service_id = backend_service_id
   port = 80
-  server = HTTPServer(("127.0.0.1", port), RequestHandler)
+  server = HTTPServer(("", port), RequestHandler)
   print "Listening on localhost: {}".format(port)
   server.serve_forever()
   
