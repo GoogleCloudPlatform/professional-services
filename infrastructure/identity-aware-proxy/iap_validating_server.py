@@ -85,7 +85,6 @@ def main():
   RequestHandler.backend_service_id = backend_service_id
   port = 80
   server = HTTPServer(("", port), RequestHandler)
-  print "Listening on localhost: {}".format(port)
   server.serve_forever()
   
 if __name__ == "__main__":
