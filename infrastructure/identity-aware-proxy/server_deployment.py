@@ -1,4 +1,4 @@
-# Copyright 2016 Google Inc. All rights reserved.
+# Copyright 2017 Google Inc. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the 'License');
 # you may not use this file except in compliance with the License.
@@ -12,21 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Creates sample IAP Server"""
+"""Creates a sample IAP web server."""
 
 def GenerateConfig(context):
-  """Generate configuration."""
-  resources=[]
+  """Generates list of GCP resources required for IAP web server."""
 
   # Creates an instance template which will be used by an instance group manager
   # to create and auto-scale VMs. The startup-script metadata property shows
   # the script that runs on the VM whenever it is created.
-  resources.append({
+  resources = [{
     'name': 'iap-server-instance-template',
     'type': 'compute.v1.instanceTemplate',
     'properties': {
       'properties': {
-        # zone specified in server_deployment.yaml file
+        # zone specified in server_deployment.yaml file.
         'zone': context.properties['zone'],
         'machineType': 'n1-standard-1',
         'disks': [{
@@ -40,7 +39,7 @@ def GenerateConfig(context):
         }],
         'networkInterfaces': [{
           'network': 'global/networks/default',
-          # Access Config required to give the instance a public IP address
+          # Access Config required to give the instance a public IP address.
           'accessConfigs': [{
             'name': 'External NAT',
             'type': 'ONE_TO_ONE_NAT'
@@ -48,14 +47,15 @@ def GenerateConfig(context):
         }],
         'serviceAccounts': [{
           # Use the default compute engine service account that is auto-created
-          # for every project upon creation
-          'email': context.env['project_number'] + '-compute@developer.gserviceaccount.com',
+          # for every project upon creation.
+          'email': context.env[
+                     'project_number'] + '-compute@developer.gserviceaccount.com',
           # compute.readonly scope is necessary in order to programmatically
           # retrieve the backend service ID.
           'scopes': ['https://www.googleapis.com/auth/compute.readonly']
         }],
         'metadata': {
-          'items':[{
+          'items': [{
             'key': 'startup-script',
             # startup script below will download necessary files from github to
             # run a simple python web server. The web server will verify all
@@ -76,9 +76,7 @@ def GenerateConfig(context):
         }
       }
     }
-  })
-
-  resources.append({
+  }, {
     'name': 'iap-server-instance-group',
     'type': 'compute.v1.instanceGroupManager',
     'properties': {
@@ -87,61 +85,47 @@ def GenerateConfig(context):
       'targetSize': 1,
       'zone': context.properties['zone'],
       'namedPorts': [
-        {'name': 'http','port': 80},
-        {'name': 'https','port': 443}
+        {'name': 'http', 'port': 80},
+        {'name': 'https', 'port': 443}
       ]
     }
-  })
-  
-  resources.append({
+  }, {
     'name': 'iap-health-check',
     'type': 'compute.v1.httpHealthCheck'
-  })
-  
-  resources.append({
+  }, {
     'name': 'iap-backend-service',
     'type': 'compute.v1.backendService',
     'properties': {
       'healthChecks': ['$(ref.iap-health-check.selfLink)'],
-      'backends':[{'group': '$(ref.iap-server-instance-group.instanceGroup)'}]
+      'backends': [{'group': '$(ref.iap-server-instance-group.instanceGroup)'}]
     }
-  })
-  
-  resources.append({
+  }, {
     'name': 'iap-self-signed-cert',
     'type': 'compute.v1.sslCertificate',
     'properties': {
       'privateKey': context.imports[context.properties['privateKey']],
       'certificate': context.imports[context.properties['certificate']]
     }
-  })
-  
-  resources.append({
+  }, {
     'name': 'iap-url-map',
     'type': 'compute.v1.urlMap',
     'properties': {
       'defaultService': '$(ref.iap-backend-service.selfLink)'
     }
-  })
-  
-  resources.append({
+  }, {
     'name': 'iap-target-https-proxy',
     'type': 'compute.v1.targetHttpsProxy',
     'properties': {
       'sslCertificates': ['$(ref.iap-self-signed-cert.selfLink)'],
       'urlMap': '$(ref.iap-url-map.selfLink)'
     }
-  })
-
-  resources.append({
+  }, {
     'name': 'iap-reserved-global-address',
     'type': 'compute.v1.globalAddress',
     'properties': {
       'ipVersion': 'IPV4'
     }
-  })
-  
-  resources.append({
+  }, {
     'name': 'iap-global-forwarding-rule',
     'type': 'compute.v1.globalForwardingRule',
     'properties': {
@@ -149,23 +133,22 @@ def GenerateConfig(context):
       'IPAddress': '$(ref.iap-reserved-global-address.address)',
       'portRange': '443'
     }
-  })
-  
-  # You must create a firewall rule that allows traffic from your
-  # load balancer and health checker to reach your compute instances.
-  # IP ranges: 130.211.0.0/22 and 35.191.0.0/16 correspond
-  # to the load balancer and health checker.
-  resources.append({
+  }, {
     'name': 'iap-firewall-allow-load-balancer',
     'type': 'compute.v1.firewall',
     'properties': {
       'network': 'global/networks/default',
-      'sourceRanges': ['130.211.0.0/22','35.191.0.0/16'],
-      'allowed':[{
+      'sourceRanges': ['130.211.0.0/22', '35.191.0.0/16'],
+      'allowed': [{
         'IPProtocol': 'TCP',
         'ports': [80]
       }]
     }
-  })
+  }]
+
+  # You must create a firewall rule that allows traffic from your
+  # load balancer and health checker to reach your compute instances.
+  # IP ranges: 130.211.0.0/22 and 35.191.0.0/16 correspond
+  # to the load balancer and health checker.
 
   return {'resources':resources}

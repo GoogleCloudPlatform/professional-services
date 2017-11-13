@@ -11,38 +11,39 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Creates sample IAP Client"""
+"""Creates sample IAP client."""
 
 
 def GenerateConfig(context):
-  """Generate configuration."""
+  """Generates list of GCP resources required for IAP web client."""
   
-  resources=[]
-  resources.append({
-    'name':'iap-client-vm',
-    'type':'compute.v1.instance',
+  resources= [{
+    'name': 'iap-client-vm',
+    'type': 'compute.v1.instance',
     'properties': {
       'zone': context.properties['zone'],
-      'machineType': 'zones/' + context.properties['zone'] + '/machineTypes/n1-standard-1',
+      'machineType': 'zones/' + context.properties[
+        'zone'] + '/machineTypes/n1-standard-1',
       'disks': [{
-        'deviceName':'boot',
-        'type':'PERSISTENT',
-        'boot':True,
-        'autoDelete':True,
+        'deviceName': 'boot',
+        'type': 'PERSISTENT',
+        'boot': True,
+        'autoDelete': True,
         'initializeParams': {
-          'sourceImage':'projects/debian-cloud/global/images/family/debian-8',
+          'sourceImage': 'projects/debian-cloud/global/images/family/debian-8',
         }
       }],
       'networkInterfaces': [{
         'network': 'global/networks/default',
-        # Access Config required to give the instance a public IP address
+        # Access Config required to give the instance a public IP address.
         'accessConfigs': [{
           'name': 'External NAT',
           'type': 'ONE_TO_ONE_NAT',
         }],
       }],
       'serviceAccounts': [{
-        'email': context.env['project_number'] + '-compute@developer.gserviceaccount.com',
+        'email': context.env[
+                   'project_number'] + '-compute@developer.gserviceaccount.com',
         'scopes': ['https://www.googleapis.com/auth/iam']
       }],
       'metadata': {
@@ -60,5 +61,5 @@ def GenerateConfig(context):
         }]
       }
     }
-  })
+  }]
   return {'resources':resources}
