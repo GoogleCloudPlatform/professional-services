@@ -67,7 +67,9 @@ def removeSource(**kwargs):
     row = hook.get_first(sql)
     logging.info('row:{}'.format(str(row)))
     fileloc = row[0]
-    if os.path.exists(fileloc):
+    if not fileloc:
+        logging.warn('python no file location for dag "{}" found in DB!'.format(fileloc))
+    if fileloc and os.path.exists(fileloc):
         logging.info('removing "{}"'.format(fileloc))
         os.remove(fileloc)
     else:
