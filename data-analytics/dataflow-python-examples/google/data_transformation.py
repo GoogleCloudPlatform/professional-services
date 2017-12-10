@@ -24,7 +24,6 @@ and transforms the date data to match the format BigQuery expects.
 
 from __future__ import absolute_import
 import argparse
-
 import logging
 import os
 import apache_beam as beam
@@ -32,46 +31,50 @@ from apache_beam.options.pipeline_options import PipelineOptions
 from apache_beam.io.gcp.bigquery import parse_table_schema_from_json
 
 
-
 class DataIngestion:
     def __init__(self):
         """A helper class which contains the logic to translate the file into a
-      format BigQuery will accept"""
+      format BigQuery will accept."""
         dir_path = os.path.dirname(os.path.realpath(__file__))
         self.schema_str = ''
         # Here we read the output schema from a json file.  This is used to specify the types
-        # of data we are writing to BigQuery
-        with open(dir_path + '/resources/usa_names.json') \
+        # of data we are writing to BigQuery.
+        schema_file = os.path.join(dir_path, 'resources', 'usa_names.json')
+        with open(schema_file) \
                 as f:
             data = f.read()
-            # Wrapping the schema in fields: is required for the BigQuery API
+            # Wrapping the schema in fields is required for the BigQuery API.
             self.schema_str = '{"fields": ' + data + '}'
 
     def parse_method(self, string_input):
         """This method translates a single line of comma separated values to a
     dictionary which can be loaded into BigQuery.
 
-    Example Input:
-        KS,F,1923,Dorothy,654,11/28/2016
+        Args:
+            string_input: A comma separated list of values in the form of 
+            state_abbreviation,gender,year,name,count_of_babies,dataset_created_date
+                example string_input: KS,F,1923,Dorothy,654,11/28/2016
 
-    Example Output:
-          {'state': 'KS',
-           'gender': 'F',
-           'year': '1923',
-           'name': 'Dorothy',
-           'number': '654',
-           'created_date': '2016-11-28'
-           }
-     """
+        Returns:
+            A dict mapping BigQuery column names as keys to the corresponding value
+            parsed from string_input.  In this example, the data is not transformed, and 
+            remains in the same format as the CSV.  There are no date format transformations. 
+
+                example output:
+                      {'state': 'KS',
+                       'gender': 'F',
+                       'year': '1923-01-01', <- This is the BigQuery date format.
+                       'name': 'Dorothy',
+                       'number': '654',
+                       'created_date': '11/28/2016'
+                       }
+        """
         from apache_beam.io.gcp.bigquery import parse_table_schema_from_json
         import csv
-        # Strip out return characters and quote characters
+        # Strip out return characters and quote characters.
         schema = parse_table_schema_from_json(self.schema_str)
 
-
-        field_map = list()
-        for field in schema.fields:
-            field_map.append(field)
+        field_map = [f for f in schema.fields]
 
         # Use a CSV Reader which can handle quoted strings etc.
         reader = csv.reader(string_input.split('\n'))
@@ -81,23 +84,21 @@ class DataIngestion:
             # month and day.
             month = u'01'
             day = u'01'
-            # The year comes from our source data
+            # The year comes from our source data.
             year = values[2]
-            # The row that will be uploaded into BigQuery
+
             row = {}
             i = 0
-            # Iterate over the values from our csv file
+            # Iterate over the values from our csv file, applying any transformation logic.
             for value in values:
-                # if the schema indicates this field is a date format, we must
-                # transform the date from the source data into one that
-                # BigQuery can understand
+                # If the schema indicates this field is a date format, we must
+                # transform the date from the source data into a format that
+                # BigQuery can understand.
                 if field_map[i].type == 'DATE':
-                    # format the date to YYYY-MM-DD format, which BigQuery
-                    # accepts
+                    # Format the date to YYYY-MM-DD format which BigQuery
+                    # accepts.
                     value = u'-'.join((year, month, day))
 
-                # This sets the value that BigQuery will read when importing the
-                # data
                 row[field_map[i].name] = value
                 i += 1
 
@@ -105,15 +106,14 @@ class DataIngestion:
 
 
 def run(argv=None):
-    """The main function which creates the pipeline and runs it"""
-    # This object helps us parse command line arguments
+    """The main function which creates the pipeline and runs it."""
     parser = argparse.ArgumentParser()
     # Here we add some specific command line arguments we expect.   Specifically
     # we have the input file to load and the output table to write to.
     parser.add_argument(
         '--input', dest='input', required=False,
         help='Input file to read.  This can be a local file or '
-             'a file in a Google Storage Bucket',
+             'a file in a Google Storage Bucket.',
         # This example file contains a total of only 10 lines.
         # It is useful for developing on a small set of data
         default='gs://python-dataflow-example/data_files/head_usa_names.csv')
@@ -123,7 +123,7 @@ def run(argv=None):
                         help='Output BQ table to write results to.',
                         default='lake.usa_names_transformed')
 
-    # Parse arguments from the command line
+    # Parse arguments from the command line.
     known_args, pipeline_args = parser.parse_known_args(argv)
     # DataIngestion is a class we built in this script to hold the logic for
     # transforming the file into a BigQuery table.
@@ -139,25 +139,27 @@ def run(argv=None):
      # Read the file.  This is the source of the pipeline.  All further
      # processing starts with lines read from the file.  We use the input
      # argument from the command line.  We also skip the first line which is a
-     # header row
+     # header row.
      | 'Read From Text' >> beam.io.ReadFromText(known_args.input,
                                            skip_header_lines=1)
      # This stage of the pipeline translates from a CSV file single row
-     # input as a string, to a dictionary object consumable by BigQuery
+     # input as a string, to a dictionary object consumable by BigQuery.
      # It refers to a function we have written.  This function will
-     # be run in paralell on different workers using input from the
-     # previous stage of the pipeline
+     # be run in parallel on different workers using input from the
+     # previous stage of the pipeline.
      | 'String to BigQuery Row' >> beam.Map(lambda s:
                                         data_ingestion.parse_method(s))
      | 'Write to BigQuery' >> beam.io.Write(
         beam.io.BigQuerySink(
-            # The table name passed in from the command line
+            # The table name is a required argument for the BigQuery sink.
+            # In this case we use the value passed in from the command line.
             known_args.output,
             # Here we use the JSON schema read in from a JSON file.
+            # Specifying the schema allows the API to create the table correctly if it does not yet exist.
             schema=schema,
-            # Creates the table in BigQuery if it does not yet exist
+            # Creates the table in BigQuery if it does not yet exist.
             create_disposition=beam.io.BigQueryDisposition.CREATE_IF_NEEDED,
-            # Deletes all data in the BigQuery table before writing
+            # Deletes all data in the BigQuery table before writing.
             write_disposition=beam.io.BigQueryDisposition.WRITE_TRUNCATE)))
     p.run()
 
