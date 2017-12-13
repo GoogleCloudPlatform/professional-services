@@ -46,6 +46,9 @@ default_args = {
 
 
 def removeSource(**kwargs):
+    """Remove the source from the Composer repository. 
+    NOTE: in Cloud Composer there is also a GCS bucket that is shadowed here. You must remove the file
+    there first."""
     context = kwargs
     if not context:
         logging.error("No context provided")
@@ -65,6 +68,10 @@ def removeSource(**kwargs):
     sql="select fileloc from dag where dag_id='{}'".format( dag_id)
     logging.info("Running sql {}".format(sql))
     row = hook.get_first(sql)
+     if not row:
+        logging.warn("No entry found for source file. Make sure you specified the dag name properly.")
+        return None
+ 
     logging.info('row:{}'.format(str(row)))
     fileloc = row[0]
     if not fileloc:
