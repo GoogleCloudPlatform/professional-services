@@ -68,7 +68,7 @@ def removeSource(**kwargs):
     sql="select fileloc from dag where dag_id='{}'".format( dag_id)
     logging.info("Running sql {}".format(sql))
     row = hook.get_first(sql)
-     if not row:
+    if not row:
         logging.warn("No entry found for source file. Make sure you specified the dag name properly.")
         return None
  
