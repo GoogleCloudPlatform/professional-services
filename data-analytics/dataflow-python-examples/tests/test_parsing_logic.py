@@ -28,4 +28,6 @@ class TestHandlers(unittest.TestCase):
 
         self.assertEquals(200, 200)
 
+if __name__ == '__main__':
+    unittest.main()
 

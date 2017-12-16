@@ -1,0 +1,2 @@
+script:
+- python data-analytics/dataflow-python-examples/tests/test_parsing_logic.py
