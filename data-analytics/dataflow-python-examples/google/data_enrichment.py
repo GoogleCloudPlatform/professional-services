@@ -28,7 +28,6 @@ from apache_beam.options.pipeline_options import PipelineOptions
 from apache_beam.pvalue import AsDict
 
 
-
 class DataIngestion(object):
     """A helper class which contains the logic to translate the file into a
   format BigQuery will accept."""
@@ -155,8 +154,7 @@ def run(argv=None):
     state_abbreviations = (
         p
         | 'Read from BigQuery' >> beam.io.Read(
-            beam.io.BigQuerySource(query=read_query
-                                   , use_standard_sql=True))
+            beam.io.BigQuerySource(query=read_query, use_standard_sql=True))
         # We must create a python tuple of key to value pairs here in order to
         # use the data as a side input.  Dataflow will use the keys to distribute the
         # work to the correct worker.
@@ -169,12 +167,12 @@ def run(argv=None):
      # argument from the command line.  We also skip the first line which is
      # a header row.
      | 'Read From Text' >> beam.io.ReadFromText(known_args.input,
-                                           skip_header_lines=1)
+                                                skip_header_lines=1)
      # Translates from the raw string data in the CSV to a dictionary.
      # The dictionary is a keyed by column names with the values being the values
      # we want to store in BigQuery.
      | 'String to BigQuery Row' >> beam.Map(lambda s:
-                                        data_ingestion.parse_method(s))
+                                            data_ingestion.parse_method(s))
      # Here we pass in a side input, which is data that comes from outside our
      # CSV source.  The side input contains a map of states to their full name.
      | 'Join Data' >> beam.Map(add_full_state_name, AsDict(

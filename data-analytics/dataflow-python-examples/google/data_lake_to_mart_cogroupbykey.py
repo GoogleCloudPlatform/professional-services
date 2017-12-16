@@ -143,7 +143,7 @@ def run(argv=None):
 
     # CoGroupByKey allows us to arrange the results together by key
     # Both "orders" and "account_details" are maps of
-    #  acct_number -> "Row of results from BigQuery"
+    # acct_number -> "Row of results from BigQuery".
     # The mapping is done in the above code using Beam.Map()
     result = {'orders': orders, 'account_details': account_details_source} | \
              beam.CoGroupByKey()

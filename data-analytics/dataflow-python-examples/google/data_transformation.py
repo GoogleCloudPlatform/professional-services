@@ -141,14 +141,14 @@ def run(argv=None):
      # argument from the command line.  We also skip the first line which is a
      # header row.
      | 'Read From Text' >> beam.io.ReadFromText(known_args.input,
-                                           skip_header_lines=1)
+                                                skip_header_lines=1)
      # This stage of the pipeline translates from a CSV file single row
      # input as a string, to a dictionary object consumable by BigQuery.
      # It refers to a function we have written.  This function will
      # be run in parallel on different workers using input from the
      # previous stage of the pipeline.
      | 'String to BigQuery Row' >> beam.Map(lambda s:
-                                        data_ingestion.parse_method(s))
+                                            data_ingestion.parse_method(s))
      | 'Write to BigQuery' >> beam.io.Write(
         beam.io.BigQuerySink(
             # The table name is a required argument for the BigQuery sink.

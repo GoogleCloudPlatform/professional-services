@@ -107,8 +107,7 @@ def run(argv=None):
      # Read the orders from BigQuery.  This is the source of the pipeline.  All further
      # processing starts with rows read from the query results here.
      | 'Read Orders from BigQuery ' >> beam.io.Read(
-        beam.io.BigQuerySource(query=
-                               """SELECT
+        beam.io.BigQuerySource(query="""SELECT
                                -- select * is not recommended in production code.  For brevity, 
                                -- we have included it here.  In production code it is recommended
                                -- to explicitly the list the columns.
