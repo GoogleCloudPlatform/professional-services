@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: com.example.appengine.java8.URLFetchClientTest
--------------------------------------------------------------------------------
-Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.817 sec
