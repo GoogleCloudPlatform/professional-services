@@ -10,7 +10,7 @@ This respository is owned by Google's Professional Services team and is organize
 ## Contributing
 The team is currently not accepting contributions.
 
-## LICSENSE
+## License
 See [LICENSE](/LICENSE)
 
 ## Disclaimer
