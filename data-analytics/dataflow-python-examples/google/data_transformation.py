@@ -17,9 +17,6 @@ its contents to a BigQuery table.
 
 This example reads a json schema of the intended output into BigQuery, 
 and transforms the date data to match the format BigQuery expects.
-
- To run this script, set up your python environment by running these commands:
-
 """
 
 from __future__ import absolute_import
@@ -32,9 +29,10 @@ from apache_beam.io.gcp.bigquery import parse_table_schema_from_json
 
 
 class DataIngestion:
+    """A helper class which contains the logic to translate the file into a
+  format BigQuery will accept."""
+
     def __init__(self):
-        """A helper class which contains the logic to translate the file into a
-      format BigQuery will accept."""
         dir_path = os.path.dirname(os.path.realpath(__file__))
         self.schema_str = ''
         # Here we read the output schema from a json file.  This is used to specify the types

@@ -62,7 +62,7 @@ def run(argv=None):
     schema = parse_table_schema_from_json(data_ingestion.schema_str)
     pipeline = beam.Pipeline(options=PipelineOptions(pipeline_args))
 
-    # This function performs the "join" of the two datasets.
+    # This function performs the join of the two datasets.
     def add_account_details((acct_number, data)):
         import traceback
         if not data['account_details']:
@@ -75,7 +75,6 @@ def run(argv=None):
         account_details = {}
         try:
             account_details = data['account_details'][0]
-
         except KeyError as err:
             traceback.print_exc()
             logging.error("Account Not Found error: %s", err)
