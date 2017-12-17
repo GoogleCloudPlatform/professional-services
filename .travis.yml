@@ -1,3 +1,4 @@
+language: python
 install:
   - pip install -r data-analytics/dataflow-python-examples/requirements.txt
 script:
