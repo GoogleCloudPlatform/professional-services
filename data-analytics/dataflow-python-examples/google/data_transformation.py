@@ -21,8 +21,10 @@ and transforms the date data to match the format BigQuery expects.
 
 from __future__ import absolute_import
 import argparse
+import csv
 import logging
 import os
+
 import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions
 from apache_beam.io.gcp.bigquery import parse_table_schema_from_json
@@ -67,8 +69,6 @@ class DataIngestion:
                        'created_date': '11/28/2016'
                        }
         """
-        from apache_beam.io.gcp.bigquery import parse_table_schema_from_json
-        import csv
         # Strip out return characters and quote characters.
         schema = parse_table_schema_from_json(self.schema_str)
 
@@ -159,7 +159,7 @@ def run(argv=None):
             create_disposition=beam.io.BigQueryDisposition.CREATE_IF_NEEDED,
             # Deletes all data in the BigQuery table before writing.
             write_disposition=beam.io.BigQueryDisposition.WRITE_TRUNCATE)))
-    p.run()
+    p.run().wait_until_finish()
 
 
 if __name__ == '__main__':

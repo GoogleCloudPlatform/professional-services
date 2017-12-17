@@ -21,6 +21,8 @@ from __future__ import absolute_import
 import argparse
 import logging
 import os
+import traceback
+
 import apache_beam as beam
 from apache_beam.io.gcp.bigquery import parse_table_schema_from_json
 from apache_beam.options.pipeline_options import PipelineOptions
@@ -64,7 +66,6 @@ def run(argv=None):
 
     # This function performs the join of the two datasets.
     def add_account_details((acct_number, data)):
-        import traceback
         if not data['account_details']:
             logging.info('account details are empty')
             return
@@ -164,7 +165,7 @@ def run(argv=None):
             # Deletes all data in the BigQuery table before writing.
             write_disposition=beam.io.BigQueryDisposition.WRITE_TRUNCATE))
 
-    pipeline.run()
+    pipeline.run().wait_until_finish()
 
 if __name__ == '__main__':
     logging.getLogger().setLevel(logging.INFO)

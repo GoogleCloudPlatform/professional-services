@@ -130,7 +130,7 @@ def run(argv=None):
             create_disposition=beam.io.BigQueryDisposition.CREATE_IF_NEEDED,
             # Deletes all data in the BigQuery table before writing.
             write_disposition=beam.io.BigQueryDisposition.WRITE_TRUNCATE)))
-    p.run()
+    p.run().wait_until_finish()
 
 
 if __name__ == '__main__':
