@@ -21,6 +21,8 @@ from __future__ import absolute_import
 import argparse
 import logging
 import os
+import traceback
+
 import apache_beam as beam
 from apache_beam.io.gcp.bigquery import parse_table_schema_from_json
 from apache_beam.options.pipeline_options import PipelineOptions
@@ -65,7 +67,6 @@ def run(argv=None):
     pipeline = beam.Pipeline(options=PipelineOptions(pipeline_args))
 
     def add_account_details(row, account_details):
-        import traceback
         try:
             row.update(account_details[row['acct_number']])
         except KeyError as err:
@@ -135,7 +136,7 @@ def run(argv=None):
             create_disposition=beam.io.BigQueryDisposition.CREATE_IF_NEEDED,
             # Deletes all data in the BigQuery table before writing.
             write_disposition=beam.io.BigQueryDisposition.WRITE_TRUNCATE)))
-    p.run()
+    p.run().wait_until_finish()
 
 
 if __name__ == '__main__':

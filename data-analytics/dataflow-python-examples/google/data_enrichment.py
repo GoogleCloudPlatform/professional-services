@@ -20,9 +20,12 @@
 
 from __future__ import absolute_import
 import argparse
+import csv
 import logging
 import os
+
 import apache_beam as beam
+from apache_beam.io.gcp import bigquery
 from apache_beam.io.gcp.bigquery import parse_table_schema_from_json
 from apache_beam.options.pipeline_options import PipelineOptions
 from apache_beam.pvalue import AsDict
@@ -67,8 +70,6 @@ class DataIngestion(object):
                        }
 
      """
-        import csv
-        from apache_beam.io.gcp import bigquery
         # Strip out return characters and quote characters.
         schema = bigquery.parse_table_schema_from_json(self.schema_str)
 
@@ -149,7 +150,7 @@ def run(argv=None):
     state_name,
     state_abbreviation
     FROM
-    python-dataflow-example.example_data.state_abbreviations"""
+    `python-dataflow-example.example_data.state_abbreviations`"""
 
     state_abbreviations = (
         p
@@ -191,7 +192,7 @@ def run(argv=None):
             create_disposition=beam.io.BigQueryDisposition.CREATE_IF_NEEDED,
             # Deletes all data in the BigQuery table before writing.
             write_disposition=beam.io.BigQueryDisposition.WRITE_TRUNCATE)))
-    p.run()
+    p.run().wait_until_finish()
 
 
 if __name__ == '__main__':
