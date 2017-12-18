@@ -68,7 +68,7 @@ processing will occur in the pipeline after this stage.
 
 ### Full code examples
 
-Ready to dive deeper?  Check out the complete code [here](google/data_ingestion.py)
+Ready to dive deeper?  Check out the complete code [here](dataflow_python_examples/data_ingestion.py)
 
 ## Transforming data in Dataflow
 ![Alt text](img/csv_file_to_bigquery.png?raw=true "CSV file to BigQuery")
@@ -100,7 +100,7 @@ Just as in our previous example, this example uses BigQuery IO to write out to B
 
 ### Full code examples
 
-Ready to dive deeper?  Check out the complete code [here](google/data_transformation.py)
+Ready to dive deeper?  Check out the complete code [here](dataflow_python_examples/data_transformation.py)
 
 ## Joining file and BigQuery datasets in Dataflow
 ![Alt text](img/csv_join_bigquery_to_bigquery.png?raw=true "CSV file joined with BigQuery data to BigQuery")
@@ -145,7 +145,7 @@ examples.
 
 ### Full code examples
 
-Ready to dive deeper?  Check out the complete code [here](google/data_enrichment.py)
+Ready to dive deeper?  Check out the complete code [here](dataflow_python_examples/data_enrichment.py)
 
 
 ## Data lake to data mart
@@ -196,6 +196,6 @@ examples.
 ### Full code examples
 
 Ready to dive deeper?  Check out the complete code.  
-The example using side inputs is [here](google/data_lake_to_mart.py) and the example using CoGroupByKey is 
-[here](google/data_lake_to_mart_cogroupbykey.py).
+The example using side inputs is [here](dataflow_python_examples/data_lake_to_mart.py) and the example using CoGroupByKey is 
+[here](dataflow_python_examples/data_lake_to_mart_cogroupbykey.py).
 
