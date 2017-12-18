@@ -29,9 +29,12 @@ from apache_beam.options.pipeline_options import PipelineOptions
 from apache_beam.pvalue import AsDict
 
 
-class DataIngestion:
+class DataLakeToDataMart:
     """A helper class which contains the logic to translate the file into 
-    a format BigQuery will accept."""
+    a format BigQuery will accept.
+    
+    This example uses side inputs to join two datasets together.
+    """
 
     def __init__(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -43,6 +46,22 @@ class DataIngestion:
             data = f.read()
             # Wrapping the schema in fields is required for the BigQuery API.
             self.schema_str = '{"fields": ' + data + '}'
+
+    def add_account_details(self, row, account_details):
+        """add_account_details joins two datasets together.  Dataflow passes in the 
+        a row from the orders dataset along with the entire account details dataset.
+        
+        This works because the entire account details dataset can be passed in memory.
+        
+        The function then looks up the account details, and adds all columns to a result
+        dictionary, which will be written to BigQuery."""
+        result = row.copy()
+        try:
+            result.update(account_details[row['acct_number']])
+        except KeyError as err:
+            traceback.print_exc()
+            logging.error("Account Not Found error: %s", err)
+        return result
 
 
 def run(argv=None):
@@ -58,21 +77,13 @@ def run(argv=None):
     # Parse arguments from the command line.
     known_args, pipeline_args = parser.parse_known_args(argv)
 
-    # DataIngestion is a class we built in this script to hold the logic for
+    # DataLakeToDataMart is a class we built in this script to hold the logic for
     # transforming the file into a BigQuery table.
-    data_ingestion = DataIngestion()
+    data_ingestion = DataLakeToDataMart()
 
     p = beam.Pipeline(options=PipelineOptions(pipeline_args))
     schema = parse_table_schema_from_json(data_ingestion.schema_str)
     pipeline = beam.Pipeline(options=PipelineOptions(pipeline_args))
-
-    def add_account_details(row, account_details):
-        try:
-            row.update(account_details[row['acct_number']])
-        except KeyError as err:
-            traceback.print_exc()
-            logging.error("Account Not Found error: %s", err)
-        return row
 
     # This query returns details about the account, normalized into a
     # different table.  We will be joining the data in to the main orders dataset in order
@@ -120,7 +131,7 @@ def run(argv=None):
                                 """, use_standard_sql=True))
      # Here we pass in a side input, which is data that comes from outside our
      # main source.  The side input contains a map of states to their full name
-     | 'Join Data with sideInput' >> beam.Map(add_account_details, AsDict(
+     | 'Join Data with sideInput' >> beam.Map(data_ingestion.add_account_details, AsDict(
         account_details_source))
      # This is the final stage of the pipeline, where we define the destination
      # of the data.  In this case we are writing to BigQuery.
