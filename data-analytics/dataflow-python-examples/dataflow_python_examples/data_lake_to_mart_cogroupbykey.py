@@ -28,9 +28,12 @@ from apache_beam.io.gcp.bigquery import parse_table_schema_from_json
 from apache_beam.options.pipeline_options import PipelineOptions
 
 
-class DataIngestion:
+class DataLakeToDataMartCGBK:
     """A helper class which contains the logic to translate the file into 
-    a format BigQuery will accept."""
+    a format BigQuery will accept.
+    
+    This example uses CoGroupByKey to join two datasets together.
+    """
 
     def __init__(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -42,6 +45,28 @@ class DataIngestion:
             data = f.read()
             # Wrapping the schema in fields is required for the BigQuery API.
             self.schema_str = '{"fields": ' + data + '}'
+
+    def add_account_details(self, (acct_number, data)):
+        """This function performs the join of the two datasets."""
+        result = list(data['orders'])
+        if not data['account_details']:
+            logging.info('account details are empty')
+            return
+        if not data['orders']:
+            logging.info('orders are empty')
+            return
+
+        account_details = {}
+        try:
+            account_details = data['account_details'][0]
+        except KeyError as err:
+            traceback.print_exc()
+            logging.error("Account Not Found error: %s", err)
+
+        for order in result:
+            order.update(account_details)
+
+        return result
 
 
 def run(argv=None):
@@ -57,33 +82,13 @@ def run(argv=None):
     # Parse arguments from the command line.
     known_args, pipeline_args = parser.parse_known_args(argv)
 
-    # DataIngestion is a class we built in this script to hold the logic for
-    # transforming the file into a BigQuery table.
-    data_ingestion = DataIngestion()
+    # DataLakeToDataMartCGBK is a class we built in this script to hold the logic for
+    # transforming the file into a BigQuery table.  It also contains an example of
+    # using CoGroupByKey
+    data_lake_to_data_mart = DataLakeToDataMartCGBK()
 
-    schema = parse_table_schema_from_json(data_ingestion.schema_str)
+    schema = parse_table_schema_from_json(data_lake_to_data_mart.schema_str)
     pipeline = beam.Pipeline(options=PipelineOptions(pipeline_args))
-
-    # This function performs the join of the two datasets.
-    def add_account_details((acct_number, data)):
-        if not data['account_details']:
-            logging.info('account details are empty')
-            return
-        if not data['orders']:
-            logging.info('orders are empty')
-            return
-
-        account_details = {}
-        try:
-            account_details = data['account_details'][0]
-        except KeyError as err:
-            traceback.print_exc()
-            logging.error("Account Not Found error: %s", err)
-
-        for order in data['orders']:
-            order.update(account_details)
-
-        return data['orders']
 
     # This query returns details about the account, normalized into a
     # different table.  We will be joining the data in to the main orders dataset in order
@@ -151,7 +156,7 @@ def run(argv=None):
     # join the two datasets.  It passes the results of CoGroupByKey, which
     # groups the data from the same key in each dataset together in the same
     # worker.
-    joined = result | beam.FlatMap(add_account_details)
+    joined = result | beam.FlatMap(data_lake_to_data_mart.add_account_details)
     joined | 'Write Data to BigQuery' >> beam.io.Write(
         beam.io.BigQuerySink(
             # The table name is a required argument for the BigQuery sink.
@@ -166,6 +171,7 @@ def run(argv=None):
             write_disposition=beam.io.BigQueryDisposition.WRITE_TRUNCATE))
 
     pipeline.run().wait_until_finish()
+
 
 if __name__ == '__main__':
     logging.getLogger().setLevel(logging.INFO)
