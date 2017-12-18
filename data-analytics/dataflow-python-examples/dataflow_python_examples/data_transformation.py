@@ -30,7 +30,7 @@ from apache_beam.options.pipeline_options import PipelineOptions
 from apache_beam.io.gcp.bigquery import parse_table_schema_from_json
 
 
-class DataIngestion:
+class DataTransformation:
     """A helper class which contains the logic to translate the file into a
   format BigQuery will accept."""
 
@@ -123,9 +123,9 @@ def run(argv=None):
 
     # Parse arguments from the command line.
     known_args, pipeline_args = parser.parse_known_args(argv)
-    # DataIngestion is a class we built in this script to hold the logic for
+    # DataTransformation is a class we built in this script to hold the logic for
     # transforming the file into a BigQuery table.
-    data_ingestion = DataIngestion()
+    data_ingestion = DataTransformation()
 
     # Initiate the pipeline using the pipeline arguments passed in from the
     # command line.  This includes information like where Dataflow should
