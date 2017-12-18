@@ -16,9 +16,7 @@
 import logging
 import unittest
 
-import mock
-
-from google.data_transformation import DataIngestion
+from dataflow_python_examples.data_transformation import DataIngestion
 
 
 class TestHandlers(unittest.TestCase):
