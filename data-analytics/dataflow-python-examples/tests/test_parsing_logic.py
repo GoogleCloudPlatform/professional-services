@@ -18,6 +18,8 @@ import unittest
 
 import mock
 
+from google.data_transformation import DataIngestion
+
 
 class TestHandlers(unittest.TestCase):
     def setUp(self):
@@ -26,7 +28,18 @@ class TestHandlers(unittest.TestCase):
     def test_parsing(self):
         """Dummy test for travis CI testing."""
 
-        self.assertEquals(200, 200)
+        data_ingestion = DataIngestion()
+        csv_input = 'KS,F,1923,Dorothy,654,11/28/2016'
+
+        expected_dict_output = {u'state': u'KS',
+                       u'gender': u'F',
+                       u'year': u'1923-01-01', #this is the bigquery format
+                       u'name': u'Dorothy',
+                       u'number': u'654',
+                       u'created_date': u'11/28/2016'
+                       }
+        actual_dict_outut = data_ingestion.parse_method(csv_input)
+        self.assertEquals(actual_dict_outut, expected_dict_output)
 
 if __name__ == '__main__':
     unittest.main()
