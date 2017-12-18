@@ -32,7 +32,7 @@ class DataIngestion:
 
     def __init__(self): pass
 
-    def parse_method(string_input):
+    def parse_method(self, string_input):
         """This method translates a single line of comma separated values to a 
         dictionary which can be loaded into BigQuery.
         
