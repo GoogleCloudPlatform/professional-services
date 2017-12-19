@@ -1,6 +1,0 @@
-language: python
-install:
-  - pip install -r data-analytics/dataflow-python-examples/requirements.txt
-  - pip install -e data-analytics/dataflow-python-examples/
-script:
-- python data-analytics/dataflow-python-examples/tests/test_parsing_logic.py
