@@ -30,8 +30,6 @@ class DataIngestion:
     """A helper class which contains the logic to translate the file into 
     a format BigQuery will accept."""
 
-    def __init__(self): pass
-
     def parse_method(self, string_input):
         """This method translates a single line of comma separated values to a 
         dictionary which can be loaded into BigQuery.
@@ -57,13 +55,10 @@ class DataIngestion:
         # Strip out return characters and quote characters.
         values = re.split(",",
                           re.sub('\r\n', '', re.sub(u'"', '', string_input)))
-        row = {'state': values[0],
-               'gender': values[1],
-               'year': values[2],
-               'name': values[3],
-               'number': values[4],
-               'created_date': values[5]
-               }
+
+        row = dict( zip(('state', 'gender', 'year', 'name', 'number',
+                         'created_date'),
+                values))
 
         return row
 
