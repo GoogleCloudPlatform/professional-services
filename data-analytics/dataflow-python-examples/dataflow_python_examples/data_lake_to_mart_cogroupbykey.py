@@ -47,8 +47,9 @@ class DataLakeToDataMartCGBK:
             self.schema_str = '{"fields": ' + data + '}'
 
     def get_orders_query(self):
-        """A query against a very large fact table.  We are using a fake orders
-        dataset to simulate a fact table in a typical data warehouse."""
+        """This returns a query against a very large fact table.  We are 
+        using a fake orders dataset to simulate a fact table in a typical 
+        data warehouse."""
         orders_query = """SELECT
             acct_number,
             col_number,
