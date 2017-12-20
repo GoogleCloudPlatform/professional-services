@@ -3,27 +3,6 @@ deploymentConfigurations:
 - name: default
   version: 1.5.1
   providers:
-    appengine:
-      enabled: false
-      accounts: []
-    aws:
-      enabled: false
-      accounts: []
-      defaultKeyPairTemplate: '{{name}}-keypair'
-      defaultRegions:
-      - name: us-west-2
-      defaults:
-        iamRole: BaseIAMRole
-    azure:
-      enabled: false
-      accounts: []
-      bakeryDefaults:
-        templateFile: azure-linux.json
-        baseImages: []
-    dcos:
-      enabled: false
-      accounts: []
-      clusters: []
     dockerRegistry:
       enabled: true
       accounts:
@@ -36,16 +15,6 @@ deploymentConfigurations:
         repositories: []
         passwordFile: '{path-to-password-file}'
       primaryAccount: my-gcr-account
-    google:
-      enabled: false
-      accounts: []
-      bakeryDefaults:
-        templateFile: gce.json
-        baseImages: []
-        zone: us-central1-a
-        network: default
-        useInternalIp: false
-      defaultRegions: []
     kubernetes:
       enabled: true
       accounts:
@@ -80,14 +49,6 @@ deploymentConfigurations:
         omitNamespaces: []
         kubeconfigFile: '{kube-config-path}'
       primaryAccount: prod-project
-    openstack:
-      enabled: false
-      accounts: []
-      bakeryDefaults:
-        baseImages: []
-    oraclebmcs:
-      enabled: false
-      accounts: []
   deploymentEnvironment:
     size: SMALL
     type: Distributed
@@ -101,16 +62,11 @@ deploymentConfigurations:
       upstreamUser: spinnaker
   persistentStorage:
     persistentStoreType: gcs
-    azs: {}
     gcs:
       jsonPath: '{json-path}'
       project: spinnaker-test
       bucket: spin-backup
       rootFolder: front50
-    redis: {}
-    s3:
-      rootFolder: front50
-    oraclebmcs: {}
   features:
     auth: false
     fiat: false
