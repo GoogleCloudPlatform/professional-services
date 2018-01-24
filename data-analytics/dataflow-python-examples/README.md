@@ -37,9 +37,9 @@ This example shows how to ingest a raw CSV file into BigQuery with minimal trans
 and a great one to start with in order to become familiar with Dataflow.
 
 There are three main steps:
-1. Read in the file.
-2. Transform the CSV format into a dictionary format.
-3. Write the data to BigQuery.
+1. [Read in the file](dataflow_python_examples/data_ingestion.py#L100-L106).
+2. [Transform the CSV format into a dictionary format](dataflow_python_examples/data_ingestion.py#L107-L113).
+3. [Write the data to BigQuery](dataflow_python_examples/data_ingestion.py#L114-L126).
 
 
 ### Read data in from the file.
@@ -78,9 +78,9 @@ This example builds upon simple ingestion, and demonstrates some basic data type
 In line with the previous example there are 3 steps.  The transformation step is made more useful by tranlating the
 date format from the source data into a date format BigQuery accepts.
 
-1. Read in the file.
-2. Transform the CSV format into a dictionary format and translate the date format.
-3. Write the data to BigQuery.
+1. [Read in the file](dataflow_python_examples/data_transformation.py#L136-L142).
+2. [Transform the CSV format into a dictionary format and translate the date format](dataflow_python_examples/data_transformation.py#L143-L149).
+3. [Write the data to BigQuery](dataflow_python_examples/data_transformation.py#L150-L161).
 
 
 ### Read data in from the file.
@@ -110,10 +110,10 @@ containing reference is read from BigQuery.  The two datasets are then joined in
 dataset down to BigQuery.  
  
 This pipeline contains 4 steps:
-1. Read in the primary dataset from a file
-2. Read in the reference data from BigQuery
-3. Custom Python code is used to join the two datasets
-4. The joined dataset is written out to BigQuery
+1. [Read in the primary dataset from a file](dataflow_python_examples/data_enrichment.py#L165-L176).
+2. [Read in the reference data from BigQuery](dataflow_python_examples/data_enrichment.py#L155-L163).
+3. [Custom Python code](dataflow_python_examples/data_enrichment.py#L138-L143) is used to [join the two datasets](dataflow_python_examples/data_enrichment.py#L177-L180).
+4. [The joined dataset is written out to BigQuery](dataflow_python_examples/data_enrichment.py#L181-L194).
 
 
 ### Read in the primary dataset from a file
@@ -158,10 +158,11 @@ Joining two datasets from BigQuery is a common use case when a data lake has bee
 Creating a data mart with denormalized datasets facilitates better performance when using visualization tools.
  
 This pipeline contains 4 steps:
-1. Read in the primary dataset from BigQuery
-2. Read in the reference data from BigQuery
-3. Custom Python code is used to join the two datasets
-4. The joined dataset is written out to BigQuery
+1. [Read in the primary dataset from BigQuery](dataflow_python_examples/data_lake_to_mart.py#L278-L283).
+2. [Read in the reference data from BigQuery](dataflow_python_examples/data_lake_to_mart.py#L248-L276).
+3. [Custom Python code](dataflow_python_examples/data_lake_to_mart.py#L210-L224) is used to [join the two datasets](dataflow_python_examples/data_lake_to_mart.py#L284-L287). 
+Alternatively, [CoGroupByKey can be used to join the two datasets](dataflow_python_examples/data_lake_to_mart_cogroupbykey.py#L300-L310).
+4. [The joined dataset is written out to BigQuery](dataflow_python_examples/data_lake_to_mart.py#L288-L301).
 
 
 ### Read in the primary dataset from BigQuery
