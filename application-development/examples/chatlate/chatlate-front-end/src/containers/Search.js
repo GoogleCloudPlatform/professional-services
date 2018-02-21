@@ -20,79 +20,74 @@ import constants from "../constants";
 import {Button, FormControl, FormGroup} from "react-bootstrap";
 
 class Search extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {user: ''};
-        this.handleSubmit = this.handleSubmit.bind(this);
+  constructor(props) {
+    super(props);
+    this.state = {user: ''};
+    this.handleSubmit = this.handleSubmit.bind(this);
+  }
+
+  getValidationState() {
+    if (this.state.user.length < 1) {
+      return 'error'
     }
-
-
-
-    getValidationState() {
-        if (this.state.user.length < 1) {
-            return 'error'
-        }
-        var re = /^[a-zA-Z0-9]+$/i
-        if (!this.state.user.match(re)) {
-            return 'error'
-        }
-        if (this.state.user === this.props.user) {
-            return 'error'
-        }
-        return 'success'
+    const re = /^[a-zA-Z0-9]+$/i;
+    if (!this.state.user.match(re)) {
+      return 'error'
     }
-
-    handleSubmit() {
-        if (this.getValidationState() === 'success') {
-            this.props.addChat(this.state.user);
-            this.setState({user: ''})
-        }
+    if (this.state.user === this.props.user) {
+      return 'error'
     }
+    return 'success'
+  }
 
-    render() {
-        return (
-
-            <div className="Search">
-                <br/>
-                <label>
-                    <FormGroup
-                        controlId="formUrl"
-                        validationState={this.getValidationState()}
-                    >
-                    <FormControl
-                        type="text"
-                        value={this.state.msg}
-                        placeholder="Enter username"
-                        onChange={(e) => this.setState({user: e.target.value})}
-                    />
-                    </FormGroup>
-
-                </label>
-                <Button bsStyle="primary" onClick={() => this.handleSubmit()}>Chat</Button>
-
-
-            </div>
-        );
+  handleSubmit() {
+    if (this.getValidationState() === 'success') {
+      this.props.addChat(this.state.user);
+      this.setState({user: ''})
     }
+  }
+
+  render() {
+    return (
+        <div className="Search">
+          <br/>
+          <label>
+            <FormGroup
+                controlId="formUrl"
+                validationState={this.getValidationState()}
+            >
+              <FormControl
+                  type="text"
+                  value={this.state.msg}
+                  placeholder="Enter username"
+                  onChange={(e) => this.setState({user: e.target.value})}
+              />
+            </FormGroup>
+
+          </label>
+          <Button bsStyle="primary" onClick={() =>
+              this.handleSubmit()}>Chat</Button>
+        </div>
+    );
+  }
 }
 
 function addChat(user) {
-    return {
-        type: constants.ADD_CHAT,
-        payload: user
-    };
+  return {
+    type: constants.ADD_CHAT,
+    payload: user
+  };
 }
 
 
 function mapStateToProps(state) {
-    return {
-        user: state.login.user
-    };
+  return {
+    user: state.login.user
+  };
 }
 
 function mapDispatchToProps(dispatch) {
-    return bindActionCreators({addChat: addChat}, dispatch);
+  return bindActionCreators({addChat: addChat}, dispatch);
 }
-
 
 export default connect(mapStateToProps, mapDispatchToProps)(Search);

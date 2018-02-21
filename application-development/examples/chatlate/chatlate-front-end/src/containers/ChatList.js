@@ -21,98 +21,99 @@ import {ListGroup, ListGroupItem} from "react-bootstrap";
 
 class ChatList extends Component {
 
-    constructor(props) {
-        super(props);
-        this.state = {
-            timer: null
-        };
-        this.tick = this.tick.bind(this);
-    }
+  constructor(props) {
+    super(props);
+    this.state = {
+      timer: null
+    };
+    this.tick = this.tick.bind(this);
+  }
 
-    componentDidMount() {
-        let timer = setInterval(this.tick, 1000);
-        this.setState({timer});
-    }
+  componentDidMount() {
+    let timer = setInterval(this.tick, 1000);
+    this.setState({timer});
+  }
 
-    componentWillUnmount() {
-        this.clearInterval(this.state.timer);
-    }
+  componentWillUnmount() {
+    this.clearInterval(this.state.timer);
+  }
 
-    tick() {
-        this.props.pollServer();
-    }
+  tick() {
+    this.props.pollServer();
+  }
 
-    renderList() {
-        if (!this.props.chatList) {
-            return;
-        }
-        return this.props.chatList.map(chat => {
-            if (chat.unreadCount > 0) {
-                return (
-                    <ListGroupItem
-                        key={chat.user}
-                        onClick={() => this.props.selectChat(chat.user)}
-                        // className="list-group-item"
-                    >
-                        <strong>{chat.user} ({chat.unreadCount})</strong>
-                    </ListGroupItem>
-                )
-            }
-            return (
-                <ListGroupItem
-                    key={chat.user}
-                    onClick={() => this.props.selectChat(chat.user)}
-                    // className="list-group-item"
-                >
-                    {chat.user}
-                </ListGroupItem>
-            );
-        });
+  renderList() {
+    if (!this.props.chatList) {
+      return;
     }
-
-    render() {
+    return this.props.chatList.map(chat => {
+      if (chat.unreadCount > 0) {
         return (
-            <div className="ChatList">
-                <h3> {this.props.user} ({this.props.language}) </h3>
-                <h3> Open Chats</h3>
-                <ListGroup>
-                    {this.renderList()}
-                </ListGroup>
-            </div>
-        );
-    }
+            <ListGroupItem
+                key={chat.user}
+                onClick={() => this.props.selectChat(chat.user)}
+                // className="list-group-item"
+            >
+              <strong>{chat.user} ({chat.unreadCount})</strong>
+            </ListGroupItem>
+        )
+      }
+      return (
+          <ListGroupItem
+              key={chat.user}
+              onClick={() => this.props.selectChat(chat.user)}
+              // className="list-group-item"
+          >
+            {chat.user}
+          </ListGroupItem>
+      );
+    });
+  }
+
+  render() {
+    return (
+        <div className="ChatList">
+          <h3> {this.props.user} ({this.props.language}) </h3>
+          <h3> Open Chats</h3>
+          <ListGroup>
+            {this.renderList()}
+          </ListGroup>
+        </div>
+    );
+  }
 
 
 }
 
 
 function selectChat(user) {
-    return {
-        type: constants.SELECT_CHAT,
-        payload: user
-    };
+  return {
+    type: constants.SELECT_CHAT,
+    payload: user
+  };
 }
 
 
 function pollServer() {
-    return {
-        type: constants.POLL_SERVER
-    };
+  return {
+    type: constants.POLL_SERVER
+  };
 }
 
 
 function mapStateToProps(state) {
-    return {
-        chatList: state.chatList,
-        user: state.login.user,
-        language: state.login.language
-    };
+  return {
+    chatList: state.chatList,
+    user: state.login.user,
+    language: state.login.language
+  };
 }
 
 function mapDispatchToProps(dispatch) {
-
-    return bindActionCreators({selectChat: selectChat, pollServer: pollServer}, dispatch);
+  return bindActionCreators({
+    selectChat: selectChat,
+    pollServer: pollServer
+  }, dispatch);
 }
-
 
 export default connect(mapStateToProps, mapDispatchToProps)(ChatList);

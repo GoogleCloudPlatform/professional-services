@@ -17,19 +17,20 @@ import "./App.css";
 import Workspace from "./containers/Workspace";
 
 class App extends Component {
-    render() {
-        return (
-            <div className="App">
-                <header className="App-header">
+  render() {
+    return (
+        <div className="App">
+          <header className="App-header">
 
-                    <h1 className="App-title">Welcome to the Chatlate Application</h1>
-                </header>
+            <h1 className="App-title">Welcome to the Chatlate
+              Application</h1>
+          </header>
 
 
-                <Workspace/>
-            </div>
-        );
-    }
+          <Workspace/>
+        </div>
+    );
+  }
 }
 
 export default App;

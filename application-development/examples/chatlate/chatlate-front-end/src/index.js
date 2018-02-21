@@ -24,9 +24,13 @@ import {Provider} from "react-redux";
 import {applyMiddleware, createStore} from "redux";
 
 ReactDOM.render(
-    <Provider store={createStore(reducers, {chatList: [], login: {valid: false}, polling: false}, applyMiddleware(api))}>
-        <App />
+    <Provider store={createStore(reducers, {
+      chatList: [],
+      login: {valid: false},
+      polling: false
+    }, applyMiddleware(api))}>
+      <App/>
     </Provider>
-
-    , document.getElementById('root'));
+    , document.getElementById('root')
+);
 

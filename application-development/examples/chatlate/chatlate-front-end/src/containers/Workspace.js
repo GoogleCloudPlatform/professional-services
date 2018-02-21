@@ -21,45 +21,43 @@ import Login from "./Login";
 import {connect} from "react-redux";
 
 class Workspace extends Component {
-    render() {
-        if (this.props.login.valid) {
-            return (
-                <div className="workspace">
+  render() {
+    if (this.props.login.valid) {
+      return (
+          <div className="workspace">
 
-                    <Grid>
-                        <Col xs={12} md={8}>
-                            <Chat/>
-                        </Col>
-                        <Col xs={6} md={4}>
-                            <Search/>
-                            <ChatList/>
-                        </Col>
-                    </Grid>
-                </div>
-            );
-        }
-
-        return (
-            <div className="workspace">
-                <p className="App-intro">
-                    To get started...
-
-
-                </p>
-                <Login/>
-
-            </div>
-        );
-
+            <Grid>
+              <Col xs={12} md={8}>
+                <Chat/>
+              </Col>
+              <Col xs={6} md={4}>
+                <Search/>
+                <ChatList/>
+              </Col>
+            </Grid>
+          </div>
+      );
     }
+
+    return (
+        <div className="workspace">
+          <p className="App-intro">
+            To get started...
+
+
+          </p>
+          <Login/>
+
+        </div>
+    );
+  }
 }
 
 
 function mapStateToProps(state) {
-    return {
-        login: state.login
-    };
+  return {
+    login: state.login
+  };
 }
-
 
 export default connect(mapStateToProps)(Workspace);

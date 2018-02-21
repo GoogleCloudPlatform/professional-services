@@ -16,138 +16,146 @@ import React, {Component} from "react";
 import {connect} from "react-redux";
 import {bindActionCreators} from "redux";
 import constants from "../constants";
-import {Button, DropdownButton, MenuItem, FormControl, FormGroup, ControlLabel} from "react-bootstrap";
+import {
+  Button,
+  ControlLabel,
+  DropdownButton,
+  FormControl,
+  FormGroup,
+  MenuItem
+} from "react-bootstrap";
 
 
 class Search extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {user: '', language: 'en', url: 'http://localhost:8080/'};
-        this.handleSubmit = this.handleSubmit.bind(this);
+  constructor(props) {
+    super(props);
+    this.state = {user: '', language: 'en', url: 'http://localhost:8080/'};
+    this.handleSubmit = this.handleSubmit.bind(this);
+  }
+
+  getUsernameValidationState() {
+    if (this.state.user.length < 1) {
+      return 'error'
     }
-
-    getUsernameValidationState() {
-        if (this.state.user.length < 1) {
-            return 'error'
-        }
-        var re = /^[a-zA-Z0-9]+$/i
-        if (!this.state.user.match(re)) {
-            return 'error'
-        }
-        return 'success'
+    const re = /^[a-zA-Z0-9]+$/i;
+    if (!this.state.user.match(re)) {
+      return 'error'
     }
+    return 'success'
+  }
 
-    getUrlValidationState() {
-        if (this.state.url.length < 1) {
-            return 'error'
-        }
-        if (!this.state.url.toLocaleLowerCase().startsWith("http://")) {
-            return 'error'
-        }
-        return 'success'
+  getUrlValidationState() {
+    if (this.state.url.length < 1) {
+      return 'error'
     }
-
-    handleSubmit() {
-        if (this.getUsernameValidationState() === 'success' && this.getUrlValidationState() === 'success') {
-            this.props.login(this.state)
-        }
+    if (!this.state.url.toLocaleLowerCase().startsWith("http://")) {
+      return 'error'
     }
+    return 'success'
+  }
 
-    renderLanguageOptions() {
-        return LANGUAGES.map(lang => {
-            var active = lang.language === this.state.language;
-            //var active = false
-            return (
-                <MenuItem key={lang.language} eventKey={lang.language} id={lang.language} active={active}>{lang.language}</MenuItem>
-            );
-        });
+  handleSubmit() {
+    if (this.getUsernameValidationState() === 'success' &&
+        this.getUrlValidationState() === 'success') {
+      this.props.login(this.state)
     }
+  }
 
-    render() {
-        return (
-            <div className="Login">
-                <br/>
-                <label>
-                    <FormGroup
-                        controlId="formUsername"
-                        validationState={this.getUsernameValidationState()}
-                    >
-                        <ControlLabel>Username</ControlLabel>
-                        <FormControl
-                            type="text"
-                            value={this.state.user}
-                            onChange={(e) => this.setState({user: e.target.value})}
-                            placeholder="Enter Username"
-                            autoComplete="off"
-                        />
-                        <FormControl.Feedback />
-                    </FormGroup>
-                </label>
-                <br/> <br/>
-                <label>
-                    <FormGroup
-                        controlId="formLanguage"
-                    >
+  renderLanguageOptions() {
+    return LANGUAGES.map(lang => {
+      const active = lang.language === this.state.language;
+      return (
+          <MenuItem key={lang.language}
+                    eventKey={lang.language}
+                    id={lang.language}
+                    active={active}>{lang.language}</MenuItem>
+      );
+    });
+  }
 
-                        <ControlLabel>Language</ControlLabel> &nbsp; &nbsp;
-                    <DropdownButton id="languageDropdown" title={this.state.language}
-                                    onSelect={(e) => this.setState({language: e})}>
+  render() {
+    return (
+        <div className="Login">
+          <br/>
+          <label>
+            <FormGroup
+                controlId="formUsername"
+                validationState={this.getUsernameValidationState()}
+            >
+              <ControlLabel>Username</ControlLabel>
+              <FormControl
+                  type="text"
+                  value={this.state.user}
+                  onChange={(e) =>
+                      this.setState({user: e.target.value})}
+                  placeholder="Enter Username"
+                  autoComplete="off"
+              />
+              <FormControl.Feedback/>
+            </FormGroup>
+          </label>
+          <br/> <br/>
+          <label>
+            <FormGroup
+                controlId="formLanguage"
+            >
+              <ControlLabel>Language</ControlLabel> &nbsp; &nbsp;
+              <DropdownButton id="languageDropdown"
+                              title={this.state.language}
+                              onSelect={(e) =>
+                                  this.setState({language: e})}>
+                {this.renderLanguageOptions()}
+              </DropdownButton>
+            </FormGroup>
+          </label>
+          <br/> <br/>
+          <label>
+            <FormGroup
+                controlId="formUrl"
+                validationState={this.getUrlValidationState()}
+            >
+              <ControlLabel>Backend URL</ControlLabel>
+              <FormControl
+                  type="text"
+                  value={this.state.url}
+                  onChange={(e) =>
+                      this.setState({url: e.target.value})}
+                  placeholder="Enter backend URL"
+                  autoComplete="off"
+              />
+              <FormControl.Feedback/>
+            </FormGroup>
+          </label>
+          <br/>
 
-                        {this.renderLanguageOptions()}
-                        <MenuItem eventKey="1">Action</MenuItem>
-                        <MenuItem eventKey="2">Another action</MenuItem>
-                        <MenuItem eventKey="3" active>Active Item</MenuItem>
-                        <MenuItem eventKey="4">Separated link</MenuItem>
+          <br/>
+          <Button bsStyle="primary"
+                  onClick={() => this.handleSubmit()}>Login</Button>
 
-                    </DropdownButton>
-                    </FormGroup>
-                </label>
-                <br/> <br/>
-                <label>
-                    <FormGroup
-                        controlId="formUrl"
-                        validationState={this.getUrlValidationState()}
-                    >
-                        <ControlLabel>Backend URL</ControlLabel>
-                        <FormControl
-                            type="text"
-                            value={this.state.url}
-                            onChange={(e) => this.setState({url: e.target.value})}
-                            placeholder="Enter backend URL"
-                            autoComplete="off"
-                        />
-                        <FormControl.Feedback />
-                    </FormGroup>
-                </label>
-                <br/>
-
-                <br/>
-                <Button bsStyle="primary" onClick={() => this.handleSubmit()} >Login</Button>
-
-            </div>
-        );
-    }
+        </div>
+    );
+  }
 }
 
 function login(state) {
-    return {
-        type: constants.LOGIN,
-        payload: {
-            user: state.user,
-            language: state.language,
-            url: state.url,
-            valid: true
-        }
-    };
+  return {
+    type: constants.LOGIN,
+    payload: {
+      user: state.user,
+      language: state.language,
+      url: state.url,
+      valid: true
+    }
+  };
 }
 
 
 function mapStateToProps(state) {
-    return {};
+  return {};
 }
 
 function mapDispatchToProps(dispatch) {
-    return bindActionCreators({login: login}, dispatch);
+  return bindActionCreators({login: login}, dispatch);
 }
 
 
@@ -155,317 +163,317 @@ export default connect(mapStateToProps, mapDispatchToProps)(Search);
 
 
 const LANGUAGES = [
-    {
-        "language": "af"
-    },
-    {
-        "language": "am"
-    },
-    {
-        "language": "ar"
-    },
-    {
-        "language": "az"
-    },
-    {
-        "language": "be"
-    },
-    {
-        "language": "bg"
-    },
-    {
-        "language": "bn"
-    },
-    {
-        "language": "bs"
-    },
-    {
-        "language": "ca"
-    },
-    {
-        "language": "ceb"
-    },
-    {
-        "language": "co"
-    },
-    {
-        "language": "cs"
-    },
-    {
-        "language": "cy"
-    },
-    {
-        "language": "da"
-    },
-    {
-        "language": "de"
-    },
-    {
-        "language": "el"
-    },
-    {
-        "language": "en"
-    },
-    {
-        "language": "eo"
-    },
-    {
-        "language": "es"
-    },
-    {
-        "language": "et"
-    },
-    {
-        "language": "eu"
-    },
-    {
-        "language": "fa"
-    },
-    {
-        "language": "fi"
-    },
-    {
-        "language": "fr"
-    },
-    {
-        "language": "fy"
-    },
-    {
-        "language": "ga"
-    },
-    {
-        "language": "gd"
-    },
-    {
-        "language": "gl"
-    },
-    {
-        "language": "gu"
-    },
-    {
-        "language": "ha"
-    },
-    {
-        "language": "haw"
-    },
-    {
-        "language": "hi"
-    },
-    {
-        "language": "hmn"
-    },
-    {
-        "language": "hr"
-    },
-    {
-        "language": "ht"
-    },
-    {
-        "language": "hu"
-    },
-    {
-        "language": "hy"
-    },
-    {
-        "language": "id"
-    },
-    {
-        "language": "ig"
-    },
-    {
-        "language": "is"
-    },
-    {
-        "language": "it"
-    },
-    {
-        "language": "iw"
-    },
-    {
-        "language": "ja"
-    },
-    {
-        "language": "jw"
-    },
-    {
-        "language": "ka"
-    },
-    {
-        "language": "kk"
-    },
-    {
-        "language": "km"
-    },
-    {
-        "language": "kn"
-    },
-    {
-        "language": "ko"
-    },
-    {
-        "language": "ku"
-    },
-    {
-        "language": "ky"
-    },
-    {
-        "language": "la"
-    },
-    {
-        "language": "lb"
-    },
-    {
-        "language": "lo"
-    },
-    {
-        "language": "lt"
-    },
-    {
-        "language": "lv"
-    },
-    {
-        "language": "mg"
-    },
-    {
-        "language": "mi"
-    },
-    {
-        "language": "mk"
-    },
-    {
-        "language": "ml"
-    },
-    {
-        "language": "mn"
-    },
-    {
-        "language": "mr"
-    },
-    {
-        "language": "ms"
-    },
-    {
-        "language": "mt"
-    },
-    {
-        "language": "my"
-    },
-    {
-        "language": "ne"
-    },
-    {
-        "language": "nl"
-    },
-    {
-        "language": "no"
-    },
-    {
-        "language": "ny"
-    },
-    {
-        "language": "pa"
-    },
-    {
-        "language": "pl"
-    },
-    {
-        "language": "ps"
-    },
-    {
-        "language": "pt"
-    },
-    {
-        "language": "ro"
-    },
-    {
-        "language": "ru"
-    },
-    {
-        "language": "sd"
-    },
-    {
-        "language": "si"
-    },
-    {
-        "language": "sk"
-    },
-    {
-        "language": "sl"
-    },
-    {
-        "language": "sm"
-    },
-    {
-        "language": "sn"
-    },
-    {
-        "language": "so"
-    },
-    {
-        "language": "sq"
-    },
-    {
-        "language": "sr"
-    },
-    {
-        "language": "st"
-    },
-    {
-        "language": "su"
-    },
-    {
-        "language": "sv"
-    },
-    {
-        "language": "sw"
-    },
-    {
-        "language": "ta"
-    },
-    {
-        "language": "te"
-    },
-    {
-        "language": "tg"
-    },
-    {
-        "language": "th"
-    },
-    {
-        "language": "tl"
-    },
-    {
-        "language": "tr"
-    },
-    {
-        "language": "uk"
-    },
-    {
-        "language": "ur"
-    },
-    {
-        "language": "uz"
-    },
-    {
-        "language": "vi"
-    },
-    {
-        "language": "xh"
-    },
-    {
-        "language": "yi"
-    },
-    {
-        "language": "yo"
-    },
-    {
-        "language": "zh"
-    },
-    {
-        "language": "zh-TW"
-    },
-    {
-        "language": "zu"
-    }
+  {
+    "language": "af"
+  },
+  {
+    "language": "am"
+  },
+  {
+    "language": "ar"
+  },
+  {
+    "language": "az"
+  },
+  {
+    "language": "be"
+  },
+  {
+    "language": "bg"
+  },
+  {
+    "language": "bn"
+  },
+  {
+    "language": "bs"
+  },
+  {
+    "language": "ca"
+  },
+  {
+    "language": "ceb"
+  },
+  {
+    "language": "co"
+  },
+  {
+    "language": "cs"
+  },
+  {
+    "language": "cy"
+  },
+  {
+    "language": "da"
+  },
+  {
+    "language": "de"
+  },
+  {
+    "language": "el"
+  },
+  {
+    "language": "en"
+  },
+  {
+    "language": "eo"
+  },
+  {
+    "language": "es"
+  },
+  {
+    "language": "et"
+  },
+  {
+    "language": "eu"
+  },
+  {
+    "language": "fa"
+  },
+  {
+    "language": "fi"
+  },
+  {
+    "language": "fr"
+  },
+  {
+    "language": "fy"
+  },
+  {
+    "language": "ga"
+  },
+  {
+    "language": "gd"
+  },
+  {
+    "language": "gl"
+  },
+  {
+    "language": "gu"
+  },
+  {
+    "language": "ha"
+  },
+  {
+    "language": "haw"
+  },
+  {
+    "language": "hi"
+  },
+  {
+    "language": "hmn"
+  },
+  {
+    "language": "hr"
+  },
+  {
+    "language": "ht"
+  },
+  {
+    "language": "hu"
+  },
+  {
+    "language": "hy"
+  },
+  {
+    "language": "id"
+  },
+  {
+    "language": "ig"
+  },
+  {
+    "language": "is"
+  },
+  {
+    "language": "it"
+  },
+  {
+    "language": "iw"
+  },
+  {
+    "language": "ja"
+  },
+  {
+    "language": "jw"
+  },
+  {
+    "language": "ka"
+  },
+  {
+    "language": "kk"
+  },
+  {
+    "language": "km"
+  },
+  {
+    "language": "kn"
+  },
+  {
+    "language": "ko"
+  },
+  {
+    "language": "ku"
+  },
+  {
+    "language": "ky"
+  },
+  {
+    "language": "la"
+  },
+  {
+    "language": "lb"
+  },
+  {
+    "language": "lo"
+  },
+  {
+    "language": "lt"
+  },
+  {
+    "language": "lv"
+  },
+  {
+    "language": "mg"
+  },
+  {
+    "language": "mi"
+  },
+  {
+    "language": "mk"
+  },
+  {
+    "language": "ml"
+  },
+  {
+    "language": "mn"
+  },
+  {
+    "language": "mr"
+  },
+  {
+    "language": "ms"
+  },
+  {
+    "language": "mt"
+  },
+  {
+    "language": "my"
+  },
+  {
+    "language": "ne"
+  },
+  {
+    "language": "nl"
+  },
+  {
+    "language": "no"
+  },
+  {
+    "language": "ny"
+  },
+  {
+    "language": "pa"
+  },
+  {
+    "language": "pl"
+  },
+  {
+    "language": "ps"
+  },
+  {
+    "language": "pt"
+  },
+  {
+    "language": "ro"
+  },
+  {
+    "language": "ru"
+  },
+  {
+    "language": "sd"
+  },
+  {
+    "language": "si"
+  },
+  {
+    "language": "sk"
+  },
+  {
+    "language": "sl"
+  },
+  {
+    "language": "sm"
+  },
+  {
+    "language": "sn"
+  },
+  {
+    "language": "so"
+  },
+  {
+    "language": "sq"
+  },
+  {
+    "language": "sr"
+  },
+  {
+    "language": "st"
+  },
+  {
+    "language": "su"
+  },
+  {
+    "language": "sv"
+  },
+  {
+    "language": "sw"
+  },
+  {
+    "language": "ta"
+  },
+  {
+    "language": "te"
+  },
+  {
+    "language": "tg"
+  },
+  {
+    "language": "th"
+  },
+  {
+    "language": "tl"
+  },
+  {
+    "language": "tr"
+  },
+  {
+    "language": "uk"
+  },
+  {
+    "language": "ur"
+  },
+  {
+    "language": "uz"
+  },
+  {
+    "language": "vi"
+  },
+  {
+    "language": "xh"
+  },
+  {
+    "language": "yi"
+  },
+  {
+    "language": "yo"
+  },
+  {
+    "language": "zh"
+  },
+  {
+    "language": "zh-TW"
+  },
+  {
+    "language": "zu"
+  }
 ]
 
