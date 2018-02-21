@@ -16,7 +16,6 @@
 
 package translate.web;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,15 +29,16 @@ import translate.service.TranslateService;
 @RequestMapping(value = "/translate")
 public class TranslateController {
 
+  @Autowired TranslateService translateService;
 
-    @Autowired
-    TranslateService translateService;
-
-
-    @RequestMapping(value = "/{language}", method = RequestMethod.POST, consumes = MediaType.TEXT_PLAIN_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
-    public String postMessage(@RequestBody String text, @PathVariable String language) throws Exception {
-        return translateService.translateText(text, language);
-    }
-
-
+  @RequestMapping(
+    value = "/{language}",
+    method = RequestMethod.POST,
+    consumes = MediaType.TEXT_PLAIN_VALUE,
+    produces = MediaType.TEXT_PLAIN_VALUE
+  )
+  public String postMessage(@RequestBody String text, @PathVariable String language)
+      throws Exception {
+    return translateService.translateText(text, language);
+  }
 }

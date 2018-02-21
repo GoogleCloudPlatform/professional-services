@@ -28,20 +28,17 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(value = "/test")
 public class TestController {
 
-    @Autowired
-    TranslateService translateService;
-    @Autowired
-    SpannerService spannerService;
+  @Autowired TranslateService translateService;
+  @Autowired SpannerService spannerService;
 
+  @RequestMapping(method = RequestMethod.GET, produces = MediaType.TEXT_PLAIN_VALUE)
+  public String test() {
+    StringBuilder sb =
+        new StringBuilder()
+            // .append("\nTranslate: ").append(translateService.translateText("Hello", "es"))
+            .append("\nSpanner: ")
+            .append(spannerService.test());
 
-    @RequestMapping(method = RequestMethod.GET, produces = MediaType.TEXT_PLAIN_VALUE)
-    public String test() {
-        StringBuilder sb = new StringBuilder()
-               // .append("\nTranslate: ").append(translateService.translateText("Hello", "es"))
-                .append("\nSpanner: ").append(spannerService.test());
-
-        return sb.toString();
-    }
-
-
+    return sb.toString();
+  }
 }

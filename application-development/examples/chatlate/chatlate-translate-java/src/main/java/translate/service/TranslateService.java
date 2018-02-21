@@ -21,36 +21,36 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.translate.Translate;
 import com.google.cloud.translate.TranslateOptions;
 import com.google.cloud.translate.Translation;
-import org.springframework.stereotype.Service;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import org.springframework.stereotype.Service;
 
 @Service
 public class TranslateService {
 
-    private final Credentials credentials;
+  private final Credentials credentials;
 
-    public TranslateService() throws Exception {
+  public TranslateService() throws Exception {
 
-        File initialFile = new File(System.getenv("SA_CREDENTIALS"));
-        InputStream targetStream = new FileInputStream(initialFile);
-        credentials = GoogleCredentials.fromStream(targetStream);
-    }
+    File initialFile = new File(System.getenv("SA_CREDENTIALS"));
+    InputStream targetStream = new FileInputStream(initialFile);
+    credentials = GoogleCredentials.fromStream(targetStream);
+  }
 
-    public Translate createTranslateService(String targetLanguage) {
+  public Translate createTranslateService(String targetLanguage) {
 
-        return TranslateOptions.newBuilder()
-                .setTargetLanguage(targetLanguage)
-                .setCredentials(credentials)
-                .build().getService();
-    }
+    return TranslateOptions.newBuilder()
+        .setTargetLanguage(targetLanguage)
+        .setCredentials(credentials)
+        .build()
+        .getService();
+  }
 
-    public String translateText(String sourceText, String targetLanguage) {
-        Translate translate = createTranslateService(targetLanguage);
-        Translation translation = translate.translate(sourceText);
+  public String translateText(String sourceText, String targetLanguage) {
+    Translate translate = createTranslateService(targetLanguage);
+    Translation translation = translate.translate(sourceText);
 
-        return translation.getTranslatedText();
-    }
+    return translation.getTranslatedText();
+  }
 }

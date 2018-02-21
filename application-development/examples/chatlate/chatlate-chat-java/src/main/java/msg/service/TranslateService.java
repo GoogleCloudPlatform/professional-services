@@ -23,12 +23,13 @@ import org.springframework.web.client.RestTemplate;
 @Service
 public class TranslateService {
 
-    RestTemplate restTemplate = new RestTemplate();
-    String url = System.getenv("TRANSLATE_URL");
+  RestTemplate restTemplate = new RestTemplate();
+  String url = System.getenv("TRANSLATE_URL");
 
-    public String translateText(String sourceText, String targetLanguage) {
-        HttpEntity<String> request = new HttpEntity<>(sourceText);
-        HttpEntity<String> responseEntity= restTemplate.postForEntity(url + "translate/" + targetLanguage, request,String.class);
-        return responseEntity.getBody();
-    }
+  public String translateText(String sourceText, String targetLanguage) {
+    HttpEntity<String> request = new HttpEntity<>(sourceText);
+    HttpEntity<String> responseEntity =
+        restTemplate.postForEntity(url + "translate/" + targetLanguage, request, String.class);
+    return responseEntity.getBody();
+  }
 }

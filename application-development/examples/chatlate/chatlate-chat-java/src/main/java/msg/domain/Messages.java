@@ -17,5 +17,5 @@
 package msg.domain;
 
 public class Messages {
-    public Message[] messages;
+  public Message[] messages;
 }

@@ -17,5 +17,5 @@
 package msg.domain;
 
 public class Status {
-    public String result;
+  public String result;
 }

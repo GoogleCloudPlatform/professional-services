@@ -28,23 +28,24 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @SpringBootApplication
 public class MsgApp {
 
-    @EnableSwagger2
-    @Configuration
-    public class AppConfiguration {
+  @EnableSwagger2
+  @Configuration
+  public class AppConfiguration {
 
-        @Bean
-        public WebMvcConfigurer corsConfigurer() {
-            return new WebMvcConfigurerAdapter() {
-                @Override
-                public void addCorsMappings(CorsRegistry registry) {
-                    registry.addMapping("/**")
-                            .allowedMethods("HEAD", "GET", "PUT", "POST", "DELETE", "PATCH");
-                }
-            };
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+      return new WebMvcConfigurerAdapter() {
+        @Override
+        public void addCorsMappings(CorsRegistry registry) {
+          registry
+              .addMapping("/**")
+              .allowedMethods("HEAD", "GET", "PUT", "POST", "DELETE", "PATCH");
         }
+      };
     }
+  }
 
-    public static void main(String[] args) {
-        SpringApplication.run(MsgApp.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(MsgApp.class, args);
+  }
 }

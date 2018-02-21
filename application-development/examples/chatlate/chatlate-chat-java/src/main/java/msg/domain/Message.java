@@ -17,9 +17,9 @@
 package msg.domain;
 
 public class Message {
-    public String id;
-    public String sender;
-    public String message;
-    public String language;
-    public String recipient;
+  public String id;
+  public String sender;
+  public String message;
+  public String language;
+  public String recipient;
 }

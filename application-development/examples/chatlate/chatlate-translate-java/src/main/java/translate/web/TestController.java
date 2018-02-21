@@ -25,10 +25,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(value = "/test")
 public class TestController {
 
-    @RequestMapping(method = RequestMethod.GET, produces = MediaType.TEXT_PLAIN_VALUE)
-    public String test() {
-        return "ok";
-    }
-
-
+  @RequestMapping(method = RequestMethod.GET, produces = MediaType.TEXT_PLAIN_VALUE)
+  public String test() {
+    return "ok";
+  }
 }
