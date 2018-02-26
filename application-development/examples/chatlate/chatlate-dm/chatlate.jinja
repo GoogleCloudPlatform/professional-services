@@ -1,0 +1,281 @@
+{#
+Copyright 2017 Google Inc. All rights reserved.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+#}
+
+{% set NAME = env["deployment"] | truncate(17, True, "")  %}
+{% set PROJECT = env["project"]  %}
+{% set ZONE = properties["zone"] %}
+{% set REGION = properties["region"] %}
+{% set PROJECT_NUMBER = env["project_number"] %}
+{% set SPINNAKER_PASSWORD = env["project_number"] %}
+
+resources:
+
+- name: {{ NAME }}-n
+  type: compute.v1.network
+  properties:
+    autoCreateSubnetworks: true
+
+- name: {{ NAME }}-ssh-f
+  type: compute.v1.firewall
+  properties:
+    network: $(ref.{{ NAME }}-n.selfLink)
+    sourceRanges:
+    - 0.0.0.0/0
+    allowed:
+    - IPProtocol: tcp
+      ports:
+      - 22
+    - IPProtocol: icmp
+
+- name: {{ NAME }}-http-f
+  type: compute.v1.firewall
+  properties:
+    network: $(ref.{{ NAME }}-n.selfLink)
+    sourceRanges:
+    - 0.0.0.0/0
+    allowed:
+    - IPProtocol: tcp
+      ports:
+      - 80
+      - 9000
+      - 8084
+    targetTags: ["http-server"]
+
+- name: {{ NAME }}-i-f
+  type: compute.v1.firewall
+  properties:
+    network: $(ref.{{ NAME }}-n.selfLink)
+    sourceRanges:
+    - 10.138.0.0/20
+    - 10.128.0.0/20
+    - 10.142.0.0/20
+    - 10.150.0.0/20
+    - 10.158.0.0/20
+    - 10.132.0.0/20
+    - 10.154.0.0/20
+    - 10.156.0.0/20
+    - 10.160.0.0/20
+    - 10.140.0.0/20
+    - 10.146.0.0/20
+    - 10.148.0.0/20
+    - 10.152.0.0/20
+    allowed:
+    - IPProtocol: tcp
+    - IPProtocol: udp
+    - IPProtocol: icmp
+
+- name: {{ NAME }}-lb-f
+  type: compute.v1.firewall
+  properties:
+    network: $(ref.{{ NAME }}-n.selfLink)
+    sourceRanges:
+    - 130.211.0.0/22
+    - 35.191.0.0/16
+    allowed:
+    - IPProtocol: tcp
+    - IPProtocol: udp
+    - IPProtocol: icmp
+
+
+- name: {{ NAME }}-spinnaker-{{ PROJECT_NUMBER }}
+  type: storage.v1.bucket
+
+- name: {{ NAME }}-application-{{ PROJECT_NUMBER }}
+  type: storage.v1.bucket
+  properties:
+    defaultObjectAcl:
+    - entity: allUsers
+      role: READER
+
+- name: {{ NAME }}-gke-cluster
+  type: container.v1.cluster
+  properties:
+    zone: {{ ZONE }}
+    cluster:
+      name: {{ NAME }}-gke-cluster
+      description: My first cluster setup
+      network: $(ref.{{ NAME }}-n.selfLink)
+      legacyAbac:
+        enabled: true
+      nodePools:
+      - name: node-pool
+        config:
+          machineType: n1-standard-1
+          oauthScopes:
+          - https://www.googleapis.com/auth/cloud-platform
+        initialNodeCount: 3
+
+- name: {{ NAME }}-spinnaker-vm
+  type: compute.v1.instance
+  metadata:
+    dependsOn:
+    - {{ NAME }}-spinnaker-{{ PROJECT_NUMBER }}
+    - {{ NAME }}-gke-cluster
+  properties:
+    zone: {{ ZONE }}
+    machineType: zones/{{ ZONE }}/machineTypes/n1-standard-4
+    serviceAccounts:
+    - email: default
+      scopes:
+      - https://www.googleapis.com/auth/cloud-platform
+    metadata:
+      items:
+      - key: bucket-name
+        value: {{ NAME }}-spinnaker-{{ PROJECT_NUMBER }}
+      - key: startup-script
+        value: |
+          cat > init_ldap.sh << "END_OF_FILE"
+          {{ imports["init_ldap.sh"]|indent(10) }}
+          END_OF_FILE
+
+          chmod +x init_ldap.sh
+          ./init_ldap.sh {{ SPINNAKER_PASSWORD }}
+
+          cat > init_spinnaker.sh << "END_OF_FILE"
+          {{ imports["init_spinnaker.sh"]|indent(10) }}
+          END_OF_FILE
+
+          cat > init_build_triggers.sh << "END_OF_FILE"
+          {{ imports["init_build_triggers.sh"]|indent(10) }}
+          END_OF_FILE
+
+          cat > init_front_end.sh << "END_OF_FILE"
+          {{ imports["init_front_end.sh"]|indent(10) }}
+          END_OF_FILE
+
+          cat > endpoint-chat-api.yaml << "END_OF_FILE"
+          {{ imports["endpoint-chat-api.yaml"]|indent(10) }}
+          END_OF_FILE
+
+          cat > endpoint-chat-esp.yaml << "END_OF_FILE"
+          {{ imports["endpoint-chat-esp.yaml"]|indent(10) }}
+          END_OF_FILE
+
+          cat > endpoint-chat-lb.yaml << "END_OF_FILE"
+          {{ imports["endpoint-chat-lb.yaml"]|indent(10) }}
+          END_OF_FILE
+
+          cat > endpoint-translate-api.yaml << "END_OF_FILE"
+          {{ imports["endpoint-translate-api.yaml"]|indent(10) }}
+          END_OF_FILE
+
+          cat > endpoint-translate-esp.yaml << "END_OF_FILE"
+          {{ imports["endpoint-translate-esp.yaml"]|indent(10) }}
+          END_OF_FILE
+
+          cat > endpoint-translate-lb.yaml << "END_OF_FILE"
+          {{ imports["endpoint-translate-lb.yaml"]|indent(10) }}
+          END_OF_FILE
+
+          chmod +x init_spinnaker.sh
+          ./init_spinnaker.sh  {{ NAME }}-gke-cluster {{ ZONE }} {{ NAME }}-spinnaker-{{ PROJECT_NUMBER }} {{ NAME }}-application-{{ PROJECT_NUMBER }} {{ PROJECT }}
+
+          chmod +x init_build_triggers.sh
+          ./init_build_triggers.sh
+
+          chmod a+x /init_front_end.sh
+          useradd -m front_end_builder
+          su - front_end_builder -c '/init_front_end.sh'
+    disks:
+    - deviceName: boot
+      type: PERSISTENT
+      boot: true
+      autoDelete: true
+      initializeParams:
+        sourceImage: https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/images/family/ubuntu-1404-lts
+    tags:
+      items:
+      - http-server
+    networkInterfaces:
+    - network: $(ref.{{ NAME }}-n.selfLink)
+      accessConfigs:
+      - name: External NAT
+        type: ONE_TO_ONE_NAT
+
+- name: {{ NAME }}-locust-vm
+  type: compute.v1.instance
+  metadata:
+    dependsOn:
+    - {{ NAME }}-spinnaker-vm
+  properties:
+    zone: {{ properties['zone'] }}
+    machineType: zones/us-central1-a/machineTypes/n1-standard-4
+    serviceAccounts:
+      - email: default
+        scopes:
+          - https://www.googleapis.com/auth/cloud-platform
+    metadata:
+      items:
+      - key: startup-script
+        value: |
+          cat > /locustfile.py << "END_OF_FILE"
+          {{ imports["locustfile.py"]|indent(10) }}
+          END_OF_FILE
+
+          cat > init_locust.sh << "END_OF_FILE"
+          {{ imports["init_locust.sh"]|indent(10) }}
+          END_OF_FILE
+
+          chmod +x init_locust.sh
+          ./init_locust.sh
+    disks:
+    - deviceName: boot
+      type: PERSISTENT
+      boot: true
+      autoDelete: true
+      initializeParams:
+        sourceImage: https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/images/family/ubuntu-1604-lts
+    tags:
+      items:
+        - http-server
+    networkInterfaces:
+    - network: $(ref.{{ NAME }}-n.selfLink)
+      accessConfigs:
+      - name: External NAT
+        type: ONE_TO_ONE_NAT
+
+- name: chatlate-spanner
+  type: gcp-types/spanner-v1:projects.instances
+  properties:
+    parent: projects/{{ PROJECT }}
+    instanceId: chatlate-spanner
+    instance:
+      config: projects/{{ PROJECT }}/instanceConfigs/regional-{{ REGION }}
+      displayName: Chatlate Spanner Instance
+      nodeCount: 1
+
+- name: chatlate
+  type: gcp-types/spanner-v1:projects.instances.databases
+  metadata:
+    dependsOn:
+    - chatlate-spanner
+  properties:
+    parent: projects/{{ PROJECT }}/instances/chatlate-spanner
+    createStatement: "CREATE DATABASE `chatlate`"
+
+
+outputs:
+- name: spinnakerUI
+  value: http://$(ref.{{ NAME }}-spinnaker-vm.networkInterfaces[0].accessConfigs[0].natIP):9000/
+- name: spinnakerUser
+  value: user-1
+- name: spinnakerPassword
+  value: {{ SPINNAKER_PASSWORD }}
+- name: locustUI
+  value: http://$(ref.{{ NAME }}-locust-vm.networkInterfaces[0].accessConfigs[0].natIP)/
+- name: frontEndURL
+  value: http://storage.googleapis.com/{{ NAME }}-application-{{ PROJECT_NUMBER }}/index.html
+- name: backEndURL
+  value: http://chat.endpoints.{{ PROJECT }}.cloud.goog/

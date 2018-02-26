@@ -1,0 +1,116 @@
+# Copyright 2017 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+swagger: '2.0'
+info:
+  description: Api Documentation
+  version: '1.0'
+  title: Translate Microservice
+  termsOfService: 'urn:tos'
+  contact: {}
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0'
+host: 'translate.endpoints.PROJECT_ID.cloud.goog'
+x-google-endpoints:
+  - name: "translate.endpoints.PROJECT_ID.cloud.goog"
+    target: "TRANSLATE_ENDPOINT_IP"
+basePath: /
+tags:
+  - name: root-controller
+    description: Root Controller
+  - name: test-controller
+    description: Test Controller
+  - name: translate-controller
+    description: Translate Controller
+  - name: basic-error-controller
+    description: Basic Error Controller
+paths:
+  /:
+    get:
+      tags:
+        - root-controller
+      summary: test
+      operationId: testUsingGET
+      consumes:
+        - application/json
+      produces:
+        - text/plain
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+  /test:
+    get:
+      tags:
+        - test-controller
+      summary: test
+      operationId: testUsingGET_1
+      consumes:
+        - application/json
+      produces:
+        - text/plain
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+  '/translate/{language}':
+    post:
+      tags:
+        - translate-controller
+      summary: postMessage
+      operationId: postMessageUsingPOST
+      consumes:
+        - text/plain
+      produces:
+        - text/plain
+      parameters:
+        - in: body
+          name: text
+          description: text
+          required: true
+          schema:
+            type: string
+        - name: language
+          in: path
+          description: language
+          required: true
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+        '201':
+          description: Created
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
