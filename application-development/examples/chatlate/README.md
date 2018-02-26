@@ -14,6 +14,9 @@ Several resources are created automatically in order to facilitate the capstone 
 *Cloud Endpoints to provide API management for the two microservices.
 * Load testing infrastructure (using Locust), including a script to put load on the chat microservice.
 
+## License
+
+See [LICENSE](/LICENSE)
 
 ## Deploying the Chatlate application
 
