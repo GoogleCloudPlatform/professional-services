@@ -1,9 +1,10 @@
-#Chatlate
+# Chatlate
 
 _... yet another Google chat application._
 
 
-This is a basic example of a micro service architecture, leveraging Google Cloud technologies.
+This is a basic example of a micro service architecture, leveraging Google Cloud technologies. 
+Please be aware that this is a Proof of Concept, and therefore not secured or optimized appropriately for production use.
 
 ## What's provided?
 Several resources are created automatically in order to facilitate the capstone project:
