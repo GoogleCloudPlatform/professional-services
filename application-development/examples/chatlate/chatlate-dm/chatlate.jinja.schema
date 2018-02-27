@@ -1,0 +1,34 @@
+imports:
+- path: init_spinnaker.sh
+- path: init_ldap.sh
+- path: init_locust.sh
+- path: init_build_triggers.sh
+- path: init_front_end.sh
+- path: locustfile.py
+- path: endpoint-chat-api.yaml
+- path: endpoint-chat-esp.yaml
+- path: endpoint-chat-lb.yaml
+- path: endpoint-translate-api.yaml
+- path: endpoint-translate-esp.yaml
+- path: endpoint-translate-lb.yaml
+
+outputs:
+  properties:
+  - spinnakerIP:
+    description: IP of spinnaker UI
+    type: string
+  - user:
+    description: spinnaker username
+    type: string
+  - password:
+    description: spinnaker password
+    type: string
+  - locustUI:
+    description: URL of Locust UI
+    type: string
+  - frontEndURL:
+    description: URL for the Front End application
+    type: string
+  - backEndURL:
+    description: URL for the Chat Back End application
+    type: string

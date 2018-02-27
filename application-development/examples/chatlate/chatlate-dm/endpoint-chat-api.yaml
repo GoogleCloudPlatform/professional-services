@@ -1,0 +1,341 @@
+# Copyright 2017 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+swagger: '2.0'
+info:
+  description: Api Documentation
+  version: '1.0'
+  title: Chat Microservice
+  termsOfService: 'urn:tos'
+  contact: {}
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0'
+host: 'chat.endpoints.PROJECT_ID.cloud.goog'
+x-google-endpoints:
+  - name: "chat.endpoints.PROJECT_ID.cloud.goog"
+    target: "CHAT_ENDPOINT_IP"
+    allowCors: "true"
+basePath: /
+tags:
+  - name: root-controller
+    description: Root Controller
+  - name: test-controller
+    description: Test Controller
+  - name: chat-controller
+    description: Chat Controller
+paths:
+  /:
+    get:
+      tags:
+        - root-controller
+      summary: test
+      operationId: testUsingGET
+      consumes:
+        - application/json
+      produces:
+        - text/plain
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+  /chat/history:
+    get:
+      tags:
+        - chat-controller
+      summary: getHistoryWithHeaders
+      operationId: getHistoryWithHeadersUsingGET
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: Chat-Recipient
+          in: header
+          description: Chat-Recipient
+          required: true
+          type: string
+        - name: Chat-Language
+          in: header
+          description: Chat-Language
+          required: true
+          type: string
+        - name: Chat-Sender
+          in: header
+          description: Chat-Sender
+          required: true
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/Messages'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+  '/chat/history/{recipient}/{language}/{sender}':
+    get:
+      tags:
+        - chat-controller
+      summary: getHistory
+      operationId: getHistoryUsingGET
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: recipient
+          in: path
+          description: recipient
+          required: true
+          type: string
+        - name: language
+          in: path
+          description: language
+          required: true
+          type: string
+        - name: sender
+          in: path
+          description: sender
+          required: true
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/Messages'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+  /chat/login:
+    post:
+      tags:
+        - chat-controller
+      summary: loginWithHeaders
+      operationId: loginWithHeadersUsingPOST
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: Chat-Recipient
+          in: header
+          description: Chat-Recipient
+          required: true
+          type: string
+        - name: Chat-Language
+          in: header
+          description: Chat-Language
+          required: true
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/Status'
+        '201':
+          description: Created
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+  '/chat/login/{recipient}/{language}':
+    post:
+      tags:
+        - chat-controller
+      summary: login
+      operationId: loginUsingPOST
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: recipient
+          in: path
+          description: recipient
+          required: true
+          type: string
+        - name: language
+          in: path
+          description: language
+          required: true
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/Status'
+        '201':
+          description: Created
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+  /chat/message:
+    get:
+      tags:
+        - chat-controller
+      summary: getMessagesWithHeaders
+      operationId: getMessagesWithHeadersUsingGET
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: Chat-Recipient
+          in: header
+          description: Chat-Recipient
+          required: true
+          type: string
+        - name: Chat-Language
+          in: header
+          description: Chat-Language
+          required: true
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/Messages'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+    post:
+      tags:
+        - chat-controller
+      summary: postMessage
+      operationId: postMessageUsingPOST
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: message
+          description: message
+          required: true
+          schema:
+            $ref: '#/definitions/Message'
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/Status'
+        '201':
+          description: Created
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+  '/chat/message/{recipient}/{language}':
+    get:
+      tags:
+        - chat-controller
+      summary: getMessages
+      operationId: getMessagesUsingGET
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: recipient
+          in: path
+          description: recipient
+          required: true
+          type: string
+        - name: language
+          in: path
+          description: language
+          required: true
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/Messages'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+  /test:
+    get:
+      tags:
+        - test-controller
+      summary: test
+      operationId: testUsingGET_1
+      consumes:
+        - application/json
+      produces:
+        - text/plain
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+definitions:
+  Status:
+    type: object
+    properties:
+      result:
+        type: string
+  Messages:
+    type: object
+    properties:
+      messages:
+        type: array
+        items:
+          $ref: '#/definitions/Message'
+  Message:
+    type: object
+    properties:
+      id:
+        type: string
+      language:
+        type: string
+      message:
+        type: string
+      recipient:
+        type: string
+      sender:
+        type: string

@@ -1,0 +1,14 @@
+imports:
+- path: chatlate.jinja
+- path: init_ldap.sh
+- path: init_spinnaker.sh
+- path: init_locust.sh
+- path: init_front_end.sh
+- path: locustfile.py
+
+resources:
+- name: chatlate
+  type: chatlate.jinja
+  properties:
+    zone: us-central1-a
+    region: us-central1

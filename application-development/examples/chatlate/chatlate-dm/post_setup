@@ -1,0 +1,82 @@
+#/bin/bash
+
+set -x
+set -o errexit
+
+echo "Starting post setup"
+CHAT_REPO=chatlate-chat-java
+TRANSLATE_REPO=chatlate-translate-java
+
+SOURCE_REPO=source
+SOURCE_REPO_URL=https://github.com/aolarte/professional-services.git
+SOURCE_REPO_BRANCH=andresolarte-chatlate
+SOURCE_REPO_FOLDER=application-development/examples/chatlate
+
+
+
+PROJECT=$(gcloud info --format='value(config.project)')
+
+PROJECT=test_dm
+
+save_backup() {
+        NAME=$1
+        DEST=$1
+        COUNT=1
+        if [ -d "$NAME" ]; then
+            while [ -e "$DEST" ];do
+                COUNT=$((COUNT+1))
+                DEST="$NAME-"$(printf "%03d" $COUNT)""
+            done
+            mv $NAME $DEST
+        fi
+}
+
+clone_repo() {
+        REPO=$1
+
+        # Create the source repository
+        if ! gcloud source repos describe $REPO | grep 'name' -q ; then
+          gcloud source repos create $REPO -q
+        fi
+
+
+        gcloud source repos clone $REPO ~/${PROJECT}/${REPO}
+        cd ~/${PROJECT}/${REPO}/
+
+        # Copy files from source upstream
+        cp -R ~/${PROJECT}/${SOURCE_REPO}/${SOURCE_REPO_FOLDER}/* .
+
+        git add .
+        git commit -m "Commit copy of ${REPO} from ${SOURCE_REPO_URL}"
+
+        # Push the code to source repository.
+        git push origin master
+}
+
+# Clone into a directory named after the project. If the target exists, move it.
+save_backup ~/${PROJECT}
+
+# Checkout Source Repo
+mkdir -p ~/${PROJECT}/${SOURCE_REPO}
+cd ~/${PROJECT}/${SOURCE_REPO}
+git init
+git config core.sparseCheckout true
+git remote add -f origin $SOURCE_REPO_URL
+echo "${SOURCE_REPO_FOLDER}/*" > .git/info/sparse-checkout
+git checkout $SOURCE_REPO_BRANCH
+
+
+# Ensure source repository api is enabled
+if ! gcloud services list | grep sourcerepo.googleapis.com -q ; then
+  gcloud services enable sourcerepo.googleapis.com -q
+fi
+
+###### Setup a git user and email to allow us to commit
+
+###### Chat Webapp
+
+clone_repo $CHAT_REPO
+
+###### Translate Webapp
+
+clone_repo $TRANSLATE_REPO
