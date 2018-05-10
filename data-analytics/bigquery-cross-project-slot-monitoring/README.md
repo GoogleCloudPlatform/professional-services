@@ -40,7 +40,7 @@ The challenge is solved as follows:
 The metric collected from all projects is: bigquery.googleapis.com/slots/allocated_for_project.
 The custom metric created in the central Stackdriver account is: custom.googleapis.com/bigquery/slots/allocated_for_project
 
-The below screenshot demonstrates a chart created in Stackdriver based on this solution:
+The below is a screenshot of a stacked area chart created in Stackdriver based on this solution. In this stacked area chart, we can see the total slot allocation, broken down by project.
 
 ![](img/stacked_chart.png)
 
