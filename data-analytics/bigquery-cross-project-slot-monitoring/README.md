@@ -1,4 +1,4 @@
-# Cross-project slot utilization monitoring
+# BigQuery cross-project slots utilization monitoring
 
 This solution was written to help monitoring slot utilization across multiple projects, while breaking down allocation per project. This is relevant for customers using [flat-rate pricing](https://cloud.google.com/bigquery/pricing#flat_rate_pricing).
 
@@ -46,7 +46,7 @@ The below screenshot demonstrates a chart created in Stackdriver based on this s
 
 ## Setting up
 
-1. (Install third-party library)[https://cloud.google.com/appengine/docs/standard/python/tools/using-libraries-python-27] required by the application: pip install -t lib/ requirements.txt
+1. [Install third-party library](https://cloud.google.com/appengine/docs/standard/python/tools/using-libraries-python-27) required by the application: pip install -t lib/ requirements.txt
 2. Modify configuration files
  2.1. Modify config.py to include billing account ID, and project ID where Stackdriver is created.
  2.2. You may want to change scaling settings in app.yaml. The version in the repository defines a maximum instance count of 3 to help controlling costs.
@@ -54,7 +54,7 @@ The below screenshot demonstrates a chart created in Stackdriver based on this s
 3. (Enable Cloud Billing API)[https://support.google.com/cloud/answer/6158841?hl=en]: API & Services -> Cloud Billing API -> Enable
 4. Deploy AppEngine application: gcloud app deploy *.yaml -v <version>
 5. Grant Default AppEngine Service account with the required permissions:
- 5.1. Billing Viewer on Billing Account ID ((documentation)[https://cloud.google.com/billing/docs/how-to/billing-access#update_billing_permissions])
+ 5.1. Billing Viewer on Billing Account ID ([documentation](https://cloud.google.com/billing/docs/how-to/billing-access#update_billing_permissions))
  5.2. Monitoring Editor on project hosting Stackdriver account
  5.3. Monitoring Viewer on all projects. It will be easier to apply this on Folder / Org level.
 6. Metrics will be collected every 5 minutes, and should appear shortly in Stackdriver as custom.googleapis.com/bigquery/slots/allocated_for_project. You may want to create a stacked chart to show allocation broken down by projects on a single chart.
