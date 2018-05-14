@@ -205,7 +205,7 @@ Ready to dive deeper?  Check out the complete code.
 The example using side inputs is [here](dataflow_python_examples/data_lake_to_mart.py) and the example using CoGroupByKey is 
 [here](dataflow_python_examples/data_lake_to_mart_cogroupbykey.py).
 
-##Data Generator for Benchmarking
+## Data Generator for Benchmarking
 This example shows a pipeline used to generate data in BigQuery for price estimation and performance benchmarking.
 The intention is for this pipeline to be a tool for customers who want to create a dummy dataset that looks like the 
 schema of their actual data in order to run some queries in BigQuery to see how much data is scanned for cost estimates. 
