@@ -33,8 +33,9 @@ import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions
 from faker import Faker
 from faker_schema.faker_schema import FakerSchema
+from google.cloud import bigquery as bq
 from google.cloud import storage as gcs
-
+from google.cloud.exceptions import NotFound
 
 
 class DataGenerator(object):
@@ -53,7 +54,7 @@ class DataGenerator(object):
         float_precision: An integer specifying the desired precision for generated floats.
 
     """
-    def __init__(self, bq_schema_filename, p_null=0.1, n_keys=1000,
+    def __init__(self, bq_schema_filename=None, input_bq_table=None, p_null=0.1, n_keys=1000,
                  min_date='2000-01-01', max_date=datetime.date.today().strftime('%Y-%m-%d'),
                  only_pos=True, max_int=10**11, max_float=float(10**11), float_precision=2,
                  write_disp='WRITE_APPEND'):
@@ -88,6 +89,22 @@ class DataGenerator(object):
                 logging.error("Not a valid json file! \n %s", str(ValueError))
             except AttributeError:
                 logging.error("Could not find gcs file %s", str(bq_schema_filename))
+        elif input_bq_table is not None:
+            bq_cli = bq.Client()
+
+            dataset_name, table_name = input_bq_table.split('.')
+            bq_dataset = bq_cli.dataset(dataset_name)
+            bq_table_ref = bq_dataset.table(table_name)  # This forms a TableReference object.
+            bq_table = bq_cli.get_table(bq_table_ref)    # Errors out if table doesn't exist.
+
+            # Quickly parse TableSchema object to list of dictionaries.
+            self.schema = [
+                {u'name': field.name,
+                 u'type': field.field_type,
+                 u'mode': field.mode
+                }
+                for field in bq_table.schema
+            ]
 
         self.null_prob = float(p_null)
         self.n_keys = int(n_keys)
@@ -225,25 +242,25 @@ class FakeRowGen(beam.DoFn):
         elif field[u'type'] == 'INTEGER':
             # This implements max and sign constraints
             # and avoids regenerating a random integer if already obeys min/max integer.
-            if record[fieldname] < self.data_gen.max_int:
+            if record[fieldname] > self.data_gen.max_int:
                 record[fieldname] = np.random.randint(0 if self.data_gen.only_pos
-                                                else -1 * self.data_gen.max_int,
-                                                self.data_gen.max_int)
+                                                      else -1 * self.data_gen.max_int,
+                                                      self.data_gen.max_int)
             if self.data_gen.only_pos and record[fieldname] < 0:
                 record[fieldname] = abs(record[fieldname])
             record[fieldname] = int(record[fieldname])
         elif field[u'type'] == 'FLOAT':
             # This implements max and sign constraints
             record[fieldname] = faker.pyfloat(math.log10(self.data_gen.max_float),
-                                        self.data_gen.float_precision,
-                                        self.data_gen.only_pos)
+                                              self.data_gen.float_precision,
+                                              self.data_gen.only_pos)
             record[fieldname] = float(record[fieldname])
 
         # Make some values null based on null_prob.
         if field[u'mode'] == 'NULLABLE':
             record[fieldname] = np.random.choice([None, record[fieldname]],
-                                           p=[self.data_gen.null_prob,
-                                              1.0 - self.data_gen.null_prob])
+                                                 p=[self.data_gen.null_prob,
+                                                    1.0 - self.data_gen.null_prob])
 
         # Pick key at random from foreign keys.
         # Draw key column from [0, n_keys) if has _key in the name.
@@ -298,16 +315,18 @@ def run(argv=None):
     Args:
         argv: list containing the commandline arguments for this call of the script.
     """
+    schema_inferred = False
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--schema_file', dest='schema_file', required=False,
                         help='Schema json file to read. This can be a local file or a file in a \
-                         Google Storage Bucket.',
-                        default='gs://python-dataflow-example/schemas/lineorder-schema.json')
+                         Google Storage Bucket.')
+
+    parser.add_argument('--input_bq_table', dest='input_bq_table', required=False,
+                        help='Name of BigQuery table to populate.')
 
     parser.add_argument('--output_bq_table', dest='output_bq_table', required=False,
-                        help='Name of the table to write to BigQuery table.',
-                        default='BigQueryFaker.linerorders')
+                        help='Name of the table to write to BigQuery table.')
 
     parser.add_argument('--num_records', dest='num_records', required=False,
                         help='Number of random output records to write to BigQuery table.',
@@ -357,6 +376,49 @@ def run(argv=None):
 
     pipeline_options = PipelineOptions(pipeline_args)
 
+    if data_args.schema_file is None:
+        if data_args.input_bq_table is None:
+            # Both schema and input_bq_table are unset.
+            # Use gcs schema file because safer than assuming this user has created the lineorders
+            # table.
+            data_args.schema_file = 'gs://python-dataflow-example/schemas/lineorder-schema.json'
+        else:
+            # Need to fetch schema from existing BQ table.
+            bq_cli = bq.Client()
+            dataset_name, table_name = data_args.input_bq_table.split('.', 1)
+            bq_dataset = bq_cli.dataset(dataset_name)
+            bq_table_ref = bq_dataset.table(table_name)  # This forms a TableReference object.
+            bq_table = bq_cli.get_table(bq_table_ref)    # Errors out if table doesn't exist.
+
+            # Quickly parse TableSchema object to list of dictionaries.
+            data_args.schema = [
+                {u'name': field.name,
+                 u'type': field.field_type,
+                 u'mode': field.mode
+                }
+                for field in bq_table.schema
+            ]
+            if data_args.output_bq_table is None: 
+                # This writes data in place when passed just an input_bq_table
+                schema_inferred = True
+                data_args.output_bq_table = str(data_args.input_bq_table)
+            else:
+                # We need to check if this output table already exists.
+                dataset_name, table_name = data_args.output_bq_table.split('.', 1)
+                bq_dataset = bq_cli.dataset(dataset_name)
+                bq_table_ref = bq_dataset.table(table_name)  # This forms a TableReference object.
+                try:
+                    _ = bq_cli.get_table(bq_table_ref)
+                    schema_inferred = True
+                except NotFound:
+                    schema_inferred = False
+    elif data_args.output_bq_table is None:
+        logging.error('Error: User specified a schema_file without an output_bq_table.')
+
+    if data_args.schema_file is not None and data_args.input_bq_table is not None:
+        logging.error('EnvironmentError: pipeline was passed both schema_file and input_bq_table. \
+                      Please enter only one of these arguments')
+
     # Prepare to write gcs file 'temp_num_records.txt' in the temp_location.
     temp_location = pipeline_options.display_data()['temp_location']
     bucket_name, path = temp_location.strip('gs://').split('/', 1)
@@ -375,7 +437,8 @@ def run(argv=None):
     # generation of random into a BigQuery table.
 
     # See the known arguments of our parser defined above, to understand the contents of data_args.
-    data_gen = DataGenerator(bq_schema_filename=data_args.schema_file, p_null=data_args.p_null,
+    data_gen = DataGenerator(bq_schema_filename=data_args.schema_file,
+                             input_bq_table=data_args.input_bq_table, p_null=data_args.p_null,
                              n_keys=data_args.n_keys, min_date=data_args.min_date,
                              only_pos=data_args.only_pos, max_int=data_args.max_int,
                              max_float=data_args.max_float,
@@ -402,7 +465,7 @@ def run(argv=None):
          # The table name is a required argument for the BigQuery sink.
          # In this case we use the value passed in from the command line.
          data_args.output_bq_table,
-         schema=data_gen.get_bq_schema_string(),
+         schema=None if schema_inferred else data_gen.get_bq_schema_string(),
          # Creates the table in BigQuery if it does not yet exist.
          create_disposition=beam.io.BigQueryDisposition.CREATE_IF_NEEDED,
          write_disposition=data_gen.write_disp,

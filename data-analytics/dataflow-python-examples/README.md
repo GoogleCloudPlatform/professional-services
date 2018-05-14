@@ -21,10 +21,11 @@
     - [Custom Python code is used to join the two datasets](#custom-python-code-is-used-to-join-the-two-datasets)
     - [The joined dataset is written out to BigQuery](#the-joined-dataset-is-written-out-to-bigquery)
     - [Full code examples](#full-code-examples)
-  - [Data Generator for Benchmarking](#data-generator)
-    - [Write an n-line file to GCS.](#)
-    - [Generate a single record per line read form GCS.]()
-    - [Write the data to BigQuery]()
+  - [Data Generator for Benchmarking](#data-generator-for-benchmarking)
+    - [Write an n-line file to GCS.](#write-an-n-line-file-to-gcs)
+    - [Generate a single record per line read form GCS.](#generate-a-single-record-per-line-read-form-gcs)
+    - [Write the data to BigQuery](#write-the-data-to-bigquery)
+    - [Usage](#usage)
 
 
 
@@ -205,7 +206,6 @@ The example using side inputs is [here](dataflow_python_examples/data_lake_to_ma
 [here](dataflow_python_examples/data_lake_to_mart_cogroupbykey.py).
 
 ##Data Generator for Benchmarking
-
 This example shows a pipeline used to generate data in BigQuery for price estimation and performance benchmarking.
 The intention is for this pipeline to be a tool for customers who want to create a dummy dataset that looks like the 
 schema of their actual data in order to run some queries in BigQuery to see how much data is scanned for cost estimates. 
@@ -217,20 +217,20 @@ This pipeline has 3 steps:
 2. Generate a single record per line read form GCS.
 3. Write the data to BigQuery
 
-### Write an n-line file to GCS.
+### Write an n-line file to GCS
 This is just a very simple bit of python code to initiate a Google Cloud Stroage Client which we use to create a Bucket
 and Blob object in turn. We then use the `Blob.upload_from_string` to write a file from `num_records` newline characters.
 
-### Generate a single record per line read form GCS.
+### Generate a single record per line read form GCS
 In this step we use the `beam.ParDo` method to call a super class `FakeRowGen` which extends the `beam.DoFn` class. We 
 define this class to create a python dictionary representing a single record that matches the provided schema. This 
 process involves a combination of using the python module `faker-schema` as well as some custom logic to control key fields.
 
-### Write the data to BigQuery.
+### Write the data to BigQuery
 The final step, naturally, is to write the generated data into a BigQuery Table using the built in 
 `beam.io.gcp.bigquery.WriteToBigQuery` method.
 
-### Usage.
+### Usage
 This tool has several parameters to specify what kind of data you would like to generate.
 
 #### Schema 
@@ -304,8 +304,6 @@ True is the default.
 #### Write Disposition (optional)
 The BigQuery write disposition can be specified using the `--write_disp` parameter.
 The default is WRITE_APPEND.
-
-#### 
 
 #### Dataflow Pipeline parameters
 For basic usage we recommend the following parameters:
