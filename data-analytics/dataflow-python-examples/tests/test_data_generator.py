@@ -164,6 +164,5 @@ class TestDataGenerator(unittest.TestCase):
         self.assertLessEqual(data[u'lo_linenumber'], self.data_gen.max_int)
 
 
-
 if __name__ == '__main__':
     unittest.main()
