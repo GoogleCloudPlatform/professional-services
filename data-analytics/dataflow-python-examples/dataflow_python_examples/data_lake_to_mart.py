@@ -41,7 +41,7 @@ class DataLakeToDataMart:
         self.schema_str = ''
         # This is the schema of the destination table in BigQuery.
         schema_file = os.path.join(dir_path, 'resources', 'orders_denormalized.json')
-        with open(schema_file) \
+        with open(schema_file)
                 as f:
             data = f.read()
             # Wrapping the schema in fields is required for the BigQuery API.
