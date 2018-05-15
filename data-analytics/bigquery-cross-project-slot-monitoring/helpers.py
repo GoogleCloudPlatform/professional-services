@@ -17,6 +17,7 @@
 from datetime import datetime
 import json
 import logging
+import pytz
 
 
 def log_http_error(function, error):
@@ -33,16 +34,16 @@ def log_http_error(function, error):
                 error.resp.status, content['status'], content['message'])
 
 
-def date_string_to_object(date_string):
-  """Converts a RFC3339 date string to a datetime object.
+def date_string_to_object_utc(date_string):
+  """Converts a RFC3339 date string to a datetime object as UTC.
 
   Args:
     date_string: RFC 3339 date string (e.g: 2017-12-27T00:00:00.00Z).
 
   Returns:
-    Corresponding datetime object.
+    Corresponding datetime object with timezone set to UTC.
   """
-  return datetime.strptime(date_string, '%Y-%m-%dT%H:%M:%S.%fZ')
+  return pytz.utc.localize(datetime.strptime(date_string, '%Y-%m-%dT%H:%M:%S.%fZ'))
 
 
 def date_object_to_rfc3339(date):

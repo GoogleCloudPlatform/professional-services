@@ -17,6 +17,7 @@
 from datetime import datetime
 from datetime import timedelta
 import logging
+import pytz
 import re
 
 import constants
@@ -195,7 +196,7 @@ def copy_metrics(src_project, dst_project):
   def write_time_series(custom_metric, time_series):
     """Writes time series to custom metric."""
 
-    deadline = datetime.utcnow() - timedelta(hours=24)
+    deadline = pytz.utc.localize(datetime.utcnow()) - timedelta(hours=24)
     body = {
         'timeSeries': [{
             'resource': {
@@ -224,7 +225,7 @@ def copy_metrics(src_project, dst_project):
 
       # Even though we never ask for data points older than 24h, having this
       # here for another layer of safety.
-      if helpers.date_string_to_object(point['interval']['endTime']) < deadline:
+      if helpers.date_string_to_object_utc(point['interval']['endTime']) < deadline:
         logging.info('Skipping too late data point.')
         continue
 
