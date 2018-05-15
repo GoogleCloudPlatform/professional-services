@@ -1,3 +1,3 @@
-gs://jferriero-bucket/dogs/dog0.jpg
-gs://jferriero-bucket/dogs/dog1.jpg
-gs://jferriero-bucket/dogs/dog2.jpg
+gs://python-dataflow-example/images/dog0.jpg
+gs://python-dataflow-example/images/dog1.jpg
+gs://python-dataflow-example/images/dog2.jpg
