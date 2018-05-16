@@ -25,3 +25,4 @@ source-context.json
 client_secrets.json
 \#*\#
 *_flymake.py
+.DS_Store
