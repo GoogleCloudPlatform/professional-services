@@ -15,9 +15,9 @@
 """Main application called from app.yaml."""
 
 from datetime import datetime
-import config
-import helpers
-import metrics
+from bigquery_slots_monitoring import config
+from bigquery_slots_monitoring import helpers
+from bigquery_slots_monitoring import metrics
 
 import webapp2
 from google.appengine.api import taskqueue
@@ -42,7 +42,7 @@ class FanInMetrics(webapp2.RequestHandler):
 
     # Can only be accessed by cron.
     if self.request.headers.get('X-Appengine-Cron') is None:
-      self.error(400)
+      self.error(403)
       return
 
     metrics.create_custom_metrics(config.PROJECT_ID)
@@ -51,7 +51,7 @@ class FanInMetrics(webapp2.RequestHandler):
     for src_project in metrics.get_projects(config.BILLING_ACCOUNT):
       taskqueue.add(
           queue_name='copy-metrics',
-          name=filter(str.isalnum, '%s-%s' % (src_project, date_string)),
+          name=filter(str.isalnum, '%s%s' % (src_project, date_string)),
           url='/CopyMetrics',
           method='GET',
           params={
@@ -66,6 +66,15 @@ class CopyMetrics(webapp2.RequestHandler):
   def get(self):
     src_project = self.request.get('src_project')
     dst_project = self.request.get('dst_project')
+
+    # Can only be called from Cloud Tasks.
+    if self.request.headers.get('X-AppEngine-QueueName') is None:
+      self.error(403)
+      return
+
+    if not src_project or not dst_project:
+      self.error(400)
+      return
 
     metrics.copy_metrics(src_project, dst_project)
 
