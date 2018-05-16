@@ -21,7 +21,7 @@ basic_scaling:
 
 handlers:
  - url: /.*
-   script: main.app
+   script: bigquery_slots_monitoring.main.app
 
 libraries:
  - name: webapp2

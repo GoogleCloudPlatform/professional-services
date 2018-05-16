@@ -20,11 +20,11 @@ import logging
 import pytz
 import re
 
-import constants
+from bigquery_slots_monitoring import constants
+from bigquery_slots_monitoring import helpers
+from bigquery_slots_monitoring import schema
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-import helpers
-import schema
 
 
 def get_projects(billing_account):
@@ -78,8 +78,8 @@ def create_custom_metrics(project):
       # We only want to take the metric kind.
       custom_metrics = [
           re.sub(
-              r'^projects/[^/]+/metricDescriptors/%s' %
-              constants.CUSTOM_METRICS_PREFIX, '', m['name'].encode('utf-8'))
+              r'^projects/[^/]+/metricDescriptors/',
+              '', m['name'].encode('utf-8'))
           for m in response['metricDescriptors']
       ] if 'metricDescriptors' in response else []
 
@@ -123,7 +123,7 @@ def create_custom_metrics(project):
     logging.info('Created custom metric=%s', custom_metric)
 
 
-def copy_metrics(src_project, dst_project):
+def copy_metrics(src_project, dst_project, utc_now=datetime.utcnow()):
   """Copies metrics from source to destination project.
 
   Uses Monitoring API to get data points from src_project and write them
@@ -140,6 +140,7 @@ def copy_metrics(src_project, dst_project):
   Args:
     src_project: Source project ID.
     dst_project: Destination project ID.
+    utc_now: Date time object in UTC timezone. Optional, used for testing.
   """
 
   def record_last_point(time_series):
@@ -174,8 +175,8 @@ def copy_metrics(src_project, dst_project):
 
     # Start time is 24h at latest, or endTime of latest data point retrieved.
     start_time = read_last_point(metric) or helpers.date_object_to_rfc3339(
-        datetime.utcnow() - timedelta(days=1))
-    end_time = helpers.date_object_to_rfc3339(datetime.utcnow())
+        utc_now - timedelta(days=1))
+    end_time = helpers.date_object_to_rfc3339(utc_now)
 
     logging.info('Getting time series: metric=%s, startTime=%s, endTime=%s',
                  metric, start_time, end_time)
@@ -196,7 +197,7 @@ def copy_metrics(src_project, dst_project):
   def write_time_series(custom_metric, time_series):
     """Writes time series to custom metric."""
 
-    deadline = pytz.utc.localize(datetime.utcnow()) - timedelta(hours=24)
+    deadline = pytz.utc.localize(utc_now) - timedelta(hours=24)
     body = {
         'timeSeries': [{
             'resource': {
@@ -213,7 +214,7 @@ def copy_metrics(src_project, dst_project):
                 constants.CUSTOM_METRICS_MAP[custom_metric]['metricKind'],
             'valueType':
                 constants.CUSTOM_METRICS_MAP[custom_metric]['valueType'],
-        },],
+        }],
     }
 
     for point in time_series['points']:

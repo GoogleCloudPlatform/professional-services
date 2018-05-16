@@ -46,7 +46,7 @@ The below is a screenshot of a stacked area chart created in Stackdriver based o
 
 ## Setting up
 
-1. [Install third-party library](https://cloud.google.com/appengine/docs/standard/python/tools/using-libraries-python-27) required by the application: pip install -t lib/ requirements.txt
+1. [Install third-party library](https://cloud.google.com/appengine/docs/standard/python/tools/using-libraries-python-27) required by the application: pip install -t lib -r requirements.txt
 2. Modify configuration files
 - Modify config.py to include billing account ID, and project ID where Stackdriver is created.
 - You may want to change scaling settings in app.yaml. The version in the repository defines a maximum instance count of 3 to help controlling costs.
