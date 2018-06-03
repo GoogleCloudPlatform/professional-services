@@ -22,18 +22,18 @@ from bigquery_slots_monitoring import helpers
 
 
 class DateStringToObjectUTCTest(unittest.TestCase):
-	"""Tests conversion of date string to date object in UTC timezone."""
+  """Tests conversion of date string to date object in UTC timezone."""
 
-	def testDateStringToObjectUTC(self):
-		date_string = '2017-12-27T00:00:00.00Z'
-		self.assertEqual(
-			helpers.date_string_to_object_utc(date_string),
-			pytz.utc.localize(datetime.strptime(date_string, '%Y-%m-%dT%H:%M:%S.%fZ')))
+  def testDateStringToObjectUTC(self):
+    date_string = '2017-12-27T00:00:00.00Z'
+    self.assertEqual(
+      helpers.date_string_to_object_utc(date_string),
+      pytz.utc.localize(datetime.strptime(date_string, '%Y-%m-%dT%H:%M:%S.%fZ')))
 
 
-	class DateObjectToRFC3339Test(unittest.TestCase):
-	"""Tests extraction of RFC3339 compliant date string from date object."""
+class DateObjectToRFC3339Test(unittest.TestCase):
+  """Tests extraction of RFC3339 compliant date string from date object."""
 
-	def testDateObjectToRFC3339(self):
-		date = datetime(2017, 12, 27, 12, 0, 30)
-		self.assertEqual(helpers.date_object_to_rfc3339(date), '2017-12-27T12:00:30.000000Z')
+  def testDateObjectToRFC3339(self):
+    date = datetime(2017, 12, 27, 12, 0, 30)
+    self.assertEqual(helpers.date_object_to_rfc3339(date), '2017-12-27T12:00:30.000000Z')

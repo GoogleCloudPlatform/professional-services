@@ -84,10 +84,8 @@ def create_custom_metrics(project):
       ] if 'metricDescriptors' in response else []
 
       # Keep only custom metrics we want, that do not currently exist.
-      return [
-          m for m in constants.CUSTOM_METRICS_MAP.keys()
-          if m not in custom_metrics
-      ]
+      return set(constants.CUSTOM_METRICS_MAP.keys()).difference(custom_metrics)
+
     except HttpError as error:
       helpers.log_http_error('missing_custom_metrics', error)
       return []
