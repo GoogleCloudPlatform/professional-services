@@ -31,6 +31,8 @@ class TestDataGenerator(unittest.TestCase):
     def setUp(self):
         logging.basicConfig(level=logging.DEBUG)
 
+    # It is best practice to have unit tests for the business logic in your pipeline.
+    # This pipeline is so simple that this unit test is trivial.
     def test_detect_labels_uri_return(self):
         # Check behavior for an empty list.
         label_list = []
