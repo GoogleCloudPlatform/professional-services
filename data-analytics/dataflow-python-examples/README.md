@@ -234,7 +234,8 @@ The final step, naturally, is to write the generated data into a BigQuery Table 
 This tool has several parameters to specify what kind of data you would like to generate.
 
 #### Schema 
-The schema should be specified using the `--schema_file` parametere with a file containing a list of json objects with `name`,  `type`, and `mode` fields. 
+The schema may be specified using the `--schema_file` parameter  with a file containing a 
+list of json objects with `name`,  `type`, and `mode` fields 
 ie. 
 ```
 --schema_file=gs://python-dataflow-examples/schemas/lineorder-schema.json
@@ -252,6 +253,11 @@ lineorder-schema.json:
     },
     {...}
 ]
+```
+Alternatively, the schema may be specified with a reference to an existing BigQuery table with the
+`--input_bq_table` parameter.
+```
+--input_bq_table=BigQueryFaker.lineorders
 ```
 
 #### Number of records
@@ -335,5 +341,3 @@ So hack away if you need something more specific any python code is fair game. K
 that if you use a non-standard module (available in PyPI) you will need to make sure it gets installed on each of the workers or you will get 
 namespace issues. This can be done most simply by adding the module to `requirements.txt`. 
 
-
- 

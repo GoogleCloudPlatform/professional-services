@@ -61,9 +61,9 @@ def detect_labels_uri(uri):
 
 class ImageLabeler(beam.DoFn):
     """
-        This DoFn wraps the inner function detect_labels_uri to write a BigQuery row dictionary
-        with the image file reference specified by the element from the prior PCollection and a list
-        of labels for that image assigned by the Google Cloud Vision API.
+    This DoFn wraps the inner function detect_labels_uri to write a BigQuery row dictionary
+    with the image file reference specified by the element from the prior PCollection and a list
+    of labels for that image assigned by the Google Cloud Vision API.
     """
 
     def process(self, element, *args, **kwargs):
@@ -75,8 +75,8 @@ class ImageLabeler(beam.DoFn):
             row: A list containing a dictionary defining a record to be written to BigQuery
         """
         labels_string = detect_labels_uri(element)
-        row = [{'image_location': element, 'labels': labels_string}]
-        return row
+
+        return [{'image_location': element, 'labels': labels_string}]
 
 
 def run(argv=None):
