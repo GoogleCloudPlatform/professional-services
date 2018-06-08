@@ -92,7 +92,7 @@ class DataGenerator(object):
 
     """
     def __init__(self, bq_schema_filename=None, input_bq_table=None, p_null=0.1, n_keys=1000,
-                 min_date=datetime.date(2000,1,1), max_date=datetime.date.today(),
+                 min_date=datetime.date(2000, 1, 1), max_date=datetime.date.today(),
                  only_pos=True, max_int=10**11, max_float=float(10**11), float_precision=2,
                  write_disp='WRITE_APPEND'):
         """
@@ -126,7 +126,7 @@ class DataGenerator(object):
             except ValueError as e:
                 logging.error("Not a valid json file! \n %s", e)
             except AttributeError:
-                logging.error("Could not find gcs file %s", str(bq_schema_filename))
+                logging.error("Could not find gcs file %s", bq_schema_filename)
         elif input_bq_table:
             bq_cli = bq.Client()
 
@@ -271,7 +271,7 @@ class FakeRowGen(beam.DoFn):
         if '_key' in field['name'].lower() or '_id' in field['name'].lower():
             key_mag = int(math.log10(self.data_gen.n_keys))
             # Assume the key field is of string type and format it to be left zero padded.
-            record[fieldname] = format(np.random.randint(0, self.data_gen.n_keys),
+            record[fieldname] = 'L-' + format(np.random.randint(0, self.data_gen.n_keys),
                                        '0%dd' % (key_mag + 1))
         return record
 
