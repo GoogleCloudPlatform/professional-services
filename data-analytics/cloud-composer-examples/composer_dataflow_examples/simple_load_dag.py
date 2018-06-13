@@ -87,7 +87,7 @@ def move_to_completion_bucket(target_bucket, target_infix, **kwargs):
 
     target_object = os.path.join(target_infix, completion_ds, source_object)
 
-    logging.info('Coping %s to %s',
+    logging.info('Copying %s to %s',
                  os.path.join(source_bucket, source_object),
                  os.path.join(target_bucket, target_object))
     conn.copy(source_bucket, source_object, target_bucket, target_object)
