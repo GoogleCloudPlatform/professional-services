@@ -1,4 +1,4 @@
-# Copyright 2018 Google Inc. All Rights Reserved.
+# Copyright 2017 Google Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
 """Example making GET request to IAP resource."""
 
 import argparse
-import re
 from datetime import datetime
 import json
 import make_iap_request as iap
@@ -32,24 +31,25 @@ def main():
      account.
 
      Returns:
-      A string containing the page body, or raises an exception if the page couldn't be retrieved.
+      The page body, or raises an exception if the page couldn't be retrieved.
 
     """
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--url", dest='url', required=True,
-                        help="The url of a resource sitting behind identity-aware proxy.")
-    parser.add_argument("--iapClientId", dest='iapClientId', required=True,
-                        help="The Client ID of the IAP OAuth Client.")
-    parser.add_argument("--raw_path", dest='raw_path', required=True, help="GCS path to raw files.")
-    parser.add_argument("--num_workers", dest='num_workers', required=True,
-                        help="Number of Dataproc workers.")
+    bucket = 'jferriero-bucket'
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--url", dest='url', required=False,
+                        help="The url of a resource sitting behind identity-aware proxy.",
+                        default='https://i07f6d886b43cd8fb-tp.appspot.com/api/experimental/dags/average-speed/dag_runs')
+    parser.add_argument("--iapClientId", dest='iapClientId', required=False,
+                        help="The Client ID of the IAP OAuth Client.",
+                        default='699819593920-caef1ukpvtdpsqhb3rs39de850nhbl09.apps.googleusercontent.com')
+    parser.add_argument("--raw_path", dest='raw_path', required=False, help="GCS path to raw files.",
+                        default='gs://jferriero-bucket/cloud-composer-lab/raw-test/')
     args = parser.parse_args()
 
-    # Force trailing slash because logic in avearge-speed DAG expects it this way.
-    raw_path = args.raw_path if args.raw_path.endswith('/') else args.raw_path + '/'
-    bucket = raw_path.lstrip('gs://').split('/')[0]
+    # Force trailing slash because logic in avearge-speed DAG expects it this way
+    raw_path = args.raw_path if args.raw_path[-1] == '/' else args.raw_path + '/'
 
     # This transformed path is relative to the bucket Variable in the Airflow environment.
     # Note, the gs://<bucket> prefix is stripped because the GoogleCloudStorageToBigQueryOperator
@@ -61,7 +61,7 @@ def main():
 
     # Note, we need to remove the trailing slash because of how the the spark saveAsTextFile
     # method works.
-    transformed_path = transformed_path.rstrip('/')
+    transformed_path = transformed_path[:-1] if transformed_path[-1] == '/' else transformed_path
 
     # Place parameters to be passed as part of the dag_run triggered by this POST here.
     # In this example we will pass the path where the raw files are  and the path where we should
@@ -69,13 +69,13 @@ def main():
     conf = {
         'raw_path': raw_path,
         'transformed_path': transformed_path,
-        'failed_path': failed_path,
+        'failed_path': failed_path
     }
 
     # The api signature requires a unique run_id
     payload = {
         'run_id': 'post-triggered-run-%s' % datetime.now().strftime('%Y%m%d%H%M%s'),
-        'conf': json.dumps(conf),
+        'conf': json.dumps(conf)
     }
 
     return iap.make_iap_request(args.url, args.iapClientId, method='POST',

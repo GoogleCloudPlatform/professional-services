@@ -1,4 +1,4 @@
-# Copyright 2017 Google Inc.
+# Copyright 20188888888 Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
 import logging
 from airflow import DAG
 from airflow.contrib.operators.dataproc_operator import DataprocClusterCreateOperator, \
@@ -26,21 +26,29 @@ from airflow.utils.trigger_rule import TriggerRule
 ##################################################################
 # This file defines the DAG for the logic pictured below.        #
 ##################################################################
+#                                                                #
 #                       create_cluster                           #
 #                             |                                  #
 #                             V                                  #
-#                       submit_pyspark------\                    #
-#                             |             |                    #
+#                       submit_pyspark.......                    #
+#                             |             .                    #
 #                            / \            V                    #
-#                           /   \      if_failed                 #
+#                           /   \      move_failed_files         #
 #                          /     \          ^                    #
-#                          |     |          |                    #
-#                          V     V          |                    #
-#             delete_cluster     bq_load----/                    #
+#                          |     |          .                    #
+#                          V     V          .                    #
+#             delete_cluster     bq_load.....                    #
 #                                   |                            #
 #                                   V                            #
 #                         delete_transformed_files               #
+#                                                                #
+# (Note: Dotted lines indicate conditional trigger rule on       #
+# failure of the up stream tasks. In this case the files in the  #
+# raw-{timestamp}/ GCS path will be moved to a failed-{timestamp}#
+# path.)                                                         #
 ##################################################################
+
+
 
 # These are stored as a Variables in our Airflow Environment.
 BUCKET = Variable.get('gcs_bucket')  # GCS bucket with our data.
@@ -81,7 +89,7 @@ with DAG('average-speed',
         # ds_nodash is an airflow macro for "[Execution] Date string no dashes"
         # in YYYYMMDD format. See docs https://airflow.apache.org/code.html?highlight=macros#macros
         cluster_name='ephemeral-spark-cluster-{{ ds_nodash }}',
-        num_workers=2,  # Two Dataproc workers. Should this be parameterized for extensibility?
+        num_workers=2,
         num_preemptible_workers=5,
         zone=Variable.get('gce_zone')
     )
@@ -128,13 +136,13 @@ with DAG('average-speed',
     # Delete  gcs files in the timestamped transformed folder.
     delete_transformed_files = BashOperator(
         task_id='delete_transformed_files',
-        bash_command="gsutil -m rm -r gs://" + BUCKET + "/{{ dag_run.conf['transformed_path'] }}/",
+        bash_command="gsutil -m rm -r gs://" + BUCKET + "/{{ dag_run.conf['transformed_path'] }}/"
     )
 
     # If the spark job or BQ Load fails we rename the timestamped raw path to
     # a timestamped failed path.
-    if_failed = BashOperator(
-        task_id='moved failed files',
+    move_failed_files = BashOperator(
+        task_id='move_failed_files',
         bash_command="gsutil mv gs://" + BUCKET + "/{{ dag_run.conf['raw_path'] }}/ "
                      + "gs://" + BUCKET + "/{{ dag_run.conf['failed_path'] }}/",
         trigger_rule=TriggerRule.ONE_FAILED
@@ -149,6 +157,6 @@ with DAG('average-speed',
 
     bq_load.set_downstream(delete_transformed_files)
 
-    if_failed.set_upstream([bq_load, submit_pyspark])
+    move_failed_files.set_upstream([bq_load, submit_pyspark])
 
 
