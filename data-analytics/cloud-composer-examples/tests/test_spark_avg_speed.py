@@ -1,4 +1,4 @@
-# Copyright 2017 Google Inc.
+# Copyright 2018 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the u"License");
 # you may not use this file except in compliance with the License.
@@ -53,8 +53,7 @@ class TestAverageSpeedEnhancer(unittest.TestCase):
           u"average_speed": 18.523489932885905
         }
 
-
-        expected_csv = ','.join(['CMT',
+        expected_partial_csv = ','.join(['CMT',
                                  '2009-04-05 21:00:01 UTC',
                                  '2009-04-05 21:07:28 UTC',
                                  '-73.954192',
@@ -75,12 +74,58 @@ class TestAverageSpeedEnhancer(unittest.TestCase):
                                  'N',
                                  '18.5234899329'
                                  ])
-        actual_csv = self.average_speed_enhancer.dict_to_csv(partial_record)
+        actual_partial_csv = self.average_speed_enhancer.dict_to_csv(partial_record)
 
-        self.assertEquals(expected_csv, actual_csv)
+        self.assertEquals(expected_partial_csv, actual_partial_csv)
 
 
-        # TODO test a full record and a record that contains more fields than the expected schema
+        full_record = {
+            u"vendor_id": u"CMT",
+            u"pickup_datetime": u"2009-04-05 21:00:01 UTC",
+            u"dropoff_datetime": u"2009-04-05 21:07:28 UTC",
+            u"pickup_longitude": -73.954192,
+            u"pickup_latitude": 40.787271,
+            u"dropoff_longitude": -73.976447,
+            u"dropoff_latitude": 40.764421,
+            u"passenger_count": u"2",
+            u"trip_distance": 2.3,
+            u"payment_type": u"CSH",
+            u"fare_amount": 8.23,
+            u"extra": 0,
+            u"tip_amount": 0,
+            u"tolls_amount": 0,
+            u"total_amount": 8.23,
+            u"store_and_fwd_flag": u"N",
+            u"average_speed": 18.523489932885905,
+            u"rate_code": 1,
+            u"mta_tax": 0.0,
+            u"imp_surcharge": 0.3
+        }
+
+        expected_full_csv = ','.join(['CMT',
+                                 '2009-04-05 21:00:01 UTC',
+                                 '2009-04-05 21:07:28 UTC',
+                                 '-73.954192',
+                                 '40.787271',
+                                 '-73.976447',
+                                 '40.764421',
+                                 '1',
+                                 '2',
+                                 '2.3',
+                                 'CSH',
+                                 '8.23',
+                                 '0',
+                                 '0.0',
+                                 '0.3',
+                                 '0',
+                                 '0',
+                                 '8.23',
+                                 'N',
+                                 '18.5234899329'
+                                 ])
+        actual_full_csv = self.average_speed_enhancer.dict_to_csv(full_record)
+
+        self.assertEquals(expected_full_csv, actual_full_csv)
 
     def test_enhance_with_average_speed(self):
         # Test a zero speed.
@@ -264,6 +309,7 @@ class TestAverageSpeedEnhancer(unittest.TestCase):
         actual_csv = self.average_speed_enhancer.enhance_with_avg_speed(bad_store_and_fwd_record)
 
         self.assertEquals(expected_csv, actual_csv)
+
 
 if __name__ == '__main__':
     unittest.main()

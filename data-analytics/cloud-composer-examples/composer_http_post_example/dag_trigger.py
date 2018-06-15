@@ -17,6 +17,8 @@
 import argparse
 import re
 from datetime import datetime
+import pytz
+from tzlocal import get_localzone
 import json
 import make_iap_request as iap
 import os
@@ -36,14 +38,14 @@ def main():
 
     """
 
+    _LOCAL_TZ= get_localzone()
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--url", dest='url', required=True,
                         help="The url of a resource sitting behind identity-aware proxy.")
     parser.add_argument("--iapClientId", dest='iapClientId', required=True,
                         help="The Client ID of the IAP OAuth Client.")
     parser.add_argument("--raw_path", dest='raw_path', required=True, help="GCS path to raw files.")
-    parser.add_argument("--num_workers", dest='num_workers', required=True,
-                        help="Number of Dataproc workers.")
 
     args = parser.parse_args()
 
@@ -74,7 +76,7 @@ def main():
 
     # The api signature requires a unique run_id
     payload = {
-        'run_id': 'post-triggered-run-%s' % datetime.now().strftime('%Y%m%d%H%M%s'),
+        'run_id': 'post-triggered-run-%s' % datetime.now(tzinfo=_LOCAL_TZ).strftime('%Y%m%d%H%M%s%Z'),
         'conf': json.dumps(conf),
     }
 
