@@ -141,7 +141,7 @@ The airflow webserver can be found once your composer environment is set up by c
 ![Alt text](../img/airflow-ui.png "Screen Shot showing how to get the airflow URL")
 
 In oder to obtain your `--iapClientId` 
-Visit the Airflow URL https://YOUR_UNIQUE_ID.appspot.com (which you noted in the last step) in an incognito window, *don't* AUTH OR LOGIN, and first landing page for IAP Auth has client Id in the url in the address bar: 
+Visit the Airflow URL https://YOUR_UNIQUE_ID.appspot.com (which you noted in the last step) in an incognito window, *don't* authenticate or login, and first landing page for IAP Auth has client Id in the url in the address bar: 
 https://accounts.google.com/signin/oauth/identifier?**client_id=00000000000-xxxx0x0xx0xx00xxxx0x00xxx0xxxxx.apps.googleusercontent.com**&as=a6VGEPwFpCL1qIwusi49IQ&destination=https%3A%2F%2Fh0b798498b93687a6-tp.appspot.com&approval_state=!ChRKSmd1TVc1VlQzMDB3MHI2UGI4SxIfWXhaRjJLcWdwcndRVUU3MWpGWk5XazFEbUp6N05SWQ%E2%88%99AB8iHBUAAAAAWvsaqTGCmRazWx9NqQtnYVOllz0r2x_i&xsrfsig=AHgIfE_o0kxXt6N3ch1JH4Fb19CB7wdbMg&flowName=GeneralOAuthFlow
 
 ***
