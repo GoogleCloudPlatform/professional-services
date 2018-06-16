@@ -2,16 +2,16 @@
 
 1. Download the data from the competition site (http://complatt.smartwatt.net/)
 2. Uploaded the files to BigQuery using the UI. Create dataset "Energy" and then create tables:
-⋅⋅*. Energy.MarketPricePT (for historical price data)
-..1. Energy.historical_weather  (for historical weather data)
+* Energy.MarketPricePT (for historical price data)
+* Energy.historical_weather  (for historical weather data)
 3. Run: ```python -m data_preparation.data_prep``` to generate training/validation/testing data as well as to generate constants needed for normalization. The produced data has the following columns:
-⋅⋅* price	FLOAT	Energy price
-⋅⋅* date_utc	TIMESTAMP	Date and hour for specified price
-⋅⋅* day	INTEGER	Day of week
-⋅⋅* hour	INTEGER	Hour of day
-⋅⋅* week	INTEGER	Week of year (not used for training but used to join with previous week's price distribution)
-⋅⋅* distribution0 - distribution4	FLOAT	Distribution of hourly prices during the previous week (min, 25th, 50th, 75th, max)
-⋅⋅* weather0 - weather179	FLOAT	Weather features. Contains 10 distinct weather metrics (temperature, wind_speed_100m, wind_direction_100m, air_density, precipitation, wind_gust, radiation, wind_speed, wind_direction, pressure) from 18 distinct parts of the country (180 total features)
+* price	FLOAT	Energy price
+* date_utc	TIMESTAMP	Date and hour for specified price
+* day	INTEGER	Day of week
+* hour	INTEGER	Hour of day
+* week	INTEGER	Week of year (not used for training but used to join with previous week's price distribution)
+* distribution0 - distribution4	FLOAT	Distribution of hourly prices during the previous week (min, 25th, 50th, 75th, max)
+* weather0 - weather179	FLOAT	Weather features. Contains 10 distinct weather metrics (temperature, wind_speed_100m, wind_direction_100m, air_density, precipitation, wind_gust, radiation, wind_speed, wind_direction, pressure) from 18 distinct parts of the country (180 total features)
 4. Export training/validation/testing tables as CSVs using UI (into GCS bucket gs://energyforecast/data/csv)
 
 # Train, tune hyper-parameters, publis model, and predict.
