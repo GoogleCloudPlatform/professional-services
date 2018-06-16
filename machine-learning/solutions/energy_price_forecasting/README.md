@@ -2,8 +2,8 @@
 
 1. Download the data from the competition site (http://complatt.smartwatt.net/)
 2. Uploaded the files to BigQuery using the UI. Create dataset "Energy" and then create tables:
-⋅⋅* Energy.MarketPricePT (for historical price data)
-⋅⋅* Energy.historical_weather  (for historical weather data)
+⋅⋅*. Energy.MarketPricePT (for historical price data)
+..1. Energy.historical_weather  (for historical weather data)
 3. Run: ```python -m data_preparation.data_prep``` to generate training/validation/testing data as well as to generate constants needed for normalization. The produced data has the following columns:
 ⋅⋅* price	FLOAT	Energy price
 ⋅⋅* date_utc	TIMESTAMP	Date and hour for specified price
