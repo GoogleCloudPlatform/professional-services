@@ -46,39 +46,39 @@ The below is a screenshot of a stacked area chart created in Stackdriver based o
 
 ## Setting up
 
-1. [Install third-party library](https://cloud.google.com/appengine/docs/standard/python/tools/using-libraries-python-27) required by the application
+1. [Install third-party library](https://cloud.google.com/appengine/docs/standard/python/tools/using-libraries-python-27) required by the application:
 
 ```
 pip install -t lib -r requirements.txt
 ```
 
-2. Modify configuration files
+2. Modify configuration files:
    + Modify ./bigquery_slots_monitoring/config.py to include billing account ID, and project ID where Stackdriver is created.
    + You may want to change scaling settings in app.yaml. The version in the repository defines a maximum instance count of 3 to help controlling costs.
    + Metrics are collected every 5 minutes. Change cron.yaml accordingly to modify this if needed.
 
-3. [Enable Cloud Billing API](https://support.google.com/cloud/answer/6158841?hl=en) on the project hosting the AppEngine application
+3. [Enable Cloud Billing API](https://support.google.com/cloud/answer/6158841?hl=en) on the project hosting the AppEngine application:
 
 ```
 gcloud services --project PROJECT_ID enable cloudbilling.googleapis.com
 ```
 
-4. Deploy AppEngine application
+4. Deploy AppEngine application:
 
 ```
 gcloud app --project PROJECT_ID deploy *.yaml -v <version>
 ```
 
 5. Grant Default AppEngine Service account with the required permissions:
-   + Billing Viewer on Billing Account ID ([documentation](https://cloud.google.com/billing/docs/how-to/billing-access#update_billing_permissions))
-   + Monitoring Editor on project hosting Stackdriver account
+   + Billing Viewer on Billing Account ID ([documentation](https://cloud.google.com/billing/docs/how-to/billing-access#update_billing_permissions)).
+   + Monitoring Editor on project hosting Stackdriver account.
    + Monitoring Viewer on all projects. It will be easier to apply this on Folder / Org level.
 
 6. Metrics will be collected every 5 minutes, and should appear shortly in Stackdriver as custom.googleapis.com/bigquery/slots/allocated_for_project. You may want to create a stacked chart to show allocation broken down by projects on a single chart.
 
-7. Create a custom dashboard on Stackdriver
+7. Create a custom dashboard on Stackdriver:
    + In Stackdriver, choose **Dashboards -> Create Dashboard** in the left pane.
-   + Choose **Add chart** on the top right corner
+   + Choose **Add chart** in the top right corner.
      - Title: Choose a chart title name
      - Add resource: custom/bigquery/slots/allocated_for_project
      - Change chart type to Stacked Area
