@@ -78,7 +78,7 @@ gcloud app --project PROJECT_ID deploy *.yaml -v <version>
 
 7. Create a custom dashboard on Stackdriver:
    + In Stackdriver, choose **Dashboards -> Create Dashboard** in the left pane.
-   + Choose **Add chart** in the top right corner.
+   + Choose **Add chart** in the top right corner:
      - Title: Choose a chart title name
      - Add resource: custom/bigquery/slots/allocated_for_project
      - Change chart type to Stacked Area
