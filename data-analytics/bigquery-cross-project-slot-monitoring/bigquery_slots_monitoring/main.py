@@ -76,7 +76,7 @@ class CopyMetrics(webapp2.RequestHandler):
       self.error(400)
       return
 
-    metrics.copy_metrics(src_project, dst_project)
+    metrics.copy_metrics(src_project, dst_project, datetime.utcnow())
 
 
 app = webapp2.WSGIApplication([

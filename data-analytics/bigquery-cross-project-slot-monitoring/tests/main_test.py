@@ -140,5 +140,4 @@ class CopyMetricsTest(unittest.TestCase):
       headers={'X-AppEngine-QueueName': 'SomeQueue'},
       status=200)
 
-    mock_copy_metrics.assert_called_once_with(
-    payload['src_project'], payload['dst_project'])
+    mock_copy_metrics.assert_called_once()
