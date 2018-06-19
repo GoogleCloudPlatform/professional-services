@@ -9,12 +9,11 @@
 * date_utc	TIMESTAMP	Date and hour for specified price
 * day	INTEGER	Day of week
 * hour	INTEGER	Hour of day
-* week	INTEGER	Week of year (not used for training but used to join with previous week's price distribution)
 * distribution0 - distribution4	FLOAT	Distribution of hourly prices during the previous week (min, 25th, 50th, 75th, max)
 * weather0 - weather179	FLOAT	Weather features. Contains 10 distinct weather metrics (temperature, wind_speed_100m, wind_direction_100m, air_density, precipitation, wind_gust, radiation, wind_speed, wind_direction, pressure) from 18 distinct parts of the country (180 total features)
 4. Export training/validation/testing tables as CSVs using UI (into GCS bucket gs://energyforecast/data/csv)
 
-# Train, tune hyper-parameters, publis model, and predict.
+# Train, tune hyper-parameters, publish model, and predict.
 
 ## Default values
 ```
