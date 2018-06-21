@@ -1,7 +1,7 @@
 # Data preparation instructions
 
-1. Download the data from the competition site (http://complatt.smartwatt.net/)
-2. Uploaded the files to BigQuery using the UI. Create dataset "Energy" and then create tables:
+1. Raw data for this problem can be found in the data folder.
+2. Upload the files to BigQuery using the UI. Create dataset "Energy" and then create tables:
 * Energy.MarketPricePT (for historical price data)
 * Energy.historical_weather  (for historical weather data)
 3. Run: ```python -m data_preparation.data_prep``` to generate training/validation/testing data as well as to generate constants needed for normalization. The produced data has the following columns:
@@ -27,7 +27,7 @@ TEST_DATA = data/csv/DataTest.csv
 PREDICTIONS_FOLDER = ${JOB_FOLDER}/test_predictions
 ```
 
-## train model
+## Train model
 ```
 gcloud ml-engine jobs submit training $JOB_NAME \
         --job-dir=gs://${BUCKET_NAME}/${JOB_FOLDER} \
@@ -38,7 +38,7 @@ gcloud ml-engine jobs submit training $JOB_NAME \
         --package-path=trainer
 ```
 
-## hyper-parameter tuning
+## Hyper-parameter tuning
 ```
 gcloud ml-engine jobs submit training ${JOB_NAME} \
         --job-dir=gs://${BUCKET_NAME}/${JOB_FOLDER} \
@@ -49,12 +49,12 @@ gcloud ml-engine jobs submit training ${JOB_NAME} \
         --config=MLEngine/config.yaml
 ```
 
-## create model
+## Create model
 ```
 gcloud ml-engine models create ${MODEL_NAME} --regions=us-central1
 ```
 
-## create model version
+## Create model version
 ```
 gcloud ml-engine versions create ${MODEL_VERSION} \
         --model=${MODEL_NAME} \
@@ -62,7 +62,7 @@ gcloud ml-engine versions create ${MODEL_VERSION} \
         --runtime-version=1.8
 ```
 
-## predict on test data
+## Predict on test data
 ```
 gcloud ml-engine jobs submit prediction ${JOB_NAME} \
     --model=${MODEL_NAME} \
@@ -72,3 +72,19 @@ gcloud ml-engine jobs submit prediction ${JOB_NAME} \
     --data-format=TEXT \
     --version=${MODEL_VERSION}
 ```
+
+#LICENSE
+
+   Copyright 2018 Google LLC
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
