@@ -4,13 +4,11 @@
 
 * energy-forecasting.Energy.MarketPricePT
 
-	Columns:
         date_utc - Date and hour that corresponds to the energy price, in UTC.
 	price - Energy price at given hour.
 
 * energy-forecasting.Energy.historical_weather
 
-	Columns:
 	point - Specific id of each weather point location (18 points in the country).
 	prediction_date	- Date and hour that corresponds to the forecast, in UTC.
 	wind_speed_100m - Wind speed estimated at 100 meters, in m/s.
