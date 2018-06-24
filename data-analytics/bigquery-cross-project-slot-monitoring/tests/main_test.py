@@ -14,6 +14,7 @@
 
 """Tests handlers defined within main.py."""
 
+from datetime import datetime
 import mock
 import os
 import re
@@ -129,6 +130,10 @@ class CopyMetricsTest(unittest.TestCase):
 
   @mock.patch.object(main.metrics, 'copy_metrics')
   def testCopyMetrics_Valid(self, mock_copy_metrics):
+    mocked_utcnow_value = datetime(2018, 1, 1, 12, 30, 30, 30)
+    main.datetime = mock.MagicMock()
+    main.datetime.utcnow.return_value = mocked_utcnow_value
+
     payload = {
       'src_project': 'srcProject',
       'dst_project': 'dstProject'
@@ -140,4 +145,6 @@ class CopyMetricsTest(unittest.TestCase):
       headers={'X-AppEngine-QueueName': 'SomeQueue'},
       status=200)
 
-    mock_copy_metrics.assert_called_once()
+    mock_copy_metrics.assert_called_with(
+      payload['src_project'], payload['dst_project'], mocked_utcnow_value)
+
