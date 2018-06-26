@@ -1,0 +1,21 @@
+<h1>Google Cloud Platform - AutoML Vision API - Sport Classification</h1>
+
+<p>This Python Flask application demonstrates App Engine Flexible, Google Cloud Storage, Datastore, and the AutoML Custom Vision API. It is trained to label photos from 10 popular sports in the Summer Olympic Games. The categories are Athletics, Baseball, Basketball, Cricket, Golf, Gymnastics, Soccer, Swimming, Tennis, and Volleyball. The model was trained by uploading 100 images from each category.</p>
+
+<p><b>Important:</b> During the alpha period, there may be a warmup delay with your model. If your initial requests return an error, please wait a few seconds before trying again.</p>
+
+<br>
+
+<html>
+  <body>
+    <form action="upload_photo" method="POST" enctype="multipart/form-data">
+      Upload File: <input type="file" name="file"><br>
+      <input type="submit" name="submit" value="Submit">
+    </form>
+    {% for image_entity in image_entities %}
+      <img src="{{image_entity['image_public_url']}}" width=200 height=200>
+      <p>{{image_entity['blob_name']}} was uploaded {{image_entity['timestamp']}}.</p>
+      <p>Most Likely Sport for Photo: {{image_entity['prediction']}}</p>
+    {% endfor %}
+  </body>
+</html> 
