@@ -7,7 +7,7 @@ The goal of this example is to provide a common pattern to automatically trigger
 ***
 
 
-![Alt text](../img/composer-http-post-arch.png "A diagram illustrating the workflow for this example.")
+![Alt text](../img/composer-http-post-arch.png "A diagram illustrating the workflow described below.")
 
 An HTTP POST to the airflow endpoint from an on-prem system is used as a trigger to initiate the workflow.
 
@@ -20,7 +20,7 @@ At a high level the Cloud Composer workflow performs the following steps:
      BigQuery table](https://bigquery.cloud.google.com/table/nyc-tlc:yellow.trips?pli=1).  
 - Enhances the data with an average_speed column.
 - Writes the enhanced data as in CSV format to a temporary location in Google Cloud storage.
-3. Load these files to BigQuery.
+3. Tear down the Dataproc Cluster Load these files to BigQuery.
 4. Clean up the temporary path of enhanced data in GCS.
 
 ##### 1. Extract metadata from POST:
@@ -66,7 +66,7 @@ wget https://raw.githubusercontent.com/GoogleCloudPlatform/python-docs-samples/m
 pip install -r iap-requirements.txt
 wget https://raw.githubusercontent.com/GoogleCloudPlatform/python-docs-samples/master/iap/make_iap_request.py -O ~/professional-services/data-analytics/cloud-composer-examples/cloud_composer_example/composer_http_post_example/make_iap_request.py
 ```
-(Or if your are on a mac you can use curl.)
+(Or if your are on a Mac you can use curl.)
 ```bash
 # From the cloud-composer-examples directory
 pip install -r ~/professional-services/data-analytics/cloud-composer-examples/requirements.txt

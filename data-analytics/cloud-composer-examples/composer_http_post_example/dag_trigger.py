@@ -15,13 +15,11 @@
 """Example making GET request to IAP resource."""
 
 import argparse
-import re
 from datetime import datetime
-import pytz
-from tzlocal import get_localzone
 import json
+
+from tzlocal import get_localzone
 import make_iap_request as iap
-import os
 
 
 def main():
@@ -38,7 +36,7 @@ def main():
 
     """
 
-    _LOCAL_TZ= get_localzone()
+    _LOCAL_TZ = get_localzone()
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--url", dest='url', required=True,
@@ -76,7 +74,7 @@ def main():
 
     # The api signature requires a unique run_id
     payload = {
-        'run_id': 'post-triggered-run-%s' % datetime.now(tzinfo=_LOCAL_TZ).strftime('%Y%m%d%H%M%s%Z'),
+        'run_id': 'post-triggered-run-%s' % datetime.now(_LOCAL_TZ).strftime('%Y%m%d%H%M%s%Z'),
         'conf': json.dumps(conf),
     }
 

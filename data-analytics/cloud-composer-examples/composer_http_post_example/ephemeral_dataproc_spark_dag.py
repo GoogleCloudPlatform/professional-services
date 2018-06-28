@@ -1,4 +1,4 @@
-# Copyright 20188888888 Inc.
+# Copyright 2018 Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from datetime import datetime, timedelta
-import logging
+
 from airflow import DAG
 from airflow.contrib.operators.dataproc_operator import DataprocClusterCreateOperator, \
     DataProcPySparkOperator, DataprocClusterDeleteOperator
