@@ -26,7 +26,8 @@ import sys
 
 from pyspark import SparkConf, SparkContext
 
-class AverageSpeedEnhancer:
+
+class AverageSpeedEnhancer(object):
     """This Class serves as a namespace for the business logic function to calculate an average_speed
     field from trip_distance, pickup_datetime and drop off date_time.
     """
@@ -52,9 +53,6 @@ class AverageSpeedEnhancer:
         "store_and_fwd_flag",
         "average_speed"
     ]
-
-    def __init__(self):
-        pass
 
     def dict_to_csv(self, dictionary):
         """This funciton converts a python dictionary to a CSV line. Note keys in output schema that
