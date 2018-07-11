@@ -15,7 +15,7 @@ The package can be installed by `pip install gcpinventory'
                                 delete_callback=_default_delete_callback ):
         Update the routes for the given project to access GCP services with Google API Access for Private IPs.
         Use this method to publish routes to Google netblocks.
-        Use this when a you has a default route to something more preferred (ie VPN or NAT GW).
+        Use this when a you have a default route to something more preferred (ie VPN or NAT GW).
         The method will add/delete the routes to match the cidr ranges listed under _spf.google.com
         as described at https://github.com/hm-distro/netblocks/tree/master/netblocks.
         This method can be called repeatedly and will continue from where it left off, in case of error.
