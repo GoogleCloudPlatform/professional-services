@@ -58,6 +58,7 @@ python preprocess.py \
 ```
 
 <h1>Training</h1>
+
 * **Run locally:**
 ```
 TRAINING_OUTPUT_DIR=./training_output_dir-$(date +"%Y%m%d_%H%M%S")
@@ -94,6 +95,7 @@ tensorboard --logdir=${TRAINING_OUTPUT_DIR}/trials/$TRIAL_NUMBER
 
 <h1>Inference</h1>
 Once the model is trained and stored it can be used for batch inference on new data.
+
 * **Run locally:**
 ```
 PREDICTION_INPUT=./${DATAFLOW_OUTPUT_DIR}split_data_features.txt
