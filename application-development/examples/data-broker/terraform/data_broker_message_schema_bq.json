@@ -1,0 +1,38 @@
+[
+    {
+      "description": "The message payload if streaming.",
+      "name": "payload",
+      "type": "STRING",
+      "mode": "NULLABLE"
+    },
+    {
+      "description": "The upload location if batching.",
+      "name": "uploadLocation",
+      "type": "STRING",
+      "mode": "NULLABLE"
+    },
+    {
+        "description": "The messageId.  Not used in BQ.",
+        "name": "messageId",
+        "type": "STRING",
+        "mode": "NULLABLE"
+    },
+    {
+        "description": "Any failures.  Not used in BQ.",
+        "name": "failure",
+        "type": "STRING",
+        "mode": "NULLABLE"
+    },
+    {
+        "description": "The ID of the topic.",
+        "name": "topicId",
+        "type": "STRING",
+        "mode": "NULLABLE"
+    },
+    {
+        "description": "The ID of the project.",
+        "name": "projectId",
+        "type": "STRING",
+        "mode": "NULLABLE"
+    }
+]

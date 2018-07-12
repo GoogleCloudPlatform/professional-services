@@ -26,3 +26,17 @@ client_secrets.json
 \#*\#
 *_flymake.py
 .DS_Store
+
+# Java
+*.class
+target/
+.factorypath
+.classpath
+
+# Terraform
+.terraform
+
+# IDE related
+.project
+.settings/
+.vscode/
