@@ -24,7 +24,6 @@ import com.google.api.core.ApiFutureCallback;
  * The DataBrokerCallback handles the asynchronous response from GCP. The results
  * will either be a success or a faulure.
  * 
- * @author Ken Evensen kdevensen@google.com
  * @version 1.0-SNAPSHOT
  */
 class DataBrokerCallback implements ApiFutureCallback<String> {

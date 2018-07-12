@@ -39,7 +39,6 @@ import com.google.pubsub.v1.PubsubMessage;
  * a message with the location of the stored file.  Note the upload method is not
  * implemented in 1.0-SNAPSHOT.
  * 
- * @author Ken Evensen kdevensen@google.com
  * @version 1.0-SNAPSHOT
  */
 public class DataBroker {
