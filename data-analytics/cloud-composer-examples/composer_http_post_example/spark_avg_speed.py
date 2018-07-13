@@ -20,6 +20,9 @@ Dataproc cluster to run a spark job and tear it down once the job completes.
 """
 
 import argparse
+import cStringIO
+import csv
+from contextlib import closing
 import datetime
 import json
 import sys
@@ -61,9 +64,12 @@ class AverageSpeedEnhancer(object):
         Arguments:
             dictionary: A dictionary containing the data of interest.
         """
-        csv = ','.join([str(dictionary[key]) if dictionary.get(key) is not None else ''
-                        for key in AverageSpeedEnhancer.output_schema])
-        return csv
+        with closing(cStringIO.StringIO()) as csv_string:
+            writer = csv.DictWriter(csv_string, AverageSpeedEnhancer.output_schema)
+            writer.writerow(dictionary)
+            # Our desired output is a csv string not a line in a file so we strip the
+            # newline character written by the writerow function by default.
+            return csv_string.getvalue().strip()
 
     def enhance_with_avg_speed(self, record):
         """
