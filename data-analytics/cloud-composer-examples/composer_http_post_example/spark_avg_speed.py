@@ -134,7 +134,6 @@ if __name__ == '__main__':
     parser.add_argument('--gcs_path_transformed', dest='gcs_path_transformed',
                         required=True,
                         help='Specify the full GCS path prefix for the transformed json files. ')
-    argv = sys.argv
     known_args, _ = parser.parse_known_args(None)
 
     main(sc=spark_context, gcs_path_raw=known_args.gcs_path_raw,
