@@ -13,6 +13,14 @@
 # limitations under the License.
 
 import unittest
+import sys
+from os import path
+
+# This allows us to perform the relative imports necessary to run  these
+# unit tests from the parent directory
+# by running:
+# python tests/test_spark_avg_speedpy
+sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 from composer_http_post_example.spark_avg_speed import AverageSpeedEnhancer
 
@@ -72,7 +80,7 @@ class TestAverageSpeedEnhancer(unittest.TestCase):
                                  '0',
                                  '8.23',
                                  'N',
-                                 '18.5234899329'
+                                 '18.523489932885905'
                                  ])
         actual_partial_csv = self.average_speed_enhancer.dict_to_csv(partial_record)
 
@@ -121,7 +129,7 @@ class TestAverageSpeedEnhancer(unittest.TestCase):
                                  '0',
                                  '8.23',
                                  'N',
-                                 '18.5234899329'
+                                 '18.523489932885905'
                                  ])
         actual_full_csv = self.average_speed_enhancer.dict_to_csv(full_record)
 
@@ -304,7 +312,7 @@ class TestAverageSpeedEnhancer(unittest.TestCase):
                                  '0',
                                  '8.23',
                                  '',
-                                 '18.5234899329'
+                                 '18.523489932885905'
                                  ])
         actual_csv = self.average_speed_enhancer.enhance_with_avg_speed(bad_store_and_fwd_record)
 
