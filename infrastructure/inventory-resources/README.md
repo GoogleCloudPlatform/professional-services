@@ -2,9 +2,10 @@
 
 This is a package that can provide inventory of resources in GCP
 In addition to accessing projects,zones and disks it also provides a method to keep routes in sync with the GCP services netblocks.
-see the method sync_gcp_service_routes(...) for more details
-sync_gcp_service_routes(...) can be executed at any frequency.This method can be called repeatedly and will continue from where it left off, in case of error.
 
+See the method sync_gcp_service_routes(...) for more details.  
+sync_gcp_service_routes(...) can be executed at any frequency.This method can be called repeatedly and will continue from where it left off, in case of error.  
+See the bottom of the page for an example
 
 
 The package can be installed by `pip install gcpinventory'

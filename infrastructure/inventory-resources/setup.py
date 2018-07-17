@@ -21,7 +21,7 @@ with open("README.md", "r") as fh:
 setuptools.setup(
     name="gcpinventory",
     author='hm-distro',
-    version="0.0.5",
+    version="0.0.6",
     description="Service to manage GCP inventory resource",
     long_description=long_description,
     long_description_content_type="text/markdown",
