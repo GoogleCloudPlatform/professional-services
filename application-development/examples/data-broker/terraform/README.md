@@ -38,4 +38,4 @@ mvn exec:exec -DTF_HOME=$PATH_TO_TERRAFORM -DTF_STAGE=apply
 mvn exec:exec -DTF_HOME=$PATH_TO_TERRAFORM -DTF_STAGE=apply
 ```
 ## Service Account Key - PubSub Publisher
-A service account key is created and downloaded to **terraform/target/classes/pubslisher-key.json**.
+A service account key is created and downloaded to **terraform/target/classes/publisher-key.json**.
