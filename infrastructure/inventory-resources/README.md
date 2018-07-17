@@ -1,5 +1,8 @@
 # Resources Inventory
 
+**This is not an official Google product.**
+
+
 This is a package that can provide inventory of resources in GCP
 In addition to accessing projects,zones and disks it also provides a method to keep routes in sync with the GCP services netblocks.
 
