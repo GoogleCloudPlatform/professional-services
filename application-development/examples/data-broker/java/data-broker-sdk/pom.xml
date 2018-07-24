@@ -44,6 +44,11 @@
       <artifactId>google-cloud-datastore</artifactId>
       <version>1.32.0</version>
     </dependency>
+    <dependency>                        <!-- Google Cloud Client Library for Java -->
+      <groupId>com.google.cloud</groupId>
+      <artifactId>google-cloud-storage</artifactId>
+      <version>1.33.0</version>
+    </dependency>
     <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-core</artifactId>
@@ -80,6 +85,20 @@
       <artifactId>data-broker-json-validator</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
+    <dependency>                        <!-- http://www.joda.org/joda-time/ -->
+      <groupId>joda-time</groupId>
+      <artifactId>joda-time</artifactId>
+      <version>2.10</version>
+    </dependency>
+
+    <!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
+    <dependency>
+        <groupId>commons-io</groupId>
+        <artifactId>commons-io</artifactId>
+        <version>2.6</version>
+    </dependency>
+
+
   </dependencies>
   <build>
     <testResources>

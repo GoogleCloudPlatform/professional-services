@@ -19,6 +19,7 @@ variable "org_id" {}
 variable "region" {
   default = "us-central1"
 }
+variable "bucket" {}
 
 terraform {
   backend "gcs" {
@@ -63,6 +64,11 @@ resource "google_project_service" "iam" {
 resource "google_project_service" "biqquery" {
    project = "${google_project.project.project_id}"
    service = "bigquery-json.googleapis.com"
+}
+
+resource "google_project_service" "storage" {
+  project = "${google_project.project.project_id}"
+  service = "storage-component.googleapis.com"
 }
 
 resource "google_project_service" "gcr" {

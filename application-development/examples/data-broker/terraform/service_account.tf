@@ -16,12 +16,18 @@
 resource "google_service_account" "publisher" {
   project = "${google_project.project.project_id}"
   account_id   = "mypublisher"
-  display_name = "My PubSub Publisher"
+  display_name = "Aurinko Publisher"
 }
 
-resource "google_project_iam_member" "publisher_role" {
+resource "google_project_iam_member" "stream_role" {
   project = "${google_project.project.project_id}"
   role    = "roles/pubsub.publisher"
+  member  = "serviceAccount:${google_service_account.publisher.email}"
+}
+
+resource "google_project_iam_member" "batch_role" {
+  project = "${google_project.project.project_id}"
+  role    = "roles/storage.objectCreator"
   member  = "serviceAccount:${google_service_account.publisher.email}"
 }
 

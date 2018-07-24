@@ -15,6 +15,7 @@
  */
 package com.google.cloud.tools.sce.aurinko.cli;
 
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
@@ -31,6 +32,19 @@ import org.apache.commons.cli.ParseException;
 public class App {
 
     public App() {
+
+    }
+
+    public DataBrokerMessage executeUpload(String projectId, String topicId, String bucket, String filePath) throws Exception {
+        File payloadFile = new File(filePath);
+
+        DataBroker dataBroker = null;
+        if (projectId == null) {
+            dataBroker = new DataBroker(topicId);
+        } else {
+            dataBroker = new DataBroker(projectId, topicId);
+        }
+        return dataBroker.upload(payloadFile, bucket, true);
 
     }
 
@@ -52,14 +66,16 @@ public class App {
     public static void main(String[] args) throws ParseException {
         // create Options object
         Options options = new Options();
-        //Create each option
+        // Create each option
         Option projectOption = Option.builder("p").required(false).longOpt("project").hasArg(true).build();
         Option topicOption = Option.builder("t").required(false).longOpt("topic").hasArg(true).build();
         Option fileOption = Option.builder("f").required(true).longOpt("file").hasArg(true).build();
+        Option bucketOption = Option.builder("b").required(true).longOpt("bucket").hasArg(true).build();
         // add project option
         options.addOption(projectOption);
         options.addOption(topicOption);
         options.addOption(fileOption);
+        options.addOption(bucketOption);
         options.addOption("h", "help", false, "Display this usage information.");
 
         //HelpFormatter formatter = new HelpFormatter();
@@ -77,6 +93,7 @@ public class App {
         String projectId = cmd.getOptionValue("p");
         String topicId = cmd.getOptionValue("t");
         String payloadFile = cmd.getOptionValue("f");
+        String bucket = cmd.getOptionValue("b");
 
         if(topicId == null) {
             // print default date
@@ -85,6 +102,7 @@ public class App {
 
         App cliApp = new App();
 
+        System.out.println("Testing send() method");
         try {
             DataBrokerMessage returnMessage = cliApp.execute(projectId, topicId, payloadFile);
             if (returnMessage.getMessageId() != null) {
@@ -99,6 +117,26 @@ public class App {
             e.printStackTrace();
             System.exit(1);
         }
+
+
+        System.out.println("Testing upload() method");
+        try {
+            DataBrokerMessage returnMessage = cliApp.executeUpload(projectId, topicId, bucket, payloadFile);
+            if (returnMessage.getMessageId() != null) {
+                System.out.printf("Uploaded payload message with ID %s to topic %s in project %s.  The location of the upload is %s.\n",
+                    returnMessage.getMessageId(),
+                    returnMessage.getTopicId(),
+                    returnMessage.getProjectId(),
+                    returnMessage.getUploadLocation());
+            } else if (returnMessage.getFailure() != null) {
+                returnMessage.getFailure().printStackTrace();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+
         System.exit(0);
     }
 }

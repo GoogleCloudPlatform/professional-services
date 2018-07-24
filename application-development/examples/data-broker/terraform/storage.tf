@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-project_name = ""
-billing_account = ""
-org_id = ""
-dataset = ""
-table = ""
-bucket = "" 
+resource "google_storage_bucket" "batch_store" {
+  name     = "${var.bucket}"
+  location = "US"
+  project = "${google_project.project.project_id}"
+  depends_on = ["google_project_service.storage"]
+
+}

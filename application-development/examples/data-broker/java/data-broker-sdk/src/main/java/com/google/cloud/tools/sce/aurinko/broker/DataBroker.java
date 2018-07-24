@@ -17,6 +17,7 @@
 package com.google.cloud.tools.sce.aurinko.broker;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
@@ -27,10 +28,21 @@ import com.google.api.core.ApiFuture;
 import com.google.api.core.ApiFutures;
 import com.google.cloud.ServiceOptions;
 import com.google.cloud.pubsub.v1.Publisher;
+import com.google.cloud.storage.Blob;
+import com.google.cloud.storage.BlobInfo;
+import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageOptions;
 import com.google.cloud.tools.sce.aurinko.validator.Validator;
 import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.ProjectTopicName;
 import com.google.pubsub.v1.PubsubMessage;
+
+import org.apache.commons.io.IOUtils;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+
 /**
  * The DataBroker facilitates sending data to GCP PubSub.  This is accomplished
  * through either the send method or upload method.  Primary difference between the
@@ -137,13 +149,44 @@ public class DataBroker {
     }
 
     /**
-     * TODO: Not fully implemented yet.
+     * The upload method is used to publish payloads of greater than 10MB to GCS and pulbish
+     * a message with the location of the data.  Nothing prevents using this method to upload
+     * payloads of less than 10MB.
+     * 
+     * @param fileToUpload The File to upload.
+     * @param bucketName   The String name of the bucket to which to upload.
+     * @param wait          Whether or not to wait for the asynchronous publish to complete.
      */
-    public DataBrokerMessage upload(File fileToUpload) {
-        return null;
+    public DataBrokerMessage upload(File fileToUpload, String bucketName, boolean wait) throws Exception {
+        DateTimeFormatter dtf = DateTimeFormat.forPattern("-YYYY-MM-dd-HHmmssSSS");
+        DateTime dt = DateTime.now(DateTimeZone.UTC);
+        String dtString = dt.toString(dtf);
+        final String fileName = fileToUpload.getName() + dtString;
+        Storage storage = this.getStorage();
 
+        BlobInfo blobInfo = BlobInfo.newBuilder(bucketName, fileName).build();
+        byte[] blobBytes = IOUtils.toByteArray(new FileInputStream(fileToUpload));
+  
+        Blob returnBlob = storage.create(blobInfo, blobBytes);
+
+        DataBrokerMessage message = new DataBrokerMessage(returnBlob.getMediaLink(), this.topicId, this.projectId);
+        return this.publish(message, wait);
     }
-    
+
+    /**
+     * The upload method is used to publish payloads of greater than 10MB to GCS and pulbish
+     * a message with the location of the data.  Nothing prevents using this method to upload
+     * payloads of less than 10MB.
+     * 
+     * @param fileToUploadPath  The File to upload.
+     * @param bucketName        The String name of the bucket to which to upload.
+     * @param wait              Whether or not to wait for the asynchronous publish to complete.
+     */
+    public DataBrokerMessage upload(String fileToUploadPath, String bucketName, boolean wait) throws Exception {
+        File payloadFile = new File(fileToUploadPath);
+        return this.upload(payloadFile, bucketName, wait);
+    }
+
     /**
      * Publish the message to GCP PubSub.  Because the actual publishing of the messages
      * is asynchronous, the optional boolean "wait" parameter will control whether or not
@@ -167,6 +210,9 @@ public class DataBroker {
             DataBrokerCallback callback = new DataBrokerCallback();
             // Create an API Future Object;
             ApiFuture<String> future = this.getFuture(message);
+
+
+            System.out.println("FUTURE - " + future.get());
             // If we are waiting for the callback to complete, create
             // a countdown latch.
             if (wait) {
@@ -198,8 +244,6 @@ public class DataBroker {
         return message;
     }
 
-
-
     private ApiFuture<String> getFuture(DataBrokerMessage message) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         // convert message to JSON then a string
@@ -217,8 +261,17 @@ public class DataBroker {
     }
 
     private Publisher getPublisher() throws IOException {
-        ProjectTopicName topicName = ProjectTopicName.of(this.projectId, this.topicId);
-        return Publisher.newBuilder(topicName).build();
+        if (this.publisher == null) {
+            ProjectTopicName topicName = ProjectTopicName.of(this.projectId, this.topicId);
+            return Publisher.newBuilder(topicName).build();
+        }
+        return this.publisher;
+        
+    }
+
+    private Storage getStorage() throws IOException {
+        Storage storage = StorageOptions.getDefaultInstance().getService();
+        return storage;
     }
 }
 
