@@ -267,9 +267,8 @@ class InventoryService:
         self.logger.info("Total cidr(ipv4) %d" % len(latest_service_netblocks))
 
         # Handle to the inventory service
-        inventory_service = InventoryService()
 
-        all_project_routes = inventory_service.list_routes(project)
+        all_project_routes = self.list_routes(project)
 
         current_routes_netblocks = set()
 
@@ -296,7 +295,7 @@ class InventoryService:
 
         if apply_changes:
             for route in add_routes:
-                _route = inventory_service.create_route(project=project, name=routes_prefix + str(uuid1()), priority=priority,
+                _route = self.create_route(project=project, name=routes_prefix + str(uuid1()), priority=priority,
                                                    network=network, destination_range=route,
                                                    next_hop_gateway=next_hop_gateway
                                                    )
@@ -309,7 +308,7 @@ class InventoryService:
                 # Just in case there are multiple routes names with the same destination cidr
                 for route_name in current_routes_maps[route]:
                     self.logger.info("Deleted: " + str(route_name))
-                    inventory_service.delete_route(project=project,route=route_name)
+                    self.delete_route(project=project,route=route_name)
         else:
             self.logger.info("(Delete)No changes applied as apply_changes:%s", apply_changes)
 
