@@ -1,0 +1,76 @@
+{
+
+  "usage": {
+    "description": "GCE Quota Usage",
+    "displayName": "GCE Quota Usage",
+    "type": "custom.googleapis.com/gce/quota/usage",
+    "metricKind": "GAUGE",
+    "valueType": "INT64",
+    "labels": [{
+        "key": "metric",
+        "valueType": "STRING",
+        "description": "The quota metric measured."
+      },
+      {
+        "key": "project_id",
+        "valueType": "STRING",
+        "description": "The project to which the quota metric belongs."
+      },
+      {
+        "key": "quota",
+        "valueType": "STRING",
+        "description": "The type of quota, e.g. 'global' or a region."
+      }
+    ]
+  },
+
+
+  "limit": {
+    "description": "GCE Quota Limit",
+    "displayName": "GCE Quota Limit",
+    "type": "custom.googleapis.com/gce/quota/limit",
+    "metricKind": "GAUGE",
+    "valueType": "INT64",
+    "labels": [{
+        "key": "metric",
+        "valueType": "STRING",
+        "description": "The quota metric measured."
+      },
+      {
+        "key": "project_id",
+        "valueType": "STRING",
+        "description": "The project to which the quota metric belongs."
+      },
+      {
+        "key": "quota",
+        "valueType": "STRING",
+        "description": "The type of quota, e.g. 'global' or a region."
+      }
+    ]
+  },
+
+  "utilization": {
+    "description": "GCE Quota percent utilizaton",
+    "displayName": "GCE Quota Utilization (%)",
+    "type": "custom.googleapis.com/gce/quota/utilization",
+    "metricKind": "GAUGE",
+    "valueType": "DOUBLE",
+    "labels": [{
+        "key": "metric",
+        "valueType": "STRING",
+        "description": "The quota metric measured."
+      },
+      {
+        "key": "project_id",
+        "valueType": "STRING",
+        "description": "The project to which the quota metric belongs."
+      },
+      {
+        "key": "quota",
+        "valueType": "STRING",
+        "description": "The type of quota, e.g. 'global' or a region."
+      }
+    ]
+  }
+
+}

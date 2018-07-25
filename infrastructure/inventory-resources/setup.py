@@ -29,8 +29,11 @@ setuptools.setup(
     packages=['gcpinventory'],
     platforms=['any'],
     install_requires=[
-          'netblocks',
-
+        'netblocks',
+        'google-api-python-client',
+        'backoff',
+        'ratelimit',
+        'oauth2client',
       ],
     include_package_data=True,
     license="Apache 2",

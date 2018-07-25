@@ -1,4 +1,4 @@
-# Resources Inventory
+# Resources GCP Toolbox
 
 **This is not an official Google product.**
 
@@ -11,121 +11,35 @@ sync_gcp_service_routes(...) can be executed at any frequency.This method can be
 See the bottom of the page for an example
 
 
-The package can be installed by `pip install gcpinventory'
+The package can be installed by `pip install gcptoolbox'
 
-    def sync_gcp_service_routes(self, project, routes_prefix, priority, network, next_hop_gateway,
-                                apply_changes=False,
-                                add_callback=_default_add_callback,
-                                delete_callback=_default_delete_callback ):
-        Update the routes for the given project to access GCP services with Google API Access for Private IPs.
-        Use this method to publish routes to Google netblocks.
-        Use this when you have a default route to something more preferred (ie VPN or NAT GW).
-        The method will add/delete the routes to match the cidr ranges listed under _spf.google.com
-        as described at https://github.com/hm-distro/netblocks/tree/master/netblocks.
-        This method can be called repeatedly and will continue from where it left off, in case of error.
-        
-        Args:
-            project: The project id
-            routes_prefix: The prefix to use for all the routes created
-            priority: The priority of the route(integer)
-            network: The network for this route (FQDN)
-            next_hop_gateway: The next hop gateway(FQDN)
-            apply_changes : Boolean whether  to apply the changes or not
-            add_callback: the callback function to be called with the add_routes param. The default impl just logs the list
-            delete_callback: The callback function to be called with the delete_routes param.The default impl just logs the list
-            
-        Raises:
-            InventoryServiceException: An exception occurred
-    
-    
-    def list_zones(self, project):
-        List the zones for the given project
-        
-        Args:
-            project: The project id
-        
-        Yields:
-             The zones for this project
-        
-        Raises:
-            InventoryServiceException: An exception occurred
-       
-        # https://developers.google.com/resources/api-libraries/documentation/compute/v1/python/latest/compute_v1.zones.html#list
+  def sync_gcp_service_routes(project, routes_prefix, priority, network,
+                            apply_changes=False,
+                            add_callback=_default_add_callback,
+                            delete_callback=_default_delete_callback,
+                            tags=None,
+                            credentials=None )
 
+      Update the routes for the given project to access GCP services with Google API Access for Private IPs.
+      Use this method to publish routes to Google netblocks.
+      Use this when you have a default route to something more preferred (ie VPN or NAT GW).
+      The method will add/delete the routes to match the cidr ranges listed under _spf.google.com
+      as described at https://github.com/hm-distro/netblocks/tree/master/netblocks.
 
+      This method can be called repeatedly and will continue from where it left off, in case of error.
 
-    def list_projects(self):
-       List the projects that the user has access to.
+      Args:
+          project: The project id
+          routes_prefix: The prefix to use for all the routes created
+          priority: The priority of the route(integer)
+          network: The network for this route
+          apply_changes : Boolean whether  to apply the changes or not
+          add_callback: the callback function to be called with the add_routes param. The default impl just logs the list
+          delete_callback: The callback function to be called with the delete_routes param.The default impl just logs the list
+          tags: (optional) list of instance tags to which this route applies to.  Default is None
+          credentials: (optional) credentials to make API calls with. Default is None.
 
-             Yields:
-                  The zones for this project
-
-             Raises:
-                 InventoryServiceException: An  exception occurred
-      
-        # https://developers.google.com/resources/api-libraries/documentation/cloudresourcemanager/v1/python/latest/cloudresourcemanager_v1.projects.html#list
-        
-        
-    def list_disks(self, project, zone):
-        List the disks for the given project and zone.
-
-            Args:
-                project: The project id
-                zone: The zone id
-
-            Yields:
-                 The disks for this project
-
-            Raises:
-                InventoryServiceException: An exception occurred
-        
-        # https://developers.google.com/resources/api-libraries/documentation/compute/v1/python/latest/compute_v1.disks.html#list
-        
-     def list_routes(self, project):
-        List the routes for the given project and zone.
-
-            Args:
-                project: The project id
-
-            Yields:
-                 The routes for this project
-
-            Raises:
-                InventoryServiceException: An exception occurred
-        
-        #https://developers.google.com/resources/api-libraries/documentation/compute/v1/python/latest/compute_v1.routes.html
-        
-     def create_route(self, project, name, priority, network, destination_range, next_hop_gateway):
-        Create the routes.
-
-            Args:
-                project: The project id
-                name: The name of the route
-                priority: The priority for the route (integer)
-                network: The network for this route (FQDN)
-                destination_range: The cidr that the route is applicable to
-                next_hop_gateway: The next hop gateway(FQDN)
-
-            Yields:
-                 The response of the created route object
-
-            Raises:
-                InventoryServiceException: An exception occurred
-       
-        # https://developers.google.com/resources/api-libraries/documentation/compute/v1/python/latest/compute_v1.routes.html
-        
-        
-    def delete_route(self, project, route):
-        Delete the routes.
-
-            Args:
-                project: The project id
-                route: The route name to delete
-            Raises:
-                InventoryServiceException: An exception occurred
-       
-        # https://developers.google.com/resources/api-libraries/documentation/compute/v1/python/latest/compute_v1.routes.html       
-**NOTE:** Pls also consider [Forseti's Inventory Scanner](http://forsetisecurity.org/docs/quickstarts/inventory/index.html) 
+**NOTE:** Pls also consider [Forseti's Inventory Scanner](http://forsetisecurity.org/docs/quickstarts/inventory/index.html)
 
 
 ### API Usage
@@ -136,7 +50,7 @@ Example:
     logger = logging.getLogger()
     logging.basicConfig()
     logger.setLevel(logging.INFO)
-    
+
     inventory_service = inventory_service.InventoryService()
 
 
@@ -149,10 +63,10 @@ Example:
         """
         inventory_service.logger.info("%d cidr blocks to add to routes" % len(add_routes))
         return
-        
+
     # The default implementation for  add_callback and delete_callback , just print the list to the logger
-    
-    
+
+
     project_id = "my-project-id"
     inventory_service.sync_gcp_service_routes(routes_prefix="my-prefix",
                                                project=project_id,
@@ -164,7 +78,7 @@ Example:
                                                )
 
 
-                                             
+
 
 
 ## Helpful links
@@ -175,4 +89,3 @@ Example:
   -  https://developers.google.com/resources/api-libraries/documentation/compute/v1/python/latest/compute_v1.disks.html#list
   -  https://developers.google.com/resources/api-libraries/documentation/compute/v1/python/latest/compute_v1.zones.html#list
   -  https://developers.google.com/resources/api-libraries/documentation/compute/v1/python/latest/compute_v1.routes.html
-
