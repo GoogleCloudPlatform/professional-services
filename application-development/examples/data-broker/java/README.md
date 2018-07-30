@@ -6,6 +6,9 @@ This is an example app provided by the Google Cloud SCE team to demonstrate push
 4. **client** - Contains example invocations of the *data-broker-sdk*.
 5. **server** - An example of a server side data broker.
 
+## Schema Validation
+All JSON schemas must be placed in the data-broker-json-schema/src/main/resources directory.  The files must end with **-schema.json**.
+
 ## Build the App
 1. In your terminal, navigate to the **aurinko/java/** folder.
 2. Execute the following

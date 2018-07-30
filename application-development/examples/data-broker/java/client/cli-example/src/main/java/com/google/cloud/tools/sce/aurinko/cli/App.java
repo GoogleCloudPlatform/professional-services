@@ -25,6 +25,7 @@ import com.google.cloud.tools.sce.aurinko.broker.DataBrokerMessage;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
@@ -78,14 +79,14 @@ public class App {
         options.addOption(bucketOption);
         options.addOption("h", "help", false, "Display this usage information.");
 
-        //HelpFormatter formatter = new HelpFormatter();
-        //formatter.printHelp("cli-example", options, false);
+        HelpFormatter formatter = new HelpFormatter();
 
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd = null;
         try {
             cmd = parser.parse(options, args);
         } catch (org.apache.commons.cli.MissingOptionException e) {
+            formatter.printHelp("cli-example", options, true);
             System.out.println("Missing required arguments.  Exiting...");
             System.exit(1);
         }

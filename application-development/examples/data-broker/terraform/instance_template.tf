@@ -65,6 +65,7 @@ LONGKEY
   }
   service_account {
     scopes = ["cloud-platform"]
+    email = "${google_service_account.subscriber.email}"
   }
 }
 

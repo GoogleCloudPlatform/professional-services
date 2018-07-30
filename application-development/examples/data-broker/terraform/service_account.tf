@@ -52,6 +52,18 @@ resource "google_project_iam_member" "subscriber_role" {
   member  = "serviceAccount:${google_service_account.subscriber.email}"
 }
 
+resource "google_project_iam_member" "big_query_editor" {
+  project = "${google_project.project.project_id}"
+  role    = "roles/bigquery.dataEditor"
+  member  = "serviceAccount:${google_service_account.subscriber.email}"
+}
+
+resource "google_project_iam_member" "gcr_reader" {
+  project = "${google_project.project.project_id}"
+  role    = "roles/storage.objectCreator"
+  member  = "serviceAccount:${google_service_account.subscriber.email}"
+}
+
 output "publisher service account" {
  value = "${google_service_account.publisher.email}"
 }
