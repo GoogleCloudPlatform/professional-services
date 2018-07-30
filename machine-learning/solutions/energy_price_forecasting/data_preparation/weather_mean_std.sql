@@ -32,7 +32,7 @@ FROM
       STDDEV_SAMP(wind_direction) AS wind_direction_s,
       STDDEV_SAMP(pressure) AS pressure_s
     FROM
-      Energy.historical_weather
+      `energy-forecasting.Energy.historical_weather`
     WHERE
       prediction_date BETWEEN @train_from_date AND @train_to_date
     GROUP BY point
