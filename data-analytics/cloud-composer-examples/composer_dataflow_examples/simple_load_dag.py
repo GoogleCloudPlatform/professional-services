@@ -109,7 +109,7 @@ with models.DAG(dag_id='GcsToBigQueryTriggered',
                 schedule_interval=None, default_args=DEFAULT_DAG_ARGS) as dag:
     # Args required for the Dataflow job.
     job_args = {
-        'input': 'gs://{{ dag_run.conf.get("bucket") }}/{{ dag_run.conf.get("name") }}',
+        'input': 'gs://{{ dag_run.conf["bucket"] }}/{{ dag_run.conf["name"] }}',
         'output': models.Variable.get('bq_output_table'),
         'fields': models.Variable.get('input_field_names'),
         'load_dt': DS_TAG
