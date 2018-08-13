@@ -5,4 +5,4 @@ ADD requirements.txt ./
 RUN pip install -r requirements.txt
 COPY slots_deficits/slots_timeline.py slots_timeline.py
 CMD python ./slots_timeline.py
-CMD sleep 10h
+CMD sleep 18h
