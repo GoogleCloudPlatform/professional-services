@@ -70,6 +70,7 @@ public class DataBrokerTest {
         }
     }
 
+
     @Test(expected = SchemaMessageMismatchException.class)
     public void testSendBadMessage() throws Exception {
         // The age is a String, not an int, so this should result in an exception.
@@ -77,7 +78,7 @@ public class DataBrokerTest {
 
         @SuppressWarnings("unchecked")
         ApiFuture<String> mockFuture = mock(ApiFuture.class);
- 
+
         broker = PowerMockito.spy(new DataBroker(this.PROJECT_ID, this.TOPIC_ID));
         PowerMockito.doReturn(mockFuture).when(broker, "getFuture", anyObject());
         PowerMockito.doReturn(mockPublisher).when(broker, "getPublisher");

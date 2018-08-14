@@ -39,4 +39,6 @@ target/
 # IDE related
 .project
 .settings/
+*.iml
+.idea/
 .vscode/
