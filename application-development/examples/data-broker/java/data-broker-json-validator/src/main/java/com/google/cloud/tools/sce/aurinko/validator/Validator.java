@@ -194,7 +194,6 @@ public class Validator {
         // doesn't match, throw a 
         // SchemaMessageMismatchException
         try {
-
             report = schema.validate(nodeToValidate);
 
             valid = report.isSuccess();
@@ -203,7 +202,6 @@ public class Validator {
             }
 
         } catch (NullPointerException e) {
-            e.printStackTrace();
         }
     }
 }

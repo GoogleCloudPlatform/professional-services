@@ -5,6 +5,12 @@
         "firstName": "George",
         "lastName": "Washington"
       }
+    },
+    {
+      "Person":{
+        "firstName": "John",
+        "lastName": "Smith"
+      }
     }
   ]
 }

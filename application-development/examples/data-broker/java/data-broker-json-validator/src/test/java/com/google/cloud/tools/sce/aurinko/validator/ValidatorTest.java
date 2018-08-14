@@ -33,6 +33,7 @@ public class ValidatorTest {
   }
 
 
+
   @Test
   public void testListGoodSchemaRequired() throws IOException, ProcessingException, MissingSchemaException {
     Validator testValidator = new Validator();
@@ -44,6 +45,7 @@ public class ValidatorTest {
     try {
       testValidator.validate(payload, true);
     } catch (SchemaMessageMismatchException e) {
+      e.printStackTrace();
       fail();
     }
   }
@@ -65,6 +67,18 @@ public class ValidatorTest {
   public void testBadSchemaRequired() throws IOException, ProcessingException, MissingSchemaException, SchemaMessageMismatchException {
     Validator testValidator = new Validator();
     String fileName = getClass().getResource("/person-wrong-test.json").getFile();
+    // First Read in the the payload file
+    byte[] encoded = Files.readAllBytes(Paths.get(fileName));
+    // Make it a string
+    String payload = new String(encoded);
+    testValidator.validate(payload, true);
+  }
+
+
+  @Test(expected = SchemaMessageMismatchException.class)
+  public void testBadListSchemaRequired() throws IOException, ProcessingException, MissingSchemaException, SchemaMessageMismatchException {
+    Validator testValidator = new Validator();
+    String fileName = getClass().getResource("/person-list-wrong-test.json").getFile();
     // First Read in the the payload file
     byte[] encoded = Files.readAllBytes(Paths.get(fileName));
     // Make it a string

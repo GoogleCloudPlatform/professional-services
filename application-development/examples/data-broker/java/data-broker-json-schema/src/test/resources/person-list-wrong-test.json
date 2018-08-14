@@ -1,13 +1,9 @@
+{ "Person List":
 [
   {
     "Person": {
-      "firstName": "John",
-      "lastName": "Doe"
-    }
-  },
-  {
-    "Person": {
-      "lastName": "Smith"
+      "firstName": "noLastName"
     }
   }
 ]
+}
