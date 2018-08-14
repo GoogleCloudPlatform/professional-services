@@ -1,5 +1,5 @@
 ## Indexing documents into Elasticsearch using Cloud Dataflow
-This example Cloud Dataflow pipeline demonstrates the process of reading JSON documents from Cloud Pub/Sub, enhancing the document using metadata stored in Cloud Bigtable and indexing those documents into [Elasticsearch](https://www.elastic.co/). The pipeline also validates the documents for correctness and availability of metadata and publishes any documents that fail validation into another Cloud Pub/Sub topic for debugging, correction and eventual reprocessing.
+This example Cloud Dataflow pipeline demonstrates the process of reading JSON documents from Cloud Pub/Sub, enhancing the document using metadata stored in Cloud Bigtable and indexing those documents into [Elasticsearch](https://www.elastic.co/). The pipeline also validates the documents for correctness and availability of metadata and publishes any documents that fail validation into another Cloud Pub/Sub topic for debugging and eventual reprocessing.
 
 ### Workflow Overview 
 
@@ -7,7 +7,7 @@ This example Cloud Dataflow pipeline demonstrates the process of reading JSON do
 
 <img src="img/dataflow_elastic_workflow.png" alt="Workflow Overview" height="400" width="800"/>
 
-At a high-level the Cloud Composer workflow performs the following steps:
+At a high-level the Cloud Dataflow pipeline performs the following steps:
 1. Reads JSON documents from Cloud Pub/Sub, validates that the documents are well-formed and contains a user provided unique id field (e.g. **SKU**).
 2. Enhances the document using external metadata stored in a Cloud Bigtable table. The pipeline looks up the metadata from Cloud Bigtable using the unique id field (e.g. **SKU**) extracted from the document.
 3. Indexes the enhanced document into an existing Elasticsearch index.
