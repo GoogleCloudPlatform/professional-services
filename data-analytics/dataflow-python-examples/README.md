@@ -327,7 +327,7 @@ For basic usage we recommend the following parameters:
 For isolating your Dataflow workers on a private network you can additionally specify:
 ```
 ...
---usePublicIps=false \
+--use_public_ips=false \
 --region=us-east1 \
 --subnetwork=<FULL PATH TO SUBNET> \
 --network=<NETWORK ID>
