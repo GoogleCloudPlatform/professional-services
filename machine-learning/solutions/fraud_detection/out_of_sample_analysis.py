@@ -8,6 +8,7 @@ from __future__ import division
 from __future__ import print_function
 
 import argparse
+import collections
 import json
 import os
 import sys
@@ -43,14 +44,16 @@ def extract_from_json(path, key, values, proc=(lambda x: x)):
       item_key = proc(line[key])
       res[item_key] = line[values]
       keys.append(item_key)
-  unique_keys = [key for key in keys if keys.count(key) == 1]
+
+  key_count = collections.Counter(keys)
+  unique_keys = [key for key in keys if key_count[key] == 1]
   return {k: res[k] for k in unique_keys}
 
 
 def compute_and_print_pr_auc(labels, probabilities, output_path=None):
   """Computes statistic on predictions, based on true labels.
 
-  Prints precision-recall curve AUC and writes the curve as a JPG image to the
+  Prints precision-recall curve AUC and writes the curve as a PNG image to the
   specified directory.
 
   Args:
@@ -72,7 +75,7 @@ def compute_and_print_pr_auc(labels, probabilities, output_path=None):
   plt.title('Precision-Recall curve: AUC={0:0.2f}'.format(average_precision))
 
   if output_path:
-    full_path_jpg = os.path.join(output_path, 'pr_curve.jpg')
+    full_path_jpg = os.path.join(output_path, 'pr_curve.png')
     plt.savefig(full_path_jpg)
     full_path_log = os.path.join(output_path, 'pr_auc.txt')
     with open(full_path_log, 'w+') as f:

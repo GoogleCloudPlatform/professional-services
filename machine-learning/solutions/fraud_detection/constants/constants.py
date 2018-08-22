@@ -12,8 +12,6 @@ FEATURE_COLUMNS = (
     ] + ['Time', 'Amount'])
 LABEL_COLUMN = 'Class'
 KEY_COLUMN = 'key'
-PROJECT_ID = 'test2-193523'
-BUCKET_ID = 'aarg_fraud_detection'
 BQ_DATASET = 'fraud_detection'
 
 PATH_TRANSFORMED_DATA = 'transformed_data'
