@@ -479,11 +479,11 @@ def parse_arguments(argv):
       help='Directory in which to write data once split.')
   parser.add_argument(
       '--project_id',
-      default=constants.PROJECT_ID,
+      required=True,
       help='Google Cloud project ID.')
   parser.add_argument(
       '--bucket_id',
-      default=constants.BUCKET_ID,
+      required=True,
       help='Google Cloud bucket ID.')
 
   args, _ = parser.parse_known_args(args=argv[1:])

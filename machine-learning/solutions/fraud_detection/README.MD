@@ -17,6 +17,16 @@ The data used as input to this code is preprocessed, anonymous credit card trans
   - auto-encoder model then detect outliers
   - feature engineering
 
+* **Environment set-up:**
+
+You can set-up the right python environment as follows:
+```
+virtualenv -p python2.7 env
+source env/bin/activate
+pip install -U pip
+python -m pip install -r requirements.txt
+```
+
 The following notebook contains commands to run the code as well as more detailed explanations: [link to notebook](https://drive.google.com/file/d/1tWgsTyKLUBT9QfVbTPdZKOXQu_qEdktH/view?usp=sharing).
 You can also use the 'fraud_detection.ipynb' notebook file in this directory.
 
@@ -42,8 +52,8 @@ python preprocess.py \
 
 * **GCloud configuration:**
 ```
-PROJECT_ID=fraud-detection-example
-BUCKET_ID=fraud-detection-example
+PROJECT_ID=<your gcp project id>
+BUCKET_ID=<your gcp bucket id>
 ```
 
 * **Run in Google Cloud DataFlow:**
@@ -89,8 +99,7 @@ gcloud ml-engine jobs submit training $TRAINING_JOB_NAME \
 
 * **Monitor with Tensorboard:**
 ```
-TRIAL_NUMBER=1
-tensorboard --logdir=${TRAINING_OUTPUT_DIR}/trials/$TRIAL_NUMBER
+tensorboard --logdir=${TRAINING_OUTPUT_DIR}
 ```
 
 <h1>Inference</h1>
@@ -113,7 +122,7 @@ Different versions of a same model can be stored in the ML-engine. The ML-engine
 
 * Save model
 ```
-MODEL_NAME=aarg_fraud_detection
+MODEL_NAME=fraud_detection
 MODEL_VERSION=v_$(date +"%Y%m%d_%H%M%S")
 TRIAL_NUMBER=1
 MODEL_SAVED_NAME=$(gsutil ls ${TRAINING_OUTPUT_DIR}/trials/${TRIAL_NUMBER}/export/exporter/ | tail -1)

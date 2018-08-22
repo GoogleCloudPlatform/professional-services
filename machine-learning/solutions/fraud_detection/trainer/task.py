@@ -105,10 +105,7 @@ def parse_arguments(argv):
       help='Number of hidden layers of network.')
   parser.add_argument(
       '--output_dir',
-      default=posixpath.join(
-          'gs://', constants.BUCKET_ID, '{}-{}'.format(
-              'default_experiment_output',
-              datetime.now().strftime('%Y%m%d%H%M%S'))),
+      required=True,
       help='Directory where model outputs will be written.')
   parser.add_argument(
       '--save_checkpoints_steps',
