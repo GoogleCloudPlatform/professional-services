@@ -45,7 +45,7 @@
       }
     </style>
 
-    <title>IoT Nirvana V3 PoC</title>
+    <title>IoT Nirvana</title>
   </head>
 
   <body>
@@ -58,7 +58,7 @@
     <!-- Create all the cities -->
     <script>
       var xhr = new XMLHttpRequest();
-      xhr.open("GET", "/rest/loadConfigurationCities", true);
+      xhr.open("GET", "/rest/city/saveCities", true);
       xhr.onload = function (e) {
         if (xhr.readyState === 4) {
           if (xhr.status === 200) {

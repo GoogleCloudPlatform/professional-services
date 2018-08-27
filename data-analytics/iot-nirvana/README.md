@@ -136,7 +136,11 @@ from the temperature sensors:
 5. Enable the [Maps Javascript API](https://console.cloud.google.com/apis/library/maps-backend.googleapis.com)
 6. In the *Credentials* section of the Maps Javascript API generate the API key
    that will be used by the Web frontend to call Google Maps. This key will be
-   referred to as **[MAPS_API_KEY]** further in the document.
+   referred to as **[MAPS_API_KEY]** further in the document. Make sure to:
+   * Select HTTP in the "Application restrictions" list
+   * Enter the URLs of the application, `https://[YOUR_PROJECT_ID].appspot.com/*`
+     and `http://[YOUR_PROJECT_ID].appspot.com/*`, in the "Accept requests for
+     these HTTP referrers (web sites)" input zone
 7. Update the `src/main/webapp/index.html` file in the `/app-engine` folder by
    replacing the **[MAPS_API_KEY]** text with the actual value of the Google
    Maps API key generated at step 2.
