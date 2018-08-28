@@ -121,7 +121,7 @@ def create_custom_metrics(project):
     logging.info('Created custom metric=%s', custom_metric)
 
 
-def copy_metrics(src_project, dst_project, utc_now=datetime.utcnow()):
+def copy_metrics(src_project, dst_project, utc_now):
   """Copies metrics from source to destination project.
 
   Uses Monitoring API to get data points from src_project and write them
