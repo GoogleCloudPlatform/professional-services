@@ -38,7 +38,7 @@ Give that service account the following project level role:
 ```
 Slots-deficit-project-role
 BigQuery Data Owner
-Project Editor```
+Project Editor
 ```
 Now give it the following org level role (you will need to select the org from projectt selection and add a new user with the slots-deficits-log-service’s email):
 ```
