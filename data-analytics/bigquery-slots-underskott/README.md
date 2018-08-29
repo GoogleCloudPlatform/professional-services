@@ -23,13 +23,14 @@ resourcemanager.projects.get
 Resourcemanager.projects.list```
 These roles are needed in order to get BigQuery jobs information from all the projects, not just the project where this solution will reside.
 
-
+```
 * Let’s call project level role **slots-deficit-project-role** and assign the following permissions:
 ```
 storage.buckets.get
 storage.buckets.list
 storage.objects.get
-storage.objects.list```
+storage.objects.list 
+```
 These permissions are optional and needed if you are planning on wrapping this script in a docker container and deploying in kubernetes cluster. Its needed in order for kubernetes to fetch the images from GCE registry. The images are stored in GCS. 
 
 Now create a service account, called **slots-deficits-log-service**.
