@@ -56,25 +56,35 @@
     </dependency>
   </dependencies>
   <build>
+    <testResources>
+      <testResource>
+        <directory>${project.build.directory}/generated-resources/</directory>
+        <filtering>true</filtering>
+      </testResource>
+    </testResources>
     <plugins>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>3.1.0</version>
         <executions>
           <execution>
-            <id>unpack-shared-resources</id>
-            <goals>
-              <goal>unpack-dependencies</goal>
-            </goals>
+            <id>copy-resources</id>
             <phase>process-resources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
             <configuration>
-             <outputDirectory>${project.build.testOutputDirectory}</outputDirectory>
-             <includeArtifacIds>data-broker-json-schema</includeArtifacIds>
-             <includeGroupIds>${project.groupId}</includeGroupIds>
-             <excludeTransitive>false</excludeTransitive>
-             <includes>**/*.json</includes>
-
-             </configuration>
+              <outputDirectory>${basedir}/target/generated-resources</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>../../data-broker-json-schema/src/test/resources</directory>
+                </resource>          
+                <resource>
+                  <directory>../../data-broker-json-schema/src/main/resources</directory>
+ 
+                </resource>
+              </resources>              
+            </configuration>            
           </execution>
         </executions>
       </plugin>

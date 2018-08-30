@@ -39,12 +39,24 @@
                     <goals>
                         <goal>single</goal>
                     </goals>
-                    <phase>package</phase>
+                    <phase>test</phase>
                     <configuration>
                         <descriptors>
                             <descriptor>src/main/assembly/resources.xml</descriptor>
                         </descriptors>
                     </configuration>
+                </execution>
+            </executions>
+        </plugin>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-install-plugin</artifactId>
+            <executions>
+                <execution>
+                    <phase>test</phase>
+                    <goals>
+                        <goal>install</goal>
+                    </goals>
                 </execution>
             </executions>
         </plugin>
