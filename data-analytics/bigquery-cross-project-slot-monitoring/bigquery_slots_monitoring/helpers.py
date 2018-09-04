@@ -38,12 +38,12 @@ def date_string_to_object_utc(date_string):
   """Converts a RFC3339 date string to a datetime object as UTC.
 
   Args:
-    date_string: RFC 3339 date string (e.g: 2017-12-27T00:00:00.00Z).
+    date_string: RFC 3339 date string (e.g: 2017-12-27T00:00:00Z).
 
   Returns:
     Corresponding datetime object with timezone set to UTC.
   """
-  return pytz.utc.localize(datetime.strptime(date_string, '%Y-%m-%dT%H:%M:%S.%fZ'))
+  return pytz.utc.localize(datetime.strptime(date_string, '%Y-%m-%dT%H:%M:%SZ'))
 
 
 def date_object_to_rfc3339(date):
@@ -53,6 +53,6 @@ def date_object_to_rfc3339(date):
     date: Date object (e.g datetime.datetime(2017, 12, 27 , 0, 0, 0, 0)).
 
   Returns:
-    Corresponding RFC3339 date string (e.g: 2017-12-27T00:00:00.00Z).
+    Corresponding RFC3339 date string (e.g: 2017-12-27T00:00:00Z).
   """
-  return date.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+  return date.strftime('%Y-%m-%dT%H:%M:%SZ')
