@@ -1,9 +1,24 @@
 # GSuite Report Sync
 
-This script will sync GSuite report logs to Stackdriver, from which downstream
-syncs can be configured to GCS, BigQuery, and/or Pubsub.
+This package handles exporting data from the GSuite Admin API to a destination.
 
-## Example Usage
+Supported destinations:
+
+- Stackdriver Logging API
+
+## Installation
+```sh
+pip install gsuite-exporter
+```
+
+## Usage
+```sh
+gsuite-exporter \
+  --credentials_path='/path/to/credentials.json' \
+  --token_path='/path/to/token.json'
+  --exporter='stackdriver_exporter.StackdriverExporter'
+```
+
 ```sh
 # The GSuite-Admin-email granting permission, this may also be set in code
 export ADMIN_EMAIL=''
