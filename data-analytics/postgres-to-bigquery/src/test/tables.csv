@@ -1,0 +1,2 @@
+TABLE_NAME,SCHEMA_URI,DATA_URI
+test,gs://datawarehouse-staging/schemas/test_schema.json,gs://datawarehouse-staging/data/test_data.json
