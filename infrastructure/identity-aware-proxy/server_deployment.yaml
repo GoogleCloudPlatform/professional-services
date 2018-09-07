@@ -1,0 +1,12 @@
+imports:
+- path: ssl_cert/sample.key
+- path: ssl_cert/selfSigned.crt
+- path: server_deployment.py
+
+resources:
+- name: iap_server_deployment
+  type: server_deployment.py
+  properties:
+    privateKey: ssl_cert/sample.key
+    certificate: ssl_cert/selfSigned.crt
+    zone: us-central1-a
