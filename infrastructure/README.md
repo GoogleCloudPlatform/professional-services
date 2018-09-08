@@ -14,3 +14,6 @@ A repository of Infrastructure solutions.
 
 ### [cloudconnect](cloudconnect/)
   CloudConnect is a package that automates the setup of dual VPN tunnels between AWS and GCP. While this connection is **NOT** meant for high throughput, low latency connections (1Gbps+), it can certainly support basic management and configuration traffic. Currently it supports the creation of both _static-routes_ and _bgp_ connections.
+
+### [removePublicGCS](removePublicGCS/)
+  Sample code to implement a Cloud Function that removes public access to GCS objects

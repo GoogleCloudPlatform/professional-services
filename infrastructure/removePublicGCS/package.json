@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@google-cloud/storage": "*"
+  }
+}
+
