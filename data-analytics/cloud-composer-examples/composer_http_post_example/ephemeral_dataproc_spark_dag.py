@@ -90,7 +90,7 @@ with DAG('average-speed',
         # in YYYYMMDD format. See docs https://airflow.apache.org/code.html?highlight=macros#macros
         cluster_name='ephemeral-spark-cluster-{{ ds_nodash }}',
         num_workers=2,
-        num_preemptible_workers=5,
+        num_preemptible_workers=2,
         zone=Variable.get('gce_zone')
     )
 
