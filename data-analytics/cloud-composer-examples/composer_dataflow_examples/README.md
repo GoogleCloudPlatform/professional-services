@@ -6,17 +6,16 @@ The goal of this example is to provide a common pattern to automatically trigger
 
 ***
 
-![Alt text](../img/workflow-overview.png "A diagram illustrating the workflow we create in this example")
-
+![Alt text](../img/workflow-overview.png "Workflow Overview")
 A Cloud Function with a Cloud Storage trigger is used to initiate the workflow when a file is uploaded for processing.
 
-At a high level the Cloud Composer workflow performs the following steps:
+At a high-level the Cloud Composer workflow performs the following steps:
 1. Extracts the location of the input file that triggered the workflow.
 2. Executes a Cloud Dataflow job that performs the following:
-    - Parses the delimited input file and adds some useful metadata.
-        - 'filename': The name of the file that is proceeded by the Cloud Dataflow job.
-        - 'load_dt': The date in YYYY-MM-DD format when the file is processed.
-    - Loads the data into an existing Cloud BigQuery table (any existing data is truncated).
+    - Parses the delimited input file and adds some useful 'metadata'
+        - 'filename': The name of the file that is proceeded by the Cloud Dataflow job
+        - 'load_dt': The date in YYYY-MM-DD format when the file is processed
+    - Loads the data into an existing Cloud BigQuery table (any existing data is truncated)
 3. Moves the input file to a Cloud Storage bucket that is setup for storing processed files.
 
 ##### 1. Extract the input file location:
@@ -32,17 +31,18 @@ job_args = {
 
 ##### 2. Executes the Cloud Dataflow job
 
-The workflow then executes a [Cloud Dataflow job](composer_dataflow_examples/dataflow/process_delimited.py) to process the delimited file, adds filename and load_dt fields and loads the data into a Cloud BigQuery table.
+The workflow then executes a [Cloud Dataflow job](dataflow/process_delimited.py) to process the delimited file, adds filename and load_dt fields and loads the data into a Cloud BigQuery table.
 
 ##### 3. Move to processed bucket
 
-![Alt text](../img/sample-dag.png "A Graph View of the DAG from Airflow UI.") 
+
+![Alt text](../img/sample-dag.png "DAG Overview")
 
 Based on the status of the Cloud Dataflow job, the workflow will then move the processed files to a Cloud Storage bucket setup to store processed data. A separate folder is created along with a processed date field to hold the files in this bucket.
 
 ##### Full code examples
 
-Ready to dive deeper? Check out the complete code [here](composer_dataflow_examples/simple_load_dag.py)
+Ready to dive deeper? Check out the complete code [here](simple_load_dag.py)
 
 ***
 
@@ -80,24 +80,23 @@ The following high-level steps describe the setup needed to run this example:
 
  The variables can be set as follows:
 
- `gcloud beta composer environments run` **_cloud-composer-env-name_** `variables -- --set` **_key val_**
+ `gcloud composer environments run` **_cloud-composer-env-name_** `variables -- --set` **_key val_**
 
 6. Browse to the Cloud Composer widget in Cloud Console and click on the DAG folder icon as shown below:
-![Alt text](../img/dag-folder-example.png "A screen shot highlighting how to find the DAG folder.")
+![Alt text](../img/dag-folder-example.png "Workflow Overview")
 
-7. The DAG folder is essentially a Cloud Storage bucket. Upload the [simple_load_dag.py](composer_dataflow_examples/simple_load_dag.py) file into the folder:
-![Alt text](../img/bucket-example.png "A screen shot showing the DAG Bucket structure.")
-
-8. Upload the Python Dataflow code [process_delimited.py](composer_dataflow_examples/dataflow/process_delimited.py) into a *dataflow* folder created in the base DAG folder.
+7. The DAG folder is essentially a Cloud Storage bucket. Upload the [simple_load_dag.py](simple_load_dag.py) file into the folder:
+![Alt text](../img/bucket-example.png "DAG Bucket")
+8. Upload the Python Dataflow code [process_delimited.py](dataflow/process_delimited.py) into a *dataflow* folder created in the base DAG folder.
 9. Finally follow [these](https://cloud.google.com/composer/docs/how-to/using/triggering-with-gcf) instructions to create a Cloud Function.
-    - Ensure that the **DAG_NAME** property is set to _**GcsToBigQueryTriggered**_ i.e. The DAG name defined in [simple_load_dag.py](composer_dataflow_examples/simple_load_dag.py).
+    - Ensure that the **DAG_NAME** property is set to _**GcsToBigQueryTriggered**_ i.e. The DAG name defined in [simple_load_dag.py](simple_load_dag.py).
     
 ***
 
 ##### Triggering the workflow
 
 The workflow is automatically triggered by Cloud Function that gets invoked when a new file is uploaded into the *input-gcs-bucket*
-For this example workflow, the [usa_names.csv](composer_dataflow_examples/resources/usa_names.csv) file can be uploaded into the  *input-gcs-bucket*
+For this example workflow, the [usa_names.csv](resources/usa_names.csv) file can be uploaded into the  *input-gcs-bucket*
 
 `gsutil cp resources/usa_names.csv gs://` **_input-gcs-bucket_**
 
