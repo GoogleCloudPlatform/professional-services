@@ -2,9 +2,17 @@
 
 Google Kubernetes Engine fine grained billing export. This consists of a single binary that can be run in a Google Cloud project, which with appropriate permissions can scrape the metrics server for many Kubernetes Engine clusters. The metrics are stored in a dedicated BigQuery dataset.
 
+The executable takes no arguments, it reads project ids and the polling interval from config.json and runs continuously as a daemon.
+
+This repository provides a docker file for creating an image with the executable baked in, as well as a Kubenetes deployment configuration to run the job on a GKE cluster.
+
+Once deployed, the billing export daemon will periodically poll both the K8s API and the Metrics API, saving results to BigQuery.
+
 This is not an officially supported Google product.
 
 # Example Output
+
+Here is an example of querying data that has been exported by this tool into BigQuery.
 
 ```
 $ bq query 'SELECT * FROM gke_billing.billing LIMIT 10'
@@ -57,7 +65,7 @@ $ gcloud services enable \
   container.googleapis.com \
   containerregistry.googleapis.com \
   storage-api.googleapis.com \
-  storage-component.googleapis.com 
+  storage-component.googleapis.com
 
 $ git clone https://github.com/dparrish/gke-billing-export.git
 $ cd gke-billing-export
