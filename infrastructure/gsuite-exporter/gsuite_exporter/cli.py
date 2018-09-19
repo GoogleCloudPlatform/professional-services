@@ -3,7 +3,6 @@ import importlib
 import re
 import sys
 import logging
-from gsuite_exporter import constants
 from gsuite_exporter import exporters
 from gsuite_exporter.collectors.reports import AdminReportsAPIFetcher
 
@@ -58,7 +57,7 @@ def sync_all(
 
 def main():
     parser = argparse.ArgumentParser(description='Add some integers.')
-    parser.add_argument('--credentials_path', type=str, help='GSuite Admin credentials file.', default=constants.CREDENTIALS_PATH, required=True)
+    parser.add_argument('--credentials_path', type=str, help='GSuite Admin credentials file.', required=True)
     parser.add_argument('--token_path', type=str, help='GSuite Admin token file.', default="", required=False)
     parser.add_argument('--api', type=str, help='The GSuite Admin API to use', required=True)
     parser.add_argument('--application', type=str, help='The GSuite Admin Application', required=True)
