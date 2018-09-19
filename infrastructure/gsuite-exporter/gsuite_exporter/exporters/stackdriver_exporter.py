@@ -24,9 +24,9 @@ class StackdriverExporter(BaseExporter):
     ]
     LOGGING_API_VERSION = 'v2'
     def __init__(self,
-                 credentials_path,
                  project_id,
-                 destination_name):
+                 destination_name,
+                 credentials_path=None):
         logger.info("Initializing Stackdriver Logging API ...")
         self.api = auth.build_service(
             api='logging',
