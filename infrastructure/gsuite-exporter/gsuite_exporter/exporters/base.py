@@ -1,4 +1,4 @@
-from gsuite_exporter import constants
+import os
 
 class BaseExporter(object):
     """Convert Admin SDK logs to logging entries and sends them to an export
@@ -15,7 +15,7 @@ class BaseExporter(object):
     def __init__(self,
                  project_id,
                  destination_name,
-                 credentials_path=constants.CREDENTIALS_PATH,
+                 credentials_path,
                  scopes=constants.DEFAULT_SCOPES):
         raise NotImplementedError()
 
