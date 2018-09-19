@@ -2,7 +2,6 @@ import time
 import math
 import dateutil.parser
 import logging
-from gsuite_exporter import constants
 from gsuite_exporter import auth
 from gsuite_exporter.exporters.base import BaseExporter
 
