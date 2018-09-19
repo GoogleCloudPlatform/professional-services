@@ -1,9 +1,12 @@
 import time
 import math
 import dateutil.parser
+import logging
 from gsuite_exporter import constants
-from gsuite_exporter.utils import get_api
+from gsuite_exporter import auth
 from gsuite_exporter.exporters.base import BaseExporter
+
+logger = logging.getLogger(__name__)
 
 class StackdriverExporter(BaseExporter):
     """Convert Admin SDK logs to logging entries and sends them to Stackdriver
@@ -20,17 +23,17 @@ class StackdriverExporter(BaseExporter):
         'https://www.googleapis.com/auth/logging.read',
         'https://www.googleapis.com/auth/logging.write'
     ]
+    LOGGING_API_VERSION = 'v2'
     def __init__(self,
                  credentials_path,
                  project_id,
                  destination_name):
-        print("{} | Initializing Stackdriver Logging API ...".format(
-            self.__class__.__name__))
-        self.api = get_api(
-            'logging',
-            constants.DEFAULT_LOGGING_API_VERSION,
-            StackdriverExporter.SCOPES,
-            credentials_path)
+        logger.info("Initializing Stackdriver Logging API ...")
+        self.api = auth.build_service(
+            api='logging',
+            version=StackdriverExporter.LOGGING_API_VERSION,
+            credentials_path=credentials_path,
+            scopes=StackdriverExporter.SCOPES)
         self.project_id = "projects/{}".format(project_id)
         self.log_name = "{}/logs/{}".format(self.project_id, destination_name)
 
@@ -50,8 +53,7 @@ class StackdriverExporter(BaseExporter):
             'logName': '{}'.format(self.log_name),
             'dryRun': dry
         }
-        print("{} | Writing {} entries to Stackdriver Logging API @ '{}'".format(
-            self.__class__.__name__,
+        logger.info("Writing {} entries to Stackdriver Logging API @ '{}'".format(
             len(entries),
             self.log_name))
         res = self.api.entries().write(body=body).execute()
@@ -121,8 +123,7 @@ class StackdriverExporter(BaseExporter):
         }
         log = self.api.entries().list(body=query).execute()
         timestamp = log['entries'][0]['timestamp'] if 'entries' in log else None
-        print("{} | Last log timestamp for '{}' --> {}".format(
-            self.__class__.__name__,
+        logger.info("Last log timestamp for '{}' --> {}".format(
             self.log_name,
             timestamp))
         return timestamp

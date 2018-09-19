@@ -2,12 +2,14 @@ import os
 import sys
 import time
 import math
+import logging
 import dateutil.parser
-import constants
-from utils import get_api
+from gsuite_exporter import auth
 
-class AdminAPIFetcher(object):
-    """Fetch Admin SDK API records and streams them.
+logger = logging.getLogger(__name__)
+
+class AdminReportsAPIFetcher(object):
+    """Fetch Admin SDK Reports API records and streams them.
 
     Args:
         api (`googleapiclient.discovery.Resource`): The Admin SDK API to fetch
@@ -19,19 +21,21 @@ class AdminAPIFetcher(object):
     SCOPES = [
         'https://www.googleapis.com/auth/admin.reports.audit.readonly',
     ]
+    REPORTS_API_VERSION = 'v1'
     def __init__(self,
                  credentials_path,
-                 token_path="",
-                 api=constants.ADMIN_API_VERSION,
-                 scopes=constants.DEFAULT_SCOPES):
-        print("{} | Initializing Admin API ...".format(
-            self.__class__.__name__))
-        self.api = get_api(
-            'admin',
-            api,
-            scopes,
-            credentials_path,
-            token_path)
+                 gsuite_admin):
+        self.api_name = 'reports_{}'.format(
+            AdminReportsAPIFetcher.REPORTS_API_VERSION)
+
+        logger.info("Initializing Admin API '{}' ...".format(
+            self.api_name))
+        self.api = auth.build_service(
+            api='admin',
+            version=self.api_name,
+            credentials_path=credentials_path,
+            user_email=gsuite_admin,
+            scopes=AdminReportsAPIFetcher.SCOPES)
 
     def fetch(self, application, start_time, user_key='all', item_key='items'):
         """Fetch records from Admin API based on a query.
@@ -51,9 +55,9 @@ class AdminAPIFetcher(object):
         while req is not None:
             res = req.execute()
             items = res.get(item_key, [])
-            print("{} | Retrieved {} new Admin API records from '{}' app since {}".format(
-                self.__class__.__name__,
+            logger.info("Retrieved {} new Admin API records from '{}.{}' app since {}".format(
                 len(items),
+                self.api_name,
                 application,
                 start_time))
             yield items
