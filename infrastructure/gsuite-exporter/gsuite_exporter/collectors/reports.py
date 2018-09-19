@@ -22,9 +22,7 @@ class AdminReportsAPIFetcher(object):
         'https://www.googleapis.com/auth/admin.reports.audit.readonly',
     ]
     REPORTS_API_VERSION = 'v1'
-    def __init__(self,
-                 credentials_path,
-                 gsuite_admin):
+    def __init__(self, gsuite_admin, credentials_path=None):
         self.api_name = 'reports_{}'.format(
             AdminReportsAPIFetcher.REPORTS_API_VERSION)
 
