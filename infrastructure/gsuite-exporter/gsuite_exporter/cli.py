@@ -25,11 +25,11 @@ def get_exporter_cls(exporter_class):
         sys.exit()
 
 def sync_all(
-        credentials_path,
         gsuite_admin,
         application,
         project_id,
-        exporter):
+        exporter,
+        credentials_path=None):
     """Query last data from Admin SDK API and export them to the destination.
 
     Args:
@@ -40,9 +40,9 @@ def sync_all(
         project_id (str): The project id to export the data to.
         exporter (str): The exporter class to use.
     """
-    fetcher = AdminReportsAPIFetcher(credentials_path, gsuite_admin)
+    fetcher = AdminReportsAPIFetcher(gsuite_admin, credentials_path)
 
-    exporter = get_exporter_cls(exporter)(credentials_path, project_id, application)
+    exporter = get_exporter_cls(exporter)(project_id, application, credentials_path)
 
     # Fetch Admin SDK records
     records_stream = fetcher.fetch(
@@ -57,20 +57,20 @@ def sync_all(
 
 def main():
     parser = argparse.ArgumentParser(description='Add some integers.')
-    parser.add_argument('--credentials_path', type=str, help='GSuite Admin credentials file.', required=True)
-    parser.add_argument('--token_path', type=str, help='GSuite Admin token file.', default="", required=False)
+    parser.add_argument('--admin-user', type=str, help='GSuite Admin user.', required=True)
     parser.add_argument('--api', type=str, help='The GSuite Admin API to use', required=True)
     parser.add_argument('--application', type=str, help='The GSuite Admin Application', required=True)
     parser.add_argument('--project_id', type=str, help='The project id to export GSuite data to.', required=True)
-    parser.add_argument('--exporter', type=str, help='The exporter class to use.', default='stackdriver_exporter.StackdriverExporter')
+    parser.add_argument('--exporter', type=str, help='The exporter class to use.', default='stackdriver_exporter.StackdriverExporter', required=False)
+    parser.add_argument('--credentials_path', type=str, help='GSuite Admin credentials file.', default=None, required=False)
+
     args = parser.parse_args()
     sync_all(
-        args.credentials_path,
-        args.token_path,
-        args.api,
+        args.gsuite_admin,
         args.application,
         args.project_id,
         args.exporter,
+        args.credentials_path
     )
 
 if __name__ == '__main__':
