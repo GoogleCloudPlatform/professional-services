@@ -42,10 +42,10 @@ An example sync from the Admin Reports API to Stackdriver Logging looks like:
 from gsuite_exporter.cli import sync_all
 
 sync_all(
-    credentials_path=os.environ['CREDENTIALS_PATH'],
-    gsuite_admin="ocervello@ricknmorty.rocks",
+    credentials_path=os.environ['GOOGLE_APPLICATION_CREDENTIALS'],
+    gsuite_admin="<user>@<domain>",
     app="login",
-    project_id="rnm-forseti-dev-opencensus",
+    project_id="<project-id>",
     exporter_class="stackdriver_exporter.StackdriverExporter"
 )
 ```
