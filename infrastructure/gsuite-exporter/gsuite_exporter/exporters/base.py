@@ -1,5 +1,3 @@
-import os
-
 class BaseExporter(object):
     """Convert Admin SDK logs to logging entries and sends them to an export
     destination.
