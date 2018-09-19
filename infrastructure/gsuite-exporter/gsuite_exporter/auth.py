@@ -1,65 +1,35 @@
-import requests
-import google.auth
-from google.auth import iam
-from google.auth.credentials import with_scopes_if_required
-from google.auth.transport import requests
-from google.oauth2 import service_account
-from gsuite_exporter import constants
+import httplib2
+import logging
 from googleapiclient import discovery
+from oauth2client.service_account import ServiceAccountCredentials
 
-CLOUD_SCOPES = constants.DEFAULT_SCOPES
-_TOKEN_URI = 'https://accounts.google.com/o/oauth2/token'
+def build_service(api, version, credentials_path, user_email=None, scopes=None):
+    """Build and returns a service object authorized with the service accounts
+    that act on behalf of the given user.
 
-def create_service_api(admin_email, service_name, version, credentials=None):
-    credentials = get_admin_credentials(admin_email, credentials)
-    discovery_kwargs = {
-        'serviceName': service_name,
-        'version': version,
-        'credentials': credentials
-    }
-    return discovery.build(**discovery_kwargs)
-
-def get_admin_credentials(admin_email, credentials=None):
-    if not credentials:
-        credentials, _ = google.auth.default()
-    credentials = get_delegated_credential(
-        admin_email,
-        CLOUD_SCOPES)
-    return with_scopes_if_required(credentials, list(CLOUD_SCOPES))
-
-def get_delegated_credential(delegated_account, scopes=CLOUD_SCOPES):
-    """Build delegated credentials required for accessing the gsuite APIs.
     Args:
-        delegated_account (str): The account to delegate the service account to
-            use.
-        scopes (list): The list of required scopes for the service account.
+      user_email: The email of the user. Needs permissions to access the Admin APIs.
+
     Returns:
-        service_account.Credentials: Credentials as built by
-        google.oauth2.service_account.
+      Service object.
     """
-    request = requests.Request()
+    # Create credentials from service account key file
+    credentials = ServiceAccountCredentials.from_json_keyfile_name(
+        credentials_path,
+        scopes=scopes)
 
-    # Get the "bootstrap" credentials that will be used to talk to the IAM
-    # API to sign blobs.
-    bootstrap_credentials, _ = google.auth.default()
+    # Create base config for our service
+    config = {
+        'serviceName': api,
+        'version': version
+    }
 
-    bootstrap_credentials = with_scopes_if_required(
-        bootstrap_credentials,
-        list(CLOUD_SCOPES))
+    # Delegate credentials if needed, otherwise use service account credentials
+    if user_email is not None:
+        delegated = credentials.create_delegated(user_email)
+        http = delegated.authorize(httplib2.Http())
+        config['http'] = http
+    else:
+        config['credentials'] = credentials
 
-    # Refresh the boostrap credentials. This ensures that the information about
-    # this account, notably the email, is populated.
-    bootstrap_credentials.refresh(request)
-
-    # Create an IAM signer using the bootstrap credentials.
-    signer = iam.Signer(request,
-                        bootstrap_credentials,
-                        bootstrap_credentials.service_account_email)
-
-    # Create OAuth 2.0 Service Account credentials using the IAM-based signer
-    # and the bootstrap_credential's service account email.
-    delegated_credentials = service_account.Credentials(
-        signer, bootstrap_credentials.service_account_email, _TOKEN_URI,
-        scopes=scopes, subject=delegated_account)
-
-    return delegated_credentials
+    return discovery.build(**config)
