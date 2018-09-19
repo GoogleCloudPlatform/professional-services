@@ -13,7 +13,7 @@ if __name__ == '__main__':
     ]
     for app in APPLICATIONS:
         sync_all(
-            os.environ['CREDENTIALS_PATH'],
+            os.environ['GOOGLE_APPLICATION_CREDENTIALS'],
             "ocervello@ricknmorty.rocks",
             app,
             "rnm-forseti-dev-opencensus",
