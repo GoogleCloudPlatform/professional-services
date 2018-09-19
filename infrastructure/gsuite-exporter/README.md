@@ -13,7 +13,7 @@ The following GSuite Admin APIs are currently supported:
     - [Authorization Token activity reports](https://developers.google.com/admin-sdk/reports/v1/guides/manage-audit-tokens.html)
 
 The following destinations are currently supported:
-- [Stackdriver Logging API](https://cloud.google.com/logging/docs/)
+- [Stackdriver Logging](https://cloud.google.com/logging/docs/)
 
 ## Installation
 ```sh
