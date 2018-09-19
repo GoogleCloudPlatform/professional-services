@@ -22,7 +22,7 @@ pip install gsuite-exporter
 
 ## Usage
 
-The **GSuite Exporter** can be used either using the command-line interface or as a Python library:
+The **GSuite Exporter** can be used either using the command-line interface or as a Python library.
 
 ### Using the CLI
 An example sync from the Admin Reports API to Stackdriver Logging looks like:
@@ -38,6 +38,9 @@ gsuite-exporter
 ### Using as a library
 
 An example sync from the Admin Reports API to Stackdriver Logging looks like:
+```sh
+export GOOGLE_APPLICATION_CREDENTIALS=/path/to/service/account/credentials.json
+```
 ```python
 from gsuite_exporter.cli import sync_all
 
