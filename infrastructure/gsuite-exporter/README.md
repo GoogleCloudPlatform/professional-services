@@ -50,7 +50,7 @@ sync_all(
 )
 ```
 
-More examples are available using the library functions: you can find them under the [examples/](./examples/) directory.
+More examples are available using the library functions under the [examples/](./examples/) directory.
 
 ## Requirements
 * A GSuite Admin account
@@ -70,7 +70,8 @@ To collect data from the Reports API, you need to grant extra permissions to you
   - https://www.googleapis.com/auth/admin.reports.audit.readonly
 
 ### Exporters
+
 #### Stackdriver
 * Grant the following roles to your service account (in the destination project):
-  - roles/logging.viewer
-  - roles/logging.logWriter
+  - `roles/logging.viewer`
+  - `roles/logging.logWriter`
