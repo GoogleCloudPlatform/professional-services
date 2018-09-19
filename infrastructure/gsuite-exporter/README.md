@@ -38,14 +38,12 @@ gsuite-exporter
 ### Using as a library
 
 An example sync from the Admin Reports API to Stackdriver Logging looks like:
-```sh
-export GOOGLE_APPLICATION_CREDENTIALS=/path/to/service/account/credentials.json
-```
+
 ```python
 from gsuite_exporter.cli import sync_all
 
 sync_all(
-    credentials_path=os.environ['GOOGLE_APPLICATION_CREDENTIALS'],
+    credentials_path=/path/to/service/account/credentials.json,
     gsuite_admin="<user>@<domain>",
     app="login",
     project_id="<project-id>",
