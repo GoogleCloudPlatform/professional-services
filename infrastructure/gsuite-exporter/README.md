@@ -63,7 +63,7 @@ More examples are available using the library functions: you can find them under
 ### Collectors
 
 #### Reports API
-To collect data from the Reports API, you need to grant extra permissions:
+To collect data from the Reports API, you need to grant extra permissions to your service account:
 * Go to `admin.google.com` and login with your GSuite administrator account
 * Navigate to `Security > Advanced Settings > Manage API client access`
 * Grant the following scopes to your service account's `client_id`:
