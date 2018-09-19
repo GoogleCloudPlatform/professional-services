@@ -13,8 +13,7 @@ class BaseExporter(object):
     def __init__(self,
                  project_id,
                  destination_name,
-                 credentials_path,
-                 scopes=constants.DEFAULT_SCOPES):
+                 credentials_path):
         raise NotImplementedError()
 
     def send(self, records, dry=False):
