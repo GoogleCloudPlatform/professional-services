@@ -13,7 +13,6 @@ if __name__ == '__main__':
     ]
     for app in APPLICATIONS:
         sync_all(
-            os.environ['GOOGLE_APPLICATION_CREDENTIALS'],
             "<user>@<domain>.rocks",
             app,
             "<project-id>",
