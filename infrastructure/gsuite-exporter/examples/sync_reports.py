@@ -14,8 +14,8 @@ if __name__ == '__main__':
     for app in APPLICATIONS:
         sync_all(
             os.environ['GOOGLE_APPLICATION_CREDENTIALS'],
-            "ocervello@ricknmorty.rocks",
+            "<user>@<domain>.rocks",
             app,
-            "rnm-forseti-dev-opencensus",
+            "<project-id>",
             "stackdriver_exporter.StackdriverExporter"
         )
