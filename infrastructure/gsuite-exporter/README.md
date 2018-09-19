@@ -50,7 +50,7 @@ sync_all(
 )
 ```
 
-More examples are available using the library functions: you can find them under the [gsuite-exporter/examples/](./gsuite-exporter/examples/) directory.
+More examples are available using the library functions: you can find them under the [examples/](./examples/) directory.
 
 ## Requirements
 * A GSuite Admin account
