@@ -27,7 +27,7 @@ To collect data from the Admin SDK APIs, you need to grant extra permissions to 
 * Navigate to `Security > Advanced Settings > Manage API client access`
 
 #### Reports API
-* Grant the following scopes to your service account's `client_id`:
+* Grant the following scopes (comma-separated) to your service account's `client_id`:
   - https://www.googleapis.com/auth/admin.reports.audit.readonly
   - https://www.googleapis.com/auth/iam
 
