@@ -34,7 +34,7 @@ To collect data from the Admin SDK APIs, you need to grant extra permissions to 
 ### Exporters
 
 #### Stackdriver
-To use the Stackdriver exporter, you need to grant IAM roles to your service account:
+To use the Stackdriver exporter, you need to grant extra IAM roles to your service account:
 * `roles/logging.viewer` on the destination project
 * `roles/logging.logWriter` on the destination project
 
