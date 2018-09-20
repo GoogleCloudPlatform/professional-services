@@ -25,6 +25,7 @@ from google.oauth2 import service_account
 logger = logging.getLogger(__name__)
 
 _TOKEN_URI = 'https://accounts.google.com/o/oauth2/token'
+_TOKEN_SCOPE = frozenset(['https://www.googleapis.com/auth/iam'])
 
 def build_service(api, version, credentials_path=None, user_email=None, scopes=None):
     """Build and returns a service object authorized with the service accounts
@@ -44,32 +45,48 @@ def build_service(api, version, credentials_path=None, user_email=None, scopes=N
     # Get service account credentials
     if credentials_path is None:
         logger.info("Getting default application credentials ...")
-        request = requests.Request()
         credentials, _ = google.auth.default()
-        credentials.refresh(request)
-        email = credentials.service_account_email
-        signer = iam.Signer(
-            request,
-            credentials,
-            email)
-        credentials = service_account.Credentials(
-            signer,
-            email,
-            _TOKEN_URI,
-            scopes=scopes,
-            subject=user_email)
-    else:
-        logger.info("Loading credentials from %s", credentials_path)
+        if user_email is not None:  # make delegated credentials
+            request = requests.Request()
+            credentials = _make_delegated_google(
+                    credentials,
+                    request,
+                    user_email,
+                    scopes)
+        service_config['credentials'] = credentials
+    else:  # load credentials from file
+        logger.info("Loading credentials from '%s'", credentials_path)
         credentials = ServiceAccountCredentials.from_json_keyfile_name(
             credentials_path,
             scopes=scopes)
-
-    # Delegate credentials if needed, otherwise use service account credentials
-    if user_email is not None and credentials_path is not None:
-        delegated = credentials.create_delegated(user_email)
-        http = delegated.authorize(httplib2.Http())
-        service_config['http'] = http
-    else:
-        service_config['credentials'] = credentials
+        if user_email is not None:
+            request = httplib2.Http()
+            http = _make_delegated_oauth2(
+                    credentials,
+                    request,
+                    user_email)
+            service_config['http'] = http
+        else:
+            service_config['credentials'] = credentials
 
     return discovery.build(**service_config)
+
+def _make_delegated_oauth2(credentials, request, user_email):
+    delegated = credentials.create_delegated(user_email)
+    http = delegated.authorize(request)
+    return http
+
+def _make_delegated_google(credentials, request, user_email, scopes):
+    credentials = with_scopes_if_required(credentials, _TOKEN_SCOPE)
+    credentials.refresh(request)
+    email = credentials.service_account_email
+    signer = iam.Signer(
+        request,
+        credentials,
+        email)
+    return service_account.Credentials(
+        signer,
+        email,
+        _TOKEN_URI,
+        scopes=scopes,
+        subject=user_email)
