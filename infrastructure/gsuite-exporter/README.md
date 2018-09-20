@@ -29,9 +29,8 @@ An example sync from the Admin Reports API to Stackdriver Logging looks like:
 ```sh
 gsuite-exporter
   --credentials_path='/path/to/service/account/credentials.json'
-  --api='reports'
+  --admin_user='<your_gsuite_admin>@<your_domain>'
   --application='login'
-  --gsuite_admin='<your_gsuite_admin>@<your_domain>'
   --exporter='stackdriver_exporter.StackdriverExporter'
 ```
 
