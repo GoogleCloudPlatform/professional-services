@@ -25,11 +25,11 @@ pip install gsuite-exporter
 The **GSuite Exporter** can be used either using the command-line interface or as a Python library.
 
 ### Using the CLI
-An example sync from the Admin Reports API to Stackdriver Logging looks like:
+An example sync from the Admin Reports API to Stackdriver Logging for the 'login' application looks like:
 ```sh
 gsuite-exporter
-  --credentials_path='/path/to/service/account/credentials.json'
-  --admin_user='<your_gsuite_admin>@<your_domain>'
+  --credentials-path='/path/to/service/account/credentials.json'
+  --admin-user='<your_gsuite_admin>@<your_domain>'
   --application='login'
   --exporter='stackdriver_exporter.StackdriverExporter'
 ```
