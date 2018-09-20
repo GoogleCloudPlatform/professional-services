@@ -18,6 +18,7 @@ from googleapiclient import discovery
 from oauth2client.service_account import ServiceAccountCredentials
 import google.auth
 from google.auth import iam
+from google.auth.credentials import with_scopes_if_required
 from google.auth.transport import requests
 from google.oauth2 import service_account
 
