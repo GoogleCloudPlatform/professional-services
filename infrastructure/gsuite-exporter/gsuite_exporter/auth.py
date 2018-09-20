@@ -27,20 +27,20 @@ _TOKEN_URI = 'https://accounts.google.com/o/oauth2/token'
 _TOKEN_SCOPE = frozenset(['https://www.googleapis.com/auth/iam'])
 
 def build_service(api, version, credentials_path=None, user_email=None, scopes=None):
-    """Build and returns a service object authorized with the service accounts
-    that act on behalf of the given user.
+    """Build and returns a service object.
+
+    Allows delegation of GSuite permissions to the service account when the `user_email` argument is passed.
 
     Args:
-      user_email: The email of the user. Needs permissions to access the Admin APIs.
+      api (str): The Admin SDK API to use.
+      version (str): The Admin SDK API version to use.
+      credentials_path (str, optional): The path to the service account credentials.
+      user_email (str): The email of the user. Needs permissions to access the Admin APIs.
+      scopes (list, optional): A list of scopes to authenticate the request with.
 
     Returns:
-      Service object.
-    """
-    service_config = {
-        'serviceName': api,
-        'version': version
-    }   
-    
+      Google Service object.
+    """ 
     if credentials_path is not None:
         logger.info("Getting credentials from file '%s' ...", credentials_path)
         credentials, _ = _load_credentials_from_file(credentials_path)
@@ -49,16 +49,29 @@ def build_service(api, version, credentials_path=None, user_email=None, scopes=N
         credentials, _ = google.auth.default()
 
     if user_email is not None:  # make delegated credentials
-        request = requests.Request()
         credentials = _make_delegated_credentials(
                 credentials,
                 request,
                 user_email,
                 scopes)
-    service_config['credentials'] = credentials
-    return discovery.build(**service_config)
+        
+    return discovery.build(api, version, credentials=credentials)
 
 def _make_delegated_credentials(credentials, request, user_email, scopes):
+    """Make delegated credentials.
+
+    Allows a service account to impersonate the user passed in `user_email`, 
+    using a restricted set of scopes.
+    
+    Args:
+        credentials (service_account.Credentials): The service account credentials.
+        user_email (str): The email for the user to impersonate.
+        scopes (list): A list of scopes.
+    
+    Returns:
+        service_account.Credentials: The delegated credentials
+    """
+    request = requests.Request()
     credentials = with_scopes_if_required(credentials, _TOKEN_SCOPE)
     credentials.refresh(request)
     email = credentials.service_account_email
