@@ -51,13 +51,12 @@ def build_service(api, version, credentials_path=None, user_email=None, scopes=N
     if user_email is not None:  # make delegated credentials
         credentials = _make_delegated_credentials(
                 credentials,
-                request,
                 user_email,
                 scopes)
         
     return discovery.build(api, version, credentials=credentials)
 
-def _make_delegated_credentials(credentials, request, user_email, scopes):
+def _make_delegated_credentials(credentials, user_email, scopes):
     """Make delegated credentials.
 
     Allows a service account to impersonate the user passed in `user_email`, 
