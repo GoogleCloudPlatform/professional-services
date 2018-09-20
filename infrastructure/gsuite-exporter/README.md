@@ -64,7 +64,7 @@ More examples are available using the library functions under the [examples/](./
 
 #### Reports API
 To collect data from the Reports API, you need to grant extra permissions to your service account:
-* Go to your (Admin Console)[https://admin.google.com] and login with your GSuite administrator account
+* Go to your [Admin Console](https://admin.google.com) and login with your GSuite administrator account
 * Navigate to `Security > Advanced Settings > Manage API client access`
 * Grant the following scopes to your service account's `client_id`:
   - https://www.googleapis.com/auth/admin.reports.audit.readonly
