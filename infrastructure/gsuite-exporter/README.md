@@ -1,4 +1,4 @@
-# GSuite Report Sync
+# GSuite Exporter
 
 This package handles exporting data from the GSuite Admin APIs to a destination.
 
