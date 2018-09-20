@@ -56,7 +56,7 @@ More examples are available using the library functions under the [examples/](./
 * A GSuite Admin account
 * A service account with:
   * [GSuite domain-wide delegation](https://developers.google.com/admin-sdk/reports/v1/guides/delegation) enabled.
-  * `roles/iam.tokenCreator` set on the organization.
+  * The IAM role `roles/iam.tokenCreator` set on the organization.
 
 ## Setup
 
@@ -68,6 +68,7 @@ To collect data from the Reports API, you need to grant extra permissions to you
 * Navigate to `Security > Advanced Settings > Manage API client access`
 * Grant the following scopes to your service account's `client_id`:
   - https://www.googleapis.com/auth/admin.reports.audit.readonly
+  - https://www.googleapis.com/auth/iam
 
 ### Exporters
 
