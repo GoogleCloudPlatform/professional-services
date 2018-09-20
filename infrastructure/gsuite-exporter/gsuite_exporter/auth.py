@@ -12,15 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import httplib2
 import logging
-from googleapiclient import discovery
-from oauth2client.service_account import ServiceAccountCredentials
 import google.auth
 from google.auth import iam
 from google.auth.credentials import with_scopes_if_required
+from google.auth._default import _load_credentials_from_file
 from google.auth.transport import requests
 from google.oauth2 import service_account
+from googleapiclient import discovery
 
 logger = logging.getLogger(__name__)
 
@@ -42,33 +41,21 @@ def build_service(api, version, credentials_path=None, user_email=None, scopes=N
         'version': version
     }   
     
-    # Get service account credentials
-    if credentials_path is None:
+    if credentials_path is not None:
+        logger.info("Getting credentials from file '%s' ...", credentials_path)
+        credentials, _ = _load_credentials_from_file(credentials_path)
+    else:
         logger.info("Getting default application credentials ...")
         credentials, _ = google.auth.default()
-        if user_email is not None:  # make delegated credentials
-            request = requests.Request()
-            credentials = _make_delegated_google(
-                    credentials,
-                    request,
-                    user_email,
-                    scopes)
-        service_config['credentials'] = credentials
-    else:  # load credentials from file
-        logger.info("Loading credentials from '%s'", credentials_path)
-        credentials = ServiceAccountCredentials.from_json_keyfile_name(
-            credentials_path,
-            scopes=scopes)
-        if user_email is not None:
-            request = httplib2.Http()
-            http = _make_delegated_oauth2(
-                    credentials,
-                    request,
-                    user_email)
-            service_config['http'] = http
-        else:
-            service_config['credentials'] = credentials
 
+    if user_email is not None:  # make delegated credentials
+        request = requests.Request()
+        credentials = _make_delegated_google(
+                credentials,
+                request,
+                user_email,
+                scopes)
+    service_config['credentials'] = credentials
     return discovery.build(**service_config)
 
 def _make_delegated_oauth2(credentials, request, user_email):
