@@ -15,6 +15,29 @@ The following GSuite Admin APIs are currently supported:
 The following destinations are currently supported:
 - [Stackdriver Logging](https://cloud.google.com/logging/docs/)
 
+## Requirements
+* A GSuite Admin account
+* A service account with:
+  * [GSuite domain-wide delegation](https://developers.google.com/admin-sdk/reports/v1/guides/delegation) enabled.
+  * The IAM role `roles/iam.tokenCreator` set on the organization.
+
+### Collectors
+
+#### Reports API
+To collect data from the Reports API, you need to grant extra permissions to your service account:
+* Go to your [Admin Console](https://admin.google.com) and login with your GSuite administrator account
+* Navigate to `Security > Advanced Settings > Manage API client access`
+* Grant the following scopes to your service account's `client_id`:
+  - https://www.googleapis.com/auth/admin.reports.audit.readonly
+  - https://www.googleapis.com/auth/iam
+
+### Exporters
+
+#### Stackdriver
+To use the Stackdriver exporter, you need to grant IAM roles to your service account:
+* `roles/logging.viewer` on the destination project
+* `roles/logging.logWriter` on the destination project
+
 ## Installation
 ```sh
 pip install gsuite-exporter
@@ -54,28 +77,3 @@ sync_all(
 ```
 
 More examples are available using the library functions under the [examples/](./examples/) directory.
-
-## Requirements
-* A GSuite Admin account
-* A service account with:
-  * [GSuite domain-wide delegation](https://developers.google.com/admin-sdk/reports/v1/guides/delegation) enabled.
-  * The IAM role `roles/iam.tokenCreator` set on the organization.
-
-## Setup
-
-### Collectors
-
-#### Reports API
-To collect data from the Reports API, you need to grant extra permissions to your service account:
-* Go to your [Admin Console](https://admin.google.com) and login with your GSuite administrator account
-* Navigate to `Security > Advanced Settings > Manage API client access`
-* Grant the following scopes to your service account's `client_id`:
-  - https://www.googleapis.com/auth/admin.reports.audit.readonly
-  - https://www.googleapis.com/auth/iam
-
-### Exporters
-
-#### Stackdriver
-To use the Stackdriver exporter, you need to grant IAM roles to your service account:
-* `roles/logging.viewer` on the destination project
-* `roles/logging.logWriter` on the destination project
