@@ -22,11 +22,11 @@ The following destinations are currently supported:
   * The IAM role `roles/iam.tokenCreator` set on the organization.
 
 ### Collectors
-
-#### Reports API
-To collect data from the Reports API, you need to grant extra permissions to your service account:
+To collect data from the Admin SDK APIs, you need to grant extra permissions to your service account:
 * Go to your [Admin Console](https://admin.google.com) and login with your GSuite administrator account
 * Navigate to `Security > Advanced Settings > Manage API client access`
+
+#### Reports API
 * Grant the following scopes to your service account's `client_id`:
   - https://www.googleapis.com/auth/admin.reports.audit.readonly
   - https://www.googleapis.com/auth/iam
