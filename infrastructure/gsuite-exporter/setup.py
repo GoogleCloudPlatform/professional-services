@@ -53,7 +53,6 @@ setup(
     install_requires=[
         'google-api-python-client',
         'python-dateutil',
-        'oauth2client'
     ],
     entry_points={
         'console_scripts': [
