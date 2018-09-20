@@ -5,7 +5,7 @@ This package handles exporting data from the GSuite Admin APIs to a destination.
 The following GSuite Admin APIs are currently supported:
 
 - [Reports API](https://developers.google.com/admin-sdk/reports/v1/get-start/getting-started)
-  - Activity reports
+  - Applications
     - [Admin activity reports](https://developers.google.com/admin-sdk/reports/v1/guides/manage-audit-admin.html)
     - [Google Drive activity reports](https://developers.google.com/admin-sdk/reports/v1/guides/manage-audit-drive.html)
     - [Login activity reports](https://developers.google.com/admin-sdk/reports/v1/guides/manage-audit-login.html)
