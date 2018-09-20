@@ -22,7 +22,7 @@ from gsuite_exporter.exporters.base import BaseExporter
 logger = logging.getLogger(__name__)
 
 class StackdriverExporter(BaseExporter):
-    """Convert Admin SDK logs to logging entries and sends them to Stackdriver
+    """Convert Admin SDK logs to logging entries and send them to Stackdriver
     Logging API.
 
     Args:
