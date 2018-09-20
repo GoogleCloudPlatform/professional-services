@@ -29,8 +29,7 @@ class StackdriverExporter(BaseExporter):
         api (`googleapiclient.discovery.Resource`): The Admin SDK API to fetch
             records from.
         version (str): The Admin SDK API version.
-        credentials_path (str): The path to the GSuite Admin credentials.
-        scopes (list): A list of scopes to grant the API requests.
+        credentials_path (str, optional): The path to the GSuite Admin credentials.
     """
     SCOPES = [
         'https://www.googleapis.com/auth/logging.read',
