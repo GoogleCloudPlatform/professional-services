@@ -31,8 +31,11 @@ gsuite-exporter
   --credentials-path='/path/to/service/account/credentials.json'
   --admin-user='<your_gsuite_admin>@<your_domain>'
   --application='login'
+  --project-id='<logging_project>'
   --exporter='stackdriver_exporter.StackdriverExporter'
 ```
+
+The `credentials_path` variable is optional and you can use Application Default Credentials instead.
 
 ### Using as a library
 
