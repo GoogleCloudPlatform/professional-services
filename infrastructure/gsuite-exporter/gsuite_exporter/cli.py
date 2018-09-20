@@ -25,7 +25,7 @@ def get_exporter_cls(exporter_class):
         sys.exit()
 
 def sync_all(
-        gsuite_admin,
+        admin_user,
         application,
         project_id,
         exporter,
@@ -35,13 +35,11 @@ def sync_all(
     Args:
         credentials_path (str): The GSuite Admin credentials file.
         token_path (str): The GSuite Admin Token file.
-        api (str): The Gsuite Admin API to use.
         application (str): The Gsuite Admin Application to query.
         project_id (str): The project id to export the data to.
         exporter (str): The exporter class to use.
     """
-    fetcher = AdminReportsAPIFetcher(gsuite_admin, credentials_path)
-
+    fetcher = AdminReportsAPIFetcher(admin_user, credentials_path)
     exporter = get_exporter_cls(exporter)(project_id, application, credentials_path)
 
     # Fetch Admin SDK records
@@ -58,7 +56,6 @@ def sync_all(
 def main():
     parser = argparse.ArgumentParser(description='Add some integers.')
     parser.add_argument('--admin-user', type=str, help='GSuite Admin user.', required=True)
-    parser.add_argument('--api', type=str, help='The GSuite Admin API to use', required=True)
     parser.add_argument('--application', type=str, help='The GSuite Admin Application', required=True)
     parser.add_argument('--project_id', type=str, help='The project id to export GSuite data to.', required=True)
     parser.add_argument('--exporter', type=str, help='The exporter class to use.', default='stackdriver_exporter.StackdriverExporter', required=False)
@@ -66,7 +63,7 @@ def main():
 
     args = parser.parse_args()
     sync_all(
-        args.gsuite_admin,
+        args.admin_user,
         args.application,
         args.project_id,
         args.exporter,
