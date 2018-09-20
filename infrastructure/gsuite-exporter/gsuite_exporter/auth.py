@@ -3,6 +3,9 @@ import logging
 from googleapiclient import discovery
 from oauth2client.service_account import ServiceAccountCredentials
 from oauth2client.client import GoogleCredentials
+from google.auth._oauth2client import convert
+
+logger = logging.getLogger(__name__)
 
 def build_service(api, version, credentials_path=None, user_email=None, scopes=None):
     """Build and returns a service object authorized with the service accounts
@@ -21,8 +24,10 @@ def build_service(api, version, credentials_path=None, user_email=None, scopes=N
     
     # Get service account credentials
     if credentials_path is None:
+        logger.info("Getting default application credentials ...")
         credentials = GoogleCredentials.get_application_default()
     else:
+        logger.info("Loading credentials from %s", credentials_path)
         credentials = ServiceAccountCredentials.from_json_keyfile_name(
             credentials_path,
             scopes=scopes)

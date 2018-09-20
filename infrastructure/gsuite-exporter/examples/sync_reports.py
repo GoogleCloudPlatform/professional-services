@@ -1,4 +1,3 @@
-import pprint
 import os
 from gsuite_exporter.cli import sync_all
 
@@ -13,8 +12,9 @@ if __name__ == '__main__':
     ]
     for app in APPLICATIONS:
         sync_all(
-            "<user>@<domain>.rocks",
+            "ocervello@ricknmorty.rocks",
             app,
-            "<project-id>",
-            "stackdriver_exporter.StackdriverExporter"
+            "rnm-shared-devops",
+            "stackdriver_exporter.StackdriverExporter",
+            credentials_path=os.environ['GOOGLE_APPLICATION_CREDENTIALS']
         )
