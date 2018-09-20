@@ -50,7 +50,7 @@ def build_service(api, version, credentials_path=None, user_email=None, scopes=N
 
     if user_email is not None:  # make delegated credentials
         request = requests.Request()
-        credentials = _make_delegated_google(
+        credentials = _make_delegated_credentials(
                 credentials,
                 request,
                 user_email,
@@ -58,12 +58,7 @@ def build_service(api, version, credentials_path=None, user_email=None, scopes=N
     service_config['credentials'] = credentials
     return discovery.build(**service_config)
 
-def _make_delegated_oauth2(credentials, request, user_email):
-    delegated = credentials.create_delegated(user_email)
-    http = delegated.authorize(request)
-    return http
-
-def _make_delegated_google(credentials, request, user_email, scopes):
+def _make_delegated_credentials(credentials, request, user_email, scopes):
     credentials = with_scopes_if_required(credentials, _TOKEN_SCOPE)
     credentials.refresh(request)
     email = credentials.service_account_email
