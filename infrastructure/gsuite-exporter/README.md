@@ -72,6 +72,6 @@ To collect data from the Reports API, you need to grant extra permissions to you
 ### Exporters
 
 #### Stackdriver
-* Grant the following roles to your service account (in the destination project):
-  - `roles/logging.viewer`
-  - `roles/logging.logWriter`
+To use the Stackdriver exporter, you need to grant IAM roles to your service account:
+* `roles/logging.viewer` on the destination project
+* `roles/logging.logWriter` on the destination project
