@@ -16,10 +16,14 @@ import httplib2
 import logging
 from googleapiclient import discovery
 from oauth2client.service_account import ServiceAccountCredentials
-from oauth2client.client import GoogleCredentials
-from google.auth._oauth2client import convert
+import google.auth
+from google.auth import iam
+from google.auth.transport import requests
+from google.oauth2 import service_account
 
 logger = logging.getLogger(__name__)
+
+_TOKEN_URI = 'https://accounts.google.com/o/oauth2/token'
 
 def build_service(api, version, credentials_path=None, user_email=None, scopes=None):
     """Build and returns a service object authorized with the service accounts
@@ -39,7 +43,20 @@ def build_service(api, version, credentials_path=None, user_email=None, scopes=N
     # Get service account credentials
     if credentials_path is None:
         logger.info("Getting default application credentials ...")
-        credentials = GoogleCredentials.get_application_default()
+        request = requests.Request()
+        credentials, _ = google.auth.default()
+        credentials.refresh(request)
+        email = credentials.service_account_email
+        signer = iam.Signer(
+            request,
+            credentials,
+            email)
+        credentials = service_account.Credentials(
+            signer,
+            email,
+            _TOKEN_URI,
+            scopes=scopes,
+            subject=user_email)
     else:
         logger.info("Loading credentials from %s", credentials_path)
         credentials = ServiceAccountCredentials.from_json_keyfile_name(
@@ -47,7 +64,7 @@ def build_service(api, version, credentials_path=None, user_email=None, scopes=N
             scopes=scopes)
 
     # Delegate credentials if needed, otherwise use service account credentials
-    if user_email is not None:
+    if user_email and credentials_path:
         delegated = credentials.create_delegated(user_email)
         http = delegated.authorize(httplib2.Http())
         service_config['http'] = http
