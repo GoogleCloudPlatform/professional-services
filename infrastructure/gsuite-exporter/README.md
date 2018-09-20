@@ -35,7 +35,7 @@ gsuite-exporter
   --exporter='stackdriver_exporter.StackdriverExporter'
 ```
 
-The `credentials_path` variable is optional and you can use Application Default Credentials instead.
+The `credentials_path` variable is optional and you can use [Application Default Credentials](https://cloud.google.com/docs/authentication/production#providing_credentials_to_your_application) instead.
 
 ### Using as a library
 
