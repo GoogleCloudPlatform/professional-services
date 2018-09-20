@@ -69,7 +69,7 @@ def sync_all(
 
 def main():
     parser = argparse.ArgumentParser(description='Add some integers.')
-    parser.add_argument('--admin-user', type=str, help='GSuite Admin user.', required=True)
+    parser.add_argument('--admin-user', type=str, help='The GSuite Admin user email.', required=True)
     parser.add_argument('--application', type=str, help='The GSuite Admin Application', required=True)
     parser.add_argument('--project-id', type=str, help='The project id to export GSuite data to.', required=True)
     parser.add_argument('--exporter', type=str, help='The exporter class to use.', default='stackdriver_exporter.StackdriverExporter', required=False)
