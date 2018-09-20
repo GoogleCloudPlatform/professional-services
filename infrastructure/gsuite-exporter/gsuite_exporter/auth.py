@@ -68,7 +68,7 @@ def build_service(api, version, credentials_path=None, user_email=None, scopes=N
             scopes=scopes)
 
     # Delegate credentials if needed, otherwise use service account credentials
-    if user_email and credentials_path:
+    if user_email is not None and credentials_path is not None:
         delegated = credentials.create_delegated(user_email)
         http = delegated.authorize(httplib2.Http())
         service_config['http'] = http
