@@ -45,6 +45,9 @@ def build_service(api, version, credentials_path=None, user_email=None, scopes=N
         logger.info("Getting default application credentials ...")
         request = requests.Request()
         credentials, _ = google.auth.default()
+        credentials = with_scopes_if_required(
+            credentials,
+            scopes)
         credentials.refresh(request)
         email = credentials.service_account_email
         signer = iam.Signer(
