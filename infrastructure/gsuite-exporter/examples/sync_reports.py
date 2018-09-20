@@ -26,9 +26,9 @@ if __name__ == '__main__':
     ]
     for app in APPLICATIONS:
         sync_all(
-            "ocervello@ricknmorty.rocks",
+            "<gsuite_admin>@<domain>",
             app,
-            "rnm-shared-devops",
+            "<logging_project_id>",
             "stackdriver_exporter.StackdriverExporter",
             credentials_path=os.environ['GOOGLE_APPLICATION_CREDENTIALS']
         )
