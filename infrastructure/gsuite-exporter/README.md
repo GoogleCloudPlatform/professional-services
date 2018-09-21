@@ -70,7 +70,7 @@ from gsuite_exporter.cli import sync_all
 sync_all(
     credentials_path=/path/to/service/account/credentials.json,
     admin_user="<user>@<domain>",
-    app="login",
+    application="login",
     project_id="<project-id>",
     exporter_class="stackdriver_exporter.StackdriverExporter"
 )
