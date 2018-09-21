@@ -17,4 +17,4 @@ A repository of Infrastructure solutions.
 
 ### [gsuite-exporter](gsuite-exporter/)
   GSuite Exporter is a package that automates syncing Admin SDK APIs activity reports to a GCP destination. The module takes entries from the chosen Admin SDK API, converts them into the appropriate format for the destination, and exports them.
-Stackdriver Logging is supported and allows to dump Admin SDK API logs and filter on GSuite Users' activites, and/or create log-based metrics and alerts. 
+Stackdriver Logging is supported and allows to dump Admin SDK API entries as logs and filter on GSuite Users' activites, and/or create log-based metrics and alerts. 
