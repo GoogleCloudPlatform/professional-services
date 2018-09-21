@@ -14,3 +14,7 @@ A repository of Infrastructure solutions.
 
 ### [cloudconnect](cloudconnect/)
   CloudConnect is a package that automates the setup of dual VPN tunnels between AWS and GCP. While this connection is **NOT** meant for high throughput, low latency connections (1Gbps+), it can certainly support basic management and configuration traffic. Currently it supports the creation of both _static-routes_ and _bgp_ connections.
+
+### [gsuite-exporter](gsuite-exporter/)
+  GSuite Exporter is a package that automates syncing Admin SDK APIs activity reports to a GCP destination. The module takes entries from the chosen Admin SDK API, converts them into the appropriate format for the destination, and exports them.
+Stackdriver Logging is supported and allows to dump Admin SDK API logs and filter on GSuite Users' activites, and/or create log-based metrics and alerts. 
