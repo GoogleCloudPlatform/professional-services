@@ -40,37 +40,56 @@ def get_exporter_cls(exporter_class):
 
 def sync_all(
         admin_user,
-        application,
+        api,
+        applications,
         project_id,
-        exporter,
+        exporter_cls,
         credentials_path=None):
     """Query last data from Admin SDK API and export them to the destination.
 
     Args:
         credentials_path (str): The GSuite Admin credentials file.
+        api (str): The GSuite Admin API to get data from.
         token_path (str): The GSuite Admin Token file.
-        application (str): The Gsuite Admin Application to query.
+        applications (list): The Gsuite Admin Applications to query.
         project_id (str): The project id to export the data to.
-        exporter (str): The exporter class to use.
+        exporter_cls (str): The exporter class to use.
     """
     fetcher = AdminReportsAPIFetcher(admin_user, credentials_path)
-    exporter = get_exporter_cls(exporter)(project_id, application, credentials_path)
+    exporter = get_exporter_cls(exporter_cls)(
+        project_id=project_id,
+        credentials_path=credentials_path)
 
-    # Fetch Admin SDK records
-    records_stream = fetcher.fetch(
-        application=application,
-        start_time=exporter.last_timestamp)
+    for app in applications:
+        last_timestamp = exporter.get_last_timestamp(app)
+        exporter_dest = exporter.get_destination(app)
+        logger.info(
+            "%s.%s --> %s (%s) [starting new sync]. Last sync: %s",
+            api,
+            app,
+            exporter_cls,
+            exporter_dest,
+            last_timestamp)
 
-    # Send logs to destination
-    for records in records_stream:
-        exporter.send(records, dry=False)
-        logger.info("Last timestamp after export: {}".format(exporter.last_timestamp))
+        records_stream = fetcher.fetch(
+            application=app,
+            start_time=last_timestamp)
 
+        for records in records_stream:
+            response = exporter.send(records, app, dry=False)
+            logger.info(
+                "%s.%s --> %s (%s) [%s new records synced]",
+                api,
+                app,
+                exporter_cls,
+                exporter_dest,
+                len(records))
 
 def main():
     parser = argparse.ArgumentParser(description='Add some integers.')
     parser.add_argument('--admin-user', type=str, help='The GSuite Admin user email.', required=True)
-    parser.add_argument('--application', type=str, help='The GSuite Admin Application.', required=True)
+    parser.add_argument('--api', type=str, help='The GSuite Admin API.', default='reports_v1', required=False)
+    parser.add_argument('--applications', type=str, nargs='+', help='The GSuite Admin Applications.', required=True)
     parser.add_argument('--project-id', type=str, help='The project id to export GSuite data to.', required=True)
     parser.add_argument('--exporter', type=str, help='The exporter class to use.', default='stackdriver_exporter.StackdriverExporter', required=False)
     parser.add_argument('--credentials-path', type=str, help='The service account credentials file.', default=None, required=False)
@@ -78,7 +97,8 @@ def main():
     args = parser.parse_args()
     sync_all(
         args.admin_user,
-        args.application,
+        args.api,
+        args.applications,
         args.project_id,
         args.exporter,
         args.credentials_path

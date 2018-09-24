@@ -16,19 +16,11 @@ import os
 from gsuite_exporter.cli import sync_all
 
 if __name__ == '__main__':
-
-    APPLICATIONS = [
-        'login',
-        'admin',
-        'drive',
-        'mobile',
-        'token'
-    ]
-    for app in APPLICATIONS:
-        sync_all(
-            "<gsuite_admin>@<domain>",
-            app,
-            "<logging_project_id>",
-            "stackdriver_exporter.StackdriverExporter",
-            credentials_path=os.environ['GOOGLE_APPLICATION_CREDENTIALS']
-        )
+    sync_all(
+        admin_user='<gsuite_admin>@<domain>',
+        api='reports_v1',
+        applications=['login', 'admin', 'drive', 'mobile', 'token'],
+        project_id='<logging_project_id>',
+        exporter_cls='stackdriver_exporter.StackdriverExporter',
+        credentials_path=os.environ['GOOGLE_APPLICATION_CREDENTIALS']
+    )

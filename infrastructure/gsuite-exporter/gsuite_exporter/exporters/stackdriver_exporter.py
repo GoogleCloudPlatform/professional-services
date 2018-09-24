@@ -38,37 +38,39 @@ class StackdriverExporter(BaseExporter):
     LOGGING_API_VERSION = 'v2'
     def __init__(self,
                  project_id,
-                 destination_name,
                  credentials_path=None):
-        logger.info("Initializing Stackdriver Logging API ...")
+        logger.debug("Initializing Stackdriver Logging API ...")
         self.api = auth.build_service(
             api='logging',
             version=StackdriverExporter.LOGGING_API_VERSION,
             credentials_path=credentials_path,
             scopes=StackdriverExporter.SCOPES)
         self.project_id = "projects/{}".format(project_id)
-        self.log_name = "{}/logs/{}".format(self.project_id, destination_name)
 
-    def send(self, records, dry=False):
+    def send(self, records, log_name, dry=False):
         """Writes a list of Admin SDK records to Stackdriver Logging API.
 
         Args:
             records (list): A list of log records.
+            log_name (str): The log name to write (e.g: 'logins').
             dry (bool): Toggle dry-run mode (default: False).
 
         Returns:
             `googleapiclient.http.HttpRequest`: The API response object.
         """
-        entries = self.convert(records)
-        body = {
-            'entries': entries,
-            'logName': '{}'.format(self.log_name),
-            'dryRun': dry
-        }
-        logger.info("Writing {} entries to Stackdriver Logging API @ '{}'".format(
-            len(entries),
-            self.log_name))
-        res = self.api.entries().write(body=body).execute()
+        res = None
+        destination = self.get_destination(log_name)
+        if records:
+            entries = self.convert(records)
+            body = {
+                'entries': entries,
+                'logName': '{}'.format(destination),
+                'dryRun': dry
+            }
+            logger.debug("Writing {} entries to Stackdriver Logging API @ '{}'".format(
+                len(entries),
+                destination))
+            res = self.api.entries().write(body=body).execute()
         return res
 
     def convert(self, records):
@@ -82,6 +84,24 @@ class StackdriverExporter(BaseExporter):
             list: A list of Stackdriver Logging API entries.
         """
         return map(lambda i: self.__convert(i), records)
+
+    def get_destination(self, log_name):
+        return "{}/logs/{}".format(self.project_id, log_name)
+
+    def get_last_timestamp(self, log_name):
+        """Last log timestamp from Stackdriver Logging API given our project id
+        and log name.
+        """
+        destination = self.get_destination(log_name)
+        query = {
+          'orderBy': 'timestamp desc',
+          'pageSize': 1,
+          'resourceNames': [self.project_id],
+          'filter': 'logName={}'.format(destination)
+        }
+        log = self.api.entries().list(body=query).execute()
+        timestamp = log['entries'][0]['timestamp'] if 'entries' in log else None
+        return timestamp
 
     def __convert(self, record):
         """Converts an Admin SDK log entry to a Stackdriver Log entry.
@@ -121,21 +141,3 @@ class StackdriverExporter(BaseExporter):
             dateutil.parser.parse(record['id']['time']).timetuple()
         ))
         return {'seconds': int(seconds)}
-
-    @property
-    def last_timestamp(self):
-        """Last log timestamp from Stackdriver Logging API given our project id
-        and log name.
-        """
-        query = {
-          'orderBy': 'timestamp desc',
-          'pageSize': 1,
-          'resourceNames': [self.project_id],
-          'filter': 'logName={}'.format(self.log_name)
-        }
-        log = self.api.entries().list(body=query).execute()
-        timestamp = log['entries'][0]['timestamp'] if 'entries' in log else None
-        logger.info("Last log timestamp for '{}' --> {}".format(
-            self.log_name,
-            timestamp))
-        return timestamp

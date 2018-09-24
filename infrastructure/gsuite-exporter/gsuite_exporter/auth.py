@@ -40,7 +40,7 @@ def build_service(api, version, credentials_path=None, user_email=None, scopes=N
 
     Returns:
       Google Service object.
-    """ 
+    """
     if credentials_path is not None:
         logger.info("Getting credentials from file '%s' ...", credentials_path)
         credentials, _ = _load_credentials_from_file(credentials_path)
@@ -53,20 +53,20 @@ def build_service(api, version, credentials_path=None, user_email=None, scopes=N
                 credentials,
                 user_email,
                 scopes)
-        
+
     return discovery.build(api, version, credentials=credentials)
 
 def _make_delegated_credentials(credentials, user_email, scopes):
     """Make delegated credentials.
 
-    Allows a service account to impersonate the user passed in `user_email`, 
+    Allows a service account to impersonate the user passed in `user_email`,
     using a restricted set of scopes.
-    
+
     Args:
         credentials (service_account.Credentials): The service account credentials.
         user_email (str): The email for the user to impersonate.
         scopes (list): A list of scopes.
-    
+
     Returns:
         service_account.Credentials: The delegated credentials
     """
