@@ -40,7 +40,7 @@ class AdminReportsAPIFetcher(object):
         self.api_name = 'reports_{}'.format(
             AdminReportsAPIFetcher.REPORTS_API_VERSION)
 
-        logger.info("Initializing Admin API '{}' ...".format(
+        logger.debug("Initializing Admin API '{}' ...".format(
             self.api_name))
         self.api = auth.build_service(
             api='admin',
@@ -67,7 +67,7 @@ class AdminReportsAPIFetcher(object):
         while req is not None:
             res = req.execute()
             items = res.get(item_key, [])
-            logger.info("Retrieved {} new Admin API records from '{}.{}' app since {}".format(
+            logger.debug("Retrieved {} new Admin API records from '{}.{}' app since {}".format(
                 len(items),
                 self.api_name,
                 application,

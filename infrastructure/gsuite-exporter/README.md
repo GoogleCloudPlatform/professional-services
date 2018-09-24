@@ -4,13 +4,12 @@ This package handles exporting data from the GSuite Admin APIs to a destination.
 
 The following GSuite Admin APIs are currently supported:
 
-- [Reports API](https://developers.google.com/admin-sdk/reports/v1/get-start/getting-started)
-  - Applications:
-    - [Admin activity reports](https://developers.google.com/admin-sdk/reports/v1/guides/manage-audit-admin.html)
-    - [Google Drive activity reports](https://developers.google.com/admin-sdk/reports/v1/guides/manage-audit-drive.html)
-    - [Login activity reports](https://developers.google.com/admin-sdk/reports/v1/guides/manage-audit-login.html)
-    - [Mobile activity reports](https://developers.google.com/admin-sdk/reports/v1/guides/manage-audit-mobile.html)
-    - [Authorization Token activity reports](https://developers.google.com/admin-sdk/reports/v1/guides/manage-audit-tokens.html)
+- `reports_v1` - [Reports API](https://developers.google.com/admin-sdk/reports/v1/get-start/getting-started)
+    - `admin` - [Admin activity reports](https://developers.google.com/admin-sdk/reports/v1/guides/manage-audit-admin.html)
+    - `drive` - [Google Drive activity reports](https://developers.google.com/admin-sdk/reports/v1/guides/manage-audit-drive.html)
+    - `login` - [Login activity reports](https://developers.google.com/admin-sdk/reports/v1/guides/manage-audit-login.html)
+    - `mobile` - [Mobile activity reports](https://developers.google.com/admin-sdk/reports/v1/guides/manage-audit-mobile.html)
+    - `token` - [Authorization Token activity reports](https://developers.google.com/admin-sdk/reports/v1/guides/manage-audit-tokens.html)
 
 The following destinations are currently supported:
 - [Stackdriver Logging](https://cloud.google.com/logging/docs/)
@@ -53,7 +52,8 @@ An example sync from the Admin Reports API to Stackdriver Logging for the 'login
 gsuite-exporter
   --credentials-path='/path/to/service/account/credentials.json'
   --admin-user='<your_gsuite_admin>@<your_domain>'
-  --application='login'
+  --api='report_v1'
+  --applications='login drive token'
   --project-id='<logging_project>'
   --exporter='stackdriver_exporter.StackdriverExporter'
 ```
@@ -69,10 +69,11 @@ from gsuite_exporter.cli import sync_all
 
 sync_all(
     credentials_path=/path/to/service/account/credentials.json,
-    admin_user="<user>@<domain>",
-    application="login",
-    project_id="<project-id>",
-    exporter_class="stackdriver_exporter.StackdriverExporter"
+    admin_user='<user>@<domain>',
+    api='reports_v1',
+    applications=['login', 'drive', 'token'],
+    project_id='<project-id>',
+    exporter_class='stackdriver_exporter.StackdriverExporter'
 )
 ```
 
