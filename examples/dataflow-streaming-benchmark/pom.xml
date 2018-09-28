@@ -32,7 +32,7 @@
   </organization>
 
   <name>dataflow-streaming-benchmark</name>
-  <url>http://github.com/ryanmcdowell/dataflow-streaming-benchmark</url>
+  <url>http://github.com/GoogleCloudPlatform/professional-services</url>
 
   <properties>
     <!-- Project properties -->
