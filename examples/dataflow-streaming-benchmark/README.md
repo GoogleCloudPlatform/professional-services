@@ -76,7 +76,8 @@ Pub/Sub topic.
 ```bash
 # Set the pipeline vars
 PROJECT_ID=PROJECT_ID
-PIPELINE_FOLDER=gs://${PROJECT_ID}/dataflow/pipelines/streaming-benchmark
+BUCKET=BUCKET
+PIPELINE_FOLDER=gs://${BUCKET}/dataflow/pipelines/streaming-benchmark
 
 # Set the runner
 RUNNER=DataflowRunner
