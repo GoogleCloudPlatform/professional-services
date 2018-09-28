@@ -16,6 +16,7 @@
 
 package com.google.cloud.pso.pipeline;
 
+import com.github.vincentrussell.json.datagenerator.JsonDataGenerator;
 import com.github.vincentrussell.json.datagenerator.JsonDataGeneratorException;
 import com.github.vincentrussell.json.datagenerator.impl.JsonDataGeneratorImpl;
 import com.google.common.collect.Maps;
@@ -36,6 +37,7 @@ import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
 import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
+import org.apache.beam.sdk.options.Validation.Required;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.joda.time.Duration;
@@ -62,8 +64,9 @@ import org.joda.time.Duration;
  *
  * <pre>
  * # Set the pipeline vars
- * PROJECT_ID=PROJECT_ID
- * PIPELINE_FOLDER=gs://${PROJECT_ID}/dataflow/pipelines/streaming-benchmark
+ * PROJECT_ID=<project-id>
+ * BUCKET=<bucket>
+ * PIPELINE_FOLDER=gs://${BUCKET}/dataflow/pipelines/streaming-benchmark
  *
  * # Set the runner
  * RUNNER=DataflowRunner
@@ -79,10 +82,10 @@ import org.joda.time.Duration;
  * --runner=${RUNNER} \
  * --zone=us-east1-d \
  * --autoscalingAlgorithm=THROUGHPUT_BASED \
- * --maxNumWorkers=50 \
- * --qps=100000 \
- * --schemaLocation=SCHEMA_LOCATION \
- * --topic=TOPIC"
+ * --maxNumWorkers=5 \
+ * --qps=50000 \
+ * --schemaLocation=gs://<bucket>/<path>/<to>/game-event-schema \
+ * --topic=projects/<project-id>/topics/<topic-id>"
  * </pre>
  */
 public class StreamingBenchmark {
@@ -93,16 +96,19 @@ public class StreamingBenchmark {
    */
   public interface Options extends PipelineOptions {
     @Description("The QPS which the benchmark should output to Pub/Sub.")
+    @Required
     Long getQps();
 
     void setQps(Long value);
 
     @Description("The path to the schema to generate.")
+    @Required
     String getSchemaLocation();
 
     void setSchemaLocation(String value);
 
     @Description("The Pub/Sub topic to write to.")
+    @Required
     String getTopic();
 
     void setTopic(String value);
@@ -117,7 +123,10 @@ public class StreamingBenchmark {
    * @param args The command-line args passed by the executor.
    */
   public static void main(String[] args) {
-    Options options = PipelineOptionsFactory.fromArgs(args).as(Options.class);
+    Options options = PipelineOptionsFactory
+        .fromArgs(args)
+        .withValidation()
+        .as(Options.class);
 
     run(options);
   }
@@ -164,12 +173,16 @@ public class StreamingBenchmark {
     private final String schemaLocation;
     private String schema;
 
+    // Not initialized inline or constructor because {@link JsonDataGenerator} is not serializable.
+    private transient JsonDataGenerator dataGenerator;
+
     MessageGeneratorFn(String schemaLocation) {
       this.schemaLocation = schemaLocation;
     }
 
     @Setup
     public void setup() throws IOException {
+      dataGenerator = new JsonDataGeneratorImpl();
       Metadata metadata = FileSystems.matchSingleFileSpec(schemaLocation);
 
       // Copy the schema file into a string which can be used for generation.
@@ -188,13 +201,13 @@ public class StreamingBenchmark {
     public void processElement(ProcessContext context)
         throws IOException, JsonDataGeneratorException {
 
+      // TODO: Add the ability to place eventId and eventTimestamp in the attributes.
       byte[] payload;
       Map<String, String> attributes = Maps.newHashMap();
 
       // Generate the fake JSON according to the schema.
       try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
-        JsonDataGeneratorImpl parser = new JsonDataGeneratorImpl();
-        parser.generateTestDataJson(schema, byteArrayOutputStream);
+        dataGenerator.generateTestDataJson(schema, byteArrayOutputStream);
 
         payload = byteArrayOutputStream.toByteArray();
       }

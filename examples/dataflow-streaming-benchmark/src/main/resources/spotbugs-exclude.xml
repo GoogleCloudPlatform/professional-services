@@ -28,8 +28,8 @@
   <!-- Ignored bug categories. Bugs in these categories should not block the build. -->
   <Bug category="I18N"/>
   <Bug pattern="DM_STRING_CTOR"/>
-  <Bug pattern="EI_EXPOSE_REP" />
-  <Bug pattern="EI_EXPOSE_REP2" />
+  <Bug pattern="EI_EXPOSE_REP"/>
+  <Bug pattern="EI_EXPOSE_REP2"/>
   <Bug pattern="SE_NO_SERIALVERSIONID"/>
 
   <!-- Suppress checking of AutoValue internals -->
@@ -42,5 +42,15 @@
     suppressed. Suppressions should go in this file rather than inline using
     @SuppressFBWarnings to avoid unapproved artifact license.
 	-->
+  <!--
+    Ignore "Field not initialized in constructor but dereferenced without null check" because the
+    field "dataGenerator" is initialized in the @Setup method and guaranteed to not be null due to
+    the DoFn lifecycle.
+  -->
+  <Match>
+    <Class name="com.google.cloud.pso.pipeline.StreamingBenchmark$MessageGeneratorFn"/>
+    <Method name="processElement" />
+    <Bug pattern="UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR"/>
+  </Match>
 
 </FindBugsFilter>
