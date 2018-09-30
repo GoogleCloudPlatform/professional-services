@@ -1,3 +1,8 @@
 *.iml
 .idea/
 target/
+.settings/
+**/.project
+**/.classpath
+**/.factorypath
+**/bin
