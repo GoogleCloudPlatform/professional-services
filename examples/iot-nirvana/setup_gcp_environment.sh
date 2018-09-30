@@ -101,7 +101,7 @@ gsutil cp startup_install_java8.sh gs://${PROJECT_ID}
 
 # generate a temporary VM that will be used to generate custom image
 echo "Executing gcloud compute instances create debian9-java8-img --zone ${ZONE} --image-family debian-9 --image-project debian-cloud --metadata startup-script-url=gs://$1/startup_install_java8.sh"
-gcloud compute instances create debian9-java8-img --zone ${ZONE} --image-family debian-9 --image-project debian-cloud --metadata startup-script-url=gs://$1/startup_install_java8.sh
+gcloud compute instances create debian9-java8-img --zone ${ZONE} --image-family debian-9 --image-project debian-cloud --no-boot-disk-auto-delete --metadata startup-script-url=gs://$1/startup_install_java8.sh
 
 # wait for VM startup-script to be executed
 echo "Waiting for VM to be ready"
@@ -110,10 +110,6 @@ while [ "$(gcloud compute instances list --filter='name:debian9-java8-img AND st
   sleep 5
 done
 echo "VM is ready."
-
-# generate custom image
-echo "Executing gcloud compute images create debian9-java8-img --source-disk debian9-java8-img --source-disk-zone ${ZONE}"
-gcloud compute images create debian9-java8-img --source-disk debian9-java8-img --source-disk-zone ${ZONE}
 
 # delete temporary VM
 echo "Executing gcloud compute instances delete debian9-java8-img"
