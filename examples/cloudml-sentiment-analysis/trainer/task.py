@@ -42,6 +42,11 @@ tf.flags.DEFINE_integer('throttle_secs', 600,
                         'evaluations.')
 tf.flags.mark_flag_as_required('input_dir')
 
+# Model training constants.
+_RNN_CELL_TYPE = 'lstm'
+_INPUT_SHUFFLING_SEED = 1
+_EXPORTER_NAME = 'exporter'
+
 
 def get_feature_columns(num_hash_buckets, embedding_dimension):
   """Creates sequential input columns to `RNNEstimator`.
@@ -97,7 +102,7 @@ def run(hparams, input_dir, training_steps, eval_steps, model_dir):
       save_checkpoints_steps=hparams.save_checkpoints_steps)
   classifier = tf.contrib.estimator.RNNClassifier(
       sequence_feature_columns=features_columns,
-      cell_type=constants.RNN_CELL_TYPE,
+      cell_type=_RNN_CELL_TYPE,
       num_units=[hparams.num_units],
       optimizer=tf.train.AdagradOptimizer(learning_rate=hparams.learning_rate),
       model_dir=model_dir,
@@ -111,16 +116,16 @@ def run(hparams, input_dir, training_steps, eval_steps, model_dir):
       _get_file_path(constants.SUBDIR_TRAIN),
       training=True,
       batch_size=hparams.batch_size,
-      random_seed=constants.INPUT_SHUFFLING_SEED,
+      random_seed=_INPUT_SHUFFLING_SEED,
       prefetch_buffer_size=FLAGS.prefetch_buffer_size)
   eval_input_fn = input_fn.make_input_fn(
       _get_file_path(constants.SUBDIR_VAL),
       training=False,
       batch_size=hparams.batch_size,
-      random_seed=constants.INPUT_SHUFFLING_SEED,
+      random_seed=_INPUT_SHUFFLING_SEED,
       prefetch_buffer_size=FLAGS.prefetch_buffer_size)
 
-  exporter = tf.estimator.LatestExporter(constants.EXPORTER_NAME,
+  exporter = tf.estimator.LatestExporter(_EXPORTER_NAME,
                                          input_fn.serving_input_fn)
   train_spec = tf.estimator.TrainSpec(input_fn=train_input_fn,
                                       max_steps=training_steps)

@@ -4,13 +4,13 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import enum
 import os
 import random
 
 import apache_beam as beam
 from apache_beam.io import tfrecordio
 from apache_beam.pvalue import TaggedOutput
-import enum
 from tensorflow import gfile
 from tensorflow import logging
 from tensorflow_transform.coders import example_proto_coder
@@ -29,17 +29,11 @@ class _DatasetType(enum.Enum):
 
 
 class _SplitData(beam.DoFn):
-  """DoFn that randomly splits records in training / validation sets.
-
-    Attributes:
-      process: Function randomly assigning an element to training or validation
-      set.
-    """
+  """DoFn that randomly splits records in training / validation sets."""
 
   def process(self, element, train_size, val_label):
-
-    rndm = random.random()
-    if rndm > train_size:
+    """Randomly assigns element to training or validation set."""
+    if random.random() > train_size:
       yield TaggedOutput(val_label, element)
     else:
       yield element
@@ -49,15 +43,17 @@ class ReadFile(beam.DoFn):
   """DoFn to read and label files."""
 
   def process(self, element):
-    labels = constants.labels_values
-    found_labels = [labels[label] for label in labels if label in element]
+    labels = {
+        constants.SUBDIR_POSITIVE: constants.POSITIVE_SENTIMENT_LABEL,
+        constants.SUBDIR_NEGATIVE: constants.NEGATIVE_SENTIMENT_LABEL
+    }
+    found_labels = [labels[l] for l in labels if l in element]
     if len(found_labels) > 1:
       raise ValueError('Incompatible path: `{}`.'.format(element))
     if found_labels:
-      label = found_labels[0]
       with gfile.GFile(element, 'r') as single_file:
         for line in single_file:
-          yield {constants.LABELS: label, constants.REVIEW: line}
+          yield {constants.LABELS: found_labels[0], constants.REVIEW: line}
     else:
       logging.debug('Label not found for file: `%s`.', element)
 
@@ -76,7 +72,7 @@ def shuffle(p):
   class _AddRandomKey(beam.DoFn):
 
     def process(self, element):
-      yield (random.random(), element)
+      yield random.random(), element
 
   shuffled_data = (
       p
@@ -118,6 +114,5 @@ def run(p, params):
         data[dataset.name]
         | 'Shuffle{}'.format(dataset.name) >> shuffle()  # pylint: disable=no-value-for-parameter
         | 'WriteFiles{}'.format(dataset.name) >> tfrecordio.WriteToTFRecord(
-            os.path.join(params.output_dir,
-                         '{}{}'.format(dataset.name, constants.TFRECORD)),
+            os.path.join(params.output_dir, dataset.name + constants.TFRECORD),
             coder=example_proto_coder.ExampleProtoCoder(schema)))

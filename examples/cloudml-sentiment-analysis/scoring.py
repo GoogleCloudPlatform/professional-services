@@ -6,6 +6,7 @@ from __future__ import print_function
 
 import collections
 import os
+import sys
 
 from googleapiclient import discovery
 import numpy as np
@@ -29,12 +30,23 @@ flags.mark_flag_as_required('project_name')
 flags.mark_flag_as_required('input_path')
 flags.mark_flag_as_required('input_path')
 
+# Model scoring constants.
+_INSTANCE_KEY = 'inputs'
+_SCORES_KEY = 'scores'
+_CLASSES_KEY = 'classes'
+_CONTINUOUS_TYPE = 'continuous_input'
+_CATEGORICAL_TYPE = 'categorical_input'
+_METRICS = {_CATEGORICAL_TYPE: ['accuracy_score', 'precision_score',
+                              'recall_score'],
+            _CONTINUOUS_TYPE: ['log_loss', 'roc_auc_score']}
+_ACCURACY_THRESHOLD = 0.5
+
 
 def get_prediction_input(files):
   """Reads and concatenates text files in input directory.
 
   Args:
-    files: List of `str`, containing absolut path to files to read.
+    files: List of `str`, containing absolute path to files to read.
 
   Returns:
     List of `str` containing independent text reviews.
@@ -46,7 +58,7 @@ def get_prediction_input(files):
   instances = []
   for path in files:
     with gfile.GFile(path, 'r') as lines:
-      instances += [line for line in lines]
+      instances += lines
   if not instances:
     raise ValueError('No review found in input files.')
   return instances
@@ -63,13 +75,11 @@ def format_input(input_path, size):
     List of `str` containing independent text reviews.
   """
 
-  files = gfile.ListDirectory(input_path)
-  files = [path for path in files
+  files = [path for path in gfile.ListDirectory(input_path)
            if path.endswith(constants.FILE_EXTENSION)]
   files = np.random.choice(files, size, replace=False)
   files = [os.path.join(input_path, filename) for filename in files]
-  instances = get_prediction_input(files)
-  return instances
+  return get_prediction_input(files)
 
 
 def predict_json(project, model, instances, version=None):
@@ -89,7 +99,7 @@ def predict_json(project, model, instances, version=None):
       model.
 
   Raises:
-    RuntimeError: If the call to ml-engine returns and error.
+    RuntimeError: If the call to ml-engine returns an error.
   """
 
   # Create the ML Engine service object.
@@ -98,7 +108,7 @@ def predict_json(project, model, instances, version=None):
   service = discovery.build('ml', 'v1')
   name = 'projects/{}/models/{}'.format(project, model)
 
-  if version is not None:
+  if version:
     name += '/versions/{}'.format(version)
 
   response = service.projects().predict(
@@ -128,14 +138,14 @@ def analyze(probas, target):
   """
 
   results = {}
-  for metric_type, sub_metrics in constants.METRICS.iteritems():
+  for metric_type, sub_metrics in _METRICS.iteritems():
     for metric_name in sub_metrics:
       metric = getattr(metrics, metric_name)
 
       results[metric_name] = metric(
           target,
-          (probas if metric_type == constants.CONTINUOUS_TYPE
-           else probas > constants.ACCURACY_THRESHOLD))
+          (probas if metric_type == _CONTINUOUS_TYPE
+           else probas > _ACCURACY_THRESHOLD))
   return results
 
 
@@ -185,12 +195,11 @@ def run(project, model, size, input_path, batch_size, random_seed=None):
       except KeyboardInterrupt:
         raise
       except:  # pylint: disable=bare-except
-        logging.info('Error.')
+        logging.info('Error: %s', sys.exc_info()[0])
         failed_predictions += len(to_predict)
       else:
         for pred in predictions:
-          for proba, cl in zip(pred[constants.SCORES_KEY],
-                               pred[constants.CLASSES_KEY]):
+          for proba, cl in zip(pred[_SCORES_KEY], pred[_CLASSES_KEY]):
             probas[cl].append(proba)
       start += step
 
