@@ -13,12 +13,11 @@ import apache_beam as beam
 from tensorflow import flags
 from tensorflow import logging
 
-from constants import constants
 from preprocessing import preprocess
 
 FLAGS = flags.FLAGS
 flags.DEFINE_string('logging_verbosity', 'INFO', 'Level of logging verbosity '
-                    '(e.g. `INFO  ` `DEBUG`).')
+                    '(e.g. `INFO` `DEBUG`).')
 flags.DEFINE_string('project_id', None, 'GCP project id.')
 flags.DEFINE_string('job_name', None, 'Dataflow job name.')
 flags.DEFINE_integer('num_workers', None, 'Number of dataflow workers.')
@@ -37,13 +36,16 @@ flags.mark_flag_as_required('output_dir')
 def _mark_gcp_flags_as_required(inputs):
   if FLAGS.gcp:
     return bool(inputs['project_id']) & bool(inputs['job_name'])
-  else:
-    return True
+  return True
 flags.register_multi_flags_validator(
     ['project_id', 'job_name'],
     _mark_gcp_flags_as_required,
     message=('--project_id and --job_name must be specified if --gcp set to '
              '`true`.'))
+
+# Preprocessing constants.
+_DATAFLOW_RUNNER = 'DataflowRunner'
+_DIRECT_RUNNER = 'DirectRunner'
 
 
 def run(params):
@@ -68,17 +70,17 @@ def run(params):
             os.path.dirname(__file__), 'setup.py'))
     }
 
-    def _update(dic, values, param_name):
-      param_value = getattr(values, param_name)
+    def _update(param_name):
+      param_value = getattr(params, param_name)
       if param_value:
-        dic.update({param_name: param_value})
+        options.update({param_name: param_value})
 
-    _update(options, params, 'worker_machine_type')
-    _update(options, params, 'num_workers')
-    _update(options, params, 'region')
+    _update('worker_machine_type')
+    _update('num_workers')
+    _update('region')
 
   pipeline_options = beam.pipeline.PipelineOptions(flags=[], **options)
-  runner = constants.DATAFLOW_RUNNER if params.gcp else constants.DIRECT_RUNNER
+  runner = _DATAFLOW_RUNNER if params.gcp else _DIRECT_RUNNER
   with beam.Pipeline(runner, options=pipeline_options) as p:
     preprocess.run(p=p, params=params)
 

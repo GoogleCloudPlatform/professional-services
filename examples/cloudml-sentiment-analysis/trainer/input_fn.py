@@ -12,6 +12,12 @@ import tensorflow as tf
 from constants import constants
 from utils import utils
 
+_BUCKET_MIN_BOUNDARY = 100
+_BUCKET_MAX_BOUNDARY = 500
+_BUCKET_LENGTH_STEP = 100
+_CHAR_TO_FILTER_OUT = r'[!"#$%&()*+,-./:;<=>?@[\]^_`{|}~]'
+_SHUFFLE_BUFFER_SIZE = 100
+
 
 # TODO(aarg): Add `sparse` option to `group_by_sequence_length_sparse` fn.
 def group_by_sequence_length_sparse(element_length_func, bucket_boundaries,
@@ -39,8 +45,7 @@ def group_by_sequence_length_sparse(element_length_func, bucket_boundaries,
     conditions_c = tf.logical_and(
         tf.less_equal(buckets_min, seq_length),
         tf.less(seq_length, buckets_max))
-    bucket_id = tf.reduce_min(tf.where(conditions_c))
-    return bucket_id
+    return tf.reduce_min(tf.where(conditions_c))
 
   def _reduce_func(bucket_id, grouped_dataset):
     """Applies non-padded batching to grouped dataset."""
@@ -72,7 +77,7 @@ def parse_raw_text(sentence):
 
   """
 
-  tokens = tf.regex_replace(sentence, constants.CHAR_TO_FILTER_OUT, ' ',
+  tokens = tf.regex_replace(sentence, _CHAR_TO_FILTER_OUT, ' ',
                             replace_global=True)
   sparse_sequence = tf.string_split(tokens)
   features = {
@@ -122,13 +127,13 @@ def make_input_fn(input_dir, batch_size, training=True, num_epochs=None,
     dataset = dataset.map(_parse_input,
                           num_parallel_calls=multiprocessing.cpu_count())
     dataset = dataset.shuffle(
-        buffer_size=constants.SHUFFLE_BUFFER_SIZE, seed=random_seed)
+        buffer_size=_SHUFFLE_BUFFER_SIZE, seed=random_seed)
 
     # Groups records by sequence length.
     boundaries = np.arange(
-        constants.BUCKET_MIN_BOUNDARY,
-        constants.BUCKET_MAX_BOUNDARY,
-        constants.BUCKET_LENGTH_STEP)
+        _BUCKET_MIN_BOUNDARY,
+        _BUCKET_MAX_BOUNDARY,
+        _BUCKET_LENGTH_STEP)
     dataset = dataset.apply(group_by_sequence_length_sparse(
         _get_shape, boundaries, batch_size))
 

@@ -4,8 +4,9 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from constants import constants
 import tensorflow as tf
+
+from constants import constants
 
 
 def get_processed_data_schema():
