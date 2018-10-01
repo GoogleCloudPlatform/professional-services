@@ -8,7 +8,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [Cloud Composer Examples](/examples/cloud-composer-examples) - Examples of using Cloud Composer, GCP's managed Apache Airflow service.
 * [CloudML Energy Price Forecasting](/examples/cloudml-energy-price-forecasting) - Predicting the future energy price based on historical price and weather.
 * [CloudML Fraud Detection](/examples/cloudml-fraud-detection) - Fraud detection model for credit-cards transactions.
-* [CloudML Sentiment Analysis](/examples/cloudml-sentiment-analysis) - Sentiment analysis for movie review using TensorFlow `RNNEstimator`.
+* [CloudML Sentiment Analysis](/examples/cloudml-sentiment-analysis) - Sentiment analysis for movie reviews using TensorFlow `RNNEstimator`.
 * [Dataflow Elasticsearch Indexer](/examples/dataflow-elasticsearch-indexer) - An example pipeline that demonstrates the process of reading JSON documents from Cloud Pub/Sub, enhancing the document using metadata stored in Cloud Bigtable and indexing those documents into [Elasticsearch](https://www.elastic.co/).
 * [Dataflow Python Examples](/examples/dataflow-python-examples) - Various ETL examples using the Dataflow Python SDK.
 * [IoT Nirvana](/examples/iot-nirvana) - An end-to-end Internet of Things architecture running on Google Cloud Platform.
