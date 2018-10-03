@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python\
 # Copyright 2018 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,47 +13,80 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+'''
+syncOwners.py reads the membership of a Google Group and
+uses that to populate the "verified owners" of a domain
+in the Google Search Console
+'''
+
 import httplib2
 import json
 
-from apiclient import errors
 from apiclient.discovery import build
 from oauth2client.client import OAuth2WebServerFlow
 from google.oauth2 import service_account
 
-def getConfig():
-        with open('config.json') as f:
-                data = json.load(f)
-        return data["domain"], data["group"], data["adminUser"], data["service-account-key"]
+def get_config():
+    '''
+    Read config from json file
+    '''
+    with open('config.json') as config_file:
+        data = json.load(config_file)
+    return data['domain'], data['group'], data['adminUser'], data['service-account-key']
 
-def getMembers(credentials, group, adminUser):
-        delegated_credentials = credentials.with_subject(adminUser)
-        admin_service = build('admin', 'directory_v1', credentials=delegated_credentials)
-        admin_response= admin_service.members().list(groupKey=group).execute()
-        members = []
-        for member in admin_response[u'members']:
-                members.append(member[u'email'])
-        return members
+def get_members(credentials, group, admin_user):
+    '''
+    Retrieve list of email addresses of all members of the group
 
-def setPermissions(credentials, domain, users):
-        url = 'dns://'
-        url += domain
-        service = build('siteVerification', 'v1', credentials=credentials)
-        response = service.webResource().update(
+    Args:
+    credentials: Google OAuth credentials
+    group: Email address of the group to check membership for
+    admin_user: The email address of a user in the domain with admin rights
+    '''
+
+    delegated_credentials = credentials.with_subject(admin_user)
+    admin_service = build('admin', 'directory_v1', credentials=delegated_credentials)
+    admin_response = admin_service.members().list(groupKey=group).execute()
+    members = []
+    for member in admin_response['members']:
+        members.append(member['email'])
+    return members
+
+def set_permissions(credentials, domain, users):
+    '''
+    Update the "verified owners" list for the specified domain
+
+    Args:
+    credentials: Google OAuth credentials
+    domain: the dns name of the domain to update
+    users: list of users to be applied as "verified owners"
+    '''
+
+    url = 'dns://'
+    url += domain
+    service = build('siteVerification', 'v1', credentials=credentials)
+    response = service.webResource().update(
         id=url,
         body={
-                "owners": users,
-                "site": {
-                        "type": "INET_DOMAIN",
-                        "identifier": domain
-                }
+            'owners': users,
+            'site': {
+                'type': 'INET_DOMAIN',
+                'identifier': domain
+            }
         }).execute()
-        return response
+    return response
+
+def main():
+    ''' main '''
+
+    domain, group, admin_user, service_account_key = get_config()
+    scopes = ['https://www.googleapis.com/auth/siteverification', \
+    'https://www.googleapis.com/auth/admin.directory.group.member.readonly']
+    credentials = \
+    service_account.Credentials.from_service_account_file(service_account_key, scopes=scopes)
+    verified_users = get_members(credentials, group, admin_user)
+    result = set_permissions(credentials, domain, verified_users)
+    print result
 
 if __name__ == '__main__':
-        domain, group, adminUser, serviceAccountKey = getConfig()
-        scopes = ['https://www.googleapis.com/auth/siteverification', 'https://www.googleapis.com/auth/admin.directory.group.member.readonly']
-        credentials = service_account.Credentials.from_service_account_file(serviceAccountKey, scopes=scopes)
-        verifiedUsers = getMembers(credentials, group, adminUser)
-        result = setPermissions(credentials, domain, verifiedUsers)
-        print result
+    main()
