@@ -22,6 +22,7 @@ The tools folder contains ready-made utilities which can simpilfy Google Cloud P
 * [DNS Sync](/tools/dns-sync) - Sync a Cloud DNS zone with GCE resources. Instances and load balancers are added to the cloud DNS zone as they start from compute_engine_activity log events sent from a pub/sub push subscription. Can sync multiple projects to a single Cloud DNS zone.
 * [GKE Billing Export](/tools/gke-billing-export) - Google Kubernetes Engine fine grained billing export.
 * [LabelMaker](/tools/labelmaker) - A tool that reads key:value pairs from a json file and labels the running instance and all attached drives accordingly.
+* [Site Verification Group Sync](/tools/site-verification-group-sync) - A tool to provision "verified owner" permissions (to create GCS buckets with custom dns) based on membership of a Google Group.
 
 ## Contributing
 The team is currently not accepting contributions.
