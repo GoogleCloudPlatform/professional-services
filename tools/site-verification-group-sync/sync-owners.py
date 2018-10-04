@@ -19,17 +19,16 @@ uses that to populate the "verified owners" of a domain
 in the Google Search Console
 '''
 
-import httplib2
 import json
 
 from apiclient.discovery import build
-from oauth2client.client import OAuth2WebServerFlow
 from google.oauth2 import service_account
 
 def get_config():
     '''
     Read config from json file
     '''
+
     with open('config.json') as config_file:
         data = json.load(config_file)
     return data['domain'], data['group'], data['adminUser'], data['service-account-key']
@@ -75,7 +74,7 @@ def set_permissions(credentials, domain, users):
     return response
 
 def main():
-    ''' main '''
+    ''' Main entry-point for the program '''
 
     domain, group, admin_user, service_account_key = get_config()
     scopes = ['https://www.googleapis.com/auth/siteverification', \
