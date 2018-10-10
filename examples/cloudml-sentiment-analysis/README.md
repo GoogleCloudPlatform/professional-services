@@ -118,13 +118,13 @@ tensorboard --logdir=$TRAINING_OUTPUT_DIR
 
 ### Save model in GCP.
 
-** With HP tuning: **
+**With HP tuning:**
 ```sh
 TRIAL_NUMBER=''
 MODEL_SAVED_NAME=$(gsutil ls ${TRAINING_OUTPUT_DIR}/${TRIAL_NUMBER}/export/exporter/ | tail -1)
 ```
 
-** Without HP tuning: **
+**Without HP tuning:**
 ```sh
 MODEL_SAVED_NAME=$(gsutil ls ${TRAINING_OUTPUT_DIR}/export/exporter/ | tail -1)
 ```

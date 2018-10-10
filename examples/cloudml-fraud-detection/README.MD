@@ -4,6 +4,12 @@ This code implements a fraud detection model for credit-cards transactions using
 * **Data description**
 
 The data used as input to this code is preprocessed, anonymous credit card transactions data. The data consists in 23 components from a PCA as well as the amount of transactions.
+It can found on the [Kaggle website](https://www.kaggle.com/mlg-ulb/creditcardfraud/data).
+
+* **Acknowledgements**
+
+The dataset has been collected and analysed during a research collaboration of Worldline and the Machine Learning Group (http://mlg.ulb.ac.be) of ULB (Université Libre de Bruxelles) on big data mining and fraud detection. More details on current and past projects on related topics are available on http://mlg.ulb.ac.be/BruFence and http://mlg.ulb.ac.be/ARTML.
+Dataset provided thanks to: Andrea Dal Pozzolo, Olivier Caelen, Reid A. Johnson and Gianluca Bontempi. Calibrating Probability with Undersampling for Unbalanced Classification. In Symposium on Computational Intelligence and Data Mining (CIDM), IEEE, 2015.
 
 * **Overview of current solution:**
 
