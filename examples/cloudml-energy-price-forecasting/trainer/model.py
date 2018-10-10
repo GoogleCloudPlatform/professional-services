@@ -31,36 +31,6 @@ from tensorflow.python.lib.io import file_io
 from constants import constants
 
 
-def forward_key_to_export(estimator):
-    """Forwards record key to output during inference.
-
-    Temporary workaround. The key and its value will be extracted from input
-    tensors and returned in the prediction dictionary. This is useful to pass
-    record key identifiers. Code came from:
-    https://towardsdatascience.com/how-to-extend-a-canned-tensorflow-estimator-to-add-more-evaluation-metrics-and-to-pass-through-ddf66cd3047d
-    This shouldn't be necessary. (CL/187793590 was filed to update extenders.py
-    with this code)
-
-    Args:
-        estimator: `Estimator` being modified.
-
-    Returns:
-        A modified `Estimator`
-    """
-    config = estimator.config
-
-    def model_fn2(features, labels, mode):
-        estimatorSpec = estimator._call_model_fn(
-            features, labels, mode, config=config)
-        if estimatorSpec.export_outputs:
-            for ekey in ['predict', 'serving_default']:
-                estimatorSpec.export_outputs[
-                    ekey
-                ] = tf.estimator.export.PredictOutput(
-                    estimatorSpec.predictions)
-        return estimatorSpec
-    return tf.estimator.Estimator(model_fn=model_fn2, config=config)
-
 def create_regressor(config, parameters):
     """Creates a DNN regressor.
 
@@ -136,5 +106,4 @@ def create_regressor(config, parameters):
     estimator = tf.contrib.estimator.add_metrics(
         estimator, mean_absolute_error)
     estimator = tf.contrib.estimator.forward_features(estimator, 'date')
-    estimator = forward_key_to_export(estimator)
     return estimator
