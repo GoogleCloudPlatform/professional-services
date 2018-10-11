@@ -1,0 +1,4 @@
+click
+google-api-python-client
+google-cloud-logging
+google-cloud-monitoring

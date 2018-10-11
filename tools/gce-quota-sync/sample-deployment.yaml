@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: gce-quota-sync
+  name: gce-quota-sync
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gce-quota-sync
+  template:
+    metadata:
+      labels:
+        app: gce-quota-sync
+    spec:
+      containers:
+      - image: gcr.io/my-project/gce-quota-sync:latest
+        name: gce-quota-sync
+        env:
+        - name: OPT_PROJECT
+          value: my-project
+        - name: OPT_GCE_REGIONS
+          value: europe-west3,us-central1
