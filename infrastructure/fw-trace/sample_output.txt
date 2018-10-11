@@ -1,0 +1,60 @@
+mzuo-macbookpro:fw-trace-master mzuo$ python fw-trace.py 10.0.0.1 192.168.0.1 icmp 0 --project=mzuo-nyt-vpn --network=fw-test  --src_tag=test --dst_tag=test 
+--------------------------------
+| Firewall Rule Trace Tool     |
+--------------------------------
+Evaluating firewall rules for icmp: traffic from 10.0.0.1 to 192.168.0.1 in project mzuo-nyt-vpn network fw-test
+with consideration of source tag "test"
+and destination tag "test"
+ 
+--->Reached end of egress firewall rules. Traffic egress to 192.168.0.1 is implicitly allowed
+ 
+--->Ingress firewall rule "fw-ingress-sourcetag" matched.  Traffic is allowed to ingress to 192.168.0.1
+ 
+mzuo-macbookpro:fw-trace-master mzuo$ 
+
+
+
+mzuo-macbookpro:fw-trace mzuo$  python fw-trace.py 10.0.0.1 192.168.0.1 icmp 0 --project=mzuo-nyt-vpn --network=fw-test  --src_tag=test --dst_tag=test --verbose=true
+--------------------------------
+| Firewall Rule Trace Tool     |
+--------------------------------
+Evaluating firewall rules for icmp: traffic from 10.0.0.1 to 192.168.0.1 in project mzuo-nyt-vpn network fw-test
+with consideration of source tag "test"
+and destination tag "test"
+in verbose mode
+ 
+Source IP 10.0.0.1 is part of subnet "us-west1", will evaluate egress firewall rules
+Destination IP 192.168.0.1 is part of subnet "temp", will evaluate ingress firewall rules
+Evaluating egress firewall rule "fw-egress-individualports" 
+  Egress firewall rule "fw-egress-individualports" with destination range of 8.8.8.8/32 does not match the destination IP 192.168.0.1
+  Egress firewall rule "fw-egress-individualports" has no destination range that matches the destination IP 192.168.0.1. Skipping to next firewall rule
+Evaluating egress firewall rule "fw-egress-misc-prot" 
+  Egress firewall rule "fw-egress-misc-prot" with destination range of 8.8.8.8 does not match the destination IP 192.168.0.1
+  Egress firewall rule "fw-egress-misc-prot" has no destination range that matches the destination IP 192.168.0.1. Skipping to next firewall rule
+Evaluating egress firewall rule "fw-egress-multirange" 
+  Egress firewall rule "fw-egress-multirange" with destination range of 5.5.5.5/32 does not match the destination IP 192.168.0.1
+  Egress firewall rule "fw-egress-multirange" with destination range of 4.4.4.4/32 does not match the destination IP 192.168.0.1
+  Egress firewall rule "fw-egress-multirange" has no destination range that matches the destination IP 192.168.0.1. Skipping to next firewall rule
+Evaluating egress firewall rule "fw-egress-portrange" 
+  Egress firewall rule "fw-egress-portrange" with destination range of 8.8.8.8 does not match the destination IP 192.168.0.1
+  Egress firewall rule "fw-egress-portrange" has no destination range that matches the destination IP 192.168.0.1. Skipping to next firewall rule
+Evaluating egress firewall rule "fw-egress-protocol" 
+  Egress firewall rule "fw-egress-protocol" with destination range of 8.8.8.8/32 does not match the destination IP 192.168.0.1
+  Egress firewall rule "fw-egress-protocol" has no destination range that matches the destination IP 192.168.0.1. Skipping to next firewall rule
+Evaluating egress firewall rule "fw-egress-tags" 
+  Egress firewall rule "fw-egress-tags" has target tags "[u'test', u'prod']" match the source tag of "test"
+  Egress firewall rule "fw-egress-tags" with destination range of 8.8.8.0/24 does not match the destination IP 192.168.0.1
+  Egress firewall rule "fw-egress-tags" has no destination range that matches the destination IP 192.168.0.1. Skipping to next firewall rule
+Evaluating egress firewall rule "fw-egress-iprange" 
+  Egress firewall rule "fw-egress-iprange" with destination range of 8.8.8.8/32 does not match the destination IP 192.168.0.1
+  Egress firewall rule "fw-egress-iprange" has no destination range that matches the destination IP 192.168.0.1. Skipping to next firewall rule
+Evaluating egress firewall rule "fw-egress-subnet" 
+  Egress firewall rule "fw-egress-subnet" with destination range of 10.0.0.0/8 does not match the destination IP 192.168.0.1
+  Egress firewall rule "fw-egress-subnet" with destination range of 192.168.0.0/29 matches the destination IP 192.168.0.1
+  Egress firewall rule "fw-egress-subnet" does not allow or deny traffic on protocol icmp:. Skipping to next firewall rule
+--->Reached end of egress firewall rules. Traffic egress to 192.168.0.1 is implicitly allowed
+ 
+Evaluating ingress firewall rule "fw-ingress-sourcetag" 
+  Ingress firewall rule "fw-ingress-sourcetag" with source tags "[u'test', u'qa']" match the source tag "test"
+  Ingress firewall rule "fw-ingress-sourcetag" allows all protocols and ports
+--->Ingress firewall rule "fw-ingress-sourcetag" matched.  Traffic is allowed to ingress to 192.168.0.1
