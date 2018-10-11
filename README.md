@@ -23,6 +23,7 @@ The tools folder contains ready-made utilities which can simpilfy Google Cloud P
 * [GKE Billing Export](/tools/gke-billing-export) - Google Kubernetes Engine fine grained billing export.
 * [LabelMaker](/tools/labelmaker) - A tool that reads key:value pairs from a json file and labels the running instance and all attached drives accordingly.
 * [Site Verification Group Sync](/tools/site-verification-group-sync) - A tool to provision "verified owner" permissions (to create GCS buckets with custom dns) based on membership of a Google Group.
+* [GCE Quota Sync](/tools/gce-quota-sync) - A tool that fetches resource quota usage from the GCE API and synchronizes it to Stackdriver as a custom metric, where it can be used to define automated alerts.
 
 ## Contributing
 The team is currently not accepting contributions.
