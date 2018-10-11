@@ -157,12 +157,12 @@ def main(project=None, gce_regions=None, verbose=False, **kw):
   try:
     compute = googleapiclient.discovery.build(
         'compute', 'v1', cache_discovery=False)
-    # fetch quotas for global + defined regions
+    # Fetch quotas for global + defined regions.
     for region in gce_regions:
       _LOGGER.debug('fetching project quota for %s %s', project, region)
       for quota in _fetch_quotas(project, region, compute=compute):
         quotas.append((region, quota))
-    # convert quotas to series, write to Stackdriver using poor man's batching
+    # Convert quotas to series, write to Stackdriver using naive batching.
     client, i = monitoring_v3.MetricServiceClient(), 0
     while i < len(quotas):
       series = [_quota_to_series(project, *q)
