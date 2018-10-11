@@ -1,0 +1,4 @@
+Click==7.0
+google-api-python-client==1.7.4
+google-cloud-logging==1.7.0
+google-cloud-monitoring==0.30.1
