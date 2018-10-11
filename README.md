@@ -20,6 +20,7 @@ The tools folder contains ready-made utilities which can simpilfy Google Cloud P
 
 * [CloudConnect](/tools/cloudconnect) - A package that automates the setup of dual VPN tunnels between AWS and GCP.
 * [DNS Sync](/tools/dns-sync) - Sync a Cloud DNS zone with GCE resources. Instances and load balancers are added to the cloud DNS zone as they start from compute_engine_activity log events sent from a pub/sub push subscription. Can sync multiple projects to a single Cloud DNS zone.
+* [GCE Quota Sync](/tools/gce-quota-sync) - A tool that fetches resource quota usage from the GCE API and synchronizes it to Stackdriver as a custom metric, where it can be used to define automated alerts.
 * [GKE Billing Export](/tools/gke-billing-export) - Google Kubernetes Engine fine grained billing export.
 * [LabelMaker](/tools/labelmaker) - A tool that reads key:value pairs from a json file and labels the running instance and all attached drives accordingly.
 * [Site Verification Group Sync](/tools/site-verification-group-sync) - A tool to provision "verified owner" permissions (to create GCS buckets with custom dns) based on membership of a Google Group.
