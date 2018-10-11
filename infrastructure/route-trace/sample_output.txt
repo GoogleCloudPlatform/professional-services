@@ -1,0 +1,26 @@
+mzuo-macbookpro:route-trace mzuo$ python route-trace.py 6.6.6.254 --project=mzuo-nyt-vpn --network=lb-test  --tag=qa 
+--------------------------------
+| Routing Rules Trace Tool      |
+--------------------------------
+Evaluating Routing destined to 6.6.6.254 in project mzuo-nyt-vpn network lb-test
+with consideration of routes with tag "qa"
+ 
+Route "default-route-1d274885900a26c1" will be used. Traffic will be sent to "default-internet-gateway".
+ 
+mzuo-macbookpro:route-trace mzuo$ python route-trace.py 6.6.6.254 --project=mzuo-nyt-vpn --network=lb-test  --tag=qa --verbose=true
+--------------------------------
+| Routing Rules Trace Tool      |
+--------------------------------
+Evaluating Routing destined to 6.6.6.254 in project mzuo-nyt-vpn network lb-test
+with consideration of routes with tag "qa"
+in verbose mode
+ 
+Route "route-multitag" with destination range of 6.6.6.0/24 and tag "[u'test', u'test1', u'prod']" did not match the tag specified "qa"
+Route "route-2instance" with destination range of 2.2.2.2/32 did not match the destination IP 6.6.6.254
+Route "route-hp" with destination range of 1.1.1.1/32 did not match the destination IP 6.6.6.254
+Route "route-tag" with destination range of 3.3.3.3/32 and tag "[u'test']" did not match the tag specified "qa"
+Route "default-route-18825c1356dd6c67" with destination range of 10.1.0.0/16 did not match the destination IP 6.6.6.254
+Route "default-route-1d274885900a26c1" with destination range of 0.0.0.0/0 matched the destination IP 6.6.6.254
+Route "default-route-1d274885900a26c1" will be used. Traffic will be sent to "default-internet-gateway".
+ 
+mzuo-macbookpro:route-trace mzuo$ 
