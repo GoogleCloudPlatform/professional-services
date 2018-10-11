@@ -14,7 +14,7 @@
 
 FROM alpine:3.8
 
-ENV CRONSPEC "0 * * * *"
+ENV CRONSPEC "13 * * * *"
 ENV CRONTAB /etc/crontabs/root
 ENV LOGFILE /var/log/app.log
 
