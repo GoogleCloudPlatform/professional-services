@@ -16,13 +16,14 @@ It does this by:
 * deriving current utilization (usage / limit) for each quota, then converting
   it into a time series
 * writing the time series to Stackdriver in the
-  `custom.googleapis.com/quota/gce` metric
+  `custom.googleapis.com/quota/gce` metric.
 
 
 ## Usage
 
-The tool can be used as a standalone script, or deployed as a containerized
-image. It accepts a few simple parameters:
+The tool has been tested with Python 2.7, and can be used as a standalone
+script, or deployed as a containerized image. It accepts a few simple
+parameters:
 
 * `--project-id` the GCP project id for which to fetch global quotas
   *(required)*
@@ -77,7 +78,7 @@ Resource quota usage is exported to the Stackdriver in the
 The metric can then be used in charts, but more importantly to set custom
 alerts so as to monitor actual consumption, like in the following image:
 
-![](./images/quota_alert.png "Quota alert on threshold")
+![Stackdriver UI showing an alert policy set on quota metric threshold](./images/quota_alert.png)
 
 This is an example of a written series:
 
