@@ -208,7 +208,7 @@ You can run the pipeline locally with the following command:
 ```
 python dataflow_python_examples/data_ingestion_configurable.py \
 --project=###PUT HERE PROJECT ID### \
---input-bucket=###PUT HERE GCS BUCKET NAME### \
+--input-bucket=###PUT HERE GCS BUCKET NAME: gs://bucket_name ### \
 --input-path=###PUT HERE INPUT FOLDER### \
 --input-files=###PUT HERE FILE NAMES### \
 --bq-dataset=###PUT HERE BQ DATASET NAME###
