@@ -5,7 +5,7 @@ in the field.
 - [Ingesting data from a file into BigQuery](#ingesting-data-from-a-file-into-bigquery)
 - [Transforming data in Dataflow](#transforming-data-in-dataflow)
 - [Joining file and BigQuery datasets in Dataflow](#joining-file-and-bigquery-datasets-in-dataflow)
-- [Ingest data from files into Bigquery reading the file structure from Datastore](#Ingest-data-from-files-into-bigquery-reading-the-file-structure-from-datastore)
+- [Ingest data from files into Bigquery reading the file structure from Datastore](#ingest-data-from-files-into-bigquery-reading-the-file-structure-from-datastore)
 - [Data lake to data mart](#data-lake-to-data-mart)
 - [Data Generator for Benchmarking](#data-generator-for-benchmarking)
 
