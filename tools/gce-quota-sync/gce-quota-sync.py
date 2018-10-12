@@ -22,7 +22,6 @@ to set alert policies or create charts.
 """
 
 import datetime
-import itertools
 import logging
 import warnings
 
@@ -152,13 +151,15 @@ def _quota_to_series(project, region, quota):
 def main(project=None, gce_regions=None, verbose=False, **kw):
   "Fetch, convert, and write quotas for project and optional regions."
   _configure_logging(verbose=verbose)
-  gce_regions = ['global'] + [s.strip() for s in gce_regions.split(',')]
+  regions = ['global']
+  if gce_regions:
+    regions += gce_regions.split(',')
   quotas = []
   try:
     compute = googleapiclient.discovery.build(
         'compute', 'v1', cache_discovery=False)
     # Fetch quotas for global + defined regions.
-    for region in gce_regions:
+    for region in regions:
       _LOGGER.debug('fetching project quota for %s %s', project, region)
       for quota in _fetch_quotas(project, region, compute=compute):
         quotas.append((region, quota))
