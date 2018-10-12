@@ -1,37 +1,13 @@
-- [Dataflow using python](#dataflow-using-python)
-  - [Ingesting data from a file into BigQuery](#ingesting-data-from-a-file-into-bigquery)
-    - [Read data in from the file.](#read-data-in-from-the-file)
-    - [Transform the CSV format into a dictionary format.](#transform-the-csv-format-into-a-dictionary-format)
-    - [Write the data to BigQuery.](#write-the-data-to-bigquery)
-    - [Full code examples](#full-code-examples)
-  - [Transforming data in Dataflow](#transforming-data-in-dataflow)
-    - [Read data in from the file.](#read-data-in-from-the-file)
-    - [Transform the CSV format into a dictionary format.](#transform-the-csv-format-into-a-dictionary-format)
-    - [Write the data to BigQuery.](#write-the-data-to-bigquery)
-    - [Full code examples](#full-code-examples)
-  - [Joining file and BigQuery datasets in Dataflow](#joining-file-and-bigquery-datasets-in-dataflow)
-    - [Read in the primary dataset from a file](#read-in-the-primary-dataset-from-a-file)
-    - [Read in the reference data from BigQuery](#read-in-the-reference-data-from-bigquery)
-    - [Custom Python code is used to join the two datasets](#custom-python-code-is-used-to-join-the-two-datasets)
-    - [The joined dataset is written out to BigQuery](#the-joined-dataset-is-written-out-to-bigquery)
-    - [Full code examples](#full-code-examples)
-  - [Data lake to data mart](#data-lake-to-data-mart)
-    - [Read in the primary dataset from BigQuery](#read-in-the-primary-dataset-from-bigquery)
-    - [Read in the reference data from BigQuery](#read-in-the-reference-data-from-bigquery)
-    - [Custom Python code is used to join the two datasets](#custom-python-code-is-used-to-join-the-two-datasets)
-    - [The joined dataset is written out to BigQuery](#the-joined-dataset-is-written-out-to-bigquery)
-    - [Full code examples](#full-code-examples)
-  - [Data Generator for Benchmarking](#data-generator-for-benchmarking)
-    - [Write an n-line file to GCS.](#write-an-n-line-file-to-gcs)
-    - [Generate a single record per line read form GCS.](#generate-a-single-record-per-line-read-form-gcs)
-    - [Write the data to BigQuery](#write-the-data-to-bigquery)
-    - [Usage](#usage)
-
-
-
 # Dataflow using python
 This repo contains several examples of the Dataflow python API.  The examples are solutions to common use cases we see 
 in the field.
+
+- [Ingesting data from a file into BigQuery](#ingesting-data-from-a-file-into-bigquery)
+- [Transforming data in Dataflow](#transforming-data-in-dataflow)
+- [Joining file and BigQuery datasets in Dataflow](#joining-file-and-bigquery-datasets-in-dataflow)
+- [Ingest data from files into Bigquery reading the file structure from Datastore](#Ingest-data-from-files-into-bigquery-reading-the-file-structure-from-datastore)
+- [Data lake to data mart](#data-lake-to-data-mart)
+- [Data Generator for Benchmarking](#data-generator-for-benchmarking)
 
 The solutions below become more complex as we incorporate more Dataflow features.  
 
@@ -151,7 +127,112 @@ examples.
 ### Full code examples
 
 Ready to dive deeper?  Check out the complete code [here](dataflow_python_examples/data_enrichment.py).
+LLLLLLLLLLLL
+## Ingest data from files into Bigquery reading the file structure from Datastore 
 
+In example we create a Python [Apache Beam](https://beam.apache.org/) pipeline running on [Google Cloud Dataflow](https://cloud.google.com/dataflow/) to import CSV files into BigQuery using the following architecture:
+
+![Apache Beam pipeline to import CSV into BQ](img/data_ingestion_configurable.jpg)
+
+The architecture use:
+* [Google Cloud Storage]() to store CSV source files
+* [Google Cloud Datastore](https://cloud.google.com/datastore/docs/concepts/overview) to store CSV file structure and field type
+* [Google Cloud Dataflow](https://cloud.google.com/dataflow/) to read files from Google Cloud Storage, Transform data base on the structure of the file and import the data into Google BigQuery
+* [Google BigQuery](https://cloud.google.com/bigquery/) to store data in a Data Lake.
+
+You can use this script as a starting point to import your files into Google BigQuery. You'll probably need to adapt the script logic to adapt it to your file name structure or to your peculiar needs.
+
+### 1. Prerequisites
+ - Up and running GCP project with enabled billing account
+ - gcloud installed and initiated to your project
+ - Google Cloud Datastore enabled
+ - Google Cloud Dataflow API enabled
+ - Google Cloud Storage Bucket containing the file to import (CSV format) using the following naming convention: `TABLENAME_*.csv`
+ - Google Cloud Storage Bucket for tem and staging Google Dataflow files
+ - Google BigQuery dataset
+ - [Python](https://www.python.org/) >= 2.7 and python-dev module
+ - gcc
+ - Google Cloud [Application Default Credentials](https://cloud.google.com/sdk/gcloud/reference/auth/application-default/login)
+
+### 2. Create virtual environment
+Create a new virtual environment (recommended) and install requirements:
+
+```
+virtualenv env
+source ./env/bin/activate
+pip install -r requirements.txt
+```
+
+### 3. Configure Table schema
+Create a file with the structure of the file to be imported. Files need to follow the following naming convention: `TABLENAME.csv`. Files will contain the structure of the file in CSV format.
+
+Example:
+```
+name,STRING
+surname,STRING
+age,INTEGER
+```
+
+You can check parameters accepted by the `datastore_schema_import.py` script with the following command:
+```
+python datastore_schema_import.py --help
+```
+
+Run the `datastore_schema_import.py` script to create the entry in Google Cloud Datastore using the following command:
+```
+python datastore_schema_import.py --input-files=PATH_TO_FILE/TABLENAME.csv
+```
+The script support multiple file, you need to separate them with a comma.
+
+### 4. Upload files into Google Cloud Storage
+Upload files to be imported into Google Bigquery in a Google Cloud Storage Bucket. You can use `gsutil` using a command like:
+```
+gsutil cp [LOCAL_OBJECT_LOCATION] gs://[DESTINATION_BUCKET_NAME]/
+```
+To optimize upload of big files see the [documentation](https://cloud.google.com/solutions/transferring-big-data-sets-to-gcp).
+Files need to be in CSV format, with the name of the column as first row. For example:
+```
+name,surname,age
+test_1,test_1,30
+test_2,test_2,40
+"test_3, jr",surname,50
+```
+
+### 4. Run pipeline
+You can check parameter accepted by the `data_ingestion_configurable.py` script with the following command:
+```
+python data_ingestion_configurable --help
+```
+
+You can run the pipeline locally with the following command:
+```
+python data_ingestion_configurable.py \
+--project=###PUT HERE PROJECT ID### \
+--input-bucket=###PUT HERE GCS BUCKET NAME### \
+--input-path=###PUT HERE INPUT FOLDER### \
+--input-files=###PUT HERE FILE NAMES### \
+--bq-dataset=###PUT HERE BQ DATASET NAME###
+```
+
+or you can run the pipeline on Google Dataflow using the following command:
+
+```
+python data_ingestion_configurable.py \
+--runner=DataflowRunner \
+--max_num_workers=100 \
+--autoscaling_algorithm=THROUGHPUT_BASED \
+--region=###PUT HERE REGION### \
+--staging_location=###PUT HERE GCS STAGING LOCATION### \
+--temp_location=###PUT HERE GCS TMP LOCATION###\
+--project=###PUT HERE PROJECT ID### \
+--input-bucket=###PUT HERE GCS BUCKET NAME### \
+--input-path=###PUT HERE INPUT FOLDER### \
+--input-files=###PUT HERE FILE NAMES### \
+--bq-dataset=###PUT HERE BQ DATASET NAME###
+```
+
+### 4. Check results
+You can check data imported into Google BigQuery from the Google Cloud Console UI.
 
 ## Data lake to data mart
 ![Alt text](img/data_lake_to_data_mart.png?raw=true "Data lake to data mart")
