@@ -127,7 +127,7 @@ examples.
 ### Full code examples
 
 Ready to dive deeper?  Check out the complete code [here](dataflow_python_examples/data_enrichment.py).
-LLLLLLLLLLLL
+
 ## Ingest data from files into Bigquery reading the file structure from Datastore 
 
 In example we create a Python [Apache Beam](https://beam.apache.org/) pipeline running on [Google Cloud Dataflow](https://cloud.google.com/dataflow/) to import CSV files into BigQuery using the following architecture:
@@ -175,12 +175,12 @@ age,INTEGER
 
 You can check parameters accepted by the `datastore_schema_import.py` script with the following command:
 ```
-python datastore_schema_import.py --help
+python dataflow_python_examples/datastore_schema_import.py --help
 ```
 
 Run the `datastore_schema_import.py` script to create the entry in Google Cloud Datastore using the following command:
 ```
-python datastore_schema_import.py --input-files=PATH_TO_FILE/TABLENAME.csv
+python dataflow_python_examples/datastore_schema_import.py --input-files=PATH_TO_FILE/TABLENAME.csv
 ```
 The script support multiple file, you need to separate them with a comma.
 
@@ -201,12 +201,12 @@ test_2,test_2,40
 ### 4. Run pipeline
 You can check parameter accepted by the `data_ingestion_configurable.py` script with the following command:
 ```
-python data_ingestion_configurable --help
+python dataflow_python_examples/data_ingestion_configurable --help
 ```
 
 You can run the pipeline locally with the following command:
 ```
-python data_ingestion_configurable.py \
+python dataflow_python_examples/data_ingestion_configurable.py \
 --project=###PUT HERE PROJECT ID### \
 --input-bucket=###PUT HERE GCS BUCKET NAME### \
 --input-path=###PUT HERE INPUT FOLDER### \
@@ -217,7 +217,7 @@ python data_ingestion_configurable.py \
 or you can run the pipeline on Google Dataflow using the following command:
 
 ```
-python data_ingestion_configurable.py \
+python dataflow_python_examples/data_ingestion_configurable.py \
 --runner=DataflowRunner \
 --max_num_workers=100 \
 --autoscaling_algorithm=THROUGHPUT_BASED \
