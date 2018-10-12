@@ -130,17 +130,17 @@ Ready to dive deeper?  Check out the complete code [here](dataflow_python_exampl
 
 ## Ingest data from files into Bigquery reading the file structure from Datastore 
 
-In example we create a Python [Apache Beam](https://beam.apache.org/) pipeline running on [Google Cloud Dataflow](https://cloud.google.com/dataflow/) to import CSV files into BigQuery using the following architecture:
+In this example we create a Python [Apache Beam](https://beam.apache.org/) pipeline running on [Google Cloud Dataflow](https://cloud.google.com/dataflow/) to import CSV files into BigQuery using the following architecture:
 
 ![Apache Beam pipeline to import CSV into BQ](img/data_ingestion_configurable.jpg)
 
-The architecture use:
+The architecture uses:
 * [Google Cloud Storage]() to store CSV source files
 * [Google Cloud Datastore](https://cloud.google.com/datastore/docs/concepts/overview) to store CSV file structure and field type
 * [Google Cloud Dataflow](https://cloud.google.com/dataflow/) to read files from Google Cloud Storage, Transform data base on the structure of the file and import the data into Google BigQuery
 * [Google BigQuery](https://cloud.google.com/bigquery/) to store data in a Data Lake.
 
-You can use this script as a starting point to import your files into Google BigQuery. You'll probably need to adapt the script logic to adapt it to your file name structure or to your peculiar needs.
+You can use this script as a starting point to import your files into Google BigQuery. You'll probably need to adapt the script logic to your file name structure or to your peculiar needs.
 
 ### 1. Prerequisites
  - Up and running GCP project with enabled billing account
@@ -182,7 +182,7 @@ Run the `datastore_schema_import.py` script to create the entry in Google Cloud 
 ```
 python dataflow_python_examples/datastore_schema_import.py --input-files=PATH_TO_FILE/TABLENAME.csv
 ```
-The script support multiple file, you need to separate them with a comma.
+The script supports multiple file, you need to separate them with a comma.
 
 ### 4. Upload files into Google Cloud Storage
 Upload files to be imported into Google Bigquery in a Google Cloud Storage Bucket. You can use `gsutil` using a command like:
@@ -199,7 +199,7 @@ test_2,test_2,40
 ```
 
 ### 4. Run pipeline
-You can check parameter accepted by the `data_ingestion_configurable.py` script with the following command:
+You can check parameters accepted by the `data_ingestion_configurable.py` script with the following command:
 ```
 python dataflow_python_examples/data_ingestion_configurable --help
 ```
