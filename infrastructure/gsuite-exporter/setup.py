@@ -59,4 +59,5 @@ setup(
             'gsuite-exporter=gsuite_exporter.cli:main',
         ],
     },
+    python_requires='>=2.7,<3.0'
 )
