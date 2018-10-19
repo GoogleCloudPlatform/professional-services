@@ -100,7 +100,10 @@ class StackdriverExporter(BaseExporter):
           'filter': 'logName={}'.format(destination)
         }
         log = self.api.entries().list(body=query).execute()
-        timestamp = log['entries'][0]['timestamp'] if 'entries' in log else None
+        try:
+            timestamp = log['entries'][0]['timestamp']
+        except (KeyError, IndexError):
+            timestamp = None
         return timestamp
 
     def __convert(self, record):
