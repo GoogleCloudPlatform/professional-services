@@ -140,7 +140,7 @@ class StackdriverExporter(BaseExporter):
         Returns:
             dict: A dict with a key 'seconds' containing the record timestamp.
         """
-        (remainder, seconds) = math.modf(time.mktime(
+        remainder, seconds = math.modf(time.mktime(
             dateutil.parser.parse(record['id']['time']).timetuple()
         ))
         return {'seconds': int(seconds)}
