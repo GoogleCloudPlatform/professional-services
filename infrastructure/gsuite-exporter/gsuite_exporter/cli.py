@@ -27,8 +27,8 @@ logger = logging.getLogger(__name__)
 
 def get_exporter_cls(exporter_class):
     try:
-        file, name = tuple(exporter_class.split('.'))
-        package = 'gsuite_exporter.exporters.%s' % file
+        filename, name = exporter_class.split('.')
+        package = 'gsuite_exporter.exporters.%s' % filename
         return getattr(importlib.import_module(package), name)
     except Exception as e:
         logger.exception(
