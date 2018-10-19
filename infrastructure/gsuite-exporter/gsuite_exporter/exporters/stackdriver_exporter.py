@@ -128,7 +128,7 @@ class StackdriverExporter(BaseExporter):
                 'parameters': record['events'][0].get('parameters'),
                 'report_timestamp': self.__convert_timestamp(record)
             },
-            'resource': { 'type': 'global' }
+            'resource': {'type': 'global'}
         }
 
     def __convert_timestamp(self, record):
