@@ -36,7 +36,7 @@ def get_exporter_cls(exporter_class):
             'prefixed by the exporter file name.\n'
             'Example: `stackdriver_exporter.StackdriverExporter`',
             exporter_class)
-        sys.exit()
+        sys.exit(1)
 
 def sync_all(
         admin_user,
