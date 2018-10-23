@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: secret-syncer
+  namespace: secrets
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: secret-syncer
+  template:
+    metadata:
+      name: secret-syncer
+      labels:
+        app: secret-syncer
+    spec:
+      serviceAccountName: secret-syncer
+      containers:
+      - name: secret-syncer
+        image: gcr.io/ssakhuja-dev1-214220/resource-syncer:0.1
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: 0.1
+            memory: 128M
+          limits:
+            cpu: 0.2
+            memory: 256M

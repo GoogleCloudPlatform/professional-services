@@ -1,0 +1,13 @@
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: secret-syncer
+rules:
+# read namespaces
+- apiGroups: ["v1"] 
+  resources: ["namespaces"]
+  verbs: ["get", "list"]
+# create/update secrets
+- apiGroups: ["v1"]
+  resources: ["secrets"]
+  verbs: ["get", "list", "create", "update"]
