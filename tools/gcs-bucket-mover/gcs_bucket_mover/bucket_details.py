@@ -11,9 +11,9 @@
 #
 # Any software provided by Google hereunder is distributed "AS IS", WITHOUT WARRANTIES OR
 # CONDITIONS OF ANY KIND, and is not intended for production use.
-"""Holds the details and settings of a bucket.
+"""This is used to track the settings of the source bucket.
 
-This is required so that after the source bucket is deleted, we can create the new one with all of
+It is required so that after the source bucket is deleted, we can create the new one with all of
 the same details and settings.
 """
 

@@ -48,94 +48,77 @@ def get_config():
         type=str,
         help='The project id that the bucket will be moved to.')
     parser.add_argument(
-        '-t',
         '--test',
         action='store_true',
         help=textwrap.dedent('''\
         This will run a test of the tool to ensure all permissions are set up correctly and
-        buckets can be moved between the two projects. Use a random bucket name for testing.
-        !!!! DO NOT PASS IN THE NAME OF AN EXISTING BUCKET. The test will delete it
-        and everything in it !!!!'''))
+        buckets can be moved between the two projects, using a randomly generated bucket.
+        A fake bucket name will still need to be specified.'''))
     parser.add_argument(
-        '-tbn',
         '--tempBucketName',
         type=str,
         help='The termporary bucket name to use in the target project.')
     parser.add_argument(
-        '-l',
         '--location',
         type=str,
-        help='Specify a different location for the new bucket.')
+        help='Specify a different location for the target bucket.')
     parser.add_argument(
-        '-s',
         '--storageClass',
         type=str,
         choices=[
             'MULTI_REGIONAL', 'NAM4', 'REGIONAL', 'STANDARD', 'NEARLINE',
             'COLDLINE', 'DURABLE_REDUCED_AVAILABILITY'
         ],
-        help='Specify a different storage class for the new bucket.')
+        help='Specify a different storage class for the target bucket.')
     parser.add_argument(
-        '-se',
         '--skipEverything',
         action='store_true',
         help=
         'Only copies the bucket\'s storage class and location. Equivalent to setting every other'
         ' --skip parameter to True.')
     parser.add_argument(
-        '-sa',
         '--skipAcl',
         action='store_true',
         help='Don\'t replicate the ACLs from the source bucket.')
     parser.add_argument(
-        '-sc',
         '--skipCors',
         action='store_true',
         help='Don\'t copy the CORS settings from the source bucket.')
     parser.add_argument(
-        '-sdoa',
         '--skipDefaultObjectAcl',
         action='store_true',
         help='Don\'t copy the Default Object ACL from the source bucket.')
     parser.add_argument(
-        '-si',
         '--skipIam',
         action='store_true',
         help='Don\'t replicate the IAM policies from the source bucket.')
     parser.add_argument(
-        '-skms',
         '--skipKmsKey',
         action='store_true',
         help='Don\'t copy the Default KMS Key from the source bucket.')
     parser.add_argument(
-        '-sl',
         '--skipLabels',
         action='store_true',
         help='Don\'t copy the Labels from the source bucket.')
     parser.add_argument(
-        '-slog',
         '--skipLogging',
         action='store_true',
         help='Don\'t copy the Logging settings from the source bucket.')
     parser.add_argument(
-        '-slr',
         '--skipLifecycleRules',
         action='store_true',
         help='Don\'t copy the Lifecycle Rules from the source bucket.')
     parser.add_argument(
-        '-sn',
         '--skipNotifications',
         action='store_true',
         help=
         'Don\'t copy the Cloud Pub/Sub notification setting from the source bucket.'
     )
     parser.add_argument(
-        '-srp',
         '--skipRequesterPays',
         action='store_true',
         help='Don\'t copy the Requester Pays setting from the source bucket.')
     parser.add_argument(
-        '-sv',
         '--skipVersioning',
         action='store_true',
         help='Don\'t copy the Versioning setting from the source bucket.')
@@ -148,6 +131,7 @@ def main():
     config = get_config()
 
     if config.test:
-        bucket_mover_tester.set_up_test_bucket(config)
+        test_bucket_name = bucket_mover_tester.set_up_test_bucket(config)
+        config.bucket_name = test_bucket_name
 
     bucket_mover_service.move_bucket(config)
