@@ -19,6 +19,7 @@ and target projects before it starts so that it can be run repeatedly.
 """
 
 from __future__ import absolute_import
+import uuid
 
 from faker import Faker
 from yaspin import yaspin
@@ -46,33 +47,37 @@ def set_up_test_bucket(conf):
 
     Args:
         conf: the argparser parsing of command line options
+
+    Returns:
+        The name of the randomly generated bucket
     """
 
     #Load the environment config values set in config.sh and create the storage clients.
     config = configuration.Configuration(conf)
+    random_bucket_name = _get_random_bucket_name()
 
     with yaspin(text='TESTING: Cleanup source bucket') as spinner:
         try:
             _check_bucket_exists_and_delete(
-                spinner, config.source_storage_client, conf.bucket_name,
+                spinner, config.source_storage_client, random_bucket_name,
                 conf.source_project)
         except exceptions.Forbidden:
             try:
                 #Maybe the bucket already exists in the target project.
                 _check_bucket_exists_and_delete(
-                    spinner, config.target_storage_client, conf.bucket_name,
+                    spinner, config.target_storage_client, random_bucket_name,
                     conf.target_project)
             except exceptions.Forbidden:
                 spinner.write('TESTING: Not allowed to access bucket {}'.format(
-                    conf.bucket_name))
+                    random_bucket_name))
                 spinner.fail('X')
                 raise SystemExit()
 
         source_bucket = create_bucket(config.source_storage_client,
-                                      conf.bucket_name)
+                                      random_bucket_name)
         spinner.write(
             '{} TESTING: Bucket {} created in source project {}'.format(
-                bucket_mover_service.CHECKMARK, conf.bucket_name,
+                bucket_mover_service.CHECKMARK, random_bucket_name,
                 conf.source_project))
 
     _upload_blobs(source_bucket)
@@ -81,6 +86,7 @@ def set_up_test_bucket(conf):
         _check_bucket_exists_and_delete(spinner, config.target_storage_client,
                                         config.temp_bucket_name,
                                         conf.target_project)
+    return random_bucket_name
 
 
 def create_bucket(storage_client, bucket_name):
@@ -104,7 +110,7 @@ def create_bucket(storage_client, bucket_name):
     policies.append({'origin': ['/foo']})
     policies[0]['maxAgeSeconds'] = 3600
     bucket.cors = policies
-    # KMS Key
+    # KMS Key - When a custom KMS key is set up, uncomment the line below to test it
     #bucket.default_kms_key_name = DEFAULT_KMS_KEY_NAME
     # Labels
     bucket.labels = {'colour': 'red', 'flavour': 'cherry'}
@@ -132,8 +138,8 @@ def create_bucket(storage_client, bucket_name):
 
     # IAM Policies
     policy = bucket.get_iam_policy()
+    # Uncomment the line below to view the existing IAM policies
     #print(json.dumps(policy.to_api_repr(), indent=4, sort_keys=True))
-    #policy[CUSTOM_ROLE_NAME].add('user:' + EMAIL_FOR_IAM)
     policy['roles/storage.admin'].add('user:' + EMAIL_FOR_IAM)
     bucket.set_iam_policy(policy)
     # ACLs
@@ -155,6 +161,11 @@ def create_bucket(storage_client, bucket_name):
     notification.create()
 
     return bucket
+
+
+def _get_random_bucket_name():
+    """Generate a random bucket name for testing purposes"""
+    return 'bucket_mover_' + str(uuid.uuid4())
 
 
 def _check_bucket_exists_and_delete(spinner, storage_client, bucket_name,
