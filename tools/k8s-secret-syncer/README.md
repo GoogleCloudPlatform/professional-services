@@ -18,11 +18,14 @@ one to maintain only a single copy of each Secret.
  ```
  gcloud auth configure-docker
  ```
-- Your k8s user has the permissions to create RBAC resources in the cluster, this can be done with:
+- Your k8s user has the permissions to create RBAC resources in the cluster, this can be done with the below if authenticating with a user account:
  ```
- kubectl create clusterrolebinding owner --clusterrole cluster-admin --user <your-user>
+ kubectl create clusterrolebinding myrolebinding --clusterrole cluster-admin --user <your-user>
  ```
-\<your-user\> is generally the same as your GCP user.
+- If using a service account, then the below command is used instead:
+ ```
+ kubectl create clusterrolebinding myrolebinding --clusterrole cluster-admin --serviceaccount "<sa-namespace>:<sa-name>"
+ ```
 
 #### Install *secret-syncer*
 To install *secret-syncer*, run the below script from this directory:
