@@ -36,8 +36,8 @@ SOURCE_NS | The namespace to copy secrets from | secrets
 SOURCE_ANNO | The annotation key to look for on secrets to determine the namespaces to it copy it to -- a secret will be copied to all namespaces that (regex) match its value for this annotation | ns-propagate
 NS_BLACKLIST | A comma-separated list of namespaces to ignore as destinations for copying -- note that SOURCE_NS is automatically appended to this| kube-system,kube-public,default
 SYNC_INTERVAL_SECONDS | The interval at which to look for and copy secrets | 300
-RESOURCE_KIND | The kind of resources to copy (change at your own risk) | secret
 SKIP_DELETE | By default, *secret-syncer* will delete secrets in any non-blacklisted namespaces that have the SOURCE_ANNO annotation but do not exist in the SOURCE_NS namespace -- set this to 'yes' to disable deletion | no
+RESOURCE_KIND | The kind of resources to copy (change at your own risk) | secret
 
 ## Example Secret
 
