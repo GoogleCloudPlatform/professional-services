@@ -11,8 +11,8 @@ RESOURCE_KIND = os.environ.get('RESOURCE_KIND', 'secret')  # cluster role must b
 SYNC_INTERVAL_SECONDS = int(os.environ.get('SYNC_INTERVAL_SECONDS', 300))
 SOURCE_NS = os.environ.get('SOURCE_NS', 'secrets')
 SOURCE_ANNO = os.environ.get('SOURCE_ANNO', 'ns-propagate')
-OMIT_NS = os.environ.get('OMIT_NS', 'kube-system,kube-public,default').split(',')
-OMIT_NS.append(SOURCE_NS)  # don't copy back to source
+NS_BLACKLIST = os.environ.get('NS_BLACKLIST', 'kube-system,kube-public,default').split(',')
+NS_BLACKLIST.append(SOURCE_NS)  # don't copy back to source
 
 def kube_get(kind, namespace=None, name=None):
   cmd = 'kubectl get -o json ' + kind + (' -n ' + namespace if namespace else ' ') + (name if name else ' ')
@@ -31,7 +31,7 @@ def kube_switch_ns(definition, target_ns):
 
 # get all namespaces
 def kube_get_ns():
-  return [ns for ns in kube_get('namespace') if ns['metadata']['name'] not in OMIT_NS]
+  return [ns for ns in kube_get('namespace') if ns['metadata']['name'] not in NS_BLACKLIST]
 
 # get resources from source namespace
 def get_source_resources(kind, source_ns):
@@ -56,7 +56,7 @@ starting resource syncer with the following properties:
 - syncing from source namespace "%s"
 - syncing resources of kind "%s" that include the annotation "%s"
 - omitting the following namespaces as sync destinations: "%s"
-''' % (SOURCE_NS, RESOURCE_KIND, SOURCE_ANNO, OMIT_NS)
+''' % (SOURCE_NS, RESOURCE_KIND, SOURCE_ANNO, NS_BLACKLIST)
 
 while True:
   try:
