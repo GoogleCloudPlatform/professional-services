@@ -14,18 +14,8 @@ one to maintain only a single copy of each Secret.
 
 #### Prerequisites
 - You have a GCP project with a k8s cluster that you can deploy resources to, as well as `gcloud` and `kubectl` configured to point to each, respectively.
-- Your docker client is configured to be able to push to GCR, this can be done with:
- ```
- gcloud auth configure-docker
- ```
-- Your k8s user has the permissions to create RBAC resources in the cluster, this can be done with the below if authenticating with a user account:
- ```
- kubectl create clusterrolebinding myrolebinding --clusterrole cluster-admin --user <your-user>
- ```
-- If using a k8s service account, then the below command is used instead:
- ```
- kubectl create clusterrolebinding myrolebinding --clusterrole cluster-admin --serviceaccount "<sa-namespace>:<sa-name>"
- ```
+- Your docker client is [authenticated with GCR](https://cloud.google.com/sdk/gcloud/reference/auth/configure-docker).
+- Your k8s user has permissions to [create RBAC resources](https://cloud.google.com/kubernetes-engine/docs/how-to/role-based-access-control#prerequisites_for_using_role-based_access_control).
 
 #### Install *secret-syncer*
 To install *secret-syncer*, run the below script from this directory:
