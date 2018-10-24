@@ -10,4 +10,4 @@ rules:
 # create/update secrets
 - apiGroups: [""]
   resources: ["secrets"]
-  verbs: ["get", "list", "create", "update", "patch"]
+  verbs: ["get", "list", "create", "update", "patch", "delete"]

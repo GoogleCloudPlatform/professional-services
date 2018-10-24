@@ -37,6 +37,7 @@ SOURCE_ANNO | The annotation key to look for on secrets to determine the namespa
 NS_BLACKLIST | A comma-separated list of namespaces to ignore as destinations for copying -- note that SOURCE_NS is automatically appended to this| kube-system,kube-public,default
 SYNC_INTERVAL_SECONDS | The interval at which to look for and copy secrets | 300
 RESOURCE_KIND | The kind of resources to copy (change at your own risk) | secret
+SKIP_DELETE | By default, *secret-syncer* will delete any secrets in any non-blacklisted namespace that has the SOURCE_ANNO but does not exist in the SOURCE_NS namespace | no
 
 ## Example Secret
 
