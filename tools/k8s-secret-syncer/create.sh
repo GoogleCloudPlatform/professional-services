@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# TO-DO: check for compatibility of this sed command with linux -- only tested on Mac
+set -o errexit
+
 function replace_image() {
   local FILE=$1
   local IMAGE=$2
