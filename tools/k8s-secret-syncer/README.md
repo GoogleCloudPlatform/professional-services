@@ -22,7 +22,7 @@ one to maintain only a single copy of each Secret.
  ```
  kubectl create clusterrolebinding myrolebinding --clusterrole cluster-admin --user <your-user>
  ```
-- If using a service account, then the below command is used instead:
+- If using a k8s service account, then the below command is used instead:
  ```
  kubectl create clusterrolebinding myrolebinding --clusterrole cluster-admin --serviceaccount "<sa-namespace>:<sa-name>"
  ```
