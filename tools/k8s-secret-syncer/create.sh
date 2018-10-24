@@ -4,7 +4,8 @@
 function replace_image() {
   local FILE=$1
   local IMAGE=$2
-  sed -i '' "s~^\(.* image:\).*$~\1 $IMAGE~g" $FILE
+  [ "$(uname -a | cut -d ' ' -f 1)" == "Darwin" ] && BK='.bk' || BK=''  # adjust for OS
+  sed -i $BK "s~^\(.* image:\).*$~\1 $IMAGE~g" $FILE
 }
 
 IMAGE=gcr.io/$(gcloud config get-value project)/resource-syncer:0.1
