@@ -17,8 +17,8 @@ The easiest way to install *secret-syncer* is by running the below from this dir
 ./create.sh
 ```
 This script uses `gcloud` and `kubectl` to build/push the container image for *secret-syncer*
-and create a Deployment `secret-syncer` to the namespace `secrets` in the currently active k8s cluster,
-along with necessary RBAC resources.
+and create a Deployment `secret-syncer`, along with necessary RBAC resources, to the 
+namespace `secrets` in the currently active k8s cluster.
 
 ** Note that this script has only been tested on MacOS, and may need some tweaking to support 
 other environments.
@@ -55,4 +55,4 @@ data:
 ## Notes
 
 - *secret-syncer* does **not** delete secrets, even if they are deleted from the source namespace.
-- Secrets can be modified to change annotations via `kubectl edit`.
+- Secrets annotations can be modified via `kubectl edit`.
