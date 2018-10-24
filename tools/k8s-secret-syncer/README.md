@@ -14,13 +14,13 @@ one to maintain only a single copy of each Secret.
 
 #### Prerequisites
 - You have a GCP project with a k8s cluster that you can deploy resources to, as well as `gcloud` and `kubectl` configured to point to each, respectively.
-- Your docker client must be configured to be able to push to GCR, this can be done with:
+- Your docker client is configured to be able to push to GCR, this can be done with:
  ```
  gcloud auth configure-docker
  ```
-- Your k8s user has the proper permissions to create rbac resources in the cluster, this can be done with:
+- Your k8s user has the permissions to create RBAC resources in the cluster, this can be done with:
  ```
- kubect create clusterrolebinding owner --clusterrole cluster-admin --user <your-user>
+ kubectl create clusterrolebinding owner --clusterrole cluster-admin --user <your-user>
  ```
 
 #### Install *secret-syncer*
@@ -33,7 +33,9 @@ and create a Deployment `secret-syncer`, along with necessary RBAC resources, to
 namespace `secrets` in the currently active k8s cluster.
 
 ** Note that this script has only been tested on MacOS, and may need some tweaking to support 
-other environments (namely the arguments passed to the `sed` command).
+other environments (namely the arguments passed to the `sed` command in the `replace_image` function).
+Alternatively, the call to `replace_image` can be commented out, and the image specified manually
+in `manifests/deployment.yaml`.
 
 ## Configuration
 
