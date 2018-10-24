@@ -22,6 +22,7 @@ one to maintain only a single copy of each Secret.
  ```
  kubectl create clusterrolebinding owner --clusterrole cluster-admin --user <your-user>
  ```
+\<your-user\> is generally the same as your GCP user.
 
 #### Install *secret-syncer*
 To install *secret-syncer*, run the below script from this directory:
