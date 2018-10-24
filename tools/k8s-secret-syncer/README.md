@@ -24,18 +24,13 @@ one to maintain only a single copy of each Secret.
  ```
 
 #### Install *secret-syncer*
-The easiest way to install *secret-syncer* is by running the below script from this directory:
+To install *secret-syncer*, run the below script from this directory:
 ```bash
 ./create.sh
 ```
 This script uses `gcloud` and `kubectl` to build/push the container image for *secret-syncer*
 and create a Deployment `secret-syncer`, along with necessary RBAC resources, to the 
 namespace `secrets` in the currently active k8s cluster.
-
-** Note that this script has only been tested on MacOS, and may need some tweaking to support 
-other environments (namely the arguments passed to the `sed` command in the `replace_image` function).
-Alternatively, the call to `replace_image` can be commented out, and the image specified manually
-in `manifests/deployment.yaml`.
 
 ## Configuration
 
