@@ -6,9 +6,9 @@ import re
 import time
 import traceback
 
-# get configuration
+# configuration
 RESOURCE_KIND = os.environ.get('RESOURCE_KIND', 'secret')  # cluster role must be granted accordingly
-SYNC_INTERVAL_SECONDS = int(os.environ.get('SYNC_INTERVAL_SECONDS', 10))
+SYNC_INTERVAL_SECONDS = int(os.environ.get('SYNC_INTERVAL_SECONDS', 300))
 SOURCE_NS = os.environ.get('SOURCE_NS', 'secrets')
 SOURCE_ANNO = os.environ.get('SOURCE_ANNO', 'ns-propagate')
 OMIT_NS = os.environ.get('OMIT_NS', 'kube-system,kube-public,default').split(',')
@@ -20,7 +20,7 @@ def kube_get(kind, namespace=None, name=None):
   return json.loads(resp)['items']
 
 def kube_apply(definition):
-  return subprocess.call(['/bin/sh', '-c', 'echo ' + json.dumps(definition) + ' | kubectl apply -f -'], shell=True)
+  return subprocess.call(["/bin/sh", "-c", "echo '" + json.dumps(definition) + "' | kubectl apply -f -"])
 
 # modify a resource to strip out unique fields and switch the namespace
 def kube_switch_ns(definition, target_ns):
@@ -46,7 +46,9 @@ def sync_resources(resources):
     target_ns_list = [ns for ns in namespaces if re.match('^' + target_ns_pattern + '$', ns['metadata']['name'])]
     for ns in target_ns_list:
       print 'copying %s %s to namespace %s' % (RESOURCE_KIND, r['metadata']['name'], ns['metadata']['name'])
-      kube_apply(kube_switch_ns(r, ns))
+      kube_switch_ns(r, ns['metadata']['name'])
+      if kube_apply(r) != 0:
+        raise ValueError('error in copying ' + RESOURCE_KIND)
 
 # main
 print '''
@@ -58,6 +60,7 @@ starting resource syncer with the following properties:
 
 while True:
   try:
+    print '====== checking namespace %s for %ss to sync ======' % (SOURCE_NS, RESOURCE_KIND)
     resources = get_source_resources(RESOURCE_KIND, SOURCE_NS)
     sync_resources(resources)
   except Exception as e:

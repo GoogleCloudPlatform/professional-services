@@ -14,7 +14,7 @@ docker build -t $IMAGE . && docker push $IMAGE
 replace_image manifests/deployment.yaml $IMAGE
 
 # create ns, if DNE
-NS=secret-syncer
+NS=secrets
 kubectl get ns $NS || kubectl create ns $NS
 
 # create resources

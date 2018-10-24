@@ -4,10 +4,10 @@ metadata:
   name: secret-syncer
 rules:
 # read namespaces
-- apiGroups: ["v1"] 
+- apiGroups: [""] 
   resources: ["namespaces"]
   verbs: ["get", "list"]
 # create/update secrets
-- apiGroups: ["v1"]
+- apiGroups: [""]
   resources: ["secrets"]
-  verbs: ["get", "list", "create", "update"]
+  verbs: ["get", "list", "create", "update", "patch"]
