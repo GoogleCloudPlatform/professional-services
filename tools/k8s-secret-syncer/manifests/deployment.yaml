@@ -19,9 +19,9 @@ spec:
       - name: secret-syncer
         image: gcr.io/my-cool-gcp-project/resource-syncer:0.1
         imagePullPolicy: Always
-        env:
-        - name: SYNC_INTERVAL_SECONDS
-          value: 10
+        #env:
+        #- name: SYNC_INTERVAL_SECONDS
+        #  value: 10
         resources:
           requests:
             cpu: 0.1
