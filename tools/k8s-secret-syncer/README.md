@@ -58,5 +58,4 @@ data:
 
 ## Notes
 
-- *secret-syncer* does **not** delete secrets, even if they are deleted from the source namespace.
-- Secrets annotations can be modified via `kubectl edit`.
+- Secret annotations can be modified via `kubectl edit`.
