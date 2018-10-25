@@ -58,4 +58,4 @@ data:
 
 ## Notes
 
-- Secret annotations can be modified via `kubectl edit`.
+- Annotations for existing Secrets can be modified via `kubectl edit`.
