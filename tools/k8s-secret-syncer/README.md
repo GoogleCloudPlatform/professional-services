@@ -36,6 +36,7 @@ SOURCE_NS | The namespace to copy secrets from | secrets
 SOURCE_ANNO | The annotation key to look for on secrets to determine the namespaces to it copy it to -- a secret will be copied to all namespaces that (regex) match its value for this annotation | ns-propagate
 NS_BLACKLIST | A comma-separated list of namespaces to ignore as destinations for copying -- note that SOURCE_NS is automatically appended to this| kube-system,kube-public,default
 SYNC_INTERVAL_SECONDS | The interval at which to look for and copy secrets | 300
+SKIP_DELETE | By default, *secret-syncer* will delete secrets in any non-blacklisted namespaces that have the SOURCE_ANNO annotation but do not exist in the SOURCE_NS namespace -- set this to 'yes' to disable deletion | no
 RESOURCE_KIND | The kind of resources to copy (change at your own risk) | secret
 
 ## Example Secret
@@ -46,17 +47,14 @@ Below is an example secret that would be copied to all namespaces (excluding tho
 apiVersion: v1
 kind: Secret
 metadata:
-  name: my-registry-credentials
+  name: my-secret
   namespace: secrets
   annotations:
     ns-propagate: .*
-type: kubernetes.io/dockerconfigjson
 data:
-  .dockerconfigjson: [REDACTED]
+  foo: YWJj 
 ```
 
 ## Notes
 
-- *secret-syncer* does **not** delete secrets, even if they are deleted from the source namespace.
-- Secrets annotations can be modified via `kubectl edit`.
-
+- Annotations for existing Secrets can be modified via `kubectl edit`.
