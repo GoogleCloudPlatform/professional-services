@@ -274,15 +274,29 @@ class FakeRowGen(beam.DoFn):
         key_set = range(self.data_gen.n_keys)
 
         # Below handles if the datatype got changed by the faker provider
-        if field[u'type'] == 'STRING' or field[u'type'].find('TIME') > -1:
+        if field[u'type'] == 'STRING':
             record[fieldname] = unicode(record[fieldname])
-        elif field[u'type'].find('DATE') > -1:
+
+        elif field[u'type'] == 'TIMESTAMP':
+            record[fieldname] = faker.datetime_between_dates(self.data_gen.min_date,
+                                         self.data_gen.max_date)
+            record[fieldname] = unicode(
+                record[fieldname].strftime('%Y-%m-%dT%H:%M:%S'))
+
+        elif field[u'type'] == 'DATETIME':
+            record[fieldname] = faker.datetime_between_dates(self.data_gen.min_date,
+                                         self.data_gen.max_date)
+            record[fieldname] = unicode(
+                record[fieldname].strftime('%Y-%m-%dT%H:%M:%S'))
+            
+        elif field[u'type'] == 'DATE':
             # This implements the minimum/maximum date functionality
             # and avoids regenerating a random date if already obeys min/max
             # date.
             record[fieldname] = faker.date_between(self.data_gen.min_date,
                                                        self.data_gen.max_date)
             record[fieldname] = unicode(record[fieldname].strftime('%Y-%m-%d'))
+
         elif field[u'type'] == 'INTEGER':
             max_size = self.data_gen.max_int
 
@@ -300,6 +314,7 @@ class FakeRowGen(beam.DoFn):
             if self.data_gen.only_pos and record[fieldname] < 0:
                 record[fieldname] = abs(record[fieldname])
             record[fieldname] = int(record[fieldname])
+
         elif field['type'] == 'FLOAT' or field['type'] == 'NUMERIC':
             min_size = self.data_gen.min_float
             max_size = self.data_gen.max_float
@@ -340,22 +355,21 @@ class FakeRowGen(beam.DoFn):
         if '_key' in field['name'].lower() or '_id' in field['name'].lower():
             key_mag = int(math.log10(self.data_gen.n_keys))
             if self.key_set:
+                print('if triggered')
                 # If this is a dimension table we generate the main table first.
-                key = np.random.choice(key_set)
+                key = np.random.choice(self.key_set)
                 record[fieldname] = key
             else:
                 key = self.get_skewed_key(self.data_gen.key_skew)
                 record[fieldname] = key
 
             if field['type'] == "STRING":
-                # Assume the key field is of string type and format it to be
-                # left zero padded.
+                # Assume the key field is of string type.
                 record[fieldname] = str(key)
 
         # Return a tuple of the current timestamp and this fake record.
         return record
 
-    #TODO unittest
     def trunc_norm_trendify(self, loc, var_scale=0.1):
         """
         This function is used to draw a sample from a bounded linear trend with
@@ -383,7 +397,7 @@ class FakeRowGen(beam.DoFn):
         return truncnorm.rvs(a, b, mu, sigma)
 
     def get_skewed_key(self, distribution=None):
-        if distribution is None:
+        if distribution is None or distribution == 'None':
             distribution = 'uniform'
         if distribution.lower() == 'binomial':
             return np.random.binomial(int(self.data_gen.n_keys), p=.5)
@@ -417,7 +431,7 @@ class FakeRowGen(beam.DoFn):
         return json.dumps(data)
 
     def process(self, element, *args, **kwargs):
-        """This function creates n random data records based on the properties
+        """This function creates a random record based on the properties
         of the passed DataGenerator object for each element in prior the
         PCollection.
 
@@ -477,7 +491,7 @@ def parse_data_generator_args(argv):
                              'variance bell curve of keys over the range of the'
                              ' keyset or "zipf" giving a distribution across '
                              'the keyset according to zipf\'s law',
-                        default='None')
+                        default=None)
 
     parser.add_argument('--min_date', dest='min_date', required=False,
                         help='Set earliest possible date for the history '
@@ -531,18 +545,13 @@ def parse_data_generator_args(argv):
     parser.add_argument('--gcs_output_prefix', dest='output_prefix', 
                         help='GCS path for output', default=None)
 
-    parser.add_argument('--input_topic', dest='input_topic', required=False,
-                        help='Name fo topic to pull from',
-                        default=None)
-
-    parser.add_argument('--output_topic', dest='output_topic', required=False,
-                        help='Name of the topic to write to.',
-                        default=None)
+    parser.add_argument('--write_disp', dest='write_disp', required=False,
+                        help='BigQuery Write Disposition.',
+                        default='WRITE_APPEND')
 
 
     return parser.parse_known_args(argv)
 
-#TODO Add more validation and unittest.
 def validate_data_args(data_args):
     """
     This function serves to check that none of the pipeline parameters conflict.
@@ -588,11 +597,11 @@ def validate_data_args(data_args):
                     schema_inferred = True
                 except NotFound:
                     schema_inferred = False
-    elif data_args.output_bq_table is None and data_args.output_topic is None:
+    elif data_args.output_bq_table is None:
         logging.error('Error: User specified a schema_file without an '
-                      'output_bq_table or ouput_topic.')
+                      'output_bq_table.')
         raise ValueError('Error: User specified a schema_file without an '
-                         'output_bq_table or output_topic.')
+                         'output_bq_table.')
 
     if data_args.schema_file and data_args.input_bq_table:
         logging.error('Error: pipeline was passed both schema_file '
@@ -657,11 +666,17 @@ def fetch_schema(data_args, schema_inferred):
     elif not data_args.output_bq_table:
         logging.error('Error: User specified a schema_file without an '
                       'output_bq_table.')
+        raise ArgumentError('Error: User specified a schema_file without an '
+                      'output_bq_table.')
 
     if data_args.schema_file and data_args.input_bq_table:
         logging.error('Error: pipeline was passed both schema_file and '
                       'input_bq_table. '
                       'Please enter only one of these arguments')
+        raise ArgumentError('Error: pipeline was passed both schema_file and '
+                      'input_bq_table. '
+                      'Please enter only one of these arguments')
+
     return data_args, schema_inferred
 
 
