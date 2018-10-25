@@ -257,7 +257,7 @@
                   </excludes>
                 </enforceBytecodeVersion>
                 <requireJavaVersion>
-                  <version>1.8</version>
+                  <version>[1.8]</version>
                 </requireJavaVersion>
                 <requireMavenVersion>
                   <!-- Keep aligned with prerequisite section below. -->
