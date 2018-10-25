@@ -47,13 +47,12 @@ Below is an example secret that would be copied to all namespaces (excluding tho
 apiVersion: v1
 kind: Secret
 metadata:
-  name: my-registry-credentials
+  name: my-secret
   namespace: secrets
   annotations:
     ns-propagate: .*
-type: kubernetes.io/dockerconfigjson
 data:
-  .dockerconfigjson: [REDACTED]
+  foo: YWJj 
 ```
 
 ## Notes

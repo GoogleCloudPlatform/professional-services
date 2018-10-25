@@ -15,6 +15,12 @@ NS_BLACKLIST = os.environ.get('NS_BLACKLIST', 'kube-system,kube-public,default')
 SKIP_DELETE = os.environ.get('SKIP_DELETE', 'no') == 'yes'
 NS_BLACKLIST.append(SOURCE_NS)  # don't copy back to source
 
+def kube(kind, name, namespace=None, options={}, action='create'):
+  if namespace:
+    options['namespace'] = namespace
+  option_str = ' '.join([('--' + k + ' ' + v) for k,v in options.items()])
+  return subprocess.call(["/bin/sh", "-c", "kubectl {} {} {}".format(action, kind, name) + ' ' + option_str])
+
 def kube_get(kind, namespace=None, name=None):
   cmd = 'kubectl get -o json ' + kind + (' -n ' + namespace if namespace else ' ') + (name if name else ' ')
   resp = subprocess.check_output(['/bin/sh', '-c', cmd])
@@ -24,8 +30,8 @@ def kube_apply(definition):
   return subprocess.call(["/bin/sh", "-c", "echo '" + json.dumps(definition) + "' | kubectl apply -f -"])
 
 def kube_delete(kind, namespace, name):
-  print 'deleting %s %s in namespace %s' % (kind, name, namespace)
-  return subprocess.call(["/bin/sh", "-c", "kubectl delete %s %s -n %s" % (kind, name, namespace)])
+  print('deleting {} {} in namespace {}'.format(kind, name, namespace))
+  return kube(kind, name, namespace=namespace, action='delete')
 
 # modify a resource to strip out unique fields and switch the namespace
 def kube_switch_ns(definition, target_ns):
@@ -51,7 +57,7 @@ def sync_resources(source_resources):
     target_ns_pattern = r['metadata']['annotations'][SOURCE_ANNO]
     target_ns_list = [ns for ns in namespaces if re.match('^' + target_ns_pattern + '$', ns['metadata']['name'])]
     for ns in target_ns_list:
-      print 'copying %s %s to namespace %s' % (RESOURCE_KIND, r['metadata']['name'], ns['metadata']['name'])
+      print('copying {} {} to namespace {}'.format(RESOURCE_KIND, r['metadata']['name'], ns['metadata']['name']))
       kube_switch_ns(r, ns['metadata']['name'])
       if kube_apply(r) != 0:
         raise ValueError('error in copying ' + RESOURCE_KIND)
@@ -62,21 +68,22 @@ def sync_resources(source_resources):
       current_resources_list = [r['metadata']['name'] for r in get_resources(RESOURCE_KIND, ns['metadata']['name'])]
       [kube_delete(RESOURCE_KIND, ns['metadata']['name'], r_name) for r_name in current_resources_list if r_name not in source_resources_list]
 
-# main
-print '''
-starting resource syncer with the following properties:
-- syncing from source namespace "%s"
-- syncing resources of kind "%s" that include the annotation "%s"
-- omitting the following namespaces as sync destinations: "%s"
-''' % (SOURCE_NS, RESOURCE_KIND, SOURCE_ANNO, NS_BLACKLIST)
+if __name__ == '__main__':
+  print('''
+  starting resource syncer with the following properties:
+  - syncing from source namespace "{}"
+  - syncing resources of kind "{}" that include the annotation "{}"
+  - omitting the following namespaces as sync destinations: "{}"
+  '''.format(SOURCE_NS, RESOURCE_KIND, SOURCE_ANNO, NS_BLACKLIST)
+  )
 
-while True:
-  try:
-    print '====== checking namespace %s for %ss to sync ======' % (SOURCE_NS, RESOURCE_KIND)
-    resources = get_resources(RESOURCE_KIND, SOURCE_NS)
-    sync_resources(resources)
-  except Exception as e:
-    traceback.print_exc()
-  finally:
-    time.sleep(SYNC_INTERVAL_SECONDS)
-      
+  while True:
+    try:
+      print('====== checking namespace {} for {}s to sync ======'.format(SOURCE_NS, RESOURCE_KIND))
+      resources = get_resources(RESOURCE_KIND, SOURCE_NS)
+      sync_resources(resources)
+    except Exception as e:
+      traceback.print_exc()
+    finally:
+      time.sleep(SYNC_INTERVAL_SECONDS)
+        

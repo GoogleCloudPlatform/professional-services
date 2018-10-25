@@ -17,7 +17,7 @@ spec:
       serviceAccountName: secret-syncer
       containers:
       - name: secret-syncer
-        image: gcr.io/ssakhuja-dev1-214220/resource-syncer:0.1
+        image: gcr.io/my-cool-gcp-project/resource-syncer:0.1
         imagePullPolicy: Always
         #env:
         #- name: SYNC_INTERVAL_SECONDS
