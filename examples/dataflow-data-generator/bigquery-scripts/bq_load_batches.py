@@ -1,3 +1,17 @@
+# Copyright 2018 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import argparse
 import json
 import os
@@ -17,7 +31,7 @@ Args:
     --dataset: BigQuery datset ID containing the table your wish 
         to populate.
     --table: BigQuery table ID of the table you wish to populate
-    --source_file: This is the output of gsutil -l with the URI of
+    --sources_file: This is the output of gsutil -l with the URI of
         each file that you would like to load
     --create_table: Boolean specifying if this script should create 
         the destination table.
@@ -35,7 +49,7 @@ python file_15TB_batcher.py --project=<project> \
 --dataset=<dataset_id> \
 --table=<table_id> \
 --partitioning_column=date \
---source_file=files_to_load.txt 
+--sources_file=files_to_load.txt 
 
 """
 
@@ -90,10 +104,10 @@ def parse_gsutil_long_output_file(filename):
     """
 
     # 15TB per BQ load job.
-    MAX_BATCH_BYTES = 1.5 * 10 ** 13
+    MAX_BATCH_BYTES = 15 * 10 ** 13
     # read output of gsutil ls -l 
     df = pd.read_csv(filename, delim_whitespace=True, header=None, 
-                     skipfooter=1, usecols=[0,2], names=['bytes','filename'],
+                     skipfooter=1, usecols=[0,2], names=['bytes', 'filename'],
                      engine='python')
     # df = df.rename({0:'bytes', 2:'filename'}, axis='columns')
 
@@ -105,7 +119,7 @@ def parse_gsutil_long_output_file(filename):
     df['batch_num'] = df['cum_sum_bytes'] // MAX_BATCH_BYTES
 
     batches = []
-    total_batches = max(int(df['batch_num'].max()),1)
+    total_batches = int(df['batch_num'].max()) if df['batch_num'].max() > 0 else 1
     for i in xrange(total_batches):
         batches.append(list(df[ df['batch_num'] == i ]['filename']))
     return batches
@@ -146,7 +160,7 @@ def main(argv=None):
                         default='sales_generator')  
     parser.add_argument('--table', dest='table', required=False, 
                         default='sales_denorm_1')  
-    parser.add_argument('--source_file', dest='source_file',
+    parser.add_argument('--sources_file', dest='sources_file',
                         required=False, default='./files_to_load.txt')  
     parser.add_argument('--create_table', dest='create_table',
                         action='store_true')
@@ -177,7 +191,7 @@ def main(argv=None):
         else:
             raise argparse.ArgumentError('Cannot create table without schema file.')
 
-    batches = parse_gsutil_long_output_file(filename=known_args.source_file)
+    batches = parse_gsutil_long_output_file(filename=known_args.sources_file)
 
     submit_jobs(bq_cli=bq_cli, job_config=job_config, dataset_id=known_args.dataset,
         table_id=known_args.table, batches=batches)
