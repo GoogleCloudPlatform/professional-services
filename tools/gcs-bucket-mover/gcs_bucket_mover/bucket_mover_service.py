@@ -14,6 +14,8 @@
 """Script to move a bucket, all settings and data from one project to another."""
 
 from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 import datetime
 from time import sleep
 
@@ -30,7 +32,7 @@ from gcs_bucket_mover import bucket_details
 from gcs_bucket_mover import configuration
 from gcs_bucket_mover import sts_job_status
 
-CHECKMARK = u'\u2713'.encode('utf8')
+_CHECKMARK = u'\u2713'.encode('utf8')
 
 
 def move_bucket(conf):
@@ -40,32 +42,30 @@ def move_bucket(conf):
         conf: the argparser parsing of command line options
     """
 
-    #Load the environment config values set in config.sh and create the storage clients.
-    config = configuration.Configuration(conf)
+    # Load the environment config values set in config.sh and create the storage clients.
+    config = configuration.Configuration.from_conf(conf)
+
+    print('Using the following service accounts for GCS credentials: ')
+    print('Source Project - {}'.format(
+        config.source_project_credentials.service_account_email))  # pylint: disable=no-member
+    print('Target Project - {}\n'.format(
+        config.target_project_credentials.service_account_email))  # pylint: disable=no-member
 
     # Get copies of all of the source bucket's IAM, ACLs and settings so they can be copied over to
     # the target project bucket
-    # Can't list Object Change Notifications
-    source_bucket = config.source_storage_client.lookup_bucket(
+    source_bucket = config.source_storage_client.lookup_bucket(  # pylint: disable=no-member
         config.bucket_name)
     source_bucket_details = bucket_details.BucketDetails(
         conf=conf, source_bucket=source_bucket)
-
-    # The notifications list method returns an iterator, so we must go through it to get a copy of
-    # all of the items
-    # Don't append directly to the source_bucket_details because the setter is used to check if
-    # they should be skipped or not
-    source_bucket_details.notifications = list(
-        source_bucket.list_notifications())
 
     with yaspin(text='Create temp target bucket') as spinner:
         target_temp_bucket = _create_bucket(
             spinner, config, config.target_storage_client,
             config.temp_bucket_name, source_bucket_details)
         spinner.write('{} Bucket {} created in target project {}'.format(
-            CHECKMARK, config.temp_bucket_name, config.target_project))
+            _CHECKMARK, config.temp_bucket_name, config.target_project))
 
-    #Create STS client
+    # Create STS client
     sts_client = discovery.build(
         'storagetransfer', 'v1', credentials=config.target_project_credentials)
 
@@ -80,37 +80,37 @@ def move_bucket(conf):
         _assign_sts_iam_roles(sts_account_email, config.target_storage_client,
                               config.target_project, target_temp_bucket.name,
                               True)
-        spinner.ok(CHECKMARK)
+        spinner.ok(_CHECKMARK)
 
     _run_and_wait_for_sts_job(sts_client, config.target_project,
                               config.bucket_name, config.temp_bucket_name)
 
     with yaspin(text='Delete empty source bucket') as spinner:
         source_bucket.delete()
-        spinner.ok(CHECKMARK)
+        spinner.ok(_CHECKMARK)
 
     with yaspin(text='Re-create source bucket in target project') as spinner:
         _create_bucket(spinner, config, config.target_storage_client,
                        config.bucket_name, source_bucket_details)
-        spinner.ok(CHECKMARK)
+        spinner.ok(_CHECKMARK)
 
     with yaspin(text='Assign STS permissions to new source bucket') as spinner:
         _assign_sts_iam_roles(sts_account_email, config.target_storage_client,
                               config.target_project, config.bucket_name, False)
-        spinner.ok(CHECKMARK)
+        spinner.ok(_CHECKMARK)
 
     _run_and_wait_for_sts_job(sts_client, config.target_project,
                               config.temp_bucket_name, config.bucket_name)
 
     with yaspin(text='Delete empty temp bucket') as spinner:
         target_temp_bucket.delete()
-        spinner.ok(CHECKMARK)
+        spinner.ok(_CHECKMARK)
 
     spinner_text = 'Remove STS permissions from new source bucket'
     with yaspin(text=spinner_text) as spinner:
         _remove_sts_iam_roles(sts_account_email, config.target_storage_client,
                               config.bucket_name)
-        spinner.ok(CHECKMARK)
+        spinner.ok(_CHECKMARK)
 
 
 def _get_project_number(project_id, credentials):
@@ -190,7 +190,7 @@ def _create_bucket(spinner, config, storage_client, bucket_name,
                               source_bucket_details.notifications, bucket)
         spinner.write(
             '{} Created {} new notifications for the bucket {}'.format(
-                CHECKMARK, len(source_bucket_details.notifications),
+                _CHECKMARK, len(source_bucket_details.notifications),
                 bucket_name))
 
     return bucket
@@ -249,8 +249,7 @@ def _update_iam_policies(config, bucket, source_bucket_details):
     # associated with our get request to make sure no other update overwrites our change
     source_bucket_details.iam_policy.etag = policy.etag
     for role in source_bucket_details.iam_policy:
-        members = source_bucket_details.iam_policy[role]
-        for member in members:
+        for member in source_bucket_details.iam_policy[role]:
             # If a project level role was set, replace it with an identical one for the new
             # project
             if ':' + config.source_project in member:
@@ -408,12 +407,12 @@ def _add_target_project_to_kms_key(spinner, config, kms_key_name):
     bindings = []
     if 'bindings' in policy_response.keys():
         bindings = policy_response['bindings']
-    members = []
-    members.append('serviceAccount:' + config.target_service_account_email)
-    new_binding = dict()
-    new_binding['role'] = 'roles/cloudkms.cryptoKeyEncrypterDecrypter'
-    new_binding['members'] = members
-    bindings.append(new_binding)
+    service_account_email = config.target_storage_client.get_service_account_email()
+    members = ['serviceAccount:' + service_account_email]
+    bindings.append({
+        'role': 'roles/cloudkms.cryptoKeyEncrypterDecrypter',
+        'members': members,
+    })
     policy_response['bindings'] = bindings
 
     # Set the new IAM Policy.
@@ -422,7 +421,7 @@ def _add_target_project_to_kms_key(spinner, config, kms_key_name):
     request.execute(num_retries=5)
 
     spinner.write('{} {} added as Enrypter/Decrypter to key: {}'.format(
-        CHECKMARK, config.target_service_account_email, kms_key_name))
+        _CHECKMARK, service_account_email, kms_key_name))
 
 
 def _assign_target_project_to_topic(spinner, config, topic_name, topic_project):
@@ -440,16 +439,22 @@ def _assign_target_project_to_topic(spinner, config, topic_name, topic_project):
     topic_path = client.topic_path(topic_project, topic_name)  # pylint: disable=no-member
     policy = client.get_iam_policy(topic_path)  # pylint: disable=no-member
 
+    service_account_email = config.target_storage_client.get_service_account_email()
     policy.bindings.add(
         role='roles/pubsub.publisher',
-        members=['serviceAccount:' + config.target_service_account_email])
+        members=['serviceAccount:' + service_account_email])
 
     policy = client.set_iam_policy(topic_path, policy)  # pylint: disable=no-member
 
     spinner.write('{} {} added as a Publisher to topic: {}'.format(
-        CHECKMARK, config.target_service_account_email, topic_name))
+        _CHECKMARK, service_account_email, topic_name))
 
 
+@retry(
+    retry_on_result=_retry_if_false,
+    wait_exponential_multiplier=10000,
+    wait_exponential_max=120000,
+    stop_max_attempt_number=10)
 def _run_and_wait_for_sts_job(sts_client, target_project, source_bucket_name,
                               sink_bucket_name):
     """Kick off the STS job and wait for it to complete. Retry if it fails.
@@ -459,41 +464,38 @@ def _run_and_wait_for_sts_job(sts_client, target_project, source_bucket_name,
         target_project: The name of the target project where the STS job will be created
         source_bucket_name: The name of the bucket where the STS job will transfer from
         sink_bucket_name: The name of the bucket where the STS job will transfer to
+
+    Returns:
+        True if the STS job completed successfully, False if it failed for any reason
     """
 
-    counter = 0
-    while counter <= 10:
-        print 'Moving from bucket {} to {}'.format(source_bucket_name,
-                                                   sink_bucket_name)
-        with yaspin(text='Creating STS job') as spinner:
-            sts_job_name = _execute_sts_job(sts_client, target_project,
-                                            source_bucket_name,
-                                            sink_bucket_name)
-            spinner.ok(CHECKMARK)
+    print('Moving from bucket {} to {}'.format(source_bucket_name,
+                                               sink_bucket_name))
+    with yaspin(text='Creating STS job') as spinner:
+        sts_job_name = _execute_sts_job(sts_client, target_project,
+                                        source_bucket_name, sink_bucket_name)
+        spinner.ok(_CHECKMARK)
 
-        #Check every 10 seconds until STS job is complete
-        with yaspin(text='Checking STS job status') as spinner:
-            while True:
-                job_status = _check_sts_job(spinner, sts_client, target_project,
-                                            sts_job_name)
-                if job_status != sts_job_status.StsJobStatus.in_progress:
-                    break
-                sleep(10)
+    # Check every 10 seconds until STS job is complete
+    with yaspin(text='Checking STS job status') as spinner:
+        while True:
+            job_status = _check_sts_job(spinner, sts_client, target_project,
+                                        sts_job_name)
+            if job_status != sts_job_status.StsJobStatus.in_progress:
+                break
+            sleep(10)
 
-        if job_status == sts_job_status.StsJobStatus.success:
-            print ''
-            break
+    if job_status == sts_job_status.StsJobStatus.success:
+        print()
+        return True
 
-        counter += 1
-        print(
-            'There was an unexpected failure with the STS job. You can view the details in the'
-            ' cloud console.')
-        if counter > 10:
-            raise RuntimeError('Unable to complete STS job after 10 attempts.')
-        print(
-            'Waiting 60s and then trying again. If you choose to cancel this script, the buckets'
-            ' will need to be manually cleaned up.')
-        sleep(60)
+    print(
+        'There was an unexpected failure with the STS job. You can view the details in the'
+        ' cloud console.')
+    print(
+        'Waiting for a period of time and then trying again. If you choose to cancel this'
+        ' script, the buckets will need to be manually cleaned up.')
+    return False
 
 
 def _execute_sts_job(sts_client, target_project, source_bucket_name,
@@ -512,13 +514,10 @@ def _execute_sts_job(sts_client, target_project, source_bucket_name,
 
     now = datetime.date.today()
     transfer_job = {
-        'description':
-        'Move bucket {} to {} in project {}'.format(
+        'description': 'Move bucket {} to {} in project {}'.format(
             source_bucket_name, sink_bucket_name, target_project),
-        'status':
-        'ENABLED',
-        'projectId':
-        target_project,
+        'status': 'ENABLED',
+        'projectId': target_project,
         'schedule': {
             'scheduleStartDate': {
                 'day': now.day - 1,
@@ -571,15 +570,14 @@ def _check_sts_job(spinner, sts_client, target_project, job_name):
     if result:
         operation = result['operations'][0]
         metadata = operation['metadata']
-        if 'done' in operation:
-            if operation['done']:
-                if metadata['status'] != 'SUCCESS':
-                    spinner.fail('X')
-                    return sts_job_status.StsJobStatus.failed
+        if operation.get('done'):
+            if metadata['status'] != 'SUCCESS':
+                spinner.fail('X')
+                return sts_job_status.StsJobStatus.failed
 
-                _print_sts_counters(spinner, metadata['counters'], True)
-                spinner.ok(CHECKMARK)
-                return sts_job_status.StsJobStatus.success
+            _print_sts_counters(spinner, metadata['counters'], True)
+            spinner.ok(_CHECKMARK)
+            return sts_job_status.StsJobStatus.success
         else:
             # Update the status of the copy
             if 'counters' in metadata:
@@ -598,29 +596,13 @@ def _print_sts_counters(spinner, counters, is_job_done):
     """
 
     if counters:
-        bytes_copied_to_sink = '0'
-        if 'bytesCopiedToSink' in counters:
-            bytes_copied_to_sink = counters['bytesCopiedToSink']
-
-        objects_copied_to_sink = '0'
-        if 'objectsCopiedToSink' in counters:
-            objects_copied_to_sink = counters['objectsCopiedToSink']
-
-        bytes_found_from_source = '0'
-        if 'bytesFoundFromSource' in counters:
-            bytes_found_from_source = counters['bytesFoundFromSource']
-
-        objects_found_from_source = '0'
-        if 'objectsFoundFromSource' in counters:
-            objects_found_from_source = counters['objectsFoundFromSource']
-
-        bytes_deleted_from_source = '0'
-        if 'bytesDeletedFromSource' in counters:
-            bytes_deleted_from_source = counters['bytesDeletedFromSource']
-
-        objects_deleted_from_source = '0'
-        if 'objectsDeletedFromSource' in counters:
-            objects_deleted_from_source = counters['objectsDeletedFromSource']
+        bytes_copied_to_sink = counters.get('bytesCopiedToSink', '0')
+        objects_copied_to_sink = counters.get('objectsCopiedToSink', '0')
+        bytes_found_from_source = counters.get('bytesFoundFromSource', '0')
+        objects_found_from_source = counters.get('objectsFoundFromSource', '0')
+        bytes_deleted_from_source = counters.get('bytesDeletedFromSource', '0')
+        objects_deleted_from_source = counters.get('objectsDeletedFromSource',
+                                                   '0')
 
         if is_job_done:
             byte_status = (bytes_copied_to_sink == bytes_found_from_source ==

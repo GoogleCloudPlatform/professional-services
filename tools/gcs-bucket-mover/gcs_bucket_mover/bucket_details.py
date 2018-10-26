@@ -17,6 +17,10 @@ It is required so that after the source bucket is deleted, we can create the new
 the same details and settings.
 """
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 
 class BucketDetails(object):
     """Holds the details and settings of a bucket."""
@@ -39,8 +43,8 @@ class BucketDetails(object):
 
         # Unless these values are specified on the command line, use the values from the source
         # bucket
-        self._location = conf.location or source_bucket.location
-        self._storage_class = conf.storageClass or source_bucket.storage_class
+        self.location = conf.location or source_bucket.location
+        self.storage_class = conf.storageClass or source_bucket.storage_class
 
         self._set_skip_settings(conf)
 
@@ -56,7 +60,8 @@ class BucketDetails(object):
         self.lifecycle_rules = source_bucket.lifecycle_rules
         self.logging = source_bucket.get_logging()
         self.versioning_enabled = source_bucket.versioning_enabled
-        self.notifications = []
+        # Unlike all other bucket properties, notifications are only given as an iterator
+        self.notifications = list(source_bucket.list_notifications())
 
     def _set_skip_settings(self, conf):
         """Set up which settings need to be skipped and which ones should be copied"""
@@ -71,16 +76,6 @@ class BucketDetails(object):
         self._skip_notifications = True if conf.skipEverything else conf.skipNotifications
         self._skip_requester_pays = True if conf.skipEverything else conf.skipRequesterPays
         self._skip_versioning = True if conf.skipEverything else conf.skipVersioning
-
-    @property
-    def location(self):
-        """Get the bucket location"""
-        return self._location
-
-    @property
-    def storage_class(self):
-        """Get the bucket storage class"""
-        return self._storage_class
 
     @property
     def iam_policy(self):
