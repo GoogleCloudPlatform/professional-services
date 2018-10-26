@@ -118,16 +118,13 @@ Bucket settings can be removed/added/changed in the bucket_mover_tester.py code 
 `bin/bucket_mover --test fake_bucket my_source_project my_target_project`
 
 ```
-Using the following service accounts for GCS credentials:
-Source Project: bucket-mover@my_source_project.iam.gserviceaccount.com
-Target Project: bucket-mover@my_target_project.iam.gserviceaccount.com
-
 WARNING!!! Bucket bucket_mover_6aa7d2e1-25f7-41b3-9189-ca35d9cef99a already exists in my_target_project
 Type YES to confirm you want to do delete it: YES
 
 ✓ TESTING: Bucket bucket_mover_6aa7d2e1-25f7-41b3-9189-ca35d9cef99a deleted from project my_target_project
 ✓ TESTING: Bucket bucket_mover_6aa7d2e1-25f7-41b3-9189-ca35d9cef99a created in source project my_source_project
 ✓ TESTING: Uploading 5 random txt files
+
 Using the following service accounts for GCS credentials:
 Source Project: bucket-mover@my_source_project.iam.gserviceaccount.com
 Target Project: bucket-mover@my_target_project.iam.gserviceaccount.com

@@ -19,6 +19,8 @@ and target projects before it starts so that it can be run repeatedly.
 """
 
 from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 import uuid
 
 from faker import Faker
@@ -28,16 +30,16 @@ from google.cloud import exceptions
 from google.cloud import storage
 
 from gcs_bucket_mover import configuration
-from gcs_bucket_mover import bucket_mover_service
 
-BUCKET_LOCATION = 'us'
-CUSTOM_ROLE_NAME = 'projects/my_source_prj/roles/TestRole'
-DEFAULT_KMS_KEY_NAME = 'projects/my_source_prj/locations/global/keyRings/my_ring/cryptoKeys/my_key'
-EMAIL_FOR_IAM = 'test@google.com'
-LOGGING_BUCKET = 'source_bucket-logs'
-LOGGING_PREFIX = 'prefix-'
-STORAGE_CLASS = 'STANDARD'
-TOPIC_NAME = 'my_topic'
+_BUCKET_LOCATION = 'us'
+_CHECKMARK = u'\u2713'.encode('utf8')
+_CUSTOM_ROLE_NAME = 'projects/my_source_prj/roles/TestRole'
+_DEFAULT_KMS_KEY_NAME = 'projects/my_source_prj/locations/global/keyRings/my_ring/cryptoKeys/my_key'
+_EMAIL_FOR_IAM = 'test@google.com'
+_LOGGING_BUCKET = 'source_bucket-logs'
+_LOGGING_PREFIX = 'prefix-'
+_STORAGE_CLASS = 'STANDARD'
+_TOPIC_NAME = 'my_topic'
 
 
 def set_up_test_bucket(conf):
@@ -52,8 +54,8 @@ def set_up_test_bucket(conf):
         The name of the randomly generated bucket
     """
 
-    #Load the environment config values set in config.sh and create the storage clients.
-    config = configuration.Configuration(conf)
+    # Load the environment config values set in config.sh and create the storage clients.
+    config = configuration.Configuration.from_conf(conf)
     random_bucket_name = _get_random_bucket_name()
 
     with yaspin(text='TESTING: Cleanup source bucket') as spinner:
@@ -77,8 +79,7 @@ def set_up_test_bucket(conf):
                                       random_bucket_name)
         spinner.write(
             '{} TESTING: Bucket {} created in source project {}'.format(
-                bucket_mover_service.CHECKMARK, random_bucket_name,
-                conf.source_project))
+                _CHECKMARK, random_bucket_name, conf.source_project))
 
     _upload_blobs(source_bucket)
 
@@ -86,6 +87,7 @@ def set_up_test_bucket(conf):
         _check_bucket_exists_and_delete(spinner, config.target_storage_client,
                                         config.temp_bucket_name,
                                         conf.target_project)
+    print()
     return random_bucket_name
 
 
@@ -124,15 +126,15 @@ def create_bucket(storage_client, bucket_name):
         }
     }]
     # Location
-    bucket.location = BUCKET_LOCATION
+    bucket.location = _BUCKET_LOCATION
     # Storage Class
-    bucket.storage_class = STORAGE_CLASS
+    bucket.storage_class = _STORAGE_CLASS
     # File Versioning
     # Setting this to True means we can't delete a non-empty bucket with the CLI in one
     # bucket.delete command
     bucket.versioning_enabled = False
     # Access Logs
-    bucket.enable_logging(LOGGING_BUCKET, LOGGING_PREFIX)
+    bucket.enable_logging(_LOGGING_BUCKET, _LOGGING_PREFIX)
 
     bucket.create()
 
@@ -140,13 +142,13 @@ def create_bucket(storage_client, bucket_name):
     policy = bucket.get_iam_policy()
     # Uncomment the line below to view the existing IAM policies
     #print(json.dumps(policy.to_api_repr(), indent=4, sort_keys=True))
-    policy['roles/storage.admin'].add('user:' + EMAIL_FOR_IAM)
+    policy['roles/storage.admin'].add('user:' + _EMAIL_FOR_IAM)
     bucket.set_iam_policy(policy)
     # ACLs
-    bucket.acl.user(EMAIL_FOR_IAM).grant_read()
+    bucket.acl.user(_EMAIL_FOR_IAM).grant_read()
     bucket.acl.save()
     # Default Object ACL
-    bucket.default_object_acl.user(EMAIL_FOR_IAM).grant_read()
+    bucket.default_object_acl.user(_EMAIL_FOR_IAM).grant_read()
     bucket.default_object_acl.save()
 
     bucket.update()
@@ -154,7 +156,7 @@ def create_bucket(storage_client, bucket_name):
     # Bucket Notification
     notification = storage.notification.BucketNotification(
         bucket,
-        TOPIC_NAME,
+        _TOPIC_NAME,
         custom_attributes={'myKey': 'myValue'},
         event_types=['OBJECT_FINALIZE', 'OBJECT_DELETE'],
         payload_format='JSON_API_V1')
@@ -199,7 +201,7 @@ def _check_bucket_exists_and_delete(spinner, storage_client, bucket_name,
         spinner.write('')
         bucket.delete(force=True)
         spinner.write('{} TESTING: Bucket {} deleted from project {}'.format(
-            bucket_mover_service.CHECKMARK, bucket_name, project_name))
+            _CHECKMARK, bucket_name, project_name))
 
 
 def _upload_blobs(bucket):
@@ -215,4 +217,4 @@ def _upload_blobs(bucket):
             blob = bucket.blob(fake.file_name(extension='txt'))  # pylint: disable=no-member
             blob.metadata = {'customKey': 'myFakeValue' + str(number)}
             blob.upload_from_string(fake.text())  # Generator is dynamic. pylint: disable=no-member
-    spinner.ok(bucket_mover_service.CHECKMARK)
+    spinner.ok(_CHECKMARK)

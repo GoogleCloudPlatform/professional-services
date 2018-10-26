@@ -16,6 +16,9 @@
 # CONDITIONS OF ANY KIND, and is not intended for production use.
 """Setup installation module for gcs_bucket_mover."""
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 import os
 from setuptools import find_packages
 from setuptools import setup
@@ -25,8 +28,8 @@ gcs_bucket_mover is a Python application that helps you move storage buckets bet
 """
 
 requires = [
-    'google-api-python-client', 'google-cloud-pubsub', 'google-cloud-storage',
-    'retrying', 'oauth2client', 'yaspin', 'Faker'
+    'attrs', 'google-api-python-client', 'google-cloud-pubsub',
+    'google-cloud-storage', 'retrying', 'oauth2client', 'yaspin', 'Faker'
 ]
 
 setup(
