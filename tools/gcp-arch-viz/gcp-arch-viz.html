@@ -48,16 +48,16 @@
     var csv_data;
     var treeData, margin, tree, table, svg, g;
 
-    // filename is static, but add a random variable to the end to prevent browser caching,
+    // FILENAME is static, but add a random variable to the end to prevent browser caching,
     // aka - "I changed the content of the file, but why isn't that stuff drawing?!"
-    var filename = "gcp-data.csv" + "?nocache=" + Date.now(); 
+    var FILENAME = "gcp-data.csv" + "?nocache=" + Date.now(); 
 
-    var preLoadTime = new Date().toLocaleTimeString();
-    console.log ("Loading file: " + filename + ", start time: " + preLoadTime);
+    var FILE_LOAD_START_TIME = new Date().toLocaleTimeString();
+    console.log ("Loading file: " + FILENAME + ", start time: " + FILE_LOAD_START_TIME);
 
-    d3.text(filename).then(function(text) {
-      var postLoadTime = new Date().toLocaleTimeString();
-      console.log ("CSV loaded: " + postLoadTime);
+    d3.text(FILENAME).then(function(text) {
+      var FILE_LOAD_END_TIME = new Date().toLocaleTimeString();
+      console.log ("CSV loaded: " + FILE_LOAD_END_TIME);
 
       csv_data = text;
       console.log(csv_data);
@@ -144,11 +144,11 @@
         });
 
       nodeEnter.append("circle")
-      .attr("r", 22)
-      .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; })
-      .style("fill-opacity", function(d) { return d._children ? 1 : 0; })
-      .style("stroke", "white")
-      .style("stroke-opacity", 0);
+        .attr("r", 22)
+        .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; })
+        .style("fill-opacity", function(d) { return d._children ? 1 : 0; })
+        .style("stroke", "white")
+        .style("stroke-opacity", 0);
 
       // adds the image to the node
       nodeEnter.append("image")
@@ -168,10 +168,10 @@
         .text(function (d) { return d.name; });
 
       var nodeUpdate = nodeEnter.merge(node);
-      var duration = 500;
+      var ANIMATION_DURATION_MS = 500;
   
       nodeUpdate.transition()
-        .duration(duration)
+        .duration(ANIMATION_DURATION_MS)
         .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
    
       nodeUpdate.select("circle")
@@ -186,7 +186,7 @@
       var nodeExit = node
         .exit()
         .transition()
-        .duration(duration)
+        .duration(ANIMATION_DURATION_MS)
         .attr("transform", function(d) { return "translate(" + source.y + "," + source.x + ")"; })
         .remove();
   
@@ -208,7 +208,7 @@
       var linkUpdate = linkEnter.merge(link);
       linkUpdate
         .transition()
-        .duration(duration)
+        .duration(ANIMATION_DURATION_MS)
         .attr("d", d3.linkHorizontal()
           .x(function(d) { return d.y; })
           .y(function(d) { return d.x; }));
@@ -216,7 +216,7 @@
       link
         .exit()
         .transition()
-        .duration(duration)
+        .duration(ANIMATION_DURATION_MS)
         .attr("d", d3.linkHorizontal()
           .x(function(d) { return source.y; })
           .y(function(d) { return source.x; })
@@ -230,31 +230,28 @@
     }
 
     // Collapse the node and all it's children
-    function collapse(d) {
-      if (d.children) {
-        d._children = d.children
-        d._children.forEach(collapse)
-        d.children = null
+    function collapse(node) {
+      if (node.children) {
+        node._children = node.children
+        node._children.forEach(collapse)
+        node.children = null
       }
     }
 
     // Toggle children on click.
-    function toggle(d) {
-      //console.log("toggle");
-      //console.log(d);
-
-      if (d.children) {
-        d._children = d.children;
-        d.children = null;
+    function toggle(node) {
+      if (node.children) {
+        node._children = node.children;
+        node.children = null;
       } else {
-        d.children = d._children;
-        d._children = null;
+        node.children = node._children;
+        node._children = null;
       }
-      update(d);
+      update(node);
     }
 
     function getImageURL(resource_type) {
-      var urlBase = "https://storage.googleapis.com/mps-storage/mzinni/external/gcp-arch-viz-images/";
+      var URL_BASE = "https://storage.googleapis.com/mps-storage/mzinni/external/gcp-arch-viz-images/";
       var imageFilename = "gcp-logo.png";
 
       switch (resource_type) {
@@ -287,7 +284,7 @@
           break;
       }
 
-      return urlBase + imageFilename;
+      return URL_BASE + imageFilename;
     }
   </script>
 </body>
