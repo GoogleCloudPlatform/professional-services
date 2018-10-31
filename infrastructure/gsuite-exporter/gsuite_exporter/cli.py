@@ -87,13 +87,40 @@ def sync_all(
 
 def main():
     parser = argparse.ArgumentParser(description='Add some integers.')
-    parser.add_argument('--admin-user', type=str, help='The GSuite Admin user email.', required=True)
-    parser.add_argument('--api', type=str, help='The GSuite Admin API.', default='reports_v1', required=False)
-    parser.add_argument('--applications', type=str, nargs='+', help='The GSuite Admin Applications.', required=True)
-    parser.add_argument('--project-id', type=str, help='The project id to export GSuite data to.', required=True)
-    parser.add_argument('--exporter', type=str, help='The exporter class to use.', default='stackdriver_exporter.StackdriverExporter', required=False)
-    parser.add_argument('--credentials-path', type=str, help='The service account credentials file.', default=None, required=False)
-
+    parser.add_argument(
+        '--admin-user',
+        type=str,
+        required=True,
+        help='The GSuite Admin user email.')
+    parser.add_argument(
+        '--api',
+        type=str,
+        default='reports_v1',
+        required=False,
+        help='The GSuite Admin API.')
+    parser.add_argument(
+        '--applications',
+        type=str,
+        nargs='+',
+        required=True,
+        help='The GSuite Admin Applications.')
+    parser.add_argument(
+        '--project-id',
+        type=str,
+        required=True,
+        help='The project id to export GSuite data to.')
+    parser.add_argument(
+        '--exporter',
+        type=str,
+        default='stackdriver_exporter.StackdriverExporter',
+        required=False,
+        help='The exporter class to use.')
+    parser.add_argument(
+        '--credentials-path',
+        type=str,
+        default=None,
+        required=False,
+        help='The service account credentials file.')
     args = parser.parse_args()
     sync_all(
         args.admin_user,
@@ -101,8 +128,7 @@ def main():
         args.applications,
         args.project_id,
         args.exporter,
-        args.credentials_path
-    )
+        args.credentials_path)
 
 if __name__ == '__main__':
     main()
