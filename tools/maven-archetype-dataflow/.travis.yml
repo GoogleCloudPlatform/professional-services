@@ -1,0 +1,19 @@
+# Force Java 8
+language: java
+jdk:
+- openjdk8
+
+# Run on the standard infrastructure
+sudo: false
+
+# Skips the install step
+install:
+- true
+
+# Cache the maven directory across runs to speed up the builds
+cache:
+  directories:
+  - $HOME/.m2
+
+# Build script
+script: mvn clean verify
