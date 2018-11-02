@@ -1,0 +1,12 @@
+## Cloud Composer Examples: 
+This repo constains the following examples of using Cloud Composer, Google Cloud Platform's managed Apache Airflow service:
+
+1. [Composer Dataflow Examples](composer_dataflow_examples/README.md)
+
+	a. [Simple Load DAG](composer_dataflow_examples/simple_load_dag.py): provides a common pattern to automatically trigger, via Google Cloud Function, a Dataflow job when a file arrives in Google Cloud Storage, process the data and load it into BigQuery.
+![Alt text](img/workflow-overview.png "Workflow Overview")
+
+2. [Composer HTTP Example](composer_http_post_example/README.md)
+
+	a. [Ephemeral Dataproc Spark DAG](composer_http_post_example/ephemeral_dataproc_spark_dag.py): provides an example of triggering a DAG via HTTP POST to the Airflow API to create a Dataproc cluster, submit a Spark job, and import the newly enhanced GCS files into BigQuery.
+![Alt text](img/composer-http-post-arch.png "A diagram illustrating the workflow described below.")
