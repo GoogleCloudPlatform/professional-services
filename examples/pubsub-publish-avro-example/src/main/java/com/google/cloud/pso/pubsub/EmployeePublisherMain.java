@@ -18,9 +18,7 @@ package com.google.cloud.pso.pubsub;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
-import com.google.cloud.pso.Employee;
 import com.google.cloud.pso.pubsub.common.ObjectPublisher;
-import com.google.cloud.pso.pubsub.common.ObjectReader;
 
 import java.io.IOException;
 
@@ -29,18 +27,19 @@ import java.io.IOException;
  * API to publish Avro encoded messages to Cloud Pub/Sub. This program also demonstrates an approach
  * for using {@link com.google.api.gax.batching.BatchingSettings} to batch records that get
  * published.
- *
+ * <p>
  * <p><b>Pipeline Requirements</b>
- *
+ * <p>
  * <ul>
- *   <li>An existing Cloud Pub/Sub topic to publish records to.
+ * <li>An existing Cloud Pub/Sub topic to publish records to.
  * </ul>
- *
- * Set some input parameters PUBSUB_OUTPUT_TOPIC=pubsub_output_topic
+ * <p>
+ * Set some input parameters
+ * PUBSUB_OUTPUT_TOPIC=projects/${PROJECT_ID}/topics/topic-name
  * NUM_OF_MESSAGES_TO_PUBLISH=num_of_records_to_publish
- *
+ * <p>
  * <p><b>Example Usage</b>
- *
+ * <p>
  * <pre>
  *
  * # Build and execute
@@ -53,36 +52,31 @@ import java.io.IOException;
  * </pre>
  */
 public class EmployeePublisherMain {
-  /**
-   * The main entry point for the {@link EmployeePublisherMain} class.
-   *
-   * @param args program arguments
-   * @throws IOException
-   */
-  public static void main(String[] args) throws IOException {
+    /**
+     * The main entry point for the {@link EmployeePublisherMain} class.
+     *
+     * @param args program arguments
+     * @throws IOException
+     */
+    public static void main(String[] args) throws IOException {
 
-    ObjectPublisher.Args parsedArgs = new ObjectPublisher.Args();
-    JCommander jCommander = JCommander.newBuilder().addObject(parsedArgs).build();
-    jCommander.setProgramName(EmployeePublisherMain.class.getCanonicalName());
+        ObjectPublisher.Args parsedArgs = new ObjectPublisher.Args();
+        JCommander jCommander = JCommander.newBuilder().addObject(parsedArgs).build();
+        jCommander.setProgramName(EmployeePublisherMain.class.getCanonicalName());
 
-    try {
-      jCommander.parse(args);
-    } catch (ParameterException e) {
-      jCommander.usage();
-      return;
+        try {
+            jCommander.parse(args);
+        } catch (ParameterException e) {
+            jCommander.usage();
+            return;
+        }
+
+        if (parsedArgs.isHelp()) {
+            jCommander.usage();
+        } else {
+
+            EmployeePublisher publisher = new EmployeePublisher();
+            publisher.publish(parsedArgs);
+        }
     }
-
-    if (parsedArgs.isHelp()) {
-      jCommander.usage();
-      return;
-    }
-
-    // For demonstration purposes we will use an implementation of ObjectReader
-    // to generate random Employee objects to be published.
-    ObjectReader<Employee> employeeReader =
-        new GenerateRandomEmployeeReader(parsedArgs.getNumOfMessages());
-    EmployeePublisher publisher = new EmployeePublisher();
-
-    publisher.run(parsedArgs, employeeReader);
-  }
 }

@@ -127,9 +127,7 @@ public class IngestionMain {
      *  1) Read from Pub/Sub
      *  2) Stream into BigQuery
      */
-
     pipeline
-
         // 1) Read from Pub/Sub
         .apply(
             "Read Avro records from Pub/Sub",

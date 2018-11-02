@@ -30,34 +30,34 @@ This will generate random test records using the sample [Employee Avro Schema](s
 
 Build the entire project using the maven compile command.
 ```sh
-mvn clean && mvn compile
+mvn clean compile
 ```
 
 ### Running unit tests
 Run the unit tests using the maven test command.
 ```sh
-mvn clean && mvn test
+mvn clean test
 ```
 
 ### Publishing sample records to Cloud Pub/Sub
 Publish sample [Employee](src/main/avro/employee.avsc) records using the maven exec command.
 ```sh
 mvn compile exec:java \
--Dexec.mainClass=com.google.cloud.pso.pubsub.EmployeePublisherMain \
--Dexec.cleanupDaemonThreads=false \
--Dexec.args=" \
---topic <output-pubsub-topic> --numberOfMessages <number-of-messages>"
+  -Dexec.mainClass=com.google.cloud.pso.pubsub.EmployeePublisherMain \
+  -Dexec.cleanupDaemonThreads=false \
+  -Dexec.args=" \
+  --topic <output-pubsub-topic> --numberOfMessages <number-of-messages>"
 ```
 
 There are several other optional parameters related to batch settings. These parameters can be viewed by passing the help flag.
 ```sh
 mvn compile exec:java \
--Dexec.mainClass=com.google.cloud.pso.pubsub.EmployeePublisherMain \
--Dexec.cleanupDaemonThreads=false \
--Dexec.args="
---help"
+  -Dexec.mainClass=com.google.cloud.pso.pubsub.EmployeePublisherMain \
+  -Dexec.cleanupDaemonThreads=false \
+  -Dexec.args="--help"
 
 Usage: com.google.cloud.pso.pubsub.EmployeePublisherMain [options]
+  * - Required parameters
   Options:
     --bytesThreshold, -b
       Batch threshold bytes.
@@ -82,17 +82,17 @@ The [IngestionMain](src/main/java/com/google/cloud/pso/pipeline/IngestionMain.ja
 This pipeline example can be compiled and executed using the maven exec command.
 ```sh
 mvn compile exec:java \
- -Dexec.mainClass=com.google.cloud.pso.pipeline.IngestionMain \
- -Dexec.cleanupDaemonThreads=false \
- -Dexec.args=" \
- --project=<my-gcp-project> \
- --stagingLocation=<my-gcs-staging-bucket> \
- --tempLocation=<my-gcs-temp-bucket> \
- --runner=DataflowRunner \
- --autoscalingAlgorithm=THROUGHPUT_BASED \
- --maxNumWorkers=<max-num-workers> \
- --subscription=<my-input-pubsub-subscription> \
- --tableId=<my-output-bigquery-table>"
+  -Dexec.mainClass=com.google.cloud.pso.pipeline.IngestionMain \
+  -Dexec.cleanupDaemonThreads=false \
+  -Dexec.args=" \
+  --project=<my-gcp-project> \
+  --stagingLocation=<my-gcs-staging-bucket> \
+  --tempLocation=<my-gcs-temp-bucket> \
+  --runner=DataflowRunner \
+  --autoscalingAlgorithm=THROUGHPUT_BASED \
+  --maxNumWorkers=<max-num-workers> \
+  --subscription=<my-input-pubsub-subscription> \
+  --tableId=<my-output-bigquery-table>"
 ```
 
 ### Authentication
