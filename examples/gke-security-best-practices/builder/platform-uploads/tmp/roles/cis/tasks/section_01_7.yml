@@ -1,0 +1,57 @@
+---
+
+  - name: 1.7.1 Set Warning Banner for Standard Login Services
+    lineinfile: >
+        dest={{ item }}
+        create=yes
+        line={{etc_motd_issue_banner}}
+        state=present
+        mode=644
+        owner=root
+        group=root
+    with_items:
+        - /etc/motd
+        - /etc/issue
+        - /etc/issue.net
+    tags:
+      - section1
+      - section1.7
+       - section1.7.1
+
+  - name: 1.7.2 Remove OS Information from Login Warning Banners
+    shell: egrep '(\\v|\\r|\\m|\\s)' {{ item }}
+    register: egrep_os_infos
+    failed_when: egrep_os_infos.rc == 0
+    changed_when: False
+    with_items:
+        - /etc/
+        - /etc/issue
+        - /etc/issue.net
+    tags:
+      - section1
+      - section1.7
+       - section1.7.2
+
+  - name: 1.7.3 Set Logon Banner to non-executable
+    file:
+      path: /etc/update-motd.d
+      owner: root
+      group: root
+      mode: 0644
+      recurse: yes
+
+#  Not applicable: X is not installed:
+#  - name: 1.7.4 Set Graphical Warning Banner
+
+  - name: 1.7.4 issue setup
+    template:
+      src: issue.j2
+      dest: "/etc/{{ item }}"
+    with_items:
+      - motd
+      - issue
+      - issue.net
+    tags:
+        - section1
+        - section1.7
+        - section1.7.4

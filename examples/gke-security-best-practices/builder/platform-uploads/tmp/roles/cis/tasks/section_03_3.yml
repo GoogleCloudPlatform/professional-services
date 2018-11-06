@@ -1,0 +1,56 @@
+---
+
+    - name: 3.3.1.1 Disable IPv6 Router Advertisements
+      sysctl: >
+        name=net.ipv6.conf.all.accept_ra
+        value=0
+        state=present
+      tags:
+        - section3
+        - section3.3
+        - section3.3.1
+
+    - name: 3.3.1.2 Disable IPv6 Router Advertisements
+      sysctl: >
+        name=net.ipv6.conf.default.accept_ra
+        value=0
+        state=present
+      tags:
+        - section3
+        - section3.3
+        - section3.3.1
+
+    - name: 3.3.2.1 Disable IPv6 Redirect Acceptance
+      sysctl: >
+        name=net.ipv6.conf.all.accept_redirects
+        value=0
+        state=present
+      tags:
+        - section3
+        - section3.3
+        - section3.3.2
+
+    - name: 3.3.2.2 Disable IPv6 Redirect Acceptance
+      sysctl: >
+        name=net.ipv6.conf.default.accept_redirects
+        value=0
+        state=present
+      tags:
+        - section3
+        - section3.3
+        - section3.3.2
+
+    - name: 3.3.3 Disable IPv6
+      sysctl: >
+        name={{ item }}
+        value=1
+        state=present
+      with_items:
+        - net.ipv6.conf.all.disable_ipv6
+        - net.ipv6.conf.default.disable_ipv6
+        - net.ipv6.conf.lo.disable_ipv6
+      when: disable_ipv6 == True
+      tags:
+        - section3
+        - section3.3
+        - section3.3.3

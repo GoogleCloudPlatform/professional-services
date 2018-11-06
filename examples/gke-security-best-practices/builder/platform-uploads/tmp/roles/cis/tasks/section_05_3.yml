@@ -1,0 +1,170 @@
+---
+
+  - name: 5.3 Check if ssh is installed (check)
+    stat: path='/etc/ssh/sshd_config'
+    register: ssh_config_file
+    tags:
+      - section5
+      - section5.3
+      - section5.3.1
+
+  - name: 5.3.1 Set SSH Protocol to 2
+    lineinfile: >
+        dest='/etc/ssh/sshd_config'
+        regexp='^Protocol'
+        state=present
+        line='Protocol 2'
+    tags:
+      - section5
+      - section5.3
+      - section5.3.1
+
+  - name: 5.3.2 Set LogLevel to INFO
+    lineinfile: >
+        dest='/etc/ssh/sshd_config'
+        regexp='^LogLevel'
+        state=present
+        line='LogLevel INFO'
+    tags:
+      - section5
+      - section5.3
+      - section5.3.2
+
+  - name: 5.3.3 Set Permissions on /etc/ssh/sshd_config
+    file: path='/etc/ssh/sshd_config' owner=root group=root mode=600
+    tags:
+      - section5
+      - section5.3
+      - section5.3.3
+
+  - name: 5.3.4 Disable some SSH options
+    lineinfile: >
+        dest='/etc/ssh/sshd_config'
+        regexp='^{{ item }}'
+        line='{{ item }} no'
+        state=present
+    with_items:
+      - X11Forwarding
+      - PrintMotd
+      - HostbasedAuthentication
+      - PermitRootLogin
+      - PermitEmptyPasswords
+      - PermitUserEnvironment
+    tags:
+      - section5
+      - section5.3
+      - section5.3.4
+
+  - name: 5.3.5 Set SSH MaxAuthTries to 4 or Less
+    lineinfile: >
+        dest='/etc/ssh/sshd_config'
+        regexp='^MaxAuthTries'
+        line='MaxAuthTries 4'
+        state=present
+    tags:
+      - section5
+      - section5.3
+      - section5.3.5
+
+  - name: 5.3.6 Set SSH IgnoreRhosts to Yes
+    lineinfile: >
+        dest='/etc/ssh/sshd_config'
+        regexp='^IgnoreRhosts'
+        line='IgnoreRhosts yes'
+        state=present
+    tags:
+      - section5
+      - section5.3
+      - section5.3.6
+
+# TODO: fix this is not working, presently setting from setup-scripts/01-vgs-customizations.sh as a workaround
+#  - name: 5.3.7 Use Only Approved Cipher in Counter Mode
+#    lineinfile: >
+#        dest='/etc/ssh/sshd_config'
+#        regexp='^Ciphers'
+#        line='Ciphers aes256-ctr,aes192-ctr,aes128-ctr,aes256-cbc,aes192-cbc,aes128-cbc,3des-cbc'
+#        state=present
+#    tags:
+#      - section5
+#      - section5.3
+#      - section5.3.7
+#
+#  - name: 5.3.11 Ensure only approved MAC algorithms are used
+#    lineinfile:
+#      dest=/etc/ssh/{{item}}
+#      state=present
+#      regexp='^MACs'
+#      line='MACs hmac-sha1'
+#    with_items:
+#      - sshd_config
+#      - ssh_config
+#    tags:
+#       - section5
+#       - section5.3
+#       - section5.3.11
+
+  - name: 5.3.12.1 Set Idle Timeout Interval for User Login
+    lineinfile: >
+        dest='/etc/ssh/sshd_config'
+        regexp='^ClientAliveInterval'
+        line='ClientAliveInterval 300'
+        state=present
+    tags:
+      - section5
+      - section5.3
+      - section5.3.12
+      - section5.3.12.1
+
+  - name: 5.3.12.2 Set Idle Timeout Interval for User Login
+    lineinfile: >
+        dest='/etc/ssh/sshd_config'
+        regexp='^ClientAliveCountMax'
+        line='ClientAliveCountMax 0'
+        state=present
+    tags:
+      - section5
+      - section5.3
+      - section5.3.12
+      - section5.3.12.2
+
+# These are not applicable, we do not have fine grained RBAC at this time
+#  - name: 5.3.13.1 Limit Access via SSH
+#  - name: 5.3.13.2 Limit Access via SSH
+#  - name: 5.3.13.3 Limit Access via SSH
+#  - name: 5.3.13.4 Limit Access via SSH
+
+
+  - name: 5.3.13.1 No MOTD on login, ssh and su
+    replace:
+      dest: /etc/pam.d/{{item}}
+      regexp: '^([^#].*pam_motd.*)$'
+      replace: '# \1'
+    with_items: [ login, sshd, su ]
+    tags:
+      - section5
+      - section5.3
+      - section5.3.13
+      - section5.3.13.1
+
+  - name: 5.3.13.2 No new mail on login, ssh and su
+    replace:
+      dest: /etc/pam.d/{{item}}
+      regexp: '^([^#].*pam_mail.*)$'
+      replace: '# \1'
+    with_items: [ login, sshd, su ]
+    tags:
+      - section5
+      - section5.3
+      - section5.3.13
+      - section5.3.13.2
+
+  - name: 5.3.14 Set SSH Banner
+    lineinfile: >
+        dest='/etc/ssh/sshd_config'
+        regexp='^Banner'
+        line='Banner /etc/issue.net'
+        state=present
+    tags:
+      - section5
+      - section5.3
+      - section5.3.14

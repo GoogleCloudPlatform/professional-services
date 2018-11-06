@@ -1,0 +1,26 @@
+---
+
+  - include: section_05_1.yml
+    tags:
+      - section05
+      - _1
+
+  - include: section_05_2.yml
+    tags:
+      - section05
+      - _2
+
+  - include: section_05_3.yml
+    tags:
+      - section05
+      - _3
+
+  - include: section_05_4.yml
+    tags:
+      - section05
+      - _4
+
+  - include: section_05_5.yml
+    tags:
+      - section01
+      - _5

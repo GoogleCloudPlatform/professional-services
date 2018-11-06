@@ -1,0 +1,17 @@
+---
+
+  - include: section_06_1.yml
+    tags:
+      - section06
+      - _1
+
+  - include: section_06_2.yml
+    tags:
+      - section06
+      - _2
+
+  - include: section_06_3.yml
+    tags:
+      - section06
+      - _3
+

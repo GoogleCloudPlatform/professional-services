@@ -1,0 +1,65 @@
+# Set the following properties to tune this hardening role:
+
+# Section 01
+partitioning: False
+
+# True if run/shm is write-protected.
+run_shm_read_only: True
+
+# The execution is faster without packages upgrade.
+apt_upgrade: True
+
+# Only update apt cache if older than this value (in seconds)
+apt_cache_valid_time: 3600
+
+# Set a generic logon banner
+etc_motd_issue_banner: "This system is for the use of authorized users only.  Individuals using this computer system without authority, or in excess of their authority, are subject to having all of their activities on this system monitored and recorded by system personnel.  In the course of monitoring individuals improperly using this system, or in the course of system maintenance, the activities of authorized users may also be monitored.  Anyone using this system expressly consents to such monitoring and is advised that if such monitoring reveals possible evidence of criminal activity, system personnel may provide the evidence of such monitoring to law enforcement officials."
+
+# Default root password: root
+# TODO: get this from somewhere else
+root_password: $6$5Mklo2YKvXOM50Zj$E8w4oiykpG9WiElxwHLx85rFFFG0z/lu0vp0wiU0SAnMnw0CmYhmArxvLxBjWQ6XVHv88XQyfpTjX4CPH89hf1
+
+# Grub Bootloader PBKDF2 Password (use grub-mkpasswd-pbkdf2 to generate)
+# TODO: get this from somewhere else
+root_password_grub: grub.pbkdf2.sha512.10000.529DB4AF052F170948C1DB2A754CEA8A286804DA2D9A4EB5A7CCE4B8636775C83EAF8A1093CBDBC256954BCE789A58EFB3B75D23DFC76583C703922D5DADB69E.4D5BD1EC6736057095CA2EBF55C2DA02DFB0B0784F2105A396F1CEF11FEB1483D5C420F412E2E817E2570DDFC22ABCC329C5FF44091A0ACDE67171FF72E96CFD
+
+# Set this flag to use AppArmor. It is useful to disable it when the system does not support the kernel module.
+use_apparmor: True
+
+# Modify the kernel behavior to disallow dump of suid binaries.
+restrict_core_dumps: True
+
+# Set this flag to randomize virtual memory region placement.
+enable_aslr: True
+
+# We focus a server installation, but we may be accept some desktops.
+remove_xserver: True
+
+# Set this flag if the kernel has TCP syncookies support.
+enable_tcp_syncookies: True
+
+# A Docker host will need this set to 1 in order to route container traffic.
+# (https://docs.docker.com/engine/userguide/networking/default_network/container-communication)
+net_ipv4_ip_forward: 0
+
+# Enable the activate_ufw variable with True to install and enable service on boot.
+# NOTE: If not properly configured it may result in incorrect services behavior.
+activate_ufw: False
+
+# Disable all ipv6 interfaces. Suggested if the protocol is not used.
+disable_ipv6: True
+
+# Set auditd logs file size in /var/log/auditd
+max_log_file_auditd: 200
+
+# Set this flag to use AIDE. Disable when using another file integrity checker like OSSEC.
+use_aide: True
+
+# This variable will install and setup the pam_cracklib module, enforcing strong passwords settings.
+use_pam_cracklib: True
+
+# This variable defines if accounts without password have to be locked
+lock_shadow_accounts: False
+
+# The modification of user homes may lock users and set the system in an errored state. Set to false if one of the user is using / as home.
+modify_user_homes: True

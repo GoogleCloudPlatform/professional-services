@@ -1,0 +1,85 @@
+---
+
+  - name: 2.1.1 Ensure NIS is not installed
+    apt: name=nis state=absent purge=yes
+    tags:
+    - section2
+    - section2.1
+    - section2.1.1
+
+  - name: 2.1.2 Ensure rsh, rlogin, rexec, talk, telnet, chargen, daytime, echo, discard, time is not enabled (stat inetd)
+    stat: path=/etc/inetd.conf
+    register: inetd_path
+    tags:
+    - section2
+    - section2.1
+    - section2.1.2
+
+  - name: 2.1.3 Ensure rsh, rlogin, rexec, talk, telnet, chargen, daytime, echo, discard, time is not enabled
+    lineinfile: >
+        dest=/etc/inetd.conf
+        regexp='^({{ item }}.*)'
+        line='#\1'
+        state=present
+        backrefs=yes
+        backup=yes
+    with_items:
+        - shell
+        - login
+        - exec
+        - talk
+        - ntalk
+        - telnet
+        - chargen
+        - daytime
+        - echo
+        - discard
+        - time
+    when: inetd_path.stat.exists == True
+    tags:
+    - section2
+    - section2.1
+    - section2.1.3
+
+  - name: 2.1.4 Ensure rsh client is not installed
+    apt: name=rsh-client state=absent purge=yes
+    tags:
+    - section2
+    - section2.1
+    - section2.1.4
+
+  - name: 2.1.5 Ensure rsh client is not installed
+    apt: name=rsh-redone-client state=absent purge=yes
+    tags:
+    - section2
+    - section2.1
+    - section2.1.5
+
+  - name: 2.1.6 Ensure talk client is not installed
+    apt: name=talk state=absent purge=yes
+    tags:
+    - section2
+    - section2.1
+    - section2.1.6
+
+  - name: 2.1.8 Ensure xinetd is not enabled (stat xinetd)
+    stat: path=/etc/init/xinetd.conf
+    register: xinetd_path
+    tags:
+    - section2
+    - section2.1
+    - section2.1.8
+
+  - name: 2.1.9 Ensure xinetd is not enabled
+    lineinfile: >
+        dest=/etc/init/xinetd.conf
+        regexp='start on runlevel'
+        state=present
+        line='#start on runlevel [2345]'
+    when: xinetd_path.stat.exists == True
+    tags:
+    - section2
+    - section2.1
+    - section2.1.9
+
+

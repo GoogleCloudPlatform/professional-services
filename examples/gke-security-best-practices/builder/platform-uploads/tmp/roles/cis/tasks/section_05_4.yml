@@ -1,0 +1,16 @@
+---
+
+  - name: 5.4.1 Restrict root Login to System Console (check)
+    stat: path=/etc/securetty
+    register: securetty_file
+    tags:
+      - section5
+      - section5.4
+
+  - name: 5.4.2 Restrict root Login to System Console
+    debug: msg='*** Check /etc/securetty for console allowed for root access ***'
+    when: securetty_file.stat.exists == True
+    tags:
+      - section5
+      - section5.4
+

@@ -1,0 +1,17 @@
+---
+
+  - name: 1.2 Configure Software Updates
+    apt: update_cache=yes cache_valid_time={{apt_cache_valid_time}}
+    tags:
+      - section1
+      - section1.2
+
+  - name: 1.2.1 Configure Software Updates
+    apt: upgrade=yes
+    when: apt_upgrade == True
+    tags:
+      - section1
+      - section1.2.1
+
+
+

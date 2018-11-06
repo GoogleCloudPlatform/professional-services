@@ -1,0 +1,30 @@
+---
+
+  - name: 3.5.0 Ensures /etc/modprobe.d/ exists
+    file: >
+        path=/etc/modprobe.d
+        state=directory
+    register: cis_conf_file
+    tags:
+      - section3
+      - section3.5
+
+  - name: 3.5.1-4 Disable DCCP, SCTP, RDS, TIPC
+    lineinfile: >
+        dest=/etc/modprobe.d/CIS.conf
+        line='install {{ item }} /bin/true'
+        state=present
+        create=True
+    with_items:
+        - dccp
+        - sctp
+        - rds
+        - tipc
+    tags:
+      - section3
+      - section3.5
+      - section3.5.1
+      - section3.5.2
+      - section3.5.3
+      - section3.5.4
+

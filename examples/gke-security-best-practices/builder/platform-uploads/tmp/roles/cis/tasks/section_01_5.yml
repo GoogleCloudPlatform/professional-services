@@ -1,0 +1,106 @@
+---
+
+  - name: 1.5.1 Restrict Core Dumps
+    lineinfile: dest='/etc/security/limits.conf' line="* hard core 0" state=present insertbefore='^# End of file'
+    tags:
+      - section1
+      - section1.5
+      - section1.5.1
+
+  - name: 1.5.2 Restrict Core Dumps
+    sysctl: >
+        name=fs.suid_dumpable
+        value=0
+        state=present
+    when: restrict_core_dumps == True
+    tags:
+      - section1
+      - section1.5
+      - section1.5.2
+
+  - name: 1.5.4 Restrict Core Dumps (stat file)
+    stat: path='/etc/init/apport.conf'
+    register: apport_present
+    tags:
+      - section1
+      - section1.5
+      - section1.5.4
+
+  - name: 1.5.5 Restrict Core Dumps
+    lineinfile: >
+        dest='/etc/init/apport.conf'
+        line='#start on runlevel [2345]'
+        state=present
+        regexp='start on runlevel'
+    when: apport_present.stat.exists == True
+    tags:
+      - section1
+      - section1.5
+      - section1.5.3
+
+  - name: 1.5.6 Restrict Core Dumps (stat file)
+    stat: path='/etc/init/whoopsie.conf'
+    register: whoopsie_present
+    tags:
+      - section1
+      - section1.5
+      - section1.5.4
+
+  - name: 1.5.7 Restrict Core Dumps
+    lineinfile: >
+        dest='/etc/init/whoopsie.conf'
+        line='#start on runlevel [2345]'
+        state=present
+        regexp='start on runlevel'
+    when: whoopsie_present.stat.exists == True
+    tags:
+      - section1
+      - section1.5
+      - section1.5.4
+
+  - name: 1.5.8 Ensure XD/NX support is enabled
+    shell: 'dmesg | grep NX'
+    register: nx_result
+    failed_when: nx_result.rc == 1
+    changed_when: False
+    ignore_errors: True
+    tags:
+      - section1
+      - section1.5
+      - section1.5.8
+
+  - name: 1.5.9 Ensure address space layout randomization (ASLR) is enabled
+    sysctl: >
+       name=kernel.randomize_va_space
+       value=2
+       state=present
+    when: enable_aslr
+    tags:
+      - section1
+      - section1.5
+      - section1.5.9
+
+  - name: 1.5.10 Ensure prelink is disabled (check)
+    stat: path=/usr/sbin/prelink
+    register: prelink_rc
+    tags:
+      - section1
+      - section1.5
+      - section1.5.10
+
+  - name: 1.5.11 Ensure prelink is disabled (restore)
+    command: '/usr/sbin/prelink -ua'
+    when: prelink_rc.stat.exists == True
+    tags:
+      - section1
+      - section1.5
+      - section1.5.11
+
+  - name: 1.5.12 Ensure prelink is disabled (remove)
+    apt: purge=yes name='prelink' state=absent
+    when: prelink_rc.stat.exists == True
+    tags:
+      - section1
+      - section1.5
+      - section1.5.12
+

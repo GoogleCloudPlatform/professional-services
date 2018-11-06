@@ -1,0 +1,11 @@
+---
+
+  - name: 5.5.1 Restrict Access to the su Command (Scoredsection_05_1.yml)
+    lineinfile: >
+        dest='/etc/pam.d/su'
+        line='auth            required        pam_wheel.so use_uid'
+        state=present
+    tags:
+      - section5
+      - section5.5
+      - section5.5.1

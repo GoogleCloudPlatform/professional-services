@@ -1,0 +1,25 @@
+---
+
+    - name: 3.7.1 Ensure Firewall is active (started)
+      service: >
+          name=ufw
+          state=started
+      when: activate_ufw
+      tags:
+        - section3
+        - section3.7
+        - section3.7.1
+
+    - name: 3.7.2 Ensure Firewall is active (enabled)
+      lineinfile: >
+          dest=/etc/ufw/ufw.conf
+          regexp='ENABLED='
+          line='ENABLED=yes'
+          state=present
+          create=yes
+      when: activate_ufw
+      tags:
+        - section3
+        - section3.7
+        - section3.7.2
+

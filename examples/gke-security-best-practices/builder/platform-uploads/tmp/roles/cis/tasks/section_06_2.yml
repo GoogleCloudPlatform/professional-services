@@ -1,0 +1,7 @@
+---
+
+  - name: 6.2 Verify Permissions on /etc/shadow
+    file: path=/etc/shadow mode='o-rwx,g-rw'
+    tags:
+      - section6
+      - section6.2

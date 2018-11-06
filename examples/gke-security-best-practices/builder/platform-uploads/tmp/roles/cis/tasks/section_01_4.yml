@@ -1,0 +1,118 @@
+---
+
+  - name: 1.4 Check for /boot/grub/grub.cfg file
+    stat: path=/boot/grub/grub.cfg
+    register: grub_cfg_file
+    tags:
+      - section1
+
+  - name: 1.4.1.1 Set Boot Loader Superuser (check)
+    command: grep "^set superusers" /boot/grub/grub.cfg
+    register: boot_superusers
+    when: grub_cfg_file.stat.exists == True
+    changed_when: False
+    failed_when: False
+    check_mode: No
+    tags:
+      - section1
+      - section1.4
+      - section1.4.1
+      - section1.4.1.1
+
+  - name: 1.4.1.2 Set Boot Loader Superuser
+    lineinfile: >
+        dest='/etc/grub.d/40_custom'
+        regexp='^set superusers'
+        line='set superusers="root"'
+        state=present
+        create=yes
+    when: grub_cfg_file.stat.exists == True and boot_superusers.rc == 1
+    tags:
+      - section1
+      - section1.4
+      - section1.4.1
+      - section1.4.1.2
+
+  - name: 1.4.2.1 Set Boot Loader Password (check)
+    command: grep "^password" /boot/grub/grub.cfg
+    register: boot_password
+    when: grub_cfg_file.stat.exists == True
+    changed_when: False
+    failed_when: False
+    check_mode: No
+    tags:
+      - section1
+      - section1.4
+      - section1.4.2
+      - section1.4.2.1
+
+  - name: 1.4.2.2 Set Boot Loader Password
+    lineinfile: >
+        dest='/etc/grub.d/40_custom'
+        regexp='^password'
+        line="password_pbkdf2 root {{root_password_grub}}"
+        state=present
+    when: grub_cfg_file.stat.exists == True and boot_password.rc == 1
+    tags:
+      - section1
+      - section1.4
+      - section1.4.2
+      - section1.4.2.2
+
+  - name: 1.4.3 Disable password protection booting
+    lineinfile: >
+        dest='/etc/grub.d/10_linux'
+        create=yes
+        regexp='^CLASS='
+        line='CLASS="--class gnu-linux --class gnu --class os --unrestricted"'
+        state=present
+    tags:
+      - section1
+      - section1.4
+      - section1.4.3
+
+
+  - name: 1.4.4 Update Grub configuration
+    command: update-grub
+    when: grub_cfg_file.stat.exists == True and (boot_superusers.rc == 1 or boot_password.rc == 1)
+    tags:
+      - section1
+      - section1.4
+      - section1.4.4
+
+
+  - name: 1.4.5 Require Authentication for Single-User Mode (check)
+    shell: 'grep "^root:[*\!]:" /etc/shadow'
+    register: root_password_set
+    changed_when: False
+    failed_when: False
+    check_mode: No
+    tags:
+      - section1
+      - section1.4
+      - section1.4.5
+
+  - name: 1.4.6 Require Authentication for Single-User Mode
+    user: name=root state=present password='{{ root_password }}'
+    when: root_password_set.rc == 1
+    tags:
+      - section1
+      - section1.4
+      - section1.4.6
+
+  - name: 1.4.7 Set User/Group Owner on bootloader config
+    file: path=/boot/grub/grub.cfg owner=root group=root
+    when: grub_cfg_file.stat.exists == True
+    tags:
+      - section1
+      - section1.4
+      - section1.4.7
+
+  - name: 1.4.8 Set Permissions on bootloader config
+    file: path=/boot/grub/grub.cfg mode="o-rwx,g-rwx"
+    when: grub_cfg_file.stat.exists == True
+    become: yes
+    tags:
+      - section1
+      - section1.4
+      - section1.4.8

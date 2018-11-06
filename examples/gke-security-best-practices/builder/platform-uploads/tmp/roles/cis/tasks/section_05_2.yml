@@ -1,0 +1,44 @@
+---
+
+  - name: 5.2.1.1 Set Password Creation Requirement Parameters Using pam_cracklib (install)
+    apt: name=libpam-cracklib state=present
+    when: use_pam_cracklib == True
+    tags:
+      - section5
+      - section5.2
+      - section5.2.1
+
+  - name: 5.2.1.2 Set Password Creation Requirement Parameters Using pam_cracklib
+    lineinfile: >
+        dest='/etc/pam.d/common-password'
+        regexp="pam_cracklib.so"
+        line="password required pam_cracklib.so retry=3 minlen=14 dcredit=-1 ucredit=-1 ocredit=-1 lcredit=-1"
+        state=present
+    when: use_pam_cracklib == True
+    tags:
+      - section5
+      - section5.2
+      - section5.2.1
+
+  - name: 5.2.2 Set Lockout for Failed Password Attempts
+    lineinfile: >
+        dest='/etc/pam.d/login'
+        regexp='pam_tally2'
+        line="auth required pam_tally2.so onerr=fail audit silent deny=5 unlock_time=900"
+        state=present
+    tags:
+      - section5
+      - section5.2
+      - section5.2.2
+
+  - name: 5.2.3 Limit Password Reuse
+    lineinfile: >
+        dest='/etc/pam.d/common-password'
+        regexp='remember=5'
+        line="password sufficient pam_unix.so remember=5"
+        state=present
+    tags:
+      - section5
+      - section5.2
+      - section5.2.3
+

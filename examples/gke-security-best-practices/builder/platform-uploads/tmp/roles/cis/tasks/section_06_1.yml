@@ -1,0 +1,123 @@
+---
+
+  - name: 6.1 Verify Permissions on /etc/passwd
+    file: path=/etc/passwd mode=0644
+    tags:
+      - section6
+      - section6.1
+
+  - name: 6.2 Verify Permissions on /etc/shadow
+    file: path=/etc/shadow mode='o-rwx,g-rw'
+    tags:
+      - section6
+      - section6.2
+
+  - name: 6.3 Verify Permissions on /etc/group
+    file: path=/etc/group mode=0644
+    tags:
+      - section6
+      - section6.3
+
+  - name: 6.4 Verify User/Group Ownership on /etc/passwd
+    file: path=/etc/passwd owner=root group=root
+    tags:
+      - section6
+      - section6.4
+
+  - name: 6.5 Verify User/Group Ownership on /etc/shadow
+    file: path=/etc/shadow owner=root group=shadow
+    tags:
+      - section6
+      - section6.5
+
+  - name: 6.6 Verify User/Group Ownership on /etc/group
+    file: path=/etc/group owner=root group=root
+    tags:
+      - section6
+      - section6.6
+
+  - name: 6.7.1 Find World Writable Files (check)
+    shell: df --local -P | awk {'if (NR!=1) print $6'} | xargs -I '{}' find '{}' -xdev -type f -perm -0002 -print
+    changed_when: False
+    failed_when: False
+    check_mode: No
+    register: world_files
+    tags:
+      - section6
+      - section6.7
+
+  - name: 6.7.2 Find World Writable Files
+    debug: msg="{{ item }}"
+    with_items: "{{world_files.stdout_lines}}"
+    tags:
+      - section6
+      - section6.7
+
+  - name: 6.8.1 Find Un-owned Files and Directories (check)
+    shell: df --local -P | awk {'if (NR!=1) print $6'} | xargs -I '{}' find '{}' -xdev -nouser -ls
+    changed_when: False
+    failed_when: False
+    check_mode: No
+    register: unowned_files
+    tags:
+      - section6
+      - section6.8
+
+  - name: 6.8.2 Find Un-owned Files and Directories
+    debug: msg="{{ item }}"
+    with_items: "{{unowned_files.stdout_lines}}"
+    tags:
+      - section6
+      - section6.9
+
+  - name: 6.9.1 Find Un-grouped Files and Directories (check)
+    shell: df --local -P | awk {'if (NR!=1) print $6'} | xargs -I '{}' find '{}' -xdev -nogroup -ls
+    changed_when: False
+    failed_when: False
+    check_mode: No
+    register: ungrouped_files
+    tags:
+      - section6
+      - section6.9
+
+  - name: 6.9.2 Find Un-grouped Files and Directories
+    debug: >
+        msg="{{ item }}"
+    with_items: "{{ungrouped_files.stdout_lines}}"
+    tags:
+      - section6
+      - section6.9
+
+  - name: 6.10.1 Find SUID System Executables (check)
+    shell: df --local -P | awk {'if (NR!=1) print $6'} | xargs -I '{}' find '{}' -xdev -type f -perm -4000 -print
+    changed_when: False
+    failed_when: False
+    check_mode: No
+    register: suid_files
+    tags:
+      - section6
+      - section6.10
+
+  - name: 6.10.2 Find SUID System Executables
+    debug: msg="{{ item }}"
+    with_items: "{{suid_files.stdout_lines}}"
+    tags:
+      - section6
+      - section6.10
+
+  - name: 6.11.1 Find SGID System Executables (check)
+    shell: df --local -P | awk {'if (NR!=1) print $6'} | xargs -I '{}' find '{}' -xdev -type f -perm -2000 -print
+    changed_when: False
+    failed_when: False
+    check_mode: No
+    register: gsuid_files
+    tags:
+      - section6
+      - section6.11
+
+  - name: 6.11.2 Find SGID System Executables
+    debug: msg="{{ item }}"
+    with_items: "{{gsuid_files.stdout_lines}}"
+    tags:
+      - section6
+      - section6.10

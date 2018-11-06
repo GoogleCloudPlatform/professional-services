@@ -1,0 +1,207 @@
+---
+
+  - name: 1.1.1.1 Ensure mounting of cramfs filesystems is disabled
+    lineinfile: >
+        dest=/etc/modprobe.d/CIS.conf
+        line='install cramfs /bin/true'
+        state=present
+        create=yes
+    tags:
+      - section1
+      - section1.1.1.1
+
+  - name: 1.1.1.2 Ensure mounting of freevxfs filesystems is disabled
+    lineinfile: >
+        dest=/etc/modprobe.d/CIS.conf
+        line='install freevxfs /bin/true'
+        state=present
+        create=yes
+    tags:
+      - section1
+      - section1.1.1.2
+
+  - name: 1.1.1.3 Ensure mounting of jffs2 filesystems is disabled
+    lineinfile: >
+        dest=/etc/modprobe.d/CIS.conf
+        line='install jffs2 /bin/true'
+        state=present
+        create=yes
+    tags:
+      - section1
+      - section1.1.1.3
+
+  - name: 1.1.1.4 Ensure mounting of hfs filesystems is disabled
+    lineinfile: >
+        dest=/etc/modprobe.d/CIS.conf
+        line='install hfs /bin/true'
+        state=present
+        create=yes
+    tags:
+      - section1
+      - section1.1.1.4
+
+  - name: 1.1.1.5 Ensure mounting of hfsplus filesystems is disabled
+    lineinfile: >
+        dest=/etc/modprobe.d/CIS.conf
+        line='install hfsplus /bin/true'
+        state=present
+        create=yes
+    tags:
+      - section1
+      - section1.1.1.5
+
+  - name: 1.1.1.6 Ensure mounting of squashfs filesystems is disabled
+    lineinfile: >
+        dest=/etc/modprobe.d/CIS.conf
+        line='install squashfs /bin/true'
+        state=present
+        create=yes
+    tags:
+      - section1
+      - section1.1.1.6
+
+  - name: 1.1.1.7 Ensure mounting of udf filesystems is disabled
+    lineinfile: >
+        dest=/etc/modprobe.d/CIS.conf
+        line='install udf /bin/true'
+        state=present
+        create=yes
+    tags:
+      - section1
+      - section1.1.1.7
+
+  - name: 1.1.1.8 Ensure mounting of FAT filesystems is disabled
+    lineinfile: >
+        dest=/etc/modprobe.d/CIS.conf
+        line='install vfat /bin/true'
+        state=present
+        create=yes
+    tags:
+      - section1
+      - section1.1.1.8
+
+  - name: 1.1.2 Ensure separate partition exists for /tmp
+    command: grep '\s/tmp\s' /etc/fstab
+    register: tmp_partition
+    when: partitioning == True
+    failed_when: tmp_partition.rc == 1
+    changed_when: False
+    ignore_errors: True
+    tags:
+      - section1
+      - section1.1.2
+
+  - name: 1.1.3 Ensure nodev option set on /tmp partition
+    mount: name="/tmp" src="/tmp" state="mounted" opts="rw,nosuid,nodev,noexec,relatime" fstype=tmpfs
+    when: partitioning == True
+    tags:
+      - section1
+      - section1.1.3
+
+  - name: 1.1.4 Ensure nosuid option set on /tmp partition
+    mount: name="/tmp" src="/tmp" state="mounted" opts="defaults,nodev,nosuid,noexec" fstype=tmpfs
+    when: partitioning == True
+    tags:
+      - section2
+      - section1.1.14
+
+  - name: 1.1.5 Ensure separate partition exists for /var*
+    command: grep '\s/var\s' /etc/fstab
+    when: partitioning == True
+    register: var_partition
+    failed_when: var_partition.rc == 1
+    changed_when: False
+    ignore_errors: True
+    tags:
+      - section1
+      - section1.1.5
+
+  - name: 1.1.6 Ensure separate partition exists for /var/tmp
+    mount: name="/var/tmp" src="/tmp" opts=bind state=mounted fstype=ext4
+    when: partitioning == True
+    tags:
+      - section1
+      - section1.1.6
+
+##  combined sections 1.1.7 - 1.1.9
+  - name: 1.1.7 Ensure rw,nosuid,nodev,noexec,relatime options  are set on /var/tmp partition
+    mount: name="/var/tmp" src="/var/tmp" state="mounted" opts="rw,nosuid,nodev,noexec,relatime" fstype=tmpfs
+    when: partitioning == True
+    tags:
+      - section1
+      - section1.1.7
+      #- section1.1.8
+      #- section1.1.9
+
+  - name: 1.1.10 Ensure separate partition exists for /var/log
+    mount: name="/var/log" src="/log" opts=bind state=mounted fstype=ext4
+    when: partitioning == True
+    tags:
+      - section1
+      - section1.1.10
+
+  - name: 1.1.11 Ensure separate partition exists for /var/log/audit
+    mount: name="/var/log/audit" src="/log/audit" opts=bind state=mounted fstype=ext4
+    when: partitioning == True
+    tags:
+      - section1
+      - section1.1.11
+
+  - name: 1.1.13 Ensure nodev option set on /home partition
+    mount: name="/home" src="/home" state="mounted" opts="rw,nodev,relatime,data=ordered" fstype=ext4
+    when: partitioning == True
+    tags:
+      - section1
+      - section1.1.13
+
+  # combined sections 1.1.14 - 1.1.16
+  - name: 1.1.14 Ensure nosuid,nodev,noexec options are set on /run/shm partition
+    mount: name="/run/shm" src="/shm" state="mounted" opts="rw,nosuid,nodev,noexec,relatime" fstype=tmpfs
+    when: partitioning == True
+    tags:
+      - section1
+      - section1.1.14
+
+  # Not applicable to virtual machines
+  # 1.1.17 Ensure nodev option set on removable media partitions
+  # 1.1.18 Ensure nosuid option set on removable media partitions
+  # 1.1.19 Ensure noexec option set on removable media partitions
+
+  - name: 1.1.20.a Ensure sticky bit is set on all world-writable directories (check)
+    shell: df --local -P | awk {'if (NR!=1) print $6'} | xargs -I '{}' find '{}' -xdev -type d -perm -0002 -print 2>/dev/null
+    failed_when: False
+    changed_when: False
+    check_mode: No
+    register: sticky_bit_dirs
+    tags:
+      - section1
+      - section1.1.20.a
+
+  - name: 1.1.20 Ensure sticky bit is set on all world-writable directories (enforce)
+    file:
+        path: "{{ item }}"
+        mode: "a+t"
+    with_items: "{{sticky_bit_dirs.stdout_lines}}"
+    tags:
+      - section1
+      - section1.1.20
+
+  - name: 1.1.21.a Disable Automounting (check)
+    stat: >
+        path=/etc/init/autofs.conf
+    register: autofs_file
+    tags:
+      - section1
+      - section1.1.21.a
+
+  - name: 1.1.21 Disable Automounting (enforce)
+    lineinfile: >
+        dest=/etc/init/autofs.conf
+        line='#start on runlevel [2345]'
+        regexp='start on runlevel'
+        state=present
+    when: autofs_file.stat.exists == True
+    tags:
+      - section1
+      - section1.1.21
+

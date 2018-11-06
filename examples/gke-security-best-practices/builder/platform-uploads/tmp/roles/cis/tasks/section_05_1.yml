@@ -1,0 +1,101 @@
+---
+
+  - name: 5.1.1.1 Check that cron conf file exists (check)
+    stat: path=/etc/init/cron.conf
+    register: cron_conf_stat
+    tags:
+      - section5
+      - section5.1
+      - section5.1.1
+      - section5.1.1.1
+
+  - name: 5.1.1.2 Enable cron Daemon
+    service: >
+        name=cron
+        state=started
+        enabled=yes
+    when: not cron_conf_stat.stat.exists
+    tags:
+      - section5
+      - section5.1
+      - section5.1.1
+      - section5.1.1.2
+
+  - name: 5.1.2 Set User/Group Owner and Permission on /etc/crontab
+    file: path='/etc/crontab' owner=root group=root mode="og-rwx"
+    tags:
+      - section5
+      - section5.1
+      - section5.1.2
+
+  - name: 5.1.3 Set User/Group Owner and Permission on /etc/cron.hourly
+    file: path=/etc/cron.hourly owner=root group=root mode="og-rwx"
+    tags:
+      - section5
+      - section5.1
+      - section5.1.3
+
+  - name: 5.1.4 Set User/Group Owner and Permission on /etc/cron.daily
+    file: path=/etc/cron.daily owner=root group=root mode="og-rwx"
+    tags:
+      - section5
+      - section5.1
+      - section5.1.4
+
+  - name: 5.1.5 Set User/Group Owner and Permission on /etc/cron.weekly
+    file: path=/etc/cron.weekly owner=root group=root mode="og-rwx"
+    tags:
+      - section5
+      - section5.1
+      - section5.1.5
+
+  - name: 5.1.6 Set User/Group Owner and Permission on /etc/cron.monthly
+    file: path=/etc/cron.monthly owner=root group=root mode="og-rwx"
+    tags:
+      - section5
+      - section5.1
+      - section5.1.6
+
+  - name: 5.1.7 Set User/Group Owner and Permission on /etc/cron.d
+    file: path=/etc/cron.d owner=root group=root mode="og-rwx"
+    tags:
+      - section5
+      - section5.1
+      - section5.1.7
+
+  - name: 5.1.8.1 Restrict at/cron to Authorized Users (remove deny)
+    file: path={{ item }} state=absent
+    with_items:
+        - /etc/cron.deny
+        - /etc/at.deny
+    tags:
+      - section5
+      - section5.1
+      - section5.1.8
+
+  - name: 5.1.8.2 Restrict at/cron to Authorized Users (create cron allow)
+    copy:
+        dest: /etc/cron.allow
+        owner: root
+        group: root
+        mode: "og-rwx"
+        content: ""
+        force: no
+    tags:
+      - section5
+      - section5.1
+      - section5.1.8
+
+  - name: 5.1.8.3 Restrict at/cron to Authorized Users (create at allow)
+    copy:
+        dest: /etc/at.allow
+        owner: root
+        group: root
+        mode: "og-rwx"
+        content: ""
+        force: no
+    tags:
+      - section5
+      - section5.1
+      - section5.1.8
+

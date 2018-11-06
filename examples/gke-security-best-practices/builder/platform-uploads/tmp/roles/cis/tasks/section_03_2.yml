@@ -1,0 +1,142 @@
+---
+
+  - name: 3.2.1 Disable Source Routed Packet Acceptance
+    sysctl: >
+      name=net.ipv4.conf.all.accept_source_route
+      value=0
+      state=present
+    tags:
+      - section3
+      - section3.2
+      - section3.2.1
+
+  - name: 3.2.2 Disable Source Routed Packet Acceptance
+    sysctl: >
+      name=net.ipv4.conf.default.accept_source_route
+      value=0
+      state=present
+    tags:
+      - section3
+      - section3.2
+      - section3.2.2
+
+  - name: 3.2.3 Disable ICMP Redirect Acceptance
+    sysctl: >
+      name=net.ipv4.conf.all.accept_redirects
+      value=0
+      state=present
+    tags:
+      - section3
+      - section3.2
+      - section3.2.3
+
+  - name: 3.2.4 Disable ICMP Redirect Acceptance
+    sysctl: >
+      name=net.ipv4.conf.default.accept_redirects
+      value=0
+      state=present
+    tags:
+      - section3
+      - section3.2
+      - section3.2.4
+
+  - name: 3.2.5 Disable Secure ICMP Redirect Acceptance
+    sysctl: >
+      name=net.ipv4.conf.all.secure_redirects
+      value=0
+      state=present
+    tags:
+      - section3
+      - section3.2
+      - section3.2.5
+
+  - name: 3.2.3.2 Disable Secure ICMP Redirect Acceptance
+    sysctl: >
+      name=net.ipv4.conf.default.secure_redirects
+      value=0
+      state=present
+    tags:
+      - section3
+      - section3.2
+      - section3.2.3
+
+  - name: 3.2.4.1 Log Suspicious Packets
+    sysctl: >
+      name=net.ipv4.conf.all.log_martians
+      value=1
+      state=present
+    tags:
+      - section3
+      - section3.2
+      - section3.2.4
+
+  - name: 3.2.4.2 Log Suspicious Packets
+    sysctl: >
+      name=net.ipv4.conf.default.log_martians
+      value=1
+      state=present
+    tags:
+      - section3
+      - section3.2
+      - section3.2.4
+
+  - name: 3.2.4.3 Log Suspicious Packets (flushing tables)
+    sysctl: >
+      name=net.ipv4.route.flush
+      value=1
+      state=present
+    tags:
+      - section3
+      - section3.2
+      - section3.2.4
+
+  - name: 3.2.5 Enable Ignore Broadcast Requests
+    sysctl: >
+      name=net.ipv4.icmp_echo_ignore_broadcasts
+      value=1
+      state=present
+    tags:
+      - section3
+      - section3.2
+      - section3.2.5
+
+  - name: 3.2.6 Enable Bad Error Message Protection
+    sysctl: >
+      name=net.ipv4.icmp_ignore_bogus_error_responses
+      value=1
+      state=present
+    tags:
+      - section3
+      - section3.2
+      - section3.2.6
+
+  - name: 3.2.3.1 Enable RFC-recommended Source Route Validation
+    sysctl: >
+      name=net.ipv4.conf.all.rp_filter
+      value=1
+      state=present
+    tags:
+      - section3
+      - section3.2
+      - section3.2.7
+
+  - name: 3.2.3.2 Enable RFC-recommended Source Route Validation
+    sysctl: >
+      name=net.ipv4.conf.default.rp_filter
+      value=1
+      state=present
+    tags:
+      - section3
+      - section3.2
+      - section3.2.7
+
+  - name: 3.2.8 Enable TCP SYN Cookies
+    sysctl: >
+      name=net.ipv4.tcp_syncookies
+      value=1
+      state=present
+    when: enable_tcp_syncookies
+    tags:
+      - section3
+      - section3.2
+      - section3.2.8

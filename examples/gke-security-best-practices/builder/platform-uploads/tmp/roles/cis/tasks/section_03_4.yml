@@ -1,0 +1,45 @@
+---
+
+    - name: 3.4.1 Install TCP Wrappers
+      apt: name=tcpd state=present
+      tags:
+        - section3
+        - section3.4
+        - section3.4.1
+
+    - name: 3.4.2 Create /etc/hosts.allow
+      debug: msg="*** Verify /etc/hosts.allow ***"
+      tags:
+        - section3
+        - section3.4
+        - section3.4.2
+
+    - name: 3.4.3 Verify Permissions on /etc/hosts.allow
+      file: >
+          path=/etc/hosts.allow
+          owner=root
+          group=root
+          mode=0644
+      tags:
+        - section3
+        - section3.4
+        - section3.4.3
+
+    - name: 3.4.4 Create /etc/hosts.deny
+      debug: msg='*** Verify /etc/hosts.deny ***'
+      tags:
+        - section3
+        - section3.4
+        - section3.4.4
+
+    - name: 3.4.5 Verify Permissions on /etc/hosts.deny
+      file: >
+          path=/etc/hosts.deny
+          owner=root
+          group=root
+          mode=0644
+      tags:
+        - section3
+        - section3.4
+        - section3.4.5
+

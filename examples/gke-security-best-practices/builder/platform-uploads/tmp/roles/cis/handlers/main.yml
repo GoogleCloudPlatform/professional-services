@@ -1,0 +1,16 @@
+---
+
+  - name: restart auditd
+    service: name=auditd state=restarted
+    changed_when: False
+    ignore_errors: True
+
+  - name: restart rsyslog
+    service: name=rsyslog state=restarted
+    changed_when: False
+    ignore_errors: True
+
+  - name: restart ssh
+    service: name=ssh state=restarted
+    changed_when: False
+    ignore_errors: True
