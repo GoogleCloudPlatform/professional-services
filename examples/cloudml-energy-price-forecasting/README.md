@@ -1,3 +1,9 @@
+# Energy Price Forecasting Example
+
+This repository contains example code to forecast energy prices. Specifically, given a historical time series of hourly spot prices and weather, it predicts future hourly spot prices multiple days into the future. 
+
+The code takes in raw data from BigQuery, transforms and prepares the data, uses Google Cloud Machine Learning Engine to train a TensorFlow DNN regression model on historical spot prices, and then makes predictions of future spot prices using the model. 
+
 # Data preparation instructions
 
 1. Raw data for this problem is publicly available in BigQuery in the following tables:  
@@ -35,7 +41,7 @@ PREDICTIONS_FOLDER = ${JOB_FOLDER}/test_predictions
 ```
 gcloud ml-engine jobs submit training $JOB_NAME \
         --job-dir=gs://${BUCKET_NAME}/${JOB_FOLDER} \
-        --runtime-version=1.8 \
+        --runtime-version=1.10 \
         --region=us-central1 \
         --scale-tier=BASIC \
         --module-name=trainer.task \
@@ -46,11 +52,11 @@ gcloud ml-engine jobs submit training $JOB_NAME \
 ```
 gcloud ml-engine jobs submit training ${JOB_NAME} \
         --job-dir=gs://${BUCKET_NAME}/${JOB_FOLDER} \
-        --runtime-version=1.8 \
+        --runtime-version=1.10 \
         --region=us-central1 \
         --module-name=trainer.task \
         --package-path=trainer \
-        --config=MLEngine/config.yaml
+        --config=config.yaml
 ```
 
 ## Create model
@@ -63,7 +69,7 @@ gcloud ml-engine models create ${MODEL_NAME} --regions=us-central1
 gcloud ml-engine versions create ${MODEL_VERSION} \
         --model=${MODEL_NAME} \
         --origin=${MODEL_PATH} \
-        --runtime-version=1.8
+        --runtime-version=1.10
 ```
 
 ## Predict on test data
@@ -74,5 +80,6 @@ gcloud ml-engine jobs submit prediction ${JOB_NAME} \
     --output-path=gs://${BUCKET_NAME}/${PREDICTIONS_FOLDER} \
     --region=us-central1 \
     --data-format=TEXT \
+    --signature-name=predict \
     --version=${MODEL_VERSION}
 ```
