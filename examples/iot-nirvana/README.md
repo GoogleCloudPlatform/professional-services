@@ -1,6 +1,6 @@
 # IoT Nirvana
 
-This solution was built with the purpose of demonstrating and end-to-end
+This solution was built with the purpose of demonstrating an end-to-end
 Internet of Things architecture running on Google Cloud Platform. The purpose of
 the solution is to simulate the collection of temperature measures from sensors
 distributed all over the world and to follow temperature evolution by city in

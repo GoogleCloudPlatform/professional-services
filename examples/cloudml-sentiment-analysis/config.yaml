@@ -1,0 +1,3 @@
+trainingInput:
+  scaleTier: CUSTOM
+  masterType: large_model_v100
