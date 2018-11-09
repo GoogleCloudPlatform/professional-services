@@ -9,6 +9,7 @@ To get started contributing:
 1. Fork the repo, develop and test your code changes.
 1. Ensure that your code adheres to the existing [style](https://google.github.io/styleguide).
 1. Ensure that your code has an appropriate set of unit tests which all pass.
+1. Ensure that your code has an accompanying README.md file with instructions on usage. See [awesome-readme](https://github.com/matiassingers/awesome-readme) for good examples of high-quality READMEs.
 1. Ensure that you've added a link to your contribution in the top-level [README](https://github.com/GoogleCloudPlatform/professional-services/blob/master/README.md) (alpha-order).
 1. Submit a pull request.
 
