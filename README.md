@@ -32,7 +32,7 @@ The tools folder contains ready-made utilities which can simpilfy Google Cloud P
 * [Site Verification Group Sync](tools/site-verification-group-sync) - A tool to provision "verified owner" permissions (to create GCS buckets with custom dns) based on membership of a Google Group.
 
 ## Contributing
-The team is currently not accepting contributions.
+See the contributing [instructions](/CONTRIBUTING.md) to get started contributing.
 
 ## License
 See [LICENSE](/LICENSE)
