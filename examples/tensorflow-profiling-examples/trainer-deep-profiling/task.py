@@ -22,7 +22,8 @@ def parse_args():
                         type=int,
                         default=200)
     parser.add_argument('--pattern',
-                        help='Specify a pattern that has to be in input files. For example 00001-of will process only one shard',  # pylint: disable=C0301
+                        help='Specify a pattern that has to be in input files. \
+                        For example 00001-of will process only one shard',
                         default='of')
     parser.add_argument('--job-dir',
                         help='we ignore it, but it is required',
@@ -49,7 +50,7 @@ def parse_args():
                         type=int,
                         default=2)
     args = parser.parse_args()
-    return args.__dict__
+    return vars(args)
 
 
 def main():
