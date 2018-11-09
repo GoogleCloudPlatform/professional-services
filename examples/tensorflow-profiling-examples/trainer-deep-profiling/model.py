@@ -27,7 +27,8 @@ tf.logging.set_verbosity(tf.logging.INFO)
 BUCKET = None  # set from task.py
 PATTERN = 'of'  # gets all files
 TRAIN_STEPS = 10000
-CSV_COLUMNS = 'weight_pounds,is_male,mother_age,plurality,gestation_weeks,key'.split(',')  # noqa: E501
+COLUMNS = 'weight_pounds,is_male,mother_age,plurality,gestation_weeks,key'
+CSV_COLUMNS = COLUMNS.split(',')
 LABEL_COLUMN = 'weight_pounds'
 KEY_COLUMN = 'key'
 DEFAULTS = [[0.0], ['null'], [0.0], ['null'], [0.0], ['nokey']]
@@ -63,10 +64,13 @@ def read_dataset(mode):
             prefix = 'eval'
             num_epochs = 1
             shuffle = False
-        filename_pattern = 'gs://{}/preproc/{}*{}*'.format(BUCKET, prefix, PATTERN)
+        filename_pattern = 'gs://{}/preproc/{}*{}*'.format(BUCKET, prefix,
+                                                           PATTERN)
         files = tf.data.Dataset.list_files(file_pattern=filename_pattern,
                                            shuffle=shuffle)
-        dataset = files.flat_map(lambda filename: tf.data.TextLineDataset(filename).map(_decode_csv))
+        dataset = files.flat_map(
+            lambda filename: tf.data.TextLineDataset(filename)\
+                .map(_decode_csv))
         if mode == tf.estimator.ModeKeys.TRAIN:
             dataset = dataset.batch(BATCH_SIZE, drop_remainder=True)
         else:
@@ -80,16 +84,20 @@ def get_wide_deep(n_embeds):
     # define column types
     plurality_values = ['Single(1)', 'Twins(2)', 'Triplets(3)',
                         'Quadruplets(4)', 'Quintuplets(5)', 'Multiple(2+)']
-    is_male = tf.feature_column.categorical_column_with_vocabulary_list('is_male', ['True', 'False', 'Unknown'])
+    is_male = tf.feature_column.categorical_column_with_vocabulary_list(
+        'is_male', ['True', 'False', 'Unknown'])
     mother_age = tf.feature_column.numeric_column('mother_age')
-    plurality = tf.feature_column.categorical_column_with_vocabulary_list('plurality', plurality_values)
+    plurality = tf.feature_column.categorical_column_with_vocabulary_list(
+        'plurality', plurality_values)
     gestation_weeks = tf.feature_column.numeric_column('gestation_weeks')
 
     # discretize
-    age_buckets = tf.feature_column.bucketized_column(mother_age,
-                                                      boundaries=np.arange(15, 45, 1).tolist())  # pylint: disable=C0301
-    gestation_buckets = tf.feature_column.bucketized_column(gestation_weeks,
-                                                            boundaries=np.arange(17, 47, 1).tolist())  # pylint: disable=C0301
+    age_buckets = tf.feature_column.bucketized_column(
+        mother_age,
+        boundaries=np.arange(15, 45, 1).tolist())
+    gestation_buckets = tf.feature_column.bucketized_column(
+        gestation_weeks,
+        boundaries=np.arange(17, 47, 1).tolist())
 
     # sparse columns are wide
     wide = [is_male, plurality, age_buckets, gestation_buckets]
@@ -109,12 +117,13 @@ def my_rmse(labels, predictions):
 
 
 def serving_input_fn():
-    feature_placeholders = {'is_male': tf.placeholder(tf.string, [None]),
-                            'mother_age': tf.placeholder(tf.float32, [None]),
-                            'plurality': tf.placeholder(tf.string, [None]),
-                            'gestation_weeks': tf.placeholder(tf.float32, [None]),
-                            KEY_COLUMN: tf.placeholder_with_default(tf.constant(['nokey']), [None])  # pylint: disable=C0301
-                            }
+    feature_placeholders = {
+        'is_male': tf.placeholder(tf.string, [None]),
+        'mother_age': tf.placeholder(tf.float32, [None]),
+        'plurality': tf.placeholder(tf.string, [None]),
+        'gestation_weeks': tf.placeholder(tf.float32, [None]),
+        KEY_COLUMN: tf.placeholder_with_default(tf.constant(['nokey']), [None])
+    }
     features = {key: tf.expand_dims(tensor, -1)
                 for key, tensor in feature_placeholders.items()}
     return tf.estimator.export.ServingInputReceiver(features,
@@ -126,26 +135,29 @@ def train_and_evaluate(output_dir):
     run_config = tf.estimator.RunConfig(save_checkpoints_secs=EVAL_INTERVAL,
                                         keep_checkpoint_max=3)
     hidden_units = [max(int(FIRST_LAYER_SIZE / (pow(2, i))), 2)
-                    for i in range(int(NUM_LAYERS))]
+                    for i in range(NUM_LAYERS)]
     optimizer = tf.train.AdagradOptimizer(LEARNING_RATE)
-    estimator = tf.estimator.DNNLinearCombinedRegressor(model_dir=output_dir,
-                                                        linear_feature_columns=wide,  # pylint: disable=C0301
-                                                        dnn_feature_columns=deep,  # pylint: disable=C0301
-                                                        dnn_hidden_units=hidden_units,  # pylint: disable=C0301
-                                                        dnn_dropout=DROPOUT_RATE,  # pylint: disable=C0301
-                                                        dnn_optimizer=optimizer,  # pylint: disable=C0301
-                                                        config=run_config)
-    train_spec = tf.estimator.TrainSpec(input_fn=read_dataset(tf.estimator.ModeKeys.TRAIN),
-                                        max_steps=TRAIN_STEPS)
+    estimator = tf.estimator.DNNLinearCombinedRegressor(
+        model_dir=output_dir,
+        linear_feature_columns=wide,
+        dnn_feature_columns=deep,
+        dnn_hidden_units=hidden_units,
+        dnn_dropout=DROPOUT_RATE,
+        dnn_optimizer=optimizer,
+        config=run_config)
+    train_spec = tf.estimator.TrainSpec(
+        input_fn=read_dataset(tf.estimator.ModeKeys.TRAIN),
+        max_steps=TRAIN_STEPS)
     exporter = tf.estimator.LatestExporter('exporter', serving_input_fn)
     estimator = tf.contrib.estimator.add_metrics(estimator, my_rmse)
     estimator = tf.contrib.estimator.forward_features(estimator, KEY_COLUMN)
-    eval_spec = tf.estimator.EvalSpec(input_fn=read_dataset(tf.estimator.ModeKeys.EVAL),
-                                      steps=None,
-                                      start_delay_secs=60,
-                                      throttle_secs=EVAL_INTERVAL,
-                                      exporters=exporter)
+    eval_spec = tf.estimator.EvalSpec(
+        input_fn=read_dataset(tf.estimator.ModeKeys.EVAL),
+        steps=None,
+        start_delay_secs=60,
+        throttle_secs=EVAL_INTERVAL,
+        exporters=exporter)
     with tf.contrib.tfprof.ProfileContext(''.join([output_dir, 'profiler']),
                                           trace_steps=range(1050, 1100),
-                                          dump_steps=[1100]) as pctx:
+                                          dump_steps=[1100]):
         tf.estimator.train_and_evaluate(estimator, train_spec, eval_spec)
