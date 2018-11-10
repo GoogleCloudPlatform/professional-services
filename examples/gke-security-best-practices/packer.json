@@ -6,8 +6,8 @@
       "ssh_username": "ubuntu",
       "source_image_family": "ubuntu-1604-lts",
       "zone": "us-west2-a",
-      "image_name": "acme-ubuntu-1804-lts-base-{{timestamp}}",
-      "image_description":"acme-hardened-ubuntu-1804-lts-base{{timestamp}}",
+      "image_name": "acme-ubuntu-1604-lts-base-{{timestamp}}",
+      "image_description":"acme-hardened-ubuntu-1604-lts-base{{timestamp}}",
       "machine_type": "f1-micro"
     }
 ],
