@@ -1,4 +1,4 @@
-# Copyright 2017 Google Inc.
+# Copyright 2018 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,15 +13,18 @@
 # limitations under the License.
 
 
-import logging
 import datetime
+import json
+import logging
+from numpy import linspace
+from scipy import stats
 import unittest
 import os
-import re
 
 from faker_schema.faker_schema import FakerSchema
 
-from dataflow_python_examples.data_generation_for_benchmarking import DataGenerator, FakeRowGen
+from dataflow_python_examples.data_generator.DataGenerator import DataGenerator, \
+    FakeRowGen
 
 
 class TestDataGenerator(unittest.TestCase):
@@ -44,8 +47,8 @@ class TestDataGenerator(unittest.TestCase):
 
         self.data_gen = DataGenerator(bq_schema_filename=schema_file,
                                       p_null=0.0, n_keys=1000, min_date='2000-01-01',
-                                      max_date=datetime.date.today().strftime('%Y-%m-%d'),
-                                      only_pos=True, max_int=10**11, max_float=float(10**11),
+                                      max_date='2005-01-01',
+                                      only_pos=True, max_int=1000, max_float=float(1000),
                                       float_precision=2, write_disp='WRITE_APPEND')
 
 
@@ -98,7 +101,7 @@ class TestDataGenerator(unittest.TestCase):
         for this call for thoroughness we could run the unit test many many times.
         """
         faker_schema = self.fakerowgen.data_gen.get_faker_schema()
-        actual_row = self.fakerowgen.generate_fake(faker_schema)
+        actual_row = json.loads(self.fakerowgen.generate_fake(faker_schema))
 
         # Check returns a dict representing a single record.
         self.assertIsInstance(actual_row, dict)
@@ -125,10 +128,6 @@ class TestDataGenerator(unittest.TestCase):
 
         # Check float strictly positive
         self.assertGreaterEqual(actual_row[u'lo_tax'], 0.0)
-
-        # Check key formatting.
-        r = re.compile(r'^\d{4}$')
-        self.assertTrue(r.match(actual_row[u'lo_part_key']) is not None)
 
     def test_get_field_dict(self):
         """
@@ -157,12 +156,60 @@ class TestDataGenerator(unittest.TestCase):
         _ = datetime.datetime.strptime(data[u'lo_orderdate'], '%Y-%m-%d')
 
         # Check if sanity check enforces integers < data_args.max_int
-        data[u'lo_linenumber'] = 10**12  # Note that max_int is 10**11
+        data[u'lo_linenumber'] = 1001 # Note that max_int is 100000
 
         data = self.fakerowgen.sanity_check(record=data, fieldname=u'lo_linenumber')
 
         self.assertLessEqual(data[u'lo_linenumber'], self.data_gen.max_int)
 
+    def test_get_percent_between_min_and_max_date(self):
+        mid_date = '2002-01-01'
+        # Based on min_date='2000-01-01' max_date= '2005-01-01'
+        expected_pct = 0.4
+        actual_pct = self.fakerowgen.get_percent_between_min_and_max_date(
+                                                                        mid_date
+                                                                        )
+        self.assertEquals(actual_pct, expected_pct)
+
+        mid_date2 = '2003-01-01'
+        # Based on min_date='2000-01-01' max_date= '2005-01-01'
+        expected_pct2 = 0.6
+        actual_pct2 = self.fakerowgen.get_percent_between_min_and_max_date(
+            mid_date2
+        )
+        self.assertEquals(actual_pct2, expected_pct2)
+
+    def test_trunc_norm_trendify(self):
+        # It is tough to unit test a random function so let's just test that it
+        # stay in bounds and it is "close" to the expected linear trend.
+        # Note that linear regression assumes that the noise is an unbounded
+        # gaussian and the truncated normal as we have chosen here
+        # because we have a requirement for a hard min and max violates this
+        # assumption. This introduces bias to the slope and intercept estimates
+        # from OLS regression. This makes the statistics I use from linregress
+        # inappropriate. Take this as evidence that we generated some random
+        # data with an upward linear trend. There is not a convienent truncated
+        # normal regression method in python and this is not a statistics paper
+        # we just want to combat a boring flat line on a visualization of
+        # something like "monthly sales".
+        y = [self.fakerowgen.trunc_norm_trendify(pct) for pct in
+                 linspace(0.0, 1.0, 1000)]
+        self.assertLessEqual(max(y), self.data_gen.max_float)
+        self.assertGreaterEqual(min(y), self.data_gen.min_float)
+        slope, intercept, r, p, std_err = stats.linregress(range(1000), y)
+        self.assertGreaterEqual(r, .9)
+        self.assertLessEqual(p, .05)
+        self.assertAlmostEqual(slope, 1.0, 2)
+
+    def test_get_skewed_key(self):
+        key = self.fakerowgen.get_skewed_key()
+        self.assertTrue(isinstance(key, int))
+        key = self.fakerowgen.get_skewed_key('zipf')
+        self.assertTrue(isinstance(key, int))
+        key = self.fakerowgen.get_skewed_key('binomial')
+        self.assertTrue(isinstance(key, int))
+
 
 if __name__ == '__main__':
     unittest.main()
+

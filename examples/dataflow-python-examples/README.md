@@ -286,13 +286,7 @@ Ready to dive deeper?  Check out the complete code.
 The example using side inputs is [here](dataflow_python_examples/data_lake_to_mart.py) and the example using CoGroupByKey is 
 [here](dataflow_python_examples/data_lake_to_mart_cogroupbykey.py).
 
-## Data Generator for Benchmarking
-This example shows a pipeline used to generate data in BigQuery for price estimation and performance benchmarking.
-The intention is for this pipeline to be a tool for customers who want to create a dummy dataset that looks like the 
-schema of their actual data in order to run some queries in BigQuery to see how much data is scanned for cost estimates. 
-This can be used in scenarios where there are hurdles to get over in migrating actual data to BigQuery to unblock
-integration tests and downstream development.
-
+### Data Generator for BQ
 This pipeline has 3 steps: 
 1. Write an n-line file to GCS.
 2. Generate a single record per line read form GCS.
@@ -380,6 +374,9 @@ If you are using these parameters be sure to use YYYY-MM-DD format.
 ```
 
 #### Number Parameters (optional)
+Note, that FLOAT and NUMERIC types are generated in a way that they will trend upwards with
+increasing date for the purpose of non-flatlined timeseries visualization of the generated data if you so choose. 
+This trend is basically just a line with some noise bounded by the min and max provided.
 The range of integers and/or floats can be constrained with the `--max_int` and `--max_float` parameters.
 These default to 100 Million. 
 The number of decimal places in a float can be controlled with the `--float_precision` parameter.
@@ -392,12 +389,29 @@ True is the default.
 The BigQuery write disposition can be specified using the `--write_disp` parameter.
 The default is WRITE_APPEND.
 
+#### Foreign Key parameters (optional)
+For fields witha  fieldname containing 'key' or 'id' you can sepecify and cardinality and key skew distribution 
+for the key set. We support the following distrubtions: 'Normal' which wil roughly pull the keys from a binned truncated normal distribution on the range 0 to `n_keys`,
+zipf which will pull the keys with inverse proportion to their rank (known as zipf's law) and 'None' which will uniformly sample keys on the range 0 to `n_keys`.
+```
+--n_keys=5000 \
+--key_skew=zipf
+```
+
+#### Additional parameters for Dimension Table Generation
+In order to create a random table that joins to an existing table you must specify the `main_table` and
+`key_col`.
+```
+--main_table=BigQueryFaker.lineorders \
+--key_col=lo_part_key
+```
+
 #### Dataflow Pipeline parameters
 For basic usage we recommend the following parameters:
 ```
 ...
 --project=<PROJECT ID> \
---requirements_file=./requirements.txt \ # found in dataflow-python-examples
+--setup=./setup.py \ 
 --worker_machine_type=n1-highcpu-8 \ # This is a high cpu process so tuning the machine type will boost performance 
 --runner=DataflowRunner \ # run on Dataflow workers
 --staging_location=gs://<BUCKET NAME>/test \
@@ -420,5 +434,30 @@ substrings in field names to [Faker Providers](https://faker.readthedocs.io/en/l
 requirement for this DoFn is for it to return a list containing a single python dictionary mapping field names to values. 
 So hack away if you need something more specific any python code is fair game. Keep in mind 
 that if you use a non-standard module (available in PyPI) you will need to make sure it gets installed on each of the workers or you will get 
-namespace issues. This can be done most simply by adding the module to `requirements.txt`. 
+namespace issues. This can be done most simply by adding the module to `setup.py`. 
+
+### Don't have the time or resources to generate all the data you need with this pipeline?
+We've included [bq_table_resizer.py](bigquery_scripts/bq_utils/bq_table_resizer.py) to help in situations when you are short on time or need to genreate very large amounts of data. 
+This script copies a source table into a destination table (which is by default the source table for an inplace copy) until it reaches a
+desired number of rows or gigabytes. Note that this script will break ties between `--target_rows` and `--target_gb` with by generating whatever 
+is more data. 
+
+By the nature of this script you are creating a lot of duplicates as a heuristic for speed. We recommend starting by generating as many records as 
+you can afford to with the pipeline defined in [data_generator_for_bq.py](dataflow_python_examples/data_generator_for_bq.py) before using this 
+resizing script.
+
+You can invoke this script like so:
+
+```bash
+python bq_table_resizer.py \
+--project=my-gcp-project-id \
+--source_dataset=BigQueryFaker \ 
+--source_table=lineorders \
+--destination_dataset=BigQueryFaker \
+--destination_table=lineorders1000000 \
+--target_rows=1000000 \
+--target_gb=5 \
+--location=US
+```
+
 
