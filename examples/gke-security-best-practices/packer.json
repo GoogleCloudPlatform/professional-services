@@ -2,12 +2,12 @@
   "builders": [
     {
       "type": "googlecompute",
-      "project_id": "acme-dev",
+      "project_id": "scalesec-dev",
       "ssh_username": "ubuntu",
-      "source_image": "ubuntu-1804-bionic-v20180723",
+      "source_image_family": "ubuntu-1604-lts",
       "zone": "us-west2-a",
-      "image_name": "acme-ubuntu-1804-bionic-base-{{timestamp}}",
-      "image_description":"acme-hardened-ubuntu-1804-bionic-base{{timestamp}}",
+      "image_name": "acme-ubuntu-1804-lts-base-{{timestamp}}",
+      "image_description":"acme-hardened-ubuntu-1804-lts-base{{timestamp}}",
       "machine_type": "f1-micro"
     }
 ],
