@@ -2,7 +2,7 @@
   "builders": [
     {
       "type": "googlecompute",
-      "project_id": "scalesec-dev",
+      "project_id": "acme-dev",
       "ssh_username": "ubuntu",
       "source_image_family": "ubuntu-1604-lts",
       "zone": "us-west2-a",
