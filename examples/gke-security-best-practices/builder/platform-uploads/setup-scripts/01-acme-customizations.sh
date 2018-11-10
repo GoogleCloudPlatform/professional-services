@@ -64,11 +64,3 @@ sudo rm -rf /usr/local/lib/python2.7/dist-packages/ansible*
 #   -o Dpkg::Options::="--force-confold" -y \
 #   linux-image-hwe-generic-trusty \
 #   linux-headers-generic-lts-xenial
-
-# # AWS bootstrap tools
-# sudo mkdir -p /opt/gcp
-# pushd /opt/gcp
-# popd
-
-# no strict modes since our vgs keys are placed in /etc
-sudo sed -i 's/^StrictModes.*/StrictModes no/g' /etc/ssh/sshd_config
