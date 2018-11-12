@@ -41,10 +41,11 @@ In order to run the simulation in ideal conditions, with 10 virtual machines,
 please request an increase of your CPU quota to 80 vCPU. This is however
 optional.
 
-Set environment variables used in setting up this tutorial edit the defaults if you wish (note not all products may be in all regions) :
+Create the environment variables that will be used throughout this tutorial. You can edit the default values provided below, however please note that not all products may be available in all regions:
 
 ```
 export PROJECT_ID=<PROJECT_ID>
+export BUCKET_NAME=<BUCKET_NAME>
 export REGION=us-central1
 export ZONE=us-central1-a
 export PUBSUB_TOPIC=telemetry
@@ -70,7 +71,7 @@ In addition, the script also creates an Debian image with Java pre-installed,
 called **debian9-java8-img** that will be used to run the Java programs
 simulating temperature sensors.
 
-example:
+Example:
 
 `setup_gcp_environment.sh $PROJECT_ID $REGION $ZONE $IOT_REGISTRY $PUBSUB_TOPIC $PUBSUB_SUBSCRIPTION  $BIGQUERY_DATASET`
 
@@ -102,7 +103,7 @@ root of the project with the following parameters:
 
 Example:
 
-`run_oncloud.sh $PROJECT_ID $PROJECT_ID $PUBSUB_TOPIC $BIGQUERY_DATASET.$BIGQUERY_TABLE`
+`run_oncloud.sh $PROJECT_ID $BUCKET_NAME $PUBSUB_TOPIC $BIGQUERY_DATASET.$BIGQUERY_TABLE`
 
 ## Temperature sensor
 
@@ -110,12 +111,12 @@ Copy the JAR package containing the client binaries to Google Cloud Storage in
 the bucket previously created. Run the following command in the `/client`
 folder:
 
-`gsutil cp target/google-cloud-demo-iot-nirvana-client-jar-with-dependencies.jar gs://$PROJECT_ID/client/`
+`gsutil cp target/google-cloud-demo-iot-nirvana-client-jar-with-dependencies.jar gs://$BUCKET_NAME/client/`
 
 Check that the JAR file has been correctly copied in the Google Cloud Storage
 bucket with the following command:
 
-`gsutil ls gs://$PROJECT_ID/client/google-cloud-demo-iot-nirvana-client-jar-with-dependencies.jar`
+`gsutil ls gs://$BUCKET_NAME/client/google-cloud-demo-iot-nirvana-client-jar-with-dependencies.jar`
 
 ## AppEngine Web frontend
 
@@ -135,7 +136,7 @@ from the temperature sensors:
      bootstrapping script
 2. Copy the `startup.sh` file in the Google Cloud Storage bucket by running the
    following command in the `/app-engine` folder:
-   `gsutil cp src/main/webapp/startup.sh gs://$PROJECT/`
+   `gsutil cp src/main/webapp/startup.sh gs://$BUCKET_NAME/`
 3. Modify the `/pom.xml` file in the `/app-egine` folder:
    * Update the `<app.id/>` node with the **[PROJECT_ID]** of your GCP project
    * Update the `<app.version/>` with the desired version of the application
