@@ -111,8 +111,8 @@ def read_dataset(mode):
         files = tf.data.Dataset.list_files(file_pattern=filename_pattern,
                                            shuffle=shuffle)
         dataset = files.flat_map(
-            lambda filename: tf.data.TextLineDataset(filename)\
-                .map(_decode_csv))
+            lambda filename: tf.data.TextLineDataset(filename).map(
+                _decode_csv))
         if mode == tf.estimator.ModeKeys.TRAIN:
             dataset = dataset.batch(BATCH_SIZE, drop_remainder=True)
         else:
