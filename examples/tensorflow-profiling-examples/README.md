@@ -1,4 +1,4 @@
-# Tensorflow Profiling Examples
+# TensorFlow Profiling Examples
 
 Before launching training job, please copy the raw data and define the environmental variables (the bucket for staging and the bucket where you are going to store data as well as training job's outputs)
 `export BUCKET=YOUR_BUCKET
@@ -10,14 +10,17 @@ The code below is based on this [codelab](https://codelabs.developers.google.com
 ## Profiler hooks
 You can dump profiles for a every *n*-th step. We are going to demonstrate how to collect dumps both in distributed mode as well as when training is don on a single machine (including training with a GPU accelerator).
 After you've trained a model (see examples below), you need to copy the dumps localy in order to inspect them. You can do it as follows:
-`rm -rf /tmp/profiler
+```shell
+rm -rf /tmp/profiler
 mkdir -p /tmp/profiler
-gsutil -m cp -r $OUTDIR/timeline*.json /tmp/profiler`
+gsutil -m cp -r $OUTDIR/timeline*.json /tmp/profiler
+```
 And now you can launch a trace event profiling tool in your Chrome browser (chrome://tracing), load a specific timeline and visually inspect it.
 
 ### Training on a single CPU machine: BASIC CMLE tier
 You can launch the job as following:
-`OUTDIR=gs://$BUCKET/babyweight/hooks_basic
+```shell
+OUTDIR=gs://$BUCKET/babyweight/hooks_basic
 JOBNAME=babyweight_$(date -u +%y%m%d_%H%M%S)
 gsutil -m rm -rf $OUTDIR
 gcloud ml-engine jobs submit training $JOBNAME \
@@ -32,11 +35,13 @@ gcloud ml-engine jobs submit training $JOBNAME \
   --bucket=$BUCKET/babyweight \
   --output_dir=${OUTDIR} \
   --eval_int=1200 \
-  --train_steps=50000`
+  --train_steps=50000
+```
 
 ### Distributed training on CPUs: STANDARD tier
 You can launch the job as following:
-`OUTDIR=gs://$BUCKET/babyweight/hooks_standard
+```shell
+OUTDIR=gs://$BUCKET/babyweight/hooks_standard
 JOBNAME=babyweight_$(date -u +%y%m%d_%H%M%S)
 gsutil -m rm -rf $OUTDIR
 gcloud ml-engine jobs submit training $JOBNAME \
@@ -50,10 +55,12 @@ gcloud ml-engine jobs submit training $JOBNAME \
   -- \
   --bucket=$BUCKET/babyweight \
   --output_dir=${OUTDIR} \
-  --train_steps=50000`
+  --train_steps=50000
+```
 
 ### Training on GPU: 
-`OUTDIR=gs://$BUCKET/babyweight/hooks_gpu
+```shell
+OUTDIR=gs://$BUCKET/babyweight/hooks_gpu
 JOBNAME=babyweight_$(date -u +%y%m%d_%H%M%S)
 gsutil -m rm -rf $OUTDIR
 gcloud ml-engine jobs submit training $JOBNAME \
@@ -68,10 +75,12 @@ gcloud ml-engine jobs submit training $JOBNAME \
   --bucket=$BUCKET/babyweight \
   --output_dir=${OUTDIR} \
   --batch_size=8192 \
-  --train_steps=21000`
+  --train_steps=21000
+```
 
 ### Defining you own schedule
-`OUTDIR=gs://$BUCKET/babyweight/hooks_basic-ext
+```shell
+OUTDIR=gs://$BUCKET/babyweight/hooks_basic-ext
 JOBNAME=babyweight_$(date -u +%y%m%d_%H%M%S)
 gsutil -m rm -rf $OUTDIR
 gcloud ml-engine jobs submit training $JOBNAME \
@@ -86,12 +95,14 @@ gcloud ml-engine jobs submit training $JOBNAME \
   --bucket=$BUCKET/babyweight \
   --output_dir=${OUTDIR} \
   --eval_int=1200 \
-  --train_steps=15000`
+  --train_steps=15000
+```
 
 ## Deep profiling
 We can collect a deep profiling dump that can be later analyzed with a profiling CLI tool or with a profiler-ui as described in a post (ADD LINK HERE).
 Launch the training job as following:
-`OUTDIR=gs://$BUCKET/babyweight/profiler_standard
+```shell
+OUTDIR=gs://$BUCKET/babyweight/profiler_standard
 JOBNAME=babyweight_$(date -u +%y%m%d_%H%M%S)
 gsutil -m rm -rf $OUTDIR
 gcloud ml-engine jobs submit training $JOBNAME \
@@ -105,7 +116,8 @@ gcloud ml-engine jobs submit training $JOBNAME \
   -- \
   --bucket=$BUCKET/babyweight \
   --output_dir=${OUTDIR} \
-  --train_steps=100000`
+  --train_steps=100000
+```
 
 ### Profiler CLI
 1. In order to use [profiler CLI](https://github.com/tensorflow/tensorflow/blob/9590c4c32dd4346ea5c35673336f5912c6072bf2/tensorflow/core/profiler/README.md), you need to build the profiler first:
