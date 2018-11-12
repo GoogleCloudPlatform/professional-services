@@ -22,8 +22,8 @@ def parse_args():
                         type=int,
                         default=200)
     parser.add_argument('--pattern',
-                        help='Specify a pattern that has to be in input files. \
-                        For example 00001-of will process only one shard',
+                        help="""Specify a pattern that has to be in input files.
+                        For example 00001-of will process only one shard""",
                         default='of')
     parser.add_argument('--job-dir',
                         help='we ignore it, but it is required',
