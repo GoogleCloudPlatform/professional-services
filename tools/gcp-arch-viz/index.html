@@ -60,6 +60,8 @@
   <input type="radio" name="orientation" value="vertical" checked> Vertical<br>
   <input type="radio" name="orientation" value="horizontal"> Horizontal<br>
 
+  <input type="checkbox" checked id="cbxExpanded"> Expanded <br />
+
   <script src="//d3js.org/d3.v5.min.js"></script>
 
   <script src="vertical-tree.js"></script>
@@ -96,6 +98,10 @@
 
     Array.prototype.forEach.call(radios, function (radio) {
       radio.addEventListener('change', changeHandler);
+    });
+
+    document.getElementById('cbxExpanded').addEventListener('change', function () {
+      document.getElementsByClassName('node')[0].dispatchEvent(new Event('click'));
     });
   </script>
 </body>
