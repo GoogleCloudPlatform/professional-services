@@ -89,9 +89,13 @@
 
       if (this.value === 'horizontal') {
         svg.remove();
+        
+        document.getElementById('cbxExpanded').checked = true;
         initHorizontalTree(FILENAME);
       } else {
         svg.remove();
+        
+        document.getElementById('cbxExpanded').checked = true;
         initVerticalTree(FILENAME);
       }
     }
