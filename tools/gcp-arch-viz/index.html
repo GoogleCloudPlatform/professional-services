@@ -42,6 +42,45 @@
 </style>
 
 <body>
+  <input type="radio" name="orientation" value="vertical" checked> Vertical<br>
+  <input type="radio" name="orientation" value="horizontal"> Horizontal<br>
+
   <script src="//d3js.org/d3.v5.min.js"></script>
+
   <script src="vertical-tree.js"></script>
+  <script src="horizontal-tree.js"></script>
+  <script>
+    var csv_data;
+    var treeData, margin, tree, table, svg, g;
+
+    // FILENAME is static, but add a random variable to the end to prevent browser caching,
+    // aka - "I changed the content of the file, but why isn't that stuff drawing?!"
+    var FILENAME = "gcp-data.csv" + "?nocache=" + Date.now();
+
+    var FILE_LOAD_START_TIME = new Date().toLocaleTimeString();
+    console.log("Loading file: " + FILENAME + ", start time: " + FILE_LOAD_START_TIME);
+
+    window.onload = function () {
+      initVerticalTree(FILENAME);
+    };
+
+    var radios = document.querySelectorAll('input[name="orientation"]');
+
+    function changeHandler(event) {
+      console.log(event);
+      console.log(this.value);
+
+      if (this.value === 'horizontal') {
+        svg.remove();
+        initHorizontalTree(FILENAME);
+      } else {
+        svg.remove();
+        initVerticalTree(FILENAME);
+      }
+    }
+
+    Array.prototype.forEach.call(radios, function (radio) {
+      radio.addEventListener('change', changeHandler);
+    });
+  </script>
 </body>

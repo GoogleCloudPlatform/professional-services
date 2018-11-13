@@ -1,4 +1,4 @@
-function initVerticalTree(filename) {
+function initHorizontalTree(filename) {
     d3.text(FILENAME).then(function (text) {
         var FILE_LOAD_END_TIME = new Date().toLocaleTimeString();
         console.log("CSV loaded: " + FILE_LOAD_END_TIME);
@@ -18,7 +18,7 @@ function initVerticalTree(filename) {
 
         // Use the parsed tree data to dynamically create height & width
         var width = 1500 - margin.left - margin.right,
-            height = 940 - margin.top - margin.bottom;
+            height = 600 - margin.top - margin.bottom;
 
         tree = d3.tree().size([height, width]);
 
@@ -96,7 +96,7 @@ function initVerticalTree(filename) {
             .append("g")
             .attr("class", "node")
             .attr("transform", function (d) {
-                return "translate(" + source.x + "," + source.y + ")";
+                return "translate(" + source.y + "," + source.x + ")";
             })
             .on("click", function (d) {
                 toggle(d);
@@ -138,7 +138,7 @@ function initVerticalTree(filename) {
                 return d.children ? "end" : "start";
             })
 
-            .attr("transform", "translate(0,0) rotate(-45)")
+            .attr("transform", "translate(0,0) rotate(0)")
             .text(function (d) {
                 return d.name;
             });
@@ -149,7 +149,7 @@ function initVerticalTree(filename) {
         nodeUpdate.transition()
             .duration(ANIMATION_DURATION_MS)
             .attr("transform", function (d) {
-                return "translate(" + d.x + "," + d.y + ")";
+                return "translate(" + d.y + "," + d.x + ")";
             });
 
         nodeUpdate.select("circle")
@@ -170,7 +170,7 @@ function initVerticalTree(filename) {
             .transition()
             .duration(ANIMATION_DURATION_MS)
             .attr("transform", function (d) {
-                return "translate(" + source.x + "," + source.y + ")";
+                return "translate(" + source.y + "," + source.x + ")";
             })
             .remove();
 
@@ -189,10 +189,10 @@ function initVerticalTree(filename) {
             .attr("class", "link")
             .attr("d", d3.linkHorizontal()
                 .x(function (d) {
-                    return source.x;
+                    return source.y;
                 })
                 .y(function (d) {
-                    return source.y;
+                    return source.x;
                 }));
 
         var linkUpdate = linkEnter.merge(link);
@@ -201,10 +201,10 @@ function initVerticalTree(filename) {
             .duration(ANIMATION_DURATION_MS)
             .attr("d", d3.linkHorizontal()
                 .x(function (d) {
-                    return d.x;
+                    return d.y;
                 })
                 .y(function (d) {
-                    return d.y;
+                    return d.x;
                 }));
 
         link
@@ -213,10 +213,10 @@ function initVerticalTree(filename) {
             .duration(ANIMATION_DURATION_MS)
             .attr("d", d3.linkHorizontal()
                 .x(function (d) {
-                    return source.x;
+                    return source.y;
                 })
                 .y(function (d) {
-                    return source.y;
+                    return source.x;
                 })
             )
             .remove();
