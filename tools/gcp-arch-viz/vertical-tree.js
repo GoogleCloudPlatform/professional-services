@@ -79,6 +79,11 @@ function initVerticalTree(filename) {
 
     var i = 0;
 
+    // tooltip
+    var div = d3.select("body").append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0);
+
     function update(source) {
         tree(treeData);
 
@@ -101,6 +106,21 @@ function initVerticalTree(filename) {
             .on("click", function (d) {
                 toggle(d);
                 update(d);
+            })
+            .on("mouseover", function (d) {
+                console.log(d, 'data');
+
+                div.transition()
+                    .duration(duration)
+                    .style("opacity", 0.9);
+                div.html("<a href='https://console.cloud.google.com/IAM/'>" + d.data.category + "<br/>" + d.data.resource_name + "</a><br />" + d.data.resource_type)
+                    .style("left", (d3.event.pageX) + "px")
+                    .style("top", (d3.event.pageY - 28) + "px");
+            })
+            .on("mouseout", function (d) {
+                div.transition()
+                    .duration(duration)
+                    .style("opacity", 0);
             });
 
         nodeEnter.append("circle")
