@@ -44,20 +44,19 @@
 <body>
   <script src="//d3js.org/d3.v5.min.js"></script>
   <script>
-
     var csv_data;
     var treeData, margin, tree, table, svg, g;
 
     // FILENAME is static, but add a random variable to the end to prevent browser caching,
     // aka - "I changed the content of the file, but why isn't that stuff drawing?!"
-    var FILENAME = "gcp-data.csv" + "?nocache=" + Date.now(); 
+    var FILENAME = "gcp-data.csv" + "?nocache=" + Date.now();
 
     var FILE_LOAD_START_TIME = new Date().toLocaleTimeString();
-    console.log ("Loading file: " + FILENAME + ", start time: " + FILE_LOAD_START_TIME);
+    console.log("Loading file: " + FILENAME + ", start time: " + FILE_LOAD_START_TIME);
 
-    d3.text(FILENAME).then(function(text) {
+    d3.text(FILENAME).then(function (text) {
       var FILE_LOAD_END_TIME = new Date().toLocaleTimeString();
-      console.log ("CSV loaded: " + FILE_LOAD_END_TIME);
+      console.log("CSV loaded: " + FILE_LOAD_END_TIME);
 
       csv_data = text;
       console.log(csv_data);
@@ -65,14 +64,19 @@
       i = 0, duration = 750;
 
       // set the dimensions and margins of the diagram
-      var margin = { top: 20, right: 45, bottom: 30, left: 150 };
+      var margin = {
+        top: 20,
+        right: 45,
+        bottom: 30,
+        left: 150
+      };
 
       // Use the parsed tree data to dynamically create height & width
       var width = 1500 - margin.left - margin.right,
-        height = 540 - margin.top - margin.bottom;
+        height = 940 - margin.top - margin.bottom;
 
       tree = d3.tree().size([height, width]);
-      
+
       table = d3.csvParseRows(csv_data, function (d, i) {
         return {
           // NOTE: This stuff is VERY tightly coupled to the format of the inventory data export. 
@@ -91,8 +95,12 @@
       console.log(table);
 
       treeData = d3.stratify()
-        .id(function (d) { return d.id; })
-        .parentId(function (d) { return d.parent_id; })
+        .id(function (d) {
+          return d.id;
+        })
+        .parentId(function (d) {
+          return d.parent_id;
+        })
         (table);
 
       // assign the name to each node
@@ -125,105 +133,150 @@
     });
 
     var i = 0;
+
     function update(source) {
       tree(treeData);
-      
-      treeData.each(function(d) { d.y = d.depth * 180; });
-  
+
+      treeData.each(function (d) {
+        d.y = d.depth * 180;
+      });
+
       var node = g.selectAll('.node')
-        .data(treeData.descendants(), function(d) { return d.id || (d.id = ++i); });
-  
+        .data(treeData.descendants(), function (d) {
+          return d.id || (d.id = ++i);
+        });
+
       var nodeEnter = node
         .enter()
         .append("g")
         .attr("class", "node")
-        .attr("transform", function(d) { return "translate(" + source.y + "," + source.x + ")"; })
-        .on("click", function(d) {
+        .attr("transform", function (d) {
+          return "translate(" + source.y + "," + source.x + ")";
+        })
+        .on("click", function (d) {
           toggle(d);
           update(d);
         });
 
       nodeEnter.append("circle")
         .attr("r", 22)
-        .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; })
-        .style("fill-opacity", function(d) { return d._children ? 1 : 0; })
+        .style("fill", function (d) {
+          return d._children ? "lightsteelblue" : "#fff";
+        })
+        .style("fill-opacity", function (d) {
+          return d._children ? 1 : 0;
+        })
         .style("stroke", "white")
         .style("stroke-opacity", 0);
 
       // adds the image to the node
       nodeEnter.append("image")
-        .attr("xlink:href", function (d) { return d.data.image; })
-        .attr("x", function (d) { return -16; })
-        .attr("y", function (d) { return -16; })
+        .attr("xlink:href", function (d) {
+          return d.data.image;
+        })
+        .attr("x", function (d) {
+          return -16;
+        })
+        .attr("y", function (d) {
+          return -16;
+        })
         .attr("height", 35)
         .attr("width", 35);
 
       // adds the text to the node
       nodeEnter.append("text")
-        .attr("x", function (d) { return d.children ? -25 : 25; })
+        .attr("x", function (d) {
+          return d.children ? -25 : 25;
+        })
         .attr("dy", ".35em")
         .style("text-anchor", function (d) {
           return d.children ? "end" : "start";
         })
-        .text(function (d) { return d.name; });
+
+        .attr("transform", "translate(0,0) rotate(-45)")
+        .text(function (d) {
+          return d.name;
+        });
 
       var nodeUpdate = nodeEnter.merge(node);
       var ANIMATION_DURATION_MS = 500;
-  
+
       nodeUpdate.transition()
         .duration(ANIMATION_DURATION_MS)
-        .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
-   
+        .attr("transform", function (d) {
+          return "translate(" + d.x + "," + d.y + ")";
+        });
+
       nodeUpdate.select("circle")
-      .attr("r", 22)
-      .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; })
-      .style("fill-opacity", function(d) { return d._children ? 1 : 0; })
-      .style("stroke-opacity", 0);
+        .attr("r", 22)
+        .style("fill", function (d) {
+          return d._children ? "lightsteelblue" : "#fff";
+        })
+        .style("fill-opacity", function (d) {
+          return d._children ? 1 : 0;
+        })
+        .style("stroke-opacity", 0);
 
       nodeUpdate.select("text")
         .style("fill-opacity", 1);
-  
+
       var nodeExit = node
         .exit()
         .transition()
         .duration(ANIMATION_DURATION_MS)
-        .attr("transform", function(d) { return "translate(" + source.y + "," + source.x + ")"; })
+        .attr("transform", function (d) {
+          return "translate(" + source.x + "," + source.y + ")";
+        })
         .remove();
-  
+
       nodeExit.select("circle")
         .attr("r", 1e-6);
-  
+
       nodeExit.select("text")
         .style("fill-opacity", 1e-6);
-  
+
       var link = g.selectAll(".link")
-        .data(treeData.links(), function(d) { return d.target.id; });
-  
+        .data(treeData.links(), function (d) {
+          return d.target.id;
+        });
+
       var linkEnter = link.enter().insert('path', "g")
         .attr("class", "link")
         .attr("d", d3.linkHorizontal()
-          .x(function(d) { return source.y; })
-          .y(function(d) { return source.x; }));
-  
+          .x(function (d) {
+            return source.x;
+          })
+          .y(function (d) {
+            return source.y;
+          }));
+
       var linkUpdate = linkEnter.merge(link);
       linkUpdate
         .transition()
         .duration(ANIMATION_DURATION_MS)
         .attr("d", d3.linkHorizontal()
-          .x(function(d) { return d.y; })
-          .y(function(d) { return d.x; }));
-  
+          .x(function (d) {
+            return d.x;
+          })
+          .y(function (d) {
+            return d.y;
+          }));
+
       link
         .exit()
         .transition()
         .duration(ANIMATION_DURATION_MS)
         .attr("d", d3.linkHorizontal()
-          .x(function(d) { return source.y; })
-          .y(function(d) { return source.x; })
+          .x(function (d) {
+            return source.x;
+          })
+          .y(function (d) {
+            return source.y;
+          })
         )
         .remove();
-  
-      node.each(function(d) {
+
+      node.each(function (d) {
         d.x0 = d.x;
         d.y0 = d.y;
       });
