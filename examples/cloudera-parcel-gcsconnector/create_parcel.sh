@@ -26,62 +26,66 @@
 # folder, this flag is optional and if not provided then the parcel file will be created in the
 # same directory where script run.
 
-while getopts f:v:o:d: option
-do
-case "${option}"
-in
-f) filen=${OPTARG};;
-v) version=${OPTARG};;
-o) OSTYPE=${OPTARG};;
-d) placefile='true';;
-esac
+while getopts f:v:o:d: option; do
+  case "${option}"
+  in
+    f) filen=${OPTARG} ;;
+    v) version=${OPTARG} ;;
+    o) OSTYPE=${OPTARG} ;;
+    d) placefile='true' ;;
+  esac
 done
 
-#capture logs
+#capture logs of this script to /var/log/build_parcel.log file
 >/var/log/build_parcel.log
 exec 1>/var/log/build_parcel.log 2>&1
 
-if [[ "$OSTYPE" == "el5" ]];
-	then OS=el5 ; yum install wget -y
-elif [[ "$OSTYPE" == "el6" ]];
-	then OS=el6 ; yum install wget -y
-elif [[ "$OSTYPE" == "el7" ]];
-	then OS=el7 ; yum install wget -y
-elif [[ "$OSTYPE" == "sles11" ]];
-	then OS=sles11 ; zypper install wget -y
-elif [[ "$OSTYPE" == "sles12" ]];
-	then OS=sles12 ; zypper install wget -y
-elif [[ "$OSTYPE" == "lucid" ]];
-	then OS=lucid ; apt-get install wget -y
-elif [[ "$OSTYPE" == "precise" ]];
-	then OS=precise ; apt-get install wget -y
-elif [[ "$OSTYPE" == "trusty" ]];
-	then OS=trusty ; apt-get install wget -y
-elif [[ "$OSTYPE" == "squeeze" ]];
-	then OS=squeeze ; apt-get install wget -y
-elif [[ "$OSTYPE" == "wheezy" ]];
-	then OS=wheezy ; apt-get install wget -y
+if [[ "$OSTYPE" == "el5" ]]; then
+  OS=el5
+  yum install wget -y
+elif [[ "$OSTYPE" == "el6" ]]; then
+	OS=el6
+	yum install wget -y
+elif [[ "$OSTYPE" == "el7" ]]; then
+	OS=el7
+	yum install wget -y
+elif [[ "$OSTYPE" == "sles11" ]]; then
+	OS=sles11
+	zypper install wget -y
+elif [[ "$OSTYPE" == "sles12" ]]; then
+	OS=sles12
+	zypper install wget -y
+elif [[ "$OSTYPE" == "lucid" ]]; then
+	OS=lucid
+	apt-get install wget -y
+elif [[ "$OSTYPE" == "precise" ]]; then
+	OS=precise
+	apt-get install wget -y
+elif [[ "$OSTYPE" == "trusty" ]]; then
+	OS=trusty
+	apt-get install wget -y
+elif [[ "$OSTYPE" == "squeeze" ]]; then
+	OS=squeeze
+	apt-get install wget -y
+elif [[ "$OSTYPE" == "wheezy" ]]; then
+	OS=wheezy
+	apt-get install wget -y
 else
-     echo "OS not in list, please provide valid OS name"
+  echo "OS not in list, please provide valid OS name"
 fi
 
 ## Display variable information input by user
-#echo "Downloaded file:$link"
-echo "Version number:$version"
-echo "OS type:$OS"
-echo "Filename:$filen"
+echo "Version number:${version}"
+echo "OS type:${OS}"
+echo "Filename:${filen}"
 mkdir -p ${filen^^}-$version/lib/hadoop/lib && mkdir -p ${filen^^}-$version/meta
 touch ${filen^^}-$version/meta/parcel.json
 
-###Download gcs connector jar and copy all folder content to parcel location
-
+##Download gcs connector jar and copy all folder content to parcel location
 wget https://storage.googleapis.com/hadoop-lib/gcs/gcs-connector-hadoop2-latest.jar
-
 cp * ${filen^^}-$version/lib/hadoop/lib/
 
-
 ## Create parcel.json file required for parcel packaging
-
 cat >>${filen^^}-$version/meta/parcel.json<< EOL
 {
   "schema_version":     1,
@@ -115,20 +119,18 @@ cat >>${filen^^}-$version/meta/parcel.json<< EOL
 
 EOL
 
-##export HADOOP_CLASSPATH
+##export HADOOP_CLASSPATH to enable command line commands can use the connector
 cat >>${filen^^}-$version/meta/$filen.sh<< EOL
-#!/bin/bash
 export HADOOP_CLASSPATH=\$HADOOP_CLASSPATH:/opt/cloudera/parcels/$filen-$version/lib/hadoop/lib/gcs-connector-latest-hadoop2.jar
 EOL
 
 ## Create parcel file, checksum file and shift parcel files to cloudera parcel directory and change ownership to cloudera-scm user
-
 sudo tar zcvf ${filen^^}-$version-$OS.parcel ${filen^^}-$version/ --owner=root --group=root
 sudo sha1sum ${filen^^}-$version-$OS.parcel | awk '{ print $1 }' > ${filen^^}-$version-$OS.parcel.sha
 
-if [[ "$placefile" == "true" ]];
-	then
-	sudo cp ${filen^^}-$version-$OS.parcel* /opt/cloudera/parcel-repo/ ; sudo chown cloudera-scm:cloudera-scm /opt/cloudera/parcel-repo/*
+if [[ "$placefile" == "true" ]]; then
+	sudo cp ${filen^^}-$version-$OS.parcel* /opt/cloudera/parcel-repo/
+	sudo chown cloudera-scm:cloudera-scm /opt/cloudera/parcel-repo/*
 else
      echo "Creating parcel on local host"
 fi
