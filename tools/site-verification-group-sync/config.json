@@ -1,0 +1,6 @@
+{
+  "service-account-key": "key.json",
+  "domain": "domain.com",
+  "group": "group@domain.com",
+  "adminUser": "admin@domain.com"
+}
