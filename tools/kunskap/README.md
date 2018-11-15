@@ -1,7 +1,7 @@
 <h2>Introduction</h2>
 The purpose of this project is to demonstrate how to automate the process of viewing CUD/SUD commitment charges in GCP on a 
 per-project basis to a BigQuery table. This helps to accurately view project cost, since currently when exporting billing 
-data it does not display CUD/SUD commitment charges.
+data it does not correctly attribute CUD/SUD commitment charges.
 
 
 Currently, this data can be viewed by running a query in BigQuery on exported billing data and generating a new table with 
