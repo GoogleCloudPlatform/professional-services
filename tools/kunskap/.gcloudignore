@@ -1,0 +1,6 @@
+.gcloudignore
+.git
+.gitignore
+*.iml
+.idea/
+venv/
