@@ -118,17 +118,15 @@ def execute_transformation_query(dates_to_update):
   """
   # Set the destination table
   table_name = bq_client.project + '.' + config.dataset_id + '.' + config.output_table_name
-  table_list = [table.full_table_id for table in list(bq_client.list_tables(dataset_id))]
+  table_list = [table.full_table_id for table in list(bq_client.list_tables(config.dataset_id))]
   if table_name in table_list:
     table_ref = bq_client.dataset(config.dataset_id).table(config.output_table_name)
   else:
-    table = bq_client.dataset(config.dataset_id).table(config.output_table_name)
-    table.partitioning_type = 'DAY'
-    table_ref = table
+    table_ref = bq_client.dataset(config.dataset_id).table(config.output_table_name)
 
   job_config = bigquery.QueryJobConfig()
   job_config.destination = table_ref
-  job_config.time_partitioning = bigquery.TimePartitioning(type_='DAY')
+  job_config.time_partitioning = bigquery.TimePartitioning(field='usage_start_time')
 
   sql = (
       'SELECT * '
