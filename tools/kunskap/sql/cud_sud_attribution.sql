@@ -50,7 +50,7 @@ CREATE TEMP FUNCTION
     SELECT
       *
     FROM
-      `${BILLING_TABLE}`),
+      `{BILLING_TABLE}`),
     billing_id_table AS (
     SELECT
       billing_account_id
