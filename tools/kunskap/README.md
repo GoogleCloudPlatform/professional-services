@@ -84,7 +84,7 @@ the previous step.
 
 <h3>Set up Cloud Functions:</h3>
 
-1. Clone this repo and open main.py in your chosen IDE.
+1. Clone this repo and open config.py in your chosen IDE.
 
 2. Look at the top of the file after the comment about edits:
 
