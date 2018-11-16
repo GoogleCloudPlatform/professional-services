@@ -44,32 +44,32 @@ if [[ "$OSTYPE" == "el5" ]]; then
   OS=el5
   yum install wget -y
 elif [[ "$OSTYPE" == "el6" ]]; then
-	OS=el6
-	yum install wget -y
+  OS=el6
+  yum install wget -y
 elif [[ "$OSTYPE" == "el7" ]]; then
-	OS=el7
-	yum install wget -y
+  OS=el7
+  yum install wget -y
 elif [[ "$OSTYPE" == "sles11" ]]; then
-	OS=sles11
-	zypper install wget -y
+  OS=sles11
+  zypper install wget -y
 elif [[ "$OSTYPE" == "sles12" ]]; then
-	OS=sles12
-	zypper install wget -y
+  OS=sles12
+  zypper install wget -y
 elif [[ "$OSTYPE" == "lucid" ]]; then
-	OS=lucid
-	apt-get install wget -y
+  OS=lucid
+  apt-get install wget -y
 elif [[ "$OSTYPE" == "precise" ]]; then
-	OS=precise
-	apt-get install wget -y
+  OS=precise
+  apt-get install wget -y
 elif [[ "$OSTYPE" == "trusty" ]]; then
-	OS=trusty
-	apt-get install wget -y
+  OS=trusty
+  apt-get install wget -y
 elif [[ "$OSTYPE" == "squeeze" ]]; then
-	OS=squeeze
-	apt-get install wget -y
+  OS=squeeze
+  apt-get install wget -y
 elif [[ "$OSTYPE" == "wheezy" ]]; then
-	OS=wheezy
-	apt-get install wget -y
+  OS=wheezy
+  apt-get install wget -y
 else
   echo "OS not in list, please provide valid OS name"
 fi
@@ -129,8 +129,8 @@ sudo tar zcvf ${filen^^}-$version-$OS.parcel ${filen^^}-$version/ --owner=root -
 sudo sha1sum ${filen^^}-$version-$OS.parcel | awk '{ print $1 }' > ${filen^^}-$version-$OS.parcel.sha
 
 if [[ "$placefile" == "true" ]]; then
-	sudo cp ${filen^^}-$version-$OS.parcel* /opt/cloudera/parcel-repo/
-	sudo chown cloudera-scm:cloudera-scm /opt/cloudera/parcel-repo/*
+  sudo cp ${filen^^}-$version-$OS.parcel* /opt/cloudera/parcel-repo/
+  sudo chown cloudera-scm:cloudera-scm /opt/cloudera/parcel-repo/*
 else
-     echo "Creating parcel on local host"
+  echo "Creating parcel on local host"
 fi
