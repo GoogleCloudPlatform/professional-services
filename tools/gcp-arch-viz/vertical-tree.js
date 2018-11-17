@@ -113,8 +113,8 @@ function initVerticalTree(filename) {
                 div.transition()
                     .duration(duration)
                     .style("opacity", 0.9);
-                div.html("<a href='https://console.cloud.google.com/IAM/'>" + d.data.category + "<br/>" + d.data.resource_name + "</a><br />" + d.data.resource_type)
-                    .style("left", (d3.event.pageX) + "px")
+                div.html("<div>" + d.data.category + "<br/>" + d.data.resource_name + "</div>" + d.data.resource_type)
+                    .style("left", (d3.event.pageX + 25) + "px")
                     .style("top", (d3.event.pageY - 28) + "px");
             })
             .on("mouseout", function (d) {
