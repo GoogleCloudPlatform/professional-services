@@ -274,8 +274,21 @@ class FakeRowGen(beam.DoFn):
         key_set = range(self.data_gen.n_keys)
 
         # Below handles if the datatype got changed by the faker provider
-        if field[u'type'] == 'STRING' or field[u'type'].find('TIME') > -1:
+        if field[u'type'] == 'STRING':
             record[fieldname] = unicode(record[fieldname])
+
+        elif field[u'type'] == 'TIMESTAMP':
+            record[fieldname] = faker.datetime_between_dates(self.data_gen.min_date,
+                                         self.data_gen.max_date)
+            record[fieldname] = unicode(
+                record[fieldname].strftime('%Y-%m-%dT%H:%M:%S'))
+
+        elif field[u'type'] == 'DATETIME':
+            record[fieldname] = faker.datetime_between_dates(self.data_gen.min_date,
+                                         self.data_gen.max_date)
+            record[fieldname] = unicode(
+                record[fieldname].strftime('%Y-%m-%dT%H:%M:%S'))
+            
         elif field[u'type'].find('DATE') > -1:
             # This implements the minimum/maximum date functionality
             # and avoids regenerating a random date if already obeys min/max
@@ -283,6 +296,7 @@ class FakeRowGen(beam.DoFn):
             record[fieldname] = faker.date_between(self.data_gen.min_date,
                                                        self.data_gen.max_date)
             record[fieldname] = unicode(record[fieldname].strftime('%Y-%m-%d'))
+
         elif field[u'type'] == 'INTEGER':
             max_size = self.data_gen.max_int
 
@@ -300,6 +314,7 @@ class FakeRowGen(beam.DoFn):
             if self.data_gen.only_pos and record[fieldname] < 0:
                 record[fieldname] = abs(record[fieldname])
             record[fieldname] = int(record[fieldname])
+
         elif field['type'] == 'FLOAT' or field['type'] == 'NUMERIC':
             min_size = self.data_gen.min_float
             max_size = self.data_gen.max_float
@@ -348,14 +363,12 @@ class FakeRowGen(beam.DoFn):
                 record[fieldname] = key
 
             if field['type'] == "STRING":
-                # Assume the key field is of string type and format it to be
-                # left zero padded.
+                # Assume the key field is of string type.
                 record[fieldname] = str(key)
 
         # Return a tuple of the current timestamp and this fake record.
         return record
 
-    #TODO unittest
     def trunc_norm_trendify(self, loc, var_scale=0.1):
         """
         This function is used to draw a sample from a bounded linear trend with

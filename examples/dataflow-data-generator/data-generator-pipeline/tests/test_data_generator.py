@@ -1,4 +1,4 @@
-# Copyright 2017 Google Inc.
+# Copyright 2018 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,13 +16,12 @@
 import logging
 import datetime
 import unittest
+import json
 import os
 import re
-
 from faker_schema.faker_schema import FakerSchema
 
-from dataflow_python_examples.data_generation_for_benchmarking import DataGenerator, FakeRowGen
-
+from data_generator.DataGenerator import DataGenerator, FakeRowGen
 
 class TestDataGenerator(unittest.TestCase):
     """The test cases are focused on the business logic.  In this case this is how we parse the
@@ -35,12 +34,10 @@ class TestDataGenerator(unittest.TestCase):
     """
 
     def setUp(self):
-        # User parser to define default data_args.
 
         # Note changed default for schema_file for ease of testing.
         dir_path = os.path.dirname(os.path.realpath(''))
-        schema_file = os.path.join(dir_path, 'dataflow-python-examples', 'dataflow_python_examples',
-                                   'resources', 'lineorder-schema.json')
+        schema_file = os.path.join(dir_path, 'data-generator-pipeline','resources', 'lineorder-schema.json')
 
         self.data_gen = DataGenerator(bq_schema_filename=schema_file,
                                       p_null=0.0, n_keys=1000, min_date='2000-01-01',
@@ -52,7 +49,7 @@ class TestDataGenerator(unittest.TestCase):
         self.fakerowgen = FakeRowGen(self.data_gen)
 
 
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(level=logging.INFO)
 
     def test_get_bq_schema_string(self):
         """
@@ -98,7 +95,7 @@ class TestDataGenerator(unittest.TestCase):
         for this call for thoroughness we could run the unit test many many times.
         """
         faker_schema = self.fakerowgen.data_gen.get_faker_schema()
-        actual_row = self.fakerowgen.generate_fake(faker_schema)
+        actual_row = json.loads(self.fakerowgen.generate_fake(faker_schema))
 
         # Check returns a dict representing a single record.
         self.assertIsInstance(actual_row, dict)
@@ -125,10 +122,6 @@ class TestDataGenerator(unittest.TestCase):
 
         # Check float strictly positive
         self.assertGreaterEqual(actual_row[u'lo_tax'], 0.0)
-
-        # Check key formatting.
-        r = re.compile(r'^\d{4}$')
-        self.assertTrue(r.match(actual_row[u'lo_part_key']) is not None)
 
     def test_get_field_dict(self):
         """
