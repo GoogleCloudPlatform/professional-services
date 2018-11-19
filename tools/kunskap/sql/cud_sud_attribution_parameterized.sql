@@ -53,7 +53,7 @@ CREATE TEMP FUNCTION
          `${BILLING_TABLE}`
         WHERE
           TIMESTAMP_DIFF(TIMESTAMP_TRUNC(usage_start_time, DAY), 
-                         TIMESTAMP_TRUNC(@modified_usage_start_time, DAY), SECOND ) = 0
+                         TIMESTAMP_TRUNC(${modified_usage_start_time}, DAY), SECOND ) = 0
     ),
     billing_id_table AS (
     SELECT
