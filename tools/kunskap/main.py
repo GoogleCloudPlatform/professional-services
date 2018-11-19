@@ -77,7 +77,7 @@ def get_usage_dates(partition_ids):
   query_job = bq_client.query(sql, job_config=job_config)
   date_list = []
   for row in query_job.result():
-    date_list.append(row.usage_date)
+    date_list.append(row.usage_date.strftime('%Y-%m-%d %H:%M:%S'))
   return date_list
 
 
@@ -125,46 +125,48 @@ def create_query_string(sql_path):
   return lines
 
 
-def execute_transformation_query(dates_to_update):
+def execute_transformation_query(date):
   """Executes transformation query to a new destination table.
 
   Args:
     dates_to_update: List of strings representing dates
   """
   # Set the destination table
-  table_name = Template('$project.$dataset.$destination')
-  table_name.substitute(project=bq_client.project,
-                        dataset=config.dataset_id,
-                        destination=config.output_table_name)
+  table_name = Template('$project:$dataset.$destination').safe_substitute(
+      project=bq_client.project,
+      dataset=config.dataset_id,
+      destination=config.output_table_name
+  )
   table_list = [table.full_table_id for table in list(bq_client.list_tables(config.dataset_id))]
   if table_name in table_list:
     table_ref = bq_client.dataset(config.dataset_id).table(config.output_table_name)
   else:
     table_ref = bq_client.dataset(config.dataset_id).table(config.output_table_name)
 
+  table_ref.time_partitioning = bigquery.TimePartitioning(field='usage_start_time')
   job_config = bigquery.QueryJobConfig()
   job_config.destination = table_ref
+  job_config.write_disposition = bigquery.WriteDisposition().WRITE_APPEND
   job_config.time_partitioning = bigquery.TimePartitioning(field='usage_start_time')
-  sql = create_query_string('sql/cud_sud_attribution.sql').replace('{BILLING_TABLE}',
-                                                                   config.dataset_id + '.' + config.billing_table_name)
+  sql = Template(create_query_string(config.sql_file_path))
   try:
-    log_message = Template('Attempting query on usages from dates $dates')
-    log_message.substitute(dates=dates_to_update)
-    logging.info(log_message)
+    #for date in dates_to_update:
+    log_message = Template('Attempting query on usages from date $date')
+    sql = sql.safe_substitute(BILLING_TABLE=config.dataset_id + '.' + config.billing_table_name,
+                              modified_usage_start_time=date)
+    logging.info(log_message.safe_substitute(date=date))
     # Execute Query
     query_job = bq_client.query(
         sql,
         job_config=job_config)
 
     query_job.result()  # Waits for the query to finish
-    log_message = Template('Transformation query complete. Partitions from dates '
-                           '$dates have been updated.')
-    log_message.substitute(dates=dates_to_update)
-    logging.info(log_message)
+    log_message = Template('Transformation query complete. Partitions from date '
+                           '$date has been updated.')
+    logging.info(log_message.safe_substitute(date=date))
   except Exception as e:
     log_message = Template('Transformation query failed due to $message.')
-    log_message.substitute(message=e.message)
-    logging.error(log_message)
+    logging.error(log_message.safe_substitute(message=e))
 
 
 def main(data, context):
@@ -177,14 +179,14 @@ def main(data, context):
   try:
     current_time = datetime.datetime.utcnow()
     log_message = Template('Daily Cloud Function was triggered on $time')
-    log_message.substitute(time=current_time)
-    logging.info(log_message)
+    logging.info(log_message.safe_substitute(time=current_time))
     partitions_to_update = get_changed_partitions()
 
     # Verify that partitions have changed/require transformation
     if partitions_to_update:
       dates_to_update = get_usage_dates(partitions_to_update)
-      execute_transformation_query(dates_to_update)
+      for date in dates_to_update:
+        execute_transformation_query(date)
       store_query_timestamp(current_time)
 
   except Exception as e:

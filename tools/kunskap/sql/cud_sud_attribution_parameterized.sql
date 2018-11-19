@@ -50,10 +50,10 @@ CREATE TEMP FUNCTION
         SELECT
          *
         FROM
-         `${BILLING_TABLE}`
+         `$BILLING_TABLE`
         WHERE
           TIMESTAMP_DIFF(TIMESTAMP_TRUNC(usage_start_time, DAY), 
-                         TIMESTAMP_TRUNC(${modified_usage_start_time}, DAY), SECOND ) = 0
+                          TIMESTAMP_TRUNC(TIMESTAMP '${modified_usage_start_time}', DAY), SECOND ) = 0
     ),
     billing_id_table AS (
     SELECT
@@ -102,8 +102,8 @@ CREATE TEMP FUNCTION
       -- to the schema on 2018-09-17
       AND usage_start_time >= "2018-09-20" ),
     -- Create temporary table prices, in order to calculate unit price per (date, sku, region) tuple.
-    -- Export table only includes the credit $ amount in the credit.amount field. We can get the credit
-    -- usage amount (e.g. core hours) by dividing credit.amount ($) by unit price for that sku.
+    -- Export table only includes the credit dollar amount in the credit.amount field. We can get the credit
+    -- usage amount (e.g. core hours) by dividing credit.amount by unit price for that sku.
     -- This assumes that the unit price for the usage is equal to the unit price for the associated
     -- CUD credit. This should be correct, except in rare cases where unit price for that sku changed
     -- during the day (i.e. a price drop, change in spending-based discount %)
@@ -187,7 +187,7 @@ CREATE TEMP FUNCTION
     -- create temporary usage_credit_data table to separate out credits from usage into their own line items
     -- and associate necessary sku metadata with usage, commitment, and credit line items
     usage_credit_data AS ( (
-        -- First usage query pulls out amount and $ cost of Eligible Usage and Commitment charges
+        -- First usage query pulls out amount and dollar cost of Eligible Usage and Commitment charges
       SELECT
         usage_date,
         --invoice_month,
