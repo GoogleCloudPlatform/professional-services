@@ -48,10 +48,6 @@ gcloud config set project [PROJECT_ID]
 ````
 where [PROJECT_ID] is the ID that you created in the previous step.
 
-3. Create the app:
-````
-gcloud app create
-````
 
 <h3>Open the GCP Console and enable the following:</h3>
 
