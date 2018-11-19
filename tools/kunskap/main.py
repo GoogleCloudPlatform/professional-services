@@ -129,20 +129,10 @@ def execute_transformation_query(date):
   """Executes transformation query to a new destination table.
 
   Args:
-    dates_to_update: List of strings representing dates
+    date: Strings representing a datetime object
   """
   # Set the destination table
-  table_name = Template('$project:$dataset.$destination').safe_substitute(
-      project=bq_client.project,
-      dataset=config.dataset_id,
-      destination=config.output_table_name
-  )
-  table_list = [table.full_table_id for table in list(bq_client.list_tables(config.dataset_id))]
-  if table_name in table_list:
-    table_ref = bq_client.dataset(config.dataset_id).table(config.output_table_name)
-  else:
-    table_ref = bq_client.dataset(config.dataset_id).table(config.output_table_name)
-
+  table_ref = bq_client.dataset(config.dataset_id).table(config.output_table_name)
   table_ref.time_partitioning = bigquery.TimePartitioning(field='usage_start_time')
   job_config = bigquery.QueryJobConfig()
   job_config.destination = table_ref
