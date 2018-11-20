@@ -61,6 +61,8 @@ where [PROJECT_ID] is the ID that you created in the previous step.
 
 5. [Enable the Cloud Functions API](https://pantheon.corp.google.com/flows/enableapi?apiid=cloudfunctions)
 
+6. [Enable BigQuery API](https://pantheon.corp.google.com/flows/enableapi?apiid=bigquery)
+
 <h3>Set up Pub/Sub:</h3>
 
 1. Set up a Pub/Sub topic to use a target for the cron job
