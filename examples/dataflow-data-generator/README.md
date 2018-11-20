@@ -114,6 +114,12 @@ Data is seldom full for every record so you can specify the probability of a NUL
 The data generator will parse your field names and generate keys/ids for fields whose name contains "_key" or "_id". 
 The cardinality of such key columns can be controlled with the `--n_keys` parameter. 
 
+##### Primary Key (optional)
+The data generator can support a single primary key column by passing a field name to `--primary_key_col`. 
+Note this is done by a deduplication process at the end of the pipeline. This may be a bottleneck for large data volumes. 
+Also, using this parameter might cause you to fall short of `--num_records` output records due to the deduplicaiton. 
+To mitigate this you can set `--n_keys` to a number much larger than the number of records you are generating.
+
 #### Date Parameters (optional)
 To constrain the dates generated in date columns one can use the `--min_date` and `--max_date` parameters.
 The minimum date will default to January 1, 2000 and the max_date will default to today.
