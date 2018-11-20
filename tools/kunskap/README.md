@@ -64,23 +64,6 @@ where [PROJECT_ID] is the ID that you created in the previous step.
 6. [Enable the BigQuery API](https://pantheon.corp.google.com/flows/enableapi?apiid=bigquery)
 
 
-<h3>Set up Pub/Sub:</h3>
-
-1. Set up a Pub/Sub topic to use a target for the cron job
-
-````
-gcloud pubsub topics create [TOPIC_NAME]
-````
-
-where [TOPIC_NAME] is the name of the Pub/Sub topic that you will use in the next step.
- 
-2. Create a Cloud Pub/Sub subscription to view the results of the job and eventually trigger the Cloud Function
-````
-gcloud pubsub subscriptions create [SUBSCRIPTION_NAME] --topic [TOPIC_NAME]
-````
-where [SUBSCRIPTION_NAME] is any name that you want to choose for a subscription and [TOPIC_NAME] is the name created in 
-the previous step.
-
 <h3>Upload the SQL directory to Cloud Storage</h3>
 
 1. Clone this repo and open config.py in your chosen IDE.
@@ -118,7 +101,7 @@ where [LOCAL_CODE_PATH] points to the director where the kunskap/sql folder is l
 
 2. Enter the following in the terminal:
 ````
-gcloud functions deploy [FUNCTION_NAME] --entry-point main --runtime python37 --trigger-topic [TOPIC_NAME] --timeout 540s
+gcloud functions deploy [FUNCTION_NAME] --entry-point main --runtime python37 --trigger-resource [TOPIC_NAME] --trigger-event google.pubsub.topic.publish --timeout 540s
 ````
 where [FUNCTION_NAME] is the name that you want to give the function and [TOPIC_NAME] is the name of the topic created
 when you configured Pub/Sub.
@@ -126,9 +109,9 @@ when you configured Pub/Sub.
 
 <h3>Set up Cloud Scheduler:</h3>
 
-1. Make sure that you are still in the kunskap directory.
+1. Open a terminal window. Make sure that you are still in the kunskap directory.
 
-2. Open a terminal window and enter:
+2. In the window, enter:
 
 ````
 gcloud beta scheduler jobs create pubsub [JOB] --schedule [SCHEDULE] --topic [TOPIC_NAME] --message-body [MESSAGE_BODY]
