@@ -99,4 +99,4 @@ def fix_record_for_avro(record, schema):
             record[field_name] = date_to_avro_date(record[field_name])
         elif datatype == u'TIME':
             record[field_name] = time_to_avro_time(record[field_name])
-    return record
+    return [record]

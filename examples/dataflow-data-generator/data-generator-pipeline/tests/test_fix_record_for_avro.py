@@ -32,26 +32,26 @@ class TestAvroFixer(unittest.TestCase):
         ]
 
         input_record = {
-            u'birthday': '1988-12-17',
-            u'athlete': 'David Rudisha',
-            u'race_start_time': '20:20:00.00',
-            u'race_start_datetime': '2012-09-08T20:20:00.00',
-            u'race_end_timestamp': '2012-09-08T20:21:40.91',
+            u'birthday': u'1988-12-17',
+            u'athlete': u'David Rudisha',
+            u'race_start_time': u'20:20:00.00',
+            u'race_start_datetime': u'2012-09-08T20:20:00.00',
+            u'race_end_timestamp': u'2012-09-08T20:21:40.91',
             u'race_distance_m': 800,
             u'time_seconds': 100.91,
             u'is_world_record': True
         }
         
-        expected_output = {
+        expected_output = [{
             u'birthday': 6925,
-            u'athlete': 'David Rudisha',
+            u'athlete': u'David Rudisha',
             u'race_start_time': 73200000000L,
             u'race_start_datetime': 1347135600000000L,
             u'race_end_timestamp': 1347135700910000L,
             u'race_distance_m': 800,
             u'time_seconds': 100.91,
             u'is_world_record': True
-        }
+        }]
 
         output_record = fix_record_for_avro(input_record, schema)
         self.assertDictEqual(output_record, expected_output)     
