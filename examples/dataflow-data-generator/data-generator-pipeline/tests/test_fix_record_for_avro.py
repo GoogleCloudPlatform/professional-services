@@ -21,14 +21,14 @@ class TestAvroFixer(unittest.TestCase):
     def test_fix_record_for_avro(self):
 
         schema = [
-            {u'NAME':u'birthday', u'TYPE':'DATE'},
-            {u'NAME':u'athlete', u'TYPE':'STRING'},
-            {u'NAME':u'race_start_time', u'TYPE':'TIME'},
-            {u'NAME':u'race_start_datetime', u'TYPE':'DATETIME'},
-            {u'NAME':u'race_end_timestamp', u'TYPE':'TIMESTAMP'},
-            {u'NAME':u'race_distance_m', u'TYPE':'INTEGER'},
-            {u'NAME':u'time_seconds', u'TYPE':'FLOAT'},
-            {u'NAME':u'is_world_record', u'TYPE':'BOOLEAN'}
+            {u'name':u'birthday', u'type':'DATE'},
+            {u'name':u'athlete', u'type':'STRING'},
+            {u'name':u'race_start_time', u'type':'TIME'},
+            {u'name':u'race_start_datetime', u'type':'DATETIME'},
+            {u'name':u'race_end_timestamp', u'type':'TIMESTAMP'},
+            {u'name':u'race_distance_m', u'type':'INTEGER'},
+            {u'name':u'time_seconds', u'type':'FLOAT'},
+            {u'name':u'is_world_record', u'type':'BOOLEAN'}
         ]
 
         input_record = {
