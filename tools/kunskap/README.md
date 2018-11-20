@@ -116,7 +116,7 @@ gsutil cp -r [LOCAL_CODE_PATH] gs://[PROJECT_ID].appspot.com/
 
 2. Enter the following in the terminal:
 ````
-gcloud functions deploy [FUNCTION_NAME] --entry-point main --runtime python37 --trigger-topic [TOPIC_NAME] 
+gcloud functions deploy [FUNCTION_NAME] --entry-point main --source gs://[PROJECT_ID].appspot.com/kunskap --runtime python37 --trigger-topic [TOPIC_NAME] 
 ````
 where [FUNCTION_NAME] is the name that you want to give the function and [TOPIC_NAME] is the name of the topic created
 when you configured Pub/Sub.
