@@ -1,7 +1,10 @@
-project_id = "billing-data-2",
-billing_dataset_id = "billing-data-2.DailyBillingExport"
-billing_table_name = "gcp_billing_export_v1_01EB05_B1778F_D20612"
-output_dataset_id = "CorrectedBillingData"
-output_table_name = "transformed_table_2"
-bucket_id = "project-kunskap.appspot.com"
-sql_file_path = "sql/cud_sud_attribution_parameterized.sql"
+# EDIT THESE WITH YOUR OWN DATASET/TABLES
+project_id = 'project_id'
+billing_dataset_id = 'billing_dataset'
+billing_table_name = 'billing_data'
+output_dataset_id = 'output_dataset'
+output_table_name = 'transformed_table'
+bucket_id = 'bucket_id'
+# You can leave this unless you renamed the file yourself.
+sql_file_path = 'sql/cud_sud_attribution_parameterized.sql'
+

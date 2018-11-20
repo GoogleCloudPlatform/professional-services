@@ -27,7 +27,7 @@ gcs_client = storage.Client()
 
 
 def store_query_timestamp(current_time):
-  """Creates a datastore entity object to record current time.
+  """Creates a datastore entity object to store the current time.
 
   Args:
       current_time: datetime object representing current time
@@ -43,7 +43,7 @@ def store_query_timestamp(current_time):
 
 
 def get_last_query_time():
-  """Creates query to datastore to fetch the last time a query was executed.
+  """Queries Datastore to fetch the last time a transformation query was executed.
 
   Returns:
     String representing UTC-time or None
@@ -64,7 +64,7 @@ def get_usage_dates(partition_ids):
     partition_ids: List of timestamp strings denoting partition ingestion times.
 
   Returns:
-     List of dates
+     List of strings representing dates
   """
   job_config = bigquery.QueryJobConfig()
   sql = Template(
@@ -120,7 +120,7 @@ def get_changed_partitions():
 
 
 def get_sql_query(bucket_id, sql_path):
-  """Converts GCS file holding SQL query to a string
+  """Converts a GCS file holding SQL query to a string.
 
   Args:
     bucket_id: String representing ID of bucket
@@ -140,8 +140,8 @@ def execute_transformation_query(date_list):
   Args:
     date: Strings representing a datetime object
   """
-  # Set the destination table
-  dataset_ref = bq_client.get_dataset(bigquery.DatasetReference(project='billing-data-2', dataset_id=config.output_dataset_id))
+  dataset_ref = bq_client.get_dataset(bigquery.DatasetReference(project='billing-data-2',
+                                                                dataset_id=config.output_dataset_id))
   table_ref = dataset_ref.table(config.output_table_name)
   table_ref.time_partitioning = bigquery.TimePartitioning(field='usage_start_time')
   job_config = bigquery.QueryJobConfig()
@@ -150,8 +150,7 @@ def execute_transformation_query(date_list):
   job_config.time_partitioning = bigquery.TimePartitioning(field='usage_start_time')
   sql = Template(get_sql_query(config.bucket_id, config.sql_file_path))
   try:
-    #for date in dates_to_update:
-    log_message = Template('Attempting query on usages from date $date')
+    log_message = Template('Attempting query on usage from dates $date')
     sql = sql.safe_substitute(BILLING_TABLE=config.billing_dataset_id + '.' + config.billing_table_name,
                               modified_usage_start_time_list='","'.join(date_list))
     logging.info(log_message.safe_substitute(date=date_list))
@@ -161,8 +160,8 @@ def execute_transformation_query(date_list):
         job_config=job_config)
 
     query_job.result()  # Waits for the query to finish
-    log_message = Template('Transformation query complete. Partitions from date '
-                           '$date has been updated.')
+    log_message = Template('Transformation query complete. Partitions from dates '
+                           '$date have been updated.')
     logging.info(log_message.safe_substitute(date=date_list))
   except Exception as e:
     log_message = Template('Transformation query failed due to $message.')
@@ -177,7 +176,6 @@ def main(data, context):
     context (google.cloud.functions.Context): Metadata for the event.
   """
   try:
-    logging.info(data)
     current_time = datetime.datetime.utcnow()
     log_message = Template('Daily Cloud Function was triggered on $time')
     logging.info(log_message.safe_substitute(time=current_time))
