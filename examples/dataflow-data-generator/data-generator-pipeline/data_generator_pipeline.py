@@ -34,6 +34,7 @@ import avro.schema
 
 from data_generator.CsvUtil import dict_to_csv
 from data_generator.AvroUtil import fix_record_for_avro
+from data_generator.enforce_primary_keys import EnforcePrimaryKeys
 
 def run(argv=None):
     """
@@ -67,7 +68,8 @@ def run(argv=None):
                              max_float=data_args.max_float,
                              float_precision=data_args.float_precision,
                              write_disp=data_args.write_disp,
-                             key_skew=data_args.key_skew)
+                             key_skew=data_args.key_skew,
+                             primary_key_col=data_args.primary_key_col)
 
 
     # Initiate the pipeline using the pipeline arguments passed in from the
@@ -77,7 +79,6 @@ def run(argv=None):
 
     rows = (p
         # Read the file we created with num_records newlines.
-        #
         | 'Read file with num_records lines' >> beam.io.ReadFromText(
                 '/'.join(['gs:/', temp_blob.bucket.name, temp_blob.name])
             )
@@ -89,7 +90,10 @@ def run(argv=None):
         | 'Parse Json Strings' >> beam.FlatMap(lambda row: [json.loads(row)])
 
     )
-    
+
+    if data_args.primary_key_col:
+        rows |= EnforcePrimaryKeys(data_args.primary_key_col)
+
     if data_args.csv_schema_order:
         (rows
             | 'Order fields for CSV writing.' >> beam.FlatMap(lambda d: 
@@ -106,7 +110,7 @@ def run(argv=None):
         (rows
             # Need to convert time stamps from strings to timestamp-micros
             | 'Fix date and time Types for Avro.' >> beam.FlatMap(lambda row: 
-                fix_record_for_avro(row, schema=data_gen.schema))
+                fix_record_for_avro(row, avsc))
             | 'Write to Avro.' >> beam.io.avroio.WriteToAvro(
                     file_path_prefix=data_args.output_prefix,
                     codec='null',

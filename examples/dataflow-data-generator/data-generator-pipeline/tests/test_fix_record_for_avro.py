@@ -12,25 +12,40 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+import avro.schema
+import json
 import logging
 import unittest
+
 from data_generator.AvroUtil import fix_record_for_avro
 
 class TestAvroFixer(unittest.TestCase):
     def test_fix_record_for_avro(self):
 
-        schema = [
-            {u'name':u'birthday', u'type':'DATE'},
-            {u'name':u'athlete', u'type':'STRING'},
-            {u'name':u'race_start_time', u'type':'TIME'},
-            {u'name':u'race_start_datetime', u'type':'DATETIME'},
-            {u'name':u'race_end_timestamp', u'type':'TIMESTAMP'},
-            {u'name':u'race_distance_m', u'type':'INTEGER'},
-            {u'name':u'time_seconds', u'type':'FLOAT'},
-            {u'name':u'is_world_record', u'type':'BOOLEAN'}
-        ]
-
+        avro_schema = avro.schema.parse(
+            json.dumps({
+                 u'type': u'record',
+                 u'name': u'AthleticsWorldRecords',
+                 u'fields': [
+                    {u'name': u'birthday', 
+                    u'type': [u'null', 
+                        {u'logical_type': u'date', u'type': u'int'}]},
+                    {u'name': u'athlete', u'type':'string'},
+                    {u'name': u'race_start_time', 
+                    u'type': [u'null', 
+                        {u'logical_type': u'time-micros', u'type': u'long'}]},
+                    {u'name':u'race_start_datetime',
+                    u'type': [u'null', 
+                        {u'logical_type': u'timestamp-millis', u'type': u'long'}]},
+                    {u'name':u'race_end_timestamp', 
+                    u'type': [u'null', 
+                        {u'logical_type': u'timestamp-micros', u'type': u'long'}]},
+                    {u'name':u'race_distance_m', u'type':'int'},
+                    {u'name':u'time_seconds', u'type':'float'},
+                    {u'name':u'is_world_record', u'type':'boolean'}
+                 ] 
+            })
+        )
         input_record = {
             u'birthday': u'1988-12-17',
             u'athlete': u'David Rudisha',
@@ -46,15 +61,15 @@ class TestAvroFixer(unittest.TestCase):
             u'birthday': 6925,
             u'athlete': u'David Rudisha',
             u'race_start_time': 73200000000L,
-            u'race_start_datetime': 1347135600000000L,
+            u'race_start_datetime': 1347135600000L,
             u'race_end_timestamp': 1347135700910000L,
             u'race_distance_m': 800,
             u'time_seconds': 100.91,
             u'is_world_record': True
         }]
 
-        output_record = fix_record_for_avro(input_record, schema)
-        self.assertDictEqual(output_record, expected_output)     
+        output_record = fix_record_for_avro(input_record, avro_schema)
+        self.assertDictEqual(output_record[0], expected_output[0])     
         
         
 if __name__ == '__main__':

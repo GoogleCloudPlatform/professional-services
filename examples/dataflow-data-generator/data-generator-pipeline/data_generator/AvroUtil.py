@@ -88,15 +88,24 @@ def time_to_avro_time(t, micros=True):
 
     return long(seconds_since_midnight * multiplier)
 
-def fix_record_for_avro(record, schema):
-    # TODO change to read the avro schema instead of a bq schema.
-    for field in schema:
-        field_name = field[u'name']
-        datatype = field[u'type']
-        if datatype in  [u'DATETIME', u'TIMESTAMP']:
-            record[field_name] = datetime_to_avro_timestamp(record[field_name])
-        elif datatype == u'DATE':
-            record[field_name] = date_to_avro_date(record[field_name])
-        elif datatype == u'TIME':
-            record[field_name] = time_to_avro_time(record[field_name])
+def fix_record_for_avro(record, avro_schema):
+    for field in avro_schema.fields:
+        field_name = field.name
+        datatype_union = field.type.to_json()
+        if isinstance(datatype_union[1], dict):
+            logical_type = datatype_union[1].get(u'logical_type', None)
+            if logical_type:
+                if logical_type.find('-') > -1:
+                    logical_prefix, precision = logical_type.split('-')
+                else:
+                    logical_prefix = logical_type
+                    precision = None
+                if logical_prefix == u'timestamp': 
+                    is_micros = (precision == u'micros') 
+                    record[field_name] = datetime_to_avro_timestamp(record[field_name],
+                                            micros=is_micros)
+                elif logical_type == u'date':
+                    record[field_name] = date_to_avro_date(record[field_name])
+                elif logical_prefix == u'time':
+                    record[field_name] = time_to_avro_time(record[field_name])
     return [record]
