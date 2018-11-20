@@ -37,6 +37,7 @@ class DataGenerator(object):
         float_precision (int): The desired display precision for generated
             floats. (Note that BigQuery will cast all floats with double
             precision on the backend).
+        primary_key_col (str): The primary key for the generated data.
 
     """
     def __init__(self, bq_schema_filename=None, input_bq_table=None, 
@@ -44,7 +45,8 @@ class DataGenerator(object):
                  n_keys=1000, min_date='2000-01-01',
                  max_date=datetime.date.today().strftime('%Y-%m-%d'),
                  only_pos=True, max_int=10**11, max_float=float(10**11),
-                 float_precision=2, write_disp='WRITE_APPEND', key_skew='None'):
+                 float_precision=2, write_disp='WRITE_APPEND', key_skew='None',
+                 primary_key_col=None):
         """
         Args:
         bq_schema_filename (str): A path to a local or gcs file containing a
@@ -63,6 +65,7 @@ class DataGenerator(object):
         float_precision (int): The desired display precision for generated
             floats. (Note that BigQuery will cast all floats with double
             precision on the backend).
+        primary_key_col (str): The primary key for the generated data.
         """
         bq_cli = bq.Client()
         if bq_schema_filename is not None:
@@ -532,6 +535,9 @@ def parse_data_generator_args(argv):
                              'BigQuery table.',
                         default=10)
 
+    parser.add_argument('--primary_key_col', dest='primary_key_col', required=False,
+                        help='Field name of primary key. ', default=None)
+
     parser.add_argument('--p_null', dest='p_null', required=False,
                         help='Probability a nullable column is null.',
                         default=0.0)
@@ -713,7 +719,7 @@ def fetch_schema(data_args, schema_inferred):
         logging.error('Error: pipeline was passed both schema_file and '
                       'input_bq_table. '
                       'Please enter only one of these arguments')
-        raise ArgumentError('Error: pipeline was passed both schema_file and '
+        raise ValueError('Error: pipeline was passed both schema_file and '
                       'input_bq_table. '
                       'Please enter only one of these arguments')
 
