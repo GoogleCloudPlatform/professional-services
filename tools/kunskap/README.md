@@ -66,34 +66,36 @@ where [PROJECT_ID] is the ID that you created in the previous step.
 
 <h3>Upload the SQL directory to Cloud Storage</h3>
 
-1. Clone this repo and open config.py in your chosen IDE.
-
-2. Look at the top of the file after the comment about edits:
-
-````json
-# EDIT THESE WITH YOUR OWN DATASET/TABLES
-billing_dataset_id = 'billing_dataset'
-billing_table_name = 'billing_data'
-output_dataset_id = 'output_dataset'
-output_table_name = 'transformed_table'
-````
-change the values of dataset_id, billing_table_name, output_table_name to your project's respective datasets and tables.
-
-3. Confirm that the default bucket was created when you enabled the Cloud Functions API. Open up a terminal window and enter:
+1. Confirm that the default bucket was created when you enabled the Cloud Functions API. Open up a terminal window and enter:
 
 ````
 gsutil ls
 ````
-you should see  gs://[PROJECT_ID].appspot.com/ listed.
+you should see  gs://[PROJECT_ID].appspot.com/ listed where [PROJECT_ID] is the name of your project.
 
-4. Compress the folder 
+2. Clone this repo and open config.py in your chosen IDE.
 
-5. Upload the code to a GCS bucket:
+3. Look at the top of the file after the comment about edits:
+
+````python
+# EDIT THESE WITH YOUR OWN DATASET/TABLES
+project_id = 'project_id'
+billing_dataset_id = 'billing_dataset'
+billing_table_name = 'billing_data'
+output_dataset_id = 'output_dataset'
+output_table_name = 'transformed_table'
+bucket_id = 'bucket_id'
+# You can leave this unless you renamed the file yourself.
+sql_file_path = 'sql/cud_sud_attribution_parameterized.sql'
+````
+change the values of project_id, billing_dataset_id, billing_table_name, output_table_name, and bucket_id to your project's respective datasets and tables in BigQuery, and bucket in Google Cloud Storage. bucket_id should match the name of the bucket that displayed in step 1.
+
+4. Upload the SQL directory to a GCS bucket:
 
 ````
 gsutil cp -r [LOCAL_CODE_PATH] gs://[PROJECT_ID].appspot.com/
 ````
-where [LOCAL_CODE_PATH] points to the director where the kunskap/sql folder is located.
+where [LOCAL_CODE_PATH] points to the directory where the kunskap/sql folder is located.
 
 <h3>Set up Cloud Functions:</h3>
 
@@ -103,8 +105,7 @@ where [LOCAL_CODE_PATH] points to the director where the kunskap/sql folder is l
 ````
 gcloud functions deploy [FUNCTION_NAME] --entry-point main --runtime python37 --trigger-resource [TOPIC_NAME] --trigger-event google.pubsub.topic.publish --timeout 540s
 ````
-where [FUNCTION_NAME] is the name that you want to give the function and [TOPIC_NAME] is the name of the topic created
-when you configured Pub/Sub.
+where [FUNCTION_NAME] is the name that you want to give the function and [TOPIC_NAME] is the name of the topic that you want to create in Pub/Sub.
 
 
 <h3>Set up Cloud Scheduler:</h3>
@@ -117,7 +118,7 @@ when you configured Pub/Sub.
 gcloud beta scheduler jobs create pubsub [JOB] --schedule [SCHEDULE] --topic [TOPIC_NAME] --message-body [MESSAGE_BODY]
 ````
 where [JOB] is a unique ID for a job, [SCHEDULE] is the frequency for the job in UNIX cron, such as "0 1 * * *" to run daily 
-at 1AM, and [TOPIC_NAME] is the name of the topic created when you configured Pub/Sub, and [MESSAGE_BODY] is any string. An example command would be: 
+at 1AM, [TOPIC_NAME] is the name of the topic created in the step above when you deployed the Cloud Function, and [MESSAGE_BODY] is any string. An example command would be: 
 ````
 gcloud beta scheduler jobs create pubsub daily_job --schedule "0 1 * * *" --topic cron-topic --message-body "daily job"
 ````
