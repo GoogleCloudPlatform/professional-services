@@ -91,8 +91,8 @@ def time_to_avro_time(t, micros=True):
 def fix_record_for_avro(record, schema):
     # TODO change to read the avro schema instead of a bq schema.
     for field in schema:
-        field_name = field[u'NAME']
-        datatype = field[u'TYPE']
+        field_name = field[u'name']
+        datatype = field[u'type']
         if datatype in  [u'DATETIME', u'TIMESTAMP']:
             record[field_name] = datetime_to_avro_timestamp(record[field_name])
         elif datatype == u'DATE':
