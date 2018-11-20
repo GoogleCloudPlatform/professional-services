@@ -61,6 +61,9 @@ where [PROJECT_ID] is the ID that you created in the previous step.
 
 5. [Enable the Cloud Functions API](https://pantheon.corp.google.com/flows/enableapi?apiid=cloudfunctions)
 
+6. [Enable the BigQuery API](https://pantheon.corp.google.com/flows/enableapi?apiid=bigquery)
+
+
 <h3>Set up Pub/Sub:</h3>
 
 1. Set up a Pub/Sub topic to use a target for the cron job
@@ -78,25 +81,44 @@ gcloud pubsub subscriptions create [SUBSCRIPTION_NAME] --topic [TOPIC_NAME]
 where [SUBSCRIPTION_NAME] is any name that you want to choose for a subscription and [TOPIC_NAME] is the name created in 
 the previous step.
 
-<h3>Set up Cloud Functions:</h3>
+<h3>Upload the SQL directory to Cloud Storage</h3>
 
 1. Clone this repo and open config.py in your chosen IDE.
 
 2. Look at the top of the file after the comment about edits:
 
-````python
+````json
 # EDIT THESE WITH YOUR OWN DATASET/TABLES
-dataset_id = 'billing_dataset'
+billing_dataset_id = 'billing_dataset'
 billing_table_name = 'billing_data'
+output_dataset_id = 'output_dataset'
 output_table_name = 'transformed_table'
 ````
 change the values of dataset_id, billing_table_name, output_table_name to your project's respective datasets and tables.
 
-3. In your terminal window, cd into the directory where you cloned the repository.
+3. Confirm that the default bucket was created when you enabled the Cloud Functions API. Open up a terminal window and enter:
 
-4. Enter the following in the terminal:
 ````
-gcloud functions deploy [FUNCTION_NAME] --entry-point main --runtime python37 --trigger-topic [TOPIC_NAME]
+gsutil ls
+````
+you should see  gs://[PROJECT_ID].appspot.com/ listed.
+
+4. Compress the folder 
+
+5. Upload the code to a GCS bucket:
+
+````
+gsutil cp -r [LOCAL_CODE_PATH] gs://[PROJECT_ID].appspot.com/
+````
+where [LOCAL_CODE_PATH] points to the director where the kunskap/sql folder is located.
+
+<h3>Set up Cloud Functions:</h3>
+
+1. In your terminal window, cd into the directory where you cloned the repository.
+
+2. Enter the following in the terminal:
+````
+gcloud functions deploy [FUNCTION_NAME] --entry-point main --runtime python37 --trigger-topic [TOPIC_NAME] --timeout 540s
 ````
 where [FUNCTION_NAME] is the name that you want to give the function and [TOPIC_NAME] is the name of the topic created
 when you configured Pub/Sub.
@@ -104,12 +126,15 @@ when you configured Pub/Sub.
 
 <h3>Set up Cloud Scheduler:</h3>
 
+1. Make sure that you are still in the kunskap directory.
+
+2. Open a terminal window and enter:
+
 ````
-gcloud beta scheduler jobs create pubsub [JOB] --schedule=[SCHEDULE] --topic=[TOPIC_NAME] --message-body=[SAMPLE_MESSAGE]
+gcloud beta scheduler jobs create pubsub [JOB] --schedule [SCHEDULE] --topic [TOPIC_NAME] --message-body [MESSAGE_BODY]
 ````
 where [JOB] is a unique ID for a job, [SCHEDULE] is the frequency for the job in UNIX cron, such as "0 1 * * *" to run daily 
-at 1AM, and [TOPIC_NAME] is the name of the topic created when you configured Pub/Sub, [MESSAGE_BODY] is any string such 
-as "Running daily job." An example command would be: 
+at 1AM, and [TOPIC_NAME] is the name of the topic created when you configured Pub/Sub, and [MESSAGE_BODY] is any string. An example command would be: 
 ````
 gcloud beta scheduler jobs create pubsub daily_job --schedule "0 1 * * *" --topic cron-topic --message-body "daily job"
 ````
