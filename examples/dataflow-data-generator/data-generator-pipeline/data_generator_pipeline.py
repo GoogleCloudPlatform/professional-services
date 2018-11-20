@@ -106,7 +106,7 @@ def run(argv=None):
         (rows
             # Need to convert time stamps from strings to timestamp-micros
             | 'Fix date and time Types for Avro.' >> beam.FlatMap(lambda row: 
-                fix_record_for_avro(row, schema=data_gen.schema, avsc=avsc))
+                fix_record_for_avro(row, schema=data_gen.schema))
             | 'Write to Avro.' >> beam.io.avroio.WriteToAvro(
                     file_path_prefix=data_args.output_prefix,
                     codec='null',
