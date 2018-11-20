@@ -14,7 +14,7 @@ from faker_schema.faker_schema import FakerSchema
 from google.cloud import bigquery as bq
 from google.cloud import storage as gcs
 from scipy.stats import truncnorm
-
+from google.cloud.exceptions import NotFound
 
 class DataGenerator(object):
     """
@@ -39,7 +39,8 @@ class DataGenerator(object):
             precision on the backend).
 
     """
-    def __init__(self, bq_schema_filename=None, input_bq_table=None, p_null=0.1,
+    def __init__(self, bq_schema_filename=None, input_bq_table=None, 
+                 hist_bq_table=None, p_null=0.1,
                  n_keys=1000, min_date='2000-01-01',
                  max_date=datetime.date.today().strftime('%Y-%m-%d'),
                  only_pos=True, max_int=10**11, max_float=float(10**11),
@@ -63,6 +64,7 @@ class DataGenerator(object):
             floats. (Note that BigQuery will cast all floats with double
             precision on the backend).
         """
+        bq_cli = bq.Client()
         if bq_schema_filename is not None:
             try:
                 # Handles json from google cloud storage or local.
@@ -81,8 +83,7 @@ class DataGenerator(object):
             except AttributeError:
                 logging.error("Could not find gcs file %s",
                               str(bq_schema_filename))
-        elif input_bq_table is not None:
-            bq_cli = bq.Client()
+        elif input_bq_table:
 
             dataset_name, table_name = input_bq_table.split('.')
             bq_dataset = bq_cli.dataset(dataset_name)
@@ -99,6 +100,17 @@ class DataGenerator(object):
                  }
                 for field in bq_table.schema
             ]
+        if hist_bq_table:
+            dataset_name, table_name = hist_bq_table.split('.')
+            bq_dataset = bq_cli.dataset(dataset_name)
+            # This forms a TableReference object.
+            bq_table_ref = bq_dataset.table(table_name)
+            # Errors out if table doesn't exist.
+            bq_table = bq_cli.get_table(bq_table_ref)
+
+            self.hist_bq_table = hist_bq_table
+        else:
+            self.hist_bq_table = None
 
         self.null_prob = float(p_null)
         self.n_keys = int(n_keys)
@@ -111,7 +123,6 @@ class DataGenerator(object):
         self.min_float = 0.0 if self.only_pos else -1.0 * self.max_float
         self.float_precision = int(float_precision)
         self.key_skew = key_skew
-
         # Map the passed string representation of the desired disposition.
         # This will force early error if invalid write disposition.
         write_disp_map = {
@@ -244,7 +255,11 @@ class FakeRowGen(beam.DoFn):
         if date_string is None:
             return 0.5
 
-        d = datetime.datetime.strptime(date_string, '%Y-%m-%d')
+        try:
+            d = datetime.datetime.strptime(date_string, '%Y-%m-%d')
+        except:
+            d = datetime.datetime.strptime(date_string, '%Y-%m-%dT%H:%M:%S')
+    
         max_date_days_since_bce = (
                 self.data_gen.max_date.timetuple().tm_yday +
                 (self.data_gen.max_date.year * 365))
@@ -278,13 +293,13 @@ class FakeRowGen(beam.DoFn):
             record[fieldname] = unicode(record[fieldname])
 
         elif field[u'type'] == 'TIMESTAMP':
-            record[fieldname] = faker.datetime_between_dates(self.data_gen.min_date,
+            record[fieldname] = faker.date_time_between(self.data_gen.min_date,
                                          self.data_gen.max_date)
             record[fieldname] = unicode(
                 record[fieldname].strftime('%Y-%m-%dT%H:%M:%S'))
 
         elif field[u'type'] == 'DATETIME':
-            record[fieldname] = faker.datetime_between_dates(self.data_gen.min_date,
+            record[fieldname] = faker.date_time_between(self.data_gen.min_date,
                                          self.data_gen.max_date)
             record[fieldname] = unicode(
                 record[fieldname].strftime('%Y-%m-%dT%H:%M:%S'))
@@ -409,7 +424,27 @@ class FakeRowGen(beam.DoFn):
         elif distribution.lower() == 'uniform':
             return int(np.random.randint(1, self.data_gen.n_keys))
 
-    def generate_fake(self, fschema):
+    def convert_key_types(self, keys):
+        """
+        This method provides the logic for taking the fingerprint hash
+        and converting it back to a datatype that matches the schema.
+        """
+        for key in keys:
+            if key == u'frequency':
+                pass
+            else:
+                field_dict = self.get_field_dict(key)
+                datatype = field_dict[u'type']
+                if datatype == 'STRING':
+                    keys[key] = str(keys[key])
+                elif datatype == 'INTEGER':
+                    pass
+                elif datatype == 'BYTES':
+                    keys[key] = bytes(keys[key])
+                #TODO add other datatypes as needed by your usecase.    
+        return keys 
+
+    def generate_fake(self, fschema, key_dict):
         """
         This method creates a single fake record based on the constraints
         defined in this FakeRowGen instance's data_gen attribute.
@@ -421,13 +456,22 @@ class FakeRowGen(beam.DoFn):
         # Initialize a FakerSchema object.
         schema_faker = FakerSchema()
 
+        # Drop the key columns because we do not need to randomly generate them.
+        for key in key_dict.keys():
+            fschema.pop(key, None)
+
         # Generate a fake record.
         data = schema_faker.generate_fake(fschema, 1)  # Generate one record.
         # This performs a sanity check on datatypes and parameterized
         # constraints.
+        
         for col_name in data:
             data = self.sanity_check(data, col_name)
 
+        keys = self.convert_key_types(key_dict)
+        # Join the keys and the rest of the genreated data
+        data.update(keys)
+        data.pop(u'frequency')
         return json.dumps(data)
 
     def process(self, element, *args, **kwargs):
@@ -436,15 +480,25 @@ class FakeRowGen(beam.DoFn):
         PCollection.
 
         Args:
-            element: A single element of the PCollection (the contents of this
-            element are ignored in this particularDoFn so we just pass it
-            newlines).
+            element: A single element of the PCollection 
         """
 
+        # The contents of this element are ignored if they are new line characters 
         faker_schema = self.data_gen.get_faker_schema()
+        if element == '\n':
+            row = self.generate_fake(fschema=faker_schema, key_dict=element)
+            yield row 
+            
+        else:
+            # Here the element is treated as the dictionary representing a single row
+            # of the histogram table.
+            frequency = element.get(u'frequency')
 
-        row = self.generate_fake(faker_schema)
-        yield row  # PCollection returned by DoFn.process() must be an iterable.
+            #TODO make this a splittable DoFn to avoid scenario where we hang for large
+            # frequency values.
+            for i in xrange(int(frequency)):
+                row = self.generate_fake(fschema=faker_schema, key_dict=element)
+                yield row
 
 
 def parse_data_generator_args(argv):
@@ -468,6 +522,10 @@ def parse_data_generator_args(argv):
     parser.add_argument('--output_bq_table', dest='output_bq_table',
                         required=False,
                         help='Name of the table to write to BigQuery table.')
+
+    parser.add_argument('--hist_bq_table', dest='hist_bq_table',
+                        required=False,
+                        help='Name of BigQuery table to populate.')
 
     parser.add_argument('--num_records', dest='num_records', required=False,
                         help='Number of random output records to write to '
@@ -581,11 +639,7 @@ def validate_data_args(data_args):
                  }
                 for field in bq_table.schema
             ]
-            if data_args.output_bq_table is None:
-                # This writes data in place when passed just an input_bq_table
-                schema_inferred = True
-                data_args.output_bq_table = str(data_args.input_bq_table)
-            else:
+            if data_args.output_bq_table:
                 # We need to check if this output table already exists.
                 dataset_name, table_name = data_args.output_bq_table.split('.',
                                                                            1)
@@ -597,11 +651,6 @@ def validate_data_args(data_args):
                     schema_inferred = True
                 except NotFound:
                     schema_inferred = False
-    elif data_args.output_bq_table is None:
-        logging.error('Error: User specified a schema_file without an '
-                      'output_bq_table.')
-        raise ValueError('Error: User specified a schema_file without an '
-                         'output_bq_table.')
 
     if data_args.schema_file and data_args.input_bq_table:
         logging.error('Error: pipeline was passed both schema_file '
@@ -646,11 +695,7 @@ def fetch_schema(data_args, schema_inferred):
                  }
                 for field in bq_table.schema
             ]
-            if not data_args.output_bq_table:
-                # This writes data in place when passed just an input_bq_table
-                schema_inferred = True
-                data_args.output_bq_table = str(data_args.input_bq_table)
-            else:
+            if data_args.output_bq_table:
                 # We need to check if this output table already exists.
                 dataset_name, table_name = data_args.output_bq_table.split(
                     '.', 1
@@ -663,11 +708,6 @@ def fetch_schema(data_args, schema_inferred):
                     schema_inferred = True
                 except NotFound:
                     schema_inferred = False
-    elif not data_args.output_bq_table:
-        logging.error('Error: User specified a schema_file without an '
-                      'output_bq_table.')
-        raise ArgumentError('Error: User specified a schema_file without an '
-                      'output_bq_table.')
 
     if data_args.schema_file and data_args.input_bq_table:
         logging.error('Error: pipeline was passed both schema_file and '

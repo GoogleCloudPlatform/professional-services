@@ -73,8 +73,6 @@ The output is specified as a GCS prefix. Note that multiple files will be writte
 based on if you pass the `--csv_schema_order` or `--avro_schema_file` parameters described later.
 
 ```
---output_prefix
-```
 
 ### Output format 
 Output format is specified by passing one of the `--csv_schema_order` or `--avro_schema_file` parameters.
@@ -166,6 +164,10 @@ So hack away if you need something more specific any python code is fair game. K
 that if you use a non-standard module (available in PyPI) you will need to make sure it gets installed on each of the workers or you will get 
 namespace issues. This can be done most simply by adding the module to `requirements.txt`. 
 
+## Distribution Matching
+If you want to generate data for benchmarking performance you should use the [`data_distribution_matcher.py`](data_generator_pipeline/data_distribution_matcher.py)
+This pipeline takes an additional paramter `--hist_bq_table` this should be a BigQuery table populated using the [`bq_histogram_tool.py`](bigquery-scripts/bq_histogram_tool.py)
+
 ## BigQuery Scripts
 
 Included are two BigQuery utility scripts to help you with your data generating needs. The first helps with loading many gcs files to BigQuery
@@ -204,13 +206,19 @@ This script can be called with the following arguments:
 ```
 gsutil -l gs://<bucket>/path/to/json/<file prefix>-*.json >> ./files_to_load.txt
 
-python file_15TB_batcher.py --project=<project> \
+python bq_load_batches.py --project=<project> \
 --dataset=<dataset_id> \
 --table=<table_id> \
 --source_file=files_to_load.txt
 ```
+### BigQuery Histogram Tool
+This script will create a BigQuery table containing the hashes of the key columns 
+specified as a comma separated list to the `--key_cols` parameter and the frequency 
+for which that group of key columns appears in the `--input_table`. This serves as 
+a histogram of the original table and will be used as the source for 
+[`data_distribution_matcher.py`](data_generator_pipeline/data_distribution_matcher.py)
 
-### BigQuery table resizer
+### BigQuery table resizer 
 This script is to help increase the size of a table based on a generated or sample.
 If you are short on time and have a requirement to generate a 100TB table you can 
 use this script to generate a few GB and copy table into itself until it it is the
