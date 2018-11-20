@@ -15,13 +15,15 @@
 """Function called by PubSub trigger to execute  cron jon tasks."""
 import datetime
 import logging
-from string import Template
 import config
+from string import Template
 from google.cloud import bigquery
 from google.cloud import datastore
+from google.cloud import storage
 
 bq_client = bigquery.Client()
 datastore_client = datastore.Client()
+gcs_client = storage.Client()
 
 
 def store_query_timestamp(current_time):
@@ -71,13 +73,13 @@ def get_usage_dates(partition_ids):
       'FROM `' + '$dataset.$billing_table' + '` '
       'WHERE _PARTITIONTIME IN ("$partitions") '
       'GROUP BY pt, usage_start_time;'
-  ).substitute(dataset=config.dataset_id,
+  ).substitute(dataset=config.billing_dataset_id,
                billing_table=config.billing_table_name,
                partitions='","'.join(partition_ids))
   query_job = bq_client.query(sql, job_config=job_config)
   date_list = []
   for row in query_job.result():
-    date_list.append(row.usage_date.strftime('%Y-%m-%d %H:%M:%S'))
+    date_list.append(row.usage_date.strftime('%Y-%m-%d %H:%M:%S+00'))
   return date_list
 
 
@@ -97,54 +99,62 @@ def get_changed_partitions():
         'SELECT TIMESTAMP(partition_id) AS partition_timestamp '
         'FROM [$dataset.$billing_table$suffix] '
         'WHERE FORMAT_UTC_USEC(last_modified_time * 1000) > "$time";'
-    ).substitute(dataset=config.dataset_id,
+    ).substitute(dataset=config.billing_dataset_id,
                  billing_table=config.billing_table_name,
                  suffix='$__PARTITIONS_SUMMARY__',
                  time=last_query_time)
-
-    query_job = bq_client.query(sql, job_config=job_config)
-    updated_partitions = []
-    for row in query_job.result():
-      updated_partitions.append(row.partition_timestamp.strftime('%Y-%m-%d %H:%M:%S'))
-    return updated_partitions
+  # This is the first time that a query has been executed.
   else:
-    return None
+    sql = Template(
+        'SELECT TIMESTAMP(partition_id) AS partition_timestamp '
+        'FROM [$dataset.$billing_table$suffix] '
+    ).substitute(dataset=config.billing_dataset_id,
+                 billing_table=config.billing_table_name,
+                 suffix='$__PARTITIONS_SUMMARY__')
+
+  query_job = bq_client.query(sql, job_config=job_config)
+  updated_partitions = []
+  for row in query_job.result():
+    updated_partitions.append(row.partition_timestamp.strftime('%Y-%m-%d %H:%M:%S'))
+  return updated_partitions
 
 
-def create_query_string(sql_path):
-  """Converts file holding SQL query to a string.
+def get_sql_query(bucket_id, sql_path):
+  """Converts GCS file holding SQL query to a string
 
   Args:
+    bucket_id: String representing ID of bucket
     sql_path: String in form of file path
 
   Returns:
-    String representation of file
+    String representation of file.
   """
-  with open(sql_path, 'r') as file:
-    lines = file.read()
-  return lines
+  bucket = gcs_client.get_bucket(bucket_id)
+  blob = bucket.get_blob(sql_path)
+  return blob.download_as_string().decode("utf-8")
 
 
-def execute_transformation_query(date):
+def execute_transformation_query(date_list):
   """Executes transformation query to a new destination table.
 
   Args:
     date: Strings representing a datetime object
   """
   # Set the destination table
-  table_ref = bq_client.dataset(config.dataset_id).table(config.output_table_name)
+  dataset_ref = bq_client.get_dataset(bigquery.DatasetReference(project='billing-data-2', dataset_id=config.output_dataset_id))
+  table_ref = dataset_ref.table(config.output_table_name)
   table_ref.time_partitioning = bigquery.TimePartitioning(field='usage_start_time')
   job_config = bigquery.QueryJobConfig()
   job_config.destination = table_ref
   job_config.write_disposition = bigquery.WriteDisposition().WRITE_APPEND
   job_config.time_partitioning = bigquery.TimePartitioning(field='usage_start_time')
-  sql = Template(create_query_string(config.sql_file_path))
+  sql = Template(get_sql_query(config.bucket_id, config.sql_file_path))
   try:
     #for date in dates_to_update:
     log_message = Template('Attempting query on usages from date $date')
-    sql = sql.safe_substitute(BILLING_TABLE=config.dataset_id + '.' + config.billing_table_name,
-                              modified_usage_start_time=date)
-    logging.info(log_message.safe_substitute(date=date))
+    sql = sql.safe_substitute(BILLING_TABLE=config.billing_dataset_id + '.' + config.billing_table_name,
+                              modified_usage_start_time_list='","'.join(date_list))
+    logging.info(log_message.safe_substitute(date=date_list))
     # Execute Query
     query_job = bq_client.query(
         sql,
@@ -153,7 +163,7 @@ def execute_transformation_query(date):
     query_job.result()  # Waits for the query to finish
     log_message = Template('Transformation query complete. Partitions from date '
                            '$date has been updated.')
-    logging.info(log_message.safe_substitute(date=date))
+    logging.info(log_message.safe_substitute(date=date_list))
   except Exception as e:
     log_message = Template('Transformation query failed due to $message.')
     logging.error(log_message.safe_substitute(message=e))
@@ -167,6 +177,7 @@ def main(data, context):
     context (google.cloud.functions.Context): Metadata for the event.
   """
   try:
+    logging.info(data)
     current_time = datetime.datetime.utcnow()
     log_message = Template('Daily Cloud Function was triggered on $time')
     logging.info(log_message.safe_substitute(time=current_time))
@@ -175,12 +186,11 @@ def main(data, context):
     # Verify that partitions have changed/require transformation
     if partitions_to_update:
       dates_to_update = get_usage_dates(partitions_to_update)
-      for date in dates_to_update:
-        execute_transformation_query(date)
+      execute_transformation_query(dates_to_update)
       store_query_timestamp(current_time)
 
   except Exception as e:
-    log_message = Template('$error').substitute(error=e.message)
+    log_message = Template('$error').substitute(error=e)
     logging.error(log_message)
 
 if __name__ == '__main__':

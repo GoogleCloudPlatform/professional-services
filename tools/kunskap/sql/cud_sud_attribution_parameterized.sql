@@ -52,8 +52,7 @@ CREATE TEMP FUNCTION
         FROM
          `$BILLING_TABLE`
         WHERE
-          TIMESTAMP_DIFF(TIMESTAMP_TRUNC(usage_start_time, DAY), 
-                          TIMESTAMP_TRUNC(TIMESTAMP '${modified_usage_start_time}', DAY), SECOND ) = 0
+          STRING(TIMESTAMP_TRUNC(usage_start_time,DAY)) IN ("${modified_usage_start_time_list}")
     ),
     billing_id_table AS (
     SELECT
