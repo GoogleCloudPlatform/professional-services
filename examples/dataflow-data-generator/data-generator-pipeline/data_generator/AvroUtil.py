@@ -28,7 +28,7 @@ def datetime_to_avro_timestamp(dt, micros=True):
     _MILLISECONDS_PER_SECOND = 10 ** 3
     _MICROSECONDS_PER_SECOND = 10 ** 6
 
-    if isinstance(dt, str):
+    if isinstance(dt, unicode):
         try:
             dt = datetime.datetime.strptime(dt, '%Y-%m-%dT%H:%M:%S')
         except:
@@ -52,7 +52,7 @@ def date_to_avro_date(dt):
     """
     _UNIX_EPOCH = datetime.datetime(1970, 1, 1)
 
-    if isinstance(dt, str):
+    if isinstance(dt, unicode):
        dt = datetime.datetime.strptime(dt, '%Y-%m-%d')
             
     days_since_epoch = (dt - _UNIX_EPOCH).days
@@ -72,7 +72,7 @@ def time_to_avro_time(t, micros=True):
     _MIDNIGHT = datetime.time(0, 0, 0) 
     _MILLISECONDS_PER_SECOND = 10 ** 3
     _MICROSECONDS_PER_SECOND = 10 ** 6
-    if isinstance(t, str):
+    if isinstance(t, unicode):
         try:
             t = datetime.datetime.strptime(t, '%H:%M:%S').time()
         except:
