@@ -32,6 +32,7 @@ from data_generator.DataGenerator import DataGenerator, FakeRowGen, \
 import avro.schema
 
 from data_generator.CsvUtil import dict_to_csv
+from data_generator.AvroUtil import fix_record_for_avro
 
 
 def run(argv=None):
@@ -89,6 +90,9 @@ def run(argv=None):
         avsc = avro.schema.parse(open(data_args.avro_schema_file,'rb').read())
 
         (rows
+            # Need to convert time stamps from strings to timestamp-micros
+            | 'Fix date and time Types for Avro.' >> beam.FlatMap(lambda row: 
+                fix_record_for_avro(row, schema=data_gen.schema, avsc=avsc))
             | 'Write to Avro.' >> beam.io.avroio.WriteToAvro(
                     file_path_prefix=data_args.output_prefix,
                     codec='null',
