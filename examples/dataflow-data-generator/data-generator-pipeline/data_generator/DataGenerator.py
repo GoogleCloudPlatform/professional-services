@@ -163,7 +163,7 @@ class DataGenerator(object):
         # (See documention at
         #  https://faker.readthedocs.io/en/latest/providers.html ).
         special_map = {
-            'address': 'address',  # Street Address
+            'address': 'street_address',  # Street Address
             'ean': 'ean13',  # European Access Number
             'sku': 'ean8',  # Not a sku but serves same purpose.
             'file': 'file_name',  # name.extension
