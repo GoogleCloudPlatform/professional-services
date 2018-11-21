@@ -58,7 +58,7 @@ Example :
 
 **fs.gs.impl** : com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem
 
-![alt text](tools/cloudera-parcel-gcsconnector/screenshot-hdfs-config.png)
+![alt text](screenshots/screenshot-hdfs-config.png)
 
 Save configurations and restart required services.
 
@@ -81,7 +81,7 @@ Add below configuration according to the gcs connector jar path.
 
 **SPARK_DIST_CLASSPATH**=$SPARK_DIST_CLASSPATH:/opt/cloudera/parcels/gcsconnector/lib/hadoop/lib/gcs-connector-latest-hadoop2.jar
 
-![alt text](tools/cloudera-parcel-gcsconnector/screenshot-spark-config.png)
+![alt text](screenshots/screenshot-spark-config.png)
 
 Validate Spark connection with GCS by opening Spark shell:
 
@@ -93,15 +93,15 @@ Read file stored on Cloud Storage by providing the gs:// path of a JSON file sto
 val src=sqlContext.read.json("gs://bucket-name/some_sample.json")
 ```
 
-![alt text](tools/cloudera-parcel-gcsconnector/screenshot-spark-validate.png)
+![alt text](screenshots/screenshot-spark-validate.png)
 
 # Hive Service
 From the Cloudera Manager console, go to **Hive Service** > **Configuration** > **Hive Auxiliary JARs Directory**. Set the value to /opt/cloudera/parcels/gcsconnector/lib/hadoop/lib/
 (absolute directory to the GCS connector)
 
-![alt text](tools/cloudera-parcel-gcsconnector/screenshot-hive-config.png)
+![alt text](screenshots/screenshot-hive-config.png)
 
 Validate if JAR is being accepted by opening beeline and connecting to HiveServer2:
 
-![alt text](tools/cloudera-parcel-gcsconnector/screenshot-hive-validate.png)
+![alt text](screenshots/screenshot-hive-validate.png)
 
