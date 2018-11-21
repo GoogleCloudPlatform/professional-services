@@ -14,6 +14,7 @@ from faker_schema.faker_schema import FakerSchema
 from google.cloud import bigquery as bq
 from google.cloud import storage as gcs
 from scipy.stats import truncnorm
+import sys
 
 
 class DataGenerator(object):
@@ -486,7 +487,7 @@ def parse_data_generator_args(argv):
 
     parser.add_argument('--n_keys', dest='n_keys', required=False,
                         help='Cardinality of key columns.',
-                        default=1000)
+                        default=sys.maxint)
 
     parser.add_argument('--key_skew_distribution', dest='key_skew',
                         required=False,
