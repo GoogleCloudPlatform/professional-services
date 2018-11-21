@@ -140,13 +140,13 @@ def execute_transformation_query(date_list):
   Args:
     date: Strings representing a datetime object
   """
-  dataset_ref = bq_client.get_dataset(bigquery.DatasetReference(project='billing-data-2',
+  dataset_ref = bq_client.get_dataset(bigquery.DatasetReference(project=config.project_id,
                                                                 dataset_id=config.output_dataset_id))
   table_ref = dataset_ref.table(config.output_table_name)
   table_ref.time_partitioning = bigquery.TimePartitioning(field='usage_start_time')
   job_config = bigquery.QueryJobConfig()
   job_config.destination = table_ref
-  job_config.write_disposition = bigquery.WriteDisposition().WRITE_APPEND
+  job_config.write_disposition = bigquery.WriteDisposition().WRITE_TRUNCATE
   job_config.time_partitioning = bigquery.TimePartitioning(field='usage_start_time')
   sql = Template(get_sql_query(config.bucket_id, config.sql_file_path))
   try:
@@ -191,5 +191,5 @@ def main(data, context):
     log_message = Template('$error').substitute(error=e)
     logging.error(log_message)
 
-if __name__ == '__main__':
-  main('data', 'context')
+# if __name__ == '__main__':
+#   main('data', 'context')
