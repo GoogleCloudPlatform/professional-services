@@ -76,6 +76,9 @@ def run(argv=None):
     
     )
         
+    if data_args.primary_key_col:
+        rows |= EnforcePrimaryKeys(data_args.primary_key_col)
+
     if data_args.csv_schema_order:
         (rows
             | 'Order fields for CSV writing.' >> beam.FlatMap(lambda d: 
@@ -85,14 +88,16 @@ def run(argv=None):
                    file_path_prefix=data_args.output_prefix,
                    file_name_suffix='.csv')
         )
-
+    def debug_func(pcoll_list):
+        for element in pcoll_list:
+            print(element)
     if data_args.avro_schema_file:
         avsc = avro.schema.parse(open(data_args.avro_schema_file,'rb').read())
-
+        debug = (rows | beam.transforms.combiners.ToList() | beam.Map(debug_func))
         (rows
             # Need to convert time stamps from strings to timestamp-micros
-            | 'Fix date and time types for Avro.' >> beam.FlatMap(lambda row: 
-                fix_record_for_avro(row, schema=data_gen.schema))
+            | 'Fix date and time Types for Avro.' >> beam.FlatMap(lambda row: 
+                fix_record_for_avro(row, avsc))
             | 'Write to Avro.' >> beam.io.avroio.WriteToAvro(
                     file_path_prefix=data_args.output_prefix,
                     codec='null',
