@@ -715,5 +715,11 @@ CREATE TEMP FUNCTION
   SELECT
     *
   FROM
-    cancelled_cud_costs )
+    cancelled_cud_costs 
+  UNION ALL
+  SELECT
+    *
+  FROM
+    billing_export_table
+)
 
