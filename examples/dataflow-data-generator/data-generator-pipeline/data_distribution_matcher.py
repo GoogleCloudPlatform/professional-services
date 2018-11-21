@@ -88,12 +88,9 @@ def run(argv=None):
                    file_path_prefix=data_args.output_prefix,
                    file_name_suffix='.csv')
         )
-    def debug_func(pcoll_list):
-        for element in pcoll_list:
-            print(element)
+
     if data_args.avro_schema_file:
         avsc = avro.schema.parse(open(data_args.avro_schema_file,'rb').read())
-        debug = (rows | beam.transforms.combiners.ToList() | beam.Map(debug_func))
         (rows
             # Need to convert time stamps from strings to timestamp-micros
             | 'Fix date and time Types for Avro.' >> beam.FlatMap(lambda row: 
