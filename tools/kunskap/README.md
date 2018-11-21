@@ -118,7 +118,7 @@ where [FUNCTION_NAME] is the name that you want to give the function and [TOPIC_
 gcloud beta scheduler jobs create pubsub [JOB] --schedule [SCHEDULE] --topic [TOPIC_NAME] --message-body [MESSAGE_BODY]
 ````
 where [JOB] is a unique ID for a job, [SCHEDULE] is the frequency for the job in UNIX cron, such as "0 1 * * *" to run daily 
-at 1AM, [TOPIC_NAME] is the name of the topic created in the step above when you deployed the Cloud Function, and [MESSAGE_BODY] is any string. An example command would be: 
+at 1AM UTC, [TOPIC_NAME] is the name of the topic created in the step above when you deployed the Cloud Function, and [MESSAGE_BODY] is any string. An example command would be: 
 ````
 gcloud beta scheduler jobs create pubsub daily_job --schedule "0 1 * * *" --topic cron-topic --message-body "daily job"
 ````
