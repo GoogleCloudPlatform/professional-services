@@ -93,7 +93,7 @@ def fix_record_for_avro(record, avro_schema):
         field_name = field.name
         datatype_union = field.type.to_json()
         if isinstance(datatype_union[1], dict):
-            logical_type = datatype_union[1].get(u'logical_type', None)
+            logical_type = datatype_union[1].get(u'logicalType', None)
             if logical_type:
                 if logical_type.find('-') > -1:
                     logical_prefix, precision = logical_type.split('-')
@@ -107,5 +107,7 @@ def fix_record_for_avro(record, avro_schema):
                 elif logical_type == u'date':
                     record[field_name] = date_to_avro_date(record[field_name])
                 elif logical_prefix == u'time':
-                    record[field_name] = time_to_avro_time(record[field_name])
+                    is_micros = (precision == u'micros') 
+                    record[field_name] = time_to_avro_time(record[field_name],
+                                            micros=is_micros)
     return [record]
