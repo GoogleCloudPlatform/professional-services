@@ -48,26 +48,25 @@ class TestBigQueryLoadBatches(unittest.TestCase):
 
         # Test multiple batches mocking the gsutil output.
         with open (self.filename, 'w') as f:
-            # We will mock the output of 3 6 TB files in the directory of 
-            # interest in our gsutil output file. We expect the first two 
-            # files in the first batch and the final file in it's own batch 
+            # We will mock the output of 3 6 TB files in the directory of
+            # interest in our gsutil output file. We expect the first two
+            # files in the first batch and the final file in it's own batch
             # based on the 15TB max batch size we are aiming for.
             for i in range(3):
                 f.write('       {}  2017-08-17T22:49:53Z  gs://python-dataflow-example/data_files/dummy_6TB_{}.csv \n'.format(
-                    10 * BYTES_IN_TB, i))
+                    6 * BYTES_IN_TB, i))
 
             # Add the footer line of the gsutil output.
             f.write('TOTAL: 3 objects, 180000000000000 bytes (18 TB)')
 
         actual_batches = parse_gsutil_long_output_file(self.filename)
-        print(actual_batches)
         expected_batches = [
            ['gs://python-dataflow-example/data_files/dummy_6TB_0.csv',
            'gs://python-dataflow-example/data_files/dummy_6TB_1.csv'],
            ['gs://python-dataflow-example/data_files/dummy_6TB_2.csv'],
         ]
         self.assertEquals(actual_batches, expected_batches)
-           
+
 
     def tearDown(self):
         cmd = 'rm ' + self.filename
