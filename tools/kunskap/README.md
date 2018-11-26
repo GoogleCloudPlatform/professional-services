@@ -31,7 +31,7 @@ gcloud components install beta
 gcloud components update
 ````
 
-<h3>Create a project with an App Engine app</h3>
+<h3>Create a project</h3>
 
 1. Open a terminal where you installed on the SDK and create a project
 
