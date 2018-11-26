@@ -19,45 +19,44 @@ from math import floor
 import pandas as pd
 from google.cloud import bigquery as bq
 
-
 """
 This script is meant to orchestrate BigQuery load jobs of many
-json files on Google Cloud Storage. It ensures that each load 
-stays under the 15 TB per load job limit. It operates on the 
+json files on Google Cloud Storage. It ensures that each load
+stays under the 15 TB per load job limit. It operates on the
 output of gsutil -l.
 
 Args:
     --project: GCP project ID
-    --dataset: BigQuery datset ID containing the table your wish 
+    --dataset: BigQuery datset ID containing the table your wish
         to populate.
     --table: BigQuery table ID of the table you wish to populate
     --sources_file: This is the output of gsutil -l with the URI of
         each file that you would like to load
-    --create_table: Boolean specifying if this script should create 
+    --create_table: Boolean specifying if this script should create
         the destination table.
     --schema_file: Path to a json file defining the destination BigQuery
         table schema.
     --partitioning_column: name of the field for date partitioning.
     --max_bad_records: Number of permissible bad records per load job.
 
-Example Usage: 
+Example Usage:
 
-gsutil -l gs://<bucket>/path/to/json/<file prefix>-*.json >> ./files_to_load.txt
+gsutil -l gs://<bucket>/path/to/json/<file prefix>-*.json >> ./files2load.txt
 
 # This is for an existing bigquery table.
 python file_15TB_batcher.py --project=<project> \
 --dataset=<dataset_id> \
 --table=<table_id> \
 --partitioning_column=date \
---sources_file=files_to_load.txt 
+--sources_file=files_to_load.txt
 
 """
 
 
-
-def create_bq_table(bq_cli, dataset_id, table_id, schema_file, partition_column=None):
+def create_bq_table(bq_cli, dataset_id, table_id, schema_file,
+                    partition_column=None):
     """
-    This function creates a BigQuery Table with the schema, and optionally 
+    This function creates a BigQuery Table with the schema, and optionally
     partioning on teh specified column.
 
     Args:
@@ -72,18 +71,18 @@ def create_bq_table(bq_cli, dataset_id, table_id, schema_file, partition_column=
     dataset = bq_cli.dataset(dataset_id)
     table_ref = dataset.table(table_id)
 
-    # Read the schema file. 
+    # Read the schema file.
     with open(schema_file, 'rb') as sf:
         schema_dict = json.load(sf)
-    table = bq.table.Table(table_ref, 
-        schema=[bq.schema.SchemaField.from_api_repr(field) 
-                for field in schema_dict]
-    )
+    parsed_schema = [bq.schema.SchemaField.from_api_repr(field)
+                     for field in schema_dict]
+
+    table = bq.table.Table(table_ref, schema=parsed_schema)
     # Specify the partioning logic.
     partitioning = bq.table.TimePartitioning()
     partitioning.field = partition_column
     table.time_partitioning = partitioning
-    
+
     # API call to create the empty table.
     bq_cli.create_table(table)
 
@@ -92,22 +91,22 @@ def create_bq_table(bq_cli, dataset_id, table_id, schema_file, partition_column=
 
 def parse_gsutil_long_output_file(filename):
     """
-    This function reads the specified file (which should be the output of 
+    This function reads the specified file (which should be the output of
     gsutil -l) and batches the URI's up into batches <= 15TB
-    
+
     Args:
         filename: (str) path to input file.
 
     Returns:
-        batches: (Array of list of str) Each list in this array 
+        batches: (Array of list of str) Each list in this array
             contains GCS URIs to be loaded in a single job.
     """
 
     # 15TB per BQ load job.
     MAX_BATCH_BYTES = 15 * 10 ** 13
-    # read output of gsutil ls -l 
-    df = pd.read_csv(filename, delim_whitespace=True, header=None, 
-                     skipfooter=1, usecols=[0,2], names=['bytes', 'filename'],
+    # read output of gsutil ls -l
+    df = pd.read_csv(filename, delim_whitespace=True, header=None,
+                     skipfooter=1, usecols=[0, 2], names=['bytes', 'filename'],
                      engine='python')
     # df = df.rename({0:'bytes', 2:'filename'}, axis='columns')
 
@@ -119,9 +118,9 @@ def parse_gsutil_long_output_file(filename):
     df['batch_num'] = df['cum_sum_bytes'] // MAX_BATCH_BYTES
 
     batches = []
-    total_batches = int(df['batch_num'].max()) if df['batch_num'].max() > 0 else 1
+    total_batches = int(df['batch_num'].max() + 1)
     for i in xrange(total_batches):
-        batches.append(list(df[ df['batch_num'] == i ]['filename']))
+        batches.append(list(df[df['batch_num'] == i]['filename']))
     return batches
 
 
@@ -129,14 +128,14 @@ def submit_jobs(bq_cli, job_config, dataset_id, table_id, batches):
     """
     Helper function to submit a single load job for each batch.
     These jobs will run in parallel.
-    
+
     Args:
-        bq_cli: (bigquery.Client) the client to use for loading. 
+        bq_cli: (bigquery.Client) the client to use for loading.
         job_config: (bigquery.job.LoadConfig) specifies file type
             write disposition etc.
         dataset_id: (str) destination BigQuery dataset id.
         table_id: (str) destination BigQuery table id.
-        batches: (Array of list of str) Each list in this array 
+        batches: (Array of list of str) Each list in this array
             contains GCS URIs to be loaded in a single job.
     """
 
@@ -153,15 +152,15 @@ def submit_jobs(bq_cli, job_config, dataset_id, table_id, batches):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser() 
-    parser.add_argument('--project', dest='project', required=False, 
-                        default='zk-jferriero-dev')  
-    parser.add_argument('--dataset', dest='dataset', required=False, 
-                        default='sales_generator')  
-    parser.add_argument('--table', dest='table', required=False, 
-                        default='sales_denorm_1')  
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--project', dest='project', required=False,
+                        default='zk-jferriero-dev')
+    parser.add_argument('--dataset', dest='dataset', required=False,
+                        default='sales_generator')
+    parser.add_argument('--table', dest='table', required=False,
+                        default='sales_denorm_1')
     parser.add_argument('--sources_file', dest='sources_file',
-                        required=False, default='./files_to_load.txt')  
+                        required=False, default='./files_to_load.txt')
     parser.add_argument('--create_table', dest='create_table',
                         action='store_true')
     parser.add_argument('--schema_file', dest='schema_file',
@@ -173,30 +172,29 @@ def main(argv=None):
     parser.add_argument('--source_format', dest='source_format',
                         required=False, default='NEWLINE_DELIMITED_JSON')
     known_args, _ = parser.parse_known_args(argv)
-    
 
     bq_cli = bq.Client(project=known_args.project)
     job_config = bq.job.LoadJobConfig()
     job_config.write_disposition = bq.WriteDisposition.WRITE_APPEND
     job_config.source_format = known_args.source_format
     job_config.max_bad_records = known_args.max_bad_records
-    
+
     if known_args.create_table:
         if known_args.schema_file:
             create_bq_table(
                 bq_cli, known_args.dataset,
-                known_args.table, known_args.schema_file, 
+                known_args.table, known_args.schema_file,
                 partition_column=known_args.partition_column
-            ) 
+            )
         else:
-            raise argparse.ArgumentError('Cannot create table without schema file.')
+            raise argparse.ArgumentError('Cannot create table without schema.')
 
     batches = parse_gsutil_long_output_file(filename=known_args.sources_file)
 
-    submit_jobs(bq_cli=bq_cli, job_config=job_config, dataset_id=known_args.dataset,
-        table_id=known_args.table, batches=batches)
-        
+    submit_jobs(bq_cli=bq_cli, job_config=job_config,
+                dataset_id=known_args.dataset, table_id=known_args.table,
+                batches=batches)
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     main()
