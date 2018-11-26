@@ -153,13 +153,14 @@ python data_generator_pipeline.py \
 --temp_location=gs://<BUCKET NAME>/temp \
 --save_main_session \ # serializes main session and sends to each worker
 ```
+
 For isolating your Dataflow workers on a private network you can additionally specify:
 ```
 ...
 --use_public_ips=false \
 --region=us-east1 \
---subnetwork=<FULL PATH TO SUBNET> \
---network=<NETWORK ID>
+--subnetwork=\<FULL PATH TO SUBNET\> \
+--network=\<NETWORK ID\>
 ```
 
 ### Modifying FakeRowGen
@@ -168,16 +169,18 @@ substrings in field names to [Faker Providers](https://faker.readthedocs.io/en/l
 requirement for this DoFn is for it to return a list containing a single python dictionary mapping field names to values. 
 So hack away if you need something more specific any python code is fair game. Keep in mind 
 that if you use a non-standard module (available in PyPI) you will need to make sure it gets installed on each of the workers or you will get 
-namespace issues. This can be done most simply by adding the module to `requirements.txt`. 
+namespace issues. This can be done most simply by adding the module to `setup.py`. 
 
 ## Distribution Matching
 If you want to generate data for benchmarking performance you should use the [`data_distribution_matcher.py`](data_generator_pipeline/data_distribution_matcher.py)
 This pipeline takes an additional paramter `--hist_bq_table` this should be a BigQuery table populated using the [`bq_histogram_tool.py`](bigquery-scripts/bq_histogram_tool.py)
 
+
 ## BigQuery Scripts
 
-Included are two BigQuery utility scripts to help you with your data generating needs. The first helps with loading many gcs files to BigQuery
-while staying under the 15TB per load job limit. 
+Included are three BigQuery utility scripts to help you with your data generating needs. The first helps with loading many gcs files to BigQuery
+while staying under the 15TB per load job limit, the next will help you profile the distribution of an existing dataset and the last will allow
+you to resize BigQuery tables to be a desired size. 
 
 ### BigQuery batch loads
 This script is meant to orchestrate BigQuery load jobs of many
@@ -197,13 +200,14 @@ This script can be called with the following arguments:
 `--source_file`: This is the output of gsutil -l with the URI of
     each file that you would like to load
 
-`--create_table`: Boolean specifying if this script should create 
+`--create_table`: If passed this script will create 
     the destination table.
 
 `--schema_file`: Path to a json file defining the destination BigQuery
     table schema.
 
-`--partitioning_column`: name of the field for date partitioning.
+`--partitioning_column`: name of the field for date partitioning in
+    the destination table.
 
 `--max_bad_records`: Number of permissible bad records per load job.
 
@@ -215,6 +219,7 @@ gsutil -l gs://<bucket>/path/to/json/<file prefix>-*.json >> ./files_to_load.txt
 python bq_load_batches.py --project=<project> \
 --dataset=<dataset_id> \
 --table=<table_id> \
+--partitioning_column date \
 --source_file=files_to_load.txt
 ```
 ### BigQuery Histogram Tool
@@ -223,6 +228,14 @@ specified as a comma separated list to the `--key_cols` parameter and the freque
 for which that group of key columns appears in the `--input_table`. This serves as 
 a histogram of the original table and will be used as the source for 
 [`data_distribution_matcher.py`](data_generator_pipeline/data_distribution_matcher.py)
+
+####Example Usage: 
+```
+python bq_histogram_tool.py \
+--input_table=<project>.<dataset>.<source_table> \
+--output_table=<project>.<dataset>.<histogram_table> \
+--key_cols=item_id,store_id
+```
 
 ### BigQuery table resizer 
 This script is to help increase the size of a table based on a generated or sample.
