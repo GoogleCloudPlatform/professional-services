@@ -15,6 +15,7 @@ from google.cloud import bigquery as bq
 from google.cloud import storage as gcs
 from scipy.stats import truncnorm
 from google.cloud.exceptions import NotFound
+import sys
 
 class DataGenerator(object):
     """
@@ -174,7 +175,7 @@ class DataGenerator(object):
         # (See documention at
         #  https://faker.readthedocs.io/en/latest/providers.html ).
         special_map = {
-            'address': 'address',  # Street Address
+            'address': 'street_address',  # Street Address
             'ean': 'ean13',  # European Access Number
             'sku': 'ean8',  # Not a sku but serves same purpose.
             'file': 'file_name',  # name.extension
@@ -544,7 +545,7 @@ def parse_data_generator_args(argv):
 
     parser.add_argument('--n_keys', dest='n_keys', required=False,
                         help='Cardinality of key columns.',
-                        default=1000)
+                        default=sys.maxint)
 
     parser.add_argument('--key_skew_distribution', dest='key_skew',
                         required=False,
