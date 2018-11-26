@@ -59,17 +59,17 @@ class BigQueryTableResizer(object):
             project (str): The GCP project id for these tables.
             source_dataset (str): The BigQuery dataset ID containing the source
                 data table to be copied.
-            source_table (str): The BigQuery table ID containing the source data
-                table to be copied.
+            source_table (str): The BigQuery table ID containing the source
+                data table to be copied.
             target_rows (int): The desired number of rows in the destination
                 table. Either target_rows or target_gb is required.
-            target_gb (int): The desired number of GB for the destination table.
-                Note that this will be cast to a number of rows and will only be
-                used if that number is greater than target_rows.
+            target_gb (int): The desired number of GB for the destination
+                table. Note, that this will be cast to a number of rows and
+                will only be used if that number is greater than target_rows.
             destination_dataset (str): The BigQuery dataset to populate the
                 table that is the result of the copy operations.
-                This is optional; chosing not to specify the destination dataset
-                and table will result in an inplace copy.
+                This is optional; chosing not to specify the destination
+                dataset and table will result in an inplace copy.
             destination_table (str): The BigQuery table ID that you want to be
                 target_gb or target_rows. This can be the same as source_table.
                 It is a TableReference not a Table because it may not
@@ -85,13 +85,11 @@ class BigQueryTableResizer(object):
         self.source_table = self.client.get_table(source_table_ref)
 
         if destination_dataset and destination_table:
-            # TODO check if this exists an throw message to user to avoid clashing if not intended.
             self.dest_table_ref = \
                 self.client.dataset(destination_dataset).table(
                     destination_table
                 )
         else:  # Default to an inplace copy.
-            # TODO throw message to avoid clashing with source table if not intended.
             self.dest_table_ref = self.source_table.reference
 
         self.target_rows = target_rows
@@ -99,7 +97,9 @@ class BigQueryTableResizer(object):
         if target_gb is not None:
             target_bytes = target_gb * 1024 ** 3
             increase_pct = target_bytes / self.source_table.num_bytes
-            self.target_rows = max(int(self.source_table.num_rows * increase_pct),
+            self.target_rows = max(
+                                   int(self.source_table.num_rows
+                                       * increase_pct),
                                    self.target_rows)
 
     def resize(self):
@@ -130,13 +130,15 @@ class BigQueryTableResizer(object):
             dest_gb = dest_bytes / float(1024 ** 3)
 
             # Recalculate the gap.
-            gap = self.target_rows - dest_rows if dest_rows else self.target_rows
+            if dest_rows:
+                gap = self.target_rows - dest_rows
+            else:
+                gap = self.target_rows
 
             print('{} rows in table of size {} GB, with a target of {}, '
                   'leaving a gap of {}'.format(
                     dest_rows,
-                    round(dest_gb, 2), self.target_rows, gap)
-            )
+                    round(dest_gb, 2), self.target_rows, gap))
 
             # Greedily copy the largest of dest_table and source_table into
             # dest_table without going over the target rows. The last query
@@ -179,8 +181,9 @@ class BigQueryTableResizer(object):
                 copy_config.write_disposition = 'WRITE_APPEND'
                 copy_config.create_disposition = 'CREATE_IF_EMPTY'
 
-                copy_job = self.client.copy_table(use_as_source_table, self.dest_table_ref,
-                                       job_config=copy_config)
+                copy_job = self.client.copy_table(use_as_source_table,
+                                                  self.dest_table_ref,
+                                                  job_config=copy_config)
                 # Wait for copy_job to finish.
                 copy_job.result()
 
@@ -200,8 +203,8 @@ def parse_data_resizer_args(argv):
 
     parser.add_argument('--source_dataset', dest='source_dataset',
                         required=True,
-                        help='Name of the dataset in which the source table is '
-                             'located')
+                        help='Name of the dataset in which the source table is'
+                             ' located')
 
     parser.add_argument('--source_table', dest='source_table', required=True,
                         help='Name of the source table')
@@ -230,14 +233,15 @@ def parse_data_resizer_args(argv):
                         default='US')
 
     data_args = parser.parse_args(argv)
-    return BigQueryTableResizer(project=data_args.project,
-                                source_dataset=data_args.source_dataset,
-                                destination_dataset=data_args.destination_dataset,
-                                source_table=data_args.source_table,
-                                destination_table=data_args.destination_table,
-                                target_rows=data_args.target_rows,
-                                target_gb=data_args.target_gb,
-                                location=data_args.location)
+    return BigQueryTableResizer(
+                project=data_args.project,
+                source_dataset=data_args.source_dataset,
+                destination_dataset=data_args.destination_dataset,
+                source_table=data_args.source_table,
+                destination_table=data_args.destination_table,
+                target_rows=data_args.target_rows,
+                target_gb=data_args.target_gb,
+                location=data_args.location)
 
 
 def run(argv=None):
@@ -247,4 +251,3 @@ def run(argv=None):
 
 if __name__ == '__main__':
     run()
-
