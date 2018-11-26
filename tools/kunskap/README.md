@@ -86,9 +86,7 @@ output_dataset_id = 'output_dataset'
 output_table_name = 'transformed_table'
 bucket_id = 'bucket_id'
 # You can leave this unless you renamed the file yourself.
-sql_file_path = 'sql/cud_sud_attribution_parameterized.sql'
-````
-change the values of project_id, billing_dataset_id, billing_table_name, output_table_name, and bucket_id to your project's respective datasets and tables in BigQuery, and bucket in Google Cloud Storage. bucket_id should match the name of the bucket that displayed in step 1.
+sql_file_path = cud_scud_sud_attribution_parameterized.pychange the values of project_id, billing_dataset_id, billing_table_name, output_table_name, and bucket_id to your project's respective datasets and tables in BigQuery, and bucket in Google Cloud Storage. bucket_id should match the name of the bucket that displayed in step 1.
 
 4. Upload the SQL directory to a GCS bucket:
 
