@@ -19,7 +19,6 @@ import config
 from string import Template
 from google.cloud import bigquery
 from google.cloud import datastore
-from google.cloud import storage
 
 
 def store_query_timestamp(current_time, datastore_client):
@@ -30,13 +29,17 @@ def store_query_timestamp(current_time, datastore_client):
       datastore_client: Object representing a reference to a Datastore client
 
   """
-  time_as_string = current_time.strftime('%Y-%m-%d %H:%M:%S')
-  key = datastore_client.key('QueryData', time_as_string)
-  date_entity = datastore.Entity(key=key)
-  date_entity.update({
-      'time_queried': time_as_string
-  })
-  datastore_client.put(date_entity)
+  try:
+    time_as_string = current_time.strftime('%Y-%m-%d %H:%M:%S')
+    key = datastore_client.key('QueryData', time_as_string)
+    date_entity = datastore.Entity(key=key)
+    date_entity.update({
+        'time_queried': time_as_string
+    })
+    datastore_client.put(date_entity)
+  except Exception as e:
+    log_message = Template('Storing current time: $time failed')
+    logging.error(log_message.safe_substitute(time=current_time))
 
 
 def get_last_query_time(datastore_client):
@@ -64,7 +67,6 @@ def get_usage_dates(partition_ids, bq_client):
     partition_ids: List of timestamp strings denoting partition ingestion times.
     bq_client: Object representing a reference to a BigQuery Client
 
-
   Returns:
      List of strings representing dates
   """
@@ -85,17 +87,16 @@ def get_usage_dates(partition_ids, bq_client):
   return set(date_list)
 
 
-def get_changed_partitions(bq_client, datastore_client):
+def get_changed_partitions(bq_client, last_query_time):
   """Queries bigquery table to return partitions that have been updated.
 
   Args:
     bq_client: Object representing a reference to a BigQuery Client
-    datastore_client: Object representing a reference to a Datastore Client
+    last_query_time: String representing UTC-time or None
 
   Returns:
     List of timestamp strings representing partition ids
   """
-  last_query_time = get_last_query_time(datastore_client)
   job_config = bigquery.QueryJobConfig()
   # Obtaining partitions metadeta via the client API requires legacy SQL
   job_config.use_legacy_sql = True
@@ -125,60 +126,61 @@ def get_changed_partitions(bq_client, datastore_client):
   return set(updated_partitions)
 
 
-def get_sql_query(bucket_id, sql_path, gcs_client):
-  """Converts a GCS file holding SQL query to a string.
+def create_query_string(sql_path):
+  """Converts a SQL file holding a SQL query to a string.
 
   Args:
-    bucket_id: String representing ID of bucket
-    sql_path: String in form of file path
-    gcs_client: Object representing a reference to GCS
+    sql_path: String in the form of a file path
 
   Returns:
-    String representation of file.
+    String representation of a file
   """
-  bucket = gcs_client.get_bucket(bucket_id)
-  blob = bucket.get_blob(sql_path)
-  return blob.download_as_string().decode("utf-8")
+  with open(sql_path, 'r') as file:
+    lines = file.read()
+  return lines
 
 
-def execute_transformation_query(date_list, bq_client, gcs_client):
+def execute_transformation_query(date_list, bq_client):
   """Executes transformation query to a new destination table.
 
   Args:
-    date: Strings representing a datetime object
+    date_list: List of strings representing datetime objects
     bq_client: Object representing a reference to a BigQuery Client
-    gcs_client: Object representing a reference to a GCS Client
   """
-  dataset_ref = bq_client.get_dataset(bigquery.DatasetReference(project=config.project_id,
-                                                                dataset_id=config.output_dataset_id))
-  table_ref = dataset_ref.table(config.output_table_name)
-  table_ref.time_partitioning = bigquery.TimePartitioning(field='usage_start_time',
-                                                          expiration_ms=None)
-  job_config = bigquery.QueryJobConfig()
-  job_config.destination = table_ref
-  job_config.write_disposition = bigquery.WriteDisposition().WRITE_TRUNCATE
-  job_config.time_partitioning = bigquery.TimePartitioning(field='usage_start_time',
-                                                           expiration_ms=None)
-  sql = Template(get_sql_query(config.bucket_id,
-                               config.sql_file_path,
-                               gcs_client))
-  try:
-    log_message = Template('Attempting query on usage from dates $date')
-    sql = sql.safe_substitute(BILLING_TABLE=config.billing_dataset_id + '.' + config.billing_table_name,
-                              modified_usage_start_time_list='","'.join(date_list))
-    logging.info(log_message.safe_substitute(date=date_list))
-    # Execute Query
-    query_job = bq_client.query(
-        sql,
-        job_config=job_config)
+  if date_list:
+    dataset_ref = bq_client.get_dataset(bigquery.DatasetReference(project=config.project_id,
+                                                                  dataset_id=config.output_dataset_id))
+    table_ref = dataset_ref.table(config.output_table_name)
+    table_ref.time_partitioning = bigquery.TimePartitioning(field='usage_start_time',
+                                                            expiration_ms=None)
+    job_config = bigquery.QueryJobConfig()
+    job_config.destination = table_ref
+    job_config.write_disposition = bigquery.WriteDisposition().WRITE_TRUNCATE
+    job_config.time_partitioning = bigquery.TimePartitioning(field='usage_start_time',
+                                                             expiration_ms=None)
+    sql = Template(create_query_string(config.sql_file_path))
+    try:
+      log_message = Template('Attempting query on usage from dates $date')
+      sql = sql.safe_substitute(BILLING_TABLE=config.billing_dataset_id + '.' + config.billing_table_name,
+                                modified_usage_start_time_list='","'.join(date_list))
+      logging.info(log_message.safe_substitute(date=date_list))
+      # Execute Query
+      query_job = bq_client.query(
+          sql,
+          job_config=job_config)
 
-    query_job.result()  # Waits for the query to finish
-    log_message = Template('Transformation query complete. Partitions from dates '
-                           '$date have been updated.')
-    logging.info(log_message.safe_substitute(date=date_list))
-  except Exception as e:
-    log_message = Template('Transformation query failed due to $message.')
-    logging.error(log_message.safe_substitute(message=e))
+      query_job.result()  # Waits for the query to finish
+      log_message = Template('Transformation query complete. Partitions from dates '
+                             '$date have been updated.')
+      logging.info(log_message.safe_substitute(date=date_list))
+    except Exception as e:
+      log_message = Template('Transformation query failed due to $message.')
+      logging.error(log_message.safe_substitute(message=e))
+
+  else:
+    log_message = Template('There are no usage dates for this partition -- '
+                           'so the transformation query will not execute.')
+    logging.info(log_message)
 
 
 def main(data, context):
@@ -190,18 +192,18 @@ def main(data, context):
   """
   bq_client = bigquery.Client()
   datastore_client = datastore.Client()
-  gcs_client = storage.Client()
 
   try:
     current_time = datetime.datetime.utcnow()
     log_message = Template('Daily Cloud Function was triggered on $time')
     logging.info(log_message.safe_substitute(time=current_time))
-    partitions_to_update = get_changed_partitions(bq_client, datastore_client)
+    partitions_to_update = get_changed_partitions(bq_client,
+                                                  get_last_query_time(datastore_client))
 
     # Verify that partitions have changed/require transformation
     if partitions_to_update:
       dates_to_update = get_usage_dates(partitions_to_update, bq_client)
-      execute_transformation_query(dates_to_update, bq_client, gcs_client)
+      execute_transformation_query(dates_to_update, bq_client)
       store_query_timestamp(current_time, datastore_client)
 
   except Exception as e:
