@@ -21,16 +21,13 @@ from google.cloud import bigquery
 from google.cloud import datastore
 from google.cloud import storage
 
-bq_client = bigquery.Client()
-datastore_client = datastore.Client()
-gcs_client = storage.Client()
 
-
-def store_query_timestamp(current_time):
+def store_query_timestamp(current_time, datastore_client):
   """Creates a datastore entity object to store the current time.
 
   Args:
       current_time: datetime object representing current time
+      datastore_client: Object representing a reference to a Datastore client
 
   """
   time_as_string = current_time.strftime('%Y-%m-%d %H:%M:%S')
@@ -42,8 +39,11 @@ def store_query_timestamp(current_time):
   datastore_client.put(date_entity)
 
 
-def get_last_query_time():
+def get_last_query_time(datastore_client):
   """Queries Datastore to fetch the last time a transformation query was executed.
+
+  Args:
+    datastore_client: Object representing a reference to a Datastore client
 
   Returns:
     String representing UTC-time or None
@@ -57,11 +57,13 @@ def get_last_query_time():
     return None
 
 
-def get_usage_dates(partition_ids):
+def get_usage_dates(partition_ids, bq_client):
   """Queries for each usage date that is stored within a partition.
 
   Args:
     partition_ids: List of timestamp strings denoting partition ingestion times.
+    bq_client: Object representing a reference to a BigQuery Client
+
 
   Returns:
      List of strings representing dates
@@ -80,16 +82,20 @@ def get_usage_dates(partition_ids):
   date_list = []
   for row in query_job.result():
     date_list.append(row.usage_date.strftime('%Y-%m-%d %H:%M:%S+00'))
-  return date_list
+  return set(date_list)
 
 
-def get_changed_partitions():
+def get_changed_partitions(bq_client, datastore_client):
   """Queries bigquery table to return partitions that have been updated.
+
+  Args:
+    bq_client: Object representing a reference to a BigQuery Client
+    datastore_client: Object representing a reference to a Datastore Client
 
   Returns:
     List of timestamp strings representing partition ids
   """
-  last_query_time = get_last_query_time()
+  last_query_time = get_last_query_time(datastore_client)
   job_config = bigquery.QueryJobConfig()
   # Obtaining partitions metadeta via the client API requires legacy SQL
   job_config.use_legacy_sql = True
@@ -116,15 +122,16 @@ def get_changed_partitions():
   updated_partitions = []
   for row in query_job.result():
     updated_partitions.append(row.partition_timestamp.strftime('%Y-%m-%d %H:%M:%S'))
-  return updated_partitions
+  return set(updated_partitions)
 
 
-def get_sql_query(bucket_id, sql_path):
+def get_sql_query(bucket_id, sql_path, gcs_client):
   """Converts a GCS file holding SQL query to a string.
 
   Args:
     bucket_id: String representing ID of bucket
     sql_path: String in form of file path
+    gcs_client: Object representing a reference to GCS
 
   Returns:
     String representation of file.
@@ -134,21 +141,27 @@ def get_sql_query(bucket_id, sql_path):
   return blob.download_as_string().decode("utf-8")
 
 
-def execute_transformation_query(date_list):
+def execute_transformation_query(date_list, bq_client, gcs_client):
   """Executes transformation query to a new destination table.
 
   Args:
     date: Strings representing a datetime object
+    bq_client: Object representing a reference to a BigQuery Client
+    gcs_client: Object representing a reference to a GCS Client
   """
   dataset_ref = bq_client.get_dataset(bigquery.DatasetReference(project=config.project_id,
                                                                 dataset_id=config.output_dataset_id))
   table_ref = dataset_ref.table(config.output_table_name)
-  table_ref.time_partitioning = bigquery.TimePartitioning(field='usage_start_time')
+  table_ref.time_partitioning = bigquery.TimePartitioning(field='usage_start_time',
+                                                          expiration_ms=None)
   job_config = bigquery.QueryJobConfig()
   job_config.destination = table_ref
   job_config.write_disposition = bigquery.WriteDisposition().WRITE_TRUNCATE
-  job_config.time_partitioning = bigquery.TimePartitioning(field='usage_start_time')
-  sql = Template(get_sql_query(config.bucket_id, config.sql_file_path))
+  job_config.time_partitioning = bigquery.TimePartitioning(field='usage_start_time',
+                                                           expiration_ms=None)
+  sql = Template(get_sql_query(config.bucket_id,
+                               config.sql_file_path,
+                               gcs_client))
   try:
     log_message = Template('Attempting query on usage from dates $date')
     sql = sql.safe_substitute(BILLING_TABLE=config.billing_dataset_id + '.' + config.billing_table_name,
@@ -175,21 +188,25 @@ def main(data, context):
     data (dict): Event payload.
     context (google.cloud.functions.Context): Metadata for the event.
   """
+  bq_client = bigquery.Client()
+  datastore_client = datastore.Client()
+  gcs_client = storage.Client()
+
   try:
     current_time = datetime.datetime.utcnow()
     log_message = Template('Daily Cloud Function was triggered on $time')
     logging.info(log_message.safe_substitute(time=current_time))
-    partitions_to_update = get_changed_partitions()
+    partitions_to_update = get_changed_partitions(bq_client, datastore_client)
 
     # Verify that partitions have changed/require transformation
     if partitions_to_update:
-      dates_to_update = get_usage_dates(partitions_to_update)
-      execute_transformation_query(dates_to_update)
-      store_query_timestamp(current_time)
+      dates_to_update = get_usage_dates(partitions_to_update, bq_client)
+      execute_transformation_query(dates_to_update, bq_client, gcs_client)
+      store_query_timestamp(current_time, datastore_client)
 
   except Exception as e:
     log_message = Template('$error').substitute(error=e)
     logging.error(log_message)
 
-# if __name__ == '__main__':
-#   main('data', 'context')
+if __name__ == '__main__':
+  main('data', 'context')
