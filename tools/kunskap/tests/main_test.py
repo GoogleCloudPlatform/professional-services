@@ -18,8 +18,10 @@ import datetime
 import pytz
 from unittest import mock
 from mock import mock_open
+from google.cloud import bigquery
 import main
 import config
+from string import Template
 
 class MockQueryResult():
   """Class to create Mock Objects resembling query results."""
@@ -75,7 +77,7 @@ class TestMain(unittest.TestCase):
     self.mocked_bq().query().result.return_value = iter([mock_query_result])
     mocked_usage_dates = main.get_usage_dates(['2018-03-24 00:00:00'],
                                               self.mocked_bq())
-    expected_usage_dates = set(['2018-03-24 00:00:00+00'])
+    expected_usage_dates = set(['2018-03-24'])
     assert expected_usage_dates == mocked_usage_dates
 
 
@@ -102,7 +104,7 @@ class TestMain(unittest.TestCase):
 
   def testExecuteTransformationQuery(self):
     """Tests that transformation query will execute."""
-    mocked_dates = ['2018-03-24 00:00:00+00', '2018-03-23 00:00:00+00']
+    mocked_dates = ['2018-03-24', '2018-03-23']
     main.execute_transformation_query(mocked_dates, self.mocked_bq())
     self.mocked_bq().query().result().called
 
@@ -120,6 +122,38 @@ class TestMain(unittest.TestCase):
     file."""
     main.create_query_string(config.sql_file_path)
     mock_file.assert_called_with(config.sql_file_path, 'r')
+
+
+  def testPartitionsAndUsageDates(self):
+    """Tests that the number of partitions is equal to the number of
+    usage_start_times."""
+    bq_client = bigquery.Client()
+    job_config = bigquery.QueryJobConfig()
+    usage_query = Template('SELECT COUNT(DISTINCT(DATE(usage_start_time))) AS cnt '
+                           'FROM `$project.$output_dataset.$output_table`'
+                           ).safe_substitute(project=config.project_id,
+                                             output_dataset=config.output_dataset_id,
+                                             output_table=config.output_table_name
+    )
+    query_job = bq_client.query(usage_query, job_config=job_config)
+    for row in query_job.result():
+      output_result = row.cnt
+
+    partition_query = Template('SELECT COUNT(DISTINCT(partition_id)) AS cnt '
+                               'FROM [$project.$output_dataset.$output_table$suffix] '
+
+                      ).safe_substitute(project=config.project_id,
+                                        output_dataset=config.output_dataset_id,
+                                        output_table=config.output_table_name,
+                                        suffix='$__PARTITIONS_SUMMARY__'
+                                        )
+
+    job_config = bigquery.QueryJobConfig()
+    job_config.use_legacy_sql = True
+    query_job = bq_client.query(partition_query, job_config=job_config)
+    for row in query_job.result():
+      partition_result = row.cnt
+    assert output_result == partition_result
 
 
   def tearDown(self):
