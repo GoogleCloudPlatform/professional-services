@@ -115,7 +115,7 @@ The data generator will parse your field names and generate keys/ids for fields 
 The cardinality of such key columns can be controlled with the `--n_keys` parameter. 
 
 ##### Primary Key (optional)
-The data generator can support a single primary key column by passing a field name to `--primary_key_col`. 
+The data generator can support a primary key columns by passing a comma separated list of field names to `--primary_key_cols`. 
 Note this is done by a deduplication process at the end of the pipeline. This may be a bottleneck for large data volumes. 
 Also, using this parameter might cause you to fall short of `--num_records` output records due to the deduplicaiton. 
 To mitigate this you can set `--n_keys` to a number much larger than the number of records you are generating.
