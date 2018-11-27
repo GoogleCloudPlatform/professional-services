@@ -275,7 +275,6 @@ class FakeRowGen(beam.DoFn):
         # (ie. minimum date).
         faker = Faker()
         field = self.get_field_dict(fieldname)
-        key_set = range(self.data_gen.n_keys)
 
         # Below handles if the datatype got changed by the faker provider
         if field[u'type'] == 'STRING':
@@ -359,7 +358,6 @@ class FakeRowGen(beam.DoFn):
         if '_key' in field['name'].lower() or '_id' in field['name'].lower():
             key_mag = int(math.log10(self.data_gen.n_keys))
             if self.key_set:
-                print('if triggered')
                 # If this is a dimension table we generate the main table first.
                 key = np.random.choice(self.key_set)
                 record[fieldname] = key
