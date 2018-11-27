@@ -8,22 +8,7 @@ to unblock integration tests and downstream development.
 This pipeline has 3 steps: 
 1. Write an n-line temporary file to GCS.
 2. Generate a single record per line read from the GCS temporary file.
-3. Write the generated data to GCS.
-
-### Write an n-line file to GCS
-This is just a very simple bit of python code to initiate a Google Cloud Stroage Client which we use to create a Bucket
-and Blob object in turn. We then use the `Blob.upload_from_string` to write a file from `num_records` newline characters.
-
-### Generate a single record per line read form GCS
-In this step we use the `beam.ParDo` method to call a super class `FakeRowGen` which extends the `beam.DoFn` class. We 
-define this class to create a python dictionary representing a single record that matches the provided schema. This 
-process involves a combination of using the python module `faker-schema` as well as some custom logic to control key fields.
-Numeric fields in these records will trend positively based on their date and where that falls on the range of minimum and 
-maximum dates.
-
-### Write the data to BigQuery
-The final step, naturally, is to write the generated data into a BigQuery Table using the built in 
-`beam.io.gcp.bigquery.WriteToBigQuery` method.
+3. Write the generated data to GCS or BigQuery.
 
 ### Usage
 This tool has several parameters to specify what kind of data you would like to generate.
