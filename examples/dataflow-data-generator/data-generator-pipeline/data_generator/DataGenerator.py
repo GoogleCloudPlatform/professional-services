@@ -43,7 +43,7 @@ class DataGenerator(object):
     """
     def __init__(self, bq_schema_filename=None, input_bq_table=None, 
                  hist_bq_table=None, p_null=0.1,
-                 n_keys=1000, min_date='2000-01-01',
+                 n_keys=sys.maxint, min_date='2000-01-01',
                  max_date=datetime.date.today().strftime('%Y-%m-%d'),
                  only_pos=True, max_int=10**11, max_float=float(10**11),
                  float_precision=2, write_disp='WRITE_APPEND', key_skew='None',
@@ -290,7 +290,6 @@ class FakeRowGen(beam.DoFn):
         # (ie. minimum date).
         faker = Faker()
         field = self.get_field_dict(fieldname)
-        key_set = range(self.data_gen.n_keys)
 
         # Below handles if the datatype got changed by the faker provider
         if field[u'type'] == 'STRING':
