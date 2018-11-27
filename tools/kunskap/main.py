@@ -83,7 +83,7 @@ def get_usage_dates(partition_ids, bq_client):
   query_job = bq_client.query(sql, job_config=job_config)
   date_list = []
   for row in query_job.result():
-    date_list.append(row.usage_date.strftime('%Y-%m-%d %H:%M:%S+00'))
+    date_list.append(row.usage_date.strftime('%Y-%m-%d'))
   return set(date_list)
 
 

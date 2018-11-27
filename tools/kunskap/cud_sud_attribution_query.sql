@@ -52,7 +52,7 @@ CREATE TEMP FUNCTION
         FROM
          `$BILLING_TABLE`
         WHERE
-          STRING(TIMESTAMP_TRUNC(usage_start_time,DAY)) IN ("${modified_usage_start_time_list}")
+          CAST(DATE(usage_start_time) AS STRING) IN ("${modified_usage_start_time_list}")
     ),
     billing_id_table AS (
     SELECT
