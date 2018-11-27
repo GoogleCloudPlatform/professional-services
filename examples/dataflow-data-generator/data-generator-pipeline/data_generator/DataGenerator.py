@@ -42,7 +42,7 @@ class DataGenerator(object):
 
     """
     def __init__(self, bq_schema_filename=None, input_bq_table=None, p_null=0.1,
-                 n_keys=1000, min_date='2000-01-01',
+                 n_keys=sys.maxint, min_date='2000-01-01',
                  max_date=datetime.date.today().strftime('%Y-%m-%d'),
                  only_pos=True, max_int=10**11, max_float=float(10**11),
                  float_precision=2, write_disp='WRITE_APPEND', key_skew='None',
