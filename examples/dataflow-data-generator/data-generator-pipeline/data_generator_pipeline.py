@@ -69,7 +69,7 @@ def run(argv=None):
                              float_precision=data_args.float_precision,
                              write_disp=data_args.write_disp,
                              key_skew=data_args.key_skew,
-                             primary_key_col=data_args.primary_key_col)
+                             primary_key_cols=data_args.primary_key_cols)
 
 
     # Initiate the pipeline using the pipeline arguments passed in from the
@@ -91,8 +91,10 @@ def run(argv=None):
 
     )
 
-    if data_args.primary_key_col:
-        rows |= EnforcePrimaryKeys(data_args.primary_key_col)
+    if data_args.primary_key_cols:
+        for key in data_args.primary_key_cols.split(','):
+            rows |= 'Enforcing primary key: {}'.format(key) >> EnforcePrimaryKeys(
+                        key)
 
     if data_args.csv_schema_order:
         (rows
