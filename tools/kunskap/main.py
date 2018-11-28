@@ -15,8 +15,8 @@
 """Function called by PubSub trigger to execute  cron jon tasks."""
 import datetime
 import logging
-import config
 from string import Template
+import config
 from google.cloud import bigquery
 from google.cloud import datastore
 
@@ -37,7 +37,7 @@ def store_query_timestamp(current_time, datastore_client):
         'time_queried': time_as_string
     })
     datastore_client.put(date_entity)
-  except Exception as e:
+  except Exception:
     log_message = Template('Storing current time: $time failed')
     logging.error(log_message.safe_substitute(time=current_time))
 
@@ -148,11 +148,9 @@ def execute_transformation_query(date_list, bq_client):
     bq_client: Object representing a reference to a BigQuery Client
   """
   if date_list:
-    dataset_ref = bq_client.get_dataset(bigquery.DatasetReference(project=config.project_id,
+    dataset_ref = bq_client.get_dataset(bigquery.DatasetReference(project=config.billing_project_id,
                                                                   dataset_id=config.output_dataset_id))
     table_ref = dataset_ref.table(config.output_table_name)
-    table_ref.time_partitioning = bigquery.TimePartitioning(field='usage_start_time',
-                                                            expiration_ms=None)
     job_config = bigquery.QueryJobConfig()
     job_config.destination = table_ref
     job_config.write_disposition = bigquery.WriteDisposition().WRITE_TRUNCATE
@@ -170,8 +168,8 @@ def execute_transformation_query(date_list, bq_client):
           job_config=job_config)
 
       query_job.result()  # Waits for the query to finish
-      log_message = Template('Transformation query complete. Partitions from dates '
-                             '$date have been updated.')
+      log_message = Template('Transformation query complete. Partitions from '
+                             'dates $date have been updated.')
       logging.info(log_message.safe_substitute(date=date_list))
     except Exception as e:
       log_message = Template('Transformation query failed due to $message.')
