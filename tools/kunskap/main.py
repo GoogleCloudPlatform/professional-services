@@ -19,6 +19,7 @@ from string import Template
 import config
 from google.cloud import bigquery
 from google.cloud import datastore
+from google.cloud.exceptions import NotFound
 
 
 def store_query_timestamp(current_time, datastore_client):
@@ -140,6 +141,45 @@ def create_query_string(sql_path):
   return lines
 
 
+def partition_exists(bq_client, table_name):
+  """Verifies that the partition exists in the output table
+
+  Args:
+    bq_client: Object representing a reference to a BigQuery Client
+    table_name: String representing a table name
+
+  Returns:
+    True if the partition exists
+    False if the partition does not exist
+  """
+  try:
+    bq_client.get_table(table_name)
+    return True
+  except NotFound:
+    return False
+
+
+def delete_partitions(partition_list, bq_client):
+  """Deletes changed partitions from dataset to overwrite with new data.
+
+  Args:
+    partition_list: List of strings representing datetime objects.
+    bq_client: Object representing a reference to a BigQuery Client
+
+  """
+  for partition in partition_list:
+    partition_name = partition.replace('-', '')
+    table_name = Template('$project.$output_dataset_id.$output_table_name$partition').safe_substitute(
+        project=config.billing_project_id,
+        output_dataset_id=config.output_dataset_id,
+        output_table_name=config.output_table_name,
+        partition='$' + partition_name
+    )
+    # Only delete the partition if it exists
+    if partition_exists(bq_client, table_name):
+      bq_client.delete_table(table_name)
+
+
 def execute_transformation_query(date_list, bq_client):
   """Executes transformation query to a new destination table.
 
@@ -148,12 +188,18 @@ def execute_transformation_query(date_list, bq_client):
     bq_client: Object representing a reference to a BigQuery Client
   """
   if date_list:
-    dataset_ref = bq_client.get_dataset(bigquery.DatasetReference(project=config.billing_project_id,
-                                                                  dataset_id=config.output_dataset_id))
+    dataset_ref = bq_client.get_dataset(bigquery.DatasetReference(
+        project=config.billing_project_id,
+        dataset_id=config.output_dataset_id))
     table_ref = dataset_ref.table(config.output_table_name)
+    table_list = [table.full_table_id for table in list(
+        bq_client.list_tables(dataset_ref))]
+    if table_ref in table_list:
+      delete_partitions(date_list, bq_client)
+
     job_config = bigquery.QueryJobConfig()
     job_config.destination = table_ref
-    job_config.write_disposition = bigquery.WriteDisposition().WRITE_TRUNCATE
+    job_config.write_disposition = bigquery.WriteDisposition().WRITE_APPEND
     job_config.time_partitioning = bigquery.TimePartitioning(field='usage_start_time',
                                                              expiration_ms=None)
     sql = Template(create_query_string(config.sql_file_path))
