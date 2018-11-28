@@ -6,5 +6,5 @@ output_dataset_id = 'output_dataset'
 output_table_name = 'transformed_table'
 bucket_id = 'bucket_id'
 # You can leave this unless you renamed the file yourself.
-sql_file_path = 'sql/cud_sud_attribution_parameterized.sql'
+sql_file_path = 'cud_sud_attribution_parameterized.sql'
 
