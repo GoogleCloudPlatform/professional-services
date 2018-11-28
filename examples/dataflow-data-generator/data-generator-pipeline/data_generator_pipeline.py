@@ -31,6 +31,7 @@ from data_generator.DataGenerator import DataGenerator, FakeRowGen, \
     parse_data_generator_args, validate_data_args, fetch_schema,\
     write_n_line_file_to_gcs
 import avro.schema
+import os
 
 from data_generator.CsvUtil import dict_to_csv
 from data_generator.AvroUtil import fix_record_for_avro
@@ -38,7 +39,7 @@ from data_generator.enforce_primary_keys import EnforcePrimaryKeys
 
 def run(argv=None):
     """
-    This funciton parses the command line arguments and runs the Beam Pipeline.
+    This function parses the command line arguments and runs the Beam Pipeline.
 
     Args:
         argv: list containing the commandline arguments for this call of the
@@ -69,7 +70,7 @@ def run(argv=None):
                              float_precision=data_args.float_precision,
                              write_disp=data_args.write_disp,
                              key_skew=data_args.key_skew,
-                             primary_key_col=data_args.primary_key_col)
+                             primary_key_cols=data_args.primary_key_cols)
 
 
     # Initiate the pipeline using the pipeline arguments passed in from the
@@ -80,7 +81,7 @@ def run(argv=None):
     rows = (p
         # Read the file we created with num_records newlines.
         | 'Read file with num_records lines' >> beam.io.ReadFromText(
-                '/'.join(['gs:/', temp_blob.bucket.name, temp_blob.name])
+                os.path.join('gs://', temp_blob.bucket.name, temp_blob.name)
             )
 
         # Use our instance of our custom DataGenerator Class to generate 1 fake
@@ -91,8 +92,10 @@ def run(argv=None):
 
     )
 
-    if data_args.primary_key_col:
-        rows |= EnforcePrimaryKeys(data_args.primary_key_col)
+    if data_args.primary_key_cols:
+        for key in data_args.primary_key_cols.split(','):
+            rows |= 'Enforcing primary key: {}'.format(key) >> EnforcePrimaryKeys(
+                        key)
 
     if data_args.csv_schema_order:
         (rows
