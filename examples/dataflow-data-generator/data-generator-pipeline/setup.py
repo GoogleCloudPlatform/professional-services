@@ -19,7 +19,7 @@ setuptools.setup(
         'mock>=2.0.0',
         'numpy>=1.14.2',
         'pandas>=0.23.4',
-        'six==1.10.0',
+        'six>=1.10.0',
         'scipy>=1.1.0'
     ],
     packages=['data_generator']
