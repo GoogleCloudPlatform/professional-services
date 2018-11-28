@@ -14,13 +14,13 @@
 
 import datetime
 
-def datetime_to_avro_timestamp(dt, micros=True):
+def datetime_to_avro_timestamp(timestamp, micros=True):
     """
     This is a convienence function for converting datetime objects to 
     timestamps in either milliseconds or microseconds since the Unix
     Epoch.
     Args:
-        dt: (datetime.datetime) to be converted.
+        timestamp: (datetime.datetime) to be converted.
         micros: (bool) should we use microsecond precision. Default behavior
             is millisecond precision. This should be dictated by the avsc file.
     """
@@ -28,59 +28,59 @@ def datetime_to_avro_timestamp(dt, micros=True):
     _MILLISECONDS_PER_SECOND = 10 ** 3
     _MICROSECONDS_PER_SECOND = 10 ** 6
 
-    if isinstance(dt, unicode):
+    if isinstance(timestamp, unicode):
         try:
-            dt = datetime.datetime.strptime(dt, '%Y-%m-%dT%H:%M:%S')
-        except:
-            dt = datetime.datetime.strptime(dt, '%Y-%m-%dT%H:%M:%S.%f')
+            timestamp = datetime.datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%S')
+        except ValueError:
+            timestamp = datetime.datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%S.%f')
             
-    seconds_since_epoch = (dt - _UNIX_EPOCH).total_seconds()
+    seconds_since_epoch = (timestamp - _UNIX_EPOCH).total_seconds()
 
     multiplier = _MICROSECONDS_PER_SECOND if micros else _MILLISECONDS_PER_SECOND
 
     return long(seconds_since_epoch * multiplier)
 
-def date_to_avro_date(dt):
+def date_to_avro_date(date):
     """
     This is a convienence function for converting datetime objects to 
     timestamps in either milliseconds or microseconds since the Unix
     Epoch.
     Args:
-        dt: (datetime.datetime) to be converted.
+        date: (datetime.datetime) to be converted.
         micros: (bool) should we use microsecond precision. Default behavior
             is millisecond precision. This should be dictated by the avsc file.
     """
     _UNIX_EPOCH = datetime.datetime(1970, 1, 1)
 
-    if isinstance(dt, unicode):
-       dt = datetime.datetime.strptime(dt, '%Y-%m-%d')
+    if isinstance(date, unicode):
+       date = datetime.datetime.strptime(date, '%Y-%m-%d')
             
-    days_since_epoch = (dt - _UNIX_EPOCH).days
+    days_since_epoch = (date - _UNIX_EPOCH).days
 
     return int(days_since_epoch)
 
-def time_to_avro_time(t, micros=True):
+def time_to_avro_time(time, micros=True):
     """
     This is a convienence function for converting datetime objects to 
     timestamps in either milliseconds or microseconds since the Unix
     Epoch.
     Args:
-        dt: (datetime.datetime) to be converted.
+        time: (datetime.datetime) to be converted.
         micros: (bool) should we use microsecond precision. Default behavior
             is millisecond precision. This should be dictated by the avsc file.
     """
     _MIDNIGHT = datetime.time(0, 0, 0) 
     _MILLISECONDS_PER_SECOND = 10 ** 3
     _MICROSECONDS_PER_SECOND = 10 ** 6
-    if isinstance(t, unicode):
+    if isinstance(time, unicode):
         try:
-            t = datetime.datetime.strptime(t, '%H:%M:%S').time()
+            time = datetime.datetime.strptime(time, '%H:%M:%S').time()
         except:
-            t = datetime.datetime.strptime(t, '%H:%M:%S.%f').time()
+            time = datetime.datetime.strptime(time, '%H:%M:%S.%f').time()
 
     _TODAY = datetime.date.today()        
 
-    seconds_since_midnight = (datetime.datetime.combine(_TODAY,t) 
+    seconds_since_midnight = (datetime.datetime.combine(_TODAY,time) 
                               - datetime.datetime.combine(_TODAY, 
                                     _MIDNIGHT)).total_seconds()
 
