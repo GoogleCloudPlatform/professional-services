@@ -71,17 +71,17 @@ gcloud iam service-accounts list
 ````
 The output should display an email in the form of [PROJECT_ID]@appspot.gserviceaccount.com. Copy this email for the next step.
 
-2. In the BigQuery UI, hover over the plus icon for your billing dataset. 
+2. In the BigQuery UI, hover over the plus icon for your <b>billing</b> dataset. 
 
 3. Click "Share Dataset"
 
 4. In the pop-up, enter the service account email from step 1. Give it permission <b>"Can View".</b>
 
-5. Hover over the plus icon for the output dataset.
+5. Hover over the plus icon for the <b>output</b> dataset.
 
 6. Click "Share Dataset"
 
-7. In the pop-up, enter the service account email from step1. Give it permission <b>"Can Edit".</b>
+7. In the pop-up, enter the service account email from step 1. Give it permission <b>"Can Edit".</b>
 
 
 <h3>Edit Config Variables</h3>
