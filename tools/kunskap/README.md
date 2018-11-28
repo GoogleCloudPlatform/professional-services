@@ -1,11 +1,12 @@
 <h2>Introduction</h2>
+
 The purpose of this project is to demonstrate how to automate the process of viewing CUD/SUD commitment charges in GCP on a 
 per-project basis to a BigQuery table. This helps to accurately view project cost, since currently when exporting billing 
 data does not correctly attribute CUD/SUD commitment charges.
-
+<br></br>
 Currently, this data can be viewed by running a query in BigQuery on exported billing data and generating a new table with 
 this transformed data. This example demonstrates how to automate this process to avoid manually executing the query.
-
+<br></br>
 In this example, a user can leverage Cloud Scheduler to schedule the recurring transformation query as a daily cron job. 
 Next, the Cloud Scheduler job then publishes a message to a PubSub topic on execution time. A Cloud Function that is 
 configured as a subscriber to this topic is then triggered by the PubSub message. The Cloud Function then calls the Python 
