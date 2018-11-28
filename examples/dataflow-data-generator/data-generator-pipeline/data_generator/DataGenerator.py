@@ -38,7 +38,7 @@ class DataGenerator(object):
         float_precision (int): The desired display precision for generated
             floats. (Note that BigQuery will cast all floats with double
             precision on the backend).
-        primary_key_col (str): The primary key for the generated data.
+        primary_key_cols (str): The primary key for the generated data.
 
     """
     def __init__(self, bq_schema_filename=None, input_bq_table=None, 
@@ -47,7 +47,7 @@ class DataGenerator(object):
                  max_date=datetime.date.today().strftime('%Y-%m-%d'),
                  only_pos=True, max_int=10**11, max_float=float(10**11),
                  float_precision=2, write_disp='WRITE_APPEND', key_skew='None',
-                 primary_key_col=None):
+                 primary_key_cols=None):
         """
         Args:
         bq_schema_filename (str): A path to a local or gcs file containing a
@@ -66,7 +66,7 @@ class DataGenerator(object):
         float_precision (int): The desired display precision for generated
             floats. (Note that BigQuery will cast all floats with double
             precision on the backend).
-        primary_key_col (str): The primary key for the generated data.
+        primary_key_cols (str): The primary key for the generated data.
         """
         bq_cli = bq.Client()
         if bq_schema_filename is not None:
@@ -373,7 +373,6 @@ class FakeRowGen(beam.DoFn):
         if '_key' in field['name'].lower() or '_id' in field['name'].lower():
             key_mag = int(math.log10(self.data_gen.n_keys))
             if self.key_set:
-                print('if triggered')
                 # If this is a dimension table we generate the main table first.
                 key = np.random.choice(self.key_set)
                 record[fieldname] = key
@@ -535,7 +534,7 @@ def parse_data_generator_args(argv):
                              'BigQuery table.',
                         default=10)
 
-    parser.add_argument('--primary_key_col', dest='primary_key_col', required=False,
+    parser.add_argument('--primary_key_cols', dest='primary_key_cols', required=False,
                         help='Field name of primary key. ', default=None)
 
     parser.add_argument('--p_null', dest='p_null', required=False,

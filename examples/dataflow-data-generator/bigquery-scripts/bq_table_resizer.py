@@ -15,7 +15,7 @@
 from __future__ import absolute_import
 import argparse
 from google.cloud import bigquery
-from google.api_core.exceptions import NotFound
+from google.api_core.exceptions import NotFound, BadRequest
 
 
 class BigQueryTableResizer(object):
@@ -49,7 +49,7 @@ class BigQueryTableResizer(object):
                  destination_dataset=None,
                  source_table=None,
                  destination_table=None,
-                 target_rows=10000,
+                 target_rows=1000000,
                  target_gb=None,
                  location='US'):
         """
@@ -76,13 +76,26 @@ class BigQueryTableResizer(object):
                 exist prior to this call.
        """
         self.location = location
-        self.project = project
-        self.client = bigquery.Client(project=project)
+         # Validate project argument.
+        try:
+            self.client = bigquery.Client(project=project)
+            # This will error out if BigQuery not activated for this project.
+            list(self.client.list_datasets())
+            self.project = project
+        except BadRequest:
+            raise ArgumentError(
+                "BigQuery is not setup in project: {}".format(project))
 
         source_table_ref = self.client.dataset(source_dataset).table(
             source_table
         )
-        self.source_table = self.client.get_table(source_table_ref)
+
+        try: # Validate source_table
+            self.source_table = self.client.get_table(source_table_ref)
+        except NotFound:
+            raise ArgumentError(
+                "Source table {} does not exist in {}.{}".format(
+                    source_table, project, source_dataset))
 
         if destination_dataset and destination_table:
             self.dest_table_ref = \
@@ -92,15 +105,16 @@ class BigQueryTableResizer(object):
         else:  # Default to an inplace copy.
             self.dest_table_ref = self.source_table.reference
 
-        self.target_rows = target_rows
 
-        if target_gb is not None:
+        if target_gb:
             target_bytes = target_gb * 1024 ** 3
             increase_pct = target_bytes / self.source_table.num_bytes
             self.target_rows = max(
                                    int(self.source_table.num_rows
                                        * increase_pct),
                                    self.target_rows)
+        else:
+            self.target_rows = target_rows
 
     def resize(self):
         """
