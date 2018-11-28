@@ -31,6 +31,7 @@ from data_generator.DataGenerator import DataGenerator, FakeRowGen, \
     parse_data_generator_args, validate_data_args, fetch_schema,\
     write_n_line_file_to_gcs
 import avro.schema
+import os
 
 from data_generator.CsvUtil import dict_to_csv
 from data_generator.AvroUtil import fix_record_for_avro
@@ -38,7 +39,7 @@ from data_generator.enforce_primary_keys import EnforcePrimaryKeys
 
 def run(argv=None):
     """
-    This funciton parses the command line arguments and runs the Beam Pipeline.
+    This function parses the command line arguments and runs the Beam Pipeline.
 
     Args:
         argv: list containing the commandline arguments for this call of the
@@ -80,7 +81,7 @@ def run(argv=None):
     rows = (p
         # Read the file we created with num_records newlines.
         | 'Read file with num_records lines' >> beam.io.ReadFromText(
-                '/'.join(['gs:/', temp_blob.bucket.name, temp_blob.name])
+                os.path.join('gs://', temp_blob.bucket.name, temp_blob.name)
             )
 
         # Use our instance of our custom DataGenerator Class to generate 1 fake

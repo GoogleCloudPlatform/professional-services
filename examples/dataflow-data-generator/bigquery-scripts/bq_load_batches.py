@@ -153,14 +153,15 @@ def submit_jobs(bq_cli, job_config, dataset_id, table_id, batches):
 
 def main(argv=None):
     parser = argparse.ArgumentParser()
-    parser.add_argument('--project', dest='project', required=False,
-                        default='zk-jferriero-dev')
-    parser.add_argument('--dataset', dest='dataset', required=False,
-                        default='sales_generator')
-    parser.add_argument('--table', dest='table', required=False,
-                        default='sales_denorm_1')
+    parser.add_argument('--project', dest='project', required=True,
+                        help='GCP Project ID.')
+    parser.add_argument('--dataset', dest='dataset', required=True,
+                        help='BigQuery Dataset ID.')
+    parser.add_argument('--table', dest='table', required=True,
+                        help='BigQuery Table ID.')
     parser.add_argument('--sources_file', dest='sources_file',
-                        required=False, default='./files_to_load.txt')
+                        required=True, help='A local file containing the' 
+                        'output of gsutil ls -l.')
     parser.add_argument('--create_table', dest='create_table',
                         action='store_true')
     parser.add_argument('--schema_file', dest='schema_file',
