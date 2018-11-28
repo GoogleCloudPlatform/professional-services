@@ -3,7 +3,6 @@ The purpose of this project is to demonstrate how to automate the process of vie
 per-project basis to a BigQuery table. This helps to accurately view project cost, since currently when exporting billing 
 data does not correctly attribute CUD/SUD commitment charges.
 
-
 Currently, this data can be viewed by running a query in BigQuery on exported billing data and generating a new table with 
 this transformed data. This example demonstrates how to automate this process to avoid manually executing the query.
 
@@ -14,8 +13,7 @@ script, which performs the transformation query on the billing table and generat
 charges.
 
 <h2>Installation/Set-up</h2>
-This project assumes that you already have billing data exported to BigQuery. Note the dataset id and the table name of 
-this, as you will need it later on when configuring the Cloud Function source code.
+This project assumes that you already have project set up with billing data exported to BigQuery. Note the project id, dataset id, and the table name of project, as you will need it later on when configuring the Cloud Function source code.
 
 <h3>Install/Configure the gcloud command line tool:</h3>
 
@@ -31,7 +29,7 @@ gcloud components install beta
 gcloud components update
 ````
 
-<h3>Create a project</h3>
+<h3>Create a new project for viewing the corrected data:</h3>
 
 1. Open a terminal where you installed on the SDK and create a project
 
@@ -64,6 +62,28 @@ where [PROJECT_ID] is the ID that you created in the previous step.
 6. [Enable the BigQuery API](https://pantheon.corp.google.com/flows/enableapi?apiid=bigquery)
 
 
+<h3>Set up BigQuery Permissions</h3>
+
+1. In a terminal window, run the following to verify that a default App Engine service account was created when you enabled the Cloud Functions API.
+
+````
+gcloud iam service-accounts list
+````
+The output should display an email in the form of [PROJECT_ID]@appspot.gserviceaccount.com. Copy this email for the next step.
+
+2. In the BigQuery UI, hover over the plus icon for your billing dataset. 
+
+3. Click "Share Dataset"
+
+4. In the pop-up, enter the service account email from step 1. Give it permission <b>"Can View".</b>
+
+5. Hover over the plus icon for the output dataset.
+
+6. Click "Share Dataset"
+
+7. In the pop-up, enter the service account email from step1. Give it permission <b>"Can Edit".</b>
+
+
 <h3>Edit Config Variables</h3>
 1. Clone this repo and open config.py in your chosen IDE.
 
@@ -71,7 +91,7 @@ where [PROJECT_ID] is the ID that you created in the previous step.
 
 ````python
 # EDIT THESE WITH YOUR OWN DATASET/TABLES
-project_id = 'project_id'
+billing_project_id = 'project_id'
 billing_dataset_id = 'billing_dataset'
 billing_table_name = 'billing_data'
 output_dataset_id = 'output_dataset'
@@ -80,7 +100,7 @@ output_table_name = 'transformed_table'
 sql_file_path = 'cud_sud_attribution.sql'
 ````
 
-change the values of project_id, billing_dataset_id, billing_table_name, output_table_name, and bucket_id to your project's respective datasets and tables in BigQuery.
+Change the values of billing_project_id, billing_dataset_id, billing_table_name, output_dataset_id, and output_table_name to your project's respective id, datasets, and tables in BigQuery. The output table will be created in this project, so you can choose any name that you would like. The remaining variables all must be customized for your project.
 
 
 <h3>Set up Cloud Functions:</h3>
@@ -103,14 +123,13 @@ where [FUNCTION_NAME] is the name that you want to give the function and [TOPIC_
 ````
 gcloud beta scheduler jobs create pubsub [JOB] --schedule [SCHEDULE] --topic [TOPIC_NAME] --message-body [MESSAGE_BODY]
 ````
-where [JOB] is a unique ID for a job, [SCHEDULE] is the frequency for the job in UNIX cron, such as "0 1 * * *" to run daily 
-at 1AM UTC, [TOPIC_NAME] is the name of the topic created in the step above when you deployed the Cloud Function, and [MESSAGE_BODY] is any string. An example command would be: 
+where [JOB] is a unique name for a job, [SCHEDULE] is the frequency for the job in UNIX cron, such as "0 1 * * *" to run daily at 1AM UTC, [TOPIC_NAME] is the name of the topic created in the step above when you deployed the Cloud Function, and [MESSAGE_BODY] is any string. An example command would be: 
 ````
 gcloud beta scheduler jobs create pubsub daily_job --schedule "0 1 * * *" --topic cron-topic --message-body "daily job"
 ````
 
 <h3>Run the job:</h3>
-You can test the workflow above by running the project now, instead of waiting for the scheduled time. To do this:
+You can test the workflow above by running the project now, instead of waiting for the scheduled UNIX time. To do this:
 
 1. Open up the Cloud Scheduler page in the console.
 
@@ -118,4 +137,4 @@ You can test the workflow above by running the project now, instead of waiting f
 
 3. Open up BigQuery in the console.
 
-4. Under your dataset, look for your [output_table_name], this will contain the data.
+4. Under your output dataset, look for your [output_table_name], this will contain the data.
