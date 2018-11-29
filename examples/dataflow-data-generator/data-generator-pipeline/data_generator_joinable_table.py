@@ -94,8 +94,9 @@ def run(argv=None):
                     data_args.fact_table),
                 use_standard_sql=True)
             )
+         | 'Extract key values' >> beam.Map(
+                lambda x: (x[data_args.source_joining_key_col]))
         )
-         
 
     rows = (p
 
@@ -109,9 +110,11 @@ def run(argv=None):
      # Use our instance of our custom DataGenerator Class to generate 1 fake
      # datum with the appropriate schema for each element in the PColleciton
      # created above.
-     | 'Generate Data' >> beam.ParDo(FakeRowGen(data_gen), key_set=AsList(key_set))
-
+     | 'Generate Data' >> beam.ParDo(FakeRowGen(data_gen))
      | 'Parse Json Strings' >> beam.FlatMap(lambda row: [json.loads(row)])
+     | 'Enforce joining keys' >> beam.FlatMap(
+                        data_gen.enforce_joinable_keys, 
+                        key_set=AsList(key_set))
     )
 
     if data_args.primary_key_cols:
