@@ -142,7 +142,7 @@ def create_query_string(sql_path):
 
 
 def partition_exists(bq_client, table_name):
-  """Verifies that the partition exists in the output table
+  """Verifies that the partition exists in the output table.
 
   Args:
     bq_client: Object representing a reference to a BigQuery Client
@@ -168,11 +168,14 @@ def delete_partitions(partition_list, bq_client):
    """
   for partition in partition_list:
     partition_name = partition.replace('-', '')
-    table_name = Template('$project.$output_dataset_id.$output_table_name$partition').safe_substitute(
-        project=config.billing_project_id,
-        output_dataset_id=config.output_dataset_id,
-        output_table_name=config.output_table_name,
-        partition='$' + partition_name
+    table_name = Template('$project.'
+                          '$output_dataset_id.'
+                          '$output_table_name$partition'
+                          ).safe_substitute(
+                                  project=config.billing_project_id,
+                                  output_dataset_id=config.output_dataset_id,
+                                  output_table_name=config.output_table_name,
+                                  partition='$' + partition_name
     )
     # Only delete the partition if it exists
     if partition_exists(bq_client, table_name):
@@ -189,7 +192,6 @@ def execute_transformation_query(date_list, bq_client):
     dataset_ref = bq_client.get_dataset(bigquery.DatasetReference(
         project=config.billing_project_id,
         dataset_id=config.output_dataset_id))
-    d = bq_client.get_dataset(dataset_ref)
     table_ref = dataset_ref.table(config.output_table_name)
     table_list = [table.full_table_id for table in list(
         bq_client.list_tables(dataset_ref))]
@@ -207,23 +209,19 @@ def execute_transformation_query(date_list, bq_client):
     job_config.time_partitioning = bigquery.TimePartitioning(field='usage_start_time',
                                                              expiration_ms=None)
     sql = Template(create_query_string(config.sql_file_path))
-    try:
-      log_message = Template('Attempting query on usage from dates $date')
-      sql = sql.safe_substitute(BILLING_TABLE=config.billing_dataset_id + '.' + config.billing_table_name,
-                                modified_usage_start_time_list='","'.join(date_list))
-      logging.info(log_message.safe_substitute(date=date_list))
-      # Execute Query
-      query_job = bq_client.query(
-          sql,
-          job_config=job_config)
+    log_message = Template('Attempting query on usage from dates $date')
+    sql = sql.safe_substitute(BILLING_TABLE=config.billing_dataset_id + '.' + config.billing_table_name,
+                              modified_usage_start_time_list='","'.join(date_list))
+    logging.info(log_message.safe_substitute(date=date_list))
+    # Execute Query
+    query_job = bq_client.query(
+        sql,
+        job_config=job_config)
 
-      query_job.result()  # Waits for the query to finish
-      log_message = Template('Transformation query complete. Partitions from '
-                             'dates $date have been updated.')
-      logging.info(log_message.safe_substitute(date=date_list))
-    except Exception as e:
-      log_message = Template('Transformation query failed due to $message.')
-      logging.error(log_message.safe_substitute(message=e))
+    query_job.result()  # Waits for the query to finish
+    log_message = Template('Transformation query complete. Partitions from '
+                           'dates $date have been updated.')
+    logging.info(log_message.safe_substitute(date=date_list))
 
   else:
     log_message = Template('There are no usage dates for this partition -- '
@@ -251,8 +249,15 @@ def main(data, context):
     # Verify that partitions have changed/require transformation
     if partitions_to_update:
       dates_to_update = get_usage_dates(partitions_to_update, bq_client)
-      execute_transformation_query(dates_to_update, bq_client)
-      store_query_timestamp(current_time, datastore_client)
+
+      try:
+        execute_transformation_query(dates_to_update, bq_client)
+        store_query_timestamp(current_time, datastore_client)
+
+      except Exception as e:
+        log_message = Template('Transformation query failed due to $message.')
+        logging.error(log_message.safe_substitute(message=e))
+
 
   except Exception as e:
     log_message = Template('$error').substitute(error=e)
