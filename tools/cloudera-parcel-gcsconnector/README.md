@@ -2,12 +2,12 @@
 
 This script helps you create a Cloudera parcel that includes Google Cloud Storage connector. The parcel can be deployed on a Cloudera managed cluster.
 
-# Prerequisites
+## Prerequisites
 1. Download create_parcel.sh script file.
 2. [Optional] If you want the script to deploy the parcel file under Cloudera Manager's parcel repo directly, you need to use the script on the Cloudera Manager server.
 3. [Optional] For on-premise clusters or clusters on other cloud providers, you need to get the service account JSON key from your GCP account. You can follow steps from [this document](https://cloud.google.com/iam/docs/creating-managing-service-account-keys).
 
-# Installing
+## Installing
 Once you have the required files, put all the files under one directory and run create_parcel.sh script in below format.
 ```
 $ ./create_parcel.sh -f parcel_name -v version -o operating_system -d 
@@ -29,7 +29,7 @@ We can name this parcel as “gcsconnector”, version as “1.0.0”, and os ty
 $ ./create_parcel.sh -f gcsconnector -v 1.0.0 -o el6 -d
 ```
 
-# Deployment
+## Deployment
 Once the script runs successfully, you need to make sure that Cloudera Manager can find the new parcel, especially if you host the parcel file by yourself. 
  
 You can check the parcel by go to the Cloudera Manager Home page, click the **Hosts** > **Parcels** > **Check parcels**. Once the new parcel populates in the list of parcels.
@@ -41,9 +41,9 @@ Check below path for logs:
 /var/log/build_script.log
 
 
-# Configure CDH services to use GCS connector
+## Configure CDH services to use GCS connector
 
-# HDFS service
+### HDFS service
 From the Cloudera Manager console go to **HDFS service** > **Configurations** > **core-site.xml** 
 
 Add the following properties in the Cluster-wide Advanced Configuration Snippet (Safety Valve) for **core-site.xml** 
@@ -58,11 +58,11 @@ Example :
 
 **fs.gs.impl** : com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem
 
-![alt text](screenshots/screenshot-hdfs-config.png)
+![alt text](images/screenshot-hdfs-config.png)
 
 Save configurations and restart required services.
 
-# Validate HDFS service
+#### Validate HDFS service
 Export Java and Hadoop classpath pointing to the gcsconnector jar.
 ```
 $ export JAVA_HOME=/usr/lib/jvm/jre-1.8.0-openjdk.x86_64/
@@ -74,14 +74,14 @@ Run the 'hdfs dfs -ls' command to access GCS bucket:
 hdfs dfs -ls gs://bucket_name
 ```
 
-# Spark Service
+### Spark Service
 From the Cloudera Manager console, go to **Spark** > **Configurations** > Spark Service Advanced Configuration Snippet (Safety Valve) for spark-conf/spark-env.sh
 
 Add below configuration according to the gcs connector jar path.
 
 **SPARK_DIST_CLASSPATH**=$SPARK_DIST_CLASSPATH:/opt/cloudera/parcels/gcsconnector/lib/hadoop/lib/gcs-connector-latest-hadoop2.jar
 
-![alt text](screenshots/screenshot-spark-config.png)
+![alt text](images/screenshot-spark-config.png)
 
 Validate Spark connection with GCS by opening Spark shell:
 
@@ -93,15 +93,15 @@ Read file stored on Cloud Storage by providing the gs:// path of a JSON file sto
 val src=sqlContext.read.json("gs://bucket-name/some_sample.json")
 ```
 
-![alt text](screenshots/screenshot-spark-validate.png)
+![alt text](images/screenshot-spark-validate.png)
 
-# Hive Service
+### Hive Service
 From the Cloudera Manager console, go to **Hive Service** > **Configuration** > **Hive Auxiliary JARs Directory**. Set the value to /opt/cloudera/parcels/gcsconnector/lib/hadoop/lib/
 (absolute directory to the GCS connector)
 
-![alt text](screenshots/screenshot-hive-config.png)
+![alt text](images/screenshot-hive-config.png)
 
 Validate if JAR is being accepted by opening beeline and connecting to HiveServer2:
 
-![alt text](screenshots/screenshot-hive-validate.png)
+![alt text](images/screenshot-hive-validate.png)
 
