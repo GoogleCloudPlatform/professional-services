@@ -11,12 +11,14 @@ These pipelines are a great place to get started when you only have a customer's
 and do not have a requirement for your generated dataset to have similar distribution to 
 the source dataset (this is required for accurately capturing query performance). 
 
-![Alt text](./img/data-generator.png "Workflow for Data Generator Pipeline: 
+![Alt text](img/data-generator.png)
+
+Workflow for Data Generator Pipeline: 
 0. Data Engineer invokes pipeline with customer provided schema definition.
 1. Creates a n-line file on GCS.
 2. Dataflow Data Generator pipeline generates fake data.
 3. Pipeline writes Fake data to GCS.
-4. Optionally, load data to BigQuery with bq_load_batches.")
+4. Optionally, load data to BigQuery with BigQuery load batches script.
 
  - [Data Generator](dsata-generator-pipeline/data_generator_pipeline.py): This pipeline should 
     can be used to generate a central fact table in snowflake schema. 
@@ -27,13 +29,15 @@ the source dataset (this is required for accurately capturing query performance)
 The final pipeline supports the later use case where matching the distribution of the source
 dataset for replicating query performance is the goal.
 
-![Alt text](./img/distribution-matcher.png "Workflow for Data Generator Pipeline: 
+![Alt text](img/distribution-matcher.png)
+
+Workflow for Data Generator Pipeline: 
 0. Customer runs histogram tool python script.
 1. Data Engineer invokes pipeline with histogram table reference and customer provided schema definition.
 2. Pipeline reads Histogram table.
 3. Dataflow Data Generator pipeline generates fake data.
 4. Pipeline writes Fake data to GCS.
-5. Optionally, load data to BigQuery with bq_load_batches.")
+5. Optionally, load data to BigQuery with BigQuery load batches script.
 
  - [Histogram Tool](bigquery-scripts/bq_histogram_tool.py): This is an example script of what could 
     be run on a customer's table to extract the distribution information per key without collecting 
