@@ -21,9 +21,9 @@ import os
 import re
 from faker_schema.faker_schema import FakerSchema
 
-from data_generator.DataGenerator import DataGenerator, FakeRowGen
+from data_generator.PrettyDataGenerator import DataGenerator, FakeRowGen
 
-class TestDataGenerator(unittest.TestCase):
+class TestPrettyDataGenerator(unittest.TestCase):
     """The test cases are focused on the business logic.  In this case this is how we parse the
     schemas, generate data and label images.
 
@@ -51,40 +51,6 @@ class TestDataGenerator(unittest.TestCase):
 
         logging.basicConfig(level=logging.INFO)
 
-    def test_get_bq_schema_string(self):
-        """
-        This tests the get_bq_schema_string method of the DataGenerator class which parses
-        a 'fieldname:field_type' string defining a the schema from a
-        [{name,type,mode}] schema dictionary.
-        """
-        expected_bq_schema_string = "lo_order_key:STRING,lo_linenumber:INTEGER,lo_part_key:STRING,lo_cust_key:STRING,lo_orderdate:DATE,lo_revenue:FLOAT,lo_supp_key:STRING,lo_quantity:INTEGER,lo_extendedprice:FLOAT,lo_discount:FLOAT,lo_supplycost:FLOAT,lo_ordpriority:INTEGER,lo_ordtotalprice:FLOAT,lo_shippriority:INTEGER,lo_tax:FLOAT,lo_shipmode:FLOAT,lo_recieptfile:STRING"
-        actual_bq_schema_string = self.data_gen.get_bq_schema_string()
-        self.assertEquals(actual_bq_schema_string, expected_bq_schema_string)
-
-    def test_get_faker_schema(self):
-        """
-        This tests the get_faker_schema method of the DataGenerator class.
-        """
-        expected_faker_schema = {
-            u'lo_recieptfile': 'file_name',  # This tests a field from special_map.
-            u'lo_cust_key': 'word',  # The rest of the fields test type_map.
-            u'lo_order_key': 'word',
-            u'lo_ordpriority': 'random_number',
-            u'lo_supp_key': 'word',
-            u'lo_quantity': 'random_number',
-            u'lo_revenue': 'pyfloat',
-            u'lo_orderdate': 'date_this_century',
-            u'lo_extendedprice': 'pyfloat',
-            u'lo_supplycost': 'pyfloat',
-            u'lo_part_key': 'word',
-            u'lo_discount': 'pyfloat',
-            u'lo_shippriority': 'random_number',
-            u'lo_shipmode': 'pyfloat',
-            u'lo_ordtotalprice': 'pyfloat',
-            u'lo_linenumber': 'random_number',
-            u'lo_tax': 'pyfloat'}
-        actual_faker_schema = self.data_gen.get_faker_schema()
-        self.assertDictEqual(actual_faker_schema, expected_faker_schema)
 
     def test_generate_fake(self):
         """
@@ -133,13 +99,16 @@ class TestDataGenerator(unittest.TestCase):
         self.assertDictEqual(actual_field_dict, expected_field_dict)
 
     def test_sanity_check(self):
-        fschema = self.data_gen.get_faker_schema()
-        schema_faker = FakerSchema()
-        data = schema_faker.generate_fake(fschema, 1)  # Generate one record.
+        """
+        This tests the sanity check function of the Performant Data Generator.
 
-        # Note at this point data[u'lo_orderdate'] is a datetime.date object while Biguery expects
-        # a string
-        self.assertIsInstance(data[u'lo_orderdate'], datetime.date)
+        """
+
+        fschema = self.data_gen.get_faker_schema()
+
+        # Generate a fake record.
+        data = {}
+        data = self.fakerowgen.sanity_check(data, u'lo_orderdate', 0)
 
         data = self.fakerowgen.sanity_check(record=data, fieldname=u'lo_orderdate')
 
@@ -148,14 +117,7 @@ class TestDataGenerator(unittest.TestCase):
 
         # Check that the date is in the correct format
         _ = datetime.datetime.strptime(data[u'lo_orderdate'], '%Y-%m-%d')
-
-        # Check if sanity check enforces integers < data_args.max_int
-        data[u'lo_linenumber'] = 10**12  # Note that max_int is 10**11
-
-        data = self.fakerowgen.sanity_check(record=data, fieldname=u'lo_linenumber')
-
-        self.assertLessEqual(data[u'lo_linenumber'], self.data_gen.max_int)
-    
+        
     def test_get_skewed_key(self):
         """
         This tests the get_skewed_key method of the FakeRowGen class.
