@@ -545,7 +545,7 @@ CREATE TEMP FUNCTION
         region AS region,
         "" AS zone ) AS location,
       CURRENT_TIMESTAMP() AS export_time,
-      P_method_2_commitment_cost AS cost,
+      P_method_1_commitment_cost AS cost,
       "USD" AS currency,
       1.0 AS currency_conversion_rate,
       STRUCT ( 0.0 AS amount,
@@ -559,7 +559,7 @@ CREATE TEMP FUNCTION
       final_data,
       billing_id_table AS b
     WHERE
-      P_method_2_commitment_cost <> 0),
+      P_method_1_commitment_cost <> 0),
     correct_cud_credits AS (
     SELECT
       b.billing_account_id AS billing_account_id,

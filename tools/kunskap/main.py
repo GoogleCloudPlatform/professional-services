@@ -75,10 +75,11 @@ def get_usage_dates(partition_ids, bq_client):
   sql = Template(
       'SELECT distinct(TIMESTAMP_TRUNC(usage_start_time, DAY, "UTC")) '
       'AS usage_date, _PARTITIONTIME as pt '
-      'FROM `' + '$dataset.$billing_table' + '` '
+      'FROM `' + '$project_id.$dataset.$billing_table' + '` '
       'WHERE _PARTITIONTIME IN ("$partitions") '
       'GROUP BY pt, usage_start_time;'
-  ).substitute(dataset=config.billing_dataset_id,
+  ).substitute(project_id=config.billing_project_id,
+               dataset=config.billing_dataset_id,
                billing_table=config.billing_table_name,
                partitions='","'.join(partition_ids))
   query_job = bq_client.query(sql, job_config=job_config)
@@ -105,9 +106,10 @@ def get_changed_partitions(bq_client, last_query_time):
   if last_query_time:
     sql = Template(
         'SELECT TIMESTAMP(partition_id) AS partition_timestamp '
-        'FROM [$dataset.$billing_table$suffix] '
+        'FROM [$project_id:$dataset.$billing_table$suffix] '
         'WHERE FORMAT_UTC_USEC(last_modified_time * 1000) > "$time";'
-    ).substitute(dataset=config.billing_dataset_id,
+    ).substitute(project_id=config.billing_project_id,
+                 dataset=config.billing_dataset_id,
                  billing_table=config.billing_table_name,
                  suffix='$__PARTITIONS_SUMMARY__',
                  time=last_query_time)
@@ -115,8 +117,9 @@ def get_changed_partitions(bq_client, last_query_time):
   else:
     sql = Template(
         'SELECT TIMESTAMP(partition_id) AS partition_timestamp '
-        'FROM [$dataset.$billing_table$suffix] '
-    ).substitute(dataset=config.billing_dataset_id,
+        'FROM [$project_id:$dataset.$billing_table$suffix] '
+    ).substitute(project_id=config.billing_project_id,
+                 dataset=config.billing_dataset_id,
                  billing_table=config.billing_table_name,
                  suffix='$__PARTITIONS_SUMMARY__')
 
@@ -168,11 +171,11 @@ def delete_partitions(partition_list, bq_client):
    """
   for partition in partition_list:
     partition_name = partition.replace('-', '')
-    table_name = Template('$project.'
+    table_name = Template('$project_id.'
                           '$output_dataset_id.'
                           '$output_table_name$partition'
                           ).safe_substitute(
-                                  project=config.billing_project_id,
+                                  project_id=config.billing_project_id,
                                   output_dataset_id=config.output_dataset_id,
                                   output_table_name=config.output_table_name,
                                   partition='$' + partition_name
@@ -195,8 +198,8 @@ def execute_transformation_query(date_list, bq_client):
     table_ref = dataset_ref.table(config.output_table_name)
     table_list = [table.full_table_id for table in list(
         bq_client.list_tables(dataset_ref))]
-    table_name = Template('$project:$output_dataset.$table_name').safe_substitute(
-        project=config.billing_project_id,
+    table_name = Template('$project_id:$output_dataset.$table_name').safe_substitute(
+        project_id=config.billing_project_id,
         output_dataset=config.output_dataset_id,
         table_name=config.output_table_name
     )
@@ -210,7 +213,7 @@ def execute_transformation_query(date_list, bq_client):
                                                              expiration_ms=None)
     sql = Template(create_query_string(config.sql_file_path))
     log_message = Template('Attempting query on usage from dates $date')
-    sql = sql.safe_substitute(BILLING_TABLE=config.billing_dataset_id + '.' + config.billing_table_name,
+    sql = sql.safe_substitute(BILLING_TABLE=config.billing_project_id + '.' + config.billing_dataset_id + '.' + config.billing_table_name,
                               modified_usage_start_time_list='","'.join(date_list))
     logging.info(log_message.safe_substitute(date=date_list))
     # Execute Query
