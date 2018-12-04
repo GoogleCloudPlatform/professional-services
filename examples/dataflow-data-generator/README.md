@@ -201,7 +201,7 @@ This script can be called with the following arguments:
 `--max_bad_records`: Number of permissible bad records per load job.
 
 
-### Example Usage: 
+#### Example Usage: 
 ```
 gsutil -l gs://<bucket>/path/to/json/<file prefix>-*.json >> ./files_to_load.txt
 
@@ -218,7 +218,7 @@ for which that group of key columns appears in the `--input_table`. This serves 
 a histogram of the original table and will be used as the source for 
 [`data_distribution_matcher.py`](data_generator_pipeline/data_distribution_matcher.py)
 
-### Example Usage: 
+#### Example Usage: 
 ```
 python bq_histogram_tool.py \
 --input_table=<project>.<dataset>.<source_table> \
