@@ -57,7 +57,6 @@ The output is specified as a GCS prefix. Note that multiple files will be writte
 `<prefix>-<this-shard-number>-of-<total-shards>.<suffix>`. The suffix will be the appropriate suffix for the file type
 based on if you pass the `--csv_schema_order` or `--avro_schema_file` parameters described later.
 
-```
 
 ### Output format 
 Output format is specified by passing one of the `--csv_schema_order` or `--avro_schema_file` parameters.
@@ -156,10 +155,15 @@ So hack away if you need something more specific any python code is fair game. K
 that if you use a non-standard module (available in PyPI) you will need to make sure it gets installed on each of the workers or you will get 
 namespace issues. This can be done most simply by adding the module to `setup.py`. 
 
-## Distribution Matching
-If you want to generate data for benchmarking performance you should use the [`data_distribution_matcher.py`](data_generator_pipeline/data_distribution_matcher.py)
-This pipeline takes an additional paramter `--hist_bq_table` this should be a BigQuery table populated using the [`bq_histogram_tool.py`](bigquery-scripts/bq_histogram_tool.py)
+## Generating Joinable tables Snowfalke schema
+To generate multiple tables that join based on certain keys, start by generating the central fact table with the above described 
+[`data_generator_pipeline.py`](data-generator-pipeline/data_generator_pipeline.py). 
+Then use [`data_generator_joinable_table.py`](data-generator-pipeline/data_generator_pipeline.py) with the above described parameters 
+for the new table plust two additional parameters described below. 
 
+ - `--fact_table` The existing fact table in BigQuery that will be queried to obtain list of distinct key values.
+ - `--source_joining_key_col` The field name of the foreign key col in the existing table.
+ - `--dest_joining_key_col` The field name in the table we are generating with thie pipeline for joining to the existing table.
 
 ## BigQuery Scripts
 
