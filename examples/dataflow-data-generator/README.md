@@ -1,18 +1,43 @@
-# Data Generator for Demos
-This example shows a pipeline used to generate data in GCS for demos. 
+# Data Generator
+This directory shows a series of pipelines used to generate data in GCS for demos. 
 The intention is for this pipeline to be a tool for partners, customers and SCEs who want to create a dummy dataset that 
 looks like the schema of their actual data in order to run some queries in BigQuery to see how much data is scanned for 
 cost estimates. This can be used in scenarios where there are hurdles to get over in migrating actual data to BigQuery 
-to unblock integration tests and downstream development.
+to unblock integration tests and downstream development, or estimate query performance.
 
-This pipeline has 3 steps: 
-1. Write an n-line temporary file to GCS.
-2. Generate a single record per line read from the GCS temporary file.
-3. Write the generated data to GCS or BigQuery.
+This repo contains three pipelines which serve different use cases.
 
-### Usage
+These pipelines are a great place to get started when you only have a customer's schema
+and do not have a requirement for your generated dataset to have similar distribution to 
+the source dataset (this is required for accurately capturing query performance). 
+ - [Data Generator](dsata-generator-pipeline/data_generator_pipeline.py): This pipeline should 
+    can be used to generate a central fact table in snowflake schema. 
+ - [Data Generator (Joinable Table)](dsata-generator-pipeline/data_generator_pipeline.py): 
+    this pipeline should be used to generate data that joins to an exsiting BigQuery Table
+    on a certain key. 
+
+The final pipeline supports the later use case where matching the distribution of the source
+dataset for replicating query performance is the goal.
+ - [Histogram Tool](bigquery-scripts/bq_histogram_tool.py): This is an example script of what could 
+    be run on a customer's table to extract the distribution information per key without collecting 
+    meaningful data. This script would be run by the client and they would share the output table. 
+    If the customer is not already in BigQuery this histogram tool can serve as boilerplate for a 
+    histogram tool that reads from their source database and writes to BigQuery.
+ - [Distribution Matcher](data-generator-pipeline/distribution_matcher.py): This pipeline operates
+    on a BigQuery table containing key hashes and counts and will replicate this distribution in the
+    generated dataset..
+
+### Data Generator Usage
 This tool has several parameters to specify what kind of data you would like to generate.
 
+A few recommendations when generating large datasets with any of these pipelines:
+ - Write to AVRO on GCS then load to BigQuery.
+ - Use machines with a lot of CPU. We reccommend `n1-highcpu-32`.
+ - Run on a private network to avoid using public ip addresses.
+ - Request higher quotas for your project to support scaling to 300+ large workers, 
+   specifically, in the region you wish to run the pipeline:
+   - 300+ In-use IP addresses
+   - 10,000+ CPUs
 #### Schema 
 The schema may be specified using the `--schema_file` parameter  with a file containing a 
 list of json objects with `name`,  `type`, and `mode` fields. This form follows the output of
@@ -159,7 +184,7 @@ namespace issues. This can be done most simply by adding the module to `setup.py
 To generate multiple tables that join based on certain keys, start by generating the central fact table with the above described 
 [`data_generator_pipeline.py`](data-generator-pipeline/data_generator_pipeline.py). 
 Then use [`data_generator_joinable_table.py`](data-generator-pipeline/data_generator_pipeline.py) with the above described parameters 
-for the new table plust two additional parameters described below. 
+for the new table plust three additional parameters described below. 
 
  - `--fact_table` The existing fact table in BigQuery that will be queried to obtain list of distinct key values.
  - `--source_joining_key_col` The field name of the foreign key col in the existing table.
