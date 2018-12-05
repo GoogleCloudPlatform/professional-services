@@ -32,12 +32,12 @@ class _TestClause(unittest.TestCase):
 
     def test_errors(self):
         a = Clause([4, 5, -2])
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(ValueError):
             a.append(2)
 
     def test_errors2(self):
         a = Clause()
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(ValueError):
             a.append(0)
 
 
@@ -78,7 +78,7 @@ class _TestParseClause(unittest.TestCase):
         self.assertCountEqual(p, [168, -3, -1, -77])
 
     def test_error(self):
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(ValueError):
             _ = _parse_clause('R2: X0 + X1 - X2 >= -1')
 
 

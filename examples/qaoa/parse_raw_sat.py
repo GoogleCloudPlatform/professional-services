@@ -23,14 +23,12 @@ import numpy as np
 
 from qubo import QuboProblem
 
-CONSTRAINT_RE = re.compile(r'R[0-9]+\:(-?(?:X[0-9]+[+-])*X[0-9]+)>=(-?[0-9]+)')
-VARIABLE_RE = re.compile(r'[+-]?X[0-9]+')
+# constrains are in form like 'R4:-X3+X6-X0+X5>=-1'
+_CONSTRAINT_RE = re.compile(r'R[0-9]+:(-?(?:X[0-9]+[+-])*X[0-9]+)>=(-?[0-9]+)')
+_VARIABLE_RE = re.compile(r'[+-]?X[0-9]+')
 
 
-_Sat = namedtuple('_Sat', ['clauses', 'num_vars', 'source_filename'])
-
-
-class Sat(_Sat):
+class Sat(namedtuple('_Sat', ['clauses', 'num_vars', 'source_filename'])):
     """A named tuple that represents a max-SAT problem.
 
     Attributes:
@@ -44,8 +42,9 @@ class Sat(_Sat):
             s = solution[abs(el) - 1]
             if el > 0 and s == 1:
                 return True
-            elif el < 0 and s == 0:
+            if el < 0 and s == 0:
                 return True
+        return False
 
     def check(self, solution):
         """Check a given solution for this SAT problem.
@@ -53,11 +52,7 @@ class Sat(_Sat):
         Returns:
             Amount of correc clauses.
         """
-        correct = 0
-        for clause in self.clauses:
-            if self._check_clause(clause, solution):
-                correct += 1
-        return correct
+        return sum([self._check_clause(x, solution) for x in self.clauses])
 
 
 class Clause(list):
@@ -74,9 +69,10 @@ class Clause(list):
 
     def _check(self):
         abs_vars = [abs(el) for el in self]
-        assert len(set(abs_vars)) == len(self), \
-            'No duplicates in vars are allowed!'
-        assert 0 not in self, 'Variable with 0 index is not allowed!'
+        if not len(set(abs_vars)) == len(self):
+            raise ValueError('No duplicates in vars are allowed!')
+        if 0 in self:
+            raise ValueError('Variable with 0 index is not allowed!')
 
     def append(self, *args, **kwargs):
         super(Clause, self).append(*args, **kwargs)
@@ -93,18 +89,19 @@ def _parse_clause(line):
             (e.g., [1, 2, -3])
     """
     line = line.replace(' ', '')
-    match = re.match(CONSTRAINT_RE, line)
+    match = re.match(_CONSTRAINT_RE, line)
     if not match:
         raise ValueError('The input line doesn\'t match the expected format')
     raw, c = match.groups()
-    raw = re.findall(VARIABLE_RE, raw)
+    raw = re.findall(_VARIABLE_RE, raw)
     vs = [int(x.replace('X', '')) for x in raw]
     # to avoid 0 index (0->1, 1->2, -2->-3)
     vs = [x + 1 if x >= 0 else x - 1 for x in vs]
     if '-X0' in raw:
         vs.remove(1)
         vs.append(-1)
-    assert int(c) == (1 - len([x for x in vs if x < 0]))
+    if not int(c) == (1 - len([x for x in vs if x < 0])):
+        raise ValueError('')
     return vs
 
 
@@ -118,20 +115,26 @@ def _parse_lines_iterator(lines):
         num_vars - amount of variables in a CNF problem
     """
     clauses = []
-    assert next(lines).strip() == 'Minimize'
-    assert next(lines).strip() == '0'
-    assert next(lines).strip() == 'Subject To'
+    if not next(lines).strip() == 'Minimize':
+        raise ValueError('Wrong file format')
+    if not next(lines).strip() == '0':
+        raise ValueError('Wrong file format')
+    if not next(lines).strip() == 'Subject To':
+        raise ValueError('Wrong file format')
     while True:
         line = next(lines).strip()
         if line == 'Bounds':
             break
         p = _parse_clause(line)
         clauses.append(Clause(p))
-    assert next(lines).strip() == 'Binaries'
+    if not next(lines).strip() == 'Binaries':
+        raise ValueError('Wrong file format')
     num_vars = len(next(lines).strip().split())
     max_ind = max([max([abs(ind) for ind in c]) for c in clauses])
-    assert num_vars >= max_ind
-    assert next(lines).strip() == 'End'
+    if not num_vars >= max_ind:
+        raise ValueError('Wrong file format')
+    if not next(lines).strip() == 'End':
+        raise ValueError('Wrong file format')
     return clauses, num_vars
 
 
@@ -145,7 +148,7 @@ def parse_file(file_name):
         a SAT instance of a problem
     """
     with open(file_name, 'r') as f:
-        c, n = _parse_lines_iterator(iter(f.readline, ''))
+        c, n = _parse_lines_iterator(f)
     return Sat(c, n, file_name)
 
 
@@ -167,7 +170,7 @@ def _parse_args():
 def _proccess_all(path, transform=False):
     """Proccess all files and converts problems to QUBO."""
     files = [os.path.join(path, f) for f in os.listdir(path)
-             if re.match(r'.*\.lp', f)]
+             if f.endswith('.lp')]
     problems = []
 
     def _check_stat(file_stat, value, file_name):

@@ -17,11 +17,7 @@
 from collections import namedtuple
 
 
-_Qclause = namedtuple('Qclause', ['vars_ind', 'coeff'])
-_Penalty = namedtuple('Penalty', ['var1_ind', 'var2_ind', 'var_repl_ind'])
-
-
-class Qclause(_Qclause):
+class Qclause(namedtuple('Qclause', ['vars_ind', 'coeff'])):
     """A namedtuple that represents a clause in a QUBO formalism.
 
     Attributes:
@@ -32,7 +28,7 @@ class Qclause(_Qclause):
     pass
 
 
-class Penalty(_Penalty):
+class Penalty(namedtuple('Penalty', ['var1_ind', 'var2_ind', 'var_repl_ind'])):
     """A nameduple that represents a penalty for PUBO -> QUBO transformation.
 
     Attributes:
@@ -60,8 +56,7 @@ class QuboProblem(object):
         Args:
             sat: an instance of SAT problem
         """
-        v = [set([abs(el) for el in c]) for c in sat.clauses]
-        v = set.union(*v)
+        v = set([abs(el) for c in sat.clauses for el in c])
         self.var_names = ['X%s' % i for i in range(max(list(v)))]
         self.qclauses = []
         for c in sat.clauses:
