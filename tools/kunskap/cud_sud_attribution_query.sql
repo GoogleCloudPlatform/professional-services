@@ -52,7 +52,7 @@ CREATE TEMP FUNCTION
         FROM
          `$BILLING_TABLE`
         WHERE
-          CAST(DATE(usage_start_time) AS STRING) IN ("${modified_usage_start_time_list}")
+          CAST(DATE(usage_start_time, "America/Los_Angeles") AS STRING) IN ("${modified_usage_start_time_list}")
     ),
     billing_id_table AS (
     SELECT
@@ -65,7 +65,8 @@ CREATE TEMP FUNCTION
       1 ),
     usage_data AS (
     SELECT
-      EXTRACT(DATE FROM usage_start_time) as usage_date,
+      CAST(DATETIME(usage_start_time, "America/Los_Angeles") AS DATE) as usage_date,
+      #EXTRACT(DATE FROM usage_start_time) as usage_date,
       invoice.month AS invoice_month,
       sku.id AS sku_id,
       sku.description AS sku_description,
