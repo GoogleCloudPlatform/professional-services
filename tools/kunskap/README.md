@@ -2,19 +2,19 @@
 
 The purpose of this project is to demonstrate how to automate the process of viewing CUD/SUD commitment charges in GCP on a 
 per-project basis to a BigQuery table. This helps to accurately view project cost, since currently when exporting billing 
-data does not correctly attribute CUD/SUD commitment charges.
+data, it does not correctly attribute CUD/SUD commitment charges.
 <br></br>
 Currently, this data can be viewed by running a query in BigQuery on exported billing data and generating a new table with 
 this transformed data. This example demonstrates how to automate this process to avoid manually executing the query.
 <br></br>
-In this example, a user can leverage Cloud Scheduler to schedule the recurring transformation query as a daily cron job. 
+In this example, a user can leverage Cloud Scheduler to schedule the recurring transformation query as a cron job which repeats every few hours. 
 Next, the Cloud Scheduler job then publishes a message to a PubSub topic on execution time. A Cloud Function that is 
-configured as a subscriber to this topic is then triggered by the PubSub message. The Cloud Function then calls the Python 
+configured as a subscriber to this topic is then triggered by the PubSub message. The Cloud Function then calls a Python 
 script, which performs the transformation query on the billing table and generates the new table with the CUD/SUD commitment 
 charges.
 
 <h2>Installation/Set-up</h2>
-This project assumes that you already have project set up with billing data exported to BigQuery. Note the project id, dataset id, and the table name of project, as you will need it later on when configuring the Cloud Function source code.
+This project assumes that you already have project set up with billing data exported to BigQuery. Note the billing project id, dataset ids, and the table names, as you will need these later on when configuring the Cloud Function source code.
 
 <h3>Install/Configure the gcloud command line tool:</h3>
 
@@ -32,7 +32,7 @@ gcloud components update
 
 <h3>Create a new project for viewing the corrected data:</h3>
 
-1. Open a terminal where you installed on the SDK and create a project
+1. Open a terminal where you installed on the SDK and create a <b>new</b> project
 
 ````
 gcloud projects create [PROJECT_ID]
@@ -101,7 +101,7 @@ output_table_name = 'transformed_table'
 sql_file_path = 'cud_sud_attribution_query.sql'
 ````
 
-Change the values of billing_project_id, billing_dataset_id, billing_table_name, output_dataset_id, and output_table_name to your project's respective id, datasets, and tables in BigQuery. The output table will be created in this project, so you can choose any name that you would like. The remaining variables all must be customized for your project.
+Change the values of billing_project_id, billing_dataset_id, billing_table_name, output_dataset_id, and output_table_name to your project's respective id, datasets, and tables in BigQuery. The output table will be created in this project, so you can choose any name that you would like. The remaining variables all must be changed for the values that already exist in your project.
 
 
 <h3>Set up Cloud Functions:</h3>
@@ -124,9 +124,9 @@ where [FUNCTION_NAME] is the name that you want to give the function and [TOPIC_
 ````
 gcloud beta scheduler jobs create pubsub [JOB] --schedule [SCHEDULE] --topic [TOPIC_NAME] --message-body [MESSAGE_BODY]
 ````
-where [JOB] is a unique name for a job, [SCHEDULE] is the frequency for the job in UNIX cron, such as "0 1 * * *" to run daily at 1AM UTC, [TOPIC_NAME] is the name of the topic created in the step above when you deployed the Cloud Function, and [MESSAGE_BODY] is any string. An example command would be: 
+where [JOB] is a unique name for a job, [SCHEDULE] is the frequency for the job in UNIX cron, such as "0 */6 * * *" to run every 6 hours, [TOPIC_NAME] is the name of the topic created in the step above when you deployed the Cloud Function, and [MESSAGE_BODY] is any string. An example command would be: 
 ````
-gcloud beta scheduler jobs create pubsub daily_job --schedule "0 1 * * *" --topic cron-topic --message-body "daily job"
+gcloud beta scheduler jobs create pubsub daily_job --schedule "0 */6 * * *" --topic cron-topic --message-body "daily job"
 ````
 
 <h3>Run the job:</h3>
