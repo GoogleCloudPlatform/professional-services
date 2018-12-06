@@ -50,7 +50,7 @@ CREATE TEMP FUNCTION
         SELECT
          *
         FROM
-         `$BILLING_TABLE`
+         `${billing_table}`
         WHERE
           CAST(DATE(usage_start_time, "America/Los_Angeles") AS STRING) IN ("${modified_usage_start_time_list}")
     ),
@@ -546,7 +546,7 @@ CREATE TEMP FUNCTION
         region AS region,
         "" AS zone ) AS location,
       CURRENT_TIMESTAMP() AS export_time,
-      P_method_1_commitment_cost AS cost,
+      ${allocation_method} AS cost,
       "USD" AS currency,
       1.0 AS currency_conversion_rate,
       STRUCT ( 0.0 AS amount,
@@ -560,7 +560,7 @@ CREATE TEMP FUNCTION
       final_data,
       billing_id_table AS b
     WHERE
-      P_method_1_commitment_cost <> 0),
+      ${allocation_method} <> 0),
     correct_cud_credits AS (
     SELECT
       b.billing_account_id AS billing_account_id,
@@ -716,7 +716,7 @@ CREATE TEMP FUNCTION
   SELECT
     *
   FROM
-    cancelled_cud_costs 
+    cancelled_cud_costs
   UNION ALL
   SELECT
     *

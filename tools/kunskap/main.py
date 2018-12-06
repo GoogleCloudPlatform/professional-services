@@ -182,6 +182,7 @@ def delete_partitions(partition_list, bq_client):
     )
     # Only delete the partition if it exists
     if partition_exists(bq_client, table_name):
+      logging.info('Deleting Partition %s' % table_name)
       bq_client.delete_table(table_name)
 
 def execute_transformation_query(date_list, bq_client):
@@ -205,7 +206,6 @@ def execute_transformation_query(date_list, bq_client):
     )
     if table_name in table_list:
       delete_partitions(date_list, bq_client)
-
     job_config = bigquery.QueryJobConfig()
     job_config.destination = table_ref
     job_config.write_disposition = bigquery.WriteDisposition().WRITE_APPEND
@@ -213,8 +213,11 @@ def execute_transformation_query(date_list, bq_client):
                                                              expiration_ms=None)
     sql = Template(create_query_string(config.sql_file_path))
     log_message = Template('Attempting query on usage from dates $date')
-    sql = sql.safe_substitute(BILLING_TABLE=config.billing_project_id + '.' + config.billing_dataset_id + '.' + config.billing_table_name,
-                              modified_usage_start_time_list='","'.join(date_list))
+    sql = sql.safe_substitute(billing_table=config.billing_project_id + '.' + config.billing_dataset_id + '.' + config.billing_table_name,
+                              modified_usage_start_time_list='","'.join(date_list),
+                              allocation_method=config.allocation_method
+                              )
+
     logging.info(log_message.safe_substitute(date=date_list))
     # Execute Query
     query_job = bq_client.query(
