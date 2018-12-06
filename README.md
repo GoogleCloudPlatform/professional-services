@@ -16,6 +16,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [Dataflow Streaming Benchmark](examples/dataflow-streaming-benchmark) - Utility to publish randomized fake JSON messages to a Cloud Pub/Sub topic at a configured QPS.
 * [IoT Nirvana](examples/iot-nirvana) - An end-to-end Internet of Things architecture running on Google Cloud Platform.
 * [Pub/Sub Client Batching Example](examples/pubsub-publish-avro-example) - Batching in Pub/Sub's Java client API.
+* [QAOA](examples/qaoa) - Examples of parsing a max-SAT problem in a proprietary format.
 * [Spinnaker](examples/spinnaker) - Example pipelines for a Canary / Production deployment process.
 
 ## Tools
