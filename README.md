@@ -17,12 +17,15 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [GKE Security Best Practices](examples/gke-security-best-practices) -  GKE (Google Kubernetes Engine) Cluster with security enabled and configured.
 * [IoT Nirvana](examples/iot-nirvana) - An end-to-end Internet of Things architecture running on Google Cloud Platform.
 * [Pub/Sub Client Batching Example](examples/pubsub-publish-avro-example) - Batching in Pub/Sub's Java client API.
+* [QAOA](examples/qaoa) - Examples of parsing a max-SAT problem in a proprietary format.
 * [Spinnaker](examples/spinnaker) - Example pipelines for a Canary / Production deployment process.
 
 ## Tools
 The tools folder contains ready-made utilities which can simpilfy Google Cloud Platform usage.
 
 * [CloudConnect](tools/cloudconnect) - A package that automates the setup of dual VPN tunnels between AWS and GCP.
+* [Cloudera Parcel GCS Connector](tools/cloudera-parcel-gcsconnector) - This script helps you create a Cloudera parcel that includes Google Cloud Storage connector. The parcel can be deployed on a Cloudera managed cluster.
+This script helps you create a Cloudera parcel that includes Google Cloud Storage connector. The parcel can be deployed on a Cloudera managed cluster.
 * [DNS Sync](tools/dns-sync) - Sync a Cloud DNS zone with GCE resources. Instances and load balancers are added to the cloud DNS zone as they start from compute_engine_activity log events sent from a pub/sub push subscription. Can sync multiple projects to a single Cloud DNS zone.
 * [GCE Quota Sync](tools/gce-quota-sync) - A tool that fetches resource quota usage from the GCE API and synchronizes it to Stackdriver as a custom metric, where it can be used to define automated alerts.
 * [GCP Architecture Visualizer](/tools/gcp-arch-viz) - A tool that takes CSV output from a Forseti Inventory scan and draws out a dynamic hierarchical tree diagram of org -> folders -> projects -> gcp_resources using the D3.js javascript library.
