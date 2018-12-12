@@ -26,171 +26,244 @@
 # folder, this flag is optional and if not provided then the parcel file will be created in the
 # same directory where script run.
 
-
-function help {
-    echo 'Usage: create_parcel.sh -f <parcel_name> -v <version> -o <os_distro_suffix> [-d true]'
+#######################################
+# Capture logs in create_parcel.log and exit
+# Globals:
+#   None
+# Arguments:
+#   None
+# Returns:
+#   None
+#######################################
+function graceful_exit() {
+  echo "-------------------------------">>${LOGDIR}/create_parcel.log
+  echo "From User: "$(whoami)>>${LOGDIR}/create_parcel.log
+  cat ${LOGDIR}/cparcel_output.log >> ${LOGDIR}/create_parcel.log
+  exit 1
 }
 
-if [[ $# -lt 5 ]]; then
-  help
-  exit 1
-fi
-while getopts 'f:v:o:d:' option; do
-  case "${option}"
-  in
-    f) filen=${OPTARG} ;;
-    v) version=${OPTARG} ;;
-    o) OSTYPE=${OPTARG} ;;
-    d) placefile='true' ;;
-    :) echo 'Usage: create_parcel.sh -f <parcel_name> -v <version> -o <os_distro_suffix> [-d true]'
-     exit 1
-     ;;
-    \?) echo 'Usage: create_parcel.sh -f <parcel_name> -v <version> -o <os_distro_suffix> [-d true]'
-     exit 1
-     ;;
-     *) echo 'Usage: create_parcel.sh -f <parcel_name> -v <version> -o <os_distro_suffix> [-d true]'
-     exit 1
-     ;;
-  esac
-done
-shift "$(($OPTIND -1))"
+#######################################
+# User Help function for irregular input parameters
+# Globals:
+#   None
+# Arguments:
+#   -f: Parcel name
+#   -v: Parcel version
+#   -o: Operating system
+#   -d: (Optional)Parcel deployment through Clodera Manager value : true
+# Returns:
+#   None
+#######################################
+function help {
+  echo 'Usage: create_parcel.sh -f <parcel_name> -v <version> -o <os_distro_suffix> [-d true]'
+  graceful_exit
+}
 
-#capture logs of this script to /var/tmp/create_parcel.log file
->/var/tmp/create_parcel.log
-exec 1>/var/tmp/create_parcel.log 2>&1
-if [[ $? -ne 0 ]]; then
-   echo "Log file has some issues."
-   exit 1
-fi
+# Main entry of the script
+main() {
+  BASEDIR=${HOME}/GCS-CDH-PARCEL
+  rm -rf ${BASEDIR}
+  mkdir -p ${BASEDIR}
+  LOGDIR=${HOME}/parcel-logs
+  mkdir -p ${LOGDIR}/
+  cd ${BASEDIR}
+  touch ${LOGDIR}/cparcel_error.log
+  touch ${LOGDIR}/cparcel_output.log
 
-if [[ "$OSTYPE" == "el5" ]]; then
-  OS=el5
-  yum install wget -y
-elif [[ "$OSTYPE" == "el6" ]]; then
-  OS=el6
-  yum install wget -y
-elif [[ "$OSTYPE" == "el7" ]]; then
-  OS=el7
-  yum install wget -y
-elif [[ "$OSTYPE" == "sles11" ]]; then
-  OS=sles11
-  zypper install wget -y
-elif [[ "$OSTYPE" == "sles12" ]]; then
-  OS=sles12
-  zypper install wget -y
-elif [[ "$OSTYPE" == "lucid" ]]; then
-  OS=lucid
-  apt-get install wget -y
-elif [[ "$OSTYPE" == "precise" ]]; then
-  OS=precise
-  apt-get install wget -y
-elif [[ "$OSTYPE" == "trusty" ]]; then
-  OS=trusty
-  apt-get install wget -y
-elif [[ "$OSTYPE" == "squeeze" ]]; then
-  OS=squeeze
-  apt-get install wget -y
-elif [[ "$OSTYPE" == "wheezy" ]]; then
-  OS=wheezy
-  apt-get install wget -y
-else
-  echo "OS not in list, please provide valid OS name"
-  exit 1
-fi
+  # Allowed OS parameter values and flag to check valid input
+  OS_FLAG=0
+  OS_VALUE_ARRAY=(el5 el6 el7 sles11 sles12 lucid precise trusty squeeze wheezy)
 
-## Display variable information input by user
-echo "Version number:${version}"
-echo "OS type:${OS}"
-echo "Filename:${filen}"
+  # Link to GCS connector jar file and flag to validate the file existence
+  GCSJAR_LINK="https://storage.googleapis.com/hadoop-lib/gcs/gcs-connector-hadoop2-latest.jar"
+  GCSJAR_FLAG="1"
 
-mkdir -p ${filen^^}-$version/lib/hadoop/lib && mkdir -p ${filen^^}-$version/meta
-if [[ $? -ne 0 ]]; then
-   echo "Cannot create directory."
-   exit 1
-fi
+  NUM_ARG=$#
+  exec > >(tee -i ${LOGDIR}/cparcel_output.log)
+  exec 2>&1
+  echo $(date)
 
-touch ${filen^^}-$version/meta/parcel.json
-if [[ $? -ne 0 ]]; then
-   echo "Cannot create file."
-   exit 1
-fi
+  # *************
+  # Validating The PARAMETERS
+  # Regex variable for Parcel and version validity
+  PARCEL_FLAG='^[A-Za-z0-9]+$'
+  VERSION_FLAG='^[0-9]\.[0-9]\.[0-9]$'
 
-##Download gcs connector jar and copy all folder content to parcel location
-wget https://storage.googleapis.com/hadoop-lib/gcs/gcs-connector-hadoop2-latest.jar
-if [[ $? -ne 0 ]]; then
-   echo "Download GCS connector failed!"
-   exit 1
-fi
+  # Getting the parameter values from command line
+  while getopts 'f:v:o:d:' OPTION; do
+    case "${OPTION}"
+    in
+      f) FILE_NAME=${OPTARG} ;;
+      v) VERSION=${OPTARG} ;;
+      o) OSTYPE=${OPTARG} ;;
+      d) PLACE_FILE=${OPTARG} ;;
+      :) help ;;
+      \?) help ;;
+      *) help ;;
+    esac
+  done
+  shift "$(($OPTIND -1))"
 
-cp * ${filen^^}-$version/lib/hadoop/lib/
+  if [[ NUM_ARG -lt 6 ]] || [[ NUM_ARG -gt 8 ]]; then
+    echo 'Error: number of parameters is not correct.'
+    help
+  fi
+  if [[ ${FILE_NAME} =~ ${PARCEL_FLAG} && ${VERSION} =~ ${VERSION_FLAG} ]]; then
+    :
+  else
+    echo 'Error: invalid parcel name or version'
+    graceful_exit
+  fi
 
-## Create parcel.json file required for parcel packaging
-cat >>${filen^^}-$version/meta/parcel.json<< EOL
+  # Throw error if folder doesnt exists (if not using -d parameter then script fails)
+  if [[ ! -d /opt/cloudera/parcel-repo/ ]] && [[ "${PLACE_FILE}" == "true" ]] ; then
+    echo "Error: /opt/cloudera/parcel-repo/ folder doesn't exist"
+    graceful_exit
+  elif [[ ! $(getent group cloudera-scm) ]] && [[ "${PLACE_FILE}" == "true" ]]; then
+    echo "Error: cloudera-scm group doesn't exist"
+    graceful_exit
+  fi
+
+  # check the OS parameter's validity
+  OS=${OSTYPE}
+  for item in ${OS_VALUE_ARRAY[*]}; do
+    if [[ $item == ${OSTYPE} ]]; then
+      OS_FLAG=1
+    fi
+  done
+  if [[ $OS_FLAG == 0 ]]; then
+    echo 'Error: below are the allowed os type'
+    printf '%s\n' "${OS_VALUE_ARRAY[@]}"
+    graceful_exit
+  fi
+
+  # Display variable information input by user
+  echo "Version number:${VERSION}"
+  echo "OS type:${OS}"
+  echo "Filename:${FILE_NAME}"
+
+  PARCEL_FULLNAME=${FILE_NAME^^}-${VERSION}
+
+  # Path is changed to ${HOME} for further execution
+  # Create the file structure for parcel building
+  mkdir -p ${PARCEL_FULLNAME}/lib/hadoop/lib && mkdir -p ${PARCEL_FULLNAME}/meta
+  if [[ $? -ne 0 ]]; then
+    echo "Error: failed to create directory, check for folder permissions"
+    graceful_exit
+  fi
+
+  touch ${PARCEL_FULLNAME}/meta/parcel.json
+  if [[ $? -ne 0 ]]; then
+    echo "Error: failed to create parcel.json file, check for file/folder permissions"
+    graceful_exit
+  fi
+
+  # Download gcs connector jar and copy all folder content to parcel location
+  # Set flag for further parcel file existence validation
+
+  curl -o gcs-connector-hadoop2-latest.jar --fail ${GCSJAR_LINK} || GCSJAR_FLAG="0"
+
+  # Validate if package downloaded properly
+  if [[ ${GCSJAR_FLAG} = "0" ]]; then
+    echo "Error: hadoop connector failed to download, check network connectivity or file/folder permissions"
+    graceful_exit
+  fi
+
+  cp gcs-connector-hadoop2-latest.jar ${PARCEL_FULLNAME}/lib/hadoop/lib/
+
+  # Check the existence of the GCS jar file in lib folder
+  [[ -f ${PARCEL_FULLNAME}/lib/hadoop/lib/gcs-connector-hadoop2-latest.jar ]] || GCSJAR_FLAG="0"
+
+  if [[ ${GCSJAR_FLAG} = "0" ]]; then
+    echo "Error: hadoop connector is missing from "$(pwd)/${PARCEL_FULLNAME}/lib/hadoop/lib/
+    graceful_exit
+  fi
+
+  # Create parcel.json file required for parcel packaging
+cat >>${PARCEL_FULLNAME}/meta/parcel.json<<EOL
 {
   "schema_version":     1,
-  "name":               "${filen^^}",
-  "version":            "$version",
+  "name":               "${FILE_NAME^^}",
+  "version":            "${VERSION}",
   "extraVersionInfo": {
-    "fullVersion":        "$version-0-$OS",
-    "baseVersion":        "${filen^^}$version",
+    "fullVersion":        "${VERSION}-0-${OS}",
+    "baseVersion":        "${FILE_NAME^^}${VERSION}",
     "patchCount":         ""
   },
-
   "conflicts":          "",
-
   "setActiveSymlink":   true,
-
   "scripts": {
-        "defines": "${filen^^}.sh"
+    "defines": "${FILE_NAME^^}.sh"
   },
-
   "packages": [ ],
   "components": [ ],
-
   "provides": [
-    "cdh-plugin"
+  "cdh-plugin"
   ],
-
   "users": { },
-
   "groups": [ ]
 }
-
 EOL
 
-if [[ $? -ne 0 ]]; then
-   echo "Cannot write to the file"
-   exit 1
-fi
-
-##export HADOOP_CLASSPATH to enable command line commands can use the connector
-cat >>${filen^^}-$version/meta/$filen.sh<< EOL
-export HADOOP_CLASSPATH=\$HADOOP_CLASSPATH:/opt/cloudera/parcels/$filen-$version/lib/hadoop/lib/gcs-connector-latest-hadoop2.jar
-EOL
-if [[ $? -ne 0 ]]; then
-   echo "Cannot write to the file"
-   exit 1
-fi
-
-## Create parcel file, checksum file and shift parcel files to cloudera parcel directory and change ownership to cloudera-scm user
-sudo tar zcvf ${filen^^}-$version-$OS.parcel ${filen^^}-$version/ --owner=cloudera-scm --group=cloudera-scm
-if [[ $? -ne 0 ]]; then
-   echo "Cannot create file"
-   exit 1
-fi
-sudo sha1sum ${filen^^}-$version-$OS.parcel | awk '{ print $1 }' > ${filen^^}-$version-$OS.parcel.sha
-if [[ $? -ne 0 ]]; then
-   echo "Something went wrong!"
-   exit 1
-fi
-
-if [[ "$placefile" == "true" ]]; then
-  sudo cp ${filen^^}-$version-$OS.parcel* /opt/cloudera/parcel-repo/
-  sudo chown cloudera-scm:cloudera-scm /opt/cloudera/parcel-repo/*
   if [[ $? -ne 0 ]]; then
-    echo "Cannot move parcel."
-    exit 1
+    echo "Error: failed to write in parcel.json "$(pwd)/${PARCEL_FULLNAME}/meta/parcel.json
+    graceful_exit
   fi
-else
-  echo "Creating parcel on local host"
-fi
+
+  # export HADOOP_CLASSPATH to enable command line to use the connector
+
+cat >>${PARCEL_FULLNAME}/meta/${FILE_NAME}.sh<<EOL
+#!/bin/bash
+export HADOOP_CLASSPATH=\$HADOOP_CLASSPATH:/opt/cloudera/parcels/${FILE_NAME}-${VERSION}/lib/hadoop/lib/gcs-connector-latest-hadoop2.jar
+EOL
+
+  if [[ $? -ne 0 ]]; then
+    echo "Error: failed to write in file "$(pwd)/${PARCEL_FULLNAME}/meta/${FILE_NAME}.sh
+    graceful_exit
+  fi
+
+  # Create parcel file, checksum file and move parcel files to
+  # Cloudera parcel directory and change ownership to cloudera-scm user
+  if [[ $(getent group cloudera-scm) ]]; then
+    echo "clouder-scm group exists, proceeding further"
+    sudo tar zcvf ${PARCEL_FULLNAME}-${OS}.parcel ${PARCEL_FULLNAME}/  --owner=cloudera-scm --group=cloudera-scm
+  else
+    echo "clouder-scm group does not exist, creating parcle without group permission"
+    sudo tar zcvf ${PARCEL_FULLNAME}-${OS}.parcel ${PARCEL_FULLNAME}/
+  fi
+
+  if [[ $? -ne 0 ]]; then
+    echo "Error: failed to create parcel, check cloudera-scm owner/group exists or not"
+    graceful_exit
+  fi
+
+  # Create checksum file for parcel
+  sudo sha1sum ${PARCEL_FULLNAME}-${OS}.parcel | awk '{ print $1 }' > ${PARCEL_FULLNAME}-${OS}.parcel.sha
+  if [[ $? -ne 0 ]]; then
+    echo "Error: failed to create checksum(.sha) file, check for valid parcel file "$(pwd)/${PARCEL_FULLNAME}-${OS}.parcel
+    graceful_exit
+  fi
+
+  # Check if this machine has /opt/cloudera/parcel-repo directory
+  if [[ "${PLACE_FILE}" == "true" ]]; then
+    sudo cp ${PARCEL_FULLNAME}-${OS}.parcel* /opt/cloudera/parcel-repo/
+    if [[ $(getent group cloudera-scm) ]]; then
+      sudo chown cloudera-scm:cloudera-scm /opt/cloudera/parcel-repo/*
+    else
+      echo "Error: not a Cloudera Manager machine, exiting"
+      graceful_exit
+    fi
+    rm -rf *
+    rm -rf ${BASEDIR}/cparcel
+    echo "Parcel created successfully in /opt/cloudera/parcel-repo/"${PARCEL_FULLNAME}-${OS}.parcel
+  else
+    echo "Parcel created locally in "${BASEDIR}
+  fi
+
+  if [[ $? -ne 0 ]]; then
+    echo "Error: check cloudera-scm owner/group or /opt/cloudera/parcel-repo/"
+    graceful_exit
+  fi
+}
+
+main "$@"
