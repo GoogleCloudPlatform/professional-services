@@ -1,4 +1,4 @@
-# Cloudera parcel installation
+# Cloudera Parcel Installation
 
 This script helps you create a Cloudera parcel that includes Google Cloud Storage connector. The parcel can be deployed on a Cloudera managed cluster.
 
@@ -7,7 +7,7 @@ This script helps you create a Cloudera parcel that includes Google Cloud Storag
 2. [Optional] If you want the script to deploy the parcel file under Cloudera Manager's parcel repo directly, you need to use the script on the Cloudera Manager server.
 3. [Optional] For on-premise clusters or clusters on other cloud providers, you need to get the service account JSON key from your GCP account. You can follow steps from [this document](https://cloud.google.com/iam/docs/creating-managing-service-account-keys).
 
-## Installing
+## Installation
 Once you have the required files, put all the files under one directory and run create_parcel.sh script in below format.
 ```
 $ ./create_parcel.sh -f parcel_name -v version -o operating_system -d 
