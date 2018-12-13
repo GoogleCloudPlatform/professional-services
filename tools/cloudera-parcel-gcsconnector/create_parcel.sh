@@ -59,8 +59,16 @@ function help {
   graceful_exit
 }
 
+#######################################
 # Main entry of the script
-main() {
+# Globals:
+#   None
+# Arguments:
+#   None
+# Returns:
+#   None
+#######################################
+function main() {
   BASEDIR=${HOME}/GCS-CDH-PARCEL
   rm -rf ${BASEDIR}
   mkdir -p ${BASEDIR}
@@ -83,7 +91,6 @@ main() {
   exec 2>&1
   echo $(date)
 
-  # *************
   # Validating The PARAMETERS
   # Regex variable for Parcel and version validity
   PARCEL_FLAG='^[A-Za-z0-9]+$'
@@ -108,6 +115,7 @@ main() {
     echo 'Error: number of parameters is not correct.'
     help
   fi
+
   if [[ ${FILE_NAME} =~ ${PARCEL_FLAG} && ${VERSION} =~ ${VERSION_FLAG} ]]; then
     :
   else
@@ -124,7 +132,7 @@ main() {
     graceful_exit
   fi
 
-  # check the OS parameter's validity
+  # Check the OS parameter's validity
   OS=${OSTYPE}
   for item in ${OS_VALUE_ARRAY[*]}; do
     if [[ $item == ${OSTYPE} ]]; then
@@ -160,7 +168,6 @@ main() {
 
   # Download gcs connector jar and copy all folder content to parcel location
   # Set flag for further parcel file existence validation
-
   curl -o gcs-connector-hadoop2-latest.jar --fail ${GCSJAR_LINK} || GCSJAR_FLAG="0"
 
   # Validate if package downloaded properly
