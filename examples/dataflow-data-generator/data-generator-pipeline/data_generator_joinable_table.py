@@ -28,7 +28,7 @@ import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions
 from apache_beam.pvalue import AsList
 
-from data_generator.DataGenerator import DataGenerator, FakeRowGen, \
+from data_generator.PrettyDataGenerator import DataGenerator, FakeRowGen, \
     parse_data_generator_args, validate_data_args, fetch_schema,\
     write_n_line_file_to_gcs
 import avro.schema
