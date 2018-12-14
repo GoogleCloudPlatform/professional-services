@@ -27,7 +27,7 @@ import logging
 
 import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions
-from data_generator.DataGenerator import DataGenerator, FakeRowGen, \
+from data_generator.PerformantDataGenerator import DataGenerator, FakeRowGen, \
     parse_data_generator_args, validate_data_args, fetch_schema
 import avro.schema
 
