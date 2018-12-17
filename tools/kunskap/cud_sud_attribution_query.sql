@@ -80,7 +80,8 @@ CREATE TEMP FUNCTION
       usage.unit AS unit,
       cost,
       usage.amount AS usage_amount,
-      credits
+      credits,
+      cost_type
     FROM
       billing_export_table
     LEFT JOIN
@@ -203,7 +204,8 @@ CREATE TEMP FUNCTION
         label_1_value,
         label_2_value,
         SUM(usage_amount) AS usage_amount,
-        SUM(cost) AS cost
+        SUM(cost) AS cost,
+        cost_type
       FROM
         usage_data AS u
       JOIN
@@ -223,7 +225,8 @@ CREATE TEMP FUNCTION
         8,
         9,
         10,
-        11 )
+        11,
+        14)
     UNION ALL (
         -- Second query pulls out CUD and SUD Credit usage and cost. This is done in a separate
         -- SELECT and unioned because if we unnest the repeated field for credit types, we can
@@ -243,7 +246,8 @@ CREATE TEMP FUNCTION
         label_1_value,
         label_2_value,
         SUM(usage_amount) AS usage_amount,
-        SUM(cost) AS cost
+        SUM(cost) AS cost,
+        cost_type
       FROM (
         SELECT
           u.usage_date,
@@ -274,7 +278,8 @@ CREATE TEMP FUNCTION
               WHEN LOWER(unit_type) = "ram" THEN -1*SUM(cred.amount)/prices.unit_price / (86400 * 1073741824)
               ELSE NULL
             END ) AS usage_amount,
-          SUM(cred.amount) AS cost
+          SUM(cred.amount) AS cost,
+          cost_type
         FROM
           usage_data AS u,
           UNNEST(credits) AS cred
@@ -304,7 +309,8 @@ CREATE TEMP FUNCTION
           9,
           10,
           11,
-          12 )
+          12,
+          15)
       GROUP BY
         1,
         2,
@@ -316,7 +322,8 @@ CREATE TEMP FUNCTION
         8,
         9,
         10,
-        11 ) ),
+        11,
+        14) ),
     -- project_credit_breakout sums usage amount and cost
     -- across the cost organization schema of interest: labels within projects
     project_label_credit_breakout AS (
@@ -332,6 +339,7 @@ CREATE TEMP FUNCTION
       label_2_value,
       cud_type,
       unit_type,
+      cost_type,
       SUM(IF(usage_type LIKE "CUD Commitment",
           usage_amount,
           0)) AS commitment_usage_amount,
@@ -367,7 +375,8 @@ CREATE TEMP FUNCTION
       6,
       7,
       8,
-      9 ),
+      9,
+      10),
     -- BA_credit_breakout sums usage amount and cost
     -- across the entire Billing Account within each unique CUD scope <location, unit_type, cud_type>
     -- so that we know what the total cost is that we need to attribute across each project/label
@@ -412,6 +421,7 @@ CREATE TEMP FUNCTION
     SELECT
       p.usage_date,
       p.service_id,
+      p.cost_type,
       p.service_description,
       --p.invoice_month,
       p.region,
@@ -512,7 +522,8 @@ CREATE TEMP FUNCTION
         usage.pricing_unit AS pricing_unit) AS usage,
       ARRAY<STRUCT<name STRING,
       amount FLOAT64>> [] AS credits,
-      invoice
+      invoice,
+      cost_type
     FROM
       billing_export_table
     WHERE
@@ -535,12 +546,13 @@ CREATE TEMP FUNCTION
       TIMESTAMP_ADD(TIMESTAMP(usage_date), INTERVAL ((3600*23)+3599) SECOND) AS usage_end_time,
       STRUCT ( project_id AS id,
         "" AS name,
-        ARRAY<STRUCT<name STRING,
-        amount STRING>> [] AS labels ) AS project,
-      ARRAY<STRUCT<name STRING,
-      amount STRING>> [] AS labels,
-      ARRAY<STRUCT<name STRING,
-      amount STRING>> [] AS system_labels,
+        ARRAY<STRUCT<key STRING,
+        value STRING>> [] AS labels,
+        "" AS ancestry_numbers) AS project,
+      ARRAY<STRUCT<key STRING,
+      value STRING>> [] AS labels,
+      ARRAY<STRUCT<key STRING,
+      value STRING>> [] AS system_labels,
       STRUCT ( "" AS location,
         "" AS country,
         region AS region,
@@ -555,7 +567,8 @@ CREATE TEMP FUNCTION
         "TODO" AS pricing_unit ) AS usage,
       ARRAY<STRUCT<name STRING,
       amount FLOAT64>> [] AS credits,
-      STRUCT ( FORMAT_DATE("%Y%m", usage_date) AS month) AS invoice
+      STRUCT ( FORMAT_DATE("%Y%m", usage_date) AS month) AS invoice,
+      cost_type
     FROM
       final_data,
       billing_id_table AS b
@@ -576,12 +589,13 @@ CREATE TEMP FUNCTION
       TIMESTAMP_ADD(TIMESTAMP(usage_date), INTERVAL ((3600*23)+3599) SECOND) AS usage_end_time,
       STRUCT ( project_id AS id,
         "" AS name,
-        ARRAY<STRUCT<name STRING,
-        amount STRING>> [] AS labels ) AS project,
-      ARRAY<STRUCT<name STRING,
-      amount STRING>> [] AS labels,
-      ARRAY<STRUCT<name STRING,
-      amount STRING>> [] AS system_labels,
+        ARRAY<STRUCT<key STRING,
+        value STRING>> [] AS labels,
+        "" AS ancestry_numbers) AS project,
+      ARRAY<STRUCT<key STRING,
+      value STRING>> [] AS labels,
+      ARRAY<STRUCT<key STRING,
+      value STRING>> [] AS system_labels,
       STRUCT ( "" AS location,
         "" AS country,
         region AS region,
@@ -599,7 +613,8 @@ CREATE TEMP FUNCTION
           "Committed Usage Discount: RAM",
           "Committed Usage Discount: CPU"),
         P_alloc_cud_credit_cost)] AS credits,
-      STRUCT ( FORMAT_DATE("%Y%m", usage_date) AS month) AS invoice
+      STRUCT ( FORMAT_DATE("%Y%m", usage_date) AS month) AS invoice,
+      cost_type
     FROM
       final_data,
       billing_id_table AS b
@@ -616,12 +631,14 @@ CREATE TEMP FUNCTION
       TIMESTAMP_ADD(TIMESTAMP(usage_date), INTERVAL ((3600*23)+3599) SECOND) AS usage_end_time,
       STRUCT ( project_id AS id,
         "" AS name,
-        ARRAY<STRUCT<name STRING,
-        amount STRING>> [] AS labels ) AS project,
-      ARRAY<STRUCT<name STRING,
-      amount STRING>> [] AS labels,
-      ARRAY<STRUCT<name STRING,
-      amount STRING>> [] AS system_labels,
+        ARRAY<STRUCT<key STRING,
+        value STRING>> [] AS labels,
+        "" AS ancestry_numbers)
+         AS project,
+      ARRAY<STRUCT<key STRING,
+      value STRING>> [] AS labels,
+      ARRAY<STRUCT<key STRING,
+      value STRING>> [] AS system_labels,
       STRUCT ( "" AS location,
         "" AS country,
         region AS region,
@@ -637,7 +654,8 @@ CREATE TEMP FUNCTION
       ARRAY<STRUCT<name STRING,
       amount FLOAT64>> [("Sustained Usage Discount",
         P_alloc_sud_credit_cost)] AS credits,
-      STRUCT ( FORMAT_DATE("%Y%m", usage_date) AS month) AS invoice
+      STRUCT ( FORMAT_DATE("%Y%m", usage_date) AS month) AS invoice,
+      cost_type
     FROM
       final_data,
       billing_id_table AS b
@@ -680,7 +698,8 @@ CREATE TEMP FUNCTION
       ARRAY<STRUCT<name STRING,
       amount FLOAT64>> [(cs.name,
         -1*cs.amount)] AS credits,
-      invoice
+      invoice,
+      cost_type
     FROM
       billing_export_table,
       UNNEST(credits) AS cs
@@ -723,4 +742,3 @@ CREATE TEMP FUNCTION
   FROM
     billing_export_table
 )
-
