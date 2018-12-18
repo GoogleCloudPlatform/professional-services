@@ -6,6 +6,7 @@ import logging
 import math
 import numpy as np
 import random
+import re
 import string
 from uuid import uuid4
 
@@ -313,9 +314,16 @@ class FakeRowGen(beam.DoFn):
 
         # Below handles if the datatype got changed by the faker provider
         if field[u'type'] == 'STRING':
-            # Efficiently generate random string of length 36.
-            # TODO read string lenght from field description.
+            # Efficiently generate random string.
             STRING_LENGTH = 36
+            
+            # If the description of the field is a RDMS schema like VARCHAR(255)
+            # then we extract this number and generate a string of this length.
+            if field.get(u'description'):
+                extracted_numbers = re.findall('\d+',field[u'description'])
+                if extracted_numbers:
+                    STRING_LENGTH = int(extracted_numers[0])
+
             char_idxs = np.random.randint(0, len(string.ascii_letters),
                                           size=STRING_LENGTH)
             record[fieldname] = unicode(
