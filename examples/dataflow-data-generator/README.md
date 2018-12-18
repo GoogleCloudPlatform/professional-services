@@ -20,7 +20,7 @@ the source dataset (this is required for accurately capturing query performance)
 
  - [Data Generator](data-generator-pipeline/data_generator_pipeline.py): This pipeline should 
     can be used to generate a central fact table in snowflake schema. 
- - [Data Generator (Joinable Table)](dsata-generator-pipeline/data_generator_pipeline.py): 
+ - [Data Generator (Joinable Table)](data-generator-pipeline/data_generator_pipeline.py): 
     this pipeline should be used to generate data that joins to an exsiting BigQuery Table
     on a certain key. 
 
@@ -39,7 +39,7 @@ dataset for replicating query performance is the goal.
     meaningful data. This script would be run by the client and they would share the output table. 
     If the customer is not already in BigQuery this histogram tool can serve as boilerplate for a 
     histogram tool that reads from their source database and writes to BigQuery.
- - [Distribution Matcher](data-generator-pipeline/distribution_matcher.py): This pipeline operates
+ - [Distribution Matcher](data-generator-pipeline/data_distribution_matcher.py): This pipeline operates
     on a BigQuery table containing key hashes and counts and will replicate this distribution in the
     generated dataset..
 
