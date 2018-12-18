@@ -6,6 +6,7 @@ import logging
 import math
 import numpy as np
 import random
+import string
 from uuid import uuid4
 
 import apache_beam as beam
@@ -313,9 +314,12 @@ class FakeRowGen(beam.DoFn):
         # Below handles if the datatype got changed by the faker provider
         if field[u'type'] == 'STRING':
             # Efficiently generate random string of length 36.
-            char_idxs = np.random.randint(0, (string.ascii_letters), size=36)
+            # TODO read string lenght from field description.
+            STRING_LENGTH = 36
+            char_idxs = np.random.randint(0, len(string.ascii_letters),
+                                          size=STRING_LENGTH)
             record[fieldname] = unicode(
-                    ''.join(string.ascii_letter[i] for i in char_idxs))
+                    ''.join(string.ascii_letters[i] for i in char_idxs))
 
         elif field[u'type'] == 'TIMESTAMP':
             pct = random_number / float(sys.maxint)
@@ -323,7 +327,8 @@ class FakeRowGen(beam.DoFn):
             max_delta = self.data_gen.max_date - self.data_gen.min_date
             delta = pct * max_delta.total_seconds()
             
-            record[fieldname] = start + datetime.timedelta(seconds=delta)
+            record[fieldname] = self.data_gen.min_date \
+                                + datetime.timedelta(seconds=delta)
             record[fieldname] = unicode(
                 record[fieldname].strftime('%Y-%m-%dT%H:%M:%S'))
 
@@ -350,6 +355,7 @@ class FakeRowGen(beam.DoFn):
 
         elif field[u'type'] == 'INTEGER':
             max_size = self.data_gen.max_int
+            record[fieldname] = int(max_size * random_number / sys.maxint)
 
             if '_max_' in field['name'].lower():
                 max_size = int(fieldname[fieldname.find("_max_") + 5:
@@ -357,12 +363,6 @@ class FakeRowGen(beam.DoFn):
             # This implements max and sign constraints
             # and avoids regenerating a random integer if already obeys min/max
             # integer.
-            record[fieldname] = np.random.randint(
-                0 if self.data_gen.only_pos
-                else -1 * max_size,
-                max_size)
-            if self.data_gen.only_pos and record[fieldname] < 0:
-                record[fieldname] = abs(record[fieldname])
             record[fieldname] = int(record[fieldname])
 
         elif field['type'] == 'FLOAT' or field['type'] == 'NUMERIC':
@@ -372,18 +372,8 @@ class FakeRowGen(beam.DoFn):
             if '_max_' in field['name'].lower():
                 max_size = int(fieldname[fieldname.find("_max_") + 5:
                                          len(fieldname)])
-
-            if 'date' in record:
-                # Ensure that the date has been sanity checked, and set as a
-                # string.
-                # TODO parameterize date field.
-                if not isinstance(record['date'], unicode):
-                    self.sanity_check(record, 'date')
-                pct = self.get_percent_between_min_and_max_date(record['date'])
-                record[fieldname] = self.trunc_norm_trendify(pct)
-                if self.data_gen.only_pos:
-                    record[fieldname] = abs(record[fieldname])
-
+            record[fieldname] = random_number / float(sys.maxint)            
+            
             record[fieldname] = round(float(record[fieldname]),
                                       self.data_gen.float_precision)
 
@@ -480,16 +470,20 @@ class FakeRowGen(beam.DoFn):
         # Drop the key columns because we do not need to randomly generate them.
         if key_dict:
             for key in key_dict.keys():
-                schema.pop(key, None)
+                fschema.pop(key, None)
 
-        # Random numbers which will be converted to the proper datatype later.
-        random_numbers = np.random.randint(self.data_gen.min_int, self.data_gen.max_int, size=len(fschema)
+        # Random numbers which will be converted to the proper datatype later by
+        # sanity_check.
+        # We pregenerate this way for efficiency. Sanity check will not just peform
+        # deterministic actions.
+        random_numbers = np.random.randint(0, sys.maxint, size=len(fschema))
+
         # Generate a fake record.
-        
         col_idx = 0
+        data = {}
         for col_name in fschema.keys():
-            data = self.sanity_check(data, col_name, random_number)
-            i += 1
+            data = self.sanity_check(data, col_name, random_numbers[col_idx])
+            col_idx += 1
 
         if key_dict:
             keys = self.convert_key_types(key_dict)
