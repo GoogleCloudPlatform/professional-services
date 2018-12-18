@@ -1,12 +1,22 @@
 # Data Generator
-This directory shows a series of pipelines used to generate data in GCS for demos. 
-The intention is for this pipeline to be a tool for partners, customers and SCEs who want to create a dummy dataset that 
-looks like the schema of their actual data in order to run some queries in BigQuery to see how much data is scanned for 
-cost estimates. This can be used in scenarios where there are hurdles to get over in migrating actual data to BigQuery 
-to unblock integration tests and downstream development, or estimate query performance.
+This directory shows a series of pipelines used to generate data in GCS or BigQueryfor demos. 
+The intention for these pipelines are to be a tool for partners, customers and SCEs who want to create a dummy dataset that 
+looks like the schema of their actual data in order to run some queries in BigQuery.
+There are two different types of use cases for this kind of tool which we refer to throughout this doc as follows:
+ - Pretty:
+    - Human readable / queryable data.
+    - This can be used in scenarios where there are hurdles to get over in migrating actual data to BigQuery  to unblock integration tests and downstream development.
+    - Generate joinable schemas for < 1 Billion distinct keys
+    - Generates data from just a schema
+    - Numeric columns trend upwards based on a `date` field if it exists.
+ - Performant:
+    - Prioritizes speed and distribution matching of human readable data (ie. random strings rather than random sentences w/ english words)
+    - Match the distribution of keys in a dataset to benchmark join performance
+    - Generate joinable schemas on a larger scale.
+    - Generates data based on a schema and a histogram table containing the desired distribution of data across the key columns
 
-This repo contains three pipelines which serve different use cases.
 
+## Pretty Data Generation
 These pipelines are a great place to get started when you only have a customer's schema
 and do not have a requirement for your generated dataset to have similar distribution to 
 the source dataset (this is required for accurately capturing query performance). 
@@ -14,12 +24,13 @@ the source dataset (this is required for accurately capturing query performance)
 ![Alt text](img/data-generator.png)
 
 
- - [Data Generator](dsata-generator-pipeline/data_generator_pipeline.py): This pipeline should 
+ - [Data Generator](data-generator-pipeline/data_generator_pipeline.py): This pipeline should 
     can be used to generate a central fact table in snowflake schema. 
  - [Data Generator (Joinable Table)](dsata-generator-pipeline/data_generator_pipeline.py): 
     this pipeline should be used to generate data that joins to an exsiting BigQuery Table
     on a certain key. 
 
+## Performant Data Generation
 The final pipeline supports the later use case where matching the distribution of the source
 dataset for replicating query performance is the goal.
 
@@ -35,9 +46,7 @@ dataset for replicating query performance is the goal.
     on a BigQuery table containing key hashes and counts and will replicate this distribution in the
     generated dataset..
 
-### Data Generator Usage
-This tool has several parameters to specify what kind of data you would like to generate.
-
+## General Performance Recommendations
 A few recommendations when generating large datasets with any of these pipelines:
  - Write to AVRO on GCS then load to BigQuery.
  - Use machines with a lot of CPU. We reccommend `n1-highcpu-32`.
@@ -46,6 +55,10 @@ A few recommendations when generating large datasets with any of these pipelines
    specifically, in the region you wish to run the pipeline:
    - 300+ In-use IP addresses
    - 10,000+ CPUs
+
+### Pretty Data Generator Usage
+This tool has several parameters to specify what kind of data you would like to generate.
+
 
 #### Schema 
 The schema may be specified using the `--schema_file` parameter  with a file containing a 
@@ -127,7 +140,7 @@ Data is seldom full for every record so you can specify the probability of a NUL
 
 
 #### Keys and IDs (optional)
-The data generator will parse your field names and generate keys/ids for fields whose name contains "_key" or "_id". 
+The data generator will parse your field names and generate keys/ids for fields whose name contains "`_key`" or "`_id`". 
 The cardinality of such key columns can be controlled with the `--n_keys` parameter. 
 
 ##### Primary Key (optional)
@@ -138,7 +151,7 @@ To mitigate this you can set `--n_keys` to a number much larger than the number 
 
 #### Date Parameters (optional)
 To constrain the dates generated in date columns one can use the `--min_date` and `--max_date` parameters.
-The minimum date will default to January 1, 2000 and the max_date will default to today.
+The minimum date will default to January 1, 2000 and the `max_date` will default to today.
 If you are using these parameters be sure to use YYYY-MM-DD format.
 
 ```
@@ -157,7 +170,7 @@ True is the default.
 
 #### Write Disposition (optional)
 The BigQuery write disposition can be specified using the `--write_disp` parameter.
-The default is WRITE_APPEND.
+The default is `WRITE_APPEND`.
 
 #### Dataflow Pipeline parameters
 For basic usage we recommend the following parameters:
@@ -194,13 +207,30 @@ To generate multiple tables that join based on certain keys, start by generating
 [`data_generator_pipeline.py`](data-generator-pipeline/data_generator_pipeline.py). 
 Then use [`data_generator_joinable_table.py`](data-generator-pipeline/data_generator_pipeline.py) with the above described parameters 
 for the new table plust three additional parameters described below. 
-
  - `--fact_table` The existing fact table in BigQuery that will be queried to obtain list of distinct key values.
  - `--source_joining_key_col` The field name of the foreign key col in the existing table.
  - `--dest_joining_key_col` The field name in the table we are generating with thie pipeline for joining to the existing table.
 
-## BigQuery Scripts
+Note, this method selects disctinct keys from the `--fact_table` as a side input which are passed as a list to the to each worker which randomly 
+selects a value to assign to this record. This means that this list must comfortably fit in memory. This makes this method only suitable for key 
+columns with relatively low cardinality (< 1 Billion distinct keys). If you have more rigorous needs for generating joinable schemas, you should 
+consider using the distribution matcher pipeline. 
 
+## Performant Data Generator Usage
+ - Generate the posterior histogram table. For an example of how to do this on an existing BigQuery table look at the BigQuery Histogram Tool 
+described later in this doc.
+ - Use the [`data_distribution_matcher.py`](data-generator-pipeline/data_distribution_matcher.py) pipeline. 
+
+
+You can specify `--schema_file` (or `--input_table`), `--output_prefix` and `--output_format` the same way as described above in the 
+Pretty Data Generator section. Additionally, you must specify an `--histogram_table`. This table will have a field for each key column (which will store
+a hash of each value) and a frequency with which these values occur. 
+
+### Generating Joinable Schemas
+Joinable tables can be created by running the distribution matcher on a histogram for all relevant tables in the dataset. Because each histogram table
+entry captures the hash of each key it referes to we can capture exact join scenarios without handing over any real data.
+
+## BigQuery Scripts
 Included are three BigQuery utility scripts to help you with your data generating needs. The first helps with loading many gcs files to BigQuery
 while staying under the 15TB per load job limit, the next will help you profile the distribution of an existing dataset and the last will allow
 you to resize BigQuery tables to be a desired size. 

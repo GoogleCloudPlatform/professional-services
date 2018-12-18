@@ -76,7 +76,7 @@ def run(argv=None):
     
     )
         
-    if data_args.primary_key_col:
+    if data_args.primary_key_cols:
         rows |= EnforcePrimaryKeys(data_args.primary_key_col)
 
     if data_args.csv_schema_order:
