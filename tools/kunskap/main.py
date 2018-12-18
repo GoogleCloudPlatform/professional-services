@@ -215,6 +215,9 @@ def execute_transformation_query(date_list, bq_client):
         job_config = bigquery.QueryJobConfig()
         job_config.destination = table_ref
         job_config.write_disposition = bigquery.WriteDisposition().WRITE_APPEND
+        job_config.schema_update_options = [
+            bigquery.SchemaUpdateOption.ALLOW_FIELD_ADDITION
+        ]
         job_config.time_partitioning = bigquery.TimePartitioning(
             field='usage_start_time',
             expiration_ms=None)
