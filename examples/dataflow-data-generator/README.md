@@ -241,7 +241,7 @@ you to resize BigQuery tables to be a desired size.
 This script is meant to orchestrate BigQuery load jobs of many
 json files on Google Cloud Storage. It ensures that each load 
 stays under the 15 TB per load job limit. It operates on the 
-output of gsutil -l.
+output of `gsutil -l`.
 
 This script can be called with the following arguments:
 
@@ -252,7 +252,7 @@ This script can be called with the following arguments:
 
 `--table`: BigQuery table ID of the table you wish to populate
 
-`--source_file`: This is the output of gsutil -l with the URI of
+`--source_file`: This is the output of `gsutil -l` with the URI of
     each file that you would like to load
 
 `--create_table`: If passed this script will create 
