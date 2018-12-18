@@ -59,8 +59,8 @@ This tool has several parameters to specify what kind of data you would like to 
 
 #### Schema 
 The schema may be specified using the `--schema_file` parameter  with a file containing a 
-list of json objects with `name`,  `type`, and `mode` fields. This form follows the output of
-`bq show --format=json --schema <table_reference>`. 
+list of json objects with `name`,  `type`, `mode` and optionally `description` fields. 
+This form follows the output of`bq show --format=json --schema <table_reference>`. 
 ie. 
 ```
 --schema_file=gs://python-dataflow-examples/schemas/lineorder-schema.json
@@ -85,6 +85,20 @@ avoid typos when writing your own schema json.
 
 ```
 --input_bq_table=BigQueryFaker.lineorders
+```
+
+Note, if you are generating data that is also being loaded into an RDBMS you can specify the RDMS type 
+in the `description` field of the schema. The data generator will parse this to extract datasize. 
+ie. The below field will have strings truncated to be within 36 bytes.
+```
+[
+    {"name": "lo_order_key",
+     "type": "STRING",
+     "mode": "REQUIRED",
+     "description": "VARCHAR(36)"
+    },
+    {...}
+]
 ```
 
 #### Number of records

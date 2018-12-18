@@ -322,7 +322,7 @@ class FakeRowGen(beam.DoFn):
             if field.get(u'description'):
                 extracted_numbers = re.findall('\d+',field[u'description'])
                 if extracted_numbers:
-                    STRING_LENGTH = int(extracted_numers[0])
+                    STRING_LENGTH = int(extracted_numbers[0])
 
             char_idxs = np.random.randint(0, len(string.ascii_letters),
                                           size=STRING_LENGTH)

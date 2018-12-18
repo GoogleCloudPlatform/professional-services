@@ -322,7 +322,7 @@ class FakeRowGen(beam.DoFn):
             if field.get(u'description'):
                 extracted_numbers = re.findall('\d+',field[u'description'])
                 if extracted_numbers:
-                    STRING_LENGTH = int(extracted_numers[0])
+                    STRING_LENGTH = int(extracted_numbers[0])
 
             if len(record[fieldname]) > STRING_LENGTH:
                 record[fieldname] = record[fieldname][0:STRING_LENGTH - 1]
