@@ -1,25 +1,20 @@
 # Data Generator
-This directory shows a series of pipelines used to generate data in GCS or BigQueryfor demos. 
+This directory shows a series of pipelines used to generate data in GCS or BigQuery. 
 The intention for these pipelines are to be a tool for partners, customers and SCEs who want to create a dummy dataset that 
 looks like the schema of their actual data in order to run some queries in BigQuery.
-There are two different types of use cases for this kind of tool which we refer to throughout this doc as follows:
- - Pretty:
-    - Human readable / queryable data.
-    - This can be used in scenarios where there are hurdles to get over in migrating actual data to BigQuery  to unblock integration tests and downstream development.
-    - Generate joinable schemas for < 1 Billion distinct keys
-    - Generates data from just a schema
-    - Numeric columns trend upwards based on a `date` field if it exists.
- - Performant:
-    - Prioritizes speed and distribution matching of human readable data (ie. random strings rather than random sentences w/ english words)
-    - Match the distribution of keys in a dataset to benchmark join performance
-    - Generate joinable schemas on a larger scale.
-    - Generates data based on a schema and a histogram table containing the desired distribution of data across the key columns
+There are two different types of use cases for this kind of tool which we refer to throughout this documentation as Pretty and Performant. 
 
 
 ## Pretty Data Generation
 These pipelines are a great place to get started when you only have a customer's schema
 and do not have a requirement for your generated dataset to have similar distribution to 
 the source dataset (this is required for accurately capturing query performance). 
+
+    - Human readable / queryable data. This includes smart populating columns with data formatted based on the field name.
+    - This can be used in scenarios where there are hurdles to get over in migrating actual data to BigQuery  to unblock integration tests and downstream development.
+    - Generate joinable schemas for < 1 Billion distinct keys
+    - Generates data from just a schema
+    - Numeric columns trend upwards based on a `date` field if it exists.
 
 ![Alt text](img/data-generator.png)
 
@@ -34,8 +29,12 @@ the source dataset (this is required for accurately capturing query performance)
 The final pipeline supports the later use case where matching the distribution of the source
 dataset for replicating query performance is the goal.
 
-![Alt text](img/distribution-matcher.png)
+    - Prioritizes speed and distribution matching over human readable data (ie. random strings rather than random sentences w/ english words)
+    - Match the distribution of keys in a dataset to benchmark join performance
+    - Generate joinable schemas on a larger scale.
+    - Generates data based on a schema and a histogram table containing the desired distribution of data across the key columns
 
+![Alt text](img/distribution-matcher.png)
 
  - [Histogram Tool](bigquery-scripts/bq_histogram_tool.py): This is an example script of what could 
     be run on a customer's table to extract the distribution information per key without collecting 
@@ -105,7 +104,7 @@ The output is specified as a GCS prefix. Note that multiple files will be writte
 based on if you pass the `--csv_schema_order` or `--avro_schema_file` parameters described later.
 
 
-### Output format 
+#### Output format 
 Output format is specified by passing one of the `--csv_schema_order` or `--avro_schema_file` parameters.
 
 `--csv_schema_order` should be a comma separated list specifying the order of the fieldnames for writing. 
@@ -143,6 +142,10 @@ Data is seldom full for every record so you can specify the probability of a NUL
 The data generator will parse your field names and generate keys/ids for fields whose name contains "`_key`" or "`_id`". 
 The cardinality of such key columns can be controlled with the `--n_keys` parameter. 
 
+Additionally, you can parameterize the key-skew by passing` --key_skew_distribution`. By default this is `None`, meaning roughly equal 
+distribution of rowcount across keys. This also supports `"binomial"` giving a maximum variance bell curve of keys over the range of the 
+keyset or `"zipf"` giving a distribution across the keyset according to zipf's law.
+
 ##### Primary Key (optional)
 The data generator can support a primary key columns by passing a comma separated list of field names to `--primary_key_cols`. 
 Note this is done by a deduplication process at the end of the pipeline. This may be a bottleneck for large data volumes. 
@@ -178,7 +181,7 @@ For basic usage we recommend the following parameters:
 python data_generator_pipeline.py \
 --project=<PROJECT ID> \
 --setup_file=./setup.py \
---worker_machine_type=n1-highcpu-8 \ # This is a high cpu process so tuning the machine type will boost performance 
+--worker_machine_type=n1-highcpu-32 \ # This is a high cpu process so tuning the machine type will boost performance 
 --runner=DataflowRunner \ # run on Dataflow workers
 --staging_location=gs://<BUCKET NAME>/test \
 --temp_location=gs://<BUCKET NAME>/temp \
@@ -190,8 +193,8 @@ For isolating your Dataflow workers on a private network you can additionally sp
 ...
 --use_public_ips=false \
 --region=us-east1 \
---subnetwork=\<FULL PATH TO SUBNET\> \
---network=\<NETWORK ID\>
+--subnetwork=<FULL PATH TO SUBNET> \
+--network=<NETWORK ID>
 ```
 
 ### Modifying FakeRowGen
@@ -202,7 +205,7 @@ So hack away if you need something more specific any python code is fair game. K
 that if you use a non-standard module (available in PyPI) you will need to make sure it gets installed on each of the workers or you will get 
 namespace issues. This can be done most simply by adding the module to `setup.py`. 
 
-## Generating Joinable tables Snowfalke schema
+### Generating Joinable tables Snowfalke schema
 To generate multiple tables that join based on certain keys, start by generating the central fact table with the above described 
 [`data_generator_pipeline.py`](data-generator-pipeline/data_generator_pipeline.py). 
 Then use [`data_generator_joinable_table.py`](data-generator-pipeline/data_generator_pipeline.py) with the above described parameters 
@@ -217,6 +220,7 @@ columns with relatively low cardinality (< 1 Billion distinct keys). If you have
 consider using the distribution matcher pipeline. 
 
 ## Performant Data Generator Usage
+Steps:
  - Generate the posterior histogram table. For an example of how to do this on an existing BigQuery table look at the BigQuery Histogram Tool 
 described later in this doc.
  - Use the [`data_distribution_matcher.py`](data-generator-pipeline/data_distribution_matcher.py) pipeline. 
