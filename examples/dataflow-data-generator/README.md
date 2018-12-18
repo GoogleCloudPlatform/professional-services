@@ -9,7 +9,6 @@ There are two different types of use cases for this kind of tool which we refer 
 These pipelines are a great place to get started when you only have a customer's schema
 and do not have a requirement for your generated dataset to have similar distribution to 
 the source dataset (this is required for accurately capturing query performance). 
-
  - Human readable / queryable data. This includes smart populating columns with data formatted based on the field name.
  - This can be used in scenarios where there are hurdles to get over in migrating actual data to BigQuery  to unblock integration tests and downstream development.
  - Generate joinable schemas for < 1 Billion distinct keys
@@ -28,7 +27,6 @@ the source dataset (this is required for accurately capturing query performance)
 ## Performant Data Generation
 The final pipeline supports the later use case where matching the distribution of the source
 dataset for replicating query performance is the goal.
-
  - Prioritizes speed and distribution matching over human readable data (ie. random strings rather than random sentences w/ english words)
  - Match the distribution of keys in a dataset to benchmark join performance
  - Generate joinable schemas on a larger scale.
