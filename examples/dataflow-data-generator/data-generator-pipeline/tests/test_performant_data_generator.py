@@ -89,6 +89,9 @@ class TestPrettyDataGenerator(unittest.TestCase):
         # Check float strictly positive
         self.assertGreaterEqual(actual_row[u'lo_tax'], 0.0)
 
+        # Check string size was parsed and enforced from description fields of lo_recieptfile.
+        self.assertLessEqual(len(actual_row[u'lo_recieptfile']), 10)
+
     def test_get_field_dict(self):
         """
         This tests the ability of the FakeRowGen.get_field_dict method to extract a single field

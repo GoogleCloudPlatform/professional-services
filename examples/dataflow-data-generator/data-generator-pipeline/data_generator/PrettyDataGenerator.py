@@ -6,6 +6,7 @@ import logging
 import math
 import numpy as np
 import random
+import re
 from uuid import uuid4
 
 import apache_beam as beam
@@ -313,6 +314,18 @@ class FakeRowGen(beam.DoFn):
 
         # Below handles if the datatype got changed by the faker provider
         if field[u'type'] == 'STRING':
+            # Efficiently generate random string.
+            STRING_LENGTH = 36
+            
+            # If the description of the field is a RDMS schema like VARCHAR(255)
+            # then we extract this number and generate a string of this length.
+            if field.get(u'description'):
+                extracted_numbers = re.findall('\d+',field[u'description'])
+                if extracted_numbers:
+                    STRING_LENGTH = int(extracted_numbers[0])
+
+            if len(record[fieldname]) > STRING_LENGTH:
+                record[fieldname] = record[fieldname][0:STRING_LENGTH - 1]
             record[fieldname] = unicode(record[fieldname])
 
         elif field[u'type'] == 'TIMESTAMP':
