@@ -2,10 +2,11 @@
 This directory shows a series of pipelines used to generate data in GCS or BigQuery. 
 The intention for these pipelines are to be a tool for partners, customers and SCEs who want to create a dummy dataset that 
 looks like the schema of their actual data in order to run some queries in BigQuery.
-There are two different types of use cases for this kind of tool which we refer to throughout this documentation as Pretty and Performant. 
+There are two different types of use cases for this kind of tool which we refer to throughout this documentation as Human Readable and Performance
+Testing Data Generators. 
 
 
-## Pretty Data Generation
+## Human Readable Data Generation
 These pipelines are a great place to get started when you only have a customer's schema
 and do not have a requirement for your generated dataset to have similar distribution to 
 the source dataset (this is required for accurately capturing query performance). 
@@ -24,7 +25,7 @@ the source dataset (this is required for accurately capturing query performance)
     this pipeline should be used to generate data that joins to an exsiting BigQuery Table
     on a certain key. 
 
-## Performant Data Generation
+## Performance Testing Data Generation
 The final pipeline supports the later use case where matching the distribution of the source
 dataset for replicating query performance is the goal.
  - Prioritizes speed and distribution matching over human readable data (ie. random strings rather than random sentences w/ english words)
@@ -53,7 +54,7 @@ A few recommendations when generating large datasets with any of these pipelines
    - 300+ In-use IP addresses
    - 10,000+ CPUs
 
-### Pretty Data Generator Usage
+### Human Readable Data Generator Usage
 This tool has several parameters to specify what kind of data you would like to generate.
 
 
@@ -231,7 +232,7 @@ selects a value to assign to this record. This means that this list must comfort
 columns with relatively low cardinality (< 1 Billion distinct keys). If you have more rigorous needs for generating joinable schemas, you should 
 consider using the distribution matcher pipeline. 
 
-## Performant Data Generator Usage
+## Performance Testing Data Generator Usage
 Steps:
  - Generate the posterior histogram table. For an example of how to do this on an existing BigQuery table look at the BigQuery Histogram Tool 
 described later in this doc.
@@ -239,7 +240,7 @@ described later in this doc.
 
 
 You can specify `--schema_file` (or `--input_table`), `--output_prefix` and `--output_format` the same way as described above in the 
-Pretty Data Generator section. Additionally, you must specify an `--histogram_table`. This table will have a field for each key column (which will store
+Human Readable Data Generator section. Additionally, you must specify an `--histogram_table`. This table will have a field for each key column (which will store
 a hash of each value) and a frequency with which these values occur. 
 
 ### Generating Joinable Schemas
