@@ -217,18 +217,16 @@ public abstract class PivotInputProvider {
       populateFieldNameToFieldMap();
 
       for (String fieldName : pivotFieldNames()) {
-        if (!isValidPivotType(fieldName)) {
-          throw new IllegalArgumentException(
-              "Unsupported pivot type: "
-                  + fieldNameToFieldMap.get(fieldName).getType().getStandardType()
-                  + " for field: "
-                  + fieldName);
-        }
+        checkArgument(
+            isValidPivotType(fieldName),
+            "Unsupported pivot type: "
+                + fieldNameToFieldMap.get(fieldName).getType().getStandardType()
+                + " for field: "
+                + fieldName);
 
-        if (isModeRepeated(fieldName)) {
-          throw new IllegalArgumentException(
-              "Unsupported pivot mode: " + Field.Mode.REPEATED.name() + " for field: " + fieldName);
-        }
+        checkArgument(
+            !isModeRepeated(fieldName),
+            "Unsupported pivot mode: " + Field.Mode.REPEATED.name() + " for field: " + fieldName);
       }
     }
 
