@@ -79,7 +79,7 @@ public class PivotUtils {
    * @param sort {@link Boolean} flag to sort the fields by fieldName.
    * @return merged {@link Schema} object.
    */
-  private static Schema mergeSchemas(List<Schema> schemas, Boolean sort) {
+  private static Schema mergeSchemas(List<Schema> schemas, boolean sort) {
     checkArgument(schemas != null, "mergeSchemas(schemas) called with null input.");
     Set<String> seenFields = Sets.newHashSet();
     List<Field> fields = Lists.newLinkedList();

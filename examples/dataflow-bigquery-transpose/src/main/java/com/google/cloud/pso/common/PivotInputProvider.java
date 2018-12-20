@@ -17,6 +17,7 @@
 package com.google.cloud.pso.common;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.auto.value.AutoValue;
 import com.google.cloud.bigquery.Field;
@@ -38,8 +39,7 @@ import java.util.stream.Collectors;
 public abstract class PivotInputProvider {
 
   private static final Set<StandardSQLTypeName> ALLOWED_PIVOT_TYPES =
-      ImmutableSet.of(
-          StandardSQLTypeName.BOOL, StandardSQLTypeName.STRING);
+      ImmutableSet.of(StandardSQLTypeName.BOOL, StandardSQLTypeName.STRING);
 
   public static Builder newBuilder() {
     return new AutoValue_PivotInputProvider.Builder();
@@ -217,21 +217,46 @@ public abstract class PivotInputProvider {
       populateFieldNameToFieldMap();
 
       for (String fieldName : pivotFieldNames()) {
-        if (!ALLOWED_PIVOT_TYPES.contains(
-            fieldNameToFieldMap.get(fieldName).getType().getStandardType())) {
+        if (!isValidPivotType(fieldName)) {
           throw new IllegalArgumentException(
               "Unsupported pivot type: "
                   + fieldNameToFieldMap.get(fieldName).getType().getStandardType()
                   + " for field: "
                   + fieldName);
         }
-        if (fieldNameToFieldMap.get(fieldName).getMode() != null
-            && fieldNameToFieldMap.get(fieldName).getMode().equals(Field.Mode.REPEATED)) {
+
+        if (isModeRepeated(fieldName)) {
           throw new IllegalArgumentException(
               "Unsupported pivot mode: " + Field.Mode.REPEATED.name() + " for field: " + fieldName);
         }
       }
     }
+
+    /**
+     * Check if the {@link StandardSQLTypeName} corresponding to the fieldName is an allowed pivot
+     * type.
+     *
+     * @param fieldName field name to check the type for.
+     * @return true if the type is an allowed type, false otherwise.
+     */
+    private boolean isValidPivotType(String fieldName) {
+      checkNotNull(fieldName, "isValidPivotType(fieldName) called with null value.");
+      return ALLOWED_PIVOT_TYPES.contains(
+          fieldNameToFieldMap.get(fieldName).getType().getStandardType());
+    }
+
+    /**
+     * Check if the {@link Field.Mode} corresponding to the fieldName is REPEATED.
+     *
+     * @param fieldName field name to check the mode for.
+     * @return true if the mode is REPEATED.
+     */
+    private boolean isModeRepeated(String fieldName) {
+      checkNotNull(fieldName, "isValidPivotMode(fieldName) called with null value.");
+      return fieldNameToFieldMap.get(fieldName).getMode() != null
+          && fieldNameToFieldMap.get(fieldName).getMode().equals(Field.Mode.REPEATED);
+    }
+
     /** Generate a map of fieldNames to Field for validation. */
     private void populateFieldNameToFieldMap() {
       if (fieldNameToFieldMap == null) {

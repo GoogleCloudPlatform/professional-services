@@ -92,13 +92,19 @@ The [Pivot](src/main/java/com/google/cloud/pso/pipeline/Pivot.java) pipeline wil
 
 Execute the pipeline using the maven exec:java command.
 ```sh
+MY_PROJECT=my-project-id
+MY_STAGING_BUCKET=my-staging-bucket-name
+MY_DATASET_ID=my-dataset-id
+MY_SOURCE_TABLE_ID=my-source-table-id
+MY_TARGET_TABLE_ID=my-target-table-id
+
 mvn compile exec:java -Dexec.mainClass=com.google.cloud.pso.pipeline.Pivot -Dexec.cleanupDaemonThreads=false -Dexec.args=" \
---project=MY_PROJECT \
+--project=$MY_PROJECT \
 --runner=DataflowRunner \
---stagingLocation=gs://MY_STAGING_BUCKET/staging \
---tempLocation=gs://MY_STAGING_BUCKET/tmp \
---inputTableSpec=MY_PROJECT:MY_DATASET_ID.MY_SOURCE_TABLE_ID \
---outputTableSpec=MY_PROJECT:MY_DATASET.MY_TARGET_TABLE_ID \
+--stagingLocation=gs://${MY_STAGING_BUCKET}/staging \
+--tempLocation=gs://${MY_STAGING_BUCKET}/tmp \
+--inputTableSpec=${MY_PROJECT}:${MY_DATASET_ID}.${MY_SOURCE_TABLE_ID} \
+--outputTableSpec=${MY_PROJECT}:${MY_DATASET_ID}.${MY_TARGET_TABLE_ID} \
 --keyFields=id,locid \
 --pivotFields=class,on_sale,state \
 --valueFields=sale_price,count"
