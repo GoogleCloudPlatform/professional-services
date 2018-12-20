@@ -27,15 +27,17 @@ import com.google.common.base.Joiner;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+import org.apache.beam.sdk.io.gcp.bigquery.TableRowJsonCoder;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.GroupByKey;
 import org.apache.beam.sdk.transforms.MapElements;
 import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.transforms.ParDo;
-import org.apache.beam.sdk.transforms.SimpleFunction;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionView;
+import org.apache.beam.sdk.values.TypeDescriptor;
+import org.apache.beam.sdk.values.TypeDescriptors;
 
 /**
  * A {@link PTransform} that pivots a {@link PCollection<TableRow>} records based on a pivot {@link
@@ -47,6 +49,9 @@ public abstract class TableRowPivot
 
   // Max columns in a table.
   private static final Integer MAX_ALLOWED_COLUMNS = 10000;
+
+  private static final TypeDescriptor<TableRow> TABLE_ROW_TYPE_DESCRIPTOR =
+      TableRowJsonCoder.of().getEncodedTypeDescriptor();
 
   public static Builder newBuilder() {
     return new AutoValue_TableRowPivot.Builder();
@@ -68,25 +73,27 @@ public abstract class TableRowPivot
     return input
         .apply(
             "Separate key fields",
-            MapElements.via(
-                new SimpleFunction<TableRow, KV<TableRow, TableRow>>() {
+            MapElements.into(
+                    TypeDescriptors.kvs(TABLE_ROW_TYPE_DESCRIPTOR, TABLE_ROW_TYPE_DESCRIPTOR))
+                .via(
+                    (TableRow inputTableRow) -> {
+                      TableRow key = new TableRow();
+                      TableRow value = new TableRow();
 
-                  @Override
-                  public KV<TableRow, TableRow> apply(TableRow input) {
-                    TableRow key = new TableRow();
-                    TableRow value = new TableRow();
+                      keySchema()
+                          .getFields()
+                          .forEach(
+                              field ->
+                                  key.set(field.getName(), inputTableRow.get(field.getName())));
 
-                    keySchema()
-                        .getFields()
-                        .forEach(field -> key.set(field.getName(), input.get(field.getName())));
+                      nonKeySchema()
+                          .getFields()
+                          .forEach(
+                              field ->
+                                  value.set(field.getName(), inputTableRow.get(field.getName())));
 
-                    nonKeySchema()
-                        .getFields()
-                        .forEach(field -> value.set(field.getName(), input.get(field.getName())));
-
-                    return KV.of(key, value);
-                  }
-                }))
+                      return KV.of(key, value);
+                    }))
         .apply(
             "Pivot every row",
             ParDo.of(
@@ -157,7 +164,6 @@ public abstract class TableRowPivot
                                 .collect(Collectors.toList());
 
                         TableRow mergedRow = PivotUtils.mergeTableRows(rowsToMerge, pivotSchema);
-
                         TableRow finalRow = new TableRow();
 
                         keySchema()
