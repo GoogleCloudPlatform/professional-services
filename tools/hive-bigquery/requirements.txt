@@ -1,0 +1,8 @@
+pyhive
+thrift
+sasl
+thrift_sasl
+tableprint
+pymysql
+google-cloud-bigquery
+google-cloud-storage
