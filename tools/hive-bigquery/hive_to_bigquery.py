@@ -111,7 +111,7 @@ def main():
 
         # Initializes the components to connect to MySQL, GCS, BigQuery and Hive
         mysql_component = MySQLComponent(
-            PropertiesReader.get('tracking_database_ip'),
+            PropertiesReader.get('tracking_database_host'),
             PropertiesReader.get('tracking_database_user'),
             PropertiesReader.get('tracking_database_password'),
             PropertiesReader.get('tracking_database_db_name'),
@@ -232,3 +232,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

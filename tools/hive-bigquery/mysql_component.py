@@ -25,8 +25,7 @@ class MySQLComponent(DatabaseComponent):
 
     """
 
-    def __init__(self, host_name='', username='', password='', database_name='',
-                 port=3306):
+    def __init__(self, host_name, username, password, database_name, port):
 
         logger.debug("Initializing Cloud SQL Component")
         self.host_name = host_name
@@ -35,6 +34,10 @@ class MySQLComponent(DatabaseComponent):
         self.database_name = database_name
         self.port = port
         self.connection = self.get_connection()
+
+    def __str__(self):
+        return "Host %s username %s database %s port %s" % (
+            self.host_name, self.username, self.database_name, self.port)
 
     def get_connection(self):
         """Connects to the MySQL database
@@ -45,10 +48,12 @@ class MySQLComponent(DatabaseComponent):
 
         logger.debug("Getting MySQL Connection")
         try:
+            logger.debug(self)
             connection = pymysql.connect(host=self.host_name,
                                          user=self.username,
                                          password=self.password,
-                                         db=self.database_name, port=self.port)
+                                         database=self.database_name,
+                                         port=int(self.port))
             return connection
         except Exception as e:
             logger.critical(e)
@@ -231,3 +236,4 @@ class MySQLComponent(DatabaseComponent):
         print_and_log(
             "Tracking table %s is created" %
             hive_table_model.tracking_table_name)
+
