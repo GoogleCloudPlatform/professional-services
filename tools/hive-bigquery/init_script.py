@@ -53,8 +53,8 @@ def arg_pars():
         help="Boolean to indicate whether to use clustering in BigQuery if "
              "supported")
     parser.add_argument(
-        '--tracking-database-ip', required=True,
-        help="Cloud SQL Tracking database IP address")
+        '--tracking-database-host', required=True,
+        help="Cloud SQL Tracking database host address")
     parser.add_argument(
         '--tracking-database-port', required=False,
         default=3306, help="Port to connect to tracking database")
@@ -120,7 +120,7 @@ def initialize_variables():
         "gcs_bucket_name": args.gcs_bucket_name,
         "incremental_col": args.incremental_col,
         "use_clustering": args.use_clustering,
-        "tracking_database_ip": args.tracking_database_ip,
+        "tracking_database_host": args.tracking_database_host,
         "tracking_database_port": args.tracking_database_port,
         "tracking_database_user": args.tracking_database_user,
         "tracking_database_db_name": args.tracking_database_db_name,
@@ -138,3 +138,4 @@ def initialize_variables():
     # Writes application properties to a file
     with open('application.properties', 'w') as f:
         f.write(json.dumps(configuration_properties))
+

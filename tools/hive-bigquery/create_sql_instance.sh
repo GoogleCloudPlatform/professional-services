@@ -7,6 +7,7 @@ INSTANCE_NAME=$1
 DATABASE_NAME=$2
 
 # check if there is an existing instance with the given name
+echo "Checking if instance exists with the same name"
 gcloud sql instances describe $INSTANCE_NAME > /dev/null
 
 if [ $? -eq 0 ]; then
