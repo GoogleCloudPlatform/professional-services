@@ -42,20 +42,24 @@ sh create_sql_instance.sh <INSTANCE_NAME> <DATABASE_NAME>
 ```
 ./cloud_sql_proxy -instances=<INSTANCE_CONNECTION_NAME>=tcp:<PORT>
 ```
-7. Run hive_to_bigquery.py
+6. Run hive_to_bigquery.py
  ```
- # This command uses only the required arguments.
- # Provide optional arguments as according to your use case.
+ # Refer init_script.py for arguments descriptions
  python hive_to_bigquery.py \
+ --hive-server-host <HIVE_SERVER_HOSTNAME> \
+ --hive-server-port <HIVE_SERVER_PORT> \
+ --hive-server-username <HIVE_SERVER_USER> \
  --hive-database <HIVE_DB_NAME> \
  --hive-table <HIVE_TABLE_NAME> \
  --project-id <GCP_PROJECT_ID> \
  --bq-dataset-id <BQ_DATASET_ID> \
+ --bq-table <BQ_TABLE_NAME> \
  --bq-table-write-mode [create|append|overwrite] \
  --gcs-bucket-name <GCS_BUCKET_NAME> \
- --tracking-database-ip localhost \
- --tracking-database-db-name <TRACKING_DB_NAME> \
+ --incremental-col <INCREMENTAL_COLUMN_NAME> \
+ --use-clustering [False|True] \
+ --tracking-database-host <TRACKING_DATABASE_HOST> \
+ --tracking-database-port <TRACKING_DATABASE_PORT> \
+ --tracking-database-user <TRACKING_DATABASE_USER> \
+ --tracking-database-db-name <TRACKING_DB_NAME>
 ```
-
-
-
