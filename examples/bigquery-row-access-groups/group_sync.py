@@ -18,14 +18,13 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import argparse
 import csv
-import StringIO
+from io import StringIO
 import sys
 
-import argparse
 import api_helpers
 from apiclient.discovery import build
-
 import google.api_core.exceptions
 from google.cloud import bigquery
 
@@ -157,7 +156,7 @@ class GroupSync(object):
     """
 
     # Use batch load from in-memory CSV file instead of streaming
-    csv_file = StringIO.StringIO()
+    csv_file = StringIO()
     csv_writer = csv.writer(csv_file)
     csv_writer.writerows(data)
 
