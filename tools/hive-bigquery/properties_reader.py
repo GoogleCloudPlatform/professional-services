@@ -1,18 +1,28 @@
+"""Properties Reader module"""
+
 import json
 
 
-class PropertiesReader:
-    """Properties reader to write the user arguments to a file and read from it"""
+class PropertiesReader(object):
+    """Properties reader to read properties from a file"""
 
     properties = ''
 
     def __init__(self, filename):
 
-        with open(filename, 'r') as f:
-            PropertiesReader.properties = json.load(f)
+        with open(filename, 'r') as file_content:
+            PropertiesReader.properties = json.load(file_content)
 
     @staticmethod
     def get(key):
+        """Retrieve a value from the dictionary
+
+        Args:
+            key (str): key name of the property
+
+        Returns:
+            str: value of the property
+        """
 
         if key in PropertiesReader.properties:
             return PropertiesReader.properties[key]

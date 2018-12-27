@@ -1,3 +1,5 @@
+"""Module to decide on the properties of the BigQuery table to be created"""
+
 import logging
 
 from bigquery_table_model import BigQueryTableModel
@@ -5,9 +7,9 @@ from bigquery_table_model import BigQueryTableModel
 logger = logging.getLogger('Hive2BigQuery')
 
 
-class BigQueryTable:
+class BigQueryTable(object):
     """Class to decide on how the Hive table should be translated in BigQuery
-    
+
     Gets information of the Hive table from the HiveTableModel class and
     decides on the BigQuery table properties such as whether the table should
     be partitioned, partition column if any, whether the table should be

@@ -1,3 +1,5 @@
+"""Provides utility functions to other modules"""
+
 import logging
 import random
 import string
@@ -25,21 +27,19 @@ def calculate_time(start, end):
     minutes = (time_taken - ((day * 86400) + (hour * 3600))) // 60
     seconds = time_taken - ((day * 86400) + (hour * 3600) + (minutes * 60))
     if day != 0:
-        return '{} days {} hours {} min {} sec'.format(str(day), str(hour),
-                                                       str(minutes),
-                                                       str(seconds))
+        return '%s days %s hours %s min %s sec' % (day, hour, minutes, seconds)
     elif hour != 0:
-        return '{} hours {} min {} sec'.format(str(hour), str(minutes),
-                                               str(seconds))
+        return '%s hours %s min %s sec' % (hour, minutes, seconds)
     elif minutes != 0:
-        return '{} min {} sec'.format(str(minutes), str(seconds))
+        return '%s min %s sec' % (minutes, seconds)
     else:
-        return '{} sec'.format(str(seconds))
+        return '%s sec' % seconds
 
 
 def print_and_log(output, level=logging.DEBUG):
     """Pretty prints the statement and logs it to the log file using the
-    provided log level"""
+    provided log level
+    """
 
     tp.banner(output)
     if level == logging.INFO:
@@ -65,7 +65,7 @@ def get_random_string():
 def execute_command(cmd):
     """Executes system command using subprocess module and logs the stdout
     and stderr
-    
+
     Args:
         cmd (List): Command to execute, split into a list
     """
