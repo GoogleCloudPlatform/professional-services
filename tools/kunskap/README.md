@@ -108,7 +108,7 @@ sql_file_path = 'cud_sud_attribution_query.sql'
 # total eligible VM usage during the time increment (P_usage_percentage).
 # any untilized commitment cost remains unallocated (BA_unutilized_commitment_cost).
 
-#Method 2: All commitment charges are allocated to buckets (P_method_2_CUD_commitment_cost) proportionally 
+# Method 2: All commitment charges are allocated to buckets (P_method_2_CUD_commitment_cost) proportionally 
 # to the buckets share of total eligible VM usage during the time increment (P_usage_percentage). All 
 # commitment cost is allocated into the buckets proportionally to the CUD credits that they consumed, even 
 # if the commitment is not fully utilized.
