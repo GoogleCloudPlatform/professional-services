@@ -1,3 +1,5 @@
+"""Module to wrap Hive table as a model"""
+
 import logging
 
 logger = logging.getLogger('Hive2BigQuery')
@@ -5,7 +7,7 @@ logger = logging.getLogger('Hive2BigQuery')
 
 class HiveTableModel:
     """Wrapper for resource describing a Hive table
-    
+
     Bundles information of different properties of the source Hive table such
     as schema, location of the table, input format, partition column etc.
 
@@ -81,7 +83,7 @@ class HiveTableModel:
 
     @tracking_table_name.setter
     def tracking_table_name(self, value):
-        logger.debug("Setting value tracking_table_name to %s" % value)
+        logger.debug("Setting value tracking_table_name to %s", value)
         self.tracking_table_name = value
 
     @property
@@ -90,7 +92,7 @@ class HiveTableModel:
 
     @is_inc_col_present.setter
     def is_inc_col_present(self, value):
-        logger.debug("Setting value is_inc_col_present to %s" % value)
+        logger.debug("Setting value is_inc_col_present to %s", value)
         if value in [True, False]:
             self.is_inc_col_present = value
         else:
@@ -103,7 +105,7 @@ class HiveTableModel:
 
     @inc_col.setter
     def inc_col(self, value):
-        logger.debug("Setting value inc_col to %s" % value)
+        logger.debug("Setting value inc_col to %s", value)
         self.inc_col = value
 
     @property
@@ -112,7 +114,7 @@ class HiveTableModel:
 
     @inc_col_type.setter
     def inc_col_type(self, value):
-        logger.debug("Setting value inc_col_type to %s" % value)
+        logger.debug("Setting value inc_col_type to %s", value)
         self.inc_col_type = value
 
     @property
@@ -121,7 +123,7 @@ class HiveTableModel:
 
     @is_first_run.setter
     def is_first_run(self, value):
-        logger.debug("Setting value is_first_run to %s" % value)
+        logger.debug("Setting value is_first_run to %s", value)
         if value in [True, False]:
             self.is_first_run = value
         else:

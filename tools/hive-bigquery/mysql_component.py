@@ -1,3 +1,5 @@
+"""Module to handle MySQL related utilities"""
+
 import logging
 
 import pymysql
@@ -16,28 +18,24 @@ class MySQLComponent(DatabaseComponent):
     executing a transaction etc.
 
     Attributes:
-        host_name: Hostname of the Cloud SQL instance
-        username: Username to be used
+        host: Hostname of the Cloud SQL instance
+        user: Username to be used
         password: Password to be used
-        database_name: Database to be connected
+        database: Database to be connected
         port: Port to be used
         connection: Connection to Cloud SQL instance
 
     """
 
-    def __init__(self, host_name, username, password, database_name, port):
+    def __init__(self, host, user, password, database, port):
 
         logger.debug("Initializing Cloud SQL Component")
-        self.host_name = host_name
-        self.username = username
-        self.password = password
-        self.database_name = database_name
-        self.port = port
-        self.connection = self.get_connection()
+        super(MySQLComponent, self).__init__(host, port, user, password,
+                                             database)
 
     def __str__(self):
-        return "Host %s username %s database %s port %s" % (
-            self.host_name, self.username, self.database_name, self.port)
+        return "MySQL - Host %s username %s database %s port %s" % (
+            self.host, self.user, self.database, self.port)
 
     def get_connection(self):
         """Connects to the MySQL database
@@ -49,14 +47,14 @@ class MySQLComponent(DatabaseComponent):
         logger.debug("Getting MySQL Connection")
         try:
             logger.debug(self)
-            connection = pymysql.connect(host=self.host_name,
-                                         user=self.username,
+            connection = pymysql.connect(host=self.host,
+                                         user=self.user,
                                          password=self.password,
-                                         database=self.database_name,
+                                         database=self.database,
                                          port=int(self.port))
             return connection
-        except Exception as e:
-            logger.critical(e)
+        except Exception as error:
+            logger.error(error)
             print_and_log("Failed to establish MySQL connection",
                           logging.CRITICAL)
             exit()
@@ -83,8 +81,8 @@ class MySQLComponent(DatabaseComponent):
             cursor = self.get_cursor()
             cursor.execute(query)
             self.connection.commit()
-        except Exception as e:
-            print(e)
+        except Exception as error:
+            logger.error(error)
             self.connection.rollback()
 
     def execute_query(self, query):
@@ -111,10 +109,10 @@ class MySQLComponent(DatabaseComponent):
         cursor = self.get_cursor()
         try:
             cursor.execute("DROP TABLE {}".format(table_name))
-            logger.debug("Dropped table %s" % table_name)
-        except Exception as e:
-            logger.debug(
-                "Failed dropping table %s with exception %s " % (table_name, e))
+            logger.debug("Dropped table %s", table_name)
+        except Exception as error:
+            logger.error("Failed dropping table %s with exception %s ",
+                         table_name, error)
 
     def drop_table_if_empty(self, table_name):
         """Drops tracking table if empty
@@ -174,10 +172,9 @@ class MySQLComponent(DatabaseComponent):
             logger.debug("Tracking table does not exist")
         else:
             logger.debug(
-                "Tracking table %s found with incremental column %s of type "
-                "%s" % (hive_table_model.tracking_table_name,
-                        hive_table_model.inc_col,
-                        hive_table_model.inc_col_type))
+                "Tracking table %s found with incremental column %s of type %s",
+                hive_table_model.tracking_table_name, hive_table_model.inc_col,
+                hive_table_model.inc_col_type)
 
     def create_tracking_table(self, hive_table_model):
         """Creates tracking table in CloudSQL instance
@@ -236,4 +233,3 @@ class MySQLComponent(DatabaseComponent):
         print_and_log(
             "Tracking table %s is created" %
             hive_table_model.tracking_table_name)
-

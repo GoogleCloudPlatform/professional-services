@@ -1,3 +1,5 @@
+"""Module to check properties of the Hive table"""
+
 import json
 import logging
 
@@ -6,7 +8,7 @@ from hive_table_model import HiveTableModel
 logger = logging.getLogger('Hive2BigQuery')
 
 
-class HiveTable:
+class HiveTable(object):
     """Class to get information on the source Hive table
 
     Runs the descriptive 'DESCRIBE EXTENDED' query on the Hive table and
@@ -38,7 +40,6 @@ class HiveTable:
                 HiveComponent to connect to Hive
             incremental_col (str): Incremental column name either provided or
                 obtained from the tracking table
-        
         Returns:
             HiveTableModel: Wrapper to Hive table details
         """
@@ -57,10 +58,8 @@ class HiveTable:
         column_info = {}
         columns = []
         for item in results['tableInfo']['sd']['cols']:
-            col_name = str(item['name'])
-            col_type = str(item['type'])
-            column_info[col_name] = col_type
-            columns.append(col_name)
+            column_info[str(item['name'])] = str(item['type'])
+            columns.append(str(item['name']))
 
         # Storage location
         location = results['tableInfo']['sd']['location']
@@ -89,10 +88,8 @@ class HiveTable:
         partition_info = {}
         partition_columns = []
         for item in results['tableInfo']['partitionKeys']:
-            col_name = str(item['name'])
-            col_type = str(item['type'])
-            partition_info[col_name] = col_type
-            partition_columns.append(col_name)
+            partition_info[str(item['name'])] = str(item['type'])
+            partition_columns.append(str(item['name']))
 
         # Boolean indicating whether the Hive table is partitioned
         is_table_partitioned = False
@@ -121,8 +118,7 @@ class HiveTable:
         create_statement = "CREATE TABLE default.TABLE_NAME_HERE ("
         create_statement += ','.join(
             "{} {}".format(col, column_info[col]) for col in columns)
-        create_statement = create_statement + ") STORED AS " + \
-            destination_data_format
+        create_statement += ") STORED AS " + destination_data_format
         logger.debug('Formed Hive stage table CREATE TABLE statement')
 
         # Initializes HiveTableModel instance

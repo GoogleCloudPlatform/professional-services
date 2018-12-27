@@ -1,3 +1,5 @@
+"""Module to handle BigQuery related utilities"""
+
 import csv
 import json
 import logging
@@ -15,7 +17,7 @@ logger = logging.getLogger('Hive2BigQuery')
 
 class BigQueryComponent(GCPService):
     """BigQuery component to handle functions related to it
-    
+
     Has utilities which do BigQuery operations using the BigQuery client,
     such as creating table, retrieving dataset location, creating load job,
     fetch status of a running load job, create comparison metrics table once
@@ -30,8 +32,7 @@ class BigQueryComponent(GCPService):
     def __init__(self, project_id):
 
         logger.debug("Initializing BigQuery Component")
-        self.project_id = project_id
-        self.client = self.get_client()
+        super(BigQueryComponent, self).__init__(project_id)
 
     def get_client(self):
         """Creates BigQuery client
@@ -48,7 +49,7 @@ class BigQueryComponent(GCPService):
 
         Args:
             dataset_id (str): BigQuery dataset id
-        
+
         Returns:
             boolean: True if exists, False if doesn't exist
         """
@@ -57,9 +58,8 @@ class BigQueryComponent(GCPService):
         try:
             self.client.get_dataset(dataset_ref)
             return True
-        except Exception as e:
-            print(e)
-            logger.error(e)
+        except Exception as error:
+            logger.error(error)
             return False
 
     def check_bq_table_exists(self, dataset_id, table_name):
@@ -77,16 +77,16 @@ class BigQueryComponent(GCPService):
         try:
             self.client.get_table(table_ref)
             return True
-        except Exception as e:
-            logger.debug(e)
+        except Exception as error:
+            logger.error(error)
             return False
 
     def get_dataset_location(self, dataset_id):
         """BigQuery dataset location
-        
+
         Args:
             dataset_id (str): BigQuery dataset id
-        
+
         Returns:
             str: Location of the dataset
         """
@@ -120,10 +120,10 @@ class BigQueryComponent(GCPService):
         table_ref = self.client.dataset(dataset_id).table(table_name)
         try:
             self.client.delete_table(table_ref)
-            logger.debug("Deleted table {} from {} dataset".format(table_name,
-                                                                   dataset_id))
-        except Exception as e:
-            logger.debug(e)
+            logger.debug(
+                "Deleted table %s from %s dataset", table_name, dataset_id)
+        except Exception as error:
+            logger.error(error)
 
     def get_table(self, dataset_id, table_name):
         """Gets BigQuery table
@@ -284,7 +284,7 @@ class BigQueryComponent(GCPService):
                 "AND bq_job_status='TODO'" % (
                     hive_table_model.tracking_table_name)
         results = mysql_component.execute_query(query)
-        if len(results) == 0:
+        if not results:
             print_and_log("No gcs files to load to BigQuery")
 
         for row in results:
@@ -335,12 +335,12 @@ class BigQueryComponent(GCPService):
                 "bq_job_status='RUNNING'" % (
                     hive_table_model.tracking_table_name)
         results = mysql_component.execute_query(query)
-        if len(results) == 0:
+        if not results:
             print_and_log(
                 "No BigQuery job is in RUNNING state. No values to update")
 
         # Waits till all the load jobs finish
-        while len(results) != 0:
+        while results:
             count = 0
             for row in results:
                 gcs_file_path, bq_job_id, bq_job_retries = row
@@ -395,7 +395,7 @@ class BigQueryComponent(GCPService):
                     count += 1
                 else:
                     logger.debug(
-                        "job id {} job state {}".format(bq_job_id, job.state))
+                        "job id %s job state %s", bq_job_id, job.state)
             if count == 0:
                 print_and_log(
                     "No BigQuery job is in RUNNING state. No values to update")
@@ -451,6 +451,12 @@ class BigQueryComponent(GCPService):
         """
 
         def recursively_flatten(schema, col_name):
+            """Iterates through the nested fields and gets the data types
+
+            Args:
+                schema (List[dict]): schema of the BigQuery fields
+                col_name (str): Flattened column name
+            """
             for item in schema:
                 name = col_name + item['name']
                 if item['mode'] == 'REPEATED':
@@ -469,8 +475,8 @@ class BigQueryComponent(GCPService):
 
         os.system('bq show --format=prettyjson {}.{} > bq_schema.json'.format(
             bq_table_model.dataset_id, bq_table_model.table_name))
-        with open('bq_schema.json', 'rb') as f:
-            schema = json.load(f)
+        with open('bq_schema.json', 'rb') as file_content:
+            schema = json.load(file_content)
         os.remove('bq_schema.json')
         schema = schema['schema']['fields']
 
@@ -574,9 +580,9 @@ class BigQueryComponent(GCPService):
         list"""
 
         validations_csv_filename = 'validations.csv'
-        f = open(validations_csv_filename, 'rb')
-        reader = csv.reader(f)
-        validations_list = [row for row in reader]
+        with open(validations_csv_filename, 'rb') as file_content:
+            reader = csv.reader(file_content)
+            validations_list = [row for row in reader]
         return validations_list
 
     @staticmethod
@@ -707,7 +713,7 @@ class BigQueryComponent(GCPService):
         csv_uri = gcs_component.upload_file(
             PropertiesReader.get('gcs_bucket_name'), metrics_csv_filename,
             blob_name)
-        logger.debug("metrics CSV file is uploaded at %s" % csv_uri)
+        logger.debug("metrics CSV file is uploaded at %s", csv_uri)
         # Deletes local csv file
         os.remove(metrics_csv_filename)
         # Loads CSV file to BigQuery metrics table
@@ -716,4 +722,4 @@ class BigQueryComponent(GCPService):
         # Deletes uploaded metrics CSV file in GCS bucket
         gcs_component.delete_file(PropertiesReader.get('gcs_bucket_name'),
                                   blob_name)
-        logger.debug("Deleting metrics CSV file at %s" % csv_uri)
+        logger.debug("Deleting metrics CSV file at %s", csv_uri)

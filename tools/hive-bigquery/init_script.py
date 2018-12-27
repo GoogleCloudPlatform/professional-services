@@ -1,3 +1,5 @@
+"""Parses arguments and writes the variables initialized to a config file"""
+
 import argparse
 import datetime
 import getpass
@@ -7,7 +9,7 @@ import logging
 
 def arg_pars():
     """Argument Parser
-    
+
     Returns:
         dict: dictionary of arguments
     """
@@ -136,6 +138,5 @@ def initialize_variables():
     logger.debug(configuration_properties)
 
     # Writes application properties to a file
-    with open('application.properties', 'w') as f:
-        f.write(json.dumps(configuration_properties))
-
+    with open('application.properties', 'w') as file_content:
+        file_content.write(json.dumps(configuration_properties))

@@ -1,3 +1,5 @@
+"""Module to wrap BigQuery table as a model"""
+
 import logging
 
 logger = logging.getLogger('Hive2BigQuery')
@@ -5,7 +7,7 @@ logger = logging.getLogger('Hive2BigQuery')
 
 class BigQueryTableModel:
     """Wrapper for resource describing a BigQuery table
-    
+
     Bundles information of how Hive table will be considered when migrated to
     BigQuery, such as partitioning and clustering fields
 

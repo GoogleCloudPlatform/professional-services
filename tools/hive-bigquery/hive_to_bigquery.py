@@ -1,3 +1,5 @@
+"""Main Module to migrate Hive tables to BigQuery"""
+
 import logging
 
 from bigquery_component import BigQueryComponent
@@ -40,8 +42,8 @@ def compare_rows(bq_component, hive_component, gcs_component, hive_table_model,
     print_and_log("Comparing rows...")
     hive_table_rows = hive_component.get_hive_table_row_count(hive_table_model)
     bq_table_rows = bq_component.get_bq_table_row_count(bq_table_model)
-    logger.debug("BigQuery row count %s Hive table row count %s" % (
-        bq_table_rows, hive_table_rows))
+    logger.debug("BigQuery row count %s Hive table row count %s", bq_table_rows,
+                 hive_table_rows)
 
     if hive_table_rows == bq_table_rows:
         print_and_log("Number of rows matching in BigQuery and Hive tables",
@@ -63,13 +65,13 @@ def compare_rows(bq_component, hive_component, gcs_component, hive_table_model,
                     bq_table_model, clause)
                 hive_table_rows = hive_component.get_hive_table_row_count(
                     hive_table_model, clause)
-                logger.debug("BigQuery row count %s Hive table row count %s" % (
-                    bq_table_rows, hive_table_rows))
+                logger.debug("BigQuery row count %s Hive table row count %s",
+                             bq_table_rows, hive_table_rows)
 
                 if bq_table_rows == hive_table_rows:
                     logger.debug(
-                        "Number of rows matching in BigQuery and Hive tables "
-                        "%s " % clause)
+                        "Number of rows matching in BigQuery and Hive tables %s",
+                        clause)
                 else:
                     print_and_log(
                         "Number of rows not matching in BigQuery and Hive "
@@ -103,6 +105,11 @@ def rollback(mysql_component, hive_table_model):
 
 
 def main():
+    """Migrates Hive tables to BigQuery
+
+    Establishes connection to Hive, MySQL, GCS and BigQuery. Validates the
+    user arguments and continues migration from the previous runs, if any.
+    """
     try:
         init_script.initialize_variables()
 
@@ -130,7 +137,6 @@ def main():
         if ResourceValidator.validate(hive_component, gcs_component,
                                       bq_component):
             logger.info("All the provided resources are valid")
-            pass
         else:
             print_and_log("Check the provided resources", logging.CRITICAL)
             exit()
@@ -151,8 +157,8 @@ def main():
         bq_table_model = bq_table_object.bq_table_model
         logger.debug(bq_table_model)
 
-    except Exception as e:
-        logger.critical(e)
+    except Exception as error:
+        logger.exception(error)
         print_and_log("Check the log file for detailed errors",
                       logging.CRITICAL)
         exit()
@@ -170,6 +176,7 @@ def main():
 
             # Gets information on data to migrate and creates tracking table
             # in Cloud SQL
+            logger.debug("Migrating for the first time")
             tracking_data = hive_component.get_info_on_data_to_migrate(
                 hive_table_model)
             mysql_component.create_tracking_table(hive_table_model)
@@ -203,7 +210,7 @@ def main():
                                                   'gcs_bucket_name'))
 
         # Checks for new data in the Hive table
-        tracking_data = hive_component.check_for_new_data(
+        tracking_data = hive_component.check_new_data(
             mysql_component, bq_component, gcs_component, hive_table_model,
             bq_table_model, PropertiesReader.get('gcs_bucket_name'))
 
@@ -225,11 +232,10 @@ def main():
         compare_rows(bq_component, hive_component, gcs_component,
                      hive_table_model, bq_table_model)
 
-    except Exception as e:
-        logger.critical(e)
+    except Exception as error:
+        logger.exception(error)
         rollback(mysql_component, hive_table_model)
 
 
 if __name__ == '__main__':
     main()
-

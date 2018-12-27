@@ -1,3 +1,5 @@
+"""Module to handle Google Cloud Storage related utilities"""
+
 import logging
 import os
 import time
@@ -13,7 +15,7 @@ logger = logging.getLogger('Hive2BigQuery')
 
 class GCSStorageComponent(GCPService):
     """GCS component to handle functions related to it
-    
+
     Has utilities which do GCS operations using the GCS client, such as
     uploading file, getting the bucket location, checking whether a file
     exists, copying the staged data to GCS etc.
@@ -26,18 +28,21 @@ class GCSStorageComponent(GCPService):
     def __init__(self, project_id):
 
         logger.debug("Initializing GCS Component")
-        self.project_id = project_id
-        self.client = self.get_client()
-        pass
+        super(GCSStorageComponent, self).__init__(project_id)
 
     def get_client(self):
+        """Creates BigQuery client
+
+        Returns:
+            google.cloud.storage.client.Client: GCS client
+        """
 
         logger.debug("Getting GCS client")
         return storage.Client(project=self.project_id)
 
     def upload_file(self, bucket_name, file_name, blob_name):
         """Uploads local file to GCS bucket
-        
+
         Args:
             bucket_name (str): GCS bucket name
             file_name (str): Local file name to be uploaded
@@ -52,7 +57,7 @@ class GCSStorageComponent(GCPService):
 
     def delete_file(self, bucket_name, file_name):
         """Deletes GCS file
-        
+
         Args:
             bucket_name (str): GCS bucket name
             file_name (str): Complete GCS URI of the object or simply path
@@ -65,8 +70,7 @@ class GCSStorageComponent(GCPService):
             blob_name = file_name
         blob = bucket.blob(blob_name)
         blob.delete()
-        logger.debug(
-            'GCS File {} deleted in {} bucket'.format(blob_name, bucket_name))
+        logger.debug('GCS File %s deleted in %s bucket', blob_name, bucket_name)
 
     def check_bucket_exists(self, bucket_name):
         """Checks whether GCS bucket exists
@@ -76,12 +80,10 @@ class GCSStorageComponent(GCPService):
         """
 
         try:
-            bucket = self.client.get_bucket(bucket_name)
-            if bucket:
-                pass
+            self.client.get_bucket(bucket_name)
             return True
-        except Exception as e:
-            logger.critical(str(e))
+        except Exception as error:
+            logger.error(error)
             return False
 
     def get_bucket_location(self, bucket_name):
@@ -104,12 +106,10 @@ class GCSStorageComponent(GCPService):
         bucket = self.client.get_bucket(bucket_name)
         blob_name = gcs_uri.split('gs://' + bucket_name + '/')[1]
         blob = bucket.get_blob(blob_name)
-        try:
-            blob.name
+        if blob:
             return True
-        except Exception as e:
-            logger.debug(e)
-            return False
+        logger.debug("File %s doesn't exist", gcs_uri)
+        return False
 
     def stage_to_gcs(self, mysql_component, bq_component, hive_table_model,
                      bq_table_model, gcs_bucket_name):
@@ -138,13 +138,13 @@ class GCSStorageComponent(GCPService):
             "table...")
         select_query = "SELECT table_name,file_path FROM %s WHERE " \
                        "gcs_copy_status='TODO'" % (
-                            hive_table_model.tracking_table_name)
+                           hive_table_model.tracking_table_name)
         results = mysql_component.execute_query(select_query)
 
-        if len(results) == 0:
+        if not results:
             logger.debug("No file paths to copy to GCS")
 
-        while len(results) != 0:
+        while results:
             file_info = {}
             for row in results:
                 source_location = row[1]
@@ -154,8 +154,8 @@ class GCSStorageComponent(GCPService):
             source_locations = ' '.join(file_info.values())
             filename = "file_info.json"
             # Dictionary of file names and their locations
-            with open(filename, "w") as f:
-                f.write(str(file_info))
+            with open(filename, "w") as file_content:
+                file_content.write(str(file_info))
 
             target_blob = "BQ_staging/{}/{}/{}/".format(
                 hive_table_model.database_name,
@@ -168,9 +168,8 @@ class GCSStorageComponent(GCPService):
                                                          target_blob)
 
             logger.debug(
-                "Copying data from location {} to GCS Staging location {} "
-                "....".format(
-                    source_locations, target_folder_location))
+                "Copying data from location %s to GCS Staging location %s "
+                "....", source_locations, target_folder_location)
             # Hadoop distcp command to copy multiple files in one operation
             cmd_copy_gcs = ['hadoop', 'distcp'] + file_info.values() + [
                 target_folder_location]
@@ -180,7 +179,7 @@ class GCSStorageComponent(GCPService):
             execute_command(cmd_copy_gcs)
             end = time.time()
             time_distcp_gcs = calculate_time(start, end)
-            logger.debug("Time taken - %s" % time_distcp_gcs)
+            logger.debug("Time taken - %s", time_distcp_gcs)
 
             # Iterates though the dict and checks whether the distcp
             # operation is successful or partially completed
@@ -190,23 +189,21 @@ class GCSStorageComponent(GCPService):
                 if self.check_file_exists(gcs_bucket_name,
                                           target_file_location):
                     logger.error(
-                        "Finished copying data from location {} to GCS "
-                        "Staging location {}".format(
-                            source_location, target_file_location))
+                        "Finished copying data from location %s to GCS "
+                        "Staging location %s", source_location,
+                        target_file_location)
                     query = "UPDATE %s SET gcs_copy_status='DONE'," \
                             "gcs_file_path='%s' WHERE file_path='%s'" % (
                                 hive_table_model.tracking_table_name,
                                 target_file_location, source_location)
                     mysql_component.execute_transaction(query)
                     logger.debug(
-                        "Updated GCS copy status TODO --> DONE for file path "
-                        "{}".format(
-                            source_location))
+                        "Updated GCS copy status TODO --> DONE for file path %s",
+                        source_location)
                 else:
                     logger.error(
                         "Failed copying data from location %s to GCS Staging "
-                        "location %s" % (
-                            source_location, target_file_location))
+                        "location %s", source_location, target_file_location)
             # Starts loading the copied files
             bq_component.load_gcs_to_bq(mysql_component, hive_table_model,
                                         bq_table_model)
