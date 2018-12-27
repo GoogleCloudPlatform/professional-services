@@ -12,10 +12,7 @@
 #
 # Any software provided by Google hereunder is distributed "AS IS", WITHOUT
 # WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
-
-"""Creates a BigQuery table listing members of all groups in a GSuite domain.
-
-"""
+"""Creates a BigQuery table listing members of all groups in a GSuite domain."""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -34,9 +31,7 @@ from google.cloud import bigquery
 
 
 class GroupSync(object):
-  """Manages synchronization of group member data from GSuite API to BigQuery.
-
-  """
+  """Manages synchronization of group member data from GSuite API to BigQuery."""
 
   def __init__(self, admin_email, domain):
     self.bq_client = bigquery.Client()
@@ -105,7 +100,9 @@ class GroupSync(object):
     """
     results = self.service.members().list(groupKey=group_id).execute()
     users = [
-        m['email'] for m in results.get('members') if m.get('status', None) == 'ACTIVE'
+        m['email']
+        for m in results.get('members')
+        if m.get('status', None) == 'ACTIVE'
     ]
     return users
 
