@@ -23,7 +23,7 @@ DATASET = 'bq_iam'
 GROUPS_USERS_TABLE_NAME = 'groups_users'
 
 def sync_groups(request):
-  os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'service-account-key.json'
+  # os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'service-account-key.json'
   group_sync.GroupSync.sync_all(DOMAIN, ADMIN_EMAIL, DATASET,
                                 GROUPS_USERS_TABLE_NAME)
   return 'Group membership from domain {} synched to table {}.{}'.format(

@@ -16,8 +16,11 @@
 """Helper functions for GSuite API clients."""
 
 import os
+import logging
 
 from google.auth import compute_engine
+from google.auth.compute_engine import _metadata
+from google.auth.transport.requests import Request
 from google.oauth2 import service_account
 
 CLOUD_SCOPES = frozenset(['https://www.googleapis.com/auth/cloud-platform'])
@@ -42,7 +45,6 @@ def get_delegated_credential(delegated_account, scopes):
   try:
     credentials = credentials.with_subject(delegated_account)
   except AttributeError: # Credentials object lacks with_subject function
-    print(dir(credentials))
     raise ValueError("Authenticated user doesn't seem to be a service account. "
                      "If you're running locally, make sure the "
                      "GOOGLE_APPLICATION_CREDENTIALS enviroment variable is set "
@@ -76,5 +78,19 @@ def get_environment_service_account(scopes):
   else:
     # Assume running inside GCE
     credentials = compute_engine.Credentials()
+    logging.info("Usinge GCE credentials with service account email {}.".format(credentials.service_account_email))
+    request = Request()
+    info = _metadata.get_service_account_info(
+            request,
+            service_account=credentials.service_account_email)
+    info['token_uri'] = 'https://oauth2.googleapis.com/token'
+    info['client_email'] = info['email']
+    logging.info(info)
+    token = _metadata.get_service_account_token(
+            request,
+            service_account=credentials.service_account_email)
+    logging.info(token)
+    credentials = service_account.Credentials.from_service_account_info(
+        info, scopes=scopes)
 
   return credentials
