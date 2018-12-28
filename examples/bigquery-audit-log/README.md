@@ -1,1 +1,50 @@
+# BigQuery Audit Log Dashboard
+This example shows how to build a dashboard using Data Studio that displays metrics pertaining to BigQuery consumption in an organization. The purpose of the dashboard is to be used as a BigQuery audit that helps identify the different kinds of BigQuery jobs running in the organisation, the creator of those jobs as well as the Billing incurred due to the same.
 
+The dashboard has the following sections:
+1. Overall Usage
+2. Load Jobs
+3. Extract Jobs
+4. Copy Jobs
+5. Queries
+
+Clicking on the links above will direct you to the individual files which describe the particular section of the Dashboard and the data it displays.
+
+### Prerequisites
+Create a dataset in BigQuery in the project you will be exporting logs to. You can give it a custom name. For the sake of simplicity we will be referring to the dataset as "BigQuery Audit".
+
+### 1. Getting the BigQuery log Data
+A detailed description of steps to collect BigQuery logs for your GCP Projects can be found [here](https://cloud.google.com/bigquery/audit-logs)
+.
+
+A short description relevant to our use case in presented below -
+
+1. In the GCP Cloud Console select the project you want to export the logs to. Go to Stackdriver --> Logging --> Exports.
+2. Click on Create Export. Select the following in the drop down menu below: "BigQuery", "All logs", "Any log level", "No limit", "Jump to now" respectively.
+3. In the configuration windows on the right side of the screen, enter a Sink Name of your choice. Select BigQuery as Sink Service. Select the "BigQuery Audit" (Prerequisites 1.) dataset as the Sink Destination.
+4. Click on Create Sink. 
+5. A message box pops up to notify you of successful creation. Click on Close.
+6. Click on the Play button on the top bar to start the export.
+
+### 2. Scheduling a BigQuery job
+Use the SQL script in the file bigquery_audit_log.sql to create a scheduled query in BigQuery. Click [here](https://cloud.google.com/bigquery/docs/scheduling-queries) for instructions on how to create scheduled queries. 
+
+Create a materialized table that stores data from the scheduled query. 
+You can give it a custom name, we will be referring to it as **bigquery_audit_log**.
+
+### 3. Copying the data source in Data Studio
+Log in to Data Studio and create a copy of [this](https://datastudio.google.com/open/1SGMv1DvjgpqblVL9GImfprvC2YhoKTE8) data source. Click [here](https://support.google.com/datastudio/answer/7421646?hl=en&ref_topic=6370331) for more information on copying data sources.
+
+Rename the data source to a name of your choice. Click on "Edit Connection" to navigate to the project, dataset and table of your choice. It should correspond to the materialized table created as a result of step 2 above.
+
+Click on "Reconnect" on the top right of the page.
+
+### 4. Creating a dashboard in Data Studio
+Create a copy of [this](https://datastudio.google.com/open/1KCtV_QKYbGHxAJPlXg3Ec2WZCURhJjE3) Dashboard.
+
+After clicking on the Copy button, you will find a message asking you to choose a new data source. Select the data source created in the step 3 above.
+
+Click on create report. Rename the report (dashboard) to a name of your choice.
+
+### 5. Final Step
+Confirm all the changes have been carried over successfully by comparing your dashboard and data source with the [template dashboard](https://datastudio.google.com/open/1KCtV_QKYbGHxAJPlXg3Ec2WZCURhJjE3) and [template data source](https://datastudio.google.com/open/1SGMv1DvjgpqblVL9GImfprvC2YhoKTE8)
