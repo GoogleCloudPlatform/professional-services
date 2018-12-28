@@ -10,6 +10,8 @@ The dashboard has the following sections:
 
 Clicking on the links above will direct you to the individual files which describe the particular section of the Dashboard and the data it displays.
 
+#### The following steps describe how to set up a working dashboard in Data Studio that reports on the BigQuery audit logs for your GCP organization.
+
 ### Prerequisites
 Create a dataset in BigQuery in the project you will be exporting logs to. You can give it a custom name. For the sake of simplicity we will be referring to the dataset as "BigQuery Audit".
 
