@@ -36,7 +36,7 @@ class BucketDetails(object):
         """Init the class from a source bucket.
 
         Args:
-            conf: the argparser parsing of command line options
+            conf: the configargparser parsing of command line options
             source_bucket: a google.cloud.storage.Bucket object that the bucket details should be
                 copied from.
         """
