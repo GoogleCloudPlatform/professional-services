@@ -2,11 +2,11 @@
 This example shows how to build a dashboard using Data Studio that displays metrics pertaining to BigQuery consumption in an organization. The purpose of the dashboard is to be used as a BigQuery audit that helps identify the different kinds of BigQuery jobs running in the organisation, the creator of those jobs as well as the Billing incurred due to the same.
 
 The dashboard has the following sections:
-1. [Overall Usage](overall_usage.md)
-2. [Load Jobs](load_jobs.md)
-3. [Extract Jobs](extract_jobs.md)
-4. [Copy Jobs](copy_jobs.md)
-5. [Queries](queries.md)
+1. [Overall Usage](./docs/overall_usage.md)
+2. [Load Jobs](./docs/load_jobs.md)
+3. [Extract Jobs](./docs/extract_jobs.md)
+4. [Copy Jobs](./docs/copy_jobs.md)
+5. [Queries](./docs/queries.md)
 
 Clicking on the links above will direct you to the individual files which describe the particular section of the Dashboard and the data it displays.
 
