@@ -31,9 +31,9 @@ provider google {
   project = "${var.project}"
 }
 
-terraform {
-  backend "gcs" {
-    bucket = "tf-state-bucket-646d86cb4a68"
-    prefix = "ws10mvp"
-  }
-}
+# terraform {
+#   backend "gcs" {
+#     bucket = "tf-state-bucket-646d86cb4a68"
+#     prefix = "gke-bp-demo"
+#   }
+# }
