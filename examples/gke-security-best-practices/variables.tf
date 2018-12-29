@@ -12,40 +12,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-/*
-  This file manages variables resources for the cluster
-*/
-
 variable project {
-  default = "acme-dev"
+  description = "Set the project id."
 }
 
 variable name {
-  default = "acme-dev"
+  description = "Set the project name/prefix."
 }
 
 variable region {
-  default = "us-west2"
+  description = "Set a project region."
 }
 
 variable zone {
-  default = "us-west2-a"
+  description = "Set a project zone."
 }
 
 variable network_name {
-  default = "acme-dev-cluster"
+  description = "Set a name for the custom network."
 }
 
 variable ip_cidr_range {
-  default = "172.16.0.0/28"
+  description = "Set a custom ip cidr range."
 }
 
 variable pods_ip_cidr_range {
-  default = "10.40.0.0/14"
+  description = "Set a custom ip cidr range for the PODs."
 }
 
 variable services_ip_cidr_range {
-  default = "10.0.16.0/20"
+  description = "Set a custom ip cidr range for the services."
 }
 
 variable kubernetes_alpha {
@@ -65,8 +61,8 @@ variable horizontal_pod_autoscaling {
 }
 
 variable daily_maintenance_window_start_time {
-  default = "08:00"
-} // is in UTC/GMT ^^
+  description = "Define a maintenane window for the cluster. The time is in UTC/GMT."
+}
 
 variable kubernetes_legacy_abac {
   default = false
@@ -97,18 +93,16 @@ variable auto_create_subnetworks {
 }
 
 variable master_ipv4_cidr_block {
-  default = "192.168.0.0/28"
+  description = "Set the master ipv4 cidr block."
 }
 
 variable additional_zones {
-  default = [
-    "us-west2-b",
-    "us-west2-c",
-  ]
+  type        = "list"
+  description = "Set some additional zones for high availability."
 }
 
 variable node_config_svc_account {
-  default = "k8s-nodes-acme-dev-gke"
+  description = "Set a custom service account for worker nodes."
 }
 
 variable node_count {
@@ -147,9 +141,8 @@ variable "image_type" {
   default = "COS"
 }
 
-//provide appropriate path for Bastion VM Image from Packer script output
 variable bastion_image {
-  default = "projects/acme-dev/global/images/acme-ubuntu-1804-bionic-base-1541362924"
+  description = "Select a security hardened image for our SSH bastion host"
 }
 
 variable min_cpu_platform {
@@ -165,6 +158,8 @@ variable monitoring_service {
 }
 
 variable gke_oauth_scopes {
+  description = "Constrain GCP services scopes for GKE worker nodes."
+
   default = [
     "https://www.googleapis.com/auth/compute",
     "https://www.googleapis.com/auth/devstorage.read_only",
@@ -177,29 +172,31 @@ variable gke_oauth_scopes {
 }
 
 variable bastion_svc_account {
-  default = "bastion-acme-dev-gke"
+  description = "Set a custom service account for the bastion compute instance"
+}
+
+variable bastion_svc_account_role {
+  description = "Set appropriate role bindings for bastion instance service account"
+  default     = "roles/container.admin"
 }
 
 variable bastion_oath_scopes {
+  # TODO: try to clean up scopes
+  description = "Constrain GCP services scopes for bastion instance."
+
   default = [
-    "https://www.googleapis.com/auth/compute",
     "https://www.googleapis.com/auth/cloud-platform",
-    "https://www.googleapis.com/auth/devstorage.read_only",
-    "https://www.googleapis.com/auth/logging.write",
-    "https://www.googleapis.com/auth/monitoring",
-    "https://www.googleapis.com/auth/servicecontrol",
-    "https://www.googleapis.com/auth/service.management.readonly",
-    "https://www.googleapis.com/auth/trace.append",
   ]
 }
 
 variable ssh_firewall_rule_name {
-  default = "bastion-acme-dev-gke-ssh"
+  default = "bastion-gke-ssh"
 }
 
-//update with array of permissable source addresses
+#update with array of permissable source addresses
 variable ssh_source_ranges {
-  default = ["nnn.nnn.nnn.nnn/32"]
+  type        = "list"
+  description = "Constrain allowable sources that can connect to the ssh bastion."
 }
 
 variable "auto_repair" {
@@ -207,6 +204,7 @@ variable "auto_repair" {
   default     = true
 }
 
-variable "workload_metadata_config" { 
-  default = "SECURE"
+variable "workload_metadata_config" {
+  description = "Harden the medata service."
+  default     = "SECURE"
 }

@@ -12,45 +12,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-/*
-  This file manages ssh bastion host resources for the cluster
-*/
-
-//Create a bastion host VM to access our GKE cluster
-resource "google_compute_instance" "bastion-acme-dev-gke" {
+# create a bastion host VM to access our GKE cluster
+resource "google_compute_instance" "bastion-gke" {
   name         = "bastion-${var.name}-gke"
   machine_type = "${var.machine_type}"
   zone         = "${var.zone}"
 
-
   service_account {
-    email  = "${google_service_account.gke-acme-dev-bastion-svc-account.email}"
+    email  = "${google_service_account.gke-bastion-svc-account.email}"
     scopes = "${var.bastion_oath_scopes}"
   }
-
-  // tags = ["foo", "bar"]
-  // ^^ apply any tags
 
   boot_disk {
     initialize_params {
       image = "${var.bastion_image}"
     }
   }
-  // Local SSD disk
+
+  # local SSD disk
   scratch_disk {}
-  //specify the dedicated subnet for our inside interface:
+
+  # specify the dedicated subnet for our inside interface:
   network_interface {
-    subnetwork = "${google_compute_subnetwork.acme-cluster.name}"
+    subnetwork = "${google_compute_subnetwork.cluster.name}"
 
     access_config {
-      // leaving it empty assigns: Ephemeral IP
+      # leaving this empty assigns: ephemeral public ipv4 address
     }
   }
-
-  // set any needed labels
-  // metadata {
-  //   foo = "bar"
-  // }
-
-  //  metadata_startup_script = "echo hi > /test.txt"
 }

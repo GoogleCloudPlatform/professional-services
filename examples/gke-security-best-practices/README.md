@@ -37,26 +37,13 @@ bash$ terraform plan
 bash$ terraform apply
 ```
 
-## 4. Connecting with kubectl and helm
+## 4. Connecting with kubectl
 
 ssh to the bastion & configure kubectl & ensure connectivity
 ```bash
 $ gcloud container clusters get-credentials $(terraform output cluster_name) --zone $(terraform output cluster_zone)
 $ kubectl get ns
 ```
-
-Create a k8s service account for helm to run as:
-```bash
-$ kubectl apply -f ./helm-service-account.yaml
-$ helm init --service-account tiller
-```
-
-Wait for some time to pass, and test helm connectivity
-```bash
-$ helm list
-```
-
-how may now use Helm to deploy a chart, or kubectl to create a deployment manually
 
 ## To cleanup
 

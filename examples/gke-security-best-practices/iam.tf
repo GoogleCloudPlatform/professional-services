@@ -12,27 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-/*
-  This file manages GCP IAM resources for the cluster
-*/
+# create the service account for our cluster worker nodes
 
-//create the service account for our cluster worker nodes
-resource "google_service_account" "gke-acme-dev-cluster-svc-account" {
+# TODO: In order to use the configured oauth_scopes for logging and monitoring, 
+# the service account being used needs the roles/logging.logWriter 
+# and roles/monitoring.metricWriter roles.
+resource "google_service_account" "gke-cluster-svc-account" {
   account_id   = "${var.node_config_svc_account}"
-  display_name = "GKE acme dev k8s worker node service account"
+  display_name = "${var.node_config_svc_account}"
 }
 
-//create the service account for our cluster worker nodes
-resource "google_service_account" "gke-acme-dev-bastion-svc-account" {
+# create the service account for our cluster worker nodes
+resource "google_service_account" "gke-bastion-svc-account" {
   account_id   = "${var.bastion_svc_account}"
-  display_name = "GKE acme dev bastion service account"
+  display_name = "${var.bastion_svc_account}"
 }
 
-//apply cluster admin policy to bastion service account
+# apply cluster admin policy to bastion service account
 resource "google_project_iam_binding" "project" {
   project = "${var.project}"
-  role    = "roles/container.admin"
+  role    = "${var.bastion_svc_account_role}"
+
   members = [
-    "serviceAccount:${var.bastion_svc_account}@${var.project}.iam.gserviceaccount.com",
+    "serviceAccount:${google_service_account.gke-bastion-svc-account.email}",
   ]
 }

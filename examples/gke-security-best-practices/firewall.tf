@@ -12,21 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-/*
-  This file manages firewall resources
-*/
-
-//bastion firewall rule: all SSH from provided source network
-resource "google_compute_firewall" "bastion-acme-dev-gke-ssh" {
-  name    = "${var.ssh_firewall_rule_name}-allow-bastion-ssh"
-  network = "${google_compute_subnetwork.acme-cluster.name}"
-
-  target_service_accounts = ["${google_service_account.gke-acme-dev-bastion-svc-account.email}"]
+# bastion firewall rule: all SSH from provided source network
+resource "google_compute_firewall" "bastion-gke-ssh" {
+  name                    = "${var.ssh_firewall_rule_name}"
+  network                 = "${google_compute_subnetwork.cluster.name}"
   source_ranges           = "${var.ssh_source_ranges}"
+  target_service_accounts = ["${google_service_account.gke-bastion-svc-account.email}"]
 
   allow {
     protocol = "tcp"
     ports    = ["22"]
   }
 }
-

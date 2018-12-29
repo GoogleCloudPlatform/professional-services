@@ -12,70 +12,71 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-/*
-  This file manages GKE cluster resources
-*/
+# set the latest gke version
+data "google_container_engine_versions" "cluster" {
+  zone = "${var.zone}"
+}
 
-//create our GKE cluster
-resource "google_container_cluster" "acme-cluster" {
+# create our GKE cluster
+resource "google_container_cluster" "cluster" {
   provider = "google-beta"
   project  = "${var.project}"
   name     = "${var.name}"
   zone     = "${var.zone}"
 
-  //Set private cluster properties
-
+  # set private cluster properties
   private_cluster_config {
     enable_private_nodes    = "${var.enable_private_nodes}"
     enable_private_endpoint = "${var.enable_private_endpoint}"
     master_ipv4_cidr_block  = "${var.master_ipv4_cidr_block}"
   }
 
-  //private clusters require secondary address ranges
+  # private clusters require secondary address ranges
   ip_allocation_policy {
     cluster_secondary_range_name  = "${var.network_name}-pods"
     services_secondary_range_name = "${var.network_name}-services"
   }
 
-  //Enable regional high availability
+  # enable regional high availability
   additional_zones = "${var.additional_zones}"
 
-  ////Set latest GKE version
-  min_master_version      = "${data.google_container_engine_versions.acme-cluster.latest_node_version}"
+  # set latest GKE version
+  min_master_version      = "${data.google_container_engine_versions.cluster.latest_node_version}"
   enable_kubernetes_alpha = "${var.kubernetes_alpha}"
 
+  # configure logging
   logging_service    = "${var.logging_service}"
   monitoring_service = "${var.monitoring_service}"
 
-  //Enable Binary Authorization
+  # enable Binary Authorization
   enable_binary_authorization = "${var.enable_binary_authorization}"
 
   master_auth {
-    //disable static username and password auth
+    # disable static username and password auth
+    # setting a blank username/password ^^ effectively disables PW auth
     username = ""
+
     password = ""
 
-    //^^ setting a blank username/password ^^ effectively disables PW auth
-
     client_certificate_config {
-      //Disable Client Certificate authentication
+      # disable Client Certificate authentication
       issue_client_certificate = false
     }
   }
 
-  //specify a dedicated network and subnetwork
-  network    = "${google_compute_subnetwork.acme-cluster.name}"
-  subnetwork = "${google_compute_subnetwork.acme-cluster.name}"
+  # specify a dedicated network and subnetwork
+  network    = "${google_compute_subnetwork.cluster.name}"
+  subnetwork = "${google_compute_subnetwork.cluster.name}"
 
-  // Enable network policy and a provider
+  # enable network policy and a provider
   network_policy {
     enabled  = true
     provider = "CALICO"
   }
 
-  // If need to use legacy ABAC until these issues are resolved: 
-  //   https://github.com/mcuadros/terraform-provider-helm/issues/56
-  //   https://github.com/terraform-providers/terraform-provider-kubernetes/pull/73
+  # If need to use legacy ABAC until these issues are resolved: 
+  #   https://github.com/mcuadros/terraform-provider-helm/issues/56
+  #   https://github.com/terraform-providers/terraform-provider-kubernetes/pull/73
   enable_legacy_abac = "${var.kubernetes_legacy_abac}"
 
   addons_config {
@@ -87,13 +88,13 @@ resource "google_container_cluster" "acme-cluster" {
       disabled = "${var.horizontal_pod_autoscaling}"
     }
 
-    //disable the  k8s dashboard as it is insecure
+    # disable the  k8s dashboard as it is insecure
     kubernetes_dashboard {
       disabled = "${var.kubernetes_dashboard}"
     }
   }
 
-  // Constrain our maintenance window
+  # constrain our maintenance window
   maintenance_policy {
     daily_maintenance_window {
       start_time = "${var.daily_maintenance_window_start_time}"
@@ -122,23 +123,21 @@ resource "google_container_cluster" "acme-cluster" {
       min_cpu_platform = "${var.min_cpu_platform}"
       image_type       = "${var.image_type}"
 
-      service_account = "${var.node_config_svc_account}@${var.project}.iam.gserviceaccount.com"
-
-      // TODO: How to tighten the metadata service methods scopes?
-      // metadata = "" //if needed
-      // node_metadata_config = "" //if needed
+      # TODO fix this service_account
+      service_account = "${google_service_account.gke-cluster-svc-account.email}"
 
       workload_metadata_config {
         node_metadata = "${var.workload_metadata_config}"
       }
 
-      // Enable any required services scopes here:
+      # tune GCP services scopes:
       oauth_scopes = "${var.gke_oauth_scopes}"
-      tags         = ["acme-dev-pool"]
+      tags         = ["pool"]
     }
+
     management {
       auto_repair  = "${var.auto_repair}"
-      auto_upgrade = true                               // Best Practice to Auto-Upgrade Nodes
+      auto_upgrade = true
     }
   }
 }

@@ -12,19 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-/*
-  What is this?
-  An example (opinionated) 
-  GKE Cluster -
-      this demo includes:
-      a. GKE cluster with baseline/benchmark security best practices enabled
-      b. A security hardened bastion host/jump-box to access the GKE cluster
-*/
+# What is this?
+# An example (opinionated) 
+# GKE Cluster -
+#     this demo includes:
+#     a. GKE cluster with baseline/benchmark security best practices enabled
+#     b. A security hardened bastion host/jump-box to access the GKE cluster
 
-//TODO 1. add a sane default Calico network policy to allow outbound traffic
-//TODO 2. further harden bastion host security hardening, shielded boot, reduced meta service, etc
+provider "local" {}
 
-//enable some "beta" capabilies
 provider google-beta {
   region  = "${var.region}"
   project = "${var.project}"
@@ -34,7 +30,10 @@ provider google {
   region  = "${var.region}"
   project = "${var.project}"
 }
-//set the latest gke version
-data "google_container_engine_versions" "acme-cluster" {
-  zone = "${var.zone}"
+
+terraform {
+  backend "gcs" {
+    bucket = "tf-state-bucket-646d86cb4a68"
+    prefix = "ws10mvp"
+  }
 }

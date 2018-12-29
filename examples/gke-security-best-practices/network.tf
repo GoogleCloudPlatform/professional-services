@@ -12,27 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-/*
-  This file manages GCP Network resources for the cluster
-*/
+# create a dedicate network for our cluster
+resource "google_compute_network" "cluster" {
+  name = "${var.network_name}"
 
-//create a dedicate network for our cluster
-resource "google_compute_network" "acme-cluster" {
-  name                    = "${var.network_name}"
+  # disable auto-created subnets to prevent "overlap"
   auto_create_subnetworks = "${var.auto_create_subnetworks}"
-
-  //^^ disable auto-created subnets to prevent "overlap"
 }
 
-//create a dedicated subnet for our cluster
-resource "google_compute_subnetwork" "acme-cluster" {
+# create a dedicated subnet for our cluster
+resource "google_compute_subnetwork" "cluster" {
   name                     = "${var.network_name}"
   ip_cidr_range            = "${var.ip_cidr_range}"
-  network                  = "${google_compute_network.acme-cluster.self_link}"
+  network                  = "${google_compute_network.cluster.self_link}"
   region                   = "${var.region}"
   private_ip_google_access = "${var.private_ip_google_access}"
 
-  //Enable secondary IP range for pods and services:
+  # enable secondary IP range for pods and services:
   secondary_ip_range = [
     {
       range_name    = "${var.network_name}-pods"

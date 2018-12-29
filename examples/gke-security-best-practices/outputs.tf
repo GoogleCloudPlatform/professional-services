@@ -12,20 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-/*
-  This file manages outputs
-*/
-
 output network {
-  value = "${google_compute_subnetwork.acme-cluster.network}"
+  value = "${google_compute_subnetwork.cluster.network}"
 }
 
 output subnetwork_name {
-  value = "${google_compute_subnetwork.acme-cluster.name}"
+  value = "${google_compute_subnetwork.cluster.name}"
 }
 
 output cluster_name {
-  value = "${google_container_cluster.acme-cluster.name}"
+  value = "${google_container_cluster.cluster.name}"
 }
 
 output cluster_region {
@@ -33,5 +29,5 @@ output cluster_region {
 }
 
 output cluster_zone {
-  value = "${google_container_cluster.acme-cluster.zone}"
+  value = "${google_container_cluster.cluster.zone}"
 }
