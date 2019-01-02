@@ -1,0 +1,15 @@
+{
+	"interval": "60s",
+
+	"bigquery": {
+		"project": "GOOGLE_CLOUD_PROJECT",
+		"dataset": "gke_billing",
+		"table": "billing"
+	},
+
+	"projects": [
+		"GOOGLE_CLOUD_PROJECT",
+		"other-project",
+		"another-project-123"
+	]
+}

@@ -1,2 +1,0 @@
-apache-airflow>=1.9.0
-apache-beam>=2.4.0
