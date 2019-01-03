@@ -32,13 +32,17 @@ def calculate_time(start, end):
         return '%s hours %s min %s sec' % (hour, minutes, seconds)
     elif minutes != 0:
         return '%s min %s sec' % (minutes, seconds)
-    else:
-        return '%s sec' % seconds
+
+    return '%s sec' % seconds
 
 
 def print_and_log(output, level=logging.DEBUG):
     """Pretty prints the statement and logs it to the log file using the
     provided log level
+
+    Args:
+        output (str): statement to be logged
+        level (int): log level
     """
 
     tp.banner(output)

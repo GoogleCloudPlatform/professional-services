@@ -1,72 +1,47 @@
 """Module to wrap Hive table as a model"""
 
 import logging
+from collections import OrderedDict
+
+from utilities import get_random_string
 
 logger = logging.getLogger('Hive2BigQuery')
 
 
-class HiveTableModel:
+class HiveTableModel(object):
     """Wrapper for resource describing a Hive table
 
     Bundles information of different properties of the source Hive table such
     as schema, location of the table, input format, partition column etc.
 
     Attributes:
-        database_name: Hive database name
-        table_name: Hive table name
-        schema: Hive table schema
-        column_info: A dictionary mapping column names to column data types
-        columns: List of all the column names
-        n_cols: Number of columns
-        location: Location of the Hive table where data is stored
-        inputformat: Format of the underlying Hive data
-        partition_info: A dictionary mapping partition column names to their
-            data types
-        partition_columns: List of partition column names
-        is_table_partitioned: A boolean indicating whether the table is
-            partitioned
-        int_type_col: List of integer type columns
-        timestamp_type_col: List of timestamp/date type columns
+        table_details: Hive table details such as database name, table name,
+            schema, input format of the table, partition information and
+            a boolean indicating whether the table data format is supported
+            by BigQuery
+        inc_col_details: Incremental column(if any) and it's data type
         destination_data_format: Destination data format of BigQuery, one of
-        [Avro,ORC,Parquet]
-        is_table_type_supported: A boolean indicating whether the table data
-            format is supported by BigQuery
+            [Avro,ORC,Parquet]
         create_statement: CREATE TABLE statement for Hive staging table
-        inc_col: Incremental column name, if any present/provided
         tracking_table_name: Cloud SQL tracking table name
-        is_inc_col_present: A boolean indicating whether an
-            incremental column is present
-        inc_col_type: Data type of the incremental column
         is_first_run: A boolean indicating whether the table is being
             migrated for the first time
+        flat_schema: Flattened schema of the table
     """
 
     def __init__(self, **kwargs):
 
         logger.debug('Initializing HiveTableModel Object')
 
-        self.database_name = kwargs['database_name']
-        self.table_name = kwargs['table_name']
-        self.schema = kwargs['schema']
-        self.column_info = kwargs['column_info']
-        self.columns = kwargs['columns']
-        self.n_cols = kwargs['n_cols']
-        self.location = kwargs['location']
-        self.inputformat = kwargs['inputformat']
-        self.partition_info = kwargs['partition_info']
-        self.partition_columns = kwargs['partition_columns']
-        self.is_table_partitioned = kwargs['is_table_partitioned']
-        self.int_type_col = kwargs['int_type_col']
-        self.timestamp_type_col = kwargs['timestamp_type_col']
+        self._table_details = kwargs['table_details']
+        self._inc_col_details = {"name": kwargs['inc_col'], "type": None,
+                                 "options": kwargs['inc_col_options']}
         self.destination_data_format = kwargs['destination_data_format']
-        self.is_table_type_supported = kwargs['is_table_type_supported']
         self.create_statement = kwargs['create_statement']
-        self.inc_col = kwargs['inc_col']
-        self.tracking_table_name = kwargs['database_name'] + "_" + \
-                                   kwargs['table_name'].lower() + "_inc_"
-        self.is_inc_col_present = False
-        self.inc_col_type = None
-        self.is_first_run = True
+        self._tracking_table_name = self.db_name + "_" + \
+            self.table_name.lower() + "_inc_"
+        self._is_first_run = True
+        self._flat_schema = None
 
     def __str__(self):
         """Iterates over the attributes dictionary of HiveTableModel object
@@ -78,53 +53,205 @@ class HiveTableModel:
         return model
 
     @property
-    def tracking_table_name(self):
-        return self.tracking_table_name
+    def db_name(self):
+        return self._table_details['database_name']
 
-    @tracking_table_name.setter
-    def tracking_table_name(self, value):
-        logger.debug("Setting value tracking_table_name to %s", value)
-        self.tracking_table_name = value
+    @property
+    def table_name(self):
+        return self._table_details['table_name']
+
+    @property
+    def schema(self):
+        return self._table_details['schema']
+
+    @property
+    def input_format(self):
+        return self._table_details['input_format']
+
+    @property
+    def partition_info(self):
+        return self._table_details['partition_info']
+
+    @property
+    def is_table_type_supported(self):
+        return self._table_details['is_table_type_supported']
+
+    @property
+    def n_cols(self):
+        return len(self.schema)
+
+    @property
+    def is_partitioned(self):
+        if self._table_details['partition_info']:
+            return True
+        return False
+
+    @property
+    def flat_schema(self):
+        if self._flat_schema is None:
+            self._flat_schema = self.flatten_schema()
+        return self._flat_schema
 
     @property
     def is_inc_col_present(self):
-        return self.is_inc_col_present
+        if self._inc_col_details['name']:
+            return True
+        return False
 
     @is_inc_col_present.setter
     def is_inc_col_present(self, value):
         logger.debug("Setting value is_inc_col_present to %s", value)
         if value in [True, False]:
-            self.is_inc_col_present = value
+            self._inc_col_details['type'] = value
         else:
             logger.debug(
                 "Can't set is_inc_col_present to other than True/False")
 
     @property
     def inc_col(self):
-        return self.inc_col
+        return self._inc_col_details['name']
 
     @inc_col.setter
     def inc_col(self, value):
         logger.debug("Setting value inc_col to %s", value)
-        self.inc_col = value
+        self._inc_col_details['name'] = value
 
     @property
     def inc_col_type(self):
-        return self.inc_col_type
+        return self._inc_col_details['type']
 
     @inc_col_type.setter
     def inc_col_type(self, value):
         logger.debug("Setting value inc_col_type to %s", value)
-        self.inc_col_type = value
+        self._inc_col_details['type'] = value
+
+    @property
+    def int_type_col(self):
+        return self._inc_col_details['options']['int']
+
+    @property
+    def timestamp_type_col(self):
+        return self._inc_col_details['options']['timestamp']
+
+    @property
+    def staging_table_name(self):
+        return 'stage__' + self.table_name + '__' + get_random_string()
+
+    @property
+    def tracking_table_name(self):
+        return self._tracking_table_name
+
+    @tracking_table_name.setter
+    def tracking_table_name(self, value):
+        logger.debug("Setting value tracking_table_name to %s", value)
+        self._tracking_table_name = value
 
     @property
     def is_first_run(self):
-        return self.is_first_run
+        return self._is_first_run
 
     @is_first_run.setter
     def is_first_run(self, value):
         logger.debug("Setting value is_first_run to %s", value)
         if value in [True, False]:
-            self.is_first_run = value
+            self._is_first_run = value
         else:
             logger.debug("Can't set is_first_run to other than True/False")
+
+    def flatten_schema(self):
+        """Returns Hive table schema in flat structure
+
+        Nested data types in Hive schema are represented using '<'. For
+        example, array of integers is represented as 'array<int>'. Similarly,
+        maps and structs are represented too. To compare the data types in
+        Hive and BigQuery, this schema needs to be flattened out and then the
+        internal data type can be compared.
+
+        For example col_name(map<string,array<int>>) in Hive is flattened as
+        {
+            "col_name"          : "map",
+            "col_name__key"     : "string",
+            "col_name__value"   : "array_int"
+        }
+        Uses string extraction to flatten the schema
+
+        Returns:
+            dict: A dictionary mapping flattened columns and their data types
+        """
+
+        def recursively_flatten(name, item_type):
+            """Iterates through the nested fields and gets the data types
+
+            Args:
+                name (str): Flattened column name
+                item_type (str): Flattened column type
+            """
+            columns.append(name)
+            if '<' in item_type:
+                col_type = item_type.split('<')[0]
+                # If type is array, recursively flatten the nested structure
+                if col_type == 'array':
+                    col_types.append('array')
+                    recursively_flatten(name,
+                                        '<'.join(item_type.split('<')[1:])[:-1])
+                # If type is map, recursively flatten the value in the map
+                elif col_type == 'map':
+                    col_types.append('map')
+                    columns.append(name + '__key')
+                    col_types.append('string')
+
+                    recursively_flatten(name + '__value', ','.join(
+                        '<'.join(item_type.split('<')[1:])[:-1].split(',')[1:]))
+
+                elif col_type == "uniontype":
+                    col_types.append('union')
+                # If type is struct, recursively flatten all the fields inside
+                elif col_type == 'struct':
+                    col_types.append('struct')
+                    struct_info = '<'.join(item_type.split('<')[1:])[:-1]
+                    rand = []
+                    struct_split = struct_info.split(',')
+                    for i, struct_item in enumerate(struct_split):
+                        if struct_item.count('<') == struct_item.count('>'):
+                            rand.append(struct_item)
+                        else:
+                            struct_split[i + 1] = struct_item + ',' + \
+                                                  struct_split[i + 1]
+                    for item in rand:
+                        recursively_flatten(name + '__' + item.split(':')[0],
+                                            ':'.join(item.split(':')[1:]))
+
+            else:
+                col_types.append(item_type)
+
+        columns = []
+        col_types = []
+        for name, col_type in self.schema.iteritems():
+            recursively_flatten(name, col_type)
+
+        list_tuple = zip(columns, col_types)
+        col_dict = OrderedDict()
+
+        for item in list_tuple:
+            if item[0] in col_dict.keys():
+                col_dict[str(item[0])].append(str(item[1]))
+            else:
+                col_dict[str(item[0])] = [str(item[1])]
+
+        for key, value in col_dict.iteritems():
+            if len(value) >= 2:
+                collapse_string = "array_" * value.count('array') + \
+                                  [item for item in value if item != 'array'][0]
+                col_dict[key] = collapse_string
+            else:
+                col_dict[key] = value[0]
+
+        for key, value in col_dict.iteritems():
+            if 'decimal' in value:
+                col_dict[key] = 'decimal'
+            elif 'varchar' in value:
+                col_dict[key] = 'varchar'
+            elif 'char' in value:
+                col_dict[key] = 'char'
+
+        return col_dict

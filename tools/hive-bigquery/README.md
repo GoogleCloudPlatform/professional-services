@@ -26,17 +26,17 @@ cd tools/hive-bigquery/
 ```
 2. Install prerequisites such as python, pip, virtualenv and Cloud SQL proxy
 ```
-sh prerequisites.sh
+sh prerequisites/prerequisites.sh
 ```
 3. Activate the virtual environment
 ```
 virtualenv env
 source env/bin/activate
-pip install -r requirements.txt
+pip install -r prerequisites/requirements.txt
 ```
 4. [optional] Use an existing Cloud SQL instance for tracking the progress of migration or launch a new one. Run the below command to create an instance. This will output the connection name of the instance which is of use in the next steps.
 ```
-sh create_sql_instance.sh <INSTANCE_NAME> <DATABASE_NAME>
+sh prerequisites/create_sql_instance.sh <INSTANCE_NAME> <DATABASE_NAME>
 ```
 5. Start the Cloud SQL proxy and establish a connection to the Cloud SQL instance
 ```

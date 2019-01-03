@@ -7,9 +7,14 @@ class GCPService:
     """Create a client to connect to the service"""
     __metaclass__ = ABCMeta
 
-    def __init__(self, project_id):
+    def __init__(self, project_id, description):
         self.project_id = project_id
+        self._description = description
         self.client = self.get_client()
+
+    @property
+    def description(self):
+        return self._description
 
     @abstractmethod
     def get_client(self):

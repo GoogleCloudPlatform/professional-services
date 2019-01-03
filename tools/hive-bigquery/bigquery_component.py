@@ -1,11 +1,12 @@
 """Module to handle BigQuery related utilities"""
 
 import csv
-import json
 import logging
 import os
 import time
 
+from google.api_core import exceptions as api_exceptions
+from google.auth import exceptions as auth_exceptions
 from google.cloud import bigquery
 
 from utilities import get_random_string, print_and_log
@@ -32,7 +33,7 @@ class BigQueryComponent(GCPService):
     def __init__(self, project_id):
 
         logger.debug("Initializing BigQuery Component")
-        super(BigQueryComponent, self).__init__(project_id)
+        super(BigQueryComponent, self).__init__(project_id, "BigQuery service")
 
     def get_client(self):
         """Creates BigQuery client
@@ -42,7 +43,13 @@ class BigQueryComponent(GCPService):
         """
 
         logger.debug("Getting BigQuery client")
-        return bigquery.Client(project=self.project_id)
+        try:
+            client = bigquery.Client(project=self.project_id)
+            return client
+        except auth_exceptions.DefaultCredentialsError:
+            print_and_log("Error while creating BigQuery client",
+                          logging.CRITICAL)
+            raise
 
     def check_dataset_exists(self, dataset_id):
         """Checks whether the provided BigQuery dataset exists
@@ -57,10 +64,11 @@ class BigQueryComponent(GCPService):
         dataset_ref = self.client.dataset(dataset_id)
         try:
             self.client.get_dataset(dataset_ref)
-            return True
-        except Exception as error:
-            logger.error(error)
-            return False
+            logger.info("BigQuery dataset %s found", dataset_id)
+        except api_exceptions.NotFound:
+            print_and_log("BigQuery dataset %s does not exist" % dataset_id,
+                          logging.CRITICAL)
+            raise
 
     def check_bq_table_exists(self, dataset_id, table_name):
         """Checks whether the provided BigQuery table exists
@@ -77,8 +85,7 @@ class BigQueryComponent(GCPService):
         try:
             self.client.get_table(table_ref)
             return True
-        except Exception as error:
-            logger.error(error)
+        except api_exceptions.NotFound:
             return False
 
     def get_dataset_location(self, dataset_id):
@@ -120,25 +127,11 @@ class BigQueryComponent(GCPService):
         table_ref = self.client.dataset(dataset_id).table(table_name)
         try:
             self.client.delete_table(table_ref)
-            logger.debug(
-                "Deleted table %s from %s dataset", table_name, dataset_id)
-        except Exception as error:
-            logger.error(error)
-
-    def get_table(self, dataset_id, table_name):
-        """Gets BigQuery table
-
-        Args:
-            dataset_id (str): BigQuery dataset id
-            table_name (str): BigQuery table name
-
-        Returns:
-            google.cloud.bigquery.table.Table: BigQuery table instance
-        """
-
-        table_ref = self.client.dataset(dataset_id).table(table_name)
-        table = self.client.get_table(table_ref)
-        return table
+            logger.debug("Deleted table %s from %s dataset", table_name,
+                         dataset_id)
+        except api_exceptions.NotFound:
+            logger.debug("Table %s not found in %s dataset. No need to delete",
+                         table_name, dataset_id)
 
     def check_bq_write_mode(self, mysql_component, hive_table_model,
                             bq_table_model):
@@ -358,9 +351,8 @@ class BigQueryComponent(GCPService):
                                     bq_job_id)
                         mysql_component.execute_transaction(query)
                         print_and_log(
-                            "Updated BigQuery load job {} status RUNNING --> "
-                            "DONE".format(
-                                bq_job_id))
+                            "Updated BigQuery load job %s status RUNNING --> "
+                            "DONE" % bq_job_id)
                         # Deletes the data file in GCS
                         gcs_component.delete_file(gcs_bucket_name,
                                                   gcs_file_path)
@@ -374,10 +366,9 @@ class BigQueryComponent(GCPService):
                                         bq_job_id)
                             mysql_component.execute_transaction(query)
                             print_and_log(
-                                "BigQuery job {} failed.Tried for a maximum "
+                                "BigQuery job %s failed.Tried for a maximum "
                                 "of 3 times.Updated status RUNNING --> "
-                                "FAILED".format(
-                                    bq_job_id))
+                                "FAILED" % bq_job_id)
                         else:
                             query = "UPDATE %s SET bq_job_status='TODO'," \
                                     "bq_job_retries=%d WHERE bq_job_id='%s'" % (
@@ -385,10 +376,9 @@ class BigQueryComponent(GCPService):
                                         bq_job_retries + 1, bq_job_id)
                             mysql_component.execute_transaction(query)
                             print_and_log(
-                                "BigQuery job {} failed.Updated status "
+                                "BigQuery job %s failed.Updated status "
                                 "RUNNING --> TODO & increased retries count "
-                                "by 1".format(
-                                    bq_job_id))
+                                "by 1" % bq_job_id)
 
                 elif job.state == 'RUNNING':
                     # Count of jobs which are still in running state
@@ -411,85 +401,6 @@ class BigQueryComponent(GCPService):
             results = mysql_component.execute_query(query)
 
     @staticmethod
-    def flatten_schema(bq_table_model):
-        """Returns BigQuery table schema in flat structure
-
-        Nested data types in BigQuery schema are represented using nested
-        fields.
-        For example, map column col_name(map<string,int>) is represented as
-        {
-            "fields": [
-            {
-                "mode": "REQUIRED",
-                "name": "key",
-                "type": "STRING"
-            },
-            {
-                "mode": "NULLABLE",
-                "name": "value",
-                "type": "INTEGER"
-            }
-            ],
-            "mode": "REPEATED",
-            "name": "col_name",
-            "type": "RECORD"
-        }
-        To compare the data types in Hive and BigQuery, the schema needs to
-        be flattened and then the data types can be compared.
-
-        For example the above will be flattened as
-        {
-            "col_name"          : "RECORD_REPEATED",
-            "col_name__key"     : "STRING",
-            "col_name__value"   : "INTEGER"
-        }
-        Uses string extraction to flatten the schema
-
-        Args:
-            bq_table_model (:class:`BigQueryTableModel`): Wrapper to BigQuery
-            table details
-        """
-
-        def recursively_flatten(schema, col_name):
-            """Iterates through the nested fields and gets the data types
-
-            Args:
-                schema (List[dict]): schema of the BigQuery fields
-                col_name (str): Flattened column name
-            """
-            for item in schema:
-                name = col_name + item['name']
-                if item['mode'] == 'REPEATED':
-                    col_type = item['type'] + '_' + item['mode']
-                else:
-                    col_type = item['type']
-
-                columns.append(name)
-                col_types.append(col_type)
-
-                if "RECORD" in col_type:
-                    recursively_flatten(item['fields'], name + '__')
-
-        columns = []
-        col_types = []
-
-        os.system('bq show --format=prettyjson {}.{} > bq_schema.json'.format(
-            bq_table_model.dataset_id, bq_table_model.table_name))
-        with open('bq_schema.json', 'rb') as file_content:
-            schema = json.load(file_content)
-        os.remove('bq_schema.json')
-        schema = schema['schema']['fields']
-
-        recursively_flatten(schema, '')
-        my_dict = {}
-        list_tuple = zip(columns, col_types)
-
-        for item in list_tuple:
-            my_dict[item[0]] = item[1]
-
-        return my_dict
-
-    @staticmethod
     def generate_metrics_table_schema(columns_list):
         """Creates schema for the BigQuery comparison metrics table
 
@@ -498,7 +409,7 @@ class BigQueryComponent(GCPService):
 
         Returns:
             List[google.cloud.bigquery.schema.SchemaField]: Schema of the
-            comparison metrics table
+                comparison metrics table
         """
 
         schema = [
@@ -518,33 +429,31 @@ class BigQueryComponent(GCPService):
         return schema
 
     @staticmethod
-    def analyze_hive_table(hive_table_model, schema):
+    def analyze_hive_table(hive_table_model):
         """Gets information about the Hive table
 
         Args:
             hive_table_model (:class:`HiveTableModel`): Wrapper to Hive table
                 details
-            schema (dict): Flattened schema of the Hive table
 
         Returns:
             dict: A dictionary of metrics about the Hive table
         """
 
         table_analysis = dict()
-        table_analysis['operation'] = "HIVE"
+        table_analysis['operation'] = "Hive"
         table_analysis['table_name'] = hive_table_model.table_name
         table_analysis['num_cols'] = str(hive_table_model.n_cols)
-        table_analysis['schema'] = schema
+        table_analysis['schema'] = hive_table_model.flat_schema
         return table_analysis
 
     @staticmethod
-    def analyze_bq_table(bq_table_model, schema):
+    def analyze_bq_table(bq_table_model):
         """Gets information about the BigQuery table
 
         Args:
             bq_table_model (:class:`BigQueryTableModel`): Wrapper to BigQuery
-            table details
-            schema (dict): Flattened schema of the Hive table
+                table details
 
         Returns:
             dict: A dictionary of metrics about the BigQuery table
@@ -554,7 +463,7 @@ class BigQueryComponent(GCPService):
         table_analysis['operation'] = "BigQuery"
         table_analysis['table_name'] = bq_table_model.table_name
         table_analysis['num_cols'] = str(bq_table_model.n_cols)
-        table_analysis['schema'] = schema
+        table_analysis['schema'] = bq_table_model.flat_schema
         return table_analysis
 
     @staticmethod
@@ -575,30 +484,31 @@ class BigQueryComponent(GCPService):
             writer.writerow(data)
 
     @staticmethod
-    def read_validations():
-        """Reads the set of Hive-BigQuery data type validation rules into a
-        list"""
-
-        validations_csv_filename = 'validations.csv'
-        with open(validations_csv_filename, 'rb') as file_content:
-            reader = csv.reader(file_content)
-            validations_list = [row for row in reader]
-        return validations_list
-
-    @staticmethod
-    def do_health_checks(validations_list, hive_table_analysis,
+    def do_health_checks(hive_table_analysis,
                          bq_table_analysis, columns_list):
         """Populates the Health checks values by comparing Hive and BigQuery
         tables
 
         Args:
-            validations_list (List): List of data type validations rules
             hive_table_analysis (dict): A dictionary of metrics about the
-            Hive table
+                Hive table
             bq_table_analysis (dict): A dictionary of metrics about the
-            BigQuery table
+                BigQuery table
             columns_list (List[str]): List of flattened column names
         """
+
+        def read_validations():
+            """Reads the set of Hive-BigQuery data type validation rules into a
+            list"""
+
+            validations_csv_filename = 'validations.csv'
+            with open(validations_csv_filename, 'rb') as file_content:
+                reader = csv.reader(file_content)
+                validations_list = [row for row in reader]
+            return validations_list
+
+        logger.debug("Reading the validations CSV file")
+        validation_rules = read_validations()
 
         healths = {
             "operation": "Health Check",
@@ -616,7 +526,7 @@ class BigQueryComponent(GCPService):
                     hive_table_analysis['schema'][item].split('_')[-2:])
 
             if ([hive_table_analysis['schema'][item],
-                 bq_table_analysis['schema'][item]] in validations_list):
+                 bq_table_analysis['schema'][item]] in validation_rules):
                 healths['schema'][str(item)] = "Pass"
             else:
                 healths['schema'][str(item)] = "Fail"
@@ -651,7 +561,7 @@ class BigQueryComponent(GCPService):
             "BigQuery table {}".format(
                 destination_table.num_rows, table_name))
 
-    def write_metrics_to_bigquery(self, hive_component, gcs_component,
+    def write_metrics_to_bigquery(self, gcs_component,
                                   hive_table_model, bq_table_model):
         """Writes comparison metrics to BigQuery
 
@@ -660,10 +570,8 @@ class BigQueryComponent(GCPService):
         migration and loads the metrics data into a BigQuery comparison table
 
         Args:
-            hive_component (:class:`HiveComponent`): Instance of
-                HiveComponent to connect to Hive
             gcs_component (:class:`GCSStorageComponent`): Instance of
-            GCSStorageComponent to do GCS operations
+                GCSStorageComponent to do GCS operations
             hive_table_model (:class:`HiveTableModel`): Wrapper to Hive table
                 details
             bq_table_model (:class:`BigQueryTableModel`): Wrapper to BigQuery
@@ -676,38 +584,30 @@ class BigQueryComponent(GCPService):
         print_and_log("Analyzing the Hive and BigQuery tables...")
 
         # Flattens the Hive table schema and writes row to CSV file
-        hive_flat_schema, flat_list_columns = hive_component.flatten_schema(
-            hive_table_model)
-        hive_table_analysis = self.analyze_hive_table(hive_table_model,
-                                                      hive_flat_schema)
+        flat_list_columns = hive_table_model.flat_schema.keys()
+        hive_table_analysis = self.analyze_hive_table(hive_table_model)
         self.append_row_to_metrics_file(metrics_csv_filename,
                                         hive_table_analysis, flat_list_columns)
         logger.debug("Analyzed Hive table metrics")
 
         # Flattens the BigQuery table schema and writes row to CSV file
-        bq_flat_schema = self.flatten_schema(bq_table_model)
-        bq_table_analysis = self.analyze_bq_table(bq_table_model,
-                                                  bq_flat_schema)
+        bq_table_analysis = self.analyze_bq_table(bq_table_model)
         self.append_row_to_metrics_file(metrics_csv_filename, bq_table_analysis,
                                         flat_list_columns)
         logger.debug("Analyzed BigQuery table metrics")
 
-        logger.debug("Reading the validations CSV file")
-        validations_list = self.read_validations()
         # Does Health checks by comparing Hive and BigQuery metrics
-        healths = self.do_health_checks(validations_list, hive_table_analysis,
+        healths = self.do_health_checks(hive_table_analysis,
                                         bq_table_analysis, flat_list_columns)
         self.append_row_to_metrics_file(metrics_csv_filename, healths,
                                         flat_list_columns)
         logger.debug("Health checks are done")
 
         logger.debug("Getting metrics table schema")
-        metrics_table_schema = self.generate_metrics_table_schema(
-            flat_list_columns)
 
         logger.debug("Creating BigQuery metrics table")
         self.create_table(bq_table_model.dataset_id, metrics_table_name,
-                          metrics_table_schema)
+                          self.generate_metrics_table_schema(flat_list_columns))
         # Uploads metrics CSV file to GCS bucket
         blob_name = "BQ_staging/" + metrics_csv_filename
         csv_uri = gcs_component.upload_file(

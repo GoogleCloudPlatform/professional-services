@@ -4,6 +4,8 @@ import logging
 import os
 import time
 
+from google.api_core import exceptions as api_exceptions
+from google.auth import exceptions as auth_exceptions
 from google.cloud import storage
 
 from utilities import calculate_time, get_random_string, execute_command, \
@@ -28,7 +30,7 @@ class GCSStorageComponent(GCPService):
     def __init__(self, project_id):
 
         logger.debug("Initializing GCS Component")
-        super(GCSStorageComponent, self).__init__(project_id)
+        super(GCSStorageComponent, self).__init__(project_id, "Cloud Storage")
 
     def get_client(self):
         """Creates BigQuery client
@@ -38,7 +40,11 @@ class GCSStorageComponent(GCPService):
         """
 
         logger.debug("Getting GCS client")
-        return storage.Client(project=self.project_id)
+        try:
+            client = storage.Client(project=self.project_id)
+            return client
+        except auth_exceptions.DefaultCredentialsError:
+            print_and_log("Error while creating GCS client")
 
     def upload_file(self, bucket_name, file_name, blob_name):
         """Uploads local file to GCS bucket
@@ -81,10 +87,11 @@ class GCSStorageComponent(GCPService):
 
         try:
             self.client.get_bucket(bucket_name)
-            return True
-        except Exception as error:
-            logger.error(error)
-            return False
+            logger.info("GCS Bucket %s found", bucket_name)
+        except api_exceptions.NotFound:
+            print_and_log("GCS bucket %s does not exist" % bucket_name,
+                          logging.CRITICAL)
+            raise
 
     def get_bucket_location(self, bucket_name):
         """Returns the bucket location
@@ -101,6 +108,8 @@ class GCSStorageComponent(GCPService):
         Args:
             bucket_name (str): GCS bucket name
             gcs_uri (str): GCS URI of the file
+        Returns:
+            boolean: True if file exists, False if not
         """
 
         bucket = self.client.get_bucket(bucket_name)
@@ -158,7 +167,7 @@ class GCSStorageComponent(GCPService):
                 file_content.write(str(file_info))
 
             target_blob = "BQ_staging/{}/{}/{}/".format(
-                hive_table_model.database_name,
+                hive_table_model.db_name,
                 hive_table_model.table_name.lower(), get_random_string())
             # Uploads file to create a folder like structure in GCS
             self.upload_file(gcs_bucket_name, filename, target_blob + filename)
@@ -177,9 +186,7 @@ class GCSStorageComponent(GCPService):
 
             start = time.time()
             execute_command(cmd_copy_gcs)
-            end = time.time()
-            time_distcp_gcs = calculate_time(start, end)
-            logger.debug("Time taken - %s", time_distcp_gcs)
+            logger.debug("Time taken - %s", calculate_time(start, time.time()))
 
             # Iterates though the dict and checks whether the distcp
             # operation is successful or partially completed
@@ -198,7 +205,8 @@ class GCSStorageComponent(GCPService):
                                 target_file_location, source_location)
                     mysql_component.execute_transaction(query)
                     logger.debug(
-                        "Updated GCS copy status TODO --> DONE for file path %s",
+                        "Updated GCS copy status TODO --> DONE for file path "
+                        "%s",
                         source_location)
                 else:
                     logger.error(

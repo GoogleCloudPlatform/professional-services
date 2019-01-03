@@ -134,6 +134,8 @@ def initialize_variables():
         "log_file_name": log_file_name
     }
 
+    print "Check the log file %s for detailed logs" % log_file_name
+
     logger.debug("Configuration Properties")
     logger.debug(configuration_properties)
 
