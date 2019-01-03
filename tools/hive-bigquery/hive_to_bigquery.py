@@ -48,7 +48,7 @@ def compare_rows(bq_component, hive_component, gcs_component, hive_table_model,
     if hive_table_rows == bq_table_rows:
         print_and_log("Number of rows matching in BigQuery and Hive tables",
                       logging.INFO)
-        bq_component.write_metrics_to_bigquery(hive_component, gcs_component,
+        bq_component.write_metrics_to_bigquery(gcs_component,
                                                hive_table_model, bq_table_model)
 
     else:
@@ -56,9 +56,9 @@ def compare_rows(bq_component, hive_component, gcs_component, hive_table_model,
                       logging.INFO)
         # If table is partitioned, compares rows in each partition and
         # provide suggestions whether to redo that partition
-        if hive_table_model.is_table_partitioned:
+        if hive_table_model.is_partitioned:
             partition_data = hive_component.list_partitions(
-                hive_table_model.database_name, hive_table_model.table_name)
+                hive_table_model.db_name, hive_table_model.table_name)
             for data in partition_data:
                 clause = data['clause']
                 bq_table_rows = bq_component.get_bq_table_row_count(
@@ -93,7 +93,7 @@ def rollback(mysql_component, hive_table_model):
 
     Args:
         mysql_component (:class:`MySQLComponent`): Instance of MySQLComponent
-        to connect to MySQL
+            to connect to MySQL
         hive_table_model (:class:`HiveTableModel`): Wrapper to Hive table
             details
     """
@@ -118,28 +118,24 @@ def main():
 
         # Initializes the components to connect to MySQL, GCS, BigQuery and Hive
         mysql_component = MySQLComponent(
-            PropertiesReader.get('tracking_database_host'),
-            PropertiesReader.get('tracking_database_user'),
-            PropertiesReader.get('tracking_database_password'),
-            PropertiesReader.get('tracking_database_db_name'),
-            PropertiesReader.get('tracking_database_port'),
-        )
+            host=PropertiesReader.get('tracking_database_host'),
+            port=PropertiesReader.get('tracking_database_port'),
+            user=PropertiesReader.get('tracking_database_user'),
+            password=PropertiesReader.get('tracking_database_password'),
+            database=PropertiesReader.get('tracking_database_db_name'))
         gcs_component = GCSStorageComponent(PropertiesReader.get('project_id'))
         bq_component = BigQueryComponent(PropertiesReader.get('project_id'))
         hive_component = HiveComponent(
-            PropertiesReader.get('hive_server_host'),
-            PropertiesReader.get('hive_server_port'),
-            PropertiesReader.get('hive_server_username')
-        )
+            host=PropertiesReader.get('hive_server_host'),
+            port=PropertiesReader.get('hive_server_port'),
+            user=PropertiesReader.get('hive_server_username'),
+            password=None,
+            database=None)
 
         # Validates the user provided resources
         logger.debug("Validating the resources")
-        if ResourceValidator.validate(hive_component, gcs_component,
-                                      bq_component):
-            logger.info("All the provided resources are valid")
-        else:
-            print_and_log("Check the provided resources", logging.CRITICAL)
-            exit()
+        ResourceValidator.validate(hive_component, gcs_component, bq_component)
+        logger.info("All the provided resources are valid")
 
         hive_table_object = HiveTable(
             hive_component, PropertiesReader.get('hive_database'),
@@ -199,18 +195,20 @@ def main():
                 "Tracking table already exists. Continuing from the previous "
                 "iteration...")
 
-            # Copies the pending files from the previous run to GCS and
-            # updates the BigQuery load job status
+            # Copies the pending files from the previous run to GCS, loads them
+            # to BigQuery and updates the BigQuery load job status
             gcs_component.stage_to_gcs(mysql_component, bq_component,
                                        hive_table_model, bq_table_model,
                                        PropertiesReader.get('gcs_bucket_name'))
+            bq_component.load_gcs_to_bq(mysql_component, hive_table_model,
+                                        bq_table_model)
             bq_component.update_bq_job_status(mysql_component, gcs_component,
                                               hive_table_model, bq_table_model,
                                               PropertiesReader.get(
                                                   'gcs_bucket_name'))
 
         # Checks for new data in the Hive table
-        tracking_data = hive_component.check_new_data(
+        tracking_data = hive_component.check_inc_data(
             mysql_component, bq_component, gcs_component, hive_table_model,
             bq_table_model, PropertiesReader.get('gcs_bucket_name'))
 
@@ -235,6 +233,8 @@ def main():
     except Exception as error:
         logger.exception(error)
         rollback(mysql_component, hive_table_model)
+        print_and_log("Check the log file for detailed errors",
+                      logging.CRITICAL)
 
 
 if __name__ == '__main__':

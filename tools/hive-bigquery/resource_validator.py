@@ -5,6 +5,7 @@ import logging
 from properties_reader import PropertiesReader
 
 logger = logging.getLogger('Hive2BigQuery')
+LOCATION_HELP_URL = "https://cloud.google.com/bigquery/docs/dataset-locations#data-locations"
 
 
 class ResourceValidator(object):
@@ -88,11 +89,11 @@ class ResourceValidator(object):
 
         Args:
             hive_component (:class:`HiveComponent`): Instance of
-            HiveComponent to connect to Hive
+                HiveComponent to connect to Hive
             gcs_component (:class:`GCSStorageComponent`): Instance of
-            GCSStorageComponent to do GCS operations
+                GCSStorageComponent to do GCS operations
             bq_component (:class:`BigQueryComponent`): Instance of
-            BigQueryComponent to do BigQuery operations
+                BigQueryComponent to do BigQuery operations
         """
 
         if hive_component.check_database_exists(
@@ -100,37 +101,24 @@ class ResourceValidator(object):
             logger.info("Hive database %s found",
                         PropertiesReader.get('hive_database'))
         else:
-            logger.critical("Hive database %s does not exist",
-                            PropertiesReader.get('hive_database'))
-            return False
+            logger.info("Hive database %s doesn't exist",
+                        PropertiesReader.get('hive_database'))
 
         if hive_component.check_table_exists(
                 PropertiesReader.get('hive_database'),
                 PropertiesReader.get('hive_table_name')):
-            logger.info("Hive table %s found",
-                        PropertiesReader.get('hive_table_name'))
+            logger.info("Hive table %s found in database %s",
+                        PropertiesReader.get('hive_table_name'),
+                        PropertiesReader.get('hive_database'))
         else:
-            logger.critical("Hive table %s does not exist",
-                            PropertiesReader.get('hive_table_name'))
-            return False
+            logger.info("Hive table %s doesn't exist in database %s",
+                        PropertiesReader.get('hive_table_name'),
+                        PropertiesReader.get('hive_database'))
 
-        if gcs_component.check_bucket_exists(
-                PropertiesReader.get('gcs_bucket_name')):
-            logger.info("GCS Bucket %s found",
-                        PropertiesReader.get('gcs_bucket_name'))
-        else:
-            logger.critical("GCS Bucket %s does not exist",
-                            PropertiesReader.get('gcs_bucket_name'))
-            return False
+        gcs_component.check_bucket_exists(
+            PropertiesReader.get('gcs_bucket_name'))
 
-        if bq_component.check_dataset_exists(
-                PropertiesReader.get('dataset_id')):
-            logger.info("BigQuery dataset %s found",
-                        PropertiesReader.get('dataset_id'))
-        else:
-            logger.critical("BigQuery dataset %s does not exist",
-                            PropertiesReader.get('dataset_id'))
-            return False
+        bq_component.check_dataset_exists(PropertiesReader.get('dataset_id'))
 
         bq_dataset_location = bq_component.get_dataset_location(
             PropertiesReader.get('dataset_id'))
@@ -139,8 +127,6 @@ class ResourceValidator(object):
         # Checks whether the BigQuery dataset location and GCS bucket
         # location are compatible, since location constraints do not allow
         # loading data if locations are not compatible.
-        # Visit https://cloud.google.com/bigquery/docs/dataset-locations#data
-        # -locations for more info
         if ResourceValidator.check_location_compatibility(bq_dataset_location,
                                                           gcs_bucket_location):
             logger.info(
@@ -150,7 +136,5 @@ class ResourceValidator(object):
             logger.critical(
                 "Dataset location %s and GCS Bucket location %s do not match",
                 bq_dataset_location, gcs_bucket_location)
-            logger.critical("Visit https://cloud.google.com/bigquery/docs/dataset-locations#data-locations for more info")
-            return False
-
-        return True
+            logger.critical("Visit %s for more information", LOCATION_HELP_URL)
+            exit()

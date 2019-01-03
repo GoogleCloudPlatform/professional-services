@@ -27,11 +27,10 @@ class MySQLComponent(DatabaseComponent):
 
     """
 
-    def __init__(self, host, user, password, database, port):
+    def __init__(self, **kwargs):
 
         logger.debug("Initializing Cloud SQL Component")
-        super(MySQLComponent, self).__init__(host, port, user, password,
-                                             database)
+        super(MySQLComponent, self).__init__(**kwargs)
 
     def __str__(self):
         return "MySQL - Host %s username %s database %s port %s" % (
@@ -53,11 +52,10 @@ class MySQLComponent(DatabaseComponent):
                                          database=self.database,
                                          port=int(self.port))
             return connection
-        except Exception as error:
-            logger.error(error)
+        except pymysql.err.DatabaseError:
             print_and_log("Failed to establish MySQL connection",
                           logging.CRITICAL)
-            exit()
+            raise
 
     def get_cursor(self):
         """Gets the cursor object
@@ -81,9 +79,11 @@ class MySQLComponent(DatabaseComponent):
             cursor = self.get_cursor()
             cursor.execute(query)
             self.connection.commit()
-        except Exception as error:
-            logger.error(error)
+        except pymysql.err.OperationalError:
+            print_and_log(
+                "Failed to commit transaction %s to Cloud SQL table" % query)
             self.connection.rollback()
+            raise
 
     def execute_query(self, query):
         """Executes query and returns the results
@@ -96,8 +96,12 @@ class MySQLComponent(DatabaseComponent):
         """
 
         cursor = self.get_cursor()
-        cursor.execute(query)
-        return cursor.fetchall()
+        try:
+            cursor.execute(query)
+            return cursor.fetchall()
+        except pymysql.err.OperationalError:
+            print_and_log("Failed in querying CLoud SQL table - %s" % query)
+            raise
 
     def drop_table(self, table_name):
         """Drops tracking table
@@ -110,8 +114,8 @@ class MySQLComponent(DatabaseComponent):
         try:
             cursor.execute("DROP TABLE {}".format(table_name))
             logger.debug("Dropped table %s", table_name)
-        except Exception as error:
-            logger.error("Failed dropping table %s with exception %s ",
+        except pymysql.err.DatabaseError as error:
+            logger.debug("Failed dropping table %s with exception %s ",
                          table_name, error)
 
     def drop_table_if_empty(self, table_name):
@@ -120,8 +124,10 @@ class MySQLComponent(DatabaseComponent):
         Args:
             table_name (str): MySQL table name
         """
-
-        results = self.execute_query("SELECT COUNT(*) FROM %s" % table_name)
+        try:
+            results = self.execute_query("SELECT COUNT(*) FROM %s" % table_name)
+        except pymysql.err.ProgrammingError:
+            raise
         n_rows = results[0][0]
         if n_rows == 0:
             self.drop_table(table_name)
@@ -134,8 +140,8 @@ class MySQLComponent(DatabaseComponent):
 
         Checks whether the tracking table exists from the previous migration
         run (if any) and updates the attributes (is_first_run,
-        tracking_table_name, is_inc_col_present, inc_col,
-        inc_col_type) of the HiveTableModel instance
+        tracking_table_name, is_inc_col_present, inc_col, inc_col_type) of the
+        HiveTableModel instance
 
         Args:
             hive_table_model (:class:`HiveTableModel`): Wrapper to Hive table
@@ -149,7 +155,6 @@ class MySQLComponent(DatabaseComponent):
                 hive_table_model.tracking_table_name = name[0]
 
                 if '_inc_T_' in hive_table_model.tracking_table_name:
-                    hive_table_model.is_inc_col_present = True
 
                     if '_inc_T_ts_' in hive_table_model.tracking_table_name:
                         # Incremental column is of timestamp/date data type

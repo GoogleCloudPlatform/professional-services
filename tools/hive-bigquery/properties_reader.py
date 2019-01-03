@@ -9,9 +9,11 @@ class PropertiesReader(object):
     properties = ''
 
     def __init__(self, filename):
-
         with open(filename, 'r') as file_content:
             PropertiesReader.properties = json.load(file_content)
+
+    def __str__(self):
+        return PropertiesReader.properties
 
     @staticmethod
     def get(key):
