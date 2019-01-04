@@ -1,0 +1,74 @@
+###############################################################################
+# Recusively searches the current working directory for remote terraform module
+# usage. For each module found, it's referenced tag is compared with the latest
+# tag of the remote repository, outputting a message if they do not match.
+# Additionally, it notifies if no tag is used.
+# Valid git remote forms: https://www.terraform.io/docs/modules/sources.html
+###############################################################################
+
+scan_repository_for_outdated_tags(){
+  # a list of the right values of matching "source" lines
+  # "grep -v '^.*#'" excludes comments
+  # "cut -d '"' -f2" strips the wrapping quote characters
+  # "sort -u" sorts, dropping duplicates
+  all_terraform_remotes=( $(\
+  grep -h -r --exclude-dir=.terraform \
+  -e 'source[[:space:]]\+=[[:space:]]\+"git::' \
+  -e 'source[[:space:]]\+=[[:space:]]\+"github.com' \
+  -e 'source[[:space:]]\+=[[:space:]]\+"git@github.com:' \
+  -e 'source[[:space:]]\+=[[:space:]]\+"bitbucket.org/' \
+  .  | grep -v '^.*#' | awk '{print $3}' | cut -d '"' -f2 |sort -u ))
+
+  for tf_remote_module in "${all_terraform_remotes[@]}" ; do
+    local_tag=$(echo $tf_remote_module | awk -F'(=)|(=tags/)' '{print $2}')
+    if [[ "$local_tag" == "" ]] ; then
+      echo "Notice: the remote module $tf_remote_module is referenced without a git tag. It will use HEAD of the remote's default branch."
+      echo
+    else
+
+      # if $tf_remote_module is a module with a package subdir, eg. `git::ssh://git@repo.example.com/example/repository.git?ref=v4.2.0//modules/a_terraform_module`
+      # then everything after the second set of '//'' is removed before setting git_repository
+      git_repository_pass1=$(echo $tf_remote_module | sed 's_\(.*//.*\)//.*_\1_')
+
+      # any trailing '?...' needs removal
+      git_repository=$(echo $git_repository_pass1 | cut -d '?' -f1)
+
+      # the differing forms of git_repository are handled distinctly
+      case "${git_repository:0:10}" in
+        git::ssh:/|git::https )
+          # generic git over ssh or https
+
+          # the following line obtains the latest tag by listing the tags and parsing
+          # 'cut -f2': the second field has the ref
+          # 'sort -Vr': reverse version sort
+          # 'cut -d '/' -f3': 3rd field contains the tag
+          # 'head -1': retrieve only the first
+          latest_tag=$(git ls-remote --refs --tags ${git_repository#"git::"} | cut -f2 | sort -Vr | cut -d '/' -f3 | head -1)
+          ;;
+        github.com )
+          # github over https
+          this_repo=$(echo $git_repository | sed 's_github.com/_git@github.com:_')
+          latest_tag=$(git ls-remote --refs --tags $this_repo | cut -f2 | sort -Vr | cut -d '/' -f3 | head -1)
+          ;;
+        git@github )
+          # github over ssh
+          latest_tag=$(git ls-remote --refs --tags $git_repository | cut -f2 | sort -Vr | cut -d '/' -f3 | head -1)
+          ;;
+        bitbucket. )
+          # bitbucket over https
+          this_repo=$(echo $git_repository | sed 's_bitbucket.org_https://bitbucket.org_')
+          latest_tag=$(git ls-remote --refs --tags $this_repo | cut -f2 | sort -Vr | sed 's_refs/tags/__' | head -1)
+          ;;
+        esac
+    if [[ "$local_tag" != "$latest_tag" ]]; then
+        echo "For the referenced remote repository: $git_repository"
+        echo "A newer tag is available: $latest_tag ($local_tag found)"
+        echo "Occurs in:"
+        grep -l -r --exclude-dir=.terraform "$tf_remote_module" .
+        echo
+      fi
+    fi
+  done
+}
+
+scan_repository_for_outdated_tags
