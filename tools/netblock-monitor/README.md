@@ -14,10 +14,6 @@ IP ranges.
 
 ## Usage
 
-//TODO(wex): Reference eventual publishing location for guide, currently at the
-non-public location:
-https://docs.google.com/document/d/1YI8lLNh2Z_piOzg67dtQNw8xVW2mPM79UwnjUhe7reY
-
 The script is generally expected to be initalized once via manual execution,
 followed by triggered execution on a daily basis. Additionally, a few helper
 functions are provided to help with ongoing visibility of the tool's execution.
