@@ -1,0 +1,187 @@
+/*
+ * Script: BQ Audit
+ * Author: ryanmcdowell, mihirborkar
+ * Description:
+ *
+ * Creates a user friendly view for querying the
+ * BigQuery audit logs.
+ *
+/
+
+/* Create a user friendly view. */
+
+WITH BQAudit AS (
+  SELECT
+    protopayload_auditlog.authenticationInfo.principalEmail,
+    protopayload_auditlog.requestMetadata.callerIp,
+    protopayload_auditlog.serviceName,
+    protopayload_auditlog.methodName,
+    protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.eventName,
+    protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobName.projectId,
+    protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobName.jobId,
+    protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.createTime,
+    protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.startTime,
+    protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.endTime,
+    protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatus.error.code
+    AS errorCode,
+    protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatus.error.message
+    AS errorMessage,
+    TIMESTAMP_DIFF(
+      protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.endTime,
+      protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.startTime, MILLISECOND)
+      AS runtimeMs,
+    /* Extracts column specific to Copy operation in BQ */
+    protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobConfiguration.tableCopy,
+    /* Extracts column specific to Extract operation in BQ */
+    protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobConfiguration.extract,
+    /* Extracts column specific to Load operation in BQ */
+    protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.totalLoadOutputBytes,
+    /* Extracts column specific to Load operation in BQ */
+    protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobConfiguration.load,
+    /* Start: Extracts column specific to Query operation in BQ */
+    TIMESTAMP_DIFF(
+      protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.endTime,
+      protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.startTime, MILLISECOND) / 1000
+      AS runtimeSecs,
+    CAST(CEIL((TIMESTAMP_DIFF(
+      protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.endTime,
+      protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.startTime, MILLISECOND) / 1000) / 60) AS INT64)
+      AS executionMinuteBuckets,
+    CASE
+      WHEN
+        protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.totalProcessedBytes IS NULL
+        AND protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.totalSlotMs IS NULL
+        AND protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatus.error.code IS NULL
+        THEN true
+      ELSE false
+    END as cached,
+    protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.totalSlotMs,
+    protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.totalTablesProcessed,
+    protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.totalViewsProcessed,
+    protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.totalProcessedBytes,
+    protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.totalBilledBytes,
+    protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.billingTier,
+    protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobConfiguration.query,
+    protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.referencedTables,
+    protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.referencedViews
+    /* End: Extracts column specific to Query operation in BQ */
+  FROM
+    `data-analytics-pocs.billing.cloudaudit_googleapis_com_data_access_*`
+  WHERE
+    protopayload_auditlog.serviceName = 'bigquery.googleapis.com'
+    AND protopayload_auditlog.methodName = 'jobservice.jobcompleted'
+    AND protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.eventName
+    IN ( 'table_copy_job_completed',
+    'query_job_completed',
+    'extract_job_completed',
+    'load_job_completed')
+    AND DATE_DIFF( CURRENT_DATE(), DATE(protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.startTime), month) <= 12
+)
+
+
+/* Query the audit */
+
+SELECT
+  principalEmail,
+  callerIp,
+  serviceName,
+  methodName,
+  eventName,
+  projectId,
+  jobId,
+  errorCode,
+  errorMessage,
+  STRUCT(
+    EXTRACT(MINUTE FROM startTime) AS minuteOfDay,
+    EXTRACT(HOUR FROM startTime) AS hourOfDay,
+    EXTRACT(DAYOFWEEK FROM startTime) - 1 AS dayOfWeek,
+    EXTRACT(DAYOFYEAR FROM startTime) AS dayOfYear,
+    EXTRACT(WEEK FROM startTime) AS week,
+    EXTRACT(MONTH FROM startTime) AS month,
+    EXTRACT(QUARTER FROM startTime) AS quarter,
+    EXTRACT(YEAR FROM startTime) AS year
+  ) as date,
+  createTime,
+  startTime,
+  endTime,
+  runtimeMs,
+  TRUNC(runtimeMs / 1000.0, 2) AS runtimeSecs,
+  tableCopy, /* Querying data specific to Copy operation */
+  1 as numCopies, /* Querying data specific to Copy operation */
+  /* Start: Querying data specific to Load operation */
+    totalLoadOutputBytes,
+  (totalLoadOutputBytes / 1000000000) AS totalLoadOutputGigabytes,
+  (totalLoadOutputBytes / 1000000000) / 1000 AS totalLoadOutputTerabytes,
+  STRUCT(
+    load.sourceUris,
+    STRUCT(
+      load.destinationTable.projectId,
+      load.destinationTable.datasetId,
+      load.destinationTable.tableId,
+      CONCAT(load.destinationTable.datasetId, '.', load.destinationTable.tableId)
+      AS relativePath,
+      CONCAT(load.destinationTable.projectId, '.', load.destinationTable.datasetId,
+      '.', load.destinationTable.tableId)
+      AS absolutePath
+    ) AS destinationTable,
+    load.createDisposition,
+    load.writeDisposition,
+    load.schemaJson
+  ) AS load,
+  1 AS numLoads,
+ /* End: Querying data specific to Load operation */
+ /* Start: Querying data specific to Extract operation */
+ REGEXP_CONTAINS(jobId, 'beam') AS isBeamJob,
+  STRUCT(
+    `extract`.destinationUris,
+    STRUCT(
+      `extract`.sourceTable.projectId,
+      `extract`.sourceTable.datasetId,
+      `extract`.sourceTable.tableId,
+      CONCAT(`extract`.sourceTable.datasetId, '.', `extract`.sourceTable.tableId)
+      AS relativeTableRef,
+      CONCAT(`extract`.sourceTable.projectId, '.', `extract`.sourceTable.datasetId,
+      '.', `extract`.sourceTable.tableId)
+      AS absoluteTableRef
+    ) AS sourceTable
+  ) AS `extract`,
+  1 AS numExtracts,
+ /* End: Querying data specific to Extract operation */
+ /* Start: Querying data specific to Query operation */
+ REGEXP_CONTAINS(query.query, 'cloudaudit_googleapis_com_data_access_')
+ AS isAuditDashboardQuery,
+ errorCode IS NOT NULL AS isError,
+ REGEXP_CONTAINS(errorMessage, 'timeout') AS isTimeout,
+ cached,
+ totalSlotMs,
+ totalSlotMs / runtimeMs AS avgSlots,
+ /* The following statement breaks down the query into minute buckets
+  * and provides the average slot usage within that minute. This is a
+  * crude way of making it so you can retrieve the average slot utilization
+  * for a particular minute across multiple queries.
+ */
+  ARRAY(
+    SELECT
+      STRUCT(
+        TIMESTAMP_TRUNC(TIMESTAMP_ADD(startTime, INTERVAL bucket_num MINUTE),
+        MINUTE) AS time,
+        totalSlotMs / runtimeMs AS avgSlotUsage
+      )
+    FROM
+      UNNEST(GENERATE_ARRAY(1, executionMinuteBuckets)) AS bucket_num
+  ) AS executionTimeline,
+  totalTablesProcessed,
+  totalViewsProcessed,
+  totalProcessedBytes,
+  totalBilledBytes,
+  (totalBilledBytes / 1000000000) AS totalBilledGigabytes,
+  (totalBilledBytes / 1000000000) / 1000 AS totalBilledTerabytes,
+  ((totalBilledBytes / 1000000000) / 1000) * 5 AS estimatedCostUsd,
+  billingTier,
+  query,
+  referencedTables,
+  referencedViews,
+  1 AS queries
+ /* End: Querying data specific to Query operation */
+FROM
+  BQAudit
