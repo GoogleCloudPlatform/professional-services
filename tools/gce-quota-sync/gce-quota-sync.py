@@ -132,7 +132,7 @@ def _quota_to_series(project, region, quota):
     region: set in converted time series labels
     quota: quota object received from the GCE API
   """
-  labels = dict((k, unicode(v)) for k, v in quota.items())
+  labels = dict((k, unicode(v)) for k, v in quota.items() if k != 'usage')
   labels['project'] = project
   labels['region'] = region
   try:
