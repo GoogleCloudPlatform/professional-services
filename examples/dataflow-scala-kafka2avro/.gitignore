@@ -1,0 +1,6 @@
+.idea
+.bigquery
+.repl
+target
+.ensime*
+*~
