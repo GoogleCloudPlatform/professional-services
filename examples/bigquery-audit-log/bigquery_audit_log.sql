@@ -2,13 +2,9 @@
  * Script: BQ Audit
  * Author: ryanmcdowell, freedomofnet, mihirborkar
  * Description:
- *
- * Creates a user friendly view for querying the
- * BigQuery audit logs.
+ * Creates a user friendly view for querying the BigQuery audit logs
  *
 /
-
-/* Create a user friendly view. */
 
 WITH BQAudit AS (
   SELECT
@@ -41,11 +37,11 @@ WITH BQAudit AS (
     /* Start: Extracts column specific to Query operation in BQ */
     TIMESTAMP_DIFF(
       protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.endTime,
-      protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.startTime, MILLISECOND) / 1000
+      protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.startTime, SECOND)
       AS runtimeSecs,
-    CAST(CEIL((TIMESTAMP_DIFF(
+    CAST(CEILING((TIMESTAMP_DIFF(
       protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.endTime,
-      protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.startTime, MILLISECOND) / 1000) / 60) AS INT64)
+      protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.startTime, SECOND)) / 60) AS INT64)
       AS executionMinuteBuckets,
     CASE
       WHEN
@@ -70,12 +66,14 @@ WITH BQAudit AS (
   WHERE
     protopayload_auditlog.serviceName = 'bigquery.googleapis.com'
     AND protopayload_auditlog.methodName = 'jobservice.jobcompleted'
-    AND protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.eventName
-    IN ( 'table_copy_job_completed',
-    'query_job_completed',
-    'extract_job_completed',
-    'load_job_completed')
-    AND DATE_DIFF( CURRENT_DATE(), DATE(protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.startTime), month) <= 12
+    AND protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.eventName IN 
+    ( 
+      'table_copy_job_completed',
+      'query_job_completed',
+      'extract_job_completed',
+      'load_job_completed'
+    )
+    AND DATE_DIFF(CURRENT_DATE(), DATE(protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.startTime), month) <= 12
 )
 
 
@@ -105,11 +103,10 @@ SELECT
   startTime,
   endTime,
   runtimeMs,
-  TRUNC(runtimeMs / 1000.0, 2) AS runtimeSecs,
+  runtimeSecs,
   tableCopy, /* Querying data specific to Copy operation */
-  1 as numCopies, /* Querying data specific to Copy operation */
   /* Start: Querying data specific to Load operation */
-    totalLoadOutputBytes,
+  totalLoadOutputBytes,
   (totalLoadOutputBytes / 1000000000) AS totalLoadOutputGigabytes,
   (totalLoadOutputBytes / 1000000000) / 1000 AS totalLoadOutputTerabytes,
   STRUCT(
@@ -128,10 +125,9 @@ SELECT
     load.writeDisposition,
     load.schemaJson
   ) AS load,
-  1 AS numLoads,
- /* End: Querying data specific to Load operation */
- /* Start: Querying data specific to Extract operation */
- REGEXP_CONTAINS(jobId, 'beam') AS isBeamJob,
+  /* End: Querying data specific to Load operation */
+  /* Start: Querying data specific to Extract operation */
+  REGEXP_CONTAINS(jobId, 'beam') AS isBeamJob,
   STRUCT(
     `extract`.destinationUris,
     STRUCT(
@@ -141,25 +137,23 @@ SELECT
       CONCAT(`extract`.sourceTable.datasetId, '.', `extract`.sourceTable.tableId)
       AS relativeTableRef,
       CONCAT(`extract`.sourceTable.projectId, '.', `extract`.sourceTable.datasetId,
-      '.', `extract`.sourceTable.tableId)
-      AS absoluteTableRef
-    ) AS sourceTable
-  ) AS `extract`,
-  1 AS numExtracts,
- /* End: Querying data specific to Extract operation */
- /* Start: Querying data specific to Query operation */
- REGEXP_CONTAINS(query.query, 'cloudaudit_googleapis_com_data_access_')
- AS isAuditDashboardQuery,
- errorCode IS NOT NULL AS isError,
- REGEXP_CONTAINS(errorMessage, 'timeout') AS isTimeout,
- cached,
- totalSlotMs,
- totalSlotMs / runtimeMs AS avgSlots,
- /* The following statement breaks down the query into minute buckets
-  * and provides the average slot usage within that minute. This is a
-  * crude way of making it so you can retrieve the average slot utilization
-  * for a particular minute across multiple queries.
- */
+      '.', `extract`.sourceTable.tableId) AS absoluteTableRef
+      ) AS sourceTable
+    ) AS `extract`,
+  /* End: Querying data specific to Extract operation */
+  /* Start: Querying data specific to Query operation */
+  REGEXP_CONTAINS(query.query, 'cloudaudit_googleapis_com_data_access_')
+  AS isAuditDashboardQuery,
+  errorCode IS NOT NULL AS isError,
+  REGEXP_CONTAINS(errorMessage, 'timeout') AS isTimeout,
+  cached,
+  totalSlotMs,
+  totalSlotMs / runtimeMs AS avgSlots,
+  /* The following statement breaks down the query into minute buckets
+   * and provides the average slot usage within that minute. This is a
+   * crude way of making it so you can retrieve the average slot utilization
+   * for a particular minute across multiple queries.
+  */
   ARRAY(
     SELECT
       STRUCT(
@@ -181,7 +175,6 @@ SELECT
   query,
   referencedTables,
   referencedViews,
-  1 AS queries
- /* End: Querying data specific to Query operation */
+  /* End: Querying data specific to Query operation */
 FROM
   BQAudit
