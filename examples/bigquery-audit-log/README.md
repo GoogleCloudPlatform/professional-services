@@ -1,5 +1,5 @@
 # BigQuery Audit Log Dashboard
-This example shows how to build a dashboard using Data Studio that displays metrics pertaining to BigQuery consumption in an organization. The purpose of the dashboard is to be used as a BigQuery audit that helps identify the different kinds of BigQuery jobs running in the organisation, the creator of those jobs as well as the Billing incurred due to the same.
+This example shows how to build a dashboard using Data Studio and a SQL script for the back-end data source that displays metrics pertaining to BigQuery consumption in a project. The purpose of the dashboard is to be used as a BigQuery audit that helps identify the different kinds of BigQuery jobs running in the organisation, the creator of those jobs as well as the Billing incurred due to the same.
 
 The dashboard has the following sections:
 1. [Overall Usage](./docs/overall_usage.md)
