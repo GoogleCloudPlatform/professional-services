@@ -16,8 +16,7 @@ Clicking on the links above will direct you to the individual files which descri
 Create a dataset in BigQuery in the project you will be exporting logs to. You can give it a custom name. For the sake of simplicity we will be referring to the dataset as "BigQuery Audit".
 
 ### 1. Getting the BigQuery log Data
-A detailed description of steps to collect BigQuery logs for your GCP Projects can be found [here](https://cloud.google.com/bigquery/audit-logs)
-.
+A detailed description of steps to collect BigQuery logs for your GCP Projects can be found [here](https://cloud.google.com/bigquery/audit-logs).
 
 A short description relevant to our use case is presented below -
 
