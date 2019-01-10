@@ -1,6 +1,6 @@
 /*
  * Script: BQ Audit
- * Author: ryanmcdowell, mihirborkar
+ * Author: ryanmcdowell, freedomofnet, mihirborkar
  * Description:
  *
  * Creates a user friendly view for querying the
