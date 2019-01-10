@@ -3,22 +3,22 @@
 This document outlines the Extract Jobs report (page 3) of the dashboard and explains the various graphs and tables present on the page.
 
 ### Selection Bar
-The selection bar allows the user to filter the data in the report to a specific date and/or table. There are filters present to filter by Project Id and Job Id as well.
+The Selection Bar allows the user to filter the data in the report to a specific date and/or table. There are filters present to filter by Project Id and Job Id as well.
 
 ![Selection Bar](../images/extract_jobs/Image1.png)
 
 ### Extracts By Day
-The bar graph shows the total output of extract jobs carried over the past 7 days (or timeframe selected).
+The Bar Graph shows the total output of extract jobs carried over the past 7 days (or timeframe selected).
 
 ![Extracts By Day](../images/extract_jobs/Image2.png)
 
 ### Extracts By Table
-The bar graph shows the number of extract operations carried out over the past 7 days (or timeframe selected), color coded by the different **tables** the extract operation was carried out on.
+The Bar Graph shows the number of extract operations carried out over the past 7 days (or timeframe selected), color coded by the different **tables** the extract operation was carried out on.
 
 ![Extracts By Table](../images/extract_jobs/Image3.png)
 
 ### Extracts By Project
-The bar graph shows the number of extract operations carried out over the past 7 days (or timeframe selected), color coded by the different **projects** the extract operation was carried out on.
+The Bar Graph shows the number of extract operations carried out over the past 7 days (or timeframe selected), color coded by the different **projects** the extract operation was carried out on.
 
 ![Loads By Project](../images/extract_jobs/Image4.png)
 
