@@ -1,3 +1,4 @@
+
 # Data Generator
 This directory shows a series of pipelines used to generate data in GCS or BigQuery. 
 The intention for these pipelines are to be a tool for partners, customers and SCEs who want to create a dummy dataset that 
@@ -62,6 +63,7 @@ This tool has several parameters to specify what kind of data you would like to 
 The schema may be specified using the `--schema_file` parameter  with a file containing a 
 list of json objects with `name`,  `type`, `mode` and optionally `description` fields. 
 This form follows the output of`bq show --format=json --schema <table_reference>`. 
+
 ie. 
 ```
 --schema_file=gs://python-dataflow-examples/schemas/lineorder-schema.json
@@ -117,7 +119,9 @@ The output is specified as a GCS prefix. Note that multiple files will be writte
 based on if you pass the `--csv_schema_order` or `--avro_schema_file` parameters described later.
 
 
+
 #### Output format 
+
 Output format is specified by passing one of the `--csv_schema_order` or `--avro_schema_file` parameters.
 
 `--csv_schema_order` should be a comma separated list specifying the order of the fieldnames for writing. 
@@ -152,12 +156,14 @@ Data is seldom full for every record so you can specify the probability of a NUL
 
 
 #### Keys and IDs (optional)
+
 The data generator will parse your field names and generate keys/ids for fields whose name contains "`_key`" or "`_id`". 
 The cardinality of such key columns can be controlled with the `--n_keys` parameter. 
 
 Additionally, you can parameterize the key-skew by passing` --key_skew_distribution`. By default this is `None`, meaning roughly equal 
 distribution of rowcount across keys. This also supports `"binomial"` giving a maximum variance bell curve of keys over the range of the 
 keyset or `"zipf"` giving a distribution across the keyset according to zipf's law.
+
 
 ##### Primary Key (optional)
 The data generator can support a primary key columns by passing a comma separated list of field names to `--primary_key_cols`. 
@@ -167,7 +173,9 @@ To mitigate this you can set `--n_keys` to a number much larger than the number 
 
 #### Date Parameters (optional)
 To constrain the dates generated in date columns one can use the `--min_date` and `--max_date` parameters.
+
 The minimum date will default to January 1, 2000 and the `max_date` will default to today.
+
 If you are using these parameters be sure to use YYYY-MM-DD format.
 
 ```
@@ -186,7 +194,9 @@ True is the default.
 
 #### Write Disposition (optional)
 The BigQuery write disposition can be specified using the `--write_disp` parameter.
+
 The default is `WRITE_APPEND`.
+
 
 #### Dataflow Pipeline parameters
 For basic usage we recommend the following parameters:
@@ -194,7 +204,9 @@ For basic usage we recommend the following parameters:
 python data_generator_pipeline.py \
 --project=<PROJECT ID> \
 --setup_file=./setup.py \
+
 --worker_machine_type=n1-highcpu-32 \ # This is a high cpu process so tuning the machine type will boost performance 
+
 --runner=DataflowRunner \ # run on Dataflow workers
 --staging_location=gs://<BUCKET NAME>/test \
 --temp_location=gs://<BUCKET NAME>/temp \
@@ -216,6 +228,7 @@ substrings in field names to [Faker Providers](https://faker.readthedocs.io/en/l
 requirement for this DoFn is for it to return a list containing a single python dictionary mapping field names to values. 
 So hack away if you need something more specific any python code is fair game. Keep in mind 
 that if you use a non-standard module (available in PyPI) you will need to make sure it gets installed on each of the workers or you will get 
+
 namespace issues. This can be done most simply by adding the module to `setup.py`. 
 
 ### Generating Joinable tables Snowfalke schema
@@ -252,11 +265,14 @@ Included are three BigQuery utility scripts to help you with your data generatin
 while staying under the 15TB per load job limit, the next will help you profile the distribution of an existing dataset and the last will allow
 you to resize BigQuery tables to be a desired size. 
 
+
 ### BigQuery batch loads
 This script is meant to orchestrate BigQuery load jobs of many
 json files on Google Cloud Storage. It ensures that each load 
 stays under the 15 TB per load job limit. It operates on the 
+
 output of `gsutil -l`.
+
 
 This script can be called with the following arguments:
 
@@ -276,8 +292,10 @@ This script can be called with the following arguments:
 `--schema_file`: Path to a json file defining the destination BigQuery
     table schema.
 
+
 `--partitioning_column`: name of the field for date partitioning in
     the destination table.
+
 
 `--max_bad_records`: Number of permissible bad records per load job.
 
@@ -308,6 +326,7 @@ python bq_histogram_tool.py \
 ```
 
 ### BigQuery table resizer 
+
 This script is to help increase the size of a table based on a generated or sample.
 If you are short on time and have a requirement to generate a 100TB table you can 
 use this script to generate a few GB and copy table into itself until it it is the

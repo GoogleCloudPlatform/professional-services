@@ -171,7 +171,9 @@ def main(argv=None):
     parser.add_argument('--max_bad_records', dest='max_bad_records',
                         required=False, default=1)
     parser.add_argument('--source_format', dest='source_format',
+
                         required=False, default='AVRO')
+
     known_args, _ = parser.parse_known_args(argv)
 
     bq_cli = bq.Client(project=known_args.project)
