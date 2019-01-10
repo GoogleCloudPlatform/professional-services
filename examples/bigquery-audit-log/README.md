@@ -19,7 +19,7 @@ Create a dataset in BigQuery in the project you will be exporting logs to. You c
 A detailed description of steps to collect BigQuery logs for your GCP Projects can be found [here](https://cloud.google.com/bigquery/audit-logs)
 .
 
-A short description relevant to our use case in presented below -
+A short description relevant to our use case is presented below -
 
 1. In the GCP Cloud Console select the project you want to export the logs to. Go to Stackdriver --> Logging --> Exports.
 2. Click on Create Export. Select the following in the drop down menu below: "BigQuery", "All logs", "Any log level", "No limit", "Jump to now" respectively.
