@@ -2,6 +2,8 @@
 
 This document outlines the Queries report (page 5) of the dashboard and explains the various graphs and tables present on the page.
 
+#### Note: In all further sections, the "current week" or "previous week" are relative to the timeframe selected in the date filter in the Selection Bar at the top of the page
+
 ### Selection Bar
 The Selection Bar allows the user to filter the data in the report to a specific date and/or table. There are filters present to filter by the type of Query (Was the query - Audit Log? Error? Timeout? Beam Job?)
 
@@ -9,8 +11,6 @@ The Selection Bar allows the user to filter the data in the report to a specific
 
 ### No. of Queries (this week vs. last week) - per day of the week
 The graph below displays the total number of queries run per day of the week for the current week, also displaying a contrast with the same data for the previous week. 
-
-**Note: The data displayed is relevant to the week selected in the Selection Bar at the top of the page.**
 
 ![No. of Queries (this week vs. last week) - per day of the week](../images/query_jobs/Image2.png)
 
@@ -32,4 +32,5 @@ The graph below shows the average slot consumption for a particular hour of the 
 **Method of Interpretation: Average of slot usage consumed everyday at 6 p.m. for the current week**
 
 ![Avg. Slot Usage (this week) - aggregated by hour](../images/query_jobs/Image5.png)
+
 
