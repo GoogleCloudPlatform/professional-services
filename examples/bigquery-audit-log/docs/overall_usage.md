@@ -2,6 +2,8 @@
 
 This document outlines the Overall Usage report (page 1) of the dashboard and explains the various graphs and tables present on the page.
 
+#### Note: In all further sections, the "time", "week" or "day" is relative to the timeframe selected in the date filter in the Selection Bar at the top of the page
+
 ### Selection Bar
 The Selection Bar allows the user to filter the data in the report to a specific date and/or table. There are filters present to filter by the type of Query (Was the query - Audit Log? Error? Timeout? Beam Job?)
 
@@ -23,7 +25,7 @@ The Combo Chart displays the Avg. Slot usage and Number of Queries, consumed on 
 ![Combo Chart](../images/overall_usage/Image4.png)
 
 ### Total Slot Ms vs Time
-The Total Slots consumed over the past 7 days (or the time duration selected).
+The Total Slots consumed over the past 7 days.
 
 ![Total Slot Ms vs Time](../images/overall_usage/Image5.png)
 
