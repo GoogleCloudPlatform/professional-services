@@ -6,7 +6,7 @@ The dashboard has the following sections:
 2. [Load Jobs](./docs/load_jobs.md)
 3. [Extract Jobs](./docs/extract_jobs.md)
 4. [Copy Jobs](./docs/copy_jobs.md)
-5. [Queries](./docs/queries.md)
+5. [Queries](./docs/query_jobs.md)
 
 Clicking on the links above will direct you to the individual files which describe the particular section of the Dashboard and the data it displays.
 
