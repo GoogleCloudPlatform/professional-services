@@ -2,9 +2,8 @@
  * Script: BQ Audit
  * Author: ryanmcdowell, freedomofnet, mihirborkar
  * Description:
- * Creates a user friendly view for querying the BigQuery audit logs
- *
-/
+ * SQL Script to create a materialized source table acting as input to the Dashboard
+*/
 
 WITH BQAudit AS (
   SELECT
@@ -138,8 +137,8 @@ SELECT
       AS relativeTableRef,
       CONCAT(`extract`.sourceTable.projectId, '.', `extract`.sourceTable.datasetId,
       '.', `extract`.sourceTable.tableId) AS absoluteTableRef
-      ) AS sourceTable
-    ) AS `extract`,
+    ) AS sourceTable
+  ) AS `extract`,
   /* End: Querying data specific to Extract operation */
   /* Start: Querying data specific to Query operation */
   REGEXP_CONTAINS(query.query, 'cloudaudit_googleapis_com_data_access_')
