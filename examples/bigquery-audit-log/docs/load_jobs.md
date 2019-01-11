@@ -2,28 +2,30 @@
 
 This document outlines the Load Jobs report (page 2) of the dashboard and explains the various graphs and tables present on the page.
 
+#### Note: In all further sections, the "time", "week" or "day" is relative to the timeframe selected in the date filter in the Selection Bar at the top of the page
+
 ### Selection Bar
 The Selection Bar allows the user to filter the data in the report to a specific date and/or table. There are filters present to filter by Project Id and Job Id as well.
 
 ![Selection Bar](../images/load_jobs/Image1.png)
 
 ### Loads By Day
-Bar Graph showing the total output of load jobs (in GB) as well as the number of load jobs carried over the past 7 days (or timeframe selected).
+Bar Graph showing the total output of load jobs (in GB) as well as the number of load jobs carried over the past 7 days.
 
 ![Loads By Day](../images/load_jobs/Image2.png)
 
 ### Loads By Table
-Bar Graph showing the number of load jobs carried out over the past 7 days (or timeframe selected), color coded by the different **tables** the load job was carried out on.
+Bar Graph showing the number of load jobs carried out over the past 7 days, color coded by the different **tables** the load job was carried out on.
 
 ![Loads By Table](../images/load_jobs/Image3.png)
 
 ### Loads By Project
-Bar Graph showing the number of load jobs carried out over the past 7 days (or timeframe selected), color coded by the different **projects** the load job was carried out on.
+Bar Graph showing the number of load jobs carried out over the past 7 days, color coded by the different **projects** the load job was carried out on.
 
 ![Loads By Project](../images/load_jobs/Image4.png)
 
 ### Table
-The table shows the details pertaining to all the load jobs carried out over the past 7 days (or timeframe selected).
+The table shows the details pertaining to all the load jobs carried out over the past 7 days.
 
 ![Table](../images/load_jobs/Image5.png)
 
@@ -39,8 +41,6 @@ The pie chart shows the percentage of load jobs over the hours of the day when t
 
 ### Loads By Day of Week
 The pie chart shows the percentage of load jobs over the days of the week.
-
-**Note: The data displayed will only be relevant to the timeframe selected in the selection bar at the top of the report.**
 
 ![Loads By Day of Week](../images/load_jobs/Image8.png)
 
