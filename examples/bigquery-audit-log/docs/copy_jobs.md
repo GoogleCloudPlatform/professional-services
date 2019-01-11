@@ -2,28 +2,30 @@
 
 This document outlines the Copy Jobs report (page 4) of the dashboard and explains the various graphs and tables present on the page.
 
+#### Note: In all further sections, the "time", "week" or "day" is relative to the timeframe selected in the date filter in the Selection Bar at the top of the page
+
 ### Selection Bar
 The Selection Bar allows the user to filter the data in the report to a specific date and/or table. There are filters present to filter by Project Id and Job Id as well.
 
 ![Selection Bar](../images/copy_jobs/Image1.png)
 
 ### Copy Jobs By Day
-Bar Graph showing the total output of copy jobs (in GB) as well as the number of copy jobs carried over the past 7 days (or timeframe selected).
+Bar Graph showing the total output of copy jobs (in GB) as well as the number of copy jobs carried over the past 7 days.
 
 ![Copy Jobs By Day](../images/copy_jobs/Image2.png)
 
 ### Copy Jobs By Table
-Bar Graph showing the number of copy jobs carried out over the past 7 days (or timeframe selected), color coded by the different **tables** the copy job was carried out on.
+Bar Graph showing the number of copy jobs carried out over the past 7 days, color coded by the different **tables** the copy job was carried out on.
 
 ![Copy Jobs By Table](../images/copy_jobs/Image3.png)
 
 ### Copy Jobs By Project
-Bar Graph showing the number of copy jobs carried out over the past 7 days (or timeframe selected), color coded by the different **projects** the copy job was carried out on.
+Bar Graph showing the number of copy jobs carried out over the past 7 days, color coded by the different **projects** the copy job was carried out on.
 
 ![Copy Jobs By Project](../images/copy_jobs/Image4.png)
 
 ### Table
-The table shows the details pertaining to all the copy jobs carried out over the past 7 days (or timeframe selected).
+The table shows the details pertaining to all the copy jobs carried out over the past 7 days.
 
 ![Table](../images/copy_jobs/Image5.png)
 
@@ -39,8 +41,6 @@ The pie chart shows the percentage of copy jobs over the hours of the day when t
 
 ### Loads By Day of Week
 The pie chart shows the percentage of copy jobs over the days of the week.
-
-**Note: The data displayed will only be relevant to the timeframe selected in the selection bar at the top of the report.**
 
 ![Copy Jobs By Day of Week](../images/copy_jobs/Image8.png)
 
