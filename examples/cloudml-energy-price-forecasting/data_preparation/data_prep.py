@@ -300,15 +300,15 @@ def generate_mean_std(client, parameters):
 
     with file_io.FileIO(
         parameters.mean_path,
-        mode='w+'
+        mode='wb+'
     ) as f:
-        pickle.dump(mean, f, protocol=0)
+        pickle.dump(mean, f, protocol=2)
 
     with file_io.FileIO(
         parameters.std_path,
-        mode='w+'
+        mode='wb+'
     ) as f:
-        pickle.dump(std, f, protocol=0)
+        pickle.dump(std, f, protocol=2)
 
 
 def main():
