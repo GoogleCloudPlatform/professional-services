@@ -41,14 +41,10 @@ WITH BQAudit AS (
       protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.endTime,
       protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.startTime, SECOND)) / 60) AS INT64)
       AS executionMinuteBuckets,
-    CASE
-      WHEN
-        protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.totalProcessedBytes IS NULL
-        AND protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.totalSlotMs IS NULL
-        AND protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatus.error.code IS NULL
-        THEN true
-      ELSE false
-    END as cached,
+    ISNULL( COALESCE( protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.totalProcessedBytes,
+      protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.totalSlotMs, 
+      protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.code)
+    ) AS cached
     protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.totalSlotMs,
     protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.totalTablesProcessed,
     protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.totalViewsProcessed,
@@ -96,7 +92,7 @@ SELECT
     EXTRACT(MONTH FROM startTime) AS month,
     EXTRACT(QUARTER FROM startTime) AS quarter,
     EXTRACT(YEAR FROM startTime) AS year
-  ) as date,
+  ) AS date,
   createTime,
   startTime,
   endTime,
@@ -114,10 +110,10 @@ SELECT
       load.destinationTable.datasetId,
       load.destinationTable.tableId,
       CONCAT(load.destinationTable.datasetId, '.', load.destinationTable.tableId)
-      AS relativePath,
+        AS relativePath,
       CONCAT(load.destinationTable.projectId, '.', load.destinationTable.datasetId,
       '.', load.destinationTable.tableId)
-      AS absolutePath
+        AS absolutePath
     ) AS destinationTable,
     load.createDisposition,
     load.writeDisposition,
