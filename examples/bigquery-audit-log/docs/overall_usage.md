@@ -40,7 +40,7 @@ The table shows the Total Slots (in Ms.) consumed per Project Id.
 ![Project Id - Total Slot Ms](../images/overall_usage/Image7.png)
 
 ### User Id - Est. Cost (USD)
-The table shows the Estimated Costs (in USD) for every User (denoted by User Id) running Queries in BigQuery for the project.
+The table shows the Estimated Costs (in USD) for every User (denoted by User Id) running queries in the project using BigQuery.
 
 ![User Id - Est. Cost (USD)](../images/overall_usage/Image8.png)
 
