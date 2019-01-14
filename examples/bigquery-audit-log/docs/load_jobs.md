@@ -10,17 +10,17 @@ The Selection Bar allows the user to filter the data in the report to a specific
 ![Selection Bar](../images/load_jobs/Image1.png)
 
 ### Loads By Day
-Bar Graph showing the total output of load jobs (in GB) as well as the number of load jobs carried over the past 7 days.
+The Bar Graph shows the total output of load jobs (in Gigabytes) as well as the number of load jobs carried over the past 7 days.
 
 ![Loads By Day](../images/load_jobs/Image2.png)
 
 ### Loads By Table
-Bar Graph showing the number of load jobs carried out over the past 7 days, color coded by the different **tables** the load job was carried out on.
+The Bar Graph shows the number of load jobs carried out over the past 7 days, color coded by the different **tables** the load job was carried out on.
 
 ![Loads By Table](../images/load_jobs/Image3.png)
 
 ### Loads By Project
-Bar Graph showing the number of load jobs carried out over the past 7 days, color coded by the different **projects** the load job was carried out on.
+The Bar Graph shows the number of load jobs carried out over the past 7 days, color coded by the different **projects** the load job was carried out on.
 
 ![Loads By Project](../images/load_jobs/Image4.png)
 
@@ -30,7 +30,7 @@ The table shows the details pertaining to all the load jobs carried out over the
 ![Table](../images/load_jobs/Image5.png)
 
 ### User Id - Loads
-The number of load jobs carried out per user in the project (with access to BigQuery)
+The table shows the number of load jobs carried out per user in the project (with access to BigQuery)
 
 ![User Id - Loads](../images/load_jobs/Image6.png)
 
