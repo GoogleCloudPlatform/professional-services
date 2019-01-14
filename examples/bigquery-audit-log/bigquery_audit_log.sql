@@ -2,8 +2,8 @@
  * Script: BQ Audit
  * Author: ryanmcdowell, freedomofnet, mihirborkar
  * Description:
- * SQL Script to create a materialized source table acting as input to the Dashboard
-*/
+ * This SQL Script creates a materialized source table acting as input to the Dashboard.
+ */
 
 WITH BQAudit AS (
   SELECT
@@ -25,15 +25,14 @@ WITH BQAudit AS (
       protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.endTime,
       protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.startTime, MILLISECOND)
       AS runtimeMs,
-    /* Extracts column specific to Copy operation in BQ */
+    /* This code extracts the column specific to the Copy operation in BQ */
     protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobConfiguration.tableCopy,
-    /* Extracts column specific to Extract operation in BQ */
+    /* This code extracts the column specific to the Extract operation in BQ */
     protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobConfiguration.extract,
-    /* Extracts column specific to Load operation in BQ */
+    /* The following code extracts the columns specific to the Load operation in BQ */
     protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.totalLoadOutputBytes,
-    /* Extracts column specific to Load operation in BQ */
     protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobConfiguration.load,
-    /* Start: Extracts column specific to Query operation in BQ */
+    /* The following code extracts columns specific to Query operation in BQ */
     TIMESTAMP_DIFF(
       protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.endTime,
       protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.startTime, SECOND)
@@ -59,7 +58,7 @@ WITH BQAudit AS (
     protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobConfiguration.query,
     protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.referencedTables,
     protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.referencedViews
-    /* End: Extracts column specific to Query operation in BQ */
+    /* This ends the code snippet that extracts columns specific to Query operation in BQ */
   FROM
     `data-analytics-pocs.billing.cloudaudit_googleapis_com_data_access_*`
   WHERE
@@ -76,7 +75,7 @@ WITH BQAudit AS (
 )
 
 
-/* Query the audit */
+/* This code queries BQAudit */
 
 SELECT
   principalEmail,
@@ -103,8 +102,8 @@ SELECT
   endTime,
   runtimeMs,
   runtimeSecs,
-  tableCopy, /* Querying data specific to Copy operation */
-  /* Start: Querying data specific to Load operation */
+  tableCopy, /* This code queries data specific to the Copy operation */
+  /* The following code queries data specific to the Load operation in BQ */
   totalLoadOutputBytes,
   (totalLoadOutputBytes / 1000000000) AS totalLoadOutputGigabytes,
   (totalLoadOutputBytes / 1000000000) / 1000 AS totalLoadOutputTerabytes,
@@ -124,8 +123,8 @@ SELECT
     load.writeDisposition,
     load.schemaJson
   ) AS load,
-  /* End: Querying data specific to Load operation */
-  /* Start: Querying data specific to Extract operation */
+  /* This ends the code snippet that queries columns specific to the Load operation in BQ */
+  /* The following code queries data specific to the Extract operation in BQ */
   REGEXP_CONTAINS(jobId, 'beam') AS isBeamJob,
   STRUCT(
     `extract`.destinationUris,
@@ -139,8 +138,8 @@ SELECT
       '.', `extract`.sourceTable.tableId) AS absoluteTableRef
     ) AS sourceTable
   ) AS `extract`,
-  /* End: Querying data specific to Extract operation */
-  /* Start: Querying data specific to Query operation */
+  /* This ends the code snippet that queries columns specific to the Extract operation in BQ */
+  /* The following code queries data specific to the Query operation in BQ */
   REGEXP_CONTAINS(query.query, 'cloudaudit_googleapis_com_data_access_')
   AS isAuditDashboardQuery,
   errorCode IS NOT NULL AS isError,
@@ -152,7 +151,7 @@ SELECT
    * and provides the average slot usage within that minute. This is a
    * crude way of making it so you can retrieve the average slot utilization
    * for a particular minute across multiple queries.
-  */
+   */
   ARRAY(
     SELECT
       STRUCT(
@@ -174,6 +173,6 @@ SELECT
   query,
   referencedTables,
   referencedViews,
-  /* End: Querying data specific to Query operation */
+  /* This ends the code snippet that queries columns specific to the Query operation in BQ */
 FROM
   BQAudit
