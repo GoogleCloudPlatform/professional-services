@@ -30,7 +30,7 @@ The table shows the details pertaining to all the extract jobs carried out over 
 ![Table](../images/extract_jobs/Image5.png)
 
 ### User Id - Runtime Secs
-The average runtime (in seconds) for the extract jobs per user in the project (with access to BigQuery).
+The table shows the average runtime (in seconds) for the extract jobs per user in the project (with access to BigQuery).
 
 ![User Id - Runtime Secs](../images/extract_jobs/Image6.png)
 
