@@ -10,17 +10,17 @@ The Selection Bar allows the user to filter the data in the report to a specific
 ![Selection Bar](../images/copy_jobs/Image1.png)
 
 ### Copy Jobs By Day
-Bar Graph showing the total output of copy jobs (in GB) as well as the number of copy jobs carried over the past 7 days.
+The Bar Graph shows the total output of copy jobs (in GB) as well as the number of copy jobs carried over the past 7 days.
 
 ![Copy Jobs By Day](../images/copy_jobs/Image2.png)
 
 ### Copy Jobs By Table
-Bar Graph showing the number of copy jobs carried out over the past 7 days, color coded by the different **tables** the copy job was carried out on.
+The Bar Graph shows the number of copy jobs carried out over the past 7 days, color coded by the different **tables** the copy job was carried out on.
 
 ![Copy Jobs By Table](../images/copy_jobs/Image3.png)
 
 ### Copy Jobs By Project
-Bar Graph showing the number of copy jobs carried out over the past 7 days, color coded by the different **projects** the copy job was carried out on.
+The Bar Graph shows the number of copy jobs carried out over the past 7 days, color coded by the different **projects** the copy job was carried out on.
 
 ![Copy Jobs By Project](../images/copy_jobs/Image4.png)
 
@@ -30,7 +30,7 @@ The table shows the details pertaining to all the copy jobs carried out over the
 ![Table](../images/copy_jobs/Image5.png)
 
 ### User Id - Copy Jobs
-The number of copy jobs carried out per user in the project (with access to BigQuery)
+The table shows the number of copy jobs carried out per user in the project (with access to BigQuery)
 
 ![User Id - Copy Jobs](../images/copy_jobs/Image6.png)
 
