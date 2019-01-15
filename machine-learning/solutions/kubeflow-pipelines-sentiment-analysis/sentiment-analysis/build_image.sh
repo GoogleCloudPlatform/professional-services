@@ -1,4 +1,4 @@
-PROJECT_ID="<PROJECT_ID>"
+PROJECT_ID="$1"
 IMAGE_NAME="sentiment-analysis"
 TAG="latest"
 GCR_IMAGE="gcr.io/${PROJECT_ID}/${IMAGE_NAME}:${TAG}"

@@ -1,29 +1,34 @@
 /*
  * Copyright (C) 2019 Google Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
+package com.google.cloud.pso.common;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.Objects;
 import org.apache.avro.reflect.Nullable;
 import org.apache.beam.sdk.coders.AvroCoder;
 import org.apache.beam.sdk.coders.DefaultCoder;
 
-
+/**
+ * The class carrying a New York Times article metadata and sentiments.
+ */
 @DefaultCoder(AvroCoder.class)
 public class Doc {
+
+  // Article attributes.
   private String docId;
   private String pubDate;
   private Long epoch;
@@ -31,16 +36,20 @@ public class Doc {
   private @Nullable Double score;
   private @Nullable Double magnitude;
 
+  // A static mapper object.
+  public static final ObjectMapper MAPPER = new ObjectMapper();
+
   // Private empty constructor used for reflection required by AvroIO.
   @SuppressWarnings("unused")
   private Doc() {}
 
-  public Doc(String docId,
-             String pubDate,
-             Long epoch,
-             String headline,
-             Double score,
-             Double magnitude) {
+  public Doc(
+      String docId,
+      String pubDate,
+      Long epoch,
+      String headline,
+      Double score,
+      Double magnitude) {
     this.docId = docId;
     this.pubDate = pubDate;
     this.epoch = epoch;
@@ -99,9 +108,8 @@ public class Doc {
 
   @Override
   public String toString() {
-    ObjectMapper mapper = new ObjectMapper();
     try {
-      String json = mapper.writeValueAsString(this);
+      String json = MAPPER.writeValueAsString(this);
       return json;
     } catch (JsonProcessingException e) {
       return String.format("{error: %s}", e);

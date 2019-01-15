@@ -38,24 +38,25 @@ class SentimentAnalysisOp(kfp.dsl.ContainerOp):
     super(SentimentAnalysisOp, self).__init__(
       name=name,
       image='gcr.io/rostam-193618/sentiment-analysis:latest',
-      command=['mvn', 'compile', 'exec:java',
-               '-Dexec.mainClass=SentimentAnalysis'],
+      command=[
+          'mvn', 'compile', 'exec:java',
+          '-Dexec.mainClass=com.google.cloud.pso.pipelines.SentimentAnalysis'],
       # file_outputs={'blobs': '/blobs.txt'},
-      arguments=['--define',
-                 'exec.args=--project={} \
-                   --runner=DataflowRunner \
-                   --gcpTempLocation={} \
-                   --inputPath={} \
-                   --outputPath={} \
-                   --windowDuration={} \
-                   --windowPeriod={}'.format(
-                     str(project),
-                     str(gcp_temp_location),
-                     str(input_path),
-                     str(output_path),
-                     str(window),
-                     str(period)),
-                 '--activate-profiles', 'dataflow-runner']   
+      arguments=[
+          '-Dexec.args=--project={} \
+            --runner=DataflowRunner \
+            --gcpTempLocation={} \
+            --inputPath={} \
+            --outputPath={} \
+            --windowDuration={} \
+            --windowPeriod={}'.format(
+              str(project),
+              str(gcp_temp_location),
+              str(input_path),
+              str(output_path),
+              str(window),
+              str(period)),
+      ]   
     )
 
 
