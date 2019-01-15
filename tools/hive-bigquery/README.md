@@ -141,3 +141,16 @@ optional arguments:
  --tracking-database-user <OPTIONAL_TRACKING_DATABASE_USER> \
  --tracking-database-db-name <TRACKING_DB_NAME>
 ```
+
+# Test Run
+It is recommended to perform a test run before actually migrating your Hive table. To do so, you can use the [generate_data.py](test/generate_data.py) to randomly generate data (with specified size) and use [create_hive_tables.sql](test/create_hive_tables.sql) to create Hive tables in the default database on the source Hive cluster, both non partitioned and partitioned in different formats.
+
+Run the command below to generate ~50GB of data.
+```
+python test/generate_data.py 50
+```
+Launch script to create Hive tables.
+```
+hive -f tools/create_hive_tables.sql
+```
+Migrate the created Hive tables by running [hive_to_bigquery.py](hive_to_bigquery.py) with appropriate arguments.
