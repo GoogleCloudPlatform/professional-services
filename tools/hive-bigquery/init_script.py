@@ -15,55 +15,58 @@ def arg_pars():
     """
 
     parser = argparse.ArgumentParser(
-        description="Migrate Hive data to BigQuery")
-    parser.add_argument(
+        description="Framework to migrate Hive table to BigQuery using"
+                    "Cloud SQL to keep track of the migration progress.")
+    required = parser.add_argument_group('required arguments')
+    optional = parser.add_argument_group('optional arguments')
+    optional.add_argument(
         '--hive-server-host', required=False,
         default='localhost',
         help="Hive server IP address or hostname, defaults to localhost")
-    parser.add_argument(
+    optional.add_argument(
         '--hive-server-port', required=False,
         default=10000, type=int, help="Hive server port, defaults to 10000")
-    parser.add_argument(
+    optional.add_argument(
         '--hive-server-username', required=False,
         default=None, help="Hive username, defaults to None")
-    parser.add_argument('--hive-database', required=True,
+    required.add_argument('--hive-database', required=True,
                         help="Hive database name")
-    parser.add_argument('--hive-table', required=True, help="Hive table name")
-    parser.add_argument('--project-id', required=True, help="GCP Project ID")
-    parser.add_argument('--bq-dataset-id', required=True,
-                        help="BigQuery dataset ID")
-    parser.add_argument('--bq-table', required=False, default='',
+    required.add_argument('--hive-table', required=True, help="Hive table name")
+    required.add_argument('--project-id', required=True, help="GCP Project ID")
+    required.add_argument('--bq-dataset-id', required=True,
+                        help="Existing BigQuery dataset ID")
+    optional.add_argument('--bq-table', required=False, default='',
                         help="BigQuery table name")
-    parser.add_argument(
-        '--bq-table-write-mode', required=True, default="create",
+    required.add_argument(
+        '--bq-table-write-mode', required=True,
         choices=['overwrite', 'create', 'append'],
         help="BigQuery table write mode.\nUse overwrite to overwrite the "
              "previous runs of migration.\nUse create if you are migrating "
              "for the first time.\nUse append to append to the existing "
              "BigQuery table")
-    parser.add_argument(
+    required.add_argument(
         '--gcs-bucket-name', required=True,
-        help="Google Cloud Storage Bucket name. Provide either "
-             "gs://BUCKET_NAME or BUCKET_NAME.")
-    parser.add_argument(
+        help="Existing GCS Bucket name. Provide either "
+             "gs://BUCKET_NAME or BUCKET_NAME. Hive data will be copied to this"
+             "bucket and then loaded into BigQuery")
+    optional.add_argument(
         '--incremental-col', required=False,
-        help="Optional.Provide the incremental column name if present in Hive "
-             "table ")
-    parser.add_argument(
+        help="Provide the incremental column name if present in the Hive table")
+    optional.add_argument(
         '--use-clustering', required=False,
         default="False", choices=["False", "True"],
         help="Boolean to indicate whether to use clustering in BigQuery if "
              "supported")
-    parser.add_argument(
+    required.add_argument(
         '--tracking-database-host', required=True,
         help="Cloud SQL Tracking database host address")
-    parser.add_argument(
-        '--tracking-database-port', required=False,
-        default=3306, help="Port to connect to tracking database")
-    parser.add_argument(
-        '--tracking-database-user', required=False,
-        default='root', help="Cloud SQL Tracking database user name")
-    parser.add_argument(
+    optional.add_argument(
+        '--tracking-database-port', required=False, default=3306,
+        help="Port to connect to tracking database, defaults to 3306")
+    optional.add_argument(
+        '--tracking-database-user', required=False, default='root',
+        help="Cloud SQL Tracking database user name, defaults to root")
+    required.add_argument(
         '--tracking-database-db-name', required=True,
         help="Cloud SQL Tracking db name.Ensure you provide the same db name "
              "if you have migrated previously")
