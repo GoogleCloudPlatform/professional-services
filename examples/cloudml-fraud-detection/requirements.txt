@@ -1,0 +1,7 @@
+tensorflow==1.4
+apache_beam[gcp]==2.4.0
+tensorflow-transform==0.4.0
+matplotlib
+sklearn
+numpy
+scipy
