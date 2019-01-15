@@ -513,9 +513,9 @@ class FakeRowGen(beam.DoFn):
         try:
             # Here the element is treated as the dictionary representing a single row
             # of the histogram table.
-            frequency = element.get(u'frequency')
+            frequency = int(element.get(u'frequency'))
 
-            for i in xrange(int(frequency)):
+            for i in xrange(frequency):
                 row = self.generate_fake(fschema=faker_schema, key_dict=element)
                 yield row
         except AttributeError:
