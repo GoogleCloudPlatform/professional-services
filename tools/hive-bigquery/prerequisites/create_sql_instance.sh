@@ -6,6 +6,9 @@ INSTANCE_NAME=$1
 # Database to be created
 DATABASE_NAME=$2
 
+# Region in which instance is to be created
+REGION=${3:-us-east1}
+
 # check if there is an existing instance with the given name
 echo "Checking if instance exists with the same name"
 gcloud sql instances describe $INSTANCE_NAME > /dev/null
@@ -15,7 +18,7 @@ if [ $? -eq 0 ]; then
     exit 0
 else
     # create cloud sql instance and add the cluster ip to authorized networks
-    gcloud sql instances create $INSTANCE_NAME --tier=db-n1-standard-1 --region=us-east1
+    gcloud sql instances create $INSTANCE_NAME --tier=db-n1-standard-1 --region=$REGION
     if [ $? -eq 0 ]; then
         echo "Instance created successfully"
         gcloud sql databases create $DATABASE_NAME --instance $INSTANCE_NAME

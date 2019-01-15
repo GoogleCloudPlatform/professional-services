@@ -21,9 +21,22 @@ else
     fi
 fi
 
-# Download the Cloud SQL proxy
-wget https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O cloud_sql_proxy
-chmod +x cloud_sql_proxy
+function err() {
+  echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]: $@" >&2
+  return 1
+}
+
+readonly PROXY_BIN='/usr/local/bin/cloud_sql_proxy'
+
+function install_cloud_sql_proxy() {
+  # Install proxy.
+  wget -q https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 \
+    || err 'Unable to download cloud-sql-proxy binary'
+  mv cloud_sql_proxy.linux.amd64 ${PROXY_BIN}
+  chmod +x ${PROXY_BIN}
+}
+
+install_cloud_sql_proxy
 
 # Install virtual environment
 pip install virtualenv
