@@ -17,7 +17,7 @@ The graph displays the total number of queries run per day of the week for the c
 ### No. of Queries (this week vs. last week) - aggregated by hour
 The graph displays the total number of queries run at a particular hour of the day aggregated over the entire week, also displaying a contrast with the same data for the previous week.
 
-**Method of Interpretation: Total number of queries run at 9 p.m. over the entire week vs. Total number of queries run at 9 p.m. over last week**
+**Example: Total number of queries run at 9 a.m. over the entire week is 301 vs. Total number of queries run at 9 p.m. over last week is 761**
 
 ![No. of Queries (this week vs. last week) - aggregated by hour](../images/query_jobs/Image3.png)
 
@@ -29,7 +29,7 @@ The graph displays the average queries run per hour over every day of the curren
 ### Avg. Slot Usage (this week) - aggregated by hour
 The graph displays the average slot consumption for a particular hour of the day aggregated over the entire week.
 
-**Method of Interpretation: Average of slot usage consumed at 6 p.m. for the current week**
+**Method of Interpretation: Average of slot usage consumed at 6 p.m. is 28.54 for the current week**
 
 ![Avg. Slot Usage (this week) - aggregated by hour](../images/query_jobs/Image5.png)
 
