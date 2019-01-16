@@ -1,34 +1,45 @@
 # Automatic labelling
 
-This directory comprises an example of a [Terraform module](terraform-module) which provisions infrastructure to
-automatically label resources as they are created.
+This directory comprises a [Terraform module](terraform-module) which
+provisions infrastructure on Google Cloud Platform (GCP) to automatically
+label resources as they are created.
 
-## Preparation
+## Requirements
 
-- Cloud Resource Manager API - cloudresourcemanager.googleapis.com
-- Identity and Access Management API - iam.googleapis.com
-- Service Usage API - serviceusage.googleapis.com
+### Provider Configuration
+
+Refer to the
+[Terraform Google Provider reference][terraform-google-provider-reference] for
+instructions on configuring the GCP credentials, project, region, and zone.
+
+### APIs
+
+The following APIs must be enabled for the project:
+
+- Cloud Resource Manager API
+- Identity and Access Management API
+- Service Usage API
 - Cloud Pub/Sub API
-- Compute Engine API (example)
 - Cloud Functions API
-- roles/iam.admin
-- roles/logging.configWriter
-- roles/pubsub.admin
-- roles/serviceusage.admin
-- roles/storage.admin
-- roles/compute.admin (example)
-- roles/iam.serviceAccountUser
+
+### Roles
+
+The following roles must be assigned to the account which will be provisioning
+the infrastructure:
+
 - Cloud Functions Developer
-- https://www.terraform.io/docs/providers/google/getting_started.html
-- https://www.terraform.io/docs/providers/google/provider_reference.html#configuration-reference
-- jq
+- Compute Viewer
+- Service Account User
+- Logs Configuration Writer
+- Pub/Sub Admin
+- Storage Admin
 
-## Usage
+## Example
 
-### IAM Roles
+An [example module][example-module] is provided to demonstrate usage of this
+module.
+
+## Testing
 
 [terraform-module]: https://www.terraform.io/docs/modules/index.html
-
-## Bugs
-
-- https://github.com/terraform-providers/terraform-provider-google/issues/2762
+[terraform-google-provider-reference]: https://www.terraform.io/docs/providers/google/provider_reference.html
