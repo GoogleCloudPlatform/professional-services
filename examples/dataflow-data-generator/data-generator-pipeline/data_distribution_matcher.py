@@ -27,41 +27,30 @@ import logging
 
 import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions
-
-from data_generator.PrettyDataGenerator import DataGenerator, FakeRowGen, \
-
-    parse_data_generator_args, validate_data_args, fetch_schema,\
-    write_n_line_file_to_gcs
+from data_generator.PerformantDataGenerator import DataGenerator, FakeRowGen, \
+    parse_data_generator_args, validate_data_args, fetch_schema
 import avro.schema
-import os
 
 from data_generator.CsvUtil import dict_to_csv
 from data_generator.AvroUtil import fix_record_for_avro
-from data_generator.enforce_primary_keys import EnforcePrimaryKeys
+
 
 def run(argv=None):
     """
-    This function parses the command line arguments and runs the Beam Pipeline.
+    This funciton parses the command line arguments and runs the Beam Pipeline.
 
     Args:
         argv: list containing the commandline arguments for this call of the
          script.
     """
-    # Keeps track if schema was inferred by input or ouput table.
     schema_inferred = False
-
     data_args, pipeline_args = parse_data_generator_args(argv)
     data_args, schema_inferred = fetch_schema(data_args, schema_inferred)
     pipeline_options = PipelineOptions(pipeline_args)
 
-    temp_location = pipeline_options.display_data()['temp_location']
-    temp_blob = write_n_line_file_to_gcs(
-        pipeline_options.display_data()['project'],
-        temp_location,
-        data_args.num_records)
-
     data_gen = DataGenerator(bq_schema_filename=data_args.schema_file,
                              input_bq_table=data_args.input_bq_table,
+                             hist_bq_table=data_args.hist_bq_table,
                              p_null=data_args.p_null,
                              n_keys=data_args.n_keys,
                              min_date=data_args.min_date,
@@ -71,33 +60,24 @@ def run(argv=None):
                              max_float=data_args.max_float,
                              float_precision=data_args.float_precision,
                              write_disp=data_args.write_disp,
-                             key_skew=data_args.key_skew,
-                             primary_key_cols=data_args.primary_key_cols)
+                             key_skew=data_args.key_skew)
 
 
     # Initiate the pipeline using the pipeline arguments passed in from the
     # command line.  This includes information including where Dataflow should
     # store temp files, and what the project id is and what runner to use.
     p = beam.Pipeline(options=pipeline_options)
-
-    rows = (p
-        # Read the file we created with num_records newlines.
-        | 'Read file with num_records lines' >> beam.io.ReadFromText(
-                os.path.join('gs://', temp_blob.bucket.name, temp_blob.name)
-            )
-
-        # Use our instance of our custom DataGenerator Class to generate 1 fake
-        # datum with the appropriate schema for each element in the PColleciton
-        # created above.
-        | 'Generate Data' >> beam.ParDo(FakeRowGen(data_gen))
-        | 'Parse Json Strings' >> beam.FlatMap(lambda row: [json.loads(row)])
-
+    rows = (
+        p 
+            | 'Read Histogram Table.' >> beam.io.Read(beam.io.BigQuerySource(
+                    data_gen.hist_bq_table))
+            | 'Generate Data' >> beam.ParDo(FakeRowGen(data_gen))
+            | 'Parse Json Strings' >> beam.FlatMap(lambda row: [json.loads(row)])
+    
     )
-
+        
     if data_args.primary_key_cols:
-        for key in data_args.primary_key_cols.split(','):
-            rows |= 'Enforcing primary key: {}'.format(key) >> EnforcePrimaryKeys(
-                        key)
+        rows |= EnforcePrimaryKeys(data_args.primary_key_col)
 
     if data_args.csv_schema_order:
         (rows
@@ -110,8 +90,7 @@ def run(argv=None):
         )
 
     if data_args.avro_schema_file:
-        avsc = avro.schema.parse(open(data_args.avro_schema_file, 'rb').read())
-
+        avsc = avro.schema.parse(open(data_args.avro_schema_file,'rb').read())
         (rows
             # Need to convert time stamps from strings to timestamp-micros
             | 'Fix date and time Types for Avro.' >> beam.FlatMap(lambda row: 
@@ -140,13 +119,7 @@ def run(argv=None):
             )
         )
 
-
     p.run().wait_until_finish()
-
-    # Manually clean up of temp_num_records.txt because it will be outside this
-    # job's directory and Dataflow will not remove it for us.
-    temp_blob.delete()
-
 
 if __name__ == '__main__':
     logging.getLogger().setLevel(logging.INFO)
