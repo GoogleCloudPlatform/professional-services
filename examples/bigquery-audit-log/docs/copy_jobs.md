@@ -37,9 +37,11 @@ The table displays the number of copy jobs carried out per user in the project (
 ### Copy Jobs By Hour
 The pie chart displays the percentage of copy jobs carried out over the hours of the day.
 
+**Method of Interpretation: Percentage of copy jobs carried out at 12 a.m. during the current week**
+
 ![Copy Jobs By Hour](../images/copy_jobs/Image7.png)
 
-### Loads By Day of Week
+### Copy Jobs By Day of Week
 The pie chart displays the percentage of copy jobs carried out over the days of the week.
 
 ![Copy Jobs By Day of Week](../images/copy_jobs/Image8.png)
