@@ -3,13 +3,13 @@ GEM
   specs:
     addressable (2.5.2)
       public_suffix (>= 2.0.2, < 4.0)
-    aws-sdk (2.11.199)
-      aws-sdk-resources (= 2.11.199)
-    aws-sdk-core (2.11.199)
+    aws-sdk (2.11.205)
+      aws-sdk-resources (= 2.11.205)
+    aws-sdk-core (2.11.205)
       aws-sigv4 (~> 1.0)
       jmespath (~> 1.0)
-    aws-sdk-resources (2.11.199)
-      aws-sdk-core (= 2.11.199)
+    aws-sdk-resources (2.11.205)
+      aws-sdk-core (= 2.11.205)
     aws-sigv4 (1.0.3)
     azure_graph_rbac (0.17.0)
       ms_rest_azure (~> 0.11.0)
@@ -65,7 +65,7 @@ GEM
       http-cookie (~> 1.0.0)
     faraday_middleware (0.12.2)
       faraday (>= 0.7.4, < 1.0)
-    ffi (1.9.25)
+    ffi (1.10.0)
     google-api-client (0.23.9)
       addressable (~> 2.5, >= 2.5.1)
       googleauth (>= 0.5, < 0.7.0)
@@ -138,7 +138,7 @@ GEM
       mixlib-shellout
       mixlib-versioning
       thor
-    mixlib-log (2.0.9)
+    mixlib-log (3.0.1)
     mixlib-shellout (2.4.4)
     mixlib-versioning (1.2.7)
     ms_rest (0.7.3)
@@ -288,4 +288,4 @@ DEPENDENCIES
   kitchen-terraform (~> 4.1)!
 
 BUNDLED WITH
-   1.17.2
+   1.17.3
