@@ -13,12 +13,11 @@
 # limitations under the License.
 
 """
-A Dataflow pipeline which reads a schema to simulate or "fake" data 
-from a json file and writes random data of the schema's shape to a 
-BigQuery table or as CSV or AVRO files on GCS. This can be used to 
-ease apprehension about BQ costs, unblock integration testing before
-real data can be provided by the business, or create dummy datasets 
-for stress testing in the event of large data growth.
+data_generation_joinable_table.py is a Dataflow pipeline which reads
+a schema to simulate or "fake" data from a json file and writes
+random data of the schema's shape to a BigQuery table. This should be used to
+generate dimension tables after data_generator_for_bq.py has created a
+fact table.
 """
 
 from __future__ import absolute_import
@@ -27,9 +26,9 @@ import logging
 
 import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions
+from apache_beam.pvalue import AsList
 
 from data_generator.PrettyDataGenerator import DataGenerator, FakeRowGen, \
-
     parse_data_generator_args, validate_data_args, fetch_schema,\
     write_n_line_file_to_gcs
 import avro.schema
@@ -39,9 +38,10 @@ from data_generator.CsvUtil import dict_to_csv
 from data_generator.AvroUtil import fix_record_for_avro
 from data_generator.enforce_primary_keys import EnforcePrimaryKeys
 
+
 def run(argv=None):
     """
-    This function parses the command line arguments and runs the Beam Pipeline.
+    This funciton parses the command line arguments and runs the Beam Pipeline.
 
     Args:
         argv: list containing the commandline arguments for this call of the
@@ -52,6 +52,7 @@ def run(argv=None):
 
     data_args, pipeline_args = parse_data_generator_args(argv)
     data_args, schema_inferred = fetch_schema(data_args, schema_inferred)
+
     pipeline_options = PipelineOptions(pipeline_args)
 
     temp_location = pipeline_options.display_data()['temp_location']
@@ -63,7 +64,6 @@ def run(argv=None):
     data_gen = DataGenerator(bq_schema_filename=data_args.schema_file,
                              input_bq_table=data_args.input_bq_table,
                              p_null=data_args.p_null,
-                             n_keys=data_args.n_keys,
                              min_date=data_args.min_date,
                              max_date=data_args.max_date,
                              only_pos=data_args.only_pos,
@@ -72,7 +72,9 @@ def run(argv=None):
                              float_precision=data_args.float_precision,
                              write_disp=data_args.write_disp,
                              key_skew=data_args.key_skew,
-                             primary_key_cols=data_args.primary_key_cols)
+                             primary_key_cols=data_args.primary_key_cols,
+                             dest_joining_key_col=data_args.dest_joining_key_col
+                )
 
 
     # Initiate the pipeline using the pipeline arguments passed in from the
@@ -80,18 +82,39 @@ def run(argv=None):
     # store temp files, and what the project id is and what runner to use.
     p = beam.Pipeline(options=pipeline_options)
 
+    # When generating a dimension table we get the distinct keys as a side
+    # input from the main table so we generate dimension records that join to
+    # the main data table.
+    key_set = \
+        (p
+         | 'Query Keys from main table' >> beam.io.Read(
+            beam.io.BigQuerySource(
+                query="SELECT DISTINCT({}) FROM `{}`".format(
+                    data_args.source_joining_key_col,
+                    data_args.fact_table),
+                use_standard_sql=True)
+            )
+         | 'Extract key values' >> beam.Map(
+                lambda x: (x[data_args.source_joining_key_col]))
+        )
+
     rows = (p
-        # Read the file we created with num_records newlines.
-        | 'Read file with num_records lines' >> beam.io.ReadFromText(
+
+     # Read the file we created with num_records newlines.
+     #
+     | 'Read file with num_records lines' >> beam.io.ReadFromText(
                 os.path.join('gs://', temp_blob.bucket.name, temp_blob.name)
             )
+    
 
-        # Use our instance of our custom DataGenerator Class to generate 1 fake
-        # datum with the appropriate schema for each element in the PColleciton
-        # created above.
-        | 'Generate Data' >> beam.ParDo(FakeRowGen(data_gen))
-        | 'Parse Json Strings' >> beam.FlatMap(lambda row: [json.loads(row)])
-
+     # Use our instance of our custom DataGenerator Class to generate 1 fake
+     # datum with the appropriate schema for each element in the PColleciton
+     # created above.
+     | 'Generate Data' >> beam.ParDo(FakeRowGen(data_gen))
+     | 'Parse Json Strings' >> beam.FlatMap(lambda row: [json.loads(row)])
+     | 'Enforce joining keys' >> beam.FlatMap(
+                        data_gen.enforce_joinable_keys, 
+                        key_set=AsList(key_set))
     )
 
     if data_args.primary_key_cols:
@@ -101,7 +124,7 @@ def run(argv=None):
 
     if data_args.csv_schema_order:
         (rows
-            | 'Order fields for CSV writing.' >> beam.FlatMap(lambda d: 
+            | 'Order fields for CSV writing.' >> beam.FlatMap(lambda d:
                    [dict_to_csv(d, data_args.csv_schema_order.split(','))])
 
             | 'Write to GCS' >> beam.io.textio.WriteToText(
@@ -114,7 +137,7 @@ def run(argv=None):
 
         (rows
             # Need to convert time stamps from strings to timestamp-micros
-            | 'Fix date and time Types for Avro.' >> beam.FlatMap(lambda row: 
+            | 'Fix date and time Types for Avro.' >> beam.FlatMap(lambda row:
                 fix_record_for_avro(row, avsc))
             | 'Write to Avro.' >> beam.io.avroio.WriteToAvro(
                     file_path_prefix=data_args.output_prefix,
@@ -140,7 +163,6 @@ def run(argv=None):
             )
         )
 
-
     p.run().wait_until_finish()
 
     # Manually clean up of temp_num_records.txt because it will be outside this
@@ -151,3 +173,4 @@ def run(argv=None):
 if __name__ == '__main__':
     logging.getLogger().setLevel(logging.INFO)
     run()
+
