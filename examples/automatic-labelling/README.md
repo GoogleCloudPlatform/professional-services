@@ -8,10 +8,17 @@ automatically label resources as they are created.
 - Cloud Resource Manager API - cloudresourcemanager.googleapis.com
 - Identity and Access Management API - iam.googleapis.com
 - Service Usage API - serviceusage.googleapis.com
+- Cloud Pub/Sub API
+- Compute Engine API (example)
+- Cloud Functions API
 - roles/iam.admin
 - roles/logging.configWriter
 - roles/pubsub.admin
 - roles/serviceusage.admin
+- roles/storage.admin
+- roles/compute.admin (example)
+- roles/iam.serviceAccountUser
+- Cloud Functions Developer
 - https://www.terraform.io/docs/providers/google/getting_started.html
 - https://www.terraform.io/docs/providers/google/provider_reference.html#configuration-reference
 - jq
