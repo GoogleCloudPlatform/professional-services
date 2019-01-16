@@ -30,12 +30,12 @@ The table shows the details pertaining to all the load jobs carried out over the
 ![Table](../images/load_jobs/Image5.png)
 
 ### User Id - Loads
-The table shows the number of load jobs carried out per user in the project (with access to BigQuery)
+The table shows the number of load jobs carried out per user in the project (with access to BigQuery).
 
 ![User Id - Loads](../images/load_jobs/Image6.png)
 
 ### Loads By Hour
-The pie chart shows the percentage of load jobs over the hours of the day when they are carried out.
+The pie chart shows the percentage of load jobs carried out over the hours of the day.
 
 ![Loads By Hour](../images/load_jobs/Image7.png)
 
