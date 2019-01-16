@@ -46,6 +46,7 @@ def set_up_test_bucket(config, parsed_args):
     """
 
     random_bucket_name = _get_random_bucket_name()
+    config.temp_bucket_name = random_bucket_name + '-temp'
 
     with yaspin(text='TESTING: Cleanup source bucket') as spinner:
         try:
