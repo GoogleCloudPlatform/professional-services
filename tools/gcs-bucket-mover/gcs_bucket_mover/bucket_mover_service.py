@@ -21,6 +21,7 @@ from time import sleep
 from retrying import retry
 from yaspin import yaspin
 
+from google.api_core import iam as api_core_iam
 from google.cloud import exceptions
 from google.cloud import pubsub
 from google.cloud import storage
@@ -31,7 +32,6 @@ from gcs_bucket_mover import bucket_details
 from gcs_bucket_mover import sts_job_status
 
 _CHECKMARK = u'\u2713'.encode('utf8')
-
 
 def move_bucket(config, parsed_args, cloud_logger):  # Majority statements are logging. pylint: disable=too-many-statements
     """Main entry point for the bucket mover script
@@ -170,14 +170,9 @@ def _lock_down_bucket(spinner, cloud_logger, bucket, lock_file_name,
     # Turn off any bucket ACLs
     bucket.acl.save_predefined('private')
 
-    # Revoke all IAM access and then add the service account as an admin
-    account = 'serviceAccount:' + service_account_email
-    policy = bucket.get_iam_policy()
-    for role in policy.keys():
-        for member in policy[role].copy():
-            policy[role].discard(member)
-
-    policy['roles/storage.admin'].add(account)
+    # Revoke all IAM access and only set the service account as an admin
+    policy = api_core_iam.Policy()
+    policy['roles/storage.admin'].add('serviceAccount:' + service_account_email)
     bucket.set_iam_policy(policy)
 
 

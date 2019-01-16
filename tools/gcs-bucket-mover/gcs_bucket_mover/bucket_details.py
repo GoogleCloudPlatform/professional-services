@@ -57,7 +57,8 @@ class BucketDetails(object):
         self.cors = source_bucket.cors
         self.default_kms_key_name = source_bucket.default_kms_key_name
         self.labels = source_bucket.labels
-        self.lifecycle_rules = source_bucket.lifecycle_rules
+        # lifecycyle_rules returns a generator
+        self.lifecycle_rules = list(source_bucket.lifecycle_rules)
         self.logging = source_bucket.get_logging()
         self.versioning_enabled = source_bucket.versioning_enabled
         # Unlike all other bucket properties, notifications are only given as an iterator
