@@ -41,10 +41,10 @@ WITH BQAudit AS (
       protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.endTime,
       protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.startTime, SECOND)) / 60) AS INT64)
       AS executionMinuteBuckets,
-    ISNULL( COALESCE( protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.totalProcessedBytes,
+    IF(COALESCE(protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.totalProcessedBytes,
       protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.totalSlotMs, 
-      protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.code)
-    ) AS cached
+      protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatus.error.code) IS NULL, TRUE, FALSE
+    ) AS isCached,
     protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.totalSlotMs,
     protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.totalTablesProcessed,
     protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.totalViewsProcessed,
@@ -168,7 +168,7 @@ SELECT
   billingTier,
   query,
   referencedTables,
-  referencedViews,
+  referencedViews
   /* This ends the code snippet that queries columns specific to the Query operation in BQ */
 FROM
   BQAudit
