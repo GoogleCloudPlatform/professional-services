@@ -10,36 +10,36 @@ The Selection Bar allows the user to filter the data in the report to a specific
 ![Selection Bar](../images/extract_jobs/Image1.png)
 
 ### Extracts By Day
-The Bar Graph shows the total output of extract jobs carried over the past 7 days.
+The Bar Graph displays the total output of extract jobs carried over the past 7 days.
 
 ![Extracts By Day](../images/extract_jobs/Image2.png)
 
 ### Extracts By Table
-The Bar Graph shows the number of extract jobs carried out over the past 7 days, color coded by the different **tables** the extract job was carried out on.
+The Bar Graph displays the number of extract jobs carried out over the past 7 days, color coded by the different **tables** the extract job was carried out on.
 
 ![Extracts By Table](../images/extract_jobs/Image3.png)
 
 ### Extracts By Project
-The Bar Graph shows the number of extract jobs carried out over the past 7 days, color coded by the different **projects** the extract job was carried out on.
+The Bar Graph displays the number of extract jobs carried out over the past 7 days, color coded by the different **projects** the extract job was carried out on.
 
 ![Loads By Project](../images/extract_jobs/Image4.png)
 
 ### Table
-The table shows the details pertaining to all the extract jobs carried out over the past 7 days.
+The table displays the details pertaining to all the extract jobs carried out over the past 7 days.
 
 ![Table](../images/extract_jobs/Image5.png)
 
 ### User Id - Runtime Secs
-The table shows the average runtime (in seconds) for the extract jobs per user in the project (with access to BigQuery).
+The table displyas the average runtime (in seconds) for the extract jobs per user in the project (with access to BigQuery).
 
 ![User Id - Runtime Secs](../images/extract_jobs/Image6.png)
 
 ### Extracts By Hour
-The pie chart shows the percentage of extract jobs carried out over the hours of the day.
+The pie chart displays the percentage of extract jobs carried out over the hours of the day.
 
 ![Extracts By Hour](../images/extract_jobs/Image7.png)
 
 ### Extracts By Day of Week
-The pie chart shows the percentage of extract jobs carried out over the days of the week.
+The pie chart displays the percentage of extract jobs carried out over the days of the week.
 
 ![Extracts By Day of Week](../images/extract_jobs/Image8.png)
