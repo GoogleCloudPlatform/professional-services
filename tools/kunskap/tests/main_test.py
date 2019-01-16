@@ -19,10 +19,9 @@ import unittest
 import unittest.mock as mock
 import config
 import main
-from mock import mock_open
+from unittest.mock import mock_open
 import pytz
 from google.cloud import bigquery
-from google.cloud.exceptions import NotFound
 
 
 class MockQueryResult():
@@ -40,37 +39,6 @@ class TestMain(unittest.TestCase):
         self.mocked_datastore = mock.Mock()
         self.mocked_bq = mock.Mock()
 
-    def testStoreQueryTimestamp(self):
-        """Tests ability to create a datetime entity in Datastore."""
-        mocked_time = datetime.datetime(2018, 11, 25, 0, 0, 0, tzinfo=pytz.utc)
-        main.store_query_timestamp(mocked_time, self.mocked_datastore())
-        self.mocked_datastore().put.called
-
-    def testStoreQueryTimestampWithNoData(self):
-        """Tests that Datastore will not store an entity if the time is null."""
-        main.store_query_timestamp(None, self.mocked_datastore)
-        self.mocked_datastore.assert_not_called()
-        self.assertRaises(Exception)
-
-    def testGetLastQueryTime(self):
-        """Tests retrieval of most recent Datastore entity with mocked result."""
-        mocked_query_times = [
-            {'time_queried': '2018-03-24 00:00:00'},
-            {'time_queried': '2018-03-23 00:00:00'},
-            {'time_queried': '2018-03-22 00:00:00'}
-        ]
-        self.mocked_datastore().query().fetch.return_value = iter(
-            mocked_query_times)
-        last_time = main.get_last_query_time(self.mocked_datastore())
-        self.mocked_datastore().query().fetch.called
-        self.assertEqual(last_time, '2018-03-24 00:00:00')
-
-    def testGetLastQueryTimeWithNoData(self):
-        """Tests that Datastore returns None if it fetches an empty result."""
-        self.mocked_datastore().query().fetch.return_value = iter([])
-        last_time = main.get_last_query_time(self.mocked_datastore())
-        self.mocked_datastore().query().fetch.called
-        self.assertEqual(last_time, None)
 
     def testGetUsageDates(self):
         """Tests that a list of usage dates is created from a mock query result."""
@@ -83,25 +51,13 @@ class TestMain(unittest.TestCase):
         self.mocked_bq().query().result.called
         self.assertEqual(expected_usage_dates, mocked_usage_dates)
 
-    def testGetChangedPartitionsWithDate(self):
-        """Tests that list is created if query has been executed in past."""
-        mock_query_result = MockQueryResult(
-            partition_timestamp=datetime.datetime(2018, 3, 24, 0, 0,
-                                                  tzinfo=pytz.utc))
-        self.mocked_bq().query().result.return_value = iter([mock_query_result])
-        mocked_partitions = main.get_changed_partitions(self.mocked_bq(),
-                                                        '2018-03-23 00:00:00')
-        expected_partitions = set(['2018-03-24 00:00:00'])
-        self.mocked_bq().query().result.called
-        self.assertEqual(expected_partitions, mocked_partitions)
-
     def testGetChangedPartitionsNoDate(self):
-        """Tests that partitions are returned if first time running a query."""
+        """Tests that partitions are returned."""
         mock_query_result = MockQueryResult(
             partition_timestamp=datetime.datetime(2018, 3, 24, 0, 0,
                                                   tzinfo=pytz.utc))
         self.mocked_bq().query().result.return_value = iter([mock_query_result])
-        mocked_partitions = main.get_changed_partitions(self.mocked_bq(), None)
+        mocked_partitions = main.get_changed_partitions(self.mocked_bq())
         expected_partitions = set(['2018-03-24 00:00:00'])
         self.mocked_bq().query().result.called
         self.assertEqual(expected_partitions, mocked_partitions)
@@ -111,40 +67,6 @@ class TestMain(unittest.TestCase):
         """Tests that creating a string from a SQL file executes on correct file."""
         main.create_query_string(config.sql_file_path)
         mock_file.assert_called_with(config.sql_file_path, 'r')
-
-    def testPartitionExistsUsesTableName(self):
-        """Tests that get_table is called with given table name."""
-        mocked_table_name = 'dummy_table'
-        main.partition_exists(self.mocked_bq(), mocked_table_name)
-        self.mocked_bq().get_table.assert_called_with(mocked_table_name)
-
-    def testPartitionExistsRaisesError(self):
-        """Tests that error is raised/False returned if given fake table name."""
-        mocked_table_name = 'project.dataset.table'
-        bq_client = bigquery.Client()
-        return_val = main.partition_exists(bq_client, mocked_table_name)
-        self.assertRaises(NotFound)
-        self.assertEqual(return_val, False)
-
-    def testDeletePartitionWithoutData(self):
-        """Tests that partitions are not deleted when given blank list."""
-        mocked_partition_list = []
-        main.delete_partitions(mocked_partition_list, self.mocked_bq())
-        self.mocked_bq().delete_table.assert_not_called()
-
-    def testStringReplacement(self):
-        """Tests that partition string is correct format."""
-        mock_partition_date = ['2018-11-18']
-        main.delete_partitions(mock_partition_date, self.mocked_bq())
-        self.mocked_bq().delete_table.called
-        mocked_table_name = Template(
-            '$project.$output_dataset.$table$suffix').safe_substitute(
-                project=config.billing_project_id,
-                output_dataset=config.output_dataset_id,
-                table=config.output_table_name,
-                suffix='$' + mock_partition_date[0].replace('-', '')
-                )
-        self.mocked_bq().delete_table.assert_called_with(mocked_table_name)
 
     def testExecuteTransformationQuery(self):
         """Tests that transformation query will execute."""

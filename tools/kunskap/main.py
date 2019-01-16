@@ -18,8 +18,6 @@ import logging
 from string import Template
 import config
 from google.cloud import bigquery
-from google.cloud import datastore
-from google.cloud.exceptions import NotFound
 
 
 def get_usage_dates(partition_ids, bq_client):
