@@ -1,8 +1,8 @@
 # Overall Usage Report
 
-This document outlines the Overall Usage report (page 1) of the dashboard and explains the various graphs and tables present on the page.
+This document outlines the Overall Usage Report (page 1) of the dashboard and explains the various graphs and tables present on the page.
 
-#### Note: In all further sections, the "time", "week" or "day" is relative to the timeframe selected in the date filter in the Selection Bar at the top of the page
+#### Note: In all further sections, the "time", "week" or "day" is relative to the timeframe selected in the date filter present in the Selection Bar at the top of the page
 
 ### Selection Bar
 The Selection Bar allows the user to filter the data in the report to a specific date and/or table. There are filters present to filter by the type of Query (Was the query - Audit Log? Error? Timeout? Beam Job?)
