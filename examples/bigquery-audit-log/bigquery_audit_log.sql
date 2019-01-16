@@ -140,7 +140,7 @@ SELECT
   AS isAuditDashboardQuery,
   errorCode IS NOT NULL AS isError,
   REGEXP_CONTAINS(errorMessage, 'timeout') AS isTimeout,
-  cached,
+  isCached,
   totalSlotMs,
   totalSlotMs / runtimeMs AS avgSlots,
   /* The following statement breaks down the query into minute buckets
