@@ -24,9 +24,10 @@ import yaml
 
 from gcs_bucket_mover import bucket_mover_service
 from gcs_bucket_mover import bucket_mover_tester
+from gcs_bucket_mover import configuration
 
 
-def get_config():
+def _get_parsed_args():
     """Parses command line arguments and the config file.
 
     Order of precedence for config values is: command line > config file values > defaults
@@ -192,11 +193,18 @@ def _parse_yaml_file(path):
 
 
 def main():
-    """Get config and run either a test run or an actual move"""
-    config = get_config()
+    """Get passed in args and run either a test run or an actual move"""
+    parsed_args = _get_parsed_args()
 
-    if config.test:
-        test_bucket_name = bucket_mover_tester.set_up_test_bucket(config)
+    # Load the config values set in the config file and create the storage clients.
+    config = configuration.Configuration.from_conf(parsed_args)
+
+    # Create the cloud logging client that will be passed to all other modules.
+    cloud_logger = config.target_logging_client.logger('gcs-bucket-mover')  # pylint: disable=no-member
+
+    if parsed_args.test:
+        test_bucket_name = bucket_mover_tester.set_up_test_bucket(
+            config, parsed_args)
         config.bucket_name = test_bucket_name
 
-    bucket_mover_service.move_bucket(config)
+    bucket_mover_service.move_bucket(config, parsed_args, cloud_logger)

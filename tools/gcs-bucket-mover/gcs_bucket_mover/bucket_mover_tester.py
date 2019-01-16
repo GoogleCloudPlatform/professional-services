@@ -29,25 +29,21 @@ from yaspin import yaspin
 from google.cloud import exceptions
 from google.cloud import storage
 
-from gcs_bucket_mover import configuration
-
 _CHECKMARK = u'\u2713'.encode('utf8')
 
 
-def set_up_test_bucket(conf):
+def set_up_test_bucket(config, parsed_args):
     """Sets up the test bucket, adds objects and assigns various settings.
 
     It makes sure none of the buckets already exist, and then runs the main bucket mover service.
 
     Args:
-        conf: the configargparser parsing of command line options
+        config: A Configuration object with all of the config values needed for the script to run
+        parsed_args: the configargparser parsing of command line options
 
     Returns:
         The name of the randomly generated bucket
     """
-
-    # Load the environment config values set in config.sh and create the storage clients.
-    config = configuration.Configuration.from_conf(conf)
 
     random_bucket_name = _get_random_bucket_name()
 
@@ -69,7 +65,7 @@ def set_up_test_bucket(conf):
                 raise SystemExit()
 
         source_bucket = create_bucket(config.source_storage_client,
-                                      random_bucket_name, conf)
+                                      random_bucket_name, parsed_args)
         spinner.write(
             '{} TESTING: Bucket {} created in source project {}'.format(
                 _CHECKMARK, random_bucket_name, config.source_project))
@@ -84,7 +80,7 @@ def set_up_test_bucket(conf):
     return random_bucket_name
 
 
-def create_bucket(storage_client, bucket_name, conf):
+def create_bucket(storage_client, bucket_name, parsed_args):
     """Creates the test bucket.
 
     Also sets up lots of different bucket settings to make sure they can be moved.
@@ -92,7 +88,7 @@ def create_bucket(storage_client, bucket_name, conf):
     Args:
         storage_client: The storage client object used to access GCS
         bucket_name: The name of the bucket to create
-        conf: the configargparser parsing of command line options
+        parsed_args: the configargparser parsing of command line options
 
     Returns:
         The bucket object that has been created in GCS
@@ -107,7 +103,7 @@ def create_bucket(storage_client, bucket_name, conf):
     policies[0]['maxAgeSeconds'] = 3600
     bucket.cors = policies
     # KMS Key - When a custom KMS key is set up, uncomment the line below to test it
-    #bucket.default_kms_key_name = conf.test_default_kms_key_name
+    #bucket.default_kms_key_name = parsed_args.test_default_kms_key_name
     # Labels
     bucket.labels = {'colour': 'red', 'flavour': 'cherry'}
     # Object Lifecycle Rules
@@ -120,15 +116,16 @@ def create_bucket(storage_client, bucket_name, conf):
         }
     }]
     # Location
-    bucket.location = conf.test_bucket_location
+    bucket.location = parsed_args.test_bucket_location
     # Storage Class
-    bucket.storage_class = conf.test_storage_class
+    bucket.storage_class = parsed_args.test_storage_class
     # File Versioning
     # Setting this to True means we can't delete a non-empty bucket with the CLI in one
     # bucket.delete command
     bucket.versioning_enabled = False
     # Access Logs
-    bucket.enable_logging(conf.test_logging_bucket, conf.test_logging_prefix)
+    bucket.enable_logging(parsed_args.test_logging_bucket,
+                          parsed_args.test_logging_prefix)
 
     bucket.create()
 
@@ -136,13 +133,13 @@ def create_bucket(storage_client, bucket_name, conf):
     policy = bucket.get_iam_policy()
     # Uncomment the line below to view the existing IAM policies
     #print(json.dumps(policy.to_api_repr(), indent=4, sort_keys=True))
-    policy['roles/storage.admin'].add('user:' + conf.test_email_for_iam)
+    policy['roles/storage.admin'].add('user:' + parsed_args.test_email_for_iam)
     bucket.set_iam_policy(policy)
     # ACLs
-    bucket.acl.user(conf.test_email_for_iam).grant_read()
+    bucket.acl.user(parsed_args.test_email_for_iam).grant_read()
     bucket.acl.save()
     # Default Object ACL
-    bucket.default_object_acl.user(conf.test_email_for_iam).grant_read()
+    bucket.default_object_acl.user(parsed_args.test_email_for_iam).grant_read()
     bucket.default_object_acl.save()
 
     bucket.update()
@@ -150,7 +147,7 @@ def create_bucket(storage_client, bucket_name, conf):
     # Bucket Notification
     notification = storage.notification.BucketNotification(
         bucket,
-        conf.test_topic_name,
+        parsed_args.test_topic_name,
         custom_attributes={'myKey': 'myValue'},
         event_types=['OBJECT_FINALIZE', 'OBJECT_DELETE'],
         payload_format='JSON_API_V1')
