@@ -37,6 +37,9 @@ The table displyas the average runtime (in seconds) for the extract jobs per use
 ### Extracts By Hour
 The pie chart displays the percentage of extract jobs carried out over the hours of the day.
 
+**Method of Interpretation: Percentage of extract jobs carried out at 12 a.m. during the current week**
+
+
 ![Extracts By Hour](../images/extract_jobs/Image7.png)
 
 ### Extracts By Day of Week
