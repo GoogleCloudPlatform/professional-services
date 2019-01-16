@@ -156,7 +156,7 @@ def _lock_down_bucket(spinner, cloud_logger, bucket, lock_file_name,
         service_account_email: The email of the service account
     """
 
-    if _does_lock_file_exist(bucket, lock_file_name):
+    if storage.Blob(lock_file_name, bucket).exists():
         spinner.fail('X')
         msg = 'The lock file exists in the source bucket, so we cannot continue'
         cloud_logger.log_text(msg)
@@ -174,21 +174,6 @@ def _lock_down_bucket(spinner, cloud_logger, bucket, lock_file_name,
     policy = api_core_iam.Policy()
     policy['roles/storage.admin'].add('serviceAccount:' + service_account_email)
     bucket.set_iam_policy(policy)
-
-
-def _does_lock_file_exist(bucket, lock_file_name):
-    """Checks to see if the lock file exists in the bucket.
-
-    Args:
-        bucket: The bucket to look for the lock file in
-        lock_file_name: The name of the lock file
-
-    Returns:
-        True if the file is in the bucket
-    """
-
-    blob = storage.Blob(lock_file_name, bucket)
-    return blob.exists()
 
 
 def _get_project_number(project_id, credentials):
