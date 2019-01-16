@@ -30,17 +30,17 @@ The graph displays Total Slots consumed over the past 7 days.
 ![Total Slot Ms vs Time](../images/overall_usage/Image5.png)
 
 ### Table
-The table shows all the queries run in the timeframe chosen along with details pertaining to the same.
+The table displays all the queries run in the timeframe chosen along with details pertaining to the same.
 
 ![Table](../images/overall_usage/Image6.png)
 
 ### Project Id - Total Slot Ms.
-The table shows the Total Slots (in Ms.) consumed per Project Id.
+The table displays the Total Slots (in Ms.) consumed per Project Id.
 
 ![Project Id - Total Slot Ms](../images/overall_usage/Image7.png)
 
 ### User Id - Est. Cost (USD)
-The table shows the Estimated Costs (in USD) for every User (denoted by User Id) running queries in the project using BigQuery.
+The table displays the Estimated Costs (in USD) for every User (denoted by User Id) running queries in the project using BigQuery.
 
 ![User Id - Est. Cost (USD)](../images/overall_usage/Image8.png)
 
