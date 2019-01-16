@@ -37,6 +37,8 @@ The table displays the number of load jobs carried out per user in the project (
 ### Loads By Hour
 The pie chart displays the percentage of load jobs carried out over the hours of the day.
 
+**Method of Interpretation: Percentage of load jobs carried out at 12 a.m. during the current week**
+
 ![Loads By Hour](../images/load_jobs/Image7.png)
 
 ### Loads By Day of Week
