@@ -40,7 +40,7 @@ The pie chart shows the percentage of load jobs carried out over the hours of th
 ![Loads By Hour](../images/load_jobs/Image7.png)
 
 ### Loads By Day of Week
-The pie chart shows the percentage of load jobs over the days of the week.
+The pie chart shows the percentage of load jobs carried out over the days of the week.
 
 ![Loads By Day of Week](../images/load_jobs/Image8.png)
 
