@@ -36,7 +36,7 @@ resource "null_resource" "wait_for_cloud_functions_function" {
   depends_on = ["module.automatic_labelling"]
 
   provisioner "local-exec" {
-    command = "sleep 30"
+    command = "sleep 60"
   }
 }
 
