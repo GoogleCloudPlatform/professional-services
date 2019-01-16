@@ -35,11 +35,11 @@ The table shows the average runtime (in seconds) for the extract jobs per user i
 ![User Id - Runtime Secs](../images/extract_jobs/Image6.png)
 
 ### Extracts By Hour
-The pie chart shows the percentage of extract jobs over the hours of the day when they are carried out.
+The pie chart shows the percentage of extract jobs carried out over the hours of the day.
 
 ![Extracts By Hour](../images/extract_jobs/Image7.png)
 
 ### Extracts By Day of Week
-The pie chart shows the percentage of extract jobs over the days of the week.
+The pie chart shows the percentage of extract jobs carried out over the days of the week.
 
 ![Extracts By Day of Week](../images/extract_jobs/Image8.png)
