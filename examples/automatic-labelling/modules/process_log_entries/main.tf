@@ -35,14 +35,19 @@ locals {
   label_resource = "${path.module}/label-resource"
 }
 
-resource "null_resource" "observe_label_resource_changes" {
-  triggers = {
-    index   = "${sha256(file("${local.label_resource}/index.js"))}"
-    package = "${sha256(file("${local.label_resource}/package.json"))}"
+# This archive file contains the source of the label-resource application.
+data "archive_file" "label_resource" {
+  type        = "zip"
+  output_path = "${local.label_resource}.zip"
+
+  source {
+    content  = "${file("${local.label_resource}/index.js")}"
+    filename = "index.js"
   }
 
-  provisioner "local-exec" {
-    command = "zip --junk-paths --recurse-paths ${local.label_resource}.zip ${local.label_resource}"
+  source {
+    content  = "${file("${local.label_resource}/package.json")}"
+    filename = "package.json"
   }
 }
 
@@ -51,9 +56,9 @@ resource "google_storage_bucket" "label_resource" {
   name = "label-resource"
 }
 
-# This Storage bucket object places the label-resource archive in the Storage bucket.
+# This Storage bucket object places the label-resource archive file in the Storage bucket.
 resource "google_storage_bucket_object" "label_resource_source" {
   bucket = "${google_storage_bucket.label_resource.name}"
   name   = "label-resource.zip"
-  source = "${local.label_resource}.zip"
+  source = "${data.archive_file.label_resource.output_path}"
 }

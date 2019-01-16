@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+provider "archive" {
+  version = "~> 1.1"
+}
+
 provider "google" {
   version = "~> 1.20"
 }
