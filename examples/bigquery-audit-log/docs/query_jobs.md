@@ -29,7 +29,7 @@ The graph displays the average queries run per hour over every day of the curren
 ### Avg. Slot Usage (this week) - aggregated by hour
 The graph displays the average slot consumption for a particular hour of the day aggregated over the entire week.
 
-**Method of Interpretation: Average of slot usage consumed at 6 p.m. is 28.54 for the current week**
+**Example: Average of slot usage consumed at 6 p.m. is 28.54 for the current week**
 
 ![Avg. Slot Usage (this week) - aggregated by hour](../images/query_jobs/Image5.png)
 
