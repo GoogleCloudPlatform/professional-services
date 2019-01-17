@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright 2018 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,23 +14,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-driver:
-  name: terraform
+require "json"
 
-provisioner:
-  name: terraform
+control "automatically labelled" do
+  describe google_compute_instance(
+    project: ENV.fetch("GOOGLE_PROJECT"),
+    zone: ENV.fetch("GOOGLE_ZONE"),
+    name: "unlabelled",
+  ) do
+    let :principal_email do
+      JSON.parse(File.read(ENV.fetch("GOOGLE_APPLICATION_CREDENTIALS"))).fetch("client_email").split("@").first
+    end
 
-verifier:
-  name: terraform
-
-platforms:
-  - name: default
-
-suites:
-  - name: unlabeled-resources
-    driver:
-      root_module_directory: examples/unlabeled-resources
-    verifier:
-      systems:
-        - name: unlabelled-resources
-          backend: gcp
+    it "should be labelled automatically by the Cloud Functions function" do
+      expect(subject.label_value_by_key("principal-email")).to eq principal_email
+    end
+  end
+end

@@ -12,23 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-driver:
-  name: terraform
-
-provisioner:
-  name: terraform
-
-verifier:
-  name: terraform
-
-platforms:
-  - name: default
-
-suites:
-  - name: unlabeled-resources
-    driver:
-      root_module_directory: examples/unlabeled-resources
-    verifier:
-      systems:
-        - name: unlabelled-resources
-          backend: gcp
+---
+name: unlabelled
+version: 0.1.0
+attributes:
+  - name: principal-email
+    type: string
+    description: "The expected value of the principal-email label."
+    required: true
+  - name: project
+    type: string
+    description: "The project in which the compute instance exists."
+    required: true
+  - name: zone
+    type: string
+    description: "The zone in which the compute instance exists."
+    required: true
+depends:
+  - name: inspec-gcp
+    git: https://github.com/inspec/inspec-gcp.git
+    version: ~> 0.8.0

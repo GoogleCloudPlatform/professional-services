@@ -1,0 +1,9 @@
+---
+lockfile_version: 1
+depends:
+- name: inspec-gcp
+  resolved_source:
+    git: https://github.com/inspec/inspec-gcp.git
+    ref: 9a0014ab925d2c17aa6fa905292d57c1d60b704c
+  version_constraints:
+  - "~> 0.8.0"

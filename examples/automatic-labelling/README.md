@@ -41,5 +41,10 @@ module.
 
 ## Testing
 
+The module is tested using [Kitchen-Terraform][kitchen-terraform]. The
+[example module][example-module] is used as a test fixture so its requirements
+must be met in order to successfully run the tests.
+
+[kitchen-terraform]: https://github.com/newcontext-oss/kitchen-terraform
 [terraform-module]: https://www.terraform.io/docs/modules/index.html
 [terraform-google-provider-reference]: https://www.terraform.io/docs/providers/google/provider_reference.html
