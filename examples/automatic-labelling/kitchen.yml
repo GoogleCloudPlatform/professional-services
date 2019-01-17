@@ -25,9 +25,9 @@ platforms:
   - name: default
 
 suites:
-  - name: unlabeled-resources
+  - name: unlabelled-resources
     driver:
-      root_module_directory: examples/unlabeled-resources
+      root_module_directory: examples/unlabelled-resources
     verifier:
       systems:
         - name: unlabelled-resources

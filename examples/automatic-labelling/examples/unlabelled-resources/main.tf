@@ -40,7 +40,7 @@ resource "null_resource" "wait_for_cloud_functions_function" {
   }
 }
 
-resource "google_compute_instance" "unlabeled" {
+resource "google_compute_instance" "unlabelled" {
   depends_on = ["null_resource.wait_for_cloud_functions_function"]
 
   boot_disk = {
@@ -50,7 +50,7 @@ resource "google_compute_instance" "unlabeled" {
   }
 
   machine_type = "f1-micro"
-  name         = "unlabeled"
+  name         = "unlabelled"
 
   network_interface = {
     network = "default"
