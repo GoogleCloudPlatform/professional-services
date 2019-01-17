@@ -2,29 +2,39 @@ const { google } = require("googleapis");
 const { auth } = google;
 const compute = google.compute("v1");
 
-authenticate = (successCallback, failureCallback) => {
+/**
+ * Authenticates with Google Cloud Platform.
+ *
+ * @param {!Function} callback A callback function to signal completion.
+ */
+authenticate = callback => {
   console.log("Authenticating");
   auth.getApplicationDefault((error, authClient) => {
     if (error) {
       console.error("Error while authenticating");
 
-      return failureCallback(error);
+      return callback(error);
     }
     console.log("Authenticated");
 
-    return successCallback(authClient);
+    return callback(null, authClient);
   });
 };
 
-fetchLabels = (
-  { auth, instance, project, zone },
-  successCallback,
-  failureCallback
-) => {
+/**
+ * Fetches labels from a given Compute Engine instance.
+ *
+ * @param {!Object} authClient An authenticated client for GCP.
+ * @param {!String} instance The identity of the instance on which to store label.
+ * @param {!String} project The identity of the project in which the instance exists.
+ * @param {!String} zone The zone in which the instance exists.
+ * @param {!Function} callback A callback function to signal completion.
+ */
+fetchLabels = ({ authClient, instance, project, zone }, callback) => {
   console.log("Fetching labels");
   compute.instances.get(
     {
-      auth,
+      auth: authClient,
       instance,
       project,
       zone
@@ -33,7 +43,7 @@ fetchLabels = (
       if (error) {
         console.error("Error while fetching labels");
 
-        return failureCallback(error);
+        return callback(error);
       }
 
       const labels = response.data.labels || {};
@@ -41,20 +51,30 @@ fetchLabels = (
 
       console.log("Fetched labels:", labels, labelFingerprint);
 
-      return successCallback(labels, labelFingerprint);
+      return callback(null, labels, labelFingerprint);
     }
   );
 };
 
+/**
+ * Stores labels on a given Compute Engine instance.
+ *
+ * @param {!Object} authClient An authenticated client for GCP.
+ * @param {!String} instance The identity of the instance on which to store label.
+ * @param {!String} labelFingerprint The fingerprint of existing labels stored on the instance.
+ * @param {!Object} labels Labels to be stored on the instance.
+ * @param {!String} project The identity of the project in which the instance exists.
+ * @param {!String} zone The zone in which the instance exists.
+ * @param {!Function} callback A callback function to signal completion.
+ */
 storeLabels = (
-  { auth, instance, labelFingerprint, labels, project, zone },
-  successCallback,
-  failureCallback
+  { authClient, instance, labelFingerprint, labels, project, zone },
+  callback
 ) => {
   console.log("Storing labels");
   compute.instances.setLabels(
     {
-      auth,
+      auth: authClient,
       instance,
       project,
       resource: {
@@ -63,15 +83,15 @@ storeLabels = (
       },
       zone
     },
-    (error, response) => {
+    error => {
       if (error) {
         console.error("Error while storing labels");
 
-        return failureCallback(error);
+        return callback(error);
       }
       console.log("Stored labels");
 
-      return successCallback();
+      return callback(null);
     }
   );
 };
@@ -89,14 +109,22 @@ exports.labelResource = (event, callback) => {
 
   console.log("Received event");
   console.log(eventData);
-  authenticate(auth => {
+  authenticate((error, authClient) => {
+    if (error) {
+      return callback(error);
+    }
+
     const instance = eventData.resource.labels.instance_id;
     const project = eventData.resource.labels.project_id;
     const zone = eventData.resource.labels.zone;
 
     fetchLabels(
-      { auth, instance, project, zone },
-      (labels, labelFingerprint) => {
+      { authClient, instance, project, zone },
+      (error, labels, labelFingerprint) => {
+        if (error) {
+          return callback(error);
+        }
+
         const principalEmail = eventData.protoPayload.authenticationInfo.principalEmail.split(
           "@"
         )[0];
@@ -106,7 +134,7 @@ exports.labelResource = (event, callback) => {
 
         storeLabels(
           {
-            auth,
+            authClient,
             instance,
             labelFingerprint,
             labels: Object.assign(labels, {
@@ -114,14 +142,11 @@ exports.labelResource = (event, callback) => {
               "service-account": serviceAccount
             }),
             project,
-            serviceAccount,
             zone
           },
-          callback,
           callback
         );
-      },
-      callback
+      }
     );
-  }, callback);
+  });
 };
