@@ -99,6 +99,7 @@ SELECT
   runtimeMs,
   runtimeSecs,
   tableCopy, /* This code queries data specific to the Copy operation */
+  1 as numCopies, /* This code queries data specific to the Copy operation */
   /* The following code queries data specific to the Load operation in BQ */
   totalLoadOutputBytes,
   (totalLoadOutputBytes / 1000000000) AS totalLoadOutputGigabytes,
@@ -119,6 +120,7 @@ SELECT
     load.writeDisposition,
     load.schemaJson
   ) AS load,
+  1 as numLoads,
   /* This ends the code snippet that queries columns specific to the Load operation in BQ */
   /* The following code queries data specific to the Extract operation in BQ */
   REGEXP_CONTAINS(jobId, 'beam') AS isBeamJob,
@@ -134,6 +136,7 @@ SELECT
       '.', `extract`.sourceTable.tableId) AS absoluteTableRef
     ) AS sourceTable
   ) AS `extract`,
+  1 as numExtracts,
   /* This ends the code snippet that queries columns specific to the Extract operation in BQ */
   /* The following code queries data specific to the Query operation in BQ */
   REGEXP_CONTAINS(query.query, 'cloudaudit_googleapis_com_data_access_')
@@ -168,7 +171,8 @@ SELECT
   billingTier,
   query,
   referencedTables,
-  referencedViews
+  referencedViews,
+  1 as queries
   /* This ends the code snippet that queries columns specific to the Query operation in BQ */
 FROM
   BQAudit
