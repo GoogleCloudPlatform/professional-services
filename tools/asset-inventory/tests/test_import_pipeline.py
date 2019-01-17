@@ -15,20 +15,22 @@
 # limitations under the License.
 """Test import beam pipeline."""
 
-import unittest
-import mock
-from asset_inventory import import_pipeline
-import os
-import json
 import glob
-import logging
+import json
+import os
+import unittest
 import warnings
+
+from asset_inventory import import_pipeline
+import mock
 
 STAGE_PATH = 'tests/data/stage'
 
 
 class TestImportPipeline(unittest.TestCase):
+
     def setUp(self):
+
         if not os.path.exists(STAGE_PATH):
             os.mkdir(STAGE_PATH)
         for old_test_file in os.listdir(STAGE_PATH):
@@ -42,7 +44,7 @@ class TestImportPipeline(unittest.TestCase):
             import_pipeline.run([
                 '--load_time=',
                 '--input=tests/data/iam_policy.json', '--group_by=ASSET_TYPE',
-                '--stage=tests/data/stage', '--dataset=test_iam_policy'
+                '--stage={}'.format(STAGE_PATH), '--dataset=test_iam_policy'
             ])
 
             rows = []
@@ -50,13 +52,13 @@ class TestImportPipeline(unittest.TestCase):
                 with open(fn) as f:
                     for line in f:
                         rows.append(json.loads(line))
-            assert len(rows) == 2
+            self.assertEqual(len(rows), 2)
             found_names = {}
             for row in rows:
                 found_names[row['name']] = row
-                assert (
-                    row['asset_type'] == 'google.cloud.billing.BillingAccount')
-            assert len(found_names) == 2
+                self.assertEqual(row['asset_type'],
+                                 'google.cloud.billing.BillingAccount')
+            self.assertEqual(len(found_names), 2)
 
     @mock.patch('google.cloud.bigquery.Client')
     def test_resources(self, _):
@@ -66,7 +68,7 @@ class TestImportPipeline(unittest.TestCase):
             import_pipeline.run([
                 '--load_time=',
                 '--input=tests/data/resource.json', '--group_by=ASSET_TYPE',
-                '--stage=tests/data/stage', '--dataset=test_iam_resource'
+                '--stage={}'.format(STAGE_PATH), '--dataset=test_iam_resource'
             ])
 
             rows = []
@@ -76,15 +78,18 @@ class TestImportPipeline(unittest.TestCase):
                 with open(fn) as f:
                     for line in f:
                         rows.append(json.loads(line))
-            assert export_files == 2
+            self.assertEqual(export_files, 2)
             found_assets = {}
             found_names = {}
             for row in rows:
                 found_assets[row['asset_type']] = row
                 found_names[row['name']] = row
-            assert len(found_names) == 2
-            assert len(found_assets) == 2
+            self.assertEqual(len(found_names), 2)
+            self.assertEqual(len(found_assets), 2)
             instance_row = found_assets['google.compute.Instance']
             instance_labels = instance_row['resource']['data']['labels']
-            assert isinstance(instance_labels, list)
-            assert len(instance_labels) == 1
+            self.assertIsInstance(instance_labels, list)
+            self.assertEqual(len(instance_labels), 1)
+
+if __name__ == '__main__':
+    unittest.main()

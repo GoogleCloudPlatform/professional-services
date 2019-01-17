@@ -5,7 +5,7 @@ cron:
 - description: "export and import resources"
   url: /export_import
   schedule: every 4 hours
-  target: asset-inventory
+  target: default
   retry_parameters:
     job_retry_limit: 5
     job_age_limit: 4h

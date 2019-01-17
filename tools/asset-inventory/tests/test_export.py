@@ -14,13 +14,12 @@
 
 """Test Cloud Asset Inventory export."""
 
+import argparse
 import logging
 import unittest
-import sys
-import argparse
-import mock
+
 from asset_inventory import export
-from google.cloud import asset_v1beta1
+import mock
 
 
 class TestExport(unittest.TestCase):
@@ -28,15 +27,6 @@ class TestExport(unittest.TestCase):
 
     def setUp(self):
         logging.basicConfig(level=logging.DEBUG)
-
-    def test_export_to_gcs(self):
-
-        cloudasset_mock = mock.Mock(spec=asset_v1beta1.AssetServiceClient)
-        export.Clients._cloudasset = cloudasset_mock
-        export.export_to_gcs('projects/my-project',
-                             'gs://bucket/export-file.txt', 'RESOURCE',
-                             'google.compute.Firewall')
-        assert True
 
     @mock.patch('asset_inventory.export.export_to_gcs')
     def test_export_to_gcs_content_types(self, mock_export_to_gcs):
@@ -47,12 +37,12 @@ class TestExport(unittest.TestCase):
             mock.call('parent', 'gcs_prefix/RESOURCE.json', 'RESOURCE',
                       ['a', 'b']),
         ])
-        assert mock_export_to_gcs.call_count == 1
+        self.assertEqual(mock_export_to_gcs.call_count, 1)
 
     @mock.patch('asset_inventory.export.export_to_gcs')
     def test_export_to_gcs_all_content_types(self, mock_export_to_gcs):
         export.export_to_gcs_content_types('parent', 'gcs_prefix', None, None)
-        assert mock_export_to_gcs.call_count == 2
+        self.assertEqual(mock_export_to_gcs.call_count, 2)
 
     def test_parse_args_1(self):
         ap = argparse.ArgumentParser()
@@ -65,10 +55,10 @@ class TestExport(unittest.TestCase):
             '--parent',
             'projects/projectid',
         ])
-        assert not args.asset_types
-        assert args.gcs_destination == 'gs://b/o'
-        assert args.content_types == ['RESOURCE', 'IAM_POLICY']
-        assert args.parent == 'projects/projectid'
+        self.assertIsNone(args.asset_types)
+        self.assertEqual(args.gcs_destination, 'gs://b/o')
+        self.assertEqual(args.content_types, ['RESOURCE', 'IAM_POLICY'])
+        self.assertEqual(args.parent, 'projects/projectid')
 
     def test_parse_args_2(self):
         ap = argparse.ArgumentParser()
@@ -81,20 +71,23 @@ class TestExport(unittest.TestCase):
             '--parent',
             'projects/projectid',
         ])
-        assert args.gcs_destination == 'gs://b/o'
-        assert args.content_types == ['RESOURCE', 'IAM_POLICY']
-        assert args.asset_types == [
+        self.assertEqual(args.gcs_destination, 'gs://b/o')
+        self.assertEqual(args.content_types, ['RESOURCE', 'IAM_POLICY'])
+        self.assertEqual(args.asset_types, [
             'google.compute.Instance', 'google.compute.Firewall'
-        ]
-        assert args.parent == 'projects/projectid'
+        ])
+        self.assertEqual(args.parent, 'projects/projectid')
 
     @mock.patch('argparse.ArgumentParser.parse_args')
     @mock.patch('asset_inventory.export.export_to_gcs_content_types')
     @mock.patch(
-        'asset_inventory.export.export_to_gcs', )
+        'asset_inventory.export.export_to_gcs')
     def test_main(self, mock_export_to_gcs, mock_export_to_gcs_content_types,
                   mock_parse_args):
         export.main()
         mock_parse_args.assert_called_once_with()
-        assert mock_export_to_gcs_content_types.call_count == 1
+        self.assertEqual(mock_export_to_gcs_content_types.call_count, 1)
         mock_export_to_gcs.assert_not_called()
+
+if __name__ == '__main__':
+    unittest.main()

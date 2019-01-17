@@ -43,12 +43,12 @@ def is_successful_state(final_state):
     return True
 
 
-def wait_on_pipeline_job(service, pipeline_job):
+def wait_on_pipeline_job(df_service, pipeline_job):
     """Poll the job status every 60 seconds until done."""
     dataflow_project = pipeline_job['projectId']
     template_region = pipeline_job['location']
     job_id = pipeline_job['id']
-    pipeline_job = service.projects().locations().jobs().get(
+    pipeline_job = df_service.projects().locations().jobs().get(
         location=template_region, projectId=dataflow_project,
         jobId=job_id).execute(num_retries=5)
     logging.info('job status %s', pprint.pformat(pipeline_job))
@@ -62,7 +62,7 @@ def wait_on_pipeline_job(service, pipeline_job):
         return current_state, pipeline_job
     logging.info('sleeping 60 seconds before repolling.')
     time.sleep(60)
-    return wait_on_pipeline_job(service, pipeline_job)
+    return wait_on_pipeline_job(df_service, pipeline_job)
 
 
 def run_pipeline_template(dataflow_project, template_region, template_location,
@@ -85,7 +85,7 @@ def run_pipeline_template(dataflow_project, template_region, template_location,
         End state of the pipline and job object.
     """
     credentials = GoogleCredentials.get_application_default()
-    service = build('dataflow', 'v1b3', credentials=credentials)
+    df_service = build('dataflow', 'v1b3', credentials=credentials)
 
     # Set the following variables to your values.
     job_name = get_job_name(load_time)
@@ -103,14 +103,14 @@ def run_pipeline_template(dataflow_project, template_region, template_location,
     }
     logging.info('launching template %s in %s:%s with %s', template_location,
                  dataflow_project, template_region, pprint.pformat(body))
-    launch_result = service.projects().locations().templates().launch(
+    launch_result = df_service.projects().locations().templates().launch(
         location=template_region,
         projectId=dataflow_project,
         gcsPath=template_location,
         body=body).execute(num_retries=5)
 
     logging.info('waiting on pipeline : %s', pprint.pformat(launch_result))
-    return wait_on_pipeline_job(service, launch_result['job'])
+    return wait_on_pipeline_job(df_service, launch_result['job'])
 
 
 def run_pipeline_beam_runner(pipeline_runner, dataflow_project, input_location,
