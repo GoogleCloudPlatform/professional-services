@@ -344,9 +344,9 @@ def run(argv=None):
 
     p = beam.Pipeline(options=options)
 
-    # Delete bigquery dataset on pipeline start (not sure about that).
+    # Delete bigquery dataset on pipeline start.
     deleted_tables = (
-        p | beam.Create([True])
+        p | beam.Create([None])  # dummy PCollection to trigger delete tables.
         | 'delete_tables' >> beam.ParDo(
             DeleteDataSetTables(options.dataset, options.write_disposition)))
 
