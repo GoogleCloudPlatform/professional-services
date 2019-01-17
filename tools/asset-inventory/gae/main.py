@@ -45,28 +45,41 @@ from asset_inventory import pipeline_runner
 from asset_inventory import export
 import pprint
 
+
+class Config(object):
+    """Hold config values."""
+
+    def __init__(self, config_file):
+        with open(config_file, 'r') as config_yaml:
+            config_dict = yaml.load(config_yaml)
+            for pname in config_dict:
+                setattr(self, pname.lower(), config_dict[pname])
+        # Enable beam on python3 if using direct runner on python3.
+        if getattr(self, 'beam_experimental_py3', False):
+            os.environ['BEAM_EXPERIMENTAL_PY3'] = 'True'
+
 app = Flask(__name__)
+
+CONFIG = Config('config.yaml')
 
 
 def get_export_arguments():
     """Convert environment values into arguments."""
-    env = os.environ
-    return (env['EXPORT_PARENT'], env['GCS_DESTINATION'],
-            [ct.strip() for ct in env['EXPORT_CONTENT_TYPES'].split(',')],
-            [at.strip() for at in env['EXPORT_ASSET_TYPES'].split(',')])
+    return (CONFIG.export_parent, CONFIG.gcs_destination,
+            CONFIG.export_content_types,
+            CONFIG.export_asset_types)
 
 
 def get_import_arguments():
     """Convert environment values into arguments."""
-    env = os.environ
-    return (env['IMPORT_PIPELINE_RUNNER'], env['IMPORT_DATAFLOW_PROJECT'],
-            env['IMPORT_TEMPLATE_REGION'], env['IMPORT_TEMPLATE_LOCATION'],
-            '{}/*.json'.format(env['GCS_DESTINATION']), env['IMPORT_GROUP_BY'],
-            env['IMPORT_WRITE_DISPOSITION'], env['IMPORT_DATASET'],
-            env['IMPORT_STAGE'],
+    return (CONFIG.import_pipeline_runner, CONFIG.import_dataflow_project,
+            CONFIG.import_template_region, CONFIG.import_template_location,
+            '{}/*.json'.format(CONFIG.gcs_destination), CONFIG.import_group_by,
+            CONFIG.import_write_disposition, CONFIG.import_dataset,
+            CONFIG.import_stage,
             datetime.datetime.now().isoformat(),
-            env['IMPORT_PIPELINE_ARGUMENTS'],
-            json.loads(env['IMPORT_PIPELINE_RUNTIME_ENVIRONMENT']))
+            CONFIG.import_pipeline_arguments,
+            json.loads(CONFIG.import_pipeline_runtime_environment))
 
 
 def run_import():
@@ -98,8 +111,7 @@ def run_export_import():
 
     # Optionally require that we are invoked by a cron tasks and not any old
     # pulic HTTP request.
-    if (os.environ['RESTRICT_TO_CRON_TASKS'] and
-        os.environ['RESTRICT_TO_CRON_TASKS'] != 'false'):
+    if CONFIG.restrict_to_cron_tasks:
         if 'X-Appengine-Cron' not in request.headers:
             return '', 403
 
@@ -130,11 +142,6 @@ def server_error(_):
 
 logging.basicConfig()
 logging.getLogger().setLevel(logging.INFO)
-with open('config.yaml') as app_yaml:
-    app_yaml = yaml.load(app_yaml)
-    env_variables = app_yaml['env_variables']
-    for env_variable in env_variables:
-        os.environ[env_variable] = env_variables[env_variable]
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

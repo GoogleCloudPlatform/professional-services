@@ -43,8 +43,10 @@ TIMESTAMP_REGEX = re.compile(
     r'^\d\d\d\d-\d\d-\d\d[T ]\d\d:\d\d:\d\d'
     r'(?:\.\d{1,6})?(?: ?Z| ?[\+-]\d\d:\d\d| [A-Z]{3})?$')
 DATE_REGEX = re.compile(r'^\d\d\d\d-\d\d-\d\d$')
-MAX_NUMERIC = 99999999999999999999999999999.999999999
-MIN_NUMERIC = -99999999999999999999999999999.999999999
+BQ_MAX_NUMERIC = 99999999999999999999999999999.999999999
+BQ_MIN_NUMERIC = -99999999999999999999999999999.999999999
+MAX_BQ_COL_NAME_LENGTH = 128
+BQ_NUMERIC_SCALE_DIGITS = 9
 
 
 def is_number(s):
@@ -136,7 +138,7 @@ def _merge_fields(destination_field, source_field):
     # use the more specific type if destination is just a STRING.
     if (destination_field.field_type == 'STRING' and
         source_field.field_type != 'STRING'):
-        # modify SchemaField.type by copying
+        # Modify SchemaField.type by copy.
         field = bigquery.SchemaField(
             name=field.name,
             fields=field.fields,
@@ -145,7 +147,7 @@ def _merge_fields(destination_field, source_field):
             mode=field.mode)
     merged_fields = _merge_schema(destination_field.fields,
                                   source_field.fields)
-    # modify SchemaField.fields property by copying
+    # Modify SchemaField.fields by copy.
     if merged_fields != destination_field.fields:
         field = bigquery.SchemaField(
             name=field.name,
@@ -163,8 +165,7 @@ def _merge_schema(destination_schema, source_schema):
     source_schema. Calls _merge_fields when a field exists in both with the same
     name.
     Args:
-        destination_schema: List of `google.cloud.bigquery.SchemaField`, this
-        list is modified.
+        destination_schema: List of `google.cloud.bigquery.SchemaField`.
         source_schema: List of `google.cloud.bigquery.SchemaField`.
     Returns:
         The modified destination_schema list.
@@ -216,10 +217,8 @@ def _convert_labels_dict_to_list(parent):
 
     """
     labels_dict = parent['labels']
-    labels_list = [{
-        'name': label_name,
-        'value': labels_dict[label_name]
-    } for label_name in labels_dict]
+    labels_list = [{'name': key, 'value': val}
+                   for (key, val) in labels_dict.items()]
     parent['labels'] = labels_list
     return parent
 
@@ -247,19 +246,19 @@ def _sanitize_property(property_name, parent, depth):
         parent: The json object containing the property.
         depth: How nested within the original document we are.
     """
-    # enforce column name requirements (condition #2)
+    # enforce column name requirements (condition #2).
     new_property_name = CLEAN_UP_REGEX.sub('', property_name)
     first_character = new_property_name[0]
     if not first_character.isalpha() and first_character != '_':
         new_property_name = '_' + new_property_name
-    new_property_name = new_property_name[:128]
+    new_property_name = new_property_name[:MAX_BQ_COL_NAME_LENGTH]
 
-    # did the property name change?
+    # check if property was changed.
     if property_name != new_property_name:
         property_value = parent.pop(property_name)
         parent[new_property_name] = property_value
 
-    # handle labels (condition #1)
+    # handle labels (condition #1).
     if new_property_name == 'labels':
         _convert_labels_dict_to_list(parent)
 
@@ -272,24 +271,10 @@ def _sanitize_property(property_name, parent, depth):
     parent[new_property_name] = sanitized
 
     # remove empty dicts or list of empty dicts (condition #3)
-    if is_empty_dict_list_or_empty_dict(sanitized):
+    if not any(sanitized):
         # BigQuery doesn't deal well with empty records.
         # prune the value.
         parent.pop(new_property_name)
-
-
-def is_empty_dict_list_or_empty_dict(property_value):
-    """True if is an empty dict or a list of empty dicts."""
-
-    if isinstance(property_value, dict) and not property_value:
-        return True
-
-    if isinstance(property_value, list):
-        for property_element in property_value:
-            if ((not isinstance(property_element, dict)) or property_element):
-                return False
-        return True
-    return False
 
 
 def sanitize_property_value(property_value, depth=0):
@@ -322,9 +307,9 @@ def sanitize_property_value(property_value, depth=0):
     # and 9 decimal digits of scale.
     if isinstance(property_value, Number):
         if isinstance(property_value, float):
-            property_value = round(property_value, 9)
-        property_value = max(property_value, MIN_NUMERIC)
-        property_value = min(property_value, MAX_NUMERIC)
+            property_value = round(property_value, BQ_NUMERIC_SCALE_DIGITS)
+        property_value = max(property_value, BQ_MIN_NUMERIC)
+        property_value = min(property_value, BQ_MAX_NUMERIC)
 
     # sanitize each nested list element.
     if isinstance(property_value, list):

@@ -29,8 +29,8 @@ import pprint
 
 from concurrent import futures
 
-from google.cloud import asset_v1beta1
 from google.cloud.exceptions import GoogleCloudError
+from google.cloud import asset_v1beta1
 
 
 class Clients(object):

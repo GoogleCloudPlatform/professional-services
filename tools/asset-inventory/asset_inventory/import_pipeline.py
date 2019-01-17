@@ -56,7 +56,7 @@ class JsonCoder(object):
         return json.loads(x)
 
 
-class KeyToGroupBy(beam.DoFn):
+class AssignGroupByKey(beam.DoFn):
     """Split assets based on input feature:
 
     The group_by value can be either:
@@ -118,7 +118,7 @@ class BigQuerySanitize(beam.DoFn):
 
     def process(self, element):
         element = bigquery_schema.sanitize_property_value(element)
-        # add load timestamp
+        # add load timestamp.
         element['timestamp'] = self.load_time.get()
         yield element
 
@@ -142,7 +142,7 @@ class WriteToGCS(beam.DoFn):
     """Stage in GCE the files to load into BigQuery.
 
     All written objects are prefixed by the input stage_dir and loadtime. There
-    is an object for each group-key key (either an object per asset type, or for
+    is an object for each group-key, either an object per asset type, or for
     each asset type version.
 
     There is nothing cleaning up these objects so it might be prudent to have a
@@ -228,7 +228,7 @@ class DeleteDataSetTables(BigQueryDoFn):
     """Delete tables when truncating and not appending.
 
     If we are not keeping old data around, it safer to delete all tables in the
-    dataset before loading s o that no old asset types remain.
+    dataset before loading so that no old asset types remain.
     """
 
     def process(self, _):
@@ -358,14 +358,13 @@ def run(argv=None):
 
     # Joining all iam_policy objects with resources of the same name.
     merged_iam_and_asset = (
-        sanitized_assets | 'assign_name_key' >> beam.ParDo(KeyToGroupBy('NAME'))
+        sanitized_assets | 'name_key' >> beam.ParDo(AssignGroupByKey('NAME'))
         | 'group_by_name' >> beam.GroupByKey()
         | 'combine_policy' >> beam.ParDo(CombinePolicyResource()))
-    # merged_iam_and_asset = sanitized_assets
 
-    # Split into BigQuery tables
-    keyed_assets = merged_iam_and_asset | 'assign_key' >> beam.ParDo(
-        KeyToGroupBy(options.group_by))
+    # split into BigQuery tables.
+    keyed_assets = merged_iam_and_asset | 'group_by_key' >> beam.ParDo(
+        AssignGroupByKey(options.group_by))
 
     # Generate BigQuery schema for each table.
     schemas = keyed_assets | 'to_schema' >> core.CombinePerKey(

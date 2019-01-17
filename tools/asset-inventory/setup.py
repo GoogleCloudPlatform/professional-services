@@ -42,9 +42,9 @@ setup(
     install_requires=[
         'google-api-core',
         'google-apitools',
-        'httplib2==0.11.3',
+        'httplib2',
         'oauth2client<4',
-        'google-api-python-client==1.7.7',
+        'google-api-python-client',
         'googleapis-common-protos==1.5.3',
-        'google-cloud-asset==0.1.1', 'google-cloud-bigquery==1.6.0',
+        'google-cloud-asset', 'google-cloud-bigquery==1.6.0',
     ])
