@@ -128,9 +128,6 @@ exports.labelResource = (event, callback) => {
         const principalEmail = eventData.protoPayload.authenticationInfo.principalEmail.split(
           "@"
         )[0];
-        const serviceAccounts = eventData.protoPayload.request
-          .serviceAccounts || [{ email: "undefined" }];
-        const serviceAccount = serviceAccounts[0].email.split("@")[0];
 
         storeLabels(
           {
@@ -138,8 +135,7 @@ exports.labelResource = (event, callback) => {
             instance,
             labelFingerprint,
             labels: Object.assign(labels, {
-              "principal-email": principalEmail,
-              "service-account": serviceAccount
+              "principal-email": principalEmail
             }),
             project,
             zone
