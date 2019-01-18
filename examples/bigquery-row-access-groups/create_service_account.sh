@@ -11,3 +11,7 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
       --member serviceAccount:$SERVICE_ACCOUNT \
       --role roles/bigquery.user
 
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+      --member serviceAccount:$SERVICE_ACCOUNT \
+      --role roles/iam.serviceAccountTokenCreator
+

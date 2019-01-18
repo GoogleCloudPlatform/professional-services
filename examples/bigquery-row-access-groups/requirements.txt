@@ -3,4 +3,5 @@ google-api-python-client
 google-auth
 google-cloud
 google-cloud-bigquery
+oauth2client
 

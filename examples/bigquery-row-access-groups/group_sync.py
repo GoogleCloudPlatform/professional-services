@@ -24,6 +24,7 @@ from io import StringIO
 import sys
 
 import api_helpers
+import auth_util
 from apiclient.discovery import build
 import google.api_core.exceptions
 from google.cloud import bigquery
@@ -46,8 +47,11 @@ class GroupSync(object):
     Returns:
       A reference to an API Service object, ready to call GSuite APIs.
     """
-    scopes = ['https://www.googleapis.com/auth/admin.directory.group']
-    credentials = api_helpers.get_delegated_credential(admin_email, scopes)
+    scopes = [
+        'https://www.googleapis.com/auth/admin.directory.group',
+    ]
+    # credentials = api_helpers.get_delegated_credential(admin_email, scopes)
+    credentials, _ = auth_util.get_credentials(admin_email, scopes)
     service = build('admin', 'directory_v1', credentials=credentials)
     return service
 
