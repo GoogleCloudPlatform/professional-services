@@ -12,7 +12,7 @@ scan_repository_for_outdated_tags(){
   # "cut -d '"' -f2" strips the wrapping quote characters
   # "sort -u" sorts, dropping duplicates
   all_terraform_remotes=( $(\
-  grep -h -r --exclude-dir=.terraform \
+  grep -h -r --exclude-dir={.terraform,.git}  \
   -e 'source[[:space:]]\+=[[:space:]]\+"git::' \
   -e 'source[[:space:]]\+=[[:space:]]\+"github.com' \
   -e 'source[[:space:]]\+=[[:space:]]\+"git@github.com:' \
@@ -64,7 +64,7 @@ scan_repository_for_outdated_tags(){
         echo "For the referenced remote repository: $git_repository"
         echo "A newer tag is available: $latest_tag ($local_tag found)"
         echo "Occurs in:"
-        grep -l -r --exclude-dir=.terraform "$tf_remote_module" .
+        grep -l -r --exclude-dir={.terraform,.git} "$tf_remote_module" .
         echo
       fi
     fi
