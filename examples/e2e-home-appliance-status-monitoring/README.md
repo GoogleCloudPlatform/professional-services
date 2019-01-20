@@ -16,7 +16,7 @@ After you have created a google cloud project, follow the instructions below:
 # clone the repository storing all the necessary codes
 git clone [REPO_URL]
 
-cd e2e_demo
+cd professional-services/examples/e2e-home-appliance-status-monitoring
 
 # remember your project's id in an environment variable
 GOOGLE_PROJECT_ID=[your-google-project-id]
