@@ -30,17 +30,19 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
-	"sync"
 
 	"github.com/olekukonko/tablewriter"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2/google"
+	"golang.org/x/sync/semaphore"
 	"google.golang.org/api/compute/v1"
 )
 
 const (
 	// outputDir is the name of the directory where output files will be written.
 	outputDir = "output"
+	// maxWorkers is the max number of goroutines allowed to run in parallel
+	maxWorkers = int64(32)
 )
 
 // projectResources stores the slices of addresses and instances for one project.
@@ -89,7 +91,6 @@ func getServiceProjects(hostProject string, service *compute.Service) (*compute.
 	log.Printf("Looking for service projects in %s", hostProject)
 
 	res, err := service.Projects.GetXpnResources(hostProject).Do()
-
 	if err != nil {
 		log.Printf("Error getting service projects for %s: %v", hostProject, err)
 	}
@@ -127,40 +128,32 @@ func getAllResources(hostProject string, service *compute.Service) []*projectRes
 		log.Fatal(err)
 	}
 
-	ch := make(chan *projectResources)
-	var wg sync.WaitGroup
+	ctx := context.TODO()
+	sem := semaphore.NewWeighted(maxWorkers)
+	output := make([]*projectResources, len(res.Resources))
 
 	// For each project, use a goroutine to get the resources for that project.
-	for _, resource := range res.Resources {
-		wg.Add(1)
-		go func(projectID string) {
-			defer wg.Done()
-			res := getResources(projectID, service)
-			if res != nil {
-				ch <- res
-			}
-		}(resource.Id)
+	for i := range res.Resources {
+		if err := sem.Acquire(ctx, 1); err != nil {
+			log.Printf("Failed to acquire semaphore: %v", err)
+			break
+		}
+
+		go func(i int) {
+			defer sem.Release(1)
+			output[i] = getResources(res.Resources[i].Id, service)
+		}(i)
 	}
 
-	// Wait for all goroutines to finish and close the channel.
-	go func() {
-		wg.Wait()
-		close(ch)
-	}()
-
-	// Gather all responses in the output slice.
-	var output []*projectResources
-	for s := range ch {
-		if s != nil {
-			output = append(output, s)
-		}
+	if err := sem.Acquire(ctx, maxWorkers); err != nil {
+		log.Printf("Failed to acquire semaphore: %v", err)
 	}
 
 	return output
 }
 
-// Append information in an addressInfo struct into a map (addressInfoMap) keyed
-// by IP address.
+// insertAddressInfo appends information from an addressInfo struct into a map
+// (addressInfoMap) keyed by IP address.
 //
 // If an IP already exists in the map, merge the information together.
 // Existing entries has precedence. This means that if, for some reason, the
@@ -173,7 +166,6 @@ func getAllResources(hostProject string, service *compute.Service) []*projectRes
 // and the instance using that same address represents its subnet a different way
 func insertAddressInfo(addressInfoMap map[string]*addressInfo, addressInfo *addressInfo) {
 	i, ok := addressInfoMap[addressInfo.IP]
-
 	if !ok {
 		addressInfoMap[addressInfo.IP] = addressInfo
 		return
@@ -192,7 +184,7 @@ func insertAddressInfo(addressInfoMap map[string]*addressInfo, addressInfo *addr
 	}
 }
 
-// Parse self-links to get just the resource name at the end
+// getName parses self-links to get just the resource name at the end
 func getName(selfLink string) string {
 	split := strings.Split(selfLink, "/")
 	return split[len(split)-1]
