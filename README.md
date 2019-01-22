@@ -20,6 +20,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [Pub/Sub Client Batching Example](examples/pubsub-publish-avro-example) - Batching in Pub/Sub's Java client API.
 * [QAOA](examples/qaoa) - Examples of parsing a max-SAT problem in a proprietary format.
 * [Spinnaker](examples/spinnaker) - Example pipelines for a Canary / Production deployment process.
+* [Marketing Model for Banking](examples/marketing-model) - Notebook for build a marketing model for banking using GCP.
 
 ## Tools
 The tools folder contains ready-made utilities which can simpilfy Google Cloud Platform usage.
