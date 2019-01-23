@@ -30,13 +30,13 @@ def arg_pars():
         '--hive-server-username', required=False,
         default=None, help="Hive username, defaults to None")
     required.add_argument('--hive-database', required=True,
-                        help="Hive database name")
+                          help="Hive database name")
     required.add_argument('--hive-table', required=True, help="Hive table name")
     required.add_argument('--project-id', required=True, help="GCP Project ID")
     required.add_argument('--bq-dataset-id', required=True,
-                        help="Existing BigQuery dataset ID")
+                          help="Existing BigQuery dataset ID")
     optional.add_argument('--bq-table', required=False, default='',
-                        help="BigQuery table name")
+                          help="BigQuery table name")
     required.add_argument(
         '--bq-table-write-mode', required=True,
         choices=['overwrite', 'create', 'append'],
@@ -137,7 +137,7 @@ def initialize_variables():
         "log_file_name": log_file_name
     }
 
-    print "Check the log file %s for detailed logs" % log_file_name
+    print "Check the log file {} for detailed logs".format(log_file_name)
 
     logger.debug("Configuration Properties")
     logger.debug(configuration_properties)

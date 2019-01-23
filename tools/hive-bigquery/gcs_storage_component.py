@@ -2,12 +2,14 @@
 
 import logging
 import os
+import sys
 import time
 
 from google.api_core import exceptions as api_exceptions
 from google.auth import exceptions as auth_exceptions
 from google.cloud import storage
 
+import custom_exceptions
 from utilities import calculate_time, get_random_string, execute_command, \
     print_and_log
 from gcp_service import GCPService
@@ -45,6 +47,7 @@ class GCSStorageComponent(GCPService):
             return client
         except auth_exceptions.DefaultCredentialsError:
             print_and_log("Error while creating GCS client")
+            raise custom_exceptions.ConnectionError, None, sys.exc_info()[2]
 
     def upload_file(self, bucket_name, file_name, blob_name):
         """Uploads local file to GCS bucket
@@ -58,7 +61,7 @@ class GCSStorageComponent(GCPService):
         bucket = self.client.get_bucket(bucket_name)
         blob = bucket.blob(blob_name)
         blob.upload_from_filename(file_name)
-        uri = 'gs://' + bucket_name + '/' + blob_name
+        uri = 'gs://{}/{}'.format(bucket_name, blob_name)
         return uri
 
     def delete_file(self, bucket_name, file_name):
@@ -87,11 +90,9 @@ class GCSStorageComponent(GCPService):
 
         try:
             self.client.get_bucket(bucket_name)
-            logger.info("GCS Bucket %s found", bucket_name)
+            return True
         except api_exceptions.NotFound:
-            print_and_log("GCS bucket %s does not exist" % bucket_name,
-                          logging.CRITICAL)
-            raise
+            return False
 
     def get_bucket_location(self, bucket_name):
         """Returns the bucket location
@@ -113,7 +114,7 @@ class GCSStorageComponent(GCPService):
         """
 
         bucket = self.client.get_bucket(bucket_name)
-        blob_name = gcs_uri.split('gs://' + bucket_name + '/')[1]
+        blob_name = gcs_uri.split('gs://{}/'.format(bucket_name))[1]
         blob = bucket.get_blob(blob_name)
         if blob:
             return True
@@ -145,8 +146,8 @@ class GCSStorageComponent(GCPService):
         logger.debug(
             "Fetching information about files to copy to GCS from tracking "
             "table...")
-        select_query = "SELECT table_name,file_path FROM %s WHERE " \
-                       "gcs_copy_status='TODO'" % (
+        select_query = "SELECT table_name,file_path FROM {} WHERE " \
+                       "gcs_copy_status='TODO'".format(
                            hive_table_model.tracking_table_name)
         results = mysql_component.execute_query(select_query)
 
@@ -180,9 +181,11 @@ class GCSStorageComponent(GCPService):
                 "Copying data from location %s to GCS Staging location %s "
                 "....", source_locations, target_folder_location)
             # Hadoop distcp command to copy multiple files in one operation
-            cmd_copy_gcs = ['hadoop', 'distcp'] + file_info.values() + [
-                target_folder_location]
-            print_and_log("Running " + " ".join(cmd_copy_gcs))
+            cmd_copy_gcs = ['hadoop', 'distcp']
+            for value in file_info.itervalues():
+                cmd_copy_gcs.append(value)
+            cmd_copy_gcs.append(target_folder_location)
+            print_and_log("Running {}".format(" ".join(cmd_copy_gcs)))
 
             start = time.time()
             execute_command(cmd_copy_gcs)
@@ -199,8 +202,8 @@ class GCSStorageComponent(GCPService):
                         "Finished copying data from location %s to GCS "
                         "Staging location %s", source_location,
                         target_file_location)
-                    query = "UPDATE %s SET gcs_copy_status='DONE'," \
-                            "gcs_file_path='%s' WHERE file_path='%s'" % (
+                    query = "UPDATE {0} SET gcs_copy_status='DONE'," \
+                            "gcs_file_path='{1}' WHERE file_path='{2}'".format(
                                 hive_table_model.tracking_table_name,
                                 target_file_location, source_location)
                     mysql_component.execute_transaction(query)

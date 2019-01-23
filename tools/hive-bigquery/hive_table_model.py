@@ -135,7 +135,7 @@ class HiveTableModel(object):
 
     @property
     def staging_table_name(self):
-        return 'stage__' + self.table_name + '__' + get_random_string()
+        return 'stage__{}__{}'.format(self.table_name, get_random_string())
 
     @property
     def tracking_table_name(self):

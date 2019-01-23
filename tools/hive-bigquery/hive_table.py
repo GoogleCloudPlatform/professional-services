@@ -55,7 +55,8 @@ class HiveTable(object):
 
         # Executes DESCRIBE EXTENDED <table_name> query
         queries = ["set hive.ddl.output.format=json",
-                   "desc extended %s.%s" % (self.database_name, self.table_name)]
+                   "desc extended {0}.{1}".format(self.database_name,
+                                                  self.table_name)]
         results = json.loads(hive_component.execute_query(queries)[0][0])
 
         # Gets columns information
@@ -109,7 +110,7 @@ class HiveTable(object):
         create_statement = "CREATE TABLE default.TABLE_NAME_HERE ("
         create_statement += ','.join(
             "{} {}".format(key, value) for key, value in schema.iteritems())
-        create_statement += ") STORED AS " + destination_data_format
+        create_statement += ") STORED AS {}".format(destination_data_format)
         logger.debug('Formed Hive stage table CREATE TABLE statement')
 
         # Initializes HiveTableModel
