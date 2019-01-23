@@ -1,9 +1,11 @@
 """Module to handle MySQL related utilities"""
 
 import logging
+import sys
 
 import pymysql
 
+import custom_exceptions
 from database_component import DatabaseComponent
 from utilities import print_and_log
 
@@ -33,7 +35,7 @@ class MySQLComponent(DatabaseComponent):
         super(MySQLComponent, self).__init__(**kwargs)
 
     def __str__(self):
-        return "MySQL - Host %s username %s database %s port %s" % (
+        return "MySQL - Host {0} username {1} database {2} port {3}".format(
             self.host, self.user, self.database, self.port)
 
     def get_connection(self):
@@ -55,7 +57,7 @@ class MySQLComponent(DatabaseComponent):
         except pymysql.err.DatabaseError:
             print_and_log("Failed to establish MySQL connection",
                           logging.CRITICAL)
-            raise
+            raise custom_exceptions.ConnectionError, None, sys.exc_info()[2]
 
     def get_cursor(self):
         """Gets the cursor object
@@ -81,9 +83,10 @@ class MySQLComponent(DatabaseComponent):
             self.connection.commit()
         except pymysql.err.OperationalError:
             print_and_log(
-                "Failed to commit transaction %s to Cloud SQL table" % query)
+                "Failed to commit transaction {} to Cloud SQL table".format(
+                    query))
             self.connection.rollback()
-            raise
+            raise custom_exceptions.MySQLExecutionError, None, sys.exc_info()[2]
 
     def execute_query(self, query):
         """Executes query and returns the results
@@ -100,8 +103,9 @@ class MySQLComponent(DatabaseComponent):
             cursor.execute(query)
             return cursor.fetchall()
         except pymysql.err.OperationalError:
-            print_and_log("Failed in querying CLoud SQL table - %s" % query)
-            raise
+            print_and_log(
+                "Failed in querying Cloud SQL table - {}".format(query))
+            raise custom_exceptions.MySQLExecutionError, None, sys.exc_info()[2]
 
     def drop_table(self, table_name):
         """Drops tracking table
@@ -124,16 +128,17 @@ class MySQLComponent(DatabaseComponent):
         Args:
             table_name (str): MySQL table name
         """
-        try:
-            results = self.execute_query("SELECT COUNT(*) FROM %s" % table_name)
-        except pymysql.err.ProgrammingError:
-            raise
-        n_rows = results[0][0]
-        if n_rows == 0:
-            self.drop_table(table_name)
-            print_and_log(
-                "Dropped the empty tracking table {}".format(table_name),
-                logging.INFO)
+
+        results = self.execute_query("SHOW TABLES")
+        for name in results:
+            if table_name == name[0]:
+                results = self.execute_query(
+                    "SELECT COUNT(*) FROM {}".format(table_name))
+                n_rows = results[0][0]
+                if n_rows == 0:
+                    self.drop_table(table_name)
+                    print_and_log("Dropped the empty tracking table {}".format(
+                        table_name), logging.INFO)
 
     def verify_tracking_table(self, hive_table_model):
         """Checks whether the tracking table exists
@@ -196,7 +201,7 @@ class MySQLComponent(DatabaseComponent):
             hive_table_model.tracking_table_name += "T_" + \
                 hive_table_model.inc_col_type + "_" + \
                 hive_table_model.inc_col
-            query = """CREATE TABLE IF NOT EXISTS %s (
+            query = """CREATE TABLE IF NOT EXISTS {} (
                 id INT COMMENT 'Integer counter to identify the migration run 
                 in which a data file has been detected',
                 table_name VARCHAR(255) COMMENT 'Hive stage table name',
@@ -215,11 +220,11 @@ class MySQLComponent(DatabaseComponent):
                 bq_job_retries TINYINT COMMENT 'Number of retries of BigQuery 
                 load job',
                 bq_job_status VARCHAR(10) COMMENT 'Status of BigQuery load job'
-                )""" % hive_table_model.tracking_table_name
+                )""".format(hive_table_model.tracking_table_name)
         else:
             # 'F' indicates incremental column is not present
             hive_table_model.tracking_table_name += "F"
-            query = """CREATE TABLE IF NOT EXISTS %s (
+            query = """CREATE TABLE IF NOT EXISTS {} (
                 table_name VARCHAR(255) COMMENT 'Hive stage table name',
                 clause VARCHAR(255) COMMENT 'Clause used while loading data 
                 into staging table',
@@ -232,9 +237,8 @@ class MySQLComponent(DatabaseComponent):
                 bq_job_retries TINYINT COMMENT 'Number of retries of BigQuery 
                 load job',
                 bq_job_status VARCHAR(10) COMMENT 'Status of BigQuery load job'
-                )""" % hive_table_model.tracking_table_name
+                )""".format(hive_table_model.tracking_table_name)
 
         cursor.execute(query)
-        print_and_log(
-            "Tracking table %s is created" %
-            hive_table_model.tracking_table_name)
+        print_and_log("Tracking table {} is created".format(
+            hive_table_model.tracking_table_name))

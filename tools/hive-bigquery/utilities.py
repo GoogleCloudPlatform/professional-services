@@ -26,14 +26,18 @@ def calculate_time(start, end):
     hour = (time_taken - (day * 86400)) // 3600
     minutes = (time_taken - ((day * 86400) + (hour * 3600))) // 60
     seconds = time_taken - ((day * 86400) + (hour * 3600) + (minutes * 60))
-    if day != 0:
-        return '%s days %s hours %s min %s sec' % (day, hour, minutes, seconds)
-    elif hour != 0:
-        return '%s hours %s min %s sec' % (hour, minutes, seconds)
-    elif minutes != 0:
-        return '%s min %s sec' % (minutes, seconds)
 
-    return '%s sec' % seconds
+    if day != 0:
+        output = '{} days {} hours {} min {} sec'.format(day, hour, minutes,
+                                                         seconds)
+    elif hour != 0:
+        output = '{} hours {} min {} sec'.format(hour, minutes, seconds)
+    elif minutes != 0:
+        output = '{} min {} sec'.format(minutes, seconds)
+    else:
+        output = '{} sec'.format(seconds)
+
+    return output
 
 
 def print_and_log(output, level=logging.DEBUG):
