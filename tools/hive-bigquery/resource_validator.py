@@ -101,8 +101,9 @@ class ResourceValidator(object):
             logger.info("Hive database %s found",
                         PropertiesReader.get('hive_database'))
         else:
-            logger.info("Hive database %s doesn't exist",
-                        PropertiesReader.get('hive_database'))
+            logger.error("Hive database %s doesn't exist",
+                         PropertiesReader.get('hive_database'))
+            return False
 
         if hive_component.check_table_exists(
                 PropertiesReader.get('hive_database'),
@@ -111,14 +112,28 @@ class ResourceValidator(object):
                         PropertiesReader.get('hive_table_name'),
                         PropertiesReader.get('hive_database'))
         else:
-            logger.info("Hive table %s doesn't exist in database %s",
-                        PropertiesReader.get('hive_table_name'),
-                        PropertiesReader.get('hive_database'))
+            logger.error("Hive table %s doesn't exist in database %s",
+                         PropertiesReader.get('hive_table_name'),
+                         PropertiesReader.get('hive_database'))
+            return False
 
-        gcs_component.check_bucket_exists(
-            PropertiesReader.get('gcs_bucket_name'))
+        if gcs_component.check_bucket_exists(
+                PropertiesReader.get('gcs_bucket_name')):
+            logger.info("GCS Bucket %s found",
+                        PropertiesReader.get('gcs_bucket_name'))
+        else:
+            logger.error("GCS bucket %s does not exist",
+                         PropertiesReader.get('gcs_bucket_name'))
+            return False
 
-        bq_component.check_dataset_exists(PropertiesReader.get('dataset_id'))
+        if bq_component.check_dataset_exists(
+                PropertiesReader.get('dataset_id')):
+            logger.info("BigQuery dataset %s found",
+                        PropertiesReader.get('dataset_id'))
+        else:
+            logger.error("BigQuery dataset %s does not exist",
+                         PropertiesReader.get('dataset_id'))
+            return False
 
         bq_dataset_location = bq_component.get_dataset_location(
             PropertiesReader.get('dataset_id'))
@@ -137,4 +152,6 @@ class ResourceValidator(object):
                 "Dataset location %s and GCS Bucket location %s do not match",
                 bq_dataset_location, gcs_bucket_location)
             logger.critical("Visit %s for more information", LOCATION_HELP_URL)
-            exit()
+            return False
+
+        return True

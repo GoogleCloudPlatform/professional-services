@@ -51,8 +51,9 @@ class BigQueryTableModel(object):
     @property
     def schema(self):
         if self._table_details['schema'] is None:
-            os.system('bq show --format=prettyjson %s.%s > bq_schema.json' % (
-                self.dataset_id, self.table_name))
+            os.system(
+                'bq show --format=prettyjson {0}.{1} > bq_schema.json'.format(
+                    self.dataset_id, self.table_name))
             with open('bq_schema.json', 'rb') as file_content:
                 schema = json.load(file_content)
             os.remove('bq_schema.json')
