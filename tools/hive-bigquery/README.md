@@ -45,7 +45,7 @@ pip install -r prerequisites/requirements.txt
 ```
 4. [optional] Use an existing Cloud SQL instance for tracking the progress of migration or launch a new one. Run the below command to create an instance. This will output the connection name of the instance which is of use in the next steps.
 ```
-sh prerequisites/create_sql_instance.sh <INSTANCE_NAME> <DATABASE_NAME>
+sh prerequisites/create_sql_instance.sh <INSTANCE_NAME> <DATABASE_NAME> <OPTIONAL_GCP_REGION>
 ```
 5. Start the Cloud SQL proxy by providing the instance connection name obtained from the previous step and a TCP port (generally 3306 is used) on which the connection will be established.
 ```

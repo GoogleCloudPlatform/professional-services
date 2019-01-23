@@ -29,4 +29,5 @@ class PropertiesReader(object):
         if key in PropertiesReader.properties:
             return PropertiesReader.properties[key]
         else:
-            raise KeyError("Key %s is not present in Properties Reader" % key)
+            raise KeyError(
+                "Key {} is not present in Properties Reader".format(key))

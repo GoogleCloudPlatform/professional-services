@@ -1,14 +1,16 @@
 """Module to handle Hive related utilities"""
 
-import datetime
 import json
 import logging
 import os
+import sys
 import time
+from dateutil.parser import parse
 
 from pyhive import exc, hive
 from thrift.transport import TTransport
 
+import custom_exceptions
 from utilities import calculate_time, get_random_string, print_and_log
 from database_component import DatabaseComponent
 
@@ -50,7 +52,7 @@ class HiveComponent(DatabaseComponent):
         except TTransport.TTransportException:
             print_and_log("Failed to establish Hive connection",
                           logging.CRITICAL)
-            raise
+            raise custom_exceptions.ConnectionError, None, sys.exc_info()[2]
 
     def get_cursor(self):
         """Gets the cursor
@@ -80,21 +82,19 @@ class HiveComponent(DatabaseComponent):
                     cursor.execute(query)
             else:
                 cursor.execute(query_cmds)
-            results = []
+
             try:
                 results = cursor.fetchall()
+            except exc.ProgrammingError:
+                results = []
+            finally:
                 return results
-            except exc.ProgrammingError as error:
-                if error == "No result set":
-                    return results
-                else:
-                    print_and_log("Failed in getting query results",
-                                  logging.CRITICAL)
-                    raise
+
         except exc.OperationalError:
-            print_and_log("Hive Query %s execution failed" % str(query_cmds),
-                          logging.CRITICAL)
-            raise
+            print_and_log(
+                "Hive Query {} execution failed".format(str(query_cmds)),
+                logging.CRITICAL)
+            raise custom_exceptions.HiveExecutionError, None, sys.exc_info()[2]
 
     def check_database_exists(self, database_name):
         """Checks whether the Hive database exists
@@ -123,7 +123,7 @@ class HiveComponent(DatabaseComponent):
             boolean : True, if table exists else False
         """
 
-        results = self.execute_query("SHOW TABLES FROM %s" % database_name)
+        results = self.execute_query("SHOW TABLES FROM {}".format(database_name))
         for name in results:
             if table_name in name:
                 return True
@@ -141,7 +141,7 @@ class HiveComponent(DatabaseComponent):
         """
 
         queries = ["set hive.ddl.output.format=json",
-                   "desc extended %s.%s" % (database_name, table_name)]
+                   "desc extended {0}.{1}".format(database_name, table_name)]
         results = self.execute_query(queries)
         location = json.loads(results[0][0])['tableInfo']['sd']['location']
         return location
@@ -158,10 +158,11 @@ class HiveComponent(DatabaseComponent):
         """
 
         file_name = "migration_temp_file.txt"
-        status_code = os.system("hdfs dfs -ls %s > %s" % (location, file_name))
+        status_code = os.system(
+            "hdfs dfs -ls {0} > {1}".format(location, file_name))
         if status_code:
             print_and_log("hdfs command execution failed", logging.CRITICAL)
-            exit()
+            raise custom_exceptions.HDFSCommandError
         with open(file_name, "r") as file_content:
             content = file_content.readlines()
         os.remove(file_name)
@@ -191,7 +192,7 @@ class HiveComponent(DatabaseComponent):
 
         tracking_data = []
         queries = ["set hive.ddl.output.format=json",
-                   "SHOW PARTITIONS %s.%s" % (database_name, table_name)]
+                   "SHOW PARTITIONS {0}.{1}".format(database_name, table_name)]
         result_set = self.execute_query(queries)
         results = json.loads(result_set[0][0])['partitions']
 
@@ -202,8 +203,8 @@ class HiveComponent(DatabaseComponent):
                 partition['columnName'] + '=' + '"' + partition[
                     'columnValue'] + '"' for partition in item['values'])
             tracking_data.append({
-                'table_name': 'stage__' + table_name.lower() + '__'
-                              + get_random_string(),
+                'table_name': 'stage__{}__{}'.format(table_name.lower(),
+                                                     get_random_string()),
                 'clause': clause
             })
         return tracking_data
@@ -319,16 +320,16 @@ class HiveComponent(DatabaseComponent):
                         logging.INFO)
                 else:
                     print_and_log(
-                        "Incremental column %s not valid. Range - %s - "
-                        "%s\nTry another incremental column or without "
-                        "providing incremental column" % (
+                        "Incremental column {0} not valid. Range - {1} - "
+                        "{2}\nTry another incremental column or without "
+                        "providing incremental column".format(
                             hive_table_model.inc_col, col_min, col_max),
                         logging.ERROR)
-                    exit()
+                    raise custom_exceptions.IncrementalColumnError
             else:
                 print_and_log("Given incremental column is not present.",
                               logging.CRITICAL)
-                exit()
+                raise custom_exceptions.IncrementalColumnError
 
         if hive_table_model.is_inc_col_present:
             tracking_data.append({
@@ -436,14 +437,14 @@ class HiveComponent(DatabaseComponent):
                             "or without providing incremental column".format(
                                 hive_table_model.inc_col, clause,
                                 col_min, col_max), logging.CRITICAL)
-                        exit()
+                        raise custom_exceptions.IncrementalColumnError
                 if hive_table_model.is_inc_col_present:
                     print_and_log("Incremental column {} found".format(
                         hive_table_model.inc_col), logging.INFO)
             else:
                 print_and_log("Given incremental column is not present.",
                               logging.CRITICAL)
-                exit()
+                raise custom_exceptions.IncrementalColumnError
         return tracking_data
 
     def create_and_load_stage_table(self, hive_table_model, table_name,
@@ -463,22 +464,19 @@ class HiveComponent(DatabaseComponent):
         # Replaces TABLE_NAME_HERE place holder with staging table name
         create_ddl_statement = hive_table_model.create_statement.replace(
             "TABLE_NAME_HERE", table_name)
-        cursor = self.get_cursor()
+
         # Creates staging table
-        cursor.execute(create_ddl_statement)
+        self.execute_query(create_ddl_statement)
         logger.debug("Table %s created in Hive. Inserting data...", table_name)
         start = time.time()
-        try:
-            # Inserts data into staging table
-            query = "INSERT OVERWRITE TABLE {} SELECT * FROM {}.{} {}".format(
-                table_name, hive_table_model.db_name,
-                hive_table_model.table_name, clause)
-            print_and_log(query)
-            cursor.execute(query)
-        except Exception as error:
-            logger.error("Failed to write data into %s with exception %s",
-                         table_name, error)
-            raise
+
+        # Inserts data into staging table
+        query = "INSERT OVERWRITE TABLE {} SELECT * FROM {}.{} {}".format(
+            table_name, hive_table_model.db_name,
+            hive_table_model.table_name, clause)
+        print_and_log(query)
+        self.execute_query(query)
+
         end = time.time()
         time_hive_stage = calculate_time(start, end)
         logger.info("Loaded data from %s into %s - Time taken - %s",
@@ -652,15 +650,15 @@ class HiveComponent(DatabaseComponent):
                     identifier, table_name, inc_col_min, inc_col_max, clause \
                         = row
                     if identifier == 1:
-                        insert_clause = clause + " and {0}>='{1}' and " \
-                            "{0}<='{2}'".format(
-                                hive_table_model.inc_col, inc_col_min,
-                                inc_col_max)
+                        insert_clause = "{0} and {1}>='{2}' and " \
+                                        "{1}<='{3}'".format(
+                                            clause, hive_table_model.inc_col,
+                                            inc_col_min, inc_col_max)
                     else:
-                        insert_clause = clause + " and {0}>'{1}' and " \
-                            "{0}<='{2}'".format(
-                                hive_table_model.inc_col, inc_col_min,
-                                inc_col_max)
+                        insert_clause = "{0} and {1}>'{2}' and " \
+                                        "{1}<='{3}'".format(
+                                            clause, hive_table_model.inc_col,
+                                            inc_col_min, inc_col_max)
                 else:
                     table_name, clause = row
                     insert_clause = clause
@@ -723,24 +721,13 @@ class HiveComponent(DatabaseComponent):
         """
 
         if hive_table_model.inc_col_type == "ts":
-            old_max = str(old_max)
-            new_max = str(new_max)
 
             try:
-                old_max = datetime.datetime.strptime(old_max,
-                                                     "%Y-%m-%d %H:%M:%S.%f")
-                new_max = datetime.datetime.strptime(new_max,
-                                                     "%Y-%m-%d %H:%M:%S.%f")
-            except ValueError:
-                try:
-                    old_max = datetime.datetime.strptime(old_max,
-                                                         "%Y-%m-%d %H:%M:%S")
-                    new_max = datetime.datetime.strptime(new_max,
-                                                         "%Y-%m-%d %H:%M:%S")
-                except ValueError:
-                    old_max = datetime.datetime.strptime(old_max, "%Y-%m-%d")
-                    new_max = datetime.datetime.strptime(new_max, "%Y-%m-%d")
-            except Exception:
+                old_max = parse(old_max)
+                new_max = parse(new_max)
+
+            except Exception as error:
+                logger.exception(error)
                 print_and_log("Failed to detect incremental column type")
                 raise
 
@@ -748,6 +735,7 @@ class HiveComponent(DatabaseComponent):
                 return True
 
         else:
+            # incremental column is of int type
             if int(new_max) > int(old_max):
                 return True
 
@@ -965,7 +953,8 @@ class HiveComponent(DatabaseComponent):
                     hive_table_model, old_data_max, new_data_max)
                 # Appends information to the list if new data is found,
                 if new_data_exists:
-                    print_and_log("New data found in partition - %s" % clause)
+                    print_and_log(
+                        "New data found in partition - {}".format(clause))
                     tracking_data.append({
                         "table_name": hive_table_model.staging_table_name,
                         "id": identifier + 1, "inc_col_min": old_data_max,

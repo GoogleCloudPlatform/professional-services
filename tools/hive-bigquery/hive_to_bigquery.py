@@ -4,6 +4,7 @@ import logging
 
 from bigquery_component import BigQueryComponent
 from bigquery_table import BigQueryTable
+import custom_exceptions
 from gcs_storage_component import GCSStorageComponent
 from hive_component import HiveComponent
 from hive_table import HiveTable
@@ -75,11 +76,10 @@ def compare_rows(bq_component, hive_component, gcs_component, hive_table_model,
                 else:
                     print_and_log(
                         "Number of rows not matching in BigQuery and Hive "
-                        "tables %s " % clause,
-                        logging.ERROR)
+                        "tables {}".format(clause), logging.ERROR)
                     print_and_log(
-                        "You may want to delete data %s and reload it" % clause,
-                        logging.ERROR)
+                        "You may want to delete data {} and reload it".format(
+                            clause), logging.ERROR)
         else:
             print_and_log(
                 "You may want to redo the migration since number of rows are "
@@ -101,7 +101,6 @@ def rollback(mysql_component, hive_table_model):
     print_and_log("Rolling back...", logging.INFO)
     mysql_component.drop_table_if_empty(hive_table_model.tracking_table_name)
     print_and_log("Rollback success", logging.INFO)
-    exit()
 
 
 def main():
@@ -110,12 +109,12 @@ def main():
     Establishes connection to Hive, MySQL, GCS and BigQuery. Validates the
     user arguments and continues migration from the previous runs, if any.
     """
+
+    init_script.initialize_variables()
+    logger.debug("Initializing Properties Reader")
+    PropertiesReader('application.properties')
+
     try:
-        init_script.initialize_variables()
-
-        logger.debug("Initializing Properties Reader")
-        PropertiesReader('application.properties')
-
         # Initializes the components to connect to MySQL, GCS, BigQuery and Hive
         mysql_component = MySQLComponent(
             host=PropertiesReader.get('tracking_database_host'),
@@ -131,11 +130,23 @@ def main():
             user=PropertiesReader.get('hive_server_username'),
             password=None,
             database=None)
+    except custom_exceptions.ConnectionError as error:
+        logger.exception(error)
+        print_and_log("Check the log file for detailed errors",
+                      logging.CRITICAL)
+        exit()
 
+    try:
         # Validates the user provided resources
         logger.debug("Validating the resources")
-        ResourceValidator.validate(hive_component, gcs_component, bq_component)
-        logger.info("All the provided resources are valid")
+        if ResourceValidator.validate(hive_component, gcs_component,
+                                      bq_component):
+            logger.info("All the provided resources are valid")
+        else:
+            logger.error("Check the provided resources")
+            print_and_log("Check the log file for detailed errors",
+                          logging.CRITICAL)
+            exit()
 
         hive_table_object = HiveTable(
             hive_component, PropertiesReader.get('hive_database'),
@@ -163,8 +174,12 @@ def main():
         # Verifies whether the tracking table exists from the previous run
         mysql_component.verify_tracking_table(hive_table_model)
         # Validates the bq_table_write_mode provided by the user
-        bq_component.check_bq_write_mode(mysql_component, hive_table_model,
-                                         bq_table_model)
+        if not bq_component.check_bq_write_mode(mysql_component,
+                                                hive_table_model,
+                                                bq_table_model):
+            print_and_log("Check the log file for detailed errors",
+                          logging.CRITICAL)
+            exit()
 
         # If the value of is_first_run is True, it means that the source Hive
         # table is being migrated for the first time
@@ -235,6 +250,7 @@ def main():
         rollback(mysql_component, hive_table_model)
         print_and_log("Check the log file for detailed errors",
                       logging.CRITICAL)
+        exit()
 
 
 if __name__ == '__main__':
