@@ -109,9 +109,7 @@ def make_input_fn(data_file,
   dataset = dataset.prefetch(buffer_size=1)
 
   iterator = dataset.make_one_shot_iterator()
-  data = iterator.get_next()
-
-  return data
+  return iterator.get_next()
 
 
 def model_fn(features, labels, mode, params):
