@@ -1,4 +1,4 @@
-# Energy disaggregation demo featuring GCP products
+# Home Appliances’ Working Status Monitoring Using Gross Power Readings
 The popularization of IoT devices and the evolvement of machine learning technologies have brought tremendous opportunities for new businesses. We demonstrate how home appliances’ (e.g. kettle and washing machine) working status (on/off) can be inferred from gross power readings collected by a smart meter together with state-of-art machine learning techniques. An end-to-end demo system is developed entirely on Google Cloud Platform as shown in the following figure. It includes
 * Data collection and ingesting through Cloud IoT Core and Cloud Pub/Sub
 * Machine learning model development using Tensorflow and training using Cloud Machine Learning Engine (CMLE)
