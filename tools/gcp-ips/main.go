@@ -42,7 +42,7 @@ const (
 	// outputDir is the name of the directory where output files will be written.
 	outputDir = "output"
 	// maxWorkers is the max number of goroutines allowed to run in parallel
-	maxWorkers = int64(32)
+	maxWorkers = 32
 )
 
 // projectResources stores the slices of addresses and instances for one project.
