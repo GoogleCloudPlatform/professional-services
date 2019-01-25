@@ -84,9 +84,9 @@ Download the required files.
 ```
 mkdir dlp_cloud_function_example
 
-wget -O dlp_cloud_function_example/main.py https://github.com/GoogleCloudPlatform/professional-services/blob/master/examples/cloud-composer-examples/composer_dataflow_examples/README.md
+wget -O dlp_cloud_function_example/main.py https://github.com/GoogleCloudPlatform/professional-services/blob/master/examples/dlp/cloud_function_example/requirements.txt
 
-wget -O dlp_cloud_function_example/requirements.txt https://github.com/GoogleCloudPlatform/professional-services/blob/master/examples/cloud-composer-examples/composer_dataflow_examples/README.md
+wget -O dlp_cloud_function_example/requirements.txt https://github.com/GoogleCloudPlatform/professional-services/blob/master/examples/dlp/cloud_function_example/main.py
 ```
 
 Deploy the Cloud Function
