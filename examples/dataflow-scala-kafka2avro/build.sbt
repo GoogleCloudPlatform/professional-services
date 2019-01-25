@@ -1,31 +1,34 @@
 /**
-  Copyright 2019 Google LLC
-
-  Licensed under the Apache License, Version 2.0 (the "License");
-  you may not use this file except in compliance with the License.
-  You may obtain a copy of the License at
-
-  https://www.apache.org/licenses/LICENSE-2.0
-
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
+  * Copyright 2019 Google LLC
+  *
+  * Licensed under the Apache License, Version 2.0 (the "License");
+  * you may not use this file except in compliance with the License.
+  * You may obtain a copy of the License at
+  *
+  * https://www.apache.org/licenses/LICENSE-2.0
+  *
+  * Unless required by applicable law or agreed to in writing, software
+  * distributed under the License is distributed on an "AS IS" BASIS,
+  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
   */
 
 import sbt._
 import Keys._
 
-val scioVersion = "0.7.0-beta1"
-val beamVersion = "2.8.0"
+val scioVersion = "0.7.0"
+val beamVersion = "2.9.0"
 val scalaMacrosVersion = "2.1.1"
+val pureconfigVersion = "0.10.1"
+val avro4sVersion = "2.0.2"
+val slf4jVersion = "1.7.25"
 
 lazy val commonSettings = Defaults.coreDefaultSettings ++ Seq(
   organization := "com.google.cloud.pso",
   // Semantic versioning http://semver.org/
   version := "0.1.0-SNAPSHOT",
-  scalaVersion := "2.12.7",
+  scalaVersion := "2.12.8",
   scalacOptions ++= Seq("-target:jvm-1.8",
                         "-deprecation",
                         "-feature",
@@ -55,10 +58,10 @@ lazy val root: Project = project
       "org.apache.beam" % "beam-runners-google-cloud-dataflow-java" % beamVersion,
       "org.apache.beam" % "beam-sdks-java-io-kafka" % beamVersion,
       // Configuration library
-      "com.github.pureconfig" %% "pureconfig" % "0.10.0",
+      "com.github.pureconfig" %% "pureconfig" % pureconfigVersion,
       // Avro schema automation
-      "com.sksamuel.avro4s" %% "avro4s-core" % "2.0.2",
-      "org.slf4j" % "slf4j-simple" % "1.7.25"
+      "com.sksamuel.avro4s" %% "avro4s-core" % avro4sVersion,
+      "org.slf4j" % "slf4j-simple" % slf4jVersion
     )
   )
   .enablePlugins(PackPlugin)
