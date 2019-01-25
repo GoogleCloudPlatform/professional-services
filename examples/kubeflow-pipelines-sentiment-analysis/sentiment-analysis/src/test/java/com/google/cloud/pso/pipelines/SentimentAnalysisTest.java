@@ -17,21 +17,15 @@
 package com.google.cloud.pso.pipelines;
 
 import com.google.cloud.pso.common.Doc;
-import com.google.cloud.pso.pipelines.SentimentAnalysis.ExtractDocFn;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import org.joda.time.DateTime;
-import org.hamcrest.CoreMatchers;
 import org.apache.beam.sdk.testing.NeedsRunner;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
 import org.apache.beam.sdk.transforms.Create;
-import org.apache.beam.sdk.transforms.MapElements;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.values.PCollection;
-import org.apache.beam.sdk.values.TypeDescriptors;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -43,8 +37,8 @@ import org.junit.runners.JUnit4;
 public class SentimentAnalysisTest {
 
   /** Creates a JSON string for a New York Times article. */
-  private static String getDocJSON(String docId, String printPage,
-                            String pubDate, String headline) {
+  private static String getDocJSON(
+      String docId, String printPage, String pubDate, String headline) {
     String docIdSnip = String.format("\"_id\": \"%s\"", docId);
     String printPageSnip = String.format("\"print_page\": \"%s\"",
                                          printPage);
@@ -90,7 +84,6 @@ public class SentimentAnalysisTest {
   private static final String DOC_JSON3 = getDocJSON(
       DOC_ID3, PRINT_PAGE3, PUB_DATE3, HEADLINE3);
 
-  // String input1 = "{\"response\": {\"docs\": []}}";
   private static final String INPUT_JSON = String.format(
     "{\"response\": {\"docs\": [%s, %s, %s]}}",
     DOC_JSON1, DOC_JSON2, DOC_JSON3);
