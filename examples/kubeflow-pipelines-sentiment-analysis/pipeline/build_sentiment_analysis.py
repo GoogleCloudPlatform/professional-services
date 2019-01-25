@@ -1,4 +1,4 @@
-# Copyright 2018 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2019 Google Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@ import datetime
 import kfp.compiler
 import kfp.dsl
 import kfp.gcp
- 
- 
+
+
 class SentimentAnalysisOp(kfp.dsl.ContainerOp):
   """Defines the operation."""
   def __init__(self,
@@ -40,7 +40,9 @@ class SentimentAnalysisOp(kfp.dsl.ContainerOp):
       image='gcr.io/rostam-193618/sentiment-analysis:latest',
       command=[
           'mvn', 'compile', 'exec:java',
-          '-Dexec.mainClass=com.google.cloud.pso.pipelines.SentimentAnalysis'],
+          '-Dexec.mainClass=com.google.cloud.pso.pipelines.SentimentAnalysis',
+          '-Dexec.cleanupDaemonThreads=false'
+      ],
       # file_outputs={'blobs': '/blobs.txt'},
       arguments=[
           '-Dexec.args=--project={} \
@@ -56,7 +58,7 @@ class SentimentAnalysisOp(kfp.dsl.ContainerOp):
               str(output_path),
               str(window),
               str(period)),
-      ]   
+      ]
     )
 
 
@@ -83,7 +85,7 @@ def pipeline_func(
       output_path,
       window, period).apply(
         kfp.gcp.use_gcp_secret()) # To apply gcp service account secret.
- 
+
 
 if __name__ == '__main__':
   """Compiles the pipeline to a file."""
