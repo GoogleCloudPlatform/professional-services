@@ -106,6 +106,29 @@ public class Doc {
     this.magnitude = magnitude;
   }
 
+  /** Overrides equals() to compare two Doc objects. */
+  @Override
+  public boolean equals(Object o) {
+    // If the object is compared with itself then return true
+    if (o == this) {
+      return true;
+    }
+
+    // Check if o is an instance of Doc or not.
+    if (!(o instanceof Doc)) {
+      return false;
+    }
+
+    // typecast o to Doc so that we can compare data members.
+    Doc that = (Doc) o;
+
+    // Compare the data members.
+    return this.getDocId().equals(that.getDocId())
+        && this.getPubDate().equals(that.getPubDate())
+        && this.getEpoch().equals(that.getEpoch())
+        && this.getHeadline().equals(that.getHeadline());
+  }
+
   @Override
   public String toString() {
     try {
