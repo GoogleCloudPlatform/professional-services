@@ -71,6 +71,7 @@ import org.json.JSONObject;
  * # Build the template
  * mvn compile exec:java \
  *   --define exec.mainClass=com.google.cloud.pso.pipelines.SentimentAnalysis \
+ *   --define exec.cleanupDaemonThreads=false \
  *   --define exec.args=" \
  *     --runner=${RUNNER} \
  *     --gcpTempLocation=gs://${BUCKET_NAME}/${TEMP_LOCATION} \
@@ -227,9 +228,7 @@ public class SentimentAnalysis {
     void setWindowPeriod(Integer value);
   }
 
-  /**
-   * Creates the pipeline and runs it to completion. 
-   */
+  /** Creates the pipeline and runs it to completion. */
   static void runSentimentAnalysis(SentimentAnalysisOptions options) {
     Pipeline p = Pipeline.create(options);
 
