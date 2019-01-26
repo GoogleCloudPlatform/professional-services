@@ -44,6 +44,7 @@
     <hamcrest.version>1.3</hamcrest.version>
     <java.version>1.8</java.version>
     <j2v8.version>4.8.0</j2v8.version>
+    <json.version>20180813</json.version>
     <junit.jupiter.version>5.3.2</junit.jupiter.version>
     <junit-platform.version>1.3.2</junit-platform.version>
     <junit.version>4.12</junit.version>
@@ -133,7 +134,7 @@
     <dependency>
       <groupId>org.json</groupId>
       <artifactId>json</artifactId>
-      <version>20180813</version>
+      <version>${json.version}</version>
     </dependency>
 
 
