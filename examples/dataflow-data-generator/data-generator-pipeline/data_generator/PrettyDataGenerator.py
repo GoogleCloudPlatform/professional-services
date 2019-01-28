@@ -1,3 +1,17 @@
+# Copyright 2019 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from __future__ import absolute_import
 import argparse
 import datetime
@@ -143,19 +157,23 @@ class DataGenerator(object):
 
         self.write_disp = write_disp_map[write_disp]
 
-    def get_bq_schema_string(self):
+    def get_bq_schema(self):
         """
-        This helper function parses a 'FIELDNAME:DATATYPE' string for the BQ
+        This helper function parses a list of bq.schema.SchemaField for the BQ
         api.
         """
-        schema_string = ','.join([str(obj[u'name']) + ':' + str(obj[u'type'])
-                                  for obj in self.schema])
-        return schema_string
+        schema = [bq.schema.SchemaField(
+            obj[u'name'], obj[u'type'], mode=obj[u'mode'], field=obj.get(u'fields')) for obj in self.schema]
+        return schema
 
-    def get_faker_schema(self):
+    def get_faker_schema(self, fields=None):
         """
         This function casts the BigQuery schema to one that will be understood
         by Faker.
+        Args:
+            fields: (dict) When using this method to get the faker schema for
+                a STRUCT / RECORD type field this will keyword parameter will
+                serve as the schema.
 
         Returns:
             faker_schema: A dictionary mapping field names to Faker providers.
@@ -217,16 +235,23 @@ class DataGenerator(object):
         }
 
         faker_schema = {}
-        for obj in self.schema:
+        this_call_schema = fields if fields else self.schema
+        for obj in this_call_schema:
             is_special = False
-            for key in special_map:
-                if key.lower() in obj['name'].lower():
-                    faker_schema[obj['name']] = special_map[key]
-                    is_special = True
-                    break
-            if not is_special:
-                faker_schema[obj['name']] = type_map[obj['type']]
-
+            if obj['type'].lower() == 'record':
+                # recursively call to capture nested structure.
+                faker_schema[obj['name']] = self.get_faker_schema(
+                        fields=obj['fields'])
+            else:
+                for key in special_map: 
+                    if key.lower() in obj['name'].lower():
+                        faker_schema[obj['name']] = \
+                                special_map[key]
+                        is_special = True
+                        break
+                if not is_special:
+                    faker_schema[obj['name']] = \
+                            type_map[obj['type']]
         return faker_schema
 
     def enforce_joinable_keys(self, record, key_set=None):
@@ -266,9 +291,10 @@ class FakeRowGen(beam.DoFn):
     # Helper function to get a single field dictionary from the schema for
     # checking type and mode.
 
-    def get_field_dict(self, field_name):
+    def get_field_dict(self, field_name, fields=None):
+        this_call_schema = fields if fields else self.data_gen.schema
         return filter(lambda f: f[u'name'] == field_name,
-                      self.data_gen.schema)[0]
+                      this_call_schema)[0]
 
     def get_percent_between_min_and_max_date(self, date_string):
         """
@@ -297,7 +323,8 @@ class FakeRowGen(beam.DoFn):
         return (date_days_since_bce - min_date_days_since_bce) / \
             float(total_date_range)
 
-    def sanity_check(self, record, fieldname, dest_joining_key_col=None):
+    def sanity_check(self, record, fieldname, fields=None,
+            dest_joining_key_col=None):
         """
         This function ensures that the data is all of types that BigQuery
         expects. Certain Faker providers do not return the data type we desire.
@@ -310,10 +337,17 @@ class FakeRowGen(beam.DoFn):
         # Create a Faker instance for individual parameterized random generation
         # (ie. minimum date).
         faker = Faker()
-        field = self.get_field_dict(fieldname)
+        field = self.get_field_dict(fieldname, fields=fields)
 
         # Below handles if the datatype got changed by the faker provider
-        if field[u'type'] == 'STRING':
+        if field[u'type'] == 'RECORD':
+            # Recursively sanity check the next level.
+            for col in field[u'fields']:
+                record[fieldname] = \
+                        self.sanity_check(record[fieldname],
+                                col[u'name'],
+                                fields=field[u'fields'])
+        elif field[u'type'] == 'STRING':
             # Efficiently generate random string.
             STRING_LENGTH = 36
             
@@ -729,7 +763,8 @@ def fetch_schema(data_args, schema_inferred):
             data_args.schema = [
                 {'name': field.name,
                  'type': field.field_type,
-                 'mode': field.mode
+                 'mode': field.mode,
+                 'fields': field.fields
                  }
                 for field in bq_table.schema
             ]
