@@ -1,4 +1,3 @@
-
 # Data Generator
 This directory shows a series of pipelines used to generate data in GCS or BigQuery. 
 The intention for these pipelines are to be a tool for partners, customers and SCEs who want to create a dummy dataset that 
@@ -125,6 +124,7 @@ based on if you pass the `--csv_schema_order` or `--avro_schema_file` parameters
 Output format is specified by passing one of the `--csv_schema_order` or `--avro_schema_file` parameters.
 
 `--csv_schema_order` should be a comma separated list specifying the order of the fieldnames for writing. 
+Note that `RECORD` are not supported when writing to CSV, because it is a flat file format.
 
 ```
 --csv_schema_order=lo_order_key,lo_linenumber,...
@@ -146,6 +146,7 @@ desired size.
 ```
 --output_table=project:dataset.table
 ```
+
 
 #### Sparsity (optional)
 Data is seldom full for every record so you can specify the probability of a NULLABLE column being null with the `--p_null` parameter.
