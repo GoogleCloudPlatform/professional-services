@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import avro.schema
 import datetime
+import json
 
 def datetime_to_avro_timestamp(timestamp, micros=True):
     """
@@ -91,9 +93,13 @@ def time_to_avro_time(time, micros=True):
 def fix_record_for_avro(record, avro_schema):
     for field in avro_schema.fields:
         field_name = field.name
-        datatype_union = field.type.to_json()
-        if isinstance(datatype_union[1], dict):
-            logical_type = datatype_union[1].get(u'logicalType', None)
+        datatype = field.type.to_json()
+        if isinstance(datatype, dict):
+            # This is a record type definition so we need to recurse a level deeper.
+            record[field_name] = fix_record_for_avro(record[field_name], 
+                    avro.schema.parse(json.dumps(datatype)))[0]
+        elif isinstance(datatype[1], dict):
+            logical_type = datatype[1].get(u'logicalType', None)
             if logical_type:
                 if logical_type.find('-') > -1:
                     logical_prefix, precision = logical_type.split('-')
