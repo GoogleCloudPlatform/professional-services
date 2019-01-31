@@ -1,0 +1,41 @@
+grammar F5Persist
+  rule top_block
+    identifier space block garbage <TopBlock>
+  end
+
+  rule named_block
+    identifier space block <NamedBlock>
+  end
+
+  rule block
+    ( '{' / stateremoved ) space? ( named_block / block / default / word space? )+ space? '}' <Block>
+  end
+
+  rule stateremoved
+    '# state <removed>' <StateRemoved>
+  end
+
+  rule identifier
+    '[a-zA-Z][a-zA-Z0-9\._-]+'r <Identifier>
+  end
+
+  rule default
+    'default' space yesno <DefaultYesNo>
+  end
+
+  rule yesno
+    'yes' / 'no' <YesNo>
+  end
+
+  rule word
+    '\w+'r <Word>
+  end
+
+  rule space
+    '[\s]+'r <Space>
+  end
+
+  rule garbage
+    '.*'r <Garbage>
+  end
+end

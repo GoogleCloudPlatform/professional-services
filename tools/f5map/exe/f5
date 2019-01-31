@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+require 'f5map'
+require 'f5map/app'
+app = F5map::App.new
+exit_code = app.run
+Kernel.exit(exit_code)

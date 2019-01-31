@@ -16,7 +16,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 dist/
-lib/
+/lib/
 *.egg-info/
 .cache
 pytestdebug.log
@@ -30,3 +30,4 @@ client_secrets.json
 .eggs/
 .python-version
 .idea
+.envrc
