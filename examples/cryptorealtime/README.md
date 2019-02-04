@@ -5,9 +5,12 @@
 CryptoRealTime is an Apache Beam example that reads from the Crypto Exchanges WebSocket API and saves the feed in Cloud Bigtable. Since it is a Beam code, it can use other runners for this. 
 Since this is a streaming example using an unbounded source, it is currently not possible to run this pipeline locally.
 
-## What about frontend and visualization BigTable?
-This is all served up as a frontend using an Python Flask and Vis.JS (covered in CryptoRealTimeFrontend Todo: Add link here)
+## Is the visualization of real time data from BigTable covered in this tutorial?
+This will be covered in our second part
+![Alt Text](https://media.giphy.com/media/ZO7YyCY1KVLgTu7FUd/giphy.gif)
 
+## Architecture 
+![Alt Text](https://i.ibb.co/fQs6Nhv/Screen-Shot-2019-02-04-at-4-24-34-PM.png)
 
 ## Costs
 This tutorial uses billable components of GCP, including:
