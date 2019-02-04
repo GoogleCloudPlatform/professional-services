@@ -52,15 +52,13 @@ where [PROJECT_ID] is the ID that you created in the previous step.
 
 1. [Enable billing](http://console.cloud.google.com/billing/?_ga=2.49090150.-1918546401.1542306879)
 
-2. [Enable the Datastore API](https://console.cloud.google.com/datastore/welcome?_ga=2.58601962.-1918546401.1542306879)
+2. [Enable the Cloud Scheduler API](http://console.cloud.google.com/apis/library/cloudscheduler.googleapis.com?_ga=2.212868180.-1918546401.1542306879)
 
-3. [Enable the Cloud Scheduler API](http://console.cloud.google.com/apis/library/cloudscheduler.googleapis.com?_ga=2.212868180.-1918546401.1542306879)
+3. [Enable the Cloud Pub/Sub API](https://console.cloud.google.com/flows/enableapi?apiid=pubsub)
 
-4. [Enable the Cloud Pub/Sub API](https://pantheon.corp.google.com/flows/enableapi?apiid=pubsub)
+4. [Enable the Cloud Functions API](https://console.cloud.google.com/flows/enableapi?apiid=cloudfunctions)
 
-5. [Enable the Cloud Functions API](https://pantheon.corp.google.com/flows/enableapi?apiid=cloudfunctions)
-
-6. [Enable the BigQuery API](https://pantheon.corp.google.com/flows/enableapi?apiid=bigquery)
+5. [Enable the BigQuery API](https://console.cloud.google.com/flows/enableapi?apiid=bigquery)
 
 
 <h3>Set up BigQuery Permissions</h3>
@@ -138,9 +136,9 @@ where [FUNCTION_NAME] is the name that you want to give the function and [TOPIC_
 ````
 gcloud beta scheduler jobs create pubsub [JOB] --schedule [SCHEDULE] --topic [TOPIC_NAME] --message-body [MESSAGE_BODY]
 ````
-where [JOB] is a unique name for a job, [SCHEDULE] is the frequency for the job in UNIX cron, such as "0 */6 * * *" to run every 6 hours, [TOPIC_NAME] is the name of the topic created in the step above when you deployed the Cloud Function, and [MESSAGE_BODY] is any string. An example command would be: 
+where [JOB] is a unique name for a job, [SCHEDULE] is the frequency for the job in UNIX cron, such as "0 */12 * * *" to run every 12hours, [TOPIC_NAME] is the name of the topic created in the step above when you deployed the Cloud Function, and [MESSAGE_BODY] is any string. An example command would be: 
 ````
-gcloud beta scheduler jobs create pubsub daily_job --schedule "0 */6 * * *" --topic cron-topic --message-body "daily job"
+gcloud beta scheduler jobs create pubsub daily_job --schedule "0 */12 * * *" --topic cron-topic --message-body "bi-daily job"
 ````
 
 <h3>Run the job:</h3>
