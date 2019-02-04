@@ -1,8 +1,11 @@
 #!/bin/bash
 
-SERVICE_ACCOUNT=bq-iam@bigquery-iam.iam.gserviceaccount.com
+PROJECT_ID=$1
+SERVICE_ACCOUNT_USERNAME=bq-iam
+SERVICE_ACCOUNT=$SERVICE_ACCOUNT_USERNAME@$PROJECT_ID.iam.gserviceaccount.com
 
 gcloud beta functions deploy sync_groups \
+  --project $PROJECT_ID \
   --runtime python37 \
   --trigger-http \
   --timeout 300 \
