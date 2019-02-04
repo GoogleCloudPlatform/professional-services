@@ -7,6 +7,7 @@ Since this is a streaming example using an unbounded source, it is currently not
 
 ## Is the visualization of real time data from BigTable covered in this tutorial?
 This will be covered in our second part
+
 ![Alt Text](https://media.giphy.com/media/ZO7YyCY1KVLgTu7FUd/giphy.gif)
 
 ## Architecture 
