@@ -25,5 +25,5 @@ GROUPS_USERS_TABLE_NAME = 'groups_users'
 def sync_groups(request):
   group_sync.GroupSync.sync_all(DOMAIN, ADMIN_EMAIL, DATASET,
                                 GROUPS_USERS_TABLE_NAME)
-  return 'Group membership from domain {} synched to table {}.{}'.format(
+  return 'Group membership from domain {} copied to table {}.{}'.format(
       DOMAIN, DATASET, GROUPS_USERS_TABLE_NAME)

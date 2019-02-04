@@ -1,6 +1,6 @@
-"""TODO(cristianob): DO NOT SUBMIT without one-line documentation for auth_util.
+"""Utility to obtain credentials with domain delegation.
 
-TODO(cristianob): DO NOT SUBMIT without a detailed description of auth_util.
+Author: woogie@
 """
 
 from __future__ import absolute_import
@@ -28,6 +28,7 @@ def get_credentials(admin_email, scopes):
   #  private key is inaccessible.
   signer = google.auth.iam.Signer(request, default_credentials,
                                   default_credentials.service_account_email)
+  print('Using service account {}'.format(default_credentials.service_account_email))
   #  This creates a service account credentials object by combining our Signer
   #  object and the default credentials token from the VM.
   base_credential = oauth2client.service_account.ServiceAccountCredentials(

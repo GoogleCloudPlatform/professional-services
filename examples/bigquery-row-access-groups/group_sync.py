@@ -23,7 +23,6 @@ import csv
 from io import StringIO
 import sys
 
-import api_helpers
 import auth_util
 from apiclient.discovery import build
 import google.api_core.exceptions
@@ -49,10 +48,11 @@ class GroupSync(object):
     """
     scopes = [
         'https://www.googleapis.com/auth/admin.directory.group',
+        # 'https://www.googleapis.com/auth/cloud-identity.groups.readonly'
     ]
-    # credentials = api_helpers.get_delegated_credential(admin_email, scopes)
     credentials, _ = auth_util.get_credentials(admin_email, scopes)
     service = build('admin', 'directory_v1', credentials=credentials)
+    # service = build('cloudidentity', 'v1', credentials=credentials)
     return service
 
   def get_group_members_as_list(self):
@@ -65,6 +65,7 @@ class GroupSync(object):
 
     all_group_members = []
     results = self.service.groups().list(domain=self.domain).execute()
+    # results = self.service.groups().list(parent=self.domain).execute()
 
     for g in results['groups']:
       group_id = g['email']
