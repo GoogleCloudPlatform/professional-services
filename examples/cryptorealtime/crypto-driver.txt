@@ -1,0 +1,14 @@
+
+gcloud beta compute instances create crypto-driver \
+--zone=us-central1-a \
+--machine-type=n1-standard-1 \
+--subnet=default \
+--network-tier=PREMIUM \
+--maintenance-policy=MIGRATE \
+--service-account=$(gcloud iam service-accounts list --format='value(email)' --filter="compute") \
+--scopes=https://www.googleapis.com/auth/cloud-platform \
+--image=debian-9-stretch-v20181210 \
+--image-project=debian-cloud \
+--boot-disk-size=20GB \
+--boot-disk-type=pd-standard \
+--boot-disk-device-name=crypto-driver
