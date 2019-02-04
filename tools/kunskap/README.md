@@ -1,6 +1,6 @@
 <h2>Introduction</h2>
 
-The purpose of this project is to demonstrate how to automate the process of viewing CUD/SUD commitment charges in GCP on a 
+The purpose of this project is to demonstrate how to automate the process of viewing [Committed Use Discount (CUD)](https://cloud.google.com/compute/docs/instances/signing-up-committed-use-discounts) and [Sustained Use Discount (SUD)](https://cloud.google.com/compute/docs/sustained-use-discounts) charges in GCP on a 
 per-project basis to a BigQuery table. This helps to accurately view project cost, since currently when exporting billing 
 data, it does not correctly attribute CUD/SUD commitment charges.
 <br></br>
