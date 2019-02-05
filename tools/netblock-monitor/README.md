@@ -12,6 +12,10 @@ Admins, or Google Partners can follow in order to set up an automated Apps
 Script project that will notify them via email when changes are made to Google’s
 IP ranges.
 
+Please see the
+[Google Netblock Monitor article](https://www.cloudconnect.goog/docs/DOC-33011)
+on Google Cloud Connect for more in-depth details and instructions.
+
 ## Requested Scopes
 
 In order for the script to work, it must be initialized and granted necessary
@@ -51,5 +55,6 @@ execution:
 
 ## Helpful links
 
--   https://support.google.com/a/answer/60764
--   https://developers.google.com/apps-script/overview
+-   [Google Netblock Monitor](https://www.cloudconnect.goog/docs/DOC-33011)
+-   [Google IP address ranges for outbound SMTP](https://support.google.com/a/answer/60764)
+-   [Overview of Google Apps Script](https://developers.google.com/apps-script/overview)

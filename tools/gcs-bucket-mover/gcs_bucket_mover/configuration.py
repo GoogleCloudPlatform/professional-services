@@ -16,10 +16,10 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
-import os
 
 from attr import attrs, attrib
 
+from google.cloud import logging
 from google.cloud import storage
 from google.oauth2 import service_account
 
@@ -31,10 +31,13 @@ class Configuration(object):
     target_project_credentials = attrib()
     source_storage_client = attrib()
     target_storage_client = attrib()
+    target_logging_client = attrib()
     source_project = attrib()
     target_project = attrib()
     bucket_name = attrib()
     temp_bucket_name = attrib()
+    use_bucket_lock = attrib()
+    lock_file_name = attrib()
 
     @classmethod
     def from_conf(cls, conf):
@@ -43,18 +46,8 @@ class Configuration(object):
         Set up the credentials and storage clients.
 
         Args:
-            conf: the argparser parsing of command line options
+            conf: the configargparser parsing of command line options
         """
-
-        source_service_account_key = os.getenv(
-            'GCP_SOURCE_PROJECT_SERVICE_ACCOUNT_KEY')
-        target_service_account_key = os.getenv(
-            'GCP_TARGET_PROJECT_SERVICE_ACCOUNT_KEY')
-
-        if not (source_service_account_key and target_service_account_key):
-            raise SystemExit(
-                'Missing some environment variables. Do you need to edit and source the config.sh'
-                ' script?')
 
         temp_bucket_name = conf.bucket_name + '-temp'
         if conf.tempBucketName:
@@ -62,14 +55,20 @@ class Configuration(object):
 
         return cls(
             source_project_credentials=service_account.Credentials.
-            from_service_account_file(source_service_account_key),
+            from_service_account_file(
+                conf.gcp_source_project_service_account_key),
             target_project_credentials=service_account.Credentials.
-            from_service_account_file(target_service_account_key),
+            from_service_account_file(
+                conf.gcp_target_project_service_account_key),
             source_storage_client=storage.Client.from_service_account_json(
-                source_service_account_key),
+                conf.gcp_source_project_service_account_key),
             target_storage_client=storage.Client.from_service_account_json(
-                target_service_account_key),
+                conf.gcp_target_project_service_account_key),
+            target_logging_client=logging.Client.from_service_account_json(
+                conf.gcp_target_project_service_account_key),
             source_project=conf.source_project,
             target_project=conf.target_project,
             bucket_name=conf.bucket_name,
-            temp_bucket_name=temp_bucket_name)
+            temp_bucket_name=temp_bucket_name,
+            use_bucket_lock=conf.useBucketLock,
+            lock_file_name=conf.lock_file_name)
