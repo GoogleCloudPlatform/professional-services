@@ -1,3 +1,4 @@
+
 # EDIT THESE WITH YOUR OWN DATASET/TABLES
 billing_project_id = 'project_id'
 billing_dataset_id = 'billing_dataset'
@@ -7,8 +8,6 @@ output_table_name = 'transformed_table'
 
 # You can leave this unless you renamed the file yourself.
 sql_file_path = 'cud_sud_attribution_query.sql'
-
-# There are two slightly different allocation methods that affect how the Commitment charge is allocated:
 
 # There are two slightly different allocation methods that affect how the
 # Commitment charge is allocated:
@@ -26,3 +25,4 @@ sql_file_path = 'cud_sud_attribution_query.sql'
 # VM usage during the time increment (P_usage_percentage). All commitment cost
 # is allocated into the projects proportionally based on the CUD credits that
 # they consumed, even if the commitment is not fully utilized.
+allocation_method = 'P_method_2_commitment_cost'
