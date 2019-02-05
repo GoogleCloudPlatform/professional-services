@@ -58,11 +58,11 @@ def arg_pars():
         help="Boolean to indicate whether to use clustering in BigQuery if "
              "supported")
     required.add_argument(
-        '--tracking-database-host', required=True,
-        help="Cloud SQL Tracking database host address")
+        '--tracking-database-host', required=False, default='localhost',
+        help="Cloud SQL Tracking database host address, defaults to localhost")
     optional.add_argument(
         '--tracking-database-port', required=False, default=3306,
-        help="Port to connect to tracking database, defaults to 3306")
+        help="Port which you used for running cloud sql proxy, defaults to 3306")
     optional.add_argument(
         '--tracking-database-user', required=False, default='root',
         help="Cloud SQL Tracking database user name, defaults to root")
