@@ -14,61 +14,6 @@
  * limitations under the License.
  */
 
-/*
-resource "google_service_account" "publisher" {
-  project="${var.project_id}"
-  account_id   = "mypublisher"
-  display_name = "Aurinko Publisher"
-}
-
-resource "google_project_iam_member" "stream_role" {
-  project="${var.project_id}"
-  role    = "roles/pubsub.publisher"
-  member  = "serviceAccount:${google_service_account.publisher.email}"
-}
-
-resource "google_project_iam_member" "batch_role" {
-  project="${var.project_id}"
-  role    = "roles/storage.objectCreator"
-  member  = "serviceAccount:${google_service_account.publisher.email}"
-}
-
-resource "google_service_account_key" "publisher_key" {
-  service_account_id = "${google_service_account.publisher.name}"
-}
-
-resource "local_file" "publisher_key" {
-  content     = "${base64decode(google_service_account_key.publisher_key.private_key)}"
-  filename    = "${path.module}/publisher-key.json"
-}
-
-resource "google_service_account" "subscriber" {
-  project="${var.project_id}"
-  account_id   = "mysubscriber"
-  display_name = "My PubSub Subscriber"
-}
-
-resource "google_project_iam_member" "subscriber_role" {
-  project="${var.project_id}"
-  role    = "roles/pubsub.subscriber"
-  member  = "serviceAccount:${google_service_account.subscriber.email}"
-}
-
-resource "google_project_iam_member" "big_query_editor" {
-  project="${var.project_id}"
-  role    = "roles/bigquery.dataEditor"
-  member  = "serviceAccount:${google_service_account.subscriber.email}"
-}
-
-resource "google_project_iam_member" "gcr_reader" {
-  project="${var.project_id}"
-  role    = "roles/storage.objectCreator"
-  member  = "serviceAccount:${google_service_account.subscriber.email}"
-}
-*/
-
-
-
 resource "google_service_account" "vmaccess" {
   project="${var.project_id}"
   account_id   = "vmaccess"

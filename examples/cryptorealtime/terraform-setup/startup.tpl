@@ -4,8 +4,8 @@ sudo apt-get install openjdk-8-jdk git maven -y
 sudo apt-get install google-cloud-sdk-cbt -y
 sudo apt-get --only-upgrade install kubectl google-cloud-sdk google-cloud-sdk-app-engine-grpc google-cloud-sdk-app-engine-go google-cloud-sdk-cloud-build-local google-cloud-sdk-datastore-emulator google-cloud-sdk-app-engine-python google-cloud-sdk-cbt google-cloud-sdk-bigtable-emulator google-cloud-sdk-app-engine-python-extras google-cloud-sdk-datalab google-cloud-sdk-app-engine-java -y
 cd ~
-git clone https://github.com/GoogleCloudPlatform/professional-services/tree/master/examples/cryptorealtime
-cd cryptorealtime
+git clone https://github.com/galic1987/professional-services
+cd professional-services/examples/cryptorealtime/
 gsutil cp README.md ${bucket_name}${bucket_folder}
 mvn clean install
 echo "export PROJECT_ID=${project_id}" >> ~/.bashrc

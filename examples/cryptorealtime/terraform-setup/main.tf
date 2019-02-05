@@ -1,11 +1,11 @@
 provider "google" {
  region = "${var.region}"
- credentials = "${file("/Users/igalic/.config/gcloud/igalic-terraform-commander-b14a681ac62c.json")}"
+ credentials = "${file("${var.credsfile}")}"
  project="${var.project_id}"
 }
 
 
-
+/*
 resource "google_project_service" "iamapi" {
   project ="${var.project_id}"
   service ="iam.googleapis.com"
@@ -37,12 +37,12 @@ resource "google_project_service" "storageapi" {
     disable_on_destroy = false
 }
 
-
+*/
 
 resource "google_bigtable_instance" "instance" {
   project = "${var.project_id}"
   name         = "${var.bigtable_instance_name}"
-  instance_type = "DEVELOPMENT"
+  instance_type = "PRODUCTION"
   cluster {
     cluster_id   = "${var.bigtable_instance_name}-cluster"
     zone = "${var.zone}"
@@ -50,16 +50,6 @@ resource "google_bigtable_instance" "instance" {
     storage_type = "HDD"
   }
 }
-/*
-resource "google_bigtable_instance" "instance" {
-  project = "${var.project_id}"
-  name = "cryptobackend-bigtable"
-  cluster_id   = "cryptobackend-bigtable-cluster"
-  instance_type = "DEVELOPMENT"
-  zone = "${data.google_compute_zones.available.names[0]}"
-  num_nodes = 1
-  storage_type = "HDD"
-}*/
 
 
 resource "google_compute_instance" "default" {
@@ -98,8 +88,9 @@ resource "google_compute_instance" "default" {
 }
 
 resource "google_storage_bucket" "cryptorealtime-demo-staging" {
-  name     = "cryptorealtime-demo-staging"
+  name     = "${var.bucket_name}"
   location = "US"
+  force_destroy = true
 }
 
 data "template_file" "init" {
