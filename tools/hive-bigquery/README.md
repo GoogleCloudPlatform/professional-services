@@ -35,7 +35,7 @@ cd tools/hive-bigquery/
 ```
 2. Install prerequisites such as python, pip, virtualenv and Cloud SQL proxy.
 ```
-sh prerequisites/prerequisites.sh
+sudo sh prerequisites/prerequisites.sh
 ```
 3. Activate the virtual environment.
 ```
@@ -43,16 +43,28 @@ virtualenv env
 source env/bin/activate
 pip install -r prerequisites/requirements.txt
 ```
-4. [optional] Use an existing Cloud SQL instance for tracking the progress of migration or launch a new one. Run the below command to create an instance. This will output the connection name of the instance which is of use in the next steps.
+4. [optional] Use an existing Cloud SQL instance for tracking the progress of 
+migration or launch a new one. Run the below command to create an instance.
+Set the root password when the script prompts for it. 
+This will output the connection name of the instance which is of use in the 
+next steps.
 ```
 sh prerequisites/create_sql_instance.sh <INSTANCE_NAME> <DATABASE_NAME> <OPTIONAL_GCP_REGION>
 ```
-5. Start the Cloud SQL proxy by providing the instance connection name obtained from the previous step and a TCP port (generally 3306 is used) on which the connection will be established.
+5. Start the Cloud SQL proxy by providing the instance connection name obtained 
+from the previous step and a TCP port (generally 3306 is used) on which the 
+connection will be established.
 ```
 /usr/local/bin/cloud_sql_proxy -instances=<INSTANCE_CONNECTION_NAME>=tcp:<PORT> &
 ```
+6. Verify you are able to connect to the Cloud SQL database by running the 
+command below. Provide the port which you used in the previous step and password 
+for the root user that you have set in step 4.
+```
+mysql -h 127.0.0.1 -P <PORT> -u root -p
+```
 
-6. Usage
+7. Usage
 ```
 usage: hive_to_bigquery.py [-h] [--hive-server-host HIVE_SERVER_HOST]
                            [--hive-server-port HIVE_SERVER_PORT]
@@ -94,8 +106,6 @@ required arguments:
                         Existing GCS Bucket name. Provide either
                         gs://BUCKET_NAME or BUCKET_NAME. Hive data will be
                         copied to thisbucket and then loaded into BigQuery
-  --tracking-database-host TRACKING_DATABASE_HOST
-                        Cloud SQL Tracking database host address
   --tracking-database-db-name TRACKING_DATABASE_DB_NAME
                         Cloud SQL Tracking db name.Ensure you provide the same
                         db name if you have migrated previously
@@ -115,8 +125,12 @@ optional arguments:
   --use-clustering {False,True}
                         Boolean to indicate whether to use clustering in
                         BigQuery if supported
+  --tracking-database-host TRACKING_DATABASE_HOST
+                        Cloud SQL Tracking database host address,
+                        defaults to localhost
   --tracking-database-port TRACKING_DATABASE_PORT
-                        Port to connect to tracking database, defaults to 3306
+                        Port which you used for running cloud sql proxy,
+                        defaults to 3306
   --tracking-database-user TRACKING_DATABASE_USER
                         Cloud SQL Tracking database user name, defaults to
                         root
