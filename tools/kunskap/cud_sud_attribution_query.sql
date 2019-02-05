@@ -1,4 +1,4 @@
-/* Copyright 2018 Google Inc.
+/* Copyright 2019 Google Inc.
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
  You may obtain a copy of the License at
@@ -7,47 +7,41 @@
  distributed under the License is distributed on an "AS IS" BASIS,
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  See the License for the specific language governing permissions and
- limitations under the License.i
+ limitations under the License.
 */
 CREATE TEMP FUNCTION
-  commitmentSKUToCancelledKU(sku_desc STRING)
-  RETURNS STRING
-  LANGUAGE js AS """
-  const RE_MATCH = /Commitment v\\d: (?<type>[a-zA-Z]+) in (?<region>[a-zA-Z]+) for (?<number>\\d+) (?<timeframe>[a-zA-Z]+)/;
-  const matchObj = RE_MATCH.exec(sku_desc);
-  if (matchObj === null)
-      return sku_desc;
-  var type = matchObj.groups.type;
-  var region = matchObj.groups.region;
-  var number = matchObj.groups.number;
-  var timeframe = matchObj.groups.timeframe;
-  if (type.toLowerCase()==="cpu") {
-     type = "CORE";
-  }
-  return "Madeup_SKU_Cancel_CUD_"+number+timeframe+"_"+type.toUpperCase()+"_COST_"+region;
-""";
+  commitmentSKUToNegationSKU(sku_desc STRING)
+  RETURNS STRING AS ( IF(REGEXP_CONTAINS(sku_desc, r"Commitment v[0-9]: [a-zA-Z]+ in [a-zA-Z0-9\\-] for [0-9]+ [_a-zA-Z]+"),
+      CONCAT(
+        --prefix
+        "Reattribution_Negation_CUD_",
+        --number
+        REGEXP_EXTRACT(sku_desc, r"Commitment v[0-9]: [a-zA-Z]+ in [a-zA-Z0-9\\-] for ([0-9]+) [_a-zA-Z]+"),
+        --timeframe
+        REGEXP_EXTRACT(sku_desc, r"Commitment v[0-9]: [a-zA-Z]+ in [a-zA-Z0-9\\-] for [0-9]+ ([_a-zA-Z]+)"), "_",
+        --UPPER(type)
+        UPPER(REGEXP_EXTRACT(sku_desc, r"Commitment v[0-9]: ([a-zA-Z]+) in [a-zA-Z0-9\\-] for [0-9]+ [_a-zA-Z]+")), "_COST_",
+        --region
+        REGEXP_EXTRACT(sku_desc, r"Commitment v[0-9]: [a-zA-Z]+ in ([a-zA-Z0-9\\-]) for [0-9]+ [_a-zA-Z]+") ),
+      NULL));
 CREATE TEMP FUNCTION
   regionMapping(gcp_region STRING)
-  RETURNS STRING
-  LANGUAGE js AS """
-  if (gcp_region === null)
-    return null;
-  if (gcp_region.startsWith("us-") || gcp_region.startsWith("northamerica") || gcp_region.startsWith("southamerica"))
-    return "Americas";
-  if (gcp_region.startsWith("europe-"))
-    return "EMEA";
-  if (gcp_region.startsWith("australia-") || gcp_region.startsWith("asia-"))
-    return "APAC";
-  return gcp_region;
-"""; (
+  RETURNS STRING AS (
+    CASE
+      WHEN gcp_region IS NULL THEN NULL
+      WHEN gcp_region LIKE "us-%"
+    OR gcp_region LIKE "northamerica%"
+    OR gcp_region LIKE "southamerica%" THEN "Americas"
+      WHEN gcp_region LIKE "europe-%" THEN "EMEA"
+      WHEN gcp_region LIKE "australia-%"
+    OR gcp_region LIKE "asia-%" THEN"APAC" END);
+(
   WITH
     billing_export_table AS (
         SELECT
          *
         FROM
          `${billing_table}`
-        WHERE
-          CAST(DATE(usage_start_time, "America/Los_Angeles") AS STRING) IN ("${modified_usage_start_time_list}")
     ),
     billing_id_table AS (
     SELECT
@@ -61,11 +55,10 @@ CREATE TEMP FUNCTION
     usage_data AS (
     SELECT
       CAST(DATETIME(usage_start_time, "America/Los_Angeles") AS DATE) as usage_date,
-      #EXTRACT(DATE FROM usage_start_time) as usage_date,
       invoice.month AS invoice_month,
       sku.id AS sku_id,
       sku.description AS sku_description,
-      -- Only include region if we are looking at data from 9/17 and onwards
+      -- Only include region if we are looking at data from 9/20/2018 and onwards
       location.region AS region,
       service.id AS service_id,
       service.description AS service_description,
@@ -89,14 +82,22 @@ CREATE TEMP FUNCTION
       labels_2.key = "label_2_key"
     WHERE
       service.description = "Compute Engine"
-      AND ( (LOWER(sku.description) LIKE "%instance%"
+      AND (
+       FALSE OR (LOWER(sku.description) LIKE "%instance%"
           OR LOWER(sku.description) LIKE "% intel %")
         OR LOWER(sku.description) LIKE "%memory optimized core%"
         OR LOWER(sku.description) LIKE "%memory optimized ram%"
         OR LOWER(sku.description) LIKE "%commitment%")
-      -- Filter to recent data to make analysis efficient, and b/c location.region was added
-      -- to the schema on 2018-09-17
-      AND usage_start_time >= "2018-09-20" ),
+     -- Filter out Sole Tenancy skus that do not represent billable compute instance usage
+    AND NOT
+    ( FALSE
+      -- the VMs that run on sole tenancy nodes are not actually billed. Just the sole tenant node is
+      OR LOWER(sku.description) LIKE "%hosted on sole tenancy%"
+      -- sole tenancy premium charge is not eligible instance usage
+      OR LOWER(sku.description) LIKE "sole tenancy premium%"
+    )
+    -- Filter to time range when necessary columns (region) were released into Billing BQ Export
+    AND CAST(DATETIME(usage_start_time, "America/Los_Angeles") AS DATE) >= "2018-09-20"),
     -- Create temporary table prices, in order to calculate unit price per (date, sku, region) tuple.
     -- Export table only includes the credit dollar amount in the credit.amount field. We can get the credit
     -- usage amount (e.g. core hours) by dividing credit.amount by unit price for that sku.
@@ -110,7 +111,7 @@ CREATE TEMP FUNCTION
     SELECT
       usage_date,
       sku_id,
-      -- Only include region if we are looking at data from 9/17 and onwards
+      -- Only include region if we are looking at data from 9/20/2018 and onwards
       region,
       -- calculate unit price per sku for each day. Catch line items with 0 usage to avoid divide by zero.
       -- using 1 assumes that there are no relevant (CUD related) skus with cost but 0 usage,
@@ -186,11 +187,9 @@ CREATE TEMP FUNCTION
         -- First usage query pulls out amount and dollar cost of Eligible Usage and Commitment charges
       SELECT
         usage_date,
-        --invoice_month,
         service_id,
         service_description,
         region,
-        --geo,
         usage_type,
         cud_type,
         unit_type,
@@ -230,9 +229,7 @@ CREATE TEMP FUNCTION
         usage_date,
         service_id,
         service_description,
-        --invoice_month,
         region,
-        --geo,
         usage_type,
         cud_type,
         unit_type,
@@ -248,9 +245,7 @@ CREATE TEMP FUNCTION
           u.usage_date,
           service_id,
           service_description,
-          --invoice_month,
           u.region,
-          --geo,
           CASE
             WHEN LOWER(cred.name) LIKE "%committed%" THEN 'CUD Credit'
             WHEN LOWER(cred.name) LIKE "%sustained%" THEN 'SUD Credit'
@@ -326,9 +321,7 @@ CREATE TEMP FUNCTION
       usage_date,
       service_id,
       service_description,
-      --invoice_month,
       region,
-      --geo,
       project_id,
       label_1_value,
       label_2_value,
@@ -378,9 +371,7 @@ CREATE TEMP FUNCTION
     BA_credit_breakout AS (
     SELECT
       usage_date,
-      --invoice_month,
       region,
-      --geo,
       cud_type,
       unit_type,
       SUM(usage_amount) AS BA_usage_amount,
@@ -418,9 +409,7 @@ CREATE TEMP FUNCTION
       p.service_id,
       p.cost_type,
       p.service_description,
-      --p.invoice_month,
       p.region,
-      --p.geo,
       p.unit_type,
       p.cud_type,
       p.project_id,
@@ -478,9 +467,7 @@ CREATE TEMP FUNCTION
     ON
       TRUE
       AND p.usage_date = b.usage_date
-      --AND p.invoice_month = b.invoice_month
       AND p.region = b.region
-      --AND p.geo = b.geo
       AND p.cud_type = b.cud_type
       AND p.unit_type = b.unit_type
     ORDER BY
@@ -497,8 +484,8 @@ CREATE TEMP FUNCTION
     SELECT
       billing_account_id,
       service AS service,
-      STRUCT ( commitmentSKUToCancelledKU(sku.description ) AS id,
-        commitmentSKUToCancelledKU(sku.description) AS description ) AS sku,
+      STRUCT ( commitmentSKUToNegationSKU(sku.description ) AS id,
+        commitmentSKUToNegationSKU(sku.description) AS description ) AS sku,
       TIMESTAMP_TRUNC(usage_start_time, DAY) AS usage_start_time,
       TIMESTAMP_ADD(TIMESTAMP_TRUNC(usage_end_time, DAY), INTERVAL ((3600*23)+3599) SECOND) AS usage_end_time,
       project AS project,
@@ -531,10 +518,10 @@ CREATE TEMP FUNCTION
       b.billing_account_id AS billing_account_id,
       STRUCT ( service_id AS id,
         service_description AS description) AS service,
-      STRUCT (CONCAT("Madeup_SKU_Correct_CUD_", IF(LOWER(unit_type) LIKE "ram",
+      STRUCT (CONCAT("Reattribution_Addition_CUD_", IF(LOWER(unit_type) LIKE "ram",
             "RAM_COST",
             "CORE_COST"), "_", regionMapping(region)) AS id,
-        CONCAT("Madeup_SKU_Correct_CUD_", IF(LOWER(unit_type) LIKE "ram",
+        CONCAT("Reattribution_Addition_CUD_", IF(LOWER(unit_type) LIKE "ram",
             "RAM_COST",
             "CORE_COST"), "_", regionMapping(region)) AS description) AS sku,
       TIMESTAMP(usage_date) AS usage_start_time,
@@ -574,10 +561,10 @@ CREATE TEMP FUNCTION
       b.billing_account_id AS billing_account_id,
       STRUCT ( service_id AS id,
         service_description AS description) AS service,
-      STRUCT ( CONCAT("Madeup_SKU_Correct_CUD_", IF(LOWER(unit_type) LIKE "ram",
+      STRUCT ( CONCAT("Reattribution_Addition_CUD_", IF(LOWER(unit_type) LIKE "ram",
             "RAM",
             "CORE"), "_CREDIT_", regionMapping(region)) AS id,
-        CONCAT("Madeup_SKU_Correct_CUD_", IF(LOWER(unit_type) LIKE "ram",
+        CONCAT("Reattribution_Addition_CUD_", IF(LOWER(unit_type) LIKE "ram",
             "RAM",
             "CORE"), "_CREDIT_", regionMapping(region)) AS description) AS sku,
       TIMESTAMP(usage_date) AS usage_start_time,
@@ -620,8 +607,8 @@ CREATE TEMP FUNCTION
       b.billing_account_id AS billing_account_id,
       STRUCT ( service_id AS id,
         service_description AS description) AS service,
-      STRUCT ( "Madeup_SKU_Correct_SUD_CREDIT" AS id,
-        "Madeup_SKU_Correct_SUD_CREDIT" AS description) AS sku,
+      STRUCT ( "Reattribution_Addition_SUD_CREDIT" AS id,
+        "Reattribution_Addition_SUD_CREDIT" AS description) AS sku,
       TIMESTAMP(usage_date) AS usage_start_time,
       TIMESTAMP_ADD(TIMESTAMP(usage_date), INTERVAL ((3600*23)+3599) SECOND) AS usage_end_time,
       STRUCT ( project_id AS id,
@@ -660,14 +647,14 @@ CREATE TEMP FUNCTION
     SELECT
       billing_account_id,
       service AS service,
-      STRUCT ( CONCAT("Madeup_SKU_Cancel_", IF(LOWER(cs.name) LIKE "committed usage discount: ram",
+      STRUCT ( CONCAT("Reattribution_Negation_", IF(LOWER(cs.name) LIKE "committed usage discount: ram",
             "CUD_RAM_CREDIT",
             IF(LOWER(cs.name) LIKE "committed usage discount: cpu",
               "CUD_CORE_CREDIT",
               IF(LOWER(cs.name) LIKE "sustained usage discount",
                 "SUD_CREDIT",
                 "ERROR")) )) AS id,
-        CONCAT("Madeup_SKU_Cancel_", IF(LOWER(cs.name) LIKE "committed usage discount: ram",
+        CONCAT("Reattribution_Negation_", IF(LOWER(cs.name) LIKE "committed usage discount: ram",
             CONCAT("CUD_RAM_CREDIT_", regionMapping(location.region)),
             IF(LOWER(cs.name) LIKE "committed usage discount: cpu",
               CONCAT("CUD_CORE_CREDIT_", regionMapping(location.region)),

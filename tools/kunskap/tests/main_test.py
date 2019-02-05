@@ -1,4 +1,4 @@
-# Copyright 2018 Google Inc.
+# Copyright 2019 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -36,36 +36,12 @@ class TestMain(unittest.TestCase):
     """Class to test main.py functions."""
 
     def setUp(self):
-        self.mocked_datastore = mock.Mock()
         self.mocked_bq = mock.Mock()
-
-
-    def testGetUsageDates(self):
-        """Tests that a list of usage dates is created from a mock query result."""
-        mock_query_result = MockQueryResult(
-            usage_date=datetime.datetime(2018, 3, 24, 0, 0, tzinfo=pytz.utc))
-        self.mocked_bq().query().result.return_value = iter([mock_query_result])
-        mocked_usage_dates = main.get_usage_dates(['2018-03-24 00:00:00'],
-                                                  self.mocked_bq())
-        expected_usage_dates = set(['2018-03-24'])
-        self.mocked_bq().query().result.called
-        self.assertEqual(expected_usage_dates, mocked_usage_dates)
-
-    def testGetChangedPartitionsNoDate(self):
-        """Tests that partitions are returned."""
-        mock_query_result = MockQueryResult(
-            partition_timestamp=datetime.datetime(2018, 3, 24, 0, 0,
-                                                  tzinfo=pytz.utc))
-        self.mocked_bq().query().result.return_value = iter([mock_query_result])
-        mocked_partitions = main.get_changed_partitions(self.mocked_bq())
-        expected_partitions = set(['2018-03-24 00:00:00'])
-        self.mocked_bq().query().result.called
-        self.assertEqual(expected_partitions, mocked_partitions)
 
     @mock.patch('builtins.open', new_callable=mock_open)
     def testCreateQueryString(self, mock_file):
         """Tests that creating a string from a SQL file executes on correct file."""
-        main.create_query_string(config.sql_file_path)
+        main.file_to_string(config.sql_file_path)
         mock_file.assert_called_with(config.sql_file_path, 'r')
 
     def testExecuteTransformationQuery(self):
@@ -85,26 +61,29 @@ class TestMain(unittest.TestCase):
         """Tests that the # of partitions is equal to the # of usage_start_times."""
         bq_client = bigquery.Client()
         job_config = bigquery.QueryJobConfig()
-        usage_query = Template('SELECT COUNT(DISTINCT(DATE(usage_start_time))) '
-                               'AS cnt '
-                               'FROM `$project.$output_dataset.$output_table`'
-                              ).safe_substitute(
-                                  project=config.billing_project_id,
-                                  output_dataset=config.output_dataset_id,
-                                  output_table=config.output_table_name)
+        usage_query = Template(
+            """
+            SELECT COUNT(DISTINCT(DATE(usage_start_time))) AS cnt 
+            FROM `$project.$output_dataset.$output_table`
+            """
+        ).safe_substitute(
+            project=config.billing_project_id,
+            output_dataset=config.output_dataset_id,
+            output_table=config.output_table_name)
         query_job = bq_client.query(usage_query, job_config=job_config)
         for row in query_job.result():
             output_result = row.cnt
 
-        partition_query = Template('SELECT COUNT(DISTINCT(partition_id)) AS cnt '
-                                   'FROM '
-                                   '[$project.$output_dataset.'
-                                   '$output_table$suffix] '
-                                  ).safe_substitute(
-                                      project=config.billing_project_id,
-                                      output_dataset=config.output_dataset_id,
-                                      output_table=config.output_table_name,
-                                      suffix='$__PARTITIONS_SUMMARY__')
+        partition_query = Template(
+            """
+            SELECT COUNT(DISTINCT(partition_id)) AS cnt 
+            FROM [$project.$output_dataset.$output_table$suffix]
+            """
+        ).safe_substitute(
+            project=config.billing_project_id,
+            output_dataset=config.output_dataset_id,
+            output_table=config.output_table_name,
+            suffix='$__PARTITIONS_SUMMARY__')
         job_config = bigquery.QueryJobConfig()
         job_config.use_legacy_sql = True
         query_job = bq_client.query(partition_query, job_config=job_config)
@@ -113,7 +92,6 @@ class TestMain(unittest.TestCase):
         assert output_result == partition_result
 
     def tearDown(self):
-        self.mocked_datastore.dispose()
         self.mocked_bq.dispose()
 
 
