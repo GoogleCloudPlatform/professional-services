@@ -15,7 +15,7 @@ following:
 
 ### Prerequisites
 
-Ensure that you have gcloud installed and authenticated to the project you want
+Ensure that you have the [Google Cloud SDK](https://cloud.google.com/sdk/install) installed and authenticated to the project you want
 to deploy the example to.
 
 ### Enable Required APIs
@@ -80,23 +80,19 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
 
 Cloud Functions will be used to call the DLP API to scrub the log content, then post the output to a new Pub/Sub topic.
 
-Download the required files.
+Clone the repo professional service repo.
 ```
-mkdir dlp_cloud_function_example
-
-wget -O dlp_cloud_function_example/main.py https://github.com/GoogleCloudPlatform/professional-services/blob/master/examples/dlp/cloud_function_example/requirements.txt
-
-wget -O dlp_cloud_function_example/requirements.txt https://github.com/GoogleCloudPlatform/professional-services/blob/master/examples/dlp/cloud_function_example/main.py
+git clone https://github.com/GoogleCloudPlatform/professional-services.git
 ```
 
-Deploy the Cloud Function
+Deploy the Cloud Function.
 ```
 gcloud functions deploy dlp-log-scrubber 
   --runtime python37 \
   --trigger-topic $LOG_EXPORT_TOPIC_NAME \
   --entry-point process_log_entry \
   --set-env-vars OUTPUT_TOPIC_NAME=$DLP_SCRUBBED_TOPIC_NAME \
-  --source dlp_cloud_function_example/.
+  --source professional-services/examples/dlp/cloud_function_example/cloud_function/.
 ```
 
 Wait a few minutes for the Cloud Function to deploy, then you can proceed to test.
@@ -128,3 +124,5 @@ gcloud pubsub subscriptions pull --auto-ack $DLP_SCRUBBED_SUBSCRIPTION_NAME
 The output will show the same log message with the email address, visa card number, and date of birth removed.
 
 ``"jsonPayload": {"message": "user: [EMAIL_ADDRESS], visa: [CREDIT_CARD_NUMBER], DOB: [DATE_OF_BIRTH]"}``
+
+This example demonstrates the identification and replacement of a small number of data types (EMAIL_ADDRESS, CREDIT_CARD_NUMBER, and DATE_OF_BIRTH), however, the DLP API supports many more which can be found [here](https://cloud.google.com/dlp/docs/infotypes-reference)

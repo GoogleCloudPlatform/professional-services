@@ -1,5 +1,5 @@
 
-# Copyright 2018 Google LLC
+# Copyright 2019 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ jsonPaylod.message field.  If does not look at any other log field.
 import base64
 import copy
 import json
+import logging
 import os
 
 from google.cloud import dlp_v2
@@ -41,6 +42,8 @@ _PROJECT_ID = os.environ['GCP_PROJECT']
 
 def process_log_entry(event, unused_context):
   """Entrypoint for the cloud function to redact pii from log messages."""
+
+  del unused_context # The cloud functions context is unused.
 
   log_json = _read_pubsub_json(event)
   dlp_response = _get_redacted_dlp_response(log_json['jsonPayload']['message'])
@@ -59,8 +62,7 @@ def _read_pubsub_json(event):
   """
 
   pubsub_message = base64.b64decode(event['data']).decode('utf-8')
-  json_payload = json.loads(pubsub_message)
-  return json_payload
+  return json.loads(pubsub_message)
 
 
 def _build_deidentify_config(info_type_list):
@@ -147,8 +149,7 @@ def _post_scrubbed_message_callback(message_future):
   """
 
   if message_future.exception(timeout=30):
-    print('Publishing message on {} threw an Exception {}.'.format(
+    logging.info('Publishing message on {} threw an Exception {}.'.format(
         _OUTPUT_TOPIC_NAME, message_future.exception()))
   else:
-    print("Posted message id:" + message_future.result())
-
+    logging.info("Posted message id:" + message_future.result())

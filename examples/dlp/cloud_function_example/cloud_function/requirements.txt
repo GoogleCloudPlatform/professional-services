@@ -1,2 +1,2 @@
-google-cloud-dlp
-google-cloud-pubsub
+google-cloud-dlp>=0.10.0
+google-cloud-pubsub>=0.39.1
