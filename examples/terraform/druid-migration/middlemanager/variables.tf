@@ -1,0 +1,9 @@
+variable zone {}
+variable count {}
+variable middlemanager_node_name {}
+variable druid_middlemanager_machine_type {}
+variable druid_middlemanager_disk {}
+variable druid_middlemanager_disk_size {}
+variable mod_state {}
+variable bucket_name {}
+variable network {}

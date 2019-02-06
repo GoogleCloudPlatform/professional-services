@@ -1,0 +1,9 @@
+variable zone {}
+variable count {}
+variable overlord_node_name {}
+variable druid_overlord_machine_type {}
+variable druid_overlord_disk {}
+variable druid_overlord_disk_size {}
+variable mod_state {}
+variable bucket_name {}
+variable network {}

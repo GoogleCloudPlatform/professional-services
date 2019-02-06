@@ -1,0 +1,9 @@
+variable zone {}
+variable count {}
+variable historical_node_name {}
+variable druid_historical_machine_type {}
+variable druid_historical_disk {}
+variable druid_historical_disk_size {}
+variable mod_state {}
+variable bucket_name {}
+variable network {}

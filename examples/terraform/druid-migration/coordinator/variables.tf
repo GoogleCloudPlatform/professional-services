@@ -1,0 +1,9 @@
+variable zone {}
+variable count {}
+variable coordinator_node_name {}
+variable druid_coordinator_machine_type {}
+variable druid_coordinator_disk {}
+variable druid_coordinator_disk_size {}
+variable mod_state {}
+variable bucket_name {}
+variable network {}

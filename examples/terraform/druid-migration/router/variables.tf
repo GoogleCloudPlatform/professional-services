@@ -1,0 +1,9 @@
+variable zone {}
+variable count {}
+variable router_node_name {}
+variable druid_router_machine_type {}
+variable druid_router_disk {}
+variable druid_router_disk_size {}
+variable mod_state {}
+variable bucket_name {}
+variable network {}

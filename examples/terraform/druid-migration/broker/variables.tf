@@ -1,0 +1,9 @@
+variable zone {}
+variable count {}
+variable broker_node_name {}
+variable druid_broker_machine_type {}
+variable druid_broker_disk {}
+variable druid_broker_disk_size {}
+variable mod_state {}
+variable bucket_name {}
+variable network {}

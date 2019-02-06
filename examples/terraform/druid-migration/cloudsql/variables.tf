@@ -1,0 +1,15 @@
+variable project {}
+variable region {}
+variable database_version {}
+variable master_instance_name {}
+variable tier {}
+variable db_name {}
+variable user_name {}
+variable user_host {}
+variable activation_policy {}
+variable disk_size {}
+variable disk_type {}
+variable cloud_sql_instance_name {}
+variable bucket_name {}
+variable network {}
+variable private_ip_name {}
