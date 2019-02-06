@@ -48,10 +48,12 @@ class GroupSync(object):
     """
     scopes = [
         'https://www.googleapis.com/auth/admin.directory.group',
+        # For Cloud Identity, replace with the scope below
         # 'https://www.googleapis.com/auth/cloud-identity.groups.readonly'
     ]
     credentials, _ = auth_util.get_credentials(admin_email, scopes)
     service = build('admin', 'directory_v1', credentials=credentials)
+    # For Cloud Identity, replace with the statement below
     # service = build('cloudidentity', 'v1', credentials=credentials)
     return service
 
@@ -65,6 +67,7 @@ class GroupSync(object):
 
     all_group_members = []
     results = self.service.groups().list(domain=self.domain).execute()
+    # For Cloud Identity, replace with the statement below
     # results = self.service.groups().list(parent=self.domain).execute()
 
     for g in results['groups']:
