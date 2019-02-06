@@ -80,7 +80,7 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
 
 Cloud Functions will be used to call the DLP API to scrub the log content, then post the output to a new Pub/Sub topic.
 
-Clone the repo professional service repo.
+Clone the professional services repo.
 ```
 git clone https://github.com/GoogleCloudPlatform/professional-services.git
 ```
