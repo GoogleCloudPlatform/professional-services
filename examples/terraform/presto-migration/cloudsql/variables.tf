@@ -1,0 +1,10 @@
+variable region {}
+variable project {}
+variable bucket_name {}
+variable cloud_sql_instance_name {}
+variable network {}
+variable tier {}
+variable activation_policy {}
+variable cloud_sql_disk_size {}
+variable cloud_sql_disk_type {}
+variable private_ip_name {}

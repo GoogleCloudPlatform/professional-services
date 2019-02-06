@@ -1,0 +1,11 @@
+variable project {}
+variable region {}
+variable bucket_name {}
+variable cloud_sql_instance_name {}
+variable dataproc_cluster_name {}
+variable dataproc_master_count {}
+variable dataproc_master_machine_type {}
+variable dataproc_master_boot_disk_size_gb {}
+variable dataproc_worker_count {}
+variable dataproc_worker_machine_type {}
+variable dataproc_worker_boot_disk_size_gb {}

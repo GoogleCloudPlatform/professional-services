@@ -1,0 +1,11 @@
+variable project {}
+variable region {}
+variable zone {}
+variable network {}
+variable presto_worker_count {}
+variable presto_worker_machine_type {}
+variable presto_worker_boot_disk_size_gb {}
+variable mod_startup_script {}
+variable presto_cluster_name {}
+variable presto_cluster_image {}
+variable dataproc_ip {}
