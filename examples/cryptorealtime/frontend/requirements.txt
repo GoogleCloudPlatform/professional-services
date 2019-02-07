@@ -36,7 +36,6 @@ jsonschema==2.6.0
 jupyter-core==4.3.0
 MarkupSafe==1.0
 nbformat==4.3.0
-numpy==1.11.3
 pandas==0.19.2
 pandas-datareader==0.3.0.post0
 pathlib2==2.3.2
@@ -58,7 +57,6 @@ requests-ftp==0.3.1
 rq==0.8.0
 rsa==4.0
 scandir==1.9.0
-scipy==0.19.1
 simplegeneric==0.8.1
 six==1.10.0
 toolz==0.8.2
