@@ -77,6 +77,10 @@ resource "google_compute_instance" "default" {
     scopes = ["cloud-platform"]
     email = "${google_service_account.vmaccess.email}"
   }
+  
+  // Apply the firewall rule to allow external IPs to access this instance
+  tags = ["http-server"]
+  
 
   /*provisioner "remote-exec" {
     inline = [
@@ -86,6 +90,28 @@ resource "google_compute_instance" "default" {
     ]
   }*/
 }
+
+
+resource "google_compute_firewall" "http-server" {
+  project = "${var.project_id}"
+  name    = "default-allow-http"
+  network = "default"
+
+  allow {
+    protocol = "tcp"
+    ports    = ["80"]
+  }
+
+  // Allow traffic from everywhere to instances with an http-server tag
+  source_ranges = ["0.0.0.0/0"]
+  target_tags   = ["http-server"]
+}
+
+output "ip" {
+  value = "${google_compute_instance.default.network_interface.0.access_config.0.nat_ip}"
+}
+
+
 
 resource "google_storage_bucket" "cryptorealtime-demo-staging" {
   name     = "${var.bucket_name}"
