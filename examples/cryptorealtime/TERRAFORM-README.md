@@ -1,12 +1,13 @@
 **Requirements:**
 - Terraform v0.11.11 
 - provider.google v1.20.0
+- git
 
 
 
 **Setup:**
 - Open the Terraform Shell
-- ```git clone https://github.com/galic1987/professional-services/tree/master/examples/cryptorealtime ```
+- ```git clone https://github.com/galic1987/professional-services/ ```
 - ```cd professional-services/examples/cryptorealtime/terraform-setup/```
 
 - Open terraform.tfvars and fill the configuration 
@@ -26,12 +27,18 @@
 
 - ```cat verify.txt```
 
-- Run the show & enjoy
+- Run the dataflow job to connect to exchanges
 ```./run.sh ${PROJECT_ID} ${BIGTABLE_INSTANCE_NAME} ${BUCKET_NAME}${BUCKET_FOLDER} ${BIGTABLE_TABLE_NAME} $BIGTABLE_FAMILY_NAME```
-
 - Ignore any java.lang.IllegalThreadStateException
 
 
+- Go to frontend script and run the frontend flask server and data visualisation
+- ```cd frontend/```
+- ```python app.py ${PROJECT_ID} ${BIGTABLE_INSTANCE_NAME} ${BIGTABLE_TABLE_NAME} ${BIGTABLE_FAMILY_NAME}```
+
+- Open the VM IP on port 5000 in your browser to see the results 
+
+cd
 **Cleanup:**
 - Navigate to the Terraform shell
 - We have to delete the bigtable instances manually because there is a bug in the current Terraform provider
