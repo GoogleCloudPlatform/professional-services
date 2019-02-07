@@ -38,7 +38,7 @@ resource "google_project_service" "storageapi" {
 }
 
 
-
+*/
 resource "google_bigtable_instance" "instance" {
   project = "${var.project_id}"
   name         = "${var.bigtable_instance_name}"
@@ -51,7 +51,7 @@ resource "google_bigtable_instance" "instance" {
   }
 }
 
-*/ 
+ 
 resource "google_compute_instance" "default" {
  project = "${var.project_id}"
  zone = "${var.zone}"
