@@ -37,7 +37,7 @@ resource "google_project_service" "storageapi" {
     disable_on_destroy = false
 }
 
-*/
+
 
 resource "google_bigtable_instance" "instance" {
   project = "${var.project_id}"
@@ -51,7 +51,7 @@ resource "google_bigtable_instance" "instance" {
   }
 }
 
-
+*/ 
 resource "google_compute_instance" "default" {
  project = "${var.project_id}"
  zone = "${var.zone}"
@@ -99,7 +99,7 @@ resource "google_compute_firewall" "http-server" {
 
   allow {
     protocol = "tcp"
-    ports    = ["80"]
+    ports    = ["80","5000"]
   }
 
   // Allow traffic from everywhere to instances with an http-server tag
