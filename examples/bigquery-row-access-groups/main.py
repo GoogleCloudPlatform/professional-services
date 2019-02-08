@@ -17,9 +17,13 @@ import os
 
 import group_sync
 
+# Your G Suite/Cloud Identiy domain
 DOMAIN = 'cbcloudtest.com'
+# The email of a domain administrator
 ADMIN_EMAIL = 'admin@cbcloudtest.com'
+# The name of a dataset that will be created to hold the user mapping table
 DATASET = 'bq_iam'
+# Name to give the user mapping table
 GROUPS_USERS_TABLE_NAME = 'groups_users'
 
 def sync_groups(request):
