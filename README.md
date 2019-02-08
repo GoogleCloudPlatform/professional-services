@@ -28,6 +28,8 @@ The examples folder contains example solutions across a variety of Google Cloud 
 ## Tools
 The tools folder contains ready-made utilities which can simpilfy Google Cloud Platform usage.
 
+
+* [BigQuery Committed Use Discounts (CUD)/Sustained Use Discounts (SUD) Per-project Attribution](tools/kunskap) - A tool that automates the generation of a Bigquery table that uses existing exported billing data, by attributing both CUD and SUD charges on a per-project basis.
 * [AssetInventory](tools/asset-inventory) - Import Cloud Asset Inventory resourcs into BigQuery.
 * [CloudConnect](tools/cloudconnect) - A package that automates the setup of dual VPN tunnels between AWS and GCP.
 * [Cloudera Parcel GCS Connector](tools/cloudera-parcel-gcsconnector) - This script helps you create a Cloudera parcel that includes Google Cloud Storage connector. The parcel can be deployed on a Cloudera managed cluster.
