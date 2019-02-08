@@ -20,7 +20,6 @@ import unittest.mock as mock
 import config
 import main
 from unittest.mock import mock_open
-import pytz
 from google.cloud import bigquery
 
 
@@ -39,23 +38,17 @@ class TestMain(unittest.TestCase):
         self.mocked_bq = mock.Mock()
 
     @mock.patch('builtins.open', new_callable=mock_open)
-    def testCreateQueryString(self, mock_file):
+    def testFileToString(self, mock_file):
         """Tests that creating a string from a SQL file executes on correct file."""
         main.file_to_string(config.sql_file_path)
         mock_file.assert_called_with(config.sql_file_path, 'r')
 
     def testExecuteTransformationQuery(self):
         """Tests that transformation query will execute."""
-        mocked_dates = ['2018-03-24', '2018-03-23']
         mocked_table_list = [mock.Mock()]
         self.mocked_bq().list_tables.return_value = mocked_table_list
-        main.execute_transformation_query(mocked_dates, self.mocked_bq())
+        main.execute_transformation_query(self.mocked_bq())
         self.mocked_bq().query().result().called
-
-    def testExecuteTransformationQueryWithNull(self):
-        """Tests that query will not execute if there are no usage dates."""
-        main.execute_transformation_query([], self.mocked_bq())
-        self.mocked_bq().query.assert_not_called()
 
     def testPartitionsAndUsageDates(self):
         """Tests that the # of partitions is equal to the # of usage_start_times."""
