@@ -24,5 +24,9 @@ source-contexts.json
 source-context.json
 client_secrets.json
 \#*\#
+.\#*
 *_flymake.py
 .DS_Store
+.eggs/
+.python-version
+.idea
