@@ -18,6 +18,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [Dataflow Template Pipelines](https://github.com/GoogleCloudPlatform/DataflowTemplates) - Pre-implemented Dataflow template pipelines for solving common data tasks on Google Cloud Platform.
 * [Data Generator](examples/dataflow-data-generator) - Generate random data with a custom schema at scale for integration tests or demos.
 * [Dataflow Streaming Benchmark](examples/dataflow-streaming-benchmark) - Utility to publish randomized fake JSON messages to a Cloud Pub/Sub topic at a configured QPS.
+* [DLP API Examples](examples/dlp) - Examples of the DLP API usage.
 * [Home Appliance Status Monitoring from Smart Power Readings](examples/e2e-home-appliance-status-monitoring) - An end-to-end demo system featuring a suite of Google Cloud Platform products such as IoT Core, ML Engine, BigQuery, etc.
 * [IoT Nirvana](examples/iot-nirvana) - An end-to-end Internet of Things architecture running on Google Cloud Platform.
 * [Kubeflow Pipelines Sentiment Analysis](examples/kubeflow-pipelines-sentiment-analysis) - Create a Kubeflow Pipelines component and pipelines to analyze sentiment for New York Times front page headlines using Cloud Dataflow (Apache Beam Java) and Cloud Natural Language API.
@@ -28,6 +29,8 @@ The examples folder contains example solutions across a variety of Google Cloud 
 ## Tools
 The tools folder contains ready-made utilities which can simpilfy Google Cloud Platform usage.
 
+
+* [BigQuery Committed Use Discounts (CUD)/Sustained Use Discounts (SUD) Per-project Attribution](tools/kunskap) - A tool that automates the generation of a Bigquery table that uses existing exported billing data, by attributing both CUD and SUD charges on a per-project basis.
 * [AssetInventory](tools/asset-inventory) - Import Cloud Asset Inventory resourcs into BigQuery.
 * [CloudConnect](tools/cloudconnect) - A package that automates the setup of dual VPN tunnels between AWS and GCP.
 * [Cloudera Parcel GCS Connector](tools/cloudera-parcel-gcsconnector) - This script helps you create a Cloudera parcel that includes Google Cloud Storage connector. The parcel can be deployed on a Cloudera managed cluster.
