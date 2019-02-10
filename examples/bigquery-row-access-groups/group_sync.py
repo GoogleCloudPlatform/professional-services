@@ -1,4 +1,4 @@
-# Copyright 2018 Google LLC. All rights reserved. Licensed under the Apache
+# Copyright 2019 Google LLC. All rights reserved. Licensed under the Apache
 # License, Version 2.0 (the "License"); you may not use this file except in
 # compliance with the License. You may obtain a copy of the License at
 #
@@ -48,12 +48,12 @@ class GroupSync(object):
     """
     scopes = [
         'https://www.googleapis.com/auth/admin.directory.group',
-        # For Cloud Identity, replace with the scope below
+        # For Cloud Identity, replace the line above with the one below.
         # 'https://www.googleapis.com/auth/cloud-identity.groups.readonly'
     ]
     credentials, _ = auth_util.get_credentials(admin_email, scopes)
     service = build('admin', 'directory_v1', credentials=credentials)
-    # For Cloud Identity, replace with the statement below
+    # For Cloud Identity, replace the line above with the one below.
     # service = build('cloudidentity', 'v1', credentials=credentials)
     return service
 
@@ -67,34 +67,17 @@ class GroupSync(object):
 
     all_group_members = []
     results = self.service.groups().list(domain=self.domain).execute()
-    # For Cloud Identity, replace with the statement below
-    # results = self.service.groups().list(parent=self.domain).execute()
+    # For Cloud Identity, replace the line above with the ones below.
+    # ci_parent='identitysources/{}'.format(self.domain)
+    # results = self.service.groups().list(parent=ci_parent).execute()
 
-    for g in results['groups']:
+    for g in results.get('groups', []):
       group_id = g['email']
       members = self._list_group_members(group_id)
       group_members = zip([group_id] * len(members), members)
       all_group_members.extend(group_members)
 
     return all_group_members
-
-  def get_group_members_as_map(self):
-    """Retrieves the members of all groups in the domain as an array.
-
-    Returns:
-      A map in which the keys are group ids and the values are arrays of user
-      ids belonging to that group.
-    """
-
-    group_map = {}
-    results = self.service.groups().list(domain=self.domain).execute()
-
-    for g in results['groups']:
-      group_id = g['email']
-      members = self._list_group_members(group_id)
-      group_map[group_id] = members
-
-    return group_map
 
   def _list_group_members(self, group_id):
     """Calls the GSuite API to list members of the given group.
@@ -106,6 +89,9 @@ class GroupSync(object):
       An array of strings containing the emails of group members.
     """
     results = self.service.members().list(groupKey=group_id).execute()
+    # For Cloud Identity, replace the line above with the ones below.
+    # ci_parent='groups/{}'.format(group_id)
+    # results = self.service.memberships().list(parent=ci_parent).execute()
     users = [
         m['email']
         for m in results.get('members')
@@ -133,7 +119,7 @@ class GroupSync(object):
     try:
       self.bq_client.create_dataset(dataset)
     except google.api_core.exceptions.Conflict:
-      # Assume dataset already exists, carry on
+      # Assume dataset already exists
       pass
 
     schema = [
@@ -163,14 +149,15 @@ class GroupSync(object):
       An array of errors returned from the BigQuery API, if any.
     """
 
-    # Use batch load from in-memory CSV file instead of streaming
+    # Use batch load from in-memory CSV file instead of streaming.
     csv_file = StringIO()
     csv_writer = csv.writer(csv_file)
     csv_writer.writerows(data)
 
-    # Configure job to replace table data, (default is append)
+    # Configure job to replace table data, (default is append).
     job_config = bigquery.LoadJobConfig()
-    job_config.write_disposition = 'WRITE_TRUNCATE'
+    job_config.write_disposition = bigquery.Job.WriteDisposition.WRITE_TRUNCATE
+    # job_config.write_disposition = 'WRITE_TRUNCATE'
 
     errors = self.bq_client.load_table_from_file(
         csv_file, table_ref, rewind=True, job_config=job_config)
