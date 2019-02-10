@@ -21,6 +21,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	autoconfig "github.com/dparrish/go-autoconfig"
@@ -29,6 +30,7 @@ import (
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/container/v1"
 	"google.golang.org/api/googleapi"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -123,6 +125,10 @@ func backgroundThread(ctx context.Context, table *bigquery.Table, ch <-chan *Clu
 		pods, err := c.clientset.CoreV1().Pods("").List(metav1.ListOptions{})
 		if err != nil {
 			log.Printf("Error fetching pods for %s/%s: %v", c.project, c.cluster, err)
+			if errors.IsUnauthorized(err) {
+				log.Printf("Authorization has expired, exiting")
+				os.Exit(0)
+			}
 			continue
 		}
 		for _, pod := range pods.Items {

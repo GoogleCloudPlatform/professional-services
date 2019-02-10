@@ -102,6 +102,7 @@ sql_file_path = 'cud_sud_attribution_query.sql'
 
 # There are two slightly different allocation methods that affect how the Commitment charge is allocated:
 
+
 # Method 1: Only UTILIZED commitment charges are allocated to projects.
 # (P_method_1_CUD_commitment_cost): Utilized CUD commitment charges are
 # proportionally allocated to each project based on its share of total eligible
