@@ -50,7 +50,7 @@ Waiting on bqjob_r9b4447e01a43528_00000165561be752_1 ... (0s) Current status: DO
 
 # Installation
 
-This job is available on the public docker hub at `dparrish/gke-billing-export:1.0.0`, but the following instructions
+This job is available on the public docker hub at `dparrish/gke-billing-export:1.0.1`, but the following instructions
 include building a local version.
 
 ## Download
