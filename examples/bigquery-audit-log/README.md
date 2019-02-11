@@ -34,7 +34,7 @@ Create a materialized table that stores data from the scheduled query.
 You can give it a custom name, we will be referring to it as **bigquery_audit_log**.
 
 ### 3. Copying the data source in Data Studio
-Log in to Data Studio and create a copy of [this](https://datastudio.google.com/open/1SGMv1DvjgpqblVL9GImfprvC2YhoKTE8) data source. Click [here](https://support.google.com/datastudio/answer/7421646?hl=en&ref_topic=6370331) for more information on copying data sources.
+Log in to Data Studio and create a copy of [this](https://datastudio.google.com/open/1SGMv1DvjgpqblVL9GImfprvC2YhoKTE8) data source ([screen shot](./images/datastudio-source-all.png)). Click [here](https://support.google.com/datastudio/answer/7421646?hl=en&ref_topic=6370331) for more information on copying data sources.
 
 Rename the data source to a name of your choice. Click on "Edit Connection" to navigate to the project, dataset and table of your choice. It should correspond to the materialized table created as a result of step 2 above.
 
