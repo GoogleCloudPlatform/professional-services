@@ -51,5 +51,5 @@ def get_credentials(admin_email, scopes):
   #  request, which is why it was necessary to create the Signer object,
   #  since the default GCE credentials do not include a private key.
   delegated_credential = base_credential.create_delegated(admin_email)
-  return (delegated_credential, default_credentials)
+  return delegated_credential
 

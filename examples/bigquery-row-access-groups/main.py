@@ -25,9 +25,11 @@ ADMIN_EMAIL = 'admin@cbcloudtest.com'
 DATASET = 'bq_iam'
 # Name to give the user mapping table
 GROUPS_USERS_TABLE_NAME = 'groups_users'
+# Whether to use Cloud Identity or G Suite
+USE_CLOUD_IDENTITY = False
 
 def sync_groups(request):
   group_sync.GroupSync.sync_all(DOMAIN, ADMIN_EMAIL, DATASET,
-                                GROUPS_USERS_TABLE_NAME)
+                                GROUPS_USERS_TABLE_NAME, USE_CLOUD_IDENTITY)
   return 'Group membership from domain {} copied to table {}.{}'.format(
       DOMAIN, DATASET, GROUPS_USERS_TABLE_NAME)

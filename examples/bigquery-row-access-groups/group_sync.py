@@ -12,7 +12,7 @@
 #
 # Any software provided by Google hereunder is distributed "AS IS", WITHOUT
 # WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
-"""Creates a BigQuery table listing members of all groups in a GSuite domain."""
+"""Creates a BigQuery table listing members of all groups in a G Suite or Cloud Identity domain."""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -30,31 +30,42 @@ from google.cloud import bigquery
 
 
 class GroupSync(object):
-  """Manages synchronization of group member data from GSuite API to BigQuery."""
+  """Manages synchronization of group member data from G Suite or Cloud Identity
 
-  def __init__(self, admin_email, domain):
+  API to BigQuery.
+  """
+
+  def __init__(self, admin_email, domain, use_cloud_identity):
+    self.domain = domain
+    self.use_cloud_identity = use_cloud_identity
     self.bq_client = bigquery.Client()
     self.service = self._get_service_reference(admin_email)
-    self.domain = domain
 
   def _get_service_reference(self, admin_email):
-    """Instantiates a connection to the GSuite API.
+    """Instantiates a connection to the API.
 
     Args:
-      admin_email: a GSuite administrator account to impersonate.
+      admin_email: a G Suite or Cloud Identity administrator account to
+        impersonate.
 
     Returns:
-      A reference to an API Service object, ready to call GSuite APIs.
+      A reference to an API Service object, ready to call APIs.
     """
-    scopes = [
-        'https://www.googleapis.com/auth/admin.directory.group',
-        # For Cloud Identity, replace the line above with the one below.
-        # 'https://www.googleapis.com/auth/cloud-identity.groups.readonly'
-    ]
-    credentials, _ = auth_util.get_credentials(admin_email, scopes)
-    service = build('admin', 'directory_v1', credentials=credentials)
-    # For Cloud Identity, replace the line above with the one below.
-    # service = build('cloudidentity', 'v1', credentials=credentials)
+    if self.use_cloud_identity:
+      scopes = [
+          'https://www.googleapis.com/auth/cloud-identity.groups.readonly'
+      ]
+    else:
+      scopes = [
+          'https://www.googleapis.com/auth/admin.directory.group',
+      ]
+
+    credentials = auth_util.get_credentials(admin_email, scopes)
+    if self.use_cloud_identity:
+      service = build('cloudidentity', 'v1', credentials=credentials)
+    else:
+      service = build('admin', 'directory_v1', credentials=credentials)
+
     return service
 
   def get_group_members_as_list(self):
@@ -66,13 +77,17 @@ class GroupSync(object):
     """
 
     all_group_members = []
-    results = self.service.groups().list(domain=self.domain).execute()
-    # For Cloud Identity, replace the line above with the ones below.
-    # ci_parent='identitysources/{}'.format(self.domain)
-    # results = self.service.groups().list(parent=ci_parent).execute()
+    if self.use_cloud_identity:
+      ci_parent = 'identitysources/{}'.format(self.domain)
+      results = self.service.groups().list(parent=ci_parent).execute()
+    else:
+      results = self.service.groups().list(domain=self.domain).execute()
 
     for g in results.get('groups', []):
-      group_id = g['email']
+      if self.use_cloud_identity:
+        group_id = g['groupKey']['id']
+      else:
+        group_id = g['email']
       members = self._list_group_members(group_id)
       group_members = zip([group_id] * len(members), members)
       all_group_members.extend(group_members)
@@ -80,7 +95,9 @@ class GroupSync(object):
     return all_group_members
 
   def _list_group_members(self, group_id):
-    """Calls the GSuite API to list members of the given group.
+    """Calls the G Suite or Cloud Identity API to list members of the given
+
+    group.
 
     Args:
       group_id: group id in the form group@domain.tld
@@ -88,15 +105,17 @@ class GroupSync(object):
     Returns:
       An array of strings containing the emails of group members.
     """
-    results = self.service.members().list(groupKey=group_id).execute()
-    # For Cloud Identity, replace the line above with the ones below.
-    # ci_parent='groups/{}'.format(group_id)
-    # results = self.service.memberships().list(parent=ci_parent).execute()
-    users = [
-        m['email']
-        for m in results.get('members')
-        if m.get('status', None) == 'ACTIVE'
-    ]
+    if self.use_cloud_identity:
+      ci_parent = 'groups/{}'.format(group_id)
+      results = self.service.memberships().list(parent=ci_parent).execute()
+      users = [m['memberKey']['id'] for m in results.get('memberships')]
+    else:
+      results = self.service.members().list(groupKey=group_id).execute()
+      users = [
+          m['email']
+          for m in results.get('members')
+          if m.get('status', None) == 'ACTIVE'
+      ]
     return users
 
   def create_group_members_table(self, dataset_id, groups_users_table_name):
@@ -119,7 +138,7 @@ class GroupSync(object):
     try:
       self.bq_client.create_dataset(dataset)
     except google.api_core.exceptions.Conflict:
-      # Assume dataset already exists
+      # Assume dataset already exists.
       pass
 
     schema = [
@@ -131,7 +150,7 @@ class GroupSync(object):
     try:
       self.bq_client.create_table(table)
     except google.api_core.exceptions.Conflict:
-      # Assume table already exists, carry on
+      # Assume table already exists.
       pass
     return table_ref
 
@@ -156,25 +175,27 @@ class GroupSync(object):
 
     # Configure job to replace table data, (default is append).
     job_config = bigquery.LoadJobConfig()
-    job_config.write_disposition = bigquery.Job.WriteDisposition.WRITE_TRUNCATE
-    # job_config.write_disposition = 'WRITE_TRUNCATE'
+    job_config.write_disposition = bigquery.job.WriteDisposition.WRITE_TRUNCATE
 
     errors = self.bq_client.load_table_from_file(
         csv_file, table_ref, rewind=True, job_config=job_config)
     return errors
 
   @staticmethod
-  def sync_all(domain, admin_email, dataset_id, groups_users_table_name):
+  def sync_all(domain, admin_email, dataset_id, groups_users_table_name,
+               use_cloud_identity):
     """Synchronizes membership of all domain groups into a BigQuery table.
 
     Args:
-      domain: name of the GSuite domain whose groups are to be synched
-      admin_email: a GSuite administrator account to impersonate.
+      domain: name of the G Suite or Cloud Identity domain whose groups are to
+        be synched
+      admin_email: a G Suite or Cloud Identity administrator account to
+        impersonate.
       dataset_id: id of dataset in which to create the table. If it doesn't
         exist, it will be created.
       groups_users_table_name: name of table to be created if it doesn't exist.
     """
-    group_sync = GroupSync(admin_email, domain)
+    group_sync = GroupSync(admin_email, domain, use_cloud_identity)
     all_group_members = group_sync.get_group_members_as_list()
     table_ref = group_sync.create_group_members_table(dataset_id,
                                                       groups_users_table_name)
@@ -210,10 +231,17 @@ def main(argv):
       help='Name of the BigQuery table that will contain the mapping of groups '
       'to users.')
 
+  parser.add_argument(
+      '--use_cloud_identity',
+      dest='use_cloud_identity',
+      default=False,
+      action='store_true',
+      help='Set this flag to use the Cloud Identity API.')
+
   args, _ = parser.parse_known_args(argv)
 
   GroupSync.sync_all(args.domain, args.admin_email, args.dataset,
-                     args.groups_users_table_name)
+                     args.groups_users_table_name, args.use_cloud_identity)
 
 
 if __name__ == '__main__':
