@@ -13,7 +13,7 @@
   <link href="http://visjs.org/dist/vis-timeline-graph2d.min.css" rel="stylesheet" type="text/css" />
 
 
-<div >
+<div style="display: none">
 
   <p>
 
@@ -208,10 +208,6 @@ var graph2d = new vis.Graph2d(container, dataset, options);
 var graph2d2 = new vis.Graph2d(container2, dataset2, options2);
 var graph2d3 = new vis.Graph2d(container3, dataset3, options3);
 
-// a function to generate data points
-function y(x) {
-    return (Math.sin(x / 2) + Math.cos(x / 4)) * 5;
-}
 
 function renderStep() {
     // move the window (you can think of different strategies).
@@ -312,13 +308,11 @@ renderStep3();
         da = fetchData();
     }
     catch(err) {
-        setTimeout(addDataPoint, DELAY);
+        console.log(err);
+        setTimeout(addDataPoint, DELAY/2);
         return;
     }
 
-
-    var startTime =   vis.moment()  ;
-    var endTime =  vis.moment() + 1000;
 
 
    // console.log(startTime);
@@ -326,7 +320,7 @@ renderStep3();
 
 
     for (x in da['da'][0][familyname]['exchangeTime']) {
-        //if(da['da'][0][familyname]['orderType'][x] == "ASK") continue;  // only one
+        //if(da['da'][0][familyname]['orderType'][x] == "ASK") continue;  // if you like only one channel
 
 
 
@@ -345,7 +339,7 @@ renderStep3();
 
 
 
-        var time11 = parseInt(da['da'][0][familyname]['exchangeTime'][x]) // dirty fix for the show
+        var time11 = parseInt(da['da'][0][familyname]['exchangeTime'][x])
         var tradeDate = vis.moment(time11);
 
 
