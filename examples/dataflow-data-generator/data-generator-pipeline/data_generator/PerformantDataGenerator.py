@@ -712,6 +712,13 @@ def validate_data_args(data_args):
                  }
                 for field in bq_table.schema
             ]
+            
+            # Check if there are nested datatypes but CSV output.
+            if data_args.csv_schema_order:
+                types = [field[u'type'] for field in data_args.schema]
+                if 'RECORD' in types:
+                    raise ValueError("Cannot write nested types to CSV.") 
+
             if data_args.output_bq_table:
                 # We need to check if this output table already exists.
                 dataset_name, table_name = data_args.output_bq_table.split('.',
