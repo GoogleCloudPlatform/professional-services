@@ -6,7 +6,8 @@ The last year has been like a rollercoaster for the cryptocurrency market. At th
 
 In this tutorial we will graph the trades, volume and time delta from trade execution until it reaches our system (an indicator of how near real-time we get the data).
 
-The goal of the tutorial - realtime 'periscope' multi exchange BTC/USD observer
+The goal of the tutorial - realtime periscope multi exchange BTC/USD observer
+
 ![Alt Text](https://media.giphy.com/media/238teoXcI17pu3YOSP/giphy.gif)
 
 [Consider reading the Medium article](https://medium.com/@igalic/bigtable-beam-dataflow-cryptocurrencies-gcp-terraform-java-maven-4e7873811e86)
