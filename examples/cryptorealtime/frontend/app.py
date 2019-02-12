@@ -137,4 +137,4 @@ def main(argv):
 
 if __name__ == "__main__":
     main(sys.argv[1:])
-    app.run()
+    app.run(port=5000,debug=True,host="0.0.0.0")
