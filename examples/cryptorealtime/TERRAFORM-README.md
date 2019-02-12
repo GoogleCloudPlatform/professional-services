@@ -1,5 +1,7 @@
 #Terraform template
-##Get the 'BTC/USD realtime periscope multi exchange BTC/USD observer' running  in less then 10 mins
+
+###Get the btcusd realtime periscope multi exchange observer running  in less then 10 mins
+
 ![Alt Text](https://media.giphy.com/media/238teoXcI17pu3YOSP/giphy.gif)
 
 ###Requirements:
@@ -53,7 +55,10 @@
 - ```terraform state rm google_bigtable_instance.instance```
 
 - Delete the Dataflow jobs
-- ```gcloud dataflow jobs cancel $(gcloud dataflow jobs list --format='value(id)' --filter="name:runthepipeline*")```
+`gcloud dataflow jobs cancel \
+$(gcloud dataflow jobs list \
+--format='value(id)' \
+--filter="name:runthepipeline*")`
 
 - Take down the infrastructure 
 - ```terraform destroy```
