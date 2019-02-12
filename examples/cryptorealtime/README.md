@@ -7,14 +7,14 @@ The last year has been like a rollercoaster for the cryptocurrency market. At th
 In this tutorial we will graph the trades, volume and time delta from trade execution until it reaches our system (an indicator of how near real-time we get the data).
 
 The goal of the tutorial - realtime 'periscope' multi exchange BTC/USD observer
-![Alt Text](![Alt Text](https://media.giphy.com/media/238teoXcI17pu3YOSP/giphy.gif)
+![Alt Text][Alt Text](https://media.giphy.com/media/238teoXcI17pu3YOSP/giphy.gif)
 
 [Consider reading the Medium article](https://medium.com/@igalic/bigtable-beam-dataflow-cryptocurrencies-gcp-terraform-java-maven-4e7873811e86)
 
 [Terraform - get this up and running in less then 5 minutes](https://github.com/galic1987/professional-services/blob/master/examples/cryptorealtime/TERRAFORM-README.md)
 
 ## Architecture 
-![Alt Text](https://ibb.co/5kDYcxT"><img src="https://i.ibb.co/2S28KYq/Screen-Shot-2019-02-12-at-2-53-41-PM.png)
+![Alt Text](https://i.ibb.co/2S28KYq/Screen-Shot-2019-02-12-at-2-53-41-PM.png)
 
 ## Frontend  
 ![Alt Text](https://i.ibb.co/dMc9bMz/Screen-Shot-2019-02-11-at-4-56-29-PM.png)

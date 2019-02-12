@@ -1,14 +1,14 @@
-** Get the BTC/USD realtime ‘periscope’ multi exchange observer thing running in less then 5 minutes **
+#Terraform template
+##Get the 'BTC/USD realtime periscope multi exchange BTC/USD observer' running  in less then 10 mins
 ![Alt Text](https://media.giphy.com/media/238teoXcI17pu3YOSP/giphy.gif)
 
-**Requirements:**
+###Requirements:
 - Terraform v0.11.11 
 - provider.google v1.20.0
 - git
 
 
-
-**Setup:**
+###Setup:
 - Open the Terraform Shell
 - ```git clone https://github.com/galic1987/professional-services/ ```
 - ```cd professional-services/examples/cryptorealtime/terraform-setup/```
