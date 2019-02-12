@@ -2,16 +2,22 @@
 
 ## An Google Cloud Dataflow/Cloud Bigtable Websockets example
 
-CryptoRealTime is an Apache Beam example that reads from the Crypto Exchanges WebSocket API and saves the feed in Cloud Bigtable. Since it is a Beam code, it can use other runners for this. 
-Since this is a streaming example using an unbounded source, it is currently not possible to run this pipeline locally.
+The last year has been like a rollercoaster for the cryptocurrency market. At the end of 2017, the Bitcoin (BTC) almost reached $20,000 USD to fall below $4,000 USD a few months later. What if there is a pattern in the high volatility of the cryptocurrencies market? If so, what if we can learn from it and get an edge on future trends? Is there a way to observe all exchanges in the real-time and visualize it on a single chart? 
 
-## Is the visualization of real time data from BigTable covered in this tutorial?
-This will be covered in our second part
+In this tutorial we will graph the trades, volume and time delta from trade execution until it reaches our system (an indicator of how near real-time we get the data).
 
-![Alt Text](https://media.giphy.com/media/ZO7YyCY1KVLgTu7FUd/giphy.gif)
+The goal of the tutorial - realtime 'periscope' multi exchange BTC/USD observer
+![Alt Text](![Alt Text](https://media.giphy.com/media/238teoXcI17pu3YOSP/giphy.gif)
+
+[Consider reading the Medium article](https://medium.com/@igalic/bigtable-beam-dataflow-cryptocurrencies-gcp-terraform-java-maven-4e7873811e86)
+
+[Terraform - get this up and running in less then 5 minutes](https://github.com/galic1987/professional-services/blob/master/examples/cryptorealtime/TERRAFORM-README.md)
 
 ## Architecture 
-![Alt Text](https://i.ibb.co/fQs6Nhv/Screen-Shot-2019-02-04-at-4-24-34-PM.png)
+![Alt Text](https://ibb.co/5kDYcxT"><img src="https://i.ibb.co/2S28KYq/Screen-Shot-2019-02-12-at-2-53-41-PM.png)
+
+## Frontend  
+![Alt Text](https://i.ibb.co/dMc9bMz/Screen-Shot-2019-02-11-at-4-56-29-PM.png)
 
 ## Costs
 This tutorial uses billable components of GCP, including:
@@ -23,102 +29,97 @@ This tutorial uses billable components of GCP, including:
 We recommend to clean up the project after finishing this tutorial to avoid costs. Use the [Pricing Calculator](https://cloud.google.com/products/calculator/) to generate a cost estimate based on your projected usage.
 
 ## Project setup 
-### Install the Google Cloud Platform SDK
-
-  * Create a project
-  * Enable Billing
-  * Create a [Cloud Bigtable Instance](https://cloud.google.com/bigtable/docs/creating-instance)
-  * Development Environment Setup
-      * Install [Google Cloud SDK](https://cloud.google.com/sdk/)
-      or `sudo apt-get install google-cloud-sdk-cbt` 
-      * Install [Java 1.8](http://www.oracle.com/technetwork/java/javase/downloads/index.html) or higher.
-      or `sudo apt-get install openjdk-8-jre -y`
-      * Install [Apache Maven](https://maven.apache.org/)
-      or `sudo apt-get install maven -y`
-
-    
-  * `gcloud components update`
-  * `gcloud config set project <your-project-id>`
-  * `gcloud config set project <your-zone-id>`
-
-### Provision a Bigtable Instance
-
-In order to provision a Cloud Bigtable instance you will first need to create a
-Google Cloud Platform project. You can create a project using the
-[Developer Console](https://cloud.google.com/console).
-
-After you have created a project you can create a new [Cloud Bigtable Instance](https://cloud.google.com/bigtable/docs/creating-instance) by
-clicking on the "Storage" -> "Cloud Bigtable" menu item and clicking on the
-"New Instance" button.  After that, enter the instance name, ID, zone, and number
-of nodes. Once you have entered those values, click the "Create" button to
-provision the instance.
-
-- Choose development / HDD / 1000 GB / specify random cluster ID / region / zone / 3 nodes 
-
-Next, go to "APIs" and search for the Cloud Bigtable API and make sure the following APIs are
-enabled:
-
-* Cloud Bigtable API
-* Cloud Bigtable Table Admin API
-* Cloud Bigtable Cluster Admin API
-* Cloud Dataflow API
-* Google Compute Engine API
-
-### Make a GCS Bucket
-
-Make a GCS bucket that will be used by bdutil to store its output and to copy
-files to the VMs.  There are two ways to make a GCS Bucket,
-
-1. In the Cloud Console, select "Storage" > "Cloud Storage" > "Storage
-   browser" and click on the "Add bucket" button. Type the name for your
-   bucket and click "Create".  (Note - Names are a global resource, so make
-   yours long and unique)
-1. Use the gsutil tool's Make Bucket command:
-
-    `$ gsutil mb -p <project ID> gs://<bucketName>`
-
-### Create The Bigtable Table
-
-1. Install CBT cmd tool [CBT Shell](https://cloud.google.com/bigtable/docs/cbt-overview)
-   A summary of the instructions is:
-   * Auth option A) Download a Service Account JSON Credential + Point the GOOGLE_APPLICATION_CREDENTIALS environment variable to that file
-   * Auth option B) `gcloud auth application-default login`
-2. Launch console shell ane execute cbt command (name )
-
-    ` cbt -instance=<bigtable-instance> createtable <tablename> families=<familyname>`
-
-3. Example: Create the table (here, table name is cryptorealtime, and column family is market)
-
-    ` cbt -instance=<bigtable-instance> createtable cryptorealtime families=market`
+### Install the Google Cloud Platform SDK on a new VM
+  * Log into the console, and activate a cloud console session
+  * Create a new VM
+  `gcloud beta compute instances create crypto-driver \
+--zone=us-central1-a \
+--machine-type=n1-standard-1 \
+--subnet=default \
+--network-tier=PREMIUM \
+--maintenance-policy=MIGRATE \
+--service-account=$(gcloud iam service-accounts list --format='value(email)' --filter="compute") \
+--scopes=https://www.googleapis.com/auth/cloud-platform \
+--image=debian-9-stretch-v20181210 \
+--image-project=debian-cloud \
+--boot-disk-size=20GB \
+--boot-disk-type=pd-standard \
+--boot-disk-device-name=crypto-driver`
 
 
-### Build the Jar File
+  * SSH into that VM
+  
+  * Installing necessary tools like java, git, maven, pip, python 2.7 and cloud bigtable command line tool cbt using the following command:
+  `sudo apt-get install openjdk-8-jdk git maven -y
+sudo apt-get install google-cloud-sdk-cbt -y
+sudo apt install python2.7 python-pip -y`
+
+### Create a Bigtable instance 
+`export PROJECT=$(gcloud info --format='value(config.project)')
+export ZONE=$(curl "http://metadata.google.internal/computeMetadata/v1/instance/zone" -H "Metadata-Flavor: Google"|cut -d/ -f4)
+gcloud services enable bigtable.googleapis.com \
+bigtableadmin.googleapis.com \
+dataflow.googleapis.com \
+--project=${PROJECT}
+
+gcloud bigtable instances create cryptorealtime \
+    --cluster=cryptorealtime-c1 \
+    --cluster-zone=${ZONE} \
+    --display-name=cryptorealtime \
+    --cluster-storage-type=HDD \
+    --instance-type=DEVELOPMENT
+cbt -instance=cryptorealtime createtable cryptorealtime families=market`
+
+### Create a Bucket  
+`gsutil mb -p ${PROJECT} gs://realtimecrypto-${PROJECT}`
+	
+
+### Create firewall for visualization server on port 5000
+  `gcloud compute --project=${PROJECT} firewall-rules create crypto-dashboard --direction=INGRESS --priority=1000 --network=default --action=ALLOW --rules=tcp:5000 --source-ranges=0.0.0.0/0 --target-tags=crypto-console --description="Open port 5000 for crypto visualization tutorial"
+  
+  gcloud compute instances add-tags crypto-driver --tags="crypto-console" --zone=${ZONE}`
+  
+
+### Clone the repo
+`git clone https://github.com/galic1987/professional-services`
 
 
-1. Build the entire repo from the outer directory before building this POM. 
+### Build the pipeline
+`cd professional-services/examples/cryptorealtime
+mvn clean install`
 
-In the root folder (cryptorealtime in this case) or where pom.xml file is located please run the following command:
-   ```mvn clean install```
-   
-   Note: if you are having issues with this command try: `sudo apt-get install --reinstall ca-certificates`
+### Start the DataFlow pipeline
+`./run.sh ${PROJECT} \
+cryptorealtime gs://realtimecrypto-${PROJECT}/temp \
+cryptorealtime market`
+
+### Start the Webserver and Visualization
+`cd frontend/
+pip install -r requirements.txt --user
+python app.py ${PROJECT} cryptorealtime cryptorealtime market`
+
+Find your external IP in [Compute console instance](https://console.cloud.google.com/compute/instances) and open it in your browser with port 5000 at the end e.g.
+http://external-ip:5000/stream
+
+You should be able to see the visualization of aggregated BTC/USD pair on several exchanges (without predictor part)
 
 
-Building it from the outer repo ensures that the parent POM is properly installed for the children POMs to reference.
+#Cleanup
+* To save on cost we can clean up the pipeline by running the following command
+`gcloud dataflow jobs cancel \
+$(gcloud dataflow jobs list \
+--format='value(id)' \
+--filter="name:runthepipeline*")`
 
-Subsequent builds of only this project can be run from this directory:
+* Empty and Delete the bucket:
+`gsutil -m rm -r gs://realtimecrypto-${PROJECT}/*
+gsutil rb gs://realtimecrypto-${PROJECT}`
 
-    ```mvn clean package```
+* Delete the Bigtable instance:
+`gcloud bigtable instances delete cryptorealtime`
 
-## Deploying
+* Exit the VM and delete it from the console.
 
-1. Run:
-
-    `./run.sh <project-name> <bigtable-instance-name> <gs://tempbucketname/local> <bigtable-table-name> <bigtable-table-family-name>`
-
-Example:
-    ` ./run.sh cryptorealtime-demo cryptorealtime-bt gs://cryptorealtime-demo-staging/temp cryptorealtime market`
-
-Ignore any java.lang.IllegalThreadStateException errors.
 
 # Problems?
 -bash: ./run.sh: Permission denied - give run.sh exec permission
@@ -134,12 +135,7 @@ Ignore any java.lang.IllegalThreadStateException errors.
 Should return many rows of crypto trades data that the frontend project will read for it's dashboard.
 
 
-
-## Ideas To Add
-Subnetworking configuration for invidiual workers for lower latency responses
-
 ## External libraries used to connnect to exchanges 
 https://github.com/bitrich-info/xchange-stream
 
 
-Copyright Google 2018

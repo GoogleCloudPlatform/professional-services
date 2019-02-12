@@ -1,3 +1,6 @@
+** Get the BTC/USD realtime ‘periscope’ multi exchange observer thing running in less then 5 minutes **
+![Alt Text](https://media.giphy.com/media/238teoXcI17pu3YOSP/giphy.gif)
+
 **Requirements:**
 - Terraform v0.11.11 
 - provider.google v1.20.0
@@ -10,14 +13,17 @@
 - ```git clone https://github.com/galic1987/professional-services/ ```
 - ```cd professional-services/examples/cryptorealtime/terraform-setup/```
 
-- Open terraform.tfvars and fill the configuration 
+- Fill out the terraform.tfvars configuration
+-  `` vim terraform.tfvars ``
+
+- Check everything is working 
 - ```terraform init```
 - ```terraform apply ```(ignore api enablement errors and/or rerun)
 
-- Wait 10 minutes until the machine startup script is booted 
+- Wait 5-10 minutes until the machine startup script is booted 
 - Note: Your public IP address will be displayed here or in console 
 
-- SSH into the VM that was created 
+- SSH into the VM that was [created](https://console.cloud.google.com/compute/instances)
 - ```sudo -s ```
 - ```cd ~```
 - ```cd professional-services/examples/cryptorealtime/```
