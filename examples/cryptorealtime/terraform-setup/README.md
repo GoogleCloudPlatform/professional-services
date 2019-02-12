@@ -48,7 +48,7 @@
 - Open the VM IP on port 5000 in your browser to see the chart 
 
 
-**Cleanup:**
+###Cleanup:
 - Navigate to the Terraform shell
 - We have to delete the bigtable instances manually because there is a bug in the current Terraform provider
 - ```gcloud bigtable instances delete cryptobackend-bigtable```

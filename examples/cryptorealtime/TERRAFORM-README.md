@@ -3,6 +3,8 @@
 ###Get the BTC-USD realtime periscope multi exchange observer running  in less then 10 minutes
 
 ![Alt Text](https://media.giphy.com/media/238teoXcI17pu3YOSP/giphy.gif)
+![Alt Text](crypto.gif)
+
 
 ###Requirements:
 - Terraform v0.11.11 
