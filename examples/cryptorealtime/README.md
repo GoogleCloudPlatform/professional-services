@@ -1,6 +1,6 @@
 # CryptoRealTime
 
-## An Google Cloud Dataflow/Cloud Bigtable Websockets example
+## A Google Cloud Dataflow/Cloud Bigtable Websockets example
 
 The last year has been like a rollercoaster for the cryptocurrency market. At the end of 2017, the Bitcoin (BTC) almost reached $20,000 USD to fall below $4,000 USD a few months later. What if there is a pattern in the high volatility of the cryptocurrencies market? If so, what if we can learn from it and get an edge on future trends? Is there a way to observe all exchanges in the real-time and visualize it on a single chart? 
 
@@ -56,7 +56,7 @@ We recommend to clean up the project after finishing this tutorial to avoid cost
 ```console
 sudo apt-get install openjdk-8-jdk git maven -y
 sudo apt-get install google-cloud-sdk-cbt -y
-sudo apt install python2.7 python-pip -y`
+sudo apt install python2.7 python-pip -y
 ```
 
 ### Create a Bigtable instance 
@@ -79,7 +79,7 @@ cbt -instance=cryptorealtime createtable cryptorealtime families=market
 
 ### Create a Bucket  
 ```console 
-gsutil mb -p ${PROJECT} gs://realtimecrypto-${PROJECT}`
+gsutil mb -p ${PROJECT} gs://realtimecrypto-${PROJECT}
 ```
 
 ### Create firewall for visualization server on port 5000
