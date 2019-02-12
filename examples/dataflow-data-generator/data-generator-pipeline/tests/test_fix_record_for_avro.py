@@ -109,10 +109,6 @@ class TestAvroFixer(unittest.TestCase):
         }]
 
         output_record = fix_record_for_avro(input_record, avro_schema)
-        print("expected rival record:")
-        print(expected_output[0][u'rival_record'])
-        print("output rival record:")
-        print(output_record[0][u'rival_record'])
         self.assertDictEqual(output_record[0], expected_output[0])     
         
         
