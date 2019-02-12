@@ -14,7 +14,8 @@
 - ```terraform init```
 - ```terraform apply ```(ignore api enablement errors and/or rerun)
 
-- Wait 10 minutes until the machine startup script is booted
+- Wait 10 minutes until the machine startup script is booted 
+- Note: Your public IP address will be displayed here or in console 
 
 - SSH into the VM that was created 
 - ```sudo -s ```
@@ -36,9 +37,9 @@
 - ```cd frontend/```
 - ```python app.py ${PROJECT_ID} ${BIGTABLE_INSTANCE_NAME} ${BIGTABLE_TABLE_NAME} ${BIGTABLE_FAMILY_NAME}```
 
-- Open the VM IP on port 5000 in your browser to see the results 
+- Open the VM IP on port 5000 in your browser to see the chart 
 
-cd
+
 **Cleanup:**
 - Navigate to the Terraform shell
 - We have to delete the bigtable instances manually because there is a bug in the current Terraform provider
