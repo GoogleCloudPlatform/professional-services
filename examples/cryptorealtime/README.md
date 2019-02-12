@@ -33,7 +33,8 @@ We recommend to clean up the project after finishing this tutorial to avoid cost
 ### Install the Google Cloud Platform SDK on a new VM
   * Log into the console, and activate a cloud console session
   * Create a new VM
-  `gcloud beta compute instances create crypto-driver \
+```console
+ gcloud beta compute instances create crypto-driver \
 --zone=us-central1-a \
 --machine-type=n1-standard-1 \
 --subnet=default \
@@ -45,18 +46,22 @@ We recommend to clean up the project after finishing this tutorial to avoid cost
 --image-project=debian-cloud \
 --boot-disk-size=20GB \
 --boot-disk-type=pd-standard \
---boot-disk-device-name=crypto-driver`
+--boot-disk-device-name=crypto-driver
+```
 
 
   * SSH into that VM
   
   * Installing necessary tools like java, git, maven, pip, python 2.7 and cloud bigtable command line tool cbt using the following command:
-  `sudo apt-get install openjdk-8-jdk git maven -y
+```console
+sudo apt-get install openjdk-8-jdk git maven -y
 sudo apt-get install google-cloud-sdk-cbt -y
 sudo apt install python2.7 python-pip -y`
+```
 
 ### Create a Bigtable instance 
-`export PROJECT=$(gcloud info --format='value(config.project)')
+```console
+export PROJECT=$(gcloud info --format='value(config.project)')
 export ZONE=$(curl "http://metadata.google.internal/computeMetadata/v1/instance/zone" -H "Metadata-Flavor: Google"|cut -d/ -f4)
 gcloud services enable bigtable.googleapis.com \
 bigtableadmin.googleapis.com \
@@ -69,35 +74,46 @@ gcloud bigtable instances create cryptorealtime \
     --display-name=cryptorealtime \
     --cluster-storage-type=HDD \
     --instance-type=DEVELOPMENT
-cbt -instance=cryptorealtime createtable cryptorealtime families=market`
+cbt -instance=cryptorealtime createtable cryptorealtime families=market
+```
 
 ### Create a Bucket  
-`gsutil mb -p ${PROJECT} gs://realtimecrypto-${PROJECT}`
-	
+```console 
+gsutil mb -p ${PROJECT} gs://realtimecrypto-${PROJECT}`
+```
 
 ### Create firewall for visualization server on port 5000
-  `gcloud compute --project=${PROJECT} firewall-rules create crypto-dashboard --direction=INGRESS --priority=1000 --network=default --action=ALLOW --rules=tcp:5000 --source-ranges=0.0.0.0/0 --target-tags=crypto-console --description="Open port 5000 for crypto visualization tutorial"
+```console 
+gcloud compute --project=${PROJECT} firewall-rules create crypto-dashboard --direction=INGRESS --priority=1000 --network=default --action=ALLOW --rules=tcp:5000 --source-ranges=0.0.0.0/0 --target-tags=crypto-console --description="Open port 5000 for crypto visualization tutorial"
   
-  gcloud compute instances add-tags crypto-driver --tags="crypto-console" --zone=${ZONE}`
+gcloud compute instances add-tags crypto-driver --tags="crypto-console" --zone=${ZONE}
+```
   
 
 ### Clone the repo
-`git clone https://github.com/galic1987/professional-services`
-
+```console 
+git clone https://github.com/galic1987/professional-services
+```
 
 ### Build the pipeline
-`cd professional-services/examples/cryptorealtime
-mvn clean install`
+```console 
+cd professional-services/examples/cryptorealtime
+mvn clean install
+```
 
 ### Start the DataFlow pipeline
-`./run.sh ${PROJECT} \
+```console 
+./run.sh ${PROJECT} \
 cryptorealtime gs://realtimecrypto-${PROJECT}/temp \
-cryptorealtime market`
+cryptorealtime market
+``` 
 
 ### Start the Webserver and Visualization
-`cd frontend/
+```console 
+cd frontend/
 pip install -r requirements.txt --user
-python app.py ${PROJECT} cryptorealtime cryptorealtime market`
+python app.py ${PROJECT} cryptorealtime cryptorealtime market
+```
 
 Find your external IP in [Compute console instance](https://console.cloud.google.com/compute/instances) and open it in your browser with port 5000 at the end e.g.
 http://external-ip:5000/stream
@@ -107,31 +123,41 @@ You should be able to see the visualization of aggregated BTC/USD pair on severa
 
 #Cleanup
 * To save on cost we can clean up the pipeline by running the following command
-`gcloud dataflow jobs cancel \
+```console 
+gcloud dataflow jobs cancel \
 $(gcloud dataflow jobs list \
 --format='value(id)' \
---filter="name:runthepipeline*")`
+--filter="name:runthepipeline*")
+```
 
 * Empty and Delete the bucket:
-`gsutil -m rm -r gs://realtimecrypto-${PROJECT}/*
-gsutil rb gs://realtimecrypto-${PROJECT}`
+```console 
+gsutil -m rm -r gs://realtimecrypto-${PROJECT}/*
+gsutil rb gs://realtimecrypto-${PROJECT}
+```
 
 * Delete the Bigtable instance:
-`gcloud bigtable instances delete cryptorealtime`
+```console 
+gcloud bigtable instances delete cryptorealtime
+```
 
 * Exit the VM and delete it from the console.
 
 
 # Problems?
 -bash: ./run.sh: Permission denied - give run.sh exec permission
-`chmod a+x run.sh `
+```console 
+chmod a+x run.sh 
+```
 
 
 1. View the status of your Dataflow job in the Cloud Dataflow console
 
 1. After a few minutes, from the shell,
 
-    `cbt -instance=<bigtable-instance-name> read <bigtable-table-name>`
+```console 
+cbt -instance=<bigtable-instance-name> read <bigtable-table-name>
+```
 
 Should return many rows of crypto trades data that the frontend project will read for it's dashboard.
 
