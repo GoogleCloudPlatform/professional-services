@@ -1,0 +1,16 @@
+!project/plugins.sbt
+*.DS_Store
+*.gz
+*.iml
+*.ipr
+*.iws
+*.log
+*.swp
+.idea
+.idea/*
+.project
+logs/*
+project/*
+release.properties
+target
+target/*
