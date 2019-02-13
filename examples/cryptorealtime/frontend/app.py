@@ -95,7 +95,8 @@ def query_data():
     trades_timestamp_values_numpy = defaultdict(callable_defaultdict_list)
 
     endbigtabletime = time.time()
-    print "Done Retrieving from BigTable in " . endbigtabletime - starttime
+    print "Done Retrieving from BigTable in "
+    print (endbigtabletime - starttime)
 
 
     # SAMPLING
@@ -108,7 +109,8 @@ def query_data():
         for column_name, values in columns.items():
             trades_timestamp_values_numpy[trades][column_name] = np.array(values)[::max(len(values)/SAMPLE_SIZE,1)]
     endsamplingtime = time.time()
-    print "Done Sampling in " . endsamplingtime - endbigtabletime
+    print "Done Sampling in "
+    print (endsamplingtime - endbigtabletime)
     return (trades_values_numpy, trades_timestamp_values_numpy)
 
 
