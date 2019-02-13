@@ -626,8 +626,15 @@ renderStep3();
     dataset3.remove(oldIds3);
 
 
+
+    dataHashMap.forEach(function(value, key) {
+        if(((new Date) - value) > TTL){ // remove if entries are older then TTL seconds
+            //console.log("deleting " + item);
+            dataHashMap.delete(key);
+        }
+    });
     // garbage collector
-    for (let item of dataHashMap) {
+   /* for (let item of dataHashMap) {
         if(((new Date) - item[1]) > TTL){ // remove if entries are older then TTL seconds
             //console.log("deleting " + item);
             dataHashMap.delete(item[0]);
@@ -635,7 +642,7 @@ renderStep3();
 
         // expected output: Array ["0", "foo"]
         // expected output: Array [1, "bar"]
-    }
+    }*/
 
     /*console.log("oldids:" + oldIds3);
     console.log("interval:" + interval);
