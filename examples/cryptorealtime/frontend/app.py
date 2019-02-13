@@ -76,6 +76,8 @@ def callable_defaultdict_list():
     return defaultdict(list)
 
 def query_data():
+    starttime = time.time()
+
     trades_values = defaultdict(callable_defaultdict_list)
     trades_timestamps = defaultdict(callable_defaultdict_list)
 
@@ -88,9 +90,12 @@ def query_data():
             for column_name, cell_value in cell.items():
                 trades_values[column_family][column_name].append(cell_value[0].value.decode('utf-8'))
                 trades_timestamps[column_family][column_name].append(date_string)
-    print "Done Retrieving from BigTable"
+
     trades_values_numpy = defaultdict(callable_defaultdict_list)
     trades_timestamp_values_numpy = defaultdict(callable_defaultdict_list)
+
+    endbigtabletime = time.time()
+    print "Done Retrieving from BigTable in " . endbigtabletime - starttime
 
 
     # SAMPLING
@@ -102,7 +107,8 @@ def query_data():
     for trades, columns in trades_timestamps.items():
         for column_name, values in columns.items():
             trades_timestamp_values_numpy[trades][column_name] = np.array(values)[::max(len(values)/SAMPLE_SIZE,1)]
-    print "Done Sampling"
+    endsamplingtime = time.time()
+    print "Done Sampling in " . endsamplingtime - endbigtabletime
     return (trades_values_numpy, trades_timestamp_values_numpy)
 
 
