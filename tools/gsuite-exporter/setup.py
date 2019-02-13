@@ -53,11 +53,12 @@ setup(
     install_requires=[
         'google-api-python-client',
         'python-dateutil',
+        'requests'
     ],
     entry_points={
         'console_scripts': [
             'gsuite-exporter=gsuite_exporter.cli:main',
         ],
     },
-    python_requires='>=2.7,<3.0'
+    python_requires='>=2.7'
 )
