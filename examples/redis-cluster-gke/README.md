@@ -1,6 +1,6 @@
-# Deploying Redis Cluster in GCP
+# Deploying Redis Cluster on GKE
 
-This is a sample K8s configuration files to deploy a Redis Cluster in GCP.
+This is a sample K8s configuration files to deploy a Redis Cluster on GKE.
 
 ## How to use
 
@@ -10,7 +10,7 @@ This is a sample K8s configuration files to deploy a Redis Cluster in GCP.
 $ gcloud container clusters create redis-cluster --num-nodes 6 --machine-type n1-standard-8 --image-type COS --disk-type pd-standard --disk-size 100 --enable-ip-alias --create-subnetwork name=redis-subnet
 ```
 
-Please replace <your-project> with your GCP project ID.
+Please specify your own project ID or prefered zone if you asked.
 
 2. Clone an example git repository.
 ```
