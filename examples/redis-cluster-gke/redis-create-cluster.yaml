@@ -1,0 +1,45 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: redis-create-cluster
+spec:
+  backoffLimit: 5
+  activeDeadlineSeconds: 600
+  template:
+    spec:
+      containers:
+      - name: redis-cli
+        image: ubuntu
+        command: ["/bin/bash", "-c"]
+        args: ["apt-get update && \
+          DEBIAN_FRONTEND=noninteractive apt-get install -yq tzdata && \
+          ln -fs /usr/share/zoneinfo/Asia/Tokyo /etc/localtime && \
+          dpkg-reconfigure --frontend noninteractive tzdata && \
+          DEBIAN_FRONTEND=noninteractive apt-get install -yq curl gcc make libjemalloc-dev expect && \
+          cd /tmp && \
+          curl -LO http://download.redis.io/redis-stable.tar.gz && \
+          tar zxvf redis-stable.tar.gz && \
+          cd redis-stable && \
+          make distclean && \
+          make && \
+          expect -f /tmp/redis-expect/redis-expect.script"]
+        volumeMounts:
+          - name: "redis-nodes"
+            mountPath: "/tmp/redis-nodes"
+          - name: "redis-expect"
+            mountPath: "/tmp/redis-expect"
+      restartPolicy: Never
+      volumes:
+        - name: "redis-nodes"
+          configMap:
+            name: "redis-nodes"
+            items:
+              - key: "redis-nodes.txt"
+                path: "redis-nodes.txt"
+        - name: "redis-expect"
+          configMap:
+            name: "redis-expect"
+            items:
+              - key: "redis-expect.script"
+                path: "redis-expect.script"
+
