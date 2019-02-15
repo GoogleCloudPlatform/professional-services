@@ -1,0 +1,68 @@
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: redis-pdb
+spec:
+  minAvailable: 66%
+  selector:
+    matchLabels:
+      app: redis
+      redis-type: cache
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-cache
+spec:
+  selector:
+    matchLabels:
+      app: redis
+  replicas: 6
+  template:
+    metadata:
+      labels:
+        app: redis
+        redis-type: cache
+    spec:
+      hostNetwork: true
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - redis
+              topologyKey: "kubernetes.io/hostname"
+      containers:
+        - name: redis-server
+          image: "redis:4.0-alpine"
+          imagePullPolicy: Always
+          command:
+            - "redis-server"
+          args:
+            - "/etc/redis/redis.conf"
+            - "--protected-mode"
+            - "no"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "1Gi"
+          ports:
+            - name: redis
+              containerPort: 6379
+              protocol: "TCP"
+            - name: redis-cluster
+              containerPort: 16379
+              protocol: "TCP"
+          volumeMounts:
+            - name: "redis-conf"
+              mountPath: "/etc/redis"
+      volumes:
+        - name: "redis-conf"
+          configMap:
+            name: "redis-conf"
+            items:
+              - key: "redis.conf"
+                path: "redis.conf"
