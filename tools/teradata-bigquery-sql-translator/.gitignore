@@ -1,4 +1,3 @@
-!project/plugins.sbt
 *.DS_Store
 *.gz
 *.iml
@@ -7,10 +6,6 @@
 *.log
 *.swp
 .idea
-.idea/*
 .project
 logs/*
-project/*
-release.properties
 target
-target/*
