@@ -140,7 +140,7 @@ Note that `RECORD` are not supported when writing to CSV, because it is a flat f
 --avro_schema_file=/path/to/linorders.avsc
 ```
 
-Alternatively, you can write directly to a BigQuery table by specifying an `--output_table`. However, if you are generating 
+Alternatively, you can write directly to a BigQuery table by specifying an `--output_bq_table`. However, if you are generating 
 more than 100K records, you may run into the limitation of the python SDK where WriteToBigQuery does not orchestrate multiple
 load jobs you hit one of the single load job limitations [BEAM-2801](https://issues.apache.org/jira/browse/BEAM-2801). If you 
 are not concerned with having many duplicates, you can generate an initial BigQuery table with `--num_records=10000000` and 
@@ -148,7 +148,7 @@ then use [`bq_table_resizer.py`](bigquery-scripts/bq_table_resizer.py) to copy t
 desired size.
 
 ```
---output_table=project:dataset.table
+--output_bq_table=project:dataset.table
 ```
 
 
