@@ -25,6 +25,7 @@ import string
 from uuid import uuid4
 
 import apache_beam as beam
+import apache_beam.io.gcp.bigquery as beam_bigquery
 from faker import Faker
 from faker_schema.faker_schema import FakerSchema
 from google.cloud import bigquery as bq
@@ -117,13 +118,13 @@ class DataGenerator(object):
             bq_table = bq_cli.get_table(bq_table_ref)
 
             # Quickly parse TableSchema object to list of dictionaries.
-            self.schema = [
+            self.schema = {u'fields': [
                 {u'name': field.name,
                  u'type': field.field_type,
                  u'mode': field.mode
                  }
                 for field in bq_table.schema
-            ]
+            ]}
         if hist_bq_table:
             dataset_name, table_name = hist_bq_table.split('.')
             bq_dataset = bq_cli.dataset(dataset_name)
@@ -158,19 +159,21 @@ class DataGenerator(object):
 
         self.write_disp = write_disp_map[write_disp]
 
-    def get_bq_schema_string(self):
+    def get_bq_schema(self):
         """
         This helper function parses a 'FIELDNAME:DATATYPE' string for the BQ
         api.
         """
-        schema_string = ','.join([str(obj[u'name']) + ':' + str(obj[u'type'])
-                                  for obj in self.schema])
-        return schema_string
+        return beam_bigquery.parse_table_schema_from_json(json.dumps(self.schema))
 
     def get_faker_schema(self, fields=None):
         """
         This function casts the BigQuery schema to one that will be understood
         by Faker.
+        Args:
+            fields: (dict) When using this method to get the faker schema for
+                a STRUCT / RECORD type field this will keyword parameter will
+                serve as the schema.
 
         Returns:
             faker_schema: A dictionary mapping field names to Faker providers.
@@ -232,13 +235,13 @@ class DataGenerator(object):
         }
 
         faker_schema = {}
-        this_call_schema = fields if fields else self.schema
+        this_call_schema = fields if fields else self.schema[u'fields']
         for obj in this_call_schema:
             is_special = False
             if obj['type'].lower() == 'record':
                 # recursively call to capture nested structure.
                 faker_schema[obj['name']] = self.get_faker_schema(
-                        obj['fields'])
+                        fields=obj['fields'])
             else:
                 for key in special_map: 
                     if key.lower() in obj['name'].lower():
@@ -249,7 +252,6 @@ class DataGenerator(object):
                 if not is_special:
                     faker_schema[obj['name']] = \
                             type_map[obj['type']]
-
         return faker_schema
 
     def enforce_joinable_keys(self, record, key_set=None):
@@ -290,9 +292,9 @@ class FakeRowGen(beam.DoFn):
     # checking type and mode.
 
     def get_field_dict(self, field_name, fields=None):
-        this_call_schema = fields if fields else self.data_gen.schema
+        this_call_schema = fields if fields else self.data_gen.schema[u'fields']
         return filter(lambda f: f[u'name'] == field_name,
-                this_call_schema)[0]
+                      this_call_schema)[0]
 
     def get_percent_between_min_and_max_date(self, date_string):
         """
@@ -339,14 +341,18 @@ class FakeRowGen(beam.DoFn):
         # Below handles if the datatype got changed by the faker provider
         
         if field[u'type'] == 'RECORD':
-            # Recursively sanity check the next level.
-            record[fieldname] = {}
-            for col in field[u'fields']:
-                record[fieldname] = \
-                        self.sanity_check(record[fieldname], 
-                                col[u'name'],
-                                np.random.randint(sys.maxint),
-                                fields=field[u'fields'])
+            # We will fill each array of struct with 0-3 elements.
+            array_of_struct = []
+            record[fieldname] = []
+            for i in range(random.randint(0,3)): 
+                nested_record = {}
+                for col in field[u'fields']:
+                    # Recursively sanity check the next level.
+                    nested_record = self.sanity_check(nested_record,
+                                    col[u'name'], random_number,
+                                    fields=field[u'fields'])
+                array_of_struct.append(nested_record)
+            record[fieldname] = array_of_struct
         elif field[u'type'] == 'STRING':
             # Efficiently generate random string.
             STRING_LENGTH = 36
