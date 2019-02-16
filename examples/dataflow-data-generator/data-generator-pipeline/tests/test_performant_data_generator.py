@@ -125,7 +125,7 @@ class TestPrettyDataGenerator(unittest.TestCase):
         # Check string size was parsed and enforced from description fields of lo_recieptfile.
         self.assertLessEqual(len(actual_row[u'lo_recieptfile']), 10)
         # Check if record type nesting worked.
-        self.assertIsInstance(actual_row[u'lo_record_field'], dict)
+        self.assertIsInstance(actual_row[u'lo_record_field'], list)
     def test_get_field_dict(self):
         """
         This tests the ability of the FakeRowGen.get_field_dict method to extract a single field
@@ -172,7 +172,7 @@ class TestPrettyDataGenerator(unittest.TestCase):
         self.assertLessEqual(data[u'lo_linenumber'], self.data_gen.max_int)
 
         data=self.fakerowgen.sanity_check(record=data, fieldname=u'lo_record_field', random_number=np.random.randint(sys.maxint))
-        self.assertIsInstance(data[u'lo_record_field'], dict)
+        self.assertIsInstance(data[u'lo_record_field'], list)
     
     def test_get_skewed_key(self):
         """
