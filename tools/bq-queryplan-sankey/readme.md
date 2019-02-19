@@ -80,7 +80,7 @@ ORDER BY
 
 ### Sample Sankey diagram
 
-![Alt Sankey diagram for BigQuery query plan](/img/sample_query_plan.png)
+![Sankey diagram for BigQuery query plan](img/sample_query_plan.png)
 
 ### BigQuery stages
 
