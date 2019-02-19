@@ -1,0 +1,462 @@
+{
+  "configuration": {
+    "jobType": "QUERY", 
+    "query": {
+      "allowLargeResults": false, 
+      "createDisposition": "CREATE_IF_NEEDED", 
+      "destinationEncryptionConfiguration": {}, 
+      "destinationTable": {
+        "datasetId": "dataset-id", 
+        "projectId": "project-id", 
+        "tableId": "table-id"
+      }, 
+      "priority": "INTERACTIVE", 
+      "query": "#standardSQL\nSELECT\n  a.id,\n  title,\n  c files,\n  answer_count answers,\n  favorite_count favs,\n  view_count views,\n  score\nFROM\n  `bigquery-public-data.stackoverflow.posts_questions` a\nJOIN (\n  SELECT\n    CAST(REGEXP_EXTRACT(content, r'stackoverflow.com/questions/([0-9]+)/') AS INT64) id,\n    COUNT(*) c,\n    MIN(sample_path) sample_path\n  FROM\n    `fh-bigquery.github_extracts.contents_js`\n  WHERE\n    content LIKE '%stackoverflow.com/questions/%'\n  GROUP BY\n    1\n  HAVING\n    id>0\n  ORDER BY\n    2 DESC\n  LIMIT\n    10 ) b\nON\n  a.id=b.id\nORDER BY\n  c DESC", 
+      "useLegacySql": false, 
+      "useQueryCache": true, 
+      "writeDisposition": "WRITE_TRUNCATE"
+    }
+  }, 
+  "etag": "", 
+  "id": "project-id:US.job-id", 
+  "jobReference": {
+    "jobId": "job-id", 
+    "location": "US", 
+    "projectId": "project-id"
+  }, 
+  "kind": "bigquery#job", 
+  "selfLink": "https://www.googleapis.com/bigquery/v2/projects/project-id/jobs/job-id?location=US", 
+  "statistics": {
+    "creationTime": "1549905268852", 
+    "endTime": "1549905278609", 
+    "query": {
+      "billingTier": 1, 
+      "cacheHit": false, 
+      "estimatedBytesProcessed": "111388656367", 
+      "queryPlan": [
+        {
+          "completedParallelInputs": "594", 
+          "computeMsAvg": "946", 
+          "computeMsMax": "1309", 
+          "computeRatioAvg": 0.25146198830409355, 
+          "computeRatioMax": 0.347953216374269, 
+          "endMs": "1549905276149", 
+          "id": "0", 
+          "name": "S00: Input", 
+          "parallelInputs": "594", 
+          "readMsAvg": "2227", 
+          "readMsMax": "3762", 
+          "readRatioAvg": 0.5919723551302498, 
+          "readRatioMax": 1, 
+          "recordsRead": "8745757", 
+          "recordsWritten": "37512", 
+          "shuffleOutputBytes": "675216", 
+          "shuffleOutputBytesSpilled": "0", 
+          "startMs": "1549905269258", 
+          "status": "COMPLETE", 
+          "steps": [
+            {
+              "kind": "READ", 
+              "substeps": [
+                "$10:content", 
+                "FROM fh-bigquery.github_extracts.contents_js", 
+                "WHERE and(like($10, '%stackoverflow.com/questions/%'), ...)"
+              ]
+            }, 
+            {
+              "kind": "AGGREGATE", 
+              "substeps": [
+                "GROUP BY $50 := $40", 
+                "$30 := COUNT_STAR()"
+              ]
+            }, 
+            {
+              "kind": "COMPUTE", 
+              "substeps": [
+                "$40 := CAST(regexp_extract($10, 'stackoverflow.com/questions/([0-9]+)/') AS INT64)"
+              ]
+            }, 
+            {
+              "kind": "WRITE", 
+              "substeps": [
+                "$30, $50", 
+                "TO __stage00_output", 
+                "BY HASH($50)"
+              ]
+            }
+          ], 
+          "waitMsAvg": "2590", 
+          "waitMsMax": "2952", 
+          "waitRatioAvg": 0.6884635832004253, 
+          "waitRatioMax": 0.784688995215311, 
+          "writeMsAvg": "11", 
+          "writeMsMax": "286", 
+          "writeRatioAvg": 0.0029239766081871343, 
+          "writeRatioMax": 0.07602339181286549
+        }, 
+        {
+          "completedParallelInputs": "59", 
+          "computeMsAvg": "6", 
+          "computeMsMax": "12", 
+          "computeRatioAvg": 0.001594896331738437, 
+          "computeRatioMax": 0.003189792663476874, 
+          "endMs": "1549905276474", 
+          "id": "1", 
+          "inputStages": [
+            "0"
+          ], 
+          "name": "S01: Sort+", 
+          "parallelInputs": "59", 
+          "readMsAvg": "0", 
+          "readMsMax": "0", 
+          "readRatioAvg": 0, 
+          "readRatioMax": 0, 
+          "recordsRead": "37512", 
+          "recordsWritten": "590", 
+          "shuffleOutputBytes": "10620", 
+          "shuffleOutputBytesSpilled": "0", 
+          "startMs": "1549905276201", 
+          "status": "COMPLETE", 
+          "steps": [
+            {
+              "kind": "READ", 
+              "substeps": [
+                "$30, $50", 
+                "FROM __stage00_output"
+              ]
+            }, 
+            {
+              "kind": "SORT", 
+              "substeps": [
+                "$20 DESC", 
+                "LIMIT 10"
+              ]
+            }, 
+            {
+              "kind": "AGGREGATE", 
+              "substeps": [
+                "GROUP BY $60 := $50", 
+                "$20 := SUM_OF_COUNTS($30)"
+              ]
+            }, 
+            {
+              "kind": "WRITE", 
+              "substeps": [
+                "$70, $71", 
+                "TO __stage01_output"
+              ]
+            }
+          ], 
+          "waitMsAvg": "37", 
+          "waitMsMax": "50", 
+          "waitRatioAvg": 0.009835194045720362, 
+          "waitRatioMax": 0.013290802764486975, 
+          "writeMsAvg": "85", 
+          "writeMsMax": "129", 
+          "writeRatioAvg": 0.022594364699627858, 
+          "writeRatioMax": 0.0342902711323764
+        }, 
+        {
+          "completedParallelInputs": "1", 
+          "computeMsAvg": "5", 
+          "computeMsMax": "5", 
+          "computeRatioAvg": 0.0013290802764486975, 
+          "computeRatioMax": 0.0013290802764486975, 
+          "endMs": "1549905276534", 
+          "id": "2", 
+          "inputStages": [
+            "1"
+          ], 
+          "name": "S02: Sort", 
+          "parallelInputs": "1", 
+          "readMsAvg": "0", 
+          "readMsMax": "0", 
+          "readRatioAvg": 0, 
+          "readRatioMax": 0, 
+          "recordsRead": "590", 
+          "recordsWritten": "10", 
+          "shuffleOutputBytes": "180", 
+          "shuffleOutputBytesSpilled": "0", 
+          "startMs": "1549905276253", 
+          "status": "COMPLETE", 
+          "steps": [
+            {
+              "kind": "READ", 
+              "substeps": [
+                "$70, $71", 
+                "FROM __stage01_output"
+              ]
+            }, 
+            {
+              "kind": "SORT", 
+              "substeps": [
+                "$70 DESC", 
+                "LIMIT 10"
+              ]
+            }, 
+            {
+              "kind": "WRITE", 
+              "substeps": [
+                "$80, $81", 
+                "TO __stage02_output", 
+                "BY HASH($81)"
+              ]
+            }
+          ], 
+          "waitMsAvg": "8", 
+          "waitMsMax": "8", 
+          "waitRatioAvg": 0.002126528442317916, 
+          "waitRatioMax": 0.002126528442317916, 
+          "writeMsAvg": "50", 
+          "writeMsMax": "50", 
+          "writeRatioAvg": 0.013290802764486975, 
+          "writeRatioMax": 0.013290802764486975
+        }, 
+        {
+          "completedParallelInputs": "100", 
+          "computeMsAvg": "5", 
+          "computeMsMax": "11", 
+          "computeRatioAvg": 0.0013290802764486975, 
+          "computeRatioMax": 0.0029239766081871343, 
+          "endMs": "1549905277026", 
+          "id": "4", 
+          "inputStages": [
+            "2"
+          ], 
+          "name": "S04: Coalesce", 
+          "parallelInputs": "100", 
+          "readMsAvg": "0", 
+          "readMsMax": "0", 
+          "readRatioAvg": 0, 
+          "readRatioMax": 0, 
+          "recordsRead": "10", 
+          "recordsWritten": "10", 
+          "shuffleOutputBytes": "180", 
+          "shuffleOutputBytesSpilled": "0", 
+          "startMs": "1549905276564", 
+          "status": "COMPLETE", 
+          "steps": [
+            {
+              "kind": "READ", 
+              "substeps": [
+                "FROM __stage02_output"
+              ]
+            }
+          ], 
+          "waitMsAvg": "31", 
+          "waitMsMax": "40", 
+          "waitRatioAvg": 0.008240297713981925, 
+          "waitRatioMax": 0.01063264221158958, 
+          "writeMsAvg": "103", 
+          "writeMsMax": "173", 
+          "writeRatioAvg": 0.02737905369484317, 
+          "writeRatioMax": 0.045986177565124936
+        }, 
+        {
+          "completedParallelInputs": "50", 
+          "computeMsAvg": "198", 
+          "computeMsMax": "250", 
+          "computeRatioAvg": 0.05263157894736842, 
+          "computeRatioMax": 0.06645401382243488, 
+          "endMs": "1549905278275", 
+          "id": "5", 
+          "inputStages": [
+            "4"
+          ], 
+          "name": "S05: Join", 
+          "parallelInputs": "50", 
+          "readMsAvg": "901", 
+          "readMsMax": "1530", 
+          "readRatioAvg": 0.2395002658160553, 
+          "readRatioMax": 0.40669856459330145, 
+          "recordsRead": "16846442", 
+          "recordsWritten": "10", 
+          "shuffleOutputBytes": "1094", 
+          "shuffleOutputBytesSpilled": "0", 
+          "startMs": "1549905276597", 
+          "status": "COMPLETE", 
+          "steps": [
+            {
+              "kind": "READ", 
+              "substeps": [
+                "$1:id, $2:title, $3:answer_count, $4:favorite_count, $5:score, $6:view_count", 
+                "FROM bigquery-public-data.stackoverflow.posts_questions"
+              ]
+            }, 
+            {
+              "kind": "READ", 
+              "substeps": [
+                "$80, $81", 
+                "FROM __stage04_output"
+              ]
+            }, 
+            {
+              "kind": "JOIN", 
+              "substeps": [
+                "INNER HASH JOIN EACH  WITH ALL  ON $1 = $81"
+              ]
+            }, 
+            {
+              "kind": "WRITE", 
+              "substeps": [
+                "$90, $91, $92, $93, $94, $95, $96", 
+                "TO __stage05_output"
+              ]
+            }
+          ], 
+          "waitMsAvg": "65", 
+          "waitMsMax": "75", 
+          "waitRatioAvg": 0.017278043593833066, 
+          "waitRatioMax": 0.019936204146730464, 
+          "writeMsAvg": "4", 
+          "writeMsMax": "20", 
+          "writeRatioAvg": 0.001063264221158958, 
+          "writeRatioMax": 0.00531632110579479
+        }, 
+        {
+          "completedParallelInputs": "1", 
+          "computeMsAvg": "6", 
+          "computeMsMax": "6", 
+          "computeRatioAvg": 0.001594896331738437, 
+          "computeRatioMax": 0.001594896331738437, 
+          "endMs": "1549905278296", 
+          "id": "6", 
+          "inputStages": [
+            "5"
+          ], 
+          "name": "S06: Output", 
+          "parallelInputs": "1", 
+          "readMsAvg": "0", 
+          "readMsMax": "0", 
+          "readRatioAvg": 0, 
+          "readRatioMax": 0, 
+          "recordsRead": "10", 
+          "recordsWritten": "10", 
+          "shuffleOutputBytes": "1094", 
+          "shuffleOutputBytesSpilled": "0", 
+          "startMs": "1549905276667", 
+          "status": "COMPLETE", 
+          "steps": [
+            {
+              "kind": "READ", 
+              "substeps": [
+                "$90, $91, $92, $93, $94, $95, $96", 
+                "FROM __stage05_output"
+              ]
+            }, 
+            {
+              "kind": "SORT", 
+              "substeps": [
+                "$96 DESC"
+              ]
+            }, 
+            {
+              "kind": "WRITE", 
+              "substeps": [
+                "$100, $101, $102, $103, $104, $105, $106", 
+                "TO __stage06_output"
+              ]
+            }
+          ], 
+          "waitMsAvg": "29", 
+          "waitMsMax": "29", 
+          "waitRatioAvg": 0.007708665603402445, 
+          "waitRatioMax": 0.007708665603402445, 
+          "writeMsAvg": "7", 
+          "writeMsMax": "7", 
+          "writeRatioAvg": 0.0018607123870281765, 
+          "writeRatioMax": 0.0018607123870281765
+        }
+      ], 
+      "referencedTables": [
+        {
+          "datasetId": "stackoverflow", 
+          "projectId": "bigquery-public-data", 
+          "tableId": "posts_questions"
+        }, 
+        {
+          "datasetId": "github_extracts", 
+          "projectId": "fh-bigquery", 
+          "tableId": "contents_js"
+        }
+      ], 
+      "statementType": "SELECT", 
+      "timeline": [
+        {
+          "activeUnits": "24", 
+          "completedUnits": "0", 
+          "elapsedMs": "717", 
+          "pendingUnits": "594", 
+          "totalSlotMs": "0"
+        }, 
+        {
+          "activeUnits": "72", 
+          "completedUnits": "0", 
+          "elapsedMs": "1758", 
+          "pendingUnits": "594", 
+          "totalSlotMs": "0"
+        }, 
+        {
+          "activeUnits": "111", 
+          "completedUnits": "2", 
+          "elapsedMs": "2798", 
+          "pendingUnits": "592", 
+          "totalSlotMs": "4710"
+        }, 
+        {
+          "activeUnits": "581", 
+          "completedUnits": "34", 
+          "elapsedMs": "3847", 
+          "pendingUnits": "560", 
+          "totalSlotMs": "92896"
+        }, 
+        {
+          "activeUnits": "530", 
+          "completedUnits": "83", 
+          "elapsedMs": "4896", 
+          "pendingUnits": "511", 
+          "totalSlotMs": "227985"
+        }, 
+        {
+          "activeUnits": "455", 
+          "completedUnits": "370", 
+          "elapsedMs": "5911", 
+          "pendingUnits": "224", 
+          "totalSlotMs": "962608"
+        }, 
+        {
+          "activeUnits": "88", 
+          "completedUnits": "592", 
+          "elapsedMs": "6914", 
+          "pendingUnits": "2", 
+          "totalSlotMs": "1643186"
+        }, 
+        {
+          "activeUnits": "51", 
+          "completedUnits": "754", 
+          "elapsedMs": "8003", 
+          "pendingUnits": "51", 
+          "totalSlotMs": "1684149"
+        }, 
+        {
+          "activeUnits": "15", 
+          "completedUnits": "805", 
+          "elapsedMs": "9541", 
+          "pendingUnits": "0", 
+          "totalSlotMs": "1740550"
+        }
+      ], 
+      "totalBytesBilled": "111389179904", 
+      "totalBytesProcessed": "111388656367", 
+      "totalPartitionsProcessed": "0", 
+      "totalSlotMs": "780578"
+    }, 
+    "startTime": "1549905269033", 
+    "totalBytesProcessed": "111388656367", 
+    "totalSlotMs": "780578"
+  }, 
+  "status": {
+    "state": "DONE"
+  }, 
+  "user_email": "user@email.com"
+}

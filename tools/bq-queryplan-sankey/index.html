@@ -1,0 +1,184 @@
+<!-- 
+Copyright 2019 Google LLC
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    https://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>BigQuery Query Plan - Sankey</title>
+<style>
+ 
+.node rect {
+  cursor: move;
+  fill-opacity: .9;
+  shape-rendering: crispEdges;
+}
+ 
+.node text {
+  pointer-events: none;
+  text-shadow: 0 1px 0 #fff;
+  font-size: small;
+}
+ 
+.link {
+  fill: none;
+  stroke: #000;
+  stroke-opacity: .2;
+}
+ 
+.link:hover {
+  stroke-opacity: .5;
+}
+ 
+</style>
+<body>
+
+<h3>Query Plan: <span id="filename"></span></h3>
+
+<svg width="1200" height="740"></svg>
+ 
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://unpkg.com/d3-sankey@0"></script>
+<script src="bq-queryplan-sankey.js"></script>
+<script>
+
+var getQueryString = function(field, url) {
+  // https://gomakethings.com/how-to-get-the-value-of-a-querystring-with-native-javascript/
+  var href = url ? url : window.location.href;
+  var reg = new RegExp( '[?&]' + field + '=([^&#]*)', 'i' );
+  var string = reg.exec(href);
+  return string ? string[1] : null;
+};
+
+var getQueryPlan = function() {
+  return "bqshow/" + getQueryString("bqshow");
+}
+
+var updateFileName = function(error) {
+  if (error) {
+    document.getElementById("filename").textContent = "Absent or incorrect job file in query param bqshow";
+    return false;
+  } else {
+    document.getElementById("filename").textContent = getQueryString("bqshow");
+    return true;
+  }
+}
+
+var alignNodes = function(sankey) {
+  var align = getQueryString("align");
+  if (align == "left") {
+    sankey.nodeAlign(d3.sankeyLeft);
+  } else {
+    sankey.nodeAlign(d3.sankeyRight);
+  }
+}
+
+var svg = d3.select("svg"),
+    width = +svg.attr("width"),
+    height = +svg.attr("height");
+
+var formatNumber = d3.format(",.0f"),
+    format = function(d) { return formatNumber(d) + " TWh"; },
+    color = d3.scaleOrdinal(d3.schemeCategory10);
+
+var sankey = d3.sankey()
+    .nodeAlign(d3.sankeyRight)
+    .nodeWidth(15)
+    .nodePadding(10)
+    .extent([[1, 1], [width - 1, height - 6]]);
+
+alignNodes(sankey);
+
+var link = svg.append("g")
+    .attr("class", "links")
+    .attr("fill", "none")
+    .attr("stroke", "#000")
+    .attr("stroke-opacity", 0.2)
+  .selectAll("path");
+
+var node = svg.append("g")
+    .attr("class", "nodes")
+    .attr("font-family", "sans-serif")
+    .attr("font-size", 10)
+  .selectAll("g");
+
+var graph;
+
+d3.json(getQueryPlan(), function(error, bqjson) {
+  if (!updateFileName(error)) return;
+  
+  var data = qp2sankey(bqjson);
+
+  graph = sankey(data);
+
+  link = link
+    .data(data.links)
+    .enter().append("path")
+      .attr("d", d3.sankeyLinkHorizontal())
+      .attr("stroke-width", function(d) { return Math.max(1, d.width); });
+
+  link.append("title")
+      .text(function(d) { return d.source.name + " → " + d.target.name + "\n" + format(d.value); });
+
+  node = node
+    .data(data.nodes)
+    .enter().append("g")
+    .call(d3.drag()
+            .subject(function(d){return d})
+            .on('start', function () { this.parentNode.appendChild(this); })
+            .on('drag', dragmove));
+
+  node.append("rect")
+      .attr("x", function(d) { return d.x0; })
+      .attr("y", function(d) { return d.y0; })
+      .attr("height", function(d) { return d.y1 - d.y0; })
+      .attr("width", function(d) { return d.x1 - d.x0; })
+      .attr("fill", function(d) { return color(d.name.replace(/ .*/, "")); })
+      .attr("stroke", "#000");
+
+  node.append("text")
+      .attr("x", function(d) { return d.x0 - 6; })
+      .attr("y", function(d) { return (d.y1 + d.y0) / 2; })
+      .attr("dy", "0.35em")
+      .attr("text-anchor", "end")
+      .text(function(d) { return d.name; })
+    .filter(function(d) { return d.x0 < width / 2; })
+      .attr("x", function(d) { return d.x1 + 6; })
+      .attr("text-anchor", "start");
+
+  node.append("title")
+      .text(function(d) { return d.name + "\n" + format(d.value); });
+
+  function dragmove(d) {
+    var rectY = d3.select(this).select("rect").attr("y");
+    var rectH = d3.select(this).select("rect").attr("height");
+    var newY = d.y0 + d3.event.dy;
+    var boundedY = Math.max(0, Math.min(height - rectH, newY));
+    
+    d.y0 = boundedY;
+    var yTranslate = boundedY - rectY;
+
+    d3.select(this)
+      .attr("transform", 
+            "translate(0, " + (yTranslate) + ")");
+
+    sankey.update(graph);
+    link.attr("d", d3.sankeyLinkHorizontal());
+  }
+
+});
+
+</script>
+ 
+</body>
+</html>
