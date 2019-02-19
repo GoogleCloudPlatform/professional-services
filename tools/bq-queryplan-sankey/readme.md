@@ -1,7 +1,7 @@
 # Sankey visualization for BigQuery query plan
 
 ## Overview
-[BigQuery](https://cloud.google.com/bigquery/) embeds diagnostic query plan information within its query jobs. This utility provides [Sankey diagram](http://bl.ocks.org/d3noob/5028304) visualization for various stages in the query plan. 
+[BigQuery](https://cloud.google.com/bigquery/) embeds diagnostic query plan information within its query jobs. This utility provides [Sankey diagram](https://en.wikipedia.org/wiki/Sankey_diagram) visualization for various stages in the query plan. 
 
 ## Setup
 You'll need a web server to run this utility. Any number of options are good as this tool is currently serving static content only. We'll use [http-server](https://www.npmjs.com/package/http-server) a simple nodejs based command-line http server. 
