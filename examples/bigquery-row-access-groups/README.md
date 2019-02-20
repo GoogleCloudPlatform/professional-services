@@ -14,4 +14,4 @@ Sample code to synchronize group membership from G Suite/Cloud Identity into Big
 
 ## Background and more information
 
-(Coming soon.)
+For much more background information and usage, please see [this blog post](https://medium.com/google-cloud/how-to-control-access-to-bigquery-at-row-level-with-groups-1cbccb111d9e).
