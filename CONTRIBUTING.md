@@ -13,7 +13,7 @@ To get started contributing:
     1. Ensure that your code has an accompanying README.md file with instructions on usage. See [awesome-readme](https://github.com/matiassingers/awesome-readme) for good examples of high-quality READMEs.
     1. Ensure that you've added a link to your contribution in the top-level [README](https://github.com/GoogleCloudPlatform/professional-services/blob/master/README.md) (alpha-order).
     1. Ensure that your submission does not include a LICENSE file. There's no need to include an additional license since all repository submissions are covered by the top-level Apache 2.0 [license](https://github.com/GoogleCloudPlatform/professional-services/blob/master/LICENSE).
-    1. Ensure all source files have license headers with with an up-to-date copyright date and attributed to `Google LLC`.
+    1. Ensure all source files have license headers with an up-to-date copyright date attributed to `Google LLC`.
 1. Submit a pull request.
 
 ## Contributor License Agreement
