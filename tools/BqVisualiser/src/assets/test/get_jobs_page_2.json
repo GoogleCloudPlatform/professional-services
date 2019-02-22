@@ -1,0 +1,476 @@
+{
+ "kind": "bigquery#jobList",
+ "etag": "\"NSrA2TwvIwFWwcdeSRqwLw1CVp4/v1SlLPb2mbl0fvt198m2oiBooNY\"",
+ "nextPageToken": "3",
+ "jobs": [
+  {
+   "id": "stephanmeyn-train-cbp:australia-southeast1.654b6de8-d9d0-4fe3-8ed0-9a82ee6ae285",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "654b6de8-d9d0-4fe3-8ed0-9a82ee6ae285",
+    "location": "australia-southeast1"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1543459203168",
+    "startTime": "1543459203668",
+    "endTime": "1543459225807",
+    "totalBytesProcessed": "800273218",
+    "query": {
+     "totalPartitionsProcessed": "0",
+     "totalBytesProcessed": "800273218",
+     "totalBytesBilled": "801112064",
+     "billingTier": 1,
+     "cacheHit": false,
+     "referencedTables": [
+      {
+       "projectId": "nrldatajam2018",
+       "datasetId": "nrldatajam_notationdata",
+       "tableId": "trxs"
+      }
+     ],
+     "statementType": "SELECT"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.3499911e-6b1a-422e-96f4-192fd50c838e",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "3499911e-6b1a-422e-96f4-192fd50c838e",
+    "location": "US"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1543459104171",
+    "startTime": "1543459104342",
+    "endTime": "1543459104361",
+    "totalBytesProcessed": "0",
+    "query": {
+     "totalBytesProcessed": "0",
+     "totalBytesBilled": "0",
+     "cacheHit": true,
+     "statementType": "SELECT"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.106d998f-0ba0-4ea1-8eb0-1b32305923c7",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "106d998f-0ba0-4ea1-8eb0-1b32305923c7",
+    "location": "US"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1543458978515",
+    "startTime": "1543458978793",
+    "endTime": "1543458979110",
+    "totalBytesProcessed": "65935918",
+    "query": {
+     "totalPartitionsProcessed": "0",
+     "totalBytesProcessed": "65935918",
+     "totalBytesBilled": "66060288",
+     "billingTier": 1,
+     "cacheHit": false,
+     "referencedTables": [
+      {
+       "projectId": "bigquery-public-data",
+       "datasetId": "usa_names",
+       "tableId": "usa_1910_2013"
+      }
+     ],
+     "statementType": "SELECT"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:australia-southeast1.bquxjob_3633e414_16758b72911",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "bquxjob_3633e414_16758b72911",
+    "location": "australia-southeast1"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1543381742396",
+    "startTime": "1543381742683",
+    "endTime": "1543381744465",
+    "totalBytesProcessed": "800273218",
+    "query": {
+     "totalPartitionsProcessed": "0",
+     "totalBytesProcessed": "800273218",
+     "totalBytesBilled": "801112064",
+     "billingTier": 1,
+     "cacheHit": false,
+     "referencedTables": [
+      {
+       "projectId": "nrldatajam2018",
+       "datasetId": "nrldatajam_notationdata",
+       "tableId": "trxs"
+      }
+     ],
+     "statementType": "SELECT"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:australia-southeast1.bquxjob_73e058bf_16758b020d3",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "bquxjob_73e058bf_16758b020d3",
+    "location": "australia-southeast1"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1543381658304",
+    "startTime": "1543381658599",
+    "endTime": "1543381660096",
+    "totalBytesProcessed": "800273218",
+    "query": {
+     "totalPartitionsProcessed": "0",
+     "totalBytesProcessed": "800273218",
+     "totalBytesBilled": "801112064",
+     "billingTier": 1,
+     "cacheHit": false,
+     "referencedTables": [
+      {
+       "projectId": "nrldatajam2018",
+       "datasetId": "nrldatajam_notationdata",
+       "tableId": "trxs"
+      }
+     ],
+     "statementType": "SELECT"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:australia-southeast1.bquxjob_100ed980_16758afccd3",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "bquxjob_100ed980_16758afccd3",
+    "location": "australia-southeast1"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1543381197348",
+    "startTime": "1543381197639",
+    "endTime": "1543381199117",
+    "totalBytesProcessed": "800273218",
+    "query": {
+     "totalPartitionsProcessed": "0",
+     "totalBytesProcessed": "800273218",
+     "totalBytesBilled": "801112064",
+     "billingTier": 1,
+     "cacheHit": false,
+     "referencedTables": [
+      {
+       "projectId": "nrldatajam2018",
+       "datasetId": "nrldatajam_notationdata",
+       "tableId": "trxs"
+      }
+     ],
+     "statementType": "SELECT"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:australia-southeast1.bquxjob_2de80111_16758761cef",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "bquxjob_2de80111_16758761cef",
+    "location": "australia-southeast1"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1543381175969",
+    "startTime": "1543381176274",
+    "endTime": "1543381178313",
+    "totalBytesProcessed": "800273218",
+    "query": {
+     "totalPartitionsProcessed": "0",
+     "totalBytesProcessed": "800273218",
+     "totalBytesBilled": "801112064",
+     "billingTier": 1,
+     "cacheHit": false,
+     "referencedTables": [
+      {
+       "projectId": "nrldatajam2018",
+       "datasetId": "nrldatajam_notationdata",
+       "tableId": "trxs"
+      }
+     ],
+     "statementType": "SELECT"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:australia-southeast1.bquxjob_ba7553_167589472f7",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "bquxjob_ba7553_167589472f7",
+    "location": "australia-southeast1"
+   },
+   "state": "DONE",
+   "errorResult": {
+    "reason": "invalid",
+    "message": "Cannot read and write in different locations: source: australia-southeast1, destination: US"
+   },
+   "statistics": {
+    "creationTime": "1543379383571",
+    "startTime": "1543379383929",
+    "endTime": "1543379384315"
+   },
+   "status": {
+    "state": "DONE",
+    "errorResult": {
+     "reason": "invalid",
+     "message": "Cannot read and write in different locations: source: australia-southeast1, destination: US"
+    }
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:australia-southeast1.bquxjob_bf791fe_1675875267f",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "bquxjob_bf791fe_1675875267f",
+    "location": "australia-southeast1"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1543377395137",
+    "startTime": "1543377395414",
+    "endTime": "1543377730574",
+    "totalBytesProcessed": "10893918560",
+    "query": {
+     "totalPartitionsProcessed": "0",
+     "totalBytesProcessed": "10893918560",
+     "totalBytesBilled": "10894704640",
+     "billingTier": 1,
+     "cacheHit": false,
+     "referencedTables": [
+      {
+       "projectId": "nrldatajam2018",
+       "datasetId": "nrldatajam_trackingdata",
+       "tableId": "gamedevice"
+      }
+     ],
+     "statementType": "SELECT"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.beam_load_writecombinedbqstephanmeyn1121032916c52ad34f_5cedbaaa8c1c42e19764592009be4908_e7c93cd2709cb9d951656d0f97fead3a_00001_00000-0",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "beam_load_writecombinedbqstephanmeyn1121032916c52ad34f_5cedbaaa8c1c42e19764592009be4908_e7c93cd2709cb9d951656d0f97fead3a_00001_00000-0",
+    "location": "US"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1542770960654",
+    "startTime": "1542770962339",
+    "endTime": "1542770964426",
+    "load": {
+     "inputFiles": "1",
+     "inputFileBytes": "0",
+     "outputRows": "0",
+     "outputBytes": "0",
+     "badRecords": "0"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.bquxjob_77ca2972_1673446bbd5",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "bquxjob_77ca2972_1673446bbd5",
+    "location": "US"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1542770441626",
+    "startTime": "1542770441787",
+    "endTime": "1542770441804",
+    "totalBytesProcessed": "0",
+    "query": {
+     "totalBytesProcessed": "0",
+     "totalBytesBilled": "0",
+     "cacheHit": true,
+     "statementType": "SELECT"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.bquxjob_3dd10fe5_16734460fed",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "bquxjob_3dd10fe5_16734460fed",
+    "location": "US"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1542770310198",
+    "startTime": "1542770310488",
+    "endTime": "1542770310847",
+    "totalBytesProcessed": "764328",
+    "query": {
+     "totalPartitionsProcessed": "0",
+     "totalBytesProcessed": "764328",
+     "totalBytesBilled": "10485760",
+     "billingTier": 1,
+     "cacheHit": false,
+     "referencedTables": [
+      {
+       "projectId": "stephanmeyn-train-cbp",
+       "datasetId": "powerco",
+       "tableId": "combinedJ"
+      }
+     ],
+     "statementType": "SELECT"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.bquxjob_3d459fe6_1671ae4567d",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "bquxjob_3d459fe6_1671ae4567d",
+    "location": "US"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1542344437567",
+    "startTime": "1542344437762",
+    "endTime": "1542344440483",
+    "totalBytesProcessed": "1141827",
+    "query": {
+     "totalPartitionsProcessed": "0",
+     "totalBytesProcessed": "1141827",
+     "totalBytesBilled": "10485760",
+     "billingTier": 1,
+     "cacheHit": false,
+     "referencedTables": [
+      {
+       "projectId": "stephanmeyn-train-cbp",
+       "datasetId": "dataflowLogs",
+       "tableId": "dataflow_googleapis_com_worker_20181115"
+      }
+     ],
+     "statementType": "SELECT"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.bquxjob_5540fdd5_16715e7e658",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "bquxjob_5540fdd5_16715e7e658",
+    "location": "US"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1542260789555",
+    "startTime": "1542260789724",
+    "endTime": "1542260790252",
+    "totalBytesProcessed": "2667144",
+    "query": {
+     "totalPartitionsProcessed": "0",
+     "totalBytesProcessed": "2667144",
+     "totalBytesBilled": "10485760",
+     "billingTier": 1,
+     "cacheHit": false,
+     "referencedTables": [
+      {
+       "projectId": "stephanmeyn-train-cbp",
+       "datasetId": "powerco",
+       "tableId": "combinedJ"
+      }
+     ],
+     "statementType": "SELECT"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.bquxjob_ee71419_16715e74c01",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "bquxjob_ee71419_16715e74c01",
+    "location": "US"
+   },
+   "state": "DONE",
+   "errorResult": {
+    "reason": "invalidQuery",
+    "location": "query",
+    "message": "Unrecognized name: ICP_idenrtifier; Did you mean icp_identifier? at [1:66]"
+   },
+   "statistics": {
+    "creationTime": "1542260778774",
+    "startTime": "1542260779130",
+    "endTime": "1542260779130"
+   },
+   "status": {
+    "state": "DONE",
+    "errorResult": {
+     "reason": "invalidQuery",
+     "location": "query",
+     "message": "Unrecognized name: ICP_idenrtifier; Did you mean icp_identifier? at [1:66]"
+    }
+   }
+  }
+ ]
+}
