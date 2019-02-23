@@ -4,12 +4,6 @@
 [BigQuery](https://cloud.google.com/bigquery/) embeds diagnostic query plan information within its query jobs. This utility provides [Sankey diagram](https://en.wikipedia.org/wiki/Sankey_diagram) visualization for various stages in the query plan. The tool is based on [Sankey library](https://github.com/d3/d3-sankey) from [d3js](https://d3js.org/).
 
 ## Setup
-You'll need a web server to run this utility. Any number of options are good as this tool is currently serving static content only. We'll use [http-server](https://www.npmjs.com/package/http-server) a simple nodejs based command-line http server. 
-
-```bash
-npm install http-server -g
-```
-
 Download or clone this repo into a workspace directory.
 
 ```bash
@@ -17,7 +11,9 @@ git clone [repo url]
 cd [workspace dir]/bq-queryplan-sankey
 ```
 
-Use below commands to get the query plan file for a given job id from BigQuery. Copy `sample.json` or any job files you want to visualize into `bqshow` directory.
+Next, to see the query plan in a Sankey digram, we need to download a job information file. You can use below command to get the query plan file for a given job id from BigQuery.  The file needs to be copied into `bqshow` directory.
+
+Or, you  can try a sample bigquery plan, `sample.json` provided in `bqshow` directory.
 
 ```bash
 cd [workspace dir]/bq-queryplan-sankey/bqshow
@@ -25,17 +21,32 @@ bq ls --jobs [project id] // list jobs in a project
 bq show --format=prettyjson --job [job id] > sample.json	// sample.json file has query plan information
 ```
 
-Start the server to visualize query plan as Sankey diagrams
+Start the server to visualize query plan as Sankey diagrams. You'll need a web server to run this utility. Any number of options are good as this tool is currently serving static content only. 
+
+### Using Python
+With Python `3.x` to run the server on port `9090`:
+```bash
+cd [workspace dir]/bq-queryplan-sankey
+python3 -m http.server 9090
+```
+
+With Python `2.x` to run the server on port `9090`:
+```bash
+cd [workspace dir]/bq-queryplan-sankey
+python -m http.server 9090
+```
+
+### Using NodeJS
+For NodeJS, we can use [http-server](https://www.npmjs.com/package/http-server). First install the package using `npm install http-server -g` and to run it on port `9090`:
 
 ```bash
 cd [workspace dir]/bq-queryplan-sankey
 http-server . -p 9090
 ```
-Open URL in a browser `http://localhost:9090?bqshow=bq-job.json`
 
-By default the Sankey diagram is aligned to the right. To change alignment to left, add a query parameter `align` with value `left`
+Next, open URL in a browser `http://localhost:9090?bqshow=bq-job.json`
 
-Open URL in a browser `http://localhost:9090?bqshow=bq-job.json&align=left`
+By default the Sankey diagram is aligned to the right. To change alignment to left, add a query parameter `align` with value `left` i.e. `http://localhost:9090?bqshow=bq-job.json&align=left`
 
 ## Usage
 
