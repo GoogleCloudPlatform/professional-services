@@ -52,6 +52,7 @@ limitations under the License.
 <script src="bq-queryplan-sankey.js"></script>
 <script>
 
+// Get query param
 var getQueryString = function(field, url) {
   // https://gomakethings.com/how-to-get-the-value-of-a-querystring-with-native-javascript/
   var href = url ? url : window.location.href;
@@ -60,10 +61,12 @@ var getQueryString = function(field, url) {
   return string ? string[1] : null;
 };
 
+// Get query plan JSON file
 var getQueryPlan = function() {
   return "bqshow/" + getQueryString("bqshow");
 }
 
+// Show query plan file loaded
 var updateFileName = function(error) {
   if (error) {
     document.getElementById("filename").textContent = "Absent or incorrect job file in query param bqshow";
@@ -74,6 +77,7 @@ var updateFileName = function(error) {
   }
 }
 
+// Align nodes in a Sankey diagram to left or right
 var alignNodes = function(sankey) {
   var align = getQueryString("align");
   if (align == "left") {
@@ -82,6 +86,8 @@ var alignNodes = function(sankey) {
     sankey.nodeAlign(d3.sankeyRight);
   }
 }
+
+// Standard code to construct d3js' Sankey visualization
 
 var svg = d3.select("svg"),
     width = +svg.attr("width"),
@@ -117,7 +123,8 @@ var graph;
 d3.json(getQueryPlan(), function(error, bqjson) {
   if (!updateFileName(error)) return;
   
-  var data = qp2sankey(bqjson);
+  // Transform query plan to node & link format for Sankey
+  var data = qp2sankey(bqjson); 
 
   graph = sankey(data);
 
@@ -159,6 +166,7 @@ d3.json(getQueryPlan(), function(error, bqjson) {
   node.append("title")
       .text(function(d) { return d.name + "\n" + format(d.value); });
 
+  // Ability to drag nodes vertically and update the visualization
   function dragmove(d) {
     var rectY = d3.select(this).select("rect").attr("y");
     var rectH = d3.select(this).select("rect").attr("height");
