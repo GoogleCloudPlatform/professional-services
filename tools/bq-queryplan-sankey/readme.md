@@ -13,7 +13,7 @@ cd [workspace dir]/bq-queryplan-sankey
 
 Next, to see the query plan in a Sankey digram, we need to download a job information file. You can use below command to get the query plan file for a given job id from BigQuery.  The file needs to be copied into `bqshow` directory.
 
-Or, you  can try a sample bigquery plan, `sample.json` provided in `bqshow` directory.
+To use an example query plan, use `sample.json` provided in `bqshow` directory.
 
 ```bash
 cd [workspace dir]/bq-queryplan-sankey/bqshow
@@ -96,3 +96,16 @@ ORDER BY
 ### BigQuery stages
 
 For details on various stages in the query plan, see the documentation for [query plan explanation](https://cloud.google.com/bigquery/query-plan-explanation). You can also watch this [video](https://youtu.be/UueWySREWvk) on analysing BigQuery queries.
+
+## Files
+Following is a brief description of files in source code and what they are used for
+- `https://d3js.org/d3.v4.min.js`
+  + Base visualization library file. Included in `index.html`.
+- `https://unpkg.com/d3-sankey@0`
+  + Sankey visualization library file based on d3js. Included in `index.html`.
+- `bq-queryplan-sankey.js`
+  + Used to transform data in BigQuery's query plan JSON format to that expected by d3js' Sankey library. Included in `index.html`.
+- `index.html`
+  + Main page to bring all libraries together with HTML elements and JavaScript code.
+- `sample.json`
+  + A sample query plan from one of BigQuery's public dataset. You can use this to test the tool. Or use [BigQuery sandbox](https://cloud.google.com/bigquery/docs/sandbox) if you do not want to setup a GCP account without billing.
