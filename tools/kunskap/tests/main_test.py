@@ -53,6 +53,7 @@ class TestMain(unittest.TestCase):
         main.execute_transformation_query(self.mocked_bq())
         self.mocked_bq().query().result().called
 
+
     def testPartitionsAndUsageDates(self):
         """Tests that the # of partitions is equal to the # of usage_start_times."""
         bq_client = bigquery.Client()
