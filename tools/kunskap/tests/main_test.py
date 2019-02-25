@@ -13,8 +13,6 @@
 # limitations under the License.
 
 """Executes tests on functions created in main.py."""
-import datetime
-from string import Template
 import unittest
 import unittest.mock as mock
 import config
@@ -52,6 +50,7 @@ class TestMain(unittest.TestCase):
         self.mocked_bq().list_tables.return_value = mocked_table_list
         main.execute_transformation_query(self.mocked_bq())
         self.mocked_bq().query().result().called
+
 
     def testPartitionsAndUsageDates(self):
         """Tests that the # of partitions is equal to the # of usage_start_times."""

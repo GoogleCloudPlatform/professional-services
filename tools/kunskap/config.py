@@ -13,11 +13,11 @@
 # limitations under the License.
 
 config_vars = {
-    'billing_project_id': 'billing-data-2',
-    'billing_dataset_id': 'DailyBillingExport',
-    'billing_table_name': 'gcp_billing_export_v1_01EB05_B1778F_D20612',
-    'output_dataset_id': 'CorrectedBillingData',
-    'output_table_name': 'gcp_billing_export_v1a_01EB05_B1778F_D20612',
+    'billing_project_id': 'billing_project',
+    'billing_dataset_id': 'billing_dataset',
+    'billing_table_name': 'billing_table',
+    'output_dataset_id': 'output_dataset',
+    'output_table_name': 'output_table',
     'sql_file_path': 'cud_sud_attribution_query.sql',
 
     # There are two slightly different allocation methods that affect how the
