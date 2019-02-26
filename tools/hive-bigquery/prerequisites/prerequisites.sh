@@ -1,20 +1,36 @@
 #!/bin/bash
+# Copyright 2019 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 apt-get -h
 if [ $? -eq 0 ]; then
     echo "Package manager is apt"
     apt-get update
     apt-get install -y git
-    apt-get install -y libpq-dev python-dev libxml2-dev libxslt1-dev libldap2-dev libsasl2-dev libffi-dev
-    apt-get install -y sasl2-bin libsasl2-2 libsasl2-dev libsasl2-modules
-    apt install -y python-pip
+    apt-get install -y mysql-client
+    apt-get install -y python3
+    apt install -y python3-pip
 else
     yum -h
     if [ $? -eq 0 ]; then
         echo "Package manager is yum"
         yum -y update
         yum install -y git
-        yum install -y python-pip gcc gcc-c++ python-virtualenv cyrus-sasl-devel
+        yum install -y mysql
+        yum install -y python36
+        yum install python36-setuptools
+        easy_install-3.6 pip
     else
         echo "Package manager is neither yum nor apt"
         exit 0
@@ -38,5 +54,5 @@ function install_cloud_sql_proxy() {
 
 install_cloud_sql_proxy
 
-# Install virtual environment
+# Install virtual environment.
 pip install virtualenv

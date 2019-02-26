@@ -1,4 +1,19 @@
+# Copyright 2019 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import argparse
+import csv
 import datetime
 import random
 import string
@@ -10,20 +25,21 @@ def main():
         description="Generates tab delimited data with various datatypes such "
                     "as INT,FLOAT,DOUBLE,DECIMAL,STRING,VARCHAR,TIMESTAMP,"
                     "BOOLEAN,ARRAY,MAP,STRUCT,DATE")
-    parser.add_argument('--size-in-gb', required=False, default=10, type=int,
+    parser.add_argument('--size-in-gb', required=False, default=1, type=int,
                         choices=range(1, 101),
-                        help='an integer for the data to be generated')
+                        help="an integer for the data to be generated in GB's")
     args = parser.parse_args()
     size = args.size_in_gb
-    print "Generating %d GB of data..." % size
+    filename = "/tmp/generated_data.txt"
+    print("Generating {} GB of data at location {} ...".format(size,filename))
 
     # 6000000 rows ~ 1gb
     years = ['2018-10-10', '2018-10-11', '2018-10-12', '2018-10-13',
              '2018-10-14', '2018-10-15', '2018-10-16', '2018-10-17',
              '2018-10-18']
     seasons = ['summer', 'winter', 'autumn', 'spring']
-    filename = "/tmp/generated_data.txt"
     with open(filename, "wb") as file_content:
+        writer = csv.writer(file_content, delimiter='\t')
         n_years = len(years)
         n_seasons = len(seasons)
         for i in range(6000000 * size):
@@ -59,7 +75,7 @@ def main():
                 string_categorical_value
             ]
 
-            file_content.write('\t'.join(row[0:]) + '\n')
+            writer.writerow(row)
 
 
 if __name__ == "__main__":

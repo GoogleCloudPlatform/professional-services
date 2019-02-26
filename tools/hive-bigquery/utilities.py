@@ -1,24 +1,34 @@
-"""Provides utility functions to other modules"""
+# Copyright 2019 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Provides utility functions to other modules."""
 
 import logging
-import random
-import string
 import subprocess
-
-import tableprint as tp
 
 logger = logging.getLogger('Hive2BigQuery')
 
 
 def calculate_time(start, end):
-    """Pretty prints the time taken for an operation
+    """Pretty prints the time taken for an operation.
 
     Args:
-        start (float): Start time of an operation
-        end (float): End time of an operation
+        start (float): Start time of an operation.
+        end (float): End time of an operation.
 
     Returns:
-        str: Pretty format the time taken for an operation
+        str: Pretty format the time taken for an operation.
     """
 
     time_taken = int(round((end - start), 0))
@@ -40,42 +50,12 @@ def calculate_time(start, end):
     return output
 
 
-def print_and_log(output, level=logging.DEBUG):
-    """Pretty prints the statement and logs it to the log file using the
-    provided log level
-
-    Args:
-        output (str): statement to be logged
-        level (int): log level
-    """
-
-    tp.banner(output)
-    if level == logging.INFO:
-        logger.info(output)
-    elif level == logging.ERROR:
-        logger.error(output)
-    elif level == logging.WARNING:
-        logger.warning(output)
-    elif level == logging.CRITICAL:
-        logger.critical(output)
-    else:
-        logger.debug(output)
-
-
-def get_random_string():
-    """Generates a random string of 15 characters"""
-
-    return ''.join(
-        random.choice(string.ascii_uppercase + string.digits) for _ in
-        range(15))
-
-
 def execute_command(cmd):
     """Executes system command using subprocess module and logs the stdout
-    and stderr
+    and stderr.
 
     Args:
-        cmd (List): Command to execute, split into a list
+        cmd (List): Command to execute, split into a list.
     """
 
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
@@ -84,6 +64,6 @@ def execute_command(cmd):
         while True:
             output = process.stdout.readline().decode()
             if output:
-                logger.info(output)
+                logger.debug(output)
             else:
                 break

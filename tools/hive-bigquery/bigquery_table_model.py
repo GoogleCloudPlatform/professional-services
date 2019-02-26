@@ -1,3 +1,17 @@
+# Copyright 2019 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """Module to wrap BigQuery table as a model"""
 
 import json
@@ -11,32 +25,32 @@ logger = logging.getLogger('Hive2BigQuery')
 
 
 class BigQueryTableModel(object):
-    """Wrapper for resource describing a BigQuery table
+    """Wrapper for resource describing a BigQuery table.
 
     Bundles information of how Hive table will be considered when migrated to
-    BigQuery, such as partitioning and clustering fields
+    BigQuery, such as partitioning and clustering fields.
 
     Attributes:
-        table_details: BigQuery table details such as dataset id, table name,
+        table_details (dict): BigQuery table details such as dataset id, table name,
             partition column name of the table(if any), list of clustering
-            columns names(if any applicable) upto a maximum of 4 values
-        data_format: Format of the data to be loaded from GCS, which can be
-            one of Avro, ORC, and Parquet
-        flat_schema: Flattened schema of the table
+            columns names(if any applicable) upto a maximum of 4 values.
+        data_format (str): Format of the data to be loaded from GCS, which can be
+            one of Avro, ORC, and Parquet.
+        flat_schema (dict): Flattened schema of the table.
     """
 
     def __init__(self, **kwargs):
-        logger.info('Initializing BigQueryTableModel object')
+        logger.debug('Initializing BigQueryTableModel object')
         self._table_details = kwargs['table_details']
         self.data_format = kwargs['data_format']
         self._flat_schema = None
 
     def __str__(self):
         """Iterates over the attributes dictionary of BigQueryTableModel
-        object and returns a string which contains all the attribute values"""
+        object and returns a string which contains all the attribute values."""
 
         model = 'BigQuery Table Model\n'
-        for key, value in self.__dict__.iteritems():
+        for key, value in self.__dict__.items():
             model += key + ' : ' + str(value) + '\n'
         return model
 
@@ -54,7 +68,7 @@ class BigQueryTableModel(object):
             os.system(
                 'bq show --format=prettyjson {0}.{1} > bq_schema.json'.format(
                     self.dataset_id, self.table_name))
-            with open('bq_schema.json', 'rb') as file_content:
+            with open('bq_schema.json', 'r') as file_content:
                 schema = json.load(file_content)
             os.remove('bq_schema.json')
             self._table_details['schema'] = schema['schema']['fields']
@@ -91,7 +105,7 @@ class BigQueryTableModel(object):
         return self._flat_schema
 
     def flatten_schema(self):
-        """Returns BigQuery table schema in flat structure
+        """Returns BigQuery table schema in flat structure.
 
         Nested data types in BigQuery schema are represented using nested
         fields.
@@ -122,14 +136,14 @@ class BigQueryTableModel(object):
             "col_name__key"     : "STRING",
             "col_name__value"   : "INTEGER"
         }
-        Uses string extraction to flatten the schema"""
+        Uses string extraction to flatten the schema."""
 
         def recursively_flatten(schema, col_name):
-            """Iterates through the nested fields and gets the data types
+            """Iterates through the nested fields and gets the data types.
 
             Args:
-                schema (List[dict]): schema of the BigQuery fields
-                col_name (str): Flattened column name
+                schema (List[dict]): schema of the BigQuery fields.
+                col_name (str): Flattened column name.
             """
             for item in schema:
                 name = col_name + item['name']
@@ -147,23 +161,26 @@ class BigQueryTableModel(object):
         recursively_flatten(self.schema, '')
 
         if self.data_format == "Parquet":
+            match_keys = []
             for key in flat_schema.keys():
+                if key.endswith('__bag__array_element'):
+                    match_keys.append(key)
+                if key.endswith('__map'):
+                    match_keys.append(key)
+            # todo check this
+            for key in match_keys:
                 find_string = '__bag__array_element'
-                try:
-                    value = flat_schema[key]
-                    if key.endswith(find_string):
-                        flat_schema.pop(key, None)
-                        flat_schema.pop(key[:-len('__array_element')], None)
+                value = flat_schema[key]
+                if key.endswith(find_string):
+                    flat_schema.pop(key, None)
+                    flat_schema.pop(key[:-len('__array_element')], None)
 
-                        flat_schema[key[:-len(find_string)]] = value
-                        if not value.endswith('_REPEATED'):
-                            flat_schema[key[:-len(find_string)]] += '_REPEATED'
-                    if key.endswith('__map'):
-                        flat_schema.pop(key, None)
-                        flat_schema[key[:-len('__map')]] = value
-
-                except KeyError:
-                    pass
+                    flat_schema[key[:-len(find_string)]] = value
+                    if not value.endswith('_REPEATED'):
+                        flat_schema[key[:-len(find_string)]] += '_REPEATED'
+                if key.endswith('__map'):
+                    flat_schema.pop(key, None)
+                    flat_schema[key[:-len('__map')]] = value
 
             for key in flat_schema.keys():
                 value = flat_schema[key]

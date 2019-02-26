@@ -5,18 +5,19 @@ By default, this framework is expected to run on a source Hive cluster.
 
 # Architectural Diagram
 Cloud SQL keeps track of the
-1. data in the source Hive table
-2. files which are copied from the Hive cluster to Cloud Storage
-3. files which are loaded from Cloud Storage into BigQuery
+1. data in the source Hive table.
+2. files which are copied from the Hive cluster to Cloud Storage.
+3. files which are loaded from Cloud Storage into BigQuery.
 
 ![Alt text](architectural_diagram.png?raw=true)
 
 # Before you begin
 1. Install gcloud SDK on the source Hive cluster by following these [instructions](https://cloud.google.com/sdk/install).
-2. [Create a service account](https://cloud.google.com/iam/docs/creating-managing-service-accounts#creating_a_service_account) and grant the following roles to the service account by following these [instructions](https://cloud.google.com/iam/docs/granting-roles-to-service-accounts#granting_access_to_a_service_account_for_a_resource)
+2. [Create a service account](https://cloud.google.com/iam/docs/creating-managing-service-accounts#creating_a_service_account) and grant the following roles to the service account by following these [instructions](https://cloud.google.com/iam/docs/granting-roles-to-service-accounts#granting_access_to_a_service_account_for_a_resource).
 	1. Google Cloud Storage - storage.admin
 	2. BigQuery - bigquery.dataEditor and bigquery.jobUser
 	3. Cloud SQL - cloudsql.admin
+	4. Cloud KMS - cloudkms.cryptoKeyEncrypterDecrypter
 3. [Download](https://cloud.google.com/iam/docs/creating-managing-service-account-keys#creating_service_account_keys) the service account key file and set up the environment variable by following these [instructions](https://cloud.google.com/docs/authentication/getting-started#setting_the_environment_variable). 
 
 	```
@@ -24,14 +25,40 @@ Cloud SQL keeps track of the
 	```
 Note: Saving credentials in environment variables is convenient, but not secure - consider a more secure solution such as [Cloud KMS](https://cloud.google.com/kms/) to help keep secrets safe.
 
+# Store Hive password using Cloud KMS
+1. Create a Cloud KMS key ring and a key. Refer the 
+[documentation](https://cloud.google.com/kms/docs/creating-keys#top_of_page) for more instructions.
+```
+# Create a key ring
+gcloud kms keyrings create [KEYRING_NAME] --location [LOCATION]
+# Create a key
+gcloud kms keys create [KEY_NAME] --location [LOCATION] \
+  --keyring [KEYRING_NAME] --purpose encryption
+```
+
+2. On your local machine, create the file, for example, `password.txt`, that 
+contains the password.
+3. Encrypt the file `password.txt` using the key and key ring that has been created.
+```
+gcloud kms encrypt \
+  --location=[LOCATION]  \
+  --keyring=[KEY_RING] \
+  --key=[KEY] \
+  --plaintext-file=password.txt \
+  --ciphertext-file=password.txt.enc
+```
+4. Upload the encrypted file, `password.txt.enc`, to the GCS bucket. Note this 
+file location, which will be provided later as an input to the migration tool.
+```
+gsutil cp password.txt.enc gs://<BUCKET_NAME>/<OBJECT_PATH>
+```
+5. Delete the plaintext `password.txt` file from the local machine.
 # Usage
 
 1. Clone the repo.
 ```
 git clone https://github.com/GoogleCloudPlatform/professional-services.git
-cd professional-services/
-git checkout feature/hive-bigquery
-cd tools/hive-bigquery/
+cd professional-services/tools/hive-bigquery/
 ```
 2. Install prerequisites such as python, pip, virtualenv and Cloud SQL proxy.
 ```
@@ -43,7 +70,7 @@ virtualenv env
 source env/bin/activate
 pip install -r prerequisites/requirements.txt
 ```
-4. [optional] Use an existing Cloud SQL instance for tracking the progress of 
+4. [optional] Use an existing Cloud SQL MySQL instance for tracking the progress of 
 migration or launch a new one. Run the below command to create an instance.
 Set the root password when the script prompts for it. 
 This will output the connection name of the instance which is of use in the 
@@ -61,26 +88,18 @@ connection will be established.
 command below. Provide the port which you used in the previous step and password 
 for the root user that you have set in step 4.
 ```
-mysql -h 127.0.0.1 -P <PORT> -u root -p
+mysql -h 127.0.0.1 -u root -P <PORT> -p
+```
+7. Create the tracking_table_info metatable in your MySQL database by importing 
+the [prerequisites/tracking_table.sql](prerequisites/tracking_table.sql) file.
+This table contains information about the migrated Hive tables and its properties.
+```
+mysql -h 127.0.0.1 -u root -P <PORT> <DATABASE_NAME> -p < prerequisites/tracking_table.sql
 ```
 
-7. Usage
+8. Usage
 ```
-usage: hive_to_bigquery.py [-h] [--hive-server-host HIVE_SERVER_HOST]
-                           [--hive-server-port HIVE_SERVER_PORT]
-                           [--hive-server-username HIVE_SERVER_USERNAME]
-                           --hive-database HIVE_DATABASE --hive-table
-                           HIVE_TABLE --project-id PROJECT_ID --bq-dataset-id
-                           BQ_DATASET_ID [--bq-table BQ_TABLE]
-                           --bq-table-write-mode {overwrite,create,append}
-                           --gcs-bucket-name GCS_BUCKET_NAME
-                           [--incremental-col INCREMENTAL_COL]
-                           [--use-clustering {False,True}]
-                           --tracking-database-host TRACKING_DATABASE_HOST
-                           [--tracking-database-port TRACKING_DATABASE_PORT]
-                           [--tracking-database-user TRACKING_DATABASE_USER]
-                           --tracking-database-db-name
-                           TRACKING_DATABASE_DB_NAME
+usage: hive_to_bigquery.py [-h] --config-file CONFIG_FILE
 
 Framework to migrate Hive tables to BigQuery which uses Cloud SQL to keep
 track of the migration progress.
@@ -89,82 +108,35 @@ optional arguments:
   -h, --help            show this help message and exit
 
 required arguments:
-  --hive-database HIVE_DATABASE
-                        Hive database name
-  --hive-table HIVE_TABLE
-                        Hive table name
-  --project-id PROJECT_ID
-                        GCP Project ID
-  --bq-dataset-id BQ_DATASET_ID
-                        Existing BigQuery dataset ID
-  --bq-table-write-mode {overwrite,create,append}
-                        BigQuery table write mode. Use overwrite to overwrite
-                        the previous runs of migration. Use create if you are
-                        migrating for the first time. Use append to append to
-                        the existing BigQuery table
-  --gcs-bucket-name GCS_BUCKET_NAME
-                        Existing GCS Bucket name. Provide either
-                        gs://BUCKET_NAME or BUCKET_NAME. Hive data will be
-                        copied to thisbucket and then loaded into BigQuery
-  --tracking-database-db-name TRACKING_DATABASE_DB_NAME
-                        Cloud SQL Tracking db name.Ensure you provide the same
-                        db name if you have migrated previously
-
-optional arguments:
-  --hive-server-host HIVE_SERVER_HOST
-                        Hive server IP address or hostname, defaults to
-                        localhost
-  --hive-server-port HIVE_SERVER_PORT
-                        Hive server port, defaults to 10000
-  --hive-server-username HIVE_SERVER_USERNAME
-                        Hive username, defaults to None
-  --bq-table BQ_TABLE   BigQuery table name
-  --incremental-col INCREMENTAL_COL
-                        Provide the incremental column name if present in the
-                        Hive table
-  --use-clustering {False,True}
-                        Boolean to indicate whether to use clustering in
-                        BigQuery if supported
-  --tracking-database-host TRACKING_DATABASE_HOST
-                        Cloud SQL Tracking database host address,
-                        defaults to localhost
-  --tracking-database-port TRACKING_DATABASE_PORT
-                        Port which you used for running cloud sql proxy,
-                        defaults to 3306
-  --tracking-database-user TRACKING_DATABASE_USER
-                        Cloud SQL Tracking database user name, defaults to
-                        root
+  --config-file CONFIG_FILE
+                        Input configurations JSON file.
 ```
-7. Run [hive_to_bigquery.py](hive_to_bigquery.py).
+9. Run [hive_to_bigquery.py](hive_to_bigquery.py).
  ```
- python hive_to_bigquery.py \
- --hive-server-host <OPTIONAL_HIVE_SERVER_HOSTNAME> \
- --hive-server-port <OPTIONAL_HIVE_SERVER_PORT> \
- --hive-server-username <OPTIONAL_HIVE_SERVER_USER> \
- --hive-database <HIVE_DB_NAME> \
- --hive-table <HIVE_TABLE_NAME> \
- --project-id <GCP_PROJECT_ID> \
- --bq-dataset-id <BQ_DATASET_ID> \
- --bq-table <OPTIONAL_BQ_TABLE_NAME> \
- --bq-table-write-mode [create|append|overwrite] \
- --gcs-bucket-name <GCS_BUCKET_NAME> \
- --incremental-col <OPTIONAL_INCREMENTAL_COLUMN_NAME> \
- --use-clustering [False|True] \
- --tracking-database-host <TRACKING_DATABASE_HOST> \
- --tracking-database-port <OPTIONAL_TRACKING_DATABASE_PORT> \
- --tracking-database-user <OPTIONAL_TRACKING_DATABASE_USER> \
- --tracking-database-db-name <TRACKING_DB_NAME>
+ python3 hive_to_bigquery.py \
+ --config-file <CONFIG_FILE>
 ```
 
 # Test Run
-It is recommended to perform a test run before actually migrating your Hive table. To do so, you can use the [generate_data.py](test/generate_data.py) to randomly generate data (with specified size) and use [create_hive_tables.sql](test/create_hive_tables.sql) to create Hive tables in the default database on the source Hive cluster, both non partitioned and partitioned in different formats.
+It is recommended to perform a test run before actually migrating your Hive 
+table. To do so, you can use the [generate_data.py](test/generate_data.py) to 
+randomly generate data (with specified size) and use 
+[create_hive_tables.sql](test/create_hive_tables.sql) to create Hive tables in 
+the default database on the source Hive cluster, both non partitioned and 
+partitioned in different formats.
 
-Run the command below to generate ~50GB of data.
+On the Hive cluster, run the command below to generate ~1GB of data.
 ```
-python test/generate_data.py 50
+python3 test/generate_data.py --size-in-gb 1
 ```
-Launch script to create Hive tables.
+Run the command below to create Hive tables on the Hive cluster.
 ```
 hive -f tools/create_hive_tables.sql
 ```
-Migrate the created Hive tables by running [hive_to_bigquery.py](hive_to_bigquery.py) with appropriate arguments.
+The config file `test_config.json` can be used to migrate the Hive table
+`text_nonpartitioned` which has an incremental column `int_column`. Replace the 
+other parameters with appropriate values. Run the command below to migrate
+this table.
+```
+python3 hive_to_bigquery.py --config-file test_config.json
+```
