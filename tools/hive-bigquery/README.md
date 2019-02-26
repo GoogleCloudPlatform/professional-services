@@ -60,7 +60,7 @@ gsutil cp password.txt.enc gs://<BUCKET_NAME>/<OBJECT_PATH>
 git clone https://github.com/GoogleCloudPlatform/professional-services.git
 cd professional-services/tools/hive-bigquery/
 ```
-2. Install prerequisites such as python, pip, virtualenv and Cloud SQL proxy.
+2. Install prerequisites such as python3, pip3, virtualenv and Cloud SQL proxy.
 ```
 sudo sh prerequisites/prerequisites.sh
 ```
@@ -68,7 +68,7 @@ sudo sh prerequisites/prerequisites.sh
 ```
 virtualenv env
 source env/bin/activate
-pip install -r prerequisites/requirements.txt
+pip3 install -r prerequisites/requirements.txt
 ```
 4. [optional] Use an existing Cloud SQL MySQL instance for tracking the progress of 
 migration or launch a new one. Run the below command to create an instance.
