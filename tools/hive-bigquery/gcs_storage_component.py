@@ -1,32 +1,46 @@
-"""Module to handle Google Cloud Storage related utilities"""
+# Copyright 2019 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Module to handle Google Cloud Storage related utilities like creating a
+client, uploading/downloading/deleting a file, check whether a file exists etc."""
 
 import logging
 import os
-import sys
 import time
+from uuid import uuid4
 
 from google.api_core import exceptions as api_exceptions
 from google.auth import exceptions as auth_exceptions
 from google.cloud import storage
 
 import custom_exceptions
-from utilities import calculate_time, get_random_string, execute_command, \
-    print_and_log
+from utilities import calculate_time, execute_command
 from gcp_service import GCPService
 
 logger = logging.getLogger('Hive2BigQuery')
 
 
 class GCSStorageComponent(GCPService):
-    """GCS component to handle functions related to it
+    """GCS component to handle functions related to it.
 
     Has utilities which do GCS operations using the GCS client, such as
     uploading file, getting the bucket location, checking whether a file
     exists, copying the staged data to GCS etc.
 
     Attributes:
-        project_id: GCP Project ID
-        client: GCS Client of class google.cloud.storage.client.Client
+        project_id (str): GCP Project ID.
+        client (google.cloud.storage.client.Client): Google Cloud Storage Client.
     """
 
     def __init__(self, project_id):
@@ -35,7 +49,7 @@ class GCSStorageComponent(GCPService):
         super(GCSStorageComponent, self).__init__(project_id, "Cloud Storage")
 
     def get_client(self):
-        """Creates BigQuery client
+        """Creates BigQuery client.
 
         Returns:
             google.cloud.storage.client.Client: GCS client
@@ -45,17 +59,16 @@ class GCSStorageComponent(GCPService):
         try:
             client = storage.Client(project=self.project_id)
             return client
-        except auth_exceptions.DefaultCredentialsError:
-            print_and_log("Error while creating GCS client")
-            raise custom_exceptions.ConnectionError, None, sys.exc_info()[2]
+        except auth_exceptions.DefaultCredentialsError as error:
+            raise custom_exceptions.ConnectionError from error
 
     def upload_file(self, bucket_name, file_name, blob_name):
-        """Uploads local file to GCS bucket
+        """Uploads local file to GCS bucket.
 
         Args:
-            bucket_name (str): GCS bucket name
-            file_name (str): Local file name to be uploaded
-            blob_name (str): Destination path of the object
+            bucket_name (str): GCS bucket name.
+            file_name (str): Local file name to be uploaded.
+            blob_name (str): Destination path of the object.
         """
 
         bucket = self.client.get_bucket(bucket_name)
@@ -64,12 +77,26 @@ class GCSStorageComponent(GCPService):
         uri = 'gs://{}/{}'.format(bucket_name, blob_name)
         return uri
 
-    def delete_file(self, bucket_name, file_name):
-        """Deletes GCS file
+    def download_file_as_string(self, file_path):
+        """Downloads the GCS file contents as a string.
 
         Args:
-            bucket_name (str): GCS bucket name
-            file_name (str): Complete GCS URI of the object or simply path
+            file_path (str): GCS object path.
+        Returns:
+            str: Content of the file.
+        """
+
+        bucket_name, blob_name = file_path.split('gs://')[1].split('/')
+        bucket = self.client.get_bucket(bucket_name)
+        blob = bucket.blob(blob_name)
+        return blob.download_as_string()
+
+    def delete_file(self, bucket_name, file_name):
+        """Deletes GCS file.
+
+        Args:
+            bucket_name (str): GCS bucket name.
+            file_name (str): Complete GCS URI of the object or simply path.
         """
 
         bucket = self.client.get_bucket(bucket_name)
@@ -82,35 +109,36 @@ class GCSStorageComponent(GCPService):
         logger.debug('GCS File %s deleted in %s bucket', blob_name, bucket_name)
 
     def check_bucket_exists(self, bucket_name):
-        """Checks whether GCS bucket exists
+        """Checks whether GCS bucket exists.
 
         Args:
-            bucket_name (str): GCS bucket name
+            bucket_name (str): GCS bucket name.
         """
 
         try:
             self.client.get_bucket(bucket_name)
             return True
-        except api_exceptions.NotFound:
+        except api_exceptions.NotFound as error:
+            logger.exception(error)
             return False
 
     def get_bucket_location(self, bucket_name):
-        """Returns the bucket location
+        """Returns the bucket location.
 
         Args:
-            bucket_name (str): GCS bucket name
+            bucket_name (str): GCS bucket name.
         """
 
         return self.client.get_bucket(bucket_name).location
 
     def check_file_exists(self, bucket_name, gcs_uri):
-        """Checks whether file is present in GCS bucket
+        """Checks whether file is present in GCS bucket.
 
         Args:
-            bucket_name (str): GCS bucket name
-            gcs_uri (str): GCS URI of the file
+            bucket_name (str): GCS bucket name.
+            gcs_uri (str): GCS URI of the file.
         Returns:
-            boolean: True if file exists, False if not
+            boolean: True if file exists, False if not.
         """
 
         bucket = self.client.get_bucket(bucket_name)
@@ -123,7 +151,7 @@ class GCSStorageComponent(GCPService):
 
     def stage_to_gcs(self, mysql_component, bq_component, hive_table_model,
                      bq_table_model, gcs_bucket_name):
-        """Copies staged files to GCS
+        """Copies staged files to GCS.
 
         Queries the tracking table, fetches information about the files to
         copy to GCS, runs a distcp job to copy multiple files, and checks
@@ -133,14 +161,14 @@ class GCSStorageComponent(GCPService):
 
         Args:
             mysql_component (:class:`MySQLComponent`): Instance of
-                MySQLComponent to connect to MySQL
+                MySQLComponent to connect to MySQL.
             bq_component (:class:`BigQueryComponent`): Instance of
-                BigQueryComponent to do BigQuery operations
+                BigQueryComponent to do BigQuery operations.
             hive_table_model (:class:`HiveTableModel`): Wrapper to Hive table
-                details
+                details.
             bq_table_model (:class:`BigQueryTableModel`): Wrapper to BigQuery
-                table details
-            gcs_bucket_name (str): GCS bucket name
+                table details.
+            gcs_bucket_name (str): GCS bucket name.
         """
 
         logger.debug(
@@ -169,7 +197,7 @@ class GCSStorageComponent(GCPService):
 
             target_blob = "BQ_staging/{}/{}/{}/".format(
                 hive_table_model.db_name,
-                hive_table_model.table_name.lower(), get_random_string())
+                hive_table_model.table_name.lower(), str(uuid4()).replace("-","_"))
             # Uploads file to create a folder like structure in GCS
             self.upload_file(gcs_bucket_name, filename, target_blob + filename)
             os.remove(filename)
@@ -182,10 +210,10 @@ class GCSStorageComponent(GCPService):
                 "....", source_locations, target_folder_location)
             # Hadoop distcp command to copy multiple files in one operation
             cmd_copy_gcs = ['hadoop', 'distcp']
-            for value in file_info.itervalues():
+            for value in file_info.values():
                 cmd_copy_gcs.append(value)
             cmd_copy_gcs.append(target_folder_location)
-            print_and_log("Running {}".format(" ".join(cmd_copy_gcs)))
+            logger.info("Running {}".format(" ".join(cmd_copy_gcs)))
 
             start = time.time()
             execute_command(cmd_copy_gcs)
@@ -193,7 +221,7 @@ class GCSStorageComponent(GCPService):
 
             # Iterates though the dict and checks whether the distcp
             # operation is successful or partially completed
-            for file_name, source_location in file_info.iteritems():
+            for file_name, source_location in file_info.items():
                 target_file_location = target_folder_location + file_name
                 # Checks whether the copied file is present at the GCS location
                 if self.check_file_exists(gcs_bucket_name,
