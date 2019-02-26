@@ -55,4 +55,4 @@ function install_cloud_sql_proxy() {
 install_cloud_sql_proxy
 
 # Install virtual environment.
-pip install virtualenv
+pip3 install virtualenv
