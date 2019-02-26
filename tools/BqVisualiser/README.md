@@ -1,24 +1,11 @@
 # BigQuery Visualiser
 
-Visualise BigQuery Queryplans
-
-## Contributing
-The team is currently not accepting contributions.
-
-## License
-See [LICENSE](/LICENSE)
-
-## Disclaimer
-This repository and its contents are not an official Google Product.
-
-## Contact
-Questions, issues, and comments should be directed to
-[professional-services-oss@google.com](mailto:professional-services@google.com).
+This utility provides a web application which can be used to visualise the flow of execution stages within a BigQuery job. This may be useful in identifying problematic stages and provides greater usability for large query plans than the default query plan explanation in the Google Cloud Console.
 
 ## Manual
 
 ### Overview
-BiqQuery Visualiser displays a Bigquery Querplan document. It has two displays:
+BigQuery Visualiser displays a Bigquery Queryplan document. It has two displays:
 
 * Query Tree
 * Task Gant Chart
@@ -27,7 +14,7 @@ BiqQuery Visualiser displays a Bigquery Querplan document. It has two displays:
 BqVisualiser is a single page web app  written in angular. 
 Simply copy the compiled output to a webserver and you are good to go.
 
-### AUTHENTICATION
+### Authentication
 On opening the page, the app will attempt to authenticate you with your Google account. Once done you will be able to access 
 your projects.
 
@@ -44,7 +31,7 @@ Under the card with this title:
 
 * Upload from Computer
 
-Assuming you have previously dopwnloaded the query plan using the 'bq show -j <jobid> command to a local file, 
+Assuming you have previously downloaded the query plan using the `bq show -j <jobid>` command to a local file, 
 click on this card the 'Select File to upload' button, navigate to the file and select it. To start uploading click the
 Upload button.
 
@@ -55,7 +42,7 @@ The Tree tab shows the query plan as a directed graph.
 * DB icons represent BQ tabkes
 * all other icons represent actual query stages (input, compute, aggregate, etc.)
 
-All nodes can be selected.On selection the rhs tabs called 'Stage Details' and 'Step Details' provide in depth information.
+All nodes can be selected. On selection the rhs tabs called 'Stage Details' and 'Step Details' provide in depth information.
 
 At the bottom a number of tabs show overall plan information:
 
@@ -67,9 +54,9 @@ At the bottom a number of tabs show overall plan information:
 * Settings
 
 ### The Timing Tab
-The timing Tab displaus a Gantt style view to quickly show how long the indivudal stages take
+The timing Tab displaus a Gantt style view to quickly show how long the indivudal stages take.
 
 
 ## Known Limits
 
-The application will only display graphs for queries. Load jobs etc do not result in query stages being output
+The application will only display graphs for queries. Load jobs etc do not result in query stages being output.
