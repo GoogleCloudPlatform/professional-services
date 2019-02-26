@@ -1,7 +1,7 @@
 <h2>Introduction</h2>
 
 The purpose of this project is to demonstrate how to automate the process of viewing [Committed Use Discount (CUD)](https://cloud.google.com/compute/docs/instances/signing-up-committed-use-discounts) and [Sustained Use Discount (SUD)](https://cloud.google.com/compute/docs/sustained-use-discounts) charges in GCP on a 
-per-project basis to a BigQuery table. This helps to accurately view project cost, since currently when exporting billing 
+per-project basis in a BigQuery table. This helps to accurately view project cost, since currently when exporting billing 
 data, it does not correctly attribute CUD/SUD commitment charges.
 <br></br>
 Currently, this data can be viewed by running a query in BigQuery on exported billing data and generating a new table with 
@@ -12,6 +12,8 @@ Next, the Cloud Scheduler job then publishes a message to a PubSub topic on exec
 configured as a subscriber to this topic is then triggered by the PubSub message. The Cloud Function then calls a Python 
 script, which performs the transformation query on the billing table and generates the new table with the CUD/SUD commitment 
 charges.
+<br></br>
+The solution adjusts each project's cost by generating new line items in the output table, each of which represent a new SKU for reattribution. The purpose of this SKU is to amend the incorrect original per-project cost. The SKUs that are prefixed with "Reattribution_Negation_" subtract out the incorrect cost from the original billing table. The SKUs prefixed with "Reattribution_Addition_" then add in the newly generated correctly proportioned cost. These SKUs are generated for both CUD and SUD costs/credits.
 
 <h2>Installation/Set-up</h2>
 This project assumes that you already have project set up with billing data exported to BigQuery. Note the billing project id, dataset ids, and the table names, as you will need these later on when configuring the Cloud Function source code.
