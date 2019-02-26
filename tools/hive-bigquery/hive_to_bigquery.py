@@ -326,7 +326,5 @@ if __name__ == '__main__':
     try:
         main()
     except RuntimeError as error:
-        # todo rollback
         logger.exception(error)
         logger.info("Check the log file for detailed errors")
-    # todo check all config files

@@ -205,7 +205,6 @@ class BigQueryComponent(GCPService):
                                 bq_table_model.table_name,
                                 bq_table_model.dataset_id))
             else:
-                # todo check once
                 raise exceptions.NotFound(
                     "Tracking Table {} doesn't exist".format(
                         hive_table_model.tracking_table_name))

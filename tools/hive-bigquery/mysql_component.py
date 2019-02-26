@@ -186,8 +186,6 @@ class MySQLComponent(DatabaseComponent):
         if results:
             hive_table_model.is_first_run = False
             hive_table_model.tracking_table_name = results[0][0]
-            # todo
-            # hive_table_model.is_inc_col_present = results[0][1]
             hive_table_model.inc_col = results[0][2]
             hive_table_model.inc_col_type = results[0][3]
             if hive_table_model.inc_col == 'None':

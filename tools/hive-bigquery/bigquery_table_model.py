@@ -167,7 +167,6 @@ class BigQueryTableModel(object):
                     match_keys.append(key)
                 if key.endswith('__map'):
                     match_keys.append(key)
-            # todo check this
             for key in match_keys:
                 find_string = '__bag__array_element'
                 value = flat_schema[key]
