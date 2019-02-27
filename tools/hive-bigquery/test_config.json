@@ -30,5 +30,5 @@
     "key_ring_id": "KEY_RING_ID",
     "crypto_key_id": "CRYPTO_KEY_ID"
   },
-  "validation_table": false
+  "create_validation_table": false
 }

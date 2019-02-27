@@ -62,7 +62,7 @@ cd professional-services/tools/hive-bigquery/
 ```
 2. Install prerequisites such as python3, pip3, virtualenv and Cloud SQL proxy.
 ```
-sudo sh prerequisites/prerequisites.sh
+sudo bash prerequisites/prerequisites.sh
 ```
 3. Activate the virtual environment.
 ```
@@ -70,8 +70,11 @@ virtualenv env
 source env/bin/activate
 pip3 install -r prerequisites/requirements.txt
 ```
-4. [optional] Use an existing Cloud SQL MySQL instance for tracking the progress of 
-migration or launch a new one. Run the below command to create an instance.
+4.  
+The command below creates a Cloud SQL MySQL database instance and a database for 
+storing the tracking information. If you want to use an existing instance, create the
+required database separately.
+
 Set the root password when the script prompts for it. 
 This will output the connection name of the instance which is of use in the 
 next steps.
@@ -92,7 +95,7 @@ mysql -h 127.0.0.1 -u root -P <PORT> -p
 ```
 7. Create the tracking_table_info metatable in your MySQL database by importing 
 the [prerequisites/tracking_table.sql](prerequisites/tracking_table.sql) file.
-This table contains information about the migrated Hive tables and its properties.
+This table will contain information about the migrated Hive tables and their properties.
 ```
 mysql -h 127.0.0.1 -u root -P <PORT> <DATABASE_NAME> -p < prerequisites/tracking_table.sql
 ```

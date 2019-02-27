@@ -17,19 +17,22 @@ apt-get -h
 if [ $? -eq 0 ]; then
     echo "Package manager is apt"
     apt-get update
-    apt-get install -y git
+    apt-get install -y wget
     apt-get install -y mysql-client
+    apt-get install -y libsasl2-modules libsasl2-dev
     apt-get install -y python3
     apt install -y python3-pip
+
 else
     yum -h
     if [ $? -eq 0 ]; then
         echo "Package manager is yum"
         yum -y update
-        yum install -y git
+        yum install -y wget
         yum install -y mysql
+        yum install -y gcc gcc-c++ cyrus-sasl-devel
         yum install -y python36
-        yum install python36-setuptools
+        yum install -y python36-setuptools
         easy_install-3.6 pip
     else
         echo "Package manager is neither yum nor apt"
@@ -50,9 +53,11 @@ function install_cloud_sql_proxy() {
     || err 'Unable to download cloud-sql-proxy binary'
   mv cloud_sql_proxy.linux.amd64 ${PROXY_BIN}
   chmod +x ${PROXY_BIN}
+  echo "Downloaded Cloud SQL Proxy at the location /usr/local/bin/"
 }
 
 install_cloud_sql_proxy
 
 # Install virtual environment.
 pip3 install virtualenv
+echo "Installed virtualenv"
