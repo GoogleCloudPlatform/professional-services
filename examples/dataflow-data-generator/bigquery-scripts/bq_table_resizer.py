@@ -105,14 +105,11 @@ class BigQueryTableResizer(object):
         else:  # Default to an inplace copy.
             self.dest_table_ref = self.source_table.reference
 
-
         if target_gb:
             target_bytes = target_gb * 1024 ** 3
             increase_pct = target_bytes / self.source_table.num_bytes
-            self.target_rows = max(
-                                   int(self.source_table.num_rows
-                                       * increase_pct),
-                                   self.target_rows)
+            self.target_rows = int(self.source_table.num_rows * increase_pct)
+
         else:
             self.target_rows = target_rows
 
@@ -237,7 +234,7 @@ def parse_data_resizer_args(argv):
                         help='Number of records (rows) desired in the '
                         'destination table', default=10000)
 
-    parser.add_argument('--target_gb', dest='target_gb', required=False,
+    parser.add_argument('--target_gb', dest='target_gb', required=False, type=float,
                         help='Size in GB desired for the destination table',
                         default=None)
 
