@@ -1,8 +1,5 @@
 # auto-compose
 
-[![Travis CI](https://img.shields.io/travis/ajbosco/dag-factory.svg?style=flat-square)](https://travis-ci.com/suchitpuri/auto-compose)
-[![Code Style](https://img.shields.io/badge/code%20style-black-000000.svg?style=flat-square)](https://github.com/ambv/black)
-
 *auto-compose* is a utility for dynamically generating Google cloud managed [Apache Airflow](https://cloud.google.com/composer/) DAGs from YAML configuration files. It is a fork of [*dag-factory*](https://github.com/ajbosco/dag-factory) and uses its logic to parse YAML files and convert them to airflow DAG's.
 
 - [Installation](#installation)
