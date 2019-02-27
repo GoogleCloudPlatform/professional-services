@@ -1,0 +1,24 @@
+<mat-card class="status-card">
+  <mat-card-content class="plan-status">
+    <mat-tab-group [dynamicHeight]="true">
+      <mat-tab label="Overview">
+        <pre>{{ overview }}</pre>
+      </mat-tab>
+      <mat-tab label="Status">
+        <pre>{{ status }}</pre>
+      </mat-tab>
+      <mat-tab label="SQL">
+        <pre>{{ sql }}</pre>
+      </mat-tab>
+      <mat-tab label="Timings">
+        <pre>{{ timings }}</pre>
+      </mat-tab>
+      <mat-tab label="Statistics">
+        <pre>{{ statistics }}</pre>
+      </mat-tab>
+      <mat-tab label="Settings">
+        <pre> {{ settings }}</pre>
+      </mat-tab>
+    </mat-tab-group>
+  </mat-card-content>
+</mat-card>
