@@ -66,7 +66,7 @@ class MySQLComponent(DatabaseComponent):
                                          user=self.user,
                                          password=self.password,
                                          database=self.database,
-                                         port=int(self.port))
+                                         port=self.port)
             return connection
         except pymysql.err.DatabaseError as error:
             raise custom_exceptions.ConnectionError from error
