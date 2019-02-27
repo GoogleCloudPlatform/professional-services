@@ -1,27 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <groupId>com.google.cloud.examples.cryptorealtime</groupId>
     <artifactId>cryptorealtime</artifactId>
     <version>1.0-SNAPSHOT</version>
-
 
     <properties>
         <beam.version>2.8.0</beam.version>
         <bigtable.version>1.5.0</bigtable.version>
         <slf4j.version>1.7.21</slf4j.version>
         <bitrich.xchange-stream.version>4.3.11</bitrich.xchange-stream.version>
-
         <bigtable.table>cryptorealtime</bigtable.table>
         <bigtable.hbase.version>${bigtable.version}</bigtable.hbase.version>
         <maven.compiler.target>1.7</maven.compiler.target>
         <maven.compiler.source>1.7</maven.compiler.source>
         <java.version>1.7</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
     </properties>
 
     <repositories>
@@ -36,7 +32,6 @@
             </snapshots>
         </repository>
     </repositories>
-
 
     <dependencies>
         <!--Exchanges dependencies  START -->
@@ -86,7 +81,6 @@
             <artifactId>xchange-bitmex</artifactId>
             <version>${bitrich.xchange-stream.version}</version>
         </dependency>
-
 
 
         <dependency>
@@ -148,8 +142,6 @@
             <artifactId>slf4j-simple</artifactId>
             <version>${slf4j.version}</version>
         </dependency>
-
-
     </dependencies>
 
     <build>

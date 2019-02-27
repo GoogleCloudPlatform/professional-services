@@ -1,33 +1,31 @@
 #Terraform template
 
-###Get the BTC-USD realtime periscope multi exchange observer running  in less then 10 minutes
+###Get the BTC-USD realtime periscope multi exchange observer running  in less than 10 minutes
 
-![Alt Text](crypto.gif)
+![Architectural overview](crypto.gif)
 
 
-###Requirements:
-- Terraform v0.11.11 
+###Terraform version used in this tutorial: v0.11.11 
+
+###Providers used:
 - provider.google v1.20.0
-- git
 
 
 ###Setup:
 - Open the Terraform Shell and clone the project
 ```console 
-git clone https://github.com/galic1987/professional-services/ 
+git clone https://github.com/GoogleCloudPlatform/professional-services
 cd professional-services/examples/cryptorealtime/terraform-setup/
 ```
 
-- Fill out the terraform.tfvars configuration
+- Fill out the [terraform.tfvars](terraform-setup/terraform.tfvars) configuration
 ```console 
  vim terraform.tfvars 
  ```
 
-- Check everything is working 
+- Check that everything is working 
 ```console 
 terraform init
-```
-```console 
 terraform apply 
 ```
 (ignore api enablement errors and/or rerun)
@@ -38,14 +36,13 @@ terraform apply
 - SSH into the VM that was [created](https://console.cloud.google.com/compute/instances)
 ```console 
 sudo -s 
-cd ~
-cd professional-services/examples/cryptorealtime/
+cd ~/professional-services/examples/cryptorealtime/
 ```
 
 
 - Verify the variables from terraform are in place:
 ```console 
-echo "PROJECT_ID" $PROJECT_ID  "REGION" $REGION "ZONE" $ZONE "BUCKET_NAME" $BUCKET_NAME "BUCKET_FOLDER" $BUCKET_FOLDER "BIGTABLE_INSTANCE_NAME" $BIGTABLE_INSTANCE_NAME "BIGTABLE_TABLE_NAME" $BIGTABLE_TABLE_NAME "BIGTABLE_FAMILY_NAME" $BIGTABLE_FAMILY_NAME > verify.txt
+echo "PROJECT_ID" $PROJECT_ID  "REGION" $REGION "ZONE" $ZONE "BUCKET_NAME" $BUCKET_NAME "BUCKET_FOLDER" $BUCKET_FOLDER "BIGTABLE_INSTANCE_NAME" $BIGTABLE_INSTANCE_NAME "BIGTABLE_TABLE_NAME" $BIGTABLE_TABLE_NAME "BIGTABLE_FAMILY_NAME" $BIGTABLE_FAMILY_NAME 
 ```
 
 ```console 
@@ -56,7 +53,7 @@ cat verify.txt
 ```console 
 ./run.sh ${PROJECT_ID} ${BIGTABLE_INSTANCE_NAME} ${BUCKET_NAME}${BUCKET_FOLDER} ${BIGTABLE_TABLE_NAME} $BIGTABLE_FAMILY_NAME
 ``` 
-- Ignore any java.lang.IllegalThreadStateException
+- Ignore any *java.lang.IllegalThreadStateException*
 
 
 - Go to frontend script and run the frontend flask server and data visualisation
@@ -70,7 +67,7 @@ python app.py ${PROJECT_ID} ${BIGTABLE_INSTANCE_NAME} ${BIGTABLE_TABLE_NAME} ${B
 
 **Cleanup:**
 - Navigate to the Terraform shell
-- We have to delete the bigtable instances manually because there is a bug in the current Terraform provider
+- We have to delete the Cloud Bigtable instances manually because there is a bug in the current Terraform provider
 ```console 
 gcloud bigtable instances delete cryptobackend-bigtable
 terraform state rm google_bigtable_instance.instance

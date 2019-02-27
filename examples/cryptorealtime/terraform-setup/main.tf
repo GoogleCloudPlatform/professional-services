@@ -1,110 +1,96 @@
+/**
+ * Ivo Galic https://github.com/galic1987
+ * <p/>
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+
 provider "google" {
- region = "${var.region}"
- credentials = "${file("${var.credsfile}")}"
- project="${var.project_id}"
+  region = "${var.region}"
+  credentials = "${file("${var.credsfile}")}"
+  project = "${var.project_id}"
 }
 
 
-/*
-resource "google_project_service" "iamapi" {
-  project ="${var.project_id}"
-  service ="iam.googleapis.com"
-  disable_on_destroy = false
-
-}
-
-resource "google_project_service" "bigtableapi" {
-    project ="${var.project_id}"
-    service ="bigtableadmin.googleapis.com"
-    disable_on_destroy = false
-}
-
-resource "google_project_service" "computeapi" {
-    project ="${var.project_id}"
-    service ="compute.googleapis.com"
-    disable_on_destroy = false
-}
-
-resource "google_project_service" "dataflowapi" {
-    project ="${var.project_id}"
-    service ="dataflow.googleapis.com"
-    disable_on_destroy = false
-}
-
-resource "google_project_service" "storageapi" {
-    project ="${var.project_id}"
-    service ="storage.googleapis.com"
-    disable_on_destroy = false
-}
-
-
-*/
 resource "google_bigtable_instance" "instance" {
   project = "${var.project_id}"
-  name         = "${var.bigtable_instance_name}"
+  name = "${var.bigtable_instance_name}"
   instance_type = "PRODUCTION"
   cluster {
-    cluster_id   = "${var.bigtable_instance_name}-cluster"
+    cluster_id = "${var.bigtable_instance_name}-cluster"
     zone = "${var.zone}"
-    num_nodes    = 1
+    num_nodes = 1
     storage_type = "HDD"
   }
 }
 
- 
+
 resource "google_compute_instance" "default" {
- project = "${var.project_id}"
- zone = "${var.zone}"
- name = "tf-compute-1"
- machine_type = "n1-standard-1"
- boot_disk {
-   initialize_params {
-     image = "debian-9-stretch-v20181210"
-	 size = "20"
-   }
- }
- 
- //metadata_startup_script = "${file("${path.module}/startup.sh")}"
+  project = "${var.project_id}"
+  zone = "${var.zone}"
+  name = "tf-compute-1"
+  machine_type = "n1-standard-1"
+  boot_disk {
+    initialize_params {
+      image = "debian-9-stretch-v20181210"
+      size = "20"
+    }
+  }
+
   metadata_startup_script = "${data.template_cloudinit_config.config.rendered}"
 
   network_interface {
-   network = "default"
-   access_config {
-   }
- }
+    network = "default"
+    access_config {
+    }
+  }
 
   service_account {
-    scopes = ["cloud-platform"]
+    scopes = [
+      "cloud-platform"]
     email = "${google_service_account.vmaccess.email}"
   }
-  
-  // Apply the firewall rule to allow external IPs to access this instance
-  tags = ["http-server"]
-  
 
-  /*provisioner "remote-exec" {
-    inline = [
-      "sudo apt-get update",
-      "sudo apt-get install openjdk-8-jdk git maven -y",
-      "echo 'Execution finished ${google_service_account.vmaccess.email}'  > /test.txt",
-    ]
-  }*/
+  // Apply the firewall rule to allow external IPs to access this instance
+  tags = [
+    "http-server"]
+
+
 }
 
 
 resource "google_compute_firewall" "http-server" {
   project = "${var.project_id}"
-  name    = "default-allow-http"
+  name = "default-allow-http"
   network = "default"
 
   allow {
     protocol = "tcp"
-    ports    = ["80","5000"]
+    ports = [
+      "80",
+      "5000"]
   }
 
   // Allow traffic from everywhere to instances with an http-server tag
-  source_ranges = ["0.0.0.0/0"]
-  target_tags   = ["http-server"]
+  source_ranges = [
+    "0.0.0.0/0"]
+  target_tags = [
+    "http-server"]
 }
 
 output "ip" {
@@ -112,9 +98,8 @@ output "ip" {
 }
 
 
-
 resource "google_storage_bucket" "cryptorealtime-demo-staging" {
-  name     = "${var.bucket_name}"
+  name = "${var.bucket_name}"
   location = "US"
   force_destroy = true
 }
@@ -137,16 +122,13 @@ data "template_file" "init" {
 # Render a multi-part cloud-init config making use of the part
 # above, and other source files
 data "template_cloudinit_config" "config" {
-  gzip          = false
+  gzip = false
   base64_encode = false
 
   part {
-    filename     = "script-rendered.sh"
+    filename = "script-rendered.sh"
     content_type = "text/x-shellscript"
-    content      = "${data.template_file.init.rendered}"
+    content = "${data.template_file.init.rendered}"
   }
 
 }
-
-
-

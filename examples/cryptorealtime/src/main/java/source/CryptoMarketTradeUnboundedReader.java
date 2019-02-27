@@ -21,7 +21,6 @@
 
 package source;
 
-
 import data.TradeLoad;
 import info.bitrich.xchangestream.core.StreamingExchange;
 import info.bitrich.xchangestream.core.StreamingExchangeFactory;
@@ -43,11 +42,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  * A given UnboundedReader object will only be accessed by a single thread at once.
  */
 
-
 public class CryptoMarketTradeUnboundedReader extends UnboundedSource.UnboundedReader<TradeLoad>{
-
-
-
 
     private static final Logger LOG = LoggerFactory.getLogger(CryptoMarketTradeUnboundedReader.class);
 
@@ -105,7 +100,6 @@ public class CryptoMarketTradeUnboundedReader extends UnboundedSource.UnboundedR
         this.exchangeNameShort =  exchangeNameShort;
     }
 
-
     /**
      *
      * Initializes the reader and advances the reader to the first record. If the reader has been restored from a checkpoint then it should advance to the next unread record at the point the checkpoint was taken.
@@ -138,8 +132,7 @@ public class CryptoMarketTradeUnboundedReader extends UnboundedSource.UnboundedR
         // signal next batch
         return advance();
     }
-
-
+    
     /**
      * Advances the reader to the next valid record.
      * Returns true if a record was read, false if there is no more input available. Future calls to advance() may return true once more data is available.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Google Inc.
+ * Ivo Galic https://github.com/galic1987
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,35 +15,34 @@
  */
 
 resource "google_service_account" "vmaccess" {
-  project="${var.project_id}"
-  account_id   = "vmaccess"
+  project = "${var.project_id}"
+  account_id = "vmaccess"
   display_name = "My Tutorial VM access"
 }
 
 resource "google_project_iam_member" "bigtable_role" {
-  project="${var.project_id}"
-  role    = "roles/bigtable.admin"
-  member  = "serviceAccount:${google_service_account.vmaccess.email}"
+  project = "${var.project_id}"
+  role = "roles/bigtable.admin"
+  member = "serviceAccount:${google_service_account.vmaccess.email}"
 }
 
 resource "google_project_iam_member" "dataflow_role" {
-  project="${var.project_id}"
-  role    = "roles/dataflow.admin"
-  member  = "serviceAccount:${google_service_account.vmaccess.email}"
+  project = "${var.project_id}"
+  role = "roles/dataflow.admin"
+  member = "serviceAccount:${google_service_account.vmaccess.email}"
 }
 
 resource "google_project_iam_member" "storage_role" {
-  project="${var.project_id}"
-  role    = "roles/storage.admin"
-  member  = "serviceAccount:${google_service_account.vmaccess.email}"
+  project = "${var.project_id}"
+  role = "roles/storage.admin"
+  member = "serviceAccount:${google_service_account.vmaccess.email}"
 }
 
 resource "google_project_iam_member" "compute_role" {
-  project="${var.project_id}"
-  role    = "roles/compute.admin"
-  member  = "serviceAccount:${google_service_account.vmaccess.email}"
+  project = "${var.project_id}"
+  role = "roles/compute.admin"
+  member = "serviceAccount:${google_service_account.vmaccess.email}"
 }
-
 
 
 output "vmaccess service account" {

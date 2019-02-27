@@ -6,26 +6,25 @@ The last year has been like a rollercoaster for the cryptocurrency market. At th
 
 In this tutorial we will graph the trades, volume and time delta from trade execution until it reaches our system (an indicator of how near real-time we get the data).
 
-The goal of the tutorial - realtime periscope multi exchange BTC/USD observer
 
-![Alt Text](crypto.gif)
+![realtime multi exchange BTC/USD observer](crypto.gif)
 
 [Consider reading the Medium article](https://medium.com/@igalic/bigtable-beam-dataflow-cryptocurrencies-gcp-terraform-java-maven-4e7873811e86)
 
-[Terraform - get this up and running in less then 5 minutes](https://github.com/galic1987/professional-services/blob/master/examples/cryptorealtime/TERRAFORM-README.md)
+[Terraform - get this up and running in less than 5 minutes](https://github.com/galic1987/professional-services/blob/master/examples/cryptorealtime/TERRAFORM-README.md)
 
 ## Architecture 
-![Alt Text](https://i.ibb.co/dMc9bMz/Screen-Shot-2019-02-11-at-4-56-29-PM.png)
+![Cryptorealtime Cloud Architecture overview](https://i.ibb.co/dMc9bMz/Screen-Shot-2019-02-11-at-4-56-29-PM.png)
 
 ## Frontend  
-![Alt Text](https://i.ibb.co/2S28KYq/Screen-Shot-2019-02-12-at-2-53-41-PM.png)
+![Cryptorealtime Cloud Fronted overview](https://i.ibb.co/2S28KYq/Screen-Shot-2019-02-12-at-2-53-41-PM.png)
 
 ## Costs
 This tutorial uses billable components of GCP, including:
-- Dataflow
-- Compute Engine
+- Cloud Dataflow
+- Cloud Compute Engine
 - Google Cloud Storage
-- BigTable
+- Cloud Bigtable
 
 We recommend to clean up the project after finishing this tutorial to avoid costs. Use the [Pricing Calculator](https://cloud.google.com/products/calculator/) to generate a cost estimate based on your projected usage.
 
@@ -34,46 +33,43 @@ We recommend to clean up the project after finishing this tutorial to avoid cost
   * Log into the console, and activate a cloud console session
   * Create a new VM
 ```console
- gcloud beta compute instances create crypto-driver \
---zone=us-central1-a \
---machine-type=n1-standard-1 \
---subnet=default \
---network-tier=PREMIUM \
---maintenance-policy=MIGRATE \
---service-account=$(gcloud iam service-accounts list --format='value(email)' --filter="compute") \
---scopes=https://www.googleapis.com/auth/cloud-platform \
---image=debian-9-stretch-v20181210 \
---image-project=debian-cloud \
---boot-disk-size=20GB \
---boot-disk-type=pd-standard \
---boot-disk-device-name=crypto-driver
+gcloud beta compute instances create crypto-driver \
+  --zone=us-central1-a \
+  --machine-type=n1-standard-1 \
+  --service-account=$(gcloud iam service-accounts list --format='value(email)' --filter="compute") \
+  --scopes=https://www.googleapis.com/auth/cloud-platform \
+  --image=debian-9-stretch-v20181210 \
+  --image-project=debian-cloud \
+  --boot-disk-size=20GB \
+  --boot-disk-device-name=crypto-driver
 ```
 
 
-  * SSH into that VM
-  
-  * Installing necessary tools like java, git, maven, pip, python 2.7 and cloud bigtable command line tool cbt using the following command:
+  * SSH into that VM 
+
 ```console
-sudo apt-get install openjdk-8-jdk git maven -y
-sudo apt-get install google-cloud-sdk-cbt -y
-sudo apt install python2.7 python-pip -y
+gcloud compute ssh --zone=us-central1-a crypto-driver
+```
+  
+  * Installing necessary tools like java, git, maven, pip, python 2.7 and Cloud Bigtable command line tool cbt using the following command:
+```console
+apt -y install python2.7 python-pip openjdk-8-jdk git maven google-cloud-sdk-cbt
 ```
 
-### Create a Bigtable instance 
+### Create a Cloud Bigtable instance 
 ```console
 export PROJECT=$(gcloud info --format='value(config.project)')
 export ZONE=$(curl "http://metadata.google.internal/computeMetadata/v1/instance/zone" -H "Metadata-Flavor: Google"|cut -d/ -f4)
 gcloud services enable bigtable.googleapis.com \
 bigtableadmin.googleapis.com \
-dataflow.googleapis.com \
---project=${PROJECT}
+dataflow.googleapis.com 
 
 gcloud bigtable instances create cryptorealtime \
-    --cluster=cryptorealtime-c1 \
-    --cluster-zone=${ZONE} \
-    --display-name=cryptorealtime \
-    --cluster-storage-type=HDD \
-    --instance-type=DEVELOPMENT
+  --cluster=cryptorealtime-c1 \
+  --cluster-zone=${ZONE} \
+  --display-name=cryptorealtime \
+  --cluster-storage-type=HDD \
+  --instance-type=DEVELOPMENT
 cbt -instance=cryptorealtime createtable cryptorealtime families=market
 ```
 
@@ -84,7 +80,7 @@ gsutil mb -p ${PROJECT} gs://realtimecrypto-${PROJECT}
 
 ### Create firewall for visualization server on port 5000
 ```console 
-gcloud compute --project=${PROJECT} firewall-rules create crypto-dashboard --direction=INGRESS --priority=1000 --network=default --action=ALLOW --rules=tcp:5000 --source-ranges=0.0.0.0/0 --target-tags=crypto-console --description="Open port 5000 for crypto visualization tutorial"
+gcloud compute firewall-rules create crypto-dashboard --action=ALLOW --rules=tcp:5000 --source-ranges=0.0.0.0/0 --target-tags=crypto-console --description="Open port 5000 for crypto visualization tutorial"
   
 gcloud compute instances add-tags crypto-driver --tags="crypto-console" --zone=${ZONE}
 ```
@@ -92,7 +88,7 @@ gcloud compute instances add-tags crypto-driver --tags="crypto-console" --zone=$
 
 ### Clone the repo
 ```console 
-git clone https://github.com/galic1987/professional-services
+git clone https://github.com/GoogleCloudPlatform/professional-services
 ```
 
 ### Build the pipeline
@@ -126,8 +122,8 @@ You should be able to see the visualization of aggregated BTC/USD pair on severa
 ```console 
 gcloud dataflow jobs cancel \
 $(gcloud dataflow jobs list \
---format='value(id)' \
---filter="name:runthepipeline*")
+  --format='value(id)' \
+  --filter="name:runthepipeline*")
 ```
 
 * Empty and Delete the bucket:
@@ -136,20 +132,15 @@ gsutil -m rm -r gs://realtimecrypto-${PROJECT}/*
 gsutil rb gs://realtimecrypto-${PROJECT}
 ```
 
-* Delete the Bigtable instance:
+* Delete the Cloud Bigtable instance:
 ```console 
 gcloud bigtable instances delete cryptorealtime
 ```
 
-* Exit the VM and delete it from the console.
-
-
-# Problems?
--bash: ./run.sh: Permission denied - give run.sh exec permission
+* Exit the VM and delete it.
 ```console 
-chmod a+x run.sh 
+gcloud compute instances delete crypto-driver --delete-disks
 ```
-
 
 1. View the status of your Dataflow job in the Cloud Dataflow console
 
