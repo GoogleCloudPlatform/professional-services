@@ -21,7 +21,6 @@ from google.api_core.retry import Retry
 from bq_table_resizer import BigQueryTableResizer
 
 
-
 class TestBigQueryTableResizer(unittest.TestCase):
     """
     This is an integration test to show that the logic in the
@@ -30,8 +29,10 @@ class TestBigQueryTableResizer(unittest.TestCase):
         This script will create a BigQuery Dataset and table to perform it's
         test. These resources will be deleted upon completion of the test script
         but you will be charged for them.
-        This script is stored in professional-services/data-analytics/dataflow-python-examples/tests
-        but should be copied to professional-services/data-analytics/dataflow-python-examples/ and
+        This script is stored in
+        professional-services/data-analytics/dataflow-python-examples/tests
+        but should be copied to p
+        rofessional-services/data-analytics/dataflow-python-examples/ and
         run from there.
     """
 
@@ -52,27 +53,32 @@ class TestBigQueryTableResizer(unittest.TestCase):
         )
 
         self.destination_table_id = 'destination_table'
-        self.destination_table_ref = self.client.dataset(self.test_dataset_id).table(
-            self.destination_table_id
-        )
+        self.destination_table_ref = \
+            self.client.dataset(self.test_dataset_id).table(
+                self.destination_table_id
+            )
 
         self.client.copy_table(public_table_ref, self.source_table_ref)
 
-        self.resizer_by_row = BigQueryTableResizer(project=self.client.project,
-                                                   source_dataset=self.test_dataset_id,
-                                                   destination_dataset=self.test_dataset_id,
-                                                   source_table='source_table',
-                                                   destination_table=self.destination_table_id,
-                                                   target_rows=500000,
-                                                   location='US')
+        self.resizer_by_row = BigQueryTableResizer(
+            project=self.client.project,
+            source_dataset=self.test_dataset_id,
+            destination_dataset=self.test_dataset_id,
+            source_table='source_table',
+            destination_table=self.destination_table_id,
+            target_rows=500000,
+            location='US'
+        )
 
-        self.resizer_by_gb = BigQueryTableResizer(project=self.client.project,
-                                                  source_dataset=self.test_dataset_id,
-                                                  destination_dataset=self.test_dataset_id,
-                                                  source_table='source_table',
-                                                  destination_table=self.destination_table_id,
-                                                  target_gb=.05,
-                                                  location='US')
+        self.resizer_by_gb = BigQueryTableResizer(
+            project=self.client.project,
+            source_dataset=self.test_dataset_id,
+            destination_dataset=self.test_dataset_id,
+            source_table='source_table',
+            destination_table=self.destination_table_id,
+            target_gb=.05,
+            location='US'
+        )
         logging.basicConfig(level=logging.INFO)
 
     def test_bq_table_resizer_by_row_number(self):
