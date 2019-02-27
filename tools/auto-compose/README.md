@@ -122,6 +122,10 @@ And this DAG will be generated and ready to run in Airflow!
 
 ![screenshot](img/example_dag_2.png)
 
+## Testing
+To run the tests do `docker run -it -v <absolute path till auto-compose dir>:/src2/ auto-compose-test pytest /src2/tests`
+or make sure allt he dependencies are installed and then run `make test`
+
 ## Benefits
 
 * Construct DAGs without knowing Python
