@@ -1,0 +1,14 @@
+language: python
+python:
+  - "3.6"
+env:
+  global:
+    - SLUGIFY_USES_TEXT_UNIDECODE=yes
+install:
+  - "pip install pipenv --upgrade-strategy=only-if-needed"
+  - "pipenv install --dev"
+  - "pip install coveralls"
+script:
+  - "pipenv run pytest --cov=dagfactory tests -p no:warnings --verbose --color=yes"
+after_success:
+- coveralls
