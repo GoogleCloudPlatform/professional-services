@@ -121,9 +121,9 @@ The best part is that currently you can use any of the following operators in YA
 
 And this DAG will be generated and ready to run in Airflow!
 
-![screenshot](/img/example_dag.png)
+![screenshot](img/example_dag.png)
 
-![screenshot](/img/example_dag_2.png)
+![screenshot](img/example_dag_2.png)
 
 ## Benefits
 
