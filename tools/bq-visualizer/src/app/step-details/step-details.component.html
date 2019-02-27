@@ -1,0 +1,24 @@
+<div class="card">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Step Details</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <table>
+        <tbody>
+          <div *ngFor="let row of steps">
+            <tr>
+              <td class="kind">{{ row.kind }}</td>
+            </tr>
+            <div *ngFor="let detail of row.substeps">
+              <tr class="substep">
+                <td>{{ detail }}</td>
+                <td></td>
+              </tr>
+            </div>
+          </div>
+        </tbody>
+      </table>
+    </mat-card-content>
+  </mat-card>
+</div>
