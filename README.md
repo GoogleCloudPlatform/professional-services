@@ -33,6 +33,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 ## Tools
 The tools folder contains ready-made utilities which can simpilfy Google Cloud Platform usage.
 
+* [Auto Compose](tools/auto-compose) - *auto-compose* is a utility for dynamically generating Google cloud managed [Apache Airflow](https://cloud.google.com/composer/) DAGs from YAML configuration files. It is a fork of [*dag-factory*](https://github.com/ajbosco/dag-factory) and uses its logic to parse YAML files and convert them to airflow DAG's
 * [AssetInventory](tools/asset-inventory) - Import Cloud Asset Inventory resourcs into BigQuery.
 * [BigQuery Discount Per-Project Attribution](tools/kunskap) - A tool that automates the generation of a BigQuery table that uses existing exported billing data, by attributing both CUD and SUD charges on a per-project basis.
 * [BigQuery Visualizer](tools/bq-visualizer) - A web application which provides the ability to visualise the execution stages of BigQuery query plans to aid in the optimization of queries.
