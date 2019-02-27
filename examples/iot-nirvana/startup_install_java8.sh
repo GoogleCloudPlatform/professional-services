@@ -16,5 +16,5 @@
 ### * the License.
 ### */
 
-apt-get update && apt-get install -y default-jre
-poweroff
+sudo apt-get update && sudo apt-get install -y default-jre
+sudo poweroff
