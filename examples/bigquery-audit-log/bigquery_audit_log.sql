@@ -100,9 +100,9 @@ SELECT
   runtimeSecs,
   tableCopy, /* This code queries data specific to the Copy operation */
   CONCAT(tableCopy.destinationTable.datasetId, '.', tableCopy.destinationTable.tableId)
-    AS tableCopy_destinationTable_relativePath,
+    AS tableCopyDestinationTableRelativePath,
   CONCAT(tableCopy.destinationTable.projectId, '.', tableCopy.destinationTable.datasetId, '.',
-    tableCopy.destinationTable.tableId) AS tableCopy_destinationTable_absolutePath,
+    tableCopy.destinationTable.tableId) AS tableCopyDestinationTableAbsolutePath,
   IF(eventName = 'table_copy_job_completed', 1, 0) AS numCopies, /* This code queries data specific to the Copy operation */
   /* The following code queries data specific to the Load operation in BQ */
   totalLoadOutputBytes,
@@ -172,9 +172,9 @@ SELECT
   ((totalBilledBytes / 1000000000) / 1000) * 5 AS estimatedCostUsd,
   billingTier,
   query,
-  CONCAT(query.destinationTable.datasetId, '.', query.destinationTable.tableId) AS query_destinationTable_relativePath,
+  CONCAT(query.destinationTable.datasetId, '.', query.destinationTable.tableId) AS queryDestinationTableRelativePath,
   CONCAT(query.destinationTable.projectId, '.', query.destinationTable.datasetId, '.',
-    query.destinationTable.tableId) AS query_destinationTable_absolutePath,
+    query.destinationTable.tableId) AS queryDestinationTableAbsolutePath,
   referencedTables,
   referencedViews,
   IF(eventName = 'query_job_completed', 1, 0) AS queries
