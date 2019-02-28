@@ -29,14 +29,14 @@ import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions
 
 from data_generator.PrettyDataGenerator import DataGenerator, FakeRowGen, \
-
-    parse_data_generator_args, validate_data_args, fetch_schema,\
-    write_n_line_file_to_gcs
+parse_data_generator_args, validate_data_args, fetch_schema,\
+write_n_line_file_to_gcs
 import avro.schema
 import os
 
 from data_generator.CsvUtil import dict_to_csv
 from data_generator.AvroUtil import fix_record_for_avro
+from data_generator.ParquetUtil import get_pyarrow_translated_schema
 from data_generator.enforce_primary_keys import EnforcePrimaryKeys
 
 def run(argv=None):
@@ -114,7 +114,7 @@ def run(argv=None):
 
         (rows
             # Need to convert time stamps from strings to timestamp-micros
-            | 'Fix date and time Types for Avro.' >> beam.FlatMap(lambda row: 
+            | 'Fix date and time Types for Avro.' >> beam.FlatMap(lambda row:
                 fix_record_for_avro(row, avsc))
             | 'Write to Avro.' >> beam.io.avroio.WriteToAvro(
                     file_path_prefix=data_args.output_prefix,
@@ -122,6 +122,19 @@ def run(argv=None):
                     file_name_suffix='.avro',
                     use_fastavro=True,
                     schema=avsc
+                )
+        )
+
+    if data_args.write_to_parquet:
+        with open(data_args.schema_file, 'r') as infile:
+            str_schema = json.load(infile)
+        pa_schema = get_pyarrow_translated_schema(str_schema)
+        (rows
+            | 'Write to Parquet.' >> beam.io.WriteToParquet(
+                    file_path_prefix=data_args.output_prefix,
+                    codec='null',
+                    file_name_suffix='.parquet',
+                    schema=pa_schema
                 )
         )
 
