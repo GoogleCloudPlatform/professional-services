@@ -1,5 +1,5 @@
 /**
- * Ivo Galic https://github.com/galic1987
+ * Copyright 2019 Google
  * <p/>
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
