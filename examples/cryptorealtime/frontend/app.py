@@ -78,22 +78,21 @@ def query_data():
     trades_values_numpy = defaultdict(callable_defaultdict_list)
     trades_timestamp_values_numpy = defaultdict(callable_defaultdict_list)
     endbigtabletime = time.time()
-    print("Done Retrieving from BigTable in ")
-    print(endbigtabletime - starttime)
+    print("Done retrieving from Bigtable in %d" % endbigtabletime - starttime)
 
     # SAMPLING
-    SAMPLE_SIZE = 5000
+    sample_size = 5000
     for trades, columns in trades_values.items():
         for column_name, values in columns.items():
             trades_values_numpy[trades][column_name] = np.array(values)[::max(
-                len(values) / SAMPLE_SIZE, 1)]
+                len(values) / sample_size, 1)]
     for trades, columns in trades_timestamps.items():
         for column_name, values in columns.items():
             trades_timestamp_values_numpy[trades][column_name] = np.array(
-                values)[::max(len(values) / SAMPLE_SIZE, 1)]
+                values)[::max(len(values) / sample_size, 1)]
     endsamplingtime = time.time()
-    print("Done Sampling in ")
-    print(endsamplingtime - endbigtabletime)
+    print("Done Sampling in %d" % endsamplingtime - endbigtabletime)
+
     return trades_values_numpy, trades_timestamp_values_numpy
 
 
