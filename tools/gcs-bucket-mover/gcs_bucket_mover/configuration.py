@@ -36,7 +36,7 @@ class Configuration(object):
     target_project = attrib()
     bucket_name = attrib()
     temp_bucket_name = attrib()
-    use_bucket_lock = attrib()
+    disable_bucket_lock = attrib()
     lock_file_name = attrib()
 
     @classmethod
@@ -70,5 +70,5 @@ class Configuration(object):
             target_project=conf.target_project,
             bucket_name=conf.bucket_name,
             temp_bucket_name=temp_bucket_name,
-            use_bucket_lock=conf.useBucketLock,
+            disable_bucket_lock=conf.disableBucketLock,
             lock_file_name=conf.lock_file_name)

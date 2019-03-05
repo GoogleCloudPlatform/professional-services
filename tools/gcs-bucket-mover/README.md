@@ -1,62 +1,84 @@
 # GCS Bucket Mover Tool
 
-Currently there is no built in way to move a GCS bucket and all objects from one project to another. The manual process is:
+Currently there is no built in way to move a GCS bucket and all objects from one project to another.
+The manual process is:
 1. Note down all settings related to the source bucket
 1. Create a temporary bucket in the target project
-1. Create a Storage Transfer Service (STS) job to move all objects from the source bucket to the temporary bucket
+1. Create a Storage Transfer Service (STS) job to move all objects from the source bucket to the
+temporary bucket
 1. Delete the source bucket
 1. Immediately re-create the bucket in the target project
-1. Create an STS job to move all objects from the temporary bucket to the new source bucket in the target project
+1. Create an STS job to move all objects from the temporary bucket to the new source bucket in the
+target project
 1. Delete the temporary bucket
 1. Re-apply all bucket settings from the source bucket
 
-This tool is designed to automatically perform these steps to make a bucket move as seamless as possible.
+This tool is designed to automatically perform these steps to make a bucket move as seamless as
+possible.
 
 ## Limitations
 
-* **NO** object level settings are handled with this tool. The Storage Transfer Service does the object copying, so only settings it copies are supported.
-* Any website settings for a bucket are not copied. These must be manually noted before running the tool as the source bucket will be deleted.
+* **NO** object level settings are handled with this tool. The Storage Transfer Service does the
+object copying, so only settings it copies are supported.
+* Any website settings for a bucket are not copied. These must be manually noted before running the
+tool as the source bucket will be deleted.
 * Object Change Notification settings for a bucket are not copied.
-* Custom IAM roles cannot be copied across projects due to security reasons, so if the source bucket has one applied to it and the user has chosen to copy over IAM policies, the tool will throw an error.
-* IAM policies at the source project level or higher that affect source bucket access will not be copied to the target project.
+* Custom IAM roles cannot be copied across projects due to security reasons, so if the source bucket
+has one applied to it and the user has chosen to copy over IAM policies, the tool will throw an
+error.
+* IAM policies at the source project level or higher that affect source bucket access will not be
+copied to the target project.
 
 ## Bucket Settings That Are Copied
 
-The tool will attempt to copy all of the following settings from the source bucket to the target bucket:
+The tool will attempt to copy all of the following settings from the source bucket to the target
+bucket:
 * **Storage Class** - The target bucket will have the same storage class
 * **Location** - The target bucket will have the same location
 * **IAM Policies** - All roles/members are copied (custom roles are not supported)
 * **ACL Entities** - All bucket level ACL entities are copied
 * **Default Object ACL** - If a bucket has default ACLs for objects, these entities are copied
-* **Requester Pays** - This setting is copied, although it can cause issues if requests are then made without a user project specified
+* **Requester Pays** - This setting is copied, although it can cause issues if requests are then
+made without a user project specified
 * **CORS** - All CORS settings are copied
-* **Default KMS Key** - If the bucket contains a custom cloud KMS key, **it is assumed this key is in the source project** and the tool will attempt to give the target project service account Encrypter/Decrypter permissions to that key
+* **Default KMS Key** - If the bucket contains a custom cloud KMS key, **it is assumed this key is
+in the source project** and the tool will attempt to give the target project service account
+Encrypter/Decrypter permissions to that key
 * **Labels** - All labels are copied
 * **Lifecycle Rules** - All lifecycle rules are copied
 * **Logging** - Bucket logging is copied
 * **Versioning** - This setting is copied
-* **Notifications** - Any Cloud Pub/Sub notifications are copied along with assigning the required permissions for the target project
+* **Notifications** - Any Cloud Pub/Sub notifications are copied along with assigning the required
+permissions for the target project
 
-Individual settings can be ignored by adding the associated command line option (or adding it to the config file). Alternatively the -se (--skipEverything) option can be passed so no settings other than storage class and location are copied.
+Individual settings can be ignored by adding the associated command line option (or adding it to the
+config file). Alternatively the -se (--skipEverything) option can be passed so no settings other
+than storage class and location are copied.
 
 ## Options
 
-All options can either be specified in a YAML configuration file, or passed in directly on the command line.
-If you want to use a config file, you must include the --config option that specifies the local file path.
-Options starting with --test_ are only required when running with the --test flag.
+All options can either be specified in a YAML configuration file, or passed in directly on the
+command line. If you want to use a config file, you must include the --config option that specifies
+the local file path. Options starting with --test_ are only required when running with the --test
+flag.
 
 ## Credentials
 
-Two parameters that must be set are the source and target project service account credentials that are required in order for the tool to run.
+Two parameters that must be set are the source and target project service account credentials that
+are required in order for the tool to run.
 ```
 --gcp_source_project_service_account_key   The location on disk for service account key json file from the source project
 --gcp_target_project_service_account_key   The location on disk for service account key json file from the target project
 ```
 
-The source project service account requires permissions to list and delete the source bucket, as well as able to assign IAM permissions to the bucket so the STS job can read and delete objects from it.
-It may also require permission to be able to assign IAM permissions for the target project service account to access a KMS key and Cloud Pub/Sub topic.
+The source project service account requires permissions to list and delete the source bucket, as
+well as able to assign IAM permissions to the bucket so the STS job can read and delete objects from
+it.
+It may also require permission to be able to assign IAM permissions for the target project service
+account to access a KMS key and Cloud Pub/Sub topic.
 
-The target project service account requires **Editor** or **Owner** in order to create the STS job, as well as permission to create/delete buckets and write to Stackdriver.
+The target project service account requires **Editor** or **Owner** in order to create the STS job,
+as well as permission to create/delete buckets and write to Stackdriver.
 
 Related permission documentation:
 https://cloud.google.com/storage/docs/access-control/iam
@@ -65,10 +87,20 @@ https://cloud.google.com/storage-transfer/docs/configure-access
 
 ## Bucket Locking
 
-The --useBucketLock flag enables the tool to check for a specified lock file in the bucket before attempting a move, and will also revoke all privileges before the move starts so that nobody else can make any changes to the bucket while the tool is running.
-When using the flag, the LOCK_FILE_NAME environment variable in the config.sh file must be set. It is advised to test this with a locked test bucket to ensure the tool finds the file and stops operation.
-If the lock file is not found, the tool will set the bucket ACLs to 'private', remove all IAM roles and set the source project service account as the only admin on the bucket. After the move is completed, the new bucket in the target project will have its ACL/IAM set to the original source bucket settings.
+If the `--disableBucketLock` flag is not set, the tool will check for a lock file in the bucket
+before attempting a move. If the file is found, the tool will immediately exit. If the flag is set,
+the mover will continue and attempt the move without locking down bucket permissions. 
+
+The `LOCK_FILE_NAME` config variable in config.yaml file must be set. It is advised to test this
+with a locked test bucket to ensure the tool finds the file and stops operation.
+
+If the lock file is not found, the tool will set the bucket ACLs to 'private', remove all IAM roles
+and set the source project service account as the only admin on the bucket so that nobody else can
+make any changes to the bucket while the mover is running. After the move is completed, the new
+bucket in the target project will have itsACL/IAM set to the original source bucket settings.
+
 Object level ACLs are not looked at or modified.
+ 
 
 ## Logging
 
@@ -80,7 +112,7 @@ Logging will happen in both the console and in Stackdriver for target project, i
 usage: bucket_mover [-h] [--config CONFIG]
                     [--gcp_source_project_service_account_key GCP_SOURCE_PROJECT_SERVICE_ACCOUNT_KEY]
                     [--gcp_target_project_service_account_key GCP_TARGET_PROJECT_SERVICE_ACCOUNT_KEY]
-                    [--test] [--useBucketLock]
+                    [--test] [--disableBucketLock]
                     [--lock_file_name LOCK_FILE_NAME]
                     [--tempBucketName TEMPBUCKETNAME] [--location LOCATION]
                     [--storageClass {MULTI_REGIONAL,REGIONAL,STANDARD,NEARLINE,COLDLINE,DURABLE_REDUCED_AVAILABILITY}]
@@ -115,11 +147,9 @@ optional arguments:
   --test                This will run a test of the tool to ensure all permissions are set up correctly and
                         buckets can be moved between the two projects, using a randomly generated bucket.
                         A fake bucket name will still need to be specified.
-  --useBucketLock       Enabling this option will mean that before the mover makes any changes, it will look for the lock file specified
-                        in LOCK_FILE_NAME (in config.sh). If it exists in the source bucket, the mover will exit without any operations.
-                        If it does not exist, the permissions on the source project will be updated so that nobody is allowed to write
-                        to it, then the mover will move the buckets before finally restoring write access on the new bucket in the
-                        target project.
+  --disableBucketLock   Disabling the bucket lock option means that the mover will not look for a lock file
+                        before starting the move, and it will not lock down permissions on the source bucket
+                        before starting the move.
   --lock_file_name LOCK_FILE_NAME
                         The name of the lock file in the bucket
   --tempBucketName TEMPBUCKETNAME
@@ -158,16 +188,22 @@ optional arguments:
 
 ## Test Run
 
-It is **highly recommended** that a test run is performed before attempting to move an important bucket.
-By adding the --test flag, the tool will create a random bucket along with setting up lots of options for the bucket, upload some files to it and then move it to the target project. After it is complete, you can verify in the target project that the bucket and all settings were moved correctly.
+It is **highly recommended** that a test run is performed before attempting to move an important
+bucket. By adding the --test flag, the tool will create a random bucket along with setting up lots
+of options for the bucket, upload some files to it and then move it to the target project. After it
+is complete, you can verify in the target project that the bucket and all settings were moved
+correctly.
 
-Service account access permissions are the trickiest part of this tool, so this allows you to confirm they are all set up correctly before running it on an important bucket.
-There are several options that will need to be be configured for your environment. They are the options starting with --test_*
-For even more fine grained control, bucket settings can be removed/added/changed in the bucket_mover_tester.py code (ie Lifecycle Rules, Notifications or custom KMS keys).
+Service account access permissions are the trickiest part of this tool, so this allows you to
+confirm they are all set up correctly before running it on an important bucket. There are several
+options that will need to be be configured for your environment. They are the options starting with
+--test_*. For even more fine grained control, bucket settings can be removed/added/changed in the
+bucket_mover_tester.py code (ie Lifecycle Rules, Notifications or custom KMS keys).
 
 ### Examples
 
-These examples are expecting that a config.yaml file has been created containing the GCP credential options and required testing options.
+These examples are expecting that a config.yaml file has been created containing the GCP credential
+options and required testing options.
 
 **Test run to confirm tool has access (where a test bucket already exists from a previous test)**
 
@@ -185,6 +221,8 @@ Using the following service accounts for GCS credentials:
 Source Project: bucket-mover@my_source_project.iam.gserviceaccount.com
 Target Project: bucket-mover@my_target_project.iam.gserviceaccount.com
 
+✓ Confirming that lock file _locks/all.lock does not exist
+✓ Locking down the bucket by revoking all ACLs/IAM policies
 ✓ service-948484398585@gs-project-accounts.iam.gserviceaccount.com added as Enrypter/Decrypter to key: projects/my_source_project/locations/global/keyRings/my_ring/cryptoKeys/my_key
 IAM policies successfully copied over from the source bucket
 ACLs successfully copied over from the source bucket
@@ -231,6 +269,8 @@ Checking STS job status
 Using the following service accounts for GCS credentials:
 Source Project: bucket-mover@my_source_project.iam.gserviceaccount.com
 Target Project: bucket-mover@my_target_project.iam.gserviceaccount.com
+✓ Confirming that lock file _locks/all.lock does not exist
+✓ Locking down the bucket by revoking all ACLs/IAM policies
 ✓ service-948484398585@gs-project-accounts.iam.gserviceaccount.com added as Enrypter/Decrypter to key: projects/my_source_project/locations/global/keyRings/my_ring/cryptoKeys/my_key
 IAM policies successfully copied over from the source bucket
 ACLs successfully copied over from the source bucket
@@ -271,22 +311,31 @@ Checking STS job status
 
 **Change the storage class and/or location of a bucket (without moving projects)**
 
-Make sure `config.sh` has both environment variables set with the credentials for the project you're working in.
+Make sure both service account key config values set with the credentials for the project you're
+working in.
 
 `bin/bucket_mover --config ./config.yaml my_bucket my_project my_project --location eu --storageClass MULTI_REGIONAL`
 
 ## Bucket and Object Permissions
 
-If skip command line options are not specified, the tool will copy over all bucket level IAM roles, ACLs and default object ACLs to the target bucket in the target project. The target bucket's permissions will all be overwritten, so if the target project has custom default bucket ACLs, they will be replaced.
+If skip command line options are not specified, the tool will copy over all bucket level IAM roles,
+ACLs and default object ACLs to the target bucket in the target project. The target bucket's
+permissions will all be overwritten, so if the target project has custom default bucket ACLs, they
+will be replaced.
 
-IAM policies at the source project level or higher that affect source bucket access will not be copied to the target project. Custom IAM roles are not supported, the tool will throw an error if the source bucket has any custom roles attached to it.
-There may be existing project level policies in the target project that could affect the access level of the target bucket.
+IAM policies at the source project level or higher that affect source bucket access will not be
+copied to the target project. Custom IAM roles are not supported, the tool will throw an error if
+the source bucket has any custom roles attached to it.
+There may be existing project level policies in the target project that could affect the access
+level of the target bucket.
 
 ## Packaging
 
-In order to package the tool for deployment, there is a Tox [https://tox.readthedocs.io/en/latest/] ini file included to package the tool for MacOS and GCE CentOS VMs.
-Once Tox is installed, you can package it with
+In order to package the tool for deployment, there is a Tox [https://tox.readthedocs.io/en/latest/]
+ini file included to package the tool for MacOS and GCE CentOS VMs. Once Tox is installed, you can
+package it with
 ```
 tox -e package
 ```
-The resulting ./package/gcs-bucket-mover.pex file can then be run as a script provided Pex [https://github.com/pantsbuild/pex] is installed.
+The resulting ./package/gcs-bucket-mover.pex file can then be run as a script provided
+Pex [https://github.com/pantsbuild/pex] is installed.

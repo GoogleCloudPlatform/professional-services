@@ -73,14 +73,12 @@ def _get_parsed_args():
         buckets can be moved between the two projects, using a randomly generated bucket.
         A fake bucket name will still need to be specified.'''))
     parser.add_argument(
-        '--useBucketLock',
+        '--disableBucketLock',
         action='store_true',
         help=textwrap.dedent('''\
-        Enabling this option will mean that before the mover makes any changes, it will look for the lock file specified
-        in the config value lock_file_name. If it exists in the source bucket, the mover will exit without any operations.
-        If it does not exist, the permissions on the source project will be updated so that nobody is allowed to write
-        to it, then the mover will move the buckets before finally restoring write access on the new bucket in the
-        target project.'''))
+        Disabling the bucket lock option means that the mover will not look for a lock file
+        before starting the move, and it will not lock down permissions on the source bucket
+        before starting the move.'''))
     parser.add_argument(
         '--lock_file_name', help='The name of the lock file in the bucket')
     parser.add_argument(
