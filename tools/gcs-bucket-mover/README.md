@@ -16,6 +16,11 @@ target project
 This tool is designed to automatically perform these steps to make a bucket move as seamless as
 possible.
 
+#### Bucket Rename
+
+This tool can also be used to rename a bucket, either within the same project or in conjunction with
+a move to another project.
+
 ## Limitations
 
 * **NO** object level settings are handled with this tool. The Storage Transfer Service does the
@@ -52,7 +57,7 @@ Encrypter/Decrypter permissions to that key
 permissions for the target project
 
 Individual settings can be ignored by adding the associated command line option (or adding it to the
-config file). Alternatively the -se (--skipEverything) option can be passed so no settings other
+config file). Alternatively the -se (--skip_everything) option can be passed so no settings other
 than storage class and location are copied.
 
 ## Options
@@ -87,11 +92,11 @@ https://cloud.google.com/storage-transfer/docs/configure-access
 
 ## Bucket Locking
 
-If the `--disableBucketLock` flag is not set, the tool will check for a lock file in the bucket
+If the `--disable_bucket_lock` flag is not set, the tool will check for a lock file in the bucket
 before attempting a move. If the file is found, the tool will immediately exit. If the flag is set,
 the mover will continue and attempt the move without locking down bucket permissions. 
 
-The `LOCK_FILE_NAME` config variable in config.yaml file must be set. It is advised to test this
+The `lock_file_name` config variable in config.yaml file must be set. It is advised to test this
 with a locked test bucket to ensure the tool finds the file and stops operation.
 
 If the lock file is not found, the tool will set the bucket ACLs to 'private', remove all IAM roles
@@ -112,15 +117,17 @@ Logging will happen in both the console and in Stackdriver for target project, i
 usage: bucket_mover [-h] [--config CONFIG]
                     [--gcp_source_project_service_account_key GCP_SOURCE_PROJECT_SERVICE_ACCOUNT_KEY]
                     [--gcp_target_project_service_account_key GCP_TARGET_PROJECT_SERVICE_ACCOUNT_KEY]
-                    [--test] [--disableBucketLock]
+                    [--test] [--disable_bucket_lock]
                     [--lock_file_name LOCK_FILE_NAME]
-                    [--tempBucketName TEMPBUCKETNAME] [--location LOCATION]
-                    [--storageClass {MULTI_REGIONAL,REGIONAL,STANDARD,NEARLINE,COLDLINE,DURABLE_REDUCED_AVAILABILITY}]
-                    [--skipEverything] [--skipAcl] [--skipCors]
-                    [--skipDefaultObjectAcl] [--skipIam] [--skipKmsKey]
-                    [--skipLabels] [--skipLogging] [--skipLifecycleRules]
-                    [--skipNotifications] [--skipRequesterPays]
-                    [--skipVersioning]
+                    [--target_bucket_name TARGET_BUCKET_NAME]
+                    [--temp_bucket_name TEMP_BUCKET_NAME]
+                    [--location LOCATION]
+                    [--storage_class {MULTI_REGIONAL,REGIONAL,STANDARD,NEARLINE,COLDLINE,DURABLE_REDUCED_AVAILABILITY}]
+                    [--skip_everything] [--skip_acl] [--skip_cors]
+                    [--skip_default_obj_acl] [--skip_iam] [--skip_kms_key]
+                    [--skip_labels] [--skip_logging] [--skip_lifecycle_rules]
+                    [--skip_notifications] [--skip_requester_pays]
+                    [--skip_versioning]
                     [--test_bucket_location TEST_BUCKET_LOCATION]
                     [--test_default_kms_key_name TEST_DEFAULT_KMS_KEY_NAME]
                     [--test_email_for_iam TEST_EMAIL_FOR_IAM]
@@ -147,29 +154,36 @@ optional arguments:
   --test                This will run a test of the tool to ensure all permissions are set up correctly and
                         buckets can be moved between the two projects, using a randomly generated bucket.
                         A fake bucket name will still need to be specified.
-  --disableBucketLock   Disabling the bucket lock option means that the mover will not look for a lock file
+  --disable_bucket_lock
+                        Disabling the bucket lock option means that the mover will not look for a lock file
                         before starting the move, and it will not lock down permissions on the source bucket
                         before starting the move.
   --lock_file_name LOCK_FILE_NAME
                         The name of the lock file in the bucket
-  --tempBucketName TEMPBUCKETNAME
+  --target_bucket_name TARGET_BUCKET_NAME
+                        Specifying a target bucket name allows the tool to perform a bucket rename. Note that
+                        the original source bucket will be deleted, so that bucket name can then potentially be
+                        used by someone else.
+  --temp_bucket_name TEMP_BUCKET_NAME
                         The temporary bucket name to use in the target project.
   --location LOCATION   Specify a different location for the target bucket.
-  --storageClass {MULTI_REGIONAL,REGIONAL,STANDARD,NEARLINE,COLDLINE,DURABLE_REDUCED_AVAILABILITY}
+  --storage_class {MULTI_REGIONAL,REGIONAL,STANDARD,NEARLINE,COLDLINE,DURABLE_REDUCED_AVAILABILITY}
                         Specify a different storage class for the target bucket.
-  --skipEverything      Only copies the bucket's storage class and location. Equivalent to setting every other --skip parameter to True.
-  --skipAcl             Don't replicate the ACLs from the source bucket.
-  --skipCors            Don't copy the CORS settings from the source bucket.
-  --skipDefaultObjectAcl
+  --skip_everything     Only copies the bucket's storage class and location. Equivalent to setting every other --skip parameter to True.
+  --skip_acl            Don't replicate the ACLs from the source bucket.
+  --skip_cors           Don't copy the CORS settings from the source bucket.
+  --skip_default_obj_acl
                         Don't copy the Default Object ACL from the source bucket.
-  --skipIam             Don't replicate the IAM policies from the source bucket.
-  --skipKmsKey          Don't copy the Default KMS Key from the source bucket.
-  --skipLabels          Don't copy the Labels from the source bucket.
-  --skipLogging         Don't copy the Logging settings from the source bucket.
-  --skipLifecycleRules  Don't copy the Lifecycle Rules from the source bucket.
-  --skipNotifications   Don't copy the Cloud Pub/Sub notification setting from the source bucket.
-  --skipRequesterPays   Don't copy the Requester Pays setting from the source bucket.
-  --skipVersioning      Don't copy the Versioning setting from the source bucket.
+  --skip_iam            Don't replicate the IAM policies from the source bucket.
+  --skip_kms_key        Don't copy the Default KMS Key from the source bucket.
+  --skip_labels         Don't copy the Labels from the source bucket.
+  --skip_logging        Don't copy the Logging settings from the source bucket.
+  --skip_lifecycle_rules
+                        Don't copy the Lifecycle Rules from the source bucket.
+  --skip_notifications  Don't copy the Cloud Pub/Sub notification setting from the source bucket.
+  --skip_requester_pays
+                        Don't copy the Requester Pays setting from the source bucket.
+  --skip_versioning     Don't copy the Versioning setting from the source bucket.
   --test_bucket_location TEST_BUCKET_LOCATION
                         The location to create the test bucket in
   --test_default_kms_key_name TEST_DEFAULT_KMS_KEY_NAME
@@ -207,20 +221,18 @@ options and required testing options.
 
 **Test run to confirm tool has access (where a test bucket already exists from a previous test)**
 
-`bin/bucket_mover --test --config ./config.yaml fake_bucket my_source_project my_target_project`
+`bin/bucket_mover --test --config config.yaml fake_bucket my_source_project my_target_project`
 
 ```
-WARNING!!! Bucket bucket_mover_6aa7d2e1-25f7-41b3-9189-ca35d9cef99a already exists in my_target_project
-Type YES to confirm you want to do delete it: YES
-
-✓ TESTING: Bucket bucket_mover_6aa7d2e1-25f7-41b3-9189-ca35d9cef99a deleted from project my_target_project
 ✓ TESTING: Bucket bucket_mover_6aa7d2e1-25f7-41b3-9189-ca35d9cef99a created in source project my_source_project
 ✓ TESTING: Uploading 5 random txt files
 
-Using the following service accounts for GCS credentials:
-Source Project: bucket-mover@my_source_project.iam.gserviceaccount.com
-Target Project: bucket-mover@my_target_project.iam.gserviceaccount.com
-
+Source Project: my_source_project
+Source Bucket: bucket_mover_6aa7d2e1-25f7-41b3-9189-ca35d9cef99a
+Source Service Account: bucket-mover@my_source_project.iam.gserviceaccount.com
+Target Project: my_target_project
+Target Bucket: bucket_mover_6aa7d2e1-25f7-41b3-9189-ca35d9cef99a
+Target Service Account: bucket-mover@my_target_project.iam.gserviceaccount.com
 ✓ Confirming that lock file _locks/all.lock does not exist
 ✓ Locking down the bucket by revoking all ACLs/IAM policies
 ✓ service-948484398585@gs-project-accounts.iam.gserviceaccount.com added as Enrypter/Decrypter to key: projects/my_source_project/locations/global/keyRings/my_ring/cryptoKeys/my_key
@@ -258,17 +270,20 @@ Checking STS job status
 ✓ Success! STS job copied 839 bytes in 5 objects
 
 ✓ Deleting empty temp bucket
-✓ Removing STS permissions from new source bucket
+✓ Removing STS permissions from bucket bucket_mover_6aa7d2e1-25f7-41b3-9189-ca35d9cef99a
 ```
 
 **Move bucket from one project to another**
 
-`bin/bucket_mover --config ./config.yaml my_bucket my_source_project my_target_project`
+`bin/bucket_mover --config config.yaml my_bucket my_source_project my_target_project`
 
 ```
-Using the following service accounts for GCS credentials:
-Source Project: bucket-mover@my_source_project.iam.gserviceaccount.com
-Target Project: bucket-mover@my_target_project.iam.gserviceaccount.com
+Source Project: my_source_project
+Source Bucket: my_bucket
+Source Service Account: bucket-mover@my_source_project.iam.gserviceaccount.com
+Target Project: my_target_project
+Target Bucket: my_bucket
+Target Service Account: bucket-mover@my_target_project.iam.gserviceaccount.com
 ✓ Confirming that lock file _locks/all.lock does not exist
 ✓ Locking down the bucket by revoking all ACLs/IAM policies
 ✓ service-948484398585@gs-project-accounts.iam.gserviceaccount.com added as Enrypter/Decrypter to key: projects/my_source_project/locations/global/keyRings/my_ring/cryptoKeys/my_key
@@ -306,7 +321,7 @@ Checking STS job status
 ✓ Success! STS job copied 737 bytes in 5 objects
 
 ✓ Deleting empty temp bucket
-✓ Removing STS permissions from new source bucket
+✓ Removing STS permissions from bucket my_bucket
 ```
 
 **Change the storage class and/or location of a bucket (without moving projects)**
@@ -314,7 +329,11 @@ Checking STS job status
 Make sure both service account key config values set with the credentials for the project you're
 working in.
 
-`bin/bucket_mover --config ./config.yaml my_bucket my_project my_project --location eu --storageClass MULTI_REGIONAL`
+`bin/bucket_mover --config config.yaml my_bucket my_project my_project --location eu --storage_class MULTI_REGIONAL`
+
+**Rename a bucket (without moving projects)**
+
+`bin/bucket_mover --config config.yaml my_bucket my_project my_project --target_bucket_name my_new_bucket`
 
 ## Bucket and Object Permissions
 

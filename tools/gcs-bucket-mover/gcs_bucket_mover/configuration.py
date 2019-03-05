@@ -35,9 +35,11 @@ class Configuration(object):
     source_project = attrib()
     target_project = attrib()
     bucket_name = attrib()
+    target_bucket_name = attrib()
     temp_bucket_name = attrib()
     disable_bucket_lock = attrib()
     lock_file_name = attrib()
+    is_rename = attrib()
 
     @classmethod
     def from_conf(cls, conf):
@@ -50,8 +52,15 @@ class Configuration(object):
         """
 
         temp_bucket_name = conf.bucket_name + '-temp'
-        if conf.tempBucketName:
-            temp_bucket_name = conf.tempBucketName
+        if conf.temp_bucket_name:
+            temp_bucket_name = conf.temp_bucket_name
+
+        target_bucket_name = conf.bucket_name
+        is_rename = False
+        if conf.target_bucket_name:
+            target_bucket_name = conf.target_bucket_name
+            if target_bucket_name != conf.bucket_name:
+                is_rename = True
 
         return cls(
             source_project_credentials=service_account.Credentials.
@@ -69,6 +78,8 @@ class Configuration(object):
             source_project=conf.source_project,
             target_project=conf.target_project,
             bucket_name=conf.bucket_name,
+            target_bucket_name=target_bucket_name,
             temp_bucket_name=temp_bucket_name,
-            disable_bucket_lock=conf.disableBucketLock,
+            is_rename=is_rename,
+            disable_bucket_lock=conf.disable_bucket_lock,
             lock_file_name=conf.lock_file_name)

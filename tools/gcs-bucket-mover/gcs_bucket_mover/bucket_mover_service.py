@@ -44,14 +44,7 @@ def move_bucket(config, parsed_args, cloud_logger):
     """
 
     cloud_logger.log_text("Starting GCS Bucket Mover")
-
-    _print_and_log(
-        cloud_logger,
-        'Using the following service accounts for GCS credentials: ')
-    _print_and_log(cloud_logger, 'Source Project - {}'.format(
-        config.source_project_credentials.service_account_email))  # pylint: disable=no-member
-    _print_and_log(cloud_logger, 'Target Project - {}'.format(
-        config.target_project_credentials.service_account_email))  # pylint: disable=no-member
+    _print_config_details(cloud_logger, config)
 
     source_bucket = config.source_storage_client.lookup_bucket(  # pylint: disable=no-member
         config.bucket_name)
@@ -62,30 +55,66 @@ def move_bucket(config, parsed_args, cloud_logger):
         conf=parsed_args, source_bucket=source_bucket)
 
     _check_bucket_lock(cloud_logger, config, source_bucket)
-    target_temp_bucket = _create_temp_target_bucket(cloud_logger, config,
-                                                    source_bucket_details)
 
-    # Create STS client
     sts_client = discovery.build(
         'storagetransfer', 'v1', credentials=config.target_project_credentials)
 
-    sts_account_email = _assign_sts_permissions(cloud_logger, sts_client,
-                                                config, target_temp_bucket)
-    _run_and_wait_for_sts_job(sts_client, config.target_project,
-                              config.bucket_name, config.temp_bucket_name,
-                              cloud_logger)
+    if config.is_rename:
+        target_bucket = _create_target_bucket(cloud_logger, config,
+                                              source_bucket_details,
+                                              config.target_bucket_name)
+        sts_account_email = _assign_sts_permissions(cloud_logger, sts_client,
+                                                    config, target_bucket)
+        _run_and_wait_for_sts_job(sts_client, config.target_project,
+                                  config.bucket_name, config.target_bucket_name,
+                                  cloud_logger)
 
-    _delete_empty_source_bucket(cloud_logger, source_bucket)
-    _recreate_source_bucket(cloud_logger, config, source_bucket_details)
-    _assign_sts_permissions_to_new_bucket(cloud_logger, sts_account_email,
-                                          config)
-    _run_and_wait_for_sts_job(sts_client, config.target_project,
-                              config.temp_bucket_name, config.bucket_name,
-                              cloud_logger)
+        _delete_empty_source_bucket(cloud_logger, source_bucket)
+        _remove_sts_permissions(cloud_logger, sts_account_email, config,
+                                config.target_bucket_name)
+    else:
+        target_temp_bucket = _create_target_bucket(cloud_logger, config,
+                                                   source_bucket_details,
+                                                   config.temp_bucket_name)
+        sts_account_email = _assign_sts_permissions(cloud_logger, sts_client,
+                                                    config, target_temp_bucket)
+        _run_and_wait_for_sts_job(sts_client, config.target_project,
+                                  config.bucket_name, config.temp_bucket_name,
+                                  cloud_logger)
 
-    _delete_empty_temp_bucket(cloud_logger, target_temp_bucket)
-    _remove_sts_permissions(cloud_logger, sts_account_email, config)
+        _delete_empty_source_bucket(cloud_logger, source_bucket)
+        _recreate_source_bucket(cloud_logger, config, source_bucket_details)
+        _assign_sts_permissions_to_new_bucket(cloud_logger, sts_account_email,
+                                              config)
+        _run_and_wait_for_sts_job(sts_client, config.target_project,
+                                  config.temp_bucket_name, config.bucket_name,
+                                  cloud_logger)
+
+        _delete_empty_temp_bucket(cloud_logger, target_temp_bucket)
+        _remove_sts_permissions(cloud_logger, sts_account_email, config,
+                                config.bucket_name)
+
     cloud_logger.log_text('Completed GCS Bucket Mover')
+
+
+def _print_config_details(cloud_logger, config):
+    """Print out the pertinent project/bucket details
+
+    Args:
+        cloud_logger: A GCP logging client instance
+        config: A Configuration object with all of the config values needed for the script to run
+    """
+    _print_and_log(cloud_logger,
+                   'Source Project: {}'.format(config.source_project))
+    _print_and_log(cloud_logger, 'Source Bucket: {}'.format(config.bucket_name))
+    _print_and_log(cloud_logger, 'Source Service Account: {}'.format(
+        config.source_project_credentials.service_account_email))  # pylint: disable=no-member
+    _print_and_log(cloud_logger,
+                   'Target Project: {}'.format(config.target_project))
+    _print_and_log(cloud_logger,
+                   'Target Bucket: {}'.format(config.target_bucket_name))
+    _print_and_log(cloud_logger, 'Target Service Account: {}'.format(
+        config.target_project_credentials.service_account_email))  # pylint: disable=no-member
 
 
 def _check_bucket_lock(cloud_logger, config, bucket):
@@ -140,29 +169,34 @@ def _lock_down_bucket(spinner, cloud_logger, bucket, lock_file_name,
     bucket.set_iam_policy(policy)
 
 
-def _create_temp_target_bucket(cloud_logger, config, source_bucket_details):
-    """Create the temp bucket in the target project
+def _create_target_bucket(cloud_logger, config, source_bucket_details,
+                          bucket_name):
+    """Creates the temp bucket (or target bucket during rename) in the target project
 
     Args:
         cloud_logger: A GCP logging client instance
         config: A Configuration object with all of the config values needed for the script to run
         source_bucket_details: The details copied from the source bucket that is being moved
+        bucket_name: The name of the bucket to create
 
     Returns:
         The bucket object that has been created in GCS
     """
 
-    spinner_text = 'Creating temp target bucket'
+    if config.is_rename:
+        spinner_text = 'Creating target bucket'
+    else:
+        spinner_text = 'Creating temp target bucket'
+
     cloud_logger.log_text(spinner_text)
     with yaspin(text=spinner_text) as spinner:
-        target_temp_bucket = _create_bucket(spinner, cloud_logger, config,
-                                            config.temp_bucket_name,
-                                            source_bucket_details)
+        target_bucket = _create_bucket(spinner, cloud_logger, config,
+                                       bucket_name, source_bucket_details)
         _write_spinner_and_log(
             spinner, cloud_logger,
             '{} Bucket {} created in target project {}'.format(
-                _CHECKMARK, config.temp_bucket_name, config.target_project))
-        return target_temp_bucket
+                _CHECKMARK, bucket_name, config.target_project))
+        return target_bucket
 
 
 def _assign_sts_permissions(cloud_logger, sts_client, config,
@@ -261,20 +295,22 @@ def _delete_empty_temp_bucket(cloud_logger, target_temp_bucket):
         spinner.ok(_CHECKMARK)
 
 
-def _remove_sts_permissions(cloud_logger, sts_account_email, config):
+def _remove_sts_permissions(cloud_logger, sts_account_email, config,
+                            bucket_name):
     """Remove the STS permissions from the new source bucket in the target project
 
     Args:
         cloud_logger: A GCP logging client instance
         sts_account_email: The email account of the STS account
         config: A Configuration object with all of the config values needed for the script to run
+        bucket_name: The name of the bucket to remove the permissions from
     """
 
-    spinner_text = 'Removing STS permissions from new source bucket'
+    spinner_text = 'Removing STS permissions from bucket {}'.format(bucket_name)
     cloud_logger.log_text(spinner_text)
     with yaspin(text=spinner_text) as spinner:
         _remove_sts_iam_roles(sts_account_email, config.target_storage_client,
-                              config.bucket_name)
+                              bucket_name)
         spinner.ok(_CHECKMARK)
 
 
