@@ -1,23 +1,16 @@
-/**
- * Copyright 2019 Google
- * <p/>
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- * <p/>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p/>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
+// Copyright 2019 Google
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 package source;
 
@@ -136,7 +129,7 @@ public class CryptoMarketTradeUnboundedReader extends UnboundedSource.UnboundedR
     /**
      * Advances the reader to the next valid record.
      * Returns true if a record was read, false if there is no more input available. Future calls to advance() may return true once more data is available.
-     * @return
+     * @return boolean
      * @throws IOException
      */
     @Override
@@ -158,9 +151,8 @@ public class CryptoMarketTradeUnboundedReader extends UnboundedSource.UnboundedR
      * See Window and Trigger for more information on timestamps and watermarks.
      *
      * May be called after advance() or start() has returned false, but not before start() has been called.
-     * @return
+     * @return Instant
      */
-
     @Override
     public Instant getWatermark() {
         return currentTimestamp.minus(new Duration(1));
@@ -189,20 +181,20 @@ public class CryptoMarketTradeUnboundedReader extends UnboundedSource.UnboundedR
      * The returned object should not be modified.
      *
      * May not be called before start() has been called.
-     * @return
+     * @return CheckpointMark
      */
-
     @Override
     public CheckpointMark getCheckpointMark() {
         return new UnboundedSource.CheckpointMark() {
             @Override
             public void finalizeCheckpoint() throws IOException {}
-        };	}
+        };
+    }
 
 
     /**
      * Returns the UnboundedSource that created this reader. This will not change over the life of the reader.
-     * @return
+     * @return UnboundedSource
      */
     @Override
     public UnboundedSource getCurrentSource() {
@@ -212,7 +204,7 @@ public class CryptoMarketTradeUnboundedReader extends UnboundedSource.UnboundedR
     /**
      * Returns the value of the data item that was read by the last start() or advance() call. The returned value must be effectively immutable and remain valid indefinitely.
      * Multiple calls to this method without an intervening call to advance() should return the same result.
-     * @return
+     * @return TradeLoad
      * @throws NoSuchElementException
      */
     @Override
@@ -228,10 +220,9 @@ public class CryptoMarketTradeUnboundedReader extends UnboundedSource.UnboundedR
      * If the source does not support timestamps, this should return BoundedWindow.TIMESTAMP_MIN_VALUE.
      *
      * Multiple calls to this method without an intervening call to advance() should return the same result.
-     * @return
+     * @return Instant
      * @throws NoSuchElementException
      */
-
     @Override
     public Instant getCurrentTimestamp() throws NoSuchElementException {
         if (current == null) {
