@@ -56,7 +56,7 @@ gcloud compute ssh --zone=us-central1-a crypto-driver
 apt -y install python2.7 python-pip openjdk-8-jdk git maven google-cloud-sdk-cbt
 ```
 
-### Create a Cloud Bigtable instance 
+### Create a Google Cloud Bigtable instance 
 ```console
 export PROJECT=$(gcloud info --format='value(config.project)')
 export ZONE=$(curl "http://metadata.google.internal/computeMetadata/v1/instance/zone" -H "Metadata-Flavor: Google"|cut -d/ -f4)
