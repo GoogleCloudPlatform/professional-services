@@ -2,9 +2,9 @@
 
 ## A Google Cloud Dataflow/Cloud Bigtable Websockets example
 
-The last year has been like a rollercoaster for the cryptocurrency market. At the end of 2017, the Bitcoin (BTC) almost reached $20,000 USD to fall below $4,000 USD a few months later. What if there is a pattern in the high volatility of the cryptocurrencies market? If so, what if we can learn from it and get an edge on future trends? Is there a way to observe all exchanges in the real-time and visualize it on a single chart? 
+The last year has been like a roller coaster for the cryptocurrency market. At the end of 2017, the value of bitcoin (BTC) almost reached $20,000 USD, only to fall below $4,000 USD a few months later. What if there is a pattern in the high volatility of the cryptocurrencies market? If so, can we learn from it and get an edge on future trends? Is there a way to observe all exchanges in real time and visualize it on a single chart? 
 
-In this tutorial we will graph the trades, volume and time delta from trade execution until it reaches our system (an indicator of how near real-time we get the data).
+In this tutorial we will graph the trades, volume and time delta from trade execution until it reaches our system (an indicator of how close to real time we can get the data).
 
 
 ![realtime multi exchange BTC/USD observer](crypto.gif)
