@@ -124,7 +124,7 @@ d3.json(getQueryPlan(), function(error, bqjson) {
   if (!updateFileName(error)) return;
   
   // Transform query plan to node & link format for Sankey
-  var data = qp2sankey(bqjson); 
+  var data = bqsankey.qp2sankey(bqjson); 
 
   graph = sankey(data);
 
