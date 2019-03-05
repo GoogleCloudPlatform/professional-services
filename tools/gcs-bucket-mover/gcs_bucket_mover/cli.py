@@ -210,5 +210,6 @@ def main():
         test_bucket_name = bucket_mover_tester.set_up_test_bucket(
             config, parsed_args)
         config.bucket_name = test_bucket_name
+        config.target_bucket_name = test_bucket_name
 
     bucket_mover_service.move_bucket(config, parsed_args, cloud_logger)
