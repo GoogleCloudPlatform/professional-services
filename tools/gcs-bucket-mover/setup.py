@@ -35,7 +35,7 @@ requires = [
 
 setup(
     name='gcs_bucket_mover',
-    version='1.1.0',
+    version='1.2.0',
     license='Apache 2.0',
     author='Google Inc.',
     author_email='mgeneau@google.com',

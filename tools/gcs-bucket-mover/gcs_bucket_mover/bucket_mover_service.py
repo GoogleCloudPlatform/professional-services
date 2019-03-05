@@ -97,7 +97,7 @@ def _check_bucket_lock(cloud_logger, config, bucket):
         bucket: The bucket object to lock down
     """
 
-    if config.use_bucket_lock:
+    if not config.disable_bucket_lock:
         spinner_text = 'Confirming that lock file {} does not exist'.format(
             config.lock_file_name)
         cloud_logger.log_text(spinner_text)
