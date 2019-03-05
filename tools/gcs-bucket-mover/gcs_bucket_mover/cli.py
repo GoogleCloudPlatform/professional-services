@@ -73,7 +73,7 @@ def _get_parsed_args():
         buckets can be moved between the two projects, using a randomly generated bucket.
         A fake bucket name will still need to be specified.'''))
     parser.add_argument(
-        '--disableBucketLock',
+        '--disable_bucket_lock',
         action='store_true',
         help=textwrap.dedent('''\
         Disabling the bucket lock option means that the mover will not look for a lock file
@@ -82,68 +82,74 @@ def _get_parsed_args():
     parser.add_argument(
         '--lock_file_name', help='The name of the lock file in the bucket')
     parser.add_argument(
-        '--tempBucketName',
+        '--target_bucket_name',
+        help=textwrap.dedent('''\
+        Specifying a target bucket name allows the tool to perform a bucket rename. Note that
+        the original source bucket will be deleted, so that bucket name can then potentially be
+        used by someone else.'''))
+    parser.add_argument(
+        '--temp_bucket_name',
         help='The temporary bucket name to use in the target project.')
     parser.add_argument(
         '--location',
         help='Specify a different location for the target bucket.')
     parser.add_argument(
-        '--storageClass',
+        '--storage_class',
         choices=[
             'MULTI_REGIONAL', 'REGIONAL', 'STANDARD', 'NEARLINE', 'COLDLINE',
             'DURABLE_REDUCED_AVAILABILITY'
         ],
         help='Specify a different storage class for the target bucket.')
     parser.add_argument(
-        '--skipEverything',
+        '--skip_everything',
         action='store_true',
         help=
         'Only copies the bucket\'s storage class and location. Equivalent to setting every other'
         ' --skip parameter to True.')
     parser.add_argument(
-        '--skipAcl',
+        '--skip_acl',
         action='store_true',
         help='Don\'t replicate the ACLs from the source bucket.')
     parser.add_argument(
-        '--skipCors',
+        '--skip_cors',
         action='store_true',
         help='Don\'t copy the CORS settings from the source bucket.')
     parser.add_argument(
-        '--skipDefaultObjectAcl',
+        '--skip_default_obj_acl',
         action='store_true',
         help='Don\'t copy the Default Object ACL from the source bucket.')
     parser.add_argument(
-        '--skipIam',
+        '--skip_iam',
         action='store_true',
         help='Don\'t replicate the IAM policies from the source bucket.')
     parser.add_argument(
-        '--skipKmsKey',
+        '--skip_kms_key',
         action='store_true',
         help='Don\'t copy the Default KMS Key from the source bucket.')
     parser.add_argument(
-        '--skipLabels',
+        '--skip_labels',
         action='store_true',
         help='Don\'t copy the Labels from the source bucket.')
     parser.add_argument(
-        '--skipLogging',
+        '--skip_logging',
         action='store_true',
         help='Don\'t copy the Logging settings from the source bucket.')
     parser.add_argument(
-        '--skipLifecycleRules',
+        '--skip_lifecycle_rules',
         action='store_true',
         help='Don\'t copy the Lifecycle Rules from the source bucket.')
     parser.add_argument(
-        '--skipNotifications',
+        '--skip_notifications',
         action='store_true',
         help=
         'Don\'t copy the Cloud Pub/Sub notification setting from the source bucket.'
     )
     parser.add_argument(
-        '--skipRequesterPays',
+        '--skip_requester_pays',
         action='store_true',
         help='Don\'t copy the Requester Pays setting from the source bucket.')
     parser.add_argument(
-        '--skipVersioning',
+        '--skip_versioning',
         action='store_true',
         help='Don\'t copy the Versioning setting from the source bucket.')
 
