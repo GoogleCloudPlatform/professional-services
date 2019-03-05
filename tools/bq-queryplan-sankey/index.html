@@ -77,6 +77,25 @@ var updateFileName = function(error) {
   }
 }
 
+var validQP = function(bqjson) {
+  try {
+    var stageCount = bqjson.statistics.query.queryPlan.length;
+    if (stageCount == 0) {
+      document.getElementById("filename").textContent = "No stages in query plan";
+      return false;
+    }
+    var refTableCount = bqjson.statistics.query.referencedTables.length;
+    if (refTableCount == 0) {
+      document.getElementById("filename").textContent = "No tables referenced in query plan";
+      return false;
+    }
+    return true;
+  } catch (err) {
+    document.getElementById("filename").textContent = "Invalid query plan format";
+    return false;
+  }
+}
+
 // Align nodes in a Sankey diagram to left or right
 var alignNodes = function(sankey) {
   var align = getQueryString("align");
@@ -122,6 +141,7 @@ var graph;
 
 d3.json(getQueryPlan(), function(error, bqjson) {
   if (!updateFileName(error)) return;
+  if (!validQP(bqjson)) return;
   
   // Transform query plan to node & link format for Sankey
   var data = bqsankey.qp2sankey(bqjson); 
