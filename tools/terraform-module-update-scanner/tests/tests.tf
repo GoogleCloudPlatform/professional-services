@@ -50,3 +50,8 @@ module "git_ssh_outdated" {
 module "module_subdir_example" {
   source = "git::ssh://git@github.com/hashicorp/terraform.git//modules/cloud?ref=v0.12.0-alpha4"
 }
+
+# Comments should be ignored:
+# module "dont_check_commented_modules" {
+#   source = "git::ssh://git@github.com/DoesNotExist/example.git"
+# }
