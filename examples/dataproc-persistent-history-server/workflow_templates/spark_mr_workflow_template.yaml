@@ -1,0 +1,48 @@
+jobs:
+- stepId: 'SparkPi'
+  sparkJob:
+    args:
+    - '1000'
+    jarFileUris:
+    - 'file:///usr/lib/spark/examples/jars/spark-examples.jar'
+    mainClass: 'org.apache.spark.examples.SparkPi'
+- stepId: 'MapReducePi'
+  hadoopJob:
+    args:
+    - 'pi'
+    - '16'
+    - '1000'
+    mainJarFileUri: 'file:///usr/lib/hadoop-mapreduce/hadoop-mapreduce-examples-2.9.2.jar'
+  prerequisiteStepIds:
+  - 'SparkPi'
+placement:
+  managedCluster:
+    clusterName: 'ephemeral-cluster1'
+    config:
+      gceClusterConfig:
+        internalIpOnly: true
+        subnetworkUri: https://www.googleapis.com/compute/v1/projects/jferriero-dev/regions/us-central1/subnetworks/example-net-dataproc-central
+        zoneUri: https://www.googleapis.com/compute/v1/projects/jferriero-dev/zones/us-central1-a
+      masterConfig:
+        diskConfig:
+          bootDiskSizeGb: 500
+          bootDiskType: pd-standard
+        machineTypeUri: https://www.googleapis.com/compute/v1/projects/jferriero-dev/zones/us-central1-a/machineTypes/n1-standard-2
+        numInstances: 1
+      softwareConfig:
+        imageVersion: preview
+        properties:
+          mapred:mapreduce.jobhistory.address: history-server-m:10020
+          mapred:mapreduce.jobhistory.done-dir: gs://jferriero-dev-history/done-dir
+          mapred:mapreduce.jobhistory.intermediate-done-dir: gs://jferriero-dev-history/intermediate-done-dir
+          spark:spark.eventLog.dir: gs://jferriero-dev-history/spark-events/
+          spark:spark.history.fs.logDirectory: gs://jferriero-dev-history/spark-events/
+          spark:spark.yarn.historyServer.address: history-server-m:18080
+      workerConfig:
+        diskConfig:
+          bootDiskSizeGb: 500
+          bootDiskType: pd-standard
+        machineTypeUri: https://www.googleapis.com/compute/v1/projects/jferriero-dev/zones/us-central1-a/machineTypes/n1-standard-2
+        numInstances: 2
+      initializationActions: 
+      - executableFile: gs://jferriero-dev-history/init_actions/disable_history_servers.sh

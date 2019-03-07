@@ -1,0 +1,21 @@
+config:
+  gceClusterConfig:
+    serviceAccount: history-server-account@jferriero-dev.iam.gserviceaccount.com
+    subnetworkUri: https://www.googleapis.com/compute/v1/projects/jferriero-dev/regions/us-central1/subnetworks/example-net-dataproc-central
+    tags:
+    - hadoop-admin-ui-access
+    zoneUri: https://www.googleapis.com/compute/v1/projects/jferriero-dev/zones/us-central1-a
+  masterConfig:
+    diskConfig:
+      bootDiskSizeGb: 500
+      bootDiskType: pd-standard
+    machineTypeUri: https://www.googleapis.com/compute/v1/projects/jferriero-dev/zones/us-central1-a/machineTypes/n1-standard-4
+    minCpuPlatform: AUTOMATIC
+    numInstances: 1
+  softwareConfig:
+    imageVersion: preview 
+    properties:
+      mapred:mapreduce.jobhistory.done-dir: gs://jferriero-dev-history/done-dir
+      mapred:mapreduce.jobhistory.intermediate-done-dir: gs://jferriero-dev-history/intermediate-done-dir
+      spark:spark.eventLog.dir: gs://jferriero-dev-history/spark-events/
+      spark:spark.history.fs.logDirectory: gs://jferriero-dev-history/spark-events/
