@@ -82,7 +82,7 @@ def _get_parsed_args():
     parser.add_argument(
         '--lock_file_name', help='The name of the lock file in the bucket')
     parser.add_argument(
-        '--target_bucket_name',
+        '--rename_bucket_to',
         help=textwrap.dedent('''\
         Specifying a target bucket name allows the tool to perform a bucket rename. Note that
         the original source bucket will be deleted, so that bucket name can then potentially be
@@ -212,4 +212,4 @@ def main():
         config.bucket_name = test_bucket_name
         config.target_bucket_name = test_bucket_name
 
-    bucket_mover_service.move_bucket(config, parsed_args, cloud_logger)
+    bucket_mover_service.main(config, parsed_args, cloud_logger)

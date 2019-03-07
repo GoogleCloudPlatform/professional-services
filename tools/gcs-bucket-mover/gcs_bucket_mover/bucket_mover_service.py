@@ -34,8 +34,8 @@ from gcs_bucket_mover import sts_job_status
 _CHECKMARK = u'\u2713'.encode('utf8')
 
 
-def move_bucket(config, parsed_args, cloud_logger):
-    """Main entry point for the bucket mover script
+def main(config, parsed_args, cloud_logger):
+    """Main entry point for the bucket mover tool
 
     Args:
         config: A Configuration object with all of the config values needed for the script to run
@@ -49,8 +49,8 @@ def move_bucket(config, parsed_args, cloud_logger):
     source_bucket = config.source_storage_client.lookup_bucket(  # pylint: disable=no-member
         config.bucket_name)
 
-    # Get copies of all of the source bucket's IAM, ACLs and settings so they can be copied over to
-    # the target project bucket
+    # Get copies of all of the source bucket's IAM, ACLs and settings so they
+    # can be copied over to the target project bucket
     source_bucket_details = bucket_details.BucketDetails(
         conf=parsed_args, source_bucket=source_bucket)
 
@@ -60,41 +60,72 @@ def move_bucket(config, parsed_args, cloud_logger):
         'storagetransfer', 'v1', credentials=config.target_project_credentials)
 
     if config.is_rename:
-        target_bucket = _create_target_bucket(cloud_logger, config,
-                                              source_bucket_details,
-                                              config.target_bucket_name)
-        sts_account_email = _assign_sts_permissions(cloud_logger, sts_client,
-                                                    config, target_bucket)
-        _run_and_wait_for_sts_job(sts_client, config.target_project,
-                                  config.bucket_name, config.target_bucket_name,
-                                  cloud_logger)
-
-        _delete_empty_source_bucket(cloud_logger, source_bucket)
-        _remove_sts_permissions(cloud_logger, sts_account_email, config,
-                                config.target_bucket_name)
+        _rename_bucket(cloud_logger, config, source_bucket, source_bucket_details, sts_client)
     else:
-        target_temp_bucket = _create_target_bucket(cloud_logger, config,
-                                                   source_bucket_details,
-                                                   config.temp_bucket_name)
-        sts_account_email = _assign_sts_permissions(cloud_logger, sts_client,
-                                                    config, target_temp_bucket)
-        _run_and_wait_for_sts_job(sts_client, config.target_project,
-                                  config.bucket_name, config.temp_bucket_name,
-                                  cloud_logger)
-
-        _delete_empty_source_bucket(cloud_logger, source_bucket)
-        _recreate_source_bucket(cloud_logger, config, source_bucket_details)
-        _assign_sts_permissions_to_new_bucket(cloud_logger, sts_account_email,
-                                              config)
-        _run_and_wait_for_sts_job(sts_client, config.target_project,
-                                  config.temp_bucket_name, config.bucket_name,
-                                  cloud_logger)
-
-        _delete_empty_temp_bucket(cloud_logger, target_temp_bucket)
-        _remove_sts_permissions(cloud_logger, sts_account_email, config,
-                                config.bucket_name)
+        _move_bucket(cloud_logger, config, source_bucket, source_bucket_details, sts_client)
 
     cloud_logger.log_text('Completed GCS Bucket Mover')
+
+
+def _rename_bucket(cloud_logger, config, source_bucket, source_bucket_details, sts_client):
+    """Main method for doing a bucket rename
+
+    This can also involve a move across projects.
+
+    Args:
+        cloud_logger: A GCP logging client instance
+        config: A Configuration object with all of the config values needed for the script to run
+        source_bucket: The bucket object for the original source bucket in the source project
+        source_bucket_details: The details copied from the source bucket that is being moved
+        sts_client: The STS client object to be used
+    """
+    target_bucket = _create_target_bucket(cloud_logger, config,
+                                          source_bucket_details,
+                                          config.target_bucket_name)
+    sts_account_email = _assign_sts_permissions(cloud_logger, sts_client,
+                                                config, target_bucket)
+    _run_and_wait_for_sts_job(sts_client, config.target_project,
+                              config.bucket_name, config.target_bucket_name,
+                              cloud_logger)
+
+    _delete_empty_source_bucket(cloud_logger, source_bucket)
+    _remove_sts_permissions(cloud_logger, sts_account_email, config,
+                            config.target_bucket_name)
+
+
+def _move_bucket(cloud_logger, config, source_bucket, source_bucket_details, sts_client):
+    """Main method for doing a bucket move.
+
+    This flow does not include a rename, the target bucket will have the same
+    name as the source bucket.
+
+    Args:
+        cloud_logger: A GCP logging client instance
+        config: A Configuration object with all of the config values needed for the script to run
+        source_bucket: The bucket object for the original source bucket in the source project
+        source_bucket_details: The details copied from the source bucket that is being moved
+        sts_client: The STS client object to be used
+    """
+    target_temp_bucket = _create_target_bucket(cloud_logger, config,
+                                               source_bucket_details,
+                                               config.temp_bucket_name)
+    sts_account_email = _assign_sts_permissions(cloud_logger, sts_client,
+                                                config, target_temp_bucket)
+    _run_and_wait_for_sts_job(sts_client, config.target_project,
+                              config.bucket_name, config.temp_bucket_name,
+                              cloud_logger)
+
+    _delete_empty_source_bucket(cloud_logger, source_bucket)
+    _recreate_source_bucket(cloud_logger, config, source_bucket_details)
+    _assign_sts_permissions_to_new_bucket(cloud_logger, sts_account_email,
+                                          config)
+    _run_and_wait_for_sts_job(sts_client, config.target_project,
+                              config.temp_bucket_name, config.bucket_name,
+                              cloud_logger)
+
+    _delete_empty_temp_bucket(cloud_logger, target_temp_bucket)
+    _remove_sts_permissions(cloud_logger, sts_account_email, config,
+                            config.bucket_name)
 
 
 def _print_config_details(cloud_logger, config):
@@ -892,3 +923,7 @@ def _write_spinner_and_log(spinner, cloud_logger, message):
     """
     spinner.write(message)
     cloud_logger.log_text(message)
+
+
+if __name__ == '__main__':
+    main()

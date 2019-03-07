@@ -57,8 +57,8 @@ class Configuration(object):
 
         target_bucket_name = conf.bucket_name
         is_rename = False
-        if conf.target_bucket_name:
-            target_bucket_name = conf.target_bucket_name
+        if conf.rename_bucket_to:
+            target_bucket_name = conf.rename_bucket_to
             if target_bucket_name != conf.bucket_name:
                 is_rename = True
 
