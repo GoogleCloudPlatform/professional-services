@@ -16,9 +16,19 @@ clusters.
   - `spark_mr_workflow_template.yaml`
 
 ## Usage
-1.  Replace `${PROJECT}` with your GCP project id in each file.
-1.  Replace `${HISTORY_BUCKET}` with your GCS bucket for logs in each file.
-1.  Manually create the `spark-events` folder in your history bucket
+1.  Replace `PROJECT` with your GCP project id in each file.
+1.  Replace `HISTORY_BUCKET` with your GCS bucket for logs in each file.
+1.  Manually create the `spark-events` folder in your history bucket.
+
+```
+cd workflow_templates
+sed -i 's/PROJCET/your-gcp-project-id/g' *
+sed -i 's/HISTORY_BUCKET/your-history-bucket/g' *
+
+cd cluster_templates
+sed -i 's/PROJCET/your-gcp-project-id/g' *
+sed -i 's/HISTORY_BUCKET/your-history-bucket/g' *
+```
 
 Create the history server.
 
