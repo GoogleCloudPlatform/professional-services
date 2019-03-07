@@ -119,7 +119,7 @@ usage: bucket_mover [-h] [--config CONFIG]
                     [--gcp_target_project_service_account_key GCP_TARGET_PROJECT_SERVICE_ACCOUNT_KEY]
                     [--test] [--disable_bucket_lock]
                     [--lock_file_name LOCK_FILE_NAME]
-                    [--target_bucket_name TARGET_BUCKET_NAME]
+                    [--rename_bucket_to RENAME_BUCKET_TO]
                     [--temp_bucket_name TEMP_BUCKET_NAME]
                     [--location LOCATION]
                     [--storage_class {MULTI_REGIONAL,REGIONAL,STANDARD,NEARLINE,COLDLINE,DURABLE_REDUCED_AVAILABILITY}]
@@ -160,7 +160,7 @@ optional arguments:
                         before starting the move.
   --lock_file_name LOCK_FILE_NAME
                         The name of the lock file in the bucket
-  --target_bucket_name TARGET_BUCKET_NAME
+  --rename_bucket_to RENAME_BUCKET_TO
                         Specifying a target bucket name allows the tool to perform a bucket rename. Note that
                         the original source bucket will be deleted, so that bucket name can then potentially be
                         used by someone else.
@@ -333,7 +333,7 @@ working in.
 
 **Rename a bucket (without moving projects)**
 
-`bin/bucket_mover --config config.yaml my_bucket my_project my_project --target_bucket_name my_new_bucket`
+`bin/bucket_mover --config config.yaml my_bucket my_project my_project --rename_bucket_to my_new_bucket`
 
 ## Bucket and Object Permissions
 
