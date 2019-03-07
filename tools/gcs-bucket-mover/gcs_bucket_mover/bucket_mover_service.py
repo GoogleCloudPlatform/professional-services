@@ -225,8 +225,8 @@ def _create_target_bucket(cloud_logger, config, source_bucket_details,
                                        bucket_name, source_bucket_details)
         _write_spinner_and_log(
             spinner, cloud_logger,
-            '{} Bucket {} created in target project {}'.format(
-                _CHECKMARK, bucket_name, config.target_project))
+            'Bucket {} created in target project {}'.format(
+                bucket_name, config.target_project))
         return target_bucket
 
 
