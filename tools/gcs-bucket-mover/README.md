@@ -78,17 +78,16 @@ are required in order for the tool to run.
 
 The source project service account requires permissions to list and delete the source bucket, as
 well as able to assign IAM permissions to the bucket so the STS job can read and delete objects from
-it.
-It may also require permission to be able to assign IAM permissions for the target project service
-account to access a KMS key and Cloud Pub/Sub topic.
+it. It may also require permission to be able to assign IAM permissions for the target project
+service account to access a KMS key and Cloud Pub/Sub topic.
 
 The target project service account requires **Editor** or **Owner** in order to create the STS job,
 as well as permission to create/delete buckets and write to Stackdriver.
 
 Related permission documentation:
-https://cloud.google.com/storage/docs/access-control/iam
-https://cloud.google.com/storage/docs/access-control/iam-roles
-https://cloud.google.com/storage-transfer/docs/configure-access
+* https://cloud.google.com/storage/docs/access-control/iam
+* https://cloud.google.com/storage/docs/access-control/iam-roles
+* https://cloud.google.com/storage-transfer/docs/configure-access
 
 ## Bucket Locking
 
@@ -112,6 +111,8 @@ Object level ACLs are not looked at or modified.
 Logging will happen in both the console and in Stackdriver for target project, in the Global log.
 
 ## Basic Usage
+
+The tool can be run either by installing from source and running `/bin/bucket_mover` or just downloading the PEX file from `/package/gcs-bucket-mover.pex` and installing PEX [https://github.com/pantsbuild/pex]. 
 
 ```
 usage: bucket_mover [-h] [--config CONFIG]
@@ -357,4 +358,4 @@ package it with
 tox -e package
 ```
 The resulting ./package/gcs-bucket-mover.pex file can then be run as a script provided
-Pex [https://github.com/pantsbuild/pex] is installed.
+PEX [https://github.com/pantsbuild/pex] is installed.
