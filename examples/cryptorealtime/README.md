@@ -22,8 +22,8 @@ In this tutorial we will graph the trades, volume and time delta from trade exec
 ## Costs
 This tutorial uses billable components of GCP, including:
 - Cloud Dataflow
-- Cloud Compute Engine
-- Google Cloud Storage
+- Compute Engine
+- Cloud Storage
 - Cloud Bigtable
 
 We recommend to clean up the project after finishing this tutorial to avoid costs. Use the [Pricing Calculator](https://cloud.google.com/products/calculator/) to generate a cost estimate based on your projected usage.
@@ -48,12 +48,12 @@ gcloud beta compute instances create crypto-driver \
   * SSH into that VM 
 
 ```console
-gcloud compute ssh --zone=us-central1-a crypto-driver
+  gcloud compute ssh --zone=us-central1-a crypto-driver
 ```
   
   * Installing necessary tools like java, git, maven, pip, python 2.7 and Cloud Bigtable command line tool cbt using the following command:
 ```console
-apt -y install python2.7 python-pip openjdk-8-jdk git maven google-cloud-sdk-cbt
+  apt -y install python2.7 python-pip openjdk-8-jdk git maven google-cloud-sdk-cbt
 ```
 
 ### Create a Google Cloud Bigtable instance 
@@ -117,29 +117,29 @@ http://external-ip:5000/stream
 You should be able to see the visualization of aggregated BTC/USD pair on several exchanges (without predictor part)
 
 
-#Cleanup
+# Cleanup
 * To save on cost we can clean up the pipeline by running the following command
 ```console 
 gcloud dataflow jobs cancel \
-$(gcloud dataflow jobs list \
+  $(gcloud dataflow jobs list \
   --format='value(id)' \
   --filter="name:runthepipeline*")
 ```
 
 * Empty and Delete the bucket:
 ```console 
-gsutil -m rm -r gs://realtimecrypto-${PROJECT}/*
-gsutil rb gs://realtimecrypto-${PROJECT}
+  gsutil -m rm -r gs://realtimecrypto-${PROJECT}/*
+  gsutil rb gs://realtimecrypto-${PROJECT}
 ```
 
 * Delete the Cloud Bigtable instance:
 ```console 
-gcloud bigtable instances delete cryptorealtime
+  gcloud bigtable instances delete cryptorealtime
 ```
 
 * Exit the VM and delete it.
 ```console 
-gcloud compute instances delete crypto-driver --delete-disks
+  gcloud compute instances delete crypto-driver --delete-disks
 ```
 
 1. View the status of your Dataflow job in the Cloud Dataflow console
@@ -147,7 +147,7 @@ gcloud compute instances delete crypto-driver --delete-disks
 1. After a few minutes, from the shell,
 
 ```console 
-cbt -instance=<bigtable-instance-name> read <bigtable-table-name>
+  cbt -instance=<bigtable-instance-name> read <bigtable-table-name>
 ```
 
 Should return many rows of crypto trades data that the frontend project will read for it's dashboard.

@@ -1,17 +1,17 @@
-#Terraform template
+# Terraform template
 
-###Get the BTC-USD realtime periscope multi exchange observer running  in less than 10 minutes
+### Get the BTC-USD realtime multi exchange observer running  in less than 10 minutes
 
 ![Architectural overview](crypto.gif)
 
 
-###Terraform version used in this tutorial: v0.11.11 
+### Terraform version used in this tutorial: v0.11.11 
 
-###Providers used:
+### Providers used:
 - provider.google v1.20.0
 
 
-###Setup:
+### Setup:
 - Open the Terraform Shell and clone the project
 ```console 
 git clone https://github.com/GoogleCloudPlatform/professional-services
@@ -73,8 +73,8 @@ terraform state rm google_bigtable_instance.instance
 ```console 
 gcloud dataflow jobs cancel \
 $(gcloud dataflow jobs list \
---format='value(id)' \
---filter="name:runthepipeline*")
+  --format='value(id)' \
+  --filter="name:runthepipeline*")
 ``` 
 
 - Take down the infrastructure 
