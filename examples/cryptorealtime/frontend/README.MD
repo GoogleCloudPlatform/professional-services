@@ -12,4 +12,4 @@ python app.py ${PROJECT_ID} ${BIGTABLE_INSTANCE_NAME} ${BIGTABLE_TABLE_NAME} ${B
 
 This will get the localhost:5000/stream or externalip:5000/stream running and you will abe to see this 
 
-![Alt Text](https://media.giphy.com/media/238teoXcI17pu3YOSP/giphy.gif)
+![Real time chart](https://media.giphy.com/media/238teoXcI17pu3YOSP/giphy.gif)
