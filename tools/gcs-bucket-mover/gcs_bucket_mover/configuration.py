@@ -17,8 +17,11 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import os
+
 from attr import attrs, attrib
 
+from google.auth import environment_vars
 from google.cloud import logging
 from google.cloud import storage
 from google.oauth2 import service_account
@@ -62,19 +65,33 @@ class Configuration(object):
             if target_bucket_name != conf.bucket_name:
                 is_rename = True
 
+        # Decide whether to use user supplied service account key
+        # files or the default GOOGLE_APPLICATION_CREDENTIALS value.
+        if not conf.gcp_source_project_service_account_key or \
+            conf.gcp_source_project_service_account_key == 'None':
+            json_path = os.environ.get(environment_vars.CREDENTIALS)
+        else:
+            json_path = conf.gcp_source_project_service_account_key
+        source_credentials = service_account.Credentials.from_service_account_file(
+            json_path)
+
+        if not conf.gcp_target_project_service_account_key or \
+            conf.gcp_target_project_service_account_key == 'None':
+            json_path = os.environ.get(environment_vars.CREDENTIALS)
+        else:
+            json_path = conf.gcp_target_project_service_account_key
+        target_credentials = service_account.Credentials.from_service_account_file(
+            json_path)
+
         return cls(
-            source_project_credentials=service_account.Credentials.
-            from_service_account_file(
-                conf.gcp_source_project_service_account_key),
-            target_project_credentials=service_account.Credentials.
-            from_service_account_file(
-                conf.gcp_target_project_service_account_key),
-            source_storage_client=storage.Client.from_service_account_json(
-                conf.gcp_source_project_service_account_key),
-            target_storage_client=storage.Client.from_service_account_json(
-                conf.gcp_target_project_service_account_key),
-            target_logging_client=logging.Client.from_service_account_json(
-                conf.gcp_target_project_service_account_key),
+            source_project_credentials=source_credentials,
+            target_project_credentials=target_credentials,
+            source_storage_client=storage.Client(
+                credentials=source_credentials, project=conf.source_project),
+            target_storage_client=storage.Client(
+                credentials=target_credentials, project=conf.target_project),
+            target_logging_client=logging.Client(
+                credentials=target_credentials, project=conf.target_project),
             source_project=conf.source_project,
             target_project=conf.target_project,
             bucket_name=conf.bucket_name,
