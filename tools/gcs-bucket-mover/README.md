@@ -69,12 +69,14 @@ flag.
 
 ## Credentials
 
-Two parameters that must be set are the source and target project service account credentials that
-are required in order for the tool to run.
+The tool works with a source project service account and a target project service account. It is
+also possible to set both values to the same service account. The paths can be set in the config:
 ```
 --gcp_source_project_service_account_key   The location on disk for service account key json file from the source project
 --gcp_target_project_service_account_key   The location on disk for service account key json file from the target project
 ```
+Alternatively, if one or both of of these values are not set, the tool will attempt to set the
+missing paths using the GOOGLE_APPLICATION_CREDENTIALS environment variable.
 
 The source project service account requires permissions to list and delete the source bucket, as
 well as able to assign IAM permissions to the bucket so the STS job can read and delete objects from
@@ -101,7 +103,9 @@ with a locked test bucket to ensure the tool finds the file and stops operation.
 If the lock file is not found, the tool will set the bucket ACLs to 'private', remove all IAM roles
 and set the source project service account as the only admin on the bucket so that nobody else can
 make any changes to the bucket while the mover is running. After the move is completed, the new
-bucket in the target project will have itsACL/IAM set to the original source bucket settings.
+bucket in the target project will have its ACL/IAM set to the original source bucket settings.
+The original source bucket ACL/IAM values are logged to Stackdriver before the bucket is locked
+down in case they need to be retrieved. 
 
 Object level ACLs are not looked at or modified.
  
@@ -215,7 +219,13 @@ options that will need to be be configured for your environment. They are the op
 --test_*. For even more fine grained control, bucket settings can be removed/added/changed in the
 bucket_mover_tester.py code (ie Lifecycle Rules, Notifications or custom KMS keys).
 
-### Examples
+## Unit Tests
+
+The unit test can be run with Tox: `tox -e unittest`
+
+The test are all for testing logic and do not interact with the cloud.
+
+## Examples
 
 These examples are expecting that a config.yaml file has been created containing the GCP credential
 options and required testing options.
