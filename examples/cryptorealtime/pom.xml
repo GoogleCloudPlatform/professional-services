@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.google.cloud.examples.cryptorealtime</groupId>
+    <artifactId>cryptorealtime</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <beam.version>2.8.0</beam.version>
+        <bigtable.version>1.5.0</bigtable.version>
+        <slf4j.version>1.7.21</slf4j.version>
+        <bitrich.xchange-stream.version>4.3.11</bitrich.xchange-stream.version>
+        <bigtable.table>cryptorealtime</bigtable.table>
+        <bigtable.hbase.version>${bigtable.version}</bigtable.hbase.version>
+        <maven.compiler.target>1.7</maven.compiler.target>
+        <maven.compiler.source>1.7</maven.compiler.source>
+        <java.version>1.7</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <organization>
+        <name>Google LLC</name>
+        <url>http://google.com/</url>
+    </organization>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+
+    <repositories>
+        <repository>
+            <id>snapshots-repo</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <!--Exchanges dependencies  START -->
+        <dependency>
+            <groupId>info.bitrich.xchange-stream</groupId>
+            <artifactId>xchange-stream-core</artifactId>
+            <version>${bitrich.xchange-stream.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>info.bitrich.xchange-stream</groupId>
+            <artifactId>xchange-gemini</artifactId>
+            <version>${bitrich.xchange-stream.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>info.bitrich.xchange-stream</groupId>
+            <artifactId>xchange-bitstamp</artifactId>
+            <version>${bitrich.xchange-stream.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>info.bitrich.xchange-stream</groupId>
+            <artifactId>xchange-gdax</artifactId>
+            <version>${bitrich.xchange-stream.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>info.bitrich.xchange-stream</groupId>
+            <artifactId>xchange-binance</artifactId>
+            <version>${bitrich.xchange-stream.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>info.bitrich.xchange-stream</groupId>
+            <artifactId>xchange-bitflyer</artifactId>
+            <version>${bitrich.xchange-stream.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>info.bitrich.xchange-stream</groupId>
+            <artifactId>xchange-poloniex2</artifactId>
+            <version>${bitrich.xchange-stream.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>info.bitrich.xchange-stream</groupId>
+            <artifactId>xchange-bitmex</artifactId>
+            <version>${bitrich.xchange-stream.version}</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>info.bitrich.xchange-stream</groupId>
+            <artifactId>xchange-okcoin</artifactId>
+            <version>${bitrich.xchange-stream.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>info.bitrich.xchange-stream</groupId>
+            <artifactId>xchange-cexio</artifactId>
+            <version>${bitrich.xchange-stream.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>info.bitrich.xchange-stream</groupId>
+            <artifactId>xchange-hitbtc</artifactId>
+            <version>${bitrich.xchange-stream.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>info.bitrich.xchange-stream</groupId>
+            <artifactId>xchange-bitfinex</artifactId>
+            <version>${bitrich.xchange-stream.version}</version>
+        </dependency>
+        <!--Exchanges dependencies END -->
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>2.9.7</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.cloud.bigtable</groupId>
+            <artifactId>bigtable-hbase-dataflow</artifactId>
+            <version>${bigtable.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.beam</groupId>
+            <artifactId>beam-runners-google-cloud-dataflow-java</artifactId>
+            <version>${beam.version}</version>
+        </dependency>
+
+        <!-- [START bigtable_dataflow_connector_dep] -->
+        <dependency>
+            <groupId>com.google.cloud.bigtable</groupId>
+            <artifactId>bigtable-hbase-beam</artifactId>
+            <version>1.5.0</version>
+        </dependency>
+        <!-- [END bigtable_dataflow_connector_dep] -->
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.3</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
