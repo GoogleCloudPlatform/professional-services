@@ -17,6 +17,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 import datetime
+import json
 from time import sleep
 from retrying import retry
 from yaspin import yaspin
@@ -54,20 +55,24 @@ def main(config, parsed_args, cloud_logger):
     source_bucket_details = bucket_details.BucketDetails(
         conf=parsed_args, source_bucket=source_bucket)
 
-    _check_bucket_lock(cloud_logger, config, source_bucket)
+    _check_bucket_lock(cloud_logger, config, source_bucket,
+                       source_bucket_details)
 
     sts_client = discovery.build(
         'storagetransfer', 'v1', credentials=config.target_project_credentials)
 
     if config.is_rename:
-        _rename_bucket(cloud_logger, config, source_bucket, source_bucket_details, sts_client)
+        _rename_bucket(cloud_logger, config, source_bucket,
+                       source_bucket_details, sts_client)
     else:
-        _move_bucket(cloud_logger, config, source_bucket, source_bucket_details, sts_client)
+        _move_bucket(cloud_logger, config, source_bucket, source_bucket_details,
+                     sts_client)
 
     cloud_logger.log_text('Completed GCS Bucket Mover')
 
 
-def _rename_bucket(cloud_logger, config, source_bucket, source_bucket_details, sts_client):
+def _rename_bucket(cloud_logger, config, source_bucket, source_bucket_details,
+                   sts_client):
     """Main method for doing a bucket rename
 
     This can also involve a move across projects.
@@ -79,9 +84,8 @@ def _rename_bucket(cloud_logger, config, source_bucket, source_bucket_details, s
         source_bucket_details: The details copied from the source bucket that is being moved
         sts_client: The STS client object to be used
     """
-    target_bucket = _create_target_bucket(cloud_logger, config,
-                                          source_bucket_details,
-                                          config.target_bucket_name)
+    target_bucket = _create_target_bucket(
+        cloud_logger, config, source_bucket_details, config.target_bucket_name)
     sts_account_email = _assign_sts_permissions(cloud_logger, sts_client,
                                                 config, target_bucket)
     _run_and_wait_for_sts_job(sts_client, config.target_project,
@@ -93,7 +97,8 @@ def _rename_bucket(cloud_logger, config, source_bucket, source_bucket_details, s
                             config.target_bucket_name)
 
 
-def _move_bucket(cloud_logger, config, source_bucket, source_bucket_details, sts_client):
+def _move_bucket(cloud_logger, config, source_bucket, source_bucket_details,
+                 sts_client):
     """Main method for doing a bucket move.
 
     This flow does not include a rename, the target bucket will have the same
@@ -106,9 +111,8 @@ def _move_bucket(cloud_logger, config, source_bucket, source_bucket_details, sts
         source_bucket_details: The details copied from the source bucket that is being moved
         sts_client: The STS client object to be used
     """
-    target_temp_bucket = _create_target_bucket(cloud_logger, config,
-                                               source_bucket_details,
-                                               config.temp_bucket_name)
+    target_temp_bucket = _create_target_bucket(
+        cloud_logger, config, source_bucket_details, config.temp_bucket_name)
     sts_account_email = _assign_sts_permissions(cloud_logger, sts_client,
                                                 config, target_temp_bucket)
     _run_and_wait_for_sts_job(sts_client, config.target_project,
@@ -148,20 +152,30 @@ def _print_config_details(cloud_logger, config):
         config.target_project_credentials.service_account_email))  # pylint: disable=no-member
 
 
-def _check_bucket_lock(cloud_logger, config, bucket):
+def _check_bucket_lock(cloud_logger, config, bucket, source_bucket_details):
     """Confirm there is no lock and we can continue with the move
 
     Args:
         cloud_logger: A GCP logging client instance
         config: A Configuration object with all of the config values needed for the script to run
         bucket: The bucket object to lock down
+        source_bucket_details: The details copied from the source bucket that is being moved
     """
 
     if not config.disable_bucket_lock:
         spinner_text = 'Confirming that lock file {} does not exist'.format(
             config.lock_file_name)
         cloud_logger.log_text(spinner_text)
+
         with yaspin(text=spinner_text) as spinner:
+            _write_spinner_and_log(
+                spinner, cloud_logger,
+                'Logging source bucket IAM and ACLs to Stackdriver')
+            cloud_logger.log_text(
+                json.dumps(source_bucket_details.iam_policy.to_api_repr()))
+            for entity in source_bucket_details.acl_entities:
+                cloud_logger.log_text(str(entity))
+
             _lock_down_bucket(
                 spinner, cloud_logger, bucket, config.lock_file_name,
                 config.source_project_credentials.service_account_email)  # pylint: disable=no-member
@@ -202,7 +216,7 @@ def _lock_down_bucket(spinner, cloud_logger, bucket, lock_file_name,
 
 def _create_target_bucket(cloud_logger, config, source_bucket_details,
                           bucket_name):
-    """Creates the temp bucket (or target bucket during rename) in the target project
+    """Creates either the temp bucket or target bucket (during rename) in the target project
 
     Args:
         cloud_logger: A GCP logging client instance
@@ -388,8 +402,8 @@ def _create_bucket(spinner, cloud_logger, config, bucket_name,
 
     if source_bucket_details.default_kms_key_name:
         bucket.default_kms_key_name = source_bucket_details.default_kms_key_name
-        # The target project GCS service account must be given Encrypter/Decrypter permission for
-        # the key
+        # The target project GCS service account must be given
+        # Encrypter/Decrypter permission for the key
         _add_target_project_to_kms_key(
             spinner, cloud_logger, config,
             source_bucket_details.default_kms_key_name)
@@ -448,7 +462,7 @@ def _retry_if_false(result):
 def _create_bucket_api_call(spinner, cloud_logger, bucket):
     """Calls the GCS api method to create the bucket.
 
-    The method will attemp to retry up to 5 times if the 503 ServiceUnavailable
+    The method will attempt to retry up to 5 times if the 503 ServiceUnavailable
     exception is raised.
 
     Args:
@@ -926,4 +940,4 @@ def _write_spinner_and_log(spinner, cloud_logger, message):
 
 
 if __name__ == '__main__':
-    main()
+    main(None, None, None)

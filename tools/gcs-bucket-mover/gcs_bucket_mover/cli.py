@@ -183,7 +183,7 @@ def _parse_yaml_file(path):
     """Load and parse local YAML file
 
     Args:
-        path: either a local file system path or a GCS path
+        path: a local file system path
 
     Returns:
         a Python object representing the parsed YAML data
