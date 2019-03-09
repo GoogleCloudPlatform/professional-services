@@ -141,7 +141,7 @@ a pyarrow schema is needed. Therefore, this tool translates the schema in the --
 a pyarrow schema automatically if this flag is included, but pyarrow doesn't support all fields that are supported
 by BigQuery. STRING, NUMERIC, INTEGER, FLOAT, NUMERIC, BOOLEAN, TIMESTAMP, DATE, TIME, and DATETIME types are supported. 
 However BYTE, GEOGRAPHY, and RECORD fields are not supported and cannot be included in the --schema_file when writing
-to parquet.
+to parquet .
 
 ```
 --write_to_parquet
