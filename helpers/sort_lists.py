@@ -20,18 +20,24 @@ Alphabetically sort lists from input file
 import re
 import sys
 
-markdown_list_regex = re.compile(r'(\* (.+)\n)+', flags=re.MULTILINE)
+MARKDOWN_LIST_REGEX = re.compile(r'(\* (.+)\n)+', flags=re.MULTILINE)
+
 
 def sort_list(matches):
+    '''Returns the sorted version of a list'''
     list_text = matches.group(0)
     sorted_list = sorted(list_text.splitlines(), key=lambda v: v.upper())
     return '\n'.join(sorted_list) + '\n'
 
-filename = sys.argv[1]
+def main():
+    '''Entrypoint for command-line script'''
+    filename = sys.argv[1]
 
-with open(filename, "r+") as fp:
-    contents = fp.read()
-    sorted_contents = re.sub(markdown_list_regex, sort_list, contents)
-    fp.seek(0)
-    fp.write(sorted_contents)
-    fp.truncate()
+    with open(filename, "r+") as f:
+        contents = f.read()
+        sorted_contents = re.sub(MARKDOWN_LIST_REGEX, sort_list, contents)
+        f.seek(0)
+        f.write(sorted_contents)
+        f.truncate()
+
+main()
