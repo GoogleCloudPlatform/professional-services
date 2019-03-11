@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 # Copyright 2018 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,25 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-'''
-Alphabetically sort lists from input file
-'''
+# Make will use bash instead of sh
+SHELL := /usr/bin/env bash
 
-import re
-import sys
+# The .PHONY directive tells make that this isn't a file target
+.PHONY: fmt
+fmt: ## Format files, including README
+	@python3 ./helpers/sort_lists.PY README.MD
 
-markdown_list_regex = re.compile(r'(\* (.+)\n)+', flags=re.MULTILINE)
-
-def sort_list(matches):
-    list_text = matches.group(0)
-    sorted_list = sorted(list_text.splitlines(), key=lambda v: v.upper())
-    return '\n'.join(sorted_list) + '\n'
-
-filename = sys.argv[1]
-
-with open(filename, "r+") as fp:
-    contents = fp.read()
-    sorted_contents = re.sub(markdown_list_regex, sort_list, contents)
-    fp.seek(0)
-    fp.write(sorted_contents)
-    fp.truncate()
+help: ## Prints help for targets with comments
+	@grep -E '^[a-zA-Z._-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "make \033[36m%- 30s\033[0m %s\n", $$1, $$2}'
