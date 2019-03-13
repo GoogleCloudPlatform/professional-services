@@ -74,6 +74,7 @@ function main() {
   mkdir -p ${BASEDIR}
   LOGDIR=${HOME}/parcel-logs
   mkdir -p ${LOGDIR}/
+  cp * ${BASEDIR}/
   cd ${BASEDIR}
   touch ${LOGDIR}/cparcel_error.log
   touch ${LOGDIR}/cparcel_output.log
