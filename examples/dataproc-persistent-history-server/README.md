@@ -14,20 +14,43 @@ clusters.
   - `disable_history_servers.sh`
 - `workflow_templates`
   - `spark_mr_workflow_template.yaml`
+- `terraform`
+  - `variables.tf` 
+  - `network.tf` 
+  - `hadoop-subnet.tf` 
+  - `history-server.tf` 
+  - `history-bucket.tf` 
+  - `firewall.tf` 
 
 ## Usage
+
+### Terraform
+To spin up the whole example you could simply edit the 
+`terraform.tfvars` file to set the variables to the 
+desired values and run the following commands.
+
+```
+cd terraform
+terraform init
+terraform apply
+```
+
+### Google Cloud SDK
 1.  Replace `PROJECT` with your GCP project id in each file.
 1.  Replace `HISTORY_BUCKET` with your GCS bucket for logs in each file.
+1.  Replace `REGION` with your desired GCP Compute region.
 1.  Manually create the `spark-events` folder in your history bucket.
 
 ```
 cd workflow_templates
 sed -i 's/PROJCET/your-gcp-project-id/g' *
 sed -i 's/HISTORY_BUCKET/your-history-bucket/g' *
+sed -i 's/REGION/us-central1/g' *
 
 cd cluster_templates
 sed -i 's/PROJCET/your-gcp-project-id/g' *
 sed -i 's/HISTORY_BUCKET/your-history-bucket/g' *
+sed -i 's/REGION/us-central1/g' *
 ```
 
 Create the history server.
@@ -79,6 +102,4 @@ gcloud compute ssh history-server-m \
  --user-data-dir="/tmp/history-server-m" \
  http://history-server-m:18080
 ```
-
-
 

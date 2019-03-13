@@ -1,15 +1,14 @@
 config:
   gceClusterConfig:
     serviceAccount: history-server-account@PROJECT.iam.gserviceaccount.com
-    subnetworkUri: https://www.googleapis.com/compute/v1/projects/PROJECT/regions/us-central1/subnetworks/example-net-dataproc-central
+    subnetworkUri: https://www.googleapis.com/compute/v1/projects/PROJECT/regions/REGION/subnetworks/example-net-dataproc-central
     tags:
-    - hadoop-admin-ui-access
-    zoneUri: https://www.googleapis.com/compute/v1/projects/PROJECT/zones/us-central1-a
+    - hadoop-history-ui-access
   masterConfig:
     diskConfig:
       bootDiskSizeGb: 500
       bootDiskType: pd-standard
-    machineTypeUri: https://www.googleapis.com/compute/v1/projects/PROJECT/zones/us-central1-a/machineTypes/n1-standard-4
+    machineTypeUri: n1-standard-4
     minCpuPlatform: AUTOMATIC
     numInstances: 1
   softwareConfig:
