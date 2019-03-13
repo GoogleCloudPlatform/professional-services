@@ -55,7 +55,6 @@ sed -i 's/REGION/us-central1/g' *
 
 Create the history server.
 
-
 ```sh
 gcloud beta dataproc clusters import \
   history-server \
@@ -72,6 +71,7 @@ ephemeral-cluster \
 --region=us-central1
 ```
 
+### Running the Workflow Template
 Import the workflow template to run an example spark and hadoop job
 to verify your setup is working.
 
@@ -87,7 +87,7 @@ run the example jobs and tear it down.
 gcloud dataproc workflow-templates instantiate spark-mr-example
 ```
 
-
+### Viewing the History UI
 Go look at the UI by ssh tunneling to the history server.
 
 ```sh
@@ -102,4 +102,3 @@ gcloud compute ssh history-server-m \
  --user-data-dir="/tmp/history-server-m" \
  http://history-server-m:18080
 ```
-
