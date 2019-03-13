@@ -1,0 +1,8 @@
+project = "pso-ox-data-pocs"
+history-bucket  = "pso-ox-data-pocs-history-bucket"
+history-server = "history-server"
+history-region = "us-central1"
+network = "example-network"
+hadoop-subnet = "hadoop-subnet-central"
+hadoop-cidr-range = "10.0.0.0/19"
+data-eng-cidr-range = "10.100.0.0/19"
