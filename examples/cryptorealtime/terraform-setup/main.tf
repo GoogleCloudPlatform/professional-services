@@ -23,11 +23,10 @@ provider "google" {
 resource "google_bigtable_instance" "instance" {
   project = "${var.project_id}"
   name = "${var.bigtable_instance_name}"
-  instance_type = "PRODUCTION"
+  instance_type = "DEVELOPMENT"
   cluster {
     cluster_id = "${var.bigtable_instance_name}-cluster"
     zone = "${var.zone}"
-    num_nodes = 1
     storage_type = "HDD"
   }
 }
@@ -69,7 +68,7 @@ resource "google_compute_instance" "default" {
 
 resource "google_compute_firewall" "http-server" {
   project = "${var.project_id}"
-  name = "default-allow-http"
+  name = "webserver5000rule"
   network = "default"
 
   allow {
