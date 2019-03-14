@@ -84,9 +84,6 @@ resource "google_project_service" "cloud_functions_api" {
 resource "google_project_service" "cloud_builder_api" {
   project = "${var.project}"
   service = "cloudbuild.googleapis.com"
-  #provisioner "local-exec" {
-  #  command = "sleep 30"
-  #}
 }
 
 resource "google_project_iam_binding" "cloud_builder_function_developer" {
