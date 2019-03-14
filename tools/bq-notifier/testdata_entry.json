@@ -1,0 +1,68 @@
+{
+  "insertId": "12345",
+  "logName": "projects/test-project/logs/cloudaudit.googleapis.com%2Fdata_access",
+  "protoPayload": {
+    "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+    "authenticationInfo": {
+      "principalEmail": "tester@testing.local"
+    },
+    "methodName": "jobservice.jobcompleted",
+    "requestMetadata": {
+      "callerIp": "127.0.0.1",
+      "callerSuppliedUserAgent": "gcloud-golang-bigquery/20160429,gzip(gfe)"
+    },
+    "resourceName": "projects/test-project/jobs/12345",
+    "serviceData": {
+      "@type": "type.googleapis.com/google.cloud.bigquery.logging.v1.AuditData",
+      "jobCompletedEvent": {
+        "eventName": "query_job_completed",
+        "job": {
+          "jobConfiguration": {
+            "labels": {
+              "bqnslack": "myteam"
+            },
+            "query": {
+              "createDisposition": "CREATE_IF_NEEDED",
+              "defaultDataset": {},
+              "destinationTable": {
+                "datasetId": "12345",
+                "projectId": "test-project",
+                "tableId": "12345"
+              },
+              "query": "select * from `bigquery-public-data.samples.wikipedia` LIMIT 10",
+              "queryPriority": "QUERY_INTERACTIVE",
+              "statementType": "SELECT",
+              "writeDisposition": "WRITE_TRUNCATE"
+            }
+          },
+          "jobName": {
+            "jobId": "12345",
+            "location": "US",
+            "projectId": "test-project"
+          },
+          "jobStatistics": {
+            "createTime": "2019-03-11T21:26:58.226Z",
+            "endTime": "2019-03-11T21:26:58.570Z",
+            "startTime": "2019-03-11T21:26:58.545Z"
+          },
+          "jobStatus": {
+            "error": {},
+            "state": "DONE"
+          }
+        }
+      }
+    },
+    "serviceName": "bigquery.googleapis.com",
+    "status": {}
+  },
+  "receiveTimestamp": "2019-03-11T21:26:58.799494925Z",
+  "resource": {
+    "labels": {
+      "project_id": "test-project"
+    },
+    "type": "bigquery_resource"
+  },
+  "severity": "INFO",
+  "timestamp": "2019-03-11T21:26:58.582Z"
+}
+

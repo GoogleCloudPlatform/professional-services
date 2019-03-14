@@ -1,0 +1,8 @@
+topic = "bq-notifier"
+project = "bq-notifier"
+domain = "acme.com"
+repo = "bq-notifier"
+branch = "latest"
+region = "us-central1"
+entry_point = "HandleJobComplete"
+function = "bqnotifier"
