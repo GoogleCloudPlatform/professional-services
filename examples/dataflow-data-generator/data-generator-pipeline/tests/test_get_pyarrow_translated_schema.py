@@ -108,6 +108,9 @@ class TestPyarrowSchemaTranslator(unittest.TestCase):
         pyarrow_schema = get_pyarrow_translated_schema(string_input_schema)
         self.assertEqual(pyarrow_schema, expected_pa_schema)
 
+    def test_date_time_converter(self):
+        timestamp = '2014-09-27 12:30:00.45-8:00'
+
 
 if __name__ == '__main__':
     unittest.main()

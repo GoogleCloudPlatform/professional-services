@@ -36,7 +36,8 @@ import os
 
 from data_generator.CsvUtil import dict_to_csv
 from data_generator.AvroUtil import fix_record_for_avro
-from data_generator.ParquetUtil import get_pyarrow_translated_schema
+from data_generator.ParquetUtil import get_pyarrow_translated_schema, \
+fix_record_for_parquet
 from data_generator.enforce_primary_keys import EnforcePrimaryKeys
 
 def run(argv=None):
@@ -130,6 +131,8 @@ def run(argv=None):
             str_schema = json.load(infile)
         pa_schema = get_pyarrow_translated_schema(str_schema)
         (rows
+            | 'Fix data and time Types for Parquet.' >>
+            beam.FlatMap(lambda row: fix_record_for_parquet(row, str_schema))
             | 'Write to Parquet.' >> beam.io.WriteToParquet(
                     file_path_prefix=data_args.output_prefix,
                     codec='null',
