@@ -77,6 +77,5 @@ def fix_record_for_parquet(record, schema):
             record[field_name] = time_to_parquet_time(
                 record[field_name]
             )
-    logging.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    logging.info(record)
+
     return record
