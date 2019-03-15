@@ -23,18 +23,21 @@ def get_pyarrow_translated_schema(string_schema):
     for field in string_schema:
         field_type = field['type']
         field_name = field['name']
+        field_mode = field['mode']
         converted_field_type = type_conversions[field_type]
         if converted_field_type is None:
-            logging.error('Error: json schema included a {0:s} field. BYTE,  '
-                          'GEOGRAPHY, and RECORD types cannot be used when '
-                          'outputting to parquet.'.format(field_type))
-            raise ValueError('Error: json schema included a {0:s} field. BYTE, '
-                             'GEOGRAPHY, and RECORD types cannot be used when '
-                             'outputting to parquet.'.format(field_type))
+            error_message = 'Error: json schema included a {0:s} field. ' \
+                            'BYTE, GEOGRAPHY, and RECORD types cannot ' \
+                            'currently be used when outputting to ' \
+                            'parquet.'.format(field_type)
+            logging.error(error_message)
+            raise ValueError(error_message)
         else:
+            nullable = False if field_mode == 'REQUIRED' else True
             pa_field = pa.field(
-                field_name,
-                converted_field_type
+                name=field_name,
+                type=converted_field_type,
+                nullable=nullable
             )
             pa_schema_list.append(pa_field)
 

@@ -17,7 +17,7 @@ class TestPyarrowSchemaTranslator(unittest.TestCase):
             {
                 "type": "NUMERIC",
                 "name": "numeric1",
-                "mode": "REQUIRED"
+                "mode": "NULLABLE"
             },
             {
                 "type": "INTEGER",
@@ -27,7 +27,7 @@ class TestPyarrowSchemaTranslator(unittest.TestCase):
             {
                 "type": "FLOAT",
                 "name": "float1",
-                "mode": "REQUIRED"
+                "mode": "NULLABLE"
             },
             {
                 "type": "BOOLEAN",
@@ -57,15 +57,51 @@ class TestPyarrowSchemaTranslator(unittest.TestCase):
         ]
         expected_pa_schema = pa.schema(
             [
-                pa.field('string1', pa.string()),
-                pa.field('numeric1', pa.int64()),
-                pa.field('integer1', pa.int64()),
-                pa.field('float1', pa.float64()),
-                pa.field('boolean1', pa.bool_()),
-                pa.field('timestamp1', pa.timestamp('ms')),
-                pa.field('date1', pa.date32()),
-                pa.field('time1', pa.time64('us')),
-                pa.field('datetime1', pa.date64()),
+                pa.field(
+                    name='string1',
+                    type=pa.string(),
+                    nullable=False
+                ),
+                pa.field(
+                    name='numeric1',
+                    type=pa.int64(),
+                    nullable=True
+                ),
+                pa.field(
+                    name='integer1',
+                    type=pa.int64(),
+                    nullable=False
+                ),
+                pa.field(
+                    name='float1',
+                    type=pa.float64(),
+                    nullable=True
+                ),
+                pa.field(
+                    name='boolean1',
+                    type=pa.bool_(),
+                    nullable=False
+                ),
+                pa.field(
+                    name='timestamp1',
+                    type=pa.timestamp('ms'),
+                    nullable=False
+                ),
+                pa.field(
+                    name='date1',
+                    type=pa.date32(),
+                    nullable=False
+                ),
+                pa.field(
+                    name='time1',
+                    type=pa.time64('us'),
+                    nullable=False
+                ),
+                pa.field(
+                    name='datetime1',
+                    type=pa.date64(),
+                    nullable=False
+                )
             ]
         )
 
