@@ -1,6 +1,7 @@
 import pyarrow as pa
 
 
+
 def get_pyarrow_translated_schema(json_schema):
     type_conversions = {
         'STRING': pa.string(),
