@@ -1,0 +1,21 @@
+.grid-container {
+  margin: 20px;
+}
+.dashboard-card {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  right: 15px;
+  bottom: 15px;
+}
+.dashboard-card-content {
+  overflow: auto;
+  text-align: left;
+}
+table {
+  width: 100%;
+}
+.job_display {
+  position: relative;
+  padding-top: 60px;
+}
