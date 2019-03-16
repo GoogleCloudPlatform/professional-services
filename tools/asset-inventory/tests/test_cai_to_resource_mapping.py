@@ -14,12 +14,9 @@
 
 """Test Cloud Asset Inventory export."""
 
-import argparse
-import logging
 import unittest
 
 from asset_inventory.cai_to_api import CAIToAPI
-import mock
 
 
 class TestCAIToAPIMapping(unittest.TestCase):

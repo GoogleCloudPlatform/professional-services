@@ -23,6 +23,9 @@ from asset_inventory.api_schema  import APISchema
 # pylint:disable=protected-access
 class TestApiSchema(unittest.TestCase):
 
+    def tearDown(self):
+        APISchema._discovey_documents_map = None
+
     def test_simple_properties(self):
         api_properties = {
             'property-1': {
@@ -158,7 +161,8 @@ class TestApiSchema(unittest.TestCase):
                 }
             }
         }
-        schema = APISchema._properties_map_to_field_list(resources['Object-1']['properties'],
-                                                         resources, {})
+        schema = APISchema._properties_map_to_field_list(
+            resources['Object-1']['properties'],
+            resources, {})
         schema.sort()
         self.assertEqual(schema, [])

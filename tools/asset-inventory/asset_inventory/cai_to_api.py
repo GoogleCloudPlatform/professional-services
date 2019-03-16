@@ -27,7 +27,7 @@ The entrypoint is the `CAIToAPI.cai_to_api_properties` method.
 
 """
 
-impot json
+import json
 import os
 
 
@@ -68,7 +68,7 @@ class CAIToAPI(object):
         for cai_property in cai_to_api:
             if cai_property in cai_properties:
                 cls._apply_cai_to_api(cai_properties[cai_property],
-                                           cai_to_api[cai_property])
+                                      cai_to_api[cai_property])
 
         # and apply the necessary modifications.
         if 'cai_to_api_names' in cai_to_api:
@@ -80,7 +80,7 @@ class CAIToAPI(object):
 
     @classmethod
     def cai_to_api_properties(cls, resource_name, cai_properties):
-        """Convert properties in """
+        """Convert CAI properties that should match API properties."""
         cai_to_api_properties = cls._get_cai_to_api_properties()
         if resource_name in cai_to_api_properties:
             cai_to_api = cai_to_api_properties[resource_name]

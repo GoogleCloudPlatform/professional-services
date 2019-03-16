@@ -13,15 +13,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" Generates BigQuery schema from API discovery documents.
+"""Generates BigQuery schema from API discovery documents."""
 
+from collections import defaultdict
 
-"""
 from asset_inventory import bigquery_schema
 import requests
-from collections import defaultdict
 from requests_futures.sessions import FuturesSession
-from google.cloud import bigquery
 
 
 # Map CAI asset types to the Google API they come from.
@@ -44,7 +42,7 @@ ASSET_TYPE_PREFIX_TO_API = {
 }
 
 
-class APISchemas(object):
+class APISchema(object):
     """Convert a CAI asset type to a BigQuery table schema.
 
     When the import_pipeline uses a group_by of ASSET_TYPE or ASSET_TYPE_VERSION
@@ -53,20 +51,20 @@ class APISchemas(object):
     Will union all API versions into a single schema.
     """
 
-    discovey_documents_map = None
-    schema_cache = {}
+    _discovey_documents_map = None
+    _schema_cache = {}
 
     @classmethod
     def _get_discovery_documents_map(cls):
         """Download discovery documents.
 
-        Caches downloaded documents in the `discovey_documents_map` map.
+        Caches downloaded documents in the `_discovey_documents_map` map.
 
         Returns:
             Dict of API names to their Discovery document.
         """
-        if cls.discovey_documents_map:
-            return cls.discovey_documents_map
+        if cls._discovey_documents_map:
+            return cls._discovey_documents_map
 
         discovery_docs = requests.get(
             'https://content.googleapis.com/discovery/v1/apis').json()
@@ -78,12 +76,12 @@ class APISchemas(object):
                 if api_name == discovery_doc['name']:
                     api_to_discovery_docs_requests[api_name].append(
                         session.get(discovery_doc['discoveryRestUrl']))
-        cls.discovey_documents_map = {
+        cls._discovey_documents_map = {
             api_name:
                 [f.result().json() for f in fl if f.result().status_code == 200]
             for api_name, fl in api_to_discovery_docs_requests.items()
         }
-        return cls.discovey_documents_map
+        return cls._discovey_documents_map
 
     @classmethod
     def get_api_name_for_asset_type(cls, asset_type):
@@ -156,7 +154,7 @@ class APISchemas(object):
                 if not fields_list:
                     continue
                 field['fields'] = fields_list
-            fields.append(bigquery.SchemaField(**field))
+            fields.append(field)
         return fields
 
     @classmethod
@@ -164,8 +162,8 @@ class APISchemas(object):
         """Expands the $ref properties of a reosurce definition."""
         api_id = document['id']
         resource_cache_key = api_id + resource_name
-        if resource_cache_key in cls.schema_cache:
-            return cls.schema_cache[resource_cache_key]
+        if resource_cache_key in cls._schema_cache:
+            return cls._schema_cache[resource_cache_key]
         resources = document['schemas']
         field_list = []
         if resource_name in resources:
@@ -173,15 +171,8 @@ class APISchemas(object):
             properties_map = resource['properties']
             field_list = cls._properties_map_to_field_list(
                 properties_map, resources, {})
-        cls.schema_cache[resource_cache_key] = field_list
+        cls._schema_cache[resource_cache_key] = field_list
         return field_list
-
-    @classmethod
-    def _get_field_by_name(cls, fields, field_name):
-        for i, field in enumerate(fields):
-            if field.name == field_name:
-                return i, field
-        return None, None
 
     @classmethod
     def _convert_to_asset_schema(cls,
@@ -191,11 +182,13 @@ class APISchemas(object):
         """Add the fields that the asset export adds to each resource.
 
         Args:
-            schema: list of google.cloud.bigquery.SchemaField objects.
+            schema: list of `google.cloud.bigquery.SchemaField` like dict
+                     objects .
             include_resource: to include resource schema.
             include_iam_policy: to include iam policy schema.
         Returns:
-            list of google.cloud.bigquery.SchemaField objects.
+            list of `google.cloud.bigquery.SchemaField` like dict objects.
+
         """
         asset_schema = [{
             'name': 'name',
@@ -210,8 +203,9 @@ class APISchemas(object):
         }]
         if include_resource:
             resource_schema = list(schema)
-            last_modified, _ = cls._get_field_by_name(resource_schema,
-                                                      'lastModifiedTime')
+            last_modified, _ = bigquery_schema.get_field_by_name(
+                resource_schema,
+                'lastModifiedTime')
             if not last_modified:
                 resource_schema.append({
                     'name': 'lastModifiedTime',
@@ -247,7 +241,7 @@ class APISchemas(object):
                     'name': 'data',
                     'field_type': 'RECORD',
                     'description': 'Resource properties.',
-                    'mode': 'REQUIRED',
+                    'mode': 'NULLABLE',
                     'fields': resource_schema
                 }],
                 'mode': 'NULLABLE'
@@ -307,14 +301,7 @@ class APISchemas(object):
                 }]
             })
 
-        # convert dict structure into bigquery.SchemaField objects
-        def to_bigquery_schema(fields):
-            for field in fields:
-                if 'fields' in field:
-                    field['fields'] = to_bigquery_schema(fields['fields'])
-            return [bigquery.SchemaField(**field) for field in fields]
-
-        return to_bigquery_schema(asset_schema)
+        return asset_schema
 
     @classmethod
     def bigquery_schema_for_asset_type(cls, asset_type, include_resource,
@@ -328,8 +315,8 @@ class APISchemas(object):
         """
         cache_key = '{}.{}.{}'.format(asset_type, include_resource,
                                       include_iam_policy)
-        if cache_key in cls.schema_cache:
-            return cls.schema_cache[cache_key]
+        if cache_key in cls._schema_cache:
+            return cls._schema_cache[cache_key]
         api_name = cls.get_api_name_for_asset_type(asset_type)
         discovery_documents_map = cls._get_discovery_documents_map()
         discovery_documents = discovery_documents_map[api_name]
@@ -343,7 +330,7 @@ class APISchemas(object):
         merged_schema = bigquery_schema.merge_schemas(schemas)
         asset_type_schema = cls._convert_to_asset_schema(
             merged_schema, include_resource, include_iam_policy)
-        cls.schema_cache[cache_key] = asset_type_schema
+        cls._schema_cache[cache_key] = asset_type_schema
         return asset_type_schema
 
 

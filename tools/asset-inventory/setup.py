@@ -39,6 +39,8 @@ setup(
     packages=['asset_inventory'],
     setup_requires=['pytest-runner'],
     tests_require=['mock', 'pytest'],
+    include_package_data=True,
+    data_files=[('.', ['asset_inventory/cai_to_api_properties.json'])],
     install_requires=[
         'google-api-core',
         'google-apitools',
@@ -47,4 +49,5 @@ setup(
         'google-api-python-client',
         'googleapis-common-protos==1.5.3',
         'google-cloud-asset', 'google-cloud-bigquery==1.6.0',
+        'requests-futures'
     ])
