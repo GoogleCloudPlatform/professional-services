@@ -83,7 +83,7 @@ class StackdriverExporter(BaseExporter):
         Returns:
             list: A list of Stackdriver Logging API entries.
         """
-        return map(lambda i: self.__convert(i), records)
+        return list(map(lambda i: self.__convert(i), records))
 
     def get_destination(self, log_name):
         return "{}/logs/{}".format(self.project_id, log_name)
