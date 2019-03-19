@@ -18,7 +18,7 @@ from data_generator.ParquetUtil import get_pyarrow_translated_schema, \
 fix_record_for_parquet
 
 
-class TestPyarrowSchemaTranslator(unittest.TestCase):
+class TestParquetUtil(unittest.TestCase):
     def test_get_pyarrow_translated_schema(self):
 
         string_input_schema = [
