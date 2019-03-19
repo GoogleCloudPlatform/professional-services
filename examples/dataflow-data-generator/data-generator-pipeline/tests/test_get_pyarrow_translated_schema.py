@@ -60,48 +60,48 @@ class TestPyarrowSchemaTranslator(unittest.TestCase):
             [
                 pa.field(
                     name='string1',
-                    type=pa.string(),
-                    nullable=False
+                    type=pa.string()
+                    #nullable=False
                 ),
                 pa.field(
                     name='numeric1',
-                    type=pa.int64(),
-                    nullable=True
+                    type=pa.int64()
+                    #nullable=True
                 ),
                 pa.field(
                     name='integer1',
                     type=pa.int64(),
-                    nullable=False
+                    #nullable=False
                 ),
                 pa.field(
                     name='float1',
-                    type=pa.float64(),
-                    nullable=True
+                    type=pa.float64()
+                    #nullable=True
                 ),
                 pa.field(
                     name='boolean1',
-                    type=pa.bool_(),
-                    nullable=False
+                    type=pa.bool_()
+                    #nullable=False
                 ),
                 pa.field(
                     name='timestamp1',
-                    type=pa.timestamp('ms'),
-                    nullable=False
+                    type=pa.timestamp('ms')
+                    #nullable=False
                 ),
                 pa.field(
                     name='date1',
-                    type=pa.date64(),
-                    nullable=False
+                    type=pa.date64()
+                    #nullable=False
                 ),
                 pa.field(
                     name='time1',
-                    type=pa.time64('us'),
-                    nullable=False
+                    type=pa.time64('us')
+                    #nullable=False
                 ),
                 pa.field(
                     name='datetime1',
-                    type=pa.timestamp('ms'),
-                    nullable=False
+                    type=pa.timestamp('ms')
+                    #nullable=False
                 )
             ]
         )
@@ -135,12 +135,12 @@ class TestPyarrowSchemaTranslator(unittest.TestCase):
             #  'time1': u'2012-09-08T20:20:00.00'
         }
 
-        expected_output = {
+        expected_output = [{
             'timestamp1': 1552699348,
             'datetime1': 1552699498,
             'date1': 1552626000,
             #  'time1': u'2012-09-08T20:20:00.00'
-        }
+        }]
 
         output_record = fix_record_for_parquet(record, input_schema)
         self.assertEqual(expected_output, output_record)
