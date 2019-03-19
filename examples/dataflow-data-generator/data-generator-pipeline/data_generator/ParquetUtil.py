@@ -36,8 +36,8 @@ def get_pyarrow_translated_schema(string_schema):
             nullable = False if field_mode == 'REQUIRED' else True
             pa_field = pa.field(
                 name=field_name,
-                type=converted_field_type
-            #    nullable=nullable
+                type=converted_field_type,
+                nullable=nullable
             )
             pa_schema_list.append(pa_field)
 
