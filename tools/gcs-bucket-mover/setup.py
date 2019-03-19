@@ -30,12 +30,12 @@ gcs_bucket_mover is a Python application that helps you move storage buckets bet
 requires = [
     'attrs', 'configargparse', 'google-api-python-client',
     'google-cloud-logging', 'google-cloud-pubsub', 'google-cloud-storage',
-    'retrying', 'oauth2client', 'yaspin', 'Faker', 'PyYAML'
+    'mock', 'retrying', 'oauth2client', 'yaspin', 'Faker', 'PyYAML'
 ]
 
 setup(
     name='gcs_bucket_mover',
-    version='1.1.0',
+    version='1.2.0',
     license='Apache 2.0',
     author='Google Inc.',
     author_email='mgeneau@google.com',

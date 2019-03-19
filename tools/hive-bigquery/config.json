@@ -1,0 +1,34 @@
+{
+  "GCP": {
+      "project_id": "PROJECT_ID",
+      "bucket": "GCS_BUCKET_NAME"
+    },
+  "Hive": {
+      "host": "localhost",
+      "port": 10000,
+      "user": null,
+      "database": "HIVE_DATABASE_NAME",
+      "table": "HIVE_TABLE_NAME",
+      "incremental_col": null
+    },
+  "BigQuery": {
+      "dataset": "DATASET_ID",
+      "table": null,
+      "use_clustering": false,
+      "write_mode": "create"
+    },
+  "Tracking_DB": {
+      "host": "localhost",
+      "port": 3306,
+      "user": "root",
+      "database": "TRACKING_DATABASE_DB_NAME",
+      "password_file_path": "GCS_ENCRYPTED_FILE_PATH"
+    },
+  "KMS":
+  {
+    "location_id": "global",
+    "key_ring_id": "KEY_RING_ID",
+    "crypto_key_id": "CRYPTO_KEY_ID"
+  },
+  "create_validation_table": false
+}
