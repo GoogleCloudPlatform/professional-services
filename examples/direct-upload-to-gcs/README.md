@@ -30,7 +30,7 @@ In order to realize this system, you need to enable following APIs.
 - Cloud Storage API
 - Cloud Functions API
 - Identity and Access Management (IAM) API
-  - If you are going to use original service account and its private key instead of the `signBlog` API, you don't need to enable this API.
+  - If you are going to use original service account and its private key instead of the `signBlob` API, you don't need to enable this API.
 - Cloud Vision API
 
 ### Service Account

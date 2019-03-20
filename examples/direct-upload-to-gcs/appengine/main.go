@@ -30,7 +30,7 @@ import (
 )
 
 var (
-	// iamService is a client for calling the signBlog API.
+	// iamService is a client for calling the signBlob API.
 	iamService *iam.Service
 
 	// serviceAccountName represents Service Account Name.
