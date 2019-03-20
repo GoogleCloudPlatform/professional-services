@@ -133,7 +133,7 @@ func UploadImage(ctx context.Context, e GCSEvent) error {
 		log.Printf("upload: %s has already been copied to destination\n", e.Name)
 		return nil
 	}
-	// Return retryable error as there is a possibility thart object does not temporarily exist.
+	// Return retryable error as there is a possibility that object does not temporarily exist.
 	if err != storage.ErrObjectNotExist {
 		return err
 	}
