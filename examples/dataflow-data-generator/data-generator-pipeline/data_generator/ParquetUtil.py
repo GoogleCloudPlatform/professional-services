@@ -60,36 +60,6 @@ def get_pyarrow_translated_schema(string_schema):
     return pa.schema(pa_schema_list)
 
 
-def time_to_parquet_time(time, micros=True):
-    """
-    This is a convienence function for converting datetime objects to
-    timestamps in either milliseconds or microseconds since the Unix
-    Epoch.
-    Args:
-        time: (datetime.datetime) to be converted.
-        micros: (bool) should we use microsecond precision. Default behavior
-            is millisecond precision. This should be dictated by the avsc file.
-    """
-    _MIDNIGHT = datetime.time(0, 0, 0)
-    _MILLISECONDS_PER_SECOND = 10 ** 3
-    _MICROSECONDS_PER_SECOND = 10 ** 6
-    if isinstance(time, unicode):
-        try:
-            time = datetime.datetime.strptime(time, '%H:%M:%S').time()
-        except:
-            time = datetime.datetime.strptime(time, '%H:%M:%S.%f').time()
-
-    _TODAY = datetime.date.today()
-
-    seconds_since_midnight = (datetime.datetime.combine(_TODAY,time)
-                              - datetime.datetime.combine(_TODAY,
-                                    _MIDNIGHT)).total_seconds()
-
-    multiplier = _MICROSECONDS_PER_SECOND if micros else _MILLISECONDS_PER_SECOND
-    print(type(seconds_since_midnight * multiplier))
-    return long(seconds_since_midnight * multiplier)
-
-
 def fix_record_for_parquet(record, schema):
     for field in schema:
         field_name = field["name"]
@@ -102,7 +72,7 @@ def fix_record_for_parquet(record, schema):
                 record[field_name]
             ))
         elif field["type"] == "TIME":
-            record[field_name] = time_to_parquet_time(
+            record[field_name] = time_to_epoch_time(
                 record[field_name]
             )
 
