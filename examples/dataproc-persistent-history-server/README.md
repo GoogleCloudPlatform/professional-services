@@ -43,12 +43,12 @@ terraform apply
 
 ```
 cd workflow_templates
-sed -i 's/PROJCET/your-gcp-project-id/g' *
+sed -i 's/PROJECT/your-gcp-project-id/g' *
 sed -i 's/HISTORY_BUCKET/your-history-bucket/g' *
 sed -i 's/REGION/us-central1/g' *
 
 cd cluster_templates
-sed -i 's/PROJCET/your-gcp-project-id/g' *
+sed -i 's/PROJECT/your-gcp-project-id/g' *
 sed -i 's/HISTORY_BUCKET/your-history-bucket/g' *
 sed -i 's/REGION/us-central1/g' *
 ```
