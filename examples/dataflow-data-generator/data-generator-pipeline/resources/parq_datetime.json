@@ -13,10 +13,5 @@
           "type": "DATE",
           "name": "date1",
           "mode": "REQUIRED"
-      },
-      {
-         "type": "TIME",
-         "name": "time1",
-         "mode": "REQUIRED"
       }
 ]
