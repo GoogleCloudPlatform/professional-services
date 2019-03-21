@@ -97,12 +97,12 @@ class TestParquetUtil(unittest.TestCase):
                 ),
                 pa.field(
                     name='timestamp1',
-                    type=pa.timestamp('ms')
+                    type=pa.timestamp('us')
                     #nullable=False
                 ),
                 pa.field(
                     name='date1',
-                    type=pa.date64()
+                    type=pa.date32(),
                     #nullable=False
                 ),
                 pa.field(
@@ -112,7 +112,7 @@ class TestParquetUtil(unittest.TestCase):
                 ),
                 pa.field(
                     name='datetime1',
-                    type=pa.timestamp('ms')
+                    type=pa.timestamp('us')
                     #nullable=False
                 )
             ]
@@ -137,21 +137,26 @@ class TestParquetUtil(unittest.TestCase):
                 "type": "DATE",
                 "name": "date1",
                 "mode": "REQUIRED"
+            },
+            {
+                "type": "TIME",
+                "name": "time1",
+                "mode": "REQUIRED"
             }
         ]
 
         record = {
-            'timestamp1': '2019-03-15T20:22:28',
-            'datetime1': '2019-03-15T20:24:58',
-            'date1': '2019-03-15',
-            #  'time1': u'2012-09-08T20:20:00.00'
+            'timestamp1': u'2019-03-15T20:22:28',
+            'datetime1': u'2019-03-15T20:24:58',
+            'date1': u'2019-03-15',
+            'time1': u'20:20:00.00'
         }
 
         expected_output = [{
-            'timestamp1': 1552699348,
-            'datetime1': 1552699498,
-            'date1': 1552626000,
-            #  'time1': u'2012-09-08T20:20:00.00'
+            'timestamp1': 1552681348000000,
+            'datetime1': 1552681498000000,
+            'date1': 17970,
+            'time1': 73200000000
         }]
 
         output_record = fix_record_for_parquet(record, input_schema)

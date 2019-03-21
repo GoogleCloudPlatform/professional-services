@@ -14,7 +14,9 @@
 
 import pyarrow as pa
 import logging
-import time
+import datetime
+from TimeUtil import datetime_to_epoch_timestamp, date_to_epoch_date, \
+time_to_epoch_time
 
 
 def get_pyarrow_translated_schema(string_schema):
@@ -26,10 +28,10 @@ def get_pyarrow_translated_schema(string_schema):
         'FLOAT': pa.float64(),
         'NUMERIC': pa.int64(),
         'BOOLEAN': pa.bool_(),
-        'TIMESTAMP': pa.timestamp('ms'),
-        'DATE': pa.date64(),
+        'TIMESTAMP': pa.timestamp('us'),
+        'DATE': pa.date32(),
         'TIME': pa.time64('us'),
-        'DATETIME': pa.timestamp('ms'),
+        'DATETIME': pa.timestamp('us'),
         'GEOGRAPHY': None,
         'RECORD': None
     }
@@ -58,35 +60,47 @@ def get_pyarrow_translated_schema(string_schema):
     return pa.schema(pa_schema_list)
 
 
-def timestamp_to_parquet_timestamp(timestamp):
-    pattern = '%Y-%m-%dT%H:%M:%S'
-    epoch = int(time.mktime(time.strptime(timestamp, pattern)))
-    return epoch
+def time_to_parquet_time(time, micros=True):
+    """
+    This is a convienence function for converting datetime objects to
+    timestamps in either milliseconds or microseconds since the Unix
+    Epoch.
+    Args:
+        time: (datetime.datetime) to be converted.
+        micros: (bool) should we use microsecond precision. Default behavior
+            is millisecond precision. This should be dictated by the avsc file.
+    """
+    _MIDNIGHT = datetime.time(0, 0, 0)
+    _MILLISECONDS_PER_SECOND = 10 ** 3
+    _MICROSECONDS_PER_SECOND = 10 ** 6
+    if isinstance(time, unicode):
+        try:
+            time = datetime.datetime.strptime(time, '%H:%M:%S').time()
+        except:
+            time = datetime.datetime.strptime(time, '%H:%M:%S.%f').time()
 
+    _TODAY = datetime.date.today()
 
-def date_to_parquet_date(date):
-    pattern = '%Y-%m-%d'
-    epoch = int(time.mktime(time.strptime(date, pattern)))
-    return epoch
+    seconds_since_midnight = (datetime.datetime.combine(_TODAY,time)
+                              - datetime.datetime.combine(_TODAY,
+                                    _MIDNIGHT)).total_seconds()
 
-
-def time_to_parquet_time(time):
-    pattern = '%H:%M:%S'
-    epoch = int(time.mktime(time.strptime(time, pattern)))
-    return epoch
+    multiplier = _MICROSECONDS_PER_SECOND if micros else _MILLISECONDS_PER_SECOND
+    print(type(seconds_since_midnight * multiplier))
+    return long(seconds_since_midnight * multiplier)
 
 
 def fix_record_for_parquet(record, schema):
     for field in schema:
         field_name = field["name"]
         if field["type"] in ("TIMESTAMP", "DATETIME"):
-            record[field_name] = timestamp_to_parquet_timestamp(
+            record[field_name] = int(datetime_to_epoch_timestamp(
                 record[field_name]
-            )
+            ))
         elif field["type"] == "DATE":
-            record[field_name] = date_to_parquet_date(
+            record[field_name] = int(date_to_epoch_date(
                 record[field_name]
-            )
+            ))
         elif field["type"] == "TIME":
             record[field_name] = time_to_parquet_time(
                 record[field_name]
