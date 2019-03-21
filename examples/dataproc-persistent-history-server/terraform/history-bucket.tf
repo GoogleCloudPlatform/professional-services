@@ -30,9 +30,17 @@ resource "google_storage_bucket" "history-bucket" {
   }
 }
 
-// Spark needs the spark-events directory to already exist.
-reource "google_storage_bucket_object" "spark-events-dir" {
+# Spark needs the spark-events directory to already exist.
+resource "google_storage_bucket_object" "spark-events-dir" {
+  bucket       = "${var.history-bucket}"
   name         = "spark-events/.keep"
   content      = ""
+  content_type = "application/x-www-form-urlencoded;charset=UTF-8"
+}
+
+resource "google_storage_bucket_object" "disable-history-servers-init-action" {
+  bucket       = "${var.history-bucket}"
+  name         = "init_actions/disable_history_servers.sh"
+  content      = "../init_actions/disable_history_servers.sh"
   content_type = "application/x-www-form-urlencoded;charset=UTF-8"
 }

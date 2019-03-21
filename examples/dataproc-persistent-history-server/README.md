@@ -17,10 +17,10 @@ clusters.
 - `terraform`
   - `variables.tf` 
   - `network.tf` 
-  - `hadoop-subnet.tf` 
   - `history-server.tf` 
   - `history-bucket.tf` 
   - `firewall.tf` 
+  - `service-account.tf`
 
 ## Usage
 
@@ -28,6 +28,8 @@ clusters.
 To spin up the whole example you could simply edit the 
 `terraform.tfvars` file to set the variables to the 
 desired values and run the following commands.
+
+Note, this assumes that you have an existing project.
 
 ```
 cd terraform
@@ -39,7 +41,6 @@ terraform apply
 1.  Replace `PROJECT` with your GCP project id in each file.
 1.  Replace `HISTORY_BUCKET` with your GCS bucket for logs in each file.
 1.  Replace `REGION` with your desired GCP Compute region.
-1.  Manually create the `spark-events` folder in your history bucket.
 
 ```
 cd workflow_templates
@@ -51,6 +52,14 @@ cd cluster_templates
 sed -i 's/PROJECT/your-gcp-project-id/g' *
 sed -i 's/HISTORY_BUCKET/your-history-bucket/g' *
 sed -i 's/REGION/us-central1/g' *
+```
+
+Stage an empty file to create the spark-events path on GCS. 
+
+```
+touch .keep
+gsutil cp .keep gs://your-history-bucket/spark-events/.keep
+rm .keep
 ```
 
 Create the history server.

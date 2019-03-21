@@ -1,9 +1,9 @@
-moduke "vpc" {
+module "vpc" {
   source  = "terraform-google-modules/network/google"
   version = "0.6.0"
 
   project_id   = "${var.project}"
-  name         = "${var.network}"
+  network_name = "${var.network}"
   routing_mode = "REGIONAL"
 
   subnets = [
@@ -15,4 +15,8 @@ moduke "vpc" {
       subnet_flow_logs      = "true"
     },
   ]
+
+  secondary_ranges = {
+    "${var.hadoop-subnet}" = []
+  }
 }
