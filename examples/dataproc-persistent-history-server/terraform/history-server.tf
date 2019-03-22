@@ -15,9 +15,9 @@
  */
 
 resource "google_dataproc_cluster" "history-server" {
-  project          = "${var.project}"
-  name   = "${var.history-server}"
-  region = "${var.history-region}"
+  project = "${var.project}"
+  name    = "${var.history-server}"
+  region  = "${var.history-region}"
 
   cluster_config {
     master_config {
@@ -47,7 +47,7 @@ resource "google_dataproc_cluster" "history-server" {
 
     gce_cluster_config {
       subnetwork = "${var.hadoop-subnet}"
-      tags    = ["hadoop-history-ui-access"]
+      tags       = ["hadoop-history-ui-access"]
     }
   }
 }

@@ -15,7 +15,7 @@
  */
 
 resource "google_compute_firewall" "history-ui-access" {
-  project          = "${var.project}"
+  project = "${var.project}"
   name    = "${var.network}-hadoop-history-ui-access"
   network = "${var.network}"
 
@@ -30,7 +30,7 @@ resource "google_compute_firewall" "history-ui-access" {
 }
 
 resource "google_compute_firewall" "admin-ui-access" {
-  project          = "${var.project}"
+  project = "${var.project}"
   name    = "${var.network}-hadoop-admin-ui-access"
   network = "${var.network}"
 
@@ -45,7 +45,7 @@ resource "google_compute_firewall" "admin-ui-access" {
 }
 
 resource "google_compute_firewall" "allow-ssh" {
-  project          = "${var.project}"
+  project = "${var.project}"
   name    = "${var.network}-allow-ssh"
   network = "${var.network}"
 
@@ -60,12 +60,14 @@ resource "google_compute_firewall" "allow-ssh" {
 }
 
 resource "google_compute_firewall" "deny-egress" {
-  project          = "${var.project}"
-  name               = "${var.network}-deny-egress"
-  network            = "${var.network}"
+  project = "${var.project}"
+  name    = "${var.network}-deny-egress"
+  network = "${var.network}"
+
   deny = {
     protocol = "all"
   }
+
   target_tags        = ["hadoop-admin-ui-access"]
   direction          = "EGRESS"
   destination_ranges = ["0.0.0.0/0"]

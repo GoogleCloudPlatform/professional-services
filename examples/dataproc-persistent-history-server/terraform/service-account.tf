@@ -15,7 +15,7 @@
  */
 
 resource "google_service_account" "history-server-account" {
-  project          = "${var.project}"
+  project    = "${var.project}"
   account_id = "history-server-account"
 }
 
