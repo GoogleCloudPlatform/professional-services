@@ -13,19 +13,19 @@
 # limitations under the License.
 
 # Where the export is written to. A GCS path like gs://my-bucket-name/asset_export
-gcs_destination: <ENTER-BUCKET-URL>
+gcs_destination: gs://bmenasha-1-cai-export/asset_export
 
 # Organization number (organizations/123) or project id (projects/id) or number (projects/123)
-export_parent: <ENTER-PARENT>
+export_parent: projects/bmenasha-1
 
 # BigQuery dataset to load to.
-import_dataset: <ENTER-DATASET>
+import_dataset: cai_assets
 
 # Location to write intermediary data to load from from. A GCS path like gs://my-bucket-name/asset_export/stage
-import_stage: <ENTER-STAGE>
+import_stage: gs://bmenasha-1-cai-export/asset_export_stage
 
 # Project id to run the dataflow job in when using the template or dataflow runner.
-import_dataflow_project: <ENTER-PROJECT>
+import_dataflow_project: bmenasha-1
 
 # Export resources, iam_policy or both.
 export_content_types:
@@ -39,7 +39,11 @@ export_asset_types:
 # Can be direct, dataflow or template (however App Engine Standard doesn't support the direct or dataflow runner).
 import_pipeline_runner: template
 
-# Region to run the dataflow pipeline in.
+# Region to run the dataflow pipeline in, must be a valid Dataflow region as listed here:
+#
+# https://cloud.google.com/dataflow/docs/concepts/regional-endpoints
+#
+# this doesn't have to be the same region the works run it, but it should be close.
 import_template_region: us-central1
 
 # If running a template. This is the template location.
@@ -57,11 +61,34 @@ restrict_to_cron_tasks: True
 # When using direct or dataflow running these are the  other arguments to supply to import pipeline.
 import_pipeline_arguments: --max_num_workers=10
 
-# When using the template runner. Supply values as a json representation of RuntimeEnvironment:  https://cloud.google.com/dataflow/docs/reference/rest/v1b3/RuntimeEnvironment
+# When using the template runner. Supply values as a json representation of
+# RuntimeEnvironment:
+# https://cloud.google.com/dataflow/docs/reference/rest/v1b3/RuntimeEnvironment
+# If you are running the Dataflow workers in a shared VPC, set the VPC network
+# and subnet here.
 import_pipeline_runtime_environment: >
   {
-    "maxWorkers": 10
+    # if you don't get a warning about firewall rules preventing shuffle
+    # operations you can set this number higher to processes larger files faster.
+    "maxWorkers": 1
+    # or increase the machine size
+    # "machineType": "n1-standard-8"
+    #
+    # To run the Dataflow job a Shared VPC, you can supply the `network` and
+    # `subnetwork` values here. See
+    # https://cloud.google.com/dataflow/docs/guides/specifying-networks The
+    # Dataflow Agent Serviece Account
+    # (service-<PROJECT-NUMBER>@dataflow-service-producer-prod.iam.gserviceaccount.com)
+    # needs the compute.networkUser role on the Shared VPC subnet.
+    #
+    # Additionally the dataflow job requires the ability to make external calls to
+    #   https://*.googleapis.com/$discovery/rest?version=*
+    # endpoints in order to download discovery documents.
+    #
+    # "network": "https://www.googleapis.com/compute/v1/projects/<project>/networks/<network>"
+    # "subnetwork": "https://www.googleapis.com/compute/v1/projects/<project>/regions/<region>/subnetworks/<subnetwork>"
+    #
   }
 
-# For the brave why wish to try running the python direct runner on python3.
+# For the brave who wish to try running the python direct runner on python3.
 # beam_experimental_py3: True
