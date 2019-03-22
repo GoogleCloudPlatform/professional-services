@@ -15,6 +15,7 @@
  */
 
 resource "google_storage_bucket" "history-bucket" {
+  project          = "${var.project}"
   name          = "${var.history-bucket}"
   storage_class = "REGIONAL"
   location      = "${var.history-region}"
@@ -34,13 +35,13 @@ resource "google_storage_bucket" "history-bucket" {
 resource "google_storage_bucket_object" "spark-events-dir" {
   bucket       = "${var.history-bucket}"
   name         = "spark-events/.keep"
-  content      = ""
+  content      = " "
   content_type = "application/x-www-form-urlencoded;charset=UTF-8"
 }
 
 resource "google_storage_bucket_object" "disable-history-servers-init-action" {
   bucket       = "${var.history-bucket}"
   name         = "init_actions/disable_history_servers.sh"
-  content      = "../init_actions/disable_history_servers.sh"
+  source      = "../init_actions/disable_history_servers.sh"
   content_type = "application/x-www-form-urlencoded;charset=UTF-8"
 }
