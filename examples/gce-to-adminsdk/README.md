@@ -3,7 +3,7 @@
 
 ## Introduction 
 
-This package provides basic instruction and code snippets (in python), to help users manage access to [Google's Admin SDK](https://developers.google.com/admin-sdk/) using GCE's [service account](https://cloud.google.com/compute/docs/access/create-enable-service-accounts-for-instances) identity. 
+This package provides basic instruction and code snippets (in python), to help users manage access to [Google's AdminSDK](https://developers.google.com/admin-sdk/) using GCE's [service account](https://cloud.google.com/compute/docs/access/create-enable-service-accounts-for-instances) identity. 
 
 When developing code locally (i.e. laptop), best practice is to use a [service account key](https://cloud.google.com/iam/docs/creating-managing-service-account-keys) to access GCP resources. Through _domain-wide delegation of authority_, the service account can impersonate other GSuite users, and gain access to Google Admin Directory APIs. Using a service account key allows the developer to call the _with_subject_ function (of the [oauth2 module](https://google-auth.readthedocs.io/en/latest/reference/google.oauth2.service_account.html)), and assume the delegated role for Admin SDK access. But when running on GCE, there is no _with_subject_ method, as it's not a part of the [google.auth](https://google-auth.readthedocs.io/en/latest/reference/google.auth.html#google.auth.default) package. This is causes heartache, as one strives for a single code base that runs both locally, and on GCE. (See https://github.com/googleapis/google-auth-library-python/issues/310).
 
