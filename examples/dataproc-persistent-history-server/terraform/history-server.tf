@@ -46,7 +46,7 @@ resource "google_dataproc_cluster" "history-server" {
     }
 
     gce_cluster_config {
-      network = "${var.hadoop-subnet}"
+      subnetwork = "${var.hadoop-subnet}"
       tags    = ["hadoop-history-ui-access"]
     }
   }
