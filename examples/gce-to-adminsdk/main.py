@@ -1,13 +1,17 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
+
 import argparse
-import google.auth
 import sys
+
 from apiclient.discovery import build
+
+import google.auth
 from google.auth import iam
 from google.auth.transport import requests
 from google.oauth2 import service_account
+
 
 TOKEN_URI = 'https://accounts.google.com/o/oauth2/token'
 GROUP_READ_SCOPES = [
@@ -17,7 +21,7 @@ GROUP_READ_SCOPES = [
 
 def group_list(name, credentials, version='directory_v1'):
     service = build('admin', version, credentials=credentials)
-    request = service.members().list(groupKey=name, roles="MEMBER")
+    request = service.members().list(groupKey=name, roles='MEMBER')
     members = []
     while request is not None:
         response = request.execute()
@@ -56,7 +60,7 @@ def main(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument('--group', required=True)
     parser.add_argument('--delegated-subject', required=True)
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     # Credentials from GOOGLE_APPLICATION_CREDENTIALS if set, otherwise
     # use GCE Metadara service
@@ -68,4 +72,4 @@ def main(argv):
 
 
 if __name__ == '__main__':
-    sys.exit(main(sys.argv))
+    sys.exit(main(sys.argv[1:]))
