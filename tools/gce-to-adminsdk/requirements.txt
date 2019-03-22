@@ -1,0 +1,3 @@
+argparse
+google-api-python-client
+requests
