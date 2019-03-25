@@ -1,7 +1,7 @@
 config:
   gceClusterConfig:
     internalIpOnly: true
-    zoneUri: REGION-f
+    zoneUri: ZONE 
     subnetworkUri: https://www.googleapis.com/compute/v1/projects/PROJECT/regions/REGION/subnetworks/hadoop-subnet
     tags:
     - hadoop-admin-ui-access
