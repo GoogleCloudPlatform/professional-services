@@ -59,6 +59,30 @@ resource "google_compute_firewall" "allow-ssh" {
   direction     = "INGRESS"
 }
 
+resource "google_compute_firewall" "allow-internal" {
+  project = "${var.project}"
+  name    = "${var.network}-allow-internal"
+  network = "${var.network}"
+
+  allow = {
+    protocol = "udp"
+    ports    = ["0-65535"]
+  }
+
+  allow = {
+    protocol = "tcp"
+    ports    = ["0-65535"]
+  }
+
+  allow = {
+    protocol = "icmp"
+  }
+
+  target_tags   = ["hadoop-admin-ui-access"]
+  source_ranges = ["${var.hadoop-cidr-range}"]
+  direction     = "INGRESS"
+}
+
 resource "google_compute_firewall" "deny-egress" {
   project = "${var.project}"
   name    = "${var.network}-deny-egress"
