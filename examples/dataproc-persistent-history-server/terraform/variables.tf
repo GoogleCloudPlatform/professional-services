@@ -4,6 +4,7 @@ variable "project" {
 
 variable "history-server" {
   description = "Cluster ID for the Spark / YARN history server"
+  default = "history-server"
 }
 
 variable "history-region" {
@@ -17,6 +18,7 @@ variable "history-bucket" {
 
 variable "network" {
   description = "The network to create that your hadoop clusters should use"
+  default = "example-net"
 }
 
 variable "data-eng-cidr-range" {
@@ -29,4 +31,5 @@ variable "hadoop-cidr-range" {
 
 variable "hadoop-subnet" {
   description = "Name for hadoop subnetwork"
+  default = "example-net-dataproc-central"
 }

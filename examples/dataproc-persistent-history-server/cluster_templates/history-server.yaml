@@ -1,6 +1,7 @@
 config:
   gceClusterConfig:
     serviceAccount: history-server-account@PROJECT.iam.gserviceaccount.com
+    zoneUri: REGION
     subnetworkUri: https://www.googleapis.com/compute/v1/projects/PROJECT/regions/REGION/subnetworks/example-net-dataproc-central
     tags:
     - hadoop-history-ui-access

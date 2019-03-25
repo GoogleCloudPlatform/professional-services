@@ -1,7 +1,8 @@
 config:
   gceClusterConfig:
     internalIpOnly: true
-    subnetworkUri: https://www.googleapis.com/compute/v1/projects/PROJECT/regions/REGION/subnetworks/example-net-dataproc-central
+    zoneUri: REGION-f
+    subnetworkUri: https://www.googleapis.com/compute/v1/projects/PROJECT/regions/REGION/subnetworks/hadoop-subnet
     tags:
     - hadoop-admin-ui-access
   masterConfig:
