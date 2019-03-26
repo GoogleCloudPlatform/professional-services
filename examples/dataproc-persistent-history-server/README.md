@@ -47,12 +47,15 @@ cd workflow_templates
 sed -i 's/PROJECT/your-gcp-project-id/g' *
 sed -i 's/HISTORY_BUCKET/your-history-bucket/g' *
 sed -i 's/REGION/us-central1/g' *
+sed -i 's/ZONE/us-central1-f/g' *
+sed -i 's/SUBNET/your-subnet-id/g' *
 
 cd cluster_templates
 sed -i 's/PROJECT/your-gcp-project-id/g' *
 sed -i 's/HISTORY_BUCKET/your-history-bucket/g' *
 sed -i 's/REGION/us-central1/g' *
 sed -i 's/ZONE/us-central1-f/g' *
+sed -i 's/SUBNET/your-subnet-id/g' *
 ```
 
 Stage an empty file to create the spark-events path on GCS. 

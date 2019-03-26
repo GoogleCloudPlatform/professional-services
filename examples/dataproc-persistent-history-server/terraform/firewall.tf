@@ -31,23 +31,6 @@ resource "google_compute_firewall" "history-ui-access" {
   direction     = "INGRESS"
 }
 
-resource "google_compute_firewall" "admin-ui-access" {
-  project = "${var.project}"
-  name    = "${var.network}-hadoop-admin-ui-access"
-  network = "${var.network}"
-
-  allow = {
-    protocol = "tcp"
-    ports    = ["8088", "4040"]
-  }
-
-  priority = "2000"
-
-  target_tags   = ["hadoop-admin-ui-access"]
-  source_ranges = ["${var.data-eng-cidr-range}"]
-  direction     = "INGRESS"
-}
-
 resource "google_compute_firewall" "allow-ssh" {
   project = "${var.project}"
   name    = "${var.network}-allow-ssh"
@@ -61,7 +44,7 @@ resource "google_compute_firewall" "allow-ssh" {
   }
 
   target_tags   = ["hadoop-admin-ui-access"]
-  source_ranges = ["${var.data-eng-cidr-range}"]
+  source_ranges = ["0.0.0.0/0"]
   direction     = "INGRESS"
 }
 
@@ -88,20 +71,4 @@ resource "google_compute_firewall" "allow-internal" {
   target_tags   = ["hadoop-admin-ui-access"]
   source_ranges = ["10.0.0.0/8"]
   direction     = "INGRESS"
-}
-
-resource "google_compute_firewall" "deny-egress" {
-  project = "${var.project}"
-  name    = "${var.network}-deny-egress"
-  network = "${var.network}"
-
-  deny = {
-    protocol = "all"
-  }
-
-  priority           = "1000"
-  target_tags        = ["hadoop-admin-ui-access"]
-  direction          = "EGRESS"
-  destination_ranges = ["0.0.0.0/0"]
-  priority           = "65535"
 }
