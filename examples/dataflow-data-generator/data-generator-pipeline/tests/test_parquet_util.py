@@ -14,6 +14,7 @@
 
 import pyarrow as pa
 import unittest
+import datetime
 from data_generator.ParquetUtil import get_pyarrow_translated_schema, \
 fix_record_for_parquet
 
@@ -119,6 +120,7 @@ class TestParquetUtil(unittest.TestCase):
         )
 
         pyarrow_schema = get_pyarrow_translated_schema(string_input_schema)
+        print(pyarrow_schema)
         self.assertEqual(pyarrow_schema, expected_pa_schema)
 
     def test_fix_record_for_parquet(self):
@@ -156,7 +158,7 @@ class TestParquetUtil(unittest.TestCase):
             'timestamp1': 1552681348000000,
             'datetime1': 1552681498000000,
             'date1': 17970,
-            'time1': 73200000000
+            'time1': datetime.time(20, 20)
         }]
 
         output_record = fix_record_for_parquet(record, input_schema)

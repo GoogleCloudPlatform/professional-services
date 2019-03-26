@@ -86,7 +86,8 @@ def fix_record_for_parquet(record, schema):
             ))
         elif field["type"] == "TIME":
             record[field_name] = time_to_epoch_time(
-                record[field_name]
+                record[field_name],
+                format='parquet'
             )
 
     return [record]
