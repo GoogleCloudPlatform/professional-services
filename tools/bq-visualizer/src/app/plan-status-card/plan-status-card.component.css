@@ -1,0 +1,8 @@
+.status-card {
+  overflow: auto;
+  height: 100%;
+}
+
+.mat-tab-label {
+  min-width: 100px;
+}

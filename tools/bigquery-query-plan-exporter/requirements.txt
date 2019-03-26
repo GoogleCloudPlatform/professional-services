@@ -1,0 +1,2 @@
+google-cloud-bigquery>=1.9.0
+futures==3.2.0; python_version == "3"

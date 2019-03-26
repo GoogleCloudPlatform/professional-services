@@ -41,22 +41,39 @@ In order to run the simulation in ideal conditions, with 10 virtual machines,
 please request an increase of your CPU quota to 80 vCPU. This is however
 optional.
 
+Create the environment variables that will be used throughout this tutorial. You can edit the default values provided below, however please note that not all products may be available in all regions:
+
+```
+export PROJECT_ID=<PROJECT_ID>
+export BUCKET_NAME=<BUCKET_NAME>
+export REGION=us-central1
+export ZONE=us-central1-a
+export PUBSUB_TOPIC=telemetry
+export PUBSUB_SUBSCRIPTION=telemetry-sub
+export IOT_REGISTRY=devices
+export BIGQUERY_DATASET=warehouse
+export BIGQUERY_TABLE=device_data
+```
 Run the **setup_gcp_environment.sh** script with the following parameters, in
 this order, to create the corresponding resources in your GCP project:
 
-* **[PROJECT_ID]** - the identifier of your project, which will be used to
-  create a Google Cloud Storage bucket; this will guarantee the uniqueness of
-  your bucket's name across the entire Google Cloud Platform
-* **[PUBSUB_TOPIC]** - a name of your choice for the PubSub topic into which the
-  IoT registry will push the temperature data it receives from the IoT devices
-* **[PUBSUB_SUBSCRIPTION]** - a name for the default subscription that will be
-  created for the topic
-* **[IOT_REGISTRY]** - a name for the IoT registry that will be created
-* **[BIGQUERY_DATASET]** - a name for the BigQuery dataset that will be created
+Following arguments must be provided:
+
+    1) Project Id
+    2) Region where the Cloud IoT Core registry will be created
+    3) Zone where a temporary VM to generate the Java image will be created
+    4) Cloud IoT Core registry name
+    5) PubSub telemetry topic name
+    6) PubSub subscription name
+    7) BigQuery dataset name
 
 In addition, the script also creates an Debian image with Java pre-installed,
 called **debian9-java8-img** that will be used to run the Java programs
 simulating temperature sensors.
+
+Example:
+
+`setup_gcp_environment.sh $PROJECT_ID $REGION $ZONE $IOT_REGISTRY $PUBSUB_TOPIC $PUBSUB_SUBSCRIPTION  $BIGQUERY_DATASET`
 
 ## Build the solution
 
@@ -86,20 +103,20 @@ root of the project with the following parameters:
 
 Example:
 
-`run_oncloud.sh my-project my-bucket my-topic my_dataset.my_table`
+`run_oncloud.sh $PROJECT_ID $BUCKET_NAME $PUBSUB_TOPIC $BIGQUERY_DATASET.$BIGQUERY_TABLE`
 
 ## Temperature sensor
 
-Copy the JAR package containing the client binaries on Google Cloud Storage in
+Copy the JAR package containing the client binaries to Google Cloud Storage in
 the bucket previously created. Run the following command in the `/client`
 folder:
 
-`gsutil cp target/google-cloud-demo-iot-nirvana-client-jar-with-dependencies.jar gs://[BUCKET_NAME]/client/`
+`gsutil cp target/google-cloud-demo-iot-nirvana-client-jar-with-dependencies.jar gs://$BUCKET_NAME/client/`
 
 Check that the JAR file has been correctly copied in the Google Cloud Storage
 bucket with the following command:
 
-`gsutil ls gs://[BUCKET_NAME]/client/google-cloud-demo-iot-nirvana-client-jar-with-dependencies.jar`
+`gsutil ls gs://$BUCKET_NAME/client/google-cloud-demo-iot-nirvana-client-jar-with-dependencies.jar`
 
 ## AppEngine Web frontend
 
@@ -119,7 +136,7 @@ from the temperature sensors:
      bootstrapping script
 2. Copy the `startup.sh` file in the Google Cloud Storage bucket by running the
    following command in the `/app-engine` folder:
-   `gsutil cp src/main/webapp/startup.sh gs://[BUCKET_NAME]/`
+   `gsutil cp src/main/webapp/startup.sh gs://$BUCKET_NAME/`
 3. Modify the `/pom.xml` file in the `/app-egine` folder:
    * Update the `<app.id/>` node with the **[PROJECT_ID]** of your GCP project
    * Update the `<app.version/>` with the desired version of the application
@@ -160,7 +177,7 @@ temperature sensors simulation. Follow the steps below to achieve this:
   `https://[YOUR_PROJECT_ID].appspot.com/index.html`
 * Click on the **Start** button at the bottm left of the page (this also
   enables the buttons **Update** and **Stop**)
-* The VM instances being launched ar visible in the Google Cloud Console under
+* The VM instances being launched are visible in the Google Cloud Console under
   [Compute Engine](https://console.cloud.google.com/compute/instances)
 
 In order to visualize temperature data in real time on Google Maps do the
@@ -177,3 +194,4 @@ following:
 
 To stop the simulation click on the **Stop** button at the bottom right of the
 page `https://[YOUR_PROJECT_ID].appspot.com/index.html`.
+
