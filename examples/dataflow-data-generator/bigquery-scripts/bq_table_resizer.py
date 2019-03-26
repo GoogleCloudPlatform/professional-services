@@ -76,7 +76,7 @@ class BigQueryTableResizer(object):
                 exist prior to this call.
        """
         self.location = location
-         # Validate project argument.
+        # Validate project argument.
         try:
             self.client = bigquery.Client(project=project)
             # This will error out if BigQuery not activated for this project.
@@ -90,7 +90,7 @@ class BigQueryTableResizer(object):
             source_table
         )
 
-        try: # Validate source_table
+        try:  # Validate source_table
             self.source_table = self.client.get_table(source_table_ref)
         except NotFound:
             raise ArgumentError(
@@ -105,14 +105,11 @@ class BigQueryTableResizer(object):
         else:  # Default to an inplace copy.
             self.dest_table_ref = self.source_table.reference
 
-
         if target_gb:
             target_bytes = target_gb * 1024 ** 3
             increase_pct = target_bytes / self.source_table.num_bytes
-            self.target_rows = max(
-                                   int(self.source_table.num_rows
-                                       * increase_pct),
-                                   self.target_rows)
+            self.target_rows = int(self.source_table.num_rows * increase_pct)
+
         else:
             self.target_rows = target_rows
 
@@ -238,6 +235,7 @@ def parse_data_resizer_args(argv):
                         'destination table', default=10000)
 
     parser.add_argument('--target_gb', dest='target_gb', required=False,
+                        type=float,
                         help='Size in GB desired for the destination table',
                         default=None)
 
