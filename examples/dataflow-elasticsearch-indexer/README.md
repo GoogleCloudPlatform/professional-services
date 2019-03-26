@@ -113,7 +113,7 @@ mvn compile exec:java -Dexec.mainClass=com.google.cloud.pso.IndexerMain -Dexec.a
 --instanceId=[BIGTABLE_INSTANCE_ID] \
 --tableName=[BIGTABLE_TABLE_NAME] \
 --columnFamily=[BIGTABLE_COLUMN_FAMILY] \
---columnQualifier=[BIGTABLE_COLUMN_QUALIFIER]
+--columnQualifier=[BIGTABLE_COLUMN_QUALIFIER]"
 ```
 
 ***
