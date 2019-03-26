@@ -23,7 +23,7 @@
     "name": "group_by",
     "label": "How to group the assets in BigQuery.",
     "help_text": "Either 'ASSET_TYPE' or 'ASSET_TYPE_VERSION'.",
-    "regexes": ["^(ASSET_TYPE|ASSET_TYPE_VERSION)$"]
+    "regexes": ["^(ASSET_TYPE|ASSET_TYPE_VERSION|NONE)$"]
   },
   {
     "name": "write_disposition",
