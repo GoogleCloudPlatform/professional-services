@@ -170,7 +170,7 @@ class HiveComponent(DatabaseComponent):
             List: List of the underlying data files.
         """
 
-        file_name = "migration_temp_file.txt"
+        file_name = "hdfs_files_{}.txt".format(uuid4())
         status_code = os.system(
             "hdfs dfs -ls {0} > {1}".format(location, file_name))
         if status_code:
