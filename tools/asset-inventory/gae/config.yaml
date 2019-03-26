@@ -45,7 +45,7 @@ import_template_region: us-central1
 # If running a template. This is the template location.
 import_template_location: gs://professional-services-tools-asset-inventory/latest/import_pipeline
 
-# How to group exported resources into Bigquery tables. Either ASSET_TYPE_VERSION or ASSET_TYPE
+# How to group exported resources into Bigquery tables. Either NONE, ASSET_TYPE_VERSION or ASSET_TYPE
 import_group_by: ASSET_TYPE
 
 # If tables should be ovewritten (WRITE_EMPTY) or appended (WRITE_APPEND) to.
