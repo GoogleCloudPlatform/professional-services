@@ -24,6 +24,8 @@ resource "google_compute_firewall" "history-ui-access" {
     ports    = ["18080", "19888"]
   }
 
+  priority = "2000"
+
   target_tags   = ["hadoop-history-ui-access"]
   source_ranges = ["${var.data-eng-cidr-range}"]
   direction     = "INGRESS"
@@ -39,6 +41,8 @@ resource "google_compute_firewall" "admin-ui-access" {
     ports    = ["8088", "4040"]
   }
 
+  priority = "2000"
+
   target_tags   = ["hadoop-admin-ui-access"]
   source_ranges = ["${var.data-eng-cidr-range}"]
   direction     = "INGRESS"
@@ -48,6 +52,8 @@ resource "google_compute_firewall" "allow-ssh" {
   project = "${var.project}"
   name    = "${var.network}-allow-ssh"
   network = "${var.network}"
+
+  priority = "2000"
 
   allow = {
     protocol = "tcp"
@@ -78,8 +84,9 @@ resource "google_compute_firewall" "allow-internal" {
     protocol = "icmp"
   }
 
+  priority      = "1000"
   target_tags   = ["hadoop-admin-ui-access"]
-  source_ranges = ["${var.hadoop-cidr-range}"]
+  source_ranges = ["10.0.0.0/8"]
   direction     = "INGRESS"
 }
 
@@ -92,6 +99,7 @@ resource "google_compute_firewall" "deny-egress" {
     protocol = "all"
   }
 
+  priority           = "1000"
   target_tags        = ["hadoop-admin-ui-access"]
   direction          = "EGRESS"
   destination_ranges = ["0.0.0.0/0"]
