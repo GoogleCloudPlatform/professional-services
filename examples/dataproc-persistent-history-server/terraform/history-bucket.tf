@@ -46,3 +46,17 @@ resource "google_storage_bucket_object" "disable-history-servers-init-action" {
   source       = "../init_actions/disable_history_servers.sh"
   content_type = "application/x-www-form-urlencoded;charset=UTF-8"
 }
+
+resource "google_storage_bucket_object" "history-server-yaml" {
+  bucket       = "${var.history-bucket}"
+  name         = "cluster_templates/history-server.yaml"
+  source       = "../cluster_templates/history-server.yaml"
+  content_type = "application/x-www-form-urlencoded;charset=UTF-8"
+}
+
+resource "google_storage_bucket_object" "ephemeral-cluster-yaml" {
+  bucket       = "${var.history-bucket}"
+  name         = "cluster_templates/ephemeral-cluster.yaml"
+  source       = "../cluster_templates/ephemeral-cluster.yaml"
+  content_type = "application/x-www-form-urlencoded;charset=UTF-8"
+}
