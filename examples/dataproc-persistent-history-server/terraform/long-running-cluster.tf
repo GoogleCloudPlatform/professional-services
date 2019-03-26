@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-resource "google_dataproc_cluster" "history-server" {
+resource "google_dataproc_cluster" "long-running-cluster" {
   depends_on = ["google_storage_bucket.history-bucket",
     "google_storage_bucket_object.spark-events-dir",
     "google_storage_bucket_object.disable-history-servers-init-action",
   ]
 
   project = "${var.project}"
-  name    = "${var.history-server}"
+  name    = "${var.long-running-cluster}"
   region  = "${var.history-region}"
 
   cluster_config {
@@ -35,11 +35,20 @@ resource "google_dataproc_cluster" "history-server" {
       }
     }
 
+    worker_config {
+      num_instances = 2
+      machine_type  = "n1-standard-1"
+
+      disk_config {
+        boot_disk_type    = "pd-standard"
+        boot_disk_size_gb = 500
+      }
+    }
+
     software_config {
       image_version = "1.4.0-debian9"
 
       override_properties = {
-        "dataproc:dataproc.allow.zero.workers"              = "true"
         "yarn:log-aggregation-enable"                       = "true"
         "yarn:nodemanager.remote-app-log-dir"               = "gs://${var.history-bucket}/yarn/logs/"
         "yarn:log-aggregation.retain-seconds"               = "-1"
@@ -50,9 +59,14 @@ resource "google_dataproc_cluster" "history-server" {
       }
     }
 
+    initialization_action = {
+      script = "gs://${var.history-bucket}/init_actions/disable_history_servers.sh"
+    }
+
     gce_cluster_config {
-      subnetwork = "${module.vpc.subnets_names[0]}"
-      tags       = ["hadoop-history-ui-access"]
+      subnetwork       = "${module.vpc.subnets_names[0]}"
+      internal_ip_only = true
+      tags             = ["hadoop-history-ui-access"]
     }
   }
 }

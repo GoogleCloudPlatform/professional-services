@@ -25,7 +25,7 @@ module "vpc" {
   subnets = [
     {
       subnet_name           = "${var.hadoop-subnet}"
-      subnet_ip             = "${var.hadoop-cidr-range}"
+      subnet_ip             = "10.128.0.0/16"
       subnet_region         = "${var.history-region}"
       subnet_private_access = "true"
       subnet_flow_logs      = "true"

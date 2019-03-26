@@ -6,7 +6,6 @@ clusters.
 ![Architecture Diagram](img/persistent-history-arch.png)
 
 ## Directory structure
-
 - `cluster_templates/`
   - `history_server.yaml`
   - `ephemeral_cluster.yaml` 
@@ -23,14 +22,27 @@ clusters.
   - `service-account.tf`
 
 ## Usage
+The recommended way to run this example is to use terraform as it creates a vpc network
+to run the example with the appropriate firewall rules.
+
+### Pre-requisites
+- [Install Google Cloud SDK](https://cloud.google.com/sdk/)
+- Enable the following APIs if not already enabled.
+  - `gcloud services enable compute.googleapis.com dataproc.googleapis.com`
+- \[Optional\] [Install Terraform](https://learn.hashicorp.com/terraform/getting-started/install.html) 
+
+### Disclaimer
+This is for example purposes only. You should take a much closer look at the firewall
+rules that make sense for your organization's security requirements.
 
 ### Terraform
 To spin up the whole example you could simply edit the 
 `terraform.tfvars` file to set the variables to the 
 desired values and run the following commands.
 
-Note, this assumes that you have an existing project.
-
+Note, this assumes that you have an existing project and
+the sufficient permissions to spin up the resources for this
+example.
 ```
 cd terraform
 terraform init
@@ -101,17 +113,5 @@ gcloud dataproc workflow-templates instantiate spark-mr-example
 ```
 
 ### Viewing the History UI
-Go look at the UI by ssh tunneling to the history server.
-
-```sh
-gcloud compute ssh history-server-m \
- --project=jferriero-sandbox \
- --zone=us-central1-a \
- -- \
- -D 1080 -N
-
-/usr/bin/google-chrome \
- --proxy-server="socks5://localhost:1080" \
- --user-data-dir="/tmp/history-server-m" \
- http://history-server-m:18080
-```
+Follow [these instructions](https://cloud.google.com/dataproc/docs/concepts/accessing/cluster-web-interfaces)
+ to look at the UI by ssh tunneling to the history server.

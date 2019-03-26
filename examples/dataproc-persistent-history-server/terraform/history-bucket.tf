@@ -33,6 +33,7 @@ resource "google_storage_bucket" "history-bucket" {
 
 # Spark needs the spark-events directory to already exist.
 resource "google_storage_bucket_object" "spark-events-dir" {
+  depends_on   = ["google_storage_bucket.history-bucket"]
   bucket       = "${var.history-bucket}"
   name         = "spark-events/.keep"
   content      = " "

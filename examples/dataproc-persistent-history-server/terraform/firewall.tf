@@ -14,27 +14,10 @@
  * limitations under the License.
  */
 
-resource "google_compute_firewall" "history-ui-access" {
-  project = "${var.project}"
-  name    = "${var.network}-hadoop-history-ui-access"
-  network = "${var.network}"
-
-  allow = {
-    protocol = "tcp"
-    ports    = ["18080", "19888"]
-  }
-
-  priority = "2000"
-
-  target_tags   = ["hadoop-history-ui-access"]
-  source_ranges = ["${var.data-eng-cidr-range}"]
-  direction     = "INGRESS"
-}
-
 resource "google_compute_firewall" "allow-ssh" {
   project = "${var.project}"
   name    = "${var.network}-allow-ssh"
-  network = "${var.network}"
+  network = "${module.vpc.network_name}"
 
   priority = "2000"
 
@@ -43,7 +26,7 @@ resource "google_compute_firewall" "allow-ssh" {
     ports    = ["22"]
   }
 
-  target_tags   = ["hadoop-admin-ui-access"]
+  target_tags   = ["hadoop-history-ui-access", "hadoop-admin-ui-access"]
   source_ranges = ["0.0.0.0/0"]
   direction     = "INGRESS"
 }
@@ -51,7 +34,7 @@ resource "google_compute_firewall" "allow-ssh" {
 resource "google_compute_firewall" "allow-internal" {
   project = "${var.project}"
   name    = "${var.network}-allow-internal"
-  network = "${var.network}"
+  network = "${module.vpc.network_name}"
 
   allow = {
     protocol = "udp"
@@ -68,7 +51,7 @@ resource "google_compute_firewall" "allow-internal" {
   }
 
   priority      = "1000"
-  target_tags   = ["hadoop-admin-ui-access"]
+  target_tags   = ["hadoop-history-ui-access", "hadoop-admin-ui-access"]
   source_ranges = ["10.0.0.0/8"]
   direction     = "INGRESS"
 }
