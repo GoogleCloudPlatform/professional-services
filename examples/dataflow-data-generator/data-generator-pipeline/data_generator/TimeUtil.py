@@ -65,7 +65,7 @@ def date_to_epoch_date(date):
     return int(days_since_epoch)
 
 
-def time_to_epoch_time(time, micros=True, format='avro'):
+def time_to_epoch_time(time, micros=True):
     """
     This is a convienence function for converting datetime objects to
     timestamps in either milliseconds or microseconds since the Unix
@@ -84,17 +84,13 @@ def time_to_epoch_time(time, micros=True, format='avro'):
         except:
             time = datetime.datetime.strptime(time, '%H:%M:%S.%f').time()
 
-        if format == 'avro':
-            _TODAY = datetime.date.today()
+    _TODAY = datetime.date.today()
 
-            seconds_since_midnight = (datetime.datetime.combine(_TODAY, time)
-                                      - datetime.datetime.combine(_TODAY,
-                                                                  _MIDNIGHT)).total_seconds()
+    seconds_since_midnight = (datetime.datetime.combine(_TODAY, time)
+                              - datetime.datetime.combine(_TODAY,
+                                                          _MIDNIGHT)).total_seconds()
 
-            multiplier = _MICROSECONDS_PER_SECOND if micros \
-                else _MILLISECONDS_PER_SECOND
+    multiplier = _MICROSECONDS_PER_SECOND if micros \
+        else _MILLISECONDS_PER_SECOND
 
-            return long(seconds_since_midnight * multiplier)
-
-        else:
-            return time
+    return long(seconds_since_midnight * multiplier)

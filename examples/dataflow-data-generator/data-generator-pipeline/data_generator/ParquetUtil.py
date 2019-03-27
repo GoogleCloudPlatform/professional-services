@@ -85,9 +85,15 @@ def fix_record_for_parquet(record, schema):
                 record[field_name]
             ))
         elif field["type"] == "TIME":
-            record[field_name] = time_to_epoch_time(
-                record[field_name],
-                format='parquet'
-            )
+            try:
+                record[field_name] = datetime.datetime.strptime(
+                    record[field_name],
+                    '%H:%M:%S'
+                ).time()
+            except ValueError:
+                record[field_name] = datetime.datetime.strptime(
+                    record[field_name],
+                    '%H:%M:%S.%f'
+                ).time()
 
     return [record]
