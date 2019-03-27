@@ -81,7 +81,7 @@ def time_to_epoch_time(time, micros=True):
     if isinstance(time, unicode):
         try:
             time = datetime.datetime.strptime(time, '%H:%M:%S').time()
-        except:
+        except ValueError:
             time = datetime.datetime.strptime(time, '%H:%M:%S.%f').time()
 
     _TODAY = datetime.date.today()
