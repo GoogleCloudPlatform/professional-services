@@ -88,7 +88,8 @@ def time_to_epoch_time(time, micros=True):
 
     seconds_since_midnight = (datetime.datetime.combine(_TODAY, time)
                               - datetime.datetime.combine(_TODAY,
-                                                          _MIDNIGHT)).total_seconds()
+                                                          _MIDNIGHT)
+                              ).total_seconds()
 
     multiplier = _MICROSECONDS_PER_SECOND if micros \
         else _MILLISECONDS_PER_SECOND

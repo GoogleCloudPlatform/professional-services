@@ -68,7 +68,7 @@ def get_pyarrow_translated_schema(string_schema):
 def fix_record_for_parquet(record, schema):
     """
     Converts TIMESTAMP, DATETIME, DATE, and TIME types to their respective
-    epoch types for parquet compatibility.
+    types for parquet compatibility.
     :param record: record of data from beam pipeline
     :param schema: string schema dict.
     :return: record with converted TIMESTAMP, DATETIME, DATE, and/or TIME

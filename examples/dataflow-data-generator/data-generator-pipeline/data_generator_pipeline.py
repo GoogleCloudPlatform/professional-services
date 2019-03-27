@@ -40,6 +40,7 @@ from data_generator.ParquetUtil import get_pyarrow_translated_schema, \
 fix_record_for_parquet
 from data_generator.enforce_primary_keys import EnforcePrimaryKeys
 
+
 def run(argv=None):
     """
     This function parses the command line arguments and runs the Beam Pipeline.
@@ -74,7 +75,6 @@ def run(argv=None):
                              write_disp=data_args.write_disp,
                              key_skew=data_args.key_skew,
                              primary_key_cols=data_args.primary_key_cols)
-
 
     # Initiate the pipeline using the pipeline arguments passed in from the
     # command line.  This includes information including where Dataflow should
@@ -145,7 +145,8 @@ def run(argv=None):
         (rows
             | 'Write to BigQuery.' >> beam.io.gcp.bigquery.WriteToBigQuery(
                  # The table name is a required argument for the BigQuery sink.
-                 # In this case we use the value passed in from the command line.
+                 # In this case we use the value passed in from the command
+                 # line.
                  data_args.output_bq_table,
                  schema=None if schema_inferred else data_gen.get_bq_schema_string(),
                  # Creates the table in BigQuery if it does not yet exist.
@@ -155,7 +156,6 @@ def run(argv=None):
                  batch_size=500
             )
         )
-
 
     p.run().wait_until_finish()
 
