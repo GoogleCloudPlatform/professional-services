@@ -97,7 +97,6 @@ func signHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintln(w, url)
-	return
 }
 
 func main() {
