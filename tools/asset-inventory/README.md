@@ -99,7 +99,7 @@ This requires downloading this source repository, changing a config file and dep
 
 - The App Engine service account needs asset inventory export privileges for the organization/project,
 - The Dataflow service account running the pipeline jobs needs the ability to write to the GCS bucket and load data and update schema into BigQuery, and delete/create BigQuery tables if using write_disposition=WRITE_EMPTY.
-- The GCS bucket being written to needs to be owned by the same project that owns the app engine application.
+- The GCS bucket being written to needs to be owned by the same project that owns the app engine application (or grant the Asset Inventory Agent service account to the bucket, see Troubleshooting step #1).
 - the Dataflow agent service account needs the ability to read the GCS bucket and use the VPC subnetwork the workers run on (if using a shared VPC).
 
 The deployment steps are:
@@ -133,6 +133,15 @@ The deployment steps are:
    gcloud app create
    gcloud organizations add-iam-policy-binding $ORGANIZATION_ID --member="serviceAccount:$PROJECT_ID@appspot.gserviceaccount.com" --role='roles/cloudasset.viewer'
    ```
+
+   If the this service account lacks the default Project Editor role, you'll also need to grant it the `roles/dataflow.admin`, `roles/bigquery.user`, and `roles/bigquery.dataEditor` in the project.
+
+
+   ```
+   gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:asset-exporter-service-account@$PROJECT_ID.iam.gserviceaccount.com" --role='roles/dataflow.admin'
+   gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:asset-exporter-service-account@$PROJECT_ID.iam.gserviceaccount.com" --role='roles/bigquery.user'
+    gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:asset-exporter-service-account@$PROJECT_ID.iam.gserviceaccount.com" --role='roles/bigquery.dataEditor'
+  ```
 
 1. Deploy the application to App Engine.
 
@@ -177,6 +186,7 @@ The fastest way to Get data into BigQuery is to invoke the export resources to G
 1. Grant the service account the ability to read asset inventory from the organization, start dataflow jobs and load data into BigQuery.
    ```
     gcloud organizations add-iam-policy-binding $ORGANIZATION_ID --member="serviceAccount:asset-exporter-service-account@$PROJECT_ID.iam.gserviceaccount.com" --role='roles/cloudasset.viewer'
+
     gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:asset-exporter-service-account@$PROJECT_ID.iam.gserviceaccount.com" --role='roles/dataflow.admin'
     gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:asset-exporter-service-account@$PROJECT_ID.iam.gserviceaccount.com" --role='roles/bigquery.user'
     gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:asset-exporter-service-account@$PROJECT_ID.iam.gserviceaccount.com" --role='roles/bigquery.dataEditor'
@@ -298,6 +308,10 @@ This repository contains some command line tools that let you run the export/imp
 1. The Cloud Asset Inventory  export operation failed with the error: "PERMISSION_DENIED. Failed to write to: gs://<my-export-path>" yet I know I have write permissions?
 
     You need to invoke the export API with a service account that's owned by the same project that owns the bucket. See Step 1.1 where you can have gcloud authenticate with a service account. When using the command line tools like asset_inventory/export.py or asset_inventory/main.py  use the  GOOGLE_APPLICATION_CREDENTIALS environment variable to point to the service account key or run then within a compute engine instance with a service account that has the required privileges (see access control section).
+
+    Another possible problem is that the write operation will be peformed by the Asset Inventory Agent service account which should have the name: `service-<project-number>@gcp-sa-cloudasset.iam.gserviceaccount.com`. It's this service account which must have write privleges to the ucket we are performing the export too. By default it will have storageAdmin on the project on which the Asset Inventory API was enabled but
+
+
 
 1. The Cloud Asset Inventory  export operation failed with the error:  "PermissionDenied: 403 Your application has authenticated using end user credentials from the Google Cloud SDK"
 
