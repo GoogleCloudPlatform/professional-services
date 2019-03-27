@@ -46,25 +46,6 @@ var (
 	uploadableBucket string
 )
 
-func init() {
-	cred, err := google.DefaultClient(context.Background(), iam.CloudPlatformScope)
-	if err != nil {
-		log.Fatal(err)
-	}
-	iamService, err = iam.New(cred)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	uploadableBucket = os.Getenv("UPLOADABLE_BUCKET")
-	serviceAccountName = os.Getenv("SERVICE_ACCOUNT")
-	serviceAccountID = fmt.Sprintf(
-		"projects/%s/serviceAccounts/%s",
-		os.Getenv("GOOGLE_CLOUD_PROJECT"),
-		serviceAccountName,
-	)
-}
-
 func signHandler(w http.ResponseWriter, r *http.Request) {
 	// Accepts only POST method.
 	// Otherwise, this handler returns 405.
@@ -120,6 +101,23 @@ func signHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	cred, err := google.DefaultClient(context.Background(), iam.CloudPlatformScope)
+	if err != nil {
+		log.Fatal(err)
+	}
+	iamService, err = iam.New(cred)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	uploadableBucket = os.Getenv("UPLOADABLE_BUCKET")
+	serviceAccountName = os.Getenv("SERVICE_ACCOUNT")
+	serviceAccountID = fmt.Sprintf(
+		"projects/%s/serviceAccounts/%s",
+		os.Getenv("GOOGLE_CLOUD_PROJECT"),
+		serviceAccountName,
+	)
+
 	http.HandleFunc("/sign", signHandler)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", os.Getenv("PORT")), nil))
 }
