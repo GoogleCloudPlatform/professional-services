@@ -62,7 +62,7 @@ resource "google_dataproc_cluster" "long-running-cluster" {
     }
 
     initialization_action = {
-      script = "gs://${google_storage_bucket.history-bucket.name}/{google_storage_bucket_object.disable-history-servers-init-action.name}"
+      script = "gs://${google_storage_bucket.history-bucket.name}/${google_storage_bucket_object.disable-history-servers-init-action.name}"
     }
 
     gce_cluster_config {
