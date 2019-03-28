@@ -17,7 +17,6 @@
 resource "google_dataproc_cluster" "long-running-cluster" {
   depends_on = [
     "google_storage_bucket_object.spark-events-dir",
-    "google_storage_bucket_object.disable-history-servers-init-action",
   ]
 
   project = "${var.project}"
@@ -63,7 +62,7 @@ resource "google_dataproc_cluster" "long-running-cluster" {
     }
 
     initialization_action = {
-      script = "gs://${var.history-bucket}/init_actions/disable_history_servers.sh"
+      script = "gs://${google_storage_bucket.history-bucket.name}/{google_storage_bucket_object.disable-history-servers-init-action.name}"
     }
 
     gce_cluster_config {

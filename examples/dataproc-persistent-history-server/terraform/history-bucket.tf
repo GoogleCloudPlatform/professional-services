@@ -33,32 +33,29 @@ resource "google_storage_bucket" "history-bucket" {
 
 # Spark needs the spark-events directory to already exist.
 resource "google_storage_bucket_object" "spark-events-dir" {
-  depends_on   = ["google_storage_bucket.history-bucket"]
-  bucket       = "${var.history-bucket}"
+  bucket       = "${google_storage_bucket.history-bucket.name}"
   name         = "spark-events/.keep"
   content      = " "
   content_type = "application/x-www-form-urlencoded;charset=UTF-8"
 }
 
 resource "google_storage_bucket_object" "disable-history-servers-init-action" {
-  depends_on   = ["google_storage_bucket.history-bucket"]
-  bucket       = "${var.history-bucket}"
+  bucket       = "${google_storage_bucket.history-bucket.name}"
   name         = "init_actions/disable_history_servers.sh"
   source       = "../init_actions/disable_history_servers.sh"
   content_type = "application/x-www-form-urlencoded;charset=UTF-8"
 }
 
 resource "google_storage_bucket_object" "history-server-yaml" {
-  depends_on   = ["google_storage_bucket.history-bucket"]
-  bucket       = "${var.history-bucket}"
+  bucket       = "${google_storage_bucket.history-bucket.name}"
+  name         = "init_actions/disable_history_servers.sh"
   name         = "cluster_templates/history-server.yaml"
   source       = "../cluster_templates/history-server.yaml"
   content_type = "application/x-www-form-urlencoded;charset=UTF-8"
 }
 
 resource "google_storage_bucket_object" "ephemeral-cluster-yaml" {
-  depends_on   = ["google_storage_bucket.history-bucket"]
-  bucket       = "${var.history-bucket}"
+  bucket       = "${google_storage_bucket.history-bucket.name}"
   name         = "cluster_templates/ephemeral-cluster.yaml"
   source       = "../cluster_templates/ephemeral-cluster.yaml"
   content_type = "application/x-www-form-urlencoded;charset=UTF-8"

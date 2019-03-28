@@ -26,6 +26,13 @@ aggregated YARN logs from short-lived clusters on GCS.
 The recommended way to run this example is to use terraform as it creates a vpc network
 to run the example with the appropriate firewall rules.
 
+### Enabling services
+```
+gcloud services enable \
+compute.googleapis.com \
+dataproc.googleapis.com
+```
+
 ### Pre-requisites
 - [Install Google Cloud SDK](https://cloud.google.com/sdk/)
 - Enable the following APIs if not already enabled.
@@ -35,6 +42,30 @@ to run the example with the appropriate firewall rules.
 ### Disclaimer
 This is for example purposes only. You should take a much closer look at the firewall
 rules that make sense for your organization's security requirements.
+
+### Should I run with Terraform or `gcloud` SDK ?
+This repo provides artifacts to spin up the infrastructure for persisting 
+job history and yarn logs with terraform or with gcloud. The recommended 
+way to use this is to modify the Terraform code to fit your needs for 
+long running resources.
+
+However, the cluster templates are included as an example of 
+standardiznig cluster creation for ephemeral clusters. 
+You might ask, "Why is there a cluster template for the history server?". 
+The history server is simply a cleaner interface for reading your logs
+from GCS. In other words, it is stateless and you may wish to only spin up
+ a history server when you'll actually be using it. 
+
+### Managing Log Retention
+Often times, it makes sense to leave the history
+server running because several teams may use it and you could configure
+it to manage clean up of your logs by setting the following additional
+properties:
+ - `yarn:yarn.log-aggregation.retain-seconds`
+ - `spark:spark.history.fs.cleaner.enabled`
+ - `spark:spark.history.fs.cleaner.maxAge`
+ - `mapred:mapreduce.jobhistory.cleaner.enable`
+ - `mapred:mapreduce.jobhistory.cleaner.max-age-ms`
 
 ### Terraform
 To spin up the whole example you could simply edit the 
@@ -57,7 +88,8 @@ This will create:
 1. A GCS Bucket for YARN log aggregation, and Spark MapReduce Job History
 as well as initialization actions for your clusters.
 
-### Google Cloud SDK
+### Alternatively, with Google Cloud SDK 
+These instructions detail how to run this entire example with `gcloud`.
 1.  Replace `PROJECT` with your GCP project id in each file.
 1.  Replace `HISTORY_BUCKET` with your GCS bucket for logs in each file.
 1.  Replace `HISTORY_SERVER` with your dataproc history server.
@@ -88,6 +120,12 @@ Stage an empty file to create the spark-events path on GCS.
 touch .keep
 gsutil cp .keep gs://your-history-bucket/spark-events/.keep
 rm .keep
+```
+
+Stage our initialization action for disabling history servers
+on your ephemeral clusters.
+```
+gsutil cp init_actions/disable_history_servers.sh
 ```
 
 Create the history server.
@@ -130,6 +168,7 @@ Follow [these instructions](https://cloud.google.com/dataproc/docs/concepts/acce
 Ports to visit:
  - MapReduce Job History: 19888
  - Spark Job History: 18080
+
 
 ### Closing Note
 If you're adapting this example for your own use consider the following:

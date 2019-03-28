@@ -17,7 +17,6 @@
 resource "google_dataproc_cluster" "history-server" {
   depends_on = [
     "google_storage_bucket_object.spark-events-dir",
-    "google_storage_bucket_object.disable-history-servers-init-action",
   ]
 
   project = "${var.project}"
