@@ -40,9 +40,12 @@ resource "google_dataproc_cluster" "history-server" {
 
       override_properties = {
         "dataproc:dataproc.allow.zero.workers"              = "true"
-        "yarn:log-aggregation-enable"                       = "true"
-        "yarn:nodemanager.remote-app-log-dir"               = "gs://${var.history-bucket}/yarn/logs/"
-        "yarn:log-aggregation.retain-seconds"               = "-1"
+        "yarn:yarn.log-aggregation-enable"                  = "true"
+        "yarn:yarn.nodemanager.remote-app-log-dir"          = "gs://${var.history-bucket}/yarn/logs/"
+        "yarn:yarn.log-aggregation.retain-seconds"          = "-1"
+        "yarn:yarn.log.server.url"                          = "https://${var.history-server}-m:19888/jobhistory/logs"
+        "mapred:mapreduce.jobhistory.address"               = "${var.history-server}-m:10020"
+        "mapred:mapreduce.jobhistory.webapp.address"        = "${var.history-server}-m:19888"
         "mapred:mapreduce.jobhistory.done-dir"              = "gs://${var.history-bucket}/done-dir"
         "mapred:mapreduce.jobhistory.intermediate-done-dir" = "gs://${var.history-bucket}/intermediate-done-dir"
         "spark:spark.eventLog.dir"                          = "gs://${var.history-bucket}/spark-events/"

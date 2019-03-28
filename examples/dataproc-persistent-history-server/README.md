@@ -1,7 +1,7 @@
 # Dataproc Persistent History Server
 This repo houses the example code for a blog post on using a persistent history
-server to retain infomation about your Spark and Hadoop jobs that ran on short-lived
-clusters.
+server to view job history about your Spark / MapReduce jobs and
+aggregated YARN logs from short-lived clusters on GCS.
 
 ![Architecture Diagram](img/persistent-history-arch.png)
 
@@ -18,6 +18,7 @@ clusters.
   - `network.tf` 
   - `history-server.tf` 
   - `history-bucket.tf` 
+  - `long-running-cluster.tf`
   - `firewall.tf` 
   - `service-account.tf`
 
@@ -48,16 +49,26 @@ cd terraform
 terraform init
 terraform apply
 ```
+This will create:
+1. VPC Network and subnetwork for your dataproc clusters.
+1. Various firewall rules for this network.
+1. A single node dataproc history-server cluster.
+1. A long running dataproc cluster.
+1. A GCS Bucket for YARN log aggregation, and Spark MapReduce Job History
+as well as initialization actions for your clusters.
 
 ### Google Cloud SDK
 1.  Replace `PROJECT` with your GCP project id in each file.
 1.  Replace `HISTORY_BUCKET` with your GCS bucket for logs in each file.
+1.  Replace `HISTORY_SERVER` with your dataproc history server.
 1.  Replace `REGION` with your desired GCP Compute region.
+1.  Replace `ZONE` with your desired GCP Compute zone.
 
 ```
 cd workflow_templates
 sed -i 's/PROJECT/your-gcp-project-id/g' *
 sed -i 's/HISTORY_BUCKET/your-history-bucket/g' *
+sed -i 's/HISTORY_SERVER/your-history-server/g' *
 sed -i 's/REGION/us-central1/g' *
 sed -i 's/ZONE/us-central1-f/g' *
 sed -i 's/SUBNET/your-subnet-id/g' *
@@ -65,6 +76,7 @@ sed -i 's/SUBNET/your-subnet-id/g' *
 cd cluster_templates
 sed -i 's/PROJECT/your-gcp-project-id/g' *
 sed -i 's/HISTORY_BUCKET/your-history-bucket/g' *
+sed -i 's/HISTORY_SERVER/your-history-server/g' *
 sed -i 's/REGION/us-central1/g' *
 sed -i 's/ZONE/us-central1-f/g' *
 sed -i 's/SUBNET/your-subnet-id/g' *
@@ -115,3 +127,8 @@ gcloud dataproc workflow-templates instantiate spark-mr-example
 ### Viewing the History UI
 Follow [these instructions](https://cloud.google.com/dataproc/docs/concepts/accessing/cluster-web-interfaces)
  to look at the UI by ssh tunneling to the history server.
+
+### Closing Note
+If you're adapting this example for your own use consider the following:
+1. Setting an appropriate retention for your logs.
+1. Setting more appropriate firewall rules for your security requirements.

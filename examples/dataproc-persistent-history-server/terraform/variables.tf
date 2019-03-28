@@ -21,7 +21,6 @@ variable "history-region" {
   default     = "us-central1"
 }
 
-
 variable "network" {
   description = "The network to create that your hadoop clusters should use"
   default     = "example-net"
