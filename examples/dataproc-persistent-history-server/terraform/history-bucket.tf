@@ -41,6 +41,7 @@ resource "google_storage_bucket_object" "spark-events-dir" {
 }
 
 resource "google_storage_bucket_object" "disable-history-servers-init-action" {
+  depends_on   = ["google_storage_bucket.history-bucket"]
   bucket       = "${var.history-bucket}"
   name         = "init_actions/disable_history_servers.sh"
   source       = "../init_actions/disable_history_servers.sh"
@@ -48,6 +49,7 @@ resource "google_storage_bucket_object" "disable-history-servers-init-action" {
 }
 
 resource "google_storage_bucket_object" "history-server-yaml" {
+  depends_on   = ["google_storage_bucket.history-bucket"]
   bucket       = "${var.history-bucket}"
   name         = "cluster_templates/history-server.yaml"
   source       = "../cluster_templates/history-server.yaml"
@@ -55,6 +57,7 @@ resource "google_storage_bucket_object" "history-server-yaml" {
 }
 
 resource "google_storage_bucket_object" "ephemeral-cluster-yaml" {
+  depends_on   = ["google_storage_bucket.history-bucket"]
   bucket       = "${var.history-bucket}"
   name         = "cluster_templates/ephemeral-cluster.yaml"
   source       = "../cluster_templates/ephemeral-cluster.yaml"

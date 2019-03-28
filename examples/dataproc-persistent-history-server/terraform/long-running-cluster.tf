@@ -15,7 +15,7 @@
  */
 
 resource "google_dataproc_cluster" "long-running-cluster" {
-  depends_on = ["google_storage_bucket.history-bucket",
+  depends_on = [
     "google_storage_bucket_object.spark-events-dir",
     "google_storage_bucket_object.disable-history-servers-init-action",
   ]

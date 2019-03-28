@@ -127,6 +127,9 @@ gcloud dataproc workflow-templates instantiate spark-mr-example
 ### Viewing the History UI
 Follow [these instructions](https://cloud.google.com/dataproc/docs/concepts/accessing/cluster-web-interfaces)
  to look at the UI by ssh tunneling to the history server.
+Ports to visit:
+ - MapReduce Job History: 19888
+ - Spark Job History: 18080
 
 ### Closing Note
 If you're adapting this example for your own use consider the following:
