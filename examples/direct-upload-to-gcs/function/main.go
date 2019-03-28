@@ -43,8 +43,8 @@ func validate(ctx context.Context, obj *storage.ObjectHandle) error {
 		return xerrors.Errorf("upload: failed to get object attributes %q : %w",
 			obj.ObjectName(), retryableError)
 	}
-	if size := attrs.Size; size >= 1024*100 {
-		return fmt.Errorf("upload: image file is too large, got = %d", size)
+	if attrs.Size >= 1024*100 {
+		return fmt.Errorf("upload: image file is too large, got = %d", attrs.Size)
 	}
 	// Validates obj and returns true if it conforms supported image formats.
 	if err := validateMIMEType(ctx, attrs, obj); err != nil {
