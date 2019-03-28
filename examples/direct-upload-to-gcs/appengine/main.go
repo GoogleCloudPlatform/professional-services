@@ -49,9 +49,9 @@ var (
 func signHandler(w http.ResponseWriter, r *http.Request) {
 	// Accepts only POST method.
 	// Otherwise, this handler returns 405.
-	if m := r.Method; m != "POST" {
-		w.Header().Set("Allows", "POST")
-		http.Error(w, fmt.Sprintf("expect http method to only be POST, got: %s", m), http.StatusMethodNotAllowed)
+	if r.Method != "POST" {
+		w.Header().Set("Allow", "POST")
+		http.Error(w, "Only POST is supported", http.StatusMethodNotAllowed)
 		return
 	}
 
