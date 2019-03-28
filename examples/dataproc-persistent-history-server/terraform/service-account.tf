@@ -23,5 +23,5 @@ resource "google_project_iam_member" "history-server-dataproc-worker-role" {
   project = "${var.project}"
   role    = "roles/dataproc.worker"
 
-  member = "${google_service_account.history-server-account.email}"
+  member = "serviceAccount:${google_service_account.history-server-account.email}"
 }
