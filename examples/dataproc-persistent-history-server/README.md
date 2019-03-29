@@ -53,8 +53,12 @@ However, the cluster templates are included as an example of
 standardiznig cluster creation for ephemeral clusters. 
 You might ask, "Why is there a cluster template for the history server?". 
 The history server is simply a cleaner interface for reading your logs
-from GCS. In other words, it is stateless and you may wish to only spin up
- a history server when you'll actually be using it. 
+from GCS. For Spark, it is stateless and you may wish to only spin up
+ a history server when you'll actually be using it. For MapReduce,
+the history server will only be aware of the files on GCS when it was
+created and those files which it moves from intermediate done directory 
+to the done directory. For this reason, MapReduce workflows should
+use a persistent history server.
 
 ### Managing Log Retention
 Often times, it makes sense to leave the history

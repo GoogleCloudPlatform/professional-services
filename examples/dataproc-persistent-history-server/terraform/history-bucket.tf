@@ -48,7 +48,6 @@ resource "google_storage_bucket_object" "disable-history-servers-init-action" {
 
 resource "google_storage_bucket_object" "history-server-yaml" {
   bucket       = "${google_storage_bucket.history-bucket.name}"
-  name         = "init_actions/disable_history_servers.sh"
   name         = "cluster_templates/history-server.yaml"
   source       = "../cluster_templates/history-server.yaml"
   content_type = "application/x-www-form-urlencoded;charset=UTF-8"
