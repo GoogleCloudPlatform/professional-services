@@ -52,7 +52,7 @@ And many more!
 
 ## Install Steps
 
-It's suggested to create a new project to hold the asset inventory resources. Especially if using App engine to perform the export as it will require assignign the App Engine service account the `roles/cloudasset.viewer` role.
+It's suggested to create a new project to hold the asset inventory resources. Especially if using App engine to perform the export as it will require assignign the App Engine service account the `roles/cloudasset.viewer` role and all App Engine jobs in a single project run with the same credentials.
 
 1. Create a new project and gcloud configuration to host our service (optional, you can use an existing project and gcloud configuration.)
 
@@ -110,7 +110,7 @@ The deployment steps are:
     git clone git@github.com:GoogleCloudPlatform/professional-services.git
     ```
 
-1. Edit the configuration file `professional-services/tools/asset-inventory/gae/config.yaml` and supply values for your setup. If using a shared VPC to run the Dataflow job please see comments in the file for confuring the network and subnet as well as granting the Dataflow Agent service account the proper access.
+1. Edit the configuration file `professional-services/tools/asset-inventory/gae/config.yaml` and supply values for your setup.
 
     ```
     cd professional-services/tools/asset-inventory/gae/
@@ -121,6 +121,13 @@ The deployment steps are:
     sed -i  "s|<ENTER-PROJECT>|$PROJECT_ID|" config.yaml
 
     ```
+
+1. If using a Shared VPC to run the Dataflow job you must supply the `network` and `subnetwork` values in the import_pipeline_runtime_environment json map in the `config.yaml` file as described [here](https://cloud.google.com/dataflow/docs/guides/specifying-networks). Additionally the Dataflow Agent Serviece Account `service-<PROJECT-NUMBER>@dataflow-service-producer-prod.iam.gserviceaccount.com` needs the compute.networkUser role on the Shared VPC subnet. The dataflow job requires the ability to make external calls to `https://*.googleapis.com/$discovery/rest?version=*` endpoints in order to download discovery documents.
+
+1. The config.yaml limits Dataflow jos to one worker. This is because the VPC used might not allow internal communication between Dataflow workers as described [here](https://cloud.google.com/dataflow/docs/guides/routes-firewall). If you follow those steps or are using the default VPC and don't see a warning about missing firewall rules you can safely increase the maxWorkers configuration.
+
+
+https://cloud.google.com/dataflow/docs/guides/routes-firewall
 
 1. Vendor the asset_inventory package with the app engine application:
 
@@ -140,7 +147,7 @@ The deployment steps are:
    ```
    gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:asset-exporter-service-account@$PROJECT_ID.iam.gserviceaccount.com" --role='roles/dataflow.admin'
    gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:asset-exporter-service-account@$PROJECT_ID.iam.gserviceaccount.com" --role='roles/bigquery.user'
-    gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:asset-exporter-service-account@$PROJECT_ID.iam.gserviceaccount.com" --role='roles/bigquery.dataEditor'
+   gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:asset-exporter-service-account@$PROJECT_ID.iam.gserviceaccount.com" --role='roles/bigquery.dataEditor'
   ```
 
 1. Deploy the application to App Engine.
@@ -158,6 +165,7 @@ The deployment steps are:
 1. Goto the [App Engine cron page](https://console.cloud.google.com/appengine/cronjobs) and manually invoke the cron process to ensure everything works. It will run for a while (a few minutes) as it performs the export starts a Dataflow job.    That's it!
 
 ![App Engine Cron](https://storage.googleapis.com/professional-services-tools-asset-inventory/images/cron.png "App Engine Cron")
+
 
 
 ## Command Line Driven Export/Import
@@ -312,7 +320,6 @@ This repository contains some command line tools that let you run the export/imp
     Another possible problem is that the write operation will be peformed by the Asset Inventory Agent service account which should have the name: `service-<project-number>@gcp-sa-cloudasset.iam.gserviceaccount.com`. It's this service account which must have write privleges to the ucket we are performing the export too. By default it will have storageAdmin on the project on which the Asset Inventory API was enabled but
 
 
-
 1. The Cloud Asset Inventory  export operation failed with the error:  "PermissionDenied: 403 Your application has authenticated using end user credentials from the Google Cloud SDK"
 
     You have to use a service account and can't use a regular user's credentials.
@@ -352,3 +359,7 @@ This repository contains some command line tools that let you run the export/imp
    ```
 
    You have installed the python2.7 version of httplib2. We need the python3 version. Perhaps you didn't supply the "--no-deps" argument to pip command and you have python2 installed locally. Try removing the gae/lib directory contents and runnng the pip command with the "-no-deps" argument.
+
+1. The Dataflow job failes to start because it lacks access to the Shared VPC subnet.
+
+When using a Shared VPC, it necessary to grant the Dataflow Agent Service Account access to the subnet. This service account is created for you when you enable the Dataflow API and is called `service-<PROJECT-NUMBER>@dataflow-service-producer-prod.iam.gserviceaccount.com`.
