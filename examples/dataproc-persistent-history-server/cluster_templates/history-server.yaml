@@ -17,6 +17,7 @@ config:
   softwareConfig:
     imageVersion: preview 
     properties:
+      dataproc:dataproc.allow.zero.workers: "true"
       yarn:yarn.log-aggregation-enable: "true"
       yarn:yarn.nodemanager.remote-app-log-dir: gs://HISTORY_BUCKET/yarn/logs/
       yarn:yarn.log-aggregation.retain-seconds: "-1"
