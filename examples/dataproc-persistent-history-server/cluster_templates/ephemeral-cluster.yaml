@@ -5,6 +5,8 @@ config:
     subnetworkUri: https://www.googleapis.com/compute/v1/projects/PROJECT/regions/REGION/subnetworks/SUBNET
     tags:
     - hadoop-admin-ui-access
+    metadata:
+    - enable-oslogin: TRUE
   masterConfig:
     diskConfig:
       bootDiskSizeGb: 500
