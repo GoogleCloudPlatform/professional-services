@@ -6,7 +6,7 @@ config:
     tags:
     - hadoop-admin-ui-access
     metadata:
-    - enable-oslogin: TRUE
+      enable-oslogin: "TRUE"
   masterConfig:
     diskConfig:
       bootDiskSizeGb: 500
