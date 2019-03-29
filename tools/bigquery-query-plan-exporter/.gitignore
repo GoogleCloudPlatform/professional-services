@@ -1,0 +1,10 @@
+.idea
+venv
+*.pyc
+*.log
+*.gz
+*.tgz
+*.zip
+build
+dist
+*.egg-info
