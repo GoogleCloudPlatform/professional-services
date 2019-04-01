@@ -65,16 +65,22 @@ interface Query {
   totalBytesProcessed: number;
   totalPartitionsProcessed: number;
   estimatedBytesProcessed: string;
+  reservationUsage: ReservationUsage[];
+  totalSlotMs: string;
   useQueryCache?: string;
   queryPlan?: QueryStage[];
   timeline: Timeline;
 }
-
+interface ReservationUsage {
+  name: string;
+  slotMs: string;
+}
 interface Statistics {
   creationTime: string;
   endTime: string;
   startTime: string;
   totalBytesProcessed: string;
+  reservationUsage: ReservationUsage[];
   query?: Query;
 }
 

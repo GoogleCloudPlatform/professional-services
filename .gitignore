@@ -30,3 +30,5 @@ client_secrets.json
 .eggs/
 .python-version
 .idea
+node_modules/
+*.code-workspace

@@ -40,3 +40,7 @@
   position: relative;
   padding-top: 60px;
 }
+#Gantt{
+  overflow-x: scroll;
+  overflow-y: scroll;
+}
