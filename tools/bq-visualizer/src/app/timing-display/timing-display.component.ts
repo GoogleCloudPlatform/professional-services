@@ -29,6 +29,7 @@ export class TimingDisplayComponent implements OnInit {
   }
 
   async loadPlan(plan: BqQueryPlan) {
+    this.haveDoneDraw = false;
     this.statusCard.loadPlan(plan);
     this.sideDisplay.stepDetails = [];
     this.sideDisplay.stageDetails = '';
@@ -36,7 +37,13 @@ export class TimingDisplayComponent implements OnInit {
   }
 
   async draw() {
-    if (!this.plan) return;
+    if (!this.plan) {
+      const gantt = document.getElementById('Gantt');
+      if ((gantt) && (gantt.childNodes.length > 0)) {
+        gantt.removeChild(gantt.childNodes[0]);
+      }
+      return;
+    }
     if (this.haveDoneDraw) return;
     this.drawGantt();
     this.haveDoneDraw = true;

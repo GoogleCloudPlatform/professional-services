@@ -44,7 +44,10 @@ export class ProjectsComponent implements OnInit, OnDestroy {
       this.allProjects = JSON.parse(p);
       this.doneLoadingProjects();
     } else {
-      this.getProjects();
+      this.allProjects = [];
+      this.projects = [];
+      // this.getProjects(); // disabled until we find a way to do this after
+      // the user is logged in
     }
   }
 

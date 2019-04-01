@@ -14,13 +14,27 @@ export class BqQueryPlan {
   readonly edges: Edge[] = [];
   ganttChart: any;
   ganttData: any;
+  isValid = false;
 
   constructor(public readonly plan: Job, private logSvc: LogService) {
+    if (!plan.hasOwnProperty('kind')) {
+      logSvc.warn('No plan document found in job.');
+      return;
+    }
+    if (!plan.kind.startsWith('bigquery')) {
+      logSvc.warn(`Retrieved document is not of kind bigquery but of kind ${
+          plan.kind}.`);
+      return;
+    }
+    this.plan = plan;
     if (this.plan.statistics.query && this.plan.statistics.query.queryPlan) {
       this.nodes = this.plan.statistics.query.queryPlan;
     } else {
       logSvc.warn(`No query found in job ${this.plan.id}`);
+      return;
     }
+    this.isValid = true;
+    console.log(this);
 
     // add ghost nodes and edges
     for (const node of this.nodes) {
@@ -94,6 +108,18 @@ export class BqQueryPlan {
     node['durationMs  '] = duration.toLocaleString('en');
     const startPct = (100 * (startMs - jobStartMs)) / (jobEndMs - jobStartMs);
     const endPct = (100 * (endMs - jobStartMs)) / (jobEndMs - jobStartMs);
+    node['wait (ms)   '] =
+        'avg: ' + Number(node.waitMsAvg).toLocaleString('en') +
+        ' max: ' + Number(node.waitMsMax).toLocaleString('en');
+    node['read (ms)   '] =
+        'avg: ' + Number(node.readMsAvg).toLocaleString('en') +
+        ' max: ' + Number(node.readMsMax).toLocaleString('en');
+    node['compute (ms)'] =
+        'avg: ' + Number(node.computeMsAvg).toLocaleString('en') +
+        ' max: ' + Number(node.computeMsMax).toLocaleString('en');
+    node['write (ms)  '] =
+        'avg: ' + Number(node.writeMsAvg).toLocaleString('en') +
+        ' max: ' + Number(node.writeMsMax).toLocaleString('en');
     node['startTime   '] = new Date(startMs);
     node['endTime     '] = new Date(endMs);
     node['start %     '] = startPct.toLocaleString('en') + '% of job duration';
@@ -129,7 +155,6 @@ export class BqQueryPlan {
         node =>
             [node.id, node.name, new Date(Number(node.startMs)),
              new Date(Number(node.endMs)), null, 100, null]));
-
     const options = {
       gantt: {
         criticalPathEnabled: true,
@@ -169,16 +194,59 @@ export class BqQueryPlan {
     }
   }
 
+  /** reformat the nodes stage statistics to something more pleasing */
+  formatStageStats(node: QueryStage): string {
+    const stats = this.plan.statistics;
+    const endMs = Number(node.endMs);
+    const startMs = Number(node.startMs);
+    const jobStartMs = Number(stats.startTime);
+    const jobEndMs = Number(stats.endTime);
+    if (isNaN(startMs) || isNaN(endMs) || isNaN(jobStartMs) ||
+        isNaN(jobEndMs)) {
+      return 'n/a';
+    }
+    const duration = endMs - startMs;
+    node['durationMs  '] = duration.toLocaleString('en');
+    const startPct = (100 * (startMs - jobStartMs)) / (jobEndMs - jobStartMs);
+    const endPct = (100 * (endMs - jobStartMs)) / (jobEndMs - jobStartMs);
+    const result = {
+      'id             ': node.id,
+      'name           ': node.name,
+      'status         ': node.status,
+      'input stages   ': node.inputStages ? node.inputStages : 'n/a',
+      'parallelInputs ': Number(node.parallelInputs).toLocaleString('en'),
+      'recordsRead    ': Number(node.recordsRead).toLocaleString('en'),
+      'shuffleOutputBytesSpilled':
+          Number(node.shuffleOutputBytesSpilled).toLocaleString('en'),
+      'recordsWritten ': Number(node.recordsWritten).toLocaleString('en'),
+      'wait (ms)      ': 'avg: ' + Number(node.waitMsAvg).toLocaleString('en') +
+          ' max: ' + Number(node.waitMsMax).toLocaleString('en'),
+      'read (ms)      ': 'avg: ' + Number(node.readMsAvg).toLocaleString('en') +
+          ' max: ' + Number(node.readMsMax).toLocaleString('en'),
+      'compute (ms)   ':
+          'avg: ' + Number(node.computeMsAvg).toLocaleString('en') +
+          ' max: ' + Number(node.computeMsMax).toLocaleString('en'),
+      'write (ms)     ':
+          'avg: ' + Number(node.writeMsAvg).toLocaleString('en') +
+          ' max: ' + Number(node.writeMsMax).toLocaleString('en'),
+      'startTime      ': new Date(startMs),
+      'endTime        ': new Date(endMs),
+      'start %        ': startPct.toLocaleString('en') + '% of job duration',
+      'end %          ': endPct.toLocaleString('en') + '% of job duration',
+    };
+    return JSON.stringify(result, null, 4);
+  }
   /** Return a formatted text of all details minus the steps. */
   getStageStats(node: QueryStage): string {
-    const result = {};
+    /*const result = {};
     for (const key of Object.keys(node)) {
       if (key === 'steps') {
         continue;
       }
       result[key] = node[key];
     }
-    return JSON.stringify(result, null, 4);
+    return JSON.stringify(result, null, 4);*/
+    return this.formatStageStats(node);
   }
 
   /** Return the formatted text of the steps. */

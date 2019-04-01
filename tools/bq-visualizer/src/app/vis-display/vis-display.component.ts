@@ -43,8 +43,13 @@ export class VisDisplayComponent {
   }
 
   async draw() {
-    if (!this.plan) return;
-    if (this.haveDoneDraw) return;
+    if (!this.plan) {
+      this.clearGraph();
+      return;
+    }
+    if (this.haveDoneDraw) {
+      return;
+    }
 
     this.graph = this.drawGraph(
         this.plan,
@@ -75,6 +80,12 @@ export class VisDisplayComponent {
     }
   }
 
+  private clearGraph() {
+    if (this.graph) {
+      this.graph.network.setData(new vis.DataSet([]), new vis.DataSet([]));
+      this.graph.network.redraw();
+    }
+  }
   private drawGraph(
       plan: BqQueryPlan, onResizeEvent?: ResizeCallback,
       onNodeSelect?: NodeSelectCallback, onNodeDeselect?: NodeDeselectCallback,
