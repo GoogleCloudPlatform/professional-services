@@ -13,6 +13,7 @@
 # limitations under the License.
 
 # Where the export is written to. A GCS path like gs://my-bucket-name/asset_export
+# see import_pipeline_runtime_environment for another location to override this value.
 gcs_destination: <ENTER-BUCKET-URL>
 
 # Organization number (organizations/123) or project id (projects/id) or number (projects/123)
@@ -27,6 +28,30 @@ import_stage: <ENTER-STAGE>
 # Project id to run the dataflow job in when using the template or dataflow runner.
 import_dataflow_project: <ENTER-PROJECT>
 
+# When using the template runner. Supply values as a json representation of
+# RuntimeEnvironment:
+# https://cloud.google.com/dataflow/docs/reference/rest/v1b3/RuntimeEnvironment
+import_pipeline_runtime_environment: >
+  {
+    # Be explict about tempLocation, otherwise use <gcs_destionation>/dataflow_temp
+    "tempLocation": "<ENTER-BUCKET-URL>/dataflow_temp"
+
+    # If you don't get a warning about firewall rules preventing shuffle
+    # operations you can set this number higher.
+    "maxWorkers": 1
+
+    # To increase the machine size for faster loads.
+    # "machineType": "n1-standard-8"
+    #
+    # To use a Shared VPC:
+    # "network": "https://www.googleapis.com/compute/v1/projects/<project>/networks/<network>"
+    # "subnetwork": "https://www.googleapis.com/compute/v1/projects/<project>/regions/<region>/subnetworks/<subnetwork>"
+    #
+  }
+
+# When using direct or dataflow running these are the other arguments to supply to import pipeline.
+import_pipeline_arguments: --max_num_workers=1 --temp_location <ENTER-BUCKET-URL>/dataflow_temp
+
 # Export resources, iam_policy or both.
 export_content_types:
 - RESOURCE
@@ -39,7 +64,11 @@ export_asset_types:
 # Can be direct, dataflow or template (however App Engine Standard doesn't support the direct or dataflow runner).
 import_pipeline_runner: template
 
-# Region to run the dataflow pipeline in.
+# Region to run the dataflow pipeline in, must be a valid Dataflow region as listed here:
+#
+# https://cloud.google.com/dataflow/docs/concepts/regional-endpoints
+#
+# this doesn't have to be the same region the works run it, but it should be close.
 import_template_region: us-central1
 
 # If running a template. This is the template location.
@@ -54,14 +83,6 @@ import_write_disposition: WRITE_APPEND
 # If we are running on App Engine and only want to be invoked by cron tasks for security reasons.
 restrict_to_cron_tasks: True
 
-# When using direct or dataflow running these are the  other arguments to supply to import pipeline.
-import_pipeline_arguments: --max_num_workers=10
 
-# When using the template runner. Supply values as a json representation of RuntimeEnvironment:  https://cloud.google.com/dataflow/docs/reference/rest/v1b3/RuntimeEnvironment
-import_pipeline_runtime_environment: >
-  {
-    "maxWorkers": 10
-  }
-
-# For the brave why wish to try running the python direct runner on python3.
+# For the brave who wish to try running the python direct runner on python3.
 # beam_experimental_py3: True
