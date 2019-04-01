@@ -77,7 +77,7 @@ export class JobComponent implements OnDestroy {
             err => {
               this.logSvc.error(err);
               if (err && err.message) {
-                alert(err.message)
+                alert(err.message);
               }
               console.log(err);
             },
@@ -96,7 +96,14 @@ export class JobComponent implements OnDestroy {
         .subscribe(
             detail => {
               console.log('Got raw plan', detail);
-              this.planSelected.emit(new BqQueryPlan(detail, this.logSvc));
+              if (detail) {
+                const plan = new BqQueryPlan(detail, this.logSvc);
+                if (plan.isValid) {
+                  this.planSelected.emit(plan);
+                } else {
+                  this.planSelected.emit(null);
+                }
+              }
             },
             err => {
               this.logSvc.error(err);
