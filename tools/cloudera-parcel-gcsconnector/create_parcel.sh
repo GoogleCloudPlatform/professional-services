@@ -177,7 +177,11 @@ function main() {
     graceful_exit
   fi
 
-  cp * ${PARCEL_FULLNAME}/lib/hadoop/lib/
+  # Copy GCS connector jar
+  cp gcs-connector-hadoop2-latest.jar ${PARCEL_FULLNAME}/lib/hadoop/lib/
+  
+  # Copy service account key file
+  cp *.json ${PARCEL_FULLNAME}/lib/hadoop/lib/
 
   # Check the existence of the GCS jar file in lib folder
   [[ -f ${PARCEL_FULLNAME}/lib/hadoop/lib/gcs-connector-hadoop2-latest.jar ]] || GCSJAR_FLAG="0"
