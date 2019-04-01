@@ -29,6 +29,7 @@ export class TimingDisplayComponent implements OnInit {
   }
 
   async loadPlan(plan: BqQueryPlan) {
+    this.haveDoneDraw = false;
     this.statusCard.loadPlan(plan);
     this.sideDisplay.stepDetails = [];
     this.sideDisplay.stageDetails = '';
