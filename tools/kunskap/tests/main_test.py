@@ -13,14 +13,11 @@
 # limitations under the License.
 
 """Executes tests on functions created in main.py."""
-import datetime
-from string import Template
 import unittest
 import unittest.mock as mock
 import config
 import main
 from unittest.mock import mock_open
-import pytz
 from google.cloud import bigquery
 
 
@@ -43,8 +40,8 @@ class TestMain(unittest.TestCase):
     def testFileToString(self, mock_file):
 
         """Tests that creating a string from a SQL file executes on correct file."""
-        main.file_to_string(config.sql_file_path)
-        mock_file.assert_called_with(config.sql_file_path, 'r')
+        main.file_to_string(config.config_vars['sql_file_path'])
+        mock_file.assert_called_with(config.config_vars['sql_file_path'], 'r')
 
     def testExecuteTransformationQuery(self):
         """Tests that transformation query will execute."""
@@ -55,34 +52,24 @@ class TestMain(unittest.TestCase):
         self.mocked_bq().query().result().called
 
 
-
     def testPartitionsAndUsageDates(self):
         """Tests that the # of partitions is equal to the # of usage_start_times."""
         bq_client = bigquery.Client()
         job_config = bigquery.QueryJobConfig()
-        usage_query = Template(
-            """
+        usage_query = """
             SELECT COUNT(DISTINCT(DATE(usage_start_time))) AS cnt 
-            FROM `$project.$output_dataset.$output_table`
+            FROM `{billing_project_id}.{output_dataset_id}.{output_table_name}`
             """
-        ).safe_substitute(
-            project=config.billing_project_id,
-            output_dataset=config.output_dataset_id,
-            output_table=config.output_table_name)
+        usage_query = usage_query.format(**config.config_vars)
         query_job = bq_client.query(usage_query, job_config=job_config)
         for row in query_job.result():
             output_result = row.cnt
 
-        partition_query = Template(
-            """
+        partition_query = """
             SELECT COUNT(DISTINCT(partition_id)) AS cnt 
-            FROM [$project.$output_dataset.$output_table$suffix]
+            FROM [{billing_project_id}.{output_dataset_id}.{output_table_name}$__PARTITIONS_SUMMARY__]
             """
-        ).safe_substitute(
-            project=config.billing_project_id,
-            output_dataset=config.output_dataset_id,
-            output_table=config.output_table_name,
-            suffix='$__PARTITIONS_SUMMARY__')
+        partition_query = partition_query.format(**config.config_vars)
         job_config = bigquery.QueryJobConfig()
         job_config.use_legacy_sql = True
         query_job = bq_client.query(partition_query, job_config=job_config)
