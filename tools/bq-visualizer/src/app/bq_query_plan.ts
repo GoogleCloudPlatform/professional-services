@@ -34,7 +34,6 @@ export class BqQueryPlan {
       return;
     }
     this.isValid = true;
-    console.log(this);
 
     // add ghost nodes and edges
     for (const node of this.nodes) {
@@ -161,6 +160,7 @@ export class BqQueryPlan {
         criticalPathStyle: {stroke: '#e64a19', strokeWidth: 5},
         barHeight: 4
       },
+      height: internalNodes.length * 20,
       explorer: {keepInBounds: true, axis: 'vertical'}
     };
 
