@@ -91,11 +91,11 @@ export class JobComponent implements OnDestroy {
 
   /** When selecting an item in the drop down list. */
   selectJob(job: BqJob): void {
-    this.bqService.getQueryPlan(job.projectId, job.id)
+    this.bqService.getQueryPlan(job.projectId, job.id, job.location)
         .pipe(takeUntil(this.destroy))
         .subscribe(
             detail => {
-              console.log('Got raw plan', detail);
+              // console.log('Got raw plan', detail);
               if (detail) {
                 const plan = new BqQueryPlan(detail, this.logSvc);
                 if (plan.isValid) {

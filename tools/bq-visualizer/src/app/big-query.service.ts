@@ -24,14 +24,19 @@ export class BigQueryService {
       private logSvc: LogService) {}
 
   /** Get the detail of a job. */
-  getQueryPlan(projectId: string, jobId: string): Observable<Job> {
+  getQueryPlan(projectId: string, jobId: string, location: string):
+      Observable<Job> {
     // Extract job id if the job id is a collection of
     // [project]:[location].jobId
     const realid = jobId.split('.').slice(-1)[0];
     this.logSvc.debug(`getQueryPlan: fetched query plan for jobid=${jobId}`);
 
     const token = this.oauthService.getAccessToken();
-    const url = bqUrl(`/${projectId}/jobs/${realid}`, {access_token: token});
+    console.log(token);
+
+    const args = {access_token: token, location: location};
+    const url = bqUrl(`/${projectId}/jobs/${realid}`, args);
+
     this.logSvc.debug(`Requested job detail for: ${realid}`);
     return this.http.get<Job>(url).pipe(
         catchError(this.handleError('getQueryPlan')));
