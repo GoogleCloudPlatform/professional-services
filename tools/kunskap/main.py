@@ -37,21 +37,17 @@ def execute_transformation_query(bq_client):
         bq_client: Object representing a reference to a BigQuery Client
     """
     dataset_ref = bq_client.get_dataset(bigquery.DatasetReference(
-        project=config.billing_project_id,
-        dataset_id=config.output_dataset_id))
-    table_ref = dataset_ref.table(config.output_table_name)
+        project=config.config_vars['billing_project_id'],
+        dataset_id=config.config_vars['output_dataset_id']))
+    table_ref = dataset_ref.table(config.config_vars['output_table_name'])
     job_config = bigquery.QueryJobConfig()
     job_config.destination = table_ref
     job_config.write_disposition = bigquery.WriteDisposition().WRITE_TRUNCATE
     job_config.time_partitioning = bigquery.TimePartitioning(
         field='usage_start_time',
         expiration_ms=None)
-    sql = Template(file_to_string(config.sql_file_path))
-    sql = sql.safe_substitute(billing_table=config.billing_project_id +
-                                            '.' + config.billing_dataset_id +
-                                            '.' + config.billing_table_name,
-                              allocation_method=config.allocation_method
-                              )
+    sql = file_to_string(config.config_vars['sql_file_path'])
+    sql = sql.format(**config.config_vars)
     logging.info('Attempting query on all dates...')
     # Execute Query
     query_job = bq_client.query(

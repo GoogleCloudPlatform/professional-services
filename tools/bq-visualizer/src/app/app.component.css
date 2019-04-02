@@ -1,0 +1,18 @@
+.main {
+  overflow: hidden;
+  height: 100vh;
+}
+.footer {
+  padding: 20px;
+  text-align: center;
+  background: #3f5185;
+}
+.header {
+  color: #fff;
+  background: #3f51b5;
+  padding: 16px;
+}
+.header__title {
+  font-weight: bold;
+  font-size: 24px;
+}
