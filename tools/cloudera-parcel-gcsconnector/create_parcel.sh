@@ -74,6 +74,7 @@ function main() {
   mkdir -p ${BASEDIR}
   LOGDIR=${HOME}/parcel-logs
   mkdir -p ${LOGDIR}/
+  cp * ${BASEDIR}/
   cd ${BASEDIR}
   touch ${LOGDIR}/cparcel_error.log
   touch ${LOGDIR}/cparcel_output.log
@@ -176,7 +177,11 @@ function main() {
     graceful_exit
   fi
 
+  # Copy GCS connector jar
   cp gcs-connector-hadoop2-latest.jar ${PARCEL_FULLNAME}/lib/hadoop/lib/
+  
+  # Copy service account key file
+  cp *.json ${PARCEL_FULLNAME}/lib/hadoop/lib/
 
   # Check the existence of the GCS jar file in lib folder
   [[ -f ${PARCEL_FULLNAME}/lib/hadoop/lib/gcs-connector-hadoop2-latest.jar ]] || GCSJAR_FLAG="0"
