@@ -23,6 +23,7 @@ import warnings
 
 from asset_inventory import import_pipeline
 import mock
+from six import string_types
 
 STAGE_PATH = 'tests/data/stage'
 
@@ -90,6 +91,37 @@ class TestImportPipeline(unittest.TestCase):
             instance_labels = instance_row['resource']['data']['labels']
             self.assertIsInstance(instance_labels, list)
             self.assertEqual(len(instance_labels), 1)
+
+    @mock.patch('google.cloud.bigquery.Client')
+    def test_load_group_by_none(self, _):
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore',
+                                    'The compiler package is deprecated')
+            import_pipeline.run([
+                '--load_time=',
+                '--input=tests/data/resource.json', '--group_by=NONE',
+                '--stage={}'.format(STAGE_PATH), '--dataset=test_resource'
+            ])
+            rows = []
+            export_files = 0
+            for fn in glob.glob(os.path.join(STAGE_PATH, '*.json')):
+                export_files += 1
+                with open(fn) as f:
+                    for line in f:
+                        rows.append(json.loads(line))
+            self.assertEqual(export_files, 1)
+            found_assets = {}
+            found_names = {}
+            for row in rows:
+                found_assets[row['asset_type']] = row
+                found_names[row['name']] = row
+            self.assertEqual(len(found_names), 2)
+            self.assertEqual(len(found_assets), 2)
+            instance_row = found_assets['google.compute.Instance']
+            resource_properties = instance_row['resource']['json_data']
+            self.assertIsInstance(resource_properties, string_types)
+            self.assertNotIn('data', instance_row['resource'])
+
 
 if __name__ == '__main__':
     unittest.main()

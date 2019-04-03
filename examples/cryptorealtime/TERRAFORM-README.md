@@ -5,11 +5,11 @@
 ![Architectural overview](crypto.gif)
 
 
-### Terraform version used in this tutorial: v0.11.11 
+### Terraform version used in this tutorial: v0.11.13
 
 ### Providers used:
-- provider.google v1.20.0
-
+- provider.google v2.2.0
+- provider.template v2.1.0
 
 ### Setup:
 - Open the Terraform Shell and clone the project
@@ -62,13 +62,6 @@ python app.py ${PROJECT_ID} ${BIGTABLE_INSTANCE_NAME} ${BIGTABLE_TABLE_NAME} ${B
 
 
 **Cleanup:**
-- Navigate to the Terraform shell
-- We have to delete the Cloud Bigtable instances manually because there is a bug in the current Terraform provider
-```console 
-gcloud bigtable instances delete cryptobackend-bigtable
-terraform state rm google_bigtable_instance.instance
-```
-
 - Delete the Dataflow jobs
 ```console 
 gcloud dataflow jobs cancel \

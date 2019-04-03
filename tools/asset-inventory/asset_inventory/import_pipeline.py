@@ -28,6 +28,7 @@ environments that are not easily suited to large memory single machines like
 Cloud Functions or App Engine.
 """
 
+import copy
 from datetime import datetime
 import json
 import logging
@@ -39,7 +40,10 @@ from apache_beam.io.filesystems import FileSystems
 from apache_beam.options.pipeline_options import PipelineOptions
 from apache_beam.options.value_provider import StaticValueProvider
 from apache_beam.transforms import core
+from asset_inventory import api_schema
 from asset_inventory import bigquery_schema
+from asset_inventory.api_schema import APISchema
+from asset_inventory.cai_to_api import CAIToAPI
 from six import string_types
 
 from google.api_core.exceptions import BadRequest
@@ -67,6 +71,8 @@ class AssignGroupByKey(beam.DoFn):
     - ASSET_TYPE_VERSION to have a table for each asset type and version like
       `google.compute.Instance.v1alpha`
 
+    - NONE to have a single table for all assets.
+
     - NAME for when merging the iam_policy and the resource together as an
       intermediary step prior to load.
     """
@@ -81,13 +87,17 @@ class AssignGroupByKey(beam.DoFn):
         group_by = self.group_by.get()
         if group_by == 'NAME':
             key = element['asset_type'] + '.' + element['name']
+        elif group_by == 'NONE':
+            key = element.pop('_group_by', 'resource')
         elif group_by == 'ASSET_TYPE':
-            key = element['asset_type']
+            # use group_by element override if present.
+            key = element.pop('_group_by', element['asset_type'])
         elif group_by == 'ASSET_TYPE_VERSION':
             version = ''
             if 'resource' in element:
                 version = element['resource']['version']
                 key = element['asset_type'] + '.' + version
+            key = element.pop('_group_by', key)
         yield (key, element)
 
 
@@ -103,23 +113,67 @@ class BigQuerySchemaCombineFn(core.CombineFn):
     def extract_output(self, schema):
         return schema
 
+    def element_to_schema(self, element):
+        return APISchema.bigquery_schema_for_asset_type(
+            element['asset_type'],
+            'resource' in element and 'data' in element['resource'],
+            'iam_policy' in element)
+
     def add_input(self, schema, element):
-        new_schema = bigquery_schema.translate_json_to_schema(element)
-        return bigquery_schema.merge_schemas([schema, new_schema])
+        resource_schema = self.element_to_schema(element)
+        json_schema = bigquery_schema.translate_json_to_schema(element)
+        return bigquery_schema.merge_schemas([schema, resource_schema,
+                                              json_schema])
 
 
 class BigQuerySanitize(beam.DoFn):
-    """Make the json acceptible to BigQuery."""
-
-    def __init__(self, load_time):
-        if isinstance(load_time, string_types):
-            load_time = StaticValueProvider(str, load_time)
-        self.load_time = load_time
+    """Make the json acceptable to BigQuery."""
 
     def process(self, element):
-        element = bigquery_schema.sanitize_property_value(element)
+        yield bigquery_schema.sanitize_property_value(element)
+
+
+class ProduceResourceJson(beam.DoFn):
+    """Create a json only element for every element."""
+
+    def __init__(self, load_time, group_by):
+        if isinstance(load_time, string_types):
+            load_time = StaticValueProvider(str, load_time)
+        if isinstance(group_by, string_types):
+            group_by = StaticValueProvider(str, group_by)
+        self.load_time = load_time
+        self.group_by = group_by
+
+    def process(self, element):
         # add load timestamp.
         element['timestamp'] = self.load_time.get()
+        if ('resource' in element and
+            'data' in element['resource']):
+            resource = element['resource']
+            # add json_data property.
+            resource['json_data'] = json.dumps(resource['data'])
+            resource_element = copy.deepcopy(element)
+            resource_element['resource'].pop('data')
+            resource_element['_group_by'] = 'resource'
+            yield resource_element
+            if self.group_by.get() != 'NONE':
+                yield element
+        else:
+            resource_element = copy.deepcopy(element)
+            resource_element['_group_by'] = 'resource'
+            yield resource_element
+            if self.group_by.get() != 'NONE':
+                yield element
+
+
+class MapCAIProperties(beam.DoFn):
+    """Corrects CAI properties to match API object properties."""
+
+    def process(self, element):
+        if ('resource' in element and 'data' in element['resource']):
+            CAIToAPI.cai_to_api_properties(
+                api_schema.resource_name_for_asset_type(element['asset_type']),
+                element['resource']['data'])
         yield element
 
 
@@ -134,8 +188,13 @@ class CombinePolicyResource(beam.DoFn):
     def process(self, element):
         combined = {}
         for content in element[1]:
+            # don't merge resource element.
+            if '_group_by' in content:
+                yield content
+                continue
             combined.update(content)
-        yield combined
+        if combined:
+            yield combined
 
 
 class WriteToGCS(beam.DoFn):
@@ -191,7 +250,7 @@ class WriteToGCS(beam.DoFn):
 
 
 class BigQueryDoFn(beam.DoFn):
-    """Super class for a DoFn that requires BigQuery dataset information."""
+    """Superclass for a DoFn that requires BigQuery dataset information."""
 
     def __init__(self, dataset, write_disposition):
         if isinstance(dataset, string_types):
@@ -257,6 +316,13 @@ class LoadToBigQuery(BigQueryDoFn):
             load_time = StaticValueProvider(str, load_time)
         self.load_time = load_time
 
+    def to_bigquery_schema(self, fields):
+        """Convert list of dicts into `bigquery.SchemaFields`."""
+        for field in fields:
+            if 'fields' in field:
+                field['fields'] = self.to_bigquery_schema(field['fields'])
+        return [bigquery.SchemaField(**field) for field in fields]
+
     def process(self, element, schemas, _):
         """Element is a tuple of key_ name and iterable of filesystem paths."""
 
@@ -273,7 +339,7 @@ class LoadToBigQuery(BigQueryDoFn):
         # use load_time as a timestamp.
         job_config.time_partitioning = bigquery.table.TimePartitioning(
             field='timestamp')
-        job_config.schema = schemas[key_name]
+        job_config.schema = self.to_bigquery_schema(schemas[key_name])
         job_config.source_format = bigquery.SourceFormat.NEWLINE_DELIMITED_JSON
         try:
             load_job = self.bigquery_client.load_table_from_uri(
@@ -312,7 +378,7 @@ class ImportAssetOptions(PipelineOptions):
         parser.add_value_provider_argument(
             '--group_by',
             default=StaticValueProvider(str, 'ASSET_TYPE'),
-            choices=['ASSET_TYPE', 'ASSET_TYPE_VERSION'],
+            choices=['ASSET_TYPE', 'ASSET_TYPE_VERSION', 'NONE'],
             help='How to group exported resources into Bigquery tables.')
 
         parser.add_value_provider_argument(
@@ -353,8 +419,10 @@ def run(argv=None):
     # Cleanup json documents.
     sanitized_assets = (
         p | 'read' >> ReadFromText(options.input, coder=JsonCoder())
-        |
-        'bigquery_sanitize' >> beam.ParDo(BigQuerySanitize(options.load_time)))
+        | 'map_cai_properties' >> beam.ParDo(MapCAIProperties())
+        | 'produce_resource_json' >> beam.ParDo(ProduceResourceJson(
+            options.load_time, options.group_by))
+        | 'bigquery_sanitize' >> beam.ParDo(BigQuerySanitize()))
 
     # Joining all iam_policy objects with resources of the same name.
     merged_iam_and_asset = (
