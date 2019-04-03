@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-project_id = "igalic-terraform-commander" // ***CHANGE THIS***
-bucket_name = "cryptorealtime-demo-staging" // ***CHANGE THIS*** make this unique
-credsfile = "/Users/igalic/.config/gcloud/igalic-terraform-commander-b14a681ac62c.json" // ***CHANGE THIS***
+project_id = "testprojivo" // ***CHANGE THIS***
+bucket_name = "cryptorealtime-demo-staging123" // ***CHANGE THIS*** make this unique
+credsfile = "/Users/igalic/Downloads/testprojivo-13e8ed7eb6df.json" // ***CHANGE THIS***
 
 // OPTIONAL
 region = "us-central1"

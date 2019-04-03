@@ -190,7 +190,7 @@ class GCSStorageComponent(GCPService):
                 if file_name not in file_info.keys():
                     file_info[file_name] = source_location
             source_locations = ' '.join(file_info.values())
-            filename = "file_info.json"
+            filename = "file_info_{}.json".format(uuid4())
             # Dictionary of file names and their locations
             with open(filename, "w") as file_content:
                 file_content.write(str(file_info))

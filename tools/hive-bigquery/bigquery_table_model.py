@@ -18,6 +18,7 @@ import json
 import logging
 import os
 from collections import OrderedDict
+from uuid import uuid4
 
 from properties_reader import PropertiesReader
 
@@ -65,12 +66,13 @@ class BigQueryTableModel(object):
     @property
     def schema(self):
         if self._table_details['schema'] is None:
+            filename = 'bq_schema_{}.json'.format(uuid4())
             os.system(
-                'bq show --format=prettyjson {0}.{1} > bq_schema.json'.format(
-                    self.dataset_id, self.table_name))
-            with open('bq_schema.json', 'r') as file_content:
+                'bq show --format=prettyjson {0}.{1} > {2}'.format(
+                    self.dataset_id, self.table_name, filename))
+            with open(filename, 'r') as file_content:
                 schema = json.load(file_content)
-            os.remove('bq_schema.json')
+            os.remove(filename)
             self._table_details['schema'] = schema['schema']['fields']
         return self._table_details['schema']
 
