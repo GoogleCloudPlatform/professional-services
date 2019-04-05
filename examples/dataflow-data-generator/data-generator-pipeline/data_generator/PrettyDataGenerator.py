@@ -243,13 +243,11 @@ class DataGenerator(object):
             else:
                 for key in special_map: 
                     if key.lower() in obj['name'].lower():
-                        faker_schema[obj['name']] = \
-                                special_map[key]
+                        faker_schema[obj['name']] = special_map[key]
                         is_special = True
                         break
                 if not is_special:
-                    faker_schema[obj['name']] = \
-                            type_map[obj['type']]
+                    faker_schema[obj['name']] = type_map[obj['type']]
         return faker_schema
 
     def enforce_joinable_keys(self, record, key_set=None):
