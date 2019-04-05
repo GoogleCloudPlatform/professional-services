@@ -6,16 +6,16 @@ This tools allows import resource and iam policy records exporting by the [Cloud
 
 - How many disks ar running for each sourceImage broken out by machineType:
 
-  ```
-  SELECT instance.timestamp,  REGEXP_EXTRACT(instance.resource.data.machineType, '.*/(.*)') AS machine_type, REGEXP_EXTRACT(disk.resource.data.sourceImage, '.*/(.*)') AS source_image, count(*) as num_disks
-  FROM `project-name.cai_assets.google_compute_Instance` AS instance
-  JOIN UNNEST(instance.resource.data.disks) AS instance_disk
-  JOIN `project-name.cai_assets.google_compute_Disk` AS disk
-  ON instance_disk.source = disk.resource.data.selfLink and instance.timestamp = disk.timestamp
-  where instance.resource.data.status = 'RUNNING' and disk.resource.data.sourceImage is not null
-  and instance.timestamp = (select max(instance.timestamp) from `bmenasha-1.cai_assets.google_compute_Instance` AS instance)
-  group by timestamp,  machine_type, source_image
-  ```
+    ```
+    SELECT instance.timestamp,  REGEXP_EXTRACT(instance.resource.data.machineType, '.*/(.*)') AS machine_type, REGEXP_EXTRACT(disk.resource.data.sourceImage, '.*/(.*)') AS source_image, count(*) as num_disks
+    FROM `project-name.cai_assets.google_compute_Instance` AS instance
+    JOIN UNNEST(instance.resource.data.disks) AS instance_disk
+    JOIN `project-name.cai_assets.google_compute_Disk` AS disk
+    ON instance_disk.source = disk.resource.data.selfLink and instance.timestamp = disk.timestamp
+    where instance.resource.data.status = 'RUNNING' and disk.resource.data.sourceImage is not null
+    and instance.timestamp = (select max(instance.timestamp) from `bmenasha-1.cai_assets.google_compute_Instance` AS instance)
+    group by timestamp,  machine_type, source_image
+    ```
 
 - All the external IP addresses currently assigned to my load balancers cloud sql, and compute instances?
 
@@ -85,9 +85,10 @@ It's suggested to create a new project to hold the asset inventory resources. Es
     ```
 
 1. Create the dataset to hold the resource tables in BigQuey.
-   ```
-   bq mk asset_inventory
-   ```
+
+    ```
+    bq mk asset_inventory
+    ```
 
 ## There are two different options from this point:
 1. Use Google App Engine to perform cron scheduled exports from the Cloud Asset Inventory API, and imports into BigQuery using a Dataflow template.
@@ -127,8 +128,6 @@ The deployment steps are:
 1. The config.yaml limits Dataflow jos to one worker. This is because the VPC used might not allow internal communication between Dataflow workers as described [here](https://cloud.google.com/dataflow/docs/guides/routes-firewall). If you follow those steps or are using the default VPC and don't see a warning about missing firewall rules you can safely increase the maxWorkers configuration.
 
 
-https://cloud.google.com/dataflow/docs/guides/routes-firewall
-
 1. Vendor the asset_inventory package with the app engine application:
 
     ```
@@ -136,19 +135,19 @@ https://cloud.google.com/dataflow/docs/guides/routes-firewall
     ```
 
 1. Create the App Engine application in our project and grant the default service account asset export viewer roles.
-   ```
-   gcloud app create
-   gcloud organizations add-iam-policy-binding $ORGANIZATION_ID --member="serviceAccount:$PROJECT_ID@appspot.gserviceaccount.com" --role='roles/cloudasset.viewer'
-   ```
+
+    ```
+    gcloud app create
+    gcloud organizations add-iam-policy-binding $ORGANIZATION_ID --member="serviceAccount:$PROJECT_ID@appspot.gserviceaccount.com" --role='roles/cloudasset.viewer'
+    ```
 
    If the this service account lacks the default Project Editor role, you'll also need to grant it the `roles/dataflow.admin`, `roles/bigquery.user`, and `roles/bigquery.dataEditor` in the project.
 
-
-   ```
-   gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:asset-exporter-service-account@$PROJECT_ID.iam.gserviceaccount.com" --role='roles/dataflow.admin'
-   gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:asset-exporter-service-account@$PROJECT_ID.iam.gserviceaccount.com" --role='roles/bigquery.user'
-   gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:asset-exporter-service-account@$PROJECT_ID.iam.gserviceaccount.com" --role='roles/bigquery.dataEditor'
-  ```
+    ```
+    gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:asset-exporter-service-account@$PROJECT_ID.iam.gserviceaccount.com" --role='roles/dataflow.admin'
+    gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:asset-exporter-service-account@$PROJECT_ID.iam.gserviceaccount.com" --role='roles/bigquery.user'
+    gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:asset-exporter-service-account@$PROJECT_ID.iam.gserviceaccount.com" --role='roles/bigquery.dataEditor'
+    ```
 
 1. Deploy the application to App Engine.
 
@@ -164,7 +163,7 @@ https://cloud.google.com/dataflow/docs/guides/routes-firewall
 
 1. Goto the [App Engine cron page](https://console.cloud.google.com/appengine/cronjobs) and manually invoke the cron process to ensure everything works. It will run for a while (a few minutes) as it performs the export starts a Dataflow job.    That's it!
 
-![App Engine Cron](https://storage.googleapis.com/professional-services-tools-asset-inventory/images/cron.png "App Engine Cron")
+    ![App Engine Cron](https://storage.googleapis.com/professional-services-tools-asset-inventory/images/cron.png "App Engine Cron")
 
 
 
@@ -173,16 +172,17 @@ https://cloud.google.com/dataflow/docs/guides/routes-firewall
 The fastest way to Get data into BigQuery is to invoke the export resources to GCS and invoke the [Dataflow template](https://cloud.google.com/dataflow/docs/guides/templates/overview). You don't even need to download this repository! First, export the assets.
 
 1. Ensure you have the necessary privileges at the organization level. This requires at a minimum the roles to:
-   * Create a service account.
-   * Grant the service account the ability to export Cloud Asset Inventory. (Apply either roles/viewer or roles/cloudasset.viewer to the project or organization )
-   * BigQuery write privileges to create a dataset, create and delete tables.
-   * Start Dataflow Jobs.
+
+    * Create a service account.
+    * Grant the service account the ability to export Cloud Asset Inventory. (Apply either roles/viewer or roles/cloudasset.viewer to the project or organization )
+    * BigQuery write privileges to create a dataset, create and delete tables.
+    * Start Dataflow Jobs.
 
 1. Ensure necessary APIs (compute, asset inventory, bigquery, dataflow) are enabled on the project.
-   ```
-    gcloud services enable cloudasset.googleapis.com dataflow.googleapis.com compute.googleapis.com bigquery-json.googleapis.com
 
-   ```
+    ```
+    gcloud services enable cloudasset.googleapis.com dataflow.googleapis.com compute.googleapis.com bigquery-json.googleapis.com
+    ```
 
 1. Create a service account and authenticate gcloud with it. It's currently ONLY possible to invoke the Cloud Asset Inventory Export API with a service account. A user account will give permission denied errors when writing to the bucket or when the API is called.
 
@@ -192,9 +192,9 @@ The fastest way to Get data into BigQuery is to invoke the export resources to G
     ```
 
 1. Grant the service account the ability to read asset inventory from the organization, start dataflow jobs and load data into BigQuery.
-   ```
-    gcloud organizations add-iam-policy-binding $ORGANIZATION_ID --member="serviceAccount:asset-exporter-service-account@$PROJECT_ID.iam.gserviceaccount.com" --role='roles/cloudasset.viewer'
 
+    ```
+    gcloud organizations add-iam-policy-binding $ORGANIZATION_ID --member="serviceAccount:asset-exporter-service-account@$PROJECT_ID.iam.gserviceaccount.com" --role='roles/cloudasset.viewer'
     gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:asset-exporter-service-account@$PROJECT_ID.iam.gserviceaccount.com" --role='roles/dataflow.admin'
     gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:asset-exporter-service-account@$PROJECT_ID.iam.gserviceaccount.com" --role='roles/bigquery.user'
     gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:asset-exporter-service-account@$PROJECT_ID.iam.gserviceaccount.com" --role='roles/bigquery.dataEditor'
@@ -210,14 +210,13 @@ The fastest way to Get data into BigQuery is to invoke the export resources to G
     export PROJECT_ID=`gcloud config get-value project`
     export ORGANIZATION_ID=`gcloud projects describe $PROJECT_ID --format='value(parent.id)'`
     export BUCKET=gs://${ORGANIZATION_ID}-assets
-
     ```
 
     Another approach is to download the private key and activate the service account to run locally  but this generated key must be kept secure.
+
     ```
     gcloud iam service-accounts keys create --iam-account=asset-exporter-service-account@$PROJECT_ID.iam.gserviceaccount.com ~/asset-exporter-service-account.json
     gcloud auth activate-service-account  asset-exporter-service-account@$PROJECT_ID.iam.gserviceaccount.com --key-file ~/asset-exporter-service-account.json
-
     ```
 
 1. Export both the `resource` and `iam_policy` assets of a project or organization to the bucket.  If you have organization level access and wish to export all resources within the organization then define the parent to be:
@@ -235,6 +234,7 @@ The fastest way to Get data into BigQuery is to invoke the export resources to G
     We'll need to be running gcloud version __228.0.0 or later. (alpha 2018.11.09)__ Ensure you have the alpha components for gcloud installed with the alpha component.
 
     Now perform the export:
+
     ```
      for CONTENT_TYPE in resource iam-policy; do
        gcloud alpha asset export --output-path=$BUCKET/${CONTENT_TYPE}.json --content-type=$CONTENT_TYPE $PARENT
@@ -242,6 +242,7 @@ The fastest way to Get data into BigQuery is to invoke the export resources to G
     ```
 
     Run the commands output by gcloud to verify the export worked, for example:
+
     ```
     gcloud alpha asset operations describe projects/1234567890/operations/ExportAssets/23230328344834
     ```
@@ -249,7 +250,7 @@ The fastest way to Get data into BigQuery is to invoke the export resources to G
 1. Then import the assets into BigQuery with the Dataflow template:
 
     ```
-    export LOAD_TIME=`date -Is`
+    export LOAD_TIME=`date +"%Y-%m-%dT%H:%M:%S%:z"`
     export JOB_NAME=cloud-asset-inventory-import-`echo $LOAD_TIME | tr : - | tr '[:upper:]' '[:lower:]' | tr + _`
     gcloud dataflow jobs run $JOB_NAME  --gcs-location gs://professional-services-tools-asset-inventory/latest/import_pipeline --parameters="input=$BUCKET/*.json,stage=$BUCKET/stage,load_time=$LOAD_TIME,group_by=ASSET_TYPE,dataset=asset_inventory,write_disposition=WRITE_APPEND" --staging-location $BUCKET/staging
     ```
@@ -273,6 +274,7 @@ The fastest way to Get data into BigQuery is to invoke the export resources to G
     ```
 
     Goto the BigQuery [page](https://console.cloud.google.com/bigquery) to explore the data or run queries like this from the command line:
+
     ```
     bq query --nouse_legacy_sql  'select timestamp, instance.resource.data.name from `asset_inventory.google_compute_Instance` as instance where instance.resource.data.status = "RUNNING"  and  timestamp = (select max(timestamp) from `asset_inventory.google_compute_Instance`) limit 1000'
     ```
@@ -301,7 +303,6 @@ This repository contains some command line tools that let you run the export/imp
     ```
     gcloud iam service-accounts keys create --iam-account=asset-exporter-service-account@$PROJECT_ID.iam.gserviceaccount.com ~/asset-exporter-service-account.json
     export GOOGLE_APPLICATION_CREDENTIALS=~/asset-exporter-service-account.json
-
     ```
 
 1. Run the main.py program:
@@ -327,10 +328,10 @@ This repository contains some command line tools that let you run the export/imp
 1. When using the Dataflow runner I get the error:
 
     ```
-      File "/usr/local/lib/python2.7/dist-packages/dill/_dill.py", line 465, in find_class
-        return StockUnpickler.find_class(self, module, name)
-      File "/usr/lib/python2.7/pickle.py", line 1130, in find_class
-        __import__(module)
+    File "/usr/local/lib/python2.7/dist-packages/dill/_dill.py", line 465, in find_class
+      return StockUnpickler.find_class(self, module, name)
+    File "/usr/lib/python2.7/pickle.py", line 1130, in find_class
+      __import__(module)
     ImportError: No module named asset_inventory.import_pipeline
     ```
 
@@ -346,20 +347,20 @@ This repository contains some command line tools that let you run the export/imp
     Build error details: Access to bucket "staging.gcpdentity-asset-export-1.appspot.com" denied. You must grant Storage Object Viewer permission to 159063514943@cloudbuild.gserviceaccount.com.
     ```
 
-    This can occur when the App Engine application was just created. Please try running the "gcloud app deploy" command again after waiting a moment.
+   This can occur when the App Engine application was just created. Please try running the "gcloud app deploy" command again after waiting a moment.
 
 1. I get the App Engine error:
 
-   ```
-   File "/srv/main.py", line 44, in <module> from asset_inventory import pipeline_runner
-   File "/srv/lib/asset_inventory/pipeline_runner.py", line 20, in <module> from googleapiclient.discovery import build
-   File "/srv/lib/googleapiclient/discovery.py", line 52, in <module> import httplib2
-   File "/srv/lib/httplib2/__init__.py", line 988 raise socket.error, msg
-   SyntaxError: invalid syntax
-   ```
+    ```
+    File "/srv/main.py", line 44, in <module> from asset_inventory import pipeline_runner
+    File "/srv/lib/asset_inventory/pipeline_runner.py", line 20, in <module> from googleapiclient.discovery import build
+    File "/srv/lib/googleapiclient/discovery.py", line 52, in <module> import httplib2
+    File "/srv/lib/httplib2/__init__.py", line 988 raise socket.error, msg
+    SyntaxError: invalid syntax
+    ```
 
-   You have installed the python2.7 version of httplib2. We need the python3 version. Perhaps you didn't supply the "--no-deps" argument to pip command and you have python2 installed locally. Try removing the gae/lib directory contents and runnng the pip command with the "-no-deps" argument.
+    You have installed the python2.7 version of httplib2. We need the python3 version. Perhaps you didn't supply the "--no-deps" argument to pip command and you have python2 installed locally. Try removing the gae/lib directory contents and runnng the pip command with the "-no-deps" argument.
 
 1. The Dataflow job failes to start because it lacks access to the Shared VPC subnet.
 
-When using a Shared VPC, it necessary to grant the Dataflow Agent Service Account access to the subnet. This service account is created for you when you enable the Dataflow API and is called `service-<PROJECT-NUMBER>@dataflow-service-producer-prod.iam.gserviceaccount.com`.
+    When using a Shared VPC, it necessary to grant the Dataflow Agent Service Account access to the subnet. This service account is created for you when you enable the Dataflow API and is called `service-<PROJECT-NUMBER>@dataflow-service-producer-prod.iam.gserviceaccount.com`.
