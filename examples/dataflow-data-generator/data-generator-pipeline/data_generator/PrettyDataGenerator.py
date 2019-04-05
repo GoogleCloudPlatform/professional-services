@@ -678,6 +678,10 @@ def parse_data_generator_args(argv):
                         help='This is an avro schema file to use for writing'
                         'data to avro on gcs.', default=None)
 
+    parser.add_argument('--write_to_parquet', dest='write_to_parquet',
+                        help='This is a flag for writing to parquet on gcs.',
+                        action="store_true")
+
     parser.add_argument('--gcs_output_prefix', dest='output_prefix', 
                         help='GCS path for output', default=None)
 
