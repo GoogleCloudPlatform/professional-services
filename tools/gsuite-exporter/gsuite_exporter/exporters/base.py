@@ -34,7 +34,7 @@ class BaseExporter(object):
 
         Args:
             records (list): A list of log records.
-            dry (bool): Toggle dry-run mode (default: False).
+            kwargs (dict): Additional exporter options.
 
         Raises:
             `NotImplementedError`: Method is implemented in a derived class.
