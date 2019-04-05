@@ -11,7 +11,7 @@ non-developers to use machine learning. At high level The API takes care of
 
 In training, the API first cleans the data and then calculates all the relevant features that will be  used in the training. This training data is then saved into temporary files on the disk. These temporary files are then fed into the tensorflow dataset API which makes the input function of the tensorflow estimators which are divided into two parts, custom and canned based on the choice of model users want to run on the data. In the process of training,  all the metrics are called calculated and shown in the logs. These logs when stored as checkpoint can be used to preview the model in Tensorboard.
 
-The trained model are saved into different versions based on the name you give to these versions.Version control is important as there will be frequent data changes or hyperparameters updates, which will then create a different model.
+The trained model are saved into different versions based on the name you give to these versions. Version control is important as there will be frequent data changes or hyperparameters updates, which will then create a different model.
 
 ## Functionalities of the API
 
