@@ -44,7 +44,7 @@ def logits(features, params):
         tf.convert_to_tensor(features),
         [num_features, batch_size])
 
-    for pow_i in range(1, degree+1):
+    for pow_i in range(1, degree + 1):
         with tf.name_scope('Pred'):
             weights = tf.Variable(
                 tf.random_normal([1, num_features]),

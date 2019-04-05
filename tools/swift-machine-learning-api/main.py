@@ -15,21 +15,22 @@
 """
     End-to-End API Framework for Componentised Machine Learning Applications
 """
-import os
 import json
-import uuid
 import logging
+import os
+import uuid
 from logging.handlers import RotatingFileHandler
+
+import tensorflow as tf
+import yaml
 from flask import Flask, request, Response
 from flask_json_schema import JsonSchema, JsonValidationError
-import yaml
-import train
-import tensorflow as tf
+
 import deploy
 import predict
+import train
 from lime_utils import visualization, visualization_2
 from schema import TRAIN_SCHEMA, PREDICT_SCHEMA, DEPLOY_SCHEMA, LIME_SCHEMA, LIME_SCHEMA_2
-
 
 APP = Flask(__name__)
 SCHEMA = JsonSchema(APP)
@@ -108,7 +109,7 @@ def app_train():
         else:
             train_csv_path = os.path.join(
                 cfg['bucket_name'], payload['train_csv_path'])
-        
+
         eval_csv_path = os.path.join(
             cfg['bucket_name'], payload['eval_csv_path'])
         export_dir = os.path.join(
@@ -159,8 +160,8 @@ def app_train():
         return_message = json.dumps({
             "Success": True,
             "Message":
-            "{}/{}?project={}".format(get_job_link(),
-                                      jobid, cfg['project_id']),
+                "{}/{}?project={}".format(get_job_link(),
+                                          jobid, cfg['project_id']),
             "Data": {
                 'jobid': jobid,
                 'response': response
@@ -416,7 +417,6 @@ def lime_prediction():
 @SCHEMA.validate(LIME_SCHEMA_2)
 @APP.route('/predict/lime2', methods=['POST'])
 def lime_prediction_2():
-
     return_message = json.dumps({
         "Success": False,
         "Message": "",

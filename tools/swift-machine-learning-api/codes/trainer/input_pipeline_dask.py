@@ -22,15 +22,14 @@ from __future__ import print_function
 
 from multiprocessing import cpu_count
 
-from google.cloud import storage
-import numpy as np
-import dask.dataframe as dd
 import dask
-import tensorflow as tf
-import lime.lime_tabular
+import dask.dataframe as dd
 import dill
+import lime.lime_tabular
+import numpy as np
 import pandas as pd
-import os
+import tensorflow as tf
+from google.cloud import storage
 
 
 class InputReader(object):
@@ -97,8 +96,8 @@ class InputReader(object):
                         bucket,
                         csv_name,
                         path_name='/tmp/data_' +
-                        str(index) +
-                        '.csv')
+                                  str(index) +
+                                  '.csv')
                 csv_path = '/tmp/data_*.csv'
             else:
                 bucket = self.csv_path.split('//')[1].split('/')[0]
@@ -196,7 +195,8 @@ class BasicStats(object):
             if stddev_list[col] == 0.0:
                 df = df.drop(col, axis=1)
                 if col == target_var:
-                    err_msg = 'Target variable has zero standard deviation or a contant column. Please check the data'
+                    err_msg = 'Target variable has zero standard deviation or a contant column. ' \
+                              'Please check the data'
                     tf.logging.error(err_msg)
                     raise AssertionError(err_msg)
         return df

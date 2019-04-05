@@ -15,11 +15,12 @@
 """
 LIME Functionality for CMLA Classification Models
 """
-import os
 import json
-import tensorflow as tf
-import numpy as np
+import os
+
 import dill
+import numpy as np
+import tensorflow as tf
 from bs4 import BeautifulSoup as Soup
 from google.cloud import storage
 
@@ -78,7 +79,7 @@ def download_folder_from_gcp(bucket_name, folder_name):
         bucket = storage_client.get_bucket(bucket_name)
         blobs = bucket.list_blobs(prefix=folder_name)
         for blob in blobs:
-            directory = '/'.join((blob.name).split('/')[:-1])+'/'
+            directory = '/'.join((blob.name).split('/')[:-1]) + '/'
             if not os.path.exists(directory):
                 os.makedirs(directory)
             blob.download_to_filename(blob.name)
@@ -97,7 +98,7 @@ def upload_to_gcp(bucket_name, source_file_name):
             source_file_name: str, path of the source blob"""
     storage_client = storage.Client()
     bucket = storage_client.get_bucket(bucket_name)
-    blob = bucket.blob('lime/'+source_file_name)
+    blob = bucket.blob('lime/' + source_file_name)
     blob.upload_from_filename(source_file_name)
     os.remove(source_file_name)
 
@@ -225,7 +226,7 @@ def adding_text_to_html(html_file, explanation, dict_mapping):
             <style>
                 .is-hidden{display:none;}
             </style>
-            <div id="text-explanation" style="text-align:right;" class="is-hidden">'''+str(text_exp)+''' </div>'''
+            <div id="text-explanation" style="text-align:right;" class="is-hidden">''' + str(text_exp) + ''' </div>'''
     cleaned_html.body.append(Soup(string, 'html.parser'))
     return str(cleaned_html)
 
@@ -279,9 +280,9 @@ def visualization(cfg, job_id, model_dir, predict_json, batch_prediction, d_poin
                                      feature_names=feature_names, data_point=predict_point, predictor=predictor)
         html_file = explanation.as_html()
         save(gcp_bucket_name, adding_text_to_html(
-            html_file, explanation, dict_mapping), str(name)+'.html')
+            html_file, explanation, dict_mapping), str(name) + '.html')
         predict_point_copy = predict_point.copy()
-        result['prediction'] = {'saved_report': str(name)+'.html'}
+        result['prediction'] = {'saved_report': str(name) + '.html'}
         result['prediction'].update(
             {'output': (prediction_without_report(predict_point_copy, predictor))})
     else:
@@ -292,7 +293,8 @@ def visualization(cfg, job_id, model_dir, predict_json, batch_prediction, d_poin
             value_copy = value.copy()
             if key in d_points or d_points == ['ALL']:
                 explanation = lime_predictor(
-                    explainer=explainer, dict_mapping=dict_mapping, feature_names=feature_names, data_point=value, predictor=predictor)
+                    explainer=explainer, dict_mapping=dict_mapping, feature_names=feature_names, data_point=value,
+                    predictor=predictor)
                 output_path_name = '{}_{}.html'.format(name, key)
                 html_file = explanation.as_html()
                 save(gcp_bucket_name, adding_text_to_html(
@@ -345,7 +347,7 @@ def visualization_2(cfg, job_id, model_dir, predict_json, batch_prediction, name
         html_file = explanation.as_html()
         data_point_copy = predict_point.copy()
         save(gcp_bucket_name, adding_text_to_html(
-            html_file, explanation, dict_mapping), str(name)+'.html')
+            html_file, explanation, dict_mapping), str(name) + '.html')
         result.append(prediction_without_report(data_point_copy, predictor))
     else:
         result = list()
@@ -359,7 +361,8 @@ def visualization_2(cfg, job_id, model_dir, predict_json, batch_prediction, name
                 for extra_key in [a for a in prediction_point.keys() if a not in feature_names]:
                     del prediction_point[extra_key]
                 explanation = lime_predictor(explainer=explainer, dict_mapping=dict_mapping,
-                                             feature_names=feature_names, data_point=prediction_point, predictor=predictor)
+                                             feature_names=feature_names, data_point=prediction_point,
+                                             predictor=predictor)
                 html_file = explanation.as_html()
                 output_path_name = '{}_{}.html'.format(name, index)
                 save(gcp_bucket_name, adding_text_to_html(

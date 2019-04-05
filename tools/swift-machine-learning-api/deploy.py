@@ -17,8 +17,9 @@
 """
 
 import os
-from googleapiclient import discovery
+
 from google.cloud import storage
+from googleapiclient import discovery
 
 
 def get_model_path(cfg, job_id, trained_model_location):

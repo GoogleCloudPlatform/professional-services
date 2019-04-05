@@ -12,14 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-'''Set up file for the cloud environment'''
+"""Set up file for the cloud environment"""
 
 from setuptools import find_packages
 from setuptools import setup
 
-
-REQUIRED_PACKAGES = ['google-cloud-storage==1.14.0',
-                     'tensorflow==1.12.0', 'dask[complete]==1.0.0', 'dill==0.2.8.2', 'lime==0.1.1.32']
+REQUIRED_PACKAGES = [
+    'google-cloud-storage==1.14.0',
+    'tensorflow==1.12.0',
+    'dask[complete]==1.0.0',
+    'dill==0.2.8.2',
+    'lime==0.1.1.32',
+]
 
 setup(
     name='trainer',

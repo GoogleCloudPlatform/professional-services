@@ -14,20 +14,20 @@
 
 """End to End script draft."""
 
-import time
 import argparse
-import six
-import os
 import ast
-import numpy as np
+import os
+import time
 
+import numpy as np
+import six
 import tensorflow as tf
 from tensorflow.contrib.training.python.training import hparam
 
 from input_pipeline_dask import InputReader, BasicStats, DatasetInput
 from models import CannedModel, CustomModel
-from utils.optimizer_utils import Optimizer
 from utils.metric_utils import mean_acc, mar, my_auc, rmse
+from utils.optimizer_utils import Optimizer
 
 
 class Config(object):
@@ -284,16 +284,20 @@ def run_experiment(hparams):
         std_dev=std_dev)
     b = time.time()
 
-    tf.logging.info('Parse time is : %s', b-a)
+    tf.logging.info('Parse time is : %s', b - a)
 
     if hparams.name == 'kmeanscluster':
-        def train_input(): return data.kmeans_input_fn('train')
+        def train_input():
+            return data.kmeans_input_fn('train')
 
-        def eval_input(): return data.kmeans_input_fn('eval')
+        def eval_input():
+            return data.kmeans_input_fn('eval')
     else:
-        def train_input(): return data.input_fn('train')
+        def train_input():
+            return data.input_fn('train')
 
-        def eval_input(): return data.input_fn('eval')
+        def eval_input():
+            return data.input_fn('eval')
 
     def json_serving_input_fn():
         """
@@ -431,7 +435,7 @@ def run_experiment(hparams):
         old_loss = np.inf
         for _ in range(hparams.eval_times):
             estimator.train(input_fn=train_input,
-                            steps=hparams.train_steps//hparams.eval_times)
+                            steps=hparams.train_steps // hparams.eval_times)
             output = estimator.evaluate(
                 input_fn=eval_input, steps=hparams.eval_steps)
             loss = output['loss']

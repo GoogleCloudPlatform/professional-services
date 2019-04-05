@@ -15,6 +15,7 @@
 """Common script for all estimator models."""
 
 import tensorflow as tf
+
 from utils import custom_utils_fns
 
 
@@ -406,7 +407,7 @@ class CustomModel(object):
                 predictions=logits
             )
 
-        # Name tensors to be logged with LoggingTensorHook
+            # Name tensors to be logged with LoggingTensorHook
             tf.identity(loss, 'loss')
             tf.identity(accuracy[1], name='accuracy')
             tf.identity(recall[1], name='recall')
