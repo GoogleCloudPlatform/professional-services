@@ -125,7 +125,7 @@ based on if you pass the `--csv_schema_order` or `--avro_schema_file` parameters
 
 #### Output format 
 
-Output format is specified by passing one of the `--csv_schema_order` or `--avro_schema_file` parameters.
+Output format is specified by passing one of the `--csv_schema_order`, `--avro_schema_file`, or `--write_to_parquet` parameters.
 
 `--csv_schema_order` should be a comma separated list specifying the order of the fieldnames for writing. 
 Note that `RECORD` are not supported when writing to CSV, because it is a flat file format.
@@ -138,6 +138,17 @@ Note that `RECORD` are not supported when writing to CSV, because it is a flat f
 
 ```
 --avro_schema_file=/path/to/linorders.avsc
+```
+
+`--write_to_parquet` is a flag that specifies the output should be parquet. In order for beam to write to parquet, 
+a pyarrow schema is needed. Therefore, this tool translates the schema in the --schema_file to
+a pyarrow schema automatically if this flag is included, but pyarrow doesn't support all fields that are supported
+by BigQuery. STRING, NUMERIC, INTEGER, FLOAT, NUMERIC, BOOLEAN, TIMESTAMP, DATE, TIME, and DATETIME types are supported. 
+However BYTE, GEOGRAPHY, and RECORD fields are not supported and cannot be included in the --schema_file when writing
+to parquet .
+
+```
+--write_to_parquet
 ```
 
 Alternatively, you can write directly to a BigQuery table by specifying an `--output_bq_table`. However, if you are generating 
