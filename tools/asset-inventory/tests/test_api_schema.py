@@ -138,8 +138,6 @@ class TestApiSchema(unittest.TestCase):
         schema = APISchema.bigquery_schema_for_asset_type(
             'google.compute.Instance',
             True, True)
-        print schema
-        print len(schema)
         self.assertEqual(len(schema), 4)
 
     def test_recursive_properties(self):
