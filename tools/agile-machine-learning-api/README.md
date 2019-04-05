@@ -1,4 +1,4 @@
-# SMLA (Swift Machine Learning API)
+# AMLA (Agile Machine Learning API)
 ## Overview
 
 
@@ -23,7 +23,7 @@ All the below functionalities can be used with a simple post request to the resp
 
 ## Structure of code
 ```
-SMLA
+AMLA
     |__ main.py  (entry point of the API)                                                
     |__ train.py  (train functions)
     |__ predict.py  (predict functions)        

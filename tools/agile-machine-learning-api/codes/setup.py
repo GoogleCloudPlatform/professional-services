@@ -32,5 +32,5 @@ setup(
     install_requires=REQUIRED_PACKAGES,
     packages=find_packages(),
     include_package_data=True,
-    description='MLA package'
+    description='AMLA package'
 )
