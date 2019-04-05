@@ -29,7 +29,7 @@ class BaseExporter(object):
                  credentials_path=None):
         raise NotImplementedError()
 
-    def send(self, records, dry=False):
+    def send(self, records, *args, dry=False):
         """Writes a list of Admin SDK records to the export destination.
 
         Args:

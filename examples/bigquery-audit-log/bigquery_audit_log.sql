@@ -99,7 +99,11 @@ SELECT
   runtimeMs,
   runtimeSecs,
   tableCopy, /* This code queries data specific to the Copy operation */
-  1 as numCopies, /* This code queries data specific to the Copy operation */
+  CONCAT(tableCopy.destinationTable.datasetId, '.', tableCopy.destinationTable.tableId)
+    AS tableCopyDestinationTableRelativePath,
+  CONCAT(tableCopy.destinationTable.projectId, '.', tableCopy.destinationTable.datasetId, '.',
+    tableCopy.destinationTable.tableId) AS tableCopyDestinationTableAbsolutePath,
+  IF(eventName = 'table_copy_job_completed', 1, 0) AS numCopies, /* This code queries data specific to the Copy operation */
   /* The following code queries data specific to the Load operation in BQ */
   totalLoadOutputBytes,
   (totalLoadOutputBytes / 1000000000) AS totalLoadOutputGigabytes,
@@ -110,17 +114,15 @@ SELECT
       load.destinationTable.projectId,
       load.destinationTable.datasetId,
       load.destinationTable.tableId,
-      CONCAT(load.destinationTable.datasetId, '.', load.destinationTable.tableId)
-        AS relativePath,
+      CONCAT(load.destinationTable.datasetId, '.', load.destinationTable.tableId) AS relativePath,
       CONCAT(load.destinationTable.projectId, '.', load.destinationTable.datasetId,
-      '.', load.destinationTable.tableId)
-        AS absolutePath
+        '.', load.destinationTable.tableId) AS absolutePath
     ) AS destinationTable,
     load.createDisposition,
     load.writeDisposition,
     load.schemaJson
   ) AS load,
-  1 as numLoads,
+  IF(eventName = 'load_job_completed', 1, 0) AS numLoads,
   /* This ends the code snippet that queries columns specific to the Load operation in BQ */
   /* The following code queries data specific to the Extract operation in BQ */
   REGEXP_CONTAINS(jobId, 'beam') AS isBeamJob,
@@ -136,14 +138,14 @@ SELECT
       '.', `extract`.sourceTable.tableId) AS absoluteTableRef
     ) AS sourceTable
   ) AS `extract`,
-  1 as numExtracts,
+  IF(eventName = 'extract_job_completed', 1, 0) AS numExtracts,
   /* This ends the code snippet that queries columns specific to the Extract operation in BQ */
   /* The following code queries data specific to the Query operation in BQ */
-  REGEXP_CONTAINS(query.query, 'cloudaudit_googleapis_com_data_access_')
-  AS isAuditDashboardQuery,
+  REGEXP_CONTAINS(query.query, 'cloudaudit_googleapis_com_data_access_') AS isAuditDashboardQuery,
   errorCode IS NOT NULL AS isError,
   REGEXP_CONTAINS(errorMessage, 'timeout') AS isTimeout,
   isCached,
+  IF(isCached, 1, 0) AS numCached,
   totalSlotMs,
   totalSlotMs / runtimeMs AS avgSlots,
   /* The following statement breaks down the query into minute buckets
@@ -170,9 +172,12 @@ SELECT
   ((totalBilledBytes / 1000000000) / 1000) * 5 AS estimatedCostUsd,
   billingTier,
   query,
+  CONCAT(query.destinationTable.datasetId, '.', query.destinationTable.tableId) AS queryDestinationTableRelativePath,
+  CONCAT(query.destinationTable.projectId, '.', query.destinationTable.datasetId, '.',
+    query.destinationTable.tableId) AS queryDestinationTableAbsolutePath,
   referencedTables,
   referencedViews,
-  1 as queries
+  IF(eventName = 'query_job_completed', 1, 0) AS queries
   /* This ends the code snippet that queries columns specific to the Query operation in BQ */
 FROM
   BQAudit

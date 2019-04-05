@@ -18,14 +18,16 @@ The following destinations are currently supported:
 * A GSuite Admin account
 * A service account with:
   * [GSuite domain-wide delegation](https://developers.google.com/admin-sdk/reports/v1/guides/delegation) enabled.
-  * The IAM role `roles/iam.tokenCreator` set on the organization.
+  * The IAM role `roles/iam.tokenCreator` granted to the service account on the project it was created in.
+* On the service account's project:
+  * Enable the `Identity and Access Management (IAM) API`.
+* On the destination project:
+  * Enable the `Admin Reports API`.
 
 ### Collectors
 To collect data from the Admin SDK APIs, you need to grant extra permissions to your service account:
 * Go to your [Admin Console](https://admin.google.com) and login with your GSuite administrator account
 * Navigate to `Security > Advanced Settings > Manage API client access`
-
-#### Reports API
 * Grant the following scopes (comma-separated) to your service account's `client_id`:
   - https://www.googleapis.com/auth/admin.reports.audit.readonly
   - https://www.googleapis.com/auth/iam

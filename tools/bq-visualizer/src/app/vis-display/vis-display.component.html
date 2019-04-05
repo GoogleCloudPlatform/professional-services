@@ -1,0 +1,15 @@
+<div class="vis_display">
+  <div fxLayout="row" (window:resize)="resizeWindow($event)">
+    <div fxFlex="66%" fxLayout="column" class="main-col">
+      <!-- main col -->
+      <div fxFlex="75%" id="visGraph" class="graph"></div>
+      <div fxFlex="25%" class="status">
+        <app-plan-status-card #status_card></app-plan-status-card>
+      </div>
+    </div>
+    <div fxFlex="33%">
+      <!-- side col -->
+      <app-plan-side-display #side_display></app-plan-side-display>
+    </div>
+  </div>
+</div>
