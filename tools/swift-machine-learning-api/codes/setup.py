@@ -23,6 +23,7 @@ REQUIRED_PACKAGES = [
     'dask[complete]==1.0.0',
     'dill==0.2.8.2',
     'lime==0.1.1.32',
+    'six',
 ]
 
 setup(
@@ -31,5 +32,5 @@ setup(
     install_requires=REQUIRED_PACKAGES,
     packages=find_packages(),
     include_package_data=True,
-    description='CMLA package'
+    description='MLA package'
 )

@@ -30,6 +30,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from google.cloud import storage
+from six.moves.urllib.parse import urlparse
 
 
 class InputReader(object):
@@ -90,8 +91,9 @@ class InputReader(object):
         if self.gcs_path:
             if isinstance(self.csv_path, list):
                 for index, path in enumerate(self.csv_path):
-                    bucket = path.split('//')[1].split('/')[0]
-                    csv_name = '/'.join(path.split('//')[1].split('/')[1:])
+                    parse_result = urlparse(path)
+                    bucket = parse_result.hostname
+                    csv_name = parse_result.path
                     self._download_csv(
                         bucket,
                         csv_name,
@@ -100,9 +102,9 @@ class InputReader(object):
                                   '.csv')
                 csv_path = '/tmp/data_*.csv'
             else:
-                bucket = self.csv_path.split('//')[1].split('/')[0]
-                csv_name = '/'.join(self.csv_path.split('//')
-                                    [1].split('/')[1:])
+                parse_result = urlparse(self.csv_path)
+                bucket = parse_result.hostname
+                csv_name = parse_result.path
                 self._download_csv(bucket, csv_name)
                 csv_path = '/tmp/data.csv'
         else:
