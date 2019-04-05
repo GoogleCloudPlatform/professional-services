@@ -3,19 +3,23 @@
 
 
 Machine Learning is a vast subject and to use a basic model of linear or logistic regression can be a difficult task for non-developers. This API has been created to make it easier for 
-non-developers to use machine learning. The API takes care of all the basic and important aspects of machine learning so that the accuracy of the model can be improved from the baseline models. The API also takes care of the deployment of the trained models and model versioning so that users upon getting new data can choose to tweak some part of data and retrain the model. The API takes care of all the versions of the training on the same data. The API also provides you with a feature to do prediction on your saved model. 
+non-developers to use machine learning. At high level The API takes care of 
+- The basic and important aspects of machine learning so that the accuracy of the model can be improved from the baseline models. 
+- Deployment of the trained models and model versioning. 
+- Versions of the training on the same data. 
+- Prediction on your saved model. 
 
-In training, the API first clean the data and then calculate all the relevant features that will be  used in the training. This training data is then saved into temporary files on the disk. These temporary files are then fed into the tensorflow dataset API which makes the input function of the tensorflow estimators which are divided into two parts, custom and canned based on the choice of model users want to run on the data. In the process of training,  all the metrics are called calculated and shown in the logs. These logs when stored as checkpoint can be used to preview the model in Tensorboard.
+In training, the API first cleans the data and then calculates all the relevant features that will be  used in the training. This training data is then saved into temporary files on the disk. These temporary files are then fed into the tensorflow dataset API which makes the input function of the tensorflow estimators which are divided into two parts, custom and canned based on the choice of model users want to run on the data. In the process of training,  all the metrics are called calculated and shown in the logs. These logs when stored as checkpoint can be used to preview the model in Tensorboard.
 
 The trained model are saved into different versions based on the name you give to these versions.Version control is important as there will be frequent data changes or hyperparameters updates, which will then create a different model.
 
 ## Functionalities of the API
 
 All the below functionalities can be used with a simple post request to the respective APIs with very basic background knowledge.
- - To train various ML models on GCP CMLE
- - To deploy the trained model on GCP CMLE
- - To predict results of the deployed model both on a batch or on a single datapoints using GCP CMLE 
- - To visualize the predicted results using LIME functionality 
+ - Train various ML models on GCP CMLE
+ - Deploy the trained model on GCP CMLE
+ - Predict results of the deployed model both on a batch or on a single datapoints using GCP CMLE 
+ - Visualize the predicted results using LIME functionality 
 
 ## Structure of code
 ```
@@ -27,11 +31,11 @@ SMLA
     |__ lime_utils.py  (utils functions for LIME functionalities)
     |__ update.sh  (bash script for updating trainer package) 
     |__ config
-        |__ train.yaml  (yaml file for train configurations)
-        |__ config_file.yaml  (yaml file for API configurations)
-        |__ developer.yaml  (yaml file for developer configurations)
+        |__ train.yaml  (file for train configurations)
+        |__ config_file.yaml  (file for API configurations)
+        |__ developer.yaml  (file for developer configurations)
     |__ codes                   
-        |__ config.yaml  (yaml file for CloudML configurations)
+        |__ config.yaml  (file for CloudML configurations)
         |__ setup.py 
         |__ trainer  (trainer package)
             |__ __init__.py
@@ -86,6 +90,11 @@ Example of  **_'config.yaml'_** looks like
   ```
 
 - Check that your Storage and Machine Learning Engine API is enabled.
+
+  ```bash
+  $ gcloud services enable ml.googleapis.com
+  ```
+  
 - Create a service account key which should have following IAM roles:
 
   > Machine Learning Engine > ML Engine Admin
@@ -100,10 +109,7 @@ Example of  **_'config.yaml'_** looks like
 
 ### Executing API
 
-- Upload/Update the trainer folder on the google cloud storage bucket using the following command. This command creates tar.gz file of the trainer directory and uploads it to the cloud storage bucket. Please ensure that "python" executable refers to python2.7. If no, please make the following change in update.sh 
-    ``` 
-    python setup.py sdist' --> '<python2 executable name> setup.py sdist'
-    ```
+- Upload/Update the trainer folder on the google cloud storage bucket using the following command. This command creates tar.gz file of the trainer directory and uploads it to the cloud storage bucket. **Please ensure that "python" executable version used here is aligned with the python version used in CMLE for training and serving.**
     To update the trainer in GCS run
     ```bash 
   $ bash update.sh
