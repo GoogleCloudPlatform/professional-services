@@ -1,0 +1,37 @@
+<mat-card class="dashboard-card" [style.overflow]="'hidden'">
+  <mat-card-title>Download from Google Cloud </mat-card-title>
+  <mat-card-subtitle>
+    Access the job directly from GCP (requires authentication)
+  </mat-card-subtitle>
+  <mat-card-content class="dashboard-card-content">
+    <mat-grid-list cols="2" rowHeight="30px">
+      <mat-grid-tile>
+        <mat-form-field>
+          <input matInput placeholder="Filter projects" [(ngModel)]="projectFilter" (keyup)="updateFilter()"/>
+        </mat-form-field>
+      </mat-grid-tile>
+
+      <mat-grid-tile>
+        <button mat-button id="btnGetProjects" aria-label="GetProjects" (click)="getProjects()" *ngIf="!isLoading">
+          Get Projects
+        </button>
+        <h4 *ngIf="isLoading">Please wait... Loaded {{ this.allProjects.length }}</h4>
+      </mat-grid-tile>
+      <mat-grid-tile>
+        <mat-form-field>
+          <mat-select #projectSelect placeholder="Select a project" [(value)]="selectedProject" [disabled]="!this.projects.length">
+            <mat-option *ngFor="let project of projects" [value]="project">
+              {{ project.id }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </mat-grid-tile>
+
+      <mat-grid-tile>
+        <button mat-button id="btnListJobs" [disabled]="!selectedProject" aria-label="List" (click)="listJobs()">
+          List Jobs
+        </button>
+      </mat-grid-tile>
+    </mat-grid-list>
+  </mat-card-content>
+</mat-card>

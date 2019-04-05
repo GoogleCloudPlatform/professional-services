@@ -41,7 +41,7 @@ CREATE TEMP FUNCTION
         SELECT
          *
         FROM
-         `${billing_table}`
+         `{billing_project_id}.{billing_dataset_id}.{billing_table_name}`
     ),
     billing_id_table AS (
     SELECT
@@ -540,7 +540,7 @@ CREATE TEMP FUNCTION
         region AS region,
         "" AS zone ) AS location,
       CURRENT_TIMESTAMP() AS export_time,
-      ${allocation_method} AS cost,
+      {allocation_method} AS cost,
       "USD" AS currency,
       1.0 AS currency_conversion_rate,
       STRUCT ( 0.0 AS amount,
@@ -555,7 +555,7 @@ CREATE TEMP FUNCTION
       final_data,
       billing_id_table AS b
     WHERE
-      ${allocation_method} <> 0),
+      {allocation_method} <> 0),
     correct_cud_credits AS (
     SELECT
       b.billing_account_id AS billing_account_id,

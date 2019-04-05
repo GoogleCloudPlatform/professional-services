@@ -27,7 +27,7 @@ Other useful queries:
 
 __Get id of latest inventory scan (timestamp):__
 ```
-SELECT id FROM inventory_index ORDER BY completed_at_datetime DESC LIMIT 1;
+SELECT id FROM inventory_index WHERE inventory_status = “SUCCESS” ORDER BY completed_at_datetime DESC LIMIT 1;
 ```
 
 __Check schema of gcp_inventory table (in case schema changes, and query needs to be updated):__
@@ -37,6 +37,6 @@ Describe forseti_security.gcp_inventory;
 
 ## Examples
 
-Fully functional example available [here](https://storage.googleapis.com/strike3-gcp-arch-viz/gcp-arch-viz.html). Looks like this:
+Fully functional example available [here](https://storage.googleapis.com/forsetiviz-external/gcp-arch-viz.html). Looks like this:
 
-![gcp-arch-viz animation](https://storage.googleapis.com/strike3-gcp-arch-viz/gcp-arch-viz.gif)
+![gcp-arch-viz animation](https://storage.googleapis.com/forsetiviz-external/gcp-arch-viz.gif)
