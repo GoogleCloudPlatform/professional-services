@@ -43,7 +43,7 @@ Based on the status of the Spark job, the workflow will then move the processed 
 
 ##### Full code examples
 
-Ready to dive deeper? Check out the [complete code](composer_http_post_examples/ephemeral_dataproc_spark_dag.py)
+Ready to dive deeper? Check out the [complete code](ephemeral_dataproc_spark_dag.py)
 
 ***
 

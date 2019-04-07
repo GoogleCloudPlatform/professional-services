@@ -17,38 +17,54 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
-import argparse
 import textwrap
+
+import configargparse
+import yaml
 
 from gcs_bucket_mover import bucket_mover_service
 from gcs_bucket_mover import bucket_mover_tester
+from gcs_bucket_mover import configuration
 
 
-def get_config():
-    """Parses command line arguments.
+def _get_parsed_args():
+    """Parses command line arguments and the config file.
 
-    Args:
-        None
+    Order of precedence for config values is: command line > config file values > defaults
 
     Returns:
         A "Namespace" object. See argparse.ArgumentParser.parse_args() for more details.
     """
 
-    parser = argparse.ArgumentParser(
+    parser = configargparse.ArgumentParser(
         description=
         'Moves a GCS bucket from one project to another, along with all objects and optionally'
         ' copying all other bucket settings.',
-        formatter_class=argparse.RawTextHelpFormatter)
+        config_file_parser_class=configargparse.YAMLConfigFileParser,
+        formatter_class=configargparse.RawTextHelpFormatter)
     parser.add_argument(
-        'bucket_name', type=str, help='The name of the bucket to be moved.')
+        '--config',
+        is_config_file=True,
+        help='The path to the local config file')
+
+    parser.add_argument(
+        'bucket_name', help='The name of the bucket to be moved.')
     parser.add_argument(
         'source_project',
-        type=str,
         help='The project id that the bucket is currently in.')
     parser.add_argument(
         'target_project',
-        type=str,
         help='The project id that the bucket will be moved to.')
+    parser.add_argument(
+        '--gcp_source_project_service_account_key',
+        help=
+        'The location on disk for service account key json file from the source project'
+    )
+    parser.add_argument(
+        '--gcp_target_project_service_account_key',
+        help=
+        'The location on disk for service account key json file from the target project'
+    )
     parser.add_argument(
         '--test',
         action='store_true',
@@ -57,83 +73,143 @@ def get_config():
         buckets can be moved between the two projects, using a randomly generated bucket.
         A fake bucket name will still need to be specified.'''))
     parser.add_argument(
-        '--tempBucketName',
-        type=str,
-        help='The termporary bucket name to use in the target project.')
+        '--disable_bucket_lock',
+        action='store_true',
+        help=textwrap.dedent('''\
+        Disabling the bucket lock option means that the mover will not look for a lock file
+        before starting the move, and it will not lock down permissions on the source bucket
+        before starting the move.'''))
+    parser.add_argument(
+        '--lock_file_name', help='The name of the lock file in the bucket')
+    parser.add_argument(
+        '--rename_bucket_to',
+        help=textwrap.dedent('''\
+        Specifying a target bucket name allows the tool to perform a bucket rename. Note that
+        the original source bucket will be deleted, so that bucket name can then potentially be
+        used by someone else.'''))
+    parser.add_argument(
+        '--temp_bucket_name',
+        help='The temporary bucket name to use in the target project.')
     parser.add_argument(
         '--location',
-        type=str,
         help='Specify a different location for the target bucket.')
     parser.add_argument(
-        '--storageClass',
-        type=str,
+        '--storage_class',
         choices=[
-            'MULTI_REGIONAL', 'NAM4', 'REGIONAL', 'STANDARD', 'NEARLINE',
-            'COLDLINE', 'DURABLE_REDUCED_AVAILABILITY'
+            'MULTI_REGIONAL', 'REGIONAL', 'STANDARD', 'NEARLINE', 'COLDLINE',
+            'DURABLE_REDUCED_AVAILABILITY'
         ],
         help='Specify a different storage class for the target bucket.')
     parser.add_argument(
-        '--skipEverything',
+        '--skip_everything',
         action='store_true',
         help=
         'Only copies the bucket\'s storage class and location. Equivalent to setting every other'
         ' --skip parameter to True.')
     parser.add_argument(
-        '--skipAcl',
+        '--skip_acl',
         action='store_true',
         help='Don\'t replicate the ACLs from the source bucket.')
     parser.add_argument(
-        '--skipCors',
+        '--skip_cors',
         action='store_true',
         help='Don\'t copy the CORS settings from the source bucket.')
     parser.add_argument(
-        '--skipDefaultObjectAcl',
+        '--skip_default_obj_acl',
         action='store_true',
         help='Don\'t copy the Default Object ACL from the source bucket.')
     parser.add_argument(
-        '--skipIam',
+        '--skip_iam',
         action='store_true',
         help='Don\'t replicate the IAM policies from the source bucket.')
     parser.add_argument(
-        '--skipKmsKey',
+        '--skip_kms_key',
         action='store_true',
         help='Don\'t copy the Default KMS Key from the source bucket.')
     parser.add_argument(
-        '--skipLabels',
+        '--skip_labels',
         action='store_true',
         help='Don\'t copy the Labels from the source bucket.')
     parser.add_argument(
-        '--skipLogging',
+        '--skip_logging',
         action='store_true',
         help='Don\'t copy the Logging settings from the source bucket.')
     parser.add_argument(
-        '--skipLifecycleRules',
+        '--skip_lifecycle_rules',
         action='store_true',
         help='Don\'t copy the Lifecycle Rules from the source bucket.')
     parser.add_argument(
-        '--skipNotifications',
+        '--skip_notifications',
         action='store_true',
         help=
         'Don\'t copy the Cloud Pub/Sub notification setting from the source bucket.'
     )
     parser.add_argument(
-        '--skipRequesterPays',
+        '--skip_requester_pays',
         action='store_true',
         help='Don\'t copy the Requester Pays setting from the source bucket.')
     parser.add_argument(
-        '--skipVersioning',
+        '--skip_versioning',
         action='store_true',
         help='Don\'t copy the Versioning setting from the source bucket.')
+
+    # Variables set in the config file for running different bucket tests with the --test option
+    parser.add_argument(
+        '--test_bucket_location',
+        help='The location to create the test bucket in')
+    parser.add_argument(
+        '--test_default_kms_key_name',
+        help='A custom KSM key to assign to the test bucket')
+    parser.add_argument(
+        '--test_email_for_iam',
+        help='An IAM email to use for testing permissions on the test bucket')
+    parser.add_argument(
+        '--test_logging_bucket',
+        help='An existing bucket to set up logging on the test bucket')
+    parser.add_argument(
+        '--test_logging_prefix',
+        help='A prefix to use for the logging on the test bucket')
+    parser.add_argument(
+        '--test_storage_class',
+        help='The storage class to use for the test bucket')
+    parser.add_argument(
+        '--test_topic_name',
+        help='A topic name to set up a notification for on the test bucket')
 
     return parser.parse_args()
 
 
+def _parse_yaml_file(path):
+    """Load and parse local YAML file
+
+    Args:
+        path: a local file system path
+
+    Returns:
+        a Python object representing the parsed YAML data
+    """
+
+    with open(path, 'r') as stream:
+        try:
+            return yaml.safe_load(stream)
+        except yaml.YAMLError as ex:
+            print(ex)
+
+
 def main():
-    """Get config and run either a test run or an actual move"""
-    config = get_config()
+    """Get passed in args and run either a test run or an actual move"""
+    parsed_args = _get_parsed_args()
 
-    if config.test:
-        test_bucket_name = bucket_mover_tester.set_up_test_bucket(config)
+    # Load the config values set in the config file and create the storage clients.
+    config = configuration.Configuration.from_conf(parsed_args)
+
+    # Create the cloud logging client that will be passed to all other modules.
+    cloud_logger = config.target_logging_client.logger('gcs-bucket-mover')  # pylint: disable=no-member
+
+    if parsed_args.test:
+        test_bucket_name = bucket_mover_tester.set_up_test_bucket(
+            config, parsed_args)
         config.bucket_name = test_bucket_name
+        config.target_bucket_name = test_bucket_name
 
-    bucket_mover_service.move_bucket(config)
+    bucket_mover_service.main(config, parsed_args, cloud_logger)
