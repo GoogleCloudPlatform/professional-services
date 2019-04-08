@@ -31,6 +31,7 @@ from apache_beam.options.pipeline_options import PipelineOptions
 from data_generator.PrettyDataGenerator import DataGenerator, FakeRowGen, \
 parse_data_generator_args, validate_data_args, fetch_schema,\
 write_n_line_file_to_gcs
+
 import avro.schema
 import os
 
@@ -148,7 +149,7 @@ def run(argv=None):
                  # In this case we use the value passed in from the command
                  # line.
                  data_args.output_bq_table,
-                 schema=None if schema_inferred else data_gen.get_bq_schema_string(),
+                 schema=None if schema_inferred else data_gen.get_bq_schema(),
                  # Creates the table in BigQuery if it does not yet exist.
                  create_disposition=beam.io.BigQueryDisposition.CREATE_IF_NEEDED,
                  write_disposition=data_gen.write_disp,
