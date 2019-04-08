@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 from TimeUtil import datetime_to_epoch_timestamp, date_to_epoch_date, \
 time_to_epoch_time
 
@@ -19,9 +20,13 @@ time_to_epoch_time
 def fix_record_for_avro(record, avro_schema):
     for field in avro_schema.fields:
         field_name = field.name
-        datatype_union = field.type.to_json()
-        if isinstance(datatype_union[1], dict):
-            logical_type = datatype_union[1].get(u'logicalType', None)
+        datatype = field.type.to_json()
+        if isinstance(datatype, dict):
+            # This is a record type definition so we need to recurse a level deeper.
+            record[field_name] = fix_record_for_avro(record[field_name], 
+                    avro.schema.parse(json.dumps(datatype)))[0]
+        elif isinstance(datatype, list) and isinstance(datatype[1], dict):
+            logical_type = datatype[1].get(u'logicalType', None)
             if logical_type:
                 if logical_type.find('-') > -1:
                     logical_prefix, precision = logical_type.split('-')
@@ -38,6 +43,7 @@ def fix_record_for_avro(record, avro_schema):
                     record[field_name] = date_to_epoch_date(record[field_name])
                 elif logical_prefix == u'time':
                     is_micros = (precision == u'micros') 
+
                     record[field_name] = time_to_epoch_time(
                         record[field_name],
                         micros=is_micros

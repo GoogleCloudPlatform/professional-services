@@ -17,11 +17,13 @@ import logging
 import datetime
 import unittest
 import json
+import numpy as np
 import os
 import re
+import sys
 from faker_schema.faker_schema import FakerSchema
 
-from data_generator.PrettyDataGenerator import DataGenerator, FakeRowGen
+from data_generator.PerformantDataGenerator import DataGenerator, FakeRowGen
 
 class TestPrettyDataGenerator(unittest.TestCase):
     """The test cases are focused on the business logic.  In this case this is how we parse the
@@ -51,6 +53,37 @@ class TestPrettyDataGenerator(unittest.TestCase):
 
         logging.basicConfig(level=logging.INFO)
 
+    def test_get_faker_schema(self):
+        """
+        This tests the get_faker_schema method of the DataGenerator class.
+        """
+        expected_faker_schema = {
+            u'lo_recieptfile': 'file_name',  # This tests a field from special_map.
+            u'lo_cust_key': 'word',  # The rest of the fields test type_map.
+            u'lo_order_key': 'word',
+            u'lo_ordpriority': 'random_number',
+            u'lo_supp_key': 'word',
+            u'lo_quantity': 'random_number',
+            u'lo_revenue': 'pyfloat',
+            u'lo_orderdate': 'date_this_century',
+            u'lo_extendedprice': 'pyfloat',
+            u'lo_supplycost': 'pyfloat',
+            u'lo_part_key': 'word',
+            u'lo_discount': 'pyfloat',
+            u'lo_shippriority': 'random_number',
+            u'lo_shipmode': 'pyfloat',
+            u'lo_ordtotalprice': 'pyfloat',
+            u'lo_linenumber': 'random_number',
+            u'lo_tax': 'pyfloat',
+            u'lo_record_field':{
+                u'name': 'name',
+                u'email': 'email',
+                u'time_sec': 'random_number',
+                u'tz_offset': 'random_number',
+                u'date': 'date_time_this_century'} 
+            }
+        actual_faker_schema = self.data_gen.get_faker_schema()
+        self.assertDictEqual(actual_faker_schema, expected_faker_schema)
 
     def test_generate_fake(self):
         """
@@ -88,10 +121,11 @@ class TestPrettyDataGenerator(unittest.TestCase):
 
         # Check float strictly positive
         self.assertGreaterEqual(actual_row[u'lo_tax'], 0.0)
-
+        
         # Check string size was parsed and enforced from description fields of lo_recieptfile.
         self.assertLessEqual(len(actual_row[u'lo_recieptfile']), 10)
-
+        # Check if record type nesting worked.
+        self.assertIsInstance(actual_row[u'lo_record_field'], list)
     def test_get_field_dict(self):
         """
         This tests the ability of the FakeRowGen.get_field_dict method to extract a single field
@@ -100,27 +134,46 @@ class TestPrettyDataGenerator(unittest.TestCase):
         expected_field_dict = {u'type': u'DATE', u'name':u'lo_orderdate', u'mode': u'NULLABLE'}
         actual_field_dict = self.fakerowgen.get_field_dict(field_name=u'lo_orderdate')
         self.assertDictEqual(actual_field_dict, expected_field_dict)
+        expected_record_dict = {
+                "name": "lo_record_field",
+                "type": "RECORD",
+                "mode": "REPEATED",
+                "fields": [
+                    {"mode": "NULLABLE", "name": "name", "type": "STRING"},
+                    {"mode": "NULLABLE", "name": "email", "type": "STRING"},
+                    {"mode": "NULLABLE", "name": "time_sec", "type": "INTEGER"},
+                    {"mode": "NULLABLE", "name": "tz_offset", "type": "INTEGER"},
+                    {"mode": "NULLABLE", "name": "date", "type": "TIMESTAMP"} 
+                    ]}
+        actual_record_dict = self.fakerowgen.get_field_dict(field_name=u'lo_record_field')
 
     def test_sanity_check(self):
-        """
-        This tests the sanity check function of the Performant Data Generator.
-
-        """
-
         fschema = self.data_gen.get_faker_schema()
+        schema_faker = FakerSchema()
+        data = schema_faker.generate_fake(fschema, 1)  # Generate one record.
 
-        # Generate a fake record.
-        data = {}
-        data = self.fakerowgen.sanity_check(data, u'lo_orderdate', 0)
+        # Note at this point data[u'lo_orderdate'] is a datetime.date object while Biguery expects
+        # a string
+        self.assertIsInstance(data[u'lo_orderdate'], datetime.date)
 
-        data = self.fakerowgen.sanity_check(record=data, fieldname=u'lo_orderdate')
+        data = self.fakerowgen.sanity_check(record=data, fieldname=u'lo_orderdate', random_number=np.random.randint(sys.maxint))
 
         # Check that the date was converted to a string
         self.assertIsInstance(data[u'lo_orderdate'], unicode)
 
         # Check that the date is in the correct format
         _ = datetime.datetime.strptime(data[u'lo_orderdate'], '%Y-%m-%d')
-        
+
+        # Check if sanity check enforces integers < data_args.max_int
+        data[u'lo_linenumber'] = 10**12  # Note that max_int is 10**11
+
+        data = self.fakerowgen.sanity_check(record=data, fieldname=u'lo_linenumber', random_number=np.random.randint(sys.maxint))
+
+        self.assertLessEqual(data[u'lo_linenumber'], self.data_gen.max_int)
+
+        data=self.fakerowgen.sanity_check(record=data, fieldname=u'lo_record_field', random_number=np.random.randint(sys.maxint))
+        self.assertIsInstance(data[u'lo_record_field'], list)
+    
     def test_get_skewed_key(self):
         """
         This tests the get_skewed_key method of the FakeRowGen class.

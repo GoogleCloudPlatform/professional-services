@@ -1,4 +1,3 @@
-
 # Data Generator
 This directory shows a series of pipelines used to generate data in GCS or BigQuery. 
 The intention for these pipelines are to be a tool for partners, customers and SCEs who want to create a dummy dataset that 
@@ -63,24 +62,28 @@ This tool has several parameters to specify what kind of data you would like to 
 The schema may be specified using the `--schema_file` parameter  with a file containing a 
 list of json objects with `name`,  `type`, `mode` and optionally `description` fields. 
 This form follows the output of`bq show --format=json --schema <table_reference>`. 
-
+This data generator now supports nested types like `RECORD`/`STRUCT`. Note, that the approach
+taken was to generate a `REPEATED` `RECORD` (aka `ARRAY<STRUCT>`) and each record generated
+will have between 0 and 3 elements in this array. 
 ie. 
 ```
 --schema_file=gs://python-dataflow-examples/schemas/lineorder-schema.json
 ```
 lineorder-schema.json:
 ```
-[
-    {"name": "lo_order_key",
-     "type": "STRING",
-     "mode": "REQUIRED"
-    },
-    {"name": "lo_linenumber",
-     "type": "INTEGER",
-     "mode": "NULLABLE"
-    },
-    {...}
-]
+{
+    "fields": [
+                {"name": "lo_order_key",
+                 "type": "STRING",
+                 "mode": "REQUIRED"
+                },
+                {"name": "lo_linenumber",
+                 "type": "INTEGER",
+                 "mode": "NULLABLE"
+                },
+                {...}
+              ]
+}
 ```
 Alternatively, the schema may be specified with a reference to an existing BigQuery table with the
 `--input_bq_table` parameter. We suggest using the BigQuery UI to create an empty BigQuery table to 
@@ -125,6 +128,7 @@ based on if you pass the `--csv_schema_order` or `--avro_schema_file` parameters
 Output format is specified by passing one of the `--csv_schema_order`, `--avro_schema_file`, or `--write_to_parquet` parameters.
 
 `--csv_schema_order` should be a comma separated list specifying the order of the fieldnames for writing. 
+Note that `RECORD` are not supported when writing to CSV, because it is a flat file format.
 
 ```
 --csv_schema_order=lo_order_key,lo_linenumber,...
@@ -157,6 +161,7 @@ desired size.
 ```
 --output_bq_table=project:dataset.table
 ```
+
 
 #### Sparsity (optional)
 Data is seldom full for every record so you can specify the probability of a NULLABLE column being null with the `--p_null` parameter.
