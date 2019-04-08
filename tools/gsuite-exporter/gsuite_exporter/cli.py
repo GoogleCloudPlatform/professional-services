@@ -66,7 +66,10 @@ def sync_all(
 
     for app in applications:
         last_ts = exporter.get_last_timestamp(app)
-        start_time = (parser.parse(last_ts) - timedelta(minutes=offset)).isoformat()
+        if last_ts is None:
+            start_time = None
+        else:
+            start_time = (parser.parse(last_ts) - timedelta(minutes=offset)).isoformat()
         exporter_dest = exporter.get_destination(app)
         logger.info(
             "%s.%s --> %s (%s) [starting new sync] from %s (offset => %s mn)",
