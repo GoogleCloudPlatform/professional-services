@@ -11,6 +11,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [BigQuery Group Sync For Row Level Access](examples/bigquery-row-access-groups) - Sample code to synchronize group membership from G Suite/Cloud Identity into BigQuery and join that with your data to control access at row level.
 * [Bigtable Dataflow Cyptocurrencies Exchange RealTime Example](examples/cryptorealtime) - Apache Beam example that reads from the Crypto Exchanges WebSocket API as Google Cloud Dataflow pipeline and saves the feed in Google Cloud Bigtable. Real time visualization and query examples from GCP Bigtable running on Flask server are included.
 * [Cloud Composer Examples](examples/cloud-composer-examples) - Examples of using Cloud Composer, GCP's managed Apache Airflow service.
+* [Cloud SQL Custom Metric](examples/cloud-sql-custom-metric) - An example of creating a Stackdriver custom metric monitoring Cloud SQL Private Services IP consumption.
 * [CloudML Bank Marketing](examples/cloudml-bank-marketing) - Notebook for creating a classification model for marketing using CloudML.
 * [CloudML Bee Health Detection](examples/cloudml-bee-health-detection) - Detect if a bee is unhealthy based on an image of it and its subspecies.
 * [CloudML Energy Price Forecasting](examples/cloudml-energy-price-forecasting) - Predicting the future energy price based on historical price and weather.
@@ -57,6 +58,7 @@ The tools folder contains ready-made utilities which can simpilfy Google Cloud P
 * [Maven Archetype Dataflow](tools/maven-archetype-dataflow) - A maven archetype which bootstraps a Dataflow project with common plugins pre-configured to help maintain high code quality.
 * [Netblock Monitor](tools/netblock-monitor) - An Apps Script project that will automatically provide email notifications when changes are made to Google’s IP ranges.
 * [Site Verification Group Sync](tools/site-verification-group-sync) - A tool to provision "verified owner" permissions (to create GCS buckets with custom dns) based on membership of a Google Group.
+* [Agile Machine Learning API](tools/agile-machine-learning-api) - A web application which provides the ability to train and deploy ML models on Google Cloud Machine Learning Engine, and visualize the predicted results using LIME through simple post request.
 
 ## Contributing
 See the contributing [instructions](/CONTRIBUTING.md) to get started contributing.

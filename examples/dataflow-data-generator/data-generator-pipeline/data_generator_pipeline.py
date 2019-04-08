@@ -29,15 +29,18 @@ import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions
 
 from data_generator.PrettyDataGenerator import DataGenerator, FakeRowGen, \
+parse_data_generator_args, validate_data_args, fetch_schema,\
+write_n_line_file_to_gcs
 
-    parse_data_generator_args, validate_data_args, fetch_schema,\
-    write_n_line_file_to_gcs
 import avro.schema
 import os
 
 from data_generator.CsvUtil import dict_to_csv
 from data_generator.AvroUtil import fix_record_for_avro
+from data_generator.ParquetUtil import get_pyarrow_translated_schema, \
+fix_record_for_parquet
 from data_generator.enforce_primary_keys import EnforcePrimaryKeys
+
 
 def run(argv=None):
     """
@@ -73,7 +76,6 @@ def run(argv=None):
                              write_disp=data_args.write_disp,
                              key_skew=data_args.key_skew,
                              primary_key_cols=data_args.primary_key_cols)
-
 
     # Initiate the pipeline using the pipeline arguments passed in from the
     # command line.  This includes information including where Dataflow should
@@ -114,7 +116,7 @@ def run(argv=None):
 
         (rows
             # Need to convert time stamps from strings to timestamp-micros
-            | 'Fix date and time Types for Avro.' >> beam.FlatMap(lambda row: 
+            | 'Fix date and time Types for Avro.' >> beam.FlatMap(lambda row:
                 fix_record_for_avro(row, avsc))
             | 'Write to Avro.' >> beam.io.avroio.WriteToAvro(
                     file_path_prefix=data_args.output_prefix,
@@ -125,13 +127,29 @@ def run(argv=None):
                 )
         )
 
+    if data_args.write_to_parquet:
+        with open(data_args.schema_file, 'r') as infile:
+            str_schema = json.load(infile)
+        pa_schema = get_pyarrow_translated_schema(str_schema)
+        (rows
+            | 'Fix data and time Types for Parquet.' >>
+            beam.FlatMap(lambda row: fix_record_for_parquet(row, str_schema))
+            | 'Write to Parquet.' >> beam.io.WriteToParquet(
+                    file_path_prefix=data_args.output_prefix,
+                    codec='null',
+                    file_name_suffix='.parquet',
+                    schema=pa_schema
+                )
+        )
+
     if data_args.output_bq_table:
         (rows
             | 'Write to BigQuery.' >> beam.io.gcp.bigquery.WriteToBigQuery(
                  # The table name is a required argument for the BigQuery sink.
-                 # In this case we use the value passed in from the command line.
+                 # In this case we use the value passed in from the command
+                 # line.
                  data_args.output_bq_table,
-                 schema=None if schema_inferred else data_gen.get_bq_schema_string(),
+                 schema=None if schema_inferred else data_gen.get_bq_schema(),
                  # Creates the table in BigQuery if it does not yet exist.
                  create_disposition=beam.io.BigQueryDisposition.CREATE_IF_NEEDED,
                  write_disposition=data_gen.write_disp,
@@ -139,7 +157,6 @@ def run(argv=None):
                  batch_size=500
             )
         )
-
 
     p.run().wait_until_finish()
 
