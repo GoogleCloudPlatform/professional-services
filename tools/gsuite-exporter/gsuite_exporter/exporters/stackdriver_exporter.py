@@ -13,13 +13,13 @@
 # limitations under the License.
 
 import time
+import logging
 import math
 import dateutil.parser
-import logging
 from gsuite_exporter import auth
 from gsuite_exporter.exporters.base import BaseExporter
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 class StackdriverExporter(BaseExporter):
     """Convert Admin SDK logs to logging entries and send them to Stackdriver
@@ -39,7 +39,7 @@ class StackdriverExporter(BaseExporter):
     def __init__(self,
                  project_id,
                  credentials_path=None):
-        logger.debug("Initializing Stackdriver Logging API ...")
+        LOGGER.debug("Initializing Stackdriver Logging API ...")
         self.api = auth.build_service(
             api='logging',
             version=StackdriverExporter.LOGGING_API_VERSION,
@@ -67,9 +67,9 @@ class StackdriverExporter(BaseExporter):
                 'logName': '{}'.format(destination),
                 'dryRun': dry
             }
-            logger.debug("Writing {} entries to Stackdriver Logging API @ '{}'".format(
-                len(entries),
-                destination))
+            LOGGER.debug("Writing %s entries to Stackdriver Logging API @ '%s'",
+                         len(entries),
+                         destination)
             res = self.api.entries().write(body=body).execute()
         return res
 
@@ -83,9 +83,10 @@ class StackdriverExporter(BaseExporter):
         Returns:
             list: A list of Stackdriver Logging API entries.
         """
-        return list(map(lambda i: self.__convert(i), records))
+        return [self.__convert(i) for i in records]
 
     def get_destination(self, log_name):
+        """Get log full resource name (with project id)"""
         return "{}/logs/{}".format(self.project_id, log_name)
 
     def get_last_timestamp(self, log_name):
@@ -94,10 +95,10 @@ class StackdriverExporter(BaseExporter):
         """
         destination = self.get_destination(log_name)
         query = {
-          'orderBy': 'timestamp desc',
-          'pageSize': 1,
-          'resourceNames': [self.project_id],
-          'filter': 'logName={}'.format(destination)
+            'orderBy': 'timestamp desc',
+            'pageSize': 1,
+            'resourceNames': [self.project_id],
+            'filter': 'logName={}'.format(destination)
         }
         log = self.api.entries().list(body=query).execute()
         try:
@@ -126,12 +127,13 @@ class StackdriverExporter(BaseExporter):
                 },
                 'methodName': record['events'][0]['name'],
                 'parameters': record['events'][0].get('parameters'),
-                'report_timestamp': self.__convert_timestamp(record)
+                'report_timestamp': self.get_time_dict(record)
             },
             'resource': {'type': 'global'}
         }
 
-    def __convert_timestamp(self, record):
+    @staticmethod
+    def get_time_dict(record):
         """Converts timestamp for an Admin API record into a time dict.
 
         Args:
@@ -140,7 +142,7 @@ class StackdriverExporter(BaseExporter):
         Returns:
             dict: A dict with a key 'seconds' containing the record timestamp.
         """
-        remainder, seconds = math.modf(time.mktime(
+        _, seconds = math.modf(time.mktime(
             dateutil.parser.parse(record['id']['time']).timetuple()
         ))
         return {'seconds': int(seconds)}

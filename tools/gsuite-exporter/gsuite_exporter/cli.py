@@ -17,6 +17,8 @@ import importlib
 import re
 import sys
 import logging
+from datetime import timedelta
+from dateutil import parser
 from gsuite_exporter import exporters
 from gsuite_exporter.collectors.reports import AdminReportsAPIFetcher
 
@@ -44,16 +46,18 @@ def sync_all(
         applications,
         project_id,
         exporter_cls,
-        credentials_path=None):
+        credentials_path=None,
+        offset=None):
     """Query last data from Admin SDK API and export them to the destination.
 
     Args:
-        credentials_path (str): The GSuite Admin credentials file.
-        api (str): The GSuite Admin API to get data from.
-        token_path (str): The GSuite Admin Token file.
-        applications (list): The Gsuite Admin Applications to query.
-        project_id (str): The project id to export the data to.
-        exporter_cls (str): The exporter class to use.
+        credentials_path (str): Service account credentials file.
+        api (str): GSuite Admin API name to get data from.
+        token_path (str): GSuite Admin Token file.
+        applications (list): Gsuite Admin Applications to query.
+        project_id (str): Project id to export the data to.
+        exporter_cls (str): Exporter class to use.
+        offset (str): Minutes to look back before the last timestamp
     """
     fetcher = AdminReportsAPIFetcher(admin_user, credentials_path)
     exporter = get_exporter_cls(exporter_cls)(
@@ -61,22 +65,24 @@ def sync_all(
         credentials_path=credentials_path)
 
     for app in applications:
-        last_timestamp = exporter.get_last_timestamp(app)
+        last_ts = exporter.get_last_timestamp(app)
+        if last_ts is None:
+            start_time = None
+        else:
+            start_time = (parser.parse(last_ts) - timedelta(minutes=offset)).isoformat()
         exporter_dest = exporter.get_destination(app)
         logger.info(
-            "%s.%s --> %s (%s) [starting new sync]. Last sync: %s",
+            "%s.%s --> %s (%s) [starting new sync] from %s (offset => %s mn)",
             api,
             app,
             exporter_cls,
             exporter_dest,
-            last_timestamp)
-
-        records_stream = fetcher.fetch(
-            application=app,
-            start_time=last_timestamp)
-
+            start_time,
+            offset)
+        records_stream = fetcher.fetch(application=app, start_time=start_time)
         for records in records_stream:
             response = exporter.send(records, app, dry=False)
+            logger.debug(response)
             logger.info(
                 "%s.%s --> %s (%s) [%s new records synced]",
                 api,
@@ -86,7 +92,7 @@ def sync_all(
                 len(records))
 
 def main():
-    parser = argparse.ArgumentParser(description='Add some integers.')
+    parser = argparse.ArgumentParser()
     parser.add_argument(
         '--admin-user',
         type=str,
@@ -121,6 +127,12 @@ def main():
         default=None,
         required=False,
         help='The service account credentials file.')
+    parser.add_argument(
+        '--offset',
+        type=int,
+        default=0,
+        required=False,
+        help='The offset to fetch logs from before the last sync (in minutes).')
     args = parser.parse_args()
     sync_all(
         args.admin_user,
@@ -128,7 +140,9 @@ def main():
         args.applications,
         args.project_id,
         args.exporter,
-        args.credentials_path)
+        args.credentials_path,
+        args.offset)
+
 
 if __name__ == '__main__':
     main()

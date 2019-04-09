@@ -31,7 +31,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='gsuite-exporter',
-    version='0.0.1',
+    version='0.0.2',
     description='GSuite Admin API Exporter',
     long_description=long_description,
     author='Google Inc.',
@@ -53,11 +53,12 @@ setup(
     install_requires=[
         'google-api-python-client',
         'python-dateutil',
+        'requests'
     ],
     entry_points={
         'console_scripts': [
             'gsuite-exporter=gsuite_exporter.cli:main',
         ],
     },
-    python_requires='>=2.7,<3.0'
+    python_requires='>=2.7'
 )
