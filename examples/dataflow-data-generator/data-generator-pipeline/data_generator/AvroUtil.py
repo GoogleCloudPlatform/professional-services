@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+import avro.schema
+import json
 from TimeUtil import datetime_to_epoch_timestamp, date_to_epoch_date, \
 time_to_epoch_time
 

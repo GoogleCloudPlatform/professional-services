@@ -141,10 +141,10 @@ Note that `RECORD` are not supported when writing to CSV, because it is a flat f
 ```
 
 `--write_to_parquet` is a flag that specifies the output should be parquet. In order for beam to write to parquet, 
-a pyarrow schema is needed. Therefore, this tool translates the schema in the --schema_file to
+a pyarrow schema is needed. Therefore, this tool translates the schema in the `--schema_file` to
 a pyarrow schema automatically if this flag is included, but pyarrow doesn't support all fields that are supported
-by BigQuery. STRING, NUMERIC, INTEGER, FLOAT, NUMERIC, BOOLEAN, TIMESTAMP, DATE, TIME, and DATETIME types are supported. 
-However BYTE, GEOGRAPHY, and RECORD fields are not supported and cannot be included in the --schema_file when writing
+by BigQuery. STRING, NUMERIC, INTEGER, FLOAT, NUMERIC, BOOLEAN, TIMESTAMP, DATE, TIME, DATETIME, and RECORD types are supported. 
+However BYTE, and GEOGRAPHY fields are not supported and cannot be included in the `--schema_file` when writing
 to parquet .
 
 ```
@@ -363,4 +363,14 @@ python bq_table_resizer.py \
 --destination_table my-new-table-id \
 --target_gb 15000 \
 --location US
+```
+
+### Running the tests
+Note, that the tests for the BigQuery table resizer require that you have 
+`GOOGLE_APPLICATION_DEFAULT` set to credentials with access to a BigQuery
+environment where you can create and destory tables.
+
+```
+cd data-generator-pipeline
+python -m unittest discover
 ```
