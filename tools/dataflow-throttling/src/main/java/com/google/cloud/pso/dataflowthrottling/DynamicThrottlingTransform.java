@@ -1,4 +1,4 @@
-package com.google.cloud.pso.dataflowthrottling;/*
+/*
  * Copyright (C) 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +14,7 @@ package com.google.cloud.pso.dataflowthrottling;/*
  * limitations under the License.
  */
 
+package com.google.cloud.pso.dataflowthrottling;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
@@ -91,8 +92,8 @@ public class DynamicThrottlingTransform<InputT, OutputT> extends PTransform<PCol
 
         public Builder(ClientCall<BuilderInputT, BuilderOutpuT> clientCall, Coder<BuilderInputT> elemCoder, int numOfEventsToBeProcessedForBatch) {
             this.clientCall = clientCall;
-            this.elemCoder=elemCoder;
-            this.numOfEventsToBeProcessedForBatch=numOfEventsToBeProcessedForBatch;
+            this.elemCoder = elemCoder;
+            this.numOfEventsToBeProcessedForBatch = numOfEventsToBeProcessedForBatch;
         }
 
         public Builder<BuilderInputT, BuilderOutpuT> withResetCounterInterval(java.time.Duration resetCounterInterval){
@@ -127,14 +128,15 @@ public class DynamicThrottlingTransform<InputT, OutputT> extends PTransform<PCol
     public static class Result<InputT> implements Serializable {
         private InputT input;
         private String error;
-        public Result(InputT input, String error){
-            this.input=input;
-            this.error=error;
-        }
 
+        public Result(InputT input, String error) {
+            this.input = input;
+            this.error = error;
+        }
     }
 
     /**
+     * This functionalInterface is used to pass the paylod to clientcall.
      * @param <InputT> Type of the event from the source.
      * @param <OutpuT> Type of the enriched event.
      */
@@ -231,7 +233,7 @@ public class DynamicThrottlingTransform<InputT, OutputT> extends PTransform<PCol
              * @param context Payload that should be sent by the client.
              * @param totalProcessedRequests Counts the total number of requests processed by client.
              * @param incomingReqBagState BagState, which holds the requests to process in batch.
-             //* @param resetCountsTimer Timer that resets the counter for every n minutes.
+             * @param resetCountsTimer Timer that resets the counter for every n minutes.
              * @param incomingReqBagTimer Timer that is invoked for every N minutes irrespective of the bag size.
              * @throws IOException
              */

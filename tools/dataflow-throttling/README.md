@@ -12,7 +12,7 @@ This is a generic library intended to implement client-side throttling by reject
 
 ### Throttle with multiple groups
 
-Implemented DynamicThrottlingTransform using stateful processing with single group of elements that represent requests to the external service. We’re going to maintain the following states.
+Implemented DynamicThrottlingTransform using stateful processing where Dataflow source payload represent requests to the external service using clientCall. We’re going to maintain the following states:
 
 * incomingRequests - requests stored in Apache Beam bag state
 * acceptedRequests number
@@ -23,15 +23,14 @@ The count of the incoming requests and accepted requests should be equal under n
 Pipeline will process the payload in multiple number of groups as well. To achieve this, pipeline will transforms the single PCollection[Bounded/Unbounded] into multiple groups.
 
 * Converts the Input PCollection<<T>T</T>> into PCollection<<T>Key,Value</T>>. Here, Key will be randomly assigned integer and Value will be payload.
-* All the elements with the same key will be grouped together and emit another PCollection<<T>Key,Iterable</T>>>, where key will be unique and Iterable<<T>T</T>> will be the collection of elements with the same key.
 * Adaptive throttling will be applied to each group[State cell] accordingly.
-* Pipeline will process the each state cell using timely processing. That said each state cell will be processed after reaching a predefined interval of  time. A user function will be applied on a group of elements.
-* clientCall is a user defined function where the events will be sent to the backend node, Applies to each event in the pipeline. Based on the response of the clientCall respective counters will get incremented.
+* Pipeline will process each state cell using [stateful](https://beam.apache.org/blog/2017/02/13/stateful-processing.html) and [timely](https://beam.apache.org/blog/2017/08/28/timely-processing.html) processing. That said each state cell will be processed after reaching a predefined interval of  time. A user function clientCall will be applied on a group of elements.
+* clientCall is a user defined function where the events will be sent to the backend node. Applies to each event in the pipeline. Based on the response of the clientCall respective counters will get incremented.
 * The variables which stores the number of requested and accepted requests are zeroed out after a certain interval of time (defaults to 1 min). This reset speeds up client recovery if server throughput was limited due to limitations on the server side not caused by the client.
 
 ### Adaptive throttling
 
-Dataflow pipeline will maintain the number of requests it has sent to the backend [total_requests], the number of requests got accepted by the backend [total_accepts]. Using stateTimer, It will process a batch of elements from each state value and removes the processed elements from the state value. Request rejection probability will be calculated as follows.
+Dataflow pipeline maintains the number of requests it has sent to the backend [total_requests] and the number of requests got accepted by the backend [total_accepts]. Using stateTimer, it will process a batch of elements from each state value and remove the processed elements from the state value. Request rejection probability will be calculated as follows.
     ```RequestRejectionProbability = (total_requests - k * total_accepts)/(total_requests+1)```
 If it is more than a random number between 0 or 1, incoming requests will be sent to either Pub/Sub dead letter queue or any other sink defined by the user.
 
@@ -39,23 +38,23 @@ If it is more than a random number between 0 or 1, incoming requests will be sen
 
 #### Requirements
 
-* Install Java 8
+* Install Java 8+
 * Install Maven 3
 
 ### HTTP Server with Throttling capabilities
 
-To simulate a third-party service a web server is created intended to accept and process certain number of HTTP requests only, remaining requests should get rejected. The requests will be sent from a job running on Dataflow. Each HTTP request will carry an element from the ParDo function as payload. See Appendix for more details.
+To simulate a third-party service a web server is created intended to accept and process certain number of HTTP requests only, remaining requests should get rejected. The requests will be sent from a job running on Dataflow. Each HTTP request will carry an element from the ParDo function as payload.
 
 #### Clone the repository
 
 * git clone https://github.com/GoogleCloudPlatform/professional-services.git to GCE instance/Localmachine.
 * Change directory to professional-services/examples/dataflowthrottling/src/main/java/com/google/cloud/pso/dataflowthrottling
-* Change the InetSocketAddress in HttpServerThrottling.java to your Compute Engine instance internal IP or with ‘localhost’ if you’re using DirectRunner to run DataFlow on your local machine.
+* Pass the InetSocketAddress as an run time argument. Which should be your Compute Engine instance internal IP or or with ‘localhost’ if you’re using DirectRunner to run DataFlow on your local machine.
 
 #### Compile and run the backend server
 
 ```bash
-javac HttpServerThrottling.java && java HttpServerThrottling
+javac HttpServerThrottling.java && java HttpServerThrottling localhost
 ```
 
 #### How to run DynamicThrottlingTransform?
@@ -69,7 +68,6 @@ javac HttpServerThrottling.java && java HttpServerThrottling
 		Create a key and download to your machine.
 		Export it to environment variable GOOGLE_APPLICATION_CREDENTIALS.
 * Create a cloud storage bucket where input and output objects can be stored.
-* Install JDK and Apache Maven on your machine as well.
 * Clone the repository.
 ```bash
 #Project vars

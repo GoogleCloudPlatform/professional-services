@@ -1,4 +1,4 @@
-package com.google.cloud.pso.dataflowthrottling;/*
+/*
  * Copyright (C) 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +13,8 @@ package com.google.cloud.pso.dataflowthrottling;/*
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package com.google.cloud.pso.dataflowthrottling;
 
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpContext;
@@ -32,7 +34,7 @@ public class HttpServerThrottling {
 
     static int a=0;
     public static void main(String[] args) throws IOException, InterruptedException {
-        HttpServer server = HttpServer.create(new InetSocketAddress("localhost",8500), 0);
+        HttpServer server = HttpServer.create(new InetSocketAddress(args[0],8500), 0);
         HttpContext context = server.createContext("/");
 
         context.setHandler(HttpServerThrottling::handleRequest);
