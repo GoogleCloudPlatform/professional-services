@@ -37,34 +37,37 @@ def get_pyarrow_translated_schema(string_schema):
             'BYTE': None,
             'INTEGER': pa.int64(),
             'FLOAT': pa.float64(),
-            'NUMERIC': pa.int64(),
             'BOOLEAN': pa.bool_(),
             'TIMESTAMP': pa.timestamp('us'),
             'DATE': pa.date32(),
             'TIME': pa.time64('us'),
             'DATETIME': pa.timestamp('us'),
             'GEOGRAPHY': None,
-            'RECORD': None
         }
 
-        if field['mode'] == 'REPEATED':
-            if field['type'] == 'RECORD':
+        try:
+            if field['mode'] == 'REPEATED':
+                if field['type'] == 'RECORD':
+                    nested_fields = field['fields']
+                    # Recursively call to convert the next nested layer.
+                    return pa.list_(pa.struct(
+                        [(fld['name'], _bq_to_pa_type(fld))
+                            for fld in nested_fields]))
+                else:
+                    return pa.list_(
+                        _bq_to_pa_type(type_conversions[field['type']]))
+            elif field['type'] == 'RECORD':
                 nested_fields = field['fields']
                 # Recursively call to convert the next nested layer.
-                return pa.list_(pa.struct(
+                return pa.struct(
                     [(fld['name'], _bq_to_pa_type(fld))
-                        for fld in nested_fields]))
+                        for fld in nested_fields])
             else:
-                return pa.list_(
-                    _bq_to_pa_type(type_conversions.get(field['type'])))
-        elif field['type'] == 'RECORD':
-            nested_fields = field['fields']
-            # Recursively call to convert the next nested layer.
-            return pa.struct(
-                [(fld['name'], _bq_to_pa_type(fld))
-                    for fld in nested_fields])
-        else:
-            return type_conversions.get(field.get('type'))
+                return type_conversions.get(field.get('type'))
+        except KeyError as err:
+            raise KeyError(
+                """Type {} is not a valid BigQuery type and not supported by this 
+                utility.""".format(field['type']))
         
     pa_schema_list = []
     for field in string_schema:
