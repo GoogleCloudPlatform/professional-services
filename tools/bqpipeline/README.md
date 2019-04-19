@@ -45,6 +45,7 @@ bq.run_queries(['q1.sql', 'q2.sql'], **replacements)
 bq.delete_tables(['tmp_table_1', 'tmp_table_2'])
 ```
 
+Note, that the `run_queries` method provided this utility can alternatively take a list of tuples where the first entry is the sql path, and the second is a destination table. You can see an example of this in [`example.py`](example/example.py).
 
 ### Creating Service Account JSON Credentials
 
