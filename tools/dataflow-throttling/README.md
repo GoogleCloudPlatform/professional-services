@@ -2,17 +2,23 @@
 
 ### Introduction
 
-This artifact is designed to implement adaptive client-side throttling. Adaptive throttling activates when a service called by Dataflow starts rejecting requests due to throughput higher than expected. Adaptive throttling tracks the request rejection probability to decide whether it should fail locally without going through network to save the cost of rejecting a request.
+This artifact is designed to implement adaptive client-side throttling. [Adaptive throttling](https://landing.google.com/sre/sre-book/chapters/handling-overload/#eq2101) activates when a service called by Dataflow starts rejecting requests due to throughput higher than expected. Adaptive throttling tracks the request rejection probability to decide whether it should fail locally without going through network to save the cost of rejecting a request.
 
-### Dataflow Throttling
+### Dataflow Client-side Throttling
 
 This is a generic library intended to implement client-side throttling by rejecting requests that have a high probability of being rejected locally on Dataflow nodes. Irrespective of Batch or Streaming, when Dataflow pipeline is sending HTTP requests to the server with input elements as payload, once the request has been processed by the backend, it should send a response back to the pipeline whether the http request has been accepted or rejected. The error code depends up on the backend throttling implementation (defaults to HTTP code 429).
 
 ![DataflowThrottling DAG](img/dataflow-throttling-dag.png "Dataflow Throttling DAG")
 
-### Throttle with multiple groups
+The library uses [stateful](https://beam.apache.org/blog/2017/02/13/stateful-processing.html) processing. A user on this library needs to implement clientCall function which makes requests to the external service.
 
-Implemented DynamicThrottlingTransform using stateful processing where Dataflow source payload represent requests to the external service using clientCall. We’re going to maintain the following states:
+### Adaptive throttling
+
+Dataflow pipeline maintains the number of requests it has sent to the backend [totalRequestsProcessed] and the number of requests got accepted by the backend [acceptedRequests]. Using stateTimer, it will process a batch of elements from each state value and remove the processed elements from the state value. Request rejection probability will be calculated as follows.
+    ```RequestRejectionProbability = (total_requests - k * total_accepts)/(total_requests+1)```
+If it is more than a random number between 0 or 1, incoming requests will be sent to either Pub/Sub dead letter queue or any other sink defined by the user.
+
+We’re going to maintain the following Apache Beam states:
 
 * incomingRequests - requests stored in Apache Beam bag state
 * acceptedRequests number
@@ -20,19 +26,14 @@ Implemented DynamicThrottlingTransform using stateful processing where Dataflow 
 
 The count of the incoming requests and accepted requests should be equal under normal conditions. Once the requests start getting rejected, the number of processing requests gets decreased by the difference of incoming requests and accepted requests.
 
-Pipeline will process the payload in multiple number of groups as well. To achieve this, pipeline will transforms the single PCollection[Bounded/Unbounded] into multiple groups.
-
-* Converts the Input PCollection<<T>T</T>> into PCollection<<T>Key,Value</T>>. Here, Key will be randomly assigned integer and Value will be payload.
+Pipeline will process the payload in multiple groups. To achieve this, pipeline will transform the PCollection[Bounded/Unbounded] into multiple groups based on random distribution (the random function implementation can be overridden).
+Pipeline transform steps:
+* Converts the Input PCollection<<T>T</T>> into PCollection<<T>Key,Value</T>>. Here, Key will be group id (random by default) and Value will be payload.
 * Adaptive throttling will be applied to each group[State cell] accordingly.
-* Pipeline will process each state cell using [stateful](https://beam.apache.org/blog/2017/02/13/stateful-processing.html) and [timely](https://beam.apache.org/blog/2017/08/28/timely-processing.html) processing. That said each state cell will be processed after reaching a predefined interval of  time. A user function clientCall will be applied on a group of elements.
-* clientCall is a user defined function where the events will be sent to the backend node. Applies to each event in the pipeline. Based on the response of the clientCall respective counters will get incremented.
-* The variables which stores the number of requested and accepted requests are zeroed out after a certain interval of time (defaults to 1 min). This reset speeds up client recovery if server throughput was limited due to limitations on the server side not caused by the client.
+* Pipeline processes each state cell using [stateful](https://beam.apache.org/blog/2017/02/13/stateful-processing.html) and [timely](https://beam.apache.org/blog/2017/08/28/timely-processing.html) processing. That said each state cell will be processed after reaching a predefined interval of  time. A user function clientCall will be applied on a group of elements.
+* clientCall, a user defined function, is invoked. This function sends PCollection elements to the backend node. Based on the response of the clientCall respective counters will get incremented.
 
-### Adaptive throttling
-
-Dataflow pipeline maintains the number of requests it has sent to the backend [total_requests] and the number of requests got accepted by the backend [total_accepts]. Using stateTimer, it will process a batch of elements from each state value and remove the processed elements from the state value. Request rejection probability will be calculated as follows.
-    ```RequestRejectionProbability = (total_requests - k * total_accepts)/(total_requests+1)```
-If it is more than a random number between 0 or 1, incoming requests will be sent to either Pub/Sub dead letter queue or any other sink defined by the user.
+The variables which stores the number of requested and accepted requests are zeroed out after a certain interval of time (defaults to 1 min). This reset speeds up client recovery if server throughput was limited due to limitations on the server side not caused by the client.
 
 ### Library testing
 
