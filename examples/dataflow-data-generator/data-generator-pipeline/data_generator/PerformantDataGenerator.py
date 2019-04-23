@@ -1,3 +1,17 @@
+# Copyright 2019 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from __future__ import absolute_import
 import argparse
 import datetime
@@ -11,6 +25,7 @@ import string
 from uuid import uuid4
 
 import apache_beam as beam
+import apache_beam.io.gcp.bigquery as beam_bigquery
 from faker import Faker
 from faker_schema.faker_schema import FakerSchema
 from google.cloud import bigquery as bq
@@ -103,13 +118,13 @@ class DataGenerator(object):
             bq_table = bq_cli.get_table(bq_table_ref)
 
             # Quickly parse TableSchema object to list of dictionaries.
-            self.schema = [
+            self.schema = {u'fields': [
                 {u'name': field.name,
                  u'type': field.field_type,
                  u'mode': field.mode
                  }
                 for field in bq_table.schema
-            ]
+            ]}
         if hist_bq_table:
             dataset_name, table_name = hist_bq_table.split('.')
             bq_dataset = bq_cli.dataset(dataset_name)
@@ -144,19 +159,21 @@ class DataGenerator(object):
 
         self.write_disp = write_disp_map[write_disp]
 
-    def get_bq_schema_string(self):
+    def get_bq_schema(self):
         """
         This helper function parses a 'FIELDNAME:DATATYPE' string for the BQ
         api.
         """
-        schema_string = ','.join([str(obj[u'name']) + ':' + str(obj[u'type'])
-                                  for obj in self.schema])
-        return schema_string
+        return beam_bigquery.parse_table_schema_from_json(json.dumps(self.schema))
 
-    def get_faker_schema(self):
+    def get_faker_schema(self, fields=None):
         """
         This function casts the BigQuery schema to one that will be understood
         by Faker.
+        Args:
+            fields: (dict) When using this method to get the faker schema for
+                a STRUCT / RECORD type field this will keyword parameter will
+                serve as the schema.
 
         Returns:
             faker_schema: A dictionary mapping field names to Faker providers.
@@ -218,16 +235,23 @@ class DataGenerator(object):
         }
 
         faker_schema = {}
-        for obj in self.schema:
+        this_call_schema = fields if fields else self.schema[u'fields']
+        for obj in this_call_schema:
             is_special = False
-            for key in special_map:
-                if key.lower() in obj['name'].lower():
-                    faker_schema[obj['name']] = special_map[key]
-                    is_special = True
-                    break
-            if not is_special:
-                faker_schema[obj['name']] = type_map[obj['type']]
-
+            if obj['type'].lower() == 'record':
+                # recursively call to capture nested structure.
+                faker_schema[obj['name']] = self.get_faker_schema(
+                        fields=obj['fields'])
+            else:
+                for key in special_map: 
+                    if key.lower() in obj['name'].lower():
+                        faker_schema[obj['name']] = \
+                                special_map[key]
+                        is_special = True
+                        break
+                if not is_special:
+                    faker_schema[obj['name']] = \
+                            type_map[obj['type']]
         return faker_schema
 
     def enforce_joinable_keys(self, record, key_set=None):
@@ -267,9 +291,10 @@ class FakeRowGen(beam.DoFn):
     # Helper function to get a single field dictionary from the schema for
     # checking type and mode.
 
-    def get_field_dict(self, field_name):
+    def get_field_dict(self, field_name, fields=None):
+        this_call_schema = fields if fields else self.data_gen.schema[u'fields']
         return filter(lambda f: f[u'name'] == field_name,
-                      self.data_gen.schema)[0]
+                      this_call_schema)[0]
 
     def get_percent_between_min_and_max_date(self, date_string):
         """
@@ -298,7 +323,8 @@ class FakeRowGen(beam.DoFn):
         return (date_days_since_bce - min_date_days_since_bce) / \
             float(total_date_range)
 
-    def sanity_check(self, record, fieldname, random_number, dest_joining_key_col=None):
+    def sanity_check(self, record, fieldname, random_number,
+            fields=None, dest_joining_key_col=None):
         """
         This function ensures that the data is all of types that BigQuery
         expects. Certain Faker providers do not return the data type we desire.
@@ -310,10 +336,24 @@ class FakeRowGen(beam.DoFn):
         """
         # Create a Faker instance for individual parameterized random generation
         # (ie. minimum date).
-        field = self.get_field_dict(fieldname)
+        field = self.get_field_dict(fieldname, fields=fields)
 
         # Below handles if the datatype got changed by the faker provider
-        if field[u'type'] == 'STRING':
+        
+        if field[u'type'] == 'RECORD':
+            # We will fill each array of struct with 0-3 elements.
+            array_of_struct = []
+            record[fieldname] = []
+            for i in range(random.randint(0,3)): 
+                nested_record = {}
+                for col in field[u'fields']:
+                    # Recursively sanity check the next level.
+                    nested_record = self.sanity_check(nested_record,
+                                    col[u'name'], random_number,
+                                    fields=field[u'fields'])
+                array_of_struct.append(nested_record)
+            record[fieldname] = array_of_struct
+        elif field[u'type'] == 'STRING':
             # Efficiently generate random string.
             STRING_LENGTH = 36
             
@@ -332,6 +372,7 @@ class FakeRowGen(beam.DoFn):
         elif field[u'type'] == 'TIMESTAMP':
             pct = random_number / float(sys.maxint)
             SECONDS_IN_A_DAY = 24 * 60 * 60
+            start = self.data_gen.min_date
             max_delta = self.data_gen.max_date - self.data_gen.min_date
             delta = pct * max_delta.total_seconds()
             
@@ -343,6 +384,7 @@ class FakeRowGen(beam.DoFn):
         elif field[u'type'] == 'DATETIME':
             pct = random_number / float(sys.maxint)
             SECONDS_IN_A_DAY = 24 * 60 * 60
+            start = self.data_gen.min_date
             max_delta = self.data_gen.max_date - self.data_gen.min_date
             delta = pct * max_delta.total_seconds()
             
@@ -355,6 +397,7 @@ class FakeRowGen(beam.DoFn):
             # and avoids regenerating a random date if already obeys min/max
             # date.
             pct = random_number / float(sys.maxint)
+            start = self.data_gen.min_date
             max_delta = self.data_gen.max_date - self.data_gen.min_date
             delta = int(pct * max_delta.days)
             
@@ -363,7 +406,7 @@ class FakeRowGen(beam.DoFn):
 
         elif field[u'type'] == 'INTEGER':
             max_size = self.data_gen.max_int
-            record[fieldname] = int(max_size * random_number / sys.maxint)
+            record[fieldname] = int(max_size * (random_number / sys.maxint))
 
             if '_max_' in field['name'].lower():
                 max_size = int(fieldname[fieldname.find("_max_") + 5:
@@ -371,19 +414,24 @@ class FakeRowGen(beam.DoFn):
             # This implements max and sign constraints
             # and avoids regenerating a random integer if already obeys min/max
             # integer.
-            record[fieldname] = int(record[fieldname])
+            record[fieldname] = min(int(record[fieldname]), max_size)
+            if self.data_gen.only_pos:
+                record[fieldname] = abs(record[fieldname])
 
         elif field['type'] == 'FLOAT' or field['type'] == 'NUMERIC':
-            min_size = self.data_gen.min_float
-            max_size = self.data_gen.max_float
+            min_size = float(self.data_gen.min_float)
+            max_size = float(self.data_gen.max_float)
 
             if '_max_' in field['name'].lower():
-                max_size = int(fieldname[fieldname.find("_max_") + 5:
+                max_size = float(fieldname[fieldname.find("_max_") + 5:
                                          len(fieldname)])
-            record[fieldname] = random_number / float(sys.maxint)            
+            record[fieldname] = max_size * random_number / float(sys.maxint)
             
             record[fieldname] = round(float(record[fieldname]),
                                       self.data_gen.float_precision)
+            if self.data_gen.only_pos:
+                record[fieldname] = abs(record[fieldname])
+            
 
         # Make some values null based on null_prob.
         if field.get(u'mode') == 'NULLABLE':
@@ -670,6 +718,13 @@ def validate_data_args(data_args):
                  }
                 for field in bq_table.schema
             ]
+            
+            # Check if there are nested datatypes but CSV output.
+            if data_args.csv_schema_order:
+                types = [field[u'type'] for field in data_args.schema]
+                if 'RECORD' in types:
+                    raise ValueError("Cannot write nested types to CSV.") 
+
             if data_args.output_bq_table:
                 # We need to check if this output table already exists.
                 dataset_name, table_name = data_args.output_bq_table.split('.',
@@ -722,7 +777,8 @@ def fetch_schema(data_args, schema_inferred):
             data_args.schema = [
                 {'name': field.name,
                  'type': field.field_type,
-                 'mode': field.mode
+                 'mode': field.mode,
+                 'fields': field.fields
                  }
                 for field in bq_table.schema
             ]

@@ -51,16 +51,6 @@ class TestPrettyDataGenerator(unittest.TestCase):
 
         logging.basicConfig(level=logging.INFO)
 
-    def test_get_bq_schema_string(self):
-        """
-        This tests the get_bq_schema_string method of the DataGenerator class which parses
-        a 'fieldname:field_type' string defining a the schema from a
-        [{name,type,mode}] schema dictionary.
-        """
-        expected_bq_schema_string = "lo_order_key:STRING,lo_linenumber:INTEGER,lo_part_key:STRING,lo_cust_key:STRING,lo_orderdate:DATE,lo_revenue:FLOAT,lo_supp_key:STRING,lo_quantity:INTEGER,lo_extendedprice:FLOAT,lo_discount:FLOAT,lo_supplycost:FLOAT,lo_ordpriority:INTEGER,lo_ordtotalprice:FLOAT,lo_shippriority:INTEGER,lo_tax:FLOAT,lo_shipmode:FLOAT,lo_recieptfile:STRING"
-        actual_bq_schema_string = self.data_gen.get_bq_schema_string()
-        self.assertEquals(actual_bq_schema_string, expected_bq_schema_string)
-
     def test_get_faker_schema(self):
         """
         This tests the get_faker_schema method of the DataGenerator class.
@@ -82,7 +72,14 @@ class TestPrettyDataGenerator(unittest.TestCase):
             u'lo_shipmode': 'pyfloat',
             u'lo_ordtotalprice': 'pyfloat',
             u'lo_linenumber': 'random_number',
-            u'lo_tax': 'pyfloat'}
+            u'lo_tax': 'pyfloat',
+            u'lo_record_field':{
+                u'name': 'name',
+                u'email': 'email',
+                u'time_sec': 'random_number',
+                u'tz_offset': 'random_number',
+                u'date': 'date_time_this_century'} 
+            }
         actual_faker_schema = self.data_gen.get_faker_schema()
         self.assertDictEqual(actual_faker_schema, expected_faker_schema)
 
@@ -125,7 +122,8 @@ class TestPrettyDataGenerator(unittest.TestCase):
         
         # Check string size was parsed and enforced from description fields of lo_recieptfile.
         self.assertLessEqual(len(actual_row[u'lo_recieptfile']), 10)
-
+        # Check if record type nesting worked.
+        self.assertIsInstance(actual_row[u'lo_record_field'], list)
     def test_get_field_dict(self):
         """
         This tests the ability of the FakeRowGen.get_field_dict method to extract a single field
@@ -134,6 +132,18 @@ class TestPrettyDataGenerator(unittest.TestCase):
         expected_field_dict = {u'type': u'DATE', u'name':u'lo_orderdate', u'mode': u'NULLABLE'}
         actual_field_dict = self.fakerowgen.get_field_dict(field_name=u'lo_orderdate')
         self.assertDictEqual(actual_field_dict, expected_field_dict)
+        expected_record_dict = {
+                "name": "lo_record_field",
+                "type": "RECORD",
+                "mode": "REPEATED",
+                "fields": [
+                    {"mode": "NULLABLE", "name": "name", "type": "STRING"},
+                    {"mode": "NULLABLE", "name": "email", "type": "STRING"},
+                    {"mode": "NULLABLE", "name": "time_sec", "type": "INTEGER"},
+                    {"mode": "NULLABLE", "name": "tz_offset", "type": "INTEGER"},
+                    {"mode": "NULLABLE", "name": "date", "type": "TIMESTAMP"} 
+                    ]}
+        actual_record_dict = self.fakerowgen.get_field_dict(field_name=u'lo_record_field')
 
     def test_sanity_check(self):
         fschema = self.data_gen.get_faker_schema()
@@ -158,6 +168,9 @@ class TestPrettyDataGenerator(unittest.TestCase):
         data = self.fakerowgen.sanity_check(record=data, fieldname=u'lo_linenumber')
 
         self.assertLessEqual(data[u'lo_linenumber'], self.data_gen.max_int)
+
+        data=self.fakerowgen.sanity_check(record=data, fieldname=u'lo_record_field')
+        self.assertIsInstance(data[u'lo_record_field'], list)
     
     def test_get_skewed_key(self):
         """
