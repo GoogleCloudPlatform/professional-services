@@ -18,28 +18,9 @@
 from collections import defaultdict
 
 from asset_inventory import bigquery_schema
+import re
 import requests
 from requests_futures.sessions import FuturesSession
-
-
-# Map CAI asset types to the Google API they come from.
-# Used to download the API discovery document for each asset.
-ASSET_TYPE_PREFIX_TO_API = {
-    'google.cloud.kms': 'cloudkms',
-    'google.cloud.resourcemanager': 'cloudresourcemanager',
-    'google.compute': 'compute',
-    'google.appengine': 'appengine',
-    'google.cloud.billing': 'cloudbilling',
-    'google.cloud.storage': 'storage',
-    'google.cloud.dns': 'dns',
-    'google.spanner': 'spanner',
-    'google.cloud.bigquery': 'bigquery',
-    'google.iam': 'iam',
-    'google.pubsub': 'pubsub',
-    'google.cloud.dataproc': 'dataproc',
-    'google.cloud.sql': 'sqladmin',
-    'google.container': 'container'
-}
 
 
 class APISchema(object):
@@ -51,45 +32,80 @@ class APISchema(object):
     Will union all API versions into a single schema.
     """
 
-    _discovey_documents_map = None
+    _discovery_document_cache = dict()
     _schema_cache = {}
 
     @classmethod
-    def _get_discovery_documents_map(cls):
-        """Download discovery documents.
-
-        Caches downloaded documents in the `_discovey_documents_map` map.
-
-        Returns:
-            Dict of API names to their Discovery document.
-        """
-        if cls._discovey_documents_map:
-            return cls._discovey_documents_map
-
-        discovery_docs = requests.get(
-            'https://content.googleapis.com/discovery/v1/apis').json()
-
-        session = FuturesSession()
-        api_to_discovery_docs_requests = defaultdict(list)
-        for discovery_doc in discovery_docs['items']:
-            for api_name in ASSET_TYPE_PREFIX_TO_API.values():
-                if api_name == discovery_doc['name']:
-                    api_to_discovery_docs_requests[api_name].append(
-                        session.get(discovery_doc['discoveryRestUrl']))
-        cls._discovey_documents_map = {
-            api_name:
-                [f.result().json() for f in fl if f.result().status_code == 200]
-            for api_name, fl in api_to_discovery_docs_requests.items()
-        }
-        return cls._discovey_documents_map
+    def _get_discovery_document(cls, dd_url):
+        """Retreive and cache a discovery document."""
+        if dd_url in cls._discovery_document_cache:
+            return cls._discovery_document_cache[dd_url]
+        discovery_document = None
+        # Ignore discovery document urls that aren't urls.
+        if dd_url and dd_url.startswith('http'):
+            response = requests.get(dd_url)
+            if response.status_code == 200:
+                try:
+                    discovery_document = response.json()
+                except ValueError:
+                    pass
+        cls._discovery_document_cache[dd_url] = discovery_document
+        return discovery_document
 
     @classmethod
-    def get_api_name_for_asset_type(cls, asset_type):
-        """Given an asset type, return it's api name."""
-        for prefix, api_name in ASSET_TYPE_PREFIX_TO_API.items():
-            if asset_type.startswith(prefix):
-                return api_name
-        raise Exception('no api for type name {}'.format(asset_type))
+    def _get_api_name_for_discovery_document_url(cls, dd_url):
+        """Get API name from discovery document url.
+
+        Args:
+          dd_url: Discovery document url.
+        Returns:
+          API name if can be found, None otherwise.
+        """
+        apiary_match = re.match(r'https://(?:[^/]+)/discovery/v1/apis/([^/]+)',
+                                dd_url)
+        if apiary_match:
+            return apiary_match.group(1)
+        one_match = re.match(r'https://([^.]+).googleapis.com/\$discovery/rest',
+                             dd_url)
+        if one_match:
+            return one_match.group(1)
+        return None
+
+    @classmethod
+    def _get_discovery_document_versions(cls, dd_url):
+        """Return all verisons of the APIs discovery documents.
+
+        Args:
+          dd_url: the url of the asset's discovery document.
+        Returns:
+           list of discovery document json objects.
+        """
+        # calculate all the discovery documents from the url.
+        discovery_documents = []
+        api_name = cls._get_api_name_for_discovery_document_url(dd_url)
+        all_discovery_docs = cls._get_discovery_document(
+            'https://content.googleapis.com/discovery/v1/apis')
+        dd = cls._get_discovery_document(dd_url)
+        if dd:
+            discovery_documents.append(dd)
+        for discovery_doc in all_discovery_docs['items']:
+            if api_name == discovery_doc['name']:
+                url = discovery_doc['discoveryRestUrl']
+                if url != dd_url:
+                    dd = cls._get_discovery_document(url)
+                    if dd:
+                        discovery_documents.append(dd)
+        return discovery_documents
+
+    @classmethod
+    def _get_schema_for_resource(cls, discovery_documents, resource_name):
+        """Translate API discovery documents to a BigQuery schema."""
+        schemas = [
+            cls._translate_resource_to_schema(resource_name, document)
+            for document in discovery_documents
+        ]
+        merged_schema = bigquery_schema.merge_schemas(schemas)
+        return merged_schema
 
     @classmethod
     def _get_bigquery_type_for_property(cls, property_value):
@@ -107,12 +123,20 @@ class APISchema(object):
         return bigquery_type
 
     @classmethod
+    def _ref_resource_name(cls, property_value):
+        ref_name = property_value.get('$ref', None)
+        # optionally strip the '#/definitions/' prefix.
+        if ref_name and ref_name.startswith('#/definitions/'):
+            return ref_name[len('#/definitions/'):]
+        return ref_name
+
+    @classmethod
     def _get_properties_map_from_value(cls, property_name, property_value,
                                        resources, seen_resources):
         """Return the properties of the nested type of a `RECORD` property."""
         if 'properties' in property_value:
             return property_value['properties']
-        property_resource_name = property_value.get('$ref', None)
+        property_resource_name = cls._ref_resource_name(property_value)
         if property_resource_name:
             # not handling recursive fields.
             if property_resource_name in seen_resources:
@@ -158,24 +182,40 @@ class APISchema(object):
         return fields
 
     @classmethod
+    def _get_cache_key(cls, resource_name, document):
+        if 'id' in document:
+            return '{}.{}'.format(document['id'], resource_name)
+        if 'info' in document:
+            info = document['info']
+            return '{}.{}.{}'.format(info['title'],
+                                     info['version'],
+                                     resource_name)
+        return resource_name
+
+    @classmethod
+    def _get_document_resources(cls, document):
+        if 'schemas' in document:
+            return document['schemas']
+        return document['definitions']
+
+    @classmethod
     def _translate_resource_to_schema(cls, resource_name, document):
         """Expands the $ref properties of a reosurce definition."""
-        api_id = document['id']
-        resource_cache_key = api_id + resource_name
-        if resource_cache_key in cls._schema_cache:
-            return cls._schema_cache[resource_cache_key]
-        resources = document['schemas']
+        cache_key = cls._get_cache_key(resource_name, document)
+        if cache_key in cls._schema_cache:
+            return cls._schema_cache[cache_key]
+        resources = cls._get_document_resources(document)
         field_list = []
         if resource_name in resources:
             resource = resources[resource_name]
             properties_map = resource['properties']
             field_list = cls._properties_map_to_field_list(
                 properties_map, resources, {})
-        cls._schema_cache[resource_cache_key] = field_list
+        cls._schema_cache[cache_key] = field_list
         return field_list
 
     @classmethod
-    def _convert_to_asset_schema(cls,
+    def _add_asset_export_fields(cls,
                                  schema,
                                  include_resource=True,
                                  include_iam_policy=True):
@@ -304,42 +344,36 @@ class APISchema(object):
         return asset_schema
 
     @classmethod
-    def bigquery_schema_for_asset_type(cls, asset_type, include_resource,
-                                       include_iam_policy):
+    def bigquery_schema_for_resource(cls, asset_type,
+                                     resource_name,
+                                     discovery_doc_url,
+                                     include_resource,
+                                     include_iam_policy):
         """Returns the BigQuery schema for the asset type.
 
         Args:
             asset_type: CAI asset type.
+            resource_name: name of the resource.
+            discovery_doc_url: URL of discovery document
             include_resource: if resource schema should be included.
             include_iam_policy: if IAM policy schema should be included.
+        Returns:
+            BigQuery schema.
         """
         cache_key = '{}.{}.{}'.format(asset_type, include_resource,
                                       include_iam_policy)
         if cache_key in cls._schema_cache:
             return cls._schema_cache[cache_key]
-        api_name = cls.get_api_name_for_asset_type(asset_type)
-        discovery_documents_map = cls._get_discovery_documents_map()
-        discovery_documents = discovery_documents_map[api_name]
-        resource_name = resource_name_for_asset_type(
-            asset_type)
-        # merge all asset versions into a single schema.
-        schemas = [
-            cls._translate_resource_to_schema(resource_name, document)
-            for document in discovery_documents
-        ]
-        merged_schema = bigquery_schema.merge_schemas(schemas)
-        asset_type_schema = cls._convert_to_asset_schema(
-            merged_schema, include_resource, include_iam_policy)
-        cls._schema_cache[cache_key] = asset_type_schema
-        return asset_type_schema
-
-
-def resource_name_for_asset_type(asset_type):
-    """Return the resource name for the asset_type.
-
-    Args:
-        asset_type: the asset type like 'google.compute.Instance'
-    Returns:
-        a resource name like 'Instance'
-    """
-    return asset_type.split('.')[-1]
+        # get the resource schema if we are including the resource
+        # in the export.
+        resource_schema = None
+        if include_resource:
+            discovery_documents = cls._get_discovery_document_versions(
+                discovery_doc_url)
+            resource_schema = cls._get_schema_for_resource(
+                discovery_documents,
+                resource_name)
+        schema = cls._add_asset_export_fields(
+            resource_schema, include_resource, include_iam_policy)
+        cls._schema_cache[cache_key] = schema
+        return schema

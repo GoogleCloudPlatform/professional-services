@@ -114,9 +114,12 @@ class BigQuerySchemaCombineFn(core.CombineFn):
         return schema
 
     def element_to_schema(self, element):
-        return APISchema.bigquery_schema_for_asset_type(
+        element_resource = element.get('resource', {})
+        return APISchema.bigquery_schema_for_resource(
             element['asset_type'],
-            'resource' in element and 'data' in element['resource'],
+            element_resource.get('discovery_name', None),
+            element_resource.get('discovery_document_uri', None),
+            'data' in element_resource,
             'iam_policy' in element)
 
     def add_input(self, schema, element):
@@ -172,7 +175,7 @@ class MapCAIProperties(beam.DoFn):
     def process(self, element):
         if ('resource' in element and 'data' in element['resource']):
             CAIToAPI.cai_to_api_properties(
-                api_schema.resource_name_for_asset_type(element['asset_type']),
+                element['resource']['discovery_name'],
                 element['resource']['data'])
         yield element
 
