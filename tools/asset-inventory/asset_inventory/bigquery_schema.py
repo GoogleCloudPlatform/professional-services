@@ -280,8 +280,8 @@ def _sanitize_property(property_name, parent, depth):
 
     # remove empty dicts or list of empty dicts (condition #3)
     if ((isinstance(sanitized, list) or
-         isinstance(sanitized, dict))
-        and not any(sanitized)):
+         isinstance(sanitized, dict)) and
+            not any(sanitized)):
         # BigQuery doesn't deal well with empty records.
         # prune the value.
         parent.pop(new_property_name)
@@ -332,3 +332,91 @@ def sanitize_property_value(property_value, depth=0):
             _sanitize_property(child_property, property_value, depth)
 
     return property_value
+
+
+def enforce_schema_data_type_on_property(field, property_value):
+    """Ensure property values are the correct type.
+
+    Tries to convert property_value into the field's type. If we can't, then
+    return None.
+    Args:
+      field: BigQuery schema field dict.
+      property_value: object to try to coerce.
+    Returns:
+      The properly typed property_value, or None if it can't be convered.
+    """
+    field_type = field['field_type']
+    if field_type == 'RECORD':
+        if isinstance(property_value, dict):
+            return enforce_schema_data_types(property_value, field['fields'])
+        else:
+            return None
+    if field_type == 'STRING':
+        if not isinstance(property_value, string_types):
+            return str(property_value)
+    if field_type == 'BOOL':
+        if not isinstance(property_value, bool):
+            if property_value:
+                return True
+            else:
+                return False
+    if field_type == 'TIMESTAMP':
+        if not re.match(TIMESTAMP_REGEX, property_value):
+            return None
+    if field_type == 'DATE':
+        if not re.match(DATE_REGEX, property_value):
+            return None
+    if field_type == 'DATETIME':
+        if not re.match(TIMESTAMP_REGEX, property_value):
+            return None
+    if field_type == 'NUMERIC':
+        if not isinstance(property_value, Number):
+            try:
+                return float(property_value)
+            except (ValueError, TypeError):
+                return None
+    return property_value
+
+
+def enforce_schema_data_types(resource, schema):
+    """Enforce schema's data types.
+
+    Kubernetes doesn't reject config resources with data of the wrong type.
+    BigQuery however is typesafe and rejects the load if value is a
+    different type then declared by the table's schema. This function
+    attempts to correct the invalid Kubernetes data and if that not
+    possible, just removes the property value, the json data will always
+    have the original data.
+    Args:
+        resource: Dictionary, will be modified.
+        schema: BigQuery schema.
+    Returns:
+        Modified resource.
+    """
+
+    # apply datatype of each field.
+    for field in schema:
+        field_name = field['name']
+        if field_name in resource:
+            resource_value = resource[field_name]
+            if field['mode'] == 'REPEATED':
+                if not isinstance(resource_value, list):
+                    resource_value = [resource_value]
+                new_array = []
+                for value in resource_value:
+                    value = enforce_schema_data_type_on_property(
+                        field, value)
+                    if value is not None:
+                        new_array.append(value)
+                if any(new_array):
+                    resource[field_name] = new_array
+                else:
+                    del resource[field_name]
+            else:
+                value = enforce_schema_data_type_on_property(
+                    field, resource_value)
+                if value is not None:
+                    resource[field_name] = value
+                else:
+                    del resource[field_name]
+    return resource

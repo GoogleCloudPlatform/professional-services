@@ -180,6 +180,23 @@ class MapCAIProperties(beam.DoFn):
         yield element
 
 
+class EnforceSchemaDataTypes(beam.DoFn):
+    """Load each writen GCS object to BigQuery.
+    The Beam python SDK doesn't support dynamic BigQuery destinations yet so
+    this must be done within the workers.
+    """
+
+    def process(self, element, schemas):
+        """Enforce the datatypes of the input schema on the element data."""
+        key_name = element[0]
+        schema = schemas[key_name]
+        for elem in element[1]:
+            resource_data = elem.get('resource', {}).get('data', {})
+            if resource_data:
+                bigquery_schema.enforce_schema_data_types(resource_data, schema)
+        yield element
+
+
 class CombinePolicyResource(beam.DoFn):
     """Unions two json documents.
 
@@ -298,9 +315,8 @@ class DeleteDataSetTables(BigQueryDoFn):
         if self.write_disposition.get() == 'WRITE_APPEND':
             yield False
         else:
-            dataset_ref = self.get_dataset_ref()
-            for table_list_item in self.bigquery_client.list_tables(
-                dataset_ref):
+            dataset_r = self.get_dataset_ref()
+            for table_list_item in self.bigquery_client.list_tables(dataset_r):
                 if table_list_item.table_id.startswith('google_'):
                     self.bigquery_client.delete_table(
                         table_list_item.reference)
@@ -441,11 +457,13 @@ def run(argv=None):
     schemas = keyed_assets | 'to_schema' >> core.CombinePerKey(
         BigQuerySchemaCombineFn())
 
+    pvalue_schemas = beam.pvalue.AsDict(schemas)
     # Write to GCS and load to BigQuery.
     # pylint: disable=expression-not-assigned
     (keyed_assets | 'group_assets_by_key' >> beam.GroupByKey()
+     | 'enforce_schema' >> beam.ParDo(EnforceSchemaDataTypes(), pvalue_schemas)
      | 'write_to_gcs' >> beam.ParDo(
-         WriteToGCS(options.stage, options.load_time))
+        WriteToGCS(options.stage, options.load_time))
      | 'group_written_objets_by_key' >> beam.GroupByKey()
      | 'load_to_bigquery' >> beam.ParDo(
          LoadToBigQuery(options.dataset, options.write_disposition,
