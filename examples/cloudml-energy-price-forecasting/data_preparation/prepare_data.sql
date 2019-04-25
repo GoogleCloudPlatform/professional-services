@@ -18,7 +18,7 @@ WITH
   ),
   Weather_Temp AS (
     SELECT
-      prediction_date,
+      PARSE_TIMESTAMP("%d/%m/%Y %H:%M", prediction_date) AS prediction_date,
       array_concat_agg(ARRAY[temperature, wind_speed_100m, wind_direction_100m, air_density, precipitation,
         wind_gust, radiation, wind_speed, wind_direction, pressure]
         ORDER BY point) AS weather
