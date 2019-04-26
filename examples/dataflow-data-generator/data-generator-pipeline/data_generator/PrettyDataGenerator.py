@@ -93,7 +93,7 @@ class DataGenerator(object):
             try:
                 # Handles json from google cloud storage or local.
                 if bq_schema_filename.find('gs://') == 0:
-                    bkt, path = bq_schema_filename.strip('gs://').split('/', 1)
+                    bkt, path = bq_schema_filename.replace('gs://', '').split('/', 1)
                     client = gcs.Client()
                     bucket = client.get_bucket(bkt)
 
