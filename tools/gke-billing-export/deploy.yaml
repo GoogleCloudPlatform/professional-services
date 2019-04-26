@@ -37,7 +37,7 @@ spec:
       serviceAccountName: billing-export
       containers:
         - name: billing-export
-          image: dparrish/gke-billing-export:1.0.0
+          image: dparrish/gke-billing-export:1.0.1
           args: [
             "--config=/etc/gke-billing-export/config.json",
           ]
