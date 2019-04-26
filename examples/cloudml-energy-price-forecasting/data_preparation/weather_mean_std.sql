@@ -34,6 +34,6 @@ FROM
     FROM
       Energy.historical_weather
     WHERE
-      prediction_date BETWEEN @train_from_date AND @train_to_date
+      PARSE_TIMESTAMP("%d/%m/%Y %H:%M", prediction_date) BETWEEN @train_from_date AND @train_to_date
     GROUP BY point
   ) AS av
