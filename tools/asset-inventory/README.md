@@ -338,7 +338,7 @@ This repository contains some command line tools that let you run the export/imp
     You likely forgot the "--setup_file ./setup.py" arguments try something like:
 
     ```
-    python asset-inventory/asset_inventory/main.py --parent projects/$PROJECT --gcs-destination $BUCKET --dataset $DATASET --write_disposition WRITE_APPEND --project $PROJECT --runner dataflow --temp_location gs://$BUCKET_temp --save_main_session   --setup_file ./setup.py
+    python asset_inventory/main.py --parent projects/$PROJECT --gcs-destination $BUCKET --dataset $DATASET --write_disposition WRITE_APPEND --project $PROJECT --runner dataflow --temp_location gs://$BUCKET_temp --save_main_session   --setup_file ./setup.py
     ```
 
 1. When deploying the App Engine application with "gcloud app deploy app.yaml" I get the error:
