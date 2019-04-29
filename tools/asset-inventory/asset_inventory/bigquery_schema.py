@@ -41,8 +41,6 @@ import re
 
 from six import string_types
 
-from google.cloud import bigquery
-
 CLEAN_UP_REGEX = re.compile(r'[\W]+')
 TIMESTAMP_REGEX = re.compile(
     r'^\d\d\d\d-\d\d-\d\d[T ]\d\d:\d\d:\d\d'
@@ -142,18 +140,18 @@ def _merge_fields(destination_field, source_field):
         A `google.cloud.bigquery.SchemaField` dict.
     """
     field = copy.deepcopy(destination_field)
-    # apply description.
+
     dd = destination_field.get('description', None)
     sd = source_field.get('description', None)
-    if ((not dd and sd) or (sd and dd and len(dd) < len(sd))):
-        field['description'] = sd
-
-    # use the more specific type if destination is just a STRING.
     dft = destination_field.get('field_type', None)
     sft = source_field.get('field_type', None)
-    if (dft == 'STRING' and sft != 'STRING'):
+    # use the  field with more information.
+    if ((not dd and sd) or (sd and dd and len(dd) < len(sd))):
+        field['description'] = sd
         field['field_type'] = sft
-
+    # use the less specific type.
+    elif ((dft != 'RECORD' and dft != 'STRING') and sft == 'STRING'):
+        field['field_type'] = sft
     df = destination_field.get('fields', [])
     sf = source_field.get('fields', [])
     merged_fields = _merge_schema(df, sf)
@@ -281,7 +279,7 @@ def _sanitize_property(property_name, parent, depth):
     # remove empty dicts or list of empty dicts (condition #3)
     if ((isinstance(sanitized, list) or
          isinstance(sanitized, dict)) and
-            not any(sanitized)):
+        not any(sanitized)):
         # BigQuery doesn't deal well with empty records.
         # prune the value.
         parent.pop(new_property_name)
@@ -399,7 +397,7 @@ def enforce_schema_data_types(resource, schema):
         field_name = field['name']
         if field_name in resource:
             resource_value = resource[field_name]
-            if field['mode'] == 'REPEATED':
+            if field.get('mode', 'NULLABLE') == 'REPEATED':
                 if not isinstance(resource_value, list):
                     resource_value = [resource_value]
                 new_array = []

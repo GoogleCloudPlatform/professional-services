@@ -15,20 +15,18 @@
 # limitations under the License.
 """Generates BigQuery schema from API discovery documents."""
 
-from collections import defaultdict
+import re
 
 from asset_inventory import bigquery_schema
-import re
 import requests
-from requests_futures.sessions import FuturesSession
 
 
 class APISchema(object):
     """Convert a CAI asset type to a BigQuery table schema.
 
-    When the import_pipeline uses a group_by of ASSET_TYPE or ASSET_TYPE_VERSION
-    we'll use a BigQuery schema generated from API discovery documents. This
-    gives us all the type, names and description of every asset type property.
+    When import_pipeline uses a group_by of ASSET_TYPE or ASSET_TYPE_VERSION
+    use a BigQuery schema generated from API discovery documents. This
+    gives us all the type, names and description of an asset type property.
     Will union all API versions into a single schema.
     """
 
@@ -108,18 +106,33 @@ class APISchema(object):
         return merged_schema
 
     @classmethod
-    def _get_bigquery_type_for_property(cls, property_value):
+    def _get_bigquery_type_for_property(cls, property_value, resources):
         """Map API type to a BigQuery type."""
+        # default type
         bigquery_type = 'STRING'
         property_type = property_value.get('type', None)
-        if '$ref' in property_value or property_type == 'object':
+        # nested record.
+        if property_type == 'object' or 'properties' in property_value:
             bigquery_type = 'RECORD'
+        # repeated, recurse into element type.
         elif property_type == 'array':
-            return cls._get_bigquery_type_for_property(property_value['items'])
+            return cls._get_bigquery_type_for_property(
+                property_value['items'],
+                resources)
+        # number.
         if property_type in ('number', 'integer'):
             bigquery_type = 'NUMERIC'
+        # bool.
         elif property_type == 'boolean':
             bigquery_type = 'BOOL'
+        # type reference.
+        elif '$ref' in property_value:
+            property_resource_name = cls._ref_resource_name(property_value)
+            if property_resource_name:
+                return cls._get_bigquery_type_for_property(
+                    resources[property_resource_name],
+                    resources)
+            return bigquery_type
         return bigquery_type
 
     @classmethod
@@ -131,36 +144,67 @@ class APISchema(object):
         return ref_name
 
     @classmethod
-    def _get_properties_map_from_value(cls, property_name, property_value,
+    def _get_properties_map_field_list(cls, property_name, property_value,
                                        resources, seen_resources):
-        """Return the properties of the nested type of a `RECORD` property."""
+        """Return the fields of the `RECORD` property.
+
+        Args:
+            property_name: name of API property
+            property_value: value of the API property.
+            resources: dict of all other resources that might be referenced by
+            the API schema through reference types ($ref values).
+            seen_resources: dict of types we have processed to prevent endless
+            cycles.
+        Returns:
+            BigQuery fields dict list or None if the field should be skipped.
+        """
+        # found a record type, this is a recursive exit condition.
         if 'properties' in property_value:
-            return property_value['properties']
+            return cls._properties_map_to_field_list(
+                property_value['properties'], resources, seen_resources)
         property_resource_name = cls._ref_resource_name(property_value)
+        # get fields of the reference type.
         if property_resource_name:
             # not handling recursive fields.
             if property_resource_name in seen_resources:
                 return None
+            # rack prior types to not recurse forever.
             seen_resources[property_resource_name] = True
-            return cls._get_properties_map_from_value(
+            return_value = cls._get_properties_map_field_list(
                 property_resource_name, resources[property_resource_name],
                 resources, seen_resources)
-        if 'items' not in property_value:
-            # we can't safely process labels or additionalProperties fields so
-            # skip them
-            return None
-        return cls._get_properties_map_from_value(
-            property_name, property_value['items'], resources, seen_resources)
+            del seen_resources[property_resource_name]
+            return return_value
+        # get fields of item type.
+        if 'items' in property_value:
+            return cls._get_properties_map_field_list(
+                property_name, property_value['items'],
+                resources, seen_resources)
+        # we can't safely process labels or additionalProperties fields so
+        # skip them
+        return None
 
     @classmethod
     def _properties_map_to_field_list(cls, properties_map, resources,
                                       seen_resources):
-        """Convert API resource properties to BigQuery schema."""
+        """Convert API resource properties to BigQuery schema.
+
+        Args:
+            properties_map: dict of properties from the API schema document we
+            are convering into a BigQuery field list.
+            resources: dict of all other resources that might be referenced by
+            the API schema through reference types ($ref values).
+            seen_resources: dict of types we have processed to prevent endless
+            cycles.
+        Returns:
+            BigQuery fields dict list.
+        """
         fields = []
         for property_name, property_value in properties_map.items():
             field = {'name': property_name}
             property_type = property_value.get('type', None)
-            bigquery_type = cls._get_bigquery_type_for_property(property_value)
+            bigquery_type = cls._get_bigquery_type_for_property(
+                property_value, resources)
             field['field_type'] = bigquery_type
             if 'description' in property_value:
                 field['description'] = property_value['description'][:1024]
@@ -169,12 +213,8 @@ class APISchema(object):
             else:
                 field['mode'] = 'NULLABLE'
             if bigquery_type == 'RECORD':
-                property_properties_map = cls._get_properties_map_from_value(
+                fields_list = cls._get_properties_map_field_list(
                     property_name, property_value, resources, seen_resources)
-                if not property_properties_map:
-                    continue
-                fields_list = cls._properties_map_to_field_list(
-                    property_properties_map, resources, seen_resources)
                 if not fields_list:
                     continue
                 field['fields'] = fields_list
@@ -210,7 +250,7 @@ class APISchema(object):
             resource = resources[resource_name]
             properties_map = resource['properties']
             field_list = cls._properties_map_to_field_list(
-                properties_map, resources, {})
+                properties_map, resources, {resource_name: True})
         cls._schema_cache[cache_key] = field_list
         return field_list
 
@@ -257,6 +297,7 @@ class APISchema(object):
                 'name': 'resource',
                 'field_type': 'RECORD',
                 'description': 'Resource properties.',
+                'mode': 'NULLABLE',
                 'fields': [{
                     'name': 'version',
                     'field_type': 'STRING',
@@ -283,14 +324,14 @@ class APISchema(object):
                     'description': 'Resource properties.',
                     'mode': 'NULLABLE',
                     'fields': resource_schema
-                }],
-                'mode': 'NULLABLE'
+                }]
             })
         if include_iam_policy:
             asset_schema.append({
                 'name': 'iam_policy',
                 'field_type': 'RECORD',
                 'description': 'IAM Policy',
+                'mode': 'NULLABLE',
                 'fields': [{
                     'name': 'etag',
                     'field_type': 'STRING',

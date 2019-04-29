@@ -40,13 +40,13 @@ from apache_beam.io.filesystems import FileSystems
 from apache_beam.options.pipeline_options import PipelineOptions
 from apache_beam.options.value_provider import StaticValueProvider
 from apache_beam.transforms import core
-from asset_inventory import api_schema
 from asset_inventory import bigquery_schema
 from asset_inventory.api_schema import APISchema
 from asset_inventory.cai_to_api import CAIToAPI
 from six import string_types
 
 from google.api_core.exceptions import BadRequest
+from google.api_core.exceptions import NotFound
 from google.cloud import bigquery
 
 
@@ -181,7 +181,7 @@ class MapCAIProperties(beam.DoFn):
 
 
 class EnforceSchemaDataTypes(beam.DoFn):
-    """Load each writen GCS object to BigQuery.
+    """Load each GCS object into BigQuery.
     The Beam python SDK doesn't support dynamic BigQuery destinations yet so
     this must be done within the workers.
     """
@@ -189,12 +189,19 @@ class EnforceSchemaDataTypes(beam.DoFn):
     def process(self, element, schemas):
         """Enforce the datatypes of the input schema on the element data."""
         key_name = element[0]
+        elements = element[1]
         schema = schemas[key_name]
-        for elem in element[1]:
+        return_elements = []
+        for elem in elements:
             resource_data = elem.get('resource', {}).get('data', {})
             if resource_data:
-                bigquery_schema.enforce_schema_data_types(resource_data, schema)
-        yield element
+                return_elements.append(
+                    bigquery_schema.enforce_schema_data_types(elem, schema))
+            else:
+                return_elements.append(elem)
+        # important to create a new tuple otherwise Dataflow runner will not
+        # think any change was made.
+        yield (key_name, return_elements)
 
 
 class CombinePolicyResource(beam.DoFn):
@@ -208,7 +215,7 @@ class CombinePolicyResource(beam.DoFn):
     def process(self, element):
         combined = {}
         for content in element[1]:
-            # don't merge resource element.
+            # don't merge a `resource` element.
             if '_group_by' in content:
                 yield content
                 continue
@@ -310,17 +317,17 @@ class DeleteDataSetTables(BigQueryDoFn):
     dataset before loading so that no old asset types remain.
     """
 
-    def process(self, _):
-        # don't delete tables if we are appending to them.
+    def process(self, element):
         if self.write_disposition.get() == 'WRITE_APPEND':
-            yield False
+            yield element
         else:
-            dataset_r = self.get_dataset_ref()
-            for table_list_item in self.bigquery_client.list_tables(dataset_r):
-                if table_list_item.table_id.startswith('google_'):
-                    self.bigquery_client.delete_table(
-                        table_list_item.reference)
-            yield True
+            table_ref = self.get_dataset_ref().table(
+                element[0].replace('.', '_'))
+            try:
+                self.bigquery_client.delete_table(table_ref)
+            except NotFound:
+                pass
+            yield element
 
 
 class LoadToBigQuery(BigQueryDoFn):
@@ -342,7 +349,7 @@ class LoadToBigQuery(BigQueryDoFn):
                 field['fields'] = self.to_bigquery_schema(field['fields'])
         return [bigquery.SchemaField(**field) for field in fields]
 
-    def process(self, element, schemas, _):
+    def process(self, element, schemas):
         """Element is a tuple of key_ name and iterable of filesystem paths."""
 
         dataset_ref = self.get_dataset_ref()
@@ -429,12 +436,6 @@ def run(argv=None):
 
     p = beam.Pipeline(options=options)
 
-    # Delete bigquery dataset on pipeline start.
-    deleted_tables = (
-        p | beam.Create([None])  # dummy PCollection to trigger delete tables.
-        | 'delete_tables' >> beam.ParDo(
-            DeleteDataSetTables(options.dataset, options.write_disposition)))
-
     # Cleanup json documents.
     sanitized_assets = (
         p | 'read' >> ReadFromText(options.input, coder=JsonCoder())
@@ -463,12 +464,13 @@ def run(argv=None):
     (keyed_assets | 'group_assets_by_key' >> beam.GroupByKey()
      | 'enforce_schema' >> beam.ParDo(EnforceSchemaDataTypes(), pvalue_schemas)
      | 'write_to_gcs' >> beam.ParDo(
-        WriteToGCS(options.stage, options.load_time))
+         WriteToGCS(options.stage, options.load_time))
      | 'group_written_objets_by_key' >> beam.GroupByKey()
+     | 'delete_tables' >> beam.ParDo(
+         DeleteDataSetTables(options.dataset, options.write_disposition))
      | 'load_to_bigquery' >> beam.ParDo(
          LoadToBigQuery(options.dataset, options.write_disposition,
-                        options.load_time), beam.pvalue.AsDict(schemas),
-         beam.pvalue.AsSingleton(deleted_tables)))
+                        options.load_time), beam.pvalue.AsDict(schemas)))
 
     return p.run()
 

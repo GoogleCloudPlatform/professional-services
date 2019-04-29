@@ -200,27 +200,42 @@ class TestApiSchema(unittest.TestCase):
             data_fields)
         self.assertEqual(len(schema), 4)
 
+    def test_self_recursive_properties(self):
+        discovery_doc = {
+            'id': 'recursive#api',
+            'schemas': {
+                'Object-1': {
+                    'properties': {
+                        'property-1': {
+                            'type': 'object',
+                            '$ref': 'Object-2'}}},
+                'Object-2': {
+                    'properties': {
+                        'property-1': {
+                            'type': 'object',
+                            '$ref': 'Object-2'}}}}}
+        schema = APISchema._translate_resource_to_schema(
+            'Object-1',
+            discovery_doc)
+        schema.sort()
+        self.assertEqual(schema, [])
+
     def test_recursive_properties(self):
-        resources = {
-            'Object-1': {
-                'properties': {
-                    'property-1': {
-                        'type': 'object',
-                        '$ref': 'Object-2',
-                    }
-                }
-            },
-            'Object-2': {
-                'properties': {
-                    'property-2': {
-                        'type': 'object',
-                        '$ref': 'Object-1',
-                    }
-                }
-            }
-        }
-        schema = APISchema._properties_map_to_field_list(
-            resources['Object-1']['properties'],
-            resources, {})
+        discovery_doc = {
+            'id': 'recursive#api',
+            'schemas': {
+                'Object-1': {
+                    'properties': {
+                        'property-1': {
+                            'type': 'object',
+                            '$ref': 'Object-2'}}},
+                'Object-2': {
+                    'properties': {
+                        'property-2': {
+                            'type': 'object',
+                            '$ref': 'Object-1'}}}}}
+        schema = APISchema._translate_resource_to_schema(
+            'Object-1',
+            discovery_doc)
         schema.sort()
         self.assertEqual(schema, [])
