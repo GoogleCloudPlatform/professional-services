@@ -51,7 +51,7 @@ class Config(object):
 
     def __init__(self, config_file):
         with open(config_file, 'r') as config_yaml:
-            config_dict = yaml.load(config_yaml)
+            config_dict = yaml.load(config_yaml, Loader=yaml.BaseLoader)
             for pname in config_dict:
                 setattr(self, pname.lower(), config_dict[pname])
         # Enable beam on python3 if using direct runner on python3.
