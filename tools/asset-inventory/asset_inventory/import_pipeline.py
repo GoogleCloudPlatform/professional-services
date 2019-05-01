@@ -181,9 +181,8 @@ class MapCAIProperties(beam.DoFn):
 
 
 class EnforceSchemaDataTypes(beam.DoFn):
-    """Load each GCS object into BigQuery.
-    The Beam python SDK doesn't support dynamic BigQuery destinations yet so
-    this must be done within the workers.
+    """Convert values to match schema types.
+    Change json values to match the expected types of the input schema.
     """
 
     def process(self, element, schemas):
@@ -191,17 +190,11 @@ class EnforceSchemaDataTypes(beam.DoFn):
         key_name = element[0]
         elements = element[1]
         schema = schemas[key_name]
-        return_elements = []
         for elem in elements:
             resource_data = elem.get('resource', {}).get('data', {})
             if resource_data:
-                return_elements.append(
-                    bigquery_schema.enforce_schema_data_types(elem, schema))
-            else:
-                return_elements.append(elem)
-        # important to create a new tuple otherwise Dataflow runner will not
-        # think any change was made.
-        yield (key_name, return_elements)
+                bigquery_schema.enforce_schema_data_types(elem, schema)
+            yield (key_name, elem)
 
 
 class CombinePolicyResource(beam.DoFn):
@@ -437,7 +430,7 @@ def run(argv=None):
     p = beam.Pipeline(options=options)
 
     # Cleanup json documents.
-    sanitized_assets = (
+    sanitized = (
         p | 'read' >> ReadFromText(options.input, coder=JsonCoder())
         | 'map_cai_properties' >> beam.ParDo(MapCAIProperties())
         | 'produce_resource_json' >> beam.ParDo(ProduceResourceJson(
@@ -445,13 +438,13 @@ def run(argv=None):
         | 'bigquery_sanitize' >> beam.ParDo(BigQuerySanitize()))
 
     # Joining all iam_policy objects with resources of the same name.
-    merged_iam_and_asset = (
-        sanitized_assets | 'name_key' >> beam.ParDo(AssignGroupByKey('NAME'))
+    merged_iam = (
+        sanitized | 'assign_name_key' >> beam.ParDo(AssignGroupByKey('NAME'))
         | 'group_by_name' >> beam.GroupByKey()
         | 'combine_policy' >> beam.ParDo(CombinePolicyResource()))
 
     # split into BigQuery tables.
-    keyed_assets = merged_iam_and_asset | 'group_by_key' >> beam.ParDo(
+    keyed_assets = merged_iam | 'assign_group_by_key' >> beam.ParDo(
         AssignGroupByKey(options.group_by))
 
     # Generate BigQuery schema for each table.
@@ -461,8 +454,9 @@ def run(argv=None):
     pvalue_schemas = beam.pvalue.AsDict(schemas)
     # Write to GCS and load to BigQuery.
     # pylint: disable=expression-not-assigned
-    (keyed_assets | 'group_assets_by_key' >> beam.GroupByKey()
+    (keyed_assets | 'group_by_key_before_enforce' >> beam.GroupByKey()
      | 'enforce_schema' >> beam.ParDo(EnforceSchemaDataTypes(), pvalue_schemas)
+     | 'group_by_key_before_write' >> beam.GroupByKey()
      | 'write_to_gcs' >> beam.ParDo(
          WriteToGCS(options.stage, options.load_time))
      | 'group_written_objets_by_key' >> beam.GroupByKey()

@@ -81,18 +81,17 @@ class APISchema(object):
         # calculate all the discovery documents from the url.
         discovery_documents = []
         api_name = cls._get_api_name_for_discovery_document_url(dd_url)
+        dd = cls._get_discovery_document(dd_url)
+        # add the discovery document to return value
+        discovery_documents += [dd] if dd else []
+        # and discovery documents from other versions of the same API.
         all_discovery_docs = cls._get_discovery_document(
             'https://content.googleapis.com/discovery/v1/apis')
-        dd = cls._get_discovery_document(dd_url)
-        if dd:
-            discovery_documents.append(dd)
         for discovery_doc in all_discovery_docs['items']:
-            if api_name == discovery_doc['name']:
-                url = discovery_doc['discoveryRestUrl']
-                if url != dd_url:
-                    dd = cls._get_discovery_document(url)
-                    if dd:
-                        discovery_documents.append(dd)
+            dru = discovery_doc['discoveryRestUrl']
+            if (api_name == discovery_doc['name'] and dru != dd_url):
+                dd = cls._get_discovery_document(dru)
+                discovery_documents += [dd] if dd else []
         return discovery_documents
 
     @classmethod
@@ -119,10 +118,8 @@ class APISchema(object):
             return cls._get_bigquery_type_for_property(
                 property_value['items'],
                 resources)
-        # number.
         if property_type in ('number', 'integer'):
             bigquery_type = 'NUMERIC'
-        # bool.
         elif property_type == 'boolean':
             bigquery_type = 'BOOL'
         # type reference.
@@ -138,7 +135,7 @@ class APISchema(object):
     @classmethod
     def _ref_resource_name(cls, property_value):
         ref_name = property_value.get('$ref', None)
-        # optionally strip the '#/definitions/' prefix.
+        # strip the '#/definitions/' prefix if present.
         if ref_name and ref_name.startswith('#/definitions/'):
             return ref_name[len('#/definitions/'):]
         return ref_name
@@ -234,7 +231,7 @@ class APISchema(object):
 
     @classmethod
     def _get_document_resources(cls, document):
-        if 'schemas' in document:
+        if document.get('schemas'):
             return document['schemas']
         return document['definitions']
 
