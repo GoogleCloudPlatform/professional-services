@@ -39,8 +39,7 @@ import_dataflow_project: <ENTER-PROJECT>
 # network and subnetwork values
 # "network": "https://www.googleapis.com/compute/v1/projects/<project>/networks/<network>"
 # "subnetwork": "https://www.googleapis.com/compute/v1/projects/<project>/regions/<region>/subnetworks/<subnetwork>"
-#
-
+# Or try the new (faster) shuffler by adding  "additionalExperiments": ["shuffle_mode=service"]
 import_pipeline_runtime_environment: >
   {
     "tempLocation": "<ENTER-BUCKET-URL>/dataflow_temp",
@@ -77,6 +76,12 @@ import_group_by: ASSET_TYPE
 
 # If tables should be ovewritten (WRITE_EMPTY) or appended (WRITE_APPEND) to.
 import_write_disposition: WRITE_APPEND
+
+# Number of shards to use per asset type. If you have a large number of a
+# particular asset type like BigQuery tables you can speed up the pipeline by
+# sharding, For example: num_shards:
+# *=1,resource=100,google.cloud.bigquery.Table=100
+import_num_shards: "*=1"
 
 # If we are running on App Engine and only want to be invoked by cron tasks for security reasons.
 restrict_to_cron_tasks: True

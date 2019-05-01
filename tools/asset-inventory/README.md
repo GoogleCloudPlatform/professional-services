@@ -377,4 +377,8 @@ This repository contains some command line tools that let you run the export/imp
 
 1. How can I speed up the import process?
 
-   Within the the import_pipeline_runtime_environment value of `asset-inventory/gae/config.yaml` remove the `maxWorkers` limit to let the job autoscale, configure larger instance types by setting the `machineType` property to `n1-standard-16` and try enabling the the [Dataflow Shuffler](https://cloud.google.com/dataflow/docs/guides/deploying-a-pipeline#cloud-dataflow-shuffle) by adding `"additionalExperiments": ["shuffle_mode=service"]`.
+   If you have a large number of a particular asset type like BigQuery tables, or Kubernetes pods you can configure the pipeline to process and load multiple shards with the 'num_shards' parameter. Try configuring it in the  of `asset-inventory/gae/config.yaml` file. For example:
+
+   ```num_shards: *=1,resource=100,google.cloud.bigquery.Table=100```
+
+   Within the the import_pipeline_runtime_environment value remove the `maxWorkers` limit to let the job autoscale, configure larger instance types by setting the `machineType` property to `n1-standard-16` and try enabling the the [Dataflow Shuffler](https://cloud.google.com/dataflow/docs/guides/deploying-a-pipeline#cloud-dataflow-shuffle) by adding `"additionalExperiments": ["shuffle_mode=service"]`.

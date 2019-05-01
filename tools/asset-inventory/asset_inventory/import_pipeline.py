@@ -32,6 +32,7 @@ import copy
 from datetime import datetime
 import json
 import logging
+import random
 import pprint
 
 import apache_beam as beam
@@ -77,10 +78,32 @@ class AssignGroupByKey(beam.DoFn):
       intermediary step prior to load.
     """
 
-    def __init__(self, group_by):
+    def __init__(self, group_by, num_shards):
         if isinstance(group_by, string_types):
             group_by = StaticValueProvider(str, group_by)
+        if isinstance(num_shards, str):
+            num_shards = StaticValueProvider(str, num_shards)
+
+        self.num_shards = num_shards
         self.group_by = group_by
+        self.shard_map = None
+
+    def apply_shard(self, key):
+        if self.shard_map is None:
+            self.shard_map = {
+                k: int(v) for (k, v) in
+                [sc.split('=') for sc in self.num_shards.get().split(',')]}
+        key_shards = self.shard_map.get(key)
+        if key_shards is None:
+            key_shards = self.shard_map.get('*')
+        if key_shards is None:
+            key_shards = 1
+        shard = random.randint(0, key_shards - 1)
+        return key + '.' + str(shard)
+
+    @classmethod
+    def remove_shard(cls, key):
+        return key[:key.rfind('.')]
 
     def process(self, element):
         key = 'ASSET_TYPE'
@@ -88,16 +111,18 @@ class AssignGroupByKey(beam.DoFn):
         if group_by == 'NAME':
             key = element['asset_type'] + '.' + element['name']
         elif group_by == 'NONE':
-            key = element.pop('_group_by', 'resource')
+            key = self.apply_shard(element.pop('_group_by', 'resource'))
         elif group_by == 'ASSET_TYPE':
             # use group_by element override if present.
-            key = element.pop('_group_by', element['asset_type'])
+            key = self.apply_shard(element.pop('_group_by',
+                                               element['asset_type']))
         elif group_by == 'ASSET_TYPE_VERSION':
             version = ''
             if 'resource' in element:
                 version = element['resource']['version']
                 key = element['asset_type'] + '.' + version
             key = element.pop('_group_by', key)
+            key = self.apply_shard(key)
         yield (key, element)
 
 
@@ -266,18 +291,16 @@ class WriteToGCS(beam.DoFn):
 
     def finish_bundle(self):
         for _, file_handle in self.open_files.items():
+            logging.info('finish bundle')
             file_handle.close()
 
 
 class BigQueryDoFn(beam.DoFn):
     """Superclass for a DoFn that requires BigQuery dataset information."""
 
-    def __init__(self, dataset, write_disposition):
+    def __init__(self, dataset):
         if isinstance(dataset, string_types):
             dataset = StaticValueProvider(str, dataset)
-        if isinstance(write_disposition, string_types):
-            write_disposition = StaticValueProvider(str, write_disposition)
-        self.write_disposition = write_disposition
         self.dataset = dataset
         self.bigquery_client = None
         self.dataset_location = None
@@ -310,12 +333,20 @@ class DeleteDataSetTables(BigQueryDoFn):
     dataset before loading so that no old asset types remain.
     """
 
+    def __init__(self, dataset, write_disposition):
+        super(DeleteDataSetTables, self).__init__(dataset)
+        if isinstance(write_disposition, string_types):
+            write_disposition = StaticValueProvider(str, write_disposition)
+        self.write_disposition = write_disposition
+
     def process(self, element):
         if self.write_disposition.get() == 'WRITE_APPEND':
             yield element
         else:
+            key_name = AssignGroupByKey.remove_shard(element[0])
+            table_name = key_name.replace('.', '_')
             table_ref = self.get_dataset_ref().table(
-                element[0].replace('.', '_'))
+                table_name)
             try:
                 self.bigquery_client.delete_table(table_ref)
             except NotFound:
@@ -329,8 +360,8 @@ class LoadToBigQuery(BigQueryDoFn):
     this must be done within the workers.
     """
 
-    def __init__(self, dataset, write_disposition, load_time):
-        super(LoadToBigQuery, self).__init__(dataset, write_disposition)
+    def __init__(self, dataset, load_time):
+        super(LoadToBigQuery, self).__init__(dataset)
         if isinstance(load_time, string_types):
             load_time = StaticValueProvider(str, load_time)
         self.load_time = load_time
@@ -346,19 +377,19 @@ class LoadToBigQuery(BigQueryDoFn):
         """Element is a tuple of key_ name and iterable of filesystem paths."""
 
         dataset_ref = self.get_dataset_ref()
-        key_name = element[0]
+        sharded_key_name = element[0]
+        key_name = AssignGroupByKey.remove_shard(element[0])
         object_paths = [object_path for object_path in element[1]]
-        table_ref = dataset_ref.table(key_name.replace('.', '_'))
         job_config = bigquery.LoadJobConfig()
-        write_disposition = self.write_disposition.get()
-        job_config.write_disposition = write_disposition
-        if write_disposition == 'WRITE_APPEND':
-            job_config.schema_update_options = [
-                bigquery.job.SchemaUpdateOption.ALLOW_FIELD_ADDITION]
+        job_config.write_disposition = 'WRITE_APPEND'
+        job_config.schema_update_options = [
+            bigquery.job.SchemaUpdateOption.ALLOW_FIELD_ADDITION]
+
+        table_ref = dataset_ref.table(key_name.replace('.', '_'))
         # use load_time as a timestamp.
         job_config.time_partitioning = bigquery.table.TimePartitioning(
             field='timestamp')
-        job_config.schema = self.to_bigquery_schema(schemas[key_name])
+        job_config.schema = self.to_bigquery_schema(schemas[sharded_key_name])
         job_config.source_format = bigquery.SourceFormat.NEWLINE_DELIMITED_JSON
         try:
             load_job = self.bigquery_client.load_table_from_uri(
@@ -396,13 +427,13 @@ class ImportAssetOptions(PipelineOptions):
     def _add_argparse_args(cls, parser):
         parser.add_value_provider_argument(
             '--group_by',
-            default=StaticValueProvider(str, 'ASSET_TYPE'),
+            default='ASSET_TYPE',
             choices=['ASSET_TYPE', 'ASSET_TYPE_VERSION', 'NONE'],
             help='How to group exported resources into Bigquery tables.')
 
         parser.add_value_provider_argument(
             '--write_disposition',
-            default=StaticValueProvider(str, 'WRITE_APPEND'),
+            default='WRITE_APPEND',
             choices=['WRITE_APPEND', 'WRITE_EMPTY'],
             help='To append to or overwrite BigQuery tables..')
 
@@ -410,12 +441,20 @@ class ImportAssetOptions(PipelineOptions):
             '--input', help='A glob of all input asset json files to process.')
 
         parser.add_value_provider_argument(
+            '--num_shards', help=(
+                'Number of shards to use per key.'
+                'List of asset types and the number'
+                'of shardes to use for that type with "*" used as a default.'
+                ' For example "google.compute.VpnTunnel=1,*=10"'),
+            default='*=1')
+
+        parser.add_value_provider_argument(
             '--stage',
             help='GCS location to write intermediary BigQuery load files.')
 
         parser.add_value_provider_argument(
             '--load_time',
-            default=StaticValueProvider(str, datetime.now().isoformat()),
+            default=datetime.now().isoformat(),
             help='Load time of the data (YYYY-MM-DD[HH:MM:SS])).')
 
         parser.add_value_provider_argument(
@@ -439,13 +478,14 @@ def run(argv=None):
 
     # Joining all iam_policy objects with resources of the same name.
     merged_iam = (
-        sanitized | 'assign_name_key' >> beam.ParDo(AssignGroupByKey('NAME'))
+        sanitized | 'assign_name_key' >> beam.ParDo(
+            AssignGroupByKey('NAME', options.num_shards))
         | 'group_by_name' >> beam.GroupByKey()
         | 'combine_policy' >> beam.ParDo(CombinePolicyResource()))
 
     # split into BigQuery tables.
     keyed_assets = merged_iam | 'assign_group_by_key' >> beam.ParDo(
-        AssignGroupByKey(options.group_by))
+        AssignGroupByKey(options.group_by, options.num_shards))
 
     # Generate BigQuery schema for each table.
     schemas = keyed_assets | 'to_schema' >> core.CombinePerKey(
@@ -459,12 +499,12 @@ def run(argv=None):
      | 'group_by_key_before_write' >> beam.GroupByKey()
      | 'write_to_gcs' >> beam.ParDo(
          WriteToGCS(options.stage, options.load_time))
-     | 'group_written_objets_by_key' >> beam.GroupByKey()
+     | 'group_written_objects_by_key' >> beam.GroupByKey()
      | 'delete_tables' >> beam.ParDo(
          DeleteDataSetTables(options.dataset, options.write_disposition))
      | 'load_to_bigquery' >> beam.ParDo(
-         LoadToBigQuery(options.dataset, options.write_disposition,
-                        options.load_time), beam.pvalue.AsDict(schemas)))
+         LoadToBigQuery(options.dataset, options.load_time),
+         beam.pvalue.AsDict(schemas)))
 
     return p.run()
 
