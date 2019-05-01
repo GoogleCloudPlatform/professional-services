@@ -36,5 +36,11 @@
     "label": "BigQuery dataset to load to.",
     "help_text": "BigQuery dataset name such as project-1.dataset_id or just dataset_id.",
     "regexes": ["^[^\\.]+(.[^\\.]$)?"]
+  },
+  {
+    "name": "num_shards",
+    "label": "number of shards to run for each asset type.",
+    "help_text": "Number of shards to use per asset type. List of asset types and the number of shardes to use for that type with '*' is a default. For example 'google.compute.VpnTunnel=1,*=10'",
+    "is_optional": true
   }]
 }
