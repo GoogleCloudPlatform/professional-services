@@ -355,8 +355,8 @@ class APISchema(object):
                             'field_type': 'NUMERIC',
                             'mode': 'NULLABLE',
                             'description':
-                            ('1: Admin reads. Example: CloudIAM getIamPolicy',
-                             '2: Data writes. Example: CloudSQL Users create',
+                            ('1: Admin reads. Example: CloudIAM getIamPolicy'
+                             '2: Data writes. Example: CloudSQL Users create'
                              '3: Data reads. Example: CloudSQL Users list')
                         }]
                     }]
