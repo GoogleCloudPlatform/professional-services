@@ -1,6 +1,6 @@
 # Launch Druid on Compute Engine using Terraform
 
-Using this code repository users can launch there  Druid cluster on GCP using terraform.
+This can be used to provision Druid Cluster on GCP using Terraform
 
 ## Resources to launch
 
