@@ -170,5 +170,79 @@ class TestBigQuerySchema(unittest.TestCase):
                 assert label['value'] == 'value2'
         self.assertTrue(labels_found[0] and labels_found[1])
 
+    def test_enforce_schema_data_types(self):
+        schema = [{'name': 'property_1',
+                   'field_type': 'NUMERIC',
+                   'mode': 'NULLABLE'},
+                  {'name': 'property_2',
+                   'field_type': 'STRING',
+                   'mode': 'NULLABLE'},
+                  {'name': 'property_3',
+                   'field_type': 'DATE',
+                   'mode': 'NULLABLE'},
+                  {'name': 'property_4',
+                   'field_type': 'DATETIME',
+                   'mode': 'NULLABLE'},
+                  {'name': 'property_5',
+                   'field_type': 'BOOL',
+                   'mode': 'NULLABLE'},
+                  {'name': 'property_6',
+                   'field_type': 'NUMERIC',
+                   'mode': 'REPEATED'},
+                  {'name': 'property_7',
+                   'field_type': 'RECORD',
+                   'mode': 'REPEATED',
+                   'fields': [
+                       {'name': 'property_1',
+                        'field_type': 'NUMERIC',
+                        'mode': 'NULLABLE'},
+                       {'name': 'property_2',
+                        'field_type': 'STRING',
+                        'mode': 'NULLABLE'}]}]
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_1': '333'}, schema), {'property_1': 333})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_1': 333}, schema), {'property_1': 333})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_1': 'notanumber'}, schema), {})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_2': 33}, schema), {'property_2': '33'})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_2': 'astring'}, schema), {'property_2': 'astring'})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_3': '2019-01-01'}, schema),
+            {'property_3': '2019-01-01'})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_3': 'invaliddate'}, schema), {})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_4': '2019-01-01T00:01:00'}, schema),
+            {'property_4': '2019-01-01T00:01:00'})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_4': 'invalid'}, schema), {})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_5': False}, schema), {'property_5': False})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_5': 'True'}, schema), {'property_5': True})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_5': 0}, schema), {'property_5': False})
+
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_6': 33}, schema), {'property_6': [33]})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_6': '33'}, schema), {'property_6': [33]})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_6': {'33'}}, schema), {})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_6': [33]}, schema), {'property_6': [33]})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_7': [{'property_1': 'invalid',
+                             'property_2': 'valid'}]}, schema),
+            {'property_7': [{'property_2': 'valid'}]})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_7': [{'property_1': 'invalid'}]}, schema), {})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_7': [{'property_1': 'invalid'}, 33]}, schema), {})
+
+
 if __name__ == '__main__':
     unittest.main()
