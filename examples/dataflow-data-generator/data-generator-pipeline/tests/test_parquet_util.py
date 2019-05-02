@@ -22,7 +22,7 @@ fix_record_for_parquet
 class TestParquetUtil(unittest.TestCase):
     def test_get_pyarrow_translated_schema(self):
 
-        string_input_schema = [
+        string_input_schema = {"fields":[
             {
                 "type": "STRING",
                 "name": "string1",
@@ -84,7 +84,7 @@ class TestParquetUtil(unittest.TestCase):
                         "mode": "REQUIRED"
                     }]
             }
-        ]
+        ]}
         expected_pa_schema = pa.schema(
             [
                 pa.field(
