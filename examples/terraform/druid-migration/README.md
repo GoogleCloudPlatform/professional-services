@@ -5,13 +5,13 @@ This can be used to provision Druid Cluster on GCP using Terraform
 ## Resources to launch
 
 * CloudSQL Instance
- 
+
 * Dataproc Cluster
- 
+
 * Zookeeper Cluster
-    
+
 * Kafka Cluster
-    
+
 * Druid Cluster
 
 
@@ -28,154 +28,566 @@ cd druid_terraform/
 2. [Create a service account](https://cloud.google.com/iam/docs/creating-managing-service-accounts#creating_a_service_account) and grant the following roles to the service account by following these [instructions](https://cloud.google.com/iam/docs/granting-roles-to-service-accounts#granting_access_to_a_service_account_for_a_resource)
 
     * Service networking admin
- 
-    *  iam.serviceAccountUser
- 
+
+    * iam.serviceAccountUser
+
     * roles/compute.admin
-    
+
     * roles/compute.securityAdmin
-    
+
     * roles/storage.admin
-    
+
     * roles/cloudsql.admin
- 
+
     * roles/dataproc.editor
-    
-	
-## Input variables
 
-Below are the variables which we are using while deploying the infrastructure using terraform.
+## Required Inputs
 
-- `project` (required): GCP Project ID.
+The following input variables are required:
 
-- `region` (required): The region to create the resources in. Defaults to `us-central1`.
+## Optional Inputs
 
-- `zone` (required): The region to create the resources in. Defaults to `us-central1-a`.
+The following input variables are optional (have default values):
 
-- `bucket_name` (required): Name of the GCS bucket to store configuration files and act as Druid metastore.
+### activation\_policy
 
-- `cloud_sql_instance_name` (required): Name of the Cloud SQL instance to act as Druid metastore.
+Description: This specifies when the instance should be active. Can be either `ALWAYS`, `NEVER` or `ON_DEMAND`.
 
-- `database_version` (required): The version of of the database. Defaults to `MYSQL_5_7`.
+Type: `string`
 
-- `master_instance_name` (required): The name of the master instance to create. Defaults to `sql-master-instance`.
+Default: `"ALWAYS"`
 
-- `tier` (required): The machine tier. Default is `db-f1-micro`.
+### broker\_node\_count
 
-- `db_name` (required): Name of the default database to create. Defaults to `druid`.
+Description: Number of Broker node of druid to be created.
 
-- `user_name` (required): The name of the default user. Defaults to `druid`.
+Type: `string`
 
-- `user_host` (required): The host for the default user. Defaults to `%`.
+Default: `"2"`
 
-- `activation_policy` (required): This specifies when the instance should be active. Can be either `ALWAYS`, `NEVER` or `ON_DEMAND`. Defaults to `ALWAYS`.
+### broker\_node\_name
 
-- `disk_size` (required): The size of data disk, in GB. Defaults to `10` GB.
+Description: Name of the Broker node
 
-- `disk_type` (required): The type of data disk: `PD_SSD` or `PD_HDD`. Defaults to `PD_SSD`.
+Type: `string`
 
-- `network` (required): VPC network to be used for resource creation. Defaults to `default`.
+Default: `"\u003cbroker_node_name\u003e"`
 
-- `private_ip_name` (required): VPC private network name to be created for Cloud SQL vpc peering. Defaults to `druid-private-network`.
+### bucket\_name
 
-- `dataproc_cluster_name` (required): Dataproc cluster name.
+Description: Name for the bucket to be created, it will be used for storing the initialization script, dataproc logs and hadoop configuration files.
 
-- `dataproc_master_count` (required): Number of dataproc master node to be created. Defaults to `1`.
+Type: `string`
 
-- `dataproc_master_machine_type` (required): Machine type for the Dataproc master instance. Defaults to `n1-standard-1`. 
+Default: `"\u003cbucket_name\u003e"`
 
-- `dataproc_master_boot_disk_size_gb` (required): Boot disk size of the Dataproc master instance. Defaults to `15` GB.
+### cloud\_sql\_instance\_name
 
-- `dataproc_worker_count` (required): Number of workers for the Dataproc cluster. Defaults to `2`.
+Description: Name of the CloudSQL resource to be created.
 
-- `dataproc_worker_machine_type` (required): Machine type for the Dataproc worker instance. Defaults to `n1-standard-1`.
+Type: `string`
 
-- `dataproc_worker_boot_disk_size_gb` (required): Boot disk size of the Dataproc worker instance. Defaults to `15` GB.
+Default: `"\u003csql_instance_name\u003e"`
 
-- `mod_startup_script` (readonly): This variable is used internally to store the rendered shell script.
+### coordinator\_node\_count
 
-- `druid_conf_path` (required): Path for the common.runtime.properties to be stored in all of the druid nodes. Defaults to `/opt/druid/druid-0.12.3/conf/druid/_common/common.runtime.properties`.
+Description: Number of Cordinator node of druid to be created.
 
-- `zookeeper_name` (required): Name for zookeeper nodes, based on the count, index increases in instance name `-1`.
+Type: `string`
 
-- `zookeeper_machine_type` (required): Machine type for Zookeeper cluster. Defaults to `n1-standard-1`.
+Default: `"1"`
 
-- `zookeeper_disk` (required): Base image to be used for Zookeeper. Defaults to `ubuntu-os-cloud/ubuntu-1604-lts`.
+### coordinator\_node\_name
 
-- `zookeeper_ip_list` (readonly): This variable is used internally for storing the list of Zookeeper clusters IP Address.
+Description: Name of the Coordinator node
 
-- `zookeeper_ip_ls` (readonly): This variable is used internally for storing the list of Zookeeper clusters IP Address.
+Type: `string`
 
-- `kafka_machine_type` (required): Machine type for Kafka cluster. Defaults to `n1-standard-1`.
+Default: `"\u003ccoordinator_node_name\u003e"`
 
-- `kafka_name` (required): Name for kafka nodes, based on the count, index increases in instance name `-1`.
+### database\_version
 
-- `kafka_disk` (required): Base image to be used for Kafka. Defaults to `ubuntu-os-cloud/ubuntu-1604-lts`.
+Description: The version of of the database. For example, `MYSQL_5_6` or `POSTGRES_9_6`.
 
-- `historical_node_name` (required): Name of the Historical node, based on the count, index increases in instance name `-1`.
+Type: `string`
 
-- `historical_node_count` (required): Number of the Historical node to be created. Defaults to `1`.
+Default: `"MYSQL_5_7"`
 
-- `druid_historical_disk_size` (required): Boot disk size of the Historical instance. Defaults to `200`GB.
+### dataproc\_cluster\_name
 
-- `druid_historical_machine_type` (required): Machine type for the Historical instance. Defaults to `n1-standard-32`.
+Description: Cluster name for dataproc.
 
-- `druid_historical_disk` (required): Base image to be used for the Historical node. Defaults to `ubuntu-os-cloud/ubuntu-1604-lts`.
+Type: `string`
 
-- `middlemanager_node_name` (required): Name of the MiddleManager node, based on the count, index increases in instance name `-1`.
+Default: `"\u003cdataproc_cluster_name\u003e"`
 
-- `middlemanager_node_count` (required): Number of the MiddleManager node to be created. Defaults to `1`.
+### dataproc\_master\_boot\_disk\_size\_gb
 
-- `druid_middlemanager_disk_size` (required): Boot disk size of the MiddleManager instance. Defaults to `200`GB.
+Description: Size of the disk for dataproc master node.
 
-- `druid_middlemanager_machine_type` (required): Machine type for the MiddleManager instance. Defaults to `n1-standard-32`.
+Type: `string`
 
-- `druid_middlemanager_disk` (required): Base image to be used for the MiddleManager node. Defaults to `ubuntu-os-cloud/ubuntu-1604-lts`.
+Default: `"200"`
 
-- `coordinator_node_name` (required): Name of the Coordinator node, based on the count, index increases in instance name `-1`.
+### dataproc\_master\_count
 
-- `coordinator_node_count` (required): Number of the Coordinator node to be created. Defaults to `1`.
+Description: Number of dataproc master node to be created.
 
-- `druid_coordinator_disk_size` (required): Boot disk size of the Coordinator instance. Defaults to `200`GB.
+Type: `string`
 
-- `druid_coordinator_machine_type` (required): Machine type for the Coordinator instance. Defaults to `n1-standard-2`.
+Default: `"1"`
 
-- `druid_coordinator_disk` (required): Base image to be used for the Coordinator node. Defaults to `ubuntu-os-cloud/ubuntu-1604-lts`.
+### dataproc\_master\_machine\_type
 
-- `broker_node_name` (required): Name of the Broker node, based on the count, index increases in instance name `-1`.
+Description: Machine type for dataproc master node.
 
-- `broker_node_count` (required): Number of the Broker node to be created. Defaults to `1`.
+Type: `string`
 
-- `druid_broker_disk_size` (required): Boot disk size of the Broker instance. Defaults to `200`GB.
+Default: `"n1-standard-8"`
 
-- `druid_broker_machine_type` (required): Machine type for the Broker instance. Defaults to `n1-standard-32`.
+### dataproc\_worker\_boot\_disk\_size\_gb
 
-- `druid_broker_disk` (required): Base image to be used for the Broker node. Defaults to `ubuntu-os-cloud/ubuntu-1604-lts`.
+Description: Size of the disk for dataproc worker node.
 
-- `overlord_node_name` (required): Name of the Overlord node, based on the count, index increases in instance name `-1`.
+Type: `string`
 
-- `overlord_node_count` (required): Number of the Overlord node to be created. Defaults to `1`.
+Default: `"500"`
 
-- `druid_overlord_disk_size` (required): Boot disk size of the Overlord instance. Defaults to `200`GB.
+### dataproc\_worker\_count
 
-- `druid_overlord_machine_type` (required): Machine type for the Overlord instance. Defaults to `n1-standard-2`.
+Description: Number of dataproc worker node to be created.
 
-- `druid_overlord_disk` (required): Base image to be used for the Overlord node. Defaults to `ubuntu-os-cloud/ubuntu-1604-lts`
+Type: `string`
 
-- `router_node_name` (required): Name of the Router node, based on the count, index increases in instance name `-1`.
+Default: `"6"`
 
-- `router_node_count` (required): Number of the Router node to be created. Defaults to `1`.
+### dataproc\_worker\_machine\_type
 
-- `druid_router_disk_size` (required): Boot disk size of the Router instance. Defaults to `200`GB.
+Description: Machine type for dataproc worker node.
 
-- `druid_router_machine_type` (required): Machine type for the Router instance. Defaults to `n1-standard-32`.
+Type: `string`
 
-- `druid_router_disk` (required): Base image to be used for the Router node. Defaults to `ubuntu-os-cloud/ubuntu-1604-lts`.
+Default: `"n1-standard-32"`
 
+### db\_name
+
+Description: Name of the default database to create
+
+Type: `string`
+
+Default: `"druid"`
+
+### disk\_size
+
+Description: Second generation only. The size of data disk, in GB. Size of a running instance cannot be reduced but can be increased.
+
+Type: `string`
+
+Default: `"10"`
+
+### disk\_type
+
+Description: Second generation only. The type of data disk: `PD_SSD` or `PD_HDD`.
+
+Type: `string`
+
+Default: `"PD_SSD"`
+
+### druid\_broker\_disk
+
+Description: Operating System for Druid Broker node.
+
+Type: `string`
+
+Default: `"ubuntu-os-cloud/ubuntu-1604-lts"`
+
+### druid\_broker\_disk\_size
+
+Description: Disk size for Druid Broker node.
+
+Type: `string`
+
+Default: `"200"`
+
+### druid\_broker\_machine\_type
+
+Description: Machine type for Druid Broker node.
+
+Type: `string`
+
+Default: `"n1-standard-8"`
+
+### druid\_conf\_path
+
+Description: Path for configuration to be stored in all the druid nodes.
+
+Type: `string`
+
+Default: `"/opt/druid/druid-0.13.0/conf/druid/_common/common.runtime.properties"`
+
+### druid\_coordinator\_disk
+
+Description: Operating System for Druid Coordinator node.
+
+Type: `string`
+
+Default: `"ubuntu-os-cloud/ubuntu-1604-lts"`
+
+### druid\_coordinator\_disk\_size
+
+Description: Disk size for Druid Coordinator node.
+
+Type: `string`
+
+Default: `"200"`
+
+### druid\_coordinator\_machine\_type
+
+Description: Machine type for Druid Coordinator node.
+
+Type: `string`
+
+Default: `"n1-standard-2"`
+
+### druid\_historical\_disk
+
+Description: Operating System for Druid Historical node.
+
+Type: `string`
+
+Default: `"ubuntu-os-cloud/ubuntu-1604-lts"`
+
+### druid\_historical\_disk\_size
+
+Description: Disk size for Druid Historical node.
+
+Type: `string`
+
+Default: `"200"`
+
+### druid\_historical\_machine\_type
+
+Description: Machine type for Druid Historical node.
+
+Type: `string`
+
+Default: `"n1-standard-8"`
+
+### druid\_middlemanager\_disk
+
+Description: Operating System for Druid Middlemanager node.
+
+Type: `string`
+
+Default: `"ubuntu-os-cloud/ubuntu-1604-lts"`
+
+### druid\_middlemanager\_disk\_size
+
+Description: Disk size for Druid Middlemanager node.
+
+Type: `string`
+
+Default: `"200"`
+
+### druid\_middlemanager\_machine\_type
+
+Description: Machine type for Druid Middlemanager node.
+
+Type: `string`
+
+Default: `"n1-standard-8"`
+
+### druid\_overlord\_disk
+
+Description: Operating System for Druid Overlord node.
+
+Type: `string`
+
+Default: `"ubuntu-os-cloud/ubuntu-1604-lts"`
+
+### druid\_overlord\_disk\_size
+
+Description: Disk size for Druid Overlord node.
+
+Type: `string`
+
+Default: `"200"`
+
+### druid\_overlord\_machine\_type
+
+Description: Machine type for Druid Overlord node.
+
+Type: `string`
+
+Default: `"n1-standard-2"`
+
+### druid\_router\_disk
+
+Description: Operating System for Druid Router node.
+
+Type: `string`
+
+Default: `"ubuntu-os-cloud/ubuntu-1604-lts"`
+
+### druid\_router\_disk\_size
+
+Description: Disk size for Druid Overlord node.
+
+Type: `string`
+
+Default: `"200"`
+
+### druid\_router\_machine\_type
+
+Description: Machine type for Druid Router node.
+
+Type: `string`
+
+Default: `"n1-standard-8"`
+
+### historical\_node\_count
+
+Description: Number of Historical node to be created.
+
+Type: `string`
+
+Default: `"2"`
+
+### historical\_node\_name
+
+Description: Name of the Historical node
+
+Type: `string`
+
+Default: `"\u003chistorical_name\u003e"`
+
+### kafka\_disk
+
+Description: Kafka Operating System.
+
+Type: `string`
+
+Default: `"ubuntu-os-cloud/ubuntu-1604-lts"`
+
+### kafka\_machine\_type
+
+Description: Kafka cluster machine type.
+
+Type: `string`
+
+Default: `"n1-standard-1"`
+
+### kafka\_name
+
+Description: Name for kafka nodes
+
+Type: `string`
+
+Default: `"\u003ckafka_node_name\u003e"`
+
+### master\_instance\_name
+
+Description: The name of the master instance to replicate
+
+Type: `string`
+
+Default: `"sql-master-instance-druid-0.13"`
+
+### middlemanager\_node\_count
+
+Description: Number of Middlemanager node to be created.
+
+Type: `string`
+
+Default: `"1"`
+
+### middlemanager\_node\_name
+
+Description: Name of the Middlemanager node
+
+Type: `string`
+
+Default: `"\u003cmiddlemanager_node_name\u003e"`
+
+### mod\_startup\_script
+
+Description: This variable is used internally.
+
+Type: `string`
+
+Default: `"default"`
+
+### network
+
+Description: VPC network to be used for cloudsql vpc peering.
+
+Type: `string`
+
+Default: `"default"`
+
+### overlord\_node\_count
+
+Description: Number of Overlord node of druid to be created.
+
+Type: `string`
+
+Default: `"1"`
+
+### overlord\_node\_name
+
+Description: Name of the Overlord node
+
+Type: `string`
+
+Default: `"\u003coverlord_node_name\u003e"`
+
+### private\_ip\_name
+
+Description: VPC private network name to be created for cloudsql vpc peering.
+
+Type: `string`
+
+Default: `"druid-private-network"`
+
+### project
+
+Description: Project in which resources should be created.
+
+Type: `string`
+
+Default: `"\u003cproject_id\u003e"`
+
+### region
+
+Description: Region in which following resources should be created.
+
+Type: `string`
+
+Default: `"us-central1"`
+
+### router\_node\_count
+
+Description: Number of Overlord node of druid to be created.
+
+Type: `string`
+
+Default: `"1"`
+
+### router\_node\_name
+
+Description: Name of the Historical node
+
+Type: `string`
+
+Default: `"\u003crouter_node_name\u003e"`
+
+### tier
+
+Description: The machine tier (First Generation) or type (Second Generation). See this page for supported tiers and pricing: https://cloud.google.com/sql/pricing
+
+Type: `string`
+
+Default: `"db-f1-micro"`
+
+### user\_host
+
+Description: The host for the default user
+
+Type: `string`
+
+Default: `"%"`
+
+### user\_name
+
+Description: The name of the default user
+
+Type: `string`
+
+Default: `"druid"`
+
+### zone
+
+Description: Zone in the region for the resources to be created.
+
+Type: `string`
+
+Default: `"us-central1-a"`
+
+### zookeeper\_disk
+
+Description: Zookeeper Operating System.
+
+Type: `string`
+
+Default: `"ubuntu-os-cloud/ubuntu-1604-lts"`
+
+### zookeeper\_ip\_list
+
+Description: This variable is used internally for storing the list of Zookeeper clusters IP Address
+
+Type: `list`
+
+Default: `<list>`
+
+### zookeeper\_ip\_ls
+
+Description: This variable is used for Kafka to store zookeeper clusters IP address
+
+Type: `list`
+
+Default: `<list>`
+
+### zookeeper\_machine\_type
+
+Description: Zookeeper cluster machine type.
+
+Type: `string`
+
+Default: `"n1-standard-1"`
+
+### zookeeper\_name
+
+Description: Name for zookeeper nodes
+
+Type: `string`
+
+Default: `"\u003czookeeper_node\u003e"`
+
+## Outputs
+
+The following outputs are exported:
+
+### bucket\_url
+
+Description: Bucket URL
+
+### druid\_coordinator\_console
+
+Description: Console of Coordinator node
+
+### druid\_overlord\_console
+
+Description: Console of Overlord node
+
+### private\_network
+
+Description: URL of alloted private network for service VPC peering
+
+### sql\_ip
+
+Description: IP address of the node
+
+### sql\_name
+
+Description: SQL instance name
+
+### sql\_password\_op
+
+Description: SQL instance random generated password
 
 ## Run terraform
 
-### Prerequisites 
+### Prerequisites
 
 * Terraform v0.11.11
 
