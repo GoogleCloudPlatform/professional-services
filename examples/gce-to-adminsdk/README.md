@@ -3,9 +3,9 @@
 
 ## Introduction 
 
-This package provides basic instruction and code snippets (in python), to help users manage access to [Google's AdminSDK](https://developers.google.com/admin-sdk/) using GCE's [service account](https://cloud.google.com/compute/docs/access/create-enable-service-accounts-for-instances) identity. 
+This package provides basic instruction and code snippets (in python), to help users manage access to [Google's Admin SDK](https://developers.google.com/admin-sdk/) using GCE's [service account](https://cloud.google.com/compute/docs/access/create-enable-service-accounts-for-instances) identity. 
 
-When developing code locally (i.e. laptop), best practice is to use a [service account key](https://cloud.google.com/iam/docs/creating-managing-service-account-keys) to access GCP resources. Through _domain-wide delegation of authority_, the service account can impersonate other GSuite users, and gain access to Google Admin Directory APIs. Using a service account key allows the developer to call the _with_subject_ function (of the [oauth2 module](https://google-auth.readthedocs.io/en/latest/reference/google.oauth2.service_account.html)), and assume the delegated role for Admin SDK access. But when running on GCE, there is no _with_subject_ method, as it's not a part of the [google.auth](https://google-auth.readthedocs.io/en/latest/reference/google.auth.html#google.auth.default) package. This causes heartache, as one strives for a single code base that runs both locally, and on GCE. (See https://github.com/googleapis/google-auth-library-python/issues/310).
+When developing code locally (i.e. laptop), best practice is to use a [service account key](https://cloud.google.com/iam/docs/creating-managing-service-account-keys) to access GCP resources. Through _domain-wide delegation of authority_, the service account can impersonate other G Suite users, and gain access to Google Admin SDK APIs. Using a service account key allows the developer to call the _with_subject_ function (of the [oauth2 module](https://google-auth.readthedocs.io/en/latest/reference/google.oauth2.service_account.html)), and assume the delegated role for Admin SDK access. But when running on GCE, there is no _with_subject_ method, as it's not a part of the [google.auth](https://google-auth.readthedocs.io/en/latest/reference/google.auth.html#google.auth.default) package. This causes heartache, as one strives for a single code base that runs both locally, and on GCE. (See https://github.com/googleapis/google-auth-library-python/issues/310).
 
 Building upon a [function](https://github.com/GoogleCloudPlatform/forseti-security/blob/c8d1485e5c88673d8c6190ba0e9a7c22013db385/google/cloud/forseti/common/gcp_api/api_helpers.py#L29-L66) from [Forseti Security](https://forsetisecurity.org/), [main.py](./main.py) provides an example creating credential object(s) with authorization to the Admin Directory API, using service account key file or a GCE service account identity. 
 
@@ -29,11 +29,11 @@ For the service account to be a `signer`, it requires the `roles/iam.serviceAcco
 
 ### Delegated Subject 
 
-The delegated subject should be a GSuite "headless user"; Or a user that will never log in after the initial log on to accept the G Suite Terms. There are a few important properties of this user that should be set. 
+The delegated subject should be a G Suite "headless user"; Or a user that will never log in after the initial log on to accept the G Suite Terms. There are a few important properties of this user that should be set. 
 
   1. Directory sharing (under User Information) - Best to turn off (Optional)
 
-  2. Admin roles and privileges - First go to [AdminRoles](https://support.google.com/a/answer/2406043?hl=en), and create a role with **Admin API Privileges** Group Read Only. Then attach this role to the user. 
+  2. Admin roles and privileges - First go to [Admin roles](https://support.google.com/a/answer/2406043), and create a role with **Admin API Privileges** Group Read Only. Then attach this role to the user. 
 
 ## Permissions Model 
 
