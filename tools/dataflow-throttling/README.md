@@ -2,17 +2,17 @@
 
 ### Introduction
 
-This artifact is designed to implement adaptive client-side throttling. [Adaptive throttling](https://landing.google.com/sre/sre-book/chapters/handling-overload/#eq2101) activates when a service called by Dataflow starts rejecting requests due to throughput higher than expected. Adaptive throttling tracks the request rejection probability to decide whether it should fail locally without going through network to save the cost of rejecting a request.
+This artifact is designed to implement distributed adaptive client-side throttling. [Adaptive throttling](https://landing.google.com/sre/sre-book/chapters/handling-overload/#eq2101) activates when a service called by Dataflow starts rejecting requests due to throughput higher than expected. This transform tracks the request rejection probability to decide whether it should fail locally without going through network to save the cost of rejecting a request.
 
 ### Dataflow Client-side Throttling
 
-This is a generic library intended to implement client-side throttling by rejecting requests that have a high probability of being rejected locally on Dataflow nodes. Irrespective of Batch or Streaming, when Dataflow pipeline is sending HTTP requests to the server with input elements as payload, once the request has been processed by the backend, it should send a response back to the pipeline whether the http request has been accepted or rejected. The error code depends up on the backend throttling implementation (defaults to HTTP code 429).
+This generic library intended to reject requests that have a high probability of being rejected locally on Dataflow nodes. Irrespective of Batch or Streaming, when Dataflow pipeline is sending HTTP requests to the server with input elements as payload, once the request has been processed by the backend, it should send a response back to the pipeline whether the request has been accepted or rejected. The error code depends up on the backend throttling implementation (defaults to HTTP code 429).
 
 ![DataflowThrottling DAG](img/dataflow-throttling-dag.png "Dataflow Throttling DAG")
 
-The library uses [stateful](https://beam.apache.org/blog/2017/02/13/stateful-processing.html) processing. A user on this library needs to implement clientCall function which makes requests to the external service.
+The library uses [stateful](https://beam.apache.org/blog/2017/02/13/stateful-processing.html) processing. A user of this library needs to implement clientCall function which makes requests to the external service.
 
-### Adaptive throttling
+### Adaptive throttling in Dataflow
 
 Dataflow pipeline maintains the number of requests it has sent to the backend [totalRequestsProcessed] and the number of requests got accepted by the backend [acceptedRequests]. Using stateTimer, it will process a batch of elements from each state value and remove the processed elements from the state value. Request rejection probability will be calculated as follows.
     ```RequestRejectionProbability = (total_requests - k * total_accepts)/(total_requests+1)```
@@ -31,7 +31,7 @@ Pipeline transform steps:
 * Converts the Input PCollection<<T>T</T>> into PCollection<<T>Key,Value</T>>. Here, Key will be group id (random by default) and Value will be payload.
 * Adaptive throttling will be applied to each group[State cell] accordingly.
 * Pipeline processes each state cell using [stateful](https://beam.apache.org/blog/2017/02/13/stateful-processing.html) and [timely](https://beam.apache.org/blog/2017/08/28/timely-processing.html) processing. That said each state cell will be processed after reaching a predefined interval of  time. A user function clientCall will be applied on a group of elements.
-* clientCall, a user defined function, is invoked. This function sends PCollection elements to the backend node. Based on the response of the clientCall respective counters will get incremented.
+* ClientCall, a user defined function, is invoked. This function sends PCollection elements to the backend node. Based on the response of the clientCall respective counters will get incremented.
 
 The variables which stores the number of requested and accepted requests are zeroed out after a certain interval of time (defaults to 1 min). This reset speeds up client recovery if server throughput was limited due to limitations on the server side not caused by the client.
 
