@@ -51,6 +51,7 @@ export class BigQueryService {
         const url = bqUrl(`/${projectId}/jobs`, {
           access_token: token,
           maxResults: 200,
+          allUsers: true,
           projection: 'full',
           pageToken: nextPageToken,
         });
