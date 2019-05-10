@@ -1,0 +1,11 @@
+projectid,resource,resourceid,label,zone
+cardinal-data-piper-sbx,project,cardinal-data-piper-sbx,env:dev,
+cardinal-data-piper-sbx,project,cardinal-data-piper-sbx,org:data-engg,
+cardinal-data-piper-sbx,project,cardinal-data-piper-sbx,size:8,
+cardinal-data-piper-sbx,compute engine,5760604619992189475,env:dev,us-west2-a
+cardinal-data-piper-sbx,compute engine,5760604619992189475,org:data-engg,us-west2-a
+cardinal-data-piper-sbx,project,cardinal-data-piper-sbx,manager:martina,
+cardinal-data-piper-sbx,storage,data-piper1,env:dev,
+cardinal-data-piper-sbx,storage,data-piper1,org:data-engg,
+cardinal-data-piper-sbx,bigtable,data-piper1,org:data-engg,
+cardinal-data-piper-sbx,bigtable,data-piper1,env:staging,
