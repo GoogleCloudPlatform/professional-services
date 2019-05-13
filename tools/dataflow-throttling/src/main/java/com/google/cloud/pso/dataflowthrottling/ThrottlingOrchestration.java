@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * This class is defined to read from source, transform using com.google.cloud.pso.dataflowthrottling.DynamicThrottlingTransform
- * and write to sink. While extending com.google.cloud.pso.dataflowthrottling.DynamicThrottlingTransform client has to define clientCall
+ * and write to sink. While using com.google.cloud.pso.dataflowthrottling.DynamicThrottlingTransform client has to define clientCall
  * where each event will be sent to clientCall and processed.
  * # Set the runner
  * RUNNER=DataflowRunner
@@ -77,14 +77,17 @@ public class ThrottlingOrchestration {
     public interface Options extends PipelineOptions {
         @Description("This name of the topic which data should be coming from")
         ValueProvider<String> getInputTopic();
+
         void setInputTopic(ValueProvider<String> value);
 
         @Description("The file pattern to read records from storage object")
         ValueProvider<String> getInputFilePattern();
+
         void setInputFilePattern(ValueProvider<String> value);
 
         @Description("The file pattern to write records to storage object")
         ValueProvider<String> getOutputFilePattern();
+
         void setOutputFilePattern(ValueProvider<String> value);
     }
 
@@ -119,12 +122,12 @@ public class ThrottlingOrchestration {
          *  return output;
          * };
          */
-        DynamicThrottlingTransform.ClientCall<String, Integer> clientCall= csvLine -> {
+        DynamicThrottlingTransform.ClientCall<String, Integer> clientCall = csvLine -> {
             BufferedReader bufferedReader = null;
-            HttpURLConnection con=null;
-            URL url=null;
+            HttpURLConnection con = null;
+            URL url = null;
 
-            url= new URL(null, "http://localhost:8500");
+            url = new URL(null, "http://localhost:8500");
             con = (HttpURLConnection) url.openConnection();
             con.setConnectTimeout(5000);
             con.setRequestMethod("POST");
@@ -136,7 +139,7 @@ public class ThrottlingOrchestration {
             outputStream.flush();
             outputStream.close();
 
-            if(con.getResponseCode()==429){
+            if (con.getResponseCode() == 429) {
                 throw new ThrottlingException();
             }
 
@@ -172,36 +175,36 @@ public class ThrottlingOrchestration {
         // Pipeline code goes here
         LOG.info("Building pipeline...");
 
-        PCollection<String> events=pipeline.apply("Read PubSub Events", PubsubIO.readStrings().fromSubscription(options.getInputTopic()))
+        PCollection<String> events = pipeline.apply("Read PubSub Events", PubsubIO.readStrings().fromSubscription(options.getInputTopic()))
                 .apply(" Window", Window.into(FixedWindows.of(Duration.millis(1800))));
         //PCollection<String> events=pipeline.apply("Read Events", TextIO.read().from(options.getInputFilePattern()));
 
-        DynamicThrottlingTransform<String, Integer> dynamicThrottlingTransform = new DynamicThrottlingTransform.Builder<String, Integer>(clientCall,StringUtf8Coder.of(), 50000)
+        DynamicThrottlingTransform<String, Integer> dynamicThrottlingTransform = new DynamicThrottlingTransform.Builder<String, Integer>(clientCall, StringUtf8Coder.of(), 50000)
                 .withKInRejectionProbability(2).withNumberOfGroups(1).withBatchInterval(java.time.Duration.ofSeconds(1)).withResetCounterInterval(java.time.Duration.ofMinutes(1)).build();
 
         PCollectionTuple enriched = events.apply(dynamicThrottlingTransform);
-        enriched.get(dynamicThrottlingTransform.getSuccessTag()).setCoder(intCoder).apply("SuccessTag",ParDo.of(new DoFn<Integer, String>() {
+        enriched.get(dynamicThrottlingTransform.getSuccessTag()).setCoder(intCoder).apply("SuccessTag", ParDo.of(new DoFn<Integer, String>() {
             @DoFn.ProcessElement
-            public void processElement(ProcessContext context){
+            public void processElement(ProcessContext context) {
                 context.output(context.element().toString());
             }
-        })).apply("WritingSuccessTag",TextIO.write().to(options.getOutputFilePattern()+"successTag").withWindowedWrites().withNumShards(1));
-        enriched.get(dynamicThrottlingTransform.getErrorTag()).apply("ErrorTag",ParDo.of(new DoFn<DynamicThrottlingTransform.Result<String>, String>() {
+        })).apply("WritingSuccessTag", TextIO.write().to(options.getOutputFilePattern() + "successTag").withWindowedWrites().withNumShards(1));
+        enriched.get(dynamicThrottlingTransform.getErrorTag()).apply("ErrorTag", ParDo.of(new DoFn<DynamicThrottlingTransform.Result<String>, String>() {
             @DoFn.ProcessElement
-            public void processElement(ProcessContext context){
+            public void processElement(ProcessContext context) {
                 Gson gson = new Gson();
                 String json = gson.toJson(context.element());
                 context.output(json);
             }
-        })).apply("WritingErrorTag",TextIO.write().to(options.getOutputFilePattern()+"errorTag").withWindowedWrites().withNumShards(1));
-        enriched.get(dynamicThrottlingTransform.getThrottlingTag()).apply("ThrottlingTag",ParDo.of(new DoFn<DynamicThrottlingTransform.Result<String>, String>() {
+        })).apply("WritingErrorTag", TextIO.write().to(options.getOutputFilePattern() + "errorTag").withWindowedWrites().withNumShards(1));
+        enriched.get(dynamicThrottlingTransform.getThrottlingTag()).apply("ThrottlingTag", ParDo.of(new DoFn<DynamicThrottlingTransform.Result<String>, String>() {
             @DoFn.ProcessElement
-            public void processElement(ProcessContext context){
+            public void processElement(ProcessContext context) {
                 Gson gson = new Gson();
                 String json = gson.toJson(context.element());
                 context.output(json);
             }
-        })).apply("WritingThrottlingTag",TextIO.write().to(options.getOutputFilePattern()+"throttlingTag").withWindowedWrites().withNumShards(1));
+        })).apply("WritingThrottlingTag", TextIO.write().to(options.getOutputFilePattern() + "throttlingTag").withWindowedWrites().withNumShards(1));
 
         return pipeline.run();
     }

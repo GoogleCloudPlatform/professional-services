@@ -1,6 +1,9 @@
 # Client-side Throttling in Dataflow
 
 ### Introduction
+When Dataflow pipeline is trying to get the response for each incoming event from third-party API’s there is a chance of the request to fail in getting response for some reasons like network issues, limits on API calls, etc. At times, client-side throttling can act as a way to limit the number of requests coming from dataflow by either postponing or dropping excessive requests. It can also serve as a fail-safe mechanism that prevents the loss of payload of requests throttled by the server.
+
+For example, when a streaming pipeline calls the Cloud DLP API for each event to inspect sensitive data or de-identify the additional columns, DLP API can accept only 600 requests per minute though the incoming flow can be more than the limit (this quota can be increased from the GCP console). In this scenario, Instead of sending events to DLP API and getting failures, client-side throttling buffers the requests locally and fails them only if the DLP service starts to throttle the client even if the number of requests sent by Dataflow is below quota. Dataflow throttling can also reroute the events to a Dead Letter Queue or to any other sink from where we can reprocess the events.
 
 This artifact is designed to implement distributed adaptive client-side throttling. [Adaptive throttling](https://landing.google.com/sre/sre-book/chapters/handling-overload/#eq2101) activates when a service called by Dataflow starts rejecting requests due to throughput higher than expected. This transform tracks the request rejection probability to decide whether it should fail locally without going through network to save the cost of rejecting a request.
 
@@ -23,7 +26,7 @@ We’re going to maintain the following Apache Beam states:
 * incomingRequests - requests stored in Apache Beam bag state
 * acceptedRequests number
 * totalRequestsProcessed number
-
+For more information on these parameters see [Adaptive throttling](https://landing.google.com/sre/sre-book/chapters/handling-overload/#eq2101).
 The count of the incoming requests and accepted requests should be equal under normal conditions. Once the requests start getting rejected, the number of processing requests gets decreased by the difference of incoming requests and accepted requests.
 
 Pipeline will process the payload in multiple groups. To achieve this, pipeline will transform the PCollection[Bounded/Unbounded] into multiple groups based on random distribution (the random function implementation can be overridden).
@@ -44,32 +47,33 @@ The variables which stores the number of requested and accepted requests are zer
 
 ### HTTP Server with Throttling capabilities
 
-To simulate a third-party service a web server is created intended to accept and process certain number of HTTP requests only, remaining requests should get rejected. The requests will be sent from a job running on Dataflow. Each HTTP request will carry an element from the ParDo function as payload.
+To simulate a third-party service a test web server is created intended to accept and process certain number of HTTP requests only, remaining requests should get rejected. The requests will be sent from a job running on Dataflow. Each HTTP request will carry an element from the ParDo function as payload. Follow this steps to create a test environment.
 
-#### Clone the repository
+#### 1. Clone the repository
 
-* git clone https://github.com/GoogleCloudPlatform/professional-services.git to GCE instance/Localmachine.
+* git clone https://github.com/GoogleCloudPlatform/professional-services.git to GCE instance or local machine.
 * Change directory to professional-services/examples/dataflowthrottling/src/main/java/com/google/cloud/pso/dataflowthrottling
-* Pass the InetSocketAddress as an run time argument. Which should be your Compute Engine instance internal IP or or with ‘localhost’ if you’re using DirectRunner to run DataFlow on your local machine.
+* Pass the InetSocketAddress as an run time argument, which should be your Compute Engine instance internal IP or ‘localhost’ if you’re using DirectRunner to run DataFlow on your local machine.
 
-#### Compile and run the backend server
+#### 2. Compile and run the backend server
 
 ```bash
 javac HttpServerThrottling.java && java HttpServerThrottling localhost
 ```
 
-#### How to run DynamicThrottlingTransform?
+#### 3. Running DynamicThrottlingTransform
 
 * Create a Google Cloud Platform project.
-* Goto GCP console and activate cloud shell.
+* Go to GCP console and activate cloud shell.
 		 Change the directory to $HOME
 * Alternatively to run  on your machine set up a service account.
-		In GCP console, In navigation menu goto IAM & Admin and click on service accounts.
+		In GCP console, in navigation menu go to IAM & Admin and click on service accounts.
 		Create a service account and for role select Dataflow worker.
 		Create a key and download to your machine.
 		Export it to environment variable GOOGLE_APPLICATION_CREDENTIALS.
 * Create a cloud storage bucket where input and output objects can be stored.
 * Clone the repository.
+* See the following Maven command to run the Dataflow pipeline.
 ```bash
 #Project vars
 PROJECT_ID=<project-id>
@@ -91,20 +95,22 @@ mvn compile exec:java \
 --runner = ${RUNNER}”
 ```
 * Expected results
-	Successful requests will write return value from clientCall to `${PIPELINE_FOLDER}/output/successTag`.
-	Throttled requests and rejected by backend node are going to write payload and out of quota error as follows to `${PIPELINE_FOLDER}/output/throttlingTag`.
-		Throttled request will write `{"input": payload,"error":"Throttled by Client. Request rejection probability: 0.3111111111111111"}`.
-		Rejected by backend will write `{"input":"payload","error":"Server returned HTTP response code: 429"}`.
-	Requests which are failed with unexpected errors will write back payload and corresponding error as follows to `${PIPELINE_FOLDER}/output/errorTag`.
-		`{"input":"payload","error":"Corresponding error"}`.
-* If you want to call a dependency other than Java Http Server, update lambda function `clientCall` with how each request should be processed.
+    * Successful requests will write return value from clientCall to ${PIPELINE_FOLDER}/output/successTag.
+	* Payload of throttled requests and requests rejected by backend node as well as the error message are written to ${PIPELINE_FOLDER}/output/throttlingTag.
+		* Throttled requests will be written as {"input": payload,"error":"Throttled by Client. Request rejection probability: 0.3111111111111111"}.
+		* Rejected requests by backend will be written as {"input":"payload","error":"Server returned HTTP response code: 429"}.
+	* Requests which are failed with unexpected errors will be written to ${PIPELINE_FOLDER}/output/errorTag.
+		* For example {"input":"payload","error":"Corresponding error"}.
+* To call a dependency other than Java Http Server, update lambda function `clientCall` with how each request should be processed.
 ```
 DynamicThrottlingTransform<InputType, OutputType> clientCall = request -> {
-//Process the request
-response = request_response.
-if(response is Out of Quota Error)
-throw new ThrottlingException;
-else
-return request_response;
+    //Process the request
+    response = request_response.
+    if(response is Out of Quota Error){
+        throw new ThrottlingException;
+    }
+    else{
+        return request_response;
+    }
 }
 ```

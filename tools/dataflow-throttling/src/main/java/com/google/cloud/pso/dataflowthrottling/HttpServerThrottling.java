@@ -27,22 +27,24 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URLDecoder;
+
 /**
  * This backend server has throttling capabilities.
  */
 public class HttpServerThrottling {
 
-    static int a=0;
+    static int a = 0;
+
     public static void main(String[] args) throws IOException, InterruptedException {
-        HttpServer server = HttpServer.create(new InetSocketAddress(args[0],8500), 0);
+        HttpServer server = HttpServer.create(new InetSocketAddress(args[0], 8500), 0);
         HttpContext context = server.createContext("/");
 
         context.setHandler(HttpServerThrottling::handleRequest);
         server.start();
-        while(true) {
+        while (true) {
             long millis = System.currentTimeMillis();
             //code to run
-            a=0;
+            a = 0;
             Thread.sleep(5000 - millis % 1000);
         }
     }
@@ -55,25 +57,25 @@ public class HttpServerThrottling {
 
         printRequestInfo(exchange);
 
-        InputStream is=exchange.getRequestBody();
-        stringBuilder=new StringBuilder();
-        while((b=is.read())!=-1) {
+        InputStream is = exchange.getRequestBody();
+        stringBuilder = new StringBuilder();
+        while ((b = is.read()) != -1) {
             stringBuilder.append((char) b);
         }
         is.close();
 
-        if(stringBuilder.length()>0) {
+        if (stringBuilder.length() > 0) {
             request = URLDecoder.decode(stringBuilder.toString(), "UTF-8");
         } else {
             request = "There is no body";
         }
-        stringBuilder=new StringBuilder();
+        stringBuilder = new StringBuilder();
         stringBuilder.append(request);
-        response=stringBuilder.toString();
+        response = stringBuilder.toString();
 
         a++;
         System.out.println(a);
-        if(a<100 || a>500) {
+        if (a < 100 || a > 500) {
             exchange.sendResponseHeaders(200, response.getBytes().length);//response code and length
         } else {
             exchange.sendResponseHeaders(429, response.getBytes().length);//response code and length

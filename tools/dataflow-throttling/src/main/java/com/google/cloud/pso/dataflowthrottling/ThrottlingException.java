@@ -19,9 +19,9 @@ package com.google.cloud.pso.dataflowthrottling;
 /**
  * An exception which will be raised by clientCall.
  */
-public class ThrottlingException extends Exception{
+public class ThrottlingException extends Exception {
     @Override
-    public String getMessage(){
+    public String getMessage() {
         return "Server returned HTTP response code: 429";
     }
 }

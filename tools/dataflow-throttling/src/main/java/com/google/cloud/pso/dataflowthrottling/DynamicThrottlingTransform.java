@@ -16,6 +16,7 @@
 
 package com.google.cloud.pso.dataflowthrottling;
 
+import static com.google.common.base.MoreObjects.firstNonNull;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 
@@ -23,7 +24,6 @@ import com.google.common.collect.Iterables;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.concurrent.ThreadLocalRandom;
-import org.apache.beam.repackaged.beam_sdks_java_core.org.apache.commons.lang3.ObjectUtils;
 import org.apache.beam.sdk.coders.Coder;
 import org.apache.beam.sdk.coders.VarIntCoder;
 import org.apache.beam.sdk.state.BagState;
@@ -54,7 +54,8 @@ import org.slf4j.LoggerFactory;
  * Each event will send to the clientCall to process it if the rejection probability is lesser.
  * Based on the response of the clientCall appropriate counters will get incremented.
  * Counters will be zeroed each time resetCounterTimer gets invoked.
- * @param <InputT> Type of the event from the source.
+ *
+ * @param <InputT>  Type of the event from the source.
  * @param <OutputT> Type of the enriched event.
  */
 public class DynamicThrottlingTransform<InputT, OutputT> extends PTransform<PCollection<InputT>, PCollectionTuple> {
@@ -64,9 +65,12 @@ public class DynamicThrottlingTransform<InputT, OutputT> extends PTransform<PCol
     /**
      * Define tuple tags to process corresponding payload response.
      */
-    private final TupleTag<OutputT>  successTag = new TupleTag<OutputT>() {};
-    private final TupleTag<Result<InputT>> errorTag = new TupleTag<Result<InputT>>() {};
-    private final TupleTag<Result<InputT>> throttlingTag = new TupleTag<Result<InputT>>() {};
+    private final TupleTag<OutputT> successTag = new TupleTag<OutputT>() {
+    };
+    private final TupleTag<Result<InputT>> errorTag = new TupleTag<Result<InputT>>() {
+    };
+    private final TupleTag<Result<InputT>> throttlingTag = new TupleTag<Result<InputT>>() {
+    };
 
     private final int numberOfGroups;
     private final java.time.Duration batchInterval;
@@ -78,51 +82,97 @@ public class DynamicThrottlingTransform<InputT, OutputT> extends PTransform<PCol
 
     /**
      * Builder class to set either properties defined by client or to default.
+     *
      * @param <BuilderInputT> Type of the event from the source.
      * @param <BuilderOutpuT> Type of the enriched event.
      */
-    public static class Builder<BuilderInputT, BuilderOutpuT>{
-        private int kInRejectionProbability=1;
-        private java.time.Duration resetCounterInterval= java.time.Duration.ofMinutes(1);
-        private java.time.Duration batchInterval= java.time.Duration.ofSeconds(1);
-        private int numberOfGroups=1;
+    public static class Builder<BuilderInputT, BuilderOutpuT> {
+        private int kInRejectionProbability = 1;
+        private java.time.Duration resetCounterInterval = java.time.Duration.ofMinutes(1);
+        private java.time.Duration batchInterval = java.time.Duration.ofSeconds(1);
+        private int numberOfGroups = 1;
         private int numOfEventsToBeProcessedForBatch;
         private Coder<BuilderInputT> elemCoder;
         private ClientCall<BuilderInputT, BuilderOutpuT> clientCall;
 
+        /**
+         * The constructor for DynamicThrottlingTransform.Builder.
+         *
+         * @param clientCall                       Processes requests to the external service.
+         * @param elemCoder                        Coder for incoming events.
+         * @param numOfEventsToBeProcessedForBatch Limits the number of events for each batch.
+         */
         public Builder(ClientCall<BuilderInputT, BuilderOutpuT> clientCall, Coder<BuilderInputT> elemCoder, int numOfEventsToBeProcessedForBatch) {
             this.clientCall = clientCall;
             this.elemCoder = elemCoder;
             this.numOfEventsToBeProcessedForBatch = numOfEventsToBeProcessedForBatch;
         }
 
-        public Builder<BuilderInputT, BuilderOutpuT> withResetCounterInterval(java.time.Duration resetCounterInterval){
+        /**
+         * When the rejection probability is high but the external service starts accepting requests, client-side
+         * throttling can take long time to recover. To prevent this reset all the counters to
+         * zero out the rejection probability.
+         * optional: defaults to 1 minute.
+         *
+         * @param resetCounterInterval Time interval for resetting the counter.
+         * @return
+         */
+        public Builder<BuilderInputT, BuilderOutpuT> withResetCounterInterval(java.time.Duration resetCounterInterval) {
             this.resetCounterInterval = resetCounterInterval;
             return this;
         }
 
-        public Builder<BuilderInputT, BuilderOutpuT> withBatchInterval(java.time.Duration batchInterval){
+        /**
+         * Dataflow throttling processes the events in batch. This parameter defines how often batches are sent to
+         * the external service.
+         * optional: Defaults to 1 second.
+         *
+         * @param batchInterval Time interval to process each batches.
+         * @return
+         */
+        public Builder<BuilderInputT, BuilderOutpuT> withBatchInterval(java.time.Duration batchInterval) {
             this.batchInterval = batchInterval;
             return this;
         }
 
-        public Builder<BuilderInputT, BuilderOutpuT> withNumberOfGroups(int numberOfGroups){
+        /**
+         * Use this parameter to parallelise processing of events in multiple dataflow groups.
+         * optional: Defaults to 1 group.
+         *
+         * @param numberOfGroups
+         * @return
+         */
+        public Builder<BuilderInputT, BuilderOutpuT> withNumberOfGroups(int numberOfGroups) {
             this.numberOfGroups = numberOfGroups;
             return this;
         }
 
-        public Builder<BuilderInputT, BuilderOutpuT> withKInRejectionProbability(int kInRejectionProbability){
-            this.kInRejectionProbability=kInRejectionProbability;
+        /**
+         * This is K in rejection probability. It is directly proportional to the number of
+         * requests sent to the backend. See Adaptive throttling section in README file.
+         * optional: Defaults to 1.
+         *
+         * @param kInRejectionProbability K in rejection probability.
+         * @return
+         */
+        public Builder<BuilderInputT, BuilderOutpuT> withKInRejectionProbability(int kInRejectionProbability) {
+            this.kInRejectionProbability = kInRejectionProbability;
             return this;
         }
 
-        public DynamicThrottlingTransform<BuilderInputT, BuilderOutpuT> build(){
+        /**
+         * Builds the DynamicThrottlingTransform object.
+         *
+         * @return
+         */
+        public DynamicThrottlingTransform<BuilderInputT, BuilderOutpuT> build() {
             return new DynamicThrottlingTransform<BuilderInputT, BuilderOutpuT>(this);
         }
     }
 
     /**
-     * Result object that should pass to the throttlingTag and errorTag.
+     * Result object that will be passed to the throttling and error output pcollection.
+     *
      * @param <InputT> Type of the event from the source.
      */
     public static class Result<InputT> implements Serializable {
@@ -137,6 +187,7 @@ public class DynamicThrottlingTransform<InputT, OutputT> extends PTransform<PCol
 
     /**
      * This functionalInterface is used to pass the paylod to clientcall.
+     *
      * @param <InputT> Type of the event from the source.
      * @param <OutpuT> Type of the enriched event.
      */
@@ -147,44 +198,47 @@ public class DynamicThrottlingTransform<InputT, OutputT> extends PTransform<PCol
 
     /**
      * The {com.google.cloud.pso.dataflowthrottling.DynamicThrottlingTransform} constructor provides the custom execution options passed by the client.
+     *
      * @param builder object which holds the user defined params.
      */
-    public DynamicThrottlingTransform(Builder<InputT, OutputT> builder){
-        this.numberOfGroups= builder.numberOfGroups;
-        this.batchInterval= builder.batchInterval;
-        this.resetCounterInterval= builder.resetCounterInterval;
-        this.numOfEventsToBeProcessedForBatch= builder.numOfEventsToBeProcessedForBatch;
-        this.kInRejectionProbability= builder.kInRejectionProbability;
-        this.elemCoder= builder.elemCoder;
-        this.clientCall= builder.clientCall;
+    private DynamicThrottlingTransform(Builder<InputT, OutputT> builder) {
+        this.numberOfGroups = builder.numberOfGroups;
+        this.batchInterval = builder.batchInterval;
+        this.resetCounterInterval = builder.resetCounterInterval;
+        this.numOfEventsToBeProcessedForBatch = builder.numOfEventsToBeProcessedForBatch;
+        this.kInRejectionProbability = builder.kInRejectionProbability;
+        this.elemCoder = builder.elemCoder;
+        this.clientCall = builder.clientCall;
     }
 
     /**
-     * Collection of accepted requests response.
+     * Collection of responses for accepted requests.
+     *
      * @return PCollection<ClientCallResponses>
      */
-    public TupleTag<OutputT> getSuccessTag(){
+    public TupleTag<OutputT> getSuccessTag() {
         return successTag;
     }
 
     /**
      * Collection of request responses of all error codes except 200,429.
-     * @return PCollection<ClientCall Responses Except 200and 429>
+     *
+     * @return PCollection<ClientCall       Responses       Except       2   0   0   and       4   2   9>
      */
-    public TupleTag<Result<InputT>> getErrorTag(){
+    public TupleTag<Result<InputT>> getErrorTag() {
         return errorTag;
     }
 
     /**
      * Collection of rejected requests and Throttled requests.
-     * @return PCollection<Error_429 and ThrottledRequests>
+     *
+     * @return PCollection<Error_429       and       ThrottledRequests>
      */
-    public TupleTag<Result<InputT>> getThrottlingTag(){
+    public TupleTag<Result<InputT>> getThrottlingTag() {
         return throttlingTag;
     }
 
     /**
-     * The Dynamic throttling transform begins here.
      * @param input payload from the source.
      * @return PCollectionTuple of tuple tags.
      */
@@ -193,7 +247,7 @@ public class DynamicThrottlingTransform<InputT, OutputT> extends PTransform<PCol
         /**
          * {Grouping} It will segregate incoming events into single/multiple number of groups.
          */
-        PCollection<KV<Integer, InputT>> groups=input.apply("Grouping", ParDo.of(new DoFn<InputT, KV<Integer, InputT>>() {
+        PCollection<KV<Integer, InputT>> groups = input.apply("Grouping", ParDo.of(new DoFn<InputT, KV<Integer, InputT>>() {
             @DoFn.ProcessElement
             public void processElement(ProcessContext context) {
                 context.output(KV.of(ThreadLocalRandom.current().nextInt(1, numberOfGroups + 1), context.element()));
@@ -201,7 +255,7 @@ public class DynamicThrottlingTransform<InputT, OutputT> extends PTransform<PCol
         }));
 
         /**
-         * {Throttling}: Payload won't be processed from client-side based on the rejection probability.
+         * {Throttling}: Payload is either sent to the external service or rejected based on the rejection probability.
          * Process element will add the payload to the {incomingReqBagState}.
          */
         PCollectionTuple enriched = groups.apply("Throttling", ParDo.of(new DoFn<KV<Integer, InputT>, OutputT>() {
@@ -249,14 +303,14 @@ public class DynamicThrottlingTransform<InputT, OutputT> extends PTransform<PCol
                 if (incomingReqBagState.isEmpty().read()) {
                     incomingReqBagTimer.offset(Duration.millis(batchInterval.toMillis())).setRelative();
                 }
-                if (ObjectUtils.firstNonNull(totalProcessedRequests.read(), 0) == 0){
+                if (firstNonNull(totalProcessedRequests.read(), 0) == 0) {
                     resetCountsTimer.offset(Duration.millis(resetCounterInterval.toMillis())).setRelative();
                 }
                 incomingReqBagState.add(context.element().getValue());
             }
 
             /**
-             * Timer that processes n requests each time it get invokes.
+             * Timer that processes n requests each time it gets invoked.
              * @param context Payload that should be sent by the client.
              * @param acceptedRequests Counts the total number of requests processed by client and got accepted by the backend.
              * @param rejRequests Counts the total number of events that were rejected by client.
@@ -268,60 +322,57 @@ public class DynamicThrottlingTransform<InputT, OutputT> extends PTransform<PCol
                     @StateId("incomingReqBagState") BagState<InputT> incomingReqBagState,
                     @StateId("totalProcessedRequests") ValueState<Integer> totalProcessedRequests,
                     @TimerId("incomingReqBagTimer") Timer incomingReqBagTimer,
-                    @StateId("rejRequests") ValueState<Integer> rejRequests){
-                Iterable<InputT> bag=incomingReqBagState.read();
+                    @StateId("rejRequests") ValueState<Integer> rejRequests) {
+                Iterable<InputT> bag = incomingReqBagState.read();
 
-                double acceptedReqCount = ObjectUtils.firstNonNull(acceptedRequests.read(), 0);
-                double totalReqCount = ObjectUtils.firstNonNull(totalProcessedRequests.read(), 0);
-                int rejReqCount = ObjectUtils.firstNonNull(rejRequests.read(), 0);
+                double acceptedReqCount = firstNonNull(acceptedRequests.read(), 0);
+                double totalReqCount = firstNonNull(totalProcessedRequests.read(), 0);
 
-                for(InputT value:Iterables.limit(bag, numOfEventsToBeProcessedForBatch)) {
-                    //Calculate requests rejection probability
+                for (InputT value : Iterables.limit(bag, numOfEventsToBeProcessedForBatch)) {
+                    //Calculates requests rejection probability
                     double reqRejectionProbability = (totalReqCount - (kInRejectionProbability * acceptedReqCount)) / (totalReqCount + 1);
-                    double randomValue=Math.random();
+                    double randomValue = Math.random();
                     OutputT successTagValue;
-                    boolean accepted=TRUE;
+                    boolean accepted = TRUE;
                     Result<InputT> result;
                     if ((reqRejectionProbability) <= randomValue) {
-                        totalReqCount=totalReqCount+1;
-                        totalProcessedRequests.write((int)totalReqCount);
+                        totalReqCount = totalReqCount + 1;
+                        totalProcessedRequests.write((int) totalReqCount);
                         try {
-                            successTagValue=clientCall.call(value);
-                            acceptedReqCount=acceptedReqCount+1;
-                            acceptedRequests.write((int)acceptedReqCount);
+                            successTagValue = clientCall.call(value);
+                            acceptedReqCount = acceptedReqCount + 1;
+                            acceptedRequests.write((int) acceptedReqCount);
                             context.output(successTag, successTagValue);
-                        } catch (ThrottlingException e){
-                            context.output(throttlingTag, result=new Result<>(value, e.getMessage()));
-                            accepted=FALSE;
-                            //rejReqCount=rejReqCount+1;
-                            //rejRequests.write((int)rejReqCount);
+                        } catch (ThrottlingException e) {
+                            context.output(throttlingTag, result = new Result<>(value, e.getMessage()));
+                            accepted = FALSE;
                         } catch (Exception e) {
-                            accepted=FALSE;
-                            context.output(errorTag, result=new Result<>(value, e.getMessage()));
+                            accepted = FALSE;
+                            context.output(errorTag, result = new Result<>(value, e.getMessage()));
                         }
                     } else {
-                        accepted=FALSE;
-                        context.output(throttlingTag, result=new Result<>(value, "Throttled by Client. Request rejection probability: "+reqRejectionProbability));
+                        accepted = FALSE;
+                        context.output(throttlingTag, result = new Result<>(value, "Throttled by Client. Request rejection probability: " + reqRejectionProbability));
                     }
-                    LOG.info("  totalCount-" +totalReqCount +",  reqRejecProb-"+reqRejectionProbability+",  Random-"+randomValue+", "+accepted+",  acceptCount-" +acceptedReqCount);
+                    LOG.info("  totalCount-" + totalReqCount + ",  reqRejecProb-" + reqRejectionProbability + ",  Random-" + randomValue + ", " + accepted + ",  acceptCount-" + acceptedReqCount);
                 }
 
                 incomingReqBagState.clear();
-                for(InputT b: Iterables.skip(bag, numOfEventsToBeProcessedForBatch)){
+                for (InputT b : Iterables.skip(bag, numOfEventsToBeProcessedForBatch)) {
                     incomingReqBagState.add(b);
                 }
                 incomingReqBagTimer.offset(Duration.millis(batchInterval.toMillis())).setRelative();
             }
 
             /**
-             * Timer that reset counter when ever it's get invoked.
+             * Timer that resets counters when ever it's get invoked.
              */
             @OnTimer("resetCountsTimer")
             public void resetCountsTimer(
                     OnTimerContext c,
                     @StateId("totalProcessedRequests") ValueState<Integer> totalProcessedRequests,
                     @StateId("acceptedRequests") ValueState<Integer> acceptedRequests,
-                    @TimerId("resetCountsTimer") Timer resetCountsTimer){
+                    @TimerId("resetCountsTimer") Timer resetCountsTimer) {
                 totalProcessedRequests.clear();
                 acceptedRequests.clear();
                 resetCountsTimer.offset(Duration.millis(resetCounterInterval.toMillis())).setRelative();
