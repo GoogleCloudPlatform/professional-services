@@ -29,27 +29,29 @@ def validate_fields(config_file):
                 resourceid = line[2].strip()
                 zone = line[4].strip()
 
-                if resource == "project" and not projectid:
-                    error_file.write (resource + "|" + str(line) + " | projectid is None" + "\n")
-                    logging.error(resource + "|" + str(line) + '| Please provide the required fields for Project.' + "\n")
-                    print(resource + "|" + str(line) + '| Please provide the required fields for Project.')
-                    exit(1)
+                if resource is not None and resource.strip().lower() in ('project', 'compute engine', 'bigquery', 'bigtable', 'storage'):
 
-                elif resource == "compute engine" and (not projectid or not resourceid or not zone):
-                    error_file.write (resource + "|" + str(line) + " | resourceid is None" + "\n")
-                    logging.error(resource + "|" + str(line) + '| Please provide the required fields for Compute Engine.' + "\n")
-                    print(resource + "|" + str(line) + '| Please provide the required fields for Compute Engine.')
-                    exit(1)
+                    if resource == "project" and not projectid:
+                        error_file.write (resource + "|" + str(line) + " | projectid is None" + "\n")
+                        logging.error(resource + "|" + str(line) + '| Please provide the required fields for Project.' + "\n")
+                        print(resource + "|" + str(line) + '| Please provide the required fields for Project.')
+                        exit(1)
 
-                elif (resource == "storage" or resource == "bigtable" or resource == "bigquery") and (not projectid or not resourceid):
-                    error_file.write (resource + "|" + str(line) + " | resourceid is None" + "\n")
-                    logging.error(resource + "|" + str(line) + "| Please provide the required fields for Resource." + "\n")
-                    print(resource + "|" + str(line) + "| Please provide the required fields for Resource.")
+                    elif resource == "compute engine" and (not projectid or not resourceid or not zone):
+                        error_file.write (resource + "|" + str(line) + " | resourceid is None" + "\n")
+                        logging.error(resource + "|" + str(line) + '| Please provide the required fields for Compute Engine.' + "\n")
+                        print(resource + "|" + str(line) + '| Please provide the required fields for Compute Engine.')
+                        exit(1)
 
-                elif (resource == ''):
-                    error_file.write (resource + "|" + str(line) + " | resource field is None. You may remove this line, otherwise it will just be skipped." + "\n")
-                    logging.error("The Resource field is empty. You may remove this line, otherwise it will just be skipped." + "\n")
-                    print("The Resource field is empty. You may remove this line, otherwise it will just be skipped.")
+                    elif (resource == "storage" or resource == "bigtable" or resource == "bigquery") and (not projectid or not resourceid):
+                        error_file.write (resource + "|" + str(line) + " | resourceid is None" + "\n")
+                        logging.error(resource + "|" + str(line) + "| Please provide the required fields for Resource." + "\n")
+                        print(resource + "|" + str(line) + "| Please provide the required fields for Resource.")
+
+                else:
+                    error_file.write (resource + "|" + str(line) + " | resource field is empty or invalid, it will just be skipped." + "\n")
+                    logging.error("The Resource field is empty or invalid, it will just be skipped." + "\n")
+                    print("The Resource field is empty or invalid, it will just be skipped.")
 
                 line_index = line_index + 1
 
