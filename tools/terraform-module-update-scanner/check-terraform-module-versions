@@ -47,6 +47,14 @@ main(){
       fi
       continue
     fi
+
+    local TAG_PREFIX=""
+    # Does the local tag have a tag prefix? ie. "@atlaskit/util-service-support@3.0.5" ?
+    # If so, set TAG_PREFIX to its value, else, set it to ""
+    TAG_PREFIX=$(echo $local_tag |grep -o '@.*@' || echo "")
+    # revise the value of local tag to the string after the prefix
+    local_tag=${local_tag#"$TAG_PREFIX"}
+
     # if $tf_remote_module is a module with a package subdir, eg. `git::ssh://git@repo.example.com/example/repository.git?ref=v4.2.0//modules/a_terraform_module`
     # then everything after the second set of '//'' is removed before setting git_repository
     git_repository_pass1=$(echo "$tf_remote_module" | sed 's_\(.*//.*\)//.*_\1_')
@@ -55,6 +63,7 @@ main(){
     git_repository=$(echo "$git_repository_pass1" | cut -d '?' -f1)
 
     latest_tag=$(get_latest_tag "$git_repository" )
+
     if [[ "$local_tag" != "$latest_tag" ]]; then
       echo "For the referenced remote repository: "$git_repository" "
       echo "A newer tag is available: "$latest_tag" ("$local_tag" found)"
@@ -77,7 +86,6 @@ main(){
     esac
 }
 
-
 # takes in a git repository specified as a terraform remote module, returns the
 # repository's latest tag
 get_latest_tag(){
@@ -93,24 +101,49 @@ get_latest_tag(){
       # 'sort -Vr': reverse version sort
       # 'cut -d '/' -f3': 3rd field contains the tag
       # 'head -1': retrieve only the first
-      latest_tag=$(git ls-remote --refs --tags "${git_repository#'git::'}" | cut -f2 | sort -Vr | cut -d '/' -f3 | head -1)
+      if [[ -z "$TAG_PREFIX" ]] ; then
+        latest_tag=$(git ls-remote --refs --tags "${git_repository#'git::'}" | cut -f2 | sort -Vr | cut -d '/' -f3 | head -1)
+      else
+        latest_tag=$(git ls-remote --refs --tags "${git_repository#'git::'}" | grep "$TAG_PREFIX" | cut -f2 | sort -Vr | cut -d '/' -f3 | head -1)
+        # after sorting, remove prefix:
+        latest_tag=${latest_tag#"$TAG_PREFIX"}
+
+      fi
       ;;
     github.com )
       # github over https
       this_repo="${git_repository//github.com\//git@github.com:}"
-      latest_tag=$(git ls-remote --refs --tags "$this_repo" | cut -f2 | sort -Vr | cut -d '/' -f3 | head -1)
+      if [[ -z "$TAG_PREFIX" ]] ; then
+        latest_tag=$(git ls-remote --refs --tags "$this_repo" | cut -f2 | sort -Vr | cut -d '/' -f3 | head -1)
+      else
+        latest_tag=$(git ls-remote --refs --tags "$this_repo"| grep "$TAG_PREFIX" | cut -f2 | sort -Vr | cut -d '/' -f3 | head -1)
+        # after sorting, remove prefix:
+        latest_tag=${latest_tag#"$TAG_PREFIX"}
+      fi
       ;;
     git@github )
       # github over ssh
-      latest_tag=$(git ls-remote --refs --tags "$git_repository" | cut -f2 | sort -Vr | cut -d '/' -f3 | head -1)
+      if [[ -z "$TAG_PREFIX" ]] ; then
+        latest_tag=$(git ls-remote --refs --tags "$git_repository" | cut -f2 | sort -Vr | cut -d '/' -f3 | head -1)
+      else
+        latest_tag=$(git ls-remote --refs --tags "$git_repository"| grep "$TAG_PREFIX" | cut -f2 | sort -Vr | cut -d '/' -f3 | head -1)
+        # after sorting, remove prefix:
+        latest_tag=${latest_tag#"$TAG_PREFIX"}
+      fi
       ;;
     bitbucket. )
       # bitbucket over https
       this_repo="${git_repository//bitbucket.org/https://bitbucket.org}"
-      latest_tag=$(git ls-remote --refs --tags "$this_repo" | cut -f2 | sort -Vr | sed 's_refs/tags/__' | head -1)
+      if [[ -z "$TAG_PREFIX" ]] ; then
+        latest_tag=$(git ls-remote --refs --tags "$this_repo" | cut -f2 | sort -Vr | sed 's_refs/tags/__' | head -1)
+      else
+        latest_tag=$(git ls-remote --refs --tags "$this_repo" | grep "$TAG_PREFIX" | cut -f2 | sort -Vr | sed 's_refs/tags/__' | head -1)
+        # after sorting, remove prefix:
+        latest_tag=${latest_tag#"$TAG_PREFIX"}
+      fi
       ;;
     esac
-    echo $latest_tag
+    echo "$latest_tag"
 }
 
 
