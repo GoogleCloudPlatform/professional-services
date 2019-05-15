@@ -15,17 +15,13 @@
  */
 import {NgModule} from '@angular/core';
 import {RouterModule, Routes} from '@angular/router';
-import {JobComponent} from './job/job.component';
-import {LogDisplayComponent} from './log-display/log-display.component';
-import {TimingDisplayComponent} from './timing-display/timing-display.component';
-import {VisDisplayComponent} from './vis-display/vis-display.component';
+import {MainComponent} from './main/main.component';
+import {TermsComponent} from './terms/terms.component';
 
 const routes: Routes = [
-  {path: '', redirectTo: '/jobs', pathMatch: 'full'},
-  {path: 'jobs', component: JobComponent},
-  {path: 'job/tree', component: VisDisplayComponent},
-  {path: 'job/timing', component: TimingDisplayComponent},
-  {path: 'log', component: LogDisplayComponent},
+  {path: '', component: MainComponent},
+  {path: 'jobs', component: MainComponent},
+  {path: 'terms', component: TermsComponent},
 ];
 
 @NgModule({
