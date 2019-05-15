@@ -30,10 +30,12 @@ import {MatTableModule} from '@angular/material/table';
 import {MatTabsModule} from '@angular/material/tabs';
 import {BrowserModule} from '@angular/platform-browser';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+import {RouterModule} from '@angular/router';
 import * as Sentry from '@sentry/browser';
 import {OAuthModule} from 'angular-oauth2-oidc';
 import {AngularResizedEventModule} from 'angular-resize-event';
 import {environment} from '../environments/environment';
+
 import {AppRoutingModule} from './/app-routing.module';
 import {AppComponent} from './app.component';
 import {JobComponent} from './job/job.component';
@@ -43,8 +45,10 @@ import {PlanStatusCardComponent} from './plan-status-card/plan-status-card.compo
 import {ProjectsComponent} from './projects/projects.component';
 import {StageDetailsComponent} from './stage-details/stage-details.component';
 import {StepDetailsComponent} from './step-details/step-details.component';
+import {TermsComponent} from './terms/terms.component';
 import {TimingDisplayComponent} from './timing-display/timing-display.component';
 import {VisDisplayComponent} from './vis-display/vis-display.component';
+import { MainComponent } from './main/main.component';
 
 Sentry.init({
   dsn: 'https://1cfbb9646b584e9b9e4973d39970075a@sentry.io/1370691',
@@ -71,6 +75,8 @@ export class SentryErrorHandler implements ErrorHandler {
     PlanSideDisplayComponent,
     StageDetailsComponent,
     StepDetailsComponent,
+    TermsComponent,
+    MainComponent,
   ],
   imports: [
     AngularResizedEventModule,
