@@ -54,7 +54,7 @@ export class TimingDisplayComponent implements OnInit {
   async draw() {
     if (!this.plan) {
       const gantt = document.getElementById('Gantt');
-      if ((gantt) && (gantt.childNodes.length > 0)) {
+      if (gantt && gantt.childNodes.length > 0) {
         gantt.removeChild(gantt.childNodes[0]);
       }
       return;
