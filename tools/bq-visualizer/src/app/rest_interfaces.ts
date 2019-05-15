@@ -86,10 +86,12 @@ interface Query {
   queryPlan?: QueryStage[];
   timeline: Timeline;
 }
+
 interface ReservationUsage {
   name: string;
   slotMs: string;
 }
+
 interface Statistics {
   creationTime: string;
   endTime: string;

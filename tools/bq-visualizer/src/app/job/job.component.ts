@@ -110,7 +110,6 @@ export class JobComponent implements OnDestroy {
         .pipe(takeUntil(this.destroy))
         .subscribe(
             detail => {
-              // console.log('Got raw plan', detail);
               if (detail) {
                 const plan = new BqQueryPlan(detail, this.logSvc);
                 if (plan.isValid) {
