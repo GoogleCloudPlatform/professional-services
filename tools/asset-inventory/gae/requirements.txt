@@ -1,5 +1,5 @@
 google-cloud-bigquery==1.6.0
-google-cloud-asset==0.1.1
+google-cloud-asset>=0.2.0
 googleapis-common-protos==1.5.3
 google-api-python-client==1.7.7
 oauth2client<4
