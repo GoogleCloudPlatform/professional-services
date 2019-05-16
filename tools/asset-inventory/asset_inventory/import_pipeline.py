@@ -199,9 +199,10 @@ class MapCAIProperties(beam.DoFn):
 
     def process(self, element):
         if ('resource' in element and 'data' in element['resource']):
-            CAIToAPI.cai_to_api_properties(
-                element['resource']['discovery_name'],
-                element['resource']['data'])
+            if element['asset_type'].startswith('compute.googleapis.com'):
+                CAIToAPI.cai_to_api_properties(
+                    element['resource']['discovery_name'],
+                    element['resource']['data'])
         yield element
 
 
@@ -319,6 +320,9 @@ class BigQueryDoFn(beam.DoFn):
                 self.get_dataset_ref()).location
         return None
 
+    def asset_type_to_table_name(self, asset_type):
+        return asset_type.replace('.', '_').replace('/', '_')
+
     def start_bundle(self):
         if not self.bigquery_client:
             self.bigquery_client = bigquery.Client()
@@ -344,7 +348,7 @@ class DeleteDataSetTables(BigQueryDoFn):
             yield element
         else:
             key_name = AssignGroupByKey.remove_shard(element[0])
-            table_name = key_name.replace('.', '_')
+            table_name = self.asset_type_to_table_name(key_name)
             table_ref = self.get_dataset_ref().table(
                 table_name)
             try:
@@ -385,7 +389,8 @@ class LoadToBigQuery(BigQueryDoFn):
         job_config.schema_update_options = [
             bigquery.job.SchemaUpdateOption.ALLOW_FIELD_ADDITION]
 
-        table_ref = dataset_ref.table(key_name.replace('.', '_'))
+        table_ref = dataset_ref.table(self.asset_type_to_table_name(key_name))
+
         # use load_time as a timestamp.
         job_config.time_partitioning = bigquery.table.TimePartitioning(
             field='timestamp')
