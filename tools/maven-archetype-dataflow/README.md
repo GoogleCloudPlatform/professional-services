@@ -55,10 +55,10 @@ potential bugs are found.
 Builds the archetype and installs into the local archetype catalog.
 ```sh
 # Clone the repo
-git clone https://github.com/ryanmcdowell/maven-archetype-dataflow
+git clone https://github.com/GoogleCloudPlatform/professional-services.git
 
 # Change directory into the archetype project
-cd maven-archetype-dataflow
+cd professional-services/tools/maven-archetype-dataflow
 
 # Install the archetype into your local archetype catalog
 mvn clean install archetype:update-local-catalog
@@ -71,7 +71,7 @@ Bootstraps a new project using the archetype.
 mvn archetype:generate                             \
   -DarchetypeGroupId=com.google.cloud.pso          \
   -DarchetypeArtifactId=maven-archetype-dataflow   \
-  -DarchetypeVersion=1.0                           \
+  -DarchetypeVersion=1.1                           \
   -DgroupId=<groupId>                              \
   -DartifactId=<artifactId>
 ```
