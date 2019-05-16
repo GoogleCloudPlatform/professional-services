@@ -41,32 +41,33 @@
 
     <!-- Dependency properties -->
     <checkstyle.version>8.11</checkstyle.version>
-    <beam.version>2.7.0</beam.version>
+    <beam.version>2.12.0</beam.version>
+    
     <hamcrest.version>1.3</hamcrest.version>
     <java.version>1.8</java.version>
-    <j2v8.version>4.8.0</j2v8.version>
     <junit.version>4.12</junit.version>
+    <mockito-core.version>2.27.0</mockito-core.version>
+    <slf4j.version>1.7.25</slf4j.version>
+    
     <maven-checkstyle-plugin.version>3.0.0</maven-checkstyle-plugin.version>
     <maven-clover-plugin.version>4.3.0</maven-clover-plugin.version>
-    <maven-compiler-plugin.version>3.8.0</maven-compiler-plugin.version>
+    <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
     <maven-dependency-plugin.version>3.1.1</maven-dependency-plugin.version>
     <maven-enforcer-plugin.version>3.0.0-M2</maven-enforcer-plugin.version>
     <maven-exec-plugin.version>1.6.0</maven-exec-plugin.version>
     <maven-extra-enforcer-rules.version>1.0-beta-9</maven-extra-enforcer-rules.version>
-    <maven-javadoc-plugin.version>3.0.1</maven-javadoc-plugin.version>
-    <maven-jar-plugin.version>3.1.0</maven-jar-plugin.version>
+    <maven-javadoc-plugin.version>3.1.0</maven-javadoc-plugin.version>
+    <maven-jar-plugin.version>3.1.2</maven-jar-plugin.version>
     <maven-license-plugin.version>3.0</maven-license-plugin.version>
     <maven-os-plugin.version>1.5.0.Final</maven-os-plugin.version>
     <maven-pmd-plugin.version>3.10.0</maven-pmd-plugin.version>
     <maven-project-info-reports-plugin.version>3.0.0</maven-project-info-reports-plugin.version>
-    <maven-shade-plugin.version>3.1.1</maven-shade-plugin.version>
+    <maven-shade-plugin.version>3.2.1</maven-shade-plugin.version>
     <maven-site-plugin>3.7.1</maven-site-plugin>
     <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
-    <maven-spotbugs-plugin.version>3.1.6</maven-spotbugs-plugin.version>
-    <maven-surefire-plugin.version>2.22.0</maven-surefire-plugin.version>
-    <maven-versions-plugin.version>2.5</maven-versions-plugin.version>
-    <mockito-core.version>2.23.0</mockito-core.version>
-    <slf4j.version>1.7.25</slf4j.version>
+    <maven-spotbugs-plugin.version>3.1.11</maven-spotbugs-plugin.version>
+    <maven-surefire-plugin.version>3.0.0-M3</maven-surefire-plugin.version>
+    <maven-versions-plugin.version>2.7</maven-versions-plugin.version>
   </properties>
 
   <dependencies>
@@ -257,7 +258,8 @@
                   </excludes>
                 </enforceBytecodeVersion>
                 <requireJavaVersion>
-                  <version>[1.8]</version>
+                  <!-- Right now Beam only builds with JDK 8, see BEAM-2530 -->
+                  <version>[1.8, 1.9)</version>
                 </requireJavaVersion>
                 <requireMavenVersion>
                   <!-- Keep aligned with prerequisite section below. -->
