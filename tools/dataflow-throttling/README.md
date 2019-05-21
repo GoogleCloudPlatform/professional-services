@@ -1,31 +1,26 @@
 # Client-side Throttling in Dataflow
 
 ### Introduction
-When Dataflow pipeline is trying to get the response for each incoming event from third-party API’s there is a chance of the request to fail in getting response for some reasons like network issues, limits on API calls, etc. At times, client-side throttling can act as a way to limit the number of requests coming from dataflow by either postponing or dropping excessive requests. It can also serve as a fail-safe mechanism that prevents the loss of payload of requests throttled by the server.
+When Dataflow pipeline is trying to get a response for an incoming event from third-party API there is a chance of the request to fail in getting response, for example because of network issues, limits on API calls, etc. Client-side throttling can act as a way to limit the number of requests coming from dataflow by either postponing or dropping excessive requests. It can also serve as a fail-safe mechanism that prevents the loss of payload of requests throttled by the server by storing failed requests in DLQ.
 
-For example, when a streaming pipeline calls the Cloud DLP API for each event to inspect sensitive data or de-identify the additional columns, DLP API can accept only 600 requests per minute though the incoming flow can be more than the limit (this quota can be increased from the GCP console). In this scenario, Instead of sending events to DLP API and getting failures, client-side throttling buffers the requests locally and fails them only if the DLP service starts to throttle the client even if the number of requests sent by Dataflow is below quota. Dataflow throttling can also reroute the events to a Dead Letter Queue or to any other sink from where we can reprocess the events.
+For example, when a streaming pipeline calls the Cloud DLP API for each event to inspect sensitive data or de-identify the additional columns, DLP API can accept only 600 requests per minute though the incoming flow can be more than the limit (this quota can be increased from the GCP console). In this scenario, instead of sending events to DLP API and getting failures, client-side throttling buffers the requests locally and fails them only if the DLP service starts to throttle the client, even if the number of requests sent by Dataflow is below quota. Dataflow throttling can also reroute the events to a Dead Letter Queue or to any other sink from where we can reprocess the events.
 
-This artifact is designed to implement distributed adaptive client-side throttling. [Adaptive throttling](https://landing.google.com/sre/sre-book/chapters/handling-overload/#eq2101) activates when a service called by Dataflow starts rejecting requests due to throughput higher than expected. This transform tracks the request rejection probability to decide whether it should fail locally without going through network to save the cost of rejecting a request.
+This artifact is designed to implement distributed adaptive client-side throttling. [Adaptive throttling](https://landing.google.com/sre/sre-book/chapters/handling-overload/#eq2101) activates when a service called by Dataflow starts rejecting requests due to throughput higher than expected. The main transform in this library tracks the request rejection probability to decide whether it should fail locally without going through network to save the cost of rejecting a request on the client and server sides.
 
 ### Dataflow Client-side Throttling
 
-This generic library intended to reject requests that have a high probability of being rejected locally on Dataflow nodes. Irrespective of Batch or Streaming, when Dataflow pipeline is sending HTTP requests to the server with input elements as payload, once the request has been processed by the backend, it should send a response back to the pipeline whether the request has been accepted or rejected. The error code depends up on the backend throttling implementation (defaults to HTTP code 429).
-
-![DataflowThrottling DAG](img/dataflow-throttling-dag.png "Dataflow Throttling DAG")
+This generic library intended to reject requests that have a high probability of being rejected by the server locally on Dataflow nodes. Irrespective of Batch or Streaming, when Dataflow pipeline is sending HTTP requests to the server with input elements as payload, once the request has been processed by the backend, it should send a response back whether the request has been accepted or rejected. The error code depends up on the backend throttling implementation (usually it's HTTP code 429).
 
 The library uses [stateful](https://beam.apache.org/blog/2017/02/13/stateful-processing.html) processing. A user of this library needs to implement clientCall function which makes requests to the external service.
 
+![DataflowThrottling DAG](img/dataflow-throttling-dag.png "Dataflow Throttling DAG")
+
 ### Adaptive throttling in Dataflow
 
-Dataflow pipeline maintains the number of requests it has sent to the backend [totalRequestsProcessed] and the number of requests got accepted by the backend [acceptedRequests]. Using stateTimer, it will process a batch of elements from each state value and remove the processed elements from the state value. Request rejection probability will be calculated as follows.
+Dataflow pipeline maintains the number of requests it has sent to the backend and the number of requests got accepted by the backend. Using stateTimer, it will process a batch of elements from each state value and remove the processed elements from the state value when they are processed. Request rejection probability will be calculated as follows:
     ```RequestRejectionProbability = (total_requests - k * total_accepts)/(total_requests+1)```
-If it is more than a random number between 0 or 1, incoming requests will be sent to either Pub/Sub dead letter queue or any other sink defined by the user.
+For each request, if RequestRejectionProbability is more than a random number between 0 or 1, the request is sent to either Pub/Sub dead letter queue or any other sink defined by the user. If the value is less than this random value the request is sent to the external service.
 
-We’re going to maintain the following Apache Beam states:
-
-* incomingRequests - requests stored in Apache Beam bag state
-* acceptedRequests number
-* totalRequestsProcessed number
 For more information on these parameters see [Adaptive throttling](https://landing.google.com/sre/sre-book/chapters/handling-overload/#eq2101).
 The count of the incoming requests and accepted requests should be equal under normal conditions. Once the requests start getting rejected, the number of processing requests gets decreased by the difference of incoming requests and accepted requests.
 
@@ -36,7 +31,7 @@ Pipeline transform steps:
 * Pipeline processes each state cell using [stateful](https://beam.apache.org/blog/2017/02/13/stateful-processing.html) and [timely](https://beam.apache.org/blog/2017/08/28/timely-processing.html) processing. That said each state cell will be processed after reaching a predefined interval of  time. A user function clientCall will be applied on a group of elements.
 * ClientCall, a user defined function, is invoked. This function sends PCollection elements to the backend node. Based on the response of the clientCall respective counters will get incremented.
 
-The variables which stores the number of requested and accepted requests are zeroed out after a certain interval of time (defaults to 1 min). This reset speeds up client recovery if server throughput was limited due to limitations on the server side not caused by the client.
+The variables which stores the tota; number of requested and accepted requests are zeroed out after a certain interval of time (defaults to 1 min). This reset speeds up client recovery if server throughput was limited due to limitations on the server side not caused by the client.
 
 ### Library testing
 
@@ -65,10 +60,10 @@ javac HttpServerThrottling.java && java HttpServerThrottling localhost
 
 * Create a Google Cloud Platform project.
 * Go to GCP console and activate cloud shell.
-		 Change the directory to $HOME
+		Change the directory to $HOME
 * Alternatively to run  on your machine set up a service account.
 		In GCP console, in navigation menu go to IAM & Admin and click on service accounts.
-		Create a service account and for role select Dataflow worker.
+		Create a service account and for the role select Dataflow worker.
 		Create a key and download to your machine.
 		Export it to environment variable GOOGLE_APPLICATION_CREDENTIALS.
 * Create a cloud storage bucket where input and output objects can be stored.

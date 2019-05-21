@@ -34,8 +34,8 @@ import org.junit.Test;
 
 /**
  * Here clientCall is defined as it supposed to reject the payload 7, 8 from WORDS_ARRAY.
- * Once com.google.cloud.pso.dataflowthrottling.DynamicThrottlingTransform processes the pipeline, successTag will return all from WORDS_ARRAY except 7, 8 only.
- * And PAssert is making sure that output PCollection is as same as expected.
+ * Once com.google.cloud.pso.dataflowthrottling.DynamicThrottlingTransform processes the pipeline, successTag will return all from WORDS_ARRAY except 7, 8.
+ *  * And PAssert validates the output PCollection is as same as expected.
  */
 public class ThrottlingOrchestrationTest implements Serializable {
     // Our static input data, which will make up the initial PCollection.
@@ -50,7 +50,7 @@ public class ThrottlingOrchestrationTest implements Serializable {
         DynamicThrottlingTransform.ClientCall<String, String> clientCall= csvLine -> {
             int csvLine1=Integer.parseInt(csvLine);
             if(csvLine1 > 5 && csvLine1 <9){
-                throw new ThrottlingException();
+                throw new ThrottlingException("Server returned HTTP response code: 429");
             }
             return csvLine;
         };

@@ -140,7 +140,7 @@ public class ThrottlingOrchestration {
             outputStream.close();
 
             if (con.getResponseCode() == 429) {
-                throw new ThrottlingException();
+                throw new ThrottlingException("Server returned HTTP response code: 429");
             }
 
             InputStreamReader inputStreamReader = new InputStreamReader(con.getInputStream());

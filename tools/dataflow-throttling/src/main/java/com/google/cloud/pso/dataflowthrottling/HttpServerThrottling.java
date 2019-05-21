@@ -29,7 +29,7 @@ import java.net.URI;
 import java.net.URLDecoder;
 
 /**
- * This backend server has throttling capabilities.
+ * This is test backend server with throttling capabilities.
  */
 public class HttpServerThrottling {
 
