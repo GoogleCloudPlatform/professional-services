@@ -24,23 +24,21 @@ For each request, if RequestRejectionProbability is more than a random number be
 For more information on these parameters see [Adaptive throttling](https://landing.google.com/sre/sre-book/chapters/handling-overload/#eq2101).
 The count of the incoming requests and accepted requests should be equal under normal conditions. Once the requests start getting rejected, the number of processing requests gets decreased by the difference of incoming requests and accepted requests.
 
-Pipeline will process the payload in multiple groups. To achieve this, pipeline will transform the PCollection[Bounded/Unbounded] into multiple groups based on random distribution (the random function implementation can be overridden).
+Pipeline will process the payload in multiple groups. To achieve this, the pipeline will transform the PCollection[Bounded/Unbounded] into multiple groups based on random distribution (the random function implementation can be overridden).
 Pipeline transform steps:
 * Converts the Input PCollection<<T>T</T>> into PCollection<<T>Key,Value</T>>. Here, Key will be group id (random by default) and Value will be payload.
 * Adaptive throttling will be applied to each group[State cell] accordingly.
-* Pipeline processes each state cell using [stateful](https://beam.apache.org/blog/2017/02/13/stateful-processing.html) and [timely](https://beam.apache.org/blog/2017/08/28/timely-processing.html) processing. That said each state cell will be processed after reaching a predefined interval of  time. A user function clientCall will be applied on a group of elements.
+* Pipeline processes each state cell using [stateful](https://beam.apache.org/blog/2017/02/13/stateful-processing.html) and [timely](https://beam.apache.org/blog/2017/08/28/timely-processing.html) processing. That said, each state cell will be processed after reaching a predefined interval of time.
 * ClientCall, a user defined function, is invoked. This function sends PCollection elements to the backend node. Based on the response of the clientCall respective counters will get incremented.
 
-The variables which stores the tota; number of requested and accepted requests are zeroed out after a certain interval of time (defaults to 1 min). This reset speeds up client recovery if server throughput was limited due to limitations on the server side not caused by the client.
+The variables which stores the total number of requested and accepted requests are zeroed out after a certain interval of time (defaults to 1 min). This reset speeds up client recovery if server throughput was limited due to limitations on the server side not caused by the client.
 
-### Library testing
+### Library testing: HTTP Server with Throttling capabilities
 
 #### Requirements
 
 * Install Java 8+
 * Install Maven 3
-
-### HTTP Server with Throttling capabilities
 
 To simulate a third-party service a test web server is created intended to accept and process certain number of HTTP requests only, remaining requests should get rejected. The requests will be sent from a job running on Dataflow. Each HTTP request will carry an element from the ParDo function as payload. Follow this steps to create a test environment.
 
@@ -64,8 +62,8 @@ javac HttpServerThrottling.java && java HttpServerThrottling localhost
 * Alternatively to run  on your machine set up a service account.
 		In GCP console, in navigation menu go to IAM & Admin and click on service accounts.
 		Create a service account and for the role select Dataflow worker.
-		Create a key and download to your machine.
-		Export it to environment variable GOOGLE_APPLICATION_CREDENTIALS.
+		Create a key and download it to your machine.
+		Export the path to environment variable GOOGLE_APPLICATION_CREDENTIALS.
 * Create a cloud storage bucket where input and output objects can be stored.
 * Clone the repository.
 * See the following Maven command to run the Dataflow pipeline.
@@ -100,7 +98,7 @@ mvn compile exec:java \
 ```
 DynamicThrottlingTransform<InputType, OutputType> clientCall = request -> {
     //Process the request
-    response = request_response.
+    response = <Response from the external service>
     if(response is Out of Quota Error){
         throw new ThrottlingException;
     }

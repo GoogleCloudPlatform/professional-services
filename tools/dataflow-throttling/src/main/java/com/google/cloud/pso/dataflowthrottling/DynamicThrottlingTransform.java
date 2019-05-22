@@ -47,13 +47,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * What does com.google.cloud.pso.dataflowthrottling.DynamicThrottlingTransform?
- * Firstly, divides the PCollection into n number of groups specified in Builder class & then starts processing each group.
- * Follow up transform will invoke the timer to process the payload queued in BagState.
- * How does it process each event?
- * Each event will send to the clientCall to process it if the rejection probability is lesser.
- * Based on the response of the clientCall appropriate counters will get incremented.
- * Counters will be zeroed each time resetCounterTimer gets invoked.
+ * Transform steps:
+ * 1. DynamicThrottlingTransform Divides the PCollection into a number of groups specified in Builder class & then starts processing each group.
+ * 2. A follow up transform invokes the timer to process the payload queued in BagState.
+ * 3. Each event is sent to the clientCall in accordance to the client request rejection logic.
+ * 4. Based on the response of the clientCall appropriate counters will get incremented. Counters are zeroed each time resetCounterTimer gets invoked.
  *
  * @param <InputT>  Type of the event from the source.
  * @param <OutputT> Type of the enriched event.
@@ -84,7 +82,7 @@ public class DynamicThrottlingTransform<InputT, OutputT> extends PTransform<PCol
      * Builder class to set either properties defined by client or to default.
      *
      * @param <BuilderInputT> Type of the event from the source.
-     * @param <BuilderOutpuT> Type of the enriched event.
+     * @param <BuilderOutpuT> Type of the output from the external service.
      */
     public static class Builder<BuilderInputT, BuilderOutpuT> {
         private int kInRejectionProbability = 1;
