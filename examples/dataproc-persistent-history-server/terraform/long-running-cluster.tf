@@ -50,8 +50,8 @@ resource "google_dataproc_cluster" "long-running-cluster" {
       override_properties = {
         "yarn:yarn.log-aggregation-enable"                  = "true"
         "yarn:yarn.nodemanager.remote-app-log-dir"          = "gs://${var.history-bucket}/yarn/logs/"
-        "yarn:yarn.log-aggregation.retain-seconds"          = "-1"
-        "yarn:yarn.log.server.url"                          = "https://${var.history-server}-m:19888/jobhistory/logs"
+        "yarn:yarn.log-aggregation.retain-seconds"          = "604800"
+        "yarn:yarn.log.server.url"                          = "http://${var.history-server}-m:19888/jobhistory/logs"
         "mapred:mapreduce.jobhistory.address"               = "${var.history-server}-m:10020"
         "mapred:mapreduce.jobhistory.webapp.address"        = "${var.history-server}-m:19888"
         "mapred:mapreduce.jobhistory.done-dir"              = "gs://${var.history-bucket}/done-dir"
@@ -63,6 +63,8 @@ resource "google_dataproc_cluster" "long-running-cluster" {
         "spark:spark.ui.enabled"                            = "true"
         "spark:spark.yarn.historyServer.allowTracking"      = "true"
         "spark:spark.submit.deployMode"                     = "cluster"
+        "spark:spark.ui.filters"                            = "org.apache.spark.deploy.yarn.YarnProxyRedirectFilter"
+	"spark:spark.yarn.historyServer.address"            = "${var.history-server}-m:18080"
       }
     }
 
