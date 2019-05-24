@@ -56,8 +56,13 @@ resource "google_dataproc_cluster" "long-running-cluster" {
         "mapred:mapreduce.jobhistory.webapp.address"        = "${var.history-server}-m:19888"
         "mapred:mapreduce.jobhistory.done-dir"              = "gs://${var.history-bucket}/done-dir"
         "mapred:mapreduce.jobhistory.intermediate-done-dir" = "gs://${var.history-bucket}/intermediate-done-dir"
+        "mapred:mapreduce.shuffle.max.connections"          = "120"
+        "mapred:mapreduce.shuffle.max.threads"              = "120"
         "spark:spark.eventLog.dir"                          = "gs://${var.history-bucket}/spark-events/"
         "spark:spark.history.fs.logDirectory"               = "gs://${var.history-bucket}/spark-events/"
+        "spark:spark.ui.enabled"                            = "true"
+        "spark:spark.yarn.historyServer.allowTracking"      = "true"
+        "spark:spark.submit.deployMode"                     = "cluster"
       }
     }
 

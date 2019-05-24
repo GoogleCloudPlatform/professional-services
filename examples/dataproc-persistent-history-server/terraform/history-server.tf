@@ -41,14 +41,17 @@ resource "google_dataproc_cluster" "history-server" {
         "dataproc:dataproc.allow.zero.workers"              = "true"
         "yarn:yarn.log-aggregation-enable"                  = "true"
         "yarn:yarn.nodemanager.remote-app-log-dir"          = "gs://${var.history-bucket}/yarn/logs/"
-        "yarn:yarn.log-aggregation.retain-seconds"          = "-1"
+        "yarn:yarn.log-aggregation.retain-seconds"          = "604800"
         "yarn:yarn.log.server.url"                          = "https://${var.history-server}-m:19888/jobhistory/logs"
         "mapred:mapreduce.jobhistory.address"               = "${var.history-server}-m:10020"
         "mapred:mapreduce.jobhistory.webapp.address"        = "${var.history-server}-m:19888"
-        "mapred:mapreduce.jobhistory.done-dir"              = "gs://${var.history-bucket}/done-dir"
-        "mapred:mapreduce.jobhistory.intermediate-done-dir" = "gs://${var.history-bucket}/intermediate-done-dir"
-        "spark:spark.eventLog.dir"                          = "gs://${var.history-bucket}/spark-events/"
-        "spark:spark.history.fs.logDirectory"               = "gs://${var.history-bucket}/spark-events/"
+        "mapred:mapreduce.jobhistory.done-dir"              = "gs://${var.history-server}/done-dir"
+        "mapred:mapreduce.jobhistory.intermediate-done-dir" = "gs://${var.history-server}/intermediate-done-dir"
+        "spark:spark.eventLog.dir"                          = "gs://${var.history-server}/spark-events/"
+        "spark:spark.history.fs.logDirectory"               = "gs://${var.history-server}/spark-events/"
+        "spark:spark.ui.enabled"                            = "true"
+        "spark:spark.yarn.historyServer.allowTracking"      = "true"
+        "spark:spark.ui.filters"                            = "org.apache.spark.deploy.yarn.YarnProxyRedirectFilter"
       }
     }
 

@@ -1,9 +1,11 @@
 variable "project" {
   description = "Project ID for your history cluster"
+  default     = "history-server-demo"
 }
 
 variable "history-bucket" {
   description = "The bucket name for your YARN logs and Spark event logs"
+  default     = "history-server-bucket"
 }
 
 variable "history-server" {
