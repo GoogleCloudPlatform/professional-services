@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import pyarrow as pa
 import logging
 import datetime
@@ -70,7 +71,7 @@ def get_pyarrow_translated_schema(string_schema):
                 utility.""".format(field['type']))
         
     pa_schema_list = []
-    for field in string_schema:
+    for field in string_schema['fields']:
         field_type = field['type']
         field_name = field['name']
         field_mode = field['mode']
@@ -132,6 +133,7 @@ def fix_record_for_parquet(record, schema):
                 ).time()
         return record[field_name]
 
+    schema = schema['fields'] if isinstance(schema, dict) else schema
     for field in schema:
         field_name = field['name']
         if field['mode'] == 'REPEATED':

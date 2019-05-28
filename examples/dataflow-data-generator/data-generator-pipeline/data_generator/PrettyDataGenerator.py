@@ -93,7 +93,7 @@ class DataGenerator(object):
             try:
                 # Handles json from google cloud storage or local.
                 if bq_schema_filename.find('gs://') == 0:
-                    bkt, path = bq_schema_filename.strip('gs://').split('/', 1)
+                    bkt, path = bq_schema_filename.replace('gs://', '').split('/', 1)
                     client = gcs.Client()
                     bucket = client.get_bucket(bkt)
 
@@ -819,7 +819,7 @@ def write_n_line_file_to_gcs(project, temp_location, n):
         n: An integer specifying the number of lines to write to a file.
     """
     # Prepare to write gcs file 'temp_num_records.txt' in the temp_location.
-    bucket_name, path = temp_location.strip('gs://').split('/', 1)
+    bucket_name, path = temp_location.replace('gs://', '').split('/', 1)
 
     gcs_client = gcs.Client(project=project)
     temp_bucket = gcs_client.get_bucket(bucket_name)

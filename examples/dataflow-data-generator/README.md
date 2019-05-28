@@ -143,9 +143,12 @@ Note that `RECORD` are not supported when writing to CSV, because it is a flat f
 `--write_to_parquet` is a flag that specifies the output should be parquet. In order for beam to write to parquet, 
 a pyarrow schema is needed. Therefore, this tool translates the schema in the `--schema_file` to
 a pyarrow schema automatically if this flag is included, but pyarrow doesn't support all fields that are supported
-by BigQuery. STRING, NUMERIC, INTEGER, FLOAT, NUMERIC, BOOLEAN, TIMESTAMP, DATE, TIME, DATETIME, and RECORD types are supported. 
+by BigQuery. STRING, NUMERIC, INTEGER, FLOAT, NUMERIC, BOOLEAN, TIMESTAMP, DATE, TIME, and DATETIME types are supported.
+
+There is limited support for writing RECORD types to parquet. Due to this [known pyarrow issue](https://jira.apache.org/jira/browse/ARROW-2587?jql=project%20%3D%20ARROW%20AND%20fixVersion%20%3D%200.14.0%20AND%20text%20~%20%22struct%22) this tool does not support writing arrays nested within structs.
+
 However BYTE, and GEOGRAPHY fields are not supported and cannot be included in the `--schema_file` when writing
-to parquet .
+to parquet.
 
 ```
 --write_to_parquet

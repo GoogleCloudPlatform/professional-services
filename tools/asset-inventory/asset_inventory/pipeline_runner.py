@@ -67,7 +67,7 @@ def wait_on_pipeline_job(df_service, pipeline_job):
 
 def run_pipeline_template(dataflow_project, template_region, template_location,
                           input_location, group_by, write_disposition, dataset,
-                          stage, load_time, runtime_environment):
+                          stage, load_time, num_shards, runtime_environment):
     """Invoke the suplied pipeline template.
 
     Args:
@@ -80,6 +80,7 @@ def run_pipeline_template(dataflow_project, template_region, template_location,
         dataset: BigQuery dataset to write to.
         stage: GCS path to write BigQuery load files.
         load_time: Timestamp or date to load data with.
+        num_shards: Shards for for each asset type.
         runtime_environment: Dict  suppling other runtime overrides.
     Returns:
         End state of the pipline and job object.
@@ -97,6 +98,7 @@ def run_pipeline_template(dataflow_project, template_region, template_location,
             'stage': stage,
             'group_by': group_by,
             'write_disposition': write_disposition,
+            'num_shards': num_shards,
             'dataset': dataset,
         },
         'environment': runtime_environment
@@ -115,7 +117,7 @@ def run_pipeline_template(dataflow_project, template_region, template_location,
 
 def run_pipeline_beam_runner(pipeline_runner, dataflow_project, input_location,
                              group_by, write_disposition, dataset, stage,
-                             load_time, pipeline_arguments):
+                             load_time, num_shards, pipeline_arguments):
     """Invokes the pipeline with a beam runner.
 
     Only tested with the dataflow and direct runners.
@@ -129,6 +131,7 @@ def run_pipeline_beam_runner(pipeline_runner, dataflow_project, input_location,
         dataset: BigQuery dataset to write to.
         stage: GCS path to write BigQuery load files.
         load_time: Timestamp to add to data during during BigQuery load.
+        num_shards: Shards for for each asset type.
         pipeline_arguments: List of additional runner arguments.
     Returns:
         The end state of the pipeline run (a string), and PipelineResult.
@@ -150,6 +153,7 @@ def run_pipeline_beam_runner(pipeline_runner, dataflow_project, input_location,
         '--input': input_location,
         '--group_by': group_by,
         '--write_disposition': write_disposition,
+        '--num_shards': num_shards,
         '--dataset': dataset,
         '--stage': stage,
         '--runner': pipeline_runner
