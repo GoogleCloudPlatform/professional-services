@@ -64,7 +64,7 @@ resource "google_dataproc_cluster" "long-running-cluster" {
         "spark:spark.yarn.historyServer.allowTracking"      = "true"
         "spark:spark.submit.deployMode"                     = "cluster"
         "spark:spark.ui.filters"                            = "org.apache.spark.deploy.yarn.YarnProxyRedirectFilter"
-	"spark:spark.yarn.historyServer.address"            = "${var.history-server}-m:18080"
+        "spark:spark.yarn.historyServer.address"            = "${var.history-server}-m:18080"
       }
     }
 
@@ -76,6 +76,10 @@ resource "google_dataproc_cluster" "long-running-cluster" {
       subnetwork       = "${module.vpc.subnets_names[0]}"
       internal_ip_only = true
       tags             = ["hadoop-history-ui-access"]
+
+      metadata {
+        "enable-oslogin" = "TRUE"
+      }
     }
   }
 }
