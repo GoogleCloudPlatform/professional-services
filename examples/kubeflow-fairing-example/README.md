@@ -86,6 +86,19 @@ setup the environments. The key steps are summarized as follows
     ```bash
     pip install git+https://github.com/kubeflow/fairing@master
     ```
+### Running Notebook
+Please not that the above configuration is required for notebook service running outside Kubeflow environment. 
+And the examples demonstrated are fully tested on notebook service outside Kubeflow cluster also, which 
+means it could be
+- Notebook running on your personal computer
+- Notebook on AI Platform, Google Cloud Platform
+- Essentially notebook on any environment outside Kubeflow cluster
+ 
+For notebook running inside Kubeflow cluster, for example JupytHub will be deployed together with kubeflow, the 
+environemt variables, e.g. service account, projects and etc, should have been pre-configured while 
+setting up the cluster. The fairing package will also be pre-installed together with the deployment. **The only thing
+need to be aware is that docker is usually not installed, which would require `cluster` as the builder option as 
+explained in the following section**
 
 ## Concepts of Kubeflow Fairing
 There are three major concepts in Kubeflow Fairing: preprocessor, builder and deployer
