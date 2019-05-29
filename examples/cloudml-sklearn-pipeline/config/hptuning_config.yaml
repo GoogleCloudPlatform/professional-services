@@ -1,7 +1,7 @@
 trainingInput:
   scaleTier: STANDARD_1
   runtimeVersion: "1.13"
-  pythonVersion: "3.5"  # Note: Python 3 is also supported
+  pythonVersion: "3.5"  # Note: Both Python 2.7 and Python 3 is also supported
   hyperparameters:
     goal: MAXIMIZE
     maxTrials: 30

@@ -29,7 +29,7 @@ REQUIRED_PACKAGES = [
 
 setuptools.setup(
     name='custom_scikit_learn',
-    author='luoshixin@google.com',
+    author='Shixin Luo',
     version='v1',
     install_requires=REQUIRED_PACKAGES,
     packages=setuptools.find_packages(),

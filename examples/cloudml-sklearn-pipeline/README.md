@@ -37,7 +37,7 @@ built-in machine learning.
 ## Pipeline overview
 The overall flow of the pipeline can be summarized as follows and illustrated in the flowchart:
 
-**Raw Data -> Transformer -> Pre-processor -> Estomator -> Trained Pipeline**
+**Raw Data -> Transformer -> Pre-processor -> Estimator -> Trained Pipeline**
 
 ![Flowchart](./sklearn.png)
 
@@ -93,7 +93,7 @@ you need a Google cloud project if you don't have one. You can find detailed ins
 ### Step 1. Tailor the scikit-learn trainer to your data
 `metadata.py` is where the dataset's metadata is defined. 
 By default, the file is configured to train on the Census dataset, which can be found at 
-`bigquery-public-data.ml_datasets.census_adult_income`.
+[`bigquery-public-data.ml_datasets.census_adult_income`](https://bigquery.cloud.google.com/table/bigquery-public-data:ml_datasets.census_adult_income).
 
 ```python
 # Usage: Modify below based on the dataset used.
@@ -189,7 +189,8 @@ The files are located in `config`:
 - `hptuning_config.yaml`: for running hyperparameter tuning job on AI Platform.
 
 The YAML files share some configuration parameters. In particular, `runtimeVersion` and `pythonVersion` should
-correspond in both files.
+correspond in both files. Note that both Python 2.7 and Python 3.5 are supported, but Python 3.5 is the recommended
+one since Python 2.7 is [deprecated](https://pythonclock.org/) soon.
 
 ```yaml
 trainingInput:
