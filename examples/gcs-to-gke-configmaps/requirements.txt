@@ -1,0 +1,6 @@
+# Function dependencies, for example:
+# package>=version
+requests >= 2.18.0
+kubernetes
+google-api-python-client
+google-cloud-logging==1.10.0
