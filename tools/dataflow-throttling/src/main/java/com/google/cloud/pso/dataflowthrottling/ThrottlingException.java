@@ -17,13 +17,14 @@
 package com.google.cloud.pso.dataflowthrottling;
 
 /**
- * This class processes the exception which is raised by clientCall.
+ * This exception must be thrown by the clientCall method when the external service returns
+ * an error because it throttled the request.
  */
 public class ThrottlingException extends Exception {
 
     String message;
     /**
-     * Constructor for ThrottlingException
+     * Constructor for ThrottlingException.
      *
      * @param message passed from ThrottlingOrchestration.clientCall function.
      */

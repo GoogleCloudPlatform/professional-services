@@ -46,8 +46,9 @@ import org.slf4j.LoggerFactory;
 
 /**
  * This class is defined to read from source, transform using com.google.cloud.pso.dataflowthrottling.DynamicThrottlingTransform
- * and write to sink. While using com.google.cloud.pso.dataflowthrottling.DynamicThrottlingTransform client has to define clientCall
- * where each event will be sent to clientCall and processed.
+ * and write to sink. While using com.google.cloud.pso.dataflowthrottling.DynamicThrottlingTransform a user has to implement
+ * clientCall functional interface where each event is sent to the external service for processing.
+ * Sample run command:
  * # Set the runner
  * RUNNER=DataflowRunner
  * # Build the template

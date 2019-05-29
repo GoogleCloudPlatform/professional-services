@@ -21,9 +21,11 @@ import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 
 import com.google.common.collect.Iterables;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.concurrent.ThreadLocalRandom;
+
 import org.apache.beam.sdk.coders.Coder;
 import org.apache.beam.sdk.coders.VarIntCoder;
 import org.apache.beam.sdk.state.BagState;
@@ -54,7 +56,7 @@ import org.slf4j.LoggerFactory;
  * 4. Based on the response of the clientCall appropriate counters will get incremented. Counters are zeroed each time resetCounterTimer gets invoked.
  *
  * @param <InputT>  Type of the event from the source.
- * @param <OutputT> Type of the enriched event.
+ * @param <OutputT> Type of the output from the external service.
  */
 public class DynamicThrottlingTransform<InputT, OutputT> extends PTransform<PCollection<InputT>, PCollectionTuple> {
 
@@ -75,11 +77,11 @@ public class DynamicThrottlingTransform<InputT, OutputT> extends PTransform<PCol
     private final java.time.Duration resetCounterInterval;
     private final int numOfEventsToBeProcessedForBatch;
     private final int kInRejectionProbability;
-    private final Coder<InputT> elemCoder;
+    private final Coder<InputT> inputElementCoder;
     private final ClientCall<InputT, OutputT> clientCall;
 
     /**
-     * Builder class to set either properties defined by client or to default.
+     * Builder class to set client-side throttling parameter.
      *
      * @param <BuilderInputT> Type of the event from the source.
      * @param <BuilderOutpuT> Type of the output from the external service.
@@ -90,19 +92,19 @@ public class DynamicThrottlingTransform<InputT, OutputT> extends PTransform<PCol
         private java.time.Duration batchInterval = java.time.Duration.ofSeconds(1);
         private int numberOfGroups = 1;
         private int numOfEventsToBeProcessedForBatch;
-        private Coder<BuilderInputT> elemCoder;
+        private Coder<BuilderInputT> inputElementCoder;
         private ClientCall<BuilderInputT, BuilderOutpuT> clientCall;
 
         /**
          * The constructor for DynamicThrottlingTransform.Builder.
          *
          * @param clientCall                       Processes requests to the external service.
-         * @param elemCoder                        Coder for incoming events.
+         * @param inputElementCoder                Coder for incoming events.
          * @param numOfEventsToBeProcessedForBatch Limits the number of events for each batch.
          */
-        public Builder(ClientCall<BuilderInputT, BuilderOutpuT> clientCall, Coder<BuilderInputT> elemCoder, int numOfEventsToBeProcessedForBatch) {
+        public Builder(ClientCall<BuilderInputT, BuilderOutpuT> clientCall, Coder<BuilderInputT> inputElementCoder, int numOfEventsToBeProcessedForBatch) {
             this.clientCall = clientCall;
-            this.elemCoder = elemCoder;
+            this.inputElementCoder = inputElementCoder;
             this.numOfEventsToBeProcessedForBatch = numOfEventsToBeProcessedForBatch;
         }
 
@@ -205,7 +207,7 @@ public class DynamicThrottlingTransform<InputT, OutputT> extends PTransform<PCol
         this.resetCounterInterval = builder.resetCounterInterval;
         this.numOfEventsToBeProcessedForBatch = builder.numOfEventsToBeProcessedForBatch;
         this.kInRejectionProbability = builder.kInRejectionProbability;
-        this.elemCoder = builder.elemCoder;
+        this.inputElementCoder = builder.inputElementCoder;
         this.clientCall = builder.clientCall;
     }
 
@@ -221,7 +223,7 @@ public class DynamicThrottlingTransform<InputT, OutputT> extends PTransform<PCol
     /**
      * Collection of request responses of all error codes except 200,429.
      *
-     * @return PCollection<ClientCall       Responses       Except       2   0   0   and       4   2   9>
+     * @return PCollection<ClientCall               Responses               Except               2       0       0       and               4       2       9>
      */
     public TupleTag<Result<InputT>> getErrorTag() {
         return errorTag;
@@ -230,7 +232,7 @@ public class DynamicThrottlingTransform<InputT, OutputT> extends PTransform<PCol
     /**
      * Collection of rejected requests and Throttled requests.
      *
-     * @return PCollection<Error_429       and       ThrottledRequests>
+     * @return PCollection<Error_429               and               ThrottledRequests>
      */
     public TupleTag<Result<InputT>> getThrottlingTag() {
         return throttlingTag;
@@ -243,7 +245,7 @@ public class DynamicThrottlingTransform<InputT, OutputT> extends PTransform<PCol
     @Override
     public PCollectionTuple expand(PCollection<InputT> input) {
         /**
-         * {Grouping} It will segregate incoming events into single/multiple number of groups.
+         * {Grouping} Segregates incoming events into a single or multiple groups.
          */
         PCollection<KV<Integer, InputT>> groups = input.apply("Grouping", ParDo.of(new DoFn<InputT, KV<Integer, InputT>>() {
             @DoFn.ProcessElement
@@ -263,7 +265,7 @@ public class DynamicThrottlingTransform<InputT, OutputT> extends PTransform<PCol
 
             @StateId("incomingReqBagState")
             private final StateSpec<BagState<InputT>> incomingReqBagStateSpec =
-                    StateSpecs.bag(elemCoder);
+                    StateSpecs.bag(inputElementCoder);
 
             @StateId("totalProcessedRequests")
             private final StateSpec<ValueState<Integer>> totalProcessedRequestsStateSpec =
@@ -276,10 +278,6 @@ public class DynamicThrottlingTransform<InputT, OutputT> extends PTransform<PCol
             @TimerId("incomingReqBagTimer")
             private final TimerSpec incomingReqBagTimerSpec = TimerSpecs
                     .timer(TimeDomain.EVENT_TIME);
-
-            @StateId("rejRequests")
-            private final StateSpec<ValueState<Integer>> rejRequestsStateSpec =
-                    StateSpecs.value(VarIntCoder.of());
 
             /**
              * @param context Payload that should be sent by the client.
@@ -295,8 +293,7 @@ public class DynamicThrottlingTransform<InputT, OutputT> extends PTransform<PCol
                                        @StateId("totalProcessedRequests") ValueState<Integer> totalProcessedRequests,
                                        @StateId("incomingReqBagState") BagState<InputT> incomingReqBagState,
                                        @TimerId("resetCountsTimer") Timer resetCountsTimer,
-                                       @TimerId("incomingReqBagTimer") Timer incomingReqBagTimer,
-                                       @StateId("rejRequests") ValueState<Integer> rejRequests) throws IOException {
+                                       @TimerId("incomingReqBagTimer") Timer incomingReqBagTimer) throws IOException {
 
                 if (incomingReqBagState.isEmpty().read()) {
                     incomingReqBagTimer.offset(Duration.millis(batchInterval.toMillis())).setRelative();
@@ -311,7 +308,6 @@ public class DynamicThrottlingTransform<InputT, OutputT> extends PTransform<PCol
              * Timer that processes n requests each time it gets invoked.
              * @param context Payload that should be sent by the client.
              * @param acceptedRequests Counts the total number of requests processed by client and got accepted by the backend.
-             * @param rejRequests Counts the total number of events that were rejected by client.
              */
             @OnTimer("incomingReqBagTimer")
             public void incomingReqBagTimer(
@@ -319,8 +315,7 @@ public class DynamicThrottlingTransform<InputT, OutputT> extends PTransform<PCol
                     @StateId("acceptedRequests") ValueState<Integer> acceptedRequests,
                     @StateId("incomingReqBagState") BagState<InputT> incomingReqBagState,
                     @StateId("totalProcessedRequests") ValueState<Integer> totalProcessedRequests,
-                    @TimerId("incomingReqBagTimer") Timer incomingReqBagTimer,
-                    @StateId("rejRequests") ValueState<Integer> rejRequests) {
+                    @TimerId("incomingReqBagTimer") Timer incomingReqBagTimer) {
                 Iterable<InputT> bag = incomingReqBagState.read();
 
                 double acceptedReqCount = firstNonNull(acceptedRequests.read(), 0);
