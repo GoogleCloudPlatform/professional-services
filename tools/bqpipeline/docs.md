@@ -126,3 +126,18 @@ Export a table to GCS as a Newline Delimited JSON file.
 :param table: str of table spec `project.dataset.table`
 :param gcs_path: str of destination GCS path
 
+### resolve_dataset_spec
+```python
+BQPipeline.resolve_dataset(self, dataset)
+```
+Resolves a full DatasetSpec from a partial DatasetSpec by adding default
+project.
+:param dest: DatasetSpec string or partial DatasetSpec string
+:return str DatasetSpec
+
+### create_dataset
+```python
+create_dataset(self, dataset, exists_ok=False):
+```
+Creates a BigQuery Dataset from a full or partial dataset spec.
+:param dataset: DatasetSpec string or partial DatasetSpec string
