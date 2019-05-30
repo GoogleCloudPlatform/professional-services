@@ -196,7 +196,9 @@ one since Python 2.7 is [deprecated](https://pythonclock.org/) soon.
 trainingInput:
   scaleTier: STANDARD_1   # Machine type
   runtimeVersion: "1.13"  # Scikit-learn version
-  pythonVersion: "3.5"    # only support python 2.7 and 3.5
+  # Note that both Python 2.7 and Python 3.5 are supported, but Python 3.5 is the 
+  # recommended one since 2.7 is deprecated soon
+  pythonVersion: "3.5"    
 ```
 
 More information on supported runtime version can be found 
@@ -241,7 +243,9 @@ REGION=us-central1
 # The following two parameters should be aligned with those used during
 # training job, i.e., specified in the yaml files under config/
 RUN_TIME=1.13
-PYTHON_VERSION=3.5 # only support python 2.7 and 3.5
+# Note that both Python 2.7 and Python 3.5 are supported, 
+# but Python 3.5 is the recommended one since 2.7 is deprecated soon
+PYTHON_VERSION=3.5
 ```
 
 ### Step 6. Run predictions using the deployed model

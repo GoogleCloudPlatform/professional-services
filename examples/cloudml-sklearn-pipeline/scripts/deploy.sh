@@ -35,7 +35,9 @@ JOB_DIR=$3
 REGION=us-central1
 FRAMEWORK=SCIKIT_LEARN
 RUN_TIME=1.13
-PYTHON_VERSION=3.5 # only support python 2.7 and 3.5
+# Note that both Python 2.7 and Python 3.5 are supported,
+# but Python 3.5 is the recommended one since 2.7 is deprecated soon
+PYTHON_VERSION=3.5
 MODEL_DIR=${JOB_DIR}"/model/"
 
 PACKAGE_NAME="custom_scikit_learn-1.tar.gz"

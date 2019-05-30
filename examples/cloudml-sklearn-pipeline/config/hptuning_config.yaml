@@ -1,7 +1,9 @@
 trainingInput:
   scaleTier: STANDARD_1
   runtimeVersion: "1.13"
-  pythonVersion: "3.5"  # Note: Both Python 2.7 and Python 3 is also supported
+  # Note that both Python 2.7 and Python 3.5 are supported, but Python 3.5 is the
+  # recommended one since 2.7 is deprecated soon
+  pythonVersion: "3.5"
   hyperparameters:
     goal: MAXIMIZE
     maxTrials: 30
