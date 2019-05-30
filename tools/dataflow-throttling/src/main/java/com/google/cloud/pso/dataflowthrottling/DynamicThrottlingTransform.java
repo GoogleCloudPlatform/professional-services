@@ -21,11 +21,8 @@ import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 
 import com.google.common.collect.Iterables;
-
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.concurrent.ThreadLocalRandom;
-
 import org.apache.beam.sdk.coders.Coder;
 import org.apache.beam.sdk.coders.VarIntCoder;
 import org.apache.beam.sdk.state.BagState;
@@ -223,16 +220,16 @@ public class DynamicThrottlingTransform<InputT, OutputT> extends PTransform<PCol
     /**
      * Collection of request responses of all error codes except 200,429.
      *
-     * @return PCollection<ClientCall               Responses               Except               2       0       0       and               4       2       9>
+     * @return Collection of clientCall responses except 200 and 429>
      */
     public TupleTag<Result<InputT>> getErrorTag() {
         return errorTag;
     }
 
     /**
-     * Collection of rejected requests and Throttled requests.
+     * Collection of rejected requests and throttled requests.
      *
-     * @return PCollection<Error_429               and               ThrottledRequests>
+     * @return Collection of throttledRequests with error code.
      */
     public TupleTag<Result<InputT>> getThrottlingTag() {
         return throttlingTag;
@@ -285,7 +282,6 @@ public class DynamicThrottlingTransform<InputT, OutputT> extends PTransform<PCol
              * @param incomingReqBagState BagState, which holds the requests to process in batch.
              * @param resetCountsTimer Timer that resets the counter for every n minutes.
              * @param incomingReqBagTimer Timer that is invoked for every N minutes irrespective of the bag size.
-             * @throws IOException
              */
             @ProcessElement
             public void processElement(ProcessContext context,
@@ -293,7 +289,7 @@ public class DynamicThrottlingTransform<InputT, OutputT> extends PTransform<PCol
                                        @StateId("totalProcessedRequests") ValueState<Integer> totalProcessedRequests,
                                        @StateId("incomingReqBagState") BagState<InputT> incomingReqBagState,
                                        @TimerId("resetCountsTimer") Timer resetCountsTimer,
-                                       @TimerId("incomingReqBagTimer") Timer incomingReqBagTimer) throws IOException {
+                                       @TimerId("incomingReqBagTimer") Timer incomingReqBagTimer) {
 
                 if (incomingReqBagState.isEmpty().read()) {
                     incomingReqBagTimer.offset(Duration.millis(batchInterval.toMillis())).setRelative();
@@ -318,8 +314,8 @@ public class DynamicThrottlingTransform<InputT, OutputT> extends PTransform<PCol
                     @TimerId("incomingReqBagTimer") Timer incomingReqBagTimer) {
                 Iterable<InputT> bag = incomingReqBagState.read();
 
-                double acceptedReqCount = firstNonNull(acceptedRequests.read(), 0);
-                double totalReqCount = firstNonNull(totalProcessedRequests.read(), 0);
+                int acceptedReqCount = firstNonNull(acceptedRequests.read(), 0);
+                int totalReqCount = firstNonNull(totalProcessedRequests.read(), 0);
 
                 for (InputT value : Iterables.limit(bag, numOfEventsToBeProcessedForBatch)) {
                     //Calculates requests rejection probability
@@ -334,7 +330,7 @@ public class DynamicThrottlingTransform<InputT, OutputT> extends PTransform<PCol
                         try {
                             successTagValue = clientCall.call(value);
                             acceptedReqCount = acceptedReqCount + 1;
-                            acceptedRequests.write((int) acceptedReqCount);
+                            acceptedRequests.write(acceptedReqCount);
                             context.output(successTag, successTagValue);
                         } catch (ThrottlingException e) {
                             context.output(throttlingTag, result = new Result<>(value, e.getMessage()));
@@ -347,7 +343,7 @@ public class DynamicThrottlingTransform<InputT, OutputT> extends PTransform<PCol
                         accepted = FALSE;
                         context.output(throttlingTag, result = new Result<>(value, "Throttled by Client. Request rejection probability: " + reqRejectionProbability));
                     }
-                    LOG.info("  totalCount-" + totalReqCount + ",  reqRejecProb-" + reqRejectionProbability + ",  Random-" + randomValue + ", " + accepted + ",  acceptCount-" + acceptedReqCount);
+                    LOG.debug("  totalCount-" + totalReqCount + ",  reqRejecProb-" + reqRejectionProbability + ",  Random-" + randomValue + ", " + accepted + ",  acceptCount-" + acceptedReqCount);
                 }
 
                 incomingReqBagState.clear();

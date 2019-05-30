@@ -22,7 +22,7 @@ package com.google.cloud.pso.dataflowthrottling;
  */
 public class ThrottlingException extends Exception {
 
-    String message;
+    private String message;
     /**
      * Constructor for ThrottlingException.
      *
@@ -34,7 +34,7 @@ public class ThrottlingException extends Exception {
     /**
      * This method returns the error message.
      *
-     * @return
+     * @return error message.
      */
     @Override
     public String getMessage() {

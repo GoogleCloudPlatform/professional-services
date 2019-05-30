@@ -106,21 +106,24 @@ public class ThrottlingOrchestration {
 
     /**
      * Runs the pipeline to completion with the specified options. This method does not wait until the
-     * pipeline is finished before returning. Invoke {@code result.waitUntilFinish()} on the result
-     * object to block until the pipeline is finished running if blocking programmatic execution is
-     * required.
+     * pipeline is finished before returning.
      *
      * @return The pipeline result.
      */
 
     public static PipelineResult run(Options options) throws IOException {
 
-        /*
-          @clientCall LambdaFunction
+        /**
+         * @clientCall LambdaFunction.
          * com.google.cloud.pso.dataflowthrottling.DynamicThrottlingTransform.Clientcall<InputType, OutputType[for accepted requests]> clientCall = input ->{
-         * {....
-         *  ....logic to process input
-         *  return output;
+         *      Process the input.
+         *      response = "Response from the external service"
+         *      if(response is Out of Quota Error){
+         *          throw new ThrottlingException;
+         *      }
+         *      else{
+         *          return request_response;
+         *      }
          * };
          */
         DynamicThrottlingTransform.ClientCall<String, Integer> clientCall = csvLine -> {
