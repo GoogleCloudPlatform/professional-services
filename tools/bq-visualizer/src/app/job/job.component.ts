@@ -82,7 +82,7 @@ export class JobComponent implements OnDestroy {
   getJobs(project: BqProject) {
     this.jobs = [];
     this.selectedProject = project;
-    this.bqService.getJobs(project.id)
+    this.bqService.getJobs(project.id, 2000)
         .pipe(takeUntil(this.destroy))
         .subscribe(
             res => {
