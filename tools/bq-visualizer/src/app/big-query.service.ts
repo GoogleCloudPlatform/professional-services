@@ -58,10 +58,11 @@ export class BigQueryService {
   }
 
   /** Get all jobs for a project. */
-  getJobs(projectId: string): Observable<BqJob> {
+  getJobs(projectId: string, maxJobs: number): Observable<BqJob> {
     return Observable.create(async obs => {
       const token = this.oauthService.getAccessToken();
       let nextPageToken = '';
+      let totalJobs = 0;
       while (true) {
         const url = bqUrl(`/${projectId}/jobs`, {
           access_token: token,
@@ -70,6 +71,7 @@ export class BigQueryService {
           projection: 'full',
           pageToken: nextPageToken,
         });
+        console.log('getJobs: ' + url);
 
         try {
           await new Promise((resolve, reject) => {
@@ -88,6 +90,12 @@ export class BigQueryService {
                     obs.next(job);
                   }
                   nextPageToken = res.nextPageToken;
+                  totalJobs += res.jobs.length;
+                  console.log('totalJobs: ' + totalJobs);
+                  if (totalJobs >= maxJobs) {
+                    obs.complete();
+                    return;
+                  }
                 },
                 err => {
                   console.error(`Error loading jobs: ${err}`);
@@ -189,7 +197,7 @@ function bqUrl(path: string, args: any): string {
 
 @Injectable({providedIn: 'root'})
 export class MockBigQueryService extends BigQueryService {
-  getJobs(projectId: string): Observable<BqJob> {
+  getJobs(projectId: string, maxJobs: number): Observable<BqJob> {
     return from(require('../assets/test/get_jobs.json').jobs);
   }
 
