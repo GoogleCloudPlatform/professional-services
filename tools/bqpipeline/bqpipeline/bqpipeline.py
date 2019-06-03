@@ -161,6 +161,29 @@ class BQPipeline(object):
                 table_id = self.default_project + '.' + self.default_dataset + '.' + dest
         return table_id
 
+    def resolve_dataset_spec(self, dataset):
+        """
+        Resolves a full DatasetSpec from a partial DatasetSpec by adding default
+        project.
+        :param dest: DatasetSpec string or partial DatasetSpec string
+        :return str DatasetSpec
+        """
+        dataset_id = dataset
+        if dataset_id is not None:
+            parts = dataset_id.split('.')
+            if len(parts) == 1 and \
+                self.default_project is not None:
+                dataset_id = self.default_project + '.' + dataset
+        return dataset_id 
+
+    def create_dataset(self, dataset, exists_ok=False):
+        """
+        Creates a BigQuery Dataset from a full or partial dataset spec.
+        :param dataset: DatasetSpec string or partial DatasetSpec string
+        """
+        return self.bq.create_dataset(self.resolve_dataset_spec(dataset),
+                                      exists_ok=exists_ok)
+
     def create_job_config(self, batch=True, dest=None, create=True,
                           overwrite=True, append=False):
         """
