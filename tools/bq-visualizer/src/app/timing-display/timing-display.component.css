@@ -38,5 +38,12 @@
 }
 .timing_display {
   position: relative;
-  padding-top: 60px;
+}
+#Gantt{
+  overflow-x: scroll;
+  overflow-y: scroll;
+}
+
+.row {
+  margin:0 !important;
 }

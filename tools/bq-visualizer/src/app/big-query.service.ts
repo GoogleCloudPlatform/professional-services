@@ -1,3 +1,18 @@
+/*
+ * Copyright 2019 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 import {HttpClient} from '@angular/common/http';
 import {Injectable} from '@angular/core';
 import {OAuthService} from 'angular-oauth2-oidc';
@@ -24,31 +39,39 @@ export class BigQueryService {
       private logSvc: LogService) {}
 
   /** Get the detail of a job. */
-  getQueryPlan(projectId: string, jobId: string): Observable<Job> {
+  getQueryPlan(projectId: string, jobId: string, location: string):
+      Observable<Job> {
     // Extract job id if the job id is a collection of
     // [project]:[location].jobId
     const realid = jobId.split('.').slice(-1)[0];
     this.logSvc.debug(`getQueryPlan: fetched query plan for jobid=${jobId}`);
 
     const token = this.oauthService.getAccessToken();
-    const url = bqUrl(`/${projectId}/jobs/${realid}`, {access_token: token});
+    console.log(token);
+
+    const args = {access_token: token, location: location};
+    const url = bqUrl(`/${projectId}/jobs/${realid}`, args);
+
     this.logSvc.debug(`Requested job detail for: ${realid}`);
     return this.http.get<Job>(url).pipe(
         catchError(this.handleError('getQueryPlan')));
   }
 
   /** Get all jobs for a project. */
-  getJobs(projectId: string): Observable<BqJob> {
+  getJobs(projectId: string, maxJobs: number): Observable<BqJob> {
     return Observable.create(async obs => {
       const token = this.oauthService.getAccessToken();
       let nextPageToken = '';
+      let totalJobs = 0;
       while (true) {
         const url = bqUrl(`/${projectId}/jobs`, {
           access_token: token,
           maxResults: 200,
+          allUsers: true,
           projection: 'full',
           pageToken: nextPageToken,
         });
+        console.log('getJobs: ' + url);
 
         try {
           await new Promise((resolve, reject) => {
@@ -67,6 +90,12 @@ export class BigQueryService {
                     obs.next(job);
                   }
                   nextPageToken = res.nextPageToken;
+                  totalJobs += res.jobs.length;
+                  console.log('totalJobs: ' + totalJobs);
+                  if (totalJobs >= maxJobs) {
+                    obs.complete();
+                    return;
+                  }
                 },
                 err => {
                   console.error(`Error loading jobs: ${err}`);
@@ -168,7 +197,7 @@ function bqUrl(path: string, args: any): string {
 
 @Injectable({providedIn: 'root'})
 export class MockBigQueryService extends BigQueryService {
-  getJobs(projectId: string): Observable<BqJob> {
+  getJobs(projectId: string, maxJobs: number): Observable<BqJob> {
     return from(require('../assets/test/get_jobs.json').jobs);
   }
 
