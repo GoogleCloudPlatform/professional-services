@@ -42,9 +42,14 @@ bq.copy_table('source_table', 'dest_table')
 
 bq.run_queries(['q1.sql', 'q2.sql'], **replacements)
 
+bq.export_csv_to_gcs('tmp_table_2', 'gs://my-bucket/path/to/tmp_table_2-*.csv')
+
 bq.delete_tables(['tmp_table_1', 'tmp_table_2'])
 ```
 
+Note, that the `run_queries` method provided this utility can alternatively take a list of tuples where the first entry is the sql path, and the second is a destination table. You can see an example of this in [`example.py`](example/example.py).
+
+For detailed documentation about the methods provided by this utility class see [docs.md](docs.md).
 
 ### Creating Service Account JSON Credentials
 
