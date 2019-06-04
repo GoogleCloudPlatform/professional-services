@@ -30,7 +30,7 @@ import pprint
 from concurrent import futures
 
 from google.cloud.exceptions import GoogleCloudError
-from google.cloud import asset_v1beta1
+from google.cloud import asset_v1
 
 
 class Clients(object):
@@ -42,7 +42,7 @@ class Clients(object):
     def cloudasset(cls):
         if cls._cloudasset:
             return cls._cloudasset
-        cls._cloudasset = asset_v1beta1.AssetServiceClient()
+        cls._cloudasset = asset_v1.AssetServiceClient()
         return cls._cloudasset
 
 
@@ -62,7 +62,7 @@ def export_to_gcs(parent, gcs_destination, content_type, asset_types):
     Returns:
         The result of the successfully completed export operation.
     """
-    output_config = asset_v1beta1.types.OutputConfig()
+    output_config = asset_v1.types.OutputConfig()
     output_config.gcs_destination.uri = gcs_destination
     operation = Clients.cloudasset().export_assets(
         parent,
