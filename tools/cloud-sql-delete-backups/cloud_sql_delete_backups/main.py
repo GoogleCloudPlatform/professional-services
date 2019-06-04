@@ -113,6 +113,9 @@ def delete_old_backups(instance, days_to_keep, backups_to_keep,
     now = current_time()
     project = instance['project']
     for backup in get_cloudsql_backups(project, instance['name']):
+        # ignore automated backups, they are automatically deleted.
+        if backup['type'].upper() != 'ON_DEMAND':
+            continue
         backup_time = datetime.strptime(backup['endTime'],
                                         '%Y-%m-%dT%H:%M:%S.%fZ')
         if (now - backup_time).days <= days_to_keep:
