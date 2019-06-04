@@ -77,6 +77,14 @@ def parse_args():
               'Defaults to "now".'))
 
     parser.add_argument(
+        '--num_shards',
+        default='*=1',
+        help=('Number of shards to use per asset type.'
+              'List of asset types and the number '
+              'of shardes to use for that type with "*" used as a default.'
+              ' For example "google.compute.VpnTunnel=1,*=10"'))
+
+    parser.add_argument(
         '--dataset',
         help='BigQuery dataset to load to.',
         required=True,
@@ -150,12 +158,13 @@ def main():
         final_state = pipeline_runner.run_pipeline_template(
             args.template_job_project, args.template_job_region,
             launch_location, args.input, args.group_by, args.write_disposition,
-            args.dataset, args.stage, args.load_time,
+            args.dataset, args.stage, args.load_time, args.num_shards,
             args.template_job_runtime_environment_json)
     else:
         final_state = pipeline_runner.run_pipeline_beam_runner(
             None, None, args.input, args.group_by, args.write_disposition,
-            args.dataset, args.stage, args.load_time, beam_args)
+            args.dataset, args.stage, args.load_time, args.num_shards,
+            beam_args)
 
     if not pipeline_runner.is_successful_state(final_state):
         sys.exit(1)

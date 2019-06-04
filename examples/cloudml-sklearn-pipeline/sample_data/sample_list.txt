@@ -1,0 +1,2 @@
+[39,34," Private"," 9th"," Married-civ-spouse"," Other-service"," Wife"," Black"," Female"," United-States"]
+[72,48," Private"," 9th"," Married-civ-spouse"," Exec-managerial"," Wife"," Asian-Pac-Islander"," Female"," United-States"]

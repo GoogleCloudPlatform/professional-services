@@ -1,0 +1,28 @@
+trainingInput:
+  scaleTier: STANDARD_1
+  runtimeVersion: "1.13"
+  # Note that both Python 2.7 and Python 3.5 are supported, but Python 3.5 is the
+  # recommended one since 2.7 is deprecated soon
+  pythonVersion: "3.5"
+  hyperparameters:
+    goal: MAXIMIZE
+    maxTrials: 30
+    maxParallelTrials: 5
+    hyperparameterMetricTag: my_metric_tag
+    enableTrialEarlyStopping: TRUE
+    params:
+    - parameterName: n_estimator
+      type: INTEGER
+      minValue: 5
+      maxValue: 100
+      scaleType: UNIT_LINEAR_SCALE
+    - parameterName: max_depth
+      type: INTEGER
+      minValue: 20
+      maxValue: 200
+      scaleType: UNIT_LINEAR_SCALE
+    - parameterName: min_samples_leaf
+      type: INTEGER
+      minValue: 1
+      maxValue: 200
+      scaleType: UNIT_LINEAR_SCALE

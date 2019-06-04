@@ -40,6 +40,8 @@ if __name__ == "__main__":
     bq.copy_table(tbl4, tbl5)
     bq.copy_table('tmp_table_5', tbl6)
 
+    bq.export_csv_to_gcs(tbl6)
+
     bq.delete_tables([
         tbl1,
         tbl2,
