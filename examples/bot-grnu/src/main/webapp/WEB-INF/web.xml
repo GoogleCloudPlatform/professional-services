@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<web-app xmlns="http://java.sun.com/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+         version="2.5">
+
+  <!-- REST APIs -->
+  <servlet>
+    <servlet-name>ListFeed</servlet-name>
+    <servlet-class>com.google.cloud.demo.hangouts.chat.bot.servlet.api.ListFeed</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ListFeed</servlet-name>
+    <url-pattern>/rest/feed/list</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>SaveFeed</servlet-name>
+    <servlet-class>com.google.cloud.demo.hangouts.chat.bot.servlet.api.SaveFeed</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>SaveFeed</servlet-name>
+    <url-pattern>/rest/feed/save</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>DeleteFeed</servlet-name>
+    <servlet-class>com.google.cloud.demo.hangouts.chat.bot.servlet.api.DeleteFeed</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>DeleteFeed</servlet-name>
+    <url-pattern>/rest/feed/delete</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>ReadFeed</servlet-name>
+    <servlet-class>com.google.cloud.demo.hangouts.chat.bot.servlet.api.ReadFeed</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ReadFeed</servlet-name>
+    <url-pattern>/rest/feed/read</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>InitialLoadFeed</servlet-name>
+    <servlet-class>com.google.cloud.demo.hangouts.chat.bot.servlet.api.InitialLoadFeed</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>InitialLoadFeed</servlet-name>
+    <url-pattern>/rest/feed/initial-load</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>ListenChatBot</servlet-name>
+    <servlet-class>com.google.cloud.demo.hangouts.chat.bot.servlet.api.ListenChatBot</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ListenChatBot</servlet-name>
+    <url-pattern>/rest/chat/bot/listen/[YOUR_BOT_UUID]</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>WriteChatBot</servlet-name>
+    <servlet-class>com.google.cloud.demo.hangouts.chat.bot.servlet.api.WriteChatBot</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>WriteChatBot</servlet-name>
+    <url-pattern>/rest/chat/bot/write</url-pattern>
+  </servlet-mapping>
+
+
+  <!-- TASKS -->
+  <servlet>
+    <servlet-name>UpdateFeed</servlet-name>
+    <servlet-class>com.google.cloud.demo.hangouts.chat.bot.servlet.tasks.UpdateFeed</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>UpdateFeed</servlet-name>
+    <url-pattern>/task/feed/update</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <servlet-name>ForceNotification</servlet-name>
+    <servlet-class>com.google.cloud.demo.hangouts.chat.bot.servlet.tasks.ForceNotification</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ForceNotification</servlet-name>
+    <url-pattern>/task/chat/bot/force-notification</url-pattern>
+  </servlet-mapping>
+
+  <!-- CRONS -->
+  <servlet>
+    <servlet-name>UpdateFeeds</servlet-name>
+    <servlet-class>com.google.cloud.demo.hangouts.chat.bot.servlet.cron.UpdateFeeds</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>UpdateFeeds</servlet-name>
+    <url-pattern>/rest/cron/feed/update</url-pattern>
+  </servlet-mapping>
+
+  <!-- Filters -->
+  <filter>
+    <filter-name>ObjectifyFilter</filter-name>
+    <filter-class>com.googlecode.objectify.ObjectifyFilter</filter-class>
+  </filter>
+
+  <filter>
+    <filter-name>CorsFilter</filter-name>
+    <filter-class>com.google.cloud.demo.hangouts.chat.bot.shared.CorsFilter</filter-class>
+  </filter>
+
+  <filter>
+    <filter-name>JwtVerifyFilter</filter-name>
+    <filter-class>com.google.cloud.demo.hangouts.chat.bot.shared.JwtVerifyFilter</filter-class>
+  </filter>
+
+  <!-- Filters mapping -->
+  <filter-mapping>
+    <filter-name>ObjectifyFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+
+  <filter-mapping>
+    <filter-name>CorsFilter</filter-name>
+    <url-pattern>/rest/*</url-pattern>
+  </filter-mapping>
+
+  <filter-mapping>
+    <filter-name>JwtVerifyFilter</filter-name>
+    <url-pattern>/rest/chat/bot/listen/*</url-pattern>
+  </filter-mapping>
+
+  <!-- Security Constraints -->
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>SSL</web-resource-name>
+      <url-pattern>/*</url-pattern>
+    </web-resource-collection>
+    <user-data-constraint>
+      <transport-guarantee>CONFIDENTIAL</transport-guarantee>
+    </user-data-constraint>
+  </security-constraint>
+
+  <!-- Welcome file list -->
+  <welcome-file-list>
+    <welcome-file>index.html</welcome-file>
+  </welcome-file-list>
+</web-app>

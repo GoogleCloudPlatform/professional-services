@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <queue-entries>
+    <queue>
+      <name>feed</name>
+      <rate>20/s</rate>
+      <bucket-size>40</bucket-size>
+      <max-concurrent-requests>10</max-concurrent-requests>
+      <retry-parameters>
+        <min-backoff-seconds>10</min-backoff-seconds>
+        <max-backoff-seconds>200</max-backoff-seconds>
+        <max-doublings>0</max-doublings>
+        <task-retry-limit>5</task-retry-limit>
+        <task-age-limit>1d</task-age-limit>
+      </retry-parameters>
+    </queue>
+  </queue-entries>

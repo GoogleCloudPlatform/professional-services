@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cronentries>
+    <cron>
+        <url>/rest/cron/feed/update</url>
+        <description>Daily feed update</description>
+        <schedule>every day 17:00</schedule>
+        <timezone>Europe/Paris</timezone>
+    </cron>
+</cronentries>
