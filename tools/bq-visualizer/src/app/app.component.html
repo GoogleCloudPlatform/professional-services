@@ -1,19 +1,8 @@
 <div class="header">
   <h1 class="header__title">BQ Visualizer</h1>
+  <span class="flex-spacer"></span>
+  <a mat-button href="/terms">Terms &amp; Privacy</a>
 </div>
 <div class="main">
-  <mat-tab-group #tabs>
-    <mat-tab label="Select Job">
-      <app-job #job></app-job>
-    </mat-tab>
-    <mat-tab label="Tree">
-      <app-vis-display #tree></app-vis-display>
-    </mat-tab>
-    <mat-tab label="Timing">
-      <app-timing-display #timing></app-timing-display>
-    </mat-tab>
-    <mat-tab label="Debug Logs">
-      <app-log-display #log></app-log-display>
-    </mat-tab>
-  </mat-tab-group>
+  <router-outlet></router-outlet>
 </div>
