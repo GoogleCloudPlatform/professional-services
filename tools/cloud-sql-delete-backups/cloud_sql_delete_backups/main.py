@@ -116,6 +116,9 @@ def delete_old_backups(instance, days_to_keep, backups_to_keep,
         # ignore automated backups, they are automatically deleted.
         if backup['type'].upper() != 'ON_DEMAND':
             continue
+        # we only care about counting/deleting successful backups
+        if backup['status'] != 'SUCCESSFUL':
+            continue
         backup_time = datetime.strptime(backup['endTime'],
                                         '%Y-%m-%dT%H:%M:%S.%fZ')
         if (now - backup_time).days <= days_to_keep:

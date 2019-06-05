@@ -20,6 +20,11 @@ import unittest
 import mock
 
 
+def backup(endTime='2019-01-02T00:00:00.00Z', b_type='ON_DEMAND',
+           status='SUCCESSFUL'):
+    return {'endTime': endTime, 'type': b_type, 'status': status}
+
+
 class TestDeleteCoudSQLBackups(unittest.TestCase):
 
     @mock.patch('cloud_sql_delete_backups.main.get_cloudsql_backups')
@@ -30,11 +35,11 @@ class TestDeleteCoudSQLBackups(unittest.TestCase):
         """Tests that we keep 1 and delete the other as it's old."""
         current_time.return_value = datetime.fromisoformat('2019-01-03T00:00')
         get_cloudsql_backups.return_value = [
-            {'endTime': '2019-01-02T00:00:00.00Z', 'type': 'ON_DEMAND'},
-            {'endTime': '2019-01-02T00:00:00.00Z', 'type': 'ON_DEMAND'},
-            {'endTime': '2019-01-02T00:00:00.00Z', 'type': 'ON_DEMAND'},
-            {'endTime': '2019-01-01T00:00:00.00Z', 'type': 'ON_DEMAND'},
-            {'endTime': '2018-12-20T00:00:00.00Z', 'type': 'ON_DEMAND'}]
+            backup(endTime='2019-01-02T00:00:00.00Z'),
+            backup(endTime='2019-01-02T00:00:00.00Z'),
+            backup(endTime='2019-01-02T00:00:00.00Z'),
+            backup(endTime='2019-01-01T00:00:00.00Z'),
+            backup(endTime='2018-12-20T00:00:00.00Z')]
         instance = {'project': 'my-project', 'name': 'my-instance'}
         main.delete_old_backups(instance, 1, 1, True, False)
         self.assertEqual(delete_backup.call_count, 2)
@@ -48,7 +53,7 @@ class TestDeleteCoudSQLBackups(unittest.TestCase):
         """Tests that we keep the one."""
         current_time.return_value = datetime.fromisoformat('2019-01-03T00:00')
         get_cloudsql_backups.return_value = [
-            {'endTime': '2019-01-02T00:00:00.00Z', 'type': 'ON_DEMAND'}]
+            backup(endTime='2019-01-02T00:00:00.00Z')]
         instance = {'project': 'my-project', 'name': 'my-instance'}
         main.delete_old_backups(instance, 1, 1, True, False)
         self.assertEqual(delete_backup.call_count, 0)
@@ -61,7 +66,7 @@ class TestDeleteCoudSQLBackups(unittest.TestCase):
         """Tests that we delete 1 if we are keeping none."""
         current_time.return_value = datetime.fromisoformat('2019-01-03T00:00')
         get_cloudsql_backups.return_value = [
-            {'endTime': '2019-01-03T00:00:00.00Z', 'type': 'ON_DEMAND'}]
+            backup(endTime='2019-01-03T00:00:00.00Z')]
         instance = {'project': 'my-project', 'name': 'my-instance'}
         main.delete_old_backups(instance, -1, 0, True, False)
         self.assertEqual(delete_backup.call_count, 1)
@@ -74,11 +79,11 @@ class TestDeleteCoudSQLBackups(unittest.TestCase):
         """Tests that we delete 0 if we are keeping all."""
         current_time.return_value = datetime.fromisoformat('2019-01-03T00:00')
         get_cloudsql_backups.return_value = [
-            {'endTime': '2018-12-03T00:00:00.00Z', 'type': 'ON_DEMAND'},
-            {'endTime': '2018-12-03T00:00:00.00Z', 'type': 'ON_DEMAND'},
-            {'endTime': '2018-12-04T00:00:00.00Z', 'type': 'ON_DEMAND'},
-            {'endTime': '2018-12-05T00:00:00.00Z', 'type': 'ON_DEMAND'},
-            {'endTime': '2018-12-06T00:00:00.00Z', 'type': 'ON_DEMAND'}]
+            backup(endTime='2018-12-03T00:00:00.00Z'),
+            backup(endTime='2018-12-03T00:00:00.00Z'),
+            backup(endTime='2018-12-04T00:00:00.00Z'),
+            backup(endTime='2018-12-05T00:00:00.00Z'),
+            backup(endTime='2018-12-06T00:00:00.00Z')]
         instance = {'project': 'my-project', 'name': 'my-instance'}
         main.delete_old_backups(instance, -1, 5, True, False)
         self.assertEqual(delete_backup.call_count, 0)
@@ -91,11 +96,28 @@ class TestDeleteCoudSQLBackups(unittest.TestCase):
         """Tests that we ignore AUTOMATED backups."""
         current_time.return_value = datetime.fromisoformat('2019-01-03T00:00')
         get_cloudsql_backups.return_value = [
-            {'endTime': '2018-12-03T00:00:00.00Z', 'type': 'ON_DEMAND'},
-            {'endTime': '2018-12-03T00:00:00.00Z', 'type': 'AUTOMATED'},
-            {'endTime': '2018-12-04T00:00:00.00Z', 'type': 'AUTOMATED'},
-            {'endTime': '2018-12-05T00:00:00.00Z', 'type': 'ON_DEMAND'},
-            {'endTime': '2018-12-06T00:00:00.00Z', 'type': 'ON_DEMAND'}]
+            backup(endTime='2018-12-03T00:00:00.00Z'),
+            backup(endTime='2018-12-03T00:00:00.00Z', b_type='AUTOMATED'),
+            backup(endTime='2018-12-04T00:00:00.00Z', b_type='AUTOMATED'),
+            backup(endTime='2018-12-05T00:00:00.00Z'),
+            backup(endTime='2018-12-06T00:00:00.00Z')]
+        instance = {'project': 'my-project', 'name': 'my-instance'}
+        main.delete_old_backups(instance, -1, 3, True, False)
+        self.assertEqual(delete_backup.call_count, 0)
+
+    @mock.patch('cloud_sql_delete_backups.main.get_cloudsql_backups')
+    @mock.patch('cloud_sql_delete_backups.main.delete_backup')
+    @mock.patch('cloud_sql_delete_backups.main.current_time')
+    def test_ignore_failed_backups(self, current_time, delete_backup,
+                                   get_cloudsql_backups):
+        """Tests that we ignore AUTOMATED backups."""
+        current_time.return_value = datetime.fromisoformat('2019-01-03T00:00')
+        get_cloudsql_backups.return_value = [
+            backup(endTime='2018-12-03T00:00:00.00Z'),
+            backup(endTime='2018-12-03T00:00:00.00Z', status='FAILED'),
+            backup(endTime='2018-12-04T00:00:00.00Z', status='RUNNING'),
+            backup(endTime='2018-12-05T00:00:00.00Z'),
+            backup(endTime='2018-12-06T00:00:00.00Z')]
         instance = {'project': 'my-project', 'name': 'my-instance'}
         main.delete_old_backups(instance, -1, 3, True, False)
         self.assertEqual(delete_backup.call_count, 0)
