@@ -8,5 +8,5 @@ steps:
 
   # Build productive files
   - name: 'gcr.io/cloud-builders/npm'
-    args: [ 'run','ng','--prod', 'build']
+    args: [ 'run','ng', 'build']
     dir: 'tools/bq-visualizer'
