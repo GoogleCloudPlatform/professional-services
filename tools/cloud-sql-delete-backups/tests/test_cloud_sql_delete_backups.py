@@ -121,3 +121,17 @@ class TestDeleteCoudSQLBackups(unittest.TestCase):
         instance = {'project': 'my-project', 'name': 'my-instance'}
         main.delete_old_backups(instance, -1, 3, True, False)
         self.assertEqual(delete_backup.call_count, 0)
+
+    @mock.patch('cloud_sql_delete_backups.main.get_cloudsql_backups')
+    @mock.patch('cloud_sql_delete_backups.main.delete_backup')
+    @mock.patch('cloud_sql_delete_backups.main.current_time')
+    def test_parse_only_minutes(self, current_time, delete_backup,
+                                get_cloudsql_backups):
+        """Tests that we ignore AUTOMATED backups."""
+        current_time.return_value = datetime.fromisoformat('2019-01-03T00:00')
+        get_cloudsql_backups.return_value = [
+            backup(endTime='2018-12-03T00:00:00.00Z'),
+            backup(endTime='2018-12-03T00:00:00Z')]
+        instance = {'project': 'my-project', 'name': 'my-instance'}
+        main.delete_old_backups(instance, -1, 3, True, False)
+        self.assertEqual(delete_backup.call_count, 0)

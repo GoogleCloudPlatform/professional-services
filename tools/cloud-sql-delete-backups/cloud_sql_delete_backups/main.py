@@ -119,8 +119,10 @@ def delete_old_backups(instance, days_to_keep, backups_to_keep,
         # we only care about counting/deleting successful backups
         if backup['status'] != 'SUCCESSFUL':
             continue
-        backup_time = datetime.strptime(backup['endTime'],
-                                        '%Y-%m-%dT%H:%M:%S.%fZ')
+        end_time = backup['endTime']
+        end_time = end_time[:end_time.rfind(':')]
+        backup_time = datetime.strptime(end_time,
+                                        '%Y-%m-%dT%H:%M')
         if (now - backup_time).days <= days_to_keep:
             keepable_backups_found += 1
             logging.debug('keeping backup %d, %s , <= %d days',
