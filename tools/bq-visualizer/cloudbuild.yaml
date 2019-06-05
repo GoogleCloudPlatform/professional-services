@@ -1,11 +1,11 @@
+source: tools/bq-visualizer
+
 steps:
 
   # Install node packages
   - name: 'gcr.io/cloud-builders/npm'
     args: [ 'install' ]
-    dir: tools/bq-visualizer
 
   # Build productive files
   - name: 'gcr.io/cloud-builders/npm'
     args: [ 'run', 'build', '--prod' ]
-    dir: tools/bq-visualizer
