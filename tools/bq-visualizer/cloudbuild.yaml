@@ -14,7 +14,7 @@ steps:
 artifacts:
   objects:
     location: 'gs://${_BQVISUALISER_BUCKET}/deployment_$BUILD_ID'
-    paths: ['*']
+    paths: ['tools/bq-visualizer/dist/*']
 
   # store on GCS
   #- name: gcr.io/cloud-builders/gsutil
