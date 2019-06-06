@@ -10,3 +10,10 @@ steps:
   - name: 'gcr.io/cloud-builders/npm'
     args: [ 'run','ng', 'build', '--prod' ]
     dir: 'tools/bq-visualizer'
+
+  # store on GCS
+  - name: gcr.io/cloud-builders/gsutil
+    args: ['cp', '-m', '*', 'gs://${_BQVISUALISER_BUCKET}/deployment_$BUILD_ID']
+    dir: '$REPO_NAME/dist'
+    id: 'deploy'
+
