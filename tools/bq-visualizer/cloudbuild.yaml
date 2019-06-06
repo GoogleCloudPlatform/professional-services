@@ -6,11 +6,14 @@ steps:
     args: [ 'install' ]
     dir: 'tools/bq-visualizer'
 
-  # Build productive files
-  - name: 'gcr.io/cloud-builders/npm'
-    #args: [ 'run','ng', 'build', '--prod' ]
-    args: ['run', 'build', '--prod']
-    dir: 'tools/bq-visualizer'
+  # build
+  - name: 'gcr.io/cloud-builders/ng:v7'
+    args: ['build', '--prod']
+  
+  #- name: 'gcr.io/cloud-builders/npm'
+  #  #args: [ 'run','ng', 'build', '--prod' ]
+  #  args: ['run', 'build', '--prod']
+  #  dir: 'tools/bq-visualizer'
   
 artifacts:
   objects:
