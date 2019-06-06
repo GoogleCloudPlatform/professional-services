@@ -12,7 +12,7 @@ steps:
   #  dir: 'tools/bq-visualizer'
   - name: 'gcr.io/cloud-builders/npm'
     #args: [ 'run','ng', 'build', '--prod' ]
-    args: ['run', 'build','--prod', 'bq-viz']
+    args: ['run', 'build','--', '--prod' ]
     dir: 'tools/bq-visualizer'
   
 artifacts:
