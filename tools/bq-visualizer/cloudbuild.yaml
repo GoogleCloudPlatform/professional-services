@@ -9,7 +9,7 @@ steps:
   # build
   - name: 'gcr.io/cloud-builders/ng:v7'
     args: ['build', '--prod']
-  
+    dir: 'tools/bq-visualizer'
   #- name: 'gcr.io/cloud-builders/npm'
   #  #args: [ 'run','ng', 'build', '--prod' ]
   #  args: ['run', 'build', '--prod']
