@@ -13,7 +13,7 @@ steps:
   
 artifacts:
   objects:
-    location: 'gs://[_BQVISUALISER_BUCKET]/deployment_$BUILD_ID'
+    location: 'gs://${_BQVISUALISER_BUCKET}/deployment_$BUILD_ID'
     paths: ['*']
 
   # store on GCS
