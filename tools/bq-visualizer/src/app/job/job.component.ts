@@ -1,3 +1,18 @@
+/*
+ * Copyright 2019 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 import {Component, EventEmitter, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
 import {PageEvent} from '@angular/material';
 import {MatPaginator} from '@angular/material/paginator';
@@ -67,7 +82,7 @@ export class JobComponent implements OnDestroy {
   getJobs(project: BqProject) {
     this.jobs = [];
     this.selectedProject = project;
-    this.bqService.getJobs(project.id)
+    this.bqService.getJobs(project.id, 2000)
         .pipe(takeUntil(this.destroy))
         .subscribe(
             res => {
@@ -77,7 +92,7 @@ export class JobComponent implements OnDestroy {
             err => {
               this.logSvc.error(err);
               if (err && err.message) {
-                alert(err.message)
+                alert(err.message);
               }
               console.log(err);
             },
@@ -91,12 +106,18 @@ export class JobComponent implements OnDestroy {
 
   /** When selecting an item in the drop down list. */
   selectJob(job: BqJob): void {
-    this.bqService.getQueryPlan(job.projectId, job.id)
+    this.bqService.getQueryPlan(job.projectId, job.id, job.location)
         .pipe(takeUntil(this.destroy))
         .subscribe(
             detail => {
-              console.log('Got raw plan', detail);
-              this.planSelected.emit(new BqQueryPlan(detail, this.logSvc));
+              if (detail) {
+                const plan = new BqQueryPlan(detail, this.logSvc);
+                if (plan.isValid) {
+                  this.planSelected.emit(plan);
+                } else {
+                  this.planSelected.emit(null);
+                }
+              }
             },
             err => {
               this.logSvc.error(err);

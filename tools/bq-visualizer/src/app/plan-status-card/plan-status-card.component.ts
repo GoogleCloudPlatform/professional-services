@@ -1,3 +1,18 @@
+/*
+ * Copyright 2019 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 import {Component, OnInit} from '@angular/core';
 import {BqQueryPlan} from '../bq_query_plan';
 import {LogService} from '../log.service';
@@ -52,16 +67,38 @@ export class PlanStatusCardComponent {
   }
 
   /** Provide statistics of qp minus the queryplan part. */
-  get timings(): string {
+  get statistics(): string {
     if (this.plan) {
       const stats = this.plan.plan.statistics;
+      const duration = Number(stats.endTime) - Number(stats.startTime);
+      const slots = Number(stats.query.totalSlotMs) / duration;
+
       const results = {
-        creationTime: new Date(Number(stats.creationTime)),
-        'startTime   ': new Date(Number(stats.startTime)),
-        'endTime     ': new Date(Number(stats.endTime)),
-        estimatedBytesProcessed: stats.query ?
+        'creationTime            ': new Date(Number(stats.creationTime)),
+        'startTime               ': new Date(Number(stats.startTime)),
+        'endTime                 ': new Date(Number(stats.endTime)),
+        'elapsedMs               ': duration.toLocaleString('en'),
+        'estd. slots used        ': Math.ceil(slots).toLocaleString('en'),
+        'totalSlotMs             ': stats.query ?
+            Number(stats.query.totalSlotMs).toLocaleString('en') :
+            'n/a',
+        'billingTier             ': stats.query ?
+            Number(stats.query.billingTier).toLocaleString('en') :
+            'n/a',
+        'cacheHit                ':
+            stats.query ? stats.query.cacheHit.toString() : 'n/a',
+        'estimatedBytesProcessed ': stats.query ?
             Number(stats.query.estimatedBytesProcessed).toLocaleString('en') :
-            'n/a'
+            'n/a',
+        'totalBytesProcessed     ': stats.query ?
+            Number(stats.query.totalBytesProcessed).toLocaleString('en') :
+            'n/a',
+        'totalBytesBilled        ': stats.query ?
+            Number(stats.query.totalBytesBilled).toLocaleString('en') :
+            'n/a',
+        'totalPartitionsProcessed': stats.query ?
+            Number(stats.query.totalPartitionsProcessed).toLocaleString('en') :
+            'n/a',
       };
       return JSON.stringify(results, null, 4);
     }
@@ -77,7 +114,7 @@ export class PlanStatusCardComponent {
   }
 
   /** Get timings information to be displayed. */
-  get statistics(): string {
+  get timings(): string {
     if (this.plan) {
       if (this.plan.plan.statistics.query) {
         return JSON.stringify(

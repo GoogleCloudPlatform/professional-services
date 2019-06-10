@@ -17,5 +17,12 @@ table {
 }
 .job_display {
   position: relative;
-  padding-top: 60px;
+  padding-top: 6px;
+}
+tr.mat-row {
+  height: 28px;
+}
+.mat-cell, .mat-footer-cell {
+  font-size: 12px;
+  font-weight: 500;
 }
