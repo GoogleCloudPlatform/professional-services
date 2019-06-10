@@ -51,7 +51,7 @@ class Config(object):
 
     def __init__(self, config_file):
         with open(config_file, 'r') as config_yaml:
-            config_dict = yaml.load(config_yaml)
+            config_dict = yaml.load(config_yaml, Loader=yaml.BaseLoader)
             for pname in config_dict:
                 setattr(self, pname.lower(), config_dict[pname])
         # Enable beam on python3 if using direct runner on python3.
@@ -78,6 +78,7 @@ def get_import_arguments():
             CONFIG.import_write_disposition, CONFIG.import_dataset,
             CONFIG.import_stage,
             datetime.datetime.now().isoformat(),
+            CONFIG.import_num_shards,
             CONFIG.import_pipeline_arguments,
             json.loads(CONFIG.import_pipeline_runtime_environment))
 
@@ -90,19 +91,20 @@ def run_import():
     logging.info('running import %s', import_arguments)
     (runner, dataflow_project, template_region, template_location,
      input_location, group_by, write_disposition, dataset, stage, load_time,
-     pipeline_arguments, pipeline_runtime_environment) = import_arguments
+     num_shards, pipeline_arguments,
+     pipeline_runtime_environment) = import_arguments
 
     if runner == 'template':
         return pipeline_runner.run_pipeline_template(
             dataflow_project, template_region,
             template_location, input_location,
             group_by, write_disposition, dataset, stage,
-            load_time, pipeline_runtime_environment)
+            load_time, num_shards, pipeline_runtime_environment)
     else:
         return pipeline_runner.run_pipeline_beam_runner(
             runner, dataflow_project, input_location,
             group_by, write_disposition, dataset, stage, load_time,
-            pipeline_arguments)
+            num_shards, pipeline_arguments)
 
 
 @app.route('/export_import')

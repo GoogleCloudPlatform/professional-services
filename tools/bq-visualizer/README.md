@@ -31,7 +31,7 @@ Under the card with this title:
 
 * Upload from Computer
 
-Assuming you have previously downloaded the query plan using the `bq show -j <jobid>` command to a local file, 
+Assuming you have previously downloaded the query plan using the `bq show -j <jobid>i --format prettyjson` command to a local file, 
 click on this card the 'Select File to upload' button, navigate to the file and select it. To start uploading click the
 Upload button.
 
@@ -42,7 +42,7 @@ The Tree tab shows the query plan as a directed graph.
 * DB icons represent BQ tabkes
 * all other icons represent actual query stages (input, compute, aggregate, etc.)
 
-All nodes can be selected. On selection the rhs tabs called 'Stage Details' and 'Step Details' provide in depth information.
+All nodes can be selected. On selection the right hand side tabs called 'Stage Details' and 'Step Details' provide in depth information.
 
 At the bottom a number of tabs show overall plan information:
 

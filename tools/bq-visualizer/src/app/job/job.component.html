@@ -1,7 +1,8 @@
 <div class="job_display">
   <mat-grid-list cols="2" rowHeight="200px">
     <mat-grid-tile [colspan]="1" [rowspan]="1">
-      <app-projects (getJobs)="getJobs($event)"></app-projects><!-- this receives the event from the projects component -->
+      <app-projects (getJobs)="getJobs($event)"></app-projects>
+      <!-- this receives the event from the projects component -->
     </mat-grid-tile>
     <mat-grid-tile [colspan]="1" [rowspan]="1">
       <mat-card class="dashboard-card">
@@ -25,7 +26,8 @@
     <!-- show list of jobs -->
 
     <div *ngIf="jobs">
-      <mat-paginator [length]="jobs.length" [pageSize]="pageSize" [pageSizeOptions]="pageSizeOptions" (page)="switchPage($event)">
+      <mat-paginator [length]="jobs.length" [pageSize]="pageSize" [pageSizeOptions]="pageSizeOptions"
+        (page)="switchPage($event)">
       </mat-paginator>
       <table mat-table cdkScrollable [dataSource]="paginatedJobs" class="mat-elevation-z8">
         <!-- State Column -->
@@ -56,8 +58,8 @@
         <ng-container matColumnDef="btn">
           <th mat-header-cell *matHeaderCellDef>select</th>
           <td mat-cell *matCellDef="let element">
-            <button mat-raised-button (click)="selectJob(element)">
-              Get
+            <button mat-icon (click)="selectJob(element)">
+              <mat-icon>cloud_download</mat-icon>
             </button>
           </td>
         </ng-container>
