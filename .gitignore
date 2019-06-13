@@ -23,6 +23,8 @@ pytestdebug.log
 source-contexts.json
 source-context.json
 client_secrets.json
+rebase.sh
+ecript.sh
 \#*\#
 .\#*
 *_flymake.py
