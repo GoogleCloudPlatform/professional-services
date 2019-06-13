@@ -23,7 +23,7 @@
 
     <properties>
         <!-- AppEngine -->
-        <app.id>[YOUR_PROJECT_ID]</app.id>
+	<app.id>${gcp.projectid}</app.id>
         <app.version>v1</app.version>
         <appengine.sdk.version>1.9.74</appengine.sdk.version>
         <appengine.localhost.port>8081</appengine.localhost.port>

@@ -49,7 +49,7 @@ Before start compiling and deploying the application following elements have to 
 
 1. Modify the file `src/main/java/com/google/cloud/demo/hangouts/chat/bot/shared/JwtVerifyFilter.java` updating [YOUR_PROJECT_NUMBER] with proper value
 2. Modify the file `src/main/webapp/WEB-INF/web.xml` updating [YOUR_BOT_UUID] with proper value
-3. Modify the file `pom.xml` updating [YOUR_PROJECT_ID] with proper value
+3. Compile the project using the command `mvn install "-Dgcp.project=[YOUR_PROJECT_ID]"`
 
 Deploy all the components 
 4. Deploy Queue `mvn appengine:deployQueue`
