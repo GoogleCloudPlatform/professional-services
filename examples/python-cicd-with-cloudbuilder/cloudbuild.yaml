@@ -1,0 +1,13 @@
+steps:
+- name: 'gcr.io/$PROJECT_ID/python-cloudbuild'
+  entrypoint: '/bin/bash'
+  args: ['-c','virtualenv /workspace/venv' ]
+- name: 'gcr.io/$PROJECT_ID/python-cloudbuild'
+  entrypoint: 'venv/bin/pip'
+  args: ['install', '-V', '-r', 'requirements.txt']
+- name: 'gcr.io/$PROJECT_ID/python-cloudbuild'
+  entrypoint: 'venv/bin/python'
+  args: ['-m', 'pytest', '-rA']
+- name: 'gcr.io/$PROJECT_ID/python-cloudbuild'
+  entrypoint: 'venv/bin/pylint'
+  args: ['my_module/']
