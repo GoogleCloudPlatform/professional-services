@@ -17,6 +17,10 @@ The basic steps we need to follow are:
 * Specify a name, and your project name.
 * Follow the instructions to 'git clone' the empty repo to your workstation and use it like you would a git repo.
 
+You can alternatively do the same using the Google Cloud SDK:
+* Create the repository by running the command 'gcloud source repos create <REPO_NAME>.'
+* Clone the new repository to your local machine by running the command 'gcloud source repos clone <REPO_NAME>.'
+
 ## 2. Create your code and unit tests
 Creating unit tests is beyond the scope of this README, but if you review the tests in tests/ you'll quickly get the idea. 
 I'm using pytest as the testing suite for this project. Before proceeding make sure you can run your tests from the 
