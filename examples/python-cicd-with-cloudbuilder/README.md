@@ -4,18 +4,18 @@
 This repo contains code and instructions for using Google Cloud Source Repositories and Cloud Build to execute unit tests upon code check-in.
 
 The basic steps we need to follow are:
-1. Create a new project in Cloud Source Repository and clone it to your machine
-2. Create your code and unit tests
-3. Create a Python Cloud Builder (more below)
-4. Create a cloud build trigger (more below)
+1. Create a new project in Cloud Source Repository and clone it to your machine.
+2. Create your code and unit tests.
+3. Create a Python Cloud Builder (more below).
+4. Create a cloud build trigger (more below).
 5. Create a cloudbuild.yaml file that executes your tests using your python cloud builder.
 
-## 1. Create a new project in Cloud Source Repository
-* Go to https://source.cloud.google.com/
-* Click 'Add repository'
-* Choose 'Create new repository'
-* Specify a name, and your project name
-* Follow the instructions to 'git clone' the empty repo to your workstation and use it like you would a git repo
+## 1. Create a new project in Cloud Source Repositories
+* Go to https://source.cloud.google.com/.
+* Click 'Add repository.'
+* Choose 'Create new repository.'
+* Specify a name, and your project name.
+* Follow the instructions to 'git clone' the empty repo to your workstation and use it like you would a git repo.
 
 ## 2. Create your code and unit tests
 Creating unit tests is beyond the scope of this README, but if you review the tests in tests/ you'll quickly get the idea. 
@@ -75,13 +75,13 @@ This creates a custom cloud builder in your container registry called gcr.io/$PR
 use to run tests with.
 
 ## 4. Create a Cloud Build Trigger
-* On the GCP console navigate to 'Cloud Build' > 'Triggers'
-* Add a trigger
-* Choose cloud source repository
+* On the GCP console navigate to 'Cloud Build' > 'Triggers.'
+* Add a trigger.
+* Choose cloud source repository.
 * Pick the repo you created in step 1.
-* Assuming you want the trigger to fire on any branch, accept the default trigger type and regex
-* Choose 'cloud build configuration file' from 'build configuration'
-* Click create trigger
+* Assuming you want the trigger to fire on any branch, accept the default trigger type and regex.
+* Choose 'cloud build configuration file' from 'build configuration.'
+* Click create trigger.
 
 
 ## 5. Create a cloudbuild.yaml file that executes your tests and runs pylint
