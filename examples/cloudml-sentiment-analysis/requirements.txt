@@ -1,4 +1,4 @@
-tensorflow==1.9.0
+tensorflow=>1.12.1
 scipy==1.1.0
 scikit-learn==0.19.2
 numpy==1.15.0

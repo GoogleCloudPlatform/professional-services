@@ -89,7 +89,7 @@ gcloud ml-engine jobs submit training $MODEL_NAME \
   --staging-bucket $BUCKET_PATH \
   --package-path $PWD/trainer \
   --region=us-central1 \
-  --runtime-version 1.9 \
+  --runtime-version 1.12 \
   --config=config_hp_tuning.yaml \
   --stream-logs \
   -- \
@@ -135,7 +135,7 @@ gcloud ml-engine models create $PROJECT_NAME \
 gcloud ml-engine versions create $MODEL_NAME \
   --model $PROJECT_NAME \
   --origin $MODEL_SAVED_NAME \
-  --runtime-version 1.9
+  --runtime-version 1.12
 ```
 
 ### Make local online predictions.
