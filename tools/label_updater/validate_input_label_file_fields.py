@@ -39,7 +39,7 @@ def validate_fields(config_file):
             projectid = line[0].strip()
             resource = line[1].strip()
             resourceid = line[2].strip()
-            zone = line[4].strip()
+            zone = line[5].strip()
 
             if resource is not None and resource.strip().lower() in ('project', 'compute engine', 'bigquery',
                                                                      'bigtable', 'storage'):

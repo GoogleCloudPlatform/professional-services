@@ -36,7 +36,7 @@ import bigquery_label_updater
 
 
 # noinspection PyShadowingNames,PyShadowingNames,PyShadowingNames,PyShadowingNames
-def main(p_resource_type, r_proj_resource_zone_dict):
+def main(p_resource_type, p_sub_resource_type, r_proj_resource_zone_dict):
     """
     This method calls other methods to update labels based on the resource value in the line of the input label file.
     :param p_resource_type: resource_type e.g. project, compute engine, bigtable, bigquery, storage
@@ -60,6 +60,7 @@ def main(p_resource_type, r_proj_resource_zone_dict):
         # noinspection PyShadowingNames,PyShadowingNames
         projectid = r_proj_resource_zone_dict[proj_resource_zone_key]['project_id']
         resourceid = r_proj_resource_zone_dict[proj_resource_zone_key]['resource_id']
+        sub_resource_id = r_proj_resource_zone_dict[proj_resource_zone_key]['sub_resource_id']
         zone = r_proj_resource_zone_dict[proj_resource_zone_key]['zone']
         tags = r_proj_resource_zone_dict[proj_resource_zone_key]['tags']
 
@@ -111,11 +112,24 @@ def main(p_resource_type, r_proj_resource_zone_dict):
                 logging.error(inst)
                 continue
 
-        elif p_resource_type == 'bigquery':
-            logging.info('Updating BigQuery Labels')
+        elif p_resource_type == 'bigquery' and (p_sub_resource_type == 'table' or p_sub_resource_type == 'view'):
+            logging.info('Updating BigQuery Table Labels')
+            try:
+                bigquery_label_updater.bigquery_table_label_updater(config_file, projectid, resourceid, sub_resource_id,
+                                                                    tags)
+                logging.info("Bigquery Table/View Labels Updated Successfully")
+            except Exception as inst:
+                error_file.write(str(p_resource_type) + "|" + str(projectid) + "|" + str(resourceid) + "|" + str(zone)
+                        + "|" + str(tags) + "|" + str(p_sub_resource_type) + "|" + str(sub_resource_id) + "|" +
+                        str(inst) + '| Unable to update the Bigquery Table/View Labels: ' + sub_resource_id + "\n")
+                logging.error(inst)
+                continue
+
+        elif p_resource_type == 'bigquery' and p_sub_resource_type == '_NULL_':
+            logging.info('Updating BigQuery Dataset Labels')
             try:
                 bigquery_label_updater.bigquery_label_updater(config_file, projectid, resourceid, tags)
-                logging.info("Bigquery Labels Updated Successfully")
+                logging.info("Bigquery Dataset Labels Updated Successfully")
             except Exception as inst:
                 error_file.write(str(p_resource_type) + "|" + str(projectid) + "|" + str(resourceid) + "|" + str(zone)
                                  + "|" + str(tags) + "|" + str(inst) + '| Unable to update the Bigquery Labels: '
@@ -176,16 +190,26 @@ if __name__ == "__main__":
                     projectid = line[0].strip()
                     resource = line[1].strip()
                     resourceid = line[2].strip()
-                    resourcelabels = line[3].strip()
+                    resourcelabels = line[6].strip()
 
-                    if line[4]:
-                        zone = line[4].strip()
+                    if line[5]:
+                        zone = line[5].strip()
                     else:
                         zone = ''
 
+                    if line[3]:
+                        sub_resource = line[3].strip()
+                    else:
+                        sub_resource = '_NULL_'
+
+                    if line[4]:
+                        sub_resource_id = line[4].strip()
+                    else:
+                        sub_resource_id = ''
+
                     # grouping the labels into a dictionary by resource_type.
                     resource_type_dict = create_resource_map.resource_map(projectid, resource,
-                                                                          resourceid, zone, resourcelabels)
+                                            resourceid,  sub_resource, sub_resource_id, zone, resourcelabels)
 
                 except Exception as inst:
                     logging.error(inst)
@@ -203,10 +227,11 @@ if __name__ == "__main__":
 
         # loop through the dict to make updates
         for resource_type in resource_type_dict:
-            resource_proj_resource_zone_dict = resource_type_dict[resource_type]
-            logging.info(json.dumps(resource_proj_resource_zone_dict))
-
-            main(resource_type, resource_proj_resource_zone_dict)
+            sub_resource_dict = resource_type_dict[resource_type]
+            for sub_resource_type in sub_resource_dict.keys():
+                resource_proj_resource_zone_dict = sub_resource_dict[sub_resource_type]
+                logging.info(json.dumps(resource_proj_resource_zone_dict))
+                main(resource_type, sub_resource_type, resource_proj_resource_zone_dict)
 
         logging.info("Resource update script completed. Please check error files for any error.")
         print("Resource update script completed. Please check error files for any error.")

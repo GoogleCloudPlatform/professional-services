@@ -48,4 +48,26 @@ def bigquery_label_updater(config_file, projectid, resourceid, tags):
         dataset.labels[key] = value
 
     dataset = client.update_dataset(dataset, ['labels'])
+
     return dataset
+
+
+def bigquery_table_label_updater(config_file, projectid, resourceid, subresourceid, tags):
+    parser = ConfigParser.SafeConfigParser()
+    parser.read(config_file)
+    key_file = parser.get('property', 'key_file')
+    client = bigquery.Client.from_service_account_json(key_file)
+
+    #datasetid = resourceid
+    tableref = client.dataset(resourceid).table(subresourceid)
+    table = client.get_table(tableref)
+
+    #table.labels = labels
+
+    for key, value in tags.items():
+        table.labels[key] = value
+
+    table = client.update_table(table, ["labels"])
+
+    return table
+

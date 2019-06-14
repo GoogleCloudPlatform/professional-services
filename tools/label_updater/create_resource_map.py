@@ -34,7 +34,7 @@
 resource_type_dict = {}
 
 
-def resource_map(projectid, resource, resourceid, zone, resourcelabels):
+def resource_map(projectid, resource, resourceid, sub_resource, sub_resource_id, zone, resourcelabels):
     """
     Appends each line from label file into a nested dictionary to be used for update all at once.
     :param projectid: project id e.g. cardinal-data-piper-sbx
@@ -47,19 +47,24 @@ def resource_map(projectid, resource, resourceid, zone, resourcelabels):
     """
     label_key, label_value = resourcelabels.split(":")
 
-    proj_resource_zone_key = projectid + "|" + resourceid + "|" + zone
+    proj_resource_zone_key = projectid + "|" + resourceid + "|" + sub_resource_id + "|" + zone
 
     if resource not in resource_type_dict.keys():
         resource_type_dict[resource] = dict()
 
-    if proj_resource_zone_key not in resource_type_dict[resource].keys():
-        resource_type_dict[resource][proj_resource_zone_key] = dict()
+    if sub_resource not in resource_type_dict[resource].keys():
+        resource_type_dict[resource][sub_resource] = dict()
 
-    if 'tags' not in resource_type_dict[resource][proj_resource_zone_key].keys():
-        resource_type_dict[resource][proj_resource_zone_key]['tags'] = dict()
+    if proj_resource_zone_key not in resource_type_dict[resource][sub_resource].keys():
+        resource_type_dict[resource][sub_resource][proj_resource_zone_key] = dict()
 
-    resource_type_dict[resource][proj_resource_zone_key]['project_id'] = projectid
-    resource_type_dict[resource][proj_resource_zone_key]['resource_id'] = resourceid
-    resource_type_dict[resource][proj_resource_zone_key]['zone'] = zone
-    resource_type_dict[resource][proj_resource_zone_key]['tags'][label_key.strip()] = label_value.strip()
+    if 'tags' not in resource_type_dict[resource][sub_resource][proj_resource_zone_key].keys():
+        resource_type_dict[resource][sub_resource][proj_resource_zone_key]['tags'] = dict()
+
+    resource_type_dict[resource][sub_resource][proj_resource_zone_key]['project_id'] = projectid
+    resource_type_dict[resource][sub_resource][proj_resource_zone_key]['resource_id'] = resourceid
+    resource_type_dict[resource][sub_resource][proj_resource_zone_key]['sub_resource_id'] = sub_resource_id
+    resource_type_dict[resource][sub_resource][proj_resource_zone_key]['zone'] = zone
+    resource_type_dict[resource][sub_resource][proj_resource_zone_key]['tags'][label_key.strip()] = label_value.strip()
+
     return resource_type_dict
