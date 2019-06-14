@@ -12,6 +12,10 @@ By following along with this example you will learn how to:
 4. Create a cloud build trigger that will tell Cloud Build when to run.
 5. Tie it all together by creating a cloudbuild.yaml file that tells Cloud Build how to execute your tests
  when the cloud build trigger fires, using the custom cloud builder you created.
+ 
+In order to follow along with this tutorial you'll need to:
+* Create or have access to an existing [GCP project](https://cloud.google.com/resource-manager/docs/creating-managing-projects).
+* Install and configure the [Google Cloud SDK](https://cloud.google.com/sdk).
 
 ## 1. Create a new project in Cloud Source Repositories
 You'll start by creating a new repository in CSR, copying the files in this example into the CSR repository, and 
@@ -36,19 +40,17 @@ You can alternatively do the same using the Google Cloud SDK:
 
 ## 2. Create your code and unit tests
 Creating unit tests is beyond the scope of this README, but if you review the tests in tests/ you'll quickly get the idea. 
-I'm using pytest as the testing suite for this project. Before proceeding make sure you can run your tests from the 
-command line
+Pytest is being used as the testing suite for this project. Before proceeding make sure you can run your tests from the 
+command line by running this command from the root of the project:
 
 ```
 python -m pytest 
-
 ```
 
-Or if you want to be fancy and use the coverage plug-in
+Or if you want to be fancy and use the [coverage](https://pytest-cov.readthedocs.io/en/latest/readme.html) plug-in:
 
 ```
 python -m pytest --cov=my_module tests/
-
 ```
 
 If everything goes well you should expect to see output like this, showing successful tests:
@@ -70,28 +72,31 @@ my_module/__init__.py        1      0   100%
 my_module/my_module.py       4      0   100%
 --------------------------------------------
 TOTAL                        5      0   100%
-
-
 ```
 
-Now that our tests are working locally, we want to configure GCP to run them every time we push new code.
+Now that your tests are working locally, you can configure Cloud Builder to run them every time you push new code.
 
-## 3. Building a Python Cloud Builder
-In order to execute python based tests in cloud builder you need a python cloud builder. 
-A cloud builder is just a docker container with the stuff you need in it. Google doesn't distribute a 
-python cloud builder, so we have to build one ourselves. I've created one in '/python-cloud-builder.' All you need to do 
-is run this:
+## 3. Building a Python Cloud Build Container
+To run Python based tests in cloud builder you need a Python [cloud builder](https://cloud.google.com/cloud-build/docs/cloud-builders). 
+A cloud builder is just a docker container image with the software you need in it. Google doesn't distribute a 
+Python cloud build container, so you have to build one yourself. The code needed to build a custom Python 3 cloud build 
+container is located in '/python-cloud-builder' under the root of this project. 
+
+Run these commands from the root of the project to build and upload your custom Python cloud build container:
 
 ```
 cd python-cloud-builder
 gcloud builds submit --config=cloudbuild.yaml .
-
 ```
 
-This creates a custom cloud builder in your container registry called gcr.io/$PROJECT_ID/python-cloudbuild that you can
-use to run tests with.
+This creates the custom Python cloud builder and uploads it to your GCP project's container registry, which is a private
+location to store container images. Your new cloud builder will be called gcr.io/$PROJECT_ID/python-cloudbuild, where 
+$PROJECT_ID is the name of your GCP project.
 
 ## 4. Create a Cloud Build Trigger
+Now that you've created a Python cloud builder to run your tests, you should create a trigger that tells Cloud Build
+when to run those tests. To do that, follow these steps:
+
 * On the GCP console navigate to 'Cloud Build' > 'Triggers.'
 * Add a trigger.
 * Choose cloud source repository.
@@ -129,7 +134,7 @@ steps:
 That's all there is to it! 
 
 From here you can inspect your builds in Cloud Builder's history.  You can also build in third-party integrations via
-PubSub. There's some documentation on how [here.](https://cloud.google.com/cloud-build/docs/configure-third-party-notifications)
+PubSub. There's some documentation on how [here](https://cloud.google.com/cloud-build/docs/configure-third-party-notifications).
 
 If we wanted to automatically deploy this code we could add another step that enabled continuous delivery too. Prebuilt cloud builders
 exist for gcloud, kubectl, etc. The full list can be found at [https://github.com/GoogleCloudPlatform/cloud-builders.](https://github.com/GoogleCloudPlatform/cloud-builders)
