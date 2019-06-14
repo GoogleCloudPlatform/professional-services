@@ -1,25 +1,38 @@
-# Basic Python CI With Cloud Source Repositories and Cloud Build
+# Basic Python Continuous Integration (CI) With Cloud Source Repositories (CSR) and Cloud Build
 
 ## Overview
-This repo contains code and instructions for using Google Cloud Source Repositories and Cloud Build to execute unit tests upon code check-in.
+This repo contains example code and instructions that show you how to use CSR and 
+Cloud Build to automatically run unit tests and pylint upon code check-in. By following this tutorial you will learn
+how to build basic Python continuous integration pipelines on Google Cloud Platform (GCP).
 
-The basic steps we need to follow are:
-1. Create a new project in Cloud Source Repository and clone it to your machine.
+By following along with this example you will learn how to:
+1. Create a new project in CSR and clone it to your machine.
 2. Create your code and unit tests.
-3. Create a Python Cloud Builder (more below).
-4. Create a cloud build trigger (more below).
-5. Create a cloudbuild.yaml file that executes your tests using your python cloud builder.
+3. Create a custom container called a cloud builder that Cloud Build will use to run your Python tests.
+4. Create a cloud build trigger that will tell Cloud Build when to run.
+5. Tie it all together by creating a cloudbuild.yaml file that tells Cloud Build how to execute your tests
+ when the cloud build trigger fires, using the custom cloud builder you created.
 
 ## 1. Create a new project in Cloud Source Repositories
+You'll start by creating a new repository in CSR, copying the files in this example into the CSR repository, and 
+commiting them to your new repository.
+
 * Go to https://source.cloud.google.com/.
 * Click 'Add repository.'
 * Choose 'Create new repository.'
 * Specify a name, and your project name.
-* Follow the instructions to 'git clone' the empty repo to your workstation and use it like you would a git repo.
+* Follow the instructions to 'git clone' the empty repo to your workstation.
+* Copy the files from this example into the new repo.
+* Add the files to the new repo with 'git add .'
+* Commit and push these files in the new repo with the commands 'git commit -m 'inital commit' and 'git push origin master.'
+
 
 You can alternatively do the same using the Google Cloud SDK:
 * Create the repository by running the command 'gcloud source repos create <REPO_NAME>.'
 * Clone the new repository to your local machine by running the command 'gcloud source repos clone <REPO_NAME>.'
+* Copy the files from this example into the new repo.
+* Add the files to the new repo with 'git add .'
+* Commit and push these files in the new repo with the commands 'git commit -m 'inital commit' and 'git push origin master.'
 
 ## 2. Create your code and unit tests
 Creating unit tests is beyond the scope of this README, but if you review the tests in tests/ you'll quickly get the idea. 
