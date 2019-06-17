@@ -60,7 +60,7 @@ def _add_series(project_id, series, client=None):
     series = [series]
   try:
     client.create_time_series(project_name, series)
-  except GoogleAPIError, e:
+  except GoogleAPIError as e:
     raise Error('Error from monitoring API: %s' % e)
 
 
@@ -132,7 +132,7 @@ def _quota_to_series(project, region, quota):
     region: set in converted time series labels
     quota: quota object received from the GCE API
   """
-  labels = dict((k, unicode(v)) for k, v in quota.items() if k != 'usage')
+  labels = dict((k, str(v)) for k, v in quota.items() if k != 'usage')
   labels['project'] = project
   labels['region'] = region
   try:
