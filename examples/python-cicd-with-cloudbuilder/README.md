@@ -94,8 +94,9 @@ location to store container images. Your new cloud builder will be called gcr.io
 $PROJECT_ID is the name of your GCP project.
 
 ## 4. Create a Cloud Build Trigger
-Now that you've created a Python cloud builder to run your tests, you should create a trigger that tells Cloud Build
-when to run those tests. To do that, follow these steps:
+Now that you've created a Python cloud builder to run your tests, you 
+should [create a trigger](https://cloud.google.com/cloud-build/docs/running-builds/automate-builds) that tells Cloud
+Build when to run those tests. To do that, follow these steps:
 
 * On the GCP console navigate to 'Cloud Build' > 'Triggers.'
 * Add a trigger.
@@ -107,38 +108,48 @@ when to run those tests. To do that, follow these steps:
 
 
 ## 5. Create a cloudbuild.yaml file that executes your tests and runs pylint
+At this point you've created a Python cloud build container in step 3, a build trigger that runs whenever you 
+push new code in step 4. In this last step you'll create a set of instructions called a...
 Create a file called cloudbuild.yaml in the root of your project and add the steps needed to execute your unit tests, 
 using the cloud builder we created in step 3. 
 
-*Note: Each cloudbuilder step is a separate, ephemerial run of a docker container, however the /workspace/ directory is
-preserved between runs. One way to carry python packages forward is to use a virtualenv housed in /workspace/*
+*Note: Each cloudbuilder step is a separate, ephemerial run of a docker container, however [the /workspace/ directory is
+preserved between runs](https://cloud.google.com/cloud-build/docs/build-config#dir). One way to carry python packages 
+forward is to use a virtualenv housed in /workspace/*
 
 
 ```
 steps:
-- name: 'gcr.io/$PROJECT_ID/python-cloudbuild'
+- name: 'gcr.io/$PROJECT_ID/python-cloudbuild' # Cloud Build automatically substitutes $PROJECT_ID for your Project ID
   entrypoint: '/bin/bash'
   args: ['-c','virtualenv /workspace/venv' ]
+  # Creates a Python virtualenv stored in /workspace/venv that will persist across container runs
 - name: 'gcr.io/$PROJECT_ID/python-cloudbuild'
   entrypoint: 'venv/bin/pip'
   args: ['install', '-V', '-r', 'requirements.txt']
+  # Installs any dependencies listed in the project's requirements.txt
 - name: 'gcr.io/$PROJECT_ID/python-cloudbuild'
   entrypoint: 'venv/bin/python'
-  args: ['-m', 'pytest', '-rA']
+  args: ['-m', 'pytest', '-v']
+  # runs pytest from the virtual environment (with all requirements) 
+  # using the verbose flag so you can see each individual test
 - name: 'gcr.io/$PROJECT_ID/python-cloudbuild'
   entrypoint: 'venv/bin/pylint'
   args: ['my_module/']
+  #runs pylint against the module my_module contained one folder under the project root
 ```
 
 ## Wrap Up
 That's all there is to it! 
 
 From here you can inspect your builds in Cloud Builder's history.  You can also build in third-party integrations via
-PubSub. There's some documentation on how [here](https://cloud.google.com/cloud-build/docs/configure-third-party-notifications).
+PubSub. You can find more documentation on how to use third party integrations
+ [here](https://cloud.google.com/cloud-build/docs/configure-third-party-notifications).
 
-If we wanted to automatically deploy this code we could add another step that enabled continuous delivery too. Prebuilt cloud builders
-exist for gcloud, kubectl, etc. The full list can be found at [https://github.com/GoogleCloudPlatform/cloud-builders.](https://github.com/GoogleCloudPlatform/cloud-builders)
-Google also maintains a community repo for other cloud builders contributed by the public [here.](https://github.com/GoogleCloudPlatform/cloud-builders-community)
+If you wanted to automatically deploy this code you could add additional steps that enabled continuous delivery. 
+
+Prebuilt cloud builders exist for gcloud, kubectl, etc. The full list can be found at [https://github.com/GoogleCloudPlatform/cloud-builders](https://github.com/GoogleCloudPlatform/cloud-builders).
+Google also maintains a community repo for other cloud builders contributed by the public [here](https://github.com/GoogleCloudPlatform/cloud-builders-community).
 
 
 ## License
