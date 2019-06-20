@@ -1,5 +1,5 @@
-# This cloudbuild.yaml is used to build a custom cloud builder, shown in step 3 of README.md
-# When you run gcloud builds submit --config=cloudbuild.yaml . in this directory it will use the yaml file
+# This cloudbuild.yaml is used to build a custom cloud builder, shown in step 3 of README.md.
+# When you run 'gcloud builds submit --config=cloudbuild.yaml .' in this directory it will use the yaml file
 # and Dockerfile to create a custom cloud builder and upload it to
 # gcr.io/$PROJECT_ID/python-cloudbuild so you can use it to run python integration steps.
 
