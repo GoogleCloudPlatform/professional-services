@@ -1,66 +1,76 @@
+#  Copyright 2019 Google LLC
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+
 """
-   Copyright 2019 Google LLC
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-
 Sample module used to demonstrate CI with:
  - Pytest
  - Cloud Source Repositories
  - Cloud Builder
 
-Tutorial found in README.md
-
-
-
+Tutorial found in README.md.
 """
+
 import numpy as np
 
 
 def add(a, b):
-  """
-  Adds two numbers, a and b
-  :param a  First number to add
-  :param b  Second number to add
-  :return: The sum of a and b
+  """Adds two numbers, a and b.
+
+  Args:
+    a: a numeric variable.
+    b: a numeric variable.
+
+  Returns:
+    A numeric variable that is the sum of a and b.
   """
   return a + b
 
 
 def square(x):
-  """
-  returns the square of x
-  :param x: number to square
-  :return: x ** 2
+  """Returns the square of x.
+
+  Args:
+    x: a numeric variable.
+
+  Returns:
+    The square of x.
   """
   return x ** 2
 
 
 def log_transform(x, const=1):
+  """Log Transforms x.
+
+  Returns the natural log transform of x, to reduce the skewedness for some distribution X. For more on why/when to use a log
+  transformation, read here: http://onlinestatbook.com/2/transformations/log.html.
+
+  Args:
+    x: a numeric variable to transform.
+    const: a constant to add to x to prevent taking the log of 0.
+
+  Returns:
+    log (x + const).
+
+  Raises:
+    ValueError: Raises a value error if const <= 0.
   """
-  returns the log of x to reduce skewedness in our dataset
-  :param x: value or values to transform
-  :param const: a constant to add to x to prevent taking the log of 0
-  :return: log of x + 1
-  """
-  assert const > 0
+  if const <= 0:
+    raise ValueError("Constant const must be greater than 0, not {}".format(const))
   return np.log(x + const)
 
 
 def main():  # pragma: no cover
-  """
-  Driver loop that runs these functions
-  :return:
-  """
   a = 5
   b = 10
   total = add(a, b)
