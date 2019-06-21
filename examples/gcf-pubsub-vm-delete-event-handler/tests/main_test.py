@@ -18,6 +18,7 @@ import logging
 from googleapiclient.http import HttpMock
 from googleapiclient.http import HttpMockSequence
 from helpers import readfile
+from main import IP_NOT_AVAILABLE_MSG
 from main import LOGNAME
 
 
@@ -99,6 +100,21 @@ def trigger_event_done():
         'data': base64.b64encode(readfile('trigger-event-done.json').encode())
     }
 
+
+@pytest.fixture
+def no_ip_log():
+    """Example of a structured log message when the IP is not available
+
+    This structure is intended to provide an convenient way to report on A
+    records which were not automatically cleaned up.
+    """
+    return {
+        'message': IP_NOT_AVAILABLE_MSG,
+        'reason': 'IP_NOT_AVAILABLE',
+        'project': 'user-dev-242122',
+        'zone': 'us-west1-a',
+        'instance': 'test',
+    }
 
 def test_print_error_no_data(capsys, mock_env, mock_event_data):
     with pytest.raises(KeyError) as err:
@@ -222,6 +238,21 @@ def test_no_action_on_gce_operation_done(mock_env_debug, caplog,
                                  http=mock_http)
     assert 'No action taken' in caplog.text
     assert 0 == num_deleted
+
+
+
+def test_structured_event_when_cannot_delete(
+        mock_env, caplog, trigger_event, mock_http, no_ip_log):
+    """Logs a structured message for reporting purposes
+
+    The user should be able to answer the question, "What DNS records were not
+    automatically deleted, which I need to pay attention to?"
+    """
+    main.dns_vm_gc(trigger_event, ip_provided=False, http=mock_http)
+    logs = [r for r in caplog.records if 'IP_NOT_AVAILABLE' in r.message]
+    assert 1 == len(logs)
+    structured_logs = [json.loads(r.message) for r in logs]
+    assert [no_ip_log] == structured_logs
 
 
 def run(fname='trigger-event.json', ip='10.138.0.45'):

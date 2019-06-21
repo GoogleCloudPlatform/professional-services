@@ -22,6 +22,10 @@ from googleapiclient.errors import HttpError
 from typing import List, Optional
 
 LOGNAME = __name__
+IP_NOT_AVAILABLE_MSG = (
+    "Could not get IP address. Obtaining the IP is not guaranteed "
+    "because of race condition with VM deletion.  "
+    "Aborting with no action taken")
 
 
 def compute(http=None):
@@ -273,11 +277,12 @@ def dns_vm_gc(data, context=None, ip_provided: Optional[str] = None,
         ip = ip_provided
 
     if not ip:
-        msg = ("Could not get IP address. "
-               "Obtaining the IP is not guaranteed because of "
-               "race condition with VM deletion. "
-               "Aborting with no action taken").format(instance)
-        log.warning(json.dumps({'instance': instance, 'message': msg}))
+        log.warning(json.dumps({
+            'message': IP_NOT_AVAILABLE_MSG,
+            'reason': 'IP_NOT_AVAILABLE',
+            'project': project,
+            'zone': zone,
+            'instance': instance}))
         return 0
 
     zones = [v.strip() for v in dns_zones.split(',')]
