@@ -1,5 +1,5 @@
 # Churn Prediction with Survival Analysis
-This model uses Survival Analysis to classify customers into time-to-churn buckets. The model output (after taking the cumulative product) is equivalent to each user's churn score for different durations. 
+This model uses Survival Analysis to classify customers into time-to-churn buckets. The model output can be used to calculate each user's churn score for different durations.
 
 The same methodology can be used used to predict customers' total lifetime from their "birth" (intital signup, or t = 0) and from the current state (t > 0).
 
@@ -11,15 +11,16 @@ If a customer is still active, or is "censored" using Survival Analysis terminol
 By using a Survival Analysis approach to churn prediction, the entire population (regardless of current tenure or status) can be included. 
 
 ## Setup
-Set up GCP credentials
+### Set up GCP credentials
 ```
 gcloud auth login
 gcloud auth application-default login
 ```
 
-Set up Python environment
+### Set up Python environment
+Dataflow currently requires Python 2
 ```
-virtual venv --python=/usr/bin/python2.7
+virtualenv venv --python=/usr/bin/python2.7
 source ./venv/bin/activate
 pip install -r requirements.txt
 ```
@@ -42,20 +43,23 @@ During preprocessing, the aforementioned fields are combined into a single 2*n-d
 
 ### Set Constants
 ```
-BUCKET=gs://[GCS Bucket]
+BUCKET="gs://[GCS Bucket]"
 NOW="$(date +%Y%m%d%H%M%S)"
 OUTPUT_DIR="${BUCKET}/output_data/${NOW}"
+PROJECT="[PROJECT ID]"
 ```
 
 ### Run locally with Dataflow
 ```
 python preprocessor/run_preprocessing.py \
---output_dir "${OUTPUT_DIR}"
+--output_dir "${OUTPUT_DIR}" \
+--project_id "${PROJECT}"
 ```
 ### Run on the Cloud with Dataflow
 ```
 python preprocessor/run_preprocessing.py --cloud \
---output_dir "${OUTPUT_DIR}"
+--output_dir "${OUTPUT_DIR}" \
+--project_id "${PROJECT}"
 ```
   
   
@@ -77,7 +81,7 @@ MODEL_DIR="${BUCKET}/model/$(date +%Y%m%d%H%M%S)"
 ```
 gcloud ai-platform local train \
 --module-name trainer.task \
---package-path trainer \
+--package-path trainer/trainer \
 --job-dir ${MODEL_DIR} \
 -- \
 --input-dir "${INPUT_DIR}"
@@ -89,9 +93,9 @@ JOB_NAME="train_$(date +%Y%m%d%H%M%S)"
 
 gcloud ai-platform jobs submit training ${JOB_NAME} \
 --job-dir ${MODEL_DIR} \
---config config.yaml \
+--config trainer/config.yaml \
 --module-name trainer.task \
---package-path trainer \
+--package-path trainer/trainer \
 --region us-east1 \
 --python-version 3.5 \
 --runtime-version 1.13 \
@@ -106,8 +110,8 @@ JOB_NAME="hptuning_$(date +%Y%m%d%H%M%S)"
 gcloud ai-platform jobs submit training ${JOB_NAME} \
 --job-dir ${MODEL_DIR} \
 --module-name trainer.task \
---package-path trainer \
---config hptuning_config.yaml \
+--package-path trainer/trainer \
+--config trainer/hptuning_config.yaml \
 --python-version 3.5 \
 --runtime-version 1.13 \
 -- \
