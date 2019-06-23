@@ -67,10 +67,10 @@ def eval_metric_fn(labels, predictions, params):
                                    name='acc_op')
     metrics['accuracy'] = accuracy
     accuracy_per_class = tf.metrics.mean_per_class_accuracy(
-                labels=labels_value,
-                predictions=class_preds,
-                num_classes=num_unbounded_intervals,
-                name='accuracy_per_class_op')
+        labels=labels_value,
+        predictions=class_preds,
+        num_classes=num_unbounded_intervals,
+        name='accuracy_per_class_op')
     metrics['accuracy_per_class'] = accuracy_per_class
 
     return metrics

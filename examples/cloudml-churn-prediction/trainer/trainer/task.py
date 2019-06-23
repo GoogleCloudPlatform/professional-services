@@ -33,25 +33,25 @@ def parse_arguments(argv):
     parser.add_argument(
         '--verbosity',
         choices=['DEBUG', 'ERROR', 'FATAL', 'INFO', 'WARN'],
-        default='INFO'
+        default='INFO',
     )
     parser.add_argument(
         '--train-batch-size',
         help='Batch size for each training step',
         type=int,
-        default=120
+        default=120,
     )
     parser.add_argument(
         '--eval-batch-size',
         help='Batch size for evaluation steps',
         type=int,
-        default=1000
+        default=1000,
     )
     parser.add_argument(
         '--eval-start-secs',
         help='How long to wait before starting first evaluation',
         default=20,
-        type=int
+        type=int,
     )
     parser.add_argument(
         '--eval-steps',
@@ -59,7 +59,7 @@ def parse_arguments(argv):
         Set to None to evaluate on the whole evaluation data
         """,
         default=None,
-        type=int
+        type=int,
     )
     parser.add_argument(
         '--num-epochs',
@@ -67,17 +67,17 @@ def parse_arguments(argv):
         If both --train-size and --num-epochs are specified, --train-steps will
         be: (train-size/train-batch-size) * num-epochs.""",
         default=None,
-        type=int
+        type=int,
     )
     parser.add_argument(
         '--job-dir',
         help='GCS location to write checkpoints and export models',
-        required=True
+        required=True,
     )
     parser.add_argument(
         '--input-dir',
         help='GCS or local directory to TFRecord and metadata files.',
-        required=True
+        required=True,
     )
     parser.add_argument(
         '--train-steps',
@@ -85,18 +85,18 @@ def parse_arguments(argv):
         If --num-epochs and --train-size are specified, then --train-steps will
         be: (train-size/train-batch-size) * num-epochs""",
         default=10000,
-        type=int
+        type=int,
     )
     parser.add_argument(
         '--train-size',
         help='Size of training set (instance count)',
         type=int,
-        default=None
+        default=None,
     )
     parser.add_argument(
         '--hidden-units',
         help='Hidden units, default is [10, 10]',
-        default=[10, 10]
+        default=[10, 10],
     )
     parser.add_argument(
         '--first-layer-size',
@@ -121,13 +121,13 @@ def parse_arguments(argv):
         '--learning-rate',
         help='Learning rate',
         default=0.021388123321319803,
-        type=float
+        type=float,
     )
     parser.add_argument(
         '--threshold',
         help='Confidence Score threshold to resolve class predictions',
         default=0.34157646920229945,
-        type=float
+        type=float,
     )
     return parser.parse_args(argv)
 
@@ -141,10 +141,10 @@ def train_and_evaluate(flags):
     feature_spec = tf_transform_output.transformed_feature_spec()
     train_input_fn = functools.partial(
         input_util.input_fn,
-        flags.input_dir,
-        tf.estimator.ModeKeys.TRAIN,
-        flags.train_batch_size,
-        flags.num_epochs,
+        input_dir=flags.input_dir,
+        mode=tf.estimator.ModeKeys.TRAIN,
+        batch_size=flags.train_batch_size,
+        num_epochs=flags.num_epochs,
         label_name=metadata.LABEL_COLUMN,
         feature_spec=feature_spec
     )
@@ -154,9 +154,9 @@ def train_and_evaluate(flags):
     #Define eval spec
     eval_input_fn = functools.partial(
         input_util.input_fn,
-        flags.input_dir,
-        tf.estimator.ModeKeys.EVAL,
-        flags.eval_batch_size,
+        input_dir=flags.input_dir,
+        mode=tf.estimator.ModeKeys.EVAL,
+        batch_size=flags.eval_batch_size,
         num_epochs=1,
         label_name=metadata.LABEL_COLUMN,
         feature_spec=feature_spec
@@ -165,7 +165,7 @@ def train_and_evaluate(flags):
     exporter = tf.estimator.FinalExporter(
         "export", functools.partial(
             input_util.tfrecord_serving_input_fn,
-            feature_spec,
+            feature_spec=feature_spec,
             label_name=metadata.LABEL_COLUMN))
 
     eval_spec = tf.estimator.EvalSpec(
@@ -187,8 +187,8 @@ def train_and_evaluate(flags):
     feature_columns = model.get_feature_columns(
         tf_transform_output, exclude_columns=metadata.NON_FEATURE_COLUMNS)
     num_intervals = metadata.NUM_INTERVALS
-    estimator = model.build_estimator(run_config, flags, feature_columns,
-                                      num_intervals)
+    estimator = model.build_estimator(
+        run_config, flags, feature_columns, num_intervals)
 
     #Run training and evaluation
     tf.estimator.train_and_evaluate(estimator, train_spec, eval_spec)

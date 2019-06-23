@@ -170,10 +170,6 @@ def WriteTFRecord(p, prefix, output_dir, metadata):
             file_name_suffix=".tfrecord"))
 
 
-def print_row(row):
-    print row
-
-
 @beam.ptransform_fn
 def randomly_split(p, train_size, validation_size, test_size):
     """Randomly splits input pipeline in three sets based on input ratio.

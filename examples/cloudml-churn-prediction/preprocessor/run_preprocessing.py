@@ -48,7 +48,7 @@ def parse_arguments(argv):
     )
     parser.add_argument(
         '--output_dir',
-        default=os.path.join('gs://internal-klm/survival', timestamp)
+        required=True,
     )
     parser.add_argument(
         '--log_level',
@@ -74,7 +74,7 @@ def parse_arguments(argv):
     parser.add_argument(
         '--project_id',
         help="""Google Cloud project ID""",
-        default='internal-klm'
+        required=True,
     )
     known_args, _ = parser.parse_known_args(argv)
 

@@ -21,28 +21,29 @@ from tensorflow_transform.tf_metadata import dataset_metadata
 from tensorflow_transform.tf_metadata import dataset_schema
 
 
-BQ_FEATURES = ['fullVisitorId', 'totals.visits', 'totals.hits',
-        'totals.pageviews', 'device.deviceCategory', 
-        'geoNetwork.continent', 'geoNetwork.subContinent', 'socialEngagementType',
-        'channelGrouping']
+BQ_FEATURES = [
+    'fullVisitorId', 'totals.visits', 'totals.hits',
+    'totals.pageviews', 'device.deviceCategory', 
+    'geoNetwork.continent', 'geoNetwork.subContinent', 'socialEngagementType',
+    'channelGrouping']
 
 CATEGORICAL_COLUMNS = [
-        'deviceCategory',
-        'continent',
-        'subContinent',
-        'socialEngagementType',
-        'channelGrouping',
+    'deviceCategory',
+    'continent',
+    'subContinent',
+    'socialEngagementType',
+    'channelGrouping',
 ]
 
 METADATA_COLUMNS = [
-        'fullVisitorId'
+    'fullVisitorId'
 ]
 
 NUMERIC_COLUMNS = [
-        'visits',
-        'hits',
-        'pageviews',
-        'duration'
+    'visits',
+    'hits',
+    'pageviews',
+    'duration'
 ]
 
 LABEL_ARRAY_COLUMN = 'labelArray'
@@ -52,12 +53,12 @@ BOOLEAN_COLUMNS = []
     
 
 LABEL_COLUMNS = [
-        'start_date',
-        'end_date',
-        'active',
-        'duration',
-        'labelArray',
-        'label'
+    'start_date',
+    'end_date',
+    'active',
+    'duration',
+    'labelArray',
+    'label'
 ]
     
 
@@ -74,7 +75,8 @@ def get_raw_feature_spec():
             for name in NUMERIC_COLUMNS] +
         [(name, tf.FixedLenFeature([], tf.int64))
             for name in BOOLEAN_COLUMNS] +
-        [(LABEL_ARRAY_COLUMN, tf.FixedLenFeature([2*len(LABEL_CEILINGS)], tf.float32))])
+        [(LABEL_ARRAY_COLUMN, tf.FixedLenFeature([
+            2*len(LABEL_CEILINGS)], tf.float32))])
     return features
 
 
@@ -83,7 +85,7 @@ RAW_FEATURE_SPEC = get_raw_feature_spec()
 
 def get_raw_dataset_metadata():
     return dataset_metadata.DatasetMetadata(
-            dataset_schema.from_feature_spec(RAW_FEATURE_SPEC))
+        dataset_schema.from_feature_spec(RAW_FEATURE_SPEC))
 
 
 def preprocess_fn(inputs):

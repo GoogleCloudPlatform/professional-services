@@ -90,7 +90,6 @@ def survival_model(features, labels, mode, params):
     """Survival Analysis mode to predict likelihood of "death" (churn)"""
     #Create neural network
     net = tf.feature_column.input_layer(features, params['feature_columns'])
-
     for units in params['hidden_units']:
         net = tf.layers.dense(net, units=units, activation=tf.nn.relu)
     output = tf.layers.dense(net, units=params['num_intervals'],
@@ -128,9 +127,12 @@ def survival_model(features, labels, mode, params):
 
 def build_estimator(run_config, flags, feature_columns, num_intervals):
     """Returns TensorFlow estimator"""
+
+    #Calculate hidden units based on CLI args to allow hyperparameter tuning
     if flags.num_layers is not None and flags.first_layer_size is not None:
         hidden_units = [
-            max(2, int(flags.first_layer_size * flags.layer_sizes_scale_factor**i))
+            max(2, int(
+                flags.first_layer_size * flags.layer_sizes_scale_factor**i))
             for i in range(flags.num_layers)
         ]
     else:
