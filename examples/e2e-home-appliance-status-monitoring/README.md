@@ -98,7 +98,7 @@ gcloud ml-engine versions create v01 \
 ### Step 2. Deploy server.
 Type in the following commands to start server in app engine.  
 ```shell
-cd e2e_demo/server
+cd server
 cp ${GOOGLE_APPLICATION_CREDENTIALS} .
 echo "  GOOGLE_APPLICATION_CREDENTIALS: '${GOOGLE_APPLICATION_CREDENTIALS##*/}'" >> app.yaml
 echo "  GOOGLE_CLOUD_PROJECT: '${GOOGLE_PROJECT_ID}'" >> app.yaml
