@@ -13,6 +13,12 @@ check the IP address matches the VM being deleted.
 In practice this background function collects the IP address well within the
 ~30 second window of the VM delete operation.
 
+Structured logs enable VM deletions which were not processed because the race
+was lost.  See [Lost Race](#lost-race) for log filters to identify VM's deleted
+before cleanup could take place.
+
+![Example Log Output](./img/example_logs.png)
+
 Project Setup
 ===
 
@@ -62,16 +68,15 @@ example `projects/logs-123456/topics/vm-deletions`.
 
 ```
 resource.type="gce_instance"
+jsonPayload.event_type="GCE_API_CALL"
 jsonPayload.event_subtype="compute.instances.delete"
 ```
 
-Note: Two events are generated for each VM delete.
+This filter results in one event published per VM deletion, a `GCE_API_CALL`
+event when the VM deletion is requested.
 
- 1. A `GCE_API_CALL` event occurs when the VM deletion is requested.
- 2. A `GCE_OPERATION_DONE` event occurs after the VM deletion has completed.
-
-The function triggers on both events but takes action only on GCE_API_CALL
-events.
+If additional events are published to the topic, the function triggers, but
+ignores events which do not match this filter.
 
 Service Account
 ===
@@ -85,13 +90,41 @@ run locally as the service account using the GOOGLE_APPLICATION_CREDENTIALS
 environment file.  See [Providing credentials to your application][adc] for
 details.
 
+Service Account Roles
+===
+
+The Background Function service account requires the following roles.
+
+DNS Admin
+---
+
 Grant the DNS Admin role to the dns-vm-gc service account in the host project.
 DNS Admin allows the DNS VM GC function to delete DNS records in the host
 project.
 
-Grant the Compute Viewer role to the dns-vm-gc service account in the Service
-Projects.  Compute Viewer allows the DNS VM GC function to read the IP address
-of the VM, necessary to ensure the correct A record is deleted.
+This role may be granted at the Shared VPC project level.
+
+Compute Viewer
+---
+
+Grant the Compute Viewer role to the dns-vm-gc service account.  Compute Viewer
+allows the DNS VM GC function to read the IP address of the VM, necessary to
+ensure the correct A record is deleted.
+
+This role may be granted at the project, folder or organization level as
+appropriate.
+
+Logs Writer
+---
+
+Grant the Logs Writer role to the dns-vm-gc service account.  Logs Writer is
+required to write structured event logs to the [Reporting
+Stream](#reporting-stream).
+
+This role may be granted at the project, folder, or organization level as
+appropriate.  It is recommended to grant the role at the same level the log
+stream exists at, the logging project by default.  See [Custom Reporting
+Destination](#custom-reporting-destination) for more information.
 
 Deployment
 ===
@@ -119,82 +152,145 @@ gcloud functions deploy dns_vm_gc \
   --env-vars-file=env.yaml
 ```
 
-Expected output:
-
-```
-Deploying function (may take a while - up to 2 minutes)...done.
-availableMemoryMb: 256
-entryPoint: dns_vm_gc
-environmentVariables:
-  DNS_VM_GC_DNS_PROJECT: my-vpc-host-project
-  DNS_VM_GC_DNS_ZONES: my-nonprod-private-zone,my-prod-private-zone
-eventTrigger:
-  eventType: google.pubsub.topic.publish
-  failurePolicy:
-    retry: {}
-  resource: projects/logs-123456/topics/vm-deletions
-  service: pubsub.googleapis.com
-labels:
-  deployment-tool: cli-gcloud
-name: projects/logs-123456/locations/us-west1/functions/dns_vm_gc
-runtime: python37
-serviceAccountEmail: dns-vm-gc@logs-123456.iam.gserviceaccount.com
-sourceUploadUrl: https://storage.googleapis.com/gcf-upload-us-west1-973b4cc1-05d6-4a78-b8c5-c3b99267db38/ad8a3129-ca46-434f-bd76-ac9bd1efffdc.zip?GoogleAccessId=service-4551223416
-18@gcf-admin-robot.iam.gserviceaccount.com&Expires=1560296818&Signature=WBo9JaIipBEf59tH289ea5ftzTqqipuDZTqNFwiwSL%2B1JMbHkvj0yLf1wT%2BsEguhHnWVe0DO0o9yzrvJCWlDwEZDwx8j0X%2B808Q7swGZ
-O7cQ1RMdxj9Bk8742b4KhoZkBAcO9t5iOOAz3qpdHL2jsEvprghZous21T5FSTfcdiPvwNGAVQyiLKiX%2F1peuk0hzGMx2MVxVUQb6XbuaXQooCftsQ38Gp4IuKxusCMGs7o4UERHLFUy5RwgROeDJSTX4%2BgPe0ZJfJtAxUsenGtVfGBLO0
-V2OfiRwBtB3zPJU57b8sroZfN4s%2BimX0h1hVIdSKsersiESFsFX%2BwMUi%2Bhgg%3D%3D
-status: ACTIVE
-timeout: 60s
-updateTime: '2019-06-11T23:17:29Z'
-versionId: '2'
-```
-
-Function Logs
+Logging and Reporting
 ===
 
-This function uses the [Logging facility for Python].  When running in the
-Google Cloud Functions environment, the Python log messages are logged with
-Stackdriver severity according to the following table.
+The DNS VM GC function logs into two different locations.  Structured Events
+intended for reporting are sent to a special purpose reporting stream.  Plain
+text logs are sent to the standard Cloud Function logs accessible via `gcloud
+functions logs read`.
 
-| Python log level | Stackdriver severity |
-|------------------|----------------------|
-| debug            | info                 |
-| info             | info                 |
-| warning          | error                |
-| error            | error                |
-| critical         | error                |
+Reporting Stream
+---
 
-Note the debug level of the Python logger is respected.  For this reason debug
-messages will not appear in Stackdriver unless the function is deployed with
-the DEBUG environment variable.
+The reporting stream is intended to answer two primary questions:
 
-Example Logs
+ 1. Which VM deletion events, if any, were not processed?
+ 2. What records were deleted automatically?
+
+When the function loses the race against the delete operation, the event is not
+processed and the function reports a detail code of `LOST_RACE`.
+
+When the function deletes a record automatically, the fully qualified domain
+name is logged along with a detail code of `RR_DELETED` for resource record
+deleted.
+
+Custom Reporting Destination
+---
+
+By default the reporting stream is located at
+`projects/<logs_project>/logs/<function_name>`.  The reporting stream is
+configurable by setting the `DNS_VM_GC_REPORTING_LOG_STREAM` environment
+variable when deploying the function.  For example, to send reporting events to
+the organization level:
+
+```yaml
+# env.yaml
+---
+DNS_VM_GC_DNS_PROJECT: my-vpc-host-project
+DNS_VM_GC_DNS_ZONES: my-nonprod-private-zone,my-prod-private-zone
+DNS_VM_GC_REPORTING_LOG_STREAM: organizations/000000000000/logs/dns-vm-gc-report
+```
+
+See the `logName` field of the [LogEntry][logentry] resource for a list of
+possible report stream destinations.
+
+Reading the Report Logs
+---
+
+Download all structured logs to the report stream produced by the function
+using:
+
+```bash
+gcloud functions logs read logName="projects/<logs_project>/logs/<function_name>"
+```
+
+Cloud Function Logs
+---
+
+The function also logs unstructured plain text logs using [Cloud Function
+Logs][gcf-logs].  Becasue these logs are unstructured, they are less useful
+than the Report Stream logs for reporting purposes, however, are present to
+keep all activity associated together with each execution ID of the function.
+
+Note the cloud function logs have an execution_id.  This execution ID is not
+readily available at runtime and therefore absent from the structured report
+log stream.  The function logs a message with the `event_id` being processed to
+associate the execution_id with the event_id.  This behavior is intended to
+correlate each execution in the Cloud Function Logs with each report in the
+Report Stream.  The correlation of execution_id to event_id is not necessary
+for day to day reporting.  The correlation is useful for the rare situation of
+complete end-to-end tracing.
+
+Reporting
 ===
 
-Note these log message formats are subject to change.  They're provided here to
-assist with tracing the function behavior when deployed.
+Lost Race
+---
 
-When the function cannot obtain the IP address of the VM the log messages look
-like:
+Periodic reporting should be performed to monitor for `NOT_PROCESSED` results.
+In the event of a lost race, automatic DNS record deletion is not guaranteed.
 
-```
-Function execution started
-{"message": "<HttpError 404 when requesting https://www.googleapis.com/compute/v1/projects/user-dev-242122/zones/us-west1-a/instances/test?alt=json returned \"The resource 'projects/user-dev-242122/zones/us-west1-a/instances/test' was not found\">"}
-{"instance": "test", "message": "Could not get IP address. Obtaining the IP is not guaranteed because of race condition with VM deletion. Aborting with no action taken"}
-Function execution took 1910 ms, finished with status: 'ok'
-```
-
-A successful deletion looks like:
+The following Stackdriver Advanced Filter identifies when a VM deletion event
+was not processed automatically:
 
 ```
-Function execution started
-{"message": "Processing VM deletion event", "event_type": "GCE_API_CALL", "project": "user-dev-242122", "zone": "us-west1-c", "instance": "thursday-dw1"}
-{"message": "DNS RECORD DELETED", "project": "dnsregistration", "managed_zone": "nonprod-private-zone", "record": {"name": "thursday-dw1.nonprod.gcp.example.com.", "type": "A", "ttl": 300, "rrdatas": ["10.138.0.63"], "signatureRrdatas": [], "kind": "dns#resourceRecordSet"}, "response": {"additions": [], "deletions": [{"name": "thursday-dw1.nonprod.gcp.example.com.", "type": "A", "ttl": 300, "rrdatas": ["10.138.0.63"], "signatureRrdatas": [], "kind": "dns#resourceRecordSet"}], "startTime": "2019-06-20T23:15:37.962Z", "id": "31", "status": "pending", "kind": "dns#change"}}
-Function execution took 2925 ms, finished with status: 'ok'
+resource.type="cloud_function"
+resource.labels.function_name="dns_vm_gc"
+logName="projects/dns-logging/logs/dns-vm-gc-report"
+jsonPayload.result="NOT_PROCESSED"
 ```
+
+Deleted Resource Records
+---
+
+All records automatically deleted may be identified with the a filter on the
+detail code.
+
+```
+resource.type="cloud_function"
+resource.labels.function_name="dns_vm_gc"
+logName="projects/dns-logging/logs/dns-vm-gc-report"
+jsonPayload.detail="RR_DELETED"
+```
+
+Debug Logs
+---
+
+Debug logs are also available, but are not sent by default.  To enable, deploy
+the function with the `DEBUG` environmant variable set to a non-empty string.
+Note, debug logs generates 2*N log events every time a VM is deleted where N is
+the number of DNS records across all configured managed zones.  For example,
+deleting 10 VM instances with 1,000 managed DNS records generates 20,000 debug
+log entries at minimum.
+
+Detail Codes
+---
+
+The following detail codes may be reported to the reporting stream:
+
+| Detail Code   | Description                                     | Result        |
+| -----------   | -----------                                     | ------        |
+| NO_MATCHES    | No DNS records matched the VM deleted           | OK            |
+| RR_DELETED    | A DNS record matched and has been deleted       | OK            |
+| VM_NO_IP      | The function won the race, but the VM has no IP | OK            |
+| IGNORED_EVENT | Trigger event is not a VM delete GCE_API_CALL   | OK            |
+| LOST_RACE     | The VM was deleted before the IP was determined | NOT_PROCESSED |
+
+In addition, there are detail codes when DEBUG is turned on indicating the
+reason why DNS records were not automatically deleted.
+
+| Detail Code      | Reason DNS record not deleted              | Result |
+| -----------      | -----------------------------              | ------ |
+| RR_NOT_A_RECORD  | Resource Record is not an A record         | OK     |
+| RR_NAME_MISMATCH | Shortname doesn't match the VM name        | OK     |
+| RR_IP_MISMATCH   | rrdatas is not one IP matching the VM's IP | OK     |
+
 
 [bg]: https://cloud.google.com/functions/docs/writing/background
 [sa-gcp-managed]: https://cloud.google.com/iam/docs/understanding-service-accounts#managing_service_account_keys
 [pubsub-quickstart]: https://cloud.google.com/pubsub/docs/quickstart-console#create_a_topic
 [logs-exports]: https://cloud.google.com/logging/docs/export/
 [adc]: https://cloud.google.com/docs/authentication/production#providing_credentials_to_your_application
+[logentry]: https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry
+[gcf-logs]: https://cloud.google.com/functions/docs/monitoring/logging

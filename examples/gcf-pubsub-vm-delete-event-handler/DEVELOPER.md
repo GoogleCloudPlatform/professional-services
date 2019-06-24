@@ -1,3 +1,13 @@
+Unit Tests
+===
+
+Run unit tests after installing development dependencis:
+
+```bash
+pip install -r requirements-dev.txt
+pytest
+```
+
 Save and Replay VM Deletion Events
 ===
 
