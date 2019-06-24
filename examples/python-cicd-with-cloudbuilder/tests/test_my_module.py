@@ -24,6 +24,9 @@ import pytest
 
 
 class TestAdd(object):
+  """This class bundles the tests for the add function in my_module"""
+
+
   def test_add_basic(self):
     assert add(1, 2) == 3
 
@@ -35,6 +38,9 @@ class TestAdd(object):
 
 
 class TestSquare(object):
+  """This class bundles the tests for the square function in my_module"""
+
+
   def test_square_positive(self):
     assert square(2) == 4
 
@@ -46,16 +52,19 @@ class TestSquare(object):
 
 
 class TestLogTransform(object):
+  """This class bundles the tests for the log_transform function in my_module"""
+
+
   def test_log_transform_10(self):
     """Test without const argument supplied.
 
-    Log_transform() can be called without const, defaulting the const to 1. This test verifies that operation.
+    Log_transform() can be called without const, defaulting the const to 1. This test verifies default operation.
     """
     assert my_module.log_transform(10) == pytest.approx(2.397, 0.001)
 
 
   def test_log_transform_10_const(self):
-    """Test without const argument supplied.
+    """Test with const argument supplied.
 
     Log_transform() takes a positional argument 'const' that defaults to 1 and can be overridden by the user. This test
     makes sure const is implemented correctly.

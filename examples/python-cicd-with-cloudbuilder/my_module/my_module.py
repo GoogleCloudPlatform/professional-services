@@ -52,8 +52,11 @@ def square(x):
 def log_transform(x, const=1):
   """Log Transforms x.
 
-  Returns the natural log transform of x, to reduce the skewedness for some distribution X. For more on why/when to use a log
-  transformation, read here: http://onlinestatbook.com/2/transformations/log.html.
+  Returns the natural log transform of x, to reduce the skewedness for some
+  distribution X.
+
+  For more on why/when to use a log transformation,
+  read here: http://onlinestatbook.com/2/transformations/log.html.
 
   Args:
     x: a numeric variable to transform.
@@ -66,11 +69,13 @@ def log_transform(x, const=1):
     ValueError: Raises a value error if const <= 0.
   """
   if const <= 0:
-    raise ValueError("Constant const must be greater than 0, not {}".format(const))
+    raise ValueError("Constant const must be greater than 0, not {}"
+                     .format(const))
   return np.log(x + const)
 
 
 def main():  # pragma: no cover
+  """Driver loop for the example code under test"""
   a = 5
   b = 10
   total = add(a, b)
