@@ -1,5 +1,5 @@
 # Churn Prediction with Survival Analysis
-This model uses Survival Analysis to classify customers into time-to-churn buckets. The model output can be used to calculate each user's churn score for different durations.
+This model uses Survival Analysis to classify customers into time-to-churn buckets. The model output can be used to calculate each user's churn score for different durations.gcl
 
 The same methodology can be used used to predict customers' total lifetime from their "birth" (intital signup, or t = 0) and from the current state (t > 0).
 
@@ -9,6 +9,11 @@ Survival Analysis is used to predict the time-to-event, when the event in questi
 If a customer is still active, or is "censored" using Survival Analysis terminology, we do not know their final lifetime or when they will churn. If we assume that the customer's lifetime ended at the of prediction (or training), the results will be biased (underestimating lifetime). Throwing out active users will also bias results through information loss.  
   
 By using a Survival Analysis approach to churn prediction, the entire population (regardless of current tenure or status) can be included. 
+
+## Dataset
+This is example uses the public Google Analytics dataset on BigQuery and artificially generated subscription start and end dates as input. 
+
+To create a churn model with real data, omit the 'Generate Data' step in the Beam pipeline in preprocessor/preprocessor/preprocess.py. Instead of randomly generating values, the BigQuery results should include the following fields: start_date, end_date, and active. These values correspond to the user's subscription lifetime and their censorship status. 
 
 ## Setup
 ### Set up GCP credentials
@@ -21,7 +26,7 @@ gcloud auth application-default login
 Dataflow currently requires Python 2
 ```
 virtualenv venv --python=/usr/bin/python2.7
-source ./venv/bin/activate
+source ./venv27/bin/activate
 pip install -r requirements.txt
 ```
 
@@ -51,13 +56,19 @@ PROJECT="[PROJECT ID]"
 
 ### Run locally with Dataflow
 ```
-python preprocessor/run_preprocessing.py \
+python -m preprocessor.run_preprocessing \
 --output_dir "${OUTPUT_DIR}" \
 --project_id "${PROJECT}"
 ```
+
 ### Run on the Cloud with Dataflow
+The top-level preprocessor directory should be the root directory for running the preprocessing script. The setup.py should file be located in the root directory.
+
 ```
-python preprocessor/run_preprocessing.py --cloud \
+cd preprocessor
+
+python -m run_preprocessing \
+--cloud \
 --output_dir "${OUTPUT_DIR}" \
 --project_id "${PROJECT}"
 ```
@@ -66,15 +77,20 @@ python preprocessor/run_preprocessing.py --cloud \
 ## Model Training
 Model training minimizes the negative of the log likelihood function for a statistical Survival Analysis model with discrete-time intervals. The loss function is based off the paper [A scalable discrete-time survival model for neural networks](https://peerj.com/articles/6257.pdf).
 
-For each record, the conditional hazard probability is the probability of failure in an interval, given that individual has survived at least to the beginning of the interval. Therefore, the probability that a user survives the given interval, or the likelihood, 
-is the product of (1 - hazard) for all of the earlier (and current) intervals.
+For each record, the conditional hazard probability is the probability of failure in an interval, given that individual has survived at least to the beginning of the interval. Therefore, the probability that a user survives the given interval, or the likelihood, is the product of (1 - hazard) for all of the earlier (and current) intervals.
    
 So, the log likelihood is: ln(current hazard) + sum(ln(1 - earlier hazards)) summed over all time intervals. Equivalently, each individual's log likelihood is: ln(1 - (1 if survived 0 if not)*(Prob of failure)) + ln(1 - (1 if failed 0 if not)*(Prob of survival)) summed over all time intervals.
   
 ### Set Constants
+The TFRecord output of the preprocessing job should be used as input to the training job.
+
+Make sure to navigate back to the top-level directory.
+
 ```
 INPUT_DIR="${OUTPUT_DIR}"
 MODEL_DIR="${BUCKET}/model/$(date +%Y%m%d%H%M%S)"
+
+cd ..
 ```
   
 ### Train locally with AI Platform

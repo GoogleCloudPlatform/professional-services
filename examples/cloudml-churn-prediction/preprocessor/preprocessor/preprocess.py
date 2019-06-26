@@ -239,7 +239,7 @@ def parse_arguments(argv):
         '--cloud',
         help="""Run preprocessing on the cloud. Default False.""",
         action='store_true',
-        default=False
+        default=False,
     )
     parser.add_argument(
         '--project_id',
