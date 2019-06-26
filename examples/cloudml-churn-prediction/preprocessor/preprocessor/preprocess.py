@@ -15,6 +15,7 @@
 # limitations under the License.
 """Build preprocessing pipeline for survival analysis"""
 
+
 import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions, WorkerOptions
 from tensorflow_transform.beam import impl as tft_beam
@@ -31,9 +32,10 @@ from datetime import datetime, timedelta
 import random
 import numpy as np
 import os
+import posixpath
 
-import query
-import features
+from . import query
+from . import features
 
 
 def random_date(start, end):
@@ -52,7 +54,7 @@ def randomDuration(start):
     to the artificial label
     """
     random_day = random.randrange(np.max(features.LABEL_CEILINGS)
-            + np.min(features.LABEL_CEILINGS))
+        + np.min(features.LABEL_CEILINGS))
     return start + timedelta(days=random_day), random_day
 
 
@@ -103,7 +105,7 @@ def _mapToClass(element):
         duration = datetime.now() - element['start_date']
     duration_days = duration.days
     element.update(duration=duration_days)
-    for index in xrange(len(classCeilings)):
+    for index in range(0, len(classCeilings)):
         if duration_days < classCeilings[index]:
             element.update(label=features.LABEL_VALUES[index])
             return element
@@ -148,7 +150,7 @@ def Shuffle(p):
     return (p
             | "PairWithRandom" >> beam.Map(lambda x: (random.random(), x))
             | "GroupByRandom" >> beam.GroupByKey()
-            | "DropRandom" >> beam.FlatMap(lambda (k, vs): vs))
+            | "DropRandom" >> beam.FlatMap(lambda x: x[1]))
 
 
 @beam.ptransform_fn
@@ -205,8 +207,68 @@ def randomly_split(p, train_size, validation_size, test_size):
     return split_data['Train'], split_data['Val'], split_data['Test']
 
 
-def run(flags, pipeline_args):
+def parse_arguments(argv):
+    """Parse command-line arguments."""
+    parser = argparse.ArgumentParser()
+    timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+    parser.add_argument(
+        '--job_name',
+        default='{}-{}'.format('bq-to-tfrecords', timestamp)
+    )
+    parser.add_argument(
+        '--output_dir',
+        required=True,
+    )
+    parser.add_argument(
+        '--log_level',
+        help='Set logging level',
+        default='INFO'
+    )
+    parser.add_argument(
+        '--bq_table',
+        help="""Source BigQuery table in [Project]:[Dataset]:[Table]
+            format.""",
+        default='bigquery-public-data.google_analytics_sample.ga_sessions_*'
+    )
+    parser.add_argument(
+        '--machine_type',
+        help="""Set machine type for Dataflow worker machines.""",
+        default='n1-highmem-4'
+    )
+    parser.add_argument(
+        '--cloud',
+        help="""Run preprocessing on the cloud. Default False.""",
+        action='store_true',
+        default=False
+    )
+    parser.add_argument(
+        '--project_id',
+        help="""Google Cloud project ID""",
+        required=True,
+    )
+    known_args, _ = parser.parse_known_args(argv)
+
+    return known_args
+
+
+def get_pipeline_args(flags):
+    """Create Apache Beam pipeline arguments"""
+    options = {
+        'project': flags.project_id,
+        'staging_location': os.path.join(flags.output_dir, 'staging'),
+        'temp_location': os.path.join(flags.output_dir, 'temp2'),
+        'job_name': flags.job_name,
+        'save_main_session': True,
+        'setup_file': './setup.py'
+    }
+    return options
+
+
+def run():
     """Run Apache Beam pipeline to generate TFRecords for Survival Analysis"""
+    flags = parse_arguments(sys.argv[1:])
+    pipeline_args = get_pipeline_args(flags)
+
     options = PipelineOptions(flags=[], **pipeline_args)
     options.view_as(WorkerOptions).machine_type = flags.machine_type
 

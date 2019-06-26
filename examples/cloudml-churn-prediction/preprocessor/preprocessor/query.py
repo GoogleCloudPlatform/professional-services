@@ -15,7 +15,8 @@
 # limitations under the License.
 """SQL Queries for fetching data from BigQuery."""
 
-import features
+from . import features
+
 
 def get_query(table, limit=None):
     """Returns BigQuery Standard SQL query to fetch the data.
