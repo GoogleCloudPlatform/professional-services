@@ -35,6 +35,7 @@ gcloud ai-platform local train \
   --distributed \
   -- \
   --model_dir "${MODEL_DIR}" \
-  --input_path "${INPUT_PATH}" \
+  --input_dir "${INPUT_PATH}" \
   --tft_dir "${TFT_PATH}"
 
+echo "Upon completion, serve the model by running: bin/run.serve.local.sh"

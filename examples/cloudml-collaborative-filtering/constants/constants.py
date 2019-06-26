@@ -11,15 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Constants for preprocessing and training scripts."""
+"""Constants and common methods for preprocessing and training scripts."""
 
 import tensorflow as tf
 
 
 # file patterns
-TRAIN_PATTERN = "train*.tfrecord"
-EVAL_PATTERN = "eval*.tfrecord"
-TEST_PATTERN = "test*.tfrecord"
+TRAIN = "train"
+VAL = "val"
+TEST = "test"
+TRAIN_PATTERN = "{}*.tfrecord".format(TRAIN)
+VAL_PATTERN = "{}*.tfrecord".format(VAL)
+TEST_PATTERN = "{}*.tfrecord".format(TEST)
 USER_VOCAB_NAME = "vocab_users"
 ITEM_VOCAB_NAME = "vocab_items"
 ARTIST_VOCAB_NAME = "vocab_artists"
@@ -60,32 +63,27 @@ TFT_FEATURES = [
 TFT_DEFAULT_ID = -1
 
 TRAIN_SIZE = .7
-EVAL_SIZE = .15
+VAL_SIZE = .15
 
 
 def _get_train_spec():
   """Returns a dict mapping training features to tfrecord features."""
   train_spec = {}
-  for key in [USER_KEY, ITEM_KEY, ARTIST_KEY]:
-    train_spec[key] = tf.FixedLenFeature([], dtype=tf.string)
-  for key in [ALBUMS_KEY]:
-    train_spec[key] = tf.FixedLenFeature([], dtype=tf.int64)
-  for key in [COUNT_KEY]:
-    train_spec[key] = tf.FixedLenFeature([], dtype=tf.float32)
-  for key in [TAGS_KEY, TOP_10_KEY]:
-    train_spec[key] = tf.VarLenFeature(tf.string)
+  train_spec.update({key: tf.io.FixedLenFeature([], dtype=tf.string)
+                     for key in [USER_KEY, ITEM_KEY, ARTIST_KEY]})
+  train_spec[ALBUMS_KEY] = tf.io.FixedLenFeature([], dtype=tf.int64)
+  train_spec[COUNT_KEY] = tf.io.FixedLenFeature([], dtype=tf.float32)
+  train_spec.update({key: tf.io.VarLenFeature(tf.string)
+                     for key in [TAGS_KEY, TOP_10_KEY]})
   return train_spec
 
 
 def get_serving_stub():
   """Returns stubbed values for features to use during serving when only username matters."""
   stub = {}
-  for key in [USER_KEY, ITEM_KEY, ARTIST_KEY]:
-    stub[key] = ""
-  for key in [ALBUMS_KEY]:
-    stub[key] = 0
-  for key in [TAGS_KEY, TOP_10_KEY]:
-    stub[key] = []
+  stub.update({key: "" for key in [USER_KEY, ITEM_KEY, ARTIST_KEY]})
+  stub[ALBUMS_KEY] = 0
+  stub.update({key: [] for key in [TAGS_KEY, TOP_10_KEY]})
   return stub
 
 

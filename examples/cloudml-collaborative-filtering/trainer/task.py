@@ -44,13 +44,13 @@ def parse_arguments(argv):
       help="Where to save model files.",
       default="model_dir")
   parser.add_argument(
-      "--input_path",
-      help="Path to dir containing tf-record files.",
+      "--input_dir",
+      help="Dir or bucket containing tf-record files.",
       required=True)
   parser.add_argument(
       "--tft_dir",
       required=True,
-      help="Directory where tft outputs are written.")
+      help="Dir or bucket where tft outputs are written.")
   parser.add_argument(
       "--batch_size",
       help="Number of rows of data to be fed into the model each iteration.",
@@ -115,7 +115,7 @@ def _make_input_fn(file_pattern, params):
   """Creates an input function from files matching the given pattern."""
 
   return inputs.get_input_fn(
-      file_pattern=os.path.join(params.input_path, file_pattern),
+      file_pattern=os.path.join(params.input_dir, file_pattern),
       batch_size=params.batch_size)
 
 
@@ -127,7 +127,7 @@ def run_training(params):
       input_fn=train_input_fn,
       max_steps=params.max_steps,
   )
-  eval_input_fn = _make_input_fn(constants.EVAL_PATTERN, params)
+  eval_input_fn = _make_input_fn(constants.VAL_PATTERN, params)
   exporter = tf.estimator.FinalExporter("export", inputs.get_serving_input_fn())
   eval_spec = tf.estimator.EvalSpec(
       input_fn=eval_input_fn,

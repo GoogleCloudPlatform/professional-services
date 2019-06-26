@@ -28,7 +28,7 @@ TFT_PATH="${OUTPUT_PATH}/${TFT_DIR}/"
 python -m preprocessing.run_preprocess \
   --job_name "${JOB_NAME}" \
   --job_dir "${JOB_DIR}" \
-  --output_folder "${OUTPUT_PATH}" \
+  --output_dir "${OUTPUT_PATH}" \
   --tft_dir "${TFT_PATH}" \
   --user_min_count 0 \
   --item_min_count 10 \

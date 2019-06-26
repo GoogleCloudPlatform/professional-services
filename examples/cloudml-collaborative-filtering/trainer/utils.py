@@ -19,6 +19,7 @@ from __future__ import print_function
 
 import os
 import random
+from six.moves.urllib.parse import urlsplit
 import tensorflow_transform as tft
 from google.cloud import storage
 
@@ -47,7 +48,7 @@ def _sample_vocab(tft_output, vocab_name, label, k):
     raise RuntimeError("{0} num samples too high, must be at most {1}"
                        .format(label, len(vocab)))
 
-  indices = random.sample(xrange(len(vocab)), k)
+  indices = random.sample(range(len(vocab)), k)
   return indices, [[label, vocab[i]] for i in indices]
 
 
@@ -64,12 +65,12 @@ def _write_projector_metadata_local(metadata_dir, metadata):
 def _write_projector_metadata_gcs(metadata_dir, metadata):
   """Write GCS metadata file to use in tensorboard to visualize embeddings."""
   metadata_path = os.path.join(metadata_dir, constants.PROJECTOR_PATH)
-  split_path = metadata_path.split("/")
-  bucket_name = split_path[2]
-  bucket_path = "/".join(split_path[3:])
+  scheme, netloc, path, _, _ = urlsplit(metadata_path)
+  if scheme != "gs":
+    raise ValueError("URI scheme must be gs")
   storage_client = storage.Client()
-  bucket = storage_client.get_bucket(bucket_name)
-  blob = bucket.blob(bucket_path)
+  bucket = storage_client.get_bucket(netloc)
+  blob = bucket.blob(path)
 
   _write_projector_metadata_local(".", metadata)
   blob.upload_from_filename(constants.PROJECTOR_PATH)

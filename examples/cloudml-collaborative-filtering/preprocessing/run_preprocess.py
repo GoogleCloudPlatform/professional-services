@@ -23,7 +23,7 @@ import configparser
 from tensorflow_transform.beam import impl as beam_impl
 
 from constants import constants  # pylint: disable=g-bad-import-order
-import preprocess  # pylint: disable=g-bad-import-order
+import preprocessing.preprocess as preprocess  # pylint: disable=g-bad-import-order
 
 
 def parse_arguments(argv):
@@ -39,15 +39,15 @@ def parse_arguments(argv):
       help="Dataflow job name.")
   parser.add_argument(
       "--job_dir",
-      help="Directory in which to stage code and write temporary outputs.")
+      help="Bucket to stage code and write temp outputs for cloud runs.")
   parser.add_argument(
-      "--output_folder",
+      "--output_dir",
       required=True,
-      help="Directory where to write train, val and test data.")
+      help="Dir or bucket (if cloud run) to write train, val and test data.")
   parser.add_argument(
       "--tft_dir",
       required=True,
-      help="Directory where tft outputs are written.")
+      help="Dir or bucket (if cloud run) where tft outputs are written.")
   parser.add_argument(
       "--user_min_count",
       required=True,
@@ -88,7 +88,7 @@ def parse_config(env, config_file_path):
     A dictionary containing the parsed runtime config.
   """
   config = configparser.ConfigParser()
-  config.read(unicode(config_file_path))
+  config.read(config_file_path)
   return dict(config.items(env))
 
 

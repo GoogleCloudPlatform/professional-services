@@ -23,7 +23,7 @@ BUCKET="gs://${PROJECT_ID}-bucket"
 TFT_PATH="${OUTPUT_DIR}/tft_${NOW}/"
 
 python -m preprocessing.run_preprocess \
-  --output_folder "${OUTPUT_DIR}" \
+  --output_dir "${OUTPUT_DIR}" \
   --tft_dir "${TFT_PATH}"\
   --user_min_count 0 \
   --item_min_count 0 \

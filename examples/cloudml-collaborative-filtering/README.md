@@ -21,15 +21,17 @@ For a fully managed service, check out [Recommendations
 AI](https://cloud.google.com/recommendations/).
 
 ## Setup
-Create a new project on GCP and set up GCP credentials.
+Create a new project on GCP and set up GCP credentials:
 ```shell
 gcloud auth login
 gcloud auth application-default login
 ```
+Using the `preprocessing/config.example.ini` template, create
+`preprocessing/config.ini` with the GCP project id fields filled in.
 
-Set up your python environment
+Set up your python environment:
 ```shell
-virtualenv venv --python=/usr/bin/python2.7
+virtualenv venv
 source ./venv/bin/activate
 pip install -r requirements.txt
 ```
@@ -50,7 +52,7 @@ The steps involved are as follows:
    This query cleans the features and creates a `count_norm` label which is the
    number of times a user has played to a particular song divided by the most
    times they've played any song. It also calculates `top_10`, the 10 most
-   popular songs for each user to use in evaluation.
+   popular songs for each user to use in model evaluation.
 2. Using [TensorFlow
    Transform](https://www.tensorflow.org/tfx/transform/get_started), map each
    username and product id to an integer value and write the vocabularies to
@@ -58,7 +60,7 @@ The steps involved are as follows:
    vocabularies.
 3. Filter away user-item pairs where either element is outside of its
    cooresponding vocabulary.
-4. Split the data into train, evaluation, and test sets.
+4. Split the data into train, validation, and test sets.
 5. Write each dataset as TFRecords to GCS.
 
 ### Execution
@@ -111,8 +113,6 @@ tensorboard --logdir <path to model dir>/<trial number>
 ```
 Tensorboard's projector, in particular, is very useful for debugging
 or analyzing embeddings.
-
-![Tensorboard projector showing close items to a user.](img/projector.png)
 
 ## Serving
 Models can be hosted on CAIP, which can be used to make online and batch predictions via JSON requests.

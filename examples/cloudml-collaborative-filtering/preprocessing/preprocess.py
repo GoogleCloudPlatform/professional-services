@@ -24,10 +24,11 @@ from tensorflow_transform.tf_metadata import dataset_schema
 
 # pylint: disable=g-bad-import-order
 from constants import constants
-from trainer import query as bq_query
+from preprocessing import query as bq_query
 
 
 # pylint: disable=invalid-name
+# pylint: disable=expression-not-assigned
 @beam.ptransform_fn
 def ReadBQ(p, query):
   """Ingests BQ query results into the pipeline.
@@ -108,10 +109,9 @@ def _run_tft_fn(raw_data, tft_fn, transform_fn_path, user_freq, item_freq):
       (raw_data, raw_data_metadata)
       | beam_impl.AnalyzeAndTransformDataset(
           lambda x: tft_fn(x, user_freq, item_freq)))
-  _ = (transform_fn
-       | "WriteTransformFn" >>
-       tft.beam.tft_beam_io.transform_fn_io.WriteTransformFn(
-           os.path.join(transform_fn_path, "transform_fn")))
+  (transform_fn | "WriteTransformFn" >>
+   tft.beam.tft_beam_io.transform_fn_io.WriteTransformFn(
+       os.path.join(transform_fn_path, "transform_fn")))
   return transformed_dataset[0]
 
 
@@ -132,19 +132,19 @@ def _clean_tags(features):
 
 
 def _split_data(examples, train_fraction=constants.TRAIN_SIZE,
-                eval_fraction=constants.EVAL_SIZE):
-  """Shuffles and splits the data into train/validation/test."""
+                val_fraction=constants.VAL_SIZE):
+  """Splits the data into train/validation/test."""
 
-  def partition_fn(data, n_partition):  # pylint: disable=unused-argument
+  def partition_fn(*_):
     random_value = np.random.random()
     if random_value < train_fraction:
       return 0
-    if random_value < train_fraction + eval_fraction:
+    if random_value < train_fraction + val_fraction:
       return 1
     return 2
 
   examples_split = examples | "SplitData" >> beam.Partition(partition_fn, 3)
-  return zip(["Train", "Eval", "Test"], examples_split)
+  return zip([constants.TRAIN, constants.VAL, constants.TEST], examples_split)
 
 
 @beam.ptransform_fn
@@ -153,7 +153,7 @@ def Shuffle(p):
   return (p
           | "PairWithRandom" >> beam.Map(lambda x: (np.random.random(), x))
           | "GroupByRandom" >> beam.GroupByKey()
-          | "DropRandom" >> beam.FlatMap(lambda (k, vs): vs))
+          | "DropRandom" >> beam.FlatMap(lambda x: x[1]))
 
 
 @beam.ptransform_fn
@@ -167,21 +167,20 @@ def WriteOutput(p, prefix, output_dir, feature_spec, plain_text=False):
     feature_spec: the feature spec of the tf-record to be written.
     plain_text: if true, write the output as plain text instead.
   """
-  path = os.path.join(output_dir, prefix.lower())
+  path = os.path.join(output_dir, prefix)
   shuffled = p | "ShuffleData" >> Shuffle()  # pylint: disable=no-value-for-parameter
 
   if plain_text:
-    _ = shuffled | "WriteToText" >> beam.io.WriteToText(
+    shuffled | "WriteToText" >> beam.io.WriteToText(
         path, file_name_suffix=".txt")
     return
 
   schema = dataset_schema.from_feature_spec(feature_spec)
   coder = coders.ExampleProtoCoder(schema)
-  _ = (shuffled
-       | "WriteTFRecord" >> beam.io.tfrecordio.WriteToTFRecord(
-           path,
-           coder=coder,
-           file_name_suffix=".tfrecord"))
+  shuffled | "WriteTFRecord" >> beam.io.tfrecordio.WriteToTFRecord(
+      path,
+      coder=coder,
+      file_name_suffix=".tfrecord")
 
 
 def run(p, args):
@@ -199,7 +198,5 @@ def run(p, args):
           | "CleanTags" >> beam.Map(_clean_tags))
   data = _split_data(data)
   for name, dataset in data:
-    _ = (dataset
-         | "Write{}Output".format(name) >> WriteOutput(
-             name, args.output_folder, constants.TRAIN_SPEC,
-             args.plain_text))
+    dataset | "Write{}Output".format(name) >> WriteOutput(
+        name, args.output_dir, constants.TRAIN_SPEC, args.plain_text)

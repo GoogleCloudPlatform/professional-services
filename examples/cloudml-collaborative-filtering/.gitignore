@@ -5,3 +5,5 @@ venv
 *.egg-info
 *outputs
 *models
+
+preprocessing/config.ini

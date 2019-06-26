@@ -42,7 +42,7 @@ gcloud ai-platform jobs submit training "${TRAINING_JOB_NAME}" \
   --scale-tier "${SCALE_TIER}" \
   -- \
   --model_dir "${MODEL_PATH}" \
-  --input_path "${INPUT_PATH}" \
+  --input_dir "${INPUT_PATH}" \
   --tft_dir "${TFT_PATH}" \
   --max_steps 30000 
 

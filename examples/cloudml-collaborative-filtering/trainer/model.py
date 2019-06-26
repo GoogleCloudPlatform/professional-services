@@ -312,7 +312,7 @@ def _model_fn(features, labels, mode, params):
   user_norm = tf.nn.l2_normalize(user_net, 1)
   item_norm = tf.nn.l2_normalize(item_net, 1)
   preds = tf.abs(tf.reduce_sum(tf.multiply(user_norm, item_norm), axis=1))
-  loss = tf.losses.absolute_difference(labels, preds)
+  loss = tf.losses.mean_squared_error(labels, preds, weights=labels**.5)
 
   user_embedding = _update_embedding_matrix(
       tft_features[constants.TFT_USER_KEY],
