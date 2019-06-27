@@ -39,8 +39,9 @@ from . import features
 
 
 def _random_date(start, end):
-    """Generate random date. 
-    Used to randomly generate (fake) subscription start_date
+    """Generate random date between start and end.
+    Used to randomly generate (fake) subscription start date
+
     """
     delta = end - start
     int_delta = delta.days
@@ -52,6 +53,7 @@ def _random_duration(start):
     """Generate random duration.
     Used to random generate (fake) subscription duration, which directly relates
     to the artificial label
+
     """
     random_day = random.randrange(np.max(features.LABEL_CEILINGS)
         + np.min(features.LABEL_CEILINGS))
@@ -187,7 +189,7 @@ def randomly_split(p, train_size, validation_size, test_size):
     """
     if train_size + validation_size + test_size != 1.0:
         raise ValueError(
-            'Train validation and test sizes don`t add up to 1.0.')
+            'Train, validation, and test sizes don`t add up to 1.0.')
 
     class _split_data(beam.DoFn):
         def process(self, element):
@@ -222,18 +224,18 @@ def parse_arguments(argv):
     parser.add_argument(
         '--log_level',
         help='Set logging level',
-        default='INFO'
+        default='INFO',
     )
     parser.add_argument(
         '--bq_table',
         help="""Source BigQuery table in [Project]:[Dataset]:[Table]
             format.""",
-        default='bigquery-public-data.google_analytics_sample.ga_sessions_*'
+        default='bigquery-public-data.google_analytics_sample.ga_sessions_*',
     )
     parser.add_argument(
         '--machine_type',
         help="""Set machine type for Dataflow worker machines.""",
-        default='n1-highmem-4'
+        default='n1-highmem-4',
     )
     parser.add_argument(
         '--cloud',

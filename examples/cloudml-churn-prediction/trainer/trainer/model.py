@@ -19,16 +19,6 @@ import tensorflow as tf
 
 from trainer import metrics
 
-TF_NUMERIC_TYPES = [
-    tf.float16,
-    tf.float32,
-    tf.float64,
-    tf.int8,
-    tf.int16,
-    tf.int32,
-    tf.int64,
-]
-
 
 def get_feature_columns(tf_transform_output, exclude_columns=[]):
     """Returns list of feature columns for a TensorFlow estimator.
@@ -40,6 +30,16 @@ def get_feature_columns(tf_transform_output, exclude_columns=[]):
     Returns:
         List of TensorFlow feature columns.
     """
+    TF_NUMERIC_TYPES = [
+        tf.float16,
+        tf.float32,
+        tf.float64,
+        tf.int8,
+        tf.int16,
+        tf.int32,
+        tf.int64,
+    ]
+
     feature_columns = []
     feature_spec = tf_transform_output.transformed_feature_spec()
 
@@ -91,8 +91,8 @@ def survival_model(features, labels, mode, params):
     #Create neural network
     net = tf.feature_column.input_layer(features, params['feature_columns'])
     for units in params['hidden_units']:
-        net = tf.layers.dense(net, units=units, activation=tf.nn.relu)
-    output = tf.layers.dense(net, units=params['num_intervals'],
+        net = tf.keras.layers.dense(net, units=units, activation=tf.nn.relu)
+    output = tf.keras.layers.dense(net, units=params['num_intervals'],
                              activation=tf.nn.sigmoid)
 
     #Compute predictions

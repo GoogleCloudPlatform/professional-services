@@ -26,7 +26,6 @@ from trainer import input_util
 from trainer import metadata
 from trainer import model
 
-SEED = 123
 
 def parse_arguments(argv):
     parser = argparse.ArgumentParser()
@@ -37,26 +36,26 @@ def parse_arguments(argv):
     )
     parser.add_argument(
         '--train-batch-size',
-        help='Batch size for each training step',
+        help='Batch size for each training step.',
         type=int,
         default=120,
     )
     parser.add_argument(
         '--eval-batch-size',
-        help='Batch size for evaluation steps',
+        help='Batch size for evaluation steps.',
         type=int,
         default=1000,
     )
     parser.add_argument(
         '--eval-start-secs',
-        help='How long to wait before starting first evaluation',
+        help='How long to wait before starting first evaluation.',
         default=20,
         type=int,
     )
     parser.add_argument(
         '--eval-steps',
         help="""Number of steps to run evaluation for at each checkpoint',
-        Set to None to evaluate on the whole evaluation data
+        Set to None to evaluate on the whole evaluation data.
         """,
         default=None,
         type=int,
@@ -71,7 +70,7 @@ def parse_arguments(argv):
     )
     parser.add_argument(
         '--job-dir',
-        help='GCS location to write checkpoints and export models',
+        help='GCS location to write checkpoints and export models.',
         required=True,
     )
     parser.add_argument(
@@ -83,19 +82,19 @@ def parse_arguments(argv):
         '--train-steps',
         help="""Steps to run the training job for.
         If --num-epochs and --train-size are specified, then --train-steps will
-        be: (train-size/train-batch-size) * num-epochs""",
+        be: (train-size/train-batch-size) * num-epochs.""",
         default=10000,
         type=int,
     )
     parser.add_argument(
         '--train-size',
-        help='Size of training set (instance count)',
+        help='Size of training set (instance count).',
         type=int,
         default=None,
     )
     parser.add_argument(
         '--hidden-units',
-        help='Hidden units, default is [10, 10]',
+        help='Hidden units, default is [10, 10].',
         default=[10, 10],
     )
     parser.add_argument(
@@ -125,9 +124,15 @@ def parse_arguments(argv):
     )
     parser.add_argument(
         '--threshold',
-        help='Confidence Score threshold to resolve class predictions',
+        help='Confidence Score threshold to resolve class predictions.',
         default=0.34157646920229945,
         type=float,
+    )
+    parser.add_argument(
+        '--checkpoint_steps',
+        help='Number of steps between each checkpoint.',
+        default=1000,
+        type=int,
     )
     return parser.parse_args(argv)
 
@@ -178,8 +183,8 @@ def train_and_evaluate(flags):
 
     #Define training config
     run_config = tf.estimator.RunConfig(
-        save_checkpoints_steps=1000,
-        tf_random_seed=SEED,
+        save_checkpoints_steps=flags.checkpoint_steps,
+        tf_random_seed=metadata.SEED,
         model_dir=flags.job_dir
     )
 

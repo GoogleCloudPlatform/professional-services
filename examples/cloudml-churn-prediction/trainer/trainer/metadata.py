@@ -22,3 +22,4 @@ KEY_COLUMN = 'fullVisitorId'
 NON_FEATURE_COLUMNS = [LABEL_COLUMN, KEY_COLUMN]
 
 NUM_INTERVALS = 4 #number of bounded churn duration intervals
+SEED = 123
