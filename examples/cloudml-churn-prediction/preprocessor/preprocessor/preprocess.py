@@ -38,7 +38,7 @@ from . import query
 from . import features
 
 
-def random_date(start, end):
+def _random_date(start, end):
     """Generate random date. 
     Used to randomly generate (fake) subscription start_date
     """
@@ -48,7 +48,7 @@ def random_date(start, end):
     return start + timedelta(days=random_day)
 
 
-def randomDuration(start):
+def _random_duration(start):
     """Generate random duration.
     Used to random generate (fake) subscription duration, which directly relates
     to the artificial label
@@ -58,7 +58,7 @@ def randomDuration(start):
     return start + timedelta(days=random_day), random_day
 
 
-def _generateFakeData(element):
+def _generate_fake_data(element):
     """Appends randomly generated labels to each sample's dictionary.
     It should not be used with real data.
     Function does not add duration to the dictionary, because this field generally
@@ -74,8 +74,8 @@ def _generateFakeData(element):
     """
     d1 = datetime.strptime('1/1/2018', '%m/%d/%Y')
     d2 = datetime.strptime('12/25/2018', '%m/%d/%Y')
-    start_date = random_date(d1, d2)
-    end_date, duration = randomDuration(start_date)
+    start_date = _random_date(d1, d2)
+    end_date, duration = _random_duration(start_date)
     active = True if end_date > d2 else False
     element.update(start_date=start_date)
     if not active:
@@ -86,7 +86,7 @@ def _generateFakeData(element):
     return element
 
 
-def _mapToClass(element):
+def _map_to_class(element):
     """Extract duration and class from source data. 
 
     This function is required for both fake and real data, unless fields can be
@@ -113,7 +113,7 @@ def _mapToClass(element):
     return element
 
 
-def _combineCensorshipDuration(element):
+def _combine_censorship_duration(element):
     """Transform users' duration and censorship indicator into a 2*n_intervals
     array. For each row, the first half of the array indicates whether the user
     survived the corresponding interval. Second half indicates whether the user
@@ -145,7 +145,7 @@ def _combineCensorshipDuration(element):
 
 
 @beam.ptransform_fn
-def Shuffle(p):
+def shuffle(p):
     """Shuffles the given pCollection."""
     return (p
             | "PairWithRandom" >> beam.Map(lambda x: (random.random(), x))
@@ -154,7 +154,7 @@ def Shuffle(p):
 
 
 @beam.ptransform_fn
-def WriteTFRecord(p, prefix, output_dir, metadata):
+def write_tfrecord(p, prefix, output_dir, metadata):
     """Shuffles and write the given pCollection as a TF-Record.
     Args:
         p: a pCollection.
@@ -165,7 +165,7 @@ def WriteTFRecord(p, prefix, output_dir, metadata):
     coder = coders.ExampleProtoCoder(metadata.schema)
     prefix = str(prefix).lower()
     _ = (p
-        | "ShuffleData" >> Shuffle()  # pylint: disable=no-value-for-parameter
+        | "ShuffleData" >> shuffle()  # pylint: disable=no-value-for-parameter
         | "WriteTFRecord" >> beam.io.tfrecordio.WriteToTFRecord(
             os.path.join(output_dir, 'data', prefix, prefix),
             coder=coder,
@@ -189,7 +189,7 @@ def randomly_split(p, train_size, validation_size, test_size):
         raise ValueError(
             'Train validation and test sizes don`t add up to 1.0.')
 
-    class _SplitData(beam.DoFn):
+    class _split_data(beam.DoFn):
         def process(self, element):
             r = random.random()
             if r < test_size:
@@ -200,7 +200,7 @@ def randomly_split(p, train_size, validation_size, test_size):
                 yield element
 
     split_data = (
-        p | 'SplitData' >> beam.ParDo(_SplitData()).with_outputs(
+        p | 'SplitData' >> beam.ParDo(_split_data()).with_outputs(
             'Test',
             'Val',
             main='Train'))
@@ -281,17 +281,16 @@ def run():
         with tft_beam.Context(temp_dir=temp_dir):
             raw_data = (p 
                         | 'QueryTable' >> beam.io.Read(beam.io.BigQuerySource(
-                            query=query.get_query(flags.bq_table),
+                            query=query.GetQuery(flags.bq_table),
                             project=flags.project_id,
                             use_standard_sql=True))
                         #omit 'Generate Data' step if working with real data
                         | 'Generate Data' >> 
-                            beam.Map(lambda row: _generateFakeData(row))
+                            beam.Map(_generate_fake_data)
                         | 'Extract duration and Label' >> 
-                            beam.Map(lambda row: _mapToClass(row))
+                            beam.Map(_map_to_class)
                         | 'Generate label array' >> 
-                            beam.Map(lambda row: 
-                                _combineCensorshipDuration(row))
+                            beam.Map(_combine_censorship_duration)
                        )
             raw_train, raw_eval, raw_test = (
                 raw_data | 'RandomlySplitData' >> randomly_split(
@@ -321,5 +320,5 @@ def run():
                                         'transformed_metadata'),
                             pipeline=p))
                 write_label = 'Write{}TFRecord'.format(dataset_type)
-                _ = t | write_label >> WriteTFRecord(
+                _ = t | write_label >> write_tfrecord(
                     dataset_type, flags.output_dir, metadata)
