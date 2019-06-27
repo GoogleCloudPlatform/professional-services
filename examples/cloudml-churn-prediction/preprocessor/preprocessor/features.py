@@ -68,6 +68,7 @@ LABEL_CEILINGS = [60, 120, 180, 240] #number of days for ceiling of each class
 
 def get_raw_feature_spec():
     """Returns TF feature spec for preprocessing"""
+
     features = {}
     features.update(
         {key: tf.FixedLenFeature([], dtype=tf.string) 
@@ -103,6 +104,7 @@ def preprocess_fn(inputs):
     Returns:
         Dict of key to transformed Tensor.
     """
+    
     outputs = inputs.copy()
     # For all categorical columns except the label column, we generate a
     # vocabulary but do not modify the feature.  This vocabulary is instead

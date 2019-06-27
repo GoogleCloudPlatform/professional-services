@@ -30,6 +30,7 @@ def get_feature_columns(tf_transform_output, exclude_columns=[]):
     Returns:
         List of TensorFlow feature columns.
     """
+    
     TF_NUMERIC_TYPES = [
         tf.float16,
         tf.float32,
@@ -78,6 +79,7 @@ def survival_likelihood_loss(y_true, y_pred, num_intervals):
 
     Based off of: https://peerj.com/articles/6257.pdf
     """
+
     loss_survival = 1. + y_true[:, 0:num_intervals] * (y_pred - 1.)
     loss_death = 1. - y_true[:, num_intervals:2*num_intervals] * y_pred
     loss = tf.concat([loss_survival, loss_death], axis=-1)
@@ -88,6 +90,7 @@ def survival_likelihood_loss(y_true, y_pred, num_intervals):
 
 def survival_model(features, labels, mode, params):
     """Survival Analysis mode to predict likelihood of "death" (churn)"""
+
     #Create neural network
     net = tf.feature_column.input_layer(features, params['feature_columns'])
     for units in params['hidden_units']:

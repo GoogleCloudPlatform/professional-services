@@ -25,6 +25,7 @@ import tensorflow_transform as tft
 def input_fn(input_dir, mode, batch_size, num_epochs, label_name=None,
              shuffle_buffer_size=10000, feature_spec=None):
     """Reads TFRecords and returns the features and labels"""
+
     if feature_spec is None:
         tf_transform_output = tft.TFTransformOutput(
             os.path.join(input_dir, 'transformed_metadata'))
@@ -56,6 +57,7 @@ def input_fn(input_dir, mode, batch_size, num_epochs, label_name=None,
 
 def tfrecord_serving_input_fn(feature_spec, label_name=None):
     """Creates ServingInputReceiver for TFRecord inputs"""
+    
     if label_name:
         _ = feature_spec.pop(label_name)
 

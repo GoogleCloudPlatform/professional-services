@@ -28,6 +28,8 @@ from trainer import model
 
 
 def parse_arguments(argv):
+    """Parse command-line arguments."""
+    
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--verbosity',
@@ -139,6 +141,7 @@ def parse_arguments(argv):
 
 def train_and_evaluate(flags):
     """Runs model training and evaluation using TF Estimator API"""
+
     #Get TF transform metadata generated during preprocessing
     tf_transform_output = tft.TFTransformOutput(flags.input_dir)
 
