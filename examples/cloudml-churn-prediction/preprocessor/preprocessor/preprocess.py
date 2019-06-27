@@ -39,7 +39,7 @@ from . import features
 
 
 def _random_date(start, end):
-    """Generate random date between start and end.
+    """Generate a random date between start and end.
     Used to randomly generate (fake) subscription start date
 
     """

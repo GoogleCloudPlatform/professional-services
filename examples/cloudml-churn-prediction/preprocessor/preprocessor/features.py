@@ -63,20 +63,27 @@ LABEL_COLUMNS = [
     
 
 LABEL_VALUES = ['0-2M', '2-4M', '4-6M', '6-8M', '8M+']
-LABEL_CEILINGS = [60, 120, 180, 240]
+LABEL_CEILINGS = [60, 120, 180, 240] #number of days for ceiling of each class
 
 
 def get_raw_feature_spec():
     """Returns TF feature spec for preprocessing"""
-    features = dict(
-        [(name, tf.FixedLenFeature([], tf.string))
-            for name in CATEGORICAL_COLUMNS] +
-        [(name, tf.FixedLenFeature([], tf.float32))
-            for name in NUMERIC_COLUMNS] +
-        [(name, tf.FixedLenFeature([], tf.int64))
-            for name in BOOLEAN_COLUMNS] +
-        [(LABEL_ARRAY_COLUMN, tf.FixedLenFeature([
-            2*len(LABEL_CEILINGS)], tf.float32))])
+    features = {}
+    features.update(
+        {key: tf.FixedLenFeature([], dtype=tf.string) 
+            for key in CATEGORICAL_COLUMNS}
+    )
+    features.update(
+        {key: tf.FixedLenFeature([], dtype=tf.float32) 
+            for key in NUMERIC_COLUMNS}
+    )
+    features.update(
+        {key: tf.FixedLenFeature([], dtype=tf.int64) 
+            for key in BOOLEAN_COLUMNS}
+    )
+    features[LABEL_ARRAY_COLUMN] = tf.FixedLenFeature([2*len(LABEL_CEILINGS)],
+        tf.float32)
+
     return features
 
 
@@ -97,6 +104,10 @@ def preprocess_fn(inputs):
         Dict of key to transformed Tensor.
     """
     outputs = inputs.copy()
+    # For all categorical columns except the label column, we generate a
+    # vocabulary but do not modify the feature.  This vocabulary is instead
+    # used in the trainer, by means of a feature column, to convert the feature
+    # from a string to an integer id.
     for key in CATEGORICAL_COLUMNS:
         tft.vocabulary(inputs[key], vocab_filename=key)
     return outputs
