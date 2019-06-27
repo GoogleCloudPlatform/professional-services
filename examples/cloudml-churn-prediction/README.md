@@ -23,10 +23,9 @@ gcloud auth application-default login
 ```
 
 ### Set up Python environment
-Dataflow currently requires Python 2
 ```
-virtualenv venv --python=/usr/bin/python2.7
-source ./venv27/bin/activate
+virtualenv venv 
+source ./venv/bin/activate
 pip install -r requirements.txt
 ```
 
