@@ -41,8 +41,8 @@ from . import features
 def _random_date(start, end):
     """Generate a random date between start and end.
     Used to randomly generate (fake) subscription start date
-
     """
+
     delta = end - start
     int_delta = delta.days
     random_day = random.randrange(int_delta)
@@ -50,11 +50,11 @@ def _random_date(start, end):
 
 
 def _random_duration(start):
-    """Generate random duration.
+    """Generate a random duration.
     Used to random generate (fake) subscription duration, which directly relates
     to the artificial label
-
     """
+
     random_day = random.randrange(np.max(features.LABEL_CEILINGS)
         + np.min(features.LABEL_CEILINGS))
     return start + timedelta(days=random_day), random_day
@@ -74,6 +74,7 @@ def _generate_fake_data(element):
             end_date: None if subscription has not yet ended
             active:
     """
+
     d1 = datetime.strptime('1/1/2018', '%m/%d/%Y')
     d2 = datetime.strptime('12/25/2018', '%m/%d/%Y')
     start_date = _random_date(d1, d2)
@@ -100,6 +101,7 @@ def _map_to_class(element):
                 or current date if customer is still active
             label: String class denoting interval that duration falls in between
     """
+
     classCeilings = features.LABEL_CEILINGS
     if not element['active']:
         duration = element['end_date'] - element['start_date']
@@ -134,6 +136,7 @@ def _combine_censorship_duration(element):
                 for time interval during which failure occured (if uncensored)
                 and 0 for other intervals.
     """
+
     numIntervals = len(features.LABEL_CEILINGS)
     y = np.zeros((numIntervals * 2))
     breaks = [0] + features.LABEL_CEILINGS
@@ -149,6 +152,7 @@ def _combine_censorship_duration(element):
 @beam.ptransform_fn
 def shuffle(p):
     """Shuffles the given pCollection."""
+
     return (p
             | "PairWithRandom" >> beam.Map(lambda x: (random.random(), x))
             | "GroupByRandom" >> beam.GroupByKey()
@@ -164,6 +168,7 @@ def write_tfrecord(p, prefix, output_dir, metadata):
         output_dir: the directory or bucket to write the json data.
         metadata: 
     """
+
     coder = coders.ExampleProtoCoder(metadata.schema)
     prefix = str(prefix).lower()
     _ = (p
@@ -187,6 +192,7 @@ def randomly_split(p, train_size, validation_size, test_size):
     Raises:
         ValueError: Train validation and test sizes don`t add up to 1.0.
     """
+
     if train_size + validation_size + test_size != 1.0:
         raise ValueError(
             'Train, validation, and test sizes don`t add up to 1.0.')
@@ -211,6 +217,7 @@ def randomly_split(p, train_size, validation_size, test_size):
 
 def parse_arguments(argv):
     """Parse command-line arguments."""
+
     parser = argparse.ArgumentParser()
     timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
     parser.add_argument(
@@ -255,6 +262,7 @@ def parse_arguments(argv):
 
 def get_pipeline_args(flags):
     """Create Apache Beam pipeline arguments"""
+
     options = {
         'project': flags.project_id,
         'staging_location': os.path.join(flags.output_dir, 'staging'),
@@ -266,8 +274,56 @@ def get_pipeline_args(flags):
     return options
 
 
+def build_pipeline(p, input_spec, flags):
+    """Sets up Apache Beam pipeline for execution"""
+    
+    raw_data = (p 
+                | 'QueryTable' >> beam.io.Read(beam.io.BigQuerySource(
+                    query=query.GetQuery(flags.bq_table),
+                    project=flags.project_id,
+                    use_standard_sql=True))
+                #omit 'Generate Data' step if working with real data
+                | 'Generate Data' >> 
+                    beam.Map(_generate_fake_data)
+                | 'Extract duration and Label' >> 
+                    beam.Map(_map_to_class)
+                | 'Generate label array' >> 
+                    beam.Map(_combine_censorship_duration)
+               )
+    raw_train, raw_eval, raw_test = (
+        raw_data | 'RandomlySplitData' >> randomly_split(
+            train_size=.7,
+            validation_size=.15,
+            test_size=.15))
+    raw_metadata = features.get_raw_dataset_metadata()
+    spec = features.get_raw_feature_spec()
+    preprocess_fn = features.preprocess_fn
+    transform_fn = ((raw_train, raw_metadata)
+                   | 'AnalyzeTrain' >> tft_beam.AnalyzeDataset(
+                        preprocess_fn))
+    _ = (transform_fn
+        | 'WriteTransformFn' >> tft_beam_io.WriteTransformFn(
+            flags.output_dir))
+
+    for dataset_type, dataset in [('Train', raw_train), 
+                                 ('Eval', raw_eval),
+                                 ('Test', raw_test)]:
+        transform_label = 'Transform{}'.format(dataset_type)
+        t, metadata = (((dataset, raw_metadata), transform_fn)
+                      | transform_label >> tft_beam.TransformDataset())
+        if dataset_type == 'Train':
+            _ = (metadata
+                | 'WriteMetadata' >> tft_beam_io.WriteMetadata(
+                    os.path.join(flags.output_dir, 
+                                'transformed_metadata'),
+                    pipeline=p))
+        write_label = 'Write{}TFRecord'.format(dataset_type)
+        _ = t | write_label >> write_tfrecord(
+            dataset_type, flags.output_dir, metadata)
+
 def run():
-    """Run Apache Beam pipeline to generate TFRecords for Survival Analysis"""
+    """Run Apache Beam pipeline to generate TFRecords for Survival Analysis."""
+
     flags = parse_arguments(sys.argv[1:])
     pipeline_args = get_pipeline_args(flags)
 
@@ -281,46 +337,4 @@ def run():
 
     with beam.Pipeline(runner, options=options) as p:
         with tft_beam.Context(temp_dir=temp_dir):
-            raw_data = (p 
-                        | 'QueryTable' >> beam.io.Read(beam.io.BigQuerySource(
-                            query=query.GetQuery(flags.bq_table),
-                            project=flags.project_id,
-                            use_standard_sql=True))
-                        #omit 'Generate Data' step if working with real data
-                        | 'Generate Data' >> 
-                            beam.Map(_generate_fake_data)
-                        | 'Extract duration and Label' >> 
-                            beam.Map(_map_to_class)
-                        | 'Generate label array' >> 
-                            beam.Map(_combine_censorship_duration)
-                       )
-            raw_train, raw_eval, raw_test = (
-                raw_data | 'RandomlySplitData' >> randomly_split(
-                    train_size=.7,
-                    validation_size=.15,
-                    test_size=.15))
-            raw_metadata = features.get_raw_dataset_metadata()
-            spec = features.get_raw_feature_spec()
-            preprocess_fn = features.preprocess_fn
-            transform_fn = ((raw_train, raw_metadata)
-                           | 'AnalyzeTrain' >> tft_beam.AnalyzeDataset(
-                                preprocess_fn))
-            _ = (transform_fn
-                | 'WriteTransformFn' >> tft_beam_io.WriteTransformFn(
-                    flags.output_dir))
-
-            for dataset_type, dataset in [('Train', raw_train), 
-                                         ('Eval', raw_eval),
-                                         ('Test', raw_test)]:
-                transform_label = 'Transform{}'.format(dataset_type)
-                t, metadata = (((dataset, raw_metadata), transform_fn)
-                              | transform_label >> tft_beam.TransformDataset())
-                if dataset_type == 'Train':
-                    _ = (metadata
-                        | 'WriteMetadata' >> tft_beam_io.WriteMetadata(
-                            os.path.join(flags.output_dir, 
-                                        'transformed_metadata'),
-                            pipeline=p))
-                write_label = 'Write{}TFRecord'.format(dataset_type)
-                _ = t | write_label >> write_tfrecord(
-                    dataset_type, flags.output_dir, metadata)
+            build_pipeline(p, input_spec, flags)
