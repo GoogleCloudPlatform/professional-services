@@ -19,9 +19,8 @@ from __future__ import print_function
 
 import os
 import random
-from six.moves.urllib.parse import urlsplit
+import tensorflow as tf
 import tensorflow_transform as tft
-from google.cloud import storage
 
 from constants import constants  # pylint: disable=g-bad-import-order
 
@@ -52,31 +51,6 @@ def _sample_vocab(tft_output, vocab_name, label, k):
   return indices, [[label, vocab[i]] for i in indices]
 
 
-def _write_projector_metadata_local(metadata_dir, metadata):
-  """Write local metadata file to use in tensorboard to visualize embeddings."""
-  metadata_path = os.path.join(metadata_dir, constants.PROJECTOR_PATH)
-  if not os.path.exists(metadata_dir):
-    os.makedirs(metadata_dir)
-  with open(metadata_path, "w+") as f:
-    f.write("label\tname\n")
-    f.write("\n".join(["\t".join(sample) for sample in metadata]))
-
-
-def _write_projector_metadata_gcs(metadata_dir, metadata):
-  """Write GCS metadata file to use in tensorboard to visualize embeddings."""
-  metadata_path = os.path.join(metadata_dir, constants.PROJECTOR_PATH)
-  scheme, netloc, path, _, _ = urlsplit(metadata_path)
-  if scheme != "gs":
-    raise ValueError("URI scheme must be gs")
-  storage_client = storage.Client()
-  bucket = storage_client.get_bucket(netloc)
-  blob = bucket.blob(path)
-
-  _write_projector_metadata_local(".", metadata)
-  blob.upload_from_filename(constants.PROJECTOR_PATH)
-  os.remove(constants.PROJECTOR_PATH)
-
-
 def write_projector_metadata(metadata_dir, tft_dir):
   """Write a metadata file to use in tensorboard to visualize embeddings.
 
@@ -92,19 +66,19 @@ def write_projector_metadata(metadata_dir, tft_dir):
       user_indices: indices of users that were sampled.
       item_indices: indices of items that were sampled.
   """
-  gcs_drive = "gs://"
   tft_output = tft.TFTransformOutput(tft_dir)
   user_indices, user_metadata = _sample_vocab(tft_output,
                                               constants.USER_VOCAB_NAME,
                                               "user",
-                                              constants.PROJECTOR_USER_SAMPLES)
+                                              constants.NUM_PROJECTOR_USERS)
   item_indices, item_metadata = _sample_vocab(tft_output,
                                               constants.ITEM_VOCAB_NAME,
                                               "item",
-                                              constants.PROJECTOR_ITEM_SAMPLES)
+                                              constants.NUM_PROJECTOR_ITEMS)
   metadata = user_metadata + item_metadata
-  if metadata_dir[:len(gcs_drive)] == gcs_drive:
-    _write_projector_metadata_gcs(metadata_dir, metadata)
-  else:
-    _write_projector_metadata_local(metadata_dir, metadata)
+  metadata_path = os.path.join(metadata_dir, constants.PROJECTOR_PATH)
+  tf.gfile.MakeDirs(metadata_dir)
+  with tf.gfile.GFile(metadata_path, "w+") as f:
+    f.write("label\tname\n")
+    f.write("\n".join(["\t".join(sample) for sample in metadata]))
   return user_indices, item_indices

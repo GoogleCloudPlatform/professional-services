@@ -352,9 +352,9 @@ def _model_fn(features, labels, mode, params):
     return tf.estimator.EstimatorSpec(mode, loss=loss, eval_metric_ops=metrics)
 
   # Training op: Update the weights via backpropagation.
-  samples = constants.PROJECTOR_USER_SAMPLES + constants.PROJECTOR_ITEM_SAMPLES
+  num_samples = constants.NUM_PROJECTOR_USERS + constants.NUM_PROJECTOR_ITEMS
   sample = tf.get_variable(constants.PROJECTOR_NAME,
-                           [samples, hparams.embedding_size])
+                           [num_samples, hparams.embedding_size])
 
   optimizer = tf.train.AdagradOptimizer(learning_rate=hparams.learning_rate)
   with tf.control_dependencies([user_embedding, item_embedding, sample]):
