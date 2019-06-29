@@ -112,7 +112,7 @@ The Dockerfile specifies the software that will be inside the container image.
 ```Docker
 FROM python:3 # Start from the public Python 3 image contained in DockerHub
 RUN pip install virtualenv 
-# install virtualenv so that a virtual environment can be used to carry build steps forward.  
+# Install virtualenv so that a virtual environment can be used to carry build steps forward.  
 ```
 
 The Dockerfile is enough to build the image, however you will also need a cloud-build.yaml to tell Cloud Build how to 
@@ -122,10 +122,10 @@ build and upload the resulting image to GCP.
 steps:
 - name: 'gcr.io/cloud-builders/docker'
   args: [ 'build', '-t', 'gcr.io/$PROJECT_ID/python-cloudbuild', '.' ]
-  # this step tells Google Cloud Build to use docker to build the Dockerfile.  
+  # This step tells Google Cloud Build to use docker to build the Dockerfile.  
 images:
 - 'gcr.io/$PROJECT_ID/python-cloudbuild'
-  # the resulting image is then named python-cloudbuild and uploaded to your projects container registry.    
+  # The resulting image is then named python-cloudbuild and uploaded to your projects container registry.    
 
 ```
 

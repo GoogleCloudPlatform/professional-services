@@ -28,8 +28,8 @@ def add(a, b):
   """Adds two numbers, a and b.
 
   Args:
-    a: a numeric variable.
-    b: a numeric variable.
+    a: A numeric variable.
+    b: A numeric variable.
 
   Returns:
     A numeric variable that is the sum of a and b.
@@ -41,7 +41,7 @@ def square(x):
   """Returns the square of x.
 
   Args:
-    x: a numeric variable.
+    x: A numeric variable.
 
   Returns:
     The square of x.
@@ -59,8 +59,8 @@ def log_transform(x, const=1):
   read here: http://onlinestatbook.com/2/transformations/log.html.
 
   Args:
-    x: a numeric variable to transform.
-    const: a constant to add to x to prevent taking the log of 0.
+    x: A numeric variable to transform.
+    const: A constant to add to x to prevent taking the log of 0.
 
   Returns:
     log (x + const).
