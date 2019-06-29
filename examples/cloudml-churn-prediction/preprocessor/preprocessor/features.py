@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # Copyright 2019 Google Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +21,7 @@ from tensorflow_transform.tf_metadata import dataset_schema
 
 BQ_FEATURES = [
     'fullVisitorId', 'totals.visits', 'totals.hits',
-    'totals.pageviews', 'device.deviceCategory', 
+    'totals.pageviews', 'device.deviceCategory',
     'geoNetwork.continent', 'geoNetwork.subContinent', 'socialEngagementType',
     'channelGrouping']
 
@@ -47,10 +45,8 @@ NUMERIC_COLUMNS = [
 ]
 
 LABEL_ARRAY_COLUMN = 'labelArray'
-    
 
 BOOLEAN_COLUMNS = []
-    
 
 LABEL_COLUMNS = [
     'start_date',
@@ -60,30 +56,30 @@ LABEL_COLUMNS = [
     'labelArray',
     'label'
 ]
-    
+
 
 LABEL_VALUES = ['0-2M', '2-4M', '4-6M', '6-8M', '8M+']
-LABEL_CEILINGS = [60, 120, 180, 240] #number of days for ceiling of each class
+LABEL_CEILINGS = [60, 120, 180, 240]  # number of days for ceiling of each class
 
 
 def get_raw_feature_spec():
-    """Returns TF feature spec for preprocessing"""
+    """Returns TF feature spec for preprocessing."""
 
     features = {}
     features.update(
-        {key: tf.FixedLenFeature([], dtype=tf.string) 
-            for key in CATEGORICAL_COLUMNS}
+        {key: tf.FixedLenFeature([], dtype=tf.string)
+         for key in CATEGORICAL_COLUMNS}
     )
     features.update(
-        {key: tf.FixedLenFeature([], dtype=tf.float32) 
-            for key in NUMERIC_COLUMNS}
+        {key: tf.FixedLenFeature([], dtype=tf.float32)
+         for key in NUMERIC_COLUMNS}
     )
     features.update(
-        {key: tf.FixedLenFeature([], dtype=tf.int64) 
-            for key in BOOLEAN_COLUMNS}
+        {key: tf.FixedLenFeature([], dtype=tf.int64)
+         for key in BOOLEAN_COLUMNS}
     )
-    features[LABEL_ARRAY_COLUMN] = tf.FixedLenFeature([2*len(LABEL_CEILINGS)],
-        tf.float32)
+    features[LABEL_ARRAY_COLUMN] = tf.FixedLenFeature(
+        [2*len(LABEL_CEILINGS)], tf.float32)
 
     return features
 
@@ -104,7 +100,6 @@ def preprocess_fn(inputs):
     Returns:
         Dict of key to transformed Tensor.
     """
-    
     outputs = inputs.copy()
     # For all categorical columns except the label column, we generate a
     # vocabulary but do not modify the feature.  This vocabulary is instead

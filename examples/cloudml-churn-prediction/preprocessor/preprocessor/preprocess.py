@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # Copyright 2019 Google Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,58 +11,51 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Build preprocessing pipeline for survival analysis"""
-
-
-import apache_beam as beam
-from apache_beam.options.pipeline_options import PipelineOptions, WorkerOptions
-from tensorflow_transform.beam import impl as tft_beam
-from tensorflow_transform.beam import tft_beam_io
-from tensorflow_transform import coders
-import tensorflow_transform as tft
-from tensorflow_transform.tf_metadata import dataset_schema
-
-import logging
+"""Build preprocessing pipeline for survival analysis."""
 import sys
+
+from . import features
+from . import query
+import apache_beam as beam
+from apache_beam.options import pipeline_options
 import argparse
-import time
-from datetime import datetime, timedelta
-import random
+import datetime
 import numpy as np
 import os
-import posixpath
+import random
+from tensorflow_transform import coders
+from tensorflow_transform.beam import impl as tft_beam
+from tensorflow_transform.beam import tft_beam_io
 
-from . import query
-from . import features
 
+def _random_start_date(start_interval, end_interval):
+    """Generate a random date between some time interval.
 
-def _random_date(start, end):
-    """Generate a random date between start and end.
     Used to randomly generate (fake) subscription start date
     """
 
-    delta = end - start
+    delta = end_interval - start_interval
     int_delta = delta.days
     random_day = random.randrange(int_delta)
-    return start + timedelta(days=random_day)
+    return start_interval + datetime.timedelta(days=random_day)
 
 
-def _random_duration(start):
-    """Generate a random duration.
+def _random_end_date(start):
+    """Generate a random duration and return subscription end date.
+
     Used to random generate (fake) subscription duration, which directly relates
     to the artificial label
     """
 
-    random_day = random.randrange(np.max(features.LABEL_CEILINGS)
-        + np.min(features.LABEL_CEILINGS))
-    return start + timedelta(days=random_day), random_day
+    random_duration = random.randrange(np.max(
+        features.LABEL_CEILINGS) + np.min(features.LABEL_CEILINGS))
+    return start + datetime.timedelta(days=random_duration)
 
 
 def _generate_fake_data(element):
     """Appends randomly generated labels to each sample's dictionary.
-    It should not be used with real data.
-    Function does not add duration to the dictionary, because this field generally
-    must be calculated rather than directly output from a database.
+
+    This transformation is not necessory when using real data.
 
     Args:
         element: dictionary of results from BigQuery
@@ -75,10 +66,10 @@ def _generate_fake_data(element):
             active:
     """
 
-    d1 = datetime.strptime('1/1/2018', '%m/%d/%Y')
-    d2 = datetime.strptime('12/25/2018', '%m/%d/%Y')
-    start_date = _random_date(d1, d2)
-    end_date, duration = _random_duration(start_date)
+    d1 = datetime.datetime.strptime('1/1/2018', '%m/%d/%Y')
+    d2 = datetime.datetime.strptime('12/25/2018', '%m/%d/%Y')
+    start_date = _random_start_date(d1, d2)
+    end_date = _random_end_date(start_date)
     active = True if end_date > d2 else False
     element.update(start_date=start_date)
     if not active:
@@ -90,35 +81,37 @@ def _generate_fake_data(element):
 
 
 def _map_to_class(element):
-    """Extract duration and class from source data. 
+    """Extract duration and class from source data.
 
     This function is required for both fake and real data, unless fields can be
     extracted directly for source data (i.e. BQ).
 
     Returns:
         element with following fields added:
-            duration: number of days between subscription start date and end date, 
-                or current date if customer is still active
+            duration: number of days between subscription start date and end
+                date, or current date if customer is still active
             label: String class denoting interval that duration falls in between
     """
 
-    classCeilings = features.LABEL_CEILINGS
+    class_ceilings = features.LABEL_CEILINGS
     if not element['active']:
         duration = element['end_date'] - element['start_date']
     else:
-        duration = datetime.now() - element['start_date']
+        duration = datetime.datetime.now() - element['start_date']
     duration_days = duration.days
     element.update(duration=duration_days)
-    for index in range(0, len(classCeilings)):
-        if duration_days < classCeilings[index]:
+    for index in range(0, len(class_ceilings)):
+        if duration_days < class_ceilings[index]:
             element.update(label=features.LABEL_VALUES[index])
             return element
-    element.update(label=features.LABEL_VALUES[len(classCeilings)-1])
+    element.update(label=features.LABEL_VALUES[len(class_ceilings)-1])
     return element
 
 
 def _combine_censorship_duration(element):
-    """Transform users' duration and censorship indicator into a 2*n_intervals
+    """Create labels for training using lifetime and censorship.
+
+    Transform users' duration and censorship indicator into a 2*n_intervals
     array. For each row, the first half of the array indicates whether the user
     survived the corresponding interval. Second half indicates whether the user
     died in the corresponding interval. If the user is censored, the second
@@ -130,21 +123,22 @@ def _combine_censorship_duration(element):
         element: Dictionary representing one sample
     Returns:
         element with following field added:
-            labelArray: 2D array where for each row (which corresponds to a 
+            labelArray: 2D array where for each row (which corresponds to a
                 user) first half of the values are 1 if the individual survived
                 that interval, 0 if not. The second half of the values are 1
                 for time interval during which failure occured (if uncensored)
                 and 0 for other intervals.
     """
 
-    numIntervals = len(features.LABEL_CEILINGS)
-    y = np.zeros((numIntervals * 2))
+    num_intervals = len(features.LABEL_CEILINGS)
+    y = np.zeros((num_intervals * 2))
     breaks = [0] + features.LABEL_CEILINGS
     duration = element['duration']
-    y[0:numIntervals] = 1.0*(np.full(numIntervals, duration) >= breaks[1:])
+    y[0:num_intervals] = 1.0*(np.full(num_intervals, duration) >= breaks[1:])
     if not element['active']:
         if duration < breaks[-1]:
-            y[numIntervals + np.where(np.full(numIntervals, duration) < breaks[1:])[0][0]] = 1.0
+            y[num_intervals + np.where(np.full(
+                num_intervals, duration) < breaks[1:])[0][0]] = 1.0
     element.update(labelArray=y)
     return element
 
@@ -154,34 +148,38 @@ def shuffle(p):
     """Shuffles the given pCollection."""
 
     return (p
-            | "PairWithRandom" >> beam.Map(lambda x: (random.random(), x))
-            | "GroupByRandom" >> beam.GroupByKey()
-            | "DropRandom" >> beam.FlatMap(lambda x: x[1]))
+            | 'PairWithRandom' >> beam.Map(lambda x: (random.random(), x))
+            | 'GroupByRandom' >> beam.GroupByKey()
+            | 'DropRandom' >> beam.FlatMap(lambda x: x[1]))
 
 
+# pylint: disable=expression-not-assigned
+# pylint: disable=no-value-for-parameter
 @beam.ptransform_fn
 def write_tfrecord(p, prefix, output_dir, metadata):
-    """Shuffles and write the given pCollection as a TF-Record.
+    """Shuffles and write the given pCollection as a TFRecord.
+
     Args:
         p: a pCollection.
         prefix: prefix for location tf-record will be written to.
         output_dir: the directory or bucket to write the json data.
-        metadata: 
+        metadata: metadata of input data from tft_beam.TransformDataset(...)
     """
 
     coder = coders.ExampleProtoCoder(metadata.schema)
     prefix = str(prefix).lower()
-    _ = (p
-        | "ShuffleData" >> shuffle()  # pylint: disable=no-value-for-parameter
-        | "WriteTFRecord" >> beam.io.tfrecordio.WriteToTFRecord(
-            os.path.join(output_dir, 'data', prefix, prefix),
-            coder=coder,
-            file_name_suffix=".tfrecord"))
+    (p
+     | 'ShuffleData' >> shuffle()
+     | 'WriteTFRecord' >> beam.io.tfrecordio.WriteToTFRecord(
+         os.path.join(output_dir, 'data', prefix, prefix),
+         coder=coder,
+         file_name_suffix='.tfrecord'))
 
 
 @beam.ptransform_fn
 def randomly_split(p, train_size, validation_size, test_size):
     """Randomly splits input pipeline in three sets based on input ratio.
+
     Args:
         p: PCollection, input pipeline.
         train_size: float, ratio of data going to train set.
@@ -197,7 +195,8 @@ def randomly_split(p, train_size, validation_size, test_size):
         raise ValueError(
             'Train, validation, and test sizes don`t add up to 1.0.')
 
-    class _split_data(beam.DoFn):
+    class SplitData(beam.DoFn):
+
         def process(self, element):
             r = random.random()
             if r < test_size:
@@ -208,7 +207,7 @@ def randomly_split(p, train_size, validation_size, test_size):
                 yield element
 
     split_data = (
-        p | 'SplitData' >> beam.ParDo(_split_data()).with_outputs(
+        p | 'SplitData' >> beam.ParDo(SplitData()).with_outputs(
             'Test',
             'Val',
             main='Train'))
@@ -219,13 +218,15 @@ def parse_arguments(argv):
     """Parse command-line arguments."""
 
     parser = argparse.ArgumentParser()
-    timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+    timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     parser.add_argument(
         '--job_name',
-        default='{}-{}'.format('bq-to-tfrecords', timestamp)
+        help='Name of the Cloud Dataflow job',
+        default='{}-{}'.format('bq-to-tfrecords', timestamp),
     )
     parser.add_argument(
         '--output_dir',
+        help='Local or GCS directory to store output TFRecords.',
         required=True,
     )
     parser.add_argument(
@@ -261,7 +262,7 @@ def parse_arguments(argv):
 
 
 def get_pipeline_args(flags):
-    """Create Apache Beam pipeline arguments"""
+    """Create Apache Beam pipeline arguments."""
 
     options = {
         'project': flags.project_id,
@@ -274,52 +275,49 @@ def get_pipeline_args(flags):
     return options
 
 
-def build_pipeline(p, input_spec, flags):
-    """Sets up Apache Beam pipeline for execution"""
-    
-    raw_data = (p 
-                | 'QueryTable' >> beam.io.Read(beam.io.BigQuerySource(
-                    query=query.GetQuery(flags.bq_table),
-                    project=flags.project_id,
-                    use_standard_sql=True))
-                #omit 'Generate Data' step if working with real data
-                | 'Generate Data' >> 
-                    beam.Map(_generate_fake_data)
-                | 'Extract duration and Label' >> 
-                    beam.Map(_map_to_class)
-                | 'Generate label array' >> 
-                    beam.Map(_combine_censorship_duration)
-               )
+# pylint: disable=expression-not-assigned
+def build_pipeline(p, flags):
+    """Sets up Apache Beam pipeline for execution."""
+
+    raw_data = (
+        p | 'QueryTable' >> beam.io.Read(
+            beam.io.BigQuerySource(
+                query=query.GetQuery(flags.bq_table),
+                project=flags.project_id,
+                use_standard_sql=True)
+            )
+        # omit 'Generate Data' step if working with real data
+        | 'Generate Data' >> beam.Map(_generate_fake_data)
+        | 'Extract duration and Label' >> beam.Map(_map_to_class)
+        | 'Generate label array' >> beam.Map(_combine_censorship_duration)
+        )
     raw_train, raw_eval, raw_test = (
         raw_data | 'RandomlySplitData' >> randomly_split(
             train_size=.7,
             validation_size=.15,
             test_size=.15))
     raw_metadata = features.get_raw_dataset_metadata()
-    spec = features.get_raw_feature_spec()
     preprocess_fn = features.preprocess_fn
-    transform_fn = ((raw_train, raw_metadata)
-                   | 'AnalyzeTrain' >> tft_beam.AnalyzeDataset(
-                        preprocess_fn))
-    _ = (transform_fn
-        | 'WriteTransformFn' >> tft_beam_io.WriteTransformFn(
-            flags.output_dir))
+    transform_fn = (
+        (raw_train, raw_metadata) | 'AnalyzeTrain' >> tft_beam.AnalyzeDataset(
+            preprocess_fn))
+    (transform_fn | 'WriteTransformFn' >> tft_beam_io.WriteTransformFn(
+        flags.output_dir))
 
-    for dataset_type, dataset in [('Train', raw_train), 
-                                 ('Eval', raw_eval),
-                                 ('Test', raw_test)]:
+    for dataset_type, dataset in [('Train', raw_train),
+                                  ('Eval', raw_eval),
+                                  ('Test', raw_test)]:
         transform_label = 'Transform{}'.format(dataset_type)
         t, metadata = (((dataset, raw_metadata), transform_fn)
-                      | transform_label >> tft_beam.TransformDataset())
+                       | transform_label >> tft_beam.TransformDataset())
         if dataset_type == 'Train':
-            _ = (metadata
-                | 'WriteMetadata' >> tft_beam_io.WriteMetadata(
-                    os.path.join(flags.output_dir, 
-                                'transformed_metadata'),
-                    pipeline=p))
+            (metadata | 'WriteMetadata' >> tft_beam_io.WriteMetadata(
+                os.path.join(
+                    flags.output_dir, 'transformed_metadata'), pipeline=p))
         write_label = 'Write{}TFRecord'.format(dataset_type)
-        _ = t | write_label >> write_tfrecord(
+        t | write_label >> write_tfrecord(
             dataset_type, flags.output_dir, metadata)
+
 
 def run():
     """Run Apache Beam pipeline to generate TFRecords for Survival Analysis."""
@@ -327,14 +325,14 @@ def run():
     flags = parse_arguments(sys.argv[1:])
     pipeline_args = get_pipeline_args(flags)
 
-    options = PipelineOptions(flags=[], **pipeline_args)
-    options.view_as(WorkerOptions).machine_type = flags.machine_type
+    options = pipeline_options.PipelineOptions(flags=[], **pipeline_args)
+    options.view_as(pipeline_options.WorkerOptions).machine_type = (
+        flags.machine_type)
 
-    input_spec = features.RAW_FEATURE_SPEC
     temp_dir = os.path.join(flags.output_dir, 'tmp')
 
     runner = 'DataflowRunner' if flags.cloud else 'DirectRunner'
 
     with beam.Pipeline(runner, options=options) as p:
         with tft_beam.Context(temp_dir=temp_dir):
-            build_pipeline(p, input_spec, flags)
+            build_pipeline(p, flags)

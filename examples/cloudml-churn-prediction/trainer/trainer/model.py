@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # Copyright 2019 Google Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,18 +18,19 @@ import tensorflow as tf
 from trainer import metrics
 
 
-def get_feature_columns(tf_transform_output, exclude_columns=[]):
+def get_feature_columns(tf_transform_output, exclude_columns=None):
     """Returns list of feature columns for a TensorFlow estimator.
+
     Args:
         tf_transform_output: tensorflow_transform.TFTransformOutput.
-        exclude_columns: `tf_transform_ooutput` column names to be excluded
+        exclude_columns: `tf_transform_output` column names to be excluded
             from feature columns.
 
     Returns:
         List of TensorFlow feature columns.
     """
-    
-    TF_NUMERIC_TYPES = [
+
+    tf_numeric_types = [
         tf.float16,
         tf.float32,
         tf.float64,
@@ -44,27 +43,31 @@ def get_feature_columns(tf_transform_output, exclude_columns=[]):
     feature_columns = []
     feature_spec = tf_transform_output.transformed_feature_spec()
 
-    for col in exclude_columns:
-        _ = feature_spec.pop(col, None)
+    if exclude_columns:
+        for col in exclude_columns:
+            if col in feature_spec:
+                del feature_spec[col]
 
     for k, v in feature_spec.items():
-        if v.dtype in TF_NUMERIC_TYPES:
+        if v.dtype in tf_numeric_types:
             feature_columns.append(tf.feature_column.numeric_column(
                 k, dtype=v.dtype))
         elif v.dtype == tf.string:
             vocab_file = tf_transform_output.vocabulary_file_by_name(
                 vocab_filename=k)
-            feature_column = \
-                    tf.feature_column.categorical_column_with_vocabulary_file(
-                        k,
-                        vocab_file)
+            feature_column = (
+                tf.feature_column.categorical_column_with_vocabulary_file(
+                    k,
+                    vocab_file))
             feature_columns.append(tf.feature_column.indicator_column(
                 feature_column))
     return feature_columns
 
 
 def survival_likelihood_loss(y_true, y_pred, num_intervals):
-    """Calculates the negative of the log likelihood function for a
+    """Returns survival likelihood loss.
+
+    Calculates the negative of the log likelihood function for a
     discrete-time statistical survival analysis model. The conditional hazard
     probability for each interval is the probability of failure in the
     interval, given survival until that interval.
@@ -89,16 +92,14 @@ def survival_likelihood_loss(y_true, y_pred, num_intervals):
 
 
 def survival_model(features, labels, mode, params):
-    """Survival Analysis mode to predict likelihood of "death" (churn)"""
+    """Survival Analysis mode to predict likelihood of "death" (churn)."""
 
-    #Create neural network
     net = tf.feature_column.input_layer(features, params['feature_columns'])
     for units in params['hidden_units']:
-        net = tf.keras.layers.dense(net, units=units, activation=tf.nn.relu)
-    output = tf.keras.layers.dense(net, units=params['num_intervals'],
-                             activation=tf.nn.sigmoid)
+        net = tf.keras.layers.Dense(units=units, activation=tf.nn.relu)(net)
+    output = tf.keras.layers.Dense(
+        units=params['num_intervals'], activation=tf.nn.sigmoid)(net)
 
-    #Compute predictions
     if mode == tf.estimator.ModeKeys.PREDICT:
         predictions = {
             'conditional_likelihoods': output,
@@ -106,10 +107,8 @@ def survival_model(features, labels, mode, params):
         }
         return tf.estimator.EstimatorSpec(mode, predictions=predictions)
 
-    #Compute loss
     loss = survival_likelihood_loss(labels, output, params['num_intervals'])
 
-    #Compute evaluation metrics
     metrics_ops = metrics.eval_metric_fn(labels, output, params)
     tf.summary.scalar('accuracy', metrics_ops['accuracy'][1])
 
@@ -119,7 +118,6 @@ def survival_model(features, labels, mode, params):
             loss=loss,
             eval_metric_ops=metrics_ops)
 
-    #Create training operation
     assert mode == tf.estimator.ModeKeys.TRAIN
 
     optimizer = tf.train.AdagradOptimizer(
@@ -129,9 +127,9 @@ def survival_model(features, labels, mode, params):
 
 
 def build_estimator(run_config, flags, feature_columns, num_intervals):
-    """Returns TensorFlow estimator"""
+    """Returns TensorFlow estimator."""
 
-    #Calculate hidden units based on CLI args to allow hyperparameter tuning
+    # Calculate hidden units based on CLI args to allow hyperparameter tuning
     if flags.num_layers is not None and flags.first_layer_size is not None:
         hidden_units = [
             max(2, int(
@@ -141,7 +139,6 @@ def build_estimator(run_config, flags, feature_columns, num_intervals):
     else:
         hidden_units = flags.hidden_units
 
-    #Build Custom Estimator
     estimator = tf.estimator.Estimator(
         model_fn=survival_model,
         model_dir=flags.job_dir,

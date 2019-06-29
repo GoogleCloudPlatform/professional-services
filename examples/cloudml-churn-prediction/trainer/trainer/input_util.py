@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # Copyright 2019 Google Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,19 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Input functions"""
+"""Input functions."""
 
-import os
 import multiprocessing
-
+import os
 import tensorflow as tf
 import tensorflow_transform as tft
 
 
 def input_fn(input_dir, mode, batch_size, num_epochs, label_name=None,
              shuffle_buffer_size=10000, feature_spec=None):
-    """Reads TFRecords and returns the features and labels"""
-
+    """Reads TFRecords and returns the features and labels."""
     if feature_spec is None:
         tf_transform_output = tft.TFTransformOutput(
             os.path.join(input_dir, 'transformed_metadata'))
@@ -44,8 +40,8 @@ def input_fn(input_dir, mode, batch_size, num_epochs, label_name=None,
 
     dataset = dataset.repeat(num_epochs)
     dataset = dataset.batch(batch_size)
-    dataset = dataset.map(lambda examples: tf.parse_example(
-        examples, feature_spec))
+    dataset = dataset.map(
+        lambda examples: tf.parse_example(examples, feature_spec))
     iterator = dataset.make_one_shot_iterator()
     features = iterator.get_next()
     if mode == tf.estimator.ModeKeys.PREDICT:
@@ -56,8 +52,7 @@ def input_fn(input_dir, mode, batch_size, num_epochs, label_name=None,
 
 
 def tfrecord_serving_input_fn(feature_spec, label_name=None):
-    """Creates ServingInputReceiver for TFRecord inputs"""
-    
+    """Creates ServingInputReceiver for TFRecord inputs."""
     if label_name:
         _ = feature_spec.pop(label_name)
 
@@ -66,4 +61,5 @@ def tfrecord_serving_input_fn(feature_spec, label_name=None):
             feature_spec)())
 
     return tf.estimator.export.ServingInputReceiver(
-        serving_input_receiver.features, serving_input_receiver.receiver_tensors)
+        serving_input_receiver.features,
+        serving_input_receiver.receiver_tensors)

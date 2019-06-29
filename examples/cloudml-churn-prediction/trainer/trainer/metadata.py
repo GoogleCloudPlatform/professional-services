@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # Copyright 2019 Google Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,8 +16,8 @@
 LABEL_COLUMN = 'labelArray'
 KEY_COLUMN = 'fullVisitorId'
 
-#columns to omit from model features
+# columns to omit from model features
 NON_FEATURE_COLUMNS = [LABEL_COLUMN, KEY_COLUMN]
 
-NUM_INTERVALS = 4 #number of bounded churn duration intervals
+NUM_INTERVALS = 4  # number of bounded churn duration intervals
 SEED = 123

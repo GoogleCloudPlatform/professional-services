@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # Copyright 2019 Google Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,10 +27,11 @@ from trainer import model
 
 def parse_arguments(argv):
     """Parse command-line arguments."""
-    
+
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--verbosity',
+        help='Set logging level.',
         choices=['DEBUG', 'ERROR', 'FATAL', 'INFO', 'WARN'],
         default='INFO',
     )
@@ -140,12 +139,11 @@ def parse_arguments(argv):
 
 
 def train_and_evaluate(flags):
-    """Runs model training and evaluation using TF Estimator API"""
+    """Runs model training and evaluation using TF Estimator API."""
 
-    #Get TF transform metadata generated during preprocessing
+    # Get TF transform metadata generated during preprocessing
     tf_transform_output = tft.TFTransformOutput(flags.input_dir)
 
-    #Define training spec
     feature_spec = tf_transform_output.transformed_feature_spec()
     train_input_fn = functools.partial(
         input_util.input_fn,
@@ -159,7 +157,6 @@ def train_and_evaluate(flags):
     train_spec = tf.estimator.TrainSpec(
         train_input_fn, max_steps=flags.train_steps)
 
-    #Define eval spec
     eval_input_fn = functools.partial(
         input_util.input_fn,
         input_dir=flags.input_dir,
@@ -171,7 +168,7 @@ def train_and_evaluate(flags):
     )
 
     exporter = tf.estimator.FinalExporter(
-        "export", functools.partial(
+        'export', functools.partial(
             input_util.tfrecord_serving_input_fn,
             feature_spec=feature_spec,
             label_name=metadata.LABEL_COLUMN))
@@ -184,32 +181,24 @@ def train_and_evaluate(flags):
         name='churn-eval'
     )
 
-    #Define training config
     run_config = tf.estimator.RunConfig(
         save_checkpoints_steps=flags.checkpoint_steps,
         tf_random_seed=metadata.SEED,
         model_dir=flags.job_dir
     )
 
-    #Build the estimator
     feature_columns = model.get_feature_columns(
         tf_transform_output, exclude_columns=metadata.NON_FEATURE_COLUMNS)
     num_intervals = metadata.NUM_INTERVALS
     estimator = model.build_estimator(
         run_config, flags, feature_columns, num_intervals)
 
-    #Run training and evaluation
     tf.estimator.train_and_evaluate(estimator, train_spec, eval_spec)
 
 
 def main():
-    #Parse command-line arguments
     flags = parse_arguments(sys.argv[1:])
-
-    #Set python level verbosity
     tf.logging.set_verbosity(flags.verbosity)
-
-    #Run model training and evaluate
     train_and_evaluate(flags)
 
 

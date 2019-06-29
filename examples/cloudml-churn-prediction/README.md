@@ -70,6 +70,8 @@ python -m run_preprocessing \
 --cloud \
 --output_dir "${OUTPUT_DIR}" \
 --project_id "${PROJECT}"
+
+cd ..
 ```
   
   
@@ -88,8 +90,6 @@ Make sure to navigate back to the top-level directory.
 ```shell
 INPUT_DIR="${OUTPUT_DIR}"
 MODEL_DIR="${BUCKET}/model/$(date +%Y%m%d%H%M%S)"
-
-cd ..
 ```
   
 ### Train locally with AI Platform
