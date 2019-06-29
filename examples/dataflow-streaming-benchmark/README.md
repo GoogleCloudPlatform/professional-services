@@ -78,9 +78,17 @@ Pub/Sub topic.
 PROJECT_ID=<project-id>
 BUCKET=<bucket>
 PIPELINE_FOLDER=gs://${BUCKET}/dataflow/pipelines/streaming-benchmark
+SCHEMA_LOCATION=gs://<path-to-schema-location-in-gcs>
+PUBSUB_TOPIC=projects/$PROJECT_ID/topics/<topic-id>
+
+# Set the desired QPS
+QPS=50000
 
 # Set the runner
 RUNNER=DataflowRunner
+
+# Compute engine zone
+ZONE=us-east1-d
 
 # Build the template
 mvn compile exec:java \
@@ -91,10 +99,10 @@ mvn compile exec:java \
     --stagingLocation=${PIPELINE_FOLDER}/staging \
     --tempLocation=${PIPELINE_FOLDER}/temp \
     --runner=${RUNNER} \
-    --zone=us-east1-d \
+    --zone=${ZONE} \
     --autoscalingAlgorithm=THROUGHPUT_BASED \
     --maxNumWorkers=5 \
-    --qps=50000 \
-    --schemaLocation=gs://<bucket>/<path>/<to>/game-event-schema \
-    --topic=projects/<project-id>/topics/<topic-id>"
+    --qps=${QPS} \
+    --schemaLocation=${SCHEMA_LOCATION} \
+    --topic=${PUBSUB_TOPIC}"
 ```
