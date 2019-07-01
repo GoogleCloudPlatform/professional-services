@@ -16,7 +16,7 @@
 from . import features
 
 
-def GetQuery(table, limit=None):
+def get_query(table, limit=None):
     """Returns BigQuery Standard SQL query to fetch the data.
 
     Args:

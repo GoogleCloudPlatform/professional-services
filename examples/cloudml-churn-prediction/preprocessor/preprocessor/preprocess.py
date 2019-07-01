@@ -55,15 +55,19 @@ def _random_end_date(start):
 def _generate_fake_data(element):
     """Appends randomly generated labels to each sample's dictionary.
 
-    This transformation is not necessory when using real data.
+    This transformation is not necessory when using real data, because these
+    values should already be available and these are the labels for the
+    supervised classification churn model.
 
     Args:
         element: dictionary of results from BigQuery
     Returns:
         dictionary of results from BigQuery with the following fields added:
-            start_date:
-            end_date: None if subscription has not yet ended
-            active:
+            start_date: datetime object representing date when subscription
+                began.
+            end_date: datetime object representing date when subscription
+                ended. None if subscription has not yet ended.
+            active: True if the subscription is still active.
     """
 
     d1 = datetime.datetime.strptime('1/1/2018', '%m/%d/%Y')
@@ -282,7 +286,7 @@ def build_pipeline(p, flags):
     raw_data = (
         p | 'QueryTable' >> beam.io.Read(
             beam.io.BigQuerySource(
-                query=query.GetQuery(flags.bq_table),
+                query=query.get_query(flags.bq_table),
                 project=flags.project_id,
                 use_standard_sql=True)
             )
