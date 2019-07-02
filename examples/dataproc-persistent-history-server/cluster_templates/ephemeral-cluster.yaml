@@ -38,3 +38,5 @@ config:
     machineTypeUri: n1-standard-2
     minCpuPlatform: AUTOMATIC
     numInstances: 2
+  endpointConfig:
+    enableHttpPortAccess: "true"
