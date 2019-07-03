@@ -24,15 +24,15 @@ from __future__ import print_function
 
 
 FILE_PARAMETERS = {
-    'fileType': ['avro', 'csv'], #'''avro', 'json', 'csv', 'parquet'],
+    'fileType': ['avro', 'json', 'csv', 'parquet'],
     'fileCompressionTypes': {
         'avro': ['none', 'snappy'],
-        'csv': ['none'],#, 'gzip'],
+        'csv': ['none', 'gzip'],
         'json': ['none', 'gzip'],
         'parquet': ['none'],
     },
     'numColumns': [10, 100, 1000],
-    'numFiles': [1, 100],#, [1, 100, 1000, 10000],
+    'numFiles': [1, 100, 1000, 10000],
     'targetDataSizes': [.01, .1, 1, 2],
     'stagingDataSizes': ['10MB', '107MB', '1073MB', '2147MB'],
     'columnTypes': [
