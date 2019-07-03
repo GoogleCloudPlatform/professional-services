@@ -442,7 +442,7 @@ python bq_file_load_benchmark.py \
 --gcs_project_id='data-analtyics-pocs' \
 --staging_project_id='data-analtyics-pocs' \
 --staging_dataset_id='bq_loader_benchmark_staging' \
---dataset_id=<ID of your dataset that will hold benchmark tables> \
+--benchmark_dataset_id=<ID of your dataset that will hold benchmark tables> \
 --bucket_name='annarudy-bqloader-testfiles' \
 --results_table_name=<Name of your results table> \
 --duplicate_benchmark_tables
