@@ -168,6 +168,11 @@ public class ThrottlingOrchestration {
          */
         Coder<Integer> intCoder = VarIntCoder.of();
 
+        /**
+         * This defines a strategy that is applied when a request is throttled by an external service or by a DataflowThrottlingTransform itself
+         */
+        ThrottlingStrategy throttlingStrategy = ThrottlingStrategy.DLQ;
+
         // Create the pipeline
         Pipeline pipeline = Pipeline.create(options);
         /*
@@ -180,11 +185,11 @@ public class ThrottlingOrchestration {
         LOG.info("Building pipeline...");
 
         PCollection<String> events = pipeline.apply("Read PubSub Events", PubsubIO.readStrings().fromSubscription(options.getInputTopic()))
-                .apply(" Window", Window.into(FixedWindows.of(Duration.millis(1800))));
+                .apply(" Window", Window.into(new GlobalWindows()));
         //PCollection<String> events=pipeline.apply("Read Events", TextIO.read().from(options.getInputFilePattern()));
 
         DynamicThrottlingTransform<String, Integer> dynamicThrottlingTransform = new DynamicThrottlingTransform.Builder<String, Integer>(clientCall, StringUtf8Coder.of(), 50000)
-                .withKInRejectionProbability(2).withNumberOfGroups(1).withBatchInterval(java.time.Duration.ofSeconds(1)).withResetCounterInterval(java.time.Duration.ofMinutes(1)).build();
+                .withKInRejectionProbability(2).withNumberOfGroups(1).withBatchInterval(java.time.Duration.ofSeconds(1)).withResetCounterInterval(java.time.Duration.ofMinutes(1)).withThrottlingStrategy(throttlingStrategy).build();
 
         PCollectionTuple enriched = events.apply(dynamicThrottlingTransform);
         enriched.get(dynamicThrottlingTransform.getSuccessTag()).setCoder(intCoder).apply("SuccessTag", ParDo.of(new DoFn<Integer, String>() {

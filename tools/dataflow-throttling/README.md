@@ -18,12 +18,13 @@ As part of the integration process, a user of this library needs to implement cl
 
 Dataflow pipeline maintains the number of requests it has sent to the backend and the number of requests got accepted by the backend. Using stateTimer, it will process a batch of elements from each state value and remove the processed requests from the state value when they are processed. Request rejection probability is calculated as follows:
     ```RequestRejectionProbability = (total_requests - k * total_accepts)/(total_requests+1)```
+
 For each request, if RequestRejectionProbability is more than a random number between 0 or 1 generated for each request, the request is sent to either Pub/Sub dead letter queue or any other sink defined by the user. If the value is less than this random value the request is sent to the external service.
-[Adaptive throttling](https://landing.google.com/sre/sre-book/chapters/handling-overload/#eq2101).
 
 For more information on these parameters see [Adaptive throttling](https://landing.google.com/sre/sre-book/chapters/handling-overload/#eq2101). The count of the incoming requests and accepted requests should be equal under normal conditions. Once the requests start getting rejected, the number of processing requests gets decreased by the difference of incoming requests and accepted requests.
 
 A Dataflow pipeline will process the payload in multiple groups. To achieve this, the pipeline will transform the PCollection[Bounded/Unbounded] into multiple groups based on random distribution (the random distribution behavior can be overridden).
+
 Pipeline PCollection transform steps:
 * Conversion of the Input PCollection<T> into PCollection<Key,T>. Here, Key will be group id (random by default) and Value will be payload.
 * Adaptive throttling is applied to each group[State cell] accordingly.
@@ -31,6 +32,9 @@ Pipeline PCollection transform steps:
 * ClientCall, a user defined function, is invoked. This function sends PCollection elements to the backend node. Based on the response of the clientCall respective counters are incremented.
 
 The variables which stores the total number of requested and accepted requests are zeroed out after a certain interval of time (defaults to 1 min). This reset speeds up client recovery if server throughput was limited due to limitations on the server side not caused by the client.
+
+### Limitations
+* When the Dynamic Throttling Transform is used inside FixedWindows, the state is restricted per key per window and rejection probability as well as the throughput rate is calculated per window. This can cause an overlap of a fixed window that processes the current events with the other fixed windows which are processing backlog; thus causing a higher rate of events sent to the external service.
 
 ### Library testing: HTTP Server with Throttling capabilities
 
