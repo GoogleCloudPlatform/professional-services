@@ -1,0 +1,103 @@
+{
+    "fields": [
+        {
+            "name": "benchmarkTime",
+            "type": "TIMESTAMP",
+            "mode": "REQUIRED"
+        },
+        {
+            "name": "fileType",
+            "type": "STRING",
+            "mode": "REQUIRED"
+        },
+        {
+            "name": "compressionType",
+            "type": "STRING",
+            "mode": "NULLABLE"
+        },
+        {
+            "name": "numColumns",
+            "type": "INT64",
+            "mode": "REQUIRED"
+        },
+        {
+            "name": "numRows",
+            "type": "INT64",
+            "mode": "REQUIRED"
+        },
+        {
+            "name": "columnTypes",
+            "type": "STRING",
+            "mode": "REQUIRED"
+        },
+        {
+            "name": "numFiles",
+            "type": "INT64",
+            "mode": "REQUIRED"
+        },
+        {
+            "name": "fileSize",
+            "type": "INT64",
+            "mode": "REQUIRED",
+            "description": "MB"
+        },
+        {
+            "name": "stagingDataSize",
+            "type": "INT64",
+            "mode": "REQUIRED",
+            "description": "MB"
+        },
+        {
+            "name": "job",
+            "type": "RECORD",
+            "mode": "REQUIRED",
+            "fields": [
+                {
+                    "name": "id",
+                    "type": "STRING",
+                    "mode": "REQUIRED"
+                },
+                {
+                    "name": "user",
+                    "type": "STRING",
+                    "mode": "REQUIRED"
+                },
+                {
+                    "name": "location",
+                    "type": "STRING",
+                    "mode": "REQUIRED"
+                },
+                {
+                    "name": "startTime",
+                    "type": "TIMESTAMP",
+                    "mode": "NULLABLE"
+                },
+                {
+                    "name": "endTime",
+                    "type": "TIMESTAMP",
+                    "mode": "NULLABLE"
+                },
+                {
+                    "name": "duration",
+                    "type": "NUMERIC",
+                    "mode": "REQUIRED"
+                },
+                {
+                    "name": "destinationTable",
+                    "type": "STRING",
+                    "mode": "REQUIRED"
+                },
+                {
+                    "name": "sourceURI",
+                    "type": "STRING",
+                    "mode": "REQUIRED"
+                },
+                {
+                    "name": "sourceFormat",
+                    "type": "STRING",
+                    "mode": "REQUIRED"
+                }
+            ]
+        }
+    ]
+}

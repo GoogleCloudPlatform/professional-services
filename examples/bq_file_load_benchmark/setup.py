@@ -1,0 +1,25 @@
+import setuptools
+setuptools.setup(
+    name='benchmark_tools',
+    packages=setuptools.find_packages(),
+    install_requires=[
+        'apache-beam==2.10.0',
+        'avro==1.8.2',
+        'Faker==1.0.2',
+        'faker-schema==0.1.4',
+        'google-api-core==1.7.0',
+        'google-apitools==0.5.24',
+        'google-auth==1.6.3',
+        'google-cloud==0.34.0',
+        'google-cloud-bigquery==1.6.1',
+        'google-cloud-core==0.29.1',
+        'google-cloud-pubsub==0.39.0',
+        'google-cloud-storage==1.14.0',
+        'google-resumable-media==0.3.2',
+        'googleapis-common-protos==1.5.8',
+        'googledatastore==7.0.2',
+        'grpc-google-iam-v1==0.11.4',
+        'py2app==0.7.3',
+        'pyarrow==0.11.1'
+    ]
+)
