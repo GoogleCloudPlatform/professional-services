@@ -23,7 +23,7 @@
 
   <groupId>com.google.cloud.pso</groupId>
   <artifactId>maven-archetype-dataflow</artifactId>
-  <version>1.0</version>
+  <version>1.1</version>
   <packaging>jar</packaging>
 
   <inceptionYear>2018</inceptionYear>
@@ -33,7 +33,20 @@
   </organization>
 
   <name>maven-archetype-dataflow</name>
-  <url>http://github.com/ryanmcdowell/maven-archetype-dataflow</url>
+
+  <scm>
+    <connection>
+      scm:git:https://github.com/GoogleCloudPlatform/professional-services.git
+    </connection>
+    <developerConnection>
+      scm:git:https://github.com/GoogleCloudPlatform/professional-services.git
+    </developerConnection>
+    <url>
+      https://github.com/GoogleCloudPlatform/professional-services/tree/master/tools/maven-archetype-dataflow
+    </url>
+  </scm>
+  
+  <url>https://github.com/GoogleCloudPlatform/professional-services/tree/master/tools/maven-archetype-dataflow</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

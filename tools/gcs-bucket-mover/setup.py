@@ -19,7 +19,7 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
-import os
+
 from setuptools import find_packages
 from setuptools import setup
 
@@ -28,19 +28,19 @@ gcs_bucket_mover is a Python application that helps you move storage buckets bet
 """
 
 requires = [
-    'attrs', 'google-api-python-client', 'google-cloud-pubsub',
-    'google-cloud-storage', 'retrying', 'oauth2client', 'yaspin', 'Faker'
+    'attrs', 'configargparse', 'google-api-python-client',
+    'google-cloud-logging', 'google-cloud-pubsub', 'google-cloud-storage',
+    'mock', 'retrying', 'oauth2client', 'yaspin', 'Faker', 'PyYAML'
 ]
 
 setup(
     name='gcs_bucket_mover',
-    version="0.0.1",
+    version='1.2.0',
     license='Apache 2.0',
     author='Google Inc.',
     author_email='mgeneau@google.com',
     description=
-    ('A command line tool for moving storage buckets between projects in Google Cloud.'
-    ),
+    'A command line tool for moving storage buckets between projects in Google Cloud.',
     long_description=long_desc,
     zip_safe=True,
     classifiers=[

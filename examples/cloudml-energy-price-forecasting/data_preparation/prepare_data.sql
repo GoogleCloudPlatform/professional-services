@@ -6,7 +6,7 @@ WITH
       PARSE_TIMESTAMP("%d/%m/%Y %H:%M", date_utc) AS date_utc,
       price
     FROM
-      `energy-forecasting.Energy.MarketPricePT`
+      Energy.MarketPricePT
   ),
   Distribution_Temp AS (
     SELECT
@@ -18,12 +18,12 @@ WITH
   ),
   Weather_Temp AS (
     SELECT
-      prediction_date,
+      PARSE_TIMESTAMP("%d/%m/%Y %H:%M", prediction_date) AS prediction_date,
       array_concat_agg(ARRAY[temperature, wind_speed_100m, wind_direction_100m, air_density, precipitation,
         wind_gust, radiation, wind_speed, wind_direction, pressure]
         ORDER BY point) AS weather
     FROM
-      `energy-forecasting.Energy.historical_weather`
+      Energy.historical_weather
     GROUP BY prediction_date
   )
 SELECT

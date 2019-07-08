@@ -17,11 +17,12 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 import datetime
+import json
 from time import sleep
-
 from retrying import retry
 from yaspin import yaspin
 
+from google.api_core import iam as api_core_iam
 from google.cloud import exceptions
 from google.cloud import pubsub
 from google.cloud import storage
@@ -29,87 +30,332 @@ from google.cloud.storage import iam
 from googleapiclient import discovery
 
 from gcs_bucket_mover import bucket_details
-from gcs_bucket_mover import configuration
 from gcs_bucket_mover import sts_job_status
 
 _CHECKMARK = u'\u2713'.encode('utf8')
 
 
-def move_bucket(conf):
-    """Main entry point for the bucket mover script
+def main(config, parsed_args, cloud_logger):
+    """Main entry point for the bucket mover tool
 
     Args:
-        conf: the argparser parsing of command line options
+        config: A Configuration object with all of the config values needed for the script to run
+        parsed_args: the configargparser parsing of command line options
+        cloud_logger: A GCP logging client instance
     """
 
-    # Load the environment config values set in config.sh and create the storage clients.
-    config = configuration.Configuration.from_conf(conf)
+    cloud_logger.log_text("Starting GCS Bucket Mover")
+    _print_config_details(cloud_logger, config)
 
-    print('Using the following service accounts for GCS credentials: ')
-    print('Source Project - {}'.format(
-        config.source_project_credentials.service_account_email))  # pylint: disable=no-member
-    print('Target Project - {}\n'.format(
-        config.target_project_credentials.service_account_email))  # pylint: disable=no-member
-
-    # Get copies of all of the source bucket's IAM, ACLs and settings so they can be copied over to
-    # the target project bucket
     source_bucket = config.source_storage_client.lookup_bucket(  # pylint: disable=no-member
         config.bucket_name)
+
+    # Get copies of all of the source bucket's IAM, ACLs and settings so they
+    # can be copied over to the target project bucket
     source_bucket_details = bucket_details.BucketDetails(
-        conf=conf, source_bucket=source_bucket)
+        conf=parsed_args, source_bucket=source_bucket)
 
-    with yaspin(text='Create temp target bucket') as spinner:
-        target_temp_bucket = _create_bucket(
-            spinner, config, config.target_storage_client,
-            config.temp_bucket_name, source_bucket_details)
-        spinner.write('{} Bucket {} created in target project {}'.format(
-            _CHECKMARK, config.temp_bucket_name, config.target_project))
+    _check_bucket_lock(cloud_logger, config, source_bucket,
+                       source_bucket_details)
 
-    # Create STS client
     sts_client = discovery.build(
         'storagetransfer', 'v1', credentials=config.target_project_credentials)
 
-    spinner_text = 'Assign STS permissions to source/temp buckets'
+    if config.is_rename:
+        _rename_bucket(cloud_logger, config, source_bucket,
+                       source_bucket_details, sts_client)
+    else:
+        _move_bucket(cloud_logger, config, source_bucket, source_bucket_details,
+                     sts_client)
+
+    cloud_logger.log_text('Completed GCS Bucket Mover')
+
+
+def _rename_bucket(cloud_logger, config, source_bucket, source_bucket_details,
+                   sts_client):
+    """Main method for doing a bucket rename
+
+    This can also involve a move across projects.
+
+    Args:
+        cloud_logger: A GCP logging client instance
+        config: A Configuration object with all of the config values needed for the script to run
+        source_bucket: The bucket object for the original source bucket in the source project
+        source_bucket_details: The details copied from the source bucket that is being moved
+        sts_client: The STS client object to be used
+    """
+    target_bucket = _create_target_bucket(
+        cloud_logger, config, source_bucket_details, config.target_bucket_name)
+    sts_account_email = _assign_sts_permissions(cloud_logger, sts_client,
+                                                config, target_bucket)
+    _run_and_wait_for_sts_job(sts_client, config.target_project,
+                              config.bucket_name, config.target_bucket_name,
+                              cloud_logger)
+
+    _delete_empty_source_bucket(cloud_logger, source_bucket)
+    _remove_sts_permissions(cloud_logger, sts_account_email, config,
+                            config.target_bucket_name)
+
+
+def _move_bucket(cloud_logger, config, source_bucket, source_bucket_details,
+                 sts_client):
+    """Main method for doing a bucket move.
+
+    This flow does not include a rename, the target bucket will have the same
+    name as the source bucket.
+
+    Args:
+        cloud_logger: A GCP logging client instance
+        config: A Configuration object with all of the config values needed for the script to run
+        source_bucket: The bucket object for the original source bucket in the source project
+        source_bucket_details: The details copied from the source bucket that is being moved
+        sts_client: The STS client object to be used
+    """
+    target_temp_bucket = _create_target_bucket(
+        cloud_logger, config, source_bucket_details, config.temp_bucket_name)
+    sts_account_email = _assign_sts_permissions(cloud_logger, sts_client,
+                                                config, target_temp_bucket)
+    _run_and_wait_for_sts_job(sts_client, config.target_project,
+                              config.bucket_name, config.temp_bucket_name,
+                              cloud_logger)
+
+    _delete_empty_source_bucket(cloud_logger, source_bucket)
+    _recreate_source_bucket(cloud_logger, config, source_bucket_details)
+    _assign_sts_permissions_to_new_bucket(cloud_logger, sts_account_email,
+                                          config)
+    _run_and_wait_for_sts_job(sts_client, config.target_project,
+                              config.temp_bucket_name, config.bucket_name,
+                              cloud_logger)
+
+    _delete_empty_temp_bucket(cloud_logger, target_temp_bucket)
+    _remove_sts_permissions(cloud_logger, sts_account_email, config,
+                            config.bucket_name)
+
+
+def _print_config_details(cloud_logger, config):
+    """Print out the pertinent project/bucket details
+
+    Args:
+        cloud_logger: A GCP logging client instance
+        config: A Configuration object with all of the config values needed for the script to run
+    """
+    _print_and_log(cloud_logger,
+                   'Source Project: {}'.format(config.source_project))
+    _print_and_log(cloud_logger, 'Source Bucket: {}'.format(config.bucket_name))
+    _print_and_log(cloud_logger, 'Source Service Account: {}'.format(
+        config.source_project_credentials.service_account_email))  # pylint: disable=no-member
+    _print_and_log(cloud_logger,
+                   'Target Project: {}'.format(config.target_project))
+    _print_and_log(cloud_logger,
+                   'Target Bucket: {}'.format(config.target_bucket_name))
+    _print_and_log(cloud_logger, 'Target Service Account: {}'.format(
+        config.target_project_credentials.service_account_email))  # pylint: disable=no-member
+
+
+def _check_bucket_lock(cloud_logger, config, bucket, source_bucket_details):
+    """Confirm there is no lock and we can continue with the move
+
+    Args:
+        cloud_logger: A GCP logging client instance
+        config: A Configuration object with all of the config values needed for the script to run
+        bucket: The bucket object to lock down
+        source_bucket_details: The details copied from the source bucket that is being moved
+    """
+
+    if not config.disable_bucket_lock:
+        spinner_text = 'Confirming that lock file {} does not exist'.format(
+            config.lock_file_name)
+        cloud_logger.log_text(spinner_text)
+
+        with yaspin(text=spinner_text) as spinner:
+            _write_spinner_and_log(
+                spinner, cloud_logger,
+                'Logging source bucket IAM and ACLs to Stackdriver')
+            cloud_logger.log_text(
+                json.dumps(source_bucket_details.iam_policy.to_api_repr()))
+            for entity in source_bucket_details.acl_entities:
+                cloud_logger.log_text(str(entity))
+
+            _lock_down_bucket(
+                spinner, cloud_logger, bucket, config.lock_file_name,
+                config.source_project_credentials.service_account_email)  # pylint: disable=no-member
+            spinner.ok(_CHECKMARK)
+
+
+def _lock_down_bucket(spinner, cloud_logger, bucket, lock_file_name,
+                      service_account_email):
+    """Change the ACL/IAM on the bucket so that only the service account can access it.
+
+    Args:
+        spinner: The spinner displayed in the console
+        cloud_logger: A GCP logging client instance
+        bucket: The bucket object to lock down
+        lock_file_name: The name of the lock file
+        service_account_email: The email of the service account
+    """
+
+    if storage.Blob(lock_file_name, bucket).exists():
+        spinner.fail('X')
+        msg = 'The lock file exists in the source bucket, so we cannot continue'
+        cloud_logger.log_text(msg)
+        raise SystemExit(msg)
+
+    spinner.ok(_CHECKMARK)
+    msg = 'Locking down the bucket by revoking all ACLs/IAM policies'
+    spinner.text = msg
+    cloud_logger.log_text(msg)
+
+    # Turn off any bucket ACLs
+    bucket.acl.save_predefined('private')
+
+    # Revoke all IAM access and only set the service account as an admin
+    policy = api_core_iam.Policy()
+    policy['roles/storage.admin'].add('serviceAccount:' + service_account_email)
+    bucket.set_iam_policy(policy)
+
+
+def _create_target_bucket(cloud_logger, config, source_bucket_details,
+                          bucket_name):
+    """Creates either the temp bucket or target bucket (during rename) in the target project
+
+    Args:
+        cloud_logger: A GCP logging client instance
+        config: A Configuration object with all of the config values needed for the script to run
+        source_bucket_details: The details copied from the source bucket that is being moved
+        bucket_name: The name of the bucket to create
+
+    Returns:
+        The bucket object that has been created in GCS
+    """
+
+    if config.is_rename:
+        spinner_text = 'Creating target bucket'
+    else:
+        spinner_text = 'Creating temp target bucket'
+
+    cloud_logger.log_text(spinner_text)
+    with yaspin(text=spinner_text) as spinner:
+        target_bucket = _create_bucket(spinner, cloud_logger, config,
+                                       bucket_name, source_bucket_details)
+        _write_spinner_and_log(
+            spinner, cloud_logger,
+            'Bucket {} created in target project {}'.format(
+                bucket_name, config.target_project))
+        return target_bucket
+
+
+def _assign_sts_permissions(cloud_logger, sts_client, config,
+                            target_temp_bucket):
+    """Assign the required STS permissions to the source/temp bucket
+
+    Args:
+        cloud_logger: A GCP logging client instance
+        sts_client: The STS client object to be used
+        config: A Configuration object with all of the config values needed for the script to run
+        target_temp_bucket: The bucket object for the temp bucket in the target project
+
+    Returns:
+        The email account of the STS account
+    """
+
+    spinner_text = 'Assigning STS permissions to source/temp buckets'
+    cloud_logger.log_text(spinner_text)
     with yaspin(text=spinner_text) as spinner:
         sts_account_email = _get_sts_iam_account_email(sts_client,
                                                        config.target_project)
-        spinner.write(
-            '\nSTS service account for IAM usage: {}'.format(sts_account_email))
+        _write_spinner_and_log(
+            spinner, cloud_logger,
+            'STS service account for IAM usage: {}'.format(sts_account_email))
         _assign_sts_iam_roles(sts_account_email, config.source_storage_client,
                               config.source_project, config.bucket_name, True)
         _assign_sts_iam_roles(sts_account_email, config.target_storage_client,
                               config.target_project, target_temp_bucket.name,
                               True)
         spinner.ok(_CHECKMARK)
+        return sts_account_email
 
-    _run_and_wait_for_sts_job(sts_client, config.target_project,
-                              config.bucket_name, config.temp_bucket_name)
 
-    with yaspin(text='Delete empty source bucket') as spinner:
-        source_bucket.delete()
-        spinner.ok(_CHECKMARK)
+def _assign_sts_permissions_to_new_bucket(cloud_logger, sts_account_email,
+                                          config):
+    """Assign the required STS permissions to the new source bucket in the target project
 
-    with yaspin(text='Re-create source bucket in target project') as spinner:
-        _create_bucket(spinner, config, config.target_storage_client,
-                       config.bucket_name, source_bucket_details)
-        spinner.ok(_CHECKMARK)
+    Args:
+        cloud_logger: A GCP logging client instance
+        sts_account_email: The email account of the STS account
+        config: A Configuration object with all of the config values needed for the script to run
+    """
 
-    with yaspin(text='Assign STS permissions to new source bucket') as spinner:
+    spinner_text = 'Assigning STS permissions to new source bucket'
+    cloud_logger.log_text(spinner_text)
+    with yaspin(text=spinner_text) as spinner:
         _assign_sts_iam_roles(sts_account_email, config.target_storage_client,
                               config.target_project, config.bucket_name, False)
         spinner.ok(_CHECKMARK)
 
-    _run_and_wait_for_sts_job(sts_client, config.target_project,
-                              config.temp_bucket_name, config.bucket_name)
 
-    with yaspin(text='Delete empty temp bucket') as spinner:
+def _delete_empty_source_bucket(cloud_logger, source_bucket):
+    """Delete the empty source bucket
+
+    Args:
+        cloud_logger: A GCP logging client instance
+        source_bucket: The bucket object for the original source bucket in the source project
+    """
+
+    spinner_text = 'Deleting empty source bucket'
+    cloud_logger.log_text(spinner_text)
+    with yaspin(text=spinner_text) as spinner:
+        source_bucket.delete()
+        spinner.ok(_CHECKMARK)
+
+
+def _recreate_source_bucket(cloud_logger, config, source_bucket_details):
+    """Now that the original source bucket is deleted, re-create it in the target project
+
+    Args:
+        cloud_logger: A GCP logging client instance
+        config: A Configuration object with all of the config values needed for the script to run
+        source_bucket_details: The details copied from the source bucket that is being moved
+    """
+
+    spinner_text = 'Re-creating source bucket in target project'
+    cloud_logger.log_text(spinner_text)
+    with yaspin(text=spinner_text) as spinner:
+        _create_bucket(spinner, cloud_logger, config, config.bucket_name,
+                       source_bucket_details)
+        spinner.ok(_CHECKMARK)
+
+
+def _delete_empty_temp_bucket(cloud_logger, target_temp_bucket):
+    """Now that the temp bucket is empty, delete it
+
+    Args:
+        cloud_logger: A GCP logging client instance
+        target_temp_bucket: The GCS bucket object of the target temp bucket
+    """
+
+    spinner_text = 'Deleting empty temp bucket'
+    cloud_logger.log_text(spinner_text)
+    with yaspin(text=spinner_text) as spinner:
         target_temp_bucket.delete()
         spinner.ok(_CHECKMARK)
 
-    spinner_text = 'Remove STS permissions from new source bucket'
+
+def _remove_sts_permissions(cloud_logger, sts_account_email, config,
+                            bucket_name):
+    """Remove the STS permissions from the new source bucket in the target project
+
+    Args:
+        cloud_logger: A GCP logging client instance
+        sts_account_email: The email account of the STS account
+        config: A Configuration object with all of the config values needed for the script to run
+        bucket_name: The name of the bucket to remove the permissions from
+    """
+
+    spinner_text = 'Removing STS permissions from bucket {}'.format(bucket_name)
+    cloud_logger.log_text(spinner_text)
     with yaspin(text=spinner_text) as spinner:
         _remove_sts_iam_roles(sts_account_email, config.target_storage_client,
-                              config.bucket_name)
+                              bucket_name)
         spinner.ok(_CHECKMARK)
 
 
@@ -118,7 +364,7 @@ def _get_project_number(project_id, credentials):
 
     Args:
         project_id: The id of the project
-        crendentials: The credentials to use for accessing the project
+        credentials: The credentials to use for accessing the project
 
     Returns:
         The project number as a string
@@ -129,14 +375,14 @@ def _get_project_number(project_id, credentials):
     return project['projectNumber']
 
 
-def _create_bucket(spinner, config, storage_client, bucket_name,
+def _create_bucket(spinner, cloud_logger, config, bucket_name,
                    source_bucket_details):
     """Creates a bucket and replicates all of the settings from source_bucket_details.
 
     Args:
         spinner: The spinner displayed in the console
+        cloud_logger: A GCP logging client instance
         config: A Configuration object with all of the config values needed for the script to run
-        storage_client: The storage client object used to access GCS
         bucket_name: The name of the bucket to create
         source_bucket_details: The details copied from the source bucket that is being moved
 
@@ -144,7 +390,8 @@ def _create_bucket(spinner, config, storage_client, bucket_name,
         The bucket object that has been created in GCS
     """
 
-    bucket = storage.Bucket(client=storage_client, name=bucket_name)
+    bucket = storage.Bucket(
+        client=config.target_storage_client, name=bucket_name)
     bucket.location = source_bucket_details.location
     bucket.storage_class = source_bucket_details.storage_class
     bucket.requester_pays = source_bucket_details.requester_pays
@@ -155,40 +402,46 @@ def _create_bucket(spinner, config, storage_client, bucket_name,
 
     if source_bucket_details.default_kms_key_name:
         bucket.default_kms_key_name = source_bucket_details.default_kms_key_name
-        # The target project GCS service account must be given Encrypter/Decrypter permission for
-        # the key
+        # The target project GCS service account must be given
+        # Encrypter/Decrypter permission for the key
         _add_target_project_to_kms_key(
-            spinner, config, source_bucket_details.default_kms_key_name)
+            spinner, cloud_logger, config,
+            source_bucket_details.default_kms_key_name)
 
     if source_bucket_details.logging:
         bucket.enable_logging(source_bucket_details.logging['logBucket'],
                               source_bucket_details.logging['logObjectPrefix'])
 
-    _create_bucket_api_call(spinner, bucket)
+    _create_bucket_api_call(spinner, cloud_logger, bucket)
 
     if source_bucket_details.iam_policy:
         _update_iam_policies(config, bucket, source_bucket_details)
-        spinner.write(
+        _write_spinner_and_log(
+            spinner, cloud_logger,
             'IAM policies successfully copied over from the source bucket')
 
     if source_bucket_details.acl_entities:
         new_acl = _update_acl_entities(config,
                                        source_bucket_details.acl_entities)
         bucket.acl.save(acl=new_acl)
-        spinner.write('ACLs successfully copied over from the source bucket')
+        _write_spinner_and_log(
+            spinner, cloud_logger,
+            'ACLs successfully copied over from the source bucket')
 
     if source_bucket_details.default_obj_acl_entities:
         new_default_obj_acl = _update_acl_entities(
             config, source_bucket_details.default_obj_acl_entities)
         bucket.default_object_acl.save(acl=new_default_obj_acl)
-        spinner.write(
+        _write_spinner_and_log(
+            spinner, cloud_logger,
             'Default Object ACLs successfully copied over from the source bucket'
         )
 
     if source_bucket_details.notifications:
-        _update_notifications(spinner, config,
+        _update_notifications(spinner, cloud_logger, config,
                               source_bucket_details.notifications, bucket)
-        spinner.write(
+        _write_spinner_and_log(
+            spinner, cloud_logger,
             '{} Created {} new notifications for the bucket {}'.format(
                 _CHECKMARK, len(source_bucket_details.notifications),
                 bucket_name))
@@ -206,29 +459,31 @@ def _retry_if_false(result):
     wait_exponential_multiplier=4000,
     wait_exponential_max=60000,
     stop_max_attempt_number=5)
-def _create_bucket_api_call(spinner, bucket):
+def _create_bucket_api_call(spinner, cloud_logger, bucket):
     """Calls the GCS api method to create the bucket.
 
-    The method will attemp to retry up to 5 times if the 503 ServiceUnavailable
+    The method will attempt to retry up to 5 times if the 503 ServiceUnavailable
     exception is raised.
 
     Args:
         spinner: The spinner displayed in the console
+        cloud_logger: A GCP logging client instance
         bucket: The bucket object to create
 
     Returns:
         True if the bucket was created, False if a ServiceUnavailable exception was raised
 
     Raises:
-        google.cloud.exceptions.Conflict: The underlying Google Cloud api will raise this error
-            if the bucket already exists.
+        google.cloud.exceptions.Conflict: The underlying Google Cloud api will raise this error if
+            the bucket already exists.
     """
 
     try:
         bucket.create()
     except exceptions.ServiceUnavailable:
-        spinner.write('503 Service Unavailable error returned.'
-                      ' Retrying up to 5 times with exponential backoff.')
+        _write_spinner_and_log(
+            spinner, cloud_logger, '503 Service Unavailable error returned.'
+            ' Retrying up to 5 times with exponential backoff.')
         return False
     return True
 
@@ -250,8 +505,7 @@ def _update_iam_policies(config, bucket, source_bucket_details):
     source_bucket_details.iam_policy.etag = policy.etag
     for role in source_bucket_details.iam_policy:
         for member in source_bucket_details.iam_policy[role]:
-            # If a project level role was set, replace it with an identical one for the new
-            # project
+            # If a project level role was set, replace it with an identical one for the new project
             if ':' + config.source_project in member:
                 new_member = member.replace(config.source_project,
                                             config.target_project)
@@ -302,16 +556,17 @@ def _update_acl_entities(config, source_entities):
         # Replace the source project number with the target project number and add the entity
         entity.identifier = entity.identifier.replace(source_project_number,
                                                       target_project_number)
-
         new_acl.add_entity(entity)
+
     return new_acl
 
 
-def _update_notifications(spinner, config, notifications, bucket):
+def _update_notifications(spinner, cloud_logger, config, notifications, bucket):
     """Update the notifications on the target bucket to match those from the source bucket.
 
     Args:
         spinner: The spinner displayed in the console
+        cloud_logger: A GCP logging client instance
         config: A Configuration object with all of the config values needed for the script to run
         notifications: A list of notifications to add to the bucket
         bucket: The bucket object to update the notifications for
@@ -319,8 +574,8 @@ def _update_notifications(spinner, config, notifications, bucket):
 
     for item in notifications:
         # Give target project service account access to publish to source project topic
-        _assign_target_project_to_topic(spinner, config, item.topic_name,
-                                        item.topic_project)
+        _assign_target_project_to_topic(spinner, cloud_logger, config,
+                                        item.topic_name, item.topic_project)
 
         notification = storage.notification.BucketNotification(
             bucket,
@@ -388,11 +643,12 @@ def _remove_sts_iam_roles(sts_email, storage_client, bucket_name):
     bucket.set_iam_policy(policy)
 
 
-def _add_target_project_to_kms_key(spinner, config, kms_key_name):
+def _add_target_project_to_kms_key(spinner, cloud_logger, config, kms_key_name):
     """Gives the service_account_email the Encrypter/Decrypter role for the given KMS key.
 
     Args:
         spinner: The spinner displayed in the console
+        cloud_logger: A GCP logging client instance
         config: A Configuration object with all of the config values needed for the script to run
         kms_key_name: The name of the KMS key that the project should be given access to
     """
@@ -420,15 +676,19 @@ def _add_target_project_to_kms_key(spinner, config, kms_key_name):
         resource=kms_key_name, body={'policy': policy_response})
     request.execute(num_retries=5)
 
-    spinner.write('{} {} added as Enrypter/Decrypter to key: {}'.format(
-        _CHECKMARK, service_account_email, kms_key_name))
+    _write_spinner_and_log(
+        spinner, cloud_logger,
+        '{} {} added as Enrypter/Decrypter to key: {}'.format(
+            _CHECKMARK, service_account_email, kms_key_name))
 
 
-def _assign_target_project_to_topic(spinner, config, topic_name, topic_project):
+def _assign_target_project_to_topic(spinner, cloud_logger, config, topic_name,
+                                    topic_project):
     """Gives the service_account_email the Publisher role for the topic.
 
     Args:
         spinner: The spinner displayed in the console
+        cloud_logger: A GCP logging client instance
         config: A Configuration object with all of the config values needed for the script to run
         topic_name: The name of the topic that the target project should be assigned to
         topic_project: The name of the project that the topic belongs to
@@ -444,10 +704,11 @@ def _assign_target_project_to_topic(spinner, config, topic_name, topic_project):
         role='roles/pubsub.publisher',
         members=['serviceAccount:' + service_account_email])
 
-    policy = client.set_iam_policy(topic_path, policy)  # pylint: disable=no-member
+    client.set_iam_policy(topic_path, policy)  # pylint: disable=no-member
 
-    spinner.write('{} {} added as a Publisher to topic: {}'.format(
-        _CHECKMARK, service_account_email, topic_name))
+    _write_spinner_and_log(
+        spinner, cloud_logger, '{} {} added as a Publisher to topic: {}'.format(
+            _CHECKMARK, service_account_email, topic_name))
 
 
 @retry(
@@ -456,7 +717,7 @@ def _assign_target_project_to_topic(spinner, config, topic_name, topic_project):
     wait_exponential_max=120000,
     stop_max_attempt_number=10)
 def _run_and_wait_for_sts_job(sts_client, target_project, source_bucket_name,
-                              sink_bucket_name):
+                              sink_bucket_name, cloud_logger):
     """Kick off the STS job and wait for it to complete. Retry if it fails.
 
     Args:
@@ -464,14 +725,19 @@ def _run_and_wait_for_sts_job(sts_client, target_project, source_bucket_name,
         target_project: The name of the target project where the STS job will be created
         source_bucket_name: The name of the bucket where the STS job will transfer from
         sink_bucket_name: The name of the bucket where the STS job will transfer to
+        cloud_logger: A GCP logging client instance
 
     Returns:
         True if the STS job completed successfully, False if it failed for any reason
     """
 
-    print('Moving from bucket {} to {}'.format(source_bucket_name,
-                                               sink_bucket_name))
-    with yaspin(text='Creating STS job') as spinner:
+    msg = 'Moving from bucket {} to {}'.format(source_bucket_name,
+                                               sink_bucket_name)
+    _print_and_log(cloud_logger, msg)
+
+    spinner_text = 'Creating STS job'
+    cloud_logger.log_text(spinner_text)
+    with yaspin(text=spinner_text) as spinner:
         sts_job_name = _execute_sts_job(sts_client, target_project,
                                         source_bucket_name, sink_bucket_name)
         spinner.ok(_CHECKMARK)
@@ -479,8 +745,8 @@ def _run_and_wait_for_sts_job(sts_client, target_project, source_bucket_name,
     # Check every 10 seconds until STS job is complete
     with yaspin(text='Checking STS job status') as spinner:
         while True:
-            job_status = _check_sts_job(spinner, sts_client, target_project,
-                                        sts_job_name)
+            job_status = _check_sts_job(spinner, cloud_logger, sts_client,
+                                        target_project, sts_job_name)
             if job_status != sts_job_status.StsJobStatus.in_progress:
                 break
             sleep(10)
@@ -489,12 +755,15 @@ def _run_and_wait_for_sts_job(sts_client, target_project, source_bucket_name,
         print()
         return True
 
-    print(
-        'There was an unexpected failure with the STS job. You can view the details in the'
-        ' cloud console.')
-    print(
-        'Waiting for a period of time and then trying again. If you choose to cancel this'
-        ' script, the buckets will need to be manually cleaned up.')
+    # Execution will only reach this code if something went wrong with the STS job
+    _print_and_log(
+        cloud_logger,
+        'There was an unexpected failure with the STS job. You can view the'
+        ' details in the cloud console.')
+    _print_and_log(
+        cloud_logger,
+        'Waiting for a period of time and then trying again. If you choose to'
+        ' cancel this script, the buckets will need to be manually cleaned up.')
     return False
 
 
@@ -514,7 +783,8 @@ def _execute_sts_job(sts_client, target_project, source_bucket_name,
 
     now = datetime.date.today()
     transfer_job = {
-        'description': 'Move bucket {} to {} in project {}'.format(
+        'description':
+        'Move bucket {} to {} in project {}'.format(
             source_bucket_name, sink_bucket_name, target_project),
         'status': 'ENABLED',
         'projectId': target_project,
@@ -547,11 +817,12 @@ def _execute_sts_job(sts_client, target_project, source_bucket_name,
     return result['name']
 
 
-def _check_sts_job(spinner, sts_client, target_project, job_name):
+def _check_sts_job(spinner, cloud_logger, sts_client, target_project, job_name):
     """Check on the status of the STS job.
 
     Args:
         spinner: The spinner displayed in the console
+        cloud_logger: A GCP logging client instance
         sts_client: The STS client object to be used
         target_project: The name of the target project where the STS job will be created
         job_name: The name of the STS job that was created
@@ -575,22 +846,25 @@ def _check_sts_job(spinner, sts_client, target_project, job_name):
                 spinner.fail('X')
                 return sts_job_status.StsJobStatus.failed
 
-            _print_sts_counters(spinner, metadata['counters'], True)
+            _print_sts_counters(spinner, cloud_logger, metadata['counters'],
+                                True)
             spinner.ok(_CHECKMARK)
             return sts_job_status.StsJobStatus.success
         else:
             # Update the status of the copy
             if 'counters' in metadata:
-                _print_sts_counters(spinner, metadata['counters'], False)
+                _print_sts_counters(spinner, cloud_logger, metadata['counters'],
+                                    False)
 
     return sts_job_status.StsJobStatus.in_progress
 
 
-def _print_sts_counters(spinner, counters, is_job_done):
+def _print_sts_counters(spinner, cloud_logger, counters, is_job_done):
     """Print out the current STS job counters.
 
     Args:
         spinner: The spinner displayed in the console
+        cloud_logger: A GCP logging client instance
         counters: The counters object returned as part of the STS job status query
         is_job_done: If True, print out the final counters instead of just the in progress ones
     """
@@ -624,6 +898,7 @@ def _print_sts_counters(spinner, counters, is_job_done):
             if spinner.text != new_text:
                 spinner.write(spinner.text)
                 spinner.text = new_text
+                cloud_logger.log_text(new_text)
         else:
             if bytes_copied_to_sink > 0 and objects_copied_to_sink > 0:
                 byte_percent = '{:.0%}'.format(
@@ -633,7 +908,36 @@ def _print_sts_counters(spinner, counters, is_job_done):
                     float(objects_copied_to_sink) /
                     float(objects_found_from_source))
                 spinner.write(spinner.text)
-                spinner.text = '{} of {} bytes ({}) copied in {} of {} objects ({})'.format(
+                new_text = '{} of {} bytes ({}) copied in {} of {} objects ({})'.format(
                     bytes_copied_to_sink, bytes_found_from_source, byte_percent,
                     objects_copied_to_sink, objects_found_from_source,
                     object_percent)
+                spinner.text = new_text
+                cloud_logger.log_text(new_text)
+
+
+def _print_and_log(cloud_logger, message):
+    """Print the message and log it to the cloud.
+
+    Args:
+        cloud_logger: A GCP logging client instance
+        message: The message to log
+    """
+    print(message)
+    cloud_logger.log_text(message)
+
+
+def _write_spinner_and_log(spinner, cloud_logger, message):
+    """Write the message to the spinner and log it to the cloud.
+
+    Args:
+        spinner: The spinner object to write the message to
+        cloud_logger: A GCP logging client instance
+        message: The message to print and log
+    """
+    spinner.write(message)
+    cloud_logger.log_text(message)
+
+
+if __name__ == '__main__':
+    main(None, None, None)

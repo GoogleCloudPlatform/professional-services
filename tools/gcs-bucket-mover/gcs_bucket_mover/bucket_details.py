@@ -36,7 +36,7 @@ class BucketDetails(object):
         """Init the class from a source bucket.
 
         Args:
-            conf: the argparser parsing of command line options
+            conf: the configargparser parsing of command line options
             source_bucket: a google.cloud.storage.Bucket object that the bucket details should be
                 copied from.
         """
@@ -44,7 +44,7 @@ class BucketDetails(object):
         # Unless these values are specified on the command line, use the values from the source
         # bucket
         self.location = conf.location or source_bucket.location
-        self.storage_class = conf.storageClass or source_bucket.storage_class
+        self.storage_class = conf.storage_class or source_bucket.storage_class
 
         self._set_skip_settings(conf)
 
@@ -57,7 +57,8 @@ class BucketDetails(object):
         self.cors = source_bucket.cors
         self.default_kms_key_name = source_bucket.default_kms_key_name
         self.labels = source_bucket.labels
-        self.lifecycle_rules = source_bucket.lifecycle_rules
+        # lifecycyle_rules returns a generator
+        self.lifecycle_rules = list(source_bucket.lifecycle_rules)
         self.logging = source_bucket.get_logging()
         self.versioning_enabled = source_bucket.versioning_enabled
         # Unlike all other bucket properties, notifications are only given as an iterator
@@ -65,17 +66,17 @@ class BucketDetails(object):
 
     def _set_skip_settings(self, conf):
         """Set up which settings need to be skipped and which ones should be copied"""
-        self._skip_acl = True if conf.skipEverything else conf.skipAcl
-        self._skip_cors = True if conf.skipEverything else conf.skipCors
-        self._skip_default_object_acl = True if conf.skipEverything else conf.skipDefaultObjectAcl
-        self._skip_iam = True if conf.skipEverything else conf.skipIam
-        self._skip_kms_key = True if conf.skipEverything else conf.skipKmsKey
-        self._skip_labels = True if conf.skipEverything else conf.skipLabels
-        self._skip_logging = True if conf.skipEverything else conf.skipLogging
-        self._skip_lifecycle_rules = True if conf.skipEverything else conf.skipLifecycleRules
-        self._skip_notifications = True if conf.skipEverything else conf.skipNotifications
-        self._skip_requester_pays = True if conf.skipEverything else conf.skipRequesterPays
-        self._skip_versioning = True if conf.skipEverything else conf.skipVersioning
+        self._skip_acl = True if conf.skip_everything else conf.skip_acl
+        self._skip_cors = True if conf.skip_everything else conf.skip_cors
+        self._skip_default_obj_acl = True if conf.skip_everything else conf.skip_default_obj_acl
+        self._skip_iam = True if conf.skip_everything else conf.skip_iam
+        self._skip_kms_key = True if conf.skip_everything else conf.skip_kms_key
+        self._skip_labels = True if conf.skip_everything else conf.skip_labels
+        self._skip_logging = True if conf.skip_everything else conf.skip_logging
+        self._skip_lifecycle_rules = True if conf.skip_everything else conf.skip_lifecycle_rules
+        self._skip_notifications = True if conf.skip_everything else conf.skip_notifications
+        self._skip_requester_pays = True if conf.skip_everything else conf.skip_requester_pays
+        self._skip_versioning = True if conf.skip_everything else conf.skip_versioning
 
     @property
     def iam_policy(self):
@@ -102,7 +103,7 @@ class BucketDetails(object):
 
     @default_obj_acl_entities.setter
     def default_obj_acl_entities(self, value):
-        self._default_obj_acl_entities = None if self._skip_default_object_acl else value
+        self._default_obj_acl_entities = None if self._skip_default_obj_acl else value
 
     @property
     def requester_pays(self):
