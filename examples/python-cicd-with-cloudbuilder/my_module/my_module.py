@@ -23,6 +23,9 @@ Tutorial found in README.md.
 
 import numpy as np
 
+def is_numeric(x):
+  return True if type(x) in [int, float] else False
+
 
 def add(a, b):
   """Adds two numbers, a and b.
@@ -34,6 +37,10 @@ def add(a, b):
   Returns:
     A numeric variable that is the sum of a and b.
   """
+  for var in [a,b]:
+    if not is_numeric(var):
+      raise ValueError("Inputs a and b must be an int or float, "
+                       "but {} was passed".format(var))
   return a + b
 
 
@@ -46,6 +53,11 @@ def square(x):
   Returns:
     The square of x.
   """
+
+  if not is_numeric(x):
+    raise ValueError("Inputs a and b must be an int or float, "
+                     "but {} was passed".format(x))
+
   return x ** 2
 
 
@@ -69,8 +81,13 @@ def log_transform(x, const=1):
     ValueError: Raises a value error if const <= 0.
   """
   if const <= 0:
-    raise ValueError("Constant const must be greater than 0, not {}"
+    raise ArithmeticError("Constant const must be greater than 0, not {}"
                      .format(const))
+
+  if not is_numeric(x):
+    raise ValueError("Inputs a and b must be an int or float, "
+                     "but {} was passed".format(x))
+
   return np.log(x + const)
 
 
@@ -79,9 +96,9 @@ def main():  # pragma: no cover
   a = 5
   b = 10
   total = add(a, b)
-  print("The sum of {} and {} is {}".format(a, b, total))
-  print("The ln of 10 is {}".format(log_transform(10)))
-
+  print("The sum of {} and {} is {}.".format(a, b, total))
+  print("The square of {} is {}.".format(3, square(3)))
+  print("The ln of 10 is {}.".format(log_transform(10)))
 
 if __name__ == "__main__":  # pragma: no cover
   main()

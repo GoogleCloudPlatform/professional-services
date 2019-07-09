@@ -67,19 +67,19 @@ Pytest is being used as the testing suite for this project. Before proceeding ma
 command line by running this command from the root of the project:
 
 ```bash
-python -m pytest 
+python3 -m pytest 
 ```
 
 Or if you want to be fancy and use the [coverage](https://pytest-cov.readthedocs.io/en/latest/readme.html) plug-in:
 
 ```bash
-python -m pytest --cov=my_module tests/
+python3 -m pytest --cov=my_module tests/
 ```
 
 If everything goes well you should expect to see output like this, showing successful tests:
 
 ```bash
-$ python -m pytest --cov=my_module tests/
+$ python3 -m pytest --cov=my_module tests/
 ============================================================================= test session starts ==============================================================================
 platform darwin -- Python 3.7.3, pytest-4.6.2, py-1.8.0, pluggy-0.12.0
 rootdir: /Users/mikebernico/dev/basic-cicd-cloudbuild
