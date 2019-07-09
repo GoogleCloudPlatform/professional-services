@@ -55,7 +55,7 @@ def square(x):
   """
 
   if not is_numeric(x):
-    raise ValueError("Inputs a and b must be an int or float, "
+    raise ValueError("Input x must be an int or float, "
                      "but {} was passed".format(x))
 
   return x ** 2
@@ -85,7 +85,7 @@ def log_transform(x, const=1):
                      .format(const))
 
   if not is_numeric(x):
-    raise ValueError("Inputs a and b must be an int or float, "
+    raise ValueError("Input x must be an int or float, "
                      "but {} was passed".format(x))
 
   return np.log(x + const)

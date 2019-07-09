@@ -25,7 +25,7 @@ import pytest
 class TestIsNumeric(object):
   def test_int(self):
     assert is_numeric(1) == True
-  
+
   def test_float(self):
     assert is_numeric(3.14) == True
 
