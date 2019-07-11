@@ -53,15 +53,15 @@ class TestAdd(object):
     assert add(1.1, 3.3) == 4.4
 
   def test_string(self):
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
       assert add("a",1)
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
       assert add(1,"b")
 
   def test_bool(self):
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
       assert add(True,1)
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
       assert add(1,False)
 
 
@@ -79,11 +79,11 @@ class TestSquare(object):
     assert square(-1) == 1
 
   def test_square_string(self):
-      with pytest.raises(ValueError):
+      with pytest.raises(TypeError):
         assert square("a")
 
   def test_square_bool(self):
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
       assert square(True)
 
 
@@ -117,9 +117,9 @@ class TestLogTransform(object):
       assert log_transform(10, const=-1)
 
   def test_log_transformation_string(self):
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
       assert log_transform("a")
 
   def test_log_transformation_bool(self):
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
       assert log_transform(True)
