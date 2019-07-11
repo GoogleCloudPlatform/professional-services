@@ -76,6 +76,7 @@ public class DynamicThrottlingTransform<InputT, OutputT> extends PTransform<PCol
     private final int kInRejectionProbability;
     private final Coder<InputT> inputElementCoder;
     private final ClientCall<InputT, OutputT> clientCall;
+    private ThrottlingStrategy throttlingStrategy;
 
     /**
      * Builder class to set client-side throttling parameter.
@@ -91,6 +92,7 @@ public class DynamicThrottlingTransform<InputT, OutputT> extends PTransform<PCol
         private int numOfEventsToBeProcessedForBatch;
         private Coder<BuilderInputT> inputElementCoder;
         private ClientCall<BuilderInputT, BuilderOutpuT> clientCall;
+        private ThrottlingStrategy throttlingStrategy;
 
         /**
          * The constructor for DynamicThrottlingTransform.Builder.
@@ -158,6 +160,17 @@ public class DynamicThrottlingTransform<InputT, OutputT> extends PTransform<PCol
         }
 
         /**
+         * This defines a strategy that is applied when a request is throttled by an external service or by a DataflowThrottlingTransform itself.
+         *
+         * @param throttlingStrategy
+         * @return
+         */
+        public Builder<BuilderInputT, BuilderOutpuT> withThrottlingStrategy(ThrottlingStrategy throttlingStrategy) {
+            this.throttlingStrategy = throttlingStrategy;
+            return this;
+        }
+
+        /**
          * Builds the DynamicThrottlingTransform object.
          *
          * @return
@@ -206,6 +219,7 @@ public class DynamicThrottlingTransform<InputT, OutputT> extends PTransform<PCol
         this.kInRejectionProbability = builder.kInRejectionProbability;
         this.inputElementCoder = builder.inputElementCoder;
         this.clientCall = builder.clientCall;
+        this.throttlingStrategy = builder.throttlingStrategy;
     }
 
     /**
@@ -251,6 +265,13 @@ public class DynamicThrottlingTransform<InputT, OutputT> extends PTransform<PCol
             }
         }));
 
+        TimeDomain timerDomain;
+        if (input.isBounded().equals(PCollection.IsBounded.UNBOUNDED)) {
+            timerDomain = TimeDomain.PROCESSING_TIME;
+        } else {
+            timerDomain = TimeDomain.EVENT_TIME;
+        }
+
         /**
          * {Throttling}: Payload is either sent to the external service or rejected based on the rejection probability.
          * Process element will add the payload to the {incomingReqBagState}.
@@ -269,12 +290,10 @@ public class DynamicThrottlingTransform<InputT, OutputT> extends PTransform<PCol
                     StateSpecs.value(VarIntCoder.of());
 
             @TimerId("resetCountsTimer")
-            private final TimerSpec resetCountsTimerSpec = TimerSpecs
-                    .timer(TimeDomain.EVENT_TIME);
+            private final TimerSpec resetCountsTimerSpec = TimerSpecs.timer(timerDomain);
 
             @TimerId("incomingReqBagTimer")
-            private final TimerSpec incomingReqBagTimerSpec = TimerSpecs
-                    .timer(TimeDomain.EVENT_TIME);
+            private final TimerSpec incomingReqBagTimerSpec = TimerSpecs.timer(timerDomain);
 
             /**
              * @param context Payload that should be sent by the client.
@@ -316,6 +335,7 @@ public class DynamicThrottlingTransform<InputT, OutputT> extends PTransform<PCol
 
                 int acceptedReqCount = firstNonNull(acceptedRequests.read(), 0);
                 int totalReqCount = firstNonNull(totalProcessedRequests.read(), 0);
+                List<InputT> retryRequests = new ArrayList<InputT>();
 
                 for (InputT value : Iterables.limit(bag, numOfEventsToBeProcessedForBatch)) {
                     //Calculates requests rejection probability
@@ -333,21 +353,44 @@ public class DynamicThrottlingTransform<InputT, OutputT> extends PTransform<PCol
                             acceptedRequests.write(acceptedReqCount);
                             context.output(successTag, successTagValue);
                         } catch (ThrottlingException e) {
-                            context.output(throttlingTag, result = new Result<>(value, e.getMessage()));
+                            switch (throttlingStrategy) {
+                                case DLQ:
+                                    context.output(throttlingTag, result = new Result<>(value, e.getMessage()));
+                                    break;
+                                case DROP:
+                                    break;
+                                case RETRY:
+                                    retryRequests.add(value);
+                                    break;
+                            }
                             accepted = FALSE;
                         } catch (Exception e) {
                             accepted = FALSE;
                             context.output(errorTag, result = new Result<>(value, e.getMessage()));
                         }
                     } else {
+                        switch (throttlingStrategy){
+                            case DLQ:
+                                context.output(throttlingTag, result = new Result<>(value, "Throttled by Client. Request rejection probability: " + reqRejectionProbability));
+                                break;
+                            case DROP:
+                                break;
+                            case RETRY:
+                                retryRequests.add(value);
+                                break;
+                        }
                         accepted = FALSE;
-                        context.output(throttlingTag, result = new Result<>(value, "Throttled by Client. Request rejection probability: " + reqRejectionProbability));
                     }
                     LOG.debug("  totalCount-" + totalReqCount + ",  reqRejecProb-" + reqRejectionProbability + ",  Random-" + randomValue + ", " + accepted + ",  acceptCount-" + acceptedReqCount);
                 }
 
+                List<InputT> latestElements = new ArrayList<InputT>();
+                Iterables.addAll(latestElements, Iterables.skip(bag, numOfEventsToBeProcessedForBatch));
                 incomingReqBagState.clear();
-                for (InputT b : Iterables.skip(bag, numOfEventsToBeProcessedForBatch)) {
+                for (InputT b : latestElements) {
+                    incomingReqBagState.add(b);
+                }
+                for (InputT b : retryRequests){
                     incomingReqBagState.add(b);
                 }
                 incomingReqBagTimer.offset(Duration.millis(batchInterval.toMillis())).setRelative();
