@@ -43,10 +43,13 @@ def get_feature_columns(tf_transform_output, exclude_columns=None):
     feature_columns = []
     feature_spec = tf_transform_output.transformed_feature_spec()
 
-    if exclude_columns:
-        for col in exclude_columns:
-            if col in feature_spec:
-                del feature_spec[col]
+    if not exclude_columns:
+        exclude_columns = []
+
+    feature_spec = {
+        col: val for (col, val) in feature_spec.items() if (
+            col not in exclude_columns)
+    }
 
     for k, v in feature_spec.items():
         if v.dtype in tf_numeric_types:

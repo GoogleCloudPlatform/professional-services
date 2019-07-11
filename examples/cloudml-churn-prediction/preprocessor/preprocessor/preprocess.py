@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Build preprocessing pipeline for survival analysis."""
+
+from __future__ import absolute_import
+
 import sys
 
 from . import features
@@ -84,35 +87,47 @@ def _generate_fake_data(element):
     return element
 
 
-def _map_to_class(element):
-    """Extract duration and class from source data.
+def append_lifetime_duration(element):
+    """Extract duration of user's current lifetime.
 
     This function is required for both fake and real data, unless fields can be
-    extracted directly for source data (i.e. BQ).
+    extracted directly from source data (i.e. BQ table).
 
     Returns:
-        element with following fields added:
+        element (dict) with following field added:
             duration: number of days between subscription start date and end
                 date, or current date if customer is still active
-            label: String class denoting interval that duration falls in between
     """
-
-    class_ceilings = features.LABEL_CEILINGS
     if not element['active']:
         duration = element['end_date'] - element['start_date']
     else:
         duration = datetime.datetime.now() - element['start_date']
     duration_days = duration.days
     element.update(duration=duration_days)
+    return element
+
+
+def append_label(element):
+    """Extract label (lifetime bucket) from source data.
+
+    This function is required for both fake and real data, unless fields can be
+    extracted directly from source data (i.e. BQ table).
+
+    Returns:
+        element (dict) with following field added:
+            label: String class denoting interval that lifetime falls in
+                between
+    """
+    class_ceilings = features.LABEL_CEILINGS
     for index in range(0, len(class_ceilings)):
-        if duration_days < class_ceilings[index]:
+        if element['duration'] < class_ceilings[index]:
             element.update(label=features.LABEL_VALUES[index])
             return element
     element.update(label=features.LABEL_VALUES[len(class_ceilings)-1])
     return element
 
 
-def _combine_censorship_duration(element):
+def combine_censorship_duration(element):
     """Create labels for training using lifetime and censorship.
 
     Transform users' duration and censorship indicator into a 2*n_intervals
@@ -143,7 +158,7 @@ def _combine_censorship_duration(element):
         if duration < breaks[-1]:
             y[num_intervals + np.where(np.full(
                 num_intervals, duration) < breaks[1:])[0][0]] = 1.0
-    element.update(labelArray=y)
+    element.update(labelArray=list(y))
     return element
 
 
@@ -247,7 +262,7 @@ def parse_arguments(argv):
     parser.add_argument(
         '--machine_type',
         help="""Set machine type for Dataflow worker machines.""",
-        default='n1-highmem-4',
+        default='n1-standard-2',
     )
     parser.add_argument(
         '--cloud',
@@ -271,7 +286,7 @@ def get_pipeline_args(flags):
     options = {
         'project': flags.project_id,
         'staging_location': os.path.join(flags.output_dir, 'staging'),
-        'temp_location': os.path.join(flags.output_dir, 'temp2'),
+        'temp_location': os.path.join(flags.output_dir, 'temp'),
         'job_name': flags.job_name,
         'save_main_session': True,
         'setup_file': './setup.py'
@@ -290,10 +305,11 @@ def build_pipeline(p, flags):
                 project=flags.project_id,
                 use_standard_sql=True)
             )
-        # omit 'Generate Data' step if working with real data
-        | 'Generate Data' >> beam.Map(_generate_fake_data)
-        | 'Extract duration and Label' >> beam.Map(_map_to_class)
-        | 'Generate label array' >> beam.Map(_combine_censorship_duration)
+        # omit 'Generate data' step if working with real data
+        | 'Generate data' >> beam.Map(_generate_fake_data)
+        | 'Extract lifetime ' >> beam.Map(append_lifetime_duration)
+        | 'Extract label' >> beam.Map(append_label)
+        | 'Generate label array' >> beam.Map(combine_censorship_duration)
         )
     raw_train, raw_eval, raw_test = (
         raw_data | 'RandomlySplitData' >> randomly_split(

@@ -55,9 +55,13 @@ PROJECT="[PROJECT ID]"
 
 ### Run locally with Dataflow
 ```shell
-python -m preprocessor.run_preprocessing \
+cd preprocessor
+
+python -m run_preprocessing \
 --output_dir "${OUTPUT_DIR}" \
 --project_id "${PROJECT}"
+
+cd ..
 ```
 
 ### Run on the Cloud with Dataflow
