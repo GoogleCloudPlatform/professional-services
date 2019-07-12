@@ -16,12 +16,13 @@
 import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {Component, EventEmitter, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
 import {MatSelect} from '@angular/material/select';
-import {OAuthService} from 'angular-oauth2-oidc';
+// import {OAuthService} from 'angular-oauth2-oidc';
 import * as _ from 'lodash';
 import {defer, EMPTY, Observable, of, Subject, Subscription} from 'rxjs';
 import {catchError, filter, takeUntil} from 'rxjs/operators';
 
 import {BigQueryService} from '../big-query.service';
+import {GoogleAuthService} from '../google-auth.service';
 import {LogService} from '../log.service';
 import {BqProject, BqProjectListResponse} from '../rest_interfaces';
 
@@ -32,6 +33,8 @@ import {BqProject, BqProjectListResponse} from '../rest_interfaces';
   styleUrls: ['./projects.component.css']
 })
 export class ProjectsComponent implements OnInit, OnDestroy {
+  // authService: GoogleAuthService;
+
   allProjects: BqProject[];  // All the projects that are available.
   projects: BqProject[];  // The list of projects matching the current filter.
   projectFilter = '';
@@ -44,7 +47,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   @Output() getJobs = new EventEmitter<BqProject>();
 
   constructor(
-      private http: HttpClient, private oauthService: OAuthService,
+      private http: HttpClient, private oauthService: GoogleAuthService,
       private bqService: BigQueryService, private logSvc: LogService) {}
 
   async ngOnInit() {
@@ -61,8 +64,6 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     } else {
       this.allProjects = [];
       this.projects = [];
-      // this.getProjects(); // disabled until we find a way to do this after
-      // the user is logged in
     }
   }
 
@@ -71,6 +72,9 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   }
 
   async getProjects() {
+    if (this.oauthService.isLoggedIn === false) {
+      await this.oauthService.login();
+    }
     this.isLoading = true;
     this.projects = [];
     this.allProjects = [];
@@ -95,7 +99,8 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     // Select the previously selected project.
     if (localStorage.getItem('lastProjectId')) {
       const project = _.find(
-          this.allProjects, p => p.id == localStorage.getItem('lastProjectId'));
+          this.allProjects,
+          p => p.id === localStorage.getItem('lastProjectId'));
       if (project) {
         this.selectedProject = project;
       }
@@ -128,6 +133,18 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   listJobs(): void {
     if (this.selectedProject) {
       this.getJobs.emit(this.selectedProject);
+    }
+  }
+
+  public getProjectsLabel(): string {
+    if (this.oauthService.isLoggedIn) {
+      if (this.allProjects.length > 0) {
+        return 'Refresh Projects';
+      } else {
+        return 'Get Projects';
+      }
+    } else {
+      return 'Login';
     }
   }
 }

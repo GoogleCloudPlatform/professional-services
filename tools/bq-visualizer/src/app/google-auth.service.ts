@@ -24,15 +24,25 @@ import {LogService} from './log.service';
 
 @Injectable({providedIn: 'root'})
 export class GoogleAuthService {
+  public isLoggedIn = false;
   constructor(private logSvc: LogService, private oauthService: OAuthService) {
-    this.configureAuth();
+    this.isLoggedIn = oauthService.hasValidAccessToken();
+  }
+
+  public async login() {
+    if (this.isLoggedIn === false) {
+      await this.configureAuth();
+    }
+  }
+  getAccessToken(): string {
+    return this.oauthService.getAccessToken();
   }
 
   private async configureAuth() {
     this.logSvc.debug('configureAuth');
     this.oauthService.configure(environment.authConfig);
     this.oauthService.tokenValidationHandler = new JwksValidationHandler();
-    return this.oauthService.loadDiscoveryDocumentAndLogin();
+    this.isLoggedIn = await this.oauthService.loadDiscoveryDocumentAndLogin();
   }
 }
 

@@ -19,7 +19,7 @@ import {MatTabChangeEvent} from '@angular/material/tabs';
 
 import {BqJob} from '../bq_job';
 import {BqQueryPlan} from '../bq_query_plan';
-import {GoogleAuthService} from '../google-auth.service';
+// import {GoogleAuthService} from '../google-auth.service';
 import {JobComponent} from '../job/job.component';
 import {TimingDisplayComponent} from '../timing-display/timing-display.component';
 import {VisDisplayComponent} from '../vis-display/vis-display.component';
@@ -38,7 +38,8 @@ export class MainComponent {
   @ViewChild('timing') timingComponent: TimingDisplayComponent;
 
   // adding the authservice here causes the application to invoke authentication
-  constructor(private authService: GoogleAuthService) {}
+  // constructor(private authService: GoogleAuthService) {}
+  constructor() {}
 
   async ngOnInit() {
     this.jobComponent.planSelected.subscribe(async plan => {
