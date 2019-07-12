@@ -1,29 +1,30 @@
-# Client-side Throttling in Dataflow
+# Client-side Throttling in Apache Beam
 
 ### Introduction
-When Dataflow pipeline tries to get a response for an incoming event from third-party API there is a chance of the request to fail because of infrastructure issues: network saturation, limits on API calls, etc. Client-side throttling can act as a way to limit the number of requests coming from Dataflow by either postponing or dropping excessive requests. It can also serve as a fail-safe mechanism that prevents the loss of payload of requests throttled by the server by storing failed requests in a Dead Letter Queue.
+When Apache Beam pipeline tries to get a response for an incoming event from third-party API there is a chance of the request to fail because of infrastructure issues: network saturation, limits on API calls, etc. Client-side throttling can act as a way to limit the number of requests coming from Apache Beam by either postponing or dropping excessive requests. It can also serve as a fail-safe mechanism that prevents the loss of payload of requests throttled by the server by storing failed requests in a Dead Letter Queue.
 
-For example, when a streaming pipeline calls the Cloud DLP API for each event to inspect sensitive data or de-identify the additional columns, DLP API can accept only 600 requests per minute though the incoming flow can be more than the limit (the 600 rpm quota can be increased on request). In this scenario, instead of sending events to DLP API and getting failures, client-side throttling buffers the requests locally and fails them only if the DLP service starts to throttle the client, even if the number of requests sent by Dataflow is below quota. Dataflow throttling can also reroute the events to a Dead Letter Queue or to any other sink from where you can reprocess the events.
+For example, when a streaming pipeline calls the Cloud DLP API for each event to inspect sensitive data or de-identify the additional columns, DLP API can accept only 600 requests per minute though the incoming flow can be more than the limit (the 600 rpm quota can be increased on request). In this scenario, instead of sending events to DLP API and getting failures, client-side throttling buffers the requests locally and fails them only if the DLP service starts to throttle the client, even if the number of requests sent by Apache Beam is below quota. Apache Beam throttling can also reroute the events to a Dead Letter Queue or to any other sink from where you can reprocess the events.
 
-This artifact is designed to implement distributed adaptive client-side throttling in Dataflow. Adaptive throttling activates when a service called by Dataflow starts rejecting requests due to throughput higher than expected. The main transform in this library tracks the request rejection probability to decide whether it should fail locally without going through network to save the cost of rejecting a request.
+This artifact is designed to implement distributed adaptive client-side throttling in Apache Beam. Adaptive throttling activates when a service called by Apache Beam pipeline starts rejecting requests due to throughput higher than expected. The main transform in this library tracks the request rejection probability to decide whether it should fail locally without going through network to save the cost of rejecting a request.
 
-### Dataflow Client-side Throttling
+### Apache Beam Throttling
 
-This library is intended to create a buffer for requests above API quota and reject requests that have a high probability of being rejected by the server locally on Dataflow nodes. When Dataflow pipeline sends HTTP requests to the external service with input elements as payload, once the request has been processed by the backend, the backend  must send a response back whether the request has been accepted or rejected. The response code is used by the library to determine whether the request was throttled or not. An error code for a throttled request depends up on the backend throttling implementation (usually it's HTTP code 429).
+This library is intended to create a buffer for requests above API quota and reject requests that have a high probability of being rejected by the server locally on Dataflow nodes. When Apache Beam pipeline sends HTTP requests to the external service with input elements as payload, once the request has been processed by the backend, the backend  must send a response back whether the request has been accepted or rejected. The response code is used by the library to determine whether the request was throttled or not. An error code for a throttled request depends up on the backend throttling implementation (usually it's HTTP code 429).
 As part of the integration process, a user of this library needs to implement clientCall function which makes requests to the external service.
 
-![DataflowThrottling DAG](img/dataflow-throttling-dag.png "Dataflow Throttling DAG")
+![ApacheBeamThrottling DAG](img/dataflow-throttling-dag.png "Apache Beam Throttling DAG")
 
-### Adaptive throttling in Dataflow
+### Adaptive throttling in Apache Beam
 
-Dataflow pipeline maintains the number of requests it has sent to the backend and the number of requests got accepted by the backend. Using stateTimer, it will process a batch of elements from each state value and remove the processed requests from the state value when they are processed. Request rejection probability is calculated as follows:
+Apache Beam pipeline maintains the number of requests it has sent to the backend and the number of requests got accepted by the backend. Using stateTimer, it will process a batch of elements from each state value and remove the processed requests from the state value when they are processed. Request rejection probability is calculated as follows:
     ```RequestRejectionProbability = (total_requests - k * total_accepts)/(total_requests+1)```
+
 For each request, if RequestRejectionProbability is more than a random number between 0 or 1 generated for each request, the request is sent to either Pub/Sub dead letter queue or any other sink defined by the user. If the value is less than this random value the request is sent to the external service.
-[Adaptive throttling](https://landing.google.com/sre/sre-book/chapters/handling-overload/#eq2101).
 
 For more information on these parameters see [Adaptive throttling](https://landing.google.com/sre/sre-book/chapters/handling-overload/#eq2101). The count of the incoming requests and accepted requests should be equal under normal conditions. Once the requests start getting rejected, the number of processing requests gets decreased by the difference of incoming requests and accepted requests.
 
-A Dataflow pipeline will process the payload in multiple groups. To achieve this, the pipeline will transform the PCollection[Bounded/Unbounded] into multiple groups based on random distribution (the random distribution behavior can be overridden).
+Apache Beam pipeline will process the payload in multiple groups. To achieve this, the pipeline will transform the PCollection[Bounded/Unbounded] into multiple groups based on random distribution (the random distribution behavior can be overridden).
+
 Pipeline PCollection transform steps:
 * Conversion of the Input PCollection<T> into PCollection<Key,T>. Here, Key will be group id (random by default) and Value will be payload.
 * Adaptive throttling is applied to each group[State cell] accordingly.
@@ -31,6 +32,9 @@ Pipeline PCollection transform steps:
 * ClientCall, a user defined function, is invoked. This function sends PCollection elements to the backend node. Based on the response of the clientCall respective counters are incremented.
 
 The variables which stores the total number of requested and accepted requests are zeroed out after a certain interval of time (defaults to 1 min). This reset speeds up client recovery if server throughput was limited due to limitations on the server side not caused by the client.
+
+### Limitations
+* When the Dynamic Throttling Transform is used inside FixedWindows, the state is restricted per key per window and rejection probability as well as the throughput rate is calculated per window. This can cause an overlap of a fixed window that processes the current events with other fixed windows which are processing a backlog; thus causing a higher rate of events sent to the external service.
 
 ### Library testing: HTTP Server with Throttling capabilities
 
@@ -44,7 +48,7 @@ To simulate a third-party service a test web server is created intended to accep
 #### 1. Clone the repository
 
 * git clone https://github.com/GoogleCloudPlatform/professional-services.git to a GCE instance or local machine.
-* Change directory to professional-services/examples/dataflowthrottling/src/main/java/com/google/cloud/pso/dataflowthrottling
+* Change directory to professional-services/tools/apachebeamthrottling/src/main/java/com/google/cloud/pso/beamthrottling
 * Pass the InetSocketAddress as a run-time argument, which should be your Compute Engine instance internal IP or ‘localhost’ if you’re using DirectRunner to run Dataflow on your local machine.
 
 #### 2. Compile and run the backend server
