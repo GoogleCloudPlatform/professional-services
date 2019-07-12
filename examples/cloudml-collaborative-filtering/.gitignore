@@ -1,0 +1,9 @@
+out*.json
+out*.tfrecord
+venv
+*.pyc
+*.egg-info
+*outputs
+*models
+
+preprocessing/config.ini
