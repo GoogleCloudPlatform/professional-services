@@ -32,3 +32,4 @@ client_secrets.json
 .idea
 node_modules/
 *.code-workspace
+*.iml
