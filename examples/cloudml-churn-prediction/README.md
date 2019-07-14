@@ -139,7 +139,7 @@ gcloud ai-platform jobs submit training ${JOB_NAME} \
   
 ### Launch Tensorboard
 ```shell
-tensorboard --log-dir ${MODEL_DIR}
+tensorboard --logdir ${MODEL_DIR}
 ```
    
 ## Predictions
