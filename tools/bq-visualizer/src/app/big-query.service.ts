@@ -121,7 +121,7 @@ export class BigQueryService {
   /** Get all projects. */
   getProjects(): Observable<BqProject> {
     return Observable.create(async obs => {
-      if (this.googleAuthService.isLoggedIn === false) {
+      if (this.googleAuthService.isLoggedIn() === false) {
         console.log('calling login');
         await this.googleAuthService.login();
         console.log(

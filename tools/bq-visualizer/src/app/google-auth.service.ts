@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable} from '@angular/core';
+import {EventEmitter, Injectable} from '@angular/core';
 import {OAuthService} from 'angular-oauth2-oidc';
 import {JwksValidationHandler} from 'angular-oauth2-oidc';
 import {AuthConfig} from 'angular-oauth2-oidc';
@@ -24,16 +24,27 @@ import {LogService} from './log.service';
 
 @Injectable({providedIn: 'root'})
 export class GoogleAuthService {
-  public isLoggedIn = false;
-  constructor(private logSvc: LogService, private oauthService: OAuthService) {
-    this.isLoggedIn = oauthService.hasValidAccessToken();
-  }
+  loginEvent = new EventEmitter<boolean>();
+
+  constructor(private logSvc: LogService, private oauthService: OAuthService) {}
 
   public async login() {
-    if (this.isLoggedIn === false) {
+    if (this.isLoggedIn() === false) {
       await this.configureAuth();
     }
   }
+  public isLoggedIn(): boolean {
+    console.log('checking if we are logged in.');
+    console.log('has token: ' + this.oauthService.hasValidAccessToken());
+    return this.oauthService.hasValidAccessToken();
+  }
+  public logout() {
+    if (this.isLoggedIn()) {
+      this.oauthService.logOut();
+      this.loginEvent.emit(false);
+    }
+  }
+
   getAccessToken(): string {
     return this.oauthService.getAccessToken();
   }
@@ -42,7 +53,9 @@ export class GoogleAuthService {
     this.logSvc.debug('configureAuth');
     this.oauthService.configure(environment.authConfig);
     this.oauthService.tokenValidationHandler = new JwksValidationHandler();
-    this.isLoggedIn = await this.oauthService.loadDiscoveryDocumentAndLogin();
+    const result = await this.oauthService.loadDiscoveryDocumentAndLogin();
+    console.log('configure auth result = ' + result);
+    this.loginEvent.emit(result);
   }
 }
 

@@ -13,7 +13,7 @@
 
       <mat-grid-tile>
         <button mat-button id="btnGetProjects" aria-label="getProjectsLabel()" (click)="getProjects()"
-          *ngIf="!isLoading">
+          *ngIf="!isLoading" [disabled]="!this.isLoggedIn">
           Get Projects
         </button>
         <h4 *ngIf="isLoading">Please wait... Loaded {{ this.allProjects.length }}</h4>
@@ -30,7 +30,8 @@
       </mat-grid-tile>
 
       <mat-grid-tile>
-        <button mat-button id="btnListJobs" [disabled]="!selectedProject" aria-label="List" (click)="listJobs()">
+        <button mat-button id="btnListJobs" [disabled]="!selectedProject || !isLoggedIn" aria-label="List"
+          (click)="listJobs()">
           List Jobs
         </button>
       </mat-grid-tile>

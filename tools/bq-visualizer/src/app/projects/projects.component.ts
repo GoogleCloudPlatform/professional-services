@@ -33,8 +33,6 @@ import {BqProject, BqProjectListResponse} from '../rest_interfaces';
   styleUrls: ['./projects.component.css']
 })
 export class ProjectsComponent implements OnInit, OnDestroy {
-  // authService: GoogleAuthService;
-
   allProjects: BqProject[];  // All the projects that are available.
   projects: BqProject[];  // The list of projects matching the current filter.
   projectFilter = '';
@@ -45,11 +43,18 @@ export class ProjectsComponent implements OnInit, OnDestroy {
 
   // Emitted events.
   @Output() getJobs = new EventEmitter<BqProject>();
-
+  public isLoggedIn: boolean;
   constructor(
       private http: HttpClient, private oauthService: GoogleAuthService,
-      private bqService: BigQueryService, private logSvc: LogService) {}
+      private bqService: BigQueryService, private logSvc: LogService) {
+    this.isLoggedIn = this.oauthService.isLoggedIn();
+    this.oauthService.loginEvent.subscribe(
+        (isloggedIn: boolean) => this.register_login(isloggedIn));
+  }
 
+  private register_login(isloggedIn) {
+    this.isLoggedIn = isloggedIn;
+  }
   async ngOnInit() {
     this.projectSelect.selectionChange.subscribe(event => {
       // Store the last selected project in the local storage.
@@ -72,8 +77,8 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   }
 
   async getProjects() {
-    if (this.oauthService.isLoggedIn === false) {
-      await this.oauthService.login();
+    if (this.oauthService.isLoggedIn() === false) {
+      return;
     }
     this.isLoading = true;
     this.projects = [];
