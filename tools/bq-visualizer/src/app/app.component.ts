@@ -32,29 +32,21 @@ export class AppComponent {
         (isloggedIn: boolean) => this.register_login(isloggedIn));
 
     this.isLoggedIn = this.googleAuthService.isLoggedIn();
+    /*
     console.log(
         'isloggedin = ' + this.googleAuthService.getAccessToken() != null);
     console.log('token = ' + this.googleAuthService.getAccessToken());
+    */
   }
-
+  /* event handler to recognise a login or logout event has occurred */
   private register_login(what: boolean) {
     this.isLoggedIn = what;
-    console.log('register login :' + what);
   }
   public login() {
-    console.log('login');
     this.googleAuthService.login();
-    // this.isLoggedIn = this.googleAuthService.isLoggedIn;
-    console.log('isloggedin = ' + this.isLoggedIn);
-    console.log('token = ' + this.googleAuthService.getAccessToken());
   }
 
   public logout() {
-    console.log('logout');
     this.googleAuthService.logout();
-    // this.isLoggedIn = this.googleAuthService.isLoggedIn;
-    console.log('isloggedin = ' + this.isLoggedIn);
-
-    console.log('token = ' + this.googleAuthService.getAccessToken());
   }
 }

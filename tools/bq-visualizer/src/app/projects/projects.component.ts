@@ -78,7 +78,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
 
   async getProjects() {
     if (this.oauthService.isLoggedIn() === false) {
-      return;
+      this.oauthService.login();
     }
     this.isLoading = true;
     this.projects = [];

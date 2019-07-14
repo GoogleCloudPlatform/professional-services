@@ -72,7 +72,6 @@ export class BigQueryService {
           projection: 'full',
           pageToken: nextPageToken,
         });
-        // console.log('getJobs: ' + url);
 
         try {
           await new Promise((resolve, reject) => {
@@ -122,10 +121,7 @@ export class BigQueryService {
   getProjects(): Observable<BqProject> {
     return Observable.create(async obs => {
       if (this.googleAuthService.isLoggedIn() === false) {
-        console.log('calling login');
         await this.googleAuthService.login();
-        console.log(
-            ' login  returned : result =' + this.googleAuthService.isLoggedIn);
         if (this.googleAuthService.isLoggedIn) {
           this.logSvc.info('successfully Logged in');
         } else {
@@ -134,8 +130,6 @@ export class BigQueryService {
         }
       }
       const token = this.googleAuthService.getAccessToken();
-      // console.log('access token');
-      // console.log(token);
 
       let nextPageToken = '';
       while (true) {

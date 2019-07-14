@@ -34,8 +34,6 @@ export class GoogleAuthService {
     }
   }
   public isLoggedIn(): boolean {
-    console.log('checking if we are logged in.');
-    console.log('has token: ' + this.oauthService.hasValidAccessToken());
     return this.oauthService.hasValidAccessToken();
   }
   public logout() {
@@ -54,8 +52,8 @@ export class GoogleAuthService {
     this.oauthService.configure(environment.authConfig);
     this.oauthService.tokenValidationHandler = new JwksValidationHandler();
     const result = await this.oauthService.loadDiscoveryDocumentAndLogin();
-    console.log('configure auth result = ' + result);
     this.loginEvent.emit(result);
+    return result;
   }
 }
 
