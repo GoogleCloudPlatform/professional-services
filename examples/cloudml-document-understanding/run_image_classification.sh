@@ -27,11 +27,11 @@ export multilabel=False
 export GOOGLE_APPLICATION_CREDENTIALS="keys/key.json"
 
 # Copy the dataset to your bucket from GCS
-gsutil -m cp -r gs://pdf-processing-219114/demo_prod/image_classification gs://$PROJECT_ID-vcm/patents_data/image_classification
+gsutil -m cp -r gs://patent_demo_data/image_classification gs://$PROJECT_ID-vcm/patents_data/image_classification
 
 # Change the location of the files for labels to import data
 gsutil cp gs://$PROJECT_ID-vcm/patents_data/image_classification/patents_image_labels.csv .
-sed -i -e "s/pdf-processing-219114\/demo_prod/$PROJECT_ID-vcm\/patents_data/g" patents_image_labels.csv
+sed -i -e "s/patent_demo_data/$PROJECT_ID-vcm\/patents_data/g" patents_image_labels.csv
 gsutil cp patents_image_labels.csv gs://$PROJECT_ID-vcm/patents_data/image_classification/patents_image_labels.csv
 rm patents_image_labels.csv*
 

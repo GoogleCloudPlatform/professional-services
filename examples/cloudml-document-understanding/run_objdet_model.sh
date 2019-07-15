@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Shell script to run Natural Entity Recognition.
+# Shell script to run Object Detection.
 
 # User needs to Enable the API to access on UI
 # TODO: These variables will need to be set to the user's project, region.
@@ -26,15 +26,15 @@ export DATASET_NAME='patent_dataset'
 export GOOGLE_APPLICATION_CREDENTIALS="keys/key.json"
 
 # Copy the dataset to your bucket from GCS
-gsutil -m cp -r gs://patent_demo_data/entity_extraction gs://$PROJECT_ID-vcm/patents_data/entity_extraction
+gsutil -m cp -r gs://patent_demo_data/object_detection gs://$PROJECT_ID-vcm/patents_data/object_detection
 
 # Change the location of the files for labels to import data
-gsutil cp gs://$PROJECT_ID-vcm/patents_data/entity_extraction/patents_ner_labels.csv .
-sed -i -e "s/patent_demo_data/$PROJECT_ID-vcm\/patents_data/g" patents_ner_labels.csv
-gsutil cp patents_ner_labels.csv gs://$PROJECT_ID-vcm/patents_data/entity_extraction/patents_ner_labels.csv
-rm patents_ner_labels.csv*
+gsutil cp gs://$PROJECT_ID-vcm/patents_data/object_detection/patents_objdet_labels.csv .
+sed -i -e "s/patent_demo_data/$PROJECT_ID-vcm\/patents_data/g" patents_objdet_labels.csv
+gsutil cp patents_objdet_labels.csv gs://$PROJECT_ID-vcm/patents_data/object_detection/patents_objdet_labels.csv
+rm patents_objdet_labels.csv*
 
-python automl_ner_model.py \
-  --project_id=$PROJECT_ID \
-  --compute_region=$REGION_NAME \
-  --dataset_name=$DATASET_NAME
+#python automl_objdet_model.py \
+#  --project_id=$PROJECT_ID \
+#  --compute_region=$REGION_NAME \
+#  --dataset_name=$DATASET_NAME
