@@ -43,7 +43,7 @@ def create_dataset(project_id, compute_region, dataset_name, multilabel=False):
     # Set dataset name and metadata.
     my_dataset = {
         "display_name": dataset_name,
-        "text_extraction_dataset_metadata": dataset_metadata
+        "text_extraction_dataset_metadata": {}
     }
 
     # Create a dataset with the dataset metadata in the region.

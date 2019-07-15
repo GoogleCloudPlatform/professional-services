@@ -18,11 +18,12 @@
 PROJECT_ID="munn-sandbox"
 USERID_DOMAIN="munn@google.com"
 
-SA_NAME="doc-demo-service-acct"
-SA_DESCRIPTION="service_account_for_doc_understanding_demo"
-SA_DISPLAY_NAME="Doc_Demo_service_account"
+SA_NAME="patent-demo-service-acct"
+SA_DESCRIPTION="Service-account-for-doc-understanding-demo"
+SA_DISPLAY_NAME="Patent-Demo-Service-Account"
 
-
+# TODO: need to check if patent-demo-service-acct exits already. 
+# If so, delete and recreate, or just add necessary permissions
 gcloud beta iam service-accounts create $SA_NAME \
     --description=$SA_DESCRIPTION \
     --display-name=$SA_DISPLAY_NAME

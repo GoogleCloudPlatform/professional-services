@@ -27,13 +27,13 @@ export multilabel=False
 export GOOGLE_APPLICATION_CREDENTIALS="keys/key.json"
 
 # Copy the dataset to your bucket from GCS
-#gsutil -m cp -r gs://pdf-processing-219114/demo_prod/entity_extraction gs://$PROJECT_ID-vcm/patents_data/entity_extraction
+gsutil -m cp -r gs://pdf-processing-219114/demo_prod/entity_extraction gs://$PROJECT_ID-vcm/patents_data/entity_extraction
 
 # Change the location of the files for labels to import data
-#gsutil cp gs://$PROJECT_ID-vcm/patents_data/entity_extraction/patents_ner_labels.csv .
-#sed -i -e "s/pdf-processing-219114\/demo_prod/$PROJECT_ID-vcm\/patents_data/g" patents_ner_labels.csv
-#gsutil cp patents_ner_labels.csv gs://$PROJECT_ID-vcm/patents_data/entity_extraction/patents_ner_labels.csv
-#rm patents_ner_labels.csv
+gsutil cp gs://$PROJECT_ID-vcm/patents_data/entity_extraction/patents_ner_labels.csv .
+sed -i -e "s/pdf-processing-219114\/demo_prod/$PROJECT_ID-vcm\/patents_data/g" patents_ner_labels.csv
+gsutil cp patents_ner_labels.csv gs://$PROJECT_ID-vcm/patents_data/entity_extraction/patents_ner_labels.csv
+rm patents_ner_labels.csv
 
 python automl_ner_model.py \
   --project_id=$PROJECT_ID \

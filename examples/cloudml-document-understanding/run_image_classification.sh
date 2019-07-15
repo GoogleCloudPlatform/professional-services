@@ -15,13 +15,11 @@
 #
 # Shell script to run image classification.
 
-
 # User needs to Enable the API to access on UI
 # TODO: These variables will need to be set to the user's project, region.
 # Move these variables to a config file the user will edit directly
 export PROJECT_ID='munn-sandbox'
 export REGION_NAME='us-central1'
-
 
 export DATASET_NAME='patent_dataset'
 export multilabel=False
@@ -34,8 +32,8 @@ gsutil -m cp -r gs://pdf-processing-219114/demo_prod/image_classification gs://$
 # Change the location of the files for labels to import data
 gsutil cp gs://$PROJECT_ID-vcm/patents_data/image_classification/patents_image_labels.csv .
 sed -i -e "s/pdf-processing-219114\/demo_prod/$PROJECT_ID-vcm\/patents_data/g" patents_image_labels.csv
-gsutil cp patents_image_labels.csv gs://$PROJECT_ID-vcm/patents_data/patents_image_labels.csv
-rm patents_image_labels.csv
+gsutil cp patents_image_labels.csv gs://$PROJECT_ID-vcm/patents_data/image_classification/patents_image_labels.csv
+rm patents_image_labels.csv*
 
 python automl_image_classification.py \
   --project_id=$PROJECT_ID \
