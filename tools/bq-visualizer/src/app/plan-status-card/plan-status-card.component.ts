@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 import {Component, OnInit} from '@angular/core';
+import {EventEmitter} from '@angular/core';
+
 import {BqQueryPlan} from '../bq_query_plan';
 import {LogService} from '../log.service';
 
@@ -24,6 +26,10 @@ import {LogService} from '../log.service';
 })
 export class PlanStatusCardComponent {
   plan: BqQueryPlan;
+  SHOWREPARTIION = 'showRepartition';
+  HIDEREPARTITION = 'hideRepartition';
+  stageDisplayOption = this.HIDEREPARTITION;
+  dislayOptionEvent = new EventEmitter<string>();
 
   constructor(private logSvc: LogService) {}
 
@@ -31,6 +37,10 @@ export class PlanStatusCardComponent {
     this.plan = plan;
   }
 
+  changeStageDisplayOption(event) {
+    console.log(event);
+    this.dislayOptionEvent.emit(this.stageDisplayOption);
+  }
   get settings(): string {
     if (this.plan && this.plan.plan.configuration.query) {
       const results = {
@@ -125,4 +135,6 @@ export class PlanStatusCardComponent {
     }
     return 'No Statistics to display';
   }
+
+  /** display settings */
 }
