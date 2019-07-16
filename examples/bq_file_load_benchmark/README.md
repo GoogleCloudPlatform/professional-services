@@ -88,7 +88,7 @@ ad hoc analysis. The results table contains the following schema:
 
 While the project can be configured to create results table with the above 
 schema in any project and dataset, the table that currently holds the results 
-is [data-analytics-pocs.bq_loader_benchmark.bq_load_results](https://pantheon.corp.google.com/bigquery?project=data-analytics-pocs&p=data-analytics-pocs&d=bq_loader_benchmark&t=bq_load_results&page=table).
+is data-analytics-pocs.bq_loader_benchmark.bq_load_results.
 
 #### DataStudio
 
