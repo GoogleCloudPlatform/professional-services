@@ -110,24 +110,23 @@ class TestProjectLabel(unittest.TestCase):
         """
         Tests storage_label_updater functionality.
         """
-        resourceid = 'data-piper1'
+        storage_resourceid = 'data-piper1'
+        config_file = "update_labels.config"
         for test_data_tags in self.test_data_tags_list:
-            updated_bucket = storage_label_updater.storage_label_updater(resourceid, test_data_tags)
+            updated_bucket = storage_label_updater.storage_label_updater(storage_resourceid, test_data_tags)
             updated_labels = updated_bucket.labels
             self.assert_test_data_tags(test_data_tags, updated_labels)
 
     def test_compute_engine_updater(self):
         """
         Tests compute engine label updater (gce_label_updater) functionality.
-        :return:
         """
         config_file = "update_labels.config"
-        test_projectid = "cardinal-data-piper-sbx"
         resourceid = '5760604619992189475'
         zone = 'us-west2-a'
 
         for test_data_tags in self.test_data_tags_list:
-            updated_instance = compute_engine_label_updater.gce_label_updater(config_file, test_projectid, resourceid,
+            updated_instance = compute_engine_label_updater.gce_label_updater(config_file, self.test_projectid, resourceid,
                                                                               zone, test_data_tags)
             updated_labels = updated_instance['labels']
             self.assert_test_data_tags(test_data_tags, updated_labels)
@@ -135,21 +134,33 @@ class TestProjectLabel(unittest.TestCase):
     def test_bigquery_label_updater(self):
         """
         Tests bigquery_label_updater functionality.
-        :return:
         """
         config_file = "update_labels.config"
-        resourceid = 'public'
+        resourceid = 'BQ_label_test_1'
 
         for test_data_tags in self.test_data_tags_list:
-            updated_dataset = bigquery_label_updater.bigquery_label_updater(config_file, self.test_projectid, resourceid,
-                                                                             test_data_tags)
+            updated_dataset = bigquery_label_updater.bigquery_label_updater(config_file, self.test_projectid,
+                                                                            resourceid, test_data_tags)
             updated_labels = updated_dataset.labels
+            self.assert_test_data_tags(test_data_tags, updated_labels)
+
+    def test_bigquery_table_label_updater(self):
+        """
+        Test BigQuery table label updater.
+        """
+        config_file = "update_labels.config"
+        resource_id = "BQ_label_test_1"
+        subresourceid = "gcp_organization_folder_hierarchy"
+
+        for test_data_tags in self.test_data_tags_list:
+            updated_table = bigquery_label_updater.bigquery_table_label_updater(config_file, self.test_projectid,
+                                                                            resource_id, subresourceid, test_data_tags)
+            updated_labels = updated_table.labels
             self.assert_test_data_tags(test_data_tags, updated_labels)
 
     def test_bigtable_label_updater(self):
         """
         Tests bigquery_label_updater functionality.
-        :return:
         """
         config_file = "update_labels.config"
         resourceid = 'data-piper1'
@@ -162,7 +173,6 @@ class TestProjectLabel(unittest.TestCase):
     def test_isheader_without_header(self):
         """
         Testing access_setup.is_header function.
-        :return:
         """
         config_file = "update_labels_none_header.config"
 
