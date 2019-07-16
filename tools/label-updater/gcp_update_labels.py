@@ -31,8 +31,6 @@ import bigtable_label_updater
 import bigquery_label_updater
 
 # -----------------------------------------------------------
-#
-# TODO: A summary file which keeps track of all records getting updated or errored out.
 
 
 # noinspection PyShadowingNames,PyShadowingNames,PyShadowingNames,PyShadowingNames
@@ -42,18 +40,18 @@ def main(p_resource_type, p_sub_resource_type, r_proj_resource_zone_dict):
     :param p_resource_type: resource_type e.g. project, compute engine, bigtable, bigquery, storage
     :param r_proj_resource_zone_dict: It is a nested dictionary having attributes of the resource for each resource type
     e.g. structure like this : # {
-#  key: resource type,
-#  value: { key: "project_id|resource_id|zone",
-#           value: { project_id: project1,
-#                    resource_id: resource1,
-#                    zone: zone1,
-#                    tags: {
-#                       key: label_key,
-#                       value: labels_value
-#                    }
-#             }
-#         }
-# }
+    key: resource type,
+    value: { key: "project_id|resource_id|zone",
+           value: { project_id: project1,
+                    resource_id: resource1,
+                    zone: zone1,
+                    tags: {
+                       key: label_key,
+                       value: labels_value
+                    }
+             }
+         }
+ }
     :return: It doesn't return anything
     """
     for proj_resource_zone_key in r_proj_resource_zone_dict:
