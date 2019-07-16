@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+import os
 import unittest
 
 from google.cloud import bigquery
@@ -34,8 +35,13 @@ class TestTableUtil(unittest.TestCase):
         self.dataset_ref = self.bq_client.dataset(self.dataset_id)
         dataset = bigquery.Dataset(self.dataset_ref)
         self.dataset = self.bq_client.create_dataset(dataset)
+        print("!!!!!!!!!!!!!!!!!!!!!!! CREATED DATASET !!!!!!!!!!!!!!!!!!" )
         self.table_id = 'test_table'
-        json_schema_filename = 'test_schemas/test_schema.json'
+        abs_path = os.path.abspath(os.path.dirname(__file__))
+        json_schema_filename = os.path.join(
+            abs_path,
+            'test_schemas/test_schema.json'
+        )
         self.table_util = table_util.TableUtil(
             table_id=self.table_id,
             dataset_id=self.dataset_id,
@@ -99,7 +105,11 @@ class TestTableUtil(unittest.TestCase):
         job_config = bigquery.LoadJobConfig()
         job_config.source_format = bigquery.SourceFormat.CSV
         job_config.skip_leading_rows = 1
-        data_file = 'test_data/test.csv'
+        abs_path = os.path.abspath(os.path.dirname(__file__))
+        data_file = os.path.join(
+            abs_path,
+            'test_data/test.csv'
+        )
         with open(data_file, 'rb') as file_obj:
             load_job = self.bq_client.load_table_from_file(
                 file_obj=file_obj,

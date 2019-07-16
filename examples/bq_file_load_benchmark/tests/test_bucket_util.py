@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+import os
 
 from google.cloud import storage
 
@@ -27,15 +28,22 @@ class TestBucketUtil(object):
         self.bucket_name = 'bq_benchmark_test_bucket'
         gcs_client = storage.Client()
         self.bucket = gcs_client.create_bucket(self.bucket_name)
-        file1 = ('test_data/fileType=csv/compression=none/'
-                 'numColumns=10/columnTypes=50_STRING_50_NUMERIC/numFiles=1/'
-                 'tableSize=10MB/file1.csv')
+        abs_path = os.path.abspath(os.path.dirname(__file__))
+        file1 = os.path.join(
+            abs_path,
+            ('test_data/fileType=csv/compression=none/'
+             'numColumns=10/columnTypes=50_STRING_50_NUMERIC/numFiles=1/'
+             'tableSize=10MB/file1.csv')
+        )
         self.blob1_name = file1.split('test_data/')[1]
         blob1 = self.bucket.blob(self.blob1_name)
         blob1.upload_from_filename(file1)
-        file2 = ('test_data/fileType=json/compression=none/'
-                 'numColumns=10/columnTypes=100_STRING/numFiles=1/'
-                 'tableSize=10MB/file1.json')
+        file2 = os.path.join(
+            abs_path,
+            ('test_data/fileType=json/compression=none/'
+             'numColumns=10/columnTypes=100_STRING/numFiles=1/'
+             'tableSize=10MB/file1.json')
+        )
         self.blob2_name = file2.split('test_data/')[1]
         blob2 = self.bucket.blob(self.blob2_name)
         blob2.upload_from_filename(file2)

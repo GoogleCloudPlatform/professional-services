@@ -20,7 +20,11 @@ class TestSchemaCreator(object):
     def setup(self):
         """Sets up resources for tests.
         """
-        self.test_schemas_dir = 'test_schemas'
+        abs_path = os.path.abspath(os.path.dirname(__file__))
+        self.test_schemas_dir = os.path.join(
+            abs_path,
+            'test_schemas'
+        )
         self.test_file_parameters = {
             'fileType': ['csv', 'json'],
             'fileCompressionTypes': {
@@ -36,6 +40,14 @@ class TestSchemaCreator(object):
                 '50_STRING_50_NUMERIC',
             ],
         }
+        self.expected_schema_path_1 = os.path.join(
+            abs_path,
+            'test_schemas/100_STRING_4.json'
+        )
+        self.expected_schema_path_2 = os.path.join(
+            abs_path,
+            'test_schemas/50_STRING_50_NUMERIC_4.json'
+        )
 
     def test_create_schmeas(self):
         """Tests SchemaCreator.create_schemas().
@@ -52,8 +64,7 @@ class TestSchemaCreator(object):
         )
 
         test_schema_creator.create_schemas()
-        self.expected_schema_path_1 = 'test_schemas/100_STRING_4.json'
-        self.expected_schema_path_2 = 'test_schemas/50_STRING_50_NUMERIC_4.json'
+
         assert os.path.isfile(self.expected_schema_path_1)
         assert os.path.isfile(self.expected_schema_path_2)
 
