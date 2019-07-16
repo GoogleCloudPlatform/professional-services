@@ -100,7 +100,7 @@ class SchemaCreator(object):
                     os.makedirs('./{0:s}'.format(self.schemas_dir))
                 # Create a file name, based on the ColumnType parameter and the
                 # numColumns parameter, to hold the json schema.
-                file_name = './{0:s}/{1:s}_{2:d}.json'.format(
+                file_name = '{0:s}/{1:s}_{2:d}.json'.format(
                     self.schemas_dir,
                     column_type,
                     n,

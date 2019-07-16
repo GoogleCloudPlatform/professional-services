@@ -57,7 +57,7 @@ to a BigQuery table and records the performance to create a benchmark.
 
 #### BigQuery
 
-The results of the benchmark loads are saved in a seperate BigQuery for 
+The results of the benchmark loads are saved in a separate BigQuery table for 
 ad hoc analysis. The results table contains the following schema: 
 
 | Field Name        | Type    | Description     |

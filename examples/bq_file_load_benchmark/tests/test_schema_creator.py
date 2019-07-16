@@ -25,6 +25,7 @@ class TestSchemaCreator(object):
             abs_path,
             'test_schemas'
         )
+
         self.test_file_parameters = {
             'fileType': ['csv', 'json'],
             'fileCompressionTypes': {
@@ -44,6 +45,7 @@ class TestSchemaCreator(object):
             abs_path,
             'test_schemas/100_STRING_4.json'
         )
+
         self.expected_schema_path_2 = os.path.join(
             abs_path,
             'test_schemas/50_STRING_50_NUMERIC_4.json'
