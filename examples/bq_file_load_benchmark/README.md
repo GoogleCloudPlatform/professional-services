@@ -138,7 +138,7 @@ python bq_file_load_benchmark.py \
 Parameters:
 
 --create_results_table: Flag to indicate that a results table should be created. It has a value of 
-'store_true', so this flag will be set to False, unless it is provided in the 
+`store_true`, so this flag will be set to False, unless it is provided in the 
 command.
 
 
