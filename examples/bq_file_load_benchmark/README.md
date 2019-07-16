@@ -53,6 +53,10 @@ This prefix holds 100 uncompressed CSV files, each generated from a 10 MB BigQue
 staging table with 10 string columns. The tool loads the 100 CSV files with this prefix 
 to a BigQuery table and records the performance to create a benchmark. 
 
+In the future, a parameter for slot type will be added with values for communal
+and reserved. In addition, ORC will be added as a value for file type, and struct/
+array types will be added to the values for column types. 
+
 ## Benchmark Results
 
 #### BigQuery
