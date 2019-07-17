@@ -14,7 +14,6 @@
 
 import sys
 sys.path.append('..')
-sys.path.append('../../../')
 # noinspection PyPep8
 import unittest
 from project_label_updater import project_label_updater
@@ -28,7 +27,6 @@ import bigtable_label_updater
 import compute_engine_label_updater
 # noinspection PyPep8
 import bigquery_label_updater
-
 
 
 # noinspection PyUnusedLocal
@@ -63,7 +61,7 @@ class TestProjectLabel(unittest.TestCase):
         It takes the key file and sets up the authentication to run the api.
         Variable names are : key_file and crm_version
         e.g. export key_file=project_service_account.json
-            export crm_verion=1
+            export crm_verion=v1
         """
         scope = ['https://www.googleapis.com/auth/cloud-platform',
                  'https://www.googleapis.com/auth/spreadsheets',
@@ -87,19 +85,9 @@ class TestProjectLabel(unittest.TestCase):
 
     def test_project_label_updater_insert(self):
         """
-        Tests project_label_updater function without any pre-existing labels. The config file has no header.
+        Tests project_label_updater without header in config file.
         """
         config_file = "update_labels_no_header.config"
-        for test_data_tags in self.test_data_tags_list:
-            updated_project = project_label_updater(config_file, self.test_projectid, test_data_tags)
-            updated_labels = updated_project['labels']
-            self.assert_test_data_tags(test_data_tags, updated_labels)
-
-    def test_project_label_updater_with_header(self):
-        """
-        Tests project_label_updater if it can handle config files with header row.
-        """
-        config_file = "update_labels.config"
         for test_data_tags in self.test_data_tags_list:
             updated_project = project_label_updater(config_file, self.test_projectid, test_data_tags)
             updated_labels = updated_project['labels']
@@ -126,8 +114,8 @@ class TestProjectLabel(unittest.TestCase):
         zone = 'us-west2-a'
 
         for test_data_tags in self.test_data_tags_list:
-            updated_instance = compute_engine_label_updater.gce_label_updater(config_file, self.test_projectid, resourceid,
-                                                                              zone, test_data_tags)
+            updated_instance = compute_engine_label_updater.gce_label_updater(config_file, self.test_projectid,
+                                                                    resourceid, zone, test_data_tags)
             updated_labels = updated_instance['labels']
             self.assert_test_data_tags(test_data_tags, updated_labels)
 
@@ -160,13 +148,14 @@ class TestProjectLabel(unittest.TestCase):
 
     def test_bigtable_label_updater(self):
         """
-        Tests bigquery_label_updater functionality.
+        Tests bigtable_label_updater functionality.
         """
         config_file = "update_labels.config"
         resourceid = 'data-piper1'
 
         for test_data_tags in self.test_data_tags_list:
-            updated_instance = bigtable_label_updater.bigtable_label_updater(self.test_projectid, resourceid, test_data_tags)
+            updated_instance = bigtable_label_updater.bigtable_label_updater(self.test_projectid, resourceid,
+                                                                             test_data_tags)
             updated_labels = updated_instance.labels
             self.assert_test_data_tags(test_data_tags, updated_labels)
 
@@ -181,6 +170,7 @@ class TestProjectLabel(unittest.TestCase):
         self.assertTrue(contains_header, 'N')
 
 #####################################################
+
 
 if __name__ == "__main__":
     unittest.main()
