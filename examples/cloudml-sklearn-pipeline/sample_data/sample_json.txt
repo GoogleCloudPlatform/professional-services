@@ -1,0 +1,2 @@
+{"age": 39, "workclass": " Private", "education": " 9th", "marital_status": " Married-civ-spouse", "occupation": " Other-service", "relationship": " Wife", "race": " Black", "sex": " Female", "hours_per_week": 34, "native_country": " United-States"}
+{"age": 72, "workclass": " Private", "education": " 9th", "marital_status": " Married-civ-spouse", "occupation": " Exec-managerial", "relationship": " Wife", "race": " Asian-Pac-Islander", "sex": " Female", "hours_per_week": 48, "native_country": " United-States"}

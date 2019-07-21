@@ -1,7 +1,7 @@
 <h2>Introduction</h2>
 
 The purpose of this project is to demonstrate how to automate the process of viewing [Committed Use Discount (CUD)](https://cloud.google.com/compute/docs/instances/signing-up-committed-use-discounts) and [Sustained Use Discount (SUD)](https://cloud.google.com/compute/docs/sustained-use-discounts) charges in GCP on a 
-per-project basis to a BigQuery table. This helps to accurately view project cost, since currently when exporting billing 
+per-project basis in a BigQuery table. This helps to accurately view project cost, since currently when exporting billing 
 data, it does not correctly attribute CUD/SUD commitment charges.
 <br></br>
 Currently, this data can be viewed by running a query in BigQuery on exported billing data and generating a new table with 
@@ -12,6 +12,8 @@ Next, the Cloud Scheduler job then publishes a message to a PubSub topic on exec
 configured as a subscriber to this topic is then triggered by the PubSub message. The Cloud Function then calls a Python 
 script, which performs the transformation query on the billing table and generates the new table with the CUD/SUD commitment 
 charges.
+<br></br>
+The solution adjusts each project's cost by generating new line items in the output table, each of which represent a new SKU for reattribution. The purpose of this SKU is to amend the incorrect original per-project cost. The SKUs that are prefixed with "Reattribution_Negation_" subtract out the incorrect cost from the original billing table. The SKUs prefixed with "Reattribution_Addition_" then add in the newly generated correctly proportioned cost. These SKUs are generated for both CUD and SUD costs/credits.
 
 <h2>Installation/Set-up</h2>
 This project assumes that you already have project set up with billing data exported to BigQuery. Note the billing project id, dataset ids, and the table names, as you will need these later on when configuring the Cloud Function source code.
@@ -102,14 +104,20 @@ sql_file_path = 'cud_sud_attribution_query.sql'
 
 # There are two slightly different allocation methods that affect how the Commitment charge is allocated:
 
-# Method 1: Utilized commitment charges are allocated to cost buckets proportionally to buckets share of 
-# total eligible VM usage during the time increment (P_usage_percentage).
-# any untilized commitment cost remains unallocated (BA_unutilized_commitment_cost).
 
-# Method 2: All commitment charges are allocated to buckets (P_method_2_CUD_commitment_cost) proportionally 
-# to the buckets share of total eligible VM usage during the time increment (P_usage_percentage). All 
-# commitment cost is allocated into the buckets proportionally to the CUD credits that they consumed, even 
-# if the commitment is not fully utilized.
+# Method 1: Only UTILIZED commitment charges are allocated to projects.
+# (P_method_1_CUD_commitment_cost): Utilized CUD commitment charges are
+# proportionally allocated to each project based on its share of total eligible
+# VM usage during the time increment (P_usage_percentage). Any unutilized
+# commitment cost remains unallocated (BA_unutilized_commitment_cost) and is
+# allocated to the shell project.
+
+# Method 2: ALL commitment charges are allocated to projects (regardless of utilization).
+# (P_method_2_CUD_commitment_cost): All CUD commitment charges are
+# proportionally allocated to each project based on its share of total eligible
+# VM usage during the time increment (P_usage_percentage). All commitment cost
+# is allocated into the projects proportionally based on the CUD credits that
+# they consumed, even if the commitment is not fully utilized.
 allocation_method = 'P_method_2_commitment_cost'
 ````
 

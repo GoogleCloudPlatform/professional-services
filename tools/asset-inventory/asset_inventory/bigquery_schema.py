@@ -19,8 +19,8 @@
 The entry points are:
 
     `translate_json_to_schema`- Returns a list of
-    `google.cloud.bigquery.SchemaField` objects that describe the provided
-    document
+    `google.cloud.bigquery.SchemaField` like dict objects that describe the
+    provided document
 
     `sanitize_property_value`- Modifies the supplied json object to conform to
     BigQuery standards such as nesting depth, column name format.
@@ -28,15 +28,18 @@ The entry points are:
     `merge_schemas` - Combines multiple BigQuery schmas and returns a new schema
     that is a union of both.
 
+    `get_field_by_name` - Returns a field with the supplied name from a list of
+    BigQuery field.
+
 This module helps import json documents into BigQuery.
+
 """
 
+import copy
 from numbers import Number
 import re
 
 from six import string_types
-
-from google.cloud import bigquery
 
 CLEAN_UP_REGEX = re.compile(r'[\W]+')
 TIMESTAMP_REGEX = re.compile(
@@ -87,13 +90,13 @@ def _get_bigquery_type_for_property_value(property_value):
 def translate_json_to_schema(document):
     """Convert a json object to a BigQuery schema.
 
-    Traverses the json object collecting
-    `google.cloud.bigquery.SchemaField` objects for each value.
+    Traverses the json object collecting `google.cloud.bigquery.SchemaField`
+    like dict objects for each value.
 
     Args:
         document: A json object. It's not modified.
     Returns:
-        List of `google.cloud.bigquery.SchemaField` objects.
+        List of `google.cloud.bigquery.SchemaField` like dict objects.
 
     """
     schema = []
@@ -110,51 +113,51 @@ def translate_json_to_schema(document):
             field['mode'] = 'NULLABLE'
         if bigquery_type == 'RECORD':
             field['fields'] = translate_json_to_schema(property_value)
-        schema.append(bigquery.SchemaField(**field))
+        schema.append(field)
+    schema.reverse()
     return schema
 
 
-def _get_field_by_name(fields, field_name):
+def get_field_by_name(fields, field_name):
     for i, field in enumerate(fields):
-        if field.name == field_name:
+        # BigQuery column names are case insensitive.
+        if field['name'].lower() == field_name.lower():
             return i, field
     return None, None
 
 
 def _merge_fields(destination_field, source_field):
-    """Combines two SchemaField objects.
+    """Combines two SchemaField like dicts.
 
     The same field can exist in both the destination and source schemas when
     trying to combine schemas. To handle this we try to choose a more specific
     type if there is a conflict and merge any encosed fields.
 
     Args:
-        destination_field:  `google.cloud.bigquery.SchemaField` object.
-        source_field: `google.cloud.bigquery.SchemaField` object.
+        destination_field:  `google.cloud.bigquery.SchemaField` dict.
+        source_field: `google.cloud.bigquery.SchemaField` dict.
     Returns:
-        A `google.cloud.bigquery.SchemaField` object.
+        A `google.cloud.bigquery.SchemaField` dict.
     """
-    field = destination_field
-    # use the more specific type if destination is just a STRING.
-    if (destination_field.field_type == 'STRING' and
-        source_field.field_type != 'STRING'):
-        # Modify SchemaField.type by copy.
-        field = bigquery.SchemaField(
-            name=field.name,
-            fields=field.fields,
-            field_type=source_field.field_type,
-            description=field.description,
-            mode=field.mode)
-    merged_fields = _merge_schema(destination_field.fields,
-                                  source_field.fields)
-    # Modify SchemaField.fields by copy.
-    if merged_fields != destination_field.fields:
-        field = bigquery.SchemaField(
-            name=field.name,
-            fields=merged_fields,
-            field_type=field.field_type,
-            description=field.description,
-            mode=field.mode)
+    field = copy.deepcopy(destination_field)
+
+    dd = destination_field.get('description', None)
+    sd = source_field.get('description', None)
+    dft = destination_field.get('field_type', None)
+    sft = source_field.get('field_type', None)
+    # use the  field with more information.
+    if ((not dd and sd) or (sd and dd and len(dd) < len(sd))):
+        field['description'] = sd
+        field['field_type'] = sft
+    # use the less specific type.
+    elif ((dft != 'RECORD' and dft != 'STRING') and sft == 'STRING'):
+        field['field_type'] = sft
+    df = destination_field.get('fields', [])
+    sf = source_field.get('fields', [])
+    merged_fields = _merge_schema(df, sf)
+    # recursivly merge nested fields.
+    if merged_fields != df:
+        field['fields'] = merged_fields
     return field
 
 
@@ -171,11 +174,13 @@ def _merge_schema(destination_schema, source_schema):
         The modified destination_schema list.
 
     """
-
+    # short circuit if schemas are the same.
+    if destination_schema == source_schema:
+        return destination_schema
     destination_schema_list = list(destination_schema)
     for source_field in source_schema:
-        i, destination_field = _get_field_by_name(destination_schema_list,
-                                                  source_field.name)
+        i, destination_field = get_field_by_name(destination_schema_list,
+                                                 source_field['name'])
         # field with same name exists, merge them.
         if destination_field:
             destination_schema_list[i] = _merge_fields(destination_field,
@@ -211,9 +216,9 @@ def _convert_labels_dict_to_list(parent):
     object has arbitrary user supplied fields.
 
     Args:
-        parent: Json object.
+        parent: dict object.
     Returns:
-        The modified json object.
+        The modified dict object.
 
     """
     labels_dict = parent['labels']
@@ -259,7 +264,8 @@ def _sanitize_property(property_name, parent, depth):
         parent[new_property_name] = property_value
 
     # handle labels (condition #1).
-    if new_property_name == 'labels':
+    if (new_property_name == 'labels' and
+        isinstance(parent[new_property_name], dict)):
         _convert_labels_dict_to_list(parent)
 
     property_value = parent[new_property_name]
@@ -271,7 +277,9 @@ def _sanitize_property(property_name, parent, depth):
     parent[new_property_name] = sanitized
 
     # remove empty dicts or list of empty dicts (condition #3)
-    if not any(sanitized):
+    if ((isinstance(sanitized, list) or
+         isinstance(sanitized, dict)) and
+        not any(sanitized)):
         # BigQuery doesn't deal well with empty records.
         # prune the value.
         parent.pop(new_property_name)
@@ -322,3 +330,91 @@ def sanitize_property_value(property_value, depth=0):
             _sanitize_property(child_property, property_value, depth)
 
     return property_value
+
+
+def enforce_schema_data_type_on_property(field, property_value):
+    """Ensure property values are the correct type.
+
+    Tries to convert property_value into the field's type. If we can't, then
+    return None.
+    Args:
+      field: BigQuery schema field dict.
+      property_value: object to try to coerce.
+    Returns:
+      The properly typed property_value, or None if it can't be convered.
+    """
+    field_type = field['field_type']
+    if field_type == 'RECORD':
+        if isinstance(property_value, dict):
+            return enforce_schema_data_types(property_value, field['fields'])
+        else:
+            return None
+    if field_type == 'STRING':
+        if not isinstance(property_value, string_types):
+            return str(property_value)
+    if field_type == 'BOOL':
+        if not isinstance(property_value, bool):
+            if property_value:
+                return True
+            else:
+                return False
+    if field_type == 'TIMESTAMP':
+        if not re.match(TIMESTAMP_REGEX, property_value):
+            return None
+    if field_type == 'DATE':
+        if not re.match(DATE_REGEX, property_value):
+            return None
+    if field_type == 'DATETIME':
+        if not re.match(TIMESTAMP_REGEX, property_value):
+            return None
+    if field_type == 'NUMERIC':
+        if not isinstance(property_value, Number):
+            try:
+                return float(property_value)
+            except (ValueError, TypeError):
+                return None
+    return property_value
+
+
+def enforce_schema_data_types(resource, schema):
+    """Enforce schema's data types.
+
+    Kubernetes doesn't reject config resources with data of the wrong type.
+    BigQuery however is typesafe and rejects the load if value is a
+    different type then declared by the table's schema. This function
+    attempts to correct the invalid Kubernetes data and if that not
+    possible, just removes the property value, the json data will always
+    have the original data.
+    Args:
+        resource: Dictionary, will be modified.
+        schema: BigQuery schema.
+    Returns:
+        Modified resource.
+    """
+
+    # apply datatype of each field.
+    for field in schema:
+        field_name = field['name']
+        if field_name in resource:
+            resource_value = resource[field_name]
+            if field.get('mode', 'NULLABLE') == 'REPEATED':
+                if not isinstance(resource_value, list):
+                    resource_value = [resource_value]
+                new_array = []
+                for value in resource_value:
+                    value = enforce_schema_data_type_on_property(
+                        field, value)
+                    if value is not None:
+                        new_array.append(value)
+                if any(new_array):
+                    resource[field_name] = new_array
+                else:
+                    del resource[field_name]
+            else:
+                value = enforce_schema_data_type_on_property(
+                    field, resource_value)
+                if value is not None:
+                    resource[field_name] = value
+                else:
+                    del resource[field_name]
+    return resource

@@ -26,67 +26,51 @@ class TestBigQuerySchema(unittest.TestCase):
         document = {'record_field': {'string_field': 'string_value'}}
         schema = bigquery_schema.translate_json_to_schema(
             document)
-        self.assertEqual(len(schema), 1)
-        record_field = schema[0]
-        self.assertEqual(record_field.name, 'record_field')
-        self.assertEqual(record_field.field_type, 'RECORD')
-        self.assertEqual(record_field.mode, 'NULLABLE')
-        self.assertEqual(len(record_field.fields), 1)
-        string_field = record_field.fields[0]
-        self.assertEqual(string_field.name, 'string_field')
-        self.assertEqual(string_field.field_type, 'STRING')
-        self.assertEqual(string_field.mode, 'NULLABLE')
+        self.assertEqual(schema, [{'name': 'record_field',
+                                   'field_type': 'RECORD',
+                                   'mode': 'NULLABLE',
+                                   'fields': [
+                                       {'name': 'string_field',
+                                        'field_type': 'STRING',
+                                        'mode': 'NULLABLE'
+                                       }]}])
 
     def test_array(self):
         document = {'array_field': [{'string_field': 'string_value'}]}
         schema = bigquery_schema.translate_json_to_schema(
             document)
-        self.assertEqual(len(schema), 1)
-        array_field = schema[0]
-        self.assertEqual(array_field.name, 'array_field')
-        self.assertEqual(array_field.field_type, 'RECORD')
-        self.assertEqual(array_field.mode, 'REPEATED')
-        self.assertEqual(len(array_field.fields), 1)
-        string_field = array_field.fields[0]
-        self.assertEqual(string_field.name, 'string_field')
-        self.assertEqual(string_field.field_type, 'STRING')
-        self.assertEqual(string_field.mode, 'NULLABLE')
+        self.assertEqual(schema, [{'name': 'array_field',
+                                   'field_type': 'RECORD',
+                                   'mode': 'REPEATED',
+                                   'fields': [
+                                       {'name': 'string_field',
+                                        'field_type': 'STRING',
+                                        'mode': 'NULLABLE'
+                                       }]}])
 
     def test_numeric(self):
         document = {'integer_field': 111, 'float_field': 22.0}
         schema = bigquery_schema.translate_json_to_schema(
             document)
-        self.assertEqual(len(schema), 2)
-        _, integer_field = bigquery_schema._get_field_by_name(
-            schema,
-            'integer_field')
-        self.assertEqual(integer_field.name, 'integer_field')
-        self.assertEqual(integer_field.field_type, 'NUMERIC')
-        self.assertEqual(integer_field.mode, 'NULLABLE')
-        _, float_field = bigquery_schema._get_field_by_name(
-            schema,
-            'float_field')
-        self.assertEqual(float_field.name, 'float_field')
-        self.assertEqual(float_field.field_type, 'NUMERIC')
-        self.assertEqual(float_field.mode, 'NULLABLE')
+        self.assertEqual(schema, [{'name': 'integer_field',
+                                   'field_type': 'NUMERIC',
+                                   'mode': 'NULLABLE'},
+                                  {'name': 'float_field',
+                                   'field_type': 'NUMERIC',
+                                   'mode': 'NULLABLE'},
+                                 ])
 
     def test_bool(self):
         document = {'bool_array_field': [True, False], 'bool_field': False}
         schema = bigquery_schema.translate_json_to_schema(
             document)
-        self.assertEqual(len(schema), 2)
-        _, bool_array_field = bigquery_schema._get_field_by_name(
-            schema,
-            'bool_array_field')
-        self.assertEqual(bool_array_field.name, 'bool_array_field')
-        self.assertEqual(bool_array_field.field_type, 'BOOL')
-        self.assertEqual(bool_array_field.mode, 'REPEATED')
-        _, bool_field = bigquery_schema._get_field_by_name(
-            schema,
-            'bool_field')
-        self.assertEqual(bool_field.name, 'bool_field')
-        self.assertEqual(bool_field.field_type, 'BOOL')
-        self.assertEqual(bool_field.mode, 'NULLABLE')
+        self.assertEqual(schema, [{'name': 'bool_array_field',
+                                   'field_type': 'BOOL',
+                                   'mode': 'REPEATED'},
+                                  {'name': 'bool_field',
+                                   'field_type': 'BOOL',
+                                   'mode': 'NULLABLE'}
+                                 ])
 
     def test_merge_schemas_basic(self):
         schemas = [
@@ -99,54 +83,61 @@ class TestBigQuerySchema(unittest.TestCase):
             })
         ]
         merged_schema = bigquery_schema.merge_schemas(schemas)
-        self.assertEqual(len(merged_schema), 2)
-        _, field1 = bigquery_schema._get_field_by_name(
-            merged_schema, 'field1')
-        self.assertEqual(field1.field_type, 'STRING')
-        _, field2 = bigquery_schema._get_field_by_name(
-            merged_schema, 'field2')
-        self.assertEqual(field2.field_type, 'NUMERIC')
+        self.assertEqual(merged_schema,
+                         [{'name': 'field1',
+                           'field_type': 'STRING',
+                           'mode': 'NULLABLE'},
+                          {'name': 'field2',
+                           'field_type': 'NUMERIC',
+                           'mode': 'NULLABLE'},
+                         ])
 
     def test_merge_array_schemas_records(self):
-        schema = bigquery_schema.translate_json_to_schema(
-            [{'field1': 'value1'}, {'field2': 'value1'}])
-        self.assertEqual(len(schema), 2)
-        fields_found = [False, False]
-        for field in schema:
-            if field.name == 'field1':
-                fields_found[0] = True
-            if field.name == 'field2':
-                fields_found[1] = True
-            assert field.field_type == 'STRING'
-        self.assertTrue(fields_found[0] and fields_found[1])
+        schemas = [
+            bigquery_schema.translate_json_to_schema(
+                {'field1': [{'nested1': 'value1'}]}),
+            bigquery_schema.translate_json_to_schema(
+                {'field1': [{'nested2': 'value1'}]})
+        ]
+        merged_schema = bigquery_schema.merge_schemas(schemas)
+        self.assertEqual(merged_schema,
+                         [{'name': 'field1',
+                           'field_type': 'RECORD',
+                           'mode': 'REPEATED',
+                           'fields': [
+                               {'name': 'nested1',
+                                'field_type': 'STRING',
+                                'mode': 'NULLABLE'},
+                               {'name': 'nested2',
+                                'field_type': 'STRING',
+                                'mode': 'NULLABLE'}]}])
 
     def test_merge_schemas_records(self):
         schemas = [
             bigquery_schema.translate_json_to_schema({
-                'record_field': {
+                'recordField': {
                     'field1': 'string'
                 }
             }),
             bigquery_schema.translate_json_to_schema({
-                'record_field': {
+                'recordfield': {
                     'field1': 'string',
                     'field2': [2]
                 }
             })
         ]
         merged_schema = bigquery_schema.merge_schemas(schemas)
-        self.assertEqual(len(merged_schema), 1)
-        record_field = merged_schema[0]
-        self.assertEqual(record_field.field_type, 'RECORD')
-        self.assertEqual(len(record_field.fields), 2)
-        _, field1 = bigquery_schema._get_field_by_name(
-            record_field.fields, 'field1')
-        self.assertEqual(field1.field_type, 'STRING')
-        self.assertEqual(field1.mode, 'NULLABLE')
-        _, field2 = bigquery_schema._get_field_by_name(
-            record_field.fields, 'field2')
-        self.assertEqual(field2.field_type, 'NUMERIC')
-        self.assertEqual(field2.mode, 'REPEATED')
+        self.assertEqual(merged_schema,
+                         [{'name': 'recordField',
+                           'field_type': 'RECORD',
+                           'mode': 'NULLABLE',
+                           'fields': [
+                               {'name': 'field1',
+                                'field_type': 'STRING',
+                                'mode': 'NULLABLE'},
+                               {'name': 'field2',
+                                'field_type': 'NUMERIC',
+                                'mode': 'REPEATED'}]}])
 
     def test_sanitize_property_value(self):
         doc = {
@@ -178,6 +169,80 @@ class TestBigQuerySchema(unittest.TestCase):
                 labels_found[1] = True
                 assert label['value'] == 'value2'
         self.assertTrue(labels_found[0] and labels_found[1])
+
+    def test_enforce_schema_data_types(self):
+        schema = [{'name': 'property_1',
+                   'field_type': 'NUMERIC',
+                   'mode': 'NULLABLE'},
+                  {'name': 'property_2',
+                   'field_type': 'STRING',
+                   'mode': 'NULLABLE'},
+                  {'name': 'property_3',
+                   'field_type': 'DATE',
+                   'mode': 'NULLABLE'},
+                  {'name': 'property_4',
+                   'field_type': 'DATETIME',
+                   'mode': 'NULLABLE'},
+                  {'name': 'property_5',
+                   'field_type': 'BOOL',
+                   'mode': 'NULLABLE'},
+                  {'name': 'property_6',
+                   'field_type': 'NUMERIC',
+                   'mode': 'REPEATED'},
+                  {'name': 'property_7',
+                   'field_type': 'RECORD',
+                   'mode': 'REPEATED',
+                   'fields': [
+                       {'name': 'property_1',
+                        'field_type': 'NUMERIC',
+                        'mode': 'NULLABLE'},
+                       {'name': 'property_2',
+                        'field_type': 'STRING',
+                        'mode': 'NULLABLE'}]}]
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_1': '333'}, schema), {'property_1': 333})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_1': 333}, schema), {'property_1': 333})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_1': 'notanumber'}, schema), {})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_2': 33}, schema), {'property_2': '33'})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_2': 'astring'}, schema), {'property_2': 'astring'})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_3': '2019-01-01'}, schema),
+            {'property_3': '2019-01-01'})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_3': 'invaliddate'}, schema), {})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_4': '2019-01-01T00:01:00'}, schema),
+            {'property_4': '2019-01-01T00:01:00'})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_4': 'invalid'}, schema), {})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_5': False}, schema), {'property_5': False})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_5': 'True'}, schema), {'property_5': True})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_5': 0}, schema), {'property_5': False})
+
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_6': 33}, schema), {'property_6': [33]})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_6': '33'}, schema), {'property_6': [33]})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_6': {'33'}}, schema), {})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_6': [33]}, schema), {'property_6': [33]})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_7': [{'property_1': 'invalid',
+                             'property_2': 'valid'}]}, schema),
+            {'property_7': [{'property_2': 'valid'}]})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_7': [{'property_1': 'invalid'}]}, schema), {})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_7': [{'property_1': 'invalid'}, 33]}, schema), {})
+
 
 if __name__ == '__main__':
     unittest.main()

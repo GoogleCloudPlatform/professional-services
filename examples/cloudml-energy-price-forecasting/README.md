@@ -39,7 +39,7 @@ PREDICTIONS_FOLDER = ${JOB_FOLDER}/test_predictions
 
 ## Train model
 ```
-gcloud ml-engine jobs submit training $JOB_NAME \
+gcloud ai-platform jobs submit training $JOB_NAME \
         --job-dir=gs://${BUCKET_NAME}/${JOB_FOLDER} \
         --runtime-version=1.10 \
         --region=us-central1 \
@@ -50,7 +50,7 @@ gcloud ml-engine jobs submit training $JOB_NAME \
 
 ## Hyper-parameter tuning
 ```
-gcloud ml-engine jobs submit training ${JOB_NAME} \
+gcloud ai-platform jobs submit training ${JOB_NAME} \
         --job-dir=gs://${BUCKET_NAME}/${JOB_FOLDER} \
         --runtime-version=1.10 \
         --region=us-central1 \
@@ -61,12 +61,12 @@ gcloud ml-engine jobs submit training ${JOB_NAME} \
 
 ## Create model
 ```
-gcloud ml-engine models create ${MODEL_NAME} --regions=us-central1
+gcloud ai-platform models create ${MODEL_NAME} --regions=us-central1
 ```
 
 ## Create model version
 ```
-gcloud ml-engine versions create ${MODEL_VERSION} \
+gcloud ai-platform versions create ${MODEL_VERSION} \
         --model=${MODEL_NAME} \
         --origin=${MODEL_PATH} \
         --runtime-version=1.10
@@ -74,7 +74,7 @@ gcloud ml-engine versions create ${MODEL_VERSION} \
 
 ## Predict on test data
 ```
-gcloud ml-engine jobs submit prediction ${JOB_NAME} \
+gcloud ai-platform jobs submit prediction ${JOB_NAME} \
     --model=${MODEL_NAME} \
     --input-paths=gs://${BUCKET_NAME}/${TEST_DATA} \
     --output-path=gs://${BUCKET_NAME}/${PREDICTIONS_FOLDER} \
