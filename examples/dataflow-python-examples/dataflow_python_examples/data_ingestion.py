@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """`data_ingestion.py` is a Dataflow pipeline which reads a file and writes its
 contents to a BigQuery table.
 This example does not do any transformation on the data.
@@ -28,7 +27,6 @@ from apache_beam.options.pipeline_options import PipelineOptions
 class DataIngestion:
     """A helper class which contains the logic to translate the file into
     a format BigQuery will accept."""
-
     def parse_method(self, string_input):
         """This method translates a single line of comma separated values to a
         dictionary which can be loaded into BigQuery.
@@ -56,10 +54,8 @@ class DataIngestion:
         values = re.split(",",
                           re.sub('\r\n', '', re.sub(u'"', '', string_input)))
         row = dict(
-                zip(('state', 'gender', 'year', 'name', 'number',
-                     'created_date'),
-                    values)
-                )
+            zip(('state', 'gender', 'year', 'name', 'number', 'created_date'),
+                values))
         return row
 
 
@@ -73,22 +69,23 @@ def run(argv=None):
     # This is the final stage of the pipeline, where we define the destination
     # of the data. In this case we are writing to BigQuery.
     parser.add_argument(
-        '--input', dest='input', required=False,
+        '--input',
+        dest='input',
+        required=False,
         help='Input file to read. This can be a local file or '
-             'a file in a Google Storage Bucket.',
+        'a file in a Google Storage Bucket.',
         # This example file contains a total of only 10 lines.
         # Useful for developing on a small set of data.
-        default='gs://python-dataflow-example/data_files/head_usa_names.csv'
-    )
+        default='gs://python-dataflow-example/data_files/head_usa_names.csv')
 
     # This defaults to the lake dataset in your BigQuery project. You'll have
     # to create the lake dataset yourself using this command:
     # bq mk lake
-    parser.add_argument(
-        '--output', dest='output', required=False,
-        help='Output BQ table to write results to.',
-        default='lake.usa_names'
-    )
+    parser.add_argument('--output',
+                        dest='output',
+                        required=False,
+                        help='Output BQ table to write results to.',
+                        default='lake.usa_names')
 
     # Parse arguments from the command line.
     known_args, pipeline_args = parser.parse_known_args(argv)
@@ -102,36 +99,33 @@ def run(argv=None):
     # where Dataflow should store temp files.
     p = beam.Pipeline(options=PipelineOptions(pipeline_args))
 
-    (
-        p
-        # Read the file. This is the source of the pipeline. All further
-        # processing starts with lines read from the file. We use the input
-        # argument from the command line. We also skip the first line which is a
-        # header row.
-        | 'Read from a File' >> beam.io.ReadFromText(known_args.input,
-                                                     skip_header_lines=1)
-        # This stage of the pipeline translates from a CSV file single row
-        # input as a string, to a dictionary object consumable by BigQuery.
-        # It refers to a function we have written. This function will
-        # be run in parallel on different workers using input from the
-        # previous stage of the pipeline.
-        | 'String To BigQuery Row' >> beam.Map(lambda s:
-                                               data_ingestion.parse_method(s))
-        | 'Write to BigQuery' >> beam.io.Write(
-            beam.io.BigQuerySink(
-                # The table name is a required argument for the BigQuery sink.
-                # In this case we use the value passed in from the command line.
-                known_args.output,
-                # Here we use the simplest way of defining a schema:
-                # fieldName:fieldType
-                schema='state:STRING,gender:STRING,year:STRING,name:STRING,'
-                       'number:STRING,created_date:STRING',
-                # Creates the table in BigQuery if it does not yet exist.
-                create_disposition=beam.io.BigQueryDisposition.CREATE_IF_NEEDED,
-                # Deletes all data in the BigQuery table before writing.
-                write_disposition=beam.io.BigQueryDisposition.WRITE_TRUNCATE)
-            )
-    )
+    (p
+     # Read the file. This is the source of the pipeline. All further
+     # processing starts with lines read from the file. We use the input
+     # argument from the command line. We also skip the first line which is a
+     # header row.
+     | 'Read from a File' >> beam.io.ReadFromText(known_args.input,
+                                                  skip_header_lines=1)
+     # This stage of the pipeline translates from a CSV file single row
+     # input as a string, to a dictionary object consumable by BigQuery.
+     # It refers to a function we have written. This function will
+     # be run in parallel on different workers using input from the
+     # previous stage of the pipeline.
+     | 'String To BigQuery Row' >>
+     beam.Map(lambda s: data_ingestion.parse_method(s))
+     | 'Write to BigQuery' >> beam.io.Write(
+         beam.io.BigQuerySink(
+             # The table name is a required argument for the BigQuery sink.
+             # In this case we use the value passed in from the command line.
+             known_args.output,
+             # Here we use the simplest way of defining a schema:
+             # fieldName:fieldType
+             schema='state:STRING,gender:STRING,year:STRING,name:STRING,'
+             'number:STRING,created_date:STRING',
+             # Creates the table in BigQuery if it does not yet exist.
+             create_disposition=beam.io.BigQueryDisposition.CREATE_IF_NEEDED,
+             # Deletes all data in the BigQuery table before writing.
+             write_disposition=beam.io.BigQueryDisposition.WRITE_TRUNCATE)))
     p.run().wait_until_finish()
 
 

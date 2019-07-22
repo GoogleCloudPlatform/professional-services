@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Script to import file schema from CSV and save it into Google Cloud DataStore
 To run this script, you will need Python packages listed in requirements.txt.
 You can easily install them with virtualenv and pip by running these commands:
@@ -37,9 +36,10 @@ from google.cloud import datastore
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '--schema-file', dest='schema_file', required=True,
-        help='''
+    parser.add_argument('--schema-file',
+                        dest='schema_file',
+                        required=True,
+                        help='''
             File containing the schema of the input CSV data to be
             imported.
             Filename should be the same as the BQ table name that you
@@ -48,8 +48,7 @@ def main():
             Example:
                 COLUMN_1,STRING
                 COLUMN_2,FLOAT
-            '''
-    )
+            ''')
     args = parser.parse_args()
     client = datastore.Client()
 
