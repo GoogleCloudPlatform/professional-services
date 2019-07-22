@@ -1,10 +1,12 @@
-# Copyright 2017 Google Inc.
+#!/bin/bash
+
+# Copyright 2019 Google Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#            http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -12,24 +14,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__pycache__/
-*.py[cod]
-*$py.class
-dist/
-lib/
-*.egg-info/
-.cache
-pytestdebug.log
-source-contexts.json
-source-context.json
-client_secrets.json
-\#*\#
-.\#*
-*_flymake.py
-.DS_Store
-.eggs/
-.python-version
-.idea
-node_modules/
-*.code-workspace
-*.iml
+# Convenience script for predicting locally using a model on AI Platform.
+#
+# Arguments:
+#   MODEL_VERSION: The version of the model to predict against.
+. ./bin/_common.sh
+
+MODEL_VERSION=$1
+
+PROJECT_ID="$(get_project_id)"
+
+python -m serving.make_prediction \
+  --project "${PROJECT_ID}" \
+  --model "${MODEL_NAME}" \
+  --version "${MODEL_VERSION}" \
+  --usernames "${USERNAMES_PATH}"
