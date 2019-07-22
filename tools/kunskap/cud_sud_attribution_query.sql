@@ -63,6 +63,7 @@ CREATE TEMP FUNCTION
       service.id AS service_id,
       service.description AS service_description,
       project.id AS project_id,
+      project.name AS project_name,
       labels_1.value AS label_1_value,
       labels_2.value AS label_2_value,
       usage.unit AS unit,
@@ -83,7 +84,8 @@ CREATE TEMP FUNCTION
     WHERE
       service.description = "Compute Engine"
       AND (
-       FALSE OR (LOWER(sku.description) LIKE "%instance%"
+       FALSE
+        OR (LOWER(sku.description) LIKE "%instance%"
           OR LOWER(sku.description) LIKE "% intel %")
         OR LOWER(sku.description) LIKE "%memory optimized core%"
         OR LOWER(sku.description) LIKE "%memory optimized ram%"
@@ -195,6 +197,7 @@ CREATE TEMP FUNCTION
         unit_type,
         unit,
         project_id,
+        project_name,
         label_1_value,
         label_2_value,
         SUM(usage_amount) AS usage_amount,
@@ -220,7 +223,8 @@ CREATE TEMP FUNCTION
         9,
         10,
         11,
-        14)
+        12,
+        15)
     UNION ALL (
         -- Second query pulls out CUD and SUD Credit usage and cost. This is done in a separate
         -- SELECT and unioned because if we unnest the repeated field for credit types, we can
@@ -235,6 +239,7 @@ CREATE TEMP FUNCTION
         unit_type,
         unit,
         project_id,
+        project_name,
         label_1_value,
         label_2_value,
         SUM(usage_amount) AS usage_amount,
@@ -255,6 +260,7 @@ CREATE TEMP FUNCTION
           unit_type,
           unit,
           project_id,
+          project_name,
           label_1_value,
           label_2_value,
           unit_price,
@@ -300,7 +306,8 @@ CREATE TEMP FUNCTION
           10,
           11,
           12,
-          15)
+          13,
+          16)
       GROUP BY
         1,
         2,
@@ -313,7 +320,8 @@ CREATE TEMP FUNCTION
         9,
         10,
         11,
-        14) ),
+        12,
+        15) ),
     -- project_credit_breakout sums usage amount and cost
     -- across the cost organization schema of interest: labels within projects
     project_label_credit_breakout AS (
@@ -323,6 +331,7 @@ CREATE TEMP FUNCTION
       service_description,
       region,
       project_id,
+      project_name,
       label_1_value,
       label_2_value,
       cud_type,
@@ -364,7 +373,8 @@ CREATE TEMP FUNCTION
       7,
       8,
       9,
-      10),
+      10,
+      11),
     -- BA_credit_breakout sums usage amount and cost
     -- across the entire Billing Account within each unique CUD scope <location, unit_type, cud_type>
     -- so that we know what the total cost is that we need to attribute across each project/label
@@ -413,6 +423,7 @@ CREATE TEMP FUNCTION
       p.unit_type,
       p.cud_type,
       p.project_id,
+      p.project_name,
       p.label_1_value,
       p.label_2_value,
       BA_commitment_usage_amount,
@@ -527,7 +538,7 @@ CREATE TEMP FUNCTION
       TIMESTAMP(usage_date) AS usage_start_time,
       TIMESTAMP_ADD(TIMESTAMP(usage_date), INTERVAL ((3600*23)+3599) SECOND) AS usage_end_time,
       STRUCT ( project_id AS id,
-        "" AS name,
+        project_name AS name,
         ARRAY<STRUCT<key STRING,
         value STRING>> [] AS labels,
         "" AS ancestry_numbers) AS project,
@@ -544,9 +555,9 @@ CREATE TEMP FUNCTION
       "USD" AS currency,
       1.0 AS currency_conversion_rate,
       STRUCT ( 0.0 AS amount,
-        "TODO" AS unit,
+        IF(LOWER(unit_type) LIKE "ram", "byte-seconds", "gibibyte hour") AS unit,
         0.0 AS amount_in_pricing_units,
-        "TODO" AS pricing_unit ) AS usage,
+        IF(LOWER(unit_type) LIKE "ram", "seconds", "hour") AS pricing_unit ) AS usage,
       ARRAY<STRUCT<name STRING,
       amount FLOAT64>> [] AS credits,
       STRUCT ( FORMAT_DATE("%Y%m", usage_date) AS month) AS invoice,
@@ -570,7 +581,7 @@ CREATE TEMP FUNCTION
       TIMESTAMP(usage_date) AS usage_start_time,
       TIMESTAMP_ADD(TIMESTAMP(usage_date), INTERVAL ((3600*23)+3599) SECOND) AS usage_end_time,
       STRUCT ( project_id AS id,
-        "" AS name,
+        project_name AS name,
         ARRAY<STRUCT<key STRING,
         value STRING>> [] AS labels,
         "" AS ancestry_numbers) AS project,
@@ -587,9 +598,9 @@ CREATE TEMP FUNCTION
       "USD" AS currency,
       1.0 AS currency_conversion_rate,
       STRUCT ( 0.0 AS amount,
-        "TODO" AS unit,
+        IF(LOWER(unit_type) LIKE "ram", "byte-seconds", "gibibyte hour") AS unit,
         0.0 AS amount_in_pricing_units,
-        "TODO" AS pricing_unit ) AS usage,
+        IF(LOWER(unit_type) LIKE "ram", "seconds", "hour") AS pricing_unit ) AS usage,
       ARRAY<STRUCT<name STRING,
       amount FLOAT64>> [(IF(LOWER(unit_type) LIKE "ram",
           "Committed Usage Discount: RAM",
@@ -612,7 +623,7 @@ CREATE TEMP FUNCTION
       TIMESTAMP(usage_date) AS usage_start_time,
       TIMESTAMP_ADD(TIMESTAMP(usage_date), INTERVAL ((3600*23)+3599) SECOND) AS usage_end_time,
       STRUCT ( project_id AS id,
-        "" AS name,
+        project_name AS name,
         ARRAY<STRUCT<key STRING,
         value STRING>> [] AS labels,
         "" AS ancestry_numbers)
@@ -630,9 +641,9 @@ CREATE TEMP FUNCTION
       "USD" AS currency,
       1.0 AS currency_conversion_rate,
       STRUCT ( 0.0 AS amount,
-        "TODO" AS unit,
+        IF(LOWER(unit_type) LIKE "ram", "byte-seconds", "gibibyte hour") AS unit,
         0.0 AS amount_in_pricing_units,
-        "TODO" AS pricing_unit ) AS usage,
+        IF(LOWER(unit_type) LIKE "ram", "seconds", "hour") AS pricing_unit ) AS usage,
       ARRAY<STRUCT<name STRING,
       amount FLOAT64>> [("Sustained Usage Discount",
         P_alloc_sud_credit_cost)] AS credits,
