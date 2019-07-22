@@ -14,7 +14,7 @@ as that will be used by the program for authorization. Please follow the steps i
 
 Main Scripts
 ============
-Script name : gcp_update_labels.py
+Script name : main.py
 Parameter : update_labels.config
 
 
@@ -32,8 +32,9 @@ https://docs.google.com/spreadsheets/d/1mmn5wShPqgFQeM9bRRZONWY30FmP9EZBWQOyACZt
 
 How to execute
 ===============
-If the script and config file are in same directory, otherwise provide the path for config file:
-python gcp_update_labels.py update_labels.config
+cd source
+
+python main.py ../config/update_labels.config
 
 
 Log files:
