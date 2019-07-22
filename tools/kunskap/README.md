@@ -18,16 +18,13 @@ The solution adjusts each project's cost by generating new line items in the out
 <h2>Installation/Set-up</h2>
 This project assumes that you already have project set up with billing data exported to BigQuery. Note the billing project id, dataset ids, and the table names, as you will need these later on when configuring the Cloud Function source code.
 
+This project also assumes that you only have <b>one</b> billing account for your GCP organization.
+
 <h3>Install/Configure the gcloud command line tool:</h3>
 
 1. [Install and initialize the Cloud SDK](https://cloud.google.com/sdk/docs/how-to)
 
-2. In a terminal window, enter the following to add the gcloud components for beta products
-````
-gcloud components install beta
-````
-
-3. Update all components:
+2. Update all components:
 ````
 gcloud components update
 ````
@@ -142,11 +139,11 @@ where [FUNCTION_NAME] is the name that you want to give the function and [TOPIC_
 2. In the window, enter:
 
 ````
-gcloud beta scheduler jobs create pubsub [JOB] --schedule [SCHEDULE] --topic [TOPIC_NAME] --message-body [MESSAGE_BODY]
+gcloud scheduler jobs create pubsub [JOB] --schedule [SCHEDULE] --topic [TOPIC_NAME] --message-body [MESSAGE_BODY]
 ````
 where [JOB] is a unique name for a job, [SCHEDULE] is the frequency for the job in UNIX cron, such as "0 */12 * * *" to run every 12hours, [TOPIC_NAME] is the name of the topic created in the step above when you deployed the Cloud Function, and [MESSAGE_BODY] is any string. An example command would be: 
 ````
-gcloud beta scheduler jobs create pubsub daily_job --schedule "0 */12 * * *" --topic cron-topic --message-body "bi-daily job"
+gcloud scheduler jobs create pubsub daily_job --schedule "0 */12 * * *" --topic cron-topic --message-body "bi-daily job"
 ````
 
 <h3>Run the job:</h3>

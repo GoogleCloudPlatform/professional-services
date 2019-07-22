@@ -19,7 +19,7 @@ resource "google_compute_firewall" "allow-ssh" {
   name    = "${var.network}-allow-ssh"
   network = "${module.vpc.network_name}"
 
-  priority = "2000"
+  priority = "80"
 
   allow = {
     protocol = "tcp"

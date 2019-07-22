@@ -1,7 +1,0 @@
-project = "your-gcp-project-id"
-history-bucket  = "history-bucket-id"
-history-server = "history-server"
-long-running-cluster = "long-running-cluster"
-history-region = "us-central1"
-network = "hadoop-history-example-net"
-hadoop-subnet = "hadoop-subnet"
