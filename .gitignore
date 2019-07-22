@@ -35,3 +35,4 @@ node_modules/
 .envrc
 .coverage
 htmlcov/
+*.iml
