@@ -12,6 +12,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [BigQuery Pipeline Utility](tools/bqpipeline)  - Python utility class for defining data pipelines in BigQuery.
 * [Bigtable Dataflow Cyptocurrencies Exchange RealTime Example](examples/cryptorealtime) - Apache Beam example that reads from the Crypto Exchanges WebSocket API as Google Cloud Dataflow pipeline and saves the feed in Google Cloud Bigtable. Real time visualization and query examples from GCP Bigtable running on Flask server are included.
 * [Cloud Composer Examples](examples/cloud-composer-examples) - Examples of using Cloud Composer, GCP's managed Apache Airflow service.
+* [Cloud Function VM Delete Event Handler Example](examples/gcf-pubsub-vm-delete-event-handler) - Solution to automatically delete A records in Cloud DNS when a VM is deleted.  This solution implements a [Google Cloud Function][gcf] [Background Function][gcf-bg] triggered on `compute.instances.delete` events published through [Stackdriver Logs Export][logs-export].
 * [Cloud SQL Custom Metric](examples/cloud-sql-custom-metric) - An example of creating a Stackdriver custom metric monitoring Cloud SQL Private Services IP consumption.
 * [CloudML Bank Marketing](examples/cloudml-bank-marketing) - Notebook for creating a classification model for marketing using CloudML.
 * [CloudML Bee Health Detection](examples/cloudml-bee-health-detection) - Detect if a bee is unhealthy based on an image of it and its subspecies.
@@ -78,3 +79,7 @@ This repository and its contents are not an official Google Product.
 ## Contact
 Questions, issues, and comments should be directed to
 [professional-services-oss@google.com](mailto:professional-services-oss@google.com).
+
+[gcf]: https://cloud.google.com/functions/
+[gcf-bg]: https://cloud.google.com/functions/docs/writing/background
+[logs-export]: https://cloud.google.com/logging/docs/export/
