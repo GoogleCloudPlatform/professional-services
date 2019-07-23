@@ -34,6 +34,25 @@ class BoundingBox(object):
     self.label = label
 
 
+def _safe_divide(a: int, b: int):
+  """Divides a and b as a/b if 0 < a <= b. Otherwise, raises ValueError.
+
+  Args:
+    a: Numerator.
+    b: Denominator.
+
+  Returns:
+    Float of division result.
+  """
+
+  if a < 0:
+    raise ValueError('a ({}) < 0'.format(a))
+  elif a > b:
+    raise ValueError('a ({}) > b ({})'.format(a, b))
+
+  return a / b
+
+
 def read(filename: str):
   """Reads bounding boxes from image annotation file.
 
@@ -73,7 +92,6 @@ def read_from_pascal(filename: str):
 
   root = tree.getroot()
   size = root.find('size')
-  filename = root.find('filename').text
   width = int(size.find('width').text)
   height = int(size.find('height').text)
 
@@ -83,10 +101,12 @@ def read_from_pascal(filename: str):
     if b:
       label = obj.find('name').text or ''
       yield BoundingBox(
-          int(b.find('xmin').text) / width,
-          int(b.find('ymin').text) / height,
-          int(b.find('xmax').text) / width,
-          int(b.find('ymax').text) / height,
+          _safe_divide(int(b.find('xmin').text), width),
+          _safe_divide(int(b.find('ymin').text), height),
+          _safe_divide(int(b.find('xmax').text), width),
+          _safe_divide(int(b.find('ymax').text), height),
           label,
       )
+    else:
+      raise AttributeError('Could not find "bndbox" element')
 
