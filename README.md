@@ -16,6 +16,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [Cloud SQL Custom Metric](examples/cloud-sql-custom-metric) - An example of creating a Stackdriver custom metric monitoring Cloud SQL Private Services IP consumption.
 * [CloudML Bank Marketing](examples/cloudml-bank-marketing) - Notebook for creating a classification model for marketing using CloudML.
 * [CloudML Bee Health Detection](examples/cloudml-bee-health-detection) - Detect if a bee is unhealthy based on an image of it and its subspecies.
+* [CloudML Churn Prediction](examples/cloudml-churn-prediction) - Predict users' propensity to churn using Survival Analysis.
 * [CloudML Deep Collaborative Filtering](examples/cloudml-collaborative-filtering) - Recommend songs given either a user or song.
 * [CloudML Energy Price Forecasting](examples/cloudml-energy-price-forecasting) - Predicting the future energy price based on historical price and weather.
 * [CloudML Fraud Detection](examples/cloudml-fraud-detection) - Fraud detection model for credit-cards transactions.
@@ -47,7 +48,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 The tools folder contains ready-made utilities which can simpilfy Google Cloud Platform usage.
 
 * [Agile Machine Learning API](tools/agile-machine-learning-api) - A web application which provides the ability to train and deploy ML models on Google Cloud Machine Learning Engine, and visualize the predicted results using LIME through simple post request.
-* [Apache Beam Client Throttling](tools/apachebeam-throttling) - A library that can be used to limit the number of requests from an Apache Beam pipeline to an external service. It buffers requests to not overload the external service and activates cleint-side throttling when the service starts rejecting requests due to out of quota errors.
+* [Apache Beam Client Throttling](tools/apachebeam-throttling) - A library that can be used to limit the number of requests from an Apache Beam pipeline to an external service. It buffers requests to not overload the external service and activates client-side throttling when the service starts rejecting requests due to out of quota errors.
 * [AssetInventory](tools/asset-inventory) - Import Cloud Asset Inventory resourcs into BigQuery.
 * [BigQuery Discount Per-Project Attribution](tools/kunskap) - A tool that automates the generation of a BigQuery table that uses existing exported billing data, by attributing both CUD and SUD charges on a per-project basis.
 * [BigQuery Query Plan Exporter](tools/bigquery-query-plan-exporter) - Command line utility for exporting BigQuery query plans in a given date range.
