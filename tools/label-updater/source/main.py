@@ -68,6 +68,15 @@ def main(p_resource_type, p_sub_resource_type, r_proj_resource_zone_dict):
             error_file.write(str(inst) + "\n")
 
 
+def loop_through_dict_make_update(resource_type_dict):
+    for resource_type in resource_type_dict:
+        sub_resource_dict = resource_type_dict[resource_type]
+        for sub_resource_type in sub_resource_dict.keys():
+            resource_proj_resource_zone_dict = sub_resource_dict[sub_resource_type]
+            logging.info(json.dumps(resource_proj_resource_zone_dict))
+            main(resource_type, sub_resource_type, resource_proj_resource_zone_dict)
+
+
 if __name__ == "__main__":
 
     try:
@@ -88,47 +97,30 @@ if __name__ == "__main__":
         # noinspection PyUnboundLocalVariable
         all_cells = access_setup.get_spreadsheet_cells(config_file)
         contains_header = access_setup.is_header(config_file)
-        print contains_header
-        print "Running Validation on Input Label File"
-        logging.info("Running Validation on Input Label File")
-        # try:
-        #     validate_input_label_file_fields.validate_fields(config_file)
-        # except ValueError as ve:
-        #     pass
 
-        print "Completed Validation on Input Label File"
-        logging.info("Completed Validation on Input Label File")
-
-        print "Running Label Updates"
-        logging.info("Running Label Updates")
-
-        #  start reading google sheets line by line and get resource name and add to the labels dictionary
+        logging.info("Running Validation and creating map")
 
         try:
-            resource_type_dict = create_resource_map.label_file_to_resource_type_dict(all_cells, contains_header)
+            resource_type_dict, invalid_record_cnt, valid_record_cnt = create_resource_map.label_file_to_resource_type_dict(all_cells, contains_header)
+            logging.info("Resource type dict is " + json.dumps(resource_type_dict))
+            # loop through the dict to make updates
+            loop_through_dict_make_update(resource_type_dict)
+            logging.info("Resource update script completed. Please check error files for any error.")
+            print("Resource update script completed. Please check error files for any error.")
+
+            if (invalid_record_cnt / valid_record_cnt) > (10 / 100):
+                error_msg = "Number of invalid records exceeded threshold : " + invalid_record_cnt + " aborting!!"
+                raise Exception(error_msg)
+            else:
+                pass
         except Exception as inst:
             error_file.write(str(inst) + "\n")
 
-        # end for loop
-
-        # noinspection PyUnboundLocalVariable
-        logging.info("Resource type dict is " + json.dumps(resource_type_dict))
-
-        # loop through the dict to make updates
-        for resource_type in resource_type_dict:
-            sub_resource_dict = resource_type_dict[resource_type]
-            for sub_resource_type in sub_resource_dict.keys():
-                resource_proj_resource_zone_dict = sub_resource_dict[sub_resource_type]
-                logging.info(json.dumps(resource_proj_resource_zone_dict))
-                main(resource_type, sub_resource_type, resource_proj_resource_zone_dict)
-
-        logging.info("Resource update script completed. Please check error files for any error.")
-        print("Resource update script completed. Please check error files for any error.")
     except Exception as inst:
-        logging.error("Error: All resources could not be updated! Please check.")
+        logging.error(str(inst) + "|" + "Error: All resources could not be updated! Please check.")
         # noinspection PyUnboundLocalVariable
         error_file.write(str(inst) + "\n")
-        print ("Error: All resources could not be updated! Please check.")
+        print (str(inst) + "|" + "Error: All resources could not be updated! Please check.")
         pass
     finally:
         error_file.close()
