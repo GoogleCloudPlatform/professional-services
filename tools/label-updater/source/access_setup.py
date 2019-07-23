@@ -74,6 +74,16 @@ def get_spreadsheet_cells(config_file):
     return all_cells
 
 
+def get_resource_list(config_file):
+    parser.read(config_file)
+    try:
+        resource_list = parser.get('property', resource_list)
+    except IOError:
+        print "Resource list is not given"
+        raise IOError
+    return resource_list
+
+
 def is_header(config_file):
     """
     This function checks if there is header in input file. It returns "Y" or "N".

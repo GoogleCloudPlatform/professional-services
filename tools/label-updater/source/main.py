@@ -21,16 +21,10 @@ import json
 import logging
 import sys
 
-import validate_input_label_file_fields
 import access_setup
 import create_resource_map
-import project_label_updater
-import compute_engine_label_updater
-import storage_label_updater
-import bigtable_label_updater
-import bigquery_label_updater
-
-# -----------------------------------------------------------
+import validate_input_label_file_fields
+from resource_label_updater import resource_label_updater
 
 
 # noinspection PyShadowingNames,PyShadowingNames,PyShadowingNames,PyShadowingNames
@@ -55,88 +49,24 @@ def main(p_resource_type, p_sub_resource_type, r_proj_resource_zone_dict):
     :return: It doesn't return anything
     """
     for proj_resource_zone_key in r_proj_resource_zone_dict:
+        param = dict()
         # noinspection PyShadowingNames,PyShadowingNames
-        projectid = r_proj_resource_zone_dict[proj_resource_zone_key]['project_id']
-        resourceid = r_proj_resource_zone_dict[proj_resource_zone_key]['resource_id']
-        sub_resource_id = r_proj_resource_zone_dict[proj_resource_zone_key]['sub_resource_id']
-        zone = r_proj_resource_zone_dict[proj_resource_zone_key]['zone']
-        tags = r_proj_resource_zone_dict[proj_resource_zone_key]['tags']
+        param['config_file'] = config_file
+        param['projectid'] = r_proj_resource_zone_dict[proj_resource_zone_key]['project_id']
+        param['resourceid'] = r_proj_resource_zone_dict[proj_resource_zone_key]['resource_id']
+        param['sub_resource_id'] = r_proj_resource_zone_dict[proj_resource_zone_key]['sub_resource_id']
+        param['zone'] = r_proj_resource_zone_dict[proj_resource_zone_key]['zone']
+        param['tags'] = r_proj_resource_zone_dict[proj_resource_zone_key]['tags']
+        param['sub_resource_type'] = p_sub_resource_type
 
-        if p_resource_type == 'project':
-            logging.info("Getting Project Detail and Updating")
-            try:
-                project_label_updater.project_label_updater(config_file, projectid, tags)
-                logging.info("Project Updated Successfully")
-            except Exception as inst:
-                logging.error(inst)
-                error_file.write(str(p_resource_type) + "|" + str(projectid) + "|" + str(resourceid) + "|" + str(zone)
-                                 + "|" + str(tags) + "|" + str(inst) + '| Unable to update the Project Labels: '
-                                 + projectid + "\n")
-                continue
+        logging.debug("Using parameters: " + json.dumps(param))
+        try:
+            logging.debug("Updating " + p_resource_type)
+            resource_label_updater.update_resource(p_resource_type, param)
+            logging.debug(p_resource_type + " Updated Successfully")
+        except Exception as inst:
+            error_file.write(str(inst) + "\n")
 
-        elif p_resource_type == 'compute engine':
-            logging.info("Updating Instances Labels")
-            try:
-                compute_engine_label_updater.gce_label_updater(config_file, projectid, resourceid, zone, tags)
-                logging.info("Compute Engine Labels Updated Successfully")
-            except Exception as inst:
-                error_file.write(str(p_resource_type) + "|" + str(projectid) + "|" + str(resourceid) + "|" + str(zone)
-                                 + "|" + str(tags) + "|" + str(inst)
-                                 + '| Unable to update the Compute Engine Instance Labels: ' + resourceid + "\n")
-                logging.error(inst)
-                continue
-
-        elif p_resource_type == 'storage':
-            logging.info("Getting Bucket labels")
-            try:
-                storage_label_updater.storage_label_updater(resourceid, tags)
-                logging.info("Storage Labels Updated Successfully")
-            except Exception as inst:
-                error_file.write(str(p_resource_type) + "|" + str(projectid) + "|" + str(resourceid) + "|" + str(zone)
-                                 + "|" + str(tags) + "|" + str(inst) + '| Unable to update the Storage Labels: '
-                                 + resourceid + "\n")
-                logging.error(inst)
-                continue
-
-        elif p_resource_type == 'bigtable':
-            logging.info('Updating Bigtable Labels')
-            try:
-                bigtable_label_updater.bigtable_label_updater(projectid, resourceid, tags)
-                logging.info("Bigtable Labels Updated Successfully")
-            except Exception as inst:
-                error_file.write(str(p_resource_type) + "|" + str(projectid) + "|" + str(resourceid) + "|" + str(zone)
-                                 + "|" + str(tags) + "|" + str(inst) + '| Unable to update the Bigtable Labels: '
-                                 + resourceid + "\n")
-                logging.error(inst)
-                continue
-
-        elif p_resource_type == 'bigquery' and (p_sub_resource_type == 'table' or p_sub_resource_type == 'view'):
-            logging.info('Updating BigQuery Table Labels')
-            try:
-                bigquery_label_updater.bigquery_table_label_updater(config_file, projectid, resourceid, sub_resource_id,
-                                                                    tags)
-                logging.info("Bigquery Table/View Labels Updated Successfully")
-            except Exception as inst:
-                error_file.write(str(p_resource_type) + "|" + str(projectid) + "|" + str(resourceid) + "|" + str(zone)
-                        + "|" + str(tags) + "|" + str(p_sub_resource_type) + "|" + str(sub_resource_id) + "|" +
-                        str(inst) + '| Unable to update the Bigquery Table/View Labels: ' + sub_resource_id + "\n")
-                logging.error(inst)
-                continue
-
-        elif p_resource_type == 'bigquery' and p_sub_resource_type == '_NULL_':
-            logging.info('Updating BigQuery Dataset Labels')
-            try:
-                bigquery_label_updater.bigquery_label_updater(config_file, projectid, resourceid, tags)
-                logging.info("Bigquery Dataset Labels Updated Successfully")
-            except Exception as inst:
-                error_file.write(str(p_resource_type) + "|" + str(projectid) + "|" + str(resourceid) + "|" + str(zone)
-                                 + "|" + str(tags) + "|" + str(inst) + '| Unable to update the Bigquery Labels: '
-                                 + resourceid + "\n")
-                logging.error(inst)
-                continue
-
-
-# -----------------------------------------------------------
 
 if __name__ == "__main__":
 
@@ -149,7 +79,7 @@ if __name__ == "__main__":
     # creating log file name with same basename as the script name
     scriptname = sys.argv[0]
     log_filename = access_setup.get_logfile_name(scriptname)
-    logging.basicConfig(format='%(asctime)s %(message)s', filename=log_filename, level=logging.INFO)
+    logging.basicConfig(format='%(asctime)s %(message)s', filename=log_filename, level=logging.DEBUG)
 
     try:
         error_file = access_setup.create_error_file(scriptname)
@@ -158,15 +88,13 @@ if __name__ == "__main__":
         # noinspection PyUnboundLocalVariable
         all_cells = access_setup.get_spreadsheet_cells(config_file)
         contains_header = access_setup.is_header(config_file)
-
-        line_index = 0
-
+        print contains_header
         print "Running Validation on Input Label File"
         logging.info("Running Validation on Input Label File")
-        try:
-            validate_input_label_file_fields.validate_fields(config_file)
-        except ValueError as ve:
-            pass
+        # try:
+        #     validate_input_label_file_fields.validate_fields(config_file)
+        # except ValueError as ve:
+        #     pass
 
         print "Completed Validation on Input Label File"
         logging.info("Completed Validation on Input Label File")
@@ -176,48 +104,11 @@ if __name__ == "__main__":
 
         #  start reading google sheets line by line and get resource name and add to the labels dictionary
 
-        for line in all_cells:
-            # Skip first line
-            if contains_header == "Y" and line_index == 0:
-                line_index = line_index + 1
-                continue
+        try:
+            resource_type_dict = create_resource_map.label_file_to_resource_type_dict(all_cells, contains_header)
+        except Exception as inst:
+            error_file.write(str(inst) + "\n")
 
-            # if project id and label both are not given then the record cannot be processed
-            if line:
-                try:
-                    projectid = line[0].strip()
-                    resource = line[1].strip()
-                    resourceid = line[2].strip()
-                    resourcelabels = line[6].strip()
-
-                    if line[5]:
-                        zone = line[5].strip()
-                    else:
-                        zone = ''
-
-                    if line[3]:
-                        sub_resource = line[3].strip()
-                    else:
-                        sub_resource = '_NULL_'
-
-                    if line[4]:
-                        sub_resource_id = line[4].strip()
-                    else:
-                        sub_resource_id = ''
-
-                    # grouping the labels into a dictionary by resource_type.
-                    resource_type_dict = create_resource_map.resource_map(projectid, resource,
-                                            resourceid,  sub_resource, sub_resource_id, zone, resourcelabels)
-
-                except Exception as inst:
-                    logging.error(inst)
-                    error_file.write(str(line) + '|' + str(inst) + "\n")
-                    continue
-
-            else:
-                logging.warning("Skipping below line as not enough information")
-                logging.warning(line)
-                continue
         # end for loop
 
         # noinspection PyUnboundLocalVariable

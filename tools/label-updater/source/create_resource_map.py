@@ -31,10 +31,53 @@
 #         }
 # }
 
-resource_type_dict = {}
+
+def label_file_to_resource_type_dict(all_cells, contains_header):
+    resource_type_dict = {}
+    line_index = 0
+
+    for line in all_cells:
+        # Skip first line
+        if contains_header == "Y" and line_index == 0:
+            line_index = line_index + 1
+            continue
+
+        # if project id and label both are not given then the record cannot be processed
+        if line:
+            try:
+                projectid = line[0].strip()
+                resource = line[1].strip()
+                resourceid = line[2].strip()
+                resourcelabels = line[6].strip()
+
+                if line[5]:
+                    zone = line[5].strip()
+                else:
+                    zone = ''
+
+                if line[3]:
+                    sub_resource = line[3].strip()
+                else:
+                    sub_resource = '_NULL_'
+
+                if line[4]:
+                    sub_resource_id = line[4].strip()
+                else:
+                    sub_resource_id = ''
+
+                # grouping the labels into a dictionary by resource_type.
+                resource_type_dict = resource_map(projectid, resource, resourceid, sub_resource, sub_resource_id,
+                                                  zone, resourcelabels, resource_type_dict)
+            except Exception as inst:
+
+                err_msg = str(line) + '|' + str(inst)
+                raise Exception(err_msg)
+    # end for loop
+
+    return resource_type_dict
 
 
-def resource_map(projectid, resource, resourceid, sub_resource, sub_resource_id, zone, resourcelabels):
+def resource_map(projectid, resource, resourceid, sub_resource, sub_resource_id, zone, resourcelabels, resource_type_dict):
     """
     Appends each line from label file into a nested dictionary to be used for update all at once.
     :param projectid: project id e.g. cardinal-data-piper-sbx
