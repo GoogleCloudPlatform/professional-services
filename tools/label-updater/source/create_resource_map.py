@@ -37,8 +37,7 @@ def label_file_to_resource_type_dict(all_cells, contains_header):
     resource_type_dict = {}
     line_index = 0
     invalid_record_cnt = 0
-    valid_record_cnt = 0
-    invalid_record = ''
+    invalid_record_flag = False
 
     for line in all_cells:
         # Skip first line
@@ -69,11 +68,10 @@ def label_file_to_resource_type_dict(all_cells, contains_header):
                 else:
                     sub_resource_id = ''
 
-                invalid_record = validate_input_label_file_fields.validate_fields(line, projectid, resource,
-                                                        resourceid, sub_resource, sub_resource_id, zone, invalid_record)
+                invalid_record_flag = validate_input_label_file_fields.validate_fields(line, projectid, resource,
+                                                        resourceid, sub_resource, sub_resource_id, zone)
 
-                if invalid_record == '':
-                    valid_record_cnt += 1
+                if invalid_record_flag == False:
 
                     # grouping the labels into a dictionary by resource_type.
                     resource_type_dict = resource_map(projectid, resource, resourceid, sub_resource, sub_resource_id,
@@ -86,7 +84,7 @@ def label_file_to_resource_type_dict(all_cells, contains_header):
                 err_msg = str(line) + '|' + str(inst)
                 raise Exception(err_msg)
 
-    return resource_type_dict, invalid_record_cnt, valid_record_cnt
+    return resource_type_dict, invalid_record_cnt
 
 
 def resource_map(projectid, resource, resourceid, sub_resource, sub_resource_id, zone, resourcelabels, resource_type_dict):

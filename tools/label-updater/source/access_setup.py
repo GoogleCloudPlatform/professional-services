@@ -68,6 +68,7 @@ def get_spreadsheet_cells(config_file):
         gspread_client = gspread.authorize(credentials)
         sheet = gspread_client.open(label_file).sheet1
         all_cells = sheet.get_all_values()
+
     except IOError:
         print "Input Label File Not Found"
         raise IOError

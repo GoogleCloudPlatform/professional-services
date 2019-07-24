@@ -96,23 +96,24 @@ if __name__ == "__main__":
         logging.info('Reading the Config File')
         # noinspection PyUnboundLocalVariable
         all_cells = access_setup.get_spreadsheet_cells(config_file)
+
         contains_header = access_setup.is_header(config_file)
 
         logging.info("Running Validation and creating map")
 
         try:
-            resource_type_dict, invalid_record_cnt, valid_record_cnt = create_resource_map.label_file_to_resource_type_dict(all_cells, contains_header)
+            resource_type_dict, invalid_record_cnt = create_resource_map.label_file_to_resource_type_dict(all_cells, contains_header)
             logging.info("Resource type dict is " + json.dumps(resource_type_dict))
             # loop through the dict to make updates
             loop_through_dict_make_update(resource_type_dict)
-            logging.info("Resource update script completed. Please check error files for any error.")
-            print("Resource update script completed. Please check error files for any error.")
 
-            if (invalid_record_cnt / valid_record_cnt) > (10 / 100):
+            if invalid_record_cnt >= 5:
                 error_msg = "Number of invalid records exceeded threshold : " + invalid_record_cnt + " aborting!!"
                 raise Exception(error_msg)
             else:
-                pass
+                logging.info("Resource update script completed. Please check error files for any error.")
+                print("Resource update script completed. Please check error files for any error.")
+
         except Exception as inst:
             error_file.write(str(inst) + "\n")
 
