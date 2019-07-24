@@ -34,7 +34,7 @@ How to execute
 ===============
 cd source
 
-python main.py ../config/update_labels.config
+python ./source/main.py ./config/update_labels.config
 
 
 Log files:
@@ -43,7 +43,7 @@ The main.py script also creates a log file for the entire process and an error f
 
 main.log
 main.err
-gcp_update_labels_report.txt
+gcp_update_labels.report
 
 Troubleshooting:
 ===============

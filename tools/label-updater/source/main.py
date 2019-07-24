@@ -73,7 +73,7 @@ def loop_through_dict_make_update(resource_type_dict):
         sub_resource_dict = resource_type_dict[resource_type]
         for sub_resource_type in sub_resource_dict.keys():
             resource_proj_resource_zone_dict = sub_resource_dict[sub_resource_type]
-            logging.info(json.dumps(resource_proj_resource_zone_dict))
+            logging.debug(json.dumps(resource_proj_resource_zone_dict))
             main(resource_type, sub_resource_type, resource_proj_resource_zone_dict)
 
 
@@ -92,9 +92,9 @@ if __name__ == "__main__":
 
     try:
         error_file = access_setup.create_error_file(scriptname)
-        invalid_records_file = open('gcp_update_labels_report.txt', 'w')
+        invalid_records_file = open('gcp_update_labels.report', 'w')
 
-        logging.info('Reading the Config File')
+        logging.info('Reading the Labels File')
         # noinspection PyUnboundLocalVariable
         all_cells = access_setup.get_spreadsheet_cells(config_file)
 
@@ -111,7 +111,7 @@ if __name__ == "__main__":
             invalid_records_file.write("Percent of invalid record count : " + str(percent_of_invalid_record_cnt) + "%" + "\n")
             invalid_records_file.write("Invalid Records are below:" + "\n" + str(invalid_record_list) + "\n")
 
-            logging.info("Resource type dict is " + json.dumps(resource_type_dict))
+            logging.debug("Resource type dict is " + json.dumps(resource_type_dict))
             # loop through the dict to make updates
             loop_through_dict_make_update(resource_type_dict)
 
