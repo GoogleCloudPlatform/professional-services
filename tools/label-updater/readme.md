@@ -34,7 +34,7 @@ How to execute
 ===============
 cd source
 
-python ./source/main.py ./config/update_labels.config
+sh run.sh
 
 
 Log files:
