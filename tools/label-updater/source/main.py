@@ -23,7 +23,7 @@ import sys
 
 import access_setup
 import create_resource_map
-import validate_input_label_file_fields
+import label_file_sanity_check
 from resource_label_updater import resource_label_updater
 
 
@@ -107,6 +107,7 @@ if __name__ == "__main__":
             # loop through the dict to make updates
             loop_through_dict_make_update(resource_type_dict)
 
+            logging.info("Total number of invalid records in label file : " + str(invalid_record_cnt))
             if invalid_record_cnt >= 5:
                 error_msg = "Number of invalid records exceeded threshold : " + invalid_record_cnt + " aborting!!"
                 raise Exception(error_msg)

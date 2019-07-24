@@ -31,7 +31,7 @@
 #         }
 # }
 
-import validate_input_label_file_fields
+import label_file_sanity_check
 
 def label_file_to_resource_type_dict(all_cells, contains_header):
     resource_type_dict = {}
@@ -68,8 +68,8 @@ def label_file_to_resource_type_dict(all_cells, contains_header):
                 else:
                     sub_resource_id = ''
 
-                invalid_record_flag = validate_input_label_file_fields.validate_fields(line, projectid, resource,
-                                                        resourceid, sub_resource, sub_resource_id, zone)
+                invalid_record_flag = label_file_sanity_check.sanity_check_fields(line, projectid, resource,
+                                                                                  resourceid, sub_resource, sub_resource_id, zone)
 
                 if invalid_record_flag == False:
 

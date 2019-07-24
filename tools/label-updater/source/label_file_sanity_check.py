@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 # noinspection PyShadowingNames
-def validate_fields(line, projectid, resource, resourceid, sub_resource, sub_resource_id,
-                                                  zone):
+def sanity_check_fields(line, projectid, resource, resourceid, sub_resource, sub_resource_id,
+                        zone):
 
     if resource is not None and resource.strip().lower() in ('project', 'compute engine', 'bigquery',
                                                              'bigtable', 'storage'):
@@ -31,6 +32,8 @@ def validate_fields(line, projectid, resource, resourceid, sub_resource, sub_res
 
         else:
             invalid_record_flag = False
+    else:
+        invalid_record_flag = True
 
     return invalid_record_flag
 
