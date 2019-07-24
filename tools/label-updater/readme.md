@@ -32,7 +32,6 @@ https://docs.google.com/spreadsheets/d/1mmn5wShPqgFQeM9bRRZONWY30FmP9EZBWQOyACZt
 
 How to execute
 ===============
-cd source
 
 sh run.sh
 
