@@ -92,6 +92,7 @@ if __name__ == "__main__":
 
     try:
         error_file = access_setup.create_error_file(scriptname)
+        invalid_records_file = open('gcp_update_labels_report.txt', 'w')
 
         logging.info('Reading the Config File')
         # noinspection PyUnboundLocalVariable
@@ -102,15 +103,24 @@ if __name__ == "__main__":
         logging.info("Running Validation and creating map")
 
         try:
-            resource_type_dict, invalid_record_cnt = create_resource_map.label_file_to_resource_type_dict(all_cells, contains_header)
+            resource_type_dict, invalid_record_cnt, total_record_cnt, invalid_record_list = create_resource_map.label_file_to_resource_type_dict(all_cells, contains_header)
+            invalid_records_file.write("Total record count in label file: " + str(total_record_cnt) + "\n")
+            invalid_records_file.write("Invalid record count : " + str(invalid_record_cnt) + "\n")
+
+            percent_of_invalid_record_cnt = float(invalid_record_cnt) / float(total_record_cnt) * 100
+            invalid_records_file.write("Percent of invalid record count : " + str(percent_of_invalid_record_cnt) + "%" + "\n")
+            invalid_records_file.write("Invalid Records are below:" + "\n" + str(invalid_record_list) + "\n")
+
             logging.info("Resource type dict is " + json.dumps(resource_type_dict))
             # loop through the dict to make updates
             loop_through_dict_make_update(resource_type_dict)
 
             logging.info("Total number of invalid records in label file : " + str(invalid_record_cnt))
-            if invalid_record_cnt >= 5:
-                error_msg = "Number of invalid records exceeded threshold : " + invalid_record_cnt + " aborting!!"
-                raise Exception(error_msg)
+
+            if percent_of_invalid_record_cnt > 0:
+                error_msg = "Resource update script completed. Percent of invalid records = " + str(percent_of_invalid_record_cnt) + "% ! Only valid records are processed!"
+                logging.error(error_msg)
+                print (error_msg)
             else:
                 logging.info("Resource update script completed. Please check error files for any error.")
                 print("Resource update script completed. Please check error files for any error.")

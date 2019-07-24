@@ -22,19 +22,24 @@ def sanity_check_fields(line, projectid, resource, resourceid, sub_resource, sub
 
         if resource == "project" and not projectid:
             invalid_record_flag = True
+            invalid_record = line
 
         elif resource == "compute engine" and (not projectid or not resourceid or not zone):
             invalid_record_flag = True
+            invalid_record = line
 
         elif (resource == "storage" or resource == "bigtable" or resource == "bigquery") and \
                 (not projectid or not resourceid):
             invalid_record_flag = True
+            invalid_record = line
 
         else:
             invalid_record_flag = False
+            invalid_record = ''
     else:
         invalid_record_flag = True
+        invalid_record = line
 
-    return invalid_record_flag
+    return invalid_record_flag, invalid_record
 
 

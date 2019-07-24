@@ -39,15 +39,11 @@ python main.py ../config/update_labels.config
 
 Log files:
 =========
-After running validation on the input label file, the process creates error file as named below. 
-Please check this error file for any validation error:
+The main.py script also creates a log file for the entire process and an error file if any update fails:
 
-validate_gcp_update_labels.err
-
-The update script also creates a log file for the entire process and an error file if any update fails:
-
-gcp_update_labels.log
-gcp_update_labels.err
+main.log
+main.err
+gcp_update_labels_report.txt
 
 Troubleshooting:
 ===============
