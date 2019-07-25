@@ -56,7 +56,7 @@ The tools folder contains ready-made utilities which can simpilfy Google Cloud P
 * [CloudConnect](tools/cloudconnect) - A package that automates the setup of dual VPN tunnels between AWS and GCP.
 * [Cloudera Parcel GCS Connector](tools/cloudera-parcel-gcsconnector) - This script helps you create a Cloudera parcel that includes Google Cloud Storage connector. The parcel can be deployed on a Cloudera managed cluster. This script helps you create a Cloudera parcel that includes Google Cloud Storage connector. The parcel can be deployed on a Cloudera managed cluster.
 * [Cloud AI Vision Utilities](tools/cloud-vision-utils) - This is an installable
-  python package that provides support tools for Cloud AI Vision. Currently
+  Python package that provides support tools for Cloud AI Vision. Currently
   there are a few scripts for generating an AutoML Vision dataset CSV file from
   either raw images or image annotation files in PASCAL VOC format.
 * [DNS Sync](tools/dns-sync) - Sync a Cloud DNS zone with GCE resources. Instances and load balancers are added to the cloud DNS zone as they start from compute_engine_activity log events sent from a pub/sub push subscription. Can sync multiple projects to a single Cloud DNS zone.
