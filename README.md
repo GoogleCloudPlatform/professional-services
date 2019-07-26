@@ -55,6 +55,10 @@ The tools folder contains ready-made utilities which can simpilfy Google Cloud P
 * [BigQuery Query Plan Visualizer](tools/bq-visualizer) - A web application which provides the ability to visualise the execution stages of BigQuery query plans to aid in the optimization of queries.
 * [CloudConnect](tools/cloudconnect) - A package that automates the setup of dual VPN tunnels between AWS and GCP.
 * [Cloudera Parcel GCS Connector](tools/cloudera-parcel-gcsconnector) - This script helps you create a Cloudera parcel that includes Google Cloud Storage connector. The parcel can be deployed on a Cloudera managed cluster. This script helps you create a Cloudera parcel that includes Google Cloud Storage connector. The parcel can be deployed on a Cloudera managed cluster.
+* [Cloud AI Vision Utilities](tools/cloud-vision-utils) - This is an installable
+  Python package that provides support tools for Cloud AI Vision. Currently
+  there are a few scripts for generating an AutoML Vision dataset CSV file from
+  either raw images or image annotation files in PASCAL VOC format.
 * [DNS Sync](tools/dns-sync) - Sync a Cloud DNS zone with GCE resources. Instances and load balancers are added to the cloud DNS zone as they start from compute_engine_activity log events sent from a pub/sub push subscription. Can sync multiple projects to a single Cloud DNS zone.
 * [GCE Quota Sync](tools/gce-quota-sync) - A tool that fetches resource quota usage from the GCE API and synchronizes it to Stackdriver as a custom metric, where it can be used to define automated alerts.
 * [GCP Architecture Visualizer](/tools/gcp-arch-viz) - A tool that takes CSV output from a Forseti Inventory scan and draws out a dynamic hierarchical tree diagram of org -> folders -> projects -> gcp_resources using the D3.js javascript library.
