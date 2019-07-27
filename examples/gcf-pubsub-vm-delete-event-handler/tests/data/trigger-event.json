@@ -1,0 +1,49 @@
+{
+    "insertId": "6o9bdnfxt05mn",
+    "jsonPayload": {
+        "actor": {
+            "user": "jmccune@google.com"
+        },
+        "event_subtype": "compute.instances.delete",
+        "event_timestamp_us": "1560300993146327",
+        "event_type": "GCE_API_CALL",
+        "ip_address": "",
+        "operation": {
+            "id": "971500189857477422",
+            "name": "operation-1560300992590-58b15e267f2cc-e7529c4d-f1343924",
+            "type": "operation",
+            "zone": "us-west1-a"
+        },
+        "request": {
+            "body": "null",
+            "url": "https://www.googleapis.com/compute/v1/projects/user-dev-242122/zones/us-west1-a/instances/test?key=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+        },
+        "resource": {
+            "id": "613579339353422259",
+            "name": "test",
+            "type": "instance",
+            "zone": "us-west1-a"
+        },
+        "trace_id": "operation-1560300992590-58b15e267f2cc-e7529c4d-f1343924",
+        "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36",
+        "version": "1.2"
+    },
+    "labels": {
+        "compute.googleapis.com/resource_id": "613579339353422259",
+        "compute.googleapis.com/resource_name": "test",
+        "compute.googleapis.com/resource_type": "instance",
+        "compute.googleapis.com/resource_zone": "us-west1-a"
+    },
+    "logName": "projects/user-dev-242122/logs/compute.googleapis.com%2Factivity_log",
+    "receiveTimestamp": "2019-06-12T00:56:33.188262452Z",
+    "resource": {
+        "labels": {
+            "instance_id": "613579339353422259",
+            "project_id": "user-dev-242122",
+            "zone": "us-west1-a"
+        },
+        "type": "gce_instance"
+    },
+    "severity": "INFO",
+    "timestamp": "2019-06-12T00:56:33.146327Z"
+}

@@ -37,7 +37,8 @@ class BQQueryPlanExporter(object):
         c = self.get_client()
         dt0 = datetime.utcnow() - timedelta(start_days_ago)
         dt1 = datetime.utcnow() - timedelta(end_days_ago)
-        return [job._properties for job in c.list_jobs(min_creation_time=dt0,
+        return [job._properties for job in c.list_jobs(all_users = True,
+                                                       min_creation_time=dt0,
                                                        max_creation_time=dt1)
                 if hasattr(job, 'query_plan')]
 
