@@ -31,7 +31,7 @@ CREATE TEMP FUNCTION
       WHEN gcp_region IS NULL THEN NULL
       WHEN gcp_region LIKE "us-%"
     OR gcp_region LIKE "northamerica%"
-    OR gcp_region LIKE "southamerica%" THEN "Americas"
+    OR gcp_region LIKE "southamerica%" THEN "AMERICAS"
       WHEN gcp_region LIKE "europe-%" THEN "EMEA"
       WHEN gcp_region LIKE "australia-%"
     OR gcp_region LIKE "asia-%" THEN"APAC" END);
@@ -136,6 +136,8 @@ CREATE TEMP FUNCTION
       3 ),
     -- sku_metadata temporary table captures information about skus, such as CUD eligibility,
     -- whether the sku is vCPU or RAM, etc.
+    -- sku_metadata temporary table captures information about skus, such as CUD eligibility,
+    -- whether the sku is vCPU or RAM, etc.
     sku_metadata AS (
     SELECT
       sku_id,
@@ -155,9 +157,15 @@ CREATE TEMP FUNCTION
         ELSE "Regular Usage"
       END AS cud_type,
       CASE
-        WHEN LOWER(sku_description) LIKE "%americas%" THEN "AMERICAS"
-        WHEN LOWER(sku_description) LIKE "%emea%" THEN "EMEA"
-        WHEN LOWER(sku_description) LIKE "%apac%" THEN "APAC"
+        WHEN LOWER(sku_description) LIKE "%americas%" OR LOWER(sku_description) LIKE "%los angeles%"
+        OR LOWER(sku_description) LIKE "%sao paulo%" OR LOWER(sku_description) LIKE "%montreal%"
+        OR LOWER(sku_description) LIKE "%virginia%" THEN "AMERICAS"
+        WHEN LOWER(sku_description) LIKE "%emea%" OR LOWER(sku_description) LIKE "%netherlands%" OR
+          LOWER(sku_description) LIKE "%frankfurt%" OR LOWER(sku_description) LIKE "%finland%"
+          OR LOWER(sku_description) LIKE "%london%" THEN "EMEA"
+        WHEN LOWER(sku_description) LIKE "%apac%" OR LOWER(sku_description) LIKE "%singapore%"
+        OR LOWER(sku_description) LIKE "%japan%" OR LOWER(sku_description) LIKE "%hong kong%"
+        OR LOWER(sku_description) LIKE "%mumbai%" OR LOWER(sku_description) LIKE "%sydney%" THEN "APAC"
         ELSE NULL
       END AS geo,
       -- for VM skus and commitments, "seconds" unit uniquely identifies vCPU usage
@@ -264,16 +272,16 @@ CREATE TEMP FUNCTION
           label_1_value,
           label_2_value,
           unit_price,
-          IF ( prices.unit_price = 0,
+          IF(prices.unit_price IS NOT NULL, IF(prices.unit_price = 0,
             0,
             CASE
             -- Divide by # seconds in a day to get to core*days == avg daily concurrent usage
-              WHEN LOWER(unit_type) LIKE "vcpu" THEN -1*SUM(cred.amount)/prices.unit_price / 86400
+              WHEN LOWER(unit_type) = "vcpu" THEN -1*SUM(cred.amount)/prices.unit_price / 86400
             -- Divide by # seconds in a day and # bytes in a GB to get to
             -- GB*days == avg daily concurrent RAM GB
               WHEN LOWER(unit_type) = "ram" THEN -1*SUM(cred.amount)/prices.unit_price / (86400 * 1073741824)
               ELSE NULL
-            END ) AS usage_amount,
+            END ), 0) AS usage_amount,
           SUM(cred.amount) AS cost,
           cost_type
         FROM
@@ -283,7 +291,7 @@ CREATE TEMP FUNCTION
           sku_metadata
         ON
           u.sku_id = sku_metadata.sku_id
-        JOIN
+        LEFT JOIN
           prices
         ON
           TRUE
