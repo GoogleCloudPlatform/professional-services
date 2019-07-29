@@ -192,11 +192,12 @@ def run(argv=None):
         dest='input_files',
         required=True,
         help='Comma delimited names of all input files to be imported')
-    parser.add_argument('--bq-dataset',
-                        dest='bq_dataset',
-                        required=True,
-                        default='rawdata',
-                        help='Output BQ dataset to write the results to')
+    parser.add_argument(
+        '--bq-dataset',
+        dest='bq_dataset',
+        required=True,
+        default='rawdata',
+        help='Output BQ dataset to write the results to')
 
     # Parse arguments from the command line
     known_args, pipeline_args = parser.parse_known_args(argv)
