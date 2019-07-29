@@ -30,23 +30,20 @@ import_dataflow_project: <ENTER-PROJECT>
 
 # When using the template runner. Supply values as a json representation of
 # RuntimeEnvironment:
+#
 # https://cloud.google.com/dataflow/docs/reference/rest/v1b3/RuntimeEnvironment
+
+# If you don't get a warning about firewall rules preventing shuffle operations
+# it's safe to set maxWorkers higher. To increase the machine size for faster
+# loads try "machineType": "n1-standard-8", and to use a Shared VPC supply the
+# network and subnetwork values
+# "network": "https://www.googleapis.com/compute/v1/projects/<project>/networks/<network>"
+# "subnetwork": "https://www.googleapis.com/compute/v1/projects/<project>/regions/<region>/subnetworks/<subnetwork>"
+# Or try the new (faster) shuffler by adding  "additionalExperiments": ["shuffle_mode=service"]
 import_pipeline_runtime_environment: >
   {
-    # Be explict about tempLocation, otherwise use <gcs_destionation>/dataflow_temp
-    "tempLocation": "<ENTER-BUCKET-URL>/dataflow_temp"
-
-    # If you don't get a warning about firewall rules preventing shuffle
-    # operations you can set this number higher.
+    "tempLocation": "<ENTER-BUCKET-URL>/dataflow_temp",
     "maxWorkers": 1
-
-    # To increase the machine size for faster loads.
-    # "machineType": "n1-standard-8"
-    #
-    # To use a Shared VPC:
-    # "network": "https://www.googleapis.com/compute/v1/projects/<project>/networks/<network>"
-    # "subnetwork": "https://www.googleapis.com/compute/v1/projects/<project>/regions/<region>/subnetworks/<subnetwork>"
-    #
   }
 
 # When using direct or dataflow running these are the other arguments to supply to import pipeline.
@@ -79,6 +76,12 @@ import_group_by: ASSET_TYPE
 
 # If tables should be ovewritten (WRITE_EMPTY) or appended (WRITE_APPEND) to.
 import_write_disposition: WRITE_APPEND
+
+# Number of shards to use per asset type. If you have a large number of a
+# particular asset type like BigQuery tables you can speed up the pipeline by
+# sharding, For example: num_shards:
+# *=1,resource=100,google.cloud.bigquery.Table=100
+import_num_shards: "*=1"
 
 # If we are running on App Engine and only want to be invoked by cron tasks for security reasons.
 restrict_to_cron_tasks: True

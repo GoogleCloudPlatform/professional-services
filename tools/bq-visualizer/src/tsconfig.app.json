@@ -3,8 +3,11 @@
   "compilerOptions": {
     "outDir": "../out-tsc/app",
     "module": "es2015",
-    "types": ["node"],
-    "strictPropertyInitialization": true
+    "types": [
+      "node"
+    ],
+    "strictPropertyInitialization": false,
+    "strictNullChecks": false
   },
   "exclude": [
     "src/test.ts",

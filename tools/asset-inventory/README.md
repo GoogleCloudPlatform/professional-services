@@ -312,6 +312,13 @@ This repository contains some command line tools that let you run the export/imp
     ```
 
 
+1. To create a new Dataflow template from your pipeline run a command like thisto save the template in gs://$BUCKET/latest/import_pipeline.
+
+   ```
+   python ./asset_inventory/import_pipeline.py  --runner dataflow --project $PROJECT  --temp_location gs://$BUCKET/export_resources_temp --staging_location gs://$BUCKET/export_resources_staging_location --template_location gs://$BUCKET/latest/import_pipeline --save_main_session   --setup_file ./setup.py
+   ```
+
+
 ## Troubleshooting.
 
 1. The Cloud Asset Inventory  export operation failed with the error: "PERMISSION_DENIED. Failed to write to: gs://<my-export-path>" yet I know I have write permissions?
@@ -333,12 +340,15 @@ This repository contains some command line tools that let you run the export/imp
     File "/usr/lib/python2.7/pickle.py", line 1130, in find_class
       __import__(module)
     ImportError: No module named asset_inventory.import_pipeline
+    or
+    ImportError: No module named asset_inventory.api_schema
+
     ```
 
     You likely forgot the "--setup_file ./setup.py" arguments try something like:
 
     ```
-    python asset-inventory/asset_inventory/main.py --parent projects/$PROJECT --gcs-destination $BUCKET --dataset $DATASET --write_disposition WRITE_APPEND --project $PROJECT --runner dataflow --temp_location gs://$BUCKET_temp --save_main_session   --setup_file ./setup.py
+    python asset_inventory/main.py --parent projects/$PROJECT --gcs-destination $BUCKET --dataset $DATASET --write_disposition WRITE_APPEND --project $PROJECT --runner dataflow --temp_location gs://$BUCKET_temp --save_main_session   --setup_file ./setup.py
     ```
 
 1. When deploying the App Engine application with "gcloud app deploy app.yaml" I get the error:
@@ -364,3 +374,11 @@ This repository contains some command line tools that let you run the export/imp
 1. The Dataflow job failes to start because it lacks access to the Shared VPC subnet.
 
     When using a Shared VPC, it necessary to grant the Dataflow Agent Service Account access to the subnet. This service account is created for you when you enable the Dataflow API and is called `service-<PROJECT-NUMBER>@dataflow-service-producer-prod.iam.gserviceaccount.com`.
+
+1. How can I speed up the import process?
+
+   If you have a large number of a particular asset type like BigQuery tables, or Kubernetes pods you can configure the pipeline to process and load multiple shards with the 'num_shards' parameter. Try configuring it in the  of `asset-inventory/gae/config.yaml` file. For example:
+
+   ```num_shards: *=1,resource=100,google.cloud.bigquery.Table=100```
+
+   Within the the import_pipeline_runtime_environment value remove the `maxWorkers` limit to let the job autoscale, configure larger instance types by setting the `machineType` property to `n1-standard-16` and try enabling the the [Dataflow Shuffler](https://cloud.google.com/dataflow/docs/guides/deploying-a-pipeline#cloud-dataflow-shuffle) by adding `"additionalExperiments": ["shuffle_mode=service"]`.
