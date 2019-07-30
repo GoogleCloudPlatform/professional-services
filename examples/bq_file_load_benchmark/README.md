@@ -86,7 +86,7 @@ ad hoc analysis. The results table contains the following schema:
 |  job.sourceURI | STRING   | The path of all files loaded   |
 |  job.sourceFormat | STRING   | The format of files loaded    |
 |  job.totalSlotMs  | INTEGER  | The total number of slot-ms consumed by the job.    |
-|  job.avgSlots     | FLOAT    | Average number of slots used.    |
+|  job.avgSlots     | FLOAT    | Average number of slots used throught runtime of job.    |
 
 While the project can be configured to create results table with the above 
 schema in any project and dataset, the table that currently holds the results 
