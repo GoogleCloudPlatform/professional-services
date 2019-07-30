@@ -28,7 +28,7 @@ daily_cost AS (
     dates.gen_date,
     SUM(billing.cost) AS cost
   FROM current_month_dates AS dates
-  LEFT JOIN `billing.gcp_billing_export_v1_0090FE_ED3D81_AF8E3B` AS billing
+  LEFT JOIN `billing.gcp_billing_export_v1*` AS billing -- Update the table name to the correct one.
     ON EXTRACT(DATE FROM BILLING._PARTITIONTIME) = dates.gen_date
   GROUP BY 1
   ORDER BY 1),
@@ -63,6 +63,6 @@ SELECT
   ) AS project,
   billing.* EXCEPT(billing_account_id, project)
   -- End anonymize data, for production simiply replace above code with billing.*
-FROM `billing.gcp_billing_export_v1_0090FE_ED3D81_AF8E3B` AS billing
+FROM `billing.gcp_billing_export_v1*` AS billing -- Update the table name to the correct one.
 LEFT JOIN projected_cost
   ON EXTRACT(DATE FROM billing._PARTITIONTIME) = projected_cost.date;
