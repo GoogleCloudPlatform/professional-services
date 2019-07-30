@@ -96,6 +96,16 @@
                     "name": "sourceFormat",
                     "type": "STRING",
                     "mode": "REQUIRED"
+                },
+                {
+                    "name": "totalSlotMs",
+                    "type": "INTEGER",
+                    "mode": "REQUIRED"
+                },
+                {
+                    "name": "avgSlots",
+                    "type": "FLOAT64",
+                    "mode": "REQUIRED"
                 }
             ]
         }
