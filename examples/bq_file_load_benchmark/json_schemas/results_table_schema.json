@@ -3,12 +3,12 @@
         {
             "name": "benchmarkTime",
             "type": "TIMESTAMP",
-            "mode": "REQUIRED"
+            "mode": "NULLABLE"
         },
         {
             "name": "fileType",
             "type": "STRING",
-            "mode": "REQUIRED"
+            "mode": "NULLABLE"
         },
         {
             "name": "compressionType",
@@ -18,54 +18,54 @@
         {
             "name": "numColumns",
             "type": "INT64",
-            "mode": "REQUIRED"
+            "mode": "NULLABLE"
         },
         {
             "name": "numRows",
             "type": "INT64",
-            "mode": "REQUIRED"
+            "mode": "NULLABLE"
         },
         {
             "name": "columnTypes",
             "type": "STRING",
-            "mode": "REQUIRED"
+            "mode": "NULLABLE"
         },
         {
             "name": "numFiles",
             "type": "INT64",
-            "mode": "REQUIRED"
+            "mode": "NULLABLE"
         },
         {
             "name": "fileSize",
             "type": "INT64",
-            "mode": "REQUIRED",
+            "mode": "NULLABLE",
             "description": "MB"
         },
         {
             "name": "stagingDataSize",
             "type": "INT64",
-            "mode": "REQUIRED",
+            "mode": "NULLABLE",
             "description": "MB"
         },
         {
             "name": "job",
             "type": "RECORD",
-            "mode": "REQUIRED",
+            "mode": "NULLABLE",
             "fields": [
                 {
                     "name": "id",
                     "type": "STRING",
-                    "mode": "REQUIRED"
+                    "mode": "NULLABLE"
                 },
                 {
                     "name": "user",
                     "type": "STRING",
-                    "mode": "REQUIRED"
+                    "mode": "NULLABLE"
                 },
                 {
                     "name": "location",
                     "type": "STRING",
-                    "mode": "REQUIRED"
+                    "mode": "NULLABLE"
                 },
                 {
                     "name": "startTime",
@@ -80,32 +80,32 @@
                 {
                     "name": "duration",
                     "type": "NUMERIC",
-                    "mode": "REQUIRED"
+                    "mode": "NULLABLE"
                 },
                 {
                     "name": "destinationTable",
                     "type": "STRING",
-                    "mode": "REQUIRED"
+                    "mode": "NULLABLE"
                 },
                 {
                     "name": "sourceURI",
                     "type": "STRING",
-                    "mode": "REQUIRED"
+                    "mode": "NULLABLE"
                 },
                 {
                     "name": "sourceFormat",
                     "type": "STRING",
-                    "mode": "REQUIRED"
+                    "mode": "NULLABLE"
                 },
                 {
                     "name": "totalSlotMs",
                     "type": "INTEGER",
-                    "mode": "REQUIRED"
+                    "mode": "NULLABLE"
                 },
                 {
                     "name": "avgSlots",
-                    "type": "FLOAT64",
-                    "mode": "REQUIRED"
+                    "type": "INTEGER",
+                    "mode": "NULLABLE"
                 }
             ]
         }
