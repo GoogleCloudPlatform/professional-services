@@ -15,6 +15,9 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+from concurrent.futures import ThreadPoolExecutor
+from functools import partial
+import itertools
 import logging
 
 from google.cloud import storage
@@ -55,6 +58,51 @@ class BucketUtil(object):
             bucket
         """
 
+        def _path_exists(
+            path_details
+        ):
+            """Adds a path to the path_set if it exists.
+
+            Constructs a path based off of the parameters in the path_details
+            tuple. Checks that the constructed path exists in the bucket
+            defined in the outer function. If so, the path is added to path_set.
+
+            Args:
+                path_details (tuple):  of
+                    (file_type,
+                    num_column,
+                    column_type,
+                    num_file,
+                    table_size)
+            """
+            file_type, \
+                num_column, \
+                column_type, \
+                num_file, \
+                table_size = path_details
+            for compression_type in compression_types[file_type]:
+                if compression_type == 'none':
+                    extension = file_type
+                else:
+                    extension = compression_extensions[compression_type]
+
+                path = path_string.format(
+                    file_type,
+                    compression_type,
+                    num_column,
+                    column_type,
+                    num_file,
+                    table_size,
+                    extension,
+                )
+                exists = storage.Blob(
+                    bucket=bucket,
+                    name=path,
+                ).exists(gcs_client)
+
+                if exists:
+                    path_set.add(path)
+
         logging.info('Discovering files from parameters list that exist'
                      ' in bucket {0:s}.'.format(self.bucket_name))
         file_types = self.file_params['fileType']
@@ -74,32 +122,18 @@ class BucketUtil(object):
             project=self.project_id
         )
         bucket = gcs_client.get_bucket(self.bucket_name)
-        for file_type in file_types:
-            for compression_type in compression_types[file_type]:
-                for num_column in num_columns:
-                    for c_type in column_types:
-                        for num_file in num_files:
-                            for table_size in table_sizes:
-                                if compression_type == 'none':
-                                    extension = file_type
-                                else:
-                                    extension = compression_extensions[
-                                        compression_type]
-                                path = path_string.format(
-                                    file_type,
-                                    compression_type,
-                                    num_column,
-                                    c_type,
-                                    num_file,
-                                    table_size,
-                                    extension,
-                                )
-                                exists = storage.Blob(
-                                    bucket=bucket,
-                                    name=path,
-                                ).exists(gcs_client)
-                                if exists:
-                                    path_set.add(path)
+
+        with ThreadPoolExecutor() as p:
+            fn = partial(_path_exists)
+            p.map(fn,
+                  itertools.product(
+                      file_types,
+                      num_columns,
+                      column_types,
+                      num_files,
+                      table_sizes,
+                  )
+                  )
 
         logging.info('Done discovering {0:d} existing files.'.format(
             len(path_set)
