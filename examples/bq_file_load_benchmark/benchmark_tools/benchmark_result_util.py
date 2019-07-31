@@ -23,6 +23,8 @@ from google.cloud import bigquery
 from benchmark_tools import file_constants
 from benchmark_tools import table_util
 
+BYTES_IN_GB = 1000000
+
 
 class BenchmarkResultUtil(object):
     """Helper for handling results of benchmark load jobs.
@@ -173,7 +175,7 @@ class BenchmarkResultUtil(object):
         self.job_source_format = self.load_job.source_format
         self.file_size = int((
                             self.load_job.input_file_bytes / self.num_files
-                        ) / 1000000)
+                        ) / BYTES_IN_GB)
         self.staging_data_size = int(
             self.job_source_uri.split('tableSize=')[1].split('MB')[0])
 
@@ -190,8 +192,6 @@ class BenchmarkResultUtil(object):
 
         # get properties from BQ logs
         str_timestamp = str(self.benchmark_time)
-        print("!!!!!!!!!!!!!!!!!!!!!!")
-        print(str_timestamp)
         sharded_table_timestamp = str_timestamp.split(' ')[0].replace('-', '')
         abs_path = os.path.abspath(os.path.dirname(__file__))
         log_query_file = os.path.join(
