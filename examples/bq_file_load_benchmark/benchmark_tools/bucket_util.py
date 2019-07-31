@@ -45,7 +45,7 @@ class BucketUtil(object):
         list_blobs() method. Generates all combinations of files using
         FILE_PARAMETERS, and checks if the first file in that combination
         exists. If so, it is added to existing_paths set. Creating a set of the
-        first files rather for each combinations rather than generating a list
+        first files for each combinations rather than generating a list
         of all 1, 100, 1000, or 10000 files per combination
         (depending on the number of files in the combination)
         saves time and space.
