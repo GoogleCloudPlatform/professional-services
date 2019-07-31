@@ -145,6 +145,11 @@ def parse_args(argv):
         '--dataflow_staging_location',
         help='Staging location for Dataflow jobs on GCS.'
     )
+    parser.add_argument(
+        '--bq_logs_dataset',
+        help='Dataset that holds the table storing logs for BQ jobs '
+             'in --bq_project_id'
+    )
     args = parser.parse_args(args=argv)
 
     # Only certain args are required depending on the command. Rather than
@@ -268,6 +273,11 @@ def parse_args(argv):
                 '--results_dataset_id',
                 '--create_benchmark_tables'
             ))
+        if not args.bq_logs_dataset:
+            parser.error(missing_args_error.format(
+                '--bq_logs_dataset',
+                '--create_benchmark_tables'
+            ))
 
     return args
 
@@ -295,6 +305,7 @@ def main(argv=None):
     bucket_name = args.bucket_name
     dataflow_temp_location = args.dataflow_temp_location
     dataflow_staging_location = args.dataflow_temp_location
+    bq_logs_dataset = args.bq_logs_dataset
 
     file_params = file_parameters.FILE_PARAMETERS
 
@@ -365,6 +376,7 @@ def main(argv=None):
             results_table_dataset_id=results_dataset_id,
             duplicate_benchmark_tables=duplicate_benchmark_tables,
             file_params=file_params,
+            bq_logs_dataset=bq_logs_dataset,
         )
         benchmark_tables_processor.create_benchmark_tables()
 

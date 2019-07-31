@@ -57,6 +57,7 @@ class TablesProcessor(object):
             has not yet been created.
         file_params(dict): Dictionary containing each file parameter and
             its possible values.
+        bq_logs_dataset(str): Name of dataset hold BQ logs table.
 
     """
 
@@ -72,6 +73,7 @@ class TablesProcessor(object):
             results_table_dataset_id,
             duplicate_benchmark_tables,
             file_params,
+            bq_logs_dataset,
     ):
         self.bq_project = bq_project
         self.gcs_project = gcs_project
@@ -87,6 +89,7 @@ class TablesProcessor(object):
         self.results_table_name = results_table_name
         self.results_table_dataset_id = results_table_dataset_id
         self.duplicate_benchmark_tables = duplicate_benchmark_tables
+        self.bq_logs_dataset = bq_logs_dataset
 
     def gather_files_with_benchmark_tables(self):
         """Generates file combinations that already have benchmark tables.
@@ -155,7 +158,8 @@ class TablesProcessor(object):
                     bucket_name=self.bucket_name,
                     path=path,
                     results_table_name=self.results_table_name,
-                    results_table_dataset_id=self.results_table_dataset_id
+                    results_table_dataset_id=self.results_table_dataset_id,
+                    bq_logs_dataset=self.bq_logs_dataset,
                 )
                 table.create_table()
                 table.load_from_gcs()

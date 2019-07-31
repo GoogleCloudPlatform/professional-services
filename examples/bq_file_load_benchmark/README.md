@@ -368,7 +368,11 @@ waits for the load to finish, and obtains information about the benchmark table 
 load job to create a results row, and inserts the results row into the results 
 table. 
 
-To complete this process, run the following command: 
+As a prerequisite for this step, a log sink in BigQuery that captures logs
+about BigQuery must be set up in the same project that holds the benchmark
+tables. To create a BigQuery is not already set up, follow [these steps](https://github.com/GoogleCloudPlatform/professional-services/tree/master/examples/bigquery-audit-log#1-getting-the-bigquery-log-data).
+
+To create benchmnark tables, run the following command: 
 
 ```
 python bq_file_load_benchmark.py \
@@ -380,8 +384,9 @@ python bq_file_load_benchmark.py \
 --benchmark_dataset_id=<ID of the dataset holding the benchmark tables> \
 --bucket_name=<name of bucket to hold files> \
 --results_table_name=<Name of results table> \
---results_dataset_id=<Name dataset holding results table> \
---duplicate_benchmark_tables
+--results_dataset_id=<Name dataset holding resultst table> \
+--duplicate_benchmark_tables \
+--bq_logs_dataset=<Name of dataset hold BQ logs table> 
 
 ```
 
@@ -429,6 +434,10 @@ this behavior is desired, include the flag. However, if you want to ensure that 
 first have at least one benchmark table for each file combination, then leave the
 flag off. In that case, the benchmark creation process will skip a file combination 
 if it already has a benchmark table. 
+
+`--bq_logs_dataset`: Name of dataset hold BQ logs table. This dataset must be
+in project used for `--bq_project_id`. 
+
 
 ### Running with Pre-Created Files
 

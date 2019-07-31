@@ -16,6 +16,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 import logging
+import os
 
 from google.cloud import bigquery
 
@@ -39,6 +40,7 @@ class BenchmarkResultUtil(object):
             and table that the data is loaded into.
         benchmark_dataset_id(str): ID of the dataset that holds the BigQuery
             table that the data is loaded into.
+        bq_logs_dataset(str): Name of dataset hold BQ logs table.
         job_source_uri(str): URI of the file in the GCS that contains the data
             that is loaded into the BigQuery table.
         bq_client(google.cloud.bigquery.client.Client): Client to hold
@@ -78,7 +80,9 @@ class BenchmarkResultUtil(object):
             file_uri,
             benchmark_table_name,
             benchmark_dataset_id,
-            project_id
+            project_id,
+            bq_logs_dataset,
+
     ):
         self.load_job = load_job
         self.job_id = self.load_job.job_id
@@ -86,6 +90,7 @@ class BenchmarkResultUtil(object):
         self.project_id = project_id
         self.benchmark_dataset_id = benchmark_dataset_id
         self.job_source_uri = file_uri
+        self.bq_logs_dataset = bq_logs_dataset
         self.bq_client = bigquery.Client()
         self.file_type = None
         self.compression_format = None
@@ -102,6 +107,8 @@ class BenchmarkResultUtil(object):
         self.job_end_time = None
         self.job_duration = None
         self.job_source_format = None
+        self.totalSlotMs = None
+        self.avgSlots = None
 
     def get_results_row(self):
         """Gathers the results of a load job into a benchmark table.
@@ -181,6 +188,35 @@ class BenchmarkResultUtil(object):
             'columnTypes='
         )[1].split('/')[0]
 
+        # get properties from BQ logs
+        str_timestamp = str(self.benchmark_time)
+        print("!!!!!!!!!!!!!!!!!!!!!!")
+        print(str_timestamp)
+        sharded_table_timestamp = str_timestamp.split(' ')[0].replace('-', '')
+        abs_path = os.path.abspath(os.path.dirname(__file__))
+        log_query_file = os.path.join(
+            abs_path,
+            '../queries/log_query.txt'
+        )
+        with open(log_query_file, 'r') as input_file:
+            log_query_bql = input_file.read().format(
+                self.project_id,
+                self.bq_logs_dataset,
+                sharded_table_timestamp,
+                self.job_id
+            )
+        log_query_config = bigquery.QueryJobConfig()
+        log_query_config.use_legacy_sql = False
+        log_query_job = self.bq_client.query(
+            query=log_query_bql,
+            location='US',
+            job_config=log_query_config
+        )
+        log_query_job.result()
+        for row in log_query_job:
+            self.totalSlotMs = row['totalSlotMs']
+            self.avgSlots = row['avgSlots']
+
     def _get_row(self):
         """Returns a row of results.
 
@@ -206,6 +242,8 @@ class BenchmarkResultUtil(object):
             ),
             sourceURI=self.job_source_uri,
             sourceFormat=self.job_source_format,
+            totalSlotMs=self.totalSlotMs,
+            avgSlots=self.avgSlots
         )
         row = dict(
             benchmarkTime=self.benchmark_time,

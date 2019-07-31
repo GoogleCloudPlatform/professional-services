@@ -63,6 +63,7 @@ class BenchmarkTable(object):
             benchmark table's load results will be inserted into.
         results_table(google.cloud.bigquery.table.Table): BigQuery table that
             the benchmark table's load results will be inserted into.
+        bq_logs_dataset(str): Name of dataset hold BQ logs table.
         fileType(str): Type of files that will be loaded from GCS into
             the benchmark table (i.e. csv, avro, parquet, etc).
         compression_format(bigquery.job.Compression):  Object representing the
@@ -93,6 +94,7 @@ class BenchmarkTable(object):
             path,
             results_table_name,
             results_table_dataset_id,
+            bq_logs_dataset,
     ):
         self.bq_project = bq_project
         self.bq_client = bigquery.Client(
@@ -117,6 +119,7 @@ class BenchmarkTable(object):
             self.results_table_name
         )
         self.results_table = self.bq_client.get_table(results_table_ref)
+        self.bq_logs_dataset = bq_logs_dataset
         self.fileType = None
         self.compression_format = None
         self.benchmark_table_util = None
@@ -204,6 +207,7 @@ class BenchmarkTable(object):
                 benchmark_table_name=self.job_destination_table,
                 benchmark_dataset_id=self.dataset_id,
                 project_id=self.bq_project,
+                bq_logs_dataset=self.bq_logs_dataset
             )
             result_row = result.get_results_row()
             logging.info('Inserting {0:s}'.format(str(result_row)))
