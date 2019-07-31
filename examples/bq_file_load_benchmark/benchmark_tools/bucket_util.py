@@ -99,7 +99,6 @@ class BucketUtil(object):
                                     name=path,
                                 ).exists(gcs_client)
                                 if exists:
-                                    # print('adding {0:s}'.format(path))
                                     path_set.add(path)
 
         logging.info('Done gathering {0:d} existing files.'.format(
