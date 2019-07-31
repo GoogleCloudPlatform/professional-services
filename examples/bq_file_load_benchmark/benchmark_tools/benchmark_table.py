@@ -16,6 +16,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 import logging
+import re
 import time
 
 from google.api_core import exceptions
@@ -64,7 +65,7 @@ class BenchmarkTable(object):
         results_table(google.cloud.bigquery.table.Table): BigQuery table that
             the benchmark table's load results will be inserted into.
         bq_logs_dataset(str): Name of dataset hold BQ logs table.
-        fileType(str): Type of files that will be loaded from GCS into
+        file_type(str): Type of files that will be loaded from GCS into
             the benchmark table (i.e. csv, avro, parquet, etc).
         compression_format(bigquery.job.Compression):  Object representing the
             compression of the file.
@@ -120,7 +121,7 @@ class BenchmarkTable(object):
         )
         self.results_table = self.bq_client.get_table(results_table_ref)
         self.bq_logs_dataset = bq_logs_dataset
-        self.fileType = None
+        self.file_type = None
         self.compression_format = None
         self.benchmark_table_util = None
         self.num_columns = None
@@ -134,12 +135,15 @@ class BenchmarkTable(object):
         """Gathers properties of the files loaded into the benchmark table.
         """
         # gather file properties from the files' path
-        self.fileType = self.path.split('fileType=')[1].split('/')[0]
-        compression = self.path.split('compression=')[1].split('/')[0]
+        benchmark_details_pattern = \
+            r'fileType=(\w+)/compression=(\w+)/numColumns=(\d+)/columnTypes=(\w+)/numFiles=(\d+)/tableSize=(\w+)'
+        self.file_type, compression, self.num_columns, self.column_types, \
+            num_files, table_size = \
+            re.findall(benchmark_details_pattern, self.path)[0]
+
         self.compression_format = (file_constants.FILE_CONSTANTS
-                                  ['compressionFormats'][compression])
-        self.column_types = self.path.split('columnTypes=')[1].split('/')[0]
-        self.num_columns = self.path.split('numColumns=')[1].split('/')[0]
+                                   ['compressionFormats'][compression])
+
         # get schema from the staging table that the file was generated from
         source_staging_table_name = '{0:s}_{1:s}'.format(
             self.column_types,
@@ -151,7 +155,7 @@ class BenchmarkTable(object):
             self.staging_dataset_id,
             project=self.staging_project,
         )
-        if self.fileType == 'parquet' or self.fileType == 'avro':
+        if self.file_type == 'parquet' or self.file_type == 'avro':
             self.bq_schema = None
         else:
             self.bq_schema = source_staging_table_util.table.schema
@@ -186,8 +190,8 @@ class BenchmarkTable(object):
         """
         source_formats = file_constants.FILE_CONSTANTS['sourceFormats']
         job_config = bigquery.LoadJobConfig()
-        job_config.source_format = source_formats[self.fileType]
-        if self.fileType == 'csv':
+        job_config.source_format = source_formats[self.file_type]
+        if self.file_type == 'csv':
             job_config.skip_leading_rows = 1
 
         self.load_job = self.bq_client.load_table_from_uri(
