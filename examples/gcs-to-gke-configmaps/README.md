@@ -2,7 +2,9 @@
 
 The example of this project is to demonstrate a mechanism whereby a user adds a text based file (e.g. YAML) to a GCS bucket, and the contents of this file are placed in a K8s ConfigMap in GKE.  Similarly, if a user deletes a file from a GCS bucket, the relevant ConfigMaps are updated accordingly.
 
-This is done by configuring a Google Cloud Function (GCF) to listen to an OBJECT_FINALIZE or OBJECT_DELETE event from a GCS bucket.  The function determines which file in the bucket was updated/created, and obtains the content.  If the file was deleted, it is not necessary to obtain the content.  To be clear, the GCF can only listen for either OBJECT_FINALIZE or OBJECT_DELETE events.  This means that if both events should be monitored, then the function will have to be deployed twice; one listenting for OBJECT_FINALIZE and the other OBJECT_DELETE.
+This is done by configuring a Google Cloud Function (GCF) to listen to an OBJECT_FINALIZE or OBJECT_DELETE event from a GCS bucket.  The function determines which file in the bucket was updated/created, and obtains the content.  If the file was deleted, it is not necessary to obtain the content.  
+
+**Please note** the GCF can only listen for either OBJECT_FINALIZE or OBJECT_DELETE events.  This means that if both events should be monitored, then the function will have to be deployed twice; one listenting for OBJECT_FINALIZE and the other OBJECT_DELETE.
 
 Next, the GCF determines which ConfigMaps to update and patches those ConfigMaps with the new content.  If these ConfigMaps are mounted to any K8s Deployments, those pods will be restarted.
 
@@ -108,7 +110,7 @@ Determine the name of the Pod from the Deployment in the previous step.
 NGINX_POD=$(kubectl get pod | grep nginx-deployment | cut -d" " -f1)
 ```
 
-Execute the following to list the contents of the /tmp/config directory in the Pod where the ConfigMap is mounted.  You should see the **data-example-2.yaml** file.
+Execute the following to list the contents of the /tmp/config directory in the Pod where the ConfigMap is mounted.  This directory should be empty
 
 ```shell
 kubectl exec $NGINX_POD ls /tmp/config
@@ -117,7 +119,7 @@ kubectl exec $NGINX_POD ls /tmp/config
 Copy the [examples/gcs/data-example-apple.yaml](examples/gcs/data-example-apple.yaml) to the bucket and at the $OBJECT_TO_WATCH in question.  This can be done in the Cloud Console or using the *gsutil* CLI as follows:
 
 ```shell
-gsutil cp examples/gcs/data-example-apple.yaml gs://$BUCKET/$OBJECT_TO_WATCH
+gsutil cp examples/gcs/data-example-apple.yaml gs://$GCS_BUCKET/$OBJECT_TO_WATCH
 ```
 
 Because the Pod was deleted, we need to get the new Pod name.
@@ -195,8 +197,8 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   labels:
-    gcs_bucket: "test-bucket"
-    gcs_object: "file.yaml"
+    gcs_bucket: "mybucket"
+    gcs_object: "dir1/test.yaml"
 data: {}
 ```
 
@@ -210,6 +212,118 @@ The **gcs_bucket** label must match, in its entirety, the name of the bucket bei
 | gs://mybucket/dir1/test.yaml | mybucket         | dir2           | no     |
 | gs://mybucket/dir1/test.yaml | mybucket         | test.yaml      | no     |
 | gs://mybucket/dir1/test.yaml | notmybucket      | dir1/test.yaml | no     |
+
+#### First Example - Full path to object
+| Full Object Path             | Label gcs_bucket | Label gcs_file | Match? |
+|------------------------------|------------------|----------------|--------|
+| gs://mybucket/dir1/test.yaml | mybucket         | dir1/test.yaml | yes    |
+
+##### ConfigMap before GCF is run
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    gcs_bucket: "mybucket"
+    gcs_object: "dir1/test.yaml"
+data: {}
+```
+
+##### Content added to gs://mybucket/dir1/test.yaml (OBJECT_FINALIZE)
+```yaml
+fruit:
+  name: apple
+  color: red
+```
+##### ConfigMap after GCF is run
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    gcs_bucket: "mybucket"
+    gcs_object: "dir1/test.yaml"
+data:
+  test.yaml:
+    fruit:
+      name: apple
+      color: red
+```
+
+#### Second Example - Partial path to object
+| Full Object Path             | Label gcs_bucket | Label gcs_file | Match? |
+|------------------------------|------------------|----------------|--------|
+| gs://mybucket/dir1/test.yaml | mybucket         | dir1           | yes    |
+| gs://mybucket/dir1/test2.yaml | mybucket        | dir1           | yes    |
+
+##### ConfigMap before GCF is run
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    gcs_bucket: "mybucket"
+    gcs_object: "dir1"
+data:
+  test.yaml:
+    fruit:
+      name: apple
+      color: red
+```
+##### Content added to gs://mybucket/dir1/test2.yaml (OBJECT_FINALIZE)
+```yaml
+fruit:
+  name: bannanna
+  color: yellow
+```
+##### ConfigMap after GCF is run
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    gcs_bucket: "mybucket"
+    gcs_object: "dir1"
+data:
+  test.yaml:
+    fruit:
+      name: apple
+      color: red
+  test2.yaml:
+    fruit:
+      name: bannanna
+      color: yellow
+```
+#### Third Example - Object Deletion
+| Full Object Path             | Label gcs_bucket | Label gcs_file | Match? |
+|------------------------------|------------------|----------------|--------|
+| gs://mybucket/dir1/test.yaml | mybucket         | dir1/test.yaml | yes    |
+
+##### ConfigMap before GCF is run
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    gcs_bucket: "mybucket"
+    gcs_object: "dir1/test.yaml"
+data:
+  test.yaml:
+    fruit:
+      name: apple
+      color: red
+```
+##### GCS Object gs://mybucket/dir1/test1.yaml is deleted (OBJECT_DELETE)
+##### ConfigMap after GCF is run
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    gcs_bucket: "mybucket"
+    gcs_object: "dir1/test.yaml"
+data: {}
+```
 
 ### Getting the Pod to Read the ConfigMap
 

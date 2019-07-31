@@ -185,6 +185,7 @@ class K8SCluster(object):
 
                 cloud_logger.info("Attempting to update/add \
                                   filname: {}".format(basename))
+                cloud_logger.info("ConfigMap: {}".format(configmap))
 
                 if content:
                     configmap.data[basename] = content.decode("UTF-8")

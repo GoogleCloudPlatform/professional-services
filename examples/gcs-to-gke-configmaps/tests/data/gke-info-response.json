@@ -1,0 +1,116 @@
+{    "name": "test-cluster",
+    "nodeConfig": {
+      "machineType": "n1-standard-4",
+      "diskSizeGb": 100,
+      "oauthScopes": [
+        "https://www.googleapis.com/auth/cloud-platform"
+      ],
+      "metadata": {
+        "disable-legacy-endpoints": "true"
+      },
+      "imageType": "COS",
+      "serviceAccount": "gke-cluster-sa@example-gcp-project.iam.gserviceaccount.com",
+      "diskType": "pd-standard"
+    },
+    "masterAuth": {
+      "clusterCaCertificate": "Q2VydGlmaWNhdGU6CiAgICBEYXRhOgogICAgICAgIFZlcnNpb246IDMgKDB4MikKICAgICAgICBTZXJpYWwgTnVtYmVyOgogICAgICAgICAgICAwZDoxZjozMjozODo0YToxMzo0OTphNTo4NzphMTphMjowNDo3NTo0Njo3ZTozMjphMzoyMDpiNzo3YwogICAgICAgIFNpZ25hdHVyZSBBbGdvcml0aG06IHNoYTI1NldpdGhSU0FFbmNyeXB0aW9uCiAgICAgICAgSXNzdWVyOiBDID0gVVMsIFNUID0gQ2FsaWZvcm5pYSwgTCA9IE1vdW50YWluIFZpZXcsIE8gPSAiR29vZ2xlLCBMTEMuIiwgT1UgPSBHb29nbGUgQ2xvdWQgUHJvZmVzc2lvbmFsIFNlcnZpY2VzLCBDTiA9IHRlc3QtY2x1c3RlcgogICAgICAgIFZhbGlkaXR5CiAgICAgICAgICAgIE5vdCBCZWZvcmU6IEp1biAyNyAxNTo0NToxMyAyMDE5IEdNVAogICAgICAgICAgICBOb3QgQWZ0ZXIgOiBKdW4gMjYgMTU6NDU6MTMgMjAyMCBHTVQKICAgICAgICBTdWJqZWN0OiBDID0gVVMsIFNUID0gQ2FsaWZvcm5pYSwgTCA9IE1vdW50YWluIFZpZXcsIE8gPSAiR29vZ2xlLCBMTEMuIiwgT1UgPSBHb29nbGUgQ2xvdWQgUHJvZmVzc2lvbmFsIFNlcnZpY2VzLCBDTiA9IHRlc3QtY2x1c3RlcgogICAgICAgIFN1YmplY3QgUHVibGljIEtleSBJbmZvOgogICAgICAgICAgICBQdWJsaWMgS2V5IEFsZ29yaXRobTogcnNhRW5jcnlwdGlvbgogICAgICAgICAgICAgICAgUlNBIFB1YmxpYy1LZXk6ICgxMDI0IGJpdCkKICAgICAgICAgICAgICAgIE1vZHVsdXM6CiAgICAgICAgICAgICAgICAgICAgMDA6ZTU6ZWM6M2M6Y2Q6NTA6OTY6NGY6MWY6NmM6NzU6MDE6YzI6OTY6YzE6CiAgICAgICAgICAgICAgICAgICAgNDM6NjI6ZDY6MDE6MjM6ODI6MzM6OTA6ZWE6ZGM6OWU6NmQ6NzI6YmQ6NjY6CiAgICAgICAgICAgICAgICAgICAgMDk6YzI6NmM6MjM6YjM6OTA6YWM6N2Y6Y2Q6Yzk6NGM6Y2Y6MWY6MjY6YzU6CiAgICAgICAgICAgICAgICAgICAgMjc6ODM6YjA6YWQ6NmM6OGI6N2I6M2E6YTI6OGY6ZTc6Nzc6Yzg6YjY6NWI6CiAgICAgICAgICAgICAgICAgICAgYjk6YjI6OWE6OGU6OGE6MDM6ZmM6Mjc6ZDA6NmM6MjI6MTU6ZjU6ZjA6MGU6CiAgICAgICAgICAgICAgICAgICAgOGY6MGU6MzY6YjM6YjQ6OWY6M2E6OTg6ZTc6MzE6YjU6NmE6NmQ6ZGM6OTQ6CiAgICAgICAgICAgICAgICAgICAgNWQ6YjA6ZDU6NTM6OTE6NzQ6OTk6NWE6N2I6MDA6OTQ6ZTI6NTE6ZmY6MTM6CiAgICAgICAgICAgICAgICAgICAgNmM6NWI6YTA6NGE6Zjc6YWM6NDE6MzI6YmE6MmM6MTU6ODQ6NjA6MTI6ZWU6CiAgICAgICAgICAgICAgICAgICAgNmM6ZDg6NTY6YjU6Yjg6MTM6MmI6ZWU6YmQKICAgICAgICAgICAgICAgIEV4cG9uZW50OiA2NTUzNyAoMHgxMDAwMSkKICAgICAgICBYNTA5djMgZXh0ZW5zaW9uczoKICAgICAgICAgICAgWDUwOXYzIFN1YmplY3QgS2V5IElkZW50aWZpZXI6IAogICAgICAgICAgICAgICAgNkE6QkU6MDA6OUY6NTE6RkM6OEI6Qzc6RTQ6QjQ6QUI6MUU6N0E6Q0U6OTU6NkY6QjQ6MUI6ODA6NEYKICAgICAgICAgICAgWDUwOXYzIEF1dGhvcml0eSBLZXkgSWRlbnRpZmllcjogCiAgICAgICAgICAgICAgICBrZXlpZDo2QTpCRTowMDo5Rjo1MTpGQzo4QjpDNzpFNDpCNDpBQjoxRTo3QTpDRTo5NTo2RjpCNDoxQjo4MDo0RgoKICAgICAgICAgICAgWDUwOXYzIEJhc2ljIENvbnN0cmFpbnRzOiBjcml0aWNhbAogICAgICAgICAgICAgICAgQ0E6VFJVRQogICAgU2lnbmF0dXJlIEFsZ29yaXRobTogc2hhMjU2V2l0aFJTQUVuY3J5cHRpb24KICAgICAgICAgODI6YTI6MTc6NzE6M2Y6YTQ6MmU6MWM6ODE6YTQ6M2Y6MGQ6MWE6MDg6OWM6NGQ6YTI6NGE6CiAgICAgICAgIDBmOmViOmM1OjZmOmRjOjk1OmY1OmI5OjZlOjQxOjhkOjBjOjgwOmIzOjhkOjgyOjNmOmJkOgogICAgICAgICBmYTpkNDoxNzoxYTo1NTpkNjo0ZDo3MDoxYjphMjplYjplZTo2MTplYTozMDo0YjplMToyMDoKICAgICAgICAgMjU6NjM6ZTc6ZjA6MzI6YmI6ZjM6ZmY6ZTA6ZWU6ZTY6YTI6NDU6NzM6ODM6ZTU6ZWM6ZmQ6CiAgICAgICAgIGI1OmE1OjBkOjA2OmI2OmQzOjdjOjRmOjExOjIwOjYxOmNhOjI3Ojc2OmEzOmJkOmNhOjE2OgogICAgICAgICAwMzphODpiYjpmMDphZTo3NjphMzpmZjo2ZTo0YzozODoyNTo3ODplMjpiZDoxYjpmMzpiMjoKICAgICAgICAgNzY6YmQ6ODc6NjQ6YjA6YmU6ZTM6ZDc6ZTM6ZmY6NjY6NDE6YjM6Mzc6MjY6M2Y6ZTI6OWQ6CiAgICAgICAgIDQ4OjQ0Cg=="
+    },
+    "loggingService": "logging.googleapis.com",
+    "monitoringService": "monitoring.googleapis.com",
+    "network": "default",
+    "clusterIpv4Cidr": "10.32.0.0/14",
+    "addonsConfig": {
+      "httpLoadBalancing": {},
+      "horizontalPodAutoscaling": {},
+      "kubernetesDashboard": {
+        "disabled": true
+      },
+      "networkPolicyConfig": {}
+    },
+    "subnetwork": "default",
+    "nodePools": [
+      {
+        "name": "pool-1",
+        "config": {
+          "machineType": "n1-standard-4",
+          "diskSizeGb": 100,
+          "oauthScopes": [
+            "https://www.googleapis.com/auth/cloud-platform"
+          ],
+          "metadata": {
+            "disable-legacy-endpoints": "true"
+          },
+          "imageType": "COS",
+          "serviceAccount": "gke-cluster-sa@example-gcp-project.iam.gserviceaccount.com",
+          "diskType": "pd-standard"
+        },
+        "initialNodeCount": 1,
+        "autoscaling": {
+          "enabled": true,
+          "minNodeCount": 1,
+          "maxNodeCount": 10
+        },
+        "management": {
+          "autoUpgrade": true,
+          "autoRepair": true
+        },
+        "maxPodsConstraint": {
+          "maxPodsPerNode": "110"
+        },
+        "podIpv4CidrSize": 24,
+        "selfLink": "https://container.googleapis.com/v1/projects/example-gcp-project/locations/us-central1/clusters/test-cluster/nodePools/pool-1",
+        "version": "1.12.8-gke.10",
+        "instanceGroupUrls": [
+          "https://www.googleapis.com/compute/v1/projects/example-gcp-project/zones/us-central1-f/instanceGroupManagers/test-cluster-pool-1-0974b1a7-grp",
+          "https://www.googleapis.com/compute/v1/projects/example-gcp-project/zones/us-central1-c/instanceGroupManagers/test-cluster-pool-1-b68a3e7b-grp",
+          "https://www.googleapis.com/compute/v1/projects/example-gcp-project/zones/us-central1-a/instanceGroupManagers/test-cluster-pool-1-69da1e3e-grp"
+        ],
+        "status": "RUNNING"
+      }
+    ],
+    "locations": [
+      "us-central1-f",
+      "us-central1-c",
+      "us-central1-a"
+    ],
+    "labelFingerprint": "a9dc16a7",
+    "legacyAbac": {},
+    "networkPolicy": {
+      "provider": "CALICO",
+      "enabled": true
+    },
+    "ipAllocationPolicy": {
+      "useIpAliases": true,
+      "clusterIpv4Cidr": "10.32.0.0/14",
+      "servicesIpv4Cidr": "10.36.0.0/20",
+      "clusterSecondaryRangeName": "test-cluster-pods-9e538f44",
+      "servicesSecondaryRangeName": "test-cluster-services-9e538f44",
+      "clusterIpv4CidrBlock": "10.32.0.0/14",
+      "servicesIpv4CidrBlock": "10.36.0.0/20"
+    },
+    "masterAuthorizedNetworksConfig": {},
+    "networkConfig": {
+      "network": "projects/example-gcp-project/global/networks/default",
+      "subnetwork": "projects/example-gcp-project/regions/us-central1/subnetworks/default"
+    },
+    "defaultMaxPodsConstraint": {
+      "maxPodsPerNode": "110"
+    },
+    "selfLink": "https://container.googleapis.com/v1/projects/example-gcp-project/locations/us-central1/clusters/helm-test-cluster",
+    "zone": "us-central1",
+    "endpoint": "555.555.555.555",
+    "initialClusterVersion": "1.12.8-gke.10",
+    "currentMasterVersion": "1.12.8-gke.10",
+    "currentNodeVersion": "1.12.8-gke.10",
+    "createTime": "2019-06-25T11:21:57+00:00",
+    "status": "RUNNING",
+    "servicesIpv4Cidr": "10.36.0.0/20",
+    "instanceGroupUrls": [
+      "https://www.googleapis.com/compute/v1/projects/example-gcp-project/zones/us-central1-f/instanceGroupManagers/test-cluster-pool-1-0974b1a7-grp",
+      "https://www.googleapis.com/compute/v1/projects/example-gcp-project/zones/us-central1-c/instanceGroupManagers/test-cluster-pool-1-b68a3e7b-grp",
+      "https://www.googleapis.com/compute/v1/projects/example-gcp-project/zones/us-central1-a/instanceGroupManagers/test-cluster-pool-1-69da1e3e-grp"
+    ],
+    "currentNodeCount": 3,
+    "location": "us-central1"
+  }
+  

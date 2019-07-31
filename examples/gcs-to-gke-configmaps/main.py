@@ -39,8 +39,8 @@ def create_gcs_object(bucket, filename):
 
 
 @logged
-def create_gke_cluster(cluster_name, cluster_location, gcs_project):
-    return GKECluster(cluster_name, cluster_location, gcs_project)
+def create_gke_cluster(cluster_name, cluster_location, gcp_project):
+    return GKECluster(cluster_name, cluster_location, gcp_project)
 
 
 @logged
@@ -100,9 +100,9 @@ def gcs_trigger(data, context):
         cloud_logger.info("Processing {}.".format(filename))
         label_selector = create_label_selector(bucket, object_to_watch)
         gcs_object = create_gcs_object(bucket, filename)
-        gke_cluster = create_gke_cluster(gcp_project,
+        gke_cluster = create_gke_cluster(cluster_name,
                                          cluster_location,
-                                         cluster_name)
+                                         gcp_project)
 
         if event_type == "google.storage.object.finalize":
             process_finalize(gcs_object, gke_cluster, label_selector, filename)
