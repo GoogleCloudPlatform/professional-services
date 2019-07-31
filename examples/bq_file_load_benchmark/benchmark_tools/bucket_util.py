@@ -39,7 +39,7 @@ class BucketUtil(object):
         self.file_params = file_params
 
     def get_existing_paths(self):
-        """Gathers existing paths in a bucket.
+        """Discovers existing paths in a bucket.
 
         Faster alternative to using native google.cloud.storage.bucket.Bucket's
         list_blobs() method. Generates all combinations of files using
@@ -55,7 +55,7 @@ class BucketUtil(object):
             bucket
         """
 
-        logging.info('Gathering files from parameters list that exist'
+        logging.info('Discovering files from parameters list that exist'
                      ' in bucket {0:s}.'.format(self.bucket_name))
         file_types = self.file_params['fileType']
         compression_types = self.file_params['fileCompressionTypes']
@@ -101,7 +101,7 @@ class BucketUtil(object):
                                 if exists:
                                     path_set.add(path)
 
-        logging.info('Done gathering {0:d} existing files.'.format(
+        logging.info('Done discovering {0:d} existing files.'.format(
             len(path_set)
         ))
         return path_set
