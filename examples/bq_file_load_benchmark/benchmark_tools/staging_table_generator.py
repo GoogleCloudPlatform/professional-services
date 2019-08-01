@@ -89,18 +89,17 @@ class StagingTableGenerator(object):
             logging.info('Creating staging table for schema: {0:s}'.format(
                 schema_name
             ))
-            command_str = ('python {0:s}/data_generator_pipeline.py '
-                           '--schema_file={1:s}/{2:s}.json '
-                           '--num_records={3:d} '
-                           '--output_bq_table={4:s}:{5:s}.{2:s} '
-                           '--project={4:s} '
-                           '--setup_file={0:s}/setup.py '
-                           '--staging_location={6:s} '
-                           '--temp_location={7:s} '
-                           '--save_main_session '
-                           '--worker_machine_type=n1-highcpu-32 '
-                           '--runner=DataflowRunner ')
-            command = command_str.format(
+            command = ('python {0:s}/data_generator_pipeline.py '
+                       '--schema_file={1:s}/{2:s}.json '
+                       '--num_records={3:d} '
+                       '--output_bq_table={4:s}:{5:s}.{2:s} '
+                       '--project={4:s} '
+                       '--setup_file={0:s}/setup.py '
+                       '--staging_location={6:s} '
+                       '--temp_location={7:s} '
+                       '--save_main_session '
+                       '--worker_machine_type=n1-highcpu-32 '
+                       '--runner=DataflowRunner ').format(
                 data_gen_path,
                 self.json_schema_path,
                 schema_name,
