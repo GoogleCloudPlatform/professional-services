@@ -43,13 +43,13 @@ class ParquetUtil(object):
             'STRING': pa.string(),
             'NUMERIC': pa.int64(),
         }
-        pa_schema_list = []
+
         # TODO(annarudy@google.com): add support for nested fields
-        for bq_field in self.bq_schema:
-            pa_field = pa.field(
+        pa_schema_list = [
+            pa.field(
                 bq_field.name,
                 type_conversions[bq_field.field_type],
-            )
-            pa_schema_list.append(pa_field)
+            ) for bq_field in self.bq_schema
+        ]
 
         return pa.schema(pa_schema_list)
