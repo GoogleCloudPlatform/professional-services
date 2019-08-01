@@ -1,0 +1,16 @@
+{ "Person List":
+  [
+    {
+      "Person": {
+        "firstName": "George",
+        "lastName": "Washington"
+      }
+    },
+    {
+      "Person":{
+        "firstName": "John",
+        "lastName": "Smith"
+      }
+    }
+  ]
+}

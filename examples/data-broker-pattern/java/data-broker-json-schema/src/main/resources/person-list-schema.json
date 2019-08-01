@@ -1,0 +1,28 @@
+{
+  "title": "Person List",
+  "type":"array",
+
+  "items":{
+    "type": "object",
+    "properties":{
+      "Person": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "age": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "firstName",
+          "lastName"
+        ]
+      }
+    }
+  }
+}
