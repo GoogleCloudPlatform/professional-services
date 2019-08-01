@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+import itertools
 import logging
 
 import apache_beam as beam
@@ -290,7 +291,8 @@ class FileGenerator(object):
             blob_name(str): Both the prefix that the sharded files share, and the
                 name of the single file that the sharded files will be composed
                 into.
-                Ex: fileType=csv/compression=none/numColumns=10/columnTypes=100_STRING/numFiles=10000/tableSize=2147MB/file3876.csv # pylint: disable=line-too-long
+                # pylint: disable=line-too-long
+                Ex: fileType=csv/compression=none/numColumns=10/columnTypes=100_STRING/numFiles=10000/tableSize=2147MB/file3876.csv
         """
         sharded_blobs = list(self.bucket.list_blobs(
             prefix=blob_name
@@ -299,7 +301,7 @@ class FileGenerator(object):
         precomposed_blobs = []
 
         # Compose in groups of 32 'precomposed files', since no more than 32
-        # files can be compsed at once
+        # files can be composed at once
         logging.info('Composing sharded files into groups of 32.')
         while i < len(sharded_blobs):
             grouping = sharded_blobs[i: i + 32]
@@ -363,9 +365,9 @@ class FileGenerator(object):
             extension(str): String to be used as the extension for the file.
                 Options include 'avro', 'csv', 'json', 'deflate', 'gzip', and
                 'snappy'.
-            staging_table_util(benchmark_tools.table_util.TableUtil): Helper class
-                for interacting with the staging table that the file is to be
-                generated from.
+            staging_table_util(benchmark_tools.table_util.TableUtil): Helper
+                class for interacting with the staging table that the file is to
+                be generated from.
         """
         logging.info(
             'Attempting to create file '
@@ -505,158 +507,157 @@ class FileGenerator(object):
         # parameters (ex: the staging table 100_STRING_10_10MB has
         # columnType=100_STRING, numColumns=10, and stagingDataSizes=10MB).
         tables = self.primitive_staging_tables
-        for table_list_item in tables:
-            staging_table_util = table_util.TableUtil(
-                table_list_item.table_id,
-                table_list_item.dataset_id,
+        if len(tables) == 0:
+            logging.info('Dataset {0:s} contains no tables. Please create '
+                         'staging tables in {0:s}.'.format(
+                            self.primitive_staging_dataset_id
+                         )
             )
-            staging_table_util.set_table_properties()
-            # For each staging table, extract to each fileType, each
-            # compressionType, and copy each file so that the combination has
-            # the correct numFiles.
-            for file_type in file_types:
-                for compression_type in file_compression_types[file_type]:
+        # For each staging table, extract to each fileType, each
+        # compressionType, and copy each file so that the combination has
+        # the correct numFiles.
+        for (table_list_item, file_type, num_files) in \
+                itertools.product(tables, file_types, file_counts):
+            for compression_type in file_compression_types[file_type]:
 
-                    for num_files in file_counts:
-                        gcs_prefix = 'gs://{0:s}/'.format(self.bucket_name)
-                        dest_string = ('fileType={0:s}/'
-                                       'compression={1:s}/'
-                                       'numColumns={2:d}/'
-                                       'columnTypes={3:s}/'
-                                       'numFiles={4:d}/'
-                                       'tableSize={5:d}MB/')
-                        destination_path = dest_string.format(
-                            file_type,
-                            compression_type,
-                            staging_table_util.num_columns,
-                            staging_table_util.column_types,
-                            num_files,
-                            int(staging_table_util.table_size/1000000),
-                        )
+                staging_table_util = table_util.TableUtil(
+                    table_list_item.table_id,
+                    table_list_item.dataset_id,
+                )
+                staging_table_util.set_table_properties()
 
-                        if compression_type == 'none':
-                            extension = file_type
-                        else:
-                            extensions = (files_consts
-                                          ['compressionExtensions'])
-                            extension = extensions[compression_type]
+                gcs_prefix = 'gs://{0:s}/'.format(self.bucket_name)
+                dest_string = ('fileType={0:s}/'
+                               'compression={1:s}/'
+                               'numColumns={2:d}/'
+                               'columnTypes={3:s}/'
+                               'numFiles={4:d}/'
+                               'tableSize={5:d}MB/')
+                destination_path = dest_string.format(
+                    file_type,
+                    compression_type,
+                    staging_table_util.num_columns,
+                    staging_table_util.column_types,
+                    num_files,
+                    int(staging_table_util.table_size/1000000),
+                )
 
-                        file_string = 'file1'
+                if compression_type == 'none':
+                    extension = file_type
+                else:
+                    extensions = (files_consts
+                                  ['compressionExtensions'])
+                    extension = extensions[compression_type]
 
-                        destination_prefix = '{0:s}{1:s}{2:s}'.format(
-                            gcs_prefix,
-                            destination_path,
-                            file_string,
-                        )
+                file_string = 'file1'
 
-                        if num_files == 1:
-                            # If the number of files in the current
-                            # combination is 1, check to see if the one file
-                            # doesn't yet exist.
-                            blob_name = '{0:s}{1:s}.{2:s}'.format(
-                                destination_path,
-                                file_string,
-                                extension,
+                destination_prefix = '{0:s}{1:s}{2:s}'.format(
+                    gcs_prefix,
+                    destination_path,
+                    file_string,
+                )
+
+                if num_files == 1:
+                    # If the number of files in the current combination is 1,
+                    # check to see if the one file doesn't yet exist.
+                    blob_name = '{0:s}{1:s}.{2:s}'.format(
+                        destination_path,
+                        file_string,
+                        extension,
+                    )
+                    if not storage.Blob(
+                            bucket=self.bucket,
+                            name=blob_name,
+                    ).exists(self.gcs_client):
+                        # If the one file doesn't yet exist, it needs to be
+                        # created. The method of creation depends on the file
+                        # type.
+                        if file_type == 'parquet':
+                            # If the file type is parquet, use the
+                            # _create_parquet_files() method, which uses
+                            # DataFlow for file creation.
+                            self._create_parquet_file(
+                                blob_name,
+                                staging_table_util,
+                                destination_prefix,
                             )
-                            if not storage.Blob(
-                                    bucket=self.bucket,
-                                    name=blob_name,
-                            ).exists(self.gcs_client):
-                                # If the one file doesn't yet exist, it needs to
-                                # be created. The method of creation depends
-                                # on the file type.
-                                if file_type == 'parquet':
-                                    # If the file type is parquet, use the
-                                    # _create_parquet_files() method, which uses
-                                    # DataFlow for file creation.
-                                    self._create_parquet_file(
-                                        blob_name,
-                                        staging_table_util,
-                                        destination_prefix,
-                                    )
-                                else:
-                                    # Otherwise, use the
-                                    # _extract_tables_to_files() method, which
-                                    # uses BigQuery extract jobs.
-                                    destination_format = extract_formats[
-                                        file_type]
-                                    self._extract_tables_to_files(
-                                        blob_name,
-                                        compression_type,
-                                        destination_format,
-                                        destination_prefix,
-                                        extension,
-                                        staging_table_util,
-                                    )
-                            else:
-                                # If the one file one file already exists,
-                                # skip its creation.
-                                logging.info(skip_message.format(blob_name))
                         else:
-                            # If the numFiles parameter in the current
-                            # iteration is not 1, that means multiple files
-                            # need to be created for the combination. In this
-                            # case, obtain the file from the combination in
-                            # which all parameters are identical to the current
-                            # combination, except in which numFiles=1.
-                            # file will be used to make copies for the
-                            # combinations where numFiles > 1, since copying
-                            # files is faster than running a new extraction
-                            # or DataFlow job. For example, if the current
-                            # combination is fileType=csv/compression=none/numColumns=10/columnTypes=100_STRING/numFiles=100/tableSize=10MB/ # pylint: disable=line-too-long
-                            # then  fileType=csv/compression=none/numColumns=10/columnTypes=100_STRING/numFiles=1/tableSize=10MB/file1.csv # pylint: disable=line-too-long
-                            # will be used to make copies for the current
-                            # combination.
-                            file1_destination_path = dest_string.format(
-                                file_type,
+                            # Otherwise, use the_extract_tables_to_files()
+                            # method, which uses BigQuery extract jobs.
+                            destination_format = extract_formats[
+                                file_type]
+                            self._extract_tables_to_files(
+                                blob_name,
                                 compression_type,
-                                staging_table_util.num_columns,
-                                staging_table_util.column_types,
-                                1,
-                                int(staging_table_util.table_size / 1000000),
+                                destination_format,
+                                destination_prefix,
+                                extension,
+                                staging_table_util,
+                            )
+                    else:
+                        # If the one file one file already exists,
+                        # skip its creation.
+                        logging.info(skip_message.format(blob_name))
+                else:
+                    # If the numFiles parameter in the current iteration is not
+                    # 1, that means multiple files need to be created for the
+                    # combination. In this case, obtain the file from the
+                    # combination in which all parameters are identical to the
+                    # current combination, except in which numFiles=1. file will
+                    # be used to make copies for the combinations where numFiles
+                    # > 1, since copying files is faster than running a new
+                    # extraction or DataFlow job. For example, if the current
+                    # combination is fileType=csv/compression=none/numColumns=10/columnTypes=100_STRING/numFiles=100/tableSize=10MB/ # pylint: disable=line-too-long
+                    # then  fileType=csv/compression=none/numColumns=10/columnTypes=100_STRING/numFiles=1/tableSize=10MB/file1.csv # pylint: disable=line-too-long
+                    # will be used to make copies for the current  combination.
+                    file1_destination_path = dest_string.format(
+                        file_type,
+                        compression_type,
+                        staging_table_util.num_columns,
+                        staging_table_util.column_types,
+                        1,
+                        int(staging_table_util.table_size / 1000000),
 
-                            )
-                            file1_blob_name = '{0:s}{1:s}.{2:s}'.format(
-                                file1_destination_path,
-                                file_string,
-                                extension,
-                            )
-                            # Before making copies for the current combination,
-                            # check that the first file in the combination
-                            # doesn't yet exist. If it doesn't, then proceed.
-                            # If it does exist, assume that all other files in
-                            # the combination already exist too. While this can
-                            # be a risky assumption, it saves a lot of time,
-                            # since combinations can contain as many as 10000
-                            # files. If a combination is stopped in the middle
-                            # of generating a large number of files,
-                            # the restart_incomplete_combination() method can
-                            # be used to ensure the combination gets completed
-                            # without taking the time to check each file's
-                            # existence here.
-                            first_of_n_blobs = '{0:s}{1:s}.{2:s}'.format(
-                                destination_path,
-                                file_string,
-                                extension,
-                            )
-                            if not storage.Blob(
-                                    bucket=self.bucket,
-                                    name=first_of_n_blobs,
-                            ).exists(self.gcs_client):
-                                # If the first file in the combination
-                                # doesn't exist, run copy_blobs() to create
-                                # each file in the combination.
-                                start_num = 1
-                                self.copy_blobs(
-                                    file1_blob_name,
-                                    destination_path,
-                                    extension,
-                                    start_num,
-                                    num_files,
-                                )
-                            else:
-                                # Otherwise, skip creating the first file
-                                # and all subsequent files in the combination.
-                                logging.info(skip_message.format(
-                                    first_of_n_blobs
-                                ))
+                    )
+                    file1_blob_name = '{0:s}{1:s}.{2:s}'.format(
+                        file1_destination_path,
+                        file_string,
+                        extension,
+                    )
+                    # Before making copies for the current combination, check
+                    # that the first file in the combination doesn't yet exist.
+                    # If it doesn't, then proceed. If it does exist, assume that
+                    # all other files in the combination already exist too.
+                    # While this can be a risky assumption, it saves a lot of
+                    # time, since combinations can contain as many as 10000
+                    # files. If a combination is stopped in the middle of
+                    # generating a large number of files, the restart_
+                    # incomplete_combination() method can be used to ensure the
+                    # combination gets completed without taking the time to
+                    # check each file's existence here.
+                    first_of_n_blobs = '{0:s}{1:s}.{2:s}'.format(
+                        destination_path,
+                        file_string,
+                        extension,
+                    )
+                    if not storage.Blob(
+                            bucket=self.bucket,
+                            name=first_of_n_blobs,
+                    ).exists(self.gcs_client):
+                        # If the first file in the combination doesn't exist,
+                        # run copy_blobs() to create each file in the
+                        # combination.
+                        start_num = 1
+                        self.copy_blobs(
+                            file1_blob_name,
+                            destination_path,
+                            extension,
+                            start_num,
+                            num_files,
+                        )
+                    else:
+                        # Otherwise, skip creating the first file and all
+                        # subsequent files in the combination.
+                        logging.info(skip_message.format(
+                            first_of_n_blobs
+                        ))
