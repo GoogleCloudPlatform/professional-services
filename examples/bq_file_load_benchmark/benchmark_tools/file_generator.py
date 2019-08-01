@@ -114,7 +114,8 @@ class FileGenerator(object):
             restart_file(str): the file last successful file that was created
                 in an incomplete perumtation. The string should start with
                 'fileType=' and end with the file extension.
-                Ex: fileType=csv/compression=none/numColumns=10/columnTypes=100_STRING/numFiles=10000/tableSize=2147MB/file3876.csv  # pylint: disable=line-too-long
+                # pylint: disable=line-too-long
+                Ex: fileType=csv/compression=none/numColumns=10/columnTypes=100_STRING/numFiles=10000/tableSize=2147MB/file3876.csv
         """
 
         source_blob_name = restart_file
@@ -221,19 +222,19 @@ class FileGenerator(object):
 
         The avro file is generated in this method using DataFlow. BigQuery
         extract jobs do support avro as a destination format. However, if the
-        size of the staging table is greater than 1 MB, the generated files
-        must be shareded and then composed into a single file. The composition
+        size of the staging table is greater than 1 GB, the generated files
+        must be sharded and then composed into a single file. The composition
         process causes errors when the destination format is avro, since some
         of the composed avro files end up with negative row counts. Therefore,
         this method can be called when generating an avro file from a staging
-        table greater than 1 MB.
+        table greater than 1 GB.
 
         Args:
             blob_name(str): Name of the file (or blob) to be generated. Starts
                 with 'fileType=' and end with the file extension.
                 Ex: fileType=csv/compression=none/numColumns=10/columnTypes=100_STRING/numFiles=10000/tableSize=2147MB/file3876.csv # pylint: disable=line-too-long
             staging_table_util(benchmark_tools.table_util.TableUtil): Util
-                object for interacting with the staging table that the parquet
+                object for interacting with the staging table that the avro
                 file will be generated from.
             destination_prefix(str): String containing the 'gs://' prefix, the
                 bucket name, and the path of the file, without the extension.
