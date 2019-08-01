@@ -73,8 +73,8 @@ ad hoc analysis. The results table contains the following schema:
 |  numRows| INTEGER   | The number of rows in the benchmark table   |
 |  columnTypes | STRING  | The distribution of column types     |
 |  numFiles | INTEGER   | The number of files tested  |
-|  fileSize | INTEGER   | The size of each file   |
-|  stagingDataSize | INTEGER   | The size of the staging table used to generate each file  |
+|  fileSize | INTEGER   | The size of each file in MB  |
+|  stagingDataSize | INTEGER   | The size of the staging table used to generate each file in MB |
 |  job | RECORD   | -    |'
 |  job.id | STRING   | The id of the load job   |
 |  job.user | STRING   | The user who executed the job   |
