@@ -471,7 +471,7 @@ annarudy-bqloader-testfiles of the project data-analytics-pocs.
 
 ## Testing
 
-Tests can be run by running the following command in the benchmark_tools/tests 
+Tests can be run by running the following command in the bq_file_load_benchmark 
 directory:
 
 ```
