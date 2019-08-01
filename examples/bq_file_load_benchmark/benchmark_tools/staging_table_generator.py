@@ -22,6 +22,10 @@ import os
 
 from google.cloud import bigquery
 
+MB_IN_GB = 1000
+KB_IN_GB = 1000000
+BYTES_IN_GB = 1000000000
+
 
 class StagingTableGenerator(object):
     """Contains methods for generating staging tables in BigQuery.
@@ -212,13 +216,13 @@ def get_resized_table_name(table_id, size):
         label_size = size
         label_unit = 'GB'
     elif size >= .001:
-        label_size = int(size * 1000)
+        label_size = int(size * MB_IN_GB)
         label_unit = 'MB'
     elif size >= .000001:
-        label_size = int(size * 1000000)
+        label_size = int(size * KB_IN_GB)
         label_unit = 'KB'
     else:
-        label_size = int(size * 1000000000)
+        label_size = int(size * BYTES_IN_GB)
         label_unit = 'B'
 
     return '{0:s}_{1:d}{2:s}'.format(table_id, label_size, label_unit)
