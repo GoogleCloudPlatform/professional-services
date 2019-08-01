@@ -45,20 +45,20 @@ class SchemaCreator(object):
 
         # Gather file parameters.
         num_columns = self.file_params['numColumns']
-        column_types = self.file_params['columnTypes']
+        schema_types = self.file_params['columnTypes']
 
         # Begin iterating through parameters to create schemas.
-        for column_type in column_types:
+        for schema_type in schema_types:
             # Create lists for the percents and types of columns, where each
             # index in the percents list corresponds to the same index in the
             # columns lists, to help with schema generation.
             # For example, if the columnTypes param is 10_STRING_90_NUMERIC,
             # percents will be [10, 90] and  types will be [STRING, NUMERIC].
-            percents = [float(x) for x in column_type.split('_')[::2]]
-            types = column_type.split('_')[1::2]
+            percents = [float(x) for x in schema_type.split('_')[::2]]
+            types = schema_type.split('_')[1::2]
             if sum(percents) != 100:
                 logging.error(('Invalid column type: {0:s}.'
-                               'Percents must equal 100.'.format(column_type)))
+                               'Percents must equal 100.'.format(schema_type)))
             # Iterate through each value in the numColumns list from
             # self.file_params dictionary.
             for n in num_columns:
@@ -102,7 +102,7 @@ class SchemaCreator(object):
                 # numColumns parameter, to hold the json schema.
                 file_name = '{0:s}/{1:s}_{2:d}.json'.format(
                     self.schemas_dir,
-                    column_type,
+                    schema_type,
                     n,
                 )
                 # Write the json schema to the file.
