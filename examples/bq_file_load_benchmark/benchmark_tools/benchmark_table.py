@@ -135,6 +135,7 @@ class BenchmarkTable(object):
         """Gathers properties of the files loaded into the benchmark table.
         """
         # gather file properties from the files' path
+        # pylint: disable=line-too-long
         benchmark_details_pattern = \
             r'fileType=(\w+)/compression=(\w+)/numColumns=(\d+)/columnTypes=(\w+)/numFiles=(\d+)/tableSize=(\w+)'
         self.file_type, compression, self.num_columns, self.column_types, \

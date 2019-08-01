@@ -16,7 +16,6 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from concurrent.futures import ThreadPoolExecutor
-from functools import partial
 import itertools
 import logging
 
@@ -124,8 +123,7 @@ class BucketUtil(object):
         bucket = gcs_client.get_bucket(self.bucket_name)
 
         with ThreadPoolExecutor() as p:
-            fn = partial(_path_exists)
-            p.map(fn,
+            p.map(_path_exists,
                   itertools.product(
                       file_types,
                       num_columns,

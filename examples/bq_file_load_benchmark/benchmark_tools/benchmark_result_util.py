@@ -17,13 +17,14 @@ from __future__ import division
 from __future__ import print_function
 import logging
 import os
+import re
 
 from google.cloud import bigquery
 
 from benchmark_tools import file_constants
 from benchmark_tools import table_util
 
-BYTES_IN_GB = 1000000
+BYTES_IN_MB = 1000000
 
 
 class BenchmarkResultUtil(object):
@@ -162,33 +163,29 @@ class BenchmarkResultUtil(object):
         )
         benchmark_table_util.set_table_properties()
         self.num_rows = benchmark_table_util.table.num_rows
-        self.num_columns = benchmark_table_util.num_columns
 
         # get properties from the load job
         self.benchmark_time = self.load_job.created
         self.job_start_time = self.load_job.started
         self.job_end_time = self.load_job.ended
         self.job_duration = self.job_end_time - self.job_start_time
-        self.num_files = self.load_job.input_files
         self.job_user = self.load_job.user_email
         self.job_location = self.load_job.location
         self.job_source_format = self.load_job.source_format
-        self.file_size = int((
-                            self.load_job.input_file_bytes / self.num_files
-                        ) / BYTES_IN_GB)
-        self.staging_data_size = int(
-            self.job_source_uri.split('tableSize=')[1].split('MB')[0])
 
         # get properties from file
-        self.file_type = self.job_source_uri.split(
-            'fileType='
-        )[1].split('/')[0]
-        compression = self.job_source_uri.split('compression=')[1].split('/')[0]
+        # pylint: disable=line-too-long
+        benchmark_details_pattern = \
+            r'gs://([\w\'-]+)/fileType=(\w+)/compression=(\w+)/numColumns=(\d+)/columnTypes=(\w+)/numFiles=(\d+)/tableSize=(\d+)(\w+)'
+        bucket, self.file_type, compression, self.num_columns, self.column_types, \
+            self.num_files, self.staging_data_size, staging_data_unit = \
+            re.findall(benchmark_details_pattern, self.job_source_uri)[0]
         self.compression_format = (file_constants.FILE_CONSTANTS
-                                  ['compressionFormats'][compression])
-        self.column_types = self.job_source_uri.split(
-            'columnTypes='
-        )[1].split('/')[0]
+                                   ['compressionFormats'][compression])
+        self.file_size = int((
+                                self.load_job.input_file_bytes /
+                                int(self.num_files)
+                             ) / BYTES_IN_MB)
 
         # get properties from BQ logs
         str_timestamp = str(self.benchmark_time)
