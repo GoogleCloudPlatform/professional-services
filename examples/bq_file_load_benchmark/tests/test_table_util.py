@@ -35,7 +35,6 @@ class TestTableUtil(unittest.TestCase):
         self.dataset_ref = self.bq_client.dataset(self.dataset_id)
         dataset = bigquery.Dataset(self.dataset_ref)
         self.dataset = self.bq_client.create_dataset(dataset)
-        print("!!!!!!!!!!!!!!!!!!!!!!! CREATED DATASET !!!!!!!!!!!!!!!!!!" )
         self.table_id = 'test_table'
         abs_path = os.path.abspath(os.path.dirname(__file__))
         json_schema_filename = os.path.join(
