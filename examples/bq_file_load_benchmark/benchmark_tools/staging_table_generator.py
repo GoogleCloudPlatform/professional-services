@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+from concurrent.futures import ThreadPoolExecutor
 import itertools
 import logging
 import os
@@ -77,6 +78,40 @@ class StagingTableGenerator(object):
             dataflow_staging_location(str): GCS staging path.
             dataflow_temp_location(str): GCS temp path.
         """
+
+        def _create_table(table_details):
+
+            column_type, num_column = table_details
+            schema_name = '{0:s}_{1:d}'.format(
+                column_type,
+                num_column
+            )
+            logging.info('Creating staging table for schema: {0:s}'.format(
+                schema_name
+            ))
+            command_str = ('python {0:s}/data_generator_pipeline.py '
+                           '--schema_file={1:s}/{2:s}.json '
+                           '--num_records={3:d} '
+                           '--output_bq_table={4:s}:{5:s}.{2:s} '
+                           '--project={4:s} '
+                           '--setup_file={0:s}/setup.py '
+                           '--staging_location={6:s} '
+                           '--temp_location={7:s} '
+                           '--save_main_session '
+                           '--worker_machine_type=n1-highcpu-32 '
+                           '--runner=DataflowRunner ')
+            command = command_str.format(
+                data_gen_path,
+                self.json_schema_path,
+                schema_name,
+                self.num_rows,
+                self.project,
+                self.staging_dataset_id,
+                dataflow_staging_location,
+                dataflow_temp_location,
+            )
+            os.system(command)
+
         column_types = self.file_params['columnTypes']
         num_columns = self.file_params['numColumns']
         abs_path = os.path.abspath(os.path.dirname(__file__))
@@ -84,40 +119,8 @@ class StagingTableGenerator(object):
             abs_path,
             '../../dataflow-data-generator/data-generator-pipeline'
         )
-
-        for column_type, num_column in itertools.product(
-                column_types,
-                num_columns
-        ):
-                schema_name = '{0:s}_{1:d}'.format(
-                    column_type,
-                    num_column
-                )
-                logging.info('Creating staging table for schema: {0:s}'.format(
-                    schema_name
-                ))
-                command_str = ('python {0:s}/data_generator_pipeline.py '
-                               '--schema_file={1:s}/{2:s}.json '
-                               '--num_records={3:d} '
-                               '--output_bq_table={4:s}:{5:s}.{2:s} '
-                               '--project={4:s} '
-                               '--setup_file={0:s}/setup.py '
-                               '--staging_location={6:s} '
-                               '--temp_location={7:s} '
-                               '--save_main_session '
-                               '--worker_machine_type=n1-highcpu-32 '
-                               '--runner=DataflowRunner ')
-                command = command_str.format(
-                    data_gen_path,
-                    self.json_schema_path,
-                    schema_name,
-                    self.num_rows,
-                    self.project,
-                    self.staging_dataset_id,
-                    dataflow_staging_location,
-                    dataflow_temp_location,
-                )
-                os.system(command)
+        with ThreadPoolExecutor() as p:
+            p.map(_create_table, itertools.product(column_types, num_columns))
 
     def create_resized_tables(self):
         """Creates resized staging tables using the targetDataSizes parameters.

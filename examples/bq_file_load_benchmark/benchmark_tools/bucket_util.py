@@ -57,9 +57,7 @@ class BucketUtil(object):
             bucket
         """
 
-        def _path_exists(
-            path_details
-        ):
+        def _path_exists(path_details):
             """Adds a path to the path_set if it exists.
 
             Constructs a path based off of the parameters in the path_details
