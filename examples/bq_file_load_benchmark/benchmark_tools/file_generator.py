@@ -292,10 +292,9 @@ class FileGenerator(object):
                 into.
                 Ex: fileType=csv/compression=none/numColumns=10/columnTypes=100_STRING/numFiles=10000/tableSize=2147MB/file3876.csv # pylint: disable=line-too-long
         """
-        sharded_blobs = self.bucket.list_blobs(
+        sharded_blobs = list(self.bucket.list_blobs(
             prefix=blob_name
-        )
-        sharded_blobs = [blob for blob in sharded_blobs]
+        ))
         i = 0
         precomposed_blobs = []
 
