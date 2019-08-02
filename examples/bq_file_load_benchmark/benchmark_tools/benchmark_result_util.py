@@ -170,6 +170,7 @@ class BenchmarkResultUtil(object):
         self.job_end_time = self.load_job.ended
         self.job_duration = self.job_end_time - self.job_start_time
         self.job_user = self.load_job.user_email
+        self.num_files = self.load_job.input_files
         self.job_location = self.load_job.location
         self.job_source_format = self.load_job.source_format
 
@@ -177,8 +178,9 @@ class BenchmarkResultUtil(object):
         # pylint: disable=line-too-long
         benchmark_details_pattern = \
             r'gs://([\w\'-]+)/fileType=(\w+)/compression=(\w+)/numColumns=(\d+)/columnTypes=(\w+)/numFiles=(\d+)/tableSize=(\d+)(\w+)'
-        bucket, self.file_type, compression, self.num_columns, self.column_types, \
-            self.num_files, self.staging_data_size, staging_data_unit = \
+        bucket, self.file_type, compression, self.num_columns, \
+            self.column_types, expected_num_files, self.staging_data_size, \
+            staging_data_unit = \
             re.findall(benchmark_details_pattern, self.job_source_uri)[0]
         self.compression_format = (file_constants.FILE_CONSTANTS
                                    ['compressionFormats'][compression])
