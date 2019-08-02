@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+import csv
 import os
 
 from google.cloud import bigquery
@@ -13,6 +14,23 @@ class TestFileGenerator(object):
     """Tests functionality of benchmark_tools.file_generator.FileGenerator.
 
     Attributes:
+        bucket_name(str): Name of the bucket used for testing.
+        file_bucket(google.cloud.storage.bucket.Bucket): Bucket
+            that will hold the generated files.
+        test_file_parameters(dict): Dictionary containing each test file
+            parameter and its possible values.
+        bq_client(google.cloud.bigquery.client.Client): Client to hold
+            configurations needed for BigQuery API requests.
+        dataset_id(str): ID of the dataset that will hold the staging table
+            used for generating files.
+        dataset_ref(google.cloud.bigquery.dataset.DatasetReference): Pointer
+            to the dataset that holds the staging table.
+        df_staging_bucket(google.cloud.storage.bucket.Bucket): Bucket for
+            storing staging and temp resources for for dataflow jobs needed
+            for generating files.
+        df_staging_path(str): GCS staging path for dataflow job.
+        df_temp_path(str): GCS temp path for dataflow job.
+
 
     """
 
@@ -44,8 +62,7 @@ class TestFileGenerator(object):
         self.bq_client = bigquery.Client()
         self.dataset_id = 'bqbm_test_resized_staging_dataset'
         self.dataset_ref = self.bq_client.dataset(self.dataset_id)
-        dataset = bigquery.Dataset(self.dataset_ref)
-        self.dataset = self.bq_client.create_dataset(dataset)
+        self.bq_client.create_dataset(bigquery.Dataset(self.dataset_ref))
 
         # set up GCS resources needed for dataglow job
         df_staging_bucket_id = 'bq_benchmark_dataflow_test'
@@ -64,7 +81,97 @@ class TestFileGenerator(object):
             df_staging_bucket_id
         )
 
+    def test_create_files(self, project_id):
+        """Tests FileGenerator.create_files().
+
+        Tests FileGenerator's ability to properly create files in GCS by
+            running extract jobs on staging tables.
+
+        Args:
+            project_id(str): ID of the project that holds the test GCS
+                resources.
+
+        Returns:
+            True if test passes, else False.
+        """
+        # create sample staging table
+
+        staging_table_id = '50_STRING_50_NUMERIC_10_213B'
+        staging_table_ref = self.dataset_ref.table(staging_table_id)
+
+        abs_path = os.path.abspath(os.path.dirname(__file__))
+        sample_data_file = os.path.join(
+            abs_path,
+            ('test_data/fileType=csv/compression=none/'
+             'numColumns=10/columnTypes=50_STRING_50_NUMERIC/numFiles=1/'
+             'tableSize=10MB/file1.csv')
+        )
+        load_job_config = bigquery.LoadJobConfig()
+        load_job_config.source_format = bigquery.SourceFormat.CSV
+        load_job_config.skip_leading_rows = 1
+        load_job_config.autodetect = True
+
+        with open(sample_data_file, "rb") as source_file:
+            job = self.bq_client.load_table_from_file(
+                source_file,
+                staging_table_ref,
+                job_config=load_job_config
+            )
+
+        job.result()
+
+        self.file_generator = file_generator.FileGenerator(
+            project_id,
+            self.dataset_id,
+            self.bucket_name,
+            self.test_file_parameters,
+            self.df_staging_path,
+            self.df_temp_path
+        )
+
+        # assert that the file names/numbers are correct
+        self.file_generator.create_files()
+        files = [blob.name for blob in self.file_bucket.list_blobs()]
+        # pylint: disable=line-too-long
+        expected_files = [
+            u'fileType=csv/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=1/tableSize=0MB/file1.csv',
+            u'fileType=csv/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file1.csv',
+            u'fileType=csv/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file10.csv',
+            u'fileType=csv/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file2.csv',
+            u'fileType=csv/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file3.csv',
+            u'fileType=csv/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file4.csv',
+            u'fileType=csv/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file5.csv',
+            u'fileType=csv/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file6.csv',
+            u'fileType=csv/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file7.csv',
+            u'fileType=csv/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file8.csv',
+            u'fileType=csv/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file9.csv',
+            u'fileType=json/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=1/tableSize=0MB/file1.json',
+            u'fileType=json/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file1.json',
+            u'fileType=json/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file10.json',
+            u'fileType=json/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file2.json',
+            u'fileType=json/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file3.json',
+            u'fileType=json/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file4.json',
+            u'fileType=json/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file5.json',
+            u'fileType=json/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file6.json',
+            u'fileType=json/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file7.json',
+            u'fileType=json/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file8.json',
+            u'fileType=json/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file9.json'
+        ]
+        assert files == expected_files
+
     def test_compose_sharded_blobs(self, project_id):
+        """Tests FileGenerator._compose_sharded_blobs().
+
+        Tests FileGenerator's ability to properly compose multiple sharded
+            blobs into one blob.
+
+        Args:
+            project_id(str): ID of the project that holds the test GCS
+                resources.
+
+        Returns:
+            True if test passes, else False.
+        """
         self.file_generator = file_generator.FileGenerator(
             project_id,
             self.dataset_id,
@@ -91,11 +198,41 @@ class TestFileGenerator(object):
             max_composable_blobs=2
         )
 
+        # assert that the final composed blob exists and all sharded blobs
+        # have been deleted
         assert storage.Blob(composed_blob_name, self.file_bucket).exists()
         for i in range(1, num_sample_blobs + 1):
             assert not storage.Blob(
                 'blob{0:d}'.format(i),
                 self.file_bucket).exists()
+
+        # check that the correct number of rows exists in the composed blob
+        with open(sample_file) as opened_sample_file:
+            csv_reader = list(csv.reader(opened_sample_file))
+            sample_file_num_rows = len(csv_reader)
+
+        abs_path = os.path.abspath(os.path.dirname(__file__))
+        downloaded_blob_name = '{0:s}.csv'.format(
+            composed_blob_name
+        )
+        downloaded_blob_path = os.path.join(
+            abs_path,
+            downloaded_blob_name
+        )
+        self.file_bucket.get_blob(composed_blob_name).download_to_filename(
+            downloaded_blob_path
+        )
+
+        with open(downloaded_blob_path) as opened_downloaded_blob:
+            csv_reader = list(csv.reader(opened_downloaded_blob))
+            composed_blob_num_rows = len(csv_reader)
+
+        expected_composed_blob_num_rows = \
+            sample_file_num_rows * num_sample_blobs
+
+        assert composed_blob_num_rows == expected_composed_blob_num_rows
+
+        os.remove(downloaded_blob_path)
 
     def teardown(self):
         """Tears down resources created in setup().
