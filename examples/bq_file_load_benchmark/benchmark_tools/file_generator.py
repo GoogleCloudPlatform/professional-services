@@ -312,10 +312,10 @@ class FileGenerator(object):
                 A blob object created by composing blobs in the group dict.
             :return:
             """
-            # If the length <= max_composable_blobs, then this is the final
+            # If length of indexed_groups is 1, then this is the final
             # composition that needs to be completed, in which case the
             # composed blob needs to have the name stored in blob_name.
-            if len(last_composed_group) <= max_composable_blobs:
+            if len(indexed_groups) == 1:
                 composed_blob_name = blob_name
             # Otherwise, create a name based off of the hash of all the blob
             # names in the group concatenated together. Note that using the hash
@@ -352,6 +352,7 @@ class FileGenerator(object):
 
         with ThreadPoolExecutor() as p:
             while len(last_composed_group) != 1:
+
                 # Concurrently call _compose_blobs on a list of groups of blobs
                 # to compose the blobs in each group into one blob.
                 last_composed_group = list(

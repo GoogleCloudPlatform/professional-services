@@ -19,12 +19,12 @@ class TestFileGenerator(object):
     def setup(self):
         """Sets up resources for tests.
         """
-       # create bucket
+        # create bucket
         self.bucket_name = 'bq_benchmark_test_bucket'
         gcs_client = storage.Client()
         self.file_bucket = gcs_client.create_bucket(self.bucket_name)
 
-       # create test params that will result in 2 files
+        # create test params
         self.test_file_parameters = {
             'fileType': ['csv', 'json'],
             'fileCompressionTypes': {
@@ -40,35 +40,12 @@ class TestFileGenerator(object):
             ],
         }
 
-        # create sample staging table
+        # Define BQ resources
         self.bq_client = bigquery.Client()
         self.dataset_id = 'bqbm_test_resized_staging_dataset'
         self.dataset_ref = self.bq_client.dataset(self.dataset_id)
         dataset = bigquery.Dataset(self.dataset_ref)
         self.dataset = self.bq_client.create_dataset(dataset)
-        staging_table_id = '50_STRING_50_NUMERIC_10_213B'
-        staging_table_ref = self.dataset_ref.table(staging_table_id)
-
-        abs_path = os.path.abspath(os.path.dirname(__file__))
-        sample_data_file = os.path.join(
-            abs_path,
-            ('test_data/fileType=csv/compression=none/'
-             'numColumns=10/columnTypes=50_STRING_50_NUMERIC/numFiles=1/'
-             'tableSize=10MB/file1.csv')
-        )
-        load_job_config = bigquery.LoadJobConfig()
-        load_job_config.source_format = bigquery.SourceFormat.CSV
-        load_job_config.skip_leading_rows = 1
-        load_job_config.autodetect = True
-
-        with open(sample_data_file, "rb") as source_file:
-            job = self.bq_client.load_table_from_file(
-                source_file,
-                staging_table_ref,
-                job_config=load_job_config
-            )
-
-        job.result()
 
         # set up GCS resources needed for dataglow job
         df_staging_bucket_id = 'bq_benchmark_dataflow_test'
@@ -87,7 +64,7 @@ class TestFileGenerator(object):
             df_staging_bucket_id
         )
 
-    def test_create_files(self, project_id):
+    def test_compose_sharded_blobs(self, project_id):
         self.file_generator = file_generator.FileGenerator(
             project_id,
             self.dataset_id,
@@ -97,35 +74,28 @@ class TestFileGenerator(object):
             self.df_temp_path
         )
 
-        # assert that the file names/numbers are correct
-        self.file_generator.create_files()
-        files = [blob.name for blob in self.file_bucket.list_blobs()]
-        # pylint: disable=line-too-long
-        expected_files = [
-            u'fileType=csv/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=1/tableSize=0MB/file1.csv',
-            u'fileType=csv/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file1.csv',
-            u'fileType=csv/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file10.csv',
-            u'fileType=csv/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file2.csv',
-            u'fileType=csv/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file3.csv',
-            u'fileType=csv/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file4.csv',
-            u'fileType=csv/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file5.csv',
-            u'fileType=csv/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file6.csv',
-            u'fileType=csv/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file7.csv',
-            u'fileType=csv/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file8.csv',
-            u'fileType=csv/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file9.csv',
-            u'fileType=json/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=1/tableSize=0MB/file1.json',
-            u'fileType=json/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file1.json',
-            u'fileType=json/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file10.json',
-            u'fileType=json/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file2.json',
-            u'fileType=json/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file3.json',
-            u'fileType=json/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file4.json',
-            u'fileType=json/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file5.json',
-            u'fileType=json/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file6.json',
-            u'fileType=json/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file7.json',
-            u'fileType=json/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file8.json',
-            u'fileType=json/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file9.json'
-        ]
-        assert files == expected_files
+        abs_path = os.path.abspath(os.path.dirname(__file__))
+        sample_file = os.path.join(
+            abs_path,
+            ('test_data/fileType=csv/compression=none/'
+             'numColumns=10/columnTypes=50_STRING_50_NUMERIC/numFiles=1/'
+             'tableSize=10MB/file1.csv')
+        )
+        num_sample_blobs = 3
+        for i in range(1, num_sample_blobs + 1):
+            blob = self.file_bucket.blob('blob{0:d}'.format(i))
+            blob.upload_from_filename(sample_file)
+        composed_blob_name = 'blob'
+        self.file_generator._compose_sharded_blobs(
+            blob_name=composed_blob_name,
+            max_composable_blobs=2
+        )
+
+        assert storage.Blob(composed_blob_name, self.file_bucket).exists()
+        for i in range(1, num_sample_blobs + 1):
+            assert not storage.Blob(
+                'blob{0:d}'.format(i),
+                self.file_bucket).exists()
 
     def teardown(self):
         """Tears down resources created in setup().
