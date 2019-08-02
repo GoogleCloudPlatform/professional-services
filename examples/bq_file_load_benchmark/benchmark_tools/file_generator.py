@@ -312,10 +312,10 @@ class FileGenerator(object):
                 A blob object created by composing blobs in the group dict.
             :return:
             """
-            # If the length is max_composable_blobs, then this is the final
+            # If the length <= max_composable_blobs, then this is the final
             # composition that needs to be completed, in which case the
             # composed blob needs to have the name stored in blob_name.
-            if len(last_composed_group) == max_composable_blobs:
+            if len(last_composed_group) <= max_composable_blobs:
                 composed_blob_name = blob_name
             # Otherwise, create a name based off of the hash of all the blob
             # names in the group concatenated together. Note that using the hash
@@ -327,6 +327,9 @@ class FileGenerator(object):
 
             # Compose the group of blobs into one, and delete the group of
             # blobs since only the composed blob is needed.
+            logging.info('Composing {0:d} shards into one blob.'.format(
+                len(group)
+            ))
             self.bucket.blob(composed_blob_name).compose(
                 group
             )
@@ -344,7 +347,7 @@ class FileGenerator(object):
                           range(0, len(sharded_blobs), max_composable_blobs)]
         # Initialize a list to hold recently composed blobs. The composition
         # process will continue until the size of last_composed_group is one,
-        # meaning all blobs have been composed into one. 
+        # meaning all blobs have been composed into one.
         last_composed_group = []
 
         with ThreadPoolExecutor() as p:
@@ -361,6 +364,7 @@ class FileGenerator(object):
                     for i in
                     range(0, len(last_composed_group), MAX_COMPOSABLE_BLOBS)]
 
+        logging.info('Composition of sharded blobs complete.')
         logging.info('Created file: {0:s}'.format(blob_name))
 
     def _extract_tables_to_files(
