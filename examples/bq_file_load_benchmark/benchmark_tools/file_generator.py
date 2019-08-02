@@ -15,6 +15,8 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+from concurrent.futures import ThreadPoolExecutor
+import hashlib
 import itertools
 import logging
 
@@ -30,6 +32,8 @@ from benchmark_tools import bucket_util
 from benchmark_tools import file_constants
 from benchmark_tools import parquet_util
 from benchmark_tools import table_util
+
+MAX_COMPOSABLE_BLOBS = 32
 
 
 class FileGenerator(object):
@@ -284,7 +288,7 @@ class FileGenerator(object):
         p.run().wait_until_finish()
         logging.info('Created file: {0:s}'.format(blob_name))
 
-    def _compose_sharded_blobs(self, blob_name):
+    def _compose_sharded_blobs(self, blob_name, max_composable_blobs):
         """Composes multiple files (or blobs) into one file.
 
         Args:
@@ -293,45 +297,71 @@ class FileGenerator(object):
                 into.
                 # pylint: disable=line-too-long
                 Ex: fileType=csv/compression=none/numColumns=10/columnTypes=100_STRING/numFiles=10000/tableSize=2147MB/file3876.csv
+            max_composable_blobs(int): The maximum number of blobs that
+                can be composed at once.
         """
+
+        def _compose_blobs(group):
+            """Composes a group of blobs into one blob then deletes the group
+                of blobs.
+
+            Args:
+                group(dict): A dictionary of blob objects.
+
+            Returns:
+                A blob object created by composing blobs in the group dict.
+            :return:
+            """
+            # If the length is max_composable_blobs, then this is the final
+            # composition that needs to be completed, in which case the
+            # composed blob needs to have the name stored in blob_name.
+            if len(last_composed_group) == max_composable_blobs:
+                composed_blob_name = blob_name
+            # Otherwise, create a name based off of the hash of all the blob
+            # names in the group concatenated together. Note that using the hash
+            # creates a shorter and simpler name than using the
+            # concatenated string as the composed blob name, especially if the
+            # total number of shards is quite large.
+            else:
+                composed_blob_name = hashlib.md5(str(group)).hexdigest()
+
+            # Compose the group of blobs into one, and delete the group of
+            # blobs since only the composed blob is needed.
+            self.bucket.blob(composed_blob_name).compose(
+                group
+            )
+            self.bucket.delete_blobs(group)
+            return self.bucket.get_blob(composed_blob_name)
+
         sharded_blobs = list(self.bucket.list_blobs(
             prefix=blob_name
         ))
-        i = 0
-        precomposed_blobs = []
 
-        # Compose in groups of 32 'precomposed files', since no more than 32
-        # files can be composed at once
-        logging.info('Composing sharded files into groups of 32.')
-        while i < len(sharded_blobs):
-            grouping = sharded_blobs[i: i + 32]
-            i += 32
-            precomposed_blob_name = '{0:s}_grouping{1:d}'.format(
-                blob_name, min(i, len(sharded_blobs))
-            )
-            precomposed_blob = self.bucket.blob(
-                precomposed_blob_name
-            )
-            precomposed_blob.compose(
-                grouping
-            )
-            precomposed_blobs.append(
-                precomposed_blob)
+        # break the sharded blobs up into groups the size of
+        # max_composable_blobs, and store groups in list indexed_groups
+        indexed_groups = [(sharded_blobs[i:i + max_composable_blobs])
+                          for i in
+                          range(0, len(sharded_blobs), max_composable_blobs)]
+        # Initialize a list to hold recently composed blobs. The composition
+        # process will continue until the size of last_composed_group is one,
+        # meaning all blobs have been composed into one. 
+        last_composed_group = []
 
-        # Compose the 'precomposed files' into one file
-        logging.info('Composing all precomposed files into one file.')
-        self.bucket.blob(blob_name).compose(
-            precomposed_blobs
-        )
+        with ThreadPoolExecutor() as p:
+            while len(last_composed_group) != 1:
+                # Concurrently call _compose_blobs on a list of groups of blobs
+                # to compose the blobs in each group into one blob.
+                last_composed_group = list(
+                    p.map(_compose_blobs, indexed_groups))
 
-        # Delete the original sharded files and the 'precomposed files',
-        # leaving only the final, single file
-        for blob in precomposed_blobs:
-            self.bucket.delete_blob(blob.name)
-        for blob in sharded_blobs:
-            self.bucket.delete_blob(blob.name)
-        logging.info(
-            'Created file: {0:s}'.format(blob_name))
+                # Regroup the newly composed blobs into groups the size of
+                # max_composable_blobs, and store groups in list indexed_groups.
+                indexed_groups = [
+                    (last_composed_group[i:i + MAX_COMPOSABLE_BLOBS])
+                    for i in
+                    range(0, len(last_composed_group), MAX_COMPOSABLE_BLOBS)]
+
+        logging.info('Created file: {0:s}'.format(blob_name))
 
     def _extract_tables_to_files(
             self,
@@ -424,7 +454,7 @@ class FileGenerator(object):
                 extract_job.result()
                 # Compose the sharded files that have the provided blob_name
                 # as a prefix into one single file with the name of blob_name.
-                self._compose_sharded_blobs(blob_name)
+                self._compose_sharded_blobs(blob_name, MAX_COMPOSABLE_BLOBS)
 
     def copy_blobs(
             self,

@@ -101,7 +101,7 @@ class TestFileGenerator(object):
         self.file_generator.create_files()
         files = [blob.name for blob in self.file_bucket.list_blobs()]
         # pylint: disable=line-too-long
-        expect_files = [
+        expected_files = [
             u'fileType=csv/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=1/tableSize=0MB/file1.csv',
             u'fileType=csv/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file1.csv',
             u'fileType=csv/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file10.csv',
@@ -125,7 +125,7 @@ class TestFileGenerator(object):
             u'fileType=json/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file8.json',
             u'fileType=json/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file9.json'
         ]
-        assert files == expect_files
+        assert files == expected_files
 
     def teardown(self):
         """Tears down resources created in setup().
