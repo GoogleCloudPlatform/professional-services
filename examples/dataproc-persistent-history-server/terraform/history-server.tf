@@ -26,7 +26,7 @@ resource "google_dataproc_cluster" "history-server" {
   cluster_config {
     master_config {
       num_instances = 1
-      machine_type  = "n1-standard-1"
+      machine_type  = "n1-standard-4"
 
       disk_config {
         boot_disk_type    = "pd-standard"
@@ -41,20 +41,28 @@ resource "google_dataproc_cluster" "history-server" {
         "dataproc:dataproc.allow.zero.workers"              = "true"
         "yarn:yarn.log-aggregation-enable"                  = "true"
         "yarn:yarn.nodemanager.remote-app-log-dir"          = "gs://${var.history-bucket}/yarn/logs/"
-        "yarn:yarn.log-aggregation.retain-seconds"          = "-1"
-        "yarn:yarn.log.server.url"                          = "https://${var.history-server}-m:19888/jobhistory/logs"
+        "yarn:yarn.log-aggregation.retain-seconds"          = "604800"
+        "yarn:yarn.log.server.url"                          = "http://${var.history-server}-m:19888/jobhistory/logs"
+        "mapreduce.jobhistory.always-scan-user-dir"         = "true"
         "mapred:mapreduce.jobhistory.address"               = "${var.history-server}-m:10020"
         "mapred:mapreduce.jobhistory.webapp.address"        = "${var.history-server}-m:19888"
         "mapred:mapreduce.jobhistory.done-dir"              = "gs://${var.history-bucket}/done-dir"
         "mapred:mapreduce.jobhistory.intermediate-done-dir" = "gs://${var.history-bucket}/intermediate-done-dir"
         "spark:spark.eventLog.dir"                          = "gs://${var.history-bucket}/spark-events/"
         "spark:spark.history.fs.logDirectory"               = "gs://${var.history-bucket}/spark-events/"
+        "spark:spark.ui.enabled"                            = "true"
+        "spark:spark.ui.filters"                            = "org.apache.spark.deploy.yarn.YarnProxyRedirectFilter"
+        "spark:spark.yarn.historyServer.address"            = "${var.history-server}-m:18080"
       }
     }
 
     gce_cluster_config {
       subnetwork = "${module.vpc.subnets_names[0]}"
       tags       = ["hadoop-history-ui-access"]
+
+      metadata {
+        "enable-oslogin" = "TRUE"
+      }
     }
   }
 }

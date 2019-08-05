@@ -1,0 +1,25 @@
+<annotation>
+	<filename>image.jpg</filename>
+	<size>
+		<width>400</width>
+		<height>300</height>
+	</size>
+	<object>
+		<name>label</name>
+		<bndbox>
+			<xmin>10</xmin>
+			<ymin>20</ymin>
+			<xmax>30</xmax>
+			<ymax>40</ymax>
+		</bndbox>
+	</object>
+	<object>
+		<name>label</name>
+		<bndbox>
+			<xmin>50</xmin>
+			<ymin>60</ymin>
+			<xmax>70</xmax>
+			<ymax>80</ymax>
+		</bndbox>
+	</object>
+</annotation>
