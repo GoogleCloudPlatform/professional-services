@@ -1,1 +1,12 @@
+gcsfs
+ghostscript
+google-api-python-client
+google-auth
+google-auth-httplib2
 google-cloud-automl
+google-cloud-storage
+google-cloud-bigquery
+google-cloud-vision
+numpy
+pandas
+wand
