@@ -1,0 +1,2 @@
+google-cloud-bigquery
+tensorflow==1.10.1
