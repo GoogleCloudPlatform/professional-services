@@ -8,7 +8,7 @@ in the field.
 - [Ingest data from files into Bigquery reading the file structure from Datastore](#ingest-data-from-files-into-bigquery-reading-the-file-structure-from-datastore)
 - [Data lake to data mart](#data-lake-to-data-mart)
 
-The solutions below become more complex as we incorporate more Dataflow features.  
+The solutions below become more complex as we incorporate more Dataflow features.
 
 ## Ingesting data from a file into BigQuery
 ![Alt text](img/csv_file_to_bigquery.png?raw=true "CSV file to BigQuery")
@@ -66,7 +66,7 @@ date format from the source data into a date format BigQuery accepts.
 ### Read data in from the file.
 ![Alt text](img/csv_file.png?raw=true "CSV file")
 
-Similar to the previous example, this example uses TextIO to read the file from Google Cloud Storage.  
+Similar to the previous example, this example uses TextIO to read the file from Google Cloud Storage.
 
 ### Transform the CSV format into a dictionary format.
 ![Alt text](img/custom_python_code.png?raw=true "Custom Python code")
@@ -87,7 +87,7 @@ Ready to dive deeper?  Check out the complete code [here](dataflow_python_exampl
 
 This example demonstrates how to work with two datasets.  A primary dataset is read from a file, and another dataset 
 containing reference is read from BigQuery.  The two datasets are then joined in Dataflow before writing the joined 
-dataset down to BigQuery.  
+dataset down to BigQuery.
  
 This pipeline contains 4 steps:
 1. [Read in the primary dataset from a file](dataflow_python_examples/data_enrichment.py#L165-L176).
@@ -105,7 +105,7 @@ Similar to previous examples, we use TextIO to read the dataset from a CSV file.
 ![Alt text](img/import_state_name_from_bigquery.png?raw=true "Import state name data from BigQuery")
 
 Using BigQueryIO, we can specify a query to read data from.  Dataflow then is able to distribute the data
-from BigQuery to the next stages in the pipeline.  
+from BigQuery to the next stages in the pipeline.
 
 In this example the additional dataset is represented as a side input.  Side inputs in Dataflow are typically reference 
 datasets that fit into memory.  Other examples will explore alternative methods for joining datasets which work well for
@@ -163,7 +163,7 @@ pip install -r requirements.txt
 ```
 
 ### 3. Configure Table schema
-Create a file with the structure of the file to be imported. Files need to follow the following naming convention: `TABLENAME.csv`. Files will contain the structure of the file in CSV format.
+Create a file that contains the structure of the CSVs to be imported. Filename needs to follow convention: `TABLENAME.csv`.
 
 Example:
 ```
@@ -179,9 +179,8 @@ python dataflow_python_examples/datastore_schema_import.py --help
 
 Run the `datastore_schema_import.py` script to create the entry in Google Cloud Datastore using the following command:
 ```
-python dataflow_python_examples/datastore_schema_import.py --input-files=PATH_TO_FILE/TABLENAME.csv
+python dataflow_python_examples/datastore_schema_import.py --schema-file=<path_to_TABLENAME.csv>
 ```
-The script supports multiple file, you need to separate them with a comma.
 
 ### 4. Upload files into Google Cloud Storage
 Upload files to be imported into Google Bigquery in a Google Cloud Storage Bucket. You can use `gsutil` using a command like:
@@ -197,7 +196,7 @@ test_2,test_2,40
 "test_3, jr",surname,50
 ```
 
-### 4. Run pipeline
+### 5. Run pipeline
 You can check parameters accepted by the `data_ingestion_configurable.py` script with the following command:
 ```
 python dataflow_python_examples/data_ingestion_configurable --help
@@ -230,22 +229,22 @@ python dataflow_python_examples/data_ingestion_configurable.py \
 --bq-dataset=###PUT HERE BQ DATASET NAME###
 ```
 
-### 4. Check results
+### 6. Check results
 You can check data imported into Google BigQuery from the Google Cloud Console UI.
 
 ## Data lake to data mart
 ![Alt text](img/data_lake_to_data_mart.png?raw=true "Data lake to data mart")
 
-This example demonstratings joining data from two different datasets in BigQuery, applying transformations to
+This example demonstrates joining data from two different datasets in BigQuery, applying transformations to
 the joined dataset before uploading to BigQuery.
 
-Joining two datasets from BigQuery is a common use case when a data lake has been implemented in BigQuery.  
+Joining two datasets from BigQuery is a common use case when a data lake has been implemented in BigQuery.
 Creating a data mart with denormalized datasets facilitates better performance when using visualization tools.
  
 This pipeline contains 4 steps:
 1. [Read in the primary dataset from BigQuery](dataflow_python_examples/data_lake_to_mart.py#L278-L283).
 2. [Read in the reference data from BigQuery](dataflow_python_examples/data_lake_to_mart.py#L248-L276).
-3. [Custom Python code](dataflow_python_examples/data_lake_to_mart.py#L210-L224) is used to [join the two datasets](dataflow_python_examples/data_lake_to_mart.py#L284-L287). 
+3. [Custom Python code](dataflow_python_examples/data_lake_to_mart.py#L210-L224) is used to [join the two datasets](dataflow_python_examples/data_lake_to_mart.py#L284-L287).
 Alternatively, [CoGroupByKey can be used to join the two datasets](dataflow_python_examples/data_lake_to_mart_cogroupbykey.py#L300-L310).
 4. [The joined dataset is written out to BigQuery](dataflow_python_examples/data_lake_to_mart.py#L288-L301).
 
@@ -259,16 +258,16 @@ main dataset is a fake orders dataset, containing a history of orders and associ
 ### Read in the reference data from BigQuery
 ![Alt text](img/2_query_account_details.png?raw=true "Import state name data from BigQuery")
 
-In this example we use a fake account details dataset.  This represents a common use case for denormalizing a dataset.  
-  The account details information contains attributes linked to the accounts in the orders dataset.  For example the 
-  address and city of the account.
+In this example we use a fake account details dataset.  This represents a common use case for denormalizing a dataset.
+The account details information contains attributes linked to the accounts in the orders dataset.  For example the 
+address and city of the account.
 
 ### Custom Python code is used to join the two datasets
 ![Alt text](img/3_custom_python_code.png?raw=true "Custom python code")
 
 Using custom python code, we join the two datasets together.  We provide two examples of joining these datasets.  The 
 first example uses side inputs, which require the dataset fit into memory.  The second example demonstrates how to use
-CoGroupByKey to join the datasets.   
+CoGroupByKey to join the datasets.
 
 CoGroupByKey will facilitate joins between two datesets even if neither fit into memory.  Explore the comments in the 
 two code examples for a more in depth explanation.
@@ -281,7 +280,7 @@ examples.
 
 ### Full code examples
 
-Ready to dive deeper?  Check out the complete code.  
+Ready to dive deeper?  Check out the complete code.
 The example using side inputs is [here](dataflow_python_examples/data_lake_to_mart.py) and the example using CoGroupByKey is 
 [here](dataflow_python_examples/data_lake_to_mart_cogroupbykey.py).
 
