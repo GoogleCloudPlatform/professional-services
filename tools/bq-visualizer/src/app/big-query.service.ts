@@ -15,13 +15,14 @@
  */
 import {HttpClient} from '@angular/common/http';
 import {Injectable} from '@angular/core';
-import {OAuthService} from 'angular-oauth2-oidc';
+// import {OAuthService} from 'angular-oauth2-oidc';
 import {concat, defer, EMPTY, from, Observable, of, Subscription} from 'rxjs';
 import {catchError, filter, map} from 'rxjs/operators';
 
 import {environment} from '../environments/environment';
 
 import {BqJob} from './bq_job';
+import {GoogleAuthService} from './google-auth.service';
 import {LogService} from './log.service';
 import {BqListJobResponse, BqProject, BqProjectListResponse, Job} from './rest_interfaces';
 
@@ -35,7 +36,8 @@ export class BigQueryService {
   lastProjectId: string;
 
   constructor(
-      private http: HttpClient, private oauthService: OAuthService,
+      private http: HttpClient,  // private oauthService: OAuthService,
+      private googleAuthService: GoogleAuthService,
       private logSvc: LogService) {}
 
   /** Get the detail of a job. */
@@ -46,8 +48,7 @@ export class BigQueryService {
     const realid = jobId.split('.').slice(-1)[0];
     this.logSvc.debug(`getQueryPlan: fetched query plan for jobid=${jobId}`);
 
-    const token = this.oauthService.getAccessToken();
-    console.log(token);
+    const token = this.googleAuthService.getAccessToken();
 
     const args = {access_token: token, location: location};
     const url = bqUrl(`/${projectId}/jobs/${realid}`, args);
@@ -60,7 +61,7 @@ export class BigQueryService {
   /** Get all jobs for a project. */
   getJobs(projectId: string, maxJobs: number): Observable<BqJob> {
     return Observable.create(async obs => {
-      const token = this.oauthService.getAccessToken();
+      const token = this.googleAuthService.getAccessToken();
       let nextPageToken = '';
       let totalJobs = 0;
       while (true) {
@@ -71,7 +72,6 @@ export class BigQueryService {
           projection: 'full',
           pageToken: nextPageToken,
         });
-        console.log('getJobs: ' + url);
 
         try {
           await new Promise((resolve, reject) => {
@@ -91,7 +91,7 @@ export class BigQueryService {
                   }
                   nextPageToken = res.nextPageToken;
                   totalJobs += res.jobs.length;
-                  console.log('totalJobs: ' + totalJobs);
+                  // console.log('totalJobs: ' + totalJobs);
                   if (totalJobs >= maxJobs) {
                     obs.complete();
                     return;
@@ -120,7 +120,17 @@ export class BigQueryService {
   /** Get all projects. */
   getProjects(): Observable<BqProject> {
     return Observable.create(async obs => {
-      const token = this.oauthService.getAccessToken();
+      if (this.googleAuthService.isLoggedIn() === false) {
+        await this.googleAuthService.login();
+        if (this.googleAuthService.isLoggedIn) {
+          this.logSvc.info('successfully Logged in');
+        } else {
+          this.logSvc.error  ('failed Logged in');
+          obs.error('No authentication token available.');
+        }
+      }
+      const token = this.googleAuthService.getAccessToken();
+
       let nextPageToken = '';
       while (true) {
         const url = bqUrl('', {

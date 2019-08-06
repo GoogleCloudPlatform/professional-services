@@ -13,15 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-.dashboard-card {
-  position: absolute;
-  top: 15px;
-  left: 15px;
-  right: 15px;
-  bottom: 15px;
-}
-
-.dashboard-card-content {
-  overflow: auto;
-  text-align: left;
-}
+ 
+ .main {
+    overflow: hidden;
+    height: 100vh;
+  }
+  .footer {
+    padding: 20px;
+    text-align: center;
+    background: #3f5185;
+  }
+  .header {
+    color: #fff;
+    background: #3f51b5;
+    padding: 16px;
+  }
+  .header__title {
+    font-weight: bold;
+    font-size: 24px;
+  }
+  
