@@ -2,6 +2,14 @@
 
 This utility provides a web application which can be used to visualise the flow of execution stages within a BigQuery job. This may be useful in identifying problematic stages and provides greater usability for large query plans than the default query plan explanation in the Google Cloud Console.
 
+## Release Notes
+15 July 2019 - in order to have the appliction whitelisted on appspot.com, the automatic login
+had to be disabled to allow users to access the Terms and Privacy page prior to logging in.
+
+Treeview will by default hide reparttions.
+
+Added a Display Options card at the bottom where this can be changed. 
+
 ## Manual
 
 ### Overview
@@ -60,3 +68,6 @@ The timing Tab displaus a Gantt style view to quickly show how long the indivuda
 ## Known Limits
 
 The application will only display graphs for queries. Load jobs etc do not result in query stages being output.
+
+Clicking the get projects when not yet logged in will result in a login process being started instead. Users need to
+click on get projects button again after login was successful.

@@ -27,7 +27,7 @@ import {MatSelectModule} from '@angular/material/select';
 import {MatTableModule} from '@angular/material/table';
 import {By} from '@angular/platform-browser';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
-import {OAuthService, UrlHelperService} from 'angular-oauth2-oidc';
+import {OAuthModule, OAuthService, UrlHelperService} from 'angular-oauth2-oidc';
 
 import {BigQueryService, MockBigQueryService} from '../big-query.service';
 import {MockOAuthService} from '../google-auth.service';
@@ -44,6 +44,7 @@ describe('ProjectsComponent', () => {
     TestBed
         .configureTestingModule({
           imports: [
+            OAuthModule.forRoot(),
             HttpClientTestingModule,
             MatGridListModule,
             MatFormFieldModule,

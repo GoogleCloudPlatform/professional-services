@@ -16,10 +16,15 @@
 import {Injectable} from '@angular/core';
 import * as dagre from 'dagre';
 import {BqQueryPlan} from './bq_query_plan';
+import {QueryStage} from './rest_interfaces';
 
 @Injectable({providedIn: 'root'})
 export class DagreLayoutService {
-  public layout(bqPlan: BqQueryPlan) {
+  private hasNodeWithId(nodeList, id) {
+    return nodeList.find(node => node.id === id);
+  }
+
+  public layout(nodes: QueryStage[], bqPlan: BqQueryPlan) {
     const g = new dagre.graphlib.Graph();
 
     // define the key options: Top to bottom, and the separation increments
@@ -32,15 +37,18 @@ export class DagreLayoutService {
     g.setDefaultEdgeLabel(() => ({}));
 
     // set nodes
-    for (const node of bqPlan.nodes) {
+    for (const node of nodes) {
       const label = node.name.length > 22 ?
           `${node.name.slice(0, 10)}...${node.name.slice(-10)}` :
           node.name;
       g.setNode(node.id, {label: label, height: 50, width: 50});
     }
-    // set edges
+    // set edges, ignore edges that don't map tot he supplied nodes
     for (const edge of bqPlan.edges) {
-      g.setEdge(edge.from.id, edge.to.id);
+      if (this.hasNodeWithId(nodes, edge.from.id) &&
+          this.hasNodeWithId(nodes, edge.to.id)) {
+        g.setEdge(edge.from.id, edge.to.id);
+      }
     }
     dagre.layout(g);
     return g;
