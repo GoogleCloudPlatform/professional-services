@@ -86,7 +86,7 @@ def image_classification(project_id, dataset_id, table_id, input_bucket_name, ou
 
     # Get Classification Columns
     output_df = output_df[["file", "issuer"]]
-    output_df.to_csv(dest_uri, index=False)
+    output_df.to_csv(dest_uri, header=False, index=False)
 
     return dest_uri
 
