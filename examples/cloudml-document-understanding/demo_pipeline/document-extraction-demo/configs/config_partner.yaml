@@ -1,0 +1,34 @@
+# Configuration file to run the models built by Partners.
+
+main_project:
+  main_project_id: 'pdf-processing-219114'
+  bucket_name: 'gs://pdf-processing-219114'
+model_imgclassifier:
+  project_id: 'pdf-processing-219114'
+  model_id: 'ICN5524972467525006137'
+model_ner:
+  project_id: 'pdf-processing-ner'
+  model_id: 'TEN1322474993702928384'
+model_objdetect:
+  project_id: 'pdf-processing-obj-det'
+  model_id: 'IOD222576337833951232'
+service_keys:
+  key_ner: './document-extraction-demo/0_key/pdf-processing-ner-a0b4d4835aea.json'
+  key_objdectect: './document-extraction-demo/0_key/pdf-processing-obj-det-5a69899d02d4.json'
+  key_bq_and_gcs: './document-extraction-demo/0_key/pdf-processing-apikey2.json'
+truth_csv: "gs://input_data_pdf/truth_data_feb2019.csv"
+fields_to_extract:
+  - field_name: 'publication_date'
+  - field_name: 'classification_1'
+    postprocess_fn: 'PostprocessClassification'
+  - field_name: 'classification_2'
+    postprocess_fn: 'PostprocessClassification'
+  - field_name: 'application_number'
+  - field_name: 'filing_date'
+  - field_name: 'priority'
+  - field_name: 'representative'
+  - field_name: 'applicant'
+  - field_name: 'inventor'
+  - field_name: 'titleFL'
+  - field_name: 'abstractFL'
+  - field_name: 'publication_number'

@@ -1,0 +1,29 @@
+# Configuration file for end-to-end demo.
+
+main_project:
+  main_project_id: 'TODO (user): set with your Project ID'
+  bucket_name: 'TODO (user): set with your project bucket'
+model_imgclassifier:
+  model_id: '<IMAGE_MODELID_PLACEHOLDER>'
+model_textclassifier:
+  model_id: '<TEXT_MODELID_PLACEHOLDER>'
+model_ner:
+  model_id: '<NER_MODELID_PLACEHOLDER>'
+model_objdetect:
+  model_id: '<OBJDET_MODELID_PLACEHOLDER>'
+service_keys:
+  key: './keys/key.json'
+  key_bq_and_gcs: './keys/bqgcs_key.json' # We shouldn't (?) need separate keys for this
+truth_csv: "gs://automl-ee/input_data_pdf/truth_data_feb182019.csv" # 
+fields_to_extract:
+  - field_name: 'publication_date'
+  - field_name: 'classification_1'
+    postprocess_fn: 'PostprocessClassification'
+  - field_name: 'classification_2'
+    postprocess_fn: 'PostprocessClassification'
+  - field_name: 'application_number'
+  - field_name: 'filing_date'
+  - field_name: 'applicant'
+  - field_name: 'inventor'
+  - field_name: 'titleFL'
+  - field_name: 'publication_number'
