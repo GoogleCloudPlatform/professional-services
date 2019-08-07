@@ -3,18 +3,26 @@
 main_project:
   main_project_id: 'TODO (user): set with your Project ID'
   bucket_name: 'TODO (user): set with your project bucket'
+  region: 'TODO (user): set with your region'
 model_imgclassifier:
+  dataset_id: # dataset location of PDP data
+  table_id: # table location of PDP data
   model_id: '<IMAGE_MODELID_PLACEHOLDER>'
 model_textclassifier:
+  dataset_id: # dataset location of PDP data 
+  table_id: # table location of PDP data
   model_id: '<TEXT_MODELID_PLACEHOLDER>'
 model_ner:
+  dataset_id: # dataset location of PDP data
+  table_id: # table location of PDP data
   model_id: '<NER_MODELID_PLACEHOLDER>'
 model_objdetect:
+  dataset_id: # dataset location of PDP data
+  table_id: # table location of PDP data
   model_id: '<OBJDET_MODELID_PLACEHOLDER>'
 service_keys:
-  key: './keys/key.json'
+  key: './keys/service-acct.json'
   key_bq_and_gcs: './keys/bqgcs_key.json' # We shouldn't (?) need separate keys for this
-truth_csv: "gs://automl-ee/input_data_pdf/truth_data_feb182019.csv" # 
 fields_to_extract:
   - field_name: 'publication_date'
   - field_name: 'classification_1'

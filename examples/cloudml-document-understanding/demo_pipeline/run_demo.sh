@@ -23,7 +23,7 @@
 INPUT_FOLDER="gs://automl-ee/input_data_pdf/test/sample"
 BQ_DATASET="test_sample"
 USE_OBJECT_DETECTION=false # true or false
-CONFIG_FILE='document-extraction-demo/configs/config_0226_9fields_googler.yaml'
+CONFIG_FILE='../config.yaml'
 
 #########################
 #### END OF INPUTS #####
