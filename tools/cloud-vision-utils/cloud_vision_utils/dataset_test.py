@@ -25,8 +25,8 @@ import unittest
 import mock
 import testfixtures
 
-from cloud_vision_utils import dataset
 from cloud_vision_utils import annotation
+from cloud_vision_utils import dataset
 
 
 class GenCsvFromImagesTest(unittest.TestCase):
@@ -94,7 +94,7 @@ class GenCsvFromAnnotationsTest(unittest.TestCase):
         d.write(f, b'any')
 
       f = tempfile.NamedTemporaryFile(mode='r+t', suffix='.csv')
-      mock_ret_val = [self.bounding_box]*self.NUM_BOUNDING_BOXES
+      mock_ret_val = ('image.csv', [self.bounding_box]*self.NUM_BOUNDING_BOXES)
       with mock.patch.object(
           annotation, 'read', return_value=mock_ret_val):
         dataset.gen_csv_from_annotations(d.path, f.name, *args, **kwargs)
