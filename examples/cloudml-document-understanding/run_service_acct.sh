@@ -15,6 +15,7 @@
 #
 # Shell script to create service account, add permissions and download key.
 
+# TODO: Read from Yaml File
 PROJECT_ID="munn-sandbox"
 USERID_DOMAIN="munn@google.com"
 

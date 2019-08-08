@@ -1,28 +1,33 @@
 # Configuration file for end-to-end demo.
 
 main_project:
-  main_project_id: 'TODO (user): set with your Project ID'
-  bucket_name: 'TODO (user): set with your project bucket'
-  region: 'TODO (user): set with your region'
+  main_project_id: 'pdf-processing-219114' # 'TODO (user): set with your Project ID'
+  input_bucket_name: 'patent_demo_data_pdp' # FROM PDP
+  output_bucket_name: 'pdf-processing-219114-vcm' # 'TODO (user): set with your project bucket'
+  region: 'us-central1' #'TODO (user): set with your region'
+  temp_directory: './tmp/google/'
+service_acct:
+  user_id: 'munn@google.com' # TODO(user) : Set With your GCP Account Email
+  sa_name: 'patent-demo-service-acct'
+  sa_description: 'Service-account-for-doc-understanding-demo'
+  sa_display_name: 'Patent-Demo-Service-Account'
+  key: './keys/service-acct.json'
 model_imgclassifier:
-  dataset_id: # dataset location of PDP data
-  table_id: # table location of PDP data
+  dataset_id: 'pdf-processing-219114:patent_demo_data_pdp' # dataset location of PDP data
+  table_id: 'entity_extraction' # table location of PDP data
   model_id: '<IMAGE_MODELID_PLACEHOLDER>'
 model_textclassifier:
-  dataset_id: # dataset location of PDP data 
-  table_id: # table location of PDP data
+  dataset_id: 'pdf-processing-219114:patent_demo_data_pdp' # dataset location of PDP data 
+  table_id: 'text_classification' # table location of PDP data
   model_id: '<TEXT_MODELID_PLACEHOLDER>'
 model_ner:
-  dataset_id: # dataset location of PDP data
-  table_id: # table location of PDP data
+  dataset_id: 'pdf-processing-219114:patent_demo_data_pdp' # dataset location of PDP data
+  table_id: 'entity_extraction' # table location of PDP data
   model_id: '<NER_MODELID_PLACEHOLDER>'
 model_objdetect:
-  dataset_id: # dataset location of PDP data
-  table_id: # table location of PDP data
+  dataset_id: 'pdf-processing-219114:patent_demo_data_pdp' # dataset location of PDP data
+  table_id: 'object_detection' # table location of PDP data
   model_id: '<OBJDET_MODELID_PLACEHOLDER>'
-service_keys:
-  key: './keys/service-acct.json'
-  key_bq_and_gcs: './keys/bqgcs_key.json' # We shouldn't (?) need separate keys for this
 fields_to_extract:
   - field_name: 'publication_date'
   - field_name: 'classification_1'
