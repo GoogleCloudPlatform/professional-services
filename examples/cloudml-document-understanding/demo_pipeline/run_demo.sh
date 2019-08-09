@@ -20,8 +20,8 @@
 #####  USER INPUTS  #####
 #########################
 
-INPUT_FOLDER="gs://automl-ee/input_data_pdf/test/sample"
-BQ_DATASET="test_sample"
+INPUT_FOLDER="gs://munn-sandbox/patents_demo/sample"
+BQ_DATASET="demo_sample"
 USE_OBJECT_DETECTION=false # true or false
 CONFIG_FILE='../config.yaml'
 
@@ -35,7 +35,7 @@ set -e # Stops on first error.
 # Extract project id and bucket_id
 PROJECT_ID_RAW=$(grep 'main_project_id' $CONFIG_FILE | awk '{print $2}')
 PROJECT_ID_MAIN=${PROJECT_ID_RAW//\'/}
-BUCKET_NAME=${PROJECT_ID_MAIN}/patents_demo
+BUCKET_NAME=gs://${PROJECT_ID_MAIN}/patents_demo
 
 PNG_OUTPUT_FOLDER=${BUCKET_NAME}/${BQ_DATASET}/png
 OCR_OUTPUT_FOLDER=${BUCKET_NAME}/${BQ_DATASET}/json
@@ -45,7 +45,9 @@ CROPPED_OBJ_FOLDER=${BUCKET_NAME}/${BQ_DATASET}/cropped_objects
 
 export PYTHONPATH=$PYTHONPATH:`pwd`/document-extraction-demo/
 
+DEBUG=false
 
+if ${DEBUG}; then
 # Check to see if $BQ_DATASET exists. If it already exits, ask user if they want to delete it and its tables.
 # if Y, then the dataset is deleted and created new. If n, then exits.
 # If $BQ_DATASET does not exist, it is automatically created
@@ -87,12 +89,14 @@ Do you want to delete it and all of its contents? (Y/n) " yn
       esac   
 fi
 
+fi
 
 python document-extraction-demo/pdf2png.py \
   --input_folder=$INPUT_FOLDER \
   --output_folder=$PNG_OUTPUT_FOLDER \
   --config_file=$CONFIG_FILE
 
+if ${DEBUG}; then
 python document-extraction-demo/classify_png.py \
   --input_folder_png $PNG_OUTPUT_FOLDER \
   --input_folder_pdf $INPUT_FOLDER \
@@ -139,3 +143,4 @@ python document-extraction-demo/create_final_view.py \
 python document-extraction-demo/evaluate/evaluate.py \
   --bq_dataset $BQ_DATASET \
   --config_file $CONFIG_FILE
+fi
