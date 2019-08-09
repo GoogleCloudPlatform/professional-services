@@ -37,6 +37,7 @@ gcloud iam service-accounts keys create ./keys/service-acct.json \
 gcloud projects add-iam-policy-binding $PROJECT_ID \
    --member="user:"$USERID_DOMAIN \
    --role="roles/automl.admin"
+
 gcloud projects add-iam-policy-binding $PROJECT_ID \
    --member="serviceAccount:"$SA_NAME"@"$PROJECT_ID".iam.gserviceaccount.com" \
    --role="roles/automl.editor"
