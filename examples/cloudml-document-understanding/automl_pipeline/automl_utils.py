@@ -96,7 +96,7 @@ def entity_extraction(project_id, dataset_id, table_id, input_bucket_name, outpu
     return
 
 
-def object_detection(project_id, dataset_id, table_id, service_acct, input_bucket_name, output_bucket_name):
+def object_detection(project_id, dataset_id, table_id, service_acct, input_bucket_name, output_bucket_name, region):
 
     dest_uri = f"gs://{output_bucket_name}/patent_demo_data/object_detection.csv"
 
@@ -121,7 +121,19 @@ def object_detection(project_id, dataset_id, table_id, service_acct, input_bucke
 
     df.to_csv(dest_uri, header=False, index=False)
 
-    return dest_uri
+    dataset_metadata = {
+        'display_name': 'patent_demo_data' + now,
+        'image_object_detection_dataset_metadata': {},
+    }
+
+    model_metadata = {
+        'display_name': "patent_demo_data" + now,
+        'dataset_id': None,
+        'image_object_detection_model_metadata': {}
+    }
+
+    create_automl_model(project_id, region,
+                        dataset_metadata, model_metadata, dest_uri, service_acct)
 
 
 def text_classification(project_id, dataset_id, table_id, input_bucket_name, output_bucket_name):
