@@ -35,8 +35,7 @@ set -e # Stops on first error.
 # Extract project id and bucket_id
 PROJECT_ID_RAW=$(grep 'main_project_id' $CONFIG_FILE | awk '{print $2}')
 PROJECT_ID_MAIN=${PROJECT_ID_RAW//\'/}
-BUCKET_NAME_RAW=$(grep 'bucket_name' $CONFIG_FILE | awk '{print $2}')
-BUCKET_NAME=${BUCKET_NAME_RAW//\'/}
+BUCKET_NAME=${PROJECT_ID_MAIN}/patents_demo
 
 PNG_OUTPUT_FOLDER=${BUCKET_NAME}/${BQ_DATASET}/png
 OCR_OUTPUT_FOLDER=${BUCKET_NAME}/${BQ_DATASET}/json

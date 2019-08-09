@@ -29,12 +29,24 @@ gcloud beta iam service-accounts create $SA_NAME \
     --description=$SA_DESCRIPTION \
     --display-name=$SA_DISPLAY_NAME
 
-gcloud iam service-accounts keys create ./keys/key.json \
+# Create the service account key
+gcloud iam service-accounts keys create ./keys/service-acct.json \
   --iam-account $SA_NAME@$PROJECT_ID.iam.gserviceaccount.com
 
+# Give AutoML Editor privledges to the service account
 gcloud projects add-iam-policy-binding $PROJECT_ID \
    --member="user:"$USERID_DOMAIN \
    --role="roles/automl.admin"
 gcloud projects add-iam-policy-binding $PROJECT_ID \
    --member="serviceAccount:"$SA_NAME"@"$PROJECT_ID".iam.gserviceaccount.com" \
    --role="roles/automl.editor"
+
+# Give Storage Admin privledges to the service account
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+ --member="serviceAccount:"$SA_NAME"@"$PROJECT_ID".iam.gserviceaccount.com" \
+ --role="roles/storage.admin"
+
+# Grant BigQuery Admin privledges to the service account
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+ --member="serviceAccount:"$SA_NAME"@"$PROJECT_ID".iam.gserviceaccount.com" \
+ --role="roles/bigquery.admin"
