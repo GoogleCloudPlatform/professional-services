@@ -15,10 +15,12 @@
 # limitations under the License.
 
 import os
+import shutil
 import datetime
 import pandas as pd
+import subprocess
 
-from google.cloud import bigquery, storage, vision, automl_v1beta1 as automl
+from google.cloud import bigquery, vision, automl_v1beta1 as automl
 from wand.image import Image
 
 now = datetime.datetime.now()
@@ -33,46 +35,27 @@ def convert_pdfs(input_bucket_name, output_bucket_name, temp_directory, output_d
       temp_directory (string): Temporary Local Directory for coversion
     """
 
-    # Get Images from Public Bucket
-    client = storage.Client.from_service_account_json(service_acct)
-    input_bucket = client.get_bucket(input_bucket_name)
-    output_bucket = client.get_bucket(output_bucket_name)
-
     # Create temp directory & all intermediate directories
     if not os.path.exists(temp_directory):
         os.makedirs(temp_directory)
 
-    for blob in client.list_blobs(input_bucket):
-        if (blob.name.endswith('.pdf')):
+    print("Downloading PDFs")
+    subprocess.run(
+        f'gsutil -m cp gs://{input_bucket_name}/*.pdf {temp_directory}', shell=True)
 
-            pdf_basename = os.path.basename(blob.name)
-            png_basename = pdf_basename.replace('.pdf', '.png')
-
-            # Download the file to a local temp directory to convert
-            temp_pdf = os.path.join(temp_directory, pdf_basename)
-            temp_png = os.path.join(temp_directory, png_basename)
-
-            print(f"Downloading {pdf_basename}")
-            input_bucket.get_blob(pdf_basename).download_to_filename(temp_pdf)
-
-            # Convert PDF to PNG
-            print(f"Converting to PNG")
-            with Image(filename=temp_pdf, resolution=300) as pdf:
+    for f in os.scandir(temp_directory):
+        if f.name.endswith(".pdf"):
+            print(f"Converting {f.name} to PNG")
+            temp_png = f.path.replace('.pdf', '.png')
+            with Image(filename=f.path, resolution=300) as pdf:
                 with pdf.convert('png') as png:
                     png.save(filename=temp_png)
 
-            # Upload to GCS Bucket
-            print(f"Uploading to Cloud Storage")
-            output_bucket.blob(os.path.join(
-                output_directory, png_basename)).upload_from_filename(temp_png)
+    print(f"Uploading to GCS")
+    subprocess.run(
+        f'gsutil cp -m {temp_directory}/*.png gs://{output_bucket_name}/{output_directory}', shell=True)
 
-            # Remove Temp files, Don't want to fill up our local storage
-            print(f"Deleting temporary files\n")
-            os.remove(temp_pdf)
-            os.remove(temp_png)
-
-    # Delete the entire temporary directory
-    os.rmdir(temp_directory)
+    shutil.rmtree(temp_directory)
 
 
 def image_classification(project_id, dataset_id, table_id, service_acct, input_bucket_name, output_bucket_name, region):
@@ -192,6 +175,11 @@ def create_automl_model(project_id, compute_region, dataset_metadata, model_meta
     model_metadata["dataset_id"] = dataset.name
 
     response = client.create_model(parent, model_metadata)
+    # TODO Replace in Config File
 
     print('Training operation name: {}'.format(response.operation.name))
     print('Training started. This will take a while.')
+
+
+def edit_config(current_value, new_value):
+    return

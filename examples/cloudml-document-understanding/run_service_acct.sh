@@ -16,10 +16,10 @@
 # Shell script to create service account, add permissions and download key.
 
 # TODO: Read from Yaml File
-PROJECT_ID="munn-sandbox"
-USERID_DOMAIN="munn@google.com"
+PROJECT_ID="pdf-processing-219114"
+USERID_DOMAIN="holtskinner@google.com"
 
-SA_NAME="patent-demo-service-acct"
+SA_NAME="patent-demo-service-acct2"
 SA_DESCRIPTION="Service-account-for-doc-understanding-demo"
 SA_DISPLAY_NAME="Patent-Demo-Service-Account"
 

@@ -30,7 +30,7 @@ def create(config):
 
     create_service_acct = f'gcloud beta iam service-accounts create {sa_name} --display-name={sa_display_name} --description={sa_description} --project={project_id}'
 
-    bind_service_acct = f'gcloud iam service-accounts add-iam-policy-binding {sa_name_full} --member="serviceAccount:{sa_name_full}" --role="roles/project.editor" --project={project_id}'
+    bind_service_acct = f'gcloud iam service-accounts add-iam-policy-binding {sa_name_full} --member="serviceAccount:{sa_name_full}" --role="roles/editor" --project={project_id}'
 
     create_service_acct_key = f'gcloud iam service-accounts keys create {sa_key} --iam-account {sa_name_full} --project={project_id}'
 
