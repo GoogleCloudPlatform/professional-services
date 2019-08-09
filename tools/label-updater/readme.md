@@ -1,7 +1,7 @@
 Purpose:
 ========
 Add/Update labels on GCP project, compute engine, storage, bigtable and bigquery
--
+
 
 Environment Set Up
 ==================
@@ -24,7 +24,8 @@ Please refer to update_labels.config
 
 Example Input Label File
 ===================
-The labels should be in lower case. A sample google sheet and sample screenshot are below:
+The labels should be in lower case. The google sheet must be shared with the service account user id for the scripts 
+to find it. A sample google sheet and sample screenshot are below: 
 
 https://docs.google.com/spreadsheets/d/1mmn5wShPqgFQeM9bRRZONWY30FmP9EZBWQOyACZtGGE/edit#gid=0
 

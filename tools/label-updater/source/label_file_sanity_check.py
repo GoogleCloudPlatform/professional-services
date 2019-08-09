@@ -33,6 +33,10 @@ def sanity_check_fields(line, projectid, resource, resourceid, sub_resource, sub
             invalid_record_flag = True
             invalid_record = line
 
+        elif (resource == "bigquery") and (sub_resource == "table" or sub_resource == "view") and (not projectid or not resourceid or not sub_resource_id):
+            invalid_record_flag = True
+            invalid_record = line
+
         else:
             invalid_record_flag = False
             invalid_record = ''
