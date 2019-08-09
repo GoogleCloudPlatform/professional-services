@@ -6,12 +6,13 @@ main_project:
   output_bucket_name: 'pdf-processing-219114-vcm' # 'TODO (user): set with your project bucket'
   region: 'us-central1' #'TODO (user): set with your region'
   temp_directory: './tmp/google/'
+  output_directory: 'patent_demo_data/'
 service_acct:
   user_id: 'holtskinner@google.com' # TODO(user) : Set With your GCP Account Email
   name: 'patent-demo-service-acct'
   description: 'Service-account-for-doc-understanding-demo'
   display_name: 'Patent-Demo-Service-Account'
-  key: './keys/service-acct.json'
+  key: '../keys/service-acct.json'
 model_imgclassifier:
   dataset_id: 'pdf-processing-219114:patent_demo_data_pdp' # dataset location of PDP data
   table_id: 'entity_extraction' # table location of PDP data

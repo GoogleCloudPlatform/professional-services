@@ -153,8 +153,8 @@ if __name__ == '__main__':
     run_automl_folder(
         gcs_folder=args.gcs_folder,
         bq_dataset=args.bq_dataset,
-        gcs_bq_service_account=config['service_keys']['key_bq_and_gcs'],
-        project_id_automltext=config['model_textclassifier']['project_id'],
+        gcs_bq_service_account=config['service_acct']['key'],
+        project_id_automltext=config['main_project']['project_id'],
         model_id_automltext=config['model_textclassifier']['model_id'],
-        automl_text_service_account=config['service_keys']['key_bq_and_gcs'],
+        automl_text_service_account=config['service_acct']['key'],
         compute_region=args.compute_region)

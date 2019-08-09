@@ -20,7 +20,7 @@ import sys
 import re
 from google.cloud import storage
 from google.cloud import bigquery
-from google.cloud import automl_v1beta1 as automl
+from google.cloud import automl
 import yaml
 
 from utils import constants
@@ -124,7 +124,7 @@ def classify_write(bucket_name,
                 ]
                 load_job = bq_client.insert_rows(table, rows_to_insert)
 
-    print('Step 2 finished.')
+    print('Image classification finished.')
 
 
 def main(input_folder_png,
@@ -233,11 +233,11 @@ if __name__ == '__main__':
     main(args.input_folder_png,
          args.input_folder_pdf,
          args.selected_pdf_folder,
-         config['model_imgclassifier']['project_id'],
+         config['main_project']['project_id'],
          config['model_imgclassifier']['model_id'],
          args.bq_dataset,
          args.bq_table,
-         config['service_keys']['key_bq_and_gcs'],
+         config['service_acct']['key'],
          args.score_threshold,
          args.compute_region
         )

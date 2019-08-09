@@ -17,20 +17,22 @@
 import subprocess
 
 
-def service_account(config):
+def create(config):
 
     sa_name = config["service_acct"]["name"]
     sa_display_name = config["service_acct"]["display_name"]
+    sa_description = config["service_acct"]["description"]
     project_id = config["main_project"]["project_id"]
     user_id = config["service_acct"]["user_id"]
+    sa_key = config["service_acct"]["key"]
 
     sa_name_full = f'{sa_name}@{project_id}.iam.gserviceaccount.com'
 
-    create_service_acct = f'gcloud iam service-accounts create {sa_name} --display-name={sa_display_name} --project={project_id}'
+    create_service_acct = f'gcloud beta iam service-accounts create {sa_name} --display-name={sa_display_name} --description={sa_description} --project={project_id}'
 
     bind_service_acct = f'gcloud iam service-accounts add-iam-policy-binding {sa_name_full} --member="serviceAccount:{sa_name_full}" --role="roles/project.editor" --project={project_id}'
 
-    create_service_acct_key = f'gcloud iam service-accounts keys create ./keys/key.json --iam-account {sa_name_full} --project={project_id}'
+    create_service_acct_key = f'gcloud iam service-accounts keys create {sa_key} --iam-account {sa_name_full} --project={project_id}'
 
     bind_user_permissions = f'gcloud projects add-iam-policy-binding {project_id} --member="user:{user_id}" --role="roles/automl.admin"'
 

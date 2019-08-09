@@ -33,7 +33,7 @@ CONFIG_FILE='../config.yaml'
 set -e # Stops on first error.
 
 # Extract project id and bucket_id
-PROJECT_ID_RAW=$(grep 'main_project_id' $CONFIG_FILE | awk '{print $2}')
+PROJECT_ID_RAW=$(grep 'project_id' $CONFIG_FILE | awk '{print $2}')
 PROJECT_ID_MAIN=${PROJECT_ID_RAW//\'/}
 BUCKET_NAME=gs://${PROJECT_ID_MAIN}/patents_demo
 
@@ -91,6 +91,7 @@ fi
 
 fi
 
+if ${DEBUG}; then
 python document-extraction-demo/pdf2png.py \
   --input_folder=$INPUT_FOLDER \
   --output_folder=$PNG_OUTPUT_FOLDER \
@@ -103,11 +104,14 @@ python document-extraction-demo/classify_png.py \
   --selected_pdf_folder $VALID_PDF_FOLDER \
   --bq_dataset $BQ_DATASET \
   --config_file $CONFIG_FILE
+fi
 
 python document-extraction-demo/pdf_to_vision/run_ocr.py \
   --gcs-source-uri $VALID_PDF_FOLDER \
   --gcs-destination-uri $OCR_OUTPUT_FOLDER \
   --config_file $CONFIG_FILE
+
+if ${DEBUG}; then
 
 python document-extraction-demo/postprocess_ocr.py \
   --gcs_folder_ocr_raw $OCR_OUTPUT_FOLDER \
