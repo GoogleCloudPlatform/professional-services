@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "pdf-processing-219114",
+  "private_key_id": "4839beae146f461087ca25af297976a8cd5b4370",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDH9JJoOXky89ax\niC4qqRLgatVE3AWZQuYWMwMQroWSis30WhYc90YbjZwh7isx1VtFowQeOjS5lTuo\nlmTOzZHzxyifWXnsH9B/6CXDWb5GlRCSBGyhpgxUxtkg8f2G3rDLsjJTGfwB4ERm\nC1j1zZa3wp2zWkVWobqtucOUlq6rMZTlXdWbcrR+Abflg236TR0RNEX2nvDEjf6X\naxp1QgdH27UYLm2omVeT05uKQtRN7/RiWsvdqLwTnQ8NAQgziR+qfZ3kzC25eeGN\npA9G6cva3oNbcCdoWAtMf3MDkv98iZv4rzphWxaLUFQ9OjLqB42nMiuPj3kg6hjT\nCLYeEhxhAgMBAAECggEACZKWXcH+oOdWjGpCF42/lxnWOvUzmWo//KkViPtp7qGR\niZS0gU9/Pjtx0ZgG3lxiAbvzqwTLWGUiFYiZq+LgjWSn97T/ZsQBJdZ11FvcBaIG\nSI9IqhZ6eaaJZ4/ePNI1cZMG4L6aN3bGn4IEkMP2Zra8+QSl1Cdq+f0uNVNfaleg\nCG11YMk5GRDlcPgXUL0c/qhZDvCiflOnpOONBaCL0hACgiimJjBVqCt6SMMldxWe\nhinNC7PMStHfRUB5cM1cpq3HIxpGQiVKGgmheEoGgK1mofLLZBW4TUsXrRte1IOI\nCdXxxUpyICKHOhw1ItIHv7fDUc5X5n7Yb3+REH/mCQKBgQD8H7nEqugpabjhN/63\nymBm/0c+wGXi2XDBsC9JBmJwuTgPyEaCamkgIXj8Iwjg+hGIVnQcYJdCZFuHK/ks\nvWsfI7mhhcDwWFAiP1N4m7iPDzsHRreTnOPb1e0VA+cigqHaGjqsnBQrp1dQbtOs\nVLq603qD2Qx7Ecu9tafummBDrQKBgQDLB4dHi+2RDYNCT4+KWDJp9jzZk9X23xEq\nF6TBOOTGCSp5MnAS1D2HaHheBvOZJdfYTFVkGIRRnM1qaeJO+bP5lm/1m9afiw64\nOKxr65HxYuvKylBF4fbyzBcpzaaQkr3QXNhf+jav7rsD1fQHnwl2XHekUjhG0Bu1\nsklGd/0yBQKBgQC44Ka/QTfWzlCkzgO5T+xa+oyKxliv/RSC4yf5W3YqBJfIcurJ\nTTBjQEhQU3x6RMVAfWzNNkMUizTWrPcdyJRZlD/V4pe1Znz0cA1MXpv6Q4fccQ3C\nb4Riur8L7v25P6NhpGQsGJNt41rSf0I2lzcKMnMfZbSSNl15clB/VbKLTQKBgQCF\nmgClTikYiKHVYvF8Aim6nLTSIHxuJb/vyPs7wyqYPrPaaRxi55NNpat/hGeMYeC1\njxWp9pAr/FkYK3Emsx6BoUMvhksnVaRsCa88nRm+lG/BVHyaX+XXRAICGjf/bvDF\nSjOAhPCzuQ8LqSEaWscpQhPg59Hsl0mEuTuKya6t2QKBgQChvZzB4TDNPaUteMPk\nJsrcI6vh/lX4IBI/afvwuwm44euCikuULBAyO1bwIQAboeW7FyFwhkFe2Js5EZmf\nQ0+Eq3wkRpyuySFErkv85QOHaN4IcXlzLh3VdnFtWxBeMRmghJRYVRtFKhC+Ii9Y\n+f8yEY2DUto4S75j+MQb75nYfw==\n-----END PRIVATE KEY-----\n",
+  "client_email": "patent-demo-service-acct@pdf-processing-219114.iam.gserviceaccount.com",
+  "client_id": "115495004684437874062",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/patent-demo-service-acct%40pdf-processing-219114.iam.gserviceaccount.com"
+}

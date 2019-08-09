@@ -15,13 +15,16 @@
 # limitations under the License.
 
 import os
+import datetime
 import pandas as pd
 
 from google.cloud import bigquery, storage, vision, automl_v1beta1 as automl
 from wand.image import Image
 
+now = datetime.datetime.now()
 
-def convert_pdfs(input_bucket_name, output_bucket_name, temp_directory):
+
+def convert_pdfs(input_bucket_name, output_bucket_name, temp_directory, output_directory, service_acct):
     """Converts all pdfs in a bucket to png.
 
     Args:
@@ -31,7 +34,7 @@ def convert_pdfs(input_bucket_name, output_bucket_name, temp_directory):
     """
 
     # Get Images from Public Bucket
-    client = storage.Client()
+    client = storage.Client.from_service_account_json(service_acct)
     input_bucket = client.get_bucket(input_bucket_name)
     output_bucket = client.get_bucket(output_bucket_name)
 
@@ -60,7 +63,8 @@ def convert_pdfs(input_bucket_name, output_bucket_name, temp_directory):
 
             # Upload to GCS Bucket
             print(f"Uploading to Cloud Storage")
-            output_bucket.blob(png_basename).upload_from_filename(temp_png)
+            output_bucket.blob(os.path.join(
+                output_directory, png_basename)).upload_from_filename(temp_png)
 
             # Remove Temp files, Don't want to fill up our local storage
             print(f"Deleting temporary files\n")
@@ -71,16 +75,16 @@ def convert_pdfs(input_bucket_name, output_bucket_name, temp_directory):
     os.rmdir(temp_directory)
 
 
-def image_classification(project_id, dataset_id, table_id, input_bucket_name, output_bucket_name):
+def image_classification(project_id, dataset_id, table_id, service_acct, input_bucket_name, output_bucket_name, region):
 
     print(f"Processing image_classification")
 
-    dest_uri = f"gs://{output_bucket_name}/image_classification.csv"
+    dest_uri = f"gs://{output_bucket_name}/patent_demo_data/image_classification.csv"
 
-    df = bq_to_df(project_id, dataset_id, table_id)
+    df = bq_to_df(project_id, dataset_id, table_id, service_acct)
 
     output_df = df.replace({
-        input_bucket_name: output_bucket_name,
+        input_bucket_name: "patent_demo_data/" + output_bucket_name,
         r"\.pdf": ".png"
     }, regex=True, inplace=False)
 
@@ -88,20 +92,34 @@ def image_classification(project_id, dataset_id, table_id, input_bucket_name, ou
     output_df = output_df[["file", "issuer"]]
     output_df.to_csv(dest_uri, header=False, index=False)
 
-    return dest_uri
+    dataset_metadata = {
+        "display_name": "patent_demo_data" + now,
+        "image_classification_dataset_metadata": {
+            "classification_type": "MULTICLASS"
+        }
+    }
+
+    model_metadata = {
+        'display_name': "patent_demo_data" + now,
+        'dataset_id': None,
+        'image_classification_model_metadata': {}
+    }
+
+    create_automl_model(project_id, region,
+                        dataset_metadata, model_metadata, dest_uri, service_acct)
 
 
 def entity_extraction(project_id, dataset_id, table_id, input_bucket_name, output_bucket_name):
     return
 
 
-def object_detection(project_id, dataset_id, table_id, input_bucket_name, output_bucket_name):
+def object_detection(project_id, dataset_id, table_id, service_acct, input_bucket_name, output_bucket_name):
 
-    dest_uri = f"gs://{output_bucket_name}/object_detection.csv"
+    dest_uri = f"gs://{output_bucket_name}/patent_demo_data/object_detection.csv"
 
     print(f"Processing object_detection")
 
-    df = bq_to_df(project_id, dataset_id, table_id)
+    df = bq_to_df(project_id, dataset_id, table_id, service_acct)
 
     df.replace({
         input_bucket_name: output_bucket_name,
@@ -138,21 +156,20 @@ def text_classification(project_id, dataset_id, table_id, input_bucket_name, out
     return dest_uri
 
 
-def bq_to_df(project_id, dataset_id, table_id):
+def bq_to_df(project_id, dataset_id, table_id, service_acct):
     """Fetches Data From BQ Dataset, outputs as dataframe
     """
 
-    client = bigquery.Client.from_service_account_json("./service-acct.json")
-    table = client.get_table(f"{project_id}.{dataset_id}.{table_id}")
+    client = bigquery.Client.from_service_account_json(service_acct)
+    table = client.get_table(f"{dataset_id}.{table_id}")
     df = client.list_rows(table).to_dataframe()
     return df
 
 
-def create_automl_dataset(project_id, compute_region, dataset_metadata, path):
-    """Create dataset and import data."""
+def create_automl_model(project_id, compute_region, dataset_metadata, model_metadata, path, service_acct):
+    """Create dataset and import data. Create Model"""
 
-    client = automl.AutoMlClient.from_service_account_file(
-        "./service-acct.json")
+    client = automl.AutoMlClient.from_service_account_file(service_acct)
 
     # A resource that represents Google Cloud Platform location.
     parent = client.location_path(project_id, compute_region)
@@ -171,4 +188,10 @@ def create_automl_dataset(project_id, compute_region, dataset_metadata, path):
 
     print(f"Data imported. {response.result()}")
 
-    return dataset.name
+    # dataset.name is the dataset_id
+    model_metadata["dataset_id"] = dataset.name
+
+    response = client.create_model(parent, model_metadata)
+
+    print('Training operation name: {}'.format(response.operation.name))
+    print('Training started. This will take a while.')

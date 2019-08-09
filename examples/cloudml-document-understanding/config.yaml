@@ -6,6 +6,7 @@ main_project:
   output_bucket_name: 'pdf-processing-219114-vcm' # 'TODO (user): set with your project bucket'
   region: 'us-central1' #'TODO (user): set with your region'
   temp_directory: './tmp/google/'
+  output_directory: 'patent_demo_data/'
 service_acct:
   user_id: 'holtskinner@google.com' # TODO(user) : Set With your GCP Account Email
   name: 'patent-demo-service-acct'
