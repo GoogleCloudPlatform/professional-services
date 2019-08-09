@@ -58,6 +58,6 @@ if __name__ == "__main__":
 
   with open(cli_args.config_file, 'r') as stream:
         config = yaml.load(stream, Loader=yaml.FullLoader)
-  vars(cli_args)['service_account'] = config['service_keys']['key_bq_and_gcs']
+  vars(cli_args)['service_account'] = config['service_acct']['key']
   
   gcs_bucket_pdf_ocr.main(cli_args)
