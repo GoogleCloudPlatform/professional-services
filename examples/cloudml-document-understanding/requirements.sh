@@ -15,7 +15,7 @@ pip3 install google-cloud-automl
 pip3 install pyyaml
 pip3 install pdf2image
 pip3 install wand
-pip3 install numpy
+pip3 install numpy==1.16.4
 pip3 install pandas
 pip3 install pillow
 pip3 install pandas-gbq

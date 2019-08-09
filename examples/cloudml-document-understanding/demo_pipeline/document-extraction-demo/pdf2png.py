@@ -72,7 +72,8 @@ def main(input_path, output_folder, service_account):
     folder_to_enumerate = input_path.replace(input_bucket_name + '/', '').replace('gs://', '')
     
     log_file_path = os.path.join(output_folder, 'corrupted_files.txt')
-    log_file = tf.gfile.GFile(log_file_path, 'w')
+    log_file = tf.io.gfile.GFile(log_file_path, 'w')
+
     for blob in bucket.list_blobs(prefix=folder_to_enumerate):
         if (blob.name.endswith('.pdf')):
             print('Converting pdf: {}'.format(blob.name))
@@ -83,7 +84,7 @@ def main(input_path, output_folder, service_account):
             print ('Writing png at: {}'.format(new_path))
             pdf_2_png(current_blob, new_path, service_account, log_file)
     log_file.close()
-
+        
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -107,4 +108,4 @@ if __name__ == '__main__':
     with open(args.config_file, 'r') as stream:
         config = yaml.load(stream, Loader=yaml.FullLoader)
     
-    main(args.input_folder, args.output_folder, config['service_keys']['key_bq_and_gcs'])
+    main(args.input_folder, args.output_folder, config['service_acct']['key'])
