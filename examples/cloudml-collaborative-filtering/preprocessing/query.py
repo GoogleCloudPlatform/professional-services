@@ -24,45 +24,68 @@ This query is broken down into different subqueries:
 
 query = """
   WITH
-    songs AS (
+    songs AS (  -- limit vocab to top 10k songs
       SELECT CONCAT(track_name, " by ", artist_name) AS song
       FROM `listenbrainz.listenbrainz.listen`
       GROUP BY song
       ORDER BY COUNT(*) DESC
       LIMIT 10000
     ),
-    user_songs AS (
+    user_songs AS (  -- filter out OOV logs and process some data
       SELECT user_name AS user, ANY_VALUE(artist_name) AS artist,
         CONCAT(track_name, " by ", artist_name) AS song,
+        SPLIT(ANY_VALUE(tags), ",") AS tags,
         COUNT(*) AS user_song_listens
       FROM `listenbrainz.listenbrainz.listen`
       JOIN songs ON songs.song = CONCAT(track_name, " by ", artist_name)
       WHERE track_name != ""
       GROUP BY user_name, song
     ),
-    user_song_ranks AS (
-      SELECT user, song, user_song_listens,
-        ROW_NUMBER() OVER (PARTITION BY user ORDER BY user_song_listens DESC)
-          AS rank
-      FROM user_songs
+    user_tags AS (  -- count the number of tags a user has listened to
+      SELECT user, tag, COUNT(*) AS COUNT
+      FROM user_songs,
+      UNNEST(tags) tag
+      WHERE tag != ""
+      GROUP BY user, tag
     ),
-    user_features AS (
-      SELECT user, ARRAY_AGG(song) AS top_10,
-        MAX(user_song_listens) AS user_max_listen
-      FROM user_song_ranks
-      WHERE rank <= 10
+    top_tags AS (  -- limit vocab of user tags to top 20
+      SELECT tag
+      FROM user_tags
+      GROUP BY tag
+      ORDER BY SUM(count) DESC
+      LIMIT 20
+    ),
+    tag_table AS (  -- create table of user-tag counts
+      SELECT user, b.tag
+      FROM user_tags a, top_tags b
+      GROUP BY user, b.tag
+    ),
+    user_tag_features AS (  -- fill in tag table and vectorize
+      SELECT user,
+        ARRAY_AGG(IFNULL(count, 0) ORDER BY tag) as user_tags
+      FROM tag_table
+      LEFT JOIN user_tags USING (user, tag)
       GROUP BY user
+    ), user_features AS (  -- contruct user features
+      SELECT user, MAX(user_song_listens) AS user_max_listen,
+        ANY_VALUE(user_tags) as user_tags
+      FROM user_songs
+      JOIN user_tag_features USING (user)
+      GROUP BY user
+      HAVING COUNT(*) < 5000 AND user_max_listen > 2
     ),
-    item_features AS (
+    item_features AS (  -- contruct item features
       SELECT CONCAT(track_name, " by ", artist_name) AS song,
-        SPLIT(ANY_VALUE(tags), ",") AS tags,
         COUNT(DISTINCT(release_name)) AS albums
       FROM `listenbrainz.listenbrainz.listen`
       WHERE track_name != ""
       GROUP BY song
     )
-  SELECT user, song, artist, tags, albums, top_10,
-    user_song_listens/user_max_listen AS count_norm
+  SELECT user, song, artist, tags, albums, user_tags,
+    IF(user_song_listens > 2, 
+       SQRT(user_song_listens/user_max_listen), 
+       1/user_song_listens) AS weight,
+    IF(user_song_listens > 2, 1, 0) as label
   FROM user_songs
   JOIN user_features USING(user)
   JOIN item_features USING(song)

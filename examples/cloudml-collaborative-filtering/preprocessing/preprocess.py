@@ -57,19 +57,16 @@ def _preprocess_tft(raw_data, user_freq, item_freq):
       features: {$user_key: $user_id, $item_key: $item_id, ...}.
   """
   features = {feature: raw_data[feature] for feature in constants.BQ_FEATURES}
-  item_vocab = tft.vocabulary(
-      raw_data[constants.ITEM_KEY],
-      vocab_filename=constants.ITEM_VOCAB_NAME,
-      frequency_threshold=item_freq)
   tft_features = {
       constants.TFT_USER_KEY: tft.compute_and_apply_vocabulary(
           raw_data[constants.USER_KEY],
           vocab_filename=constants.USER_VOCAB_NAME,
           frequency_threshold=user_freq,
           default_value=constants.TFT_DEFAULT_ID),
-      constants.TFT_ITEM_KEY: tft.apply_vocabulary(
+      constants.TFT_ITEM_KEY: tft.compute_and_apply_vocabulary(
           raw_data[constants.ITEM_KEY],
-          item_vocab,
+          vocab_filename=constants.ITEM_VOCAB_NAME,
+          frequency_threshold=item_freq,
           default_value=constants.TFT_DEFAULT_ID),
       constants.TFT_ARTIST_KEY: tft.compute_and_apply_vocabulary(
           raw_data[constants.ARTIST_KEY],
@@ -78,10 +75,6 @@ def _preprocess_tft(raw_data, user_freq, item_freq):
       constants.TFT_TAGS_KEY: tft.compute_and_apply_vocabulary(
           raw_data[constants.TAGS_KEY],
           vocab_filename=constants.TAG_VOCAB_NAME,
-          default_value=constants.TFT_DEFAULT_ID),
-      constants.TFT_TOP_10_KEY: tft.apply_vocabulary(
-          raw_data[constants.TOP_10_KEY],
-          item_vocab,
           default_value=constants.TFT_DEFAULT_ID),
   }
   features.update(tft_features)
@@ -125,9 +118,20 @@ def _filter_data(features):
 
 
 def _clean_tags(features):
+  """Replaces tag lists containing just the empty string with empty lists."""
   if (len(features[constants.TAGS_KEY]) and
       not features[constants.TAGS_KEY][0]):
     features[constants.TAGS_KEY] = []
+  return features
+
+
+def _normalize_user_tags(features):
+  if len(features[constants.USER_TAGS_KEY]) != constants.USER_TAGS_LENGTH:
+    features[constants.USER_TAGS_KEY] = [0] * constants.USER_TAGS_LENGTH
+  tags_sum = sum(features[constants.USER_TAGS_KEY])
+  if tags_sum > 0:
+    normalized_tags = [x / tags_sum for x in features[constants.USER_TAGS_KEY]]
+    features[constants.USER_TAGS_KEY] = normalized_tags
   return features
 
 
@@ -195,7 +199,8 @@ def run(p, args):
                      args.user_min_count, args.item_min_count)
   data = (data
           | "FilterData" >> beam.FlatMap(_filter_data)
-          | "CleanTags" >> beam.Map(_clean_tags))
+          | "CleanTags" >> beam.Map(_clean_tags)
+          | "NormalizeUserTags" >> beam.Map(_normalize_user_tags))
   data = _split_data(data)
   for name, dataset in data:
     dataset | "Write{}Output".format(name) >> WriteOutput(
