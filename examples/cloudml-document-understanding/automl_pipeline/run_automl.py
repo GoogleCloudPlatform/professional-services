@@ -25,6 +25,7 @@ service_account.create(config)
 automl_utils.convert_pdfs(config["main_project"]["input_bucket_name"],
                           config["main_project"]["output_bucket_name"],
                           config["main_project"]["temp_directory"],
+                          config["main_project"]["output_directory"],
                           config["service_acct"]["key"])
 
 automl_utils.image_classification(config["main_project"]["project_id"],
