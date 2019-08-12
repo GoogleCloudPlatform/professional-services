@@ -22,11 +22,13 @@ config = yaml.safe_load(open("../config.yaml", "r"))
 
 service_account.create(config)
 
-automl_utils.convert_pdfs(config["main_project"]["input_bucket_name"],
-                          config["main_project"]["output_bucket_name"],
-                          config["main_project"]["temp_directory"],
-                          config["main_project"]["output_directory"],
-                          config["service_acct"]["key"])
+
+# Convert pdfs to png and upload to users GCS bucket
+automl_utils.convert_pdfs(input_bucket_name=config["main_project"]["input_bucket_name"],
+	output_bucket_name=config["main_project"]["output_bucket_name"],
+	temp_directory=config["main_project"]["temp_directory"],
+	output_directory=config["main_project"]["output_directory"],
+	service_acct=config["service_acct"]["key"])
 
 automl_utils.image_classification(config["main_project"]["project_id"],
                                   config["model_imgclassifier"]["dataset_id"],
@@ -35,3 +37,13 @@ automl_utils.image_classification(config["main_project"]["project_id"],
                                   config["main_project"]["input_bucket_name"],
                                   config["main_project"]["output_bucket_name"],
                                   config["main_project"]["region"])
+
+
+# Create AutoML Text Classification model
+automl_utils.text_classification(main_project_id=config['main_project']['project_id'],
+	data_project_id=config["model_textclassifier"]["project_id"],
+	dataset_id=config["model_textclassifier"]["dataset_id"],
+	table_id=config["model_textclassifier"]["table_id"],
+	service_acct=config["service_acct"]["key"],
+	input_bucket_name=config["main_project"]["input_bucket_name"],
+	region=config["main_project"]["region"])

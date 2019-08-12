@@ -1,32 +1,36 @@
 # Configuration file for end-to-end demo.
 
 main_project:
-  project_id: 'pdf-processing-219114' # 'TODO (user): set with your Project ID'
+  project_id: # 'TODO (user): set with your Project ID'
   input_bucket_name: 'patent_demo_data_pdp' # FROM PDP
-  output_bucket_name: 'pdf-processing-219114-vcm' # 'TODO (user): set with your project bucket'
+  output_bucket_name: # 'TODO (user): set with your project bucket' # should remove this
   region: 'us-central1' #'TODO (user): set with your region'
   temp_directory: './tmp/google'
   output_directory: 'patent_demo_data/'
 service_acct:
-  user_id: 'holtskinner@google.com' # TODO(user) : Set With your GCP Account Email
-  name: 'patent-demo-service-acct2'
+  user_id: # TODO(user) : Set With your GCP Account Email
+  name: 'patent-demo-service-acct'
   description: 'Service-account-for-doc-understanding-demo'
   display_name: 'Patent-Demo-Service-Account'
   key: '../keys/service-acct.json'
 model_imgclassifier:
-  dataset_id: 'pdf-processing-219114:patent_demo_data_pdp' # dataset location of PDP data
+  project_id: 'pdf-processing-219114'
+  dataset_id: 'patent_demo_data_pdp' # dataset location of PDP data
   table_id: 'entity_extraction' # table location of PDP data
   model_id: '<IMAGE_MODELID_PLACEHOLDER>'
 model_textclassifier:
-  dataset_id: 'pdf-processing-219114:patent_demo_data_pdp' # dataset location of PDP data 
+  project_id: 'pdf-processing-219114' # project location of PDP data
+  dataset_id: 'patent_demo_data_pdp' # dataset location of PDP data 
   table_id: 'text_classification' # table location of PDP data
   model_id: '<TEXT_MODELID_PLACEHOLDER>'
 model_ner:
-  dataset_id: 'pdf-processing-219114:patent_demo_data_pdp' # dataset location of PDP data
+  project_id: 'pdf-processing-219114'
+  dataset_id: 'patent_demo_data_pdp' # dataset location of PDP data
   table_id: 'entity_extraction' # table location of PDP data
   model_id: '<NER_MODELID_PLACEHOLDER>'
 model_objdetect:
-  dataset_id: 'pdf-processing-219114:patent_demo_data_pdp' # dataset location of PDP data
+  project_id: 'pdf-processing-219114'
+  dataset_id: 'patent_demo_data_pdp' # dataset location of PDP data
   table_id: 'object_detection' # table location of PDP data
   model_id: '<OBJDET_MODELID_PLACEHOLDER>'
 fields_to_extract:

@@ -23,10 +23,14 @@ import subprocess
 from google.cloud import bigquery, vision, automl_v1beta1 as automl
 from wand.image import Image
 
-now = datetime.datetime.now()
+now = datetime.datetime.now().strftime("_%m%d%Y_%H%M%S")
 
 
-def convert_pdfs(input_bucket_name, output_bucket_name, temp_directory, output_directory, service_acct):
+def convert_pdfs(input_bucket_name, 
+                 output_bucket_name,
+                 temp_directory,
+                 output_directory,
+                 service_acct):
     """Converts all pdfs in a bucket to png.
 
     Args:
@@ -40,6 +44,8 @@ def convert_pdfs(input_bucket_name, output_bucket_name, temp_directory, output_d
         os.makedirs(temp_directory)
 
     print("Downloading PDFs")
+
+    # TODO: need to make sure folder exists
     subprocess.run(
         f'gsutil -m cp gs://{input_bucket_name}/*.pdf {temp_directory}', shell=True)
 
@@ -53,7 +59,7 @@ def convert_pdfs(input_bucket_name, output_bucket_name, temp_directory, output_d
 
     print(f"Uploading to GCS")
     subprocess.run(
-        f'gsutil cp -m {temp_directory}/*.png gs://{output_bucket_name}/{output_directory}', shell=True)
+        f'gsutil -m cp {temp_directory}/*.png gs://{output_bucket_name}/{output_directory}', shell=True)
 
     shutil.rmtree(temp_directory)
 
@@ -91,6 +97,48 @@ def image_classification(project_id, dataset_id, table_id, service_acct, input_b
     create_automl_model(project_id, region,
                         dataset_metadata, model_metadata, dest_uri, service_acct)
 
+def text_classification(main_project_id, data_project_id, dataset_id, table_id, service_acct, input_bucket_name, region):
+
+    print(f"Processing text_classification")
+    output_bucket_name = main_project_id + "-lcm" # TODO: check if bucket exists, if not you have to make it.
+
+    # Copy .png files to -lcm bucket
+    subprocess.run(
+        f"gsutil -m cp gs://{main_project_id}-vcm/patent_demo_data/*.png gs://{main_project_id}-lcm/patent_demo_data/", shell=True)
+    
+    # Create .csv file for importing data 
+    dest_uri = f"gs://{output_bucket_name}/patent_demo_data/text_classification.csv"
+
+    df = bq_to_df(project_id=data_project_id,
+        dataset_id=dataset_id, 
+        table_id=table_id,
+        service_acct=service_acct)    
+    print(df.head())
+    output_df = df.replace({
+        input_bucket_name: "patent_demo_data/" + output_bucket_name,
+        r"\.pdf": ".png"
+    }, regex=True, inplace=False)
+    print(output_df.head())
+    
+    # Get text classification columns
+    output_df = output_df[["file", "class"]]
+    output_df.to_csv(dest_uri, header=False, index=False)
+
+    dataset_metadata = {
+        "display_name": "patent_data" + str(now),
+        "text_classification_dataset_metadata": {
+            "classification_type": "MULTICLASS"
+        }
+    }
+    
+    model_metadata = {
+        'display_name': "patent_data" + str(now),
+        'dataset_id': None,
+        'text_classification_model_metadata': {}
+    }
+
+    create_automl_model(main_project_id, region,
+                        dataset_metadata, model_metadata, dest_uri, service_acct)
 
 def entity_extraction(project_id, dataset_id, table_id, input_bucket_name, output_bucket_name):
     return
@@ -136,27 +184,11 @@ def object_detection(project_id, dataset_id, table_id, service_acct, input_bucke
                         dataset_metadata, model_metadata, dest_uri, service_acct)
 
 
-def text_classification(project_id, dataset_id, table_id, input_bucket_name, output_bucket_name):
-
-    dest_uri = f"gs://{output_bucket_name}/text_classification.csv"
-
-    print(f"Processing text_classification")
-
-    # df = bq_to_df(project_id, dataset_id, table_id)
-
-    # plug images into cloud vision
-
-    # df["file"]
-
-    return dest_uri
-
-
 def bq_to_df(project_id, dataset_id, table_id, service_acct):
     """Fetches Data From BQ Dataset, outputs as dataframe
     """
-
     client = bigquery.Client.from_service_account_json(service_acct)
-    table = client.get_table(f"{dataset_id}.{table_id}")
+    table = client.get_table(f"{project_id}.{dataset_id}.{table_id}")
     df = client.list_rows(table).to_dataframe()
     return df
 
