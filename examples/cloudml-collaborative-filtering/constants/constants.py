@@ -86,8 +86,8 @@ def get_serving_stub():
   """Returns stubbed values for features to use during serving when only username matters."""
   stub = {}
   stub.update({key: "" for key in [USER_KEY, ITEM_KEY, ARTIST_KEY]})
-  stub[ALBUMS_KEY] = 0
-  stub.update({key: [] for key in [TAGS_KEY, USER_TAGS_KEY]})
+  stub.update({key: 0 for key in [ALBUMS_KEY, USER_TAGS_KEY]})
+  stub[TAGS_KEY] = []
   return stub
 
 
@@ -103,7 +103,10 @@ ITEM_CATEGORICAL_FEATURES = [TFT_TAGS_KEY, TFT_ARTIST_KEY]
 ITEM_CATEGORICAL_VOCABS = [TAG_VOCAB_NAME, ARTIST_VOCAB_NAME]
 ITEM_FEATURES = ITEM_NUMERICAL_FEATURES + ITEM_CATEGORICAL_FEATURES
 
-EVAL_RECALLS = [10, 100]
+EVAL_SAMPLE_SIZE = 1000
+EVAL_PRECISION_KS = [10, 100, 500]
+assert all([x < EVAL_SAMPLE_SIZE for x in EVAL_PRECISION_KS])
+
 TRAIN_SPEC = _get_train_spec()
 SERVE_SPEC = _get_train_spec()
 SERVE_SPEC.pop(WEIGHT_KEY)
@@ -115,6 +118,3 @@ PROJECTOR_PATH = "metadata.tsv"
 PROJECTOR_NAME = "combined_embedding"
 NUM_PROJECTOR_USERS = 1000
 NUM_PROJECTOR_ITEMS = 4000
-
-NUM_PROJECTOR_USERS = 18
-NUM_PROJECTOR_ITEMS = 10

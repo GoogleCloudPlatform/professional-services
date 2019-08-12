@@ -44,6 +44,17 @@ def ReadBQ(p, query):
       query=query, use_standard_sql=True))
 
 
+def _normalize_user_tags(features):
+  """Fills in missing user tags features and normalizes the tag vectors."""
+  tags_sum = sum(features[constants.USER_TAGS_KEY])
+  if tags_sum > 0:
+    normalized_tags = [x / tags_sum for x in features[constants.USER_TAGS_KEY]]
+    features[constants.USER_TAGS_KEY] = normalized_tags
+  if len(features[constants.USER_TAGS_KEY]) != constants.USER_TAGS_LENGTH:
+    features[constants.USER_TAGS_KEY] = [0] * constants.USER_TAGS_LENGTH
+  return features
+
+
 def _preprocess_tft(raw_data, user_freq, item_freq):
   """Creates vocabularies for users and items and maps their ids to ints.
 
@@ -125,16 +136,6 @@ def _clean_tags(features):
   return features
 
 
-def _normalize_user_tags(features):
-  if len(features[constants.USER_TAGS_KEY]) != constants.USER_TAGS_LENGTH:
-    features[constants.USER_TAGS_KEY] = [0] * constants.USER_TAGS_LENGTH
-  tags_sum = sum(features[constants.USER_TAGS_KEY])
-  if tags_sum > 0:
-    normalized_tags = [x / tags_sum for x in features[constants.USER_TAGS_KEY]]
-    features[constants.USER_TAGS_KEY] = normalized_tags
-  return features
-
-
 def _split_data(examples, train_fraction=constants.TRAIN_SIZE,
                 val_fraction=constants.VAL_SIZE):
   """Splits the data into train/validation/test."""
@@ -194,13 +195,14 @@ def run(p, args):
   if not args.cloud:
     query = "{} LIMIT 10".format(query)
 
-  raw_data = p | "ReadBQ" >> ReadBQ(query)
+  raw_data = (p
+              | "ReadBQ" >> ReadBQ(query)
+              | "NormalizeUserTags" >> beam.Map(_normalize_user_tags))
   data = _run_tft_fn(raw_data, _preprocess_tft, args.tft_dir,
                      args.user_min_count, args.item_min_count)
   data = (data
           | "FilterData" >> beam.FlatMap(_filter_data)
-          | "CleanTags" >> beam.Map(_clean_tags)
-          | "NormalizeUserTags" >> beam.Map(_normalize_user_tags))
+          | "CleanTags" >> beam.Map(_clean_tags))
   data = _split_data(data)
   for name, dataset in data:
     dataset | "Write{}Output".format(name) >> WriteOutput(

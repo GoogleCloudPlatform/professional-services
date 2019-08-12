@@ -70,7 +70,7 @@ query = """
       SELECT user, MAX(user_song_listens) AS user_max_listen,
         ANY_VALUE(user_tags) as user_tags
       FROM user_songs
-      JOIN user_tag_features USING (user)
+      LEFT JOIN user_tag_features USING (user)
       GROUP BY user
       HAVING COUNT(*) < 5000 AND user_max_listen > 2
     ),

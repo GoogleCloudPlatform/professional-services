@@ -336,15 +336,21 @@ def _model_fn(features, labels, mode, params):
 
   # Eval op: Log the recall of the batch and save a sample of user+item shared
   # embedding space for tensorboard projector.
-  item_sims = tf.matmul(user_norm, item_embedding, transpose_b=True)
+
+  item_sample = tf.random_shuffle(item_embedding)[:constants.EVAL_SAMPLE_SIZE]
+  item_sample_sims = tf.sort(tf.matmul(user_norm, item_sample,
+                                       transpose_b=True),
+                             direction="DESCENDING")
+
   metrics = {}
-#   with tf.name_scope("recall"):
-#     for k in constants.EVAL_RECALLS:
-#       key = "recall_{0}".format(k)
-#       recall = tf.metrics.recall_at_k(
-#           tft_features[constants.TFT_TOP_10_KEY], item_sims, k)
-#       metrics["recall/{0}".format(key)] = recall
-#       tf.summary.scalar(key, recall[1])
+  with tf.name_scope("precision"):
+    for k in constants.EVAL_PRECISION_KS:
+      thresh = item_sample_sims[:, k]
+      is_top_k = tf.cast(tf.greater_equal(sims, thresh), tf.float32)
+      precision = tf.metrics.mean(is_top_k, weights=labels)
+      key = "precision_{0}".format(k)
+      metrics["precision/{0}".format(key)] = precision
+      tf.summary.scalar(key, precision[1])
   metrics["acc"] = tf.metrics.accuracy(labels, tf.round(sims))
   tf.summary.scalar("acc", metrics["acc"][1])
   tf.summary.merge_all()
