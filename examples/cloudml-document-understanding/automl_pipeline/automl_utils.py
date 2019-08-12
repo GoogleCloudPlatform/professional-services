@@ -26,11 +26,11 @@ from wand.image import Image
 now = datetime.datetime.now().strftime("_%m%d%Y_%H%M%S")
 
 
-def convert_pdfs(input_bucket_name, 
-                 output_bucket_name,
-                 temp_directory,
-                 output_directory,
-                 service_acct):
+def convert_pdfs(main_project_id,
+                input_bucket_name, 
+                temp_directory,
+                output_directory,
+                service_acct):
     """Converts all pdfs in a bucket to png.
 
     Args:
@@ -58,22 +58,30 @@ def convert_pdfs(input_bucket_name,
                     png.save(filename=temp_png)
 
     print(f"Uploading to GCS")
+    output_bucket_name = main_project_id + "-vcm"
     subprocess.run(
         f'gsutil -m cp {temp_directory}/*.png gs://{output_bucket_name}/{output_directory}', shell=True)
 
     shutil.rmtree(temp_directory)
 
 
-def image_classification(project_id, dataset_id, table_id, service_acct, input_bucket_name, output_bucket_name, region):
+def image_classification(main_project_id,
+                        data_project_id, 
+                        dataset_id, 
+                        table_id,
+                        service_acct,
+                        input_bucket_name,
+                        region):
 
     print(f"Processing image_classification")
+    output_bucket_name = main_project_id + "-vcm"
 
     dest_uri = f"gs://{output_bucket_name}/patent_demo_data/image_classification.csv"
 
-    df = bq_to_df(project_id, dataset_id, table_id, service_acct)
+    df = bq_to_df(data_project_id, dataset_id, table_id, service_acct)
 
     output_df = df.replace({
-        input_bucket_name: "patent_demo_data/" + output_bucket_name,
+        input_bucket_name: output_bucket_name + "/patent_demo_data",
         r"\.pdf": ".png"
     }, regex=True, inplace=False)
 
@@ -91,13 +99,19 @@ def image_classification(project_id, dataset_id, table_id, service_acct, input_b
     model_metadata = {
         'display_name': "patent_demo_data" + now,
         'dataset_id': None,
-        'image_classification_model_metadata': {}
+        'image_classification_model_metadata': {"train_budget": 1}
     }
 
-    create_automl_model(project_id, region,
+    create_automl_model(main_project_id, region,
                         dataset_metadata, model_metadata, dest_uri, service_acct)
 
-def text_classification(main_project_id, data_project_id, dataset_id, table_id, service_acct, input_bucket_name, region):
+def text_classification(main_project_id, 
+                        data_project_id,
+                        dataset_id,
+                        table_id,
+                        service_acct,
+                        input_bucket_name,
+                        region):
 
     print(f"Processing text_classification")
     output_bucket_name = main_project_id + "-lcm" # TODO: check if bucket exists, if not you have to make it.
@@ -106,6 +120,8 @@ def text_classification(main_project_id, data_project_id, dataset_id, table_id, 
     subprocess.run(
         f"gsutil -m cp gs://{main_project_id}-vcm/patent_demo_data/*.png gs://{main_project_id}-lcm/patent_demo_data/", shell=True)
     
+    # TODO: Need to convert .png files to .txt files
+
     # Create .csv file for importing data 
     dest_uri = f"gs://{output_bucket_name}/patent_demo_data/text_classification.csv"
 
@@ -115,8 +131,8 @@ def text_classification(main_project_id, data_project_id, dataset_id, table_id, 
         service_acct=service_acct)    
     print(df.head())
     output_df = df.replace({
-        input_bucket_name: "patent_demo_data/" + output_bucket_name,
-        r"\.pdf": ".png"
+        input_bucket_name: output_bucket_name + "/patent_demo_data",
+        r"\.pdf": ".txt"
     }, regex=True, inplace=False)
     print(output_df.head())
     
@@ -137,10 +153,16 @@ def text_classification(main_project_id, data_project_id, dataset_id, table_id, 
         'text_classification_model_metadata': {}
     }
 
-    create_automl_model(main_project_id, region,
-                        dataset_metadata, model_metadata, dest_uri, service_acct)
+    # TODO: create_automl_model(...)
 
-def entity_extraction(project_id, dataset_id, table_id, input_bucket_name, output_bucket_name):
+
+
+def entity_extraction(main_project_id, 
+                    data_project_id,
+                    dataset_id,
+                    table_id,
+                    input_bucket_name,
+                    output_bucket_name):
     return
 
 
@@ -193,7 +215,12 @@ def bq_to_df(project_id, dataset_id, table_id, service_acct):
     return df
 
 
-def create_automl_model(project_id, compute_region, dataset_metadata, model_metadata, path, service_acct):
+def create_automl_model(project_id, 
+                        compute_region,
+                        dataset_metadata,
+                        model_metadata,
+                        path,
+                        service_acct):
     """Create dataset and import data. Create Model"""
 
     client = automl.AutoMlClient.from_service_account_file(service_acct)
@@ -204,6 +231,8 @@ def create_automl_model(project_id, compute_region, dataset_metadata, model_meta
     # Create a dataset with the dataset metadata in the region.
     dataset = client.create_dataset(parent, dataset_metadata)
 
+    print("Processing import...")
+
     # Import data from the input URI.
     response = client.import_data(dataset.name, {
         "gcs_source": {
@@ -211,7 +240,7 @@ def create_automl_model(project_id, compute_region, dataset_metadata, model_meta
         }
     })
 
-    print("Processing import...")
+    
 
     print(f"Data imported. {response.result()}")
 

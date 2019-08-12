@@ -2,9 +2,8 @@
 
 main_project:
   project_id: # 'TODO (user): set with your Project ID'
+  region: #'TODO (user): set with your region'
   input_bucket_name: 'patent_demo_data_pdp' # FROM PDP
-  output_bucket_name: # 'TODO (user): set with your project bucket' # should remove this
-  region: 'us-central1' #'TODO (user): set with your region'
   temp_directory: './tmp/google'
   output_directory: 'patent_demo_data/'
 service_acct:
