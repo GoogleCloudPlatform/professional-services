@@ -28,10 +28,10 @@ now = datetime.datetime.now().strftime("_%m%d%Y_%H%M%S")
 
 
 def convert_pdfs(main_project_id,
-                input_bucket_name, 
-                temp_directory,
-                output_directory,
-                service_acct):
+                 input_bucket_name,
+                 temp_directory,
+                 output_directory,
+                 service_acct):
     """Converts all pdfs in a bucket to png.
 
     Args:
@@ -75,16 +75,16 @@ def convert_pdfs(main_project_id,
 
 
 def image_classification(main_project_id,
-                        data_project_id, 
-                        dataset_id, 
-                        table_id,
-                        service_acct,
-                        input_bucket_name,
-                        region,
-                        modelid_placeholder):
+                         data_project_id,
+                         dataset_id,
+                         table_id,
+                         service_acct,
+                         input_bucket_name,
+                         region,
+                         modelid_placeholder):
 
     print(f"Processing image_classification")
-    
+
     output_bucket_name = main_project_id + "-vcm"
 
     dest_uri = f"gs://{output_bucket_name}/patent_demo_data/image_classification.csv"
@@ -101,22 +101,28 @@ def image_classification(main_project_id,
     output_df.to_csv(dest_uri, header=False, index=False)
 
     dataset_metadata = {
-        "display_name": "patent_demo_data" + now,
+        "display_name": "patent_demo_data" + str(now),
         "image_classification_dataset_metadata": {
             "classification_type": "MULTICLASS"
         }
     }
 
     model_metadata = {
-        'display_name': "patent_demo_data" + now,
+        'display_name': "patent_demo_data" + str(now),
         'dataset_id': None,
         'image_classification_model_metadata': {"train_budget": 1}
     }
 
-    create_automl_model(main_project_id, region, dataset_metadata, 
-                        model_metadata, dest_uri, service_acct, modelid_placeholder)
+    create_automl_model(main_project_id,
+                        region,
+                        dataset_metadata,
+                        model_metadata,
+                        dest_uri,
+                        service_acct,
+                        modelid_placeholder)
 
-def text_classification(main_project_id, 
+
+def text_classification(main_project_id,
                         data_project_id,
                         dataset_id,
                         table_id,
@@ -126,7 +132,7 @@ def text_classification(main_project_id,
 
     print(f"Processing text_classification")
     output_bucket_name = main_project_id + "-lcm"
-    
+
     # Check if bucket exists; if not, make it.
     storage_client = storage.Client()
     buckets = storage_client.list_buckets()
@@ -137,23 +143,23 @@ def text_classification(main_project_id,
     # Copy .png files to -lcm bucket
     subprocess.run(
         f"gsutil -m cp gs://{main_project_id}-vcm/patent_demo_data/*.png gs://{main_project_id}-lcm/patent_demo_data/", shell=True)
-    
+
     # TODO: Need to convert .png files to .txt files
 
-    # Create .csv file for importing data 
+    # Create .csv file for importing data
     dest_uri = f"gs://{output_bucket_name}/patent_demo_data/text_classification.csv"
 
     df = bq_to_df(project_id=data_project_id,
-        dataset_id=dataset_id, 
-        table_id=table_id,
-        service_acct=service_acct)    
+                  dataset_id=dataset_id,
+                  table_id=table_id,
+                  service_acct=service_acct)
     print(df.head())
     output_df = df.replace({
         input_bucket_name: output_bucket_name + "/patent_demo_data",
         r"\.pdf": ".txt"
     }, regex=True, inplace=False)
     print(output_df.head())
-    
+
     # Get text classification columns
     output_df = output_df[["file", "class"]]
     output_df.to_csv(dest_uri, header=False, index=False)
@@ -164,7 +170,7 @@ def text_classification(main_project_id,
             "classification_type": "MULTICLASS"
         }
     }
-    
+
     model_metadata = {
         'display_name': "patent_data" + str(now),
         'dataset_id': None,
@@ -174,23 +180,31 @@ def text_classification(main_project_id,
     # TODO: create_automl_model(...)
 
 
-
-def entity_extraction(main_project_id, 
-                    data_project_id,
-                    dataset_id,
-                    table_id,
-                    input_bucket_name,
-                    output_bucket_name):
+def entity_extraction(main_project_id,
+                      data_project_id,
+                      dataset_id,
+                      table_id,
+                      input_bucket_name,
+                      output_bucket_name):
     return
 
 
-def object_detection(project_id, dataset_id, table_id, service_acct, input_bucket_name, output_bucket_name, region):
+def object_detection(main_project_id,
+                     data_project_id,
+                     dataset_id,
+                     table_id,
+                     service_acct,
+                     input_bucket_name,
+                     region,
+                     modelid_placeholder):
+
+    output_bucket_name = main_project_id + "-vcm"
 
     dest_uri = f"gs://{output_bucket_name}/patent_demo_data/object_detection.csv"
 
     print(f"Processing object_detection")
 
-    df = bq_to_df(project_id, dataset_id, table_id, service_acct)
+    df = bq_to_df(data_project_id, dataset_id, table_id, service_acct)
 
     df.replace({
         input_bucket_name: output_bucket_name,
@@ -220,8 +234,13 @@ def object_detection(project_id, dataset_id, table_id, service_acct, input_bucke
         'image_object_detection_model_metadata': {}
     }
 
-    create_automl_model(project_id, region,
-                        dataset_metadata, model_metadata, dest_uri, service_acct)
+    create_automl_model(main_project_id,
+                        region,
+                        dataset_metadata,
+                        model_metadata,
+                        dest_uri,
+                        service_acct,
+                        modelid_placeholder)
 
 
 def bq_to_df(project_id, dataset_id, table_id, service_acct):
@@ -233,7 +252,7 @@ def bq_to_df(project_id, dataset_id, table_id, service_acct):
     return df
 
 
-def create_automl_model(project_id, 
+def create_automl_model(project_id,
                         compute_region,
                         dataset_metadata,
                         model_metadata,
@@ -246,12 +265,12 @@ def create_automl_model(project_id,
 
     # A resource that represents Google Cloud Platform location.
     project_location = client.location_path(project_id, compute_region)
-    
+
     # Create a dataset with the dataset metadata in the region.
     print("Creating dataset...")
     dataset = client.create_dataset(project_location, dataset_metadata)
 
-    print("Processing import...")
+    print("Importing Data. This may take a few minutes.")
     # Import data from the input URI.
     response = client.import_data(dataset.name, {
         "gcs_source": {
@@ -269,31 +288,22 @@ def create_automl_model(project_id,
     print('Training operation name: {}'.format(response.operation.name))
     print('Training started. This will take a while.')
 
-    # Get model id and replace in config.yaml file
-    response = client.list_models(project_location, "")
 
-    # TODO: need to check this??
-    model_list = [model.display_name for model in response]
-    while dataset.display_name not in model_list:
-        model_list = [model.display_name for model in response]
-        pass
-        
-    for model in response:
-        if model.display_name == dataset.display_name:
-            patent_model_id = model.name.split("/")[-1]
-    print("patnet_model_id")
-    print(patent_model_id)
+def edit_config(placeholder, model_id):
 
     # Write model ID into the config file
-    with open('../config.yaml', 'r') as f:
+    with open("../config.yaml", "r+") as f:
         config_data = f.read()
 
-    # Replace target string with model id
-    config_data = config_data.replace(modelid_placeholder, patent_model_id)
+        # Replace target string with model id
+        config_data = config_data.replace(placeholder, model_id)
 
-    # Write the config.yaml out again.
-    with open("../config.yaml", "w") as f:
+        # Write the config.yaml out again.
         f.write(config_data)
 
-def edit_config(current_value, new_value):
+
+def callback(operation_future):
+    # Edit Config File
+    result = operation_future.result()
+    print(result)
     return

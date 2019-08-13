@@ -20,10 +20,9 @@ import service_account
 
 config = yaml.safe_load(open("../config.yaml", "r"))
 
+
+# service_account.create(config)
 '''
-service_account.create(config)
-
-
 # Convert pdfs to png and upload to users GCS bucket
 automl_utils.convert_pdfs(main_project_id=config['main_project']['project_id'],
 	input_bucket_name=config["main_project"]["input_bucket_name"],
@@ -31,14 +30,23 @@ automl_utils.convert_pdfs(main_project_id=config['main_project']['project_id'],
 	output_directory=config["main_project"]["output_directory"],
 	service_acct=config["service_acct"]["key"])
 '''
-automl_utils.image_classification(main_project_id=config["main_project"]["project_id"],
-	data_project_id=config["model_imgclassifier"]["project_id"],
-	dataset_id=config["model_imgclassifier"]["dataset_id"],
-	table_id=config["model_imgclassifier"]["table_id"],
-	service_acct=config["service_acct"]["key"],
-	input_bucket_name=config["main_project"]["input_bucket_name"],
-	region=config["main_project"]["region"],
-	modelid_placeholder=config["model_imgclassifier"]["model_id"])
+# automl_utils.image_classification(main_project_id=config["main_project"]["project_id"],
+#                                   data_project_id=config["model_imgclassifier"]["project_id"],
+#                                   dataset_id=config["model_imgclassifier"]["dataset_id"],
+#                                   table_id=config["model_imgclassifier"]["table_id"],
+#                                   service_acct=config["service_acct"]["key"],
+#                                   input_bucket_name=config["main_project"]["input_bucket_name"],
+#                                   region=config["main_project"]["region"],
+#                                   modelid_placeholder=config["model_imgclassifier"]["model_id"])
+
+automl_utils.object_detection(main_project_id=config["main_project"]["project_id"],
+                              data_project_id=config["model_objdetect"]["project_id"],
+                              dataset_id=config["model_objdetect"]["dataset_id"],
+                              table_id=config["model_objdetect"]["table_id"],
+                              service_acct=config["service_acct"]["key"],
+                              input_bucket_name=config["main_project"]["input_bucket_name"],
+                              region=config["main_project"]["region"],
+                              modelid_placeholder=config["model_objdetect"]["model_id"])
 
 '''
 # Create AutoML Text Classification model
