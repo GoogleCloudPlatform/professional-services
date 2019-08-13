@@ -240,12 +240,10 @@ def create_automl_model(project_id,
         }
     })
 
-    
-
     print(f"Data imported. {response.result()}")
 
     # dataset.name is the dataset_id
-    model_metadata["dataset_id"] = dataset.name
+    model_metadata["dataset_id"] = dataset.name.split("/")[-1]
 
     response = client.create_model(parent, model_metadata)
     # TODO Replace in Config File
