@@ -77,8 +77,7 @@ def _get_train_spec():
   train_spec[WEIGHT_KEY] = tf.io.FixedLenFeature([], dtype=tf.float32)
   train_spec[USER_TAGS_KEY] = tf.io.FixedLenFeature([USER_TAGS_LENGTH],
                                                     dtype=tf.float32)
-  train_spec.update({key: tf.io.VarLenFeature(tf.string)
-                     for key in [TAGS_KEY]})
+  train_spec[TAGS_KEY] = tf.io.VarLenFeature(tf.string)
   return train_spec
 
 
