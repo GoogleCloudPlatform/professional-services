@@ -334,8 +334,8 @@ def _model_fn(features, labels, mode, params):
       tft_output,
       constants.ITEM_VOCAB_NAME)
 
-  # Eval op: Log the recall of the batch and save a sample of user+item shared
-  # embedding space for tensorboard projector.
+  # Eval op: Log the precision of the batch and save a sample of user+item
+  # shared embedding space for tensorboard projector.
 
   item_sample = tf.random_shuffle(item_embedding)[:constants.EVAL_SAMPLE_SIZE]
   item_sample_sims = tf.sort(tf.matmul(user_norm, item_sample,
