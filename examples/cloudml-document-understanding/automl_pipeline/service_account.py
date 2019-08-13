@@ -28,15 +28,14 @@ def create(config):
 
     sa_name_full = f'{sa_name}@{project_id}.iam.gserviceaccount.com'
 
-    create_service_acct = f'gcloud beta iam service-accounts create {sa_name} --display-name={sa_display_name} --description={sa_description} --project={project_id}'
+    commands = [
+        f'gcloud config set account {user_id}',
+        f'gcloud beta iam service-accounts create {sa_name} --display-name={sa_display_name} --description={sa_description} --project={project_id}',
+        f'gcloud projects add-iam-policy-binding {project_id} --member="serviceAccount:{sa_name_full}" --role="roles/editor"',
+        f'gcloud projects add-iam-policy-binding {project_id} --member="serviceAccount:{sa_name_full}" --role="roles/automl.editor"',
+        f'gcloud projects add-iam-policy-binding {project_id} --member="user:{user_id}" --role="roles/automl.admin"',
+        f'gcloud iam service-accounts keys create {sa_key} --iam-account {sa_name_full} --project={project_id}'
+    ]
 
-    bind_service_acct = f'gcloud iam service-accounts add-iam-policy-binding {sa_name_full} --member="serviceAccount:{sa_name_full}" --role="roles/editor" --project={project_id}'
-
-    create_service_acct_key = f'gcloud iam service-accounts keys create {sa_key} --iam-account {sa_name_full} --project={project_id}'
-
-    bind_user_permissions = f'gcloud projects add-iam-policy-binding {project_id} --member="user:{user_id}" --role="roles/automl.admin"'
-
-    subprocess.run(create_service_acct, shell=True, capture_output=True)
-    subprocess.run(bind_service_acct, shell=True, capture_output=True)
-    subprocess.run(create_service_acct_key, shell=True, capture_output=True)
-    subprocess.run(bind_user_permissions, shell=True, capture_output=True)
+    for c in commands:
+        subprocess.run(c, shell=True, capture_output=True)

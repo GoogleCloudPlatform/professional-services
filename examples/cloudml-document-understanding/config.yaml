@@ -1,13 +1,13 @@
 # Configuration file for end-to-end demo.
 
 main_project:
-  project_id: # 'TODO (user): set with your Project ID'
-  region: #'TODO (user): set with your region'
+  project_id: 'pdf-processing-219114' # 'TODO (user): set with your Project ID'
+  region: 'us-central1' #'TODO (user): set with your region'
   input_bucket_name: 'patent_demo_data_pdp' # FROM PDP
   temp_directory: './tmp/google'
   output_directory: 'patent_demo_data/'
 service_acct:
-  user_id: # TODO(user) : Set With your GCP Account Email
+  user_id: holtskinner@google.com # TODO(user) : Set With your GCP Account Email 
   name: 'patent-demo-service-acct'
   description: 'Service-account-for-doc-understanding-demo'
   display_name: 'Patent-Demo-Service-Account'
