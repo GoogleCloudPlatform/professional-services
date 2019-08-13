@@ -20,7 +20,8 @@ import datetime
 import pandas as pd
 import subprocess
 
-from google.cloud import bigquery, vision, automl_v1beta1 as automl
+from google.cloud import bigquery, vision, storage, automl_v1beta1 as automl
+from google.cloud.automl_v1beta1 import enums
 from wand.image import Image
 
 now = datetime.datetime.now().strftime("_%m%d%Y_%H%M%S")
@@ -59,6 +60,14 @@ def convert_pdfs(main_project_id,
 
     print(f"Uploading to GCS")
     output_bucket_name = main_project_id + "-vcm"
+
+    # Check if bucket exists; if not, make it.
+    storage_client = storage.Client()
+    buckets = storage_client.list_buckets()
+    bucket_names = [bucket.name for bucket in buckets]
+    if output_bucket_name not in buckets:
+        bucket = storage_client.create_bucket(main_project_id + "-vcm")
+
     subprocess.run(
         f'gsutil -m cp {temp_directory}/*.png gs://{output_bucket_name}/{output_directory}', shell=True)
 
@@ -71,9 +80,11 @@ def image_classification(main_project_id,
                         table_id,
                         service_acct,
                         input_bucket_name,
-                        region):
+                        region,
+                        modelid_placeholder):
 
     print(f"Processing image_classification")
+    
     output_bucket_name = main_project_id + "-vcm"
 
     dest_uri = f"gs://{output_bucket_name}/patent_demo_data/image_classification.csv"
@@ -102,8 +113,8 @@ def image_classification(main_project_id,
         'image_classification_model_metadata': {"train_budget": 1}
     }
 
-    create_automl_model(main_project_id, region,
-                        dataset_metadata, model_metadata, dest_uri, service_acct)
+    create_automl_model(main_project_id, region, dataset_metadata, 
+                        model_metadata, dest_uri, service_acct, modelid_placeholder)
 
 def text_classification(main_project_id, 
                         data_project_id,
@@ -114,7 +125,14 @@ def text_classification(main_project_id,
                         region):
 
     print(f"Processing text_classification")
-    output_bucket_name = main_project_id + "-lcm" # TODO: check if bucket exists, if not you have to make it.
+    output_bucket_name = main_project_id + "-lcm"
+    
+    # Check if bucket exists; if not, make it.
+    storage_client = storage.Client()
+    buckets = storage_client.list_buckets()
+    bucket_names = [bucket.name for bucket in buckets]
+    if output_bucket_name not in buckets:
+        bucket = storage_client.create_bucket(main_project_id + "-lcm")
 
     # Copy .png files to -lcm bucket
     subprocess.run(
@@ -220,19 +238,20 @@ def create_automl_model(project_id,
                         dataset_metadata,
                         model_metadata,
                         path,
-                        service_acct):
-    """Create dataset and import data. Create Model"""
+                        service_acct,
+                        modelid_placeholder):
+    """Create dataset, import data, create model, replace model id in config.yaml"""
 
     client = automl.AutoMlClient.from_service_account_file(service_acct)
 
     # A resource that represents Google Cloud Platform location.
-    parent = client.location_path(project_id, compute_region)
-
+    project_location = client.location_path(project_id, compute_region)
+    
     # Create a dataset with the dataset metadata in the region.
-    dataset = client.create_dataset(parent, dataset_metadata)
+    print("Creating dataset...")
+    dataset = client.create_dataset(project_location, dataset_metadata)
 
     print("Processing import...")
-
     # Import data from the input URI.
     response = client.import_data(dataset.name, {
         "gcs_source": {
@@ -242,15 +261,39 @@ def create_automl_model(project_id,
 
     print(f"Data imported. {response.result()}")
 
-    # dataset.name is the dataset_id
+    # Set dataset_id into model metadata
     model_metadata["dataset_id"] = dataset.name.split("/")[-1]
 
-    response = client.create_model(parent, model_metadata)
-    # TODO Replace in Config File
-
+    print("Training model...")
+    response = client.create_model(project_location, model_metadata)
     print('Training operation name: {}'.format(response.operation.name))
     print('Training started. This will take a while.')
 
+    # Get model id and replace in config.yaml file
+    response = client.list_models(project_location, "")
+
+    # TODO: need to check this??
+    model_list = [model.display_name for model in response]
+    while dataset.display_name not in model_list:
+        model_list = [model.display_name for model in response]
+        pass
+        
+    for model in response:
+        if model.display_name == dataset.display_name:
+            patent_model_id = model.name.split("/")[-1]
+    print("patnet_model_id")
+    print(patent_model_id)
+
+    # Write model ID into the config file
+    with open('../config.yaml', 'r') as f:
+        config_data = f.read()
+
+    # Replace target string with model id
+    config_data = config_data.replace(modelid_placeholder, patent_model_id)
+
+    # Write the config.yaml out again.
+    with open("../config.yaml", "w") as f:
+        f.write(config_data)
 
 def edit_config(current_value, new_value):
     return
