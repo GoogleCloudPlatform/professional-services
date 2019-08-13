@@ -49,10 +49,10 @@ The steps involved are as follows:
 1. Read the data in using the
    [BigQuery](https://cloud.google.com/bigquery/) query found
    [here](trainer/query.py).
-   This query cleans the features and creates a `count_norm` label which is the
-   number of times a user has played to a particular song divided by the most
-   times they've played any song. It also calculates `top_10`, the 10 most
-   popular songs for each user to use in model evaluation.
+   This query cleans the features and creates a label for each unique user-item
+   pair that exists. This label is 1 if a user has listened to a song more than
+   twice and 0 otherwise. Samples are also given weights based on how many
+   interactions there were between the user and item.
 2. Using [TensorFlow
    Transform](https://www.tensorflow.org/tfx/transform/get_started), map each
    username and product id to an integer value and write the vocabularies to
@@ -85,11 +85,11 @@ The trainng steps are as follows:
 5. Create a user neural net and item neural net from the input layers, ensuring
    that the final layers are the same size.
 6. Compute the cosine similarity between the final layers of the user and item
-   nets. Feed the similarity through the sigmoid function to get a value between
-   0 and 1.
-7. Calculate error using RMSE and train the model.
-8. Evaluate the model performance by, for each review, finding the `k` most
-   similar items for the user and using the predictions to compute recall.
+   nets. Take the absolute value to get a value between 0 and 1.
+7. Calculate error using log loss and train the model.
+8. Evaluate the model performance by sampling 1000 random items and calculating
+   the average precision@k when each positive sample's item is ranked against
+   these random items for the sample's user.
 9. Export a `SavedModel` for use in serving.
 
 ### Execution
