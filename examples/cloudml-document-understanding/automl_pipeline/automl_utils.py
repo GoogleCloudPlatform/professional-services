@@ -80,8 +80,7 @@ def image_classification(main_project_id,
                          table_id,
                          service_acct,
                          input_bucket_name,
-                         region,
-                         modelid_placeholder):
+                         region):
 
     print(f"Processing image_classification")
 
@@ -118,8 +117,7 @@ def image_classification(main_project_id,
                         dataset_metadata,
                         model_metadata,
                         dest_uri,
-                        service_acct,
-                        modelid_placeholder)
+                        service_acct)
 
 
 def text_classification(main_project_id,
@@ -184,8 +182,13 @@ def entity_extraction(main_project_id,
                       data_project_id,
                       dataset_id,
                       table_id,
+                      service_acct,
                       input_bucket_name,
-                      output_bucket_name):
+                      region):
+    df = bq_to_df(project_id=data_project_id,
+                  dataset_id=dataset_id,
+                  table_id=table_id,
+                  service_acct=service_acct)
     return
 
 
@@ -195,8 +198,7 @@ def object_detection(main_project_id,
                      table_id,
                      service_acct,
                      input_bucket_name,
-                     region,
-                     modelid_placeholder):
+                     region):
 
     output_bucket_name = main_project_id + "-vcm"
 
@@ -239,8 +241,7 @@ def object_detection(main_project_id,
                         dataset_metadata,
                         model_metadata,
                         dest_uri,
-                        service_acct,
-                        modelid_placeholder)
+                        service_acct)
 
 
 def bq_to_df(project_id, dataset_id, table_id, service_acct):
@@ -257,8 +258,7 @@ def create_automl_model(project_id,
                         dataset_metadata,
                         model_metadata,
                         path,
-                        service_acct,
-                        modelid_placeholder):
+                        service_acct):
     """Create dataset, import data, create model, replace model id in config.yaml"""
 
     client = automl.AutoMlClient.from_service_account_file(service_acct)
@@ -285,25 +285,5 @@ def create_automl_model(project_id,
 
     print("Training model...")
     response = client.create_model(project_location, model_metadata)
-    print('Training operation name: {}'.format(response.operation.name))
+    print(f'Training operation name: {response.operation.name}')
     print('Training started. This will take a while.')
-
-
-def edit_config(placeholder, model_id):
-
-    # Write model ID into the config file
-    with open("../config.yaml", "r+") as f:
-        config_data = f.read()
-
-        # Replace target string with model id
-        config_data = config_data.replace(placeholder, model_id)
-
-        # Write the config.yaml out again.
-        f.write(config_data)
-
-
-def callback(operation_future):
-    # Edit Config File
-    result = operation_future.result()
-    print(result)
-    return
