@@ -62,10 +62,11 @@ def convert_pdfs(main_project_id,
     output_bucket_name = main_project_id + "-vcm"
 
     # Check if bucket exists; if not, make it.
+    # TODO: this should be moved to gcs_utils operation
     storage_client = storage.Client()
     buckets = storage_client.list_buckets()
     bucket_names = [bucket.name for bucket in buckets]
-    if output_bucket_name not in buckets:
+    if output_bucket_name not in bucket_names:
         bucket = storage_client.create_bucket(main_project_id + "-vcm")
 
     subprocess.run(
@@ -128,21 +129,16 @@ def text_classification(main_project_id,
                         input_bucket_name,
                         region):
 
-    print(f"Processing text_classification")
+    print(f"Starting AutoML text_classification.")
     output_bucket_name = main_project_id + "-lcm"
 
     # Check if bucket exists; if not, make it.
+    # TODO: this should be moved to gcs_utils operation
     storage_client = storage.Client()
     buckets = storage_client.list_buckets()
     bucket_names = [bucket.name for bucket in buckets]
-    if output_bucket_name not in buckets:
+    if output_bucket_name not in bucket_names:
         bucket = storage_client.create_bucket(main_project_id + "-lcm")
-
-    # Copy .png files to -lcm bucket
-    subprocess.run(
-        f"gsutil -m cp gs://{main_project_id}-vcm/patent_demo_data/*.png gs://{main_project_id}-lcm/patent_demo_data/", shell=True)
-
-    # TODO: Need to convert .png files to .txt files
 
     # Create .csv file for importing data
     dest_uri = f"gs://{output_bucket_name}/patent_demo_data/text_classification.csv"
@@ -153,7 +149,7 @@ def text_classification(main_project_id,
                   service_acct=service_acct)
     print(df.head())
     output_df = df.replace({
-        input_bucket_name: output_bucket_name + "/patent_demo_data",
+        input_bucket_name: output_bucket_name + "/patent_demo_data/txt",
         r"\.pdf": ".txt"
     }, regex=True, inplace=False)
     print(output_df.head())
