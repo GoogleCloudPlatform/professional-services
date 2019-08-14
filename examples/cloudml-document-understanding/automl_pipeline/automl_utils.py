@@ -147,12 +147,11 @@ def text_classification(main_project_id,
                   dataset_id=dataset_id,
                   table_id=table_id,
                   service_acct=service_acct)
-    print(df.head())
+
     output_df = df.replace({
         input_bucket_name: output_bucket_name + "/patent_demo_data/txt",
         r"\.pdf": ".txt"
     }, regex=True, inplace=False)
-    print(output_df.head())
 
     # Get text classification columns
     output_df = output_df[["file", "class"]]
@@ -171,7 +170,14 @@ def text_classification(main_project_id,
         'text_classification_model_metadata': {}
     }
 
-    # TODO: create_automl_model(...)
+    # Create AutoML model for text classification
+    create_automl_model(project_id=main_project_id,
+                        compute_region=region,
+                        dataset_metadata=dataset_metadata,
+                        model_metadata=model_metadata,
+                        path=dest_uri,
+                        service_acct=service_acct)
+
 
 
 def entity_extraction(main_project_id,
