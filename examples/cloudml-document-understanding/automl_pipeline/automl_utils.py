@@ -44,33 +44,33 @@ def convert_pdfs(main_project_id,
     if not os.path.exists(temp_directory):
         os.makedirs(temp_directory)
 
-    print("Downloading PDFs")
+    # # Prepare PDFs for Image Classification/Object Detection
+    # print("Downloading PDFs")
 
-    # TODO: need to make sure folder exists
-    subprocess.run(
-        f'gsutil -m cp gs://{input_bucket_name}/*.pdf {temp_directory}', shell=True)
+    # # TODO: need to make sure folder exists
+    # subprocess.run(
+    #     f'gsutil -m cp gs://{input_bucket_name}/*.pdf {temp_directory}', shell=True)
 
-    for f in os.scandir(temp_directory):
-        if f.name.endswith(".pdf"):
-            print(f"Converting {f.name} to PNG")
-            temp_png = f.path.replace('.pdf', '.png')
-            with Image(filename=f.path, resolution=300) as pdf:
-                with pdf.convert('png') as png:
-                    png.save(filename=temp_png)
+    # for f in os.scandir(temp_directory):
+    #     if f.name.endswith(".pdf"):
+    #         print(f"Converting {f.name} to PNG")
+    #         temp_png = f.path.replace('.pdf', '.png')
+    #         with Image(filename=f.path, resolution=300) as pdf:
+    #             with pdf.convert('png') as png:
+    #                 png.save(filename=temp_png)
 
-    print(f"Uploading to GCS")
-    output_bucket_name = main_project_id + "-vcm"
+    # print(f"Uploading to GCS")
+    # output_bucket_name = main_project_id + "-vcm"
 
-    # Check if bucket exists; if not, make it.
-    # TODO: this should be moved to gcs_utils operation
-    storage_client = storage.Client()
-    buckets = storage_client.list_buckets()
-    bucket_names = [bucket.name for bucket in buckets]
-    if output_bucket_name not in bucket_names:
-        bucket = storage_client.create_bucket(main_project_id + "-vcm")
+    # # Create Bucket if it doesn't exist
+    # subprocess.run(f'gsutil mb -p main_project_id gs://{output_bucket_name}',
+    #                shell=True)
 
-    subprocess.run(
-        f'gsutil -m cp {temp_directory}/*.png gs://{output_bucket_name}/{output_directory}', shell=True)
+    # subprocess.run(f'gsutil -m cp {temp_directory}/*.png gs://{output_bucket_name}/{output_directory}',
+    #                shell=True)
+
+    # Move Text Classification Preparation Here
+    run_ocr(main_project_id, output_directory, temp_directory, service_acct)
 
     shutil.rmtree(temp_directory)
 
@@ -86,6 +86,9 @@ def image_classification(main_project_id,
     print(f"Processing image_classification")
 
     output_bucket_name = main_project_id + "-vcm"
+
+    # TODO Put output_bucket_name into config file for each dataset
+    # TODO put output diretcory as argument to this function
 
     dest_uri = f"gs://{output_bucket_name}/patent_demo_data/image_classification.csv"
 
@@ -130,15 +133,20 @@ def text_classification(main_project_id,
                         region):
 
     print(f"Starting AutoML text_classification.")
+
     output_bucket_name = main_project_id + "-lcm"
 
-    # Check if bucket exists; if not, make it.
-    # TODO: this should be moved to gcs_utils operation
-    storage_client = storage.Client()
-    buckets = storage_client.list_buckets()
-    bucket_names = [bucket.name for bucket in buckets]
-    if output_bucket_name not in bucket_names:
-        bucket = storage_client.create_bucket(main_project_id + "-lcm")
+    # TODO Move this bucket creation code to convert_pdfs()
+
+    # Create Bucket if it doesn't exist
+    subprocess.run(
+        f'gsutil mb -p main_project_id gs://{output_bucket_name}', shell=True)
+
+    # Copy .png files to -lcm bucket
+    subprocess.run(
+        f"gsutil -m cp gs://{main_project_id}-vcm/patent_demo_data/*.png gs://{output_bucket_name}/patent_demo_data/", shell=True)
+
+    # TODO: Need to convert .png files to .txt files
 
     # Create .csv file for importing data
     dest_uri = f"gs://{output_bucket_name}/patent_demo_data/text_classification.csv"
@@ -177,7 +185,6 @@ def text_classification(main_project_id,
                         model_metadata=model_metadata,
                         path=dest_uri,
                         service_acct=service_acct)
-
 
 
 def entity_extraction(main_project_id,
@@ -253,6 +260,41 @@ def bq_to_df(project_id, dataset_id, table_id, service_acct):
     table = client.get_table(f"{project_id}.{dataset_id}.{table_id}")
     df = client.list_rows(table).to_dataframe()
     return df
+
+
+def run_ocr(project_id, output_directory, temp_directory, service_acct):
+
+    print("Processing Documents with Cloud Vision API")
+
+    vision_client = vision.ImageAnnotatorClient.from_service_account_file(
+        service_acct)
+
+    image = vision.types.Image()
+
+    storage_client = storage.Client.from_service_account_json(service_acct)
+    blobs = storage_client.list_blobs(
+        f"{project_id}-vcm", prefix=output_directory, delimiter="/")
+
+    for blob in blobs:
+        if blob.name.endswith(".png"):
+
+            print(f"Processing {blob.name}")
+
+            image.source.image_uri = f"gs://{project_id}-vcm/{blob.name}"
+            response = vision_client.text_detection(image=image)
+
+            # TODO Check if entity Extraction needs everything separated out
+            # First text annotation is full text
+            text = response.text_annotations[0].description
+            temp_txt = os.path.join(
+                temp_directory, os.path.basename(blob.name).replace(".png", ".txt"))
+
+            with open(temp_txt, "w") as f:
+                f.write(text)
+                f.close()
+
+    subprocess.run(
+        f"gsutil -m cp {temp_directory}/*.txt gs://{project_id}-lcm/{output_directory}", shell=True)
 
 
 def create_automl_model(project_id,

@@ -34,3 +34,4 @@ node_modules/
 *.code-workspace
 service-acct.json
 .vscode
+tmp/
