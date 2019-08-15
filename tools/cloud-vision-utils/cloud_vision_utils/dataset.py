@@ -50,9 +50,9 @@ def gen_csv_from_images(
 
   get_label = basename if add_label else lambda _: ''
 
-  with gfile.GFile(output_file, 'w') as f:
+  with gfile.GFile(os.path.expanduser(output_file), 'w') as f:
     writer = csv.writer(f, delimiter=',')
-    for topdir, _, files in gfile.walk(input_dir):
+    for topdir, _, files in gfile.walk(os.path.expanduser(input_dir)):
       for f in files:
         label = get_label(topdir)
         row = ([dataset_type, f, label] +
@@ -82,15 +82,16 @@ def gen_csv_from_annotations(
   if not gfile.exists(input_dir):
     raise ValueError('Input directory not found.')
 
-  with gfile.GFile(output_file, 'w') as outf:
+  with gfile.GFile(os.path.expanduser(output_file), 'w') as outf:
     writer = csv.writer(outf, delimiter=',')
-    for filename in gfile.listdir(input_dir):
+    for filename in gfile.listdir(os.path.expanduser(input_dir)):
       filepath = os.path.join(input_dir, filename)
-      for b in annotation.read(filepath):
-        filename = os.path.join(out_path_prefix, filename)
+      image_filename, boxes = annotation.read(filepath)
+      out_image_filename = os.path.join(out_path_prefix, image_filename)
+      for b in boxes:
         row = [
             dataset_type,
-            filename,
+            out_image_filename,
             b.label,
             b.xmin,
             b.ymin,
