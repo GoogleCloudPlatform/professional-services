@@ -1,0 +1,2 @@
+google-cloud-trace
+google-cloud-bigquery

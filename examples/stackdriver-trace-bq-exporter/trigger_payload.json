@@ -1,0 +1,7 @@
+{
+    "bq_destination_dataset_id": "stackdriver_trace_export",
+    "bq_destination_table_id": "traces",
+    "bq_data_location": "US",
+    "trace_api_page_size": 2000,
+    "trace_filter": ""
+}

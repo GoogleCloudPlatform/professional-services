@@ -1,0 +1,53 @@
+[
+    {
+        "name": "trace_id",
+        "type": "STRING",
+        "mode": "NULLABLE"
+    },
+    {
+        "name": "trace_span",
+        "type": "RECORD",
+        "mode": "REPEATED",
+        "fields": [
+            {
+                "name": "end_time_micros",
+                "type": "NUMERIC"
+            },
+            {
+                "name": "parent_span_id",
+                "type": "NUMERIC"
+            },
+            {
+                "name": "start_time_micros",
+                "type": "NUMERIC"
+            },
+            {
+                "name": "span_id",
+                "type": "NUMERIC"
+            },
+            {
+                "name": "milliseconds",
+                "type": "NUMERIC"
+            },
+            {
+                "name": "name",
+                "type": "STRING"
+            },
+            {
+                "name": "labels",
+                "type": "RECORD",
+                "mode": "REPEATED",
+                "fields": [
+                    {
+                        "name": "key",
+                        "type": "STRING"
+                    },
+                    {
+                        "name": "value",
+                        "type": "STRING"
+                    }
+                ]
+            }
+        ]
+    }
+]

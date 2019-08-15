@@ -1,0 +1,12 @@
+[
+    {
+        "name": "timestamp_micros",
+        "type": "INTEGER",
+        "mode": "REQUIRED"
+    },
+    {
+        "name": "trace_insert_count",
+        "type": "INTEGER",
+        "mode": "REQUIRED"
+    }
+]
