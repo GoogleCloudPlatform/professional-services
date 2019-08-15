@@ -40,39 +40,44 @@ def convert_pdfs(main_project_id,
       temp_directory (string): Temporary Local Directory for coversion
     """
 
+    
     # Create temp directory & all intermediate directories
     if not os.path.exists(temp_directory):
         os.makedirs(temp_directory)
 
-    # # Prepare PDFs for Image Classification/Object Detection
-    # print("Downloading PDFs")
+    # Prepare PDFs for Image Classification/Object Detection
+    print("Downloading PDFs")
 
-    # # TODO: need to make sure folder exists
-    # subprocess.run(
-    #     f'gsutil -m cp gs://{input_bucket_name}/*.pdf {temp_directory}', shell=True)
+    # TODO: need to make sure folder exists
+    subprocess.run(
+        f'gsutil -m cp gs://{input_bucket_name}/*.pdf {temp_directory}', shell=True)
 
-    # for f in os.scandir(temp_directory):
-    #     if f.name.endswith(".pdf"):
-    #         print(f"Converting {f.name} to PNG")
-    #         temp_png = f.path.replace('.pdf', '.png')
-    #         with Image(filename=f.path, resolution=300) as pdf:
-    #             with pdf.convert('png') as png:
-    #                 png.save(filename=temp_png)
+    for f in os.scandir(temp_directory):
+        if f.name.endswith(".pdf"):
+            print(f"Converting {f.name} to PNG")
+            temp_png = f.path.replace('.pdf', '.png')
+            with Image(filename=f.path, resolution=300) as pdf:
+                with pdf.convert('png') as png:
+                    png.save(filename=temp_png)
 
-    # print(f"Uploading to GCS")
-    # output_bucket_name = main_project_id + "-vcm"
+    print(f"Uploading to GCS")
+    output_bucket_name = main_project_id + "-vcm"
 
-    # # Create Bucket if it doesn't exist
-    # subprocess.run(f'gsutil mb -p main_project_id gs://{output_bucket_name}',
-    #                shell=True)
+    # Create Bucket if it doesn't exist
+    subprocess.run(f'gsutil mb -p {main_project_id} gs://{output_bucket_name}',
+                   shell=True)
 
-    # subprocess.run(f'gsutil -m cp {temp_directory}/*.png gs://{output_bucket_name}/{output_directory}',
-    #                shell=True)
+    subprocess.run(f'gsutil -m cp {temp_directory}/*.png gs://{output_bucket_name}/{output_directory}/png',
+                   shell=True)
 
+    
     # Move Text Classification Preparation Here
-    run_ocr(main_project_id, output_directory, temp_directory, service_acct)
+    run_ocr(project_id=main_project_id, 
+            output_directory=output_directory, 
+            temp_directory=temp_directory, 
+            service_acct=service_acct)
 
-    shutil.rmtree(temp_directory)
+    #shutil.rmtree(temp_directory)
 
 
 def image_classification(main_project_id,
@@ -95,7 +100,7 @@ def image_classification(main_project_id,
     df = bq_to_df(data_project_id, dataset_id, table_id, service_acct)
 
     output_df = df.replace({
-        input_bucket_name: output_bucket_name + "/patent_demo_data",
+        input_bucket_name: output_bucket_name + "/patent_demo_data/png",
         r"\.pdf": ".png"
     }, regex=True, inplace=False)
 
@@ -206,7 +211,7 @@ def object_detection(main_project_id,
     df = bq_to_df(data_project_id, dataset_id, table_id, service_acct)
 
     df.replace({
-        input_bucket_name: output_bucket_name,
+        input_bucket_name: output_bucket_name + "/patent_demo_data/png",
         r"\.pdf": ".png"
     }, regex=True, inplace=True)
 
@@ -260,11 +265,12 @@ def run_ocr(project_id, output_directory, temp_directory, service_acct):
     image = vision.types.Image()
 
     storage_client = storage.Client.from_service_account_json(service_acct)
-    blobs = storage_client.list_blobs(
-        f"{project_id}-vcm", prefix=output_directory, delimiter="/")
+    blobs = storage_client.list_blobs(f"{project_id}-vcm", prefix=output_directory + "/png")
 
+    # make sure bucket exists
+    output_bucket_name = project_id + "-lcm"
     subprocess.run(
-        f'gsutil mb -p main_project_id gs://{project_id}-lcm', shell=True)
+        f'gsutil mb -p {project_id} gs://{output_bucket_name}', shell=True)
 
     for blob in blobs:
         if blob.name.endswith(".png"):
@@ -285,7 +291,7 @@ def run_ocr(project_id, output_directory, temp_directory, service_acct):
                 f.close()
 
     subprocess.run(
-        f"gsutil -m cp {temp_directory}/*.txt gs://{project_id}-lcm/{output_directory}", shell=True)
+        f"gsutil -m cp {temp_directory}/*.txt gs://{project_id}-lcm/{output_directory}/txt", shell=True)
 
 
 def create_automl_model(project_id,
