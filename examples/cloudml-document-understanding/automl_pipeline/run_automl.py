@@ -20,14 +20,14 @@ import service_account
 
 config = yaml.safe_load(open("../config.yaml", "r"))
 
-# service_account.create(config)
+service_account.create(config)
 
 # Convert pdfs to png and upload to users GCS bucket
-automl_utils.convert_pdfs(main_project_id=config['main_project']['project_id'],
-                          input_bucket_name=config["main_project"]["input_bucket_name"],
-                          temp_directory=config["main_project"]["temp_directory"],
-                          output_directory=config["main_project"]["output_directory"],
-                          service_acct=config["service_acct"]["key"])
+# automl_utils.convert_pdfs(main_project_id=config['main_project']['project_id'],
+#                           input_bucket_name=config["main_project"]["input_bucket_name"],
+#                           temp_directory=config["main_project"]["temp_directory"],
+#                           output_directory=config["main_project"]["output_directory"],
+#                           service_acct=config["service_acct"]["key"])
 
 # automl_utils.image_classification(main_project_id=config["main_project"]["project_id"],
 #                                    data_project_id=config["model_imgclassifier"]["project_id"],

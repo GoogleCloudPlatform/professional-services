@@ -32,7 +32,7 @@ def create(config):
         f'gcloud config set account {user_id}',
         f'gcloud beta iam service-accounts create {sa_name} --display-name={sa_display_name} --description={sa_description} --project={project_id}',
         f'gcloud projects add-iam-policy-binding {project_id} --member="serviceAccount:{sa_name_full}" --role="roles/editor"',
-        f'gcloud projects add-iam-policy-binding {project_id} --member="serviceAccount:{sa_name_full}" --role="roles/automl.editor"',
+        f'gcloud projects add-iam-policy-binding {project_id} --member="serviceAccount:{sa_name_full}" --role="roles/automl.admin"',
         f'gcloud projects add-iam-policy-binding {project_id} --member="user:{user_id}" --role="roles/automl.admin"',
         f'gcloud iam service-accounts keys create {sa_key} --iam-account {sa_name_full} --project={project_id}'
     ]

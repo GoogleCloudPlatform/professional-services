@@ -136,18 +136,6 @@ def text_classification(main_project_id,
 
     output_bucket_name = main_project_id + "-lcm"
 
-    # TODO Move this bucket creation code to convert_pdfs()
-
-    # Create Bucket if it doesn't exist
-    subprocess.run(
-        f'gsutil mb -p main_project_id gs://{output_bucket_name}', shell=True)
-
-    # Copy .png files to -lcm bucket
-    subprocess.run(
-        f"gsutil -m cp gs://{main_project_id}-vcm/patent_demo_data/*.png gs://{output_bucket_name}/patent_demo_data/", shell=True)
-
-    # TODO: Need to convert .png files to .txt files
-
     # Create .csv file for importing data
     dest_uri = f"gs://{output_bucket_name}/patent_demo_data/text_classification.csv"
 
@@ -275,6 +263,9 @@ def run_ocr(project_id, output_directory, temp_directory, service_acct):
     blobs = storage_client.list_blobs(
         f"{project_id}-vcm", prefix=output_directory, delimiter="/")
 
+    subprocess.run(
+        f'gsutil mb -p main_project_id gs://{project_id}-lcm', shell=True)
+
     for blob in blobs:
         if blob.name.endswith(".png"):
 
@@ -305,7 +296,7 @@ def create_automl_model(project_id,
                         service_acct):
     """Create dataset, import data, create model, replace model id in config.yaml"""
 
-    client = automl.AutoMlClient.from_service_account_file(service_acct)
+    client = automl.AutoMlClient.from_service_account_json(service_acct)
 
     # A resource that represents Google Cloud Platform location.
     project_location = client.location_path(project_id, compute_region)
