@@ -22,25 +22,27 @@ model_textclassifier:
   dataset_id: 'patent_demo_data_pdp' # dataset location of PDP data 
   table_id: 'text_classification' # table location of PDP data
   model_id: '<TEXT_MODELID_PLACEHOLDER>' # TODO: replace with model id when training is complete
-model_ner:
-  project_id: 'pdf-processing-219114'
-  dataset_id: 'patent_demo_data_pdp' # dataset location of PDP data
-  table_id: 'entity_extraction' # table location of PDP data
-  model_id: '<NER_MODELID_PLACEHOLDER>' # TODO: replace with model id when training is complete
 model_objdetect:
   project_id: 'pdf-processing-219114'
   dataset_id: 'patent_demo_data_pdp' # dataset location of PDP data
   table_id: 'object_detection' # table location of PDP data
   model_id: '<OBJDET_MODELID_PLACEHOLDER>' # TODO: replace with model id when training is complete
-fields_to_extract:
+model_ner:
+  project_id: 'pdf-processing-219114'
+  dataset_id: 'patent_demo_data_pdp' # dataset location of PDP data
+  table_id: 'entity_extraction' # table location of PDP data
+  model_id: '<NER_MODELID_PLACEHOLDER>' # TODO: replace with model id when training is complete
+  fields_to_extract:
+  - field_name: 'file'
   - field_name: 'publication_date'
-  - field_name: 'classification_1'
+  - field_name: 'class_international'
     postprocess_fn: 'PostprocessClassification'
-  - field_name: 'classification_2'
-    postprocess_fn: 'PostprocessClassification'
+  #- field_name: 'class_us'
+  #  postprocess_fn: 'PostprocessClassification'
   - field_name: 'application_number'
   - field_name: 'filing_date'
-  - field_name: 'applicant'
-  - field_name: 'inventor'
-  - field_name: 'titleFL'
-  - field_name: 'publication_number'
+  - field_name: 'applicant_line_1'
+  - field_name: 'inventor_line_1'
+  - field_name: 'title_line_1'
+  - field_name: 'number'
+

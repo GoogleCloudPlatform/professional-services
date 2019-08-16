@@ -22,6 +22,7 @@ pip3 install pandas-gbq
 pip3 install tensorflow
 pip3 install gcsfs
 pip3 install ghostscript
+pip3 install regex==2019.6.8
 
 echo ""
 echo "Done!"
