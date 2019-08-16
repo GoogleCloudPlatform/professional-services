@@ -345,12 +345,13 @@ def _model_fn(features, labels, mode, params):
   metrics = {}
   with tf.name_scope("recall"):
     for k in constants.EVAL_RECALL_KS:
-      thresh = item_sample_sims[:, k]
-      is_top_k = tf.cast(tf.greater_equal(sims, thresh), tf.float32)
-      recall = tf.metrics.mean(is_top_k, weights=labels)
-      key = "recall_{0}".format(k)
-      metrics["recall/{0}".format(key)] = recall
-      tf.summary.scalar(key, recall[1])
+      if item_sample_sims.shape[1] >= k:
+        thresh = item_sample_sims[:, k]
+        is_top_k = tf.cast(tf.greater_equal(sims, thresh), tf.float32)
+        recall = tf.metrics.mean(is_top_k, weights=labels)
+        key = "recall_{0}".format(k)
+        metrics["recall/{0}".format(key)] = recall
+        tf.summary.scalar(key, recall[1])
   metrics["acc"] = tf.metrics.accuracy(labels, tf.round(sims))
   tf.summary.scalar("acc", metrics["acc"][1])
   tf.summary.merge_all()
