@@ -334,8 +334,8 @@ def _model_fn(features, labels, mode, params):
       tft_output,
       constants.ITEM_VOCAB_NAME)
 
-  # Eval op: Log the recall of the batch and save a sample of user+item shared
-  # embedding space for tensorboard projector.
+  # Eval op: Log the recall of the batch and save a sample of user+item
+  # shared embedding space for tensorboard projector.
 
   item_sample = tf.random_shuffle(item_embedding)[:constants.EVAL_SAMPLE_SIZE]
   item_sample_sims = tf.sort(tf.matmul(user_norm, item_sample,
@@ -343,14 +343,14 @@ def _model_fn(features, labels, mode, params):
                              direction="DESCENDING")
 
   metrics = {}
-  with tf.name_scope("precision"):
-    for k in constants.EVAL_PRECISION_KS:
+  with tf.name_scope("recall"):
+    for k in constants.EVAL_RECALL_KS:
       thresh = item_sample_sims[:, k]
       is_top_k = tf.cast(tf.greater_equal(sims, thresh), tf.float32)
-      precision = tf.metrics.mean(is_top_k, weights=labels)
-      key = "precision_{0}".format(k)
-      metrics["precision/{0}".format(key)] = precision
-      tf.summary.scalar(key, precision[1])
+      recall = tf.metrics.mean(is_top_k, weights=labels)
+      key = "recall_{0}".format(k)
+      metrics["recall/{0}".format(key)] = recall
+      tf.summary.scalar(key, recall[1])
   metrics["acc"] = tf.metrics.accuracy(labels, tf.round(sims))
   tf.summary.scalar("acc", metrics["acc"][1])
   tf.summary.merge_all()

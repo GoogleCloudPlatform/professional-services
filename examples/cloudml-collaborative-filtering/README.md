@@ -88,7 +88,7 @@ The trainng steps are as follows:
    nets. Take the absolute value to get a value between 0 and 1.
 7. Calculate error using log loss and train the model.
 8. Evaluate the model performance by sampling 1000 random items and calculating
-   the average precision@k when each positive sample's item is ranked against
+   the average recall@k when each positive sample's item is ranked against
    these random items for the sample's user.
 9. Export a `SavedModel` for use in serving.
 
