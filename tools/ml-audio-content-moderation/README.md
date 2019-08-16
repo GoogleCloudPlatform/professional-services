@@ -71,10 +71,9 @@ git clone https://github.com/GoogleCloudPlatform/professional-services
 
 2. Change directories into this project
 
-<h3>TODO finalize name</h3>
 
 `````
-cd tools/cloud-ml-perspective-toxicity/
+cd tools/ml-audio-content-moderation/
 `````
 
 <h3>Create Project Resources</h3>
@@ -258,7 +257,7 @@ cd ../perspective_api_function/
 ````
 
 ````
-gcloud functions deploy perspective_api --entry-point main --runtime python37 \--trigger-resource $transcription_bucket --trigger-event google.storage.object.finalize \--timeout 540s --set-env-vars toxicity_bucket=$toxicity_bucket
+gcloud functions deploy perspective_api --entry-point main --runtime python37 --trigger-resource $transcription_bucket --trigger-event google.storage.object.finalize --timeout 540s --set-env-vars toxicity_bucket=$toxicity_bucket
 ````
 
 8. Deploy NLP Function
@@ -270,7 +269,7 @@ cd ../nlp_api_function/
 ````
 
 ````
-gcloud functions deploy nlp_api --entry-point main --runtime python37 \--trigger-resource $transcription_bucket --trigger-event google.storage.object.finalize \--timeout 540s --set-env-vars nlp_bucket=$nlp_bucket
+gcloud functions deploy nlp_api --entry-point main --runtime python37 --trigger-resource $transcription_bucket --trigger-event google.storage.object.finalize --timeout 540s --set-env-vars nlp_bucket=$nlp_bucket
 ````
 
 
