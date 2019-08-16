@@ -368,7 +368,7 @@ def _model_fn(features, labels, mode, params):
     return tf.estimator.EstimatorSpec(mode, loss=loss, eval_metric_ops=metrics)
 
   # Training op: Update the weights via backpropagation.
-  num_samples = constants.NUM_PROJECTOR_USERS + constants.NUM_PROJECTOR_ITEMS
+  num_samples = len(params["projector_users"]) + len(params["projector_items"])
   sample = tf.get_variable(constants.PROJECTOR_NAME,
                            [num_samples, hparams.embedding_size])
 
