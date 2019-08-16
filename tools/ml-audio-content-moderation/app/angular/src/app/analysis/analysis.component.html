@@ -1,0 +1,127 @@
+<div class="output-container">
+  <mat-tab-group class="my-4" mat-align-tabs="center">
+    <mat-tab label="Toxicity">
+          <!--<div class="summary-table mt-2">-->
+            <!--<div class="row justify-content-center">-->
+              <!--<h6 class="dark-grey-font"><b>Toxicity Count by Category</b></h6>-->
+            <!--</div>-->
+            <!--<div class="row justify-content-center vcenter">-->
+              <!--<div *ngFor="let toxicity_bucket of getToxicityBuckets(); let i = index;">-->
+                <!--<div class="col legend-col">-->
+                  <!--<div class="row justify-content-center">-->
+                   <!--<label class="dark-grey-font"><b> {{ this.toxicity_levels[i].label }}</b></label>-->
+                  <!--</div>-->
+                  <!--<div class="row legend-scale justify-content-center"-->
+                       <!--[ngStyle]="{'background-color': this.toxicity_levels[i].background_color,-->
+                       <!--'color': this.toxicity_levels[i].text_color}">-->
+                    <!--{{ toxicity_bucket }}-->
+                  <!--</div>-->
+                <!--</div>-->
+              <!--</div>-->
+            <!--</div>-->
+          <!--</div>-->
+
+        <div class="histogram">
+          <app-histogram [histogram_data]="histogram_data"></app-histogram>
+        </div>
+          <div class="row justify-content-center vcenter">
+            <div class="col-auto">
+              <button mat-raised-button class="mat-secondary fill" (click)="toggleFilterSlider()">
+                Filter
+              </button>
+            </div>
+            <div class="col-auto">
+              <mat-form-field>
+                <mat-label>Sort</mat-label>
+                <mat-select (selectionChange)="sortResults()" [(ngModel)]="selected_sort">
+                  <mat-option *ngFor="let sort of sort_options" [value]="sort.value">
+                    {{ sort.view_value }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+            <div class="col-auto ml-auto">
+              <label><b>
+                Showing {{ getPhrases().length }} of {{ phrases.length }} total phrases based on toxicity*
+              </b></label>
+            </div>
+          </div>
+          <mat-card class="slider-box" *ngIf="show_slider_filter">
+            <mat-card-content>
+              <div class="row justify-content-center">
+                <label class="dark-grey-font"><b>Move Slider to Filter by Toxicity Level</b></label>
+              </div>
+              <div class="row justify-content-center">
+                <div class="col-auto">
+                  <mat-icon class="icon-height" [ngStyle]="{'color': this.toxicity_levels[0].background_color}">
+                    {{ this.toxicity_levels[0].shape }}</mat-icon>
+                </div>
+                <div class="col-md-6">
+                  <div id="{{'threshold-' + getThreshold(slider_value / this.toxicity_levels.length)}}">
+                    <mat-slider
+                      [thumbLabel]="true"
+                      [(ngModel)]="slider_value"
+                      [min]="1"
+                      [max]="this.toxicity_levels.length"
+                      [displayWith]="formatLabel(phrases)">
+                    </mat-slider>
+                  </div>
+                </div>
+                <div class="col-auto">
+                  <mat-icon class="icon-height" [ngStyle]="{'color': this.toxicity_levels[2].background_color}">
+                    {{ this.toxicity_levels[2].shape }}</mat-icon>
+                </div>
+              </div>
+            </mat-card-content>
+
+          </mat-card>
+          <div data-simplebar class="output-content">
+            <mat-accordion>
+              <div *ngFor="let phrase of getPhrases()">
+                <mat-expansion-panel>
+                  <mat-expansion-panel-header>
+                    <mat-panel-title>
+                      <mat-icon class="icon-toxicity-preview-height"
+                                [ngStyle]="{'color': getToxicityColor(phrase.toxicity)}"
+                                mat-list-icon> {{ getIcon(phrase.toxicity) }} </mat-icon>
+                      <p class="ml-3 text-toxicity-preview-height" mat-line>
+                        {{ getTextPreview(phrase.text) }} ...
+                      </p>
+                    </mat-panel-title>
+                  </mat-expansion-panel-header>
+                  <div class="no-border">
+                    <mat-card>
+                      <p mat-line> {{ phrase.text }}</p>
+                      <div class="row vcenter my-2">
+                        <div class="col-auto">
+                          <b>Probability of Toxic Content:</b>
+                        </div>
+                        <div class="col-auto">
+                          {{ phrase.toxicity.toFixed(4) * 100 }}%
+                        </div>
+                        <mat-progress-bar id="{{'toxicity-bar-' + getThreshold(phrase.toxicity)}}" class="bar-width" [value]="phrase.toxicity * 100"></mat-progress-bar>
+                      </div>
+                      <div class="row my-2">
+                        <div class="col-auto">
+                          <b>Start Time:</b>&nbsp; {{ phrase.start_time }}
+                        </div>
+                        <div class="col-auto">
+                          <b>End Time:</b>&nbsp;{{ phrase.end_time }}</div>
+                      </div>
+                    </mat-card>
+                  </div>
+
+                  <button mat-raised-button class="green-button fill float-right"
+                          (click)="openEntityAnalysis(phrase.text)">Entity Analysis</button>
+                </mat-expansion-panel>
+              </div>
+            </mat-accordion>
+          </div>
+    </mat-tab>
+
+    <mat-tab label="Full Transcription">
+      <label class="mx-4 my-2">{{ full_transcript }}</label>
+    </mat-tab>
+
+  </mat-tab-group>
+</div>

@@ -1,0 +1,3 @@
+google-cloud-storage
+google-cloud-language
+google-api-python-client

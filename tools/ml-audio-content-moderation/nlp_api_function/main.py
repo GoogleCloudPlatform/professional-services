@@ -1,0 +1,236 @@
+# Copyright 2019 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""Creates source code for nlp_api_function Cloud Function."""
+
+import json
+import logging
+import os
+from google.cloud import language
+from google.cloud import storage
+from googleapiclient import discovery
+from datetime import datetime
+
+ERROR_STATUS = "error"
+SUCCESS_STATUS = "success"
+
+
+def get_transcript(gcs_client, bucket_name, file_name):
+    """Downloads transcript file from GCS.
+
+    Args:
+        gcs_client: Object representing GCS Client Object.
+        bucket_name: String representing bucket name of audio file.
+        file_name: String representing audio file name.
+
+    Returns:
+        JSON holding transcript object
+    """
+    bucket = gcs_client.get_bucket(bucket_name)
+    transcript = bucket.blob(file_name)
+    return json.loads(transcript.download_as_string())
+
+
+def get_nlp_api_results(client, text_content):
+    """Retrieves sentiment/entity information per entity on the whole transcript.
+
+    Args:
+        client: NLP Object representing API Client,
+        text_content: String containing text of transcribed audio file.
+
+    Returns:
+        Array of objects holding name, type, score, magnitude, and salience
+        per entity.
+    """
+    log_message = 'Starting get_nlp_api_results with {creds} and {text}'
+    logging.info(log_message.format(creds=client, text=text_content))
+    try:
+        text = language.types.Document(content=text_content, type='PLAIN_TEXT')
+        return client.analyze_entity_sentiment(document=text,
+                                               encoding_type='UTF32')
+
+    except Exception as e:
+        log_message = 'Retrieving response from NLP failed.'
+        logging.error(log_message)
+        logging.error(e)
+
+
+def format_api_results(response, text):
+    """Extracts sentiment/entity information from NLP API response.
+
+    Args:
+        response: NLP Object representing API Client
+        text: String containing text of transcribed audio file.
+
+    Returns:
+        Object holding entity result in format:
+        {
+           'text': String,
+           'nlp_response': {
+               entity_name: String,
+               entity_type: String,
+               score: float,
+               magnitude: float,
+               salience per entity: float
+           }
+        }
+    """
+    try:
+        log_message = 'Starting format_api_results with {text}'
+        logging.info(log_message.format(text=text))
+        return {'text': text,
+                'nlp_response': [
+                    {'entity_name': entity.name,
+                     'entity_type': language.enums.Entity.Type(entity.type).name,
+                     'score': entity.sentiment.score,
+                     'magnitude': entity.sentiment.magnitude,
+                     'salience': entity.salience
+                    } for entity in response.entities]}
+    except Exception as e:
+      logging.error('Extracting entity info from NLP API failed.')
+      logging.error(e)
+
+
+def store_nlp(gcs_client, bucket_name, file_name, file_contents):
+    """Uploads toxicity JSON object to GCS.
+
+    Args:
+        gcs_client: Object representing JSON object
+        bucket_name: String holding bucket of where to store results.
+        file_name: String of bucket which is the name of the audio file.
+        file_contents: JSON holding toxicity information
+
+    Returns:
+       None
+    """
+    bucket = gcs_client.get_bucket(bucket_name)
+    destination = bucket.blob(file_name)
+    destination.upload_from_string(json.dumps(file_contents),
+                                   content_type='application/json')
+
+
+def write_processing_time_metric(pipeline_start_time, processing_status):
+    """Writes custom metrics to Stackdriver.
+
+    Args:
+        pipeline_start_time: Datetime object holding current time in seconds.
+        processing_status: either SUCCESS or ERROR
+
+    Returns:
+         None; Logs message to Stackdriver.
+    """
+    try:
+        logging.info(
+            'write_processing_time_metric: {},{}'.format(
+                pipeline_start_time, processing_status
+            )
+        )
+        function_name = os.environ.get('FUNCTION_NAME')
+        project = os.environ.get('GCP_PROJECT')
+        logging.info('project: {}, function_name: {}'.format(project,
+                                                             function_name))
+        end_time = datetime.now()
+        end_time_str = end_time.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+        logging.info('end+time_str: {}'.format(end_time_str))
+        start_time = datetime.strptime(pipeline_start_time,
+                                       '%Y-%m-%d %H:%M:%S.%f')
+        logging.info('start_time: {}'.format(start_time))
+        total_processing_time = end_time - start_time
+        logging.info('total_processing_time: {}'.format(total_processing_time))
+
+        monitoring_service = discovery.build(
+            serviceName='monitoring', version= 'v3', cache_discovery=False
+        )
+        project_name = 'projects/{project_id}'.format(
+            project_id=project
+        )
+        time_series = {
+            "timeSeries": [
+                {
+                    "metric": {
+                        "type": "custom.googleapis.com/functions/audioprocessing/processingtime",
+                        "labels": {
+                            "function_name": function_name,
+                            "processing_status": processing_status
+                        }
+                    },
+                    "resource": {
+                        "type": "global"
+                    },
+                    "points": [
+                        {
+                            "interval": {
+                                "endTime": end_time_str
+                            },
+                            "value": {
+                                "doubleValue": total_processing_time.total_seconds()
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+        logging.info("monitoring request: {}".format(json.dumps(time_series)))
+
+        response = monitoring_service.projects().timeSeries().create(
+            name=project_name,
+            body=time_series
+        ).execute()
+        logging.info('Response: {}'.format(response))
+
+    except Exception as e:
+        logging.error('Writing custom metric failed.')
+        logging.error(e)
+
+
+def main(data, context):
+    """Background Cloud Function to be triggered by Cloud Storage.
+   This function logs relevant data when a file is uploaded.
+
+    Args:
+        data (dict): The Cloud Functions event payload.
+        context (google.cloud.functions.Context): Metadata of triggering event.
+    Returns:
+        None; the output is written to Stackdriver Logging
+    """
+    try:
+        nlp_client = language.LanguageServiceClient()
+        gcs_client = storage.Client()
+        transcription_bucket = data['bucket']
+        file = data['name']
+        json_msg = get_transcript(gcs_client, transcription_bucket, file)
+        logging.info("json_msg: {}".format(json_msg))
+        transcript = json_msg['json_payload']
+        nlp = []
+        for speech_exert in transcript:
+            response = get_nlp_api_results(nlp_client,
+                                           speech_exert['transcript'])
+            if response:
+                per_segment_nlp = format_api_results(response,
+                                                     speech_exert['transcript'])
+                nlp.append(per_segment_nlp)
+            else:
+                error_message = 'NLP result is empty for {text}.'
+                logging.error(error_message.format(text=speech_exert))
+        nlp_bucket = os.environ.get('nlp_bucket')
+        store_nlp(gcs_client, nlp_bucket, file, nlp)
+        log_message = 'Stored NLP output for file {file}'.format(file=file)
+        logging.info(log_message)
+        write_processing_time_metric(json_msg['pipeline_start_time'],
+                                     SUCCESS_STATUS)
+
+    except Exception as e:
+        logging.error(e)
+        if json_msg and 'pipeline_start_time' in json_msg:
+            write_processing_time_metric(json_msg['pipeline_start_time'],
+                                         ERROR_STATUS)
