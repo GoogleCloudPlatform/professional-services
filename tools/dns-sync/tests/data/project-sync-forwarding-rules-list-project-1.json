@@ -1,0 +1,116 @@
+{
+  "items": {
+    "regions/asia-northeast1": {
+      "warning": {
+        "message": "There are no results for scope 'regions/asia-northeast1' on this page.",
+        "code": "NO_RESULTS_ON_PAGE",
+        "data": [
+          {
+            "value": "regions/asia-northeast1",
+            "key": "scope"
+          }
+        ]
+      }
+    },
+    "regions/us-west1": {
+      "warning": {
+        "message": "There are no results for scope 'regions/us-west1' on this page.",
+        "code": "NO_RESULTS_ON_PAGE",
+        "data": [
+          {
+            "value": "regions/us-west1",
+            "key": "scope"
+          }
+        ]
+      }
+    },
+    "regions/asia-east1": {
+      "warning": {
+        "message": "There are no results for scope 'regions/asia-east1' on this page.",
+        "code": "NO_RESULTS_ON_PAGE",
+        "data": [
+          {
+            "value": "regions/asia-east1",
+            "key": "scope"
+          }
+        ]
+      }
+    },
+    "global": {
+      "forwardingRules": [
+        {
+          "kind": "compute#forwardingRule",
+          "description": "",
+          "creationTimestamp": "2016-09-01T11:58:36.365-07:00",
+          "loadBalancingScheme": "EXTERNAL",
+          "target": "https://www.googleapis.com/compute/v1/projects/project-1/global/targetHttpProxies/target-proxy",
+          "portRange": "80-80",
+          "IPProtocol": "TCP",
+          "IPAddress": "130.211.7.192",
+          "id": "731282377030354099",
+          "selfLink": "https://www.googleapis.com/compute/v1/projects/project-1/global/forwardingRules/global-forwarding-rule-1",
+          "name": "global-forwarding-rule-1"
+        }
+      ]
+    },
+    "regions/europe-west1": {
+      "warning": {
+        "message": "There are no results for scope 'regions/europe-west1' on this page.",
+        "code": "NO_RESULTS_ON_PAGE",
+        "data": [
+          {
+            "value": "regions/europe-west1",
+            "key": "scope"
+          }
+        ]
+      }
+    },
+    "regions/us-east1": {
+      "warning": {
+        "message": "There are no results for scope 'regions/us-east1' on this page.",
+        "code": "NO_RESULTS_ON_PAGE",
+        "data": [
+          {
+            "value": "regions/us-east1",
+            "key": "scope"
+          }
+        ]
+      }
+    },
+    "regions/us-central1": {
+      "forwardingRules": [
+        {
+          "kind": "compute#forwardingRule",
+          "description": "",
+          "IPAddress": "104.198.254.183",
+          "region": "https://www.googleapis.com/compute/v1/projects/project-1/regions/us-central1",
+          "loadBalancingScheme": "EXTERNAL",
+          "target": "https://www.googleapis.com/compute/v1/projects/project-1/regions/us-central1/targetPools/forwarding-rule-1-target-pool",
+          "portRange": "8000-8000",
+          "IPProtocol": "TCP",
+          "creationTimestamp": "2016-12-07T18:36:37.585-08:00",
+          "id": "7947413190498154970",
+          "selfLink": "https://www.googleapis.com/compute/v1/projects/project-1/regions/us-central1/forwardingRules/forwarding-rule-1",
+          "name": "forwarding-rule-1"
+        },
+        {
+          "kind": "compute#forwardingRule",
+          "description": "",
+          "IPAddress": "130.211.145.110",
+          "region": "https://www.googleapis.com/compute/v1/projects/project-1/regions/us-central1",
+          "loadBalancingScheme": "INTERNAL",
+          "target": "https://www.googleapis.com/compute/v1/projects/project-1/regions/us-central1/targetPools/forwarding-rule-2",
+          "portRange": "80-80",
+          "IPProtocol": "TCP",
+          "creationTimestamp": "2016-12-16T08:32:20.841-08:00",
+          "id": "7729966143128578555",
+          "selfLink": "https://www.googleapis.com/compute/v1/projects/project-1/regions/us-central1/forwardingRules/forwarding-rule-2",
+          "name": "forwarding-rule-2"
+        }
+      ]
+    }
+  },
+  "kind": "compute#forwardingRuleAggregatedList",
+  "id": "projects/project-1/aggregated/forwardingRules",
+  "selfLink": "https://www.googleapis.com/compute/v1/projects/project-1/aggregated/forwardingRules"
+}

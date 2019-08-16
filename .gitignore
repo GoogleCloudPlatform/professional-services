@@ -32,6 +32,7 @@ client_secrets.json
 .idea
 node_modules/
 *.code-workspace
-service-acct.json
-.vscode
-tmp/
+.envrc
+.coverage
+htmlcov/
+*.iml
