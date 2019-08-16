@@ -1,9 +1,0 @@
-imports:
-  - path: labeltester.jinja
-  - path: labelmaker.py
-
-resources:
-  - name: labeltest
-    type: labeltester.jinja
-    properties:
-      zone: us-east1-d

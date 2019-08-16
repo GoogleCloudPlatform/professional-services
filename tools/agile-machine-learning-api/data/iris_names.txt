@@ -1,7 +1,0 @@
-'id',
-'a',
-'b',
-'c',
-'d',
-'label',
-'Cluster_indices'
