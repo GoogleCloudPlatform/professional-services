@@ -1,0 +1,245 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto3";
+
+package google.protobuf.example;
+
+option java_package = "com.google.cloud.example.protobuf";
+option java_outer_classname = "MetricsProto";
+option java_multiple_files = true;
+
+message Metrics {
+   int64 timestamp = 1;
+   HostInfo host_info = 2;
+   HostMetrics host = 3;
+   repeated VMMetrics vm = 4;
+}
+
+message HostInfo {
+    string rack = 1;
+    string cloud_region = 2;
+    string host = 3;
+    string nodetype = 4;
+    string ip = 5;
+    string dc = 6;
+    string mdom = 7;
+}
+
+message HostMetrics {
+    DiskMetrics disk = 1;
+    DiskIOMetrics diskio = 2;
+    SystemMetrics system_metrics = 3;
+    CPUMetrics cpu_metrics = 4;
+    repeated NetMetrics net = 5;
+    repeated NetMetrics2 net2 = 6;
+}
+
+message DiskMetrics {
+    string mode = 1;
+    string path = 2;
+    string device = 3;
+    string fstype = 4;
+    int64 inodes_free = 5;
+    int64 inodes_used = 6;
+    int64 total = 7;
+    int64 free = 8;
+    int64 used = 9;
+    float used_percent = 10;
+    int64 inodes_total = 11;
+}
+
+message DiskIOMetrics {
+    string name = 1;
+    int64 reads = 2;
+    int64 writes = 3;
+    int64 write_bytes = 4;
+    int64 read_time = 5;
+    int64 weighted_io_time = 6;
+    int64 read_bytes = 7;
+    int64 write_time = 8;
+    int64 io_time = 9;
+    int64 iops_in_progress = 10;
+}
+
+message NetMetrics {
+    string interface = 1;
+    int64 err_out = 2;
+    int64 bytes_sent = 3;
+    int64 packets_sent = 4;
+    int64 packets_recv = 5;
+    int64 drop_out = 6;
+    int64 bytes_recv = 7;
+    int64 err_in = 8;
+    int64 drop_in = 9;
+}
+
+message NetMetrics2 {
+    string interface = 1;
+    int32 udp_rcvbuferrors = 2;
+    int32 ip_indiscards = 3;
+    int32 icmp_outtimestampreps = 4;
+    int32 icmp_outechos = 5;
+    int64 udp_ignoredmulti = 6;
+    int32 udplite_outdatagrams = 7;
+    int32 ip_reasmtimeout = 8;
+    int32 ip_fragoks = 9;
+    int32 icmp_inmsgs = 10;
+    int32 udp_incsumerrors = 11;
+    int32 ip_reasmreqds = 12;
+    int32 icmp_outaddrmasks = 13;
+    int64 tcp_rtomax = 14;
+    int32 udplite_rcvbuferrors = 15;
+    int32 ip_reasmfails = 16;
+    int32 tcp_maxconn = 17;
+    int32 tcp_rtomin = 18;
+    int64 tcp_passiveopens = 19;
+    int32 ip_fragcreates = 20;
+    int32 icmp_incsumerrors = 21;
+    int32 udplite_indatagrams = 22;
+    int32 ip_reasmoks = 23;
+    int32 icmp_intimeexcds = 24;
+    int32 icmp_outtimeexcds = 25;
+    int32 tcp_inerrs = 26;
+    int32 icmp_outaddrmaskreps = 27;
+    int32 icmpmsg_outtype = 28;
+    int32 udp_noports = 29;
+    int32 icmpmsg_intype8 = 30;
+    int64 tcp_insegs = 31;
+    int32 udplite_noports = 32;
+    int32 ip_fragfails = 33;
+    int64 ip_indelivers = 34;
+    int32 icmp_outtimestamps = 35;
+    int32 icmp_outechoreps = 36;
+    int32 tcp_incsumerrors = 37;
+    int32 tcp_rtoalgorithm = 38;
+    int32 ip_forwdatagrams = 39;
+    int32 icmp_insrcquenchs = 40;
+    int32 icmp_outdestunreachs = 41;
+    int32 icmp_outparmprobs = 42;
+    int32 ip_outnoroutes = 43;
+    int32 icmp_inechoreps = 44;
+    int32 udplite_inerrors = 45;
+    int32 tcp_currestab = 46;
+    int32 ip_inunknownprotos = 47;
+    int32 icmp_inechos = 48;
+    int32 icmp_inparmprobs = 49;
+    int32 icmp_inerrors = 50;
+    int32 tcp_activeopens = 51;
+    int32 tcp_outrsts = 52;
+    int32 udplite_ignoredmulti = 53;
+    int32 ip_forwarding = 54;
+    int64 ip_inreceives = 55;
+    int32 ip_outdiscards = 56;
+    int32 icmp_inredirects = 57;
+    int32 icmp_inaddrmaskreps = 58;
+    int32 icmp_inaddrmasks = 59;
+    int32 icmp_outerrors = 60;
+    int64 tcp_outsegs = 61;
+    int32 ip_defaultttl = 62;
+    int32 ip_inaddrerrors = 63;
+    int32 icmp_outsrcquenchs = 64;
+    int32 icmp_outredirects = 65;
+    int64 tcp_estabresets = 66;
+    int32 udplite_sndbuferrors = 67;
+    int64 ip_outrequests = 68;
+    int32 icmp_outmsgs = 69;
+    int64 tcp_retranssegs = 70;
+    int64 udp_outdatagrams = 71;
+    int32 udp_sndbuferrors = 72;
+    int32 icmp_intimestamps = 73;
+    int32 icmp_indestunreachs = 74;
+    int32 icmpmsg_outtype0 = 75;
+    int32 udp_indatagrams = 76;
+    int32 udp_inerrors = 77;
+    int32 udplite_incsumerrors = 78;
+    int32 ip_inhdrerrors = 79;
+    int32 icmp_intimestampreps = 80;
+    int32 icmpmsg_intype3 = 81;
+    int32 tcp_attemptfails = 82;
+}
+
+// system
+message SystemMetrics {
+    float load1 = 1;
+    float load5 = 2;
+    float load15 = 3;
+    int32 n_users = 4;
+    int32 n_cpus = 5;
+    string uptime_format = 6;
+}
+
+// cpu
+message CPUMetrics {
+    string cpu = 1;
+    float usage_user = 2;
+    float usage_system = 3;
+    float usage_idle = 4;
+    int32 usage_irq = 5;
+    float usage_softirq = 6;
+    int32 usage_steal = 7;
+    int32 usage_nice = 8;
+    int32 usage_iowait = 9;
+    float usage_guest = 10;
+    int32 usage_guest_nice = 11;
+}
+
+message VMMetrics {
+  string vmid = 1;
+  string ip = 2;
+  VMCPUMetrics cpu = 3;
+  VMDiskMetrics disk = 4;
+  VMMemMetrics mem = 5;
+  VMNetMetrics net = 6;
+}
+
+// cpu_vm
+message VMCPUMetrics {
+    float cpu_data_cputime_percent = 1;
+    int64 aggregate_cputime = 2;
+    int64 aggregate_system_time = 3;
+    int64 aggregate_user_time = 4;
+    int64 cpu_data_cputime = 5;
+}
+
+// disk_vm,
+message VMDiskMetrics {
+    string disk_name = 1;
+    int64 write_req = 2;
+    int64 read_bytes = 3;
+    int64 errors = 4;
+    int64 read_req = 5;
+    int64 write_bytes = 6;
+}
+
+// mem_vm,
+message VMMemMetrics {
+    int64 total_memory = 1;
+    int64 free_memory = 2;
+    float memory_util = 3;
+}
+
+// net_vm
+message VMNetMetrics {
+    string interface_name = 1;
+    int64 rx_drop = 2;
+    int64 rx_packets = 3;
+    int64 tx_errs = 4;
+    int64 rx_errs = 5;
+    int64 rx_bytes = 6;
+    int64 tx_drop = 7;
+    int64 tx_bytes = 8;
+    int64 tx_packets = 9;
+}
+
