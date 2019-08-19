@@ -11,9 +11,9 @@ is appropriate. If an app only moderates files when a user flags them as inappro
 create a negative impact on the app's user experience. One of the reasons that an app may rely on 
 users to flag content is that it may not be possible to listen to all the content that is 
 uploaded given the volume of uploads. This becomes a problem of scale. Automation becomes key for 
-problems of scale. Through the use of machine learning, you can build a review pipeline that will 
+problems of scale. This example is a machine learning pipeline that will 
 automatically flag content that may be inappropriate for triage. The process of reviewing flagged 
-content should be drastically smaller and easier for you to do.
+content should be drastically smaller and easier task for your organizaiton.
 
 Requirements
 ============
@@ -71,10 +71,9 @@ git clone https://github.com/GoogleCloudPlatform/professional-services
 
 2. Change directories into this project
 
-<h3>TODO finalize name</h3>
 
 `````
-cd tools/cloud-ml-perspective-toxicity/
+cd tools/ml-audio-content-moderation/
 `````
 
 <h3>Create Project Resources</h3>
@@ -224,7 +223,13 @@ cd send_stt_api_function/
 Deploy function
 
 ````
-gcloud functions deploy send_stt_api --entry-point main --runtime python37 --trigger-resource $staging_audio_bucket --trigger-event google.storage.object.finalize --timeout 540s --set-env-vars topic_name=$TOPIC_NAME,error_bucket=$error_audio_bucket
+gcloud functions deploy send_stt_api \
+  --entry-point main \
+  --runtime python37 \
+  --trigger-resource $staging_audio_bucket \
+  --trigger-event google.storage.object.finalize \
+  --timeout 540s \
+  --set-env-vars topic_name=$TOPIC_NAME,error_bucket=$error_audio_bucket
 ````
 
 5. Deploy second Cloud Function to Read STT API Output
@@ -258,7 +263,7 @@ cd ../perspective_api_function/
 ````
 
 ````
-gcloud functions deploy perspective_api --entry-point main --runtime python37 \--trigger-resource $transcription_bucket --trigger-event google.storage.object.finalize \--timeout 540s --set-env-vars toxicity_bucket=$toxicity_bucket
+gcloud functions deploy perspective_api --entry-point main --runtime python37 --trigger-resource $transcription_bucket --trigger-event google.storage.object.finalize --timeout 540s --set-env-vars toxicity_bucket=$toxicity_bucket
 ````
 
 8. Deploy NLP Function
@@ -270,13 +275,13 @@ cd ../nlp_api_function/
 ````
 
 ````
-gcloud functions deploy nlp_api --entry-point main --runtime python37 \--trigger-resource $transcription_bucket --trigger-event google.storage.object.finalize \--timeout 540s --set-env-vars nlp_bucket=$nlp_bucket
+gcloud functions deploy nlp_api --entry-point main --runtime python37 --trigger-resource $transcription_bucket --trigger-event google.storage.object.finalize --timeout 540s --set-env-vars nlp_bucket=$nlp_bucket
 ````
 
 
 ### Step 2b
 
-1. Install Terraform [here](https://learn.hashicorp.com/terraform/getting-started/install)
+1. [Install Terraform](https://learn.hashicorp.com/terraform/getting-started/install)
 
 2. Edit `variables.tf` with all of your associated variables. You must edit the project_id, but the 
 others are optional to edit.
@@ -317,7 +322,7 @@ to the Speech API and publishes the job id to PubSub.
 Scheduler. If you want to test it earlier, you can navigate to Cloud Scheduler in the console and
 click 'Run Now'. This will pull from the PubSub topic to grab any job ids. It then calls 
 the Speech API to see if the job is complete. If it is not complete, it repushes the id back to 
-PubSub. If it complete, it extracts the transcript from the Speech API response. It then saves this
+PubSub. If it is complete, it extracts the transcript from the Speech API response. Finally, it then saves this
 transcript in GCS in the transcription files bucket. It also moves the audio file from the staging 
 staging bucket to the processed audio bucket. If there were any errors, it moves the audio file
 instead to the error audio bucket.
