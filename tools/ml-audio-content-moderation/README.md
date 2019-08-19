@@ -13,7 +13,7 @@ users to flag content is that it may not be possible to listen to all the conten
 uploaded given the volume of uploads. This becomes a problem of scale. Automation becomes key for 
 problems of scale. This example is a machine learning pipeline that will 
 automatically flag content that may be inappropriate for triage. The process of reviewing flagged 
-content should be drastically smaller and easier for you to do.
+content should be drastically smaller and easier task for your organizaiton.
 
 Requirements
 ============
