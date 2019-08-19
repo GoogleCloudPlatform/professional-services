@@ -322,7 +322,7 @@ to the Speech API and publishes the job id to PubSub.
 Scheduler. If you want to test it earlier, you can navigate to Cloud Scheduler in the console and
 click 'Run Now'. This will pull from the PubSub topic to grab any job ids. It then calls 
 the Speech API to see if the job is complete. If it is not complete, it repushes the id back to 
-PubSub. If it complete, it extracts the transcript from the Speech API response. It then saves this
+PubSub. If it is complete, it extracts the transcript from the Speech API response. Finally, it then saves this
 transcript in GCS in the transcription files bucket. It also moves the audio file from the staging 
 staging bucket to the processed audio bucket. If there were any errors, it moves the audio file
 instead to the error audio bucket.
