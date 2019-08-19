@@ -281,7 +281,7 @@ gcloud functions deploy nlp_api --entry-point main --runtime python37 --trigger-
 
 ### Step 2b
 
-1. Install Terraform [here](https://learn.hashicorp.com/terraform/getting-started/install)
+1. [Install Terraform](https://learn.hashicorp.com/terraform/getting-started/install)
 
 2. Edit `variables.tf` with all of your associated variables. You must edit the project_id, but the 
 others are optional to edit.
