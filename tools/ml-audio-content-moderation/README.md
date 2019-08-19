@@ -11,7 +11,7 @@ is appropriate. If an app only moderates files when a user flags them as inappro
 create a negative impact on the app's user experience. One of the reasons that an app may rely on 
 users to flag content is that it may not be possible to listen to all the content that is 
 uploaded given the volume of uploads. This becomes a problem of scale. Automation becomes key for 
-problems of scale. Through the use of machine learning, you can build a review pipeline that will 
+problems of scale. This example is a machine learning pipeline that will 
 automatically flag content that may be inappropriate for triage. The process of reviewing flagged 
 content should be drastically smaller and easier for you to do.
 
