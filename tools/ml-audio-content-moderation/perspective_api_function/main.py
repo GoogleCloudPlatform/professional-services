@@ -44,8 +44,7 @@ def get_transcript(gcs_client, bucket_name, file_name):
     Returns:
         JSON holding transcript object
     """
-    log_message = 'Retrieving transcript for {file} from {bucket}'
-    logging.info(log_message.format(file=file_name, bucket=bucket_name))
+    logging.info(f'Retrieving transcript for {file_name} from {bucket_name}')
     bucket = gcs_client.get_bucket(bucket_name)
     transcript = bucket.blob(file_name)
     return json.loads(transcript.download_as_string())
@@ -84,8 +83,8 @@ def get_perspective_api_results(perspective_client, text):
              'languages': ['en'],
              'detectedLanguages': ['en']
     """
-    log_message = 'Starting get_perspective_api_results with {creds} and {text}'
-    logging.info(log_message.format(creds=perspective_client, text=text))
+    logging.info(f'Starting get_perspective_api_results with '
+                 f'{perspective_client} and {text}')
     body = {
         'comment': {
             'text': text['transcript']
@@ -95,10 +94,10 @@ def get_perspective_api_results(perspective_client, text):
         },
         'languages': ['en'],
     }
-    logging.info('Request: {}'.format(json.dumps(body)))
+    logging.info(f'Request: {json.dumps(body)}')
     try:
         response = perspective_client.comments().analyze(body=body).execute()
-        logging.info('Response: {}'.format(json.dumps(response)))
+        logging.info(f'Response: {json.dumps(response)}')
         return response
 
     except Exception as e:
@@ -145,8 +144,8 @@ def format_api_results(response, text):
                               'toxicity': 00.00
                             }
     """
-    log_message = 'Starting format_api_results with {results} and {text}.'
-    logging.info(log_message.format(results=json.dumps(response), text=text))
+    logging.info(f'Starting format_api_results with {json.dumps(response)} '
+                 f'and {text}.')
 
     try:
         toxicity = response['attributeScores']['TOXICITY']['summaryScore']['value']
@@ -156,8 +155,8 @@ def format_api_results(response, text):
                 'toxicity': round(toxicity, 2)}
 
     except Exception as e:
-        log_message = 'Extracting toxicity fields failed for {response}'
-        logging.error(log_message.format(response=json.dumps(response)))
+        logging.error(f'Extracting toxicity fields failed for '
+                      f'{json.dumps(response)}')
         logging.error(e)
 
 
@@ -173,16 +172,15 @@ def store_toxicity(gcs_client, bucket_name, file_name, file_contents):
     Returns:
         None; Logs message to Stackdriver.
     """
-    log_message = 'Starting store_toxicity with {contents}'
-    logging.info(log_message.format(contents=file_contents))
+    logging.info(f'Starting store_toxicity with {file_contents}')
     try:
         bucket = gcs_client.get_bucket(bucket_name)
         destination = bucket.blob(file_name)
         destination.upload_from_string(json.dumps(file_contents),
                                        content_type='application/json')
-        log_message = 'Successfully stored {contents} for {file} in {bucket}'
-        logging.info(log_message.format(contents=file_contents, file=file_name,
-                                        bucket=bucket_name))
+        logging.info(f'Successfully stored {file_contents} for {file_name} in '
+                     f'{bucket_name}')
+
     except Exception as e:
         logging.error('Storing toxicity results failed.')
         logging.error(e)
@@ -199,31 +197,24 @@ def write_processing_time_metric(pipeline_start_time, processing_status):
          None; Logs message to Stackdriver.
     """
     try:
-        logging.info(
-            "write_processing_time_metric: {},{}".format(
-                pipeline_start_time, processing_status
-            )
-        )
+        logging.info(f'write_processing_time_metric: {pipeline_start_time},'
+                     f'{processing_status}')
         function_name = os.environ.get('FUNCTION_NAME')
         project = os.environ.get('GCP_PROJECT')
-        logging.info("project: {}, function_name: {}".format(project,
-                                                             function_name))
+        logging.info(f'project: {project}, function_name: {function_name}')
         end_time = datetime.now()
         end_time_str = end_time.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
-        logging.info("end+time_str: {}".format(end_time_str))
+        logging.info(f'end+time_str: {end_time_str}')
         start_time = datetime.strptime(pipeline_start_time,
                                        '%Y-%m-%d %H:%M:%S.%f')
-        logging.info("start_time: {}".format(start_time))
+        logging.info(f'start_time: {start_time}')
         total_processing_time = end_time - start_time
-        logging.info("total_processing_time: {}".format(total_processing_time))
+        logging.info(f'total_processing_time: {total_processing_time}')
 
         monitoring_service = discovery.build(
             serviceName='monitoring', version= 'v3', cache_discovery=False
         )
-        project_name = 'projects/{project_id}'.format(
-            project_id=project
-        )
-
+        project_name = f'projects/{project}'
         time_series = {
             "timeSeries": [
                 {
@@ -250,13 +241,13 @@ def write_processing_time_metric(pipeline_start_time, processing_status):
                 }
             ]
         }
-        logging.info("monitoring request: {}".format(json.dumps(time_series)))
+        logging.info(f'monitoring request: {json.dumps(time_series)}')
 
         response = monitoring_service.projects().timeSeries().create(
             name=project_name,
             body=time_series
         ).execute()
-        logging.info('Response: {}'.format(response))
+        logging.info(f'Response: {response}')
 
     except Exception as e:
         logging.error('Writing custom metric failed.')
@@ -278,8 +269,8 @@ def main(data, context):
         gcs_client = storage.Client()
         transcription_bucket = data['bucket']
         file = data['name']
-        log_message = 'Looking up toxicity for gs://{bucket}/{file}'
-        logging.info(log_message.format(file=file, bucket=transcription_bucket))
+        logging.info(f'Looking up toxicity for '
+                     f'gs://{transcription_bucket}/{file}')
         json_msg = get_transcript(gcs_client, transcription_bucket, file)
         transcript = json_msg['json_payload']
         toxicity = []
@@ -291,12 +282,11 @@ def main(data, context):
                                                           speech_exert)
                 toxicity.append(per_segment_toxicity)
             else:
-                error_message = 'Perspective API response is empty for {text}'
-                logging.error(error_message.format(text=speech_exert))
+                logging.error(f'Perspective API response is empty for '
+                              f'{speech_exert}')
         toxicity_bucket = os.environ.get('toxicity_bucket')
         store_toxicity(gcs_client, toxicity_bucket, file, toxicity)
-        log_message = 'Toxicity function finished for {file}'
-        logging.info(log_message.format(file=file))
+        logging.info(f'Toxicity function finished for {file}')
         write_processing_time_metric(json_msg['pipeline_start_time'],
                                      SUCCESS_STATUS)
 

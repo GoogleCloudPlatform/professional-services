@@ -88,24 +88,24 @@ def call_stt_api(gcs_uri, config_object, credentials):
     })
     token = credentials.token
     headers = {
-        'Authorization': 'Bearer {token}'.format(token=token),
+        'Authorization': f'Bearer {token}',
         'Content-Type': 'application/json; charset=utf-8'
     }
-    logging.info('Body: {}'.format(body))
+    logging.info(f'Body: {body}')
     operation_name = None
     try:
         response = requests.post(endpoint, data=body, headers=headers)
-        logging.info('Response: {}'.format(response))
+        logging.info(f'Response: {response}')
         response.raise_for_status()
         response_json = response.json()
-        logging.info('Response json: {}'.format(response_json))
+        logging.info(f'Response json: {response_json}')
         if 'name' in response_json:
             operation_name = response_json['name']
 
     except HTTPError as http_err:
-        logging.error('HTTP error occurred: {}'.format(http_err))
+        logging.error(f'HTTP error occurred: {http_err}')
     except Exception as err:
-        logging.error('Python Exception occurred: {}'.format(err))
+        logging.error(f'Python Exception occurred: {err}')
     return operation_name
 
 
@@ -132,9 +132,8 @@ def publish_operation_to_pubsub(publisher_client, project, operation_name,
                                  operation_name=operation_name,
                                  audio_file_name=file_name,
                                  pipeline_start_time=start_time)
-        log_message = 'Pushed STT {op_id} for {file} to PubSub'
-        logging.info(log_message.format(op_id=operation_name,
-                                        file=file_name))
+        log_message = f'Pushed STT {operation_id} for {file_name} to PubSub'
+        logging.info(log_message)
     except Exception as e:
         logging.error('Publishing message to PubSub failed.')
         logging.error(e)
@@ -152,20 +151,20 @@ def move_file(client, source_bucket_name, destination_bucket_name, file_name):
     Returns:
         None; Logs message to Stackdriver.
     """
-    log_message = 'Starting move file {file} from {source} to {destination}.'
-    logging.info(log_message.format(file=file_name, source=source_bucket_name,
-                                    destination=destination_bucket_name))
+    log_message = (f'Starting move file {file_name} from {source_bucket_name}' 
+                   f'to {destination_bucket_name}.')
+    logging.info(log_message)
     source_bucket = client.get_bucket(source_bucket_name)
     destination_bucket = client.get_bucket(destination_bucket_name)
     blob = source_bucket.blob(file_name)
     try:
         source_bucket.copy_blob(blob, destination_bucket=destination_bucket)
-        log_message = 'Successfully moved {file} to {destination}'
-        logging.info(log_message.format(file=file_name,
-                                        destination=destination_bucket_name))
+        log_message = (f'Successfully moved {file_name} to '
+                       f'{destination_bucket_name}')
+        logging.info(log_message)
 
     except Exception as e:
-        logging.error('Moving the file {file} failed.'.format(file=file_name))
+        logging.error(f'Moving the file {file_name} failed.')
         logging.error(e)
 
 
@@ -183,13 +182,12 @@ def delete_file(client, bucket_name, file_name):
     try:
         bucket = client.get_bucket(bucket_name)
         bucket.delete_blob(file_name)
-        log_message = 'Deleted {file} from {bucket}'.format(file=file_name,
-                                                            bucket=bucket_name)
+        log_message = f'Deleted {file_name} from {bucket_name}'
         logging.info(log_message)
 
     except Exception as e:
-        error_message = 'Deleting {file} from {bucket} failed'
-        logging.error(error_message.format(file=file_name, bucket=bucket_name))
+        error_message = f'Deleting {file_name} from {bucket_name} failed'
+        logging.error(error_message)
         logging.error(e)
 
 
@@ -209,19 +207,18 @@ def main(data, context):
         auth_req = google.auth.transport.requests.Request()
         credentials.refresh(auth_req)
         publisher_client = pubsub.PublisherClient()
-        logging.info('data: {}'.format(data))
+        logging.info(f'data: {data}')
         staging_bucket = data['bucket']
         file_name = data['name']
         content_type = data['contentType']
-        gcs_uri = 'gs://{bucket}/{file}'.format(bucket=staging_bucket,
-                                                file=file_name)
+        gcs_uri = f'gs://{staging_bucket}/{file_name}'
         config_object = create_config_object(content_type)
         operation_name = call_stt_api(gcs_uri, config_object, credentials)
         if operation_name is not None:
             publish_operation_to_pubsub(publisher_client, project,
                                         operation_name, file_name)
-            log_message = 'Completed sending {file} to STT API.'
-            logging.info(log_message.format(file=file_name))
+            log_message = f'Completed sending {file_name} to STT API.'
+            logging.info(log_message)
         else:
             logging.info('No message sent')
 

@@ -34,13 +34,12 @@ def get_finished_stt_operations(job_entry, credentials):
 
     Returns: JSON response from STT API
     """
-    log_message = 'Starting get_finished_stt_operations for {job}'
-    logging.info(log_message.format(job=job_entry))
-    endpoint = 'https://speech.googleapis.com/v1/operations/{id}'
-    endpoint = endpoint.format(id=job_entry['id'])
+    log_message = f'Starting get_finished_stt_operations for {job_entry}'
+    logging.info(log_message)
+    endpoint = f'https://speech.googleapis.com/v1/operations/{job_entry["id"]}'
     token = credentials.token
     headers = {
-        'Authorization': 'Bearer {token}'.format(token=token),
+        'Authorization': f'Bearer {token}',
         'Content-Type': 'application/json; charset=utf-8'
     }
     response_json = None
@@ -48,11 +47,11 @@ def get_finished_stt_operations(job_entry, credentials):
         response = requests.get(endpoint, headers=headers)
         response.raise_for_status()
         response_json = response.json()
-        logging.info("Response json: {}".format(response_json))
+        logging.info(f'Response json: {response_json}')
     except HTTPError as http_err:
-        logging.error("HTTP error occurred: {}".format(http_err))
+        logging.error(f'HTTP error occurred: {http_err}')
     except Exception as err:
-        logging.error("Python Exception occurred: {}".format(err))
+        logging.error(f'Python Exception occurred: {err}')
     return response_json
 
 
@@ -65,11 +64,11 @@ def parse_transcript_output(response):
     Returns:
       Array of objects containing STT output
     """
-    log_message = 'Starting parse_transcript_output with {}'
-    logging.info(log_message.format(json.dumps(response)))
+    log_message = f'Starting parse_transcript_output with {json.dumps(response)}'
+    logging.info(log_message)
     stt_result = []
     if 'error' in response:
-        logging.error('Error received: '.format(json.dumps(response['error'])))
+        logging.error(f'Error received: {json.dumps(response["error"])}')
     else:
         for result in response['response']['results']:
             if 'transcript' in result['alternatives'][0]:
@@ -97,8 +96,7 @@ def push_id_to_pubsub(project, publisher_client, job_entry):
     Returns:
       None; Logs message to Stackdriver.
     """
-    logging.info('Starting push_id_to_pubsub with {} and {}'.format(project,
-                                                                    job_entry))
+    logging.info(f'Starting push_id_to_pubsub with {project} and {job_entry}')
     topic_name = os.environ.get('topic_name')
     topic_path = publisher_client.topic_path(project, topic_name)
     message = job_entry['id']
@@ -107,9 +105,9 @@ def push_id_to_pubsub(project, publisher_client, job_entry):
                              operation_name=job_entry['id'],
                              audio_file_name=job_entry['file'],
                              pipeline_start_time=job_entry['pipeline_start_time'])
-    log_message = 'Repushed STT {op_id} for {file} to PubSub'
-    logging.info(log_message.format(op_id=job_entry['id'],
-                                    file=job_entry['file']))
+    log_message = (f'Repushed STT {job_entry["id"]} for {job_entry["file"]} to '
+                   f'PubSub')
+    logging.info(log_message)
 
 
 def format_time(seconds):
@@ -124,7 +122,7 @@ def format_time(seconds):
     seconds = float(seconds.split('s')[0])
     mins, sec = divmod(seconds, 60)
     hours, mins = divmod(mins, 60)
-    return '{:02d}:{:02d}:{:02d}'.format(int(hours), int(mins), int(sec))
+    return f'{int(hours):02d}:{int(mins):02d}:{int(sec):02d}'
 
 
 def move_file(client, source_bucket_name, destination_bucket_name, file_name):
@@ -139,20 +137,19 @@ def move_file(client, source_bucket_name, destination_bucket_name, file_name):
     Returns:
         None; Logs message to Stackdriver.
     """
-    log_message = 'Starting move file {file} from {source} to {destination}.'
-    logging.info(log_message.format(file=file_name, source=source_bucket_name,
-                                    destination=destination_bucket_name))
+    log_message = (f'Starting move file {file_name} from {source_bucket_name} '
+                   f'to {destination_bucket_name}.')
+    logging.info(log_message)
     source_bucket = client.get_bucket(source_bucket_name)
     destination_bucket = client.get_bucket(destination_bucket_name)
     blob = source_bucket.blob(file_name)
     try:
         source_bucket.copy_blob(blob, destination_bucket=destination_bucket)
-        log_message = 'Successfully moved {file} to {destination}'
-        logging.info(log_message.format(file=file_name,
-                                        destination=destination_bucket_name))
+        logging.info(f'Successfully moved {file_name} to '
+                     f'{destination_bucket_name}')
 
     except Exception as e:
-        logging.error('Moving the file {file} failed.'.format(file=file_name))
+        logging.error(f'Moving the file {file_name} failed.')
         logging.error(e)
 
 
@@ -170,13 +167,10 @@ def delete_file(client, bucket_name, file_name):
     try:
         bucket = client.get_bucket(bucket_name)
         bucket.delete_blob(file_name)
-        log_message = 'Deleted {file} from {bucket}'.format(file=file_name,
-                                                            bucket=bucket_name)
-        logging.info(log_message)
+        logging.info(f'Deleted {file_name} from {bucket_name}')
 
     except Exception as e:
-        error_message = 'Deleting {file} from {bucket} failed'
-        logging.error(error_message.format(file=file_name, bucket=bucket_name))
+        logging.info(f'Deleting {file_name} from {bucket_name} failed')
         logging.error(e)
 
 
@@ -192,14 +186,12 @@ def upload_audio_transcription(client, bucket_name, json, audio_name):
     Returns:
         None; Logs message to Stackdriver
     """
-    logging.info('Starting store_file with {} and {}'.format(json,
-                                                             audio_name))
+    logging.info(f'Starting store_file with {json} and {audio_name}')
     bucket = client.get_bucket(bucket_name)
     destination = bucket.blob(audio_name)
     try:
         destination.upload_from_string(json, content_type='application/json')
-        log_message = 'Uploaded transcript of {file} to {bucket}'
-        logging.info(log_message.format(file=audio_name, bucket=bucket_name))
+        logging.info(f'Uploaded transcript of {audio_name} to {bucket_name}')
 
     except Exception as e:
         logging.error(e)
@@ -217,7 +209,7 @@ def does_subscription_exist(project, subscriber_client, subscription_path):
     Returns:
         Boolean denoting if subscription to topic exists.
     """
-    logging.info('Checking if subscription {} exists.'.format(subscription_path))
+    logging.info(f'Checking if subscription {subscription_path} exists.')
     project_path = subscriber_client.project_path(project)
     subscription_list = list(subscriber_client.list_subscriptions(project_path))
     return subscription_path in [sub.name for sub in subscription_list]
@@ -242,8 +234,8 @@ def get_received_msgs_from_pubsub(subscriber_client, project):
                                                                 subscription_name)
         if not does_subscription_exist(project, subscriber_client,
                                        subscription_path):
-            log_message = 'Subscription {sub} does not exist yet. Creating now.'
-            logging.info(log_message.format(sub=subscription_path))
+            logging.info(f'Subscription {subscription_path} does not exist yet.'
+                         f' Creating now.')
             subscriber_client.create_subscription(subscription_path, topic_path)
         response = subscriber_client.pull(subscription_path, max_messages=50)
         return list(response.received_messages)
@@ -295,27 +287,22 @@ def write_processing_time_metric(project, pipeline_start_time):
          None; Logs message to Stackdriver.
     """
     try:
-        logging.info(
-            'write_processing_time_metric: {},{}'.format(
-                project, pipeline_start_time
-            )
-        )
+        logging.info(f'write_processing_time_metric: {project},'
+                     f'{pipeline_start_time}')
         function_name = os.environ.get('FUNCTION_NAME')
-        logging.info('function_name: {}'.format(function_name))
+        logging.info(f'function_name: {function_name}')
         end_time = datetime.now()
         end_time_str = end_time.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
-        logging.info('end+time_str: {}'.format(end_time_str))
+        logging.info(f'end+time_str: {end_time_str}')
         start_time = datetime.fromtimestamp(pipeline_start_time)
-        logging.info('start_time: {}'.format(start_time))
+        logging.info(f'start_time: {start_time}')
         total_processing_time = end_time - start_time
-        logging.info('total_processing_time: {}'.format(total_processing_time))
+        logging.info(f'total_processing_time: {total_processing_time}')
 
         monitoring_service = discovery.build(
             serviceName='monitoring', version= 'v3', cache_discovery=False
         )
-        project_name = 'projects/{project_id}'.format(
-            project_id=project
-        )
+        project_name = f'projects/{project}'
         time_series = [
             {
                 "metric": {
@@ -341,13 +328,13 @@ def write_processing_time_metric(project, pipeline_start_time):
             }
         ]
 
-        logging.info("monitoring request: {}".format(json.dumps(time_series)))
+        logging.info(f'monitoring request: {json.dumps(time_series)}')
 
         response = monitoring_service.projects().timeSeries().create(
             name=project_name,
             body=time_series
         ).execute()
-        logging.info('Response: {}'.format(response))
+        logging.info(f'Response: {response}')
 
     except Exception as e:
         logging.error('Writing custom metric failed.')

@@ -52,16 +52,15 @@ def get_nlp_api_results(client, text_content):
         Array of objects holding name, type, score, magnitude, and salience
         per entity.
     """
-    log_message = 'Starting get_nlp_api_results with {creds} and {text}'
-    logging.info(log_message.format(creds=client, text=text_content))
+    logging.info(f'Starting get_nlp_api_results with {client} and '
+                 f'{text_content}')
     try:
         text = language.types.Document(content=text_content, type='PLAIN_TEXT')
         return client.analyze_entity_sentiment(document=text,
                                                encoding_type='UTF32')
 
     except Exception as e:
-        log_message = 'Retrieving response from NLP failed.'
-        logging.error(log_message)
+        logging.error('Retrieving response from NLP failed.')
         logging.error(e)
 
 
@@ -86,8 +85,7 @@ def format_api_results(response, text):
         }
     """
     try:
-        log_message = 'Starting format_api_results with {text}'
-        logging.info(log_message.format(text=text))
+        logging.info(f'Starting format_api_results with {text}')
         return {'text': text,
                 'nlp_response': [
                     {'entity_name': entity.name,
@@ -130,30 +128,24 @@ def write_processing_time_metric(pipeline_start_time, processing_status):
          None; Logs message to Stackdriver.
     """
     try:
-        logging.info(
-            'write_processing_time_metric: {},{}'.format(
-                pipeline_start_time, processing_status
-            )
-        )
+        logging.info(f'write_processing_time_metric: {pipeline_start_time},'
+                     f'{processing_status}')
         function_name = os.environ.get('FUNCTION_NAME')
         project = os.environ.get('GCP_PROJECT')
-        logging.info('project: {}, function_name: {}'.format(project,
-                                                             function_name))
+        logging.info(f'project: {project}, function_name: {function_name}')
         end_time = datetime.now()
         end_time_str = end_time.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
-        logging.info('end+time_str: {}'.format(end_time_str))
+        logging.info(f'end+time_str: {end_time_str}')
         start_time = datetime.strptime(pipeline_start_time,
                                        '%Y-%m-%d %H:%M:%S.%f')
-        logging.info('start_time: {}'.format(start_time))
+        logging.info(f'start_time: {start_time}')
         total_processing_time = end_time - start_time
-        logging.info('total_processing_time: {}'.format(total_processing_time))
+        logging.info(f'total_processing_time: {total_processing_time}')
 
         monitoring_service = discovery.build(
             serviceName='monitoring', version= 'v3', cache_discovery=False
         )
-        project_name = 'projects/{project_id}'.format(
-            project_id=project
-        )
+        project_name = f'projects/{project}'
         time_series = {
             "timeSeries": [
                 {
@@ -180,13 +172,13 @@ def write_processing_time_metric(pipeline_start_time, processing_status):
                 }
             ]
         }
-        logging.info("monitoring request: {}".format(json.dumps(time_series)))
+        logging.info(f'monitoring request: {json.dumps(time_series)}')
 
         response = monitoring_service.projects().timeSeries().create(
             name=project_name,
             body=time_series
         ).execute()
-        logging.info('Response: {}'.format(response))
+        logging.info(f'Response: {response}')
 
     except Exception as e:
         logging.error('Writing custom metric failed.')
@@ -209,7 +201,7 @@ def main(data, context):
         transcription_bucket = data['bucket']
         file = data['name']
         json_msg = get_transcript(gcs_client, transcription_bucket, file)
-        logging.info("json_msg: {}".format(json_msg))
+        logging.info(f'json_msg: {json_msg}')
         transcript = json_msg['json_payload']
         nlp = []
         for speech_exert in transcript:
@@ -220,12 +212,10 @@ def main(data, context):
                                                      speech_exert['transcript'])
                 nlp.append(per_segment_nlp)
             else:
-                error_message = 'NLP result is empty for {text}.'
-                logging.error(error_message.format(text=speech_exert))
+                logging.error(f'NLP result is empty for {speech_exert}.')
         nlp_bucket = os.environ.get('nlp_bucket')
         store_nlp(gcs_client, nlp_bucket, file, nlp)
-        log_message = 'Stored NLP output for file {file}'.format(file=file)
-        logging.info(log_message)
+        logging.info(f'Stored NLP output for file {file}')
         write_processing_time_metric(json_msg['pipeline_start_time'],
                                      SUCCESS_STATUS)
 
