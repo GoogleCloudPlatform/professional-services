@@ -22,7 +22,7 @@ from flask import send_from_directory
 from flask_restful import Api
 from flask_restful import Resource
 from python.exceptions import CustomError
-from python import utils
+from python import gcs_transcript_utils
 
 
 class Main(Resource):
@@ -43,11 +43,12 @@ class Files(Resource):
             Array of objects holding object name and type for audio files.
         """
         try:
-            gcs_client = utils.authenticate_gcs()
+            gcs_client = gcs_transcript_utils.authenticate_gcs()
             bucket_list = list(gcs_client.list_buckets())
-            processed_audio_bucket = utils.find_bucket(bucket_list,
-                                                       'processed-audio-files')
-            files = utils.get_files(gcs_client, processed_audio_bucket)
+            processed_audio_bucket = gcs_transcript_utils.find_bucket(
+                bucket_list, 'processed-audio-files')
+            files = gcs_transcript_utils.get_files(gcs_client,
+                                                   processed_audio_bucket)
             return jsonify(files=files)
 
         except CustomError as e:
@@ -71,17 +72,19 @@ class Analysis(Resource):
         """
         try:
             file_name = request.args['file_name']
-            gcs_client = utils.authenticate_gcs()
+            gcs_client = gcs_transcript_utils.authenticate_gcs()
             bucket_list = list(gcs_client.list_buckets())
-            transcript_bucket = utils.find_bucket(bucket_list, 'transcript')
-            transcript_per_segment = utils.get_object(gcs_client,
-                                                      transcript_bucket,
-                                                      file_name)
+            transcript_bucket = gcs_transcript_utils.find_bucket(bucket_list, 'transcript')
+            transcript_per_segment = gcs_transcript_utils.get_gcs_transcript(gcs_client,
+                                                                             transcript_bucket,
+                                                                             file_name)
             if transcript_per_segment:
-                transcript = utils.extract_full_transcript(transcript_per_segment)
-                toxicity_bucket = utils.find_bucket(bucket_list, 'toxicity')
-                toxicity = utils.get_object(gcs_client, toxicity_bucket,
-                                            file_name)
+                transcript = gcs_transcript_utils.extract_full_transcript(transcript_per_segment)
+                toxicity_bucket = gcs_transcript_utils.find_bucket(bucket_list,
+                                                                   'toxicity')
+                toxicity = gcs_transcript_utils.get_gcs_transcript(gcs_client,
+                                                                   toxicity_bucket,
+                                                                   file_name)
 
                 if toxicity:
                     toxicity.sort(key=lambda text: text['toxicity'],
@@ -118,10 +121,12 @@ class Entities(Resource):
         try:
             text = request.args['text']
             file_name = request.args['file_name']
-            gcs_client = utils.authenticate_gcs()
+            gcs_client = gcs_transcript_utils.authenticate_gcs()
             bucket_list = list(gcs_client.list_buckets())
-            nlp_bucket = utils.find_bucket(bucket_list, 'nlp')
-            nlp_json = utils.get_object(gcs_client, nlp_bucket, file_name)
+            nlp_bucket = gcs_transcript_utils.find_bucket(bucket_list, 'nlp')
+            nlp_json = gcs_transcript_utils.get_gcs_transcript(gcs_client,
+                                                               nlp_bucket,
+                                                               file_name)
             if nlp_json:
                 text_section = list(filter(lambda section: section['text'] == text,
                                            nlp_json))

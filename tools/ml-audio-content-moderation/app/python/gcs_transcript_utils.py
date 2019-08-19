@@ -30,7 +30,7 @@ def find_bucket(bucket_list, keyword):
     """Finds bucket based on regex checking for keyword, such as 'toxicity'.
 
     Args:
-        bucket_list: List of strings all holding bucket names.
+        bucket_list: List of objects all holding metadat about buckets.
         keyword: Regex name to match when looking up list of buckets.
 
     Returns:
@@ -57,7 +57,7 @@ def get_files(client, bucket):
              'type': blob.content_type} for blob in list(bucket.list_blobs())]
 
 
-def get_object(gcs_client, bucket_name, file_name):
+def get_transcript_from_gcs(gcs_client, bucket_name, file_name):
     """Downloads transcript file from GCS.
 
     Args:
@@ -74,12 +74,12 @@ def get_object(gcs_client, bucket_name, file_name):
 
 
 def extract_full_transcript(transcript_text):
-    """Converts array of strings to one string.
+    """Converts list of dictionaries holding strings to one string.
 
     Args:
-        transcript_text: Array holding multiple strings of text.
+        transcript_text: List of dicts each holding strings of text.
 
     Returns:
         String holding entire transcript.
     """
-    return ''.join([section['transcript'] for section in transcript_text])
+    return ' '.join([section['transcript'] for section in transcript_text])

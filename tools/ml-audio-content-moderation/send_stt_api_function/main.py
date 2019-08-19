@@ -139,19 +139,19 @@ def publish_operation_to_pubsub(publisher_client, project, operation_name,
         logging.error(e)
 
 
-def move_file(client, source_bucket_name, destination_bucket_name, file_name):
-    """Moves GCS file from one bucket to another.
+def copy_file(client, source_bucket_name, destination_bucket_name, file_name):
+    """Copies GCS file from one bucket to another.
 
     Args:
         client: Object representing GCS client.
         source_bucket_name: String of name of bucket where object is now.
-        destination_bucket_name: String of name of bucket to move object to.
-        file_name: String of name of file that is being moved.
+        destination_bucket_name: String of name of bucket to copy object to.
+        file_name: String of name of file that is being copied.
 
     Returns:
         None; Logs message to Stackdriver.
     """
-    log_message = (f'Starting move file {file_name} from {source_bucket_name}' 
+    log_message = (f'Starting copy file {file_name} from {source_bucket_name}' 
                    f'to {destination_bucket_name}.')
     logging.info(log_message)
     source_bucket = client.get_bucket(source_bucket_name)
@@ -159,7 +159,7 @@ def move_file(client, source_bucket_name, destination_bucket_name, file_name):
     blob = source_bucket.blob(file_name)
     try:
         source_bucket.copy_blob(blob, destination_bucket=destination_bucket)
-        log_message = (f'Successfully moved {file_name} to '
+        log_message = (f'Successfully copied {file_name} to '
                        f'{destination_bucket_name}')
         logging.info(log_message)
 
@@ -225,5 +225,5 @@ def main(data, context):
     except Exception as e:
         logging.error(e)
         error_bucket = os.environ.get('error_audio_bucket')
-        move_file(gcs_client, staging_bucket, error_bucket, file_name)
+        copy_file(gcs_client, staging_bucket, error_bucket, file_name)
         delete_file(gcs_client, staging_bucket, file_name)

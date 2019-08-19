@@ -10,16 +10,16 @@ between allowing creators the freedom to express their opinions, but also ensure
 is appropriate. If an app only moderates files when a user flags them as inappropriate, this will 
 create a negative impact on the app's user experience. One of the reasons that an app may rely on 
 users to flag content is that it may not be possible to listen to all the content that is 
-uploaded given the volume of uploads. This becomes a problem of scale. Automation becomes key for 
+uploaded given the volume of uploads. This is a problem of scale. Automation is key for 
 problems of scale. This example is a machine learning pipeline that will 
 automatically flag content that may be inappropriate for triage. The process of reviewing flagged 
 content should be drastically smaller and easier task for your organizaiton.
 
-Requirements
+Assumptions
 ============
 
-All of the audio files that you will be processing must be .FLAC or .WAV format as these formats
-are best supported by the [Speech API](https://cloud.google.com/speech-to-text/docs/encoding).
+This example only supports the encoding formats currently supported by the 
+[Speech API](https://cloud.google.com/speech-to-text/docs/encoding).
 
 If you try to use .mp3 or another file type, then you may need to perform preprocessing to convert
 your file into an accepted encoding type.
@@ -241,13 +241,24 @@ cd ../read_stt_api_function/
 ````
 
 ````
-gcloud functions deploy read_stt_api --entry-point main --runtime python37 --trigger-resource cron_topic --trigger-event google.pubsub.topic.publish --timeout 540s --set-env-vars topic_name=$TOPIC_NAME,subscription_name=$SUBSCRIPTION_NAME,transcription_bucket=$transcription_bucket,staging_audio_bucket=$staging_audio_bucket,processed_audio_bucket=$processed_audio_bucket,error_audio_bucket=$error_audio_bucket
+gcloud functions deploy read_stt_api \
+  --entry-point main \
+   --runtime python37 \
+   --trigger-resource cron_topic \
+   --trigger-event google.pubsub.topic.publish \
+   --timeout 540s \
+   --set-env-vars topic_name=$TOPIC_NAME,subscription_name=$SUBSCRIPTION_NAME,\
+   transcription_bucket=$transcription_bucket,staging_audio_bucket=$staging_audio_bucket,\
+   processed_audio_bucket=$processed_audio_bucket,error_audio_bucket=$error_audio_bucket
 ````
 
 6. Deploy Cloud Scheduler Job
 
 ````
-gcloud scheduler jobs create pubsub check_stt_job --schedule "*/10 * * * *" --topic cron_topic --message-body "check stt job"
+gcloud scheduler jobs create pubsub check_stt_job \
+  --schedule "*/10 * * * *" \
+  --topic cron_topic \
+  --message-body "check stt job"
 ````
 
 Note that you can edit the schedule flag to be any interval in UNIX cron. By default, our solution
@@ -263,7 +274,13 @@ cd ../perspective_api_function/
 ````
 
 ````
-gcloud functions deploy perspective_api --entry-point main --runtime python37 --trigger-resource $transcription_bucket --trigger-event google.storage.object.finalize --timeout 540s --set-env-vars toxicity_bucket=$toxicity_bucket
+gcloud functions deploy perspective_api \
+  --entry-point main \
+  --runtime python37 \
+  --trigger-resource $transcription_bucket \
+  --trigger-event google.storage.object.finalize \
+  --timeout 540s \
+  --set-env-vars toxicity_bucket=$toxicity_bucket
 ````
 
 8. Deploy NLP Function
@@ -275,7 +292,13 @@ cd ../nlp_api_function/
 ````
 
 ````
-gcloud functions deploy nlp_api --entry-point main --runtime python37 --trigger-resource $transcription_bucket --trigger-event google.storage.object.finalize --timeout 540s --set-env-vars nlp_bucket=$nlp_bucket
+gcloud functions deploy nlp_api \
+  --entry-point main \
+  --runtime python37 \
+  --trigger-resource $transcription_bucket \
+  --trigger-event google.storage.object.finalize \
+  --timeout 540s \
+  --set-env-vars nlp_bucket=$nlp_bucket
 ````
 
 
@@ -307,15 +330,15 @@ others are optional to edit.
   ````
 
 
-5. All of the resources should be deployed.
+All of the resources should be deployed.
 
 
 ### View Results
 <h3>Test it out</h3>
 
 1. You can start by trying to upload an audio file in GCS. You can do this using `gsutil` or in the 
-UI under the <b>staging bucket</b>. This will trigger `send_stt_api_function`. This submits the job
-to the Speech API and publishes the job id to PubSub.
+UI under the <b>staging bucket</b>. This will trigger `send_stt_api_function`. This submits the 
+request to the Speech API and publishes the job id to PubSub.
 
 
 2. By default, `read_stt_api_function` is scheduled to run every ten minutes, as configured by Cloud 

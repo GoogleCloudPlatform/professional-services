@@ -37,7 +37,7 @@ def get_transcript(gcs_client, bucket_name, file_name):
     """Downloads transcript file from GCS.
 
     Args:
-        gcs_client: Object representing GCS Client Object.
+        gcs_client: google.cloud.storage representing GCS Client Object.
         bucket_name: String representing bucket name of transcription of audio.
         file_name: String of 'transcript.json'.
 
@@ -94,7 +94,7 @@ def get_perspective_api_results(perspective_client, text):
         },
         'languages': ['en'],
     }
-    logging.info(f'Request: {json.dumps(body)}')
+    logging.debug(f'Request: {json.dumps(body)}')
     try:
         response = perspective_client.comments().analyze(body=body).execute()
         logging.info(f'Response: {json.dumps(response)}')
@@ -109,7 +109,7 @@ def format_api_results(response, text):
     """Extracts relevant fields from Perspective API
 
     Args:
-        response: Object holding perspective API results in format
+        response: Dict holding perspective API results in format
             {'attributeScores': {
                 'TOXICITY': {
                       'spanScores': [

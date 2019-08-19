@@ -64,7 +64,7 @@ def get_nlp_api_results(client, text_content):
         logging.error(e)
 
 
-def format_api_results(response, text):
+def format_nlp_api_results(response, text):
     """Extracts sentiment/entity information from NLP API response.
 
     Args:
@@ -85,7 +85,7 @@ def format_api_results(response, text):
         }
     """
     try:
-        logging.info(f'Starting format_api_results with {text}')
+        logging.info(f'Starting format_nlp_api_results with {text}')
         return {'text': text,
                 'nlp_response': [
                     {'entity_name': entity.name,
@@ -99,7 +99,7 @@ def format_api_results(response, text):
       logging.error(e)
 
 
-def store_nlp(gcs_client, bucket_name, file_name, file_contents):
+def upload_json_to_gcs(gcs_client, bucket_name, file_name, file_contents):
     """Uploads toxicity JSON object to GCS.
 
     Args:
@@ -208,13 +208,13 @@ def main(data, context):
             response = get_nlp_api_results(nlp_client,
                                            speech_exert['transcript'])
             if response:
-                per_segment_nlp = format_api_results(response,
+                per_segment_nlp = format_nlp_api_results(response,
                                                      speech_exert['transcript'])
                 nlp.append(per_segment_nlp)
             else:
                 logging.error(f'NLP result is empty for {speech_exert}.')
         nlp_bucket = os.environ.get('nlp_bucket')
-        store_nlp(gcs_client, nlp_bucket, file, nlp)
+        upload_json_to_gcs(gcs_client, nlp_bucket, file, nlp)
         logging.info(f'Stored NLP output for file {file}')
         write_processing_time_metric(json_msg['pipeline_start_time'],
                                      SUCCESS_STATUS)
