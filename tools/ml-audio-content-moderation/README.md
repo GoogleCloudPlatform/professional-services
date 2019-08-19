@@ -223,7 +223,13 @@ cd send_stt_api_function/
 Deploy function
 
 ````
-gcloud functions deploy send_stt_api --entry-point main --runtime python37 --trigger-resource $staging_audio_bucket --trigger-event google.storage.object.finalize --timeout 540s --set-env-vars topic_name=$TOPIC_NAME,error_bucket=$error_audio_bucket
+gcloud functions deploy send_stt_api \
+  --entry-point main \
+  --runtime python37 \
+  --trigger-resource $staging_audio_bucket \
+  --trigger-event google.storage.object.finalize \
+  --timeout 540s \
+  --set-env-vars topic_name=$TOPIC_NAME,error_bucket=$error_audio_bucket
 ````
 
 5. Deploy second Cloud Function to Read STT API Output
