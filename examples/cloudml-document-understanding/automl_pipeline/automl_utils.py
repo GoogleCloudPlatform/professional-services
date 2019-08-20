@@ -63,11 +63,11 @@ class MatchClassification(MatchFunction):
         pdf_text = pdf_text.lower()
         search_value = search_value.lower()
 
-        search_value = search_value.replace('0', '[0|o|q]')    # To handle OCR issues (0 -> O or Q)
-        search_value = search_value.replace('7', '[7|z]')      # To handle OCR issues (7 -> Z)
-        search_value = search_value.replace('6', '[6|o]')      # To handle OCR issues (6 -> O)
-        search_value = search_value.replace('q ', '[q|0]\s')   # To handle OCR issues (Q_ -> 0_)      
-        search_value = search_value.replace('/', '[/|1|7|\.]') # To handle OCR issues (/ -> 1 or 7 or .)
+        search_value = search_value.replace('0', r'[0|o|q]')    # To handle OCR issues (0 -> O or Q)
+        search_value = search_value.replace('7', r'[7|z]')      # To handle OCR issues (7 -> Z)
+        search_value = search_value.replace('6', r'[6|o]')      # To handle OCR issues (6 -> O)
+        search_value = search_value.replace('q ', r'[q|0]\s')   # To handle OCR issues (Q_ -> 0_)      
+        search_value = search_value.replace('/', r'[/|1|7|\.]') # To handle OCR issues (/ -> 1 or 7 or .)
 
         match = re.search(re.compile(search_value), pdf_text)
         if match:
@@ -100,11 +100,11 @@ class MatchClassification_v2(MatchFunction):
         
         pdf_text = pdf_text.lower()
         search_value = str(search_value).lower()
-        search_value = search_value.replace('0', '[0|o|q]')    # To handle OCR issues (0 -> O or Q)
-        search_value = search_value.replace('7', '[7|z]')      # To handle OCR issues (7 -> Z)
-        search_value = search_value.replace('6', '[6|o]')      # To handle OCR issues (6 -> O)
-        search_value = search_value.replace('q ', '[q|0]\s')   # To handle OCR issues (Q_ -> 0_)      
-        search_value = search_value.replace('/', '[/|1|7|\.]') # To handle OCR issues (/ -> 1 or 7 or .)
+        search_value = search_value.replace('0', r'[0|o|q]')    # To handle OCR issues (0 -> O or Q)
+        search_value = search_value.replace('7', r'[7|z]')      # To handle OCR issues (7 -> Z)
+        search_value = search_value.replace('6', r'[6|o]')      # To handle OCR issues (6 -> O)
+        search_value = search_value.replace('q ', r'[q|0]\s')   # To handle OCR issues (Q_ -> 0_)      
+        search_value = search_value.replace('/', r'[/|1|7|\.]') # To handle OCR issues (/ -> 1 or 7 or .)
 
         
         position_pattern = self._find_position_pattern(pdf_text)
@@ -137,8 +137,8 @@ class MatchApplicant(MatchFunction):
         pdf_text = pdf_text.lower()
         search_value = str(search_value).lower()
 
-        search_value = search_value.replace(';', '[;|:]')
-        search_value = search_value.replace('(', '\(').replace(')', '\)')
+        search_value = search_value.replace(r';', r'[;|:]')
+        search_value = search_value.replace(r'(', r'\(').replace(r')', r'\)')
 
         match = re.search(re.compile(search_value), pdf_text)
         if match:
@@ -545,7 +545,7 @@ def create_jsonl(pdf_text, value_dict):
 LIST_FIELDS = {
     'applicant_line_1': MatchTypo(),
     'application_number': GeneralMatch(),
-    'class_international': MatchClassification_v2(pattern_keyword_before='Int\.? C[I|L|1]'),
+    'class_international': MatchClassification_v2(pattern_keyword_before=r'Int\.? C[I|L|1]'),
     'class_us': MatchClassification_v2(pattern_keyword_before='U.S. C[I|L|1]'),
     'filing_date': MatchTypo(tolerance=1),
     'inventor_line_1': MatchTypo(),
