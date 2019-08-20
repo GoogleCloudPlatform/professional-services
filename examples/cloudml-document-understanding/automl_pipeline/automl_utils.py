@@ -392,7 +392,7 @@ def entity_extraction(main_project_id,
     model_metadata = {
         "display_name": "patent_demo_data" + now,
         "dataset_id": None,
-        "text_extraction_dataset_metadata": {}
+        "text_extraction_model_metadata": {}
     }
 
     create_automl_model(main_project_id,
