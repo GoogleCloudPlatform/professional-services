@@ -164,7 +164,7 @@ def store_toxicity(gcs_client, bucket_name, file_name, file_contents):
     """Uploads toxicity JSON object to GCS.
 
     Args:
-       gcs_client: Object representing JSON object
+        gcs_client: google.cloud.storage.Client
         bucket_name: String of name of bucket to store the files
         file_name: String of audio file name
         file_contents: JSON holding toxicity information

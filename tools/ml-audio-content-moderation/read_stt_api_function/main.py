@@ -29,7 +29,7 @@ def get_finished_stt_operations(job_entry, credentials):
     """Sends HTTP request to get responses from STT.
 
     Args:
-        job_entry: Object of format {'file': file1, 'id': id1}
+        job_entry: Dict in format {'file': file1, 'id': id1}
         credentials: Object of Oauth2 holding credentials
 
     Returns: JSON response from STT API
@@ -62,7 +62,7 @@ def parse_transcript_output(response):
       response: Object holding output from STT API
 
     Returns:
-      Array of objects containing STT output
+      Array of dict objects containing STT output
     """
     log_message = f'Starting parse_transcript_output with {json.dumps(response)}'
     logging.info(log_message)
@@ -89,7 +89,7 @@ def push_id_to_pubsub(project, publisher_client, job_entry):
     """Pushes unfinished ID back into PubSub topic until operation is complete.
 
     Args:
-      publisher_client: Object representing PubSub client API
+      publisher_client: google.cloud.pubsub.PublisherClient
       project: String representing GCP project ID
       job_entry: Object holding operation ID and audio file name
 
@@ -125,19 +125,19 @@ def format_time(seconds):
     return f'{int(hours):02d}:{int(mins):02d}:{int(sec):02d}'
 
 
-def move_file(client, source_bucket_name, destination_bucket_name, file_name):
-    """Moves GCS file from one bucket to another.
+def copy_file(client, source_bucket_name, destination_bucket_name, file_name):
+    """Copies GCS file from one bucket to another.
 
     Args:
-        client: Object representing GCS client.
+        client: google.cloud.storage.Client
         source_bucket_name: String of name of bucket where object is now.
-        destination_bucket_name: String of name of bucket to move object to.
-        file_name: String of name of file that is being moved.
+        destination_bucket_name: String of name of bucket to copy object to.
+        file_name: String of name of file that is being copied.
 
     Returns:
         None; Logs message to Stackdriver.
     """
-    log_message = (f'Starting move file {file_name} from {source_bucket_name} '
+    log_message = (f'Starting copy file {file_name} from {source_bucket_name} '
                    f'to {destination_bucket_name}.')
     logging.info(log_message)
     source_bucket = client.get_bucket(source_bucket_name)
@@ -145,11 +145,11 @@ def move_file(client, source_bucket_name, destination_bucket_name, file_name):
     blob = source_bucket.blob(file_name)
     try:
         source_bucket.copy_blob(blob, destination_bucket=destination_bucket)
-        logging.info(f'Successfully moved {file_name} to '
+        logging.info(f'Successfully copied {file_name} to '
                      f'{destination_bucket_name}')
 
     except Exception as e:
-        logging.error(f'Moving the file {file_name} failed.')
+        logging.error(f'Copying the file {file_name} failed.')
         logging.error(e)
 
 
@@ -157,7 +157,7 @@ def delete_file(client, bucket_name, file_name):
     """Deletes file from specified bucket.
 
     Args:
-        client: Object representing GCS client
+        client: google.cloud.storage.Client
         bucket_name: String holding name of bucket.
         file_name: String of name of file to delete.
 
@@ -178,7 +178,7 @@ def upload_audio_transcription(client, bucket_name, json, audio_name):
     """Uploads JSON file to GCS.
 
     Args:
-        client: Object representing Python GCS Client
+        client: google.cloud.storage.Client
         bucket_name: String holding name of bucket to store file
         json: JSON object holding output from STT API
         audio_name: String of audio file name
@@ -197,11 +197,11 @@ def upload_audio_transcription(client, bucket_name, json, audio_name):
         logging.error(e)
 
 
-def does_subscription_exist(project, subscriber_client, subscription_path):
-    """Check if PubSub subscription has been created.
+def check_subscription_exists(project, subscriber_client, subscription_path):
+    """Check if PubSub subscription exists.
 
     Args:
-        subscriber_client: Object representing PubSub client
+        subscriber_client: google.cloud.pubsub.SubscriberClient
         project: String of GCP project id
         subscription_path: String representing topic path in format
             project/{proj}/subscriptions/{subscription}
@@ -219,7 +219,7 @@ def get_received_msgs_from_pubsub(subscriber_client, project):
     """Retreieves receives messages in PubSub topic.
 
     Args:
-        subscriber_client: Object representing PubSub subscriber client
+        subscriber_client: google.cloud.pubsub.SubscriberClient
         project: String holding GCP project id
 
     Returns:
@@ -232,8 +232,8 @@ def get_received_msgs_from_pubsub(subscriber_client, project):
         topic_path = subscriber_client.topic_path(project, topic_name)
         subscription_path = subscriber_client.subscription_path(project,
                                                                 subscription_name)
-        if not does_subscription_exist(project, subscriber_client,
-                                       subscription_path):
+        if not check_subscription_exists(project, subscriber_client,
+                                         subscription_path):
             logging.info(f'Subscription {subscription_path} does not exist yet.'
                          f' Creating now.')
             subscriber_client.create_subscription(subscription_path, topic_path)
@@ -247,7 +247,7 @@ def get_stt_ids_from_msgs(subscriber_client, project, received_messages):
     """Creates array of objects with STT API operation IDs and file names.
 
     Args:
-        subscriber_client: Object representing PubSub subscriber client
+        subscriber_client: google.cloud.pubsub.SubscriberClient
         project: String holding GCP project id
         received_messages: List of PubSub message objects
 
@@ -375,7 +375,7 @@ def main(data, context):
                                     Speech-to-text API request returned empty 
                                     response.'''
                     logging.error(error_message)
-                    move_file(gcs_client, staging_bucket_name,
+                    copy_file(gcs_client, staging_bucket_name,
                             error_bucket_name, job['file'])
                     delete_file(gcs_client, staging_bucket_name, job['file'])
                     write_processing_time_metric(project,
@@ -393,7 +393,7 @@ def main(data, context):
                         upload_audio_transcription(gcs_client, transcription_bucket,
                                                 json.dumps(json_for_gcs),
                                                 job['file'])
-                        move_file(gcs_client, staging_bucket_name,
+                        copy_file(gcs_client, staging_bucket_name,
                                 processed_bucket_name, job['file'])
                         delete_file(gcs_client, staging_bucket_name,
                                     job['file'])
@@ -404,7 +404,7 @@ def main(data, context):
                                         Transcription may be blank, indicating no
                                         audio found.'''
                         logging.error(error_message)
-                        move_file(gcs_client, staging_bucket_name,
+                        copy_file(gcs_client, staging_bucket_name,
                                 error_bucket_name, job['file'])
                         delete_file(gcs_client, staging_bucket_name,
                                     job['file'])

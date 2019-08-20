@@ -29,7 +29,7 @@ def get_transcript(gcs_client, bucket_name, file_name):
     """Downloads transcript file from GCS.
 
     Args:
-        gcs_client: Object representing GCS Client Object.
+        gcs_client: google.cloud.storage.Client.
         bucket_name: String representing bucket name of audio file.
         file_name: String representing audio file name.
 
@@ -45,7 +45,7 @@ def get_nlp_api_results(client, text_content):
     """Retrieves sentiment/entity information per entity on the whole transcript.
 
     Args:
-        client: NLP Object representing API Client,
+        client: google.cloud.language.Client
         text_content: String containing text of transcribed audio file.
 
     Returns:
@@ -103,7 +103,7 @@ def upload_json_to_gcs(gcs_client, bucket_name, file_name, file_contents):
     """Uploads toxicity JSON object to GCS.
 
     Args:
-        gcs_client: Object representing JSON object
+        gcs_client: google.cloud.storage.Client
         bucket_name: String holding bucket of where to store results.
         file_name: String of bucket which is the name of the audio file.
         file_contents: JSON holding toxicity information

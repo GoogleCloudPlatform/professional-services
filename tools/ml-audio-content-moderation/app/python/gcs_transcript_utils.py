@@ -61,7 +61,7 @@ def get_transcript_from_gcs(gcs_client, bucket_name, file_name):
     """Downloads transcript file from GCS.
 
     Args:
-        gcs_client: Object representing GCS Client Object.
+        gcs_client: google.cloud.storage.Client
         bucket_name: String representing bucket name.
         file_name: String representing audio file name.
 

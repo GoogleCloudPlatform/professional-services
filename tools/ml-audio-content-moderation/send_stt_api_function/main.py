@@ -34,7 +34,7 @@ def create_config_object(content_type):
       content_type: String from GCS representing type of content i.e. 'audio/flac'
 
     Returns:
-      Object in format {'language_code': string
+      Dict in format {'language_code': string
                         'enable_word_time_offsets': boolean
                         'enable_automatic_punctuation': boolean
                         'encoding': enums.RecognititionConfig.AudioEncoding
@@ -114,7 +114,7 @@ def publish_operation_to_pubsub(publisher_client, project, operation_name,
     """Pushes message to PubSub topic holding STT Operation ID and file name.
 
     Args:
-        publisher_client: Object representing PubSub client API
+        publisher_client: google.cloud.pubsub.PublisherClient
         project: String representing GCP project ID
         operation_name: String of operation ID for STT API
         file_name: String
@@ -143,7 +143,7 @@ def copy_file(client, source_bucket_name, destination_bucket_name, file_name):
     """Copies GCS file from one bucket to another.
 
     Args:
-        client: Object representing GCS client.
+        client: google.cloud.storage.Client
         source_bucket_name: String of name of bucket where object is now.
         destination_bucket_name: String of name of bucket to copy object to.
         file_name: String of name of file that is being copied.
@@ -172,7 +172,7 @@ def delete_file(client, bucket_name, file_name):
     """Deletes file from specified bucket.
 
     Args:
-        client: Object representing GCS client
+        client: google.cloud.storage.Client
         bucket_name: String holding name of bucket.
         file_name: String of name of file to delete.
 

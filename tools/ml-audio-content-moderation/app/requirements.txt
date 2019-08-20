@@ -3,9 +3,7 @@ Flask-restful==0.3.6
 Werkzeug<0.13.0,>=0.12.0
 requests==2.19.1
 gunicorn==19.7.1
-google-cloud-speech
-google-cloud-storage
-google-cloud-language
-google-api-python-client
-ffmpeg-python
-pydub
+google-cloud-speech==1.2.0
+google-cloud-storage==1.18.0
+google-cloud-language==1.3.0
+google-api-python-client==1.7.11
