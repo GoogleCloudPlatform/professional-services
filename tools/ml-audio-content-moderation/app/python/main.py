@@ -143,12 +143,12 @@ class Entities(Resource):
             return jsonify(e.to_dict())
 
 
-app = Flask(__name__, static_url_path='', static_folder='../angular/dist')
-api = Api(app)
-api.add_resource(Main, '/')
-api.add_resource(Files, '/files')
-api.add_resource(Entities, '/entities')
-api.add_resource(Analysis, '/analysis')
+APP = Flask(__name__, static_url_path='', static_folder='../angular/dist')
+API = Api(APP)
+API.add_resource(Main, '/')
+API.add_resource(Files, '/files')
+API.add_resource(Entities, '/entities')
+API.add_resource(Analysis, '/analysis')
 
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=8080, debug=True)
+    APP.run(host='127.0.0.1', port=8080, debug=True)

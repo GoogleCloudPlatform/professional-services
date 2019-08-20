@@ -16,23 +16,26 @@
 import json
 import logging
 import os
+from datetime import datetime
+from typing import Optional
 import requests
 import google.auth
 from google.cloud import pubsub, storage
 from requests.exceptions import HTTPError
 from googleapiclient import discovery
-from datetime import datetime
 
 ERROR_STATUS = "error"
 
-def get_finished_stt_operations(job_entry, credentials):
+
+def get_finished_stt_operations(job_entry: dict,
+                                credentials: google.auth.Credentials) -> dict:
     """Sends HTTP request to get responses from STT.
 
     Args:
         job_entry: Dict in format {'file': file1, 'id': id1}
-        credentials: Object of Oauth2 holding credentials
+        credentials: google.auth.Credentials of Oauth2 holding credentials
 
-    Returns: JSON response from STT API
+    Returns: Dict response from STT API
     """
     log_message = f'Starting get_finished_stt_operations for {job_entry}'
     logging.info(log_message)
@@ -55,11 +58,11 @@ def get_finished_stt_operations(job_entry, credentials):
     return response_json
 
 
-def parse_transcript_output(response):
+def parse_transcript_output(response: dict) -> list:
     """Reads STT API Output and constructs JSON object with relevant fields.
 
     Args:
-      response: Object holding output from STT API
+      response: Dict holding output from STT API
 
     Returns:
       Array of dict objects containing STT output
@@ -85,13 +88,15 @@ def parse_transcript_output(response):
     return stt_result
 
 
-def push_id_to_pubsub(project, publisher_client, job_entry):
+def push_id_to_pubsub(project: str,
+                      publisher_client: google.cloud.pubsub.PublisherClient,
+                      job_entry: dict) -> None:
     """Pushes unfinished ID back into PubSub topic until operation is complete.
 
     Args:
       publisher_client: google.cloud.pubsub.PublisherClient
       project: String representing GCP project ID
-      job_entry: Object holding operation ID and audio file name
+      job_entry: Dict holding operation ID and audio file name
 
     Returns:
       None; Logs message to Stackdriver.
@@ -110,7 +115,7 @@ def push_id_to_pubsub(project, publisher_client, job_entry):
     logging.info(log_message)
 
 
-def format_time(seconds):
+def format_time(seconds: str) -> str:
     """Formats timestamp in seconds to string of format HH:MM:SS.
 
     Args:
@@ -125,7 +130,9 @@ def format_time(seconds):
     return f'{int(hours):02d}:{int(mins):02d}:{int(sec):02d}'
 
 
-def copy_file(client, source_bucket_name, destination_bucket_name, file_name):
+def copy_file(client: google.cloud.storage.Client,
+              source_bucket_name: Optional[str],
+              destination_bucket_name: Optional[str], file_name: str) -> None:
     """Copies GCS file from one bucket to another.
 
     Args:
@@ -153,7 +160,8 @@ def copy_file(client, source_bucket_name, destination_bucket_name, file_name):
         logging.error(e)
 
 
-def delete_file(client, bucket_name, file_name):
+def delete_file(client: google.cloud.storage.Client, bucket_name: Optional[str],
+                file_name: str) -> None:
     """Deletes file from specified bucket.
 
     Args:
@@ -174,30 +182,36 @@ def delete_file(client, bucket_name, file_name):
         logging.error(e)
 
 
-def upload_audio_transcription(client, bucket_name, json, audio_name):
+def upload_audio_transcription(client: google.cloud.storage.Client,
+                               bucket_name: Optional[str],
+                               transcription: str,
+                               audio_name: str) -> None:
     """Uploads JSON file to GCS.
 
     Args:
         client: google.cloud.storage.Client
         bucket_name: String holding name of bucket to store file
-        json: JSON object holding output from STT API
+        transcription: String holding output from STT API
         audio_name: String of audio file name
 
     Returns:
-        None; Logs message to Stackdriver
+        None; Logs message to Stackdriver.
     """
-    logging.info(f'Starting store_file with {json} and {audio_name}')
+    logging.info(f'Starting store_file with {transcription} and {audio_name}')
     bucket = client.get_bucket(bucket_name)
     destination = bucket.blob(audio_name)
     try:
-        destination.upload_from_string(json, content_type='application/json')
+        destination.upload_from_string(transcription,
+                                       content_type='application/json')
         logging.info(f'Uploaded transcript of {audio_name} to {bucket_name}')
 
     except Exception as e:
         logging.error(e)
 
 
-def check_subscription_exists(project, subscriber_client, subscription_path):
+def check_subscription_exists(project: str,
+                              subscriber_client: google.cloud.pubsub.SubscriberClient,
+                              subscription_path: str) -> bool:
     """Check if PubSub subscription exists.
 
     Args:
@@ -215,8 +229,9 @@ def check_subscription_exists(project, subscriber_client, subscription_path):
     return subscription_path in [sub.name for sub in subscription_list]
 
 
-def get_received_msgs_from_pubsub(subscriber_client, project):
-    """Retreieves receives messages in PubSub topic.
+def get_received_msgs_from_pubsub(subscriber_client: google.cloud.pubsub.SubscriberClient,
+                                  project: str) -> list:
+    """Retrieves receives messages in PubSub topic.
 
     Args:
         subscriber_client: google.cloud.pubsub.SubscriberClient
@@ -243,7 +258,9 @@ def get_received_msgs_from_pubsub(subscriber_client, project):
         logging.error(e)
 
 
-def get_stt_ids_from_msgs(subscriber_client, project, received_messages):
+def get_stt_ids_from_msgs(subscriber_client: google.cloud.pubsub.SubscriberClient,
+                          project: str,
+                          received_messages: list) -> list:
     """Creates array of objects with STT API operation IDs and file names.
 
     Args:
@@ -276,12 +293,13 @@ def get_stt_ids_from_msgs(subscriber_client, project, received_messages):
         logging.error(e)
 
 
-def write_processing_time_metric(project, pipeline_start_time):
+def write_processing_time_metric(project: str,
+                                 pipeline_start_time: float) -> None:
     """Writes custom metrics to Stackdriver.
 
     Args:
-        pipeline_start_time: Datetime object holding current time in seconds.
-        processing_status: either SUCCESS or ERROR
+        project: String holding GCP project id
+        pipeline_start_time: Float holding current time in seconds.
 
     Returns:
          None; Logs message to Stackdriver.
@@ -300,7 +318,7 @@ def write_processing_time_metric(project, pipeline_start_time):
         logging.info(f'total_processing_time: {total_processing_time}')
 
         monitoring_service = discovery.build(
-            serviceName='monitoring', version= 'v3', cache_discovery=False
+            serviceName='monitoring', version='v3', cache_discovery=False
         )
         project_name = f'projects/{project}'
         time_series = [
@@ -340,8 +358,8 @@ def write_processing_time_metric(project, pipeline_start_time):
         logging.error('Writing custom metric failed.')
         logging.error(e)
 
-
-def main(data, context):
+# pylint: disable=unused-argument
+def main(data: dict, context: google.cloud.functions.Context) -> None:
     """Background Cloud Function to be triggered by Pub/Sub.
     Args:
          event (dict):  The dictionary with data specific to this type of
@@ -376,7 +394,7 @@ def main(data, context):
                                     response.'''
                     logging.error(error_message)
                     copy_file(gcs_client, staging_bucket_name,
-                            error_bucket_name, job['file'])
+                              error_bucket_name, job['file'])
                     delete_file(gcs_client, staging_bucket_name, job['file'])
                     write_processing_time_metric(project,
                                                  job['pipeline_start_time'])
@@ -390,11 +408,12 @@ def main(data, context):
 
                     if stt_json:
                         transcription_bucket = os.environ.get('transcription_bucket')
-                        upload_audio_transcription(gcs_client, transcription_bucket,
-                                                json.dumps(json_for_gcs),
-                                                job['file'])
+                        upload_audio_transcription(gcs_client,
+                                                   transcription_bucket,
+                                                   json.dumps(json_for_gcs),
+                                                   job['file'])
                         copy_file(gcs_client, staging_bucket_name,
-                                processed_bucket_name, job['file'])
+                                  processed_bucket_name, job['file'])
                         delete_file(gcs_client, staging_bucket_name,
                                     job['file'])
                     else:
@@ -405,7 +424,7 @@ def main(data, context):
                                         audio found.'''
                         logging.error(error_message)
                         copy_file(gcs_client, staging_bucket_name,
-                                error_bucket_name, job['file'])
+                                  error_bucket_name, job['file'])
                         delete_file(gcs_client, staging_bucket_name,
                                     job['file'])
                         write_processing_time_metric(project,
@@ -414,7 +433,7 @@ def main(data, context):
                 else:
                     push_id_to_pubsub(project, publisher_client, job)
         else:
-            logging.info('Not processing any messages') 
+            logging.info('Not processing any messages')
 
     except Exception as e:
         logging.error(e)

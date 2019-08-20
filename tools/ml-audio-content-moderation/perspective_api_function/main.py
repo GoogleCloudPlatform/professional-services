@@ -17,6 +17,7 @@ import json
 import logging
 import os
 from datetime import datetime
+from typing import List, Optional, Union
 from google.cloud import storage
 from googleapiclient import discovery
 
@@ -24,7 +25,7 @@ ERROR_STATUS = "error"
 SUCCESS_STATUS = "success"
 
 
-def authenticate_perspective():
+def authenticate_perspective() -> discovery.build:
     """Authenticates and creates client object for Perspective API.
 
     Returns:
@@ -33,7 +34,8 @@ def authenticate_perspective():
     return discovery.build('commentanalyzer', 'v1alpha1', cache_discovery=False)
 
 
-def get_transcript(gcs_client, bucket_name, file_name):
+def get_transcript(gcs_client: storage.Client, bucket_name: str,
+                   file_name: str) -> dict:
     """Downloads transcript file from GCS.
 
     Args:
@@ -50,38 +52,16 @@ def get_transcript(gcs_client, bucket_name, file_name):
     return json.loads(transcript.download_as_string())
 
 
-def get_perspective_api_results(perspective_client, text):
+def get_perspective_api_results(perspective_client: discovery.build,
+                                text: dict) -> dict:
     """Calls Perspective API to get toxicity of transcribed text.
 
     Args:
-        perspective_client: Object representing Perspective API Client
-        text: Array in format [{'transcript': sample_text,
-                                      'start_time': HH:MM:SS,
-                                      'end_time': HH:MM:SS
-                                    }]
+        perspective_client: discovery.build representing Perspective API Client
+        text: Dict with transcript, start_time, end_time
 
     Returns:
-        Object holding perspective API results in format
-            {'attributeScores': {
-                'TOXICITY': {
-                    'spanScores': [
-                      {
-                          'begin': 0,
-                          'end': xxx,
-                          'score': {
-                            'value': 0.xx,
-                            'type': 'PROBABILITY'
-                          }
-                        }
-                    ],
-                    'summaryScore': {
-                        'value': 0.xx,
-                        'type': 'PROBABILITY'
-                    }
-                }
-              },
-             'languages': ['en'],
-             'detectedLanguages': ['en']
+        Dict holding perspective API results.
     """
     logging.info(f'Starting get_perspective_api_results with '
                  f'{perspective_client} and {text}')
@@ -97,52 +77,23 @@ def get_perspective_api_results(perspective_client, text):
     logging.debug(f'Request: {json.dumps(body)}')
     try:
         response = perspective_client.comments().analyze(body=body).execute()
-        logging.info(f'Response: {json.dumps(response)}')
-        return response
+        logging.debug(f'Response: {json.dumps(response)}')
 
     except Exception as e:
         logging.error('Calling Perspective API failed.')
         logging.error(e)
+    return response
 
 
-def format_api_results(response, text):
+def format_api_results(response: dict, text: dict) -> Union[dict, None]:
     """Extracts relevant fields from Perspective API
 
     Args:
-        response: Dict holding perspective API results in format
-            {'attributeScores': {
-                'TOXICITY': {
-                      'spanScores': [
-                          {
-                              'begin': 0,
-                              'end': xxx,
-                              'score': {
-                                  'value': 0.xx,
-                                  'type': 'PROBABILITY'
-                              }
-                            }
-                          ],
-                          'summaryScore': {
-                              'value': 0.xx,
-                              'type': 'PROBABILITY'
-                    }
-                }
-              },
-             'languages': ['en'],
-             'detectedLanguages': ['en']
-            }
-            text: Object in format {'transcript': sample_text,
-                                    'start_time': HH:MM:SS,
-                                    'end_time': HH:MM:SS
-                                    }]
+        response: Dict holding perspective API results
+        text: Dict in hodling transcript, start_time, and end_time
 
-        Returns:
-             Object in format {'text': sample_text,
-             Object in format {'text': sample_text,
-                              'start_time': HH:MM:SS,
-                              'end_time': HH:MM:SS,
-                              'toxicity': 00.00
-                            }
+    Returns:
+        Dict with text, start_time, end_time, toxicity
     """
     logging.info(f'Starting format_api_results with {json.dumps(response)} '
                  f'and {text}.')
@@ -160,14 +111,15 @@ def format_api_results(response, text):
         logging.error(e)
 
 
-def store_toxicity(gcs_client, bucket_name, file_name, file_contents):
+def store_toxicity(gcs_client: storage.Client, bucket_name: Optional[str],
+                   file_name: str, file_contents: List[dict]) -> None:
     """Uploads toxicity JSON object to GCS.
 
     Args:
         gcs_client: google.cloud.storage.Client
         bucket_name: String of name of bucket to store the files
         file_name: String of audio file name
-        file_contents: JSON holding toxicity information
+        file_contents: dict holding toxicity information
 
     Returns:
         None; Logs message to Stackdriver.
@@ -186,11 +138,12 @@ def store_toxicity(gcs_client, bucket_name, file_name, file_contents):
         logging.error(e)
 
 
-def write_processing_time_metric(pipeline_start_time, processing_status):
+def write_processing_time_metric(pipeline_start_time: str,
+                                 processing_status: str) -> None:
     """Writes custom metrics to Stackdriver.
 
     Args:
-        pipeline_start_time: Datetime object holding current time in seconds.
+        pipeline_start_time: String holding current time in seconds.
         processing_status: either SUCCESS or ERROR
 
     Returns:
@@ -212,7 +165,7 @@ def write_processing_time_metric(pipeline_start_time, processing_status):
         logging.info(f'total_processing_time: {total_processing_time}')
 
         monitoring_service = discovery.build(
-            serviceName='monitoring', version= 'v3', cache_discovery=False
+            serviceName='monitoring', version='v3', cache_discovery=False
         )
         project_name = f'projects/{project}'
         time_series = {
@@ -254,7 +207,7 @@ def write_processing_time_metric(pipeline_start_time, processing_status):
         logging.error(e)
 
 
-def main(data, context):
+def main(data: dict, context: functions.Context):
     """Background Cloud Function to be triggered by Cloud Storage.
    This function logs relevant data when a file is uploaded.
 

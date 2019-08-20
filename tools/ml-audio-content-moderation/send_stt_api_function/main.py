@@ -17,6 +17,8 @@
 import json
 import logging
 import os
+from datetime import datetime
+from typing import Optional, Any
 from google.cloud import pubsub
 from google.cloud.speech_v1 import enums
 from google.cloud import storage
@@ -24,10 +26,9 @@ import google.auth
 import google.auth.transport.requests
 import requests
 from requests.exceptions import HTTPError
-from datetime import datetime 
 
 
-def create_config_object(content_type):
+def create_config_object(content_type: str) -> dict:
     """Creates config object to send required params to STT API.
 
     Args:
@@ -58,6 +59,7 @@ def create_config_object(content_type):
             if content_encoding_type in encoding_mapping:
                 config_object['encoding'] = encoding_mapping[content_encoding_type]
             else:
+                # pylint: disable=line-too-long
                 config_object['encoding'] = enums.RecognitionConfig.AudioEncoding.ENCODING_UNSPECIFIED
         else:
             config_object['encoding'] = enums.RecognitionConfig.AudioEncoding.ENCODING_UNSPECIFIED
@@ -68,7 +70,8 @@ def create_config_object(content_type):
         logging.error(e)
 
 
-def call_stt_api(gcs_uri, config_object, credentials):
+def call_stt_api(gcs_uri: str, config_object: dict,
+                 credentials: google.auth.Credentials) -> Optional[Any]:
     """Sends HTTP Post Request to Speech-to-Text API
 
     Args:
@@ -109,8 +112,9 @@ def call_stt_api(gcs_uri, config_object, credentials):
     return operation_name
 
 
-def publish_operation_to_pubsub(publisher_client, project, operation_name,
-                                file_name):
+def publish_operation_to_pubsub(publisher_client: google.cloud.pubsub.PublisherClient,
+                                project: str, operation_name: str,
+                                file_name: str) -> None:
     """Pushes message to PubSub topic holding STT Operation ID and file name.
 
     Args:
@@ -132,14 +136,15 @@ def publish_operation_to_pubsub(publisher_client, project, operation_name,
                                  operation_name=operation_name,
                                  audio_file_name=file_name,
                                  pipeline_start_time=start_time)
-        log_message = f'Pushed STT {operation_id} for {file_name} to PubSub'
+        log_message = f'Pushed STT {operation_name} for {file_name} to PubSub'
         logging.info(log_message)
     except Exception as e:
         logging.error('Publishing message to PubSub failed.')
         logging.error(e)
 
 
-def copy_file(client, source_bucket_name, destination_bucket_name, file_name):
+def copy_file(client: google.cloud.storage.Client, source_bucket_name: str,
+              destination_bucket_name: Optional[str], file_name: str) -> None:
     """Copies GCS file from one bucket to another.
 
     Args:
@@ -168,7 +173,8 @@ def copy_file(client, source_bucket_name, destination_bucket_name, file_name):
         logging.error(e)
 
 
-def delete_file(client, bucket_name, file_name):
+def delete_file(client: google.cloud.storage.Client, bucket_name: str,
+                file_name: str) -> None:
     """Deletes file from specified bucket.
 
     Args:
@@ -191,7 +197,7 @@ def delete_file(client, bucket_name, file_name):
         logging.error(e)
 
 
-def main(data, context):
+def main(data: dict, context: google.cloud.functions.Context) -> None:
     """Background Cloud Function to be triggered by Cloud Storage.
      This function logs relevant data when a file is uploaded.
 

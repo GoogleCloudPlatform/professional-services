@@ -14,10 +14,13 @@
 """Common util functions called by main.py."""
 
 import json
+from typing import Iterator, List, Union
 from google.cloud import storage
+from google.cloud.storage import Bucket
+from google.api_core.exceptions import NotFound
 
 
-def authenticate_gcs():
+def authenticate_gcs() -> storage.Client:
     """Creates Python Client Object to access GCS API
 
     Returns:
@@ -26,29 +29,33 @@ def authenticate_gcs():
     return storage.Client()
 
 
-def find_bucket(bucket_list, keyword):
-    """Finds bucket based on regex checking for keyword, such as 'toxicity'.
+def find_bucket_with_prefix(bucket_iter: Iterator[Bucket],
+                            prefix: str) -> Union[str, None]:
+    """"Finds bucket in a project based on bucket prefix.
 
     Args:
-        bucket_list: List of objects all holding metadat about buckets.
-        keyword: Regex name to match when looking up list of buckets.
+        bucket_iter: Iterator of google.cloud.storage.Bucket instances
+        prefix: Bucket name prefix to search for
 
     Returns:
-        String of bucket name matching search critera.
+        Bucket name with the specified prefix.
     """
-    bucket_names = [bucket.name for bucket in bucket_list]
-    return next((name for name in bucket_names if keyword in name), None)
+    for bucket in bucket_iter:
+        if bucket.name.startswith(prefix):
+            return bucket.name
+    raise NotFound(f'No bucket found with prefix: {prefix}')
 
 
-def get_files(client, bucket):
-    """Retrieives all files in a given GCS bucket
+def get_files(client: storage.Client,
+              bucket: storage.Bucket) -> List[dict]:
+    """Retrieves all files in a given GCS bucket
 
     Args:
         client: Object representing Python GCS client
-        bucket: String holding bucket name
+        bucket: google.cloud.storage.Bucket holding bucket name
 
     Returns:
-       Array in format [{name: String holding file name,
+       List of dicts [{name: String holding file name,
                         type: String representing type of file, 'audio/flac'.
                        }]
     """
@@ -57,7 +64,8 @@ def get_files(client, bucket):
              'type': blob.content_type} for blob in list(bucket.list_blobs())]
 
 
-def get_transcript_from_gcs(gcs_client, bucket_name, file_name):
+def get_gcs_transcript(gcs_client: storage.Client,
+                       bucket_name: str, file_name: str) -> List[dict]:
     """Downloads transcript file from GCS.
 
     Args:
@@ -66,14 +74,14 @@ def get_transcript_from_gcs(gcs_client, bucket_name, file_name):
         file_name: String representing audio file name.
 
     Returns:
-        JSON holding transcript object
+        List of dictionaries with transcript metadata
     """
     bucket = gcs_client.get_bucket(bucket_name)
     transcript = bucket.blob(file_name)
     return json.loads(transcript.download_as_string().decode('utf-8'))
 
 
-def extract_full_transcript(transcript_text):
+def extract_full_transcript(transcript_text: List[dict]):
     """Converts list of dictionaries holding strings to one string.
 
     Args:
