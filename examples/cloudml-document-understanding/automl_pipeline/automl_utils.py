@@ -54,28 +54,8 @@ class GeneralMatch(MatchFunction):
             start_index = pdf_text.find(match.group(0))
             return start_index, match.group(0)
 
-        
 class MatchClassification(MatchFunction):
-    def __init__(self):
-        pass
-    
-    def find_match(self, pdf_text, search_value):
-        pdf_text = pdf_text.lower()
-        search_value = search_value.lower()
-
-        search_value = search_value.replace('0', r'[0|o|q]')    # To handle OCR issues (0 -> O or Q)
-        search_value = search_value.replace('7', r'[7|z]')      # To handle OCR issues (7 -> Z)
-        search_value = search_value.replace('6', r'[6|o]')      # To handle OCR issues (6 -> O)
-        search_value = search_value.replace('q ', r'[q|0]\s')   # To handle OCR issues (Q_ -> 0_)      
-        search_value = search_value.replace('/', r'[/|1|7|\.]') # To handle OCR issues (/ -> 1 or 7 or .)
-
-        match = re.search(re.compile(search_value), pdf_text)
-        if match:
-            start_index = pdf_text.find(match.group(0))
-            return start_index, match.group(0)
-
-class MatchClassification_v2(MatchFunction):
-    """Matching function specific to classification_1.
+    """Matching function specific to US and Int. Classification.
     
     This field is more complicated as it is sometimes equal to classification 2
       or a substring of classification_2, therefore a simple match might give the wrong
@@ -200,9 +180,6 @@ def convert_pdfs(main_project_id,
             temp_directory=temp_directory, 
             service_acct=service_acct)
 
-    # TODO: don't delete the .txt files yet we need them for NER later
-    shutil.rmtree(temp_directory)
-
 
 def image_classification(main_project_id,
                          data_project_id,
@@ -306,6 +283,58 @@ def text_classification(main_project_id,
                         service_acct=service_acct)
 
 
+def object_detection(main_project_id,
+                     data_project_id,
+                     dataset_id,
+                     table_id,
+                     service_acct,
+                     input_bucket_name,
+                     region):
+
+    output_bucket_name = main_project_id + "-vcm"
+
+    dest_uri = f"gs://{output_bucket_name}/patent_demo_data/object_detection.csv"
+
+    print(f"Processing object_detection")
+
+    df = bq_to_df(data_project_id, dataset_id, table_id, service_acct)
+
+    df.replace({
+        input_bucket_name: output_bucket_name + "/patent_demo_data/png",
+        r"\.pdf": ".png"
+    }, regex=True, inplace=True)
+
+    # Add Columns for AutoML
+    # AutoML automatically splits data into Train, Test, Validation Sets
+    df.insert(loc=0, column="set", value="UNASSIGNED")
+    df.insert(loc=2, column="label", value="FIGURE")
+
+    df.insert(loc=5, column="", value="", allow_duplicates=True)
+    df.insert(loc=6, column="", value="", allow_duplicates=True)
+    df.insert(loc=9, column="", value="", allow_duplicates=True)
+    df.insert(loc=10, column="", value="", allow_duplicates=True)
+
+    df.to_csv(dest_uri, header=False, index=False)
+
+    dataset_metadata = {
+        'display_name': 'patent_demo_data' + now,
+        'image_object_detection_dataset_metadata': {},
+    }
+
+    model_metadata = {
+        'display_name': "patent_demo_data" + now,
+        'dataset_id': None,
+        'image_object_detection_model_metadata': {}
+    }
+
+    create_automl_model(main_project_id,
+                        region,
+                        dataset_metadata,
+                        model_metadata,
+                        dest_uri,
+                        service_acct)
+
+
 def entity_extraction(main_project_id,
                       data_project_id,
                       dataset_id,
@@ -373,56 +402,8 @@ def entity_extraction(main_project_id,
                         dest_uri,
                         service_acct)
 
-def object_detection(main_project_id,
-                     data_project_id,
-                     dataset_id,
-                     table_id,
-                     service_acct,
-                     input_bucket_name,
-                     region):
-
-    output_bucket_name = main_project_id + "-vcm"
-
-    dest_uri = f"gs://{output_bucket_name}/patent_demo_data/object_detection.csv"
-
-    print(f"Processing object_detection")
-
-    df = bq_to_df(data_project_id, dataset_id, table_id, service_acct)
-
-    df.replace({
-        input_bucket_name: output_bucket_name + "/patent_demo_data/png",
-        r"\.pdf": ".png"
-    }, regex=True, inplace=True)
-
-    # Add Columns for AutoML
-    # AutoML automatically splits data into Train, Test, Validation Sets
-    df.insert(loc=0, column="set", value="UNASSIGNED")
-    df.insert(loc=2, column="label", value="FIGURE")
-
-    df.insert(loc=5, column="", value="", allow_duplicates=True)
-    df.insert(loc=6, column="", value="", allow_duplicates=True)
-    df.insert(loc=9, column="", value="", allow_duplicates=True)
-    df.insert(loc=10, column="", value="", allow_duplicates=True)
-
-    df.to_csv(dest_uri, header=False, index=False)
-
-    dataset_metadata = {
-        'display_name': 'patent_demo_data' + now,
-        'image_object_detection_dataset_metadata': {},
-    }
-
-    model_metadata = {
-        'display_name': "patent_demo_data" + now,
-        'dataset_id': None,
-        'image_object_detection_model_metadata': {}
-    }
-
-    create_automl_model(main_project_id,
-                        region,
-                        dataset_metadata,
-                        model_metadata,
-                        dest_uri,
-                        service_acct)
+    # Remove all files in the temporary directory
+    shutil.rmtree(temp_directory)
 
 
 def bq_to_df(project_id, dataset_id, table_id, service_acct):
@@ -525,10 +506,6 @@ def create_jsonl(pdf_text, value_dict):
             continue
         match_fn = LIST_FIELDS[field]
         match = match_fn.find_match(pdf_text, value_to_find)
-        if field == "class_us" and not match and value_dict["issuer"] == 'US':
-            print(value_dict["application_number"])
-        if field == "class_us" and match:
-            print("class_us")
         if match:
           start_index, match_value = match
           if (start_index != -1):
@@ -545,14 +522,14 @@ def create_jsonl(pdf_text, value_dict):
 LIST_FIELDS = {
     'applicant_line_1': MatchTypo(),
     'application_number': GeneralMatch(),
-    'class_international': MatchClassification_v2(pattern_keyword_before=r'Int\.? C[I|L|1]'),
-    'class_us': MatchClassification_v2(pattern_keyword_before='U.S. C[I|L|1]'),
+    'class_international': MatchClassification(pattern_keyword_before=r'Int\.? C[I|L|1]'),
+    'class_us': MatchClassification(pattern_keyword_before=r'U.S. C[I|L|1]'),
     'filing_date': MatchTypo(tolerance=1),
     'inventor_line_1': MatchTypo(),
     'number': GeneralMatch(),
     'publication_date': GeneralMatch(),
     'title_line_1': MatchTypo(),
-    'issuer': MatchTypo()
+    'number': GeneralMatch()
 }
 
 def save_jsonl_content(jsonl, full_gcs_path, service_acct): 
