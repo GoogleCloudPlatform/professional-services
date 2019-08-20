@@ -64,7 +64,7 @@ describe('BqQueryPlan', () => {
     const stats = JSON.parse(statsString);
     expect(stats).toBeTruthy();
     expect(stats['steps']).toBeFalsy();
-    expect(stats.name).toEqual('S00: Input');
+    expect(stats['name           ']).toEqual('S00: Input');
   });
 
   it('should get colour for the max time', () => {
