@@ -19,7 +19,7 @@ import yaml
 import service_account
 
 config = yaml.safe_load(open("../config.yaml", "r"))
-
+'''
 service_account.create(config)
 
 # Create data needed for training AutoML models below
@@ -56,3 +56,13 @@ automl_utils.text_classification(main_project_id=config['main_project']['project
                                  service_acct=config["service_acct"]["key"],
                                  input_bucket_name=config["main_project"]["input_bucket_name"],
                                  region=config["main_project"]["region"])
+'''
+# Create AutoML Natural Entity Recognition model
+automl_utils.entity_extraction(main_project_id=config['main_project']['project_id'],
+                              data_project_id=config["model_ner"]["project_id"],
+                                 dataset_id=config["model_ner"]["dataset_id"],
+                                 table_id=config["model_ner"]["table_id"],
+                                 service_acct=config["service_acct"]["key"],
+                                 input_bucket_name=config["main_project"]["input_bucket_name"],
+                                 region=config["main_project"]["region"],
+                                 config=config)

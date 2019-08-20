@@ -19,10 +19,113 @@ import shutil
 import datetime
 import pandas as pd
 import subprocess
+import re
+import regex
+import math
 
 from google.cloud import bigquery, vision, storage, automl_v1beta1 as automl
 from google.cloud.automl_v1beta1 import enums
 from wand.image import Image
+
+import abc
+
+class MatchFunction(object):
+    
+    @abc.abstractmethod
+    def __init__(self, kwargs):
+        return
+    
+    @abc.abstractmethod
+    def find_match(self, pdf_text, search_value):
+        # A match function should return a start position and the matched string.
+        return
+
+
+class GeneralMatch(MatchFunction):    
+    def __init__(self):
+        pass
+
+    def find_match(self, pdf_text, search_value):
+        pdf_text = pdf_text.lower()
+        search_value = str(search_value).lower()
+        
+        match = re.search(re.compile(search_value), pdf_text)
+        if match:
+            start_index = pdf_text.find(match.group(0))
+            return start_index, match.group(0)
+
+class MatchClassification(MatchFunction):
+    """Matching function specific to US and Int. Classification.
+    
+    This field is more complicated as it is sometimes equal to classification 2
+      or a substring of classification_2, therefore a simple match might give the wrong
+      location.
+    
+    When we get several match, we return the first match after the position of IntCl
+      for classification 1 and the the position after US CL for classification 2.
+      
+    Note: we use either 'Int\.? C[I|L|1]' or 'U.S. C[I|L|1]' as keyword pattern.
+    """
+    
+    def __init__(self, pattern_keyword_before):
+        self._pattern_keyword_before = pattern_keyword_before.lower()
+    
+    def _find_position_pattern(self, pdf_text):
+        match = re.search(re.compile(self._pattern_keyword_before), pdf_text)
+        if match:
+            start_index = pdf_text.find(match.group(0))
+            return start_index
+    
+    def find_match(self, pdf_text, search_value):
+        
+        pdf_text = pdf_text.lower()
+        search_value = str(search_value).lower()
+        search_value = search_value.replace('0', r'[0|o|q]')    # To handle OCR issues (0 -> O or Q)
+        search_value = search_value.replace('7', r'[7|z]')      # To handle OCR issues (7 -> Z)
+        search_value = search_value.replace('6', r'[6|o]')      # To handle OCR issues (6 -> O)
+        search_value = search_value.replace('q ', r'[q|0]\s')   # To handle OCR issues (Q_ -> 0_)      
+        search_value = search_value.replace('/', r'[/|1|7|\.]') # To handle OCR issues (/ -> 1 or 7 or .)
+
+        
+        position_pattern = self._find_position_pattern(pdf_text)
+        if position_pattern:
+            for match in re.finditer(re.compile(search_value), pdf_text):
+                if match.start() > position_pattern:
+                    return match.start(), match.group()
+
+class MatchTypo(MatchFunction):
+    
+    def __init__(self, tolerance=2):
+        self._tolerance = tolerance
+    
+    def find_match(self, pdf_text, search_value):       
+        pdf_text = pdf_text.lower()
+        search_value = str(search_value).lower()
+
+        r = regex.compile('(%s){e<=%i}'%(search_value, self._tolerance), flags=regex.BESTMATCH)
+        match = r.search(pdf_text)
+        if match:
+            match_value = match.group(0)
+            start_index = pdf_text.find(match_value)
+            return start_index, match_value
+
+class MatchApplicant(MatchFunction):
+    def __init__(self):
+        pass
+    
+    def find_match(self, pdf_text, search_value):
+        pdf_text = pdf_text.lower()
+        search_value = str(search_value).lower()
+
+        search_value = search_value.replace(r';', r'[;|:]')
+        search_value = search_value.replace(r'(', r'\(').replace(r')', r'\)')
+
+        match = re.search(re.compile(search_value), pdf_text)
+        if match:
+            start_index = pdf_text.find(match.group(0))
+            return start_index, match.group(0)
+
+
 
 now = datetime.datetime.now().strftime("_%m%d%Y_%H%M%S")
 
@@ -76,8 +179,6 @@ def convert_pdfs(main_project_id,
             output_directory=output_directory, 
             temp_directory=temp_directory, 
             service_acct=service_acct)
-
-    #shutil.rmtree(temp_directory)
 
 
 def image_classification(main_project_id,
@@ -142,6 +243,7 @@ def text_classification(main_project_id,
     output_bucket_name = main_project_id + "-lcm"
 
     # Create .csv file for importing data
+    # TODO put output diretcory as argument to this function
     dest_uri = f"gs://{output_bucket_name}/patent_demo_data/text_classification.csv"
 
     df = bq_to_df(project_id=data_project_id,
@@ -149,6 +251,7 @@ def text_classification(main_project_id,
                   table_id=table_id,
                   service_acct=service_acct)
 
+    # TODO put output diretcory as argument to this function
     output_df = df.replace({
         input_bucket_name: output_bucket_name + "/patent_demo_data/txt",
         r"\.pdf": ".txt"
@@ -178,20 +281,6 @@ def text_classification(main_project_id,
                         model_metadata=model_metadata,
                         path=dest_uri,
                         service_acct=service_acct)
-
-
-def entity_extraction(main_project_id,
-                      data_project_id,
-                      dataset_id,
-                      table_id,
-                      service_acct,
-                      input_bucket_name,
-                      region):
-    df = bq_to_df(project_id=data_project_id,
-                  dataset_id=dataset_id,
-                  table_id=table_id,
-                  service_acct=service_acct)
-    return
 
 
 def object_detection(main_project_id,
@@ -244,6 +333,77 @@ def object_detection(main_project_id,
                         model_metadata,
                         dest_uri,
                         service_acct)
+
+
+def entity_extraction(main_project_id,
+                      data_project_id,
+                      dataset_id,
+                      table_id,
+                      service_acct,
+                      input_bucket_name,
+                      region,
+                      config):
+    
+    # Create training data
+    dest_uri = f"gs://{main_project_id}-lcm/patent_demo_data/entity_extraction.csv"
+
+    df = bq_to_df(project_id=data_project_id,
+                  dataset_id=dataset_id,
+                  table_id=table_id,
+                  service_acct=service_acct)
+    
+
+    fields_to_extract = config['model_ner']['fields_to_extract']
+    field_names = [field['field_name'] for field in fields_to_extract]
+    df = df[field_names]
+    df_dict = df.to_dict("records")
+
+    # TODO Change convert_pdfs above to not delete .txt files from temp directory
+    # then we can use them here and then delete
+    #     or 
+    # TODO put output diretcory as argument to this function
+    # TODO put temp diretcory as argument to this function
+    #subprocess.run(f'gsutil -m cp gs://{main_project_id}-lcm/patent_demo_data/txt/*.txt ./tmp/google',
+    #               shell=True)
+
+    LIST_JSONL = []
+    for _index in range(0, len(df)):
+        txt_file = df_dict[_index].pop("file").replace('.pdf', '.txt')
+        txt_file = txt_file.replace(f'gs://{input_bucket_name}/', './tmp/google/')
+        with open(txt_file, "r") as f:
+            _text = f.read()
+            jsonl = create_jsonl(_text, df_dict[_index])
+            LIST_JSONL.append(jsonl)
+    # TODO put output diretcory as argument to this function
+    save_jsonl_content(jsonl="\n".join(LIST_JSONL),
+        full_gcs_path=f"gs://{main_project_id}-lcm/patent_demo_data/entity_extraction.jsonl",
+        service_acct=service_acct)
+    save_jsonl_content(jsonl=f", gs://{main_project_id}-lcm/patent_demo_data/entity_extraction.jsonl",
+        full_gcs_path=dest_uri,
+        service_acct=service_acct)
+
+    # Set dataset name and metadata.
+    dataset_metadata = {
+        "display_name": "patent_demo_data" + now,
+        "text_extraction_dataset_metadata": {}
+    }
+
+    # Set model name and model metadata for the dataset.
+    model_metadata = {
+        "display_name": "patent_demo_data" + now,
+        "dataset_id": None,
+        "text_extraction_dataset_metadata": {}
+    }
+
+    create_automl_model(main_project_id,
+                        region,
+                        dataset_metadata,
+                        model_metadata,
+                        dest_uri,
+                        service_acct)
+
+    # Remove all files in the temporary directory
+    shutil.rmtree(temp_directory)
 
 
 def bq_to_df(project_id, dataset_id, table_id, service_acct):
@@ -328,3 +488,62 @@ def create_automl_model(project_id,
     response = client.create_model(project_location, model_metadata)
     print(f'Training operation name: {response.operation.name}')
     print('Training started. This will take a while.')
+
+def create_jsonl(pdf_text, value_dict):
+    """Constructs the jsonl for a given pdf.
+    
+    Args:
+      pdf_text: Text of the pdf.
+      value_dict: a dictionary of fieldname: fieldvalue.
+    """
+    
+    pdf_text = pdf_text.replace('"', '')
+    jsonl = ['''{"annotations": [''']
+    for field in value_dict:
+        value_to_find = value_dict[field]
+        
+        if isinstance(value_to_find, float) and math.isnan(value_to_find):
+            continue
+        match_fn = LIST_FIELDS[field]
+        match = match_fn.find_match(pdf_text, value_to_find)
+        if match:
+          start_index, match_value = match
+          if (start_index != -1):
+            end_index = start_index + len(match_value)
+            jsonl.append('''{{"text_extraction": {{"text_segment": {{"end_offset": {}, "start_offset": {}}}}},"display_name": "{}"}},'''.format(
+                end_index, start_index, field))
+
+    jsonl[-1] = jsonl[-1].replace('"},', '"}') # Remove last comma
+    jsonl.append(u'''],"text_snippet":{{"content": "{}"}}}}'''.format(pdf_text.replace('\n', '\\n')))
+    
+    jsonl_final = ''.join(jsonl)
+    return jsonl_final
+
+LIST_FIELDS = {
+    'applicant_line_1': MatchTypo(),
+    'application_number': GeneralMatch(),
+    'class_international': MatchClassification(pattern_keyword_before=r'Int\.? C[I|L|1]'),
+    'class_us': MatchClassification(pattern_keyword_before=r'U.S. C[I|L|1]'),
+    'filing_date': MatchTypo(tolerance=1),
+    'inventor_line_1': MatchTypo(),
+    'number': GeneralMatch(),
+    'publication_date': GeneralMatch(),
+    'title_line_1': MatchTypo(),
+    'number': GeneralMatch()
+}
+
+def save_jsonl_content(jsonl, full_gcs_path, service_acct): 
+
+    match = re.match(r'gs://([^/]+)/(.*)', full_gcs_path)
+    bucket_name = match.group(1)
+    blob_name = match.group(2)
+
+    client = storage.Client.from_service_account_json(service_acct)
+    bucket = client.get_bucket(bucket_name)
+    blob_csv = bucket.blob(blob_name)
+
+    blob_csv.upload_from_string(jsonl)
+
+
+
+    
