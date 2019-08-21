@@ -27,8 +27,10 @@ import {MatTableModule} from '@angular/material/table';
 import {MatTabsModule} from '@angular/material/tabs';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {RouterTestingModule} from '@angular/router/testing';
-import {OAuthService, UrlHelperService} from 'angular-oauth2-oidc';
+import {OAuthModule, OAuthService, UrlHelperService} from 'angular-oauth2-oidc';
+
 import {environment} from '../environments/environment';
+
 import {AppComponent} from './app.component';
 import {MockOAuthService} from './google-auth.service';
 import {JobComponent} from './job/job.component';
@@ -46,6 +48,7 @@ describe('AppComponent', () => {
     TestBed
         .configureTestingModule({
           imports: [
+            OAuthModule.forRoot(),
             RouterTestingModule,
             HttpClientTestingModule,
             FormsModule,
@@ -105,6 +108,6 @@ describe('AppComponent', () => {
        fixture.detectChanges();
        const compiled = fixture.debugElement.nativeElement;
        expect(compiled.querySelector('h1').textContent)
-           .toContain('BQ Visualizer');
+           .toContain('BQ Visualiser');
      }));
 });
