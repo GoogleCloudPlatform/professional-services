@@ -43,12 +43,12 @@ def get_transcript(gcs_client: storage.Client, bucket_name: str,
     return json.loads(transcript.download_as_string())
 
 
-def get_nlp_api_results(client: language.Client,
+def get_nlp_api_results(client: language.LanguageServiceClient,
                         text_content: str) -> language.types.AnalyzeEntitySentimentResponse:
     """Retrieves sentiment/entity information per entity on the whole transcript.
 
     Args:
-        client: google.cloud.language.Client
+        client: google.cloud.language.LanguageServiceClient
         text_content: String containing text of transcribed audio file.
 
     Returns:
@@ -192,7 +192,7 @@ def write_processing_time_metric(pipeline_start_time: str,
         logging.error(e)
 
 
-def main(data: dict, context: functions.Context) -> None:
+def main(data: dict, context) -> None:
     """Background Cloud Function to be triggered by Cloud Storage.
    This function logs relevant data when a file is uploaded.
 

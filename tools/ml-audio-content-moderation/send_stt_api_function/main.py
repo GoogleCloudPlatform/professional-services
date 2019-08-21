@@ -71,7 +71,7 @@ def create_config_object(content_type: str) -> dict:
 
 
 def call_stt_api(gcs_uri: str, config_object: dict,
-                 credentials: google.auth.Credentials) -> Optional[Any]:
+                 credentials: google.auth.credentials.Credentials) -> Optional[Any]:
     """Sends HTTP Post Request to Speech-to-Text API
 
     Args:
@@ -197,7 +197,7 @@ def delete_file(client: google.cloud.storage.Client, bucket_name: str,
         logging.error(e)
 
 
-def main(data: dict, context: google.cloud.functions.Context) -> None:
+def main(data: dict, context) -> None:
     """Background Cloud Function to be triggered by Cloud Storage.
      This function logs relevant data when a file is uploaded.
 
@@ -231,5 +231,7 @@ def main(data: dict, context: google.cloud.functions.Context) -> None:
     except Exception as e:
         logging.error(e)
         error_bucket = os.environ.get('error_audio_bucket')
+        staging_bucket = data['bucket']
+        file_name = data['name']
         copy_file(gcs_client, staging_bucket, error_bucket, file_name)
         delete_file(gcs_client, staging_bucket, file_name)

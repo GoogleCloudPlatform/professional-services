@@ -28,7 +28,7 @@ ERROR_STATUS = "error"
 
 
 def get_finished_stt_operations(job_entry: dict,
-                                credentials: google.auth.Credentials) -> dict:
+                                credentials: google.auth.credentials.Credentials) -> dict:
     """Sends HTTP request to get responses from STT.
 
     Args:
@@ -359,7 +359,7 @@ def write_processing_time_metric(project: str,
         logging.error(e)
 
 # pylint: disable=unused-argument
-def main(data: dict, context: google.cloud.functions.Context) -> None:
+def main(data: dict, context) -> None:
     """Background Cloud Function to be triggered by Pub/Sub.
     Args:
          event (dict):  The dictionary with data specific to this type of

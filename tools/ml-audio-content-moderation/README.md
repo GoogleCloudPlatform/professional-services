@@ -248,8 +248,7 @@ gcloud functions deploy read_stt_api \
    --trigger-event google.pubsub.topic.publish \
    --timeout 540s \
    --set-env-vars topic_name=$TOPIC_NAME,subscription_name=$SUBSCRIPTION_NAME,\
-   transcription_bucket=$transcription_bucket,staging_audio_bucket=$staging_audio_bucket,\
-   processed_audio_bucket=$processed_audio_bucket,error_audio_bucket=$error_audio_bucket
+   transcription_bucket=$transcription_bucket,staging_audio_bucket=$staging_audio_bucket,processed_audio_bucket=$processed_audio_bucket,error_audio_bucket=$error_audio_bucket
 ````
 
 6. Deploy Cloud Scheduler Job

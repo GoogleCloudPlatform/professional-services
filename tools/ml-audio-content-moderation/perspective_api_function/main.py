@@ -207,7 +207,7 @@ def write_processing_time_metric(pipeline_start_time: str,
         logging.error(e)
 
 
-def main(data: dict, context: functions.Context):
+def main(data: dict, context):
     """Background Cloud Function to be triggered by Cloud Storage.
    This function logs relevant data when a file is uploaded.
 
