@@ -135,7 +135,7 @@ def convert_pdfs(main_project_id,
                  temp_directory,
                  output_directory,
                  service_acct):
-    """Converts all pdfs in a bucket to png.
+    """Converts all pdfs in a bucket to png and txt using OCR.
 
     Args:
       input_bucket_name (string): Bucket of Public PDFs
@@ -193,9 +193,7 @@ def image_classification(main_project_id,
 
     output_bucket_name = main_project_id + "-vcm"
 
-    # TODO Put output_bucket_name into config file for each dataset
-    # TODO put output diretcory as argument to this function
-
+    # TODO put output diretcory as argument to this function. Don't hard code 'patent_demo_data'
     dest_uri = f"gs://{output_bucket_name}/patent_demo_data/image_classification.csv"
 
     df = bq_to_df(data_project_id, dataset_id, table_id, service_acct)
@@ -342,9 +340,11 @@ def entity_extraction(main_project_id,
                       service_acct,
                       input_bucket_name,
                       region,
+                      temp_directory
                       config):
     
     # Create training data
+    # TODO put output diretcory as argument to this function, don't hard code 'patent_demo_data'
     dest_uri = f"gs://{main_project_id}-lcm/patent_demo_data/entity_extraction.csv"
 
     df = bq_to_df(project_id=data_project_id,
@@ -352,19 +352,10 @@ def entity_extraction(main_project_id,
                   table_id=table_id,
                   service_acct=service_acct)
     
-
     fields_to_extract = config['model_ner']['fields_to_extract']
     field_names = [field['field_name'] for field in fields_to_extract]
     df = df[field_names]
     df_dict = df.to_dict("records")
-
-    # TODO Change convert_pdfs above to not delete .txt files from temp directory
-    # then we can use them here and then delete
-    #     or 
-    # TODO put output diretcory as argument to this function
-    # TODO put temp diretcory as argument to this function
-    #subprocess.run(f'gsutil -m cp gs://{main_project_id}-lcm/patent_demo_data/txt/*.txt ./tmp/google',
-    #               shell=True)
 
     LIST_JSONL = []
     for _index in range(0, len(df)):
@@ -374,7 +365,8 @@ def entity_extraction(main_project_id,
             _text = f.read()
             jsonl = create_jsonl(_text, df_dict[_index])
             LIST_JSONL.append(jsonl)
-    # TODO put output diretcory as argument to this function
+
+    # TODO put output directory as argument to this function, don't hard code 'patent_demo_data'
     save_jsonl_content(jsonl="\n".join(LIST_JSONL),
         full_gcs_path=f"gs://{main_project_id}-lcm/patent_demo_data/entity_extraction.jsonl",
         service_acct=service_acct)
@@ -523,7 +515,6 @@ LIST_FIELDS = {
     'applicant_line_1': MatchTypo(),
     'application_number': GeneralMatch(),
     'class_international': MatchClassification(pattern_keyword_before=r'Int\.? C[I|L|1]'),
-    'class_us': MatchClassification(pattern_keyword_before=r'U.S. C[I|L|1]'),
     'filing_date': MatchTypo(tolerance=1),
     'inventor_line_1': MatchTypo(),
     'number': GeneralMatch(),
@@ -543,7 +534,3 @@ def save_jsonl_content(jsonl, full_gcs_path, service_acct):
     blob_csv = bucket.blob(blob_name)
 
     blob_csv.upload_from_string(jsonl)
-
-
-
-    

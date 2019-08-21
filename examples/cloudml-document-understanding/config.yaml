@@ -1,44 +1,37 @@
 # Configuration file for end-to-end demo.
 
 main_project:
-  project_id: # 'TODO (user): set with your Project ID'
+  project_id: # 'TODO(user): set with your Project ID'
   region: 'us-central1' # Currently the only supported location_id is “us-central1”.
-  input_bucket_name: 'patent_demo_data_pdp' # FROM PDP
-  temp_directory: './tmp/google'
-  output_directory: 'patent_demo_data'
+  temp_directory: './tmp/google' # Local directory for creating .png and .txt files
+  output_directory: 'patent_demo_data' # GCS directory for putting data, labels for AutoML models
 service_acct:
   user_id: # TODO(user) : Set With your GCP Account Email 
   name: 'patent-demo-service-acct'
   description: 'Service-account-for-doc-understanding-demo'
   display_name: 'Patent-Demo-Service-Account'
   key: '../keys/service-acct.json'
+pdp_project:
+  project_id: 'pdf-processing-219114' # this will change to PDP project later
+  dataset_id: 'patent_demo_data_pdp' # this will change once data is PDP'd
+  input_bucket_name: 'patent_demo_data_pdp' # this will change once data is PDP'd
 model_imgclassifier:
-  project_id: 'pdf-processing-219114'
-  dataset_id: 'patent_demo_data_pdp' # dataset location of PDP data
-  table_id: 'entity_extraction' # table location of PDP data
+  pdp_table_id: 'entity_extraction' # table location of PDP data
   model_id: '<IMAGE_MODELID_PLACEHOLDER>' # TODO: replace with model id when training is complete
 model_textclassifier:
-  project_id: 'pdf-processing-219114' # project location of PDP data
-  dataset_id: 'patent_demo_data_pdp' # dataset location of PDP data 
-  table_id: 'text_classification' # table location of PDP data
+  pdp_table_id: 'text_classification' # table location of PDP data
   model_id: '<TEXT_MODELID_PLACEHOLDER>' # TODO: replace with model id when training is complete
 model_objdetect:
-  project_id: 'pdf-processing-219114'
-  dataset_id: 'patent_demo_data_pdp' # dataset location of PDP data
-  table_id: 'object_detection' # table location of PDP data
+  pdp_table_id: 'object_detection' # table location of PDP data
   model_id: '<OBJDET_MODELID_PLACEHOLDER>' # TODO: replace with model id when training is complete
 model_ner:
-  project_id: 'pdf-processing-219114'
-  dataset_id: 'patent_demo_data_pdp' # dataset location of PDP data
-  table_id: 'entity_extraction' # table location of PDP data
+  pdp_table_id: 'entity_extraction' # table location of PDP data
   model_id: '<NER_MODELID_PLACEHOLDER>' # TODO: replace with model id when training is complete
   fields_to_extract:
   - field_name: 'file'
   - field_name: 'publication_date'
   - field_name: 'class_international'
     postprocess_fn: 'PostprocessClassification'
-  #- field_name: 'class_us'
-  #  postprocess_fn: 'PostprocessClassification'
   - field_name: 'application_number'
   - field_name: 'filing_date'
   - field_name: 'applicant_line_1'
