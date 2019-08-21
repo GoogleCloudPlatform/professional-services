@@ -142,7 +142,7 @@ class TablesProcessor(object):
             if path not in files_to_skip:
 
                 if path in files_with_benchmark_tables:
-                    verb = 'Duplicating  '
+                    verb = 'Duplicating '
                 else:
                     verb = 'Processing '
                 logging.info('{0:s} benchmark table for {1:s}'.format(

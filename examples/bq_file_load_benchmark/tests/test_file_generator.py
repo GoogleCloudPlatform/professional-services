@@ -4,6 +4,7 @@ from __future__ import print_function
 import csv
 import os
 
+from google.api_core import exceptions
 from google.cloud import bigquery
 from google.cloud import storage
 
@@ -40,8 +41,11 @@ class TestFileGenerator(object):
         # create bucket
         self.bucket_name = 'bq_benchmark_test_bucket'
         gcs_client = storage.Client()
-        self.file_bucket = gcs_client.create_bucket(self.bucket_name)
-
+        try:
+            gcs_client.get_bucket(self.bucket_name).delete(force=True)
+            self.file_bucket = gcs_client.create_bucket(self.bucket_name)
+        except exceptions.NotFound:
+            self.file_bucket = gcs_client.create_bucket(self.bucket_name)
         # create test params
         self.test_file_parameters = {
             'fileType': ['csv', 'json'],

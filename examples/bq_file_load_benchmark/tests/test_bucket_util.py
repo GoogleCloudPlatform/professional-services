@@ -3,6 +3,7 @@ from __future__ import division
 from __future__ import print_function
 import os
 
+from google.api_core import exceptions
 from google.cloud import storage
 
 from bq_file_load_benchmark.benchmark_tools import bucket_util
@@ -27,7 +28,11 @@ class TestBucketUtil(object):
         """
         self.bucket_name = 'bq_benchmark_test_bucket'
         gcs_client = storage.Client()
-        self.bucket = gcs_client.create_bucket(self.bucket_name)
+        try:
+            gcs_client.get_bucket(self.bucket_name).delete(force=True)
+            self.bucket = gcs_client.create_bucket(self.bucket_name)
+        except exceptions.NotFound:
+            self.bucket = gcs_client.create_bucket(self.bucket_name)
         abs_path = os.path.abspath(os.path.dirname(__file__))
         file1 = os.path.join(
             abs_path,

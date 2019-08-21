@@ -1,0 +1,1 @@
+{"fields": [{"type": "STRING", "name": "string1", "mode": "REQUIRED"}, {"type": "STRING", "name": "string2", "mode": "REQUIRED"}, {"type": "STRING", "name": "string3", "mode": "REQUIRED"}, {"type": "STRING", "name": "string4", "mode": "REQUIRED"}]}
