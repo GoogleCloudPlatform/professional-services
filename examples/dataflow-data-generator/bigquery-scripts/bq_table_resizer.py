@@ -190,7 +190,6 @@ class BigQueryTableResizer(object):
                     use_as_source_table = self.source_table.reference
                 copy_config = bigquery.CopyJobConfig()
                 copy_config.write_disposition = 'WRITE_APPEND'
-                copy_config.create_disposition = 'CREATE_IF_EMPTY'
 
                 copy_job = self.client.copy_table(use_as_source_table,
                                                   self.dest_table_ref,

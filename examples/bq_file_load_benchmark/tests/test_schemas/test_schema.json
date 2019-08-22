@@ -1,0 +1,14 @@
+{
+    "fields": [
+        {
+          "type": "STRING",
+          "name": "string1",
+          "mode": "REQUIRED"
+        },
+        {
+          "type": "NUMERIC",
+          "name": "numeric1",
+          "mode": "REQUIRED"
+        }
+    ]
+}
