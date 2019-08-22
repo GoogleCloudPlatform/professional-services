@@ -132,8 +132,6 @@ now = datetime.datetime.now().strftime("_%m%d%Y_%H%M%S")
 
 def convert_pdfs(main_project_id,
                  input_bucket_name,
-                 temp_directory,
-                 output_directory,
                  service_acct):
     """Converts all pdfs in a bucket to png and txt using OCR.
 
@@ -145,6 +143,7 @@ def convert_pdfs(main_project_id,
 
     
     # Create temp directory & all intermediate directories
+    temp_directory = "./tmp/google"
     if not os.path.exists(temp_directory):
         os.makedirs(temp_directory)
 
@@ -165,6 +164,7 @@ def convert_pdfs(main_project_id,
 
     print(f"Uploading to GCS")
     output_bucket_name = main_project_id + "-vcm"
+    output_directory = "patent_demo_data"
 
     # Create Bucket if it doesn't exist
     subprocess.run(f'gsutil mb -p {main_project_id} gs://{output_bucket_name}',
@@ -192,14 +192,14 @@ def image_classification(main_project_id,
     print(f"Processing image_classification")
 
     output_bucket_name = main_project_id + "-vcm"
+    output_directory = "patent_demo_data"
 
-    # TODO put output diretcory as argument to this function. Don't hard code 'patent_demo_data'
-    dest_uri = f"gs://{output_bucket_name}/patent_demo_data/image_classification.csv"
+    dest_uri = f"gs://{output_bucket_name}/{output_directory}/image_classification.csv"
 
     df = bq_to_df(data_project_id, dataset_id, table_id, service_acct)
 
     output_df = df.replace({
-        input_bucket_name: output_bucket_name + "/patent_demo_data/png",
+        input_bucket_name: output_bucket_name + f"/{output_directory}/png",
         r"\.pdf": ".png"
     }, regex=True, inplace=False)
 
@@ -228,59 +228,6 @@ def image_classification(main_project_id,
                         service_acct)
 
 
-def text_classification(main_project_id,
-                        data_project_id,
-                        dataset_id,
-                        table_id,
-                        service_acct,
-                        input_bucket_name,
-                        region):
-
-    print(f"Starting AutoML text_classification.")
-
-    output_bucket_name = main_project_id + "-lcm"
-
-    # Create .csv file for importing data
-    # TODO put output diretcory as argument to this function
-    dest_uri = f"gs://{output_bucket_name}/patent_demo_data/text_classification.csv"
-
-    df = bq_to_df(project_id=data_project_id,
-                  dataset_id=dataset_id,
-                  table_id=table_id,
-                  service_acct=service_acct)
-
-    # TODO put output diretcory as argument to this function
-    output_df = df.replace({
-        input_bucket_name: output_bucket_name + "/patent_demo_data/txt",
-        r"\.pdf": ".txt"
-    }, regex=True, inplace=False)
-
-    # Get text classification columns
-    output_df = output_df[["file", "class"]]
-    output_df.to_csv(dest_uri, header=False, index=False)
-
-    dataset_metadata = {
-        "display_name": "patent_data" + str(now),
-        "text_classification_dataset_metadata": {
-            "classification_type": "MULTICLASS"
-        }
-    }
-
-    model_metadata = {
-        'display_name': "patent_data" + str(now),
-        'dataset_id': None,
-        'text_classification_model_metadata': {}
-    }
-
-    # Create AutoML model for text classification
-    create_automl_model(project_id=main_project_id,
-                        compute_region=region,
-                        dataset_metadata=dataset_metadata,
-                        model_metadata=model_metadata,
-                        path=dest_uri,
-                        service_acct=service_acct)
-
-
 def object_detection(main_project_id,
                      data_project_id,
                      dataset_id,
@@ -290,15 +237,16 @@ def object_detection(main_project_id,
                      region):
 
     output_bucket_name = main_project_id + "-vcm"
+    output_directory = "patent_demo_data"
 
-    dest_uri = f"gs://{output_bucket_name}/patent_demo_data/object_detection.csv"
+    dest_uri = f"gs://{output_bucket_name}/{output_directory}/object_detection.csv"
 
     print(f"Processing object_detection")
 
     df = bq_to_df(data_project_id, dataset_id, table_id, service_acct)
 
     df.replace({
-        input_bucket_name: output_bucket_name + "/patent_demo_data/png",
+        input_bucket_name: output_bucket_name + f"/{output_directory}/png",
         r"\.pdf": ".png"
     }, regex=True, inplace=True)
 
@@ -333,6 +281,58 @@ def object_detection(main_project_id,
                         service_acct)
 
 
+def text_classification(main_project_id,
+                        data_project_id,
+                        dataset_id,
+                        table_id,
+                        service_acct,
+                        input_bucket_name,
+                        region):
+
+    print(f"Starting AutoML text_classification.")
+
+    output_bucket_name = main_project_id + "-lcm"
+    output_directory = "patent_demo_data"
+
+    # Create .csv file for importing data
+    dest_uri = f"gs://{output_bucket_name}/{output_directory}/text_classification.csv"
+
+    df = bq_to_df(project_id=data_project_id,
+                  dataset_id=dataset_id,
+                  table_id=table_id,
+                  service_acct=service_acct)
+
+    output_df = df.replace({
+        input_bucket_name: output_bucket_name + f"/{output_directory}/txt",
+        r"\.pdf": ".txt"
+    }, regex=True, inplace=False)
+
+    # Get text classification columns
+    output_df = output_df[["file", "class"]]
+    output_df.to_csv(dest_uri, header=False, index=False)
+
+    dataset_metadata = {
+        "display_name": "patent_data" + str(now),
+        "text_classification_dataset_metadata": {
+            "classification_type": "MULTICLASS"
+        }
+    }
+
+    model_metadata = {
+        'display_name': "patent_data" + str(now),
+        'dataset_id': None,
+        'text_classification_model_metadata': {}
+    }
+
+    # Create AutoML model for text classification
+    create_automl_model(project_id=main_project_id,
+                        compute_region=region,
+                        dataset_metadata=dataset_metadata,
+                        model_metadata=model_metadata,
+                        path=dest_uri,
+                        service_acct=service_acct)
+
+
 def entity_extraction(main_project_id,
                       data_project_id,
                       dataset_id,
@@ -340,12 +340,14 @@ def entity_extraction(main_project_id,
                       service_acct,
                       input_bucket_name,
                       region,
-                      temp_directory
                       config):
     
     # Create training data
-    # TODO put output diretcory as argument to this function, don't hard code 'patent_demo_data'
-    dest_uri = f"gs://{main_project_id}-lcm/patent_demo_data/entity_extraction.csv"
+    output_bucket_name = main_project_id + "-lcm"
+    output_directory = "patent_demo_data"
+    temp_directory = "./tmp/google"
+
+    dest_uri = f"gs://{output_bucket_name}/{output_directory}/entity_extraction.csv"
 
     df = bq_to_df(project_id=data_project_id,
                   dataset_id=dataset_id,
@@ -360,17 +362,16 @@ def entity_extraction(main_project_id,
     LIST_JSONL = []
     for _index in range(0, len(df)):
         txt_file = df_dict[_index].pop("file").replace('.pdf', '.txt')
-        txt_file = txt_file.replace(f'gs://{input_bucket_name}/', './tmp/google/')
+        txt_file = txt_file.replace(f'gs://{input_bucket_name}/', f"{temp_directory}")
         with open(txt_file, "r") as f:
             _text = f.read()
             jsonl = create_jsonl(_text, df_dict[_index])
             LIST_JSONL.append(jsonl)
 
-    # TODO put output directory as argument to this function, don't hard code 'patent_demo_data'
     save_jsonl_content(jsonl="\n".join(LIST_JSONL),
-        full_gcs_path=f"gs://{main_project_id}-lcm/patent_demo_data/entity_extraction.jsonl",
+        full_gcs_path=f"gs://{output_bucket_name}/{output_directory}/entity_extraction.jsonl",
         service_acct=service_acct)
-    save_jsonl_content(jsonl=f", gs://{main_project_id}-lcm/patent_demo_data/entity_extraction.jsonl",
+    save_jsonl_content(jsonl=f", gs://{output_bucket_name}/{output_directory}/entity_extraction.jsonl",
         full_gcs_path=dest_uri,
         service_acct=service_acct)
 

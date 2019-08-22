@@ -1,10 +1,10 @@
-# Configuration file for end-to-end demo.
+# Configuration file for automl pipeline.
 
 main_project:
   project_id: # 'TODO(user): set with your Project ID'
   region: 'us-central1' # Currently the only supported location_id is “us-central1”.
-  temp_directory: './tmp/google' # Local directory for creating .png and .txt files
-  output_directory: 'patent_demo_data' # GCS directory for putting data, labels for AutoML models
+  demo_sample_data: # TODO(user): GCS location of patents to process for demo
+  demo_dataset_id: # TODO(user): BQ dataset to store information collected from patents for demo
 service_acct:
   user_id: # TODO(user) : Set With your GCP Account Email 
   name: 'patent-demo-service-acct'
@@ -14,19 +14,23 @@ service_acct:
 pdp_project:
   project_id: 'pdf-processing-219114' # this will change to PDP project later
   dataset_id: 'patent_demo_data_pdp' # this will change once data is PDP'd
-  input_bucket_name: 'patent_demo_data_pdp' # this will change once data is PDP'd
+  bucket_name: 'patent_demo_data_pdp' # this will change once data is PDP'd
 model_imgclassifier:
   pdp_table_id: 'entity_extraction' # table location of PDP data
-  model_id: '<IMAGE_MODELID_PLACEHOLDER>' # TODO: replace with model id when training is complete
-model_textclassifier:
-  pdp_table_id: 'text_classification' # table location of PDP data
-  model_id: '<TEXT_MODELID_PLACEHOLDER>' # TODO: replace with model id when training is complete
+  model_id: <MODELID_PLACEHOLDER> # TODO: replace with model id when training is complete
+  demo_table_id: 'document_classification'
 model_objdetect:
   pdp_table_id: 'object_detection' # table location of PDP data
-  model_id: '<OBJDET_MODELID_PLACEHOLDER>' # TODO: replace with model id when training is complete
+  model_id: <MODELID_PLACEHOLDER>' # TODO: replace with model id when training is complete
+  demo_table_id: 'object_detection'
+model_textclassifier:
+  pdp_table_id: 'text_classification' # table location of PDP data
+  model_id: <MODELID_PLACEHOLDER>' # TODO: replace with model id when training is complete
+  demo_table_id: 'document_subject'
 model_ner:
   pdp_table_id: 'entity_extraction' # table location of PDP data
   model_id: '<NER_MODELID_PLACEHOLDER>' # TODO: replace with model id when training is complete
+  demo_table_id: 'ner_results'
   fields_to_extract:
   - field_name: 'file'
   - field_name: 'publication_date'

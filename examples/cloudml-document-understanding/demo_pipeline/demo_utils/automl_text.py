@@ -32,6 +32,12 @@ from utils import gcs_utils
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+def get_bucket_blob(full_path):
+  match = re.match(r'gs://([^/]+)/(.+)', full_path)
+  bucket_name = match.group(1)
+  blob_name = match.group(2)
+  return bucket_name, blob_name
+
 def run_automl_text(content, project_id, model_id, service_account, compute_region='us-central1'):
     """Runs AutoML prediction on 1 document."""
     prediction_client = automl_v1beta1.PredictionServiceClient.from_service_account_json(service_account)
@@ -80,21 +86,47 @@ def _is_us_patents_fn(document_name, bq_dataset, bq_service_account):
     return _class == 'us_patents'
 
 
-def run_automl_folder(gcs_folder, bq_dataset, gcs_bq_service_account,
-                      project_id_automltext, model_id_automltext, automl_text_service_account, compute_region):
-    """Runs AutoML Text classifier on a folder and pushes results to BigQuery."""
 
-    storage_client = storage.Client.from_service_account_json(gcs_bq_service_account)
-    bucket_name, path = gcs_utils.get_bucket_blob(gcs_folder)
+main_project_id=config["main_project"]["project_id"],
+                    input_path=config["main_project"]["demo_sample_data"],
+                    demo_dataset=config["main_project"]["demo_dataset_id"],
+                    demo_table=config["model_objdetect"]["demo_table_id"],
+                    model_id=config["model_objdetect"]["model_id"],
+                    service_acct=config["service_acct"]["key"],
+                    compute_region=config["main_project"]["region"])
+
+def predict(main_project_id,
+            input_path,
+            demo_dataset,
+            demo_table,
+            model_id,
+            service_acct,
+            compute_region):
+    """Runs AutoML Text classifier on a folder and pushes results to BigQuery."""
+    
+    input_bucket_name = input_path.replace('gs://', '').split('/')[0]
+    output_txt_folder = f"gs://{input_bucket_name}/{demo_dataset}/txt"
+
+
+
+
+
+    gcs_folder, bq_dataset, gcs_bq_service_account,
+                      project_id_automltext, model_id_automltext, automl_text_service_account, compute_region):
+
+
+
+    storage_client = storage.Client.from_service_account_json(service_acct)
+    bucket_name, path = get_bucket_blob(gcs_folder)
     bucket = storage_client.get_bucket(bucket_name)
     
     results = []
     for document_path in bucket.list_blobs(prefix=path):
         logging.info('Extracting the subject for file: {}'.format(document_path.name))
         document_abs_path = os.path.join('gs://', bucket_name, document_path.name)
-        is_us_patents = _is_us_patents_fn(document_abs_path, bq_dataset, gcs_bq_service_account)
+        is_us_patents = _is_us_patents_fn(document_abs_path, bq_dataset, service_acct)
         if is_us_patents:
-            content = gcs_utils.download_string(document_abs_path, gcs_bq_service_account).read()
+            content = gcs_utils.download_string(document_abs_path, service_acct).read()
             subject, score = run_automl_text(content, project_id_automltext, model_id_automltext, automl_text_service_account, compute_region)
         else:
             subject = constants.VALUE_NULL
@@ -114,7 +146,7 @@ def run_automl_folder(gcs_folder, bq_dataset, gcs_bq_service_account,
         bq_dataset,
         constants.TABLE_DOCUMENT_SUBJECT,
         results,
-        gcs_bq_service_account,
+        service_acct,
         _create_table=True,
         schema=schema)
 

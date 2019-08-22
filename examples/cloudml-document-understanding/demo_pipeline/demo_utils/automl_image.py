@@ -21,16 +21,17 @@ import re
 from google.cloud import storage
 from google.cloud import bigquery
 from google.cloud import automl
-import yaml
-
-from utils import constants
-from utils import gcs_utils
 
 
 # TODO: Change approach (messy) 'bucket name images that are not patents are moved to so that the NER model does not classify them'
 # TODO: Clean classify write into submodules + handle initialization of the clients better (is it the right place).
 # TODO: Rename sample_handler + is it necessary to feed the string to the API (vs path)
 
+def get_bucket_blob(full_path):
+  match = re.match(r'gs://([^/]+)/(.+)', full_path)
+  bucket_name = match.group(1)
+  blob_name = match.group(2)
+  return bucket_name, blob_name
 
 def sample_handler(bucket, filein, service_account):
     client = storage.Client.from_service_account_json(service_account)
@@ -79,7 +80,7 @@ def classify_write(bucket_name,
                    bq_table,
                    score_threshold,
                    service_account,
-                   input_folder_pdf,
+                   input_path,
                    model_full_id
                    ):
     bucket = storage_client.bucket(bucket_name)
@@ -87,7 +88,7 @@ def classify_write(bucket_name,
     lines = []
 
     schema = [
-        bigquery.SchemaField(constants.FILENAME, 'STRING', mode='REQUIRED'),
+        bigquery.SchemaField('file', 'STRING', mode='REQUIRED'),
         bigquery.SchemaField('class', 'STRING', mode='REQUIRED'),
         bigquery.SchemaField('class_confidence', 'STRING', mode='REQUIRED'),
         ]
@@ -110,10 +111,10 @@ def classify_write(bucket_name,
                 else:
                     # Copy from the pdf folder to the selected_pdf_folder
                     filename = os.path.basename(blob.name).replace('.png', '.pdf')
-                    input_pdf_path = os.path.join(input_folder_pdf, filename)
+                    input_pdf_path = os.path.join(input_path, filename)
                     selected_pdf_path = os.path.join(selected_pdf_folder, filename)
-                    bucket_input, blob_input = gcs_utils.get_bucket_blob(input_pdf_path)
-                    bucket_output, blob_output = gcs_utils.get_bucket_blob(selected_pdf_path)
+                    bucket_input, blob_input = get_bucket_blob(input_pdf_path)
+                    bucket_output, blob_output = get_bucket_blob(selected_pdf_path)
 
                     copy_blob(bucket_input, blob_input, 
                               bucket_output, blob_output,
@@ -127,23 +128,21 @@ def classify_write(bucket_name,
     print('Image classification finished.')
 
 
-def main(input_folder_png,
-         input_folder_pdf,
-         selected_pdf_folder,
-         model_project_id,
-         model_id,
-         bq_dataset,
-         bq_table,
-         service_account,
-         score_threshold,
-         compute_region):
+def predict(main_project_id,
+            input_path,
+            demo_dataset,
+            demo_table,
+            model_id,
+            service_acct,
+            compute_region,
+            score_threshold=0.5):
     """Reads some PNG, classifies them and copies the non-datasheet ones (PDF version) to new folder.
 
     Args:
       input_folder_png: Path to the folder containing images.
-      input_folder_pdf: Path to the folder containing pdfs.
+      input_path: Path to the folder containing pdfs.
       selected_pdf_folder: Folder where to put the valid pdfs.
-      model_project_id: Project ID where the model lives.
+      main_project_id: Project ID where the model lives.
       model_id: ID of the AutoML classification model.
       bq_dataset: Existing BigQuery dataset that contains the table that the results will be written to.
       bq_table: BigQuery table that the results will be written to.
@@ -152,92 +151,39 @@ def main(input_folder_png,
       compute_region: Compute region for AutoML model.
     """
 
+    input_bucket_name = input_path.replace('gs://', '').split('/')[0]
+    input_folder_png = f"gs://{input_bucket_name}/{demo_dataset}/png"
+
+    selected_pdf_folder =  f"gs://{input_bucket_name}/{demo_dataset}/valid_pdf"
+
     # Set up client for the AutoML Vision model
     # Note, you need to give this service account AutoML permission within the pdf-processing-219114 project
-    automl_client = automl.AutoMlClient.from_service_account_json(service_account)
+    automl_client = automl.AutoMlClient.from_service_account_json(service_acct)
     model_full_id = automl_client.model_path(
-        model_project_id, compute_region, model_id)
+        main_project_id, compute_region, model_id)
     prediction_client = automl.PredictionServiceClient.from_service_account_json(
-        service_account)
+        service_acct)
 
     # Set up client for BigQuery and GCS.
     storage_client = storage.Client.from_service_account_json(
-        service_account)
+        service_acct)
     bq_client = bigquery.Client.from_service_account_json(
-        service_account)
+        service_acct)
 
-    print ('Starting classification')
-    bucket_name, file_name = gcs_utils.get_bucket_blob(input_folder_png)
+    print('Starting classification')
+    bucket_name, file_name = get_bucket_blob(input_folder_png)
     classify_write(
         bucket_name,
         file_name,
-        args.selected_pdf_folder,
+        selected_pdf_folder,
         prediction_client,
         storage_client,
         bq_client,
-        bq_dataset,
-        bq_table,
+        demo_dataset,
+        demo_table,
         score_threshold,
-        service_account,
-        input_folder_pdf,
+        service_acct,
+        input_path,
         model_full_id,
         )
 
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '--input_folder_png',
-        help='Path to the folder containing images.',
-        required=True
-    )
-    parser.add_argument(
-        '--input_folder_pdf',
-        help='Path to the folder containing pdfs.',
-        required=True
-    )
-    parser.add_argument(
-        '--selected_pdf_folder',
-        help='Folder where to put the valid pdfs.',
-        required=True
-    )
-    parser.add_argument(
-        '--bq_dataset',
-        help='existing BigQuery dataset that contains the table that the results will be written to.',
-        required=True
-    )
-    parser.add_argument(
-        '--bq_table',
-        help='BigQuery table that the results will be written to.',
-        default='document_classification'
-    )
-    parser.add_argument(
-        '--score_threshold',
-        help='The required confidence level for AutoML to make a prediction',
-        default=0.5,
-    )
-    parser.add_argument(
-        '--compute_region',
-        default='us-central1',
-    )
-    parser.add_argument(
-        '--config_file',
-        help='Path to configuration file.',
-        required=True
-    )
-    args = parser.parse_args()
-
-    with open(args.config_file, 'r') as stream:
-        config = yaml.load(stream, Loader=yaml.FullLoader)
-
-    main(args.input_folder_png,
-         args.input_folder_pdf,
-         args.selected_pdf_folder,
-         config['main_project']['project_id'],
-         config['model_imgclassifier']['model_id'],
-         args.bq_dataset,
-         args.bq_table,
-         config['service_acct']['key'],
-         args.score_threshold,
-         args.compute_region
-        )

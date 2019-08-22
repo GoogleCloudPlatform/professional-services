@@ -29,7 +29,6 @@ import tempfile
 import io
 import yaml
 
-from utils import constants
 from google.cloud.vision import types
 from PIL import Image, ImageDraw
 
@@ -67,8 +66,8 @@ def create_table(bq_client, dataset, table_name, schema):
 
 def detect_object(gcs_image_folder,
                   gcs_cropped_image_folder,
-                  project_id_obj_detection,
-                  model_id_obj_detection,
+                  main_project_id,
+                  model_id,
                   bq_dataset_output,
                   bq_table_output,
                   prediction_client,
@@ -99,7 +98,7 @@ def detect_object(gcs_image_folder,
         if blob.name.endswith(".png"):
             logger.info(os.path.basename(blob.name))
             content = sample_handler(storage_client, bucket_name, blob.name)
-            name = 'projects/{}/locations/us-central1/models/{}'.format(project_id_obj_detection, model_id_obj_detection)
+            name = 'projects/{}/locations/us-central1/models/{}'.format(main_project_id, model_id)
             payload = {'image': {'image_bytes': content }}
             params = {}
             request = prediction_client.predict(name, payload, params)
@@ -138,94 +137,52 @@ def detect_object(gcs_image_folder,
         else:
             pass
 
-
-def main(input_image_folder,
-         output_cropped_images_folder,
-         bq_dataset_output,
-         bq_table_output,
-         compute_region,
-         project_id_obj_detection,
-         model_id_obj_detection,
-         service_account_obj_detection,
-         bq_service_account):
+def predict(main_project_id,
+			input_path,
+         	demo_dataset,
+			demo_table,
+			model_id,
+			service_acct,
+			compute_region):
   """Initializes the client and calls `detect_object`.
   
   Args:
     input_image_folder: Path to the folder containing images.
-    output_cropped_images_folder: Output path for cropped images.
     bq_dataset_output: Existing BigQuery dataset that contains the table that the results will be written to
     bq_table_output: BigQuery table that the results will be written to.
     compute_region: Compute region for AutoML.
-    project_id_obj_detection: Project ID where AutoML lives.
-    model_id_obj_detection: ID of AutoML model.
-    service_account_obj_detection: API key needed to access AutoML object detection.
-    bq_service_account: API key needed to access BigQuery and GCS.
+    main_project_id: Project ID where AutoML lives.
+    model_id: ID of AutoML model.
+    service_acct: API key needed to access AutoML object detection.
+    service_acct: API key needed to access BigQuery and GCS.
   """
   logger.info('Starting object detection...')
 
-  automl_client = automl.AutoMlClient.from_service_account_json(service_account_obj_detection)
+  input_bucket_name = input_path.replace('gs://', '').split('/')[0]
+  input_folder_png = f"gs://{input_bucket_name}/{demo_dataset}/png"
+  output_cropped_images_folder = f"gs://{input_bucket_name}/{demo_dataset}/cropped_images"
+
+  automl_client = automl.AutoMlClient.from_service_account_json(service_acct)
   model_full_id = automl_client.model_path(
-      project_id_obj_detection,
+      main_project_id,
       compute_region,
-      model_id_obj_detection)
-  prediction_client = automl.PredictionServiceClient.from_service_account_json(service_account_obj_detection)
+      model_id)
+  prediction_client = automl.PredictionServiceClient.from_service_account_json(service_acct)
 
   # Create other clients
-  storage_client = storage.Client.from_service_account_json(bq_service_account) 
-  bq_client = bigquery.Client.from_service_account_json(bq_service_account)
+  storage_client = storage.Client.from_service_account_json(service_acct) 
+  bq_client = bigquery.Client.from_service_account_json(service_acct)
 
   detect_object(
-      input_image_folder,
+      input_folder_png,
       output_cropped_images_folder,
-      project_id_obj_detection,
-      model_id_obj_detection,
-      bq_dataset_output,
-      bq_table_output,
+      main_project_id,
+      model_id,
+      demo_dataset,
+      demo_table,
       prediction_client,
       storage_client,
       bq_client,
       )
   logger.info('Object detection finished.')
 
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '--input_image_folder',
-        help='path to the folder containing images',
-        required=True
-    )
-    parser.add_argument(
-        '--output_cropped_images_folder',
-        help='Output path for cropped images',
-        required=True
-    )
-    parser.add_argument(
-        '--bq_dataset_output',
-        help='existing BigQuery dataset that contains the table that the results will be written to',
-        required=True
-    )
-    parser.add_argument(
-        '--compute_region',
-        default='us-central1'
-    )
-    parser.add_argument(
-        '--config_file',
-        help='Path to configuration file.',
-        required=True
-    )
-    args = parser.parse_args()
-
-    with open(args.config_file, 'r') as stream:
-        config = yaml.load(stream, Loader=yaml.FullLoader)
-
-    main(args.input_image_folder,
-         args.output_cropped_images_folder,
-         args.bq_dataset_output,
-         constants.TABLE_OBJ_DETECT,
-         args.compute_region,
-         config['model_objdetect']['project_id'],
-         config['model_objdetect']['model_id'],
-         config['service_keys']['key_objdectect'],
-         config['service_keys']['key_bq_and_gcs'],
-         )

@@ -19,15 +19,13 @@ import yaml
 import service_account
 
 config = yaml.safe_load(open("../config.yaml", "r"))
-
+'''
 service_account.create(config)
 
 # Create data needed for training AutoML models below
 # Convert pdfs to png and txt files and upload to users GCS bucket
 automl_utils.convert_pdfs(main_project_id=config["main_project"]["project_id"],
                           input_bucket_name=config["pdp_project"]["input_bucket_name"],
-                          temp_directory=config["main_project"]["temp_directory"],
-                          output_directory=config["main_project"]["output_directory"],
                           service_acct=config["service_acct"]["key"])
 
 # Create AutoML Image Classification model
@@ -36,7 +34,7 @@ automl_utils.image_classification(main_project_id=config["main_project"]["projec
                                   dataset_id=config["pdp_project"]["dataset_id"],
                                   table_id=config["model_imgclassifier"]["pdp_table_id"],
                                   service_acct=config["service_acct"]["key"],
-                                  input_bucket_name=config["pdp_project"]["input_bucket_name"],
+                                  input_bucket_name=config["pdp_project"]["bucket_name"],
                                   region=config["main_project"]["region"])
 
 # Create AutoML Object Detection model
@@ -45,7 +43,7 @@ automl_utils.object_detection(main_project_id=config["main_project"]["project_id
                               dataset_id=config["pdp_project"]["dataset_id"],
                               table_id=config["model_objdetect"]["pdp_table_id"],
                               service_acct=config["service_acct"]["key"],
-                              input_bucket_name=config["pdp_project"]["input_bucket_name"],
+                              input_bucket_name=config["pdp_project"]["bucket_name"],
                               region=config["main_project"]["region"])
 
 # Create AutoML Text Classification model
@@ -54,7 +52,7 @@ automl_utils.text_classification(main_project_id=config['main_project']['project
                                  dataset_id=config["pdp_project"]["dataset_id"],
                                  table_id=config["model_textclassifier"]["pdp_table_id"],
                                  service_acct=config["service_acct"]["key"],
-                                 input_bucket_name=config["pdp_project"]["input_bucket_name"],
+                                 input_bucket_name=config["pdp_project"]["bucket_name"],
                                  region=config["main_project"]["region"])
 
 # Create AutoML Natural Entity Recognition model
@@ -63,7 +61,7 @@ automl_utils.entity_extraction(main_project_id=config['main_project']['project_i
                                dataset_id=config["pdp_project"]["dataset_id"],
                                table_id=config["model_ner"]["pdp_table_id"],
                                service_acct=config["service_acct"]["key"],
-                               input_bucket_name=config["pdp_project"]["input_bucket_name"],
+                               input_bucket_name=config["pdp_project"]["bucket_name"],
                                region=config["main_project"]["region"],
-                               temp_directory=config["main_project"]["temp_directory"],
                                config=config)
+'''
