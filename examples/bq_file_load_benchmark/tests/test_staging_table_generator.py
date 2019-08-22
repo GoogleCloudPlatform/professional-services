@@ -45,12 +45,10 @@ class TestStagingTableGenerator(object):
         self.bq_client = bigquery.Client()
         staging_dataset_ref = self.bq_client.dataset(self.staging_dataset_id)
         self.staging_dataset = bigquery.Dataset(staging_dataset_ref)
-        self.bq_client.create_dataset(self.staging_dataset)
-        resized_staging_dataset_ref =self.bq_client.dataset(
+        resized_staging_dataset_ref = self.bq_client.dataset(
             self.resized_dataset_id
         )
         self.resized_dataset = bigquery.Dataset(resized_staging_dataset_ref)
-        self.bq_client.create_dataset(self.resized_dataset)
 
         # define path that holds schemas used for creating staging tables
         abs_path = os.path.abspath(os.path.dirname(__file__))
@@ -60,33 +58,6 @@ class TestStagingTableGenerator(object):
         )
 
         # add test schemas to schema path
-        schema_100_string = {
-            "fields": [
-                {
-                    "type": "STRING",
-                    "name": "string1",
-                    "mode": "REQUIRED"
-                },
-                {
-                    "type": "STRING",
-                    "name": "string2",
-                    "mode": "REQUIRED"
-                },
-                {
-                    "type": "STRING",
-                    "name": "string3",
-                    "mode": "REQUIRED"
-                },
-                {
-                    "type": "STRING",
-                    "name": "string4",
-                    "mode": "REQUIRED"
-                }
-            ]
-        }
-        with open(self.json_schema_path + '/100_STRING_4.json', 'w') as sch1:
-            json.dump(schema_100_string, sch1)
-
         schema_50_string_50_numeric = {
             "fields": [
                 {
@@ -128,8 +99,7 @@ class TestStagingTableGenerator(object):
             'targetDataSizes': [.000001],
             'stagingDataSizes': ['1KB'],
             'columnTypes': [
-                '100_STRING',
-                '50_STRING_50_NUMERIC',
+                '50_STRING_50_NUMERIC'
             ],
         }
 
@@ -164,7 +134,10 @@ class TestStagingTableGenerator(object):
         Returns:
             True if test passes, else False.
         """
-        self.test_schema_creator = \
+        self.bq_client.create_dataset(self.staging_dataset)
+        self.bq_client.create_dataset(self.resized_dataset)
+
+        self.test_staging_table_generator = \
             staging_table_generator.StagingTableGenerator(
                 project=project_id,
                 staging_dataset_id=self.staging_dataset_id,
@@ -174,24 +147,20 @@ class TestStagingTableGenerator(object):
                 num_rows=10
             )
 
-        self.test_schema_creator.create_staging_tables(
+        self.test_staging_table_generator.create_staging_tables(
             dataflow_staging_location=self.df_staging_path,
             dataflow_temp_location=self.df_temp_path
         )
 
-        expected_table_id_1 = "50_STRING_50_NUMERIC_4"
-        expected_table_id_2 = "100_STRING_4"
+        expected_table_id = "50_STRING_50_NUMERIC_4"
         dataset_ref = self.bq_client.dataset(self.staging_dataset_id)
-        table_ref_1 = dataset_ref.table(expected_table_id_1)
-        table1 = self.bq_client.get_table(table_ref_1)
-        table_ref_2 = dataset_ref.table(expected_table_id_2)
-        table2 = self.bq_client.get_table(table_ref_2)
+        table_ref = dataset_ref.table(expected_table_id)
+        table = self.bq_client.get_table(table_ref)
 
         expected_num_rows = 10
-        assert table1.num_rows == expected_num_rows
-        assert table2.num_rows == expected_num_rows
+        assert table.num_rows == expected_num_rows
 
-        table1_expected_schema = [
+        expected_schema = [
             bigquery.SchemaField(
                 u'string1',
                 u'STRING',
@@ -221,39 +190,8 @@ class TestStagingTableGenerator(object):
                 ()
             )
         ]
-        table2_expected_schema = [
-            bigquery.SchemaField(
-                u'string1',
-                u'STRING',
-                u'REQUIRED',
-                None,
-                ()
-            ),
-            bigquery.SchemaField(
-                u'string2',
-                u'STRING',
-                u'REQUIRED',
-                None,
-                ()
-            ),
-            bigquery.SchemaField(
-                u'string3',
-                u'STRING',
-                u'REQUIRED',
-                None,
-                ()
-            ),
-            bigquery.SchemaField(
-                u'string4',
-                u'STRING',
-                u'REQUIRED',
-                None,
-                ()
-            )
-        ]
 
-        assert table1.schema == table1_expected_schema
-        assert table2.schema == table2_expected_schema
+        assert table.schema == expected_schema
 
     def test_create_resized_tables(self, project_id):
         """Tests StagingTableGenerator.create_resized_tables().
@@ -269,7 +207,7 @@ class TestStagingTableGenerator(object):
         Returns:
             True if test passes, else False.
         """
-        self.test_schema_creator = \
+        self.test_staging_table_generator = \
             staging_table_generator.StagingTableGenerator(
                 project=project_id,
                 staging_dataset_id=self.staging_dataset_id,
@@ -278,20 +216,14 @@ class TestStagingTableGenerator(object):
                 file_params=self.test_file_parameters,
                 num_rows=10
             )
-        self.test_schema_creator.create_staging_tables(
-            dataflow_staging_location=self.df_staging_path,
-            dataflow_temp_location=self.df_temp_path
-        )
-        self.test_schema_creator.create_resized_tables()
+        # resize the staging table created in test_create_staging_table()
+        self.test_staging_table_generator.create_resized_tables()
         expected_table_id_1 = "50_STRING_50_NUMERIC_4_1KB"
-        expected_table_id_2 = "100_STRING_4_1KB"
         dataset_ref = self.bq_client.dataset(self.resized_dataset_id)
-        table_ref_1 = dataset_ref.table(expected_table_id_1)
-        table1 = self.bq_client.get_table(table_ref_1)
-        table_ref_2 = dataset_ref.table(expected_table_id_2)
-        table2 = self.bq_client.get_table(table_ref_2)
+        table_ref = dataset_ref.table(expected_table_id_1)
+        table = self.bq_client.get_table(table_ref)
 
-        table1_expected_schema = [
+        expected_schema = [
             bigquery.SchemaField(
                 u'string1',
                 u'STRING',
@@ -321,39 +253,8 @@ class TestStagingTableGenerator(object):
                 ()
             )
         ]
-        table2_expected_schema = [
-            bigquery.SchemaField(
-                u'string1',
-                u'STRING',
-                u'REQUIRED',
-                None,
-                ()
-            ),
-            bigquery.SchemaField(
-                u'string2',
-                u'STRING',
-                u'REQUIRED',
-                None,
-                ()
-            ),
-            bigquery.SchemaField(
-                u'string3',
-                u'STRING',
-                u'REQUIRED',
-                None,
-                ()
-            ),
-            bigquery.SchemaField(
-                u'string4',
-                u'STRING',
-                u'REQUIRED',
-                None,
-                ()
-            )
-        ]
 
-        assert table1.schema == table1_expected_schema
-        assert table2.schema == table2_expected_schema
+        assert table.schema == expected_schema
 
         expected_gb = float(self.test_file_parameters['targetDataSizes'][0])
         expected_bytes = expected_gb * 1073741824
@@ -362,15 +263,7 @@ class TestStagingTableGenerator(object):
         # The resizer tool will get as close as possible to target size,
         # so use round() function to compare if it got close to target size.
 
-        assert round(table1.num_bytes, -3) == round(expected_bytes, -3)
-        assert round(table2.num_bytes, -3) == round(expected_bytes, -3)
-
-    def teardown(self):
-        """Tears down resources created in setup().
-        """
-        self.df_staging_bucket.delete(
-            force=True
-        )
+        assert round(table.num_bytes, -3) == round(expected_bytes, -3)
 
         self.bq_client.delete_dataset(
             self.staging_dataset,
@@ -382,5 +275,11 @@ class TestStagingTableGenerator(object):
             delete_contents=True
         )
 
-        os.remove( self.json_schema_path + '/100_STRING_4.json')
+    def teardown(self):
+        """Tears down resources created in setup().
+        """
+        self.df_staging_bucket.delete(
+            force=True
+        )
+
         os.remove(self.json_schema_path + '/50_STRING_50_NUMERIC_4.json')
