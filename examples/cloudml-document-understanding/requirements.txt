@@ -1,0 +1,17 @@
+gcsfs==0.3.0
+ghostscript==0.6
+google-api-python-client==1.7.11
+google-cloud-bigquery=1.18.0
+google-cloud-vision==0.39.0
+google-cloud-storage==1.18.0
+google-cloud-automl
+numpy==1.16.4
+pandas==0.25.1
+pandas-gbq==0.11.0
+pdf2image==1.6.0
+pillow==6.1.0
+pyyaml==5.1.2
+regex==2019.6.8
+tensorflow==1.14.0
+wand==0.5.6
+yq==2.7.2

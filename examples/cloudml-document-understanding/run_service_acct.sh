@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2018 Google LLC
+# Copyright 2019 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,12 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Shell script to create service account, add permissions and download key.
+# Create GCP service account, add permissions, and download key.
 
-# TODO: Read from Yaml File
+# TODO(michaelsherman): Use yq to parse config, require yaml file as input.
+# example: yq .main_project.project_id config.yaml
 PROJECT_ID="pdf-processing-219114"
 USERID_DOMAIN="holtskinner@google.com"
-
 SA_NAME="patent-demo-service-acct2"
 SA_DESCRIPTION="Service-account-for-doc-understanding-demo"
 SA_DISPLAY_NAME="Patent-Demo-Service-Account"
