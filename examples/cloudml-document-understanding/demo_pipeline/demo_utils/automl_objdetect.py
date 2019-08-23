@@ -84,7 +84,7 @@ def detect_object(gcs_image_folder,
     lines = []
 
     schema = [
-        bigquery.SchemaField('file_name', 'STRING', mode='REQUIRED'),
+        bigquery.SchemaField('file', 'STRING', mode='REQUIRED'),
         bigquery.SchemaField('object', 'STRING', mode='REQUIRED'),
         bigquery.SchemaField('confidence', 'STRING', mode='REQUIRED'),
         bigquery.SchemaField('x_min', 'STRING', mode='REQUIRED'),
@@ -156,7 +156,7 @@ def predict(main_project_id,
     service_acct: API key needed to access AutoML object detection.
     service_acct: API key needed to access BigQuery and GCS.
   """
-  logger.info('Starting object detection...')
+  print("Starting object detection.")
 
   input_bucket_name = input_path.replace('gs://', '').split('/')[0]
   input_folder_png = f"gs://{input_bucket_name}/{demo_dataset}/png"
@@ -184,5 +184,5 @@ def predict(main_project_id,
       storage_client,
       bq_client,
       )
-  logger.info('Object detection finished.')
+  print("Object detection finished.")
 

@@ -19,7 +19,7 @@ import yaml
 
 config = yaml.safe_load(open("../config.yaml", "r"))
 
-'''
+
 pdf2png.convert_pdfs(main_project_id=config["main_project"]["project_id"],
   demo_dataset=config["main_project"]["demo_dataset_id"],
              input_path=config["main_project"]["demo_sample_data"],
@@ -42,23 +42,29 @@ automl_objdetect.predict(main_project_id=config["main_project"]["project_id"],
                       service_acct=config["service_acct"]["key"],
                       compute_region=config["main_project"]["region"])
 
-'''
+
 automl_text.predict(main_project_id=config["main_project"]["project_id"],
                     input_path=config["main_project"]["demo_sample_data"],
                     demo_dataset=config["main_project"]["demo_dataset_id"],
-                    demo_table=config["model_objdetect"]["demo_table_id"],
-                    model_id=config["model_objdetect"]["model_id"],
+                    demo_table=config["model_textclassifier"]["demo_table_id"],
+                    model_id=config["model_textclassifier"]["model_id"],
                     service_acct=config["service_acct"]["key"],
                     compute_region=config["main_project"]["region"])
-'''
-demo_utils.predict_automl_objdetect.py \
-    --input_image_folder=$PNG_OUTPUT_FOLDER \
-    --output_cropped_images_folder=$CROPPED_OBJ_FOLDER \
-    --bq_dataset_output=$BQ_DATASET \
-    --config_file=$CONFIG_FILE
 
-demo_utils.create_final_view.py \
-  --bq_dataset $BQ_DATASET \
-  --use_object_detection $USE_OBJECT_DETECTION \
-  --config_file $CONFIG_FILE
-'''
+automl_ner.predict(main_project_id=config["main_project"]["project_id"],
+                    input_path=config["main_project"]["demo_sample_data"],
+                    demo_dataset=config["main_project"]["demo_dataset_id"],
+                    demo_table=config["model_ner"]["demo_table_id"],
+                    model_id=config["model_ner"]["model_id"],
+                    service_acct=config["service_acct"]["key"],
+                    compute_region=config["main_project"]["region"],
+                    config=config)
+
+final_view.create(main_project_id=config["main_project"]["project_id"],
+                  demo_dataset=config["main_project"]["demo_dataset_id"],
+                  img_table=config["model_imgclassifier"]["demo_table_id"],
+                  objdet_table=config["model_objdetect"]["demo_table_id"],
+                  text_table=config["model_textclassifier"]["demo_table_id"],
+                  ner_table=config["model_ner"]["demo_table_id"],
+                  service_acct=config["service_acct"]["key"])
+
