@@ -12,21 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Runs AutoML Text classification on the US patents in a given folder."""
-
-import argparse
 import logging
-import os
 import sys
-import yaml
+import os
+import re
+from io import BytesIO, StringIO
 
-from google.cloud import automl_v1beta1
-from google.cloud import bigquery
+from google.cloud import automl_v1beta1, storage, bigquery
 from google.cloud.automl_v1beta1.proto import service_pb2
-from google.cloud import storage
-
-from utils import constants
-from utils import bq_utils
-from utils import gcs_utils
 
 
 logging.basicConfig(level=logging.INFO)
@@ -37,6 +30,64 @@ def get_bucket_blob(full_path):
   bucket_name = match.group(1)
   blob_name = match.group(2)
   return bucket_name, blob_name
+
+def create_table(bq_client, dataset, table_name, schema):
+  """Creates a BigQuery table."""
+  dataset_ref = bq_client.dataset(dataset)
+  table_ref = dataset_ref.table(table_name)
+
+  try:
+      table = bq_client.get_table(table_ref)
+      raise ValueError('Table should not exist: {}'.format(table_name))
+  except:
+      pass
+
+  table = bigquery.Table(table_ref, schema=schema)
+  table = bq_client.create_table(table)
+  return table
+
+def save_to_bq(bq_dataset, bq_table, rows_to_insert, service_account, _create_table=True, schema=None):
+  """Writes data to a BigQuery dataset.
+  
+  Args:
+    bq_dataset: Name of the BigQuery dataset (string).
+    bq_table: Name of the BigQuery table (string).
+    rows_to_insert: One of: list of tuples/list of dictionaries). Row data to be inserted.
+      If a list of tuples is given, each tuple should contain data for each schema field on the current table
+      and in the same order as the schema fields. If a list of dictionaries is given, the keys must include all
+      required fields in the schema. Keys which do not correspond to a field in the schema are ignored.
+    service_account: Service account of BigQuery
+    _create_table: Whether to create the table (default = True).
+    schema: Schema of the data (list of `SchemaField`). Required if we create_table=True.
+  """
+  bq_client = bigquery.Client.from_service_account_json(service_account)
+
+  if _create_table:
+    if not schema:
+      raise ValueError('Schema is required when creating the table')
+    table = create_table(bq_client, bq_dataset, bq_table, schema)
+    print ('Table created')
+
+  dataset_ref = bq_client.dataset(bq_dataset)
+  table_ref = dataset_ref.table(bq_table)
+  try:
+    table = bq_client.get_table(table_ref)
+  except:
+    raise ValueError('Table {} does not exist.'.format(bq_table))
+
+  load_job = bq_client.insert_rows(table, rows_to_insert)
+
+def download_string(full_path, service_account):
+  """Downloads the content of a gcs file."""
+  storage_client = storage.Client.from_service_account_json(service_account)
+  bucket_name, path = get_bucket_blob(full_path)
+  bucket = storage_client.get_bucket(bucket_name)
+  blob = bucket.blob(path)
+  byte_stream = BytesIO()
+  blob.download_to_file(byte_stream)
+  byte_stream.seek(0)
+  return byte_stream
+
 
 def run_automl_text(content, project_id, model_id, service_account, compute_region='us-central1'):
     """Runs AutoML prediction on 1 document."""
@@ -57,44 +108,6 @@ def run_automl_text(content, project_id, model_id, service_account, compute_regi
     return argmax, max_score
 
 
-def extract_class_document(document_name, document_col_name, bq_table, bq_dataset, bq_service_account):
-    """Looks up in a bigquery table the class of a document."""
-    client = bigquery.Client.from_service_account_json(bq_service_account)
-    job_config = bigquery.QueryJobConfig()
-    query = """
-        SELECT class
-        FROM `{bq_dataset}.{bq_table}`
-        WHERE {document_col_name}='{document_name}'
-        LIMIT 10""".format(
-            bq_dataset=bq_dataset,
-            bq_table=bq_table,
-            document_col_name=document_col_name,
-            document_name=document_name)
-    query_results = client.query(query, job_config=job_config).to_dataframe()
-    if len(query_results) != 1:
-        raise ValueError(
-            'Did not find a unique matche in the {} table for the following document: {}'.format(
-                bq_table, document_name))
-    return query_results['class'].iloc[0]
-
-
-def _is_us_patents_fn(document_name, bq_dataset, bq_service_account):
-    """Filters the document that are US Patents."""
-    document_name = os.path.basename(document_name.replace('.txt', '.pdf'))
-    _class = extract_class_document(
-        document_name, constants.FILENAME, constants.TABLE_DOCUMENT_CLASSIFICATION, bq_dataset, bq_service_account)
-    return _class == 'us_patents'
-
-
-
-main_project_id=config["main_project"]["project_id"],
-                    input_path=config["main_project"]["demo_sample_data"],
-                    demo_dataset=config["main_project"]["demo_dataset_id"],
-                    demo_table=config["model_objdetect"]["demo_table_id"],
-                    model_id=config["model_objdetect"]["model_id"],
-                    service_acct=config["service_acct"]["key"],
-                    compute_region=config["main_project"]["region"])
-
 def predict(main_project_id,
             input_path,
             demo_dataset,
@@ -102,91 +115,39 @@ def predict(main_project_id,
             model_id,
             service_acct,
             compute_region):
-    """Runs AutoML Text classifier on a folder and pushes results to BigQuery."""
-    
+    """Runs AutoML Text classifier on a GCS folder and pushes results to BigQuery."""
+    print('Starting text classification.')
     input_bucket_name = input_path.replace('gs://', '').split('/')[0]
-    output_txt_folder = f"gs://{input_bucket_name}/{demo_dataset}/txt"
+    input_txt_folder = f"gs://{input_bucket_name}/{demo_dataset}/txt"
 
-
-
-
-
-    gcs_folder, bq_dataset, gcs_bq_service_account,
-                      project_id_automltext, model_id_automltext, automl_text_service_account, compute_region):
-
-
-
+    # Set up storage client
     storage_client = storage.Client.from_service_account_json(service_acct)
-    bucket_name, path = get_bucket_blob(gcs_folder)
+    bucket_name, path = get_bucket_blob(input_txt_folder)
     bucket = storage_client.get_bucket(bucket_name)
     
     results = []
     for document_path in bucket.list_blobs(prefix=path):
         logging.info('Extracting the subject for file: {}'.format(document_path.name))
         document_abs_path = os.path.join('gs://', bucket_name, document_path.name)
-        is_us_patents = _is_us_patents_fn(document_abs_path, bq_dataset, service_acct)
-        if is_us_patents:
-            content = gcs_utils.download_string(document_abs_path, service_acct).read()
-            subject, score = run_automl_text(content, project_id_automltext, model_id_automltext, automl_text_service_account, compute_region)
-        else:
-            subject = constants.VALUE_NULL
-            score = 0.
+        content = download_string(document_abs_path, service_acct).read()
+        subject, score = run_automl_text(content, main_project_id, model_id, service_acct, compute_region)
+  
         results.append({
-            constants.FILENAME: os.path.basename(document_abs_path.replace('.txt', '.pdf')),
+            'file': os.path.basename(document_abs_path.replace('.txt', '.pdf')),
             'subject': subject,
             'score': score
             })
 
     schema = [
-        bigquery.SchemaField(constants.FILENAME, 'STRING', mode='NULLABLE'),
+        bigquery.SchemaField('file', 'STRING', mode='NULLABLE'),
         bigquery.SchemaField('subject', 'STRING', mode='NULLABLE'),
         bigquery.SchemaField('score', 'FLOAT', mode='NULLABLE'),
         ]
-    bq_utils.save_to_bq(
-        bq_dataset,
-        constants.TABLE_DOCUMENT_SUBJECT,
+    save_to_bq(
+        demo_dataset,
+        demo_table,
         results,
         service_acct,
         _create_table=True,
         schema=schema)
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '--gcs_folder',
-        help='Posprocess ocr folder.',
-        required=True
-    )
-    parser.add_argument(
-        '--bq_dataset',
-        help='BigQuery Dataset.',
-        required=True
-    )
-    parser.add_argument(
-        '--config_file',
-        help='Path to configuration file.',
-        required=True
-    )
-    parser.add_argument(
-        '--compute_region',
-        default='us-central1'
-    )
-    args = parser.parse_args()
-
-    with open(args.config_file, 'r') as stream:
-        config = yaml.load(stream, Loader=yaml.FullLoader)
-
-    logging.info('Running AutoML Text to classify the US patents.')
-    schema = [
-        bigquery.SchemaField(constants.FILENAME, 'STRING', mode='NULLABLE'),
-        bigquery.SchemaField('subject', 'STRING', mode='NULLABLE'),
-        ]
-    run_automl_folder(
-        gcs_folder=args.gcs_folder,
-        bq_dataset=args.bq_dataset,
-        gcs_bq_service_account=config['service_acct']['key'],
-        project_id_automltext=config['main_project']['project_id'],
-        model_id_automltext=config['model_textclassifier']['model_id'],
-        automl_text_service_account=config['service_acct']['key'],
-        compute_region=args.compute_region)
+    print('Text classification finished.')

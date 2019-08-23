@@ -95,16 +95,16 @@ def classify_write(bucket_name,
     table = create_table(bq_client, bq_dataset, bq_table, schema)
     if score_threshold:
         params = {"score_threshold": str(score_threshold)}
-    print(prefix)
+
     for blob in bucket.list_blobs(prefix=str(prefix + "/")):
         if blob.name.endswith(".png"):
             content = sample_handler(bucket_name, blob.name, service_account)
             payload = {"image": {"image_bytes": content}}
             response = prediction_client.predict(model_full_id, payload, params)
             for result in response.payload:
-                print("Location: {}".format(os.path.join('gs://',bucket_name, blob.name)))
+                print("File location: {}".format(os.path.join('gs://',bucket_name, blob.name)))
                 print("Predicted class name: {}".format(result.display_name))
-                print("Predicted class score: {}".format(result.classification.score))
+                print("Predicted class score: {}\n".format(result.classification.score))
 
                 if result.display_name == "datasheets":
                    pass
@@ -124,8 +124,6 @@ def classify_write(bucket_name,
                     (str(blob.name).replace(".png", ".pdf").replace(prefix,"").replace("/",""), result.display_name, result.classification.score),
                 ]
                 load_job = bq_client.insert_rows(table, rows_to_insert)
-
-    print('Image classification finished.')
 
 
 def predict(main_project_id,
@@ -150,7 +148,7 @@ def predict(main_project_id,
       score_threshold: The required confidence level for AutoML to make a prediction.
       compute_region: Compute region for AutoML model.
     """
-
+    print('Starting image classification.')
     input_bucket_name = input_path.replace('gs://', '').split('/')[0]
     input_folder_png = f"gs://{input_bucket_name}/{demo_dataset}/png"
 
@@ -170,7 +168,13 @@ def predict(main_project_id,
     bq_client = bigquery.Client.from_service_account_json(
         service_acct)
 
-    print('Starting classification')
+    # Create the BQ dataset
+    dataset_id = "{}.{}".format(bq_client.project, demo_dataset)
+    dataset = bigquery.Dataset(dataset_id)
+    dataset.location = "US"
+    dataset = bq_client.create_dataset(dataset)  # API request
+    print("Created dataset {}.{}".format(bq_client.project, dataset.dataset_id))
+
     bucket_name, file_name = get_bucket_blob(input_folder_png)
     classify_write(
         bucket_name,
@@ -186,4 +190,4 @@ def predict(main_project_id,
         input_path,
         model_full_id,
         )
-
+    print('Image classification finished.')

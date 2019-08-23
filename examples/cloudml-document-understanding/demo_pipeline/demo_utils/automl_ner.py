@@ -20,20 +20,81 @@ import os
 import re
 import yaml
 
+from io import BytesIO, StringIO
+import re
+
+
 from google.cloud import storage
 from google.cloud import bigquery
 from google.cloud import automl_v1beta1 as automl
 
-from utils import bq_utils
-from utils import constants
-from utils import gcs_utils
-
-
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+def get_bucket_blob(full_path):
+  match = re.match(r'gs://([^/]+)/(.+)', full_path)
+  bucket_name = match.group(1)
+  blob_name = match.group(2)
+  return bucket_name, blob_name
 
-def extract_field_from_payload(text, payload, field_name, default_value=constants.VALUE_NULL):
+def download_string(full_path, service_account):
+  """Downloads the content of a gcs file."""
+  storage_client = storage.Client.from_service_account_json(service_account)
+  bucket_name, path = get_bucket_blob(full_path)
+  bucket = storage_client.get_bucket(bucket_name)
+  blob = bucket.blob(path)
+  byte_stream = BytesIO()
+  blob.download_to_file(byte_stream)
+  byte_stream.seek(0)
+  return byte_stream
+
+def create_table(bq_client, dataset, table_name, schema):
+  """Creates a BigQuery table."""
+  dataset_ref = bq_client.dataset(dataset)
+  table_ref = dataset_ref.table(table_name)
+
+  try:
+      table = bq_client.get_table(table_ref)
+      raise ValueError('Table should not exist: {}'.format(table_name))
+  except:
+      pass
+
+  table = bigquery.Table(table_ref, schema=schema)
+  table = bq_client.create_table(table)
+  return table
+
+def save_to_bq(bq_dataset, bq_table, rows_to_insert, service_account, _create_table=True, schema=None):
+  """Writes data to a BigQuery dataset.
+  
+  Args:
+    bq_dataset: Name of the BigQuery dataset (string).
+    bq_table: Name of the BigQuery table (string).
+    rows_to_insert: One of: list of tuples/list of dictionaries). Row data to be inserted.
+      If a list of tuples is given, each tuple should contain data for each schema field on the current table
+      and in the same order as the schema fields. If a list of dictionaries is given, the keys must include all
+      required fields in the schema. Keys which do not correspond to a field in the schema are ignored.
+    service_account: Service account of BigQuery
+    _create_table: Whether to create the table (default = True).
+    schema: Schema of the data (list of `SchemaField`). Required if we create_table=True.
+  """
+  bq_client = bigquery.Client.from_service_account_json(service_account)
+
+  if _create_table:
+    if not schema:
+      raise ValueError('Schema is required when creating the table')
+    table = create_table(bq_client, bq_dataset, bq_table, schema)
+    print ('Table created')
+
+  dataset_ref = bq_client.dataset(bq_dataset)
+  table_ref = dataset_ref.table(bq_table)
+  try:
+    table = bq_client.get_table(table_ref)
+  except:
+    raise ValueError('Table {} does not exist.'.format(bq_table))
+
+  load_job = bq_client.insert_rows(table, rows_to_insert)
+
+def extract_field_from_payload(text, payload, field_name, default_value='None'):
   """Parses a payload to extract the value of the given field.
 
   Args
@@ -67,21 +128,20 @@ def extract_field_from_payload(text, payload, field_name, default_value=constant
 
 def run_automl_single(ocr_path,
                       list_fields,
-                      service_account_ner,
-                      service_account_gcs,
-                      ner_model_id,
-                      project_id_ner,
+                      service_acct,
+                      model_id,
+                      main_project_id,
                       compute_region):
   """Runs AutoML NER on a single document and returns the dictionary of results."""
 
   # Set up client for AutoML NER model
-  automl_client = automl.AutoMlClient.from_service_account_json(service_account_ner)
+  automl_client = automl.AutoMlClient.from_service_account_json(service_acct)
   model_full_id = automl_client.model_path(
-      project_id_ner, compute_region, ner_model_id)
-  prediction_client = automl.PredictionServiceClient.from_service_account_json(service_account_ner)
+      main_project_id, compute_region, model_id)
+  prediction_client = automl.PredictionServiceClient.from_service_account_json(service_acct)
 
-  # Load json
-  text = gcs_utils.download_string(ocr_path, service_account_gcs).read().decode('utf-8')
+  # Load text
+  text = download_string(ocr_path, service_acct).read().decode('utf-8')
 
   # Call AutoML
   payload = {"text_snippet": {"content": text, "mime_type": "text/plain"}}
@@ -89,23 +149,20 @@ def run_automl_single(ocr_path,
   response = prediction_client.predict(model_full_id, payload, params)
   
   # Parse results
-  results = {constants.FILENAME: os.path.basename(ocr_path).replace('.txt', '.pdf')}
-  for field in list_fields:
+  results = {'file': os.path.basename(ocr_path).replace('.txt', '.pdf')}
+  for field in list_fields:      
       value_field = extract_field_from_payload(text, response.payload, field)
       results[field] = value_field
   return results
 
-
-def run_automl_folder(gcs_ocr_text_folder,
-                      dataset_bq,
-                      table_bq_output,
-                      project_id_ner,
-                      project_id_bq,
-                      ner_model_id,
-                      list_fields,
-                      service_account_ner,
-                      service_account_gcs_bq,
-                      compute_region):
+def predict(main_project_id,
+            input_path,
+            demo_dataset,
+            demo_table,
+            model_id,
+            service_acct,
+            compute_region,
+            config):
   """Runs AutoML NER on a folder and writes results to BigQuery.
 
   Args:
@@ -120,76 +177,40 @@ def run_automl_folder(gcs_ocr_text_folder,
     service_account_gcs_bq: Location of service account key to access BQ and Storage.
     compute_region: Compute Region for NER model.
   """
-  logger.info('Running AutoML NER...')
+  print('Starting entity extraction.')
 
-  storage_client = storage.Client.from_service_account_json(service_account_gcs_bq)
-  bucket_name, path = gcs_utils.get_bucket_blob(gcs_ocr_text_folder)
+  input_bucket_name = input_path.replace('gs://', '').split('/')[0]
+  input_txt_folder = f"gs://{input_bucket_name}/{demo_dataset}/txt"
+
+  list_fields = [x['field_name'] for x in config["model_ner"]["fields_to_extract"]]
+  list_fields.remove('file')
+
+  storage_client = storage.Client.from_service_account_json(service_acct)
+  bucket_name, path = get_bucket_blob(input_txt_folder)
   bucket = storage_client.get_bucket(bucket_name)
 
   list_results = []
   for file in bucket.list_blobs(prefix=path):
-    full_filename = os.path.join(gcs_ocr_text_folder, os.path.basename(file.name))
+    full_filename = os.path.join(input_txt_folder, os.path.basename(file.name))
     logger.info(full_filename)
-    result = run_automl_single(
-        full_filename,
-        list_fields,
-        service_account_ner,
-        service_account_gcs_bq,
-        ner_model_id,
-        project_id_ner,
-        compute_region)
+    result = run_automl_single(ocr_path=full_filename,
+                               list_fields=list_fields,
+                               service_acct=service_acct,
+                               model_id=model_id,
+                               main_project_id=main_project_id,
+                               compute_region=compute_region)
     list_results.append(result)
 
-  schema = [bigquery.SchemaField(constants.FILENAME, 'STRING', mode='NULLABLE')]
+  schema = [bigquery.SchemaField('file', 'STRING', mode='NULLABLE')]
   for field in list_fields:
       schema.append(bigquery.SchemaField(field, 'STRING', mode='NULLABLE'))
   
-  bq_utils.save_to_bq(
-    dataset_bq,
-    table_bq_output,
+  save_to_bq(
+    demo_dataset,
+    demo_table,
     list_results,
-    service_account_gcs_bq,
+    service_acct,
     _create_table=True,
     schema=schema)
 
-  logger.info('NER results saved to BigQuery.')
-
-
-if __name__ == '__main__':
-  parser = argparse.ArgumentParser()
-  parser.add_argument(
-      '--gcs_json_path',
-      help='JSON folder (outputs of OCR).',
-      required=True
-  )
-  parser.add_argument(
-      '--dataset_bq',
-      help='BiqQuery dataset name',
-      required=True
-  )
-  parser.add_argument(
-      '--compute_region',
-      default='us-central1'
-  )
-  parser.add_argument(
-      '--config_file',
-      help='Path to configuration file.',
-      required=True
-  )
-  args = parser.parse_args()
-
-  with open(args.config_file, 'r') as stream:
-      config = yaml.load(stream, Loader=yaml.FullLoader)
-  list_fields = [x['field_name'] for x in config['fields_to_extract']]
-
-  run_automl_folder(
-    args.gcs_json_path,
-    args.dataset_bq,
-    constants.TABLE_NER_RESULTS,  
-    config['model_ner']['project_id'],
-    config['main_project']['main_project_id'],
-    config['model_ner']['model_id'],
-    list_fields,
-    config['service_keys']['key_ner'],
-    config['service_keys']['key_bq_and_gcs'],
-    args.compute_region)
+  print('Entity extraction finished.')
