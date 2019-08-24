@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # Copyright 2019 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,8 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from demo_utils import *
 import yaml
+
+import automl_image
+import automl_ner
+import automl_objdetect
+import automl_text
+import final_view
+import pdf2png
 
 config = yaml.safe_load(open("../config.yaml", "r"))
 
