@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import automl_utils
+import training_utils
 import yaml
 import service_account
 

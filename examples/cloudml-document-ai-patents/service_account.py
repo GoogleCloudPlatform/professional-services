@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# TODO(michaelsherman): Can this be deleted now that we do it with sh?
+
 import subprocess
 
 
