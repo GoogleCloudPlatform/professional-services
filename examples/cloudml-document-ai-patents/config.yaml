@@ -24,26 +24,26 @@ service_acct:
   name: 'patent-demo-service-acct'
   description: 'Service-account-for-doc-understanding-demo'
   display_name: 'Patent-Demo-Service-Account'
-  key: '../keys/service-acct.json'
+  key: './keys/service-acct.json'
 pdp_project:
   project_id: 'pdf-processing-219114' # this will change to PDP project later
   dataset_id: 'patent_demo_data_pdp' # this will change once data is PDP'd
   bucket_name: 'patent_demo_data_pdp' # this will change once data is PDP'd
 model_imgclassifier:
   pdp_table_id: 'entity_extraction' # table location of PDP data
-  model_id:  # TODO: replace with model id when training is complete
+  model_id:  # 'TODO(user): replace with model id when training is complete
   demo_table_id: 'document_classification'
 model_objdetect:
   pdp_table_id: 'object_detection' # table location of PDP data
-  model_id:  # TODO: replace with model id when training is complete
+  model_id:  # 'TODO(user): replace with model id when training is complete
   demo_table_id: 'object_detection'
 model_textclassifier:
   pdp_table_id: 'text_classification' # table location of PDP data
-  model_id:  # TODO: replace with model id when training is complete
+  model_id:  # 'TODO(user): replace with model id when training is complete
   demo_table_id: 'document_subject'
 model_ner:
   pdp_table_id: 'entity_extraction' # table location of PDP data
-  model_id:  # TODO: replace with model id when training is complete
+  model_id:  # 'TODO(user): replace with model id when training is complete
   demo_table_id: 'ner_results'
   fields_to_extract:
   - field_name: 'file'
