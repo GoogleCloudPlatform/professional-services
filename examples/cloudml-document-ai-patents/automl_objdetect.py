@@ -27,6 +27,7 @@ from google.oauth2 import service_account
 import tempfile
 import io
 import yaml
+import utils
 
 from google.cloud.vision import types
 from PIL import Image, ImageDraw
@@ -36,32 +37,6 @@ from PIL import Image, ImageDraw
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
-def get_bucket_blob(full_path):
-    match = re.match(r'gs://([^/]+)/(.+)', full_path)
-    bucket_name = match.group(1)
-    blob_name = match.group(2)
-    return bucket_name, blob_name
-
-def sample_handler(storage_client, bucket, filein):
-    bucket = storage_client.get_bucket(bucket)
-    blob = bucket.get_blob(filein)
-    blob.download_as_string(client=storage_client)
-    return blob.download_as_string(client=storage_client)
-
-def create_table(bq_client, dataset, table_name, schema):
-    dataset_ref = bq_client.dataset(dataset)
-    table_ref = dataset_ref.table(table_name)
-
-    try:
-        table = bq_client.get_table(table_ref)
-        raise ValueError('Table should not exist: {}'.format(table_name))
-    except:
-        pass
-
-    table = bigquery.Table(table_ref, schema=schema)
-    table = bq_client.create_table(table)
-    return table
 
 def detect_object(gcs_image_folder,
                   gcs_cropped_image_folder,
@@ -91,12 +66,12 @@ def detect_object(gcs_image_folder,
         bigquery.SchemaField('y_min', 'STRING', mode='REQUIRED'),
         bigquery.SchemaField('y_max', 'STRING', mode='REQUIRED'),
         ]
-    table = create_table(bq_client, bq_dataset_output, bq_table_output, schema)
+    table = utils.create_table(bq_client, bq_dataset_output, bq_table_output, schema)
     
     for blob in bucket.list_blobs(prefix=str(prefix + "/")):
         if blob.name.endswith(".png"):
             logger.info(os.path.basename(blob.name))
-            content = sample_handler(storage_client, bucket_name, blob.name)
+            content = utils.sample_handler(storage_client, bucket_name, blob.name)
             name = 'projects/{}/locations/us-central1/models/{}'.format(main_project_id, model_id)
             payload = {'image': {'image_bytes': content }}
             params = {}
@@ -129,7 +104,7 @@ def detect_object(gcs_image_folder,
 
                 # Upload cropped image to gcs bucket
                 new_file_name = os.path.join(gcs_cropped_image_folder,os.path.basename(blob.name).replace('.png', '-crop.png'))
-                new_file_bucket, new_file_name = get_bucket_blob(new_file_name)
+                new_file_bucket, new_file_name = utils.get_bucket_blob(new_file_name)
                 new_blob = blob.bucket.blob(new_file_name)
                 new_blob.upload_from_filename(temp_local_filename)
                 os.remove(temp_local_filename)

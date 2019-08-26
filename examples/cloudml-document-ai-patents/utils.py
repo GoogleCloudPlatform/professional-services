@@ -14,6 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import re
+from google.cloud import storage, bigquery
+
+
 def get_bucket_blob(full_path):
   match = re.match(r'gs://([^/]+)/(.+)', full_path)
   bucket_name = match.group(1)
@@ -23,7 +27,6 @@ def get_bucket_blob(full_path):
 def sample_handler(storage_client, bucket, filein):
     bucket = storage_client.get_bucket(bucket)
     blob = bucket.get_blob(filein)
-    blob.download_as_string(client=storage_client)
     return blob.download_as_string(client=storage_client)
 
 def create_table(bq_client, dataset, table_name, schema):

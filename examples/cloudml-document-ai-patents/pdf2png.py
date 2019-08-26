@@ -16,7 +16,7 @@
 Usage: python pdf2png.py --bucket_id={BUCKET_ID} --input_path=/path/to/folder_of_pdfs
 """
 
-
+import logging
 import argparse
 import json
 import os
@@ -28,8 +28,9 @@ from wand.image import Image
 import tensorflow as tf
 import yaml
 
-# TODO: Remove temporary file
 # TODO: Use tf.file_io --> removes the need to get bucket name.
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def png2txt(png_path, txt_path, service_acct):
     """convert the png file to txt using OCR."""

@@ -13,62 +13,18 @@
 # limitations under the License.
 """Runs AutoML Image classifier, writes the results to BigQuery and copies doc to GCS."""
 
-import argparse
-import json
 import os
 import sys
-import re
-from google.cloud import storage
-from google.cloud import bigquery
-from google.cloud import automl
+import utils
+import logging
 
+from google.cloud import storage, bigquery, automl
 
-# TODO: Change approach (messy) 'bucket name images that are not patents are moved to so that the NER model does not classify them'
 # TODO: Clean classify write into submodules + handle initialization of the clients better (is it the right place).
 # TODO: Rename sample_handler + is it necessary to feed the string to the API (vs path)
 
-def get_bucket_blob(full_path):
-  match = re.match(r'gs://([^/]+)/(.+)', full_path)
-  bucket_name = match.group(1)
-  blob_name = match.group(2)
-  return bucket_name, blob_name
-
-def sample_handler(bucket, filein, service_account):
-    client = storage.Client.from_service_account_json(service_account)
-    bucket = client.get_bucket(bucket)
-    blob = bucket.get_blob(filein)
-    blob.download_as_string(client=client)
-    return blob.download_as_string(client=client)
-
-
-def create_table(bq_client, dataset, table_name, schema):
-    dataset_ref = bq_client.dataset(dataset)
-    table_ref = dataset_ref.table(table_name)
-
-    try:
-        table = bq_client.get_table(table_ref)
-        raise ValueError('Table should not exist: {}'.format(table_name))
-    except:
-        pass
-
-    table = bigquery.Table(table_ref, schema=schema)
-    table = bq_client.create_table(table)
-    return table
-
-def copy_blob(bucket_name, blob_name, new_bucket_name, new_blob_name, service_account):
-    """Copies a blob from one bucket to another with a new name."""
-    storage_client = storage.Client.from_service_account_json(service_account)
-    source_bucket = storage_client.get_bucket(bucket_name)
-    source_blob = source_bucket.blob(blob_name)
-    destination_bucket = storage_client.get_bucket(new_bucket_name)
-
-    new_blob = source_bucket.copy_blob(
-        source_blob, destination_bucket, new_blob_name)
-
-    print('Blob {} in bucket {} copied to blob {} in bucket {}.'.format(
-        source_blob.name, source_bucket.name, new_blob.name,
-        destination_bucket.name))
-
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def classify_write(bucket_name,
                    prefix,
@@ -92,13 +48,14 @@ def classify_write(bucket_name,
         bigquery.SchemaField('class', 'STRING', mode='REQUIRED'),
         bigquery.SchemaField('class_confidence', 'STRING', mode='REQUIRED'),
         ]
-    table = create_table(bq_client, bq_dataset, bq_table, schema)
+    table = utils.create_table(bq_client, bq_dataset, bq_table, schema)
     if score_threshold:
         params = {"score_threshold": str(score_threshold)}
 
     for blob in bucket.list_blobs(prefix=str(prefix + "/")):
         if blob.name.endswith(".png"):
-            content = sample_handler(bucket_name, blob.name, service_account)
+            logger.info(os.path.basename(blob.name))
+            content = utils.sample_handler(storage_client, bucket_name, blob.name)
             payload = {"image": {"image_bytes": content}}
             response = prediction_client.predict(model_full_id, payload, params)
             for result in response.payload:
@@ -113,10 +70,10 @@ def classify_write(bucket_name,
                     filename = os.path.basename(blob.name).replace('.png', '.pdf')
                     input_pdf_path = os.path.join(input_path, filename)
                     selected_pdf_path = os.path.join(selected_pdf_folder, filename)
-                    bucket_input, blob_input = get_bucket_blob(input_pdf_path)
-                    bucket_output, blob_output = get_bucket_blob(selected_pdf_path)
+                    bucket_input, blob_input = utils.get_bucket_blob(input_pdf_path)
+                    bucket_output, blob_output = utils.get_bucket_blob(selected_pdf_path)
 
-                    copy_blob(bucket_input, blob_input, 
+                    utils.copy_blob(bucket_input, blob_input, 
                               bucket_output, blob_output,
                               service_account)
 
@@ -172,10 +129,20 @@ def predict(main_project_id,
     dataset_id = "{}.{}".format(bq_client.project, demo_dataset)
     dataset = bigquery.Dataset(dataset_id)
     dataset.location = "US"
+
+    # Check to see if the BQ dataset already exists before creating
+    all_datasets = list(bq_client.list_datasets())
+    if all_datasets:
+      all_dataset_ids = [dataset.dataset_id for dataset in all_datasets]
+    if demo_dataset in all_dataset_ids:
+      print(f"\nThe dataset named {demo_dataset} already exists in project {main_project_id}.")
+      print(f"Enter a different dataset id in the config file or delete the existing {demo_dataset} dataset.")
+      sys.exit()
+    
     dataset = bq_client.create_dataset(dataset)  # API request
     print("Created dataset {}.{}".format(bq_client.project, dataset.dataset_id))
 
-    bucket_name, file_name = get_bucket_blob(input_folder_png)
+    bucket_name, file_name = utils.get_bucket_blob(input_folder_png)
     classify_write(
         bucket_name,
         file_name,
