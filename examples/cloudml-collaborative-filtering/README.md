@@ -68,6 +68,7 @@ The steps involved are as follows:
 |---------|-------------|
 | `bin/run.preprocess.local.sh` | Process a sample of the data locally and write outputs to a local directory. |
 | `bin/run.preprocess.cloud.sh` | Process the data on GCP using DataFlow and write outputs to a GCS bucket. |
+| `bin/run.test.sh`             | Run unit tests for the preprocessing pipeline. |
 
 
 ## Training
