@@ -16,6 +16,7 @@
 
 import re
 from google.cloud import storage, bigquery
+from io import BytesIO
 
 
 def get_bucket_blob(full_path):
