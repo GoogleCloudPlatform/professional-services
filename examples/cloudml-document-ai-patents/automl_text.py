@@ -52,7 +52,7 @@ def predict(main_project_id,
             service_acct,
             compute_region):
     """Runs AutoML Text classifier on a GCS folder and pushes results to BigQuery."""
-    print('Starting text classification.')
+    logger.info("Starting text classification.\n")
     input_bucket_name = input_path.replace('gs://', '').split('/')[0]
     input_txt_folder = f"gs://{input_bucket_name}/{demo_dataset}/txt"
 
@@ -67,6 +67,8 @@ def predict(main_project_id,
         document_abs_path = os.path.join('gs://', bucket_name, document_path.name)
         content = utils.download_string(document_abs_path, service_acct).read()
         subject, score = run_automl_text(content, main_project_id, model_id, service_acct, compute_region)
+        logger.info(f"Predicted subject: {subject}.")
+        logger.info(f"Predicted class score: {score}.")
   
         results.append({
             'file': os.path.basename(document_abs_path.replace('.txt', '.pdf')),
@@ -86,4 +88,4 @@ def predict(main_project_id,
         service_acct,
         _create_table=True,
         schema=schema)
-    print('Text classification finished.')
+    logger.info('Text classification finished.\n')

@@ -59,9 +59,9 @@ def classify_write(bucket_name,
             payload = {"image": {"image_bytes": content}}
             response = prediction_client.predict(model_full_id, payload, params)
             for result in response.payload:
-                print("File location: {}".format(os.path.join('gs://',bucket_name, blob.name)))
-                print("Predicted class name: {}".format(result.display_name))
-                print("Predicted class score: {}\n".format(result.classification.score))
+                logger.info("File location: {}".format(os.path.join('gs://',bucket_name, blob.name)))
+                logger.info("Predicted class name: {}".format(result.display_name))
+                logger.info("Predicted class score: {}\n".format(result.classification.score))
 
                 if result.display_name == "datasheets":
                    pass
@@ -105,7 +105,7 @@ def predict(main_project_id,
       score_threshold: The required confidence level for AutoML to make a prediction.
       compute_region: Compute region for AutoML model.
     """
-    print('Starting image classification.')
+    logger.info("Starting image classification.")
     input_bucket_name = input_path.replace('gs://', '').split('/')[0]
     input_folder_png = f"gs://{input_bucket_name}/{demo_dataset}/png"
 
@@ -135,12 +135,12 @@ def predict(main_project_id,
     if all_datasets:
       all_dataset_ids = [dataset.dataset_id for dataset in all_datasets]
     if demo_dataset in all_dataset_ids:
-      print(f"\nThe dataset named {demo_dataset} already exists in project {main_project_id}.")
-      print(f"Enter a different dataset id in the config file or delete the existing {demo_dataset} dataset.")
+      logger.info(f"\nThe dataset named {demo_dataset} already exists in project {main_project_id}.")
+      logger.info(f"Enter a different dataset id in the config file or delete the existing {demo_dataset} dataset.")
       sys.exit()
     
     dataset = bq_client.create_dataset(dataset)  # API request
-    print("Created dataset {}.{}".format(bq_client.project, dataset.dataset_id))
+    logger.info("Created dataset {}.{}".format(bq_client.project, dataset.dataset_id))
 
     bucket_name, file_name = utils.get_bucket_blob(input_folder_png)
     classify_write(
@@ -157,4 +157,4 @@ def predict(main_project_id,
         input_path,
         model_full_id,
         )
-    print('Image classification finished.')
+    logger.info("Image classification finished.\n")
