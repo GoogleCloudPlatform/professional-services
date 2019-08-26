@@ -44,14 +44,33 @@ def ReadBQ(p, query):
       query=query, use_standard_sql=True))
 
 
+def _handle_null_user_tags(features):
+  """Replaces missing user tags with arrays of 0.
+
+  Args:
+    features: a dict of shape {$user_key: $user_id, $item_key: ...}.
+
+  Returns:
+    the features dict with empty user tags features set to arrays of 0s.
+  """
+  if len(features[constants.USER_TAGS_KEY]) != constants.USER_TAGS_LENGTH:
+    features[constants.USER_TAGS_KEY] = [0] * constants.USER_TAGS_LENGTH
+  return features
+
+
 def _normalize_user_tags(features):
-  """Fills in missing user tags features and normalizes the tag vectors."""
+  """Normalizes tag vectors to sum to 1 if they are not the zero vector.
+
+  Args:
+    features: a dict of shape {$user_key: $user_id, $item_key: ...}.
+
+  Returns:
+    the features dict with the user tags feature normalized if possible.
+  """
   tags_sum = sum(features[constants.USER_TAGS_KEY])
   if tags_sum > 0:
     normalized_tags = [x / tags_sum for x in features[constants.USER_TAGS_KEY]]
     features[constants.USER_TAGS_KEY] = normalized_tags
-  if len(features[constants.USER_TAGS_KEY]) != constants.USER_TAGS_LENGTH:
-    features[constants.USER_TAGS_KEY] = [0] * constants.USER_TAGS_LENGTH
   return features
 
 
@@ -197,6 +216,7 @@ def run(p, args):
 
   raw_data = (p
               | "ReadBQ" >> ReadBQ(query)
+              | "HandleNullUserTags" >> beam.Map(_handle_null_user_tags)
               | "NormalizeUserTags" >> beam.Map(_normalize_user_tags))
   data = _run_tft_fn(raw_data, _preprocess_tft, args.tft_dir,
                      args.user_min_count, args.item_min_count)
