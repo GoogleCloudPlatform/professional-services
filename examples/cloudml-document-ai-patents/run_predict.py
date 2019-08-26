@@ -21,7 +21,7 @@ import automl_text
 import final_view
 import pdf2png
 
-config = yaml.safe_load(open("../config.yaml", "r"))
+config = yaml.safe_load(open("config.yaml", "r"))
 
 
 pdf2png.convert_pdfs(main_project_id=config["main_project"]["project_id"],

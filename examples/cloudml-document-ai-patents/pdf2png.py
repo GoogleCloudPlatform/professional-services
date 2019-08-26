@@ -52,7 +52,7 @@ def png2txt(png_path, txt_path, service_acct):
         f.write(text)
         f.close()
 
-    print('Writing txt at: {}'.format(txt_path))
+    print('Writing txt at: {}\n'.format(txt_path))
     match = re.match(r'gs://([^/]+)/(.+)', txt_path)
     new_bucket_name = match.group(1)
     new_file_name = match.group(2)
@@ -63,6 +63,12 @@ def png2txt(png_path, txt_path, service_acct):
 
 def pdf2png2txt(current_blob, png_path, txt_path, service_acct, log_file):
     """convert the given file using ImageMagick."""
+
+    # Create temp directory & all intermediate directories
+    temp_directory = "./tmp/google"
+    if not os.path.exists(temp_directory):
+        os.makedirs(temp_directory)
+    
     file_name = current_blob.name
     handler, temp_local_filename = tempfile.mkstemp(dir='tmp/')
 
