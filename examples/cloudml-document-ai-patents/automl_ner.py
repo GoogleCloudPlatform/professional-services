@@ -107,7 +107,7 @@ def predict(main_project_id,
     service_account_gcs_bq: Location of service account key to access BQ and Storage.
     compute_region: Compute Region for NER model.
   """
-  print('Starting entity extraction.')
+  logger.info('Starting entity extraction.')
 
   input_bucket_name = input_path.replace('gs://', '').split('/')[0]
   input_txt_folder = f"gs://{input_bucket_name}/{demo_dataset}/txt"
@@ -143,4 +143,4 @@ def predict(main_project_id,
     _create_table=True,
     schema=schema)
 
-  print('Entity extraction finished.')
+  logger.info('Entity extraction finished.')
