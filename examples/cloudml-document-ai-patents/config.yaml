@@ -11,20 +11,39 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# 
-# Configuration file for document understanding training and prediction pipelines.
 
-main_project:
-  project_id: # 'TODO(user): set with your Project ID'
-  region: 'us-central1' # Currently the only supported location_id is “us-central1”.
-  demo_sample_data: # TODO(user): GCS location of patents to process for demo
-  demo_dataset_id: # TODO(user): BQ dataset to store information collected from patents for demo
-service_acct:
-  user_id: # TODO(user) : Set With your GCP Account Email 
+# Config file for Document AI patents example training and prediction pipelines.
+
+# The project the Document AI pipeline will be built and hosted in.
+# TODO(michaelsherman): Make sure no line is past 80 characters (per bash style)
+pipeline_project:
+  project_id: 'your_project_id' # TODO(user): Set to your Project ID.
+  region: 'us-central1' # Currently (Aug 2019) only "us-central1" supported.
+# Parameters for creation of a service account with get_service_acct.sh.
+service_acct_creation:
+  creator_user_id: 'email@adress' # TODO(user): Set to your GCP login email.
   name: 'patent-demo-service-acct'
-  description: 'Service-account-for-doc-understanding-demo'
+  description: 'service-account-for-document-understanding-patents-demo'
   display_name: 'Patent-Demo-Service-Account'
-  key: './keys/service-acct.json'
+  key_path: '$HOME/keys/patent-demo-service-acct.json'
+# The path of the service account key used by the demo.
+# TODO(michaelsherman): Maybe better to make the service account read path and write
+#   path different config values?
+key_path: '$HOME/keys/patent-demo-service-acct.json'
+
+
+# TODO(michaelsherman): Make sure all lines below here are cleaned up.
+# TODO(michaelsherman): Deprecate main_project with pipeline_project
+main_project:
+  project_id: 'your_project_id' # TODO(user): Set with your Project ID.
+  region: 'us-central1' # Currently the only supported region is “us-central1”.
+# TODO(michaelsherman): Make distinction between project of automl models and
+#   projects of GCS data and BQ. Is there a better way to organize?
+  demo_sample_data: '' # TODO(user): GCS location of patents to process for demo
+  demo_dataset_id: '' # TODO(user): BQ dataset to store information collected from patents for demo
+# TODO(michaelsherman): Each of these should just be a BQ proj.dataset.table, they should
+#   be as independent as possible.
+# TODO(michaelsherman): Fields should be specified for all models, like NER is.
 pdp_project:
   project_id: 'pdf-processing-219114' # this will change to PDP project later
   dataset_id: 'patent_demo_data_pdp' # this will change once data is PDP'd
@@ -45,10 +64,12 @@ model_ner:
   pdp_table_id: 'entity_extraction' # table location of PDP data
   model_id:  # 'TODO(user): replace with model id when training is complete
   demo_table_id: 'ner_results'
+# TODO(michaelsherman): Is this indentation correct?
   fields_to_extract:
   - field_name: 'file'
   - field_name: 'publication_date'
   - field_name: 'class_international'
+# TODO(michaelsherman): Determine why this postprocess happens.
     postprocess_fn: 'PostprocessClassification'
   - field_name: 'application_number'
   - field_name: 'filing_date'

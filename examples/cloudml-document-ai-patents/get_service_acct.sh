@@ -12,19 +12,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
+
 # Create GCP service account, add permissions, and download key.
 
 # TODO(michaelsherman): Use yq to parse config, require yaml file as input.
-# example: yq .main_project.project_id config.yaml
-PROJECT_ID="pdf-processing-219114"
-USERID_DOMAIN="holtskinner@google.com"
-SA_NAME="patent-demo-service-acct2"
-SA_DESCRIPTION="Service-account-for-doc-understanding-demo"
-SA_DISPLAY_NAME="Patent-Demo-Service-Account"
+# TODO(michaelsherman): Make sure this YAML reading is working.
+local YAML_FILE="$1"
 
-# TODO: need to check if patent-demo-service-acct exits already. 
-# If so, delete and recreate, or just add necessary permissions
+local PROJECT_ID="yq .pipeline_project.project_id $1"
+YAML_FILE="$1"
+PROJECT_ID="$(yq .pipeline_project.project_id $YAML_FILE)"
+USER_ID="$(yq .service_acct.creator_user_id $YAML_FILE)"
+SA_NAME="$(yq .service_acct.name $YAML_FILE)"
+SA_DESCRIPTION="$(yq .service_acct.description $YAML_FILE)"
+SA_DISPLAY_NAME="$(yq .service_acct.display_name $YAML_FILE)"
+
+# TODO(michaelsherman): need to check if patent-demo-service-acct exits already. 
+# If so stop and raise an error.
 gcloud beta iam service-accounts create $SA_NAME \
     --description=$SA_DESCRIPTION \
     --display-name=$SA_DISPLAY_NAME
@@ -33,6 +37,7 @@ gcloud beta iam service-accounts create $SA_NAME \
 gcloud iam service-accounts keys create ./keys/service-acct.json \
   --iam-account $SA_NAME@$PROJECT_ID.iam.gserviceaccount.com
 
+# TODO(michaelsherman): Why both automl.admin and .editor? Editor alone ok?
 # Give AutoML Editor privledges to the service account
 gcloud projects add-iam-policy-binding $PROJECT_ID \
    --member="user:"$USERID_DOMAIN \
@@ -42,11 +47,13 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
    --member="serviceAccount:"$SA_NAME"@"$PROJECT_ID".iam.gserviceaccount.com" \
    --role="roles/automl.editor"
 
+# TODO(michaelsherman): Why admin? Why not just reader or editor?
 # Give Storage Admin privledges to the service account
 gcloud projects add-iam-policy-binding $PROJECT_ID \
  --member="serviceAccount:"$SA_NAME"@"$PROJECT_ID".iam.gserviceaccount.com" \
  --role="roles/storage.admin"
 
+# TODO(michaelsherman): Why admin? Why not just reader or editor?
 # Grant BigQuery Admin privledges to the service account
 gcloud projects add-iam-policy-binding $PROJECT_ID \
  --member="serviceAccount:"$SA_NAME"@"$PROJECT_ID".iam.gserviceaccount.com" \
