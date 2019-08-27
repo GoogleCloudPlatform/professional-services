@@ -13,85 +13,16 @@
 # limitations under the License.
 """Runs AutoML NER on the text and writes results to BigQuery."""
 
-import argparse
 import logging
 import os
-import re
-import yaml
+import utils
 
-from io import BytesIO, StringIO
-import re
-
-
-from google.cloud import storage
-from google.cloud import bigquery
+from google.cloud import storage, bigquery
 from google.cloud import automl_v1beta1 as automl
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def get_bucket_blob(full_path):
-  match = re.match(r'gs://([^/]+)/(.+)', full_path)
-  bucket_name = match.group(1)
-  blob_name = match.group(2)
-  return bucket_name, blob_name
-
-def download_string(full_path, service_account):
-  """Downloads the content of a gcs file."""
-  storage_client = storage.Client.from_service_account_json(service_account)
-  bucket_name, path = get_bucket_blob(full_path)
-  bucket = storage_client.get_bucket(bucket_name)
-  blob = bucket.blob(path)
-  byte_stream = BytesIO()
-  blob.download_to_file(byte_stream)
-  byte_stream.seek(0)
-  return byte_stream
-
-def create_table(bq_client, dataset, table_name, schema):
-  """Creates a BigQuery table."""
-  dataset_ref = bq_client.dataset(dataset)
-  table_ref = dataset_ref.table(table_name)
-
-  try:
-      table = bq_client.get_table(table_ref)
-      raise ValueError('Table should not exist: {}'.format(table_name))
-  except:
-      pass
-
-  table = bigquery.Table(table_ref, schema=schema)
-  table = bq_client.create_table(table)
-  return table
-
-def save_to_bq(bq_dataset, bq_table, rows_to_insert, service_account, _create_table=True, schema=None):
-  """Writes data to a BigQuery dataset.
-  
-  Args:
-    bq_dataset: Name of the BigQuery dataset (string).
-    bq_table: Name of the BigQuery table (string).
-    rows_to_insert: One of: list of tuples/list of dictionaries). Row data to be inserted.
-      If a list of tuples is given, each tuple should contain data for each schema field on the current table
-      and in the same order as the schema fields. If a list of dictionaries is given, the keys must include all
-      required fields in the schema. Keys which do not correspond to a field in the schema are ignored.
-    service_account: Service account of BigQuery
-    _create_table: Whether to create the table (default = True).
-    schema: Schema of the data (list of `SchemaField`). Required if we create_table=True.
-  """
-  bq_client = bigquery.Client.from_service_account_json(service_account)
-
-  if _create_table:
-    if not schema:
-      raise ValueError('Schema is required when creating the table')
-    table = create_table(bq_client, bq_dataset, bq_table, schema)
-    print ('Table created')
-
-  dataset_ref = bq_client.dataset(bq_dataset)
-  table_ref = dataset_ref.table(bq_table)
-  try:
-    table = bq_client.get_table(table_ref)
-  except:
-    raise ValueError('Table {} does not exist.'.format(bq_table))
-
-  load_job = bq_client.insert_rows(table, rows_to_insert)
 
 def extract_field_from_payload(text, payload, field_name, default_value='None'):
   """Parses a payload to extract the value of the given field.
@@ -140,7 +71,7 @@ def run_automl_single(ocr_path,
   prediction_client = automl.PredictionServiceClient.from_service_account_json(service_acct)
 
   # Load text
-  text = download_string(ocr_path, service_acct).read().decode('utf-8')
+  text = utils.download_string(ocr_path, service_acct).read().decode('utf-8')
 
   # Call AutoML
   payload = {"text_snippet": {"content": text, "mime_type": "text/plain"}}
@@ -185,7 +116,7 @@ def predict(main_project_id,
   list_fields.remove('file')
 
   storage_client = storage.Client.from_service_account_json(service_acct)
-  bucket_name, path = get_bucket_blob(input_txt_folder)
+  bucket_name, path = utils.get_bucket_blob(input_txt_folder)
   bucket = storage_client.get_bucket(bucket_name)
 
   list_results = []
@@ -204,7 +135,7 @@ def predict(main_project_id,
   for field in list_fields:
       schema.append(bigquery.SchemaField(field, 'STRING', mode='NULLABLE'))
   
-  save_to_bq(
+  utils.save_to_bq(
     demo_dataset,
     demo_table,
     list_results,

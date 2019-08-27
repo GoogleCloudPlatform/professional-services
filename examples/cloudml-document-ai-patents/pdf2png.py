@@ -41,7 +41,7 @@ def png2txt(png_path, txt_path, service_acct):
 
     storage_client = storage.Client.from_service_account_json(service_acct)
     
-    print(f"OCR processing {png_path}")
+    logger.info(f"OCR processing {png_path}")
     image.source.image_uri = png_path
     response = vision_client.text_detection(image=image)
 
@@ -53,7 +53,7 @@ def png2txt(png_path, txt_path, service_acct):
         f.write(text)
         f.close()
 
-    print('Writing txt at: {}\n'.format(txt_path))
+    logger.info('Writing txt at: {}\n'.format(txt_path))
     match = re.match(r'gs://([^/]+)/(.+)', txt_path)
     new_bucket_name = match.group(1)
     new_file_name = match.group(2)
@@ -79,7 +79,7 @@ def pdf2png2txt(current_blob, png_path, txt_path, service_acct, log_file):
             with img.convert('png') as converted:
                 converted.save(filename=temp_local_filename.replace('.pdf', '.png'))
     except:
-        print ('Image seems corrupted: {}'.format(file_name))
+        logger.info('Image seems corrupted: {}\n'.format(file_name))
         log_file.write(file_name)
         return
 
@@ -117,7 +117,7 @@ def convert_pdfs(main_project_id, demo_dataset, input_path, service_acct):
 
     for blob in bucket.list_blobs(prefix=folder_to_enumerate):
         if (blob.name.endswith('.pdf')):
-            print('Converting pdf: {}'.format(blob.name))
+            logger.info('Converting pdf: {}'.format(blob.name))
             current_blob = storage.Client.from_service_account_json(service_acct).get_bucket(input_bucket_name).get_blob(blob.name)
             png_path = os.path.join(
                 png_output_folder,
@@ -125,7 +125,7 @@ def convert_pdfs(main_project_id, demo_dataset, input_path, service_acct):
             txt_path = os.path.join(
                 txt_output_folder,
                 os.path.basename(blob.name).replace('.pdf', '.txt'))
-            print('Writing png at: {}'.format(png_path))
+            logger.info('Writing png at: {}'.format(png_path))
             pdf2png2txt(current_blob, png_path, txt_path, service_acct, log_file)
     log_file.close()
 

@@ -13,20 +13,14 @@
 # limitations under the License.
 # Runs AutoML Object detection.
 
-import argparse
-import json
 import logging
 import os
 import sys
 import re
-from google.cloud import bigquery
-from google.cloud import storage, vision
-from google.cloud import automl_v1beta1 as automl
+from google.cloud import bigquery, storage, vision, automl
 from google.cloud.automl_v1beta1.proto import service_pb2
 from google.oauth2 import service_account
 import tempfile
-import io
-import yaml
 import utils
 
 from google.cloud.vision import types
