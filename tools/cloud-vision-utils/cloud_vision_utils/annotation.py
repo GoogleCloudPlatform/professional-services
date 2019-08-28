@@ -83,30 +83,35 @@ def read_from_pascal(filename: str):
   Args:
     filename: PASCAL VOC XML filename.
 
-  Yields:
-    `BoundingBox` objects.
+  Returns:
+    (image filename, list of `BoundingBox` objects).
   """
 
   with gfile.GFile(filename) as f:
     tree = ET.parse(f)
 
   root = tree.getroot()
+  image_filename = root.find('filename').text
   size = root.find('size')
   width = int(size.find('width').text)
   height = int(size.find('height').text)
 
+  bounding_boxes = []
   for obj in root.iter('object'):
     # Expected one bounding box per object.
     b = obj.find('bndbox')
     if b:
       label = obj.find('name').text or ''
-      yield BoundingBox(
+      bounding_box = BoundingBox(
           _safe_divide(int(b.find('xmin').text), width),
           _safe_divide(int(b.find('ymin').text), height),
           _safe_divide(int(b.find('xmax').text), width),
           _safe_divide(int(b.find('ymax').text), height),
           label,
       )
+      bounding_boxes.append(bounding_box)
     else:
       raise AttributeError('Could not find "bndbox" element')
+
+  return image_filename, bounding_boxes
 
