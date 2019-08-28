@@ -83,16 +83,11 @@ resource "google_storage_bucket" "transcription_bucket" {
 }
 
 # Create GCS Bucket to hold toxicity output files
-resource "google_storage_bucket" "toxicity_bucket" {
+resource "google_storage_bucket" "output_bucket" {
   provider = "google"
-  name = "toxicity-files-${substr(lower(random_uuid.uuid.result), 0, 20)}"
+  name = "output-files-${substr(lower(random_uuid.uuid.result), 0, 20)}"
 }
 
-# Create GCS Bucket to hold NLP output files
-resource "google_storage_bucket" "nlp_bucket" {
-  provider = "google"
-  name = "nlp-files-${substr(lower(random_uuid.uuid.result), 0, 20)}"
-}
 
 # Create PubSub resources
 resource "google_pubsub_topic" "stt_topic" {
@@ -231,7 +226,7 @@ resource "google_cloudfunctions_function" "perspective_api" {
   source_archive_object = "${google_storage_bucket_object.perspective_code.name}"
   timeout = "540"
   environment_variables = {
-    toxicity_bucket = "${google_storage_bucket.toxicity_bucket.name}"
+    output_bucket = "${google_storage_bucket.output_bucket.name}"
   }
   event_trigger {
     resource = "${google_storage_bucket.transcription_bucket.name}"
@@ -249,7 +244,7 @@ resource "google_cloudfunctions_function" "nlp_api" {
   source_archive_object = "${google_storage_bucket_object.nlp_code.name}"
   timeout = "540"
   environment_variables = {
-    nlp_bucket = "${google_storage_bucket.nlp_bucket.name}"
+    output_bucket = "${google_storage_bucket.output_bucket.name}"
   }
   event_trigger {
     resource = "${google_storage_bucket.transcription_bucket.name}"

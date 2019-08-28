@@ -25,6 +25,19 @@ If you try to use .mp3 or another file type, then you may need to perform prepro
 your file into an accepted encoding type.
 
 
+<h2>Background on Serverless Data Processing Pipelines</h2>
+
+The solution involves creating five GCS buckets using default configuration settings. Because of 
+this, no [object lifecycle management](https://cloud.google.com/storage/docs/lifecycle) policies are 
+configured. If you would like to specify different retention policies you can [enable](https://cloud.google.com/storage/docs/managing-lifecycles#enable) 
+this using `gsutil` while following the deployment process.
+
+During processing, audio files are moved between buckets as they progress 
+through various stages of the pipeline. Specifically, the audio file should first be moved to the 
+`staging` bucket. After the Speech API completes processing the file, the audio file is moved from 
+the `staging` bucket to either the `processed` or `error` bucket, depending on whether the Speech 
+API returned a success or error response.
+
 <h2>Installation/Set-up</h2>
 
 1. [Install and initialize the Cloud SDK](https://cloud.google.com/sdk/docs/how-to)
@@ -178,7 +191,7 @@ export STATIC_UUID=$(echo $(uuidgen | tr '[:upper:]' '[:lower:]') | cut -c1-20)
 ````
 
 
-4. Create six GCP buckets to hold the output files
+4. Create five GCP buckets to hold the output files
 
 ````
 export staging_audio_bucket=staging-audio-files-$STATIC_UUID
@@ -203,14 +216,10 @@ gsutil mb gs://$transcription_bucket
 ````
 
 ````
-export toxicity_bucket=toxicity-files-$STATIC_UUID
-gsutil mb gs://$toxicity_bucket
+export output_bucket=output-files-$STATIC_UUID
+gsutil mb gs://$output_bucket
 ````
 
-````
-export nlp_bucket=nlp-files-$STATIC_UUID
-gsutil mb gs://$nlp_bucket
-````
 
 4. Deploy first Cloud Function to Send STT API 
 
@@ -247,8 +256,7 @@ gcloud functions deploy read_stt_api \
    --trigger-resource cron_topic \
    --trigger-event google.pubsub.topic.publish \
    --timeout 540s \
-   --set-env-vars topic_name=$TOPIC_NAME,subscription_name=$SUBSCRIPTION_NAME,\
-   transcription_bucket=$transcription_bucket,staging_audio_bucket=$staging_audio_bucket,processed_audio_bucket=$processed_audio_bucket,error_audio_bucket=$error_audio_bucket
+   --set-env-vars topic_name=$TOPIC_NAME,subscription_name=$SUBSCRIPTION_NAME,transcription_bucket=$transcription_bucket,staging_audio_bucket=$staging_audio_bucket,processed_audio_bucket=$processed_audio_bucket,error_audio_bucket=$error_audio_bucket
 ````
 
 6. Deploy Cloud Scheduler Job
@@ -257,10 +265,10 @@ gcloud functions deploy read_stt_api \
 gcloud scheduler jobs create pubsub check_stt_job \
   --schedule "*/10 * * * *" \
   --topic cron_topic \
-  --message-body "check stt job"
+  --message-body "Check Speech-to-text results"
 ````
 
-Note that you can edit the schedule flag to be any interval in UNIX cron. By default, our solution
+Note that you can edit the `schedule` flag to be any interval in UNIX cron. By default, our solution
 uses every 10 minutes.
 
 
@@ -279,7 +287,7 @@ gcloud functions deploy perspective_api \
   --trigger-resource $transcription_bucket \
   --trigger-event google.storage.object.finalize \
   --timeout 540s \
-  --set-env-vars toxicity_bucket=$toxicity_bucket
+  --set-env-vars output_bucket=$output_bucket
 ````
 
 8. Deploy NLP Function
@@ -297,7 +305,7 @@ gcloud functions deploy nlp_api \
   --trigger-resource $transcription_bucket \
   --trigger-event google.storage.object.finalize \
   --timeout 540s \
-  --set-env-vars nlp_bucket=$nlp_bucket
+  --set-env-vars output_bucket=$output_bucket
 ````
 
 

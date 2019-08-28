@@ -118,7 +118,7 @@ def upload_json_to_gcs(gcs_client: storage.Client, bucket_name: Optional[str],
        None
     """
     bucket = gcs_client.get_bucket(bucket_name)
-    destination = bucket.blob(file_name)
+    destination = bucket.blob(f'nlp-files/{file_name}')
     destination.upload_from_string(json.dumps(file_contents),
                                    content_type='application/json')
 
@@ -220,7 +220,7 @@ def main(data: dict, context) -> None:
                 nlp.append(per_segment_nlp)
             else:
                 logging.error(f'NLP result is empty for {speech_exert}.')
-        nlp_bucket = os.environ.get('nlp_bucket')
+        nlp_bucket = os.environ.get('output_bucket')
         upload_json_to_gcs(gcs_client, nlp_bucket, file, nlp)
         logging.info(f'Stored NLP output for file {file}')
         write_processing_time_metric(json_msg['pipeline_start_time'],

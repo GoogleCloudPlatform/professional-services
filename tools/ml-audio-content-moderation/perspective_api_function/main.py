@@ -124,10 +124,10 @@ def store_toxicity(gcs_client: storage.Client, bucket_name: Optional[str],
     Returns:
         None; Logs message to Stackdriver.
     """
-    logging.info(f'Starting store_toxicity with {file_contents}')
+    logging.info(f'Starting store_toxicity with {file_contents}' in {bucket_name})
     try:
         bucket = gcs_client.get_bucket(bucket_name)
-        destination = bucket.blob(file_name)
+        destination = bucket.blob(f'toxicity-files/{file_name}')
         destination.upload_from_string(json.dumps(file_contents),
                                        content_type='application/json')
         logging.info(f'Successfully stored {file_contents} for {file_name} in '
@@ -237,7 +237,7 @@ def main(data: dict, context):
             else:
                 logging.error(f'Perspective API response is empty for '
                               f'{speech_exert}')
-        toxicity_bucket = os.environ.get('toxicity_bucket')
+        toxicity_bucket = os.environ.get('output_bucket')
         store_toxicity(gcs_client, toxicity_bucket, file, toxicity)
         logging.info(f'Toxicity function finished for {file}')
         write_processing_time_metric(json_msg['pipeline_start_time'],
