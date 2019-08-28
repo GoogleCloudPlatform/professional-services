@@ -32,22 +32,16 @@ def _sample_vocab(tft_output, vocab_name, label, k):
     tft_output: a TFTransformOutput object.
     vocab_name: the name of the embedding vocabulary made with tft.
     label: a label to assign each sample of the vocab.
-    k: the number of samples to take.
+    k: the maximum number of samples to take.
 
   Returns:
     A tuple of (indices, metadata):
       indices: a list of indices for the vocab sample.
       metadata: a list of lists of data corresponding to the indices.
-
-  Raises:
-    RuntimeError: k is larger than the vocab size.
   """
   vocab = tft_output.vocabulary_by_name(vocab_name)
-  if k > len(vocab):
-    raise RuntimeError("{0} num samples too high, must be at most {1}"
-                       .format(label, len(vocab)))
-
-  indices = random.sample(range(len(vocab)), k)
+  num_indices = min(k, len(vocab))
+  indices = random.sample(range(len(vocab)), num_indices)
   return indices, [[label, vocab[i]] for i in indices]
 
 
