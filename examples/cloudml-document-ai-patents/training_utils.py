@@ -310,7 +310,7 @@ def text_classification(main_project_id,
   }, regex=True, inplace=False)
 
   # Get text classification columns
-  output_df = output_df[["gcs_path", "class"]]
+  output_df = output_df[["gcs_path", "invention_type"]]
   output_df.to_csv(dest_uri, header=False, index=False)
 
   dataset_metadata = {
