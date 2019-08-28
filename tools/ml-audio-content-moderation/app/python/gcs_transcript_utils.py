@@ -64,21 +64,22 @@ def get_files(client: storage.Client,
              'type': blob.content_type} for blob in list(bucket.list_blobs())]
 
 
-def get_gcs_transcript(gcs_client: storage.Client,
-                       bucket_name: str, file_name: str) -> List[dict]:
-    """Downloads transcript file from GCS.
+def get_gcs_object(gcs_client: storage.Client,
+                   bucket_name: str,
+                   file_name: str) -> List[dict]:
+    """Downloads object file from GCS.
 
     Args:
         gcs_client: google.cloud.storage.Client
         bucket_name: String representing bucket name.
-        file_name: String representing audio file name.
+        file_name: String representing file name.
 
     Returns:
         List of dictionaries with transcript metadata
     """
     bucket = gcs_client.get_bucket(bucket_name)
-    transcript = bucket.blob(file_name)
-    return json.loads(transcript.download_as_string().decode('utf-8'))
+    object = bucket.blob(file_name)
+    return json.loads(object.download_as_string().decode('utf-8'))
 
 
 def extract_full_transcript(transcript_text: List[dict]):

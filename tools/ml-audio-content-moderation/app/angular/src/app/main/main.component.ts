@@ -44,6 +44,7 @@ export class MainComponent implements OnInit {
           }
         }, (response) => {
           this.loading = false;
+          this.openErrorModal('There was an error retrieving files.');
         }
       )
   }
@@ -97,8 +98,9 @@ export class MainComponent implements OnInit {
           }
         }, (response) => {
           this.loading = false;
+          this.openErrorModal(response);
           console.log('An error occurred retrieving the analysis.');
-          console.log(response);
+          console.log('There was an error retrieving the analysis.');
         }
       );
   }
