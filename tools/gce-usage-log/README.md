@@ -130,7 +130,7 @@ This process only needs to be run once and would benefit from a low-latency netw
 
 #### 2.4.1 Clone the code repository
 
-TBD depending on where the repo eventually will live
+Clone `https://github.com/GoogleCloudPlatform/professional-services` and `cd` into the `tools/gce-usage-log` directory inside the repository.
 
 #### 2.4.2 Authenticate your shell session
 
@@ -140,7 +140,11 @@ You'll need to authenticate yourself to be allowed to call APIs.
 gcloud auth application-default login
 ```
 
-#### 2.4.3 Run the script
+#### 2.4.3 Run the process
+
+This process uses the CloudResourceManager APIs to fetch all the projects your account has access to. **Please ensure that your account only has access to a single GCP organization**, otherwise you will fetch projects from multiple orgs.
+
+Execute the process:
 
 ```bash
 mvn package && \
@@ -148,7 +152,7 @@ java -jar target/gce-usage.jar initial-vm-inventory \
   ${PROJECT_ID} ${ORG_NUMBER} gce_usage_log
 ```
 
-This script will run and create a new BigQuery table called _`initial_vm_inventory` in your dataset, which should contain one line for every instance that was running in your GCP organization. You may need to reload the BQ UI in order to see this new table.
+This process will run and create a new BigQuery table called _`initial_vm_inventory` in your dataset, which should contain one line for every instance that was running in your GCP organization. You may need to reload the BQ UI in order to see this new table.
 
 If you’ve decided not to run in the cloud shell, you may need to install `maven` yourself.
 

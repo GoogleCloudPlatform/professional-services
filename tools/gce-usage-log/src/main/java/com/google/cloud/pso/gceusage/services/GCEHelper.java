@@ -41,8 +41,7 @@ public class GCEHelper {
       throws IOException, GeneralSecurityException {
 
     CloudResourceManager cloudResourceManagerService = CloudResourceManagerService.getInstance();
-    CloudResourceManager.Projects.List request = cloudResourceManagerService.projects().list()
-        .setFilter("parent.type=organization AND parent.id=" + orgNumber);
+    CloudResourceManager.Projects.List request = cloudResourceManagerService.projects().list();
     ListProjectsResponse response;
     Queue returnValue = new ConcurrentLinkedQueue<Project>();
     do {
