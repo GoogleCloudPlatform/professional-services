@@ -17,6 +17,7 @@
 
 set -e
 
+# TODO(munn): make remove_quotes() function
 YAML_FILE="$1"
 PROJECT_ID=$(yq .pipeline_project.project_id $YAML_FILE)
 PROJECT_ID="${PROJECT_ID//\"}"
@@ -35,7 +36,6 @@ SA_DISPLAY_NAME="${SA_DISPLAY_NAME//\"}"
 
 KEY_PATH="$(yq .service_acct.key_path $YAML_FILE)"
 KEY_PATH="${KEY_PATH//\"}"
-
 
 # Check if a service account with this name already exists.
 existing_account=$(gcloud iam service-accounts list --filter="${SA_NAME}")
