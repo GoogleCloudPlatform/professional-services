@@ -64,7 +64,7 @@ def detect_object(gcs_image_folder,
     
     for blob in bucket.list_blobs(prefix=str(prefix + "/")):
         if blob.name.endswith(".png"):
-            logger.info(os.path.basename(blob.name))
+            logger.info("File location: {}".format(os.path.join('gs://',bucket_name, blob.name)))
             content = utils.sample_handler(storage_client, bucket_name, blob.name)
             name = 'projects/{}/locations/us-central1/models/{}'.format(main_project_id, model_id)
             payload = {'image': {'image_bytes': content }}
@@ -72,6 +72,7 @@ def detect_object(gcs_image_folder,
             request = prediction_client.predict(name, payload, params)
 
             for result in request.payload:
+                logger.info("Figure detected in file.")
                 rows_to_insert = [
                     (str(blob.name).replace(".png", ".pdf").replace(prefix,"").replace("/",""), \
                      result.display_name, \
@@ -152,5 +153,5 @@ def predict(main_project_id,
       storage_client,
       bq_client,
       )
-  print("Object detection finished.")
+  print("Object detection finished.\n")
 

@@ -113,7 +113,7 @@ def predict(main_project_id,
   input_txt_folder = f"gs://{input_bucket_name}/{demo_dataset}/txt"
 
   list_fields = [x['field_name'] for x in config["model_ner"]["fields_to_extract"]]
-  list_fields.remove('file')
+  list_fields.remove('gcs_path')
 
   storage_client = storage.Client.from_service_account_json(service_acct)
   bucket_name, path = utils.get_bucket_blob(input_txt_folder)
@@ -143,4 +143,4 @@ def predict(main_project_id,
     _create_table=True,
     schema=schema)
 
-  logger.info('Entity extraction finished.')
+  logger.info('Entity extraction finished.\n')

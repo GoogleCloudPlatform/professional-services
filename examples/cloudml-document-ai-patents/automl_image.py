@@ -125,23 +125,6 @@ def predict(main_project_id,
     bq_client = bigquery.Client.from_service_account_json(
         service_acct)
 
-    # Create the BQ dataset
-    dataset_id = "{}.{}".format(bq_client.project, demo_dataset)
-    dataset = bigquery.Dataset(dataset_id)
-    dataset.location = "US"
-
-    # Check to see if the BQ dataset already exists before creating
-    all_datasets = list(bq_client.list_datasets())
-    if all_datasets:
-      all_dataset_ids = [dataset.dataset_id for dataset in all_datasets]
-    if demo_dataset in all_dataset_ids:
-      logger.info(f"\nThe dataset named {demo_dataset} already exists in project {main_project_id}.")
-      logger.info(f"Enter a different dataset id in the config file or delete the existing {demo_dataset} dataset.")
-      sys.exit()
-    
-    dataset = bq_client.create_dataset(dataset)  # API request
-    logger.info("Created dataset {}.{}".format(bq_client.project, dataset.dataset_id))
-
     bucket_name, file_name = utils.get_bucket_blob(input_folder_png)
     classify_write(
         bucket_name,

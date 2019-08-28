@@ -14,53 +14,15 @@
 """Runs some transformation in BigQuery and drops to a new table."""
 
 import argparse
+import logging
 import os
 import yaml
 
 from google.cloud import bigquery
 
 
-
-
-def initialise_params():
-  """Parses all arguments and assigns default values when missing."""
-  
-  def boolean_string(s):
-    """To parse boolean inputs correctly."""
-    # https://stackoverflow.com/questions/44561722/why-in-argparse-a-true-is-always-true
-    s = s.lower()
-    if s not in {'false', 'true'}:
-        raise ValueError('Not a valid boolean string')
-    return s == 'true'
-
-  args_parser = argparse.ArgumentParser()
-  args_parser.add_argument(
-      '--bq_dataset',
-      help='Dataset where the outputs are.',
-  )
-  args_parser.add_argument(
-        '--use_object_detection',
-        help='Whether object_detection has been run.',
-        type=boolean_string,
-        required=True,
-  )
-  args_parser.add_argument(
-        '--config_file',
-        help='Path to configuration file.',
-        required=True
-    )
-  args = args_parser.parse_args()
-
-  with open(args.config_file, 'r') as stream:
-        config = yaml.load(stream, Loader=yaml.FullLoader)
-  vars(args)['project_id_bq'] = config['main_project']['main_project_id']
-  vars(args)['service_account'] = config['service_keys']['key_bq_and_gcs']
-  vars(args)['classified_table'] = constants.TABLE_DOCUMENT_CLASSIFICATION
-  vars(args)['subject_table'] = constants.TABLE_DOCUMENT_SUBJECT
-  vars(args)['ner_table'] = constants.TABLE_NER_RESULTS
-  vars(args)['object_detect_table'] = constants.TABLE_OBJ_DETECT
-  vars(args)['output_table'] = constants.TABLE_FINAL_VIEW
-  return args
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def create_table(bq_client, bq_dataset, bq_table, query):
@@ -92,7 +54,7 @@ def create(main_project_id,
            service_acct):
   """Builds a BigQuery Table containing all extracted information for each pdf."""
 
-  print ('Combining results to create the final view.')
+  logger.info("Combining results to create the final view.")
 
   query ="""
   WITH table1 AS (
@@ -126,4 +88,4 @@ def create(main_project_id,
     bq_dataset=demo_dataset,
     bq_table="final_view",
     query=query)
-  print ('Final view completed.')
+  logger.info("Final view completed.\n")
