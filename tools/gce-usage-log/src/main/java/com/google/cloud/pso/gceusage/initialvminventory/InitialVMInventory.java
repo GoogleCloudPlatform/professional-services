@@ -29,11 +29,18 @@ import com.google.common.flogger.FluentLogger;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 
 public class InitialVMInventory {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
+  private static final int NUMTHREADS = 40;
+  private static final int BATCHSIZE = 500;
 
   /**
    * This method scans a org for VMs and uploads an inventory of the current VMs for the table specificed in the input arguments.
@@ -49,40 +56,62 @@ public class InitialVMInventory {
 
     BQHelper.deleteTable(projectId, dataset, tableName);
 
-    List<Project> projects = GCEHelper.getProjectsForOrg(orgNumber);
+    Queue<Project> projects = GCEHelper.getProjectsForOrg(orgNumber);
+    BlockingQueue<Object> rows = new LinkedBlockingQueue<Object>();
 
-    for (int i = 0; i < projects.size(); i++) {
-      try {
-        logger.atInfo().log(
-            "Processing project (" + (i + 1) + "/" + projects.size() + ") " + projects.get(i)
-                .getProjectId());
-
-        List<Object> rows = new ArrayList<>();
-        for (Instance instance : GCEHelper.getInstancesForProject(projects.get(i))) {
-          rows.add(convertToBQRow(instance));
-        }
-
-        JobStatistics statistics = null;
+    Runnable projectProcessor = () -> {
+      while (!projects.isEmpty()) {
+        Project project = projects.poll();
         try {
+          logger.atInfo().log(
+            "Processing project " + project.getProjectId() + ", " + projects.size() + " remaining");
+
+          for (Instance instance : GCEHelper.getInstancesForProject(project)) {
+            rows.add(convertToBQRow(instance));
+          }
+        } catch (GoogleJsonResponseException e) {
+          if (e.getStatusCode() == 403) {
+            logger.atFiner().log(
+                "GCE API not activated for project: " + project.getProjectId()
+                    + ". Ignoring project.");
+          } else {
+            logger.atWarning().log("Failed to fetch instances for project", e);
+            projects.add(project);
+          }
+        } catch (Exception e) {
+          logger.atWarning().log("Failed to fetch instances for project", e);
+          projects.add(project);
+        }
+      }
+    };
+
+    ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(NUMTHREADS);
+    for (int i = 0; i < NUMTHREADS; i++) {
+      executor.submit(projectProcessor);
+    }
+
+    while (executor.getActiveCount() > 0 || !rows.isEmpty()) {
+      if (rows.isEmpty()) {
+        Thread.sleep(1000);
+      } else {
+        ArrayList<Object> results = new ArrayList<Object>();
+        rows.drainTo(results, BATCHSIZE);
+
+        logger.atWarning().log("Processing results of size " + results.size());
+
+        try {
+          JobStatistics statistics = null;
           statistics = BQHelper
-              .insertIntoTable(projectId, dataset, tableName,
-                  InitialInstanceInventoryRow.getBQSchema(), rows);
+            .insertIntoTable(projectId, dataset, tableName,
+              InitialInstanceInventoryRow.getBQSchema(), results);
           logger.atInfo().log(statistics.toString());
         } catch (EmptyRowCollection e) {
-          logger.atFinest().log("No input data supplied", e);
-        }
-
-
-      } catch (GoogleJsonResponseException e) {
-        if (e.getStatusCode() == 403) {
-          logger.atFiner().log(
-              "GCE API not activated for project: " + projects.get(i).getProjectId()
-                  + ". Ignoring project.");
-        } else {
-          throw e;
+          logger.atWarning().log("Empty row collection, retrying", e);
         }
       }
     }
+
+    executor.shutdown();
   }
 
   protected static InitialInstanceInventoryRow convertToBQRow(Instance instance) {

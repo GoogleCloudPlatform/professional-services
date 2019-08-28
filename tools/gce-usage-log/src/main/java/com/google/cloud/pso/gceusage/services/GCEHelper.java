@@ -30,19 +30,21 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class GCEHelper {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
-  public static List<Project> getProjectsForOrg(String orgNumber)
+  public static Queue<Project> getProjectsForOrg(String orgNumber)
       throws IOException, GeneralSecurityException {
 
     CloudResourceManager cloudResourceManagerService = CloudResourceManagerService.getInstance();
     CloudResourceManager.Projects.List request = cloudResourceManagerService.projects().list()
         .setFilter("parent.type=organization AND parent.id=" + orgNumber);
     ListProjectsResponse response;
-    List returnValue = new ArrayList();
+    Queue returnValue = new ConcurrentLinkedQueue<Project>();
     do {
       response = request.execute();
       if (response.getProjects() == null) {
