@@ -39,19 +39,19 @@ class ReadFromPascalTest(unittest.TestCase):
     with tempfile.NamedTemporaryFile(suffix='.xml') as f:
       f.write(ET.tostring(self.root))
       f.seek(0)
-      boxes = annotation.read(f.name)
       if exception:
         with self.assertRaises(exception):
-          _ = list(boxes)
+          _ = annotation.read(f.name)
       else:
-        return list(boxes)
+        image_filename, boxes = annotation.read(f.name)
+        return image_filename, boxes
 
   def test_nominal_case(self):
     """Test successfully reading bounding boxes from PASCAL VOC XML file."""
 
-    boxes = list(annotation.read(self.filename))
+    image_filename, boxes = list(annotation.read(self.filename))
+    self.assertEqual(image_filename, 'image.jpg')
     self.assertEqual(len(boxes), 2)
-
     width = 400
     height = 300
     b = boxes[0]
@@ -91,7 +91,7 @@ class ReadFromPascalTest(unittest.TestCase):
     bndbox = obj.find('bndbox')
     bndbox.find('xmin').text = text_num
     obj.append(bndbox)
-    boxes = self._test_helper()
+    _, boxes = self._test_helper()
     self.assertEqual(len(boxes), 2)
     self.assertNotEqual(boxes[0].xmin, int(text_num))
 
