@@ -50,6 +50,13 @@
       }
     },
     {
+      "name": "local_ssd_size_gb",
+      "type": {
+        "equivalent": "FLOAT64",
+        "constant": "FLOAT"
+      }
+    },
+    {
       "name": "preemptible",
       "type": {
         "equivalent": "BOOL",

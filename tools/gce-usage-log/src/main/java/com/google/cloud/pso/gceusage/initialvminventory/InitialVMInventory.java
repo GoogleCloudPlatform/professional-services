@@ -88,12 +88,12 @@ public class InitialVMInventory {
   protected static InitialInstanceInventoryRow convertToBQRow(Instance instance) {
     float pdStandard = 0;
     float pdSSD = 0;
+    float localSSD = 0;
     if (instance.getDisks() != null) {
       for (AttachedDisk attachedDisk : instance.getDisks()) {
         if (attachedDisk.getType().equals("PERSISTENT")) {
           Disk disk = GCEHelper.getDisk(attachedDisk.getSource());
           if (disk != null) {
-            //System.out.println(disk.toString());
             String diskType = disk.getType();
             if (diskType.endsWith("pd-standard")) {
               pdStandard += disk.getSizeGb();
@@ -101,6 +101,8 @@ public class InitialVMInventory {
               pdSSD += disk.getSizeGb();
             }
           }
+        } else if (attachedDisk.getType().equals("SCRATCH")) {
+          localSSD += 375;
         }
       }
     }
@@ -108,7 +110,7 @@ public class InitialVMInventory {
         instance.getId().toString(),
         instance.getZone(),
         instance.getMachineType(),
-        new Float(pdStandard), new Float(pdSSD),
+        new Float(pdStandard), new Float(pdSSD), new Float(localSSD),
         instance.getScheduling().getPreemptible(), instance.getTags(), instance.getLabels());
   }
 }

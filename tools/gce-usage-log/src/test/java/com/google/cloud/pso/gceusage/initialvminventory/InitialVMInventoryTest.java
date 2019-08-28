@@ -76,6 +76,7 @@ public class InitialVMInventoryTest {
     initialInstanceInventoryRow.machine_type = "n1-standard-1";
     initialInstanceInventoryRow.pd_ssd_size_gb = Float.valueOf((float)0.0);
     initialInstanceInventoryRow.pd_standard_size_gb = Float.valueOf((float)0.0);
+    initialInstanceInventoryRow.local_ssd_size_gb = Float.valueOf((float)0.0);
     initialInstanceInventoryRow.preemptible = false;
     initialInstanceInventoryRow.projectId = "exampleprojectname";
     initialInstanceInventoryRow.zone = "us-east1-b";

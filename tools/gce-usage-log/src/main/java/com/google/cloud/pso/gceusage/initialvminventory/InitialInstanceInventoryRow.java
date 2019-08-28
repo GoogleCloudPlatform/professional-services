@@ -47,6 +47,8 @@ public class InitialInstanceInventoryRow {
   protected Float pd_standard_size_gb;
   @SerializedName("pd_ssd_size_gb")
   protected Float pd_ssd_size_gb;
+  @SerializedName("local_ssd_size_gb")
+  protected Float local_ssd_size_gb;
   @SerializedName("preemptible")
   protected boolean preemptible;
   @SerializedName("tags")
@@ -59,6 +61,7 @@ public class InitialInstanceInventoryRow {
       String machine_type,
       Float pd_standard_size_gb,
       Float pd_ssd_size_gb,
+      Float local_ssd_size_gb,
       boolean preemptible, Tags tags, Map<String, String> labels) {
     this.timestamp = timestamp;
     this.instanceId = instanceID;
@@ -72,6 +75,7 @@ public class InitialInstanceInventoryRow {
     this.machine_type = machine_type.substring(machine_type.lastIndexOf("/") + 1);
     this.pd_standard_size_gb = pd_standard_size_gb;
     this.pd_ssd_size_gb = pd_ssd_size_gb;
+    this.local_ssd_size_gb = local_ssd_size_gb;
     this.preemptible = preemptible;
 
     this.tags = new ArrayList<>();
@@ -99,12 +103,13 @@ public class InitialInstanceInventoryRow {
 	 Field f5 = Field.of("machine_type", LegacySQLTypeName.STRING);
 	 Field f5a = Field.of("pd_standard_size_gb", LegacySQLTypeName.FLOAT);
 	 Field f5b = Field.of("pd_ssd_size_gb", LegacySQLTypeName.FLOAT);
+	 Field f5c = Field.of("local_ssd_size_gb", LegacySQLTypeName.FLOAT);
 	 Field f6 = Field.of("preemptible", LegacySQLTypeName.BOOLEAN);
 	 Field f7 = Field.newBuilder("tags", LegacySQLTypeName.STRING).setMode(Mode.REPEATED).build();
 	 Field f8a = Field.of("key", LegacySQLTypeName.STRING);
 	 Field f8b = Field.of("value", LegacySQLTypeName.STRING);
 	 Field f8 = Field.newBuilder("labels", LegacySQLTypeName.RECORD, f8a, f8b).setMode(Mode.REPEATED).build();
-	 return Schema.of(f1, f2, f3, f4, f5, f5a, f5b, f6, f7, f8);
+	 return Schema.of(f1, f2, f3, f4, f5, f5a, f5b, f5c, f6, f7, f8);
  }
 
   protected static class KV {

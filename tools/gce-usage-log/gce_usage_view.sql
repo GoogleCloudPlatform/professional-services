@@ -27,6 +27,7 @@ SELECT
   usage.memory_mb as memory_mb,
   pd_standard_size_gb,
   pd_ssd_size_gb,
+  local_ssd_size_gb,
   tags,
   labels
 FROM (
@@ -73,9 +74,10 @@ FROM (
     END as usage,
     pd_standard_size_gb,
     pd_ssd_size_gb,
+    local_ssd_size_gb,
     tags,
     labels
-  FROM (SELECT instance_id, insert_timestamp, project_id, zone, machine_type, preemptible, pd_standard_size_gb, pd_ssd_size_gb, ANY_VALUE(labels) as labels, ANY_VALUE(tags) as tags FROM ((
+  FROM (SELECT instance_id, insert_timestamp, project_id, zone, machine_type, preemptible, pd_standard_size_gb, pd_ssd_size_gb, local_ssd_size_gb, ANY_VALUE(labels) as labels, ANY_VALUE(tags) as tags FROM ((
       SELECT
         timestamp AS insert_timestamp,
         resource.labels.instance_id AS instance_id,
@@ -99,6 +101,14 @@ FROM (
           WHERE
             ENDS_WITH(disk.initializeparams.disktype, 'pd-ssd')
         ) AS pd_ssd_size_gb,
+        (
+          SELECT
+            COUNT(1) * 375
+          FROM
+            UNNEST(protopayload_auditlog.request_instances_insert.disks) AS disk
+          WHERE
+            ENDS_WITH(disk.initializeparams.disktype, 'local-ssd')
+        ) AS local_ssd_size_gb,
         ARRAY(
           SELECT
             STRUCT(label.key,
@@ -122,6 +132,7 @@ FROM (
         preemptible,
         NULL as pd_standard_size_gb,
         NULL as pd_ssd_size_gb,
+        NULL as local_ssd_size_gb,
         ARRAY(
         SELECT
           STRUCT(label.key,
@@ -130,7 +141,7 @@ FROM (
           UNNEST(labels) AS label) AS labels,
         tags
       FROM
-        `_PROJECT_.gce_usage_log._initial_vm_inventory` )) GROUP BY insert_timestamp, instance_id, project_id, zone, machine_type, preemptible, pd_standard_size_gb, pd_ssd_size_gb) AS inserted
+        `_PROJECT_.gce_usage_log._initial_vm_inventory` )) GROUP BY insert_timestamp, instance_id, project_id, zone, machine_type, preemptible, pd_standard_size_gb, pd_ssd_size_gb, local_ssd_size_gb) AS inserted
   LEFT JOIN (
     SELECT
       timestamp AS delete_timestamp,
