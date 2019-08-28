@@ -155,9 +155,7 @@ def convert_pdfs(main_project_id,
     os.makedirs(temp_directory)
 
   # Prepare PDFs for Image Classification/Object Detection
-  logger.info("Downloading PDFs.")
-
-  # TODO: need to make sure folder exists
+  logger.info("Downloading PDFs for processing.")
   subprocess.run(
     f"gsutil -m cp gs://{input_bucket_name}/*.pdf {temp_directory}", shell=True)
 
@@ -198,21 +196,20 @@ def image_classification(main_project_id,
                          output_directory="patent_demo_data"):
   """Create AutoML model for image classification."""
 
-  logger.info(f"Processing image classification.")
+  logger.info(f"Beginning AutoML image classification process.")
 
+  # Create training data
   output_bucket_name = main_project_id + "-vcm"
-
   dest_uri = f"gs://{output_bucket_name}/{output_directory}/image_classification.csv"
 
   df = bq_to_df(data_project_id, dataset_id, table_id, service_acct)
-
   output_df = df.replace({
     input_bucket_name: output_bucket_name + f"/{output_directory}/png",
     r"\.pdf": ".png"
   }, regex=True, inplace=False)
 
   # Get Classification Columns
-  output_df = output_df[["file", "issuer"]]
+  output_df = output_df[["gcs_path", "issuer"]]
   output_df.to_csv(dest_uri, header=False, index=False)
 
   dataset_metadata = {
@@ -246,15 +243,13 @@ def object_detection(main_project_id,
                      region,
                      output_directory="patent_demo_data"):
   """Create AutoML model for object detection."""
+  logger.info(f"Beginning AutoML object detection process.")
 
+  # Create training data
   output_bucket_name = main_project_id + "-vcm"
-
   dest_uri = f"gs://{output_bucket_name}/{output_directory}/object_detection.csv"
 
-  logger.info(f"Processing object detection.")
-
   df = bq_to_df(data_project_id, dataset_id, table_id, service_acct)
-
   df.replace({
     input_bucket_name: output_bucket_name + f"/{output_directory}/png",
     r"\.pdf": ".png"
@@ -298,18 +293,16 @@ def text_classification(main_project_id,
                         region,
                         output_directory="patent_demo_data"):
   """Create AutoML model for text classification. """
-
   logger.info(f"Starting AutoML text classification.")
 
+  # Create training data
   output_bucket_name = main_project_id + "-lcm"
-
-  # Create .csv file for importing data
   dest_uri = f"gs://{output_bucket_name}/{output_directory}/text_classification.csv"
 
   df = bq_to_df(project_id=data_project_id,
-          dataset_id=dataset_id,
-          table_id=table_id,
-          service_acct=service_acct)
+                dataset_id=dataset_id,
+                table_id=table_id,
+                service_acct=service_acct)
 
   output_df = df.replace({
     input_bucket_name: output_bucket_name + f"/{output_directory}/txt",
@@ -317,7 +310,7 @@ def text_classification(main_project_id,
   }, regex=True, inplace=False)
 
   # Get text classification columns
-  output_df = output_df[["file", "class"]]
+  output_df = output_df[["gcs_path", "class"]]
   output_df.to_csv(dest_uri, header=False, index=False)
 
   dataset_metadata = {
@@ -353,17 +346,16 @@ def entity_extraction(main_project_id,
                       output_directory="patent_demo_data",
                       temp_directory = "./tmp/google"):
   """Create AutoML entity extraction model."""
-
+  logger.info(f"Starting AutoML entity extraction.")
+  
   # Create training data
   output_bucket_name = main_project_id + "-lcm"
-
   dest_uri = f"gs://{output_bucket_name}/{output_directory}/entity_extraction.csv"
 
   df = bq_to_df(project_id=data_project_id,
                 dataset_id=dataset_id,
                 table_id=table_id,
                 service_acct=service_acct)
-
   fields_to_extract = config["model_ner"]["fields_to_extract"]
   field_names = [field["field_name"] for field in fields_to_extract]
   df = df[field_names]
@@ -371,9 +363,9 @@ def entity_extraction(main_project_id,
 
   LIST_JSONL = []
   for _index in range(0, len(df)):
-    txt_file = df_dict[_index].pop("file").replace(".pdf", ".txt")
+    txt_file = df_dict[_index].pop("gcs_path").replace(".pdf", ".txt")
     txt_file = txt_file.replace(f"gs://{input_bucket_name}/",
-                                f"{temp_directory}")
+                                f"{temp_directory}/")
     with open(txt_file, "r") as f:
       _text = f.read()
       jsonl = create_jsonl(_text, df_dict[_index])
@@ -401,8 +393,8 @@ def entity_extraction(main_project_id,
 
   # Create AutoML model for entity extraction
   create_automl_model(main_project_id,
-                      region,
-                      dataset_metadata,
+                      region
+,                      dataset_metadata,
                       model_metadata,
                       dest_uri,
                       service_acct)
@@ -421,6 +413,7 @@ def bq_to_df(project_id, dataset_id, table_id, service_acct):
 
 
 def run_ocr(project_id, output_directory, temp_directory, service_acct):
+  """Process png files using OCR to extract text from documents."""
 
   logger.info("Processing documents with Cloud Vision API")
 
@@ -440,7 +433,7 @@ def run_ocr(project_id, output_directory, temp_directory, service_acct):
   for blob in blobs:
     if blob.name.endswith(".png"):
 
-      logger.info(f"Processing {blob.name}.")
+      logger.info(f"Processing OCR for {blob.name}.")
 
       image.source.image_uri = f"gs://{project_id}-vcm/{blob.name}"
       response = vision_client.text_detection(image=image)
@@ -518,13 +511,11 @@ def create_jsonl(pdf_text, value_dict):
       start_index, match_value = match
       if start_index != -1:
         end_index = start_index + len(match_value)
-        jsonl.append('''{{"text_extraction": {{"text_segment":
-        {{"end_offset": {}, "start_offset": {}}}}},
-        "display_name": "{}"}},'''.format(end_index, start_index, field))
+        jsonl.append('''{{"text_extraction": {{"text_segment":{{"end_offset": {}, "start_offset": {}}}}}, "display_name": "{}"}},'''.format(
+          end_index, start_index, field))
 
   jsonl[-1] = jsonl[-1].replace('"},', '"}')  # Remove last comma
-  jsonl.append(u'''],"text_snippet":{{"content":
-  "{}"}}}}'''.format(pdf_text.replace('\n', '\\n')))
+  jsonl.append(u'''],"text_snippet":{{"content":"{}"}}}}'''.format(pdf_text.replace('\n', '\\n')))
 
   jsonl_final = "".join(jsonl)
   return jsonl_final

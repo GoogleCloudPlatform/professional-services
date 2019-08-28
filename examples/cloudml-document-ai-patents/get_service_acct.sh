@@ -21,17 +21,21 @@ YAML_FILE="$1"
 PROJECT_ID=$(yq .pipeline_project.project_id $YAML_FILE)
 PROJECT_ID="${PROJECT_ID//\"}"
 
-USER_ID=$(yq .service_acct_creation.creator_user_id $YAML_FILE)
+USER_ID=$(yq .service_acct.creator_user_id $YAML_FILE)
 USER_ID="${USER_ID//\"}"
 
-SA_NAME=$(yq .service_acct_creation.service_acct_name $YAML_FILE)
+SA_NAME=$(yq .service_acct.acct_name $YAML_FILE)
 SA_NAME="${SA_NAME//\"}"
 
-SA_DESCRIPTION="$(yq .service_acct_creation.service_acct_description $YAML_FILE)"
+SA_DESCRIPTION="$(yq .service_acct.acct_description $YAML_FILE)"
 SA_DESCRIPTION="${SA_DESCRIPTION//\"}"
 
-SA_DISPLAY_NAME="$(yq .service_acct_creation.service_acct_display_name $YAML_FILE)"
+SA_DISPLAY_NAME="$(yq .service_acct.acct_display_name $YAML_FILE)"
 SA_DISPLAY_NAME="${SA_DISPLAY_NAME//\"}"
+
+KEY_PATH="$(yq .service_acct.key_path $YAML_FILE)"
+KEY_PATH="${KEY_PATH//\"}"
+
 
 # Check if a service account with this name already exists.
 existing_account=$(gcloud iam service-accounts list --filter="${SA_NAME}")
@@ -46,7 +50,7 @@ else
 fi
 
 # Create the service account key
-gcloud iam service-accounts keys create ./keys/patent-service-acct.json \
+gcloud iam service-accounts keys create ${KEY_PATH} \
   --iam-account $SA_NAME@$PROJECT_ID.iam.gserviceaccount.com
 
 # Give user AutoML Admin privledges
