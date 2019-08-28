@@ -15,34 +15,46 @@
 
 # Create GCP service account, add permissions, and download key.
 
-# TODO(michaelsherman): Use yq to parse config, require yaml file as input.
-# TODO(michaelsherman): Make sure this YAML reading is working.
-local YAML_FILE="$1"
+set -e
 
-local PROJECT_ID="yq .pipeline_project.project_id $1"
 YAML_FILE="$1"
-PROJECT_ID="$(yq .pipeline_project.project_id $YAML_FILE)"
-USER_ID="$(yq .service_acct.creator_user_id $YAML_FILE)"
-SA_NAME="$(yq .service_acct.name $YAML_FILE)"
-SA_DESCRIPTION="$(yq .service_acct.description $YAML_FILE)"
-SA_DISPLAY_NAME="$(yq .service_acct.display_name $YAML_FILE)"
+PROJECT_ID=$(yq .pipeline_project.project_id $YAML_FILE)
+PROJECT_ID="${PROJECT_ID//\"}"
 
-# TODO(michaelsherman): need to check if patent-demo-service-acct exits already. 
-# If so stop and raise an error.
-gcloud beta iam service-accounts create $SA_NAME \
-    --description=$SA_DESCRIPTION \
-    --display-name=$SA_DISPLAY_NAME
+USER_ID=$(yq .service_acct_creation.creator_user_id $YAML_FILE)
+USER_ID="${USER_ID//\"}"
+
+SA_NAME=$(yq .service_acct_creation.service_acct_name $YAML_FILE)
+SA_NAME="${SA_NAME//\"}"
+
+SA_DESCRIPTION="$(yq .service_acct_creation.service_acct_description $YAML_FILE)"
+SA_DESCRIPTION="${SA_DESCRIPTION//\"}"
+
+SA_DISPLAY_NAME="$(yq .service_acct_creation.service_acct_display_name $YAML_FILE)"
+SA_DISPLAY_NAME="${SA_DISPLAY_NAME//\"}"
+
+# Check if a service account with this name already exists.
+existing_account=$(gcloud iam service-accounts list --filter="${SA_NAME}")
+if [ -z "$existing_account" ]
+then
+    gcloud beta iam service-accounts create ${SA_NAME} \
+    --description="${SA_DESCRIPTION//\"}" \
+    --display-name="${SA_NAME//\"}"
+else
+    echo "There is already a service account named ${SA_NAME}.";
+    exit
+fi
 
 # Create the service account key
-gcloud iam service-accounts keys create ./keys/service-acct.json \
+gcloud iam service-accounts keys create ./keys/patent-service-acct.json \
   --iam-account $SA_NAME@$PROJECT_ID.iam.gserviceaccount.com
 
-# TODO(michaelsherman): Why both automl.admin and .editor? Editor alone ok?
-# Give AutoML Editor privledges to the service account
+# Give user AutoML Admin privledges
 gcloud projects add-iam-policy-binding $PROJECT_ID \
-   --member="user:"$USERID_DOMAIN \
+   --member="user:"$USER_ID \
    --role="roles/automl.admin"
 
+# Give AutoML Editor privledges to the service account
 gcloud projects add-iam-policy-binding $PROJECT_ID \
    --member="serviceAccount:"$SA_NAME"@"$PROJECT_ID".iam.gserviceaccount.com" \
    --role="roles/automl.editor"

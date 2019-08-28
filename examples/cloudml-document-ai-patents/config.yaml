@@ -17,14 +17,14 @@
 # The project the Document AI pipeline will be built and hosted in.
 # TODO(michaelsherman): Make sure no line is past 80 characters (per bash style)
 pipeline_project:
-  project_id: 'your_project_id' # TODO(user): Set to your Project ID.
+  project_id: 'munn-sandbox' # TODO(user): Set to your Project ID.
   region: 'us-central1' # Currently (Aug 2019) only "us-central1" supported.
 # Parameters for creation of a service account with get_service_acct.sh.
 service_acct_creation:
-  creator_user_id: 'email@adress' # TODO(user): Set to your GCP login email.
-  name: 'patent-demo-service-acct'
-  description: 'service-account-for-document-understanding-patents-demo'
-  display_name: 'Patent-Demo-Service-Account'
+  creator_user_id: 'munn@google.com' # TODO(user): Set to your GCP login email.
+  service_acct_name: 'patent-service-acct'
+  service_acct_description: 'Service-account-for-patent-demo'
+  service_acct_display_name: 'Patent-Demo-Service-Account'
   key_path: '$HOME/keys/patent-demo-service-acct.json'
 # The path of the service account key used by the demo.
 # TODO(michaelsherman): Maybe better to make the service account read path and write
