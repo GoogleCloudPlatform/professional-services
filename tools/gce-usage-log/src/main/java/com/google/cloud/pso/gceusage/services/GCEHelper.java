@@ -36,12 +36,14 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class GCEHelper {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+  private static final int MAXPROJECTS = 100;
+  private static final long MAXINSTANCES = 100;
 
   public static Queue<Project> getProjectsForOrg(String orgNumber)
       throws IOException, GeneralSecurityException {
 
     CloudResourceManager cloudResourceManagerService = CloudResourceManagerService.getInstance();
-    CloudResourceManager.Projects.List request = cloudResourceManagerService.projects().list();
+    CloudResourceManager.Projects.List request = cloudResourceManagerService.projects().list().setPageSize(MAXPROJECTS);
     ListProjectsResponse response;
     Queue returnValue = new ConcurrentLinkedQueue<Project>();
     do {
@@ -70,7 +72,7 @@ public class GCEHelper {
    
 
     for (Zone zone : zones) {
-      Instances.List request = compute.instances().list(project.getProjectId(), zone.getName());
+      Instances.List request = compute.instances().list(project.getProjectId(), zone.getName()).setMaxResults(MAXINSTANCES);
       InstanceList response;
       do {
         response = request.execute();
