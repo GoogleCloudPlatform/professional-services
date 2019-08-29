@@ -6,18 +6,18 @@
 </h5>
 
 <div mat-dialog-content>
-  <div *ngIf="loading">
+  <div *ngIf="isLoading">
     <mat-spinner [color]="primary" [diameter]="30"></mat-spinner>
   </div>
-  <div *ngIf="!loading">
+  <div *ngIf="!isLoading">
     <div class="row justify-content-center mt-4">
       <div class="col-auto mr-2">
         <label class="dark-grey-font"><b>Sentiment Score Range</b></label>
       </div>
-      <div *ngFor="let score_range of sentiment_score_colors">
+      <div *ngFor="let score_range of sentimentScoreColors">
         <div class="col scale-col">
-          <div class="row justify-content-center" [ngStyle]="{'background-color': score_range.scale_background_color,
-  'color': score_range.text_color}">
+          <div class="row justify-content-center" [ngStyle]="{'background-color': score_range.scaleBackgroundColor,
+  'color': score_range.textColor}">
             <label>{{ score_range.start.toFixed(2) }}</label>
             &nbsp;
             <label>--</label>
@@ -69,6 +69,4 @@
       </mat-grid-tile>
     </mat-grid-list>
   </div>
-
-
 </div>

@@ -1,28 +1,8 @@
 <div class="output-container">
   <mat-tab-group class="my-4" mat-align-tabs="center">
     <mat-tab label="Toxicity">
-          <!--<div class="summary-table mt-2">-->
-            <!--<div class="row justify-content-center">-->
-              <!--<h6 class="dark-grey-font"><b>Toxicity Count by Category</b></h6>-->
-            <!--</div>-->
-            <!--<div class="row justify-content-center vcenter">-->
-              <!--<div *ngFor="let toxicity_bucket of getToxicityBuckets(); let i = index;">-->
-                <!--<div class="col legend-col">-->
-                  <!--<div class="row justify-content-center">-->
-                   <!--<label class="dark-grey-font"><b> {{ this.toxicity_levels[i].label }}</b></label>-->
-                  <!--</div>-->
-                  <!--<div class="row legend-scale justify-content-center"-->
-                       <!--[ngStyle]="{'background-color': this.toxicity_levels[i].background_color,-->
-                       <!--'color': this.toxicity_levels[i].text_color}">-->
-                    <!--{{ toxicity_bucket }}-->
-                  <!--</div>-->
-                <!--</div>-->
-              <!--</div>-->
-            <!--</div>-->
-          <!--</div>-->
-
         <div class="histogram">
-          <app-histogram [histogram_data]="histogram_data"></app-histogram>
+          <app-histogram [histogramData]="histogramData"></app-histogram>
         </div>
           <div class="row justify-content-center vcenter">
             <div class="col-auto">
@@ -33,9 +13,9 @@
             <div class="col-auto">
               <mat-form-field>
                 <mat-label>Sort</mat-label>
-                <mat-select (selectionChange)="sortResults()" [(ngModel)]="selected_sort">
-                  <mat-option *ngFor="let sort of sort_options" [value]="sort.value">
-                    {{ sort.view_value }}
+                <mat-select (selectionChange)="sortResults()" [(ngModel)]="selectedSort">
+                  <mat-option *ngFor="let sort of sortOptions" [value]="sort.value">
+                    {{ sort.viewValue }}
                   </mat-option>
                 </mat-select>
               </mat-form-field>
@@ -46,34 +26,33 @@
               </b></label>
             </div>
           </div>
-          <mat-card class="slider-box" *ngIf="show_slider_filter">
+          <mat-card class="slider-box" *ngIf="showSliderFilter">
             <mat-card-content>
               <div class="row justify-content-center">
                 <label class="dark-grey-font"><b>Move Slider to Filter by Toxicity Level</b></label>
               </div>
               <div class="row justify-content-center">
                 <div class="col-auto">
-                  <mat-icon class="icon-height" [ngStyle]="{'color': this.toxicity_levels[0].background_color}">
-                    {{ this.toxicity_levels[0].shape }}</mat-icon>
+                  <mat-icon class="icon-height" [ngStyle]="{'color': this.toxicityLevels[0].backgroundColor}">
+                    {{ this.toxicityLevels[0].shape }}</mat-icon>
                 </div>
                 <div class="col-md-6">
-                  <div id="{{'threshold-' + getThreshold(slider_value / this.toxicity_levels.length)}}">
+                  <div id="{{'threshold-' + getToxicityBucketIndex(sliderValue / this.toxicityLevels.length)}}">
                     <mat-slider
                       [thumbLabel]="true"
-                      [(ngModel)]="slider_value"
+                      [(ngModel)]="sliderValue"
                       [min]="1"
-                      [max]="this.toxicity_levels.length"
+                      [max]="this.toxicityLevels.length"
                       [displayWith]="formatLabel(phrases)">
                     </mat-slider>
                   </div>
                 </div>
                 <div class="col-auto">
-                  <mat-icon class="icon-height" [ngStyle]="{'color': this.toxicity_levels[2].background_color}">
-                    {{ this.toxicity_levels[2].shape }}</mat-icon>
+                  <mat-icon class="icon-height" [ngStyle]="{'color': this.toxicityLevels[2].backgroundColor}">
+                    {{ this.toxicityLevels[2].shape }}</mat-icon>
                 </div>
               </div>
             </mat-card-content>
-
           </mat-card>
           <div data-simplebar class="output-content">
             <mat-accordion>
@@ -99,7 +78,9 @@
                         <div class="col-auto">
                           {{ phrase.toxicity.toFixed(4) * 100 }}%
                         </div>
-                        <mat-progress-bar id="{{'toxicity-bar-' + getThreshold(phrase.toxicity)}}" class="bar-width" [value]="phrase.toxicity * 100"></mat-progress-bar>
+                        <mat-progress-bar id="{{'toxicity-bar-' + getToxicityBucketIndex(phrase.toxicity)}}"
+                                          class="bar-width" [value]="phrase.toxicity * 100">
+                        </mat-progress-bar>
                       </div>
                       <div class="row my-2">
                         <div class="col-auto">
@@ -120,7 +101,7 @@
     </mat-tab>
 
     <mat-tab label="Full Transcription">
-      <label class="mx-4 my-2">{{ full_transcript }}</label>
+      <label class="mx-4 my-2">{{ fullTranscript }}</label>
     </mat-tab>
 
   </mat-tab-group>

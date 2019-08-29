@@ -1,42 +1,32 @@
 import { Injectable } from '@angular/core';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ResultsService {
-
-  setSegmentToxicity(toxicity_results){
-    localStorage.setItem('segment_toxicity', JSON.stringify(toxicity_results));
+  setSegmentToxicity(toxicityResults: object) {
+    localStorage.setItem('segment_toxicity', JSON.stringify(toxicityResults));
   }
 
-  getSegmentToxicity(){
+  getSegmentToxicity() {
     return JSON.parse(localStorage.getItem('segment_toxicity'));
   }
 
-  setFullTranscript(full_transcript){
-    localStorage.setItem('full_transcript', full_transcript);
+  setFullTranscript(fullTranscript: string) {
+    localStorage.setItem('full_transcript', fullTranscript);
   }
 
-  getFullTranscript(){
+  getFullTranscript() {
     return localStorage.getItem('full_transcript');
   }
 
-  setGCSLink(gcs_link){
-    localStorage.setItem('gcs_link', gcs_link);
+  setFileName(fileName: string) {
+    localStorage.setItem('file_name', fileName);
   }
 
-  getGCSLink(){
-    return localStorage.getItem('gcs_link');
-  }
-
-
-  setFileName(file_name){
-    localStorage.setItem('file_name', file_name);
-  }
-
-  getFileName(){
+  getFileName() {
     return localStorage.getItem('file_name');
   }
 
-  constructor() { }
+  constructor() {}
 }

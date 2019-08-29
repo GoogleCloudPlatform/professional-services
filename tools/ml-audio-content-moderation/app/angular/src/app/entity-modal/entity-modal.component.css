@@ -1,8 +1,8 @@
-.entity-width{
+.entity-width {
   width: 80%;
 }
 
-.entity-type{
+.entity-type {
   color: white;
   padding-top: 0.25em;
   padding-bottom: 0.25em;
@@ -12,10 +12,10 @@
   margin-right: -0.5em;
 }
 
-.scale-col{
+.scale-col {
   width: 8em;
 }
 
-.mat-progress-spinner{
+.mat-progress-spinner {
   margin: auto;
 }

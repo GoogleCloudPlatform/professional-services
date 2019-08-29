@@ -1,4 +1,4 @@
-mat-sidenav-content{
+mat-sidenav-content {
   background-color: white;
 }
 
@@ -6,11 +6,10 @@ mat-sidenav-content{
   height: 100%;
 }
 
-.mat-sidenav{
+.mat-sidenav {
   width: 15em;
 }
 
 .mat-sidenav, .mat-sidenav-container, .mat-sidenav-content{
-  /*height: 100%;*/
   overflow: hidden;
 }

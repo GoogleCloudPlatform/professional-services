@@ -1,190 +1,189 @@
-import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  OnInit,
+  ViewChild,
+  ViewEncapsulation,
+} from '@angular/core';
+import { MatDialog } from '@angular/material';
+import { EntityModalComponent } from '../entity-modal/entity-modal.component';
 import { ResultsService } from '../results.service';
-import {MatDialog } from '@angular/material';
-import {EntityModalComponent} from '../entity-modal/entity-modal.component';
-import {HistogramChartConfig} from '../histogram-chart-config';
-
+import { ToxicityTextSection } from '../toxicity-text-section';
 
 @Component({
   selector: 'app-analysis',
   templateUrl: './analysis.component.html',
-  styleUrls: ['./analysis.component.css']
+  styleUrls: ['./analysis.component.css'],
+  encapsulation: ViewEncapsulation.None,
 })
+
+/** Class that displays the full output data for reviewing a particular file. */
 export class AnalysisComponent implements OnInit {
-  phrases: any = [];
-  full_transcript: any = '';
-  loading: boolean = false;
+  phrases: ToxicityTextSection[] = [];
+  fullTranscript: string = '';
   @ViewChild('slider') slider: ElementRef;
-  slider_value: number;
+  sliderValue: number;
   resultsService = new ResultsService();
-  file_name: string;
-  gcs_uri: string;
-  show_slider_filter: boolean = false;
-  histogram_config: any;
-  histogram_element_id: string;
-  histogram_data: any = [];
-  sort_options = [
+  fileName: string;
+  showSliderFilter: boolean = false;
+  histogramData: number[] = [];
+  readonly sortOptions = [
     {
-      'value': ['toxicity', 'ASC'],
-      'view_value': 'Toxicity: Low to High'
+      value: ['toxicity', 'ASC'],
+      viewValue: 'Toxicity: Low to High',
     },
     {
-      'value': ['toxicity', 'DESC'],
-      'view_value': 'Toxicity: High to Low'
+      value: ['toxicity', 'DESC'],
+      viewValue: 'Toxicity: High to Low',
     },
     {
-      'value': ['start_time', 'ASC'],
-      'view_value': 'Start Time: Low to High'
-    }
+      value: ['start_time', 'ASC'],
+      viewValue: 'Start Time: Low to High',
+    },
   ];
-  selected_sort: string[];
-  toxicity_levels = [{
-    'shape':'lens',
-    'background_color': '#388E3C',
-    'text_color': 'white',
-    'max': (1/3),
-    'label': 'Low'
-  }, {
-    'shape': 'stop',
-    'background_color': '#FFE57F',
-    'text_color': 'black',
-    'max': (2/3),
-    'label': 'Mid'
-  },
+  selectedSort: string[];
+  readonly toxicityLevels = [
     {
-      'shape': 'warning',
-      'background_color': '#E53935',
-      'text_color': 'white',
-      'max': 1,
-      'label': 'High'
-    }
+      shape: 'lens',
+      backgroundColor: '#388E3C',
+      max: 1 / 3,
+      label: 'Low',
+    },
+    {
+      shape: 'stop',
+      backgroundColor: '#FFE57F',
+      max: 2 / 3,
+      label: 'Mid',
+    },
+    {
+      shape: 'warning',
+      backgroundColor: '#E53935',
+      max: 1,
+      label: 'High',
+    },
   ];
 
-  constructor(private dialog: MatDialog) { }
+  constructor(private readonly dialog: MatDialog) {}
 
   ngOnInit() {
     this.phrases = this.resultsService.getSegmentToxicity();
-    this.slider_value = this.getThreshold(this.phrases[0].toxicity) + 1;
-    this.full_transcript = this.resultsService.getFullTranscript();
-    this.file_name = this.resultsService.getFileName();
-    // this.gcs_uri = this.resultsService.getGCSLink();
-    this.histogram_config = new HistogramChartConfig('Toxicity Histogram');
-    this.histogram_element_id = 'toxicity_histogram';
-    this.histogram_data = this.mapPhrasesToDataTable();
-    this.selected_sort = this.sort_options[1].value;
+    this.sliderValue =
+      this.getToxicityBucketIndex(this.phrases[0].toxicity) + 1;
+    this.fullTranscript = this.resultsService.getFullTranscript();
+    this.fileName = this.resultsService.getFileName();
+    this.histogramData = this.mapPhrasesToDataTable();
+    this.selectedSort = this.sortOptions[1].value;
   }
 
-  mapPhrasesToDataTable(){
-    const data = [];
-    this.phrases.forEach((phrase) => {
-      data.push(phrase.toxicity);
+  private mapPhrasesToDataTable() {
+    let toxicityScoreList: number[] = [];
+    this.phrases.forEach((phrase: ToxicityTextSection) => {
+      toxicityScoreList.push(phrase.toxicity);
     });
-    return data;
+    return toxicityScoreList;
   }
 
-
-  toggleFilterSlider(){
-    this.show_slider_filter = !this.show_slider_filter;
+  public toggleFilterSlider() {
+    this.showSliderFilter = !this.showSliderFilter;
   }
 
-  getToxicityBuckets(){
-    const toxicity_buckets = [0, 0, 0];
-    this.phrases.forEach( phrase => {
-      const index = this.getThreshold(phrase.toxicity);
-      toxicity_buckets[index]+= 1;
+  private getToxicityBuckets() {
+    let toxicityBuckets = [0, 0, 0];
+    this.phrases.forEach((phrase: ToxicityTextSection) => {
+      const index = this.getToxicityBucketIndex(phrase.toxicity);
+      toxicityBuckets[index] += 1;
     });
-    return toxicity_buckets;
+    return toxicityBuckets;
   }
 
-  getThreshold(percentile){
-    if (percentile <= (1/3)) {
+  private getToxicityBucketIndex(percentile: number) {
+    if (percentile <= 1 / 3) {
       return 0;
-    } else if (percentile > (1/3) && percentile <= (2/3)) {
+    } else if (percentile > 1 / 3 && percentile <= 2 / 3) {
       return 1;
     } else {
       return 2;
     }
   }
 
-  openEntityAnalysis(phrase){
-    const dialogRef = this.dialog.open(
-      EntityModalComponent,
-      {
-        width: '70%',
-        data: {text: phrase,
-               file_name: this.file_name}});
+  private openEntityAnalysis(text: string) {
+    const dialogRef = this.dialog.open(EntityModalComponent, {
+      width: '70%',
+      data: { text: text, fileName: this.fileName },
+    });
   }
 
-  getPhrases(){
-    const percentile = this.slider_value / this.toxicity_levels.length;
-    return this.phrases.filter( (phrase) => phrase.toxicity <= percentile );
+  public getPhrases() {
+    const percentile = this.sliderValue / this.toxicityLevels.length;
+    return this.phrases.filter(
+      (phrase: ToxicityTextSection) => phrase.toxicity <= percentile
+    );
   }
 
-  formatLabel = (phrases: any) => {
+  private formatLabel = (phrases: ToxicityTextSection[]) => {
     return (label: string) => {
-      const percentile = (this.slider_value / this.toxicity_levels.length);
-      const index = this.getThreshold(percentile);
-       return this.toxicity_levels[index].label;
+      const percentile = this.sliderValue / this.toxicityLevels.length;
+      const index = this.getToxicityBucketIndex(percentile);
+      return this.toxicityLevels[index].label;
     };
-
   };
 
-  getTextPreview(text){
-    return text.split(/\s+/).slice(0,20).join(' ');
+  private getTextPreview(text: string) {
+    return text
+      .split(/\s+/)
+      .slice(0, 20)
+      .join(' ');
   }
 
-  getToxicityColor(toxicity){
-    if (toxicity < 0.33) {
-      return this.toxicity_levels[0].background_color;
-    } else if (toxicity >= 0.33 && toxicity < 0.67){
-      return this.toxicity_levels[1].background_color;
+  private getToxicityColor(toxicity: number) {
+    if (toxicity < 1 / 3) {
+      return this.toxicityLevels[0].backgroundColor;
+    } else if (toxicity >= 1 / 3 && toxicity < 2 / 3) {
+      return this.toxicityLevels[1].backgroundColor;
     } else {
-      return this.toxicity_levels[2].background_color;
+      return this.toxicityLevels[2].backgroundColor;
     }
   }
 
-  getIcon(toxicity){
-    if (toxicity < 0.33) {
-      return this.toxicity_levels[0].shape;
-    } else if (toxicity >= 0.33 && toxicity < 0.67){
-      return this.toxicity_levels[1].shape;
+  private getIcon(toxicity: number) {
+    if (toxicity < 1 / 3) {
+      return this.toxicityLevels[0].shape;
+    } else if (toxicity >= 1 / 3 && toxicity < 2 / 3) {
+      return this.toxicityLevels[1].shape;
     } else {
-      return this.toxicity_levels[2].shape;
+      return this.toxicityLevels[2].shape;
     }
   }
 
-  playAudio(){
-    let audio = new Audio();
-    audio.src = this.gcs_uri;
-    audio.load();
-    audio.play();
-  }
-
-  sortResults(){
-    const sort_attribute = this.selected_sort[0];
-    const sort_direction = this.selected_sort[1];
-    if(sort_direction == 'ASC'){
-      this.phrases.sort( (obj1, obj2) => {
-        if (obj1[sort_attribute] > obj2[sort_attribute]){
-          return 1;
-        } if (obj1[sort_attribute] < obj2[sort_attribute]) {
-          return -1;
-        } else {
-          return 0;
+  public sortResults() {
+    const sortAttribute = this.selectedSort[0];
+    const sortDirection = this.selectedSort[1];
+    if (sortDirection == 'ASC') {
+      this.phrases.sort(
+        (obj1: ToxicityTextSection, obj2: ToxicityTextSection) => {
+          if (obj1[sortAttribute] > obj2[sortAttribute]) {
+            return 1;
+          }
+          if (obj1[sortAttribute] < obj2[sortAttribute]) {
+            return -1;
+          } else {
+            return 0;
+          }
         }
-      })
+      );
     } else {
-      this.phrases.sort( (obj1, obj2) => {
-        if (obj1[sort_attribute] < obj2[sort_attribute]){
-          return 1;
-        } if (obj1[sort_attribute] > obj2[sort_attribute]) {
-          return -1;
-        } else {
-          return 0;
+      this.phrases.sort(
+        (obj1: ToxicityTextSection, obj2: ToxicityTextSection) => {
+          if (obj1[sortAttribute] < obj2[sortAttribute]) {
+            return 1;
+          }
+          if (obj1[sortAttribute] > obj2[sortAttribute]) {
+            return -1;
+          } else {
+            return 0;
+          }
         }
-      })
+      );
     }
   }
-
-
 }

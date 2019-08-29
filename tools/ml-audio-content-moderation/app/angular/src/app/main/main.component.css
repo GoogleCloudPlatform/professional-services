@@ -1,20 +1,12 @@
-table{
+table {
   width: 80%;
   margin: auto;
 }
 
-.mat-row:hover{
+.mat-row:hover {
   background-color: #CFDBC5;
   cursor: pointer;
 }
-
-/*::ng-deep .mat-checkbox-layout{*/
-  /*margin-top: 0.5em;*/
-/*}*/
-
-/*::ng-deep .mat-checkbox-checked.mat-accent .mat-checkbox-background{*/
-  /*background-color: #006400;*/
-/*}*/
 
 .card-width{
   padding-left: 3em;
@@ -22,6 +14,6 @@ table{
   text-align: center;
 }
 
-.selected-row{
+.selected-row {
   background-color: #CFDBC5;
 }

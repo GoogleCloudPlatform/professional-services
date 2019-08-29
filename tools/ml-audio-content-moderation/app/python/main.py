@@ -133,8 +133,7 @@ class Entities(Resource):
                                                            nlp_bucket,
                                                            nlp_path)
             if nlp_json:
-                text_section = list(filter(lambda section: section['text'] == text,
-                                           nlp_json))
+                text_section = [section for section in nlp_json if section['text'] == text]
                 sentiments = text_section[0]['nlp_response']
                 sentiments.sort(key=lambda entity: entity['score'])
                 return jsonify(sentiment_result=sentiments)
