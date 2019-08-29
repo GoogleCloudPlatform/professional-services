@@ -6,7 +6,7 @@ As your GCP organization grows, you may want to understand the business context 
 
 ## 1. Overview
 
-This project will capture events relevant to your GCE instance usage and log them in BigQuery in way that surfaces your GCE vCPUs (cores), RAM and attached PD (standard and SSD), sliceable by zone, project, network tags, labels, and whether the instance was preemptible.
+This project will capture events relevant to your GCE instance usage and log them in BigQuery in way that surfaces your GCE vCPUs (cores), RAM, and attached persistent (standard and SSD) or scratch (local SSD) disks, sliceable by zone, project, network tags, labels, and whether the instance was preemptible.
 
 This solution entails three components: an organization-level audit log sink, a process to inventory your currently running GCE instances, and a BigQuery view.
 
@@ -197,6 +197,7 @@ SELECT
   SUM(memory_mb) as total_memory_mb,
   SUM(pd_standard_size_gb) as total_pd_standard_size_gb,
   SUM(pd_ssd_size_gb) as total_pd_ssd_size_gb
+  SUM(local_ssd_size_gb) as total_local_ssd_size_gb
 FROM `gce_usage_log._gce_usage_log`
 
 WHERE inserted < '2019-08-23 08:00:00.000 UTC'
