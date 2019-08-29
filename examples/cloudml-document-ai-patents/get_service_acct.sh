@@ -74,3 +74,14 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
 gcloud projects add-iam-policy-binding $PROJECT_ID \
  --member="serviceAccount:"$SA_NAME"@"$PROJECT_ID".iam.gserviceaccount.com" \
  --role="roles/bigquery.admin"
+
+# Add necessary permissions for AutoML accounts
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:custom-vision@appspot.gserviceaccount.com" \
+  --role="roles/ml.admin"
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:custom-vision@appspot.gserviceaccount.com" \
+  --role="roles/storage.admin"
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:custom-vision@appspot.gserviceaccount.com" \
+  --role="roles/serviceusage.serviceUsageAdmin"
