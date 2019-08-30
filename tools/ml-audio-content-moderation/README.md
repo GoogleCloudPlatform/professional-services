@@ -44,7 +44,7 @@ API returned a success or error response.
 
 <h3>Create a GCP Project</h3>
 
-1. Open a terminal window, and enter the following to configure your desired project id.
+1. Open a Linux terminal window or [Cloud Shell](https://console.cloud.google.com/home/dashboard?cloudshell=true), and enter the following to configure your desired project id.
 
 ````
 export PROJECT=[project_id]
@@ -83,7 +83,6 @@ git clone https://github.com/GoogleCloudPlatform/professional-services
 ````
 
 2. Change directories into this project
-
 
 `````
 cd tools/ml-audio-content-moderation/
@@ -178,7 +177,7 @@ gcloud pubsub subscriptions create $SUBSCRIPTION_NAME --topic=$TOPIC_NAME
 3. Generate a static UUID that you will need in each of your bucket names to ensure that they are 
 unique.
 
-3a. First install uuidgen. If it is already installed, skip this step.
+3a. First install uuidgen. If it is already installed or if you are using Cloud Shell, skip this step.
 
 ````
 sudo apt-get install uuid-runtime
