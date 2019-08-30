@@ -79,4 +79,5 @@ export function RestangularConfigFactory(RestangularProvider: any) {
   bootstrap: [AppComponent],
   entryComponents: [EntityModalComponent, ErrorModalComponent],
 })
+/**Class to important necessary modules and components.*/
 export class AppModule {}
