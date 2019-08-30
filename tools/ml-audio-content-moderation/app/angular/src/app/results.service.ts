@@ -3,29 +3,30 @@ import { Injectable } from '@angular/core';
 @Injectable({
   providedIn: 'root',
 })
+/** Class for holding shared variables between components. */
 export class ResultsService {
   setSegmentToxicity(toxicityResults: object) {
-    localStorage.setItem('segment_toxicity', JSON.stringify(toxicityResults));
+    localStorage.setItem('segmentToxicity', JSON.stringify(toxicityResults));
   }
 
   getSegmentToxicity() {
-    return JSON.parse(localStorage.getItem('segment_toxicity'));
+    return JSON.parse(localStorage.getItem('segmentToxicity'));
   }
 
   setFullTranscript(fullTranscript: string) {
-    localStorage.setItem('full_transcript', fullTranscript);
+    localStorage.setItem('fullTranscript', fullTranscript);
   }
 
   getFullTranscript() {
-    return localStorage.getItem('full_transcript');
+    return localStorage.getItem('fullTranscript');
   }
 
   setFileName(fileName: string) {
-    localStorage.setItem('file_name', fileName);
+    localStorage.setItem('fileName', fileName);
   }
 
   getFileName() {
-    return localStorage.getItem('file_name');
+    return localStorage.getItem('fileName');
   }
 
   constructor() {}

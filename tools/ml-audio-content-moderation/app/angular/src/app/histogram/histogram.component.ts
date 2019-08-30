@@ -17,7 +17,7 @@ import * as d3 from 'd3';
 /** Class to create histogram using D3 library. */
 export class HistogramComponent implements AfterViewInit {
   @ViewChild('chart') private chartContainer: ElementRef;
-  @Input() private histogramData: number[] = [];
+  @Input() private readonly histogramData: number[] = [];
   private readonly margin: any = { top: 20, bottom: 20, left: 20, right: 20 };
   private chart: any;
   private svg: any;
@@ -28,7 +28,7 @@ export class HistogramComponent implements AfterViewInit {
   constructor() {}
 
   private createChart() {
-    let element = this.chartContainer.nativeElement;
+    const element = this.chartContainer.nativeElement;
     this.width = element.offsetWidth - this.margin.left - this.margin.right;
     this.height = 220 - this.margin.top - this.margin.bottom;
     this.svg = d3
@@ -47,9 +47,9 @@ export class HistogramComponent implements AfterViewInit {
 
   private updateChart() {
     this.data = this.histogramData;
-    let x = d3.scaleLinear<number>().rangeRound([0, this.width]);
+    const x = d3.scaleLinear<number>().rangeRound([0, this.width]);
 
-    let datagenerator = d3
+    const datagenerator = d3
       .histogram<number, number>()
       .domain([x.domain()[0], x.domain()[1]])
       .thresholds([
@@ -66,9 +66,9 @@ export class HistogramComponent implements AfterViewInit {
         10 / 9,
       ]);
 
-    let bins = datagenerator(this.data);
+    const bins = datagenerator(this.data);
 
-    let y = d3
+    const y = d3
       .scaleLinear<number>()
       .domain([
         0,
@@ -78,7 +78,7 @@ export class HistogramComponent implements AfterViewInit {
       ])
       .range([this.height, 0]);
 
-    let bar = this.chart
+    const bar = this.chart
       .selectAll('.bar')
       .data(bins)
       .enter()
@@ -88,7 +88,7 @@ export class HistogramComponent implements AfterViewInit {
         return 'translate(' + x(d.x0) + ',' + y(d.length) + ')';
       });
 
-    let barWidth = x(bins[0].x1) - x(bins[0].x0) - 1;
+    const barWidth = x(bins[0].x1) - x(bins[0].x0) - 1;
 
     bar
       .append('rect')
@@ -101,7 +101,7 @@ export class HistogramComponent implements AfterViewInit {
         return this.height - y(d.length);
       });
 
-    let textLoc = (x(bins[0].x1) - x(bins[0].x0)) / 2;
+    const textLoc = (x(bins[0].x1) - x(bins[0].x0)) / 2;
 
     bar
       .append('text')
@@ -116,7 +116,7 @@ export class HistogramComponent implements AfterViewInit {
         return this.formatBucketCount(d.length);
       });
 
-    let xaxis = d3
+    const xaxis = d3
       .axisBottom(x)
       .tickValues(d3.range(0, 11 / 9, 1 / 9))
       .tickFormat((d: any) => {

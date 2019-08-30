@@ -16,11 +16,11 @@ import { ErrorModalComponent } from '../error-modal/error-modal.component';
 export class MainComponent implements OnInit {
   isLoading: boolean = false;
   fileName: string = '';
-  displayedColumns: string[] = ['fileName', 'fileType'];
+  readonly displayedColumns: string[] = ['fileName', 'fileType'];
   dataSource: any = [];
   @ViewChild(MatPaginator) paginator: MatPaginator;
   initialSelection: object[] = [];
-  allowMultiSelect: boolean = false;
+  readonly allowMultiSelect: boolean = false;
   selection = new SelectionModel<any>(
     this.allowMultiSelect,
     this.initialSelection
@@ -28,9 +28,9 @@ export class MainComponent implements OnInit {
   resultsService = new ResultsService();
 
   constructor(
-    private restangular: Restangular,
-    private router: Router,
-    private dialog: MatDialog
+    private readonly restangular: Restangular,
+    private readonly router: Router,
+    private readonly dialog: MatDialog
   ) {}
 
   ngOnInit() {

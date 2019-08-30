@@ -14,7 +14,7 @@ export class EntityModalComponent implements AfterViewInit {
   sentiments: any = [];
   text: string;
   isLoading: boolean = false;
-  highlighted_text: any = [];
+  highlightedText: any = [];
   fileName: string;
   readonly entityTypeColors = [
     {
@@ -91,9 +91,9 @@ export class EntityModalComponent implements AfterViewInit {
 
   constructor(
     public readonly dialogRef: MatDialogRef<EntityModalComponent>,
-    public restangular: Restangular,
+    public readonly restangular: Restangular,
     private readonly dialog: MatDialog,
-    @Inject(MAT_DIALOG_DATA) private data: any
+    @Inject(MAT_DIALOG_DATA) private readonly data: any
   ) {
     this.text = data.text;
     this.fileName = data.fileName;
@@ -104,26 +104,30 @@ export class EntityModalComponent implements AfterViewInit {
       .color;
   }
 
-  private getSentimentScoreColor(score: number) {
-    return this.sentimentScoreColors.find(
-      item => score >= item.start && score < item.end
+  private isScoreBetweenValues(min: number, max: number, target: number) {
+    return min <= target && max > target;
+  }
+
+  private getSentimentScoreColor(currentScore: number) {
+    return this.sentimentScoreColors.find(bucket =>
+      this.isScoreBetweenValues(bucket.start, bucket.end, currentScore)
     ).backgroundColor;
   }
 
   private formatText() {
-    let charArray = this.text.split('');
+    const charArray = this.text.split('');
     charArray.forEach(char => {
-      this.highlighted_text.push({
+      this.highlightedText.push({
         char: char,
         color: 'grey',
       });
     });
     this.sentiments.forEach((sentiment: any) => {
-      const start_index = this.text.indexOf(sentiment.entity_name);
-      const end_index = start_index + sentiment.entity_name.length;
-      const entity_color = this.getSentimentScoreColor(sentiment.score);
-      for (let i = start_index; i <= end_index; i++) {
-        this.highlighted_text[i].color = entity_color;
+      const startIndex = this.text.indexOf(sentiment.entity_name);
+      const endIndex = startIndex + sentiment.entity_name.length;
+      const entityColor = this.getSentimentScoreColor(sentiment.score);
+      for (let i = startIndex; i <= endIndex; i++) {
+        this.highlightedText[i].color = entityColor;
       }
     });
   }
