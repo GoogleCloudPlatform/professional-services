@@ -129,10 +129,10 @@ def convert_pdfs(main_project_id,
   all_datasets = list(bq_client.list_datasets())
   if all_datasets:
     all_dataset_ids = [dataset.dataset_id for dataset in all_datasets]
-  if demo_dataset in all_dataset_ids:
-    logger.error(f"The dataset named {demo_dataset} already exists in project {main_project_id}.")
-    logger.info(f"Enter a different dataset id in the config file or delete the existing '{demo_dataset}' dataset.")
-    sys.exit()
+    if demo_dataset in all_dataset_ids:
+      logger.error(f"The dataset named {demo_dataset} already exists in project {main_project_id}.")
+      logger.info(f"Enter a different dataset id in the config file or delete the existing '{demo_dataset}' dataset.")
+      sys.exit()
   
   dataset = bq_client.create_dataset(dataset)  # API request
   logger.info("Created dataset {}.{} to collect results.".format(bq_client.project, dataset.dataset_id))
