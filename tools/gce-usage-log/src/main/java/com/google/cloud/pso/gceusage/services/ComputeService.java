@@ -31,38 +31,41 @@ import java.util.Arrays;
 
 public class ComputeService {
 
-    private static Compute instance;
-    private static String[] SCOPES = {"https://www.googleapis.com/auth/compute"};
-    private static int HTTP_CONNECTION_TIMEOUT_MS = 5*60000; // 5 minute wait
-    private static int HTTP_READ_TIMEOUT_MS = 5*60000; // 5 minute wait
+  private static Compute instance;
+  private static String[] SCOPES = {"https://www.googleapis.com/auth/compute"};
+  private static int HTTP_CONNECTION_TIMEOUT_MS = 5 * 60000; // 5 minute wait
+  private static int HTTP_READ_TIMEOUT_MS = 5 * 60000; // 5 minute wait
 
-    /**
-     * Singleton that returns an instace of Compute.
-     * @see Compute
-     */
-    public static Compute getInstance() throws GeneralSecurityException, IOException {
-        if (instance == null) {
+  /**
+   * Singleton that returns an instace of Compute.
+   *
+   * @see Compute
+   */
+  public static Compute getInstance() throws GeneralSecurityException, IOException {
+    if (instance == null) {
 
-            HttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
-            JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
-            GoogleCredential credential = GoogleCredential.getApplicationDefault().createScoped(Arrays.asList(SCOPES));
+      HttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
+      JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
+      GoogleCredential credential =
+          GoogleCredential.getApplicationDefault().createScoped(Arrays.asList(SCOPES));
 
-            instance = new Compute.Builder(httpTransport, JSON_FACTORY, setHttpTimeout(credential))
-                    .setApplicationName(Main.APPLICATION_NAME)
-                    .build();
-        }
-        return instance;
+      instance =
+          new Compute.Builder(httpTransport, JSON_FACTORY, setHttpTimeout(credential))
+              .setApplicationName(Main.APPLICATION_NAME)
+              .build();
     }
+    return instance;
+  }
 
-    private static HttpRequestInitializer setHttpTimeout(final HttpRequestInitializer requestInitializer) {
-        return new HttpRequestInitializer() {
-            @Override
-            public void initialize(HttpRequest httpRequest) throws IOException {
-                requestInitializer.initialize(httpRequest);
-                httpRequest.setConnectTimeout(HTTP_CONNECTION_TIMEOUT_MS);
-                httpRequest.setReadTimeout(HTTP_READ_TIMEOUT_MS);
-            }
-        };
-
-    }
+  private static HttpRequestInitializer setHttpTimeout(
+      final HttpRequestInitializer requestInitializer) {
+    return new HttpRequestInitializer() {
+      @Override
+      public void initialize(HttpRequest httpRequest) throws IOException {
+        requestInitializer.initialize(httpRequest);
+        httpRequest.setConnectTimeout(HTTP_CONNECTION_TIMEOUT_MS);
+        httpRequest.setReadTimeout(HTTP_READ_TIMEOUT_MS);
+      }
+    };
+  }
 }

@@ -41,11 +41,10 @@ public class InitialVMInventoryTest {
   Instance instance;
   Gson gson = new GsonBuilder().setPrettyPrinting().create();;
 
-
   @Before
   public void setUp() {
     instance = new Instance();
-    Scheduling scheduling =  new Scheduling();
+    Scheduling scheduling = new Scheduling();
     scheduling.setPreemptible(false);
     scheduling.setAutomaticRestart(false);
     scheduling.setOnHostMaintenance("MIGRATE");
@@ -56,12 +55,14 @@ public class InitialVMInventoryTest {
 
     instance.setCreationTimestamp("2018-05-14T03:38:19.703-07:00");
     instance.setId(new BigInteger("123456789012345"));
-    instance.setZone("https://www.googleapis.com/compute/beta/projects/exampleprojectname/zones/us-east1-b");
-    instance.setMachineType("\"https://www.googleapis.com/compute/beta/projects/exampleprojectname/zones/us-east1-b/machineTypes/n1-standard-1");
+    instance.setZone(
+        "https://www.googleapis.com/compute/beta/projects/exampleprojectname/zones/us-east1-b");
+    instance.setMachineType(
+        "\"https://www.googleapis.com/compute/beta/projects/exampleprojectname/zones/us-east1-b/machineTypes/n1-standard-1");
     instance.setScheduling(scheduling);
     instance.setTags(tags);
 
-    Map<String,String> labels = new HashMap<>();
+    Map<String, String> labels = new HashMap<>();
     labels.put("key1", "value1");
     labels.put("key2", "value2");
     instance.setLabels(labels);
@@ -74,9 +75,9 @@ public class InitialVMInventoryTest {
     resultLabels.add(new KV("key2", "value2"));
     initialInstanceInventoryRow.labels = resultLabels;
     initialInstanceInventoryRow.machine_type = "n1-standard-1";
-    initialInstanceInventoryRow.pd_ssd_size_gb = Float.valueOf((float)0.0);
-    initialInstanceInventoryRow.pd_standard_size_gb = Float.valueOf((float)0.0);
-    initialInstanceInventoryRow.local_ssd_size_gb = Float.valueOf((float)0.0);
+    initialInstanceInventoryRow.pd_ssd_size_gb = Float.valueOf((float) 0.0);
+    initialInstanceInventoryRow.pd_standard_size_gb = Float.valueOf((float) 0.0);
+    initialInstanceInventoryRow.local_ssd_size_gb = Float.valueOf((float) 0.0);
     initialInstanceInventoryRow.preemptible = false;
     initialInstanceInventoryRow.projectId = "exampleprojectname";
     initialInstanceInventoryRow.zone = "us-east1-b";
@@ -90,10 +91,9 @@ public class InitialVMInventoryTest {
 
   @Test
   public void getInitialVMInventoryBQSchemaTest() throws IOException {
-    String file = IOUtils.toString(
-        this.getClass().getResourceAsStream("/schema/initial_inventory_schema.json"),
-        "UTF-8");
-    assertEquals( file, gson.toJson(InitialInstanceInventoryRow.getBQSchema()));
+    String file =
+        IOUtils.toString(
+            this.getClass().getResourceAsStream("/schema/initial_inventory_schema.json"), "UTF-8");
+    assertEquals(file, gson.toJson(InitialInstanceInventoryRow.getBQSchema()));
   }
-
 }

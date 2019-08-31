@@ -33,10 +33,10 @@ public class CloudResourceManagerService {
 
   /**
    * Singleton that returns an instace of CloudResourceManager.
+   *
    * @see CloudResourceManager
    */
-  public static CloudResourceManager getInstance()
-      throws IOException, GeneralSecurityException {
+  public static CloudResourceManager getInstance() throws IOException, GeneralSecurityException {
 
     if (instance == null) {
       HttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
@@ -45,16 +45,16 @@ public class CloudResourceManagerService {
       GoogleCredential credential = GoogleCredential.getApplicationDefault();
       if (credential.createScopedRequired()) {
         credential =
-            credential
-                .createScoped(Arrays.asList("https://www.googleapis.com/auth/cloud-platform"));
+            credential.createScoped(
+                Arrays.asList("https://www.googleapis.com/auth/cloud-platform"));
       }
 
-      instance = new CloudResourceManager.Builder(httpTransport, jsonFactory, credential)
-          .setApplicationName(Main.APPLICATION_NAME)
-          .build();
+      instance =
+          new CloudResourceManager.Builder(httpTransport, jsonFactory, credential)
+              .setApplicationName(Main.APPLICATION_NAME)
+              .build();
     }
 
     return instance;
   }
-
 }

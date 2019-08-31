@@ -23,10 +23,10 @@ import com.google.cloud.bigquery.LegacySQLTypeName;
 import com.google.cloud.bigquery.Schema;
 import com.google.common.flogger.FluentLogger;
 import com.google.gson.annotations.SerializedName;
+import java.net.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.net.*;
 import java.util.logging.Level;
 
 public class InitialInstanceInventoryRow {
@@ -35,38 +35,52 @@ public class InitialInstanceInventoryRow {
 
   @SerializedName("insert_timestamp")
   protected String timestamp;
+
   @SerializedName("instance_id")
   protected String instanceId;
+
   @SerializedName("project_id")
   protected String projectId;
+
   @SerializedName("zone")
   protected String zone;
+
   @SerializedName("machine_type")
   protected String machine_type;
+
   @SerializedName("pd_standard_size_gb")
   protected Float pd_standard_size_gb;
+
   @SerializedName("pd_ssd_size_gb")
   protected Float pd_ssd_size_gb;
+
   @SerializedName("local_ssd_size_gb")
   protected Float local_ssd_size_gb;
+
   @SerializedName("preemptible")
   protected boolean preemptible;
+
   @SerializedName("tags")
   protected List<String> tags;
+
   @SerializedName("labels")
   protected List<KV> labels;
 
-  public InitialInstanceInventoryRow(String timestamp, String instanceID,
+  public InitialInstanceInventoryRow(
+      String timestamp,
+      String instanceID,
       String zone,
       String machine_type,
       Float pd_standard_size_gb,
       Float pd_ssd_size_gb,
       Float local_ssd_size_gb,
-      boolean preemptible, Tags tags, Map<String, String> labels) {
+      boolean preemptible,
+      Tags tags,
+      Map<String, String> labels) {
     this.timestamp = timestamp;
     this.instanceId = instanceID;
     try {
-      this.projectId =  new URL(zone).getPath().split("/")[4];
+      this.projectId = new URL(zone).getPath().split("/")[4];
     } catch (MalformedURLException e) {
       logger.at(Level.SEVERE).log("Could not parse URL for zone", e);
       projectId = "";
@@ -96,27 +110,31 @@ public class InitialInstanceInventoryRow {
   protected InitialInstanceInventoryRow() {}
 
   public static Schema getBQSchema() {
-	 Field f1 = Field.of("insert_timestamp", LegacySQLTypeName.TIMESTAMP);
-	 Field f2 = Field.of("instance_id", LegacySQLTypeName.INTEGER);
-	 Field f3 = Field.of("project_id", LegacySQLTypeName.STRING);
-	 Field f4 = Field.of("zone", LegacySQLTypeName.STRING);
-	 Field f5 = Field.of("machine_type", LegacySQLTypeName.STRING);
-	 Field f5a = Field.of("pd_standard_size_gb", LegacySQLTypeName.FLOAT);
-	 Field f5b = Field.of("pd_ssd_size_gb", LegacySQLTypeName.FLOAT);
-	 Field f5c = Field.of("local_ssd_size_gb", LegacySQLTypeName.FLOAT);
-	 Field f6 = Field.of("preemptible", LegacySQLTypeName.BOOLEAN);
-	 Field f7 = Field.newBuilder("tags", LegacySQLTypeName.STRING).setMode(Mode.REPEATED).build();
-	 Field f8a = Field.of("key", LegacySQLTypeName.STRING);
-	 Field f8b = Field.of("value", LegacySQLTypeName.STRING);
-	 Field f8 = Field.newBuilder("labels", LegacySQLTypeName.RECORD, f8a, f8b).setMode(Mode.REPEATED).build();
-	 return Schema.of(f1, f2, f3, f4, f5, f5a, f5b, f5c, f6, f7, f8);
- }
+    Field f1 = Field.of("insert_timestamp", LegacySQLTypeName.TIMESTAMP);
+    Field f2 = Field.of("instance_id", LegacySQLTypeName.INTEGER);
+    Field f3 = Field.of("project_id", LegacySQLTypeName.STRING);
+    Field f4 = Field.of("zone", LegacySQLTypeName.STRING);
+    Field f5 = Field.of("machine_type", LegacySQLTypeName.STRING);
+    Field f5a = Field.of("pd_standard_size_gb", LegacySQLTypeName.FLOAT);
+    Field f5b = Field.of("pd_ssd_size_gb", LegacySQLTypeName.FLOAT);
+    Field f5c = Field.of("local_ssd_size_gb", LegacySQLTypeName.FLOAT);
+    Field f6 = Field.of("preemptible", LegacySQLTypeName.BOOLEAN);
+    Field f7 = Field.newBuilder("tags", LegacySQLTypeName.STRING).setMode(Mode.REPEATED).build();
+    Field f8a = Field.of("key", LegacySQLTypeName.STRING);
+    Field f8b = Field.of("value", LegacySQLTypeName.STRING);
+    Field f8 =
+        Field.newBuilder("labels", LegacySQLTypeName.RECORD, f8a, f8b)
+            .setMode(Mode.REPEATED)
+            .build();
+    return Schema.of(f1, f2, f3, f4, f5, f5a, f5b, f5c, f6, f7, f8);
+  }
 
   protected static class KV {
-	
-	@SerializedName("key")
+
+    @SerializedName("key")
     String key;
-	@SerializedName("value")
+
+    @SerializedName("value")
     String value;
 
     public KV(String key, String value) {
@@ -124,5 +142,4 @@ public class InitialInstanceInventoryRow {
       this.value = value;
     }
   }
-  
 }

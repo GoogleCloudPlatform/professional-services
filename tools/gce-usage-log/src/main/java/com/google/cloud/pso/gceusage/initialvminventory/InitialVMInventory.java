@@ -43,15 +43,18 @@ public class InitialVMInventory {
   private static final int BATCHSIZE = 500;
 
   /**
-   * This method scans a org for VMs and uploads an inventory of the current VMs for the table specificed in the input arguments.
+   * This method scans a org for VMs and uploads an inventory of the current VMs for the table
+   * specificed in the input arguments.
    *
    * @param orgNumber the org number. Example: 143823328417
-   * @param dataset the name of the dataset where the inventory should be written. Example: gce_capacity_log
-   * @param tableName the table name where the inventory should be written. Example: initial_vm_inventory
+   * @param dataset the name of the dataset where the inventory should be written. Example:
+   *     gce_capacity_log
+   * @param tableName the table name where the inventory should be written. Example:
+   *     initial_vm_inventory
    * @see InitialInstanceInventoryRow is the BigQuery datamodel
    */
-  public static void writeVMInventorytoBQ(String projectId, String orgNumber, String dataset,
-      String tableName)
+  public static void writeVMInventorytoBQ(
+      String projectId, String orgNumber, String dataset, String tableName)
       throws IOException, GeneralSecurityException, InterruptedException {
 
     BQHelper.deleteTable(projectId, dataset, tableName);
@@ -59,31 +62,37 @@ public class InitialVMInventory {
     Queue<Project> projects = GCEHelper.getProjectsForOrg(orgNumber);
     BlockingQueue<Object> rows = new LinkedBlockingQueue<Object>();
 
-    Runnable projectProcessor = () -> {
-      while (!projects.isEmpty()) {
-        Project project = projects.poll();
-        try {
-          logger.atInfo().log(
-            "Processing project " + project.getProjectId() + ", " + projects.size() + " remaining");
+    Runnable projectProcessor =
+        () -> {
+          while (!projects.isEmpty()) {
+            Project project = projects.poll();
+            try {
+              logger.atInfo().log(
+                  "Processing project "
+                      + project.getProjectId()
+                      + ", "
+                      + projects.size()
+                      + " remaining");
 
-          for (Instance instance : GCEHelper.getInstancesForProject(project)) {
-            rows.add(convertToBQRow(instance));
+              for (Instance instance : GCEHelper.getInstancesForProject(project)) {
+                rows.add(convertToBQRow(instance));
+              }
+            } catch (GoogleJsonResponseException e) {
+              if (e.getStatusCode() == 403) {
+                logger.atFiner().log(
+                    "GCE API not activated for project: "
+                        + project.getProjectId()
+                        + ". Ignoring project.");
+              } else {
+                logger.atWarning().log("Failed to fetch instances for project", e);
+                projects.add(project);
+              }
+            } catch (Exception e) {
+              logger.atWarning().log("Failed to fetch instances for project", e);
+              projects.add(project);
+            }
           }
-        } catch (GoogleJsonResponseException e) {
-          if (e.getStatusCode() == 403) {
-            logger.atFiner().log(
-                "GCE API not activated for project: " + project.getProjectId()
-                    + ". Ignoring project.");
-          } else {
-            logger.atWarning().log("Failed to fetch instances for project", e);
-            projects.add(project);
-          }
-        } catch (Exception e) {
-          logger.atWarning().log("Failed to fetch instances for project", e);
-          projects.add(project);
-        }
-      }
-    };
+        };
 
     ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(NUMTHREADS);
     for (int i = 0; i < NUMTHREADS; i++) {
@@ -101,9 +110,13 @@ public class InitialVMInventory {
 
         try {
           JobStatistics statistics = null;
-          statistics = BQHelper
-            .insertIntoTable(projectId, dataset, tableName,
-              InitialInstanceInventoryRow.getBQSchema(), results);
+          statistics =
+              BQHelper.insertIntoTable(
+                  projectId,
+                  dataset,
+                  tableName,
+                  InitialInstanceInventoryRow.getBQSchema(),
+                  results);
           logger.atInfo().log(statistics.toString());
         } catch (EmptyRowCollection e) {
           logger.atWarning().log("Empty row collection, retrying", e);
@@ -135,11 +148,16 @@ public class InitialVMInventory {
         }
       }
     }
-    return new InitialInstanceInventoryRow(instance.getCreationTimestamp(),
+    return new InitialInstanceInventoryRow(
+        instance.getCreationTimestamp(),
         instance.getId().toString(),
         instance.getZone(),
         instance.getMachineType(),
-        new Float(pdStandard), new Float(pdSSD), new Float(localSSD),
-        instance.getScheduling().getPreemptible(), instance.getTags(), instance.getLabels());
+        new Float(pdStandard),
+        new Float(pdSSD),
+        new Float(localSSD),
+        instance.getScheduling().getPreemptible(),
+        instance.getTags(),
+        instance.getLabels());
   }
 }

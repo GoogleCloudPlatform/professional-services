@@ -43,7 +43,8 @@ public class GCEHelper {
       throws IOException, GeneralSecurityException {
 
     CloudResourceManager cloudResourceManagerService = CloudResourceManagerService.getInstance();
-    CloudResourceManager.Projects.List request = cloudResourceManagerService.projects().list().setPageSize(MAXPROJECTS);
+    CloudResourceManager.Projects.List request =
+        cloudResourceManagerService.projects().list().setPageSize(MAXPROJECTS);
     ListProjectsResponse response;
     Queue returnValue = new ConcurrentLinkedQueue<Project>();
     do {
@@ -59,20 +60,25 @@ public class GCEHelper {
 
     return returnValue;
   }
+
   private static List<Zone> getZones(Project project) throws GeneralSecurityException, IOException {
-	  Compute compute = ComputeService.getInstance();
-	  return compute.zones().list(project.getProjectId()).execute().getItems();
+    Compute compute = ComputeService.getInstance();
+    return compute.zones().list(project.getProjectId()).execute().getItems();
   }
+
   public static List<Instance> getInstancesForProject(Project project)
       throws IOException, GeneralSecurityException {
 
     List<Instance> returnValue = new ArrayList();
     List<Zone> zones = getZones(project);
     Compute compute = ComputeService.getInstance();
-   
 
     for (Zone zone : zones) {
-      Instances.List request = compute.instances().list(project.getProjectId(), zone.getName()).setMaxResults(MAXINSTANCES);
+      Instances.List request =
+          compute
+              .instances()
+              .list(project.getProjectId(), zone.getName())
+              .setMaxResults(MAXINSTANCES);
       InstanceList response;
       do {
         response = request.execute();
@@ -86,12 +92,13 @@ public class GCEHelper {
   }
 
   public static Disk getDisk(String source) {
-    // example source: "https://www.googleapis.com/compute/beta/projects/sandbox-231713/zones/europe-west1-c/disks/gke-cluster-europe-west1-default-pool-71f42fed-d3dp"
+    // example source:
+    // "https://www.googleapis.com/compute/beta/projects/sandbox-231713/zones/europe-west1-c/disks/gke-cluster-europe-west1-default-pool-71f42fed-d3dp"
 
     String[] parts = source.split("/");
 
     Disk disk = null;
-	  try {
+    try {
       Compute compute = ComputeService.getInstance();
       Compute.Disks.Get request = compute.disks().get(parts[6], parts[8], parts[10]);
       Disk response = null;
@@ -99,8 +106,9 @@ public class GCEHelper {
       if (response != null) {
         disk = response;
       }
-	  } catch (Exception e) {
-        logger.atInfo().log("Error fetching disk: " + parts[6] + ". Ignoring disk " + parts[10] + "."); 
+    } catch (Exception e) {
+      logger.atInfo().log(
+          "Error fetching disk: " + parts[6] + ". Ignoring disk " + parts[10] + ".");
     }
     return disk;
   }

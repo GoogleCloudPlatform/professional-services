@@ -23,16 +23,17 @@ import java.security.GeneralSecurityException;
 
 public class Main {
 
-
   public static final String APPLICATION_NAME = "gcpcapacitylog/1.0";
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   public static void main(String[] args)
       throws InterruptedException, GeneralSecurityException, IOException {
 
-    System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tF %1$tT %4$s %2$s %5$s%6$s%n");
+    System.setProperty(
+        "java.util.logging.SimpleFormatter.format", "%1$tF %1$tT %4$s %2$s %5$s%6$s%n");
     if (args.length != 4) {
-      logger.atInfo().log("Example: java -jar gcpcapacitylog.jar initial-vm-inventory <project_id> <org_id> <dataset>");
+      logger.atInfo().log(
+          "Example: java -jar gcpcapacitylog.jar initial-vm-inventory <project_id> <org_id> <dataset>");
       System.exit(-1);
     }
 
@@ -47,11 +48,12 @@ public class Main {
     logger.atInfo().log("Operation: " + operation);
 
     if (operation.equals("initial-vm-inventory")) {
-      // This method scans a org for VMs and uploads an inventory of the current VMs for the table specificed in the input arguments.
-      InitialVMInventory.writeVMInventorytoBQ(projectId, orgNumber, dataset, "_initial_vm_inventory");
+      // This method scans a org for VMs and uploads an inventory of the current VMs for the table
+      // specificed in the input arguments.
+      InitialVMInventory.writeVMInventorytoBQ(
+          projectId, orgNumber, dataset, "_initial_vm_inventory");
     } else {
       throw new UnsupportedOperationException("Supported operations are: \"initial-vm-inventory\"");
     }
   }
-
 }

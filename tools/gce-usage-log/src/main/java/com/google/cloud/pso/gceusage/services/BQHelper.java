@@ -42,15 +42,21 @@ public class BQHelper {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   /**
-   * This appends into the BQ table specified in the input argument with the data in the input argument rows. Each object in rows is first converted to json and
-   * uploaded to BigQuery. Types are autodeteced.
+   * This appends into the BQ table specified in the input argument with the data in the input
+   * argument rows. Each object in rows is first converted to json and uploaded to BigQuery. Types
+   * are autodeteced.
    *
-   * @param datasetName the name of the dataset where the rows should be written. Example: gce_capacity_log
+   * @param datasetName the name of the dataset where the rows should be written. Example:
+   *     gce_capacity_log
    * @param tableName the table name where the rows should be written. Example: machine_types
    * @param rows the data to be written to BQ
    */
-  public static JobStatistics insertIntoTable(String projectId, String datasetName, String tableName,
-      Schema schema, Collection<Object> rows)
+  public static JobStatistics insertIntoTable(
+      String projectId,
+      String datasetName,
+      String tableName,
+      Schema schema,
+      Collection<Object> rows)
       throws IOException, InterruptedException, EmptyRowCollection {
     if (rows.isEmpty()) {
       throw new EmptyRowCollection("The input data was empty.");
@@ -63,8 +69,12 @@ public class BQHelper {
 
     StringBuilder sb = new StringBuilder();
 
-    WriteChannelConfiguration writeChannelConfiguration = WriteChannelConfiguration
-        .newBuilder(tableId).setFormatOptions(FormatOptions.json()).setSchema(schema).setWriteDisposition(WriteDisposition.WRITE_APPEND).build();
+    WriteChannelConfiguration writeChannelConfiguration =
+        WriteChannelConfiguration.newBuilder(tableId)
+            .setFormatOptions(FormatOptions.json())
+            .setSchema(schema)
+            .setWriteDisposition(WriteDisposition.WRITE_APPEND)
+            .build();
     JobId jobId = JobId.newBuilder().build();
     TableDataWriteChannel writer = bigquery.writer(jobId, writeChannelConfiguration);
 
@@ -83,10 +93,11 @@ public class BQHelper {
   }
 
   /**
-   * This appends into the BQ table specified in the input argument with the data in the input argument rows. Each object in rows is first converted to json and
-   * uploaded to BigQuery.
+   * This appends into the BQ table specified in the input argument with the data in the input
+   * argument rows. Each object in rows is first converted to json and uploaded to BigQuery.
    *
-   * @param datasetName the name of the dataset where the rows should be written. Example: gce_capacity_log
+   * @param datasetName the name of the dataset where the rows should be written. Example:
+   *     gce_capacity_log
    * @param tableName the table name where the rows should be written. Example: machine_types
    * @param rows the data to be written to BQ
    */
@@ -104,8 +115,12 @@ public class BQHelper {
 
     StringBuilder sb = new StringBuilder();
 
-    WriteChannelConfiguration writeChannelConfiguration = WriteChannelConfiguration
-        .newBuilder(tableId).setFormatOptions(FormatOptions.json()).setSchema(schema).setWriteDisposition(WriteDisposition.WRITE_APPEND).build();
+    WriteChannelConfiguration writeChannelConfiguration =
+        WriteChannelConfiguration.newBuilder(tableId)
+            .setFormatOptions(FormatOptions.json())
+            .setSchema(schema)
+            .setWriteDisposition(WriteDisposition.WRITE_APPEND)
+            .build();
 
     JobId jobId = JobId.newBuilder().build();
     TableDataWriteChannel writer = bigquery.writer(jobId, writeChannelConfiguration);
@@ -136,5 +151,4 @@ public class BQHelper {
 
     bigquery.delete(tableId);
   }
-
 }
