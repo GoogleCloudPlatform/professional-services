@@ -100,7 +100,8 @@ bq mk --location=${BQ_LOCATION} -d "${PROJECT_ID}:gce_usage_log"
 gcloud logging sinks create gce_usage \
   bigquery.googleapis.com/projects/${PROJECT_ID}/datasets/gce_usage_log \
   --log-filter='resource.type="gce_instance" AND
-  protoPayload.serviceName="compute.googleapis.com"' \
+  (protoPayload.methodName:"compute.instances.insert" OR
+  protoPayload.methodName:"compute.instances.delete")' \
   --organization=${ORG_NUMBER} --include-children
 ```
 
@@ -112,7 +113,7 @@ Note down the account name, as we'll use it in the next step!
 
 Taking the service account created in the last step, let’s assign to it the narrowest privileges on our dataset - in this case, “BigQuery Data Editor.”
 
-This can be done a number of ways, and here we’ll just follow [the manual process](https://cloud.google.com/bigquery/docs/dataset-access-controls#bigquery_update_dataset_access-console).
+This can be done a number of ways, and here we’ll just follow [the manual process](https://cloud.google.com/bigquery/docs/dataset-access-controls#controlling_access_to_a_dataset).
 
 #### 2.3.4 Test that the dataset is receiving audit log entries
 

@@ -130,9 +130,9 @@ FROM (
         zone,
         machine_type,
         preemptible,
-        NULL as pd_standard_size_gb,
-        NULL as pd_ssd_size_gb,
-        NULL as local_ssd_size_gb,
+        pd_standard_size_gb,
+        pd_ssd_size_gb,
+        local_ssd_size_gb,
         ARRAY(
         SELECT
           STRUCT(label.key,
