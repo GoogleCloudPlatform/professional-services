@@ -312,10 +312,14 @@ gcloud functions deploy nlp_api \
 
 1. [Install Terraform](https://learn.hashicorp.com/terraform/getting-started/install)
 
-2. Edit `variables.tf` with all of your associated variables. You must edit the project_id, but the 
+2. Edit `terraform.tfvars` with all of your associated variables. You must edit the project_id, but the 
 others are optional to edit.
 
 3. In your terminal, cd into the terraform/ directory.
+
+````
+cd terraform/
+````
 
 4. Enter the following commands, ensuring that there are no errors:
 

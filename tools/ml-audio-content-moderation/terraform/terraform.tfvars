@@ -1,0 +1,7 @@
+project_id                  = ""
+app_engine_region           = "us-east1"
+cloud_functions_region      = "us-east1"
+stt_queue_topic_name        = "stt_queue"
+stt_queue_subscription_name = "pull_stt_ids"
+cron_topic_name             = "cron_topic"
+scheduler_frequency         = "*/10 * * * *"
