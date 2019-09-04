@@ -21,8 +21,8 @@ from flask import request
 from flask import send_from_directory
 from flask_restful import Api
 from flask_restful import Resource
-from python.exceptions import CustomError
 from python import gcs_transcript_utils
+from google.api_core.exceptions import NotFound
 
 
 class Main(Resource):
@@ -51,7 +51,7 @@ class Files(Resource):
                                                    processed_audio_bucket)
             return jsonify(files=files)
 
-        except CustomError as e:
+        except NotFound as e:
             logging.error(e)
             return jsonify(e.to_dict())
 
@@ -96,15 +96,14 @@ class Analysis(Resource):
                                    transcript=transcript,
                                    per_segment_toxicity=toxicity)
                 else:
-                    exception_message = 'The toxicity for {file} was not found.'
-                    raise CustomError(exception_message.format(file=file_name))
+                    raise NotFound
 
             else:
-                exception_message = 'The transcript for {file} was not found.'
-                raise CustomError(exception_message.format(file=file_name))
+                raise NotFound
 
-        except CustomError as e:
+        except NotFound as e:
             logging.error(e)
+            logging.error('Failed to retrieve analysis.')
             return jsonify(e.to_dict())
 
 
@@ -138,10 +137,9 @@ class Entities(Resource):
                 sentiments.sort(key=lambda entity: entity['score'])
                 return jsonify(sentiment_result=sentiments)
             else:
-                error_message = 'The NLP result for {file} was not found.'
-                raise CustomError(error_message.format(file=file_name))
+                raise NotFound
 
-        except CustomError as e:
+        except NotFound as e:
             logging.error('Fetching entity failed.')
             logging.error(e)
             return jsonify(e.to_dict())
