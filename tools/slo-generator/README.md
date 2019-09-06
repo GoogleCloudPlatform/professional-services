@@ -11,10 +11,10 @@
 * **Burn Rate** (speed at which you're burning the available error budget)
 
 #### Policies
-The **SLO policy** (JSON) defines which metrics backend (e.g: Stackdriver), what metrics, and defines SLO targets are expected. An example is available [here](./examples/slo_linear.json).
+The **SLO policy** (JSON) defines which metrics backend (e.g: Stackdriver), what metrics, and defines SLO targets are expected. An example is available [here](./test/fixtures/slo_linear.json).
 
 The **Error Budget policy** (JSON) defines the window to query, the alerting
-Burn Rate Threshold, and notification settings. An example is available [here](./examples/error_budget_policy.json).
+Burn Rate Threshold, and notification settings. An example is available [here](./test/fixtures/error_budget_policy.json).
 
 #### Metrics backends
 `slo-generator` currently supports the following **metrics backends**:
@@ -35,7 +35,7 @@ Support for more backends is planned for the future (feel free to send a PR !):
 (e.g: Burn Rate metric, SLO/SLI metric).
 - **BigQuery** for exporting SLO report to BigQuery for deep analytics.
 
-The exporters configuration is put in the SLO JSON config. See example in [examples/slo_linear.json](./examples/slo_linear.json).
+The exporters configuration is put in the SLO JSON config. See an example in [tests/fixtures/slo_linear.json](./tests/fixtures/slo_linear.json).
 
 ## Basic usage (local)
 
@@ -53,11 +53,11 @@ pip install slo-generator
 
 **Write an SLO config file**
 
-See `slo.json` files in the [`examples/`](./examples) directory to write SLO definition files.
+See `slo_linear.json` and `slo_exponential.json` files in the [`tests/fixtures/`](./tests/fixtures) directory to write SLO definition files.
 
 **Write an Error Budget Policy file**
 
-See `error_budget_policy.json` files in the [`examples/`](./examples) directory to write
+See `error_budget_policy.json` files in the [`tests/fixtures/`](./tests/fixtures) directory to write
 Error Budget Policy files.
 
 **Run the `slo-generator`**
@@ -91,9 +91,6 @@ Other components can be added to make results available to other destinations:
 * A **Cloud Function** to export SLO and Burn Rate metrics (e.g: to Stackdriver Monitoring)
 * A **Stackdriver Monitoring Policy** to alert on high budget Burn Rates.
 
-Below is a diagram of what this pipeline looks like:
-
-![Architecture](./examples/terraform-google-slo/diagram.png)
 
 **Benefits:**
 
@@ -106,7 +103,7 @@ Below is a diagram of what this pipeline looks like:
 * **Real-time alerting** by setting up Stackdriver Monitoring alerts based on
 wanted SLOs.
 
-An example of pipeline automation with Terraform can be found in [examples/terraform-google-slo/](./examples/terraform-google-slo).
+The corresponding Terraform module to automate this setup can be found  [here](https://github.com/terraform-google-modules/terraform-google-slo).
 
 ### Cloud Build
 `slo-generator` can also be triggered in a Cloud Build pipeline. This can be useful if we want to compute some SLOs as part of a release process (e.g: to calculate a metric on each `git` commit or push)
