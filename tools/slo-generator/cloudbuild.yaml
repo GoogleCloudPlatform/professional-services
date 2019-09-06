@@ -1,0 +1,9 @@
+---
+steps:
+
+# Install generation script to Docker
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'gcr.io/{_PROJECT_NAME}/slo-generator', '.']
+
+images:
+- 'gcr.io/${_PROJECT_NAME}/slo-generator'
