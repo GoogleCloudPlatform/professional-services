@@ -111,45 +111,6 @@ class TestCompute(unittest.TestCase):
         self.bad_event_count = 1
         self.exporters = self.slo_config['exporters']
 
-
-    def _get_window(self):
-        import time
-        timestamp = time.time()
-        window = 1000
-        measurement_window = monitoring_v3.types.TimeInterval()
-        measurement_window.end_time.seconds = int(timestamp)
-        measurement_window.end_time.nanos = int(
-            (timestamp - measurement_window.end_time.seconds) * 10**9)
-        measurement_window.start_time.seconds = int(timestamp - window)
-        measurement_window.start_time.nanos = measurement_window.end_time.nanos
-        return measurement_window
-
-
-    def _get_aggregation(self):
-        """Helper for aggregation object.
-
-        Default aggregation is `ALIGN_SUM`.
-        Default reducer is `REDUCE_SUM`.
-
-        Args:
-            window (int): Window size (in seconds).
-            aligner (str): Aligner type.
-            reducer (str): Reducer type.
-
-        Returns:
-            :obj:`monitoring_v3.types.Aggregation`: Aggregation object.
-        """
-        window = 1000
-        aligner = 'ALIGN_SUM'
-        reducer = 'REDUCE_SUM'
-        aggregation = monitoring_v3.types.Aggregation()
-        aggregation.alignment_period.seconds = window
-        aggregation.per_series_aligner = (
-            getattr(monitoring_v3.enums.Aggregation.Aligner, aligner))
-        aggregation.cross_series_reducer = (
-            getattr(monitoring_v3.enums.Aggregation.Reducer, reducer))
-        return aggregation
-
     def test_compute_linear(self):
         channel = self.make_grpc_stub(nresp=2*len(self.error_budget_policy))
         patch = mock.patch("google.api_core.grpc_helpers.create_channel")
@@ -197,18 +158,10 @@ class TestCompute(unittest.TestCase):
     @mock.patch("google.cloud.bigquery.Client.insert_rows_json")
     def test_export_bigquery_error(self, mock_bq, mock_bq_2, mock_bq_3):
         with mock_bq, mock_bq_2, mock_bq_3, self.assertLogs(level='DEBUG') as log:
-            mock_bq.return_value = [
-                {
-                    'errors': [
-                        {
-                            "location": "us-east1",
-                            "debugInfo": "This is some debug info",
-                            "message": "This is a test exception",
-                            "reason": "You're running a test suite",
-                        }
-                    ]
-                }
-            ]
+            mock_bq.return_value = self.load_fixture(
+                filename=f'{cwd}/fixtures/bq_error.json',
+                load_json=True
+            )
             with self.assertRaises(BigQueryError):
                 export(self.data, self.exporters[2])
             self.assertEqual(len(log.output), 5)
@@ -219,7 +172,6 @@ class TestCompute(unittest.TestCase):
             self.slo_config,
             self.error_budget_policy,
             self.timestamp)
-        pass
 
     def test_make_measurement(self):
         s1 = make_measurement(
@@ -229,7 +181,6 @@ class TestCompute(unittest.TestCase):
             self.bad_event_count,
             self.timestamp
         )
-        pass
 
 if __name__ == '__main__':
     unittest.main()

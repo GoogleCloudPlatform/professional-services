@@ -35,4 +35,4 @@ ENV PATH $PATH:/usr/local/gcloud/google-cloud-sdk/bin
 RUN pip3 install slo-generator
 
 # Run script
-ENTRYPOINT [ "terraform-generator" ]
+ENTRYPOINT [ "slo-generator" ]
