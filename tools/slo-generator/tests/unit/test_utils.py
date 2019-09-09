@@ -24,7 +24,7 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(res1.__name__, "StackdriverBackend")
         self.assertEqual(res2.__name__, "PrometheusBackend")
         with self.assertRaises(SystemExit):
-            res3 = get_backend_cls("UndefinedBackend")
+            get_backend_cls("UndefinedBackend")
 
     def test_get_exporter_cls(self):
         res1 = get_exporter_cls("Stackdriver")
@@ -34,20 +34,31 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(res2.__name__, "PubsubExporter")
         self.assertEqual(res3.__name__, "BigqueryExporter")
         with self.assertRaises(SystemExit):
-            s4 = get_exporter_cls("UndefinedExporter")
+            get_exporter_cls("UndefinedExporter")
 
     def test_import_dynamic(self):
-        res1 = import_dynamic("slo_generator.backends.stackdriver", "StackdriverBackend", prefix="backend")
-        res2 = import_dynamic("slo_generator.exporters.stackdriver", "StackdriverExporter", prefix="exporter")
+        res1 = import_dynamic(
+            "slo_generator.backends.stackdriver",
+            "StackdriverBackend",
+            prefix="backend")
+        res2 = import_dynamic(
+            "slo_generator.exporters.stackdriver",
+            "StackdriverExporter",
+            prefix="exporter")
         self.assertEqual(res1.__name__, "StackdriverBackend")
+        self.assertEqual(res2.__name__, "StackdriverExporter")
         with self.assertRaises(SystemExit):
-            res3 = import_dynamic("slo_generator.backends.unknown", "StackdriverUnknown", prefix="unknown")
+            import_dynamic(
+                "slo_generator.backends.unknown",
+                "StackdriverUnknown",
+                prefix="unknown")
 
     def test_normalize(self):
         path = "../"
         normalized_path = '/'.join(os.getcwd().split('/')[:-1])
         res = normalize(path)
         self.assertEqual(res, normalized_path)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -17,10 +17,10 @@
 Prometheus backend implementation.
 """
 
-from slo_generator.backends.base import MetricBackend
-from prometheus_http_client import Prometheus
 import logging
 import pprint
+from slo_generator.backends.base import MetricBackend
+from prometheus_http_client import Prometheus
 
 LOGGER = logging.getLogger(__name__)
 

@@ -17,13 +17,13 @@
 Command-Line interface of `slo-generator`.
 """
 
-from slo_generator.compute import compute
-import slo_generator.utils as utils
-
 import argparse
 import json
 import logging
 import sys
+
+from slo_generator.compute import compute
+import slo_generator.utils as utils
 
 logging.basicConfig(
     stream=sys.stdout,
@@ -48,7 +48,7 @@ def main():
     with open(error_budget_path, 'r') as f:
         error_budget_policy = json.load(f)
 
-    compute(slo_config, error_budget_policy, export=export)
+    compute(slo_config, error_budget_policy, do_export=export)
 
 
 def parse_args(args):

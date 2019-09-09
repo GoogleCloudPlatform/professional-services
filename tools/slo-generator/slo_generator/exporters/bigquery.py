@@ -16,10 +16,10 @@
 `bigquery.py`
 BigQuery exporter class.
 """
-import google.api_core
-from google.cloud import bigquery
 import json
 import logging
+import google.api_core
+from google.cloud import bigquery
 
 LOGGER = logging.getLogger(__name__)
 

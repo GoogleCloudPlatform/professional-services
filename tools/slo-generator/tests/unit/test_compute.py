@@ -5,17 +5,12 @@ import mock
 import string
 import time
 from google.cloud.monitoring_v3.proto import metric_service_pb2
-
-from google.cloud import monitoring_v3
 from slo_generator.exporters.bigquery import BigQueryError
-
 from slo_generator.compute import (
     compute,
     export,
     make_reports,
     make_measurement)
-
-from slo_generator.exporters.pubsub import PubsubExporter
 
 cwd = os.path.dirname(os.path.abspath(__file__))
 
@@ -57,7 +52,8 @@ class ChannelStub(object):
         self.responses = responses
         self.requests = []
 
-    def unary_unary(self, method, request_serializer=None, response_deserializer=None):
+    def unary_unary(self, method, request_serializer=None,
+                    response_deserializer=None):
         return MultiCallableStub(method, self)
 
 class TestCompute(unittest.TestCase):
@@ -74,7 +70,7 @@ class TestCompute(unittest.TestCase):
     def make_grpc_stub(self, nresp=1):
         next_page_token = ""
         time_series_element = self.load_fixture(
-            filename=f"{cwd}/fixtures/time_series_proto.json",
+            filename=f'{cwd}/fixtures/time_series_proto.json',
             load_json=True)
         time_series = [time_series_element]
         expected_response = {
@@ -112,26 +108,29 @@ class TestCompute(unittest.TestCase):
         self.exporters = self.slo_config['exporters']
 
     def test_compute_linear(self):
-        channel = self.make_grpc_stub(nresp=2*len(self.error_budget_policy))
+        channel = self.make_grpc_stub(nresp=2 * len(self.error_budget_policy))
         patch = mock.patch("google.api_core.grpc_helpers.create_channel")
         with patch as create_channel:
             create_channel.return_value = channel
-            data = compute(self.slo_config, self.error_budget_policy)
+            compute(self.slo_config, self.error_budget_policy)
 
     def test_compute_exponential(self):
-        channel = self.make_grpc_stub(nresp=2*len(self.error_budget_policy))
+        channel = self.make_grpc_stub(nresp=2 * len(self.error_budget_policy))
         patch = mock.patch("google.api_core.grpc_helpers.create_channel")
         with patch as create_channel:
             create_channel.return_value = channel
-            data = compute(self.slo_config_exp, self.error_budget_policy)
+            compute(self.slo_config_exp, self.error_budget_policy)
 
-    @mock.patch("google.cloud.pubsub_v1.gapic.publisher_client.PublisherClient.publish")
+    @mock.patch(
+        "google.cloud.pubsub_v1.gapic.publisher_client.PublisherClient.publish"
+    )
     @mock.patch("google.cloud.pubsub_v1.publisher.futures.Future.result")
     def test_export_pubsub(self, mock_pubsub, mock_pubsub_res):
-            with mock_pubsub, mock_pubsub_res, self.assertLogs(level='DEBUG') as log:
-                export(self.data, self.exporters[0])
-            self.assertEqual(len(log.output), 6)
-            self.assertEqual(len(log.records), 6)
+        with mock_pubsub, mock_pubsub_res, \
+                self.assertLogs(level='DEBUG') as log:
+            export(self.data, self.exporters[0])
+        self.assertEqual(len(log.output), 6)
+        self.assertEqual(len(log.records), 6)
 
     def test_export_stackdriver(self):
         with self.assertLogs(level='DEBUG') as log:
@@ -147,7 +146,8 @@ class TestCompute(unittest.TestCase):
     @mock.patch("google.cloud.bigquery.Client.create_table")
     @mock.patch("google.cloud.bigquery.Client.insert_rows_json")
     def test_export_bigquery(self, mock_bq, mock_bq_2, mock_bq_3):
-        with mock_bq, mock_bq_2, mock_bq_3, self.assertLogs(level='DEBUG') as log:
+        with mock_bq, mock_bq_2, mock_bq_3, \
+                self.assertLogs(level='DEBUG') as log:
             mock_bq.return_value = []
             export(self.data, self.exporters[2])
             self.assertEqual(len(log.output), 6)
@@ -157,7 +157,8 @@ class TestCompute(unittest.TestCase):
     @mock.patch("google.cloud.bigquery.Client.create_table")
     @mock.patch("google.cloud.bigquery.Client.insert_rows_json")
     def test_export_bigquery_error(self, mock_bq, mock_bq_2, mock_bq_3):
-        with mock_bq, mock_bq_2, mock_bq_3, self.assertLogs(level='DEBUG') as log:
+        with mock_bq, mock_bq_2, mock_bq_3, \
+                self.assertLogs(level='DEBUG') as log:
             mock_bq.return_value = self.load_fixture(
                 filename=f'{cwd}/fixtures/bq_error.json',
                 load_json=True
@@ -168,19 +169,20 @@ class TestCompute(unittest.TestCase):
             self.assertEqual(len(log.records), 5)
 
     def test_make_reports(self):
-        s1 = make_reports(
+        make_reports(
             self.slo_config,
             self.error_budget_policy,
             self.timestamp)
 
     def test_make_measurement(self):
-        s1 = make_measurement(
+        make_measurement(
             self.slo_config,
             self.error_budget_policy[0],
             self.good_event_count,
             self.bad_event_count,
             self.timestamp
         )
+
 
 if __name__ == '__main__':
     unittest.main()

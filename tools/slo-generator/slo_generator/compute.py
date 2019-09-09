@@ -17,17 +17,16 @@
 Compute utilities.
 """
 
-from slo_generator import utils
-
 import logging
 import time
 import pprint
 from collections import OrderedDict
+from slo_generator import utils
 
 LOGGER = logging.getLogger(__name__)
 
 def compute(slo_config, error_budget_policy, timestamp=None, client=None,
-            export=False):
+            do_export=False):
     """Run pipeline to compute SLO, Error Budget and Burn Rate, and export the
     results (if exporters are specified in the SLO config).
 
@@ -36,7 +35,7 @@ def compute(slo_config, error_budget_policy, timestamp=None, client=None,
         error_budget_policy (dict): Error Budget policy configuration.
         timestamp (int, optional): UNIX timestamp. Defaults to now.
         client (obj, optional): Existing metrics backend client.
-        export (bool, optional): Enable / Disable export. Default: False.
+        do_export (bool, optional): Enable / Disable export. Default: False.
     """
     if timestamp is None:
         timestamp = time.time()
@@ -50,8 +49,8 @@ def compute(slo_config, error_budget_policy, timestamp=None, client=None,
             timestamp,
             client=client):
         reports.append(report)
-        if exporters is not None and export is True:
-            export(data, exporters)
+        if exporters is not None and do_export is True:
+            export(report, exporters)
     return reports
 
 def export(data, exporters):

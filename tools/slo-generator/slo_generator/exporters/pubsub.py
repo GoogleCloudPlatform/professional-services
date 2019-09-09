@@ -16,9 +16,9 @@
 `pubsub.py`
 Pubsub exporter class.
 """
+import json
 from google.cloud import pubsub_v1
 from slo_generator.exporters.base import Exporter
-import json
 
 class PubsubExporter(Exporter):
     """Pubsub exporter class."""

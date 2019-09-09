@@ -1,5 +1,6 @@
 # Script to migrate from old slo.json format (Stackdriver only) to new format
-import json, pprint
+# flake8: noqa
+import json
 
 def migrate_json(filepath=None, data=None):
     """Migrate old config format to new config format.
@@ -32,12 +33,17 @@ def migrate_json(filepath=None, data=None):
 
     measurement = old_config["measurement"]
     if measurement["slo_type"] == 'exponential-distribution-cut':
-      config["backend"]["measurement"]["threshold_bucket"] = measurement["cut_after_bucket_number"]
-      config["backend"]["measurement"]["good_below_threshold"] = measurement["good_is_below_cut"]
-      config["backend"]["measurement"]["filter_valid"] = measurement["filter_valid"]
+        config["backend"]["measurement"]["threshold_bucket"] = \
+            measurement["cut_after_bucket_number"]
+        config["backend"]["measurement"]["good_below_threshold"] = \
+            measurement["good_is_below_cut"]
+        config["backend"]["measurement"]["filter_valid"] = \
+            measurement["filter_valid"]
     elif measurement["slo_type"] == 'good-bad-ratio':
-        config["backend"]["measurement"]["filter_good"] = measurement["filter_good"]
-        config["backend"]["measurement"]["filter_bad"] = measurement["filter_bad"]
+        config["backend"]["measurement"]["filter_good"] = \
+            measurement["filter_good"]
+        config["backend"]["measurement"]["filter_bad"] = \
+            measurement["filter_bad"]
 
     # pprint.pprint(config)
 
@@ -48,42 +54,42 @@ def migrate_json(filepath=None, data=None):
     return config
 
 OLD_1 = {
-  "service_name": "datapipelines",
-  "feature_name": "gcs2bq",
-  "slo_name": "throughput",
-  "slo_target": 0.9,
-  "stackdriver_host_project_id": "brunore-stackdriver-host-project",
-  "slo_achievement_project_id": "brunore-stackdriver-test",
-  "slo_achievement_topic_name": "slo-achievement",
-  "measurement": {
-      "backend": "Stackdriver",
-      "slo_type": "exponential-distribution-cut",
-      "cut_after_bucket_number": 31,
-      "good_is_below_cut": False,
-      "filter_valid": "project=\"brunore-gaestd-test\" AND metric.type=\"custom.googleapis.com/datapipeline/throughput\" AND metric.labels.pipeline_category = \"gcs2bq\""
-  }
+    "service_name": "datapipelines",
+    "feature_name": "gcs2bq",
+    "slo_name": "throughput",
+    "slo_target": 0.9,
+    "stackdriver_host_project_id": "brunore-stackdriver-host-project",
+    "slo_achievement_project_id": "brunore-stackdriver-test",
+    "slo_achievement_topic_name": "slo-achievement",
+    "measurement": {
+        "backend": "Stackdriver",
+        "slo_type": "exponential-distribution-cut",
+        "cut_after_bucket_number": 31,
+        "good_is_below_cut": False,
+        "filter_valid": "project=\"brunore-gaestd-test\" AND metric.type=\"custom.googleapis.com/datapipeline/throughput\" AND metric.labels.pipeline_category = \"gcs2bq\""
+    }
 }
 
 NEW_1 = {
-  "name": "throughput",
-  "target": 0.9,
-  "service_name": "datapipelines",
-  "feature_name": "gcs2bq",
-  "exporters": [{
-    "class": "PubSub",
-    "project_id": "brunore-stackdriver-test",
-    "topic_name": "slo-achievement"
-  }],
-  "backend": {
-      "class": "Stackdriver",
-      "method": "exponential_distribution_cut",
-      "project_id": "brunore-stackdriver-host-project",
-      "measurement": {
-        "threshold_bucket": 31,
-        "good_below_threshold": False,
-        "filter_valid": "project=\"brunore-gaestd-test\" AND metric.type=\"custom.googleapis.com/datapipeline/throughput\" AND metric.labels.pipeline_category = \"gcs2bq\""
-      }
-  }
+    "name": "throughput",
+    "target": 0.9,
+    "service_name": "datapipelines",
+    "feature_name": "gcs2bq",
+    "exporters": [{
+        "class": "PubSub",
+        "project_id": "brunore-stackdriver-test",
+        "topic_name": "slo-achievement"
+    }],
+    "backend": {
+        "class": "Stackdriver",
+        "method": "exponential_distribution_cut",
+        "project_id": "brunore-stackdriver-host-project",
+        "measurement": {
+            "threshold_bucket": 31,
+            "good_below_threshold": False,
+            "filter_valid": "project=\"brunore-gaestd-test\" AND metric.type=\"custom.googleapis.com/datapipeline/throughput\" AND metric.labels.pipeline_category = \"gcs2bq\""
+        }
+    }
 }
 
 OLD_2 = {
@@ -127,6 +133,7 @@ def deep_eq(d1, d2):
     dump1 = json.dumps(d1, sort_keys=True)
     dump2 = json.dumps(d2, sort_keys=True)
     return dump1 == dump2
+
 
 if __name__ == '__main__':
     assert(deep_eq(migrate_json(data=OLD_1), NEW_1))
