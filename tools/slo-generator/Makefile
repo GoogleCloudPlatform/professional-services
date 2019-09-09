@@ -25,6 +25,7 @@ NAME = "slo_generator"
 PIP=pip
 
 PYTHON=python
+TWINE=twine
 COVERAGE=coverage
 NOSE_OPTS = --with-coverage --cover-package=$(NAME)
 SITELIB = $(shell $(PYTHON) -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")
@@ -35,7 +36,7 @@ FLAKE8_IGNORE = E302,E203,E261
 
 ########################################################
 
-all: clean check flake8 pylint tests
+all: clean flake8 pylint tests
 
 flake8:
 	flake8 --ignore=$(FLAKE8_IGNORE) $(NAME)/
@@ -59,8 +60,11 @@ clean:
 	@echo "Cleaning up test reports"
 	rm -rf report/*
 
-sdist: clean
-	$(PYTHON) setup.py sdist
+build: clean
+	$(PYTHON) setup.py sdist bdist_wheel
+
+deploy:
+	$(TWINE) upload dist/*
 
 develop:
 	$(PYTHON) setup.py develop
