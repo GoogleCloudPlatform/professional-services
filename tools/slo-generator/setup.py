@@ -31,7 +31,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='slo-generator',
-    version='0.1.3',
+    version='0.1.4',
     description='SLO generator',
     long_description=long_description,
     long_description_content_type='text/markdown',

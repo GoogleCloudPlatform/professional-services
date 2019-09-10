@@ -21,6 +21,9 @@ from google.cloud import monitoring_v3
 from slo_generator.exporters.base import Exporter
 
 LOGGER = logging.getLogger(__name__)
+DEFAULT_METRIC_TYPE = "custom.googleapis.com/error_budget_burn_rate"
+DEFAULT_METRIC_DESCRIPTION = ("Speed at which the error budget for a given"
+                              "aggregation window is consumed")
 
 class StackdriverExporter(Exporter):
     """Stackdriver Monitoring exporter class."""
@@ -54,10 +57,7 @@ class StackdriverExporter(Exporter):
             object: Metric descriptor.
         """
         series = monitoring_v3.types.TimeSeries()
-        series.metric.type = "custom.googleapis.com/{}/{}/{}".format(
-            data['service_name'],
-            data['feature_name'],
-            data['slo_name'])
+        series.metric.type = config.get('metric_type', DEFAULT_METRIC_TYPE)
 
         # Write metric labels
         series.metric.labels['error_budget_policy_step_name'] = str(
@@ -110,14 +110,13 @@ class StackdriverExporter(Exporter):
         """
         project = self.client.project_path(config['project_id'])
         descriptor = monitoring_v3.types.MetricDescriptor()
-        descriptor.type = "custom.googleapis.com/{}/{}/{}".format(
-            data['service_name'],
-            data['feature_name'],
-            data['slo_name'])
+        descriptor.type = config.get('metric_type', DEFAULT_METRIC_TYPE)
         descriptor.metric_kind = (
             monitoring_v3.enums.MetricDescriptor.MetricKind.GAUGE)
         descriptor.value_type = (
             monitoring_v3.enums.MetricDescriptor.ValueType.DOUBLE)
-        descriptor.description = data['slo_description']
+        descriptor.description = config.get(
+            'metric_description',
+            DEFAULT_METRIC_DESCRIPTION)
         self.client.create_metric_descriptor(project, descriptor)
         return descriptor
