@@ -1,22 +1,43 @@
 # SLO Generator
 
-`slo-generator` is a tool to query metrics [backends](#metrics-backends), compute **Service Level Objectives** ([SLOs](https://landing.google.com/sre/sre-book/chapters/service-level-objectives/)), **Error Budgets** and **Burn Rates**, using policies written in JSON format, and export the computation results to available
-[exporters](#exporters).
+`slo-generator` is a Python package to define and compute **[Service Level Objectives](https://landing.google.com/sre/sre-book/chapters/service-level-objectives/)**, **[Error Budgets](https://landing.google.com/sre/sre-book/chapters/embracing-risk/#xref_risk-management_unreliability-budgets)** and **[Burn Rates](https://landing.google.com/sre/workbook/chapters/alerting-on-slos/)** on GCP.
 
 ## Description
-`slo-generator` will query a metrics backend and compute the following metrics:
+As a stand-alone CLI, the `slo-generator` will:
 
-* **Service Level Objective** defined as `SLO (%) = GOOD_EVENTS / VALID_EVENTS`
-* **Error Budget** defined as `ERROR_BUDGET = 100 - SLO (%)`
-* **Burn Rate** (speed at which you're burning the available error budget)
+  * **Load SLO config and Error Budget Policy** (see [configuration](#configuration))
 
-#### Policies
-The **SLO policy** (JSON) defines which metrics backend (e.g: Stackdriver), what metrics, and defines SLO targets are expected. An example is available [here](./tests/unit/fixtures/slo_linear.json).
+  * **Query timeseries** from one of the [supported metrics backend](#metrics-backends), for each query window listed in the [Error Budget Policy](#error-budget-policy).
 
-The **Error Budget policy** (JSON) defines the window to query, the alerting
-Burn Rate Threshold, and notification settings. An example is available [here](./tests/unit/fixtures/error_budget_policy.json).
+  * **Compute an SLO report** for each query window, with the following information:
+    * ***Service Level Objective*** defined as `SLO (%) = GOOD_EVENTS / VALID_EVENTS`
+    * ***Error Budget*** defined as `ERROR_BUDGET = 100 - SLO (%)`
+    * ***Burn Rate*** defined as the speed at which we are burning the available error budget.
 
-#### Metrics backends
+
+  * **Export the SLO report** to one of the [supported exporters](#exporters).
+
+### Configuration
+
+#### SLO Configuration
+The **SLO configuration** (JSON) defines which metrics [backend](#backends)
+(e.g: Stackdriver), what metrics to query, define SLO targets, and configure
+export destinations for our SLO reports. An example configuration is available
+[here](./tests/unit/fixtures/slo_linear.json).
+
+#### Error Budget Policy
+The **Error Budget policy** (JSON) defines the different time windows to query
+(steps), the alerting Burn Rate Threshold, and notification settings. This policy
+is written as a list, allowing us to set different burn rates based on the query
+window.
+
+For instance:
+  * **Step 1**: Window is "last 1 hour", set an alert when burn rate is > 9X
+  * **Step 2**: Window
+
+An example configuration is available [here](./tests/unit/fixtures/error_budget_policy.json).
+
+### Metrics backends
 `slo-generator` currently supports the following **metrics backends**:
 - **Stackdriver Monitoring**
 
@@ -27,7 +48,7 @@ Support for more backends is planned for the future (TBA, feel free to send PRs 
 - Datadog
 - Custom
 
-#### Exporters
+### Exporters
 **Exporters** can be configured to send **SLO Reports** to a destination.
 
 `slo-generator` currently supports the following **exporters**:
