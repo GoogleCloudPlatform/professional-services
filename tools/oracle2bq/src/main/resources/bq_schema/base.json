@@ -1,0 +1,17 @@
+{"fields": [
+  {
+    "name": "insertId",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "DATE_FOR_PARTITIONING",
+    "type": "DATE",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "WINDOW_TIMESTAMP",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE"
+  }
+]}
