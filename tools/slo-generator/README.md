@@ -1,10 +1,10 @@
 # SLO Generator
 
-`slo-generator` is a tool to compute **Service Level Objectives** ([SLOs](https://landing.google.com/sre/sre-book/chapters/service-level-objectives/)), **Error Budgets** and **Burn Rates**, using policies written in JSON format, and export the computation results to available
+`slo-generator` is a tool to query metrics [backends](#metrics-backends), compute **Service Level Objectives** ([SLOs](https://landing.google.com/sre/sre-book/chapters/service-level-objectives/)), **Error Budgets** and **Burn Rates**, using policies written in JSON format, and export the computation results to available
 [exporters](#exporters).
 
 ## Description
-`slo-generator` will query metrics backend and compute the following metrics:
+`slo-generator` will query a metrics backend and compute the following metrics:
 
 * **Service Level Objective** defined as `SLO (%) = GOOD_EVENTS / VALID_EVENTS`
 * **Error Budget** defined as `ERROR_BUDGET = 100 - SLO (%)`
@@ -20,11 +20,12 @@ Burn Rate Threshold, and notification settings. An example is available [here](.
 `slo-generator` currently supports the following **metrics backends**:
 - **Stackdriver Monitoring**
 
-Support for more backends is planned for the future (feel free to send a PR !):
-- Prometheus
+Support for more backends is planned for the future (TBA, feel free to send PRs !):
+- Prometheus (soon)
 - Grafana
 - Stackdriver Logging
 - Datadog
+- Custom
 
 #### Exporters
 **Exporters** can be configured to send **SLO Reports** to a destination.
