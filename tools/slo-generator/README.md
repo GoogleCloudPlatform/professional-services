@@ -21,8 +21,7 @@ As a stand-alone CLI, the `slo-generator` will:
 
 ### SLO Configuration
 The **SLO configuration** (JSON) defines our SLO, which [metrics backend](#backends)
-to query, what metrics to query, and the export destinations for our SLO
-reports. An example configuration is available [here](./tests/unit/fixtures/slo_linear.json).
+to query, what metrics to query, and the [exporters](#exporters) config. An example configuration is available [here](./tests/unit/fixtures/slo_linear.json).
 
 #### Metrics backends
 **Metrics backends** can be configured to specify where to fetch our metrics from.
@@ -46,8 +45,6 @@ Support for more backends is planned for the future (TBA, feel free to send PRs 
 (e.g: Burn Rate metric, SLO/SLI metric).
 - **BigQuery** for exporting SLO report to BigQuery for deep analytics.
 
-The exporters configuration is put in the SLO JSON config. See an example in [tests/unit/fixtures/slo_linear.json](./tests/unit/fixtures/slo_linear.json).
-
 ### Error Budget Policy
 The **Error Budget policy** (JSON) defines the different time windows to query
 (steps), the alerting Burn Rate Threshold, and notification settings. This policy
@@ -55,8 +52,10 @@ is written as a list, allowing us to set different burn rates based on the query
 window.
 
 For instance:
-  * **Step 1**: Window is "last 1 hour", set an alert when burn rate is > 9X
-  * **Step 2**: Window
+  * **Step 1**: Window is "last 1 hour", set an alert when burn rate > 9
+  * **Step 2**: Window is "last 12 hours", set an alert when burn rate > 3
+  * **Step 3**: Window is "last 7 days", set an alert when burn rate > 1.5
+  * **Step 4**: Window is "last 28 days", set an alert when burn rate > 1
 
 An example configuration is available [here](./tests/unit/fixtures/error_budget_policy.json).
 
