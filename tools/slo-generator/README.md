@@ -11,10 +11,10 @@
 * **Burn Rate** (speed at which you're burning the available error budget)
 
 #### Policies
-The **SLO policy** (JSON) defines which metrics backend (e.g: Stackdriver), what metrics, and defines SLO targets are expected. An example is available [here](./test/fixtures/slo_linear.json).
+The **SLO policy** (JSON) defines which metrics backend (e.g: Stackdriver), what metrics, and defines SLO targets are expected. An example is available [here](./tests/unit/fixtures/slo_linear.json).
 
 The **Error Budget policy** (JSON) defines the window to query, the alerting
-Burn Rate Threshold, and notification settings. An example is available [here](./test/fixtures/error_budget_policy.json).
+Burn Rate Threshold, and notification settings. An example is available [here](./tests/unit/fixtures/error_budget_policy.json).
 
 #### Metrics backends
 `slo-generator` currently supports the following **metrics backends**:
@@ -35,7 +35,7 @@ Support for more backends is planned for the future (feel free to send a PR !):
 (e.g: Burn Rate metric, SLO/SLI metric).
 - **BigQuery** for exporting SLO report to BigQuery for deep analytics.
 
-The exporters configuration is put in the SLO JSON config. See an example in [tests/fixtures/slo_linear.json](./tests/fixtures/slo_linear.json).
+The exporters configuration is put in the SLO JSON config. See an example in [tests/unit/fixtures/slo_linear.json](./tests/unit/fixtures/slo_linear.json).
 
 ## Basic usage (local)
 
@@ -53,11 +53,11 @@ pip install slo-generator
 
 **Write an SLO config file**
 
-See `slo_linear.json` and `slo_exponential.json` files in the [`tests/fixtures/`](./tests/fixtures) directory to write SLO definition files.
+See `slo_linear.json` and `slo_exponential.json` files in the [`tests/unit/fixtures/`](./tests/unit/fixtures) directory to write SLO definition files.
 
 **Write an Error Budget Policy file**
 
-See `error_budget_policy.json` files in the [`tests/fixtures/`](./tests/fixtures) directory to write
+See `error_budget_policy.json` files in the [`tests/unit/fixtures/`](./tests/unit/fixtures) directory to write
 Error Budget Policy files.
 
 **Run the `slo-generator`**
