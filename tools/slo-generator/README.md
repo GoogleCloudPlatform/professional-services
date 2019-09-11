@@ -17,14 +17,38 @@ As a stand-alone CLI, the `slo-generator` will:
 
   * **Export the SLO report** to one of the [supported exporters](#exporters).
 
-### Configuration
+## Configuration
 
-#### SLO Configuration
+### SLO Configuration
 The **SLO configuration** (JSON) defines our SLO, which [metrics backend](#backends)
 to query, what metrics to query, and the export destinations for our SLO
 reports. An example configuration is available [here](./tests/unit/fixtures/slo_linear.json).
 
-#### Error Budget Policy
+#### Metrics backends
+**Metrics backends** can be configured to specify where to fetch our metrics from.
+
+The following **metrics backends** are currently supported:
+- **Stackdriver Monitoring**
+
+Support for more backends is planned for the future (TBA, feel free to send PRs !):
+- Prometheus (soon)
+- Grafana
+- Stackdriver Logging
+- Datadog
+- Custom
+
+#### Exporters
+**Exporters** can be configured to send **SLO Reports** to a destination.
+
+`slo-generator` currently supports the following **exporters**:
+- **Cloud Pub/Sub** for streaming export.
+- **Stackdriver Monitoring** for exporting SLO metrics to Stackdriver Monitoring
+(e.g: Burn Rate metric, SLO/SLI metric).
+- **BigQuery** for exporting SLO report to BigQuery for deep analytics.
+
+The exporters configuration is put in the SLO JSON config. See an example in [tests/unit/fixtures/slo_linear.json](./tests/unit/fixtures/slo_linear.json).
+
+### Error Budget Policy
 The **Error Budget policy** (JSON) defines the different time windows to query
 (steps), the alerting Burn Rate Threshold, and notification settings. This policy
 is written as a list, allowing us to set different burn rates based on the query
@@ -35,28 +59,6 @@ For instance:
   * **Step 2**: Window
 
 An example configuration is available [here](./tests/unit/fixtures/error_budget_policy.json).
-
-### Metrics backends
-`slo-generator` currently supports the following **metrics backends**:
-- **Stackdriver Monitoring**
-
-Support for more backends is planned for the future (TBA, feel free to send PRs !):
-- Prometheus (soon)
-- Grafana
-- Stackdriver Logging
-- Datadog
-- Custom
-
-### Exporters
-**Exporters** can be configured to send **SLO Reports** to a destination.
-
-`slo-generator` currently supports the following **exporters**:
-- **Cloud Pub/Sub** for streaming export.
-- **Stackdriver Monitoring** for exporting SLO metrics to Stackdriver Monitoring
-(e.g: Burn Rate metric, SLO/SLI metric).
-- **BigQuery** for exporting SLO report to BigQuery for deep analytics.
-
-The exporters configuration is put in the SLO JSON config. See an example in [tests/unit/fixtures/slo_linear.json](./tests/unit/fixtures/slo_linear.json).
 
 ## Basic usage (local)
 
