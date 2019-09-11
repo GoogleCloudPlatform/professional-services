@@ -20,10 +20,9 @@ As a stand-alone CLI, the `slo-generator` will:
 ### Configuration
 
 #### SLO Configuration
-The **SLO configuration** (JSON) defines which metrics [backend](#backends)
-(e.g: Stackdriver), what metrics to query, define SLO targets, and configure
-export destinations for our SLO reports. An example configuration is available
-[here](./tests/unit/fixtures/slo_linear.json).
+The **SLO configuration** (JSON) defines our SLO, which [metrics backend](#backends)
+to query, what metrics to query, and the export destinations for our SLO
+reports. An example configuration is available [here](./tests/unit/fixtures/slo_linear.json).
 
 #### Error Budget Policy
 The **Error Budget policy** (JSON) defines the different time windows to query
