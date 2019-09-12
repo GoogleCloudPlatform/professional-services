@@ -1,7 +1,7 @@
 {
-  "project_id": "norse-feat-244219",
-  "leftTablename": "norse-feat-244219.abc.asfasdf",
-  "rightTablename": "norse-feat-244219.abcd.asfasdf",
+  "project_id": "project_id",
+  "leftTablename": "project_id.leftdatasetname.lefttablename",
+  "rightTablename": "project_id.rightdatasetname.righttablename",
   "destinationDataset": "validation",
   "excludeColumnMapping": [
       "latitude",
