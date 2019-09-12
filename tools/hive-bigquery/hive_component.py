@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Module to handle Hive related utilities like creating connection to Hive
 database, executing a query, check whether the provided database & table
 exists etc."""
@@ -62,7 +61,8 @@ class HiveComponent(DatabaseComponent):
 
         logger.debug("Getting Hive Connection")
         try:
-            connection = hive.connect(host=self.host, port=self.port,
+            connection = hive.connect(host=self.host,
+                                      port=self.port,
                                       username=self.user)
             return connection
         except TTransport.TTransportException as error:
@@ -106,7 +106,8 @@ class HiveComponent(DatabaseComponent):
                 return results
 
         except exc.OperationalError as error:
-            logger.error("Hive Query {} execution failed".format(str(query_cmds)))
+            logger.error("Hive Query {} execution failed".format(
+                str(query_cmds)))
             raise custom_exceptions.HiveExecutionError from error
 
     def check_database_exists(self, database_name):
@@ -136,7 +137,8 @@ class HiveComponent(DatabaseComponent):
             boolean : True, if table exists else False.
         """
 
-        results = self.execute_query("SHOW TABLES FROM {}".format(database_name))
+        results = self.execute_query(
+            "SHOW TABLES FROM {}".format(database_name))
         for name in results:
             if table_name in name:
                 return True
@@ -153,8 +155,10 @@ class HiveComponent(DatabaseComponent):
             str: Location of the Hive table.
         """
 
-        queries = ["set hive.ddl.output.format=json",
-                   "desc extended {0}.{1}".format(database_name, table_name)]
+        queries = [
+            "set hive.ddl.output.format=json",
+            "desc extended {0}.{1}".format(database_name, table_name)
+        ]
         results = self.execute_query(queries)
         location = json.loads(results[0][0])['tableInfo']['sd']['location']
         return location
@@ -171,8 +175,8 @@ class HiveComponent(DatabaseComponent):
         """
 
         file_name = "hdfs_files_{}.txt".format(uuid4())
-        status_code = os.system(
-            "hdfs dfs -ls {0} > {1}".format(location, file_name))
+        status_code = os.system("hdfs dfs -ls {0} > {1}".format(
+            location, file_name))
         if status_code:
             logger.error("hdfs command execution failed")
             raise custom_exceptions.HDFSCommandError
@@ -204,8 +208,10 @@ class HiveComponent(DatabaseComponent):
         """
 
         tracking_data = []
-        queries = ["set hive.ddl.output.format=json",
-                   "SHOW PARTITIONS {0}.{1}".format(database_name, table_name)]
+        queries = [
+            "set hive.ddl.output.format=json",
+            "SHOW PARTITIONS {0}.{1}".format(database_name, table_name)
+        ]
         result_set = self.execute_query(queries)
         results = json.loads(result_set[0][0])['partitions']
 
@@ -213,12 +219,14 @@ class HiveComponent(DatabaseComponent):
             # Form the WHERE clause by joining the partition column names and
             # their values
             clause = 'WHERE ' + ' AND '.join(
-                partition['columnName'] + '=' + '"' + partition[
-                    'columnValue'] + '"' for partition in item['values'])
+                partition['columnName'] + '=' + '"' + partition['columnValue'] +
+                '"' for partition in item['values'])
             tracking_data.append({
-                'table_name': 'stage__{}__{}'.format(table_name.lower(),
-                                                     str(uuid4()).replace("-","_")),
-                'clause': clause
+                'table_name':
+                    'stage__{}__{}'.format(table_name.lower(),
+                                           str(uuid4()).replace("-", "_")),
+                'clause':
+                    clause
             })
         return tracking_data
 
@@ -306,8 +314,7 @@ class HiveComponent(DatabaseComponent):
                 logger.debug("Counting the total number of rows...")
                 results = self.execute_query(
                     "SELECT COUNT(*) FROM {}.{}".format(
-                        hive_table_model.db_name,
-                        hive_table_model.table_name))
+                        hive_table_model.db_name, hive_table_model.table_name))
                 n_rows = results[0][0]
                 logger.debug("Number of rows in the table: %d", n_rows)
 
@@ -321,8 +328,8 @@ class HiveComponent(DatabaseComponent):
 
                 distinct_col_values, col_min, col_max = results[0]
                 # Checks if number of distinct values matches the number of rows.
-                if n_rows == distinct_col_values and (
-                        1 + col_max - col_min == n_rows):
+                if n_rows == distinct_col_values and (1 + col_max -
+                                                      col_min == n_rows):
                     # Sets incremental attributes of hive_table_model.
                     hive_table_model.inc_col_type = 'int'
 
@@ -342,12 +349,17 @@ class HiveComponent(DatabaseComponent):
 
         if hive_table_model.is_inc_col_present:
             tracking_data.append({
-                'table_name': hive_table_model.staging_table_name, 'id': 1,
-                'inc_col_min': col_min, 'inc_col_max': col_max, 'clause': ""})
+                'table_name': hive_table_model.staging_table_name,
+                'id': 1,
+                'inc_col_min': col_min,
+                'inc_col_max': col_max,
+                'clause': ""
+            })
         else:
             tracking_data.append({
                 'table_name': hive_table_model.staging_table_name,
-                'clause': ""})
+                'clause': ""
+            })
 
         return tracking_data
 
@@ -396,9 +408,8 @@ class HiveComponent(DatabaseComponent):
                     hive_table_model.inc_col_type = 'ts'
                     logger.info(
                         "Incremental column {} found in table {}. Range - {} "
-                        "- {}".format(
-                            hive_table_model.inc_col, clause, col_min,
-                            col_max))
+                        "- {}".format(hive_table_model.inc_col, clause, col_min,
+                                      col_max))
             # Validates the incremental column of int data type by comparing
             # the number of distinct values and number of rows.
             elif hive_table_model.inc_col in hive_table_model.int_type_col:
@@ -444,8 +455,8 @@ class HiveComponent(DatabaseComponent):
                             "Incremental column {} not valid in partition {}. "
                             "Range - {} - {}\nTry another incremental column "
                             "or without providing incremental column".format(
-                                hive_table_model.inc_col, clause,
-                                col_min, col_max))
+                                hive_table_model.inc_col, clause, col_min,
+                                col_max))
                         raise custom_exceptions.IncrementalColumnError
                 if hive_table_model.is_inc_col_present:
                     logger.info("Incremental column {} found".format(
@@ -455,7 +466,9 @@ class HiveComponent(DatabaseComponent):
                 raise custom_exceptions.IncrementalColumnError
         return tracking_data
 
-    def create_and_load_stage_table(self, hive_table_model, table_name,
+    def create_and_load_stage_table(self,
+                                    hive_table_model,
+                                    table_name,
                                     clause=''):
         """Creates Hive staging table and inserts data into it from the
         source table.
@@ -480,15 +493,15 @@ class HiveComponent(DatabaseComponent):
 
         # Inserts data into staging table.
         query = "INSERT OVERWRITE TABLE {} SELECT * FROM {}.{} {}".format(
-            table_name, hive_table_model.db_name,
-            hive_table_model.table_name, clause)
+            table_name, hive_table_model.db_name, hive_table_model.table_name,
+            clause)
         logger.info(query)
         self.execute_query(query)
 
         end = time.time()
         time_hive_stage = calculate_time(start, end)
         logger.debug("Loaded data from %s into %s - Time taken - %s",
-                    hive_table_model.table_name, table_name, time_hive_stage)
+                     hive_table_model.table_name, table_name, time_hive_stage)
 
     def migrate_data(self, mysql_component, bq_component, gcs_component,
                      hive_table_model, bq_table_model, gcs_bucket_name,
@@ -514,13 +527,15 @@ class HiveComponent(DatabaseComponent):
         logger.debug("Populating tracking table..")
 
         if hive_table_model.is_partitioned is False:
-            self.migrate_non_partition_table(
-                mysql_component, bq_component, gcs_component, hive_table_model,
-                bq_table_model, gcs_bucket_name, table_data)
+            self.migrate_non_partition_table(mysql_component, bq_component,
+                                             gcs_component, hive_table_model,
+                                             bq_table_model, gcs_bucket_name,
+                                             table_data)
         else:
-            self.migrate_partition_table(
-                mysql_component, bq_component, gcs_component, hive_table_model,
-                bq_table_model, gcs_bucket_name, table_data)
+            self.migrate_partition_table(mysql_component, bq_component,
+                                         gcs_component, hive_table_model,
+                                         bq_table_model, gcs_bucket_name,
+                                         table_data)
 
     def migrate_non_partition_table(self, mysql_component, bq_component,
                                     gcs_component, hive_table_model,
@@ -782,9 +797,9 @@ class HiveComponent(DatabaseComponent):
 
         return tracking_data
 
-    def check_inc_non_partition_table(
-            self, mysql_component, bq_component, gcs_component,
-            hive_table_model, bq_table_model, gcs_bucket_name):
+    def check_inc_non_partition_table(self, mysql_component, bq_component,
+                                      gcs_component, hive_table_model,
+                                      bq_table_model, gcs_bucket_name):
         """Checks for incremental data in case of a non-partitioned table.
 
         If there is an incremental column, the function queries the Hive
@@ -827,18 +842,22 @@ class HiveComponent(DatabaseComponent):
                 hive_table_model.table_name))
             new_data_max = results[0][0]
 
-            new_data_exists = self.compare_max_values(
-                hive_table_model, old_data_max, new_data_max)
+            new_data_exists = self.compare_max_values(hive_table_model,
+                                                      old_data_max,
+                                                      new_data_max)
             if new_data_exists:
                 logger.info("New data found in source table")
                 logger.debug(
                     "Previously incremental column %s maximum value "
-                    "%s.Current maximum value %s",
-                    hive_table_model.inc_col, old_data_max, new_data_max)
+                    "%s.Current maximum value %s", hive_table_model.inc_col,
+                    old_data_max, new_data_max)
                 tracking_data.append({
                     'table_name': hive_table_model.staging_table_name,
-                    'id': identifier + 1, 'inc_col_min': old_data_max,
-                    'inc_col_max': new_data_max, 'clause': ""})
+                    'id': identifier + 1,
+                    'inc_col_min': old_data_max,
+                    'inc_col_max': new_data_max,
+                    'clause': ""
+                })
             else:
                 logger.info("No new data found")
         elif not hive_table_model.is_inc_col_present and \
@@ -910,8 +929,8 @@ class HiveComponent(DatabaseComponent):
                 hive_table_model.tracking_table_name))
         old_partitions_list = [row[0] for row in results]
 
-        partitions_list = self.list_partitions(
-            hive_table_model.db_name, hive_table_model.table_name)
+        partitions_list = self.list_partitions(hive_table_model.db_name,
+                                               hive_table_model.table_name)
         present_partitions_list = [item['clause'] for item in partitions_list]
 
         new_partitions_list = list(
@@ -922,7 +941,8 @@ class HiveComponent(DatabaseComponent):
                 logger.info("Found new partition {}".format(clause))
                 tracking_data.append({
                     'table_name': hive_table_model.staging_table_name,
-                    'clause': clause})
+                    'clause': clause
+                })
 
         else:
             for clause in new_partitions_list:
@@ -935,8 +955,11 @@ class HiveComponent(DatabaseComponent):
                 col_min, col_max = results[0]
                 tracking_data.append({
                     "table_name": hive_table_model.staging_table_name,
-                    "id": 1, "inc_col_min": col_min,
-                    "inc_col_max": col_max, "clause": clause})
+                    "id": 1,
+                    "inc_col_min": col_min,
+                    "inc_col_max": col_max,
+                    "clause": clause
+                })
 
             logger.info("Checking for new data in existing partitions...")
             # Fetches maximum value of the incremental column for each
@@ -946,8 +969,8 @@ class HiveComponent(DatabaseComponent):
 
                 results = mysql_component.execute_query(
                     "SELECT MAX(id),MAX(inc_col_max) FROM {0} WHERE "
-                    "clause='{1}'".format(
-                        hive_table_model.tracking_table_name, clause))
+                    "clause='{1}'".format(hive_table_model.tracking_table_name,
+                                          clause))
                 identifier, old_data_max = results[0]
                 logger.debug("Old maximum value %s - %s", clause, old_data_max)
 
@@ -966,8 +989,11 @@ class HiveComponent(DatabaseComponent):
                         "New data found in partition - {}".format(clause))
                     tracking_data.append({
                         "table_name": hive_table_model.staging_table_name,
-                        "id": identifier + 1, "inc_col_min": old_data_max,
-                        "inc_col_max": new_data_max, "clause": clause})
+                        "id": identifier + 1,
+                        "inc_col_min": old_data_max,
+                        "inc_col_max": new_data_max,
+                        "clause": clause
+                    })
                 else:
                     logger.info(
                         "No New data found in partition - {}".format(clause))

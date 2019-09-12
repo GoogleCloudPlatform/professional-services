@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 from setuptools import setup
 
 setup(
@@ -28,16 +27,15 @@ setup(
     author_email='bmenasha@google.com',
     license='apache 2.0',
     classifiers=[
-        'Development Status :: 3 - Alpha',
-        'Intended Audience :: Developers',
-        'Programming Language :: Python :: 2.7'],
+        'Development Status :: 3 - Alpha', 'Intended Audience :: Developers',
+        'Programming Language :: Python :: 2.7'
+    ],
     keywords='google cloud dns gce',
     packages=['dns_sync'],
     setup_requires=['pytest-runner'],
     tests_require=['mock', 'pytest'],
-    install_requires=['google-cloud-datastore',
-                      'google-cloud-resource-manager',
-                      'google-api-python-client',
-                      'webapp2', 'webapp2_static', 'webob', 'pyyaml',
-                      'oauth2client==3.0.0']
-)
+    install_requires=[
+        'google-cloud-datastore', 'google-cloud-resource-manager',
+        'google-api-python-client', 'webapp2', 'webapp2_static', 'webob',
+        'pyyaml', 'oauth2client==3.0.0'
+    ])

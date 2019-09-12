@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
     API framework to post a training job
 """
@@ -21,26 +20,10 @@ import yaml
 from googleapiclient import discovery
 
 
-def post(
-        cfg,
-        train_csv_path,
-        eval_csv_path,
-        task_type,
-        target_var,
-        data_type,
-        column_name,
-        na_values,
-        condition,
-        n_classes,
-        to_drop,
-        name,
-        hidden_units,
-        num_layers,
-        lin_opt,
-        deep_opt,
-        train_steps,
-        export_dir,
-        jobid):
+def post(cfg, train_csv_path, eval_csv_path, task_type, target_var, data_type,
+         column_name, na_values, condition, n_classes, to_drop, name,
+         hidden_units, num_layers, lin_opt, deep_opt, train_steps, export_dir,
+         jobid):
     """
     Post request to submit the training job
 
@@ -78,32 +61,18 @@ def post(
     cloudml = discovery.build('ml', 'v1')
 
     params = [
-        '--train_csv_path', train_csv_path,
-        '--eval_csv_path', eval_csv_path,
-        '--task_type', task_type,
-        '--target_var', target_var,
-        '--data_type', data_type,
-        '--column_name', column_name,
-        '--na_values', na_values,
-        '--condition', condition,
-        '--n_classes', n_classes,
-        '--to_drop', to_drop,
-        '--name', name,
-        '--hidden_units', hidden_units,
-        '--num_layers', num_layers,
-        '--lin_opt', lin_opt,
-        '--deep_opt', deep_opt,
-        '--train_steps', train_steps,
-        '--export_dir', export_dir
+        '--train_csv_path', train_csv_path, '--eval_csv_path', eval_csv_path,
+        '--task_type', task_type, '--target_var', target_var, '--data_type',
+        data_type, '--column_name', column_name, '--na_values', na_values,
+        '--condition', condition, '--n_classes', n_classes, '--to_drop',
+        to_drop, '--name', name, '--hidden_units', hidden_units, '--num_layers',
+        num_layers, '--lin_opt', lin_opt, '--deep_opt', deep_opt,
+        '--train_steps', train_steps, '--export_dir', export_dir
     ]
 
     current_models = [
-        'linearclassifier',
-        'linearregressor',
-        'dnnclassifier',
-        'dnnregressor',
-        'combinedclassifier',
-        'combinedregressor'
+        'linearclassifier', 'linearregressor', 'dnnclassifier', 'dnnregressor',
+        'combinedclassifier', 'combinedregressor'
     ]
 
     if name not in current_models:

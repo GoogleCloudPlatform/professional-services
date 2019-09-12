@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Module to handle MySQL related utilities."""
 
 import logging
@@ -114,7 +113,8 @@ class MySQLComponent(DatabaseComponent):
             cursor.execute(query)
             return cursor.fetchall()
         except pymysql.err.OperationalError as error:
-            logger.error("Failed in querying Cloud SQL table - {}".format(query))
+            logger.error(
+                "Failed in querying Cloud SQL table - {}".format(query))
             raise custom_exceptions.MySQLExecutionError from error
 
     def check_table_exists(self, table_name):
@@ -160,8 +160,8 @@ class MySQLComponent(DatabaseComponent):
             n_rows = results[0][0]
             if n_rows == 0:
                 self.drop_table(table_name)
-                logger.info("Dropped the empty tracking table {}".format(
-                    table_name))
+                logger.info(
+                    "Dropped the empty tracking table {}".format(table_name))
 
     def check_tracking_table_exists(self, hive_table_model):
         """Checks whether the tracking table exists.
@@ -195,8 +195,8 @@ class MySQLComponent(DatabaseComponent):
         if hive_table_model.is_first_run:
             logger.debug("Tracking table does not exist")
         else:
-            logger.debug(
-                "Tracking table %s found", hive_table_model.tracking_table_name)
+            logger.debug("Tracking table %s found",
+                         hive_table_model.tracking_table_name)
 
     def update_tracking_meta_table(self, hive_table_model, mode):
         """Updates the tracking metatable with details of the Hive table."""

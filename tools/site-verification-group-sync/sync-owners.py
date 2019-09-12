@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 '''
 syncOwners.py reads the membership of a Google Group and
 uses that to populate the "verified owners" of a domain
@@ -24,6 +23,7 @@ import json
 from apiclient.discovery import build
 from google.oauth2 import service_account
 
+
 def get_config():
     '''
     Read config from json file
@@ -31,7 +31,9 @@ def get_config():
 
     with open('config.json') as config_file:
         data = json.load(config_file)
-    return data['domain'], data['group'], data['adminUser'], data['service-account-key']
+    return data['domain'], data['group'], data['adminUser'], data[
+        'service-account-key']
+
 
 def get_members(credentials, group, admin_user):
     '''
@@ -43,12 +45,15 @@ def get_members(credentials, group, admin_user):
     '''
 
     delegated_credentials = credentials.with_subject(admin_user)
-    admin_service = build('admin', 'directory_v1', credentials=delegated_credentials)
+    admin_service = build('admin',
+                          'directory_v1',
+                          credentials=delegated_credentials)
     admin_response = admin_service.members().list(groupKey=group).execute()
     members = []
     for member in admin_response['members']:
         members.append(member['email'])
     return members
+
 
 def set_permissions(credentials, domain, users):
     '''
@@ -62,16 +67,16 @@ def set_permissions(credentials, domain, users):
     url = 'dns://'
     url += domain
     service = build('siteVerification', 'v1', credentials=credentials)
-    response = service.webResource().update(
-        id=url,
-        body={
-            'owners': users,
-            'site': {
-                'type': 'INET_DOMAIN',
-                'identifier': domain
-            }
-        }).execute()
+    response = service.webResource().update(id=url,
+                                            body={
+                                                'owners': users,
+                                                'site': {
+                                                    'type': 'INET_DOMAIN',
+                                                    'identifier': domain
+                                                }
+                                            }).execute()
     return response
+
 
 def main():
     ''' Main entry-point for the program '''
@@ -84,6 +89,7 @@ def main():
     verified_users = get_members(credentials, group, admin_user)
     result = set_permissions(credentials, domain, verified_users)
     print result
+
 
 if __name__ == '__main__':
     main()

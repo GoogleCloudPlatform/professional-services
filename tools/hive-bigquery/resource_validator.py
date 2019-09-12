@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Module to validate the requirements for data migration."""
 
 import logging
@@ -66,13 +65,14 @@ class ResourceValidator(object):
         # Mapping of BigQuery multi-regional location to supported GCS bucket
         # locations.
         bq_gcs_loc_map = {
-            "EU": ["EU",
-                   "europe-north1",
-                   "europe-west1",
-                   "europe-west2",
-                   "europe-west3",
-                   "europe-west4",
-                  ]
+            "EU": [
+                "EU",
+                "europe-north1",
+                "europe-west1",
+                "europe-west2",
+                "europe-west3",
+                "europe-west4",
+            ]
         }
 
         if bq_dataset_location == "US":
@@ -156,8 +156,8 @@ class ResourceValidator(object):
         # Checks whether the BigQuery dataset location and GCS bucket
         # location are compatible, since location constraints do not allow
         # loading data if locations are not compatible.
-        if ResourceValidator.check_location_compatibility(bq_dataset_location,
-                                                          gcs_bucket_location):
+        if ResourceValidator.check_location_compatibility(
+                bq_dataset_location, gcs_bucket_location):
             logger.debug(
                 "Dataset location %s and GCS Bucket location %s matches",
                 bq_dataset_location, gcs_bucket_location)

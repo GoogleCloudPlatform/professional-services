@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Module to handle BigQuery related utilities such as creating a client,
 validating the existence of dataset & table, creating a table, starting a
 load job, updating the status of a running load job etc."""
@@ -172,7 +171,8 @@ class BigQueryComponent(GCPService):
         if write_mode == "overwrite":
             logger.debug("Deleting tracking table and BigQuery table...")
             mysql_component.drop_table(hive_table_model.tracking_table_name)
-            mysql_component.update_tracking_meta_table(hive_table_model, "DELETE")
+            mysql_component.update_tracking_meta_table(hive_table_model,
+                                                       "DELETE")
             self.delete_table(bq_table_model.dataset_id,
                               bq_table_model.table_name)
             hive_table_model.is_first_run = True
@@ -196,8 +196,9 @@ class BigQueryComponent(GCPService):
                             hive_table_model.tracking_table_name)
                 results = mysql_component.execute_query(query)
                 if results[0][0] != 0:
-                    if not self.check_bq_table_exists(bq_table_model.dataset_id,
-                                                      bq_table_model.table_name):
+                    if not self.check_bq_table_exists(
+                            bq_table_model.dataset_id,
+                            bq_table_model.table_name):
                         raise exceptions.NotFound(
                             "Found the tracking table but BigQuery Table {} "
                             "doesn't exist in {} dataset. Clean up the "
@@ -246,8 +247,11 @@ class BigQueryComponent(GCPService):
             job_config.use_avro_logical_types = True
 
         # Creates load job
-        self.client.load_table_from_uri(source_uri, dataset_ref.table(
-            bq_table_model.table_name), job_config=job_config, job_id=job_id)
+        self.client.load_table_from_uri(source_uri,
+                                        dataset_ref.table(
+                                            bq_table_model.table_name),
+                                        job_config=job_config,
+                                        job_id=job_id)
 
     def get_bq_table_row_count(self, bq_table_model, clause=''):
         """Queries the migrated BigQuery table to get a count of rows.
@@ -286,9 +290,8 @@ class BigQueryComponent(GCPService):
                 table details.
         """
 
-        logger.info(
-            "Fetching information about files to load to BigQuery from "
-            "tracking table...")
+        logger.info("Fetching information about files to load to BigQuery from "
+                    "tracking table...")
         query = "SELECT gcs_file_path FROM {} WHERE gcs_copy_status='DONE' " \
                 "AND bq_job_status='TODO'".format(
                     hive_table_model.tracking_table_name)
@@ -309,8 +312,7 @@ class BigQueryComponent(GCPService):
             mysql_component.execute_transaction(query)
             logger.info(
                 "Updated BigQuery load job ID {} status TODO --> RUNNING for "
-                "file path {}".format(
-                    bq_job_id, gcs_source_uri))
+                "file path {}".format(bq_job_id, gcs_source_uri))
 
     def update_bq_job_status(self, mysql_component, gcs_component,
                              hive_table_model, bq_table_model, gcs_bucket_name):
@@ -401,8 +403,7 @@ class BigQueryComponent(GCPService):
                     # Count of jobs which are still in running state.
                     count += 1
                 else:
-                    logger.debug(
-                        "job id %s job state %s", bq_job_id, job.state)
+                    logger.debug("job id %s job state %s", bq_job_id, job.state)
             if count == 0:
                 logger.info(
                     "No BigQuery job is in RUNNING state. No values to update")
@@ -430,15 +431,18 @@ class BigQueryComponent(GCPService):
         """
 
         schema = [
-            bigquery.SchemaField(
-                'operation', 'STRING', mode='REQUIRED',
-                description='operation'),
-            bigquery.SchemaField(
-                'table_name', 'STRING', mode='REQUIRED',
-                description='Table name'),
-            bigquery.SchemaField(
-                'column_count', 'STRING', mode='REQUIRED',
-                description='Number of columns'),
+            bigquery.SchemaField('operation',
+                                 'STRING',
+                                 mode='REQUIRED',
+                                 description='operation'),
+            bigquery.SchemaField('table_name',
+                                 'STRING',
+                                 mode='REQUIRED',
+                                 description='Table name'),
+            bigquery.SchemaField('column_count',
+                                 'STRING',
+                                 mode='REQUIRED',
+                                 description='Number of columns'),
         ]
         for col in columns_list:
             schema.append(
@@ -501,8 +505,7 @@ class BigQueryComponent(GCPService):
             writer.writerow(data)
 
     @staticmethod
-    def do_health_checks(hive_table_analysis,
-                         bq_table_analysis, columns_list):
+    def do_health_checks(hive_table_analysis, bq_table_analysis, columns_list):
         """Populates the Health checks values by comparing Hive and BigQuery
         tables.
 
@@ -542,8 +545,10 @@ class BigQueryComponent(GCPService):
                 hive_table_analysis['schema'][item] = '_'.join(
                     hive_table_analysis['schema'][item].split('_')[-2:])
 
-            if ([hive_table_analysis['schema'][item],
-                 bq_table_analysis['schema'][item]] in validation_rules):
+            if ([
+                    hive_table_analysis['schema'][item],
+                    bq_table_analysis['schema'][item]
+            ] in validation_rules):
                 healths['schema'][str(item)] = "Pass"
             else:
                 healths['schema'][str(item)] = "Fail"
@@ -564,8 +569,8 @@ class BigQueryComponent(GCPService):
         # Source format is set to CSV.
         job_config.source_format = bigquery.SourceFormat.CSV
         # Start load job.
-        load_job = self.client.load_table_from_uri(csv_uri, dataset_ref.table(
-            table_name), job_config=job_config)
+        load_job = self.client.load_table_from_uri(
+            csv_uri, dataset_ref.table(table_name), job_config=job_config)
         logger.info('Loading metrics data to BigQuery... Job {}'.format(
             load_job.job_id))
         # wait for the job to completed.
@@ -575,11 +580,10 @@ class BigQueryComponent(GCPService):
         logger.info(
             "Loaded {} rows in metrics table\nMigrated data successfully from "
             "Hive to BigQuery\nComparison metrics of tables available in "
-            "BigQuery table {}".format(
-                destination_table.num_rows, table_name))
+            "BigQuery table {}".format(destination_table.num_rows, table_name))
 
-    def write_metrics_to_bigquery(self, gcs_component,
-                                  hive_table_model, bq_table_model):
+    def write_metrics_to_bigquery(self, gcs_component, hive_table_model,
+                                  bq_table_model):
         """Writes comparison metrics to BigQuery.
 
         Flattens the schema of both the Hive table and BigQuery table,
@@ -614,8 +618,8 @@ class BigQueryComponent(GCPService):
         logger.debug("Analyzed BigQuery table metrics")
 
         # Does Health checks by comparing Hive and BigQuery metrics.
-        healths = self.do_health_checks(hive_table_analysis,
-                                        bq_table_analysis, flat_list_columns)
+        healths = self.do_health_checks(hive_table_analysis, bq_table_analysis,
+                                        flat_list_columns)
         self.append_row_to_metrics_file(metrics_csv_filename, healths,
                                         flat_list_columns)
         logger.debug("Health checks are done")

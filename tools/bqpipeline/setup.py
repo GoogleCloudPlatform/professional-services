@@ -16,17 +16,12 @@ import io
 import os
 import setuptools
 
-
 name = 'bqpipeline'
 description = 'Utility class for building data pipelines in BigQuery'
 version = '0.1.0'
 release_status = 'Development Status :: 3 - Alpha'
-dependencies = [
-    'google-cloud-bigquery >= 1.9.0',
-    'Jinja2 >= 2.10'
-]
+dependencies = ['google-cloud-bigquery >= 1.9.0', 'Jinja2 >= 2.10']
 extras = {}
-
 
 # Setup boilerplate below this line.
 package_root = os.path.abspath(os.path.dirname(__file__))
@@ -34,7 +29,6 @@ package_root = os.path.abspath(os.path.dirname(__file__))
 readme_filename = os.path.join(package_root, 'README.md')
 with io.open(readme_filename, encoding='utf-8') as readme_file:
     readme = readme_file.read()
-
 
 setuptools.setup(
     name=name,
