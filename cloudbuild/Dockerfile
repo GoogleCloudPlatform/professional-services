@@ -1,5 +1,5 @@
 # This Dockerfile builds the image used in Cloud Build CI to run 'make test'.
-# To push a new image, run 'gcloud builds submit --project=cf-config-validator-dev --tag gcr.io/cf-config-validator-dev/make .'
+# To push a new image, run 'gcloud builds submit --project=cloud-eng-council --tag gcr.io/cloud-eng-council/make .'
 # from this directory.
 
 FROM debian
