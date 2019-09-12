@@ -1,0 +1,3 @@
+steps:
+- name: 'gcr.io/cf-config-validator-dev/make'
+  args: ['test']
