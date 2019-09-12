@@ -1,0 +1,14 @@
+{
+  "project_id": "norse-feat-244219",
+  "leftTablename": "norse-feat-244219.abc.asfasdf",
+  "leftDatasetname": "norse-feat-244219.abc",
+  "rightDatasetname": "norse-feat-244219.abcd",
+  "rightTablename": "norse-feat-244219.abcd.asfasdf",
+  "destinationDataset": "validation",
+  "excludeColumnMapping": {
+      "asfasdf":[
+      "latitude",
+      "longitude"
+    ]
+  }
+}

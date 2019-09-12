@@ -1,0 +1,46 @@
+{
+  "project_id": "norse-feat-244219",
+  "leftTablename": "norse-feat-244219.abc.asfasdf",
+  "leftDatasetname": "norse-feat-244219.abc",
+  "rightDatasetname": "norse-feat-244219.abcd",
+  "rightTablename": "norse-feat-244219.abcd.asfasdf",
+  "destinationDataset": "validation",
+  "excludeColumnMapping": {
+    "asfasdf":[
+      "latitude",
+      "longitude"
+    ],
+    "pooooooo":[
+      "latitude",
+      "longitude"
+    ]
+  },
+  "primaryKeys": {
+    "asfasdf": [
+      "unique_key",
+      "complaint_type",
+      "complaint_description",
+      "owning_department",
+      "source",
+      "status",
+      "status_change_date",
+      "created_date",
+      "last_update_date",
+      "close_date",
+      "incident_address",
+      "street_number",
+      "street_name",
+      "city",
+      "incident_zip",
+      "county",
+      "state_plane_x_coordinate",
+      "state_plane_y_coordinate",
+      "latitude",
+      "longitude"
+    ],
+    "pooooooo": [
+      "unique_key",
+      "address"
+    ]
+  }
+}
