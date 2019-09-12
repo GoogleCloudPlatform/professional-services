@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Module to wrap Hive table as a model."""
 
 import logging
@@ -47,15 +48,11 @@ class HiveTableModel(object):
         logger.debug('Initializing HiveTableModel Object')
 
         self._table_details = kwargs['table_details']
-        self._inc_col_details = {
-            "name": kwargs['inc_col'],
-            "type": None,
-            "options": kwargs['inc_col_options']
-        }
+        self._inc_col_details = {"name": kwargs['inc_col'], "type": None,
+                                 "options": kwargs['inc_col_options']}
         self._destination_details = {
             "data_format": kwargs['destination_data_format'],
-            "bq_table": kwargs['bq_table_name']
-        }
+            "bq_table": kwargs['bq_table_name']}
         self.create_statement = kwargs['create_statement']
         encode_string = "{}_{}_{}".format(self.db_name, self.table_name,
                                           self._destination_details['bq_table'])
@@ -156,8 +153,7 @@ class HiveTableModel(object):
 
     @property
     def staging_table_name(self):
-        return 'stage__{}__{}'.format(self.table_name,
-                                      str(uuid4()).replace("-", "_"))
+        return 'stage__{}__{}'.format(self.table_name, str(uuid4()).replace("-","_"))
 
     @property
     def destination_data_format(self):
@@ -230,9 +226,8 @@ class HiveTableModel(object):
                     columns.append(name + '__key')
                     col_types.append('string')
 
-                    recursively_flatten(
-                        name + '__value', ','.join('<'.join(
-                            item_type.split('<')[1:])[:-1].split(',')[1:]))
+                    recursively_flatten(name + '__value', ','.join(
+                        '<'.join(item_type.split('<')[1:])[:-1].split(',')[1:]))
 
                 elif col_type == "uniontype":
                     col_types.append('union')

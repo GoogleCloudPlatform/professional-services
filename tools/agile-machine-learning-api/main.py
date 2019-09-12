@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """
     End-to-End API Framework for Componentised Machine Learning Applications
 """
@@ -67,13 +68,15 @@ def validation(error):
     Returns:
         Response of the validation error
     """
-    return Response(json.dumps({
-        'Message': error.message,
-        'Data': [validation_error.message for validation_error in error.errors],
-        'Success': False
-    }),
-                    status=400,
-                    mimetype='application/json')
+    return Response(
+        json.dumps(
+            {
+                'Message': error.message,
+                'Data': [
+                    validation_error.message for validation_error in error.errors],
+                'Success': False}),
+        status=400,
+        mimetype='application/json')
 
 
 @APP.route('/train', methods=['POST'])
@@ -89,7 +92,11 @@ def app_train():
         Validation error : If data types of input parameters is incorrect
         Access Denied to project : When the given service account key cannot interact with GCP.
     """
-    return_message = json.dumps({"Success": False, "Message": "", "Data": {}})
+    return_message = json.dumps({
+        "Success": False,
+        "Message": "",
+        "Data": {}
+    })
     response_code = 400
     try:
         call_id = uuid.uuid4()
@@ -97,18 +104,18 @@ def app_train():
         jobid = 'C' + str(call_id).replace('-', '_')
         payload = request.get_json()
         if isinstance(payload['train_csv_path'], list):
-            train_csv_path = ' '.join([
-                os.path.join(cfg['bucket_name'], str(path))
-                for path in payload['train_csv_path']
-            ])
+            train_csv_path = ' '.join([os.path.join(cfg['bucket_name'], str(
+                path)) for path in payload['train_csv_path']])
         else:
-            train_csv_path = os.path.join(cfg['bucket_name'],
-                                          payload['train_csv_path'])
+            train_csv_path = os.path.join(
+                cfg['bucket_name'], payload['train_csv_path'])
 
-        eval_csv_path = os.path.join(cfg['bucket_name'],
-                                     payload['eval_csv_path'])
-        export_dir = os.path.join(cfg['bucket_name'], payload['export_dir'],
-                                  jobid)
+        eval_csv_path = os.path.join(
+            cfg['bucket_name'], payload['eval_csv_path'])
+        export_dir = os.path.join(
+            cfg['bucket_name'],
+            payload['export_dir'],
+            jobid)
         APP.logger.info('[{}] Config file loaded'.format(jobid))
         response = train.post(
             cfg=cfg,
@@ -116,40 +123,45 @@ def app_train():
             eval_csv_path=eval_csv_path,
             task_type=payload['task_type'],
             target_var=payload['target_var'],
-            data_type=('None' if payload.get('data_type') is None else str(
-                payload['data_type'])),
-            column_name=('None' if payload.get('column_name') is None else str(
-                payload['column_name'])),
+            data_type=(
+                'None' if payload.get('data_type') is None else str(
+                    payload['data_type'])),
+            column_name=(
+                'None' if payload.get('column_name') is None else str(
+                    payload['column_name'])),
             na_values=('None' if payload.get('na_values') is None else str(
                 payload['na_values'])),
             condition=('None' if payload.get('condition') is None else str(
                 payload['condition'])),
-            n_classes=('2' if payload.get('n_classes') is None else str(
-                payload['n_classes'])),
+            n_classes=(
+                '2' if payload.get('n_classes') is None else str(
+                    payload['n_classes'])),
             to_drop=('None' if payload.get('to_drop') is None else str(
                 payload['to_drop'])),
             name=payload['name'],
-            hidden_units=('64' if payload.get('hidden_units') is None else str(
-                payload['hidden_units'])),
-            num_layers=('2' if payload.get('num_layers') is None else str(
-                payload['num_layers'])),
-            lin_opt=('ftrl'
-                     if payload.get('lin_opt') is None else payload['lin_opt']),
-            deep_opt=('adam' if payload.get('deep_opt') is None else
-                      payload['deep_opt']),
-            train_steps=('50000' if payload.get('train_steps') is None else str(
-                payload['train_steps'])),
+            hidden_units=(
+                '64' if payload.get('hidden_units') is None else str(
+                    payload['hidden_units'])),
+            num_layers=(
+                '2' if payload.get('num_layers') is None else str(
+                    payload['num_layers'])),
+            lin_opt=(
+                'ftrl' if payload.get('lin_opt') is None else payload['lin_opt']),
+            deep_opt=(
+                'adam' if payload.get('deep_opt') is None else payload['deep_opt']),
+            train_steps=(
+                '50000' if payload.get('train_steps') is None else str(
+                    payload['train_steps'])),
             export_dir=export_dir,
             jobid=jobid)
 
         APP.logger.info('[{}] '.format(jobid) + str(payload))
         APP.logger.info('[{}] Training Job submitted to CMLE'.format(jobid))
         return_message = json.dumps({
-            "Success":
-                True,
+            "Success": True,
             "Message":
-                "{}/{}?project={}".format(get_job_link(), jobid,
-                                          cfg['project_id']),
+                "{}/{}?project={}".format(get_job_link(),
+                                          jobid, cfg['project_id']),
             "Data": {
                 'jobid': jobid,
                 'response': response
@@ -162,19 +174,14 @@ def app_train():
         return_message = json.dumps({
             "Success": False,
             "Message": "Please check the config.yaml file",
-            "Data": {
-                "error_message": str(err)
-            }
+            "Data": {"error_message": str(err)}
         })
         response_code = 500
 
     except AssertionError as err:
         APP.logger.error(str(err))
-        return_message = json.dumps({
-            "Success": False,
-            "Message": str(err),
-            "Data": []
-        })
+        return_message = json.dumps(
+            {"Success": False, "Message": str(err), "Data": []})
         response_code = 500
 
     except Exception as err:
@@ -187,9 +194,10 @@ def app_train():
         response_code = 500
 
     finally:
-        return Response(return_message,
-                        status=response_code,
-                        mimetype='application/json')
+        return Response(
+            return_message,
+            status=response_code,
+            mimetype='application/json')
 
 
 @APP.route('/deploy', methods=['POST'])
@@ -205,7 +213,11 @@ def app_deploy():
         Validation error : If data types of input parameters is incorrect
         Access Denied to project : When the given service account key cannot interact with GCP.
     """
-    return_message = json.dumps({"Success": False, "Message": "", "Data": {}})
+    return_message = json.dumps({
+        "Success": False,
+        "Message": "",
+        "Data": {}
+    })
     response_code = 400
     try:
         cfg = read_yaml()
@@ -218,13 +230,12 @@ def app_deploy():
             model_name=payload['model_name'],
             version_name=payload['version_name'],
             trained_model_location=payload['trained_model_location'],
-            runtime_version=payload['runtime_version'])
+            runtime_version=payload['runtime_version']
+        )
 
-        return_message = json.dumps({
-            "Success": True,
-            "Message": "Model is successfully deployed",
-            "Data": response
-        })
+        return_message = json.dumps({"Success": True,
+                                     "Message": "Model is successfully deployed",
+                                     "Data": response})
 
         APP.logger.info('route /deploy has been called')
         APP.logger.info('[{}]'.format(payload))
@@ -234,49 +245,38 @@ def app_deploy():
     except IOError as err:
         APP.logger.error(str(err))
         APP.logger.info('Invalid config.yaml file has been loaded')
-        return_message = json.dumps({
-            "Success": False,
-            "Message": "Please check the config.yaml file",
-            "Data": {
-                "error_message": str(err)
-            }
-        })
+        return_message = json.dumps({"Success": False,
+                                     "Message": "Please check the config.yaml file",
+                                     "Data": {"error_message": str(err)}})
         response_code = 500
 
     except IndexError as err:
         APP.logger.error(str(err))
         APP.logger.info('Unable to locate saved model location')
-        return_message = json.dumps({
-            "Success":
-                False,
-            "Message":
-                "Please provide a valid 'job_id' and 'trained_model_location'",
-            "Data": []
-        })
+        return_message = json.dumps(
+            {
+                "Success": False,
+                "Message": "Please provide a valid 'job_id' and 'trained_model_location'",
+                "Data": []})
         response_code = 500
 
     except AssertionError as err:
         APP.logger.error(str(err))
-        return_message = json.dumps({
-            "Success": False,
-            "Message": str(err),
-            "Data": []
-        })
+        return_message = json.dumps(
+            {"Success": False, "Message": str(err), "Data": []})
         response_code = 500
 
     except Exception as err:
         APP.logger.error(err)
-        return_message = json.dumps({
-            "Success": False,
-            "Message": str(err),
-            "Data": None
-        })
+        return_message = json.dumps(
+            {"Success": False, "Message": str(err), "Data": None})
         response_code = 500
 
     finally:
-        return Response(return_message,
-                        status=response_code,
-                        mimetype='application/json')
+        return Response(
+            return_message,
+            status=response_code,
+            mimetype='application/json')
 
 
 @APP.route('/predict', methods=['POST'])
@@ -292,7 +292,11 @@ def app_predict():
         Validation error : If data types of input parameters is incorrect
         Access Denied to project : When the given service account key cannot interact with GCP.
     """
-    return_message = json.dumps({"Success": False, "Message": "", "Data": {}})
+    return_message = json.dumps({
+        "Success": False,
+        "Message": "",
+        "Data": {}
+    })
     response_code = 400
     try:
         cfg = read_yaml()
@@ -304,14 +308,9 @@ def app_predict():
                                 version_name=payload['version_name'])
 
         return_message = json.dumps({
-            "Success":
-                True,
-            "Message":
-                "Predictions done",
-            "Data": [["%.4f" % x
-                      for x in point['probabilities']]
-                     for point in response]
-        })
+            "Success": True,
+            "Message": "Predictions done",
+            "Data": [["%.4f" % x for x in point['probabilities']] for point in response]})
 
         APP.logger.info('[{}]'.format(payload))
         APP.logger.info(return_message)
@@ -319,66 +318,61 @@ def app_predict():
 
     except IOError as err:
         APP.logger.error(str(err))
-        return_message = json.dumps({
-            "Success": False,
-            "Message": "Please check the config.yaml file",
-            "Data": []
-        })
+        return_message = json.dumps(
+            {"Success": False, "Message": "Please check the config.yaml file", "Data": []})
         response_code = 500
 
     except AssertionError as err:
         APP.logger.error(str(err))
-        return_message = json.dumps({
-            "Success": False,
-            "Message": str(err),
-            "Data": []
-        })
+        return_message = json.dumps(
+            {"Success": False, "Message": str(err), "Data": []})
         response_code = 500
 
     except KeyError as err:
         APP.logger.error(
             'Error in fetching the response of the predict function')
-        return_message = json.dumps({
-            "Success": False,
-            "Message": {
-                "Message":
-                    "Please check prediction data-points given to the API call",
-                "Error_message":
-                    str(err)
-            },
-            "Data": None
-        })
+        return_message = json.dumps(
+            {
+                "Success": False,
+                "Message": {
+                    "Message": "Please check prediction data-points given to the API call",
+                    "Error_message": str(err)},
+                "Data": None})
         response_code = 500
 
     except Exception as err:
         APP.logger.error(err)
-        return_message = json.dumps({
-            "Success": False,
-            "Message": str(err),
-            "Data": None
-        })
+        return_message = json.dumps(
+            {"Success": False, "Message": str(err), "Data": None})
         response_code = 500
     finally:
-        return Response(return_message,
-                        status=response_code,
-                        mimetype='application/json')
+        return Response(
+            return_message,
+            status=response_code,
+            mimetype='application/json')
 
 
 @SCHEMA.validate(LIME_SCHEMA)
 @APP.route('/predict/lime', methods=['POST'])
 def lime_prediction():
     response_code = 400
-    return_message = json.dumps({"Success": False, "Message": "", "Data": {}})
+    return_message = json.dumps({
+        "Success": False,
+        "Message": "",
+        "Data": {}
+    })
     try:
         cfg = read_yaml()
         payload = request.get_json()
-        result = visualization(cfg=cfg,
-                               job_id=payload['job_id'],
-                               model_dir=payload['export_dir'],
-                               predict_json=payload['predict_json'],
-                               batch_prediction=payload['batch_prediction'],
-                               d_points=payload['data_points'],
-                               name=payload['name'])
+        result = visualization(
+            cfg=cfg,
+            job_id=payload['job_id'],
+            model_dir=payload['export_dir'],
+            predict_json=payload['predict_json'],
+            batch_prediction=payload['batch_prediction'],
+            d_points=payload['data_points'],
+            name=payload['name']
+        )
         response_code = 200
         return_message = json.dumps({
             "Success": True,
@@ -388,20 +382,14 @@ def lime_prediction():
 
     except IOError as err:
         APP.logger.error(str(err))
-        return_message = json.dumps({
-            "Success": False,
-            "Message": "Please check the config.yaml file",
-            "Data": []
-        })
+        return_message = json.dumps(
+            {"Success": False, "Message": "Please check the config.yaml file", "Data": []})
         response_code = 500
 
     except AssertionError as err:
         APP.logger.error(str(err))
-        return_message = json.dumps({
-            "Success": False,
-            "Message": str(err),
-            "Data": []
-        })
+        return_message = json.dumps(
+            {"Success": False, "Message": str(err), "Data": []})
         response_code = 500
 
     except tf.errors.InvalidArgumentError as err:
@@ -416,67 +404,54 @@ def lime_prediction():
     except KeyError as err:
         response_code = 500
         APP.logger.error(
-            str('Following feature[s] missing in the data provided {}'.format(
-                err)))
-        return_message = json.dumps({
-            "Success":
-                False,
-            "Message":
-                str('Following feature[s] missing in the data provided {}'.
-                    format(err)),
-            "Data": {}
-        })
+            str('Following feature[s] missing in the data provided {}'.format(err)))
+        return_message = json.dumps({"Success": False, "Message": str(
+            'Following feature[s] missing in the data provided {}'.format(err)), "Data": {}})
     finally:
-        return Response(return_message,
-                        status=response_code,
-                        mimetype='application/json')
+        return Response(
+            return_message,
+            status=response_code,
+            mimetype='application/json')
 
 
 @SCHEMA.validate(LIME_SCHEMA_2)
 @APP.route('/predict/lime2', methods=['POST'])
 def lime_prediction_2():
-    return_message = json.dumps({"Success": False, "Message": "", "Data": {}})
+    return_message = json.dumps({
+        "Success": False,
+        "Message": "",
+        "Data": {}
+    })
     response_code = 500
     try:
         cfg = read_yaml()
         payload = request.get_json()
-        result = visualization_2(cfg=cfg,
-                                 job_id=payload['job_id'],
-                                 model_dir=payload['export_dir'],
-                                 predict_json=payload['predict_json'],
-                                 batch_prediction=payload['batch_prediction'],
-                                 name=payload['name'])
+        result = visualization_2(
+            cfg=cfg,
+            job_id=payload['job_id'],
+            model_dir=payload['export_dir'],
+            predict_json=payload['predict_json'],
+            batch_prediction=payload['batch_prediction'],
+            name=payload['name'])
         response_code = 200
-        return_message = json.dumps({
-            "Success": True,
-            "Message": result,
-            "Data": []
-        })
+        return_message = json.dumps(
+            {"Success": True, "Message": result, "Data": []})
     except IOError as err:
         APP.logger.error(str(err))
-        return_message = json.dumps({
-            "Success": False,
-            "Message": "Please check the config.yaml file",
-            "Data": []
-        })
+        return_message = json.dumps(
+            {"Success": False, "Message": "Please check the config.yaml file", "Data": []})
         response_code = 500
 
     except ValueError as err:
         APP.logger.error(str(err))
-        return_message = json.dumps({
-            "Success": False,
-            "Message": str(err),
-            "Data": []
-        })
+        return_message = json.dumps(
+            {"Success": False, "Message": str(err), "Data": []})
         response_code = 500
 
     except AssertionError as err:
         APP.logger.error(str(err))
-        return_message = json.dumps({
-            "Success": False,
-            "Message": str(err),
-            "Data": []
-        })
+        return_message = json.dumps(
+            {"Success": False, "Message": str(err), "Data": []})
         response_code = 500
 
     except tf.errors.InvalidArgumentError as err:
@@ -489,17 +464,15 @@ def lime_prediction_2():
         })
 
     except Exception as err:
-        return_message = json.dumps({
-            "Success": False,
-            "Message": str(err),
-            "Data": []
-        })
+        return_message = json.dumps(
+            {"Success": False, "Message": str(err), "Data": []})
         response_code = 500
 
     finally:
-        return Response(return_message,
-                        status=response_code,
-                        mimetype='application/json')
+        return Response(
+            return_message,
+            status=response_code,
+            mimetype='application/json')
 
 
 if __name__ == '__main__':

@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """
     API framework to post a deployment job
 """
@@ -39,8 +40,8 @@ def get_model_path(cfg, job_id, trained_model_location):
     job_dir = trained_model_location.replace(cfg['bucket_name'] + '/', '')
     prefix_path = os.path.join(job_dir, job_id)
     blobs = bucket.list_blobs(prefix=prefix_path)
-    model_path = [b.name.replace(prefix_path, '') for b in blobs
-                 ][1].replace('/', '')
+    model_path = [b.name.replace(prefix_path, '')
+                  for b in blobs][1].replace('/', '')
     return model_path
 
 
@@ -79,8 +80,13 @@ def get_models_deployed(api, project_id):
     return list_of_models
 
 
-def post(cfg, job_id, model_name, version_name, trained_model_location,
-         runtime_version):
+def post(
+        cfg,
+        job_id,
+        model_name,
+        version_name,
+        trained_model_location,
+        runtime_version):
     """
     Post request for a deployment job
 
@@ -108,34 +114,29 @@ def post(cfg, job_id, model_name, version_name, trained_model_location,
                 parent=project_id, body={'name': model_name})
             _ = create_model_request.execute()
 
-        version_response = api.projects().models().versions().list(
-            parent=model_id).execute()
+        version_response = api.projects().models(
+        ).versions().list(parent=model_id).execute()
         if version_response:
-            list_of_versions = [b['name'] for b in version_response['versions']]
+            list_of_versions = [b['name']
+                                for b in version_response['versions']]
             version_id = '{}/versions/{}'.format(model_id, version_name)
             if version_id in list_of_versions:
                 raise AssertionError(
                     'Version already present. Please change the version')
         model_path = get_model_path(cfg, job_id, trained_model_location)
-        request_dict = {
-            'name':
-                version_name,
-            'deploymentUri':
-                '{}/{}/{}'.format(trained_model_location, job_id, model_path),
-            'runtimeVersion':
-                runtime_version,
-            'framework':
-                'TENSORFLOW'
-        }
-        request = api.projects().models().versions().create(parent=model_id,
-                                                            body=request_dict)
+        request_dict = {'name': version_name,
+                        'deploymentUri': '{}/{}/{}'.format(trained_model_location,
+                                                           job_id,
+                                                           model_path),
+                        'runtimeVersion': runtime_version,
+                        'framework': 'TENSORFLOW'}
+        request = api.projects().models().versions().create(
+            parent=model_id, body=request_dict)
         output = request.execute()
     elif job_status == 'FAILED':
         raise AssertionError(
-            'The specified job has been failed. Kindly check the job parameters and log'
-        )
+            'The specified job has been failed. Kindly check the job parameters and log')
     else:
         raise AssertionError(
-            'Please wait for some more time, as the training job is still running'
-        )
+            'Please wait for some more time, as the training job is still running')
     return output

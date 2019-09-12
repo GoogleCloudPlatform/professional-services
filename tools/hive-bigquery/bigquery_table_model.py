@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Module to wrap BigQuery table as a model"""
 
 import json
@@ -66,8 +67,9 @@ class BigQueryTableModel(object):
     def schema(self):
         if self._table_details['schema'] is None:
             filename = 'bq_schema_{}.json'.format(uuid4())
-            os.system('bq show --format=prettyjson {0}.{1} > {2}'.format(
-                self.dataset_id, self.table_name, filename))
+            os.system(
+                'bq show --format=prettyjson {0}.{1} > {2}'.format(
+                    self.dataset_id, self.table_name, filename))
             with open(filename, 'r') as file_content:
                 schema = json.load(file_content)
             os.remove(filename)

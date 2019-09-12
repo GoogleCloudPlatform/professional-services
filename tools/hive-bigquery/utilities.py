@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Provides utility functions to other modules."""
 
 import logging
@@ -37,8 +38,8 @@ def calculate_time(start, end):
     seconds = time_taken - ((day * 86400) + (hour * 3600) + (minutes * 60))
 
     if day != 0:
-        output = '{} days {} hours {} min {} sec'.format(
-            day, hour, minutes, seconds)
+        output = '{} days {} hours {} min {} sec'.format(day, hour, minutes,
+                                                         seconds)
     elif hour != 0:
         output = '{} hours {} min {} sec'.format(hour, minutes, seconds)
     elif minutes != 0:
@@ -57,8 +58,7 @@ def execute_command(cmd):
         cmd (List): Command to execute, split into a list.
     """
 
-    process = subprocess.Popen(cmd,
-                               stdout=subprocess.PIPE,
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                stderr=subprocess.STDOUT)
     while process.poll() is None:
         while True:

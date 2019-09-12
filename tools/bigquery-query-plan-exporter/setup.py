@@ -16,11 +16,13 @@ import io
 import os
 import setuptools
 
+
 name = 'bq-query-plan-exporter'
 description = 'BigQuery Query Plan Exporter'
 version = '0.1.0'
 release_status = 'Development Status :: 3 - Alpha'
 dependencies = ['google-cloud-bigquery >= 1.9.0']
+
 
 # Setup boilerplate below this line.
 package_root = os.path.abspath(os.path.dirname(__file__))
@@ -29,28 +31,30 @@ readme_filename = os.path.join(package_root, 'README.md')
 with io.open(readme_filename, encoding='utf-8') as readme_file:
     readme = readme_file.read()
 
-setuptools.setup(name=name,
-                 version=version,
-                 description=description,
-                 long_description=readme,
-                 license='Apache 2.0',
-                 classifiers=[
-                     release_status,
-                     'Intended Audience :: Developers',
-                     'License :: OSI Approved :: Apache Software License',
-                     'Programming Language :: Python',
-                     'Programming Language :: Python :: 3',
-                     'Programming Language :: Python :: 3.4',
-                     'Programming Language :: Python :: 3.5',
-                     'Programming Language :: Python :: 3.6',
-                     'Programming Language :: Python :: 3.7',
-                     'Operating System :: OS Independent',
-                     'Topic :: Internet',
-                 ],
-                 platforms='Posix; MacOS X; Windows',
-                 packages=['bqutil'],
-                 install_requires=dependencies,
-                 python_requires='>=3.4',
-                 include_package_data=True,
-                 zip_safe=False,
-                 scripts=['bqutil/bqexplain.py'])
+setuptools.setup(
+    name=name,
+    version=version,
+    description=description,
+    long_description=readme,
+    license='Apache 2.0',
+    classifiers=[
+        release_status,
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: Apache Software License',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Operating System :: OS Independent',
+        'Topic :: Internet',
+    ],
+    platforms='Posix; MacOS X; Windows',
+    packages=['bqutil'],
+    install_requires=dependencies,
+    python_requires='>=3.4',
+    include_package_data=True,
+    zip_safe=False,
+    scripts=['bqutil/bqexplain.py']
+)

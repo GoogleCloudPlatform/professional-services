@@ -8,8 +8,8 @@ setup(
     version='1.0',
     description='Machine Learning training and validation datasets generator',
     author='Dan Anghel, Barbara Fusinska',
-    url=
-    'https://github.com/GoogleCloudPlatform/professional-services/tree/master/tools',
+    url='https://github.com/GoogleCloudPlatform/professional-services/tree/master/tools',
     install_requires=REQUIRED_PACKAGES,
     packages=find_packages(),
-    include_package_data=True)
+    include_package_data=True
+)

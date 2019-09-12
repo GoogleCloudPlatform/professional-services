@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """
     API framework to post a prediction job
 """
@@ -40,17 +41,17 @@ def post(cfg, model_name, instances, version_name=None):
     version_id = '{}/versions/{}'.format(model_id, version_name)
 
     if model_id in list_of_models:
-        version_response = api.projects().models().versions().list(
-            parent=model_id).execute()
+        version_response = api.projects().models(
+        ).versions().list(parent=model_id).execute()
         list_of_versions = [b['name'] for b in version_response['versions']]
         if version_id not in list_of_versions:
             raise AssertionError(
                 'Required version of the model is not yet deployed. \
                     Please deploy the model before running the prediction call')
-        response = api.projects().predict(name=version_id,
-                                          body={
-                                              'instances': instances
-                                          }).execute()
+        response = api.projects().predict(
+            name=version_id,
+            body={'instances': instances}
+        ).execute()
     else:
         raise AssertionError(
             'Please deploy the model before running the prediction call')
