@@ -25,4 +25,4 @@ help: ## Prints help for targets with comments
 
 .PHONY: test
 test: ## Test if all files are properly formatted
-	@yapf --diff -r --style google tools/**/*.py > /dev/null || yapf --diff -r --style google tools/**/*.py | grep original | awk '{print $2}'
+	@if ! yapf --diff -r --style google tools/**/*.py > /dev/null; then echo "Some files need to be formatted by yapf:"; yapf --diff -r --style google tools/**/*.py | grep original | awk '{print $2}'; exit 1; fi
