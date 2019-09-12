@@ -50,6 +50,7 @@ EXCLUDE_FOLDERS=(
     tools/netblock-monitor
     tools/site-verification-group-sync
     tools/terraform-module-update-scanner
+    tools/bigquery-hive-external-table-loader
 )
 
 for FOLDER in $(find tools -maxdepth 1 -mindepth 1 -type d);
