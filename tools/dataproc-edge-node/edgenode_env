@@ -1,0 +1,26 @@
+# Copyright 2019 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+INSTANCE_NAME=dataproc-edgenode
+TARGET_CLUSTER=mycluster
+PROJECT=myproject
+ZONE=us-east1-b
+SUBNET=projects/myproject/regions/us-east1/subnetworks/default
+SERVICE_ACCOUNT=dataproc@myproject.iam.gserviceaccount.com
+CLIENT_TAGS=edgenode,internal
+MACHINE_TYPE=n1-standard-2
+BOOT_DISK_SIZE=120GB
+BOOT_DISK_TYPE=pd-standard
+IMAGE_PROJECT=myproject
+IMAGE_FAMILY=edgenode-1-4-deb9
