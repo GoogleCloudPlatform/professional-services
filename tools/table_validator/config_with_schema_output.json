@@ -7,8 +7,8 @@
   "destinationDataset": "validation",
   "excludeColumnMapping": {
       "lefttablename":[
-      "latitude",
-      "longitude"
+        "latitude",
+        "longitude"
     ]
   }
 }
