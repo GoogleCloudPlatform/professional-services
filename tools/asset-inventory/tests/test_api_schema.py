@@ -50,7 +50,7 @@ class TestApiSchema(unittest.TestCase):
 
         }
         schema = APISchema._properties_map_to_field_list(api_properties, {}, {})
-        schema.sort()
+        schema.sort(key=lambda x: x['name'])
         self.assertEqual(schema, [{'name': 'property-1',
                                    'field_type': 'STRING',
                                    'description': 'description-1.',
