@@ -76,6 +76,10 @@ export class BqQueryPlan {
     }
   }
 
+  /** return nodes minus repartition typwe nodes */
+  public nodesWithoutRepartitions() {
+    return this.nodes.filter(node => (node.name.indexOf('Repartition') < 0));
+  }
   /** extract all node ids that are read from */
   private getReads(node: QueryStage): string[] {
     if (!node.steps) {
