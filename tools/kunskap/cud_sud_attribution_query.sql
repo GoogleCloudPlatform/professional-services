@@ -31,7 +31,7 @@ CREATE TEMP FUNCTION
       WHEN gcp_region IS NULL THEN NULL
       WHEN gcp_region LIKE "us-%"
     OR gcp_region LIKE "northamerica%"
-    OR gcp_region LIKE "southamerica%" THEN "Americas"
+    OR gcp_region LIKE "southamerica%" THEN "AMERICAS"
       WHEN gcp_region LIKE "europe-%" THEN "EMEA"
       WHEN gcp_region LIKE "australia-%"
     OR gcp_region LIKE "asia-%" THEN"APAC" END);
@@ -63,6 +63,7 @@ CREATE TEMP FUNCTION
       service.id AS service_id,
       service.description AS service_description,
       project.id AS project_id,
+      project.name AS project_name,
       labels_1.value AS label_1_value,
       labels_2.value AS label_2_value,
       usage.unit AS unit,
@@ -83,7 +84,8 @@ CREATE TEMP FUNCTION
     WHERE
       service.description = "Compute Engine"
       AND (
-       FALSE OR (LOWER(sku.description) LIKE "%instance%"
+       FALSE
+        OR (LOWER(sku.description) LIKE "%instance%"
           OR LOWER(sku.description) LIKE "% intel %")
         OR LOWER(sku.description) LIKE "%memory optimized core%"
         OR LOWER(sku.description) LIKE "%memory optimized ram%"
@@ -134,6 +136,8 @@ CREATE TEMP FUNCTION
       3 ),
     -- sku_metadata temporary table captures information about skus, such as CUD eligibility,
     -- whether the sku is vCPU or RAM, etc.
+    -- sku_metadata temporary table captures information about skus, such as CUD eligibility,
+    -- whether the sku is vCPU or RAM, etc.
     sku_metadata AS (
     SELECT
       sku_id,
@@ -153,9 +157,15 @@ CREATE TEMP FUNCTION
         ELSE "Regular Usage"
       END AS cud_type,
       CASE
-        WHEN LOWER(sku_description) LIKE "%americas%" THEN "AMERICAS"
-        WHEN LOWER(sku_description) LIKE "%emea%" THEN "EMEA"
-        WHEN LOWER(sku_description) LIKE "%apac%" THEN "APAC"
+        WHEN LOWER(sku_description) LIKE "%americas%" OR LOWER(sku_description) LIKE "%los angeles%"
+        OR LOWER(sku_description) LIKE "%sao paulo%" OR LOWER(sku_description) LIKE "%montreal%"
+        OR LOWER(sku_description) LIKE "%virginia%" THEN "AMERICAS"
+        WHEN LOWER(sku_description) LIKE "%emea%" OR LOWER(sku_description) LIKE "%netherlands%" OR
+          LOWER(sku_description) LIKE "%frankfurt%" OR LOWER(sku_description) LIKE "%finland%"
+          OR LOWER(sku_description) LIKE "%london%" THEN "EMEA"
+        WHEN LOWER(sku_description) LIKE "%apac%" OR LOWER(sku_description) LIKE "%singapore%"
+        OR LOWER(sku_description) LIKE "%japan%" OR LOWER(sku_description) LIKE "%hong kong%"
+        OR LOWER(sku_description) LIKE "%mumbai%" OR LOWER(sku_description) LIKE "%sydney%" THEN "APAC"
         ELSE NULL
       END AS geo,
       -- for VM skus and commitments, "seconds" unit uniquely identifies vCPU usage
@@ -195,6 +205,7 @@ CREATE TEMP FUNCTION
         unit_type,
         unit,
         project_id,
+        project_name,
         label_1_value,
         label_2_value,
         SUM(usage_amount) AS usage_amount,
@@ -220,7 +231,8 @@ CREATE TEMP FUNCTION
         9,
         10,
         11,
-        14)
+        12,
+        15)
     UNION ALL (
         -- Second query pulls out CUD and SUD Credit usage and cost. This is done in a separate
         -- SELECT and unioned because if we unnest the repeated field for credit types, we can
@@ -235,6 +247,7 @@ CREATE TEMP FUNCTION
         unit_type,
         unit,
         project_id,
+        project_name,
         label_1_value,
         label_2_value,
         SUM(usage_amount) AS usage_amount,
@@ -255,19 +268,20 @@ CREATE TEMP FUNCTION
           unit_type,
           unit,
           project_id,
+          project_name,
           label_1_value,
           label_2_value,
           unit_price,
-          IF ( prices.unit_price = 0,
+          IF(prices.unit_price IS NOT NULL, IF(prices.unit_price = 0,
             0,
             CASE
             -- Divide by # seconds in a day to get to core*days == avg daily concurrent usage
-              WHEN LOWER(unit_type) LIKE "vcpu" THEN -1*SUM(cred.amount)/prices.unit_price / 86400
+              WHEN LOWER(unit_type) = "vcpu" THEN -1*SUM(cred.amount)/prices.unit_price / 86400
             -- Divide by # seconds in a day and # bytes in a GB to get to
             -- GB*days == avg daily concurrent RAM GB
               WHEN LOWER(unit_type) = "ram" THEN -1*SUM(cred.amount)/prices.unit_price / (86400 * 1073741824)
               ELSE NULL
-            END ) AS usage_amount,
+            END ), 0) AS usage_amount,
           SUM(cred.amount) AS cost,
           cost_type
         FROM
@@ -277,7 +291,7 @@ CREATE TEMP FUNCTION
           sku_metadata
         ON
           u.sku_id = sku_metadata.sku_id
-        JOIN
+        LEFT JOIN
           prices
         ON
           TRUE
@@ -300,7 +314,8 @@ CREATE TEMP FUNCTION
           10,
           11,
           12,
-          15)
+          13,
+          16)
       GROUP BY
         1,
         2,
@@ -313,7 +328,8 @@ CREATE TEMP FUNCTION
         9,
         10,
         11,
-        14) ),
+        12,
+        15) ),
     -- project_credit_breakout sums usage amount and cost
     -- across the cost organization schema of interest: labels within projects
     project_label_credit_breakout AS (
@@ -323,6 +339,7 @@ CREATE TEMP FUNCTION
       service_description,
       region,
       project_id,
+      project_name,
       label_1_value,
       label_2_value,
       cud_type,
@@ -364,7 +381,8 @@ CREATE TEMP FUNCTION
       7,
       8,
       9,
-      10),
+      10,
+      11),
     -- BA_credit_breakout sums usage amount and cost
     -- across the entire Billing Account within each unique CUD scope <location, unit_type, cud_type>
     -- so that we know what the total cost is that we need to attribute across each project/label
@@ -413,6 +431,7 @@ CREATE TEMP FUNCTION
       p.unit_type,
       p.cud_type,
       p.project_id,
+      p.project_name,
       p.label_1_value,
       p.label_2_value,
       BA_commitment_usage_amount,
@@ -527,7 +546,7 @@ CREATE TEMP FUNCTION
       TIMESTAMP(usage_date) AS usage_start_time,
       TIMESTAMP_ADD(TIMESTAMP(usage_date), INTERVAL ((3600*23)+3599) SECOND) AS usage_end_time,
       STRUCT ( project_id AS id,
-        "" AS name,
+        project_name AS name,
         ARRAY<STRUCT<key STRING,
         value STRING>> [] AS labels,
         "" AS ancestry_numbers) AS project,
@@ -544,9 +563,9 @@ CREATE TEMP FUNCTION
       "USD" AS currency,
       1.0 AS currency_conversion_rate,
       STRUCT ( 0.0 AS amount,
-        "TODO" AS unit,
+        IF(LOWER(unit_type) LIKE "ram", "byte-seconds", "gibibyte hour") AS unit,
         0.0 AS amount_in_pricing_units,
-        "TODO" AS pricing_unit ) AS usage,
+        IF(LOWER(unit_type) LIKE "ram", "seconds", "hour") AS pricing_unit ) AS usage,
       ARRAY<STRUCT<name STRING,
       amount FLOAT64>> [] AS credits,
       STRUCT ( FORMAT_DATE("%Y%m", usage_date) AS month) AS invoice,
@@ -570,7 +589,7 @@ CREATE TEMP FUNCTION
       TIMESTAMP(usage_date) AS usage_start_time,
       TIMESTAMP_ADD(TIMESTAMP(usage_date), INTERVAL ((3600*23)+3599) SECOND) AS usage_end_time,
       STRUCT ( project_id AS id,
-        "" AS name,
+        project_name AS name,
         ARRAY<STRUCT<key STRING,
         value STRING>> [] AS labels,
         "" AS ancestry_numbers) AS project,
@@ -587,9 +606,9 @@ CREATE TEMP FUNCTION
       "USD" AS currency,
       1.0 AS currency_conversion_rate,
       STRUCT ( 0.0 AS amount,
-        "TODO" AS unit,
+        IF(LOWER(unit_type) LIKE "ram", "byte-seconds", "gibibyte hour") AS unit,
         0.0 AS amount_in_pricing_units,
-        "TODO" AS pricing_unit ) AS usage,
+        IF(LOWER(unit_type) LIKE "ram", "seconds", "hour") AS pricing_unit ) AS usage,
       ARRAY<STRUCT<name STRING,
       amount FLOAT64>> [(IF(LOWER(unit_type) LIKE "ram",
           "Committed Usage Discount: RAM",
@@ -612,7 +631,7 @@ CREATE TEMP FUNCTION
       TIMESTAMP(usage_date) AS usage_start_time,
       TIMESTAMP_ADD(TIMESTAMP(usage_date), INTERVAL ((3600*23)+3599) SECOND) AS usage_end_time,
       STRUCT ( project_id AS id,
-        "" AS name,
+        project_name AS name,
         ARRAY<STRUCT<key STRING,
         value STRING>> [] AS labels,
         "" AS ancestry_numbers)
@@ -630,9 +649,9 @@ CREATE TEMP FUNCTION
       "USD" AS currency,
       1.0 AS currency_conversion_rate,
       STRUCT ( 0.0 AS amount,
-        "TODO" AS unit,
+        IF(LOWER(unit_type) LIKE "ram", "byte-seconds", "gibibyte hour") AS unit,
         0.0 AS amount_in_pricing_units,
-        "TODO" AS pricing_unit ) AS usage,
+        IF(LOWER(unit_type) LIKE "ram", "seconds", "hour") AS pricing_unit ) AS usage,
       ARRAY<STRUCT<name STRING,
       amount FLOAT64>> [("Sustained Usage Discount",
         P_alloc_sud_credit_cost)] AS credits,
