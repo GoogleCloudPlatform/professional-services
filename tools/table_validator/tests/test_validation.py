@@ -27,6 +27,10 @@ class TestUtils(unittest.TestCase):
             self.verify_config()
 
     def verify_config(self):
+        """
+        This method will verify the format of the config file. If anything is out of the ordinary
+        format it will let the user know.
+        """
         if (self.config_data['leftTablename'].count('.') or self.config_data['rightTablename'].count('.')) != (2 or 1) and self.config_data['leftTablename'].count('.') == self.config_data['rightTablename'].count('.'):
             ValueError('Your configuration file tablenames are not correctly formatted table should be in the format '
                        '`[dataset name].[table name]` or `[project name].[dataset name].[table name]`')

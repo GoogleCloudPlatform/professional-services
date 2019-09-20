@@ -16,6 +16,9 @@ import collections
 
 
 class OrderedSet(collections.Set):
+    """
+    a set that maintains the order of a list and allows for a simple comparison of two lists.
+    """
     def __init__(self, iterable=()):
         self.d = collections.OrderedDict.fromkeys(iterable)
 
@@ -31,36 +34,35 @@ class OrderedSet(collections.Set):
 
 def compare_columns(left_col_list, right_col_list):
     """
-
-  :param left_col_list:
-  :param right_col_list:
-  :return:
-  """
+    compares the left and right column schema to see if their ordering and column names match.
+    :param left_col_list:
+    :param right_col_list:
+    :return:
+    """
     return OrderedSet(left_col_list) == OrderedSet(right_col_list)
 
 
 def get_table_ref(client, table_id_str):
     """
-  Creates a TableReference
-  :param client: BigQuery Client
-  :param table_id_str:
-  :return: google.cloud.bigquery.table.TableReference
-  """
+    Creates a TableReference.
+    :param client: BigQuery Client
+    :param table_id_str:
+    :return: google.cloud.bigquery.table.TableReference
+    """
     if table_id_str:
         dataset_name = table_id_str.split('.')[0]
         table_name = table_id_str.split('.')[1]
-        return (
-            client.dataset(dataset_name).table(table_name))
-    return None
+        return client.dataset(dataset_name).table(table_name)
+    raise ValueError('Table name not found')
 
 
 def get_console_link_for_table_ref(table_ref):
     """
-  Return the string URL for a given TableReference. The URL navigates to
-   the BigQuery table in the GCP console
-  :param table_ref: google.cloud.bigquery.table.TableReference
-  :return: string Link to BigQuery Table in GCP Console
-  """
+    Returns the string URL for a given TableReference. The URL navigates to
+    the BigQuery table in the GCP console.
+    :param table_ref: google.cloud.bigquery.table.TableReference
+    :return: string Link to BigQuery Table in GCP Console
+    """
     return (
         'https://console.cloud.google.com/bigquery?'
         'project={}'
@@ -82,23 +84,19 @@ def get_console_link_for_query_job(query_job):
 
 def get_full_columns_list(client, columns_list, primary_keys, l_table_name, r_table_name):
     """
-
-  :param client:
-  :param columns_list:
-  :param primary_keys:
-  :param l_table_name:
-  :param r_table_name:
-  :return:
-  """
-    # This method will first retrieve the source table columns to preserve
-    # the same column order in this method's output
+    This method will first retrieve the source table columns to preserve the same column order in this method's output
+    :param client: BigQuery client
+    :param columns_list: list of columns to exclude
+    :param primary_keys: list of primary keys
+    :param l_table_name: left table name
+    :param r_table_name: right table name
+    :return:
+    """
+    #
     l_table = client.get_table(get_table_ref(client, l_table_name))
     r_table = client.get_table(get_table_ref(client, r_table_name))
     l_compress = ["{0}".format(schema.name) for schema in l_table.schema]
     r_compress = ["{0}".format(schema.name) for schema in r_table.schema]
-
-    # indexes link https://docs.teradata.com/reader/hNI_rA5LqqKLxP~Y8vJPQg/zpAUdxbCo3bnV8NX_S~C4A
-
     l_columns = list(OrderedSet(l_compress) - columns_list)
     r_columns = list(OrderedSet(r_compress) - columns_list)
 
