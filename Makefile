@@ -26,3 +26,8 @@ help: ## Prints help for targets with comments
 .PHONY: test
 test: ## Test if all files are properly formatted
 	@$$SHELL ./helpers/check_format.sh
+
+
+.PHONY: push_ci_image
+push_ci_image:
+	@cd cloudbuild && gcloud builds submit --project=cloud-eng-council --tag gcr.io/cloud-eng-council/make .
