@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 
 # Copyright 2019 Google LLC
 #
@@ -21,49 +21,28 @@
 # - python (using yapf)
 
 # temporary list of folders to exclude
-EXCLUDE_FOLDERS=(
-    tools/agile-machine-learning-api
-    tools/apachebeam-throttling
-    tools/asset-inventory
-    tools/bigquery-query-plan-exporter
-    tools/bigquery-zos-mainframe-connector
-    tools/bqpipeline
-    tools/bq-visualizer
-    tools/cloudconnect
-    tools/cloudera-parcel-gcsconnector
-    tools/cloud-vision-utils
-    tools/dataproc-edge-node
-    tools/dns-sync
-    tools/gce-google-keys-to-cmek
-    tools/gce-quota-sync
-    tools/gce-usage-log
-    tools/gcp-arch-viz
-    tools/gcp-ips
-    tools/gcs-bucket-mover
-    tools/gke-billing-export
-    tools/gsuite-exporter
-    tools/hive-bigquery
-    tools/kunskap
-    tools/labelmaker
-    tools/maven-archetype-dataflow
-    tools/ml-dataprep
-    tools/netblock-monitor
-    tools/site-verification-group-sync
-    tools/terraform-module-update-scanner
-    tools/bigquery-hive-external-table-loader
-)
+EXCLUDE_FOLDERS=$(cat helpers/exclusion_list.txt)
 
-for FOLDER in $(find tools -maxdepth 1 -mindepth 1 -type d);
+for FOLDER in $(find tools examples -maxdepth 1 -mindepth 1 -type d);
 do
     if  [[ ! ${EXCLUDE_FOLDERS[@]} =~ "$FOLDER" ]]
     then
-        # Checking python files
-        yapf --diff -r --style google $FOLDER/*.py $FOLDER/**/*.py > /dev/null
-        if [[ $? -ne 0 ]]
+        echo "Validating $FOLDER"
+
+        FILES_TO_FORMAT=$(find $FOLDER -type f -name "*.py")
+
+        if [[ ! -z "$FILES_TO_FORMAT" ]]
         then
-            echo "Some files need to be formatted by yapf in $FOLDER ($YAPF_STATUS):"
-            yapf --diff -r --style google $FOLDER/*.py $FOLDER/**/*.py | grep original | awk '{print $2}'
-            exit 1
+            # Checking python files
+            yapf --diff -r --style google $FILES_TO_FORMAT > /dev/null
+            if [[ $? -ne 0 ]]
+            then
+                echo "Some files need to be formatted by yapf in $FOLDER - FAIL"
+                yapf --diff -r --style google $FILES_TO_FORMAT | grep original | awk '{print $2}'
+                exit 1
+            fi
+        else
+            echo "No python files found for $FOLDER - PASS"
         fi
     fi
 done

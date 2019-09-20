@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 
 # Copyright 2019 Google LLC
 #
@@ -23,5 +23,22 @@
 # The following languages are currently supported:
 # - python (using yapf)
 
-# format all python files in place
-yapf -i -r --style google tools/**/*.py
+# temporary list of folders to exclude
+EXCLUDE_FOLDERS=$(cat helpers/exclusion_list.txt)
+
+for FOLDER in $(find tools examples -maxdepth 1 -mindepth 1 -type d);
+do
+    if  [[ ! ${EXCLUDE_FOLDERS[@]} =~ "$FOLDER" ]]
+    then
+        echo "Formatting $FOLDER"
+
+        FILES_TO_FORMAT=$(find $FOLDER -type f -name "*.py")
+        if [[ ! -z "$FILES_TO_FORMAT" ]]
+        then
+            # format all python files in place
+            yapf -i -r --style google $FILES_TO_FORMAT
+        else
+            echo "No python files found for $FOLDER - SKIP"
+        fi
+    fi
+done
