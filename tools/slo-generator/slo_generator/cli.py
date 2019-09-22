@@ -18,7 +18,7 @@ Command-Line interface of `slo-generator`.
 """
 
 import argparse
-import json
+import yaml
 import logging
 import sys
 
@@ -43,10 +43,10 @@ def main():
     LOGGER.info("Loading Error Budget config from %s" % error_budget_path)
 
     with open(slo_config_path, 'r') as f:
-        slo_config = json.load(f)
+        slo_config = yaml.safe_load(f)
 
     with open(error_budget_path, 'r') as f:
-        error_budget_policy = json.load(f)
+        error_budget_policy = yaml.safe_load(f)
 
     compute(slo_config, error_budget_policy, do_export=export)
 

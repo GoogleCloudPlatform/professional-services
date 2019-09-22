@@ -1,4 +1,4 @@
-import json
+import yaml
 import os
 import unittest
 import mock
@@ -64,7 +64,7 @@ class TestCompute(unittest.TestCase):
         if kwargs:
             data = string.Template(data).substitute(**kwargs)
         if load_json:
-            data = json.loads(data)
+            data = yaml.load(data)
         return data
 
     def make_grpc_stub(self, nresp=1):
@@ -129,8 +129,8 @@ class TestCompute(unittest.TestCase):
         with mock_pubsub, mock_pubsub_res, \
                 self.assertLogs(level='DEBUG') as log:
             export(self.data, self.exporters[0])
-        self.assertEqual(len(log.output), 6)
-        self.assertEqual(len(log.records), 6)
+        self.assertEqual(len(log.output), 5)
+        self.assertEqual(len(log.records), 5)
 
     def test_export_stackdriver(self):
         with self.assertLogs(level='DEBUG') as log:
@@ -150,8 +150,8 @@ class TestCompute(unittest.TestCase):
                 self.assertLogs(level='DEBUG') as log:
             mock_bq.return_value = []
             export(self.data, self.exporters[2])
-            self.assertEqual(len(log.output), 6)
-            self.assertEqual(len(log.records), 6)
+            self.assertEqual(len(log.output), 5)
+            self.assertEqual(len(log.records), 5)
 
     @mock.patch("google.cloud.bigquery.Client.get_table")
     @mock.patch("google.cloud.bigquery.Client.create_table")
@@ -165,8 +165,8 @@ class TestCompute(unittest.TestCase):
             )
             with self.assertRaises(BigQueryError):
                 export(self.data, self.exporters[2])
-            self.assertEqual(len(log.output), 5)
-            self.assertEqual(len(log.records), 5)
+            self.assertEqual(len(log.output), 4)
+            self.assertEqual(len(log.records), 4)
 
     def test_make_reports(self):
         make_reports(
