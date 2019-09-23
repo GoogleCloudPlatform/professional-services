@@ -4,6 +4,10 @@ This project is designed to provide you with tools to capture an ongoing record 
 
 As your GCP organization grows, you may want to understand the business context of your overall GCE instance footprint. An accounting of your GCE resource usage can be analyzed to optimize autoscaling strategies, to aid in capacity forecasting, and to assist in your internal resource accounting. Further insights can be drawn by segmenting your fleet based on labels or network tags (to represent entities such as production environment or team).
 
+
+Pre-requisites: The schema from audit logs requires your VMs to include both the labels and tags fields when creating the individual resource.
+
+
 ## 1. Overview
 
 This project will capture events relevant to your GCE instance usage and log them in BigQuery in way that surfaces your GCE vCPUs (cores), RAM, and attached persistent (standard and SSD) or scratch (local SSD) disks, sliceable by zone, project, network tags, labels, and whether the instance was preemptible.
@@ -20,7 +24,7 @@ The audit logs will have separate entries for the creation and deletion of an in
 
 A process is run to capture your existing footprint into a table (`_initial_vm_inventory`) in the same BigQuery dataset. This is required to capture the state of running instances for which a `create` instance event has not already been logged.
 
-### 1.3 BigQuery View
+### 1.3 BigQuery Base View
 
 A view is created which joins the audit log and initial VM inventory tables to provide a more user-friendly view (`_gce_usage_log`), calculating cores and RAM from the machine type listed in the audit log events.
 
@@ -157,11 +161,11 @@ This process will run and create a new BigQuery table called _`initial_vm_invent
 
 If you’ve decided not to run in the cloud shell, you may need to install `maven` yourself.
 
-### 2.5 Creating the BigQuery view
+### 2.5 Creating the BigQuery Views
 
 Now we have the data required to calculate an aggregate view of our GCE usage. Let’s create a BigQuery view to make the data more friendly.
 
-#### 2.5.1 Create the BigQuery view
+#### 2.5.1 Create the Initial BigQuery View
 
 Let’s create the view from the `gce_usage_view.sql` file in the repository.
 
@@ -181,6 +185,48 @@ bq mk \
 --project_id "${PROJECT_ID}" \
 gce_usage_log._gce_usage_log
 ```
+
+#### 2.5.2 Create a Time-Series View
+
+First, enable the Data Transfer API.
+
+````
+gcloud services enable bigquerydatatransfer.googleapis.com
+````
+
+Next, configure in your relevant variables:
+````
+export DESTINATION_TABLE=your_table
+export TIME_INTERVAL_UNIT=your_interval_unit
+export TIME_INTERVAL_AMOUNT=your_interval_amount
+````
+where: 
+
+* `your_table` is the desired name for where the result will live
+* `your_interval_unit` is DAY, HOUR, MINUTE, SECOND or any [supported date format](https://cloud.google.com/bigquery/docs/reference/standard-sql/timestamp_functions#timestamp_trunc)
+* `your_interval_amount` is any integer representing the frequency of intervals to calculate. 
+For example, if you wanted to create a time-series dataset looking at the inventory of VMs on an 
+hourly cadence, you would choose `HOUR` for `TIME_INTERVAL_UNIT` and `1` for `TIME_INTERVAL_AMOUNT`.
+If you wanted to see the inventory at 5-minute increments, you would choose `MINUTE` and 5, respectively.
+
+
+Next, create a reference to the interval view:
+
+```
+export INTERVAL_VIEW=$(cat gce_interval_view.sql | sed -e "s/_PROJECT_/$PROJECT_ID/g" -e "s/_TIME_INTERVAL_UNIT/$TIME_INTERVAL_UNIT/g" -e "s/_TIME_INTERVAL_AMOUNT/$TIME_INTERVAL_AMOUNT/g")
+
+```
+
+Now, create the view.
+````
+bq mk \
+--transfer_config \
+--target_dataset=gce_usage_log \
+--display_name='Time-series Usage Log Query' \
+--params='{"query":"$INTERVAL_VIEW","destination_table_name_template":"$DESTINATION_TABLE","write_disposition":"WRITE_TRUNCATE"}' \
+--data_source=scheduled_query
+````
+
 
 ## 3. Using the dataset
 
