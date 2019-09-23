@@ -1,0 +1,31 @@
+globals:
+  - <script src="https://cdn.polyfill.io/v2/polyfill.min.js"></script>
+  - <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js" charset="utf-8"></script>
+  - <script src="https://cdnjs.cloudflare.com/ajax/libs/chai/3.0.0/chai.min.js"></script>
+  - <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.3/moment.min.js"></script>
+
+tests: browserify ./node_modules/utilise.*/test.js
+  -i moment
+  -i colors
+  -i jsdom
+  -i chai
+  -i d3
+  -i ./node_modules/pause/test.js
+  -i ./node_modules/send/test.js
+  -i ./node_modules/file/test.js
+  -i ./node_modules/via/test.js
+  | sed -E "s/require\('moment'\)/window.moment/"
+  | sed -E "s/require\('chai'\)/window.chai/"
+  | sed -E "s/require\('d3'\)/window.d3/"
+  | uglifyjs
+
+browsers: 
+  - ie9
+  - android
+  - iphone
+  - opera
+  - safari
+
+port: 1945
+
+watch: ./node_modules/utilise.*/index.js

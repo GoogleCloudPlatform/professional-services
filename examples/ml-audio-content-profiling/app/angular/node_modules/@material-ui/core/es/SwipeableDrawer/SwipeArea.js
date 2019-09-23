@@ -1,0 +1,80 @@
+import _extends from "@babel/runtime/helpers/extends";
+import _objectWithoutPropertiesLoose from "@babel/runtime/helpers/objectWithoutPropertiesLoose";
+import React from 'react';
+import PropTypes from 'prop-types';
+import classNames from 'classnames';
+import withStyles from '../styles/withStyles';
+import { capitalize } from '../utils/helpers';
+import { isHorizontal } from '../Drawer/Drawer';
+export const styles = theme => ({
+  /* Styles applied to the root element. */
+  root: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    zIndex: theme.zIndex.drawer - 1
+  },
+  anchorLeft: {
+    right: 'auto'
+  },
+  anchorRight: {
+    left: 'auto',
+    right: 0
+  },
+  anchorTop: {
+    bottom: 'auto',
+    right: 0
+  },
+  anchorBottom: {
+    top: 'auto',
+    bottom: 0,
+    right: 0
+  }
+});
+/**
+ * @ignore - internal component.
+ */
+
+const SwipeArea = React.forwardRef((props, ref) => {
+  const {
+    anchor,
+    classes,
+    className,
+    width
+  } = props,
+        other = _objectWithoutPropertiesLoose(props, ["anchor", "classes", "className", "width"]);
+
+  return React.createElement("div", _extends({
+    className: classNames(classes.root, classes[`anchor${capitalize(anchor)}`], className),
+    style: {
+      [isHorizontal(props) ? 'width' : 'height']: width
+    },
+    ref: ref
+  }, other));
+});
+process.env.NODE_ENV !== "production" ? SwipeArea.propTypes = {
+  /**
+   * Side on which to attach the discovery area.
+   */
+  anchor: PropTypes.oneOf(['left', 'top', 'right', 'bottom']).isRequired,
+
+  /**
+   * @ignore
+   */
+  classes: PropTypes.object.isRequired,
+
+  /**
+   * @ignore
+   */
+  className: PropTypes.string,
+
+  /**
+   * The width of the left most (or right most) area in pixels where the
+   * drawer can be swiped open from.
+   */
+  width: PropTypes.number.isRequired
+} : void 0;
+export default withStyles(styles, {
+  name: 'MuiPrivateSwipeArea'
+})(SwipeArea);

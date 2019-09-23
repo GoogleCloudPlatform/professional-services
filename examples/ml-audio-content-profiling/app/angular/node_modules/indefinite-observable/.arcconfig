@@ -1,0 +1,13 @@
+{
+  "load": [
+    "material-arc-tools/third_party/arc-hook-conphig",
+    "material-arc-tools/third_party/arc-hook-github-issues",
+    "material-arc-tools/third_party/arc-tslint",
+    "material-arc-tools/third_party/arc-tsclint",
+    "material-arc-tools/third_party/arc-proselint"
+  ],
+  "arcanist_configuration": "HookConphig",
+  "phabricator.uri": "http://codereview.cc/",
+  "arc.land.onto.default": "develop",
+  "arc.feature.start.default": "origin/develop"
+}

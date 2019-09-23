@@ -1,0 +1,26 @@
+export interface Schema {
+    /**
+     * The path to create the library's public API file.
+     */
+    entryFile?: string;
+    /**
+     * The name of the library.
+     */
+    name?: string;
+    /**
+     * The prefix to apply to generated selectors.
+     */
+    prefix?: string;
+    /**
+     * Skip installing dependency packages.
+     */
+    skipInstall?: boolean;
+    /**
+     * Do not add dependencies to package.json.
+     */
+    skipPackageJson?: boolean;
+    /**
+     * Do not update tsconfig.json for development experience.
+     */
+    skipTsConfig?: boolean;
+}

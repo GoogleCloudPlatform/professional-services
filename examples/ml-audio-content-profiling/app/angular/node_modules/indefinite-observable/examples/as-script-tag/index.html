@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>
+      Indefinitely Observable Example
+    </title>
+    <meta
+      name = 'viewport'
+      content = '
+        width=device-width,
+        minimum-scale=1.0
+      '
+    />
+    <style>
+      @import url('https://fonts.googleapis.com/css?family=Roboto');
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: 'Roboto', sans-serif;
+        background-color: #00838F;
+        overflow: hidden;
+      }
+
+      #container {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        padding: 16px;
+        width: 100vw;
+        height: 100vh;
+      }
+
+      #track,
+      #doubled,
+      #excited {
+        touch-action: none;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        flex: 1;
+        background-color: #80CBC4;
+        color: #006064;
+        border: 2px solid #7B1FA2;
+        margin-bottom: 16px;
+      }
+
+      #container>div:last-child {
+        margin-bottom: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id = 'container'>
+      <div id = 'track'>
+        move your pointer here!
+      </div>
+      <div id = 'excited'></div>
+      <div id = 'doubled'></div>
+    </div>
+  </body>
+  <script>
+  </script>
+  <script src = "../../dist/indefinite-observable.js"></script>
+  <script>
+    // Make a subclass of IndefiniteObservable to hold whatever operators you like.
+    class MyStream extends IndefiniteObservable {
+      map(predicate) {
+        return new MyStream(
+          (observer) => {
+            let subscription = this.subscribe(
+              (value) => {
+                observer.next(
+                  predicate(value)
+                );
+              }
+            );
+
+            return subscription.unsubscribe;
+          }
+        );
+      }
+    }
+
+    function createMove$(element) {
+      let observers = new Set();
+
+      return new MyStream(
+        (observer) => {
+          element.addEventListener('mousemove', observer.next);
+
+          console.log('starting move$');
+          observers.add(observer);
+          updateInnerText();
+
+          return function unsubscribe () {
+            element.removeEventListener('mousemove', observer.next);
+
+            console.log('stopping move$');
+            observers.delete(observer);
+            updateInnerText();
+          }
+        }
+      );
+
+      function updateInnerText() {
+        let observerCount = observers.size;
+
+        element.innerHTML = `observer count: ${ observerCount }`;
+
+        if (observerCount) {
+          element.innerHTML = `<div><strong>move your pointer here.</strong><br /><br />${ element.innerHTML }</div>`;
+        }
+      }
+    }
+
+    let track = document.getElementById('track');
+    let doubled = document.getElementById('doubled');
+    let excited = document.getElementById('excited');
+
+    let move$ = createMove$(track).map(
+      event => event.pageX
+    );
+
+    let doubledMove$ = move$.map(
+      x => x + x
+    );
+
+    let excitedMove$ = move$.map(
+      x => x + "!!!"
+    );
+
+    let doubledSubscription = doubledMove$.subscribe({
+      next(value) {
+        doubled.innerText = "doubled: " + value;
+      }
+    });
+
+    let excitedSubscription = excitedMove$.subscribe(
+      value => excited.innerText = "excited: " + value
+    );
+
+    doubled.addEventListener(
+      'click',
+      () => {
+        doubledSubscription.unsubscribe();
+        doubled.innerText = 'unsubscribed';
+      }
+    );
+
+    excited.addEventListener(
+      'click',
+      () => {
+        excitedSubscription.unsubscribe();
+        excited.innerText = 'unsubscribed';
+      }
+    );
+  </script>
+</html>

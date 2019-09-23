@@ -1,0 +1,8 @@
+{
+  "name": "@angular/material/dialog",
+  "typings": "../dialog.d.ts",
+  "main": "../bundles/material-dialog.umd.js",
+  "module": "../esm5/dialog.es5.js",
+  "es2015": "../esm2015/dialog.js",
+  "sideEffects": false
+}
