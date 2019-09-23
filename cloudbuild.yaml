@@ -1,0 +1,3 @@
+steps:
+- name: 'gcr.io/cloud-eng-council/make'
+  args: ['test']
