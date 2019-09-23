@@ -1,19 +1,10 @@
 Introduction
-============
-This solution describes an approach to automating the review process for audio files using machine 
-learning APIs. 
+============ 
 
-Many apps today allow creators to upload audio files as a part of the creative experience. 
-These uploads need to be monitored to ensure that they are appropriate for listeners and do not 
-violate the terms of service. It is the responsibility as an operator of an app to find the balance 
-between allowing creators the freedom to express their opinions, but also ensure that their content 
-is appropriate. If an app only moderates files when a user flags them as inappropriate, this will 
-create a negative impact on the app's user experience. One of the reasons that an app may rely on 
-users to flag content is that it may not be possible to listen to all the content that is 
-uploaded given the volume of uploads. This is a problem of scale. Automation is key for 
-problems of scale. This example is a machine learning pipeline that will 
-automatically flag content that may be inappropriate for triage. The process of reviewing flagged 
-content should be drastically smaller and easier task for your organizaiton.
+Many consumer-facing applications allow creators to upload audio files as a part of the creative experience. If you’re running an application with a similar use case, you may want to extract the text from the audio file and then classify based on the content. For example, you may want to categorize content or add appropriate tags for search indexing. The process of having humans listening to content is problematic if you have a large volume of content. Having users supplying their own tags may also be problematic because they may not include all useful tags or they may tag inaccurately.
+
+Through the use of machine learning, you can build an automated categorization pipeline. This solution describes an approach to automating the review process for audio files using machine learning APIs. 
+
 
 Assumptions
 ============
