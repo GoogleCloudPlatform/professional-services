@@ -112,7 +112,6 @@ def call_stt_api(gcs_uri: str, config_object: dict,
     return operation_name
 
 
-
 def publish_operation_to_pubsub(publisher_client: google.cloud.pubsub.PublisherClient,
                                 project: str, operation_name: str,
                                 file_name: str) -> None:
