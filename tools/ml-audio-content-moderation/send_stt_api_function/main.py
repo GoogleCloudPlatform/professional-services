@@ -99,17 +99,18 @@ def call_stt_api(gcs_uri: str, config_object: dict,
     try:
         response = requests.post(endpoint, data=body, headers=headers)
         logging.info(f'Response: {response}')
-        response.raise_for_status()
         response_json = response.json()
         logging.info(f'Response json: {response_json}')
+        response.raise_for_status()
         if 'name' in response_json:
             operation_name = response_json['name']
-
     except HTTPError as http_err:
         logging.error(f'HTTP error occurred: {http_err}')
+        raise Exception
     except Exception as err:
         logging.error(f'Python Exception occurred: {err}')
     return operation_name
+
 
 
 def publish_operation_to_pubsub(publisher_client: google.cloud.pubsub.PublisherClient,
@@ -138,6 +139,7 @@ def publish_operation_to_pubsub(publisher_client: google.cloud.pubsub.PublisherC
                                  pipeline_start_time=start_time)
         log_message = f'Pushed STT {operation_name} for {file_name} to PubSub'
         logging.info(log_message)
+
     except Exception as e:
         logging.error('Publishing message to PubSub failed.')
         logging.error(e)
@@ -226,7 +228,7 @@ def main(data: dict, context) -> None:
             log_message = f'Completed sending {file_name} to STT API.'
             logging.info(log_message)
         else:
-            logging.info('No message sent')
+            logging.info('Operation failed. No message sent')
 
     except Exception as e:
         logging.error(e)
