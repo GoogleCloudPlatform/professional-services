@@ -4,7 +4,8 @@
 
 FROM debian
 
-RUN apt-get update && apt-get install -y build-essential python python-pip
+RUN apt-get update && apt-get install -y build-essential python python-pip python3 python3-pip
 RUN pip install yapf
+RUN pip3 install yapf
 
 ENTRYPOINT ["make"]
