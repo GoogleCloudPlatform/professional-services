@@ -151,11 +151,12 @@ def make_measurement(slo_config, step, good_event_count,
     step_name = step['error_budget_policy_step_name']
     timestamp_human = utils.get_human_time(timestamp)
 
-    # SLI and SLO gap computations
+    # Compute SLI and gap between SLI / SLO target.
     sli = good_event_count / (good_event_count + bad_event_count)
     gap = sli - slo_target
 
-    # Error budget computations
+    # Compute Error Budget (target, current value, remaining minutes, available
+    # minutes).
     error_budget_target = 1 - slo_target
     error_budget_target = 1 - slo_target
     error_budget_measurement = 1 - sli
@@ -163,14 +164,13 @@ def make_measurement(slo_config, step, good_event_count,
     error_minutes = window * error_budget_measurement / 60
     error_budget_minutes = window * error_budget_target / 60
 
-    # Burn rate computation
-    # The burn rate is also the % of consumed error budget
+    # Compute Error Budget Burn rate: the % of consumed error budget.
     error_budget_burn_rate = error_budget_measurement / error_budget_target
 
-    # Alert boolean on burn rate excessive speed
+    # Alert boolean on burn rate excessive speed.
     alert = error_budget_burn_rate > alerting_burn_rate_threshold
 
-    # Consequence message
+    # Set consequence message as derived from the Error Budget Policy file.
     if alert:
         consequence_message = overburned_consequence_message
     elif error_budget_burn_rate <= 1:
