@@ -77,7 +77,7 @@ class StackdriverBackend(MetricBackend):
             return timeseries[0].points[0].value.int64_value
         except Exception as e:
             logging.debug(e)
-            return 0  # no events in timeserie
+            return 0  # no events in timeseries
 
     def good_bad_ratio(self, project_id, timestamp, window, measurement):
         """Query two timeseries, one containing 'good' events, one containing
