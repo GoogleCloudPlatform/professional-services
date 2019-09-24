@@ -29,7 +29,7 @@ class PrometheusBackend(MetricBackend):
 
     def __init__(self, **kwargs):
         self.client = kwargs.get('client')
-        if self.client is None:
+        if not self.client:
             self.client = Prometheus(**kwargs)
 
     def query(self, window, filter):
