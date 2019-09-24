@@ -151,13 +151,11 @@ def make_measurement(slo_config, step, good_event_count,
     step_name = step['error_budget_policy_step_name']
     timestamp_human = utils.get_human_time(timestamp)
 
-    # SLI
+    # SLI and SLO gap computations
     sli = good_event_count / (good_event_count + bad_event_count)
-
-    # SLO gap
     gap = sli - slo_target
 
-    # Error budget
+    # Error budget computations
     error_budget_target = 1 - slo_target
     error_budget_target = 1 - slo_target
     error_budget_measurement = 1 - sli
@@ -165,7 +163,7 @@ def make_measurement(slo_config, step, good_event_count,
     error_minutes = window * error_budget_measurement / 60
     error_budget_minutes = window * error_budget_target / 60
 
-    # Burn rate
+    # Burn rate computation
     # The burn rate is also the % of consumed error budget
     error_budget_burn_rate = error_budget_measurement / error_budget_target
 
