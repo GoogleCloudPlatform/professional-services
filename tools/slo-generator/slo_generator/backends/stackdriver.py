@@ -68,7 +68,7 @@ class StackdriverBackend(MetricBackend):
         and reduced with REDUCE_SUM (default).
 
         Args:
-            :obj:`monitoring_v3.TimeSerie`: Timeserie object.
+            :obj:`monitoring_v3.TimeSeries`: Timeseries object.
 
         Returns:
             int: Event count.
