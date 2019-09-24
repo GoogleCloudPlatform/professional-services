@@ -83,7 +83,7 @@ def import_dynamic(package, name, prefix="class"):
         return getattr(importlib.import_module(package), name)
     except Exception:  # pylint: disable=W0703
         LOGGER.error(
-            '%s "%s.%s" not found, check the package or class name are valid.',
+            '%s "%s.%s" not found, check the package and class name are valid.',
             prefix.capitalize(),
             package,
             name)
