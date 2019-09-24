@@ -98,14 +98,14 @@ class StackdriverBackend(MetricBackend):
         filter_good = measurement['filter_good']
         filter_bad = measurement['filter_bad']
 
-        # Query 'good events' timeserie
+        # Query 'good events' timeseries
         good_ts = self.query(
             project=project_id,
             timestamp=timestamp,
             window=window,
             filter=filter_good)
 
-        # Query 'bad events' timeserie
+        # Query 'bad events' timeseries
         bad_ts = self.query(
             project=project_id,
             timestamp=timestamp,
@@ -122,7 +122,7 @@ class StackdriverBackend(MetricBackend):
 
     def exponential_distribution_cut(self, project_id, timestamp, window,
                                      measurement):
-        """Query one timeserie of type 'exponential'.
+        """Query one timeseries of type 'exponential'.
 
         Args:
             project_id (str): Project id.
