@@ -88,15 +88,11 @@ class StackdriverExporter(Exporter):
         # Record the timeseries to Stackdriver Monitoring.
         project = self.client.project_path(config['project_id'])
         result = self.client.create_time_series(project, [series])
+        labels = series.metric.labels
         LOGGER.debug(
-            'timestamp: {timestamp} burnrate:'
-            '{burnrate} {service}-{feature}-{slo}-{step}'.format(
-                timestamp=timestamp,
-                burnrate=point.value.double_value,
-                service=series.metric.labels['service_name'],
-                feature=series.metric.labels['feature_name'],
-                slo=series.metric.labels['slo_name'],
-                step=series.metric.labels['error_budget_policy_step_name']))
+            f"timestamp: {timestamp} burnrate: {point.value.double_value}"\
+            f"{labels['service_name']}-{labels['feature_name']}-"\
+            f"{labels['slo_name']}-{labels['error_budget_policy_step_name']}")
         return result
 
     def create_metric_descriptor(self, data, **config):

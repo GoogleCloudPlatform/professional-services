@@ -64,7 +64,7 @@ class TestCompute(unittest.TestCase):
         if kwargs:
             data = string.Template(data).substitute(**kwargs)
         if load_json:
-            data = yaml.load(data)
+            data = yaml.safe_load(data)
         return data
 
     def make_grpc_stub(self, nresp=1):

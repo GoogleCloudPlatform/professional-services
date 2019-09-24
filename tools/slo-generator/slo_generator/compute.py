@@ -72,13 +72,13 @@ def export(data, exporters):
         exporters = [exporters]
 
     for config in exporters:
-        LOGGER.debug("Exporter config: %s" % pprint.pformat(config))
+        LOGGER.debug("Exporter config: %s", pprint.pformat(config))
         exporter_class = config.get('class')
-        LOGGER.info("Exporting results to %s" % exporter_class)
+        LOGGER.info("Exporting results to %s", exporter_class)
         exporter = utils.get_exporter_cls(exporter_class)()
         ret = exporter.export(data, **config)
         results.append(ret)
-        LOGGER.debug("Exporter return: %s" % pprint.pformat(ret))
+        LOGGER.debug("Exporter return: %s", pprint.pformat(ret))
 
 def make_reports(slo_config, error_budget_policy, timestamp, client=None):
     """Run SLO reports for each step in the Error Budget config.
