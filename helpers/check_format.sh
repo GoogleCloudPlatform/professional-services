@@ -39,9 +39,11 @@ do
             # Checking python files
             # python 2 yapf
             echo "Testing formatting for python2 files in $FOLDER"
+
             # Getting the list of files to lint
-            # this returns empty if there is a syntax error (for python3 files for instance)
-            FILES_TO_LINT+=$(python2 /usr/local/bin/yapf --diff -r --style google $FILES_TO_CHECK 2>&1 | egrep '^---.*\(original\)$' | awk '{print $2}')
+            YAPF_PYTHON2_OUTPUT=$(python2 /usr/local/bin/yapf --diff -r --style google $FILES_TO_CHECK 2>&1)
+            YAPF_PYTHON2_STATUS=$(echo $?)
+            FILES_TO_LINT+=$( echo $YAPF_PYTHON2_OUTPUT | egrep '^---.*\(original\)$' | awk '{print $2}')
 
             if [[ ! -z "$FILES_TO_LINT" ]]
             then
@@ -50,21 +52,24 @@ do
                 exit 1
             fi
 
-            # Checking python files
-            # python 3 yapf
-            echo "Testing formatting for python3 files in $FOLDER"
-            FILES_TO_LINT+=$(python3 /usr/local/bin/yapf --diff -r --style google $FILES_TO_CHECK | egrep '^---.*\(original\)$' | awk '{print $2}')
-
-            if [[ ! -z "$FILES_TO_LINT" ]]
+            # Checking python files if python2 failed (i.e not python2 compatible code)
+            if [[ "$YAPF_PYTHON2_STATUS" -ne 0 ]]
             then
-                echo "Some files need to be formatted in $FOLDER - FAIL"
-                echo "$FILES_TO_LINT"
-                exit 1
-            fi
+                # python 3 yapf
+                echo "Testing formatting for python3 files in $FOLDER"
+                FILES_TO_LINT+=$(python3 /usr/local/bin/yapf --diff -r --style google $FILES_TO_CHECK | egrep '^---.*\(original\)$' | awk '{print $2}')
 
-            if [[ -z "$FILES_TO_LINT" ]]
-            then
-                echo "No files need to be formatted in $FOLDER - PASS"
+                if [[ ! -z "$FILES_TO_LINT" ]]
+                then
+                    echo "Some files need to be formatted in $FOLDER - FAIL"
+                    echo "$FILES_TO_LINT"
+                    exit 1
+                fi
+
+                if [[ -z "$FILES_TO_LINT" ]]
+                then
+                    echo "No files need to be formatted in $FOLDER - PASS"
+                fi
             fi
         else
             echo "No python files found for $FOLDER - PASS"
