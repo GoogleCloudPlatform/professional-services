@@ -18,11 +18,7 @@ class TestCLI(unittest.TestCase):
         ])
         self.assertEqual(args.slo_config, slo_config_path)
         self.assertEqual(args.error_budget_policy, error_budget_policy_path)
-
-    # def test_main(self):
-    #     s2 = main()
-    #     pass
-
+        
 
 if __name__ == '__main__':
     unittest.main()
