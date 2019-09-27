@@ -213,18 +213,18 @@ If you wanted to see the inventory at 5-minute increments, you would choose `MIN
 Next, create a reference to the interval view:
 
 ```
-export INTERVAL_VIEW=$(cat gce_interval_view.sql | sed -e "s/_PROJECT_/$PROJECT_ID/g" -e "s/_TIME_INTERVAL_UNIT/$TIME_INTERVAL_UNIT/g" -e "s/_TIME_INTERVAL_AMOUNT/$TIME_INTERVAL_AMOUNT/g")
-
+export INTERVAL_VIEW=$(cat gce_interval_view.sql | sed -e "s/_PROJECT_/$PROJECT_ID/g" -e "s/_TIME_INTERVAL_UNIT_/$TIME_INTERVAL_UNIT/g" -e "s/_TIME_INTERVAL_AMOUNT_/$TIME_INTERVAL_AMOUNT/g")
 ```
 
 Now, create the view.
 ````
-bq mk \
---transfer_config \
---target_dataset=gce_usage_log \
---display_name='Time-series Usage Log Query' \
---params='{"query":"$INTERVAL_VIEW","destination_table_name_template":"$DESTINATION_TABLE","write_disposition":"WRITE_TRUNCATE"}' \
---data_source=scheduled_query
+bq query \
+--project $PROJECT_ID \
+--use_legacy_sql=false \
+--destination_table=gce_usage_log.$DESTINATION_TABLE \
+--display_name="Interval usage of GCE Usage Logs" \
+--replace=true \
+--schedule='every 1 hours' $INTERVAL_VIEW
 ````
 
 
