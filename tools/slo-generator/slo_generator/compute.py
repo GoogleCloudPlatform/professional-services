@@ -26,7 +26,8 @@ from slo_generator import utils
 LOGGER = logging.getLogger(__name__)
 
 def compute(slo_config, error_budget_policy, timestamp=None, client=None,
-            do_export=False):
+            do_export=False, backend_obj=None, backend_method=None,
+            backend_config=None):
     """Run pipeline to compute SLO, Error Budget and Burn Rate, and export the
     results (if exporters are specified in the SLO config).
 
@@ -36,6 +37,17 @@ def compute(slo_config, error_budget_policy, timestamp=None, client=None,
         timestamp (int, optional): UNIX timestamp. Defaults to now.
         client (obj, optional): Existing metrics backend client.
         do_export (bool, optional): Enable / Disable export. Default: False.
+        backend_obj (obj) (optional): Backend object (if unset, will be imported
+            dynamically from slo_config). Use when you want to try new backends
+            that are not implemented in the backends/ folder.
+        backend_method (str) (optional): Backend method (if unset, will be
+            imported dynamically from slo_config). Use when you want to try new
+            backends that are not implemented in the backends/ folder.
+            This must return a tuple of (n_good_events[int], n_bad_events[int]).
+            The method must take the following arguments:
+                - timestamp (int): query timestamp.
+                - window (int): query window duration.
+        backend_config (dict) (optional): Backend config.
     """
     if timestamp is None:
         timestamp = time.time()
@@ -47,7 +59,10 @@ def compute(slo_config, error_budget_policy, timestamp=None, client=None,
             slo_config,
             error_budget_policy,
             timestamp,
-            client=client):
+            client=client,
+            backend_obj=backend_obj,
+            backend_method=backend_method,
+            backend_config=backend_config):
         reports.append(report)
         if exporters is not None and do_export is True:
             export(report, exporters)
@@ -80,7 +95,8 @@ def export(data, exporters):
         results.append(ret)
         LOGGER.debug("Exporter return: %s" % pprint.pformat(ret))
 
-def make_reports(slo_config, error_budget_policy, timestamp, client=None):
+def make_reports(slo_config, error_budget_policy, timestamp, client=None,
+                 backend_obj=None, backend_method=None, backend_config=None):
     """Run SLO reports for each step in the Error Budget config.
 
     Args:
@@ -88,23 +104,39 @@ def make_reports(slo_config, error_budget_policy, timestamp, client=None):
         error_budget_policy (dict): Error Budget policy.
         timestamp (int): UNIX timestamp.
         client (obj) (optional): Existing metrics backend client.
+        backend_obj (obj) (optional): Backend object (if unset, will be imported
+            dynamically from slo_config). Use when you want to try new backends
+            that are not implemented in the backends/ folder.
+        backend_method (str) (optional): Backend method (if unset, will be
+            imported dynamically from slo_config). Use when you want to try new
+            backends that are not implemented in the backends/ folder.
+            This must return a tuple of (n_good_events[int], n_bad_events[int]).
+            The method must take the following arguments:
+                - timestamp (int): query timestamp.
+                - window (int): query window duration.
+        backend_config (dict) (optional): Backend config.
 
     Yields:
         list: List of SLO measurement results.
     """
-    backend_config = slo_config.get('backend')
-    backend_cls = backend_config.get('class')
-    method = backend_config.get('method')
-    backend = utils.get_backend_cls(backend_cls)(client=client)
-    query = getattr(backend, method)
+    if backend_method:
+        if backend_obj:
+            backend_method = getattr(backend_obj, backend_method)
+        LOGGER.info("Backend method: %s (from kwargs).", backend_method)
+    else:
+        backend_config = slo_config.get('backend', {})
+        backend_cls = backend_config.get('class')
+        method = backend_config.get('method')
+        backend_obj = utils.get_backend_cls(backend_cls)(client=client, **backend_config)
+        backend_method = getattr(backend_obj, method)
+        LOGGER.info("Backend method: %s (from SLO config file).", backend_cls + '.' + backend_method.__name__)
 
     # Loop through steps defined in error budget policy and make measurements
     for step in error_budget_policy:
-        good_event_count, bad_event_count = query(
+        good_event_count, bad_event_count = backend_method(
             timestamp=timestamp,
             window=step['measurement_window_seconds'],
-            project_id=slo_config['backend']['project_id'],
-            measurement=slo_config['backend']['measurement']
+            **slo_config['backend']
         )
         report = make_measurement(
             slo_config,
@@ -112,6 +144,8 @@ def make_reports(slo_config, error_budget_policy, timestamp, client=None):
             good_event_count,
             bad_event_count,
             timestamp)
+        import pprint
+        pprint.pprint(report)
         yield report
 
 def make_measurement(slo_config, step, good_event_count,

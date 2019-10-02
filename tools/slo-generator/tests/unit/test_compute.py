@@ -2,6 +2,7 @@ import yaml
 import os
 import unittest
 import mock
+import pprint
 import string
 import time
 from google.cloud.monitoring_v3.proto import metric_service_pb2
@@ -56,6 +57,15 @@ class ChannelStub(object):
                     response_deserializer=None):
         return MultiCallableStub(method, self)
 
+def dummy_slo_function(timestamp, window, **kwargs):
+    return (300, 2)
+
+class DummySLOBackend(object):
+    def __init__(self, **kwargs):
+        pass
+    def dummy_slo_function(self, timestamp, window, **kwargs):
+        return (300, 2)
+
 class TestCompute(unittest.TestCase):
 
     def load_fixture(self, filename, load_json=False, **kwargs):
@@ -64,7 +74,7 @@ class TestCompute(unittest.TestCase):
         if kwargs:
             data = string.Template(data).substitute(**kwargs)
         if load_json:
-            data = yaml.load(data)
+            data = yaml.safe_load(data)
         return data
 
     def make_grpc_stub(self, nresp=1):
@@ -120,6 +130,24 @@ class TestCompute(unittest.TestCase):
         with patch as create_channel:
             create_channel.return_value = channel
             compute(self.slo_config_exp, self.error_budget_policy)
+
+    def test_compute_dummy_method(self):
+        results = compute(
+            slo_config=self.slo_config,
+            error_budget_policy=self.error_budget_policy,
+            backend_method=dummy_slo_function)
+        results = list(results)
+        pprint.pprint(results)
+
+    def test_compute_dummy_obj(self):
+        results = compute(
+            slo_config=self.slo_config,
+            error_budget_policy=self.error_budget_policy,
+            backend_obj=DummySLOBackend(),
+            backend_method='dummy_slo_function'
+        )
+        results = list(results)
+        pprint.pprint(results)
 
     @mock.patch(
         "google.cloud.pubsub_v1.gapic.publisher_client.PublisherClient.publish"

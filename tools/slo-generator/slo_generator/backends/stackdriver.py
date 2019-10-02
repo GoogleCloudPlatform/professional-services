@@ -34,16 +34,16 @@ class StackdriverBackend(MetricBackend):
             Monitoring client. Initialize a new client if omitted.
     """
 
-    def __init__(self, client=None):
+    def __init__(self, client=None, **kwargs):
         self.client = client
         if client is None:
             self.client = monitoring_v3.MetricServiceClient()
 
-    def query(self, project, timestamp, window, filter):
+    def query(self, project_id, timestamp, window, filter):
         """Query timeseries from Stackdriver Monitoring.
 
         Args:
-            project (str): Project id.
+            project_id (str): GCP project id.
             timestamp (int): Current timestamp.
             window (int): Window size (in seconds).
             filter (str): Query filter.
@@ -53,7 +53,7 @@ class StackdriverBackend(MetricBackend):
         """
         measurement_window = self._get_measurement_window(timestamp, window)
         aggregation = self._get_aggregation(window)
-        project = self.client.project_path(project)
+        project = self.client.project_path(project_id)
         timeseries = self.client.list_time_series(
             project,
             filter,
@@ -79,35 +79,37 @@ class StackdriverBackend(MetricBackend):
             logging.debug(e)
             return 0  # no events in timeserie
 
-    def good_bad_ratio(self, project_id, timestamp, window, measurement):
+    def good_bad_ratio(self, timestamp, window, **kwargs):
         """Query two timeseries, one containing 'good' events, one containing
         'bad' events.
 
         Args:
-            backend (object): Backend object to query metrics with.
-            project_id (str): Project id.
             timestamp (int): UNIX timestamp.
             window (int): Window size (in seconds).
-            measurement (dict): Measurement config.
-                filter_good (str): Query filter for 'good' events.
-                filter_bad (str): Query filter for 'bad' events.
+            kwargs (dict): Extra arguments needed by this computation method.
+                project_id (str): GCP project id to fetch metrics from.
+                measurement (dict): Measurement config.
+                    filter_good (str): Query filter for 'good' events.
+                    filter_bad (str): Query filter for 'bad' events.
 
         Returns:
             tuple: A tuple (good_event_count, bad_event_count)
         """
+        project_id = kwargs['project_id']
+        measurement = kwargs['measurement']
         filter_good = measurement['filter_good']
         filter_bad = measurement['filter_bad']
 
         # Query 'good events' timeserie
         good_ts = self.query(
-            project=project_id,
+            project_id=project_id,
             timestamp=timestamp,
             window=window,
             filter=filter_good)
 
         # Query 'bad events' timeserie
         bad_ts = self.query(
-            project=project_id,
+            project_id=project_id,
             timestamp=timestamp,
             window=window,
             filter=filter_bad)
@@ -120,31 +122,34 @@ class StackdriverBackend(MetricBackend):
 
         return (good_event_count, bad_event_count)
 
-    def exponential_distribution_cut(self, project_id, timestamp, window,
-                                     measurement):
+    def exponential_distribution_cut(self, timestamp, window, **kwargs):
         """Query one timeserie of type 'exponential'.
 
         Args:
-            project_id (str): Project id.
             timestamp (int): UNIX timestamp.
             window (int): Window size (in seconds).
-            measurement (dict): Measurement config.
-                filter (str): Query filter for 'valid' events.
-                threshold_bucket (int): Bucket number that is the threshold for
-                    good / bad events.
-                good_below_threshold (bool, optional): If good events are below
-                    the threshold (True) or above it (False). Defaults to True.
+            kwargs (dict): Extra arguments needed by this computation method.
+                project_id (str): Project id.
+                measurement (dict): Measurement config.
+                    filter (str): Query filter for 'valid' events.
+                    threshold_bucket (int): Bucket number that is the threshold
+                        for good / bad events.
+                    good_below_threshold (bool, optional): If good events are
+                    below the threshold (True) or above it (False). Defaults to
+                    True.
 
         Returns:
             tuple: A tuple (good_event_count, bad_event_count).
         """
+        project_id = kwargs['project_id']
+        measurement = kwargs['measurement']
         filter_valid = measurement['filter_valid']
         threshold_bucket = measurement['threshold_bucket']
         good_below_threshold = measurement.get('good_below_threshold', True)
 
         # Query 'valid' events
         ts = self.query(
-            project=project_id,
+            project_id=project_id,
             timestamp=timestamp,
             window=window,
             filter=filter_valid)
