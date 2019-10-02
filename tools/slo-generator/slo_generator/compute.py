@@ -87,13 +87,13 @@ def export(data, exporters):
         exporters = [exporters]
 
     for config in exporters:
-        LOGGER.debug("Exporter config: %s" % pprint.pformat(config))
+        LOGGER.debug("Exporter config: %s", pprint.pformat(config))
         exporter_class = config.get('class')
-        LOGGER.info("Exporting results to %s" % exporter_class)
+        LOGGER.info("Exporting results to %s", exporter_class)
         exporter = utils.get_exporter_cls(exporter_class)()
         ret = exporter.export(data, **config)
         results.append(ret)
-        LOGGER.debug("Exporter return: %s" % pprint.pformat(ret))
+        LOGGER.debug("Exporter return: %s", pprint.pformat(ret))
 
 def make_reports(slo_config, error_budget_policy, timestamp, client=None,
                  backend_obj=None, backend_method=None, backend_config=None):
@@ -185,13 +185,12 @@ def make_measurement(slo_config, step, good_event_count,
     step_name = step['error_budget_policy_step_name']
     timestamp_human = utils.get_human_time(timestamp)
 
-    # SLI
+    # Compute SLI and gap between SLI / SLO target.
     sli = good_event_count / (good_event_count + bad_event_count)
-
-    # SLO gap
     gap = sli - slo_target
 
-    # Error budget
+    # Compute Error Budget (target, current value, remaining minutes, available
+    # minutes).
     error_budget_target = 1 - slo_target
     error_budget_target = 1 - slo_target
     error_budget_measurement = 1 - sli
@@ -199,14 +198,13 @@ def make_measurement(slo_config, step, good_event_count,
     error_minutes = window * error_budget_measurement / 60
     error_budget_minutes = window * error_budget_target / 60
 
-    # Burn rate
-    # The burn rate is also the % of consumed error budget
+    # Compute Error Budget Burn rate: the % of consumed error budget.
     error_budget_burn_rate = error_budget_measurement / error_budget_target
 
-    # Alert boolean on burn rate excessive speed
+    # Alert boolean on burn rate excessive speed.
     alert = error_budget_burn_rate > alerting_burn_rate_threshold
 
-    # Consequence message
+    # Set consequence message as derived from the Error Budget Policy file.
     if alert:
         consequence_message = overburned_consequence_message
     elif error_budget_burn_rate <= 1:
@@ -229,7 +227,6 @@ def make_measurement(slo_config, step, good_event_count,
         'error_budget_target': error_budget_target,
         'timestamp_human': timestamp_human,
         'timestamp': timestamp,
-        # 'cadence': cadence,
         'consequence_message': consequence_message,
         'window': window,
         'bad_events_count': bad_event_count,

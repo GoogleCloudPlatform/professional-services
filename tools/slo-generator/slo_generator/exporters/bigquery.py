@@ -93,7 +93,7 @@ class BigqueryExporter(object):
                 row['type'],
                 mode=row['mode'])
             pyschema.append(field)
-        table_id = "{}.{}.{}".format(project_id, dataset_id, table_id)
+        table_id = f'{project_id}.{dataset_id}.{table_id}'
         LOGGER.info("Creating table %s", table_id)
         table = bigquery.Table(table_id, schema=pyschema)
         return self.client.create_table(table)

@@ -68,7 +68,7 @@ class StackdriverBackend(MetricBackend):
         and reduced with REDUCE_SUM (default).
 
         Args:
-            :obj:`monitoring_v3.TimeSerie`: Timeserie object.
+            :obj:`monitoring_v3.TimeSeries`: Timeseries object.
 
         Returns:
             int: Event count.
@@ -77,7 +77,7 @@ class StackdriverBackend(MetricBackend):
             return timeseries[0].points[0].value.int64_value
         except Exception as e:
             logging.debug(e)
-            return 0  # no events in timeserie
+            return 0  # no events in timeseries
 
     def good_bad_ratio(self, timestamp, window, **kwargs):
         """Query two timeseries, one containing 'good' events, one containing
@@ -100,14 +100,14 @@ class StackdriverBackend(MetricBackend):
         filter_good = measurement['filter_good']
         filter_bad = measurement['filter_bad']
 
-        # Query 'good events' timeserie
+        # Query 'good events' timeseries
         good_ts = self.query(
             project_id=project_id,
             timestamp=timestamp,
             window=window,
             filter=filter_good)
 
-        # Query 'bad events' timeserie
+        # Query 'bad events' timeseries
         bad_ts = self.query(
             project_id=project_id,
             timestamp=timestamp,

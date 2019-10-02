@@ -51,8 +51,8 @@ def get_backend_cls(backend):
         class: Backend class.
     """
     return import_dynamic(
-        'slo_generator.backends.%s' % backend.lower(),
-        '{}Backend'.format(backend.capitalize()),
+        f'slo_generator.backends.{backend.lower()}',
+        f'{backend.capitalize()}Backend',
         prefix="backend")
 
 def get_exporter_cls(exporter):
@@ -65,8 +65,8 @@ def get_exporter_cls(exporter):
         class: Exporter class.
     """
     return import_dynamic(
-        'slo_generator.exporters.%s' % exporter.lower(),
-        '{}Exporter'.format(exporter.capitalize()),
+        f'slo_generator.exporters.{exporter.lower()}',
+        f'{exporter.capitalize()}Exporter',
         prefix="exporter")
 
 def import_dynamic(package, name, prefix="class"):
@@ -83,7 +83,7 @@ def import_dynamic(package, name, prefix="class"):
         return getattr(importlib.import_module(package), name)
     except Exception:  # pylint: disable=W0703
         LOGGER.error(
-            '%s "%s.%s" not found, check the package or class name are valid.',
+            '%s "%s.%s" not found, check the package and class name are valid.',
             prefix.capitalize(),
             package,
             name)

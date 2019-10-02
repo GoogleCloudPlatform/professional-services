@@ -59,7 +59,7 @@ class StackdriverExporter(Exporter):
         series = monitoring_v3.types.TimeSeries()
         series.metric.type = config.get('metric_type', DEFAULT_METRIC_TYPE)
 
-        # Write metric labels
+        # Write timeseries metric labels.
         series.metric.labels['error_budget_policy_step_name'] = str(
             data['error_budget_policy_step_name'])
         series.metric.labels['window'] = str(data['window'])
@@ -69,34 +69,30 @@ class StackdriverExporter(Exporter):
         series.metric.labels['alerting_burn_rate_threshold'] = str(
             data['alerting_burn_rate_threshold'])
 
-        # Use the generic resource 'global'
+        # Use the generic resource 'global'.
         series.resource.type = 'global'
         series.resource.labels['project_id'] = config['project_id']
 
-        # Create a data point
+        # Create a new data point.
         point = series.points.add()
 
-        # Define end point timestamp
+        # Define end point timestamp.
         timestamp = data['timestamp']
         point.interval.end_time.seconds = int(timestamp)
         point.interval.end_time.nanos = int(
             (timestamp - point.interval.end_time.seconds) * 10**9)
 
-        # Set the metric value
+        # Set the metric value.
         point.value.double_value = data['error_budget_burn_rate']
 
-        # Record the time serie to stackdriver
+        # Record the timeseries to Stackdriver Monitoring.
         project = self.client.project_path(config['project_id'])
         result = self.client.create_time_series(project, [series])
+        labels = series.metric.labels
         LOGGER.debug(
-            'timestamp: {timestamp} burnrate:'
-            '{burnrate} {service}-{feature}-{slo}-{step}'.format(
-                timestamp=timestamp,
-                burnrate=point.value.double_value,
-                service=series.metric.labels['service_name'],
-                feature=series.metric.labels['feature_name'],
-                slo=series.metric.labels['slo_name'],
-                step=series.metric.labels['error_budget_policy_step_name']))
+            f"timestamp: {timestamp} burnrate: {point.value.double_value}"\
+            f"{labels['service_name']}-{labels['feature_name']}-"\
+            f"{labels['slo_name']}-{labels['error_budget_policy_step_name']}")
         return result
 
     def create_metric_descriptor(self, data, **config):

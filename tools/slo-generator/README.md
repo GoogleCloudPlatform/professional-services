@@ -1,40 +1,30 @@
 # SLO Generator
 
-`slo-generator` is a Python package to define and compute **[Service Level Objectives](https://landing.google.com/sre/sre-book/chapters/service-level-objectives/)**, **[Error Budgets](https://landing.google.com/sre/sre-book/chapters/embracing-risk/#xref_risk-management_unreliability-budgets)** and **[Burn Rates](https://landing.google.com/sre/workbook/chapters/alerting-on-slos/)** on GCP.
+`slo-generator` is a tool to compute **Service Level Objectives** ([SLOs](https://landing.google.com/sre/sre-book/chapters/service-level-objectives/)), **Error Budgets** and **Burn Rates**, using policies written in JSON format, and export the computation results to available
+[exporters](#exporters).
 
 ## Description
-As a stand-alone CLI, the `slo-generator` will:
+`slo-generator` will query metrics backend and compute the following metrics:
 
-  * **Load SLO config and Error Budget Policy** (see [configuration](#configuration))
+* **Service Level Objective** defined as `SLO (%) = GOOD_EVENTS / VALID_EVENTS`
+* **Error Budget** defined as `ERROR_BUDGET = 100 - SLO (%)`
+* **Burn Rate** (speed at which you're burning the available error budget)
 
-  * **Query timeseries** from one of the [supported metrics backend](#metrics-backends), for each query window listed in the [Error Budget Policy](#error-budget-policy).
+#### Policies
+The **SLO policy** (JSON) defines which metrics backend (e.g: Stackdriver), what metrics, and defines SLO targets are expected. An example is available [here](./examples/slo_linear.json).
 
-  * **Compute an SLO report** for each query window, with the following information:
-    * ***Service Level Objective*** defined as `SLO (%) = GOOD_EVENTS / VALID_EVENTS`
-    * ***Error Budget*** defined as `ERROR_BUDGET = 100 - SLO (%)`
-    * ***Burn Rate*** defined as the speed at which we are burning the available error budget.
-
-
-  * **Export the SLO report** to one of the [supported exporters](#exporters).
-
-## Configuration
-
-### SLO Configuration
-The **SLO configuration** (JSON) defines our SLO, which [metrics backend](#backends)
-to query, what metrics to query, and the [exporters](#exporters) config. An example configuration is available [here](./tests/unit/fixtures/slo_linear.json).
+The **Error Budget policy** (JSON) defines the window to query, the alerting
+Burn Rate Threshold, and notification settings. An example is available [here](./examples/error_budget_policy.json).
 
 #### Metrics backends
-**Metrics backends** can be configured to specify where to fetch our metrics from.
-
-The following **metrics backends** are currently supported:
+`slo-generator` currently supports the following **metrics backends**:
 - **Stackdriver Monitoring**
 
-Support for more backends is planned for the future (TBA, feel free to send PRs !):
-- Prometheus (soon)
+Support for more backends is planned for the future (feel free to send a PR !):
+- Prometheus
 - Grafana
 - Stackdriver Logging
 - Datadog
-- Custom
 
 #### Exporters
 **Exporters** can be configured to send **SLO Reports** to a destination.
@@ -45,19 +35,7 @@ Support for more backends is planned for the future (TBA, feel free to send PRs 
 (e.g: Burn Rate metric, SLO/SLI metric).
 - **BigQuery** for exporting SLO report to BigQuery for deep analytics.
 
-### Error Budget Policy
-The **Error Budget policy** (JSON) defines the different time windows to query
-(steps), the alerting Burn Rate Threshold, and notification settings. This policy
-is written as a list, allowing us to set different burn rates based on the query
-window.
-
-For instance:
-  * **Step 1**: Window is "last 1 hour", set an alert when burn rate > 9
-  * **Step 2**: Window is "last 12 hours", set an alert when burn rate > 3
-  * **Step 3**: Window is "last 7 days", set an alert when burn rate > 1.5
-  * **Step 4**: Window is "last 28 days", set an alert when burn rate > 1
-
-An example configuration is available [here](./tests/unit/fixtures/error_budget_policy.json).
+The exporters configuration is put in the SLO JSON config. See example in [examples/slo_linear.json](./examples/slo_linear.json).
 
 ## Basic usage (local)
 
@@ -75,11 +53,11 @@ pip install slo-generator
 
 **Write an SLO config file**
 
-See `slo_linear.json` and `slo_exponential.json` files in the [`tests/unit/fixtures/`](./tests/unit/fixtures) directory to write SLO definition files.
+See `slo.json` files in the [`examples/`](./examples) directory to write SLO definition files.
 
 **Write an Error Budget Policy file**
 
-See `error_budget_policy.json` files in the [`tests/unit/fixtures/`](./tests/unit/fixtures) directory to write
+See `error_budget_policy.json` files in the [`examples/`](./examples) directory to write
 Error Budget Policy files.
 
 **Run the `slo-generator`**
@@ -113,6 +91,9 @@ Other components can be added to make results available to other destinations:
 * A **Cloud Function** to export SLO and Burn Rate metrics (e.g: to Stackdriver Monitoring)
 * A **Stackdriver Monitoring Policy** to alert on high budget Burn Rates.
 
+Below is a diagram of what this pipeline looks like:
+
+![Architecture](./examples/terraform-google-slo/diagram.png)
 
 **Benefits:**
 
@@ -125,7 +106,7 @@ Other components can be added to make results available to other destinations:
 * **Real-time alerting** by setting up Stackdriver Monitoring alerts based on
 wanted SLOs.
 
-The corresponding Terraform module to automate this setup can be found  [here](https://github.com/terraform-google-modules/terraform-google-slo).
+An example of pipeline automation with Terraform can be found in [examples/terraform-google-slo/](./examples/terraform-google-slo).
 
 ### Cloud Build
 `slo-generator` can also be triggered in a Cloud Build pipeline. This can be useful if we want to compute some SLOs as part of a release process (e.g: to calculate a metric on each `git` commit or push)
@@ -190,6 +171,3 @@ resource "google_cloudbuild_trigger" "prod-trigger" {
   filename = "cloudbuild.yaml"
 }
 ```
-
-### Jenkins
-TODO
