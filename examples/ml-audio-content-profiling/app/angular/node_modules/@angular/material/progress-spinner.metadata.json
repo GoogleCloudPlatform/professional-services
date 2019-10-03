@@ -1,0 +1,12 @@
+{
+  "__symbolic": "module",
+  "version": 3,
+  "metadata": {},
+  "exports": [
+    {
+      "from": "./progress-spinner/index"
+    }
+  ],
+  "flatModuleIndexRedirect": true,
+  "importAs": "@angular/material/progress-spinner"
+}

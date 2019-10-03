@@ -1,0 +1,8 @@
+{
+  "name": "@angular/material/sidenav",
+  "typings": "../sidenav.d.ts",
+  "main": "../bundles/material-sidenav.umd.js",
+  "module": "../esm5/sidenav.es5.js",
+  "es2015": "../esm2015/sidenav.js",
+  "sideEffects": false
+}
