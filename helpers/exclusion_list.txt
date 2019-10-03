@@ -59,6 +59,7 @@ examples/gcf-pubsub-vm-delete-event-handler
 examples/iot-nirvana
 examples/kubeflow-fairing-example
 examples/kubeflow-pipelines-sentiment-analysis
+examples/ml-audio-content-profiling
 examples/pubsub-publish-avro-example
 examples/python-cicd-with-cloudbuilder
 examples/qaoa

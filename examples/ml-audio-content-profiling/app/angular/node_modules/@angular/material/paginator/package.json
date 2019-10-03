@@ -1,0 +1,8 @@
+{
+  "name": "@angular/material/paginator",
+  "typings": "../paginator.d.ts",
+  "main": "../bundles/material-paginator.umd.js",
+  "module": "../esm5/paginator.es5.js",
+  "es2015": "../esm2015/paginator.js",
+  "sideEffects": false
+}

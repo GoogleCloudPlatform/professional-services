@@ -1,0 +1,8 @@
+{
+  "name": "@angular/cdk/bidi",
+  "typings": "../bidi.d.ts",
+  "main": "../bundles/cdk-bidi.umd.js",
+  "module": "../esm5/bidi.es5.js",
+  "es2015": "../esm2015/bidi.js",
+  "sideEffects": false
+}

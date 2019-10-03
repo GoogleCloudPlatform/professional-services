@@ -1,0 +1,8 @@
+{
+  "name": "@angular/material/bottom-sheet",
+  "typings": "../bottom-sheet.d.ts",
+  "main": "../bundles/material-bottom-sheet.umd.js",
+  "module": "../esm5/bottom-sheet.es5.js",
+  "es2015": "../esm2015/bottom-sheet.js",
+  "sideEffects": false
+}

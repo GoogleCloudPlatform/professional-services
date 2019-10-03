@@ -1,0 +1,8 @@
+{
+  "name": "@angular/material/core",
+  "typings": "../core.d.ts",
+  "main": "../bundles/material-core.umd.js",
+  "module": "../esm5/core.es5.js",
+  "es2015": "../esm2015/core.js",
+  "sideEffects": false
+}
