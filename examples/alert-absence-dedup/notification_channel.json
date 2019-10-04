@@ -1,0 +1,8 @@
+{
+  "displayName": "xxx@example.com",
+  "enabled": true,
+  "labels": {
+    "email_address": "xxx@example.com"
+  },
+  "type": "email"
+}

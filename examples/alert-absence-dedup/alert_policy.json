@@ -1,0 +1,47 @@
+{
+  "combiner": "OR",
+  "conditions": [
+    {
+      "conditionAbsent": {
+        "aggregations": [
+          {
+            "alignmentPeriod": "60s",
+            "crossSeriesReducer": "REDUCE_PERCENTILE_50",
+            "perSeriesAligner": "ALIGN_DELTA"
+          }
+        ],
+        "duration": "180s",
+        "filter": "group.id=123456789 AND resource.type=\"gce_instance\" AND metric.type=\"compute.googleapis.com/instance/cpu/usage_time\"",
+        "trigger": {
+          "count": 1
+        }
+      },
+      "displayName": "All timeseries are absent"
+    },
+    {
+      "conditionThreshold": {
+        "aggregations": [
+          {
+            "alignmentPeriod": "60s",
+            "perSeriesAligner": "ALIGN_DELTA",
+            "crossSeriesReducer": "REDUCE_COUNT"
+          }
+        ],
+        "comparison": "COMPARISON_LT",
+        "duration": "180s",
+        "filter": "group.id=123456789 AND metric.type=\"compute.googleapis.com/instance/cpu/usage_time\" AND resource.type=\"gce_instance\"",
+        "thresholdValue": 3,
+        "trigger": {
+          "count": 1
+        }
+      },
+      "displayName": "One of the timeseries is absent",
+    }
+  ],
+  "displayName": "Absence policy",
+  "documentation": {
+    "content": "The timeseries data is absent",
+    "mimeType": "text/markdown"
+  },
+  "enabled": true
+}
