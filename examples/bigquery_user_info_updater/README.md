@@ -3,7 +3,10 @@
 ## Background
 BigQuery is often one of the preferred products for customers interested in 
 building a data lake on GCP. In some cases, product limitations can impact customers 
-who want to use BigQuery in their architecture. For example, imagine that you need 
+who want to use BigQuery in their architecture. 
+
+## Motivating Example
+For example, imagine that you need 
 to ingest user information data in a table, but when an update is made, only a 
 partial row is ingested. In other words, only updated columns in the newly ingested 
 row will contain values and all other columns will be null. If you want to query only
