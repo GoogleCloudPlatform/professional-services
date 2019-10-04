@@ -1,14 +1,18 @@
 # BigQuery User Info Updater
 
 ## Background
-BigQuery is often one of the preferred products for customers interested in building a data lake on GCP. 
-In some cases, product limitations can impact customers who want to use BigQuery in their architecture: one of these cases is when you need to update records. 
-Imagine the scenario where you need to ingest user information data in a table, but instead of ingesting the full record you only have partial updates. 
-If you want to query only the latest full record, this could be complicated and inefficient. 
+BigQuery is often one of the preferred products for customers interested in 
+building a data lake on GCP. In some cases, product limitations can impact customers 
+who want to use BigQuery in their architecture. For example, imagine that you need 
+to ingest user information data in a table, but when an update is made, only a 
+partial row is ingested. In other words, only updated columns in the newly ingested 
+row will contain values and all other columns will be null. If you want to query only
+ the most up to date, full record, the solution could easily become complicated and inefficient.
 
-For example, say we have a `user_info_updates` as a destination table of a Dataflow pipeline that 
-ingests all the data of user registering or updating their profile on a website. The first time users register on the website, the entire record is ingested in the table:
-
+In the case mentioned above, imagine we have a destination table called
+`user_info_updates`,  which is populated by a Dataflow pipeline that gathers and
+ingests data from users registering or updating their profile on a website. 
+When users register for the first time, an entire row is ingested in the table:
 ##### user_info_updates 
 
  | user_id      | ingestTimestamp    | attribute1     |attribute2    |attribute3     |
@@ -17,8 +21,8 @@ ingests all the data of user registering or updating their profile on a website.
 |  userB | 2   | poc  |mvp  |ytrewq|
 |  userC | 3   | zyx  |pvm  |qywter|
 
-Now imagine that userA and userB are going back on the website and updates their 
-information. In this case the data source will not send the entire record to GCP but just the (partial) information updated: 
+Now imagine that userA and userB update their information. In this case the 
+data source will send only a partial updated row per update: 
 
 
 ##### user_info_updates 
@@ -33,8 +37,9 @@ information. In this case the data source will not send the entire record to GCP
 |  userB | 6   |  cor |  | |
 |  userA | 7   |   | dat ||
 
-Data scientists need to have a table that contains only the users information updated at the latest timestamp. 
-In the example, our `user_info_final` table would look like: 
+These partial rows are not very useful since any non-updated values are missing. 
+To provide analysts/data scientists/etc with the latest, full record for each user,
+ a table called user_info_final can be created using a series of SQL queries: 
 
 ##### user_info_final
 
@@ -44,33 +49,50 @@ In the example, our `user_info_final` table would look like:
 |  userB | 6   | cor  |mvp  |ytrewq|
 |  userC | 3   | zyx  |pvm  |qywter|
 
-The BigQuery User Info Updater to can be used to solve this problem with serious of advanced
-queries, creating a golden table with one up-to-date row per customer. 
+The BigQuery User Info Updater to can be used to solve this problem with series of advanced
+queries, creating a table with one up-to-date row per customer. 
 
 ## Tables 
 
+Before the SQL queries can be written, three tables need to be created:  `user_info_updates`, 
+`user_info_updates_temp`, and `user_info_final`. 
 
-This solution will require a `user_info_updates` table and a `user_info_final table`. All new and updated rows will be ingested from Dataflow into the updates table. Since all rows for all users will be held in the updates table, it will serve as a historical table. The final table will hold one and only one row for each customer, and each row will hold the most up to date data relative to the last updates job run. Both tables will share the same schema. While the particular schema does not matter, it does need to include a unique ID for each user and a timestamp marking when the row was ingested into BigQuery. Throughout this document, these fields will be called userId and ingestionTimestamp.
+All new and updated rows will be stored in `user_info_updates`, so it will serve 
+as a historical table. `user_info_updates_temp` will hold the truncated results 
+of a query described below. `user_info_final` will hold one row for each customer, 
+and each row will hold the most up to date data relative to the last update. 
 
-An Intermediary table will be also needed to complete this process: `temp_user_info_updates` . This table will hold the truncated results of a query (described in section 4) that gathers the latest updates from the user_info_updates table, deduplicates the updates, and combines multiple update rows per user into one row. It will share the same schema as the user_info_updates and user_info_final table. 
+All tables will share the same schema. While the particular schema does not matter, 
+it does need to include a unique ID for each user and a timestamp marking when 
+the row was ingested into BigQuery. Throughout this document, these fields will
+ be called `userId` and `ingestionTimestamp`.
 
-Note that the table names and fields listed here can be changed to anything you need for your use case. 
+Note that the table names and fields listed here can be changed to anything you 
+need for your use case. 
 
 ## SQL
-The following SQL queries are used during the update process. 
+Once the `user_info_updates`, `user_info_updates_temp`, and `user_info_final` 
+tables are created, the following SQL queries can be written. 
 
 #### Determine the Max ingestTimestamp from the Last Run
-The first query will determine the max ingestTimestamp from the last update by calculating the max ingestTimestamp from the temp_user_info_updates : 
+The first query will determine the max `ingestTimestamp` from the last update by 
+calculating the max ingestTimestamp from the `temp_user_info_updates` : 
 
 ```
-SELECT max(ingestTimestamp) as max_ingest_timestamp
+SELECT max(ingestTimestamp) as maxIngestTimestamp
 FROM `<project_id>.<dataset_id>.temp_user_info_updates`
 ```
 
-If this is the first update, then the temp_user_info_updates table will be empty. In this case, the timestamp `1900-01-01 00:00:00.000 UTC` will be used as an `initial max_ingest_timestamp`. 
-#### Find Unprocessed Updates
-The next query will find all unprocessed updates from the `user_info_updates table`, deduplicate the updates, and combine multiple updates per user into one row using a window function. 
+If this is the first update, then the `temp_user_info_updates` table will be empty. 
+In this case, the timestamp `1900-01-01 00:00:00.000 UTC` will be used as an 
+initial `maxIngestTimestamp`. 
 
+#### Find Unprocessed Updates
+The next query will find all unprocessed updates from the `user_info_updates table`
+ (i.e. any rows with an `ingestionTimestamp` greater than the `maxIngestionTimestamp` 
+ from the above query), deduplicate the updates, and combine multiple
+  updates per user into one row using a window function. 
+  
 ```
 SELECT 
     userId,
@@ -96,7 +118,7 @@ FROM (
         ) OVER(WIN) maxTimestampInWindow
     FROM (
         SELECT * FROM `<project_id>.<dataset_id>.test_user_info_updates`
-        WHERE ingestTimestamp  > timestamp(max_ingest_timestamp)
+        WHERE ingestTimestamp  > timestamp(maxIngestTimestamp)
     )
     window win as (
         partition by userId ORDER BY ingestTimestamp DESC
@@ -141,16 +163,22 @@ WHEN NOT MATCHED THEN
 	INSERT ROW
 
 ```
-This query works by updating in bulk any rows in `user_info_final` with `userId`’s that match those in `temp_user_info_updates`. Each field in the matching rows will only be 
-updated if the corresponding row in `temp_user_info_updates` is not `NULL` (remember that updates ingested into BigQuery only contain `non-NULL` values for fields that have been updated). 
+This query works by updating in bulk any rows in `user_info_final` with userId’s 
+that match those in `temp_user_info_updates`. Each field in the matching rows 
+will only be updated if the corresponding row in `temp_user_info_updates` is not 
+null (remember that updates ingested into BigQuery only contain non-NULL values
+ for fields that have been updated). 
 
-If there are rows in `temp_user_info_updates` that do not have matching rows in `user_info_final`, then these are new rows that will be inserted into `user_info_final` in bulk. 
+If there are rows in `temp_user_info_updates` that do not have matching rows in 
+`user_info_final`, then these are new rows that will be inserted into 
+`user_info_final` in bulk. 
+
 
 ## Usage
 
 #### Environment Initialization 
 In order to use this tool, all three user tables first need to be created. A script called `initialize_bigquery_resources.py`
-has been included the tables have not yet been created. To run it, follow these steps: 
+has been included to create the tables. To run it, follow these steps: 
 * Obtain the schema that you would like to use for the user tables. Primitive types and `RECORD` types can be included
 in the schema. Make sure it is in JSON format following 
     this pattern:
