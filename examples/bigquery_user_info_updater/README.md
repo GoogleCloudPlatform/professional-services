@@ -216,7 +216,7 @@ in the schema. Make sure it is in JSON format following
 ```
 
 * Run the following command to create a dataset and the three tables described above: 
-```buildoutcfg
+```
 python initialize_bigquery_resources.py \
 --project_id=<ID of your project> \
 --schema_path=<Path to the JSON user schema described in the first step> \
@@ -232,7 +232,7 @@ python initialize_bigquery_resources.py \
 
 In order to update user info, run the `update_user_info.py` script using the 
 following command:  
-```buildoutcfg
+```
 python initialize_bigquery_resources.py \
 --project_id=<ID of your project> \
 --schema_path=<Path to the JSON user schema described in the first step> \
