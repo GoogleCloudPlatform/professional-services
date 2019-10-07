@@ -1,9 +1,5 @@
 {
   "project_id": "project_id",
-  "leftTablename": "project_id.leftdataset.lefttablename",
-  "leftDatasetname": "project_id.leftdataset",
-  "rightDatasetname": "project_id.rightdataset",
-  "rightTablename": "project_id.rightdataset.righttablename",
   "destinationDataset": "validation",
   "excludeColumnMapping": {
       "lefttablename":[
