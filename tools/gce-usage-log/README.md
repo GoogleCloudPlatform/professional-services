@@ -5,8 +5,8 @@ This project is designed to provide you with tools to capture an ongoing record 
 As your GCP organization grows, you may want to understand the business context of your overall GCE instance footprint. An accounting of your GCE resource usage can be analyzed to optimize autoscaling strategies, to aid in capacity forecasting, and to assist in your internal resource accounting. Further insights can be drawn by segmenting your fleet based on labels or network tags (to represent entities such as production environment or team).
 
 
-Pre-requisites: The schema from audit logs requires your VMs to include both the labels and tags fields when creating the individual resource.
-
+<b>Pre-requisites: The schema from audit logs requires your VMs to include both the labels and tags fields when creating the individual resource.
+</b>
 
 ## 1. Overview
 
@@ -24,13 +24,24 @@ The audit logs will have separate entries for the creation and deletion of an in
 
 A process is run to capture your existing footprint into a table (`_initial_vm_inventory`) in the same BigQuery dataset. This is required to capture the state of running instances for which a `create` instance event has not already been logged.
 
-### 1.3 BigQuery Base View
+### 1.3.1 BigQuery Base View
 
 A view is created which joins the audit log and initial VM inventory tables to provide a more user-friendly view (`_gce_usage_log`), calculating cores and RAM from the machine type listed in the audit log events.
 
 The resulting schema of the view looks like this:
 
-![view schema](images/view-schema.png)
+![view schema](images/base-view-schema.png)
+
+
+### 1.3.2 BigQuery Interval View
+
+An additional view can be created to also visualize point-in-time VM inventory (`_gce_usage_log_interval`). This displays
+the inventory on a specified time-interval, such as aggregating all VMs in hourly increments.
+
+The resulting schema of this interval view looks like this:
+
+![view interval schema](images/interval-view-schema.png)
+
 
 ### 1.4 Component Architecture
 
@@ -196,7 +207,7 @@ gcloud services enable bigquerydatatransfer.googleapis.com
 
 Next, configure in your relevant variables:
 ````
-export DESTINATION_TABLE=your_table
+export DESTINATION_TABLE=_gce_usage_log_interval
 export TIME_INTERVAL_UNIT=your_interval_unit
 export TIME_INTERVAL_AMOUNT=your_interval_amount
 ````
@@ -229,6 +240,28 @@ bq query \
 
 
 ## 3. Using the dataset
+
+### 3.1 How to Use the Interval View
+
+The interval view allows to see aggregated point-in-time statistics. Specifically, you can create
+time-series graphs to monitor changes and spikes of inventory over time. This can be done on whichever
+metrics that your team would like to use for capacity planning, such as looking at the total count
+of instances over time, cores, memory, etc.
+
+1. To create a time-series graph, open up [Data Studio](https://www.datastudio.google.com).
+2. In the upper left-hand corner, click 'Create'.
+3. Select 'Report'
+4. On the right-hand side, under 'Select Data Source', select your `gce_usage_log_interval`.
+5. Click 'Add to Report'
+6. To create the graph, select 'Insert' -> 'Time Series' as seen below
+![time series](images/time-series-graph.png)
+
+7. You can adjust the X-axis to change the frequency by selecting the `custom_interval` dimension.
+![custom interval](images/custom-interval-dimension.png)
+
+8. From there, you can select any DateTime format, such as hourly, daily, etc.
+
+### 3.2 How to Query Base View
 
 Now that your dataset is ready, how do you query it?
 
