@@ -261,6 +261,9 @@ of instances over time, cores, memory, etc.
 
 8. From there, you can select any DateTime format, such as hourly, daily, etc.
 
+9. View the graph
+![graph](images/usage-graph.png)
+
 ### 3.2 How to Query Base View
 
 Now that your dataset is ready, how do you query it?
