@@ -17,16 +17,16 @@
 #!/bin/bash
 echo "Usage:"
 echo "List quotas for all projects: ./gce-quota-export.sh"
-# Note: We cannot use folder name as an input as folder names are not unique
-echo "List quotas for all projects in a folder: ./gce-quota-export [folder-id]"
+# We cannot use folder name as an input as folder names are not unique
+echo "List quotas for all projects in folder: ./gce-quota-export [folder-id]"
 echo ""
 
 # -- Static variables to set --
 folder="exports"
 # This dataset should already exist
-bigquery_dataset="ENTER YOUR DATASET NAME HERE"
-# Will be created if it doesn't exist or will append data to this table if it exists
-bigquery_table="ENTER YOUR TABLE NAME HERE"
+bigquery_dataset="DATASET_NAME"
+# Table will be created if it doesn't exist, else data will be appended to it.
+bigquery_table="TABLE_NAME"
 # -----------------------------
 timestamp="$(date "+%Y%m%d%H%M")"
 
@@ -35,17 +35,24 @@ mkdir -p $folder
 if test $# -eq 0; then
 projectlist="$(gcloud projects list  --format="value(projectId)")"
 else
-foldername="$(gcloud resource-manager folders describe $1 --format="value(displayName)")"
+foldername="$(gcloud resource-manager folders describe $1 \
+        --format="value(displayName)")"
 echo "Listing quotas for folder '$foldername' ($1)"
-projectlist="$(gcloud projects list --filter=" parent.id: '$1' "  --format="value(projectId)")"
+projectlist="$(gcloud projects list --filter=" parent.id: '$1' "  \
+        --format="value(projectId)")"
 fi
 for project in $projectlist
 do
         echo "## Project: $project"
         filename=$folder/$project-$timestamp
-        gcloud compute project-info describe --project $project --flatten="quotas[]" --format="csv(name, quotas.metric, quotas.usage, quotas.limit)" > $filename
+        gcloud compute project-info describe --project $project         \
+        --flatten="quotas[]"                                            \
+        --format="csv(name, quotas.metric, quotas.usage, quotas.limit)" \
+        > $filename
+
         # Adding timestamp to every line
         sed -i "1s/$/,timestamp/;/./!b;1!s/$/,$timestamp/" $filename
         echo "Quotas written to file $filename"
-        bq load --source_format=CSV --autodetect $bigquery_dataset.$bigquery_table $filename
+        bq load --source_format=CSV --autodetect \
+        $bigquery_dataset.$bigquery_table $filename
 done
