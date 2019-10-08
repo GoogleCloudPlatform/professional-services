@@ -9,7 +9,10 @@ There are several ways to use this script. With the schema file, with the datase
 If you would like to use the **schema file** you can follow the steps below:
 
 1. Set up your config file to follow the same format as the `config_with_schema_output.json`
-2. Once you have your schema file set up you can run the following command to run the validator with your schema file:
+2. Run the following query to retrieve the schema file in csv format: <br>
+`SELECT c.ColumnName, c.TableName, c.ColumnType, c.DefaultValue, c.DatabaseName, c.Nullable, c.ColumnLength FROM dbc.columnsv c JOIN  (SELECT DatabaseName as dbName, TableName as tblName FROM dbc.tablesv WHERE TableKind IN (''T'', ''O'')) AS t  ON c.DatabaseName = t.dbName AND c.TableName = t.tblName ORDER BY c.ColumnId`
+           
+3. Once you have your schema file set up you can run the following command to run the validator with your schema file:
 `python validation.py -s schema_filename -c config_filename.json`
 
 If you would like to run the queries with a separate project please specify with the following example code:
