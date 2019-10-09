@@ -235,8 +235,10 @@ bq query \
 --destination_table=gce_usage_log.$DESTINATION_TABLE \
 --display_name="Interval usage of GCE Usage Logs" \
 --replace=true \
---schedule='every 1 hours' $INTERVAL_VIEW
+--schedule='every 24 hours' $INTERVAL_VIEW
 ````
+Note: As a default, it is configured to run every 24 hours, but you can scheduled it more/less frequently as needed.
+There is also no default expiration set, but this can be added if you only need historical data from a certain timeframe.
 
 
 ## 3. Using the dataset
@@ -251,17 +253,23 @@ of instances over time, cores, memory, etc.
 1. To create a time-series graph, open up [Data Studio](https://www.datastudio.google.com).
 2. In the upper left-hand corner, click 'Create'.
 3. Select 'Report'
-4. On the right-hand side, under 'Select Data Source', select your `gce_usage_log_interval`.
-5. Click 'Add to Report'
-6. To create the graph, select 'Insert' -> 'Time Series' as seen below
+4. On the right-hand side, under 'Select Data Source'.
+5. Select 'Create New Data Source' at the bottom of the menu.
+6. Select 'BigQuery'.
+7. Type in your project name followed by hitting the 'Enter' key.
+8. Select your dataset `gce_usage_log`.
+9. Select `gce_usage_log_interval`, or the corresponding name if you named the view something differently.
+10. Click 'Connect' in the upper right-hand corner.
+11. Click 'Add to Report'
+12. To create the graph, select 'Insert' -> 'Time Series' as seen below
 ![time series](images/time-series-graph.png)
 
-7. You can adjust the X-axis to change the frequency by selecting the `custom_interval` dimension.
+13. You can adjust the X-axis to change the frequency by selecting the `custom_interval` dimension.
 ![custom interval](images/custom-interval-dimension.png)
 
-8. From there, you can select any DateTime format, such as hourly, daily, etc.
+14. From there, you can select any DateTime format, such as hourly, daily, etc.
 
-9. View the graph
+15. View the graph
 ![graph](images/usage-graph.png)
 
 ### 3.2 How to Query Base View
