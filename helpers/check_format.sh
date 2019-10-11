@@ -100,7 +100,7 @@ validate_go() {
         # Error out with details
         need_formatting $FOLDER $FILES_TO_LINT
     else
-        echo "No go files found for $FOLDER - SKIP"
+        echo "No go files need formatting for $FOLDER - PASS"
     fi
 }
 
