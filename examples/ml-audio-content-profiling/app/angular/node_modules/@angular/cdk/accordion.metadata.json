@@ -1,0 +1,12 @@
+{
+  "__symbolic": "module",
+  "version": 3,
+  "metadata": {},
+  "exports": [
+    {
+      "from": "./accordion/index"
+    }
+  ],
+  "flatModuleIndexRedirect": true,
+  "importAs": "@angular/cdk/accordion"
+}

@@ -1,0 +1,8 @@
+{
+  "name": "@angular/material/button",
+  "typings": "../button.d.ts",
+  "main": "../bundles/material-button.umd.js",
+  "module": "../esm5/button.es5.js",
+  "es2015": "../esm2015/button.js",
+  "sideEffects": false
+}

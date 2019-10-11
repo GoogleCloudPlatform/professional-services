@@ -1,0 +1,22 @@
+/**
+ * @license
+ * Copyright Google LLC All Rights Reserved.
+ *
+ * Use of this source code is governed by an MIT-style license that can be
+ * found in the LICENSE file at https://angular.io/license
+ */
+import { VersionChanges } from '../upgrade-data';
+export interface InputNameUpgradeData {
+    /** The @Input() name to replace. */
+    replace: string;
+    /** The new name for the @Input(). */
+    replaceWith: string;
+    /** Whitelist where this replacement is made. If omitted it is made in all HTML & CSS */
+    whitelist: {
+        /** Limit to elements with any of these element tags. */
+        elements?: string[];
+        /** Limit to elements with any of these attributes. */
+        attributes?: string[];
+    };
+}
+export declare const inputNames: VersionChanges<InputNameUpgradeData>;

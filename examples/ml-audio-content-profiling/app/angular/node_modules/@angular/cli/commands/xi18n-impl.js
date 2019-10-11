@@ -1,0 +1,21 @@
+"use strict";
+/**
+ * @license
+ * Copyright Google Inc. All Rights Reserved.
+ *
+ * Use of this source code is governed by an MIT-style license that can be
+ * found in the LICENSE file at https://angular.io/license
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+const architect_command_1 = require("../models/architect-command");
+class Xi18nCommand extends architect_command_1.ArchitectCommand {
+    constructor() {
+        super(...arguments);
+        this.target = 'extract-i18n';
+    }
+    async run(options) {
+        return this.runArchitectTarget(options);
+    }
+}
+exports.Xi18nCommand = Xi18nCommand;
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoieGkxOG4taW1wbC5qcyIsInNvdXJjZVJvb3QiOiIuLyIsInNvdXJjZXMiOlsicGFja2FnZXMvYW5ndWxhci9jbGkvY29tbWFuZHMveGkxOG4taW1wbC50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiO0FBQUE7Ozs7OztHQU1HOztBQUVILG1FQUErRDtBQUkvRCxNQUFhLFlBQWEsU0FBUSxvQ0FBb0M7SUFBdEU7O1FBQ2tCLFdBQU0sR0FBRyxjQUFjLENBQUM7SUFNMUMsQ0FBQztJQUhRLEtBQUssQ0FBQyxHQUFHLENBQUMsT0FBdUM7UUFDdEQsT0FBTyxJQUFJLENBQUMsa0JBQWtCLENBQUMsT0FBTyxDQUFDLENBQUM7SUFDMUMsQ0FBQztDQUNGO0FBUEQsb0NBT0MiLCJzb3VyY2VzQ29udGVudCI6WyIvKipcbiAqIEBsaWNlbnNlXG4gKiBDb3B5cmlnaHQgR29vZ2xlIEluYy4gQWxsIFJpZ2h0cyBSZXNlcnZlZC5cbiAqXG4gKiBVc2Ugb2YgdGhpcyBzb3VyY2UgY29kZSBpcyBnb3Zlcm5lZCBieSBhbiBNSVQtc3R5bGUgbGljZW5zZSB0aGF0IGNhbiBiZVxuICogZm91bmQgaW4gdGhlIExJQ0VOU0UgZmlsZSBhdCBodHRwczovL2FuZ3VsYXIuaW8vbGljZW5zZVxuICovXG5cbmltcG9ydCB7IEFyY2hpdGVjdENvbW1hbmQgfSBmcm9tICcuLi9tb2RlbHMvYXJjaGl0ZWN0LWNvbW1hbmQnO1xuaW1wb3J0IHsgQXJndW1lbnRzIH0gZnJvbSAnLi4vbW9kZWxzL2ludGVyZmFjZSc7XG5pbXBvcnQgeyBTY2hlbWEgYXMgWGkxOG5Db21tYW5kU2NoZW1hIH0gZnJvbSAnLi94aTE4bic7XG5cbmV4cG9ydCBjbGFzcyBYaTE4bkNvbW1hbmQgZXh0ZW5kcyBBcmNoaXRlY3RDb21tYW5kPFhpMThuQ29tbWFuZFNjaGVtYT4ge1xuICBwdWJsaWMgcmVhZG9ubHkgdGFyZ2V0ID0gJ2V4dHJhY3QtaTE4bic7XG4gIHB1YmxpYyByZWFkb25seSBtdWx0aVRhcmdldDogdHJ1ZTtcblxuICBwdWJsaWMgYXN5bmMgcnVuKG9wdGlvbnM6IFhpMThuQ29tbWFuZFNjaGVtYSAmIEFyZ3VtZW50cykge1xuICAgIHJldHVybiB0aGlzLnJ1bkFyY2hpdGVjdFRhcmdldChvcHRpb25zKTtcbiAgfVxufVxuIl19
