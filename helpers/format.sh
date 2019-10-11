@@ -32,6 +32,8 @@ do
     then
         echo "Formatting $FOLDER"
 
+        echo "Formatting python files (if any)"
+
         FILES_TO_FORMAT=$(find $FOLDER -type f -name "*.py")
         if [[ ! -z "$FILES_TO_FORMAT" ]]
         then
@@ -47,5 +49,9 @@ do
         else
             echo "No python files found for $FOLDER - SKIP"
         fi
+
+        echo "Formatting go files (if any)"
+        gofmt -w $FOLDER
+
     fi
 done
