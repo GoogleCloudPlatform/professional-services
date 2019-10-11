@@ -35,7 +35,7 @@
           "count": 1
         }
       },
-      "displayName": "One of the time series stopped reporting for greater than 3 minutes",
+      "displayName": "At least one of the time series stopped reporting for greater than 3 minutes",
     }
   ],
   "displayName": "Absence policy",
