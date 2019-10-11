@@ -499,7 +499,16 @@ def parse_arguments(argv):
       '--bucket_id',
       required=True,
       help='Google Cloud bucket ID.')
-
+  parser.add_argument(
+      '--subnet',
+      default='',
+      help='Subnet to use for Cloud compute in format: https://www.googleapis.com/compute/v1/projects/<HOST_PROJECT>/regions/<REGION>/subnetworks/<SUBNETWORK>'
+  )
+  parser.add_argument(
+      '--zone',
+      default='us-central1-a',
+      help='Compute zone where instances will be created'
+  )
   args, _ = parser.parse_known_args(args=argv[1:])
   return args
 
@@ -544,7 +553,11 @@ def main():
       'temp_location':
           temp_dir,
       'save_main_session':
-          True
+          True,
+      'subnetwork':
+          args.subnet,
+      'zone':
+          args.zone
   }
   pipeline_options = beam.pipeline.PipelineOptions(flags=[], **options)
 
