@@ -1,0 +1,43 @@
+[
+    {
+      "type": "STRING",
+      "name": "bucket",
+      "mode": "NULLABLE"
+    },
+    {
+      "type": "STRING",
+      "name": "bag",
+      "mode": "NULLABLE"
+    },
+    {
+      "type": "STRING",
+      "name": "file_name",
+      "mode": "NULLABLE"
+    },
+    {
+      "type": "INTEGER",
+      "name": "file_size",
+      "mode": "NULLABLE"
+    },
+    {
+      "type": "TIMESTAMP",
+      "name": "file_updated_date",
+      "mode": "NULLABLE"
+    },
+    {
+      "type": "STRING",
+      "name": "file_crc32c",
+      "mode": "NULLABLE"
+    },
+    {
+      "type": "STRING",
+      "name": "file_md5sum",
+      "mode": "NULLABLE"
+    },
+    {
+      "type": "TIMESTAMP",
+      "name": "fixity_date",
+      "mode": "NULLABLE"
+    }
+  ]
+  
