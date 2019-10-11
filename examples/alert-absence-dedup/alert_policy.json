@@ -6,17 +6,17 @@
         "aggregations": [
           {
             "alignmentPeriod": "60s",
-            "crossSeriesReducer": "REDUCE_PERCENTILE_50",
+            "crossSeriesReducer": "REDUCE_MEAN",
             "perSeriesAligner": "ALIGN_DELTA"
           }
         ],
         "duration": "180s",
-        "filter": "group.id=123456789 AND resource.type=\"gce_instance\" AND metric.type=\"compute.googleapis.com/instance/cpu/usage_time\"",
+        "filter": "metric.type=\"custom.googleapis.com/opencensus/task_latency_distribution\" resource.type=\"global\"",
         "trigger": {
           "count": 1
         }
       },
-      "displayName": "All timeseries are absent"
+      "displayName": "All times series stopped reporting for greater than 3 minutes"
     },
     {
       "conditionThreshold": {
@@ -29,19 +29,18 @@
         ],
         "comparison": "COMPARISON_LT",
         "duration": "180s",
-        "filter": "group.id=123456789 AND metric.type=\"compute.googleapis.com/instance/cpu/usage_time\" AND resource.type=\"gce_instance\"",
+        "filter": "metric.type=\"custom.googleapis.com/opencensus/task_latency_distribution\" resource.type=\"global\"",
         "thresholdValue": 3,
         "trigger": {
           "count": 1
         }
       },
-      "displayName": "One of the timeseries is absent",
+      "displayName": "One of the time series stopped reporting for greater than 3 minutes",
     }
   ],
   "displayName": "Absence policy",
   "documentation": {
-    "content": "The timeseries data is absent",
+    "content": "Time series data is absent",
     "mimeType": "text/markdown"
-  },
-  "enabled": true
+  }
 }

@@ -7,91 +7,117 @@ them is missing. If one or two timeseries are missing, you want exactly one
 alert. When there is a total outage you still want to get one alert, not 100
 alerts.
 
+The test app generates time series with a custom metric called
+task_latency_distribution with tags based on a partition label. Each
+partition generates its own time series.
+
 The example assumes that you are familiar with Stackdriver Monitoring and
 Alerting. It builds on the discussion in
 [Alerting policies in depth](https://cloud.google.com/monitoring/alerts/concepts-indepth).
 
 ## Setup
 
-Create three GCE instances
+Create a notification channel with the command
 
 ```shell
-ZONE=us-central1-c
-gcloud compute instances create test-instance-1 test-instance-2 test-instance-3 \
-  --zone=$ZONE \
-  --scopes=https://www.googleapis.com/auth/cloud-platform \
-  --boot-disk-size=20GB \
-  --machine-type=f1-micro
+EMAIL="your email"
+CHANNEL=$(gcloud alpha monitoring channels create \
+  --channel-labels=email_address=$EMAIL \
+  --display-name="Email to project owner" \
+  --type=email \
+  --format='value(name)')
 ```
 
-Edit the file notification_channel.json, replacing the displayName and
-email_address. Create a notification channel with the command
-
-```shell
-gcloud alpha monitoring channels create \
-  --channel-content-from-file=notification_channel.json
-```
-
-Note the name of the notification channel created for the next step.
-
-```shell
-CHANNEL=[your notification channel]
-```
-
-Use of a [Stackdriver group](https://cloud.google.com/monitoring/groups/) is
-optional but it may help in identifying a specific set of
-resources to set up the alert for. Create a Stackdriver group with the three
-instances to be able to manage your metrics together. Find the ID of the group
-with the API Explorer using the
-[groups.list](https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.groups/list)
-API. Note the ID of the group for use in the alert policy below.
-
-Edit the file alert_policy.json, replacing or deleting the group.id. Create an
-alert policy with the command
+Create an alert policy with the command
 
 ```shell
 gcloud alpha monitoring policies create \
 --notification-channels=$CHANNEL \
+--documentation-from-file=policy_doc.md \
 --policy-from-file=alert_policy.json
 ```
 
 ## Testing
 
-Stop an instance
+The example code is based on the Go code in
+[Custom metrics with OpenCensus](https://cloud.google.com/monitoring/custom-metrics/open-census).
+
+[Download](https://golang.org/dl/) and install the latest version of Go.
+
+Build the test app
 
 ```shell
-gcloud compute instances stop test-instance-1
+go build
 ```
 
-Note the time
+The instructions here as based on
+[Setting up authentication](https://cloud.google.com/monitoring/docs/reference/libraries#setting_up_authentication)
+for the Stackdriver client library. Note that if you run the test app on a
+Google Cloud Compute Engine instance, Google Kubernetes Engine, or App Engine
+you will not need to create a service account or download the credentials.
+
+First, set the project id in a shell variable
 
 ```shell
-date
+export GOOGLE_CLOUD_PROJECT=[your project]
 ```
 
-An alert should be generated in about 3 minutes with a subject like ‘One of the
-timeseries is absent.’
-
-Restart the instance
+Create a service account:
 
 ```shell
-gcloud compute instances start test-instance-1
+SA_NAME=stackdriver-service-account
+gcloud iam service-accounts create $SA_NAME
 ```
 
-Wait until the instance is running.
+```shell
+SA_ID="$SA_NAME@$PROJECT_ID.iam.gserviceaccount.com"
+gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
+  --member "serviceAccount:$SA_ID" --role "roles/owner"
+```
 
-Stop two instances
+Generate a credentials file with an exported variable
+GOOGLE_APPLICATION_CREDENTIALS referring to it.
 
 ```shell
-gcloud compute instances stop test-instance-1 test-instance-2
+export GOOGLE_APPLICATION_CREDENTIALS=credentials.json
+gcloud iam service-accounts keys create $GOOGLE_APPLICATION_CREDENTIALS \
+ --iam-account $SA_ID
+```
+
+Run the program with three partitions, labelled "1", "2", and "3"
+
+```shell
+./alert-absence-demo --labels "1,2,3"
+```
+
+At this point no alerts should be firing. You can check that in the Stackdriver
+Monitoring console alert policy detail.
+
+Kill the processes with CTL-C and restart it with only two partitions:
+
+```shell
+./alert-absence-demo --labels "1,2"
+```
+
+An alert should be generated in about 5 minutes with a subject like ‘One of the
+timeseries is absent.’ You should be able to see this in the Stackdriver console
+and you should also receive an email notification.
+
+Restart the process with three partitions:
+
+```shell
+./alert-absence-demo --labels "1,2,3"
+```
+
+After a few minutes the alert should resolve itself.
+
+Stop the process and restart it with only one partition:
+
+```shell
+./alert-absence-demo --labels "1"
 ```
 
 Check that only one alert is fired.
 
-Stop all instances
-
-```shell
-gcloud compute instances stop test-instance-1 test-instance-2 test-instance-3
-```
-
-You should see an alert that indicates all timeseries are absent.
+Stop the process and do not restart it. You should see an alert that indicates
+all time series are absent.
