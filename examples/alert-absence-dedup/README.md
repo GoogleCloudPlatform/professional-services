@@ -15,29 +15,7 @@ The example assumes that you are familiar with Stackdriver Monitoring and
 Alerting. It builds on the discussion in
 [Alerting policies in depth](https://cloud.google.com/monitoring/alerts/concepts-indepth).
 
-## Setup
-
-Create a notification channel with the command
-
-```shell
-EMAIL="your email"
-CHANNEL=$(gcloud alpha monitoring channels create \
-  --channel-labels=email_address=$EMAIL \
-  --display-name="Email to project owner" \
-  --type=email \
-  --format='value(name)')
-```
-
-Create an alert policy with the command
-
-```shell
-gcloud alpha monitoring policies create \
---notification-channels=$CHANNEL \
---documentation-from-file=policy_doc.md \
---policy-from-file=alert_policy.json
-```
-
-## Testing
+## Deploy the app
 
 The example code is based on the Go code in
 [Custom metrics with OpenCensus](https://cloud.google.com/monitoring/custom-metrics/open-census).
@@ -70,7 +48,7 @@ gcloud iam service-accounts create $SA_NAME
 ```
 
 ```shell
-SA_ID="$SA_NAME@$PROJECT_ID.iam.gserviceaccount.com"
+SA_ID="$SA_NAME@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com"
 gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
   --member "serviceAccount:$SA_ID" --role "roles/owner"
 ```
@@ -90,8 +68,32 @@ Run the program with three partitions, labelled "1", "2", and "3"
 ./alert-absence-demo --labels "1,2,3"
 ```
 
+## Create the policy
+
+Create a notification channel with the command
+
+```shell
+EMAIL="your email"
+CHANNEL=$(gcloud alpha monitoring channels create \
+  --channel-labels=email_address=$EMAIL \
+  --display-name="Email to project owner" \
+  --type=email \
+  --format='value(name)')
+```
+
+Create an alert policy with the command
+
+```shell
+gcloud alpha monitoring policies create \
+--notification-channels=$CHANNEL \
+--documentation-from-file=policy_doc.md \
+--policy-from-file=alert_policy.json
+```
+
 At this point no alerts should be firing. You can check that in the Stackdriver
 Monitoring console alert policy detail.
+
+## Testing
 
 Kill the processes with CTL-C and restart it with only two partitions:
 
