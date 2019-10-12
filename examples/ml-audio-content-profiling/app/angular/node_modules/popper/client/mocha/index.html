@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <title>Popper Agent (Mocha)</title>
+    <link rel="stylesheet" href="/mocha.css" />
+    <!-- { extra scripts } -->
+    <script src="/mocha/client.min.js"></script>
+    <script src="/mocha.js"></script>
+    <script>mocha.setup("bdd")</script>
+    <script src="/tests.js"></script>
+  </head>
+  <body>
+    <div id="mocha"></div>
+    <script>mocha.run().on('end', finish)</script>
+  </body>
+</html>

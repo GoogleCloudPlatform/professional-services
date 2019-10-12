@@ -1,0 +1,1 @@
+var framework = 'hello world'
