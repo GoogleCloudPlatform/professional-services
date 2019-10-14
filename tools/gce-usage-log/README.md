@@ -243,12 +243,44 @@ There is also no default expiration set, but this can be added if you only need 
 
 ## 3. Using the dataset
 
-### 3.1 How to Use the Interval View
+### 3.2.1 How to Use the Interval View
 
-The interval view allows to see aggregated point-in-time statistics. Specifically, you can create
-time-series graphs to monitor changes and spikes of inventory over time. This can be done on whichever
-metrics that your team would like to use for capacity planning, such as looking at the total count
-of instances over time, cores, memory, etc.
+Now that your dataset is ready, how do you query it?
+
+The interval view allows to see aggregated point-in-time statistics. To find resource usage for a specific time-frame, you can query for the aggregate usage information for the month of 
+September by using the sample query below as an example. You can adjust the timeframe by altering the WHERE clause
+or choose to only select certain fields depending on what you are trying to predict.
+
+
+```bash
+SELECT
+  custom_interval as hour,
+  count(instance_id) as num_instances,
+  SUM(cores) as total_cores,
+  SUM(memory_mb) as total_memory_mb,
+  SUM(pd_standard_size_gb) as total_pd_standard_size_gb,
+  SUM(pd_ssd_size_gb) as total_pd_ssd_size_gb,
+  SUM(local_ssd_size_gb) as total_local_ssd_size_gb
+  
+FROM `gce_usage_log._gce_usage_log_interval`
+
+WHERE
+  custom_interval >= "2019-09-01" AND custom_interval < "2019-10-01"
+
+GROUP BY 1
+```
+
+The results will look something like this (Note that the aggregated statistics will most likely 
+vary for workloads as VM resources change over hour, but they do not in this example.)
+
+![interval_query](images/interval-query-results.png)
+
+### 3.2.2 How to Create a Time-Series Graph on the Interval View
+
+If you want to see the same data in a time-series graph rather than a data table, you can do this 
+in Data Studio. This allows you to create time-series graphs to monitor changes and spikes of inventory 
+over time. This can be done on whichever metrics that your team would like to use for capacity planning, 
+such as looking at the total count of instances over time, cores, memory, etc.
 
 1. To create a time-series graph, open up [Data Studio](https://www.datastudio.google.com).
 2. In the upper left-hand corner, click 'Create'.
@@ -272,9 +304,8 @@ of instances over time, cores, memory, etc.
 15. View the graph
 ![graph](images/usage-graph.png)
 
-### 3.2 How to Query Base View
+### 3.3 How to Query Base View
 
-Now that your dataset is ready, how do you query it?
 
 To find resource usage at a point in time `t`, query the view for records that were inserted before `t`, and deleted after `t` (or not deleted yet).
 
@@ -287,8 +318,9 @@ SELECT
   SUM(cores) as total_cores,
   SUM(memory_mb) as total_memory_mb,
   SUM(pd_standard_size_gb) as total_pd_standard_size_gb,
-  SUM(pd_ssd_size_gb) as total_pd_ssd_size_gb
+  SUM(pd_ssd_size_gb) as total_pd_ssd_size_gb,
   SUM(local_ssd_size_gb) as total_local_ssd_size_gb
+  
 FROM `gce_usage_log._gce_usage_log`
 
 WHERE inserted < '2019-08-23 08:00:00.000 UTC'
