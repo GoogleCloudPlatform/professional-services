@@ -25,9 +25,9 @@ operations:
   - splits and stores test data into labels and features files.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+
+
+
 
 import argparse
 from datetime import datetime
@@ -95,7 +95,7 @@ def check_size(p, name, path):
       return s + inputs, count + 1
 
     def merge_accumulators(self, accumulators):
-      sums, counts = zip(*accumulators)
+      sums, counts = list(zip(*accumulators))
       return sum(sums), sum(counts)
 
     # We should not consider the case count == 0 as an error (class initialized
@@ -132,7 +132,7 @@ def shuffle_data(p):
       p
       | 'PairWithRandom' >> beam.ParDo(_AddRandomKey())
       | 'GroupByRandom' >> beam.GroupByKey()
-      | 'DropRandom' >> beam.FlatMap(lambda (k, vs): vs))
+      | 'DropRandom' >> beam.FlatMap(lambda k_vs: k_vs[1]))
   return shuffled_data
 
 

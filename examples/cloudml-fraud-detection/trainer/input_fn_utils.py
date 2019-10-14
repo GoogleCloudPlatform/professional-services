@@ -18,9 +18,9 @@ Create input function on processed data for training and evaluation and
 serving function for out of sample unprocessed data.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+
+
+
 
 import posixpath
 

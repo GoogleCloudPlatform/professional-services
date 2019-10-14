@@ -18,9 +18,9 @@ Builds a customed estimator on top of canned DNN classifier to allow saving the
 model and handling indexed outputs.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+
+
+
 
 import tensorflow as tf
 from tensorflow.python.estimator.canned import head as head_lib  # pylint: disable=no-name-in-module
