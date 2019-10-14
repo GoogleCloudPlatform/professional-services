@@ -1,0 +1,1 @@
+var ripple = 'hello world'

@@ -36,6 +36,7 @@ def gen_csv_from_images(
     input_dir: str,
     output_file=constants.DEFAULT_CSV_FILENAME,
     add_label=False,
+    out_path_prefix='',
     dataset_type=constants.DEFAULT_DATASET_TYPE):
   """Generate AutoML dataset CSV from directory of images.
 
@@ -44,6 +45,8 @@ def gen_csv_from_images(
     output_file: Output CSV filename.
     add_label: Whether to include image label based on
       last directory on the image's filepath.
+    out_path_prefix: Output path prefix to prepend to each filename.
+      (e.g. gs://path/to/the/imagedir)
     dataset_type: AutoML dataset type (TRAIN, VALIDATE, TEST, UNSPECIFIED)
       to use for all the parsed images.
   """
@@ -54,8 +57,12 @@ def gen_csv_from_images(
     writer = csv.writer(f, delimiter=',')
     for topdir, _, files in gfile.walk(os.path.expanduser(input_dir)):
       for f in files:
+        if out_path_prefix:
+          filepath = os.path.join(out_path_prefix, f)
+        else:
+          filepath = os.path.join(topdir, f)
         label = get_label(topdir)
-        row = ([dataset_type, f, label] +
+        row = ([dataset_type, filepath, label] +
                ['']*constants.NUM_BOUNDING_BOX_FIELDS)
         writer.writerow(row)
 

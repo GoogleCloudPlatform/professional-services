@@ -1,0 +1,13 @@
+runtime: python37
+entrypoint: gunicorn -b :$PORT python.main:APP
+service: default
+
+
+handlers:
+  - url: /rest/.*
+    script: auto
+    secure: always
+
+  - url: /.*
+    script: auto
+    secure: always
