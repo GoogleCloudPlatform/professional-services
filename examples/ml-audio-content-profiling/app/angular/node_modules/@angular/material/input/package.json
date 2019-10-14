@@ -1,8 +1,0 @@
-{
-  "name": "@angular/material/input",
-  "typings": "../input.d.ts",
-  "main": "../bundles/material-input.umd.js",
-  "module": "../esm5/input.es5.js",
-  "es2015": "../esm2015/input.js",
-  "sideEffects": false
-}
