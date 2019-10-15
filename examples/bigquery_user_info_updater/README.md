@@ -301,8 +301,6 @@ kubectl --namespace <name of namespace>  delete secret <name of secret>
 kubectl delete namespace <name of  namespace>
 ```
 
-
-
 ## Testing
 
 Tests can be run by running the following command in the bigquery_user_info_updater
