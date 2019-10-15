@@ -1,6 +1,0 @@
-sudo: false
-language: node_js
-node_js:
-  - "stable"
-
-after_script: npm run coverage && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js

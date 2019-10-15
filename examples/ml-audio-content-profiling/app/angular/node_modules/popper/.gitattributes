@@ -1,2 +1,0 @@
-cli text eol=lf
-dist/* -diff
