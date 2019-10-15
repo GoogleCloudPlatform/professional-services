@@ -198,11 +198,9 @@ class TestNestedUserInfoUpdater(object):
         expected_temp_table_df = pd.read_json(
             expected_temp_data_file
         )
-        # Gather columns from schema since read_json() to reorder
-        # columns since read_json() reads them alphabetically
-        json_file = open(self.schema_path)
-        json_str = json_file.read()
-        json_schema = json.loads(json_str)
+        # Reorder columns since read_json() reads them alphabetically
+        with open(self.schema_path, 'r') as f:
+            json_schema = json.loads(f.read())
         col_list = [str(col['name']) for col in json_schema['fields']]
         expected_temp_table_df = expected_temp_table_df[col_list]
 
@@ -236,11 +234,9 @@ class TestNestedUserInfoUpdater(object):
         )
         expected_final_table_df = pd.read_json(expected_final_data_file)
 
-        # Gather columns from schema since read_json() to reorder
-        # columns since read_json() reads them alphabetically
-        json_file = open(self.schema_path)
-        json_str = json_file.read()
-        json_schema = json.loads(json_str)
+        # Reorder columns since read_json() reads them alphabetically
+        with open(self.schema_path, 'r') as f:
+            json_schema = json.loads(f.read())
         col_list = [str(col['name']) for col in json_schema['fields']]
         expected_final_table_df = expected_final_table_df[col_list]
 

@@ -52,14 +52,8 @@ class UserSchema(object):
                     fields=fields
             )
 
-        schema = []
         filename = self.schema_path
         with open(filename, 'r') as f:
-            json_str = f.read()
-            json_schema = json.loads(json_str)
+            json_schema = json.loads(f.read())
 
-        for item in json_schema['fields']:
-            bq_field = _process_field(item)
-            schema.append(bq_field)
-
-        return schema
+        return list(map(_process_field, json_schema['fields']))
