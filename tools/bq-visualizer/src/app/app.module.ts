@@ -1,3 +1,18 @@
+/*
+ * Copyright 2019 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 import {ScrollDispatchModule} from '@angular/cdk/scrolling';
 import {HttpClientModule} from '@angular/common/http';
 import {ErrorHandler, Injectable, NgModule} from '@angular/core';
@@ -15,19 +30,24 @@ import {MatTableModule} from '@angular/material/table';
 import {MatTabsModule} from '@angular/material/tabs';
 import {BrowserModule} from '@angular/platform-browser';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+import {RouterModule} from '@angular/router';
 import * as Sentry from '@sentry/browser';
 import {OAuthModule} from 'angular-oauth2-oidc';
 import {AngularResizedEventModule} from 'angular-resize-event';
+
 import {environment} from '../environments/environment';
+
 import {AppRoutingModule} from './/app-routing.module';
 import {AppComponent} from './app.component';
 import {JobComponent} from './job/job.component';
 import {LogDisplayComponent} from './log-display/log-display.component';
+import {MainComponent} from './main/main.component';
 import {PlanSideDisplayComponent} from './plan-side-display/plan-side-display.component';
 import {PlanStatusCardComponent} from './plan-status-card/plan-status-card.component';
 import {ProjectsComponent} from './projects/projects.component';
 import {StageDetailsComponent} from './stage-details/stage-details.component';
 import {StepDetailsComponent} from './step-details/step-details.component';
+import {TermsComponent} from './terms/terms.component';
 import {TimingDisplayComponent} from './timing-display/timing-display.component';
 import {VisDisplayComponent} from './vis-display/vis-display.component';
 
@@ -56,6 +76,8 @@ export class SentryErrorHandler implements ErrorHandler {
     PlanSideDisplayComponent,
     StageDetailsComponent,
     StepDetailsComponent,
+    TermsComponent,
+    MainComponent,
   ],
   imports: [
     AngularResizedEventModule,

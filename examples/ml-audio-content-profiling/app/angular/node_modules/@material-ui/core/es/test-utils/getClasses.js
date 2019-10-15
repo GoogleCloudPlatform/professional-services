@@ -1,0 +1,17 @@
+import _extends from "@babel/runtime/helpers/extends";
+import ns from '../styles/reactJssContext';
+import { SheetsRegistry } from 'jss';
+import createShallow from './createShallow';
+import { sheetsManager } from '../styles/withStyles';
+const shallow = createShallow(); // Helper function to extract the classes from a styleSheet.
+
+export default function getClasses(element, options = {}) {
+  const sheetsRegistry = new SheetsRegistry();
+  sheetsManager.clear();
+  shallow(element, _extends({}, options, {
+    context: _extends({
+      [ns.sheetsRegistry]: sheetsRegistry
+    }, options.context)
+  }));
+  return sheetsRegistry.registry[0].classes;
+}

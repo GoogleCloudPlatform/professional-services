@@ -1,4 +1,19 @@
-import {Component, ViewChild} from '@angular/core';
+/*
+ * Copyright 2019 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import {Component, OnInit, ViewChild} from '@angular/core';
 import * as vis from 'vis';
 
 import {BqQueryPlan} from '../bq_query_plan';
@@ -22,11 +37,11 @@ type EdgeDeselectCallback = (chart: TreeChart, params: object) => void;
   templateUrl: './vis-display.component.html',
   styleUrls: ['./vis-display.component.css']
 })
-export class VisDisplayComponent {
+export class VisDisplayComponent implements OnInit {
   public graph: TreeChart;
   private layout: any;  // dqagre layout result;
   private plan: BqQueryPlan;
-  private haveDoneDraw: boolean = false;
+  private haveDoneDraw = false;
 
   @ViewChild('status_card') statusCard: PlanStatusCardComponent;
   @ViewChild('side_display') sideDisplay: PlanSideDisplayComponent;
@@ -34,6 +49,10 @@ export class VisDisplayComponent {
   constructor(
       private layoutSvc: DagreLayoutService, private logSvc: LogService) {}
 
+  ngOnInit() {
+    this.statusCard.dislayOptionEvent.subscribe(
+        (displayOption: string) => this.invalidateGraph());
+  }
   async loadPlan(plan: BqQueryPlan) {
     this.plan = plan;
     this.haveDoneDraw = false;
@@ -42,9 +61,19 @@ export class VisDisplayComponent {
     this.sideDisplay.stageDetails = '';
   }
 
+  private invalidateGraph() {
+    this.haveDoneDraw = false;
+    this.draw();
+  }
+
   async draw() {
-    if (!this.plan) return;
-    if (this.haveDoneDraw) return;
+    if (!this.plan) {
+      this.clearGraph();
+      return;
+    }
+    if (this.haveDoneDraw) {
+      return;
+    }
 
     this.graph = this.drawGraph(
         this.plan,
@@ -75,6 +104,12 @@ export class VisDisplayComponent {
     }
   }
 
+  private clearGraph() {
+    if (this.graph) {
+      this.graph.network.setData(new vis.DataSet([]), new vis.DataSet([]));
+      this.graph.network.redraw();
+    }
+  }
   private drawGraph(
       plan: BqQueryPlan, onResizeEvent?: ResizeCallback,
       onNodeSelect?: NodeSelectCallback, onNodeDeselect?: NodeDeselectCallback,
@@ -82,13 +117,19 @@ export class VisDisplayComponent {
       onEdgeDeselect?: EdgeDeselectCallback): TreeChart {
     let visnodes = new vis.DataSet([]);
     let visedges = new vis.DataSet([]);
-    const layout = this.layoutSvc.layout(plan);
 
     if (plan.nodes.length === 0) {
       this.logSvc.warn('Current Plan has no nodes.');
       return;
     } else {
-      const nodes = plan.nodes.map(node => {
+      const allnodes = (this.statusCard.stageDisplayOption ===
+                        this.statusCard.SHOWREPARTIION) ?
+          plan.nodes :
+          plan.nodesWithoutRepartitions();
+
+      const layout = this.layoutSvc.layout(allnodes, plan);
+
+      const nodes = allnodes.map(node => {
         const label = node.name.length > 22 ?
             `${node.name.slice(0, 10)}...${node.name.slice(-10)}` :
             node.name;
@@ -182,7 +223,7 @@ export class VisDisplayComponent {
         },
         selectionWidth: 5,
         color: {color: '#A0A0FF', highlight: '#8080FF'},
-        smooth: true
+        smooth: {enabled: true, type: 'cubicBezier'}
       },
       nodes: {},
 

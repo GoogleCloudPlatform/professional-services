@@ -1,0 +1,8 @@
+{
+  "name": "@angular/material/menu",
+  "typings": "../menu.d.ts",
+  "main": "../bundles/material-menu.umd.js",
+  "module": "../esm5/menu.es5.js",
+  "es2015": "../esm2015/menu.js",
+  "sideEffects": false
+}

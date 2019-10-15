@@ -1,16 +1,27 @@
+/*
+ * Copyright 2019 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 import {NgModule} from '@angular/core';
 import {RouterModule, Routes} from '@angular/router';
-import {JobComponent} from './job/job.component';
-import {LogDisplayComponent} from './log-display/log-display.component';
-import {TimingDisplayComponent} from './timing-display/timing-display.component';
-import {VisDisplayComponent} from './vis-display/vis-display.component';
+import {MainComponent} from './main/main.component';
+import {TermsComponent} from './terms/terms.component';
 
 const routes: Routes = [
-  {path: '', redirectTo: '/jobs', pathMatch: 'full'},
-  {path: 'jobs', component: JobComponent},
-  {path: 'job/tree', component: VisDisplayComponent},
-  {path: 'job/timing', component: TimingDisplayComponent},
-  {path: 'log', component: LogDisplayComponent},
+  {path: '', component: MainComponent},
+  {path: 'jobs', component: MainComponent},
+  {path: 'terms', component: TermsComponent},
 ];
 
 @NgModule({

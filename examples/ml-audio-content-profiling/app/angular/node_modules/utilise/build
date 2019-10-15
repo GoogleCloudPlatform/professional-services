@@ -1,0 +1,116 @@
+#!/usr/bin/env node
+
+const fs = require('fs')
+    , path = require('path')
+    , rollup = require('rollup')
+    , is = require('utilise.is')
+    , log = require('utilise.log')
+    , not = require('utilise.not')
+    , file = require('utilise.file')
+    , args = require('utilise.args')
+    , keys = require('utilise.keys')
+    , time = require('utilise.time')
+    , values = require('utilise.values')
+    , append = require('utilise.append')
+    , prepend = require('utilise.prepend')
+    , replace = require('utilise.replace')
+    , includes = require('utilise.includes')
+    , core = ['package.json', 'alias.js']
+    , browser = require('./package.json').browser
+    , alias = "module.exports = require('{mod}')"
+    , imp = 'import {name} from "./tmp_{name}";\n'
+    , cjs = 'require("./owner").{name} = require("./{name}")\n'
+    , exp = ', {name}: require("./{name}")\n'
+    , own = 'owner.{name} = {name}\n'
+    , modules = keys(require('./package.json').devDependencies)
+        .filter(includes('utilise'))
+        .map(replace('utilise.', ''))
+
+// clean dir
+fs.readdirSync(__dirname)
+  .filter(includes('js'))
+  .filter(not(is.in(core)))
+  .map(prepend(__dirname+'/'))
+  .map(log('deleting'))
+  .map(fs.unlinkSync)
+
+// create utilise/{name} aliases
+modules
+  .map(append('.js'))
+  .map(log('creating'))
+  .map(d => fs.createWriteStream(d))
+  .map(s => { 
+    const key = s.path.slice(0,-3)
+        , req = file('./node_modules/utilise.'+key+'/index.js')
+        , out = req.replace(/utilise./g, './')
+
+    s.write(out)
+  })
+
+// expose single node entry point
+const index = fs.createWriteStream('index.js')
+modules
+  .map(d => cjs.replace(/{name}/g, d))
+  .map(d => index.write(d))
+
+// expose single node entry point
+const pure = fs.createWriteStream('pure.js')
+pure.write('module.exports = { $: 0')
+modules
+  .map(d => exp.replace(/{name}/g, d))
+  .map(d => pure.write(d))
+pure.write('}')
+
+//---------------------------------------------------------------------
+// create utilise/{name} aliases
+modules
+  .map(prepend('tmp_'))
+  .map(append('.js'))
+  .map(log('creating'))
+  .map(d => fs.createWriteStream(d))
+  .map(s => { 
+    const key = s.path.slice(4,-3)
+        , req = file('./node_modules/utilise.'+key+'/index.js')
+        , out = req
+            .replace(/^.*require\('utilise\.(.*)'\)\((.*)\).*$/mg, `import _$1 from "./tmp_$1"\nvar $1 = _$1($2)`)
+            .replace(/^.*require\('utilise\.(.*)'\).*$/mg, 'import $1 from "./tmp_$1";')
+            // // .replace(/utilise./g, './')
+            // // .replace(/require\('utilise/mg, 'require(\'utilise')
+            .replace(/.*require\('colors.*\n/g, '')
+            .replace(/;\r?\n  ,/mg, '\nvar')
+            .replace(/module.exports =/g, 'export default')
+
+    s.write(out)
+  })
+
+// expose single browser entry point
+const tmp = fs.createWriteStream('tmp.js')
+modules
+  .filter(not(is.in(browser)))
+  .map(d => imp.replace(/{name}/g, d))
+  .map(d => tmp.write(d))
+
+modules
+  .filter(not(is.in(browser)))
+  .map(d => own.replace(/{name}/g, d))
+  .map(d => tmp.write(d))
+
+tmp.write(';(client ? window : global).owner = owner')
+
+// rollup
+time(100, d => rollup
+  .rollup({ entry: 'tmp.js' })
+  .then(bundle => bundle.write({
+    dest: 'utilise.js'
+  , format: 'iife'
+  }))
+  .then(end))
+  
+// delete tmp files
+function end(error) {
+  fs.readdirSync(__dirname)
+    .filter(includes('tmp'))
+    .map(prepend(__dirname+'/'))
+    .map(log('deleting'))
+    .map(fs.unlinkSync)
+}

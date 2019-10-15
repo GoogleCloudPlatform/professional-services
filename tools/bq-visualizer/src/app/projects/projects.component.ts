@@ -1,12 +1,28 @@
+/*
+ * Copyright 2019 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {Component, EventEmitter, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
 import {MatSelect} from '@angular/material/select';
-import {OAuthService} from 'angular-oauth2-oidc';
+// import {OAuthService} from 'angular-oauth2-oidc';
 import * as _ from 'lodash';
 import {defer, EMPTY, Observable, of, Subject, Subscription} from 'rxjs';
 import {catchError, filter, takeUntil} from 'rxjs/operators';
 
 import {BigQueryService} from '../big-query.service';
+import {GoogleAuthService} from '../google-auth.service';
 import {LogService} from '../log.service';
 import {BqProject, BqProjectListResponse} from '../rest_interfaces';
 
@@ -27,11 +43,18 @@ export class ProjectsComponent implements OnInit, OnDestroy {
 
   // Emitted events.
   @Output() getJobs = new EventEmitter<BqProject>();
-
+  public isLoggedIn: boolean;
   constructor(
-      private http: HttpClient, private oauthService: OAuthService,
-      private bqService: BigQueryService, private logSvc: LogService) {}
+      private http: HttpClient, private oauthService: GoogleAuthService,
+      private bqService: BigQueryService, private logSvc: LogService) {
+    this.isLoggedIn = this.oauthService.isLoggedIn();
+    this.oauthService.loginEvent.subscribe(
+        (isloggedIn: boolean) => this.register_login(isloggedIn));
+  }
 
+  private register_login(isloggedIn) {
+    this.isLoggedIn = isloggedIn;
+  }
   async ngOnInit() {
     this.projectSelect.selectionChange.subscribe(event => {
       // Store the last selected project in the local storage.
@@ -44,7 +67,8 @@ export class ProjectsComponent implements OnInit, OnDestroy {
       this.allProjects = JSON.parse(p);
       this.doneLoadingProjects();
     } else {
-      this.getProjects();
+      this.allProjects = [];
+      this.projects = [];
     }
   }
 
@@ -53,6 +77,9 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   }
 
   async getProjects() {
+    if (this.oauthService.isLoggedIn() === false) {
+      this.oauthService.login();
+    }
     this.isLoading = true;
     this.projects = [];
     this.allProjects = [];
@@ -77,7 +104,8 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     // Select the previously selected project.
     if (localStorage.getItem('lastProjectId')) {
       const project = _.find(
-          this.allProjects, p => p.id == localStorage.getItem('lastProjectId'));
+          this.allProjects,
+          p => p.id === localStorage.getItem('lastProjectId'));
       if (project) {
         this.selectedProject = project;
       }
@@ -110,6 +138,18 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   listJobs(): void {
     if (this.selectedProject) {
       this.getJobs.emit(this.selectedProject);
+    }
+  }
+
+  public getProjectsLabel(): string {
+    if (this.oauthService.isLoggedIn) {
+      if (this.allProjects.length > 0) {
+        return 'Refresh Projects';
+      } else {
+        return 'Get Projects';
+      }
+    } else {
+      return 'Login';
     }
   }
 }

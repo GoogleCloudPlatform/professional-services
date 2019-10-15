@@ -1,0 +1,8 @@
+{
+  "name": "@angular/material/select",
+  "typings": "../select.d.ts",
+  "main": "../bundles/material-select.umd.js",
+  "module": "../esm5/select.es5.js",
+  "es2015": "../esm2015/select.js",
+  "sideEffects": false
+}

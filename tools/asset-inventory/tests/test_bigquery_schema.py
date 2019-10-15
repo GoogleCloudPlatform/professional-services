@@ -52,18 +52,20 @@ class TestBigQuerySchema(unittest.TestCase):
         document = {'integer_field': 111, 'float_field': 22.0}
         schema = bigquery_schema.translate_json_to_schema(
             document)
-        self.assertEqual(schema, [{'name': 'integer_field',
+        schema.sort(key=lambda x: x['name'])
+        self.assertEqual(schema, [{'name': 'float_field',
                                    'field_type': 'NUMERIC',
                                    'mode': 'NULLABLE'},
-                                  {'name': 'float_field',
+                                  {'name': 'integer_field',
                                    'field_type': 'NUMERIC',
-                                   'mode': 'NULLABLE'},
+                                   'mode': 'NULLABLE'}
                                  ])
 
     def test_bool(self):
         document = {'bool_array_field': [True, False], 'bool_field': False}
         schema = bigquery_schema.translate_json_to_schema(
             document)
+        schema.sort(key=lambda x: x['name'])
         self.assertEqual(schema, [{'name': 'bool_array_field',
                                    'field_type': 'BOOL',
                                    'mode': 'REPEATED'},
@@ -83,6 +85,7 @@ class TestBigQuerySchema(unittest.TestCase):
             })
         ]
         merged_schema = bigquery_schema.merge_schemas(schemas)
+        merged_schema.sort(key=lambda x: x['name'])
         self.assertEqual(merged_schema,
                          [{'name': 'field1',
                            'field_type': 'STRING',
@@ -169,6 +172,94 @@ class TestBigQuerySchema(unittest.TestCase):
                 labels_found[1] = True
                 assert label['value'] == 'value2'
         self.assertTrue(labels_found[0] and labels_found[1])
+
+    def test_enforce_schema_data_types(self):
+        schema = [{'name': 'property_1',
+                   'field_type': 'NUMERIC',
+                   'mode': 'NULLABLE'},
+                  {'name': 'property_2',
+                   'field_type': 'STRING',
+                   'mode': 'NULLABLE'},
+                  {'name': 'property_3',
+                   'field_type': 'DATE',
+                   'mode': 'NULLABLE'},
+                  {'name': 'property_4',
+                   'field_type': 'DATETIME',
+                   'mode': 'NULLABLE'},
+                  {'name': 'property_5',
+                   'field_type': 'BOOL',
+                   'mode': 'NULLABLE'},
+                  {'name': 'property_6',
+                   'field_type': 'NUMERIC',
+                   'mode': 'REPEATED'},
+                  {'name': 'property_7',
+                   'field_type': 'RECORD',
+                   'mode': 'REPEATED',
+                   'fields': [
+                       {'name': 'property_1',
+                        'field_type': 'NUMERIC',
+                        'mode': 'NULLABLE'},
+                       {'name': 'property_2',
+                        'field_type': 'STRING',
+                        'mode': 'NULLABLE'}]}]
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_1': '333'}, schema), {'property_1': 333})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_1': 333}, schema), {'property_1': 333})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_1': 'notanumber'}, schema), {})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_2': 33}, schema), {'property_2': '33'})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_2': 'astring'}, schema), {'property_2': 'astring'})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_3': '2019-01-01'}, schema),
+            {'property_3': '2019-01-01'})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_3': 'invaliddate'}, schema), {})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_4': '2019-01-01T00:01:00'}, schema),
+            {'property_4': '2019-01-01T00:01:00'})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_4': 'invalid'}, schema), {})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_5': False}, schema), {'property_5': False})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_5': 'True'}, schema), {'property_5': True})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_5': 0}, schema), {'property_5': False})
+
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_6': 33}, schema), {'property_6': [33]})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_6': '33'}, schema), {'property_6': [33]})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_6': {'33'}}, schema), {})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_6': [33]}, schema), {'property_6': [33]})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_7': [{'property_1': 'invalid',
+                             'property_2': 'valid'}]}, schema),
+            {'property_7': [{'property_2': 'valid'}]})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_7': [{'property_1': 'invalid'}]}, schema), {})
+        self.assertEqual(bigquery_schema.enforce_schema_data_types(
+            {'property_7': [{'property_1': 'invalid'}, 33]}, schema), {})
+
+    def test_remove_duplicate_property(self):
+        doc = {
+            'ipAddress': 'value',
+            'IPAddress': 'other_value',
+            'array': [{
+                'ipAddress': 'value',
+                'IPAddress': 'other_value'}],
+        }
+        sanitized = bigquery_schema.sanitize_property_value(doc)
+        self.assertEqual(len(sanitized), 2)
+        self.assertIn('IPAddress', sanitized)
+        self.assertEqual(sanitized['IPAddress'], 'other_value')
+        self.assertEqual(sanitized['array'], [{'IPAddress': 'other_value'}])
+
 
 if __name__ == '__main__':
     unittest.main()
