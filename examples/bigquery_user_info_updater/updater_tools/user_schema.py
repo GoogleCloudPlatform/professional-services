@@ -54,9 +54,9 @@ class UserSchema(object):
 
         schema = []
         filename = self.schema_path
-        json_file = open(filename)
-        json_str = json_file.read()
-        json_schema = json.loads(json_str)
+        with open(filename, 'r') as f:
+            json_str = f.read()
+            json_schema = json.loads(json_str)
 
         for item in json_schema['fields']:
             bq_field = _process_field(item)
