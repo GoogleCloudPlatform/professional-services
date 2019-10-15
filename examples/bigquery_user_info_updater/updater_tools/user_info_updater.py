@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import datetime
+import dateutil
 import logging
 
 from google.cloud import bigquery
 
-INITIAL_TIMESTAMP = '1900-01-01 00:00:00.000 UTC'
+INITIAL_TIMESTAMP = datetime.datetime(1900, 1, 1, 00, 00, 00, 000,
+                                      tzinfo=dateutil.tz.tzutc())
 
 
 class UserInfoUpdater(object):
@@ -79,7 +81,7 @@ class UserInfoUpdater(object):
         if not max_ingest_timestamp:
             max_ingest_timestamp = INITIAL_TIMESTAMP
 
-        return str(max_ingest_timestamp)
+        return max_ingest_timestamp.strftime('%Y-%m-%d %H:%M:%S.%f %Z')
 
     def gather_updates(self, gather_updates_query):
         """Gathers updates to be written to the final table.
