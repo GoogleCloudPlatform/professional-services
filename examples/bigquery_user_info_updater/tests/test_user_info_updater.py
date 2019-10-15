@@ -174,7 +174,10 @@ class TestUserInfoUpdater(object):
         )
 
         # Compare results
-        assert temp_table_results_df.equals(expected_temp_table_df)
+        pd.testing.assert_frame_equal(
+            temp_table_results_df,
+            expected_temp_table_df
+        )
 
         # Query the final table to test that the merge_updates() function worked
         final_table_query_config = bigquery.QueryJobConfig()
@@ -202,7 +205,10 @@ class TestUserInfoUpdater(object):
         )
 
         # Compare results
-        assert final_table_results_df.equals(expected_final_table_df)
+        pd.testing.assert_frame_equal(
+            final_table_results_df,
+            expected_final_table_df
+        )
 
     def test_second_update(self, project_id):
         """Tests UserInfoUpdater ability to run an update after at least one
@@ -315,7 +321,10 @@ class TestUserInfoUpdater(object):
         )
 
         # Compare results
-        assert temp_table_results_df.equals(expected_temp_table_df)
+        pd.testing.assert_frame_equal(
+            temp_table_results_df,
+            expected_temp_table_df
+        )
 
         # Query the final table to test that the merge_updates() function worked
         final_table_query_config = bigquery.QueryJobConfig()
@@ -344,7 +353,10 @@ class TestUserInfoUpdater(object):
         )
 
         # Compare results
-        assert final_table_results_df.equals(expected_final_table_df)
+        pd.testing.assert_frame_equal(
+            final_table_results_df,
+            expected_final_table_df
+        )
 
 
 def teardown(self):

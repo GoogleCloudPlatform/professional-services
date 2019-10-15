@@ -210,7 +210,10 @@ class TestNestedUserInfoUpdater(object):
         )
 
         # Compare results
-        assert temp_table_results_df.equals(expected_temp_table_df)
+        pd.testing.assert_frame_equal(
+            temp_table_results_df,
+            expected_temp_table_df
+        )
 
         # Query the final table to test that the merge_updates() function worked
         final_table_query_config = bigquery.QueryJobConfig()
@@ -246,7 +249,10 @@ class TestNestedUserInfoUpdater(object):
         )
 
         # Compare results
-        assert final_table_results_df.equals(expected_final_table_df)
+        pd.testing.assert_frame_equal(
+            final_table_results_df,
+            expected_final_table_df
+        )
 
     def teardown(self):
         """Deletes any resources used by tests.
