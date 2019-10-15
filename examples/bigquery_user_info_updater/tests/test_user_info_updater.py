@@ -93,6 +93,24 @@ class TestUserInfoUpdater(object):
         except exceptions.NotFound:
             return self.bq_client.create_table(table)
 
+    def load_csv_to_bq(self, filename, table):
+        job_config = bigquery.LoadJobConfig()
+        job_config.source_format = bigquery.SourceFormat.CSV
+        job_config.skip_leading_rows = 1
+
+        abs_path = os.path.abspath(os.path.dirname(__file__))
+        data_file = os.path.join(
+            abs_path,
+            filename
+        )
+        with open(data_file, 'rb') as file_obj:
+            load_job = self.bq_client.load_table_from_file(
+                file_obj=file_obj,
+                destination=table,
+                job_config=job_config
+            )
+        return load_job.result()
+
     def test_initial_update(self, project_id):
         """Tests UserInfoUpdater ability to run an initial update.
 
@@ -104,22 +122,11 @@ class TestUserInfoUpdater(object):
          """
         # Load the first set of user updates to user_info_updates table.
         # All other tables should be empty at this point.
-        job_config = bigquery.LoadJobConfig()
-        job_config.source_format = bigquery.SourceFormat.CSV
-        job_config.skip_leading_rows = 1
-        abs_path = os.path.abspath(os.path.dirname(__file__))
-        data_file = os.path.join(
-            abs_path,
-            'test_data/user_info_updates_data_1.csv'
-        )
-        with open(data_file, 'rb') as file_obj:
-            load_job = self.bq_client.load_table_from_file(
-                file_obj=file_obj,
-                destination=self.dataset_ref.table(self.user_info_updates_id),
-                job_config=job_config
-            )
-            load_job.result()
 
+        self.load_csv_to_bq(
+            filename='test_data/user_info_updates_data_1.csv',
+            table=self.dataset_ref.table(self.user_info_updates_id)
+        )
         # Run the UserInfoUpdater on the first set of updates.
         test_updater = user_info_updater.UserInfoUpdater(
             project_id,
@@ -163,6 +170,7 @@ class TestUserInfoUpdater(object):
             .sort_values(by=['userId']).reset_index(drop=True)
 
         # Gather expected results for comparison
+        abs_path = os.path.abspath(os.path.dirname(__file__))
         expected_temp_data_file = os.path.join(
             abs_path,
             'test_data/temp_user_info_updates_expected_1.csv'
@@ -222,53 +230,23 @@ class TestUserInfoUpdater(object):
                  """
         # Load a second set of user updates to user_info_updates table to
         # simulate a second iteration.
-
-        job_config = bigquery.LoadJobConfig()
-        job_config.source_format = bigquery.SourceFormat.CSV
-        job_config.skip_leading_rows = 1
-
-        abs_path = os.path.abspath(os.path.dirname(__file__))
-        updates_data_file = os.path.join(
-            abs_path,
-            'test_data/user_info_updates_data_2.csv'
+        self.load_csv_to_bq(
+            filename='test_data/user_info_updates_data_2.csv',
+            table=self.dataset_ref.table(self.user_info_updates_id)
         )
-        with open(updates_data_file, 'rb') as file_obj:
-            updates_load_job = self.bq_client.load_table_from_file(
-                file_obj=file_obj,
-                destination=self.dataset_ref.table(
-                    self.user_info_updates_id),
-                job_config=job_config
-            )
-            updates_load_job.result()
 
         # Load data into the temp table and final table so that they will
         # contain the same data they did at the end of the
         # test_initial_update() test.
-        temp_data_file = os.path.join(
-            abs_path,
-            'test_data/temp_user_info_updates_expected_1.csv'
+        self.load_csv_to_bq(
+            filename='test_data/temp_user_info_updates_expected_1.csv',
+            table=self.dataset_ref.table(self.temp_user_info_updates_id)
         )
-        with open(temp_data_file, 'rb') as file_obj:
-            temp_load_job = self.bq_client.load_table_from_file(
-                file_obj=file_obj,
-                destination=self.dataset_ref.table(
-                    self.temp_user_info_updates_id),
-                job_config=job_config
-            )
-            temp_load_job.result()
 
-        final_data_file = os.path.join(
-            abs_path,
-            'test_data/user_info_final_expected_1.csv'
+        self.load_csv_to_bq(
+            filename='test_data/user_info_final_expected_1.csv',
+            table=self.dataset_ref.table(self.user_info_final_id),
         )
-        with open(final_data_file, 'rb') as file_obj:
-            final_load_job = self.bq_client.load_table_from_file(
-                file_obj=file_obj,
-                destination=self.dataset_ref.table(
-                    self.user_info_final_id),
-                job_config=job_config
-            )
-            final_load_job.result()
 
         # Run the UserInfoUpdater on the second set of updates.
         test_updater = user_info_updater.UserInfoUpdater(
@@ -310,6 +288,7 @@ class TestUserInfoUpdater(object):
         temp_table_results_df = temp_table_query.to_dataframe() \
             .sort_values(by=['userId']).reset_index(drop=True)
         # Gather expected results for comparison
+        abs_path = os.path.abspath(os.path.dirname(__file__))
         expected_temp_data_file = os.path.join(
             abs_path,
             'test_data/temp_user_info_updates_expected_2.csv'

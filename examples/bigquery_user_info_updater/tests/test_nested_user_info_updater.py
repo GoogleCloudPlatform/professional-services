@@ -94,6 +94,23 @@ class TestNestedUserInfoUpdater(object):
         except exceptions.NotFound:
             return self.bq_client.create_table(table)
 
+    def load_json_to_bq(self, filename, table):
+        job_config = bigquery.LoadJobConfig()
+        job_config.source_format = bigquery.SourceFormat.NEWLINE_DELIMITED_JSON
+
+        abs_path = os.path.abspath(os.path.dirname(__file__))
+        data_file = os.path.join(
+            abs_path,
+            filename
+        )
+        with open(data_file, 'rb') as file_obj:
+            load_job = self.bq_client.load_table_from_file(
+                file_obj=file_obj,
+                destination=table,
+                job_config=job_config
+            )
+        return load_job.result()
+
     def test_nested_data_user_update(self, project_id):
         """Tests UserInfoUpdater ability to run an update on nested user data.
 
@@ -105,50 +122,22 @@ class TestNestedUserInfoUpdater(object):
                  """
         # Load a set of user updates to nested user_info_updates table.
 
-        job_config = bigquery.LoadJobConfig()
-        job_config.source_format = bigquery.SourceFormat.NEWLINE_DELIMITED_JSON
-
-        abs_path = os.path.abspath(os.path.dirname(__file__))
-        updates_data_file = os.path.join(
-            abs_path,
-            'test_data/nested_data/user_info_updates_data.json'
+        self.load_json_to_bq(
+            filename='test_data/nested_data/user_info_updates_data.json',
+            table=self.dataset_ref.table(self.user_info_updates_id)
         )
-        with open(updates_data_file, 'rb') as file_obj:
-            updates_load_job = self.bq_client.load_table_from_file(
-                file_obj=file_obj,
-                destination=self.dataset_ref.table(
-                    self.user_info_updates_id),
-                job_config=job_config
-            )
-            updates_load_job.result()
 
         # Load data into the temp table and final table to simulate a previous
         #  run.
-        temp_data_file = os.path.join(
-            abs_path,
-            'test_data/nested_data/temp_user_info_updates_initial.json'
+        self.load_json_to_bq(
+            filename='test_data/nested_data/'
+                     'temp_user_info_updates_initial.json',
+            table=self.dataset_ref.table(self.temp_user_info_updates_id)
         )
-        with open(temp_data_file, 'rb') as file_obj:
-            temp_load_job = self.bq_client.load_table_from_file(
-                file_obj=file_obj,
-                destination=self.dataset_ref.table(
-                    self.temp_user_info_updates_id),
-                job_config=job_config
-            )
-            temp_load_job.result()
-
-        final_data_file = os.path.join(
-            abs_path,
-            'test_data/nested_data/user_info_final_initial.json'
+        self.load_json_to_bq(
+            filename='test_data/nested_data/user_info_final_initial.json',
+            table=self.dataset_ref.table(self.user_info_final_id)
         )
-        with open(final_data_file, 'rb') as file_obj:
-            final_load_job = self.bq_client.load_table_from_file(
-                file_obj=file_obj,
-                destination=self.dataset_ref.table(
-                    self.user_info_final_id),
-                job_config=job_config
-            )
-            final_load_job.result()
 
         # Run the UserInfoUpdater on the second set of updates.
         test_updater = user_info_updater.UserInfoUpdater(
@@ -191,6 +180,7 @@ class TestNestedUserInfoUpdater(object):
             .sort_values(by=['userId']).reset_index(drop=True)
 
         # Gather expected results for comparison
+        abs_path = os.path.abspath(os.path.dirname(__file__))
         expected_temp_data_file = os.path.join(
             abs_path,
             'test_data/nested_data/temp_user_info_updates_expected.json'
