@@ -198,9 +198,9 @@ class QueryCreator(object):
             inner_string = input_file.read()
 
         # Transform the user schema into a dict for processing
-        json_file = open(self.schema_path)
-        json_str = json_file.read()
-        json_schema = json.loads(json_str)
+        with open(self.schema_path, 'r') as f:
+            json_str = f.read()
+            json_schema = json.loads(json_str)
 
         ignore_fields = [
             self.user_id_field_name,
