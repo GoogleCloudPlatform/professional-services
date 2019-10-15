@@ -207,8 +207,6 @@ class QueryCreator(object):
             self.ingest_timestamp_field_name
         ]
 
-        # Process each field in the schema to build the select statement and
-        # inner queries
         for item in json_schema["fields"]:
             if item["name"] not in ignore_fields:
                 _process_inner_string_field(item)
