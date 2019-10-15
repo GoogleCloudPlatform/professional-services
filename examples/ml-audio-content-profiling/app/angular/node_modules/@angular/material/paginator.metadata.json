@@ -1,0 +1,12 @@
+{
+  "__symbolic": "module",
+  "version": 3,
+  "metadata": {},
+  "exports": [
+    {
+      "from": "./paginator/index"
+    }
+  ],
+  "flatModuleIndexRedirect": true,
+  "importAs": "@angular/material/paginator"
+}

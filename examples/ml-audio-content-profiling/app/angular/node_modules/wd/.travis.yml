@@ -1,0 +1,40 @@
+notifications:
+  email: false
+branches:
+  only:
+    - master
+language: node_js
+node_js:
+  - "10"
+# addons:
+#   sauce_connect: true
+env:
+  global:
+    - TIMEOUT=600000
+    # - HTTP_TIMEOUT=60000
+    - HTTP_RETRIES=3
+    - HTTP_RETRY_DELAY=60000
+    - DEBUG_CONNECTION=1
+    - CONCURRENCY=15
+    # - THROTTLE=5
+    - VERBOSE=1
+    - SAUCE_CONNECT_VERSION='4.5.1'
+    - SAUCE_CONNECT_VERBOSE=1
+  matrix:
+    - CONFIG=unit
+    - CONFIG=multi
+    - CONFIG=chrome
+    - CONFIG=firefox
+    - CONFIG=explorer
+    # - CONFIG=iphone
+    # - CONFIG=ipad
+    # - CONFIG=android_phone
+# matrix:
+#   include:
+#     - node_js: "5"
+#       env: CONFIG=chrome_e2e
+#   allow_failures:
+#     - node_js: "5"
+#       env: CONFIG=chrome_e2e
+script:
+  - "node_modules/.bin/gulp travis --config $CONFIG --sauce"
