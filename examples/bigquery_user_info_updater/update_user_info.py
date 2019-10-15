@@ -109,7 +109,6 @@ def main(argv=None):
     gather_updates_query = update_query_creator.create_gather_updates_query()
     merge_updates_query = update_query_creator.create_merge_query()
 
-    # Start the update process
     updater = user_info_updater.UserInfoUpdater(
         project_id,
         dataset_id,
