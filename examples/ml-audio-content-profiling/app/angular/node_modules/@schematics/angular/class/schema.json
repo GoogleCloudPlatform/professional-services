@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "id": "SchematicsAngularClass",
+  "title": "Angular Class Options Schema",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "The name of the class.",
+      "$default": {
+        "$source": "argv",
+        "index": 0
+      },
+      "x-prompt": "What name would you like to use for the class?"
+    },
+    "path": {
+      "type": "string",
+      "format": "path",
+      "description": "The path to create the class.",
+      "visible": false
+    },
+    "project": {
+      "type": "string",
+      "description": "The name of the project.",
+      "$default": {
+        "$source": "projectName"
+      }
+    },
+    "spec": {
+      "type": "boolean",
+      "description": "Specifies if a spec file is generated.",
+      "default": false
+    },
+    "type": {
+      "type": "string",
+      "description": "Specifies the type of class.",
+      "default": ""
+    }
+  },
+  "required": [
+    "name",
+    "project"
+  ]
+}

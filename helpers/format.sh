@@ -32,13 +32,26 @@ do
     then
         echo "Formatting $FOLDER"
 
+        echo "Formatting python files (if any)"
+
         FILES_TO_FORMAT=$(find $FOLDER -type f -name "*.py")
         if [[ ! -z "$FILES_TO_FORMAT" ]]
         then
-            # format all python files in place
-            yapf -i -r --style google $FILES_TO_FORMAT
+            # format all python files in place for python2
+            python2 /usr/local/bin/yapf -i -r --style google $FILES_TO_FORMAT > /dev/null 2>&1
+
+            # If python2 failed, try to format using python3 instead
+            if [[ $? -ne 0 ]]
+            then
+                # format all python files in place for python2
+                python3 /usr/local/bin/yapf -i -r --style google $FILES_TO_FORMAT > /dev/null
+            fi
         else
             echo "No python files found for $FOLDER - SKIP"
         fi
+
+        echo "Formatting go files (if any)"
+        gofmt -w $FOLDER
+
     fi
 done

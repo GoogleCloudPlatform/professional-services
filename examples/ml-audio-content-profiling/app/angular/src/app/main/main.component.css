@@ -1,0 +1,19 @@
+table {
+  width: 80%;
+  margin: auto;
+}
+
+.mat-row:hover {
+  background-color: #CFDBC5;
+  cursor: pointer;
+}
+
+.card-width{
+  padding-left: 3em;
+  padding-right: 3em;
+  text-align: center;
+}
+
+.selected-row {
+  background-color: #CFDBC5;
+}

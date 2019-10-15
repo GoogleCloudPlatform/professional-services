@@ -1,0 +1,8 @@
+{
+  "name": "@angular/material/progress-bar",
+  "typings": "../progress-bar.d.ts",
+  "main": "../bundles/material-progress-bar.umd.js",
+  "module": "../esm5/progress-bar.es5.js",
+  "es2015": "../esm2015/progress-bar.js",
+  "sideEffects": false
+}
