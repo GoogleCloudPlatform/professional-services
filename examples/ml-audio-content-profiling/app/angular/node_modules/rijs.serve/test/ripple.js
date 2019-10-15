@@ -1,1 +1,0 @@
-var ripple = 'hello world'

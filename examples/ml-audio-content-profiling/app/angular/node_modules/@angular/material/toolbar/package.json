@@ -1,8 +1,0 @@
-{
-  "name": "@angular/material/toolbar",
-  "typings": "../toolbar.d.ts",
-  "main": "../bundles/material-toolbar.umd.js",
-  "module": "../esm5/toolbar.es5.js",
-  "es2015": "../esm2015/toolbar.js",
-  "sideEffects": false
-}
