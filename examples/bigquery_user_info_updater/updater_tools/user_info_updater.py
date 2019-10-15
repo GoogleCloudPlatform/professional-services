@@ -84,16 +84,7 @@ class UserInfoUpdater(object):
         return max_ingest_timestamp.strftime('%Y-%m-%d %H:%M:%S.%f %Z')
 
     def gather_updates(self, gather_updates_query):
-        """Gathers updates to be written to the final table.
-
-        Uses the query stored in gather_updates_query to select any rows that
-        have been added to the updates table since the latest merge was run,
-        removes any duplicate rows, and combines multiple updates for each user
-        into one row. If the query contains results, saves the resulting rows to
-        the temp updates table by rerunning the query on cached results.
-        Otherwise, the temp updates table is left untouched so that the max
-        timestamp from the last run can be used for the max timestamp for the
-        next run.
+        """Gathers updates to a temp table.
 
         Args:
             gather_updates_query(str): Query string for gathering updates.
@@ -148,17 +139,11 @@ class UserInfoUpdater(object):
             return False
 
     def merge_updates(self, merge_updates_query):
-        """Merges updated rows into the master final table.
-
-        Uses the bql query stored in merge_updates_file to merge rows from
-        the temp updates table into the master final table. Merge statement
-        either updates rows for any users who already have a row in the master
-        final table, or inserts rows for users who aren't yet in the master
-        final table.
+        """Merges rows from the temp table into the final table.
 
         Args:
             merge_updates_query(str): Query for merging updates from the temp
-                updates table to the master final table.
+                updates table to the final table.
 
         """
 
