@@ -42,7 +42,8 @@ class UserSchema(object):
             fields = ()
             if field['type'] == 'RECORD':
 
-                fields = tuple([_process_field(sub_field) for sub_field in field['fields']])
+                fields = tuple([_process_field(sub_field) for sub_field in
+                                field['fields']])
 
             return bigquery.SchemaField(
                     name=field['name'],
