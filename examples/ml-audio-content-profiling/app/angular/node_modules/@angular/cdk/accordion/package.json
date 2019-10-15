@@ -1,8 +1,0 @@
-{
-  "name": "@angular/cdk/accordion",
-  "typings": "../accordion.d.ts",
-  "main": "../bundles/cdk-accordion.umd.js",
-  "module": "../esm5/accordion.es5.js",
-  "es2015": "../esm2015/accordion.js",
-  "sideEffects": false
-}
