@@ -16,6 +16,8 @@ import logging
 
 from google.cloud import bigquery
 
+INITIAL_TIMESTAMP = '1900-01-01 00:00:00.000 UTC'
+
 
 class UserInfoUpdater(object):
     """Class for updating Identity data in BigQuery.
@@ -75,7 +77,7 @@ class UserInfoUpdater(object):
         results = list(get_last_max_timestamp_query)
         max_ingest_timestamp = results[0]['max_ingest_timestamp']
         if not max_ingest_timestamp:
-            max_ingest_timestamp = '1900-01-01 00:00:00.000 UTC'
+            max_ingest_timestamp = INITIAL_TIMESTAMP
 
         return str(max_ingest_timestamp)
 
