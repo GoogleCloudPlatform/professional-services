@@ -86,7 +86,7 @@ class UserInfoUpdater(object):
     def gather_updates(self, gather_updates_query):
         """Gathers updates to be written to the final table.
 
-        Uses tbe query stored in gather_updates_query to select any rows that
+        Uses the query stored in gather_updates_query to select any rows that
         have been added to the updates table since the latest merge was run,
         removes any duplicate rows, and combines multiple updates for each user
         into one row. If the query contains results, saves the resulting rows to
