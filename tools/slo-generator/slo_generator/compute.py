@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 `compute.py`
 Compute utilities.
@@ -25,8 +24,14 @@ from slo_generator import utils
 
 LOGGER = logging.getLogger(__name__)
 
-def compute(slo_config, error_budget_policy, timestamp=None, client=None,
-            do_export=False, backend_obj=None, backend_method=None,
+
+def compute(slo_config,
+            error_budget_policy,
+            timestamp=None,
+            client=None,
+            do_export=False,
+            backend_obj=None,
+            backend_method=None,
             backend_config=None):
     """Run pipeline to compute SLO, Error Budget and Burn Rate, and export the
     results (if exporters are specified in the SLO config).
@@ -55,18 +60,18 @@ def compute(slo_config, error_budget_policy, timestamp=None, client=None,
     # Compute SLO, Error Budget, Burn rates and make report
     exporters = slo_config.get('exporters')
     reports = []
-    for report in make_reports(
-            slo_config,
-            error_budget_policy,
-            timestamp,
-            client=client,
-            backend_obj=backend_obj,
-            backend_method=backend_method,
-            backend_config=backend_config):
+    for report in make_reports(slo_config,
+                               error_budget_policy,
+                               timestamp,
+                               client=client,
+                               backend_obj=backend_obj,
+                               backend_method=backend_method,
+                               backend_config=backend_config):
         reports.append(report)
         if exporters is not None and do_export is True:
             export(report, exporters)
     return reports
+
 
 def export(data, exporters):
     """Export data using selected exporters.
@@ -95,8 +100,14 @@ def export(data, exporters):
         results.append(ret)
         LOGGER.debug("Exporter return: %s", pprint.pformat(ret))
 
-def make_reports(slo_config, error_budget_policy, timestamp, client=None,
-                 backend_obj=None, backend_method=None, backend_config=None):
+
+def make_reports(slo_config,
+                 error_budget_policy,
+                 timestamp,
+                 client=None,
+                 backend_obj=None,
+                 backend_method=None,
+                 backend_config=None):
     """Run SLO reports for each step in the Error Budget config.
 
     Args:
@@ -127,29 +138,27 @@ def make_reports(slo_config, error_budget_policy, timestamp, client=None,
         backend_config = slo_config.get('backend', {})
         backend_cls = backend_config.get('class')
         method = backend_config.get('method')
-        backend_obj = utils.get_backend_cls(backend_cls)(client=client, **backend_config)
+        backend_obj = utils.get_backend_cls(backend_cls)(client=client,
+                                                         **backend_config)
         backend_method = getattr(backend_obj, method)
-        LOGGER.info("Backend method: %s (from SLO config file).", backend_cls + '.' + backend_method.__name__)
+        LOGGER.info("Backend method: %s (from SLO config file).",
+                    backend_cls + '.' + backend_method.__name__)
 
     # Loop through steps defined in error budget policy and make measurements
     for step in error_budget_policy:
         good_event_count, bad_event_count = backend_method(
             timestamp=timestamp,
             window=step['measurement_window_seconds'],
-            **slo_config['backend']
-        )
-        report = make_measurement(
-            slo_config,
-            step,
-            good_event_count,
-            bad_event_count,
-            timestamp)
+            **slo_config['backend'])
+        report = make_measurement(slo_config, step, good_event_count,
+                                  bad_event_count, timestamp)
         import pprint
         pprint.pprint(report)
         yield report
 
-def make_measurement(slo_config, step, good_event_count,
-                     bad_event_count, timestamp):
+
+def make_measurement(slo_config, step, good_event_count, bad_event_count,
+                     timestamp):
     """Measure following metrics: SLI, SLO, Error Budget, Burn Rate.
 
     Args:
@@ -162,15 +171,12 @@ def make_measurement(slo_config, step, good_event_count,
     Returns:
         dict: Report dictionary.
     """
-    LOGGER.info(
-        "Making SLO measurements for step '%s'",
-        step['error_budget_policy_step_name'])
+    LOGGER.info("Making SLO measurements for step '%s'",
+                step['error_budget_policy_step_name'])
     if (good_event_count + bad_event_count) == 0:
         error = "No valid events for {}/{}/{}/{}".format(
-            slo_config['service_name'],
-            slo_config['feature_name'],
-            slo_config['slo_name'],
-            step['error_budget_policy_step_name'])
+            slo_config['service_name'], slo_config['feature_name'],
+            slo_config['slo_name'], step['error_budget_policy_step_name'])
         LOGGER.error(error)
         return
 

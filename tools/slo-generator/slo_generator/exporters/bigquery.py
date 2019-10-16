@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 `bigquery.py`
 BigQuery exporter class.
@@ -22,6 +21,7 @@ import google.api_core
 from google.cloud import bigquery
 
 LOGGER = logging.getLogger(__name__)
+
 
 class BigqueryExporter(object):
     """BigQuery exporter class."""
@@ -56,11 +56,10 @@ class BigqueryExporter(object):
         try:
             table = self.client.get_table(table_ref)
         except google.api_core.exceptions.NotFound:
-            table = self.create_table(
-                project_id,
-                dataset_id,
-                table_id,
-                schema=TABLE_SCHEMA)
+            table = self.create_table(project_id,
+                                      dataset_id,
+                                      table_id,
+                                      schema=TABLE_SCHEMA)
         row_ids = "%s%s%s%s%s" % (data["service_name"], data["feature_name"],
                                   data["slo_name"], data["timestamp_human"],
                                   data["window"])
@@ -68,8 +67,7 @@ class BigqueryExporter(object):
             table,
             json_rows=[data],
             row_ids=[row_ids],
-            retry=google.api_core.retry.Retry(deadline=30)
-        )
+            retry=google.api_core.retry.Retry(deadline=30))
         if results != []:
             raise BigQueryError(results)
 
@@ -88,10 +86,9 @@ class BigqueryExporter(object):
         if schema is not None:
             schema = TABLE_SCHEMA
         for row in schema:
-            field = bigquery.SchemaField(
-                row['name'],
-                row['type'],
-                mode=row['mode'])
+            field = bigquery.SchemaField(row['name'],
+                                         row['type'],
+                                         mode=row['mode'])
             pyschema.append(field)
         table_id = f'{project_id}.{dataset_id}.{table_id}'
         LOGGER.info("Creating table %s", table_id)
@@ -117,143 +114,119 @@ class BigQueryError(Exception):
         return json.dumps(err)
 
 
-TABLE_SCHEMA = [
-    {
-        "description": "",
-        "name": "service_name",
-        "type": "STRING",
-        "mode": "REQUIRED"
-    },
-    {
-        "description": "",
-        "name": "feature_name",
-        "type": "STRING",
-        "mode": "REQUIRED"
-    },
-    {
-        "description": "",
-        "name": "slo_name",
-        "type": "STRING",
-        "mode": "REQUIRED"
-    },
-    {
-        "description": "",
-        "name": "slo_target",
-        "type": "FLOAT64",
-        "mode": "NULLABLE"
-    },
-    {
-        "description": "",
-        "name": "slo_description",
-        "type": "STRING",
-        "mode": "REQUIRED"
-    },
-    {
-        "description": "",
-        "name": "error_budget_policy_step_name",
-        "type": "STRING",
-        "mode": "NULLABLE"
-    },
-    {
-        "description": "",
-        "name": "error_budget_remaining_minutes",
-        "type": "FLOAT64",
-        "mode": ""
-    },
-    {
-        "description": "",
-        "name": "consequence_message",
-        "type": "STRING",
-        "mode": "NULLABLE"
-    },
-    {
-        "description": "",
-        "name": "error_budget_minutes",
-        "type": "FLOAT64",
-        "mode": "NULLABLE"
-    },
-    {
-        "description": "",
-        "name": "error_minutes",
-        "type": "FLOAT64",
-        "mode": "NULLABLE"
-    },
-    {
-        "description": "",
-        "name": "error_budget_target",
-        "type": "FLOAT64",
-        "mode": "NULLABLE"
-    },
-    {
-        "description": "",
-        "name": "timestamp_human",
-        "type": "TIMESTAMP",
-        "mode": "REQUIRED"
-    },
-    {
-        "description": "",
-        "name": "timestamp",
-        "type": "FLOAT64",
-        "mode": "NULLABLE"
-    },
-    {
-        "description": "",
-        "name": "cadence",
-        "type": "STRING",
-        "mode": "NULLABLE"
-    },
-    {
-        "description": "",
-        "name": "window",
-        "type": "INT64",
-        "mode": "REQUIRED"
-    },
-    {
-        "description": "",
-        "name": "bad_events_count",
-        "type": "INT64",
-        "mode": "NULLABLE"
-    },
-    {
-        "description": "",
-        "name": "good_events_count",
-        "type": "INT64",
-        "mode": "NULLABLE"
-    },
-    {
-        "description": "",
-        "name": "sli_measurement",
-        "type": "FLOAT64",
-        "mode": "NULLABLE"
-    },
-    {
-        "description": "",
-        "name": "gap",
-        "type": "FLOAT64",
-        "mode": "NULLABLE"
-    },
-    {
-        "description": "",
-        "name": "error_budget_measurement",
-        "type": "FLOAT64",
-        "mode": "NULLABLE"
-    },
-    {
-        "description": "",
-        "name": "error_budget_burn_rate",
-        "type": "FLOAT64",
-        "mode": "NULLABLE"
-    },
-    {
-        "description": "",
-        "name": "alerting_burn_rate_threshold",
-        "type": "FLOAT64",
-        "mode": "NULLABLE"
-    },
-    {
-        "description": "",
-        "name": "alert",
-        "type": "BOOL",
-        "mode": "NULLABLE"
-    }
-]
+TABLE_SCHEMA = [{
+    "description": "",
+    "name": "service_name",
+    "type": "STRING",
+    "mode": "REQUIRED"
+}, {
+    "description": "",
+    "name": "feature_name",
+    "type": "STRING",
+    "mode": "REQUIRED"
+}, {
+    "description": "",
+    "name": "slo_name",
+    "type": "STRING",
+    "mode": "REQUIRED"
+}, {
+    "description": "",
+    "name": "slo_target",
+    "type": "FLOAT64",
+    "mode": "NULLABLE"
+}, {
+    "description": "",
+    "name": "slo_description",
+    "type": "STRING",
+    "mode": "REQUIRED"
+}, {
+    "description": "",
+    "name": "error_budget_policy_step_name",
+    "type": "STRING",
+    "mode": "NULLABLE"
+}, {
+    "description": "",
+    "name": "error_budget_remaining_minutes",
+    "type": "FLOAT64",
+    "mode": ""
+}, {
+    "description": "",
+    "name": "consequence_message",
+    "type": "STRING",
+    "mode": "NULLABLE"
+}, {
+    "description": "",
+    "name": "error_budget_minutes",
+    "type": "FLOAT64",
+    "mode": "NULLABLE"
+}, {
+    "description": "",
+    "name": "error_minutes",
+    "type": "FLOAT64",
+    "mode": "NULLABLE"
+}, {
+    "description": "",
+    "name": "error_budget_target",
+    "type": "FLOAT64",
+    "mode": "NULLABLE"
+}, {
+    "description": "",
+    "name": "timestamp_human",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED"
+}, {
+    "description": "",
+    "name": "timestamp",
+    "type": "FLOAT64",
+    "mode": "NULLABLE"
+}, {
+    "description": "",
+    "name": "cadence",
+    "type": "STRING",
+    "mode": "NULLABLE"
+}, {
+    "description": "",
+    "name": "window",
+    "type": "INT64",
+    "mode": "REQUIRED"
+}, {
+    "description": "",
+    "name": "bad_events_count",
+    "type": "INT64",
+    "mode": "NULLABLE"
+}, {
+    "description": "",
+    "name": "good_events_count",
+    "type": "INT64",
+    "mode": "NULLABLE"
+}, {
+    "description": "",
+    "name": "sli_measurement",
+    "type": "FLOAT64",
+    "mode": "NULLABLE"
+}, {
+    "description": "",
+    "name": "gap",
+    "type": "FLOAT64",
+    "mode": "NULLABLE"
+}, {
+    "description": "",
+    "name": "error_budget_measurement",
+    "type": "FLOAT64",
+    "mode": "NULLABLE"
+}, {
+    "description": "",
+    "name": "error_budget_burn_rate",
+    "type": "FLOAT64",
+    "mode": "NULLABLE"
+}, {
+    "description": "",
+    "name": "alerting_burn_rate_threshold",
+    "type": "FLOAT64",
+    "mode": "NULLABLE"
+}, {
+    "description": "",
+    "name": "alert",
+    "type": "BOOL",
+    "mode": "NULLABLE"
+}]

@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 `prometheus.py`
 Prometheus backend implementation.
@@ -23,6 +22,7 @@ from slo_generator.backends.base import MetricBackend
 from prometheus_http_client import Prometheus
 
 LOGGER = logging.getLogger(__name__)
+
 
 class PrometheusBackend(MetricBackend):
     """Backend for querying metrics from Prometheus."""

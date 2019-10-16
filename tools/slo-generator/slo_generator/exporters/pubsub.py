@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 `pubsub.py`
 Pubsub exporter class.
@@ -20,8 +19,10 @@ import json
 from google.cloud import pubsub_v1
 from slo_generator.exporters.base import Exporter
 
+
 class PubsubExporter(Exporter):
     """Pubsub exporter class."""
+
     def __init__(self):
         self.publisher = pubsub_v1.PublisherClient()
 

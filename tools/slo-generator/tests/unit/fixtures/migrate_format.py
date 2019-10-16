@@ -16,6 +16,7 @@
 # flake8: noqa
 import json
 
+
 def migrate_json(filepath=None, data=None):
     """Migrate old config format to new config format.
 
@@ -67,6 +68,7 @@ def migrate_json(filepath=None, data=None):
 
     return config
 
+
 OLD_1 = {
     "service_name": "datapipelines",
     "feature_name": "gcs2bq",
@@ -76,11 +78,16 @@ OLD_1 = {
     "slo_achievement_project_id": "brunore-stackdriver-test",
     "slo_achievement_topic_name": "slo-achievement",
     "measurement": {
-        "backend": "Stackdriver",
-        "slo_type": "exponential-distribution-cut",
-        "cut_after_bucket_number": 31,
-        "good_is_below_cut": False,
-        "filter_valid": "project=\"brunore-gaestd-test\" AND metric.type=\"custom.googleapis.com/datapipeline/throughput\" AND metric.labels.pipeline_category = \"gcs2bq\""
+        "backend":
+            "Stackdriver",
+        "slo_type":
+            "exponential-distribution-cut",
+        "cut_after_bucket_number":
+            31,
+        "good_is_below_cut":
+            False,
+        "filter_valid":
+            "project=\"brunore-gaestd-test\" AND metric.type=\"custom.googleapis.com/datapipeline/throughput\" AND metric.labels.pipeline_category = \"gcs2bq\""
     }
 }
 
@@ -99,9 +106,12 @@ NEW_1 = {
         "method": "exponential_distribution_cut",
         "project_id": "brunore-stackdriver-host-project",
         "measurement": {
-            "threshold_bucket": 31,
-            "good_below_threshold": False,
-            "filter_valid": "project=\"brunore-gaestd-test\" AND metric.type=\"custom.googleapis.com/datapipeline/throughput\" AND metric.labels.pipeline_category = \"gcs2bq\""
+            "threshold_bucket":
+                31,
+            "good_below_threshold":
+                False,
+            "filter_valid":
+                "project=\"brunore-gaestd-test\" AND metric.type=\"custom.googleapis.com/datapipeline/throughput\" AND metric.labels.pipeline_category = \"gcs2bq\""
         }
     }
 }
@@ -115,12 +125,14 @@ OLD_2 = {
     "slo_achievement_project_id": "brunore-stackdriver-test",
     "slo_achievement_topic_name": "slo-achievement",
     "measurement": {
-        "slo_type": "good-bad-ratio",
-        "filter_good": "project=\"brunore-gaestd-test\" AND metric.type=\"custom.googleapis.com/datapipeline/job_count\" AND metric.labels.metric_purpose = \"availability\" AND metric.labels.pipeline_category = \"teradata2bq\" AND metric.labels.event_type = \"good\"",
-        "filter_bad": "project=\"brunore-gaestd-test\" AND metric.type=\"custom.googleapis.com/datapipeline/job_count\" AND metric.labels.metric_purpose = \"availability\" AND metric.labels.pipeline_category = \"teradata2bq\" AND metric.labels.event_type = \"bad\""
+        "slo_type":
+            "good-bad-ratio",
+        "filter_good":
+            "project=\"brunore-gaestd-test\" AND metric.type=\"custom.googleapis.com/datapipeline/job_count\" AND metric.labels.metric_purpose = \"availability\" AND metric.labels.pipeline_category = \"teradata2bq\" AND metric.labels.event_type = \"good\"",
+        "filter_bad":
+            "project=\"brunore-gaestd-test\" AND metric.type=\"custom.googleapis.com/datapipeline/job_count\" AND metric.labels.metric_purpose = \"availability\" AND metric.labels.pipeline_category = \"teradata2bq\" AND metric.labels.event_type = \"bad\""
     }
 }
-
 
 NEW_2 = {
     "name": "availability",
@@ -137,11 +149,14 @@ NEW_2 = {
         "project_id": "brunore-stackdriver-host-project",
         "method": "good_bad_ratio",
         "measurement": {
-            "filter_good": "project=\"brunore-gaestd-test\" AND metric.type=\"custom.googleapis.com/datapipeline/job_count\" AND metric.labels.metric_purpose = \"availability\" AND metric.labels.pipeline_category = \"teradata2bq\" AND metric.labels.event_type = \"good\"",
-            "filter_bad": "project=\"brunore-gaestd-test\" AND metric.type=\"custom.googleapis.com/datapipeline/job_count\" AND metric.labels.metric_purpose = \"availability\" AND metric.labels.pipeline_category = \"teradata2bq\" AND metric.labels.event_type = \"bad\""
+            "filter_good":
+                "project=\"brunore-gaestd-test\" AND metric.type=\"custom.googleapis.com/datapipeline/job_count\" AND metric.labels.metric_purpose = \"availability\" AND metric.labels.pipeline_category = \"teradata2bq\" AND metric.labels.event_type = \"good\"",
+            "filter_bad":
+                "project=\"brunore-gaestd-test\" AND metric.type=\"custom.googleapis.com/datapipeline/job_count\" AND metric.labels.metric_purpose = \"availability\" AND metric.labels.pipeline_category = \"teradata2bq\" AND metric.labels.event_type = \"bad\""
         }
     }
 }
+
 
 def deep_eq(d1, d2):
     dump1 = json.dumps(d1, sort_keys=True)
@@ -150,5 +165,5 @@ def deep_eq(d1, d2):
 
 
 if __name__ == '__main__':
-    assert(deep_eq(migrate_json(data=OLD_1), NEW_1))
-    assert(deep_eq(migrate_json(data=OLD_2), NEW_2))
+    assert (deep_eq(migrate_json(data=OLD_1), NEW_1))
+    assert (deep_eq(migrate_json(data=OLD_2), NEW_2))

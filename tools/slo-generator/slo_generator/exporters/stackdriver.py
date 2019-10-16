@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 `stackdriver.py`
 Stackdriver Monitoring exporter class.
@@ -25,8 +24,10 @@ DEFAULT_METRIC_TYPE = "custom.googleapis.com/error_budget_burn_rate"
 DEFAULT_METRIC_DESCRIPTION = ("Speed at which the error budget for a given"
                               "aggregation window is consumed")
 
+
 class StackdriverExporter(Exporter):
     """Stackdriver Monitoring exporter class."""
+
     def __init__(self):
         self.client = monitoring_v3.MetricServiceClient()
 
@@ -111,8 +112,7 @@ class StackdriverExporter(Exporter):
             monitoring_v3.enums.MetricDescriptor.MetricKind.GAUGE)
         descriptor.value_type = (
             monitoring_v3.enums.MetricDescriptor.ValueType.DOUBLE)
-        descriptor.description = config.get(
-            'metric_description',
-            DEFAULT_METRIC_DESCRIPTION)
+        descriptor.description = config.get('metric_description',
+                                            DEFAULT_METRIC_DESCRIPTION)
         self.client.create_metric_descriptor(project, descriptor)
         return descriptor

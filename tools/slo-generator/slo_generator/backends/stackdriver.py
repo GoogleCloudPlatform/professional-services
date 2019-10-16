@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 `stackdriver.py`
 Stackdriver Monitoring backend implementation.
@@ -25,6 +24,7 @@ import math
 import pprint
 
 LOGGER = logging.getLogger(__name__)
+
 
 class StackdriverBackend(MetricBackend):
     """Backend for querying metrics from Stackdriver Monitoring.
@@ -55,9 +55,7 @@ class StackdriverBackend(MetricBackend):
         aggregation = self._get_aggregation(window)
         project = self.client.project_path(project_id)
         timeseries = self.client.list_time_series(
-            project,
-            filter,
-            measurement_window,
+            project, filter, measurement_window,
             monitoring_v3.enums.ListTimeSeriesRequest.TimeSeriesView.FULL,
             aggregation)
         LOGGER.debug(pprint.pformat(timeseries))
@@ -101,18 +99,16 @@ class StackdriverBackend(MetricBackend):
         filter_bad = measurement['filter_bad']
 
         # Query 'good events' timeseries
-        good_ts = self.query(
-            project_id=project_id,
-            timestamp=timestamp,
-            window=window,
-            filter=filter_good)
+        good_ts = self.query(project_id=project_id,
+                             timestamp=timestamp,
+                             window=window,
+                             filter=filter_good)
 
         # Query 'bad events' timeseries
-        bad_ts = self.query(
-            project_id=project_id,
-            timestamp=timestamp,
-            window=window,
-            filter=filter_bad)
+        bad_ts = self.query(project_id=project_id,
+                            timestamp=timestamp,
+                            window=window,
+                            filter=filter_bad)
         good_ts = list(good_ts)
         bad_ts = list(bad_ts)
 
@@ -148,11 +144,10 @@ class StackdriverBackend(MetricBackend):
         good_below_threshold = measurement.get('good_below_threshold', True)
 
         # Query 'valid' events
-        ts = self.query(
-            project_id=project_id,
-            timestamp=timestamp,
-            window=window,
-            filter=filter_valid)
+        ts = self.query(project_id=project_id,
+                        timestamp=timestamp,
+                        window=window,
+                        filter=filter_valid)
         ts = list(ts)
 
         if not ts:
@@ -214,7 +209,9 @@ class StackdriverBackend(MetricBackend):
         LOGGER.debug(pprint.pformat(measurement_window))
         return measurement_window
 
-    def _get_aggregation(self, window, aligner='ALIGN_SUM',
+    def _get_aggregation(self,
+                         window,
+                         aligner='ALIGN_SUM',
                          reducer='REDUCE_SUM'):
         """Helper for aggregation object.
 
@@ -231,9 +228,9 @@ class StackdriverBackend(MetricBackend):
         """
         aggregation = monitoring_v3.types.Aggregation()
         aggregation.alignment_period.seconds = window
-        aggregation.per_series_aligner = (
-            getattr(monitoring_v3.enums.Aggregation.Aligner, aligner))
-        aggregation.cross_series_reducer = (
-            getattr(monitoring_v3.enums.Aggregation.Reducer, reducer))
+        aggregation.per_series_aligner = (getattr(
+            monitoring_v3.enums.Aggregation.Aligner, aligner))
+        aggregation.cross_series_reducer = (getattr(
+            monitoring_v3.enums.Aggregation.Reducer, reducer))
         LOGGER.debug(pprint.pformat(aggregation))
         return aggregation

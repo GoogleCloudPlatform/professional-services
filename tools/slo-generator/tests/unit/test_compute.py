@@ -21,11 +21,8 @@ import string
 import time
 from google.cloud.monitoring_v3.proto import metric_service_pb2
 from slo_generator.exporters.bigquery import BigQueryError
-from slo_generator.compute import (
-    compute,
-    export,
-    make_reports,
-    make_measurement)
+from slo_generator.compute import (compute, export, make_reports,
+                                   make_measurement)
 
 cwd = os.path.dirname(os.path.abspath(__file__))
 
@@ -39,6 +36,7 @@ FIXTURES_CONFIG = {
     'BIGQUERY_DATASET_ID': 'fake',
     'BIGQUERY_TABLE_NAME': 'fake'
 }
+
 
 class MultiCallableStub(object):
     """Stub for the grpc.UnaryUnaryMultiCallable interface."""
@@ -60,6 +58,7 @@ class MultiCallableStub(object):
         if response:
             return response
 
+
 class ChannelStub(object):
     """Stub for the grpc.Channel interface."""
 
@@ -67,18 +66,25 @@ class ChannelStub(object):
         self.responses = responses
         self.requests = []
 
-    def unary_unary(self, method, request_serializer=None,
+    def unary_unary(self,
+                    method,
+                    request_serializer=None,
                     response_deserializer=None):
         return MultiCallableStub(method, self)
+
 
 def dummy_slo_function(timestamp, window, **kwargs):
     return (300, 2)
 
+
 class DummySLOBackend(object):
+
     def __init__(self, **kwargs):
         pass
+
     def dummy_slo_function(self, timestamp, window, **kwargs):
         return (300, 2)
+
 
 class TestCompute(unittest.TestCase):
 
@@ -94,16 +100,14 @@ class TestCompute(unittest.TestCase):
     def make_grpc_stub(self, nresp=1):
         next_page_token = ""
         time_series_element = self.load_fixture(
-            filename=f'{cwd}/fixtures/time_series_proto.json',
-            load_json=True)
+            filename=f'{cwd}/fixtures/time_series_proto.json', load_json=True)
         time_series = [time_series_element]
         expected_response = {
             "next_page_token": next_page_token,
             "time_series": time_series,
         }
         expected_response = metric_service_pb2.ListTimeSeriesResponse(
-            **expected_response
-        )
+            **expected_response)
         channel = ChannelStub(responses=[expected_response] * nresp)
         return channel
 
@@ -111,21 +115,15 @@ class TestCompute(unittest.TestCase):
         self.slo_config = self.load_fixture(
             filename=f'{cwd}/fixtures/slo_linear.json',
             load_json=True,
-            **FIXTURES_CONFIG
-        )
+            **FIXTURES_CONFIG)
         self.slo_config_exp = self.load_fixture(
             filename=f'{cwd}/fixtures/slo_exponential.json',
             load_json=True,
-            **FIXTURES_CONFIG
-        )
+            **FIXTURES_CONFIG)
         self.error_budget_policy = self.load_fixture(
-            filename=f'{cwd}/fixtures/error_budget_policy.json',
-            load_json=True
-        )
+            filename=f'{cwd}/fixtures/error_budget_policy.json', load_json=True)
         self.data = self.load_fixture(
-            filename=f'{cwd}/fixtures/slo_report.json',
-            load_json=True
-        )
+            filename=f'{cwd}/fixtures/slo_report.json', load_json=True)
         self.timestamp = time.time()
         self.good_event_count = 99
         self.bad_event_count = 1
@@ -146,26 +144,22 @@ class TestCompute(unittest.TestCase):
             compute(self.slo_config_exp, self.error_budget_policy)
 
     def test_compute_dummy_method(self):
-        results = compute(
-            slo_config=self.slo_config,
-            error_budget_policy=self.error_budget_policy,
-            backend_method=dummy_slo_function)
+        results = compute(slo_config=self.slo_config,
+                          error_budget_policy=self.error_budget_policy,
+                          backend_method=dummy_slo_function)
         results = list(results)
         pprint.pprint(results)
 
     def test_compute_dummy_obj(self):
-        results = compute(
-            slo_config=self.slo_config,
-            error_budget_policy=self.error_budget_policy,
-            backend_obj=DummySLOBackend(),
-            backend_method='dummy_slo_function'
-        )
+        results = compute(slo_config=self.slo_config,
+                          error_budget_policy=self.error_budget_policy,
+                          backend_obj=DummySLOBackend(),
+                          backend_method='dummy_slo_function')
         results = list(results)
         pprint.pprint(results)
 
     @mock.patch(
-        "google.cloud.pubsub_v1.gapic.publisher_client.PublisherClient.publish"
-    )
+        "google.cloud.pubsub_v1.gapic.publisher_client.PublisherClient.publish")
     @mock.patch("google.cloud.pubsub_v1.publisher.futures.Future.result")
     def test_export_pubsub(self, mock_pubsub, mock_pubsub_res):
         with mock_pubsub, mock_pubsub_res, \
@@ -202,28 +196,19 @@ class TestCompute(unittest.TestCase):
         with mock_bq, mock_bq_2, mock_bq_3, \
                 self.assertLogs(level='DEBUG') as log:
             mock_bq.return_value = self.load_fixture(
-                filename=f'{cwd}/fixtures/bq_error.json',
-                load_json=True
-            )
+                filename=f'{cwd}/fixtures/bq_error.json', load_json=True)
             with self.assertRaises(BigQueryError):
                 export(self.data, self.exporters[2])
             self.assertEqual(len(log.output), 4)
             self.assertEqual(len(log.records), 4)
 
     def test_make_reports(self):
-        make_reports(
-            self.slo_config,
-            self.error_budget_policy,
-            self.timestamp)
+        make_reports(self.slo_config, self.error_budget_policy, self.timestamp)
 
     def test_make_measurement(self):
-        make_measurement(
-            self.slo_config,
-            self.error_budget_policy[0],
-            self.good_event_count,
-            self.bad_event_count,
-            self.timestamp
-        )
+        make_measurement(self.slo_config, self.error_budget_policy[0],
+                         self.good_event_count, self.bad_event_count,
+                         self.timestamp)
 
 
 if __name__ == '__main__':

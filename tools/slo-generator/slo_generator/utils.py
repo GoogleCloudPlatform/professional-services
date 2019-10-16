@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 `utils.py`
 Utility functions.
@@ -25,10 +24,12 @@ import sys
 
 LOGGER = logging.getLogger(__name__)
 
+
 def get_human_time(timestamp):
     dt = datetime.fromtimestamp(timestamp)
     timeformat = '%Y-%m-%dT%H:%M:%S.%fZ'
     return datetime.strftime(dt, timeformat)
+
 
 def normalize(path):
     """Converts a path to an absolute path.
@@ -41,6 +42,7 @@ def normalize(path):
     """
     return os.path.abspath(path)
 
+
 def get_backend_cls(backend):
     """Get backend class.
 
@@ -50,10 +52,10 @@ def get_backend_cls(backend):
     Returns:
         class: Backend class.
     """
-    return import_dynamic(
-        f'slo_generator.backends.{backend.lower()}',
-        f'{backend.capitalize()}Backend',
-        prefix="backend")
+    return import_dynamic(f'slo_generator.backends.{backend.lower()}',
+                          f'{backend.capitalize()}Backend',
+                          prefix="backend")
+
 
 def get_exporter_cls(exporter):
     """Get exporter class.
@@ -64,10 +66,10 @@ def get_exporter_cls(exporter):
     Returns:
         class: Exporter class.
     """
-    return import_dynamic(
-        f'slo_generator.exporters.{exporter.lower()}',
-        f'{exporter.capitalize()}Exporter',
-        prefix="exporter")
+    return import_dynamic(f'slo_generator.exporters.{exporter.lower()}',
+                          f'{exporter.capitalize()}Exporter',
+                          prefix="exporter")
+
 
 def import_dynamic(package, name, prefix="class"):
     """Import class or method dynamically from package and name.
@@ -84,7 +86,5 @@ def import_dynamic(package, name, prefix="class"):
     except Exception:  # pylint: disable=W0703
         LOGGER.error(
             '%s "%s.%s" not found, check the package and class name are valid.',
-            prefix.capitalize(),
-            package,
-            name)
+            prefix.capitalize(), package, name)
         sys.exit(1)

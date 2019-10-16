@@ -15,12 +15,9 @@
 import unittest
 import os
 
-from slo_generator.utils import (
-    get_human_time,
-    get_backend_cls,
-    get_exporter_cls,
-    import_dynamic,
-    normalize)
+from slo_generator.utils import (get_human_time, get_backend_cls,
+                                 get_exporter_cls, import_dynamic, normalize)
+
 
 class TestUtils(unittest.TestCase):
 
@@ -51,21 +48,18 @@ class TestUtils(unittest.TestCase):
             get_exporter_cls("UndefinedExporter")
 
     def test_import_dynamic(self):
-        res1 = import_dynamic(
-            "slo_generator.backends.stackdriver",
-            "StackdriverBackend",
-            prefix="backend")
-        res2 = import_dynamic(
-            "slo_generator.exporters.stackdriver",
-            "StackdriverExporter",
-            prefix="exporter")
+        res1 = import_dynamic("slo_generator.backends.stackdriver",
+                              "StackdriverBackend",
+                              prefix="backend")
+        res2 = import_dynamic("slo_generator.exporters.stackdriver",
+                              "StackdriverExporter",
+                              prefix="exporter")
         self.assertEqual(res1.__name__, "StackdriverBackend")
         self.assertEqual(res2.__name__, "StackdriverExporter")
         with self.assertRaises(SystemExit):
-            import_dynamic(
-                "slo_generator.backends.unknown",
-                "StackdriverUnknown",
-                prefix="unknown")
+            import_dynamic("slo_generator.backends.unknown",
+                           "StackdriverUnknown",
+                           prefix="unknown")
 
     def test_normalize(self):
         path = "../"
