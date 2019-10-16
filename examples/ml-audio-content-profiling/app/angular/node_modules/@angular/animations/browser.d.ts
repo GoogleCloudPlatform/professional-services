@@ -1,3 +1,0 @@
-
-  export * from './browser/browser';
-  
