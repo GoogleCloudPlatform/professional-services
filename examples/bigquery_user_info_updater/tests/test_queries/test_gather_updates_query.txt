@@ -21,8 +21,8 @@ FROM (
             ingestTimestamp
         ) OVER(WIN) maxTimestampInWindow
     FROM (
-        SELECT * FROM `data-analytics-pocs.user_updater_test.test_user_info_updates`
-        WHERE ingestTimestamp  > timestamp('{0:s}')
+        SELECT * FROM `{0:s}.user_updater_test.test_user_info_updates`
+        WHERE ingestTimestamp  > timestamp('{1:s}')
     )
     window win as (
         partition by userId ORDER BY ingestTimestamp DESC

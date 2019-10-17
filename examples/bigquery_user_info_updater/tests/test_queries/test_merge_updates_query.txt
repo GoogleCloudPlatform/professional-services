@@ -1,5 +1,5 @@
-MERGE `data-analytics-pocs.user_updater_test.test_user_info_final` m
-USING `data-analytics-pocs.user_updater_test.test_temp_user_info_updates` u
+MERGE `{0:s}.user_updater_test.test_user_info_final` m
+USING `{0:s}.user_updater_test.test_temp_user_info_updates` u
 ON m.userId = u.userId
 WHEN MATCHED THEN 
 	UPDATE SET

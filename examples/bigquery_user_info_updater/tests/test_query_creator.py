@@ -47,6 +47,11 @@ class TestQueryCreator(object):
         self.user_id_field_name = "userId"
         self.ingest_timestamp_field_name = "ingestTimestamp"
 
+    @staticmethod
+    def _write_query(query_path, query):
+        with open(query_path, 'w') as output:
+            output.write(query)
+
     def test_create_gather_updates_query(self, project_id):
         """Tests QueryCreator's ability to create a query to gather updates.
 
@@ -78,7 +83,12 @@ class TestQueryCreator(object):
             abs_path,
             'test_queries/test_gather_updates_query.txt')
         with open(test_gather_updates_query_path, 'r') as input_file:
-            expected_gather_updates_query = input_file.read()
+            expected_gather_updates_query = input_file.read().format(
+                project_id,
+                '{0:s}'
+            )
+            print(project_id)
+            print(type(expected_gather_updates_query))
         assert gather_updates_query == expected_gather_updates_query
 
     def test_nested_create_gather_updates_query(self, project_id):
@@ -113,7 +123,10 @@ class TestQueryCreator(object):
             abs_path,
             'test_queries/test_nested_gather_updates_query.txt')
         with open(test_gather_updates_query_path, 'r') as input_file:
-            expected_gather_updates_query = input_file.read()
+            expected_gather_updates_query = input_file.read().format(
+                project_id,
+                '{0:s}'
+            )
         assert gather_updates_query == expected_gather_updates_query
 
     def test_create_merge_query(self, project_id):
@@ -143,14 +156,15 @@ class TestQueryCreator(object):
         )
 
         merge_updates_query = test_query_creator.create_merge_query()
-        with open('merge.txt', 'w') as output:
-            output.write(merge_updates_query)
+        self._write_query('merge.txt', merge_updates_query)
         abs_path = os.path.abspath(os.path.dirname(__file__))
         test_merge_updates_query_path = os.path.join(
             abs_path,
             'test_queries/test_merge_updates_query.txt')
         with open(test_merge_updates_query_path, 'r') as input_file:
-            expected_merge_updates_query = input_file.read()
+            expected_merge_updates_query = input_file.read().format(
+                project_id
+            )
         assert merge_updates_query == expected_merge_updates_query
 
     def test_nested_create_merge_updates_query(self, project_id):
@@ -187,6 +201,8 @@ class TestQueryCreator(object):
             abs_path,
             'test_queries/test_nested_merge_updates_query.txt')
         with open(test_merge_updates_query_path, 'r') as input_file:
-            expected_merge_updates_query = input_file.read()
+            expected_merge_updates_query = input_file.read().format(
+                project_id
+            )
 
         assert merge_updates_query == expected_merge_updates_query
