@@ -38,16 +38,11 @@ setup(
     keywords='gcp asset inventory',
     packages=['asset_inventory'],
     setup_requires=['pytest-runner'],
-    tests_require=['mock', 'pytest'],
+    tests_require=['mock<3.0.0', 'pytest', 'apache-beam[gcp]>=2.9.0'],
     include_package_data=True,
     data_files=[('.', ['asset_inventory/cai_to_api_properties.json'])],
     install_requires=[
-        'google-api-core',
-        'google-apitools',
-        'httplib2',
-        'oauth2client<4',
-        'google-api-python-client',
-        'googleapis-common-protos==1.5.3',
-        'google-cloud-asset', 'google-cloud-bigquery==1.6.0',
-        'requests-futures'
+        'google-cloud-asset==0.2.0',
+        'google-cloud-bigquery<1.18.0',
+        'requests-futures==1.0.0'
     ])
