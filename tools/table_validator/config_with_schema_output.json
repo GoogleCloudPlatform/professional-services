@@ -1,0 +1,10 @@
+{
+  "project_id": "project_id",
+  "destinationDataset": "validation",
+  "excludeColumnMapping": {
+      "lefttablename":[
+        "latitude",
+        "longitude"
+    ]
+  }
+}
