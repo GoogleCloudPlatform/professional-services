@@ -69,5 +69,42 @@ The timing Tab displaus a Gantt style view to quickly show how long the indivuda
 
 The application will only display graphs for queries. Load jobs etc do not result in query stages being output.
 
+The Timing Page will not load if the execution times of jobs are less than 1 second. Thisi s a limitation of the graphing 
+package.
+
 Clicking the get projects when not yet logged in will result in a login process being started instead. Users need to
 click on get projects button again after login was successful.
+
+The Number of records transferred displayed for reads from tables can be incorrect if the stage reads from more than one table.
+This is a limitation in the Job Details providewd by BQ.
+
+# Building and Deploying
+The applicagtion is a Single Page Application without a backend. It can be built and deployed to any webserver that c capable of serving static pages,
+such as:
+
+* Apache
+* Tomcat
+* IIS
+
+## Client ID
+
+To be able to access the BigQuery REST API you need to have create an OAuth client. Create this in the Google Cloud
+Console under APIs & Services > Credentials.
+When setting up the Client ID the #Authorized JavaScript origins# 
+needs to be set to the URL from where the app is downloaded.
+
+And #Authorized redirect URIs# need to be set to:
+
+*  [download URL] 
+*  [download URL]/ 
+*  [download URL]/jobs
+
+Once Done, set the value for *clientId* in the file ./envirnments/environment.prod.ts to 
+the *ClientId* value in the console's Credential page
+
+##Building
+The Angular UI needs to be installed.
+The compile with
+  *ng build --prod*
+
+THe output will e in the dist package. Deploy its contents to the web server  

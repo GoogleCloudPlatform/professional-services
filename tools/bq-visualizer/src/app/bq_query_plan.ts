@@ -18,7 +18,7 @@ import * as google from 'google-charts';
 import {LogService} from './log.service';
 import {Job, QueryStage, QueryStep} from './rest_interfaces';
 
-interface Edge {
+export interface Edge {
   from: QueryStage;
   to: QueryStage;
   outputName: string;
@@ -257,14 +257,6 @@ export class BqQueryPlan {
   }
   /** Return a formatted text of all details minus the steps. */
   getStageStats(node: QueryStage): string {
-    /*const result = {};
-    for (const key of Object.keys(node)) {
-      if (key === 'steps') {
-        continue;
-      }
-      result[key] = node[key];
-    }
-    return JSON.stringify(result, null, 4);*/
     return this.formatStageStats(node);
   }
 
