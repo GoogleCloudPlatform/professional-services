@@ -96,7 +96,7 @@ export class PlanStatusCardComponent {
             Number(stats.query.billingTier).toLocaleString('en') :
             'n/a',
         'cacheHit                ':
-            stats.query ? stats.query.cacheHit.toString() : 'n/a',
+            stats.query.cacheHit ? stats.query.cacheHit.toString() : 'n/a',
         'estimatedBytesProcessed ': stats.query ?
             Number(stats.query.estimatedBytesProcessed).toLocaleString('en') :
             'n/a',
