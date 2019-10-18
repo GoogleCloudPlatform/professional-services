@@ -53,5 +53,19 @@ do
         echo "Formatting go files (if any)"
         gofmt -w $FOLDER
 
+        if [[ -f "$FOLDER/tsconfig.json" ]]
+        then
+            echo "Formatting typescript (if possible)"
+            cd $FOLDER
+            npx gts init > /dev/null
+            npm audit fix
+            cd -
+
+            if [[ "$?" -ne 0 ]]
+            then
+                echo "npm audit fix returned an error - exiting"
+                exit 1
+            fi
+        fi
     fi
 done

@@ -104,6 +104,38 @@ validate_go() {
     fi
 }
 
+# validate_go - takes a folder path as input and validate folder
+# using gts
+# errors out if gts init or npm audit returns a non-0 status
+validate_typescript(){
+    FOLDER=$1
+    if [[ -f "$FOLDER/tsconfig.json" ]]
+    then
+        echo "Validating $FOLDER - Checking typescript files"
+        cd $FOLDER
+        npx gts -y init > /dev/null
+
+        if [[ "$?" -eq 0  ]]
+        then
+            echo "Running npm audit..."
+            npm audit
+            cd -
+            if [[ "$?" -ne 0  ]]
+            then
+                echo "$FOLDER npm audit needs fixing - FAIL"
+                exit 1
+            else
+                echo "$FOLDER npm audit is clean - PASS"
+            fi
+        else
+            cd -
+            echo "gts init returned an error - FAIL"
+            exit 1
+        fi
+    fi
+
+}
+
 # temporary list of folders to exclude
 EXCLUDE_FOLDERS=$(cat helpers/exclusion_list.txt)
 
@@ -111,8 +143,9 @@ for FOLDER in $(find tools examples -maxdepth 1 -mindepth 1 -type d);
 do
     if  [[ ! ${EXCLUDE_FOLDERS[@]} =~ "$FOLDER" ]]
     then
-        validate_python $FOLDER
+        # validate_python $FOLDER
         validate_go $FOLDER
+        validate_typescript $FOLDER
     else
         echo "$FOLDER in exclusion list - SKIP  "
     fi
