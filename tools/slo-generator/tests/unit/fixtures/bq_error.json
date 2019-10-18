@@ -1,0 +1,12 @@
+[
+  {
+    "errors": [
+      {
+        "location": "us-east1",
+        "debugInfo": "This is some debug info",
+        "message": "This is a test exception",
+        "reason": "You are running a test suite"
+      }
+    ]
+  }
+]

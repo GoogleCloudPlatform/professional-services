@@ -33,6 +33,7 @@ parse_data_generator_args, validate_data_args, fetch_schema,\
 write_n_line_file_to_gcs
 
 import avro.schema
+import fastavro
 import os
 
 from data_generator.CsvUtil import dict_to_csv
@@ -113,6 +114,7 @@ def run(argv=None):
 
     if data_args.avro_schema_file:
         avsc = avro.schema.parse(open(data_args.avro_schema_file, 'rb').read())
+        fastavro_avsc = fastavro.schema.load_schema(data_args.avro_schema_file)
 
         (rows
             # Need to convert time stamps from strings to timestamp-micros
@@ -123,7 +125,7 @@ def run(argv=None):
                     codec='null',
                     file_name_suffix='.avro',
                     use_fastavro=True,
-                    schema=avsc
+                    schema=fastavro_avsc
                 )
         )
 
