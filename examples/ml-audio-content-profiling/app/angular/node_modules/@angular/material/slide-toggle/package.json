@@ -1,8 +1,0 @@
-{
-  "name": "@angular/material/slide-toggle",
-  "typings": "../slide-toggle.d.ts",
-  "main": "../bundles/material-slide-toggle.umd.js",
-  "module": "../esm5/slide-toggle.es5.js",
-  "es2015": "../esm2015/slide-toggle.js",
-  "sideEffects": false
-}

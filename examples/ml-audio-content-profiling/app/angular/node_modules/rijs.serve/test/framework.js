@@ -1,1 +1,0 @@
-var framework = 'hello world'

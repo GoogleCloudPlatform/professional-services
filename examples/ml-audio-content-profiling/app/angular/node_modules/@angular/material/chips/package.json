@@ -1,8 +1,0 @@
-{
-  "name": "@angular/material/chips",
-  "typings": "../chips.d.ts",
-  "main": "../bundles/material-chips.umd.js",
-  "module": "../esm5/chips.es5.js",
-  "es2015": "../esm2015/chips.js",
-  "sideEffects": false
-}
