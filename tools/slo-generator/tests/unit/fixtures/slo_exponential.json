@@ -1,0 +1,34 @@
+{
+    "slo_name": "bq-exec-time",
+    "slo_target": 200,
+    "slo_description": "SLO for BigQuery execution times",
+    "service_name": "bq-ingestion-pipeline",
+    "feature_name": "bigquery",
+    "exporters": [
+      {
+        "class": "Pubsub",
+        "project_id": "${PUBSUB_PROJECT_ID}",
+        "topic_name": "${PUBSUB_TOPIC_NAME}"
+      },
+      {
+        "class": "Stackdriver",
+        "project_id": "${STACKDRIVER_HOST_PROJECT}"
+      },
+      {
+        "class": "Bigquery",
+        "project_id": "${BIGQUERY_HOST_PROJECT}",
+        "dataset_id": "${BIGQUERY_DATASET_ID}",
+        "table_id": "${BIGQUERY_TABLE_ID}"
+      }
+    ],
+    "backend": {
+        "class": "Stackdriver",
+        "project_id": "${STACKDRIVER_HOST_PROJECT}",
+        "method": "exponential_distribution_cut",
+        "measurement": {
+          "threshold_bucket": 31,
+          "good_below_threshold": true,
+          "filter_valid": "project=\"${STACKDRIVER_METRIC_PROJECT}\" AND metric.type=\"bigquery.googleapis.com/query/execution_times\""
+        }
+    }
+}
