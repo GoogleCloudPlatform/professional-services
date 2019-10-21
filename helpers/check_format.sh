@@ -143,7 +143,7 @@ for FOLDER in $(find tools examples -maxdepth 1 -mindepth 1 -type d);
 do
     if  [[ ! ${EXCLUDE_FOLDERS[@]} =~ "$FOLDER" ]]
     then
-        # validate_python $FOLDER
+        validate_python $FOLDER
         validate_go $FOLDER
         validate_typescript $FOLDER
     else
