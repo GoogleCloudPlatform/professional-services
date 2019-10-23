@@ -26,4 +26,9 @@ RUN make install
 
 RUN npm install gts
 
+# Install java + google-java-format jar
+RUN apt-get install -y default-jdk
+RUN wget https://github.com/google/google-java-format/releases/download/google-java-format-1.7/google-java-format-1.7-all-deps.jar --directory-prefix=/usr/share/java/
+
+
 ENTRYPOINT ["make"]

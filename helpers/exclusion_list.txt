@@ -12,7 +12,6 @@ tools/dataproc-edge-node
 tools/dns-sync
 tools/gce-google-keys-to-cmek
 tools/gce-quota-sync
-tools/gce-usage-log
 tools/gcp-arch-viz
 tools/gcs-bucket-mover
 tools/gsuite-exporter
