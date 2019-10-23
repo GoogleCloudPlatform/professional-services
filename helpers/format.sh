@@ -67,5 +67,16 @@ do
                 exit 1
             fi
         fi
+
+        echo "Formatting java files (if any)"
+
+        FILES_TO_FORMAT=$(find $FOLDER -type f -name "*.java")
+        if [[ ! -z "$FILES_TO_FORMAT" ]]
+        then
+            # format all java files in place
+            java -jar /usr/share/java/google-java-format-1.7-all-deps.jar -r $FILES_TO_FORMAT > /dev/null
+        else
+            echo "No java files found for $FOLDER - SKIP"
+        fi
     fi
 done
