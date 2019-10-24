@@ -86,9 +86,8 @@ cd tools/ml-audio-content-moderation/
 cd app
 ````
 
-2a. OPTIONAL: Compile the angular frontend application. You only need to do this if you altered
-the frontend in any way. Note that this requires [installing Angular](https://angular.io/cli) on 
-your device.
+2a. Compile the angular frontend application. Note that this requires [installing Angular](https://angular.io/cli) on 
+your device and compiling the output.
 
 ````
 npm install -g @angular/cli
@@ -96,6 +95,10 @@ npm install -g @angular/cli
 
 ````
 cd angular/
+````
+
+````
+npm install
 ````
 
 ````

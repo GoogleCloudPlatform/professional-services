@@ -12,11 +12,8 @@ tools/dataproc-edge-node
 tools/dns-sync
 tools/gce-google-keys-to-cmek
 tools/gce-quota-sync
-tools/gce-usage-log
 tools/gcp-arch-viz
-tools/gcp-ips
 tools/gcs-bucket-mover
-tools/gke-billing-export
 tools/gsuite-exporter
 tools/hive-bigquery
 tools/kunskap
@@ -51,7 +48,6 @@ examples/dataflow-python-examples
 examples/dataflow-scala-kafka2avro
 examples/dataflow-streaming-benchmark
 examples/dataproc-persistent-history-server
-examples/direct-upload-to-gcs
 examples/dlp
 examples/e2e-home-appliance-status-monitoring
 examples/gce-to-adminsdk

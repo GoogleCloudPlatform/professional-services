@@ -32,6 +32,8 @@ do
     then
         echo "Formatting $FOLDER"
 
+        echo "Formatting python files (if any)"
+
         FILES_TO_FORMAT=$(find $FOLDER -type f -name "*.py")
         if [[ ! -z "$FILES_TO_FORMAT" ]]
         then
@@ -46,6 +48,35 @@ do
             fi
         else
             echo "No python files found for $FOLDER - SKIP"
+        fi
+
+        echo "Formatting go files (if any)"
+        gofmt -w $FOLDER
+
+        if [[ -f "$FOLDER/tsconfig.json" ]]
+        then
+            echo "Formatting typescript (if possible)"
+            cd $FOLDER
+            npx gts init > /dev/null
+            npm audit fix
+            cd -
+
+            if [[ "$?" -ne 0 ]]
+            then
+                echo "npm audit fix returned an error - exiting"
+                exit 1
+            fi
+        fi
+
+        echo "Formatting java files (if any)"
+
+        FILES_TO_FORMAT=$(find $FOLDER -type f -name "*.java")
+        if [[ ! -z "$FILES_TO_FORMAT" ]]
+        then
+            # format all java files in place
+            java -jar /usr/share/java/google-java-format-1.7-all-deps.jar -r $FILES_TO_FORMAT > /dev/null
+        else
+            echo "No java files found for $FOLDER - SKIP"
         fi
     fi
 done

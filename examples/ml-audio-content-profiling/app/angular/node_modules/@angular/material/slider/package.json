@@ -1,8 +1,0 @@
-{
-  "name": "@angular/material/slider",
-  "typings": "../slider.d.ts",
-  "main": "../bundles/material-slider.umd.js",
-  "module": "../esm5/slider.es5.js",
-  "es2015": "../esm2015/slider.js",
-  "sideEffects": false
-}
