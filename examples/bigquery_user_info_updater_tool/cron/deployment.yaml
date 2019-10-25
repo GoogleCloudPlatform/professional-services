@@ -4,7 +4,7 @@ kind: CronJob
 metadata:
   name: bigquery-user-updater-cron
 spec:
-    schedule: "*/1 * * * *"
+    schedule: "*/10 * * * *"
     concurrencyPolicy: Forbid
     jobTemplate:
         spec:
@@ -18,7 +18,7 @@ spec:
                         mountPath: /var/secrets/google
                       env:
                       - name: GOOGLE_APPLICATION_CREDENTIALS
-                        value: /var/secrets/google/key.json
+                        value: /var/secrets/google/sa-key.json
                       command: ['/opt/cron/bigquery_user_updater.sh']
                     restartPolicy: OnFailure
                     volumes:
