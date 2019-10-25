@@ -250,7 +250,10 @@ python biguqery_user_info_updater/update_user_info.py \
 
 #### Scheduling Updates with CronJobs on GKE
 Once the script and queries have been setup and tested, the next step (if desired) is to schedule the job to run so that user info can be periodically updated.  There are few options for scheduling using different technologies (ie GKE, Cloud Composer,..) 
-For the purpose of this article we decided to leverage [GKE Cronjobs](https://cloud.google.com/kubernetes-engine/docs/how-to/cronjobs) (currently in Beta). 
+For the purpose of this article we decided to leverage [GKE Cronjobs](https://cloud.google.com/kubernetes-engine/docs/how-to/cronjobs) (currently in Beta). We will take
+advantage of the `concurrencyPolicy` setting available in CronJobs on GKE. We will set `concurrencyPolicy` to `Forbid` to prevent a job 
+from running if a previous job has not finished. If a job kicks off while another is running, the data in the final table
+will be at risk for inaccuracies and duplicates.
 
 ##### Prepare Files
 In order to schedule the script via a CronJob in GKE, several files will need to be prepared and created. 
@@ -261,8 +264,7 @@ In order to schedule the script via a CronJob in GKE, several files will need to
 2. Uncomment the commented lines in [`cron/bigquery_user_updater.sh`](cron/bigquery_user_updater.sh) with your own values.
 
 3. Uncomment the commented lines in [`cron/Dockerfile`](cron/Dockerfile) with your own values. While you can set the schedule and most name parameters to whatever you 
-would like, the important thing is that you absolutely set the `concurrencyPolicy` to `Forbid`. If a job kicks off while another is running, the data in the final table
-will be at risk for inaccuracies and duplicates. Also, it is important that you keep `env.name` set to `GOOGLE_APPLICATION_CREDENTIALS`. This will allow your container to export your google 
+would like, the important thing is that you absolutely set the `concurrencyPolicy` to `Forbid` to prevent inaccuracies and duplicates. Also, it is important that you keep `env.name` set to `GOOGLE_APPLICATION_CREDENTIALS`. This will allow your container to export your google 
 cloud credentials into a `GOOGLE_APPLICATION_CREDENTIALS` environmental variable using a secret key that we will create later. Without this environmental variable, the code run in the container 
 will not be able to access your project resources. 
 
