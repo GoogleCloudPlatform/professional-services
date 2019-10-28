@@ -281,26 +281,21 @@ in Data Studio. This allows you to create time-series graphs to monitor changes 
 over time. This can be done on whichever metrics that your team would like to use for capacity planning, 
 such as looking at the total count of instances over time, cores, memory, etc.
 
-1. To create a time-series graph, open up [Data Studio](https://www.datastudio.google.com).
-2. In the upper left-hand corner, click 'Create'.
-3. Select 'Report'
-4. On the right-hand side, under 'Select Data Source'.
-5. Select 'Create New Data Source' at the bottom of the menu.
-6. Select 'BigQuery'.
-7. Type in your project name followed by hitting the 'Enter' key.
-8. Select your dataset `gce_usage_log`.
-9. Select `gce_usage_log_interval`, or the corresponding name if you named the view something differently.
-10. Click 'Connect' in the upper right-hand corner.
-11. Click 'Add to Report'
-12. To create the graph, select 'Insert' -> 'Time Series' as seen below
-![time series](images/time-series-graph.png)
 
-13. You can adjust the X-axis to change the frequency by selecting the `custom_interval` dimension.
-![custom interval](images/custom-interval-dimension.png)
-
-14. From there, you can select any DateTime format, such as hourly, daily, etc.
-
-15. View the graph
+1. Open up DataStudio and create a copy of [this data source](https://datastudio.google.com/datasources/c4ed9ce7-50a2-4045-8de1-859ed5aaac6f) 
+by selecting the copy button. 
+![copy data source](images/copy-data-source.png)
+2. Rename the Data Source to the name that you'd like. Click on 'Edit Connection'.
+3. If this is your first time using Data Studio, click 'Authorize'.
+4. Fill in your project name.
+5. Select your dataset `gce_usage_log`.
+6. Select `gce_usage_log_interval`, or the corresponding name if you named the view something differently.
+7. Click 'Reconnect' in the upper right-hand corner.
+8. Make a copy of the [report](https://datastudio.google.com/open/1mpyXSxvkuu3PWXf1j0rzzyhiYP0qC_jR).
+![copy report](images/copy-report.png)
+9. When prompted to choose your data source, select your newly created data source.
+10. Click on 'Create Report' and name yours accordingly, including any other metrics to analyze. 
+11. View the graph
 ![graph](images/usage-graph.png)
 
 ### 3.3 How to Query Base View
@@ -310,7 +305,7 @@ To find resource usage at a point in time `t`, query the view for records that w
 
 Here we also group by project.
 
-```bash
+```sql
 SELECT
   project_id,
   count(instance_id) as num_instances,
