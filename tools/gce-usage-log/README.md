@@ -228,7 +228,7 @@ export INTERVAL_VIEW=$(cat gce_interval_view.sql | sed -e "s/_PROJECT_/$PROJECT_
 ```
 
 Now, create the view.
-````
+```bash
 bq query \
 --project $PROJECT_ID \
 --use_legacy_sql=false \
