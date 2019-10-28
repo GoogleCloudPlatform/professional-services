@@ -28,4 +28,4 @@ JOIN
   `_PROJECT_.gce_usage_log._gce_usage_log` usage_view
 ON
   usage_view.instance_id = timestamp_interval_table.instance_id
-ORDER BY custom_interval asc
+ORDER BY custom_interval ASC
