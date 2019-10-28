@@ -252,7 +252,7 @@ September by using the sample query below as an example. You can adjust the time
 or choose to only select certain fields depending on what you are trying to predict.
 
 
-```bash
+```sql
 SELECT
   custom_interval as hour,
   count(instance_id) as num_instances,
