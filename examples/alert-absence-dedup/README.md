@@ -43,7 +43,7 @@ Build the test app
 go build
 ```
 
-The instructions here as based on the article
+The instructions here are based on the article
 [Setting up authentication](https://cloud.google.com/monitoring/docs/reference/libraries#setting_up_authentication)
 for the Stackdriver client library. Note that if you run the test app on a
 Google Cloud Compute Engine instance, on Google Kubernetes Engine, on App
