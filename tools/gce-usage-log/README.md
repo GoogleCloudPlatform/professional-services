@@ -236,7 +236,6 @@ bq query \
 --display_name="Interval usage of GCE Usage Logs" \
 --replace=true \
 --schedule='every 24 hours' "$INTERVAL_VIEW"
-````
 Note: As a default, it is configured to run every 24 hours, but you can scheduled it more/less frequently as needed.
 There is also no default expiration set, but this can be added if you only need historical data from a certain timeframe.
 
