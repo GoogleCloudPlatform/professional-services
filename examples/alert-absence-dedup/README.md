@@ -60,7 +60,8 @@ Create a service account:
 
 ```shell
 SA_NAME=stackdriver-metrics-writer
-gcloud iam service-accounts create $SA_NAME
+gcloud iam service-accounts create $SA_NAME \
+ --display-name="Stackdriver Metrics Writer"
 ```
 
 ```shell
