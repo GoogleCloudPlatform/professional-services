@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import datetime
-import dateutil
+from dateutil import tz
 import logging
 
 from google.cloud import bigquery
 
 INITIAL_TIMESTAMP = datetime.datetime(1900, 1, 1, 00, 00, 00, 000,
-                                      tzinfo=dateutil.tz.tzutc())
+                                      tzinfo=tz.tzutc())
 
 
 class UserInfoUpdater(object):
