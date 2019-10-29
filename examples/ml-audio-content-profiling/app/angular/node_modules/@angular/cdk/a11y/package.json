@@ -1,8 +1,0 @@
-{
-  "name": "@angular/cdk/a11y",
-  "typings": "../a11y.d.ts",
-  "main": "../bundles/cdk-a11y.umd.js",
-  "module": "../esm5/a11y.es5.js",
-  "es2015": "../esm2015/a11y.js",
-  "sideEffects": false
-}

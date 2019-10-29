@@ -43,7 +43,7 @@ resource "google_dataproc_cluster" "history-server" {
         "yarn:yarn.nodemanager.remote-app-log-dir"          = "gs://${var.history-bucket}/yarn/logs/"
         "yarn:yarn.log-aggregation.retain-seconds"          = "604800"
         "yarn:yarn.log.server.url"                          = "http://${var.history-server}-m:19888/jobhistory/logs"
-        "mapreduce.jobhistory.always-scan-user-dir"         = "true"
+        "mapred:mapreduce.jobhistory.always-scan-user-dir"  = "true"
         "mapred:mapreduce.jobhistory.address"               = "${var.history-server}-m:10020"
         "mapred:mapreduce.jobhistory.webapp.address"        = "${var.history-server}-m:19888"
         "mapred:mapreduce.jobhistory.done-dir"              = "gs://${var.history-bucket}/done-dir"
