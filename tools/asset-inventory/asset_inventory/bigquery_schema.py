@@ -59,7 +59,8 @@ def is_number(s):
 def _get_bigquery_type_for_property_value(property_value):
     """Convert json value into a BigQuery data type.
 
-    Recgonizes timestamp and dates, returns NUMERIC for all numbers.
+    Recgonizes BOOL, RECORD and returns NUMERIC for all numbers.
+    Doesn't try to determine if a string is formatted as a timestamp.
     Args:
         property_value: Value of the json property.
     Returns:
@@ -67,12 +68,6 @@ def _get_bigquery_type_for_property_value(property_value):
     """
     if isinstance(property_value, bool):
         return 'BOOL'
-    elif isinstance(property_value, string_types):
-        if re.match(TIMESTAMP_REGEX, property_value):
-            return 'TIMESTAMP'
-        if re.match(DATE_REGEX, property_value):
-            return 'DATE'
-        return 'STRING'
     elif isinstance(property_value, Number):
         return 'NUMERIC'
     elif isinstance(property_value, dict):

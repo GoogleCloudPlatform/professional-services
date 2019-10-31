@@ -164,17 +164,12 @@ class BigQuerySanitize(beam.DoFn):
 class ProduceResourceJson(beam.DoFn):
     """Create a json only element for every element."""
 
-    def __init__(self, load_time, group_by):
-        if isinstance(load_time, string_types):
-            load_time = StaticValueProvider(str, load_time)
+    def __init__(self, group_by):
         if isinstance(group_by, string_types):
             group_by = StaticValueProvider(str, group_by)
-        self.load_time = load_time
         self.group_by = group_by
 
     def process(self, element):
-        # add load timestamp.
-        element['timestamp'] = self.load_time.get()
         if ('resource' in element and
             'data' in element['resource']):
             resource = element['resource']
@@ -192,6 +187,19 @@ class ProduceResourceJson(beam.DoFn):
             yield resource_element
             if self.group_by.get() != 'NONE':
                 yield element
+
+
+class AddLoadTime(beam.DoFn):
+    """Add timestamp field to track load time."""
+
+    def __init__(self, load_time):
+        if isinstance(load_time, string_types):
+            load_time = StaticValueProvider(str, load_time)
+        self.load_time = load_time
+
+    def process(self, element):
+        element[1]['timestamp'] = self.load_time.get()
+        yield element
 
 
 class MapCAIProperties(beam.DoFn):
@@ -478,7 +486,7 @@ def run(argv=None):
         p | 'read' >> ReadFromText(options.input, coder=JsonCoder())
         | 'map_cai_properties' >> beam.ParDo(MapCAIProperties())
         | 'produce_resource_json' >> beam.ParDo(ProduceResourceJson(
-            options.load_time, options.group_by))
+            options.group_by))
         | 'bigquery_sanitize' >> beam.ParDo(BigQuerySanitize()))
 
     # Joining all iam_policy objects with resources of the same name.
@@ -499,7 +507,9 @@ def run(argv=None):
     pvalue_schemas = beam.pvalue.AsDict(schemas)
     # Write to GCS and load to BigQuery.
     # pylint: disable=expression-not-assigned
-    (keyed_assets | 'group_by_key_before_enforce' >> beam.GroupByKey()
+    (keyed_assets
+     | 'add_load_time' >> beam.ParDo(AddLoadTime(options.load_time))
+     | 'group_by_key_before_enforce' >> beam.GroupByKey()
      | 'enforce_schema' >> beam.ParDo(EnforceSchemaDataTypes(), pvalue_schemas)
      | 'group_by_key_before_write' >> beam.GroupByKey()
      | 'write_to_gcs' >> beam.ParDo(
