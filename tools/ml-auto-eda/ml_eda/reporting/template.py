@@ -79,6 +79,7 @@ TABLE_DESCRIPTIVE_TEMPLATE = """
 {row_content}
 """
 
+# pylint: disable=line-too-long
 TABLE_DESCRIPTIVE_ROW_TEMPLATE = """|**{name}** <br/> *{type}*|{stats}|<img src={url} alt="{alt_text}" width="400px"/>|
 """
 
@@ -94,5 +95,5 @@ TARGET_METRIC_HIGHLIGHT_ROW_TEMPLATE = "**{name}**|{values}"
 
 HIGH_CARDINALITY = "{name} has a high cardinality: {value} distinct values"
 HIGH_MISSING = "{name} has {value} missing values"
-HIGH_CORRELATION = "{name_one} is highly correlated with {name_two} ({metric} = {value})"
-LOW_P_VALUE = "{name_one} is correlated with {name_two} ({metric} = {value} from {test_name})"
+HIGH_CORRELATION = "{name_one} is highly correlated with {name_two} ({metric} = {value})"  # pylint: disable=line-too-long
+LOW_P_VALUE = "{name_one} is correlated with {name_two} ({metric} = {value} from {test_name})"  # pylint: disable=line-too-long

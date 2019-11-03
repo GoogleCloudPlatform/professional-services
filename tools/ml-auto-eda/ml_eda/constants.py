@@ -13,19 +13,19 @@
 # limitations under the License.
 # ==============================================================================
 
+"""Inventory for holding literal constants"""
+
 from __future__ import absolute_import
 from __future__ import print_function
 
 
-class ConstantsHolder(object):
+class ConstantsHolder:
+  """Helper class for easy access of literal constants"""
 
-    def __getattr__(self, name):
-        config = ConstantsHolder()
-        setattr(self, name, config)
-        return config
-
-    def __setattr__(self, name, value):
-        super(ConstantsHolder, self).__setattr__(name, value)
+  def __getattr__(self, name):
+    config = ConstantsHolder()
+    setattr(self, name, config)
+    return config
 
 
 c = ConstantsHolder()
@@ -57,7 +57,8 @@ c.metadata.analysis_run.CHI_SQUARE_RUN = 'CHI_SQUARE.Run'
 c.metadata.analysis_run.ANOVA_RUN = 'ANOVA.Run'
 c.metadata.analysis_config.HISTOGRAM_BIN = 'HISTOGRAM.Bin'
 c.metadata.analysis_config.VALUE_COUNTS_LIMIT = 'VALUE_COUNTS.Limit'
-c.metadata.analysis_config.GENERAL_CARDINALITY_LIMIT = 'General.CardinalityLimit'
+c.metadata.analysis_config.GENERAL_CARDINALITY_LIMIT = \
+  'General.CardinalityLimit'
 
 c.metadata.ml_type.REGRESSION = 'Regression'
 c.metadata.ml_type.CLASSIFICATION = 'Classification'

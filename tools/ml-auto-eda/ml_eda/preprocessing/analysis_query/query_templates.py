@@ -127,6 +127,7 @@ FROM
 """
 
 # template to generate histogram for a numerical attribute
+# pylint: disable-msg=anomalous-backslash-in-string
 HISTOGRAM_TEMPLATE = """
 WITH boundary AS (
 SELECT

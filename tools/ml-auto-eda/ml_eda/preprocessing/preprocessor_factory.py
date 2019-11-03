@@ -13,6 +13,8 @@
 # limitations under the License.
 # ==============================================================================
 
+"""Factory for preprocessor"""
+
 from __future__ import absolute_import
 from __future__ import print_function
 
@@ -21,10 +23,13 @@ from ml_eda.preprocessing.preprocessors.bigquery import bq_preprocessor
 
 
 class PreprocessorFactory:
+  """Factory for preprocessor"""
 
-    @staticmethod
-    def new_preprocessor(config):
-        if config.preprocessing_backend == c.preprocessing.BIGQUERY:
-            return bq_preprocessor.BqPreprocessor(config)
-        else:
-            raise ValueError('Preprocessor type {} not supported yet.'.format(config.preprocessing_backend))
+  @staticmethod
+  def new_preprocessor(config):
+    """Creat new preprocessor instance"""
+    if config.preprocessing_backend == c.preprocessing.BIGQUERY:
+      return bq_preprocessor.BqPreprocessor(config)
+
+    raise ValueError('Preprocessor type {} not supported yet.'.format(
+        config.preprocessing_backend))

@@ -18,36 +18,40 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
-import pandas as pd
 from typing import Dict
+
+import pandas as pd
 
 from ml_eda import constants
 
 
 class DescriptiveAnalyzer:
+  """Class holding helper function for descriptive analysis"""
 
-    def numerical_descriptive(self, ds_df: pd.DataFrame) -> Dict:
-        """The entire descriptive analysis is done in BQ, therefore, only
-        DataFrame to dict conversion is done here
+  @staticmethod
+  def numerical_descriptive(ds_df: pd.DataFrame) -> Dict:
+    """The entire descriptive analysis is done in BQ, therefore, only
+    DataFrame to dict conversion is done here
 
-        Args:
-            ds_df: (pd.DataFrame), the computed descriptive result from
-            bigquery.
+    Args:
+        ds_df: (pd.DataFrame), the computed descriptive result from
+        bigquery.
 
-        Returns:
-            dict
-        """
-        return ds_df.set_index(constants.ND_COLUMN_NAME).T.to_dict()
+    Returns:
+        dict
+    """
+    return ds_df.set_index(constants.ND_COLUMN_NAME).T.to_dict()
 
-    def categorical_descriptive(self, ds_df: pd.DataFrame) -> Dict:
-        """The entire descriptive analysis is done in BQ, therefore, only
-        DataFrame to dict conversion is done here
+  @staticmethod
+  def categorical_descriptive(ds_df: pd.DataFrame) -> Dict:
+    """The entire descriptive analysis is done in BQ, therefore, only
+    DataFrame to dict conversion is done here
 
-        Args:
-            ds_df: (pd.DataFrame), the computed descriptive result from
-            bigquery.
+    Args:
+        ds_df: (pd.DataFrame), the computed descriptive result from
+        bigquery.
 
-        Returns:
-            dict
-        """
-        return ds_df.set_index(constants.CD_COLUMN_NAME).T.to_dict()
+    Returns:
+        dict
+    """
+    return ds_df.set_index(constants.CD_COLUMN_NAME).T.to_dict()
