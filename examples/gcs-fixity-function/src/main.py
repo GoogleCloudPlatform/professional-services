@@ -26,9 +26,10 @@ from google.cloud import storage, bigquery
 
 FIXITY_DATE = datetime.now()
 FIXITY_MANIFEST_NAME = 'manifest-md5sum.txt'
+DATA_DIRECTORY_NAME = 'data'  # Do not include trailing slash here
 
 
-def main(event={}, context={}):  # pylint: disable=dangerous-default-value
+def main(event, context):
     """Identify bags to run Fixity, then write a manifest and write a record to BigQuery
     Args:
         event (obj): PubSub event data
@@ -55,7 +56,7 @@ def match_bag(context, bags):
     or list of all bags to run Fixity against.
     Args:
         context (obj): Object that contains event context information
-        bags (list): List of bags to match against
+        bags (set): List of bags to match against
     """
     filename = context.resource['name']
     for bag in bags:
@@ -68,14 +69,15 @@ def get_bags(bucket, top_prefix=None):
     """Recurse through GCS directory tree until you hit 'data/' to create a list of every bag
     top_prefix (str): Starting level prefix
     """
-    prefixes = []
+    prefixes = set()
     top_prefixes = get_prefixes(bucket, top_prefix)
     for prefix in top_prefixes:
-        if prefix.endswith('data/'):
-            prefixes.append(re.sub(r'\/data\/$', '',
-                                   prefix))  # remove data/ from bag name
+        if prefix.endswith(f'{DATA_DIRECTORY_NAME}/'):
+            prefixes.add(
+                re.sub(r'\/' + re.escape(DATA_DIRECTORY_NAME) + r'\/$', '',
+                       prefix))  # remove data/ from bag name
         else:
-            prefixes += get_bags(bucket, prefix)
+            prefixes.update(get_bags(bucket, prefix))
     return prefixes
 
 
@@ -122,7 +124,8 @@ class BagIt:
 
     def get_blobs(self):
         """Retrieve files with metadata present in a bag"""
-        blobs = self.bucket.list_blobs(prefix=f'{self.bag}/data/')
+        blobs = self.bucket.list_blobs(
+            prefix=f'{self.bag}/{DATA_DIRECTORY_NAME}/')
         blobs_with_metadata = []
         for blob in blobs:
             blobs_with_metadata.append(self.get_metadata(blob.name))
