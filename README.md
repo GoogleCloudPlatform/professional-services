@@ -67,6 +67,7 @@ The tools folder contains ready-made utilities which can simpilfy Google Cloud P
 * [GCE Quota Sync](tools/gce-quota-sync) - A tool that fetches resource quota usage from the GCE API and synchronizes it to Stackdriver as a custom metric, where it can be used to define automated alerts.
 * [GCE Usage Log](tools/gce-usage-log) - Collect GCE instance events into a BigQuery dataset, surfacing your vCPUs, RAM, and Persistent Disk, sliced by project, zone, and labels.
 * [GCP Architecture Visualizer](/tools/gcp-arch-viz) - A tool that takes CSV output from a Forseti Inventory scan and draws out a dynamic hierarchical tree diagram of org -> folders -> projects -> gcp_resources using the D3.js javascript library.
+* [GCP Organization Hierarchy Viewer](tools/gcp-org-hierarchy-viewer) - A CLI utility for visualizing your organization hierarchy in the terminal.
 * [GCS Bucket Mover](tools/gcs-bucket-mover) - A tool to move user's bucket, including objects, metadata, and ACL, from one project to another.
 * [GKE Billing Export](tools/gke-billing-export) - Google Kubernetes Engine fine grained billing export.
 * [GSuite Exporter](tools/gsuite-exporter/) - A Python package that automates syncing Admin SDK APIs activity reports to a GCP destination. The module takes entries from the chosen Admin SDK API, converts them into the appropriate format for the destination, and exports them to a destination (e.g: Stackdriver Logging).
@@ -76,6 +77,7 @@ The tools folder contains ready-made utilities which can simpilfy Google Cloud P
 * [Maven Archetype Dataflow](tools/maven-archetype-dataflow) - A maven archetype which bootstraps a Dataflow project with common plugins pre-configured to help maintain high code quality.
 * [Netblock Monitor](tools/netblock-monitor) - An Apps Script project that will automatically provide email notifications when changes are made to Google’s IP ranges.
 * [Site Verification Group Sync](tools/site-verification-group-sync) - A tool to provision "verified owner" permissions (to create GCS buckets with custom dns) based on membership of a Google Group.
+* [SLO Generator](tools/slo-generator/) - A Python package that automates computation of Service Level Objectives, Error Budgets and Burn Rates on GCP,  and export the computation results to available exporters (e.g: PubSub, BigQuery, Stackdriver Monitoring), using policies written in JSON format.
 
 ## Contributing
 See the contributing [instructions](/CONTRIBUTING.md) to get started contributing.
