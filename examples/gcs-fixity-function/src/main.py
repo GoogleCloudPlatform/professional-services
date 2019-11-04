@@ -47,8 +47,7 @@ def main(event, context):
         matched_bags = match_bag(context, bags)
         for bag in matched_bags:
             bagit = BagIt(bucket, bag)
-            bagit.write_and_upload_manifest()
-            bagit.write_to_bigquery()
+            bagit.commit()
 
 
 def match_bag(context, bags):
@@ -121,6 +120,10 @@ class BagIt:
         self.bucket = bucket
         self.blobs = self.get_blobs()
         self.bigquery_client = bigquery.Client()
+
+    def commit(self):
+        self.write_and_upload_manifest()
+        self.write_to_bigquery()
 
     def get_blobs(self):
         """Retrieve files with metadata present in a bag"""
