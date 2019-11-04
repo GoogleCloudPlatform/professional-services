@@ -39,7 +39,7 @@ def main(event, context):
         event = json.loads(base64.b64decode(event['data']).decode('utf-8'))
     print('Event: ' + str(event))
     print('Context: ' + str(context))
-    if event == {} or is_not_manifest(context):
+    if event == {} or is_manifest(context) == False:
         bucket_name = os.environ['BUCKET']
         storage_client = storage.Client()
         bucket = storage_client.get_bucket(bucket_name)
@@ -93,16 +93,13 @@ def get_prefixes(bucket, prefix=None):
     return prefixes
 
 
-def is_not_manifest(context):
+def is_manifest(context):
     """Decides if file event is against a manifest file. Running fixity whenever
     a manifest is created would cause a loop, so this prevents that.
     Args:
         context (obj): Object that contains event context information
     """
-    filename = context.resource['name']
-    if FIXITY_MANIFEST_NAME in filename:
-        return False
-    return True
+    return FIXITY_MANIFEST_NAME in context.resource['name']
 
 
 class BagIt:
