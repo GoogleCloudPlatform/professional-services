@@ -20,6 +20,25 @@ else
     gcloud pubsub topics create fixity-"${BUCKET_NAME}"-topic
 fi
 
-gcloud functions deploy fixity-"${BUCKET_NAME}"-deletes --source=./src/ --entry-point main --runtime python37 --trigger-resource "${BUCKET_NAME}" --trigger-event google.storage.object.archive --set-env-vars BUCKET="${BUCKET_NAME}"
-gcloud functions deploy fixity-"${BUCKET_NAME}"-updates --source=./src/ --entry-point main --runtime python37 --trigger-resource "${BUCKET_NAME}" --trigger-event google.storage.object.finalize --set-env-vars BUCKET="${BUCKET_NAME}"
-gcloud functions deploy fixity-"${BUCKET_NAME}"-manual --source=./src/ --entry-point main --runtime python37 --trigger-topic fixity-"${BUCKET_NAME}"-topic --set-env-vars BUCKET="${BUCKET_NAME}"
+gcloud functions deploy fixity-"${BUCKET_NAME}"-deletes \
+    --source=./src/ \
+    --entry-point main \
+    --runtime python37 \
+    --trigger-resource "${BUCKET_NAME}" \
+    --trigger-event google.storage.object.archive \
+    --set-env-vars BUCKET="${BUCKET_NAME}"
+
+gcloud functions deploy fixity-"${BUCKET_NAME}"-updates \
+    --source=./src/ \
+    --entry-point main \
+    --runtime python37 \
+    --trigger-resource "${BUCKET_NAME}" \
+    --trigger-event google.storage.object.finalize \
+    --set-env-vars BUCKET="${BUCKET_NAME}"
+
+gcloud functions deploy fixity-"${BUCKET_NAME}"-manual \
+    --source=./src/ \
+    --entry-point main \
+    --runtime python37 \
+    --trigger-topic fixity-"${BUCKET_NAME}"-topic \
+    --set-env-vars BUCKET="${BUCKET_NAME}"
