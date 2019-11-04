@@ -53,3 +53,6 @@ The setup instructions create the following BigQuery views:
 
 ## Setup
 [Setup Instructions](./docs/setup.md)
+
+## Limitations
+This Cloud Functions has a default memory limit of 256MB per function invocation. To avoid hitting memory limits, distribute bags and objects across many different buckets. It's recommended to maintain under 250,000 objects per bucket to avoid running into memory limitations.
