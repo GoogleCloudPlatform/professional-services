@@ -73,11 +73,11 @@ The tools folder contains ready-made utilities which can simpilfy Google Cloud P
 * [GSuite Exporter](tools/gsuite-exporter/) - A Python package that automates syncing Admin SDK APIs activity reports to a GCP destination. The module takes entries from the chosen Admin SDK API, converts them into the appropriate format for the destination, and exports them to a destination (e.g: Stackdriver Logging).
 * [Hive to BigQuery](tools/hive-bigquery/) - A Python framework to migrate Hive table to BigQuery using Cloud SQL to keep track of the migration progress.
 * [LabelMaker](tools/labelmaker) - A tool that reads key:value pairs from a json file and labels the running instance and all attached drives accordingly.
+* [Machine Learning Auto Exploratory Data Analysis and Feature Recommendation](tools/ml-auto-eda) - A tool to perform comprehensive auto EDA, based on which feature recommendations are made, and a summary report will be generated.
 * [Maven Archetype Dataflow](tools/maven-archetype-dataflow) - A maven archetype which bootstraps a Dataflow project with common plugins pre-configured to help maintain high code quality.
 * [Netblock Monitor](tools/netblock-monitor) - An Apps Script project that will automatically provide email notifications when changes are made to Google’s IP ranges.
 * [Site Verification Group Sync](tools/site-verification-group-sync) - A tool to provision "verified owner" permissions (to create GCS buckets with custom dns) based on membership of a Google Group.
 * [SLO Generator](tools/slo-generator/) - A Python package that automates computation of Service Level Objectives, Error Budgets and Burn Rates on GCP,  and export the computation results to available exporters (e.g: PubSub, BigQuery, Stackdriver Monitoring), using policies written in JSON format.
-
 
 ## Contributing
 See the contributing [instructions](/CONTRIBUTING.md) to get started contributing.
