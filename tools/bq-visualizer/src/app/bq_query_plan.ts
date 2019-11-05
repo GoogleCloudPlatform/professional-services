@@ -215,26 +215,22 @@ export class BqQueryPlan {
 
   /** reformat the nodes stage statistics to something more pleasing */
   formatStageStats(node: QueryStage): string {
-    const stats = this.plan.statistics;
-    const endMs = Number(node.endMs);
-    const startMs = Number(node.startMs);
-    const jobStartMs = Number(stats.startTime);
-    const jobEndMs = Number(stats.endTime);
-    if (isNaN(startMs) || isNaN(endMs) || isNaN(jobStartMs) ||
-        isNaN(jobEndMs)) {
-      return 'n/a';
+    if (node.isExternal) {
+      const ghostresult = {'name ': node.id};
+      return JSON.stringify(ghostresult, null, 4);
     }
-    const duration = endMs - startMs;
-    node['durationMs  '] = duration.toLocaleString('en');
-    const startPct = (100 * (startMs - jobStartMs)) / (jobEndMs - jobStartMs);
-    const endPct = (100 * (endMs - jobStartMs)) / (jobEndMs - jobStartMs);
+    const stats = this.plan.statistics;
     const result = {
       'id             ': node.id,
       'name           ': node.name,
       'status         ': node.status,
       'input stages   ': node.inputStages ? node.inputStages : 'n/a',
       'parallelInputs ': Number(node.parallelInputs).toLocaleString('en'),
+      'completed      ':
+          Number(node.completedParallelInputs).toLocaleString('en'),
       'recordsRead    ': Number(node.recordsRead).toLocaleString('en'),
+      'shuffleOutputBytes':
+          Number(node.shuffleOutputBytes).toLocaleString('en'),
       'shuffleOutputBytesSpilled':
           Number(node.shuffleOutputBytesSpilled).toLocaleString('en'),
       'recordsWritten ': Number(node.recordsWritten).toLocaleString('en'),
@@ -248,11 +244,26 @@ export class BqQueryPlan {
       'write (ms)     ':
           'avg: ' + Number(node.writeMsAvg).toLocaleString('en') +
           ' max: ' + Number(node.writeMsMax).toLocaleString('en'),
-      'startTime      ': new Date(startMs),
-      'endTime        ': new Date(endMs),
-      'start %        ': startPct.toLocaleString('en') + '% of job duration',
-      'end %          ': endPct.toLocaleString('en') + '% of job duration',
+
     };
+    const endMs = Number(node.endMs);
+    const startMs = Number(node.startMs);
+    const jobStartMs = Number(stats.startTime);
+    const jobEndMs = Number(stats.endTime);
+    if (!isNaN(startMs) && !isNaN(endMs) && !isNaN(jobStartMs) &&
+        !isNaN(jobEndMs)) {
+      const duration = endMs - startMs;
+      node['durationMs  '] = duration.toLocaleString('en');
+      const startPct = (100 * (startMs - jobStartMs)) / (jobEndMs - jobStartMs);
+      const endPct = (100 * (endMs - jobStartMs)) / (jobEndMs - jobStartMs);
+      result['startTime      '] = new Date(startMs);
+      result['endTime        '] = new Date(endMs);
+      result['start %        '] =
+          startPct.toLocaleString('en') + '% of job duration';
+      result['end %          '] =
+          endPct.toLocaleString('en') + '% of job duration';
+    }
+
     return JSON.stringify(result, null, 4);
   }
   /** Return a formatted text of all details minus the steps. */

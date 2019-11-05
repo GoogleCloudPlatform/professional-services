@@ -221,22 +221,18 @@ export class VisDisplayComponent implements OnInit {
   private estimate_recordsRead(edge: Edge, plan: BqQueryPlan): number {
     const targetNode = edge.to;
     const totalRecordsRead = Number(targetNode.recordsRead);
-    // const other_records_written = plan.edges.reduce((total, other_edge) =>{
-    //    ((other_edge.to.id !== targetNode.id) || other_edge.from.id ===
-    //    edge.from.id) ? total: Number(total + other_edge.from.recordsWritten)
-    //    +
-    // }, 0);
 
+    const allIncomingEdges = plan.edges.filter(other_edge => {
+      return (
+          (other_edge.to.id === targetNode.id) &&
+          (other_edge.from.id !== edge.from.id));
+    });
 
-    const allIncomingEdges = plan.edges.filter(
-        other_edge => {return (
-            (other_edge.to.id === targetNode.id) &&
-            (other_edge.from.id !== edge.from.id))});
-
-    const all_record_reads = allIncomingEdges.map(
-        edge => {return (edge.from.recordsWritten === undefined) ?
-                     '0' :
-                     edge.from.recordsWritten});
+    const all_record_reads = allIncomingEdges.map(edge => {
+      return (edge.from.recordsWritten === undefined) ?
+          '0' :
+          edge.from.recordsWritten;
+    });
 
     const total = all_record_reads.reduce((a, b) => a + Number(b), 0);
     const remainder = Number(targetNode.recordsRead) - total;
