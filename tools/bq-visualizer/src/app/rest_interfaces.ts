@@ -84,7 +84,7 @@ interface Query {
   totalSlotMs: string;
   useQueryCache?: string;
   queryPlan?: QueryStage[];
-  timeline: Timeline;
+  timeline: Timeline[];
 }
 
 interface ReservationUsage {
