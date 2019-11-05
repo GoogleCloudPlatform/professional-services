@@ -50,6 +50,7 @@ import {StepDetailsComponent} from './step-details/step-details.component';
 import {TermsComponent} from './terms/terms.component';
 import {TimingDisplayComponent} from './timing-display/timing-display.component';
 import {VisDisplayComponent} from './vis-display/vis-display.component';
+import { ProgressDisplayComponent } from './progress-display/progress-display.component';
 
 Sentry.init({
   dsn: 'https://1cfbb9646b584e9b9e4973d39970075a@sentry.io/1370691',
@@ -78,6 +79,7 @@ export class SentryErrorHandler implements ErrorHandler {
     StepDetailsComponent,
     TermsComponent,
     MainComponent,
+    ProgressDisplayComponent,
   ],
   imports: [
     AngularResizedEventModule,

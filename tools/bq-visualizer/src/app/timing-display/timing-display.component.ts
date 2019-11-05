@@ -29,10 +29,10 @@ import {QueryStep} from '../rest_interfaces';
   styleUrls: ['./timing-display.component.css']
 })
 export class TimingDisplayComponent implements OnInit {
-  public selectedStageStats: string = '<empty>';
+  public selectedStageStats = '<empty>';
   public selectedStageStepDetails: QueryStep[] = [];
   private plan: BqQueryPlan;
-  private haveDoneDraw: boolean = false;
+  private haveDoneDraw = false;
 
   @ViewChild('status_card') statusCard: PlanStatusCardComponent;
   @ViewChild('side_display') sideDisplay: PlanSideDisplayComponent;

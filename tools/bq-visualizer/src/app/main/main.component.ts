@@ -21,6 +21,7 @@ import {BqJob} from '../bq_job';
 import {BqQueryPlan} from '../bq_query_plan';
 // import {GoogleAuthService} from '../google-auth.service';
 import {JobComponent} from '../job/job.component';
+import {ProgressDisplayComponent} from '../progress-display/progress-display.component';
 import {TimingDisplayComponent} from '../timing-display/timing-display.component';
 import {VisDisplayComponent} from '../vis-display/vis-display.component';
 
@@ -36,6 +37,7 @@ export class MainComponent {
   @ViewChild('job') jobComponent: JobComponent;
   @ViewChild('tree') visComponent: VisDisplayComponent;
   @ViewChild('timing') timingComponent: TimingDisplayComponent;
+  @ViewChild('progress') progressComponent: ProgressDisplayComponent;
 
   // adding the authservice here causes the application to invoke authentication
   // constructor(private authService: GoogleAuthService) {}
@@ -46,6 +48,7 @@ export class MainComponent {
       // Load the query plan into the display components.
       this.visComponent.loadPlan(plan);
       this.timingComponent.loadPlan(plan);
+      this.progressComponent.loadPlan(plan);
 
       // Switch to the 'Tree' tab.
       this.tabGroup.selectedIndex = 1;
@@ -58,6 +61,9 @@ export class MainComponent {
           break;
         case 2:
           this.timingComponent.draw();
+          break;
+        case 3:
+          this.progressComponent.draw();
           break;
       }
     })

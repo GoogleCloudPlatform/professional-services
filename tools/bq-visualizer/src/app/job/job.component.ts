@@ -64,7 +64,9 @@ export class JobComponent implements OnDestroy {
   fileChange(files: File[]) {
     if (files.length > 0) {
       this.planFile = files[0];
-      this.logSvc.debug(' file changed');
+      this.logSvc.debug(' file changed: ' + this.planFile);
+      const fnameDiv = document.getElementById('filenamedisp');
+      fnameDiv.textContent = this.planFile.name;
     }
   }
 

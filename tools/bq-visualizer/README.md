@@ -3,7 +3,15 @@
 This utility provides a web application which can be used to visualise the flow of execution stages within a BigQuery job. This may be useful in identifying problematic stages and provides greater usability for large query plans than the default query plan explanation in the Google Cloud Console.
 
 ## Release Notes
-15 July 2019 - in order to have the appliction whitelisted on appspot.com, the automatic login
+**6 October 2019**
+
+* Added Progress View. See graphic display of work units comnpleted over time
+* Highlight nodes that are still running. Useful for jobs that die
+* Fix Stage display bug - when job was cancelled stage status was not displayed
+
+**15 July 2019**
+
+in order to have the appliction whitelisted on appspot.com, the automatic login
 had to be disabled to allow users to access the Terms and Privacy page prior to logging in.
 
 Treeview will by default hide reparttions.
@@ -64,6 +72,14 @@ At the bottom a number of tabs show overall plan information:
 ### The Timing Tab
 The timing Tab displaus a Gantt style view to quickly show how long the indivudal stages take.
 
+### The Progress Tab
+Shows the progress of work over time with details of 
+
+* work completed
+* work active
+* work outstanding
+
+This useful to see when the query stalls for any reason, i.e. when stages do not progress 
 
 ## Known Limits
 

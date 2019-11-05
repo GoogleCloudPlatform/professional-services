@@ -29,6 +29,8 @@ export class BqQueryPlan {
   readonly edges: Edge[] = [];
   ganttChart: any;
   ganttData: any;
+  progressChart: any;
+  progressData: any;
   isValid = false;
 
   constructor(public readonly plan: Job, private logSvc: LogService) {
@@ -193,6 +195,51 @@ export class BqQueryPlan {
     }
     this.ganttChart = chart;
     this.ganttData = data;
+  }
+
+  asProgressChart(
+      containerName: string,
+      onSelectHandler:
+          (chart: google.GoogleCharts.AreaChart, data: object) => void): void {
+    const container = document.getElementById(containerName);
+    if (!container) {
+      this.logSvc.error(`Can't find container '${containerName}'`);
+      return;
+    }
+    const data = new google.GoogleCharts.api.visualization.DataTable();
+    const chart =
+        new google.GoogleCharts.api.visualization.AreaChart(container);
+    data.addColumn('date', 'time');
+    data.addColumn('number', 'Completed Units');
+    data.addColumn('number', 'Active Units');
+    data.addColumn('number', 'Pending Units');
+
+    // get the time data
+
+    const timeline = this.plan.statistics.query.timeline;
+    data.addRows(timeline.map(
+        item =>
+            [new Date(
+                 Number(item.elapsedMs) +
+                 Number(this.plan.statistics.startTime)),
+             Number(item.completedUnits), Number(item.activeUnits),
+             Number(item.pendingUnits)]));
+    const options = {
+      isStacked: true,
+      legend: {position: 'bottom'},
+      connectSteps: false,
+      colors: ['#4374E0', '#53A8FB', '#F1CA3A', '#E49307'],
+      title: 'Work Completion Progress'
+    };
+    chart.draw(data, options);
+    if (onSelectHandler) {
+      google.GoogleCharts.api.visualization.events.addListener(
+          chart, 'select', none => {
+            onSelectHandler(chart, data);
+          });
+    }
+    this.progressChart = chart;
+    this.progressData = data;
   }
 
   /**

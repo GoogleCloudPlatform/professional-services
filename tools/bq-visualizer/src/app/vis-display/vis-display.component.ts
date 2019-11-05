@@ -139,6 +139,7 @@ export class VisDisplayComponent implements OnInit {
           title: node.name,
           widthConstraint: 60,
           shape: node.isExternal ? 'database' : 'box',
+          color: node.status === 'RUNNING' ? '#FF8080' : '#D2E5FF',
           physics: false,
           x: layout.node(node.id).x,
           y: layout.node(node.id).y
@@ -148,8 +149,8 @@ export class VisDisplayComponent implements OnInit {
       visedges = new vis.DataSet(plan.edges.map(edge => {
         let nrRecords = edge.from.recordsWritten;
         if (nrRecords === undefined) {
-          console.log('undefined records written in source node');
-          console.log(edge);
+          // console.log('undefined records written in source node');
+          // console.log(edge);
           nrRecords = this.estimate_recordsRead(edge, plan).toString();
         }
         return {
