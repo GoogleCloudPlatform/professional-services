@@ -20,6 +20,7 @@ import os
 import re
 
 from google.cloud import bigquery
+from google.cloud import storage
 
 from benchmark_tools import file_constants
 from benchmark_tools import table_util
@@ -95,6 +96,7 @@ class BenchmarkResultUtil(object):
         self.job_source_uri = file_uri
         self.bq_logs_dataset = bq_logs_dataset
         self.bq_client = bigquery.Client()
+        self.storage_client = storage.Client()
         self.file_type = None
         self.compression_format = None
         self.benchmark_time = None
@@ -178,16 +180,34 @@ class BenchmarkResultUtil(object):
         # pylint: disable=line-too-long
         benchmark_details_pattern = \
             r'gs://([\w\'-]+)/fileType=(\w+)/compression=(\w+)/numColumns=(\d+)/columnTypes=(\w+)/numFiles=(\d+)/tableSize=(\d+)(\w+)'
-        bucket, self.file_type, compression, self.num_columns, \
+        bucket_name, self.file_type, compression, self.num_columns, \
             self.column_types, expected_num_files, self.staging_data_size, \
             staging_data_unit = \
             re.findall(benchmark_details_pattern, self.job_source_uri)[0]
         self.compression_format = (file_constants.FILE_CONSTANTS
                                    ['compressionFormats'][compression])
-        self.file_size = int((
-                                self.load_job.input_file_bytes /
-                                int(self.num_files)
-                             ) / BYTES_IN_MB)
+        file_name_prefix = 'fileType={0:s}/compression={1:s}/numColumns={2:s}/columnTypes={3:s}/numFiles={4:s}/tableSize={5:s}{6:s}'.format(
+            self.file_type,
+            compression,
+            self.num_columns,
+            self.column_types,
+            expected_num_files,
+            self.staging_data_size,
+            staging_data_unit
+        )
+        bucket = self.storage_client.get_bucket(bucket_name)
+        files_consts = file_constants.FILE_CONSTANTS
+        if compression == 'none':
+            file_ext = self.file_type
+        else:
+            file_ext = files_consts['compressionExtensions'][compression]
+
+        file_name = '{0:s}/file1.{1:s}'.format(
+            file_name_prefix,
+            file_ext
+        )
+
+        self.file_size = float(bucket.get_blob(file_name).size)/BYTES_IN_MB
 
         # get properties from BQ logs
         str_timestamp = str(self.benchmark_time)

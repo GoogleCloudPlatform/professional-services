@@ -457,11 +457,13 @@ python bq_file_load_benchmark.py \
 --create_benchmark_tables \
 --bq_project_id=<ID of your own project holding the BigQuery resources> \
 --gcs_project_id='data-analtyics-pocs' \
---staging_project_id='data-analtyics-pocs' \
+--staging_project_id='data-analytics-pocs' \
 --staging_dataset_id='bq_loader_benchmark_staging' \
 --benchmark_dataset_id=<ID of your dataset that will hold benchmark tables> \
 --bucket_name='annarudy-bqloader-testfiles' \
 --results_table_name=<Name of your results table> \
+--results_dataset_id=<Name of the dataset that holds your results table> \
+--bq_logs_dataset=<Dataset that holds the table storing logs for BQ jobs>
 --duplicate_benchmark_tables
 
 ```
