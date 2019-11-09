@@ -74,6 +74,15 @@ class TestBigQuerySchema(unittest.TestCase):
                                    'mode': 'NULLABLE'}
                                  ])
 
+    def test_timestamp(self):
+        document = {'timestamp': '2019-01-01T00:01:00'}
+        schema = bigquery_schema.translate_json_to_schema(
+            document)
+        self.assertEqual(schema, [{'name': 'timestamp',
+                                   'field_type': 'STRING',
+                                   'mode': 'NULLABLE'},
+                                 ])
+
     def test_merge_schemas_basic(self):
         schemas = [
             bigquery_schema.translate_json_to_schema({
