@@ -165,7 +165,7 @@ def parse_args(argv):
                 '--results_table_name',
                 '--create_results_table'
             ))
-        if not args.benchmark_dataset_id:
+        if not args.results_dataset_id:
             parser.error(missing_args_error.format(
                 '--results_dataset_id',
                 '--create_results_table'
@@ -319,7 +319,7 @@ def main(argv=None):
         )
         results_table_util = table_util.TableUtil(
             table_id=results_table_name,
-            dataset_id=benchmark_dataset_id,
+            dataset_id=results_dataset_id,
             json_schema_filename=results_table_schema_path,
         )
         results_table_util.create_table()
