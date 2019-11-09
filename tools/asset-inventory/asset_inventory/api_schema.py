@@ -277,6 +277,11 @@ class APISchema(object):
             'field_type': 'STRING',
             'description': 'Asset name.',
             'mode': 'REQUIRED'
+        }, {
+            'name': 'timestamp',
+            'field_type': 'TIMESTAMP',
+            'description': 'Load time.',
+            'mode': 'NULLABLE'
         }]
         if include_resource:
             resource_schema = list(schema)

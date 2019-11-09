@@ -57,8 +57,8 @@ SELECT
   TO_BASE64(MD5(billing_account_id)) AS billing_account_id,
   STRUCT(
     TO_BASE64(MD5(project.id)) AS id,
-    TO_BASE64MD5(project.name)) AS name,
-    TO_BASE64MD5(project.ancestry_numbers)) AS ancestry_numbers,
+    TO_BASE64(MD5(project.name)) AS name,
+    TO_BASE64(MD5(project.ancestry_numbers)) AS ancestry_numbers,
     project.labels AS labels
   ) AS project,
   billing.* EXCEPT(billing_account_id, project)

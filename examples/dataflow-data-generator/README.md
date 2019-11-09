@@ -67,7 +67,7 @@ taken was to generate a `REPEATED` `RECORD` (aka `ARRAY<STRUCT>`) and each recor
 will have between 0 and 3 elements in this array. 
 ie. 
 ```
---schema_file=gs://python-dataflow-examples/schemas/lineorder-schema.json
+--schema_file=gs://python-dataflow-example/schemas/lineorder-schema.json
 ```
 lineorder-schema.json:
 ```
