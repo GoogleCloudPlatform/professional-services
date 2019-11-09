@@ -1,0 +1,99 @@
+{
+  "fields": [
+    {
+      "name": "insert_timestamp",
+      "type": {
+        "equivalent": "TIMESTAMP",
+        "constant": "TIMESTAMP"
+      }
+    },
+    {
+      "name": "instance_id",
+      "type": {
+        "equivalent": "INT64",
+        "constant": "INTEGER"
+      }
+    },
+    {
+      "name": "project_id",
+      "type": {
+        "equivalent": "STRING",
+        "constant": "STRING"
+      }
+    },
+    {
+      "name": "zone",
+      "type": {
+        "equivalent": "STRING",
+        "constant": "STRING"
+      }
+    },
+    {
+      "name": "machine_type",
+      "type": {
+        "equivalent": "STRING",
+        "constant": "STRING"
+      }
+    },
+    {
+      "name": "pd_standard_size_gb",
+      "type": {
+        "equivalent": "FLOAT64",
+        "constant": "FLOAT"
+      }
+    },
+    {
+      "name": "pd_ssd_size_gb",
+      "type": {
+        "equivalent": "FLOAT64",
+        "constant": "FLOAT"
+      }
+    },
+    {
+      "name": "local_ssd_size_gb",
+      "type": {
+        "equivalent": "FLOAT64",
+        "constant": "FLOAT"
+      }
+    },
+    {
+      "name": "preemptible",
+      "type": {
+        "equivalent": "BOOL",
+        "constant": "BOOLEAN"
+      }
+    },
+    {
+      "name": "tags",
+      "type": {
+        "equivalent": "STRING",
+        "constant": "STRING"
+      },
+      "mode": "REPEATED"
+    },
+    {
+      "name": "labels",
+      "type": {
+        "equivalent": "STRUCT",
+        "constant": "RECORD"
+      },
+      "subFields": [
+        {
+          "name": "key",
+          "type": {
+            "equivalent": "STRING",
+            "constant": "STRING"
+          }
+        },
+        {
+          "name": "value",
+          "type": {
+            "equivalent": "STRING",
+            "constant": "STRING"
+          }
+        }
+      ],
+      "mode": "REPEATED"
+    }
+  ]
+}
