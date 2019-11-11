@@ -113,6 +113,7 @@ class BenchmarkTable(object):
         self.path = path
         self.uri = 'gs://{0:s}/{1:s}'.format(self.bucket_name, path)
         self.results_table_name = results_table_name
+        self.results_table_dataset_id = results_table_dataset_id
         self.results_table_dataset_ref = self.bq_client.dataset(
             results_table_dataset_id
         )
@@ -207,26 +208,16 @@ class BenchmarkTable(object):
         try:
             self.load_job.result()
             result = benchmark_result_util.BenchmarkResultUtil(
-                load_job=self.load_job,
-                file_uri='{0:s}/*'.format(self.uri),
-                benchmark_table_name=self.job_destination_table,
-                benchmark_dataset_id=self.dataset_id,
+                job=self.load_job,
+                job_type='LOAD',
+                benchmark_name='File Loader',
                 project_id=self.bq_project,
+                result_table_name=self.results_table_name,
+                result_dataset_id=self.results_table_dataset_id,
                 bq_logs_dataset=self.bq_logs_dataset
             )
-            result_row = result.get_results_row()
-            logging.info('Inserting {0:s}'.format(str(result_row)))
-            insert_job = self.bq_client.insert_rows(
-                self.results_table,
-                [result_row],
-             )
-            if len(insert_job) == 0:
-                logging.info(('Results for table {0:s} loaded '
-                             'successfully.').format(
-                    self.job_destination_table
-                ))
-            else:
-                logging.error(insert_job)
+            result.insert_results_row()
+
         except exceptions.BadRequest as e:
             logging.error(e.message)
             self.bq_client.delete_table(self.benchmark_table_util.table_ref)

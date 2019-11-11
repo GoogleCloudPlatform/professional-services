@@ -80,137 +80,27 @@ class BenchmarkResultUtil(object):
 
     def __init__(
             self,
-            load_job,
-            file_uri,
-            benchmark_table_name,
-            benchmark_dataset_id,
+            job,
+            job_type,
+            benchmark_name,
             project_id,
-            bq_logs_dataset,
-
+            result_table_name,
+            result_dataset_id,
+            bq_logs_dataset
     ):
-        self.load_job = load_job
-        self.job_id = self.load_job.job_id
-        self.benchmark_table_name = benchmark_table_name
-        self.project_id = project_id
-        self.benchmark_dataset_id = benchmark_dataset_id
-        self.job_source_uri = file_uri
-        self.bq_logs_dataset = bq_logs_dataset
         self.bq_client = bigquery.Client()
         self.storage_client = storage.Client()
-        self.file_type = None
-        self.compression_format = None
-        self.benchmark_time = None
-        self.num_columns = None
-        self.num_rows = None
-        self.column_types = None
-        self.num_files = None
-        self.file_size = None
-        self.staging_data_size = None
-        self.job_user = None
-        self.job_location = None
-        self.job_start_time = None
-        self.job_end_time = None
-        self.job_duration = None
-        self.job_source_format = None
-        self.totalSlotMs = None
-        self.avgSlots = None
+        self.project_id = project_id
+        self.results_table_name = result_table_name
+        self.results_dataset_id = result_dataset_id
+        self.bq_logs_dataset = bq_logs_dataset
+        self.job = job
+        self.job_type = job_type
+        self.benchmark_name = benchmark_name
+        self.results_dict = {}
 
-    def get_results_row(self):
-        """Gathers the results of a load job into a benchmark table.
-
-        Waits until the stat of the load job is 'DONE'. Note that this may take
-        several minutes. Once the job stat is done, the method calls an
-        internal method to set the benchmark properties, and another to get
-        a BigQuery row containing the benchmark properties.
-
-        Returns:
-            A dict representing a row to be inserted into BigQuery.
-
-        """
-        job_state = self.load_job.state
-        i = 0
-        while job_state != 'DONE':
-            if i == 0:
-                logging.info('Job {0:s} currently in state {1:s}'.format(
-                    self.job_id,
-                    job_state,
-                ))
-                logging.info('Waiting to gather results for job {0:s} until '
-                             'data has been loaded.'.format(self.job_id))
-                i += 1
-            self.load_job = self.bq_client.get_job(self.job_id)
-            job_state = self.load_job.state
-        logging.info('Job {0:s} currently in state {1:s}'.format(
-            self.job_id,
-            job_state,
-        ))
-        logging.info('Gathering results for benchmark table {0:s}.'.format(
-            self.benchmark_table_name
-        ))
-        self._set_benchmark_properties()
-        row = self._get_row()
-        return row
-
-    def _set_benchmark_properties(self):
-        """Sets properties from results of the benchmark load.
-
-        Internal method that gathers and sets properties from the benchmark
-        load to be used as results.
-        """
-
-        # get properties from benchmark table
-        benchmark_table_util = table_util.TableUtil(
-            self.benchmark_table_name,
-            self.benchmark_dataset_id,
-        )
-        benchmark_table_util.set_table_properties()
-        self.num_rows = benchmark_table_util.table.num_rows
-
-        # get properties from the load job
-        self.benchmark_time = self.load_job.created
-        self.job_start_time = self.load_job.started
-        self.job_end_time = self.load_job.ended
-        self.job_duration = self.job_end_time - self.job_start_time
-        self.job_user = self.load_job.user_email
-        self.num_files = self.load_job.input_files
-        self.job_location = self.load_job.location
-        self.job_source_format = self.load_job.source_format
-
-        # get properties from file
-        # pylint: disable=line-too-long
-        benchmark_details_pattern = \
-            r'gs://([\w\'-]+)/fileType=(\w+)/compression=(\w+)/numColumns=(\d+)/columnTypes=(\w+)/numFiles=(\d+)/tableSize=(\d+)(\w+)'
-        bucket_name, self.file_type, compression, self.num_columns, \
-            self.column_types, expected_num_files, self.staging_data_size, \
-            staging_data_unit = \
-            re.findall(benchmark_details_pattern, self.job_source_uri)[0]
-        self.compression_format = (file_constants.FILE_CONSTANTS
-                                   ['compressionFormats'][compression])
-        file_name_prefix = 'fileType={0:s}/compression={1:s}/numColumns={2:s}/columnTypes={3:s}/numFiles={4:s}/tableSize={5:s}{6:s}'.format(
-            self.file_type,
-            compression,
-            self.num_columns,
-            self.column_types,
-            expected_num_files,
-            self.staging_data_size,
-            staging_data_unit
-        )
-        bucket = self.storage_client.get_bucket(bucket_name)
-        files_consts = file_constants.FILE_CONSTANTS
-        if compression == 'none':
-            file_ext = self.file_type
-        else:
-            file_ext = files_consts['compressionExtensions'][compression]
-
-        file_name = '{0:s}/file1.{1:s}'.format(
-            file_name_prefix,
-            file_ext
-        )
-
-        self.file_size = float(bucket.get_blob(file_name).size)/BYTES_IN_MB
-
-        # get properties from BQ logs
-        str_timestamp = str(self.benchmark_time)
+    def _get_audit_log_properties(self):
+        str_timestamp = str(self.job.created)
         sharded_table_timestamp = str_timestamp.split(' ')[0].replace('-', '')
         abs_path = os.path.abspath(os.path.dirname(__file__))
         log_query_file = os.path.join(
@@ -222,7 +112,7 @@ class BenchmarkResultUtil(object):
                 self.project_id,
                 self.bq_logs_dataset,
                 sharded_table_timestamp,
-                self.job_id
+                self.job.job_id
             )
         log_query_config = bigquery.QueryJobConfig()
         log_query_config.use_legacy_sql = False
@@ -232,52 +122,94 @@ class BenchmarkResultUtil(object):
             job_config=log_query_config
         )
         log_query_job.result()
+        total_slot_ms = None
+        avg_slots = None
         for row in log_query_job:
-            self.totalSlotMs = row['totalSlotMs']
-            self.avgSlots = row['avgSlots']
+            total_slot_ms = row['totalSlotMs']
+            avg_slots = row['avgSlots']
 
-    def _get_row(self):
-        """Returns a row of results.
+        return total_slot_ms, avg_slots
 
-        Internal method that forms a dictionary of benchmark properties to be
-        returned as row. The row represents the results of the benchmark load.
+    def _set_benchmark_properties(self):
+        """Sets properties from results of the benchmark load.
+
+        Internal method that gathers and sets properties from the benchmark
+        load to be used as results.
+        """
+
+        # get properties from BQ logs
+        total_slot_ms, avg_slots = self._get_audit_log_properties()
+
+        # set job properties
+        self.results_dict['benchmarkTime'] = self.job.created
+        self.results_dict['benchmarkName'] = self.benchmark_name
+        self.results_dict['job'] = {
+            "id": self.job.job_id,
+            "type": self.job_type,
+            "user": self.job.user_email,
+            "location": self.job.location,
+            "startTime": self.job.started.isoformat(),
+            "endTime": self.job.ended.isoformat(),
+            "duration": (self.job.ended - self.job.started).total_seconds(),
+            "totalSlotMs": total_slot_ms,
+            "avgSlots": avg_slots
+        }
+
+    def insert_results_row(self):
+        """Gathers the results of a load job into a benchmark table.
+
+        Waits until the stat of the load job is 'DONE'. Note that this may take
+        several minutes. Once the job stat is done, the method calls an
+        internal method to set the benchmark properties, and another to get
+        a BigQuery row containing the benchmark properties.
 
         Returns:
-            A row in the form of a dictionary that represents the results of
-            the benchmark load. Each key represents a field in the BigQuery
-            results table.
-        """
-        fields_dict = dict(
-            id=self.job_id,
-            user=self.job_user,
-            location=self.job_location,
-            startTime=self.job_start_time.isoformat(),
-            endTime=self.job_end_time.isoformat(),
-            duration=self.job_duration.total_seconds(),
-            destinationTable='{0:s}.{1:s}.{2:s}'.format(
-                self.project_id,
-                self.benchmark_dataset_id,
-                self.benchmark_table_name,
-            ),
-            sourceURI=self.job_source_uri,
-            sourceFormat=self.job_source_format,
-            totalSlotMs=self.totalSlotMs,
-            avgSlots=self.avgSlots
-        )
-        row = dict(
-            benchmarkTime=self.benchmark_time,
-            fileType=self.file_type,
-            compressionType=self.compression_format,
-            numColumns=self.num_columns,
-            numRows=self.num_rows,
-            columnTypes=self.column_types,
-            numFiles=self.num_files,
-            fileSize=self.file_size,
-            stagingDataSize=self.staging_data_size,
-            job=fields_dict,
-        )
+            A dict representing a row to be inserted into BigQuery.
 
-        return row
+        """
+        job_state = self.job.state
+        i = 0
+        while job_state != 'DONE':
+            if i == 0:
+                logging.info('Job {0:s} currently in state {1:s}'.format(
+                    self.job.job_id,
+                    job_state,
+                ))
+                logging.info(
+                    'Waiting to gather results for job {0:s} until '
+                    'data has been loaded.'.format(self.job.job_id))
+                i += 1
+            self.job = self.bq_client.get_job(self.job.job_id)
+            job_state = self.job.state
+        logging.info('Job {0:s} currently in state {1:s}'.format(
+            self.job.job_id,
+            job_state,
+        ))
+        logging.info('Gathering results for benchmark')
+        self._set_benchmark_properties()
+
+        results_table_dataset_ref = self.bq_client.dataset(
+            self.results_dataset_id
+        )
+        results_table_ref = results_table_dataset_ref.table(
+            self.results_table_name
+        )
+        results_table = self.bq_client.get_table(results_table_ref)
+        logging.info('Inserting {0:s}'.format(str(self.results_dict)))
+        insert_job = self.bq_client.insert_rows(
+            results_table,
+            [self.results_dict],
+        )
+        if len(insert_job) == 0:
+            logging.info(('{0:s} Benchmark results for job {1:s} loaded '
+                          'loaded successfully'.format(
+                                self.benchmark_name,
+                                self.job.job_id)
+                          ))
+        else:
+            logging.error(insert_job)
+
+
 
 
 

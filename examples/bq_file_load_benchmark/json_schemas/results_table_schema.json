@@ -141,7 +141,7 @@
                     "description": "The number of rows in the destination table"
                 },
                 {
-                    "name": "sourceURIs",
+                    "name": "sourceURI",
                     "type": "STRING",
                     "mode": "NULLABLE",
                     "description": "The distribution of load file column types"

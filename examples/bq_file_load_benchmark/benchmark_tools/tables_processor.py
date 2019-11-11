@@ -102,7 +102,7 @@ class TablesProcessor(object):
             benchmark tables.
         """
         query = (
-            'SELECT job.sourceURI FROM `{0:s}.{1:s}.{2:s}` '.format(
+            'SELECT loadProperties.sourceURI FROM `{0:s}.{1:s}.{2:s}` '.format(
                 self.bq_project,
                 self.results_table_dataset_id,
                 self.results_table_name,
