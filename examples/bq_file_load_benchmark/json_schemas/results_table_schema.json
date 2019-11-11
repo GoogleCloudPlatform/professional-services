@@ -73,18 +73,6 @@
                     "description": "Average number of slots used throughout the runtime of the job"
                 },
                 {
-                    "name": "totalBytesBilled",
-                    "type": "INTEGER",
-                    "mode": "NULLABLE",
-                    "description": "Total bytes billed from running the job"
-                },
-                {
-                    "name": "totalBytesProcessed",
-                    "type": "INTEGER",
-                    "mode": "NULLABLE",
-                    "description": "Total bytes processed from running the job"
-                },
-                {
                     "name": "concurrency",
                     "type": "INTEGER",
                     "mode": "NULLABLE",
@@ -183,6 +171,18 @@
                      "type": "STRING",
                      "mode": "NULLABLE",
                      "description": "Type of SQL functionality highlighted in the query: SIMPLE_SELECT, INNER_JOIN, BROADCAST_JOIN, WINDOW_FUNCTION, SUB_QUERY, CASE_STATEMENT"
+                },
+                {
+                    "name": "totalBytesBilled",
+                    "type": "INTEGER",
+                    "mode": "NULLABLE",
+                    "description": "Total bytes billed from running the query"
+                },
+                {
+                    "name": "totalBytesProcessed",
+                    "type": "INTEGER",
+                    "mode": "NULLABLE",
+                    "description": "Total bytes processed from running the query"
                 },
                 {
                     "name": "mainTable",
