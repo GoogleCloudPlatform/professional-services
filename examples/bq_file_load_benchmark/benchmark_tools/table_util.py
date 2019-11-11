@@ -112,32 +112,49 @@ class TableUtil(object):
             A BigQuery schema in List[google.cloud.bigquery.schema.SchemaField]
             format.
         """
-        schema = []
-        filename = self.json_schema_filename
-        json_file = open(filename)
-        json_str = json_file.read()
-        json_schema = json.loads(json_str)
-        for item in json_schema['fields']:
-            fields = ()
-            if 'fields' in item:
-                fields_list = []
-                for field in item['fields']:
-                    fields_list.append(
-                        bigquery.SchemaField(
-                            field['name'],
-                            field['type'],
-                            field['mode'],
-                        )
-                    )
-                fields = tuple(fields_list)
-            schema.append(
-                bigquery.SchemaField(
-                    item['name'],
-                    item['type'],
-                    item['mode'],
-                    fields=fields,
+        def _process_field(
+                field
+        ):
+            """Creates a list of strings to be used as the inner portion of the
+                gather updates query by recursively processing fields and
+                nested fields.
+
+            Args:
+                field(dict): Represents a field in the user schema.
+                record_name(str): The name of the record that the field belongs
+                    to if the field variable is a nested field. None if the
+                    field is not a nested field.
+                record_alias(str): The alias of the record that the field
+                    belongs to if the field variable is a nested field. None if
+                    the field is not a nested field.
+            """
+            if field['type'] == 'RECORD':
+                fields = []
+                for sub_field in field['fields']:
+                    fields.append(_process_field(sub_field))
+                return bigquery.SchemaField(
+                    field['name'],
+                    field['type'],
+                    field['mode'],
+                    field['description'],
+                    tuple(fields)
                 )
-            )
+            else:
+                return bigquery.SchemaField(
+                    field['name'],
+                    field['type'],
+                    field['mode'],
+                    field['description']
+                )
+
+        schema = []
+        with open(self.json_schema_filename, 'r') as json_file:
+            json_str = json_file.read()
+            json_schema = json.loads(json_str)
+
+        for item in json_schema['fields']:
+            schema.append(_process_field(item))
+
         return schema
 
     def create_table(self):

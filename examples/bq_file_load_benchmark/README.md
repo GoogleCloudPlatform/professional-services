@@ -135,7 +135,7 @@ python bq_file_load_benchmark.py \
 --create_results_table \
 --results_table_schema_path=<optional path to json schema for results table> \
 --results_table_name=<results table name> \
---benchmark_dataset_id=<dataset ID>
+--results_dataset_id=<dataset ID>
 ```
 
 Parameters:
