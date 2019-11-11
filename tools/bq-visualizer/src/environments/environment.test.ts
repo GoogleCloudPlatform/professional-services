@@ -31,7 +31,7 @@ export const environment = {
 
     // set the scope for the permissions the client should request
     // The first three are defined by OIDC. The 4th is a usecase-specific one
-    scope: 'profile email https://www.googleapis.com/auth/bigquery ',
+    scope: 'profile email https://www.googleapis.com/auth/bigquery.readonly ',
     strictDiscoveryDocumentValidation: false,
     showDebugInformation: true
   },
