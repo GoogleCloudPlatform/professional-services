@@ -59,7 +59,7 @@ from the Google Cloud python-docs-samples repo and using the provided [dag_trigg
 ```bash
 pip install -r ~/professional-services/examples/cloud-composer-examples/requirements.txt
 wget https://raw.githubusercontent.com/GoogleCloudPlatform/python-docs-samples/master/iap/requirements.txt -O ~/professional-services/examples/cloud-composer-examples/iap_requirements.txt
-pip install -r iap-requirements.txt
+pip install -r iap_requirements.txt
 wget https://raw.githubusercontent.com/GoogleCloudPlatform/python-docs-samples/master/iap/make_iap_request.py -O ~/professional-services/examples/cloud-composer-examples/composer_http_post_example/make_iap_request.py
 ```
 (Or if your are on a Mac you can use curl.)
