@@ -136,6 +136,7 @@ class MatchApplicant(MatchFunction):
 
 def convert_pdfs(main_project_id,
                  input_bucket_name,
+                 region,
                  service_acct,
                  output_directory="patent_demo_data",
                  temp_directory="./tmp/google"):
@@ -169,7 +170,7 @@ def convert_pdfs(main_project_id,
 
   # Create Bucket if it doesn"t exist
   subprocess.run(
-      f"gsutil mb -p {main_project_id} gs://{output_bucket_name}",
+      f"gsutil mb -p {main_project_id} -l {region} gs://{output_bucket_name}",
       shell=True)
 
   subprocess.run(
@@ -179,6 +180,7 @@ def convert_pdfs(main_project_id,
   # OCR Processing to obtain text files
   run_ocr(project_id=main_project_id,
           output_directory=output_directory,
+          region=region,
           temp_directory=temp_directory,
           service_acct=service_acct)
 
@@ -413,7 +415,7 @@ def bq_to_df(project_id, dataset_id, table_id, service_acct):
   return df
 
 
-def run_ocr(project_id, output_directory, temp_directory, service_acct):
+def run_ocr(project_id, output_directory, region, temp_directory, service_acct):
   """Process png files using OCR to extract text from documents."""
 
   logger.info("Processing documents with Cloud Vision API")
@@ -429,7 +431,7 @@ def run_ocr(project_id, output_directory, temp_directory, service_acct):
   # make sure bucket exists
   output_bucket_name = project_id + "-lcm"
   subprocess.run(
-    f"gsutil mb -p {project_id} gs://{output_bucket_name}", shell=True)
+    f"gsutil mb -p {project_id} -l {region} gs://{output_bucket_name}", shell=True)
 
   for blob in blobs:
     if blob.name.endswith(".png"):

@@ -18,7 +18,8 @@ import sys
 import utils
 import logging
 
-from google.cloud import storage, bigquery, automl
+from google.cloud import storage, bigquery
+from google.cloud import automl_v1beta1 as automl
 
 # TODO: Clean classify write into submodules + handle initialization of the clients better (is it the right place).
 # TODO: Rename sample_handler + is it necessary to feed the string to the API (vs path)

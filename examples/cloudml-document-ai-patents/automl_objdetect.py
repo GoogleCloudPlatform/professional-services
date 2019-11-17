@@ -17,7 +17,9 @@ import logging
 import os
 import sys
 import re
-from google.cloud import bigquery, storage, vision, automl
+from google.cloud import bigquery, storage, vision
+from google.cloud import automl_v1beta1 as automl
+
 from google.cloud.automl_v1beta1.proto import service_pb2
 from google.oauth2 import service_account
 import tempfile
