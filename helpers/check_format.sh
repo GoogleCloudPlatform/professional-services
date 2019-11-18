@@ -27,7 +27,7 @@
 # Exit with error code 1 - always
 need_formatting() {
     FOLDER=$1
-    FILES_TO_LINT=$2
+    FILES_TO_LINT=${@:2}
     echo "Some files need to be formatted in $FOLDER - FAIL"
     echo "$FILES_TO_LINT"
     exit 1
@@ -71,9 +71,8 @@ validate_python() {
 
             if [[ ! -z "$FILES_TO_LINT" ]]
             then
-                echo "Some files need to be formatted in $FOLDER - FAIL"
-                echo "$FILES_TO_LINT"
-                exit 1
+                # Error out with details
+                need_formatting $FOLDER $FILES_TO_LINT
             fi
 
             if [[ -z "$FILES_TO_LINT" ]]
@@ -100,7 +99,78 @@ validate_go() {
         # Error out with details
         need_formatting $FOLDER $FILES_TO_LINT
     else
-        echo "No go files need formatting for $FOLDER - PASS"
+        echo "No go files need formatting for $FOLDER - SKIP"
+    fi
+}
+
+# validate_typescript - takes a folder path as input and validate folder
+# using gts
+# errors out if gts init or npm audit returns a non-0 status
+validate_typescript(){
+    FOLDER=$1
+    if [[ -f "$FOLDER/tsconfig.json" ]]
+    then
+        echo "Validating $FOLDER - Checking typescript files"
+        cd $FOLDER
+        npx gts -y init > /dev/null
+
+        if [[ "$?" -eq 0  ]]
+        then
+            echo "Running npm audit..."
+            npm audit
+            cd -
+            if [[ "$?" -ne 0  ]]
+            then
+                echo "$FOLDER npm audit needs fixing - FAIL"
+                exit 1
+            else
+                echo "$FOLDER npm audit is clean - PASS"
+            fi
+        else
+            cd -
+            echo "gts init returned an error - FAIL"
+            exit 1
+        fi
+    fi
+
+}
+
+# validate_go - takes a folder path as input and validate folder
+# using gts
+# errors out if gts init or npm audit returns a non-0 status
+validate_java(){
+    FOLDER=$1
+    echo "Validating $FOLDER - Checking java files"
+
+    FILES_TO_CHECK=$(find $FOLDER -type f -name "*.java")
+
+    # Initialize FILES_TO_LINT to empty string
+    FILES_TO_LINT=""
+
+    if [[ ! -z "$FILES_TO_CHECK" ]]
+    then
+        echo "Testing formatting for java files in $FOLDER"
+        for FILE_TO_CHECK in $FILES_TO_CHECK
+        do
+            java -jar /usr/share/java/google-java-format-1.7-all-deps.jar --set-exit-if-changed $FILE_TO_CHECK > /dev/null
+
+            if [[ "$?" -ne 0 ]]
+            then
+                FILES_TO_LINT+="$FILE_TO_CHECK "
+            fi
+        done
+
+        if [[ ! -z "$FILES_TO_LINT" ]]
+        then
+            need_formatting $FOLDER $FILES_TO_LINT
+        fi
+
+        if [[ -z "$FILES_TO_LINT" ]]
+        then
+            echo "No files need to be formatted in $FOLDER - PASS"
+        fi
+    else
+        echo "No java files found for $FOLDER - SKIP"
     fi
 }
 
@@ -113,6 +183,8 @@ do
     then
         validate_python $FOLDER
         validate_go $FOLDER
+        validate_typescript $FOLDER
+        validate_java $FOLDER
     else
         echo "$FOLDER in exclusion list - SKIP  "
     fi

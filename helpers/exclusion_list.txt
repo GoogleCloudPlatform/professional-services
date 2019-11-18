@@ -12,7 +12,6 @@ tools/dataproc-edge-node
 tools/dns-sync
 tools/gce-google-keys-to-cmek
 tools/gce-quota-sync
-tools/gce-usage-log
 tools/gcp-arch-viz
 tools/gcs-bucket-mover
 tools/gsuite-exporter
@@ -21,6 +20,7 @@ tools/kunskap
 tools/labelmaker
 tools/maven-archetype-dataflow
 tools/ml-dataprep
+tools/ml-auto-eda
 tools/netblock-monitor
 tools/site-verification-group-sync
 tools/terraform-module-update-scanner
