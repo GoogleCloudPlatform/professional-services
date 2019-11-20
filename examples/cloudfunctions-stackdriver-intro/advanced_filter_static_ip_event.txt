@@ -1,0 +1,1 @@
+resource.type="gce_instance" AND ("addAccessConfig") AND (NOT protoPayload.request.name="*")

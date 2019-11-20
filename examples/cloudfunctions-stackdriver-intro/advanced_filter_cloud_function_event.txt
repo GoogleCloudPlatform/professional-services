@@ -1,0 +1,4 @@
+resource.type="gce_instance"
+jsonPayload.actor.user="${project_id}@appspot.gserviceaccount.com"
+"Factivity_log"
+jsonPayload.event_type="GCE_OPERATION_DONE"
