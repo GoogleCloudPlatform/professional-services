@@ -55,13 +55,13 @@ Let’s walk through the steps necessary to create and populate the dataset.
 <h3> 2.3.1 Creating the dataset </h3>
 Now, let’s create the dataset inside the project.
 
-``bq mk --location=${BQ_LOCATION} -d "${PROJECT_ID}:gce_usage_log"``
+``bq mk --location=${BQ_LOCATION} -d "${PROJECT_ID}:gcs_usage_log"``
 
 <h3> 2.3.2 Create the audit log sink </h3>
 
 ````bash
-gcloud logging sinks create gce_usage \
-  bigquery.googleapis.com/projects/${PROJECT_ID}/datasets/gce_usage_log \
+gcloud logging sinks create gcs_usage \
+  bigquery.googleapis.com/projects/${PROJECT_ID}/datasets/gcs_usage_log \
   --log-filter='resource.type="gce_instance" AND
   (protoPayload.methodName:"compute.instances.insert" OR
   protoPayload.methodName:"compute.instances.delete")' \
