@@ -22,11 +22,11 @@ import re
 from google.cloud import bigquery
 from google.cloud import storage
 
-from benchmark_tools import file_constants
-from benchmark_tools import table_util
+from generic_benchmark_tools import file_constants
+from generic_benchmark_tools import table_util
 
 BYTES_IN_MB = 1000000
-JOB_TYPES = ['LOAD', 'QUERY', 'COPY', 'EXTRACT']
+
 
 class BenchmarkResultUtil(object):
     """Parent class for handling results of benchmark jobs.

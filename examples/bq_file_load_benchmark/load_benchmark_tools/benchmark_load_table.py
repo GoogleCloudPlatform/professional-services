@@ -23,10 +23,10 @@ from google.api_core import exceptions
 from google.cloud import bigquery
 from google.cloud import storage
 
-from benchmark_tools import benchmark_parameters
-from benchmark_tools import benchmark_result_util
-from benchmark_tools import table_util
-from benchmark_tools import file_constants
+from generic_benchmark_tools import benchmark_parameters
+from generic_benchmark_tools import benchmark_result_util
+from generic_benchmark_tools import table_util
+from generic_benchmark_tools import file_constants
 
 
 class BenchmarkLoadTable(object):
@@ -71,7 +71,7 @@ class BenchmarkLoadTable(object):
             the benchmark table (i.e. csv, avro, parquet, etc).
         compression_format(bigquery.job.Compression):  Object representing the
             compression of the file.
-        benchmark_table_util(benchmark_tools.table_util.TableUtil): Object to
+        benchmark_table_util(load_benchmark_tools.table_util.TableUtil): Object to
             assist with the handling of the benchmark table's creation
             and properties.
         num_columns(int): Number of columns in the benchmark table.

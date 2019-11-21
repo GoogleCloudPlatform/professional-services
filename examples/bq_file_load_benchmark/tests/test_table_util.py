@@ -7,11 +7,11 @@ import unittest
 from google.cloud import bigquery
 from google.cloud.exceptions import NotFound
 
-from bq_file_load_benchmark.benchmark_tools import table_util
+from bq_file_load_benchmark.generic_benchmark_tools import table_util
 
 
 class TestTableUtil(unittest.TestCase):
-    """Tests functionality of benchmark_tools.table_util.TableUtil.
+    """Tests functionality of load_benchmark_tools.table_util.TableUtil.
 
     Attributes:
         bq_client(google.cloud.bigquery.client.Client): Client to hold
@@ -22,7 +22,7 @@ class TestTableUtil(unittest.TestCase):
         dataset(google.cloud.bigquery.dataset.Dataset): Dataset that holds the
             test table.
         table_id(str): The name of the test table.
-        table_util(benchmark_tools.TableUtil): BigQuery utility class to be
+        table_util(load_benchmark_tools.TableUtil): BigQuery utility class to be
             testsed.
 
     """

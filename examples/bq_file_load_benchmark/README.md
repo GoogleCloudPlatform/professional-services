@@ -111,7 +111,7 @@ project. Either way, the main method for the project is located in
 
 #### 1. Select File Parameters
 File parameters can be configured in the `FILE_PARAMETERS` dictionary in 
-[`benchmark_tools/file_parameters.py`](benchmark_tools/file_parameters.py). Currently, 
+[`benchmark_tools/file_parameters.py`](load_benchmark_tools/load_file_parameters.py). Currently, 
 no files parameters can be added to the dictionary, as this will cause errors.
 However, parameters can be removed
 from the dictionary if you are looking for a smaller set of file combinations. 
@@ -160,7 +160,7 @@ In order to create the files with the above parameters, the [Dataflow Data Gener
 tool](https://github.com/GoogleCloudPlatform/professional-services/tree/master/examples/dataflow-data-generator) 
 from the Professional Services Examples library needs to be leveraged to create
 staging tables containing combinations of `columnTypes` and `numColumns` from the
-list of file parameters in [`benchmark_tools/file_parameters.py`](benchmark_tools/file_parameters.py). The staging tables
+list of file parameters in [`benchmark_tools/file_parameters.py`](load_benchmark_tools/load_file_parameters.py). The staging tables
 will later be resized to match the sizes in `targetDataSize` file parameter, and then
 they will be extracted to files in GCS. However, before any of this can be done, JSON schemas for 
 the staging tables must be created. To do this run the following command: 

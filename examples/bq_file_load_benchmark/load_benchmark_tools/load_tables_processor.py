@@ -19,8 +19,8 @@ import logging
 
 from google.cloud import bigquery
 
-from benchmark_tools import benchmark_load_table
-from benchmark_tools import bucket_util
+from load_benchmark_tools import benchmark_load_table
+from generic_benchmark_tools import bucket_util
 
 
 class LoadTablesProcessor(object):
@@ -42,7 +42,7 @@ class LoadTablesProcessor(object):
             be loaded into.
         bucket_name(str): Name of the GCS bucket that holds the files that
             should be loaded into the benchmark table.
-        bucket_util(benchmark_tools.bucket_util.BucketUtil): Helper class for
+        bucket_util(load_benchmark_tools.bucket_util.BucketUtil): Helper class for
             interacting with the bucket that the holds the files that
             should be loaded into the benchmark table.
         results_table_name(str): Name of the BigQuery table that the

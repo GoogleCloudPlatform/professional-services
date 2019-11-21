@@ -28,7 +28,8 @@ BYTES_IN_GB = 1000000000
 
 
 class StagingTableGenerator(object):
-    """Contains methods for generating staging tables in BigQuery.
+    """Generating staging tables in BigQuery of particular sizes that can later
+        be extracted into files.
 
     Utilizes the Dataflow Data Generator tool from the PSO library. Uses the
     dataflow_data_generator module to create staging tables using the columnType

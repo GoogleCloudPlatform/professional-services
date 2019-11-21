@@ -18,14 +18,16 @@ from __future__ import print_function
 import argparse
 import logging
 
-from benchmark_tools import file_generator
-from benchmark_tools import file_parameters
-from benchmark_tools import schema_creator
-from benchmark_tools import staging_table_generator
-from benchmark_tools import load_tables_processor
-from benchmark_tools import table_util
+from generic_benchmark_tools import schema_creator
+from generic_benchmark_tools import staging_table_generator
+from generic_benchmark_tools import table_util
+from load_benchmark_tools import load_file_generator
+from load_benchmark_tools import load_file_parameters
+from load_benchmark_tools import load_tables_processor
+
 
 BENCHMARK_NAME = 'FILE LOADER'
+
 
 def parse_args(argv):
     """Parses arguments from command line.
@@ -42,14 +44,14 @@ def parse_args(argv):
         '--create_results_table',
         help='Flag to initiate the process of creating results table to'
              'store the results of the benchmark loads. '
-             'file_parameters.py.',
+             'load_file_parameters.py.',
         action='store_true'
     )
     parser.add_argument(
         '--create_benchmark_schemas',
         help='Flag to initiate the process of creating schemas for the '
              'benchmarked tables based off of parameters in '
-             'file_parameters.py.',
+             'load_file_parameters.py.',
         action='store_true'
     )
     parser.add_argument(
@@ -308,7 +310,7 @@ def main(argv=None):
     dataflow_staging_location = args.dataflow_temp_location
     bq_logs_dataset = args.bq_logs_dataset
 
-    file_params = file_parameters.FILE_PARAMETERS
+    file_params = load_file_parameters.FILE_PARAMETERS
 
     # Run provided commands
     if create_results_table:
@@ -351,7 +353,7 @@ def main(argv=None):
         benchmark_staging_table_generator.create_resized_tables()
 
     if create_files:
-        benchmark_file_generator = file_generator.FileGenerator(
+        benchmark_load_file_generator = load_file_generator.FileGenerator(
             project_id=gcs_project_id,
             primitive_staging_dataset_id=resized_staging_dataset_id,
             bucket_name=bucket_name,
@@ -360,10 +362,10 @@ def main(argv=None):
             dataflow_temp_location=dataflow_temp_location,
         )
         if restart_file:
-            benchmark_file_generator.restart_incomplete_combination(
+            benchmark_load_file_generator.restart_incomplete_combination(
                 restart_file
             )
-        benchmark_file_generator.create_files()
+        benchmark_load_file_generator.create_files()
 
     if create_benchmark_tables:
         benchmark_tables_processor = load_tables_processor.LoadTablesProcessor(
