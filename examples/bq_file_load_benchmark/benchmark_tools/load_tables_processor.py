@@ -19,14 +19,15 @@ import logging
 
 from google.cloud import bigquery
 
-from benchmark_tools import benchmark_table
+from benchmark_tools import benchmark_load_table
 from benchmark_tools import bucket_util
 
 
-class TablesProcessor(object):
-    """Contains methods for processing and creating benchmark tables.
+class LoadTablesProcessor(object):
+    """Contains methods for processing and creating load tables for benchmarks.
 
     Attributes:
+        benchmark_name(str): The name of the benchmark test.
         bq_project(str): ID of the project that holds the BigQuery dataset
             and benchmark tables.
         gcs_project(str):  ID of the project that holds the GCS bucket
@@ -63,6 +64,7 @@ class TablesProcessor(object):
 
     def __init__(
             self,
+            benchmark_name,
             bq_project,
             gcs_project,
             staging_project,
@@ -75,6 +77,7 @@ class TablesProcessor(object):
             file_params,
             bq_logs_dataset,
     ):
+        self.benchmark_name = benchmark_name
         self.bq_project = bq_project
         self.gcs_project = gcs_project
         self.staging_project = staging_project
@@ -114,7 +117,7 @@ class TablesProcessor(object):
         )
         files_with_benchmark_tables = set()
         for row in query_job:
-            if self.bucket_name in row['sourceURI']:
+            if row['sourceURI'] and self.bucket_name in row['sourceURI']:
                 uri = row['sourceURI'].split('gs://{0:s}/'.format(
                     self.bucket_name
                 ))[1]
@@ -149,7 +152,8 @@ class TablesProcessor(object):
                     verb,
                     path,
                 ))
-                table = benchmark_table.BenchmarkTable(
+                table = benchmark_load_table.BenchmarkLoadTable(
+                    benchmark_name=self.benchmark_name,
                     bq_project=self.bq_project,
                     gcs_project=self.gcs_project,
                     staging_project=self.staging_project,

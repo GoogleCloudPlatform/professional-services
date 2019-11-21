@@ -22,9 +22,10 @@ from benchmark_tools import file_generator
 from benchmark_tools import file_parameters
 from benchmark_tools import schema_creator
 from benchmark_tools import staging_table_generator
-from benchmark_tools import tables_processor
+from benchmark_tools import load_tables_processor
 from benchmark_tools import table_util
 
+BENCHMARK_NAME = 'FILE LOADER'
 
 def parse_args(argv):
     """Parses arguments from command line.
@@ -365,7 +366,8 @@ def main(argv=None):
         benchmark_file_generator.create_files()
 
     if create_benchmark_tables:
-        benchmark_tables_processor = tables_processor.TablesProcessor(
+        benchmark_tables_processor = load_tables_processor.LoadTablesProcessor(
+            benchmark_name=BENCHMARK_NAME,
             bq_project=bq_project_id,
             gcs_project=gcs_project_id,
             staging_project=staging_project_id,

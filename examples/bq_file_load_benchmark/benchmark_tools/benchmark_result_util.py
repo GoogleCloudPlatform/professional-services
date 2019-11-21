@@ -26,55 +26,32 @@ from benchmark_tools import file_constants
 from benchmark_tools import table_util
 
 BYTES_IN_MB = 1000000
-
+JOB_TYPES = ['LOAD', 'QUERY', 'COPY', 'EXTRACT']
 
 class BenchmarkResultUtil(object):
-    """Helper for handling results of benchmark load jobs.
+    """Parent class for handling results of benchmark jobs.
 
-    Handles gathering and and returning of results generated from loading data
-    into benchmark tables.
+    Sets generic benchmark properties that all bechnmark tests will share
+        and loads them into a results table.
 
     Attributes:
-        load_job(google.cloud.bigquery.job.LoadJob): Object for loading data
-            from GCS to BigQuery tables.
-        job_id(str): ID of the load_job.
-        benchmark_table_name(str): Name of the table that data from GCS
-            is loaded into.
-        project_id(str): ID of the project that holds the BigQuery dataset
-            and table that the data is loaded into.
-        benchmark_dataset_id(str): ID of the dataset that holds the BigQuery
-            table that the data is loaded into.
-        bq_logs_dataset(str): Name of dataset hold BQ logs table.
-        job_source_uri(str): URI of the file in the GCS that contains the data
-            that is loaded into the BigQuery table.
         bq_client(google.cloud.bigquery.client.Client): Client to hold
             configurations needed for BigQuery API requests.
-        file_type(str): Type of file (csv, avro, parquet, etc)
-        compression_format(bigquery.job.Compression):  Object representing the
-            compression of the file.
-        benchmark_time(datetime.datetime): Date and time that the load job
-            for the benchmark was created.
-        num_columns(int): Number of columns in the benchmark table.
-        num_rows(int): Number of rows in the benchmark table.
-        column_types(str): Representation of the types of columns in the
-            benchmark table(50_STRING_50_NUMERIC, 100_STRING, etc)
-        num_files(int): Number of files in the GCS URI that are loaded into
-            the benchmark table.
-        file_size(int): Size of each file in MB loaded from GCS into
-            the benchmark table.
-        staging_data_size(int): Size of the BigQuery table that the files
-            in GCS were derived from before being loaded into the benchmark
-            table.
-        job_user(str): E-mail address of user who submitted the job.
-        job_location(str): Location where the load job ran.
-        job_start_time(datetime.datetime): Date and time that the load
-            job started.
-        job_end_time(datetime.datetime): Date and time that the load job
-            ended.
-        job_duration(datetime.timedelta): Duration of the load job run.
-        job_source_format(google.cloud.bigquery.job.SourceFormat): format
-            of the files loaded into the benchmark table (CSV, AVRO,
-            NEWLINE_DELIMITED_JSON, etc)
+        storage_client(google.cloud.storage.client.Client): Client to hold
+            configurations needed for GCS API requests.
+        project_id(str): ID of the project that holds the BigQuery dataset
+            and table that the result data is loaded into.
+        results_table_name(str): Name of the BigQuery table that the
+            benchmark results will be inserted into.
+        results_dataset_id(str): Name of the BigQuery dataset that holds the
+            table the benchmark results will be inserted into.
+        bq_logs_dataset(str): Name of the dataset hold BQ logs table.
+        job(google.cloud.bigquery.job): The BigQuery jobs whose performance
+            the benchmark will measure.
+        job_type(str): The type of BigQuery job (LOAD, QUERY, COPY, or EXTRACT).
+        benchmark_name(str): The name of the benchmark test.
+        results_dict(dict): Dictionary holding the results to be loaded into
+            the results table.
 
     """
 
@@ -210,7 +187,94 @@ class BenchmarkResultUtil(object):
             logging.error(insert_job)
 
 
+class LoadBenchmarkResultUtil(BenchmarkResultUtil):
 
+    def __init__(
+            self,
+            job,
+            job_type,
+            benchmark_name,
+            project_id,
+            result_table_name,
+            result_dataset_id,
+            bq_logs_dataset,
+            job_source_uri,
+            load_table_id,
+            load_dataset_id
+    ):
+        BenchmarkResultUtil.__init__(
+            self,
+            job,
+            job_type,
+            benchmark_name,
+            project_id,
+            result_table_name,
+            result_dataset_id,
+            bq_logs_dataset
+        )
+        self.job_source_uri = job_source_uri
+        self.load_table_id = load_table_id
+        self.load_dataset_id = load_dataset_id
+        self._set_load_properties()
 
+    def _set_load_properties(self):
+        load_properties = {}
 
+        # get properties from benchmark table
+        benchmark_table_util = table_util.TableUtil(
+            self.load_table_id,
+            self.load_dataset_id
+        )
+        benchmark_table_util.set_table_properties()
+        load_properties['numRows'] = benchmark_table_util.table.num_rows
 
+        # get properties from the load job
+        load_properties['numFiles'] = self.job.input_files
+        load_properties['sourceFormat'] = self.job.source_format
+
+        # get properties from file
+        # pylint: disable=line-too-long
+        benchmark_details_pattern = \
+            r'gs://([\w\'-]+)/fileType=(\w+)/compression=(\w+)/numColumns=(\d+)/columnTypes=(\w+)/numFiles=(\d+)/tableSize=(\d+)(\w+)'
+        bucket_name, file_type, compression, num_columns, column_types, \
+            expected_num_files, staging_data_size, staging_data_unit = \
+            re.findall(benchmark_details_pattern, self.job_source_uri)[0]
+        compression_format = (file_constants.FILE_CONSTANTS
+                              ['compressionFormats'][compression])
+        file_name_prefix = 'fileType={0:s}/compression={1:s}/numColumns={2:s}/columnTypes={3:s}/numFiles={4:s}/tableSize={5:s}{6:s}'.format(
+            file_type,
+            compression,
+            num_columns,
+            column_types,
+            expected_num_files,
+            staging_data_size,
+            staging_data_unit
+        )
+        bucket = self.storage_client.get_bucket(bucket_name)
+        files_consts = file_constants.FILE_CONSTANTS
+        if compression == 'none':
+            file_ext = file_type
+        else:
+            file_ext = files_consts['compressionExtensions'][compression]
+
+        file_name = '{0:s}/file1.{1:s}'.format(
+            file_name_prefix,
+            file_ext
+        )
+
+        file_size = float(bucket.get_blob(file_name).size) / BYTES_IN_MB
+
+        load_properties['fileType'] = file_type
+        load_properties['compressionType'] = compression_format
+        load_properties['numColumns'] = num_columns
+        load_properties['columnTypes'] = column_types
+        load_properties['fileSize'] = file_size
+        load_properties['stagingDataSize'] = staging_data_size
+        load_properties['destinationTable'] = '{0:s}.{1:s}.{2:s}'.format(
+                self.project_id,
+                self.load_table_id,
+                self.load_dataset_id
+        )
+        load_properties['sourceURI'] = self.job_source_uri
+
+        self.results_dict['loadProperties'] = load_properties
