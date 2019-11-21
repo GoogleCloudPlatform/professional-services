@@ -68,8 +68,18 @@ class TestTableUtil(unittest.TestCase):
             True if test passes, else False.
         """
         expected_bq_schema = [
-            bigquery.SchemaField('string1', 'STRING', 'REQUIRED'),
-            bigquery.SchemaField('numeric1', 'NUMERIC', 'REQUIRED')
+            bigquery.SchemaField(
+                'string1',
+                'STRING',
+                'REQUIRED',
+                'description1'
+            ),
+            bigquery.SchemaField(
+                'numeric1',
+                'NUMERIC',
+                'REQUIRED',
+                'description2'
+            )
         ]
         bq_schema = self.table_util.get_bq_translated_schema()
 
