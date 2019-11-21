@@ -55,16 +55,17 @@ Let’s walk through the steps necessary to create and populate the dataset.
 <h3> 2.3.1 Creating the dataset </h3>
 Now, let’s create the dataset inside the project.
 
-``bq mk --location=${BQ_LOCATION} -d "${PROJECT_ID}:gcs_usage_log"``
+````bq mk --location=${BQ_LOCATION} -d "${PROJECT_ID}:gcs_usage_log"````
 
 <h3> 2.3.2 Create the audit log sink </h3>
 
 ````bash
 gcloud logging sinks create gcs_usage \
   bigquery.googleapis.com/projects/${PROJECT_ID}/datasets/gcs_usage_log \
-  --log-filter='resource.type="gce_instance" AND
-  (protoPayload.methodName:"compute.instances.insert" OR
-  protoPayload.methodName:"compute.instances.delete")' \
+  --log-filter='resource.type="gcs_bucket" AND
+  (protoPayload.methodName:"storage.objects.get" OR
+  protoPayload.methodName:"storage.objects.delete" OR
+  protoPayload.methodName:"storage.objects.create")' \
   --organization=${ORG_NUMBER} --include-children
 ````
 
@@ -106,7 +107,7 @@ to access the directory inside the repository.
 <h2> 2.4.2 Authenticate your shell session </h2>
 You'll need to authenticate yourself to be allowed to call APIs.
 
-`gcloud auth application-default login`
+````gcloud auth application-default login````
 
 <h2> 2.4.3 Run the process </h2>
 This process uses the CloudResourceManager APIs to fetch all the projects your account has access to. Please ensure that 
