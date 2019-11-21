@@ -7,12 +7,13 @@ Common solutions and tools developed by Google Cloud's Professional Services tea
 The examples folder contains example solutions across a variety of Google Cloud Platform products. Use these solutions as a reference for your own or extend them to fit your particular use case.
 
 
+* [Audio Content Profiling](examples/ml-audio-content-profiling) - A tool that builds a pipeline to scale the process of moderating audio files for inappropriate content using machine learning APIs.
 * [BigQuery Audit Log Dashboard](examples/bigquery-audit-log) - Solution to help audit BigQuery usage using Data Studio for visualization and a sample SQL script to query the back-end data source consisting of audit logs.
 * [BigQuery Billing Dashboard](examples/bigquery-billing-dashboard) - Solution to help displaying billing info using Data Studio for visualization and a sample SQL script to query the back-end billing export table in BigQuery.
 * [BigQuery Cross Project Slot Monitoring](examples/bigquery-cross-project-slot-monitoring) - Solution to help monitoring slot utilization across multiple projects, while breaking down allocation per project.
 * [BigQuery Group Sync For Row Level Access](examples/bigquery-row-access-groups) - Sample code to synchronize group membership from G Suite/Cloud Identity into BigQuery and join that with your data to control access at row level.
 * [BigQuery Pipeline Utility](tools/bqpipeline)  - Python utility class for defining data pipelines in BigQuery.
-* [Bigtable Dataflow Cyptocurrencies Exchange RealTime Example](examples/cryptorealtime) - Apache Beam example that reads from the Crypto Exchanges WebSocket API as Google Cloud Dataflow pipeline and saves the feed in Google Cloud Bigtable. Real time visualization and query examples from GCP Bigtable running on Flask server are included.
+* [Bigtable Dataflow Cryptocurrencies Exchange RealTime Example](examples/cryptorealtime) - Apache Beam example that reads from the Crypto Exchanges WebSocket API as Google Cloud Dataflow pipeline and saves the feed in Google Cloud Bigtable. Real time visualization and query examples from GCP Bigtable running on Flask server are included.
 * [Cloud Composer Examples](examples/cloud-composer-examples) - Examples of using Cloud Composer, GCP's managed Apache Airflow service.
 * [Cloud Function VM Delete Event Handler Example](examples/gcf-pubsub-vm-delete-event-handler) - Solution to automatically delete A records in Cloud DNS when a VM is deleted.  This solution implements a [Google Cloud Function][gcf] [Background Function][gcf-bg] triggered on `compute.instances.delete` events published through [Stackdriver Logs Export][logs-export].
 * [Cloud SQL Custom Metric](examples/cloud-sql-custom-metric) - An example of creating a Stackdriver custom metric monitoring Cloud SQL Private Services IP consumption.
@@ -55,6 +56,7 @@ The tools folder contains ready-made utilities which can simpilfy Google Cloud P
 * [BigQuery Discount Per-Project Attribution](tools/kunskap) - A tool that automates the generation of a BigQuery table that uses existing exported billing data, by attributing both CUD and SUD charges on a per-project basis.
 * [BigQuery Query Plan Exporter](tools/bigquery-query-plan-exporter) - Command line utility for exporting BigQuery query plans in a given date range.
 * [BigQuery Query Plan Visualizer](tools/bq-visualizer) - A web application which provides the ability to visualise the execution stages of BigQuery query plans to aid in the optimization of queries.
+* [BigQuery z/OS Mainframe Connector](tools/bigquery-zos-mainframe-connector) - A utility used to load COBOL MVS data sets into BigQuery and execute query and load jobs from the IBM z/OS Mainframe.
 * [CloudConnect](tools/cloudconnect) - A package that automates the setup of dual VPN tunnels between AWS and GCP.
 * [Cloudera Parcel GCS Connector](tools/cloudera-parcel-gcsconnector) - This script helps you create a Cloudera parcel that includes Google Cloud Storage connector. The parcel can be deployed on a Cloudera managed cluster. This script helps you create a Cloudera parcel that includes Google Cloud Storage connector. The parcel can be deployed on a Cloudera managed cluster.
 * [Cloud AI Vision Utilities](tools/cloud-vision-utils) - This is an installable
@@ -64,16 +66,19 @@ The tools folder contains ready-made utilities which can simpilfy Google Cloud P
 * [DNS Sync](tools/dns-sync) - Sync a Cloud DNS zone with GCE resources. Instances and load balancers are added to the cloud DNS zone as they start from compute_engine_activity log events sent from a pub/sub push subscription. Can sync multiple projects to a single Cloud DNS zone.
 * [GCE Disk Encryption Converter](tools/gce-google-keys-to-cmek) - A tool that converts disks attached to a GCE VM instnace from Google-managed keys to a customer-managed key stored in Cloud KMS.
 * [GCE Quota Sync](tools/gce-quota-sync) - A tool that fetches resource quota usage from the GCE API and synchronizes it to Stackdriver as a custom metric, where it can be used to define automated alerts.
+* [GCE Usage Log](tools/gce-usage-log) - Collect GCE instance events into a BigQuery dataset, surfacing your vCPUs, RAM, and Persistent Disk, sliced by project, zone, and labels.
 * [GCP Architecture Visualizer](/tools/gcp-arch-viz) - A tool that takes CSV output from a Forseti Inventory scan and draws out a dynamic hierarchical tree diagram of org -> folders -> projects -> gcp_resources using the D3.js javascript library.
+* [GCP Organization Hierarchy Viewer](tools/gcp-org-hierarchy-viewer) - A CLI utility for visualizing your organization hierarchy in the terminal.
 * [GCS Bucket Mover](tools/gcs-bucket-mover) - A tool to move user's bucket, including objects, metadata, and ACL, from one project to another.
 * [GKE Billing Export](tools/gke-billing-export) - Google Kubernetes Engine fine grained billing export.
 * [GSuite Exporter](tools/gsuite-exporter/) - A Python package that automates syncing Admin SDK APIs activity reports to a GCP destination. The module takes entries from the chosen Admin SDK API, converts them into the appropriate format for the destination, and exports them to a destination (e.g: Stackdriver Logging).
 * [Hive to BigQuery](tools/hive-bigquery/) - A Python framework to migrate Hive table to BigQuery using Cloud SQL to keep track of the migration progress.
 * [LabelMaker](tools/labelmaker) - A tool that reads key:value pairs from a json file and labels the running instance and all attached drives accordingly.
+* [Machine Learning Auto Exploratory Data Analysis and Feature Recommendation](tools/ml-auto-eda) - A tool to perform comprehensive auto EDA, based on which feature recommendations are made, and a summary report will be generated.
 * [Maven Archetype Dataflow](tools/maven-archetype-dataflow) - A maven archetype which bootstraps a Dataflow project with common plugins pre-configured to help maintain high code quality.
 * [Netblock Monitor](tools/netblock-monitor) - An Apps Script project that will automatically provide email notifications when changes are made to Google’s IP ranges.
 * [Site Verification Group Sync](tools/site-verification-group-sync) - A tool to provision "verified owner" permissions (to create GCS buckets with custom dns) based on membership of a Google Group.
-
+* [SLO Generator](tools/slo-generator/) - A Python package that automates computation of Service Level Objectives, Error Budgets and Burn Rates on GCP,  and export the computation results to available exporters (e.g: PubSub, BigQuery, Stackdriver Monitoring), using policies written in JSON format.
 
 ## Contributing
 See the contributing [instructions](/CONTRIBUTING.md) to get started contributing.

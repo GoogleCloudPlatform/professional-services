@@ -43,12 +43,12 @@ gcloud ai-platform jobs submit training "${TRAINING_JOB_NAME}" \
   --model_dir "${MODEL_PATH}" \
   --input_dir "${INPUT_PATH}" \
   --tft_dir "${TFT_PATH}" \
-  --max_steps 100000 \
+  --max_steps 300000 \
   --batch_size 512 \
-  --user_embed_mult 2 \
+  --user_embed_mult 1.5 \
   --item_embed_mult 1 \
-  --num_layers 1 \
-  --embedding_size 25 \
+  --num_layers 5 \
+  --embedding_size 50 \
   --learning_rate .0001
 
 echo "Upon completion, serve the model by running: bin/run.serve.cloud.sh ${NOW}"

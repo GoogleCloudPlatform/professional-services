@@ -55,14 +55,14 @@ class GenCsvFromImagesTest(unittest.TestCase):
 
   def test_add_label_false(self):
     result = self._test_helper(add_label=False)
-    images = [row[1] for row in result]
-    self.assertCountEqual(images, self.test_images)
+    labels = [row[2] for row in result]
+    exp_labels = ['']*self.NUM_IMAGES
+    self.assertCountEqual(labels, exp_labels)
 
   def test_add_label_true(self):
     result = self._test_helper(add_label=True)
-    image_label_pairs = [(row[1], row[2]) for row in result]
-    self.assertCountEqual(
-        image_label_pairs, list(zip(self.test_images, self.test_labels)))
+    labels = [row[2] for row in result]
+    self.assertCountEqual(labels, self.test_labels)
 
   def test_input_dir_does_not_exist(self):
     test_dir = '/path/to/non/existent/dir'
@@ -75,6 +75,13 @@ class GenCsvFromImagesTest(unittest.TestCase):
     result = self._test_helper(dataset_type=dataset_type)
     dataset_types = [row[0] for row in result]
     self.assertCountEqual(dataset_types, [dataset_type]*self.NUM_IMAGES)
+
+  def test_out_path_prefix(self):
+    # Check that the out_path_prefix is present in output CSV
+    out_path_prefix = 'gs://path/to/images'
+    result = self._test_helper(out_path_prefix=out_path_prefix)
+    for row in result:
+      self.assertIn(out_path_prefix, row[1])
 
 
 class GenCsvFromAnnotationsTest(unittest.TestCase):

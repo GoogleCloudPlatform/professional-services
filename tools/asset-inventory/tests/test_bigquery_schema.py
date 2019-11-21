@@ -52,24 +52,35 @@ class TestBigQuerySchema(unittest.TestCase):
         document = {'integer_field': 111, 'float_field': 22.0}
         schema = bigquery_schema.translate_json_to_schema(
             document)
-        self.assertEqual(schema, [{'name': 'integer_field',
+        schema.sort(key=lambda x: x['name'])
+        self.assertEqual(schema, [{'name': 'float_field',
                                    'field_type': 'NUMERIC',
                                    'mode': 'NULLABLE'},
-                                  {'name': 'float_field',
+                                  {'name': 'integer_field',
                                    'field_type': 'NUMERIC',
-                                   'mode': 'NULLABLE'},
+                                   'mode': 'NULLABLE'}
                                  ])
 
     def test_bool(self):
         document = {'bool_array_field': [True, False], 'bool_field': False}
         schema = bigquery_schema.translate_json_to_schema(
             document)
+        schema.sort(key=lambda x: x['name'])
         self.assertEqual(schema, [{'name': 'bool_array_field',
                                    'field_type': 'BOOL',
                                    'mode': 'REPEATED'},
                                   {'name': 'bool_field',
                                    'field_type': 'BOOL',
                                    'mode': 'NULLABLE'}
+                                 ])
+
+    def test_timestamp(self):
+        document = {'timestamp': '2019-01-01T00:01:00'}
+        schema = bigquery_schema.translate_json_to_schema(
+            document)
+        self.assertEqual(schema, [{'name': 'timestamp',
+                                   'field_type': 'STRING',
+                                   'mode': 'NULLABLE'},
                                  ])
 
     def test_merge_schemas_basic(self):
@@ -83,6 +94,7 @@ class TestBigQuerySchema(unittest.TestCase):
             })
         ]
         merged_schema = bigquery_schema.merge_schemas(schemas)
+        merged_schema.sort(key=lambda x: x['name'])
         self.assertEqual(merged_schema,
                          [{'name': 'field1',
                            'field_type': 'STRING',
@@ -242,6 +254,20 @@ class TestBigQuerySchema(unittest.TestCase):
             {'property_7': [{'property_1': 'invalid'}]}, schema), {})
         self.assertEqual(bigquery_schema.enforce_schema_data_types(
             {'property_7': [{'property_1': 'invalid'}, 33]}, schema), {})
+
+    def test_remove_duplicate_property(self):
+        doc = {
+            'ipAddress': 'value',
+            'IPAddress': 'other_value',
+            'array': [{
+                'ipAddress': 'value',
+                'IPAddress': 'other_value'}],
+        }
+        sanitized = bigquery_schema.sanitize_property_value(doc)
+        self.assertEqual(len(sanitized), 2)
+        self.assertIn('IPAddress', sanitized)
+        self.assertEqual(sanitized['IPAddress'], 'other_value')
+        self.assertEqual(sanitized['array'], [{'IPAddress': 'other_value'}])
 
 
 if __name__ == '__main__':

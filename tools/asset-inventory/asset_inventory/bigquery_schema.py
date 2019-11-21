@@ -59,7 +59,8 @@ def is_number(s):
 def _get_bigquery_type_for_property_value(property_value):
     """Convert json value into a BigQuery data type.
 
-    Recgonizes timestamp and dates, returns NUMERIC for all numbers.
+    Recgonizes BOOL, RECORD and returns NUMERIC for all numbers.
+    Doesn't try to determine if a string is formatted as a timestamp.
     Args:
         property_value: Value of the json property.
     Returns:
@@ -67,12 +68,6 @@ def _get_bigquery_type_for_property_value(property_value):
     """
     if isinstance(property_value, bool):
         return 'BOOL'
-    elif isinstance(property_value, string_types):
-        if re.match(TIMESTAMP_REGEX, property_value):
-            return 'TIMESTAMP'
-        if re.match(DATE_REGEX, property_value):
-            return 'DATE'
-        return 'STRING'
     elif isinstance(property_value, Number):
         return 'NUMERIC'
     elif isinstance(property_value, dict):
@@ -246,11 +241,20 @@ def _sanitize_property(property_name, parent, depth):
     field must have defined fields and we can't determine those fields from an
     empty dictionary.
 
+    4. Remove duplicate properties. BigQuery is case insensitive in property,
+    names yet we want to keep the input case of the column for human readers. To
+    columns with the same name but different case can result in a failure to
+    load.
+
     Args:
         property_name: Name of the property in the json oject.
         parent: The json object containing the property.
         depth: How nested within the original document we are.
     """
+    # if property was removed earlier, nothing to sanitize.
+    if property_name not in parent:
+        return
+
     # enforce column name requirements (condition #2).
     new_property_name = CLEAN_UP_REGEX.sub('', property_name)
     first_character = new_property_name[0]
@@ -283,6 +287,30 @@ def _sanitize_property(property_name, parent, depth):
         # BigQuery doesn't deal well with empty records.
         # prune the value.
         parent.pop(new_property_name)
+
+    # remove duplicates (condition #4)
+    remove_duplicates(new_property_name, parent)
+
+
+def remove_duplicates(property_name, properties):
+    """Ensure no other property in properties share the same name.
+
+    Args:
+        property_name: name of property to check for.
+        properties: dictionary to modify.
+
+    BigQuery is case insensitive, remove any lexically greater property
+    in the dictionary that differ only by case.
+    """
+    duplicates = []
+    for k in properties.keys():
+        if k.lower() == property_name.lower():
+            duplicates.append(k)
+    if len(duplicates) > 1:
+        selected_property = min(duplicates)
+        for p in duplicates:
+            if p != selected_property:
+                properties.pop(p)
 
 
 def sanitize_property_value(property_value, depth=0):
