@@ -1,0 +1,4 @@
+credentials/
+*.pyc
+.vscode
+*.log
