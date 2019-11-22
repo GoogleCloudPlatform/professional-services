@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """A setuptools based setup module.
 
 See:
@@ -27,7 +26,7 @@ here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
-    long_description = f.read()
+  long_description = f.read()
 
 setup(
     name='gsuite-grant-analyzer',
@@ -61,5 +60,4 @@ setup(
             'gsuite-grant-analyzer=gsuite_grant_analyzer.cli:main',
         ],
     },
-    python_requires='>=2.7'
-)
+    python_requires='>=2.7')

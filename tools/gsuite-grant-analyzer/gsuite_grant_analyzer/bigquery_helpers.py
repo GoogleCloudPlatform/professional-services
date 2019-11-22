@@ -28,55 +28,55 @@ logger = logging.getLogger(__name__)
 
 # Name of the dataset in BigQuery. The dataset will be automatically created.
 # Change it if you already have a dataset with the same name.
-DATASET_NAME = 'app_scopes'
+DATASET_NAME = "app_scopes"
 # Determines where BigQuery data is saved (US, EU)
-DATASET_LOCATION = 'EU'
+DATASET_LOCATION = "EU"
 # Maximum number of rows that can be inserted into BQ in one operation.
 # Currently, the hard limit for the python client is 10000.
 MAX_BQ_INSERT_SIZE = 10000
 
 
 def bq_create_client(project, credentials):
-    return bigquery.Client(project=project, credentials=credentials)
+  return bigquery.Client(project=project, credentials=credentials)
 
 
 def bq_create_dataset(bq_client):
-    """
+  """
     Creates the dataset. If the dataset already exists, the existing
     dataset will be returned.
     """
-    dataset_id = "{}.{}".format(bq_client.project, DATASET_NAME)
-    dataset = bigquery.Dataset(dataset_id)
-    dataset.location = DATASET_LOCATION
-    dataset = bq_client.create_dataset(dataset, exists_ok=True)
-    return dataset
+  dataset_id = "{}.{}".format(bq_client.project, DATASET_NAME)
+  dataset = bigquery.Dataset(dataset_id)
+  dataset.location = DATASET_LOCATION
+  dataset = bq_client.create_dataset(dataset, exists_ok=True)
+  return dataset
 
 
 def bq_create_table(bq_client, dataset):
-    """
+  """
     Creates a table in the supplied dataset, with a unique name based on time.
     """
-    schema = [
-        bigquery.SchemaField("user", "STRING", mode="REQUIRED"),
-        bigquery.SchemaField("clientId", "STRING", mode="REQUIRED"),
-        bigquery.SchemaField("scope", "STRING", mode="REQUIRED"),
-        bigquery.SchemaField("displayText", "STRING", mode="REQUIRED"),
-    ]
+  schema = [
+      bigquery.SchemaField("user", "STRING", mode="REQUIRED"),
+      bigquery.SchemaField("clientId", "STRING", mode="REQUIRED"),
+      bigquery.SchemaField("scope", "STRING", mode="REQUIRED"),
+      bigquery.SchemaField("displayText", "STRING", mode="REQUIRED"),
+  ]
 
-    table_id = \
-        "{}.{}.{}_{}".format(
-            bq_client.project, dataset.dataset_id,
-            'app_scopes',
-            datetime.datetime.now().strftime('%Y%m%d_%H%M%S_%f'))
+  table_id = \
+      "{}.{}.{}_{}".format(
+          bq_client.project, dataset.dataset_id,
+          "app_scopes",
+          datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f"))
 
-    table = bigquery.Table(table_id, schema=schema)
-    table = bq_client.create_table(table)
-    logger.info("Created table %s", table.full_table_id)
-    return table
+  table = bigquery.Table(table_id, schema=schema)
+  table = bq_client.create_table(table)
+  logger.info("Created table %s", table.full_table_id)
+  return table
 
 
 def print_bq_insert_errors(rows, errors):
-    """
+  """
     Parses the results of the BigQuery insert and prints a human readable
     representation of the errors, suppressing noise by removing the rows that
     were not inserted due to errors in other rows, and adding information about
@@ -86,58 +86,57 @@ def print_bq_insert_errors(rows, errors):
         rows - original data, used to print the data that caused an error
         errors - error dictionary as returned by the BigQuery client
     """
-    logger.error("The following errors have been detected:")
-    stopped_rows = 0
-    for item in errors:
-        index = item['index']
-        row_errors = item['errors']
-        for error in row_errors:
-            if error['reason'] != 'stopped':
-                logger.error(
-                    "Row number: %d, Row data: %s, Error: %s",
-                    index, rows[index], error)
-            else:
-                stopped_rows += 1
-    if stopped_rows:
-        logger.error(
-            "Also, %d rows were stopped (not inserted) due to the errors "
-            "above.", stopped_rows)
+  logger.error("The following errors have been detected:")
+  stopped_rows = 0
+  for item in errors:
+    index = item["index"]
+    row_errors = item["errors"]
+    for error in row_errors:
+      if error["reason"] != "stopped":
+        logger.error("Row number: %d, Row data: %s, Error: %s", index,
+                     rows[index], error)
+      else:
+        stopped_rows += 1
+  if stopped_rows:
+    logger.error(
+        "Also, %d rows were stopped (not inserted) due to the errors "
+        "above.", stopped_rows)
 
 
-@retry(wait_exponential_multiplier=1000, wait_exponential_max=60000,
-       stop_max_attempt_number=10)
+@retry(
+    wait_exponential_multiplier=1000,
+    wait_exponential_max=60000,
+    stop_max_attempt_number=10)
 def _insert_rows(bq_client, table, rows):
-    return bq_client.insert_rows(table, rows)
+  return bq_client.insert_rows(table, rows)
 
 
 def _batch_insert(bq_client, table, rows):
-    """
+  """
     Inserts rows into BQ in batches of MAX_BQ_INSERT_SIZE each
     """
-    total_rows = len(rows)
-    inserted_rows = 0
-    batch = 1
-    logger.info(
-        "Inserting %d rows into table %s", total_rows, table.full_table_id)
-    while inserted_rows < total_rows:
-        start = (batch - 1) * MAX_BQ_INSERT_SIZE
-        end = batch * MAX_BQ_INSERT_SIZE
-        batch_rows = rows[start:end]
-        inserted_rows += len(batch_rows)
-        errors = _insert_rows(bq_client, table, batch_rows)
-        if errors:
-            print_bq_insert_errors(batch_rows, errors)
-            logger.error(
-                "The program has been terminated due to BigQuery insertion "
-                "errors.")
-            exit(1)
-        else:
-            logger.info(
-                "Batch %d: inserted rows %d to %d",
-                batch, start + 1, min(end, len(rows)))
-        batch += 1
-    logger.info("All rows inserted.")
+  total_rows = len(rows)
+  inserted_rows = 0
+  batch = 1
+  logger.info("Inserting %d rows into table %s", total_rows,
+              table.full_table_id)
+  while inserted_rows < total_rows:
+    start = (batch - 1) * MAX_BQ_INSERT_SIZE
+    end = batch * MAX_BQ_INSERT_SIZE
+    batch_rows = rows[start:end]
+    inserted_rows += len(batch_rows)
+    errors = _insert_rows(bq_client, table, batch_rows)
+    if errors:
+      print_bq_insert_errors(batch_rows, errors)
+      logger.error("The program has been terminated due to BigQuery insertion "
+                   "errors.")
+      exit(1)
+    else:
+      logger.info("Batch %d: inserted rows %d to %d", batch, start + 1,
+                  min(end, len(rows)))
+    batch += 1
+  logger.info("All rows inserted.")
 
 
 def bq_insert_rows(bq_client, table, rows):
-    _batch_insert(bq_client, table, rows)
+  _batch_insert(bq_client, table, rows)
