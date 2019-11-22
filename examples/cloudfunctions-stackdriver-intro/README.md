@@ -1,4 +1,4 @@
-# serverless
+# cloudfunctions-stackdriver-intro
 Google Cloud Platform (GCP) serverless computing example
 
 # Summary
