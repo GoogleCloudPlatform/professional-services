@@ -18,14 +18,15 @@ https://packaging.python.org/en/latest/distributing.html
 https://github.com/pypa/sampleproject
 """
 
-from setuptools import setup, find_packages
-from os import path
-from io import open
+import io
+import os
+from setuptools import find_packages
+from setuptools import setup
 
-here = path.abspath(path.dirname(__file__))
+here = os.path.abspath(os.path.dirname(__file__))
 
 # Get the long description from the README file
-with open(path.join(here, 'README.md'), encoding='utf-8') as f:
+with io.open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
   long_description = f.read()
 
 setup(

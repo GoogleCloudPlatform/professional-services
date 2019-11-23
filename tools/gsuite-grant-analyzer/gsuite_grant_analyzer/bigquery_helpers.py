@@ -1,3 +1,4 @@
+"""Helper functions for BigQuery."""
 # Copyright 2019 Google LLC
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,13 +17,14 @@
 #    nor feature-complete. Error checking and log reporting should be adjusted
 #    based on the user's needs. Script invocation is still in its infancy.
 #
-#    Please, refer to READ.md file for instructions.
+#    Please, refer to README.md file for instructions.
 
 import datetime
 import logging
 
-from google.cloud import bigquery
 from retrying import retry
+
+from google.cloud import bigquery
 
 logger = logging.getLogger(__name__)
 
@@ -37,14 +39,30 @@ MAX_BQ_INSERT_SIZE = 10000
 
 
 def bq_create_client(project, credentials):
+  """Creates BigQuery client.
+
+  Args:
+    project: GCP project where to create the BigQuery dataset
+    credentials: credentials of the service account used for access
+
+  Returns:
+    Instance of the BigQuery client.
+  """
   return bigquery.Client(project=project, credentials=credentials)
 
 
 def bq_create_dataset(bq_client):
+  """Creates the BigQuery dataset.
+
+  If the dataset already exists, the existing dataset will be returned.
+  Dataset will be create in the location specified by DATASET_LOCATION.
+
+  Args:
+    bq_client: BigQuery client
+
+  Returns:
+    BigQuery dataset that will be used to store data.
   """
-    Creates the dataset. If the dataset already exists, the existing
-    dataset will be returned.
-    """
   dataset_id = "{}.{}".format(bq_client.project, DATASET_NAME)
   dataset = bigquery.Dataset(dataset_id)
   dataset.location = DATASET_LOCATION
@@ -53,9 +71,15 @@ def bq_create_dataset(bq_client):
 
 
 def bq_create_table(bq_client, dataset):
+  """Creates a table in the supplied dataset, with a unique name based on time.
+
+  Args:
+    bq_client: BigQuery client
+    dataset: BigQuery dataset where table must be created
+
+  Returns:
+    Table that will be used to store data.
   """
-    Creates a table in the supplied dataset, with a unique name based on time.
-    """
   schema = [
       bigquery.SchemaField("user", "STRING", mode="REQUIRED"),
       bigquery.SchemaField("clientId", "STRING", mode="REQUIRED"),
@@ -76,16 +100,17 @@ def bq_create_table(bq_client, dataset):
 
 
 def print_bq_insert_errors(rows, errors):
-  """
-    Parses the results of the BigQuery insert and prints a human readable
-    representation of the errors, suppressing noise by removing the rows that
-    were not inserted due to errors in other rows, and adding information about
-    the data that generated actual errors.
+  """Prints errors that occurred during the insertions of rows.
 
-    Parameters:
-        rows - original data, used to print the data that caused an error
-        errors - error dictionary as returned by the BigQuery client
-    """
+  Parses the results of the BigQuery insert and prints a human readable
+  representation of the errors, suppressing noise by removing the rows that
+  were not inserted due to errors in other rows, and adding information about
+  the data that generated actual errors.
+
+  Args:
+    rows: original data, used to print the data that caused an error
+    errors: error dictionary as returned by the BigQuery client
+  """
   logger.error("The following errors have been detected:")
   stopped_rows = 0
   for item in errors:
@@ -112,9 +137,13 @@ def _insert_rows(bq_client, table, rows):
 
 
 def _batch_insert(bq_client, table, rows):
+  """Inserts rows into a BigQuery table in batches of MAX_BQ_INSERT_SIZE each.
+
+  Args:
+    bq_client: BigQuery client
+    table: table where rows must be inserted
+    rows: a list of rows to insert
   """
-    Inserts rows into BQ in batches of MAX_BQ_INSERT_SIZE each
-    """
   total_rows = len(rows)
   inserted_rows = 0
   batch = 1
@@ -139,4 +168,11 @@ def _batch_insert(bq_client, table, rows):
 
 
 def bq_insert_rows(bq_client, table, rows):
+  """Inserts rows into a BigQuery table.
+
+  Args:
+    bq_client: BigQuery client
+    table: table where rows must be inserted
+    rows: a list of rows to insert
+  """
   _batch_insert(bq_client, table, rows)

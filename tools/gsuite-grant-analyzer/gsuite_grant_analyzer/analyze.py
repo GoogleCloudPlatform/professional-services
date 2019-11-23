@@ -1,3 +1,4 @@
+"""G Suite Grant Analyzer."""
 # Copyright 2019 Google LLC
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,21 +17,23 @@
 #    nor feature-complete. Error checking and log reporting should be adjusted
 #    based on the user's needs. Script invocation is still in its infancy.
 #
-#    Please, refer to READ.md file for instructions.
+#    Please, refer to README.md file for instructions.
 
-import sys
 import argparse
 import logging
+import multiprocessing
 import signal
-from multiprocessing import Process, Queue, Value
+import sys
 
-from gsuite_grant_analyzer.bigquery_helpers import (bq_create_client,
-                                                    bq_create_dataset,
-                                                    bq_create_table,
-                                                    bq_insert_rows)
-from gsuite_grant_analyzer.google_api_helpers import (
-    create_delegated_credentials, get_users, get_denormalized_scopes_for_user,
-    create_directory_client)
+from gsuite_grant_analyzer.bigquery_helpers import bq_create_client
+from gsuite_grant_analyzer.bigquery_helpers import bq_create_dataset
+from gsuite_grant_analyzer.bigquery_helpers import bq_create_table
+from gsuite_grant_analyzer.bigquery_helpers import bq_insert_rows
+
+from gsuite_grant_analyzer.google_api_helpers import create_delegated_credentials
+from gsuite_grant_analyzer.google_api_helpers import create_directory_client
+from gsuite_grant_analyzer.google_api_helpers import get_denormalized_scopes_for_user
+from gsuite_grant_analyzer.google_api_helpers import get_users
 
 # Hard limit on the number of processes from the command line. This limit can
 # be raised, however, expect more throttling from the APIs as you go up.
@@ -52,15 +55,31 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-terminate_processes = Value("i", 0)
+terminate_processes = multiprocessing.Value("i", 0)
 
 
-def handle_signal(signal, frame):
+def handle_signal(s, f):
+  """Handles termination by CTRL-C.
+
+  Args:
+    s: signal
+    f: frame
+  """
+  del s
+  del f
   global terminate_processes
-  terminate_processes = Value("i", 1)
+  terminate_processes = multiprocessing.Value("i", 1)
 
 
 def parse_args(args):
+  """Parses script arguments.
+
+  Args:
+    args: script arguments
+
+  Returns:
+    Parsed arguments
+  """
   parser = argparse.ArgumentParser(
       description="Finds applications and scopes for all users in a given "
       "OU and loads them into BigQuery")
@@ -103,17 +122,18 @@ def parse_args(args):
 
 def build_rows_process(queue, users, directory_client, process_number,
                        num_processes):
-  """
-    Gets all users but processes and buids the rows only for the subset of
-    users assigned to the process.
+  """A process functions to process all users in parallel.
 
-    Parameters:
-        queue - shared synchronized queue where results are stored
-        users - list of all users
-        directory_client - client for the Directory SDK API
-        process_number - number of this process, from 0 to num_processes
-        num_processes - total number of processes
-    """
+  Gets all users, but processes and buids the rows only for the subset of
+  users assigned to the process.
+
+  Args:
+    queue: shared synchronized queue where results are stored
+    users: list of all users
+    directory_client: client for the Directory SDK API
+    process_number: number of this process, from 0 to num_processes
+    num_processes: total number of processes
+  """
   rows = []
   total_users = len(users)
   for i, user in enumerate(users, 1):
@@ -137,6 +157,7 @@ def build_rows_process(queue, users, directory_client, process_number,
 
 
 def analyze():
+  """Main function for G Suite Grant Analyzer."""
   signal.signal(signal.SIGINT, handle_signal)
   signal.signal(signal.SIGTERM, handle_signal)
 
@@ -178,7 +199,7 @@ def analyze():
   logger.info("Got %d users", total_users)
 
   # Shared queue for process messages
-  queue = Queue()
+  queue = multiprocessing.Queue()
 
   # Stores running processes by process number
   processes = {}
@@ -186,7 +207,7 @@ def analyze():
   # Create and start processes
   for process_number in range(0, args.num_processes):
     logger.info("Creating process %d", process_number)
-    process = Process(
+    process = multiprocessing.Process(
         target=build_rows_process,
         args=(queue, users, directory, process_number, args.num_processes))
     processes[process_number] = process
