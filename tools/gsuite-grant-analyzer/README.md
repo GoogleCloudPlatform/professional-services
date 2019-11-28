@@ -1,26 +1,20 @@
 # G Suite Grant Analyzer
 
+G Suite Grant Analyzer is a tool to export to BigQuery data about all the OAuth scopes granted by users to third party applications in G Suite.
+
+## Installation
+
+### Install using pip
+
+To install using pip:
+
 ```
-Copyright 2019 Google LLC
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-
-   This script is a proof of concept and is not meant to be fully functional
-   nor feature-complete. Error checking and log reporting should be adjusted
-   based on the user's needs. Script invocation is still in its infancy.
+pip install --user gsuite-grant-analyzer
 ```
 
-## Prerequisites
+The required packages should be downloaded and installed automatically.
+
+### Manual install
 
 Install the Python Google API Client and BigQuery Client libraries:
 
@@ -30,6 +24,12 @@ Install the Python Google API Client and BigQuery Client libraries:
 Install the Retrying library:
 
 - https://github.com/rholder/retrying
+
+Install the oauth2 library:
+
+- https://github.com/joestump/python-oauth2
+
+## Prerequisites
 
 Create a GCP project and a service account with domain wide delegation:
 
@@ -90,7 +90,7 @@ same for different applications with the same name, or if a given application,
 say an AppMaker app, has been copied between different users (a new instance
 is created for each user).
 
-It is reccommended to use it only as a human readable information, but queries
+It is recommended to use it only as a human readable information, but queries
 should be performed using the clientId.
 
 The example above would then create the following rows (displayText is omitted
@@ -106,7 +106,7 @@ for simplicity):
 | User2@example.com | ClientId3 | Scope4 |
 ```
 
-Below are some samples of possible queries on this schema. By custimizing the
+Below are some samples of possible queries on this schema. By customizing the
 queries, it is possible to perform the desired analysis on users, apps and 
 scopes.
 
@@ -152,7 +152,7 @@ OR scope = 'https://www.googleapis.com/auth/drive.readonly'
 ```
 
 Note how we can use SELECT DISTINCT on both the clientId and displayText, as a 
-given clientId will always have the same displaText. However, keep in mind that
+given clientId will always have the same displayText. However, keep in mind that
 the opposite is usually not true.
 
 - All users using a given set of scopes:

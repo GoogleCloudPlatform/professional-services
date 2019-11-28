@@ -52,6 +52,7 @@ setup(name='gsuite-grant-analyzer',
       keywords='gsuite exporter stackdriver',
       install_requires=[
           'google-api-python-client',
+          'google-cloud-bigquery',
           'oauth2',
           'retrying',
       ],

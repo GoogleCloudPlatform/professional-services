@@ -25,22 +25,21 @@ import multiprocessing
 import signal
 import sys
 
-from gsuite_grant_analyzer.bigquery_helpers import bq_create_client
-from gsuite_grant_analyzer.bigquery_helpers import bq_create_dataset
-from gsuite_grant_analyzer.bigquery_helpers import bq_create_table
-from gsuite_grant_analyzer.bigquery_helpers import bq_insert_rows
+from gsuite_grant_analyzer.bigquery_helpers import (bq_create_client,
+                                                    bq_create_dataset,
+                                                    bq_create_table,
+                                                    bq_insert_rows)
 
-from gsuite_grant_analyzer.google_api_helpers import create_delegated_credentials
-from gsuite_grant_analyzer.google_api_helpers import create_directory_client
-from gsuite_grant_analyzer.google_api_helpers import get_denormalized_scopes_for_user
-from gsuite_grant_analyzer.google_api_helpers import get_users
+from gsuite_grant_analyzer.google_api_helpers import (
+    create_delegated_credentials, create_directory_client,
+    get_denormalized_scopes_for_user, get_users)
 
 # Hard limit on the number of processes from the command line. This limit can
 # be raised, however, expect more throttling from the APIs as you go up.
 MAX_PROCESSES = 8
 
 # These scopes must be granted in G Suite Admin Console to the service account
-# client. See READ.md file for more information on setup.
+# client. See README.md file for more information on setup.
 SCOPES = [
     "https://www.googleapis.com/auth/admin.directory.user.readonly",
     "https://www.googleapis.com/auth/admin.directory.user.security",
@@ -120,7 +119,7 @@ def build_rows_process(queue, users, directory_client, process_number,
                        num_processes):
     """A process functions to process all users in parallel.
 
-  Gets all users, but processes and buids the rows only for the subset of
+  Gets all users, but processes and builds the rows only for the subset of
   users assigned to the process.
 
   Args:

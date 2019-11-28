@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
        wait_exponential_max=60000,
        stop_max_attempt_number=10)
 def _execute_request(request):
-    """Helper functin to call an API function with error retrying.
+    """Helper function to call an API function with error retrying.
 
   Helper function to call an API function with retrying: it calls execute() on
   the request and retries in case of errors.
