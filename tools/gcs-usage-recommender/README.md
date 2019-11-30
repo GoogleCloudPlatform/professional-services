@@ -215,7 +215,7 @@ gcloud services enable bigquerydatatransfer.googleapis.com
 
 Configure your configuration variables
 ````
-export audit_log_query=$(cat audit_log_query.sql | sed -e "s/OUTPUT_PROJECT_ID/$OUTPUT_PROJECT_ID/g" -e "s/OUTPUT_DATASET_ID/$OUTPUT_DATASET_ID/g" -e "s/OUTPUT_TABLE_NAME/$OUTPUT_TABLE_NAME/g" -e "s/AUDIT_LOG_PROJECT_ID/$AUDIT_LOG_PROJECT_ID/g" -e "s/AUDIT_LOG_DATASET_ID/$AUDIT_LOG_DATASET_ID/g")
+export audit_log_query=$(cat audit_log_query.sql | sed -e "s/{OUTPUT_PROJECT_ID}/$OUTPUT_PROJECT_ID/g" -e "s/{OUTPUT_DATASET_ID}/$OUTPUT_DATASET_ID/g" -e "s/{OUTPUT_TABLE_NAME}/$OUTPUT_TABLE_NAME/g" -e "s/{AUDIT_LOG_PROJECT_ID}/$AUDIT_LOG_PROJECT_ID/g" -e "s/{AUDIT_LOG_DATASET_ID}/$AUDIT_LOG_DATASET_ID/g")
 
 ````
 
@@ -223,9 +223,9 @@ Upload the logic to generate a scheduled query job. This is recommended to run
 daily as it computes the read count over days.
 ````
 bq query \
---project ${OUTPUT_PROJECT_ID} \
+--project $OUTPUT_PROJECT_ID \
 --use_legacy_sql=false \
---destination_table=${OUTPUT_DATASET_ID}.${OUTPUT_TABLE_NAME} \
+--destination_table=$OUTPUT_DATASET_ID.$OUTPUT_TABLE_NAME \
 --display_name="GCS Bucket Insights Table" \
 --replace=true \
 --schedule='every 24 hours' "$audit_log_query"
@@ -233,7 +233,8 @@ bq query \
 
 This will prompt you to enter an authorization code on your first time. Go
 to the URL that the prompt specifies, copy the code, and paste it back 
-into the terminal. After this, your scheduled query is created successfully.
+into the terminal. After this, your scheduled query is created successfully. 
+Verify this by checking in the [cloud console](https://console.cloud.google.com/bigquery/scheduled-queries)
 
 <h2>Using the Data</h2>
 

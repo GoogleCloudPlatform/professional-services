@@ -102,33 +102,33 @@ SELECT
   export_day,
   CASE
     WHEN read_count_30_days > 1 THEN '''"rule": [
-  {{
-    "action": {{
+  {
+    "action": {
       "type": "SetStorageClass",
       "storageClass": "STANDARD"
-    }},
-    "condition": {{
+    },
+    "condition": {
       "matchesStorageClass": ["NEARLINE", "COLDLINE"]
-    }}]'''
+    }]'''
     WHEN read_count_30_days <= 1 AND (30 <= days_since_last_read AND days_since_last_read < 365) THEN '''"rule": [
-  {{
-    "action": {{
+  {
+    "action": {
       "type": "SetStorageClass",
       "storageClass": "NEARLINE"
-    }},
-    "condition": {{
+    },
+    "condition": {
       "matchesStorageClass": ["MULTI_REGIONAL", "STANDARD", "COLDLINE", "DURABLE_REDUCED_AVAILABILITY"]
-    }}]'''
+    }]'''
   ELSE
   '''"rule": [
-  {{
-    "action": {{
+  {
+    "action": {
       "type": "SetStorageClass",
       "storageClass": "COLDLINE"
-    }},
-    "condition": {{
+    },
+    "condition": {
       "matchesStorageClass": ["MULTI_REGIONAL", "STANDARD", "NEARLINE", "DURABLE_REDUCED_AVAILABILITY"]
-    }}]'''
+    }]'''
 END
   AS recommended_OLM
 FROM
