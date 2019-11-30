@@ -19,7 +19,6 @@ import sys
 import datetime
 import json
 import logging
-from python import utils
 
 
 def get_storage_client() -> storage.Client:
@@ -112,7 +111,7 @@ def write_json_to_local(data: List[Dict[str, str]]) -> None:
 def main():
     try:
         organization_id = sys.argv[1]
-        gcs_client = utils.get_storage_client()
+        gcs_client = get_storage_client()
         resource_mgr_client = get_resource_manager_client()
         project_id_list = get_project_ids(resource_mgr_client, organization_id)
         bucket_list = get_buckets(project_id_list, gcs_client)
