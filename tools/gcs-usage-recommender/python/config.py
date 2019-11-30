@@ -13,9 +13,9 @@
 # limitations under the License.
 
 config_vars = {
-    'AUDIT_LOG_PROJECT_ID': 'domz-sa-misc',
-    'AUDIT_LOG_DATASET_ID': 'domz_sa_misc_gcs_access',
+    'AUDIT_LOG_PROJECT_ID': 'seti-lumberyard',
+    'AUDIT_LOG_DATASET_ID': 'gcs_dataaccess_logs',
     'output_project_id': 'gcs-usage-recommender',
-    'output_dataset_id': 'recommendation_dataset',
+    'output_dataset_id': 'gcs_usage_log',
     'output_table_name': 'gcs_recommendations_table'
 }
