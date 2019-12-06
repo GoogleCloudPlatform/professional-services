@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from google.cloud import resource_manager
-from google.cloud import storage
-from typing import Dict, List
-import sys
 import datetime
 import json
+import sys
 import logging
+from typing import Dict, List
+from google.cloud import resource_manager
+from google.cloud import storage
 
 
 def get_storage_client() -> storage.Client:
@@ -88,9 +88,9 @@ def get_buckets(project_ids: List[str],
                 })
         return output_list
 
-    except Exception as e:
+    except Exception as err:
         logging.error(f"Could not access buckets in {project_id}")
-        logging.error(e)
+        logging.error(err)
 
 
 def write_json_to_local(data: List[Dict[str, str]]) -> None:
@@ -117,8 +117,8 @@ def main():
         bucket_list = get_buckets(project_id_list, gcs_client)
         write_json_to_local(bucket_list)
 
-    except Exception as e:
-        logging.error(e)
+    except Exception as err:
+        logging.error(err)
 
-if __name__ == "__main__" :
+if __name__ == "__main__":
     main()
