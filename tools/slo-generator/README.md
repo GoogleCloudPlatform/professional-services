@@ -87,13 +87,12 @@ A few pipeline examples are given below.
 
 
 Other components can be added to make results available to other destinations:
-* A  **Cloud Function** to archive SLO reports to BigQuery.
-* A **Cloud Function** to export SLO and Burn Rate metrics (e.g: to Stackdriver Monitoring)
+* A **Cloud Function** to export SLO reports (e.g: to BigQuery and Stackdriver Monitoring), running `slo-generator`.
 * A **Stackdriver Monitoring Policy** to alert on high budget Burn Rates.
 
 Below is a diagram of what this pipeline looks like:
 
-![Architecture](./examples/terraform-google-slo/diagram.png)
+![Architecture](https://raw.githubusercontent.com/terraform-google-modules/terraform-google-slo/master/diagram.png)
 
 **Benefits:**
 
@@ -106,7 +105,7 @@ Below is a diagram of what this pipeline looks like:
 * **Real-time alerting** by setting up Stackdriver Monitoring alerts based on
 wanted SLOs.
 
-An example of pipeline automation with Terraform can be found in [examples/terraform-google-slo/](./examples/terraform-google-slo).
+An example of pipeline automation with Terraform can be found [here](https://github.com/terraform-google-modules/terraform-google-slo/tree/master/examples/simple_example).
 
 ### Cloud Build
 `slo-generator` can also be triggered in a Cloud Build pipeline. This can be useful if we want to compute some SLOs as part of a release process (e.g: to calculate a metric on each `git` commit or push)
