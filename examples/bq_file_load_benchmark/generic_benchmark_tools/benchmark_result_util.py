@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+from abc import ABC, abstractmethod
 import logging
 import os
 import re
@@ -25,10 +26,10 @@ from google.cloud import storage
 from generic_benchmark_tools import file_constants
 from generic_benchmark_tools import table_util
 
-BYTES_IN_MB = 1000000
+BYTES_IN_MB = 10 ** 6
 
 
-class BenchmarkResultUtil(object):
+class BenchmarkResultUtil(ABC):
     """Parent class for handling results of benchmark jobs.
 
     Sets generic benchmark properties that all bechnmark tests will share
@@ -107,7 +108,7 @@ class BenchmarkResultUtil(object):
 
         return total_slot_ms, avg_slots
 
-    def _set_benchmark_properties(self):
+    def _set_generic_properties(self):
         """Sets properties from results of the benchmark load.
 
         Internal method that gathers and sets properties from the benchmark
@@ -135,8 +136,8 @@ class BenchmarkResultUtil(object):
     def insert_results_row(self):
         """Gathers the results of a load job into a benchmark table.
 
-        Waits until the stat of the load job is 'DONE'. Note that this may take
-        several minutes. Once the job stat is done, the method calls an
+        Waits until the stat of the BigQuery job is 'DONE'. Note that this may
+        take several minutes. Once the job stat is done, the method calls an
         internal method to set the benchmark properties, and another to get
         a BigQuery row containing the benchmark properties.
 
@@ -163,7 +164,7 @@ class BenchmarkResultUtil(object):
             job_state,
         ))
         logging.info('Gathering results for benchmark')
-        self._set_benchmark_properties()
+        self._set_generic_properties()
 
         results_table_dataset_ref = self.bq_client.dataset(
             self.results_dataset_id
@@ -186,6 +187,11 @@ class BenchmarkResultUtil(object):
         else:
             logging.error(insert_job)
 
+    @abstractmethod
+    def _set_job_properties(self):
+        """Abstract class to ensure children set properties specific to job."""
+        pass
+
 
 class LoadBenchmarkResultUtil(BenchmarkResultUtil):
 
@@ -202,8 +208,7 @@ class LoadBenchmarkResultUtil(BenchmarkResultUtil):
             load_table_id,
             load_dataset_id
     ):
-        BenchmarkResultUtil.__init__(
-            self,
+        super().__init__(
             job,
             job_type,
             benchmark_name,
@@ -215,9 +220,10 @@ class LoadBenchmarkResultUtil(BenchmarkResultUtil):
         self.job_source_uri = job_source_uri
         self.load_table_id = load_table_id
         self.load_dataset_id = load_dataset_id
-        self._set_load_properties()
+        self._set_job_properties()
 
-    def _set_load_properties(self):
+    def _set_job_properties(self):
+        """Sets load specific properties."""
         load_properties = {}
 
         # get properties from benchmark table
