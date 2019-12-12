@@ -57,18 +57,18 @@ The POST will need to be authenticated with [Identity Aware Proxy](https://cloud
 We reccomend doing this by copying the latest version of [make_iap_request.py](https://github.com/GoogleCloudPlatform/python-docs-samples/blob/master/iap/make_iap_request.py) 
 from the Google Cloud python-docs-samples repo and using the provided [dag_trigger.py](dag_trigger.py).
 ```bash
-pip install -r ~/professional-services/data-analytics/cloud-composer-examples/requirements.txt
-wget https://raw.githubusercontent.com/GoogleCloudPlatform/python-docs-samples/master/iap/requirements.txt -O ~/professional-services/data-analytics/cloud-composer-examples/iap_requirements.txt
-pip install -r iap-requirements.txt
-wget https://raw.githubusercontent.com/GoogleCloudPlatform/python-docs-samples/master/iap/make_iap_request.py -O ~/professional-services/data-analytics/cloud-composer-examples/cloud_composer_example/composer_http_post_example/make_iap_request.py
+pip install -r ~/professional-services/examples/cloud-composer-examples/requirements.txt
+wget https://raw.githubusercontent.com/GoogleCloudPlatform/python-docs-samples/master/iap/requirements.txt -O ~/professional-services/examples/cloud-composer-examples/iap_requirements.txt
+pip install -r iap_requirements.txt
+wget https://raw.githubusercontent.com/GoogleCloudPlatform/python-docs-samples/master/iap/make_iap_request.py -O ~/professional-services/examples/cloud-composer-examples/composer_http_post_example/make_iap_request.py
 ```
 (Or if your are on a Mac you can use curl.)
 ```bash
 # From the cloud-composer-examples directory
-pip install -r ~/professional-services/data-analytics/cloud-composer-examples/requirements.txt
-curl https://raw.githubusercontent.com/GoogleCloudPlatform/python-docs-samples/master/iap/requirements.txt >> ~/professional-services/data-analytics/cloud-composer-examples/iap_requirements.txt
+pip install -r ~/professional-services/examples/cloud-composer-examples/requirements.txt
+curl https://raw.githubusercontent.com/GoogleCloudPlatform/python-docs-samples/master/iap/requirements.txt >> ~/professional-services/examples/cloud-composer-examples/iap_requirements.txt
 pip install -r iap-requirements.txt
-curl https://raw.githubusercontent.com/GoogleCloudPlatform/python-docs-samples/master/iap/make_iap_request.py >> ~/professional-services/data-analytics/cloud-composer-examples/cloud_composer_example/composer_http_post_example/make_iap_request.py
+curl https://raw.githubusercontent.com/GoogleCloudPlatform/python-docs-samples/master/iap/make_iap_request.py >> ~/professional-services/examples/cloud-composer-examples/composer_http_post_example/make_iap_request.py
 ```
 
 Note that we skipped install pyspark for the purposes of being lighter weight to stand up this example. If you have the need to test pyspark locally you should additionally run:
@@ -92,7 +92,7 @@ bq mk ComposerDemo
 export EXPORT_TS=`date "+%Y-%m-%dT%H%M%S"`&& bq extract \
 --destination_format=NEWLINE_DELIMITED_JSON \
 nyc-tlc:yellow.trips \
-gs://$PROJECT/cloud-composer-lab/new-$EXPORT_TS/nyc-tlc-yellow-*.json
+gs://$PROJECT/cloud-composer-lab/raw-$EXPORT_TS/nyc-tlc-yellow-*.json
 ```
 3. Create a Cloud Composer environment - Follow [these](https://cloud.google.com/composer/docs/quickstart) steps to create a Cloud Composer environment if needed (*cloud-composer-env*).
 We will set these variables in the composer environment.
@@ -100,8 +100,8 @@ We will set these variables in the composer environment.
 | Key                   | Value                                           |Example                                   |
 | :--------------------- |:---------------------------------------------- |:---------------------------              |
 | gcp_project           | *your-gcp-project-id*                           |cloud-comp-http-demo                        |
-| gcp_bucket            | *gcs-bucket-with-raw-files*                     |gs://cloud-composer-lab/new-2018          |
-| gce_zone              | *compute-engine-zone*                           |us-central1b                              |
+| gcp_bucket            | *gcs-bucket-with-raw-files*                     |cloud-comp-http-demo          |
+| gce_zone              | *compute-engine-zone*                           |us-central1-b                              |
 
 ```bash
 gcloud beta composer environments create demo-ephemeral-dataproc \
@@ -112,16 +112,16 @@ gcloud beta composer environments create demo-ephemeral-dataproc \
 
 # Set Airflow Variables in the Composer Environment we just created.
 gcloud composer environments run \
-demo-ephemeral-dataproc1 \
+demo-ephemeral-dataproc \
 --location=us-central1 variables -- \
 --set gcp_project $PROJECT
-gcloud composer environments run demo-ephemeral-dataproc1 \
+gcloud composer environments run demo-ephemeral-dataproc \
 --location=us-central1 variables -- \
 --set gce_zone us-central1-b
-gcloud composer environments run demo-ephemeral-dataproc1 \
+gcloud composer environments run demo-ephemeral-dataproc \
 --location=us-central1 variables -- \
 --set gcs_bucket $PROJECT
-gcloud composer environments run demo-ephemeral-dataproc1 \
+gcloud composer environments run demo-ephemeral-dataproc \
 --location=us-central1 variables -- \
 --set bq_output_table $PROJECT:ComposerDemo.nyc-tlc-yellow-trips
 ```
@@ -131,13 +131,13 @@ gcloud composer environments run demo-ephemeral-dataproc1 \
 
 7. Upload the PySpark code [spark_avg_speed.py](composer_http_examples/spark_avg_speed.py) into a *spark-jobs* folder in GCS.
 ```bash
-gsutil cp ~/professional-services/data-analytics/cloud-composer-example/cloud_composer_example/spark_avg_speed.py gs://$PROJECT/spark-jobs/
+gsutil cp ~/professional-services/examples/cloud-composer-examples/composer_http_post_example/spark_avg_speed.py gs://$PROJECT/spark-jobs/
 ``` 
 
 8. The DAG folder is essentially a Cloud Storage bucket. Upload the [ephemeral_dataproc_spark_dag.py](composer_http_examples/ephemeral_dataproc_spark_dag.py) file into the folder:
 
 ```bash
-gsutil cp ~/professional-services/data-analytics/cloud-composer-example/cloud_composer_example/ephemeral_dataproc_spark_dag.py gs://<dag-folder>/dags
+gsutil cp ~/professional-services/examples/cloud-composer-examples/composer_http_post_example/ephemeral_dataproc_spark_dag.py gs://<dag-folder>/dags
 ```
 ***
 
