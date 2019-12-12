@@ -1,4 +1,4 @@
-# Copyright 2018 Google Inc.
+# Copyright 2019 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,41 +18,47 @@ https://packaging.python.org/en/latest/distributing.html
 https://github.com/pypa/sampleproject
 """
 
-from setuptools import setup, find_packages
-from os import path
-from io import open
+import io
+import os
+from setuptools import find_packages
+from setuptools import setup
 
-here = path.abspath(path.dirname(__file__))
+here = os.path.abspath(os.path.dirname(__file__))
 
 # Get the long description from the README file
-with open(path.join(here, 'README.md'), encoding='utf-8') as f:
+with io.open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
-setup(name='slo-generator',
-      version='0.1.7',
-      description='SLO generator',
+setup(name='gsuite-grant-analyzer',
+      version='1.0.0',
+      description='GSuite OAuth scopes analyzer',
       long_description=long_description,
       long_description_content_type='text/markdown',
       author='Google Inc.',
-      author_email='brunoreboul@google.com,ocervello@google.com',
+      author_email='tpaba@google.com',
       packages=find_packages(exclude=['contrib', 'docs', 'tests']),
       classifiers=[
           'Development Status :: 3 - Alpha',
           'Intended Audience :: Developers',
           'Topic :: Software Development :: Build Tools',
           'License :: OSI Approved :: MIT License',
+          'Programming Language :: Python :: 2',
+          'Programming Language :: Python :: 2.7',
           'Programming Language :: Python :: 3',
           'Programming Language :: Python :: 3.4',
           'Programming Language :: Python :: 3.5',
           'Programming Language :: Python :: 3.6',
       ],
-      keywords='slo sli generator gcp',
+      keywords='gsuite exporter stackdriver',
       install_requires=[
-          'google-api-python-client', 'oauth2client', 'google-cloud-monitoring',
-          'google-cloud-pubsub', 'google-cloud-bigquery',
-          'prometheus-http-client', 'pyyaml', 'opencensus'
+          'google-api-python-client',
+          'google-cloud-bigquery',
+          'oauth2',
+          'retrying',
       ],
       entry_points={
-          'console_scripts': ['slo-generator=slo_generator.cli:main',],
+          'console_scripts': [
+              'gsuite-grant-analyzer=gsuite_grant_analyzer.cli:main',
+          ],
       },
-      python_requires='>=3.0')
+      python_requires='>=2.7')

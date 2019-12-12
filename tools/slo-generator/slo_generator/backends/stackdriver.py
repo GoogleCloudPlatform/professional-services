@@ -140,7 +140,7 @@ class StackdriverBackend(MetricBackend):
         project_id = kwargs['project_id']
         measurement = kwargs['measurement']
         filter_valid = measurement['filter_valid']
-        threshold_bucket = measurement['threshold_bucket']
+        threshold_bucket = int(measurement['threshold_bucket'])
         good_below_threshold = measurement.get('good_below_threshold', True)
 
         # Query 'valid' events
