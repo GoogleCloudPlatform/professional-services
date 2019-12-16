@@ -294,7 +294,7 @@ def create_target_metrics_highlight(
 
   assert len(metric_name_list) == len(metric_analysis_list)
   # Every metric should have the same length, i.e., target v.s. remainings
-  assert len({[len(item) for item in metric_analysis_list]}) == 1
+  assert len({len(item) for item in metric_analysis_list}) == 1
 
   name_enrich = {
       'ANOVA': 'ANOVA P-value',
