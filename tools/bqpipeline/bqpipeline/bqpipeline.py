@@ -241,6 +241,7 @@ class BQPipeline(object):
         :param wait: wait for job to complete before returning
         :param create: if False, destination table must already exist
         :param overwrite: if False, destination table must not exist
+        :param append: if True, destination table must exist
         :param timeout: time in seconds to wait for job to complete
         :param kwargs: replacements for Jinja2 template
         :return: bigquery.job.QueryJob
