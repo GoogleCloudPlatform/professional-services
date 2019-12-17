@@ -12,7 +12,8 @@ are computed, the tool then creates a recommended OLM policy, such as by telling
 a user to downgrade the storage classes of objects within a bucket to "nearline"
 if they have not been read in over 30 days. This will help optimize costs
 for an organization as otherwise it may be hard to know how often buckets are
-being accessed and if they are configured correctly.
+being accessed and if they are configured with the appropriate 
+storage class/OLM based on its access patterns.
 
 <h3> 1.2 GCS Audit Logs </h3>
 
@@ -108,10 +109,10 @@ project, bucket, or object. There are several sub-types of data access logs:
     * <b>DATA_WRITE</b>: Entries for operations that create or modify an object.
 
 By default, only admin activity logs are enabled for organizations. However, data 
-access logs are not configured by default. This will require us to enable them in 
-the GCP console.
+access logs are not configured by default. For this example, we will enable them in 
+the GCP console; however, you could do so with the CLI or programmatically, as well.
 
-To do this, go to the [console](https://pantheon.corp.google.com/iam-admin/audit?_ga=2.160269630.-2040617453.1540660549).
+To do this, go to the [console](https://console.cloud.google.com/iam-admin/audit?_ga=2.160269630.-2040617453.1540660549).
 ![UI](images/audit_log_UI.png)
 Filter on Cloud Storage, and select ADMIN_READ, DATA_READ, AND DATA_WRITE. Then click save.
 

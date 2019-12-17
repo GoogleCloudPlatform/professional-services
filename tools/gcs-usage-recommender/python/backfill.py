@@ -21,15 +21,6 @@ from google.cloud import resource_manager
 from google.cloud import storage
 
 
-def get_storage_client() -> storage.Client:
-    """Retrieves GCS client.
-
-    Returns:
-        storage.Client object
-    """
-    return storage.Client()
-
-
 def get_resource_manager_client() -> resource_manager.Client:
     """Retrieves Resource Manager Cleint
 
@@ -50,14 +41,12 @@ def get_project_ids(resource_mgr_client: resource_manager.Client,
     Returns:
         List of strings holding all project IDs.
     """
-    project_id_list = []
     project_filter = {
         'parent.id': organization_id,
         'parent.type': 'organization'
     }
-    for project in resource_mgr_client.list_projects(project_filter):
-        project_id_list.append(project.project_id)
-    return project_id_list
+    return [p.project_id for p in
+            resource_mgr_client.list_projects(project_filter)]
 
 
 def get_buckets(project_ids: List[str],
@@ -111,7 +100,7 @@ def write_json_to_local(data: List[Dict[str, str]]) -> None:
 def main():
     try:
         organization_id = sys.argv[1]
-        gcs_client = get_storage_client()
+        gcs_client = storage.Client()
         resource_mgr_client = get_resource_manager_client()
         project_id_list = get_project_ids(resource_mgr_client, organization_id)
         bucket_list = get_buckets(project_id_list, gcs_client)
