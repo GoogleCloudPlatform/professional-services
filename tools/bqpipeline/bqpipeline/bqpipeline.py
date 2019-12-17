@@ -233,7 +233,7 @@ class BQPipeline(object):
                                        write_disposition=write_disp)
 
     def run_query(self, path, batch=True, wait=True, create=True,
-                  overwrite=True, timeout=20*60, **kwargs):
+                  overwrite=True, append=False, timeout=20*60, **kwargs):
         """
         Executes a SQL query from a Jinja2 template file
         :param path: path to sql file or tuple of (path to sql file, destination tablespec)
@@ -256,7 +256,7 @@ class BQPipeline(object):
         query = template.render(**kwargs)
         client = self.get_client()
         job = client.query(query,
-                           job_config=self.create_job_config(batch, dest, create, overwrite),
+                           job_config=self.create_job_config(batch, dest, create, overwrite, append),
                            job_id_prefix=self.job_id_prefix)
         LOGGER.info('Executing query %s %s', sql_path, job.job_id)
         if wait:
@@ -266,7 +266,7 @@ class BQPipeline(object):
         return job
 
     def run_queries(self, query_paths, batch=True, wait=True, create=True,
-                    overwrite=True, timeout=20*60, **kwargs):
+                    overwrite=True, append=False timeout=20*60, **kwargs):
         """
         :param query_paths: List[Union[str,Tuple[str,str]]] path to sql file or
                tuple of (path, destination tablespec)
@@ -279,7 +279,7 @@ class BQPipeline(object):
         """
         for path in query_paths:
             self.run_query(path, batch=batch, wait=wait, create=create,
-                           overwrite=overwrite, timeout=timeout, **kwargs)
+                           overwrite=overwrite, append=append, timeout=timeout, **kwargs)
 
     def copy_table(self, src, dest, wait=True, overwrite=True, timeout=20 * 60):
         """
