@@ -51,8 +51,13 @@ def parse_args():
     parser.add_argument(
         '--group_by',
         default='ASSET_TYPE',
-        choices=['ASSET_TYPE', 'ASSET_TYPE_VERSION'],
-        help='How to group exported resources into Bigquery tables.')
+        choices=['ASSET_TYPE', 'ASSET_TYPE_VERSION', 'NONE'],
+        # pylint: disable=line-too-long
+        help=(
+            'How to group exported resources into Bigquery tables.\n',
+            '  ASSET_TYPE: A table for each asset type (like google.compute.Instance\n',
+            '  ASSET_TYPE_VERSION: A table for each asset type and api version (like google.compute.Instance.v1\n',
+            '  NONE: One one table holding assets in a single json column\n'))
 
     parser.add_argument(
         '--write_disposition',
@@ -70,6 +75,14 @@ def parse_args():
         default=datetime.datetime.now().isoformat(),
         help=('Load time of the data (YYYY-MM-DD[HH:MM:SS])). '
               'Defaults to "now".'))
+
+    parser.add_argument(
+        '--num_shards',
+        default='*=1',
+        help=('Number of shards to use per asset type.'
+              'List of asset types and the number '
+              'of shardes to use for that type with "*" used as a default.'
+              ' For example "google.compute.VpnTunnel=1,*=10"'))
 
     parser.add_argument(
         '--dataset',
@@ -110,10 +123,10 @@ def parse_args():
         '--template-job-runtime-environment-json',
         type=json_value,
         help=('When launching a template via --template-job-launch-location, '
-         'this is an optional json dict for '
-         'runtime environment for the dataflow template launch request. '
-         'See https://cloud.google.com/dataflow/docs/reference/rest/v1b3/RuntimeEnvironment. '
-         'For example : \'{"maxWorkers": 10}\''))
+              'this is an optional json dict for '
+              'runtime environment for the dataflow template launch request. '
+              'See https://cloud.google.com/dataflow/docs/reference/rest/v1b3/RuntimeEnvironment. '
+              'For example : \'{"maxWorkers": 10}\''))
 
     args, beam_args = parser.parse_known_args()
 
@@ -145,12 +158,13 @@ def main():
         final_state = pipeline_runner.run_pipeline_template(
             args.template_job_project, args.template_job_region,
             launch_location, args.input, args.group_by, args.write_disposition,
-            args.dataset, args.stage, args.load_time,
+            args.dataset, args.stage, args.load_time, args.num_shards,
             args.template_job_runtime_environment_json)
     else:
         final_state = pipeline_runner.run_pipeline_beam_runner(
             None, None, args.input, args.group_by, args.write_disposition,
-            args.dataset, args.stage, args.load_time, beam_args)
+            args.dataset, args.stage, args.load_time, args.num_shards,
+            beam_args)
 
     if not pipeline_runner.is_successful_state(final_state):
         sys.exit(1)

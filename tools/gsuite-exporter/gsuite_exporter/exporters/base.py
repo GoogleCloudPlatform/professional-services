@@ -29,12 +29,12 @@ class BaseExporter(object):
                  credentials_path=None):
         raise NotImplementedError()
 
-    def send(self, records, dry=False):
+    def send(self, records, *args, **kwargs):
         """Writes a list of Admin SDK records to the export destination.
 
         Args:
             records (list): A list of log records.
-            dry (bool): Toggle dry-run mode (default: False).
+            kwargs (dict): Additional exporter options.
 
         Raises:
             `NotImplementedError`: Method is implemented in a derived class.

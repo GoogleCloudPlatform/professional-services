@@ -1,4 +1,3 @@
-
 # Data Generator
 This directory shows a series of pipelines used to generate data in GCS or BigQuery. 
 The intention for these pipelines are to be a tool for partners, customers and SCEs who want to create a dummy dataset that 
@@ -63,24 +62,28 @@ This tool has several parameters to specify what kind of data you would like to 
 The schema may be specified using the `--schema_file` parameter  with a file containing a 
 list of json objects with `name`,  `type`, `mode` and optionally `description` fields. 
 This form follows the output of`bq show --format=json --schema <table_reference>`. 
-
+This data generator now supports nested types like `RECORD`/`STRUCT`. Note, that the approach
+taken was to generate a `REPEATED` `RECORD` (aka `ARRAY<STRUCT>`) and each record generated
+will have between 0 and 3 elements in this array. 
 ie. 
 ```
---schema_file=gs://python-dataflow-examples/schemas/lineorder-schema.json
+--schema_file=gs://python-dataflow-example/schemas/lineorder-schema.json
 ```
 lineorder-schema.json:
 ```
-[
-    {"name": "lo_order_key",
-     "type": "STRING",
-     "mode": "REQUIRED"
-    },
-    {"name": "lo_linenumber",
-     "type": "INTEGER",
-     "mode": "NULLABLE"
-    },
-    {...}
-]
+{
+    "fields": [
+                {"name": "lo_order_key",
+                 "type": "STRING",
+                 "mode": "REQUIRED"
+                },
+                {"name": "lo_linenumber",
+                 "type": "INTEGER",
+                 "mode": "NULLABLE"
+                },
+                {...}
+              ]
+}
 ```
 Alternatively, the schema may be specified with a reference to an existing BigQuery table with the
 `--input_bq_table` parameter. We suggest using the BigQuery UI to create an empty BigQuery table to 
@@ -122,9 +125,10 @@ based on if you pass the `--csv_schema_order` or `--avro_schema_file` parameters
 
 #### Output format 
 
-Output format is specified by passing one of the `--csv_schema_order` or `--avro_schema_file` parameters.
+Output format is specified by passing one of the `--csv_schema_order`, `--avro_schema_file`, or `--write_to_parquet` parameters.
 
 `--csv_schema_order` should be a comma separated list specifying the order of the fieldnames for writing. 
+Note that `RECORD` are not supported when writing to CSV, because it is a flat file format.
 
 ```
 --csv_schema_order=lo_order_key,lo_linenumber,...
@@ -134,6 +138,20 @@ Output format is specified by passing one of the `--csv_schema_order` or `--avro
 
 ```
 --avro_schema_file=/path/to/linorders.avsc
+```
+
+`--write_to_parquet` is a flag that specifies the output should be parquet. In order for beam to write to parquet, 
+a pyarrow schema is needed. Therefore, this tool translates the schema in the `--schema_file` to
+a pyarrow schema automatically if this flag is included, but pyarrow doesn't support all fields that are supported
+by BigQuery. STRING, NUMERIC, INTEGER, FLOAT, NUMERIC, BOOLEAN, TIMESTAMP, DATE, TIME, and DATETIME types are supported.
+
+There is limited support for writing RECORD types to parquet. Due to this [known pyarrow issue](https://jira.apache.org/jira/browse/ARROW-2587?jql=project%20%3D%20ARROW%20AND%20fixVersion%20%3D%200.14.0%20AND%20text%20~%20%22struct%22) this tool does not support writing arrays nested within structs.
+
+However BYTE, and GEOGRAPHY fields are not supported and cannot be included in the `--schema_file` when writing
+to parquet.
+
+```
+--write_to_parquet
 ```
 
 Alternatively, you can write directly to a BigQuery table by specifying an `--output_bq_table`. However, if you are generating 
@@ -146,6 +164,7 @@ desired size.
 ```
 --output_bq_table=project:dataset.table
 ```
+
 
 #### Sparsity (optional)
 Data is seldom full for every record so you can specify the probability of a NULLABLE column being null with the `--p_null` parameter.
@@ -347,4 +366,14 @@ python bq_table_resizer.py \
 --destination_table my-new-table-id \
 --target_gb 15000 \
 --location US
+```
+
+### Running the tests
+Note, that the tests for the BigQuery table resizer require that you have 
+`GOOGLE_APPLICATION_DEFAULT` set to credentials with access to a BigQuery
+environment where you can create and destory tables.
+
+```
+cd data-generator-pipeline
+python -m unittest discover
 ```
