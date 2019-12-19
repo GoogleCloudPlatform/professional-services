@@ -1,0 +1,72 @@
+[
+{
+"name": "duration_sec",
+"type": "INTEGER",
+"mode": "NULLABLE"
+},
+{
+"name": "start_station",
+"type": "GEOGRAPHY",
+"mode": "NULLABLE"
+},
+{
+"name": "end_station_id",
+"type": "INTEGER",
+"mode": "NULLABLE"
+},
+{
+"name": "start_time",
+"type": "STRING",
+"mode": "NULLABLE"
+},
+{
+"name": "end_time",
+"type": "STRING",
+"mode": "NULLABLE"
+},
+{
+"name": "start_station_id",
+"type": "INTEGER",
+"mode": "NULLABLE"
+},
+{
+"name": "start_station_name",
+"type": "STRING",
+"mode": "NULLABLE"
+},
+{
+"name": "end_station_name",
+"type": "STRING",
+"mode": "NULLABLE"
+},
+{
+"name": "end_station",
+"type": "GEOGRAPHY",
+"mode": "NULLABLE"
+},
+{
+"name": "bike_id",
+"type": "INTEGER",
+"mode": "NULLABLE"
+},
+{
+"name": "user_type",
+"type": "STRING",
+"mode": "NULLABLE"
+},
+{
+"name": "member_birth_year",
+"type": "INTEGER",
+"mode": "NULLABLE"
+},
+{
+"name": "member_gender",
+"type": "STRING",
+"mode": "NULLABLE"
+},
+{
+"name": "bike_share_for_all_trip",
+"type": "BOOLEAN",
+"mode": "NULLABLE"
+}
+]
