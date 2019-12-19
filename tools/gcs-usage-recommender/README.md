@@ -93,7 +93,9 @@ Let’s create the dataset inside the project you specified above.
 costly, so it is recommended to choose a default partition expiration for this
 dataset, such as 90 days.</b>
 
-````bq mk --location=${BQ_LOCATION} -d "${OUTPUT_PROJECT_ID}:${OUTPUT_DATASET_ID}"````
+````
+bq mk --location=${BQ_LOCATION} -d "${OUTPUT_PROJECT_ID}:${OUTPUT_DATASET_ID}"
+````
 
 <h4> 2.3.2 Create the audit log sink </h4>
 
@@ -114,9 +116,10 @@ the GCP console; however, you could do so with the CLI or programmatically, as w
 
 To do this, go to the [console](https://console.cloud.google.com/iam-admin/audit?_ga=2.160269630.-2040617453.1540660549).
 ![UI](images/audit_log_UI.png)
-Filter on Cloud Storage, and select ADMIN_READ, DATA_READ, AND DATA_WRITE. Then click save.
 
-Now, we will export the logs from Stackdriver to BigQuery.
+1. Filter on Cloud Storage, and select ADMIN_READ, DATA_READ, AND DATA_WRITE. Then click save.
+
+2. Now, we will export the logs from Stackdriver to BigQuery.
 
 ````bash
 gcloud logging sinks create gcs_usage \
@@ -135,6 +138,31 @@ This command will create and return a service account ID, such as
 serviceAccount:o125240632470-886280@gcp-sa-logging.iam.gserviceaccount.com.
 
 Note down the account name, as we'll use it in the next step!
+
+3. <b>Optional: Create a [Stackdriver Logging Exclusion Filter](https://cloud.google.com/logging/docs/exclusions)</b>
+In the spirit of cost optimization, we can optionally set an exclusion filter for Stackdriver Logging, only after the logging sink is set up. This will allow us to control the log entries which are sent to Stackdriver, since for this solution we only care about their presence in BigQuery, rather than paying for their additional ingest in Stackdriver Logging. This is specifically needed for the Data Access logs, as Admin Activity and System Event logs are both free and cannot be excluded. If the sole manner in which your organization wants to consume these logs is in BigQuery, then you should follow these steps to save on the ingest. Note that this must be done in the console, as it's not yet available in [gcloud](https://cloud.google.com/logging/docs/reference/tools/gcloud-logging#logs_exclusion).
+
+To do this:
+
+* Navigate to the [Logs Ingestion Page](https://console.cloud.google.com/logs/usage?_ga=2.119983247.-642813928.1575916563) as a part of Stackdriver Logging Resource Usage Page, and select the <b>Exclusions Tab</b>.
+* Select <b>Create Exclusion</b>.
+* In the dropdown, select <b>Convert to advanced filter</b>.
+* In the expansion panel, enter the following filtering query, which should match what you used to create the sink in the previous step: 
+````
+resource.type="gcs_bucket" AND
+  (protoPayload.methodName:"storage.buckets.delete" OR
+   protoPayload.methodName:"storage.buckets.create" OR
+   protoPayload.methodName:"storage.buckets.get" OR
+  protoPayload.methodName:"storage.objects.get" OR
+  protoPayload.methodName:"storage.objects.delete" OR
+  protoPayload.methodName:"storage.objects.create")'
+````
+* In the <b>Exclusions Editor</b> right-hand panel, enter:
+   * <b>Name:</b> 'GCS Data Access Logs Filter'
+   * <b>Description:</b> 'Excluding GCS Data Access logs by enabling direct export to BigQuery sync for bucket usage intellignece.'
+   * <b>Percent to Exclude:</b> 100
+* Click 'Create Exclusion'. 
+ 
 
 <h4> 2.3.3 Allow the service account to write to our dataset </h4> 
 Taking the service account created in the last step, let’s assign to it the 
@@ -179,7 +207,9 @@ cd tools/gcs-usage-recommender
 <h4> 2.4.2 Authenticate your shell session </h4>
 You'll need to authenticate yourself to be allowed to call APIs.
 
-````gcloud auth application-default login````
+````
+gcloud auth application-default login
+````
 
 <h4> 2.4.3 Run the process </h4>
 This process uses the Python Cloud Resource Manager client library to fetch all the 
