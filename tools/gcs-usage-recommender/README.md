@@ -145,8 +145,14 @@ In the spirit of cost optimization, we can optionally set an exclusion filter fo
 To do this:
 
 * Navigate to the [Logs Ingestion Page](https://console.cloud.google.com/logs/usage?_ga=2.119983247.-642813928.1575916563) as a part of Stackdriver Logging Resource Usage Page, and select the <b>Exclusions Tab</b>.
+![exclusion](images/stackdriver_exclusion_tab.png)
+
 * Select <b>Create Exclusion</b>.
+![](images/stackdriver_create_exclusion.png)
+
 * In the dropdown, select <b>Convert to advanced filter</b>.
+![](images/stackdriver_create_advanced_filter.png)
+
 * In the expansion panel, enter the following filtering query, which should match what you used to create the sink in the previous step: 
 ````
 resource.type="gcs_bucket" AND
@@ -155,13 +161,17 @@ resource.type="gcs_bucket" AND
    protoPayload.methodName:"storage.buckets.get" OR
   protoPayload.methodName:"storage.objects.get" OR
   protoPayload.methodName:"storage.objects.delete" OR
-  protoPayload.methodName:"storage.objects.create")'
+  protoPayload.methodName:"storage.objects.create")
 ````
+![](images/stackdriver_enter_filter_query.png)
+
 * In the <b>Exclusions Editor</b> right-hand panel, enter:
-   * <b>Name:</b> 'GCS Data Access Logs Filter'
-   * <b>Description:</b> 'Excluding GCS Data Access logs by enabling direct export to BigQuery sync for bucket usage intellignece.'
+   * <b>Name:</b> GCS_Data_Access_Logs_Filter
+   * <b>Description:</b> Excluding GCS Data Access logs by enabling direct export to BigQuery sync for bucket usage intelligence.
    * <b>Percent to Exclude:</b> 100
 * Click 'Create Exclusion'. 
+* A warning will appear, specifying that logs can still go to our BigQuery sink. 
+Click 'Create Exclusion'.
  
 
 <h4> 2.3.3 Allow the service account to write to our dataset </h4> 

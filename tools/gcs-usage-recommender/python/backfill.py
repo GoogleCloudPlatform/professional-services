@@ -68,7 +68,7 @@ def get_buckets(project_ids: List[str],
                 output_list.append({
                     "bucket_name": bucket.name,
                     "project_id": project_id,
-                    "last_read_timestamp": datetime.datetime(1970, 1, 1, 0, 0, 0).strftime("%Y-%m-%d %H:%M:%S"),
+                    "last_read_timestamp": "",
                     "days_since_last_read": -1,
                     "read_count_30_days": -1,
                     "read_count_90_days": -1,
