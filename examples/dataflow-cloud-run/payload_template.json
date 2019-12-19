@@ -2,8 +2,7 @@
   "inputFilePattern": "${INPUT_BUCKET}/*.csv",
   "dataset": "${DATASET}",
   "tableName": "${TABLE_NAME}",
- "projectName": "${PROJECT_ID}", 
-	"project": "${PROJECT_ID}",
+  "project": "${PROJECT_ID}",
   "runner": "Dataflowrunner",
   "tempLocation": "${TEMP_LOCATION}",
   "serviceAccount": "dataflow-runner-gcs-to-bq@${PROJECT_ID}.iam.gserviceaccount.com”
