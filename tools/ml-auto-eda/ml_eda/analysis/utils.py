@@ -143,14 +143,14 @@ def create_analysis_proto_from_table_metric(
   for i, _ in enumerate(metric_names):
     metric = analysis.tmetrics.add()
     metric.name = metric_names[i]
-    metric.column_indexes.extend(metric_dfs[i].columns)
+    metric.column_indexes.extend([str(item) for item in metric_dfs[i].columns])
     for row_name in metric_dfs[i].index:
       row = metric.rows.add()
-      row.row_index = row_name
+      row.row_index = str(row_name)  # Need string
       for col_name in metric_dfs[i].columns:
         cell = row.cells.add()
-        cell.column_index = col_name
-        cell.row_index = row_name
+        cell.column_index = str(col_name)  # Need string
+        cell.row_index = str(row_name)  # Need string
         cell.value = metric_dfs[i].loc[row_name, col_name]
 
   return analysis

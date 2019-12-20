@@ -94,7 +94,7 @@ CLASSPATH="target/pack/lib/*" java com.google.cloud.pso.kafka2avro.Object2Kafka 
 This is a streaming pipeline. It will keep running unless you cancel it. The
 default windowing policy is to group messages every 2 minutes, in a fixed
 window. To change the policy, please see 
-[the function `windowIn` in `Kafka2Avro.scala`](src/main/scala/com/google/cloud/pso/kafka2avro/Kafka2Avro.scala#L62-L72).
+[the function `windowIn` in `Kafka2Avro.scala`](src/main/scala/com/google/cloud/pso/kafka2avro/Kafka2Avro.scala#L60-L70).
 
 Once you have generated the JAR file using the `pack` command inside SBT, you
 can now launch the job in Dataflow to populate Kafka with some demo
