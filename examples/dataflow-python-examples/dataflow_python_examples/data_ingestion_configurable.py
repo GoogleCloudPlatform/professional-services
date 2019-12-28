@@ -51,13 +51,13 @@ class FileCoder(object):
 
     def encode(self, value):
         import csv
-        import StringIO
-        st = StringIO.StringIO()
+        import io
+        st = io.StringIO()
         cw = csv.writer(os,
                         delimiter=self._delimiter,
                         quotechar='"',
                         quoting=csv.QUOTE_MINIMAL)
-        cw.writerow(value.values())
+        cw.writerow(list(value.values()))
         return st.getvalue().strip('\r\n')
 
     def decode(self, value):
@@ -99,7 +99,7 @@ class PrepareFieldTypes(beam.DoFn):
             logging.warn('Row has %s elements instead of %s' %
                          (len(element), len(fields)))
             return []
-        for k, v in element.items():
+        for k, v in list(element.items()):
             ftype = fields[k]
             try:
                 if not v:
@@ -115,7 +115,7 @@ class PrepareFieldTypes(beam.DoFn):
                     try:
                         v = self._tm.mktime(
                             self._tm.strptime(v, self._time_format))
-                    except (ValueError, TypeError), e:
+                    except (ValueError, TypeError) as e:
                         logging.warn('Cannot convert type %s for element %s: '
                                      '%s. Returning default value.' %
                                      (ftype, v, e))
@@ -125,7 +125,7 @@ class PrepareFieldTypes(beam.DoFn):
                     for fmt in (self._time_format):
                         try:
                             v = int(self._tm.mktime(self._tm.strptime(v, fmt)))
-                        except ValueError, e:
+                        except ValueError as e:
                             pass
                         else:
                             break
@@ -136,7 +136,7 @@ class PrepareFieldTypes(beam.DoFn):
                 else:
                     logging.warn('Unknown field type %s' % ftype)
                     v = self._return_default_value(ftype)
-            except (TypeError, ValueError), e:
+            except (TypeError, ValueError) as e:
                 logging.warn('Cannot convert type %s for element %s: '
                              '%s. Returning default value.' % (ftype, v, e))
                 v = self._return_default_value(ftype)
@@ -162,7 +162,7 @@ def _fetch_table(table_name):
 
 def _get_bq_schema(fields):
     bq_fields = []
-    for k, v in fields.items():
+    for k, v in list(fields.items()):
         bq_fields.append(
             TableFieldSchema(name=k, type=v, description='Field %s' % k))
     bq_fields.append(
@@ -214,7 +214,7 @@ def run(argv=None):
 
         try:
             table = _fetch_table(table_name)
-        except InvalidArgument, e:
+        except InvalidArgument as e:
             raise SystemExit('Error getting information for table [%s]: %s' %
                              (table_name, e))
         if not table:
@@ -231,7 +231,7 @@ def run(argv=None):
 
         (p
          | 'Read From Text - ' + input_file >> beam.io.ReadFromText(
-             gs_path, coder=FileCoder(fields.keys()), skip_header_lines=1)
+             gs_path, coder=FileCoder(list(fields.keys())), skip_header_lines=1)
          | 'Prepare Field Types - ' + input_file >> beam.ParDo(
              PrepareFieldTypes(), fields)
          | 'Inject Timestamp - ' + input_file >> beam.ParDo(InjectTimestamp())

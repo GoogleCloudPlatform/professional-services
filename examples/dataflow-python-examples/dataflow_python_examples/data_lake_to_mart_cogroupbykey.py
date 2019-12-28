@@ -17,7 +17,7 @@ large BigQuery Table, joins in another dataset, and writes its contents to a
 BigQuery table.  
 """
 
-from __future__ import absolute_import
+
 import argparse
 import logging
 import os
@@ -206,8 +206,9 @@ class DataLakeToDataMartCGBK:
         """
         return orders_query
 
-    def add_account_details(self, (acct_number, data)):
+    def add_account_details(self, xxx_todo_changeme):
         """This function performs the join of the two datasets."""
+        (acct_number, data) = xxx_todo_changeme
         result = list(data['orders'])
         if not data['account_details']:
             logging.info('account details are empty')

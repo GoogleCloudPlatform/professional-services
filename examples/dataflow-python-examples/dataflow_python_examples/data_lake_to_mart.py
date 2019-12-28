@@ -17,7 +17,7 @@ large BigQuery Table, joins in another dataset, and writes its contents to a
 BigQuery table.  
 """
 
-from __future__ import absolute_import
+
 import argparse
 import logging
 import os

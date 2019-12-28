@@ -16,7 +16,7 @@ contents to a BigQuery table.
 This example does not do any transformation on the data.
 """
 
-from __future__ import absolute_import
+
 import argparse
 import logging
 import re
@@ -52,10 +52,10 @@ class DataIngestion:
          """
         # Strip out carriage return, newline and quote characters.
         values = re.split(",",
-                          re.sub('\r\n', '', re.sub(u'"', '', string_input)))
+                          re.sub('\r\n', '', re.sub('"', '', string_input)))
         row = dict(
-            zip(('state', 'gender', 'year', 'name', 'number', 'created_date'),
-                values))
+            list(zip(('state', 'gender', 'year', 'name', 'number', 'created_date'),
+                values)))
         return row
 
 

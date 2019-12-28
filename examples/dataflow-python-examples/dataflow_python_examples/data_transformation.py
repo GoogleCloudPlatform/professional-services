@@ -19,7 +19,7 @@ This example reads a json schema of the intended output into BigQuery,
 and transforms the date data to match the format BigQuery expects.
 """
 
-from __future__ import absolute_import
+
 import argparse
 import csv
 import logging
@@ -27,7 +27,7 @@ import os
 
 import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions
-from apache_beam.io.gcp.bigquery import parse_table_schema_from_json
+from apache_beam.io.gcp.bigquery_tools import parse_table_schema_from_json
 
 
 class DataTransformation:
@@ -77,25 +77,24 @@ class DataTransformation:
         # Use a CSV Reader which can handle quoted strings etc.
         reader = csv.reader(string_input.split('\n'))
         for csv_row in reader:
-            values = [x.decode('utf8') for x in csv_row]
             # Our source data only contains year, so default January 1st as the
             # month and day.
-            month = u'01'
-            day = u'01'
+            month = '01'
+            day = '01'
             # The year comes from our source data.
-            year = values[2]
+            year = csv_row[2]
 
             row = {}
             i = 0
             # Iterate over the values from our csv file, applying any transformation logic.
-            for value in values:
+            for value in csv_row:
                 # If the schema indicates this field is a date format, we must
                 # transform the date from the source data into a format that
                 # BigQuery can understand.
                 if field_map[i].type == 'DATE':
                     # Format the date to YYYY-MM-DD format which BigQuery
                     # accepts.
-                    value = u'-'.join((year, month, day))
+                    value = '-'.join((year, month, day))
 
                 row[field_map[i].name] = value
                 i += 1
