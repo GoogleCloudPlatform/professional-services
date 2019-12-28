@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Module to check properties of the Hive table."""
 
 import json
@@ -38,7 +37,6 @@ class HiveTable(object):
         hive_table_model (hive_table_model.HiveTableModel): Instance of
             HiveTableModel which contains the Hive table details.
     """
-
     def __init__(self, hive_component, database_name, table_name,
                  incremental_col):
 
@@ -69,9 +67,10 @@ class HiveTable(object):
         """
 
         # Executes DESCRIBE EXTENDED <table_name> query.
-        queries = ["set hive.ddl.output.format=json",
-                   "desc extended {0}.{1}".format(self.database_name,
-                                                  self.table_name)]
+        queries = [
+            "set hive.ddl.output.format=json",
+            "desc extended {0}.{1}".format(self.database_name, self.table_name)
+        ]
         results = json.loads(hive_component.execute_query(queries)[0][0])
 
         # Gets columns information.
@@ -104,7 +103,8 @@ class HiveTable(object):
         partition_info = OrderedDict()
         for item in results['tableInfo']['partitionKeys']:
             partition_info[str(item['name'])] = str(item['type'])
-        logger.debug('Extracted information about Hive table partition columns')
+        logger.debug(
+            'Extracted information about Hive table partition columns')
 
         # Fetches column names of integer/timestamp/date types.
         int_type_col = []
@@ -123,8 +123,8 @@ class HiveTable(object):
 
         # CREATE TABLE statement for the Hive staging table.
         create_statement = "CREATE TABLE default.TABLE_NAME_HERE ("
-        create_statement += ','.join(
-            "{} {}".format(key, value) for key, value in schema.items())
+        create_statement += ','.join("{} {}".format(key, value)
+                                     for key, value in schema.items())
         create_statement += ") STORED AS {}".format(destination_data_format)
         logger.debug('Formed Hive stage table CREATE TABLE statement')
 
@@ -141,7 +141,8 @@ class HiveTable(object):
             inc_col=incremental_col,
             inc_col_options={
                 "int": int_type_col,
-                "timestamp": timestamp_type_col},
+                "timestamp": timestamp_type_col
+            },
             destination_data_format=destination_data_format,
             bq_table_name=PropertiesReader.get('bq_table'),
             create_statement=create_statement)
