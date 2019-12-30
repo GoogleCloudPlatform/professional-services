@@ -1,0 +1,2 @@
+google-cloud-storage==1.23.0
+google-cloud-resource-manager==0.30.0
