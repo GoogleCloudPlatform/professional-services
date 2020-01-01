@@ -14,8 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-
 import os
 import sys
 import time
@@ -31,25 +29,35 @@ from google.cloud.bigtable.row_set import RowSet
 from google.cloud.bigtable.row_set import RowRange
 from collections import defaultdict
 
-tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
+tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                        'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
 
 
 def query_builder():
-    all_pairs = ["LTC/USD", "BTC/GBP", "XLM/USD", "BTC/JPY", "BTC/EUR",
-                 "XRP/USD", "XRP/BTC", "XMR/USD", "XLM/BTC", "BTC/USD",
-                 "LTC/BTC", "XRP/EUR", "XMR/BTC", "XTZ/BTC"]
+    all_pairs = [
+        "LTC/USD", "BTC/GBP", "XLM/USD", "BTC/JPY", "BTC/EUR", "XRP/USD",
+        "XRP/BTC", "XMR/USD", "XLM/BTC", "BTC/USD", "LTC/BTC", "XRP/EUR",
+        "XMR/BTC", "XTZ/BTC"
+    ]
     pairs = ["BTC/USD"]
-    exchanges = ["bitfinex", "bitStamp", "poloniex", "gemini", "hitBTC",
-                 "okCoin"]
+    exchanges = [
+        "bitfinex", "bitStamp", "poloniex", "gemini", "hitBTC", "okCoin"
+    ]
 
     rowset = RowSet()
     for pair in pairs:
         for exchange in exchanges:
-            startkey = "{}#{}#{}".format(pair, exchange, int(time.mktime(
-                (datetime.now() - timedelta(seconds=3)).timetuple())))
-            endkey = "{}#{}#{}".format(pair, exchange, int(time.mktime(
-                (datetime.now() + timedelta(seconds=1)).timetuple())))
+            startkey = "{}#{}#{}".format(
+                pair, exchange,
+                int(
+                    time.mktime(
+                        (datetime.now() - timedelta(seconds=3)).timetuple())))
+            endkey = "{}#{}#{}".format(
+                pair, exchange,
+                int(
+                    time.mktime(
+                        (datetime.now() + timedelta(seconds=1)).timetuple())))
             rowrange = RowRange(start_key=startkey, end_key=endkey)
             rowset.add_row_range(rowrange)
     return rowset
@@ -85,8 +93,8 @@ def query_data():
     sample_size = 5000
     for trades, columns in list(trades_values.items()):
         for column_name, values in list(columns.items()):
-            trades_values_numpy[trades][column_name] = np.array(values)[::max(
-                len(values) / sample_size, 1)]
+            trades_values_numpy[trades][column_name] = np.array(
+                values)[::max(len(values) / sample_size, 1)]
     for trades, columns in list(trades_timestamps.items()):
         for column_name, values in list(columns.items()):
             trades_timestamp_values_numpy[trades][column_name] = np.array(
