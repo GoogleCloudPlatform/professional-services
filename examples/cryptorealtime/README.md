@@ -53,6 +53,8 @@ gcloud beta compute instances create crypto-driver \
   
   * Installing necessary tools like java, git, maven, pip, python 2.7 and Cloud Bigtable command line tool cbt using the following command:
 ```console
+  sudo -s
+  apt-get update -y
   curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
   sudo python3 get-pip.py
   sudo pip3 install virtualenv
@@ -113,7 +115,7 @@ cryptorealtime market
 ### Start the Webserver and Visualization
 ```console 
 cd frontend/
-pip install -r requirements.txt --user
+pip install -r requirements.txt
 python app.py ${PROJECT} cryptorealtime cryptorealtime market
 ```
 
