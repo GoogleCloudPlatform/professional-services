@@ -1,7 +1,15 @@
 ** Frontend setup only **
-1) Install python 2.7 or above
+1) Install pip3 or above
 2) Install pip
-```sudo apt install python2.7 python-pip -y```
+```
+curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+sudo python3 get-pip.py
+sudo pip3 install virtualenv
+virtualenv -p python3 venv
+source venv/bin/activate
+sudo apt -y --allow-downgrades install openjdk-8-jdk git maven google-cloud-sdk=271.0.0-0 google-cloud-sdk-cbt=271.0.0-0 
+
+```
 
 3) Get dependencies and requirements 
 cd frontend/

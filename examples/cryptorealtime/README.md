@@ -53,9 +53,13 @@ gcloud beta compute instances create crypto-driver \
   
   * Installing necessary tools like java, git, maven, pip, python 2.7 and Cloud Bigtable command line tool cbt using the following command:
 ```console
-  sudo -s
-  apt-get -y update
-  apt -y --allow-downgrades install python2.7 python-pip openjdk-8-jdk git maven google-cloud-sdk=271.0.0-0 google-cloud-sdk-cbt=271.0.0-0
+  curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+  sudo python3 get-pip.py
+  sudo pip3 install virtualenv
+  virtualenv -p python3 venv
+  source venv/bin/activate
+  sudo apt -y --allow-downgrades install openjdk-8-jdk git maven google-cloud-sdk=271.0.0-0 google-cloud-sdk-cbt=271.0.0-0 
+
 ```
 
 ### Create a Google Cloud Bigtable instance 
