@@ -21,7 +21,7 @@ import logging
 
 from google.cloud import storage
 
-from benchmark_tools import file_constants
+from generic_benchmark_tools import file_constants
 
 
 class BucketUtil(object):

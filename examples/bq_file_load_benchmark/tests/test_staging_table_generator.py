@@ -7,12 +7,12 @@ import os
 from google.cloud import bigquery
 from google.cloud import storage
 
-from bq_file_load_benchmark.benchmark_tools import staging_table_generator
+from bq_file_load_benchmark.generic_benchmark_tools import staging_table_generator
 
 
 class TestStagingTableGenerator(object):
     """Tests functionality of
-        benchmark_tools.staging_table_generator.StagingTableGenerator.
+        load_benchmark_tools.staging_table_generator.StagingTableGenerator.
 
     Attributes:
         staging_dataset_id(str): ID of the dataset that holds the staging

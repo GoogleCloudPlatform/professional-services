@@ -7,14 +7,14 @@ import unittest
 
 from google.cloud import bigquery
 
-from bq_file_load_benchmark.benchmark_tools import parquet_util
+from bq_file_load_benchmark.generic_benchmark_tools import parquet_util
 
 
 class TestParquetUtil(unittest.TestCase):
-    """Tests functionality of benchmark_tools.parquet_util.ParquetUtil.
+    """Tests functionality of load_benchmark_tools.parquet_util.ParquetUtil.
 
     Attributes:
-        parquet_util(benchmark_tools.ParquetUtil): parquet utility class to be
+        parquet_util(load_benchmark_tools.ParquetUtil): parquet utility class to be
             tested.
     """
 
