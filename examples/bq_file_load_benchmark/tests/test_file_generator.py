@@ -8,11 +8,11 @@ from google.api_core import exceptions
 from google.cloud import bigquery
 from google.cloud import storage
 
-from bq_file_load_benchmark.benchmark_tools import file_generator
+from bq_file_load_benchmark.load_benchmark_tools import load_file_generator
 
 
 class TestFileGenerator(object):
-    """Tests functionality of benchmark_tools.file_generator.FileGenerator.
+    """Tests functionality of load_benchmark_tools.file_generator.FileGenerator.
 
     Attributes:
         bucket_name(str): Name of the bucket used for testing.
@@ -124,7 +124,7 @@ class TestFileGenerator(object):
 
         job.result()
 
-        self.file_generator = file_generator.FileGenerator(
+        self.file_generator = load_file_generator.FileGenerator(
             project_id,
             self.dataset_id,
             self.bucket_name,
@@ -176,7 +176,7 @@ class TestFileGenerator(object):
         Returns:
             True if test passes, else False.
         """
-        self.file_generator = file_generator.FileGenerator(
+        self.file_generator = load_file_generator.FileGenerator(
             project_id,
             self.dataset_id,
             self.bucket_name,

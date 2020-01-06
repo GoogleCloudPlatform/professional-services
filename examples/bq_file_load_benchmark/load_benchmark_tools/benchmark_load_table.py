@@ -23,18 +23,20 @@ from google.api_core import exceptions
 from google.cloud import bigquery
 from google.cloud import storage
 
-from benchmark_tools import benchmark_result_util
-from benchmark_tools import table_util
-from benchmark_tools import file_constants
+from generic_benchmark_tools import benchmark_parameters
+from generic_benchmark_tools import benchmark_result_util
+from generic_benchmark_tools import table_util
+from generic_benchmark_tools import file_constants
 
 
-class BenchmarkTable(object):
-    """Represents a BigQuery benchmark table.
+class BenchmarkLoadTable(object):
+    """Represents a BigQuery load table.
 
-    Holds methods for creating the benchmkark table in BigQuery and loading
-    data from GCS into the BigQUery table.
+    Holds methods for creating a table in BigQuery and loading data from GCS
+        into the table.
 
     Attributes:
+        benchmark_name(str): The name of the benchmark test.
         bq_project(str): ID of the project that holds the BigQuery dataset
             and table that the data is loaded into.
         bq_client(google.cloud.bigquery.client.Client): Client to hold
@@ -69,7 +71,7 @@ class BenchmarkTable(object):
             the benchmark table (i.e. csv, avro, parquet, etc).
         compression_format(bigquery.job.Compression):  Object representing the
             compression of the file.
-        benchmark_table_util(benchmark_tools.table_util.TableUtil): Object to
+        benchmark_table_util(load_benchmark_tools.table_util.TableUtil): Object to
             assist with the handling of the benchmark table's creation
             and properties.
         num_columns(int): Number of columns in the benchmark table.
@@ -86,6 +88,7 @@ class BenchmarkTable(object):
 
     def __init__(
             self,
+            benchmark_name,
             bq_project,
             gcs_project,
             staging_project,
@@ -97,6 +100,7 @@ class BenchmarkTable(object):
             results_table_dataset_id,
             bq_logs_dataset,
     ):
+        self.benchmark_name = benchmark_name
         self.bq_project = bq_project
         self.bq_client = bigquery.Client(
             project=self.bq_project
@@ -113,6 +117,7 @@ class BenchmarkTable(object):
         self.path = path
         self.uri = 'gs://{0:s}/{1:s}'.format(self.bucket_name, path)
         self.results_table_name = results_table_name
+        self.results_table_dataset_id = results_table_dataset_id
         self.results_table_dataset_ref = self.bq_client.dataset(
             results_table_dataset_id
         )
@@ -189,6 +194,8 @@ class BenchmarkTable(object):
                 error message: Total data size exceeds max allowed size
 
         """
+        job_type = benchmark_parameters.BENCHMARK_PARAMETERS[
+            'benchmark_names'][self.benchmark_name]['type']
         source_formats = file_constants.FILE_CONSTANTS['sourceFormats']
         job_config = bigquery.LoadJobConfig()
         job_config.source_format = source_formats[self.file_type]
@@ -206,27 +213,20 @@ class BenchmarkTable(object):
         ))
         try:
             self.load_job.result()
-            result = benchmark_result_util.BenchmarkResultUtil(
-                load_job=self.load_job,
-                file_uri='{0:s}/*'.format(self.uri),
-                benchmark_table_name=self.job_destination_table,
-                benchmark_dataset_id=self.dataset_id,
+            result = benchmark_result_util.LoadBenchmarkResultUtil(
+                job=self.load_job,
+                job_type=job_type,
+                benchmark_name=self.benchmark_name,
                 project_id=self.bq_project,
-                bq_logs_dataset=self.bq_logs_dataset
+                result_table_name=self.results_table_name,
+                result_dataset_id=self.results_table_dataset_id,
+                bq_logs_dataset=self.bq_logs_dataset,
+                job_source_uri='{0:s}/*'.format(self.uri),
+                load_table_id=self.job_destination_table,
+                load_dataset_id=self.dataset_id
             )
-            result_row = result.get_results_row()
-            logging.info('Inserting {0:s}'.format(str(result_row)))
-            insert_job = self.bq_client.insert_rows(
-                self.results_table,
-                [result_row],
-             )
-            if len(insert_job) == 0:
-                logging.info(('Results for table {0:s} loaded '
-                             'successfully.').format(
-                    self.job_destination_table
-                ))
-            else:
-                logging.error(insert_job)
+            result.insert_results_row()
+
         except exceptions.BadRequest as e:
             logging.error(e.message)
             self.bq_client.delete_table(self.benchmark_table_util.table_ref)
