@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,8 @@ import com.demo.dataflow.util.TableSchemaUtils;
 import com.google.api.services.bigquery.model.TableReference;
 import com.google.api.services.bigquery.model.TableRow;
 import org.apache.beam.sdk.Pipeline;
-import org.apache.beam.sdk.PipelineResult;
 import org.apache.beam.sdk.io.TextIO;
 import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
-import org.apache.beam.sdk.metrics.*;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.ParDo;
@@ -35,47 +33,48 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class DFMain {
-    static final Logger LOG = LoggerFactory.getLogger(DFMain.class);
+public class GoBikeMainApp {
+    static final Logger LOG = LoggerFactory.getLogger(GoBikeMainApp.class);
 
     public static void main(String[] args) throws Exception {
-        PipelineOptionsFactory.register(DFPipelineOptions.class);
-        DFPipelineOptions customOptions = PipelineOptionsFactory.fromArgs(args)
-                .as(DFPipelineOptions.class);
+        PipelineOptionsFactory.register(GoBikeAppPipelineOptions.class);
+        GoBikeAppPipelineOptions customOptions = PipelineOptionsFactory.fromArgs(args)
+                .as(GoBikeAppPipelineOptions.class);
         String projectId = customOptions.getProject();
         String dataSetId = customOptions.getDataset().toString();
         String bqTableName = customOptions.getTableName().toString();
         String filePattern = customOptions.getInputFilePattern().toString();
-        Pipeline p = Pipeline.create(customOptions);
+        Pipeline pipeline = Pipeline.create(customOptions);
         TableReference bqTable = getTableReference(projectId, dataSetId, bqTableName);
         TableReference bqTableError = getTableReference(projectId, dataSetId, bqTableName + "Err");
 
-        final Counter successCounter = Metrics.counter("stats", "success");
-        final Counter failureCounter = Metrics.counter("stats", "failure");
-        LOG.info("Starting the pipeline {} on {} ", DFMain.class.getName(), System.currentTimeMillis());
+        LOG.info("Starting the pipeline {} on {} ", GoBikeMainApp.class.getName(), System.currentTimeMillis());
 
-        PCollection<String> rawPDCCollection = p.apply(
+        PCollection<String> rawLinesFromGCS = pipeline.apply(
                 "Read Raw File",
                 TextIO.read().from(filePattern)
         );
-        PCollectionTuple pdcCollections = ParseGoBikeEvents.process(rawPDCCollection, successCounter, failureCounter);
-        PCollection<GoBike> validPDCCollection = pdcCollections.get(ParseGoBikeEvents.successTag);
-        PCollection<FailedMessage> invalidPDCCollection = pdcCollections.get(ParseGoBikeEvents.deadLetterTag);
+        PCollectionTuple parsedGoBikeCollection = ParseGoBikeEvents.process(rawLinesFromGCS);
+
+        PCollection<GoBike> validGoBikeCollection = parsedGoBikeCollection.get(ParseGoBikeEvents.successTag);
+        PCollection<FailedMessage> invalidGoBikeCollection = parsedGoBikeCollection.get(ParseGoBikeEvents.deadLetterTag);
 
 
-        validPDCCollection.apply("Records in BQ", ParDo.of(new PDCDatatoBQ()))
+        validGoBikeCollection.apply("Records in BQ", ParDo.of(new PDCDatatoBQ()))
                 .apply("Write To BigQuery", BigQueryIO.writeTableRows().to(bqTable).withSchema(TableSchemaUtils.readSchema("/gobikeschema.json"))
                         .withCreateDisposition(BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED)
                         .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_APPEND).withoutValidation());
-
-        invalidPDCCollection.apply("Record Invalid Records in BQ", ParDo.of(new PDCErrorDatatoBQ()))
+        /**
+         * Writing the errored records in BQ. Stack driver will only have the correlationId and the error message
+         */
+        invalidGoBikeCollection.apply("Record Invalid Records in BQ", ParDo.of(new PDCErrorDatatoBQ()))
                 .apply("Write To Failed to BigQuery(Err table)", BigQueryIO.writeTableRows().to(bqTableError).withSchema(TableSchemaUtils.readSchema("/failedmessage.json"))
                         .withCreateDisposition(BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED)
                         .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_APPEND).withoutValidation());
 
 
 
-        p.run();
+        pipeline.run();
     }
 
     public static TableReference getTableReference(String projectId, String dataSetId, String bqTableName) {

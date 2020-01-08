@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package com.demo.dataflow;
 import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
 import org.apache.beam.sdk.options.*;
 
-    public interface DFPipelineOptions extends DataflowPipelineOptions {
+    public interface GoBikeAppPipelineOptions extends DataflowPipelineOptions {
 
         @Description("GCS location of PDC file")
         ValueProvider<String> getInputFilePattern();

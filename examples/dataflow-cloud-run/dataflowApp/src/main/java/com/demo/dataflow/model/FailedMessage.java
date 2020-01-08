@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,52 +15,58 @@
  */
 package com.demo.dataflow.model;
 
-
 import org.apache.beam.sdk.coders.AvroCoder;
 import org.apache.beam.sdk.coders.DefaultCoder;
 
+
 @DefaultCoder(AvroCoder.class)
-public class FailedMessage {
+public class FailedMessage{
 
     private long timestamp;
     private String errorMessage;
     private String dataString;
     private String corelationId;
 
-    public FailedMessage(){}
-    public FailedMessage(long timestamp, String error, String dataString, String corelationId) {
+    public static FailedMessage create(long timestamp,String errorMessage,String dataString,String corelationId) {
+        return new FailedMessage(timestamp, errorMessage, dataString, corelationId);
+    }
+
+    public FailedMessage(long timestamp, String errorMessage, String dataString, String corelationId) {
         this.timestamp = timestamp;
-        this.errorMessage = error;
+        this.errorMessage = errorMessage;
         this.dataString = dataString;
         this.corelationId = corelationId;
+    }
+
+    public FailedMessage() {
     }
 
     public long getTimestamp() {
         return timestamp;
     }
 
-    public String getErrorMessage() {
-        return errorMessage;
-    }
-
-    public String getDataString() {
-        return dataString;
-    }
-
-    public String getCorelationId() {
-        return corelationId;
-    }
-
     public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
     }
 
     public void setErrorMessage(String errorMessage) {
         this.errorMessage = errorMessage;
     }
 
+    public String getDataString() {
+        return dataString;
+    }
+
     public void setDataString(String dataString) {
         this.dataString = dataString;
+    }
+
+    public String getCorelationId() {
+        return corelationId;
     }
 
     public void setCorelationId(String corelationId) {
