@@ -12,7 +12,24 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <dataflow>2.16.0</dataflow>
     </properties>
+    <distributionManagement>
+        <snapshotRepository>
+            <id>my-snapshot</id>
+            <url>gs://my_test_data_dore_lite_1/snapshot</url>
+        </snapshotRepository>
+        <repository>
+            <id>my-release</id>
+            <url>gs://my_test_data_dore_lite_1/release</url>
+        </repository>
+    </distributionManagement>
     <build>
+    <extensions>
+        <extension>
+            <groupId>com.gkatzioura.maven.cloud</groupId>
+            <artifactId>google-storage-wagon</artifactId>
+            <version>1.6</version>
+            </extension>
+    </extensions>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -31,7 +48,7 @@
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"></transformer>
                                 <!-- add Main-Class to manifest file -->
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.demo.dataflow.GoBikeMainApp</mainClass>
+                                    <mainClass>com.demo.dataflow.GoBikeToBigQuery</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>

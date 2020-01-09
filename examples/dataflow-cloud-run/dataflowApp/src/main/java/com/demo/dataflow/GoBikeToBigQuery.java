@@ -33,8 +33,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class GoBikeMainApp {
-    static final Logger LOG = LoggerFactory.getLogger(GoBikeMainApp.class);
+public class GoBikeToBigQuery {
+    static final Logger LOG = LoggerFactory.getLogger(GoBikeToBigQuery.class);
 
     public static void main(String[] args) throws Exception {
         PipelineOptionsFactory.register(GoBikeAppPipelineOptions.class);
@@ -48,7 +48,7 @@ public class GoBikeMainApp {
         TableReference bqTable = getTableReference(projectId, dataSetId, bqTableName);
         TableReference bqTableError = getTableReference(projectId, dataSetId, bqTableName + "Err");
 
-        LOG.info("Starting the pipeline {} on {} ", GoBikeMainApp.class.getName(), System.currentTimeMillis());
+        LOG.info("Starting the pipeline {} on {} ", GoBikeToBigQuery.class.getName(), System.currentTimeMillis());
 
         PCollection<String> rawLinesFromGCS = pipeline.apply(
                 "Read Raw File",

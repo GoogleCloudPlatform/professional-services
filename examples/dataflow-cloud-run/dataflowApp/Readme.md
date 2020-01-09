@@ -17,7 +17,7 @@ export SERVICE_ACCOUNT=[DATAFLOW_WORKER_SERVICE_ACCOUNT] #Create the service acc
 
 Run the Dataflow application using
 
-`java -cp target/dataflow-app-1.0-SNAPSHOT.jar com.demo.dataflow.GoBikeMainApp \
+`java -cp target/dataflow-app-1.0-SNAPSHOT.jar com.demo.dataflow.GoBikeToBigQuery \
       --tempLocation=${TEMP_LOCATION} --project=${PROJECT_ID} \
       --serviceAccount=${SERVICE_ACCOUNT} --runner=Dataflowrunner \
       --dataset=${DATASET} --inputFilePattern=${INPUT_FILE_PATTERN} \
