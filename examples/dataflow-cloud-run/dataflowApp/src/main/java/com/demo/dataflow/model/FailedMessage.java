@@ -27,7 +27,7 @@ public class FailedMessage{
     private long timestamp;
     private String errorMessage;
     private String dataString;
-    private String corelationId;
+    private String correlationId;
 
     public static FailedMessage create(long timestamp,String errorMessage,String dataString,String corelationId) {
         return new FailedMessage(timestamp, errorMessage, dataString, corelationId);
@@ -37,7 +37,7 @@ public class FailedMessage{
         this.timestamp = timestamp;
         this.errorMessage = errorMessage;
         this.dataString = dataString;
-        this.corelationId = corelationId;
+        this.correlationId = corelationId;
     }
 
     public FailedMessage() {
@@ -68,10 +68,10 @@ public class FailedMessage{
     }
 
     public String getCorelationId() {
-        return corelationId;
+        return correlationId;
     }
 
     public void setCorelationId(String corelationId) {
-        this.corelationId = corelationId;
+        this.correlationId = corelationId;
     }
 }

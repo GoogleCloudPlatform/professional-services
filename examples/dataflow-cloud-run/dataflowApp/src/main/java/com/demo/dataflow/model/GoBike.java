@@ -21,6 +21,9 @@ import org.apache.beam.sdk.coders.DefaultCoder;
 
 import java.util.Map;
 
+/**
+ * Domain class for the Go Bike Data.
+ */
 @DefaultCoder(AvroCoder.class)
 public class GoBike {
     private int durationSec;
@@ -41,20 +44,29 @@ public class GoBike {
 
     private String userType;
     private int memeberBirthYear;
-
     private String memberGender;
 
     private boolean bikeShareForAllTrip;
 
-
     public static GoBike createFromMap(Map<String,String> data) {
-        String[] headers = getHeader();
-        return new GoBike(Integer.parseInt(data.get(headers[0])), data.get(headers[1]), data.get(headers[2]), Integer.parseInt(data.get(headers[3])), data.get(headers[4])
-                ,data.get(headers[5]), data.get(headers[6]), Integer.parseInt(data.get(headers[7])),data.get(headers[8]),
-                data.get(headers[9]), data.get(headers[10]), Integer.parseInt(data.get(headers[11])), data.get(headers[12]), Integer.parseInt(data.get(headers[13])), data.get(headers[14]), Boolean.parseBoolean(data.get(headers[15])));
-    }
-
-    public GoBike() {
+        String[] header = getHeader();
+        Builder builder = new GoBike.Builder().setDurationSec(Integer.parseInt(data.get(header[0])))
+                .setStartTime(data.get(header[1]))
+                .setEndTime(data.get(header[2]))
+                .setStartStationId(Integer.parseInt(data.get(header[3])))
+                .setStartStationName(data.get(header[4]))
+                .setStartStationLatitude(header[5])
+                .setStartStationLongitude(header[6])
+                .setEndStationId(Integer.parseInt(data.get(header[7])))
+                .setEndStationName(data.get(header[8]))
+                .setEndStationLatitude(header[9])
+                .setEndStationLongitude(header[10])
+                .setBikerId(Integer.parseInt(data.get(header[11])))
+                .setUserType(data.get(header[12]))
+                .setMemeberBirthYear(Integer.parseInt(data.get(header[13])))
+                .setMemberGender(data.get(header[14]))
+                .setBikeShareForAllTrip(Boolean.parseBoolean(data.get(header[15])));
+        return builder.build();
     }
 
     public GoBike(Integer durationSec, String startTime, String endTime, Integer startStationId, String startStationName, String startStationLatitude, String startStationLongitude, Integer endStationId, String endStationName, String endStationLatitude, String endStationLongitude, Integer bikerId, String userType, Integer memeberBirthYear, String memberGender, Boolean bikeShareForAllTrip) {
@@ -74,6 +86,8 @@ public class GoBike {
         this.memeberBirthYear = memeberBirthYear;
         this.memberGender = memberGender;
         this.bikeShareForAllTrip = bikeShareForAllTrip;
+    }
+    public GoBike() {
     }
 
     public int getDurationSec() {
@@ -223,5 +237,116 @@ public class GoBike {
         header[14] = "member_gender";
         header[15] ="bike_share_for_all_trip";
         return header;
+    }
+    public static class Builder {
+        private int durationSec;
+        private String startTime;
+        private String endTime;
+
+        private int startStationId;
+        private String startStationName;
+        private String startStationLatitude;
+        private String startStationLongitude;
+
+        private int endStationId;
+        private String endStationName;
+        private String endStationLatitude;
+        private String endStationLongitude;
+
+        private int bikerId;
+
+        private String userType;
+        private int memeberBirthYear;
+        private String memberGender;
+
+        private boolean bikeShareForAllTrip;
+
+        public Builder() {
+        }
+
+        public Builder setDurationSec(int durationSec) {
+            this.durationSec = durationSec;
+            return this;
+        }
+
+        public Builder setStartTime(String startTime) {
+            this.startTime = startTime;
+            return this;
+        }
+
+        public Builder setEndTime(String endTime) {
+            this.endTime = endTime;
+            return this;
+        }
+
+        public Builder setStartStationId(int startStationId) {
+            this.startStationId = startStationId;
+            return this;
+        }
+
+        public Builder setStartStationName(String startStationName) {
+            this.startStationName = startStationName;
+            return this;
+        }
+
+        public Builder setStartStationLatitude(String startStationLatitude) {
+            this.startStationLatitude = startStationLatitude;
+            return this;
+        }
+
+        public Builder setStartStationLongitude(String startStationLongitude) {
+            this.startStationLongitude = startStationLongitude;
+            return this;
+
+        }
+
+        public Builder setEndStationId(int endStationId) {
+            this.endStationId = endStationId;
+            return this;
+        }
+
+        public Builder setEndStationName(String endStationName) {
+            this.endStationName = endStationName;
+            return this;
+        }
+
+        public Builder setEndStationLatitude(String endStationLatitude) {
+            this.endStationLatitude = endStationLatitude;
+            return this;
+        }
+
+        public Builder setEndStationLongitude(String endStationLongitude) {
+            this.endStationLongitude = endStationLongitude;
+            return this;
+        }
+
+        public Builder setBikerId(int bikerId) {
+            this.bikerId = bikerId;
+            return this;
+        }
+
+        public Builder setUserType(String userType) {
+            this.userType = userType;
+            return this;
+        }
+
+        public Builder setMemeberBirthYear(int memeberBirthYear) {
+            this.memeberBirthYear = memeberBirthYear;
+            return this;
+        }
+
+        public Builder setMemberGender(String memberGender) {
+            this.memberGender = memberGender;
+            return this;
+        }
+
+        public Builder setBikeShareForAllTrip(boolean bikeShareForAllTrip) {
+            this.bikeShareForAllTrip = bikeShareForAllTrip;
+            return this;
+        }
+        public GoBike build(){
+            return new GoBike(durationSec,startTime,endTime,startStationId,startStationName,startStationLatitude,startStationLongitude,endStationId,
+                    endStationName,endStationLatitude,endStationLongitude,bikerId,userType,memeberBirthYear,memberGender,bikeShareForAllTrip);
+            }
     }
 }
