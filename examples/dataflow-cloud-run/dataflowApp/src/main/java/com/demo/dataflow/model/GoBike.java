@@ -23,28 +23,28 @@ import java.util.Map;
 
 @DefaultCoder(AvroCoder.class)
 public class GoBike {
-    private Integer durationSec;
+    private int durationSec;
     private String startTime;
     private String endTime;
 
-    private Integer startStationId;
+    private int startStationId;
     private String startStationName;
     private String startStationLatitude;
     private String startStationLongitude;
 
-    private Integer endStationId;
+    private int endStationId;
     private String endStationName;
     private String endStationLatitude;
     private String endStationLongitude;
 
-    private Integer bikerId;
+    private int bikerId;
 
     private String userType;
-    private Integer memeberBirthYear;
+    private int memeberBirthYear;
 
     private String memberGender;
 
-    private Boolean bikeShareForAllTrip;
+    private boolean bikeShareForAllTrip;
 
 
     public static GoBike createFromMap(Map<String,String> data) {
@@ -76,11 +76,11 @@ public class GoBike {
         this.bikeShareForAllTrip = bikeShareForAllTrip;
     }
 
-    public Integer getDurationSec() {
+    public int getDurationSec() {
         return durationSec;
     }
 
-    public void setDurationSec(Integer durationSec) {
+    public void setDurationSec(int durationSec) {
         this.durationSec = durationSec;
     }
 
@@ -100,11 +100,11 @@ public class GoBike {
         this.endTime = endTime;
     }
 
-    public Integer getStartStationId() {
+    public int getStartStationId() {
         return startStationId;
     }
 
-    public void setStartStationId(Integer startStationId) {
+    public void setStartStationId(int startStationId) {
         this.startStationId = startStationId;
     }
 
@@ -132,11 +132,11 @@ public class GoBike {
         this.startStationLongitude = startStationLongitude;
     }
 
-    public Integer getEndStationId() {
+    public int getEndStationId() {
         return endStationId;
     }
 
-    public void setEndStationId(Integer endStationId) {
+    public void setEndStationId(int endStationId) {
         this.endStationId = endStationId;
     }
 
@@ -164,11 +164,11 @@ public class GoBike {
         this.endStationLongitude = endStationLongitude;
     }
 
-    public Integer getBikerId() {
+    public int getBikerId() {
         return bikerId;
     }
 
-    public void setBikerId(Integer bikerId) {
+    public void setBikerId(int bikerId) {
         this.bikerId = bikerId;
     }
 
@@ -180,11 +180,11 @@ public class GoBike {
         this.userType = userType;
     }
 
-    public Integer getMemeberBirthYear() {
+    public int getMemeberBirthYear() {
         return memeberBirthYear;
     }
 
-    public void setMemeberBirthYear(Integer memeberBirthYear) {
+    public void setMemeberBirthYear(int memeberBirthYear) {
         this.memeberBirthYear = memeberBirthYear;
     }
 
@@ -196,11 +196,11 @@ public class GoBike {
         this.memberGender = memberGender;
     }
 
-    public Boolean getBikeShareForAllTrip() {
+    public boolean getBikeShareForAllTrip() {
         return bikeShareForAllTrip;
     }
 
-    public void setBikeShareForAllTrip(Boolean bikeShareForAllTrip) {
+    public void setBikeShareForAllTrip(boolean bikeShareForAllTrip) {
         this.bikeShareForAllTrip = bikeShareForAllTrip;
     }
 

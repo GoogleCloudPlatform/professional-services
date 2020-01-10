@@ -16,6 +16,8 @@
 package com.demo.dataflow.util;
 
 public class ErrorCodes {
-
-    public static String CONVERSION_EXCEPTION = "ERR101";
+    /**
+     * Error while converting CSV data to the domain model
+     */
+    public static String CSV_CONVERSION_ERROR = "ERR101";
 }

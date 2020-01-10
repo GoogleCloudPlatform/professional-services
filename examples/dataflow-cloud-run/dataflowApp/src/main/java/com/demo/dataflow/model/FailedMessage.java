@@ -18,7 +18,9 @@ package com.demo.dataflow.model;
 import org.apache.beam.sdk.coders.AvroCoder;
 import org.apache.beam.sdk.coders.DefaultCoder;
 
-
+/**
+ * Failed message contains the timestamp when a message failed, errorMessage,data that was processed and the correlation id.
+ */
 @DefaultCoder(AvroCoder.class)
 public class FailedMessage{
 

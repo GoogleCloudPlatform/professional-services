@@ -24,8 +24,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-public  class  TableSchemaUtils {
-    public static TableSchema readSchema(String fileName) throws Exception{
+public class TableSchemaUtils {
+    public static TableSchema readSchema(String fileName) throws Exception {
         InputStream ioStream = TableSchemaUtils.class.getResourceAsStream(fileName);
         List<TableFieldSchema> fields = new ArrayList<TableFieldSchema>();
         JsonParser parser = JacksonFactory.getDefaultInstance().createJsonParser(ioStream);
