@@ -45,7 +45,7 @@ public class ParseGoBikeEventsTest  implements Serializable {
         pipeline.run().waitUntilFinish();
     }
 
-    private List<String> getFilesContent(String fileName) throws Exception{
+    private List<String> getFilesContent(String fileName) throws Exception {
         Path resourceDirectory = Paths.get("src","test","resources", fileName);
         return Files.readAllLines(resourceDirectory);
     }
