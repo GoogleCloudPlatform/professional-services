@@ -16,6 +16,9 @@
 
 package com.endpoint;
 
+/**
+ * Domain class to encapsulate the pubsub message
+ */
 public class Body {
 
   private Message message;
@@ -30,6 +33,9 @@ public class Body {
     this.message = message;
   }
 
+  /**
+   * Domain class to represent a pubsub message.
+   */
   public class Message {
 
     private String messageId;

@@ -16,14 +16,17 @@
 package com.demo.dataflow.model;
 
 
+import com.google.auto.value.AutoValue;
 import org.apache.beam.sdk.coders.AvroCoder;
 import org.apache.beam.sdk.coders.DefaultCoder;
+import org.apache.beam.sdk.options.ValueProvider;
 
 import java.util.Map;
 
 /**
  * Domain class for the Go Bike Data.
  */
+@AutoValue
 @DefaultCoder(AvroCoder.class)
 public class GoBike {
     private int durationSec;
@@ -69,7 +72,9 @@ public class GoBike {
         return builder.build();
     }
 
-    public GoBike(Integer durationSec, String startTime, String endTime, Integer startStationId, String startStationName, String startStationLatitude, String startStationLongitude, Integer endStationId, String endStationName, String endStationLatitude, String endStationLongitude, Integer bikerId, String userType, Integer memeberBirthYear, String memberGender, Boolean bikeShareForAllTrip) {
+    private GoBike(int durationSec, String startTime, String endTime, int startStationId, String startStationName, String startStationLatitude,
+                  String startStationLongitude, Integer endStationId, String endStationName, String endStationLatitude, String endStationLongitude,
+                  int bikerId, String userType, int memeberBirthYear, String memberGender, boolean bikeShareForAllTrip) {
         this.durationSec = durationSec;
         this.startTime = startTime;
         this.endTime = endTime;
@@ -347,6 +352,6 @@ public class GoBike {
         public GoBike build(){
             return new GoBike(durationSec,startTime,endTime,startStationId,startStationName,startStationLatitude,startStationLongitude,endStationId,
                     endStationName,endStationLatitude,endStationLongitude,bikerId,userType,memeberBirthYear,memberGender,bikeShareForAllTrip);
-            }
+        }
     }
 }

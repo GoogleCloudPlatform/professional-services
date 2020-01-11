@@ -21,8 +21,8 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,10 +30,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import static org.apache.logging.log4j.message.MapMessage.MapFormat.JSON;
-
 @RestController
 public class EndpointController {
+  private final Logger LOG = LoggerFactory.getLogger(EndpointController.class);
+
   private static Gson gson = new Gson();
   @RequestMapping(value = "/", method = RequestMethod.POST)
   public ResponseEntity receiveMessage(@RequestBody Body body) throws Exception {
@@ -41,7 +41,7 @@ public class EndpointController {
     Body.Message message = body.getMessage();
     if (message == null) {
       String msg = "Bad Request: invalid Pub/Sub message format";
-      System.out.println(msg);
+      LOG.error(msg);
       return new ResponseEntity(msg, HttpStatus.BAD_REQUEST);
     }
 
@@ -55,8 +55,8 @@ public class EndpointController {
     for (Map.Entry entry : maps.entrySet()) {
       sb.append("--").append(entry.getKey()).append("=").append(entry.getValue()).append(" ");
     }
-    String command = String.format("java -cp /dataflowApp.jar com.demo.dataflow.DFMain %s", sb.toString());
-    System.out.println(command);
+    String command = String.format("java -cp /dataflowApp.jar com.demo.dataflow.GoBikeToBigQuery %s", sb.toString());
+    LOG.info(command);
     Process process = Runtime.getRuntime()
             .exec(String.format(command));
 
@@ -70,12 +70,12 @@ public class EndpointController {
     if (status ==0){
       retVal.append("\"status\": \"success\", \"result\": [" );
       retVal.append(getResult(processInputReader));
-      return new ResponseEntity(retVal.toString(), HttpStatus.OK);
+      return new ResponseEntity(retVal.toString()+ "]" + "}", HttpStatus.OK);
     }
     else {
       retVal.append("\"status\": \"error\", \"result\": [");
       retVal.append(getResult(processErrorReader));
-      return new ResponseEntity(retVal.toString(), HttpStatus.BAD_REQUEST);
+      return new ResponseEntity(retVal.toString()+ "]" + "}", HttpStatus.BAD_REQUEST);
     }
 
   }
@@ -89,7 +89,7 @@ public class EndpointController {
       line = reader.readLine();
       lineNumber++;
     }
-    return retVal.substring(0, retVal.toString().length()-1) + "]" + "}";
+    return retVal.substring(0, retVal.toString().length()-1);
 
   }
 }

@@ -130,6 +130,11 @@
             <version>0.1</version>
         </dependency>
         <dependency>
+            <groupId>com.google.auto.value</groupId>
+            <artifactId>auto-value</artifactId>
+            <version>1.2</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.beam</groupId>
             <artifactId>beam-vendor-guava-26_0-jre</artifactId>
             <version>0.1</version>
