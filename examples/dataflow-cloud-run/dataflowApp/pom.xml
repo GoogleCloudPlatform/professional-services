@@ -12,16 +12,6 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <dataflow>2.16.0</dataflow>
     </properties>
-    <distributionManagement>
-        <snapshotRepository>
-            <id>my-snapshot</id>
-            <url>gs://my_test_data_dore_lite_1/snapshot</url>
-        </snapshotRepository>
-        <repository>
-            <id>my-release</id>
-            <url>gs://my_test_data_dore_lite_1/release</url>
-        </repository>
-    </distributionManagement>
     <build>
     <extensions>
         <extension>
