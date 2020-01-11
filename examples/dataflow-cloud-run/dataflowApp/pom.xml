@@ -13,13 +13,7 @@
         <dataflow>2.16.0</dataflow>
     </properties>
     <build>
-    <extensions>
-        <extension>
-            <groupId>com.gkatzioura.maven.cloud</groupId>
-            <artifactId>google-storage-wagon</artifactId>
-            <version>1.6</version>
-            </extension>
-    </extensions>
+
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
