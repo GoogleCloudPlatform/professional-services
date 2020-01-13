@@ -27,7 +27,7 @@ import {BqQueryPlan} from '../bq_query_plan';
 import {LogService} from '../log.service';
 import {ProjectsComponent} from '../projects/projects.component';
 import {QueryPlanService} from '../query-plan.service';
-import {BqListJobResponse, BqProject, BqProjectListResponse, Job, Project} from '../rest_interfaces';
+import {BqListJobResponse, BqProject, BqProjectListResponse, GetJobsRequest, Job, Project} from '../rest_interfaces';
 
 @Component({
   selector: 'app-job',
@@ -39,6 +39,7 @@ export class JobComponent implements OnDestroy {
   paginatedJobs: BqJob[] = [];
   selectedProject: BqProject;
   planFile: File;
+  jobId: string;
   readonly displayedColumns = ['btn', 'timestamp', 'id', 'state'];
   readonly pageSize = 10;
   readonly pageSizeOptions = [5, 10, 25, 100];
@@ -81,10 +82,10 @@ export class JobComponent implements OnDestroy {
    * Event handler called when the 'list jobs' button in the Project component
    * is clicked.
    */
-  getJobs(project: BqProject) {
+  getJobs(request: GetJobsRequest) {
     this.jobs = [];
-    this.selectedProject = project;
-    this.bqService.getJobs(project.id, 2000)
+    this.selectedProject = request.project;
+    this.bqService.getJobs(request.project.id, request.limit, request.allUsers)
         .pipe(takeUntil(this.destroy))
         .subscribe(
             res => {
@@ -102,8 +103,36 @@ export class JobComponent implements OnDestroy {
               this.updatePaginatedJobs(
                   this.pageSize, this.pageEvent ? this.pageEvent.pageIndex : 0);
             });
-  }
+  } /** when a Job is requested by job id */
+  loadJob(): void {
+    // job id is of format: <projectname>:<location>.<id>
+    const regex = new RegExp('(?<project>.+):(?<location>.+)\\.(?<id>.+)');
 
+    const parsed: any =
+        regex.exec(this.jobId);  // Property 'groups' does not exist on type
+                                 // 'RegExpExecArray'
+    if (parsed) {
+      this.bqService
+          .getQueryPlan(
+              parsed.groups['project'], parsed.groups['id'],
+              parsed.groups['location'])
+          .pipe(takeUntil(this.destroy))
+          .subscribe(
+              detail => {
+                if (detail) {
+                  const plan = new BqQueryPlan(detail, this.logSvc);
+                  if (plan.isValid) {
+                    this.planSelected.emit(plan);
+                  } else {
+                    this.planSelected.emit(null);
+                  }
+                }
+              },
+              err => {
+                this.logSvc.error(err);
+              });
+    }
+  }
   // -------------  interacting with the Jobs grid ------------
 
   /** When selecting an item in the drop down list. */

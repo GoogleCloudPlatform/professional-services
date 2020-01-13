@@ -18,7 +18,8 @@ import {HttpClientModule} from '@angular/common/http';
 import {ErrorHandler, Injectable, NgModule} from '@angular/core';
 import {FlexLayoutModule} from '@angular/flex-layout';
 import {FormsModule} from '@angular/forms';
-import {MatButtonModule, MatCheckboxModule, MatGridListModule, MatIconModule, MatMenuModule} from '@angular/material';
+import {MatButtonModule, MatButtonToggleModule, MatCheckboxModule} from '@angular/material';
+import {MatGridListModule, MatIconModule, MatListModule, MatMenuModule} from '@angular/material';
 import {MatCardModule} from '@angular/material/card';
 import {MatDividerModule} from '@angular/material/divider';
 import {MatExpansionModule} from '@angular/material/expansion';
@@ -44,13 +45,13 @@ import {LogDisplayComponent} from './log-display/log-display.component';
 import {MainComponent} from './main/main.component';
 import {PlanSideDisplayComponent} from './plan-side-display/plan-side-display.component';
 import {PlanStatusCardComponent} from './plan-status-card/plan-status-card.component';
+import {ProgressDisplayComponent} from './progress-display/progress-display.component';
 import {ProjectsComponent} from './projects/projects.component';
 import {StageDetailsComponent} from './stage-details/stage-details.component';
 import {StepDetailsComponent} from './step-details/step-details.component';
 import {TermsComponent} from './terms/terms.component';
 import {TimingDisplayComponent} from './timing-display/timing-display.component';
 import {VisDisplayComponent} from './vis-display/vis-display.component';
-import { ProgressDisplayComponent } from './progress-display/progress-display.component';
 
 Sentry.init({
   dsn: 'https://1cfbb9646b584e9b9e4973d39970075a@sentry.io/1370691',
@@ -98,12 +99,14 @@ export class SentryErrorHandler implements ErrorHandler {
     MatCardModule,
     MatExpansionModule,
     MatInputModule,
+    MatListModule,
     MatPaginatorModule,
     MatTableModule,
     MatGridListModule,
     MatMenuModule,
     MatIconModule,
     BrowserModule,
+    MatButtonToggleModule,
     // note to self: import HttpClientModule after BrowserModule, otherwise
     // there is trouble.
     HttpClientModule,

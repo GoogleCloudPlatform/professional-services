@@ -32,11 +32,6 @@ export class AppComponent {
         (isloggedIn: boolean) => this.register_login(isloggedIn));
 
     this.isLoggedIn = this.googleAuthService.isLoggedIn();
-    /*
-    console.log(
-        'isloggedin = ' + this.googleAuthService.getAccessToken() != null);
-    console.log('token = ' + this.googleAuthService.getAccessToken());
-    */
   }
   /* event handler to recognise a login or logout event has occurred */
   private register_login(what: boolean) {

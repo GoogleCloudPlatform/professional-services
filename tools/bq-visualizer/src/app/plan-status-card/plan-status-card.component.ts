@@ -38,7 +38,6 @@ export class PlanStatusCardComponent {
   }
 
   changeStageDisplayOption(event) {
-    console.log(event);
     this.dislayOptionEvent.emit(this.stageDisplayOption);
   }
   get settings(): string {
@@ -81,14 +80,17 @@ export class PlanStatusCardComponent {
     if (this.plan) {
       const stats = this.plan.plan.statistics;
       const duration = Number(stats.endTime) - Number(stats.startTime);
-      const slots = Number(stats.query.totalSlotMs) / duration;
+      const slots = stats.query ?
+          Math.ceil(Number(stats.query.totalSlotMs) / duration)
+              .toLocaleString('en') :
+          'n/a';
 
       const results = {
         'creationTime            ': new Date(Number(stats.creationTime)),
         'startTime               ': new Date(Number(stats.startTime)),
         'endTime                 ': new Date(Number(stats.endTime)),
         'elapsedMs               ': duration.toLocaleString('en'),
-        'estd. slots used        ': Math.ceil(slots).toLocaleString('en'),
+        'estd. slots used        ': slots,
         'totalSlotMs             ': stats.query ?
             Number(stats.query.totalSlotMs).toLocaleString('en') :
             'n/a',
@@ -96,7 +98,7 @@ export class PlanStatusCardComponent {
             Number(stats.query.billingTier).toLocaleString('en') :
             'n/a',
         'cacheHit                ':
-            stats.query.cacheHit ? stats.query.cacheHit.toString() : 'n/a',
+            stats.query ? stats.query.cacheHit.toString() : 'n/a',
         'estimatedBytesProcessed ': stats.query ?
             Number(stats.query.estimatedBytesProcessed).toLocaleString('en') :
             'n/a',

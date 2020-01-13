@@ -1,8 +1,24 @@
 <div class="job_display">
-  <mat-grid-list cols="2" rowHeight="200px">
+  <mat-grid-list cols="3" rowHeight="200px">
     <mat-grid-tile [colspan]="1" [rowspan]="1">
       <app-projects (getJobs)="getJobs($event)"></app-projects>
       <!-- this receives the event from the projects component -->
+    </mat-grid-tile>
+    <mat-grid-tile [colspan]="1" [rowspan]="1">
+      <mat-card class="dashboard-card">
+        <mat-card-title> Get by Job Id</mat-card-title>
+        <mat-list>
+          <mat-list-item>
+            <mat-form-field>
+              <input matInput id="jobId" placeholder="Bq job id" [(ngModel)]="jobId">
+
+            </mat-form-field>
+          </mat-list-item>
+          <mat-list-item>
+            <button mat-button (click)="loadJob()">GET</button>
+          </mat-list-item>
+        </mat-list>
+      </mat-card>
     </mat-grid-tile>
     <mat-grid-tile [colspan]="1" [rowspan]="1">
       <mat-card class="dashboard-card">

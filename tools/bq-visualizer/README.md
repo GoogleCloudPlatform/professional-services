@@ -3,6 +3,13 @@
 This utility provides a web application which can be used to visualise the flow of execution stages within a BigQuery job. This may be useful in identifying problematic stages and provides greater usability for large query plans than the default query plan explanation in the Google Cloud Console.
 
 ## Release Notes
+**14 January 2020**
+
+* Add ability to retrieve query by query id
+* Added option 'AllUsers' to let user choose between listing their own queries or queries for all users in project
+* tightened layouts
+* improved display of failed queries
+
 **6 October 2019**
 
 * Added Progress View. See graphic display of work units comnpleted over time

@@ -59,6 +59,7 @@ export class VisDisplayComponent implements OnInit {
     this.statusCard.loadPlan(plan);
     this.sideDisplay.stepDetails = [];
     this.sideDisplay.stageDetails = '';
+    this.clearGraph();
   }
 
   private invalidateGraph() {
@@ -149,8 +150,6 @@ export class VisDisplayComponent implements OnInit {
       visedges = new vis.DataSet(plan.edges.map(edge => {
         let nrRecords = edge.from.recordsWritten;
         if (nrRecords === undefined) {
-          // console.log('undefined records written in source node');
-          // console.log(edge);
           nrRecords = this.estimate_recordsRead(edge, plan).toString();
         }
         return {

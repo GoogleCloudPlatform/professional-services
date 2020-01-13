@@ -40,10 +40,8 @@ export class ProgressDisplayComponent implements OnInit {
 
 
   async loadPlan(plan: BqQueryPlan) {
-    console.log('progress:loadPlan');
-    if (plan) {
-      console.log(plan.plan.statistics.query.timeline);
-    }
+    // console.log('progress:loadPlan');
+
     this.haveDoneDraw = false;
     this.statusCard.loadPlan(plan);
     this.plan = plan;
@@ -59,8 +57,7 @@ export class ProgressDisplayComponent implements OnInit {
   }
 
   drawProgressChart() {
-    console.log('drawProgressChart');
-    if (this.plan) {
+    if (this.plan && this.plan.plan.statistics.query) {
       this.plan.asProgressChart(
           'Progress', (chart: google.GoogleCharts.AreaChart, data: any) => {});
     } else {

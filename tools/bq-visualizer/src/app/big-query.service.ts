@@ -59,7 +59,8 @@ export class BigQueryService {
   }
 
   /** Get all jobs for a project. */
-  getJobs(projectId: string, maxJobs: number): Observable<BqJob> {
+  getJobs(projectId: string, maxJobs: number, allUsers: boolean):
+      Observable<BqJob> {
     return Observable.create(async obs => {
       const token = this.googleAuthService.getAccessToken();
       let nextPageToken = '';
@@ -68,7 +69,7 @@ export class BigQueryService {
         const url = bqUrl(`/${projectId}/jobs`, {
           access_token: token,
           maxResults: 200,
-          allUsers: true,
+          allUsers: allUsers,
           projection: 'full',
           pageToken: nextPageToken,
         });
@@ -79,10 +80,14 @@ export class BigQueryService {
                 res => {
                   if (!res.jobs) {
                     console.error(`No jobs found in bq response`, res);
-                    alert(
-                        `There were no jobs found that you can view. You ` +
-                        `need the Owner permission on the project to view ` +
-                        `other's jobs`);
+                    if (allUsers) {
+                      alert(
+                          `There were no jobs found that you can view. To ` +
+                          `list jobs for all users, you ` +
+                          `need the Owner permission on the project.`);
+                    } else {
+                      alert('There were no jobs found that you can view.');
+                    }
                     throw new Error('No jobs found');
                   }
                   for (const job of res.jobs.map(el => new BqJob(el))) {
@@ -91,7 +96,6 @@ export class BigQueryService {
                   }
                   nextPageToken = res.nextPageToken;
                   totalJobs += res.jobs.length;
-                  // console.log('totalJobs: ' + totalJobs);
                   if (totalJobs >= maxJobs) {
                     obs.complete();
                     return;

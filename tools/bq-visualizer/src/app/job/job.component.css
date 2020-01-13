@@ -27,6 +27,9 @@
   overflow: auto;
   text-align: left;
 }
+mat-form-field {
+  width: 100%;
+  }
 table {
   width: 100%;
 }

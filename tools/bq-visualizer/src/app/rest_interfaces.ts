@@ -193,3 +193,9 @@ export interface BqProjectListResponse {
   projects: BqProject[];
   totalItems: number;
 }
+
+export interface GetJobsRequest {
+  project: BqProject;
+  limit: number;
+  allUsers: boolean;
+}

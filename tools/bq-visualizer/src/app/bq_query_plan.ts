@@ -31,7 +31,7 @@ export class BqQueryPlan {
   ganttData: any;
   progressChart: any;
   progressData: any;
-  isValid = false;
+  isValid = true;
 
   constructor(public readonly plan: Job, private logSvc: LogService) {
     if (!plan.hasOwnProperty('kind')) {
@@ -48,6 +48,7 @@ export class BqQueryPlan {
       this.nodes = this.plan.statistics.query.queryPlan;
     } else {
       logSvc.warn(`No query found in job ${this.plan.id}`);
+      // console.log(this.plan);
       return;
     }
     this.isValid = true;
