@@ -116,7 +116,11 @@ At the bottom a number of tabs show overall plan information:
 ## The Timing Tab
 The timing Tab displaus a Gantt style view to quickly show how long the indivudal stages take.
 
+<<<<<<< HEAD
 ![Timing](src/assets/images/Timing.png)
+=======
+![src/assets/images/Timing.png]
+>>>>>>> caf65a02f0b811ee03b692a0deda91169c27b0cd
 
 ## The Progress Tab
 Shows the progress of work over time with details of 
