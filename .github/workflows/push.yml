@@ -1,0 +1,22 @@
+name: On Push
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python 3.x
+      uses: actions/setup-python@v1
+      with:
+        python-version: '3.x' # Semantic version range syntax or exact version of a Python version.
+    # You can test your matrix by printing the current Python version
+    - name: Display Python version
+      run: python -c "import sys; print(sys.version)"
+    - name: Install dependencies.
+      run: pip install -r requirements.txt
+    - name: Pylint
+      run: find . -type f -name "*.py" | xargs pylint --rcfile=.pylintrc 
