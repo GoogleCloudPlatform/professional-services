@@ -15,6 +15,8 @@
  */
 import {ConstantPool} from '@angular/compiler/src/constant_pool';
 import * as google from 'google-charts';
+import * as _ from 'lodash';
+
 import {LogService} from './log.service';
 import {Job, QueryStage, QueryStep} from './rest_interfaces';
 
@@ -36,6 +38,7 @@ export class BqQueryPlan {
   constructor(public readonly plan: Job, private logSvc: LogService) {
     if (!plan.hasOwnProperty('kind')) {
       logSvc.warn('No plan document found in job.');
+      this.isValid = false;
       return;
     }
     if (!plan.kind.startsWith('bigquery')) {
@@ -198,6 +201,7 @@ export class BqQueryPlan {
     this.ganttData = data;
   }
 
+  /** visualize the progress data */
   asProgressChart(
       containerName: string,
       onSelectHandler:
@@ -215,9 +219,10 @@ export class BqQueryPlan {
     data.addColumn('number', 'Active Units');
     data.addColumn('number', 'Pending Units');
 
-    // get the time data
-
-    const timeline = this.plan.statistics.query.timeline;
+    // get the time data, ignore last entry as it often is an invalid data point
+    const timeline = _.slice(
+        this.plan.statistics.query.timeline, 0,
+        this.plan.statistics.query.timeline.length - 1);
     data.addRows(timeline.map(
         item =>
             [new Date(
@@ -242,10 +247,55 @@ export class BqQueryPlan {
     this.progressChart = chart;
     this.progressData = data;
   }
+  /**Visualise progress slot usage */
+  asSlotUsageChart(
+      containerName: string,
+      onSelectHandler:
+          (chart: google.GoogleCharts.LineChart, data: object) => void): void {
+    const container = document.getElementById(containerName);
+    if (!container) {
+      this.logSvc.error(`Can't find container '${containerName}'`);
+      return;
+    }
+    const data = new google.GoogleCharts.api.visualization.DataTable();
+    data.addColumn('date', 'time');
+    data.addColumn('number', 'estd Slots');
+    const chart =
+        new google.GoogleCharts.api.visualization.LineChart(container);
 
+    // calculate the slot usage
+    const left = _.slice(this.plan.statistics.query.timeline, 1);
+    const right = _.slice(
+        this.plan.statistics.query.timeline, 0,
+        this.plan.statistics.query.timeline.length - 1);
+    const pairs = _.zip(right, left);
+
+
+    data.addRows(pairs.map(
+        item =>
+            [new Date(
+                 Number(item[0].elapsedMs) +
+                 Number(this.plan.statistics.startTime)),
+             (Number(item[0].totalSlotMs) - Number(item[1].totalSlotMs)) /
+                 (Number(item[0].elapsedMs) - Number(item[1].elapsedMs))]));
+    const options = {
+      isStacked: true,
+      legend: {position: 'bottom'},
+      connectSteps: false,
+      colors: ['#4374E0', '#53A8FB', '#F1CA3A', '#E49307'],
+      title: 'Estimated Slot Usage'
+    };
+    chart.draw(data, options);
+    if (onSelectHandler) {
+      google.GoogleCharts.api.visualization.events.addListener(
+          chart, 'select', none => {
+            onSelectHandler(chart, data);
+          });
+    }
+  }
   /**
-   * Calculate the node background color, returning the one for the biggest
-   * time.
+   * Calculate the node background color, returning the one for the
+   * biggest time.
    */
   private colorForMaxTime(node: QueryStage): string {
     if (node.waitMsAvg) {

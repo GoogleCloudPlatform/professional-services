@@ -109,8 +109,8 @@ export class JobComponent implements OnDestroy {
     const regex = new RegExp('(?<project>.+):(?<location>.+)\\.(?<id>.+)');
 
     const parsed: any =
-        regex.exec(this.jobId);  // Property 'groups' does not exist on type
-                                 // 'RegExpExecArray'
+        regex.exec(this.jobId.trim());  // Property 'groups' does not exist on
+                                        // type 'RegExpExecArray'
     if (parsed) {
       this.bqService
           .getQueryPlan(
