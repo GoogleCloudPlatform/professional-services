@@ -276,8 +276,11 @@ export class BqQueryPlan {
             [new Date(
                  Number(item[0].elapsedMs) +
                  Number(this.plan.statistics.startTime)),
-             (Number(item[0].totalSlotMs) - Number(item[1].totalSlotMs)) /
-                 (Number(item[0].elapsedMs) - Number(item[1].elapsedMs))]));
+             Math.max(
+                 0,
+                 (Number(item[0].totalSlotMs) - Number(item[1].totalSlotMs)) /
+                     (Number(item[0].elapsedMs) -
+                      Number(item[1].elapsedMs)))]));
     const options = {
       isStacked: true,
       legend: {position: 'bottom'},
