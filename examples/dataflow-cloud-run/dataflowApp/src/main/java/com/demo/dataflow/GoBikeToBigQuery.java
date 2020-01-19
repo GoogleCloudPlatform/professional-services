@@ -33,7 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class GoBikeToBigQuery {
+public class GoBikeToBigQuery  {
     static final Logger LOG = LoggerFactory.getLogger(GoBikeToBigQuery.class);
 
     public static void main(String[] args) throws Exception {
@@ -114,7 +114,7 @@ public class GoBikeToBigQuery {
                     .set("end_station", "POINT(" + event.getEndStationLongitude() + " " + event.getEndStationLatitude() + ")")
                     .set("bike_id", event.getBikerId())
                     .set("user_type", event.getUserType())
-                    .set("member_birth_year", event.getMemeberBirthYear())
+                    .set("member_birth_year", event.getMemberBirthYear())
                     .set("member_gender", event.getMemberGender())
                     .set("bike_share_for_all_trip", event.getBikeShareForAllTrip());
             c.output(row);

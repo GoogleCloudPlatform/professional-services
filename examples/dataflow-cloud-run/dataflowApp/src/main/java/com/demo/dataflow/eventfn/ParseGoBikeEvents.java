@@ -27,6 +27,7 @@ import org.apache.beam.sdk.values.TupleTagList;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.csv.QuoteMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +38,7 @@ import java.util.UUID;
 public  class ParseGoBikeEvents extends DoFn<String, GoBike> {
 
     private static final Logger LOG = LoggerFactory.getLogger(ParseGoBikeEvents.class);
-    private static final CSVFormat format = CSVFormat.DEFAULT.withHeader(GoBike.getHeader());
+    private static final CSVFormat format = CSVFormat.RFC4180.withQuoteMode(QuoteMode.NON_NUMERIC).withHeader(GoBike.getHeader());
 
     public static final TupleTag<GoBike> successTag = new TupleTag<GoBike>() {};
     public static final TupleTag<FailedMessage> deadLetterTag = new TupleTag<FailedMessage>() {};
@@ -49,15 +50,17 @@ public  class ParseGoBikeEvents extends DoFn<String, GoBike> {
                         Reader input = new StringReader(processContext.element());
                         CSVParser parser = new CSVParser(input, format);
                         CSVRecord record  = parser.getRecords().get(0);
-                        if (! record.get(GoBike.getHeader()[0]).equals(GoBike.getHeader()[0]))
+                        if (! record.get(GoBike.getHeader()[0]).contains(GoBike.getHeader()[0])){
                             processContext.output(successTag, GoBike.createFromMap(record.toMap()));
+                        }
+
                     } catch (Exception exception) {
                         /**
                          * Error logs only contains the correlation Id. The message in deadLetterTag is persisted in BigQuery in this example
                          * that contains error message and the data string that was being processed when we encountered the error.
                          */
                         String corelationId = UUID.randomUUID().toString();
-                        LOG.error("{} {}", ErrorCodes.CSV_CONVERSION_ERROR);
+                        LOG.error("Error ID: {} Correlation ID: {}", ErrorCodes.CSV_CONVERSION_ERROR, corelationId);
                         processContext.output(deadLetterTag, FailedMessage.create(System.currentTimeMillis(), exception.getMessage(), processContext.element(), corelationId));
                     }
                 }

@@ -19,7 +19,6 @@ package com.demo.dataflow.model;
 import com.google.auto.value.AutoValue;
 import org.apache.beam.sdk.coders.AvroCoder;
 import org.apache.beam.sdk.coders.DefaultCoder;
-import org.apache.beam.sdk.options.ValueProvider;
 
 import java.util.Map;
 
@@ -46,24 +45,26 @@ public class GoBike {
     private int bikerId;
 
     private String userType;
-    private int memeberBirthYear;
+    private int memberBirthYear;
     private String memberGender;
 
     private boolean bikeShareForAllTrip;
 
+
     public static GoBike createFromMap(Map<String,String> data) {
         String[] header = getHeader();
-        Builder builder = new GoBike.Builder().setDurationSec(Integer.parseInt(data.get(header[0])))
+        Builder builder = new GoBike.Builder().setDurationSec(
+                Integer.parseInt(data.get(header[0])))
                 .setStartTime(data.get(header[1]))
                 .setEndTime(data.get(header[2]))
                 .setStartStationId(Integer.parseInt(data.get(header[3])))
                 .setStartStationName(data.get(header[4]))
-                .setStartStationLatitude(header[5])
-                .setStartStationLongitude(header[6])
+                .setStartStationLatitude(data.get(header[5]))
+                .setStartStationLongitude(data.get(header[6]))
                 .setEndStationId(Integer.parseInt(data.get(header[7])))
                 .setEndStationName(data.get(header[8]))
-                .setEndStationLatitude(header[9])
-                .setEndStationLongitude(header[10])
+                .setEndStationLatitude(data.get(header[9]))
+                .setEndStationLongitude(data.get(header[10]))
                 .setBikerId(Integer.parseInt(data.get(header[11])))
                 .setUserType(data.get(header[12]))
                 .setMemeberBirthYear(Integer.parseInt(data.get(header[13])))
@@ -73,8 +74,8 @@ public class GoBike {
     }
 
     private GoBike(int durationSec, String startTime, String endTime, int startStationId, String startStationName, String startStationLatitude,
-                  String startStationLongitude, Integer endStationId, String endStationName, String endStationLatitude, String endStationLongitude,
-                  int bikerId, String userType, int memeberBirthYear, String memberGender, boolean bikeShareForAllTrip) {
+                   String startStationLongitude, Integer endStationId, String endStationName, String endStationLatitude, String endStationLongitude,
+                   int bikerId, String userType, int memberBirthYear, String memberGender, boolean bikeShareForAllTrip) {
         this.durationSec = durationSec;
         this.startTime = startTime;
         this.endTime = endTime;
@@ -88,7 +89,7 @@ public class GoBike {
         this.endStationLongitude = endStationLongitude;
         this.bikerId = bikerId;
         this.userType = userType;
-        this.memeberBirthYear = memeberBirthYear;
+        this.memberBirthYear = memberBirthYear;
         this.memberGender = memberGender;
         this.bikeShareForAllTrip = bikeShareForAllTrip;
     }
@@ -199,12 +200,12 @@ public class GoBike {
         this.userType = userType;
     }
 
-    public int getMemeberBirthYear() {
-        return memeberBirthYear;
+    public int getMemberBirthYear() {
+        return memberBirthYear;
     }
 
-    public void setMemeberBirthYear(int memeberBirthYear) {
-        this.memeberBirthYear = memeberBirthYear;
+    public void setMemberBirthYear(int memberBirthYear) {
+        this.memberBirthYear = memberBirthYear;
     }
 
     public String getMemberGender() {
