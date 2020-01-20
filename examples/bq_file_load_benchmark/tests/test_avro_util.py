@@ -62,7 +62,7 @@ class TestAvroUtil(unittest.TestCase):
             'type': 'record',
             'name': 'test_schema'
         }
-        expected_avro_schema = avro.schema.parse(
+        expected_avro_schema = avro.schema.Parse(
             json.dumps(expected_schema_dict)
         )
         assert avro_translated_schema == expected_avro_schema

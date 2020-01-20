@@ -55,6 +55,6 @@ class AvroUtil(object):
             'name': self.schema_name,
             'fields': fields,
         }
-        avro_schema = avro.schema.parse(json.dumps(schema_dict))
+        avro_schema = avro.schema.Parse(json.dumps(schema_dict))
 
         return avro_schema
