@@ -41,9 +41,9 @@ To run the tests from JUnit we need to add a runner to our project. For example 
 You can now run your test by running this class. Before running the test please change the parameters in `dataflow-e2e-test.feature`. Make sure the project, and service account are present then run the test. The test creates the input bucket and temp GCS bucket.
 
 Changes required in feature file
- |  Name  | Description   |
- | ------------- |:-------------:|
- |<<PROJECT_ID>> | Project Id where you are running the dataflow application |
+|    Name   |   Description   |
+| ------------- |:-------------:|
+|<<PROJECT_ID>> | Project Id where you are running the dataflow application |
 |<<TEMP_GCS_BUCKET>> | Temporary location required by Dataflow application |
 |<<INPUT_GCS_BUCKET>>| GCS bucket where the raw .csv files are uploaded |
 
