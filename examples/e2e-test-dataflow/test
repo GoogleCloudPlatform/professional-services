@@ -1,5 +1,0 @@
-SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
-SLF4J: Defaulting to no-operation (NOP) logger implementation
-SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
-Dataflow SDK version: 2.16.0
-Submitted job: 2019-12-23_07_12_22-9917360327331968268

@@ -42,7 +42,7 @@ You can now run your test by running this class. Before running the test please 
 
 Changes required in feature file
 |    Name   |   Description   |
-| ------------- |:-------------:|
+|:-------------:|:-------------:|
 |<<PROJECT_ID>> | Project Id where you are running the dataflow application |
 |<<TEMP_GCS_BUCKET>> | Temporary location required by Dataflow application |
 |<<INPUT_GCS_BUCKET>>| GCS bucket where the raw .csv files are uploaded |
