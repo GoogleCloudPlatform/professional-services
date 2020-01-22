@@ -1,0 +1,21 @@
+{
+  "service_name": "prometheus",
+  "feature_name": "metrics",
+  "slo_name": "errors",
+  "slo_description": "Valid HTTP code for > 99.9% of HTTP requests",
+  "slo_target": 0.999,
+  "backend": {
+    "class": "Prometheus",
+    "measurement": {
+      "expression": "sum(rate(prometheus_http_requests_total{code=~\"2..\", handler=\"/metrics\"}[window])) / sum(rate(prometheus_http_requests_total{handler=\"/metrics\"}[window]))\n"
+    },
+    "method": "sli"
+  },
+  "exporters": [
+    {
+      "class": "Pubsub",
+      "project_id": "${PUBSUB_PROJECT_ID}",
+      "topic_name": "${PUBSUB_TOPIC_NAME}"
+    }
+  ]
+}
