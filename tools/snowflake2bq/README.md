@@ -17,7 +17,7 @@ CREATE STORAGE INTEGRATION gcs_int
   TYPE = EXTERNAL_STAGE
   STORAGE_PROVIDER = GCS
   ENABLED = TRUE
-  STORAGE_ALLOWED_LOCATIONS = ('gcs://from-sf/sf-data/');
+  STORAGE_ALLOWED_LOCATIONS = ('gs://from-sf/sf-data/');
 ```  
 
 
@@ -102,18 +102,18 @@ Use “bq load” to load the parquet files into BigQuery
 ## Installing Command Line Client SnowSQL
 
 On Mac,
-brew cask install snowflake-snowsql
+```brew cask install snowflake-snowsql```
 
 Snowsql is installed at 
 /Applications/SnowSQL.app/Contents/MacOS/snowsql
 
 Snowsql gets added to the PATH. Open a new shell terminal or source the ~/.bash_profile to use the updated PATH.
 
-source ~/.bash_profile
+```source ~/.bash_profile```
 
 Then snowsql can be run from the command line as 
 
-snowsql 
+```snowsql ```
 
 without providing the full path.
 
@@ -167,4 +167,3 @@ The GCP Account used by the script should have the appropriate IAM Roles for GCS
 
 For Example  
 `cat tables.list  | xargs -P 3 -L 1 ./snowflake-bq.sh`
-
