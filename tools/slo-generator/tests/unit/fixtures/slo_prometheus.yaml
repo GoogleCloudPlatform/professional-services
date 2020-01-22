@@ -5,6 +5,11 @@ slo_description: Valid HTTP code for > 99.9% of HTTP requests
 slo_target: 0.999
 backend:
   class: Prometheus
+  url: http://localhost:9090
+  # Basic auth example (NGINX):
+  # headers:
+  #   Content-Type: application/json
+  #   Authorization: Basic b2s6cGFzcW==  # username:password base64-encoded
   measurement:
     expression: >
       sum(rate(prometheus_http_requests_total{code=~"2..", handler="/metrics"}[window]))
