@@ -39,8 +39,8 @@ FLAKE8_IGNORE = E302,E203,E261
 all: clean install_test flake8 pylint tests
 
 flake8:
-	flake8 --ignore=$(FLAKE8_IGNORE) $(NAME)/
-	flake8 --ignore=$(FLAKE8_IGNORE),E402 tests/
+	flake8 --ignore=$(FLAKE8_IGNORE) $(NAME)/ --max-line-length=80
+	flake8 --ignore=$(FLAKE8_IGNORE),E402 tests/ --max-line-length=80
 
 pylint:
 	find ./$(NAME) ./tests -name \*.py | xargs pylint --rcfile .pylintrc --ignore-patterns=test_.*?py
