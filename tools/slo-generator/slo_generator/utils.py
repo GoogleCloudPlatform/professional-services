@@ -25,6 +25,7 @@ import pytz
 
 LOGGER = logging.getLogger(__name__)
 
+
 def setup_logging():
     """Setup logging for the CLI."""
     debug = os.environ.get("DEBUG", "0")
@@ -33,12 +34,12 @@ def setup_logging():
         level = logging.DEBUG
     else:
         level = logging.INFO
-    logging.basicConfig(
-        stream=sys.stdout,
-        level=level,
-        format='%(name)s - %(levelname)s - %(message)s',
-        datefmt='%m/%d/%Y %I:%M:%S')
+    logging.basicConfig(stream=sys.stdout,
+                        level=level,
+                        format='%(name)s - %(levelname)s - %(message)s',
+                        datefmt='%m/%d/%Y %I:%M:%S')
     logging.getLogger('googleapiclient').setLevel(logging.ERROR)
+
 
 def get_human_time(timestamp, timezone="Europe/Paris"):
     """Get human-readable timestamp from UNIX timestamp.

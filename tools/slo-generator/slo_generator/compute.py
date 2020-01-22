@@ -169,10 +169,9 @@ def make_measurement(slo_config, step, backend_result, timestamp):
     Returns:
         dict: Report dictionary.
     """
-    slo_full_name = "{}/{}/{}".format(
-        slo_config['service_name'],
-        slo_config['feature_name'],
-        slo_config['slo_name'])
+    slo_full_name = "{}/{}/{}".format(slo_config['service_name'],
+                                      slo_config['feature_name'],
+                                      slo_config['slo_name'])
 
     step_name = step['error_budget_policy_step_name']
     info = f"SLO: {slo_full_name :<10} | {step_name :<8}"
@@ -259,11 +258,10 @@ def make_measurement(slo_config, step, backend_result, timestamp):
     }
     LOGGER.debug(pprint.pformat(result))
     sli_percent = round(sli * 100, 6)
-    LOGGER.info(
-        f"{info} | SLO report computed. | "
-        f"SLI: {sli_percent} % | "
-        f"Target: {slo_target * 100} % | "
-        f"Burnrate: {error_budget_burn_rate :<2} | "
-        f"Target burnrate: {alerting_burn_rate_threshold} | "
-        f"Alert: {alert}")
+    LOGGER.info(f"{info} | SLO report computed. | "
+                f"SLI: {sli_percent} % | "
+                f"Target: {slo_target * 100} % | "
+                f"Burnrate: {error_budget_burn_rate :<2} | "
+                f"Target burnrate: {alerting_burn_rate_threshold} | "
+                f"Alert: {alert}")
     return result

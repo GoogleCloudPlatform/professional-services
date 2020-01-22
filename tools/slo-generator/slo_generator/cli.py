@@ -26,6 +26,7 @@ import slo_generator.utils as utils
 
 LOGGER = logging.getLogger(__name__)
 
+
 def main():
     """slo-generator CLI entrypoint."""
     utils.setup_logging()

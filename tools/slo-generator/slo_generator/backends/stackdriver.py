@@ -23,7 +23,6 @@ import pprint
 from google.cloud import monitoring_v3
 from slo_generator.backends.base import MetricBackend
 
-
 LOGGER = logging.getLogger(__name__)
 
 
@@ -35,7 +34,7 @@ class StackdriverBackend(MetricBackend):
             Monitoring client. Initialize a new client if omitted.
     """
 
-    def __init__(self, client=None, **kwargs): # pylint: disable=W0613
+    def __init__(self, client=None, **kwargs):  # pylint: disable=W0613
         self.client = client
         if client is None:
             self.client = monitoring_v3.MetricServiceClient()
