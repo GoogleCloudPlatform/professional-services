@@ -19,7 +19,6 @@ Compute utilities.
 import logging
 import time
 import pprint
-from collections import OrderedDict
 from slo_generator import utils
 
 LOGGER = logging.getLogger(__name__)
@@ -42,13 +41,13 @@ def compute(slo_config,
         timestamp (int, optional): UNIX timestamp. Defaults to now.
         client (obj, optional): Existing metrics backend client.
         do_export (bool, optional): Enable / Disable export. Default: False.
-        backend_obj (obj) (optional): Backend object (if unset, will be imported
-            dynamically from slo_config). Use when you want to try new backends
-            that are not implemented in the backends/ folder.
+        backend_obj (obj) (optional): Backend object (if unset, will be
+            imported dynamically from slo_config). Use when you want to try new
+            backends that are not implemented in the backends/ folder.
         backend_method (str) (optional): Backend method (if unset, will be
             imported dynamically from slo_config). Use when you want to try new
             backends that are not implemented in the backends/ folder.
-            This must return a tuple of (n_good_events[int], n_bad_events[int]).
+            This must return a tuple (n_good_events[int], n_bad_events[int]).
             The method must take the following arguments:
                 - timestamp (int): query timestamp.
                 - window (int): query window duration.
@@ -67,6 +66,8 @@ def compute(slo_config,
                                backend_obj=backend_obj,
                                backend_method=backend_method,
                                backend_config=backend_config):
+        if not report:
+            continue
         reports.append(report)
         if exporters is not None and do_export is True:
             export(report, exporters)
@@ -83,8 +84,8 @@ def export(data, exporters):
     Returns:
         obj: Return values from exporters output.
     """
-    LOGGER.debug("Exporters: %s" % pprint.pformat(exporters))
-    LOGGER.debug("Data: %s" % pprint.pformat(data))
+    LOGGER.debug(f'Exporters: {pprint.pformat(exporters)}')
+    LOGGER.debug(f'Data: {pprint.pformat(data)}')
     results = []
 
     # Passing one exporter as a dict will work for convenience
@@ -92,13 +93,13 @@ def export(data, exporters):
         exporters = [exporters]
 
     for config in exporters:
-        LOGGER.debug("Exporter config: %s", pprint.pformat(config))
+        LOGGER.debug(f'Exporter config: {pprint.pformat(config)}')
         exporter_class = config.get('class')
-        LOGGER.info("Exporting results to %s", exporter_class)
+        LOGGER.info(f'Exporting results to {exporter_class}')
         exporter = utils.get_exporter_cls(exporter_class)()
         ret = exporter.export(data, **config)
         results.append(ret)
-        LOGGER.debug("Exporter return: %s", pprint.pformat(ret))
+        LOGGER.debug(f'Exporter return: {pprint.pformat(ret)}')
 
 
 def make_reports(slo_config,
@@ -115,13 +116,13 @@ def make_reports(slo_config,
         error_budget_policy (dict): Error Budget policy.
         timestamp (int): UNIX timestamp.
         client (obj) (optional): Existing metrics backend client.
-        backend_obj (obj) (optional): Backend object (if unset, will be imported
-            dynamically from slo_config). Use when you want to try new backends
-            that are not implemented in the backends/ folder.
+        backend_obj (obj) (optional): Backend object (if unset, will be
+            imported dynamically from slo_config). Use when you want to try new
+            backends that are not implemented in the backends/ folder.
         backend_method (str) (optional): Backend method (if unset, will be
             imported dynamically from slo_config). Use when you want to try new
             backends that are not implemented in the backends/ folder.
-            This must return a tuple of (n_good_events[int], n_bad_events[int]).
+            This must return a tuple (n_good_events[int], n_bad_events[int]).
             The method must take the following arguments:
                 - timestamp (int): query timestamp.
                 - window (int): query window duration.
@@ -133,7 +134,7 @@ def make_reports(slo_config,
     if backend_method:
         if backend_obj:
             backend_method = getattr(backend_obj, backend_method)
-        LOGGER.info("Backend method: %s (from kwargs).", backend_method)
+        LOGGER.info(f'Backend method: {backend_method} (from kwargs).')
     else:
         backend_config = slo_config.get('backend', {})
         backend_cls = backend_config.get('class')
@@ -141,47 +142,60 @@ def make_reports(slo_config,
         backend_obj = utils.get_backend_cls(backend_cls)(client=client,
                                                          **backend_config)
         backend_method = getattr(backend_obj, method)
-        LOGGER.info("Backend method: %s (from SLO config file).",
-                    backend_cls + '.' + backend_method.__name__)
+        LOGGER.info(
+            f'Backend method: {backend_cls}.{backend_method.__name__} (from '
+            f'SLO config file).')
 
     # Loop through steps defined in error budget policy and make measurements
     for step in error_budget_policy:
-        good_event_count, bad_event_count = backend_method(
+        backend_result = backend_method(
             timestamp=timestamp,
             window=step['measurement_window_seconds'],
             **slo_config['backend'])
-        report = make_measurement(slo_config, step, good_event_count,
-                                  bad_event_count, timestamp)
-        import pprint
-        pprint.pprint(report)
+        report = make_measurement(slo_config, step, backend_result, timestamp)
         yield report
 
 
-def make_measurement(slo_config, step, good_event_count, bad_event_count,
-                     timestamp):
+def make_measurement(slo_config, step, backend_result, timestamp):
     """Measure following metrics: SLI, SLO, Error Budget, Burn Rate.
 
     Args:
         slo_config (dict): SLO configuration.
         step (dict): Step config.
-        good_event_count (int): Good events count.
-        bad_event_count (int): Bad events count.
+        backend_result (tuple or int): A tuple (good_event_count,
+            bad_event_count) or the SLI value as a float.
         timestamp (int): UNIX timestamp.
 
     Returns:
         dict: Report dictionary.
     """
-    LOGGER.info("Making SLO measurements for step '%s'",
-                step['error_budget_policy_step_name'])
-    if (good_event_count + bad_event_count) == 0:
-        error = "No valid events for {}/{}/{}/{}".format(
-            slo_config['service_name'], slo_config['feature_name'],
-            slo_config['slo_name'], step['error_budget_policy_step_name'])
-        LOGGER.error(error)
-        return
+    slo_full_name = "{}/{}/{}".format(
+        slo_config['service_name'],
+        slo_config['feature_name'],
+        slo_config['slo_name'])
 
-    LOGGER.debug("Good event count: %s" % good_event_count)
-    LOGGER.debug("Bad event count: %s" % bad_event_count)
+    step_name = step['error_budget_policy_step_name']
+    info = f"SLO: {slo_full_name :<10} | {step_name :<8}"
+
+    LOGGER.info(f"{info} | SLO report starting ...")
+
+    # For some backends we are sending the SLI value directly, for others we're
+    # sending a tuple (good_event_count, bad_event_count) and we'll compute the
+    # SLI from there
+    if not isinstance(backend_result, tuple):
+        if backend_result == 0:
+            LOGGER.error(f"{info} | Null SLI value.")
+            return None
+        good_event_count, bad_event_count = None, None
+        sli = round(backend_result, 6)
+    else:
+        good_event_count, bad_event_count = backend_result
+        if (good_event_count + bad_event_count) == 0:
+            LOGGER.error(f"{info} | {step_name} | No events found.")
+            return None
+        LOGGER.debug(f"{info} Good event count: {good_event_count}")
+        LOGGER.debug(f"{info} Bad event count: {bad_event_count}")
+        sli = round(good_event_count / (good_event_count + bad_event_count), 6)
 
     slo_target = float(slo_config['slo_target'])
     window = int(step['measurement_window_seconds'])
@@ -192,20 +206,19 @@ def make_measurement(slo_config, step, good_event_count, bad_event_count,
     timestamp_human = utils.get_human_time(timestamp)
 
     # Compute SLI and gap between SLI / SLO target.
-    sli = good_event_count / (good_event_count + bad_event_count)
     gap = sli - slo_target
 
     # Compute Error Budget (target, current value, remaining minutes, available
     # minutes).
     error_budget_target = 1 - slo_target
     error_budget_target = 1 - slo_target
-    error_budget_measurement = 1 - sli
+    error_budget_value = 1 - sli
     error_budget_remaining_minutes = window * gap / 60
-    error_minutes = window * error_budget_measurement / 60
+    error_minutes = window * error_budget_value / 60
     error_budget_minutes = window * error_budget_target / 60
 
     # Compute Error Budget Burn rate: the % of consumed error budget.
-    error_budget_burn_rate = error_budget_measurement / error_budget_target
+    error_budget_burn_rate = round(error_budget_value / error_budget_target, 1)
 
     # Alert boolean on burn rate excessive speed.
     alert = error_budget_burn_rate > alerting_burn_rate_threshold
@@ -220,7 +233,7 @@ def make_measurement(slo_config, step, good_event_count, bad_event_count,
             'Missed for this measurement window, but not enough to alert')
 
     # Build out result
-    result = OrderedDict({
+    result = {
         'service_name': slo_config['service_name'],
         'feature_name': slo_config['feature_name'],
         'slo_name': slo_config['slo_name'],
@@ -239,10 +252,18 @@ def make_measurement(slo_config, step, good_event_count, bad_event_count,
         'good_events_count': good_event_count,
         'sli_measurement': sli,
         'gap': gap,
-        'error_budget_measurement': error_budget_measurement,
+        'error_budget_measurement': error_budget_value,
         'error_budget_burn_rate': error_budget_burn_rate,
         'alerting_burn_rate_threshold': alerting_burn_rate_threshold,
         'alert': alert
-    })
+    }
     LOGGER.debug(pprint.pformat(result))
+    sli_percent = round(sli * 100, 6)
+    LOGGER.info(
+        f"{info} | SLO report computed. | "
+        f"SLI: {sli_percent} % | "
+        f"Target: {slo_target * 100} % | "
+        f"Burnrate: {error_budget_burn_rate :<2} | "
+        f"Target burnrate: {alerting_burn_rate_threshold} | "
+        f"Alert: {alert}")
     return result

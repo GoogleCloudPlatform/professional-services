@@ -121,7 +121,8 @@ class TestCompute(unittest.TestCase):
             load_json=True,
             **FIXTURES_CONFIG)
         self.error_budget_policy = self.load_fixture(
-            filename=f'{cwd}/fixtures/error_budget_policy.json', load_json=True)
+            filename=f'{cwd}/fixtures/error_budget_policy.json',
+            load_json=True)
         self.data = self.load_fixture(
             filename=f'{cwd}/fixtures/slo_report.json', load_json=True)
         self.timestamp = time.time()
@@ -159,7 +160,8 @@ class TestCompute(unittest.TestCase):
         pprint.pprint(results)
 
     @mock.patch(
-        "google.cloud.pubsub_v1.gapic.publisher_client.PublisherClient.publish")
+        "google.cloud.pubsub_v1.gapic.publisher_client.PublisherClient.publish"
+    )
     @mock.patch("google.cloud.pubsub_v1.publisher.futures.Future.result")
     def test_export_pubsub(self, mock_pubsub, mock_pubsub_res):
         with mock_pubsub, mock_pubsub_res, \
@@ -206,8 +208,9 @@ class TestCompute(unittest.TestCase):
         make_reports(self.slo_config, self.error_budget_policy, self.timestamp)
 
     def test_make_measurement(self):
+        backend_result = (self.good_event_count, self.bad_event_count)
         make_measurement(self.slo_config, self.error_budget_policy[0],
-                         self.good_event_count, self.bad_event_count,
+                         backend_result,
                          self.timestamp)
 
 

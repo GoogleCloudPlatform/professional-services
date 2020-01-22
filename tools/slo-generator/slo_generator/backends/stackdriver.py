@@ -15,13 +15,14 @@
 `stackdriver.py`
 Stackdriver Monitoring backend implementation.
 """
-from slo_generator.backends.base import MetricBackend
-from google.cloud import monitoring_v3
-
 from collections import OrderedDict
 import logging
 import math
 import pprint
+
+from google.cloud import monitoring_v3
+from slo_generator.backends.base import MetricBackend
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -34,7 +35,7 @@ class StackdriverBackend(MetricBackend):
             Monitoring client. Initialize a new client if omitted.
     """
 
-    def __init__(self, client=None, **kwargs):
+    def __init__(self, client=None, **kwargs): # pylint: disable=W0613
         self.client = client
         if client is None:
             self.client = monitoring_v3.MetricServiceClient()
@@ -51,8 +52,8 @@ class StackdriverBackend(MetricBackend):
         Returns:
             list: List of timeseries objects.
         """
-        measurement_window = self._get_measurement_window(timestamp, window)
-        aggregation = self._get_aggregation(window)
+        measurement_window = StackdriverBackend._get_window(timestamp, window)
+        aggregation = StackdriverBackend._get_aggregation(window)
         project = self.client.project_path(project_id)
         timeseries = self.client.list_time_series(
             project, filter, measurement_window,
@@ -61,7 +62,8 @@ class StackdriverBackend(MetricBackend):
         LOGGER.debug(pprint.pformat(timeseries))
         return timeseries
 
-    def count(self, timeseries):
+    @staticmethod
+    def count(timeseries):
         """Count events in time serie assuming it was aligned with ALIGN_SUM
         and reduced with REDUCE_SUM (default).
 
@@ -73,8 +75,8 @@ class StackdriverBackend(MetricBackend):
         """
         try:
             return timeseries[0].points[0].value.int64_value
-        except Exception as e:
-            logging.debug(e)
+        except (IndexError, AttributeError) as exception:
+            logging.debug(exception)
             return 0  # no events in timeseries
 
     def good_bad_ratio(self, timestamp, window, **kwargs):
@@ -113,8 +115,8 @@ class StackdriverBackend(MetricBackend):
         bad_ts = list(bad_ts)
 
         # Count number of events
-        good_event_count = self.count(good_ts)
-        bad_event_count = self.count(bad_ts)
+        good_event_count = StackdriverBackend.count(good_ts)
+        bad_event_count = StackdriverBackend.count(bad_ts)
 
         return (good_event_count, bad_event_count)
 
@@ -144,16 +146,16 @@ class StackdriverBackend(MetricBackend):
         good_below_threshold = measurement.get('good_below_threshold', True)
 
         # Query 'valid' events
-        ts = self.query(project_id=project_id,
-                        timestamp=timestamp,
-                        window=window,
-                        filter=filter_valid)
-        ts = list(ts)
+        series = self.query(project_id=project_id,
+                            timestamp=timestamp,
+                            window=window,
+                            filter=filter_valid)
+        series = list(series)
 
-        if not ts:
+        if not series:
             return (0, 0)  # no timeseries
 
-        distribution_value = ts[0].points[0].value.distribution_value
+        distribution_value = series[0].points[0].value.distribution_value
         bucket_options = distribution_value.bucket_options
         bucket_counts = distribution_value.bucket_counts
         valid_events_count = distribution_value.count
@@ -190,7 +192,8 @@ class StackdriverBackend(MetricBackend):
 
         return (good_event_count, bad_event_count)
 
-    def _get_measurement_window(self, timestamp, window):
+    @staticmethod
+    def _get_window(timestamp, window):
         """Helper for measurement window.
 
         Args:
@@ -209,10 +212,8 @@ class StackdriverBackend(MetricBackend):
         LOGGER.debug(pprint.pformat(measurement_window))
         return measurement_window
 
-    def _get_aggregation(self,
-                         window,
-                         aligner='ALIGN_SUM',
-                         reducer='REDUCE_SUM'):
+    @staticmethod
+    def _get_aggregation(window, aligner='ALIGN_SUM', reducer='REDUCE_SUM'):
         """Helper for aggregation object.
 
         Default aggregation is `ALIGN_SUM`.

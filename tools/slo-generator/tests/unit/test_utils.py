@@ -26,8 +26,10 @@ class TestUtils(unittest.TestCase):
         human_time = "2019-08-06T13:53:55.000000Z"
         timestamp_2 = 1565095633.9568892
         human_time_2 = "2019-08-06T14:47:13.956889Z"
-        self.assertEqual(get_human_time(timestamp), human_time)
-        self.assertEqual(get_human_time(timestamp_2), human_time_2)
+        self.assertEqual(
+            get_human_time(timestamp, timezone='Europe/Paris'), human_time)
+        self.assertEqual(
+            get_human_time(timestamp_2, timezone='Europe/Paris'), human_time_2)
 
     def test_get_backend_cls(self):
         res1 = get_backend_cls("Stackdriver")

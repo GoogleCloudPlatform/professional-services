@@ -17,35 +17,30 @@ Command-Line interface of `slo-generator`.
 """
 
 import argparse
-import yaml
 import logging
 import sys
+import yaml
 
 from slo_generator.compute import compute
 import slo_generator.utils as utils
 
-logging.basicConfig(
-    stream=sys.stdout,
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    datefmt='%m/%d/%Y %I:%M:%S')
-logging.getLogger('googleapiclient').setLevel(logging.ERROR)
 LOGGER = logging.getLogger(__name__)
 
-
 def main():
+    """slo-generator CLI entrypoint."""
+    utils.setup_logging()
     args = parse_args(sys.argv[1:])
     slo_config_path = utils.normalize(args.slo_config)
     error_budget_path = utils.normalize(args.error_budget_policy)
     export = args.export
-    LOGGER.info("Loading SLO config from %s" % slo_config_path)
-    LOGGER.info("Loading Error Budget config from %s" % error_budget_path)
+    LOGGER.info(f"Loading SLO config from {slo_config_path}")
+    LOGGER.info(f"Loading Error Budget config from {error_budget_path}")
 
-    with open(slo_config_path, 'r') as f:
-        slo_config = yaml.safe_load(f)
+    with open(slo_config_path, 'r') as config:
+        slo_config = yaml.safe_load(config)
 
-    with open(error_budget_path, 'r') as f:
-        error_budget_policy = yaml.safe_load(f)
+    with open(error_budget_path, 'r') as config:
+        error_budget_policy = yaml.safe_load(config)
 
     compute(slo_config, error_budget_policy, do_export=export)
 
