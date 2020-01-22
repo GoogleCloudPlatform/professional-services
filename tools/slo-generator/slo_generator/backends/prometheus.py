@@ -39,6 +39,8 @@ class PrometheusBackend(MetricBackend):
                 os.environ['PROMETHEUS_URL'] = url
             if headers:
                 os.environ['PROMETHEUS_HEAD'] = json.dumps(headers)
+            LOGGER.debug(f'Prometheus URL: {url}')
+            LOGGER.debug(f'Prometheus headers: {headers}')
             self.client = Prometheus()
 
     def sli(self, **kwargs):
