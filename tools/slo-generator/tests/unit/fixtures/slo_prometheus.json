@@ -6,6 +6,7 @@
   "slo_target": 0.999,
   "backend": {
     "class": "Prometheus",
+    "url": "http://localhost:9090",
     "measurement": {
       "expression": "sum(rate(prometheus_http_requests_total{code=~\"2..\", handler=\"/metrics\"}[window])) / sum(rate(prometheus_http_requests_total{handler=\"/metrics\"}[window]))\n"
     },
