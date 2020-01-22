@@ -19,9 +19,9 @@ Burn Rate Threshold, and notification settings. An example is available [here](.
 #### Metrics backends
 `slo-generator` currently supports the following **metrics backends**:
 - **Stackdriver Monitoring**
+- **Prometheus**
 
 Support for more backends is planned for the future (feel free to send a PR !):
-- Prometheus
 - Grafana
 - Stackdriver Logging
 - Datadog
