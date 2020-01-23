@@ -61,7 +61,7 @@ class DataGenerator(object):
     """
     def __init__(self, bq_schema_filename=None, input_bq_table=None, 
                  hist_bq_table=None, p_null=0.1,
-                 n_keys=sys.maxint, min_date='2000-01-01',
+                 n_keys=sys.maxsize, min_date='2000-01-01',
                  max_date=datetime.date.today().strftime('%Y-%m-%d'),
                  only_pos=True, max_int=10**11, max_float=float(10**11),
                  float_precision=2, write_disp='WRITE_APPEND', key_skew='None',
@@ -611,7 +611,7 @@ def parse_data_generator_args(argv):
 
     parser.add_argument('--n_keys', dest='n_keys', required=False,
                         help='Cardinality of key columns.',
-                        default=sys.maxint)
+                        default=sys.maxsize)
 
     parser.add_argument('--key_skew_distribution', dest='key_skew',
                         required=False,

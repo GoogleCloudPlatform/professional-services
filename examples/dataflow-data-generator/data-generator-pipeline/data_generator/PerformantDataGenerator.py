@@ -62,7 +62,7 @@ class DataGenerator(object):
     """
     def __init__(self, bq_schema_filename=None, input_bq_table=None, 
                  hist_bq_table=None, p_null=0.1,
-                 n_keys=sys.maxint, min_date='2000-01-01',
+                 n_keys=sys.maxsize, min_date='2000-01-01',
                  max_date=datetime.date.today().strftime('%Y-%m-%d'),
                  only_pos=True, max_int=10**11, max_float=float(10**11),
                  float_precision=2, write_disp='WRITE_APPEND', key_skew='None',
@@ -370,7 +370,7 @@ class FakeRowGen(beam.DoFn):
                     ''.join(string.ascii_letters[i] for i in char_idxs))
 
         elif field[u'type'] == 'TIMESTAMP':
-            pct = random_number / float(sys.maxint)
+            pct = random_number / float(sys.maxsize)
             SECONDS_IN_A_DAY = 24 * 60 * 60
             start = self.data_gen.min_date
             max_delta = self.data_gen.max_date - self.data_gen.min_date
@@ -382,7 +382,7 @@ class FakeRowGen(beam.DoFn):
                 record[fieldname].strftime('%Y-%m-%dT%H:%M:%S'))
 
         elif field[u'type'] == 'DATETIME':
-            pct = random_number / float(sys.maxint)
+            pct = random_number / float(sys.maxsize)
             SECONDS_IN_A_DAY = 24 * 60 * 60
             start = self.data_gen.min_date
             max_delta = self.data_gen.max_date - self.data_gen.min_date
@@ -396,7 +396,7 @@ class FakeRowGen(beam.DoFn):
             # This implements the minimum/maximum date functionality
             # and avoids regenerating a random date if already obeys min/max
             # date.
-            pct = random_number / float(sys.maxint)
+            pct = random_number / float(sys.maxsize)
             start = self.data_gen.min_date
             max_delta = self.data_gen.max_date - self.data_gen.min_date
             delta = int(pct * max_delta.days)
@@ -406,7 +406,7 @@ class FakeRowGen(beam.DoFn):
 
         elif field[u'type'] == 'INTEGER':
             max_size = self.data_gen.max_int
-            record[fieldname] = int(max_size * (random_number / sys.maxint))
+            record[fieldname] = int(max_size * (random_number / sys.maxsize))
 
             if '_max_' in field['name'].lower():
                 max_size = int(fieldname[fieldname.find("_max_") + 5:
@@ -425,7 +425,7 @@ class FakeRowGen(beam.DoFn):
             if '_max_' in field['name'].lower():
                 max_size = float(fieldname[fieldname.find("_max_") + 5:
                                          len(fieldname)])
-            record[fieldname] = max_size * random_number / float(sys.maxint)
+            record[fieldname] = max_size * random_number / float(sys.maxsize)
             
             record[fieldname] = round(float(record[fieldname]),
                                       self.data_gen.float_precision)
@@ -532,7 +532,7 @@ class FakeRowGen(beam.DoFn):
         # sanity_check.
         # We pregenerate this way for efficiency. Sanity check will not just peform
         # deterministic actions.
-        random_numbers = np.random.randint(0, sys.maxint, size=len(fschema))
+        random_numbers = np.random.randint(0, sys.maxsize, size=len(fschema))
 
         # Generate a fake record.
         col_idx = 0
@@ -612,7 +612,7 @@ def parse_data_generator_args(argv):
 
     parser.add_argument('--n_keys', dest='n_keys', required=False,
                         help='Cardinality of key columns.',
-                        default=sys.maxint)
+                        default=sys.maxsize)
 
     parser.add_argument('--key_skew_distribution', dest='key_skew',
                         required=False,
