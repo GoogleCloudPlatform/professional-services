@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import collections
+from collections import Counter
 import json
 import logging
 
@@ -182,7 +182,14 @@ class TableUtil(object):
 
         schema = self.table.schema
         field_types = [field.field_type for field in schema]
-        field_type_counts = collections.Counter(field_types)
+        field_types.sort()
+        field_type_counts = {}
+        for field_type in field_types:
+            if field_type in field_type_counts:
+                field_type_counts[field_type] += 1
+            else:
+                field_type_counts[field_type] = 1
+
         column_types = ''
         counter = 1
         for field_type in field_type_counts:
