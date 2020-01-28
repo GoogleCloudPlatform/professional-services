@@ -75,7 +75,8 @@ class StackdriverBackend(MetricBackend):
         try:
             return timeseries[0].points[0].value.int64_value
         except (IndexError, AttributeError) as exception:
-            logging.debug(exception)
+            LOGGER.warning("Couldn't find any values in timeseries response")
+            LOGGER.debug(exception)
             return 0  # no events in timeseries
 
     def good_bad_ratio(self, timestamp, window, **kwargs):
@@ -116,6 +117,9 @@ class StackdriverBackend(MetricBackend):
         # Count number of events
         good_event_count = StackdriverBackend.count(good_ts)
         bad_event_count = StackdriverBackend.count(bad_ts)
+
+        LOGGER.debug(f'Good events: {good_event_count} | '
+                     f'Bad events: {bad_event_count}')
 
         return (good_event_count, bad_event_count)
 

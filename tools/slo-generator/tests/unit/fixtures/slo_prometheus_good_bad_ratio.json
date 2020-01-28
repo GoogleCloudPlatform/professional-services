@@ -8,15 +8,15 @@
     "class": "Prometheus",
     "url": "http://localhost:9090",
     "measurement": {
-      "expression": "sum(rate(prometheus_http_requests_total{code=~\"2..\", handler=\"/metrics\"}[window])) / sum(rate(prometheus_http_requests_total{handler=\"/metrics\"}[window]))\n"
+      "filter_good": "prometheus_http_requests_total{code=~\"2..\", handler=\"/metrics\"}[window]",
+      "filter_valid": "prometheus_http_requests_total{handler=\"/metrics\"}[window]"
     },
-    "method": "sli"
+    "method": "good_bad_ratio"
   },
   "exporters": [
     {
-      "class": "Pubsub",
-      "project_id": "${PUBSUB_PROJECT_ID}",
-      "topic_name": "${PUBSUB_TOPIC_NAME}"
+      "class": "Prometheus",
+      "url": "localhost:9090"
     }
   ]
 }

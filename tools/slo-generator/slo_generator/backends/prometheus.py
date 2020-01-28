@@ -43,7 +43,7 @@ class PrometheusBackend(MetricBackend):
             LOGGER.debug(f'Prometheus headers: {headers}')
             self.client = Prometheus()
 
-    def sli(self, **kwargs):
+    def query_sli(self, **kwargs):
         """Query SLI value from a given PromQL expression.
 
         Args:
@@ -70,8 +70,73 @@ class PrometheusBackend(MetricBackend):
         LOGGER.debug(f"SLI value: {sli_value}")
         return sli_value
 
+    def good_bad_ratio(self, **kwargs):
+        """Compute good bad ratio from two metric filters.
+
+        Args:
+            kwargs (dict):
+                window (str): Query window.
+                measurement (dict): Measurement config
+                    filter_good (str): PromQL query for good events.
+                    filter_bad (str, optional): PromQL query for bad events.
+                    filter_valid (str, optional): PromQL query for valid events.
+
+        Note:
+            At least one of `filter_bad` or `filter_valid` is required.
+
+        Returns:
+            tuple: A tuple of (good_event_count, bad_event_count).
+        """
+        window = kwargs['window']
+        filter_good = kwargs['measurement']['filter_good']
+        filter_bad = kwargs['measurement'].get('filter_bad')
+        filter_valid = kwargs['measurement'].get('filter_valid')
+
+        # Replace window by its value in the error budget policy step
+        expr_good = filter_good.replace('[window]', f'[{window}s]')
+        res_good = self.query(expr_good)
+        good_event_count = PrometheusBackend.count(res_good)
+
+        if filter_bad:
+            expr_bad = filter_bad.replace('[window]', f'[{window}s]')
+            res_bad = self.query(expr_bad)
+            bad_event_count = PrometheusBackend.count(res_bad)
+        elif filter_valid:
+            expr_valid = filter_valid.replace('[window]', f'[{window}s]')
+            res_valid = self.query(expr_valid)
+            bad_event_count = \
+                PrometheusBackend.count(res_valid) - good_event_count
+        else:
+            raise Exception(
+                "Oneof `filter_bad` or `filter_valid` is needed in your SLO",
+                "configuration file")
+
+        LOGGER.debug(f'Good events: {good_event_count} | '
+                     f'Bad events: {bad_event_count}')
+
+        return (good_event_count, bad_event_count)
+
     def query(self, filter):
         timeseries = self.client.query(metric=filter)
         timeseries = json.loads(timeseries)
         LOGGER.debug(pprint.pformat(timeseries))
         return timeseries
+
+    @staticmethod
+    def count(timeseries):
+        """Count event in Prometheus timeseries.
+
+        Args:
+            timeseries (dict): Prometheus query response.
+
+        Returns:
+            int: Event count.
+        """
+        # TODO: Note that this function could be replaced by using the
+        # `count_over_time` function that Prometheus provides.
+        try:
+            return len(timeseries['data']['result'][0]['values'])
+        except (IndexError, KeyError) as exception:
+            LOGGER.warning("Couldn't find any values in timeseries response")
+            LOGGER.debug(exception)
+            return 0  # no events in timeseries

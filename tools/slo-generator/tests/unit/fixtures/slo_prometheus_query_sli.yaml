@@ -15,7 +15,7 @@ backend:
       sum(rate(prometheus_http_requests_total{code=~"2..", handler="/metrics"}[window]))
       /
       sum(rate(prometheus_http_requests_total{handler="/metrics"}[window]))
-  method: sli
+  method: query_sli
 exporters:
   - class: Pubsub
     project_id: "${PUBSUB_PROJECT_ID}"
