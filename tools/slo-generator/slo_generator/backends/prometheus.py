@@ -132,8 +132,8 @@ class PrometheusBackend(MetricBackend):
         Returns:
             int: Event count.
         """
-        # TODO: Note that this function could be replaced by using the
-        # `count_over_time` function that Prometheus provides.
+        # Note: this function could be replaced by using the `count_over_time`
+        # function that Prometheus provides.
         try:
             return len(timeseries['data']['result'][0]['values'])
         except (IndexError, KeyError) as exception:
