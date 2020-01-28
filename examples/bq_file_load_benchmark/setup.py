@@ -1,6 +1,6 @@
 import setuptools
 setuptools.setup(
-    name='benchmark_tools',
+    name='load_benchmark_tools',
     packages=setuptools.find_packages(),
     install_requires=[
         'apache-beam[gcp]>=2.10.0',

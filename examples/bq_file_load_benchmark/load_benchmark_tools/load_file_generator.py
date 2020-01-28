@@ -27,11 +27,11 @@ from google.cloud import bigquery
 from google.api_core import exceptions
 from google.cloud import storage
 
-from benchmark_tools import avro_util
-from benchmark_tools import bucket_util
-from benchmark_tools import file_constants
-from benchmark_tools import parquet_util
-from benchmark_tools import table_util
+from generic_benchmark_tools import avro_util
+from generic_benchmark_tools import bucket_util
+from generic_benchmark_tools import file_constants
+from generic_benchmark_tools import parquet_util
+from generic_benchmark_tools import table_util
 
 MAX_COMPOSABLE_BLOBS = 32
 
@@ -67,7 +67,7 @@ class FileGenerator(object):
             saved in.
         bucket(google.cloud.storage.bucket.Bucket): Bucket that the generated
             files will be saved in.
-        bucket_util(benchmark_tools.bucket_util.BucketUtil): Helper class for
+        bucket_util(load_benchmark_tools.bucket_util.BucketUtil): Helper class for
             interacting with the bucket that the generated files will be
             saved in.
         dataflow_staging_location(str): GCS staging path for dataflow jobs.
@@ -170,7 +170,7 @@ class FileGenerator(object):
             blob_name(str): Name of the file (or blob) to be generated. Starts
                 with 'fileType=' and end with the file extension.
                 Ex: fileType=csv/compression=none/numColumns=10/columnTypes=100_STRING/numFiles=10000/tableSize=2147MB/file3876.csv  # pylint: disable=line-too-long
-            staging_table_util(benchmark_tools.table_util.TableUtil): Util
+            staging_table_util(load_benchmark_tools.table_util.TableUtil): Util
                 object for interacting with the staging table that the parquet
                 file will be generated from.
             destination_prefix(str): String containing the 'gs://' prefix, the
@@ -238,7 +238,7 @@ class FileGenerator(object):
             blob_name(str): Name of the file (or blob) to be generated. Starts
                 with 'fileType=' and end with the file extension.
                 Ex: fileType=csv/compression=none/numColumns=10/columnTypes=100_STRING/numFiles=10000/tableSize=2147MB/file3876.csv # pylint: disable=line-too-long
-            staging_table_util(benchmark_tools.table_util.TableUtil): Util
+            staging_table_util(load_benchmark_tools.table_util.TableUtil): Util
                 object for interacting with the staging table that the avro
                 file will be generated from.
             destination_prefix(str): String containing the 'gs://' prefix, the
@@ -400,7 +400,7 @@ class FileGenerator(object):
             extension(str): String to be used as the extension for the file.
                 Options include 'avro', 'csv', 'json', 'deflate', 'gzip', and
                 'snappy'.
-            staging_table_util(benchmark_tools.table_util.TableUtil): Helper
+            staging_table_util(load_benchmark_tools.table_util.TableUtil): Helper
                 class for interacting with the staging table that the file is to
                 be generated from.
         """

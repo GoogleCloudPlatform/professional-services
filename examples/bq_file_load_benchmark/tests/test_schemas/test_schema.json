@@ -3,12 +3,14 @@
         {
           "type": "STRING",
           "name": "string1",
-          "mode": "REQUIRED"
+          "mode": "REQUIRED",
+          "description": "description1"
         },
         {
           "type": "NUMERIC",
           "name": "numeric1",
-          "mode": "REQUIRED"
+          "mode": "REQUIRED",
+          "description": "description2"
         }
     ]
 }

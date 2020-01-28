@@ -1,5 +1,5 @@
 """
-file_parameters.py holds a dict called FILE_PARAMETERS that holds the
+load_file_parameters.py holds a dict called FILE_PARAMETERS that holds the
 paramters used to create combinations of files. If different parameters are
 to be used to create combinations, the FILE_PARAMETERS dict should be
 modified.
