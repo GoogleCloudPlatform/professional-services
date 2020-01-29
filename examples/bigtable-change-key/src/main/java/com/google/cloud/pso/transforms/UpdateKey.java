@@ -15,14 +15,13 @@ package com.google.cloud.pso.transforms;
 
 import com.google.bigtable.v2.*;
 import com.google.protobuf.ByteString;
+import java.util.ArrayList;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.transforms.SerializableBiFunction;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
-
-import java.util.ArrayList;
 
 public class UpdateKey
     extends PTransform<PCollection<Row>, PCollection<KV<ByteString, Iterable<Mutation>>>> {

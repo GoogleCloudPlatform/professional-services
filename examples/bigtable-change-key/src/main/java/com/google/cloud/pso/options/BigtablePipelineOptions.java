@@ -11,7 +11,6 @@
  * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.google.cloud.pso.options;
 
 import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
@@ -19,15 +18,18 @@ import org.apache.beam.sdk.options.Description;
 
 /** These are the command line options that are specific to this pipeline. */
 public interface BigtablePipelineOptions extends DataflowPipelineOptions {
-    @Description("BigTable instance")
-    String getBigtableInstance();
-    void setBigtableInstance(String value);
+  @Description("BigTable instance")
+  String getBigtableInstance();
 
-    @Description("Input table")
-    String getInputTable();
-    void setInputTable(String value);
+  void setBigtableInstance(String value);
 
-    @Description("Output table -- will be overwritten")
-    String getOutputTable();
-    void setOutputTable(String value);
+  @Description("Input table")
+  String getInputTable();
+
+  void setInputTable(String value);
+
+  @Description("Output table -- will be overwritten")
+  String getOutputTable();
+
+  void setOutputTable(String value);
 }
