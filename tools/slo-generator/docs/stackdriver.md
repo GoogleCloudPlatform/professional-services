@@ -20,7 +20,7 @@ This method is often used for availability SLOs, but can be used for other purpo
 
 #### Example SLIs
 
-**Ratio of Pub/Sub acknowledged messages over all Pub/Sub messages**
+**=> Ratio of Pub/Sub acknowledged messages over all Pub/Sub messages**
 
 ***"We want to compute the proportion of messages that are acknowledged from our Pub/Sub subscriptions."***
 
@@ -49,7 +49,7 @@ backend:
 ```
 &nbsp;
 
-**Ratio of App Engine application requests with valid HTTP status codes**
+**=> Ratio of App Engine application requests with valid HTTP status codes**
 
 ***"We want to compute the proportion of HTTP requests that return a valid HTTP code."***
 
@@ -77,7 +77,7 @@ backend:
 ```
 &nbsp;
 
-**Ratio of custom application requests with valid HTTP status codes**
+**=> Ratio of custom application requests with valid HTTP status codes**
 
 ***"We have a custom application sending performance logs to Stackdriver and we want to compute the proportion of HTTP requests that return a valid HTTP status code"***
 
@@ -122,7 +122,7 @@ In `Stackdriver Monitoring`, there are three different ways to specify bucket bo
 
 #### Example SLIs
 
-**Proportion of App Engine HTTP requests under a threshold latency**
+**=> Proportion of App Engine HTTP requests under a threshold latency**
 
 ***"We want to compute the proportion of HTTP requests that complete under 724 ms."***
 
