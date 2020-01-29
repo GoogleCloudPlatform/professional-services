@@ -46,11 +46,11 @@ The `slo-generator` requires two configuration files to run, the **SLO configura
 The **SLO configuration** (JSON or YAML) is composed of the following fields:
 
 * **SLO metadata**:
- * `slo_name`: Name of this SLO
- * `slo_description`: Description of this SLO
- * `slo_target`: SLO target (between 0 and 1)
- * `service_name`: Name of the monitored service
- * `feature_name`: Name of the monitored subsystem
+  * `slo_name`: Name of this SLO
+  * `slo_description`: Description of this SLO
+  * `slo_target`: SLO target (between 0 and 1)
+  * `service_name`: Name of the monitored service
+  * `feature_name`: Name of the monitored subsystem
 
 
 * **SLI configuration**:
