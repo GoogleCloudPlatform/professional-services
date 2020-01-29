@@ -6,7 +6,9 @@ The BigQuery exporter will export SLO reports to a BigQuery table. This allows t
 
 ### Example usage
 
-> "We want to query the last year of SLO reports to see how often we meet our targets. This way we can know if we need to adjust some targets to be more realistic and save our SREs some time." -- <cite>SRE Lead</cite>
+> We want to query the last year of SLO reports to see how often we meet our targets. This way we can know if we need to adjust some targets to be more realistic and save our SREs some time.
+>
+> -- <cite>SRE Lead</cite>
 
 The following configuration will send the SLO report to the BigQuery table.
 

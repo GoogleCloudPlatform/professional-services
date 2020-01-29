@@ -22,8 +22,10 @@ This method is often used for availability SLOs, but can be used for other purpo
 
 **&rightarrow; Ratio of requests to Prometheus API with valid HTTP status codes**
 
-> "We want to compute the proportion of HTTP requests that return a
-> valid HTTP code." -- <cite>SRE Engineer</cite>
+> We want to compute the proportion of HTTP requests that return a
+> valid HTTP code.
+>
+> -- <cite>SRE Engineer</cite>
 
 Example config:
 
@@ -53,8 +55,10 @@ Consequently, this method makes it more flexible to input any PromQL SLI computa
 
 **&rightarrow; Ratio of requests to Prometheus API with valid HTTP status codes**
 
-> "We want to compute the proportion of HTTP requests that return a
-> valid HTTP code." -- <cite>SRE Engineer</cite>
+> We want to compute the proportion of HTTP requests that return a
+> valid HTTP code.
+>
+> -- <cite>SRE Engineer</cite>
 
 Example config:
 

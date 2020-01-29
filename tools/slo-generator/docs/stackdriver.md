@@ -22,7 +22,9 @@ This method is often used for availability SLOs, but can be used for other purpo
 
 **&rightarrow; Ratio of Pub/Sub acknowledged messages over all Pub/Sub messages**
 
-> "We want to compute the proportion of messages that are acknowledged from our Pub/Sub subscriptions." -- <cite>SRE Engineer</cite>
+> We want to compute the proportion of messages that are acknowledged from our Pub/Sub subscriptions.
+>
+> -- <cite>SRE Engineer</cite>
 
 `Stackdriver Monitoring` has two service-level metrics we can use to measure this:
 
@@ -51,7 +53,9 @@ backend:
 
 **&rightarrow; Ratio of App Engine application requests with valid HTTP status codes**
 
-> "We want to compute the proportion of HTTP requests that return a valid HTTP code." -- <cite>SRE Engineer</cite>
+> We want to compute the proportion of HTTP requests that return a valid HTTP code.
+>
+> -- <cite>SRE Engineer</cite>
 
 `Stackdriver Monitoring` has a service-level metric we can use to measure this: `appengine.googleapis.com/http/server/response_count`. This metric has a label `response_code` that contains the HTTP response code.
 
@@ -79,7 +83,9 @@ backend:
 
 **&rightarrow; Ratio of custom application requests with valid HTTP status codes**
 
-> "We have a custom application sending performance logs to Stackdriver and we want to compute the proportion of HTTP requests that return a valid HTTP status code" -- <cite>SRE Engineer</cite>
+> We have a custom application sending performance logs to Stackdriver and we want to compute the proportion of HTTP requests that return a valid HTTP status code
+>
+> -- <cite>SRE Engineer</cite>
 
 A common way to achieve this is to create a `Stackdriver Monitoring` **log-based metric** from your application logs using a regex to extract the HTTP code as one of the metric labels.
 
@@ -124,7 +130,9 @@ In `Stackdriver Monitoring`, there are three different ways to specify bucket bo
 
 **&rightarrow; Proportion of App Engine HTTP requests under a threshold latency**
 
-> "We want to compute the proportion of HTTP requests that complete under 724 ms." -- <cite>SRE Engineer</cite>
+> We want to compute the proportion of HTTP requests that complete under 724 ms.
+>
+> -- <cite>SRE Engineer</cite>
 
 ```yaml
 backend:
@@ -153,7 +161,9 @@ The `Stackdriver` exporter allows to export the error budget burn rate metric as
 
 #### Example
 
-> "We want to track the error budgets for our service in real-time" -- <cite>SRE Engineer</cite>
+> We want to track the error budgets for our service in real-time
+>
+> -- <cite>SRE Engineer</cite>
 
 The following configuration will create the custom metric `error_budget_burn_rate` in `Stackdriver Monitoring`:
 
@@ -173,7 +183,9 @@ Alerting on high burn rates on hand-picked SLOs can help resolve this problem.
 
 #### Example
 
-> "We want to send alerts when our error budget burn rate is higher than the targets defined in our error budget policy file" -- <cite>SRE Engineer</cite>
+> We want to send alerts when our error budget burn rate is higher than the targets defined in our error budget policy file
+>
+> -- <cite>SRE Engineer</cite>
 
 To alert on high error budget burn rates, we can define a `Stackdriver Monitoring` alert that we will filter out on the corresponding error budget step.
 
