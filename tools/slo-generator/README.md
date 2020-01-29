@@ -63,8 +63,8 @@ The **SLO configuration** (JSON or YAML) is composed of the following fields:
   * `exporters`: A list of exporters to export results to. Specific documentation is available for each supported exporters:
       * [Cloud Pub/Sub](docs/pubsub.md) to stream SLO reports.
       * [BigQuery](docs/bigquery.md) to export SLO reports to BigQuery for historical analysis and DataStudio reporting.
-      * [Stackdriver Monitoring](docs/stackdriver.md#how_to_use_stackdriver_exporter) to export the `error_budget_burn_rate` metric to Stackdriver Monitoring.
-      * [Prometheus](docs/prometheus.md#how_to_use_prometheus_exporter) to export the `error_budget_burn_rate` metric to Prometheus.
+      * [Stackdriver Monitoring](docs/stackdriver.md#how-to-use-stackdriver-exporter) to export the `error_budget_burn_rate` metric to Stackdriver Monitoring.
+      * [Prometheus](docs/prometheus.md#how-to-use-prometheus-exporter) to export the `error_budget_burn_rate` metric to Prometheus.
 
 ==> An example SLO configuration file is available [here](tests/unit/fixtures/slo_linear.yaml).
 
