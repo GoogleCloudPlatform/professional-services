@@ -20,7 +20,7 @@ This method is often used for availability SLOs, but can be used for other purpo
 
 #### Example SLIs
 
-**=> Ratio of requests to Prometheus API with valid HTTP status codes**
+**&rightarrow; Ratio of requests to Prometheus API with valid HTTP status codes**
 
 ***"We want to compute the proportion of HTTP requests that return a valid HTTP code."***
 
@@ -48,7 +48,7 @@ Consequently, this method makes it more flexible to input any PromQL SLI computa
 
 #### Example SLIs
 
-**=> Ratio of requests to Prometheus API with valid HTTP status codes**
+**&rightarrow; Ratio of requests to Prometheus API with valid HTTP status codes**
 
 ***"We want to compute the proportion of HTTP requests that return a valid HTTP code."***
 
