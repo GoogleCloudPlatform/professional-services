@@ -107,9 +107,7 @@ class PrometheusBackend(MetricBackend):
             bad_event_count = \
                 PrometheusBackend.count(res_valid) - good_event_count
         else:
-            raise Exception(
-                "Oneof `filter_bad` or `filter_valid` is needed in your SLO",
-                "configuration file")
+            raise Exception("`filter_bad` or `filter_valid` is required.")
 
         LOGGER.debug(f'Good events: {good_event_count} | '
                      f'Bad events: {bad_event_count}')

@@ -98,25 +98,35 @@ class StackdriverBackend(MetricBackend):
         project_id = kwargs['project_id']
         measurement = kwargs['measurement']
         filter_good = measurement['filter_good']
-        filter_bad = measurement['filter_bad']
+        filter_bad = measurement.get('filter_bad')
+        filter_valid = measurement.get('filter_valid')
 
         # Query 'good events' timeseries
         good_ts = self.query(project_id=project_id,
                              timestamp=timestamp,
                              window=window,
                              filter=filter_good)
+        good_ts = list(good_ts)
+        good_event_count = StackdriverBackend.count(good_ts)
 
         # Query 'bad events' timeseries
-        bad_ts = self.query(project_id=project_id,
-                            timestamp=timestamp,
-                            window=window,
-                            filter=filter_bad)
-        good_ts = list(good_ts)
-        bad_ts = list(bad_ts)
-
-        # Count number of events
-        good_event_count = StackdriverBackend.count(good_ts)
-        bad_event_count = StackdriverBackend.count(bad_ts)
+        if filter_bad:
+            bad_ts = self.query(project_id=project_id,
+                                timestamp=timestamp,
+                                window=window,
+                                filter=filter_bad)
+            bad_ts = list(bad_ts)
+            bad_event_count = StackdriverBackend.count(bad_ts)
+        elif filter_valid:
+            valid_ts = self.query(project_id=project_id,
+                                  timestamp=timestamp,
+                                  window=window,
+                                  filter=filter_valid)
+            valid_ts = list(valid_ts)
+            bad_event_count = \
+                StackdriverBackend.count(valid_ts) - good_event_count
+        else:
+            raise Exception("Oneof `filter_bad` or `filter_valid` is required.")
 
         LOGGER.debug(f'Good events: {good_event_count} | '
                      f'Bad events: {bad_event_count}')
