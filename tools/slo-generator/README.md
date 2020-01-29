@@ -1,7 +1,6 @@
 # SLO Generator
 
-`slo-generator` is a tool to compute **Service Level Objectives** ([SLOs](https://landing.google.com/sre/sre-book/chapters/service-level-objectives/)), **Error Budgets** and **Burn Rates**, using policies written in JSON or YAML format, and export the computation results to available
-[exporters](#exporters).
+`slo-generator` is a tool to compute **Service Level Objectives** ([SLOs](https://landing.google.com/sre/sre-book/chapters/service-level-objectives/)), **Error Budgets** and **Burn Rates**, using policies written in JSON or YAML format, and export the SLO computation results to available exporters.
 
 ## Description
 `slo-generator` will query metrics backend and compute the following metrics:
