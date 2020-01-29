@@ -46,22 +46,22 @@ The `slo-generator` requires two configuration files to run, the **SLO configura
 The **SLO configuration** (JSON or YAML) is composed of the following fields:
 
 * **SLO metadata**:
-  * `slo_name`: Name of this SLO
-  * `slo_description`: Description of this SLO
-  * `slo_target`: SLO target (between 0 and 1)
-  * `service_name`: Name of the monitored service
-  * `feature_name`: Name of the monitored subsystem
+  * `slo_name`: Name of this SLO.
+  * `slo_description`: Description of this SLO.
+  * `slo_target`: SLO target (between 0 and 1).
+  * `service_name`: Name of the monitored service.
+  * `feature_name`: Name of the monitored subsystem.
 
 
 * **SLI configuration**:
   * `backend`: Specific documentation and examples are available for each supported backends:
-    * [Stackdriver Monitoring]((docs/stackdriver.md)
-    * [Prometheus]((docs/prometheus.md)
+    * [Stackdriver Monitoring](docs/stackdriver.md)
+    * [Prometheus](docs/prometheus.md)
 
 
 - **Exporter configuration**:
   * `exporters`: A list of exporters to export results to. Specific documentation is available for each supported exporters:
-      * [Cloud Pub/Sub](docs/pubsub.md) to stream SLO reports
+      * [Cloud Pub/Sub](docs/pubsub.md) to stream SLO reports.
       * [BigQuery](docs/bigquery.md) to export SLO reports to BigQuery for historical analysis and DataStudio reporting.
       * [Stackdriver Monitoring](docs/stackdriver.md#how_to_use_stackdriver_exporter) to export the `error_budget_burn_rate` metric to Stackdriver Monitoring.
       * [Prometheus](docs/prometheus.md#how_to_use_prometheus_exporter) to export the `error_budget_burn_rate` metric to Prometheus.
