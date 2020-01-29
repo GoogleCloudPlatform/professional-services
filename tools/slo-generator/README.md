@@ -8,7 +8,7 @@
 
 * **Service Level Objective** defined as `SLO (%) = GOOD_EVENTS / VALID_EVENTS`
 * **Error Budget** defined as `ERROR_BUDGET = 100 - SLO (%)`
-* **Burn Rate** defined as `BURN_RATE = ERROR_BUDGET / ERROR_BUDGET_TARGET `
+* **Burn Rate** defined as `BURN_RATE = ERROR_BUDGET / ERROR_BUDGET_TARGET`
 
 ## Local usage
 
