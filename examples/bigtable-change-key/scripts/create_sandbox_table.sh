@@ -41,8 +41,6 @@ cbt createtable $TABLE_NAME
 cbt createfamily $TABLE_NAME id
 cbt createfamily $TABLE_NAME loc
 
-#{"ride_id":"8fa1905e-422c-49f6-8ea3-23c579504d83","point_idx":1003,"latitude":40.737970000000004,"longitude":-73.93686000000001,"timestamp":"2020-01-29T06:57:06.3391-05:00","meter_reading":22.22619,"meter_increment":0.02215971,"ride_status":"enroute","passenger_count":2}
-
 # Populate table with dummy data (3 records)
 cbt set $TABLE_NAME e57c5e6a-609f-4371-86db-158304c2c1de#189 id:ride_id=e57c5e6a-609f-4371-86db-158304c2c1de
 cbt set $TABLE_NAME e57c5e6a-609f-4371-86db-158304c2c1de#189 id:point_idx=189
