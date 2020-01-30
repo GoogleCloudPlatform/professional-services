@@ -15,15 +15,58 @@
 `utils.py`
 Utility functions.
 """
-
 from datetime import datetime
 import importlib
 import logging
 import os
+import re
 import sys
+
 import pytz
+import yaml
 
 LOGGER = logging.getLogger(__name__)
+
+
+def parse_config(path):
+    """Load a yaml configuration file and resolve environment variables in it.
+
+    Args:
+        path (str): the path to the yaml file.
+
+    Returns:
+        dict: Parsed YAML dictionary.
+    """
+    # pattern for global vars: look for ${word}
+    pattern = re.compile(r'.*?\${(\w+)}.*?')
+
+    def replace_env_vars(content):
+        """Replace environment variables from content.
+
+        Args:
+            content (str): String to parse.
+
+        Returns:
+            str: the parsed string with the env var replaced.
+        """
+        match = pattern.findall(content)
+        if match:
+            full_value = content
+            for var in match:
+                try:
+                    full_value = full_value.replace(f'${{{var}}}',
+                                                    os.environ[var])
+                except KeyError as exception:
+                    LOGGER.error(
+                        f'Environment variable "{var}" should be set.')
+                    raise exception
+            content = full_value
+        return content
+
+    with open(path) as config:
+        content = config.read()
+        content = replace_env_vars(content)
+        return yaml.safe_load(content)
 
 
 def setup_logging():

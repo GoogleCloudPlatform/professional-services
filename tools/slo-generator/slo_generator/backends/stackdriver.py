@@ -17,7 +17,6 @@ Stackdriver Monitoring backend implementation.
 """
 from collections import OrderedDict
 import logging
-import math
 import pprint
 
 from google.cloud import monitoring_v3
@@ -33,51 +32,10 @@ class StackdriverBackend(MetricBackend):
         obj:`monitoring_v3.MetricServiceClient` (optional): A Stackdriver
             Monitoring client. Initialize a new client if omitted.
     """
-
     def __init__(self, client=None, **kwargs):  # pylint: disable=W0613
         self.client = client
         if client is None:
             self.client = monitoring_v3.MetricServiceClient()
-
-    def query(self, project_id, timestamp, window, filter):
-        """Query timeseries from Stackdriver Monitoring.
-
-        Args:
-            project_id (str): GCP project id.
-            timestamp (int): Current timestamp.
-            window (int): Window size (in seconds).
-            filter (str): Query filter.
-
-        Returns:
-            list: List of timeseries objects.
-        """
-        measurement_window = StackdriverBackend._get_window(timestamp, window)
-        aggregation = StackdriverBackend._get_aggregation(window)
-        project = self.client.project_path(project_id)
-        timeseries = self.client.list_time_series(
-            project, filter, measurement_window,
-            monitoring_v3.enums.ListTimeSeriesRequest.TimeSeriesView.FULL,
-            aggregation)
-        LOGGER.debug(pprint.pformat(timeseries))
-        return timeseries
-
-    @staticmethod
-    def count(timeseries):
-        """Count events in time serie assuming it was aligned with ALIGN_SUM
-        and reduced with REDUCE_SUM (default).
-
-        Args:
-            :obj:`monitoring_v3.TimeSeries`: Timeseries object.
-
-        Returns:
-            int: Event count.
-        """
-        try:
-            return timeseries[0].points[0].value.int64_value
-        except (IndexError, AttributeError) as exception:
-            LOGGER.warning("Couldn't find any values in timeseries response")
-            LOGGER.debug(exception)
-            return 0  # no events in timeseries
 
     def good_bad_ratio(self, timestamp, window, **kwargs):
         """Query two timeseries, one containing 'good' events, one containing
@@ -126,7 +84,8 @@ class StackdriverBackend(MetricBackend):
             bad_event_count = \
                 StackdriverBackend.count(valid_ts) - good_event_count
         else:
-            raise Exception("Oneof `filter_bad` or `filter_valid` is required.")
+            raise Exception(
+                "Oneof `filter_bad` or `filter_valid` is required.")
 
         LOGGER.debug(f'Good events: {good_event_count} | '
                      f'Bad events: {bad_event_count}')
@@ -169,21 +128,21 @@ class StackdriverBackend(MetricBackend):
             return (0, 0)  # no timeseries
 
         distribution_value = series[0].points[0].value.distribution_value
-        bucket_options = distribution_value.bucket_options
+        # bucket_options = distribution_value.bucket_options
         bucket_counts = distribution_value.bucket_counts
         valid_events_count = distribution_value.count
-        growth_factor = bucket_options.exponential_buckets.growth_factor
-        scale = bucket_options.exponential_buckets.scale
+        # growth_factor = bucket_options.exponential_buckets.growth_factor
+        # scale = bucket_options.exponential_buckets.scale
 
         # Explicit the exponential distribution result
         count_sum = 0
         distribution = OrderedDict()
         for i, bucket_count in enumerate(bucket_counts):
             count_sum += bucket_count
-            upper_bound = scale * math.pow(growth_factor, i)
+            # upper_bound = scale * math.pow(growth_factor, i)
             distribution[i] = {
-                'upper_bound': upper_bound,
-                'bucket_count': bucket_count,
+                # 'upper_bound': upper_bound,
+                # 'bucket_count': bucket_count,
                 'count_sum': count_sum
             }
         LOGGER.debug(pprint.pformat(distribution))
@@ -204,6 +163,46 @@ class StackdriverBackend(MetricBackend):
             bad_event_count = lower_events_count
 
         return (good_event_count, bad_event_count)
+
+    def query(self, project_id, timestamp, window, filter):
+        """Query timeseries from Stackdriver Monitoring.
+
+        Args:
+            project_id (str): GCP project id.
+            timestamp (int): Current timestamp.
+            window (int): Window size (in seconds).
+            filter (str): Query filter.
+
+        Returns:
+            list: List of timeseries objects.
+        """
+        measurement_window = StackdriverBackend._get_window(timestamp, window)
+        aggregation = StackdriverBackend._get_aggregation(window)
+        project = self.client.project_path(project_id)
+        timeseries = self.client.list_time_series(
+            project, filter, measurement_window,
+            monitoring_v3.enums.ListTimeSeriesRequest.TimeSeriesView.FULL,
+            aggregation)
+        LOGGER.debug(pprint.pformat(timeseries))
+        return timeseries
+
+    @staticmethod
+    def count(timeseries):
+        """Count events in time serie assuming it was aligned with ALIGN_SUM
+        and reduced with REDUCE_SUM (default).
+
+        Args:
+            :obj:`monitoring_v3.TimeSeries`: Timeseries object.
+
+        Returns:
+            int: Event count.
+        """
+        try:
+            return timeseries[0].points[0].value.int64_value
+        except (IndexError, AttributeError) as exception:
+            LOGGER.warning("Couldn't find any values in timeseries response")
+            LOGGER.debug(exception)
+            return 0  # no events in timeseries
 
     @staticmethod
     def _get_window(timestamp, window):

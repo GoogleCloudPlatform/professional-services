@@ -29,7 +29,6 @@ LOGGER = logging.getLogger(__name__)
 
 class PrometheusBackend(MetricBackend):
     """Backend for querying metrics from Prometheus."""
-
     def __init__(self, **kwargs):
         self.client = kwargs.pop('client')
         if not self.client:
@@ -115,17 +114,25 @@ class PrometheusBackend(MetricBackend):
         return (good_event_count, bad_event_count)
 
     def query(self, filter):
-        timeseries = self.client.query(metric=filter)
-        timeseries = json.loads(timeseries)
-        LOGGER.debug(pprint.pformat(timeseries))
-        return timeseries
-
-    @staticmethod
-    def count(timeseries):
-        """Count event in Prometheus timeseries.
+        """Query Prometheus server.
 
         Args:
-            timeseries (dict): Prometheus query response.
+            filter (str): Query filter.
+
+        Returns:
+            dict: Response.
+        """
+        response = self.client.query(metric=filter)
+        response = json.loads(response)
+        LOGGER.debug(pprint.pformat(response))
+        return response
+
+    @staticmethod
+    def count(response):
+        """Count events in Prometheus response.
+
+        Args:
+            response (dict): Prometheus query response.
 
         Returns:
             int: Event count.
@@ -133,7 +140,7 @@ class PrometheusBackend(MetricBackend):
         # Note: this function could be replaced by using the `count_over_time`
         # function that Prometheus provides.
         try:
-            return len(timeseries['data']['result'][0]['values'])
+            return len(response['data']['result'][0]['values'])
         except (IndexError, KeyError) as exception:
             LOGGER.warning("Couldn't find any values in timeseries response")
             LOGGER.debug(exception)

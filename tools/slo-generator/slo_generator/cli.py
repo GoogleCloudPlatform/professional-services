@@ -17,9 +17,10 @@ Command-Line interface of `slo-generator`.
 """
 
 import argparse
+import glob
 import logging
+import os
 import sys
-import yaml
 
 from slo_generator.compute import compute
 import slo_generator.utils as utils
@@ -31,19 +32,33 @@ def main():
     """slo-generator CLI entrypoint."""
     utils.setup_logging()
     args = parse_args(sys.argv[1:])
-    slo_config_path = utils.normalize(args.slo_config)
-    error_budget_path = utils.normalize(args.error_budget_policy)
     export = args.export
-    LOGGER.info(f"Loading SLO config from {slo_config_path}")
-    LOGGER.info(f"Loading Error Budget config from {error_budget_path}")
 
-    with open(slo_config_path, 'r') as config:
-        slo_config = yaml.safe_load(config)
+    # Load error budget policy
+    error_budget_path = utils.normalize(args.error_budget_policy)
+    LOGGER.debug(f"Loading Error Budget config from {error_budget_path}")
 
-    with open(error_budget_path, 'r') as config:
-        error_budget_policy = yaml.safe_load(config)
+    error_budget_policy = utils.parse_config(error_budget_path)
 
-    compute(slo_config, error_budget_policy, do_export=export)
+    # Parse SLO folder for configs
+    slo_config = args.slo_config
+    if os.path.isfile(slo_config):
+        slo_config_paths = [args.slo_config]
+    else:
+        slo_config_folder = utils.normalize(slo_config)
+        slo_config_paths = glob.glob(f'{slo_config_folder}/slo_*.yaml')
+
+    # Abort if configs are not found
+    if not slo_config_paths:
+        LOGGER.error(
+            f'No SLO configs found in SLO folder {slo_config_folder}.')
+
+    # Load SLO configs and compute SLO reports
+    for cfg in slo_config_paths:
+        slo_config_path = utils.normalize(cfg)
+        LOGGER.debug(f'Loading SLO config from {slo_config_path}')
+        slo_config = utils.parse_config(slo_config_path)
+        compute(slo_config, error_budget_policy, do_export=export)
 
 
 def parse_args(args):
@@ -57,16 +72,21 @@ def parse_args(args):
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('--slo-config',
+                        '-f',
                         type=str,
                         required=False,
-                        default='slo.json',
-                        help='JSON configuration file')
+                        help='SLO configuration file (JSON / YAML)')
     parser.add_argument('--error-budget-policy',
+                        '-b',
                         type=str,
                         required=False,
-                        default='error_budget_policy.json',
-                        help='JSON configuration file')
-    parser.add_argument('--export', type=bool, required=False, default=False)
+                        default='error_budget_policy.yaml',
+                        help='Error budget policy file (JSON / YAML)')
+    parser.add_argument('--export',
+                        '-e',
+                        type=bool,
+                        required=False,
+                        default=False)
     return parser.parse_args(args)
 
 

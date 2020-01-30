@@ -1,0 +1,25 @@
+---
+service_name:    elk
+feature_name:    app
+slo_description: Test ElasticSearch query
+slo_name:        latency64ms
+slo_target:      1
+backend:
+  class:         Elasticsearch
+  method:        good_bad_ratio
+  project_id:    ${STACKDRIVER_HOST_PROJECT}
+  measurement:
+    index:       test_data
+    age_field:   last_updated
+    query_good:  {}
+    query_bad:
+      must:
+        term:
+          name:  JAgOZE8
+exporters:
+- class:         Pubsub
+  project_id:    ${PUBSUB_PROJECT_ID}
+  topic_name:    ${PUBSUB_TOPIC_NAME}
+
+- class:         Stackdriver
+  project_id:    ${PUBSUB_PROJECT_ID}

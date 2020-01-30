@@ -28,11 +28,11 @@ pip3 install slo-generator
 **Run the `slo-generator`**
 
 ```
-slo-generator --slo-config=<SLO_CONFIG> --error-budget-policy=<ERROR_BUDGET_POLICY>
+slo-generator -f <SLO_CONFIG_PATH> -b <ERROR_BUDGET_POLICY>
 ```
-  * `<SLO_CONFIG>` is the [SLO config](#slo_configuration) JSON or YAML file.
+  * `<SLO_CONFIG_PATH>` is the [SLO config](#slo_configuration) file or folder.
 
-  * `<ERROR_BUDGET_POLICY>` is the [Error Budget Policy](#error_budget_policy) JSON or YAML file.
+  * `<ERROR_BUDGET_POLICY>` is the [Error Budget Policy](#error_budget_policy) file.
 
 Use `slo-generator --help` to list all available arguments.
 
@@ -165,7 +165,7 @@ To add a new backend, one must:
     url: datadog.mycompany.com
     measurement:
       filter_good: avg:system.disk.free{*}.rollup(avg, {window})
-      filter_valid: avg:system.disk.userd{*}.rollup(avg, {window})
+      filter_valid: avg:system.disk.used{*}.rollup(avg, {window})
   ```
 
 * Run a test with the SLO generator:

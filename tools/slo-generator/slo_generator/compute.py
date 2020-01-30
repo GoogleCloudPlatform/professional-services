@@ -131,20 +131,21 @@ def make_reports(slo_config,
     Yields:
         list: List of SLO measurement results.
     """
+    slo_full_name = get_full_slo_name(slo_config)
     if backend_method:
         if backend_obj:
             backend_method = getattr(backend_obj, backend_method)
-        LOGGER.info(f'Backend method: {backend_method} (from kwargs).')
+        LOGGER.info(
+            f'{slo_full_name} | Backend: {backend_method} (from kwargs).')
     else:
         backend_config = slo_config.get('backend', {})
-        backend_cls = backend_config.get('class')
+        cls = backend_config.get('class')
         method = backend_config.get('method')
-        backend_obj = utils.get_backend_cls(backend_cls)(client=client,
-                                                         **backend_config)
-        backend_method = getattr(backend_obj, method)
-        LOGGER.info(
-            f'Backend method: {backend_cls}.{backend_method.__name__} (from '
-            f'SLO config file).')
+        instance = utils.get_backend_cls(cls)(client=client, **backend_config)
+        backend_method = getattr(instance, method)
+        LOGGER.info(f'{slo_full_name :<25} | '
+                    f'Using backend {cls}.{backend_method.__name__} (from '
+                    f'SLO config file).')
 
     # Loop through steps defined in error budget policy and make measurements
     for step in error_budget_policy:
@@ -169,14 +170,11 @@ def make_measurement(slo_config, step, backend_result, timestamp):
     Returns:
         dict: Report dictionary.
     """
-    slo_full_name = "{}/{}/{}".format(slo_config['service_name'],
-                                      slo_config['feature_name'],
-                                      slo_config['slo_name'])
-
+    slo_full_name = get_full_slo_name(slo_config)
     step_name = step['error_budget_policy_step_name']
-    info = f"SLO: {slo_full_name :<10} | {step_name :<8}"
+    info = f"{slo_full_name :<25} | {step_name :<8}"
 
-    LOGGER.info(f"{info} | SLO report starting ...")
+    LOGGER.debug(f"{info} | SLO report starting ...")
 
     # For some backends we are sending the SLI value directly, for others we're
     # sending a tuple (good_event_count, bad_event_count) and we'll compute the
@@ -217,7 +215,11 @@ def make_measurement(slo_config, step, backend_result, timestamp):
     error_budget_minutes = window * error_budget_target / 60
 
     # Compute Error Budget Burn rate: the % of consumed error budget.
-    error_budget_burn_rate = round(error_budget_value / error_budget_target, 1)
+    if error_budget_target == 0:
+        error_budget_burn_rate = 0
+    else:
+        error_budget_burn_rate = round(
+            error_budget_value / error_budget_target, 1)
 
     # Alert boolean on burn rate excessive speed.
     alert = error_budget_burn_rate > alerting_burn_rate_threshold
@@ -258,10 +260,24 @@ def make_measurement(slo_config, step, backend_result, timestamp):
     }
     LOGGER.debug(pprint.pformat(result))
     sli_percent = round(sli * 100, 6)
-    LOGGER.info(f"{info} | SLO report computed. | "
+    LOGGER.info(f"{info} | "
                 f"SLI: {sli_percent} % | "
                 f"Target: {slo_target * 100} % | "
                 f"Burnrate: {error_budget_burn_rate :<2} | "
                 f"Target burnrate: {alerting_burn_rate_threshold} | "
                 f"Alert: {alert}")
     return result
+
+
+def get_full_slo_name(slo_config):
+    """Compile full SLO name from SLO configuration.
+
+    Args:
+        slo_config (dict): SLO configuration.
+
+    Returns:
+        str: Full SLO name.
+    """
+    return "{}/{}/{}".format(slo_config['service_name'],
+                             slo_config['feature_name'],
+                             slo_config['slo_name'])

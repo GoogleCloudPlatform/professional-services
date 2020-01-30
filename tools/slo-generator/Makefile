@@ -36,7 +36,7 @@ FLAKE8_IGNORE = E302,E203,E261
 
 ########################################################
 
-all: clean install_test flake8 pylint tests
+all: clean install_test tests
 
 flake8:
 	flake8 --ignore=$(FLAKE8_IGNORE) $(NAME)/ --max-line-length=80
@@ -75,7 +75,7 @@ install: clean
 install_test:
 	$(PIP) install flake8 mock coverage nose pylint
 
-tests: unittest coverage_report
+tests: flake8 pylint unittest coverage_report
 
 unittest: clean
 	nosetests $(NOSE_OPTS) tests/unit/*
