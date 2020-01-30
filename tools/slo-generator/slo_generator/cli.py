@@ -50,8 +50,7 @@ def main():
 
     # Abort if configs are not found
     if not slo_config_paths:
-        LOGGER.error(
-            f'No SLO configs found in SLO folder {slo_config_folder}.')
+        LOGGER.error(f'No SLO configs found in SLO folder {slo_config_folder}.')
 
     # Load SLO configs and compute SLO reports
     for cfg in slo_config_paths:

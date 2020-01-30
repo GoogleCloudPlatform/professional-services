@@ -57,8 +57,7 @@ def parse_config(path):
                     full_value = full_value.replace(f'${{{var}}}',
                                                     os.environ[var])
                 except KeyError as exception:
-                    LOGGER.error(
-                        f'Environment variable "{var}" should be set.')
+                    LOGGER.error(f'Environment variable "{var}" should be set.')
                     raise exception
             content = full_value
         return content
