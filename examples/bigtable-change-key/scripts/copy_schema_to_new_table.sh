@@ -13,7 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
  
 usage() {
   echo "Usage $0 INPUT_TABLE_NAME OUTPUT_TABLE_NAME"
