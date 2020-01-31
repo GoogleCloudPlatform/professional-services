@@ -47,7 +47,7 @@ export DEBUG=1
 
 The `slo-generator` requires two configuration files to run, the **SLO configuration** file and the **Error budget policy** file.
 
-**SLO configuration**
+#### SLO configuration
 
 The **SLO configuration** (JSON or YAML) is composed of the following fields:
 
@@ -77,7 +77,7 @@ The **SLO configuration** (JSON or YAML) is composed of the following fields:
 
 ==> An example SLO configuration file is available [here](samples/slo_sd_gae_app_availability.yaml).
 
-**Error Budget policy**
+#### Error Budget policy
 
 The **Error Budget policy** (JSON or YAML) is a list of multiple error budgets, each one composed of the following fields:
 
