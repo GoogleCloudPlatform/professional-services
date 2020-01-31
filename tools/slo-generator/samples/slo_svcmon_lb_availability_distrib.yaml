@@ -1,0 +1,18 @@
+---
+service_name:     lb
+feature_name:     request
+slo_description:  Availability of HTTP Load Balancer
+slo_name:         availability
+slo_target:       0.98
+backend:
+  class:          Ssm
+  method:         distribution_cut
+  project_id:     ${STACKDRIVER_HOST_PROJECT}
+  measurement:
+    filter_valid: >
+      metric.type="loadbalancing.googleapis.com/https/request_count"
+      resource.type="l7_lb_rule"
+      metric.label."response_code_class"="200"
+    service_name: gae:${STACKDRIVER_METRIC_PROJECT}_default
+    range_min:    0
+    range_max:    500

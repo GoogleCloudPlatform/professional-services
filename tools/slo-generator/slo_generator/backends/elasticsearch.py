@@ -27,34 +27,30 @@ LOGGER = logging.getLogger(__name__)
 
 class ElasticsearchBackend(MetricBackend):
     """Backend for querying metrics from ElasticSearch."""
-
     def __init__(self, **kwargs):
         self.client = kwargs.get('client')
         if self.client is None:
             self.client = Elasticsearch(**kwargs)
 
-    def good_bad_ratio(self, **kwargs):
+    def good_bad_ratio(self, **slo_config):
         """Query two timeseries, one containing 'good' events, one containing
         'bad' events.
 
         Args:
             timestamp (int): UNIX timestamp.
             window (int): Window size (in seconds).
-            kwargs (dict): Extra arguments needed by this computation method.
-                project_id (str): GCP project id to fetch metrics from.
-                measurement (dict): Measurement config.
-                    filter_good (str): Query filter for 'good' events.
-                    filter_bad (str): Query filter for 'bad' events.
+            slo_config (dict): SLO configuration.
 
         Returns:
             tuple: A tuple (good_event_count, bad_event_count)
         """
-        window = kwargs['window']
-        index = kwargs['measurement']['index']
-        date = kwargs['measurement'].get('date_field', 'timestamp')
-        query_good = kwargs['measurement']['query_good']
-        query_bad = kwargs['measurement'].get('query_bad')
-        query_valid = kwargs['measurement'].get('query_valid')
+        conf = slo_config['backend']
+        window = slo_config['window']
+        index = conf['measurement']['index']
+        date = conf['measurement'].get('date_field', 'timestamp')
+        query_good = conf['measurement']['query_good']
+        query_bad = conf['measurement'].get('query_bad')
+        query_valid = conf['measurement'].get('query_valid')
 
         # Build ELK request bodies
         good = ElasticsearchBackend._build_body(query_good, window, date)

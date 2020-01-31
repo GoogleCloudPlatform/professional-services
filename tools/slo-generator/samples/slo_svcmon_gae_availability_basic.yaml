@@ -1,0 +1,10 @@
+---
+service_name:    gae:${STACKDRIVER_METRIC_PROJECT}_default
+feature_name:    default
+slo_description: Availability of App Engine app
+slo_name:        availability
+slo_target:      0.98
+backend:
+  class:         Ssm
+  method:        basic
+  project_id:    ${STACKDRIVER_HOST_PROJECT}

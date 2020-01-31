@@ -29,7 +29,6 @@ LOGGER = logging.getLogger(__name__)
 
 class PrometheusBackend(MetricBackend):
     """Backend for querying metrics from Prometheus."""
-
     def __init__(self, **kwargs):
         self.client = kwargs.pop('client')
         if not self.client:
@@ -43,21 +42,18 @@ class PrometheusBackend(MetricBackend):
             LOGGER.debug(f'Prometheus headers: {headers}')
             self.client = Prometheus()
 
-    def query_sli(self, **kwargs):
+    def query_sli(self, **slo_config):
         """Query SLI value from a given PromQL expression.
 
         Args:
-            kwargs (dict):
-                timestamp (int): Timestamp to query.
-                window (int): Window to query (in seconds).
-                measurement (dict):
-                    expression (str): PromQL expression.
+            slo_config (dict): SLO configuration.
 
         Returns:
             float: SLI value.
         """
-        window = kwargs['window']
-        measurement = kwargs['measurement']
+        conf = slo_config['backend']
+        window = conf['window']
+        measurement = conf['measurement']
         expr = measurement['expression']
         expression = expr.replace("[window]", f"[{window}s]")
         data = self.query(expression)
@@ -70,16 +66,11 @@ class PrometheusBackend(MetricBackend):
         LOGGER.debug(f"SLI value: {sli_value}")
         return sli_value
 
-    def good_bad_ratio(self, **kwargs):
+    def good_bad_ratio(self, **slo_config):
         """Compute good bad ratio from two metric filters.
 
         Args:
-            kwargs (dict):
-                window (str): Query window.
-                measurement (dict): Measurement config
-                    filter_good (str): PromQL query for good events.
-                    filter_bad (str, optional): PromQL query for bad events.
-                    filter_valid (str, optional): PromQL query for valid events.
+            slo_config (dict): SLO configuration.
 
         Note:
             At least one of `filter_bad` or `filter_valid` is required.
@@ -87,10 +78,11 @@ class PrometheusBackend(MetricBackend):
         Returns:
             tuple: A tuple of (good_event_count, bad_event_count).
         """
-        window = kwargs['window']
-        filter_good = kwargs['measurement']['filter_good']
-        filter_bad = kwargs['measurement'].get('filter_bad')
-        filter_valid = kwargs['measurement'].get('filter_valid')
+        conf = slo_config['backend']
+        window = slo_config['window']
+        filter_good = conf['measurement']['filter_good']
+        filter_bad = conf['measurement'].get('filter_bad')
+        filter_valid = conf['measurement'].get('filter_valid')
 
         # Replace window by its value in the error budget policy step
         expr_good = filter_good.replace('[window]', f'[{window}s]')

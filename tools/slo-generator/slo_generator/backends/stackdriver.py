@@ -32,13 +32,12 @@ class StackdriverBackend(MetricBackend):
         obj:`monitoring_v3.MetricServiceClient` (optional): A Stackdriver
             Monitoring client. Initialize a new client if omitted.
     """
-
     def __init__(self, client=None, **kwargs):  # pylint: disable=W0613
         self.client = client
         if client is None:
             self.client = monitoring_v3.MetricServiceClient()
 
-    def good_bad_ratio(self, timestamp, window, **kwargs):
+    def good_bad_ratio(self, timestamp, window, **slo_config):
         """Query two timeseries, one containing 'good' events, one containing
         'bad' events.
 
@@ -54,8 +53,9 @@ class StackdriverBackend(MetricBackend):
         Returns:
             tuple: A tuple (good_event_count, bad_event_count)
         """
-        project_id = kwargs['project_id']
-        measurement = kwargs['measurement']
+        conf = slo_config['backend']
+        project_id = conf['project_id']
+        measurement = conf['measurement']
         filter_good = measurement['filter_good']
         filter_bad = measurement.get('filter_bad')
         filter_valid = measurement.get('filter_valid')
@@ -85,34 +85,28 @@ class StackdriverBackend(MetricBackend):
             bad_event_count = \
                 StackdriverBackend.count(valid_ts) - good_event_count
         else:
-            raise Exception("Oneof `filter_bad` or `filter_valid` is required.")
+            raise Exception(
+                "Oneof `filter_bad` or `filter_valid` is required.")
 
         LOGGER.debug(f'Good events: {good_event_count} | '
                      f'Bad events: {bad_event_count}')
 
         return (good_event_count, bad_event_count)
 
-    def exponential_distribution_cut(self, timestamp, window, **kwargs):
+    def exponential_distribution_cut(self, timestamp, window, **slo_config):
         """Query one timeserie of type 'exponential'.
 
         Args:
             timestamp (int): UNIX timestamp.
             window (int): Window size (in seconds).
-            kwargs (dict): Extra arguments needed by this computation method.
-                project_id (str): Project id.
-                measurement (dict): Measurement config.
-                    filter (str): Query filter for 'valid' events.
-                    threshold_bucket (int): Bucket number that is the threshold
-                        for good / bad events.
-                    good_below_threshold (bool, optional): If good events are
-                    below the threshold (True) or above it (False). Defaults to
-                    True.
+            slo_config (dict): SLO configuration.
 
         Returns:
             tuple: A tuple (good_event_count, bad_event_count).
         """
-        project_id = kwargs['project_id']
-        measurement = kwargs['measurement']
+        conf = slo_config['backend']
+        project_id = conf['project_id']
+        measurement = conf['measurement']
         filter_valid = measurement['filter_valid']
         threshold_bucket = int(measurement['threshold_bucket'])
         good_below_threshold = measurement.get('good_below_threshold', True)

@@ -1,0 +1,12 @@
+---
+service_name:          gae:${STACKDRIVER_METRIC_PROJECT}_default
+feature_name:          default
+slo_description:       Latency of App Engine app requests < 724ms
+slo_name:              latency
+slo_target:            0.999
+backend:
+  class:               Ssm
+  method:              basic
+  project_id:          ${STACKDRIVER_HOST_PROJECT}
+  measurement:
+    threshold_latency: 250ms
