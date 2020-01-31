@@ -1,6 +1,6 @@
 # Stackdriver Monitoring
 
-## How to use the Stackdriver backend
+## Backend
 
 Using the `Stackdriver` backend class, you can query any metrics available in Stackdriver Monitoring to create an SLO.
 
@@ -18,9 +18,32 @@ The `good_bad_ratio` method is used to compute the ratio between two metrics:
 
 This method is often used for availability SLOs, but can be used for other purposes as well (see examples).
 
-#### Example SLIs
 
-**&rightarrow; Ratio of Pub/Sub acknowledged messages over all Pub/Sub messages**
+### Exponential distribution cut
+
+The `exponential_distribution_cut` method is used for Stackdriver distribution-type metrics, which are usually used for latency metrics.
+
+A distribution metric records the **statistical distribution of the extracted values** in **histogram buckets**. The extracted values are not recorded individually, but their distribution across the configured buckets are recorded, along with the `count`, `mean`, and `sum` of squared deviation of the values.
+
+In `Stackdriver Monitoring`, there are three different ways to specify bucket boundaries:
+* **Linear:** Every bucket has the same width.
+* **Exponential:** Bucket widths increases for higher values, using an exponential growth factor.
+* **Explicit:** Bucket boundaries are set for each bucket using a bounds array.
+
+***Note:*** *Currently the SLO generator only support the exponential distributions. Those are the most common metrics on GCP and the reason we have priviledge their support, but we plan to add support for linear and explicit distribution metrics as well.*
+
+### Examples
+
+Complete examples using the Stackdriver backend are available in the `samples/` folder:
+
+- [slo_sd_pubsub_throughput.yaml](../samples/slo_sd_pubsub_throughput.yaml)
+- [slo_sd_gae_app_availability.yaml](../samples/slo_sd_gae_app_availability.yaml)
+- [slo_sd_gae_app_latency64ms.yaml](../samples/slo_sd_gae_app_latency64ms.yaml)
+- [slo_sd_gae_app_latency724ms.yaml](../samples/slo_sd_gae_app_latency724ms.yaml)
+
+The following examples show how to populate the `backend` section for the Stackdriver backend.
+
+**&rightarrow; Example 1: Ratio of Pub/Sub acknowledged messages over all Pub/Sub messages**
 
 > We want to compute the proportion of messages that are acknowledged from our Pub/Sub subscriptions.
 >
@@ -31,7 +54,7 @@ This method is often used for availability SLOs, but can be used for other purpo
 - `pubsub.googleapis.com/subscription/ack_message_count`
 - `pubsub.googleapis.com/subscription/num_outstanding_messages`
 
-Thus, we can define an **Availability SLI** using the `good_bad_ratio` method where the events considered are:
+Thus, we can define a **Throughput SLI** using the `good_bad_ratio` method where the events considered are:
 
 - **Good events:** Acknowledged Pub/Sub messages in a subscription.
 - **Bad events:** Outstanding (unacknowledged) Pub/Sub messages in a subscription.
@@ -49,9 +72,12 @@ backend:
       project="${STACKDRIVER_METRIC_PROJECT_ID}" AND
       metric.type="pubsub.googleapis.com/subscription/num_outstanding_messages"
 ```
+
+
+
 &nbsp;
 
-**&rightarrow; Ratio of App Engine application requests with valid HTTP status codes**
+**&rightarrow; Example 2: Ratio of App Engine application requests with valid HTTP status codes**
 
 > We want to compute the proportion of HTTP requests that return a valid HTTP code.
 >
@@ -79,9 +105,10 @@ backend:
       project="${STACKDRIVER_METRIC_PROJECT}" AND
       metric.type="appengine.googleapis.com/http/server/response_count"
 ```
+
 &nbsp;
 
-**&rightarrow; Ratio of custom application requests with valid HTTP status codes**
+**&rightarrow; Example 3: Ratio of custom application requests with valid HTTP status codes**
 
 > We have a custom application sending performance logs to Stackdriver and we want to compute the proportion of HTTP requests that return a valid HTTP status code
 >
@@ -112,23 +139,7 @@ backend:
       metric.type="logging.googleapis.com/http/server/response_count"
 ```
 
-
-### Exponential distribution cut
-
-The `exponential_distribution_cut` method is used for Stackdriver distribution-type metrics, which are usually used for latency metrics.
-
-A distribution metric records the **statistical distribution of the extracted values** in **histogram buckets**. The extracted values are not recorded individually, but their distribution across the configured buckets are recorded, along with the `count`, `mean`, and `sum` of squared deviation of the values.
-
-In `Stackdriver Monitoring`, there are three different ways to specify bucket boundaries:
-* **Linear:** Every bucket has the same width.
-* **Exponential:** Bucket widths increases for higher values, using an exponential growth factor.
-* **Explicit:** Bucket boundaries are set for each bucket using a bounds array.
-
-***Note:*** *Currently the SLO generator only support the exponential distributions. Those are the most common metrics on GCP and the reason we have priviledge their support, but we plan to add support for linear and explicit distribution metrics as well.*
-
-#### Example SLIs
-
-**&rightarrow; Proportion of App Engine HTTP requests under a threshold latency**
+**&rightarrow; Example 4: Proportion of App Engine HTTP requests under a threshold latency**
 
 > We want to compute the proportion of HTTP requests that complete under 724 ms.
 >
@@ -151,7 +162,8 @@ backend:
 
 The `threshold_bucket` number to reach our 724ms target latency will depend on how the buckets boundaries are set. Learn how to [inspect your distribution metrics](https://cloud.google.com/logging/docs/logs-based-metrics/distribution-metrics#inspecting_distribution_metrics) to figure out the bucketization.
 
-## How to use the Stackdriver exporter
+
+## Exporter
 
 The `Stackdriver` exporter allows to export the error budget burn rate metric as a **custom Stackdriver metric** that we'll use for alerting:
 
@@ -171,15 +183,19 @@ The following configuration will create the custom metric `error_budget_burn_rat
 exporters:
   - class: Stackdriver
     project_id: "${STACKDRIVER_HOST_PROJECT}"
+    # optional
+    metric_type: custom.googleapis.com/error_budget_burn_rate
+    metric_description: >
+      Speed at which the error budget for a given
+      aggregation window is consumed
 ```
 
-## How to use Stackdriver to alert on high burn rates
+## Alerting
 
 Alerting is essential in any SRE approach. Having all the right metrics without being able to alert on them is simply useless.
-
 Too many alerts can be daunting, and page your SRE engineers for no valid reasons.
 
-Alerting on high burn rates on hand-picked SLOs can help resolve this problem.
+Alerting on **error budget burn rates** for some hand-picked SLOs can help reduce the noise and page only when it's needed.
 
 #### Example
 

@@ -1,0 +1,24 @@
+---
+service_name:    gae
+feature_name:    app
+slo_description: Throughput of Pub/Sub subscription
+slo_name:        throughput
+slo_target:      0.95
+backend:
+  class:         Stackdriver
+  project_id:    "${STACKDRIVER_HOST_PROJECT_ID}"
+  method:        good_bad_ratio
+  measurement:
+    filter_good: >
+      project="${STACKDRIVER_METRIC_PROJECT_ID}" AND
+      metric.type="pubsub.googleapis.com/subscription/ack_message_count"
+    filter_bad:  >
+      project="${STACKDRIVER_METRIC_PROJECT_ID}" AND
+      metric.type="pubsub.googleapis.com/subscription/num_outstanding_messages"
+exporters:
+- class:         Pubsub
+  project_id:    ${PUBSUB_PROJECT_ID}
+  topic_name:    ${PUBSUB_TOPIC_NAME}
+
+- class:         Stackdriver
+  project_id:    ${PUBSUB_PROJECT_ID}

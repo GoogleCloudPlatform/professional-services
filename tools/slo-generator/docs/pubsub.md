@@ -1,18 +1,16 @@
-# PubSub
+# Pub/Sub
 
-## How to use the PubSub exporter
+## Exporter
 
 The Pub/Sub exporter will export SLO reports to a Pub/Sub topic, in JSON format.
 
 This allows teams to consume SLO reports in real-time, and take appropriate actions when they see a need.
 
-### Example usage
+### Example
 
 > We want to consume SLI value in real-time and compare it with the previous version for the same application
 >
 > -- <cite>Application Developer</cite>
-
-The following configuration will send the SLO report to the Pub/Sub topic.
 
 ```yaml
 exporters:
