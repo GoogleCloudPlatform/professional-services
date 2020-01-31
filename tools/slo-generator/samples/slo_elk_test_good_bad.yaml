@@ -6,8 +6,8 @@ slo_name:        latency64ms
 slo_target:      1
 backend:
   class:         Elasticsearch
+  url:           http://localhost:9200
   method:        good_bad_ratio
-  project_id:    ${STACKDRIVER_HOST_PROJECT}
   measurement:
     index:       test_data
     age_field:   last_updated
