@@ -30,10 +30,10 @@ pip3 install slo-generator
 ```
 slo-generator -f <SLO_CONFIG_PATH> -b <ERROR_BUDGET_POLICY>
 ```
-  * `<SLO_CONFIG_PATH>` is the [SLO config](#slo_configuration) file or folder.
+  * `<SLO_CONFIG_PATH>` is the [SLO config](#slo-configuration) file or folder.
     If a folder path is passed, the SLO configs filenames should match the pattern `slo_*.yaml` to be loaded.
 
-  * `<ERROR_BUDGET_POLICY>` is the [Error Budget Policy](#error_budget_policy) file.
+  * `<ERROR_BUDGET_POLICY>` is the [Error Budget Policy](#error-budget-policy) file.
 
 Use `slo-generator --help` to list all available arguments.
 
