@@ -1,6 +1,6 @@
 ---
-service_name:    gae
-feature_name:    app
+service_name:    pubsub
+feature_name:    subscription
 slo_description: Throughput of Pub/Sub subscription
 slo_name:        throughput
 slo_target:      0.95
