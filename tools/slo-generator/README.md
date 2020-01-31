@@ -31,11 +31,17 @@ pip3 install slo-generator
 slo-generator -f <SLO_CONFIG_PATH> -b <ERROR_BUDGET_POLICY>
 ```
   * `<SLO_CONFIG_PATH>` is the [SLO config](#slo_configuration) file or folder.
+    If a folder path is passed, the SLO configs filenames should match the pattern `slo_*.yaml` to be loaded.
 
   * `<ERROR_BUDGET_POLICY>` is the [Error Budget Policy](#error_budget_policy) file.
 
 Use `slo-generator --help` to list all available arguments.
 
+To enable debug logs, set the environment variable `DEBUG` to `1` before running the `slo-generator`:
+
+```
+export DEBUG=1
+```
 
 ## Configuration
 
@@ -66,7 +72,9 @@ The **SLO configuration** (JSON or YAML) is composed of the following fields:
       * [Stackdriver Monitoring](docs/stackdriver.md#how-to-use-the-stackdriver-exporter) to export the `error_budget_burn_rate` metric to Stackdriver Monitoring.
       * [Prometheus](docs/prometheus.md#how-to-use-the-prometheus-exporter) to export the `error_budget_burn_rate` metric to Prometheus.
 
-==> An example SLO configuration file is available [here](tests/unit/fixtures/slo_linear.yaml).
+***Note:*** *you can use environment variables in your SLO configs by using `${}` syntax to avoid having sensitive data in version control. Environment variables will be replaced at run time.*
+
+==> An example SLO configuration file is available [here](samples/slo_sd_gae_app_availability.yaml).
 
 **Error Budget policy**
 
@@ -95,7 +103,7 @@ python3 -m venv venv/
 source venv/bin/activate
 ```
 
-Install `slo-generator` locally in development mode, so that you can get coding:
+Install `slo-generator` locally in development mode, so that you can start making changes to it:
 ```
 python setup.py develop
 ```
