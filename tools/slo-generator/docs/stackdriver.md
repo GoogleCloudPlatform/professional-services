@@ -19,7 +19,7 @@ The `good_bad_ratio` method is used to compute the ratio between two metrics:
 This method is often used for availability SLOs, but can be used for other purposes as well (see examples).
 
 
-### Exponential distribution cut
+### Distribution cut
 
 The `exponential_distribution_cut` method is used for Stackdriver distribution-type metrics, which are usually used for latency metrics.
 
@@ -30,7 +30,6 @@ In `Stackdriver Monitoring`, there are three different ways to specify bucket bo
 * **Exponential:** Bucket widths increases for higher values, using an exponential growth factor.
 * **Explicit:** Bucket boundaries are set for each bucket using a bounds array.
 
-***Note:*** *Currently the SLO generator only support the exponential distributions. Those are the most common metrics on GCP and the reason we have priviledge their support, but we plan to add support for linear and explicit distribution metrics as well.*
 
 ### Examples
 
