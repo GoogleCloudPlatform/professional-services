@@ -30,10 +30,8 @@ See Bitnami's [article](https://engineering.bitnami.com/articles/implementing-sl
 
 Complete examples using the `Prometheus` backend are available in the `samples/` folder:
 
-- [slo_sd_pubsub_throughput.yaml](../samples/slo_sd_pubsub_throughput.yaml)
-- [slo_sd_gae_app_availability.yaml](../samples/slo_sd_gae_app_availability.yaml)
-- [slo_sd_gae_app_latency64ms.yaml](../samples/slo_sd_gae_app_latency64ms.yaml)
-- [slo_sd_gae_app_latency724ms.yaml](../samples/slo_sd_gae_app_latency724ms.yaml)
+- [slo_prom_metrics_availability_good_bad.yaml](../samples/slo_prom_metrics_availability_good_bad.yaml)
+- [slo_prom_metrics_availability_query_sli.yaml](../samples/slo_prom_metrics_availability_query_sli.yaml)
 
 The following examples show how to populate the `backend` section for the Prometheus backend.
 
