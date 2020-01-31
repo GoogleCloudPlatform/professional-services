@@ -63,6 +63,7 @@ The **SLO configuration** (JSON or YAML) is composed of the following fields:
   * `backend`: Specific documentation and examples are available for each supported backends:
     * [Stackdriver Monitoring](docs/stackdriver.md)
     * [Prometheus](docs/prometheus.md)
+    * [ElasticSearch](docs/elasticsearch.md)
 
 
 - **Exporter configuration**:
