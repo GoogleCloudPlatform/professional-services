@@ -12,7 +12,7 @@ The included cloudbuild.yaml file has the following flow:
 4. Deploy DAGs: copy DAGs to a target Cloud Composer DAGs folder in GCS
 
 To enable this,
-* Create a Cloud Build trigger, and point it at this the `examples/cloud-composer-cicd/cloudbuild.yaml` file.
+* Create a Cloud Build trigger, and point it at the `examples/cloud-composer-cicd/cloudbuild.yaml` file.
 * Set the substitution variable `_DEPLOY_DAGS_LOCATION` to the GCS path that your cloud composer environment is using for dags eg: `gs://my-composer-env-bucket/dags/`
 * Set the substitution variable `_DIRECTORY` to `examples/cloud-composer-cicd` (this allows the `cloudbuild.yaml` to be generalized for other project structures).
 
