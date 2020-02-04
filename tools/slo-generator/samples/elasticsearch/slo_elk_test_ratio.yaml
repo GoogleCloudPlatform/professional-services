@@ -1,6 +1,6 @@
 ---
 service_name:    elk
-feature_name:    app
+feature_name:    test
 slo_description: Test ElasticSearch query
 slo_name:        latency64ms
 slo_target:      1
@@ -16,6 +16,7 @@ backend:
       must:
         term:
           name:  JAgOZE8
+
 exporters:
 - class:         Pubsub
   project_id:    ${PUBSUB_PROJECT_ID}

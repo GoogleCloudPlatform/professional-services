@@ -46,16 +46,19 @@ def main():
         slo_config_paths = [args.slo_config]
     else:
         slo_config_folder = utils.normalize(slo_config)
-        slo_config_paths = glob.glob(f'{slo_config_folder}/slo_*.yaml')
+        slo_config_paths = sorted(glob.glob(f'{slo_config_folder}/slo_*.yaml'))
 
     # Abort if configs are not found
     if not slo_config_paths:
-        LOGGER.error(f'No SLO configs found in SLO folder {slo_config_folder}.')
+        LOGGER.error(
+            f'No SLO configs found in SLO folder {slo_config_folder}.')
 
     # Load SLO configs and compute SLO reports
     for cfg in slo_config_paths:
         slo_config_path = utils.normalize(cfg)
-        LOGGER.debug(f'Loading SLO config from {slo_config_path}')
+        slo_config_name = slo_config_path.split("/")[-1]
+        LOGGER.debug(f'Loading config "{slo_config_name}"')
+        LOGGER.debug(f'Full path: {slo_config_path}')
         slo_config = utils.parse_config(slo_config_path)
         compute(slo_config, error_budget_policy, do_export=export)
 

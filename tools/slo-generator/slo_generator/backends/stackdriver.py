@@ -18,6 +18,7 @@ Stackdriver Monitoring backend implementation.
 from collections import OrderedDict
 import logging
 import pprint
+import warnings
 
 from google.cloud import monitoring_v3
 from slo_generator.backends.base import MetricBackend
@@ -93,7 +94,7 @@ class StackdriverBackend(MetricBackend):
 
         return (good_event_count, bad_event_count)
 
-    def exponential_distribution_cut(self, timestamp, window, **slo_config):
+    def distribution_cut(self, timestamp, window, **slo_config):
         """Query one timeserie of type 'exponential'.
 
         Args:
@@ -158,7 +159,23 @@ class StackdriverBackend(MetricBackend):
 
         return (good_event_count, bad_event_count)
 
-    def query(self, project_id, timestamp, window, filter):
+    def exponential_distribution_cut(self, *args, **kwargs):
+        """Alias for `distribution_cut` method to allow for backwards
+        compatibility.
+        """
+        warnings.warn(
+            f'exponential_distribution_cut will be deprecated in version 1.0, '
+            f'please use distribution_cut instead', PendingDeprecationWarning)
+        return self.distribution_cut(*args, **kwargs)
+
+    def query(self,
+              project_id,
+              timestamp,
+              window,
+              filter,
+              aligner='ALIGN_SUM',
+              reducer='REDUCE_SUM',
+              group_by=[]):
         """Query timeseries from Stackdriver Monitoring.
 
         Args:
@@ -166,12 +183,18 @@ class StackdriverBackend(MetricBackend):
             timestamp (int): Current timestamp.
             window (int): Window size (in seconds).
             filter (str): Query filter.
+            aligner (str, optional): Aligner to use.
+            reducer (str, optional): Reducer to use.
+            group_by (list, optional): List of fields to group by.
 
         Returns:
             list: List of timeseries objects.
         """
         measurement_window = StackdriverBackend._get_window(timestamp, window)
-        aggregation = StackdriverBackend._get_aggregation(window)
+        aggregation = StackdriverBackend._get_aggregation(window,
+                                                          aligner=aligner,
+                                                          reducer=reducer,
+                                                          group_by=group_by)
         project = self.client.project_path(project_id)
         timeseries = self.client.list_time_series(
             project, filter, measurement_window,
@@ -219,7 +242,10 @@ class StackdriverBackend(MetricBackend):
         return measurement_window
 
     @staticmethod
-    def _get_aggregation(window, aligner='ALIGN_SUM', reducer='REDUCE_SUM'):
+    def _get_aggregation(window,
+                         aligner='ALIGN_SUM',
+                         reducer='REDUCE_SUM',
+                         group_by=[]):
         """Helper for aggregation object.
 
         Default aggregation is `ALIGN_SUM`.
@@ -229,6 +255,7 @@ class StackdriverBackend(MetricBackend):
             window (int): Window size (in seconds).
             aligner (str): Aligner type.
             reducer (str): Reducer type.
+            group_by (list): List of fields to group by.
 
         Returns:
             :obj:`monitoring_v3.types.Aggregation`: Aggregation object.
@@ -239,5 +266,6 @@ class StackdriverBackend(MetricBackend):
             monitoring_v3.enums.Aggregation.Aligner, aligner))
         aggregation.cross_series_reducer = (getattr(
             monitoring_v3.enums.Aggregation.Reducer, reducer))
+        aggregation.group_by_fields.extend(group_by)
         LOGGER.debug(pprint.pformat(aggregation))
         return aggregation

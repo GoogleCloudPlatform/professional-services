@@ -19,11 +19,15 @@ from datetime import datetime
 import importlib
 import logging
 import os
+import pprint
 import re
 import sys
+import warnings
 
 import pytz
 import yaml
+
+from google.auth._default import _CLOUD_SDK_CREDENTIALS_WARNING
 
 LOGGER = logging.getLogger(__name__)
 
@@ -57,7 +61,8 @@ def parse_config(path):
                     full_value = full_value.replace(f'${{{var}}}',
                                                     os.environ[var])
                 except KeyError as exception:
-                    LOGGER.error(f'Environment variable "{var}" should be set.')
+                    LOGGER.error(
+                        f'Environment variable "{var}" should be set.')
                     raise exception
             content = full_value
         return content
@@ -65,7 +70,9 @@ def parse_config(path):
     with open(path) as config:
         content = config.read()
         content = replace_env_vars(content)
-        return yaml.safe_load(content)
+        data = yaml.safe_load(content)
+    LOGGER.debug(pprint.pformat(data))
+    return data
 
 
 def setup_logging():
@@ -81,6 +88,9 @@ def setup_logging():
                         format='%(name)s - %(levelname)s - %(message)s',
                         datefmt='%m/%d/%Y %I:%M:%S')
     logging.getLogger('googleapiclient').setLevel(logging.ERROR)
+
+    # Ingore annoying Cloud SDK warning
+    warnings.filterwarnings("ignore", message=_CLOUD_SDK_CREDENTIALS_WARNING)
 
 
 def get_human_time(timestamp, timezone="Europe/Paris"):
@@ -118,8 +128,9 @@ def get_backend_cls(backend):
     Returns:
         class: Backend class.
     """
-    return import_dynamic(f'slo_generator.backends.{backend.lower()}',
-                          f'{backend.capitalize()}Backend',
+    filename = re.sub(r'(?<!^)(?=[A-Z])', '_', backend).lower()
+    return import_dynamic(f'slo_generator.backends.{filename}',
+                          f'{backend}Backend',
                           prefix="backend")
 
 
@@ -132,8 +143,9 @@ def get_exporter_cls(exporter):
     Returns:
         class: Exporter class.
     """
-    return import_dynamic(f'slo_generator.exporters.{exporter.lower()}',
-                          f'{exporter.capitalize()}Exporter',
+    filename = re.sub(r'(?<!^)(?=[A-Z])', '_', backend).lower()
+    return import_dynamic(f'slo_generator.exporters.{filename}',
+                          f'{exporter}Exporter',
                           prefix="exporter")
 
 

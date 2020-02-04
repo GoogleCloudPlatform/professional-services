@@ -143,9 +143,9 @@ def make_reports(slo_config,
         method = backend_config.get('method')
         instance = utils.get_backend_cls(cls)(client=client, **backend_config)
         backend_method = getattr(instance, method)
-        LOGGER.info(f'{slo_full_name :<25} | '
-                    f'Using backend {cls}.{backend_method.__name__} (from '
-                    f'SLO config file).')
+        LOGGER.debug(f'{slo_full_name :<25} | '
+                     f'Using backend {cls}.{backend_method.__name__} (from '
+                     f'SLO config file).')
 
     # Loop through steps defined in error budget policy and make measurements
     for step in error_budget_policy:
