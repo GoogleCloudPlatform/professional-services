@@ -21,4 +21,4 @@ This method is often used for availability SLOs, but can be used for other purpo
 
 Complete examples using the `Elasticsearch` backend are available in the `samples/` folder:
 
-- [slo_elk_test_good_bad.yaml](../samples/slo_sd_pubsub_throughput.yaml)
+- [slo_elk_test_good_bad.yaml](../samples/elasticsearch/slo_sd_pubsub_throughput.yaml)

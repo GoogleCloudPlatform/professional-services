@@ -153,10 +153,14 @@ class StackdriverServiceMonitoringBackend(MetricBackend):
 
         Args:
             slo_config (dict): SLO configuration.
+
+        Returns:
+            dict: Stackdriver Service Monitoring API response.
         """
         LOGGER.debug("Creating service ...")
         service_name = slo_config['service_name']
-        display_name = slo_config['slo_description']
+        feature_name = slo_config['feature_name']
+        display_name = f"{service_name}/{feature_name}"
         project_id = slo_config['backend']['project_id']
         method = slo_config['backend']['method']
         params = {}
@@ -168,8 +172,8 @@ class StackdriverServiceMonitoringBackend(MetricBackend):
             json['custom'] = {}
         else:
             raise Exception(
-                f"Service {service_name} was not found in Service Monitoring API"
-            )
+                f"Service {service_name} was not found in Stackdriver Service "
+                f"Monitoring API")
             # TODO:Only custom services should be created manually. Figure out
             # this stuff
             # type, rest = service_name.split(":")

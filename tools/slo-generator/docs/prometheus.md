@@ -30,8 +30,8 @@ See Bitnami's [article](https://engineering.bitnami.com/articles/implementing-sl
 
 Complete examples using the `Prometheus` backend are available in the `samples/` folder:
 
-- [slo_prom_metrics_availability_good_bad.yaml](../samples/slo_prom_metrics_availability_good_bad.yaml)
-- [slo_prom_metrics_availability_query_sli.yaml](../samples/slo_prom_metrics_availability_query_sli.yaml)
+- [slo_prom_metrics_availability_good_bad.yaml](../samples/prometheus/slo_prom_metrics_availability_good_bad.yaml)
+- [slo_prom_metrics_availability_query_sli.yaml](../samples/prometheus/slo_prom_metrics_availability_query_sli.yaml)
 
 The following examples show how to populate the `backend` section for the Prometheus backend.
 
