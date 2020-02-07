@@ -19,7 +19,7 @@ Change to this directory and set an environment variable to remember the
 location
 
 ```shell
-cd professional-services/examples/web_instrumentation
+cd professional-services/examples/web-instrumentation
 WI_HOME=`pwd`
 ```
 

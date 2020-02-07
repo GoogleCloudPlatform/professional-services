@@ -29,7 +29,7 @@ console.log(`App version: ${ __VERSION__ }`);
 // Edit this to point to your OpenCensus agent address:
 // If running locally use http://localhost:55678/v1/trace
 const collectorURL = 'http://localhost:55678/v1/trace';
-// const agentURL = 'http://35.188.162.236/v1/trace';
+// const collectorURL = 'http://35.188.162.236/v1/trace';
 
 const webTracer = new WebTracerProvider({
   plugins: [
