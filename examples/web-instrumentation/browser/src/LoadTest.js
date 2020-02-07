@@ -22,7 +22,7 @@ import {CollectorExporter} from '@opentelemetry/exporter-collector';
 import {SimpleSpanProcessor} from '@opentelemetry/tracing';
 import {XMLHttpRequestPlugin} from '@opentelemetry/plugin-xml-http-request';
 import {ZoneScopeManager} from '@opentelemetry/scope-zone';
-import {WebTracer} from '@opentelemetry/web';
+import {WebTracerProvider} from '@opentelemetry/web';
 
 /**
  * Class to run a load test and track reuqests.
@@ -33,9 +33,9 @@ export class LoadTest {
    * @param {string} name - The name of the test
    * @param {number} targetIter - The target number of iterations
    * @param {number} delay - Time between requests
-   * @param {string} agentURL - The URL of the OpenCensus agent
+   * @param {string} collectorURL - The URL of the OpenCensus agent
    */
-  constructor(name, targetIter, delay, agentURL) {
+  constructor(name, targetIter, delay, collectorURL) {
     this.name = name;
     this.targetIter = targetIter;
     this.delay = delay;
@@ -46,7 +46,7 @@ export class LoadTest {
     const builder = new LogCollectorBuilder().setBuildId(this.buildId);
     this.logCollector = builder.makeLogCollector();
     this.logCollector.start(2000);
-    const webTracerWithZone = new WebTracer({
+    const webTracerWithZone = new WebTracerProvider({
       // defaultAttributes: {'version': __VERSION__, 'test': name},
       scopeManager: new ZoneScopeManager(),
       plugins: [
@@ -56,7 +56,7 @@ export class LoadTest {
       ],
     });
     const collectorOptions = {
-      url: agentURL,
+      url: collectorURL,
     };
     const exporter = new CollectorExporter(collectorOptions);
     webTracerWithZone.addSpanProcessor(new SimpleSpanProcessor(exporter));

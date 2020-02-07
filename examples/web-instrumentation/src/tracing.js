@@ -14,32 +14,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-const tracing = require('@opencensus/nodejs');
-const {StackdriverTraceExporter} = require('@opencensus/exporter-stackdriver');
-const {TraceContextFormat} = require('@opencensus/propagation-tracecontext');
+const opentelemetry = require('@opentelemetry/api');
+const { StackdriverTraceExporter } = require('@opentelemetry/exporter-stackdriver-trace');
+const { LogLevel } = require('@opentelemetry/core');
+const { NodeTracerProvider } = require("@opentelemetry/node");
+const { BatchSpanProcessor } = require("@opentelemetry/tracing");
 
 /**
  * Initialize tracing
  * @return {Tracer} tracer object
  */
 module.exports.initTracing = () => {
-  const traceContext = new TraceContextFormat();
-  const tracer = tracing.start({
-    samplingRate: 1,
-    exporter: getExporter(),
-    propagation: traceContext,
-  }).tracer;
+	const provider = new NodeTracerProvider({
+    logLevel: LogLevel.ERROR
+  });
+  opentelemetry.trace.initGlobalTracerProvider(provider);
+  const tracer = opentelemetry.trace.getTracer('default');
+  tracer.addSpanProcessor(new BatchSpanProcessor(getExporter()));
+  console.log("initTracing: done");
   return tracer;
 };
 
 function getExporter() {
-  const projectId = process.env.GOOGLE_CLOUD_PROJECT;
-  if (!projectId) {
-    console.error('Project id not defined');
-    // Running on GKE, we should be able to omit the project ID
+  const keyFileName = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+  if (!keyFileName) {
+    console.log('Proceed without a keyFileName (will only work on GCP)');
     return new StackdriverTraceExporter();
-  } 
-  console.log(`Exporting traces to project ${projectId}`);
+  }
+  console.log("Using GOOGLE_APPLICATION_CREDENTIALS");
   return new StackdriverTraceExporter({
-    projectId: projectId});
+    keyFileName: keyFileName});
 }

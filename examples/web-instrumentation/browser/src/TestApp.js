@@ -1,5 +1,5 @@
 'use strict';
-// Copyright 2019 Google LLC
+// Copyright 2020 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,9 +23,9 @@ import {TestSummary} from './TestSummary';
 export class TestApp {
   /**
    * Create a TestApp instance
-   * @param {string} agentURL - The URL of the OpenCensus agent
+   * @param {string} collectorURL - The URL of the OpenCensus agent
    */
-  constructor(agentURL) {
+  constructor(collectorURL) {
     const testSummary = new TestSummary();
     // Handle events for the name form
     const testForm = document.getElementById('testForm');
@@ -39,7 +39,7 @@ export class TestApp {
         const name = nameTF.value;
         const iterations = Number(numIterTF.value);
         const delay = Number(delayTF.value);
-        const test = new LoadTest(name, iterations, delay, agentURL);
+        const test = new LoadTest(name, iterations, delay, collectorURL);
         const observable = test.runTest();
         testSummary.display(name, iterations, observable);
         return false;

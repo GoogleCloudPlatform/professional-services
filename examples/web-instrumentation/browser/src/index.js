@@ -21,23 +21,23 @@
 import {CollectorExporter} from '@opentelemetry/exporter-collector';
 import {SimpleSpanProcessor} from '@opentelemetry/tracing';
 import {DocumentLoad} from '@opentelemetry/plugin-document-load';
-import {WebTracer} from '@opentelemetry/web';
+import {WebTracerProvider} from '@opentelemetry/web';
 import {TestApp} from './TestApp';
 
 console.log(`App version: ${ __VERSION__ }`);
 
 // Edit this to point to your OpenCensus agent address:
 // If running locally use http://localhost:55678/v1/trace
-const agentURL = 'http://localhost:55678/v1/trace';
+const collectorURL = 'http://localhost:55678/v1/trace';
 // const agentURL = 'http://35.188.162.236/v1/trace';
 
-const webTracer = new WebTracer({
+const webTracer = new WebTracerProvider({
   plugins: [
     new DocumentLoad(),
   ],
 });
 const collectorOptions = {
-  url: agentURL,
+  url: collectorURL,
 };
 const exporter = new CollectorExporter(collectorOptions);
 webTracer.addSpanProcessor(new SimpleSpanProcessor(exporter));

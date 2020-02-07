@@ -17,10 +17,11 @@
     "start": "node ./src/app.js"
   },
   "dependencies": {
-    "@opencensus/exporter-stackdriver": "0.0.19",
-    "@opencensus/nodejs": "0.0.19",
-    "@opencensus/propagation-tracecontext": "0.0.19",
+    "@opentelemetry/core": "^0.4.0",
     "@opentelemetry/exporter-collector": "^0.3.2",
+    "@opentelemetry/exporter-stackdriver-trace": "^0.4.0",
+    "@opentelemetry/node": "^0.4.0",
+    "@opentelemetry/plugin-http": "^0.4.0",
     "body-parser": "^1.19.0",
     "express": "^4.16.3"
   },

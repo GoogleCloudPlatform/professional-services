@@ -1,7 +1,7 @@
 # OpenTelemetry Plugin Document Load
 
 The app is something like a simple web version of Apache Bench. It includes
-JavaScript browse code that drives HTTP requests to a Node.js backend that
+JavaScript browser code that drives HTTP requests to a Node.js backend that
 can be run anywhere that you can run Node.
 
 Create a Google Cloud Project with billing enabled. Install Node.js.
@@ -12,21 +12,21 @@ Install the Google Cloud SDK.
 Clone this repository to your environment with the command
 
 ```shell
-git clone https://github.com/GoogleCloudPlatform/***.git
+git clone https://github.com/GoogleCloudPlatform/professional-services.git
 ```
 
 Change to this directory and set an environment variable to remember the
 location
 
 ```shell
-cd web_instrumentation
+cd professional-services/examples/web_instrumentation
 WI_HOME=`pwd`
 ```
 
 Set Google Cloud SDK to the current project 
 
 ```shell
-GOOGLE_CLOUD_PROJECT=[Your project]
+export GOOGLE_CLOUD_PROJECT=[Your project]
 gcloud config set project $GOOGLE_CLOUD_PROJECT
 ```
 
