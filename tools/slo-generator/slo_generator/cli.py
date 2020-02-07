@@ -51,7 +51,8 @@ def main():
 
     # Abort if configs are not found
     if not slo_config_paths:
-        LOGGER.error(f'No SLO configs found in SLO folder {slo_config_folder}.')
+        LOGGER.error(
+            f'No SLO configs found in SLO folder {slo_config_folder}.')
 
     # Load SLO configs and compute SLO reports
     for cfg in slo_config_paths:
@@ -89,10 +90,11 @@ def parse_args(args):
                         help='Error budget policy file (JSON / YAML)')
     parser.add_argument('--export',
                         '-e',
-                        type=bool,
-                        required=False,
+                        type=utils.str2bool,
+                        nargs='?',
+                        const=True,
                         default=False,
-                        help='Enable exporting SLO report')
+                        help="Export SLO reports")
     parser.add_argument('--delete',
                         '-d',
                         type=utils.str2bool,
