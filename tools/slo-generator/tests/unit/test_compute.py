@@ -16,7 +16,6 @@ import yaml
 import os
 import unittest
 import mock
-import pprint
 import string
 import time
 from google.cloud.monitoring_v3.proto import metric_service_pb2
@@ -40,7 +39,6 @@ FIXTURES_CONFIG = {
 
 class MultiCallableStub(object):
     """Stub for the grpc.UnaryUnaryMultiCallable interface."""
-
     def __init__(self, method, channel_stub):
         self.method = method
         self.channel_stub = channel_stub
@@ -61,7 +59,6 @@ class MultiCallableStub(object):
 
 class ChannelStub(object):
     """Stub for the grpc.Channel interface."""
-
     def __init__(self, responses=[]):
         self.responses = responses
         self.requests = []
@@ -78,7 +75,6 @@ def dummy_slo_function(timestamp, window, **kwargs):
 
 
 class DummySLOBackend(object):
-
     def __init__(self, **kwargs):
         pass
 
@@ -87,7 +83,6 @@ class DummySLOBackend(object):
 
 
 class TestCompute(unittest.TestCase):
-
     def load_fixture(self, filename, load_json=False, **kwargs):
         with open(filename) as f:
             data = f.read()
@@ -121,7 +116,8 @@ class TestCompute(unittest.TestCase):
             load_json=True,
             **FIXTURES_CONFIG)
         self.error_budget_policy = self.load_fixture(
-            filename=f'{cwd}/fixtures/error_budget_policy.json', load_json=True)
+            filename=f'{cwd}/fixtures/error_budget_policy.json',
+            load_json=True)
         self.data = self.load_fixture(
             filename=f'{cwd}/fixtures/slo_report.json', load_json=True)
         self.timestamp = time.time()
@@ -143,23 +139,9 @@ class TestCompute(unittest.TestCase):
             create_channel.return_value = channel
             compute(self.slo_config_exp, self.error_budget_policy)
 
-    def test_compute_dummy_method(self):
-        results = compute(slo_config=self.slo_config,
-                          error_budget_policy=self.error_budget_policy,
-                          backend_method=dummy_slo_function)
-        results = list(results)
-        pprint.pprint(results)
-
-    def test_compute_dummy_obj(self):
-        results = compute(slo_config=self.slo_config,
-                          error_budget_policy=self.error_budget_policy,
-                          backend_obj=DummySLOBackend(),
-                          backend_method='dummy_slo_function')
-        results = list(results)
-        pprint.pprint(results)
-
     @mock.patch(
-        "google.cloud.pubsub_v1.gapic.publisher_client.PublisherClient.publish")
+        "google.cloud.pubsub_v1.gapic.publisher_client.PublisherClient.publish"
+    )
     @mock.patch("google.cloud.pubsub_v1.publisher.futures.Future.result")
     def test_export_pubsub(self, mock_pubsub, mock_pubsub_res):
         with mock_pubsub, mock_pubsub_res, \
