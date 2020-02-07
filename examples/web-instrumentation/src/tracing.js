@@ -25,12 +25,12 @@ const { BatchSpanProcessor } = require("@opentelemetry/tracing");
  * @return {Tracer} tracer object
  */
 module.exports.initTracing = () => {
-	const provider = new NodeTracerProvider({
+  const provider = new NodeTracerProvider({
     logLevel: LogLevel.ERROR
   });
   opentelemetry.trace.initGlobalTracerProvider(provider);
   const tracer = opentelemetry.trace.getTracer('default');
-  tracer.addSpanProcessor(new BatchSpanProcessor(getExporter()));
+  provider.addSpanProcessor(new BatchSpanProcessor(getExporter()));
   console.log("initTracing: done");
   return tracer;
 };
@@ -39,7 +39,7 @@ function getExporter() {
   const keyFileName = process.env.GOOGLE_APPLICATION_CREDENTIALS;
   if (!keyFileName) {
     console.log('Proceed without a keyFileName (will only work on GCP)');
-    return new StackdriverTraceExporter();
+    return new StackdriverTraceExporter({});
   }
   console.log("Using GOOGLE_APPLICATION_CREDENTIALS");
   return new StackdriverTraceExporter({

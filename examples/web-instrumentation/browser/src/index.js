@@ -42,4 +42,4 @@ const collectorOptions = {
 const exporter = new CollectorExporter(collectorOptions);
 webTracer.addSpanProcessor(new SimpleSpanProcessor(exporter));
 
-new TestApp(agentURL);
+new TestApp(collectorURL);
