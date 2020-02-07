@@ -107,7 +107,7 @@ object Kafka2Avro {
 
     Logger.info("All bytes have been properly twisted. Congratulations.")
 
-    sc.close
+    sc.run
   }
 
   /** Read data from Kafka, and return the messages ignoring the keys. */

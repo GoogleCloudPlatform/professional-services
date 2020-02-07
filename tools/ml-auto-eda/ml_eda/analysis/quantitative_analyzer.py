@@ -149,7 +149,7 @@ class QuantitativeAnalyzer:
     index_name, column_name, _ = ig_df.columns
 
     entropy = utils.compute_entropy(
-        frequency_series=ig_df.groupby(index_name).sum())
+        frequency_series=ig_df.groupby(index_name).sum()['frequency'])
 
     condition_entropy = utils.compute_conditional_entropy(
         aggregate_df=ig_df,

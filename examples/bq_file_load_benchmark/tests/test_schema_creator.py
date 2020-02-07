@@ -4,11 +4,11 @@ from __future__ import print_function
 import json
 import os
 
-from bq_file_load_benchmark.benchmark_tools import schema_creator
+from bq_file_load_benchmark.generic_benchmark_tools import schema_creator
 
 
 class TestSchemaCreator(object):
-    """Tests functionality of benchmark_tools.schema_creator.SchemaCreator.
+    """Tests functionality of load_benchmark_tools.schema_creator.SchemaCreator.
 
     Attributes:
         test_schemas_dir(str): Directory where test json schemas should be

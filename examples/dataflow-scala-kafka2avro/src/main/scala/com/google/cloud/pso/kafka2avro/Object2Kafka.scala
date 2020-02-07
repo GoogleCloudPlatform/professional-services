@@ -78,7 +78,7 @@ object Object2Kafka {
 
     Logger.info("All done. Give me an E, give me a T, give me an L!")
 
-    sc.close
+    sc.run
   }
 
   /** Generate a SCollection of objects **/

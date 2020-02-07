@@ -14,6 +14,7 @@ tools/gce-google-keys-to-cmek
 tools/gce-quota-sync
 tools/gcp-arch-viz
 tools/gcs-bucket-mover
+tools/gcs-usage-recommender
 tools/gsuite-exporter
 tools/hive-bigquery
 tools/kunskap
