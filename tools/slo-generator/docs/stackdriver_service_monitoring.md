@@ -34,7 +34,7 @@ The `good_bad_ratio` method is used to compute the ratio between two metrics:
 
 This method is often used for availability SLOs, but can be used for other purposes as well (see examples).
 
-### Distribution cut
+## Distribution cut
 
 The `distribution_cut` method is used for Stackdriver distribution-type metrics, which are usually used for latency metrics.
 
@@ -45,15 +45,46 @@ In `Stackdriver Monitoring`, there are three different ways to specify bucket bo
 * **Exponential:** Bucket widths increases for higher values, using an exponential growth factor.
 * **Explicit:** Bucket boundaries are set for each bucket using a bounds array.
 
+### Limitations
+
+Since `Stackdriver Monitoring` API persists objects, we need ways to keep our
+local SLO YAML configuration synced with the remote objects.
+
+The following naming conventions are used to give unique ids to your SLOs:
+
+* `service_name = ${service_name}-${feature_name}`
+
+* `slo_name = ${service_name}-${feature_name}-${slo_name}-${window}`
+
+**As a consequence, do not update any of the following fields in your configs, or you will lose track of the objects previously created:**
+
+* ***In the SLO config: `service_name`, `feature_name` and `slo_name`***
+
+* ***In the Error Budget Policy: `window`***
+
+If you need to makes changes to any of those fields, first delete the SLO (see [#deleting-objects](#deleting-objects)) and then recreate it.
+
+You can also specify the `slo_id` field in your SLO configuration in order to
+always keep the same id no matter the fields that you change.
+
+### Deleting objects
+
+To delete an SLO object in Stackdriver Monitoring API using the `StackdriverServiceMonitoringBackend` class, run the `slo-generator` with the `-d` (or `--delete`) flag:
+
+```
+slo-generator -f <SLO_CONFIG_PATH> -b <ERROR_BUDGET_POLICY> --delete
+```
 
 ### Examples
 
-Complete examples using the Stackdriver backend are available in the `samples/` folder:
+Complete examples using the Stackdriver Service Monitoring backend are available in the `samples/` folder:
 
-- [slo_pubsub_subscription_throughput.yaml](../samples/stackdriver_service_monitoring/slo_pubsub_subscription_throughput.yaml)
 - [slo_gae_app_availability.yaml](../samples/stackdriver_service_monitoring/slo_gae_app_availability.yaml)
 - [slo_gae_app_latency64ms.yaml](../samples/stackdriver_service_monitoring/slo_gae_app_latency64ms.yaml)
 - [slo_gae_app_latency724ms.yaml](../samples/stackdriver_service_monitoring/slo_gae_app_latency724ms.yaml)
+- [slo_lb_request_availability.yaml](../samples/stackdriver_service_monitoring/slo_lb_request_availability.yaml)
+- [slo_lb_request_latency64ms.yaml](../samples/stackdriver_service_monitoring/slo_lb_request_latency64ms.yaml)
+- [slo_lb_request_latency724ms.yaml](../samples/stackdriver_service_monitoring/slo_lb_request_latency724ms.yaml)
 
 The following examples show how to populate the `backend` section for the Stackdriver backend.
 
@@ -179,6 +210,7 @@ The `range_min` and `range_max` are used to specify the latency range that we
 consider 'good'.
 
 In this example we consider latencies between 0 and 724ms as 'good'.
+
 
 ## Alerting
 

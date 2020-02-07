@@ -61,8 +61,7 @@ def parse_config(path):
                     full_value = full_value.replace(f'${{{var}}}',
                                                     os.environ[var])
                 except KeyError as exception:
-                    LOGGER.error(
-                        f'Environment variable "{var}" should be set.')
+                    LOGGER.error(f'Environment variable "{var}" should be set.')
                     raise exception
             content = full_value
         return content
@@ -168,3 +167,56 @@ def import_dynamic(package, name, prefix="class"):
             f'result in an exception.')
         LOGGER.debug(exception)
         sys.exit(1)
+
+
+def dict_snake_to_caml(data):
+    """Convert dictionary with keys written in snake_case to another one with
+    keys written in CamlCase.
+
+    Args:
+        data (dict): Input dictionary.
+
+    Returns:
+        dict: Output dictionary.
+    """
+    import re
+    f = lambda word: re.sub('_.', lambda x: x.group()[1].upper(), word)
+    return apply_func_dict(data, f)
+
+
+def apply_func_dict(data, func):
+    """Apply function on a dictionary keys.
+
+    Args:
+        data (dict): Input dictionary.
+
+    Returns:
+        dict: Output dictionary.
+    """
+    import collections
+    if isinstance(data, collections.Mapping):
+        return {func(k): apply_func_dict(v, func) for k, v in data.items()}
+    else:
+        return data
+
+
+def str2bool(v):
+    """Convert a string to a boolean.
+
+    Args:
+        v (str): String to convert
+
+    Returns:
+        bool: Boolean value.
+
+    Raises:
+        `argparse.ArgumentTypeError`: IF no acceptable boolean string is found.
+    """
+    if isinstance(v, bool):
+        return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')

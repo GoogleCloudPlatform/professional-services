@@ -33,6 +33,7 @@ def main():
     utils.setup_logging()
     args = parse_args(sys.argv[1:])
     export = args.export
+    delete = args.delete
 
     # Load error budget policy
     error_budget_path = utils.normalize(args.error_budget_policy)
@@ -50,8 +51,7 @@ def main():
 
     # Abort if configs are not found
     if not slo_config_paths:
-        LOGGER.error(
-            f'No SLO configs found in SLO folder {slo_config_folder}.')
+        LOGGER.error(f'No SLO configs found in SLO folder {slo_config_folder}.')
 
     # Load SLO configs and compute SLO reports
     for cfg in slo_config_paths:
@@ -60,7 +60,10 @@ def main():
         LOGGER.debug(f'Loading config "{slo_config_name}"')
         LOGGER.debug(f'Full path: {slo_config_path}')
         slo_config = utils.parse_config(slo_config_path)
-        compute(slo_config, error_budget_policy, do_export=export)
+        compute(slo_config,
+                error_budget_policy,
+                do_export=export,
+                delete=delete)
 
 
 def parse_args(args):
@@ -88,7 +91,15 @@ def parse_args(args):
                         '-e',
                         type=bool,
                         required=False,
-                        default=False)
+                        default=False,
+                        help='Enable exporting SLO report')
+    parser.add_argument('--delete',
+                        '-d',
+                        type=utils.str2bool,
+                        nargs='?',
+                        const=True,
+                        default=False,
+                        help="Delete SLO (use for backends with APIs).")
     return parser.parse_args(args)
 
 

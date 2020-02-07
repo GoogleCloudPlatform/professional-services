@@ -29,9 +29,7 @@ def compute(slo_config,
             timestamp=None,
             client=None,
             do_export=False,
-            backend_obj=None,
-            backend_method=None,
-            backend_config=None):
+            delete=False):
     """Run pipeline to compute SLO, Error Budget and Burn Rate, and export the
     results (if exporters are specified in the SLO config).
 
@@ -41,17 +39,7 @@ def compute(slo_config,
         timestamp (int, optional): UNIX timestamp. Defaults to now.
         client (obj, optional): Existing metrics backend client.
         do_export (bool, optional): Enable / Disable export. Default: False.
-        backend_obj (obj) (optional): Backend object (if unset, will be
-            imported dynamically from slo_config). Use when you want to try new
-            backends that are not implemented in the backends/ folder.
-        backend_method (str) (optional): Backend method (if unset, will be
-            imported dynamically from slo_config). Use when you want to try new
-            backends that are not implemented in the backends/ folder.
-            This must return a tuple (n_good_events[int], n_bad_events[int]).
-            The method must take the following arguments:
-                - timestamp (int): query timestamp.
-                - window (int): query window duration.
-        backend_config (dict) (optional): Backend config.
+        delete (bool, optional): Enable / Disable delete mode. Default: False.
     """
     if timestamp is None:
         timestamp = time.time()
@@ -63,9 +51,7 @@ def compute(slo_config,
                                error_budget_policy,
                                timestamp,
                                client=client,
-                               backend_obj=backend_obj,
-                               backend_method=backend_method,
-                               backend_config=backend_config):
+                               delete=delete):
         if not report:
             continue
         reports.append(report)
@@ -106,9 +92,7 @@ def make_reports(slo_config,
                  error_budget_policy,
                  timestamp,
                  client=None,
-                 backend_obj=None,
-                 backend_method=None,
-                 backend_config=None):
+                 delete=False):
     """Run SLO reports for each step in the Error Budget config.
 
     Args:
@@ -116,36 +100,24 @@ def make_reports(slo_config,
         error_budget_policy (dict): Error Budget policy.
         timestamp (int): UNIX timestamp.
         client (obj) (optional): Existing metrics backend client.
-        backend_obj (obj) (optional): Backend object (if unset, will be
-            imported dynamically from slo_config). Use when you want to try new
-            backends that are not implemented in the backends/ folder.
-        backend_method (str) (optional): Backend method (if unset, will be
-            imported dynamically from slo_config). Use when you want to try new
-            backends that are not implemented in the backends/ folder.
-            This must return a tuple (n_good_events[int], n_bad_events[int]).
-            The method must take the following arguments:
-                - timestamp (int): query timestamp.
-                - window (int): query window duration.
-        backend_config (dict) (optional): Backend config.
 
     Yields:
         list: List of SLO measurement results.
     """
     slo_full_name = get_full_slo_name(slo_config)
-    if backend_method:
-        if backend_obj:
-            backend_method = getattr(backend_obj, backend_method)
-        LOGGER.info(
-            f'{slo_full_name} | Backend: {backend_method} (from kwargs).')
-    else:
-        backend_config = slo_config.get('backend', {})
-        cls = backend_config.get('class')
-        method = backend_config.get('method')
-        instance = utils.get_backend_cls(cls)(client=client, **backend_config)
-        backend_method = getattr(instance, method)
-        LOGGER.debug(f'{slo_full_name :<25} | '
-                     f'Using backend {cls}.{backend_method.__name__} (from '
-                     f'SLO config file).')
+    backend_config = slo_config.get('backend', {})
+    cls = backend_config.get('class')
+    method = backend_config.get('method')
+    instance = utils.get_backend_cls(cls)(client=client, **backend_config)
+    backend_method = getattr(instance, method)
+    LOGGER.debug(f'{slo_full_name :<25} | '
+                 f'Using backend {cls}.{backend_method.__name__} (from '
+                 f'SLO config file).')
+
+    # Delete mode activation
+    if delete and hasattr(instance, 'delete'):
+        backend_method = instance.delete
+        LOGGER.warning(f'{slo_full_name :<25} | Delete mode enabled')
 
     # Loop through steps defined in error budget policy and make measurements
     for step in error_budget_policy:
@@ -153,8 +125,12 @@ def make_reports(slo_config,
             timestamp=timestamp,
             window=step['measurement_window_seconds'],
             **slo_config)
-        report = make_measurement(slo_config, step, backend_result, timestamp)
-        yield report
+        if delete:
+            yield backend_result
+        else:
+            report = make_measurement(slo_config, step, backend_result,
+                                      timestamp)
+            yield report
 
 
 def make_measurement(slo_config, step, backend_result, timestamp):
@@ -190,8 +166,8 @@ def make_measurement(slo_config, step, backend_result, timestamp):
         if (good_event_count + bad_event_count) == 0:
             LOGGER.error(f"{info} | {step_name} | No events found.")
             return None
-        LOGGER.debug(f"{info} Good event count: {good_event_count}")
-        LOGGER.debug(f"{info} Bad event count: {bad_event_count}")
+        LOGGER.debug(f"{info} | Good event count: {good_event_count}")
+        LOGGER.debug(f"{info} | Bad event count: {bad_event_count}")
         sli = round(good_event_count / (good_event_count + bad_event_count), 6)
 
     slo_target = float(slo_config['slo_target'])
@@ -218,8 +194,8 @@ def make_measurement(slo_config, step, backend_result, timestamp):
     if error_budget_target == 0:
         error_budget_burn_rate = 0
     else:
-        error_budget_burn_rate = round(
-            error_budget_value / error_budget_target, 1)
+        error_budget_burn_rate = round(error_budget_value / error_budget_target,
+                                       1)
 
     # Alert boolean on burn rate excessive speed.
     alert = error_budget_burn_rate > alerting_burn_rate_threshold
@@ -279,5 +255,4 @@ def get_full_slo_name(slo_config):
         str: Full SLO name.
     """
     return "{}/{}/{}".format(slo_config['service_name'],
-                             slo_config['feature_name'],
-                             slo_config['slo_name'])
+                             slo_config['feature_name'], slo_config['slo_name'])
