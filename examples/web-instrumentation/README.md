@@ -1,4 +1,4 @@
-# OpenTelemetry Plugin Document Load
+# Instrumenting Web Applications End-to-End with Stackdriver and OpenTelemetry
 
 The app is something like a simple web version of Apache Bench. It includes
 JavaScript browser code that drives HTTP requests to a Node.js backend that
