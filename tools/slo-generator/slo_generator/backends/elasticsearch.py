@@ -20,14 +20,11 @@ import logging
 
 from elasticsearch import Elasticsearch
 
-from slo_generator.backends.base import MetricBackend
-
 LOGGER = logging.getLogger(__name__)
 
 
-class ElasticsearchBackend(MetricBackend):
+class ElasticsearchBackend:
     """Backend for querying metrics from ElasticSearch."""
-
     def __init__(self, **kwargs):
         self.client = kwargs.get('client')
         if self.client is None:

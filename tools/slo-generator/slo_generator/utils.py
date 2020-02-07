@@ -16,6 +16,8 @@
 Utility functions.
 """
 from datetime import datetime
+import argparse
+import collections
 import importlib
 import logging
 import os
@@ -61,7 +63,8 @@ def parse_config(path):
                     full_value = full_value.replace(f'${{{var}}}',
                                                     os.environ[var])
                 except KeyError as exception:
-                    LOGGER.error(f'Environment variable "{var}" should be set.')
+                    LOGGER.error(
+                        f'Environment variable "{var}" should be set.')
                     raise exception
             content = full_value
         return content
@@ -142,7 +145,7 @@ def get_exporter_cls(exporter):
     Returns:
         class: Exporter class.
     """
-    filename = re.sub(r'(?<!^)(?=[A-Z])', '_', backend).lower()
+    filename = re.sub(r'(?<!^)(?=[A-Z])', '_', exporter).lower()
     return import_dynamic(f'slo_generator.exporters.{filename}',
                           f'{exporter}Exporter',
                           prefix="exporter")
@@ -179,9 +182,10 @@ def dict_snake_to_caml(data):
     Returns:
         dict: Output dictionary.
     """
-    import re
-    f = lambda word: re.sub('_.', lambda x: x.group()[1].upper(), word)
-    return apply_func_dict(data, f)
+    def snake_to_caml(word):
+        return re.sub('_.', lambda x: x.group()[1].upper(), word)
+
+    return apply_func_dict(data, snake_to_caml)
 
 
 def apply_func_dict(data, func):
@@ -193,18 +197,16 @@ def apply_func_dict(data, func):
     Returns:
         dict: Output dictionary.
     """
-    import collections
     if isinstance(data, collections.Mapping):
         return {func(k): apply_func_dict(v, func) for k, v in data.items()}
-    else:
-        return data
+    return data
 
 
-def str2bool(v):
+def str2bool(string):
     """Convert a string to a boolean.
 
     Args:
-        v (str): String to convert
+        string (str): String to convert
 
     Returns:
         bool: Boolean value.
@@ -212,11 +214,11 @@ def str2bool(v):
     Raises:
         `argparse.ArgumentTypeError`: IF no acceptable boolean string is found.
     """
-    if isinstance(v, bool):
-        return v
-    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+    if isinstance(string, bool):
+        return string
+    if string.lower() in ('yes', 'true', 't', 'y', '1'):
         return True
-    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+    elif string.lower() in ('no', 'false', 'f', 'n', '0'):
         return False
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')

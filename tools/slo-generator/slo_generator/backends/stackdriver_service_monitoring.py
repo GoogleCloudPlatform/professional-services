@@ -15,43 +15,91 @@
 `stackdriver_service_monitoring.py`
 Stackdriver Service Monitoring exporter class.
 """
+import difflib
 import json
 import logging
 import pprint
-import requests
-import copy
 
 import google.api_core.exceptions
-from google.cloud.monitoring_v3 import ServiceMonitoringServiceClient, types
-from google.protobuf.json_format import MessageToJson, ParseDict
-from oauth2client.client import GoogleCredentials
+from google.cloud.monitoring_v3 import ServiceMonitoringServiceClient
+from google.protobuf.json_format import MessageToJson
 
-from slo_generator.backends.base import MetricBackend
 from slo_generator.backends.stackdriver import StackdriverBackend
 from slo_generator.utils import dict_snake_to_caml
 
 LOGGER = logging.getLogger(__name__)
 
 
-class StackdriverServiceMonitoringBackend(MetricBackend):
+class StackdriverServiceMonitoringBackend:
     """Stackdriver Service Monitoring backend class."""
-
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs):  # pylint: disable=unused-argument
         self.client = ServiceMonitoringServiceClient()
 
     def good_bad_ratio(self, timestamp, window, **slo_config):
+        """Good bad ratio method.
+
+        Args:
+            timestamp (int): UNIX timestamp.
+            window (int): Window in seconds.
+            slo_config (dict): SLO configuration.
+
+        Returns:
+            dict: SLO config.
+        """
         return self.retrieve_slo(timestamp, window, slo_config)
 
     def distribution_cut(self, timestamp, window, **slo_config):
+        """Good bad ratio method.
+
+        Args:
+            timestamp (int): UNIX timestamp.
+            window (int): Window in seconds.
+            slo_config (dict): SLO configuration.
+
+        Returns:
+            dict: SLO config.
+        """
         return self.retrieve_slo(timestamp, window, slo_config)
 
     def basic(self, timestamp, window, **slo_config):
+        """Basic method (automatic SLOs for GAE / GKE (Istio) and Cloud
+        Endpoints).
+
+        Args:
+            timestamp (int): UNIX timestamp.
+            window (int): Window in seconds.
+            slo_config (dict): SLO configuration.
+
+        Returns:
+            dict: SLO config.
+        """
         return self.retrieve_slo(timestamp, window, slo_config)
 
     def window(self, timestamp, window, **slo_config):
+        """Window-based SLI method.
+
+        Args:
+            timestamp (int): UNIX timestamp.
+            window (int): Window in seconds.
+            slo_config (dict): SLO configuration.
+
+        Returns:
+            dict: SLO config.
+        """
         return self.retrieve_slo(timestamp, window, slo_config)
 
+    # pylint: disable=unused-argument
     def delete(self, timestamp, window, **slo_config):
+        """Delete method.
+
+        Args:
+            timestamp (int): UNIX timestamp.
+            window (int): Window in seconds.
+            slo_config (dict): SLO configuration.
+
+        Returns:
+            dict: SLO config.
+        """
         return self.delete_slo(window, slo_config)
 
     def retrieve_slo(self, timestamp, window, slo_config):
@@ -117,8 +165,8 @@ class StackdriverServiceMonitoringBackend(MetricBackend):
                 good_event_count = value
         return good_event_count, bad_event_count
 
-    def compute_slo_report(self, backend, project_id, timestamp, window,
-                           filter):
+    @staticmethod
+    def compute_slo_report(backend, project_id, timestamp, window, filter):
         """Compute SLO report using Stackdriver Monitoring API queries.
 
         filter:
@@ -126,39 +174,33 @@ class StackdriverServiceMonitoringBackend(MetricBackend):
         """
         filters = {
             "select_slo_burnrate":
-                f"select_slo_burn_rate(\"{filter}\", \"86400s\")",
-            "select_slo_health":
-                f"select_slo_health(\"{filter}\")",
-            "select_slo_compliance":
-                f"select_slo_compliance(\"{filter}\")",
-            "select_slo_budget":
-                f"select_slo_budget(\"{filter}\")",
+            f"select_slo_burn_rate(\"{filter}\", \"86400s\")",
+            "select_slo_health": f"select_slo_health(\"{filter}\")",
+            "select_slo_compliance": f"select_slo_compliance(\"{filter}\")",
+            "select_slo_budget": f"select_slo_budget(\"{filter}\")",
             "select_slo_budget_fraction":
-                f"select_slo_budget_fraction(\"{filter}\")",
+            f"select_slo_budget_fraction(\"{filter}\")",
             "select_slo_budget_total":
-                f"select_slo_budget_total(\"{filter}\")",
+            f"select_slo_budget_total(\"{filter}\")",
         }
         report = {}
-        for name, filter in filters.items():
+        for name, metric_filter in filters.items():
             LOGGER.debug(f'Querying timeseries with filter "{filter}"')
-            timeseries = stackdriver.query(project_id,
-                                           timestamp,
-                                           window,
-                                           filter,
-                                           aligner='ALIGN_MEAN',
-                                           reducer='REDUCE_MEAN')
+            timeseries = backend.query(project_id,
+                                       timestamp,
+                                       window,
+                                       metric_filter,
+                                       aligner='ALIGN_MEAN',
+                                       reducer='REDUCE_MEAN')
             timeseries = list(timeseries)
-            for ts in timeseries:
-                points = ts.points
-                for p in points:
-                    report[name] = p.value.double_value
+            for timeserie in timeseries:
+                points = timeserie.points
+                for point in points:
+                    report[name] = point.value.double_value
         LOGGER.debug(pprint.pformat(report))
 
         return report
 
-    #-------------------#
-    # Service endpoints #
-    #-------------------#
     def create_service(self, slo_config):
         """Create Service object in Stackdriver Service Monitoring API.
 
@@ -219,8 +261,6 @@ class StackdriverServiceMonitoringBackend(MetricBackend):
             dict: Service JSON in Stackdriver Monitoring API.
         """
         method = slo_config['backend']['method']
-        service_name = slo_config['service_name']
-        feature_name = slo_config['feature_name']
         service_id = SSM.build_service_id(slo_config, full=False)
         display_name = slo_config.get('service_display_name', service_id)
         service = {'display_name': display_name}
@@ -248,12 +288,8 @@ class StackdriverServiceMonitoringBackend(MetricBackend):
         service_id = f'{service_name}-{feature_name}'
         if full:
             return f'projects/{project_id}/services/{service_id}'
-        else:
-            return service_id
+        return service_id
 
-    #---------------#
-    # SLO endpoints #
-    #---------------#
     def create_slo(self, window, slo_config):
         """Create SLO object in Stackdriver Service Monitoring API.
 
@@ -285,16 +321,15 @@ class StackdriverServiceMonitoringBackend(MetricBackend):
         Returns:
             dict: SLO JSON configuration.
         """
-        service_name = slo_config['service_name']
-        feature_name = slo_config['feature_name']
         measurement = slo_config['backend'].get('measurement', {})
         method = slo_config['backend']['method']
         description = slo_config['slo_description']
         target = slo_config['slo_target']
         minutes, _ = divmod(window, 60)
         hours, _ = divmod(minutes, 60)
+        display_name = f'{description} ({hours}h)'
         slo = {
-            'display_name': description,
+            'display_name': display_name,
             'goal': target,
             'rolling_period': {
                 'seconds': window
@@ -369,7 +404,6 @@ class StackdriverServiceMonitoringBackend(MetricBackend):
                 'windows_based': {
                     'window_period': window,
                     'good_bad_metric_filter': filter,
-                    # TODO: Understand and implement this
                     # 'good_total_ratio_threshold': {
                     #   object (PerformanceThreshold)
                     # },
@@ -402,18 +436,13 @@ class StackdriverServiceMonitoringBackend(MetricBackend):
             slo_id_part = slo_config['slo_id']
             slo_id = f'{slo_id_part}-{window}'
         else:
-            service_name = slo_config['service_name']
-            feature_name = slo_config['feature_name']
             slo_name = slo_config['slo_name']
             slo_id = f'{slo_name}-{window}'
         if full:
-            return f'projects/{project_id}/services/{service_id}/serviceLevelObjectives/{slo_id}'
-        else:
-            return slo_id
+            service_url = f'projects/{project_id}/services/{service_id}'
+            return f'{service_url}/serviceLevelObjectives/{slo_id}'
+        return slo_id
 
-    #--------------#
-    # SLO Endpoint #
-    #--------------#
     def get_slo(self, window, slo_config):
         """Get SLO object from Stackriver Service Monitoring API.
 
@@ -425,8 +454,6 @@ class StackdriverServiceMonitoringBackend(MetricBackend):
         Returns:
             dict: API response.
         """
-        conf = slo_config['backend']
-        project_id = conf['project_id']
         service_name = slo_config['service_name']
         service_id = SSM.build_service_id(slo_config)
         LOGGER.debug(f'Getting SLO for service "{service_name}" ...')
@@ -452,8 +479,7 @@ class StackdriverServiceMonitoringBackend(MetricBackend):
                 strict_equal = SSM.compare_slo(slo, slo_json)
                 if strict_equal:
                     return slo
-                else:
-                    return self.update_slo(window, slo_config)
+                return self.update_slo(window, slo_config)
         LOGGER.warning('No SLO found matching configuration.')
         LOGGER.debug(f'SLOs from Stackdriver Monitoring API: {slos}')
         LOGGER.debug(f'SLO config converted: {slo_json}')
@@ -473,7 +499,8 @@ class StackdriverServiceMonitoringBackend(MetricBackend):
         slo_id = SSM.build_slo_id(window, slo_config, full=True)
         LOGGER.warning(f"Updating SLO {slo_id} ...")
         slo_json['name'] = slo_id
-        return SSM.to_json(self.client.update_service_level_objective(slo_json))
+        return SSM.to_json(
+            self.client.update_service_level_objective(slo_json))
 
     @staticmethod
     def compare_slo(slo1, slo2):
@@ -504,16 +531,20 @@ class StackdriverServiceMonitoringBackend(MetricBackend):
         return local_json == remote_json
 
     @staticmethod
-    def string_diff(a, b):
-        import difflib
-        print('{} => {}'.format(a, b))
-        for i, s in enumerate(difflib.ndiff(a, b)):
-            if s[0] == ' ':
+    def string_diff(string1, string2):
+        """Diff 2 strings. Used to print comparison of JSONs for debugging.
+
+        Args:
+            string1 (str): String 1.
+            string2 (str): String 2.
+        """
+        for idx, string in enumerate(difflib.ndiff(string1, string2)):
+            if string[0] == ' ':
                 continue
-            elif s[0] == '-':
-                print(u'Delete "{}" from position {}'.format(s[-1], i))
-            elif s[0] == '+':
-                print(u'Add "{}" to position {}'.format(s[-1], i))
+            if string[0] == '-':
+                print(u'Delete "{}" from position {}'.format(string[-1], idx))
+            elif string[0] == '+':
+                print(u'Add "{}" to position {}'.format(string[-1], idx))
         print()
 
     def list_slos(self, service_id, slo_config):
@@ -544,7 +575,6 @@ class StackdriverServiceMonitoringBackend(MetricBackend):
         Returns:
             dict: API response.
         """
-        project_id = slo_config['backend']['project_id']
         slo_id = SSM.build_slo_id(window, slo_config, full=True)
         LOGGER.info(f'Deleting SLO {slo_id}')
         try:

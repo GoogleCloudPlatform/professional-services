@@ -21,19 +21,17 @@ import pprint
 import warnings
 
 from google.cloud import monitoring_v3
-from slo_generator.backends.base import MetricBackend
 
 LOGGER = logging.getLogger(__name__)
 
 
-class StackdriverBackend(MetricBackend):
+class StackdriverBackend:
     """Backend for querying metrics from Stackdriver Monitoring.
 
     Args:
         obj:`monitoring_v3.MetricServiceClient` (optional): A Stackdriver
             Monitoring client. Initialize a new client if omitted.
     """
-
     def __init__(self, client=None, **kwargs):  # pylint: disable=W0613
         self.client = client
         if client is None:
@@ -87,7 +85,8 @@ class StackdriverBackend(MetricBackend):
             bad_event_count = \
                 StackdriverBackend.count(valid_ts) - good_event_count
         else:
-            raise Exception("Oneof `filter_bad` or `filter_valid` is required.")
+            raise Exception(
+                "Oneof `filter_bad` or `filter_valid` is required.")
 
         LOGGER.debug(f'Good events: {good_event_count} | '
                      f'Bad events: {bad_event_count}')

@@ -22,14 +22,11 @@ import os
 import pprint
 from prometheus_http_client import Prometheus
 
-from slo_generator.backends.base import MetricBackend
-
 LOGGER = logging.getLogger(__name__)
 
 
-class PrometheusBackend(MetricBackend):
+class PrometheusBackend:
     """Backend for querying metrics from Prometheus."""
-
     def __init__(self, **kwargs):
         self.client = kwargs.pop('client')
         if not self.client:
