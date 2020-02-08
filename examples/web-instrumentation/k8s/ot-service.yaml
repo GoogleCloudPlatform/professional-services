@@ -56,7 +56,7 @@ spec:
     spec:
       containers:
         - name: ot-service-container
-          image: gcr.io/[your project ID]/otelcontribcol:0.0.1
+          image: gcr.io/[your project ID]/otelcontribcol:latest
           volumeMounts:
             - name: ot-service-config-vol
               readOnly: true
