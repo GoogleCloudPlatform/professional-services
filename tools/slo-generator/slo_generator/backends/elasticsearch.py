@@ -27,7 +27,6 @@ LOGGER = logging.getLogger(__name__)
 
 class ElasticsearchBackend(MetricBackend):
     """Backend for querying metrics from ElasticSearch."""
-
     def __init__(self, **kwargs):
         self.client = kwargs.get('client')
         if self.client is None:
@@ -57,9 +56,10 @@ class ElasticsearchBackend(MetricBackend):
         query_valid = kwargs['measurement'].get('query_valid')
 
         # Build ELK request bodies
-        good = ElasticsearchBackend._build_body(query_good, window, date)
-        bad = ElasticsearchBackend._build_body(query_bad, window, date)
-        valid = ElasticsearchBackend._build_body(query_valid, window, date)
+        good = ElasticsearchBackend._build_query_body(query_good, window, date)
+        bad = ElasticsearchBackend._build_query_body(query_bad, window, date)
+        valid = ElasticsearchBackend._build_query_body(query_valid, window,
+                                                       date)
 
         # Get good events count
         response = self.query(index, good)
@@ -108,7 +108,7 @@ class ElasticsearchBackend(MetricBackend):
             return 0
 
     @staticmethod
-    def _build_body(query, window, date_field='timestamp'):
+    def _build_query_body(query, window, date_field='timestamp'):
         """Add window to existing query. Replace window for different error
         budget steps on-the-fly.
 
