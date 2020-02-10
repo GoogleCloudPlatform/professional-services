@@ -30,6 +30,7 @@ class ElasticsearchBackend:
         client (elasticsearch.ElasticSearch): Existing ES client.
         es_config (dict): ES client configuration.
     """
+
     def __init__(self, client=None, **es_config):
         self.client = client
         if self.client is None:

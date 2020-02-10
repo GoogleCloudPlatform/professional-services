@@ -27,6 +27,7 @@ LOGGER = logging.getLogger(__name__)
 
 class PrometheusBackend:
     """Backend for querying metrics from Prometheus."""
+
     def __init__(self, client=None, url=None, headers=None):
         self.client = client
         if not self.client:

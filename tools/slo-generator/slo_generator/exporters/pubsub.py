@@ -21,6 +21,7 @@ from google.cloud import pubsub_v1
 
 class PubsubExporter:  # pylint: disable=too-few-public-methods
     """Pubsub exporter class."""
+
     def __init__(self):
         self.publisher = pubsub_v1.PublisherClient()
 

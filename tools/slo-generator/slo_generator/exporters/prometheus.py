@@ -29,6 +29,7 @@ DEFAULT_PUSHGATEWAY_JOB = "slo-generator"
 
 class PrometheusExporter:
     """Prometheus exporter class."""
+
     def __init__(self):
         self.username = None
         self.password = None
@@ -70,17 +71,17 @@ class PrometheusExporter:
         # Write timeseries w/ metric labels.
         labels = {
             'service_name':
-            data['service_name'],
+                data['service_name'],
             'feature_name':
-            data['feature_name'],
+                data['feature_name'],
             'slo_name':
-            data['slo_name'],
+                data['slo_name'],
             'window':
-            str(data['window']),
+                str(data['window']),
             'error_budget_policy_step_name':
-            str(data['error_budget_policy_step_name']),
+                str(data['error_budget_policy_step_name']),
             'alerting_burn_rate_threshold':
-            str(data['alerting_burn_rate_threshold']),
+                str(data['alerting_burn_rate_threshold']),
         }
         registry = CollectorRegistry()
         gauge = Gauge(metric_type,
@@ -117,5 +118,5 @@ class PrometheusExporter:
         """
         username = self.username
         password = self.password
-        return basic_auth_handler(url, method, timeout, headers, data,
-                                  username, password)
+        return basic_auth_handler(url, method, timeout, headers, data, username,
+                                  password)

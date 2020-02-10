@@ -26,6 +26,7 @@ DEFAULT_METRIC_DESCRIPTION = ("Speed at which the error budget for a given"
 
 class StackdriverExporter:
     """Stackdriver Monitoring exporter class."""
+
     def __init__(self):
         self.client = monitoring_v3.MetricServiceClient()
 

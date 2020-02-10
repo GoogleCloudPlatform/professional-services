@@ -25,6 +25,7 @@ LOGGER = logging.getLogger(__name__)
 
 class BigqueryExporter:
     """BigQuery exporter class."""
+
     def __init__(self):
         self.client = bigquery.Client(project="unset")
 
@@ -101,6 +102,7 @@ class BigQueryError(Exception):
     Args:
         errors (list): List of errors.
     """
+
     def __init__(self, errors):
         super().__init__(BigQueryError._format(errors))
         self.errors = errors
