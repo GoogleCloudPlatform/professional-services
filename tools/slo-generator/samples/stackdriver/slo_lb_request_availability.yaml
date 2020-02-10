@@ -10,13 +10,13 @@ backend:
   project_id:     ${STACKDRIVER_HOST_PROJECT_ID}
   measurement:
     filter_good:  >
-      project=${APP_PROJECT_ID}
+      project=${LB_PROJECT_ID}
       metric.type="loadbalancing.googleapis.com/https/request_count"
       resource.type="https_lb_rule"
       ( metric.label.response_code_class="200" OR
         metric.label.response_code_class="300" OR
         metric.label.response_code_class="400" )
     filter_valid: >
-      project=${APP_PROJECT_ID}
+      project=${LB_PROJECT_ID}
       metric.type="loadbalancing.googleapis.com/https/request_count"
       resource.type="https_lb_rule"
