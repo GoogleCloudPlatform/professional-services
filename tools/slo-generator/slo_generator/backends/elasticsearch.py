@@ -25,6 +25,7 @@ LOGGER = logging.getLogger(__name__)
 
 class ElasticsearchBackend:
     """Backend for querying metrics from ElasticSearch."""
+
     def __init__(self, **kwargs):
         self.client = kwargs.get('client')
         if self.client is None:
