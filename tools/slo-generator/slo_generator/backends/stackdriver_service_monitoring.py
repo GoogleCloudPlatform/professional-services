@@ -32,8 +32,10 @@ LOGGER = logging.getLogger(__name__)
 
 class StackdriverServiceMonitoringBackend:
     """Stackdriver Service Monitoring backend class."""
-    def __init__(self, **kwargs):  # pylint: disable=unused-argument
-        self.client = ServiceMonitoringServiceClient()
+    def __init__(self, client=None, **kwargs):
+        self.client = client
+        if client is None:
+            self.client = ServiceMonitoringServiceClient()
 
     def good_bad_ratio(self, timestamp, window, slo_config):
         """Good bad ratio method.
@@ -132,7 +134,7 @@ class StackdriverServiceMonitoringBackend:
         filter = f"select_slo_counts(\"{metric_filter}\")"
 
         # Query SLO timeseries
-        stackdriver = StackdriverBackend(slo_config)
+        stackdriver = StackdriverBackend()
         timeseries = stackdriver.query(project_id,
                                        timestamp,
                                        window,
