@@ -170,7 +170,7 @@ class SLOReport:
             LOGGER.warning(f'{info} | Delete mode enabled.')
 
         # Run backend method and return results.
-        result = method(self.timestamp, self.window, config)
+        result = method(self.timestamp, self.window, **config)
         LOGGER.debug(f'{info} | Backend results: {result}')
         return result
 
@@ -218,6 +218,12 @@ class SLOReport:
         """Serialize dataclass to JSON."""
         return asdict(self)
 
+    def is_empty(self):
+        """Return True if report is empty (SLI = 0 or sum of good / bad count
+        is null)."""
+        return self.sli_measurement == 0 or \
+            (self.good_events_count + self.bad_events_count) == 0
+
     def __set_fields(self, lambdas={}, **kwargs):
         """Set all fields in dataclasses from configs passed and apply function
         on values whose key match one in the dictionaries.
@@ -248,12 +254,13 @@ class SLOReport:
         """
         return f'{self.service_name}/{self.feature_name}/{self.slo_name}'
 
-    def __repr__(self):
+    def __str__(self):
         report = self.to_json()
         info = self.__get_info()
-        result_str = """Target: {slo_target * 100} % |
-                     Burnrate: {error_budget_burn_rate :<2} |
-                     Target burnrate: {alerting_burn_rate_threshold} |
-                     Alert: {alert}""".format_map(report)
-        sli_percent = round(self.sli_measurement * 100, 6)
-        LOGGER.info(f'{info} | SLI: {sli_percent} % | {result_str}')
+        slo_target_per = self.slo_target * 100
+        sli_per = round(self.sli_measurement * 100, 6)
+        result_sli_str = f'SLI: {sli_per} % | Target: {slo_target_per} %'
+        result_str = ("Burnrate: {error_budget_burn_rate:<2} | "
+                      "Target burnrate: {alerting_burn_rate_threshold} | "
+                      "Alert: {alert}").format_map(report)
+        return f'{info} | {result_sli_str} | {result_str}'

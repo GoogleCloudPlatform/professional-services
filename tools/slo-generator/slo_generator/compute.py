@@ -53,12 +53,18 @@ def compute(slo_config,
                            step=step,
                            timestamp=timestamp,
                            client=client,
-                           delete=delete).to_json()
-        LOGGER.debug(report)
-        yield report
-        reports.append(report)
+                           delete=delete)
+
+        if report.is_empty():
+            continue
+
+        LOGGER.info(report)
+        json_report = report.to_json()
+        reports.append(json_report)
+
         if exporters is not None and do_export is True:
-            export(report, exporters)
+            export(json_report, exporters)
+
     return reports
 
 
