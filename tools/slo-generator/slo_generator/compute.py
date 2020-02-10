@@ -218,8 +218,8 @@ def make_measurement(slo_config, step, backend_result, timestamp):
     if error_budget_target == 0:
         error_budget_burn_rate = 0
     else:
-        error_budget_burn_rate = round(error_budget_value / error_budget_target,
-                                       1)
+        error_budget_burn_rate = round(
+            error_budget_value / error_budget_target, 1)
 
     # Alert boolean on burn rate excessive speed.
     alert = error_budget_burn_rate > alerting_burn_rate_threshold
@@ -279,4 +279,5 @@ def get_full_slo_name(slo_config):
         str: Full SLO name.
     """
     return "{}/{}/{}".format(slo_config['service_name'],
-                             slo_config['feature_name'], slo_config['slo_name'])
+                             slo_config['feature_name'],
+                             slo_config['slo_name'])
