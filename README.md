@@ -1,5 +1,6 @@
 # msba-capstone-2020
 
 ## Contributors
-Michael Sherman (michaelsherman@google.com) <br />
+Michael Sherman (michaelsherman@google.com)
+
 Sahana Subramanian (Sahana.Subramanian@utexas.edu)
