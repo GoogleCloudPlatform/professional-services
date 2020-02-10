@@ -25,8 +25,8 @@ LOGGER = logging.getLogger(__name__)
 
 @dataclass(init=False)
 class SLOReport:
-    """SLO report. Compute an SLO report out of a backend result and a step
-    configuration.
+    """SLO report dataclass. Compute an SLO report out of an SLO config and an
+    Error Budget Policy step.
 
     Args:
         config (dict): SLO configuration.
@@ -38,32 +38,32 @@ class SLOReport:
     # pylint: disable=too-many-instance-attributes
 
     # SLO
-    service_name: float = None
-    feature_name: float = None
-    slo_name: float = None
-    slo_target: float = None
-    slo_description: float = None
-    sli_measurement: float = None
-    bad_events_count: float = None
-    good_events_count: float = None
-    gap: float = None
+    service_name: str
+    feature_name: str
+    slo_name: str
+    slo_target: float
+    slo_description: str
+    sli_measurement: float
+    bad_events_count: int
+    good_events_count: int
+    gap: float
 
     # Error budget
-    error_budget_policy_step_name: float = None
-    error_budget_target: float = None
-    error_budget_measurement: float = None
-    error_budget_burn_rate: float = None
-    error_budget_minutes: float = None
-    error_budget_remaining_minutes: float = None
-    error_minutes: float = None
+    error_budget_policy_step_name: str
+    error_budget_target: float
+    error_budget_measurement: float
+    error_budget_burn_rate: float
+    error_budget_minutes: float
+    error_budget_remaining_minutes: float
+    error_minutes: float
 
     # Error Budget step config
-    timestamp: float = None
-    timestamp_human: float = None
-    window: float = None
-    alert: float = None
-    alerting_burn_rate_threshold: float = None
-    consequence_message: float = None
+    timestamp: int
+    timestamp_human: str
+    window: int
+    alert: bool
+    alerting_burn_rate_threshold: float
+    consequence_message: str
 
     def __init__(self, config, step, timestamp, client=None, delete=False):
 
