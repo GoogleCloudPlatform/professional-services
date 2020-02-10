@@ -27,11 +27,9 @@ LOGGER = logging.getLogger(__name__)
 
 class PrometheusBackend:
     """Backend for querying metrics from Prometheus."""
-    def __init__(self, **kwargs):
-        self.client = kwargs.pop('client')
+    def __init__(self, client=None, url=None, headers=None):
+        self.client = client
         if not self.client:
-            url = kwargs.get('url')
-            headers = kwargs.get('headers')
             if url:
                 os.environ['PROMETHEUS_URL'] = url
             if headers:
@@ -40,7 +38,7 @@ class PrometheusBackend:
             LOGGER.debug(f'Prometheus headers: {headers}')
             self.client = Prometheus()
 
-    def query_sli(self, **slo_config):
+    def query_sli(self, slo_config):
         """Query SLI value from a given PromQL expression.
 
         Args:
@@ -64,7 +62,7 @@ class PrometheusBackend:
         LOGGER.debug(f"SLI value: {sli_value}")
         return sli_value
 
-    def good_bad_ratio(self, **slo_config):
+    def good_bad_ratio(self, slo_config):
         """Compute good bad ratio from two metric filters.
 
         Args:
@@ -85,17 +83,16 @@ class PrometheusBackend:
         # Replace window by its value in the error budget policy step
         expr_good = filter_good.replace('[window]', f'[{window}s]')
         res_good = self.query(expr_good)
-        good_event_count = PrometheusBackend.count(res_good)
+        good_event_count = PROM.count(res_good)
 
         if filter_bad:
             expr_bad = filter_bad.replace('[window]', f'[{window}s]')
             res_bad = self.query(expr_bad)
-            bad_event_count = PrometheusBackend.count(res_bad)
+            bad_event_count = PROM.count(res_bad)
         elif filter_valid:
             expr_valid = filter_valid.replace('[window]', f'[{window}s]')
             res_valid = self.query(expr_valid)
-            bad_event_count = \
-                PrometheusBackend.count(res_valid) - good_event_count
+            bad_event_count = PROM.count(res_valid) - good_event_count
         else:
             raise Exception("`filter_bad` or `filter_valid` is required.")
 
@@ -136,3 +133,6 @@ class PrometheusBackend:
             LOGGER.warning("Couldn't find any values in timeseries response")
             LOGGER.debug(exception)
             return 0  # no events in timeseries
+
+
+PROM = PrometheusBackend

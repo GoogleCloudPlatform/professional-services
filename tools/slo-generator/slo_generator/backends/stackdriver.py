@@ -37,18 +37,14 @@ class StackdriverBackend:
         if client is None:
             self.client = monitoring_v3.MetricServiceClient()
 
-    def good_bad_ratio(self, timestamp, window, **slo_config):
+    def good_bad_ratio(self, timestamp, window, slo_config):
         """Query two timeseries, one containing 'good' events, one containing
         'bad' events.
 
         Args:
             timestamp (int): UNIX timestamp.
             window (int): Window size (in seconds).
-            kwargs (dict): Extra arguments needed by this computation method.
-                project_id (str): GCP project id to fetch metrics from.
-                measurement (dict): Measurement config.
-                    filter_good (str): Query filter for 'good' events.
-                    filter_bad (str): Query filter for 'bad' events.
+            slo_config (dict): SLO configuration.
 
         Returns:
             tuple: A tuple (good_event_count, bad_event_count)
@@ -66,7 +62,7 @@ class StackdriverBackend:
                              window=window,
                              filter=filter_good)
         good_ts = list(good_ts)
-        good_event_count = StackdriverBackend.count(good_ts)
+        good_event_count = SD.count(good_ts)
 
         # Query 'bad events' timeseries
         if filter_bad:
@@ -75,15 +71,14 @@ class StackdriverBackend:
                                 window=window,
                                 filter=filter_bad)
             bad_ts = list(bad_ts)
-            bad_event_count = StackdriverBackend.count(bad_ts)
+            bad_event_count = SD.count(bad_ts)
         elif filter_valid:
             valid_ts = self.query(project_id=project_id,
                                   timestamp=timestamp,
                                   window=window,
                                   filter=filter_valid)
             valid_ts = list(valid_ts)
-            bad_event_count = \
-                StackdriverBackend.count(valid_ts) - good_event_count
+            bad_event_count = SD.count(valid_ts) - good_event_count
         else:
             raise Exception(
                 "Oneof `filter_bad` or `filter_valid` is required.")
@@ -93,7 +88,7 @@ class StackdriverBackend:
 
         return (good_event_count, bad_event_count)
 
-    def distribution_cut(self, timestamp, window, **slo_config):
+    def distribution_cut(self, timestamp, window, slo_config):
         """Query one timeserie of type 'exponential'.
 
         Args:
@@ -158,7 +153,7 @@ class StackdriverBackend:
 
         return (good_event_count, bad_event_count)
 
-    def exponential_distribution_cut(self, *args, **kwargs):
+    def exponential_distribution_cut(self, *args, slo_config):
         """Alias for `distribution_cut` method to allow for backwards
         compatibility.
         """
@@ -189,11 +184,11 @@ class StackdriverBackend:
         Returns:
             list: List of timeseries objects.
         """
-        measurement_window = StackdriverBackend._get_window(timestamp, window)
-        aggregation = StackdriverBackend._get_aggregation(window,
-                                                          aligner=aligner,
-                                                          reducer=reducer,
-                                                          group_by=group_by)
+        measurement_window = SD._get_window(timestamp, window)
+        aggregation = SD._get_aggregation(window,
+                                          aligner=aligner,
+                                          reducer=reducer,
+                                          group_by=group_by)
         project = self.client.project_path(project_id)
         timeseries = self.client.list_time_series(
             project, filter, measurement_window,
@@ -268,3 +263,6 @@ class StackdriverBackend:
         aggregation.group_by_fields.extend(group_by)
         LOGGER.debug(pprint.pformat(aggregation))
         return aggregation
+
+
+SD = StackdriverBackend

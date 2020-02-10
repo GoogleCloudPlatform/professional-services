@@ -170,7 +170,7 @@ class SLOReport:
             LOGGER.warning(f'{info} | Delete mode enabled.')
 
         # Run backend method and return results.
-        result = method(self.timestamp, self.window, **config)
+        result = method(self.timestamp, self.window, config)
         LOGGER.debug(f'{info} | Backend results: {result}')
         return result
 

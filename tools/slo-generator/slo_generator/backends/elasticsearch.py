@@ -24,13 +24,18 @@ LOGGER = logging.getLogger(__name__)
 
 
 class ElasticsearchBackend:
-    """Backend for querying metrics from ElasticSearch."""
-    def __init__(self, **kwargs):
+    """Backend for querying metrics from ElasticSearch.
+
+    Args:
+        client (elasticsearch.ElasticSearch): Existing ES client.
+        es_config (dict): ES client configuration.
+    """
+    def __init__(self, client=None, **es_config):
         self.client = kwargs.get('client')
         if self.client is None:
-            self.client = Elasticsearch(**kwargs)
+            self.client = Elasticsearch(**es_config)
 
-    def good_bad_ratio(self, **slo_config):
+    def good_bad_ratio(self, slo_config):
         """Query two timeseries, one containing 'good' events, one containing
         'bad' events.
 
@@ -51,23 +56,21 @@ class ElasticsearchBackend:
         query_valid = conf['measurement'].get('query_valid')
 
         # Build ELK request bodies
-        good = ElasticsearchBackend._build_query_body(query_good, window, date)
-        bad = ElasticsearchBackend._build_query_body(query_bad, window, date)
-        valid = ElasticsearchBackend._build_query_body(query_valid, window,
-                                                       date)
+        good = ES._build_query_body(query_good, window, date)
+        bad = ES._build_query_body(query_bad, window, date)
+        valid = ES._build_query_body(query_valid, window, date)
 
         # Get good events count
         response = self.query(index, good)
-        good_events_count = ElasticsearchBackend.count(response)
+        good_events_count = ES.count(response)
 
         # Get bad events count
         if query_bad is not None:
             response = self.query(index, bad)
-            bad_events_count = ElasticsearchBackend.count(response)
+            bad_events_count = ES.count(response)
         elif query_valid is not None:
             response = self.query(index, valid)
-            bad_events_count = \
-                ElasticsearchBackend.count(response) - good_events_count
+            bad_events_count = ES.count(response) - good_events_count
         else:
             raise Exception("`filter_bad` or `filter_valid` is required.")
 
@@ -133,3 +136,6 @@ class ElasticsearchBackend:
             body["query"]["bool"] = {"filter": {"range": range_query}}
 
         return body
+
+
+ES = ElasticsearchBackend

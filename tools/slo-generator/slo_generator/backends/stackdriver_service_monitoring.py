@@ -35,7 +35,7 @@ class StackdriverServiceMonitoringBackend:
     def __init__(self, **kwargs):  # pylint: disable=unused-argument
         self.client = ServiceMonitoringServiceClient()
 
-    def good_bad_ratio(self, timestamp, window, **slo_config):
+    def good_bad_ratio(self, timestamp, window, slo_config):
         """Good bad ratio method.
 
         Args:
@@ -48,7 +48,7 @@ class StackdriverServiceMonitoringBackend:
         """
         return self.retrieve_slo(timestamp, window, slo_config)
 
-    def distribution_cut(self, timestamp, window, **slo_config):
+    def distribution_cut(self, timestamp, window, slo_config):
         """Good bad ratio method.
 
         Args:
@@ -61,7 +61,7 @@ class StackdriverServiceMonitoringBackend:
         """
         return self.retrieve_slo(timestamp, window, slo_config)
 
-    def basic(self, timestamp, window, **slo_config):
+    def basic(self, timestamp, window, slo_config):
         """Basic method (automatic SLOs for GAE / GKE (Istio) and Cloud
         Endpoints).
 
@@ -75,7 +75,7 @@ class StackdriverServiceMonitoringBackend:
         """
         return self.retrieve_slo(timestamp, window, slo_config)
 
-    def window(self, timestamp, window, **slo_config):
+    def window(self, timestamp, window, slo_config):
         """Window-based SLI method.
 
         Args:
@@ -89,7 +89,7 @@ class StackdriverServiceMonitoringBackend:
         return self.retrieve_slo(timestamp, window, slo_config)
 
     # pylint: disable=unused-argument
-    def delete(self, timestamp, window, **slo_config):
+    def delete(self, timestamp, window, slo_config):
         """Delete method.
 
         Args:
@@ -132,7 +132,7 @@ class StackdriverServiceMonitoringBackend:
         filter = f"select_slo_counts(\"{metric_filter}\")"
 
         # Query SLO timeseries
-        stackdriver = StackdriverBackend(**slo_config)
+        stackdriver = StackdriverBackend(slo_config)
         timeseries = stackdriver.query(project_id,
                                        timestamp,
                                        window,
