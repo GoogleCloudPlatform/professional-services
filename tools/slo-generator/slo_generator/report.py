@@ -1,0 +1,259 @@
+# Copyright 2019 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#            http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""
+`report.py`
+Report utilities.
+"""
+
+import logging
+from dataclasses import dataclass, asdict, fields
+from slo_generator import utils
+
+LOGGER = logging.getLogger(__name__)
+
+
+@dataclass(init=False)
+class SLOReport:
+    """SLO report. Compute an SLO report out of a backend result and a step
+    configuration.
+
+    Args:
+        config (dict): SLO configuration.
+        step (dict): Error budget policy step configuration.
+        timestamp (int): Timestamp.
+        client (obj): Existing backend client.
+        delete (bool): Backend delete action.
+    """
+    # pylint: disable=too-many-instance-attributes
+
+    # SLO
+    service_name: float = None
+    feature_name: float = None
+    slo_name: float = None
+    slo_target: float = None
+    slo_description: float = None
+    sli_measurement: float = None
+    bad_events_count: float = None
+    good_events_count: float = None
+    gap: float = None
+
+    # Error budget
+    error_budget_policy_step_name: float = None
+    error_budget_target: float = None
+    error_budget_measurement: float = None
+    error_budget_burn_rate: float = None
+    error_budget_minutes: float = None
+    error_budget_remaining_minutes: float = None
+    error_minutes: float = None
+
+    # Error Budget step config
+    timestamp: float = None
+    timestamp_human: float = None
+    window: float = None
+    alert: float = None
+    alerting_burn_rate_threshold: float = None
+    consequence_message: float = None
+
+    def __init__(self, config, step, timestamp, client=None, delete=False):
+
+        # Init dataclass fields from SLO config and Error Budget Policy
+        self.__set_fields(**config,
+                          **step,
+                          lambdas={
+                              'slo_target': float,
+                              'alerting_burn_rate_threshold': int
+                          })
+
+        # Set other fields
+        self.window = int(step['measurement_window_seconds'])
+        self.timestamp = timestamp
+        self.timestamp_human = utils.get_human_time(timestamp)
+
+        # Get backend results
+        result = self.run_backend(config, client=client, delete=delete)
+
+        # Compute all other SLO report (error budget measurement, gap, etc...)
+        self.build(step, result)
+
+    def build(self, step, result):
+        """Compute all data necessary for the SLO report.
+
+        Args:
+            step (dict): Error Budget Policy step configuration.
+            result (obj): Backend result.
+
+        See https://landing.google.com/sre/workbook/chapters/implementing-slos/
+        for details on the calculations.
+        """
+        info = self.__get_info()
+        LOGGER.debug(f"{info} | SLO report starting ...")
+
+        # SLI, Good count, Bad count, Gap from backend results
+        sli, good_count, bad_count = self.get_sli(result)
+        gap = sli - self.slo_target
+
+        # Error Budget calculations
+        eb_target = 1 - self.slo_target
+        eb_value = 1 - sli
+        eb_remaining_minutes = self.window * gap / 60
+        eb_target_minutes = self.window * eb_target / 60
+        eb_minutes = self.window * eb_value / 60
+        if eb_target == 0:
+            eb_burn_rate = 0
+        else:
+            eb_burn_rate = round(eb_value / eb_target, 1)
+
+        # Alert boolean on burn rate excessive speed.
+        alert = eb_burn_rate > self.alerting_burn_rate_threshold
+
+        # Manage alerting message.
+        if alert:
+            consequence_message = step['overburned_consequence_message']
+        elif eb_burn_rate <= 1:
+            consequence_message = step['achieved_consequence_message']
+        else:
+            consequence_message = \
+                'Missed for this measurement window, but not enough to alert'
+
+        # Set fields in dataclass.
+        self.__set_fields(sli_measurement=sli,
+                          good_events_count=good_count,
+                          bad_events_count=bad_count,
+                          gap=gap,
+                          error_budget_target=eb_target,
+                          error_budget_measurement=eb_value,
+                          error_budget_burn_rate=eb_burn_rate,
+                          error_budget_remaining_minutes=eb_remaining_minutes,
+                          error_budget_minutes=eb_target_minutes,
+                          error_minutes=eb_minutes,
+                          alert=alert,
+                          consequence_message=consequence_message)
+
+    def run_backend(self, config, client=None, delete=False):
+        """Get appropriate backend method from SLO configuration and run it on
+        current SLO config and Error Budget Policy step.
+
+        Args:
+            config (dict): SLO configuration.
+            client (obj): Backend client initiated beforehand.
+            delete (bool): Set to True if we're running a delete action.
+
+        Returns:
+            obj: Backend result.
+        """
+        info = self.__get_info()
+
+        # Grab backend class and method dynamically.
+        cfg = config.get('backend', {})
+        cls = cfg.get('class')
+        method = cfg.get('method')
+        instance = utils.get_backend_cls(cls)(client=client, **cfg)
+        method = getattr(instance, method)
+        LOGGER.debug(f'{info} | '
+                     f'Using backend {cls}.{method.__name__} (from '
+                     f'SLO config file).')
+
+        # Delete mode activation.
+        if delete and hasattr(instance, 'delete'):
+            method = instance.delete
+            LOGGER.warning(f'{info} | Delete mode enabled.')
+
+        # Run backend method and return results.
+        result = method(self.timestamp, self.window, config)
+        LOGGER.debug(f'{info} | Backend results: {result}')
+        return result
+
+    def get_sli(self, result):
+        """Compute SLI value and good / bad counts from the backend result.
+
+        Some backends (e.g: Prometheus) are computing and returning the SLI
+        value directly, others are sending a tuple (good_count, bad_count) and
+        SLI value is computed from there.
+
+        Args:
+            result (obj): Backend result.
+
+        Returns:
+            tuple: A tuple of 3 values to unpack (float, int, int).
+                float: SLI value.
+                int: Good events count.
+                int: Bad events count.
+
+        Raises:
+            Exception: When the backend does not return a proper result.
+        """
+        info = self.__get_info()
+        if isinstance(result, tuple):
+            good_count, bad_count = result
+            LOGGER.debug(f"{info} | Good: {good_count} | Bad: {bad_count}")
+            if (good_count + bad_count) == 0:
+                LOGGER.error(f"{info} | No events found.")
+                return 0, 0, 0
+            sli_measurement = round(good_count / (good_count + bad_count), 6)
+
+        elif isinstance(result, (float, int)):
+            good_count, bad_count = None, None
+            sli_measurement = round(result, 6)
+
+        else:
+            msg = "Backend did not return any valid results."
+            LOGGER.error(msg)
+            LOGGER.debug(f'Backend result: {result}')
+            raise Exception(msg)
+
+        return sli_measurement, good_count, bad_count
+
+    def to_json(self):
+        """Serialize dataclass to JSON."""
+        return asdict(self)
+
+    def __set_fields(self, lambdas={}, **kwargs):
+        """Set all fields in dataclasses from configs passed and apply function
+        on values whose key match one in the dictionaries.
+
+        Args:
+            lambdas (dict): Dict {key: function} to apply a function on certain
+            kwargs (dict): Dict of key / values to set in dataclass.
+        """
+        names = set(f.name for f in fields(self))
+        for k, val in kwargs.items():
+            if k in lambdas.keys():
+                val = lambdas[k](val)
+            if k in names:
+                setattr(self, k, val)
+
+    def __get_info(self):
+        """Get info message describing current SLO andcurrent Error Budget Step.
+        """
+        slo_full_name = self.__get_slo_full_name()
+        step_name = self.error_budget_policy_step_name
+        return f"{slo_full_name :<25} | {step_name :<8}"
+
+    def __get_slo_full_name(self):
+        """Compile full SLO name from SLO configuration.
+
+        Returns:
+            str: Full SLO name.
+        """
+        return f'{self.service_name}/{self.feature_name}/{self.slo_name}'
+
+    def __repr__(self):
+        report = self.to_json()
+        info = self.__get_info()
+        result_str = """Target: {slo_target * 100} % |
+                     Burnrate: {error_budget_burn_rate :<2} |
+                     Target burnrate: {alerting_burn_rate_threshold} |
+                     Alert: {alert}""".format_map(report)
+        sli_percent = round(self.sli_measurement * 100, 6)
+        LOGGER.info(f'{info} | SLI: {sli_percent} % | {result_str}')

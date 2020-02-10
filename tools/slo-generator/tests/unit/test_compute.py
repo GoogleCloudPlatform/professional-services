@@ -20,8 +20,7 @@ import string
 import time
 from google.cloud.monitoring_v3.proto import metric_service_pb2
 from slo_generator.exporters.bigquery import BigQueryError
-from slo_generator.compute import (compute, export, make_reports,
-                                   make_measurement)
+from slo_generator.compute import (compute, export)
 
 cwd = os.path.dirname(os.path.abspath(__file__))
 
@@ -183,14 +182,6 @@ class TestCompute(unittest.TestCase):
                 export(self.data, self.exporters[2])
             self.assertEqual(len(log.output), 4)
             self.assertEqual(len(log.records), 4)
-
-    def test_make_reports(self):
-        make_reports(self.slo_config, self.error_budget_policy, self.timestamp)
-
-    def test_make_measurement(self):
-        backend_result = (self.good_event_count, self.bad_event_count)
-        make_measurement(self.slo_config, self.error_budget_policy[0],
-                         backend_result, self.timestamp)
 
 
 if __name__ == '__main__':
