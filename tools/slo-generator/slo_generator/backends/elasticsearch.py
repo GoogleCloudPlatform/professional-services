@@ -51,9 +51,10 @@ class ElasticsearchBackend:
         query_valid = conf['measurement'].get('query_valid')
 
         # Build ELK request bodies
-        good = ElasticsearchBackend._build_body(query_good, window, date)
-        bad = ElasticsearchBackend._build_body(query_bad, window, date)
-        valid = ElasticsearchBackend._build_body(query_valid, window, date)
+        good = ElasticsearchBackend._build_query_body(query_good, window, date)
+        bad = ElasticsearchBackend._build_query_body(query_bad, window, date)
+        valid = ElasticsearchBackend._build_query_body(query_valid, window,
+                                                       date)
 
         # Get good events count
         response = self.query(index, good)
@@ -102,7 +103,7 @@ class ElasticsearchBackend:
             return 0
 
     @staticmethod
-    def _build_body(query, window, date_field='timestamp'):
+    def _build_query_body(query, window, date_field='timestamp'):
         """Add window to existing query. Replace window for different error
         budget steps on-the-fly.
 
