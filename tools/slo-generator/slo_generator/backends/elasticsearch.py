@@ -31,11 +31,11 @@ class ElasticsearchBackend:
         es_config (dict): ES client configuration.
     """
     def __init__(self, client=None, **es_config):
-        self.client = kwargs.get('client')
+        self.client = client
         if self.client is None:
             self.client = Elasticsearch(**es_config)
 
-    def good_bad_ratio(self, slo_config):
+    def good_bad_ratio(self, timestamp, window, slo_config):
         """Query two timeseries, one containing 'good' events, one containing
         'bad' events.
 
@@ -48,7 +48,6 @@ class ElasticsearchBackend:
             tuple: A tuple (good_event_count, bad_event_count)
         """
         conf = slo_config['backend']
-        window = slo_config['window']
         index = conf['measurement']['index']
         date = conf['measurement'].get('date_field', 'timestamp')
         query_good = conf['measurement']['query_good']
