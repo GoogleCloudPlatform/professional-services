@@ -188,7 +188,7 @@ class StackdriverBackend(MetricBackend):
 
     @staticmethod
     def count(timeseries):
-        """Count events in time serie assuming it was aligned with ALIGN_SUM
+        """Count events in time series assuming it was aligned with ALIGN_SUM
         and reduced with REDUCE_SUM (default).
 
         Args:
