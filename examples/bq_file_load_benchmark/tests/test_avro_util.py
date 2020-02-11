@@ -8,14 +8,14 @@ import unittest
 
 from google.cloud import bigquery
 
-from bq_file_load_benchmark.benchmark_tools import avro_util
+from bq_file_load_benchmark.generic_benchmark_tools import avro_util
 
 
 class TestAvroUtil(unittest.TestCase):
-    """Tests functionality of benchmark_tools.avro_util.AvroUtil.
+    """Tests functionality of load_benchmark_tools.avro_util.AvroUtil.
 
     Attributes:
-        avro_util(benchmark_tools.AvroUtil): avro utility class to be tested.
+        avro_util(load_benchmark_tools.AvroUtil): avro utility class to be tested.
         schema_name(str): name that will be given to the test avro schema.
 
     """

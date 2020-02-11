@@ -1,0 +1,25 @@
+---
+service_name:             gae
+feature_name:             app
+slo_description:          Latency of App Engine app requests < 724ms
+slo_name:                 latency724ms
+slo_target:               0.999
+backend:
+  class:                  Stackdriver
+  method:                 exponential_distribution_cut
+  project_id:             ${STACKDRIVER_HOST_PROJECT}
+  measurement:
+    filter_valid:         >
+      project=${STACKDRIVER_METRIC_PROJECT} AND
+      metric.type="appengine.googleapis.com/http/server/response_latencies" AND
+      metric.labels.response_code >= 200 AND
+      metric.labels.response_code < 500
+    good_below_threshold: true
+    threshold_bucket:     19
+exporters:
+- class:                  Pubsub
+  project_id:             ${PUBSUB_PROJECT_ID}
+  topic_name:             ${PUBSUB_TOPIC_NAME}
+
+- class:                  Stackdriver
+  project_id:             ${PUBSUB_PROJECT_ID}
