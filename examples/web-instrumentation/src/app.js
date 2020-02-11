@@ -66,26 +66,27 @@ app.post('/data*', (req, res) => {
   if ('data' in req.body) {
     const data = req.body['data'];
     if (data) {
-      // Trace the request
-      const span = tracer.startChildSpan({name: 'process-data'});
-      // Use some CPU
-      for (let i = 0; i < 1000000; i++) {
-        // Do nothing useful
-        if (i % 1000000 === 0) {
-          console.log(`app.post ${ i }`);
+      // Add a child span
+      const span = tracer.startSpan('process-data');
+      tracer.withSpan(span, () => {
+        // Use some CPU
+        for (let i = 0; i < 1000000; i++) {
+          // Do nothing useful
+          if (i % 1000000 === 0) {
+            console.log(`app.post ${ i }`);
+          }
         }
-      }
-      if ('name' in data && 'reqId' in data && 'tSent' in data) {
-        span.addAttribute('test', data.name);
-        console.log(`tSent: ${data.tSent}, name: ${data.name}, ` +
-                    `reqId: ${data.reqId}`);
+        if ('name' in data && 'reqId' in data && 'tSent' in data) {
+          console.log(`tSent: ${data.tSent}, name: ${data.name}, ` +
+                      `reqId: ${data.reqId}`);
+          res.status(200).send(data).end();
+        } else {
+          const msg = 'Payload does not include expected fields';
+          console.log(msg);
+          sendError(msg, res);
+        }
         span.end();
-        res.status(200).send(data).end();
-      } else {
-        const msg = 'Payload does not include expected fields';
-        console.log(msg);
-        sendError(msg, res);
-      }
+      });
     } else {
       const msg = 'Data is empty';
       console.log(msg);

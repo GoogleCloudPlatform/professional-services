@@ -18,9 +18,10 @@ spec:
         image: gcr.io/[your project ID]/web-instrumentation:latest
         ports:
         - containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 8080
         env:
           - name: PORT
             value: "8080"
-          - name: GOOGLE_CLOUD_PROJECT
-            # Replace with your project ID
-            value: "[your project ID]"

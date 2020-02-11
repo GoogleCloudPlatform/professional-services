@@ -234,7 +234,7 @@ See
 [Quickstart: Build and Deploy](https://cloud.google.com/run/docs/quickstarts/build-and-deploy)
 for more on running applications on Cloud Run.
 
-Edit `k8s/deployment.yaml`, changing the project id in both places. Deploy the app
+Deploy the app
 
 ```shell
 kubectl apply -f k8s/deployment.yaml
@@ -364,9 +364,8 @@ Try the following, dendending on where you encounter problems.
 
 ### Check project id
 
-Check that you have set your project id in files `k8s/deployment.yaml`,
-`k8s/oc-agent.yaml`, `conf\ocagent-config.yaml`, and the environment variable
-`GOOGLE_CLOUD_PROJECT`.
+Check that you have set your project id in files `k8s/oc-agent.yaml`,
+`conf\ocagent-config.yaml`, and the environment variable `GOOGLE_CLOUD_PROJECT`.
 
 ### Tracing issues
 You can use zPages to see the trace data sent to the OC agent. Find the
