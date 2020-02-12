@@ -1,0 +1,47 @@
+---
+service_name:    gae
+feature_name:    app
+slo_description: Availability of App Engine app
+slo_name:        availability
+slo_target:      0.95
+backend:
+  class:         Stackdriver
+  method:        good_bad_ratio
+  project_id:    ${STACKDRIVER_HOST_PROJECT}
+  measurement:
+    filter_good: >
+      project=${STACKDRIVER_METRIC_PROJECT} AND
+      metric.type="appengine.googleapis.com/http/server/response_count" AND
+      ( metric.labels.response_code = 429 OR
+        metric.labels.response_code = 200 OR
+        metric.labels.response_code = 201 OR
+        metric.labels.response_code = 202 OR
+        metric.labels.response_code = 203 OR
+        metric.labels.response_code = 204 OR
+        metric.labels.response_code = 205 OR
+        metric.labels.response_code = 206 OR
+        metric.labels.response_code = 207 OR
+        metric.labels.response_code = 208 OR
+        metric.labels.response_code = 226 OR
+        metric.labels.response_code = 304 )
+    filter_bad:  >
+      project=${STACKDRIVER_METRIC_PROJECT} AND
+      metric.type="appengine.googleapis.com/http/server/response_count" AND
+      ( metric.labels.response_code = 500 OR
+        metric.labels.response_code = 501 OR
+        metric.labels.response_code = 502 OR
+        metric.labels.response_code = 503 OR
+        metric.labels.response_code = 504 OR
+        metric.labels.response_code = 505 OR
+        metric.labels.response_code = 506 OR
+        metric.labels.response_code = 507 OR
+        metric.labels.response_code = 508 OR
+        metric.labels.response_code = 510 OR
+        metric.labels.response_code = 511 )
+exporters:
+- class:         Pubsub
+  project_id:    ${PUBSUB_PROJECT_ID}
+  topic_name:    ${PUBSUB_TOPIC_NAME}
+
+- class:         Stackdriver
+  project_id:    ${PUBSUB_PROJECT_ID}

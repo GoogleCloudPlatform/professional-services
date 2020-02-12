@@ -15,20 +15,86 @@
 `utils.py`
 Utility functions.
 """
-
 from datetime import datetime
 import importlib
 import logging
 import os
+import re
 import sys
+
+import pytz
+import yaml
 
 LOGGER = logging.getLogger(__name__)
 
 
-def get_human_time(timestamp):
-    dt = datetime.fromtimestamp(timestamp)
+def parse_config(path):
+    """Load a yaml configuration file and resolve environment variables in it.
+
+    Args:
+        path (str): the path to the yaml file.
+
+    Returns:
+        dict: Parsed YAML dictionary.
+    """
+    # pattern for global vars: look for ${word}
+    pattern = re.compile(r'.*?\${(\w+)}.*?')
+
+    def replace_env_vars(content):
+        """Replace environment variables from content.
+
+        Args:
+            content (str): String to parse.
+
+        Returns:
+            str: the parsed string with the env var replaced.
+        """
+        match = pattern.findall(content)
+        if match:
+            full_value = content
+            for var in match:
+                try:
+                    full_value = full_value.replace(f'${{{var}}}',
+                                                    os.environ[var])
+                except KeyError as exception:
+                    LOGGER.error(f'Environment variable "{var}" should be set.')
+                    raise exception
+            content = full_value
+        return content
+
+    with open(path) as config:
+        content = config.read()
+        content = replace_env_vars(content)
+        return yaml.safe_load(content)
+
+
+def setup_logging():
+    """Setup logging for the CLI."""
+    debug = os.environ.get("DEBUG", "0")
+    print("DEBUG: %s" % debug)
+    if debug == "1":
+        level = logging.DEBUG
+    else:
+        level = logging.INFO
+    logging.basicConfig(stream=sys.stdout,
+                        level=level,
+                        format='%(name)s - %(levelname)s - %(message)s',
+                        datefmt='%m/%d/%Y %I:%M:%S')
+    logging.getLogger('googleapiclient').setLevel(logging.ERROR)
+
+
+def get_human_time(timestamp, timezone="Europe/Paris"):
+    """Get human-readable timestamp from UNIX timestamp.
+
+    Args:
+        timestamp (int): UNIX timestamp.
+
+    Returns:
+        str: Formatted timestamp in ISO format.
+    """
+    date = datetime.fromtimestamp(timestamp, pytz.timezone(timezone))
     timeformat = '%Y-%m-%dT%H:%M:%S.%fZ'
-    return datetime.strftime(dt, timeformat)
+    return datetime.strftime(date, timeformat)
 
 
 def normalize(path):
@@ -83,8 +149,10 @@ def import_dynamic(package, name, prefix="class"):
     """
     try:
         return getattr(importlib.import_module(package), name)
-    except Exception:  # pylint: disable=W0703
+    except Exception as exception:  # pylint: disable=W0703
         LOGGER.error(
-            '%s "%s.%s" not found, check the package and class name are valid.',
-            prefix.capitalize(), package, name)
+            f'{prefix.capitalize()} "{package}.{name}" not found, check '
+            f'package and class name are valid, or that importing it doesn\'t '
+            f'result in an exception.')
+        LOGGER.debug(exception)
         sys.exit(1)

@@ -17,8 +17,14 @@ Base backend class.
 """
 
 
-class Exporter(object):
+class Exporter:  # pylint: disable=too-few-public-methods
     """Abstract exporter class."""
 
-    def export(self, *args, **kwargs):
+    def export(self, data, **kwargs):
+        """Export method.
+
+        Args:
+            data (dict): Data to export.
+            kwargs (dict): Additional arguments.
+        """
         raise NotImplementedError

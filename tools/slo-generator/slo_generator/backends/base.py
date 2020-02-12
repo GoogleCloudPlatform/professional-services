@@ -17,8 +17,9 @@ Base backend class.
 """
 
 
-class MetricBackend(object):
+class MetricBackend:  # pylint: disable=too-few-public-methods
     """Abstract metric backend class."""
 
     def query(self, *args, **kwargs):
+        """Query metrics backend."""
         raise NotImplementedError

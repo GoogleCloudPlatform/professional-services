@@ -15,13 +15,12 @@
 `stackdriver.py`
 Stackdriver Monitoring backend implementation.
 """
-from slo_generator.backends.base import MetricBackend
-from google.cloud import monitoring_v3
-
 from collections import OrderedDict
 import logging
-import math
 import pprint
+
+from google.cloud import monitoring_v3
+from slo_generator.backends.base import MetricBackend
 
 LOGGER = logging.getLogger(__name__)
 
@@ -34,48 +33,10 @@ class StackdriverBackend(MetricBackend):
             Monitoring client. Initialize a new client if omitted.
     """
 
-    def __init__(self, client=None, **kwargs):
+    def __init__(self, client=None, **kwargs):  # pylint: disable=W0613
         self.client = client
         if client is None:
             self.client = monitoring_v3.MetricServiceClient()
-
-    def query(self, project_id, timestamp, window, filter):
-        """Query timeseries from Stackdriver Monitoring.
-
-        Args:
-            project_id (str): GCP project id.
-            timestamp (int): Current timestamp.
-            window (int): Window size (in seconds).
-            filter (str): Query filter.
-
-        Returns:
-            list: List of timeseries objects.
-        """
-        measurement_window = self._get_measurement_window(timestamp, window)
-        aggregation = self._get_aggregation(window)
-        project = self.client.project_path(project_id)
-        timeseries = self.client.list_time_series(
-            project, filter, measurement_window,
-            monitoring_v3.enums.ListTimeSeriesRequest.TimeSeriesView.FULL,
-            aggregation)
-        LOGGER.debug(pprint.pformat(timeseries))
-        return timeseries
-
-    def count(self, timeseries):
-        """Count events in time serie assuming it was aligned with ALIGN_SUM
-        and reduced with REDUCE_SUM (default).
-
-        Args:
-            :obj:`monitoring_v3.TimeSeries`: Timeseries object.
-
-        Returns:
-            int: Event count.
-        """
-        try:
-            return timeseries[0].points[0].value.int64_value
-        except Exception as e:
-            logging.debug(e)
-            return 0  # no events in timeseries
 
     def good_bad_ratio(self, timestamp, window, **kwargs):
         """Query two timeseries, one containing 'good' events, one containing
@@ -96,25 +57,38 @@ class StackdriverBackend(MetricBackend):
         project_id = kwargs['project_id']
         measurement = kwargs['measurement']
         filter_good = measurement['filter_good']
-        filter_bad = measurement['filter_bad']
+        filter_bad = measurement.get('filter_bad')
+        filter_valid = measurement.get('filter_valid')
 
         # Query 'good events' timeseries
         good_ts = self.query(project_id=project_id,
                              timestamp=timestamp,
                              window=window,
                              filter=filter_good)
+        good_ts = list(good_ts)
+        good_event_count = StackdriverBackend.count(good_ts)
 
         # Query 'bad events' timeseries
-        bad_ts = self.query(project_id=project_id,
-                            timestamp=timestamp,
-                            window=window,
-                            filter=filter_bad)
-        good_ts = list(good_ts)
-        bad_ts = list(bad_ts)
+        if filter_bad:
+            bad_ts = self.query(project_id=project_id,
+                                timestamp=timestamp,
+                                window=window,
+                                filter=filter_bad)
+            bad_ts = list(bad_ts)
+            bad_event_count = StackdriverBackend.count(bad_ts)
+        elif filter_valid:
+            valid_ts = self.query(project_id=project_id,
+                                  timestamp=timestamp,
+                                  window=window,
+                                  filter=filter_valid)
+            valid_ts = list(valid_ts)
+            bad_event_count = \
+                StackdriverBackend.count(valid_ts) - good_event_count
+        else:
+            raise Exception("Oneof `filter_bad` or `filter_valid` is required.")
 
-        # Count number of events
-        good_event_count = self.count(good_ts)
-        bad_event_count = self.count(bad_ts)
+        LOGGER.debug(f'Good events: {good_event_count} | '
+                     f'Bad events: {bad_event_count}')
 
         return (good_event_count, bad_event_count)
 
@@ -144,31 +118,31 @@ class StackdriverBackend(MetricBackend):
         good_below_threshold = measurement.get('good_below_threshold', True)
 
         # Query 'valid' events
-        ts = self.query(project_id=project_id,
-                        timestamp=timestamp,
-                        window=window,
-                        filter=filter_valid)
-        ts = list(ts)
+        series = self.query(project_id=project_id,
+                            timestamp=timestamp,
+                            window=window,
+                            filter=filter_valid)
+        series = list(series)
 
-        if not ts:
+        if not series:
             return (0, 0)  # no timeseries
 
-        distribution_value = ts[0].points[0].value.distribution_value
-        bucket_options = distribution_value.bucket_options
+        distribution_value = series[0].points[0].value.distribution_value
+        # bucket_options = distribution_value.bucket_options
         bucket_counts = distribution_value.bucket_counts
         valid_events_count = distribution_value.count
-        growth_factor = bucket_options.exponential_buckets.growth_factor
-        scale = bucket_options.exponential_buckets.scale
+        # growth_factor = bucket_options.exponential_buckets.growth_factor
+        # scale = bucket_options.exponential_buckets.scale
 
         # Explicit the exponential distribution result
         count_sum = 0
         distribution = OrderedDict()
         for i, bucket_count in enumerate(bucket_counts):
             count_sum += bucket_count
-            upper_bound = scale * math.pow(growth_factor, i)
+            # upper_bound = scale * math.pow(growth_factor, i)
             distribution[i] = {
-                'upper_bound': upper_bound,
-                'bucket_count': bucket_count,
+                # 'upper_bound': upper_bound,
+                # 'bucket_count': bucket_count,
                 'count_sum': count_sum
             }
         LOGGER.debug(pprint.pformat(distribution))
@@ -190,7 +164,48 @@ class StackdriverBackend(MetricBackend):
 
         return (good_event_count, bad_event_count)
 
-    def _get_measurement_window(self, timestamp, window):
+    def query(self, project_id, timestamp, window, filter):
+        """Query timeseries from Stackdriver Monitoring.
+
+        Args:
+            project_id (str): GCP project id.
+            timestamp (int): Current timestamp.
+            window (int): Window size (in seconds).
+            filter (str): Query filter.
+
+        Returns:
+            list: List of timeseries objects.
+        """
+        measurement_window = StackdriverBackend._get_window(timestamp, window)
+        aggregation = StackdriverBackend._get_aggregation(window)
+        project = self.client.project_path(project_id)
+        timeseries = self.client.list_time_series(
+            project, filter, measurement_window,
+            monitoring_v3.enums.ListTimeSeriesRequest.TimeSeriesView.FULL,
+            aggregation)
+        LOGGER.debug(pprint.pformat(timeseries))
+        return timeseries
+
+    @staticmethod
+    def count(timeseries):
+        """Count events in time series assuming it was aligned with ALIGN_SUM
+        and reduced with REDUCE_SUM (default).
+
+        Args:
+            :obj:`monitoring_v3.TimeSeries`: Timeseries object.
+
+        Returns:
+            int: Event count.
+        """
+        try:
+            return timeseries[0].points[0].value.int64_value
+        except (IndexError, AttributeError) as exception:
+            LOGGER.warning("Couldn't find any values in timeseries response")
+            LOGGER.debug(exception)
+            return 0  # no events in timeseries
+
+    @staticmethod
+    def _get_window(timestamp, window):
         """Helper for measurement window.
 
         Args:
@@ -209,10 +224,8 @@ class StackdriverBackend(MetricBackend):
         LOGGER.debug(pprint.pformat(measurement_window))
         return measurement_window
 
-    def _get_aggregation(self,
-                         window,
-                         aligner='ALIGN_SUM',
-                         reducer='REDUCE_SUM'):
+    @staticmethod
+    def _get_aggregation(window, aligner='ALIGN_SUM', reducer='REDUCE_SUM'):
         """Helper for aggregation object.
 
         Default aggregation is `ALIGN_SUM`.

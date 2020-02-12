@@ -206,9 +206,9 @@ class TestCompute(unittest.TestCase):
         make_reports(self.slo_config, self.error_budget_policy, self.timestamp)
 
     def test_make_measurement(self):
+        backend_result = (self.good_event_count, self.bad_event_count)
         make_measurement(self.slo_config, self.error_budget_policy[0],
-                         self.good_event_count, self.bad_event_count,
-                         self.timestamp)
+                         backend_result, self.timestamp)
 
 
 if __name__ == '__main__':
