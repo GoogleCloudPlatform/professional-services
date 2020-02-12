@@ -153,7 +153,7 @@ class StackdriverBackend:
 
         return (good_event_count, bad_event_count)
 
-    def exponential_distribution_cut(self, *args, slo_config):
+    def exponential_distribution_cut(self, *args, **kwargs):
         """Alias for `distribution_cut` method to allow for backwards
         compatibility.
         """
