@@ -43,9 +43,9 @@ class SLOReport:
     slo_name: str
     slo_target: float
     slo_description: str
-    sli_measurement: float
-    bad_events_count: int
-    good_events_count: int
+    sli_measurement: float = 0
+    bad_events_count: int = 0
+    good_events_count: int = 0
     gap: float
 
     # Error budget
@@ -82,9 +82,8 @@ class SLOReport:
 
         # Get backend results
         result = self.run_backend(config, client=client, delete=delete)
-
-        # Compute all other SLO report (error budget measurement, gap, etc...)
-        self.build(step, result)
+        if result:
+            self.build(step, result)
 
     def build(self, step, result):
         """Compute all data necessary for the SLO report.
@@ -92,6 +91,7 @@ class SLOReport:
         Args:
             step (dict): Error Budget Policy step configuration.
             result (obj): Backend result.
+            delete (bool, optional): Delete mode enabled.
 
         See https://landing.google.com/sre/workbook/chapters/implementing-slos/
         for details on the calculations.
