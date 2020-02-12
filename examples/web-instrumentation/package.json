@@ -17,12 +17,16 @@
     "start": "node ./src/app.js"
   },
   "dependencies": {
+    "@opentelemetry/api": "^0.4.0",
     "@opentelemetry/core": "^0.4.0",
-    "@opentelemetry/exporter-collector": "^0.3.2",
+    "@opentelemetry/exporter-collector": "^0.4.0",
     "@opentelemetry/exporter-stackdriver-trace": "^0.4.0",
     "@opentelemetry/node": "^0.4.0",
     "@opentelemetry/plugin-http": "^0.4.0",
+    "@opentelemetry/tracing": "^0.4.0",
     "body-parser": "^1.19.0",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-plugin-import": "^2.20.1",
     "express": "^4.16.3"
   },
   "devDependencies": {

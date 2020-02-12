@@ -4,14 +4,12 @@
   "description": "Following https://webpack.js.org/guides/getting-started/",
   "private": true,
   "scripts": {
-    "prebuild": "npx eslint -c .eslintrc.js 'src/**/*.js' --fix",
+    "lint": "npx eslint -c .eslintrc.js 'src/**/*.js' --fix",
     "build": "webpack"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "eslint": "^6.8.0",
-    "eslint-config-google": "^0.14.0",
     "webpack": "^4.41.2",
     "webpack-cli": "^3.3.10"
   },
@@ -20,6 +18,8 @@
     "@opentelemetry/plugin-document-load": "^0.4.0",
     "@opentelemetry/plugin-xml-http-request": "^0.4.0",
     "@opentelemetry/scope-zone": "^0.4.0",
+    "@opentelemetry/tracing": "^0.4.0",
+    "@opentelemetry/web": "^0.4.0",
     "rxjs": "^6.5.3"
   }
 }

@@ -81,46 +81,20 @@ docker push gcr.io/$GOOGLE_CLOUD_PROJECT/otelcontribcol
 
 If you are running on GKE only, you do do not need to do this step.
 For running locally, the OpenTelemetry collector needs permissions and
-credentials to write to Stackdriver. You will still be able to run the test app
-without a local agent but it enables collection of spans from the web client. 
+credentials to write to Stackdriver.
 
-First create a service account
-
-```shell
-SA_ACCOUNT=web-instrumentation-sa
-gcloud iam service-accounts create $SA_ACCOUNT \
-    --description "Web instrumentation development service account" \
-    --display-name "web-instrumentation-app"
-```    
-
-Next, add a role to the service account to write to Stackdriver trace
+Obtain user access credentials and store them for Application Default
+Credentials
 
 ```shell
-MEMBER=$SA_ACCOUNT@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com
-gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
-    --member serviceAccount:$MEMBER \
-    --role roles/cloudtrace.agent
+gcloud auth application-default login \
+  --scopes="https://www.googleapis.com/auth/trace.append"
 ```
-
-Then create a credentials key.
-
-```shell
-gcloud iam service-accounts keys create credentials.json \
-  --iam-account $MEMBER
-```
-
-Keep the key safe and delete it when you are done.
-
-See the instructions at
-[Getting Started with Authentication](https://cloud.google.com/docs/authentication/getting-started)
-to get a more full description of how to create a credentials key.
 
 Install Go and run **This bit is not working for OT**
 
 ```shell
 make otelcontribcol
-export GOOGLE_APPLICATION_CREDENTIALS=$WI_HOME/credentials.json
-export GOOGLE_CLOUD_PROJECT=[your project]
 bin/linux/otelcontribcol --config=$WI_HOME/conf/otservice-config.yaml
 ```
 
@@ -161,14 +135,6 @@ Install the server dependencies
 
 ```shell
 npm install
-```
-
-Make the environment variables are available in this terminal (as well as the
-terminal tha the OpenCensus agent is running in)
-
-```shell
-export GOOGLE_CLOUD_PROJECT=[project id]
-export GOOGLE_APPLICATION_CREDENTIALS=credentials.json 
 ```
 
 To run the app locally type
@@ -275,8 +241,8 @@ Create a BQ dataset for the container logs
 
 ```shell
 bq --location=US mk -d \
---description "Web instrumentation container log exports" \
-web_instr_container
+  --description "Web instrumentation container log exports" \
+  web_instr_container
 ```
 
 Create a log export for the container logs 
@@ -296,7 +262,7 @@ gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
     --role roles/bigquery.dataEditor
 ```
 
-Repeat for load balancer logs. Create a BQ dataset 
+Create a BQ dataset 
 
 ```shell
 bq --location=US mk -d \
@@ -304,7 +270,7 @@ bq --location=US mk -d \
 web_instr_load_balancer
 ```
 
-Create a log export for the container logs 
+Repeat for load balancer logs
 
 ```shell
 gcloud logging sinks create web-instr-load-balancer-logs \

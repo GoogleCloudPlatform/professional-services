@@ -1,4 +1,4 @@
-'use strict';
+
 // Copyright 2020 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +24,7 @@ export class TestSummary {
    * @param {Observable} observable - To subscribe to for updates
    * @return {Observable} The observable subscribed to
    */
-  display(name, iterations, observable) {
+  static display(name, iterations, observable) {
     const summaryDiv = document.getElementById('summaryDiv');
     const testStatusP = document.getElementById('testStatusP');
     const testNameP = document.getElementById('testNameP');
@@ -49,7 +49,7 @@ export class TestSummary {
       next(results) {
         console.log(`TestSummary: numSent ${results.numSent}`);
         if (testStatusP) {
-          testStatusP.textContent = `Test status: running`;
+          testStatusP.textContent = 'Test status: running';
         }
         if (numSentP) {
           numSentP.textContent = `Number sent: ${results.numSent}`;

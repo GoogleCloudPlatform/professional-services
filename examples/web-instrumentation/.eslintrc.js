@@ -1,8 +1,4 @@
 module.exports = {
-  'env': {
-    'browser': true,
-    'es6': true,
-  },
   'extends': [
     'airbnb-base',
   ],
@@ -11,7 +7,6 @@ module.exports = {
     'SharedArrayBuffer': 'readonly',
   },
   'parserOptions': {
-    'ecmaVersion': 2018,
     'sourceType': 'module'
   },
   'rules': {
@@ -19,6 +14,7 @@ module.exports = {
     'no-use-before-define': ['error', 'nofunc'],
     'no-console': 'off',
     'import/no-unresolved': 'off',
+    'import/order': 'off',
     'import/prefer-default-export': 'off',
     'no-unused-vars': ['error', { 'argsIgnorePattern': '^_' }]
   },

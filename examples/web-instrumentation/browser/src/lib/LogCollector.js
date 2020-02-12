@@ -1,4 +1,4 @@
-'use strict';
+
 // Copyright 2020 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,9 +13,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {of} from 'rxjs';
-import {ajax} from 'rxjs/ajax';
-import {catchError, map} from 'rxjs/operators';
+import { of } from 'rxjs';
+import { ajax } from 'rxjs/ajax';
+import { catchError, map } from 'rxjs/operators';
 
 /**
  * Class to collect log and error messages into buffers which are sent to the
@@ -34,11 +34,11 @@ export class LogCollector {
     // Listen for global errors
     window.onerror = (msg, url, lineNo, columnNo, error) => {
       if (error && error.stack) {
-        this.errors.push(`Uncaught error: ${msg} in url ` +
-                         `${url}\n${error.stack}`);
+        this.errors.push(`Uncaught error: ${msg} in url `
+                         + `${url}\n${error.stack}`);
       } else {
-        this.errors.push(`Uncaught error: ${msg}\n url ${url}\n Line: ` +
-                         `${lineNo}`);
+        this.errors.push(`Uncaught error: ${msg}\n url ${url}\n Line: `
+                         + `${lineNo}`);
       }
     };
   }
@@ -77,13 +77,13 @@ export class LogCollector {
     console.log(`LogCollector: Starting replication: ${interval} ms intervals`);
     const flushLogs = () => {
       const statusDiv = document.getElementById('logStatus');
-      if (this.logs && this.logs.length > 0 ||
-          this.errors && this.errors.length > 0) {
+      if ((this.logs && this.logs.length) > 0
+          || (this.errors && this.errors.length) > 0) {
         console.log(`Flushing ${this.logs.length} logs`);
         if (statusDiv) {
           statusDiv.textContent = 'Status: flushing logs';
         }
-        const payload = {logs: this.logs, errors: this.errors};
+        const payload = { logs: this.logs, errors: this.errors };
         const obs = ajax({
           body: JSON.stringify(payload),
           headers: {
@@ -92,38 +92,36 @@ export class LogCollector {
           method: 'POST',
           url: '/log',
         }).pipe(
-            map((response) => {
-              if (statusDiv) {
-                const lNum = this.logs.length;
-                const eNum = this.errors.length;
-                const message = `Status: flushed ${lNum} logs and ` +
-                                `${eNum} errors`;
-                statusDiv.textContent = message;
-              }
-            }),
-            catchError((error) => {
-              console.error('error: ', error);
-              if (statusDiv) {
-                statusDiv.textContent = `Status: error flushing logs: ${error}`;
-              }
-              return of(error);
-            }),
+          map(() => {
+            if (statusDiv) {
+              const lNum = this.logs.length;
+              const eNum = this.errors.length;
+              const message = `Status: flushed ${lNum} logs and `
+                                + `${eNum} errors`;
+              statusDiv.textContent = message;
+            }
+          }),
+          catchError((error) => {
+            console.error('error: ', error);
+            if (statusDiv) {
+              statusDiv.textContent = `Status: error flushing logs: ${error}`;
+            }
+            return of(error);
+          }),
         );
         obs.subscribe(
-            (val) => {
-              while (this.logs.pop()) {
-                // empty the logs buffer
-              }
-              while (this.errors.pop()) {
-                // empty the errors buffer
-              }
-            },
-            (err) => console.error(`Flush error ${ err }`),
+          () => {
+            while (this.logs.pop()) {
+              // empty the logs buffer
+            }
+            while (this.errors.pop()) {
+              // empty the errors buffer
+            }
+          },
+          (err) => console.error(`Flush error ${err}`),
         );
-      } else {
-        if (statusDiv) {
-          statusDiv.textContent = 'Status: no logs or errors to flush';
-        }
+      } else if (statusDiv) {
+        statusDiv.textContent = 'Status: no logs or errors to flush';
       }
     };
     setInterval(flushLogs, interval);

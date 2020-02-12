@@ -1,4 +1,4 @@
-'use strict';
+
 // Copyright 2020 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +23,7 @@ export class TestPayload {
    */
   constructor(name) {
     this.name = name;
-    this.reqId = this.newRequestId();
+    this.reqId = TestPayload.newRequestId();
     this.tSent = performance.now();
   }
 
@@ -31,7 +31,7 @@ export class TestPayload {
    * Create a new request id.
    * @return {number} A random number
    */
-  newRequestId() {
+  static newRequestId() {
     return Math.floor(Math.random() * Math.floor(1000000000000));
   }
 }

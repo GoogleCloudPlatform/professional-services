@@ -2,7 +2,7 @@ const path = require('path');
 const webpack = require('webpack');
 
 module.exports = {
-  mode: 'development',
+  mode: 'production',
   entry: ['./src/index.js',
     './src/lib/LogCollector.js',
     './src/lib/LogCollectorBuilder.js',

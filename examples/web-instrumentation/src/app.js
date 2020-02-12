@@ -1,4 +1,3 @@
-'use strict';
 
 // Copyright 2020 Google LLC
 //
@@ -20,6 +19,7 @@
  */
 const LogSink = require('./LogSink');
 const appTracing = require('./tracing');
+
 const tracer = appTracing.initTracing();
 const express = require('express');
 
@@ -27,9 +27,6 @@ const express = require('express');
 const app = express();
 app.use(express.static('dist'));
 app.use(express.json());
-
-// Initialize log collector
-const logSink = new LogSink();
 
 // For health checks
 app.get('/healthcheck', (req, res) => {
@@ -39,9 +36,9 @@ app.get('/healthcheck', (req, res) => {
 // Accept log and error messages
 app.post('/log', (req, res) => {
   if ('logs' in req.body) {
-    const logs = req.body['logs'];
+    const { logs } = req.body;
     if (logs && logs instanceof Array) {
-      logSink.sync(logs);
+      LogSink.sync(logs);
     } else {
       sendError(`Body is empty or has wrong type: ${logs}`, res);
     }
@@ -49,9 +46,9 @@ app.post('/log', (req, res) => {
     sendError('Logs not found in body', res);
   }
   if ('errors' in req.body) {
-    const errors = req.body['errors'];
+    const { errors } = req.body;
     if (errors && errors instanceof Array) {
-      logSink.sync(errors);
+      LogSink.sync(errors);
     } else {
       sendError(`Body is empty or has wrong type: ${errors}`, res);
     }
@@ -64,21 +61,21 @@ app.post('/log', (req, res) => {
 // Load test target
 app.post('/data*', (req, res) => {
   if ('data' in req.body) {
-    const data = req.body['data'];
+    const { data } = req.body;
     if (data) {
       // Add a child span
       const span = tracer.startSpan('process-data');
       tracer.withSpan(span, () => {
         // Use some CPU
-        for (let i = 0; i < 1000000; i++) {
+        for (let i = 0; i < 1000000; i += 1) {
           // Do nothing useful
           if (i % 1000000 === 0) {
-            console.log(`app.post ${ i }`);
+            console.log(`app.post ${i}`);
           }
         }
         if ('name' in data && 'reqId' in data && 'tSent' in data) {
-          console.log(`tSent: ${data.tSent}, name: ${data.name}, ` +
-                      `reqId: ${data.reqId}`);
+          console.log(`tSent: ${data.tSent}, name: ${data.name}, `
+                      + `reqId: ${data.reqId}`);
           res.status(200).send(data).end();
         } else {
           const msg = 'Payload does not include expected fields';

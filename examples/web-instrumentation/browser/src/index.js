@@ -1,4 +1,4 @@
-'use strict';
+
 // Copyright 2020 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,13 +18,14 @@
  * tracing configured.
  */
 
-import {CollectorExporter} from '@opentelemetry/exporter-collector';
-import {SimpleSpanProcessor} from '@opentelemetry/tracing';
-import {DocumentLoad} from '@opentelemetry/plugin-document-load';
-import {WebTracerProvider} from '@opentelemetry/web';
-import {TestApp} from './TestApp';
+import { CollectorExporter } from '@opentelemetry/exporter-collector';
+import { SimpleSpanProcessor } from '@opentelemetry/tracing';
+import { DocumentLoad } from '@opentelemetry/plugin-document-load';
+import { WebTracerProvider } from '@opentelemetry/web';
+import { TestApp } from './TestApp';
 
-console.log(`App version: ${ __VERSION__ }`);
+/* global __VERSION__ */
+console.log(`App version: ${__VERSION__}`);
 
 // Edit this to point to your OpenCensus agent address:
 // If running locally use http://localhost:55678/v1/trace
@@ -42,4 +43,5 @@ const collectorOptions = {
 const exporter = new CollectorExporter(collectorOptions);
 webTracer.addSpanProcessor(new SimpleSpanProcessor(exporter));
 
-new TestApp(collectorURL);
+const testApp = new TestApp(collectorURL);
+testApp.setup();

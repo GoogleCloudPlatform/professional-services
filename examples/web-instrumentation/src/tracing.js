@@ -1,4 +1,3 @@
-'use strict';
 
 // Copyright 2020 Google LLC
 //
@@ -17,8 +16,8 @@
 const opentelemetry = require('@opentelemetry/api');
 const { StackdriverTraceExporter } = require('@opentelemetry/exporter-stackdriver-trace');
 const { LogLevel } = require('@opentelemetry/core');
-const { NodeTracerProvider } = require("@opentelemetry/node");
-const { BatchSpanProcessor } = require("@opentelemetry/tracing");
+const { NodeTracerProvider } = require('@opentelemetry/node');
+const { BatchSpanProcessor } = require('@opentelemetry/tracing');
 
 /**
  * Initialize tracing
@@ -26,12 +25,12 @@ const { BatchSpanProcessor } = require("@opentelemetry/tracing");
  */
 module.exports.initTracing = () => {
   const provider = new NodeTracerProvider({
-    logLevel: LogLevel.ERROR
+    logLevel: LogLevel.ERROR,
   });
   opentelemetry.trace.initGlobalTracerProvider(provider);
   const tracer = opentelemetry.trace.getTracer('default');
   provider.addSpanProcessor(new BatchSpanProcessor(getExporter()));
-  console.log("initTracing: done");
+  console.log('initTracing: done');
   return tracer;
 };
 
@@ -41,7 +40,6 @@ function getExporter() {
     console.log('Proceed without a keyFileName (will only work on GCP)');
     return new StackdriverTraceExporter({});
   }
-  console.log("Using GOOGLE_APPLICATION_CREDENTIALS");
-  return new StackdriverTraceExporter({
-    keyFileName: keyFileName});
+  console.log('Using GOOGLE_APPLICATION_CREDENTIALS');
+  return new StackdriverTraceExporter({ keyFileName });
 }

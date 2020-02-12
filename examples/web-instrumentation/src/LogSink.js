@@ -1,4 +1,3 @@
-'use strict';
 
 // Copyright 2020 Google LLC
 //
@@ -39,11 +38,11 @@ module.exports = class LogSink {
    * @param {string[]} messages - log messages
    * @return {number} The number of messages written
    */
-  sync(messages) {
+  static sync(messages) {
     let num = 0;
-    messages.forEach( (msg) => {
+    messages.forEach((msg) => {
       console.log(msg);
-      num++;
+      num += 1;
     });
     return num;
   }

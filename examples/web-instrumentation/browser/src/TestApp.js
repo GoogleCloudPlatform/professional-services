@@ -1,4 +1,4 @@
-'use strict';
+
 // Copyright 2020 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,9 +13,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {fromEvent} from 'rxjs';
-import {LoadTest} from './LoadTest';
-import {TestSummary} from './TestSummary';
+import { fromEvent } from 'rxjs';
+import { LoadTest } from './LoadTest';
+import { TestSummary } from './TestSummary';
 
 /**
  * Class encapsulating the test application.
@@ -26,7 +26,13 @@ export class TestApp {
    * @param {string} collectorURL - The URL of the OpenCensus agent
    */
   constructor(collectorURL) {
-    const testSummary = new TestSummary();
+    this.collectorURL = collectorURL;
+  }
+
+  /**
+   * Display the test form ready for the user to run
+   */
+  setup() {
     // Handle events for the name form
     const testForm = document.getElementById('testForm');
     const nameTF = document.getElementById('nameTF');
@@ -34,14 +40,14 @@ export class TestApp {
     const delayTF = document.getElementById('delayTF');
     if (testForm) {
       const events = fromEvent(testForm, 'submit');
-      events.subscribe( (event) => {
+      events.subscribe((event) => {
         event.preventDefault();
         const name = nameTF.value;
         const iterations = Number(numIterTF.value);
         const delay = Number(delayTF.value);
-        const test = new LoadTest(name, iterations, delay, collectorURL);
+        const test = new LoadTest(name, iterations, delay, this.collectorURL);
         const observable = test.runTest();
-        testSummary.display(name, iterations, observable);
+        TestSummary.display(name, iterations, observable);
         return false;
       });
     }

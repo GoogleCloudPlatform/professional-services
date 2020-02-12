@@ -1,4 +1,4 @@
-'use strict';
+
 // Copyright 2020 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,16 +13,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Observable} from 'rxjs';
-import {ajax} from 'rxjs/ajax';
-import {LogCollectorBuilder} from './lib/LogCollectorBuilder';
-import {TestPayload} from './TestPayload';
-import {TestResults} from './TestResults';
-import {CollectorExporter} from '@opentelemetry/exporter-collector';
-import {SimpleSpanProcessor} from '@opentelemetry/tracing';
-import {XMLHttpRequestPlugin} from '@opentelemetry/plugin-xml-http-request';
-import {ZoneScopeManager} from '@opentelemetry/scope-zone';
-import {WebTracerProvider} from '@opentelemetry/web';
+import { Observable } from 'rxjs';
+import { ajax } from 'rxjs/ajax';
+import { CollectorExporter } from '@opentelemetry/exporter-collector';
+import { BatchSpanProcessor } from '@opentelemetry/tracing';
+import { XMLHttpRequestPlugin } from '@opentelemetry/plugin-xml-http-request';
+import { ZoneScopeManager } from '@opentelemetry/scope-zone';
+import { WebTracerProvider } from '@opentelemetry/web';
+import { TestResults } from './TestResults';
+import { TestPayload } from './TestPayload';
+import { LogCollectorBuilder } from './lib/LogCollectorBuilder';
 
 /**
  * Class to run a load test and track reuqests.
@@ -47,7 +47,6 @@ export class LoadTest {
     this.logCollector = builder.makeLogCollector();
     this.logCollector.start(2000);
     const webTracerWithZone = new WebTracerProvider({
-      // defaultAttributes: {'version': __VERSION__, 'test': name},
       scopeManager: new ZoneScopeManager(),
       plugins: [
         new XMLHttpRequestPlugin({
@@ -59,7 +58,7 @@ export class LoadTest {
       url: collectorURL,
     };
     const exporter = new CollectorExporter(collectorOptions);
-    webTracerWithZone.addSpanProcessor(new SimpleSpanProcessor(exporter));
+    webTracerWithZone.addSpanProcessor(new BatchSpanProcessor(exporter));
   }
 
   /**
@@ -71,14 +70,14 @@ export class LoadTest {
    */
   runTest() {
     let runDelay = 0.0;
-    for (let i = 0; i < this.targetIter; i++) {
+    for (let i = 0; i < this.targetIter; i += 1) {
       runDelay += this.delay;
       setTimeout(() => {
         const data = new TestPayload(this.name);
         this.sendData(data);
       }, runDelay);
     }
-    return new Observable( (subscriber) => {
+    return new Observable((subscriber) => {
       setInterval(() => {
         const results = this.getResults();
         subscriber.next(results);
@@ -96,9 +95,9 @@ export class LoadTest {
    */
   getResults() {
     return new TestResults(
-        this.numSent,
-        this.numSuccess,
-        this.numFail,
+      this.numSent,
+      this.numSuccess,
+      this.numFail,
     );
   }
 
@@ -107,14 +106,15 @@ export class LoadTest {
    * @param {object} payload - The data to send
    */
   sendData(payload) {
-    const data = {name: payload.name,
+    const data = {
+      name: payload.name,
       reqId: payload.reqId,
-      tSent: payload.tSent};
-    this.numSent++;
-    let urlStr = '/data';
-    urlStr = `/data/${payload.reqId}`;
+      tSent: payload.tSent,
+    };
+    this.numSent += 1;
+    const urlStr = `/data/${payload.reqId}`;
     const obs = ajax({
-      body: JSON.stringify({data}),
+      body: JSON.stringify({ data }),
       headers: {
         'Content-Type': 'application/json',
       },
@@ -122,27 +122,27 @@ export class LoadTest {
       url: urlStr,
     });
     obs.subscribe(
-        (val) => {
-          const resp = val.response;
-          this.numSuccess++;
-          if (this.numSuccess % 100 === 0) {
-            this.logCollector.log(`Num success: ${ this.numSuccess }`);
-          }
-          if (resp instanceof Object && 'tSent' in resp && 'name' in resp &&
-            'reqId' in resp) {
-            const latency = performance.now() - resp.tSent;
-            this.logCollector.log(`LoadTest: latency: ${latency}, ` +
-                                  `${resp.name}, reqId: ${resp.reqId}`);
-          } else {
-            this.logCollector.log('LoadTest: Payload does not include ' +
-                                   'expected fields');
-          }
-        },
-        (err) => {
-          this.numFail++;
-          this.logCollector.error(`Error sending data ${ err }`);
-          this.logCollector.log(`Num failures: ${ this.numFail }`);
-        },
+      (val) => {
+        const resp = val.response;
+        this.numSuccess += 1;
+        if (this.numSuccess % 100 === 0) {
+          this.logCollector.log(`Num success: ${this.numSuccess}`);
+        }
+        if (resp instanceof Object && 'tSent' in resp && 'name' in resp
+            && 'reqId' in resp) {
+          const latency = performance.now() - resp.tSent;
+          this.logCollector.log(`LoadTest: latency: ${latency}, `
+                                  + `${resp.name}, reqId: ${resp.reqId}`);
+        } else {
+          this.logCollector.log('LoadTest: Payload does not include '
+                                   + 'expected fields');
+        }
+      },
+      (err) => {
+        this.numFail += 1;
+        this.logCollector.error(`Error sending data ${err}`);
+        this.logCollector.log(`Num failures: ${this.numFail}`);
+      },
     );
   }
 }
