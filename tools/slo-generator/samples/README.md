@@ -1,15 +1,16 @@
-# Samples
+# SLO Library
 
-Library of SLOs samples to facilitate writing new SLOs by starting from already
-written SLO configurations.
+This folder is an SLO library to facilitate writing new SLOs by starting from
+already written SLO configurations.
 
 All samples are classified into a folder named after their respective backend
 or exporter class.
 
-Each sample contains environmental variables that you should be set prior to
-running the samples.
+Each sample contains environmental variables that should be set prior to
+running it.
 
 ## Environmental variables
+
 The following is listing all environmental variables found in the SLO configs:
 
 **Common:**
@@ -21,6 +22,7 @@ The following is listing all environmental variables found in the SLO configs:
 
 `stackdriver/` and `stackdriver_service_monitoring/`:
   - `STACKDRIVER_HOST_PROJECT_ID`: Stackdriver host project id.
+  - `STACKDRIVER_LOG_METRIC_NAME`: Stackdriver log-based metric name.
 
 `elasticsearch/`:
   - `ELASTICSEARCH_URL`: ElasticSearch instance URL.
@@ -29,21 +31,32 @@ The following is listing all environmental variables found in the SLO configs:
   - `PROMETHEUS_URL`: Prometheus instance URL.
   - `PROMETHEUS_PUSHGATEWAY_URL`: Prometheus Pushgateway instance URL.
 
+You can either set those variables for the backends you want to try, or set all
+of those in an `.env` file and then `source` it. Note that the actual GCP resources
+you're pointing to need to exist.
+
 ## Running the samples
 
-To run the samples for a backend, set the appropriate environmental variables
-for that backend, then from the root of the repository, run:
+To run one sample:
+```
+slo-generator -f samples/stackdriver/<filename>.yaml
+```
+
+To run all the samples for a backend:
 
 ```
 slo-generator -f samples/<backend> -b samples/<error_budget_policy>
 ```
-
-where:
+*where:*
 * `<backend>` is the backend name (lowercase)
 * `<error_budget_policy>` is the path to the error budget policy YAML file.
 
+***Note:*** *if you want to enable the exporters as well, you can add the 
+`--export` flag.*
+
 
 ### Examples
+
 ##### Stackdriver
 ```
 slo-generator -f samples/stackdriver -b error_budget_policy.yaml
