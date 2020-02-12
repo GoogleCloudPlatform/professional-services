@@ -324,6 +324,9 @@ ORDER BY timestamp DESC
 LIMIT 10'
 ```
 
+There are more queries in the Colab sheet
+[load_test_analysis.ipynb](load_test_analysis.ipynb).
+
 ## Troubleshooting
 
 Try the following, dendending on where you encounter problems.
