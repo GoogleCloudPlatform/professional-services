@@ -10,10 +10,13 @@ backend:
   project_id:             ${STACKDRIVER_HOST_PROJECT_ID}
   measurement:
     filter_valid:         >
-      project=${APP_PROJECT_ID}
+      project=${GAE_PROJECT_ID}
       metric.type="appengine.googleapis.com/http/server/response_latencies"
       resource.type="gae_app"
       metric.labels.response_code >= 200
       metric.labels.response_code < 500
     good_below_threshold: true
     threshold_bucket:     19
+exporters:
+- class:                  Stackdriver
+  project_id:             ${STACKDRIVER_HOST_PROJECT_ID}

@@ -1,0 +1,16 @@
+---
+service_name:          gae
+feature_name:          app
+slo_description:       Availability of App Engine app
+slo_name:              availability
+slo_target:            0.98
+backend:
+  class:               StackdriverServiceMonitoring
+  method:              basic
+  project_id:          ${STACKDRIVER_HOST_PROJECT_ID}
+  mesh_istio:
+    mesh_uid:          ${GKE_MESH_UID}
+    service_namespace: ${GKE_SERVICE_NAMESPACE}
+    service_name:      ${GKE_SERVICE_NAME}
+  measurement:
+    availability:      {}

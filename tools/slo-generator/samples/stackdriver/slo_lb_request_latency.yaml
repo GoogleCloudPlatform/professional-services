@@ -1,9 +1,9 @@
 ---
 service_name:             lb
 feature_name:             request
-slo_description:          Latency of HTTP Load Balancer < 64ms
-slo_name:                 latency64ms
-slo_target:               0.50
+slo_description:          Latency of HTTP Load Balancer < 724ms
+slo_name:                 latency724ms
+slo_target:               0.98
 backend:
   class:                  Stackdriver
   method:                 distribution_cut
@@ -17,4 +17,7 @@ backend:
         metric.label.response_code_class="300" OR
         metric.label.response_code_class="400" )
     good_below_threshold: true
-    threshold_bucket:     12
+    threshold_bucket:     19
+exporters:
+- class:                  Stackdriver
+  project_id:             ${STACKDRIVER_HOST_PROJECT_ID}

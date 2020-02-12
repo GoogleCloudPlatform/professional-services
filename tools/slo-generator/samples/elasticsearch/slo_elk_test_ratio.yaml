@@ -6,7 +6,7 @@ slo_name:        latency64ms
 slo_target:      1
 backend:
   class:         Elasticsearch
-  url:           http://localhost:9200
+  url:           ${ELASTICSEARCH_URL}
   method:        good_bad_ratio
   measurement:
     index:       test_data

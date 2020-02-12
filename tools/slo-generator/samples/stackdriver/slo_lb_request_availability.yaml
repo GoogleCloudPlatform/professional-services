@@ -20,3 +20,6 @@ backend:
       project=${LB_PROJECT_ID}
       metric.type="loadbalancing.googleapis.com/https/request_count"
       resource.type="https_lb_rule"
+exporters:
+- class:          Stackdriver
+  project_id:     ${STACKDRIVER_HOST_PROJECT_ID}

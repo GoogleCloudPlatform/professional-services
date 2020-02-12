@@ -10,7 +10,7 @@ backend:
   project_id:     ${STACKDRIVER_HOST_PROJECT_ID}
   measurement:
     filter_good:  >
-      project=${APP_PROJECT_ID}
+      project=${GAE_PROJECT_ID}
       metric.type="appengine.googleapis.com/http/server/response_count"
       resource.type="gae_app"
       ( metric.labels.response_code = 429 OR
@@ -26,6 +26,6 @@ backend:
         metric.labels.response_code = 226 OR
         metric.labels.response_code = 304 )
     filter_valid: >
-      project=${APP_PROJECT_ID}
+      project=${GAE_PROJECT_ID}
       metric.type="appengine.googleapis.com/http/server/response_count"
       resource.type="gae_app"
