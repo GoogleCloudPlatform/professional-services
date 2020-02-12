@@ -5,8 +5,8 @@
 Using the `StackdriverServiceMonitoring` backend class, you can use the
 `Stackdriver Service Monitoring API` to manage your SLOs.
 
-SLOs are created from metrics available in Stackdriver Monitoring and the data
-is stored in `Stackdriver Service Monitoring API` (see [docs](https://cloud.google.com/monitoring/service-monitoring/using-api)).
+SLOs are created from standard metrics available in Stackdriver Monitoring and
+the data is stored in `Stackdriver Service Monitoring API` (see [docs](https://cloud.google.com/monitoring/service-monitoring/using-api)).
 
 The following methods are available to compute SLOs with the `Stackdriver` backend:
 
@@ -107,7 +107,8 @@ backend:
       metric.type="appengine.googleapis.com/http/server/response_count"
 ```
 
-You can also use the `filter_bad` field instead of the `filter_valid` field.
+You can also use the `filter_bad` field which identifies bad events instead of
+the `filter_valid` field which identifies all valid events.
 
 **&rightarrow; [Full SLO config](../samples/stackdriver_service_monitoring/slo_gae_app_availability.yaml)**
 
@@ -137,8 +138,18 @@ backend:
 The `range_min` and `range_max` are used to specify the latency range that we
 consider 'good'.
 
-**&rightarrow; [Full SLO config](../samples/stackdriver_service_monitoring/slo_gae_app_latency724ms.yaml)**
+**&rightarrow; [Full SLO config](../samples/stackdriver_service_monitoring/slo_gae_app_latency.yaml)**
 
+
+## Service Monitoring API considerations
+
+### Deleting objects
+
+To delete an SLO object in `Stackdriver Monitoring API` using the `StackdriverServiceMonitoringBackend` class, run the `slo-generator` with the `-d` (or `--delete`) flag:
+
+```
+slo-generator -f <SLO_CONFIG_PATH> -b <ERROR_BUDGET_POLICY> --delete
+```
 
 ### Limitations
 
@@ -147,9 +158,9 @@ local SLO YAML configuration synced with the remote objects.
 
 The following naming conventions are used to give unique ids to your SLOs:
 
-* `service_name = ${service_name}-${feature_name}`
+* `service_id = ${service_name}-${feature_name}`
 
-* `slo_name = ${service_name}-${feature_name}-${slo_name}-${window}`
+* `slo_id = ${service_name}-${feature_name}-${slo_name}-${window}`
 
 **As a consequence, here are some good practices:**
 
@@ -165,8 +176,8 @@ configs:
   with the `-d` (delete) option (see [#deleting-objects](#deleting-objects)),
   then run it normally.
 
-* To import your existing `ServiceLevelObjective` objects, add the following
-fields in your SLO config:
+* To persist `ServiceLevelObjective` objects, after creating your SLO the first
+  time, add the following fields in your SLO config:
 
   * `service_id`: Existing `Service` id.
   * `slo_id`: Existing `ServiceLevelObjective` ids. The id will be suffixed with
@@ -175,27 +186,14 @@ fields in your SLO config:
   If the SLO config in your YAML file differs from the remote config, the
   remote config will be updated to match yours.
 
-### Deleting objects
-
-To delete an SLO object in Stackdriver Monitoring API using the `StackdriverServiceMonitoringBackend` class, run the `slo-generator` with the `-d` (or `--delete`) flag:
-
-```
-slo-generator -f <SLO_CONFIG_PATH> -b <ERROR_BUDGET_POLICY> --delete
-```
-
-### Examples
-
-Complete examples using the Stackdriver Service Monitoring backend are available in the `samples/` folder:
-
-- [slo_gae_app_availability.yaml](../samples/stackdriver_service_monitoring/slo_gae_app_availability.yaml)
-- [slo_gae_app_latency64ms.yaml](../samples/stackdriver_service_monitoring/slo_gae_app_latency64ms.yaml)
-- [slo_gae_app_latency724ms.yaml](../samples/stackdriver_service_monitoring/slo_gae_app_latency724ms.yaml)
-- [slo_lb_request_availability.yaml](../samples/stackdriver_service_monitoring/slo_lb_request_availability.yaml)
-- [slo_lb_request_latency64ms.yaml](../samples/stackdriver_service_monitoring/slo_lb_request_latency64ms.yaml)
-- [slo_lb_request_latency724ms.yaml](../samples/stackdriver_service_monitoring/slo_lb_request_latency724ms.yaml)
-
-&nbsp;
+* To import an existing `ServiceLevelObjective` object, find out your Service
+  and SLO ids and fill the `service_id` and `slo_ids` fields with them. There
+  must be one SLO id for each step in your Error Budget Policy.
 
 ## Alerting
 
-See the [docs](https://cloud.google.com/monitoring/service-monitoring/alerting-on-budget-burn-rate) for instructions on alerting.
+See the Stackdriver Service Monitoring [docs](https://cloud.google.com/monitoring/service-monitoring/alerting-on-budget-burn-rate) for instructions on alerting.
+
+### Examples
+
+Complete SLO samples using `Stackdriver Service Monitoring` are available in [ samples/stackdriver_service_monitoring](../samples/stackdriver_service_monitoring). Check them out !

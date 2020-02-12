@@ -17,16 +17,8 @@ The `good_bad_ratio` method is used to compute the ratio between two metrics:
 
 This method is often used for availability SLOs, but can be used for other purposes as well (see examples).
 
-### Examples
-
-Complete examples using the `Elasticsearch` backend are available in the `samples/` folder:
-
-- [slo_elk_test_good_bad.yaml](../samples/elasticsearch/slo_elk_test_ratio.yaml)
-
-
-**Example 1:**
-
-```
+**Config example:**
+```yaml
 backend:
   class:         Elasticsearch
   url:           http://localhost:9200
@@ -40,3 +32,36 @@ backend:
         term:
           name:  JAgOZE8
 ```
+
+The Lucene query entered in the `query_good`, `query_bad` or `query_valid`
+fields will be combine (using `bool` operator) into a larger query that filters
+results on the `window` specified in your Error Budget Policy steps.
+
+The full `ElasticSearch` query of the `query_bad` above will look like:
+```json
+{
+  "query": {
+    "bool": {
+      "must": {
+        "term": {
+          "name": "JAgOZE8"
+        }
+      },
+      "filter": {
+        "range": {
+          "last_updated": {
+            "gte": "now-<window>s/s",
+            "lt": "now/s"
+          }
+        }
+      }
+    }
+  },
+  "track_total_hits": true
+}
+```
+
+### Examples
+
+Complete SLO samples using the `Elasticsearch` backend are available in
+[samples/elasticsearch](../samples/elasticsearch). Check them out !
