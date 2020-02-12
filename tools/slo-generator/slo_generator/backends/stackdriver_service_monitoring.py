@@ -18,6 +18,7 @@ Stackdriver Service Monitoring exporter class.
 import difflib
 import json
 import logging
+import os
 import pprint
 
 import google.api_core.exceptions
@@ -32,7 +33,6 @@ LOGGER = logging.getLogger(__name__)
 
 class StackdriverServiceMonitoringBackend:
     """Stackdriver Service Monitoring backend class."""
-
     def __init__(self, client=None, **kwargs):
         self.client = client
         if client is None:
@@ -169,25 +169,26 @@ class StackdriverServiceMonitoringBackend:
         return good_event_count, bad_event_count
 
     @staticmethod
-    def compute_slo_report(backend, project_id, timestamp, window, filter):
+    def compute_slo_report(backend, project_id, timestamp, window):
         """Compute SLO report using Stackdriver Monitoring API queries.
 
-        filter:
-
+        Args:
+            backend (slo_generator.backends.Stackdriver): Stackdriver backend
+                instance.
+            project_id (str): Stackdriver host project id.
+            timestamp (int): UNIX timestamp.
+            window (int): Window (in seconds).
         """
         filters = {
             "select_slo_burnrate":
-                f"select_slo_burn_rate(\"{filter}\", \"86400s\")",
-            "select_slo_health":
-                f"select_slo_health(\"{filter}\")",
-            "select_slo_compliance":
-                f"select_slo_compliance(\"{filter}\")",
-            "select_slo_budget":
-                f"select_slo_budget(\"{filter}\")",
+            f"select_slo_burn_rate(\"{filter}\", \"86400s\")",
+            "select_slo_health": f"select_slo_health(\"{filter}\")",
+            "select_slo_compliance": f"select_slo_compliance(\"{filter}\")",
+            "select_slo_budget": f"select_slo_budget(\"{filter}\")",
             "select_slo_budget_fraction":
-                f"select_slo_budget_fraction(\"{filter}\")",
+            f"select_slo_budget_fraction(\"{filter}\")",
             "select_slo_budget_total":
-                f"select_slo_budget_total(\"{filter}\")",
+            f"select_slo_budget_total(\"{filter}\")",
         }
         report = {}
         for name, metric_filter in filters.items():
@@ -242,7 +243,6 @@ class StackdriverServiceMonitoringBackend:
         service_id = SSM.build_service_id(slo_config, full=False)
         project = self.client.project_path(project_id)
         services = self.client.list_services(project)
-        # LOGGER.debug(pprint.pformat(list(services)))
         matches = [
             service for service in list(services)
             if service.name.split("/")[-1] == service_id
@@ -290,10 +290,32 @@ class StackdriverServiceMonitoringBackend:
         """
         service_name = slo_config['service_name']
         feature_name = slo_config['feature_name']
-        project_id = slo_config['backend']['project_id']
-        service_id = f'{service_name}-{feature_name}'
+        backend = slo_config['backend']
+        project_id = backend['project_id']
+        app_engine = backend.get('app_engine')
+        cluster_istio = backend.get('cluster_istio')
+        mesh_istio = backend.get('mesh_istio')
+        cloud_endpoints = backend.get('cloud_endpoints')
+
+        # Use auto-generated ids for 'custom' SLOs, use system-generated ids
+        # for all other types of SLOs.
+        if app_engine:
+            service_id = 'gae:{project_id}_{module_id}'.format_map(app_engine)
+        elif cluster_istio:
+            service_id = 'ist:{project_id}-zone-{location}-{cluster_name}-{service_namespace}-{service_name}'.format_map(
+                cluster_istio)
+        elif mesh_istio:
+            service_id = 'ist:{project_id}-{mesh_uid}-{service_namespace}-{service_name}'.format_map(
+                mesh_istio)
+        elif cloud_endpoints:
+            service_id = 'ist:{project_id}-{mesh_uid}-{service_namespace}-{service_name}'.format_map(
+                cloud_endpoints)
+        else:
+            service_id = f'{service_name}-{feature_name}'
+
         if full:
             return f'projects/{project_id}/services/{service_id}'
+
         return service_id
 
     def create_slo(self, window, slo_config):
@@ -343,50 +365,48 @@ class StackdriverServiceMonitoringBackend:
         }
         filter_valid = measurement.get('filter_valid', "")
         if method == 'basic':
-            methods = measurement.get('methods', [])
-            locations = measurement.get('locations', [])
-            versions = measurement.get('versions', [])
-            threshold = measurement.get('threshold_latency')
-            slo['service_level_indicator'] = {
-                'basic_sli': {
-                    'method': methods,
-                    'location': locations,
-                    'version': versions
-                }
-            }
+            methods = measurement.get('method', [])
+            locations = measurement.get('location', [])
+            versions = measurement.get('version', [])
+            threshold = measurement.get('latency', {}).get('threshold')
+            slo['service_level_indicator'] = {'basic_sli': {}}
+            basic_sli = slo['service_level_indicator']['basic_sli']
+            if methods:
+                basic_sli['method'] = methods
+            if locations:
+                basic_sli['location'] = locations
+            if versions:
+                basic_sli['version'] = versions
             if threshold:
-                slo['service_level_indicator']['basicSli']['latency'] = {
-                    'threshold': threshold
+                basic_sli['latency'] = {
+                    'threshold': {
+                        'seconds': 0,
+                        'nanos': int(threshold) * 10**6
+                    }
                 }
             else:
-                slo['service_level_indicator']['basicSli']['availability'] = {}
+                basic_sli['availability'] = {}
 
         elif method == 'good_bad_ratio':
             filter_good = measurement.get('filter_good', "")
             filter_bad = measurement.get('filter_bad', "")
             slo['service_level_indicator'] = {
                 'request_based': {
-                    'good_total_ratio': {
-                        # 'totalServiceFilter': filter_valid,
-                        # 'goodServiceFilter': filter_good,
-                        # 'badServiceFilter': filter_bad
-                    }
+                    'good_total_ratio': {}
                 }
             }
+            sli = slo['service_level_indicator']
+            ratio = sli['request_based']['good_total_ratio']
             if filter_good:
-                slo['service_level_indicator']['request_based'][
-                    'good_total_ratio']['good_service_filter'] = filter_good
+                ratio['good_service_filter'] = filter_good
             if filter_bad:
-                slo['service_level_indicator']['request_based'][
-                    'good_total_ratio']['bad_service_filter'] = filter_bad
+                ratio['bad_service_filter'] = filter_bad
             if filter_valid:
-                slo['service_level_indicator']['request_based'][
-                    'good_total_ratio']['total_service_filter'] = filter_valid
+                ratio['total_service_filter'] = filter_valid
 
         elif method == 'distribution_cut':
             range_min = measurement.get('range_min', 0)
             range_max = measurement['range_max']
-
             slo['service_level_indicator'] = {
                 'request_based': {
                     'distribution_cut': {
@@ -397,9 +417,9 @@ class StackdriverServiceMonitoringBackend:
                     }
                 }
             }
+            sli = slo['service_level_indicator']['request_based']
             if range_min != 0:
-                slo['service_level_indicator']['request_based'][
-                    'distribution_cut']['range']['min'] = float(range_min)
+                sli['distribution_cut']['range']['min'] = float(range_min)
 
         elif method == 'windows':
             filter = measurement.get('filter')
@@ -425,30 +445,6 @@ class StackdriverServiceMonitoringBackend:
             raise Exception(f'Method "{method}" is not supported.')
         return slo
 
-    @staticmethod
-    def build_slo_id(window, slo_config, full=False):
-        """Build SLO id from SLO configuration.
-
-        Args:
-            slo_config (dict): SLO configuration.
-            full (bool): If True, return full resource id including project.
-
-        Returns:
-            str: SLO id.
-        """
-        project_id = slo_config['backend']['project_id']
-        service_id = SSM.build_service_id(slo_config)
-        if 'slo_id' in slo_config:
-            slo_id_part = slo_config['slo_id']
-            slo_id = f'{slo_id_part}-{window}'
-        else:
-            slo_name = slo_config['slo_name']
-            slo_id = f'{slo_name}-{window}'
-        if full:
-            service_url = f'projects/{project_id}/services/{service_id}'
-            return f'{service_url}/serviceLevelObjectives/{slo_id}'
-        return slo_id
-
     def get_slo(self, window, slo_config):
         """Get SLO object from Stackriver Service Monitoring API.
 
@@ -466,13 +462,7 @@ class StackdriverServiceMonitoringBackend:
         slos = self.list_slos(service_id, slo_config)
         slo_local_id = SSM.build_slo_id(window, slo_config)
         slo_json = SSM.build_slo(window, slo_config)
-
-        # Our local JSON is in snake case, convert it to Caml case.
-        # The rollingPeriod field is in Duration format, convert it.
-        slo_json = dict_snake_to_caml(slo_json)
-        if 'rollingPeriod' in slo_json:
-            slo_json['rollingPeriod'] = str(
-                slo_json['rollingPeriod']['seconds']) + 's'
+        slo_json = SSM.convert_slo_to_ssm_format(slo_json)
 
         # Loop through API response to find an existing SLO that corresponds to
         # our configuration.
@@ -482,7 +472,7 @@ class StackdriverServiceMonitoringBackend:
             if equal:
                 LOGGER.debug(f'Found existing SLO "{slo_remote_id}".')
                 LOGGER.debug(f'SLO object: {slo}')
-                strict_equal = SSM.compare_slo(slo, slo_json)
+                strict_equal = SSM.compare_slo(slo_json, slo)
                 if strict_equal:
                     return slo
                 return self.update_slo(window, slo_config)
@@ -505,52 +495,8 @@ class StackdriverServiceMonitoringBackend:
         slo_id = SSM.build_slo_id(window, slo_config, full=True)
         LOGGER.warning(f"Updating SLO {slo_id} ...")
         slo_json['name'] = slo_id
-        return SSM.to_json(self.client.update_service_level_objective(slo_json))
-
-    @staticmethod
-    def compare_slo(slo1, slo2):
-        """Compares 2 SLO configurations to see if they correspond to the same
-        SLO.
-
-        An SLO is deemed the same if the whole configuration is similar, except
-        for the `goal` field that should be adjustable.
-
-        Args:
-            slo1 (dict): Service Monitoring API SLO configuration to compare.
-            slo2 (dict): Service Monitoring API SLO configuration to compare.
-
-        Returns:
-            bool: True if the SLOs match, False otherwise.
-        """
-        exclude_keys = ["name"]
-        slo1_copy = {k: v for k, v in slo1.items() if k not in exclude_keys}
-        slo2_copy = {k: v for k, v in slo2.items() if k not in exclude_keys}
-        local_json = json.dumps(slo1_copy, sort_keys=True)
-        remote_json = json.dumps(slo2_copy, sort_keys=True)
-        # LOGGER.info("----------")
-        # LOGGER.info(local_json)
-        # LOGGER.info("----------")
-        # LOGGER.info(remote_json)
-        # LOGGER.info("----------")
-        # LOGGER.info(SSM.string_diff(local_json, remote_json))
-        return local_json == remote_json
-
-    @staticmethod
-    def string_diff(string1, string2):
-        """Diff 2 strings. Used to print comparison of JSONs for debugging.
-
-        Args:
-            string1 (str): String 1.
-            string2 (str): String 2.
-        """
-        for idx, string in enumerate(difflib.ndiff(string1, string2)):
-            if string[0] == ' ':
-                continue
-            if string[0] == '-':
-                print(u'Delete "{}" from position {}'.format(string[-1], idx))
-            elif string[0] == '+':
-                print(u'Add "{}" to position {}'.format(string[-1], idx))
-        print()
+        return SSM.to_json(
+            self.client.update_service_level_objective(slo_json))
 
     def list_slos(self, service_id, slo_config):
         """List all SLOs from Stackdriver Service Monitoring API.
@@ -589,6 +535,158 @@ class StackdriverServiceMonitoringBackend:
                 f'SLO {slo_id} does not exist in Service Monitoring API. '
                 f'Skipping.')
             return None
+
+    @staticmethod
+    def build_slo_id(window, slo_config, full=False):
+        """Build SLO id from SLO configuration.
+
+        Args:
+            slo_config (dict): SLO configuration.
+            full (bool): If True, return full resource id including project.
+
+        Returns:
+            str: SLO id.
+        """
+        project_id = slo_config['backend']['project_id']
+        service_id = SSM.build_service_id(slo_config)
+        if 'slo_id' in slo_config:
+            slo_id_part = slo_config['slo_id']
+            slo_id = f'{slo_id_part}-{window}'
+        else:
+            slo_name = slo_config['slo_name']
+            slo_id = f'{slo_name}-{window}'
+        if full:
+            service_url = f'projects/{project_id}/services/{service_id}'
+            return f'{service_url}/serviceLevelObjectives/{slo_id}'
+        return slo_id
+
+    @staticmethod
+    def compare_slo(slo1, slo2):
+        """Compares 2 SLO configurations to see if they correspond to the same
+        SLO.
+
+        An SLO is deemed the same if the whole configuration is similar, except
+        for the `goal` field that should be adjustable.
+
+        Args:
+            slo1 (dict): Service Monitoring API SLO configuration to compare.
+            slo2 (dict): Service Monitoring API SLO configuration to compare.
+
+        Returns:
+            bool: True if the SLOs match, False otherwise.
+        """
+        exclude_keys = ["name"]
+        slo1_copy = {k: v for k, v in slo1.items() if k not in exclude_keys}
+        slo2_copy = {k: v for k, v in slo2.items() if k not in exclude_keys}
+        local_json = json.dumps(slo1_copy, sort_keys=True)
+        remote_json = json.dumps(slo2_copy, sort_keys=True)
+        if os.environ.get('DEBUG') == '2':
+            LOGGER.info("----------")
+            LOGGER.info(local_json)
+            LOGGER.info("----------")
+            LOGGER.info(remote_json)
+            LOGGER.info("----------")
+            LOGGER.info(SSM.string_diff(local_json, remote_json))
+        return local_json == remote_json
+
+    @staticmethod
+    def string_diff(string1, string2):
+        """Diff 2 strings. Used to print comparison of JSONs for debugging.
+
+        Args:
+            string1 (str): String 1.
+            string2 (str): String 2.
+
+        Returns:
+            list: List of messages pointing out differences.
+        """
+        lines = []
+        for idx, string in enumerate(difflib.ndiff(string1, string2)):
+            if string[0] == ' ':
+                continue
+            if string[0] == '-':
+                info = u'Delete "{}" from position {}'.format(string[-1], idx)
+                lines.append(info)
+            elif string[0] == '+':
+                info = u'Add "{}" to position {}'.format(string[-1], idx)
+                lines.append(info)
+        return lines
+
+    @staticmethod
+    def get_slo_type(slo_config):
+        """Find the type of SLO from the SLO configuration.
+
+        Args:
+            slo_config (dict): SLO configuration.
+
+        Returns:
+            str: SLO type amongst 'ist', 'gae', 'endpoint', or 'custom'.
+        """
+        backend = slo_config['backend']
+        istio = slo_config.get('mesh_istio')
+        app_engine = slo_config.get('app_engine')
+        endpoint = slo_config.get('cloud_endpoints')
+        if istio:
+            return 'ist'
+        elif app_engine:
+            return 'gae'
+        elif endpoint:
+            return 'endpoint'
+        else:
+            return 'custom'
+
+    @staticmethod
+    def convert_slo_to_ssm_format(slo):
+        """Convert SLO JSON to Service Monitoring API format.
+        Address edge cases, like `duration` object computation.
+
+        Args:
+            slo (dict): SLO JSON object to be converted to Stackdriver Service
+                Monitoring API format.
+
+        Returns:
+            dict: SLO configuration in Service Monitoring API format.
+        """
+        # Our local JSON is in snake case, convert it to Caml case.
+        data = dict_snake_to_caml(slo)
+
+        # The `rollingPeriod` field is in Duration format, convert it.
+        try:
+            period = data['rollingPeriod']
+            data['rollingPeriod'] = SSM.convert_duration_to_string(period)
+        except KeyError:
+            pass
+
+        # The `latency` field is in Duration format, convert it.
+        try:
+            latency = data['serviceLevelIndicator']['basicSli']['latency']
+            threshold = latency['threshold']
+            latency['threshold'] = SSM.convert_duration_to_string(threshold)
+        except KeyError:
+            pass
+
+        return data
+
+    @staticmethod
+    def convert_duration_to_string(duration):
+        """Convert a duration object to a duration string (in seconds).
+
+        Args:
+            duration (dict): Duration dictionary.
+
+        Returns:
+            str: Duration string.
+        """
+        duration_seconds = 0.000
+        if 'seconds' in duration:
+            duration_seconds += duration['seconds']
+        if 'nanos' in duration:
+            duration_seconds += duration['nanos'] * 10**(-9)
+        if duration_seconds.is_integer():
+            duration_str = int(duration_seconds)
+        else:
+            duration_str = "{:0.3f}".format(duration_seconds)
+        return str(duration_str) + 's'
 
     @staticmethod
     def to_json(response):
