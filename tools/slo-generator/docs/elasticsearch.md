@@ -21,4 +21,22 @@ This method is often used for availability SLOs, but can be used for other purpo
 
 Complete examples using the `Elasticsearch` backend are available in the `samples/` folder:
 
-- [slo_elk_test_good_bad.yaml](../samples/elasticsearch/slo_sd_pubsub_throughput.yaml)
+- [slo_elk_test_good_bad.yaml](../samples/elasticsearch/slo_elk_test_ratio.yaml)
+
+
+**Example 1:**
+
+```
+backend:
+  class:         Elasticsearch
+  url:           http://localhost:9200
+  method:        good_bad_ratio
+  measurement:
+    index:       test_data
+    age_field:   last_updated
+    query_good:  {}
+    query_bad:
+      must:
+        term:
+          name:  JAgOZE8
+```

@@ -3,10 +3,10 @@
 ## Backend
 
 Using the `StackdriverServiceMonitoring` backend class, you can use the
-Stackdriver Monitoring API to create SLOs.
+`Stackdriver Service Monitoring API` to manage your SLOs.
 
 SLOs are created from metrics available in Stackdriver Monitoring and the data
-is stored in Stackdriver Service Monitoring API ([docs](https://cloud.google.com/monitoring/service-monitoring/using-api)).
+is stored in `Stackdriver Service Monitoring API` (see [docs](https://cloud.google.com/monitoring/service-monitoring/using-api)).
 
 The following methods are available to compute SLOs with the `Stackdriver` backend:
 
@@ -17,13 +17,68 @@ Engine, and Cloud Endpoints.
 
 ### Basic
 
-The `basic` method is used to let the Stackdriver Service Monitoring API
-automatically generate 'standard' SLOs for our services.
+The `basic` method is used to let the `Stackdriver Service Monitoring API`
+automatically generate standardized SLOs for the following GCP services:
+* **Google App Engine**
+* **Google Kubernetes Engine** (with Istio)
+* **Google Cloud Endpoints**
 
-Those SLOs are based of years of experience in designing SLOs and correspond to
-good practices that Google advocates.
+The SLO configuration uses Stackdriver [GCP metrics](https://cloud.google.com/monitoring/api/metrics_gcp) and only requires
+minimal configuration compared to custom SLOs.
 
-There is no configuration required for this type of SLO.
+**Example config (App Engine availability):**
+
+```yaml
+backend:
+  class:          StackdriverServiceMonitoring
+  method:         basic
+  project_id:     ${STACKDRIVER_HOST_PROJECT_ID}
+  app_engine:
+    project_id:   ${GAE_PROJECT_ID}
+    module_id:    ${GAE_MODULE_ID}
+  measurement:
+    availability: {}
+```
+For details on filling the `app_engine` fields, see [AppEngine](https://cloud.google.com/monitoring/api/ref_v3/rest/v3/services#appengine) spec.
+
+**&rightarrow; [Full SLO config](../samples/stackdriver_service_monitoring/slo_gae_app_availability_basic.yaml)**
+
+**Example config (Cloud Endpoint latency):**
+
+```yaml
+backend:
+  class:         StackdriverServiceMonitoring
+  method:        basic
+  project_id:    ${STACKDRIVER_HOST_PROJECT_ID}
+  cloud_endpoints:
+    service:     ${ENDPOINT_URL}
+  measurement:
+    latency:
+      threshold:   724 # ms
+```
+For details on filling the `cloud_endpoints` fields, see [CloudEndpoint](https://cloud.google.com/monitoring/api/ref_v3/rest/v3/services#cloudendpoints) spec.
+
+**&rightarrow; [Full SLO config](../samples/stackdriver_service_monitoring/slo_endpoint_app_latency_basic.yaml)**
+
+**Example config (Istio service latency):**
+```yaml
+backend:
+  class:         StackdriverServiceMonitoring
+  method:        basic
+  project_id:    ${STACKDRIVER_HOST_PROJECT_ID}
+  mesh_istio:
+    mesh_uid:          ${GKE_MESH_UID}
+    service_namespace: ${GKE_SERVICE_NAMESPACE}
+    service_name:      ${GKE_SERVICE_NAME}
+  measurement:
+    latency:
+      threshold: 500 # ms
+```
+For details on filling the `mesh_istio` fields, see [MeshIstio](https://cloud.google.com/monitoring/api/ref_v3/rest/v3/services#meshistio)
+spec.
+
+**&rightarrow; [Full SLO config](../samples/stackdriver_service_monitoring/slo_gke_app_latency_basic.yaml)**
+
 
 ### Good / bad ratio
 
@@ -34,20 +89,60 @@ The `good_bad_ratio` method is used to compute the ratio between two metrics:
 
 This method is often used for availability SLOs, but can be used for other purposes as well (see examples).
 
+**Example config:**
+```yaml
+backend:
+  class: StackdriverServiceMonitoring
+  project_id: "${STACKDRIVER_HOST_PROJECT_ID}"
+  method: good_bad_ratio
+  measurement:
+    filter_good: >
+      project="${GAE_PROJECT_ID}"
+      metric.type="appengine.googleapis.com/http/server/response_count"
+      resource.type="gae_app"
+      metric.labels.response_code >= 200
+      metric.labels.response_code < 500
+    filter_valid: >
+      project="${GAE_PROJECT_ID}"
+      metric.type="appengine.googleapis.com/http/server/response_count"
+```
+
+You can also use the `filter_bad` field instead of the `filter_valid` field.
+
+**&rightarrow; [Full SLO config](../samples/stackdriver_service_monitoring/slo_gae_app_availability.yaml)**
+
 ## Distribution cut
 
 The `distribution_cut` method is used for Stackdriver distribution-type metrics, which are usually used for latency metrics.
 
 A distribution metric records the **statistical distribution of the extracted values** in **histogram buckets**. The extracted values are not recorded individually, but their distribution across the configured buckets are recorded, along with the `count`, `mean`, and `sum` of squared deviation of the values.
 
-In `Stackdriver Monitoring`, there are three different ways to specify bucket boundaries:
-* **Linear:** Every bucket has the same width.
-* **Exponential:** Bucket widths increases for higher values, using an exponential growth factor.
-* **Explicit:** Bucket boundaries are set for each bucket using a bounds array.
+**Example config:**
+
+```yaml
+backend:
+  class: StackdriverServiceMonitoring
+  project_id: ${STACKDRIVER_HOST_PROJECT_ID}
+  method: distribution_cut
+  measurement:
+    filter_valid: >
+      project=${GAE_PROJECT_ID}
+      metric.type=appengine.googleapis.com/http/server/response_latencies
+      metric.labels.response_code >= 200
+      metric.labels.response_code < 500
+    range_min: 0
+    range_max: 724 # ms
+```
+
+The `range_min` and `range_max` are used to specify the latency range that we
+consider 'good'.
+
+**&rightarrow; [Full SLO config](../samples/stackdriver_service_monitoring/slo_gae_app_latency724ms.yaml)**
+
 
 ### Limitations
 
-Since `Stackdriver Monitoring` API persists objects, we need ways to keep our
+Since `Stackdriver Service Monitoring API` persists objects, we need ways to keep our
 local SLO YAML configuration synced with the remote objects.
 
 The following naming conventions are used to give unique ids to your SLOs:
@@ -56,16 +151,29 @@ The following naming conventions are used to give unique ids to your SLOs:
 
 * `slo_name = ${service_name}-${feature_name}-${slo_name}-${window}`
 
-**As a consequence, do not update any of the following fields in your configs, or you will lose track of the objects previously created:**
+**As a consequence, here are some good practices:**
 
-* ***In the SLO config: `service_name`, `feature_name` and `slo_name`***
+* To keep track of the `Service` and `ServiceLevelObjective` objects previously
+created in the API, **do not update any of the following fields** in your
+configs:
 
-* ***In the Error Budget Policy: `window`***
+  * `service_name`, `feature_name` and `slo_name` in the SLO config.
 
-If you need to makes changes to any of those fields, first delete the SLO (see [#deleting-objects](#deleting-objects)) and then recreate it.
+  * `window` in the Error Budget Policy.
 
-You can also specify the `slo_id` field in your SLO configuration in order to
-always keep the same id no matter the fields that you change.
+  If you need to make updates to those fields, first run the `slo-generator`
+  with the `-d` (delete) option (see [#deleting-objects](#deleting-objects)),
+  then run it normally.
+
+* To import your existing `ServiceLevelObjective` objects, add the following
+fields in your SLO config:
+
+  * `service_id`: Existing `Service` id.
+  * `slo_id`: Existing `ServiceLevelObjective` ids. The id will be suffixed with
+  the `window` field for each step in the Error Budget Policy.
+
+  If the SLO config in your YAML file differs from the remote config, the
+  remote config will be updated to match yours.
 
 ### Deleting objects
 
@@ -86,131 +194,7 @@ Complete examples using the Stackdriver Service Monitoring backend are available
 - [slo_lb_request_latency64ms.yaml](../samples/stackdriver_service_monitoring/slo_lb_request_latency64ms.yaml)
 - [slo_lb_request_latency724ms.yaml](../samples/stackdriver_service_monitoring/slo_lb_request_latency724ms.yaml)
 
-The following examples show how to populate the `backend` section for the Stackdriver backend.
-
-**&rightarrow; Example 1: Ratio of Pub/Sub acknowledged messages over all Pub/Sub messages**
-
-> We want to compute the proportion of messages that are acknowledged from our Pub/Sub subscriptions.
->
-> -- <cite>SRE Engineer</cite>
-
-`Stackdriver Monitoring` has two service-level metrics we can use to measure this:
-
-- `pubsub.googleapis.com/subscription/ack_message_count`
-- `pubsub.googleapis.com/subscription/num_outstanding_messages`
-
-Thus, we can define a **Throughput SLI** using the `good_bad_ratio` method where the events considered are:
-
-- **Good events:** Acknowledged Pub/Sub messages in a subscription.
-- **Bad events:** Outstanding (unacknowledged) Pub/Sub messages in a subscription.
-
-```yaml
-backend:
-  class: StackdriverServiceMonitoring
-  project_id: "${STACKDRIVER_HOST_PROJECT_ID}"
-  method: good_bad_ratio
-  measurement:
-    filter_good: >
-      project="${PUBSUB_PROJECT_ID}"
-      metric.type="pubsub.googleapis.com/subscription/ack_message_count"
-    filter_bad: >
-      project="${PUBSUB_PROJECT_ID}"
-      metric.type="pubsub.googleapis.com/subscription/num_outstanding_messages"
-```
-
-
-
 &nbsp;
-
-**&rightarrow; Example 2: Ratio of App Engine application requests with valid HTTP status codes**
-
-> We want to compute the proportion of HTTP requests that return a valid HTTP code.
->
-> -- <cite>SRE Engineer</cite>
-
-`Stackdriver Monitoring` has a service-level metric we can use to measure this: `appengine.googleapis.com/http/server/response_count`. This metric has a label `response_code` that contains the HTTP response code.
-
-The following configuration will compute an **Availability SLI** for an AppEngine application, using the `good_bad_ratio` method where the events considered are:
-
-- **Good events:** HTTP responses with a status code between 200 and 500 (excluded).
-- **Valid events:** HTTP responses with any status code.
-
-```yaml
-backend:
-  class: StackdriverServiceMonitoring
-  project_id: "${STACKDRIVER_HOST_PROJECT_ID}"
-  method: good_bad_ratio
-  measurement:
-    filter_good: >
-      project="${APP_PROJECT_ID}"
-      metric.type="appengine.googleapis.com/http/server/response_count"
-      resource.type="gae_app"
-      metric.labels.response_code >= 200
-      metric.labels.response_code < 500
-    filter_valid: >
-      project="${APP_PROJECT_ID}"
-      metric.type="appengine.googleapis.com/http/server/response_count"
-```
-
-&nbsp;
-
-**&rightarrow; Example 3: Ratio of custom application requests with valid HTTP status codes**
-
-> We have a custom application sending performance logs to Stackdriver and we want to compute the proportion of HTTP requests that return a valid HTTP status code
->
-> -- <cite>SRE Engineer</cite>
-
-A common way to achieve this is to create a `Stackdriver Monitoring` **log-based metric** from your application logs using a regex to extract the HTTP code as one of the metric labels.
-
-***Example:*** *A log-based metric `logging.googleapis.com/http/server/response_count` that has the `response_code` extracted as a label.*
-
-The following configuration will compute an **Availability SLI** for a custom application, using the `good_bad_ratio` method where the events considered are:
-
-* **Good events:** HTTP responses with a status code between 200 and 500 (excluded).
-* **Valid events:** HTTP responses with any status code.
-
-```yaml
-backend:
-  class: StackdriverServiceMonitoring
-  project_id: "${STACKDRIVER_HOST_PROJECT_ID}"
-  method: good_bad_ratio
-  measurement:
-    filter_good: >
-      project="${APP_PROJECT_ID}"
-      metric.type="logging.googleapis.com/http/server/response_count"
-      metric.labels.response_code >= 200
-      metric.labels.response_code < 500
-    filter_valid: >
-      project="${APP_PROJECT_ID}"
-      metric.type="logging.googleapis.com/http/server/response_count"
-```
-
-**&rightarrow; Example 4: Proportion of App Engine HTTP requests under a threshold latency**
-
-> We want to compute the proportion of HTTP requests that complete under 724 ms.
->
-> -- <cite>SRE Engineer</cite>
-
-```yaml
-backend:
-  class: StackdriverServiceMonitoring
-  project_id: ${STACKDRIVER_HOST_PROJECT_ID}
-  method: distribution_cut
-  measurement:
-    filter_valid: >
-      project=${APP_PROJECT_ID}
-      metric.type=appengine.googleapis.com/http/server/response_latencies
-      metric.labels.response_code >= 200
-      metric.labels.response_code < 500
-    range_min: 0
-    range_max: 724 # ms
-```
-
-The `range_min` and `range_max` are used to specify the latency range that we
-consider 'good'.
-
-In this example we consider latencies between 0 and 724ms as 'good'.
-
 
 ## Alerting
 

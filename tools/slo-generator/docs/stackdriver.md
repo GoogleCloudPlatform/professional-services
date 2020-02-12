@@ -21,7 +21,7 @@ This method is often used for availability SLOs, but can be used for other purpo
 
 ### Distribution cut
 
-The `exponential_distribution_cut` method is used for Stackdriver distribution-type metrics, which are usually used for latency metrics.
+The `distribution_cut` method is used for Stackdriver distribution-type metrics, which are usually used for latency metrics.
 
 A distribution metric records the **statistical distribution of the extracted values** in **histogram buckets**. The extracted values are not recorded individually, but their distribution across the configured buckets are recorded, along with the `count`, `mean`, and `sum` of squared deviation of the values.
 
@@ -96,12 +96,12 @@ backend:
   method: good_bad_ratio
   measurement:
     filter_good: >
-      project="${APP_PROJECT_ID}"
+      project="${GAE_PROJECT_ID}"
       metric.type="appengine.googleapis.com/http/server/response_count"
       metric.labels.response_code >= 200
       metric.labels.response_code < 500
     filter_valid: >
-      project="${APP_PROJECT_ID}"
+      project="${GAE_PROJECT_ID}"
       metric.type="appengine.googleapis.com/http/server/response_count"
 ```
 
@@ -129,12 +129,12 @@ backend:
   method: good_bad_ratio
   measurement:
     filter_good: >
-      project="${APP_PROJECT_ID}" AND
+      project="${GAE_PROJECT_ID}" AND
       metric.type="logging.googleapis.com/http/server/response_count" AND
       metric.labels.response_code >= 200 AND
       metric.labels.response_code < 500
     filter_valid: >
-      project="${APP_PROJECT_ID}" AND
+      project="${GAE_PROJECT_ID}" AND
       metric.type="logging.googleapis.com/http/server/response_count"
 ```
 
@@ -151,7 +151,7 @@ backend:
   method: exponential_distribution_cut
   measurement:
     filter_valid: >
-      project=${APP_PROJECT_ID} AND
+      project=${GAE_PROJECT_ID} AND
       metric.type=appengine.googleapis.com/http/server/response_latencies AND
       metric.labels.response_code >= 200 AND
       metric.labels.response_code < 500
