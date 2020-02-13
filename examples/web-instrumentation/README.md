@@ -4,10 +4,17 @@ The app is something like a simple web version of Apache Bench. It includes
 JavaScript browser code that drives HTTP requests to a Node.js backend that
 can be run anywhere that you can run Node.
 
-Create a Google Cloud Project with billing enabled. Install Node.js.
-Install the Google Cloud SDK.
-
 ## Setup
+
+To work through this example, you will need a GCP project. Follow these steps
+1. [Select or create a GCP project](https://console.cloud.google.com/projectselector2/home/dashboard)
+2. [Enable billing for your project](https://support.google.com/cloud/answer/6293499#enable-billing)
+3. Clone the repo
+git clone https://github.com/GoogleCloudPlatform/professional-services.git
+4. Install Node.js
+5. Install Go
+6. Install Docker
+7. Install the [Google Cloud SDK](https://cloud.google.com/sdk/install)
 
 Clone this repository to your environment with the command
 
@@ -52,15 +59,15 @@ npm install
 
 ## OpenTelemetry collector
 
-Open up a new shell to clone the OpenTelemetry collector contrib project, which
-contains the Stackdriver exporter
+Open up a new shell. In a new directory, clone the OpenTelemetry collector
+contrib project, which contains the Stackdriver exporter
 
 ```shell
 git clone https://github.com/open-telemetry/opentelemetry-collector-contrib
 cd opentelemetry-collector-contrib
 ```
 
-Change directories and make
+Build the binary executable
 
 ```shell
 make otelcontribcol
@@ -164,7 +171,6 @@ gcloud beta container clusters create $NAME \
    --enable-basic-auth \
    --issue-client-certificate \
    --release-channel $CHANNEL \
-   --enable-stackdriver-kubernetes \
    --zone $ZONE \
    --enable-stackdriver-kubernetes
 ```
@@ -181,15 +187,15 @@ Deploy the OpenTelemetry service to the Kubernetes cluster
 kubectl apply -f k8s/ot-service.yaml
 ```
 
-Get the external IP
+Get the external IP. It might take a few minutes for the deployment to complete
+and an IP address be allocated. You may have to execute the command below
+several times before the EXTERNAL_IP shell variable is successfully set.
 
 ```shell
 EXTERNAL_IP=$(kubectl get svc ot-service-service \
     -o jsonpath="{.status.loadBalancer.ingress[*].ip}")
+echo "External IP: $EXTERNAL_IP"
 ```
-
-It might take a few minutes for the deployment to complete and an IP address be
-allocated. 
 
 Edit the file `browser/src/index.js` changing the variable `collectorURL` to
 refer to the external IP and port (80) of the agent with the following sed
