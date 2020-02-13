@@ -43,6 +43,13 @@ gcloud services enable bigquery.googleapis.com \
   monitoring.googleapis.com
 ```
 
+
+Install the JavaScript packages required by both the server and the browser:
+
+```shell
+npm install
+```
+
 ## OpenTelemetry collector
 
 Open up a new shell to clone the OpenTelemetry collector contrib project, which
@@ -68,7 +75,7 @@ make docker-otelcontribcol
 Tag it for Google Container Registry (GCR)
 
 ```shell
-docker tag otelcontribcol gcr.io/$GOOGLE_CLOUD_PROJECT/otelcontribcol:0.0.1
+docker tag otelcontribcol gcr.io/$GOOGLE_CLOUD_PROJECT/otelcontribcol:latest
 ```
 
 Push to GCR
@@ -111,7 +118,7 @@ In the original terminal, change to the browser code directory
 cd browser
 ```
 
-Install the dependencies
+Install the browser dependencies
 
 ```shell
 npm install
@@ -129,12 +136,6 @@ The app can be deployed locally. First change to the top level directory
 
 ```shell
 cd ..
-```
-
-Install the server dependencies
-
-```shell
-npm install
 ```
 
 To run the app locally type
@@ -178,11 +179,13 @@ kubectl apply -f k8s/ot-service.yaml
 Check for the external IP
 
 ```shell
-kubectl get services
+kubectl get service ot-service-service \
+  -o=custom-columns=NAME:.status.loadBalancer.ingress[*].ip
 ```
 
-Edit the file `browser\src\index.js` changing the variable `agentURL` to refer
-to the external IP and port (80) of the agent. Rebuild the web client.
+It might take a few minutes for the deployment to complete and an IP address be
+allocated. Edit the file `browser\src\index.js` changing the variable `collectorURL` to
+refer to the external IP and port (80) of the agent. Rebuild the web client.
 
 ### Build the app image
 
@@ -234,10 +237,10 @@ monitoring data.
 
 Before running tests, consider first setting up
 [log exports](https://cloud.google.com/logging/docs/export).
-to BigQuery for more targetted log queries to analyse the results of your load
+to BigQuery for more targeted log queries to analyse the results of your load
 tests or production issues.
 
-Create a BQ dataset for the container logs
+Create a BQ dataset to export the container logs to
 
 ```shell
 bq --location=US mk -d \
@@ -248,21 +251,22 @@ bq --location=US mk -d \
 Create a log export for the container logs 
 
 ```shell
-gcloud logging sinks create web-instr-container-logs \
+LOG_SA=$(gcloud logging sinks create web-instr-container-logs \
   bigquery.googleapis.com/projects/$GOOGLE_CLOUD_PROJECT/datasets/web_instr_container \
-  --log-filter='resource.type="k8s_container" AND labels.k8s-pod/app="web-instrumentation"'
+  --log-filter='resource.type="k8s_container" AND labels.k8s-pod/app="web-instrumentation"' \
+  --format='value("writerIdentity")')
 ```
 
-Grant logs service account write access to BigQuery
+The identify of the logs writer service account is captured in the shell
+variable `LOG_SA`. Give this service account write access to BigQuery
 
 ```shell
-LOG_SA=[from output of previous command]
 gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
-    --member serviceAccount:$LOG_SA \
+    --member $LOG_SA \
     --role roles/bigquery.dataEditor
 ```
 
-Create a BQ dataset 
+Create a BQ dataset for the load balancer logs
 
 ```shell
 bq --location=US mk -d \
@@ -270,21 +274,21 @@ bq --location=US mk -d \
 web_instr_load_balancer
 ```
 
-Repeat for load balancer logs
+Repeat creation of the log sink for load balancer logs
 
 ```shell
-gcloud logging sinks create web-instr-load-balancer-logs \
+LOG_SA=$(gcloud logging sinks create web-instr-load-balancer-logs \
   bigquery.googleapis.com/projects/$GOOGLE_CLOUD_PROJECT/datasets/web_instr_load_balancer \
-  --log-filter='resource.type="http_load_balancer"'
+  --log-filter='resource.type="http_load_balancer"' \
+  --format='value("writerIdentity")')
 ```
 
 Note that the service account id changes so that you need to note that anre 
 repeat the step for granting write access BigQuery
 
 ```shell
-LOG_SA=[from output of previous command]
 gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
-    --member serviceAccount:$LOG_SA \
+    --member $LOG_SA \
     --role roles/bigquery.dataEditor
 ```
 
@@ -310,31 +314,33 @@ curl "http://$EXTERNAL_IP/data/$REQUEST_ID" \
 ```
 
 Check that you see the log for the request in the Log Viewer. After the log is
-replecated to BigQuery, you should be able to query it with a query like below.
-Change the table name `requests_20200129` to use the current date.
+replicated to BigQuery, you should be able to query it with a query like below.
+Note that the table name will be something like `requests_20200129`. A shell
+variable is used to set the date below.
 
 ```shell
+DATE=$(date +'%Y%m%d')
 bq query --use_legacy_sql=false \
 'SELECT
   httpRequest.status,
   httpRequest.requestUrl,
   timestamp
-FROM `web_instr_load_balancer.requests_20200129`
+FROM `web_instr_load_balancer.requests_${DATE}`
 ORDER BY timestamp DESC
 LIMIT 10'
 ```
 
 There are more queries in the Colab sheet
-[load_test_analysis.ipynb](load_test_analysis.ipynb).
+[load_test_analysis.ipynb](https://colab.research.google.com/github/googlecolab/GoogleCloudPlatform/professional-services/blob/web-instrumentation/examples/web-instrumentation/load_test_analysis.ipynb).
 
 ## Troubleshooting
 
-Try the following, dendending on where you encounter problems.
+Try the following, depending on where you encounter problems.
 
 ### Check project id
 
-Check that you have set your project id in files `k8s/oc-agent.yaml`,
-`conf\ocagent-config.yaml`, and the environment variable `GOOGLE_CLOUD_PROJECT`.
+Check that you have set your project id in files `k8s/oc-service.yaml`,
+`conf\ocagent-config.yaml`, and `deployment.yaml`.
 
 ### Tracing issues
 You can use zPages to see the trace data sent to the OC agent. Find the

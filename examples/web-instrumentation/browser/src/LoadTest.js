@@ -34,18 +34,19 @@ export class LoadTest {
    * @param {number} targetIter - The target number of iterations
    * @param {number} delay - Time between requests
    * @param {string} collectorURL - The URL of the OpenCensus agent
+   * @param {string} buildId - Identifies the build
    */
-  constructor(name, targetIter, delay, collectorURL) {
+  constructor(name, targetIter, delay, collectorURL, buildId) {
     this.name = name;
     this.targetIter = targetIter;
     this.delay = delay;
-    this.buildId = 'v0.01';
     this.numSent = 0;
     this.numSuccess = 0;
     this.numFail = 0;
-    const builder = new LogCollectorBuilder().setBuildId(this.buildId);
+    const builder = new LogCollectorBuilder().setBuildId(buildId);
     this.logCollector = builder.makeLogCollector();
-    this.logCollector.start(2000);
+    // Ship logs to the server every five seconds
+    this.logCollector.start(5000);
     const webTracerWithZone = new WebTracerProvider({
       scopeManager: new ZoneScopeManager(),
       plugins: [

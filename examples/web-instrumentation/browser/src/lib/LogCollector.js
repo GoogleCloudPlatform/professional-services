@@ -111,12 +111,8 @@ export class LogCollector {
         );
         obs.subscribe(
           () => {
-            while (this.logs.pop()) {
-              // empty the logs buffer
-            }
-            while (this.errors.pop()) {
-              // empty the errors buffer
-            }
+            this.logs = [];
+            this.errors = [];
           },
           (err) => console.error(`Flush error ${err}`),
         );

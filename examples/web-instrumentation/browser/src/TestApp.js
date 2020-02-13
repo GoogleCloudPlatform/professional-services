@@ -24,9 +24,11 @@ export class TestApp {
   /**
    * Create a TestApp instance
    * @param {string} collectorURL - The URL of the OpenCensus agent
+   * @param {string} buildId - Identifies the build
    */
-  constructor(collectorURL) {
+  constructor(collectorURL, buildId) {
     this.collectorURL = collectorURL;
+    this.buildId = buildId;
   }
 
   /**
@@ -45,7 +47,11 @@ export class TestApp {
         const name = nameTF.value;
         const iterations = Number(numIterTF.value);
         const delay = Number(delayTF.value);
-        const test = new LoadTest(name, iterations, delay, this.collectorURL);
+        const test = new LoadTest(name,
+          iterations,
+          delay,
+          this.collectorURL,
+          this.buildId);
         const observable = test.runTest();
         TestSummary.display(name, iterations, observable);
         return false;

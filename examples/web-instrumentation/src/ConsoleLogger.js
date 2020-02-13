@@ -25,7 +25,7 @@
  * framework, such as Cloud Run, or that the user is running in a development
  * environment and wants to see the messages on the console.
  */
-module.exports = class LogSink {
+module.exports = class ConsoleLogger {
   /**
    * Creates a LogSink instance
    */

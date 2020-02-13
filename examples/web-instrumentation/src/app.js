@@ -17,7 +17,7 @@
  * @fileoverview Main entry point for a Node.js web application, used as a load
  * test target.
  */
-const LogSink = require('./LogSink');
+const ConsoleLogger = require('./ConsoleLogger');
 const appTracing = require('./tracing');
 
 const tracer = appTracing.initTracing();
@@ -38,7 +38,7 @@ app.post('/log', (req, res) => {
   if ('logs' in req.body) {
     const { logs } = req.body;
     if (logs && logs instanceof Array) {
-      LogSink.sync(logs);
+      ConsoleLogger.sync(logs);
     } else {
       sendError(`Body is empty or has wrong type: ${logs}`, res);
     }
@@ -48,7 +48,7 @@ app.post('/log', (req, res) => {
   if ('errors' in req.body) {
     const { errors } = req.body;
     if (errors && errors instanceof Array) {
-      LogSink.sync(errors);
+      ConsoleLogger.sync(errors);
     } else {
       sendError(`Body is empty or has wrong type: ${errors}`, res);
     }
@@ -64,7 +64,10 @@ app.post('/data*', (req, res) => {
     const { data } = req.body;
     if (data) {
       // Add a child span
-      const span = tracer.startSpan('process-data');
+      const currentSpan = tracer.getCurrentSpan();
+      const span = tracer.startSpan('process-data', {
+        parent: currentSpan
+      });
       tracer.withSpan(span, () => {
         // Use some CPU
         for (let i = 0; i < 1000000; i += 1) {

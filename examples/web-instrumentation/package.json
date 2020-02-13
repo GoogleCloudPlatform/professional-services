@@ -25,12 +25,11 @@
     "@opentelemetry/plugin-http": "^0.4.0",
     "@opentelemetry/tracing": "^0.4.0",
     "body-parser": "^1.19.0",
-    "eslint-config-airbnb-base": "^14.0.0",
-    "eslint-plugin-import": "^2.20.1",
     "express": "^4.16.3"
   },
   "devDependencies": {
     "eslint": "^6.8.0",
-    "eslint-config-google": "^0.14.0"
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-plugin-import": "^2.20.1"
   }
 }

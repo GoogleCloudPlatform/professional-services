@@ -30,7 +30,7 @@ console.log(`App version: ${__VERSION__}`);
 // Edit this to point to your OpenCensus agent address:
 // If running locally use http://localhost:55678/v1/trace
 const collectorURL = 'http://localhost:55678/v1/trace';
-// const collectorURL = 'http://35.188.162.236/v1/trace';
+// const collectorURL = 'http://35.192.92.171/v1/trace';
 
 const webTracer = new WebTracerProvider({
   plugins: [
@@ -43,5 +43,5 @@ const collectorOptions = {
 const exporter = new CollectorExporter(collectorOptions);
 webTracer.addSpanProcessor(new SimpleSpanProcessor(exporter));
 
-const testApp = new TestApp(collectorURL);
+const testApp = new TestApp(collectorURL, __VERSION__);
 testApp.setup();
