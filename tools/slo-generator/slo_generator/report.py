@@ -158,7 +158,9 @@ class SLOReport:
         cfg = config.get('backend', {})
         cls = cfg.get('class')
         method = cfg.get('method')
-        instance = utils.get_backend_cls(cls)(client=client, **cfg)
+        excluded_keys = ['class', 'method', 'measurement']
+        backend_cfg = {k: v for k, v in cfg.items() if k not in excluded_keys}
+        instance = utils.get_backend_cls(cls)(client=client, **backend_cfg)
         method = getattr(instance, method)
         LOGGER.debug(f'{info} | '
                      f'Using backend {cls}.{method.__name__} (from '
@@ -203,7 +205,7 @@ class SLOReport:
             sli_measurement = round(good_count / (good_count + bad_count), 6)
 
         elif isinstance(result, (float, int)):
-            good_count, bad_count = None, None
+            good_count, bad_count = 0, 0
             sli_measurement = round(result, 6)
 
         else:
@@ -221,8 +223,7 @@ class SLOReport:
     def is_empty(self):
         """Return True if report is empty (SLI = 0 or sum of good / bad count
         is null)."""
-        return self.sli_measurement == 0 or \
-            (self.good_events_count + self.bad_events_count) == 0
+        return self.sli_measurement == 0
 
     def __set_fields(self, lambdas={}, **kwargs):
         """Set all fields in dataclasses from configs passed and apply function
