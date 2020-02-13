@@ -57,7 +57,7 @@ class ChannelStub(object):
         return MultiCallableStub(method, self)
 
 
-def make_grpc_stub(response, proto_method, nresp=1):
+def mock_grpc_stub(response, proto_method, nresp=1):
     """Fakes gRPC response channel for the proto_method passed.
 
     Args:
@@ -72,18 +72,18 @@ def make_grpc_stub(response, proto_method, nresp=1):
     return channel
 
 
-def make_grpc_sd_stub(nresp=1):
+def mock_grpc_sd(nresp=1):
     """Fake Stackdriver Monitoring API response for the ListTimeSeries endpoint.
     """
     timeserie = load_fixture('time_series_proto.json')
     response = {"next_page_token": "", "time_series": [timeserie]}
-    return make_grpc_stub(
+    return mock_grpc_stub(
         response=response,
         proto_method=metric_service_pb2.ListTimeSeriesResponse,
         nresp=nresp)
 
 
-def prom_query(self, metric):
+def mock_prom_query(self, metric):
     data = {
         'data': {
             'result': [{
@@ -93,6 +93,10 @@ def prom_query(self, metric):
         }
     }
     return json.dumps(data)
+
+
+def mock_es_search(self, index, body):
+    return {'hits': {'total': {'value': 120}}}
 
 
 #-------------------#

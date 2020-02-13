@@ -18,15 +18,14 @@ import string
 import time
 import warnings
 
+from elasticsearch import Elasticsearch
 from google.auth._default import _CLOUD_SDK_CREDENTIALS_WARNING
 from mock import patch
 from prometheus_http_client import Prometheus
-
 from slo_generator.exporters.bigquery import BigQueryError
 from slo_generator.compute import compute, export
-
-from stubs import (load_fixture, load_sample, load_slo_samples,
-                   make_grpc_sd_stub, prom_query)
+from stubs import (load_fixture, load_sample, load_slo_samples, mock_grpc_sd,
+                   mock_prom_query, mock_es_search)
 
 warnings.filterwarnings("ignore", message=_CLOUD_SDK_CREDENTIALS_WARNING)
 
@@ -38,6 +37,7 @@ CTX = {
     'LB_PROJECT_ID': 'fake',
     'PROMETHEUS_URL': 'http://localhost:9090',
     'PROMETHEUS_PUSHGATEWAY_URL': 'http://localhost:9091',
+    'ELASTICSEARCH_URL': 'http://localhost:9200',
     'STACKDRIVER_HOST_PROJECT_ID': 'fake',
     'STACKDRIVER_LOG_METRIC_NAME': 'fake',
     'BIGQUERY_PROJECT_ID': 'fake',
@@ -50,35 +50,45 @@ ERROR_BUDGET_POLICY = load_sample('error_budget_policy.yaml', **CTX)
 STEPS = len(ERROR_BUDGET_POLICY)
 SLO_CONFIGS_SD = load_slo_samples('stackdriver', **CTX)
 SLO_CONFIGS_PROM = load_slo_samples('prometheus', **CTX)
+SLO_CONFIGS_ES = load_slo_samples('elasticsearch', **CTX)
 SLO_REPORT = load_fixture('slo_report.json')
 EXPORTERS = load_fixture('exporters.yaml', **CTX)
 BQ_ERROR = load_fixture('bq_error.json')
 
+# Pub/Sub methods to patch
+PUBSUB_MOCKS = [
+    "google.cloud.pubsub_v1.gapic.publisher_client.PublisherClient.publish",
+    "google.cloud.pubsub_v1.publisher.futures.Future.result"
+]
+
 
 class TestCompute(unittest.TestCase):
     @patch('google.api_core.grpc_helpers.create_channel',
-           return_value=make_grpc_sd_stub(2 * STEPS * len(SLO_CONFIGS_SD)))
-    def test_stackdriver_compute(self, mock):
+           return_value=mock_grpc_sd(2 * STEPS * len(SLO_CONFIGS_SD)))
+    def test_compute_stackdriver(self, mock):
         for config in SLO_CONFIGS_SD:
             with self.subTest(config=config):
                 compute(config, ERROR_BUDGET_POLICY)
 
-    @patch.object(Prometheus, 'query', prom_query)
-    def test_prometheus_compute(self):
+    @patch.object(Prometheus, 'query', mock_prom_query)
+    def test_compute_prometheus(self):
         for config in SLO_CONFIGS_PROM:
             with self.subTest(config=config):
                 compute(config, ERROR_BUDGET_POLICY)
 
-    @patch(
-        "google.cloud.pubsub_v1.gapic.publisher_client.PublisherClient.publish"
-    )
-    @patch("google.cloud.pubsub_v1.publisher.futures.Future.result")
+    @patch.object(Elasticsearch, 'search', mock_es_search)
+    def test_compute_elasticsearch(self):
+        for config in SLO_CONFIGS_ES:
+            with self.subTest(config=config):
+                compute(config, ERROR_BUDGET_POLICY)
+
+    @patch(PUBSUB_MOCKS[0])
+    @patch(PUBSUB_MOCKS[1])
     def test_export_pubsub(self, mock_pubsub, mock_pubsub_res):
-        with mock_pubsub, mock_pubsub_res:
-            export(SLO_REPORT, EXPORTERS[0])
+        export(SLO_REPORT, EXPORTERS[0])
 
     @patch("google.api_core.grpc_helpers.create_channel",
-           return_value=make_grpc_sd_stub(STEPS))
+           return_value=mock_grpc_sd(STEPS))
     def test_export_stackdriver(self, mock):
         export(SLO_REPORT, EXPORTERS[1])
 
@@ -95,6 +105,10 @@ class TestCompute(unittest.TestCase):
     def test_export_bigquery_error(self, mock_bq, mock_bq_2, mock_bq_3):
         with self.assertRaises(BigQueryError):
             export(SLO_REPORT, EXPORTERS[2])
+
+    @patch("prometheus_client.push_to_gateway")
+    def test_export_prometheus(self, mock):
+        export(SLO_REPORT, EXPORTERS[3])
 
 
 if __name__ == '__main__':
