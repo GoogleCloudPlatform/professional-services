@@ -264,6 +264,7 @@ Create a BQ dataset to export the container logs to
 ```shell
 bq --location=US mk -d \
   --description "Web instrumentation container log exports" \
+  --project_id $GOOGLE_CLOUD_PROJECT \
   web_instr_container
 ```
 
@@ -289,8 +290,9 @@ Create a BQ dataset for the load balancer logs
 
 ```shell
 bq --location=US mk -d \
---description "Web instrumentation load balancer log exports" \
-web_instr_load_balancer
+  --description "Web instrumentation load balancer log exports" \
+  --project_id $GOOGLE_CLOUD_PROJECT \
+  web_instr_load_balancer
 ```
 
 Repeat creation of the log sink for load balancer logs
@@ -307,8 +309,8 @@ repeat the step for granting write access BigQuery
 
 ```shell
 gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
-    --member $LOG_SA \
-    --role roles/bigquery.dataEditor
+  --member $LOG_SA \
+  --role roles/bigquery.dataEditor
 ```
 
 ## Running the load test
@@ -338,15 +340,15 @@ Note that the table name will be something like `requests_20200129`. A shell
 variable is used to set the date below.
 
 ```shell
-DATE=$(date +'%Y%m%d')
+DATE=$(date -u +'%Y%m%d')
 bq query --use_legacy_sql=false \
-'SELECT
+"SELECT
   httpRequest.status,
   httpRequest.requestUrl,
   timestamp
-FROM `web_instr_load_balancer.requests_${DATE}`
+FROM web_instr_load_balancer.requests_${DATE}
 ORDER BY timestamp DESC
-LIMIT 10'
+LIMIT 10"
 ```
 
 There are more queries in the Colab sheet
