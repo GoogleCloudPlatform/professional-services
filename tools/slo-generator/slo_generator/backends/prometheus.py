@@ -27,7 +27,6 @@ LOGGER = logging.getLogger(__name__)
 
 class PrometheusBackend:
     """Backend for querying metrics from Prometheus."""
-
     def __init__(self, client=None, url=None, headers=None):
         self.client = client
         if not self.client:
@@ -39,17 +38,18 @@ class PrometheusBackend:
             LOGGER.debug(f'Prometheus headers: {headers}')
             self.client = Prometheus()
 
-    def query_sli(self, slo_config):
+    def query_sli(self, timestamp, window, slo_config):
         """Query SLI value from a given PromQL expression.
 
         Args:
+            timestamp (int): UNIX timestamp.
+            window (int): Window (in seconds).
             slo_config (dict): SLO configuration.
 
         Returns:
             float: SLI value.
         """
         conf = slo_config['backend']
-        window = conf['window']
         measurement = conf['measurement']
         expr = measurement['expression']
         expression = expr.replace("[window]", f"[{window}s]")
@@ -63,10 +63,12 @@ class PrometheusBackend:
         LOGGER.debug(f"SLI value: {sli_value}")
         return sli_value
 
-    def good_bad_ratio(self, slo_config):
+    def good_bad_ratio(self, timestamp, window, slo_config):
         """Compute good bad ratio from two metric filters.
 
         Args:
+            timestamp (int): UNIX timestamp.
+            window (int): Window (in seconds).
             slo_config (dict): SLO configuration.
 
         Note:
@@ -76,7 +78,6 @@ class PrometheusBackend:
             tuple: A tuple of (good_event_count, bad_event_count).
         """
         conf = slo_config['backend']
-        window = slo_config['window']
         filter_good = conf['measurement']['filter_good']
         filter_bad = conf['measurement'].get('filter_bad')
         filter_valid = conf['measurement'].get('filter_valid')
