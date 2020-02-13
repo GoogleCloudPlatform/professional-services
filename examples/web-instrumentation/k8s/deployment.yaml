@@ -15,7 +15,7 @@ spec:
       containers:
       - name: web-instrumentation-app
         # Replace with your project ID
-        image: gcr.io/[your project ID]/web-instrumentation:latest
+        image: gcr.io/{{PROJECT-ID}}/web-instrumentation:latest
         ports:
         - containerPort: 8080
         readinessProbe:

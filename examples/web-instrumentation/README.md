@@ -169,23 +169,43 @@ gcloud beta container clusters create $NAME \
    --enable-stackdriver-kubernetes
 ```
 
-Edit the project id in file `k8s/ot-service.yaml`. Deploy the OpenTelemetry
-collector to the Kubernetes cluster
+Change the project id in file `k8s/ot-service.yaml` with the sed command
+
+```shell
+sed -i.bak "s/{{PROJECT-ID}}/$GOOGLE_CLOUD_PROJECT/" k8s/ot-service.yaml
+```
+
+Deploy the OpenTelemetry service to the Kubernetes cluster
 
 ```shell
 kubectl apply -f k8s/ot-service.yaml
 ```
 
-Check for the external IP
+Get the external IP
 
 ```shell
-kubectl get service ot-service-service \
-  -o=custom-columns=NAME:.status.loadBalancer.ingress[*].ip
+EXTERNAL_IP=$(kubectl get svc ot-service-service \
+    -o jsonpath="{.status.loadBalancer.ingress[*].ip}")
 ```
 
 It might take a few minutes for the deployment to complete and an IP address be
-allocated. Edit the file `browser\src\index.js` changing the variable `collectorURL` to
-refer to the external IP and port (80) of the agent. Rebuild the web client.
+allocated. 
+
+Edit the file `browser/src/index.js` changing the variable `collectorURL` to
+refer to the external IP and port (80) of the agent with the following sed
+command
+
+```shell
+sed -i.bak "s/localhost:55678/${EXTERNAL_IP}:80/" browser/src/index.js
+```
+
+Rebuild the web client
+
+```shell
+cd browser
+npm run build
+cd ..
+```
 
 ### Build the app image
 
@@ -196,12 +216,11 @@ Cloud Build command
 gcloud builds submit
 ```
 
-This will use the configuration file named cloudbuild.yaml to build the Docker
-image, push it to the Google Cloud Image Registry, and deploy to Cloud Run.
+Change the project id in file `k8s/deployment.yaml` with the sed command
 
-See
-[Quickstart: Build and Deploy](https://cloud.google.com/run/docs/quickstarts/build-and-deploy)
-for more on running applications on Cloud Run.
+```shell
+sed -i.bak "s/{{PROJECT-ID}}/$GOOGLE_CLOUD_PROJECT/" k8s/deployment.yaml
+```
 
 Deploy the app
 
