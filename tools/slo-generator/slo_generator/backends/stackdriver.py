@@ -184,11 +184,11 @@ class StackdriverBackend:
         Returns:
             list: List of timeseries objects.
         """
-        measurement_window = SD._get_window(timestamp, window)
-        aggregation = SD._get_aggregation(window,
-                                          aligner=aligner,
-                                          reducer=reducer,
-                                          group_by=group_by)
+        measurement_window = SD.get_window(timestamp, window)
+        aggregation = SD.get_aggregation(window,
+                                         aligner=aligner,
+                                         reducer=reducer,
+                                         group_by=group_by)
         project = self.client.project_path(project_id)
         timeseries = self.client.list_time_series(
             project, filter, measurement_window,
@@ -216,7 +216,7 @@ class StackdriverBackend:
             return 0  # no events in timeseries
 
     @staticmethod
-    def _get_window(timestamp, window):
+    def get_window(timestamp, window):
         """Helper for measurement window.
 
         Args:
@@ -236,10 +236,10 @@ class StackdriverBackend:
         return measurement_window
 
     @staticmethod
-    def _get_aggregation(window,
-                         aligner='ALIGN_SUM',
-                         reducer='REDUCE_SUM',
-                         group_by=[]):
+    def get_aggregation(window,
+                        aligner='ALIGN_SUM',
+                        reducer='REDUCE_SUM',
+                        group_by=[]):
         """Helper for aggregation object.
 
         Default aggregation is `ALIGN_SUM`.

@@ -30,12 +30,12 @@ class ElasticsearchBackend:
         client (elasticsearch.ElasticSearch): Existing ES client.
         es_config (dict): ES client configuration.
     """
-
     def __init__(self, client=None, **es_config):
         self.client = client
         if self.client is None:
             self.client = Elasticsearch(**es_config)
 
+    # pylint: disable=unused-argument
     def good_bad_ratio(self, timestamp, window, slo_config):
         """Query two timeseries, one containing 'good' events, one containing
         'bad' events.
@@ -56,9 +56,9 @@ class ElasticsearchBackend:
         query_valid = conf['measurement'].get('query_valid')
 
         # Build ELK request bodies
-        good = ES._build_query_body(query_good, window, date)
-        bad = ES._build_query_body(query_bad, window, date)
-        valid = ES._build_query_body(query_valid, window, date)
+        good = ES.build_query(query_good, window, date)
+        bad = ES.build_query(query_bad, window, date)
+        valid = ES.build_query(query_valid, window, date)
 
         # Get good events count
         response = self.query(index, good)
@@ -106,9 +106,11 @@ class ElasticsearchBackend:
             return 0
 
     @staticmethod
-    def _build_query_body(query, window, date_field='timestamp'):
-        """Add window to existing query. Replace window for different error
-        budget steps on-the-fly.
+    def build_query(query, window, date_field='timestamp'):
+        """Build ElasticSearch query.
+
+        Add window to existing query.
+        Replace window for different error budget steps on-the-fly.
 
         Args:
             body (dict): Existing query body.

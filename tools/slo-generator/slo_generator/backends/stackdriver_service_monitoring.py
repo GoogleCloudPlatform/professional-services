@@ -40,7 +40,14 @@ SID_MESH_ISTIO = (
 
 
 class StackdriverServiceMonitoringBackend:
-    """Stackdriver Service Monitoring backend class."""
+    """Stackdriver Service Monitoring backend class.
+
+    Args:
+        client (google.cloud.monitoring_v3.ServiceMonitoringServiceClient):
+            Existing Service Monitoring API client.
+    """
+
+    # pylint: disable=unused-argument
     def __init__(self, client=None, **kwargs):
         self.client = client
         if client is None:
@@ -343,7 +350,7 @@ class StackdriverServiceMonitoringBackend:
         return SSM.to_json(slo)
 
     @staticmethod
-    def build_slo(window, slo_config):
+    def build_slo(window, slo_config):  # pylint: disable=R0912,R0915
         """Get SLO JSON representation in Service Monitoring API from SLO
         configuration.
 
