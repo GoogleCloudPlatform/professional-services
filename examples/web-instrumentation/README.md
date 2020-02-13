@@ -1,5 +1,10 @@
 # Instrumenting Web Applications End-to-End with Stackdriver and OpenTelemetry
 
+This tutorial demonstrates instrumenting a web application end-to-end, from the
+browser to the backend application, including logging, monitoring, and tracing
+with OpenTelemetry and Stackdriver to run for a load test. It shows how to
+collect the instrumentation data from the browser and the server, ship to
+Stackdriver, export to BigQuery, and analyze the logs with SQL queries.
 The app is something like a simple web version of Apache Bench. It includes
 JavaScript browser code that drives HTTP requests to a Node.js backend that
 can be run anywhere that you can run Node.
