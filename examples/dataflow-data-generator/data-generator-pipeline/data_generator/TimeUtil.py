@@ -26,10 +26,10 @@ def datetime_to_epoch_timestamp(timestamp, micros=True):
             is millisecond precision. This should be dictated by the avsc file.
     """
     _UNIX_EPOCH = datetime.datetime(1970, 1, 1)
-    _MILLISECONDS_PER_SECOND = 10 ** 3
-    _MICROSECONDS_PER_SECOND = 10 ** 6
+    _MILLISECONDS_PER_SECOND = 10**3
+    _MICROSECONDS_PER_SECOND = 10**6
 
-    if isinstance(timestamp, unicode):
+    if isinstance(timestamp, str):
         try:
             timestamp = datetime.datetime.strptime(timestamp,
                                                    '%Y-%m-%dT%H:%M:%S')
@@ -42,7 +42,7 @@ def datetime_to_epoch_timestamp(timestamp, micros=True):
     multiplier = _MICROSECONDS_PER_SECOND if micros \
         else _MILLISECONDS_PER_SECOND
 
-    return long(seconds_since_epoch * multiplier)
+    return int(seconds_since_epoch * multiplier)
 
 
 def date_to_epoch_date(date):
@@ -57,7 +57,7 @@ def date_to_epoch_date(date):
     """
     _UNIX_EPOCH = datetime.datetime(1970, 1, 1)
 
-    if isinstance(date, unicode):
+    if isinstance(date, str):
         date = datetime.datetime.strptime(date, '%Y-%m-%d')
 
     days_since_epoch = (date - _UNIX_EPOCH).days
@@ -76,9 +76,9 @@ def time_to_epoch_time(time, micros=True):
             is millisecond precision. This should be dictated by the avsc file.
     """
     _MIDNIGHT = datetime.time(0, 0, 0)
-    _MILLISECONDS_PER_SECOND = 10 ** 3
-    _MICROSECONDS_PER_SECOND = 10 ** 6
-    if isinstance(time, unicode):
+    _MILLISECONDS_PER_SECOND = 10**3
+    _MICROSECONDS_PER_SECOND = 10**6
+    if isinstance(time, str):
         try:
             time = datetime.datetime.strptime(time, '%H:%M:%S').time()
         except ValueError:
@@ -86,12 +86,11 @@ def time_to_epoch_time(time, micros=True):
 
     _TODAY = datetime.date.today()
 
-    seconds_since_midnight = (datetime.datetime.combine(_TODAY, time)
-                              - datetime.datetime.combine(_TODAY,
-                                                          _MIDNIGHT)
-                              ).total_seconds()
+    seconds_since_midnight = (
+        datetime.datetime.combine(_TODAY, time) -
+        datetime.datetime.combine(_TODAY, _MIDNIGHT)).total_seconds()
 
     multiplier = _MICROSECONDS_PER_SECOND if micros \
         else _MILLISECONDS_PER_SECOND
 
-    return long(seconds_since_midnight * multiplier)
+    return int(seconds_since_midnight * multiplier)

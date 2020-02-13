@@ -19,11 +19,12 @@ import json
 import logging
 import google.api_core
 from google.cloud import bigquery
+from slo_generator.exporters.base import Exporter
 
 LOGGER = logging.getLogger(__name__)
 
 
-class BigqueryExporter(object):
+class BigqueryExporter(Exporter):
     """BigQuery exporter class."""
 
     def __init__(self):
@@ -90,9 +91,9 @@ class BigqueryExporter(object):
                                          row['type'],
                                          mode=row['mode'])
             pyschema.append(field)
-        table_id = f'{project_id}.{dataset_id}.{table_id}'
-        LOGGER.info("Creating table %s", table_id)
-        table = bigquery.Table(table_id, schema=pyschema)
+        table_name = f"{project_id}.{dataset_id}.{table_id}"
+        LOGGER.info(f"Creating table {table_name}", table_name)
+        table = bigquery.Table(table_name, schema=pyschema)
         return self.client.create_table(table)
 
 
@@ -104,10 +105,11 @@ class BigQueryError(Exception):
     """
 
     def __init__(self, errors):
-        super().__init__(self._format(errors))
+        super().__init__(BigQueryError._format(errors))
         self.errors = errors
 
-    def _format(self, errors):
+    @staticmethod
+    def _format(errors):
         err = []
         for error in errors:
             err.extend(error['errors'])

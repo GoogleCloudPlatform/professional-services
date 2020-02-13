@@ -1,5 +1,5 @@
 slo_name: bq-exec-time
-slo_target: 200,
+slo_target: 200
 slo_description: SLO for BigQuery execution times
 service_name: bq-ingestion-pipeline
 feature_name: bigquery
