@@ -36,34 +36,22 @@ def main():
     delete = args.delete
 
     # Load error budget policy
-    error_budget_path = utils.normalize(args.error_budget_policy)
-    LOGGER.debug(f"Loading Error Budget config from {error_budget_path}")
-
-    error_budget_policy = utils.parse_config(error_budget_path)
+    LOGGER.debug(
+        f"Loading Error Budget config from {args.error_budget_policy}")
+    eb_path = utils.normalize(args.error_budget_policy)
+    eb_policy = utils.parse_config(eb_path)
 
     # Parse SLO folder for configs
-    slo_config = args.slo_config
-    if os.path.isfile(slo_config):
-        slo_config_paths = [args.slo_config]
-    else:
-        slo_config_folder = utils.normalize(slo_config)
-        slo_config_paths = sorted(glob.glob(f'{slo_config_folder}/slo_*.yaml'))
-
-    # Abort if configs are not found
-    if not slo_config_paths:
-        LOGGER.error(f'No SLO configs found in SLO folder {slo_config_folder}.')
+    slo_configs = utils.list_slo_configs(args.slo_config)
+    if not slo_configs:
+        LOGGER.error(f'No SLO configs found in SLO folder {args.slo_config}.')
 
     # Load SLO configs and compute SLO reports
-    for cfg in slo_config_paths:
-        slo_config_path = utils.normalize(cfg)
-        slo_config_name = slo_config_path.split("/")[-1]
-        LOGGER.debug(f'Loading config "{slo_config_name}"')
-        LOGGER.debug(f'Full path: {slo_config_path}')
-        slo_config = utils.parse_config(slo_config_path)
-        compute(slo_config,
-                error_budget_policy,
-                do_export=export,
-                delete=delete)
+    for path in slo_configs:
+        slo_config_name = path.split("/")[-1]
+        LOGGER.debug(f'Loading SLO config "{slo_config_name}"')
+        slo_config = utils.parse_config(path)
+        compute(slo_config, eb_policy, do_export=export, delete=delete)
 
 
 def parse_args(args):

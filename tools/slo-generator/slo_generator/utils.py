@@ -18,6 +18,7 @@ Utility functions.
 from datetime import datetime
 import argparse
 import collections
+import glob
 import importlib
 import logging
 import os
@@ -34,44 +35,65 @@ from google.auth._default import _CLOUD_SDK_CREDENTIALS_WARNING
 LOGGER = logging.getLogger(__name__)
 
 
-def parse_config(path):
+def list_slo_configs(path):
+    """List all SLO configs from path.
+
+    If path is a file, normalize the path and return it as a list with one
+    element.
+
+    If path is a folder, get all SLO configs from folder (files starting with
+    slo_*), normalize their paths and return them as a list.
+    """
+    path = normalize(path)
+    if os.path.isfile(path):
+        return [path]
+    elif os.path.isdir(path):
+        return sorted(glob.glob(f'{path}/slo_*.yaml'))
+    else:
+        raise Exception(f'SLO Config path "{path}" is not a file or folder.')
+
+
+def parse_config(path, ctx=os.environ):
     """Load a yaml configuration file and resolve environment variables in it.
 
     Args:
         path (str): the path to the yaml file.
+        ctx (dict): Context to replace env variables from (defaults to
+            `os.environ`).
 
     Returns:
         dict: Parsed YAML dictionary.
     """
-    # pattern for global vars: look for ${word}
-    pattern = re.compile(r'.*?\${(\w+)}.*?')
+    PATTERN = re.compile(r'.*?\${(\w+)}.*?')
 
-    def replace_env_vars(content):
-        """Replace environment variables from content.
+    def replace_env_vars(content, ctx):
+        """Replace env variables in content from context.
 
         Args:
             content (str): String to parse.
+            ctx (dict): Context to replace vars from.
 
         Returns:
             str: the parsed string with the env var replaced.
         """
-        match = pattern.findall(content)
+        match = PATTERN.findall(content)
         if match:
             full_value = content
             for var in match:
                 try:
-                    full_value = full_value.replace(f'${{{var}}}',
-                                                    os.environ[var])
+                    full_value = full_value.replace(f'${{{var}}}', ctx[var])
                 except KeyError as exception:
-                    LOGGER.error(f'Environment variable "{var}" should be set.')
+                    LOGGER.error(
+                        f'Environment variable "{var}" should be set.')
                     raise exception
             content = full_value
         return content
 
     with open(path) as config:
         content = config.read()
-        content = replace_env_vars(content)
+        content = replace_env_vars(content, ctx)
         data = yaml.safe_load(content)
+
     LOGGER.debug(pprint.pformat(data))
     return data
 
@@ -181,7 +203,6 @@ def dict_snake_to_caml(data):
     Returns:
         dict: Output dictionary.
     """
-
     def snake_to_caml(word):
         return re.sub('_.', lambda x: x.group()[1].upper(), word)
 
