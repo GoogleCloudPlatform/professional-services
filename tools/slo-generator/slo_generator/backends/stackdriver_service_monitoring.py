@@ -184,7 +184,7 @@ class StackdriverServiceMonitoringBackend:
         return good_event_count, bad_event_count
 
     @staticmethod
-    def compute_slo_report(backend, project_id, timestamp, window):
+    def compute_slo_report(backend, project_id, timestamp, window, filter):
         """Compute SLO report using Stackdriver Monitoring API queries.
 
         Args:
@@ -193,6 +193,7 @@ class StackdriverServiceMonitoringBackend:
             project_id (str): Stackdriver host project id.
             timestamp (int): UNIX timestamp.
             window (int): Window (in seconds).
+            filter (str): Metric filter.
         """
         filters = {
             "select_slo_burnrate":
