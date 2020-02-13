@@ -197,14 +197,17 @@ class StackdriverServiceMonitoringBackend:
         """
         filters = {
             "select_slo_burnrate":
-            f"select_slo_burn_rate(\"{filter}\", \"86400s\")",
-            "select_slo_health": f"select_slo_health(\"{filter}\")",
-            "select_slo_compliance": f"select_slo_compliance(\"{filter}\")",
-            "select_slo_budget": f"select_slo_budget(\"{filter}\")",
+                f"select_slo_burn_rate(\"{filter}\", \"86400s\")",
+            "select_slo_health":
+                f"select_slo_health(\"{filter}\")",
+            "select_slo_compliance":
+                f"select_slo_compliance(\"{filter}\")",
+            "select_slo_budget":
+                f"select_slo_budget(\"{filter}\")",
             "select_slo_budget_fraction":
-            f"select_slo_budget_fraction(\"{filter}\")",
+                f"select_slo_budget_fraction(\"{filter}\")",
             "select_slo_budget_total":
-            f"select_slo_budget_total(\"{filter}\")",
+                f"select_slo_budget_total(\"{filter}\")",
         }
         report = {}
         for name, metric_filter in filters.items():
@@ -508,8 +511,7 @@ class StackdriverServiceMonitoringBackend:
         slo_id = SSM.build_slo_id(window, slo_config, full=True)
         LOGGER.warning(f"Updating SLO {slo_id} ...")
         slo_json['name'] = slo_id
-        return SSM.to_json(
-            self.client.update_service_level_objective(slo_json))
+        return SSM.to_json(self.client.update_service_level_objective(slo_json))
 
     def list_slos(self, service_id, slo_config):
         """List all SLOs from Stackdriver Service Monitoring API.

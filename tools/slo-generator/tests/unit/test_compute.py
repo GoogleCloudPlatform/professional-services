@@ -63,6 +63,7 @@ PUBSUB_MOCKS = [
 
 
 class TestCompute(unittest.TestCase):
+
     @patch('google.api_core.grpc_helpers.create_channel',
            return_value=mock_grpc_sd(2 * STEPS * len(SLO_CONFIGS_SD)))
     def test_compute_stackdriver(self, mock):

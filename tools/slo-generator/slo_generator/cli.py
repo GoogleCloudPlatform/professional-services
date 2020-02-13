@@ -36,8 +36,7 @@ def main():
     delete = args.delete
 
     # Load error budget policy
-    LOGGER.debug(
-        f"Loading Error Budget config from {args.error_budget_policy}")
+    LOGGER.debug(f"Loading Error Budget config from {args.error_budget_policy}")
     eb_path = utils.normalize(args.error_budget_policy)
     eb_policy = utils.parse_config(eb_path)
 

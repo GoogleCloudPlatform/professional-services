@@ -26,6 +26,7 @@ SAMPLE_DIR = os.path.join(os.path.dirname(os.path.dirname(TEST_DIR)),
 
 class MultiCallableStub(object):
     """Stub for the grpc.UnaryUnaryMultiCallable interface."""
+
     def __init__(self, method, channel_stub):
         self.method = method
         self.channel_stub = channel_stub
@@ -46,6 +47,7 @@ class MultiCallableStub(object):
 
 class ChannelStub(object):
     """Stub for the grpc.Channel interface."""
+
     def __init__(self, responses=[]):
         self.responses = responses
         self.requests = []

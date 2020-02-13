@@ -21,6 +21,7 @@ TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 class TestCLI(unittest.TestCase):
+
     def test_parse_args(self):
         slo_config_path = f'{TEST_DIR}/fixtures/slo_config.json'
         error_budget_policy_path = f'{TEST_DIR}/fixtures/error_budget_policy.json'

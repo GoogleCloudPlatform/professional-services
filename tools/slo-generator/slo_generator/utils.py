@@ -83,8 +83,7 @@ def parse_config(path, ctx=os.environ):
                 try:
                     full_value = full_value.replace(f'${{{var}}}', ctx[var])
                 except KeyError as exception:
-                    LOGGER.error(
-                        f'Environment variable "{var}" should be set.')
+                    LOGGER.error(f'Environment variable "{var}" should be set.')
                     raise exception
             content = full_value
         return content
@@ -203,6 +202,7 @@ def dict_snake_to_caml(data):
     Returns:
         dict: Output dictionary.
     """
+
     def snake_to_caml(word):
         return re.sub('_.', lambda x: x.group()[1].upper(), word)
 
