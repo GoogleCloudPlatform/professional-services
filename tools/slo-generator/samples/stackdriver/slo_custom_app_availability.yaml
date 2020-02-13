@@ -28,7 +28,7 @@ backend:
         metric.labels.response_code = 304 )
     filter_valid: >
       project=${GAE_PROJECT_ID}
-      metric.type="logging.googleapis.com/${LOG_METRIC_NAME}"
+      metric.type="logging.googleapis.com/${STACKDRIVER_LOG_METRIC_NAME}"
 exporters:
 - class:          Stackdriver
   project_id:     ${STACKDRIVER_HOST_PROJECT_ID}
