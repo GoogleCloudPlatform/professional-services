@@ -15,7 +15,7 @@
 """process_delimited.py is a Dataflow pipeline which reads a delimited file,
 adds some additional metadata fields and loads the contents to a BigQuery table."""
 
-from __future__ import absolute_import
+
 import argparse
 import logging
 import ntpath
@@ -48,7 +48,7 @@ class RowTransformer(object):
         # Strip out the return characters and quote characters.
         values = re.split(self.delimiter, re.sub(r'[\r\n"]', '', row))
 
-        row = dict(zip(self.keys, values))
+        row = dict(list(zip(self.keys, values)))
 
         # Add an additional filename field.
         row['filename'] = self.filename
