@@ -11,7 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""stubs.py
 
+Stubs for mocking backends and exporters.
+"""
 import json
 import os
 
@@ -24,13 +27,15 @@ SAMPLE_DIR = os.path.join(os.path.dirname(os.path.dirname(TEST_DIR)),
                           "samples/")
 
 
-class MultiCallableStub(object):
+# pylint: disable=too-few-public-methods
+class MultiCallableStub:
     """Stub for the grpc.UnaryUnaryMultiCallable interface."""
 
     def __init__(self, method, channel_stub):
         self.method = method
         self.channel_stub = channel_stub
 
+    # pylint: disable=inconsistent-return-statements
     def __call__(self, request, timeout=None, metadata=None, credentials=None):
         self.channel_stub.requests.append((self.method, request))
 
@@ -45,13 +50,15 @@ class MultiCallableStub(object):
             return response
 
 
-class ChannelStub(object):
+# pylint: disable=R0903
+class ChannelStub:
     """Stub for the grpc.Channel interface."""
 
     def __init__(self, responses=[]):
         self.responses = responses
         self.requests = []
 
+    # pylint: disable=C0116,W0613
     def unary_unary(self,
                     method,
                     request_serializer=None,
@@ -67,7 +74,7 @@ def mock_grpc_stub(response, proto_method, nresp=1):
         nresp (int): Number of expected responses.
 
     Returns:
-        stubs.ChannelStub: Mocked gRPC channel stub.
+        ChannelStub: Mocked gRPC channel stub.
     """
     expected_response = proto_method(**response)
     channel = ChannelStub(responses=[expected_response] * nresp)
@@ -76,6 +83,12 @@ def mock_grpc_stub(response, proto_method, nresp=1):
 
 def mock_grpc_sd(nresp=1):
     """Fake Stackdriver Monitoring API response for the ListTimeSeries endpoint.
+
+    Args:
+        nresp (int): Number of responses to add to response.
+
+    Returns:
+        ChannelStub: Mocked gRPC channel stub.
     """
     timeserie = load_fixture('time_series_proto.json')
     response = {"next_page_token": "", "time_series": [timeserie]}
@@ -85,7 +98,16 @@ def mock_grpc_sd(nresp=1):
         nresp=nresp)
 
 
+# pylint: disable=W0613,R1721
 def mock_prom_query(self, metric):
+    """Fake Prometheus query response.
+
+    Args:
+        metric (dict): Input metric query.
+
+    Returns:
+        dict: Fake response.
+    """
     data = {
         'data': {
             'result': [{
@@ -97,13 +119,20 @@ def mock_prom_query(self, metric):
     return json.dumps(data)
 
 
+# pylint: disable=W0613
 def mock_es_search(self, index, body):
+    """Fake ElasticSearch response.
+
+    Args:
+        index (str): Index.
+        body (dict): Query body.
+
+    Returns:
+        dict: Fake response.
+    """
     return {'hits': {'total': {'value': 120}}}
 
 
-#-------------------#
-# Utility functions #
-#-------------------#
 def load_fixture(filename, **ctx):
     """Load a fixture from the test/fixtures/ directory and replace context
     environmental variables in it.

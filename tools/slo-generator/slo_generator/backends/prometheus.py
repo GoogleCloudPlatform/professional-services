@@ -54,7 +54,7 @@ class PrometheusBackend:
         measurement = conf['measurement']
         expr = measurement['expression']
         expression = expr.replace("[window]", f"[{window}s]")
-        data = self.query(expression)
+        data = self.query(expression, timestamp)
         LOGGER.debug(
             f"Expression: {expression} | Result: {pprint.pformat(data)}")
         try:
@@ -90,11 +90,11 @@ class PrometheusBackend:
 
         if filter_bad:
             expr_bad = filter_bad.replace('[window]', f'[{window}s]')
-            res_bad = self.query(expr_bad)
+            res_bad = self.query(expr_bad, timestamp)
             bad_event_count = PROM.count(res_bad)
         elif filter_valid:
             expr_valid = filter_valid.replace('[window]', f'[{window}s]')
-            res_valid = self.query(expr_valid)
+            res_valid = self.query(expr_valid, timestamp)
             bad_event_count = PROM.count(res_valid) - good_event_count
         else:
             raise Exception("`filter_bad` or `filter_valid` is required.")
@@ -104,11 +104,12 @@ class PrometheusBackend:
 
         return (good_event_count, bad_event_count)
 
-    def query(self, filter):
+    def query(self, filter, timestamp=None):  # pylint: disable=unused-argument
         """Query Prometheus server.
 
         Args:
             filter (str): Query filter.
+            timestamp (int): UNIX timestamp.
 
         Returns:
             dict: Response.

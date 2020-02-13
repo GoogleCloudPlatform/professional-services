@@ -46,11 +46,12 @@ def list_slo_configs(path):
     """
     path = normalize(path)
     if os.path.isfile(path):
-        return [path]
+        paths = [path]
     elif os.path.isdir(path):
-        return sorted(glob.glob(f'{path}/slo_*.yaml'))
+        paths = sorted(glob.glob(f'{path}/slo_*.yaml'))
     else:
         raise Exception(f'SLO Config path "{path}" is not a file or folder.')
+    return paths
 
 
 def parse_config(path, ctx=os.environ):
@@ -64,7 +65,7 @@ def parse_config(path, ctx=os.environ):
     Returns:
         dict: Parsed YAML dictionary.
     """
-    PATTERN = re.compile(r'.*?\${(\w+)}.*?')
+    pattern = re.compile(r'.*?\${(\w+)}.*?')
 
     def replace_env_vars(content, ctx):
         """Replace env variables in content from context.
@@ -76,7 +77,7 @@ def parse_config(path, ctx=os.environ):
         Returns:
             str: the parsed string with the env var replaced.
         """
-        match = PATTERN.findall(content)
+        match = pattern.findall(content)
         if match:
             full_value = content
             for var in match:

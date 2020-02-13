@@ -17,9 +17,7 @@ Command-Line interface of `slo-generator`.
 """
 
 import argparse
-import glob
 import logging
-import os
 import sys
 
 from slo_generator.compute import compute
