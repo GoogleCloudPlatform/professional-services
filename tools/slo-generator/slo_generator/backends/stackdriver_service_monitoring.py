@@ -30,10 +30,17 @@ from slo_generator.utils import dict_snake_to_caml
 
 LOGGER = logging.getLogger(__name__)
 
+SID_GAE = 'gae:{project_id}_{module_id}'
+SID_CLOUD_ENDPOINT = 'ist:{project_id}-{service}'
+SID_CLUSTER_ISTIO = (
+    'ist:{project_id}-zone-{location}-{cluster_name}-{service_namespace}-'
+    '{service_name}')
+SID_MESH_ISTIO = (
+    'ist:{project_id}-{mesh_uid}-{service_namespace}-{service_name}')
+
 
 class StackdriverServiceMonitoringBackend:
     """Stackdriver Service Monitoring backend class."""
-
     def __init__(self, client=None, **kwargs):
         self.client = client
         if client is None:
@@ -182,17 +189,14 @@ class StackdriverServiceMonitoringBackend:
         """
         filters = {
             "select_slo_burnrate":
-                f"select_slo_burn_rate(\"{filter}\", \"86400s\")",
-            "select_slo_health":
-                f"select_slo_health(\"{filter}\")",
-            "select_slo_compliance":
-                f"select_slo_compliance(\"{filter}\")",
-            "select_slo_budget":
-                f"select_slo_budget(\"{filter}\")",
+            f"select_slo_burn_rate(\"{filter}\", \"86400s\")",
+            "select_slo_health": f"select_slo_health(\"{filter}\")",
+            "select_slo_compliance": f"select_slo_compliance(\"{filter}\")",
+            "select_slo_budget": f"select_slo_budget(\"{filter}\")",
             "select_slo_budget_fraction":
-                f"select_slo_budget_fraction(\"{filter}\")",
+            f"select_slo_budget_fraction(\"{filter}\")",
             "select_slo_budget_total":
-                f"select_slo_budget_total(\"{filter}\")",
+            f"select_slo_budget_total(\"{filter}\")",
         }
         report = {}
         for name, metric_filter in filters.items():
@@ -304,16 +308,13 @@ class StackdriverServiceMonitoringBackend:
         # Use auto-generated ids for 'custom' SLOs, use system-generated ids
         # for all other types of SLOs.
         if app_engine:
-            service_id = 'gae:{project_id}_{module_id}'.format_map(app_engine)
+            service_id = SID_GAE.format_map(app_engine)
         elif cluster_istio:
-            service_id = 'ist:{project_id}-zone-{location}-{cluster_name}-{service_namespace}-{service_name}'.format_map(
-                cluster_istio)
+            service_id = SID_CLUSTER_ISTIO.format_map(cluster_istio)
         elif mesh_istio:
-            service_id = 'ist:{project_id}-{mesh_uid}-{service_namespace}-{service_name}'.format_map(
-                mesh_istio)
+            service_id = SID_MESH_ISTIO.format_map(mesh_istio)
         elif cloud_endpoints:
-            service_id = 'ist:{project_id}-{mesh_uid}-{service_namespace}-{service_name}'.format_map(
-                cloud_endpoints)
+            service_id = SID_CLOUD_ENDPOINT.format_map(cloud_endpoints)
         else:
             service_id = f'{service_name}-{feature_name}'
 
@@ -499,7 +500,8 @@ class StackdriverServiceMonitoringBackend:
         slo_id = SSM.build_slo_id(window, slo_config, full=True)
         LOGGER.warning(f"Updating SLO {slo_id} ...")
         slo_json['name'] = slo_id
-        return SSM.to_json(self.client.update_service_level_objective(slo_json))
+        return SSM.to_json(
+            self.client.update_service_level_objective(slo_json))
 
     def list_slos(self, service_id, slo_config):
         """List all SLOs from Stackdriver Service Monitoring API.
@@ -614,29 +616,6 @@ class StackdriverServiceMonitoringBackend:
                 info = u'Add "{}" to position {}'.format(string[-1], idx)
                 lines.append(info)
         return lines
-
-    @staticmethod
-    def get_slo_type(slo_config):
-        """Find the type of SLO from the SLO configuration.
-
-        Args:
-            slo_config (dict): SLO configuration.
-
-        Returns:
-            str: SLO type amongst 'ist', 'gae', 'endpoint', or 'custom'.
-        """
-        backend = slo_config['backend']
-        istio = slo_config.get('mesh_istio')
-        app_engine = slo_config.get('app_engine')
-        endpoint = slo_config.get('cloud_endpoints')
-        if istio:
-            return 'ist'
-        elif app_engine:
-            return 'gae'
-        elif endpoint:
-            return 'endpoint'
-        else:
-            return 'custom'
 
     @staticmethod
     def convert_slo_to_ssm_format(slo):
