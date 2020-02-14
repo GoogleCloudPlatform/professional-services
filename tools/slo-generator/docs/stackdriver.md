@@ -2,9 +2,11 @@
 
 ## Backend
 
-Using the `Stackdriver` backend class, you can query any metrics available in Stackdriver Monitoring to create an SLO.
+Using the `Stackdriver` backend class, you can query any metrics available in
+Stackdriver Monitoring to create an SLO.
 
-The following methods are available to compute SLOs with the `Stackdriver` backend:
+The following methods are available to compute SLOs with the `Stackdriver`
+backend:
 
 * `good_bad_ratio` for metrics of type `DELTA`, `GAUGE`, or `CUMULATIVE`.
 * `distribution_cut` for metrics of type `DELTA` and unit `DISTRIBUTION`.
@@ -14,9 +16,12 @@ The following methods are available to compute SLOs with the `Stackdriver` backe
 The `good_bad_ratio` method is used to compute the ratio between two metrics:
 
 - **Good events**, i.e events we consider as 'good' from the user perspective.
-- **Bad or valid events**, i.e events we consider either as 'bad' from the user perspective, or all events we consider as 'valid' for the computation of the SLO.
+- **Bad or valid events**, i.e events we consider either as 'bad' from the user
+perspective, or all events we consider as 'valid' for the computation of the
+SLO.
 
-This method is often used for availability SLOs, but can be used for other purposes as well (see examples).
+This method is often used for availability SLOs, but can be used for other
+purposes as well (see examples).
 
 **Config example:**
 ```yaml
@@ -42,13 +47,19 @@ the `filter_valid` field which identifies all valid events.
 
 ### Distribution cut
 
-The `distribution_cut` method is used for Stackdriver distribution-type metrics, which are usually used for latency metrics.
+The `distribution_cut` method is used for Stackdriver distribution-type metrics,
+which are usually used for latency metrics.
 
-A distribution metric records the **statistical distribution of the extracted values** in **histogram buckets**. The extracted values are not recorded individually, but their distribution across the configured buckets are recorded, along with the `count`, `mean`, and `sum` of squared deviation of the values.
+A distribution metric records the **statistical distribution of the extracted
+values** in **histogram buckets**. The extracted values are not recorded
+individually, but their distribution across the configured buckets are recorded,
+along with the `count`, `mean`, and `sum` of squared deviation of the values.
 
-In `Stackdriver Monitoring`, there are three different ways to specify bucket boundaries:
+In `Stackdriver Monitoring`, there are three different ways to specify bucket
+boundaries:
 * **Linear:** Every bucket has the same width.
-* **Exponential:** Bucket widths increases for higher values, using an exponential growth factor.
+* **Exponential:** Bucket widths increases for higher values, using an
+exponential growth factor.
 * **Explicit:** Bucket boundaries are set for each bucket using a bounds array.
 
 **Config example:**
@@ -68,19 +79,24 @@ backend:
 ```
 **&rightarrow; [Full SLO config](../samples/stackdriver/slo_gae_app_latency.yaml)**
 
-The `threshold_bucket` number to reach our 724ms target latency will depend on how the buckets boundaries are set. Learn how to [inspect your distribution metrics](https://cloud.google.com/logging/docs/logs-based-metrics/distribution-metrics#inspecting_distribution_metrics) to figure out the bucketization.
+The `threshold_bucket` number to reach our 724ms target latency will depend on
+how the buckets boundaries are set. Learn how to [inspect your distribution metrics](https://cloud.google.com/logging/docs/logs-based-metrics/distribution-metrics#inspecting_distribution_metrics) to figure out the bucketization.
 
 ## Exporter
 
-The `Stackdriver` exporter allows to export the error budget burn rate metric as a **custom Stackdriver metric** that we'll use for alerting:
+The `Stackdriver` exporter allows to export the error budget burn rate metric as
+a **custom Stackdriver metric** that we'll use for alerting:
 
- * The **metric type** is `custom.googleapis.com/error_budget_burn_rate` by default, but can be modified using the `metric_type` field in the exporter YAML.
+ * The **metric type** is `custom.googleapis.com/error_budget_burn_rate` by
+ default, but can be modified using the `metric_type` field in the exporter YAML.
 
- * The **metric descriptor** has labels describing our SLO, amongst which the `service_name`, `feature_name`, and `error_budget_policy_step_name` labels.
+ * The **metric descriptor** has labels describing our SLO, amongst which the
+ `service_name`, `feature_name`, and `error_budget_policy_step_name` labels.
 
 **Example config:**
 
-The following configuration will create the custom metric `error_budget_burn_rate` in `Stackdriver Monitoring`:
+The following configuration will create the custom metric
+`error_budget_burn_rate` in `Stackdriver Monitoring`:
 
 ```yaml
 exporters:
@@ -96,16 +112,21 @@ Optional fields:
 
 ## Alerting
 
-Alerting is essential in any SRE approach. Having all the right metrics without being able to alert on them is simply useless.
+Alerting is essential in any SRE approach. Having all the right metrics without
+being able to alert on them is simply useless.
 
-**Too many alerts** can be daunting, and page your SRE engineers for no valid reasons.
-**Too little alerts** can mean that your applications are not monitored at all (no application have 100% reliability).
+**Too many alerts** can be daunting, and page your SRE engineers for no valid
+reasons.
+**Too little alerts** can mean that your applications are not monitored at all
+(no application have 100% reliability).
 
-**Alerting on high error budget burn rates** for some hand-picked SLOs can help reduce the noise and page only when it's needed.
+**Alerting on high error budget burn rates** for some hand-picked SLOs can help
+reduce the noise and page only when it's needed.
 
 **Example:**
 
-We will define a `Stackdriver Monitoring` alert that we will **filter out on the corresponding error budget step**.
+We will define a `Stackdriver Monitoring` alert that we will **filter out on the
+corresponding error budget step**.
 
 Consider the following error budget policy config:
 
@@ -150,4 +171,5 @@ differentiate the alert messages.
 
 ## Examples
 
-Complete SLO samples using `Stackdriver` are available in [samples/stackdriver](../samples/stackdriver). Check them out !
+Complete SLO samples using `Stackdriver` are available in
+[samples/stackdriver](../samples/stackdriver). Check them out !
