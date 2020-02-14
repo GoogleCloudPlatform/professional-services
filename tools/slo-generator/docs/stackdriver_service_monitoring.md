@@ -47,9 +47,9 @@ For details on filling the `app_engine` fields, see [AppEngine](https://cloud.go
 
 ```yaml
 backend:
-  class:         StackdriverServiceMonitoring
-  method:        basic
-  project_id:    ${STACKDRIVER_HOST_PROJECT_ID}
+  class:           StackdriverServiceMonitoring
+  method:          basic
+  project_id:      ${STACKDRIVER_HOST_PROJECT_ID}
   measurement:
     cloud_endpoints:
       service:     ${ENDPOINT_URL}
@@ -63,21 +63,39 @@ For details on filling the `cloud_endpoints` fields, see [CloudEndpoint](https:/
 **Example config (Istio service latency):**
 ```yaml
 backend:
-  class:         StackdriverServiceMonitoring
-  method:        basic
-  project_id:    ${STACKDRIVER_HOST_PROJECT_ID}
+  class:                 StackdriverServiceMonitoring
+  method:                basic
+  project_id:            ${STACKDRIVER_HOST_PROJECT_ID}
   measurement:
     mesh_istio:
       mesh_uid:          ${GKE_MESH_UID}
       service_namespace: ${GKE_SERVICE_NAMESPACE}
       service_name:      ${GKE_SERVICE_NAME}
     latency:
-      threshold: 500 # ms
+      threshold:         500 # ms
 ```
 For details on filling the `mesh_istio` fields, see [MeshIstio](https://cloud.google.com/monitoring/api/ref_v3/rest/v3/services#meshistio)
 spec.
 
-**&rightarrow; [Full SLO config](../samples/stackdriver_service_monitoring/slo_gke_app_latency_basic.yaml)**
+**Example config (Istio service latency) [DEPRECATED]:**
+```yaml
+backend:
+  class:                 StackdriverServiceMonitoring
+  method:                basic
+  project_id:            ${STACKDRIVER_HOST_PROJECT_ID}
+  measurement:
+    cluster_istio:
+      location:          ${GKE_CLUSTER_LOCATION}
+      cluster_name:      ${GKE_CLUSTER_NAME}
+      service_namespace: ${GKE_SERVICE_NAMESPACE}
+      service_name:      ${GKE_SERVICE_NAME}
+    latency:
+      threshold:         500 # ms
+```
+For details on filling the `cluster_istio` fields, see [ClusterIstio](https://cloud.google.com/monitoring/api/ref_v3/rest/v3/services#clusteristio)
+spec.
+
+**&rightarrow; [Full SLO config](../samples/stackdriver_service_monitoring/slo_gke_app_latency_basic_deprecated.yaml)**
 
 
 ### Good / bad ratio
