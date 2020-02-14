@@ -48,6 +48,7 @@ class StackdriverServiceMonitoringBackend:
             Existing Service Monitoring API client. Initialize a new client if
             omitted.
     """
+
     def __init__(self, project_id, client=None):
         self.project_id = project_id
         self.client = client
@@ -196,14 +197,17 @@ class StackdriverServiceMonitoringBackend:
         """
         filters = {
             "select_slo_burnrate":
-            f"select_slo_burn_rate(\"{filter}\", \"86400s\")",
-            "select_slo_health": f"select_slo_health(\"{filter}\")",
-            "select_slo_compliance": f"select_slo_compliance(\"{filter}\")",
-            "select_slo_budget": f"select_slo_budget(\"{filter}\")",
+                f"select_slo_burn_rate(\"{filter}\", \"86400s\")",
+            "select_slo_health":
+                f"select_slo_health(\"{filter}\")",
+            "select_slo_compliance":
+                f"select_slo_compliance(\"{filter}\")",
+            "select_slo_budget":
+                f"select_slo_budget(\"{filter}\")",
             "select_slo_budget_fraction":
-            f"select_slo_budget_fraction(\"{filter}\")",
+                f"select_slo_budget_fraction(\"{filter}\")",
             "select_slo_budget_total":
-            f"select_slo_budget_total(\"{filter}\")",
+                f"select_slo_budget_total(\"{filter}\")",
         }
         report = {}
         for name, metric_filter in filters.items():
@@ -251,20 +255,31 @@ class StackdriverServiceMonitoringBackend:
         Returns:
             dict: Service config.
         """
+
+        # Look for API services matching our config.
         service_id = SSM.build_service_id(slo_config, full=False)
-        services = self.client.list_services(self.parent)
-        matches = [
-            service for service in list(services)
-            if service.name.split("/")[-1] == service_id
-        ]
-        if matches:
-            service = matches[0]
-            LOGGER.debug(f'Found matching service "{service.name}"')
-            return SSM.to_json(service)
-        LOGGER.warning(
-            f'Service "{service_id}" not found for project "{self.project_id}"'
-        )
-        return None
+        services = list(self.client.list_services(self.parent))
+        service_ids = [service.name.split("/")[-1] for service in services]
+        matches = [sid for sid in service_ids if sid == service_id]
+
+        # If no match is found for our service name in the API, raise an
+        # exception if the service should have been auto-added (method 'basic'),
+        # else output a warning message.
+        if not matches:
+            msg = (f'Service "{service_id}" does not exist in '
+                   f'project "{self.project_id}"')
+            method = slo_config['backend']['method']
+            if method == 'basic':
+                LOGGER.error(msg)
+                LOGGER.debug(f'List of services in project: {service_ids}')
+                raise Exception(msg)
+            LOGGER.error(msg)
+            return None
+
+        # Match found in API, return it.
+        service = matches[0]
+        LOGGER.debug(f'Found matching service "{service.name}"')
+        return SSM.to_json(service)
 
     @staticmethod
     def build_service(slo_config):
@@ -277,14 +292,9 @@ class StackdriverServiceMonitoringBackend:
         Returns:
             dict: Service JSON in Stackdriver Monitoring API.
         """
-        method = slo_config['backend']['method']
         service_id = SSM.build_service_id(slo_config, full=False)
         display_name = slo_config.get('service_display_name', service_id)
-        service = {'display_name': display_name}
-        if method != 'basic':  # custom service
-            service['custom'] = {}
-        else:
-            raise Exception(f'Method {method} is not supported.')
+        service = {'display_name': display_name, 'custom': {}}
         return service
 
     @staticmethod
@@ -503,8 +513,7 @@ class StackdriverServiceMonitoringBackend:
         slo_id = SSM.build_slo_id(window, slo_config, full=True)
         LOGGER.warning(f"Updating SLO {slo_id} ...")
         slo_json['name'] = slo_id
-        return SSM.to_json(
-            self.client.update_service_level_objective(slo_json))
+        return SSM.to_json(self.client.update_service_level_objective(slo_json))
 
     def list_slos(self, service_id, slo_config):
         """List all SLOs from Stackdriver Service Monitoring API.
