@@ -245,7 +245,7 @@ class SLOReport:
         """
         slo_full_name = self.__get_slo_full_name()
         step_name = self.error_budget_policy_step_name
-        return f"{slo_full_name :<25} | {step_name :<8}"
+        return f"{slo_full_name :<32} | {step_name :<8}"
 
     def __get_slo_full_name(self):
         """Compile full SLO name from SLO configuration.
