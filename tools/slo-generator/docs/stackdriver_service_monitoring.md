@@ -30,14 +30,14 @@ minimal configuration compared to custom SLOs.
 
 ```yaml
 backend:
-  class:          StackdriverServiceMonitoring
-  method:         basic
-  project_id:     ${STACKDRIVER_HOST_PROJECT_ID}
+  class:            StackdriverServiceMonitoring
+  method:           basic
+  project_id:       ${STACKDRIVER_HOST_PROJECT_ID}
   measurement:
     app_engine:
       project_id:   ${GAE_PROJECT_ID}
       module_id:    ${GAE_MODULE_ID}
-    availability: {}
+    availability:   {}
 ```
 For details on filling the `app_engine` fields, see [AppEngine](https://cloud.google.com/monitoring/api/ref_v3/rest/v3/services#appengine) spec.
 
