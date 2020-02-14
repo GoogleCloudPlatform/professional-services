@@ -84,7 +84,7 @@ The **SLO configuration** (JSON or YAML) is composed of the following fields:
 
 The **Error Budget policy** (JSON or YAML) is a list of multiple error budgets, each one composed of the following fields:
 
-* `window`: Time window for this error budget.
+* `window`: Rolling time window for this error budget.
 * `alerting_burn_rate_threshold`: Target burnrate threshold over which alerting is needed.
 * `urgent_notification`: boolean whether violating this error budget should trigger a page.
 * `overburned_consequence_message`: message to show when the error budget is above the target.

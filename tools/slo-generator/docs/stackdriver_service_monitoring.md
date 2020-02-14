@@ -161,52 +161,77 @@ consider 'good'.
 
 ## Service Monitoring API considerations
 
-### Deleting objects
+#### Tracking objects
+Since `Stackdriver Service Monitoring API` persists `Service` and `ServiceLevelObjective` objects, we need ways to keep our
+local SLO YAML configuration synced with the remote objects.
+
+**Auto-imported**
+
+Some services are auto-imported by the `Service Monitoring API`: they correspond
+to SLO configurations using the [`basic`](#basic) method.
+
+The following conventions are used by the `Service Monitoring API` to give a unique id to an auto-imported `Service`:
+
+  * **App Engine:**
+
+  ```
+  gae:{project_id}_{module_id}
+  ```
+  &rightarrow; *Make sure that the `app_engine` block in your config has the correct fields corresponding to your App Engine service.*
+
+  * **Cloud Endpoints:**
+
+  ```
+  ist:{project_id}-{service}
+  ```
+  &rightarrow; *Make sure that the `cloud_endpoints` block in your config has the correct fields corresponding to your Cloud Endpoint service.*
+
+  * **Mesh Istio:**
+
+  ```
+  ist:{project_id}-{mesh_uid}-{service_namespace}-{service_name}
+  ```
+  &rightarrow; *Make sure that the `mesh_istio` block in your config has the correct fields corresponding to your Istio service.*
+
+  * **Cluster Istio [DEPRECATED]:**
+
+  ```
+  ist:{project_id}-zone-{location}-{cluster_name}-{service_namespace}-{service_name}
+  ```
+  &rightarrow; *Make sure that the `cluster_istio` block in your config has the correct fields corresponding to your Istio service.*
+
+You cannot import an existing `ServiceLevelObjective` object, since they use a random id.
+
+**Custom**
+
+Custom services are the ones you create yourself using the `Service Monitoring API` and the `slo-generator`.
+
+The following conventions are used by the `slo-generator` to give a unique id to a custom `Service` and `Service Level Objective` objects:
+
+* `service_id = ${service_name}-${feature_name}`
+
+* `slo_id = ${service_name}-${feature_name}-${slo_name}-${window}`
+
+To keep track of those, **do not update any of the following fields** in your configs:
+
+  * `service_name`, `feature_name` and `slo_name` in the SLO config.
+
+  * `window` in the Error Budget Policy.
+
+If you need to make updates to any of those fields, first run the `slo-generator` with the `-d` (delete) option (see [#deleting-objects](#deleting-objects)), then re-run normally.
+
+To import an existing custom `Service` objects, find out your service id from the API and fill the `service_id` in the SLO configuration.
+
+You cannot import an existing custom `ServiceLevelObjective` unless it complies
+to the naming convention.
+
+#### Deleting objects
 
 To delete an SLO object in `Stackdriver Monitoring API` using the `StackdriverServiceMonitoringBackend` class, run the `slo-generator` with the `-d` (or `--delete`) flag:
 
 ```
 slo-generator -f <SLO_CONFIG_PATH> -b <ERROR_BUDGET_POLICY> --delete
 ```
-
-### Limitations
-
-Since `Stackdriver Service Monitoring API` persists objects, we need ways to keep our
-local SLO YAML configuration synced with the remote objects.
-
-The following naming conventions are used to give unique ids to your SLOs:
-
-* `service_id = ${service_name}-${feature_name}`
-
-* `slo_id = ${service_name}-${feature_name}-${slo_name}-${window}`
-
-**As a consequence, here are some good practices:**
-
-* To keep track of the `Service` and `ServiceLevelObjective` objects previously
-created in the API, **do not update any of the following fields** in your
-configs:
-
-  * `service_name`, `feature_name` and `slo_name` in the SLO config.
-
-  * `window` in the Error Budget Policy.
-
-  If you need to make updates to those fields, first run the `slo-generator`
-  with the `-d` (delete) option (see [#deleting-objects](#deleting-objects)),
-  then run it normally.
-
-* To persist `ServiceLevelObjective` objects, after creating your SLO the first
-  time, add the following fields in your SLO config:
-
-  * `service_id`: Existing `Service` id.
-  * `slo_id`: Existing `ServiceLevelObjective` ids. The id will be suffixed with
-  the `window` field for each step in the Error Budget Policy.
-
-  If the SLO config in your YAML file differs from the remote config, the
-  remote config will be updated to match yours.
-
-* To import an existing `ServiceLevelObjective` object, find out your Service
-  and SLO ids and fill the `service_id` and `slo_ids` fields with them. There
-  must be one SLO id for each step in your Error Budget Policy.
 
 ## Alerting
 
