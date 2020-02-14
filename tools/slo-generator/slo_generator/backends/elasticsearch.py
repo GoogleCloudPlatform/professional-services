@@ -22,6 +22,8 @@ from elasticsearch import Elasticsearch
 
 LOGGER = logging.getLogger(__name__)
 
+DEFAULT_DATE_FIELD = '@timestamp'
+
 
 class ElasticsearchBackend:
     """Backend for querying metrics from ElasticSearch.
@@ -30,7 +32,6 @@ class ElasticsearchBackend:
         client (elasticsearch.ElasticSearch): Existing ES client.
         es_config (dict): ES client configuration.
     """
-
     def __init__(self, client=None, **es_config):
         self.client = client
         if self.client is None:
@@ -49,17 +50,17 @@ class ElasticsearchBackend:
         Returns:
             tuple: A tuple (good_event_count, bad_event_count)
         """
-        conf = slo_config['backend']
-        index = conf['measurement']['index']
-        date = conf['measurement'].get('date_field', 'timestamp')
-        query_good = conf['measurement']['query_good']
-        query_bad = conf['measurement'].get('query_bad')
-        query_valid = conf['measurement'].get('query_valid')
+        measurement = slo_config['backend']['measurement']
+        index = measurement['index']
+        query_good = measurement['query_good']
+        query_bad = measurement.get('query_bad')
+        query_valid = measurement.get('query_valid')
+        date_field = measurement.get('date_field', DEFAULT_DATE_FIELD)
 
         # Build ELK request bodies
-        good = ES.build_query(query_good, window, date)
-        bad = ES.build_query(query_bad, window, date)
-        valid = ES.build_query(query_valid, window, date)
+        good = ES.build_query(query_good, window, date_field)
+        bad = ES.build_query(query_bad, window, date_field)
+        valid = ES.build_query(query_valid, window, date_field)
 
         # Get good events count
         response = self.query(index, good)
@@ -107,7 +108,7 @@ class ElasticsearchBackend:
             return 0
 
     @staticmethod
-    def build_query(query, window, date_field='timestamp'):
+    def build_query(query, window, date_field=DEFAULT_DATE_FIELD):
         """Build ElasticSearch query.
 
         Add window to existing query.
@@ -116,7 +117,9 @@ class ElasticsearchBackend:
         Args:
             body (dict): Existing query body.
             window (int): Window in seconds.
-            field (str): Field to filter time on (must be an ELK `date` field)
+            date_field (str): Field to filter time on (must be an ElasticSearch
+                field of type `date`. Defaults to `@timestamp` (Logstash-
+                generated date field).
 
         Returns:
             dict: Query body with range clause added.

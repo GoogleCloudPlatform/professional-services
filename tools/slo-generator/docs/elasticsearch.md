@@ -30,6 +30,7 @@ backend:
   method:         good_bad_ratio
   measurement:
     index:        test_data
+    date_field:   last_updated
     query_good:   {}
     query_bad:
       must:
@@ -39,6 +40,8 @@ backend:
 Optional fields:
   * `date_field`: Alternative field to filter time on. Has to be an ELK `date`
     field. Defaults to `@timestamp` which is the Logstash-generated one.
+
+**&rightarrow; [Full SLO config](../samples/elasticsearch/slo_elk_test_ratio.yaml)**
 
 You can also use the `filter_bad` field which identifies bad events instead of
 the `filter_valid` field which identifies all valid events.
@@ -51,7 +54,8 @@ steps.
 You can specify a different field to filter error budget policy windows on,
 using the `date_field` field.
 
-The full `ElasticSearch` query of the `query_bad` above will look like:
+The full `ElasticSearch` query body for the `query_bad` above will therefore
+look like:
 ```json
 {
   "query": {
@@ -63,7 +67,7 @@ The full `ElasticSearch` query of the `query_bad` above will look like:
       },
       "filter": {
         "range": {
-          "last_updated": {
+          "@timestamp": {
             "gte": "now-<window>s/s",
             "lt": "now/s"
           }
