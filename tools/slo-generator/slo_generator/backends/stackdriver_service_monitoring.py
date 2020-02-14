@@ -270,7 +270,7 @@ class StackdriverServiceMonitoringBackend:
             if method == 'basic':
                 sids = [service.name.split("/")[-1] for service in services]
                 LOGGER.info(
-                    f'List of services in project {self.projet_id}: {sids}')
+                    f'List of services in project {self.project_id}: {sids}')
                 LOGGER.error(msg)
                 raise Exception(msg)
             LOGGER.error(msg)
