@@ -260,8 +260,8 @@ class SLOReport:
         info = self.__get_info()
         slo_target_per = self.slo_target * 100
         sli_per = round(self.sli_measurement * 100, 6)
-        result_sli_str = f'SLI: {sli_per} % | Target: {slo_target_per} %'
-        result_str = ("Burnrate: {error_budget_burn_rate:<2} | "
-                      "Target burnrate: {alerting_burn_rate_threshold} | "
+        result_sli_str = f'SLI: {sli_per} % / {slo_target_per} % (target)'
+        result_str = ("Burnrate: {error_budget_burn_rate:<2} / "
+                      "{alerting_burn_rate_threshold} (target) | "
                       "Alert: {alert}").format_map(report)
         return f'{info} | {result_sli_str} | {result_str}'
