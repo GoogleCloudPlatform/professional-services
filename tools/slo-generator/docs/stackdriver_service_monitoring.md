@@ -161,7 +161,7 @@ consider 'good'.
 
 ## Service Monitoring API considerations
 
-#### Tracking objects
+### Tracking objects
 Since `Stackdriver Service Monitoring API` persists `Service` and `ServiceLevelObjective` objects, we need ways to keep our
 local SLO YAML configuration synced with the remote objects.
 
@@ -225,7 +225,7 @@ To import an existing custom `Service` objects, find out your service id from th
 You cannot import an existing custom `ServiceLevelObjective` unless it complies
 to the naming convention.
 
-#### Deleting objects
+### Deleting objects
 
 To delete an SLO object in `Stackdriver Monitoring API` using the `StackdriverServiceMonitoringBackend` class, run the `slo-generator` with the `-d` (or `--delete`) flag:
 
