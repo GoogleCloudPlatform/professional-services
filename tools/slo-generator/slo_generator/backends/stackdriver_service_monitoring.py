@@ -257,7 +257,7 @@ class StackdriverServiceMonitoringBackend:
         services = list(self.client.list_services(self.parent))
         matches = [
             service for service in services
-            if service.split("/")[-1] == service_id
+            if service.name.split("/")[-1] == service_id
         ]
 
         # If no match is found for our service name in the API, raise an
