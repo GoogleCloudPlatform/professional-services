@@ -43,15 +43,18 @@ class StackdriverServiceMonitoringBackend:
     """Stackdriver Service Monitoring backend class.
 
     Args:
+        project_id (str): Stackdriver host project id.
         client (google.cloud.monitoring_v3.ServiceMonitoringServiceClient):
-            Existing Service Monitoring API client.
+            Existing Service Monitoring API client. Initialize a new client if
+            omitted.
     """
 
-    # pylint: disable=unused-argument
-    def __init__(self, client=None, **kwargs):
+    def __init__(self, project_id, client=None):
+        self.project_id = project_id
         self.client = client
         if client is None:
             self.client = ServiceMonitoringServiceClient()
+        self.parent = self.client.project_path(project_id)
 
     def good_bad_ratio(self, timestamp, window, slo_config):
         """Good bad ratio method.
@@ -145,14 +148,12 @@ class StackdriverServiceMonitoringBackend:
 
         # Now that we have our SLO, retrieve the TimeSeries from Stackdriver
         # Monitoring API for that particular SLO id.
-        project_id = slo_config['backend']['project_id']
         metric_filter = SSM.build_slo_id(window, slo_config, full=True)
         filter = f"select_slo_counts(\"{metric_filter}\")"
 
         # Query SLO timeseries
-        stackdriver = StackdriverBackend()
-        timeseries = stackdriver.query(project_id,
-                                       timestamp,
+        stackdriver = StackdriverBackend(self.project_id)
+        timeseries = stackdriver.query(timestamp,
                                        window,
                                        filter,
                                        aligner='ALIGN_SUM',
@@ -184,13 +185,12 @@ class StackdriverServiceMonitoringBackend:
         return good_event_count, bad_event_count
 
     @staticmethod
-    def compute_slo_report(backend, project_id, timestamp, window, filter):
+    def compute_slo_report(backend, timestamp, window, filter):
         """Compute SLO report using Stackdriver Monitoring API queries.
 
         Args:
             backend (slo_generator.backends.Stackdriver): Stackdriver backend
                 instance.
-            project_id (str): Stackdriver host project id.
             timestamp (int): UNIX timestamp.
             window (int): Window (in seconds).
             filter (str): Metric filter.
@@ -212,8 +212,7 @@ class StackdriverServiceMonitoringBackend:
         report = {}
         for name, metric_filter in filters.items():
             LOGGER.debug(f'Querying timeseries with filter "{filter}"')
-            timeseries = backend.query(project_id,
-                                       timestamp,
+            timeseries = backend.query(timestamp,
                                        window,
                                        metric_filter,
                                        aligner='ALIGN_MEAN',
@@ -237,11 +236,9 @@ class StackdriverServiceMonitoringBackend:
             dict: Stackdriver Service Monitoring API response.
         """
         LOGGER.debug("Creating service ...")
-        project_id = slo_config['backend']['project_id']
         service_json = SSM.build_service(slo_config)
         service_id = SSM.build_service_id(slo_config)
-        parent = self.client.project_path(project_id)
-        service = self.client.create_service(parent,
+        service = self.client.create_service(self.parent,
                                              service_json,
                                              service_id=service_id)
         LOGGER.info(
@@ -258,10 +255,8 @@ class StackdriverServiceMonitoringBackend:
         Returns:
             dict: Service config.
         """
-        project_id = slo_config['backend']['project_id']
         service_id = SSM.build_service_id(slo_config, full=False)
-        project = self.client.project_path(project_id)
-        services = self.client.list_services(project)
+        services = self.client.list_services(self.parent)
         matches = [
             service for service in list(services)
             if service.name.split("/")[-1] == service_id
@@ -271,7 +266,7 @@ class StackdriverServiceMonitoringBackend:
             LOGGER.debug(f'Found matching service "{service.name}"')
             return SSM.to_json(service)
         LOGGER.warning(
-            f'Service "{service_id}" not found for project "{project_id}"')
+            f'Service "{service_id}" not found for project "{self.project_id}"')
         return None
 
     @staticmethod
@@ -344,9 +339,8 @@ class StackdriverServiceMonitoringBackend:
         Returns:
             dict: Service Management API response.
         """
-        project_id = slo_config['backend']['project_id']
         service_id = SSM.build_service_id(slo_config)
-        parent = self.client.service_path(project_id, service_id)
+        parent = self.client.service_path(self.project_id, service_id)
         slo_json = SSM.build_slo(window, slo_config)
         slo_id = SSM.build_slo_id(window, slo_config)
         slo = self.client.create_service_level_objective(
@@ -523,8 +517,7 @@ class StackdriverServiceMonitoringBackend:
         Returns:
             dict: API response.
         """
-        project_id = slo_config['backend']['project_id']
-        parent = self.client.service_path(project_id, service_id)
+        parent = self.client.service_path(self.project_id, service_id)
         slos = self.client.list_service_level_objectives(parent)
         slos = list(slos)
         LOGGER.debug(f"{len(slos)} SLOs found in Service Monitoring API.")
@@ -562,8 +555,8 @@ class StackdriverServiceMonitoringBackend:
         Returns:
             str: SLO id.
         """
-        project_id = slo_config['backend']['project_id']
         service_id = SSM.build_service_id(slo_config)
+        project_id = slo_config['backend']['project_id']
         if 'slo_id' in slo_config:
             slo_id_part = slo_config['slo_id']
             slo_id = f'{slo_id_part}-{window}'

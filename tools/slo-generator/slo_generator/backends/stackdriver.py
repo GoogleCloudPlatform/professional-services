@@ -29,14 +29,17 @@ class StackdriverBackend:
     """Backend for querying metrics from Stackdriver Monitoring.
 
     Args:
-        obj:`monitoring_v3.MetricServiceClient` (optional): A Stackdriver
-            Monitoring client. Initialize a new client if omitted.
+        project_id (str): Stackdriver host project id.
+        client (google.cloud.monitoring_v3.MetricServiceClient, optional):
+            Existing Stackdriver Service Monitoring client. Initialize a new
+            client if omitted.
     """
 
-    def __init__(self, client=None, **kwargs):  # pylint: disable=W0613
+    def __init__(self, project_id, client=None):
         self.client = client
         if client is None:
             self.client = monitoring_v3.MetricServiceClient()
+        self.parent = self.client.project_path(project_id)
 
     def good_bad_ratio(self, timestamp, window, slo_config):
         """Query two timeseries, one containing 'good' events, one containing
@@ -51,15 +54,13 @@ class StackdriverBackend:
             tuple: A tuple (good_event_count, bad_event_count)
         """
         conf = slo_config['backend']
-        project_id = conf['project_id']
         measurement = conf['measurement']
         filter_good = measurement['filter_good']
         filter_bad = measurement.get('filter_bad')
         filter_valid = measurement.get('filter_valid')
 
         # Query 'good events' timeseries
-        good_ts = self.query(project_id=project_id,
-                             timestamp=timestamp,
+        good_ts = self.query(timestamp=timestamp,
                              window=window,
                              filter=filter_good)
         good_ts = list(good_ts)
@@ -67,15 +68,13 @@ class StackdriverBackend:
 
         # Query 'bad events' timeseries
         if filter_bad:
-            bad_ts = self.query(project_id=project_id,
-                                timestamp=timestamp,
+            bad_ts = self.query(timestamp=timestamp,
                                 window=window,
                                 filter=filter_bad)
             bad_ts = list(bad_ts)
             bad_event_count = SD.count(bad_ts)
         elif filter_valid:
-            valid_ts = self.query(project_id=project_id,
-                                  timestamp=timestamp,
+            valid_ts = self.query(timestamp=timestamp,
                                   window=window,
                                   filter=filter_valid)
             valid_ts = list(valid_ts)
@@ -100,15 +99,13 @@ class StackdriverBackend:
             tuple: A tuple (good_event_count, bad_event_count).
         """
         conf = slo_config['backend']
-        project_id = conf['project_id']
         measurement = conf['measurement']
         filter_valid = measurement['filter_valid']
         threshold_bucket = int(measurement['threshold_bucket'])
         good_below_threshold = measurement.get('good_below_threshold', True)
 
         # Query 'valid' events
-        series = self.query(project_id=project_id,
-                            timestamp=timestamp,
+        series = self.query(timestamp=timestamp,
                             window=window,
                             filter=filter_valid)
         series = list(series)
@@ -163,7 +160,6 @@ class StackdriverBackend:
         return self.distribution_cut(*args, **kwargs)
 
     def query(self,
-              project_id,
               timestamp,
               window,
               filter,
@@ -173,7 +169,6 @@ class StackdriverBackend:
         """Query timeseries from Stackdriver Monitoring.
 
         Args:
-            project_id (str): GCP project id.
             timestamp (int): Current timestamp.
             window (int): Window size (in seconds).
             filter (str): Query filter.
@@ -189,9 +184,8 @@ class StackdriverBackend:
                                          aligner=aligner,
                                          reducer=reducer,
                                          group_by=group_by)
-        project = self.client.project_path(project_id)
         timeseries = self.client.list_time_series(
-            project, filter, measurement_window,
+            self.parent, filter, measurement_window,
             monitoring_v3.enums.ListTimeSeriesRequest.TimeSeriesView.FULL,
             aggregation)
         LOGGER.debug(pprint.pformat(timeseries))
