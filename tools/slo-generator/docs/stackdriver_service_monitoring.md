@@ -58,8 +58,6 @@ backend:
 ```
 For details on filling the `cloud_endpoints` fields, see [CloudEndpoint](https://cloud.google.com/monitoring/api/ref_v3/rest/v3/services#cloudendpoints) spec.
 
-**&rightarrow; [Full SLO config](../samples/stackdriver_service_monitoring/slo_endpoint_app_latency_basic.yaml)**
-
 **Example config (Istio service latency):**
 ```yaml
 backend:
@@ -76,6 +74,8 @@ backend:
 ```
 For details on filling the `mesh_istio` fields, see [MeshIstio](https://cloud.google.com/monitoring/api/ref_v3/rest/v3/services#meshistio)
 spec.
+
+**&rightarrow; [Full SLO config](../samples/stackdriver_service_monitoring/slo_gke_app_latency_basic.yaml)**
 
 **Example config (Istio service latency) [DEPRECATED]:**
 ```yaml
