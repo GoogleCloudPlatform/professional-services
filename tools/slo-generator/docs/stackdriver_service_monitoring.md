@@ -110,11 +110,11 @@ This method is often used for availability SLOs, but can be used for other purpo
 **Example config:**
 ```yaml
 backend:
-  class: StackdriverServiceMonitoring
-  project_id: "${STACKDRIVER_HOST_PROJECT_ID}"
-  method: good_bad_ratio
+  class:          StackdriverServiceMonitoring
+  project_id:     ${STACKDRIVER_HOST_PROJECT_ID}
+  method:         good_bad_ratio
   measurement:
-    filter_good: >
+    filter_good:  >
       project="${GAE_PROJECT_ID}"
       metric.type="appengine.googleapis.com/http/server/response_count"
       resource.type="gae_app"
