@@ -268,9 +268,10 @@ class StackdriverServiceMonitoringBackend:
                    f'project "{self.project_id}"')
             method = slo_config['backend']['method']
             if method == 'basic':
-                LOGGER.error(msg)
                 sids = [service.name.split("/")[-1] for service in services]
-                LOGGER.debug(f'List of services in project: {sids}')
+                LOGGER.info(
+                    f'List of services in project {self.projet_id}: {sids}')
+                LOGGER.error(msg)
                 raise Exception(msg)
             LOGGER.error(msg)
             return None
