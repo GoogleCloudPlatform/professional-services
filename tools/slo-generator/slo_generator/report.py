@@ -260,7 +260,7 @@ class SLOReport:
         info = self.__get_info()
         slo_target_per = self.slo_target * 100
         sli_per = round(self.sli_measurement * 100, 6)
-        gap_str = str(self.gap)
+        gap_str = str(round(self.gap, 2))
         if self.gap > 0:
             gap_str = f'+{self.gap}'
         result_sli_str = f'SLI: {sli_per:<7} % / {slo_target_per} % ({gap_str})'
