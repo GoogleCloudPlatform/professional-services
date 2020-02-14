@@ -140,17 +140,17 @@ A distribution metric records the **statistical distribution of the extracted va
 
 ```yaml
 backend:
-  class: StackdriverServiceMonitoring
-  project_id: ${STACKDRIVER_HOST_PROJECT_ID}
-  method: distribution_cut
+  class:          StackdriverServiceMonitoring
+  project_id:     ${STACKDRIVER_HOST_PROJECT_ID}
+  method:         distribution_cut
   measurement:
     filter_valid: >
       project=${GAE_PROJECT_ID}
       metric.type=appengine.googleapis.com/http/server/response_latencies
       metric.labels.response_code >= 200
       metric.labels.response_code < 500
-    range_min: 0
-    range_max: 724 # ms
+    range_min:    0
+    range_max:    724 # ms
 ```
 
 The `range_min` and `range_max` are used to specify the latency range that we
