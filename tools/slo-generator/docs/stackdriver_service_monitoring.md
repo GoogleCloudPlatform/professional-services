@@ -33,10 +33,10 @@ backend:
   class:          StackdriverServiceMonitoring
   method:         basic
   project_id:     ${STACKDRIVER_HOST_PROJECT_ID}
-  app_engine:
-    project_id:   ${GAE_PROJECT_ID}
-    module_id:    ${GAE_MODULE_ID}
   measurement:
+    app_engine:
+      project_id:   ${GAE_PROJECT_ID}
+      module_id:    ${GAE_MODULE_ID}
     availability: {}
 ```
 For details on filling the `app_engine` fields, see [AppEngine](https://cloud.google.com/monitoring/api/ref_v3/rest/v3/services#appengine) spec.
@@ -50,9 +50,9 @@ backend:
   class:         StackdriverServiceMonitoring
   method:        basic
   project_id:    ${STACKDRIVER_HOST_PROJECT_ID}
-  cloud_endpoints:
-    service:     ${ENDPOINT_URL}
   measurement:
+    cloud_endpoints:
+      service:     ${ENDPOINT_URL}
     latency:
       threshold:   724 # ms
 ```
@@ -66,11 +66,11 @@ backend:
   class:         StackdriverServiceMonitoring
   method:        basic
   project_id:    ${STACKDRIVER_HOST_PROJECT_ID}
-  mesh_istio:
-    mesh_uid:          ${GKE_MESH_UID}
-    service_namespace: ${GKE_SERVICE_NAMESPACE}
-    service_name:      ${GKE_SERVICE_NAME}
   measurement:
+    mesh_istio:
+      mesh_uid:          ${GKE_MESH_UID}
+      service_namespace: ${GKE_SERVICE_NAMESPACE}
+      service_name:      ${GKE_SERVICE_NAME}
     latency:
       threshold: 500 # ms
 ```

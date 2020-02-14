@@ -48,7 +48,6 @@ class StackdriverServiceMonitoringBackend:
             Existing Service Monitoring API client. Initialize a new client if
             omitted.
     """
-
     def __init__(self, project_id, client=None):
         self.project_id = project_id
         self.client = client
@@ -197,17 +196,14 @@ class StackdriverServiceMonitoringBackend:
         """
         filters = {
             "select_slo_burnrate":
-                f"select_slo_burn_rate(\"{filter}\", \"86400s\")",
-            "select_slo_health":
-                f"select_slo_health(\"{filter}\")",
-            "select_slo_compliance":
-                f"select_slo_compliance(\"{filter}\")",
-            "select_slo_budget":
-                f"select_slo_budget(\"{filter}\")",
+            f"select_slo_burn_rate(\"{filter}\", \"86400s\")",
+            "select_slo_health": f"select_slo_health(\"{filter}\")",
+            "select_slo_compliance": f"select_slo_compliance(\"{filter}\")",
+            "select_slo_budget": f"select_slo_budget(\"{filter}\")",
             "select_slo_budget_fraction":
-                f"select_slo_budget_fraction(\"{filter}\")",
+            f"select_slo_budget_fraction(\"{filter}\")",
             "select_slo_budget_total":
-                f"select_slo_budget_total(\"{filter}\")",
+            f"select_slo_budget_total(\"{filter}\")",
         }
         report = {}
         for name, metric_filter in filters.items():
@@ -266,7 +262,8 @@ class StackdriverServiceMonitoringBackend:
             LOGGER.debug(f'Found matching service "{service.name}"')
             return SSM.to_json(service)
         LOGGER.warning(
-            f'Service "{service_id}" not found for project "{self.project_id}"')
+            f'Service "{service_id}" not found for project "{self.project_id}"'
+        )
         return None
 
     @staticmethod
@@ -306,10 +303,11 @@ class StackdriverServiceMonitoringBackend:
         feature_name = slo_config['feature_name']
         backend = slo_config['backend']
         project_id = backend['project_id']
-        app_engine = backend.get('app_engine')
-        cluster_istio = backend.get('cluster_istio')
-        mesh_istio = backend.get('mesh_istio')
-        cloud_endpoints = backend.get('cloud_endpoints')
+        measurement = backend['measurement']
+        app_engine = measurement.get('app_engine')
+        cluster_istio = measurement.get('cluster_istio')
+        mesh_istio = measurement.get('mesh_istio')
+        cloud_endpoints = measurement.get('cloud_endpoints')
 
         # Use auto-generated ids for 'custom' SLOs, use system-generated ids
         # for all other types of SLOs.
@@ -505,7 +503,8 @@ class StackdriverServiceMonitoringBackend:
         slo_id = SSM.build_slo_id(window, slo_config, full=True)
         LOGGER.warning(f"Updating SLO {slo_id} ...")
         slo_json['name'] = slo_id
-        return SSM.to_json(self.client.update_service_level_objective(slo_json))
+        return SSM.to_json(
+            self.client.update_service_level_objective(slo_json))
 
     def list_slos(self, service_id, slo_config):
         """List all SLOs from Stackdriver Service Monitoring API.

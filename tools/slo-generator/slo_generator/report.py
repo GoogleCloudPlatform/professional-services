@@ -264,8 +264,8 @@ class SLOReport:
         gap_str = str(gap)
         if gap >= 0:
             gap_str = f'+{gap}'
-        result_sli_str = f'SLI: {sli_per:<7} % / {slo_target_per} % ({gap_str:<6})'
+        sli_str = f'SLI: {sli_per:<7} % / {slo_target_per} % ({gap_str:<6})'
         result_str = ("Burnrate: {error_budget_burn_rate:<2} / "
                       "{alerting_burn_rate_threshold} | "
                       "Alert: {alert}").format_map(report)
-        return f'{info} | {result_sli_str} | {result_str}'
+        return f'{info} | {sli_str} | {result_str}'
