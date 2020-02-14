@@ -185,7 +185,7 @@ To add a new backend, one must:
 
 * Run a test with the SLO generator:
   ```sh
-  slo-generator --slo-config=slo_test.yaml --error_budget_policy=budget.yaml
+  slo-generator -f slo_test.yaml -b samples/error_budget_target.yaml
   ```
 
 * Create a directory `samples/<backend>` for your backend samples.
