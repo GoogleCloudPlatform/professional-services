@@ -61,6 +61,11 @@ public class BigtableChangeKey {
     runPipeline(options);
   }
 
+  /**
+   * Run the pipeline with the provided set of {@link BigtablePipelineOptions}
+   *
+   * @param options The options for the pipeline.
+   */
   private static void runPipeline(BigtablePipelineOptions options) {
     Pipeline p = Pipeline.create(options);
 
