@@ -15,12 +15,13 @@ package com.google.cloud.pso.pipeline;
 
 import com.google.bigtable.v2.Mutation;
 import com.google.bigtable.v2.Row;
+import com.google.cloud.pso.dofns.UpdateKey;
 import com.google.cloud.pso.options.BigtablePipelineOptions;
-import com.google.cloud.pso.transforms.UpdateKey;
 import com.google.protobuf.ByteString;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.gcp.bigtable.BigtableIO;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
+import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.commons.lang3.StringUtils;
@@ -85,7 +86,8 @@ public class BigtableChangeKey {
     // applied to any table
     PCollection<KV<ByteString, Iterable<Mutation>>> transformedRows =
         bigtableRows.apply(
-            "Transform the key of each record", new UpdateKey(BigtableChangeKey::transformKey));
+            "Transform the key of each record",
+            ParDo.of(new UpdateKey(BigtableChangeKey::transformKey)));
 
     transformedRows.apply(
         "Write to new table in BigTable",
