@@ -56,7 +56,7 @@ public class BigtableChangeKey {
   public static void main(String[] args) {
     // Read options
     BigtablePipelineOptions options =
-        PipelineOptionsFactory.fromArgs(args).as(BigtablePipelineOptions.class);
+        PipelineOptionsFactory.fromArgs(args).withValidation().as(BigtablePipelineOptions.class);
 
     runPipeline(options);
   }

@@ -15,20 +15,24 @@ package com.google.cloud.pso.options;
 
 import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
 import org.apache.beam.sdk.options.Description;
+import org.apache.beam.sdk.options.Validation;
 
 /** These are the command line options that are specific to this pipeline. */
 public interface BigtablePipelineOptions extends DataflowPipelineOptions {
   @Description("BigTable instance")
+  @Validation.Required
   String getBigtableInstance();
 
   void setBigtableInstance(String value);
 
   @Description("Input table")
+  @Validation.Required
   String getInputTable();
 
   void setInputTable(String value);
 
   @Description("Output table -- will be overwritten")
+  @Validation.Required
   String getOutputTable();
 
   void setOutputTable(String value);
