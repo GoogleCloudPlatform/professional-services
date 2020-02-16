@@ -30,6 +30,14 @@ configured `cbt` yet, please see the following link:
 
 * https://cloud.google.com/bigtable/docs/cbt-overview
 
+In summary, you need to include your GCP project and Bigtable instance in the
+`~/.cbtrc` file as shown below:
+
+```
+project = YOUR_GCP_PROJECT_NAME
+instance = YOUR_BIGTABLE_INSTANCE_NAME
+```
+
 ### Create a sandbox table for testing purposes
 
 If you already have data in Bigtable, you can ignore this section.
