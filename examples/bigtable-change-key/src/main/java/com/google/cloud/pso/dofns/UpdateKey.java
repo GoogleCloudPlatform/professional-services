@@ -15,11 +15,10 @@ package com.google.cloud.pso.dofns;
 
 import com.google.bigtable.v2.*;
 import com.google.protobuf.ByteString;
+import java.util.ArrayList;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.SerializableBiFunction;
 import org.apache.beam.sdk.values.KV;
-
-import java.util.ArrayList;
 
 /**
  * This {@link DoFn} applies a function to a {@link Row} to change the key of that record. For that,

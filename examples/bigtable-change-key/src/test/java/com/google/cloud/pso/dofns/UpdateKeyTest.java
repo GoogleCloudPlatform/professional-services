@@ -16,6 +16,11 @@ package com.google.cloud.pso.dofns;
 import com.google.bigtable.v2.*;
 import com.google.cloud.Tuple;
 import com.google.protobuf.ByteString;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
 import org.apache.beam.sdk.transforms.Create;
@@ -29,12 +34,6 @@ import org.apache.beam.sdk.values.TypeDescriptors;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Rule;
 import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /** Test the {@link UpdateKey} DoFn ({@link org.apache.beam.sdk.transforms.DoFn}). */
 public class UpdateKeyTest {
