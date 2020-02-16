@@ -21,6 +21,15 @@ import org.apache.beam.sdk.values.KV;
 
 import java.util.ArrayList;
 
+/**
+ * This {@link DoFn} applies a function to a {@link Row} to change the key of that record. For that,
+ * it applies a function, that needs to be specified by the user. That function uses the previous
+ * key and any of the data included in the {@link Row} to produce a new key.
+ *
+ * <p>The result of applying this {@link DoFn} is a pair of key and value ({@link KV}), with the new
+ * key and a {@link Iterable} of {@link Mutation}, to be applied with {@link
+ * org.apache.beam.sdk.io.gcp.bigtable.BigtableIO.Write}.
+ */
 public class UpdateKey extends DoFn<Row, KV<ByteString, Iterable<Mutation>>> {
 
   private final SerializableBiFunction<String, Row, String> updateKeyFunc;
@@ -28,8 +37,8 @@ public class UpdateKey extends DoFn<Row, KV<ByteString, Iterable<Mutation>>> {
   /**
    * Create a @{link DoFn} to update the keys of a PCollection of a Bigtable {@link Row}.
    *
-   * @param updateKeyFunc Function that accepts the previous key (String) and a {@link Row}, and
-   *     returns a String with the new key.
+   * @param updateKeyFunc Function that accepts the previous key ({@link String}) and a {@link Row},
+   *     and returns a {@link String} with the new key.
    */
   public UpdateKey(SerializableBiFunction<String, Row, String> updateKeyFunc) {
     this.updateKeyFunc = updateKeyFunc;
