@@ -7,7 +7,8 @@
             "metricKind": "GAUGE",
             "valueType": "BOOL",
             "description": "fake",
-            "displayName": "fake"
+            "displayName": "fake",
+            "event_type": "good"
         }
     },
     "resource": {

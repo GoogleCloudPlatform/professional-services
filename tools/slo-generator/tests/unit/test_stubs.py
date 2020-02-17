@@ -26,6 +26,29 @@ TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 SAMPLE_DIR = os.path.join(os.path.dirname(os.path.dirname(TEST_DIR)),
                           "samples/")
 
+CTX = {
+    'PUBSUB_PROJECT_ID': 'fake',
+    'PUBSUB_TOPIC_NAME': 'fake',
+    'GAE_PROJECT_ID': 'fake',
+    'GAE_MODULE_ID': 'fake',
+    'GKE_MESH_UID': 'fake',
+    'GKE_PROJECT_ID': 'fake',
+    'GKE_CLUSTER_NAME': 'fake',
+    'GKE_LOCATION': 'fake',
+    'GKE_SERVICE_NAMESPACE': 'fake',
+    'GKE_SERVICE_NAME': 'fake',
+    'LB_PROJECT_ID': 'fake',
+    'PROMETHEUS_URL': 'http://localhost:9090',
+    'PROMETHEUS_PUSHGATEWAY_URL': 'http://localhost:9091',
+    'ELASTICSEARCH_URL': 'http://localhost:9200',
+    'STACKDRIVER_HOST_PROJECT_ID': 'fake',
+    'STACKDRIVER_LOG_METRIC_NAME': 'fake',
+    'BIGQUERY_PROJECT_ID': 'fake',
+    'BIGQUERY_TABLE_ID': 'fake',
+    'BIGQUERY_DATASET_ID': 'fake',
+    'BIGQUERY_TABLE_NAME': 'fake'
+}
+
 
 # pylint: disable=too-few-public-methods
 class MultiCallableStub:
@@ -81,7 +104,7 @@ def mock_grpc_stub(response, proto_method, nresp=1):
     return channel
 
 
-def mock_grpc_sd(nresp=1):
+def mock_sd(nresp=1):
     """Fake Stackdriver Monitoring API response for the ListTimeSeries endpoint.
 
     Args:
@@ -99,7 +122,7 @@ def mock_grpc_sd(nresp=1):
 
 
 # pylint: disable=W0613,R1721
-def mock_prom_query(self, metric):
+def mock_prom(self, metric):
     """Fake Prometheus query response.
 
     Args:
@@ -120,7 +143,7 @@ def mock_prom_query(self, metric):
 
 
 # pylint: disable=W0613
-def mock_es_search(self, index, body):
+def mock_es(self, index, body):
     """Fake ElasticSearch response.
 
     Args:
@@ -131,6 +154,74 @@ def mock_es_search(self, index, body):
         dict: Fake response.
     """
     return {'hits': {'total': {'value': 120}}}
+
+
+class dotdict(dict):
+    """dot.notation access to dictionary attributes"""
+    __getattr__ = dict.get
+    __setattr__ = dict.__setitem__
+    __delattr__ = dict.__delitem__
+
+
+def dotize(data):
+    """Transform dict to class instance with attribute access.
+
+    Args:
+        data (dict): Input dict.
+
+    Returns:
+        dotdict: Dotdict equivalent.
+    """
+    data = dotdict(data)
+    for k, v in data.items():
+        if isinstance(v, dict):
+            data[k] = dotdict(v)
+    return data
+
+
+class mock_ssm_client:
+    """Fake Service Monitoring API client."""
+
+    def __init__(self):
+        self.services = [dotize(s) for s in load_fixture('ssm_services.json')]
+        self.service_level_objectives = [
+            dotize(slo) for slo in load_fixture('ssm_slos.json')
+        ]
+
+    def project_path(self, project_id):
+        return f'projects/{project_id}'
+
+    def service_path(self, project_id, service_id):
+        project_path = self.project_path(project_id)
+        return f'{project_path}/services/{service_id}'
+
+    def create_service(self, parent, service, service_id=None):
+        return self.services[0]
+
+    def list_services(self, parent):
+        return self.services
+
+    def delete_service(self, name):
+        return None
+
+    def create_service_level_objective(self,
+                                       parent,
+                                       service_level_objective,
+                                       service_level_objective_id=None):
+        return self.service_level_objectives[0]
+
+    def update_service_level_objective(self, service_level_objective):
+        return self.service_level_objectives[0]
+
+    def list_service_level_objectives(self, parent):
+        return self.service_level_objectives
+
+    def delete_service_level_objective(self, name):
+        return None
+
+    @staticmethod
+    def to_json(data):
+        return data
 
 
 def load_fixture(filename, **ctx):

@@ -17,35 +17,19 @@ import warnings
 
 from elasticsearch import Elasticsearch
 from google.auth._default import _CLOUD_SDK_CREDENTIALS_WARNING
-from mock import patch
+from mock import patch, MagicMock
 from prometheus_http_client import Prometheus
 from slo_generator.exporters.bigquery import BigQueryError
 from slo_generator.compute import compute, export
-from stubs import (load_fixture, load_sample, load_slo_samples, mock_grpc_sd,
-                   mock_prom_query, mock_es_search)
+from test_stubs import (CTX, load_fixture, load_sample, load_slo_samples,
+                        mock_sd, mock_prom, mock_es, mock_ssm_client)
 
 warnings.filterwarnings("ignore", message=_CLOUD_SDK_CREDENTIALS_WARNING)
-
-CTX = {
-    'PUBSUB_PROJECT_ID': 'fake',
-    'PUBSUB_TOPIC_NAME': 'fake',
-    'GAE_PROJECT_ID': 'fake',
-    'GAE_MODULE_ID': 'fake',
-    'LB_PROJECT_ID': 'fake',
-    'PROMETHEUS_URL': 'http://localhost:9090',
-    'PROMETHEUS_PUSHGATEWAY_URL': 'http://localhost:9091',
-    'ELASTICSEARCH_URL': 'http://localhost:9200',
-    'STACKDRIVER_HOST_PROJECT_ID': 'fake',
-    'STACKDRIVER_LOG_METRIC_NAME': 'fake',
-    'BIGQUERY_PROJECT_ID': 'fake',
-    'BIGQUERY_TABLE_ID': 'fake',
-    'BIGQUERY_DATASET_ID': 'fake',
-    'BIGQUERY_TABLE_NAME': 'fake'
-}
 
 ERROR_BUDGET_POLICY = load_sample('error_budget_policy.yaml', **CTX)
 STEPS = len(ERROR_BUDGET_POLICY)
 SLO_CONFIGS_SD = load_slo_samples('stackdriver', **CTX)
+SLO_CONFIGS_SDSM = load_slo_samples('stackdriver_service_monitoring', **CTX)
 SLO_CONFIGS_PROM = load_slo_samples('prometheus', **CTX)
 SLO_CONFIGS_ES = load_slo_samples('elasticsearch', **CTX)
 SLO_REPORT = load_fixture('slo_report.json')
@@ -58,23 +42,55 @@ PUBSUB_MOCKS = [
     "google.cloud.pubsub_v1.publisher.futures.Future.result"
 ]
 
+# Service Monitoring method to patch
+# pylint: ignore=E501
+SSM_MOCKS = [
+    "slo_generator.backends.stackdriver_service_monitoring.ServiceMonitoringServiceClient",  # noqa: E501
+    "slo_generator.backends.stackdriver_service_monitoring.SSM.to_json"
+]
+
 
 class TestCompute(unittest.TestCase):
 
     @patch('google.api_core.grpc_helpers.create_channel',
-           return_value=mock_grpc_sd(2 * STEPS * len(SLO_CONFIGS_SD)))
+           return_value=mock_sd(2 * STEPS * len(SLO_CONFIGS_SD)))
     def test_compute_stackdriver(self, mock):
         for config in SLO_CONFIGS_SD:
             with self.subTest(config=config):
                 compute(config, ERROR_BUDGET_POLICY)
 
-    @patch.object(Prometheus, 'query', mock_prom_query)
+    @patch(SSM_MOCKS[0], return_value=mock_ssm_client())
+    @patch(SSM_MOCKS[1],
+           return_value=MagicMock(side_effect=mock_ssm_client.to_json))
+    @patch('google.api_core.grpc_helpers.create_channel',
+           return_value=mock_sd(2 * STEPS * len(SLO_CONFIGS_SDSM)))
+    def test_compute_ssm(self, *mocks):
+        for config in SLO_CONFIGS_SDSM:
+            with self.subTest(config=config):
+                compute(config, ERROR_BUDGET_POLICY)
+
+    @patch(SSM_MOCKS[0], return_value=mock_ssm_client())
+    @patch(SSM_MOCKS[1],
+           return_value=MagicMock(side_effect=mock_ssm_client.to_json))
+    @patch('google.api_core.grpc_helpers.create_channel',
+           return_value=mock_sd(2 * STEPS * len(SLO_CONFIGS_SDSM)))
+    @patch(PUBSUB_MOCKS[0])
+    @patch(PUBSUB_MOCKS[1])
+    def test_compute_ssm_delete_export(self, *mocks):
+        for config in SLO_CONFIGS_SDSM:
+            with self.subTest(config=config):
+                compute(config,
+                        ERROR_BUDGET_POLICY,
+                        delete=True,
+                        do_export=True)
+
+    @patch.object(Prometheus, 'query', mock_prom)
     def test_compute_prometheus(self):
         for config in SLO_CONFIGS_PROM:
             with self.subTest(config=config):
                 compute(config, ERROR_BUDGET_POLICY)
 
-    @patch.object(Elasticsearch, 'search', mock_es_search)
+    @patch.object(Elasticsearch, 'search', mock_es)
     def test_compute_elasticsearch(self):
         for config in SLO_CONFIGS_ES:
             with self.subTest(config=config):
@@ -86,7 +102,7 @@ class TestCompute(unittest.TestCase):
         export(SLO_REPORT, EXPORTERS[0])
 
     @patch("google.api_core.grpc_helpers.create_channel",
-           return_value=mock_grpc_sd(STEPS))
+           return_value=mock_sd(STEPS))
     def test_export_stackdriver(self, mock):
         export(SLO_REPORT, EXPORTERS[1])
 
