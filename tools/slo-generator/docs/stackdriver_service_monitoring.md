@@ -90,6 +90,7 @@ backend:
   project_id:            ${STACKDRIVER_HOST_PROJECT_ID}
   measurement:
     cluster_istio:
+      project_id:        ${GKE_PROJECT_ID}
       location:          ${GKE_LOCATION}
       cluster_name:      ${GKE_CLUSTER_NAME}
       service_namespace: ${GKE_SERVICE_NAMESPACE}
