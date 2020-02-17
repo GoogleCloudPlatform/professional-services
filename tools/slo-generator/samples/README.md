@@ -11,18 +11,29 @@ running it.
 
 ## Environmental variables
 
-The following is listing all environmental variables found in the SLO configs:
+The following is listing all environmental variables found in the SLO configs,
+per backend:
 
-**Common:**
-- `GAE_PROJECT_ID`: Google App Engine application project id.
-- `PUBSUB_PROJECT_ID`: Pub/Sub project id.
-- `PUBSUB_TOPIC_NAME`: Pub/Sub topic name.
-
-**Per backend:**
-
-`stackdriver/` and `stackdriver_service_monitoring/`:
+`stackdriver/`:
   - `STACKDRIVER_HOST_PROJECT_ID`: Stackdriver host project id.
   - `STACKDRIVER_LOG_METRIC_NAME`: Stackdriver log-based metric name.
+  - `GAE_PROJECT_ID`: Google App Engine application project id.
+  - `GAE_MODULE_ID`: Google App Engine application module id.
+  - `PUBSUB_PROJECT_ID`: Pub/Sub project id.
+  - `PUBSUB_TOPIC_NAME`: Pub/Sub topic name.
+
+`stackdriver_service_monitoring/`:
+  - `STACKDRIVER_HOST_PROJECT_ID`: Stackdriver host project id.
+  - `STACKDRIVER_LOG_METRIC_NAME`: Stackdriver log-based metric name.
+  - `GAE_PROJECT_ID`: Google App Engine application project id.
+  - `GAE_MODULE_ID`: Google App Engine application module id.
+  - `PUBSUB_PROJECT_ID`: Pub/Sub project id.
+  - `PUBSUB_TOPIC_NAME`: Pub/Sub topic name.
+  - `GKE_PROJECT_ID`: GKE project id.
+  - `GKE_LOCATION`: GKE location.
+  - `GKE_CLUSTER_NAME`: GKE cluster name.
+  - `GKE_SERVICE_NAMESPACE`: GKE service namespace.
+  - `GKE_SERVICE_NAME`: GKE service name.
 
 `elasticsearch/`:
   - `ELASTICSEARCH_URL`: ElasticSearch instance URL.
@@ -51,7 +62,7 @@ slo-generator -f samples/<backend> -b samples/<error_budget_policy>
 * `<backend>` is the backend name (lowercase)
 * `<error_budget_policy>` is the path to the error budget policy YAML file.
 
-***Note:*** *if you want to enable the exporters as well, you can add the 
+***Note:*** *if you want to enable the exporters as well, you can add the
 `--export` flag.*
 
 
