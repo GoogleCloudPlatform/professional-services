@@ -53,6 +53,8 @@ class StackdriverServiceMonitoringBackend:
         if client is None:
             self.client = ServiceMonitoringServiceClient()
         self.parent = self.client.project_path(project_id)
+        self.workspace_path = f'workspaces/{project_id}'
+        self.project_path = f'projects/{project_id}'
 
     def good_bad_ratio(self, timestamp, window, slo_config):
         """Good bad ratio method.
@@ -194,7 +196,7 @@ class StackdriverServiceMonitoringBackend:
         LOGGER.debug("Creating service ...")
         service_json = SSM.build_service(slo_config)
         service_id = SSM.build_service_id(slo_config)
-        service = self.client.create_service(self.parent,
+        service = self.client.create_service(self.project_path,
                                              service_json,
                                              service_id=service_id)
         LOGGER.info(
@@ -212,9 +214,9 @@ class StackdriverServiceMonitoringBackend:
             dict: Service config.
         """
 
-        # Look for API services matching our config.
-        service_id = SSM.build_service_id(slo_config, full=False)
-        services = list(self.client.list_services(self.parent))
+        # Look for API services in workspace matching our config.
+        service_id = SSM.build_service_id(slo_config)
+        services = list(self.client.list_services(self.workspace_path))
         matches = [
             service for service in services
             if service.name.split("/")[-1] == service_id
@@ -225,12 +227,12 @@ class StackdriverServiceMonitoringBackend:
         # else output a warning message.
         if not matches:
             msg = (f'Service "{service_id}" does not exist in '
-                   f'project "{self.project_id}"')
+                   f'workspace "{self.project_id}"')
             method = slo_config['backend']['method']
             if method == 'basic':
                 sids = [service.name.split("/")[-1] for service in services]
-                LOGGER.info(
-                    f'List of services in project {self.project_id}: {sids}')
+                LOGGER.debug(
+                    f'List of services in workspace {self.project_id}: {sids}')
                 LOGGER.error(msg)
                 raise Exception(msg)
             LOGGER.error(msg)
@@ -252,17 +254,19 @@ class StackdriverServiceMonitoringBackend:
         Returns:
             dict: Service JSON in Stackdriver Monitoring API.
         """
-        service_id = SSM.build_service_id(slo_config, full=False)
+        service_id = SSM.build_service_id(slo_config)
         display_name = slo_config.get('service_display_name', service_id)
         service = {'display_name': display_name, 'custom': {}}
         return service
 
     @staticmethod
-    def build_service_id(slo_config, full=False):
+    def build_service_id(slo_config, dest_project_id=None, full=False):
         """Build service id from SLO configuration.
 
         Args:
             slo_config (dict): SLO configuration.
+            dest_project_id (str, optional): Project id for service if different
+                than the workspace project id.
             full (bool): If True, return full service resource id including
                 project path.
 
@@ -283,16 +287,21 @@ class StackdriverServiceMonitoringBackend:
         # for all other types of SLOs.
         if app_engine:
             service_id = SID_GAE.format_map(app_engine)
+            dest_project_id = app_engine['project_id']
         elif cluster_istio:
             service_id = SID_CLUSTER_ISTIO.format_map(cluster_istio)
+            dest_project_id = cluster_istio['project_id']
         elif mesh_istio:
             service_id = SID_MESH_ISTIO.format_map(mesh_istio)
         elif cloud_endpoints:
             service_id = SID_CLOUD_ENDPOINT.format_map(cloud_endpoints)
+            dest_project_id = cluster_istio['project_id']
         else:
             service_id = f'{service_name}-{feature_name}'
 
         if full:
+            if dest_project_id:
+                return f'projects/{dest_project_id}/services/{service_id}'
             return f'projects/{project_id}/services/{service_id}'
 
         return service_id
@@ -307,10 +316,9 @@ class StackdriverServiceMonitoringBackend:
         Returns:
             dict: Service Management API response.
         """
-        service_id = SSM.build_service_id(slo_config)
-        parent = self.client.service_path(self.project_id, service_id)
         slo_json = SSM.build_slo(window, slo_config)
         slo_id = SSM.build_slo_id(window, slo_config)
+        parent = SSM.build_service_id(slo_config, full=True)
         slo = self.client.create_service_level_objective(
             parent, slo_json, service_level_objective_id=slo_id)
         return SSM.to_json(slo)
@@ -434,10 +442,9 @@ class StackdriverServiceMonitoringBackend:
         Returns:
             dict: API response.
         """
-        service_name = slo_config['service_name']
-        service_id = SSM.build_service_id(slo_config)
-        LOGGER.debug(f'Getting SLO for service "{service_name}" ...')
-        slos = self.list_slos(service_id, slo_config)
+        service_path = SSM.build_service_id(slo_config, full=True)
+        LOGGER.debug(f'Getting SLO for for "{service_path}" ...')
+        slos = self.list_slos(service_path)
         slo_local_id = SSM.build_slo_id(window, slo_config)
         slo_json = SSM.build_slo(window, slo_config)
         slo_json = SSM.convert_slo_to_ssm_format(slo_json)
@@ -475,18 +482,18 @@ class StackdriverServiceMonitoringBackend:
         slo_json['name'] = slo_id
         return SSM.to_json(self.client.update_service_level_objective(slo_json))
 
-    def list_slos(self, service_id, slo_config):
+    def list_slos(self, service_path):
         """List all SLOs from Stackdriver Service Monitoring API.
 
         Args:
-            service_id (str): Service identifier.
+            service_path (str): Service path in the form
+                'projects/{project_id}/services/{service_id}'.
             slo_config (dict): SLO configuration.
 
         Returns:
             dict: API response.
         """
-        parent = self.client.service_path(self.project_id, service_id)
-        slos = self.client.list_service_level_objectives(parent)
+        slos = self.client.list_service_level_objectives(service_path)
         slos = list(slos)
         LOGGER.debug(f"{len(slos)} SLOs found in Service Monitoring API.")
         # LOGGER.debug(slos)
@@ -502,13 +509,13 @@ class StackdriverServiceMonitoringBackend:
         Returns:
             dict: API response.
         """
-        slo_id = SSM.build_slo_id(window, slo_config, full=True)
-        LOGGER.info(f'Deleting SLO {slo_id}')
+        slo_path = SSM.build_slo_id(window, slo_config, full=True)
+        LOGGER.info(f'Deleting SLO "{slo_path}"')
         try:
-            return self.client.delete_service_level_objective(slo_id)
+            return self.client.delete_service_level_objective(slo_path)
         except google.api_core.exceptions.NotFound:
             LOGGER.warning(
-                f'SLO {slo_id} does not exist in Service Monitoring API. '
+                f'SLO "{slo_path}" does not exist in Service Monitoring API. '
                 f'Skipping.')
             return None
 
@@ -523,8 +530,6 @@ class StackdriverServiceMonitoringBackend:
         Returns:
             str: SLO id.
         """
-        service_id = SSM.build_service_id(slo_config)
-        project_id = slo_config['backend']['project_id']
         if 'slo_id' in slo_config:
             slo_id_part = slo_config['slo_id']
             slo_id = f'{slo_id_part}-{window}'
@@ -532,8 +537,8 @@ class StackdriverServiceMonitoringBackend:
             slo_name = slo_config['slo_name']
             slo_id = f'{slo_name}-{window}'
         if full:
-            service_url = f'projects/{project_id}/services/{service_id}'
-            return f'{service_url}/serviceLevelObjectives/{slo_id}'
+            service_path = SSM.build_service_id(slo_config, full=True)
+            return f'{service_path}/serviceLevelObjectives/{slo_id}'
         return slo_id
 
     @staticmethod
