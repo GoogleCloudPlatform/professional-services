@@ -6,11 +6,11 @@ import os
 from google.api_core import exceptions
 from google.cloud import storage
 
-from bq_file_load_benchmark.benchmark_tools import bucket_util
+from bq_file_load_benchmark.generic_benchmark_tools import bucket_util
 
 
 class TestBucketUtil(object):
-    """Tests functionality of benchmark_tools.benchmark_result_util.
+    """Tests functionality of load_benchmark_tools.benchmark_result_util.
 
     Attributes:
         bucket_name(str): Name of the bucket used for testing.

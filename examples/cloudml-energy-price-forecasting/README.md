@@ -8,8 +8,8 @@ The code takes in raw data from BigQuery, transforms and prepares the data, uses
 
 1. Raw data for this problem is publicly available in BigQuery in the following tables:  
 
-* `energy-forecasting.Energy.MarketPricePT` - Historical hourly energy prices.  
-* `energy-forecasting.Energy.historical_weather` - Historical hourly weather forecasts.
+* `dpe-cloud-mle.Energy.MarketPricePT` - Historical hourly energy prices.  
+* `dpe-cloud-mle.Energy.historical_weather` - Historical hourly weather forecasts.
 
    Disclaimer: The data for both tables was downloaded from http://complatt.smartwatt.net/. This website hosts a closed competition meant to solve the energy price forecasting problem. The data was not collected or vetted by Google LLC and hence, we can't guarantee the veracity or qualitty of it.
 

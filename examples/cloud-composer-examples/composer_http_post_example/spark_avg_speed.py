@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 This is script defines a PySpark Job to enhance avro files exported from the BigQuery Public Dataset
 nyc-tlc:yellow.trips to include an additional average speed column. This is a simple spark job
@@ -20,7 +19,7 @@ Dataproc cluster to run a spark job and tear it down once the job completes.
 """
 
 import argparse
-import cStringIO
+import io
 import csv
 from contextlib import closing
 import datetime
@@ -35,26 +34,11 @@ class AverageSpeedEnhancer(object):
     field from trip_distance, pickup_datetime and drop off date_time.
     """
     output_schema = [  # This is the schema of nyc-tlc:yellow.trips
-        "vendor_id",
-        "pickup_datetime",
-        "dropoff_datetime",
-        "pickup_longitude",
-        "pickup_latitude",
-        "dropoff_longitude",
-        "dropoff_latitude",
-        "rate_code",
-        "passenger_count",
-        "trip_distance",
-        "payment_type",
-        "fare_amount",
-        "extra",
-        "mta_tax",
-        "imp_surcharge",
-        "tip_amount",
-        "tolls_amount",
-        "total_amount",
-        "store_and_fwd_flag",
-        "average_speed"
+        "vendor_id", "pickup_datetime", "dropoff_datetime", "pickup_longitude",
+        "pickup_latitude", "dropoff_longitude", "dropoff_latitude",
+        "rate_code", "passenger_count", "trip_distance", "payment_type",
+        "fare_amount", "extra", "mta_tax", "imp_surcharge", "tip_amount",
+        "tolls_amount", "total_amount", "store_and_fwd_flag", "average_speed"
     ]
 
     def dict_to_csv(self, dictionary):
@@ -64,8 +48,9 @@ class AverageSpeedEnhancer(object):
         Arguments:
             dictionary: A dictionary containing the data of interest.
         """
-        with closing(cStringIO.StringIO()) as csv_string:
-            writer = csv.DictWriter(csv_string, AverageSpeedEnhancer.output_schema)
+        with closing(io.StringIO()) as csv_string:
+            writer = csv.DictWriter(csv_string,
+                                    AverageSpeedEnhancer.output_schema)
             writer.writerow(dictionary)
             # Our desired output is a csv string not a line in a file so we strip the
             # newline character written by the writerow function by default.
@@ -83,7 +68,8 @@ class AverageSpeedEnhancer(object):
         _DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S UTC'
         _SECONDS_IN_AN_HOUR = 3600.0
         # There is some data quality issue in the public table chosen for this example.
-        if record.get('store_and_fwd_flag') and record.get('store_and_fwd_flag') not in 'YN':
+        if record.get('store_and_fwd_flag') and record.get(
+                'store_and_fwd_flag') not in 'YN':
             record['store_and_fwd_flag'] = None
 
         if (record['pickup_datetime'] and record['dropoff_datetime']
@@ -92,9 +78,10 @@ class AverageSpeedEnhancer(object):
             pickup = datetime.datetime.strptime(record['pickup_datetime'],
                                                 _DATETIME_FORMAT)
             dropoff = datetime.datetime.strptime(record['dropoff_datetime'],
-                                                _DATETIME_FORMAT)
+                                                 _DATETIME_FORMAT)
             elapsed = dropoff - pickup
-            if elapsed > datetime.timedelta(0):  # Only calculate if drop off after pick up.
+            if elapsed > datetime.timedelta(
+                    0):  # Only calculate if drop off after pick up.
                 # Calculate speed in miles per hour.
                 record['average_speed'] = _SECONDS_IN_AN_HOUR * record['trip_distance'] / \
                                            elapsed.total_seconds()
@@ -114,7 +101,8 @@ def main(sc, gcs_path_raw, gcs_path_transformed):
     file_strings_rdd = sc.textFile(gcs_path_raw)
     # Apply the speed enhancement logic defined in the AverageSpeedEnhancer class
     # Read the newline delimited json into dicts (note that this is automatically applied per line).
-    records_rdd = file_strings_rdd.map(lambda record_string: json.loads(record_string))
+    records_rdd = file_strings_rdd.map(
+        lambda record_string: json.loads(record_string))
     transformed_records_rdd = records_rdd.map(ase.enhance_with_avg_speed)
     transformed_records_rdd.saveAsTextFile(gcs_path_transformed)
 
@@ -127,14 +115,21 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--gcs_path_raw', dest='gcs_path_raw',
-                        required=True,
-                        help='Specify the full GCS wildcard path to the json files to enhance.')
+    parser.add_argument(
+        '--gcs_path_raw',
+        dest='gcs_path_raw',
+        required=True,
+        help='Specify the full GCS wildcard path to the json files to enhance.'
+    )
 
-    parser.add_argument('--gcs_path_transformed', dest='gcs_path_transformed',
-                        required=True,
-                        help='Specify the full GCS path prefix for the transformed json files. ')
+    parser.add_argument(
+        '--gcs_path_transformed',
+        dest='gcs_path_transformed',
+        required=True,
+        help='Specify the full GCS path prefix for the transformed json files. '
+    )
     known_args, _ = parser.parse_known_args(None)
 
-    main(sc=spark_context, gcs_path_raw=known_args.gcs_path_raw,
+    main(sc=spark_context,
+         gcs_path_raw=known_args.gcs_path_raw,
          gcs_path_transformed=known_args.gcs_path_transformed)
