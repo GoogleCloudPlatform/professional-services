@@ -14,4 +14,4 @@ backend:
       service_namespace: ${GKE_SERVICE_NAMESPACE}
       service_name:      ${GKE_SERVICE_NAME}
     latency:
-      threshold:         724ms
+      threshold:         724 # ms
