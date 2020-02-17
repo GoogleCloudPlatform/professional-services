@@ -19,7 +19,6 @@ import difflib
 import json
 import logging
 import os
-import pprint
 
 import google.api_core.exceptions
 from google.cloud.monitoring_v3 import ServiceMonitoringServiceClient
@@ -35,8 +34,7 @@ SID_CLOUD_ENDPOINT = 'ist:{project_id}-{service}'
 SID_CLUSTER_ISTIO = (
     'ist:{project_id}-zone-{location}-{cluster_name}-{service_namespace}-'
     '{service_name}')
-SID_MESH_ISTIO = (
-    'ist:{project_id}-{mesh_uid}-{service_namespace}-{service_name}')
+SID_MESH_ISTIO = ('ist:{mesh_uid}-{service_namespace}-{service_name}')
 
 
 class StackdriverServiceMonitoringBackend:
@@ -183,48 +181,6 @@ class StackdriverServiceMonitoringBackend:
             elif event_type == 'good':
                 good_event_count = value
         return good_event_count, bad_event_count
-
-    @staticmethod
-    def compute_slo_report(backend, timestamp, window, filter):
-        """Compute SLO report using Stackdriver Monitoring API queries.
-
-        Args:
-            backend (slo_generator.backends.Stackdriver): Stackdriver backend
-                instance.
-            timestamp (int): UNIX timestamp.
-            window (int): Window (in seconds).
-            filter (str): Metric filter.
-        """
-        filters = {
-            "select_slo_burnrate":
-                f"select_slo_burn_rate(\"{filter}\", \"86400s\")",
-            "select_slo_health":
-                f"select_slo_health(\"{filter}\")",
-            "select_slo_compliance":
-                f"select_slo_compliance(\"{filter}\")",
-            "select_slo_budget":
-                f"select_slo_budget(\"{filter}\")",
-            "select_slo_budget_fraction":
-                f"select_slo_budget_fraction(\"{filter}\")",
-            "select_slo_budget_total":
-                f"select_slo_budget_total(\"{filter}\")",
-        }
-        report = {}
-        for name, metric_filter in filters.items():
-            LOGGER.debug(f'Querying timeseries with filter "{filter}"')
-            timeseries = backend.query(timestamp,
-                                       window,
-                                       metric_filter,
-                                       aligner='ALIGN_MEAN',
-                                       reducer='REDUCE_MEAN')
-            timeseries = list(timeseries)
-            for timeserie in timeseries:
-                points = timeserie.points
-                for point in points:
-                    report[name] = point.value.double_value
-        LOGGER.debug(pprint.pformat(report))
-
-        return report
 
     def create_service(self, slo_config):
         """Create Service object in Stackdriver Service Monitoring API.

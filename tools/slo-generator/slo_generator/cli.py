@@ -28,8 +28,17 @@ LOGGER = logging.getLogger(__name__)
 
 def main():
     """slo-generator CLI entrypoint."""
-    utils.setup_logging()
     args = parse_args(sys.argv[1:])
+    cli(args)
+
+
+def cli(args):
+    """Main CLI function.
+
+    Args:
+        args (Namespace): Argparsed CLI parameters.
+    """
+    utils.setup_logging()
     export = args.export
     delete = args.delete
 
