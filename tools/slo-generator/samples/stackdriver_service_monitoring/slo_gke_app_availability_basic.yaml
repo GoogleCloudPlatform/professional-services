@@ -1,7 +1,7 @@
 ---
-service_name:            gae
-feature_name:            app
-slo_description:         Availability of App Engine app
+service_name:            gke
+feature_name:            service
+slo_description:         Availability of GKE service
 slo_name:                availability
 slo_target:              0.98
 backend:
