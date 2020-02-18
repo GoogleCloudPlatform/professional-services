@@ -1,4 +1,4 @@
-Dataflow reads the CSV files for Bikeshare data (https://www.bikeshare.com/data/) and write to bigquery.
+Dataflow (in batch mode) reads the CSV files for Bikeshare data (https://www.bikeshare.com/data/) and write to bigquery.
 
 `export PROJECT_ID=[PROJECT_ID]`
 

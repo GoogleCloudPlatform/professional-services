@@ -48,8 +48,6 @@ public class GoBikeToBigQuery  {
         TableReference bqTable = getTableReference(projectId, dataSetId, bqTableName);
         TableReference bqTableError = getTableReference(projectId, dataSetId, bqTableName + "Err");
 
-        LOG.info("Starting the pipeline {} on {} ", GoBikeToBigQuery.class.getName(), System.currentTimeMillis());
-
         PCollection<String> rawLinesFromGCS = pipeline.apply(
                 "Read Raw File",
                 TextIO.read().from(filePattern)
