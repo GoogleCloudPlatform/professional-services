@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 A Dataflow pipeline which reads a schema to simulate or "fake" data 
 from a json file and writes random data of the schema's shape to a 
@@ -21,7 +20,6 @@ real data can be provided by the business, or create dummy datasets
 for stress testing in the event of large data growth.
 """
 
-from __future__ import absolute_import
 import json
 import logging
 
@@ -62,64 +60,56 @@ def run(argv=None):
                              write_disp=data_args.write_disp,
                              key_skew=data_args.key_skew)
 
-
     # Initiate the pipeline using the pipeline arguments passed in from the
     # command line.  This includes information including where Dataflow should
     # store temp files, and what the project id is and what runner to use.
     p = beam.Pipeline(options=pipeline_options)
     rows = (
-        p 
-            | 'Read Histogram Table.' >> beam.io.Read(beam.io.BigQuerySource(
-                    data_gen.hist_bq_table))
-            | 'Generate Data' >> beam.ParDo(FakeRowGen(data_gen))
-            | 'Parse Json Strings' >> beam.FlatMap(lambda row: [json.loads(row)])
-    
-    )
-        
+        p
+        | 'Read Histogram Table.' >> beam.io.Read(
+            beam.io.BigQuerySource(data_gen.hist_bq_table))
+        | 'Generate Data' >> beam.ParDo(FakeRowGen(data_gen))
+        | 'Parse Json Strings' >> beam.FlatMap(lambda row: [json.loads(row)]))
+
     if data_args.primary_key_cols:
         rows |= EnforcePrimaryKeys(data_args.primary_key_col)
 
     if data_args.csv_schema_order:
         (rows
-            | 'Order fields for CSV writing.' >> beam.FlatMap(lambda d: 
-                   [dict_to_csv(d, data_args.csv_schema_order.split(','))])
-
-            | 'Write to GCS' >> beam.io.textio.WriteToText(
-                   file_path_prefix=data_args.output_prefix,
-                   file_name_suffix='.csv')
-        )
+         | 'Order fields for CSV writing.' >> beam.FlatMap(
+             lambda d: [dict_to_csv(d, data_args.csv_schema_order.split(','))])
+         | 'Write to GCS' >> beam.io.textio.WriteToText(
+             file_path_prefix=data_args.output_prefix, file_name_suffix='.csv')
+         )
 
     if data_args.avro_schema_file:
-        avsc = avro.schema.parse(open(data_args.avro_schema_file,'rb').read())
+        avsc = avro.schema.Parse(open(data_args.avro_schema_file, 'rb').read())
         (rows
-            # Need to convert time stamps from strings to timestamp-micros
-            | 'Fix date and time Types for Avro.' >> beam.FlatMap(lambda row: 
-                fix_record_for_avro(row, avsc))
-            | 'Write to Avro.' >> beam.io.avroio.WriteToAvro(
-                    file_path_prefix=data_args.output_prefix,
-                    codec='null',
-                    file_name_suffix='.avro',
-                    use_fastavro=True,
-                    schema=avsc
-                )
-        )
+         # Need to convert time stamps from strings to timestamp-micros
+         | 'Fix date and time Types for Avro.' >>
+         beam.FlatMap(lambda row: fix_record_for_avro(row, avsc))
+         | 'Write to Avro.' >> beam.io.avroio.WriteToAvro(
+             file_path_prefix=data_args.output_prefix,
+             codec='null',
+             file_name_suffix='.avro',
+             use_fastavro=True,
+             schema=avsc))
 
     if data_args.output_bq_table:
         (rows
-            | 'Write to BigQuery.' >> beam.io.gcp.bigquery.WriteToBigQuery(
-                 # The table name is a required argument for the BigQuery sink.
-                 # In this case we use the value passed in from the command line.
-                 data_args.output_bq_table,
-                 schema=None if schema_inferred else data_gen.get_bq_schema(),
-                 # Creates the table in BigQuery if it does not yet exist.
-                 create_disposition=beam.io.BigQueryDisposition.CREATE_IF_NEEDED,
-                 write_disposition=data_gen.write_disp,
-                 # Use the max recommended batch size.
-                 batch_size=500
-            )
-        )
+         | 'Write to BigQuery.' >> beam.io.gcp.bigquery.WriteToBigQuery(
+             # The table name is a required argument for the BigQuery sink.
+             # In this case we use the value passed in from the command line.
+             data_args.output_bq_table,
+             schema=None if schema_inferred else data_gen.get_bq_schema(),
+             # Creates the table in BigQuery if it does not yet exist.
+             create_disposition=beam.io.BigQueryDisposition.CREATE_IF_NEEDED,
+             write_disposition=data_gen.write_disp,
+             # Use the max recommended batch size.
+             batch_size=500))
 
     p.run().wait_until_finish()
+
 
 if __name__ == '__main__':
     logging.getLogger().setLevel(logging.INFO)

@@ -116,6 +116,7 @@ disable=print-statement,
         zip-builtin-not-iterating,
         range-builtin-not-iterating,
         filter-builtin-not-iterating,
+        redefined-builtin,
         using-cmp-argument,
         eq-without-hash,
         div-method,
@@ -138,7 +139,8 @@ disable=print-statement,
         xreadlines-attribute,
         deprecated-sys-function,
         exception-escape,
-        comprehension-escape
+        comprehension-escape,
+        arguments-differ
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
@@ -188,7 +190,7 @@ never-returning-functions=sys.exit
 
 # Format style used to check logging format string. `old` means using %
 # formatting, while `new` is for `{}` formatting.
-logging-format-style=old
+logging-format-style=fstr
 
 # Logging modules to check that the string format arguments are in logging
 # function parameter format.
@@ -254,7 +256,8 @@ ignore-on-opaque-inference=yes
 # List of class names for which member attributes should not be checked (useful
 # for classes with dynamically set attributes). This supports the use of
 # qualified names.
-ignored-classes=optparse.Values,thread._local,_thread._local
+ignored-classes=optparse.Values,thread._local,_thread._local,PublisherClient,
+                google.cloud.monitoring_v3.types
 
 # List of module names for which member attributes should not be checked
 # (useful for modules/projects where namespaces are manipulated during runtime
@@ -532,7 +535,7 @@ valid-metaclass-classmethod-first-arg=cls
 [DESIGN]
 
 # Maximum number of arguments for function / method.
-max-args=5
+max-args=10
 
 # Maximum number of attributes for a class (see R0902).
 max-attributes=7
@@ -544,7 +547,7 @@ max-bool-expr=5
 max-branches=12
 
 # Maximum number of locals for function / method body.
-max-locals=15
+max-locals=30
 
 # Maximum number of parents for a class (see R0901).
 max-parents=7

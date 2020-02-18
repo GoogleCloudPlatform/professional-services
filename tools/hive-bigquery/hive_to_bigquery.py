@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Main Module to migrate Hive tables to BigQuery."""
 
 import logging
@@ -59,14 +58,15 @@ def compare_row_counts(bq_component, hive_component, gcs_component,
     logger.info("Comparing rows...")
     hive_table_rows = hive_component.get_hive_table_row_count(hive_table_model)
     bq_table_rows = bq_component.get_bq_table_row_count(bq_table_model)
-    logger.debug("BigQuery row count %s Hive table row count %s", bq_table_rows,
-                 hive_table_rows)
+    logger.debug("BigQuery row count %s Hive table row count %s",
+                 bq_table_rows, hive_table_rows)
 
     if hive_table_rows == bq_table_rows:
         logger.info("Number of rows matching in BigQuery and Hive tables")
         if PropertiesReader.get('create_validation_table'):
             bq_component.write_metrics_to_bigquery(gcs_component,
-                                                   hive_table_model, bq_table_model)
+                                                   hive_table_model,
+                                                   bq_table_model)
 
     else:
         logger.error("Number of rows not matching in BigQuery and Hive tables")
@@ -127,8 +127,7 @@ def initialize_components():
         PropertiesReader.get('project_id'),
         PropertiesReader.get('location_id'),
         PropertiesReader.get('key_ring_id'),
-        PropertiesReader.get('crypto_key_id'),
-        encrypted_password)
+        PropertiesReader.get('crypto_key_id'), encrypted_password)
 
     mysql_component = MySQLComponent(
         host=PropertiesReader.get('tracking_database_host'),
@@ -172,7 +171,8 @@ def main():
     try:
         mysql_component.check_table_exists(
             PropertiesReader.get('tracking_metatable_name'))
-    except (exceptions.NotFound, custom_exceptions.MySQLExecutionError) as error:
+    except (exceptions.NotFound,
+            custom_exceptions.MySQLExecutionError) as error:
         raise RuntimeError from error
 
     try:
@@ -189,11 +189,10 @@ def main():
         raise RuntimeError from error
 
     try:
-        hive_table_object = HiveTable(
-            hive_component, PropertiesReader.get('hive_database'),
-            PropertiesReader.get('hive_table_name'),
-            PropertiesReader.get('incremental_col')
-        )
+        hive_table_object = HiveTable(hive_component,
+                                      PropertiesReader.get('hive_database'),
+                                      PropertiesReader.get('hive_table_name'),
+                                      PropertiesReader.get('incremental_col'))
     except custom_exceptions.HiveExecutionError as error:
         raise RuntimeError from error
 
@@ -216,13 +215,11 @@ def main():
 
     try:
         # Validates the bq_table_write_mode provided by the user.
-        bq_component.check_bq_write_mode(mysql_component,
-                                         hive_table_model,
+        bq_component.check_bq_write_mode(mysql_component, hive_table_model,
                                          bq_table_model)
     except (custom_exceptions.CustomBaseError, exceptions.NotFound,
             exceptions.AlreadyExists) as error:
         raise RuntimeError from error
-
 
     # If the value of is_first_run is True, it means that the source Hive
     # table is being migrated for the first time.
@@ -244,11 +241,10 @@ def main():
 
         try:
             # Migrates data to BigQuery.
-            hive_component.migrate_data(mysql_component, bq_component,
-                                        gcs_component, hive_table_model,
-                                        bq_table_model,
-                                        PropertiesReader.get('gcs_bucket_name'),
-                                        tracking_data)
+            hive_component.migrate_data(
+                mysql_component, bq_component, gcs_component,
+                hive_table_model, bq_table_model,
+                PropertiesReader.get('gcs_bucket_name'), tracking_data)
         except (custom_exceptions.HiveExecutionError,
                 custom_exceptions.HDFSCommandError,
                 custom_exceptions.MySQLExecutionError) as error:
@@ -256,10 +252,9 @@ def main():
         try:
             # Updates BigQuery job status and wait for all the jobs to finish.
             # mysql exec error
-            bq_component.update_bq_job_status(mysql_component, gcs_component,
-                                              hive_table_model, bq_table_model,
-                                              PropertiesReader.get(
-                                                  'gcs_bucket_name'))
+            bq_component.update_bq_job_status(
+                mysql_component, gcs_component, hive_table_model,
+                bq_table_model, PropertiesReader.get('gcs_bucket_name'))
         except custom_exceptions.MySQLExecutionError as error:
             raise RuntimeError from error
 
@@ -276,10 +271,9 @@ def main():
                                        PropertiesReader.get('gcs_bucket_name'))
             bq_component.load_gcs_to_bq(mysql_component, hive_table_model,
                                         bq_table_model)
-            bq_component.update_bq_job_status(mysql_component, gcs_component,
-                                              hive_table_model, bq_table_model,
-                                              PropertiesReader.get(
-                                                  'gcs_bucket_name'))
+            bq_component.update_bq_job_status(
+                mysql_component, gcs_component, hive_table_model,
+                bq_table_model, PropertiesReader.get('gcs_bucket_name'))
         except custom_exceptions.MySQLExecutionError as error:
             raise RuntimeError from error
 
@@ -289,28 +283,24 @@ def main():
         tracking_data = hive_component.check_inc_data(
             mysql_component, bq_component, gcs_component, hive_table_model,
             bq_table_model, PropertiesReader.get('gcs_bucket_name'))
-    except (
-    custom_exceptions.HiveExecutionError, custom_exceptions.MySQLExecutionError,
-    TypeError) as error:
+    except (custom_exceptions.HiveExecutionError,
+            custom_exceptions.MySQLExecutionError, TypeError) as error:
         raise RuntimeError from error
-
 
     if tracking_data:
         # Migrates data to BigQuery and updates job status in the tracking table.
         try:
-            hive_component.migrate_data(mysql_component, bq_component,
-                                        gcs_component, hive_table_model,
-                                        bq_table_model,
-                                        PropertiesReader.get('gcs_bucket_name'),
-                                        tracking_data)
+            hive_component.migrate_data(
+                mysql_component, bq_component, gcs_component,
+                hive_table_model, bq_table_model,
+                PropertiesReader.get('gcs_bucket_name'), tracking_data)
         except (custom_exceptions.HiveExecutionError,
                 custom_exceptions.MySQLExecutionError) as error:
             raise RuntimeError from error
         try:
-            bq_component.update_bq_job_status(mysql_component, gcs_component,
-                                              hive_table_model, bq_table_model,
-                                              PropertiesReader.get(
-                                                  'gcs_bucket_name'))
+            bq_component.update_bq_job_status(
+                mysql_component, gcs_component, hive_table_model,
+                bq_table_model, PropertiesReader.get('gcs_bucket_name'))
         except custom_exceptions.MySQLExecutionError as error:
             raise RuntimeError from error
     try:
