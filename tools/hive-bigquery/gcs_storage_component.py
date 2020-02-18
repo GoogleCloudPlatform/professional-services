@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Module to handle Google Cloud Storage related utilities like creating a
 client, uploading/downloading/deleting a file, check whether a file exists etc."""
 
@@ -42,7 +41,6 @@ class GCSStorageComponent(GCPService):
         project_id (str): GCP Project ID.
         client (google.cloud.storage.client.Client): Google Cloud Storage Client.
     """
-
     def __init__(self, project_id):
 
         logger.debug("Initializing GCS Component")
@@ -106,7 +104,8 @@ class GCSStorageComponent(GCPService):
             blob_name = file_name
         blob = bucket.blob(blob_name)
         blob.delete()
-        logger.debug('GCS File %s deleted in %s bucket', blob_name, bucket_name)
+        logger.debug('GCS File %s deleted in %s bucket', blob_name,
+                     bucket_name)
 
     def check_bucket_exists(self, bucket_name):
         """Checks whether GCS bucket exists.
@@ -196,14 +195,14 @@ class GCSStorageComponent(GCPService):
                 file_content.write(str(file_info))
 
             target_blob = "BQ_staging/{}/{}/{}/".format(
-                hive_table_model.db_name,
-                hive_table_model.table_name.lower(), str(uuid4()).replace("-","_"))
+                hive_table_model.db_name, hive_table_model.table_name.lower(),
+                str(uuid4()).replace("-", "_"))
             # Uploads file to create a folder like structure in GCS
             self.upload_file(gcs_bucket_name, filename, target_blob + filename)
             os.remove(filename)
 
-            target_folder_location = "gs://{}/{}".format(gcs_bucket_name,
-                                                         target_blob)
+            target_folder_location = "gs://{}/{}".format(
+                gcs_bucket_name, target_blob)
 
             logger.debug(
                 "Copying data from location %s to GCS Staging location %s "
@@ -237,8 +236,7 @@ class GCSStorageComponent(GCPService):
                     mysql_component.execute_transaction(query)
                     logger.debug(
                         "Updated GCS copy status TODO --> DONE for file path "
-                        "%s",
-                        source_location)
+                        "%s", source_location)
                 else:
                     logger.error(
                         "Failed copying data from location %s to GCS Staging "

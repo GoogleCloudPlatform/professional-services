@@ -134,7 +134,7 @@ python3 test/generate_data.py --size-in-gb 1
 ```
 Run the command below to create Hive tables on the Hive cluster.
 ```
-hive -f tools/create_hive_tables.sql
+hive -f test/create_hive_tables.sql
 ```
 The config file `test_config.json` can be used to migrate the Hive table
 `text_nonpartitioned` which has an incremental column `int_column`. Replace the 
