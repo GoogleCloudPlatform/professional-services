@@ -16,8 +16,8 @@ import datetime
 import json
 import sys
 import logging
-from google.api_core.exceptions import Forbidden, BadRequest
 from typing import Dict, List
+from google.api_core.exceptions import Forbidden, BadRequest
 from google.cloud import resource_manager
 from google.cloud import storage
 
@@ -78,8 +78,8 @@ def get_buckets(project_ids: List[str],
                         "recommended_OLM": ""
                     })
             except Forbidden as err:
-                logging.error(f"You do not have access on the {bucket.name}.")
-                logging.error(err)
+                logging.error(f"""User does not have access to the {bucket.name}.
+                              {err}""")
                 pass
             except BadRequest as err:
                 logging.error(f"Could not find bucket {bucket.name}.")
@@ -88,8 +88,8 @@ def get_buckets(project_ids: List[str],
         return output_list
 
     except Exception as err:
-        logging.error(f"Could not access buckets in {project_id}")
-        logging.error(err)
+        logging.error(f"""Could not access buckets in {project_id}.
+                      {err}""")
 
 
 def write_json_to_local(data: List[Dict[str, str]]) -> None:
@@ -108,6 +108,7 @@ def write_json_to_local(data: List[Dict[str, str]]) -> None:
 
 
 def main():
+    """Main method used to invoke script."""
     try:
         organization_id = sys.argv[1]
         gcs_client = storage.Client()
