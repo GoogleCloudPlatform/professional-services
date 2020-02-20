@@ -56,7 +56,7 @@ WITH BQAudit AS (
     protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.referencedViews
     /* This ends the code snippet that extracts columns specific to Query operation in BQ */
   FROM
-    `buoyant-site-244113.audit.cloudaudit_googleapis_com_data_access`
+    `data-analytics-pocs.billing.cloudaudit_googleapis_com_data_access_*`
   WHERE
     protopayload_auditlog.serviceName = 'bigquery.googleapis.com'
     AND protopayload_auditlog.methodName = 'jobservice.jobcompleted'
