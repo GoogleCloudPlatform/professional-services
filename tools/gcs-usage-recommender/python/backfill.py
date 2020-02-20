@@ -78,9 +78,9 @@ def get_buckets(project_ids: List[str],
                         "recommended_OLM": ""
                     })
             except Forbidden as err:
-                logging.error(f"""User does not have access to the {bucket.name}.
+                logging.error(f"""Access denied on bucket {bucket.name}.
                               {err}""")
-                pass
+                
             except BadRequest as err:
                 logging.error(f"Could not find bucket {bucket.name}.")
                 logging.error(err)
