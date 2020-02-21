@@ -17,74 +17,125 @@ ElasticSearch backend implementation.
 """
 
 import logging
-import pprint
-from slo_generator.backends.base import MetricBackend
+
 from elasticsearch import Elasticsearch
+
+from slo_generator.backends.base import MetricBackend
 
 LOGGER = logging.getLogger(__name__)
 
 
 class ElasticsearchBackend(MetricBackend):
-    """Backend for querying metrics from Elasticsearch."""
+    """Backend for querying metrics from ElasticSearch."""
 
     def __init__(self, **kwargs):
         self.client = kwargs.get('client')
         if self.client is None:
             self.client = Elasticsearch(**kwargs)
 
-    def query(self, window, filter):
-        raise NotImplementedError()
-
-    def count(self, timeseries):
-        """Count events in time serie.
+    def good_bad_ratio(self, **kwargs):
+        """Query two timeseries, one containing 'good' events, one containing
+        'bad' events.
 
         Args:
-            dict: Timeserie results.
+            timestamp (int): UNIX timestamp.
+            window (int): Window size (in seconds).
+            kwargs (dict): Extra arguments needed by this computation method.
+                project_id (str): GCP project id to fetch metrics from.
+                measurement (dict): Measurement config.
+                    filter_good (str): Query filter for 'good' events.
+                    filter_bad (str): Query filter for 'bad' events.
+
+        Returns:
+            tuple: A tuple (good_event_count, bad_event_count)
+        """
+        window = kwargs['window']
+        index = kwargs['measurement']['index']
+        date = kwargs['measurement'].get('date_field', 'timestamp')
+        query_good = kwargs['measurement']['query_good']
+        query_bad = kwargs['measurement'].get('query_bad')
+        query_valid = kwargs['measurement'].get('query_valid')
+
+        # Build ELK request bodies
+        good = ElasticsearchBackend._build_query_body(query_good, window, date)
+        bad = ElasticsearchBackend._build_query_body(query_bad, window, date)
+        valid = ElasticsearchBackend._build_query_body(query_valid, window,
+                                                       date)
+
+        # Get good events count
+        response = self.query(index, good)
+        good_events_count = ElasticsearchBackend.count(response)
+
+        # Get bad events count
+        if query_bad is not None:
+            response = self.query(index, bad)
+            bad_events_count = ElasticsearchBackend.count(response)
+        elif query_valid is not None:
+            response = self.query(index, valid)
+            bad_events_count = \
+                ElasticsearchBackend.count(response) - good_events_count
+        else:
+            raise Exception("`filter_bad` or `filter_valid` is required.")
+
+        return (good_events_count, bad_events_count)
+
+    def query(self, index, body):
+        """Query ElasticSearch server.
+
+        Args:
+            index (str): Index to query.
+            body (dict): Query body.
+
+        Returns:
+            dict: Response.
+        """
+        return self.client.search(index=index, body=body)
+
+    @staticmethod
+    def count(response):
+        """Count event in Prometheus response.
+
+        Args:
+            response (dict): Prometheus query response.
 
         Returns:
             int: Event count.
         """
-        raise NotImplementedError()
+        try:
+            return response['hits']['total']['value']
+        except KeyError as exception:
+            LOGGER.warning("Couldn't find any values in timeseries response")
+            LOGGER.debug(exception)
+            return 0
 
+    @staticmethod
+    def _build_query_body(query, window, date_field='timestamp'):
+        """Add window to existing query. Replace window for different error
+        budget steps on-the-fly.
 
-"""
-Example query response:
+        Args:
+            body (dict): Existing query body.
+            window (int): Window in seconds.
+            field (str): Field to filter time on (must be an ELK `date` field)
 
->>> prometheus.query(metric='irate(node_cpu{job="static_nodes"}[5m])')
-u'{"status":"success","data":
-{
-    "resultType":"vector",
-    "result":[
-        {
-            "metric":
-                {
-                    "cpu":"cpu0",
-                    "device_ID":
-                    "static_node",
-                    "instance":"127.0.0.1:9100",
-                    "job":"static_nodes",
-                    "mode":"idle"
-                },
-            "value":[
-                1533779660.16,
-                "0.9340000000001358"
-            ]
-        },
-        {
-            "metric":
-                {
-                    "cpu":"cpu0",
-                    "device_ID":"static_node",
-                    "instance":"127.0.0.1:9100",
-                    "job":"static_nodes",
-                    "mode":"iowait"
-                },
-            "value":[
-                1533779660.16,
-                "0.003333333333334091"
-            ]
-        },
-        {
-            "metric":
-                {"cpu":"cpu0","device_ID":"static_node","instance":"127.0.0.1:9100","job":"static_nodes","mode":"irq"},"value":[1533779660.16,"0"]},{"metric":{"cpu":"cpu0","device_ID":"static_node","instance":"127.0.0.1:9100","job":"static_nodes","mode":"nice"},"value":[1533779660.16,"0"]},{"metric":{"cpu":"cpu0","device_ID":"static_node","instance":"127.0.0.1:9100","job":"static_nodes","mode":"softirq"},"value":[1533779660.16,"0"]},{"metric":{"cpu":"cpu0","device_ID":"static_node","instance":"127.0.0.1:9100","job":"static_nodes","mode":"steal"},"value":[1533779660.16,"0"]},{"metric":{"cpu":"cpu0","device_ID":"static_node","instance":"127.0.0.1:9100","job":"static_nodes","mode":"system"},"value":[1533779660.16,"0.016666666666666666"]},{"metric":{"cpu":"cpu0","device_ID":"static_node","instance":"127.0.0.1:9100","job":"static_nodes","mode":"user"},"value":[1533779660.16,"0.025333333333340608"]},{"metric":{"cpu":"cpu1","device_ID":"static_node","instance":"127.0.0.1:9100","job":"static_nodes","mode":"idle"},"value":[1533779660.16,"0.9373333333333297"]},{"metric":{"cpu":"cpu1","device_ID":"static_node","instance":"127.0.0.1:9100","job":"static_nodes","mode":"iowait"},"value":[1533779660.16,"0.025333333333333503"]},{"metric":{"cpu":"cpu1","device_ID":"static_node","instance":"127.0.0.1:9100","job":"static_nodes","mode":"irq"},"value":[1533779660.16,"0"]},{"metric":{"cpu":"cpu1","device_ID":"static_node","instance":"127.0.0.1:9100","job":"static_nodes","mode":"nice"},"value":[1533779660.16,"0"]},{"metric":{"cpu":"cpu1","device_ID":"static_node","instance":"127.0.0.1:9100","job":"static_nodes","mode":"softirq"},"value":[1533779660.16,"0"]},{"metric":{"cpu":"cpu1","device_ID":"static_node","instance":"127.0.0.1:9100","job":"static_nodes","mode":"steal"},"value":[1533779660.16,"0"]},{"metric":{"cpu":"cpu1","device_ID":"static_node","instance":"127.0.0.1:9100","job":"static_nodes","mode":"system"},"value":[1533779660.16,"0.0073333333333304536"]},{"metric":{"cpu":"cpu1","device_ID":"static_node","instance":"127.0.0.1:9100","job":"static_nodes","mode":"user"},"value":[1533779660.16,"0.02333333333332727"]},{"metric":{"cpu":"cpu2","device_ID":"static_node","instance":"127.0.0.1:9100","job":"static_nodes","mode":"idle"},"value":[1533779660.16,"0.9486666666666679"]},{"metric":{"cpu":"cpu2","device_ID":"static_node","instance":"127.0.0.1:9100","job":"static_nodes","mode":"iowait"},"value":[1533779660.16,"0"]},{"metric":{"cpu":"cpu2","device_ID":"static_node","instance":"127.0.0.1:9100","job":"static_nodes","mode":"irq"},"value":[1533779660.16,"0"]},{"metric":{"cpu":"cpu2","device_ID":"static_node","instance":"127.0.0.1:9100","job":"static_nodes","mode":"nice"},"value":[1533779660.16,"0"]},{"metric":{"cpu":"cpu2","device_ID":"static_node","instance":"127.0.0.1:9100","job":"static_nodes","mode":"softirq"},"value":[1533779660.16,"0"]},{"metric":{"cpu":"cpu2","device_ID":"static_node","instance":"127.0.0.1:9100","job":"static_nodes","mode":"steal"},"value":[1533779660.16,"0"]},{"metric":{"cpu":"cpu2","device_ID":"static_node","instance":"127.0.0.1:9100","job":"static_nodes","mode":"system"},"value":[1533779660.16,"0.009333333333332423"]},{"metric":{"cpu":"cpu2","device_ID":"static_node","instance":"127.0.0.1:9100","job":"static_nodes","mode":"user"},"value":[1533779660.16,"0.0319999999999709"]},{"metric":{"cpu":"cpu3","device_ID":"static_node","instance":"127.0.0.1:9100","job":"static_nodes","mode":"idle"},"value":[1533779660.16,"0.9540000000000267"]},{"metric":{"cpu":"cpu3","device_ID":"static_node","instance":"127.0.0.1:9100","job":"static_nodes","mode":"iowait"},"value":[1533779660.16,"0.0006666666666670077"]},{"metric":{"cpu":"cpu3","device_ID":"static_node","instance":"127.0.0.1:9100","job":"static_nodes","mode":"irq"},"value":[1533779660.16,"0"]},{"metric":{"cpu":"cpu3","device_ID":"static_node","instance":"127.0.0.1:9100","job":"static_nodes","mode":"nice"},"value":[1533779660.16,"0"]},{"metric":{"cpu":"cpu3","device_ID":"static_node","instance":"127.0.0.1:9100","job":"static_nodes","mode":"softirq"},"value":[1533779660.16,"0"]},{"metric":{"cpu":"cpu3","device_ID":"static_node","instance":"127.0.0.1:9100","job":"static_nodes","mode":"steal"},"value":[1533779660.16,"0"]},{"metric":{"cpu":"cpu3","device_ID":"static_node","instance":"127.0.0.1:9100","job":"static_nodes","mode":"system"},"value":[1533779660.16,"0.008666666666666363"]},{"metric":{"cpu":"cpu3","device_ID":"static_node","instance":"127.0.0.1:9100","job":"static_nodes","mode":"user"},"value":[1533779660.16,"0.03266666666665211"]}]}}'
-"""
+        Returns:
+            dict: Query body with range clause added.
+        """
+        if query is None:
+            return None
+        body = {"query": {"bool": query}, "track_total_hits": True}
+        range_query = {
+            f"{date_field}": {
+                "gte": f"now-{window}s/s",
+                "lt": "now/s"
+            }
+        }
+
+        # If a 'filter' clause already exist, add the range query on top,
+        # otherwise create the 'filter' clause.
+        if "filter" in body["query"]["bool"]:
+            body["query"]["bool"]["filter"]["range"] = range_query
+        else:
+            body["query"]["bool"] = {"filter": {"range": range_query}}
+
+        return body

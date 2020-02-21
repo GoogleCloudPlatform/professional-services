@@ -226,10 +226,11 @@ class BenchmarkLoadTable(object):
 
         except exceptions.BadRequest as e:
             logging.error(e.message)
-            self.bq_client.delete_table(self.benchmark_table_util.table_ref)
-            logging.info('Deleting table {0:s}'.format(
-                self.job_destination_table
-            ))
+            
+        self.bq_client.delete_table(self.benchmark_table_util.table_ref)
+        logging.info('Deleting table {0:s}'.format(
+            self.job_destination_table
+        ))
 
 
 
