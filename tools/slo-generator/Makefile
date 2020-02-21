@@ -36,14 +36,14 @@ FLAKE8_IGNORE = E302,E203,E261
 
 ########################################################
 
-all: clean flake8 pylint tests
+all: clean install_test tests
 
 flake8:
-	flake8 --ignore=$(FLAKE8_IGNORE) $(NAME)/
-	flake8 --ignore=$(FLAKE8_IGNORE),E402 tests/
+	flake8 --ignore=$(FLAKE8_IGNORE) $(NAME)/ --max-line-length=80
+	flake8 --ignore=$(FLAKE8_IGNORE),E402 tests/ --max-line-length=80
 
 pylint:
-	find ./$(NAME) ./tests -name \*.py | xargs pylint --rcfile .pylintrc
+	find ./$(NAME) ./tests -name \*.py | xargs pylint --rcfile .pylintrc --ignore-patterns=test_.*?py
 
 clean:
 	@echo "Cleaning up distutils stuff"
@@ -73,9 +73,9 @@ install: clean
 	$(PYTHON) setup.py install
 
 install_test:
-	$(PIP) install flake8 mock coverage nose
+	$(PIP) install flake8 mock coverage nose pylint
 
-tests: unittest coverage_report
+tests: flake8 pylint unittest coverage_report
 
 unittest: clean
 	nosetests $(NOSE_OPTS) tests/unit/*

@@ -17,8 +17,8 @@
 import sbt._
 import Keys._
 
-val scioVersion = "0.8.0-beta2"
-val beamVersion = "2.16.0"
+val scioVersion = "0.8.0"
+val beamVersion = "2.17.0"
 val kafkaClientsVersion = "2.3.1"
 val scalaMacrosVersion = "2.1.1"
 val pureconfigVersion = "0.12.1"
