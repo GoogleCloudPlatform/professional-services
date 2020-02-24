@@ -110,7 +110,7 @@ source venv/bin/activate
 
 Install `slo-generator` locally in development mode, so that you can start making changes to it:
 ```
-python setup.py developx
+python setup.py develop
 ```
 
 **New backend**
