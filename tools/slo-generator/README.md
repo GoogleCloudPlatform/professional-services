@@ -177,6 +177,7 @@ To add a new backend, one must:
   slo_description: Test Datadog SLO
   backend:
     class: Datadog
+    method: good_bad_ratio
     url: datadog.mycompany.com
     measurement:
       filter_good: avg:system.disk.free{*}.rollup(avg, {window})
