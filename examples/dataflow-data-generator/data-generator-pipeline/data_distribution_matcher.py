@@ -27,7 +27,7 @@ import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions
 from data_generator.PerformantDataGenerator import DataGenerator, FakeRowGen, \
     parse_data_generator_args, validate_data_args, fetch_schema
-import avro.schema
+import fastavro
 
 from data_generator.CsvUtil import dict_to_csv
 from data_generator.AvroUtil import fix_record_for_avro
@@ -83,17 +83,18 @@ def run(argv=None):
          )
 
     if data_args.avro_schema_file:
-        avsc = avro.schema.Parse(open(data_args.avro_schema_file, 'rb').read())
+        fastavro_avsc = fastavro.schema.load_schema(data_args.avro_schema_file)
+
         (rows
          # Need to convert time stamps from strings to timestamp-micros
          | 'Fix date and time Types for Avro.' >>
-         beam.FlatMap(lambda row: fix_record_for_avro(row, avsc))
+         beam.FlatMap(lambda row: fix_record_for_avro(row, fastavro_avsc))
          | 'Write to Avro.' >> beam.io.avroio.WriteToAvro(
              file_path_prefix=data_args.output_prefix,
              codec='null',
              file_name_suffix='.avro',
              use_fastavro=True,
-             schema=avsc))
+             schema=fastavro_avsc))
 
     if data_args.output_bq_table:
         (rows
