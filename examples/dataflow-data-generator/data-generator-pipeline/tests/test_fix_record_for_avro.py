@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import avro.schema
+import fastavro
 import json
 import logging
 import unittest
@@ -23,115 +23,111 @@ from data_generator.AvroUtil import fix_record_for_avro
 class TestAvroFixer(unittest.TestCase):
     def test_fix_record_for_avro(self):
 
-        avro_schema = avro.schema.Parse(
-            json.dumps({
-                'type':
-                'record',
-                'name':
-                'AthleticsWorldRecords',
-                'fields': [{
-                    'name':
-                    'birthday',
-                    'type': ['null', {
-                        'logicalType': 'date',
-                        'type': 'int'
-                    }]
-                }, {
-                    'name': 'athlete',
-                    'type': 'string'
-                }, {
-                    'name':
-                    'race_start_time',
-                    'type':
-                    ['null', {
-                        'logicalType': 'time-micros',
-                        'type': 'long'
-                    }]
-                }, {
-                    'name':
-                    'race_start_datetime',
-                    'type': [
-                        'null', {
-                            'logicalType': 'timestamp-millis',
-                            'type': 'long'
-                        }
-                    ]
-                }, {
-                    'name':
-                    'race_end_timestamp',
-                    'type': [
-                        'null', {
-                            'logicalType': 'timestamp-micros',
-                            'type': 'long'
-                        }
-                    ]
-                }, {
-                    'name': 'race_distance_m',
+        fastavro_schema = fastavro.parse_schema({
+            'type':
+            'record',
+            'name':
+            'AthleticsWorldRecords',
+            'fields': [{
+                'name': 'birthday',
+                'type': ['null', {
+                    'logicalType': 'date',
                     'type': 'int'
-                }, {
-                    'name': 'time_seconds',
-                    'type': 'float'
-                }, {
-                    'name': 'is_world_record',
-                    'type': 'boolean'
-                }, {
-                    'name': 'rival_record',
-                    'type': {
-                        'type':
-                        'record',
-                        'name':
-                        'RivalAthlete',
-                        'fields': [{
-                            'name':
-                            'birthday',
-                            'type':
-                            ['null', {
-                                'logicalType': 'date',
-                                'type': 'int'
-                            }]
-                        }, {
-                            'name': 'athlete',
-                            'type': 'string'
-                        }, {
-                            'name':
-                            'race_start_time',
-                            'type': [
-                                'null', {
-                                    'logicalType': 'time-micros',
-                                    'type': 'long'
-                                }
-                            ]
-                        }, {
-                            'name':
-                            'race_start_datetime',
-                            'type': [
-                                'null', {
-                                    'logicalType': 'timestamp-millis',
-                                    'type': 'long'
-                                }
-                            ]
-                        }, {
-                            'name':
-                            'race_end_timestamp',
-                            'type': [
-                                'null', {
-                                    'logicalType': 'timestamp-micros',
-                                    'type': 'long'
-                                }
-                            ]
-                        }, {
-                            'name': 'race_distance_m',
-                            'type': 'int'
-                        }, {
-                            'name': 'time_seconds',
-                            'type': 'float'
-                        }, {
-                            'name': 'is_world_record',
-                            'type': 'boolean'
-                        }]
-                    }
                 }]
-            }))
+            }, {
+                'name': 'athlete',
+                'type': 'string'
+            }, {
+                'name':
+                'race_start_time',
+                'type':
+                ['null', {
+                    'logicalType': 'time-micros',
+                    'type': 'long'
+                }]
+            }, {
+                'name':
+                'race_start_datetime',
+                'type':
+                ['null', {
+                    'logicalType': 'timestamp-millis',
+                    'type': 'long'
+                }]
+            }, {
+                'name':
+                'race_end_timestamp',
+                'type':
+                ['null', {
+                    'logicalType': 'timestamp-micros',
+                    'type': 'long'
+                }]
+            }, {
+                'name': 'race_distance_m',
+                'type': 'int'
+            }, {
+                'name': 'time_seconds',
+                'type': 'float'
+            }, {
+                'name': 'is_world_record',
+                'type': 'boolean'
+            }, {
+                'name': 'rival_record',
+                'type': {
+                    'type':
+                    'record',
+                    'name':
+                    'RivalAthlete',
+                    'fields': [{
+                        'name':
+                        'birthday',
+                        'type':
+                        ['null', {
+                            'logicalType': 'date',
+                            'type': 'int'
+                        }]
+                    }, {
+                        'name': 'athlete',
+                        'type': 'string'
+                    }, {
+                        'name':
+                        'race_start_time',
+                        'type': [
+                            'null', {
+                                'logicalType': 'time-micros',
+                                'type': 'long'
+                            }
+                        ]
+                    }, {
+                        'name':
+                        'race_start_datetime',
+                        'type': [
+                            'null', {
+                                'logicalType': 'timestamp-millis',
+                                'type': 'long'
+                            }
+                        ]
+                    }, {
+                        'name':
+                        'race_end_timestamp',
+                        'type': [
+                            'null', {
+                                'logicalType': 'timestamp-micros',
+                                'type': 'long'
+                            }
+                        ]
+                    }, {
+                        'name': 'race_distance_m',
+                        'type': 'int'
+                    }, {
+                        'name': 'time_seconds',
+                        'type': 'float'
+                    }, {
+                        'name': 'is_world_record',
+                        'type': 'boolean'
+                    }]
+                }
+            }]
+        })
         input_record = {
             'birthday': '1988-12-17',
             'athlete': 'David Rudisha',
@@ -174,7 +170,7 @@ class TestAvroFixer(unittest.TestCase):
             }
         }]
 
-        output_record = fix_record_for_avro(input_record, avro_schema)
+        output_record = fix_record_for_avro(input_record, fastavro_schema)
         self.assertDictEqual(output_record[0], expected_output[0])
 
 
