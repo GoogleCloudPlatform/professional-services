@@ -92,6 +92,11 @@ class TestBucketUtil(object):
         Returns:
             True if test passes, else False.
         """
+        if not project_id:
+            raise Exception(
+                'Test needs project_id to pass. '
+                'Add --project_id={your project ID} to test command'
+            )
         self.bucket_util = bucket_util.BucketUtil(
             bucket_name=self.bucket_name,
             project_id=project_id,

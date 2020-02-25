@@ -109,6 +109,11 @@ class TestFileGenerator(object):
         Returns:
             True if test passes, else False.
         """
+        if not project_id:
+            raise Exception(
+                'Test needs project_id to pass. '
+                'Add --project_id={your project ID} to test command'
+            )
         # create sample staging table
 
         staging_table_id = '50_STRING_50_NUMERIC_10_213B'
@@ -187,6 +192,11 @@ class TestFileGenerator(object):
         Returns:
             True if test passes, else False.
         """
+        if not project_id:
+            raise Exception(
+                'Test needs project_id to pass. '
+                'Add --project_id={your project ID} to test command'
+            )
         self.file_generator = load_file_generator.FileGenerator(
             project_id,
             self.dataset_id,

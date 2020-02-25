@@ -145,6 +145,12 @@ class TestStagingTableGenerator(object):
         Returns:
             True if test passes, else False.
         """
+        if not project_id:
+            raise Exception(
+                'Test needs project_id to pass. '
+                'Add --project_id={your project ID} to test command'
+            )
+
         self.bq_client.create_dataset(self.staging_dataset)
         self.bq_client.create_dataset(self.resized_dataset)
 
@@ -218,6 +224,11 @@ class TestStagingTableGenerator(object):
         Returns:
             True if test passes, else False.
         """
+        if not project_id:
+            raise Exception(
+                'Test needs project_id to pass. '
+                'Add --project_id={your project ID} to test command'
+            )
         self.test_staging_table_generator = \
             staging_table_generator.StagingTableGenerator(
                 project=project_id,
