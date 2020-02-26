@@ -181,7 +181,6 @@ class TableUtil(object):
 
         schema = self.table.schema
         field_types = [field.field_type for field in schema]
-        field_types.sort()
         field_type_counts = {}
         for field_type in field_types:
             if field_type in field_type_counts:
