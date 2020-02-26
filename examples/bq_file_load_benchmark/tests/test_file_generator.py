@@ -154,29 +154,30 @@ class TestFileGenerator(object):
         files = [blob.name for blob in self.file_bucket.list_blobs()]
         # pylint: disable=line-too-long
         expected_files = [
-            'fileType=csv/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=1/tableSize=0MB/file1.csv',
-            'fileType=csv/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file1.csv',
-            'fileType=csv/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file10.csv',
-            'fileType=csv/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file2.csv',
-            'fileType=csv/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file3.csv',
-            'fileType=csv/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file4.csv',
-            'fileType=csv/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file5.csv',
-            'fileType=csv/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file6.csv',
-            'fileType=csv/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file7.csv',
-            'fileType=csv/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file8.csv',
-            'fileType=csv/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file9.csv',
-            'fileType=json/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=1/tableSize=0MB/file1.json',
-            'fileType=json/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file1.json',
-            'fileType=json/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file10.json',
-            'fileType=json/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file2.json',
-            'fileType=json/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file3.json',
-            'fileType=json/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file4.json',
-            'fileType=json/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file5.json',
-            'fileType=json/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file6.json',
-            'fileType=json/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file7.json',
-            'fileType=json/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file8.json',
-            'fileType=json/compression=none/numColumns=10/columnTypes=50_INTEGER_50_STRING/numFiles=10/tableSize=0MB/file9.json'
+            'fileType=csv/compression=none/numColumns=10/columnTypes=50_STRING_50_INTEGER/numFiles=1/tableSize=0MB/file1.csv',
+            'fileType=csv/compression=none/numColumns=10/columnTypes=50_STRING_50_INTEGER/numFiles=10/tableSize=0MB/file1.csv',
+            'fileType=csv/compression=none/numColumns=10/columnTypes=50_STRING_50_INTEGER/numFiles=10/tableSize=0MB/file10.csv',
+            'fileType=csv/compression=none/numColumns=10/columnTypes=50_STRING_50_INTEGER/numFiles=10/tableSize=0MB/file2.csv',
+            'fileType=csv/compression=none/numColumns=10/columnTypes=50_STRING_50_INTEGER/numFiles=10/tableSize=0MB/file3.csv',
+            'fileType=csv/compression=none/numColumns=10/columnTypes=50_STRING_50_INTEGER/numFiles=10/tableSize=0MB/file4.csv',
+            'fileType=csv/compression=none/numColumns=10/columnTypes=50_STRING_50_INTEGER/numFiles=10/tableSize=0MB/file5.csv',
+            'fileType=csv/compression=none/numColumns=10/columnTypes=50_STRING_50_INTEGER/numFiles=10/tableSize=0MB/file6.csv',
+            'fileType=csv/compression=none/numColumns=10/columnTypes=50_STRING_50_INTEGER/numFiles=10/tableSize=0MB/file7.csv',
+            'fileType=csv/compression=none/numColumns=10/columnTypes=50_STRING_50_INTEGER/numFiles=10/tableSize=0MB/file8.csv',
+            'fileType=csv/compression=none/numColumns=10/columnTypes=50_STRING_50_INTEGER/numFiles=10/tableSize=0MB/file9.csv',
+            'fileType=json/compression=none/numColumns=10/columnTypes=50_STRING_50_INTEGER/numFiles=1/tableSize=0MB/file1.json',
+            'fileType=json/compression=none/numColumns=10/columnTypes=50_STRING_50_INTEGER/numFiles=10/tableSize=0MB/file1.json',
+            'fileType=json/compression=none/numColumns=10/columnTypes=50_STRING_50_INTEGER/numFiles=10/tableSize=0MB/file10.json',
+            'fileType=json/compression=none/numColumns=10/columnTypes=50_STRING_50_INTEGER/numFiles=10/tableSize=0MB/file2.json',
+            'fileType=json/compression=none/numColumns=10/columnTypes=50_STRING_50_INTEGER/numFiles=10/tableSize=0MB/file3.json',
+            'fileType=json/compression=none/numColumns=10/columnTypes=50_STRING_50_INTEGER/numFiles=10/tableSize=0MB/file4.json',
+            'fileType=json/compression=none/numColumns=10/columnTypes=50_STRING_50_INTEGER/numFiles=10/tableSize=0MB/file5.json',
+            'fileType=json/compression=none/numColumns=10/columnTypes=50_STRING_50_INTEGER/numFiles=10/tableSize=0MB/file6.json',
+            'fileType=json/compression=none/numColumns=10/columnTypes=50_STRING_50_INTEGER/numFiles=10/tableSize=0MB/file7.json',
+            'fileType=json/compression=none/numColumns=10/columnTypes=50_STRING_50_INTEGER/numFiles=10/tableSize=0MB/file8.json',
+            'fileType=json/compression=none/numColumns=10/columnTypes=50_STRING_50_INTEGER/numFiles=10/tableSize=0MB/file9.json'
         ]
+        print(files)
         assert files == expected_files
 
     def test_compose_sharded_blobs(self, project_id):
