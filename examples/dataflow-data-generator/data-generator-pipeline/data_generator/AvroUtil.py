@@ -13,19 +13,20 @@
 # limitations under the License.
 
 import avro.schema
+import fastavro
 import json
 from .TimeUtil import datetime_to_epoch_timestamp, date_to_epoch_date, \
 time_to_epoch_time
 
 
 def fix_record_for_avro(record, avro_schema):
-    for field in avro_schema.fields:
-        field_name = field.name
-        datatype = field.type.to_json()
+    for field in avro_schema['fields']:
+        field_name = field['name']
+        datatype = field['type']
         if isinstance(datatype, dict):
             # This is a record type definition so we need to recurse a level deeper.
             record[field_name] = fix_record_for_avro(
-                record[field_name], avro.schema.Parse(json.dumps(datatype)))[0]
+                record[field_name], fastavro.parse_schema(datatype))[0]
         elif isinstance(datatype, list) and isinstance(datatype[1], dict):
             logical_type = datatype[1].get('logicalType', None)
             if logical_type:
