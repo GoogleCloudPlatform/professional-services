@@ -177,7 +177,6 @@ class TestFileGenerator(object):
             'fileType=json/compression=none/numColumns=10/columnTypes=50_STRING_50_INTEGER/numFiles=10/tableSize=0MB/file8.json',
             'fileType=json/compression=none/numColumns=10/columnTypes=50_STRING_50_INTEGER/numFiles=10/tableSize=0MB/file9.json'
         ]
-        
         assert files == expected_files
 
     def test_compose_sharded_blobs(self, project_id):
