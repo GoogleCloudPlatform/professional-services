@@ -25,7 +25,7 @@ The tool has been tested with Python 2.7, and can be used as a standalone
 script, or deployed as a containerized image. It accepts a few simple
 parameters:
 
-* `--project-id` the GCP project id for which to fetch global quotas
+* `--project` the GCP project id for which to fetch global quotas
   *(required)*
 * `--gce-regions` comma-delimited list of GCE regions for which to
   fetch regional quotas
@@ -36,8 +36,8 @@ parameters:
 
 All command-line options also map to corresponding environment variables,
 capitalized and prefixed with `OPT_`, which are used to configure the tool when
-running inside a container. For example, `--project-id` can also be set
-through the `OPT_PROJECT_ID` variable, and so on.
+running inside a container. For example, `--project` can also be set
+through the `OPT_PROJECT` variable, and so on.
 
 ### Standalone usage
 

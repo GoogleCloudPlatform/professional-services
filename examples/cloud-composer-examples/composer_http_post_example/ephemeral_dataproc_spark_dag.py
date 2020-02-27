@@ -22,7 +22,6 @@ from airflow.operators import BashOperator, PythonOperator
 from airflow.models import Variable
 from airflow.utils.trigger_rule import TriggerRule
 
-
 ##################################################################
 # This file defines the DAG for the logic pictured below.        #
 ##################################################################
@@ -48,11 +47,10 @@ from airflow.utils.trigger_rule import TriggerRule
 # path.)                                                         #
 ##################################################################
 
-
-
 # These are stored as a Variables in our Airflow Environment.
 BUCKET = Variable.get('gcs_bucket')  # GCS bucket with our data.
-OUTPUT_TABLE = Variable.get('bq_output_table')  # BigQuery table to which results will be written
+OUTPUT_TABLE = Variable.get(
+    'bq_output_table')  # BigQuery table to which results will be written
 
 # Path to python script that does data manipulation
 PYSPARK_JOB = 'gs://' + BUCKET + '/spark-jobs/spark_avg_speed.py'
@@ -78,10 +76,9 @@ DEFAULT_DAG_ARGS = {
     'schedule_interval': None
 }
 
-
 # Create Directed Acyclic Graph for Airflow
-with DAG('average-speed',
-         default_args=DEFAULT_DAG_ARGS) as dag:  # Here we are using dag as context.
+with DAG('average-speed', default_args=DEFAULT_DAG_ARGS
+         ) as dag:  # Here we are using dag as context.
     # Create the Cloud Dataproc cluster.
     # Note: this operator will be flagged a success if the cluster by this name already exists.
     create_cluster = DataprocClusterCreateOperator(
@@ -90,8 +87,7 @@ with DAG('average-speed',
         # in YYYYMMDD format. See docs https://airflow.apache.org/code.html?highlight=macros#macros
         cluster_name='ephemeral-spark-cluster-{{ ds_nodash }}',
         num_workers=2,
-        zone=Variable.get('gce_zone')
-    )
+        zone=Variable.get('gce_zone'))
 
     # Submit the PySpark job.
     submit_pyspark = DataProcPySparkOperator(
@@ -100,11 +96,11 @@ with DAG('average-speed',
         # Obviously needs to match the name of cluster created in the prior Operator.
         cluster_name='ephemeral-spark-cluster-{{ ds_nodash }}',
         # Let's template our arguments for the pyspark job from the POST payload.
-        arguments=["--gcs_path_raw={{ dag_run.conf['raw_path'] }}",
-                   "--gcs_path_transformed=gs://" + BUCKET +
-                   "/{{ dag_run.conf['transformed_path'] }}"]
-
-    )
+        arguments=[
+            "--gcs_path_raw={{ dag_run.conf['raw_path'] }}",
+            "--gcs_path_transformed=gs://" + BUCKET +
+            "/{{ dag_run.conf['transformed_path'] }}"
+        ])
 
     # Load the transformed files to a BigQuery table.
     bq_load = GoogleCloudStorageToBigQueryOperator(
@@ -115,13 +111,14 @@ with DAG('average-speed',
         source_objects=["{{ dag_run.conf['transformed_path'] }}/part-*"],
         destination_project_dataset_table=OUTPUT_TABLE,
         schema_fields=None,
-        schema_object='schemas/nyc-tlc-yellow.json',  # Relative gcs path to schema file.
-        source_format='CSV',  # Note that our spark job does json -> csv conversion.
+        schema_object=
+        'schemas/nyc-tlc-yellow.json',  # Relative gcs path to schema file.
+        source_format=
+        'CSV',  # Note that our spark job does json -> csv conversion.
         create_disposition='CREATE_IF_NEEDED',
         skip_leading_rows=0,
         write_disposition='WRITE_TRUNCATE',  # If the table exists, overwrite it.
-        max_bad_records=0
-     )
+        max_bad_records=0)
 
     # Delete the Cloud Dataproc cluster.
     delete_cluster = DataprocClusterDeleteOperator(
@@ -129,23 +126,22 @@ with DAG('average-speed',
         # Obviously needs to match the name of cluster created in the prior two Operators.
         cluster_name='ephemeral-spark-cluster-{{ ds_nodash }}',
         # This will tear down the cluster even if there are failures in upstream tasks.
-        trigger_rule=TriggerRule.ALL_DONE
-    )
+        trigger_rule=TriggerRule.ALL_DONE)
 
     # Delete  gcs files in the timestamped transformed folder.
     delete_transformed_files = BashOperator(
         task_id='delete_transformed_files',
-        bash_command="gsutil -m rm -r gs://" + BUCKET + "/{{ dag_run.conf['transformed_path'] }}/"
-    )
+        bash_command="gsutil -m rm -r gs://" + BUCKET +
+        "/{{ dag_run.conf['transformed_path'] }}/")
 
     # If the spark job or BQ Load fails we rename the timestamped raw path to
     # a timestamped failed path.
-    move_failed_files = BashOperator(
-        task_id='move_failed_files',
-        bash_command="gsutil mv gs://" + BUCKET + "/{{ dag_run.conf['raw_path'] }}/ "
-                     + "gs://" + BUCKET + "/{{ dag_run.conf['failed_path'] }}/",
-        trigger_rule=TriggerRule.ONE_FAILED
-    )
+    move_failed_files = BashOperator(task_id='move_failed_files',
+                                     bash_command="gsutil mv gs://" + BUCKET +
+                                     "/{{ dag_run.conf['raw_path'] }}/ " +
+                                     "gs://" + BUCKET +
+                                     "/{{ dag_run.conf['failed_path'] }}/",
+                                     trigger_rule=TriggerRule.ONE_FAILED)
     # Set the dag property of the first Operators, this will be inherited by downstream Operators.
 
     create_cluster.dag = dag
@@ -157,5 +153,3 @@ with DAG('average-speed',
     bq_load.set_downstream(delete_transformed_files)
 
     move_failed_files.set_upstream([bq_load, submit_pyspark])
-
-

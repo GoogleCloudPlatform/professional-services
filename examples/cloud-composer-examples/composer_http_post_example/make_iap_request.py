@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Example use of a service account to authenticate to Identity-Aware Proxy."""
 
 # [START iap_make_request]
@@ -24,7 +23,6 @@ import google.oauth2.credentials
 import google.oauth2.service_account
 import requests
 import requests_toolbelt.adapters.appengine
-
 
 IAM_SCOPE = 'https://www.googleapis.com/auth/iam'
 OAUTH_TOKEN_URI = 'https://www.googleapis.com/oauth2/v4/token'
@@ -46,14 +44,12 @@ def make_iap_request(url, client_id, method='GET', **kwargs):
     """
     # Figure out what environment we're running in and get some preliminary
     # information about the service account.
-    bootstrap_credentials, _ = google.auth.default(
-        scopes=[IAM_SCOPE])
+    bootstrap_credentials, _ = google.auth.default(scopes=[IAM_SCOPE])
     if isinstance(bootstrap_credentials,
                   google.oauth2.credentials.Credentials):
         raise Exception('make_iap_request is only supported for service '
                         'accounts.')
-    elif isinstance(bootstrap_credentials,
-                    google.auth.app_engine.Credentials):
+    elif isinstance(bootstrap_credentials, google.auth.app_engine.Credentials):
         requests_toolbelt.adapters.appengine.monkeypatch()
 
     # For service account's using the Compute Engine metadata service,
@@ -76,8 +72,8 @@ def make_iap_request(url, client_id, method='GET', **kwargs):
         # 2. The VM's default service account needs the "Service Account Actor"
         #    role. This can be found under the "Project" category in Cloud
         #    Console, or roles/iam.serviceAccountActor in gcloud.
-        signer = google.auth.iam.Signer(
-            Request(), bootstrap_credentials, signer_email)
+        signer = google.auth.iam.Signer(Request(), bootstrap_credentials,
+                                        signer_email)
     else:
         # A Signer object can sign a JWT using the service account's key.
         signer = bootstrap_credentials.signer
@@ -85,9 +81,10 @@ def make_iap_request(url, client_id, method='GET', **kwargs):
     # Construct OAuth 2.0 service account credentials using the signer
     # and email acquired from the bootstrap credentials.
     service_account_credentials = google.oauth2.service_account.Credentials(
-        signer, signer_email, token_uri=OAUTH_TOKEN_URI, additional_claims={
-            'target_audience': client_id
-        })
+        signer,
+        signer_email,
+        token_uri=OAUTH_TOKEN_URI,
+        additional_claims={'target_audience': client_id})
 
     # service_account_credentials gives us a JWT signed by the service
     # account. Next, we use that to obtain an OpenID Connect token,
@@ -99,13 +96,16 @@ def make_iap_request(url, client_id, method='GET', **kwargs):
     # Authorization header containing "Bearer " followed by a
     # Google-issued OpenID Connect token for the service account.
     resp = requests.request(
-        method, url,
-        headers={'Authorization': 'Bearer {}'.format(
-            google_open_id_connect_token)}, **kwargs)
+        method,
+        url,
+        headers={
+            'Authorization': 'Bearer {}'.format(google_open_id_connect_token)
+        },
+        **kwargs)
     if resp.status_code == 403:
-        raise Exception('Service account {} does not have permission to '
-                        'access the IAP-protected application.'.format(
-                            signer_email))
+        raise Exception(
+            'Service account {} does not have permission to '
+            'access the IAP-protected application.'.format(signer_email))
     elif resp.status_code != 200:
         raise Exception(
             'Bad response from application: {!r} / {!r} / {!r}'.format(
@@ -146,5 +146,6 @@ def get_google_open_id_connect_token(service_account_credentials):
     token_response = google.oauth2._client._token_endpoint_request(
         request, OAUTH_TOKEN_URI, body)
     return token_response['id_token']
+
 
 # [END iap_make_request]

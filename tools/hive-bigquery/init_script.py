@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Reads the input configuration file, validates them and enables logging."""
 
 import argparse
@@ -54,7 +53,9 @@ def configure_logger():
     print("Check the log file {} for detailed logs".format(LOG_FILE_NAME))
     return logger
 
+
 logger = configure_logger()
+
 
 def parse_args_for_hive_to_bq():
     """Argument Parser.
@@ -65,9 +66,10 @@ def parse_args_for_hive_to_bq():
 
     parser = argparse.ArgumentParser(
         description="Framework to migrate Hive tables to BigQuery using "
-                    "Cloud SQL to keep track of the migration progress.")
-    parser.add_argument(
-        '--config-file', required=True, help="Input configurations JSON file.")
+        "Cloud SQL to keep track of the migration progress.")
+    parser.add_argument('--config-file',
+                        required=True,
+                        help="Input configurations JSON file.")
 
     return parser.parse_args()
 
@@ -134,7 +136,7 @@ def validate_config_parameters(data):
     if not isinstance(hive_port, int):
         raise TypeError("Hive port must be an integer")
 
-    if not isinstance(tracking_db_port,int):
+    if not isinstance(tracking_db_port, int):
         raise TypeError("Tracking database port must be an integer")
 
     if gcs_bucket_name.startswith('gs://'):
@@ -143,12 +145,15 @@ def validate_config_parameters(data):
         gcs_bucket_name = gcs_bucket_name[:-1]
 
     if not tracking_db_password_path.startswith('gs://'):
-        raise ValueError("Tracking database password path must start with gs://")
+        raise ValueError(
+            "Tracking database password path must start with gs://")
 
     bq_write_mode = bq_write_mode.lower()
 
-    hive_bq_comparison_csv = "{}_metrics_hive_bq_{}.csv".format(hive_table, TIME_FORMAT)
-    hive_bq_comparison_table = "{}_metrics_hive_bq_{}".format(hive_table, TIME_FORMAT)
+    hive_bq_comparison_csv = "{}_metrics_hive_bq_{}.csv".format(
+        hive_table, TIME_FORMAT)
+    hive_bq_comparison_table = "{}_metrics_hive_bq_{}".format(
+        hive_table, TIME_FORMAT)
 
     config = {
         "project_id": project_id,

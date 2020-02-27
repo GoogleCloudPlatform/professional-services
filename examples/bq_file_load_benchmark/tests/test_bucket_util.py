@@ -1,6 +1,17 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+# Copyright 2018 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import os
 
 from google.api_core import exceptions
@@ -81,6 +92,11 @@ class TestBucketUtil(object):
         Returns:
             True if test passes, else False.
         """
+        if not project_id:
+            raise Exception(
+                'Test needs project_id to pass. '
+                'Add --project_id={your project ID} to test command'
+            )
         self.bucket_util = bucket_util.BucketUtil(
             bucket_name=self.bucket_name,
             project_id=project_id,

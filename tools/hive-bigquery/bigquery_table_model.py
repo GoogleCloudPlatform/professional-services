@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Module to wrap BigQuery table as a model"""
 
 import json
@@ -39,7 +38,6 @@ class BigQueryTableModel(object):
             one of Avro, ORC, and Parquet.
         flat_schema (dict): Flattened schema of the table.
     """
-
     def __init__(self, **kwargs):
         logger.debug('Initializing BigQueryTableModel object')
         self._table_details = kwargs['table_details']
@@ -67,9 +65,8 @@ class BigQueryTableModel(object):
     def schema(self):
         if self._table_details['schema'] is None:
             filename = 'bq_schema_{}.json'.format(uuid4())
-            os.system(
-                'bq show --format=prettyjson {0}.{1} > {2}'.format(
-                    self.dataset_id, self.table_name, filename))
+            os.system('bq show --format=prettyjson {0}.{1} > {2}'.format(
+                self.dataset_id, self.table_name, filename))
             with open(filename, 'r') as file_content:
                 schema = json.load(file_content)
             os.remove(filename)
@@ -139,7 +136,6 @@ class BigQueryTableModel(object):
             "col_name__value"   : "INTEGER"
         }
         Uses string extraction to flatten the schema."""
-
         def recursively_flatten(schema, col_name):
             """Iterates through the nested fields and gets the data types.
 
@@ -186,7 +182,8 @@ class BigQueryTableModel(object):
             for key in flat_schema.keys():
                 value = flat_schema[key]
                 if '__bag__array_element' in key:
-                    flat_schema[key.replace('__bag__array_element', '')] = value
+                    flat_schema[key.replace('__bag__array_element',
+                                            '')] = value
                     flat_schema.pop(key, None)
                 if '__map__key' in key:
                     flat_schema[key.replace('__map__key', '__key')] = value
