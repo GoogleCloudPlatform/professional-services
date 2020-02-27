@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
 from concurrent.futures import ThreadPoolExecutor
 import hashlib
 import itertools
@@ -323,7 +320,9 @@ class FileGenerator(object):
             # concatenated string as the composed blob name, especially if the
             # total number of shards is quite large.
             else:
-                composed_blob_name = hashlib.md5(str(group)).hexdigest()
+                composed_blob_name = hashlib.md5(
+                    ','.join([blob.name for blob in group]).encode('utf-8')
+                ).hexdigest()
 
             # Compose the group of blobs into one, and delete the group of
             # blobs since only the composed blob is needed.

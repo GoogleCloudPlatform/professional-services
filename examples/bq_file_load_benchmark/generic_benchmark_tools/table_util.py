@@ -12,10 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-import collections
+from collections import Counter
 import json
 import logging
 
@@ -185,7 +182,8 @@ class TableUtil(object):
 
         schema = self.table.schema
         field_types = [field.field_type for field in schema]
-        field_type_counts = collections.Counter(field_types)
+        field_type_counts = Counter(field_types)
+
         column_types = ''
         counter = 1
         for field_type in field_type_counts:

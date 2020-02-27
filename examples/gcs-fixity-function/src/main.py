@@ -24,7 +24,6 @@ import json
 from datetime import datetime
 from google.cloud import storage, bigquery
 
-FIXITY_DATE = datetime.now()
 FIXITY_MANIFEST_NAME = 'manifest-md5sum.txt'
 DATA_DIRECTORY_NAME = 'data'  # Do not include trailing slash here
 
@@ -117,6 +116,7 @@ class BagIt:
         self.bucket = bucket
         self.blobs = self.get_blobs()
         self.bigquery_client = bigquery.Client()
+        self.fixity_date = datetime.now()
 
     def commit(self):
         self.write_and_upload_manifest()
@@ -159,10 +159,9 @@ class BagIt:
         table = self.bigquery_client.get_table(table_ref)  # API request
         rows_to_insert = list(
             map(
-                lambda blob:
-                (self.bucket_name, self.bag, blob['name'], blob['size'], blob[
-                    'updated'], blob['crc32c'], blob['md5sum'], FIXITY_DATE),
-                self.blobs))
+                lambda blob: (self.bucket_name, self.bag, blob['name'], blob[
+                    'size'], blob['updated'], blob['crc32c'], blob['md5sum'],
+                              self.fixity_date), self.blobs))
         try:
             errors = self.bigquery_client.insert_rows(table, rows_to_insert)
             assert errors == []
