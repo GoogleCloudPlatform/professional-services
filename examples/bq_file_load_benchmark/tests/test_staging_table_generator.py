@@ -1,6 +1,17 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+# Copyright 2018 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import json
 import os
 
@@ -134,6 +145,12 @@ class TestStagingTableGenerator(object):
         Returns:
             True if test passes, else False.
         """
+        if not project_id:
+            raise Exception(
+                'Test needs project_id to pass. '
+                'Add --project_id={your project ID} to test command'
+            )
+
         self.bq_client.create_dataset(self.staging_dataset)
         self.bq_client.create_dataset(self.resized_dataset)
 
@@ -162,30 +179,30 @@ class TestStagingTableGenerator(object):
 
         expected_schema = [
             bigquery.SchemaField(
-                u'string1',
-                u'STRING',
-                u'REQUIRED',
+                'string1',
+                'STRING',
+                'REQUIRED',
                 None,
                 ()
             ),
             bigquery.SchemaField(
-                u'string2',
-                u'STRING',
-                u'REQUIRED',
+                'string2',
+                'STRING',
+                'REQUIRED',
                 None,
                 ()
             ),
             bigquery.SchemaField(
-                u'numeric1',
-                u'NUMERIC',
-                u'REQUIRED',
+                'numeric1',
+                'NUMERIC',
+                'REQUIRED',
                 None,
                 ()
             ),
             bigquery.SchemaField(
-                u'numeric2',
-                u'NUMERIC',
-                u'REQUIRED',
+                'numeric2',
+                'NUMERIC',
+                'REQUIRED',
                 None,
                 ()
             )
@@ -207,6 +224,11 @@ class TestStagingTableGenerator(object):
         Returns:
             True if test passes, else False.
         """
+        if not project_id:
+            raise Exception(
+                'Test needs project_id to pass. '
+                'Add --project_id={your project ID} to test command'
+            )
         self.test_staging_table_generator = \
             staging_table_generator.StagingTableGenerator(
                 project=project_id,
@@ -225,30 +247,30 @@ class TestStagingTableGenerator(object):
 
         expected_schema = [
             bigquery.SchemaField(
-                u'string1',
-                u'STRING',
-                u'REQUIRED',
+                'string1',
+                'STRING',
+                'REQUIRED',
                 None,
                 ()
             ),
             bigquery.SchemaField(
-                u'string2',
-                u'STRING',
-                u'REQUIRED',
+                'string2',
+                'STRING',
+                'REQUIRED',
                 None,
                 ()
             ),
             bigquery.SchemaField(
-                u'numeric1',
-                u'NUMERIC',
-                u'REQUIRED',
+                'numeric1',
+                'NUMERIC',
+                'REQUIRED',
                 None,
                 ()
             ),
             bigquery.SchemaField(
-                u'numeric2',
-                u'NUMERIC',
-                u'REQUIRED',
+                'numeric2',
+                'NUMERIC',
+                'REQUIRED',
                 None,
                 ()
             )

@@ -17,6 +17,7 @@ import json
 import sys
 import logging
 from typing import Dict, List
+from google.api_core.exceptions import Forbidden, BadRequest
 from google.cloud import resource_manager
 from google.cloud import storage
 
@@ -63,23 +64,32 @@ def get_buckets(project_ids: List[str],
     output_list = []
     try:
         for project_id in project_ids:
-            bucket_list = list(gcs_client.list_buckets(project=project_id))
-            for bucket in bucket_list:
-                output_list.append({
-                    "bucket_name": bucket.name,
-                    "project_id": project_id,
-                    "last_read_timestamp": "",
-                    "days_since_last_read": -1,
-                    "read_count_30_days": -1,
-                    "read_count_90_days": -1,
-                    "export_day": datetime.datetime.utcnow().strftime("%Y-%m-%d"),
-                    "recommended_OLM": ""
-                })
+            try:
+                bucket_list = list(gcs_client.list_buckets(project=project_id))
+                for bucket in bucket_list:
+                    output_list.append({
+                        "bucket_name": bucket.name,
+                        "project_id": project_id,
+                        "last_read_timestamp": "",
+                        "days_since_last_read": -1,
+                        "read_count_30_days": -1,
+                        "read_count_90_days": -1,
+                        "export_day": datetime.datetime.utcnow().strftime("%Y-%m-%d"),
+                        "recommended_OLM": ""
+                    })
+            except Forbidden as err:
+                logging.error(f"""Access denied on bucket {bucket.name}.
+                              {err}""")
+                
+            except BadRequest as err:
+                logging.error(f"Could not find bucket {bucket.name}.")
+                logging.error(err)
+                pass
         return output_list
 
     except Exception as err:
-        logging.error(f"Could not access buckets in {project_id}")
-        logging.error(err)
+        logging.error(f"""Could not access buckets in {project_id}.
+                      {err}""")
 
 
 def write_json_to_local(data: List[Dict[str, str]]) -> None:
@@ -98,6 +108,7 @@ def write_json_to_local(data: List[Dict[str, str]]) -> None:
 
 
 def main():
+    """Main method used to invoke script."""
     try:
         organization_id = sys.argv[1]
         gcs_client = storage.Client()
