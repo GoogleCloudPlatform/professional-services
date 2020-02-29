@@ -1,0 +1,20 @@
+SELECT
+{0:s}
+FROM (
+    SELECT
+        {1:s},
+        {2:s},
+{3:s},
+        FIRST_VALUE(
+            {2:s}
+        ) OVER(WIN) maxTimestampInWindow
+    FROM (
+        SELECT * FROM `{4:s}.{5:s}.{6:s}`
+        WHERE ingestTimestamp  > timestamp('{7:s}')
+    )
+    window win as (
+        partition by {1:s} ORDER BY {2:s} DESC
+        ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+    )
+)
+WHERE {2:s} = maxTimestampInWindow
