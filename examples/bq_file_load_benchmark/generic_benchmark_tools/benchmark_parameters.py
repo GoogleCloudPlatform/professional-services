@@ -21,6 +21,9 @@ BENCHMARK_PARAMETERS = {
     'benchmark_names': {
         'FILE LOADER': {
             'type': 'LOAD'
+        },
+        'FEDERATED QUERY': {
+            'type': 'QUERY'
         }
     }
 

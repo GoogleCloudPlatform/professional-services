@@ -23,9 +23,6 @@ from load_benchmark_tools import load_file_parameters
 from load_benchmark_tools import load_tables_processor
 
 
-BENCHMARK_NAME = 'FILE LOADER'
-
-
 def parse_args(argv):
     """Parses arguments from command line.
 
@@ -149,6 +146,12 @@ def parse_args(argv):
         '--bq_logs_dataset',
         help='Dataset that holds the table storing logs for BQ jobs '
              'in --bq_project_id'
+    )
+    parser.add_argument(
+        '--get_federated_query_benchmark',
+        help='Flag to include with --create_benchmark tables. Runs the'
+             ' Federated Query Benchmark along with the File Load Benchmark.',
+        action='store_true'
     )
     args = parser.parse_args(args=argv)
 
@@ -306,6 +309,7 @@ def main(argv=None):
     dataflow_temp_location = args.dataflow_temp_location
     dataflow_staging_location = args.dataflow_temp_location
     bq_logs_dataset = args.bq_logs_dataset
+    get_federated_query_benchmark = args.get_federated_query_benchmark
 
     file_params = load_file_parameters.FILE_PARAMETERS
 
@@ -366,7 +370,6 @@ def main(argv=None):
 
     if create_benchmark_tables:
         benchmark_tables_processor = load_tables_processor.LoadTablesProcessor(
-            benchmark_name=BENCHMARK_NAME,
             bq_project=bq_project_id,
             gcs_project=gcs_project_id,
             staging_project=staging_project_id,
@@ -378,6 +381,7 @@ def main(argv=None):
             duplicate_benchmark_tables=duplicate_benchmark_tables,
             file_params=file_params,
             bq_logs_dataset=bq_logs_dataset,
+            get_federated_query_benchmark=get_federated_query_benchmark
         )
         benchmark_tables_processor.create_benchmark_tables()
 

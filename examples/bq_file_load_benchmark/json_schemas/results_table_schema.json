@@ -207,7 +207,13 @@
                                 "name": "tableName",
                                 "type": "STRING",
                                 "mode": "NULLABLE",
-                                "description": "Name of table query was run on in <project>.<dataset>.<table_id> format"
+                                "description": "Name of table query was run on in <project>.<dataset>.<table_id> format if BQ_MANAGED"
+                            },
+                            {
+                                "name": "fileURI",
+                                "type": "STRING",
+                                "mode": "NULLABLE",
+                                "description": "Name of table file URI the query was run on if EXTERNAL"
                             },
                             {
                                 "name": "numColumns",
@@ -222,16 +228,28 @@
                                 "description": "The distribution of column types in the table"
                             },
                             {
-                                "name": "equivalentBqTableSize",
-                                "type": "INT64",
+                                "name": "compressionType",
+                                "type": "STRING",
                                 "mode": "NULLABLE",
-                                "description": "The size of the BigQuery table if BQ_MANAGED, or the size of the BigQuery table the file was derived from if EXTERNAL"
+                                "description": "The compression type of the file if EXTERNAL, NULL if BQ_MANAGED"
+                            },
+                            {
+                                "name": "equivalentBqTableSize",
+                                "type": "NUMERIC",
+                                "mode": "NULLABLE",
+                                "description": "The size of the BigQuery table in MB if BQ_MANAGED, or the size of the BigQuery table the file was derived from in MB if EXTERNAL"
                             },
                             {
                                 "name": "fileSize",
-                                "type": "FLOAT",
+                                "type": "NUMERIC",
                                 "mode": "NULLABLE",
-                                "description": "The size of the file if EXTERNAL, NULL if BQ_MANAGED"
+                                "description": "The size of the file in MB if EXTERNAL, NULL if BQ_MANAGED"
+                            },
+                            {
+                                "name": "numFiles",
+                                "type": "INT64",
+                                "mode": "NULLABLE",
+                                "description": "The number of files in the fileURI if EXTERNAL"
                             }
                         ]
                 },
@@ -261,6 +279,12 @@
                                 "description": "Name of the operation table the query was run on in <project>.<dataset>.<table_id> format"
                             },
                             {
+                                "name": "fileURI",
+                                "type": "STRING",
+                                "mode": "NULLABLE",
+                                "description": "Name of table file URI the query was run on if EXTERNAL"
+                            },
+                            {
                                 "name": "numColumns",
                                 "type": "INT64",
                                 "mode": "NULLABLE",
@@ -273,16 +297,28 @@
                                 "description": "The distribution of column types in the operation table"
                             },
                             {
-                                "name": "equivalentBqTableSize",
-                                "type": "INT64",
+                                "name": "compressionType",
+                                "type": "STRING",
                                 "mode": "NULLABLE",
-                                "description": "The size of the BigQuery operation table if BQ_MANAGED, or the size of the BigQuery table the file was derived from if EXTERNAL"
+                                "description": "The compression type of the file if EXTERNAL, NULL if BQ_MANAGED"
+                            },
+                            {
+                                "name": "equivalentBqTableSize",
+                                "type": "NUMERIC",
+                                "mode": "NULLABLE",
+                                "description": "The size of the BigQuery operation table in MB if BQ_MANAGED, or the size of the BigQuery table the file was derived from in MB if EXTERNAL"
                             },
                             {
                                 "name": "fileSize",
-                                "type": "FLOAT",
+                                "type": "NUMERIC",
                                 "mode": "NULLABLE",
-                                "description": "The size of the file if EXTERNAL, NULL if BQ_MANAGED"
+                                "description": "The size of the file in MB if EXTERNAL, NULL if BQ_MANAGED"
+                            },
+                            {
+                                "name": "numFiles",
+                                "type": "INT64",
+                                "mode": "NULLABLE",
+                                "description": "The number of files in the fileURI if EXTERNAL"
                             }
                         ]
                 }

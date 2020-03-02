@@ -18,6 +18,8 @@ import logging
 
 from google.cloud import bigquery
 
+BYTES_IN_MB = 10 ** 6
+
 
 class TableUtil(object):
     """Assists with BigQuery table interaction.
@@ -66,12 +68,14 @@ class TableUtil(object):
         self.num_rows = None
         self.column_types = None
         self.table_size = None
+        self.size_in_mb = None
         self.table_id = table_id
         self.dataset_id = dataset_id
         self.dataset_ref = self.bq_client.dataset(self.dataset_id)
         self.table_ref = self.dataset_ref.table(self.table_id)
         if self.check_if_table_exists():
             self.table = self.bq_client.get_table(self.table_ref)
+
         else:
             self.table = None
         self.bq_schema = bq_schema
@@ -171,6 +175,7 @@ class TableUtil(object):
         self.num_rows = self.table.num_rows
         self.table_size = self.table.num_bytes
         self.column_types = self.get_column_types()
+        self.size_in_mb = self.table.num_bytes / BYTES_IN_MB
 
     def get_column_types(self):
         """Generates a parameter for column types using the table schema.

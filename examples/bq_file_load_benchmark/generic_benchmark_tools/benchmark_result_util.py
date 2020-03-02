@@ -130,6 +130,47 @@ class BenchmarkResultUtil(ABC):
             "avgSlots": avg_slots
         }
 
+    def _get_properties_from_file_path(self, file_uri):
+        benchmark_details_pattern = \
+            r'gs://([\w\'-]+)/fileType=(\w+)/compression=(\w+)/numColumns=(\d+)/columnTypes=(\w+)/numFiles=(\d+)/tableSize=(\d+)(\w+)'
+        bucket_name, file_type, compression, num_columns, column_types, \
+            num_files, staging_data_size, staging_data_unit = \
+            re.findall(benchmark_details_pattern, file_uri)[0]
+        compression_format = (file_constants.FILE_CONSTANTS
+        ['compressionFormats'][compression])
+        file_name_prefix = 'fileType={0:s}/compression={1:s}/numColumns={2:s}/columnTypes={3:s}/numFiles={4:s}/tableSize={5:s}{6:s}'.format(
+            file_type,
+            compression,
+            num_columns,
+            column_types,
+            num_files,
+            staging_data_size,
+            staging_data_unit
+        )
+        bucket = self.storage_client.get_bucket(bucket_name)
+        files_consts = file_constants.FILE_CONSTANTS
+        if compression == 'none':
+            file_ext = file_type
+        else:
+            file_ext = files_consts['compressionExtensions'][compression]
+
+        file_name = '{0:s}/file1.{1:s}'.format(
+            file_name_prefix,
+            file_ext
+        )
+
+        file_size = float(bucket.get_blob(file_name).size) / BYTES_IN_MB
+        properties_from_file_path = dict()
+        properties_from_file_path['fileType'] = file_type
+        properties_from_file_path['compressionType'] = compression_format
+        properties_from_file_path['numColumns'] = num_columns
+        properties_from_file_path['columnTypes'] = column_types
+
+        properties_from_file_path['numFiles'] = num_files
+        properties_from_file_path['fileSize'] = file_size
+        properties_from_file_path['stagingDataSize'] = staging_data_size
+        return properties_from_file_path
+
     def insert_results_row(self):
         """Gathers the results of a load job into a benchmark table.
 
@@ -221,7 +262,13 @@ class LoadBenchmarkResultUtil(BenchmarkResultUtil):
 
     def _set_job_properties(self):
         """Sets load specific properties."""
-        load_properties = {}
+        load_properties = dict()
+        load_properties['destinationTable'] = '{0:s}.{1:s}.{2:s}'.format(
+            self.project_id,
+            self.load_table_id,
+            self.load_dataset_id
+        )
+        load_properties['sourceURI'] = self.job_source_uri
 
         # get properties from benchmark table
         benchmark_table_util = table_util.TableUtil(
@@ -232,52 +279,94 @@ class LoadBenchmarkResultUtil(BenchmarkResultUtil):
         load_properties['numRows'] = benchmark_table_util.table.num_rows
 
         # get properties from the load job
-        load_properties['numFiles'] = self.job.input_files
         load_properties['sourceFormat'] = self.job.source_format
 
         # get properties from file
-        # pylint: disable=line-too-long
-        benchmark_details_pattern = \
-            r'gs://([\w\'-]+)/fileType=(\w+)/compression=(\w+)/numColumns=(\d+)/columnTypes=(\w+)/numFiles=(\d+)/tableSize=(\d+)(\w+)'
-        bucket_name, file_type, compression, num_columns, column_types, \
-            expected_num_files, staging_data_size, staging_data_unit = \
-            re.findall(benchmark_details_pattern, self.job_source_uri)[0]
-        compression_format = (file_constants.FILE_CONSTANTS
-                              ['compressionFormats'][compression])
-        file_name_prefix = 'fileType={0:s}/compression={1:s}/numColumns={2:s}/columnTypes={3:s}/numFiles={4:s}/tableSize={5:s}{6:s}'.format(
-            file_type,
-            compression,
-            num_columns,
-            column_types,
-            expected_num_files,
-            staging_data_size,
-            staging_data_unit
+        properties_from_file_path = self._get_properties_from_file_path(
+            self.job_source_uri
         )
-        bucket = self.storage_client.get_bucket(bucket_name)
-        files_consts = file_constants.FILE_CONSTANTS
-        if compression == 'none':
-            file_ext = file_type
-        else:
-            file_ext = files_consts['compressionExtensions'][compression]
-
-        file_name = '{0:s}/file1.{1:s}'.format(
-            file_name_prefix,
-            file_ext
-        )
-
-        file_size = float(bucket.get_blob(file_name).size) / BYTES_IN_MB
-
-        load_properties['fileType'] = file_type
-        load_properties['compressionType'] = compression_format
-        load_properties['numColumns'] = num_columns
-        load_properties['columnTypes'] = column_types
-        load_properties['fileSize'] = file_size
-        load_properties['stagingDataSize'] = staging_data_size
-        load_properties['destinationTable'] = '{0:s}.{1:s}.{2:s}'.format(
-                self.project_id,
-                self.load_table_id,
-                self.load_dataset_id
-        )
-        load_properties['sourceURI'] = self.job_source_uri
+        load_properties.update(properties_from_file_path)
 
         self.results_dict['loadProperties'] = load_properties
+
+
+class QueryBenchmarkResultUtil(BenchmarkResultUtil):
+
+    def __init__(
+            self,
+            job,
+            job_type,
+            benchmark_name,
+            project_id,
+            result_table_name,
+            result_dataset_id,
+            bq_logs_dataset,
+            bql,
+            query_category,
+            main_table_name,
+            table_dataset_id,
+            table_type,
+            file_uri,
+            operation_table=None
+
+    ):
+        super().__init__(
+            job,
+            job_type,
+            benchmark_name,
+            project_id,
+            result_table_name,
+            result_dataset_id,
+            bq_logs_dataset
+        )
+        self.bql = bql
+        self.query_category = query_category
+        self.main_table_name = main_table_name
+        self.table_dataset_id = table_dataset_id
+        self.table_type = table_type
+        self.file_uri = file_uri
+        self.operation_table = operation_table
+        self._set_job_properties()
+
+    def _set_job_properties(self):
+        query_properties = dict()
+        query_properties['query'] = self.bql
+        query_properties['queryCategory'] = self.query_category
+
+        # get properties from job
+        query_properties['totalBytesBilled'] = self.job.total_bytes_billed
+        query_properties['totalBytesProcessed'] = self.job.total_bytes_processed
+
+        # get main table properties
+        main_table_properties = dict()
+        main_table_properties['tableType'] = self.table_type
+        main_table_properties['tableName'] = self.main_table_name
+        main_table_util = table_util.TableUtil(
+            self.main_table_name,
+            self.table_dataset_id
+        )
+        main_table_util.set_table_properties()
+        main_table_properties['equivalentBqTableSize'] = \
+            main_table_util.size_in_mb
+        main_table_properties['fileURI'] = self.file_uri
+
+        # get properties from file path
+        properties_from_file_path = self._get_properties_from_file_path(
+            self.file_uri
+        )
+
+        main_table_properties['numColumns'] = \
+            properties_from_file_path['numColumns']
+        main_table_properties['columnTypes'] = \
+            properties_from_file_path['columnTypes']
+        main_table_properties['fileSize'] = \
+            properties_from_file_path['fileSize']
+        main_table_properties['fileType'] = \
+            properties_from_file_path['fileType']
+        main_table_properties['compressionType'] = \
+            properties_from_file_path['compressionType']
+        main_table_properties['numFiles'] = \
+            properties_from_file_path['numFiles']
+
+        query_properties['mainTable'] = main_table_properties
+        self.results_dict['queryProperties'] = query_properties

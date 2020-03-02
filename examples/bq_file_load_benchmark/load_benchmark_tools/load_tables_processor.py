@@ -20,11 +20,10 @@ from load_benchmark_tools import benchmark_load_table
 from generic_benchmark_tools import bucket_util
 
 
-class LoadTablesProcessor(object):
+class LoadTablesProcessor:
     """Contains methods for processing and creating load tables for benchmarks.
 
     Attributes:
-        benchmark_name(str): The name of the benchmark test.
         bq_project(str): ID of the project that holds the BigQuery dataset
             and benchmark tables.
         gcs_project(str):  ID of the project that holds the GCS bucket
@@ -61,7 +60,6 @@ class LoadTablesProcessor(object):
 
     def __init__(
             self,
-            benchmark_name,
             bq_project,
             gcs_project,
             staging_project,
@@ -73,8 +71,8 @@ class LoadTablesProcessor(object):
             duplicate_benchmark_tables,
             file_params,
             bq_logs_dataset,
+            get_federated_query_benchmark=False
     ):
-        self.benchmark_name = benchmark_name
         self.bq_project = bq_project
         self.gcs_project = gcs_project
         self.staging_project = staging_project
@@ -90,6 +88,7 @@ class LoadTablesProcessor(object):
         self.results_table_dataset_id = results_table_dataset_id
         self.duplicate_benchmark_tables = duplicate_benchmark_tables
         self.bq_logs_dataset = bq_logs_dataset
+        self.get_federated_query_benchmark = get_federated_query_benchmark
 
     def gather_files_with_benchmark_tables(self):
         """Generates file combinations that already have benchmark tables.
@@ -150,7 +149,6 @@ class LoadTablesProcessor(object):
                     path,
                 ))
                 table = benchmark_load_table.BenchmarkLoadTable(
-                    benchmark_name=self.benchmark_name,
                     bq_project=self.bq_project,
                     gcs_project=self.gcs_project,
                     staging_project=self.staging_project,
@@ -161,6 +159,8 @@ class LoadTablesProcessor(object):
                     results_table_name=self.results_table_name,
                     results_table_dataset_id=self.results_table_dataset_id,
                     bq_logs_dataset=self.bq_logs_dataset,
+                    get_federated_query_benchmark=
+                    self.get_federated_query_benchmark
                 )
                 table.create_table()
                 table.load_from_gcs()
