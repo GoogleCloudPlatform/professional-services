@@ -1,30 +1,20 @@
-/*
- * Copyright 2020 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
- package e2etest;
+package e2etest;
 
 import com.google.cloud.bigquery.FieldValueList;
 import cucumber.api.java.After;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
-import util.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.logging.Logger;
+import util.BQUtils;
+import util.BashOutput;
+import util.CompareContent;
+import util.DFJobConstants;
+import util.MyBashExecutor;
+import util.Utils;
 
 
 public class E2ETest {
@@ -61,34 +51,30 @@ public class E2ETest {
         assert Files.exists(Paths.get("data/code/"+this.jarName)) == true;
 
     }
-
-    @Then("Create dataset if not present")
-    public void create_dataset_if_not_present() throws Exception{
+    @Given("BQ dataset exits")
+    public void bq_dataset_exits() throws Exception {
         BashOutput output = Utils.createBigQueryDataset(myDataTable.get("dataset"));
         assert (output.getStatus() == 0);
     }
 
-    @Then("Create gcs bucket for inputFilePattern if not present")
-    public void create_gcs_bucket_for_inputFilePattern_if_not_present() throws Exception {
+    @Given("GCS bucket for inputFilePattern exits")
+    public void gcs_bucket_for_inputFilePattern_exits() throws Exception {
         String gcsbucket= myDataTable.get("inputFilePattern");
         String bucket = "gs://" + gcsbucket.split("/")[2];
         BashOutput output = Utils.createGCSBucket(bucket);
         assert (output.getStatus() == 0);
     }
 
-
-    @Then("Create gcs bucket for inputFilePattern using the command {string} if not present")
-    public void create_gcs_bucket_for_inputFilePattern_using_command(String string) throws Exception {
-        // Write code here that turns the phrase above into concrete actions
-        String gcsbucket= myDataTable.get("inputFilePattern");
-        String bucket = "gs://" + gcsbucket.split("/")[2];
-        String command= String.format(string, bucket);
-        BashOutput output = MyBashExecutor.executeCommand(command);
+    @Given("GCS temporary location exits")
+    public void gcs_temporary_location_exits()  throws Exception {
+        String gcsbucket= myDataTable.get("tempLocation");
+        String bucket = "gs://" +  gcsbucket.split("/")[2];
+        BashOutput output = Utils.createGCSBucket(bucket);
         assert (output.getStatus() == 0);
-
     }
 
-    @Then("Copy {string} to inputFilePattern")
+
+    @When("Copy {string} to inputFilePattern bucket")
     public void copy_to_inputFilePattern(String files)  throws Exception{
         // Write code here that turns the phrase above into concrete actions
         String inputPattern=myDataTable.get("inputFilePattern");
@@ -96,14 +82,6 @@ public class E2ETest {
         BashOutput output = Utils.copyFileFromLocalToGCS(bucket,files);
         assert (output.getStatus() == 0);
 
-    }
-
-    @Then("Create tempLocation if not present")
-    public void create_tempLocation_if_not_present()  throws Exception{
-        String gcsbucket= myDataTable.get("tempLocation");
-        String bucket = "gs://" +  gcsbucket.split("/")[2];
-        BashOutput output = Utils.createGCSBucket(bucket);
-        assert (output.getStatus() == 0);
     }
 
     @When("Run dataflow application main class being {string} with proper parameters")
@@ -127,31 +105,28 @@ public class E2ETest {
 
     @Then("Wait for the Dataflow application to complete, maximum wait time {int} minutes")
     public void wait_for_the_dataflow_application_to_complete_maximum_wait_time_minutes(Integer time) throws Exception{
-        String doneStateRunning="currentState: JOB_STATE_RUNNING";
-        String doneStatePending="currentState: JOB_STATE_PENDING";
-        String doneStateDone="currentState: JOB_STATE_DONE";
+
         long startTime= System.currentTimeMillis();
         String command = String.format("gcloud dataflow jobs describe %s", jobId);
         BashOutput result;
         do {
             result = MyBashExecutor.executeCommand(command);
-            System.out.println(result.getOutput().get(2));
             Thread.sleep(10000L);
-        } while ((Utils.checkIfStringIsInList(result.getOutput(), doneStateRunning) || Utils.checkIfStringIsInList(result.getOutput(), doneStatePending)) &&
+        } while ((result.getOutput().contains(DFJobConstants.doneStateRunning) || result.getOutput().contains(DFJobConstants.doneStatePending)) &&
                 (System.currentTimeMillis()-startTime) < time * 60 *1000L );
 
-        assert (Utils.checkIfStringIsInList(result.getOutput(), doneStateDone));
+        assert (result.getOutput().contains(DFJobConstants.doneStateDone));
     }
 
 
     @Then("Check the query {string} returns {string} records")
     public void check_the_query_returns_records(String query, String count) throws Exception{
         long countData = Long.valueOf(count);
-        Iterable<FieldValueList> it = BQUtils.getResult(String.format(query, myDataTable.get("dataset"),myDataTable.get("tableName")));
+        Iterable<FieldValueList> it = BQUtils
+            .getResult(String.format(query, myDataTable.get("dataset"),myDataTable.get("tableName")));
         long countFromResult = -1L;
         for (FieldValueList row : it) {
             countFromResult = row.get("count").getLongValue();
-            System.out.println(countFromResult);
         }
         assert (countData == countFromResult);
     }
@@ -175,23 +150,7 @@ public class E2ETest {
         assert (true == CompareContent.compareFiles("data/output/IngestionE2EDataValidation/result.csv", "data/expected-output/IngestionE2EDataValidation/result.csv"));
     }
 
-    @Then("Clean the temp resources such as input bucket, temp bucket and dataset")
-    public void clean_the_temp_buckets_both_inputFilePattern_tempLocation_and_dataset() throws Exception {
-
-        String gcsbucket= myDataTable.get("tempLocation");
-        String bucket = "gs://" +  gcsbucket.split("/")[2];
-        BashOutput outputTmpCmdOutput = Utils.deleteGCSBucket(bucket);
-
-        gcsbucket= myDataTable.get("inputFilePattern");
-        bucket = "gs://" +  gcsbucket.split("/")[2];
-        BashOutput outputInputGCSBucketOutput = Utils.deleteGCSBucket(bucket);
-
-        String dataset = myDataTable.get("dataset");
-        BashOutput outputDeleteDataset = Utils.deleteBigQueryDataset(dataset);
-        assert (outputTmpCmdOutput.getStatus() == 0 && outputInputGCSBucketOutput.getStatus() == 0 && outputDeleteDataset.getStatus() == 0);
-
-    }
-    @After("@IngestionE2ESmokeTest , @IngestionE2EDataValidation")
+    @After(value = "@IngestionE2ESmokeTest or @IngestionE2EDataValidation")
     public void afterIngestionE2ESmokeTest(){
         try {
             String gcsbucket = myDataTable.get("tempLocation");

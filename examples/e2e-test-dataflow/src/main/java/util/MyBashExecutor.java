@@ -1,18 +1,3 @@
-/*
- * Copyright 2020 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package util;
 
 import java.io.BufferedReader;
@@ -27,7 +12,7 @@ public class MyBashExecutor {
 
     public static BashOutput executeCommand(String command) throws Exception {
 
-        LOGGER.info("Command execting in bash {}".format(command));
+        LOGGER.info(String.format("Executing %s",command));
         Process process = Runtime.getRuntime()
                 .exec(String.format(command));
         BufferedReader processInputReader =
@@ -38,8 +23,10 @@ public class MyBashExecutor {
         BashOutput bashOutput = new BashOutput() ;
         bashOutput.setStatus(status);
         if (status == 0) {
+            LOGGER.info(String.format("Execution (%s) success",command));
            bashOutput.setOutput(getResult(processInputReader));
         } else {
+            LOGGER.info(String.format("Execution (%s) failed",command));
             bashOutput.setError(getResult(processErrorReader));
         }
         return bashOutput;
