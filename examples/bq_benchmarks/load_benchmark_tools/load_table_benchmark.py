@@ -24,10 +24,9 @@ from generic_benchmark_tools import benchmark_parameters
 from generic_benchmark_tools import benchmark_result_util
 from generic_benchmark_tools import table_util
 from generic_benchmark_tools import file_constants
-from query_benchmark_tools import federated_query_benchmark
 
 
-class BenchmarkLoadTable:
+class LoadTableBenchmark:
     """Represents a BigQuery load table.
 
     Holds methods for creating a table in BigQuery and loading data from GCS
@@ -95,8 +94,7 @@ class BenchmarkLoadTable:
             path,
             results_table_name,
             results_table_dataset_id,
-            bq_logs_dataset,
-            get_federated_query_benchmark=False
+            bq_logs_dataset
     ):
         self.benchmark_name = 'FILE LOADER'
         self.bq_project = bq_project
@@ -133,7 +131,6 @@ class BenchmarkLoadTable:
         self.load_job = None
         self.job_destination_table = None
         self.gather_file_properties()
-        self.get_federated_benchmark_query = get_federated_query_benchmark
 
     def gather_file_properties(self):
         """Gathers properties of the files loaded into the benchmark table.
@@ -179,6 +176,7 @@ class BenchmarkLoadTable:
             bq_schema=self.bq_schema,
         )
         self.benchmark_table_util.create_table()
+        return self.job_destination_table
 
     def load_from_gcs(self):
         """Loads GCS files into the benchmark table and stores results.
@@ -226,33 +224,10 @@ class BenchmarkLoadTable:
             )
             load_result.insert_results_row()
 
-            if self.get_federated_benchmark_query \
-                    and str(self.compression_format) == 'NONE'\
-                    and self.file_type != 'parquet':
-                # use loaded table to run a federated query benchmark
-                query_benchmark = federated_query_benchmark\
-                    .FederatedQueryBenchmark(
-                        bq_project=self.bq_project,
-                        gcs_project=self.gcs_project,
-                        dataset_id=self.dataset_id,
-                        bq_logs_dataset_id=self.bq_logs_dataset,
-                        native_table_id=self.job_destination_table,
-                        bucket_name=self.bucket_name,
-                        file_uri=self.uri,
-                        file_type=self.file_type,
-                        results_table_name=self.results_table_name,
-                        results_table_dataset_id=self.results_table_dataset_id
-                    )
-                logging.info("Running Federated Query Benchmark for BQ managed"
-                             " table {0:s} and file {1:s}".format(
-                                self.job_destination_table,
-                                self.uri
-                ))
-                query_benchmark.run_queries()
-
         except exceptions.BadRequest as e:
             logging.error(e.message)
-            
+
+    def delete_table(self):
         self.bq_client.delete_table(self.benchmark_table_util.table_ref)
         logging.info('Deleting table {0:s}'.format(
             self.job_destination_table

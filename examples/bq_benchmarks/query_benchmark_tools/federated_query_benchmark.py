@@ -26,7 +26,6 @@ class FederatedQueryBenchmark:
             native_table_id,
             bucket_name,
             file_uri,
-            file_type,
             results_table_name,
             results_table_dataset_id,
 
@@ -44,21 +43,29 @@ class FederatedQueryBenchmark:
         self.native_table_id = native_table_id
         self.bucket_name = bucket_name
         self.file_uri = file_uri
-        self.file_type = file_type
+        self.file_type = self.file_uri.split('fileType=')[1].split('/')[0]
+        self.compression = self.file_uri.split('compression=')[1].split('/')[0]
         self.results_table_name = results_table_name
         self.results_table_dataset_id = results_table_dataset_id
 
     def run_queries(self):
-        benchmark_query_generator = query_generator.QueryGenerator(
-            self.native_table_id,
-            self.dataset_id
-        )
-        query_strings = benchmark_query_generator.get_query_strings()
-        logging.info("!!!!!!!!!!!")
-        logging.info(query_strings)
-        for query_type in query_strings:
-            self.run_native_query(query_type, query_strings[query_type])
-            self.run_federated_query(query_type, query_strings[query_type])
+        if self.file_type == 'avro' and self.compression == 'snappy':
+            logging.info(
+                'External queries on snappy compressed files are not '
+                'supported. Skipping external query benchmark for BQ managed '
+                'table {0:s} and file {1:s}'.format(
+                    self.native_table_id,
+                    self.file_uri
+            ))
+        else:
+            benchmark_query_generator = query_generator.QueryGenerator(
+                self.native_table_id,
+                self.dataset_id
+            )
+            query_strings = benchmark_query_generator.get_query_strings()
+            for query_type in query_strings:
+                self.run_native_query(query_type, query_strings[query_type])
+                self.run_federated_query(query_type, query_strings[query_type])
 
     def run_native_query(self, query_type, query):
         table_name = '{0:s}.{1:s}.{2:s}'.format(
@@ -94,7 +101,7 @@ class FederatedQueryBenchmark:
         query_result.insert_results_row()
 
     def run_federated_query(self, query_type, query):
-        file_formats = file_constants.FILE_CONSTANTS['extractFormats']
+        file_formats = file_constants.FILE_CONSTANTS['sourceFormats']
         source_format = file_formats[self.file_type]
         external_config = bigquery.ExternalConfig(
             source_format=source_format
@@ -102,7 +109,7 @@ class FederatedQueryBenchmark:
         external_config.source_uris = [
             self.file_uri + '/*'
         ]
-        if source_format != 'AVRO':
+        if source_format != 'AVRO' and source_format != 'PARQUET':
             main_table_util = table_util.TableUtil(
                 self.native_table_id,
                 self.dataset_id
@@ -111,6 +118,8 @@ class FederatedQueryBenchmark:
 
         if source_format == 'CSV':
             external_config.options.skip_leading_rows = 1
+
+        external_config.compression = self.compression.upper()
         table_id = self.native_table_id + '_external'
 
         job_config = bigquery.QueryJobConfig(

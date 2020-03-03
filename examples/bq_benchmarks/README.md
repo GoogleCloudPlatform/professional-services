@@ -105,7 +105,7 @@ to a BigQuery Results table. It can be configured to run in entirely from
 scratch in your own project, or it can be configured to load files that have 
 already been generated in the data-analtyics-pocs project into BigQuery in your
 project. Either way, the main method for the project is located in 
-[`bq_file_load_benchmark.py`](bq_file_load_benchmark.py).
+[`bq_file_load_benchmark.py`](bq_benchmark.py).
 
 ### Running from Scratch
 

@@ -18,9 +18,9 @@ import logging
 from generic_benchmark_tools import schema_creator
 from generic_benchmark_tools import staging_table_generator
 from generic_benchmark_tools import table_util
+from generic_benchmark_tools import benchmark_runner
 from load_benchmark_tools import load_file_generator
 from load_benchmark_tools import load_file_parameters
-from load_benchmark_tools import load_tables_processor
 
 
 def parse_args(argv):
@@ -148,11 +148,29 @@ def parse_args(argv):
              'in --bq_project_id'
     )
     parser.add_argument(
-        '--get_federated_query_benchmark',
-        help='Flag to include with --create_benchmark tables. Runs the'
-             ' Federated Query Benchmark along with the File Load Benchmark.',
+        '--run_federated_query_benchmark',
+        help='Flag to initiate the process running the Federated Query '
+             'Benchmark by creating tables from files, running queries on both '
+             'the table and the files, and storing performance results. ',
         action='store_true'
     )
+    parser.add_argument(
+        '--include_federated_query_benchmark',
+        help='This flag can be included with --run_file_loader_benchmark to '
+             'run the Federated Query Benchmark along with the File Load '
+             'Benchmark.',
+        action='store_true'
+    )
+    parser.add_argument(
+        '--run_file_loader_benchmark',
+        help='Flag to initiate process of running the File Loader benchmark by'
+             ' creating tables from files and storing results for comparison.'
+             ' This flag can also be used along with '
+             ' --run_federated_query_benchmark to run the File Loader benchmark'
+             ' along with the Federated Query Benchmark.',
+        action='store_true'
+    )
+
     args = parser.parse_args(args=argv)
 
     # Only certain args are required depending on the command. Rather than
@@ -235,51 +253,98 @@ def parse_args(argv):
                 '--restart_file'
             ))
 
-    if args.create_benchmark_tables:
+    if args.run_file_loader_benchmark:
         if not args.bq_project_id:
             parser.error(missing_args_error.format(
                 '--bq_project_id',
-                '--create_benchmark_tables'
+                '--run_file_loader_benchmark'
             ))
         if not args.bq_project_id:
             parser.error(missing_args_error.format(
                 '--gcs_project_id',
-                '--create_benchmark_tables'
+                '--run_file_loader_benchmark'
             ))
         if not args.staging_project_id:
             parser.error(missing_args_error.format(
                 '--staging_project_id',
-                '--create_benchmark_tables'
+                '--run_file_loader_benchmark'
             ))
         if not args.staging_dataset_id:
             parser.error(missing_args_error.format(
                 '--staging_dataset_id',
-                '--create_benchmark_tables'
+                '--run_file_loader_benchmark'
             ))
         if not args.benchmark_dataset_id:
             parser.error(missing_args_error.format(
                 '--benchmark_dataset_id',
-                '--create_benchmark_tables'
+                '--run_file_loader_benchmark'
             ))
         if not args.bucket_name:
             parser.error(missing_args_error.format(
                 '--bucket_name',
-                '--create_benchmark_tables'
+                '--run_file_loader_benchmark'
             ))
         if not args.results_table_name:
             parser.error(missing_args_error.format(
                 '--results_table_name',
-                '--create_benchmark_tables'
+                '--run_file_loader_benchmark'
             ))
         if not args.results_dataset_id:
             parser.error(missing_args_error.format(
                 '--results_dataset_id',
-                '--create_benchmark_tables'
+                '--run_file_loader_benchmark'
             ))
         if not args.bq_logs_dataset:
             parser.error(missing_args_error.format(
                 '--bq_logs_dataset',
-                '--create_benchmark_tables'
+                '--run_file_loader_benchmark'
+            ))
+
+    if args.run_federated_query_benchmark:
+        if not args.bq_project_id:
+            parser.error(missing_args_error.format(
+                '--bq_project_id',
+                '--run_federated_query_benchmark'
+            ))
+        if not args.bq_project_id:
+            parser.error(missing_args_error.format(
+                '--gcs_project_id',
+                '--run_federated_query_benchmark'
+            ))
+        if not args.staging_project_id:
+            parser.error(missing_args_error.format(
+                '--staging_project_id',
+                '--run_federated_query_benchmark'
+            ))
+        if not args.staging_dataset_id:
+            parser.error(missing_args_error.format(
+                '--staging_dataset_id',
+                '--run_federated_query_benchmark'
+            ))
+        if not args.benchmark_dataset_id:
+            parser.error(missing_args_error.format(
+                '--benchmark_dataset_id',
+                '--run_federated_query_benchmark'
+            ))
+        if not args.bucket_name:
+            parser.error(missing_args_error.format(
+                '--bucket_name',
+                '--run_federated_query_benchmark'
+            ))
+        if not args.results_table_name:
+            parser.error(missing_args_error.format(
+                '--results_table_name',
+                '--run_federated_query_benchmark'
+            ))
+        if not args.results_dataset_id:
+            parser.error(missing_args_error.format(
+                '--results_dataset_id',
+                '--run_federated_query_benchmark'
+            ))
+        if not args.bq_logs_dataset:
+            parser.error(missing_args_error.format(
+                '--bq_logs_dataset',
+                '--run_federated_query_benchmark'
             ))
 
     return args
@@ -294,7 +359,8 @@ def main(argv=None):
     create_staging_tables = args.create_staging_tables
     create_files = args.create_files
     restart_file = args.restart_file
-    create_benchmark_tables = args.create_benchmark_tables
+    run_file_loader_benchmark = args.run_file_loader_benchmark
+    run_federated_query_benchmark = args.run_federated_query_benchmark
     duplicate_benchmark_tables = args.duplicate_benchmark_tables
     bq_project_id = args.bq_project_id
     benchmark_dataset_id = args.benchmark_dataset_id
@@ -309,7 +375,7 @@ def main(argv=None):
     dataflow_temp_location = args.dataflow_temp_location
     dataflow_staging_location = args.dataflow_temp_location
     bq_logs_dataset = args.bq_logs_dataset
-    get_federated_query_benchmark = args.get_federated_query_benchmark
+    include_federated_query_benchmark = args.include_federated_query_benchmark
 
     file_params = load_file_parameters.FILE_PARAMETERS
 
@@ -368,8 +434,8 @@ def main(argv=None):
             )
         benchmark_load_file_generator.create_files()
 
-    if create_benchmark_tables:
-        benchmark_tables_processor = load_tables_processor.LoadTablesProcessor(
+    if run_file_loader_benchmark:
+        load_benchmark_runner = benchmark_runner.BenchmarkRunner(
             bq_project=bq_project_id,
             gcs_project=gcs_project_id,
             staging_project=staging_project_id,
@@ -381,9 +447,26 @@ def main(argv=None):
             duplicate_benchmark_tables=duplicate_benchmark_tables,
             file_params=file_params,
             bq_logs_dataset=bq_logs_dataset,
-            get_federated_query_benchmark=get_federated_query_benchmark
+            include_federated_query_benchmark=include_federated_query_benchmark
         )
-        benchmark_tables_processor.create_benchmark_tables()
+        load_benchmark_runner.execute_file_loader_benchmark()
+
+    if run_federated_query_benchmark:
+        federated_query_benchmark_runner = benchmark_runner.BenchmarkRunner(
+            bq_project=bq_project_id,
+            gcs_project=gcs_project_id,
+            staging_project=staging_project_id,
+            staging_dataset_id=staging_dataset_id,
+            dataset_id=benchmark_dataset_id,
+            bucket_name=bucket_name,
+            results_table_name=results_table_name,
+            results_table_dataset_id=results_dataset_id,
+            duplicate_benchmark_tables=duplicate_benchmark_tables,
+            file_params=file_params,
+            bq_logs_dataset=bq_logs_dataset,
+            run_federated_query_benchmark=run_federated_query_benchmark
+        )
+        federated_query_benchmark_runner.execute_federated_query_benchmark()
 
 
 if __name__ == '__main__':

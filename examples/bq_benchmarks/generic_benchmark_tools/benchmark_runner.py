@@ -16,11 +16,12 @@ import logging
 
 from google.cloud import bigquery
 
-from load_benchmark_tools import benchmark_load_table
+from load_benchmark_tools import load_table_benchmark
 from generic_benchmark_tools import bucket_util
+from query_benchmark_tools import federated_query_benchmark
 
 
-class LoadTablesProcessor:
+class BenchmarkRunner:
     """Contains methods for processing and creating load tables for benchmarks.
 
     Attributes:
@@ -71,7 +72,8 @@ class LoadTablesProcessor:
             duplicate_benchmark_tables,
             file_params,
             bq_logs_dataset,
-            get_federated_query_benchmark=False
+            run_federated_query_benchmark=False,
+            include_federated_query_benchmark=False
     ):
         self.bq_project = bq_project
         self.gcs_project = gcs_project
@@ -88,9 +90,24 @@ class LoadTablesProcessor:
         self.results_table_dataset_id = results_table_dataset_id
         self.duplicate_benchmark_tables = duplicate_benchmark_tables
         self.bq_logs_dataset = bq_logs_dataset
-        self.get_federated_query_benchmark = get_federated_query_benchmark
+        self.run_federated_query_benchmark = run_federated_query_benchmark
+        self.include_federated_query_benchmark = \
+            include_federated_query_benchmark
+        self.files_to_skip = set()
 
-    def gather_files_with_benchmark_tables(self):
+    def execute_file_loader_benchmark(self):
+        # Gather files combinations that already have benchmark tables.
+        files_with_benchmark_tables = self._gather_files_with_benchmark_tables()
+        if not self.duplicate_benchmark_tables:
+            self.files_to_skip = files_with_benchmark_tables
+        self._create_tables(files_with_benchmark_tables)
+
+    def execute_federated_query_benchmark(self):
+        # Gather files combinations that already have benchmark tables.
+        files_with_benchmark_tables = self._gather_files_with_benchmark_tables()
+        self._create_tables(files_with_benchmark_tables)
+
+    def _gather_files_with_benchmark_tables(self):
         """Generates file combinations that already have benchmark tables.
 
         Creates a set of files that already have been loaded to create
@@ -121,25 +138,19 @@ class LoadTablesProcessor:
                 files_with_benchmark_tables.add(file_name)
         return files_with_benchmark_tables
 
-    def create_benchmark_tables(self):
+    def _create_tables(self, files_with_benchmark_tables):
         """Creates a benchmark table for each file combination in GCS bucket.
         """
-
-        # Gather files combinations that already have benchmark tables.
-        files_with_benchmark_tables = self.gather_files_with_benchmark_tables()
-        if self.duplicate_benchmark_tables:
-            files_to_skip = set()
-        else:
-            files_to_skip = files_with_benchmark_tables
         # Gather file combinations that exist in the GCS Bucket.
-        existing_paths = self.bucket_util.get_existing_paths()
+        existing_paths = self.bucket_util.get_existing_paths(
+            run_federated_query_benchmark=self.run_federated_query_benchmark
+        )
         # Create a benchmark table for each existing file combination, and
         # load the data from the file into the benchmark table.
         for path in existing_paths:
             path = path.split('/')
             path = '/'.join(path[:len(path) - 1])
-            if path not in files_to_skip:
-
+            if path not in self.files_to_skip:
                 if path in files_with_benchmark_tables:
                     verb = 'Duplicating'
                 else:
@@ -148,7 +159,7 @@ class LoadTablesProcessor:
                     verb,
                     path,
                 ))
-                table = benchmark_load_table.BenchmarkLoadTable(
+                table = load_table_benchmark.LoadTableBenchmark(
                     bq_project=self.bq_project,
                     gcs_project=self.gcs_project,
                     staging_project=self.staging_project,
@@ -158,9 +169,37 @@ class LoadTablesProcessor:
                     path=path,
                     results_table_name=self.results_table_name,
                     results_table_dataset_id=self.results_table_dataset_id,
-                    bq_logs_dataset=self.bq_logs_dataset,
-                    get_federated_query_benchmark=
-                    self.get_federated_query_benchmark
+                    bq_logs_dataset=self.bq_logs_dataset
                 )
-                table.create_table()
+                table_name = table.create_table()
                 table.load_from_gcs()
+                if self.run_federated_query_benchmark or \
+                        self.include_federated_query_benchmark:
+                    self._run_federated_query(
+                        table_name,
+                        path
+                    )
+                table.delete_table()
+
+    def _run_federated_query(self, table_name, path):
+        # use loaded table to run a federated query benchmark
+        uri = 'gs://{0:s}/{1:s}'.format(self.bucket_name, path)
+        query_benchmark = federated_query_benchmark \
+            .FederatedQueryBenchmark(
+                bq_project=self.bq_project,
+                gcs_project=self.gcs_project,
+                dataset_id=self.dataset_id,
+                bq_logs_dataset_id=self.bq_logs_dataset,
+                native_table_id=table_name,
+                bucket_name=self.bucket_name,
+                file_uri=uri,
+                results_table_name=self.results_table_name,
+                results_table_dataset_id=self.results_table_dataset_id
+            )
+        logging.info(
+            'Running Federated Query Benchmark for BQ managed '
+            'table {0:s} and file {1:s}'.format(
+                table_name,
+                uri
+            ))
+        query_benchmark.run_queries()

@@ -38,7 +38,7 @@ class BucketUtil(object):
         self.project_id = project_id
         self.file_params = file_params
 
-    def get_existing_paths(self):
+    def get_existing_paths(self, run_federated_query_benchmark):
         """Discovers existing paths in a bucket.
 
         Faster alternative to using native google.cloud.storage.bucket.Bucket's
@@ -95,11 +95,20 @@ class BucketUtil(object):
                     name=path,
                 ).exists(gcs_client)
 
-                if exists:
+                if exists and not (
+                    run_federated_query_benchmark and
+                    compression_type == 'snappy'
+                ):
                     path_set.add(path)
 
         logging.info('Discovering files from parameters list that exist'
                      ' in bucket {0:s}.'.format(self.bucket_name))
+        if run_federated_query_benchmark:
+            logging.info(
+                'External queries on snappy compressed files are not '
+                'supported. Snappy files will not be added to set of existing '
+                'paths.'
+            )
         file_types = self.file_params['fileType']
         compression_types = self.file_params['fileCompressionTypes']
         num_columns = self.file_params['numColumns']

@@ -20,15 +20,15 @@ modified.
 
 
 FILE_PARAMETERS = {
-    'fileType': ['avro', 'json', 'csv'],#, 'parquet'],
+    'fileType': ['parquet'], #'['avro', 'json', 'csv', 'parquet'],
     'fileCompressionTypes': {
-        'avro': ['none'],#, 'snappy'],
-        'csv': ['none'],#, 'gzip'],
-        'json': ['none'],#, 'gzip'],
+        'avro': ['snappy'],# '['none', 'snappy'],
+        'csv': ['gzip'],# '['none', 'gzip'],
+        'json': ['gzip'] , #'['none',  'gzip'],
         'parquet': ['none'],
     },
     'numColumns': [10, 100, 1000],
-    'numFiles': [1, 100],# 1000, 10000],
+    'numFiles': [1, 100], #, 1000, 10000],
     'targetDataSizes': [.01, .1, 1, 2],
     'stagingDataSizes': ['10MB', '107MB'],#, '1073MB', '2147MB'],
     'columnTypes': [
