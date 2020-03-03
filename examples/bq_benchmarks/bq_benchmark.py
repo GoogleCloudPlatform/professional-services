@@ -164,10 +164,7 @@ def parse_args(argv):
     parser.add_argument(
         '--run_file_loader_benchmark',
         help='Flag to initiate process of running the File Loader benchmark by'
-             ' creating tables from files and storing results for comparison.'
-             ' This flag can also be used along with '
-             ' --run_federated_query_benchmark to run the File Loader benchmark'
-             ' along with the Federated Query Benchmark.',
+             ' creating tables from files and storing results for comparison.',
         action='store_true'
     )
 
