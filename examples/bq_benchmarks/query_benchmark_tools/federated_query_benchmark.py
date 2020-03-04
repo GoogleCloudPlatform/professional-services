@@ -1,5 +1,4 @@
 import logging
-import os
 
 from google.cloud import bigquery
 
@@ -16,6 +15,29 @@ EXTERNAL_TYPE_ID = 'EXTERNAL'
 
 
 class FederatedQueryBenchmark:
+    """Class to create and run queries for the Federated Query Benchmark.
+
+    Attributes:
+        bq_project(str): ID of the project that holds the BigQuery
+            resources.
+        gcs_project(str): ID of the project that holds the files to be queried.
+        dataset_id(str): ID of the dataset that holds the table to be queried.
+        bq_logs_dataset_id(str): Name of dataset hold BQ logs table.
+        native_table_id(str): ID of the BQ managed table to be queried.
+        bucket_name(str): Name of the bucket holding the files to be queried.
+        file_uri(str): URI of the files to be queried.
+        results_table_name(str): Name of the BigQuery table that the
+            benchmark results will be inserted into.
+        results_table_dataset_id(str): Name of the BigQuery dataset that holds
+            the table the benchmark results will be inserted into.
+        benchmark_name(str): The name of the benchmark test.
+        job_type(str): The type of BigQuery job (LOAD, QUERY, COPY, or EXTRACT).
+        bq_client(google.cloud.bigquery.client.Client): Client to hold
+            configurations needed for BigQuery API requests.
+        file_type(str): Type of file(s) to be queried.
+        compression(str): Compression type of file(s) to be queried.
+
+    """
 
     def __init__(
             self,
@@ -49,6 +71,7 @@ class FederatedQueryBenchmark:
         self.results_table_dataset_id = results_table_dataset_id
 
     def run_queries(self):
+        """Generates and runs queries on BQ_MANAGED tables and EXTERNAL files"""
         if self.file_type == 'avro' and self.compression == 'snappy':
             logging.info(
                 'External queries on snappy compressed files are not '
@@ -56,7 +79,7 @@ class FederatedQueryBenchmark:
                 'table {0:s} and file {1:s}'.format(
                     self.native_table_id,
                     self.file_uri
-            ))
+                ))
         else:
             benchmark_query_generator = query_generator.QueryGenerator(
                 self.native_table_id,
@@ -68,6 +91,13 @@ class FederatedQueryBenchmark:
                 self.run_federated_query(query_type, query_strings[query_type])
 
     def run_native_query(self, query_type, query):
+        """Runs native queries on BQ_MANAGED tables
+
+        Args:
+            query_type(str): Code for the category of the query to
+                run (SIMPLE_SELECT_*, SELECT_ONE_STRING, SELECT_50_PERCENT).
+            query(str): The query to run.
+        """
         table_name = '{0:s}.{1:s}.{2:s}'.format(
             self.bq_project,
             self.dataset_id,
@@ -101,6 +131,13 @@ class FederatedQueryBenchmark:
         query_result.insert_results_row()
 
     def run_federated_query(self, query_type, query):
+        """Runs native queries on EXTERNAL files
+
+        Args:
+            query_type(str): Code for the category of the query to
+                run (SIMPLE_SELECT_*, SELECT_ONE_STRING, SELECT_50_PERCENT).
+            query(str): The query to run.
+        """
         file_formats = file_constants.FILE_CONSTANTS['sourceFormats']
         source_format = file_formats[self.file_type]
         external_config = bigquery.ExternalConfig(

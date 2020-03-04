@@ -50,6 +50,11 @@ class BucketUtil(object):
         (depending on the number of files in the combination)
         saves time and space.
 
+        Args:
+            run_federated_query_benchmark(Bool): Flag to indicate that the
+                Federated Query Benchmark is being run, which means snappy
+                compressed files should be skipped due to lack of support.
+
         Returns:
             existing_paths: set containing paths that already exist in given
             bucket

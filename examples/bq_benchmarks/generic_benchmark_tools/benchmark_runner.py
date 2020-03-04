@@ -22,40 +22,46 @@ from query_benchmark_tools import federated_query_benchmark
 
 
 class BenchmarkRunner:
-    """Contains methods for processing and creating load tables for benchmarks.
+    """Contains methods for processing benchmark resources and running
+    benchmarks.
 
     Attributes:
         bq_project(str): ID of the project that holds the BigQuery dataset
             and benchmark tables.
         gcs_project(str):  ID of the project that holds the GCS bucket
-            where the files to be loaded are stored.
+            where the files needed for benchmarks stored.
         staging_project(str_: ID of the project that contains the
-            staging tables that the files to be loaded into the benchmark table
+            staging tables that the files to be loaded into the tables
             were generated from.
         staging_dataset_id(str): ID of the dataset that contains the
-            staging tables that the files to be loaded into the benchmark table
+            staging tables that the files to be loaded into the tables
             were generated from.
-        dataset_id(str): ID of the dataset that the benchmark tables should
-            be loaded into.
+        dataset_id(str): ID of the dataset that will hold the tables for
+            loading.
         bucket_name(str): Name of the GCS bucket that holds the files that
-            should be loaded into the benchmark table.
-        bucket_util(load_benchmark_tools.bucket_util.BucketUtil): Helper class for
-            interacting with the bucket that the holds the files that
-            should be loaded into the benchmark table.
-        results_table_name(str): Name of the BigQuery table that the
-            benchmark table's load results will be inserted into.
-        results_table_dataset_id(str): Name of the BigQuery dataset that the
-            benchmark table's load results will be inserted into.
+            should be loaded into tables.
+        bucket_util(load_benchmark_tools.bucket_util.BucketUtil): Helper class
+            for interacting with the bucket that the holds the files used for
+            benchmarks.
+        results_table_name(str): Name of the BigQuery table that benchmark
+            results will be inserted into.
+        results_table_dataset_id(str): Name of the BigQuery dataset that
+            benchmark results will be inserted into.
         duplicate_benchmark_tables(bool): Boolean value to determine what to
-            do if a benchmark table already exists for a given file
-            combination. If True, TableProcessor knows to create another
-            benchmark table with the same combination to increase the
-            number of results for accuracy. If not, TablesProcessor knows
-            to only create a benchmark table for a given combination if one
-            has not yet been created.
+            do if a file has already been loaded into a table for a give file
+            combination. If True, BenchmarkRunner will run the benchmark again
+            with the same combination to increase the number of results for
+            accuracy. If not, BenchmarkRunner will only create a benchmark table
+            for a given combination if one has not yet been created.
         file_params(dict): Dictionary containing each file parameter and
             its possible values.
         bq_logs_dataset(str): Name of dataset hold BQ logs table.
+        run_federated_query_benchmark(Bool): Flag to indicate that the
+            Federated Query Benchmark is the primary benchmark running.
+        include_federated_query_benchmark(Bool): Flag to indicate that the
+            Federated Query Benchmark should be run along with the File Loader
+            Benchmark.
+        files_to_skip(set): Set of file URIs to skip if necessary.
 
     """
 
@@ -96,19 +102,19 @@ class BenchmarkRunner:
         self.files_to_skip = set()
 
     def execute_file_loader_benchmark(self):
-        # Gather files combinations that already have benchmark tables.
-        files_with_benchmark_tables = self._gather_files_with_benchmark_tables()
+        """Processes files to skip and runs File Load Benchmark"""
+        files_with_benchmark_tables = self._gather_files_with_benchmark_data()
         if not self.duplicate_benchmark_tables:
             self.files_to_skip = files_with_benchmark_tables
         self._create_tables(files_with_benchmark_tables)
 
     def execute_federated_query_benchmark(self):
-        # Gather files combinations that already have benchmark tables.
-        files_with_benchmark_tables = self._gather_files_with_benchmark_tables()
+        """Processes files to skip and runs Federated Query Benchmark"""
+        files_with_benchmark_tables = self._gather_files_with_benchmark_data()
         self._create_tables(files_with_benchmark_tables)
 
-    def _gather_files_with_benchmark_tables(self):
-        """Generates file combinations that already have benchmark tables.
+    def _gather_files_with_benchmark_data(self):
+        """Generates file combinations that already have load benchmark data.
 
         Creates a set of files that already have been loaded to create
         benchmark tables. Generates list by querying the job.sourceURI field
@@ -138,8 +144,12 @@ class BenchmarkRunner:
                 files_with_benchmark_tables.add(file_name)
         return files_with_benchmark_tables
 
-    def _create_tables(self, files_with_benchmark_tables):
-        """Creates a benchmark table for each file combination in GCS bucket.
+    def _create_tables(self, files_with_benchmark_data):
+        """Creates a table for each file combination in GCS bucket.
+
+        Args:
+            files_with_benchmark_data(set): Set of file names that already
+            have benchmark data.
         """
         # Gather file combinations that exist in the GCS Bucket.
         existing_paths = self.bucket_util.get_existing_paths(
@@ -151,7 +161,7 @@ class BenchmarkRunner:
             path = path.split('/')
             path = '/'.join(path[:len(path) - 1])
             if path not in self.files_to_skip:
-                if path in files_with_benchmark_tables:
+                if path in files_with_benchmark_data:
                     verb = 'Duplicating'
                 else:
                     verb = 'Processing'
@@ -182,7 +192,12 @@ class BenchmarkRunner:
                 table.delete_table()
 
     def _run_federated_query(self, table_name, path):
-        # use loaded table to run a federated query benchmark
+        """Runs the Federated Query Benchmark.
+
+        Args:
+           table_name(str): ID of the BigQuery table to run the native query on.
+           path(str): Path of the file(s) to run the external query on.
+        """
         uri = 'gs://{0:s}/{1:s}'.format(self.bucket_name, path)
         query_benchmark = federated_query_benchmark \
             .FederatedQueryBenchmark(

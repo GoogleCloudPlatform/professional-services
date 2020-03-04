@@ -29,7 +29,7 @@ BYTES_IN_MB = 10 ** 6
 class BenchmarkResultUtil(ABC):
     """Parent class for handling results of benchmark jobs.
 
-    Sets generic benchmark properties that all bechnmark tests will share
+    Sets generic benchmark properties that all benchmark tests will share
         and loads them into a results table.
 
     Attributes:
@@ -131,13 +131,24 @@ class BenchmarkResultUtil(ABC):
         }
 
     def _get_properties_from_file_path(self, file_uri):
+        """Gathers benchmark properties from a file uri.
+
+        Args:
+            file_uri: Full GCS URI of the files to be loaded. Includes
+            the 'gs://' prefix, the bucket name, and path.
+
+        Returns:
+            A dictionary holding the property types as keys and the properties
+            as values.
+
+        """
         benchmark_details_pattern = \
             r'gs://([\w\'-]+)/fileType=(\w+)/compression=(\w+)/numColumns=(\d+)/columnTypes=(\w+)/numFiles=(\d+)/tableSize=(\d+)(\w+)'
         bucket_name, file_type, compression, num_columns, column_types, \
             num_files, staging_data_size, staging_data_unit = \
             re.findall(benchmark_details_pattern, file_uri)[0]
         compression_format = (file_constants.FILE_CONSTANTS
-        ['compressionFormats'][compression])
+                                ['compressionFormats'][compression])
         file_name_prefix = 'fileType={0:s}/compression={1:s}/numColumns={2:s}/columnTypes={3:s}/numFiles={4:s}/tableSize={5:s}{6:s}'.format(
             file_type,
             compression,
@@ -232,15 +243,35 @@ class BenchmarkResultUtil(ABC):
 
 
 class LoadBenchmarkResultUtil(BenchmarkResultUtil):
+    """Child class for handling load specific results of benchmark load jobs.
 
+    Attributes:
+        job(google.cloud.bigquery.job): The BigQuery jobs whose performance
+            the benchmark will measure.
+        job_type(str): The type of BigQuery job (LOAD, QUERY, COPY, or EXTRACT).
+        benchmark_name(str): The name of the benchmark test.
+        project_id(str): ID of the project that holds the BigQuery dataset
+            and table that the result data is loaded into.
+        results_table_name(str): Name of the BigQuery table that the
+            benchmark results will be inserted into.
+        results_dataset_id(str): Name of the BigQuery dataset that holds the
+            table the benchmark results will be inserted into.
+        bq_logs_dataset(str): Name of the dataset hold BQ logs table.
+        job_source_uri(str): Full GCS URI of the files to be loaded. Includes
+            the 'gs://' prefix, the bucket name, and path.
+        load_table_id(str): ID of the table the file has been loaded into.
+        load_dataset_id(str): ID of the dataset that holds the table the file
+            has been loaded into.
+
+    """
     def __init__(
             self,
             job,
             job_type,
             benchmark_name,
             project_id,
-            result_table_name,
-            result_dataset_id,
+            results_table_name,
+            results_dataset_id,
             bq_logs_dataset,
             job_source_uri,
             load_table_id,
@@ -251,8 +282,8 @@ class LoadBenchmarkResultUtil(BenchmarkResultUtil):
             job_type,
             benchmark_name,
             project_id,
-            result_table_name,
-            result_dataset_id,
+            results_table_name,
+            results_dataset_id,
             bq_logs_dataset
         )
         self.job_source_uri = job_source_uri
@@ -291,32 +322,56 @@ class LoadBenchmarkResultUtil(BenchmarkResultUtil):
 
 
 class QueryBenchmarkResultUtil(BenchmarkResultUtil):
+    """Child class for handling load specific results of benchmark query jobs.
 
+    Attributes:
+        job(google.cloud.bigquery.job): The BigQuery jobs whose performance
+            the benchmark will measure.
+        job_type(str): The type of BigQuery job (LOAD, QUERY, COPY, or EXTRACT).
+        benchmark_name(str): The name of the benchmark test.
+        project_id(str): ID of the project that holds the BigQuery resources.
+        results_table_name(str): Name of the BigQuery table that the
+            benchmark results will be inserted into.
+        results_dataset_id(str): Name of the BigQuery dataset that holds the
+            table the benchmark results will be inserted into.
+        bq_logs_dataset(str): Name of the dataset hold BQ logs table.
+        bql(str): The SQL that was run.
+        query_category(str): Code for the category of the query that was
+            run (SIMPLE_SELECT_*, SELECT_ONE_STRING, SELECT_50_PERCENT).
+        main_table_name(str): ID of the table that was used if the query was run
+            natively, otherwise the ID of equivalent table (i.e. the table that
+            the file was loaded into) if query was run externally. If a join
+            was used, then the main_table_name is the ID of the left table.
+        table_dataset_id(str): ID of the table that the query was run on.
+        table_type(str): The code for the type of table (BQ_MANAGED or EXTERNAL)
+        file_uri(str): Either the URI that was used as an external table if the
+            query was run externally, or the equivalent URI (i.e. the URI that
+            was used to create the table) if the query was run on a native
+            table. Includes the 'gs://' prefix, the bucket name, and path.
+    """
     def __init__(
             self,
             job,
             job_type,
             benchmark_name,
             project_id,
-            result_table_name,
-            result_dataset_id,
+            results_table_name,
+            results_dataset_id,
             bq_logs_dataset,
             bql,
             query_category,
             main_table_name,
             table_dataset_id,
             table_type,
-            file_uri,
-            operation_table=None
-
+            file_uri
     ):
         super().__init__(
             job,
             job_type,
             benchmark_name,
             project_id,
-            result_table_name,
-            result_dataset_id,
+            results_table_name,
+            results_dataset_id,
             bq_logs_dataset
         )
         self.bql = bql
@@ -325,7 +380,6 @@ class QueryBenchmarkResultUtil(BenchmarkResultUtil):
         self.table_dataset_id = table_dataset_id
         self.table_type = table_type
         self.file_uri = file_uri
-        self.operation_table = operation_table
         self._set_job_properties()
 
     def _set_job_properties(self):

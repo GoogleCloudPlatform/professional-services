@@ -68,8 +68,8 @@ class LoadTableBenchmark:
             the benchmark table (i.e. csv, avro, parquet, etc).
         compression_format(bigquery.job.Compression):  Object representing the
             compression of the file.
-        benchmark_table_util(load_benchmark_tools.table_util.TableUtil): Object to
-            assist with the handling of the benchmark table's creation
+        benchmark_table_util(load_benchmark_tools.table_util.TableUtil): Object
+            to assist with the handling of the benchmark table's creation
             and properties.
         num_columns(int): Number of columns in the benchmark table.
         column_types(str): Representation of the types of columns in the
@@ -228,6 +228,7 @@ class LoadTableBenchmark:
             logging.error(e.message)
 
     def delete_table(self):
+        """Deletes table once benchmark results have been captured."""
         self.bq_client.delete_table(self.benchmark_table_util.table_ref)
         logging.info('Deleting table {0:s}'.format(
             self.job_destination_table
