@@ -119,7 +119,12 @@ class TestNestedUserInfoUpdater(object):
 
          Returns:
              True if test passes, else False.
-                 """
+         """
+        if not project_id:
+            raise Exception(
+                'Test needs project_id to pass. '
+                'Add --project_id={your project ID} to test command'
+            )
         # Load a set of user updates to nested user_info_updates table.
 
         self.load_json_to_bq(

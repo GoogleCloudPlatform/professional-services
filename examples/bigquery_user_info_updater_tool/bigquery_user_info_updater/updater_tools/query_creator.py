@@ -19,7 +19,7 @@ import os
 
 
 class QueryCreator(object):
-    """Class for created customized queries based off of a schema.
+    """Class for creating customized queries based off of a schema.
 
     Attributes:
         schema_path(str): Path to the user tables schema in JSON format.

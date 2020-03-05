@@ -61,6 +61,11 @@ class TestQueryCreator(object):
          Returns:
              True if test passes, else False.
          """
+        if not project_id:
+            raise Exception(
+                'Test needs project_id to pass. '
+                'Add --project_id={your project ID} to test command'
+            )
         abs_path = os.path.abspath(os.path.dirname(__file__))
         schema_path = os.path.join(
             abs_path,
@@ -101,6 +106,11 @@ class TestQueryCreator(object):
          Returns:
              True if test passes, else False.
          """
+        if not project_id:
+            raise Exception(
+                'Test needs project_id to pass. '
+                'Add --project_id={your project ID} to test command'
+            )
         abs_path = os.path.abspath(os.path.dirname(__file__))
         schema_path = os.path.join(
             abs_path,
@@ -138,6 +148,11 @@ class TestQueryCreator(object):
         Returns:
             True if test passes, else False.
         """
+        if not project_id:
+            raise Exception(
+                'Test needs project_id to pass. '
+                'Add --project_id={your project ID} to test command'
+            )
         abs_path = os.path.abspath(os.path.dirname(__file__))
         schema_path = os.path.join(
             abs_path,
@@ -177,6 +192,11 @@ class TestQueryCreator(object):
          Returns:
              True if test passes, else False.
          """
+        if not project_id:
+            raise Exception(
+                'Test needs project_id to pass. '
+                'Add --project_id={your project ID} to test command'
+            )
         abs_path = os.path.abspath(os.path.dirname(__file__))
         schema_path = os.path.join(
             abs_path,
