@@ -38,8 +38,8 @@ An example is provided in `config.json`
 {
     "control_project": "demo-project-1",
 	"billing_export_table": {
-		"project": "bqutil",
-		"dataset": "billing",
+		"project": "data-analytics-pocs",
+		"dataset": "public",
 		"table": "billing_dashboard_export" 
 	},
 	"reports": [{
