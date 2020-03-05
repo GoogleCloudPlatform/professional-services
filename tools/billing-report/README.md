@@ -4,7 +4,7 @@ This tool generates reports of Cloud Billing data exported to BigQuery dataset, 
 
 Main features include:
 * Generation of multiple reports at a time with customizable report title and columns
-* Support having label keys as report columms.
+* Support having label keys as report columns.
   * This is usually challenging with pure SQL queries due to [double counting](https://cloud.google.com/billing/docs/how-to/bq-examples#group_by_keyvalue_pairs)
 
 ## Prerequisites
@@ -12,6 +12,10 @@ Main features include:
 Cloud Billing export to BigQuery dataset needs to be preconfigured. Documentation [here](https://cloud.google.com/billing/docs/how-to/export-data-bigquery). 
 
 ## Example Usage
+
+`./billing-report --month <YYYYMM> --output-path <dir> --config <path_to_config.json>`
+
+Toggle verbose debugging with `--verbose`
 
 ### Permissions
 
@@ -117,13 +121,6 @@ An example is provided in `config.json`
 | reports.columns.value  | string<br>Hardcoded report column value. Useful when you need to have multiple reports with common columns and some column values are not from the dataset.  |
 | reports.columns.is_project_label  | bool<br>When this is true, `raw_name` is the project label key  |
 | output_path  | string<br>Directory path on local file system for storing the reports |
-
-
-### Run
-
-`./billing-report --month <YYYYMM> --output-path <dir> --config <path_to_config.json>`
-
-Toggle verbose debugging with `--verbose`
 
 ## Disclaimer
 This is not an official Google product.
