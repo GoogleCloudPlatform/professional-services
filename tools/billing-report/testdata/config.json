@@ -1,0 +1,65 @@
+{
+    "control_project": "demo-project-1",
+	"billing_export_table": {
+		"project": "bqutil",
+		"dataset": "billing",
+		"table": "billing_dashboard_export" 
+	},
+	"reports": [{
+		"name": "summary",
+		"columns":[
+            {
+                "raw_name":"invoice.month",
+                "name":"Month"
+            },
+            {
+                "raw_name":"project.id",
+                "name":"Project_ID"
+            },
+            {
+                "name":"Service",
+                "value":"ALL"
+            },
+            {
+                "raw_name":"cost",
+                "name":"Cost"
+            },
+            {
+                "raw_name":"cost-center",
+                "name":"Cost_Center",
+                "is_project_label":true
+            }
+        ]
+    },
+    {
+		"name": "by-service-sku",
+		"columns":[
+            {
+                "raw_name":"invoice.month",
+                "name":"Month"
+            },
+            {
+                "raw_name":"project.id",
+                "name":"Project_ID"
+            },
+            {
+                "raw_name":"service.description",
+                "name":"Service"
+            },
+            {
+                "raw_name":"sku.description",
+                "name":"Sku"
+            },
+            {
+                "raw_name":"cost",
+                "name":"Cost"
+            },
+            {
+                "raw_name":"cost-center",
+                "name":"Cost_Center",
+                "is_project_label":true
+            }
+        ]
+    }],
+    "output_path": "/home/user1/billing-reports"
+}
