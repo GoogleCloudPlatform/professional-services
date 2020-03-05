@@ -137,7 +137,7 @@ The results of this query will be saved to the `temp_user_update_info` table.
 
 Now that the most recent updates are in `temp_user_update_info`, we need to merge them into `user_info_final`. 
 
-```buildoutcfg
+```
 MERGE `<project_id>.<dataset_id>.user_info_final` m
 USING `<project_id>.<dataset_id>.temp_user_info_updates` u
 ON m.userId = u.userId
