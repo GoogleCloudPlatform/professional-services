@@ -105,6 +105,7 @@ An example is provided in `config.json`
 | Fields  | Description |
 | ------------- | ------------- |
 | control_project  | string<br>The project to run BigQuery job  |
+| billing_export_table  | string <br> BigQuery dataset of your billing export. The example given is a public anonymized dataset with the exact data schema. <br>  |
 | billing_export_table.project  | string <br> GCP Project containing the BigQuery export dataset for your billing export<br>  |
 | billing_export_table.dataset | string <br> BigQuery dataset configured for your billing export<br>  |
 | billing_export_table.table  | string <br> BigQuery dataset table with Cloud Billing data, in the form of `gcp_billing_export_v1_XXXXXX_XXXXXX_XXXXXX`<br>  |
