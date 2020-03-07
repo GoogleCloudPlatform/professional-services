@@ -1,0 +1,4 @@
+*.zip
+.venv/
+.terraform/
+*.tfstate*

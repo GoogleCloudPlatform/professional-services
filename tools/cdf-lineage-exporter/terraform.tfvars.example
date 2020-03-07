@@ -1,0 +1,3 @@
+project                       = "your-gcp-project"
+cloud_functions_source_bucket = "your-cloud-functions"
+lineage_export_bucket         = "your-cdap-lineage"

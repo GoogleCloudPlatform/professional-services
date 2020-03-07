@@ -59,6 +59,7 @@ The tools folder contains ready-made utilities which can simpilfy Google Cloud P
 * [BigQuery Query Plan Exporter](tools/bigquery-query-plan-exporter) - Command line utility for exporting BigQuery query plans in a given date range.
 * [BigQuery Query Plan Visualizer](tools/bq-visualizer) - A web application which provides the ability to visualise the execution stages of BigQuery query plans to aid in the optimization of queries.
 * [BigQuery z/OS Mainframe Connector](tools/bigquery-zos-mainframe-connector) - A utility used to load COBOL MVS data sets into BigQuery and execute query and load jobs from the IBM z/OS Mainframe.
+* [Data Fusion Lineage Exporter](tools/cdf-lineage-exporter) - A cloud function for exporting all Data Fusion lineage information to GCS for a time period.
 * [CloudConnect](tools/cloudconnect) - A package that automates the setup of dual VPN tunnels between AWS and GCP.
 * [Cloudera Parcel GCS Connector](tools/cloudera-parcel-gcsconnector) - This script helps you create a Cloudera parcel that includes Google Cloud Storage connector. The parcel can be deployed on a Cloudera managed cluster. This script helps you create a Cloudera parcel that includes Google Cloud Storage connector. The parcel can be deployed on a Cloudera managed cluster.
 * [Cloud AI Vision Utilities](tools/cloud-vision-utils) - This is an installable

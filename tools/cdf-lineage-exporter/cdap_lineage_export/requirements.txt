@@ -1,0 +1,9 @@
+httplib2
+flask
+google-cloud-core
+google-cloud-storage
+google-api-core
+google-cloud
+google-auth
+yapf
+isort[requirements]
