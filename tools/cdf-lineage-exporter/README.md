@@ -1,4 +1,4 @@
-# CDAP Lineage Export to BigQuery
+# CDAP Lineage Export to Google Cloud Storage
 This is a simple application to export the Dataset lineage info in the
 [CDAP Lineage API](https://docs.cdap.io/cdap/current/en/reference-manual/http-restful-api/metadata.html#H2481).
 
