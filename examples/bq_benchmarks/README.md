@@ -521,7 +521,7 @@ file combinations that have already been generated in the `data-analytics-pocs` 
 then use the following parameters to run the File Loader Benchmark, 
 then use the following command:
 ```
-python bq_file_load_benchmark.py \
+python bq_benchmark.py \
 --run_file_loader_benchmark \
 --bq_project_id=<ID of your own project holding the BigQuery resources> \
 --gcs_project_id='data-analtyics-pocs' \
@@ -620,7 +620,7 @@ file combinations that have already been generated in the `data-analytics-pocs` 
 then use the following parameters to run the Federated Query Benchmark, 
 then use the following command:
 ```
-python bq_file_load_benchmark.py \
+python bq_benchmark.py \
 --run_federated_query_benchmark \
 --bq_project_id=<ID of your own project holding the BigQuery resources> \
 --gcs_project_id='data-analtyics-pocs' \
