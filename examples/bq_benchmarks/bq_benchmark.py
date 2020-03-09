@@ -256,7 +256,7 @@ def parse_args(argv):
                 '--bq_project_id',
                 '--run_file_loader_benchmark'
             ))
-        if not args.bq_project_id:
+        if not args.gcs_project_id:
             parser.error(missing_args_error.format(
                 '--gcs_project_id',
                 '--run_file_loader_benchmark'
@@ -303,7 +303,7 @@ def parse_args(argv):
                 '--bq_project_id',
                 '--run_federated_query_benchmark'
             ))
-        if not args.bq_project_id:
+        if not args.gcs_project_id:
             parser.error(missing_args_error.format(
                 '--gcs_project_id',
                 '--run_federated_query_benchmark'
