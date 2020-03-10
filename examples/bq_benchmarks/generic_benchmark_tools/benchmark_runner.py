@@ -40,9 +40,9 @@ class BenchmarkRunner:
             loading.
         bucket_name(str): Name of the GCS bucket that holds the files that
             should be loaded into tables.
-        bucket_util(load_benchmark_tools.bucket_util.BucketUtil): Helper class
-            for interacting with the bucket that the holds the files used for
-            benchmarks.
+        bucket_util(generic_benchmark_tools.bucket_util.BucketUtil): Helper
+            class for interacting with the bucket that the holds the files used
+            for benchmarks.
         results_table_name(str): Name of the BigQuery table that benchmark
             results will be inserted into.
         results_table_dataset_id(str): Name of the BigQuery dataset that
