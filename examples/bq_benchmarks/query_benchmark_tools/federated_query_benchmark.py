@@ -1,4 +1,5 @@
 import logging
+import re
 
 from google.cloud import bigquery
 
@@ -65,8 +66,9 @@ class FederatedQueryBenchmark:
         self.native_table_id = native_table_id
         self.bucket_name = bucket_name
         self.file_uri = file_uri
-        self.file_type = self.file_uri.split('fileType=')[1].split('/')[0]
-        self.compression = self.file_uri.split('compression=')[1].split('/')[0]
+        partial_file_pattern = r'fileType=(\w+)/compression=(\w+)'
+        self.file_type, self.compression = \
+            re.findall(partial_file_pattern, file_uri)[0]
         self.results_table_name = results_table_name
         self.results_table_dataset_id = results_table_dataset_id
 
