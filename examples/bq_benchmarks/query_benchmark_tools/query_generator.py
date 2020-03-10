@@ -42,7 +42,7 @@ class QueryGenerator:
             strings are values.
 
         """
-        #self.get_select_all_query()
+        self.get_select_all_query()
         self.get_select_one_string_query()
         self.get_50_percent_query()
         return self.query_strings
