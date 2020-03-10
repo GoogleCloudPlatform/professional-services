@@ -42,7 +42,7 @@ class QueryGenerator:
             strings are values.
 
         """
-        self.get_select_all_query()
+        #self.get_select_all_query()
         self.get_select_one_string_query()
         self.get_50_percent_query()
         return self.query_strings
@@ -53,33 +53,29 @@ class QueryGenerator:
 
     def get_select_one_string_query(self):
         """Generates a query that selects the first string in the schema."""
-        string_field_name = None
         for field in self.schema:
             if field.field_type == 'STRING':
                 string_field_name = field.name
-                break
-        if not string_field_name:
-            logging.info('No string fields were found in the schema for BQ '
-                         'table {0:s}.Unable to run {1:s} query.'.format(
-                            self.table_id,
-                            SELECT_ONE_STRING_ID
-                         ))
-        else:
-            query = 'SELECT {0:s} from `{1:s}`'.format(
-                string_field_name,
-                '{0:s}'
-            )
-            self.query_strings[SELECT_ONE_STRING_ID] = query
+                self.query_strings[SELECT_ONE_STRING_ID] = \
+                    'SELECT {0:s} from `{1:s}`'.format(
+                        string_field_name,
+                        '{0:s}'
+                )
+                return
+
+        logging.info('No string fields were found in the schema for BQ '
+                     'table {0:s}.Unable to run {1:s} query.'.format(
+                        self.table_id,
+                        SELECT_ONE_STRING_ID
+                     ))
 
     def get_50_percent_query(self):
         """Generates a query that selects 50% of the table's fields. """
-        num_columns = self.bq_table_util.num_columns
-        field_names = []
-        for i in range(0, num_columns//2):
-            field_names.append(self.schema[i].name)
-        fields_strings = ', '.join(field_names)
-        query = 'SELECT {0:s} from `{1:s}`'.format(
-            fields_strings,
-            '{0:s}'
+        field_names = [self.schema[i].name
+                       for i in range(self.bq_table_util.num_columns//2)
+                       ]
+        self.query_strings[SELECT_50_PERCENT_ID] = \
+            'SELECT {0:s} from `{1:s}`'.format(
+                ', '.join(field_names),
+                '{0:s}'
         )
-        self.query_strings[SELECT_50_PERCENT_ID] = query
