@@ -100,10 +100,10 @@ class BucketUtil(object):
                     name=path,
                 ).exists(gcs_client)
 
-                if exists and not (
-                    run_federated_query_benchmark and
-                    compression_type == 'snappy'
-                ):
+                if exists:
+                    if run_federated_query_benchmark and \
+                            compression_type == 'snappy':
+                        continue
                     path_set.add(path)
 
         logging.info('Discovering files from parameters list that exist'
