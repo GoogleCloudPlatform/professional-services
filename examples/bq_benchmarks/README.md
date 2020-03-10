@@ -21,7 +21,7 @@ number of columns,
 column types (such as 100% STRING vs 50% STRING/ 50% NUMERIC), number of files, 
 and the size of files. Once the files are created, they are loaded into BigQuery tables. The load 
 job data is stored in the results table data-analytics-pocs.bq_benchmark_repo.results, 
-and a DataStudio dashboard (INCLUDE NEW LINK) is used to visualize the results. 
+and a [DataStudio dashboard](https://datastudio.google.com/c/u/0/reporting/8f677f2e-6a50-4d68-bdea-d40576dec266/page/BNDj) is used to visualize the results. 
 
 #### Benchmark Parameters
 Specifc file parameters are used in this project for performance testing. While 
@@ -81,7 +81,7 @@ tables and federated Google Cloud Storage files (including AVRO, CSV, JSON, and 
 identical schemas and sizes. The files created for the File Loader Benchmark will be reused
 here to run external queries on and to create BQ Managed tables with. The query 
 job data is stored in the results table data-analytics-pocs.bq_benchmark_repo.results, 
-and a DataStudio dashboard (INCLUDE NEW LINK TO SPECIFIC PAGE) is used to visualize the results. 
+and a [DataStudio dashboard](https://datastudio.google.com/c/u/0/reporting/8f677f2e-6a50-4d68-bdea-d40576dec266/page/KC6HB) is used to visualize the results. 
 
 #### Benchmark Parameters 
 Parameters for this benchmark will include the type of table, type of query,
@@ -91,7 +91,7 @@ and the table properties.
 
 * `BQ_MANAGED`: Tables located within and managed by BigQuery.
 * `EXTERNAL`: Data located in GCS files, which are used to create a temporary
-external table for querying. R
+external table for querying. 
 
 
 #####Query Type:
@@ -156,7 +156,7 @@ is data-analytics-pocs.bq_benchmark_rep.results.
 #### DataStudio
 
 The results from data-analytics-pocs.bq_loader_benchmark.bq_load_results can 
-also be visualized in the DataStudio dashboard (UPDATE LINK TO SPECIFIC PAGE) .
+also be visualized in the [DataStudio dashboard](https://datastudio.google.com/c/u/0/reporting/8f677f2e-6a50-4d68-bdea-d40576dec266/page/BNDj) .
 
 ## Usage
 This project contains the tools to create the resources needed to run the benchmarks. 
