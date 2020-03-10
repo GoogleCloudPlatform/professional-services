@@ -174,173 +174,104 @@ def parse_args(argv):
     # making each arg required, raise an error when a command is missing an
     # accompanying arg.
 
-    missing_args_error = ('Missing arg: {0:s} is required with the ' 
+    missing_args_error = ('Missing arg(s): {0:s} required with the '
                           '{1:s} command.')
 
     if args.create_results_table:
-        if not args.results_table_name:
+        required_args = {
+            '--results_table_name': args.results_table_name,
+            '--results_dataset_id': args.results_dataset_id
+        }
+        missing_arguments = ", ".join(
+            [arg for arg in required_args if not required_args[arg]])
+        if missing_arguments:
             parser.error(missing_args_error.format(
-                '--results_table_name',
+                missing_arguments,
                 '--create_results_table'
             ))
-        if not args.results_dataset_id:
-            parser.error(missing_args_error.format(
-                '--results_dataset_id',
-                '--create_results_table'
-            ))
-
     if args.create_staging_tables:
-        if not args.bq_project_id:
+        required_args = {
+            '--bq_project_id': args.bq_project_id,
+            '--staging_dataset_id': args.staging_dataset_id,
+            '--resized_staging_dataset_id': args.resized_staging_dataset_id,
+            '--dataflow_staging_location': args.dataflow_staging_location,
+            '--dataflow_temp_location': args.dataflow_temp_location,
+
+        }
+        missing_arguments = ", ".join(
+            [arg for arg in required_args if not required_args[arg]])
+        if missing_arguments:
             parser.error(missing_args_error.format(
-                '--bq_project_id',
-                '--create_staging_tables'
-            ))
-        if not args.staging_dataset_id:
-            parser.error(missing_args_error.format(
-                '--staging_dataset_id',
-                '--create_staging_tables'
-            ))
-        if not args.resized_staging_dataset_id:
-            parser.error(missing_args_error.format(
-                '--resized_staging_dataset_id',
-                '--create_staging_tables'
-            ))
-        if not args.dataflow_staging_location:
-            parser.error(missing_args_error.format(
-                '--dataflow_staging_location',
-                '--create_staging_tables'
-            ))
-        if not args.dataflow_temp_location:
-            parser.error(missing_args_error.format(
-                '--dataflow_temp_location',
+                missing_arguments,
                 '--create_staging_tables'
             ))
 
     if args.create_files:
-        if not args.gcs_project_id:
+        required_args = {
+            '--gcs_project_id': args.gcs_project_id,
+            '--resized_staging_dataset_id': args.resized_staging_dataset_id,
+            '--bucket_name': args.bucket_name,
+            '--dataflow_staging_location': args.dataflow_staging_location,
+            '--dataflow_temp_location': args.dataflow_temp_location,
+
+        }
+        missing_arguments = ", ".join(
+            [arg for arg in required_args if not required_args[arg]])
+        if missing_arguments:
             parser.error(missing_args_error.format(
-                '--gcs_project_id',
-                '--create_files'
-            ))
-        if not args.resized_staging_dataset_id:
-            parser.error(missing_args_error.format(
-                '--resized_staging_dataset_id',
-                '--create_files'
-            ))
-        if not args.bucket_name:
-            parser.error(missing_args_error.format(
-                '--bucket_name',
-                '--create_files'
-            ))
-        if not args.dataflow_staging_location:
-            parser.error(missing_args_error.format(
-                '--dataflow_staging_location',
-                '--create_files'
-            ))
-        if not args.dataflow_temp_location:
-            parser.error(missing_args_error.format(
-                '--dataflow_temp_location',
+                missing_arguments,
                 '--create_files'
             ))
 
     if args.restart_file:
-        if not args.create_files:
+        required_args = {
+            '--create_files': args.create_files
+        }
+        missing_arguments = ", ".join(
+            [arg for arg in required_args if not required_args[arg]])
+        if missing_arguments:
             parser.error(missing_args_error.format(
-                '--create_files',
+                missing_arguments,
                 '--restart_file'
             ))
 
     if args.run_file_loader_benchmark:
-        if not args.bq_project_id:
+        required_args = {
+            '--bq_project_id': args.bq_project_id,
+            '--gcs_project_id': args.gcs_project_id,
+            '--staging_project_id': args.staging_project_id,
+            '--staging_dataset_id': args.staging_dataset_id,
+            '--benchmark_dataset_id': args.benchmark_dataset_id,
+            '--bucket_name': args.bucket_name,
+            '--results_table_name': args.results_table_name,
+            '--results_dataset_id': args.results_dataset_id,
+            '--bq_logs_dataset': args.bq_logs_dataset
+        }
+        missing_arguments = ", ".join(
+            [arg for arg in required_args if not required_args[arg]])
+        if missing_arguments:
             parser.error(missing_args_error.format(
-                '--bq_project_id',
-                '--run_file_loader_benchmark'
-            ))
-        if not args.gcs_project_id:
-            parser.error(missing_args_error.format(
-                '--gcs_project_id',
-                '--run_file_loader_benchmark'
-            ))
-        if not args.staging_project_id:
-            parser.error(missing_args_error.format(
-                '--staging_project_id',
-                '--run_file_loader_benchmark'
-            ))
-        if not args.staging_dataset_id:
-            parser.error(missing_args_error.format(
-                '--staging_dataset_id',
-                '--run_file_loader_benchmark'
-            ))
-        if not args.benchmark_dataset_id:
-            parser.error(missing_args_error.format(
-                '--benchmark_dataset_id',
-                '--run_file_loader_benchmark'
-            ))
-        if not args.bucket_name:
-            parser.error(missing_args_error.format(
-                '--bucket_name',
-                '--run_file_loader_benchmark'
-            ))
-        if not args.results_table_name:
-            parser.error(missing_args_error.format(
-                '--results_table_name',
-                '--run_file_loader_benchmark'
-            ))
-        if not args.results_dataset_id:
-            parser.error(missing_args_error.format(
-                '--results_dataset_id',
-                '--run_file_loader_benchmark'
-            ))
-        if not args.bq_logs_dataset:
-            parser.error(missing_args_error.format(
-                '--bq_logs_dataset',
+                missing_arguments,
                 '--run_file_loader_benchmark'
             ))
 
     if args.run_federated_query_benchmark:
-        if not args.bq_project_id:
+        required_args = {
+            '--bq_project_id': args.bq_project_id,
+            '--gcs_project_id': args.gcs_project_id,
+            '--staging_project_id': args.staging_project_id,
+            '--staging_dataset_id': args.staging_dataset_id,
+            '--benchmark_dataset_id': args.benchmark_dataset_id,
+            '--bucket_name': args.bucket_name,
+            '--results_table_name': args.results_table_name,
+            '--results_dataset_id': args.results_dataset_id,
+            '--bq_logs_dataset': args.bq_logs_dataset
+        }
+        missing_arguments = ", ".join(
+            [arg for arg in required_args if not required_args[arg]])
+        if missing_arguments:
             parser.error(missing_args_error.format(
-                '--bq_project_id',
-                '--run_federated_query_benchmark'
-            ))
-        if not args.gcs_project_id:
-            parser.error(missing_args_error.format(
-                '--gcs_project_id',
-                '--run_federated_query_benchmark'
-            ))
-        if not args.staging_project_id:
-            parser.error(missing_args_error.format(
-                '--staging_project_id',
-                '--run_federated_query_benchmark'
-            ))
-        if not args.staging_dataset_id:
-            parser.error(missing_args_error.format(
-                '--staging_dataset_id',
-                '--run_federated_query_benchmark'
-            ))
-        if not args.benchmark_dataset_id:
-            parser.error(missing_args_error.format(
-                '--benchmark_dataset_id',
-                '--run_federated_query_benchmark'
-            ))
-        if not args.bucket_name:
-            parser.error(missing_args_error.format(
-                '--bucket_name',
-                '--run_federated_query_benchmark'
-            ))
-        if not args.results_table_name:
-            parser.error(missing_args_error.format(
-                '--results_table_name',
-                '--run_federated_query_benchmark'
-            ))
-        if not args.results_dataset_id:
-            parser.error(missing_args_error.format(
-                '--results_dataset_id',
-                '--run_federated_query_benchmark'
-            ))
-        if not args.bq_logs_dataset:
-            parser.error(missing_args_error.format(
-                '--bq_logs_dataset',
+                missing_arguments,
                 '--run_federated_query_benchmark'
             ))
 
