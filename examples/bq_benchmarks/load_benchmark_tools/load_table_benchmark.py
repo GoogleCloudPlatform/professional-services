@@ -231,7 +231,11 @@ class LoadTableBenchmark:
 
     def delete_table(self):
         """Deletes table once benchmark results have been captured."""
-        self.bq_client.delete_table(self.benchmark_table_util.table_ref)
+        self.bq_client.delete_table('{0:s}.{1:s}.{2:s}'.format(
+            self.bq_project,
+            self.dataset_id,
+            self.job_destination_table
+        ))
         logging.info('Deleting table {0:s}'.format(
             self.job_destination_table
         ))
