@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import logging
+import os
 
 from google.cloud import bigquery
 
@@ -158,16 +159,15 @@ class BenchmarkRunner:
         # Create a benchmark table for each existing file combination, and
         # load the data from the file into the benchmark table.
         for path in existing_paths:
-            path = path.split('/')
-            path = '/'.join(path[:len(path) - 1])
-            if path not in self.files_to_skip:
-                if path in files_with_benchmark_data:
+            dirname = os.path.dirname(path)
+            if dirname not in self.files_to_skip:
+                if dirname in files_with_benchmark_data:
                     verb = 'Duplicating'
                 else:
                     verb = 'Processing'
                 logging.info('{0:s} benchmark table for {1:s}'.format(
                     verb,
-                    path,
+                    dirname,
                 ))
                 table = load_table_benchmark.LoadTableBenchmark(
                     bq_project=self.bq_project,
@@ -176,7 +176,7 @@ class BenchmarkRunner:
                     staging_dataset_id=self.staging_dataset_id,
                     dataset_id=self.dataset_id,
                     bucket_name=self.bucket_name,
-                    path=path,
+                    dirname=dirname,
                     results_table_name=self.results_table_name,
                     results_table_dataset_id=self.results_table_dataset_id,
                     bq_logs_dataset=self.bq_logs_dataset
@@ -187,18 +187,18 @@ class BenchmarkRunner:
                         self.include_federated_query_benchmark:
                     self._run_federated_query(
                         table_name,
-                        path
+                        dirname
                     )
                 table.delete_table()
 
-    def _run_federated_query(self, table_name, path):
+    def _run_federated_query(self, table_name, dirname):
         """Runs the Federated Query Benchmark.
 
         Args:
            table_name(str): ID of the BigQuery table to run the native query on.
-           path(str): Path of the file(s) to run the external query on.
+           dirname(str): Directory of the file(s) to run the external query on.
         """
-        uri = 'gs://{0:s}/{1:s}'.format(self.bucket_name, path)
+        uri = 'gs://{0:s}/{1:s}'.format(self.bucket_name, dirname)
         query_benchmark = federated_query_benchmark \
             .FederatedQueryBenchmark(
                 bq_project=self.bq_project,

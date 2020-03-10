@@ -52,10 +52,12 @@ class LoadTableBenchmark:
             to the dataset that holds the benchmark table.
         bucket_name(str): Name of the bucket that holds the files to be loaded
             into the benchmark table.
-        path(str): Path of the files in GCS to be loaded into the benchmark
-            table. Path does not include the full GCS URI.
+        dirname(str): Directory of the files in GCS to be loaded into the
+            benchmark table. Path does not include the full GCS URI (i.e.
+            gs://bucket_name), the file name (i.e. file1), or file extension
+            (i.e. .csv).
         uri(str): Full GCS URI of the files to be loaded into the benchmark
-            table. Includes the 'gs://' prefix, the bucket name, and path
+            table. Includes the 'gs://' prefix, the bucket name, and dirname
             above.
         results_table_name(str): Name of the BigQuery table that the
             benchmark table's load results will be inserted into.
@@ -91,7 +93,7 @@ class LoadTableBenchmark:
             staging_dataset_id,
             dataset_id,
             bucket_name,
-            path,
+            dirname,
             results_table_name,
             results_table_dataset_id,
             bq_logs_dataset
@@ -110,8 +112,8 @@ class LoadTableBenchmark:
         self.dataset_id = dataset_id
         self.dataset_ref = self.bq_client.dataset(self.dataset_id)
         self.bucket_name = bucket_name
-        self.path = path
-        self.uri = 'gs://{0:s}/{1:s}'.format(self.bucket_name, path)
+        self.dirname = dirname
+        self.uri = 'gs://{0:s}/{1:s}'.format(self.bucket_name, dirname)
         self.results_table_name = results_table_name
         self.results_table_dataset_id = results_table_dataset_id
         self.results_table_dataset_ref = self.bq_client.dataset(
@@ -141,7 +143,7 @@ class LoadTableBenchmark:
             r'fileType=(\w+)/compression=(\w+)/numColumns=(\d+)/columnTypes=(\w+)/numFiles=(\d+)/tableSize=(\w+)'
         self.file_type, compression, self.num_columns, self.column_types, \
             num_files, table_size = \
-            re.findall(benchmark_details_pattern, self.path)[0]
+            re.findall(benchmark_details_pattern, self.dirname)[0]
 
         self.compression_format = (file_constants.FILE_CONSTANTS
                                    ['compressionFormats'][compression])
