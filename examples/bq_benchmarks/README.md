@@ -74,7 +74,7 @@ and reserved. In addition, ORC will be added as a value for file type, and struc
 array types will be added to the values for column types. 
 
 ### Federated Query Benchmark
-The external query benchmark quantifies the difference in performance between 
+The federated query benchmark quantifies the difference in performance between 
 queries on federated (external) and managed BigQuery tables. A variety of queries 
 ranging in complexity will be created. These queries will be run on managed BigQuery 
 tables and federated Google Cloud Storage files (including AVRO, CSV, JSON, and PARQUET) of 
