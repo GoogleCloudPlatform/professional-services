@@ -26,7 +26,7 @@ SELECT_50_PERCENT_ID = 'SELECT_50_PERCENT'
 
 
 class TestQueryGenerator(unittest.TestCase):
-    """Tests functionality of load_benchmark_tools.table_util.TableUtil.
+    """Tests functionality of query_benchmark_tools.query_generator.
 
     Attributes:
         bq_client(google.cloud.bigquery.client.Client): Client to hold
@@ -37,8 +37,7 @@ class TestQueryGenerator(unittest.TestCase):
         dataset(google.cloud.bigquery.dataset.Dataset): Dataset that holds the
             test table.
         table_id(str): The name of the test table.
-        table_util(generic_benchmark.TableUtil): BigQuery utility class to be
-            testsed.
+        table_util(generic_benchmark.TableUtil): BigQuery to handle test table.
 
     """
 
