@@ -57,7 +57,7 @@ class QueryGenerator:
             if field.field_type == 'STRING':
                 string_field_name = field.name
                 self.query_strings[SELECT_ONE_STRING_ID] = \
-                    'SELECT {0:s} from `{1:s}`'.format(
+                    'SELECT {0:s} FROM `{1:s}`'.format(
                         string_field_name,
                         '{0:s}'
                 )
@@ -75,7 +75,7 @@ class QueryGenerator:
                        for i in range(self.bq_table_util.num_columns//2)
                        ]
         self.query_strings[SELECT_50_PERCENT_ID] = \
-            'SELECT {0:s} from `{1:s}`'.format(
+            'SELECT {0:s} FROM `{1:s}`'.format(
                 ', '.join(field_names),
                 '{0:s}'
         )
