@@ -28,9 +28,9 @@ FILE_PARAMETERS = {
         'parquet': ['none'],
     },
     'numColumns': [10, 100, 1000],
-    'numFiles': [1, 100],#, 1000, 10000],
+    'numFiles': [1, 100, 1000, 10000],
     'targetDataSizes': [.01, .1, 1, 2],
-    'stagingDataSizes': ['10MB', '107MB'], #, '1073MB', '2147MB'],
+    'stagingDataSizes': ['10MB', '107MB', '1073MB', '2147MB'],
     'columnTypes': [
         '100_STRING',
         '50_STRING_50_NUMERIC',
