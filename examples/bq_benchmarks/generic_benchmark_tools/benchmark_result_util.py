@@ -408,19 +408,8 @@ class QueryBenchmarkResultUtil(BenchmarkResultUtil):
         properties_from_file_path = self._get_properties_from_file_path(
             self.file_uri
         )
-
-        main_table_properties['numColumns'] = \
-            properties_from_file_path['numColumns']
-        main_table_properties['columnTypes'] = \
-            properties_from_file_path['columnTypes']
-        main_table_properties['fileSize'] = \
-            properties_from_file_path['fileSize']
-        main_table_properties['fileType'] = \
-            properties_from_file_path['fileType']
-        main_table_properties['compressionType'] = \
-            properties_from_file_path['compressionType']
-        main_table_properties['numFiles'] = \
-            properties_from_file_path['numFiles']
+        main_table_properties.update(properties_from_file_path)
+        del main_table_properties['stagingDataSize']
 
         query_properties['mainTable'] = main_table_properties
         self.results_dict['queryProperties'] = query_properties
