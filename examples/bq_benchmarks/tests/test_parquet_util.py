@@ -17,7 +17,7 @@ import unittest
 
 from google.cloud import bigquery
 
-from bq_file_load_benchmark.generic_benchmark_tools import parquet_util
+from bq_benchmarks.generic_benchmark_tools import parquet_util
 
 
 class TestParquetUtil(unittest.TestCase):

@@ -15,7 +15,7 @@
 import json
 import os
 
-from bq_file_load_benchmark.generic_benchmark_tools import schema_creator
+from bq_benchmarks.generic_benchmark_tools import schema_creator
 
 
 class TestSchemaCreator(object):

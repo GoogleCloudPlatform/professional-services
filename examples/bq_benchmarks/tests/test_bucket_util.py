@@ -17,7 +17,7 @@ import os
 from google.api_core import exceptions
 from google.cloud import storage
 
-from bq_file_load_benchmark.generic_benchmark_tools import bucket_util
+from bq_benchmarks.generic_benchmark_tools import bucket_util
 
 
 class TestBucketUtil(object):
@@ -102,7 +102,9 @@ class TestBucketUtil(object):
             project_id=project_id,
             file_params=self.test_file_parameters
         )
-        existing_paths = self.bucket_util.get_existing_paths()
+        existing_paths = self.bucket_util.get_existing_paths(
+            run_federated_query_benchmark=False
+        )
         expected_paths = set([
             self.blob1_name,
             self.blob2_name

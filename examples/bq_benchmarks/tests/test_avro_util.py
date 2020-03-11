@@ -19,7 +19,7 @@ import unittest
 
 from google.cloud import bigquery
 
-from bq_file_load_benchmark.generic_benchmark_tools import avro_util
+from bq_benchmarks.generic_benchmark_tools import avro_util
 
 
 class TestAvroUtil(unittest.TestCase):

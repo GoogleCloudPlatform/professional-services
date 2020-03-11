@@ -19,7 +19,7 @@ from google.api_core import exceptions
 from google.cloud import bigquery
 from google.cloud import storage
 
-from bq_file_load_benchmark.load_benchmark_tools import load_file_generator
+from bq_benchmarks.load_benchmark_tools import load_file_generator
 
 
 class TestFileGenerator(object):
