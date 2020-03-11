@@ -108,6 +108,16 @@ class FederatedQueryBenchmark:
         bql = query.format(table_name)
         query_config = bigquery.QueryJobConfig()
         query_config.use_legacy_sql = False
+        query_config.allow_large_results = True
+        results_destination = '{0:s}.{1:s}.{2:s}_query_results'.format(
+            self.bq_project,
+            self.dataset_id,
+            self.native_table_id
+        )
+        logging.info('Storing query results in {0:s}'.format(
+            results_destination
+        ))
+        query_config.destination = results_destination
         query_job = self.bq_client.query(
             query=bql,
             location='US',
@@ -131,6 +141,10 @@ class FederatedQueryBenchmark:
             file_uri=self.file_uri,
         )
         query_result.insert_results_row()
+        self.bq_client.delete_table(results_destination)
+        logging.info('Deleting results destination table {0:s}'.format(
+            results_destination
+        ))
 
     def run_federated_query(self, query_type, query):
         """Runs native queries on EXTERNAL files
@@ -160,13 +174,22 @@ class FederatedQueryBenchmark:
 
         external_config.compression = self.compression.upper()
         table_id = self.native_table_id + '_external'
-
+        results_destination = '{0:s}.{1:s}.{2:s}_query_results'.format(
+            self.bq_project,
+            self.dataset_id,
+            table_id
+        )
+        logging.info('Storing query results in {0:s}'.format(
+            results_destination
+        ))
         job_config = bigquery.QueryJobConfig(
             table_definitions={table_id: external_config},
-            use_legacy_sql=False
+            use_legacy_sql=False,
+            allow_large_results=True,
+            destination=results_destination
         )
         bql = query.format(table_id)
-
+        print(bql)
         query_job = self.bq_client.query(
             bql,
             job_config=job_config
@@ -189,4 +212,7 @@ class FederatedQueryBenchmark:
             file_uri=self.file_uri,
         )
         query_result.insert_results_row()
-
+        self.bq_client.delete_table(results_destination)
+        logging.info('Deleting results destination table {0:s}'.format(
+            results_destination
+        ))
