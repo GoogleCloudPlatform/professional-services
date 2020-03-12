@@ -1,5 +1,5 @@
-FROM ubuntu:latest
-RUN mkdir -p ~/.kube && apt-get update && apt-get install -y curl python python-pip && pip install --upgrade kubernetes
+FROM python:3.6-slim
+RUN mkdir -p ~/.kube && apt-get update && apt-get install -y curl && pip install --upgrade kubernetes
 RUN curl -sSL https://sdk.cloud.google.com | bash
 RUN pip install --upgrade google-cloud-bigquery
 RUN mkdir -p /opt/cron
