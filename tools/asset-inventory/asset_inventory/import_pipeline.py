@@ -43,7 +43,6 @@ from apache_beam.options.value_provider import StaticValueProvider
 from apache_beam.transforms import core
 from asset_inventory import bigquery_schema
 from asset_inventory.api_schema import APISchema
-from asset_inventory.cai_to_api import CAIToAPI
 from six import string_types
 
 from google.api_core.exceptions import BadRequest
@@ -202,18 +201,6 @@ class AddLoadTime(beam.DoFn):
         yield element
 
 
-class MapCAIProperties(beam.DoFn):
-    """Corrects CAI properties to match API object properties."""
-
-    def process(self, element):
-        if ('resource' in element and 'data' in element['resource']):
-            if element['asset_type'].startswith('compute.googleapis.com'):
-                CAIToAPI.cai_to_api_properties(
-                    element['resource']['discovery_name'],
-                    element['resource']['data'])
-        yield element
-
-
 class EnforceSchemaDataTypes(beam.DoFn):
     """Convert values to match schema types.
     Change json values to match the expected types of the input schema.
@@ -346,7 +333,10 @@ class DeleteDataSetTables(BigQueryDoFn):
     """
 
     def __init__(self, dataset, write_disposition):
-        super(DeleteDataSetTables, self).__init__(dataset)
+        # Can't use super().
+        # https://issues.apache.org/jira/browse/BEAM-6158?focusedCommentId=16919945
+        # super(DeleteDataSetTables, self).__init__(dataset)
+        BigQueryDoFn.__init__(self, dataset)
         if isinstance(write_disposition, string_types):
             write_disposition = StaticValueProvider(str, write_disposition)
         self.write_disposition = write_disposition
@@ -373,7 +363,10 @@ class LoadToBigQuery(BigQueryDoFn):
     """
 
     def __init__(self, dataset, load_time):
-        super(LoadToBigQuery, self).__init__(dataset)
+        # Can't use super().
+        # https://issues.apache.org/jira/browse/BEAM-6158?focusedCommentId=16919945
+        # super(LoadToBigQuery, self).__init__(dataset)
+        BigQueryDoFn.__init__(self, dataset)
         if isinstance(load_time, string_types):
             load_time = StaticValueProvider(str, load_time)
         self.load_time = load_time
@@ -484,7 +477,6 @@ def run(argv=None):
     # Cleanup json documents.
     sanitized = (
         p | 'read' >> ReadFromText(options.input, coder=JsonCoder())
-        | 'map_cai_properties' >> beam.ParDo(MapCAIProperties())
         | 'produce_resource_json' >> beam.ParDo(ProduceResourceJson(
             options.group_by))
         | 'bigquery_sanitize' >> beam.ParDo(BigQuerySanitize()))
