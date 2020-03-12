@@ -264,7 +264,7 @@ Upload the logic to generate a scheduled query job. This is recommended to run
 daily as it computes the read count over days.
 ````
 bq query \
---project $OUTPUT_PROJECT_ID \
+--project_id $OUTPUT_PROJECT_ID \
 --use_legacy_sql=false \
 --destination_table=$OUTPUT_DATASET_ID.$OUTPUT_TABLE_NAME \
 --display_name="GCS Bucket Insights Table" \
