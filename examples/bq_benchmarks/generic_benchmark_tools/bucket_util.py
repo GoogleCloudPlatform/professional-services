@@ -21,6 +21,8 @@ from google.cloud import storage
 
 from generic_benchmark_tools import file_constants
 
+MB_IN_TB = 1000000
+
 
 class BucketUtil(object):
     """Assists with GCS Bucket interaction.
@@ -99,10 +101,12 @@ class BucketUtil(object):
                     bucket=bucket,
                     name=path,
                 ).exists(gcs_client)
-
+                total_table_size = int(num_file) * \
+                    int(table_size.split('MB')[0])
                 if exists:
                     if run_federated_query_benchmark and \
-                            compression_type == 'snappy':
+                            (compression_type == 'snappy' or
+                             total_table_size > MB_IN_TB):
                         continue
                     path_set.add(path)
 
@@ -113,6 +117,10 @@ class BucketUtil(object):
                 'External queries on snappy compressed files are not '
                 'supported. Snappy files will not be added to set of existing '
                 'paths.'
+            )
+            logging.info(
+                'Only paths that will result in table less than 1 TB will be '
+                'added to the set of existing paths to ensure limit query cost.'
             )
         file_types = self.file_params['fileType']
         compression_types = self.file_params['fileCompressionTypes']

@@ -13,6 +13,7 @@ from query_benchmark_tools import query_generator
 FEDERATED_QUERY_ID = 'FEDERATED QUERY'
 BQ_MANAGED_TYPE_ID = 'BQ_MANAGED'
 EXTERNAL_TYPE_ID = 'EXTERNAL'
+MB_IN_TB = 1000000
 
 
 class FederatedQueryBenchmark:
@@ -66,9 +67,12 @@ class FederatedQueryBenchmark:
         self.native_table_id = native_table_id
         self.bucket_name = bucket_name
         self.file_uri = file_uri
-        partial_file_pattern = r'fileType=(\w+)/compression=(\w+)'
-        self.file_type, self.compression = \
-            re.findall(partial_file_pattern, file_uri)[0]
+        file_pattern = r'fileType=(\w+)/compression=(\w+)/numColumns=(\d+)/columnTypes=(\w+)/numFiles=(\d+)/tableSize=(\w+)'
+        self.file_type, self.compression, num_columns, column_types,\
+            num_files, table_size = \
+            re.findall(file_pattern, file_uri)[0]
+        self.total_table_size = int(num_files) * int(table_size.split('MB')[0])
+
         self.results_table_name = results_table_name
         self.results_table_dataset_id = results_table_dataset_id
 
@@ -82,6 +86,14 @@ class FederatedQueryBenchmark:
                     self.native_table_id,
                     self.file_uri
                 ))
+        elif self.total_table_size > MB_IN_TB:
+            logging.info(
+                'Queries will not be run on tables larger than 1 TB '
+                'in order to save cost. Skipping queries for table '
+                '{0:s} with approximate size of {1:d} TB.'.format(
+                     self.native_table_id,
+                     self.total_table_size//MB_IN_TB
+            ))
         else:
             benchmark_query_generator = query_generator.QueryGenerator(
                 self.native_table_id,

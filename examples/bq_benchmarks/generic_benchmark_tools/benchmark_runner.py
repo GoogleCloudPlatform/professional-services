@@ -185,6 +185,7 @@ class BenchmarkRunner:
                 table.load_from_gcs()
                 if self.run_federated_query_benchmark or \
                         self.include_federated_query_benchmark:
+
                     self._run_federated_query(
                         table_name,
                         dirname
