@@ -147,6 +147,7 @@ class SLOReport:
         Args:
             config (dict): SLO configuration.
             client (obj): Backend client initiated beforehand.
+            timestamp (int): Timestamp.
             delete (bool): Set to True if we're running a delete action.
 
         Returns:
@@ -264,8 +265,9 @@ class SLOReport:
         gap_str = str(gap)
         if gap >= 0:
             gap_str = f'+{gap}'
-        sli_str = f'SLI: {sli_per:<7} % | SLO: {slo_target_per} % | Gap: {gap_str:<6}%'
+        sli_str = (f'SLI: {sli_per:<7} % | SLO: {slo_target_per} % | '
+                   f'Gap: {gap_str:<6}%')
         result_str = ("BR: {error_budget_burn_rate:<2} / "
                       "{alerting_burn_rate_threshold} | "
-                      "Alert: {alert}").format_map(report)
+                      "Alert: {alert} | TS: {timestamp}").format_map(report)
         return f'{info} | {sli_str} | {result_str}'
