@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+
+
+
 import os
 import pandas as pd
 
@@ -120,6 +120,11 @@ class TestUserInfoUpdater(object):
          Returns:
              True if test passes, else False.
          """
+        if not project_id:
+            raise Exception(
+                'Test needs project_id to pass. '
+                'Add --project_id={your project ID} to test command'
+            )
         # Load the first set of user updates to user_info_updates table.
         # All other tables should be empty at this point.
 

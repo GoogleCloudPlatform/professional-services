@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+
+
+
 import json
 import os
 import pandas as pd
@@ -119,7 +119,12 @@ class TestNestedUserInfoUpdater(object):
 
          Returns:
              True if test passes, else False.
-                 """
+         """
+        if not project_id:
+            raise Exception(
+                'Test needs project_id to pass. '
+                'Add --project_id={your project ID} to test command'
+            )
         # Load a set of user updates to nested user_info_updates table.
 
         self.load_json_to_bq(
