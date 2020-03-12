@@ -1,14 +1,14 @@
 #!/bin/sh
 #!/usr/bin/env bash
 script_path=opt/cron/bigquery_user_info_updater/update_user_info.py
-project_id=data-analytics-pocs 
-schema_path=opt/cron/bigquery_user_info_updater/tests/test_schemas/test_schema.json 
-dataset_id=identity_update_test 
-final_table_id=final
-updates_table_id=updates
-temp_updates_table_id=temp 
-user_id_field_name=userId 
-ingest_timestamp_field_name=ingestTimestamp
+#project_id=data-analytics-pocs
+#schema_path=opt/cron/bigquery_user_info_updater/tests/test_schemas/test_schema.json
+#dataset_id=identity_update_test
+#final_table_id=final
+#updates_table_id=updates
+#temp_updates_table_id=temp
+#user_id_field_name=userId
+#ingest_timestamp_field_name=ingestTimestamp
 now=$(date)
 echo "$now: Calling update_user_info.py with parms:"
 cmd=$(cat << EOF
