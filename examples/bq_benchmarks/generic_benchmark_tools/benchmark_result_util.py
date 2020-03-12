@@ -296,8 +296,8 @@ class LoadBenchmarkResultUtil(BenchmarkResultUtil):
         load_properties = dict()
         load_properties['destinationTable'] = '{0:s}.{1:s}.{2:s}'.format(
             self.project_id,
-            self.load_table_id,
-            self.load_dataset_id
+            self.load_dataset_id,
+            self.load_table_id
         )
         load_properties['sourceURI'] = self.job_source_uri
 
