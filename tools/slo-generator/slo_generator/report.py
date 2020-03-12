@@ -77,7 +77,7 @@ class SLOReport:
 
         # Set other fields
         self.window = int(step['measurement_window_seconds'])
-        self.timestamp = timestamp
+        self.timestamp = int(timestamp)
         self.timestamp_human = utils.get_human_time(timestamp)
 
         # Get backend results
@@ -267,7 +267,8 @@ class SLOReport:
             gap_str = f'+{gap}'
         sli_str = (f'SLI: {sli_per:<7} % | SLO: {slo_target_per} % | '
                    f'Gap: {gap_str:<6}%')
-        result_str = ("BR: {error_budget_burn_rate:<2} / "
-                      "{alerting_burn_rate_threshold} | "
-                      "Alert: {alert} | TS: {timestamp}").format_map(report)
+        result_str = (
+            "BR: {error_budget_burn_rate:<2} / "
+            "{alerting_burn_rate_threshold} | "
+            "Alert: {alert} | Timestamp: {timestamp}").format_map(report)
         return f'{info} | {sli_str} | {result_str}'
