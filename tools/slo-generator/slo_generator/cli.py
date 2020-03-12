@@ -41,9 +41,11 @@ def cli(args):
     utils.setup_logging()
     export = args.export
     delete = args.delete
+    timestamp = args.timestamp
 
     # Load error budget policy
-    LOGGER.debug(f"Loading Error Budget config from {args.error_budget_policy}")
+    LOGGER.debug(
+        f"Loading Error Budget config from {args.error_budget_policy}")
     eb_path = utils.normalize(args.error_budget_policy)
     eb_policy = utils.parse_config(eb_path)
 
@@ -57,7 +59,11 @@ def cli(args):
         slo_config_name = path.split("/")[-1]
         LOGGER.debug(f'Loading SLO config "{slo_config_name}"')
         slo_config = utils.parse_config(path)
-        compute(slo_config, eb_policy, do_export=export, delete=delete)
+        compute(slo_config,
+                eb_policy,
+                timestamp=timestamp,
+                do_export=export,
+                delete=delete)
 
 
 def parse_args(args):
@@ -95,6 +101,11 @@ def parse_args(args):
                         const=True,
                         default=False,
                         help="Delete SLO (use for backends with APIs).")
+    parser.add_argument('--timestamp',
+                        '-t',
+                        type=int,
+                        default=None,
+                        help="End timestamp for query.")
     return parser.parse_args(args)
 
 
