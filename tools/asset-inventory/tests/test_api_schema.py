@@ -198,7 +198,8 @@ class TestApiSchema(unittest.TestCase):
               'name': 'lastModifiedTime',
               'mode': 'NULLABLE'}],
             data_fields)
-        self.assertEqual(len(schema), 4)
+        # name, asset_type, timestamp, resource, iam_policy
+        self.assertEqual(len(schema), 5)
 
     def test_self_recursive_properties(self):
         discovery_doc = {

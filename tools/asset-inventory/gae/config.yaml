@@ -85,7 +85,3 @@ import_num_shards: "*=1"
 
 # If we are running on App Engine and only want to be invoked by cron tasks for security reasons.
 restrict_to_cron_tasks: True
-
-
-# For the brave who wish to try running the python direct runner on python3.
-# beam_experimental_py3: True
