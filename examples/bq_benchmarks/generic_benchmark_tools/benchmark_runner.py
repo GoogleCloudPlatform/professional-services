@@ -66,22 +66,20 @@ class BenchmarkRunner:
 
     """
 
-    def __init__(
-            self,
-            bq_project,
-            gcs_project,
-            staging_project,
-            staging_dataset_id,
-            dataset_id,
-            bucket_name,
-            results_table_name,
-            results_table_dataset_id,
-            duplicate_benchmark_tables,
-            file_params,
-            bq_logs_dataset,
-            run_federated_query_benchmark=False,
-            include_federated_query_benchmark=False
-    ):
+    def __init__(self,
+                 bq_project,
+                 gcs_project,
+                 staging_project,
+                 staging_dataset_id,
+                 dataset_id,
+                 bucket_name,
+                 results_table_name,
+                 results_table_dataset_id,
+                 duplicate_benchmark_tables,
+                 file_params,
+                 bq_logs_dataset,
+                 run_federated_query_benchmark=False,
+                 include_federated_query_benchmark=False):
         self.bq_project = bq_project
         self.gcs_project = gcs_project
         self.staging_project = staging_project
@@ -129,8 +127,7 @@ class BenchmarkRunner:
                 self.bq_project,
                 self.results_table_dataset_id,
                 self.results_table_name,
-            )
-        )
+            ))
         query_job = bigquery.Client().query(
             query,
             location='US',
@@ -139,8 +136,7 @@ class BenchmarkRunner:
         for row in query_job:
             if row['sourceURI'] and self.bucket_name in row['sourceURI']:
                 uri = row['sourceURI'].split('gs://{0:s}/'.format(
-                    self.bucket_name
-                ))[1]
+                    self.bucket_name))[1]
                 file_name = uri.split('/*')[0]
                 files_with_benchmark_tables.add(file_name)
         return files_with_benchmark_tables
@@ -154,8 +150,7 @@ class BenchmarkRunner:
         """
         # Gather file combinations that exist in the GCS Bucket.
         existing_paths = self.bucket_util.get_existing_paths(
-            run_federated_query_benchmark=self.run_federated_query_benchmark
-        )
+            run_federated_query_benchmark=self.run_federated_query_benchmark)
         # Create a benchmark table for each existing file combination, and
         # load the data from the file into the benchmark table.
         for path in existing_paths:
@@ -179,17 +174,13 @@ class BenchmarkRunner:
                     dirname=dirname,
                     results_table_name=self.results_table_name,
                     results_table_dataset_id=self.results_table_dataset_id,
-                    bq_logs_dataset=self.bq_logs_dataset
-                )
+                    bq_logs_dataset=self.bq_logs_dataset)
                 table_name = table.create_table()
                 table.load_from_gcs()
                 if self.run_federated_query_benchmark or \
                         self.include_federated_query_benchmark:
 
-                    self._run_federated_query(
-                        table_name,
-                        dirname
-                    )
+                    self._run_federated_query(table_name, dirname)
                 table.delete_table()
 
     def _run_federated_query(self, table_name, dirname):
@@ -212,10 +203,6 @@ class BenchmarkRunner:
                 results_table_name=self.results_table_name,
                 results_table_dataset_id=self.results_table_dataset_id
             )
-        logging.info(
-            'Running Federated Query Benchmark for BQ managed '
-            'table {0:s} and file {1:s}'.format(
-                table_name,
-                uri
-            ))
+        logging.info('Running Federated Query Benchmark for BQ managed '
+                     'table {0:s} and file {1:s}'.format(table_name, uri))
         query_benchmark.run_queries()

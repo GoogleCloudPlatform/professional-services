@@ -45,15 +45,8 @@ class StagingTableGenerator(object):
 
     """
 
-    def __init__(
-            self,
-            project,
-            staging_dataset_id,
-            resized_dataset_id,
-            json_schema_path,
-            file_params,
-            num_rows
-    ):
+    def __init__(self, project, staging_dataset_id, resized_dataset_id,
+                 json_schema_path, file_params, num_rows):
         self.bq_client = bigquery.Client()
         self.project = project
         self.staging_dataset_id = staging_dataset_id
@@ -84,13 +77,9 @@ class StagingTableGenerator(object):
         def _create_table(table_details):
 
             column_type, num_column = table_details
-            schema_name = '{0:s}_{1:d}'.format(
-                column_type,
-                num_column
-            )
-            logging.info('Creating staging table for schema: {0:s}'.format(
-                schema_name
-            ))
+            schema_name = '{0:s}_{1:d}'.format(column_type, num_column)
+            logging.info(
+                'Creating staging table for schema: {0:s}'.format(schema_name))
             command = ('python {0:s}/data_generator_pipeline.py '
                        '--schema_file={1:s}/{2:s}.json '
                        '--num_records={3:d} '
@@ -102,24 +91,22 @@ class StagingTableGenerator(object):
                        '--save_main_session '
                        '--worker_machine_type=n1-highcpu-32 '
                        '--runner=DataflowRunner ').format(
-                data_gen_path,
-                self.json_schema_path,
-                schema_name,
-                self.num_rows,
-                self.project,
-                self.staging_dataset_id,
-                dataflow_staging_location,
-                dataflow_temp_location,
-            )
+                           data_gen_path,
+                           self.json_schema_path,
+                           schema_name,
+                           self.num_rows,
+                           self.project,
+                           self.staging_dataset_id,
+                           dataflow_staging_location,
+                           dataflow_temp_location,
+                       )
             os.system(command)
 
         column_types = self.file_params['columnTypes']
         num_columns = self.file_params['numColumns']
         abs_path = os.path.abspath(os.path.dirname(__file__))
         data_gen_path = os.path.join(
-            abs_path,
-            '../../dataflow-data-generator/data-generator-pipeline'
-        )
+            abs_path, '../../dataflow-data-generator/data-generator-pipeline')
         with ThreadPoolExecutor() as p:
             p.map(_create_table, itertools.product(column_types, num_columns))
 
@@ -136,9 +123,7 @@ class StagingTableGenerator(object):
         sizes.sort()
         abs_path = os.path.abspath(os.path.dirname(__file__))
         bq_resizer_path = os.path.join(
-            abs_path,
-            '../../dataflow-data-generator/bigquery-scripts'
-        )
+            abs_path, '../../dataflow-data-generator/bigquery-scripts')
         # Gather staging tables that were created in
         # self.create_staging_tables()
         tables = list(self.bq_client.list_tables(staging_dataset))
@@ -154,19 +139,14 @@ class StagingTableGenerator(object):
                 size = sizes[i]
                 if size > sizes[i - 1]:
                     base = sizes[i - 1]
-                    source_table = get_resized_table_name(
-                        table.table_id,
-                        base
-                    )
+                    source_table = get_resized_table_name(table.table_id, base)
                     source_dataset = self.resized_dataset_id
                 else:
                     source_table = table.table_id
                     source_dataset = self.staging_dataset_id
 
                 destination_table = get_resized_table_name(
-                    table.table_id,
-                    size
-                )
+                    table.table_id, size)
                 target_gb = size
                 command_str = ('python {0:s}/bq_table_resizer.py '
                                '--project {1:s} '
@@ -185,12 +165,10 @@ class StagingTableGenerator(object):
                     target_gb,
                 )
                 os.system(command)
-                logging.info('Created resized table from {0:s}'.format(
-                    source_table
-                ))
-                logging.info('Resized table complete: {0:s}'.format(
-                    destination_table
-                ))
+                logging.info(
+                    'Created resized table from {0:s}'.format(source_table))
+                logging.info(
+                    'Resized table complete: {0:s}'.format(destination_table))
 
 
 def get_resized_table_name(table_id, size):

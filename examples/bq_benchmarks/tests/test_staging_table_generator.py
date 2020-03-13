@@ -57,45 +57,35 @@ class TestStagingTableGenerator(object):
         staging_dataset_ref = self.bq_client.dataset(self.staging_dataset_id)
         self.staging_dataset = bigquery.Dataset(staging_dataset_ref)
         resized_staging_dataset_ref = self.bq_client.dataset(
-            self.resized_dataset_id
-        )
+            self.resized_dataset_id)
         self.resized_dataset = bigquery.Dataset(resized_staging_dataset_ref)
 
         # define path that holds schemas used for creating staging tables
         abs_path = os.path.abspath(os.path.dirname(__file__))
-        self.json_schema_path = os.path.join(
-            abs_path,
-            'test_schemas'
-        )
+        self.json_schema_path = os.path.join(abs_path, 'test_schemas')
 
         # add test schemas to schema path
         schema_50_string_50_numeric = {
-            "fields": [
-                {
-                    "type": "STRING",
-                    "name": "string1",
-                    "mode": "REQUIRED"
-                },
-                {
-                    "type": "STRING",
-                    "name": "string2",
-                    "mode": "REQUIRED"
-                },
-                {
-                    "type": "NUMERIC",
-                    "name": "numeric1",
-                    "mode": "REQUIRED"
-                },
-                {
-                    "type": "NUMERIC",
-                    "name": "numeric2",
-                    "mode": "REQUIRED"
-                }
-            ]
+            "fields": [{
+                "type": "STRING",
+                "name": "string1",
+                "mode": "REQUIRED"
+            }, {
+                "type": "STRING",
+                "name": "string2",
+                "mode": "REQUIRED"
+            }, {
+                "type": "NUMERIC",
+                "name": "numeric1",
+                "mode": "REQUIRED"
+            }, {
+                "type": "NUMERIC",
+                "name": "numeric2",
+                "mode": "REQUIRED"
+            }]
         }
-        with open(
-                self.json_schema_path + '/50_STRING_50_NUMERIC_4.json', 'w'
-        ) as sch2:
+        with open(self.json_schema_path + '/50_STRING_50_NUMERIC_4.json',
+                  'w') as sch2:
             json.dump(schema_50_string_50_numeric, sch2)
 
         # set up test params
@@ -109,27 +99,20 @@ class TestStagingTableGenerator(object):
             'numFiles': [1, 100, 1000, 10000],
             'targetDataSizes': [.000001],
             'stagingDataSizes': ['1KB'],
-            'columnTypes': [
-                '50_STRING_50_NUMERIC'
-            ],
+            'columnTypes': ['50_STRING_50_NUMERIC'],
         }
 
         # set up GCS resources needed for dataglow job
         df_staging_bucket_id = 'bq_benchmark_dataflow_test'
         gcs_client = storage.Client()
-        self.df_staging_bucket = gcs_client.create_bucket(
-            df_staging_bucket_id
-        )
+        self.df_staging_bucket = gcs_client.create_bucket(df_staging_bucket_id)
         staging_blob = self.df_staging_bucket.blob('staging/')
         temp_blob = self.df_staging_bucket.blob('temp/')
         staging_blob.upload_from_string('')
         temp_blob.upload_from_string('')
         self.df_staging_path = 'gs://{0:1}/staging'.format(
-            df_staging_bucket_id
-        )
-        self.df_temp_path = 'gs://{0:1}/temp'.format(
-            df_staging_bucket_id
-        )
+            df_staging_bucket_id)
+        self.df_temp_path = 'gs://{0:1}/temp'.format(df_staging_bucket_id)
 
     def test_create_staging_tables(self, project_id):
         """Tests StagingTableGenerator.create_staging_tables().
@@ -148,8 +131,7 @@ class TestStagingTableGenerator(object):
         if not project_id:
             raise Exception(
                 'Test needs project_id to pass. '
-                'Add --project_id={your project ID} to test command'
-            )
+                'Add --project_id={your project ID} to test command')
 
         self.bq_client.create_dataset(self.staging_dataset)
         self.bq_client.create_dataset(self.resized_dataset)
@@ -166,8 +148,7 @@ class TestStagingTableGenerator(object):
 
         self.test_staging_table_generator.create_staging_tables(
             dataflow_staging_location=self.df_staging_path,
-            dataflow_temp_location=self.df_temp_path
-        )
+            dataflow_temp_location=self.df_temp_path)
 
         expected_table_id = "50_STRING_50_NUMERIC_4"
         dataset_ref = self.bq_client.dataset(self.staging_dataset_id)
@@ -178,34 +159,10 @@ class TestStagingTableGenerator(object):
         assert table.num_rows == expected_num_rows
 
         expected_schema = [
-            bigquery.SchemaField(
-                'string1',
-                'STRING',
-                'REQUIRED',
-                None,
-                ()
-            ),
-            bigquery.SchemaField(
-                'string2',
-                'STRING',
-                'REQUIRED',
-                None,
-                ()
-            ),
-            bigquery.SchemaField(
-                'numeric1',
-                'NUMERIC',
-                'REQUIRED',
-                None,
-                ()
-            ),
-            bigquery.SchemaField(
-                'numeric2',
-                'NUMERIC',
-                'REQUIRED',
-                None,
-                ()
-            )
+            bigquery.SchemaField('string1', 'STRING', 'REQUIRED', None, ()),
+            bigquery.SchemaField('string2', 'STRING', 'REQUIRED', None, ()),
+            bigquery.SchemaField('numeric1', 'NUMERIC', 'REQUIRED', None, ()),
+            bigquery.SchemaField('numeric2', 'NUMERIC', 'REQUIRED', None, ())
         ]
 
         assert table.schema == expected_schema
@@ -227,8 +184,7 @@ class TestStagingTableGenerator(object):
         if not project_id:
             raise Exception(
                 'Test needs project_id to pass. '
-                'Add --project_id={your project ID} to test command'
-            )
+                'Add --project_id={your project ID} to test command')
         self.test_staging_table_generator = \
             staging_table_generator.StagingTableGenerator(
                 project=project_id,
@@ -246,34 +202,10 @@ class TestStagingTableGenerator(object):
         table = self.bq_client.get_table(table_ref)
 
         expected_schema = [
-            bigquery.SchemaField(
-                'string1',
-                'STRING',
-                'REQUIRED',
-                None,
-                ()
-            ),
-            bigquery.SchemaField(
-                'string2',
-                'STRING',
-                'REQUIRED',
-                None,
-                ()
-            ),
-            bigquery.SchemaField(
-                'numeric1',
-                'NUMERIC',
-                'REQUIRED',
-                None,
-                ()
-            ),
-            bigquery.SchemaField(
-                'numeric2',
-                'NUMERIC',
-                'REQUIRED',
-                None,
-                ()
-            )
+            bigquery.SchemaField('string1', 'STRING', 'REQUIRED', None, ()),
+            bigquery.SchemaField('string2', 'STRING', 'REQUIRED', None, ()),
+            bigquery.SchemaField('numeric1', 'NUMERIC', 'REQUIRED', None, ()),
+            bigquery.SchemaField('numeric2', 'NUMERIC', 'REQUIRED', None, ())
         ]
 
         assert table.schema == expected_schema
@@ -287,21 +219,15 @@ class TestStagingTableGenerator(object):
 
         assert round(table.num_bytes, -3) == round(expected_bytes, -3)
 
-        self.bq_client.delete_dataset(
-            self.staging_dataset,
-            delete_contents=True
-        )
+        self.bq_client.delete_dataset(self.staging_dataset,
+                                      delete_contents=True)
 
-        self.bq_client.delete_dataset(
-            self.resized_dataset,
-            delete_contents=True
-        )
+        self.bq_client.delete_dataset(self.resized_dataset,
+                                      delete_contents=True)
 
     def teardown(self):
         """Tears down resources created in setup().
         """
-        self.df_staging_bucket.delete(
-            force=True
-        )
+        self.df_staging_bucket.delete(force=True)
 
         os.remove(self.json_schema_path + '/50_STRING_50_NUMERIC_4.json')

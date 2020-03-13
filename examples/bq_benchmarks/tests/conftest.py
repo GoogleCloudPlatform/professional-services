@@ -2,11 +2,9 @@ import pytest
 
 
 def pytest_addoption(parser):
-    parser.addoption(
-        "--project_id",
-        action="store",
-        help="ID of project to hold test resources"
-    )
+    parser.addoption("--project_id",
+                     action="store",
+                     help="ID of project to hold test resources")
 
 
 @pytest.fixture(scope='session')

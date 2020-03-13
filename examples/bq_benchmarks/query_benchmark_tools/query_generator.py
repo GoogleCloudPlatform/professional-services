@@ -26,10 +26,8 @@ class QueryGenerator:
     def __init__(self, table_id, dataset_id):
         self.table_id = table_id
         self.dataset_id = dataset_id
-        self.bq_table_util = table_util.TableUtil(
-            self.table_id,
-            self.dataset_id
-        )
+        self.bq_table_util = table_util.TableUtil(self.table_id,
+                                                  self.dataset_id)
         self.bq_table_util.set_table_properties()
         self.schema = self.bq_table_util.table.schema
         self.query_strings = {}
@@ -65,15 +63,14 @@ class QueryGenerator:
 
         logging.info('No string fields were found in the schema for BQ '
                      'table {0:s}.Unable to run {1:s} query.'.format(
-                        self.table_id,
-                        SELECT_ONE_STRING_ID
-                     ))
+                         self.table_id, SELECT_ONE_STRING_ID))
 
     def get_50_percent_query(self):
         """Generates a query that selects 50% of the table's fields. """
-        field_names = [self.schema[i].name
-                       for i in range(self.bq_table_util.num_columns//2)
-                       ]
+        field_names = [
+            self.schema[i].name
+            for i in range(self.bq_table_util.num_columns // 2)
+        ]
         self.query_strings[SELECT_50_PERCENT_ID] = \
             'SELECT {0:s} FROM `{1:s}`'.format(
                 ', '.join(field_names),

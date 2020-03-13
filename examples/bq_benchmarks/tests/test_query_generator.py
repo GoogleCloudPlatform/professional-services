@@ -51,10 +51,8 @@ class TestQueryGenerator(unittest.TestCase):
         self.dataset = self.bq_client.create_dataset(dataset)
         self.table_id = 'test_table'
         abs_path = os.path.abspath(os.path.dirname(__file__))
-        json_schema_filename = os.path.join(
-            abs_path,
-            'test_schemas/test_schema.json'
-        )
+        json_schema_filename = os.path.join(abs_path,
+                                            'test_schemas/test_schema.json')
         self.table_util = table_util.TableUtil(
             table_id=self.table_id,
             dataset_id=self.dataset_id,
@@ -62,9 +60,7 @@ class TestQueryGenerator(unittest.TestCase):
         )
         self.table_util.create_table()
         self.test_query_generator = query_generator.QueryGenerator(
-            table_id=self.table_id,
-            dataset_id=self.dataset_id
-        )
+            table_id=self.table_id, dataset_id=self.dataset_id)
 
     def test_get_query_strings(self):
         """Tests QueryGenerator.get_query_strings().
@@ -85,8 +81,5 @@ class TestQueryGenerator(unittest.TestCase):
     def tearDown(self):
         """Deletes any resources used by tests.
         """
-        self.bq_client.delete_dataset(
-            dataset=self.dataset_ref,
-            delete_contents=True
-        )
-
+        self.bq_client.delete_dataset(dataset=self.dataset_ref,
+                                      delete_contents=True)

@@ -39,10 +39,8 @@ class TestAvroUtil(unittest.TestCase):
             bigquery.SchemaField('numeric1', 'NUMERIC', 'REQUIRED')
         ]
         self.schema_name = 'test_schema'
-        self.avro_util = avro_util.AvroUtil(
-            bq_schema=bq_schema,
-            schema_name=self.schema_name
-        )
+        self.avro_util = avro_util.AvroUtil(bq_schema=bq_schema,
+                                            schema_name=self.schema_name)
 
     def test_get_avro_translated_schema(self):
         """Tests AvroUtil.get_avro_translated_schema().
@@ -55,25 +53,23 @@ class TestAvroUtil(unittest.TestCase):
         """
         avro_translated_schema = self.avro_util.get_avro_translated_schema()
         expected_schema_dict = {
-            'fields': [
-                {
-                    'type': 'string',
-                    'name': 'string1'
+            'fields': [{
+                'type': 'string',
+                'name': 'string1'
+            }, {
+                'type': {
+                    'logicalType': 'decimal',
+                    'scale': 9,
+                    'type': 'bytes',
+                    'precision': 38
                 },
-                {
-                    'type': {
-                        'logicalType': 'decimal',
-                        'scale': 9,
-                        'type': 'bytes',
-                        'precision': 38
-                    },
-                    'name': 'numeric1'
-                }
-            ],
-            'type': 'record',
-            'name': 'test_schema'
+                'name': 'numeric1'
+            }],
+            'type':
+            'record',
+            'name':
+            'test_schema'
         }
         expected_avro_schema = avro.schema.Parse(
-            json.dumps(expected_schema_dict)
-        )
+            json.dumps(expected_schema_dict))
         assert avro_translated_schema == expected_avro_schema

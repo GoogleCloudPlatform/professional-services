@@ -82,19 +82,14 @@ class TestFileGenerator(object):
         # set up GCS resources needed for dataglow job
         df_staging_bucket_id = 'bq_benchmark_dataflow_test'
         gcs_client = storage.Client()
-        self.df_staging_bucket = gcs_client.create_bucket(
-            df_staging_bucket_id
-        )
+        self.df_staging_bucket = gcs_client.create_bucket(df_staging_bucket_id)
         staging_blob = self.df_staging_bucket.blob('staging/')
         temp_blob = self.df_staging_bucket.blob('temp/')
         staging_blob.upload_from_string('')
         temp_blob.upload_from_string('')
         self.df_staging_path = 'gs://{0:1}/staging'.format(
-            df_staging_bucket_id
-        )
-        self.df_temp_path = 'gs://{0:1}/temp'.format(
-            df_staging_bucket_id
-        )
+            df_staging_bucket_id)
+        self.df_temp_path = 'gs://{0:1}/temp'.format(df_staging_bucket_id)
 
     def test_create_files(self, project_id):
         """Tests FileGenerator.create_files().
@@ -112,8 +107,7 @@ class TestFileGenerator(object):
         if not project_id:
             raise Exception(
                 'Test needs project_id to pass. '
-                'Add --project_id={your project ID} to test command'
-            )
+                'Add --project_id={your project ID} to test command')
         # create sample staging table
 
         staging_table_id = '50_STRING_50_NUMERIC_10_213B'
@@ -124,8 +118,7 @@ class TestFileGenerator(object):
             abs_path,
             ('test_data/fileType=csv/compression=none/'
              'numColumns=10/columnTypes=50_STRING_50_NUMERIC/numFiles=1/'
-             'tableSize=10MB/file1.csv')
-        )
+             'tableSize=10MB/file1.csv'))
         load_job_config = bigquery.LoadJobConfig()
         load_job_config.source_format = bigquery.SourceFormat.CSV
         load_job_config.skip_leading_rows = 1
@@ -133,21 +126,13 @@ class TestFileGenerator(object):
 
         with open(sample_data_file, "rb") as source_file:
             job = self.bq_client.load_table_from_file(
-                source_file,
-                staging_table_ref,
-                job_config=load_job_config
-            )
+                source_file, staging_table_ref, job_config=load_job_config)
 
         job.result()
 
         self.file_generator = load_file_generator.FileGenerator(
-            project_id,
-            self.dataset_id,
-            self.bucket_name,
-            self.test_file_parameters,
-            self.df_staging_path,
-            self.df_temp_path
-        )
+            project_id, self.dataset_id, self.bucket_name,
+            self.test_file_parameters, self.df_staging_path, self.df_temp_path)
 
         # assert that the file names/numbers are correct
         self.file_generator.create_files()
@@ -195,41 +180,31 @@ class TestFileGenerator(object):
         if not project_id:
             raise Exception(
                 'Test needs project_id to pass. '
-                'Add --project_id={your project ID} to test command'
-            )
+                'Add --project_id={your project ID} to test command')
         self.file_generator = load_file_generator.FileGenerator(
-            project_id,
-            self.dataset_id,
-            self.bucket_name,
-            self.test_file_parameters,
-            self.df_staging_path,
-            self.df_temp_path
-        )
+            project_id, self.dataset_id, self.bucket_name,
+            self.test_file_parameters, self.df_staging_path, self.df_temp_path)
 
         abs_path = os.path.abspath(os.path.dirname(__file__))
         sample_file = os.path.join(
             abs_path,
             ('test_data/fileType=csv/compression=none/'
              'numColumns=10/columnTypes=50_STRING_50_NUMERIC/numFiles=1/'
-             'tableSize=10MB/file1.csv')
-        )
+             'tableSize=10MB/file1.csv'))
         num_sample_blobs = 3
         for i in range(1, num_sample_blobs + 1):
             blob = self.file_bucket.blob('blob{0:d}'.format(i))
             blob.upload_from_filename(sample_file)
         composed_blob_name = 'blob'
         self.file_generator._compose_sharded_blobs(
-            blob_name=composed_blob_name,
-            max_composable_blobs=2
-        )
+            blob_name=composed_blob_name, max_composable_blobs=2)
 
         # assert that the final composed blob exists and all sharded blobs
         # have been deleted
         assert storage.Blob(composed_blob_name, self.file_bucket).exists()
         for i in range(1, num_sample_blobs + 1):
-            assert not storage.Blob(
-                'blob{0:d}'.format(i),
-                self.file_bucket).exists()
+            assert not storage.Blob('blob{0:d}'.format(i),
+                                    self.file_bucket).exists()
 
         # check that the correct number of rows exists in the composed blob
         with open(sample_file) as opened_sample_file:
@@ -237,16 +212,10 @@ class TestFileGenerator(object):
             sample_file_num_rows = len(csv_reader)
 
         abs_path = os.path.abspath(os.path.dirname(__file__))
-        downloaded_blob_name = '{0:s}.csv'.format(
-            composed_blob_name
-        )
-        downloaded_blob_path = os.path.join(
-            abs_path,
-            downloaded_blob_name
-        )
+        downloaded_blob_name = '{0:s}.csv'.format(composed_blob_name)
+        downloaded_blob_path = os.path.join(abs_path, downloaded_blob_name)
         self.file_bucket.get_blob(composed_blob_name).download_to_filename(
-            downloaded_blob_path
-        )
+            downloaded_blob_path)
 
         with open(downloaded_blob_path) as opened_downloaded_blob:
             csv_reader = list(csv.reader(opened_downloaded_blob))
@@ -262,15 +231,8 @@ class TestFileGenerator(object):
     def teardown(self):
         """Tears down resources created in setup().
         """
-        self.df_staging_bucket.delete(
-            force=True
-        )
+        self.df_staging_bucket.delete(force=True)
 
-        self.file_bucket.delete(
-            force=True
-        )
+        self.file_bucket.delete(force=True)
 
-        self.bq_client.delete_dataset(
-            self.dataset_ref,
-            delete_contents=True
-        )
+        self.bq_client.delete_dataset(self.dataset_ref, delete_contents=True)

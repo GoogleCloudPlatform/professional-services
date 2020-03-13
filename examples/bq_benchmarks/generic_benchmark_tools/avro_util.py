@@ -30,6 +30,7 @@ class AvroUtil(object):
         schema_name(str): name that will be given to the avro schema.
 
     """
+
     def __init__(self, bq_schema, schema_name):
         self.bq_schema = bq_schema
         self.schema_name = schema_name

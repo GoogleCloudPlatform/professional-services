@@ -26,6 +26,7 @@ class ParquetUtil(object):
             BigQuery table that will be extracted to an parquet file.
 
     """
+
     def __init__(self, bq_schema):
         self.bq_schema = bq_schema
 

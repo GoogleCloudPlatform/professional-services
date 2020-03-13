@@ -48,10 +48,8 @@ class TestTableUtil(unittest.TestCase):
         self.dataset = self.bq_client.create_dataset(dataset)
         self.table_id = 'test_table'
         abs_path = os.path.abspath(os.path.dirname(__file__))
-        json_schema_filename = os.path.join(
-            abs_path,
-            'test_schemas/test_schema.json'
-        )
+        json_schema_filename = os.path.join(abs_path,
+                                            'test_schemas/test_schema.json')
         self.table_util = table_util.TableUtil(
             table_id=self.table_id,
             dataset_id=self.dataset_id,
@@ -79,18 +77,10 @@ class TestTableUtil(unittest.TestCase):
             True if test passes, else False.
         """
         expected_bq_schema = [
-            bigquery.SchemaField(
-                'string1',
-                'STRING',
-                'REQUIRED',
-                'description1'
-            ),
-            bigquery.SchemaField(
-                'numeric1',
-                'NUMERIC',
-                'REQUIRED',
-                'description2'
-            )
+            bigquery.SchemaField('string1', 'STRING', 'REQUIRED',
+                                 'description1'),
+            bigquery.SchemaField('numeric1', 'NUMERIC', 'REQUIRED',
+                                 'description2')
         ]
         bq_schema = self.table_util.get_bq_translated_schema()
 
@@ -126,10 +116,7 @@ class TestTableUtil(unittest.TestCase):
         job_config.source_format = bigquery.SourceFormat.CSV
         job_config.skip_leading_rows = 1
         abs_path = os.path.abspath(os.path.dirname(__file__))
-        data_file = os.path.join(
-            abs_path,
-            'test_data/test.csv'
-        )
+        data_file = os.path.join(abs_path, 'test_data/test.csv')
         with open(data_file, 'rb') as file_obj:
             load_job = self.bq_client.load_table_from_file(
                 file_obj=file_obj,
@@ -161,12 +148,9 @@ class TestTableUtil(unittest.TestCase):
     def tearDown(self):
         """Deletes any resources used by tests.
         """
-        self.bq_client.delete_dataset(
-            dataset=self.dataset_ref,
-            delete_contents=True
-        )
+        self.bq_client.delete_dataset(dataset=self.dataset_ref,
+                                      delete_contents=True)
 
 
 if __name__ == '__main__':
     unittest.main()
-

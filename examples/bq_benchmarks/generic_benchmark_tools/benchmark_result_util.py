@@ -23,7 +23,7 @@ from google.cloud import storage
 from generic_benchmark_tools import file_constants
 from generic_benchmark_tools import table_util
 
-BYTES_IN_MB = 10 ** 6
+BYTES_IN_MB = 10**6
 
 
 class BenchmarkResultUtil(ABC):
@@ -53,16 +53,8 @@ class BenchmarkResultUtil(ABC):
 
     """
 
-    def __init__(
-            self,
-            job,
-            job_type,
-            benchmark_name,
-            project_id,
-            result_table_name,
-            result_dataset_id,
-            bq_logs_dataset
-    ):
+    def __init__(self, job, job_type, benchmark_name, project_id,
+                 result_table_name, result_dataset_id, bq_logs_dataset):
         self.bq_client = bigquery.Client()
         self.storage_client = storage.Client()
         self.project_id = project_id
@@ -78,24 +70,17 @@ class BenchmarkResultUtil(ABC):
         str_timestamp = str(self.job.created)
         sharded_table_timestamp = str_timestamp.split(' ')[0].replace('-', '')
         abs_path = os.path.abspath(os.path.dirname(__file__))
-        log_query_file = os.path.join(
-            abs_path,
-            '../queries/log_query.txt'
-        )
+        log_query_file = os.path.join(abs_path, '../queries/log_query.txt')
         with open(log_query_file, 'r') as input_file:
-            log_query_bql = input_file.read().format(
-                self.project_id,
-                self.bq_logs_dataset,
-                sharded_table_timestamp,
-                self.job.job_id
-            )
+            log_query_bql = input_file.read().format(self.project_id,
+                                                     self.bq_logs_dataset,
+                                                     sharded_table_timestamp,
+                                                     self.job.job_id)
         log_query_config = bigquery.QueryJobConfig()
         log_query_config.use_legacy_sql = False
-        log_query_job = self.bq_client.query(
-            query=log_query_bql,
-            location='US',
-            job_config=log_query_config
-        )
+        log_query_job = self.bq_client.query(query=log_query_bql,
+                                             location='US',
+                                             job_config=log_query_config)
         log_query_job.result()
         total_slot_ms = None
         avg_slots = None
@@ -147,17 +132,11 @@ class BenchmarkResultUtil(ABC):
         bucket_name, file_type, compression, num_columns, column_types, \
             num_files, staging_data_size, staging_data_unit = \
             re.findall(benchmark_details_pattern, file_uri)[0]
-        compression_format = (file_constants.FILE_CONSTANTS
-                                ['compressionFormats'][compression])
+        compression_format = (
+            file_constants.FILE_CONSTANTS['compressionFormats'][compression])
         file_name_prefix = 'fileType={0:s}/compression={1:s}/numColumns={2:s}/columnTypes={3:s}/numFiles={4:s}/tableSize={5:s}{6:s}'.format(
-            file_type,
-            compression,
-            num_columns,
-            column_types,
-            num_files,
-            staging_data_size,
-            staging_data_unit
-        )
+            file_type, compression, num_columns, column_types, num_files,
+            staging_data_size, staging_data_unit)
         bucket = self.storage_client.get_bucket(bucket_name)
         files_consts = file_constants.FILE_CONSTANTS
         if compression == 'none':
@@ -165,10 +144,7 @@ class BenchmarkResultUtil(ABC):
         else:
             file_ext = files_consts['compressionExtensions'][compression]
 
-        file_name = '{0:s}/file1.{1:s}'.format(
-            file_name_prefix,
-            file_ext
-        )
+        file_name = '{0:s}/file1.{1:s}'.format(file_name_prefix, file_ext)
 
         file_size = float(bucket.get_blob(file_name).size) / BYTES_IN_MB
         properties_from_file_path = dict()
@@ -202,9 +178,8 @@ class BenchmarkResultUtil(ABC):
                     self.job.job_id,
                     job_state,
                 ))
-                logging.info(
-                    'Waiting to gather results for job {0:s} until '
-                    'data has been loaded.'.format(self.job.job_id))
+                logging.info('Waiting to gather results for job {0:s} until '
+                             'data has been loaded.'.format(self.job.job_id))
                 i += 1
             self.job = self.bq_client.get_job(self.job.job_id)
             job_state = self.job.state
@@ -216,11 +191,9 @@ class BenchmarkResultUtil(ABC):
         self._set_generic_properties()
 
         results_table_dataset_ref = self.bq_client.dataset(
-            self.results_dataset_id
-        )
+            self.results_dataset_id)
         results_table_ref = results_table_dataset_ref.table(
-            self.results_table_name
-        )
+            self.results_table_name)
         results_table = self.bq_client.get_table(results_table_ref)
         logging.info('Inserting {0:s}'.format(str(self.results_dict)))
         insert_job = self.bq_client.insert_rows(
@@ -229,10 +202,8 @@ class BenchmarkResultUtil(ABC):
         )
         if len(insert_job) == 0:
             logging.info(('{0:s} Benchmark results for job {1:s} loaded '
-                          'loaded successfully'.format(
-                                self.benchmark_name,
-                                self.job.job_id)
-                          ))
+                          'loaded successfully'.format(self.benchmark_name,
+                                                       self.job.job_id)))
         else:
             logging.error(insert_job)
 
@@ -264,28 +235,13 @@ class LoadBenchmarkResultUtil(BenchmarkResultUtil):
             has been loaded into.
 
     """
-    def __init__(
-            self,
-            job,
-            job_type,
-            benchmark_name,
-            project_id,
-            results_table_name,
-            results_dataset_id,
-            bq_logs_dataset,
-            job_source_uri,
-            load_table_id,
-            load_dataset_id
-    ):
-        super().__init__(
-            job,
-            job_type,
-            benchmark_name,
-            project_id,
-            results_table_name,
-            results_dataset_id,
-            bq_logs_dataset
-        )
+
+    def __init__(self, job, job_type, benchmark_name, project_id,
+                 results_table_name, results_dataset_id, bq_logs_dataset,
+                 job_source_uri, load_table_id, load_dataset_id):
+        super().__init__(job, job_type, benchmark_name, project_id,
+                         results_table_name, results_dataset_id,
+                         bq_logs_dataset)
         self.job_source_uri = job_source_uri
         self.load_table_id = load_table_id
         self.load_dataset_id = load_dataset_id
@@ -295,17 +251,12 @@ class LoadBenchmarkResultUtil(BenchmarkResultUtil):
         """Sets load specific properties."""
         load_properties = dict()
         load_properties['destinationTable'] = '{0:s}.{1:s}.{2:s}'.format(
-            self.project_id,
-            self.load_dataset_id,
-            self.load_table_id
-        )
+            self.project_id, self.load_dataset_id, self.load_table_id)
         load_properties['sourceURI'] = self.job_source_uri
 
         # get properties from benchmark table
-        benchmark_table_util = table_util.TableUtil(
-            self.load_table_id,
-            self.load_dataset_id
-        )
+        benchmark_table_util = table_util.TableUtil(self.load_table_id,
+                                                    self.load_dataset_id)
         benchmark_table_util.set_table_properties()
         load_properties['numRows'] = benchmark_table_util.table.num_rows
 
@@ -314,8 +265,7 @@ class LoadBenchmarkResultUtil(BenchmarkResultUtil):
 
         # get properties from file
         properties_from_file_path = self._get_properties_from_file_path(
-            self.job_source_uri
-        )
+            self.job_source_uri)
         load_properties.update(properties_from_file_path)
 
         self.results_dict['loadProperties'] = load_properties
@@ -349,31 +299,14 @@ class QueryBenchmarkResultUtil(BenchmarkResultUtil):
             was used to create the table) if the query was run on a native
             table. Includes the 'gs://' prefix, the bucket name, and path.
     """
-    def __init__(
-            self,
-            job,
-            job_type,
-            benchmark_name,
-            project_id,
-            results_table_name,
-            results_dataset_id,
-            bq_logs_dataset,
-            bql,
-            query_category,
-            main_table_name,
-            table_dataset_id,
-            table_type,
-            file_uri
-    ):
-        super().__init__(
-            job,
-            job_type,
-            benchmark_name,
-            project_id,
-            results_table_name,
-            results_dataset_id,
-            bq_logs_dataset
-        )
+
+    def __init__(self, job, job_type, benchmark_name, project_id,
+                 results_table_name, results_dataset_id, bq_logs_dataset, bql,
+                 query_category, main_table_name, table_dataset_id, table_type,
+                 file_uri):
+        super().__init__(job, job_type, benchmark_name, project_id,
+                         results_table_name, results_dataset_id,
+                         bq_logs_dataset)
         self.bql = bql
         self.query_category = query_category
         self.main_table_name = main_table_name
@@ -389,16 +322,15 @@ class QueryBenchmarkResultUtil(BenchmarkResultUtil):
 
         # get properties from job
         query_properties['totalBytesBilled'] = self.job.total_bytes_billed
-        query_properties['totalBytesProcessed'] = self.job.total_bytes_processed
+        query_properties[
+            'totalBytesProcessed'] = self.job.total_bytes_processed
 
         # get main table properties
         main_table_properties = dict()
         main_table_properties['tableType'] = self.table_type
         main_table_properties['tableName'] = self.main_table_name
-        main_table_util = table_util.TableUtil(
-            self.main_table_name,
-            self.table_dataset_id
-        )
+        main_table_util = table_util.TableUtil(self.main_table_name,
+                                               self.table_dataset_id)
         main_table_util.set_table_properties()
         main_table_properties['equivalentBqTableSize'] = \
             main_table_util.size_in_mb
@@ -406,8 +338,7 @@ class QueryBenchmarkResultUtil(BenchmarkResultUtil):
 
         # get properties from file path
         properties_from_file_path = self._get_properties_from_file_path(
-            self.file_uri
-        )
+            self.file_uri)
         main_table_properties.update(properties_from_file_path)
         del main_table_properties['stagingDataSize']
 

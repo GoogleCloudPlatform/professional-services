@@ -18,13 +18,12 @@ modified.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 FILE_PARAMETERS = {
     'fileType': ['avro', 'json', 'csv', 'parquet'],
     'fileCompressionTypes': {
         'avro': ['none', 'snappy'],
         'csv': ['none', 'gzip'],
-        'json': ['none',  'gzip'],
+        'json': ['none', 'gzip'],
         'parquet': ['none'],
     },
     'numColumns': [10, 100, 1000],

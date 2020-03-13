@@ -66,7 +66,7 @@ class SchemaCreator(object):
                     # Gather the column type and percent for the current
                     # iteration.
                     field_type = types[i]
-                    percent = percents[i]/100.
+                    percent = percents[i] / 100.
                     # Calculate the number of columns that need to be
                     # generated for that type using the percent and the total
                     # number of columns (n).
@@ -79,10 +79,7 @@ class SchemaCreator(object):
                     # 'string1', 'string2', and so on until 'string10'.
                     for t in range(1, type_count + 1):
                         type_field = {
-                            'name': '{0:s}{1:d}'.format(
-                                field_type.lower(),
-                                t
-                            ),
+                            'name': '{0:s}{1:d}'.format(field_type.lower(), t),
                             'type': field_type,
                             'mode': mode,
                         }
@@ -106,4 +103,3 @@ class SchemaCreator(object):
                 with open(file_name, 'w') as outfile:
                     json.dump(outer_dict, outfile, indent=4)
                     logging.info('Adding schema in {0:s}'.format(file_name))
-

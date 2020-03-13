@@ -49,17 +49,14 @@ class TestBucketUtil(object):
             abs_path,
             ('test_data/fileType=csv/compression=none/'
              'numColumns=10/columnTypes=50_STRING_50_NUMERIC/numFiles=1/'
-             'tableSize=10MB/file1.csv')
-        )
+             'tableSize=10MB/file1.csv'))
         self.blob1_name = file1.split('test_data/')[1]
         blob1 = self.bucket.blob(self.blob1_name)
         blob1.upload_from_filename(file1)
         file2 = os.path.join(
-            abs_path,
-            ('test_data/fileType=json/compression=none/'
-             'numColumns=10/columnTypes=100_STRING/numFiles=1/'
-             'tableSize=10MB/file1.json')
-        )
+            abs_path, ('test_data/fileType=json/compression=none/'
+                       'numColumns=10/columnTypes=100_STRING/numFiles=1/'
+                       'tableSize=10MB/file1.json'))
         self.blob2_name = file2.split('test_data/')[1]
         blob2 = self.bucket.blob(self.blob2_name)
         blob2.upload_from_filename(file2)
@@ -95,25 +92,17 @@ class TestBucketUtil(object):
         if not project_id:
             raise Exception(
                 'Test needs project_id to pass. '
-                'Add --project_id={your project ID} to test command'
-            )
+                'Add --project_id={your project ID} to test command')
         self.bucket_util = bucket_util.BucketUtil(
             bucket_name=self.bucket_name,
             project_id=project_id,
-            file_params=self.test_file_parameters
-        )
+            file_params=self.test_file_parameters)
         existing_paths = self.bucket_util.get_existing_paths(
-            run_federated_query_benchmark=False
-        )
-        expected_paths = set([
-            self.blob1_name,
-            self.blob2_name
-        ])
+            run_federated_query_benchmark=False)
+        expected_paths = set([self.blob1_name, self.blob2_name])
         assert existing_paths == expected_paths
 
     def teardown(self):
         """Tears down resources created in setup().
         """
-        self.bucket.delete(
-            force=True
-        )
+        self.bucket.delete(force=True)

@@ -18,7 +18,7 @@ import logging
 
 from google.cloud import bigquery
 
-BYTES_IN_MB = 10 ** 6
+BYTES_IN_MB = 10**6
 
 
 class TableUtil(object):
@@ -61,9 +61,7 @@ class TableUtil(object):
             json_schema_filename=None,
             project=None,
     ):
-        self.bq_client = bigquery.Client(
-            project=project
-        )
+        self.bq_client = bigquery.Client(project=project)
         self.num_columns = None
         self.num_rows = None
         self.column_types = None
@@ -99,8 +97,10 @@ class TableUtil(object):
         Returns:
             True if table does exist in self.dataset_ref, else False.
         """
-        if self.table_id in [table.table_id for table in(
-                self.bq_client.list_tables(self.dataset_ref))]:
+        if self.table_id in [
+                table.table_id
+                for table in (self.bq_client.list_tables(self.dataset_ref))
+        ]:
             exists = True
         else:
             exists = False
@@ -113,9 +113,8 @@ class TableUtil(object):
             A BigQuery schema in List[google.cloud.bigquery.schema.SchemaField]
             format.
         """
-        def _process_field(
-                field
-        ):
+
+        def _process_field(field):
             """Creates a list of strings to be used as the inner portion of the
                 gather updates query by recursively processing fields and
                 nested fields.
@@ -133,20 +132,14 @@ class TableUtil(object):
                 fields = []
                 for sub_field in field['fields']:
                     fields.append(_process_field(sub_field))
-                return bigquery.SchemaField(
-                    field['name'],
-                    field['type'],
-                    field['mode'],
-                    field['description'],
-                    tuple(fields)
-                )
+                return bigquery.SchemaField(field['name'], field['type'],
+                                            field['mode'],
+                                            field['description'],
+                                            tuple(fields))
             else:
-                return bigquery.SchemaField(
-                    field['name'],
-                    field['type'],
-                    field['mode'],
-                    field['description']
-                )
+                return bigquery.SchemaField(field['name'], field['type'],
+                                            field['mode'],
+                                            field['description'])
 
         schema = []
         with open(self.json_schema_filename, 'r') as json_file:
@@ -192,8 +185,9 @@ class TableUtil(object):
         column_types = ''
         counter = 1
         for field_type in field_type_counts:
-            percent = ((field_type_counts[field_type] /
-                        float(self.num_columns))*100)
+            percent = (
+                (field_type_counts[field_type] / float(self.num_columns)) *
+                100)
             column_types = column_types + '{0:.0f}_{1:s}'.format(
                 percent,
                 field_type,

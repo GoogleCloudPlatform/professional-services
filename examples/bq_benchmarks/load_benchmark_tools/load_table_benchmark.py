@@ -85,28 +85,15 @@ class LoadTableBenchmark:
 
     """
 
-    def __init__(
-            self,
-            bq_project,
-            gcs_project,
-            staging_project,
-            staging_dataset_id,
-            dataset_id,
-            bucket_name,
-            dirname,
-            results_table_name,
-            results_table_dataset_id,
-            bq_logs_dataset
-    ):
+    def __init__(self, bq_project, gcs_project, staging_project,
+                 staging_dataset_id, dataset_id, bucket_name, dirname,
+                 results_table_name, results_table_dataset_id,
+                 bq_logs_dataset):
         self.benchmark_name = 'FILE LOADER'
         self.bq_project = bq_project
-        self.bq_client = bigquery.Client(
-            project=self.bq_project
-        )
+        self.bq_client = bigquery.Client(project=self.bq_project)
         self.gcs_project = gcs_project
-        self.gcs_client = storage.Client(
-            project=self.gcs_project
-        )
+        self.gcs_client = storage.Client(project=self.gcs_project)
         self.staging_project = staging_project
         self.staging_dataset_id = staging_dataset_id
         self.dataset_id = dataset_id
@@ -117,11 +104,9 @@ class LoadTableBenchmark:
         self.results_table_name = results_table_name
         self.results_table_dataset_id = results_table_dataset_id
         self.results_table_dataset_ref = self.bq_client.dataset(
-            results_table_dataset_id
-        )
+            results_table_dataset_id)
         results_table_ref = self.results_table_dataset_ref.table(
-            self.results_table_name
-        )
+            self.results_table_name)
         self.results_table = self.bq_client.get_table(results_table_ref)
         self.bq_logs_dataset = bq_logs_dataset
         self.file_type = None
@@ -145,14 +130,12 @@ class LoadTableBenchmark:
             num_files, table_size = \
             re.findall(benchmark_details_pattern, self.dirname)[0]
 
-        self.compression_format = (file_constants.FILE_CONSTANTS
-                                   ['compressionFormats'][compression])
+        self.compression_format = (
+            file_constants.FILE_CONSTANTS['compressionFormats'][compression])
 
         # get schema from the staging table that the file was generated from
         source_staging_table_name = '{0:s}_{1:s}'.format(
-            self.column_types,
-            self.num_columns
-        )
+            self.column_types, self.num_columns)
 
         source_staging_table_util = table_util.TableUtil(
             source_staging_table_name,
@@ -207,9 +190,7 @@ class LoadTableBenchmark:
             job_config=job_config,
         )
         logging.info('Started load job {0:s} for table {1:s}.'.format(
-            self.load_job.job_id,
-            self.job_destination_table
-        ))
+            self.load_job.job_id, self.job_destination_table))
         try:
             self.load_job.result()
             load_result = benchmark_result_util.LoadBenchmarkResultUtil(
@@ -222,8 +203,7 @@ class LoadTableBenchmark:
                 bq_logs_dataset=self.bq_logs_dataset,
                 job_source_uri='{0:s}/*'.format(self.uri),
                 load_table_id=self.job_destination_table,
-                load_dataset_id=self.dataset_id
-            )
+                load_dataset_id=self.dataset_id)
             load_result.insert_results_row()
 
         except exceptions.BadRequest as e:
@@ -232,19 +212,5 @@ class LoadTableBenchmark:
     def delete_table(self):
         """Deletes table once benchmark results have been captured."""
         self.bq_client.delete_table('{0:s}.{1:s}.{2:s}'.format(
-            self.bq_project,
-            self.dataset_id,
-            self.job_destination_table
-        ))
-        logging.info('Deleting table {0:s}'.format(
-            self.job_destination_table
-        ))
-
-
-
-
-
-
-
-
-
+            self.bq_project, self.dataset_id, self.job_destination_table))
+        logging.info('Deleting table {0:s}'.format(self.job_destination_table))

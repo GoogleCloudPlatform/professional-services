@@ -85,24 +85,19 @@ class FileGenerator(object):
         self.project_id = project_id
         self.primitive_staging_dataset_id = primitive_staging_dataset_id
         self.primitive_dataset_ref = self.bq_client.dataset(
-            self.primitive_staging_dataset_id
-        )
+            self.primitive_staging_dataset_id)
         self.primitive_staging_tables = self._get_staging_tables(
-            self.primitive_dataset_ref
-        )
+            self.primitive_dataset_ref)
         self.bucket_name = bucket_name
         self.bucket = self.gcs_client.get_bucket(self.bucket_name)
         self.file_params = file_params
-        self.bucket_util = bucket_util.BucketUtil(
-            bucket_name=bucket_name,
-            project_id=project_id,
-            file_params=file_params
-        )
+        self.bucket_util = bucket_util.BucketUtil(bucket_name=bucket_name,
+                                                  project_id=project_id,
+                                                  file_params=file_params)
         self.dataflow_staging_location = dataflow_staging_location
         self.dataflow_temp_location = dataflow_temp_location
 
     def restart_incomplete_combination(self, restart_file):
-
         """Restarts file generation at a specific file if program was stopped.
 
         When the extract_tables_to_files() method runs, it will skip any
@@ -123,10 +118,10 @@ class FileGenerator(object):
         source_blob_name = restart_file
         restart_file_split = restart_file.split('/')
         destination_path = '/'.join(
-            restart_file_split[:len(restart_file_split) - 1]
-        ) + '/'
-        restart_file_num = int(restart_file_split[len(restart_file_split) - 1]
-                               .split('file')[1].split('.')[0])
+            restart_file_split[:len(restart_file_split) - 1]) + '/'
+        restart_file_num = int(
+            restart_file_split[len(restart_file_split) -
+                               1].split('file')[1].split('.')[0])
         extension = restart_file.split('.')[1]
         num_files = int(restart_file.split('numFiles=')[1].split('/')[0])
         self.copy_blobs(
@@ -152,12 +147,8 @@ class FileGenerator(object):
         primitive_staging_dataset = bigquery.Dataset(dataset_ref)
         return list(self.bq_client.list_tables(primitive_staging_dataset))
 
-    def _create_parquet_file(
-            self,
-            blob_name,
-            staging_table_util,
-            destination_prefix
-    ):
+    def _create_parquet_file(self, blob_name, staging_table_util,
+                             destination_prefix):
         """Creates a parquet file from a staging table and stores in GCS.
 
         The parquet file is generated using DataFLow, since BigQuery Extract
@@ -175,33 +166,26 @@ class FileGenerator(object):
                 This is needed by the WriteToParquet class.
                 Ex: gs://annarudy_test_files/fileType=csv/compression=none/numColumns=10/columnTypes=100_STRING/numFiles=10000/tableSize=2147MB/file3876 # pylint: disable=line-too-long
         """
-        logging.info(
-            'Attempting to create file '
-            '{0:s}'.format(
-                blob_name
-            )
-        )
-        pipeline_args = ['--project', self.project_id,
-                         '--staging_location', self.dataflow_staging_location,
-                         '--temp_location', self.dataflow_temp_location,
-                         '--save_main_session',
-                         '--worker_machine_type', 'n1-highcpu-32',
-                         '--runner', 'DataflowRunner',
-                         '--setup_file', './setup.py']
+        logging.info('Attempting to create file ' '{0:s}'.format(blob_name))
+        pipeline_args = [
+            '--project', self.project_id, '--staging_location',
+            self.dataflow_staging_location, '--temp_location',
+            self.dataflow_temp_location, '--save_main_session',
+            '--worker_machine_type', 'n1-highcpu-32', '--runner',
+            'DataflowRunner', '--setup_file', './setup.py'
+        ]
         options = pipeline_options.PipelineOptions(pipeline_args)
         table_spec = beam_bigquery.TableReference(
             projectId=self.project_id,
             datasetId=self.primitive_staging_dataset_id,
-            tableId=staging_table_util.table_id
-        )
+            tableId=staging_table_util.table_id)
         bq_schema = staging_table_util.table.schema
         pa_schema = parquet_util.ParquetUtil(
-            bq_schema
-        ).get_pa_translated_schema()
+            bq_schema).get_pa_translated_schema()
         p = beam.Pipeline(options=options)
-        table = (p
-                 | 'ReadTable' >> beam.io.Read(
-                     beam.io.BigQuerySource(table_spec)))
+        table = (
+            p
+            | 'ReadTable' >> beam.io.Read(beam.io.BigQuerySource(table_spec)))
         (table | beam.io.WriteToParquet(
             file_path_prefix=destination_prefix,
             schema=pa_schema,
@@ -212,14 +196,8 @@ class FileGenerator(object):
         p.run().wait_until_finish()
         logging.info('Created file: {0:s}'.format(blob_name))
 
-    def _create_large_avro_file(
-            self,
-            blob_name,
-            staging_table_util,
-            destination_prefix,
-            compression,
-            extension
-    ):
+    def _create_large_avro_file(self, blob_name, staging_table_util,
+                                destination_prefix, compression, extension):
         """Creates avro files from a staging table and stores in GCS.
 
         The avro file is generated in this method using DataFlow. BigQuery
@@ -249,13 +227,13 @@ class FileGenerator(object):
                 file. Options are 'avro' if no compression is to be used,
                 'snappy', or 'deflate'.
         """
-        pipeline_args = ['--project', self.project_id,
-                         '--staging_location', self.dataflow_staging_location,
-                         '--temp_location', self.dataflow_temp_location,
-                         '--save_main_session',
-                         '--worker_machine_type', 'n1-highcpu-32',
-                         '--runner', 'DataflowRunner',
-                         '--setup_file', './setup.py']
+        pipeline_args = [
+            '--project', self.project_id, '--staging_location',
+            self.dataflow_staging_location, '--temp_location',
+            self.dataflow_temp_location, '--save_main_session',
+            '--worker_machine_type', 'n1-highcpu-32', '--runner',
+            'DataflowRunner', '--setup_file', './setup.py'
+        ]
         options = pipeline_options.PipelineOptions(pipeline_args)
         table_spec = beam_bigquery.TableReference(
             projectId=self.project_id,
@@ -267,12 +245,11 @@ class FileGenerator(object):
         table_name = staging_table_util.table.table_id
         avro_schema = avro_util.AvroUtil(
             bq_schema=bq_schema,
-            schema_name=table_name
-        ).get_avro_translated_schema()
+            schema_name=table_name).get_avro_translated_schema()
         p = beam.Pipeline(options=options)
-        table = (p
-                 | 'ReadTable' >> beam.io.Read(
-                     beam.io.BigQuerySource(table_spec)))
+        table = (
+            p
+            | 'ReadTable' >> beam.io.Read(beam.io.BigQuerySource(table_spec)))
         (table | beam.io.WriteToAvro(
             file_path_prefix=destination_prefix,
             schema=avro_schema,
@@ -320,30 +297,26 @@ class FileGenerator(object):
             # concatenated string as the composed blob name, especially if the
             # total number of shards is quite large.
             else:
-                composed_blob_name = hashlib.md5(
-                    ','.join([blob.name for blob in group]).encode('utf-8')
-                ).hexdigest()
+                composed_blob_name = hashlib.md5(','.join([
+                    blob.name for blob in group
+                ]).encode('utf-8')).hexdigest()
 
             # Compose the group of blobs into one, and delete the group of
             # blobs since only the composed blob is needed.
             logging.info('Composing {0:d} shards into one blob.'.format(
-                len(group)
-            ))
-            self.bucket.blob(composed_blob_name).compose(
-                group
-            )
+                len(group)))
+            self.bucket.blob(composed_blob_name).compose(group)
             self.bucket.delete_blobs(group)
             return self.bucket.get_blob(composed_blob_name)
 
-        sharded_blobs = list(self.bucket.list_blobs(
-            prefix=blob_name
-        ))
+        sharded_blobs = list(self.bucket.list_blobs(prefix=blob_name))
 
         # break the sharded blobs up into groups the size of
         # max_composable_blobs, and store groups in list indexed_groups
-        indexed_groups = [(sharded_blobs[i:i + max_composable_blobs])
-                          for i in
-                          range(0, len(sharded_blobs), max_composable_blobs)]
+        indexed_groups = [
+            (sharded_blobs[i:i + max_composable_blobs])
+            for i in range(0, len(sharded_blobs), max_composable_blobs)
+        ]
         # Initialize a list to hold recently composed blobs. The composition
         # process will continue until the size of last_composed_group is one,
         # meaning all blobs have been composed into one.
@@ -361,21 +334,16 @@ class FileGenerator(object):
                 # max_composable_blobs, and store groups in list indexed_groups.
                 indexed_groups = [
                     (last_composed_group[i:i + MAX_COMPOSABLE_BLOBS])
-                    for i in
-                    range(0, len(last_composed_group), MAX_COMPOSABLE_BLOBS)]
+                    for i in range(0, len(last_composed_group),
+                                   MAX_COMPOSABLE_BLOBS)
+                ]
 
         logging.info('Composition of sharded blobs complete.')
         logging.info('Created file: {0:s}'.format(blob_name))
 
-    def _extract_tables_to_files(
-            self,
-            blob_name,
-            compression_type,
-            destination_format,
-            destination_prefix,
-            extension,
-            staging_table_util
-    ):
+    def _extract_tables_to_files(self, blob_name, compression_type,
+                                 destination_format, destination_prefix,
+                                 extension, staging_table_util):
         """Creates files from staging tables and stores in GCS.
 
         Uses BigQuery extract jobs to create the files. Only files of type
@@ -403,16 +371,11 @@ class FileGenerator(object):
                 class for interacting with the staging table that the file is to
                 be generated from.
         """
-        logging.info(
-            'Attempting to create file '
-            '{0:s}'.format(
-                blob_name
-            )
-        )
+        logging.info('Attempting to create file ' '{0:s}'.format(blob_name))
         # Create and and try the extract job.
         extract_job_config = bigquery.ExtractJobConfig()
-        compression = (file_constants.FILE_CONSTANTS
-                       ['compressionFormats'][compression_type])
+        compression = (file_constants.FILE_CONSTANTS['compressionFormats']
+                       [compression_type])
         extract_job_config.compression = compression
         extract_job_config.destination_format = destination_format
         extract_job_config.print_header = False
@@ -427,8 +390,7 @@ class FileGenerator(object):
             # If the job succeeds, the data in the staging table will be
             # written to GCS
             extract_job.result()
-            logging.info(
-                'Created file: {0:s}'.format(blob_name))
+            logging.info('Created file: {0:s}'.format(blob_name))
         # An exception will be thrown if the staging table is too large (greater
         # than 1 GB) to be extracted to a single file.
         except exceptions.BadRequest as e:
@@ -544,9 +506,7 @@ class FileGenerator(object):
         if len(tables) == 0:
             logging.info('Dataset {0:s} contains no tables. Please create '
                          'staging tables in {0:s}.'.format(
-                            self.primitive_staging_dataset_id
-                         )
-            )
+                             self.primitive_staging_dataset_id))
         # For each staging table, extract to each fileType, each
         # compressionType, and copy each file so that the combination has
         # the correct numFiles.
@@ -573,14 +533,13 @@ class FileGenerator(object):
                     staging_table_util.num_columns,
                     staging_table_util.column_types,
                     num_files,
-                    int(staging_table_util.table_size/1000000),
+                    int(staging_table_util.table_size / 1000000),
                 )
 
                 if compression_type == 'none':
                     extension = file_type
                 else:
-                    extensions = (files_consts
-                                  ['compressionExtensions'])
+                    extensions = (files_consts['compressionExtensions'])
                     extension = extensions[compression_type]
 
                 file_string = 'file1'
@@ -618,8 +577,7 @@ class FileGenerator(object):
                         else:
                             # Otherwise, use the_extract_tables_to_files()
                             # method, which uses BigQuery extract jobs.
-                            destination_format = extract_formats[
-                                file_type]
+                            destination_format = extract_formats[file_type]
                             self._extract_tables_to_files(
                                 blob_name,
                                 compression_type,
@@ -651,7 +609,6 @@ class FileGenerator(object):
                         staging_table_util.column_types,
                         1,
                         int(staging_table_util.table_size / 1000000),
-
                     )
                     file1_blob_name = '{0:s}{1:s}.{2:s}'.format(
                         file1_destination_path,
@@ -692,6 +649,4 @@ class FileGenerator(object):
                     else:
                         # Otherwise, skip creating the first file and all
                         # subsequent files in the combination.
-                        logging.info(skip_message.format(
-                            first_of_n_blobs
-                        ))
+                        logging.info(skip_message.format(first_of_n_blobs))

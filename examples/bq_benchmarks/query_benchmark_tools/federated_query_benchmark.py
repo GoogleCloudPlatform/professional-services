@@ -9,7 +9,6 @@ from generic_benchmark_tools import file_constants
 from generic_benchmark_tools import table_util
 from query_benchmark_tools import query_generator
 
-
 FEDERATED_QUERY_ID = 'FEDERATED QUERY'
 BQ_MANAGED_TYPE_ID = 'BQ_MANAGED'
 EXTERNAL_TYPE_ID = 'EXTERNAL'
@@ -52,15 +51,12 @@ class FederatedQueryBenchmark:
             file_uri,
             results_table_name,
             results_table_dataset_id,
-
     ):
         self.benchmark_name = FEDERATED_QUERY_ID
         self.job_type = benchmark_parameters.BENCHMARK_PARAMETERS[
             'benchmark_names'][self.benchmark_name]['type']
         self.bq_project = bq_project
-        self.bq_client = bigquery.Client(
-            project=self.bq_project
-        )
+        self.bq_client = bigquery.Client(project=self.bq_project)
         self.gcs_project = gcs_project
         self.dataset_id = dataset_id
         self.bq_logs_dataset_id = bq_logs_dataset_id
@@ -82,23 +78,17 @@ class FederatedQueryBenchmark:
             logging.info(
                 'External queries on snappy compressed files are not '
                 'supported. Skipping external query benchmark for BQ managed '
-                'table {0:s} and file {1:s}'.format(
-                    self.native_table_id,
-                    self.file_uri
-                ))
+                'table {0:s} and file {1:s}'.format(self.native_table_id,
+                                                    self.file_uri))
         elif self.total_table_size > MB_IN_TB:
-            logging.info(
-                'Queries will not be run on tables larger than 1 TB '
-                'in order to save cost. Skipping queries for table '
-                '{0:s} with approximate size of {1:d} TB.'.format(
-                     self.native_table_id,
-                     self.total_table_size//MB_IN_TB
-            ))
+            logging.info('Queries will not be run on tables larger than 1 TB '
+                         'in order to save cost. Skipping queries for table '
+                         '{0:s} with approximate size of {1:d} TB.'.format(
+                             self.native_table_id,
+                             self.total_table_size // MB_IN_TB))
         else:
             benchmark_query_generator = query_generator.QueryGenerator(
-                self.native_table_id,
-                self.dataset_id
-            )
+                self.native_table_id, self.dataset_id)
             query_strings = benchmark_query_generator.get_query_strings()
             for query_type in query_strings:
                 self.run_native_query(query_type, query_strings[query_type])
@@ -112,29 +102,21 @@ class FederatedQueryBenchmark:
                 run (SIMPLE_SELECT_*, SELECT_ONE_STRING, SELECT_50_PERCENT).
             query(str): The query to run.
         """
-        table_name = '{0:s}.{1:s}.{2:s}'.format(
-            self.bq_project,
-            self.dataset_id,
-            self.native_table_id
-        )
+        table_name = '{0:s}.{1:s}.{2:s}'.format(self.bq_project,
+                                                self.dataset_id,
+                                                self.native_table_id)
         bql = query.format(table_name)
         query_config = bigquery.QueryJobConfig()
         query_config.use_legacy_sql = False
         query_config.allow_large_results = True
         results_destination = '{0:s}.{1:s}.{2:s}_query_results'.format(
-            self.bq_project,
-            self.dataset_id,
-            self.native_table_id
-        )
-        logging.info('Storing query results in {0:s}'.format(
-            results_destination
-        ))
+            self.bq_project, self.dataset_id, self.native_table_id)
+        logging.info(
+            'Storing query results in {0:s}'.format(results_destination))
         query_config.destination = results_destination
-        query_job = self.bq_client.query(
-            query=bql,
-            location='US',
-            job_config=query_config
-        )
+        query_job = self.bq_client.query(query=bql,
+                                         location='US',
+                                         job_config=query_config)
         query_job.result()
         logging.info("Running native {0:s} query.".format(query_type))
         query_result = benchmark_result_util.QueryBenchmarkResultUtil(
@@ -155,8 +137,7 @@ class FederatedQueryBenchmark:
         query_result.insert_results_row()
         self.bq_client.delete_table(results_destination)
         logging.info('Deleting results destination table {0:s}'.format(
-            results_destination
-        ))
+            results_destination))
 
     def run_federated_query(self, query_type, query):
         """Runs native queries on EXTERNAL files
@@ -168,17 +149,11 @@ class FederatedQueryBenchmark:
         """
         file_formats = file_constants.FILE_CONSTANTS['sourceFormats']
         source_format = file_formats[self.file_type]
-        external_config = bigquery.ExternalConfig(
-            source_format=source_format
-        )
-        external_config.source_uris = [
-            self.file_uri + '/*'
-        ]
+        external_config = bigquery.ExternalConfig(source_format=source_format)
+        external_config.source_uris = [self.file_uri + '/*']
         if source_format != 'AVRO' and source_format != 'PARQUET':
-            main_table_util = table_util.TableUtil(
-                self.native_table_id,
-                self.dataset_id
-            )
+            main_table_util = table_util.TableUtil(self.native_table_id,
+                                                   self.dataset_id)
             external_config.schema = main_table_util.table.schema
 
         if source_format == 'CSV':
@@ -187,25 +162,17 @@ class FederatedQueryBenchmark:
         external_config.compression = self.compression.upper()
         table_id = self.native_table_id + '_external'
         results_destination = '{0:s}.{1:s}.{2:s}_query_results'.format(
-            self.bq_project,
-            self.dataset_id,
-            table_id
-        )
-        logging.info('Storing query results in {0:s}'.format(
-            results_destination
-        ))
+            self.bq_project, self.dataset_id, table_id)
+        logging.info(
+            'Storing query results in {0:s}'.format(results_destination))
         job_config = bigquery.QueryJobConfig(
             table_definitions={table_id: external_config},
             use_legacy_sql=False,
             allow_large_results=True,
-            destination=results_destination
-        )
+            destination=results_destination)
         bql = query.format(table_id)
         print(bql)
-        query_job = self.bq_client.query(
-            bql,
-            job_config=job_config
-        )
+        query_job = self.bq_client.query(bql, job_config=job_config)
         logging.info("Running external {0:s} query.".format(query_type))
         query_job.result()
         query_result = benchmark_result_util.QueryBenchmarkResultUtil(
@@ -226,5 +193,4 @@ class FederatedQueryBenchmark:
         query_result.insert_results_row()
         self.bq_client.delete_table(results_destination)
         logging.info('Deleting results destination table {0:s}'.format(
-            results_destination
-        ))
+            results_destination))

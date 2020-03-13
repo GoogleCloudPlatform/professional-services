@@ -32,10 +32,7 @@ class TestSchemaCreator(object):
         """Sets up resources for tests.
         """
         abs_path = os.path.abspath(os.path.dirname(__file__))
-        self.test_schemas_dir = os.path.join(
-            abs_path,
-            'test_schemas'
-        )
+        self.test_schemas_dir = os.path.join(abs_path, 'test_schemas')
 
         self.test_file_parameters = {
             'fileType': ['csv', 'json'],
@@ -53,14 +50,10 @@ class TestSchemaCreator(object):
             ],
         }
         self.expected_schema_path_1 = os.path.join(
-            abs_path,
-            'test_schemas/100_STRING_4.json'
-        )
+            abs_path, 'test_schemas/100_STRING_4.json')
 
         self.expected_schema_path_2 = os.path.join(
-            abs_path,
-            'test_schemas/50_STRING_50_NUMERIC_4.json'
-        )
+            abs_path, 'test_schemas/50_STRING_50_NUMERIC_4.json')
 
     def test_create_schmeas(self):
         """Tests SchemaCreator.create_schemas().
@@ -73,8 +66,7 @@ class TestSchemaCreator(object):
         """
         test_schema_creator = schema_creator.SchemaCreator(
             schemas_dir=self.test_schemas_dir,
-            file_params=self.test_file_parameters
-        )
+            file_params=self.test_file_parameters)
 
         test_schema_creator.create_schemas()
 
@@ -82,53 +74,43 @@ class TestSchemaCreator(object):
         assert os.path.isfile(self.expected_schema_path_2)
 
         expected_schema_1 = {
-            "fields": [
-                {
-                    "type": "STRING",
-                    "name": "string1",
-                    "mode": "REQUIRED"
-                },
-                {
-                    "type": "STRING",
-                    "name": "string2",
-                    "mode": "REQUIRED"
-                },
-                {
-                    "type": "STRING",
-                    "name": "string3",
-                    "mode": "REQUIRED"
-                },
-                {
-                    "type": "STRING",
-                    "name": "string4",
-                    "mode": "REQUIRED"
-                }
-            ]
+            "fields": [{
+                "type": "STRING",
+                "name": "string1",
+                "mode": "REQUIRED"
+            }, {
+                "type": "STRING",
+                "name": "string2",
+                "mode": "REQUIRED"
+            }, {
+                "type": "STRING",
+                "name": "string3",
+                "mode": "REQUIRED"
+            }, {
+                "type": "STRING",
+                "name": "string4",
+                "mode": "REQUIRED"
+            }]
         }
 
         expected_schema_2 = {
-            "fields": [
-                {
-                    "type": "STRING",
-                    "name": "string1",
-                    "mode": "REQUIRED"
-                },
-                {
-                    "type": "STRING",
-                    "name": "string2",
-                    "mode": "REQUIRED"
-                },
-                {
-                    "type": "NUMERIC",
-                    "name": "numeric1",
-                    "mode": "REQUIRED"
-                },
-                {
-                    "type": "NUMERIC",
-                    "name": "numeric2",
-                    "mode": "REQUIRED"
-                }
-            ]
+            "fields": [{
+                "type": "STRING",
+                "name": "string1",
+                "mode": "REQUIRED"
+            }, {
+                "type": "STRING",
+                "name": "string2",
+                "mode": "REQUIRED"
+            }, {
+                "type": "NUMERIC",
+                "name": "numeric1",
+                "mode": "REQUIRED"
+            }, {
+                "type": "NUMERIC",
+                "name": "numeric2",
+                "mode": "REQUIRED"
+            }]
         }
 
         with open(self.expected_schema_path_1) as json_file_1:

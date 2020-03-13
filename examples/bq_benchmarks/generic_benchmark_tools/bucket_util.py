@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 from concurrent.futures import ThreadPoolExecutor
 import itertools
 import logging
@@ -116,8 +115,7 @@ class BucketUtil(object):
             logging.info(
                 'External queries on snappy compressed files are not '
                 'supported. Snappy files will not be added to set of existing '
-                'paths.'
-            )
+                'paths.')
             logging.info(
                 'Only paths that will result in table less than 1 TB will be '
                 'added to the set of existing paths to ensure limit query cost.'
@@ -128,30 +126,27 @@ class BucketUtil(object):
         column_types = self.file_params['columnTypes']
         num_files = self.file_params['numFiles']
         table_sizes = self.file_params['stagingDataSizes']
-        compression_extensions = (file_constants.FILE_CONSTANTS
-                                  ['compressionExtensions'])
+        compression_extensions = (
+            file_constants.FILE_CONSTANTS['compressionExtensions'])
         path_set = set()
         path_string = ('fileType={0:s}/compression={1:s}/numColumns={2:d}/'
-                       'columnTypes={3:s}/numFiles={4:d}/tableSize={5:s}/' 
+                       'columnTypes={3:s}/numFiles={4:d}/tableSize={5:s}/'
                        'file1.{6:s}')
 
-        gcs_client = storage.Client(
-            project=self.project_id
-        )
+        gcs_client = storage.Client(project=self.project_id)
         bucket = gcs_client.get_bucket(self.bucket_name)
 
         with ThreadPoolExecutor() as p:
-            p.map(_path_exists,
-                  itertools.product(
-                      file_types,
-                      num_columns,
-                      column_types,
-                      num_files,
-                      table_sizes,
-                  )
-                  )
+            p.map(
+                _path_exists,
+                itertools.product(
+                    file_types,
+                    num_columns,
+                    column_types,
+                    num_files,
+                    table_sizes,
+                ))
 
         logging.info('Done discovering {0:d} existing files.'.format(
-            len(path_set)
-        ))
+            len(path_set)))
         return path_set

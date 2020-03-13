@@ -35,9 +35,7 @@ class TestParquetUtil(unittest.TestCase):
             bigquery.SchemaField('string1', 'STRING', 'REQUIRED'),
             bigquery.SchemaField('numeric1', 'NUMERIC', 'REQUIRED')
         ]
-        self.parquet_util = parquet_util.ParquetUtil(
-            bq_schema=bq_schema
-        )
+        self.parquet_util = parquet_util.ParquetUtil(bq_schema=bq_schema)
 
     def test_get_parquet_translated_schema(self):
         """Tests ParquetUtil.get_pa_translated_schema().
@@ -48,7 +46,8 @@ class TestParquetUtil(unittest.TestCase):
         Returns:
             True if test passes, else False.
         """
-        parquet_translated_schema = self.parquet_util.get_pa_translated_schema()
+        parquet_translated_schema = self.parquet_util.get_pa_translated_schema(
+        )
         expected_pa_schema = pa.schema([
             pa.field('string1', pa.string()),
             pa.field('numeric1', pa.int64())

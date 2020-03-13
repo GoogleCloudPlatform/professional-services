@@ -26,5 +26,4 @@ BENCHMARK_PARAMETERS = {
             'type': 'QUERY'
         }
     }
-
 }
