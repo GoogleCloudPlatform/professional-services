@@ -26,7 +26,8 @@ class TestAvroUtil(unittest.TestCase):
     """Tests functionality of load_benchmark_tools.avro_util.AvroUtil.
 
     Attributes:
-        avro_util(load_benchmark_tools.AvroUtil): avro utility class to be tested.
+        avro_util(load_benchmark_tools.AvroUtil): avro utility class to be
+            tested.
         schema_name(str): name that will be given to the test avro schema.
 
     """
