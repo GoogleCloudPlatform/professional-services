@@ -89,8 +89,7 @@ def parse_args(argv):
         help='Dataset ID that benchmarked tables will be loaded to. ')
     parser.add_argument(
         '--staging_project_id',
-        help='Name of the project that will hold resources for staging tables.'
-    )
+        help='Name of the project that will hold resources for staging tables.')
     parser.add_argument(
         '--staging_dataset_id',
         help='Dataset ID that staging tables will be loaded to.')
@@ -331,8 +330,7 @@ def main(argv=None):
             duplicate_benchmark_tables=duplicate_benchmark_tables,
             file_params=file_params,
             bq_logs_dataset=bq_logs_dataset,
-            include_federated_query_benchmark=include_federated_query_benchmark
-        )
+            include_federated_query_benchmark=include_federated_query_benchmark)
         load_benchmark_runner.execute_file_loader_benchmark()
 
     if run_federated_query_benchmark:

@@ -87,8 +87,7 @@ class TestFileGenerator(object):
         temp_blob = self.df_staging_bucket.blob('temp/')
         staging_blob.upload_from_string('')
         temp_blob.upload_from_string('')
-        self.df_staging_path = 'gs://{0:1}/staging'.format(
-            df_staging_bucket_id)
+        self.df_staging_path = 'gs://{0:1}/staging'.format(df_staging_bucket_id)
         self.df_temp_path = 'gs://{0:1}/temp'.format(df_staging_bucket_id)
 
     def test_create_files(self, project_id):
@@ -196,8 +195,8 @@ class TestFileGenerator(object):
             blob = self.file_bucket.blob('blob{0:d}'.format(i))
             blob.upload_from_filename(sample_file)
         composed_blob_name = 'blob'
-        self.file_generator._compose_sharded_blobs(
-            blob_name=composed_blob_name, max_composable_blobs=2)
+        self.file_generator._compose_sharded_blobs(blob_name=composed_blob_name,
+                                                   max_composable_blobs=2)
 
         # assert that the final composed blob exists and all sharded blobs
         # have been deleted

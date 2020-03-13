@@ -322,8 +322,7 @@ class QueryBenchmarkResultUtil(BenchmarkResultUtil):
 
         # get properties from job
         query_properties['totalBytesBilled'] = self.job.total_bytes_billed
-        query_properties[
-            'totalBytesProcessed'] = self.job.total_bytes_processed
+        query_properties['totalBytesProcessed'] = self.job.total_bytes_processed
 
         # get main table properties
         main_table_properties = dict()

@@ -133,13 +133,11 @@ class TableUtil(object):
                 for sub_field in field['fields']:
                     fields.append(_process_field(sub_field))
                 return bigquery.SchemaField(field['name'], field['type'],
-                                            field['mode'],
-                                            field['description'],
+                                            field['mode'], field['description'],
                                             tuple(fields))
             else:
                 return bigquery.SchemaField(field['name'], field['type'],
-                                            field['mode'],
-                                            field['description'])
+                                            field['mode'], field['description'])
 
         schema = []
         with open(self.json_schema_filename, 'r') as json_file:
@@ -186,8 +184,7 @@ class TableUtil(object):
         counter = 1
         for field_type in field_type_counts:
             percent = (
-                (field_type_counts[field_type] / float(self.num_columns)) *
-                100)
+                (field_type_counts[field_type] / float(self.num_columns)) * 100)
             column_types = column_types + '{0:.0f}_{1:s}'.format(
                 percent,
                 field_type,

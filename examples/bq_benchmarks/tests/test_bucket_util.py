@@ -53,10 +53,10 @@ class TestBucketUtil(object):
         self.blob1_name = file1.split('test_data/')[1]
         blob1 = self.bucket.blob(self.blob1_name)
         blob1.upload_from_filename(file1)
-        file2 = os.path.join(
-            abs_path, ('test_data/fileType=json/compression=none/'
-                       'numColumns=10/columnTypes=100_STRING/numFiles=1/'
-                       'tableSize=10MB/file1.json'))
+        file2 = os.path.join(abs_path,
+                             ('test_data/fileType=json/compression=none/'
+                              'numColumns=10/columnTypes=100_STRING/numFiles=1/'
+                              'tableSize=10MB/file1.json'))
         self.blob2_name = file2.split('test_data/')[1]
         blob2 = self.bucket.blob(self.blob2_name)
         blob2.upload_from_filename(file2)

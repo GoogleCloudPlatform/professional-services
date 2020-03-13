@@ -87,8 +87,7 @@ class LoadTableBenchmark:
 
     def __init__(self, bq_project, gcs_project, staging_project,
                  staging_dataset_id, dataset_id, bucket_name, dirname,
-                 results_table_name, results_table_dataset_id,
-                 bq_logs_dataset):
+                 results_table_name, results_table_dataset_id, bq_logs_dataset):
         self.benchmark_name = 'FILE LOADER'
         self.bq_project = bq_project
         self.bq_client = bigquery.Client(project=self.bq_project)
@@ -176,8 +175,8 @@ class LoadTableBenchmark:
                 error message: Total data size exceeds max allowed size
 
         """
-        job_type = benchmark_parameters.BENCHMARK_PARAMETERS[
-            'benchmark_names'][self.benchmark_name]['type']
+        job_type = benchmark_parameters.BENCHMARK_PARAMETERS['benchmark_names'][
+            self.benchmark_name]['type']
         source_formats = file_constants.FILE_CONSTANTS['sourceFormats']
         job_config = bigquery.LoadJobConfig()
         job_config.source_format = source_formats[self.file_type]

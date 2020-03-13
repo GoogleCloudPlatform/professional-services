@@ -145,8 +145,7 @@ class StagingTableGenerator(object):
                     source_table = table.table_id
                     source_dataset = self.staging_dataset_id
 
-                destination_table = get_resized_table_name(
-                    table.table_id, size)
+                destination_table = get_resized_table_name(table.table_id, size)
                 target_gb = size
                 command_str = ('python {0:s}/bq_table_resizer.py '
                                '--project {1:s} '

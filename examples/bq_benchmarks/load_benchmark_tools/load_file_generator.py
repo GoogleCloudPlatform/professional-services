@@ -184,8 +184,7 @@ class FileGenerator(object):
             bq_schema).get_pa_translated_schema()
         p = beam.Pipeline(options=options)
         table = (
-            p
-            | 'ReadTable' >> beam.io.Read(beam.io.BigQuerySource(table_spec)))
+            p | 'ReadTable' >> beam.io.Read(beam.io.BigQuerySource(table_spec)))
         (table | beam.io.WriteToParquet(
             file_path_prefix=destination_prefix,
             schema=pa_schema,
@@ -248,8 +247,7 @@ class FileGenerator(object):
             schema_name=table_name).get_avro_translated_schema()
         p = beam.Pipeline(options=options)
         table = (
-            p
-            | 'ReadTable' >> beam.io.Read(beam.io.BigQuerySource(table_spec)))
+            p | 'ReadTable' >> beam.io.Read(beam.io.BigQuerySource(table_spec)))
         (table | beam.io.WriteToAvro(
             file_path_prefix=destination_prefix,
             schema=avro_schema,
@@ -297,9 +295,8 @@ class FileGenerator(object):
             # concatenated string as the composed blob name, especially if the
             # total number of shards is quite large.
             else:
-                composed_blob_name = hashlib.md5(','.join([
-                    blob.name for blob in group
-                ]).encode('utf-8')).hexdigest()
+                composed_blob_name = hashlib.md5(','.join(
+                    [blob.name for blob in group]).encode('utf-8')).hexdigest()
 
             # Compose the group of blobs into one, and delete the group of
             # blobs since only the composed blob is needed.
@@ -327,8 +324,8 @@ class FileGenerator(object):
 
                 # Concurrently call _compose_blobs on a list of groups of blobs
                 # to compose the blobs in each group into one blob.
-                last_composed_group = list(
-                    p.map(_compose_blobs, indexed_groups))
+                last_composed_group = list(p.map(_compose_blobs,
+                                                 indexed_groups))
 
                 # Regroup the newly composed blobs into groups the size of
                 # max_composable_blobs, and store groups in list indexed_groups.

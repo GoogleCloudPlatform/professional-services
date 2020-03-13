@@ -46,8 +46,7 @@ class TestParquetUtil(unittest.TestCase):
         Returns:
             True if test passes, else False.
         """
-        parquet_translated_schema = self.parquet_util.get_pa_translated_schema(
-        )
+        parquet_translated_schema = self.parquet_util.get_pa_translated_schema()
         expected_pa_schema = pa.schema([
             pa.field('string1', pa.string()),
             pa.field('numeric1', pa.int64())

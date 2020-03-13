@@ -110,8 +110,7 @@ class TestStagingTableGenerator(object):
         temp_blob = self.df_staging_bucket.blob('temp/')
         staging_blob.upload_from_string('')
         temp_blob.upload_from_string('')
-        self.df_staging_path = 'gs://{0:1}/staging'.format(
-            df_staging_bucket_id)
+        self.df_staging_path = 'gs://{0:1}/staging'.format(df_staging_bucket_id)
         self.df_temp_path = 'gs://{0:1}/temp'.format(df_staging_bucket_id)
 
     def test_create_staging_tables(self, project_id):
