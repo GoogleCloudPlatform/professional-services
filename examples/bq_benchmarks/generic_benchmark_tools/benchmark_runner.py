@@ -183,6 +183,8 @@ class BenchmarkRunner:
                     self._run_federated_query(table_name, dirname)
                 table.delete_table()
 
+
+
     def _run_federated_query(self, table_name, dirname):
         """Runs the Federated Query Benchmark.
 
