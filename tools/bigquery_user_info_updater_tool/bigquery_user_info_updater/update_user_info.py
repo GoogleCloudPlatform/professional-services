@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 import argparse
 import logging
 
@@ -31,47 +30,34 @@ def parse_args(argv):
     """
     parser = argparse.ArgumentParser()
 
-    parser.add_argument(
-        '--schema_path',
-        help='Path to the user tables schema.',
-        default=True
-    )
-    parser.add_argument(
-        '--project_id',
-        help='Id of project holding BQ resources.',
-        required=True
-    )
-    parser.add_argument(
-        '--dataset_id',
-        help='Id of dataset holding Identity BQ tables.',
-        required=True
-    )
+    parser.add_argument('--schema_path',
+                        help='Path to the user tables schema.',
+                        default=True)
+    parser.add_argument('--project_id',
+                        help='Id of project holding BQ resources.',
+                        required=True)
+    parser.add_argument('--dataset_id',
+                        help='Id of dataset holding Identity BQ tables.',
+                        required=True)
     parser.add_argument(
         '--final_table_id',
         help='Id of final table holding golden record for each user.',
-        required=True
-    )
-    parser.add_argument(
-        '--updates_table_id',
-        help='Id of table holding user updates.',
-        required=True
-    )
+        required=True)
+    parser.add_argument('--updates_table_id',
+                        help='Id of table holding user updates.',
+                        required=True)
     parser.add_argument(
         '--temp_updates_table_id',
         help='Id of table that deduped update rows will be written to.',
-        required=True
-    )
-    parser.add_argument(
-        '--user_id_field_name',
-        help='Name of the field that identifies unique users.',
-        required=True
-    )
+        required=True)
+    parser.add_argument('--user_id_field_name',
+                        help='Name of the field that identifies unique users.',
+                        required=True)
     parser.add_argument(
         '--ingest_timestamp_field_name',
         help='Name of the timestamp field that marks the ingestion.'
-             'of user rows.',
-        required=True
-    )
+        'of user rows.',
+        required=True)
 
     args = parser.parse_args(args=argv)
     return args
@@ -95,25 +81,16 @@ def main(argv=None):
 
     # Create queries needed to run the updates
     update_query_creator = query_creator.QueryCreator(
-        schema_path,
-        user_id_field_name,
-        ingest_timestamp_field_name,
-        project_id,
-        dataset_id,
-        updates_table_id,
-        temp_updates_table_id,
-        final_table_id
-    )
+        schema_path, user_id_field_name, ingest_timestamp_field_name,
+        project_id, dataset_id, updates_table_id, temp_updates_table_id,
+        final_table_id)
     gather_updates_query = update_query_creator.create_gather_updates_query()
     merge_updates_query = update_query_creator.create_merge_query()
 
-    updater = user_info_updater.UserInfoUpdater(
-        project_id,
-        dataset_id,
-        updates_table_id,
-        temp_updates_table_id,
-        final_table_id
-    )
+    updater = user_info_updater.UserInfoUpdater(project_id, dataset_id,
+                                                updates_table_id,
+                                                temp_updates_table_id,
+                                                final_table_id)
 
     # Gather new rows from the identity update table.
     new_updates = updater.gather_updates(gather_updates_query)

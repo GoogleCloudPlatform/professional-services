@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-
 import os
 
 from bigquery_user_info_updater.updater_tools import query_creator
@@ -64,13 +62,9 @@ class TestQueryCreator(object):
         if not project_id:
             raise Exception(
                 'Test needs project_id to pass. '
-                'Add --project_id={your project ID} to test command'
-            )
+                'Add --project_id={your project ID} to test command')
         abs_path = os.path.abspath(os.path.dirname(__file__))
-        schema_path = os.path.join(
-            abs_path,
-            'test_schemas/test_schema.json'
-        )
+        schema_path = os.path.join(abs_path, 'test_schemas/test_schema.json')
         test_query_creator = query_creator.QueryCreator(
             schema_path=schema_path,
             user_id_field_name=self.user_id_field_name,
@@ -79,19 +73,15 @@ class TestQueryCreator(object):
             dataset_id=self.dataset_id,
             updates_table_id=self.user_info_updates_id,
             temp_updates_table_id=self.temp_user_info_updates_id,
-            final_table_id=self.user_info_final_id
-        )
+            final_table_id=self.user_info_final_id)
 
         gather_updates_query = test_query_creator.create_gather_updates_query()
         abs_path = os.path.abspath(os.path.dirname(__file__))
         test_gather_updates_query_path = os.path.join(
-            abs_path,
-            'test_queries/test_gather_updates_query.txt')
+            abs_path, 'test_queries/test_gather_updates_query.txt')
         with open(test_gather_updates_query_path, 'r') as input_file:
             expected_gather_updates_query = input_file.read().format(
-                project_id,
-                '{0:s}'
-            )
+                project_id, '{0:s}')
             print(project_id)
             print(type(expected_gather_updates_query))
         assert gather_updates_query == expected_gather_updates_query
@@ -109,13 +99,10 @@ class TestQueryCreator(object):
         if not project_id:
             raise Exception(
                 'Test needs project_id to pass. '
-                'Add --project_id={your project ID} to test command'
-            )
+                'Add --project_id={your project ID} to test command')
         abs_path = os.path.abspath(os.path.dirname(__file__))
-        schema_path = os.path.join(
-            abs_path,
-            'test_schemas/test_nested_schema.json'
-        )
+        schema_path = os.path.join(abs_path,
+                                   'test_schemas/test_nested_schema.json')
         test_query_creator = query_creator.QueryCreator(
             schema_path=schema_path,
             user_id_field_name=self.user_id_field_name,
@@ -124,19 +111,15 @@ class TestQueryCreator(object):
             dataset_id=self.dataset_id,
             updates_table_id=self.user_info_updates_id,
             temp_updates_table_id=self.temp_user_info_updates_id,
-            final_table_id=self.user_info_final_id
-        )
+            final_table_id=self.user_info_final_id)
 
         gather_updates_query = test_query_creator.create_gather_updates_query()
         abs_path = os.path.abspath(os.path.dirname(__file__))
         test_gather_updates_query_path = os.path.join(
-            abs_path,
-            'test_queries/test_nested_gather_updates_query.txt')
+            abs_path, 'test_queries/test_nested_gather_updates_query.txt')
         with open(test_gather_updates_query_path, 'r') as input_file:
             expected_gather_updates_query = input_file.read().format(
-                project_id,
-                '{0:s}'
-            )
+                project_id, '{0:s}')
         assert gather_updates_query == expected_gather_updates_query
 
     def test_create_merge_query(self, project_id):
@@ -151,13 +134,9 @@ class TestQueryCreator(object):
         if not project_id:
             raise Exception(
                 'Test needs project_id to pass. '
-                'Add --project_id={your project ID} to test command'
-            )
+                'Add --project_id={your project ID} to test command')
         abs_path = os.path.abspath(os.path.dirname(__file__))
-        schema_path = os.path.join(
-            abs_path,
-            'test_schemas/test_schema.json'
-        )
+        schema_path = os.path.join(abs_path, 'test_schemas/test_schema.json')
 
         test_query_creator = query_creator.QueryCreator(
             schema_path=schema_path,
@@ -167,19 +146,15 @@ class TestQueryCreator(object):
             dataset_id=self.dataset_id,
             updates_table_id=self.user_info_updates_id,
             temp_updates_table_id=self.temp_user_info_updates_id,
-            final_table_id=self.user_info_final_id
-        )
+            final_table_id=self.user_info_final_id)
 
         merge_updates_query = test_query_creator.create_merge_query()
         self._write_query('merge.txt', merge_updates_query)
         abs_path = os.path.abspath(os.path.dirname(__file__))
         test_merge_updates_query_path = os.path.join(
-            abs_path,
-            'test_queries/test_merge_updates_query.txt')
+            abs_path, 'test_queries/test_merge_updates_query.txt')
         with open(test_merge_updates_query_path, 'r') as input_file:
-            expected_merge_updates_query = input_file.read().format(
-                project_id
-            )
+            expected_merge_updates_query = input_file.read().format(project_id)
         assert merge_updates_query == expected_merge_updates_query
 
     def test_nested_create_merge_updates_query(self, project_id):
@@ -195,13 +170,10 @@ class TestQueryCreator(object):
         if not project_id:
             raise Exception(
                 'Test needs project_id to pass. '
-                'Add --project_id={your project ID} to test command'
-            )
+                'Add --project_id={your project ID} to test command')
         abs_path = os.path.abspath(os.path.dirname(__file__))
-        schema_path = os.path.join(
-            abs_path,
-            'test_schemas/test_nested_schema.json'
-        )
+        schema_path = os.path.join(abs_path,
+                                   'test_schemas/test_nested_schema.json')
         test_query_creator = query_creator.QueryCreator(
             schema_path=schema_path,
             user_id_field_name=self.user_id_field_name,
@@ -210,19 +182,15 @@ class TestQueryCreator(object):
             dataset_id=self.dataset_id,
             updates_table_id=self.user_info_updates_id,
             temp_updates_table_id=self.temp_user_info_updates_id,
-            final_table_id=self.user_info_final_id
-        )
+            final_table_id=self.user_info_final_id)
 
         merge_updates_query = test_query_creator.create_merge_query()
         with open('merge_nested.txt', 'w') as output:
             output.write(merge_updates_query)
         abs_path = os.path.abspath(os.path.dirname(__file__))
         test_merge_updates_query_path = os.path.join(
-            abs_path,
-            'test_queries/test_nested_merge_updates_query.txt')
+            abs_path, 'test_queries/test_nested_merge_updates_query.txt')
         with open(test_merge_updates_query_path, 'r') as input_file:
-            expected_merge_updates_query = input_file.read().format(
-                project_id
-            )
+            expected_merge_updates_query = input_file.read().format(project_id)
 
         assert merge_updates_query == expected_merge_updates_query

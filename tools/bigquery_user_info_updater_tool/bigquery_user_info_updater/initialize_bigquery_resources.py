@@ -29,36 +29,27 @@ def parse_args(argv):
     """
     parser = argparse.ArgumentParser()
 
-    parser.add_argument(
-        '--schema_path',
-        help='Path to the user tables schema.',
-        default=True
-    )
-    parser.add_argument(
-        '--project_id',
-        help='Id of project holding BQ resources.',
-        required=True
-    )
-    parser.add_argument(
-        '--dataset_id',
-        help='Id of dataset holding Identity BQ tables.',
-        required=True
-    )
+    parser.add_argument('--schema_path',
+                        help='Path to the user tables schema.',
+                        default=True)
+    parser.add_argument('--project_id',
+                        help='Id of project holding BQ resources.',
+                        required=True)
+    parser.add_argument('--dataset_id',
+                        help='Id of dataset holding Identity BQ tables.',
+                        required=True)
     parser.add_argument(
         '--final_table_id',
         help='Id of final table holding golden record for each user.',
-        required=True
-    )
+        required=True)
     parser.add_argument(
         '--updates_table_id',
         help='Id of table holding updates for the identity table.',
-        required=True
-    )
+        required=True)
     parser.add_argument(
         '--temp_updates_table_id',
         help='Id of table that deduped update rows will be written to.',
-        required=True
-    )
+        required=True)
 
     args = parser.parse_args(args=argv)
     return args
@@ -79,13 +70,8 @@ def main(argv=None):
     final_table_id = args.final_table_id
 
     initializer = bigquery_resource_util.BigQueryResourceUtil(
-        project_id,
-        dataset_id,
-        updates_table_id,
-        temp_updates_table_id,
-        final_table_id,
-        schema_path
-    )
+        project_id, dataset_id, updates_table_id, temp_updates_table_id,
+        final_table_id, schema_path)
 
     initializer.create_resources()
 

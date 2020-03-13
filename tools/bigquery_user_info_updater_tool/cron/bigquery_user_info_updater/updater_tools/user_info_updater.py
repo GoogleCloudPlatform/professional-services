@@ -17,7 +17,13 @@ import logging
 
 from google.cloud import bigquery
 
-INITIAL_TIMESTAMP = datetime.datetime(1900, 1, 1, 00, 00, 00, 000,
+INITIAL_TIMESTAMP = datetime.datetime(1900,
+                                      1,
+                                      1,
+                                      00,
+                                      00,
+                                      00,
+                                      000,
                                       tzinfo=tz.tzutc())
 
 
@@ -41,14 +47,8 @@ class UserInfoUpdater(object):
 
     """
 
-    def __init__(
-            self,
-            project_id,
-            dataset_id,
-            updates_table_id,
-            temp_updates_table_id,
-            final_table_id
-    ):
+    def __init__(self, project_id, dataset_id, updates_table_id,
+                 temp_updates_table_id, final_table_id):
         self.bq_client = bigquery.Client(project=project_id)
         self.project_id = project_id
         self.dataset_id = dataset_id
@@ -67,14 +67,10 @@ class UserInfoUpdater(object):
         get_last_max_ts_config.use_legacy_sql = False
         get_last_max_timestamp_query = self.bq_client.query(
             query='SELECT max(ingestTimestamp) as max_ingest_timestamp '
-                  'FROM `{0:s}.{1:s}.{2:s}`'.format(
-                    self.project_id,
-                    self.dataset_id,
-                    self.temp_updates_table_id
-                  ),
+            'FROM `{0:s}.{1:s}.{2:s}`'.format(self.project_id, self.dataset_id,
+                                              self.temp_updates_table_id),
             job_config=get_last_max_ts_config,
-            location='US'
-        )
+            location='US')
         get_last_max_timestamp_query.result()
         results = list(get_last_max_timestamp_query)
         max_ingest_timestamp = results[0]['max_ingest_timestamp']
@@ -96,21 +92,16 @@ class UserInfoUpdater(object):
         """
         logging.info(
             '{0:s} Gathering updates and writing to temp table.'.format(
-                str(datetime.datetime.now())
-            ))
+                str(datetime.datetime.now())))
         max_ingest_timestamp = self.get_max_ingest_timestamp()
         temp_updates_table_ref = self.dataset_ref.table(
-            self.temp_updates_table_id
-        )
+            self.temp_updates_table_id)
         gather_updates_job_config = bigquery.QueryJobConfig()
         gather_updates_job_config.use_legacy_sql = False
         gather_updates_query_job = self.bq_client.query(
-            query=gather_updates_query.format(
-                max_ingest_timestamp
-            ),
+            query=gather_updates_query.format(max_ingest_timestamp),
             location='US',
-            job_config=gather_updates_job_config
-        )
+            job_config=gather_updates_job_config)
         gather_updates_query_job.result()
 
         if len(list(gather_updates_query_job)) > 0:
@@ -119,23 +110,18 @@ class UserInfoUpdater(object):
             load_updates_job_config.write_disposition = 'WRITE_TRUNCATE'
             load_updates_job_config.use_legacy_sql = False
             load_updates_query_job = self.bq_client.query(
-                query=gather_updates_query.format(
-                    max_ingest_timestamp
-                ),
+                query=gather_updates_query.format(max_ingest_timestamp),
                 location='US',
-                job_config=load_updates_job_config
-            )
+                job_config=load_updates_job_config)
             load_updates_query_job.result()
             logging.info('{0:s} Successfully wrote updates to {1:s}.'.format(
-                str(datetime.datetime.now()),
-                self.temp_updates_table_id
-            ))
+                str(datetime.datetime.now()), self.temp_updates_table_id))
             return True
         else:
 
-            logging.info('{0:s} No new updates found for this interval.'.format(
-                str(datetime.datetime.now())
-            ))
+            logging.info(
+                '{0:s} No new updates found for this interval.'.format(
+                    str(datetime.datetime.now())))
             return False
 
     def merge_updates(self, merge_updates_query):
@@ -148,10 +134,8 @@ class UserInfoUpdater(object):
         """
 
         logging.info('{0:s} Merging updates from {1:s} into {2:s}.'.format(
-            str(datetime.datetime.now()),
-            self.temp_updates_table_id,
-            self.final_table_id
-        ))
+            str(datetime.datetime.now()), self.temp_updates_table_id,
+            self.final_table_id))
 
         merge_updates_job_config = bigquery.QueryJobConfig()
         merge_updates_job_config.use_legacy_sql = False
@@ -159,10 +143,7 @@ class UserInfoUpdater(object):
         merge_updates_query_job = self.bq_client.query(
             query=merge_updates_query,
             location='US',
-            job_config=merge_updates_job_config
-        )
+            job_config=merge_updates_job_config)
         merge_updates_query_job.result()
         logging.info('{0:s} Successfully merged updates into {1:s}.'.format(
-            str(datetime.datetime.now()),
-            self.final_table_id
-        ))
+            str(datetime.datetime.now()), self.final_table_id))

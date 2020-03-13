@@ -38,23 +38,13 @@ class BigQueryResourceUtil(object):
             per user.
 
     """
-    def __init__(
-        self,
-        project_id,
-        dataset_id,
-        updates_table_id,
-        temp_updates_table_id,
-        final_table_id,
-        schema_path
-    ):
-        self.bq_client = bigquery.Client(
-            project=project_id
-        )
+
+    def __init__(self, project_id, dataset_id, updates_table_id,
+                 temp_updates_table_id, final_table_id, schema_path):
+        self.bq_client = bigquery.Client(project=project_id)
         self.project_id = project_id
         self.dataset_id = dataset_id
-        self.dataset_ref = self.bq_client.dataset(
-            self.dataset_id
-        )
+        self.dataset_ref = self.bq_client.dataset(self.dataset_id)
         self.dataset = None
         self.updates_table_id = updates_table_id
         self.temp_updates_table_id = temp_updates_table_id
@@ -67,23 +57,12 @@ class BigQueryResourceUtil(object):
         dataset = bigquery.Dataset(self.dataset_ref)
         self.dataset = self.bq_client.create_dataset(dataset)
         logging.info('{0:s} Created Dataset {1:s}'.format(
-            str(datetime.datetime.now()),
-            self.dataset_id
-            ))
+            str(datetime.datetime.now()), self.dataset_id))
         schema = user_schema.UserSchema(self.schema_path)
         user_tables_schema = schema.translate_json_schema()
-        self.create_table(
-            self.updates_table_id,
-            user_tables_schema
-        )
-        self.create_table(
-            self.temp_updates_table_id,
-            user_tables_schema
-        )
-        self.create_table(
-            self.final_table_id,
-            user_tables_schema
-        )
+        self.create_table(self.updates_table_id, user_tables_schema)
+        self.create_table(self.temp_updates_table_id, user_tables_schema)
+        self.create_table(self.final_table_id, user_tables_schema)
 
     def create_table(self, table_id, schema):
         """Creates a table in BigQuery.
@@ -99,7 +78,5 @@ class BigQueryResourceUtil(object):
         table = bigquery.Table(table_ref, schema=schema)
         created_table = self.bq_client.create_table(table)
         logging.info('{0:s} Created Table {1:s}'.format(
-            str(datetime.datetime.now()),
-            table_id
-        ))
+            str(datetime.datetime.now()), table_id))
         return created_table

@@ -36,17 +36,10 @@ class QueryCreator(object):
 
 
     """
-    def __init__(
-            self,
-            schema_path,
-            user_id_field_name,
-            ingest_timestamp_field_name,
-            project_id,
-            dataset_id,
-            updates_table_id,
-            temp_updates_table_id,
-            final_table_id
-    ):
+
+    def __init__(self, schema_path, user_id_field_name,
+                 ingest_timestamp_field_name, project_id, dataset_id,
+                 updates_table_id, temp_updates_table_id, final_table_id):
         self.schema_path = schema_path
         self.user_id_field_name = user_id_field_name
         self.ingest_timestamp_field_name = ingest_timestamp_field_name
@@ -79,25 +72,17 @@ class QueryCreator(object):
             Returns: The name and alias of the field in string format.
             """
             if record_name:
-                name = '{0:s}.{1:s}'.format(
-                    record_name,
-                    field['name']
-                )
-                alias = '{0:s}_{1:s}'.format(
-                    record_alias,
-                    field['name']
-                )
+                name = '{0:s}.{1:s}'.format(record_name, field['name'])
+                alias = '{0:s}_{1:s}'.format(record_alias, field['name'])
 
             else:
                 name = field['name']
                 alias = field['name']
             return name, alias
 
-        def _process_inner_string_field(
-                field,
-                record_name=None,
-                record_alias=None
-        ):
+        def _process_inner_string_field(field,
+                                        record_name=None,
+                                        record_alias=None):
             """Creates a list of strings to be used as the inner portion of the
                 gather updates query by recursively processing fields and
                 nested fields.
@@ -114,27 +99,15 @@ class QueryCreator(object):
             if field['type'] == 'RECORD':
                 for sub_field in field['fields']:
                     name, alias = _determine_name_alias(
-                        field,
-                        record_name,
-                        record_alias
-                    )
+                        field, record_name, record_alias)
                     _process_inner_string_field(sub_field, name, alias)
             else:
-                name, alias = _determine_name_alias(
-                    field,
-                    record_name,
-                    record_alias
-                )
-                field_str = inner_string.format(
-                    name,
-                    alias
-                )
+                name, alias = _determine_name_alias(field, record_name,
+                                                    record_alias)
+                field_str = inner_string.format(name, alias)
                 inner_string_list.append(field_str)
 
-        def _process_select_string_field(
-                field,
-                record_alias=None
-        ):
+        def _process_select_string_field(field, record_alias=None):
             """Creates a list of fields to be selected as part of the
                 gather_updates query by recursively processing fields and nested
                 fields.
@@ -151,47 +124,33 @@ class QueryCreator(object):
                 for sub_field in field['fields']:
                     alias_string = '{0:s}_{1:s}'
                     if record_alias:
-                         alias = alias_string.format(
-                             record_alias,
-                             sub_field['name']
-                         )
+                        alias = alias_string.format(record_alias,
+                                                    sub_field['name'])
                     else:
-                        alias = alias_string.format(
-                            field['name'],
-                            sub_field['name']
-                        )
-                    sub_field_list.append(_process_select_string_field(
-                        sub_field,
-                        alias
-                    ))
+                        alias = alias_string.format(field['name'],
+                                                    sub_field['name'])
+                    sub_field_list.append(
+                        _process_select_string_field(sub_field, alias))
                 sub_field_str = ', '.join(sub_field_list)
 
-                return struct_str.format(
-                    sub_field_str,
-                    field['name']
-                )
+                return struct_str.format(sub_field_str, field['name'])
             else:
                 if record_alias:
-                    return '{0:s} as {1:s}'.format(
-                        record_alias,
-                        field['name']
-                    )
+                    return '{0:s} as {1:s}'.format(record_alias, field['name'])
                 else:
                     return field['name']
 
         # Get the templates to build the queries
         abs_path = os.path.abspath(os.path.dirname(__file__))
         outer_string_path = os.path.join(
-            abs_path,
-            '../query_templates/gather_updates_outer_string.txt')
+            abs_path, '../query_templates/gather_updates_outer_string.txt')
         with open(outer_string_path, 'r') as input_file:
             outer_string = input_file.read()
 
         inner_string_list = []
         field_list = []
         inner_string_path = os.path.join(
-            abs_path,
-            '../query_templates/gather_updates_inner_string.txt')
+            abs_path, '../query_templates/gather_updates_inner_string.txt')
         with open(inner_string_path, 'r') as input_file:
             inner_string = input_file.read()
 
@@ -200,8 +159,7 @@ class QueryCreator(object):
             json_schema = json.loads(f.read())
 
         ignore_fields = [
-            self.user_id_field_name,
-            self.ingest_timestamp_field_name
+            self.user_id_field_name, self.ingest_timestamp_field_name
         ]
 
         for item in json_schema["fields"]:
@@ -212,20 +170,15 @@ class QueryCreator(object):
         # Join all components together to build the final query
         concat_select_string = ",\n".join(ignore_fields + field_list)
         concat_inner_string = ",\n".join(inner_string_list)
-        full_string = outer_string.format(
-            concat_select_string,
-            self.user_id_field_name,
-            self.ingest_timestamp_field_name,
-            concat_inner_string,
-            self.project_id,
-            self.dataset_id,
-            self.updates_table_id,
-            '{0:s}'
-        )
-        logging.info('{0:s} Created query for gathering updates:\n{1:s}'.format(
-            str(datetime.datetime.now()),
-            full_string
-        ))
+        full_string = outer_string.format(concat_select_string,
+                                          self.user_id_field_name,
+                                          self.ingest_timestamp_field_name,
+                                          concat_inner_string, self.project_id,
+                                          self.dataset_id,
+                                          self.updates_table_id, '{0:s}')
+        logging.info(
+            '{0:s} Created query for gathering updates:\n{1:s}'.format(
+                str(datetime.datetime.now()), full_string))
 
         return full_string
 
@@ -237,6 +190,7 @@ class QueryCreator(object):
 
         Returns: The created query in string format.
         """
+
         def _determine_name(field, record_name):
             """Determines the name  of a field.
 
@@ -248,19 +202,13 @@ class QueryCreator(object):
             Returns: The name and alias of the field in string format.
             """
             if record_name:
-                name = '{0:s}.{1:s}'.format(
-                    record_name,
-                    field['name']
-                )
+                name = '{0:s}.{1:s}'.format(record_name, field['name'])
 
             else:
                 name = field['name']
             return name
 
-        def _process_inner_string_field(
-                field,
-                record_name=None
-        ):
+        def _process_inner_string_field(field, record_name=None):
             """Creates a list of strings to be used as the inner portion of the
                 merge updates query by recursively processing fields and
                 nested fields.
@@ -273,32 +221,22 @@ class QueryCreator(object):
             """
             if field['type'] == 'RECORD':
                 for sub_field in field['fields']:
-                    name = _determine_name(
-                        field,
-                        record_name
-                    )
+                    name = _determine_name(field, record_name)
                     _process_inner_string_field(sub_field, name)
             else:
-                name = _determine_name(
-                    field,
-                    record_name
-                )
-                field_str = inner_string.format(
-                    name
-                )
+                name = _determine_name(field, record_name)
+                field_str = inner_string.format(name)
                 inner_string_list.append(field_str)
 
         abs_path = os.path.abspath(os.path.dirname(__file__))
         outer_string_path = os.path.join(
-            abs_path,
-            '../query_templates/merge_updates_outer_string.txt')
+            abs_path, '../query_templates/merge_updates_outer_string.txt')
         with open(outer_string_path, 'r') as input_file:
             outer_string = input_file.read()
 
         inner_string_list = []
         inner_string_path = os.path.join(
-            abs_path,
-            '../query_templates/merge_updates_inner_string.txt')
+            abs_path, '../query_templates/merge_updates_inner_string.txt')
 
         with open(inner_string_path, 'r') as input_file:
             inner_string = input_file.read()
@@ -308,8 +246,7 @@ class QueryCreator(object):
         json_schema = json.loads(json_str)
 
         ignore_fields = [
-            self.user_id_field_name,
-            self.ingest_timestamp_field_name
+            self.user_id_field_name, self.ingest_timestamp_field_name
         ]
 
         for item in json_schema["fields"]:
@@ -318,17 +255,12 @@ class QueryCreator(object):
 
         inner_string = ",\n".join(inner_string_list)
 
-        full_string = outer_string.format(
-            self.project_id,
-            self.dataset_id,
-            self.final_table_id,
-            self.temp_updates_table_id,
-            self.user_id_field_name,
-            self.ingest_timestamp_field_name,
-            inner_string
-        )
+        full_string = outer_string.format(self.project_id, self.dataset_id,
+                                          self.final_table_id,
+                                          self.temp_updates_table_id,
+                                          self.user_id_field_name,
+                                          self.ingest_timestamp_field_name,
+                                          inner_string)
         logging.info('{0:s} Created query for merging updates:\n{1:s}'.format(
-            str(datetime.datetime.now()),
-            full_string
-        ))
+            str(datetime.datetime.now()), full_string))
         return full_string
