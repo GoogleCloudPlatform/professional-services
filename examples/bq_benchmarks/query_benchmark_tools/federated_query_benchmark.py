@@ -81,8 +81,7 @@ class FederatedQueryBenchmark:
                 'table {0:s} and file {1:s}'.format(self.native_table_id,
                                                     self.file_uri))
         elif self.total_table_size > MB_IN_TB:
-            logging.info(
-                'Queries will not be run on tables larger than 1 TB '
+            logging.info('Queries will not be run on tables larger than 1 TB '
                          'in order to save cost. Skipping queries for table '
                          '{0:s} with approximate size of {1:d} TB.'.format(
                              self.native_table_id,

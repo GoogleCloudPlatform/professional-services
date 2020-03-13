@@ -34,15 +34,11 @@ def parse_args(argv):
     """
     parser = argparse.ArgumentParser()
 
-
-
-
-
     parser.add_argument(
         '--create_results_table',
         help='Flag to initiate the process of creating results table to'
-                'store the results of the benchmark loads. '
-                'load_file_parameters.py.',
+        'store the results of the benchmark loads. '
+        'load_file_parameters.py.',
         action='store_true')
     parser.add_argument(
         '--create_benchmark_schemas',
