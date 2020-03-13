@@ -119,9 +119,8 @@ class UserInfoUpdater(object):
             return True
         else:
 
-            logging.info(
-                '{0:s} No new updates found for this interval.'.format(
-                    str(datetime.datetime.now())))
+            logging.info('{0:s} No new updates found for this interval.'.format(
+                str(datetime.datetime.now())))
             return False
 
     def merge_updates(self, merge_updates_query):

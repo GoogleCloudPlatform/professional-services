@@ -98,8 +98,8 @@ class QueryCreator(object):
             """
             if field['type'] == 'RECORD':
                 for sub_field in field['fields']:
-                    name, alias = _determine_name_alias(
-                        field, record_name, record_alias)
+                    name, alias = _determine_name_alias(field, record_name,
+                                                        record_alias)
                     _process_inner_string_field(sub_field, name, alias)
             else:
                 name, alias = _determine_name_alias(field, record_name,
@@ -176,9 +176,8 @@ class QueryCreator(object):
                                           concat_inner_string, self.project_id,
                                           self.dataset_id,
                                           self.updates_table_id, '{0:s}')
-        logging.info(
-            '{0:s} Created query for gathering updates:\n{1:s}'.format(
-                str(datetime.datetime.now()), full_string))
+        logging.info('{0:s} Created query for gathering updates:\n{1:s}'.format(
+            str(datetime.datetime.now()), full_string))
 
         return full_string
 
