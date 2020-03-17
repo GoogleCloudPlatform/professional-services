@@ -17,46 +17,43 @@ benchmarks:
 ### File Loader Benchmark
 The File Loader benchmark measures the affect of file properties on performance when loading
 files into BigQuery tables. Files are created using a combination of properties such as file type, compression type,
-number of columns, 
-column types (such as 100% STRING vs 50% STRING/ 50% NUMERIC), number of files, 
-and the size of files. Once the files are created, they are loaded into BigQuery tables. The load 
-job data is stored in the results table data-analytics-pocs.bq_benchmark_repo.results, 
-and a [DataStudio dashboard](https://datastudio.google.com/c/u/0/reporting/8f677f2e-6a50-4d68-bdea-d40576dec266/page/BNDj) is used to visualize the results. 
+number of columns, column types (such as 100% STRING vs 50% STRING/ 50% NUMERIC), number of files, 
+and the size of files. Once the files are created, they are loaded into BigQuery tables. 
 
 #### Benchmark Parameters
 Specifc file parameters are used in this project for performance testing. While 
 the list of parameters is growing, the current list of paramters and values
 is as follows:
 
-#####File Type: 
+**File Type**: 
 
 * Avro
 * CSV
 * JSON
 * Parquet
 
-#####Compression: 
+**Compression**: 
 
 * gzip (for CSV and JSON)
 * snappy (for AVRO)
 
-#####Number of columns
+**Number of columns**:
 * 10
 * 100
 * 1000
 
-#####Column Types
+**Column Types**: 
 * String-only
 * 50% String / 50% NUMERIC
 * 10% String / 90% NUMERIC
 
-#####Number of files
+**Number of files**: 
 * 1
 * 100
 * 1000
 * 10000
 
-#####Target Data Size (Size of the BigQuery staging table used to generate each file)
+**Target Data Size (Size of the BigQuery staging table used to generate each file)**: 
 * 10MB
 * 100MB
 * 1GB
@@ -79,22 +76,20 @@ queries on federated (external) and managed BigQuery tables. A variety of querie
 ranging in complexity will be created. These queries will be run on managed BigQuery 
 tables and federated Google Cloud Storage files (including AVRO, CSV, JSON, and PARQUET) of 
 identical schemas and sizes. The files created for the File Loader Benchmark will be reused
-here to run external queries on and to create BQ Managed tables with. The query 
-job data is stored in the results table data-analytics-pocs.bq_benchmark_repo.results, 
-and a [DataStudio dashboard](https://datastudio.google.com/c/u/0/reporting/8f677f2e-6a50-4d68-bdea-d40576dec266/page/KC6HB) is used to visualize the results. 
+here to run external queries on and to create BQ Managed tables with. 
 
 #### Benchmark Parameters 
 Parameters for this benchmark will include the type of table, type of query,
 and the table properties.
 
-#####Table Type:
+**Table Type**:
 
 * `BQ_MANAGED`: Tables located within and managed by BigQuery.
 * `EXTERNAL`: Data located in GCS files, which are used to create a temporary
 external table for querying. 
 
 
-#####Query Type:
+**Query Type**:
 * `SIMPLE_SELECT_*`: Select all columns and all rows.
 * `SELECT_ONE_STRING`: Select the first string field in the schema. All schemas used in the
 benchmark contain at least one string field. 
@@ -108,34 +103,34 @@ benchmark, both the BQ Managed tables and GCS files will share the File Loader B
 parameters, with the only difference being that the snappy compression type is not
 supported for federated queries and therefore will not be included for comparison. 
 
-#####File Type: 
+**File Type**: 
 
 * Avro
 * CSV
 * JSON
 * Parquet
 
-#####Compression: 
+**Compression**: 
 
 * gzip (for CSV and JSON)
 
-#####Number of columns
+**Number of columns**:
 * 10
 * 100
 * 1000
 
-#####Column Types
+**Column Types**:
 * String-only
 * 50% String / 50% NUMERIC
 * 10% String / 90% NUMERIC
 
-#####Number of files
+**Number of files**:
 * 1
 * 100
 * 1000
 * 10000
 
-#####Target Data Size (Size of the BigQuery staging table used to generate each file)
+**Target Data Size (Size of the BigQuery staging table used to generate each file)**:
 * 10MB
 * 100MB
 * 1GB
@@ -146,25 +141,17 @@ supported for federated queries and therefore will not be included for compariso
 
 #### BigQuery
 
-The results of the benchmarks are saved in a separate BigQuery table for 
-ad hoc analysis. The results table contains the following schema: [results_table_schema.json](json_schemas/results_table_schema.json)
-
-While the project can be configured to create results table with the above 
-schema in any project and dataset, the table that currently holds the results 
-is data-analytics-pocs.bq_benchmark_rep.results.
+The results of the benchmarks will be saved in a separate BigQuery table for 
+ad hoc analysis. The results table will use the following schema: [results_table_schema.json](json_schemas/results_table_schema.json)
 
 #### DataStudio
-
-The results from data-analytics-pocs.bq_loader_benchmark.bq_load_results can 
-also be visualized in the [DataStudio dashboard](https://datastudio.google.com/c/u/0/reporting/8f677f2e-6a50-4d68-bdea-d40576dec266/page/BNDj) .
+Once the results table is populated with data, DataStudio can be used to visualize results.
+See [this article](https://support.google.com/datastudio/answer/6283323?hl=en) to get started
+with DataStudio. 
 
 ## Usage
 This project contains the tools to create the resources needed to run the benchmarks. 
-It can be configured to run in entirely from 
-scratch in your own project, or it can be configured to use pre-created resources that have 
-already been generated in the data-analtyics-pocs project. Once the resources are created, or if 
-pre-created resources are being used, then the benchmarks can be run. In all cases,
-the main method for the project is located in 
+The main method for the project is located in 
 [`bq_benchmark.py`](bq_benchmark.py).
 
 ### Prepping the Benchmarks Resources from Scratch
@@ -429,7 +416,7 @@ and end with the file extension. For example,
 #### File Loader Benchmark
 Once the files are created, the File Loader Benchmark can be run. As a prerequisite for this step, a log sink in BigQuery that captures logs
 about BigQuery must be set up in the same project that holds the benchmark
-tables. To create a BigQuery is not already set up, follow [these steps](https://github.com/GoogleCloudPlatform/professional-services/tree/master/examples/bigquery-audit-log#1-getting-the-bigquery-log-data).
+tables. If a BigQuery log sink is not already set up, follow [these steps](https://github.com/GoogleCloudPlatform/professional-services/tree/master/examples/bigquery-audit-log#1-getting-the-bigquery-log-data).
 
 Note that this benchmark will delete tables after recording information on load time. Before the
 tables are deleted, the tables and their respective files can be used to run the Federated Query Benchmark. If
@@ -514,35 +501,11 @@ File Loader Benchmark are needed for the Federated Query Benchmark. It has a val
 so this flag will be set to False, unless it is provided in the 
 command.
 
-##### Running with Pre-Created Files
-
-If you don't want to run the project from scratch, and instead want to use the
-file combinations that have already been generated in the `data-analytics-pocs` project, 
-then use the following parameters to run the File Loader Benchmark, 
-then use the following command:
-```
-python bq_benchmark.py \
---run_file_loader_benchmark \
---bq_project_id=<ID of your own project holding the BigQuery resources> \
---gcs_project_id='data-analtyics-pocs' \
---staging_project_id='data-analytics-pocs' \
---staging_dataset_id='bq_loader_benchmark_staging' \
---benchmark_dataset_id=<ID of your dataset that will hold benchmark tables> \
---bucket_name='annarudy-bqloader-testfiles' \
---results_table_name=<Name of your results table> \
---results_dataset_id=<Name of the dataset that holds your results table> \
---bq_logs_dataset=<Dataset that holds the table storing logs for BQ jobs>
---duplicate_benchmark_tables
---include_federated_query_benchmark
-```
-
-This will allow you to use the files that have already been created  in the bucket 
-annarudy-bqloader-testfiles of the project data-analytics-pocs. 
 
 #### Federated Query Benchmark
 Once the files are created, the Federated Query Benchmark can be run. As a prerequisite for this step, a log sink in BigQuery that captures logs
 about BigQuery must be set up in the same project that holds the benchmark
-tables. To create a BigQuery is not already set up, follow [these steps](https://github.com/GoogleCloudPlatform/professional-services/tree/master/examples/bigquery-audit-log#1-getting-the-bigquery-log-data).
+tables. If a BigQuery log sink is not already set up, follow [these steps](https://github.com/GoogleCloudPlatform/professional-services/tree/master/examples/bigquery-audit-log#1-getting-the-bigquery-log-data).
 
 As mentioned above, the Federated Query Benchmark can be run while running the File Loader Benchmark in addition to using
 the command below. Note, though , that running federated queries on 
@@ -612,27 +575,6 @@ about the benchmark loads.
 `--bq_logs_dataset`: Name of dataset hold BQ logs table. This dataset must be
 in project used for `--bq_project_id`. 
 
-
-##### Running with Pre-Created Files
-
-If you don't want to run the project from scratch, and instead want to use the
-file combinations that have already been generated in the `data-analytics-pocs` project, 
-then use the following parameters to run the Federated Query Benchmark, 
-then use the following command:
-```
-python bq_benchmark.py \
---run_federated_query_benchmark \
---bq_project_id=<ID of your own project holding the BigQuery resources> \
---gcs_project_id='data-analtyics-pocs' \
---staging_project_id='data-analytics-pocs' \
---staging_dataset_id='bq_loader_benchmark_staging' \
---benchmark_dataset_id=<ID of your dataset that will hold benchmark tables> \
---bucket_name='annarudy-bqloader-testfiles' \
---results_table_name=<Name of your results table> \
---results_dataset_id=<Name of the dataset that holds your results table> \
---bq_logs_dataset=<Dataset that holds the table storing logs for BQ jobs>
-
-```
 
 ## Testing
 
