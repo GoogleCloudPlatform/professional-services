@@ -1,0 +1,26 @@
+.bar .bar-0 {
+  fill: #388E3C;
+}
+
+.bar .bar-1 {
+  fill: #FFE57F;
+}
+
+.bar .bar-2{
+  fill: #E53935;
+}
+
+.bar .text-0 {
+  fill: #ffffff;
+  font: 10px sans-serif;
+}
+
+.bar .text-1 {
+  fill: #000000;
+  font: 10px sans-serif;
+}
+
+.bar .text-2 {
+  fill: #ffffff;
+  font: 10px sans-serif;
+}

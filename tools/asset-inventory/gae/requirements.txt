@@ -1,0 +1,12 @@
+# Also see asset-inventory/setup.py.
+google-cloud-asset==0.8.0
+google-cloud-bigquery==1.17.1
+googleapis-common-protos==1.6.0
+google-api-python-client==1.7.11
+oauth2client==3.0.0
+httplib2==0.12.0
+google-apitools==0.5.28
+google-api-core==1.14.3
+Flask==1.1.1
+Werkzeug==0.16.0
+PyYAML==3.13

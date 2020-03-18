@@ -12,15 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import sys
-import time
-import math
 import logging
-import dateutil.parser
+
 from gsuite_exporter import auth
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 class AdminReportsAPIFetcher(object):
     """Fetch Admin SDK Reports API records and streams them.
@@ -28,9 +24,8 @@ class AdminReportsAPIFetcher(object):
     Args:
         api (`googleapiclient.discovery.Resource`): The Admin SDK API to fetch
             records from.
-        version (str): The Admin SDK API version.
-        credentials_path (str): The path to the GSuite Admin credentials.
-        scopes (list): A list of scopes to grant the API requests.
+        gsuite_admin (str): The GSuite admin email to impersonate.
+        credentials_path (str): The path to the service account credentials.
     """
     SCOPES = [
         'https://www.googleapis.com/auth/admin.reports.audit.readonly',
@@ -40,8 +35,7 @@ class AdminReportsAPIFetcher(object):
         self.api_name = 'reports_{}'.format(
             AdminReportsAPIFetcher.REPORTS_API_VERSION)
 
-        logger.debug("Initializing Admin API '{}' ...".format(
-            self.api_name))
+        LOGGER.debug("Initializing Admin API '%s' ...", self.api_name)
         self.api = auth.build_service(
             api='admin',
             version=self.api_name,
@@ -53,10 +47,13 @@ class AdminReportsAPIFetcher(object):
         """Fetch records from Admin API based on a query.
 
         Args:
-            api_query (dict): The request arguments as as dict.
+            application (str): The application name.
+            start_time (str): The start timestamp to start fetching from.
+            user_key (str): The user filter.
+            item_key (str): The enveloppe name to extract data from.
 
         Yields:
-            list: A list of entries in each response
+            list: A list of entries in each response.
         """
         activities = self.api.activities()
         req = activities.list(
@@ -67,11 +64,11 @@ class AdminReportsAPIFetcher(object):
         while req is not None:
             res = req.execute()
             items = res.get(item_key, [])
-            logger.debug("Retrieved {} new Admin API records from '{}.{}' app since {}".format(
-                len(items),
-                self.api_name,
-                application,
-                start_time))
+            LOGGER.debug("Retrieved %s new Admin API records from '%s.%s' app since %s",
+                         len(items),
+                         self.api_name,
+                         application,
+                         start_time)
             yield items
             req = activities.list_next(
                 previous_request=req,

@@ -16,10 +16,13 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+
 import os
 
 from attr import attrs, attrib
 
+from google.auth import environment_vars
+from google.cloud import logging
 from google.cloud import storage
 from google.oauth2 import service_account
 
@@ -31,10 +34,15 @@ class Configuration(object):
     target_project_credentials = attrib()
     source_storage_client = attrib()
     target_storage_client = attrib()
+    target_logging_client = attrib()
     source_project = attrib()
     target_project = attrib()
     bucket_name = attrib()
+    target_bucket_name = attrib()
     temp_bucket_name = attrib()
+    disable_bucket_lock = attrib()
+    lock_file_name = attrib()
+    is_rename = attrib()
 
     @classmethod
     def from_conf(cls, conf):
@@ -43,33 +51,52 @@ class Configuration(object):
         Set up the credentials and storage clients.
 
         Args:
-            conf: the argparser parsing of command line options
+            conf: the configargparser parsing of command line options
         """
 
-        source_service_account_key = os.getenv(
-            'GCP_SOURCE_PROJECT_SERVICE_ACCOUNT_KEY')
-        target_service_account_key = os.getenv(
-            'GCP_TARGET_PROJECT_SERVICE_ACCOUNT_KEY')
-
-        if not (source_service_account_key and target_service_account_key):
-            raise SystemExit(
-                'Missing some environment variables. Do you need to edit and source the config.sh'
-                ' script?')
-
         temp_bucket_name = conf.bucket_name + '-temp'
-        if conf.tempBucketName:
-            temp_bucket_name = conf.tempBucketName
+        if conf.temp_bucket_name:
+            temp_bucket_name = conf.temp_bucket_name
+
+        target_bucket_name = conf.bucket_name
+        is_rename = False
+        if conf.rename_bucket_to:
+            target_bucket_name = conf.rename_bucket_to
+            if target_bucket_name != conf.bucket_name:
+                is_rename = True
+
+        # Decide whether to use user supplied service account key
+        # files or the default GOOGLE_APPLICATION_CREDENTIALS value.
+        if not conf.gcp_source_project_service_account_key or \
+            conf.gcp_source_project_service_account_key == 'None':
+            json_path = os.environ.get(environment_vars.CREDENTIALS)
+        else:
+            json_path = conf.gcp_source_project_service_account_key
+        source_credentials = service_account.Credentials.from_service_account_file(
+            json_path)
+
+        if not conf.gcp_target_project_service_account_key or \
+            conf.gcp_target_project_service_account_key == 'None':
+            json_path = os.environ.get(environment_vars.CREDENTIALS)
+        else:
+            json_path = conf.gcp_target_project_service_account_key
+        target_credentials = service_account.Credentials.from_service_account_file(
+            json_path)
 
         return cls(
-            source_project_credentials=service_account.Credentials.
-            from_service_account_file(source_service_account_key),
-            target_project_credentials=service_account.Credentials.
-            from_service_account_file(target_service_account_key),
-            source_storage_client=storage.Client.from_service_account_json(
-                source_service_account_key),
-            target_storage_client=storage.Client.from_service_account_json(
-                target_service_account_key),
+            source_project_credentials=source_credentials,
+            target_project_credentials=target_credentials,
+            source_storage_client=storage.Client(
+                credentials=source_credentials, project=conf.source_project),
+            target_storage_client=storage.Client(
+                credentials=target_credentials, project=conf.target_project),
+            target_logging_client=logging.Client(
+                credentials=target_credentials, project=conf.target_project),
             source_project=conf.source_project,
             target_project=conf.target_project,
             bucket_name=conf.bucket_name,
-            temp_bucket_name=temp_bucket_name)
+            target_bucket_name=target_bucket_name,
+            temp_bucket_name=temp_bucket_name,
+            is_rename=is_rename,
+            disable_bucket_lock=conf.disable_bucket_lock,
+            lock_file_name=conf.lock_file_name)
