@@ -19,8 +19,7 @@ REGION=us-central1
 NETWORK_NAME=dataingestion-net
 DATAPROC_CLUSTER_NAME=dataproc-cluster
 DATAPROC_SUBNET=dataproc-subnet
-HADOOP_VERSION=hadoop2-2.1.0
-TEST_BUCKET=output-examples
+HADOOP_VERSION=hadoop2-2.2.0
 
 # Use environment variables to set Terraform variables
 export TF_VAR_project_id=${PROJECT_ID}
@@ -47,6 +46,11 @@ else
   echo "Unsupported Hadoop version at https://github.com/GoogleCloudDataproc/hadoop-connectors"
 fi
 
+if [[ "$?" -ne 0 ]] ; then
+  echo 'Error building JAR file from https://github.com/GoogleCloudDataproc/hadoop-connectors'; 
+  exit $rc
+fi
+
 cd ..
 
 echo "Running Terraform to build Dataproc cluster"
@@ -57,7 +61,7 @@ terraform apply -auto-approve
 cd .. 
 
 echo "Running test script on Dataproc cluster"
-chmod +x test_gcs_connector.sh
+chmod u+x test_gcs_connector.sh
 ./test_gcs_connector.sh
 
 

@@ -12,15 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-resource "google_project" "gcs_connector" {
-  project_id = var.project_id
-  name       = var.project_name
-
-  lifecycle {
-    ignore_changes = [billing_account]
-  }
-}
-
 resource "google_storage_bucket" "init_actions" {
   name     = "gcs-connector-init_actions"
   location = var.region
@@ -29,13 +20,13 @@ resource "google_storage_bucket" "init_actions" {
 
 resource "google_storage_bucket_object" "gcs_connector_jar" {
   name   = "gcs-connector-${var.hadoop_version}-shaded.jar"
-  source = "hadoop-connectors/gcs/target/gcs-connector-${var.hadoop_version}-SNAPSHOT-shaded.jar"
+  source = "../hadoop-connectors/gcs/target/gcs-connector-${var.hadoop_version}-SNAPSHOT-shaded.jar"
   bucket = "gcs-connector-init_actions"
 }
 
 resource "google_storage_bucket_object" "init_script" {
   name   = "dataproc-init-script.sh"
-  source = "connectors.sh"
+  source = "../connectors2.sh"
   bucket = "gcs-connector-init_actions"
 }
 
@@ -80,7 +71,7 @@ resource "google_dataproc_cluster" "dataproc-cluster" {
     gce_cluster_config {
       subnetwork = google_compute_subnetwork.dataproc.self_link
       metadata = {
-        gcs-connector-version = "2.0.1"
+        gcs-connector-version = element(split("-", var.hadoop_version), 1)
       }
     }
   }

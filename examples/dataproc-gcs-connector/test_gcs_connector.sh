@@ -42,6 +42,7 @@ STORED AS TEXTFILE
 LOCATION 'gs://output-examples/data_files/top_ten/' AS
 SELECT * FROM Names ORDER BY number LIMIT 10;"
 
+gcloud init
 gcloud dataproc jobs submit hive --region=us-central1 \
   --cluster=${YOUR_CLUSTER} \
   -e="$Q1" -e="$Q2" -e="$Q3"

@@ -17,13 +17,13 @@ REGION=us-central1
 NETWORK_NAME=dataingestion-net
 DATAPROC_CLUSTER_NAME=dataproc-cluster
 DATAPROC_SUBNET=dataproc-subnet
-HADOOP_VERSION=hadoop2-2.1.0
+HADOOP_VERSION=hadoop2-2.2.0
 ```
 
 You will also need to update the `HADOOP_VERSION` variable at the top of `connectors.sh`, the initialization script for the Dataproc cluster, as shown below:
 
 ```
-HADOOP_VERSION=hadoop2-2.1.0
+HADOOP_VERSION=hadoop2-2.2.0
 ```
 
 Finally, for testing, you will need to update the two environment variables at the top of `test_gcs_connector.sh` as shown below:
@@ -70,8 +70,7 @@ Terraform will create a GCS bucket upload this JAR to the bucket at `gs://gcs-co
 
 ### 3. Provide the Dataproc initialization script (with Terraform)
 
-When creating the [Google Cloud Dataproc](https://cloud.google.com/dataproc) cluster, you can specify the [inititalization action](https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/init-actions) to install the specified version of the [GCS connector](https://github.com/GoogleCloudDataproc/hadoop-connectors/blob/master/gcs/README.md) on the cluster. The initalization actions for updating the GCS connector for Dataproc is based off of the `connectors.sh` script from the [GoogleCloudDataproc/initalization-actions]
-https://github.com/GoogleCloudDataproc/initialization-actions/tree/master/connectors) GitHub repository. 
+When creating the [Google Cloud Dataproc](https://cloud.google.com/dataproc) cluster, you can specify the [inititalization action](https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/init-actions) to install the specified version of the [GCS connector](https://github.com/GoogleCloudDataproc/hadoop-connectors/blob/master/gcs/README.md) on the cluster. The initalization actions for updating the GCS connector for Dataproc is based off of the `connectors.sh` script from the [GoogleCloudDataproc/initalization-actions](https://github.com/GoogleCloudDataproc/initialization-actions/tree/master/connectors) GitHub repository. 
 
 The `connectors.sh` file in this repository will be the initialization script for the Dataproc cluster. Terraform will rename this script to `dataproc-init-script.sh` before uploading it to the `gs://gcs-connector-init_actions/` GCS bucket. It will also specify `dataproc-init-script.sh` as an initialization action for the Dataproc cluster.
 
@@ -87,4 +86,4 @@ terraform apply
 
 ### 6. Test the Dataproc cluster
 
-The script `test_gcs_connector.sh` will test the GCS Connector on your Dataproc cluster. This script will create a table `Names` in [HDFS](https://hadoop.apache.org/docs/r1.2.1/hdfs_design.html#Introduction), load data from a public GCS directory into the table, and then write the data from the `Names` table into a new table in GCS. If the GCS Connector is set up correctly, the job will succeed and the list of sample names from the public directory will be printed.
+The script `test_gcs_connector.sh` will test the GCS Connector on your Dataproc cluster. This script will create a table `Names` in [HDFS](https://hadoop.apache.org/docs/r1.2.1/hdfs_design.html#Introduction), load data from a public GCS directory into the table, and then write the data from the `Names` table into a new table in the specified bucked `$YOUR_BUCKET` in GCS. If the GCS Connector is set up correctly, the job will succeed and the list of sample names from the public directory will be printed.
