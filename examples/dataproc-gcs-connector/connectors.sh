@@ -5,6 +5,7 @@
 
 set -euxo pipefail
 
+# Update $HADOOP_VERSION
 HADOOP_VERSION=hadoop2-2.2.0
 
 readonly VM_CONNECTORS_HADOOP_DIR=/usr/lib/hadoop/lib

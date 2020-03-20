@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Update variables
 PROJECT_ID=gcs-connector
 PROJECT_NAME=gcs-connector
 REGION=us-central1

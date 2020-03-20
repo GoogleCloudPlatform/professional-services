@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Update variables
 export YOUR_BUCKET=output-examples
 export YOUR_CLUSTER=dataproc-cluster
 
