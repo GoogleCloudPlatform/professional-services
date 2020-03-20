@@ -26,7 +26,7 @@ resource "google_storage_bucket_object" "gcs_connector_jar" {
 
 resource "google_storage_bucket_object" "init_script" {
   name   = "dataproc-init-script.sh"
-  source = "../connectors2.sh"
+  source = "../connectors.sh"
   bucket = "gcs-connector-init_actions"
 }
 
