@@ -37,6 +37,9 @@ def cli(args):
 
     Args:
         args (Namespace): Argparsed CLI parameters.
+
+    Returns:
+        dict: Dict of all reports indexed by config file path.
     """
     utils.setup_logging()
     export = args.export
@@ -54,15 +57,19 @@ def cli(args):
         LOGGER.error(f'No SLO configs found in SLO folder {args.slo_config}.')
 
     # Load SLO configs and compute SLO reports
+    all_reports = {}
     for path in slo_configs:
         slo_config_name = path.split("/")[-1]
         LOGGER.debug(f'Loading SLO config "{slo_config_name}"')
         slo_config = utils.parse_config(path)
-        compute(slo_config,
-                eb_policy,
-                timestamp=timestamp,
-                do_export=export,
-                delete=delete)
+        reports = compute(slo_config,
+                          eb_policy,
+                          timestamp=timestamp,
+                          do_export=export,
+                          delete=delete)
+        all_reports[path] = reports
+    LOGGER.debug(all_reports)
+    return all_reports
 
 
 def parse_args(args):

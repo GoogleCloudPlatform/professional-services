@@ -28,26 +28,31 @@ class TestCLI(unittest.TestCase):
     def setUp(self):
         for k, v in CTX.items():
             os.environ[k] = v
+        slo_config = f'{root}/samples/stackdriver/slo_gae_app_availability.yaml'
+        eb_policy = f'{root}/samples/error_budget_policy.yaml'
+        self.slo_config = slo_config
+        self.eb_policy = eb_policy
 
     def test_parse_args(self):
-        slo_config_path = f'{cwd}/path/to/slo_config.json'
-        error_budget_policy_path = f'{cwd}/path/to/error_budget_policy.json'
         args = parse_args([
-            '--slo-config', slo_config_path, '--error-budget-policy',
-            error_budget_policy_path, '--export'
+            '--slo-config', self.slo_config, '--error-budget-policy',
+            self.eb_policy, '--export'
         ])
-        self.assertEqual(args.slo_config, slo_config_path)
-        self.assertEqual(args.error_budget_policy, error_budget_policy_path)
+        self.assertEqual(args.slo_config, self.slo_config)
+        self.assertEqual(args.error_budget_policy, self.eb_policy)
         self.assertEqual(args.export, True)
 
     @patch('google.api_core.grpc_helpers.create_channel',
            return_value=mock_sd(8))
     def test_cli(self, mock):
         args = parse_args([
-            '-f', f'{root}/samples/stackdriver/slo_gae_app_availability.yaml',
-            '-b', f'{root}/samples/error_budget_policy.yaml'
+            '-f', self.slo_config,
+            '-b', self.eb_policy
         ])
-        cli(args)
+        all_reports = cli(args)
+        len_first_report = len(all_reports[self.slo_config])
+        self.assertIn(self.slo_config, all_reports.keys())
+        self.assertEqual(len_first_report, 4)
 
     @patch('google.api_core.grpc_helpers.create_channel',
            return_value=mock_sd(40))
