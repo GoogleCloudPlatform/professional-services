@@ -30,8 +30,8 @@ class TestCLI(unittest.TestCase):
             os.environ[k] = v
 
     def test_parse_args(self):
-        slo_config_path = f'{cwd}/fixtures/slo_config.json'
-        error_budget_policy_path = f'{cwd}/fixtures/error_budget_policy.json'
+        slo_config_path = f'{cwd}/path/to/slo_config.json'
+        error_budget_policy_path = f'{cwd}/path/to/error_budget_policy.json'
         args = parse_args([
             '--slo-config', slo_config_path, '--error-budget-policy',
             error_budget_policy_path, '--export'

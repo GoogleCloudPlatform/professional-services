@@ -26,9 +26,9 @@ import pprint
 import re
 import sys
 import warnings
+import yaml
 
 import pytz
-import yaml
 
 from google.auth._default import _CLOUD_SDK_CREDENTIALS_WARNING
 
@@ -112,7 +112,7 @@ def setup_logging():
                         datefmt='%m/%d/%Y %I:%M:%S')
     logging.getLogger('googleapiclient').setLevel(logging.ERROR)
 
-    # Ingore annoying Cloud SDK warning
+    # Ignore Cloud SDK warning when using a user instead of service account
     warnings.filterwarnings("ignore", message=_CLOUD_SDK_CREDENTIALS_WARNING)
 
 
