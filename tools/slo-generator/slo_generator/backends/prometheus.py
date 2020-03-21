@@ -76,7 +76,7 @@ class PrometheusBackend:
             At least one of `filter_bad` or `filter_valid` is required.
 
         Returns:
-            tuple: A tuple of (good_event_count, bad_event_count).
+            tuple: A tuple of (good_count, bad_count).
         """
         conf = slo_config['backend']
         filter_good = conf['measurement']['filter_good']
@@ -86,23 +86,22 @@ class PrometheusBackend:
         # Replace window by its value in the error budget policy step
         expr_good = filter_good.replace('[window]', f'[{window}s]')
         res_good = self.query(expr_good)
-        good_event_count = PROM.count(res_good)
+        good_count = PrometheusBackend.count(res_good)
 
         if filter_bad:
             expr_bad = filter_bad.replace('[window]', f'[{window}s]')
             res_bad = self.query(expr_bad, timestamp)
-            bad_event_count = PROM.count(res_bad)
+            bad_count = PrometheusBackend.count(res_bad)
         elif filter_valid:
             expr_valid = filter_valid.replace('[window]', f'[{window}s]')
             res_valid = self.query(expr_valid, timestamp)
-            bad_event_count = PROM.count(res_valid) - good_event_count
+            bad_count = PrometheusBackend.count(res_valid) - good_count
         else:
             raise Exception("`filter_bad` or `filter_valid` is required.")
 
-        LOGGER.debug(f'Good events: {good_event_count} | '
-                     f'Bad events: {bad_event_count}')
+        LOGGER.debug(f'Good events: {good_count} | ' f'Bad events: {bad_count}')
 
-        return (good_event_count, bad_event_count)
+        return (good_count, bad_count)
 
     def query(self, filter, timestamp=None):  # pylint: disable=unused-argument
         """Query Prometheus server.
@@ -137,6 +136,3 @@ class PrometheusBackend:
             LOGGER.warning("Couldn't find any values in timeseries response")
             LOGGER.debug(exception)
             return 0  # no events in timeseries
-
-
-PROM = PrometheusBackend
