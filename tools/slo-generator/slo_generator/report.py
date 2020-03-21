@@ -91,7 +91,6 @@ class SLOReport:
         Args:
             step (dict): Error Budget Policy step configuration.
             result (obj): Backend result.
-            delete (bool, optional): Delete mode enabled.
 
         See https://landing.google.com/sre/workbook/chapters/implementing-slos/
         for details on the calculations.
@@ -146,9 +145,9 @@ class SLOReport:
 
         Args:
             config (dict): SLO configuration.
-            client (obj): Backend client initiated beforehand.
-            timestamp (int): Timestamp.
-            delete (bool): Set to True if we're running a delete action.
+            client (obj, optional): Backend client initiated beforehand.
+            delete (bool, optional): Set to True if we're running a delete
+                action.
 
         Returns:
             obj: Backend result.
@@ -235,11 +234,13 @@ class SLOReport:
             kwargs (dict): Dict of key / values to set in dataclass.
         """
         names = set(f.name for f in fields(self))
-        for k, val in kwargs.items():
-            if k in lambdas.keys():
-                val = lambdas[k](val)
-            if k in names:
-                setattr(self, k, val)
+        for name in names:
+            if name not in kwargs:
+                continue
+            value = kwargs[name]
+            if name in lambdas.keys():
+                value = lambdas[name](value)
+            setattr(self, name, value)
 
     def __get_info(self):
         """Get info message describing current SLO andcurrent Error Budget Step.
