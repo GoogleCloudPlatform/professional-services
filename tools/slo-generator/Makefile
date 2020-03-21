@@ -7,7 +7,7 @@
 #	make clean -- clean distutils
 #	make coverage_report -- code coverage report
 #	make flake8 -- flake8 checks
-# make pylint -- source code checks
+#	make pylint -- source code checks
 #	make tests -- run all of the tests
 #	make unittest -- runs the unit tests
 ########################################################
