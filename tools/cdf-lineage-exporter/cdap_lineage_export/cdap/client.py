@@ -1,48 +1,41 @@
-# Copyright 2019 Google LLC.
-# This software is provided as-is, without warranty or representation
-# for any use or purpose.
-# Your use of it is subject to your agreement with Google.
-
+# Copyright 2020 Google LLC
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-# http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import urllib.parse
-from dataclasses import dataclass
+
 from functools import wraps
 
 from google.api_core.exceptions import NotFound
-from google.auth.credentials import AnonymousCredentials, Credentials
-from google.cloud import _http
-from google.cloud.client import ClientWithProject
+import google.auth
+import google.auth.transport.requests
+import requests
+
+SCOPES = ["https://www.googleapis.com/auth/cloud-platform"]
+
+# Use a sentinal value so that None can be explicitly passed as credentials for
+# use in testing with local CDAP.
+# https://treyhunner.com/2019/03/unique-and-sentinel-values-in-python/
+DEFAULT_CREDENTIALS = object()
 
 
-class Connection(_http.JSONConnection):
+def _empty_if_not_found(api_call):
     """
-    Connection to CDAP API on Data Fusion
+    Decorator to help handle scenarios where CDAP REST API returns
+    a misleading 404.
+
+    For example, If there are no datasets (or streams) the CDAP REST API
+    datasets (or streams) endpoint will return 404 instead of empty list
     """
-    def __init__(self, client, api_endpoint, client_info=None):
-        super(Connection, self).__init__(client, client_info)
-        self.API_BASE_URL = api_endpoint
 
-    API_VERSION = "v3"
-    API_URL_TEMPLATE = "{api_base_url}/{api_version}/{path}"
-
-
-def empty_if_not_found(api_call):
-    """
-     Decorator to help handle scenarios where CDAP REST API returns
-     a misleading 404.
-
-     For example, If there are no datasets (or streams) the CDAP REST API
-     datasets (or streams) endpoint will return 404 instead of empty list"""
     @wraps(api_call)
     def handle_not_found(*args, **kwargs):
         try:
@@ -53,79 +46,107 @@ def empty_if_not_found(api_call):
     return handle_not_found
 
 
-class CDAPClient(ClientWithProject):
+class CDAPClient(object):
     """
     Client for making CDAP REST API Calls.
-    
+
     Args:
-        api_endpoint (str): address of your CDAP instance. For Data Fusion this
+        api_endpoint (str):
+            address of your CDAP instance. For Data Fusion this
             can be retrieved with:
-            ```bash
-                gcloud beta data-fusion instance describe --location=${REGION} \
-                  --format="value(apiEndpoint)" ${INSTANCE_NAME}
-            ```
-        credentials (google.auth.credentials.Credentials): optional path the json SA key to use.
+
+            ..code:: shell
+
+               gcloud beta data-fusion instance describe --location=${REGION} \
+                 --format="value(apiEndpoint)" ${INSTANCE_NAME}
+
+        namespace (str):
+            Optional. Namespace to use if not specified. Defaults to
+            ``'default'``.
+
+        credentials (Optional[google.auth.credentials.Credentials]):
+            ``google.auth`` credentials object to use in requests.
     """
+
     def __init__(self,
-                 project: str,
                  api_endpoint: str,
-                 credentials=None,
-                 namespace=None):
-        super().__init__(project=project, credentials=credentials, _http=None)
-        self.namespace = namespace if namespace else 'default'
-        self._connection = Connection(self, api_endpoint)
+                 credentials=DEFAULT_CREDENTIALS,
+                 namespace="default"):
+        if credentials is DEFAULT_CREDENTIALS:
+            credentials, _ = google.auth.default(scopes=SCOPES)
+            self._transport = google.auth.transport.requests.AuthorizedSession(
+                credentials)
+        else:
+            self._transport = requests
+        self._endpoint = api_endpoint
+        self.namespace = namespace
 
-    def api_request(self,
-                    method: str,
-                    path: str,
-                    query_params: dict = None,
-                    data: str = None,
-                    headers: dict = None,
-                    expect_json=True):
-
-        return self._connection.api_request(method,
-                                            path,
-                                            query_params=query_params,
-                                            data=data,
-                                            headers=headers,
-                                            expect_json=expect_json)
+    def _api_request(
+            self,
+            method: str,
+            path: str,
+            query_params: dict = None,
+            data: str = None,
+            headers: dict = None,
+    ):
+        response = self._transport.request(
+            method,
+            f"{self._endpoint}/{path}",
+            params=query_params,
+            data=data,
+            headers=headers,
+        )
+        if 200 <= response.status_code < 300:
+            return response.json()
+        # TODO: handle retries on 500
+        raise google.api_core.exceptions.from_http_status(
+            response.status_code, response.text)
 
     def list_namespaces(self):
         return [
-            namespace.get('name')
-            for namespace in self.api_request('GET', 'namespaces')
+            namespace.get("name")
+            for namespace in self._api_request("GET", "v3/namespaces")
         ]
 
-    def list_apps(self, namespace):
+    def list_apps(self, namespace=None):
+        namespace = namespace or self.namespace
         return [
-            app.get('name')
-            for app in self.api_request('GET', f'namespaces/{namespace}/apps/')
+            app.get("name") for app in self._api_request(
+                "GET", f"v3/namespaces/{namespace}/apps/")
         ]
 
-    @empty_if_not_found
-    def list_datasets(self, namespace):
+    @_empty_if_not_found
+    def list_datasets(self, namespace=None):
+        namespace = namespace or self.namespace
         return [
-            dataset.get('name') for dataset in self.api_request(
-                'GET', f'namespaces/{namespace}/data/datasets/')
+            dataset.get("name") for dataset in self._api_request(
+                "GET", f"v3/namespaces/{namespace}/data/datasets/")
         ]
 
-    @empty_if_not_found
-    def list_streams(self, namespace):
+    @_empty_if_not_found
+    def list_streams(self, namespace=None):
+        namespace = namespace or self.namespace
         return [
-            stream.get('name') for stream in self.api_request(
-                'GET', f'namespaces/{namespace}/data/streams/')
+            stream.get("name") for stream in self._api_request(
+                "GET", f"v3/namespaces/{namespace}/data/streams/")
         ]
 
-    def fetch_lineage(self,
-                      namespace,
-                      entity_type,
-                      entity,
-                      start_ts='now-1d',
-                      end_ts='now'):
-        return self.api_request(
-            'GET',
-            f'namespaces/{namespace}/{entity_type}/{entity}/lineage',
-            query_params={
-                'start': start_ts,
-                'end': end_ts
-            })
+    def list_lineage(self,
+                     entity_type,
+                     entity,
+                     namespace=None,
+                     start_ts="now-1d",
+                     end_ts="now",
+                     not_found_ok=True):
+        namespace = namespace or self.namespace
+        try:
+            return self._api_request(
+                "GET",
+                f"v3/namespaces/{namespace}/{entity_type}/{entity}/lineage",
+                query_params={
+                    "start": start_ts,
+                    "end": end_ts
+                },
+            )
+        except google.api_core.exceptions.NotFound:
+            return {}

@@ -4,7 +4,7 @@ This is a simple application to export the Dataset lineage info in the
 
 
 ## Pre-reqs
-- Python >= 3.7 
+- Python >= 3.7
 - Google Cloud SDK
 - [Optional] Docker >= 19.03.5
 
@@ -18,7 +18,7 @@ gcloud auth application-default login
 
 ## Local CLI Usage
 ```bash
-usage: main.py [-h] --project PROJECT --api_endpoint API_ENDPOINT
+usage: cdap_lineage_export/main.py [-h] --project PROJECT --api_endpoint API_ENDPOINT
                          --bucket BUCKET [--start_ts START_TS]
                          [--end_ts END_TS] [--log {ERROR,INFO,WARN,DEBUG}]
 
@@ -44,7 +44,7 @@ optional arguments:
   --log {ERROR,INFO,WARN,DEBUG}
                         Logging level, defaults to INFO
 
-        Example Usage: 
+        Example Usage:
 
         export  PROJECT='your-gcp-project'
         export  BUCKET='cdap_lineage_export_bucket'
@@ -52,29 +52,28 @@ optional arguments:
         export  INSTANCE_NAME='cdf-instance'
         export  CDAP_API_ENDPOINT=$(gcloud beta data-fusion instances describe --location=${REGION} --format='value(apiEndpoint)' ${INSTANCE_NAME})
 
-        python3 main.py \
+        python3 cdap_lineage_export/main.py \
           --api_endpoint='${CDAP_API_ENDPOINT}' \
           --project='${PROJECT}' \
           --bucket=${BUCKET}
 ```
 
-Example: 
+Example:
 
 ```bash
 # Activate virtual environment from Local Setup
 source .venv/bin/activate #
 
-# Set 
+# Set
 export PROJECT="myproject"
-gcloud config set project ${PROJECT}
 export BUCKET="my_cdap_lineage_bucket"
 export REGION="us-central1"
 export INSTANCE_NAME="private-cdf-instance"
-export CDAP_API_ENDPOINT=$(gcloud beta data-fusion instances describe --location=${REGION} --format="value(apiEndpoint)" ${INSTANCE_NAME})
+export CDAP_API_ENDPOINT=$(gcloud --project=${PROJECT} beta data-fusion instances describe --location=${REGION} --format="value(apiEndpoint)" ${INSTANCE_NAME})
 python3 cdap_lineage_export/main.py \
   --api_endpoint=${CDAP_API_ENDPOINT} \
   --project=${PROJECT} \
-  --bucket=${BQ_DATASET} \
+  --bucket=${BUCKET} \
   --start_ts=now-1000d \
   --end_ts=now
 ```
@@ -93,7 +92,7 @@ gcloud functions deploy cdap_lineage_export \
   --trigger-http \
   --runtime="python37" \
   --source="./cdap_lineage_export" \
-  --entry-point="handle_http" 
+  --entry-point="handle_http"
 ```
 
 ### Terraform
@@ -114,11 +113,29 @@ terraform init
 terraform apply
 ```
 
+### Testing the Cloud Function
+
+Manually trigger an export by making an HTTP request to the Cloud
+Function.
+
+```bash
+curl -w"\n" --header "Content-Type: application/json" \
+  --request POST \
+  --data '{
+    "project": "my-project-id",
+    "apiEndpoint": "https://my-instance-my-project-id-dot-usc1.datafusion.googleusercontent.com/api",
+    "bucket": "my-bucket",
+    "startTimestamp": "now-1d",
+    "endTimestamp": "now"
+  }' \
+  https://us-central1-my-project-id.cloudfunctions.net/cdap_lineage_export
+```
+
 ## Roadmap
 - [x] Add dump to GCS
 - [x] Wrap in cloud function / deploy w/ terraform
 - [x] Add Terraform script to deploy this cloud function with custom SA with minimum permissions.
 - [] Add another cloud function / CLI tool for exporting all lineage for a specific namespace /  applicaiton rather than everything
-- [] Add Field level lineage  
+- [] Add Field level lineage
 - [] Grab Plugin Version information from pipeline json configs
 
