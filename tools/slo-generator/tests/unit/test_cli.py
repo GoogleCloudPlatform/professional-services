@@ -45,10 +45,7 @@ class TestCLI(unittest.TestCase):
     @patch('google.api_core.grpc_helpers.create_channel',
            return_value=mock_sd(8))
     def test_cli(self, mock):
-        args = parse_args([
-            '-f', self.slo_config,
-            '-b', self.eb_policy
-        ])
+        args = parse_args(['-f', self.slo_config, '-b', self.eb_policy])
         all_reports = cli(args)
         len_first_report = len(all_reports[self.slo_config])
         self.assertIn(self.slo_config, all_reports.keys())
@@ -57,18 +54,20 @@ class TestCLI(unittest.TestCase):
     @patch('google.api_core.grpc_helpers.create_channel',
            return_value=mock_sd(40))
     def test_cli_folder(self, mock):
-        args = parse_args([
-            '-f', f'{root}/samples/stackdriver', '-b',
-            f'{root}/samples/error_budget_policy.yaml'
-        ])
-        cli(args)
+        args = parse_args(
+            ['-f', f'{root}/samples/stackdriver', '-b', self.eb_policy])
+        all_reports = cli(args)
+        len_first_report = len(all_reports[self.slo_config])
+        self.assertIn(self.slo_config, all_reports.keys())
+        self.assertEqual(len_first_report, 4)
 
     def test_cli_no_config(self):
         args = parse_args([
             '-f', f'{root}/samples', '-b',
             f'{root}/samples/error_budget_policy.yaml'
         ])
-        cli(args)
+        all_reports = cli(args)
+        self.assertEqual(all_reports, {})
 
 
 if __name__ == '__main__':
