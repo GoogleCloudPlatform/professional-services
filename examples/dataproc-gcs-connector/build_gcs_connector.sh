@@ -34,28 +34,31 @@ export TF_VAR_hadoop_version=${HADOOP_VERSION}
 echo "Cloning https://github.com/GoogleCloudDataproc/hadoop-connectors" 
 git clone https://github.com/GoogleCloudDataproc/hadoop-connectors
 
-cd hadoop-connectors
+cd hadoop-connectors || exit
 
 echo "Building JAR file"
 if [[ $HADOOP_VERSION == *"hadoop2"* ]]
 then
-  ./mvnw -P hadoop2 clean package
+  if ! ./mvnw -P hadoop2 clean package
+  then 
+    echo 'Error building JAR file from https://github.com/GoogleCloudDataproc/hadoop-connectors'; 
+    exit
+  fi
 elif [[ $HADOOP_VERSION == *"hadoop3"* ]]
 then
-  ./mvnw -P hadoop3 clean package
+  if ! ./mvnw -P hadoop3 clean package
+  then
+    echo 'Error building JAR file from https://github.com/GoogleCloudDataproc/hadoop-connectors'; 
+    exit
+  fi
 else
   echo "Unsupported Hadoop version at https://github.com/GoogleCloudDataproc/hadoop-connectors"
-fi
-
-if [[ "$?" -ne 0 ]] ; then
-  echo 'Error building JAR file from https://github.com/GoogleCloudDataproc/hadoop-connectors'; 
-  exit $rc
 fi
 
 cd ..
 
 echo "Running Terraform to build Dataproc cluster"
-cd terraform
+cd terraform || exit
 terraform init
 terraform apply -auto-approve
 
@@ -64,17 +67,3 @@ cd ..
 echo "Running test script on Dataproc cluster"
 chmod u+x test_gcs_connector.sh
 ./test_gcs_connector.sh
-
-
-
-
-
-
-
-
-
-
-
-
-
-

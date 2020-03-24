@@ -10,7 +10,7 @@ The script `build_gcs_connector.sh` will use the steps below to install the GCS 
 
 The script `build_gcs_connector.sh` will install the GCS Connector on a Dataproc cluster on GCP using Terraform. Before running this script, you will need to update the environment variables at the top of the script as shown below:
 
-```
+```bash
 PROJECT_ID=gcs-connector
 PROJECT_NAME=gcs-connector
 REGION=us-central1
@@ -28,7 +28,7 @@ HADOOP_VERSION=hadoop2-2.2.0
 
 Finally, for testing, you will need to update the two environment variables at the top of `test_gcs_connector.sh` as shown below:
 
-```
+```bash
 export YOUR_BUCKET=output-examples
 export YOUR_CLUSTER=dataproc-cluster
 ```
