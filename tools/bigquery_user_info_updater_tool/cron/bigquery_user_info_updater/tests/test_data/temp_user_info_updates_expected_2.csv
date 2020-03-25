@@ -1,0 +1,3 @@
+userId,ingestTimestamp,attribute1,attribute2,attribute3
+userA,2019-08-10 05:45:16.228 UTC,NaN,dat,lot
+userB,2019-08-10 05:46:16.228 UTC,cor,NaN,NaN
