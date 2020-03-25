@@ -19,5 +19,5 @@ To run this code, set the input variables in the `variables.tf` file (also shown
 
 ```bash
 terraform init
-terrafrom apply
+terraform apply
 ```
