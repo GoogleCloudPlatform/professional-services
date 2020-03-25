@@ -22,7 +22,7 @@ variable "hadoop_version" {
 
 variable "region" {
   description = "Region for Dataproc"
-  default = "us-central1"
+  default     = "us-central1"
 }
 
 variable "network_name" {
