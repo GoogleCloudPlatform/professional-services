@@ -13,10 +13,16 @@
 # limitations under the License.
 
 
+"""GSuite Exporter on Cloud Function"""
+
 import os
 from gsuite_exporter.cli import sync_all
 
 def sync_log(event, context):
+    """A PubSub handler trigger by Cloud Function"""
+
+    del event, context
+
     admin = os.getenv('ADMIN_USER')
     project_id = os.getenv('GCP_PROJECT')
     if not admin:
