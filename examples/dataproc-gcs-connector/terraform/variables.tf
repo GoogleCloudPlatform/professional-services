@@ -16,16 +16,13 @@ variable "project_id" {
   description = "Project ID for your GCP project"
 }
 
-variable "project_name" {
-  description = "Project name for your GCP project"
-}
-
 variable "hadoop_version" {
   description = "Hadoop version for the GCS connector"
 }
 
 variable "region" {
   description = "Region for Dataproc"
+  default = "us-central1"
 }
 
 variable "network_name" {

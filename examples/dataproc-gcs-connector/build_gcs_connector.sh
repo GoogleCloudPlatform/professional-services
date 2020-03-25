@@ -15,7 +15,6 @@
 
 # Update variables
 PROJECT_ID=gcs-connector
-PROJECT_NAME=gcs-connector
 REGION=us-central1
 NETWORK_NAME=dataingestion-net
 DATAPROC_CLUSTER_NAME=dataproc-cluster
@@ -24,7 +23,6 @@ HADOOP_VERSION=hadoop2-2.2.0
 
 # Use environment variables to set Terraform variables
 export TF_VAR_project_id=${PROJECT_ID}
-export TF_VAR_project_name=${PROJECT_NAME}
 export TF_VAR_region=${REGION}
 export TF_VAR_network_name=${NETWORK_NAME}
 export TF_VAR_dataproc_cluster=${DATAPROC_CLUSTER_NAME}

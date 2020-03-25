@@ -12,7 +12,6 @@ The script `build_gcs_connector.sh` will install the GCS Connector on a Dataproc
 
 ```bash
 PROJECT_ID=gcs-connector
-PROJECT_NAME=gcs-connector
 REGION=us-central1
 NETWORK_NAME=dataingestion-net
 DATAPROC_CLUSTER_NAME=dataproc-cluster
@@ -22,7 +21,7 @@ HADOOP_VERSION=hadoop2-2.2.0
 
 You will also need to update the `HADOOP_VERSION` variable at the top of `connectors.sh`, the initialization script for the Dataproc cluster, as shown below:
 
-```
+```bash
 HADOOP_VERSION=hadoop2-2.2.0
 ```
 
@@ -35,7 +34,7 @@ export YOUR_CLUSTER=dataproc-cluster
 
 Once all of the above variables are updated, the main script `build_gcs_connector.sh` will build the GCS connector JAR file, upload it to a GCS bucket, create a Dataproc cluster using the GCS connector, and then test the Dataproc cluster. To do this, run:
 
-```
+```bash
 ./build_gcs_connector.sh
 ```
 
@@ -49,7 +48,7 @@ Clone the Hadoop connector locally from the [GoogleCloudDataproc/hadoop-connecto
 
 Build the JAR file by running the following commands from the main directory `hadoop-connectors/` of the cloned project:
 
-```
+```bash
 # with Hadoop 2 and YARN support:
 ./mvnw -P hadoop2 clean package
 # with Hadoop 3 and YARN support:
@@ -57,7 +56,8 @@ Build the JAR file by running the following commands from the main directory `ha
 ```
 
 In order to verify test coverage for specific Hadoop version, run the following commands from the main directory `hadoop-connectors/`:
-```
+
+```bash
 # with Hadoop 2 and YARN support:
 ./mvnw -P hadoop2 -P coverage clean verify
 # with Hadoop 3 and YARN support:
@@ -78,7 +78,7 @@ The `connectors.sh` file in this repository will be the initialization script fo
 
 From the main directory of this project `gcs-connector-poc/`, the script will run the following commands to build the Dataproc cluster using the GCS connector.
 
-```
+```bash
 cd terraform
 terraform init
 terraform apply
