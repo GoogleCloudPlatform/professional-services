@@ -18,3 +18,6 @@
 
 
 
+## Alternatives
+- [A Terraform module to deploy Gsuite Exporter on a GCE VM](https://github.com/terraform-google-modules/terraform-google-gsuite-export)
+- [Another Terraform module to deploy on Google Cloud Functions](https://github.com/terraform-google-modules/terraform-google-gsuite-export/tree/master/examples/cloud_function)
