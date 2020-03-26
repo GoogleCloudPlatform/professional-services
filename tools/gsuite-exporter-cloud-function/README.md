@@ -1,4 +1,4 @@
-# README
+# GSuite log exporter in cloud function
 
 ## Requirements
 
