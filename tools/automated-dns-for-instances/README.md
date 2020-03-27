@@ -117,3 +117,10 @@ gcloud functions deploy $FUNCTION_NAME \
 ```
 
 #### Note - you do NOT need to allow unauthorized access - answer NO at the prompt
+
+## 5. Testing
+
+### 5.1 Check pub/sub topic for messages:
+
+```shell
+
