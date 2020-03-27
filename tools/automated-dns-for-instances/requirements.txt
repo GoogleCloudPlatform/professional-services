@@ -1,0 +1,3 @@
+# Function dependencies, for example:
+# package>=version
+google-cloud-dns
