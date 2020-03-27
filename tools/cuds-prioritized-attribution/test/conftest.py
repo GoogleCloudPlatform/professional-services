@@ -60,4 +60,3 @@ def pytest_generate_tests(metafunc):
     test_name_list = get_test_name_list()
     if "testcasename" in metafunc.fixturenames:
         metafunc.parametrize("testcasename", test_name_list)
-

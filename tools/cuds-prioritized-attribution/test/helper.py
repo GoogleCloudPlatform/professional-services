@@ -25,14 +25,15 @@ import logging
 from airflow import DAG
 
 sys.path.append('../composer/')
-from main import execute_query,project_label_credit,distribute_commitments,billing_output
+from main import execute_query, project_label_credit, distribute_commitments, billing_output
+
 
 class Helper():
 
     def set_env_var(key, value):
         os.environ[key] = value
 
-    def generateData(dataset, export_table,commitment_table, dir):
+    def generateData(dataset, export_table, commitment_table, dir):
         myCmd = 'sh tests/load_test_data_bq_table.sh ' + dataset + " " + export_table + " " + commitment_table + " " + dir
         os.system(myCmd)
 
@@ -43,44 +44,49 @@ class Helper():
 
     def delete_file(dir):
         myCmd = 'sh tests/delete_file.sh ' + dir
-        logging.info("Cleaned Files from /tests directory for testcase - " + dir )
+        logging.info("Cleaned Files from /tests directory for testcase - " +
+                     dir)
         os.system(myCmd)
 
     def create_dataset(dataset):
         myCmd = 'sh tests/create_dataset.sh ' + dataset
-        logging.info("created test environment dataset " + dataset )
+        logging.info("created test environment dataset " + dataset)
         os.system(myCmd)
 
     def clean_data(data):
-        Helper.delete_table(data['corrected_dataset_id'],data['distribute_commitment_table'])
-        Helper.delete_table(data['corrected_dataset_id'],data['corrected_table_name'])
-        Helper.delete_table(data['billing_export_dataset_id'],data['load_billing_export_table_name'])
-        Helper.delete_table(data['billing_export_dataset_id'],data['commitment_table_name'])
-        
+        Helper.delete_table(data['corrected_dataset_id'],
+                            data['distribute_commitment_table'])
+        Helper.delete_table(data['corrected_dataset_id'],
+                            data['corrected_table_name'])
+        Helper.delete_table(data['billing_export_dataset_id'],
+                            data['load_billing_export_table_name'])
+        Helper.delete_table(data['billing_export_dataset_id'],
+                            data['commitment_table_name'])
+
     def clean(dir, data):
         Helper.delete_file(dir)
         #Helper.delete_table(data['corrected_dataset_id'],data['distribute_commitment_table'])
         #Helper.delete_table(data['corrected_dataset_id'],data['corrected_table_name'])
         #Helper.delete_table(data['billing_export_dataset_id'],data['billing_export_table_name'])
         #Helper.delete_table(data['billing_export_dataset_id'],data['commitment_table_name'])
-        
+
     def prepare_consolidated_billing(dir, data):
-        
+
         for key, value in data.items():
             Helper.set_env_var(key, value)
 
-        Helper.generateData(data['billing_export_dataset_id'], data['load_billing_export_table_name'], data['commitment_table_name'], dir)
+        Helper.generateData(data['billing_export_dataset_id'],
+                            data['load_billing_export_table_name'],
+                            data['commitment_table_name'], dir)
         bq_client = bigquery.Client()
-        
+
         project_label_credit(bq_client, data)
-        logging.info('...' +dir + '_project_label_credit created ... ')
+        logging.info('...' + dir + '_project_label_credit created ... ')
         distribute_commitments(bq_client, data)
-        logging.info('...' +dir+ '_distribute_commitment created ... ')
+        logging.info('...' + dir + '_distribute_commitment created ... ')
         billing_output(bq_client, data)
-        logging.info('...'+dir + '_corrected created ... ')
-        
+        logging.info('...' + dir + '_corrected created ... ')
+
     def dump_result(project, dataset, consolidated_billing_table, local_output):
         myCmd = 'sh tests/extract.sh ' + project + " " + dataset + " " + consolidated_billing_table + " " + local_output
         os.system(myCmd)
-
-    

@@ -18,324 +18,397 @@ import sys
 sys.path.append('../source')
 from commitment_intervals import computeDiff, ScheduleAndValue, CommitmentValue
 
+
 def test_same_start_different_end():
     data = {}
     data['x'] = []
-    data['x'].append(ScheduleAndValue(parser.parse('2010-03-05'), parser.parse('2010-12-01'), CommitmentValue('id', 'folder_ids', 'project_ids', 'commitments_unit_type', 'commitments_cud_type',100
-                                                                                                              , 'commitments_region')))
-    data['x'].append(ScheduleAndValue(parser.parse('2010-03-05'), parser.parse('2010-04-01'), CommitmentValue('id', 'folder_ids', 'project_ids', 'commitments_unit_type', 'commitments_cud_type',100
-                                                                                                              , 'commitments_region')))
+    data['x'].append(
+        ScheduleAndValue(
+            parser.parse('2010-03-05'), parser.parse('2010-12-01'),
+            CommitmentValue('id', 'folder_ids', 'project_ids',
+                            'commitments_unit_type', 'commitments_cud_type',
+                            100, 'commitments_region')))
+    data['x'].append(
+        ScheduleAndValue(
+            parser.parse('2010-03-05'), parser.parse('2010-04-01'),
+            CommitmentValue('id', 'folder_ids', 'project_ids',
+                            'commitments_unit_type', 'commitments_cud_type',
+                            100, 'commitments_region')))
     retVal = computeDiff(data['x'])
-    expected = [
-        {
-            'start': '2010-03-05',
-            'end' : '2010-04-01',
-            'amount': 200
-        },
-        {
-            'start': '2010-04-02',
-            'end' : '2010-12-01',
-            'amount': 100
-        }
-    ]
+    expected = [{
+        'start': '2010-03-05',
+        'end': '2010-04-01',
+        'amount': 200
+    }, {
+        'start': '2010-04-02',
+        'end': '2010-12-01',
+        'amount': 100
+    }]
     i = 0
     for res in expected:
         assert retVal[i].start == parser.parse(res['start'])
         assert retVal[i].end == parser.parse(res['end'])
-        assert retVal[i].value.commitments_amount == approx(float(res['amount']))
-        i=i+1
+        assert retVal[i].value.commitments_amount == approx(float(
+            res['amount']))
+        i = i + 1
+
 
 def test_same_start_same_end():
     data = {}
     data['x'] = []
-    data['x'].append(ScheduleAndValue(parser.parse('2010-03-05'), parser.parse('2010-12-01'), CommitmentValue('id', 'folder_ids', 'project_ids', 'commitments_unit_type', 'commitments_cud_type',100
-                                                                                                              , 'commitments_region')))
-    data['x'].append(ScheduleAndValue(parser.parse('2010-03-05'), parser.parse('2010-12-01'), CommitmentValue('id', 'folder_ids', 'project_ids', 'commitments_unit_type', 'commitments_cud_type',100
-                                                                                                              , 'commitments_region')))
+    data['x'].append(
+        ScheduleAndValue(
+            parser.parse('2010-03-05'), parser.parse('2010-12-01'),
+            CommitmentValue('id', 'folder_ids', 'project_ids',
+                            'commitments_unit_type', 'commitments_cud_type',
+                            100, 'commitments_region')))
+    data['x'].append(
+        ScheduleAndValue(
+            parser.parse('2010-03-05'), parser.parse('2010-12-01'),
+            CommitmentValue('id', 'folder_ids', 'project_ids',
+                            'commitments_unit_type', 'commitments_cud_type',
+                            100, 'commitments_region')))
     retVal = computeDiff(data['x'])
-    expected = [
-        {
-            'start': '2010-03-05',
-            'end' : '2010-12-01',
-            'amount': 200
-        }
-    ]
+    expected = [{'start': '2010-03-05', 'end': '2010-12-01', 'amount': 200}]
     i = 0
     for res in expected:
         assert retVal[i].start == parser.parse(res['start'])
         assert retVal[i].end == parser.parse(res['end'])
-        assert retVal[i].value.commitments_amount == approx(float(res['amount']))
-        i=i+1
+        assert retVal[i].value.commitments_amount == approx(float(
+            res['amount']))
+        i = i + 1
+
 
 def test_multiple_different_overlaping():
     data = {}
     data['x'] = []
-    data['x'].append(ScheduleAndValue(parser.parse('2010-03-01'), parser.parse('2010-09-15'), CommitmentValue('id', 'folder_ids', 'project_ids', 'commitments_unit_type', 'commitments_cud_type',100
-                                                                                                              , 'commitments_region')))
-    data['x'].append(ScheduleAndValue(parser.parse('2010-09-01'), parser.parse('2010-12-01'), CommitmentValue('id', 'folder_ids', 'project_ids', 'commitments_unit_type', 'commitments_cud_type',100
-                                                                                                              , 'commitments_region')))
-    data['x'].append(ScheduleAndValue(parser.parse('2010-03-05'), parser.parse('2010-04-01'), CommitmentValue('id', 'folder_ids', 'project_ids', 'commitments_unit_type', 'commitments_cud_type',100
-                                                                                                              , 'commitments_region')))
+    data['x'].append(
+        ScheduleAndValue(
+            parser.parse('2010-03-01'), parser.parse('2010-09-15'),
+            CommitmentValue('id', 'folder_ids', 'project_ids',
+                            'commitments_unit_type', 'commitments_cud_type',
+                            100, 'commitments_region')))
+    data['x'].append(
+        ScheduleAndValue(
+            parser.parse('2010-09-01'), parser.parse('2010-12-01'),
+            CommitmentValue('id', 'folder_ids', 'project_ids',
+                            'commitments_unit_type', 'commitments_cud_type',
+                            100, 'commitments_region')))
+    data['x'].append(
+        ScheduleAndValue(
+            parser.parse('2010-03-05'), parser.parse('2010-04-01'),
+            CommitmentValue('id', 'folder_ids', 'project_ids',
+                            'commitments_unit_type', 'commitments_cud_type',
+                            100, 'commitments_region')))
     retVal = computeDiff(data['x'])
-    expected = [
-        {
-            'start': '2010-03-01',
-            'end' : '2010-03-04',
-            'amount': 100
-        },
-        {
-            'start': '2010-03-05',
-            'end' : '2010-04-01',
-            'amount': 200
-        },
-        {
-            'start': '2010-04-02',
-            'end' : '2010-08-31',
-            'amount': 100
-        },
-        {
-            'start': '2010-09-01',
-            'end' : '2010-09-15',
-            'amount': 200
-        },
-        {
-            'start': '2010-09-16',
-            'end' : '2010-12-01',
-            'amount': 100
-        }
-
-    ]
+    expected = [{
+        'start': '2010-03-01',
+        'end': '2010-03-04',
+        'amount': 100
+    }, {
+        'start': '2010-03-05',
+        'end': '2010-04-01',
+        'amount': 200
+    }, {
+        'start': '2010-04-02',
+        'end': '2010-08-31',
+        'amount': 100
+    }, {
+        'start': '2010-09-01',
+        'end': '2010-09-15',
+        'amount': 200
+    }, {
+        'start': '2010-09-16',
+        'end': '2010-12-01',
+        'amount': 100
+    }]
     i = 0
     for res in expected:
         assert retVal[i].start == parser.parse(res['start'])
         assert retVal[i].end == parser.parse(res['end'])
-        assert retVal[i].value.commitments_amount == approx(float(res['amount']))
-        i=i+1
+        assert retVal[i].value.commitments_amount == approx(float(
+            res['amount']))
+        i = i + 1
+
 
 def test_no_overlap():
     data = {}
     data['x'] = []
-    data['x'].append(ScheduleAndValue(parser.parse('2010-03-05'), parser.parse('2010-12-01'), CommitmentValue('id', 'folder_ids', 'project_ids', 'commitments_unit_type', 'commitments_cud_type',100
-                                                                                                              , 'commitments_region')))
-    data['x'].append(ScheduleAndValue(parser.parse('2010-12-02'), parser.parse('2010-12-09'), CommitmentValue('id', 'folder_ids', 'project_ids', 'commitments_unit_type', 'commitments_cud_type',100
-                                                                                                              , 'commitments_region')))
+    data['x'].append(
+        ScheduleAndValue(
+            parser.parse('2010-03-05'), parser.parse('2010-12-01'),
+            CommitmentValue('id', 'folder_ids', 'project_ids',
+                            'commitments_unit_type', 'commitments_cud_type',
+                            100, 'commitments_region')))
+    data['x'].append(
+        ScheduleAndValue(
+            parser.parse('2010-12-02'), parser.parse('2010-12-09'),
+            CommitmentValue('id', 'folder_ids', 'project_ids',
+                            'commitments_unit_type', 'commitments_cud_type',
+                            100, 'commitments_region')))
     retVal = computeDiff(data['x'])
-    expected = [
-        {
-            'start': '2010-03-05',
-            'end' : '2010-12-01',
-            'amount': 100
-        },
-        {
-            'start': '2010-12-02',
-            'end' : '2010-12-09',
-            'amount': 100
-        }
-    ]
+    expected = [{
+        'start': '2010-03-05',
+        'end': '2010-12-01',
+        'amount': 100
+    }, {
+        'start': '2010-12-02',
+        'end': '2010-12-09',
+        'amount': 100
+    }]
     i = 0
     for res in expected:
         assert retVal[i].start == parser.parse(res['start'])
         assert retVal[i].end == parser.parse(res['end'])
-        assert retVal[i].value.commitments_amount == approx(float(res['amount']))
-        i=i+1
+        assert retVal[i].value.commitments_amount == approx(float(
+            res['amount']))
+        i = i + 1
+
 
 def test_overlap_only_one_day_starting_date_overlaps():
     data = {}
     data['x'] = []
-    data['x'].append(ScheduleAndValue(parser.parse('2010-03-05'), parser.parse('2010-03-05'), CommitmentValue('id', 'folder_ids', 'project_ids', 'commitments_unit_type', 'commitments_cud_type',100
-                                                                                                              , 'commitments_region')))
-    data['x'].append(ScheduleAndValue(parser.parse('2010-03-05'), parser.parse('2010-12-09'), CommitmentValue('id', 'folder_ids', 'project_ids', 'commitments_unit_type', 'commitments_cud_type',100
-                                                                                                              , 'commitments_region')))
+    data['x'].append(
+        ScheduleAndValue(
+            parser.parse('2010-03-05'), parser.parse('2010-03-05'),
+            CommitmentValue('id', 'folder_ids', 'project_ids',
+                            'commitments_unit_type', 'commitments_cud_type',
+                            100, 'commitments_region')))
+    data['x'].append(
+        ScheduleAndValue(
+            parser.parse('2010-03-05'), parser.parse('2010-12-09'),
+            CommitmentValue('id', 'folder_ids', 'project_ids',
+                            'commitments_unit_type', 'commitments_cud_type',
+                            100, 'commitments_region')))
     retVal = computeDiff(data['x'])
-    expected = [
-        {
-            'start': '2010-03-05',
-            'end' : '2010-03-05',
-            'amount': 200
-        },
-        {
-            'start': '2010-03-06',
-            'end' : '2010-12-09',
-            'amount': 100
-        }
-    ]
+    expected = [{
+        'start': '2010-03-05',
+        'end': '2010-03-05',
+        'amount': 200
+    }, {
+        'start': '2010-03-06',
+        'end': '2010-12-09',
+        'amount': 100
+    }]
     i = 0
     for res in expected:
         assert retVal[i].start == parser.parse(res['start'])
         assert retVal[i].end == parser.parse(res['end'])
-        assert retVal[i].value.commitments_amount == approx(float(res['amount']))
-        i=i+1
+        assert retVal[i].value.commitments_amount == approx(float(
+            res['amount']))
+        i = i + 1
+
 
 def test_overlap_end_overlaps_with_start_and_end_date():
     data = {}
     data['x'] = []
-    data['x'].append(ScheduleAndValue(parser.parse('2010-03-05'), parser.parse('2010-03-05'), CommitmentValue('id', 'folder_ids', 'project_ids', 'commitments_unit_type', 'commitments_cud_type',100
-                                                                                                              , 'commitments_region')))
-    data['x'].append(ScheduleAndValue(parser.parse('2010-03-05'), parser.parse('2010-12-09'), CommitmentValue('id', 'folder_ids', 'project_ids', 'commitments_unit_type', 'commitments_cud_type',100
-                                                                                                              , 'commitments_region')))
-    data['x'].append(ScheduleAndValue(parser.parse('2010-12-09'), parser.parse('2010-12-11'), CommitmentValue('id', 'folder_ids', 'project_ids', 'commitments_unit_type', 'commitments_cud_type',100
-                                                                                                              , 'commitments_region')))
+    data['x'].append(
+        ScheduleAndValue(
+            parser.parse('2010-03-05'), parser.parse('2010-03-05'),
+            CommitmentValue('id', 'folder_ids', 'project_ids',
+                            'commitments_unit_type', 'commitments_cud_type',
+                            100, 'commitments_region')))
+    data['x'].append(
+        ScheduleAndValue(
+            parser.parse('2010-03-05'), parser.parse('2010-12-09'),
+            CommitmentValue('id', 'folder_ids', 'project_ids',
+                            'commitments_unit_type', 'commitments_cud_type',
+                            100, 'commitments_region')))
+    data['x'].append(
+        ScheduleAndValue(
+            parser.parse('2010-12-09'), parser.parse('2010-12-11'),
+            CommitmentValue('id', 'folder_ids', 'project_ids',
+                            'commitments_unit_type', 'commitments_cud_type',
+                            100, 'commitments_region')))
     retVal = computeDiff(data['x'])
-    expected = [
-        {
-            'start': '2010-03-05',
-            'end' : '2010-03-05',
-            'amount': 200
-        },
-        {
-            'start': '2010-03-06',
-            'end' : '2010-12-08',
-            'amount': 100
-        },
-        {
-            'start': '2010-12-09',
-            'end' : '2010-12-09',
-            'amount': 200
-        },
-        {
-            'start': '2010-12-10',
-            'end' : '2010-12-11',
-            'amount': 100
-        }
-    ]
+    expected = [{
+        'start': '2010-03-05',
+        'end': '2010-03-05',
+        'amount': 200
+    }, {
+        'start': '2010-03-06',
+        'end': '2010-12-08',
+        'amount': 100
+    }, {
+        'start': '2010-12-09',
+        'end': '2010-12-09',
+        'amount': 200
+    }, {
+        'start': '2010-12-10',
+        'end': '2010-12-11',
+        'amount': 100
+    }]
     i = 0
     for res in expected:
         assert retVal[i].start == parser.parse(res['start'])
         assert retVal[i].end == parser.parse(res['end'])
-        assert retVal[i].value.commitments_amount == approx(float(res['amount']))
-        i=i+1
+        assert retVal[i].value.commitments_amount == approx(float(
+            res['amount']))
+        i = i + 1
+
 
 def test_overlap_but_in_different_regions_so_not_combining_dates():
     data = {}
     data['x'] = []
-    data['x'].append(ScheduleAndValue(parser.parse('2010-03-05'), parser.parse('2010-12-01'), CommitmentValue('id', 'folder_ids', 'project_ids', 'commitments_unit_type', 'commitments_cud_type',100
-                                                                                                              , 'us-central-1')))
-    data['x'].append(ScheduleAndValue(parser.parse('2010-03-05'), parser.parse('2010-12-01'), CommitmentValue('id', 'folder_ids', 'project_ids', 'commitments_unit_type', 'commitments_cud_type',100
-                                                                                                              , 'asia-east1')))
+    data['x'].append(
+        ScheduleAndValue(
+            parser.parse('2010-03-05'), parser.parse('2010-12-01'),
+            CommitmentValue('id', 'folder_ids', 'project_ids',
+                            'commitments_unit_type', 'commitments_cud_type',
+                            100, 'us-central-1')))
+    data['x'].append(
+        ScheduleAndValue(
+            parser.parse('2010-03-05'), parser.parse('2010-12-01'),
+            CommitmentValue('id', 'folder_ids', 'project_ids',
+                            'commitments_unit_type', 'commitments_cud_type',
+                            100, 'asia-east1')))
     retVal = computeDiff(data['x'])
-    expected = [
-        {
-            'start': '2010-03-05',
-            'end' : '2010-12-01',
-            'amount': 100
-        },
-        {
-            'start': '2010-03-05',
-            'end' : '2010-12-01',
-            'amount': 100
-        }
-    ]
+    expected = [{
+        'start': '2010-03-05',
+        'end': '2010-12-01',
+        'amount': 100
+    }, {
+        'start': '2010-03-05',
+        'end': '2010-12-01',
+        'amount': 100
+    }]
     i = 0
     for res in expected:
         assert retVal[i].start == parser.parse(res['start'])
         assert retVal[i].end == parser.parse(res['end'])
-        assert retVal[i].value.commitments_amount == approx(float(res['amount']))
-        i=i+1
+        assert retVal[i].value.commitments_amount == approx(float(
+            res['amount']))
+        i = i + 1
+
 
 def test_overlap_but_in_different_folder_id_so_not_combining_dates():
     data = {}
     data['x'] = []
-    data['x'].append(ScheduleAndValue(parser.parse('2010-03-05'), parser.parse('2010-12-01'), CommitmentValue('id', 'folder_1', 'project_ids', 'commitments_unit_type', 'commitments_cud_type',100
-                                                                                                              , 'us-central-1')))
-    data['x'].append(ScheduleAndValue(parser.parse('2010-03-05'), parser.parse('2010-12-01'), CommitmentValue('id', 'folder_2', 'project_ids', 'commitments_unit_type', 'commitments_cud_type',100
-                                                                                                              , 'us-central-1')))
+    data['x'].append(
+        ScheduleAndValue(
+            parser.parse('2010-03-05'), parser.parse('2010-12-01'),
+            CommitmentValue('id', 'folder_1', 'project_ids',
+                            'commitments_unit_type', 'commitments_cud_type',
+                            100, 'us-central-1')))
+    data['x'].append(
+        ScheduleAndValue(
+            parser.parse('2010-03-05'), parser.parse('2010-12-01'),
+            CommitmentValue('id', 'folder_2', 'project_ids',
+                            'commitments_unit_type', 'commitments_cud_type',
+                            100, 'us-central-1')))
     retVal = computeDiff(data['x'])
-    expected = [
-        {
-            'start': '2010-03-05',
-            'end' : '2010-12-01',
-            'amount': 100
-        },
-        {
-            'start': '2010-03-05',
-            'end' : '2010-12-01',
-            'amount': 100
-        }
-    ]
+    expected = [{
+        'start': '2010-03-05',
+        'end': '2010-12-01',
+        'amount': 100
+    }, {
+        'start': '2010-03-05',
+        'end': '2010-12-01',
+        'amount': 100
+    }]
     i = 0
     for res in expected:
         assert retVal[i].start == parser.parse(res['start'])
         assert retVal[i].end == parser.parse(res['end'])
-        assert retVal[i].value.commitments_amount == approx(float(res['amount']))
-        i=i+1
+        assert retVal[i].value.commitments_amount == approx(float(
+            res['amount']))
+        i = i + 1
+
 
 def test_overlap_but_in_different_folder_id_so_not_combining_dates():
     data = {}
     data['x'] = []
-    data['x'].append(ScheduleAndValue(parser.parse('2010-03-05'), parser.parse('2010-12-01'), CommitmentValue('id', 'folder', 'project_1', 'commitments_unit_type', 'commitments_cud_type',100
-                                                                                                              , 'us-central-1')))
-    data['x'].append(ScheduleAndValue(parser.parse('2010-03-05'), parser.parse('2010-12-01'), CommitmentValue('id', 'folder', 'project_2', 'commitments_unit_type', 'commitments_cud_type',100
-                                                                                                              , 'us-central-1')))
+    data['x'].append(
+        ScheduleAndValue(
+            parser.parse('2010-03-05'), parser.parse('2010-12-01'),
+            CommitmentValue('id', 'folder', 'project_1',
+                            'commitments_unit_type', 'commitments_cud_type',
+                            100, 'us-central-1')))
+    data['x'].append(
+        ScheduleAndValue(
+            parser.parse('2010-03-05'), parser.parse('2010-12-01'),
+            CommitmentValue('id', 'folder', 'project_2',
+                            'commitments_unit_type', 'commitments_cud_type',
+                            100, 'us-central-1')))
     retVal = computeDiff(data['x'])
-    expected = [
-        {
-            'start': '2010-03-05',
-            'end' : '2010-12-01',
-            'amount': 100
-        },
-        {
-            'start': '2010-03-05',
-            'end' : '2010-12-01',
-            'amount': 100
-        }
-    ]
+    expected = [{
+        'start': '2010-03-05',
+        'end': '2010-12-01',
+        'amount': 100
+    }, {
+        'start': '2010-03-05',
+        'end': '2010-12-01',
+        'amount': 100
+    }]
     i = 0
     for res in expected:
         assert retVal[i].start == parser.parse(res['start'])
         assert retVal[i].end == parser.parse(res['end'])
-        assert retVal[i].value.commitments_amount == approx(float(res['amount']))
-        i=i+1
+        assert retVal[i].value.commitments_amount == approx(float(
+            res['amount']))
+        i = i + 1
 
-def test_overlap_but_in_different_commitments_cud_unit_id_so_not_combining_dates():
+
+def test_overlap_but_in_different_commitments_cud_unit_id_so_not_combining_dates(
+):
     data = {}
     data['x'] = []
-    data['x'].append(ScheduleAndValue(parser.parse('2010-03-05'), parser.parse('2010-12-01'), CommitmentValue('id', 'folder', 'project_1', 'CPU', 'commitments_cud_type',100
-                                                                                                              , 'us-central-1')))
-    data['x'].append(ScheduleAndValue(parser.parse('2010-03-05'), parser.parse('2010-12-01'), CommitmentValue('id', 'folder', 'project_1', 'RAM', 'commitments_cud_type',100
-                                                                                                              , 'us-central-1')))
+    data['x'].append(
+        ScheduleAndValue(
+            parser.parse('2010-03-05'), parser.parse('2010-12-01'),
+            CommitmentValue('id', 'folder', 'project_1', 'CPU',
+                            'commitments_cud_type', 100, 'us-central-1')))
+    data['x'].append(
+        ScheduleAndValue(
+            parser.parse('2010-03-05'), parser.parse('2010-12-01'),
+            CommitmentValue('id', 'folder', 'project_1', 'RAM',
+                            'commitments_cud_type', 100, 'us-central-1')))
     retVal = computeDiff(data['x'])
-    expected = [
-        {
-            'start': '2010-03-05',
-            'end' : '2010-12-01',
-            'amount': 100
-        },
-        {
-            'start': '2010-03-05',
-            'end' : '2010-12-01',
-            'amount': 100
-        }
-    ]
+    expected = [{
+        'start': '2010-03-05',
+        'end': '2010-12-01',
+        'amount': 100
+    }, {
+        'start': '2010-03-05',
+        'end': '2010-12-01',
+        'amount': 100
+    }]
     i = 0
     for res in expected:
         assert retVal[i].start == parser.parse(res['start'])
         assert retVal[i].end == parser.parse(res['end'])
-        assert retVal[i].value.commitments_amount == approx(float(res['amount']))
-        i=i+1
+        assert retVal[i].value.commitments_amount == approx(float(
+            res['amount']))
+        i = i + 1
+
 
 def test_overlap_but_in_different_commitments_cud_type_so_not_combining_dates():
     data = {}
     data['x'] = []
-    data['x'].append(ScheduleAndValue(parser.parse('2010-03-05'), parser.parse('2010-12-01'), CommitmentValue('id', 'folder', 'project_1', 'CPU', 'Regular Usage',100
-                                                                                                              , 'us-central-1')))
-    data['x'].append(ScheduleAndValue(parser.parse('2010-03-05'), parser.parse('2010-12-01'), CommitmentValue('id', 'folder', 'project_1', 'CPU', 'Not Regular Usage',100
-                                                                                                              , 'us-central-1')))
+    data['x'].append(
+        ScheduleAndValue(
+            parser.parse('2010-03-05'), parser.parse('2010-12-01'),
+            CommitmentValue('id', 'folder', 'project_1', 'CPU', 'Regular Usage',
+                            100, 'us-central-1')))
+    data['x'].append(
+        ScheduleAndValue(
+            parser.parse('2010-03-05'), parser.parse('2010-12-01'),
+            CommitmentValue('id', 'folder', 'project_1', 'CPU',
+                            'Not Regular Usage', 100, 'us-central-1')))
     retVal = computeDiff(data['x'])
-    expected = [
-        {
-            'start': '2010-03-05',
-            'end' : '2010-12-01',
-            'amount': 100
-        },
-        {
-            'start': '2010-03-05',
-            'end' : '2010-12-01',
-            'amount': 100
-        }
-    ]
+    expected = [{
+        'start': '2010-03-05',
+        'end': '2010-12-01',
+        'amount': 100
+    }, {
+        'start': '2010-03-05',
+        'end': '2010-12-01',
+        'amount': 100
+    }]
     i = 0
     for res in expected:
         assert retVal[i].start == parser.parse(res['start'])
         assert retVal[i].end == parser.parse(res['end'])
-        assert retVal[i].value.commitments_amount == approx(float(res['amount']))
-        i=i+1
+        assert retVal[i].value.commitments_amount == approx(float(
+            res['amount']))
+        i = i + 1

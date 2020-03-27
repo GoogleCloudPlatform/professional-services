@@ -16,6 +16,7 @@ from string import Template
 from google.cloud import bigquery
 import argparse
 
+
 def file_to_string(sql_path):
     """Converts a SQL file holding a SQL query to a string.
     Args:
@@ -34,7 +35,7 @@ def main():
     ap.add_argument('query')
     args = ap.parse_args()
     sql = file_to_string(args.query)
-    fsql = sql.format(export_table=getattr(args,'export-table'),
+    fsql = sql.format(export_table=getattr(args, 'export-table'),
                       commitment_table=getattr(args, 'commitment-table'))
     print(fsql)
 
