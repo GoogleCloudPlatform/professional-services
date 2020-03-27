@@ -15,10 +15,13 @@ gcloud auth login
 
 This will open a browser window and you will log in using your existing GCP user account. Once complete you can list the current gcloud configuration:
 
+```
 gcloud config list
+```
 
 ### Example output:
 
+```bash
 [compute]
 region = us-central1
 zone = us-central1-a
@@ -28,7 +31,7 @@ disable_usage_reporting = True
 project = a_project_id
 
 Your active configuration is: [default]
-	
+```	
 
 Update the project, region and zone to reflect where you want to deploy the resources you will provision. We will use variables set in prior code blocks so stay in the same terminal for doing all of the work.
 
@@ -39,24 +42,32 @@ You will need one or more service accounts for integrating the various services.
 The following set of commands will create two service accounts and configure them with permissions to enable all of the functionality we need. Update your project name and change the names and descriptions of the service accounts if needed.
 The two service accounts will be owner/admin for their respective services in the project so it is critical to manage who can deploy code or use the accounts.
 
+```bash
 PROJECT=[project_id_here]
 CAI_SA_NAME="cloud-asset-inventory-sa"
 CAI_SA_DESC="Service Account for CAI"
 CAI_SA_DISP="Cloud Asset Inventory SA"
+
 gcloud iam service-accounts create $CAI_SA_NAME \
    --description "$CAI_SA_DESC" \
    --display-name "$CAI_SA_DISP"
 
-gcloud projects add-iam-policy-binding $PROJECT --member="serviceAccount:${CAI_SA_NAME}@${PROJECT}.iam.gserviceaccount.com" --role=roles/cloudasset.owner
+gcloud projects add-iam-policy-binding $PROJECT \
+  --member="serviceAccount:${CAI_SA_NAME}@${PROJECT}.iam.gserviceaccount.com" \
+  --role=roles/cloudasset.owner
 
 CAI_CF_SA_NAME="cai-cloud-function-dns-sa"
 CAI_CF_SA_DESC="SA for CAI Cloud Function DNS"
 CAI_CF_SA_DISP="CAI Cloud Function DNS SA"
+
 gcloud iam service-accounts create $CAI_CF_SA_NAME \
    --description "$CAI_CF_SA_DESC" \
    --display-name "$CAI_CF_SA_DISP"
 
-gcloud projects add-iam-policy-binding $PROJECT --member="serviceAccount:${CAI_CF_SA_NAME}@${PROJECT}.iam.gserviceaccount.com" --role=roles/dns.admin
+gcloud projects add-iam-policy-binding $PROJECT \
+  --member="serviceAccount:${CAI_CF_SA_NAME}@${PROJECT}.iam.gserviceaccount.com" \
+  --role=roles/dns.admin
+```
 
 ## 3. Configure Cloud Asset Inventory & Pub/Sub
 Now that we have some service accounts to use we can move to setting up the services we need. In order to track changes in your inventory you must first enable the CAI API and then create a service account and  configure one or more feeds that target the resource type you are interested in.
@@ -73,10 +84,13 @@ gcloud pubsub topics create $TOPIC
 	
 You can create a feed that monitors a project, folder or organization. Let’s create the inventory feed and wire it up to the topic:
 
+```bash
 FEED="vm-to-dns"
+
 gcloud asset feeds create quick_start_feed --project=$PROJECT \
 	--content-type=resource --asset-types="compute.googleapis.com/Instance" \
 	--pubsub-topic="projects/${PROJECT}/topics/${TOPIC}"
+```
 
 The default Cloud Asset Inventory service account has publisher permissions on all pub/sub topics within your project by default. At this point if you were to create an instance you should see several messages populate the topic within 10-15 minutes.
 
@@ -90,7 +104,12 @@ The following example uses the Python v3.7 runtime. Copy each of the following b
 ### 4.2 Deploy Function
 Once you have the two files you can deploy your function with the following command. You should not allow unauthorized access. If you change FUNCTION_NAME be sure to update the code in index.js and change the exported function name.
 
+```bash
 FUNCTION_NAME="vmToDNS"
-gcloud functions deploy $FUNCTION_NAME --runtime python37 --trigger-topic $TOPIC
+
+gcloud functions deploy $FUNCTION_NAME \
+  --runtime python37 \
+  --trigger-topic $TOPIC
+```
 
 #### Note - you do NOT need to allow unauthorized access - answer NO at the prompt
