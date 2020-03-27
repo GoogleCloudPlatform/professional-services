@@ -36,7 +36,7 @@ from google.cloud import firestore
 
 
 def dialogflow_webhook_bank(request: flask.Request):
-  r"""HTTP Cloud Function that implement a webhook for Dialogflow.
+    r"""HTTP Cloud Function that implement a webhook for Dialogflow.
 
 
   Args:
@@ -133,99 +133,99 @@ def dialogflow_webhook_bank(request: flask.Request):
     }
   """
 
-  request_json = request.get_json(silent=True)
+    request_json = request.get_json(silent=True)
 
-  # Load the intents from the intents_config.yaml configuration file.
-  intents = Intents()
-  intents_handlers = intents.load_config()
+    # Load the intents from the intents_config.yaml configuration file.
+    intents = Intents()
+    intents_handlers = intents.load_config()
 
-  if request_json:
-    flattener = Flattener(request=request_json)
+    if request_json:
+        flattener = Flattener(request=request_json)
 
-    # Get the intent display name configure in dialogflow.
-    intent_name = flattener.get_intent_name()
+        # Get the intent display name configure in dialogflow.
+        intent_name = flattener.get_intent_name()
 
-    # Get the name of handler for the intent.
-    handler_name = intents.get_intent_handler(intent_name, intents_handlers)
+        # Get the name of handler for the intent.
+        handler_name = intents.get_intent_handler(intent_name, intents_handlers)
 
-    # Run the handler.
-    handlers = globals()['Handlers']()
-    return getattr(handlers, handler_name)(flattener=flattener)
+        # Run the handler.
+        handlers = globals()['Handlers']()
+        return getattr(handlers, handler_name)(flattener=flattener)
 
 
 def get_firestore_client():
-  """Gets the firestore users collection."""
-  return firestore.Client()
+    """Gets the firestore users collection."""
+    return firestore.Client()
 
 
 class Flattener:
-  """Flattener for the Dialogflow request.
+    """Flattener for the Dialogflow request.
 
   Normalize the dataflow json request to pandas dataframe.
   https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html
   """
 
-  def __init__(self, **kwargs):
-    self.request = kwargs['request']
+    def __init__(self, **kwargs):
+        self.request = kwargs['request']
 
-  def transform(self):
-    return json_normalize(self.request)
+    def transform(self):
+        return json_normalize(self.request)
 
-  def get_intent_name(self):
-    return json_normalize(
-        self.request['queryResult']['intent'])['displayName'][0]
+    def get_intent_name(self):
+        return json_normalize(
+            self.request['queryResult']['intent'])['displayName'][0]
 
-  def get_session(self):
-    return json_normalize(self.request).session[0]
+    def get_session(self):
+        return json_normalize(self.request).session[0]
 
-  def get_parameters(self):
-    return json_normalize(self.request['queryResult']['parameters'])
+    def get_parameters(self):
+        return json_normalize(self.request['queryResult']['parameters'])
 
-  def get_context(self):
-    return json_normalize(self.request['queryResult']['outputContexts'])
+    def get_context(self):
+        return json_normalize(self.request['queryResult']['outputContexts'])
 
 
 class Messages:
-  """Returns follow up messages in case of an error."""
+    """Returns follow up messages in case of an error."""
 
-  def user_id_not_found(self, user_id):
-    return json.dumps({
-        'fulfillmentText':
-            'From webhook: Sorry I could find your user_id, {0}. Can you try again?'
-            .format(user_id)
-    })
+    def user_id_not_found(self, user_id):
+        return json.dumps({
+            'fulfillmentText':
+                'From webhook: Sorry I could find your user_id, {0}. Can you try again?'
+                .format(user_id)
+        })
 
 
 class Handlers:
-  """Returns handlers for each intents define in the config yaml file."""
+    """Returns handlers for each intents define in the config yaml file."""
 
-  def welcome_handler(self, **kwargs):
-    return json.dumps({
-        'fulfillmentText': 'From webhook: Welcome to our bank! '
-                           'Can I have your user id number?'
-    })
+    def welcome_handler(self, **kwargs):
+        return json.dumps({
+            'fulfillmentText': 'From webhook: Welcome to our bank! '
+                               'Can I have your user id number?'
+        })
 
-  def goodbye_handler(self, **kwargs):
-    return json.dumps({'fulfillmentText': 'From webhook: Have a nice day!'})
+    def goodbye_handler(self, **kwargs):
+        return json.dumps({'fulfillmentText': 'From webhook: Have a nice day!'})
 
-  def user_id_action_handler(self, **kwargs):
-    return json.dumps(
-        {'fulfillmentText': 'From webhook: What can I do for you'})
+    def user_id_action_handler(self, **kwargs):
+        return json.dumps(
+            {'fulfillmentText': 'From webhook: What can I do for you'})
 
-  def account_balance_handler(self, **kwargs):
-    """Return the account balance."""
-    flattener = kwargs['flattener']
-    messages = Messages()
+    def account_balance_handler(self, **kwargs):
+        """Return the account balance."""
+        flattener = kwargs['flattener']
+        messages = Messages()
 
-    user_id = self._get_user_id(flattener)
+        user_id = self._get_user_id(flattener)
 
-    # Get firestore client and extract the user data base on user_id provided.
-    db = get_firestore_client()
-    client_ref = db.collection(u'users').where(u'user_id', u'==', user_id)
+        # Get firestore client and extract the user data base on user_id provided.
+        db = get_firestore_client()
+        client_ref = db.collection(u'users').where(u'user_id', u'==', user_id)
 
-    users = client_ref.stream()
-    for user in users:
-      """Example:
+        users = client_ref.stream()
+        for user in users:
+            """Example:
 
             user_dict: {
                'user_id': 123456,
@@ -249,31 +249,31 @@ class Handlers:
                 }
              }
         """
-      user_dict = user.to_dict()
-      return json.dumps({
-          'fulfillmentText':
-              'From webhook: Here are your account balances. Checking account is {0}  Saving account is {1}. What else can I do for you?'
-              .format(user_dict['accounts']['checking']['balance'],
-                      user_dict['accounts']['saving']['balance'])
-      })
+            user_dict = user.to_dict()
+            return json.dumps({
+                'fulfillmentText':
+                    'From webhook: Here are your account balances. Checking account is {0}  Saving account is {1}. What else can I do for you?'
+                    .format(user_dict['accounts']['checking']['balance'],
+                            user_dict['accounts']['saving']['balance'])
+            })
 
-    return messages.user_id_not_found(user_id)
+        return messages.user_id_not_found(user_id)
 
-  def account_transactions_handler(self, **kwargs):
-    """Returns all the transactions (deposits and withdraws)."""
-    flattener = kwargs['flattener']
-    messages = Messages()
+    def account_transactions_handler(self, **kwargs):
+        """Returns all the transactions (deposits and withdraws)."""
+        flattener = kwargs['flattener']
+        messages = Messages()
 
-    # Get the user_id from the context in the request.
-    user_id = self._get_user_id(flattener)
+        # Get the user_id from the context in the request.
+        user_id = self._get_user_id(flattener)
 
-    # Get the firestore client and extract the user data base on user_id
-    # provided.
-    db = get_firestore_client()
-    client_ref = db.collection(u'users').where(u'user_id', u'==', user_id)
-    users = client_ref.stream()
-    for user in users:
-      """Example:
+        # Get the firestore client and extract the user data base on user_id
+        # provided.
+        db = get_firestore_client()
+        client_ref = db.collection(u'users').where(u'user_id', u'==', user_id)
+        users = client_ref.stream()
+        for user in users:
+            """Example:
 
             user_dict: {
                'user_id': 123456,
@@ -297,36 +297,37 @@ class Handlers:
                  }
              }
         """
-      user_dict = user.to_dict()
-      transactions = user_dict['accounts']['checking']['transactions']
-      message = 'From webhook: Here are all the transactions that I found:\n'
-      all_transactions = ','.join([
-          '{} {}'.format(transaction['type'], transaction['amount'])
-          for transaction in user_dict['accounts']['checking']['transactions'] +
-          user_dict['accounts']['saving']['transactions']
-      ])
-      return json.dumps({
-          'fulfillmentText':
-              ' '.join(
-                  [message, all_transactions, 'What else can I do for you?'])
-      })
-    return messages.user_id_not_found(user_id)
+            user_dict = user.to_dict()
+            message = 'From webhook: Here are all the transactions that I found:\n'
+            all_transactions = ','.join([
+                '{} {}'.format(transaction['type'], transaction['amount'])
+                for transaction in
+                user_dict['accounts']['checking']['transactions'] +
+                user_dict['accounts']['saving']['transactions']
+            ])
+            return json.dumps({
+                'fulfillmentText':
+                    ' '.join([
+                        message, all_transactions, 'What else can I do for you?'
+                    ])
+            })
+        return messages.user_id_not_found(user_id)
 
-  def transactions_by_type_handler(self, **kwargs):
-    """Returns all the transaction by type (deposit or withdraw)."""
-    flattener = kwargs['flattener']
-    messages = Messages()
+    def transactions_by_type_handler(self, **kwargs):
+        """Returns all the transaction by type (deposit or withdraw)."""
+        flattener = kwargs['flattener']
+        messages = Messages()
 
-    # Get the user_id from the context in the request.
-    user_id = self._get_user_id(flattener)
+        # Get the user_id from the context in the request.
+        user_id = self._get_user_id(flattener)
 
-    # Get the firestore client and extract the user data base on user_id
-    # provided.
-    db = get_firestore_client()
-    client_ref = db.collection(u'users').where(u'user_id', u'==', user_id)
-    users = client_ref.stream()
-    for user in users:
-      """Example:
+        # Get the firestore client and extract the user data base on user_id
+        # provided.
+        db = get_firestore_client()
+        client_ref = db.collection(u'users').where(u'user_id', u'==', user_id)
+        users = client_ref.stream()
+        for user in users:
+            """Example:
 
          user_dict: {
            'user_id': 123456,
@@ -350,55 +351,57 @@ class Handlers:
              }
          }
         """
-      user_dict = user.to_dict()
-      logging.info('user_dict: %s', user_dict)
+            user_dict = user.to_dict()
+            logging.info('user_dict: %s', user_dict)
 
-      # Get all the transactions in the checking account.
-      df_checking_transactions = json_normalize(
-          user_dict['accounts']['checking']['transactions'])
+            # Get all the transactions in the checking account.
+            df_checking_transactions = json_normalize(
+                user_dict['accounts']['checking']['transactions'])
 
-      # Get all the transactions in the saving account.
-      df_saving_transactions = json_normalize(
-          user_dict['accounts']['saving']['transactions'])
+            # Get all the transactions in the saving account.
+            df_saving_transactions = json_normalize(
+                user_dict['accounts']['saving']['transactions'])
 
-      # Concatenate all the transactions in one dataframe
-      df_all_transactions = pd.concat(
-          [df_checking_transactions, df_saving_transactions])
+            # Concatenate all the transactions in one dataframe
+            df_all_transactions = pd.concat(
+                [df_checking_transactions, df_saving_transactions])
 
-      message = 'From webhook: Here are all the transactions that I found:\n'
-      parameters = flattener.get_parameters()
-      transaction_type = parameters['transaction_type'][0]
+            message = 'From webhook: Here are all the transactions that I found:\n'
+            parameters = flattener.get_parameters()
+            transaction_type = parameters['transaction_type'][0]
 
-      # Extract the type of transactions that the user ask: deposit or withdraw.
-      results = df_all_transactions.loc[df_all_transactions.type ==
-                                        transaction_type]
+            # Extract the type of transactions that the user ask: deposit or withdraw.
+            results = df_all_transactions.loc[df_all_transactions.type ==
+                                              transaction_type]
 
-      # Build the message.
-      for row in results.head().itertuples():
-        message = '{0} {1}: {2} '.format(message, row.type, row.amount)
-      return json.dumps({
-          'fulfillmentText': ' '.join([message, 'What else can I do for you?'])
-      })
-    return messages.user_id_not_found(user_id)
+            # Build the message.
+            for row in results.head().itertuples():
+                message = '{0} {1}: {2} '.format(message, row.type, row.amount)
+            return json.dumps({
+                'fulfillmentText':
+                    ' '.join([message, 'What else can I do for you?'])
+            })
+        return messages.user_id_not_found(user_id)
 
-  def _get_user_id(self, flattener: Flattener):
-    context_full_name = os.path.join(flattener.get_session(), 'contexts',
-                                     'user_id_action-followup')
-    parameter_full_name = '.'.join(['parameters', 'user_id'])
-    output_context_df = flattener.get_context()
-    user_id = output_context_df.loc[output_context_df.name == context_full_name,
-                                    parameter_full_name].to_list()[0]
-    return user_id
+    def _get_user_id(self, flattener: Flattener):
+        context_full_name = os.path.join(flattener.get_session(), 'contexts',
+                                         'user_id_action-followup')
+        parameter_full_name = '.'.join(['parameters', 'user_id'])
+        output_context_df = flattener.get_context()
+        user_id = output_context_df.loc[output_context_df.name ==
+                                        context_full_name,
+                                        parameter_full_name].to_list()[0]
+        return user_id
 
 
 class Intents:
-  """Defines Dialogflow intents.
+    """Defines Dialogflow intents.
 
   More info: https://cloud.google.com/dialogflow/docs/intents-overview
   """
 
-  def load_config(self):
-    """Returns a dict with all the intents.
+    def load_config(self):
+        """Returns a dict with all the intents.
 
     Example: {
                'intents': {
@@ -414,13 +417,13 @@ class Intents:
               }
     """
 
-    config_file = 'intents_config.yaml'
-    with open(config_file, 'r') as config:
-      return yaml.load(config, Loader=yaml.Loader)
+        config_file = 'intents_config.yaml'
+        with open(config_file, 'r') as config:
+            return yaml.load(config, Loader=yaml.Loader)
 
-  def get_intent_handler(self, intent_display_name: str,
-                         intent_handlers: Dict[str, str]):
-    r"""Returns the name of the intent handlers.
+    def get_intent_handler(self, intent_display_name: str,
+                           intent_handlers: Dict[str, str]):
+        r"""Returns the name of the intent handlers.
 
     Args:
          intent_display_name: The name of the intent from the request. \
@@ -440,4 +443,4 @@ class Intents:
               'withdraws': 'transactions_by_type_handler',
               'goodbye': 'goodbye_handler' } }
     """
-    return intent_handlers['intents'][intent_display_name]
+        return intent_handlers['intents'][intent_display_name]
