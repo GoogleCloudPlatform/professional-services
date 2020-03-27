@@ -40,12 +40,12 @@ def vmToDNS(event, context):
     if 'data' in event:
         data = base64.b64decode(event['data']).decode('utf-8')
         data = json.loads(data)
-        print(data)
+        # print(data)
         if 'deleted' in data and data['deleted'] == True:
             status = 'DELETED'
-            print(data['asset']['name'])
+            # print(data['asset']['name'])
             match = re.search(r"/instances\/(.+)", data['asset']['name'])
-            print(match[1])
+            # print(match[1])
             if match:
                 name = match[1]
         else:
