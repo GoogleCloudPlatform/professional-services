@@ -16,9 +16,9 @@ from google.cloud import dns
 import time
 import re
 
-PROJECT_ID='storied-glazing-255921'
-ZONE='fooey'
-DOMAIN='sub.tallgoots.net.'
+PROJECT_ID=<PROJECT_ID>
+ZONE=<ZONE_ID>
+DOMAIN=<DOMAIN> # should have a trailing dot
 TTL=3600
 
 client = dns.Client(project=PROJECT_ID)
