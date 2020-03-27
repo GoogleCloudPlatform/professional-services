@@ -1,28 +1,23 @@
-1. Overview
+# Automating Cloud DNS for VM Instances Tool
+
+## 1. Overview
 Using this document you will learn how to automate the creation and deletion of DNS ‘A’ records for compute instances on Google Cloud Platform.  We will use several GCP services to monitor virtual machine changes and act on specific events during their lifecycle. 
 
-
 The procedure involves the following steps:
-
 
 1. Creation of service account(s)
 2. Enable & Configure Cloud Asset Inventory (CAI) and Pub/Sub
 3. Deploy Cloud Function and Pub/Sub Trigger
 
-
 We will use the command line gcloud utility to configure and deploy all of the services. Installation for various environments can be found at https://cloud.google.com/sdk/install. Once installed you will need to authenticate & configure it:
 
-
 gcloud auth login
-	
 
 This will open a browser window and you will log in using your existing GCP user account. Once complete you can list the current gcloud configuration:
 
-
 gcloud config list
 
-# Example output:
-
+### Example output:
 
 [compute]
 region = us-central1
@@ -37,17 +32,12 @@ Your active configuration is: [default]
 
 Update the project, region and zone to reflect where you want to deploy the resources you will provision. We will use variables set in prior code blocks so stay in the same terminal for doing all of the work.
 
-
-2. Create Service Accounts
+## 2. Create Service Accounts
 You will need one or more service accounts for integrating the various services. You can create a single account and use it across Cloud Asset Inventory & Cloud Functions or create two separate ones. In this example we will create two separate accounts.
 
-
-2.1 SA Creation
+###2.1 SA Creation
 The following set of commands will create two service accounts and configure them with permissions to enable all of the functionality we need. Update your project name and change the names and descriptions of the service accounts if needed.
-
-
 The two service accounts will be owner/admin for their respective services in the project so it is critical to manage who can deploy code or use the accounts.
-
 
 PROJECT=[project_id_here]
 CAI_SA_NAME="cloud-asset-inventory-sa"
@@ -67,133 +57,40 @@ gcloud iam service-accounts create $CAI_CF_SA_NAME \
    --display-name "$CAI_CF_SA_DISP"
 
 gcloud projects add-iam-policy-binding $PROJECT --member="serviceAccount:${CAI_CF_SA_NAME}@${PROJECT}.iam.gserviceaccount.com" --role=roles/dns.admin
-	3. Configure Cloud Asset Inventory & Pub/Sub
+
+## 3. Configure Cloud Asset Inventory & Pub/Sub
 Now that we have some service accounts to use we can move to setting up the services we need. In order to track changes in your inventory you must first enable the CAI API and then create a service account and  configure one or more feeds that target the resource type you are interested in.
 
-
-3.1 Enable/Configure CAI & Pub/Sub
-
+### 3.1 Enable/Configure CAI & Pub/Sub
 
 gcloud services enable cloudasset.googleapis.com
 gcloud services enable pubsub.googleapis.com
-	Now let’s create a pub/sub topic to collect all of the information we want to take action on:
 
+Now let’s create a pub/sub topic to collect all of the information we want to take action on:
 
 TOPIC="cloud-assets-to-inventory"
 gcloud pubsub topics create $TOPIC
 	
-
 You can create a feed that monitors a project, folder or organization. Let’s create the inventory feed and wire it up to the topic:
 
-
 FEED="vm-to-dns"
-gcloud asset feeds create quick_start_feed --project=$PROJECT --content-type=resource --asset-types="compute.googleapis.com/Instance" --pubsub-topic="projects/${PROJECT}/topics/${TOPIC}"
-	
+gcloud asset feeds create quick_start_feed --project=$PROJECT \
+	--content-type=resource --asset-types="compute.googleapis.com/Instance" \
+	--pubsub-topic="projects/${PROJECT}/topics/${TOPIC}"
 
 The default Cloud Asset Inventory service account has publisher permissions on all pub/sub topics within your project by default. At this point if you were to create an instance you should see several messages populate the topic within 10-15 minutes.
-4. Cloud Function & Trigger
+
+## 4. Cloud Function & Trigger
 We have data flowing into the Pub/Sub topic and now we need some code to take action on it. 
 
-
-4.1 Create Files
+### 4.1 Create Files
 The following example uses the Python v3.7 runtime. Copy each of the following blocks into the filenames indicated above them. Edit your project ID, domain and DNS zone at the top of main.py.
-main.py
-/**
-* Triggered from a message on a Cloud Pub/Sub topic.
-*
-* @param {!Object} event Event payload.
-* @param {!Object} context Metadata for the event.
-*/
-from google.cloud import dns
-import time
-import re
-
-PROJECT_ID='<PROJECT_ID>'
-ZONE='<ZONE_ID>'
-DOMAIN='<DOMAIN>.' # note the trailing dot
-TTL=3600
-
-client = dns.Client(project=PROJECT_ID)
-zone = client.zone(ZONE, DOMAIN)
-
-def find_by_name(name):
-   records = zone.list_resource_record_sets()
-   for record in records:
-       if name in record.name:
-           rs = zone.resource_record_set(record.name, record.record_type, record.ttl, record.rrdatas)
-           return(rs)
-   return False
-
-def vmToDNS(event, context):
-   import base64, json
-   changes=zone.changes()
-   valid_statuses = ['STAGING','DELETED']
-
-   if 'data' in event:
-       data = base64.b64decode(event['data']).decode('utf-8')
-       data = json.loads(data)
-       #print(data)
-       if 'deleted' in data and data['deleted'] == True:
-           status = 'DELETED'
-           print(data['asset']['name'])
-           match = re.search(r"/instances\/(.+)", data['asset']['name'])
-           if match:
-               name = match[1]
-            else:
-                name = 'NAME_NOT_FOUND'
-       else:
-           status = data['asset']['resource']['data']['status']
-
-   # set vars for valid statuses
-   if 'STAGING' in status:
-       print('Handling status', status)
-       name = data['asset']['resource']['data']['name']
-       ip = data['asset']['resource']['data']['networkInterfaces'][0]['networkIP']
-   elif 'DELETED' in status:
-       pass
-   else:
-       print(f'Status {status} not handled!')
-       return(True)
-
-   # check for existing and mark for deletion
-   del_record_set = find_by_name(name)
-   if del_record_set is not False:
-       print('Deleting existing record for', name)
-       changes.delete_record_set(del_record_set)
-
-   # add records for new VMs
-   if 'STAGING' in status and name != '' and ip != '':
-       print(f'Creating creation record set for VM: {name} with IP {ip}')
-       hostname = f'{name}.{DOMAIN}'
-       add_record_set = zone.resource_record_set(hostname, 'A', TTL, ip)
-       changes.add_record_set(add_record_set)
-
-   # execute changes for valid statuses
-   if any(x in status for x in valid_statuses):
-       changes.create()
-       #print(changes.status)
-       while changes.status != 'done':
-           time.sleep(.1)
-           changes.reload()
-       #print('Changes status:', changes.status)
-	
 
 
-
-requirements.txt
-# Function dependencies, for example:
-# package>=version
-
-google-cloud-dns
-	
-
-
-
-4.2 Deploy Function
+### 4.2 Deploy Function
 Once you have the two files you can deploy your function with the following command. You should not allow unauthorized access. If you change FUNCTION_NAME be sure to update the code in index.js and change the exported function name.
-
 
 FUNCTION_NAME="vmToDNS"
 gcloud functions deploy $FUNCTION_NAME --runtime python37 --trigger-topic $TOPIC
 
-# Note - you do NOT need to allow unauthorized access - answer NO at the prompt
+#### Note - you do NOT need to allow unauthorized access - answer NO at the prompt
