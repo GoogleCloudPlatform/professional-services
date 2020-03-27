@@ -76,10 +76,12 @@ Now that we have some service accounts to use we can move to setting up the serv
 
 ### 3.1 Enable/Configure CAI & Pub/Sub
 
+```shell
 gcloud services enable cloudasset.googleapis.com
 gcloud services enable pubsub.googleapis.com
+```
 
-Now let’s create a pub/sub topic to collect all of the information we want to take action on:
+Now create a pub/sub topic to collect all of the information we want to take action on:
 
 ```shell
 TOPIC="cloud-assets-to-inventory"
