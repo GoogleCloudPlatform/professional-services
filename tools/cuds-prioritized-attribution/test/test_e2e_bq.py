@@ -178,7 +178,6 @@ class TestBQ:
 
         project_credit_data = (total_credit, project_credit_all,
                                project_cost_all)
-        # return total_credit, project_credit_all
         return project_credit_data
 
     @staticmethod

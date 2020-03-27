@@ -65,10 +65,6 @@ class Helper():
 
     def clean(dir, data):
         Helper.delete_file(dir)
-        #Helper.delete_table(data['corrected_dataset_id'],data['distribute_commitment_table'])
-        #Helper.delete_table(data['corrected_dataset_id'],data['corrected_table_name'])
-        #Helper.delete_table(data['billing_export_dataset_id'],data['billing_export_table_name'])
-        #Helper.delete_table(data['billing_export_dataset_id'],data['commitment_table_name'])
 
     def prepare_consolidated_billing(dir, data):
 

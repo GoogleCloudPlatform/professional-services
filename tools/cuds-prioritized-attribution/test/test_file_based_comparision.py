@@ -37,8 +37,6 @@ test_directory.sort()
 print("\n" + 'Preparing test environment ... ' + "\n")
 Helper.create_dataset(data['corrected_dataset_id'])
 
-#Helper.create_dataset(data['corrected_dataset_id'])
-
 
 @pytest.mark.parametrize("dir", test_directory)
 def test_eval(dir):

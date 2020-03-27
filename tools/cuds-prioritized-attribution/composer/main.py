@@ -27,8 +27,8 @@ from dependencies import helper_function
 from dependencies import project_label_credit_data
 
 
-def get_env_variables(key_list: List[str]) -> Dict[str, Union[Optional[str],
-                                                              bool]]:
+def get_env_variables(
+        key_list: List[str]) -> Dict[str, Union[Optional[str], bool]]:
     """Creates a Dictionary object to hold all of the environment variables.
 
     Args:
@@ -41,10 +41,8 @@ def get_env_variables(key_list: List[str]) -> Dict[str, Union[Optional[str],
 
 
 def execute_query(bq_client: bigquery.Client,
-    env_vars: Dict[str, Union[str, bool]],
-    query_path: object,
-    output_table_name: str,
-    time_partition: bool) -> None:
+                  env_vars: Dict[str, Union[str, bool]], query_path: object,
+                  output_table_name: str, time_partition: bool) -> None:
     """Executes transformation query to a new destination table.
 
     Args:
@@ -54,9 +52,9 @@ def execute_query(bq_client: bigquery.Client,
         output_table_name: String representing name of table that holds output
         time_partition: Boolean indicating whether to time-partition output
     """
-    dataset_ref = bq_client.get_dataset(bigquery.DatasetReference(
-        project=bq_client.project,
-        dataset_id=env_vars['corrected_dataset_id']))
+    dataset_ref = bq_client.get_dataset(
+        bigquery.DatasetReference(project=bq_client.project,
+                                  dataset_id=env_vars['corrected_dataset_id']))
     table_ref = dataset_ref.table(output_table_name)
     job_config = bigquery.QueryJobConfig()
     job_config.destination = table_ref
@@ -65,24 +63,18 @@ def execute_query(bq_client: bigquery.Client,
     # Time Partitioning table is only needed for final output query
     if time_partition:
         job_config.time_partitioning = bigquery.TimePartitioning(
-            field='usage_start_time',
-            expiration_ms=None)
+            field='usage_start_time', expiration_ms=None)
     sql = query_path.query
     sql = sql.format(**env_vars)
     logging.info('Attempting query...')
 
     # Execute Query
-    query_job = bq_client.query(
-        query=sql,
-        job_config=job_config)
+    query_job = bq_client.query(query=sql, job_config=job_config)
 
     query_job.result()  # Waits for the query to finish
 
 
-DEFAULT_DAG_ARGS = {
-    'start_date': datetime.datetime.now()
-}
-
+DEFAULT_DAG_ARGS = {'start_date': datetime.datetime.now()}
 
 with models.DAG('cud_correction_dag',
                 schedule_interval=datetime.timedelta(days=1),
@@ -103,11 +95,10 @@ with models.DAG('cud_correction_dag',
         commitment_intervals.main(env_vars['commitments_table_name'],
                                   env_vars['corrected_dataset_id'],
                                   env_vars['temp_commitments_table_name'],
-                                  gcs_bucket,
-                                  schema)
+                                  gcs_bucket, schema)
 
     def project_label_credit(bq_client: bigquery.Client,
-        env_vars: Dict[str, Union[str, bool]]) -> None:
+                             env_vars: Dict[str, Union[str, bool]]) -> None:
         """Executes first query to break out lines into project and credits.
 
         Args:
@@ -117,14 +108,11 @@ with models.DAG('cud_correction_dag',
         Returns:
              None
         """
-        execute_query(bq_client,
-                      env_vars,
-                      project_label_credit_data,
-                      env_vars['project_label_credit_breakout_table'],
-                      False)
+        execute_query(bq_client, env_vars, project_label_credit_data,
+                      env_vars['project_label_credit_breakout_table'], False)
 
     def distribute_commitments(bq_client: bigquery.Client,
-        env_vars: Dict[str, Union[str, bool]]) -> None:
+                               env_vars: Dict[str, Union[str, bool]]) -> None:
         """Executes second query to compute commitments per SKU.
 
         Args:
@@ -134,14 +122,11 @@ with models.DAG('cud_correction_dag',
         Returns:
              None
         """
-        execute_query(bq_client,
-                      env_vars,
-                      distribute_commitment,
-                      env_vars['distribute_commitments_table'],
-                      False)
+        execute_query(bq_client, env_vars, distribute_commitment,
+                      env_vars['distribute_commitments_table'], False)
 
     def billing_output(bq_client: bigquery.Client,
-        env_vars: Dict[str, Union[str, bool]]) -> None:
+                       env_vars: Dict[str, Union[str, bool]]) -> None:
         """Executes third query to format output schema.
 
         Args:
@@ -151,14 +136,11 @@ with models.DAG('cud_correction_dag',
         Returns:
              None
         """
-        execute_query(bq_client,
-                      env_vars,
-                      billingoutput,
-                      env_vars['corrected_table_name'],
-                      True)
+        execute_query(bq_client, env_vars, billingoutput,
+                      env_vars['corrected_table_name'], True)
 
     def delete_temp_tables(bq_client: bigquery.Client,
-        env_vars: Dict[str, Union[str, bool]]) -> None:
+                           env_vars: Dict[str, Union[str, bool]]) -> None:
         """Deletes the three temporary tables that were created by the DAG.
 
         Args:
@@ -174,52 +156,65 @@ with models.DAG('cud_correction_dag',
         helper_function.delete_table(bq_client,
                                      env_vars['corrected_dataset_id'],
                                      env_vars['distribute_commitments_table'])
-        helper_function.delete_table(bq_client,
-                                     env_vars['corrected_dataset_id'],
-                                     env_vars['project_label_credit_breakout_table'])
+        helper_function.delete_table(
+            bq_client, env_vars['corrected_dataset_id'],
+            env_vars['project_label_credit_breakout_table'])
 
     # Obtain values for all of the environment variables
-    KEY_LIST = ['project_id', 'billing_export_table_name',
-                'corrected_dataset_id', 'corrected_table_name',
-                'commitments_table_name', 'enable_cud_cost_attribution', 'cud_cost_attribution_option']
+    KEY_LIST = [
+        'project_id', 'billing_export_table_name', 'corrected_dataset_id',
+        'corrected_table_name', 'commitments_table_name',
+        'enable_cud_cost_attribution', 'cud_cost_attribution_option'
+    ]
     ENV_VARS = get_env_variables(KEY_LIST)
     # Create temp tables for each of the three queries
-    ENV_VARS['distribute_commitments_table'] = 'temp_distribute_commitments_table'
-    ENV_VARS['project_label_credit_breakout_table'] = 'temp_project_label_credit_data_table'
+    ENV_VARS[
+        'distribute_commitments_table'] = 'temp_distribute_commitments_table'
+    ENV_VARS[
+        'project_label_credit_breakout_table'] = 'temp_project_label_credit_data_table'
     ENV_VARS['temp_commitments_table_name'] = 'temp_commitments_table'
     # Convert string to bool because environment variables are strings.
     ENV_VARS['enable_cud_cost_attribution'] = (
-        ENV_VARS['enable_cud_cost_attribution'].lower() == 'true'
-    )
-    ENV_VARS['cud_cost_attribution_option'] = 'b' if ENV_VARS['cud_cost_attribution_option'].lower() == 'b' else 'a'
+        ENV_VARS['enable_cud_cost_attribution'].lower() == 'true')
+    ENV_VARS['cud_cost_attribution_option'] = 'b' if ENV_VARS[
+        'cud_cost_attribution_option'].lower() == 'b' else 'a'
     bq_client = bigquery.Client()
 
     FORMAT_COMMITMENT_TABLE = python_operator.PythonOperator(
         task_id='format_commitment_table',
         python_callable=format_commitment_table,
-        op_kwargs={'env_vars': ENV_VARS}
-    )
+        op_kwargs={'env_vars': ENV_VARS})
 
     PROJECT_LABEL_CREDIT_QUERY = python_operator.PythonOperator(
         task_id='project_label_credit_query',
         python_callable=project_label_credit,
-        op_kwargs={'bq_client': bq_client, 'env_vars': ENV_VARS}
-    )
+        op_kwargs={
+            'bq_client': bq_client,
+            'env_vars': ENV_VARS
+        })
 
     DISTRIBUTE_COMMITMENTS_QUERY = python_operator.PythonOperator(
         task_id='distribute_commitments',
         python_callable=distribute_commitments,
-        op_kwargs={'bq_client': bq_client, 'env_vars': ENV_VARS})
+        op_kwargs={
+            'bq_client': bq_client,
+            'env_vars': ENV_VARS
+        })
 
     BILLING_OUTPUT_QUERY = python_operator.PythonOperator(
         task_id='billing_output',
         python_callable=billing_output,
-        op_kwargs={'bq_client': bq_client, 'env_vars': ENV_VARS})
+        op_kwargs={
+            'bq_client': bq_client,
+            'env_vars': ENV_VARS
+        })
 
     DELETE_TEMP_TABLES = python_operator.PythonOperator(
         task_id='end_delete_temp_tables',
         python_callable=delete_temp_tables,
-        op_kwargs={'bq_client': bq_client, 'env_vars': ENV_VARS}
-    )
+        op_kwargs={
+            'bq_client': bq_client,
+            'env_vars': ENV_VARS
+        })
 
     FORMAT_COMMITMENT_TABLE >> PROJECT_LABEL_CREDIT_QUERY >> DISTRIBUTE_COMMITMENTS_QUERY >> BILLING_OUTPUT_QUERY >> DELETE_TEMP_TABLES
