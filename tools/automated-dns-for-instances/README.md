@@ -11,7 +11,9 @@ The procedure involves the following steps:
 
 We will use the command line gcloud utility to configure and deploy all of the services. Installation for various environments can be found at https://cloud.google.com/sdk/install. Once installed you will need to authenticate & configure it:
 
+```
 gcloud auth login
+```
 
 This will open a browser window and you will log in using your existing GCP user account. Once complete you can list the current gcloud configuration:
 
