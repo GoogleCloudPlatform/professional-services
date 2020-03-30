@@ -23,7 +23,7 @@ gcloud config list
 
 ### Example output:
 
-```bash
+```shell
 [compute]
 region = us-central1
 zone = us-central1-a
@@ -44,7 +44,7 @@ You will need one or more service accounts for integrating the various services.
 The following set of commands will create two service accounts and configure them with permissions to enable all of the functionality we need. Update your project name and change the names and descriptions of the service accounts if needed.
 The two service accounts will be owner/admin for their respective services in the project so it is critical to manage who can deploy code or use the accounts.
 
-```bash
+```shell
 PROJECT=[project_id_here]
 CAI_SA_NAME="cloud-asset-inventory-sa"
 CAI_SA_DESC="Service Account for CAI"
@@ -81,7 +81,7 @@ gcloud services enable pubsub.googleapis.com
 
 Now let’s create a pub/sub topic to collect all of the information we want to take action on:
 
-```bash
+```shell
 TOPIC="cloud-assets-to-inventory"
 
 gcloud pubsub topics create $TOPIC
@@ -89,7 +89,7 @@ gcloud pubsub topics create $TOPIC
 
 You can create a feed that monitors a project, folder or organization. Let’s create the inventory feed and wire it up to the topic:
 
-```bash
+```shell
 FEED="vm-to-dns"
 
 gcloud asset feeds create quick_start_feed --project=$PROJECT \
@@ -106,7 +106,7 @@ We have data flowing into the Pub/Sub topic and now we need some code to take ac
 ### 4.1 Deploy Function
 Clone this repository and then deploy your function with the following command. You should not allow unauthorized access. If you change FUNCTION_NAME be sure to update the code in main.py and change the exported function name.
 
-```bash
+```shell
 FUNCTION_NAME="vmToDNS"
 
 gcloud functions deploy $FUNCTION_NAME \
