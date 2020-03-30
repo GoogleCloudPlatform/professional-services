@@ -220,11 +220,11 @@ gcloud projects add-iam-policy-binding $PROJECT --member=$MEMBER --role=roles/co
 
 1. Create a GCS bucket. This is a temporary file store for Composer.
 ```
-gsutil mb gs://$PROJECT-cud-correction-commitment-data -l [LOCATION]
+gsutil mb -l [LOCATION] gs://$PROJECT-cud-correction-commitment-data
 ```
 where `[LOCATION]` is the region of your billing export data, either us, eu, or asia.
 
-2. Change directories into the `tools/cascada/composer/` folder
+2. Change directories into the `tools/cuds-prioritized-attribution/composer/` folder
 
 ````
 cd tools/cascada/composer/
