@@ -18,7 +18,7 @@
 """Webhook example.
 
     This module is a webhook example for Dialogflow. An agent created in
-    Dialogflow is connected to this webhook that is running in cloud function.
+    Dialogflow is connected to this webhook that is running in Cloud Function.
     The webhook also connects to a Cloud Firestore to get the users information
     used in the example.
 """
@@ -226,7 +226,6 @@ class Handlers:
         users = client_ref.stream()
         for user in users:
             """Example:
-
             user_dict: {
                'user_id': 123456,
                'first_name': 'Pedro',
@@ -274,7 +273,6 @@ class Handlers:
         users = client_ref.stream()
         for user in users:
             """Example:
-
             user_dict: {
                'user_id': 123456,
                'first_name': 'Pedro',
@@ -328,7 +326,6 @@ class Handlers:
         users = client_ref.stream()
         for user in users:
             """Example:
-
          user_dict: {
            'user_id': 123456,
            'first_name': 'Pedro',
