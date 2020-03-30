@@ -38,7 +38,7 @@ Update the project, region and zone to reflect where you want to deploy the reso
 ## 2. Create Service Accounts
 You will need one or more service accounts for integrating the various services. You can create a single account and use it across Cloud Asset Inventory & Cloud Functions or create two separate ones. In this example we will create two separate accounts.
 
-###2.1 SA Creation
+### 2.1 SA Creation
 The following set of commands will create two service accounts and configure them with permissions to enable all of the functionality we need. Update your project name and change the names and descriptions of the service accounts if needed.
 The two service accounts will be owner/admin for their respective services in the project so it is critical to manage who can deploy code or use the accounts.
 
@@ -97,12 +97,8 @@ The default Cloud Asset Inventory service account has publisher permissions on a
 ## 4. Cloud Function & Trigger
 We have data flowing into the Pub/Sub topic and now we need some code to take action on it. 
 
-### 4.1 Create Files
-The following example uses the Python v3.7 runtime. Copy each of the following blocks into the filenames indicated above them. Edit your project ID, domain and DNS zone at the top of main.py.
-
-
-### 4.2 Deploy Function
-Once you have the two files you can deploy your function with the following command. You should not allow unauthorized access. If you change FUNCTION_NAME be sure to update the code in index.js and change the exported function name.
+### 4.1 Deploy Function
+Clone this repository and then deploy your function with the following command. You should not allow unauthorized access. If you change FUNCTION_NAME be sure to update the code in main.py and change the exported function name.
 
 ```bash
 FUNCTION_NAME="vmToDNS"
