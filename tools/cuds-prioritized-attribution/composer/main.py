@@ -13,10 +13,10 @@
 # limitations under the License.
 
 import datetime
-import logging
 import os
 from typing import List, Dict, Optional, Union
 from airflow import models
+from airflow.contrib.operators import bigquery_operator
 from airflow.operators import python_operator
 from google.cloud import bigquery
 from dependencies import billingoutput
@@ -38,40 +38,6 @@ def get_env_variables(
         Dictionary holding key-value pairs of environment variables.
     """
     return {key: os.environ.get(key) for key in key_list}
-
-
-def execute_query(bq_client: bigquery.Client,
-                  env_vars: Dict[str, Union[str, bool]], query_path: object,
-                  output_table_name: str, time_partition: bool) -> None:
-    """Executes transformation query to a new destination table.
-
-    Args:
-        bq_client: bigquery.Client object
-        env_vars: Dictionary of key: value, where value is environment variable
-        query_path: Object representing location of SQL query to execute
-        output_table_name: String representing name of table that holds output
-        time_partition: Boolean indicating whether to time-partition output
-    """
-    dataset_ref = bq_client.get_dataset(
-        bigquery.DatasetReference(project=bq_client.project,
-                                  dataset_id=env_vars['corrected_dataset_id']))
-    table_ref = dataset_ref.table(output_table_name)
-    job_config = bigquery.QueryJobConfig()
-    job_config.destination = table_ref
-    job_config.write_disposition = bigquery.WriteDisposition().WRITE_TRUNCATE
-
-    # Time Partitioning table is only needed for final output query
-    if time_partition:
-        job_config.time_partitioning = bigquery.TimePartitioning(
-            field='usage_start_time', expiration_ms=None)
-    sql = query_path.query
-    sql = sql.format(**env_vars)
-    logging.info('Attempting query...')
-
-    # Execute Query
-    query_job = bq_client.query(query=sql, job_config=job_config)
-
-    query_job.result()  # Waits for the query to finish
 
 
 DEFAULT_DAG_ARGS = {'start_date': datetime.datetime.now()}
@@ -96,48 +62,6 @@ with models.DAG('cud_correction_dag',
                                   env_vars['corrected_dataset_id'],
                                   env_vars['temp_commitments_table_name'],
                                   gcs_bucket, schema)
-
-    def project_label_credit(bq_client: bigquery.Client,
-                             env_vars: Dict[str, Union[str, bool]]) -> None:
-        """Executes first query to break out lines into project and credits.
-
-        Args:
-            bq_client: bigquery.Client object
-            env_vars: Dictionary of string key-value pairs of environment vars.
-
-        Returns:
-             None
-        """
-        execute_query(bq_client, env_vars, project_label_credit_data,
-                      env_vars['project_label_credit_breakout_table'], False)
-
-    def distribute_commitments(bq_client: bigquery.Client,
-                               env_vars: Dict[str, Union[str, bool]]) -> None:
-        """Executes second query to compute commitments per SKU.
-
-        Args:
-            bq_client: bigquery.Client object
-            env_vars: Dictionary of string key-value pairs of environment vars.
-
-        Returns:
-             None
-        """
-        execute_query(bq_client, env_vars, distribute_commitment,
-                      env_vars['distribute_commitments_table'], False)
-
-    def billing_output(bq_client: bigquery.Client,
-                       env_vars: Dict[str, Union[str, bool]]) -> None:
-        """Executes third query to format output schema.
-
-        Args:
-            bq_client: bigquery.Client object
-            env_vars: Dictionary of string key-value pairs of environment vars.
-
-        Returns:
-             None
-        """
-        execute_query(bq_client, env_vars, billingoutput,
-                      env_vars['corrected_table_name'], True)
 
     def delete_temp_tables(bq_client: bigquery.Client,
                            env_vars: Dict[str, Union[str, bool]]) -> None:
@@ -185,29 +109,34 @@ with models.DAG('cud_correction_dag',
         python_callable=format_commitment_table,
         op_kwargs={'env_vars': ENV_VARS})
 
-    PROJECT_LABEL_CREDIT_QUERY = python_operator.PythonOperator(
+    PROJECT_LABEL_CREDIT_QUERY = bigquery_operator.BigQueryOperator(
         task_id='project_label_credit_query',
-        python_callable=project_label_credit,
-        op_kwargs={
-            'bq_client': bq_client,
-            'env_vars': ENV_VARS
-        })
+        sql=project_label_credit_data.query.format(**ENV_VARS),
+        destination_dataset_table=f"{ENV_VARS['project_id']}.{ENV_VARS['corrected_dataset_id']}.{ENV_VARS['project_label_credit_breakout_table']}",
+        write_disposition='WRITE_TRUNCATE',
+        use_legacy_sql=False
+    )
 
-    DISTRIBUTE_COMMITMENTS_QUERY = python_operator.PythonOperator(
+    DISTRIBUTE_COMMITMENTS_QUERY = bigquery_operator.BigQueryOperator(
         task_id='distribute_commitments',
-        python_callable=distribute_commitments,
-        op_kwargs={
-            'bq_client': bq_client,
-            'env_vars': ENV_VARS
-        })
+        sql=distribute_commitment.query.format(**ENV_VARS),
+        destination_dataset_table=f"{ENV_VARS['project_id']}.{ENV_VARS['corrected_dataset_id']}.{ENV_VARS['distribute_commitments_table']}",
+        write_disposition='WRITE_TRUNCATE',
+        use_legacy_sql=False
+    )
 
-    BILLING_OUTPUT_QUERY = python_operator.PythonOperator(
+    BILLING_OUTPUT_QUERY = bigquery_operator.BigQueryOperator(
         task_id='billing_output',
-        python_callable=billing_output,
-        op_kwargs={
-            'bq_client': bq_client,
-            'env_vars': ENV_VARS
-        })
+        sql=billingoutput.query.format(**ENV_VARS),
+        destination_dataset_table=f"{ENV_VARS['project_id']}.{ENV_VARS['corrected_dataset_id']}.{ENV_VARS['corrected_table_name']}",
+        write_disposition='WRITE_TRUNCATE',
+        use_legacy_sql=False,
+        time_partition={
+            "type": "DAY",
+            "field": "usage_start_time",
+            "expiration_ms": None
+        }
+    )
 
     DELETE_TEMP_TABLES = python_operator.PythonOperator(
         task_id='end_delete_temp_tables',
