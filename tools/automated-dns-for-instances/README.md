@@ -79,16 +79,20 @@ gcloud services enable pubsub.googleapis.com
 
 Now let’s create a pub/sub topic to collect all of the information we want to take action on:
 
+```bash
 TOPIC="cloud-assets-to-inventory"
+
 gcloud pubsub topics create $TOPIC
-	
+```
+
 You can create a feed that monitors a project, folder or organization. Let’s create the inventory feed and wire it up to the topic:
 
 ```bash
 FEED="vm-to-dns"
 
 gcloud asset feeds create quick_start_feed --project=$PROJECT \
-	--content-type=resource --asset-types="compute.googleapis.com/Instance" \
+	--content-type=resource \
+	--asset-types="compute.googleapis.com/Instance" \
 	--pubsub-topic="projects/${PROJECT}/topics/${TOPIC}"
 ```
 
