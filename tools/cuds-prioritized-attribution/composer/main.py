@@ -16,15 +16,11 @@ import datetime
 import os
 from typing import List, Dict, Optional, Union
 from airflow import models
-from airflow.contrib.operators import bigquery_operator
+from airflow.contrib.operators import bigquery_operator, bigquery_table_delete_operator
 from airflow.operators import python_operator
-from google.cloud import bigquery
-from dependencies import billingoutput
-from dependencies import commitment_intervals
-from dependencies import commitments_schema
-from dependencies import distribute_commitment
-from dependencies import helper_function
-from dependencies import project_label_credit_data
+from dependencies import (billingoutput, commitment_intervals,
+                          commitments_schema, distribute_commitment,
+                          project_label_credit_data)
 
 
 def get_env_variables(
@@ -63,26 +59,6 @@ with models.DAG('cud_correction_dag',
                                   env_vars['temp_commitments_table_name'],
                                   gcs_bucket, schema)
 
-    def delete_temp_tables(bq_client: bigquery.Client,
-                           env_vars: Dict[str, Union[str, bool]]) -> None:
-        """Deletes the three temporary tables that were created by the DAG.
-
-        Args:
-            bq_client: bigquery.Client object
-            env_vars: Dictionary holding key-value pair of environment vars.
-
-        Returns:
-            None
-        """
-        helper_function.delete_table(bq_client,
-                                     env_vars['corrected_dataset_id'],
-                                     env_vars['temp_commitments_table_name'])
-        helper_function.delete_table(bq_client,
-                                     env_vars['corrected_dataset_id'],
-                                     env_vars['distribute_commitments_table'])
-        helper_function.delete_table(
-            bq_client, env_vars['corrected_dataset_id'],
-            env_vars['project_label_credit_breakout_table'])
 
     # Obtain values for all of the environment variables
     KEY_LIST = [
@@ -102,7 +78,6 @@ with models.DAG('cud_correction_dag',
         ENV_VARS['enable_cud_cost_attribution'].lower() == 'true')
     ENV_VARS['cud_cost_attribution_option'] = 'b' if ENV_VARS[
         'cud_cost_attribution_option'].lower() == 'b' else 'a'
-    bq_client = bigquery.Client()
 
     FORMAT_COMMITMENT_TABLE = python_operator.PythonOperator(
         task_id='format_commitment_table',
@@ -138,12 +113,19 @@ with models.DAG('cud_correction_dag',
         }
     )
 
-    DELETE_TEMP_TABLES = python_operator.PythonOperator(
-        task_id='end_delete_temp_tables',
-        python_callable=delete_temp_tables,
-        op_kwargs={
-            'bq_client': bq_client,
-            'env_vars': ENV_VARS
-        })
+    DELETE_TEMP_COMMITMENT_TABLE = bigquery_table_delete_operator.BigQueryTableDeleteOperator(
+        task_id='end_delete_temp_commitment_table',
+        deletion_dataset_table=f"{ENV_VARS['project_id']}.{ENV_VARS['corrected_dataset_id']}.{ENV_VARS['temp_commitments_table_name']}"
+    )
 
-    FORMAT_COMMITMENT_TABLE >> PROJECT_LABEL_CREDIT_QUERY >> DISTRIBUTE_COMMITMENTS_QUERY >> BILLING_OUTPUT_QUERY >> DELETE_TEMP_TABLES
+    DELETE_DIST_COMMITMENT_TABLE = bigquery_table_delete_operator.BigQueryTableDeleteOperator(
+        task_id='end_delete_temp_distribute_commitment_table',
+        deletion_dataset_table=f"{ENV_VARS['project_id']}.{ENV_VARS['corrected_dataset_id']}.{ENV_VARS['distribute_commitments_table']}"
+    )
+
+    DELETE_TEMP_PROJECT_BREAKDOWN_TABLE = bigquery_table_delete_operator.BigQueryTableDeleteOperator(
+        task_id='end_delete_temp_project_breakdown_table',
+        deletion_dataset_table=f"{ENV_VARS['project_id']}.{ENV_VARS['corrected_dataset_id']}.{ENV_VARS['project_label_credit_breakout_table']}"
+    )
+
+    FORMAT_COMMITMENT_TABLE >> PROJECT_LABEL_CREDIT_QUERY >> DISTRIBUTE_COMMITMENTS_QUERY >> BILLING_OUTPUT_QUERY >> DELETE_TEMP_COMMITMENT_TABLE >> DELETE_DIST_COMMITMENT_TABLE >> DELETE_TEMP_PROJECT_BREAKDOWN_TABLE
