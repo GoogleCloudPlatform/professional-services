@@ -4,19 +4,12 @@
 # Makefile for $(NAME)
 #
 # useful targets:
-#	make check -- manifest checks
 #	make clean -- clean distutils
 #	make coverage_report -- code coverage report
 #	make flake8 -- flake8 checks
 #	make pylint -- source code checks
-#	make rpm -- build RPM package
-#	make sdist -- build python source distribution
-#	make systest -- runs the system tests
 #	make tests -- run all of the tests
 #	make unittest -- runs the unit tests
-#
-# Notes:
-# 1) flake8 is a wrapper around pep8, pyflakes, and McCabe.
 ########################################################
 # variable section
 

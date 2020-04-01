@@ -22,19 +22,15 @@ import os
 import pprint
 from prometheus_http_client import Prometheus
 
-from slo_generator.backends.base import MetricBackend
-
 LOGGER = logging.getLogger(__name__)
 
 
-class PrometheusBackend(MetricBackend):
+class PrometheusBackend:
     """Backend for querying metrics from Prometheus."""
 
-    def __init__(self, **kwargs):
-        self.client = kwargs.pop('client')
+    def __init__(self, client=None, url=None, headers=None):
+        self.client = client
         if not self.client:
-            url = kwargs.get('url')
-            headers = kwargs.get('headers')
             if url:
                 os.environ['PROMETHEUS_URL'] = url
             if headers:
@@ -43,24 +39,22 @@ class PrometheusBackend(MetricBackend):
             LOGGER.debug(f'Prometheus headers: {headers}')
             self.client = Prometheus()
 
-    def query_sli(self, **kwargs):
+    def query_sli(self, timestamp, window, slo_config):
         """Query SLI value from a given PromQL expression.
 
         Args:
-            kwargs (dict):
-                timestamp (int): Timestamp to query.
-                window (int): Window to query (in seconds).
-                measurement (dict):
-                    expression (str): PromQL expression.
+            timestamp (int): UNIX timestamp.
+            window (int): Window (in seconds).
+            slo_config (dict): SLO configuration.
 
         Returns:
             float: SLI value.
         """
-        window = kwargs['window']
-        measurement = kwargs['measurement']
+        conf = slo_config['backend']
+        measurement = conf['measurement']
         expr = measurement['expression']
         expression = expr.replace("[window]", f"[{window}s]")
-        data = self.query(expression)
+        data = self.query(expression, timestamp)
         LOGGER.debug(
             f"Expression: {expression} | Result: {pprint.pformat(data)}")
         try:
@@ -70,55 +64,51 @@ class PrometheusBackend(MetricBackend):
         LOGGER.debug(f"SLI value: {sli_value}")
         return sli_value
 
-    def good_bad_ratio(self, **kwargs):
+    def good_bad_ratio(self, timestamp, window, slo_config):
         """Compute good bad ratio from two metric filters.
 
         Args:
-            kwargs (dict):
-                window (str): Query window.
-                measurement (dict): Measurement config
-                    filter_good (str): PromQL query for good events.
-                    filter_bad (str, optional): PromQL query for bad events.
-                    filter_valid (str, optional): PromQL query for valid events.
+            timestamp (int): UNIX timestamp.
+            window (int): Window (in seconds).
+            slo_config (dict): SLO configuration.
 
         Note:
             At least one of `filter_bad` or `filter_valid` is required.
 
         Returns:
-            tuple: A tuple of (good_event_count, bad_event_count).
+            tuple: A tuple of (good_count, bad_count).
         """
-        window = kwargs['window']
-        filter_good = kwargs['measurement']['filter_good']
-        filter_bad = kwargs['measurement'].get('filter_bad')
-        filter_valid = kwargs['measurement'].get('filter_valid')
+        conf = slo_config['backend']
+        filter_good = conf['measurement']['filter_good']
+        filter_bad = conf['measurement'].get('filter_bad')
+        filter_valid = conf['measurement'].get('filter_valid')
 
         # Replace window by its value in the error budget policy step
         expr_good = filter_good.replace('[window]', f'[{window}s]')
         res_good = self.query(expr_good)
-        good_event_count = PrometheusBackend.count(res_good)
+        good_count = PrometheusBackend.count(res_good)
 
         if filter_bad:
             expr_bad = filter_bad.replace('[window]', f'[{window}s]')
-            res_bad = self.query(expr_bad)
-            bad_event_count = PrometheusBackend.count(res_bad)
+            res_bad = self.query(expr_bad, timestamp)
+            bad_count = PrometheusBackend.count(res_bad)
         elif filter_valid:
             expr_valid = filter_valid.replace('[window]', f'[{window}s]')
-            res_valid = self.query(expr_valid)
-            bad_event_count = \
-                PrometheusBackend.count(res_valid) - good_event_count
+            res_valid = self.query(expr_valid, timestamp)
+            bad_count = PrometheusBackend.count(res_valid) - good_count
         else:
             raise Exception("`filter_bad` or `filter_valid` is required.")
 
-        LOGGER.debug(f'Good events: {good_event_count} | '
-                     f'Bad events: {bad_event_count}')
+        LOGGER.debug(f'Good events: {good_count} | ' f'Bad events: {bad_count}')
 
-        return (good_event_count, bad_event_count)
+        return (good_count, bad_count)
 
-    def query(self, filter):
+    def query(self, filter, timestamp=None):  # pylint: disable=unused-argument
         """Query Prometheus server.
 
         Args:
             filter (str): Query filter.
+            timestamp (int): UNIX timestamp.
 
         Returns:
             dict: Response.

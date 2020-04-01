@@ -17,7 +17,6 @@ Stackdriver Monitoring exporter class.
 """
 import logging
 from google.cloud import monitoring_v3
-from slo_generator.exporters.base import Exporter
 
 LOGGER = logging.getLogger(__name__)
 DEFAULT_METRIC_TYPE = "custom.googleapis.com/error_budget_burn_rate"
@@ -25,7 +24,7 @@ DEFAULT_METRIC_DESCRIPTION = ("Speed at which the error budget for a given"
                               "aggregation window is consumed")
 
 
-class StackdriverExporter(Exporter):
+class StackdriverExporter:
     """Stackdriver Monitoring exporter class."""
 
     def __init__(self):
