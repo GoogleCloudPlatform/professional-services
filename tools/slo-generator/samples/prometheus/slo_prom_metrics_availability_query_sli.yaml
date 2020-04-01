@@ -7,7 +7,7 @@ slo_target:      0.999
 backend:
   class:         Prometheus
   method:        query_sli
-  url:           http://localhost:9090
+  url:           ${PROMETHEUS_URL}
   # Basic auth example:
   # headers:
   #   Content-Type: application/json
@@ -18,9 +18,5 @@ backend:
       /
       sum(rate(prometheus_http_requests_total{handler="/metrics"}[window]))
 exporters:
-- class:         Pubsub
-  project_id:    ${PUBSUB_PROJECT_ID}
-  topic_name:    ${PUBSUB_TOPIC_NAME}
-
 - class:         Prometheus
-  url:           http://localhost:9091
+  url:           ${PROMETHEUS_PUSHGATEWAY_URL}

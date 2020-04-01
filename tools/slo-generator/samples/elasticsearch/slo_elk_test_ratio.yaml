@@ -1,21 +1,24 @@
 ---
 service_name:    elk
-feature_name:    app
-slo_description: Test ElasticSearch query
-slo_name:        latency64ms
+feature_name:    test
+slo_description: >
+  SLO for random test data generated with the
+  https://github.com/oliver006/elasticsearch-test-data
+slo_name:        errors
 slo_target:      1
 backend:
   class:         Elasticsearch
-  url:           http://localhost:9200
+  url:           ${ELASTICSEARCH_URL}
   method:        good_bad_ratio
   measurement:
     index:       test_data
-    age_field:   last_updated
+    date_field:  last_updated
     query_good:  {}
     query_bad:
       must:
         term:
           name:  JAgOZE8
+
 exporters:
 - class:         Pubsub
   project_id:    ${PUBSUB_PROJECT_ID}
