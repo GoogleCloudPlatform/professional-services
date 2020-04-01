@@ -15,7 +15,7 @@
 from dateutil import parser
 from pytest import approx
 import sys
-sys.path.append('../source')
+sys.path.append('../composer/dependencies')
 from commitment_intervals import computeDiff, ScheduleAndValue, CommitmentValue
 
 

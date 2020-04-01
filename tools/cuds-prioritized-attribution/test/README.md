@@ -67,9 +67,7 @@ Test Scripts:
 =============
 Test script name: test_file_based_comparision.py
 
-This script loads data into Bigquery dataset as specified in property file and runs the query called by 
-execute_transformation_query function. It has the test logic and then test cases get generated automatically based 
-on test data. Each test case is run with the logic and "assert" statement compares the actual output with expected data.
+This script loads data into Bigquery dataset as specified in property file and runs the query. It has the test logic and then test cases get generated automatically based on test data. Each test case is run with the logic and "assert" statement compares the actual output with expected data.
 
 Property File : pytest.properties 
 
@@ -77,7 +75,9 @@ This is to export the environment variables that ../source/main.py is expecting
 
 How to run:
 ===========
-export GOOGLE_APPLICATION_CREDENTIALS=<<service_account>>
-source pytest.properties   
-py.test test_file_based_comparision.py
+`export GOOGLE_APPLICATION_CREDENTIALS=<<service_account>>`
+
+Run the command from `py.test` from `test` directory
+
+`py.test test_file_based_comparision.py`
 

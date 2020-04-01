@@ -20,8 +20,9 @@ from dependencies.helper_function import file_to_string, table_to_csv_in_gcs, cs
 
 
 class CommitmentValue:
+
     def __init__(self, id, folder_ids, project_ids, commitments_unit_type,
-                commitments_cud_type, commitments_amount, commitments_region):
+                 commitments_cud_type, commitments_amount, commitments_region):
         self.id = id
         self.folder_ids = folder_ids
         self.project_ids = project_ids
@@ -36,10 +37,12 @@ class CommitmentValue:
 
     def __add__(self, other):
         if type(other) is not CommitmentValue:
-            raise TypeError('unsupported operand type(s) for +'+
-                        ': \''+type(self).__name__+'\' and \''+type(other).__name__+'\'')
+            raise TypeError('unsupported operand type(s) for +' + ': \'' +
+                            type(self).__name__ + '\' and \'' +
+                            type(other).__name__ + '\'')
 
-        new_amount = float(self.commitments_amount) + float(other.commitments_amount)
+        new_amount = float(self.commitments_amount) + float(
+            other.commitments_amount)
         return CommitmentValue(self.id + other.id, self.folder_ids,
                                self.project_ids, self.commitments_unit_type,
                                self.commitments_cud_type, new_amount,
@@ -47,6 +50,7 @@ class CommitmentValue:
 
 
 class ScheduleAndValue:
+
     def __init__(self, start, end, value):
         self.start = start
         self.end = end
@@ -71,47 +75,59 @@ def combineSchedule(scheduleA, scheduleB):
     """
     retVal = []
     intersects = scheduleA.start <= scheduleB.end and scheduleB.start <= scheduleA.end
-    if scheduleA.value != scheduleB.value or not intersects :
+    if scheduleA.value != scheduleB.value or not intersects:
         return None
     if scheduleA == scheduleB:
-        retVal.append(ScheduleAndValue(scheduleA.start, scheduleA.end,
-                                       scheduleA.value + scheduleB.value))
+        retVal.append(
+            ScheduleAndValue(scheduleA.start, scheduleA.end,
+                             scheduleA.value + scheduleB.value))
     elif scheduleA.start == scheduleB.start:
         if scheduleA.end < scheduleB.end:
-            retVal.append(ScheduleAndValue(scheduleA.start, scheduleA.end,
-                                           scheduleA.value + scheduleB.value))
-            retVal.append(ScheduleAndValue(scheduleA.end + timedelta(days=1),
-                                           scheduleB.end, scheduleB.value))
+            retVal.append(
+                ScheduleAndValue(scheduleA.start, scheduleA.end,
+                                 scheduleA.value + scheduleB.value))
+            retVal.append(
+                ScheduleAndValue(scheduleA.end + timedelta(days=1),
+                                 scheduleB.end, scheduleB.value))
         else:
-            retVal.append(ScheduleAndValue(scheduleA.start, scheduleB.end,
-                                           scheduleA.value + scheduleB.value))
-            retVal.append(ScheduleAndValue(scheduleB.end + timedelta(days=1),
-                                           scheduleA.end, scheduleA.value))
+            retVal.append(
+                ScheduleAndValue(scheduleA.start, scheduleB.end,
+                                 scheduleA.value + scheduleB.value))
+            retVal.append(
+                ScheduleAndValue(scheduleB.end + timedelta(days=1),
+                                 scheduleA.end, scheduleA.value))
     else:
         if scheduleA.end == scheduleB.end:
-            retVal.append(ScheduleAndValue(scheduleA.start,
-                                           scheduleB.start - timedelta(days=1),
-                                           scheduleA.value))
-            retVal.append(ScheduleAndValue(scheduleB.start, scheduleB.end,
-                                           scheduleA.value + scheduleB.value))
+            retVal.append(
+                ScheduleAndValue(scheduleA.start,
+                                 scheduleB.start - timedelta(days=1),
+                                 scheduleA.value))
+            retVal.append(
+                ScheduleAndValue(scheduleB.start, scheduleB.end,
+                                 scheduleA.value + scheduleB.value))
 
         elif scheduleA.end < scheduleB.end:
-            retVal.append(ScheduleAndValue(scheduleA.start,
-                                           scheduleB.start - timedelta(days=1),
-                                           scheduleA.value))
-            retVal.append(ScheduleAndValue(scheduleB.start, scheduleA.end,
-                                           scheduleA.value + scheduleB.value))
-            retVal.append(ScheduleAndValue(scheduleA.end + timedelta(days=1),
-                                           scheduleB.end, scheduleB.value))
+            retVal.append(
+                ScheduleAndValue(scheduleA.start,
+                                 scheduleB.start - timedelta(days=1),
+                                 scheduleA.value))
+            retVal.append(
+                ScheduleAndValue(scheduleB.start, scheduleA.end,
+                                 scheduleA.value + scheduleB.value))
+            retVal.append(
+                ScheduleAndValue(scheduleA.end + timedelta(days=1),
+                                 scheduleB.end, scheduleB.value))
         else:
-            retVal.append(ScheduleAndValue(scheduleA.start,
-                                           scheduleB.start - timedelta(days=1),
-                                           scheduleA.value))
-            retVal.append(ScheduleAndValue(scheduleB.start,
-                                           scheduleB.end,
-                                           scheduleA.value + scheduleB.value))
-            retVal.append(ScheduleAndValue(scheduleB.end + timedelta(days=1),
-                                           scheduleA.end, scheduleA.value))
+            retVal.append(
+                ScheduleAndValue(scheduleA.start,
+                                 scheduleB.start - timedelta(days=1),
+                                 scheduleA.value))
+            retVal.append(
+                ScheduleAndValue(scheduleB.start, scheduleB.end,
+                                 scheduleA.value + scheduleB.value))
+            retVal.append(
+                ScheduleAndValue(scheduleB.end + timedelta(days=1),
+                                 scheduleA.end, scheduleA.value))
     return retVal
 
 
@@ -126,11 +142,11 @@ def computeDiff(commitmentObj):
     commitmentObj.sort()
     iteration = 0
     flag = True
-    while iteration <= len(commitmentObj)-1:
+    while iteration <= len(commitmentObj) - 1:
         comparionsfirst = commitmentObj[iteration]
         flag = False
         i = iteration + 1
-        while i <= len(commitmentObj)-1 :
+        while i <= len(commitmentObj) - 1:
             flag = False
             comparionsSecond = commitmentObj[i]
             if (comparionsfirst.value == comparionsSecond.value):
@@ -149,6 +165,7 @@ def computeDiff(commitmentObj):
         iteration = iteration + 1
     return commitmentObj
 
+
 def main(commitment_table, modified_commitment_dataset,
          modified_commitment_table, gcs_bucket, commitment_schema):
     """Breaks out the commitment table rows to remove overlapping commitments.
@@ -163,32 +180,29 @@ def main(commitment_table, modified_commitment_dataset,
     Returns:
         None; Creates a new table in BigQuery
     """
-    header="id,folder_ids,project_ids,commitments_unit_type,commitments_cud_type,commitments_amount,commitments_region,commit_start_date,commit_end_date"
+    header = "id,folder_ids,project_ids,commitments_unit_type,commitments_cud_type,commitments_amount,commitments_region,commit_start_date,commit_end_date"
     data = {}
     source_filename = 'original_commitments'
-    table_to_csv_in_gcs(gcs_bucket, source_filename,
-                        commitment_table)
+    table_to_csv_in_gcs(gcs_bucket, source_filename, commitment_table)
     gcs_to_local(gcs_bucket, source_filename, "/tmp/" + source_filename)
     with open("/tmp/" + source_filename, 'r') as csvfile:
         datareader = csv.reader(csvfile, delimiter=',')
         for row in datareader:
             if ",".join(row) != header:
-                folder_ids=row [1].strip().split(",")
+                folder_ids = row[1].strip().split(",")
                 folder_ids.sort()
-                project_ids=row [2].strip().split(",")
+                project_ids = row[2].strip().split(",")
                 project_ids.sort()
                 key = ",".join(folder_ids) + "#" + ",".join(project_ids)
                 if (key not in data):
                     data[key] = []
-                data[key].append(ScheduleAndValue(parser.parse(row[7]),
-                                                  parser.parse(row[8]),
-                                                  CommitmentValue(row[0].strip(),
-                                                                  row[1].strip(),
-                                                                  row[2].strip(),
-                                                                  row[3].strip(),
-                                                                  row[4].strip(),
-                                                                  float(row[5].strip()),
-                                                                  row[6].strip())))
+                data[key].append(
+                    ScheduleAndValue(
+                        parser.parse(row[7]), parser.parse(row[8]),
+                        CommitmentValue(row[0].strip(), row[1].strip(),
+                                        row[2].strip(),
+                                        row[3].strip(), row[4].strip(),
+                                        float(row[5].strip()), row[6].strip())))
     for key in data:
         retVal = computeDiff(data[key])
         data[key] = retVal
@@ -207,10 +221,9 @@ def main(commitment_table, modified_commitment_dataset,
                                          r.start.strftime("%Y-%m-%d"),
                                          r.end.strftime("%Y-%m-%d"))
                 newfile.write(newline)
-                i=i+1
+                i = i + 1
     local_to_gcs(gcs_bucket, destination_file_name,
                  "/tmp/" + destination_file_name)
     csv_in_gcs_to_table(gcs_bucket, destination_file_name,
-                        modified_commitment_dataset,
-                        modified_commitment_table,
+                        modified_commitment_dataset, modified_commitment_table,
                         convert_to_schema(commitment_schema))

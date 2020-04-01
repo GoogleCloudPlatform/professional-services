@@ -31,8 +31,7 @@ def file_to_string(sql_path: str) -> str:
         return sql_file.read()
 
 
-def table_to_csv_in_gcs(bucket_name: str,
-                        object_name: str,
+def table_to_csv_in_gcs(bucket_name: str, object_name: str,
                         table_id: str) -> None:
     """Save the table in GCS.
 
@@ -48,9 +47,7 @@ def table_to_csv_in_gcs(bucket_name: str,
     extract_job.result()
 
 
-def csv_in_gcs_to_table(bucket_name: str,
-                        object_name: str,
-                        dataset_id: str,
+def csv_in_gcs_to_table(bucket_name: str, object_name: str, dataset_id: str,
                         table_id: str,
                         schema: List[bigquery.SchemaField]) -> None:
     """Upload CSV to BigQuery table.
@@ -70,14 +67,13 @@ def csv_in_gcs_to_table(bucket_name: str,
     job_config.source_format = bigquery.SourceFormat.CSV
     job_config.write_disposition = bigquery.WriteDisposition().WRITE_TRUNCATE
     uri = "gs://{}/{}".format(bucket_name, object_name)
-    load_job = client.load_table_from_uri(
-        uri, dataset_ref.table(table_id), job_config=job_config
-    )
+    load_job = client.load_table_from_uri(uri,
+                                          dataset_ref.table(table_id),
+                                          job_config=job_config)
     load_job.result()
 
 
-def delete_table(bq_client: bigquery.Client,
-                 dataset_id: str,
+def delete_table(bq_client: bigquery.Client, dataset_id: str,
                  table_name: str) -> None:
     """Deletes a specified table in BigQuery.
 
@@ -139,7 +135,8 @@ def convert_to_schema(commitment_schema: str) -> List[bigquery.SchemaField]:
     input_fields = json.loads(commitment_schema)
     schema = []
     for input_field in input_fields:
-        schema.append(bigquery.SchemaField(input_field['name'],
-                                           input_field['type'],
-                                           mode=input_field['mode']))
+        schema.append(
+            bigquery.SchemaField(input_field['name'],
+                                 input_field['type'],
+                                 mode=input_field['mode']))
     return schema

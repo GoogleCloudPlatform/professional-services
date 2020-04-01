@@ -14,10 +14,12 @@
 
 import os
 import sys
+import configparser
 
 sys.path.append('../composer/')
-# noinspection PyUnresolvedReferences
-from main import get_env_variables
+
+config = configparser.ConfigParser(allow_no_value=True)
+config.read("pytest.properties")
 
 
 def pytest_addoption(parser):
@@ -29,17 +31,13 @@ def pytest_addoption(parser):
     pass
 
 
-def env_var(key_name):
-    return os.environ.get(key_name, 'Key name is not set')
-
-
 def get_test_name_list():
     """
     get list of the test data directories
     :return: list of test case numbers in sorted way
     """
     t_name_list = []
-    directory = env_var('TEST_DATA_DIR')
+    directory = config['properties']['TEST_DATA_DIR']
 
     print("directory is", directory)
     folders = os.listdir(directory)
