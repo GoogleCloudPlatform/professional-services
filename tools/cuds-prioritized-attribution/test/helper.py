@@ -119,10 +119,11 @@ def create_dataset(dataset):
     os.system(myCmd)
 
 
-def clean_data(data):
+def delete_tables(data):
     delete_table(data['corrected_dataset_id'],
-                 data['distribute_commitment_table'])
+                 data['distribute_commitments_table'])
     delete_table(data['corrected_dataset_id'], data['corrected_table_name'])
+    delete_table(data['corrected_dataset_id'], data['project_label_credit_breakout_table'])
     delete_table(data['billing_export_dataset_id'],
                  data['load_billing_export_table_name'])
     delete_table(data['billing_export_dataset_id'],
@@ -131,6 +132,7 @@ def clean_data(data):
 
 def clean(dir, data):
     delete_file(dir)
+    delete_tables(data)
 
 
 def prepare_consolidated_billing(dir, data):

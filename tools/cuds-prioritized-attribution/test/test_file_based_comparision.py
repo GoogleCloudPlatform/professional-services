@@ -24,9 +24,9 @@ config.read("pytest.properties")
 
 data = {
     'project_id':
-        config.get("FILE_BASED_TEST", "project_id"),
+        config.get("DEFAULT", "project_id"),
     'corrected_dataset_id':
-        config['FILE_BASED_TEST']['corrected_dataset_id'],
+        config['DEFAULT']['corrected_dataset_id'],
     'corrected_table_name':
         '',
     'project_label_credit_breakout_table':
@@ -34,7 +34,7 @@ data = {
     'distribute_commitments_table':
         '',
     'billing_export_dataset_id':
-        config['FILE_BASED_TEST']['billing_export_dataset_id'],
+        config['DEFAULT']['billing_export_dataset_id'],
     'billing_export_table_name':
         '',
     'load_billing_export_table_name':
@@ -42,7 +42,7 @@ data = {
     'commitment_table_name':
         '',
     'enable_cud_cost_attribution':
-        (config['FILE_BASED_TEST']['enable_cud_cost_attribution'] == 'true'),
+        (config['DEFAULT']['enable_cud_cost_attribution'] == 'true'),
     'cud_cost_attribution_option':
         'a'
 }
@@ -51,7 +51,7 @@ test_directory.sort()
 
 print("\n" + 'Preparing test environment ... ' + "\n")
 create_dataset(data['corrected_dataset_id'])
-
+create_dataset(data['billing_export_dataset_id'])
 
 @pytest.mark.parametrize("dir", test_directory)
 def test_eval(dir):
@@ -62,7 +62,7 @@ def test_eval(dir):
     data['distribute_commitments_table'] = dir + "_distribute_commitment"
     data['corrected_table_name'] = dir + "_corrected"
     data['billing_export_table_name'] = data[
-        'corrected_dataset_id'] + '.' + dir + "_export"
+        'billing_export_dataset_id'] + '.' + dir + "_export"
     data['load_billing_export_table_name'] = dir + "_export"
     data['commitment_table_name'] = dir + "_commitment"
     data['temp_commitments_table_name'] = dir + "_commitment"
@@ -74,9 +74,7 @@ def test_eval(dir):
     retVal = filecmp.cmp("tests/" + dir + "/output_cmp.json",
                          "tests/" + dir + "/expected_output.json",
                          shallow=False)
-
     assert retVal == True
-
     try:
         assert retVal == True
         clean(dir, data)

@@ -15,8 +15,8 @@
 
 data_dir=$1
 
-rm -f tests/$data_dir/expected_output.json
-rm -f tests/$data_dir/commitments_load.json
-rm -f tests/$data_dir/export_load.json
-rm -f tests/$data_dir/output.json
-rm -f tests/$data_dir/output_cmp.json
+rm -f tests/"${data_dir}"/expected_output.json
+rm -f tests/"${data_dir}"/commitments_load.json
+rm -f tests/"${data_dir}"/export_load.json
+rm -f tests/"${data_dir}"/output.json
+rm -f tests/"${data_dir}"/output_cmp.json

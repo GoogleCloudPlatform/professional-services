@@ -37,7 +37,7 @@ def get_test_name_list():
     :return: list of test case numbers in sorted way
     """
     t_name_list = []
-    directory = config['properties']['TEST_DATA_DIR']
+    directory = config['DEFAULT']['test_data_dir']
 
     print("directory is", directory)
     folders = os.listdir(directory)
