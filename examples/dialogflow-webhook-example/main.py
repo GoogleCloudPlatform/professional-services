@@ -191,8 +191,8 @@ class Messages:
     def user_id_not_found(self, user_id):
         return json.dumps({
             'fulfillmentText':
-                'From webhook: Sorry I could find your user_id, {0}. Can you try again?'
-                .format(user_id)
+                f"From webhook: Sorry I could find your user_id, {user_id}."
+                f"Can you try again?"
         })
 
 
@@ -251,9 +251,10 @@ class Handlers:
             user_dict = user.to_dict()
             return json.dumps({
                 'fulfillmentText':
-                    'From webhook: Here are your account balances. Checking account is {0}  Saving account is {1}. What else can I do for you?'
-                    .format(user_dict['accounts']['checking']['balance'],
-                            user_dict['accounts']['saving']['balance'])
+                    f"From webhook: Here are your account balances."
+                    f"Checking account is {user_dict['accounts']['checking']['balance']}. "
+                    f"Saving account is {user_dict['accounts']['saving']['balance']}. "
+                    f"What else can I do for you?"
             })
 
         return messages.user_id_not_found(user_id)
@@ -298,7 +299,7 @@ class Handlers:
             user_dict = user.to_dict()
             message = 'From webhook: Here are all the transactions that I found:\n'
             all_transactions = ','.join([
-                '{} {}'.format(transaction['type'], transaction['amount'])
+                f"({transaction['type']}, {transaction['amount']})"
                 for transaction in
                 user_dict['accounts']['checking']['transactions'] +
                 user_dict['accounts']['saving']['transactions']
@@ -373,7 +374,7 @@ class Handlers:
 
             # Build the message.
             for row in results.head().itertuples():
-                message = '{0} {1}: {2} '.format(message, row.type, row.amount)
+                message = f"{message}, {row.type}, {row.amount})"
             return json.dumps({
                 'fulfillmentText':
                     ' '.join([message, 'What else can I do for you?'])
