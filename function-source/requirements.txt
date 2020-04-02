@@ -1,5 +1,0 @@
-## Function dependencies, for example:
-# package>=version
-google-cloud-bigquery==1.23.1
-google-cloud-storage
-sendgrid

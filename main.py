@@ -1,10 +1,10 @@
-# Copyright 2018 Google LLC
+# Copyright 2019 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -12,34 +12,58 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# [START gae_python37_bigquery]
-import concurrent.futures
-import pandas as pd
-#import flask
-from google.cloud import bigquery
-from google.cloud import storage
 # using SendGrid's Python Library
 # https://github.com/sendgrid/sendgrid-python
+
 import os
-import google.auth
-import cloudstorage as gcs
-from google.cloud import bigquery_storage_v1beta1
+import time
+import datetime
+import json
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
+from google.cloud import bigquery, storage
+from google.auth import iam, default
+from google.auth.transport import requests
+from google.oauth2 import service_account
 
-# Explicitly create a credentials object. This allows you to use the same
-# credentials for both the BigQuery and BigQuery Storage clients, avoiding
-# unnecessary API calls to fetch duplicate authentication tokens.
+
+def credentials():
+    # get Application Default Credentials if running in CF
+    if os.getenv("IS_LOCAL") is None:
+        credentials, project = default(scopes=["https://www.googleapis.com/auth/cloud-platform"])
+    # to use this file locally set IS_LOCAL=1 and populate env var GOOGLE_APPLICATION_CREDENTIALS with path to service account json key file
+    else:
+        credentials = service_account.Credentials.from_service_account_file(
+            os.getenv("GOOGLE_APPLICATION_CREDENTIALS"), scopes=["https://www.googleapis.com/auth/cloud-platform"],
+        )
+    return credentials
 
 
-#from sendgrid import SendGridAPIClient
-#from sendgrid.helpers.mail import Mail
-#app = flask.Flask(__name__)
+def main(*argv):
+    bq_client = bigquery.Client(credentials=credentials())
+    storage_client = storage.Client(credentials=credentials())
+    # Set variables
+    timestr = time.strftime("%Y%m%d%I%M%S")
+    project = "report-scheduling"
+    dataset_id = "bq_exports"
+    file_name = "daily_export_" + timestr
+    csv_name = file_name + ".csv"
+    table_id = "report-scheduling.bq_exports." + file_name
+    bucket_name = "bq_email_exports"
 
-#@app.route("/")
-def main():
-    bigquery_client = bigquery.Client()
-    bqstorageclient = bigquery_storage_v1beta1.BigQueryStorageClient()
-    querys = bigquery_client.query(
-        """
+    # Create a BQ table
+    schema = [
+        bigquery.SchemaField("url", "STRING", mode="REQUIRED"),
+        bigquery.SchemaField("view_count", "INTEGER", mode="REQUIRED"),
+    ]
+    # Make an API request to create table
+    table = bq_client.create_table(bigquery.Table(table_id, schema=schema))
+    print("Created table {}.{}.{}".format(table.project, table.dataset_id, table.table_id))
+
+    # Run query on that table
+    job_config = bigquery.QueryJobConfig(destination=table_id)
+
+    sql = """
         SELECT
         CONCAT(
             'https://stackoverflow.com/questions/',
@@ -50,72 +74,73 @@ def main():
         ORDER BY view_count DESC
         LIMIT 10
     """
+
+    # Start the query, passing in the extra configuration.
+    query_job = bq_client.query(sql, job_config=job_config)
+    # Wait for the job to complete.
+    query_job.result()
+
+    print("Query results loaded to the table {}".format(table_id))
+
+    # Export table data as CSV to GCS
+    destination_uri = "gs://{}/{}".format(bucket_name, csv_name)
+    dataset_ref = bq_client.dataset(dataset_id, project=project)
+    table_ref = dataset_ref.table(file_name)
+
+    extract_job = bq_client.extract_table(
+        table_ref,
+        destination_uri,
+        # Location must match that of the source table.
+        location="US",
     )
 
-    dataframe = (
-        querys.result().to_dataframe(bqstorage_client=bqstorageclient)
+    # Waits for job to complete.
+    extract_job.result()
+    print("Exported {}:{}.{} to {}".format(project, dataset_id, table_id, destination_uri))
+
+    # Generate a v4 signed URL for downloading a blob.
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(csv_name)
+    signing_credentials = None
+    # if running on GCF we need to general signing credentials
+    # the service account running the GCF must have Service Account Token Creator role
+    # falls back client json credentials in the local dev env
+    if os.getenv("IS_LOCAL") is None:
+        # create signer
+        signer = iam.Signer(request=requests.Request(), credentials=credentials(), service_account_email=os.getenv("FUNCTION_IDENTITY"),)
+        # create Token-based service account credentials for signing
+        signing_credentials = service_account.IDTokenCredentials(
+            signer=signer,
+            token_uri="https://www.googleapis.com/oauth2/v4/token",
+            target_audience="",
+            service_account_email=os.getenv("FUNCTION_IDENTITY"),
+        )
+    url = blob.generate_signed_url(
+        version="v4",
+        # This URL is valid for 24 hours, until the next email
+        expiration=datetime.timedelta(hours=24),
+        # Allow GET requests using this URL.
+        method="GET",
+        # signing credentials; if none falls back to client creds
+        credentials=signing_credentials,
     )
-    print("here")
-    print(dataframe.head())
-    csv_output=pd.DataFrame.to_csv(dataframe)
-    print(csv_output)
-    return csv_output
-    create_file(self,"results.csv",csv_output)
+    print("Generated GET signed URL.")
 
-def create_file(self,filename,data):
-    #create a bucket here
-    """Create a file.
-    The retry_params specified in the open call will override the default
-    retry params for this particular file handle.
-    Args:
-      filename: filename.
-    """
-    #try:
-        # Set a timeout because queries could take longer than one minute.
-    #results = query_job.result(timeout=30)
-    #print(results)
-    bucket_name="exportbq-bucket"
-    storage_client = storage.Client(project="ishitashah-ctr-sandbox") 
-    bucket = storage_client.create_bucket(bucket_name)
-    print("Bucket {} created".format(bucket.name))
-    #Upload files to GCP bucket.
-    file = gcs_file
-    blob = bucket.blob("exportbq")
-    blob.upload_from_string(data)
-    blob.upload_from_filename(file)
+    # Send email through SendGrid with link to signed URL
+    message = Mail(
+        from_email="test@example.com",
+        to_emails="bbaiju@google.com",
+        subject="Daily BQ export",
+        html_content="<p> Your daily BigQuery export from Google Cloud Platform \
+            is linked <a href={}>here</a>.</p>".format(
+            url
+        ),
+    )
 
-    print('Uploaded {file} to "{bucketName}" bucket.')
-    check=blob.exists()
-    print(check)
-
-if __name__ == "__main__":
-    output=main()
-
-
-"""
-        # Build email message
-        message = Mail(
-            from_email='test@example.com',
-            to_emails='ishitashah@google.com',
-            subject='Daily BQ export',
-            html_content=flask.render_template("query_result.html", results=results))
-
-        sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
-        response = sg.send(message)
-        
-    except concurrent.futures.TimeoutError:
-        return flask.render_template("timeout.html", job_id=query_job.job_id)
-
-    except Exception as e:
-        return flask.render_template("exception.html", message=e.message) 
-
-    return flask.render_template("response.html", response=response.status_code)
+    sg = SendGridAPIClient(os.getenv("SENDGRID_API_KEY"))
+    response = sg.send(message)
+    print("Sent Email.")
 
 
 if __name__ == "__main__":
-    # This is used when running locally only. When deploying to Google App
-    # Engine, a webserver process such as Gunicorn will serve the app. This
-    # can be configured by adding an `entrypoint` to app.yaml.
-    app.run(host="127.0.0.1", port=8080, debug=True)
-# [END gae_python37_bigquery]
-"""
+    main()
