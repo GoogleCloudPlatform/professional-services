@@ -298,7 +298,7 @@ class Handlers:
             user_dict = user.to_dict()
             message = 'From webhook: Here are all the transactions that I found:\n'
             all_transactions = ','.join([
-                '{} {}'.format(transaction['type'], transaction['amount'])
+                f"{transaction['type']} {transaction['amount']}"
                 for transaction in
                 user_dict['accounts']['checking']['transactions'] +
                 user_dict['accounts']['saving']['transactions']
