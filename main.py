@@ -28,10 +28,10 @@ from google.oauth2 import service_account
 
 
 def credentials():
-    # get Application Default Credentials if running in CF
+    # Get Application Default Credentials if running in CF
     if os.getenv("IS_LOCAL") is None:
         credentials, project = default(scopes=["https://www.googleapis.com/auth/cloud-platform"])
-    # to use this file locally set IS_LOCAL=1 and populate env var GOOGLE_APPLICATION_CREDENTIALS with path to service account json key file
+    # To use this file locally set IS_LOCAL=1 and populate env var GOOGLE_APPLICATION_CREDENTIALS with path to service account json key file
     else:
         credentials = service_account.Credentials.from_service_account_file(
             os.getenv("GOOGLE_APPLICATION_CREDENTIALS"), scopes=["https://www.googleapis.com/auth/cloud-platform"],
@@ -42,6 +42,7 @@ def credentials():
 def main(*argv):
     bq_client = bigquery.Client(credentials=credentials())
     storage_client = storage.Client(credentials=credentials())
+    
     # Set variables
     timestr = time.strftime("%Y%m%d%I%M%S")
     project = "report-scheduling"
@@ -102,13 +103,11 @@ def main(*argv):
     bucket = storage_client.bucket(bucket_name)
     blob = bucket.blob(csv_name)
     signing_credentials = None
-    # if running on GCF we need to general signing credentials
-    # the service account running the GCF must have Service Account Token Creator role
-    # falls back client json credentials in the local dev env
+    # If running on GCF we need to general signing credentials
+    # Service account running the GCF must have Service Account Token Creator role
     if os.getenv("IS_LOCAL") is None:
-        # create signer
         signer = iam.Signer(request=requests.Request(), credentials=credentials(), service_account_email=os.getenv("FUNCTION_IDENTITY"),)
-        # create Token-based service account credentials for signing
+        # Create Token-based service account credentials for signing
         signing_credentials = service_account.IDTokenCredentials(
             signer=signer,
             token_uri="https://www.googleapis.com/oauth2/v4/token",
@@ -121,7 +120,7 @@ def main(*argv):
         expiration=datetime.timedelta(hours=24),
         # Allow GET requests using this URL.
         method="GET",
-        # signing credentials; if none falls back to client creds
+        # Signing credentials; if None falls back to json credentials in local dev env
         credentials=signing_credentials,
     )
     print("Generated GET signed URL.")
@@ -129,7 +128,7 @@ def main(*argv):
     # Send email through SendGrid with link to signed URL
     message = Mail(
         from_email="test@example.com",
-        to_emails="bbaiju@google.com",
+        to_emails="nehanene@google.com",
         subject="Daily BQ export",
         html_content="<p> Your daily BigQuery export from Google Cloud Platform \
             is linked <a href={}>here</a>.</p>".format(
