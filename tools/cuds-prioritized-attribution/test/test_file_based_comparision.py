@@ -53,7 +53,7 @@ print("\n" + 'Preparing test environment ... ' + "\n")
 create_dataset(data['corrected_dataset_id'])
 
 
-@pytest.mark.parametrize("dir", ["test_7_3", "test_7_4", "test_7_5", "test_7_6"])
+@pytest.mark.parametrize("dir", test_directory)
 def test_eval(dir):
     seperator = "*" * 60
     print("\n" + seperator)
