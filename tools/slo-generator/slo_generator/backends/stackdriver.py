@@ -18,72 +18,67 @@ Stackdriver Monitoring backend implementation.
 from collections import OrderedDict
 import logging
 import pprint
+import warnings
 
 from google.cloud import monitoring_v3
-from slo_generator.backends.base import MetricBackend
 
 LOGGER = logging.getLogger(__name__)
 
 
-class StackdriverBackend(MetricBackend):
+class StackdriverBackend:
     """Backend for querying metrics from Stackdriver Monitoring.
 
     Args:
-        obj:`monitoring_v3.MetricServiceClient` (optional): A Stackdriver
-            Monitoring client. Initialize a new client if omitted.
+        project_id (str): Stackdriver host project id.
+        client (google.cloud.monitoring_v3.MetricServiceClient, optional):
+            Existing Stackdriver Service Monitoring client. Initialize a new
+            client if omitted.
     """
 
-    def __init__(self, client=None, **kwargs):  # pylint: disable=W0613
+    def __init__(self, project_id, client=None):
         self.client = client
         if client is None:
             self.client = monitoring_v3.MetricServiceClient()
+        self.parent = self.client.project_path(project_id)
 
-    def good_bad_ratio(self, timestamp, window, **kwargs):
+    def good_bad_ratio(self, timestamp, window, slo_config):
         """Query two timeseries, one containing 'good' events, one containing
         'bad' events.
 
         Args:
             timestamp (int): UNIX timestamp.
             window (int): Window size (in seconds).
-            kwargs (dict): Extra arguments needed by this computation method.
-                project_id (str): GCP project id to fetch metrics from.
-                measurement (dict): Measurement config.
-                    filter_good (str): Query filter for 'good' events.
-                    filter_bad (str): Query filter for 'bad' events.
+            slo_config (dict): SLO configuration.
 
         Returns:
             tuple: A tuple (good_event_count, bad_event_count)
         """
-        project_id = kwargs['project_id']
-        measurement = kwargs['measurement']
+        conf = slo_config['backend']
+        measurement = conf['measurement']
         filter_good = measurement['filter_good']
         filter_bad = measurement.get('filter_bad')
         filter_valid = measurement.get('filter_valid')
 
         # Query 'good events' timeseries
-        good_ts = self.query(project_id=project_id,
-                             timestamp=timestamp,
+        good_ts = self.query(timestamp=timestamp,
                              window=window,
                              filter=filter_good)
         good_ts = list(good_ts)
-        good_event_count = StackdriverBackend.count(good_ts)
+        good_event_count = SD.count(good_ts)
 
         # Query 'bad events' timeseries
         if filter_bad:
-            bad_ts = self.query(project_id=project_id,
-                                timestamp=timestamp,
+            bad_ts = self.query(timestamp=timestamp,
                                 window=window,
                                 filter=filter_bad)
             bad_ts = list(bad_ts)
-            bad_event_count = StackdriverBackend.count(bad_ts)
+            bad_event_count = SD.count(bad_ts)
         elif filter_valid:
-            valid_ts = self.query(project_id=project_id,
-                                  timestamp=timestamp,
+            valid_ts = self.query(timestamp=timestamp,
                                   window=window,
                                   filter=filter_valid)
             valid_ts = list(valid_ts)
-            bad_event_count = \
-                StackdriverBackend.count(valid_ts) - good_event_count
+            bad_event_count = SD.count(valid_ts) - good_event_count
         else:
             raise Exception("Oneof `filter_bad` or `filter_valid` is required.")
 
@@ -92,34 +87,25 @@ class StackdriverBackend(MetricBackend):
 
         return (good_event_count, bad_event_count)
 
-    def exponential_distribution_cut(self, timestamp, window, **kwargs):
+    def distribution_cut(self, timestamp, window, slo_config):
         """Query one timeserie of type 'exponential'.
 
         Args:
             timestamp (int): UNIX timestamp.
             window (int): Window size (in seconds).
-            kwargs (dict): Extra arguments needed by this computation method.
-                project_id (str): Project id.
-                measurement (dict): Measurement config.
-                    filter (str): Query filter for 'valid' events.
-                    threshold_bucket (int): Bucket number that is the threshold
-                        for good / bad events.
-                    good_below_threshold (bool, optional): If good events are
-                    below the threshold (True) or above it (False). Defaults to
-                    True.
+            slo_config (dict): SLO configuration.
 
         Returns:
             tuple: A tuple (good_event_count, bad_event_count).
         """
-        project_id = kwargs['project_id']
-        measurement = kwargs['measurement']
+        conf = slo_config['backend']
+        measurement = conf['measurement']
         filter_valid = measurement['filter_valid']
         threshold_bucket = int(measurement['threshold_bucket'])
         good_below_threshold = measurement.get('good_below_threshold', True)
 
         # Query 'valid' events
-        series = self.query(project_id=project_id,
-                            timestamp=timestamp,
+        series = self.query(timestamp=timestamp,
                             window=window,
                             filter=filter_valid)
         series = list(series)
@@ -164,23 +150,42 @@ class StackdriverBackend(MetricBackend):
 
         return (good_event_count, bad_event_count)
 
-    def query(self, project_id, timestamp, window, filter):
+    def exponential_distribution_cut(self, *args, **kwargs):
+        """Alias for `distribution_cut` method to allow for backwards
+        compatibility.
+        """
+        warnings.warn(
+            f'exponential_distribution_cut will be deprecated in version 2.0, '
+            f'please use distribution_cut instead', PendingDeprecationWarning)
+        return self.distribution_cut(*args, **kwargs)
+
+    def query(self,
+              timestamp,
+              window,
+              filter,
+              aligner='ALIGN_SUM',
+              reducer='REDUCE_SUM',
+              group_by=[]):
         """Query timeseries from Stackdriver Monitoring.
 
         Args:
-            project_id (str): GCP project id.
             timestamp (int): Current timestamp.
             window (int): Window size (in seconds).
             filter (str): Query filter.
+            aligner (str, optional): Aligner to use.
+            reducer (str, optional): Reducer to use.
+            group_by (list, optional): List of fields to group by.
 
         Returns:
             list: List of timeseries objects.
         """
-        measurement_window = StackdriverBackend._get_window(timestamp, window)
-        aggregation = StackdriverBackend._get_aggregation(window)
-        project = self.client.project_path(project_id)
+        measurement_window = SD.get_window(timestamp, window)
+        aggregation = SD.get_aggregation(window,
+                                         aligner=aligner,
+                                         reducer=reducer,
+                                         group_by=group_by)
         timeseries = self.client.list_time_series(
-            project, filter, measurement_window,
+            self.parent, filter, measurement_window,
             monitoring_v3.enums.ListTimeSeriesRequest.TimeSeriesView.FULL,
             aggregation)
         LOGGER.debug(pprint.pformat(timeseries))
@@ -205,7 +210,7 @@ class StackdriverBackend(MetricBackend):
             return 0  # no events in timeseries
 
     @staticmethod
-    def _get_window(timestamp, window):
+    def get_window(timestamp, window):
         """Helper for measurement window.
 
         Args:
@@ -225,7 +230,10 @@ class StackdriverBackend(MetricBackend):
         return measurement_window
 
     @staticmethod
-    def _get_aggregation(window, aligner='ALIGN_SUM', reducer='REDUCE_SUM'):
+    def get_aggregation(window,
+                        aligner='ALIGN_SUM',
+                        reducer='REDUCE_SUM',
+                        group_by=[]):
         """Helper for aggregation object.
 
         Default aggregation is `ALIGN_SUM`.
@@ -235,6 +243,7 @@ class StackdriverBackend(MetricBackend):
             window (int): Window size (in seconds).
             aligner (str): Aligner type.
             reducer (str): Reducer type.
+            group_by (list): List of fields to group by.
 
         Returns:
             :obj:`monitoring_v3.types.Aggregation`: Aggregation object.
@@ -245,5 +254,9 @@ class StackdriverBackend(MetricBackend):
             monitoring_v3.enums.Aggregation.Aligner, aligner))
         aggregation.cross_series_reducer = (getattr(
             monitoring_v3.enums.Aggregation.Reducer, reducer))
+        aggregation.group_by_fields.extend(group_by)
         LOGGER.debug(pprint.pformat(aggregation))
         return aggregation
+
+
+SD = StackdriverBackend
