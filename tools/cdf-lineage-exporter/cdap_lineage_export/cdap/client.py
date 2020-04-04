@@ -78,6 +78,9 @@ class CDAPClient(object):
                 credentials)
         elif credentials is None:
             self._transport = requests
+        else:
+            self._transport = google.auth.transport.requests.AuthorizedSession(
+                credentials)
         self._endpoint = api_endpoint
         self.namespace = namespace
 
