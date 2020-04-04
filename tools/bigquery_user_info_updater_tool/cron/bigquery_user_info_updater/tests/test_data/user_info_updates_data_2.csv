@@ -1,0 +1,8 @@
+userId,ingestTimestamp,attribute1,attribute2,attribute3
+userA,2019-08-10 05:40:16.228 UTC,xyz,abc,qwerty
+userB,2019-08-10 05:41:16.228 UTC,poc,mvp,ytrewq
+userC,2019-08-10 05:42:16.228 UTC,zyx,pvm,qywter
+userA,2019-08-10 05:43:16.228 UTC,,ghj,
+userA,2019-08-10 05:44:16.228 UTC,,,lot
+userA,2019-08-10 05:45:16.228 UTC,,dat,
+userB,2019-08-10 05:46:16.228 UTC,cor,,

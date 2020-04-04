@@ -1,0 +1,32 @@
+SELECT
+userId,
+ingestTimestamp,
+attribute1,
+attribute2,
+attribute3
+FROM (
+    SELECT
+        userId,
+        ingestTimestamp,
+        FIRST_VALUE(
+            attribute1 IGNORE NULLS
+        ) OVER(win) attribute1,
+        FIRST_VALUE(
+            attribute2 IGNORE NULLS
+        ) OVER(win) attribute2,
+        FIRST_VALUE(
+            attribute3 IGNORE NULLS
+        ) OVER(win) attribute3,
+        FIRST_VALUE(
+            ingestTimestamp
+        ) OVER(WIN) maxTimestampInWindow
+    FROM (
+        SELECT * FROM `{0:s}.user_updater_test.test_user_info_updates`
+        WHERE ingestTimestamp  > timestamp('{1:s}')
+    )
+    window win as (
+        partition by userId ORDER BY ingestTimestamp DESC
+        ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+    )
+)
+WHERE ingestTimestamp = maxTimestampInWindow

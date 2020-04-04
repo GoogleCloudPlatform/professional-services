@@ -20,60 +20,60 @@ import logging
 
 from elasticsearch import Elasticsearch
 
-from slo_generator.backends.base import MetricBackend
-
 LOGGER = logging.getLogger(__name__)
 
+DEFAULT_DATE_FIELD = '@timestamp'
 
-class ElasticsearchBackend(MetricBackend):
-    """Backend for querying metrics from ElasticSearch."""
 
-    def __init__(self, **kwargs):
-        self.client = kwargs.get('client')
+class ElasticsearchBackend:
+    """Backend for querying metrics from ElasticSearch.
+
+    Args:
+        client (elasticsearch.ElasticSearch): Existing ES client.
+        es_config (dict): ES client configuration.
+    """
+
+    def __init__(self, client=None, **es_config):
+        self.client = client
         if self.client is None:
-            self.client = Elasticsearch(**kwargs)
+            self.client = Elasticsearch(**es_config)
 
-    def good_bad_ratio(self, **kwargs):
+    # pylint: disable=unused-argument
+    def good_bad_ratio(self, timestamp, window, slo_config):
         """Query two timeseries, one containing 'good' events, one containing
         'bad' events.
 
         Args:
             timestamp (int): UNIX timestamp.
             window (int): Window size (in seconds).
-            kwargs (dict): Extra arguments needed by this computation method.
-                project_id (str): GCP project id to fetch metrics from.
-                measurement (dict): Measurement config.
-                    filter_good (str): Query filter for 'good' events.
-                    filter_bad (str): Query filter for 'bad' events.
+            slo_config (dict): SLO configuration.
 
         Returns:
             tuple: A tuple (good_event_count, bad_event_count)
         """
-        window = kwargs['window']
-        index = kwargs['measurement']['index']
-        date = kwargs['measurement'].get('date_field', 'timestamp')
-        query_good = kwargs['measurement']['query_good']
-        query_bad = kwargs['measurement'].get('query_bad')
-        query_valid = kwargs['measurement'].get('query_valid')
+        measurement = slo_config['backend']['measurement']
+        index = measurement['index']
+        query_good = measurement['query_good']
+        query_bad = measurement.get('query_bad')
+        query_valid = measurement.get('query_valid')
+        date_field = measurement.get('date_field', DEFAULT_DATE_FIELD)
 
         # Build ELK request bodies
-        good = ElasticsearchBackend._build_query_body(query_good, window, date)
-        bad = ElasticsearchBackend._build_query_body(query_bad, window, date)
-        valid = ElasticsearchBackend._build_query_body(query_valid, window,
-                                                       date)
+        good = ES.build_query(query_good, window, date_field)
+        bad = ES.build_query(query_bad, window, date_field)
+        valid = ES.build_query(query_valid, window, date_field)
 
         # Get good events count
         response = self.query(index, good)
-        good_events_count = ElasticsearchBackend.count(response)
+        good_events_count = ES.count(response)
 
         # Get bad events count
         if query_bad is not None:
             response = self.query(index, bad)
-            bad_events_count = ElasticsearchBackend.count(response)
+            bad_events_count = ES.count(response)
         elif query_valid is not None:
             response = self.query(index, valid)
-            bad_events_count = \
-                ElasticsearchBackend.count(response) - good_events_count
+            bad_events_count = ES.count(response) - good_events_count
         else:
             raise Exception("`filter_bad` or `filter_valid` is required.")
 
@@ -109,14 +109,18 @@ class ElasticsearchBackend(MetricBackend):
             return 0
 
     @staticmethod
-    def _build_query_body(query, window, date_field='timestamp'):
-        """Add window to existing query. Replace window for different error
-        budget steps on-the-fly.
+    def build_query(query, window, date_field=DEFAULT_DATE_FIELD):
+        """Build ElasticSearch query.
+
+        Add window to existing query.
+        Replace window for different error budget steps on-the-fly.
 
         Args:
             body (dict): Existing query body.
             window (int): Window in seconds.
-            field (str): Field to filter time on (must be an ELK `date` field)
+            date_field (str): Field to filter time on (must be an ElasticSearch
+                field of type `date`. Defaults to `@timestamp` (Logstash-
+                generated date field).
 
         Returns:
             dict: Query body with range clause added.
@@ -139,3 +143,6 @@ class ElasticsearchBackend(MetricBackend):
             body["query"]["bool"] = {"filter": {"range": range_query}}
 
         return body
+
+
+ES = ElasticsearchBackend

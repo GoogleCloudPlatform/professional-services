@@ -1,0 +1,3 @@
+{"userId": "userA", "ingestTimestamp": "2019-08-10 05:40:16.228000+00:00", "record1": {"attribute1": {"a": "1", "b": "2"}, "attribute2": "abc", "attribute3": "qwerty"}}
+{"userId": "userB", "ingestTimestamp": "2019-08-10 05:41:16.228000+00:00", "record1": {"attribute1": {"a": "3", "b": "4"}, "attribute2": "mvp", "attribute3": "ytrewq"}}
+{"userId": "userC", "ingestTimestamp": "2019-08-10 05:42:16.228000+00:00", "record1": {"attribute1": {"a": "5", "b": "6"}, "attribute2": "pvm", "attribute3": "qywter"}}
