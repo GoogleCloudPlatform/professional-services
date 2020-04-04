@@ -198,7 +198,7 @@ def export_all_cdap_lineage_to_gcs(project: str,
             print(
                 f"no streams lineage found for time period: {start_ts} to {end_ts}"
             )
-        return (datasets_blob_link, streams_blob_link)
+    return (datasets_blob_link, streams_blob_link)
 
 
 def main():
