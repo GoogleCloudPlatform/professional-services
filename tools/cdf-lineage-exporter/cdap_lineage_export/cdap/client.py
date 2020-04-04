@@ -76,7 +76,7 @@ class CDAPClient(object):
             credentials, _ = google.auth.default(scopes=SCOPES)
             self._transport = google.auth.transport.requests.AuthorizedSession(
                 credentials)
-        else:
+        elif credentials is None:
             self._transport = requests
         self._endpoint = api_endpoint
         self.namespace = namespace
