@@ -10,15 +10,17 @@ backend:
   method:        good_bad_ratio
   measurement:
     filter_good: >
-      project="${STACKDRIVER_METRIC_PROJECT_ID}" AND
+      project="${PUBSUB_PROJECT_ID}"
       metric.type="pubsub.googleapis.com/subscription/ack_message_count"
+      resource.type="pubsub_subscription"
     filter_bad:  >
-      project="${STACKDRIVER_METRIC_PROJECT_ID}" AND
+      project="${PUBSUB_PROJECT_ID}"
       metric.type="pubsub.googleapis.com/subscription/num_outstanding_messages"
+      resource.type="pubsub_subscription"
 exporters:
+- class:         Stackdriver
+  project_id:    ${STACKDRIVER_HOST_PROJECT_ID}
+
 - class:         Pubsub
   project_id:    ${PUBSUB_PROJECT_ID}
   topic_name:    ${PUBSUB_TOPIC_NAME}
-
-- class:         Stackdriver
-  project_id:    ${PUBSUB_PROJECT_ID}

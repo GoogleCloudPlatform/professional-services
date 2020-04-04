@@ -19,8 +19,6 @@ import logging
 from prometheus_client import CollectorRegistry, Gauge, push_to_gateway
 from prometheus_client.exposition import basic_auth_handler, default_handler
 
-from slo_generator.exporters.base import Exporter
-
 LOGGER = logging.getLogger(__name__)
 DEFAULT_METRIC_TYPE = "error_budget_burn_rate"
 DEFAULT_METRIC_DESCRIPTION = ("Speed at which the error budget for a given"
@@ -29,7 +27,7 @@ DEFAULT_PUSHGATEWAY_URL = "http://localhost:9091"
 DEFAULT_PUSHGATEWAY_JOB = "slo-generator"
 
 
-class PrometheusExporter(Exporter):
+class PrometheusExporter:
     """Prometheus exporter class."""
 
     def __init__(self):

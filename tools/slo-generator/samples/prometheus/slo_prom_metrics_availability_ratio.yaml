@@ -7,7 +7,7 @@ slo_target:       0.999
 backend:
   class:          Prometheus
   method:         good_bad_ratio
-  url:            http://localhost:9090
+  url:            ${PROMETHEUS_URL}
   # Basic auth example:
   # headers:
   #   Content-Type: application/json
@@ -16,11 +16,6 @@ backend:
     filter_good:  prometheus_http_requests_total{code=~"2..", handler="/metrics"}[window]
     filter_valid: prometheus_http_requests_total{handler="/metrics"}[window]
     # filter_bad: prometheus_http_requests_total{code=~"5..", handler="/metrics"}[window]  # alternative to filter_valid field
-
 exporters:
-- class:          Pubsub
-  project_id:     ${PUBSUB_PROJECT_ID}
-  topic_name:     ${PUBSUB_TOPIC_NAME}
-
 - class:          Prometheus
-  url:            http://localhost:9091
+  url:            ${PROMETHEUS_PUSHGATEWAY_URL}

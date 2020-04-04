@@ -1,0 +1,18 @@
+---
+service_name:            gke
+feature_name:            service
+slo_description:         Availability of GKE service
+slo_name:                availability
+slo_target:              0.98
+backend:
+  class:                 StackdriverServiceMonitoring
+  method:                basic
+  project_id:            ${STACKDRIVER_HOST_PROJECT_ID}
+  measurement:
+    cluster_istio:
+      project_id:        ${GKE_PROJECT_ID}
+      location:          ${GKE_LOCATION}
+      cluster_name:      ${GKE_CLUSTER_NAME}
+      service_namespace: ${GKE_SERVICE_NAMESPACE}
+      service_name:      ${GKE_SERVICE_NAME}
+    availability:        {}
