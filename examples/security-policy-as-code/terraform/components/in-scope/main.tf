@@ -35,7 +35,7 @@ data "terraform_remote_state" "vpc_info" {
 data "google_kms_key_ring" "helloworld-keyring" {
   project  = local.this_inscope_project_id
   name     = "helloworld-keyring"
-  location = "global"
+  location = "us-central1"
 }
 
 data "google_kms_crypto_key" "helloworld-key" {
