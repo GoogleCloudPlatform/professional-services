@@ -1,0 +1,7 @@
+{
+    "MAILGUN_API_KEY":"",
+    "MAILGUN_DOMAIN":"",
+    "MAILGUN_FROM":"",
+    "MAILGUN_TO":"",
+    "bucket_name":""
+  }

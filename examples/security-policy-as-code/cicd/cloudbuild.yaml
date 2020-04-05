@@ -1,0 +1,269 @@
+# Copyright 2020 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+substitutions:
+  _SECRETS_BUCKET:
+  _PATH_TO_SA_JSON: sa_json/terraform.json.enc
+  _PATH_TO_MAILGUN_CFG: mailgun_json/config.json
+  _KMS_LOCATION: global
+  _KEYRING: ''
+  _KEY_NAME: ''
+  _TERRAFORM_ADMIN_BUCKET: ''
+  _TERRAFORM_NETWORK_STATE: terraform/state/network_vpc
+  _TERRAFORM_INSCOPE_STATE: terraform/state/components/in-scope/infrastructure
+  _REPORT_BUCKET: ''
+  _INTEGRATION_TEST_PROJECT: ''
+  _NETWORK_PROJECT_ID: ''
+  _INSCOPE_PROJECT_ID: ''
+  _ENABLE_HIPSTERSTORE: 'true'
+  _ENABLE_HELLOWORLD: 'false'
+  _INSCOPE_SA_EMAIL: ''
+  _PROJECT_PREFIX: 'pci-poc'
+  _IS_SHARED_VPC_HOST: 'true'
+  _RUN_APPLY: 'true'
+  _ALWAYS_REPORT: 'false'
+  _PCI_PROFILE_REPO: 'inspec-gcp-pci-3.2.1'
+  _SECURITY_BENECHMARKS_REPO: 'inspec-combination-profile'
+  _PCI_PROFILE_GCR_PROJECT: ''
+
+timeout: 2700s
+steps:
+- id: 'fetch Mailgun config file'
+  waitFor: ['-']
+  name: gcr.io/cloud-builders/gsutil
+  args:
+    - cp
+    - 'gs://${_SECRETS_BUCKET}/${_PATH_TO_MAILGUN_CFG}'
+    - '/workspace/terraform/modules/notifications/js/config.json'
+
+- id: 'fetch SA credentials'
+  waitFor: ['fetch Mailgun config file']
+  name: gcr.io/cloud-builders/gsutil
+  args:
+  - cp
+  - 'gs://${_SECRETS_BUCKET}/${_PATH_TO_SA_JSON}'
+  - 'terraform.json.enc'
+
+
+- id: 'decrypt SA credentials'
+  name: gcr.io/cloud-builders/gcloud
+  waitFor: ['fetch SA credentials']
+  args:
+  - kms
+  - decrypt
+  - --ciphertext-file=terraform.json.enc
+  - --plaintext-file=credentials.json
+  - --location=${_KMS_LOCATION}
+  - --keyring=${_KEYRING}
+  - --key=${_KEY_NAME}
+
+- id: 'Test Infrastructure Changes for Policy Violations'
+  name: 'gcr.io/cloud-foundation-cicd/cft/developer-tools:0'
+  waitFor: ['decrypt SA credentials']
+  timeout: 2400s
+  entrypoint: '/bin/bash'
+  env:
+  - TF_VAR_project_id=${_INTEGRATION_TEST_PROJECT}
+  - CFT_DISABLE_INIT_CREDENTIALS=yes
+  - BUILD=${BUILD_ID}
+  - REPORT_BUCKET=${_REPORT_BUCKET}
+  - ALWAYS_REPORT=${_ALWAYS_REPORT}
+  args:
+  - '-c'
+  - |
+      export SERVICE_ACCOUNT_JSON="$(< /workspace/credentials.json)"
+      /usr/local/bin/test_integration.sh
+      TEST_RC=$?
+      if [[ $$TEST_RC -ne 0 ]] || [[ "$${ALWAYS_REPORT}" == "true" ]]; then
+        gsutil cp /workspace/test/out/security-report.html gs://$${REPORT_BUCKET}/reports/$${BUILD}/security-report.html
+      fi
+      exit $$TEST_RC
+
+
+- id: 'Initialize Terraform'
+  name: 'hashicorp/terraform:0.12.20'
+  waitFor: ['decrypt SA credentials']
+  entrypoint: 'sh'
+  env:
+  - TF_CREDS=/workspace/credentials.json
+  - GOOGLE_APPLICATION_CREDENTIALS=/workspace/credentials.json
+  - TF_VAR_network_project_id=${_NETWORK_PROJECT_ID}
+  - TF_VAR_in_scope_project_id=${_INSCOPE_PROJECT_ID}
+  - TF_VAR_enable_hipsterstore_app=${_ENABLE_HIPSTERSTORE}
+  - TF_VAR_enable_helloworld_app=${_ENABLE_HELLOWORLD}
+  - TF_VAR_override_inscope_sa_email=${_INSCOPE_SA_EMAIL}
+  - TF_VAR_project_prefix=${_PROJECT_PREFIX}
+  - TF_VAR_remote_state_bucket=${_TERRAFORM_ADMIN_BUCKET}
+  - TF_VAR_is_shared_vpc_host=${_IS_SHARED_VPC_HOST}
+  args: 
+  - '-c'
+  - |
+      cd terraform
+      cd projects/network_vpc_setup
+      cp backend.tf.example backend.tf
+      terraform init -backend-config="bucket=${_TERRAFORM_ADMIN_BUCKET}"
+
+      cd /workspace/terraform/components/in-scope
+      cp backend.tf.example backend.tf
+      terraform init -backend-config="bucket=${_TERRAFORM_ADMIN_BUCKET}"
+
+- id: 'Terraform Validate'
+  name: 'hashicorp/terraform:0.12.20'
+  waitFor: ['Initialize Terraform']
+  entrypoint: 'sh'
+  env:
+  - TF_CREDS=/workspace/credentials.json
+  - GOOGLE_APPLICATION_CREDENTIALS=/workspace/credentials.json
+  - TF_VAR_network_project_id=${_NETWORK_PROJECT_ID}
+  - TF_VAR_in_scope_project_id=${_INSCOPE_PROJECT_ID}
+  - TF_VAR_enable_hipsterstore_app=${_ENABLE_HIPSTERSTORE}
+  - TF_VAR_enable_helloworld_app=${_ENABLE_HELLOWORLD}
+  - TF_VAR_override_inscope_sa_email=${_INSCOPE_SA_EMAIL}
+  - TF_VAR_project_prefix=${_PROJECT_PREFIX}
+  - TF_VAR_remote_state_bucket=${_TERRAFORM_ADMIN_BUCKET}
+  - TF_VAR_is_shared_vpc_host=${_IS_SHARED_VPC_HOST}
+
+  args:
+  - '-c'
+  - |
+      cd terraform/projects/network_vpc_setup
+      terraform validate
+      cd /workspace/terraform/components/in-scope
+      terraform validate
+
+- id: 'VPC Terraform Plan'
+  name: 'hashicorp/terraform:0.12.20'
+  waitFor: ['Terraform Validate']
+  entrypoint: 'sh'
+  env:
+  - TF_CREDS=/workspace/credentials.json
+  - GOOGLE_APPLICATION_CREDENTIALS=/workspace/credentials.json
+  - TF_VAR_network_project_id=${_NETWORK_PROJECT_ID}
+  - TF_VAR_in_scope_project_id=${_INSCOPE_PROJECT_ID}
+  - TF_VAR_enable_hipsterstore_app=${_ENABLE_HIPSTERSTORE}
+  - TF_VAR_enable_helloworld_app=${_ENABLE_HELLOWORLD}
+  - TF_VAR_override_inscope_sa_email=${_INSCOPE_SA_EMAIL}
+  - TF_VAR_project_prefix=${_PROJECT_PREFIX}
+  - TF_VAR_remote_state_bucket=${_TERRAFORM_ADMIN_BUCKET}
+  - TF_VAR_is_shared_vpc_host=${_IS_SHARED_VPC_HOST}
+
+  args: 
+  - '-c'
+  - | 
+      cd terraform/projects/network_vpc_setup
+      terraform plan
+
+- id: 'VPC Terraform Apply'
+  name: 'hashicorp/terraform:0.12.20'
+  waitFor: ['VPC Terraform Plan', 'Test Infrastructure Changes for Policy Violations']
+  entrypoint: 'sh'
+  env:
+  - TF_CREDS=/workspace/credentials.json
+  - GOOGLE_APPLICATION_CREDENTIALS=/workspace/credentials.json
+  - TF_VAR_network_project_id=${_NETWORK_PROJECT_ID}
+  - TF_VAR_in_scope_project_id=${_INSCOPE_PROJECT_ID}
+  - TF_VAR_enable_hipsterstore_app=${_ENABLE_HIPSTERSTORE}
+  - TF_VAR_enable_helloworld_app=${_ENABLE_HELLOWORLD}
+  - TF_VAR_override_inscope_sa_email=${_INSCOPE_SA_EMAIL}
+  - TF_VAR_project_prefix=${_PROJECT_PREFIX}
+  - TF_VAR_remote_state_bucket=${_TERRAFORM_ADMIN_BUCKET}
+  - TF_VAR_is_shared_vpc_host=${_IS_SHARED_VPC_HOST}
+  - RUN_APPLY=${_RUN_APPLY}
+
+  args:
+  - '-c'
+  - |
+      if [[ "$${RUN_APPLY}" == "true" ]]; then
+        cd terraform/projects/network_vpc_setup
+        terraform apply -auto-approve
+      else
+        echo "Skipping Terraform Apply step because the CloudBuild substitution '_RUN_APPLY' is '$${RUN_APPLY}'"
+      fi
+
+- id: 'Component Terraform Plan'
+  name: 'hashicorp/terraform:0.12.20'
+  waitFor: ['VPC Terraform Apply']
+  entrypoint: 'sh'
+  env:
+  - TF_CREDS=/workspace/credentials.json
+  - GOOGLE_APPLICATION_CREDENTIALS=/workspace/credentials.json
+  - TF_VAR_network_project_id=${_NETWORK_PROJECT_ID}
+  - TF_VAR_in_scope_project_id=${_INSCOPE_PROJECT_ID}
+  - TF_VAR_enable_hipsterstore_app=${_ENABLE_HIPSTERSTORE}
+  - TF_VAR_enable_helloworld_app=${_ENABLE_HELLOWORLD}
+  - TF_VAR_override_inscope_sa_email=${_INSCOPE_SA_EMAIL}
+  - TF_VAR_project_prefix=${_PROJECT_PREFIX}
+  - TF_VAR_remote_state_bucket=${_TERRAFORM_ADMIN_BUCKET}
+  - TF_VAR_is_shared_vpc_host=${_IS_SHARED_VPC_HOST}
+
+  args:
+  - '-c'
+  - |
+      cd /workspace/terraform/components/in-scope
+      terraform plan
+
+- id: 'Component Terraform Apply'
+  name: 'hashicorp/terraform:0.12.20'
+  waitFor: ['Component Terraform Plan']
+  entrypoint: 'sh'
+  env:
+  - TF_CREDS=/workspace/credentials.json
+  - GOOGLE_APPLICATION_CREDENTIALS=/workspace/credentials.json
+  - TF_VAR_network_project_id=${_NETWORK_PROJECT_ID}
+  - TF_VAR_in_scope_project_id=${_INSCOPE_PROJECT_ID}
+  - TF_VAR_enable_hipsterstore_app=${_ENABLE_HIPSTERSTORE}
+  - TF_VAR_enable_helloworld_app=${_ENABLE_HELLOWORLD}
+  - TF_VAR_override_inscope_sa_email=${_INSCOPE_SA_EMAIL}
+  - TF_VAR_project_prefix=${_PROJECT_PREFIX}
+  - TF_VAR_remote_state_bucket=${_TERRAFORM_ADMIN_BUCKET}
+  - TF_VAR_is_shared_vpc_host=${_IS_SHARED_VPC_HOST}
+  - RUN_APPLY=${_RUN_APPLY}
+
+  args:
+  - '-c'
+  - |
+      if [[ "$${RUN_APPLY}" == "true" ]]; then
+        cd /workspace/terraform/components/in-scope
+        terraform apply -auto-approve
+      else
+        echo "Skipping Terraform Apply step because the CloudBuild substitution '_RUN_APPLY' is '$${RUN_APPLY}'"
+      fi
+
+# [END tf-apply]
+- id: 'Scan Production Environment'
+  name: 'gcr.io/cloud-foundation-cicd/cft/developer-tools:0'
+  waitFor: ['Component Terraform Apply']
+  timeout: 2400s
+  entrypoint: '/bin/bash'
+  env:
+  - TF_VAR_project_id=${_INSCOPE_PROJECT_ID}
+  - CFT_DISABLE_INIT_CREDENTIALS=yes
+  - BUILD=${BUILD_ID}
+  - REPORT_BUCKET=${_REPORT_BUCKET}
+  - ALWAYS_REPORT=${_ALWAYS_REPORT}
+  args:
+  - '-c'
+  - |
+      export SERVICE_ACCOUNT_JSON="$(< /workspace/credentials.json)"
+      /usr/local/bin/execute_with_credentials.sh inspec exec test/integration/security_benchmarks/ \
+          -t gcp:// \
+          --attrs "/workspace/test/attributes/$${TF_VAR_project_id}-attrs.yml" \
+          --reporter cli json:./test/out/post_deploy_security_report.json html:./test/out/post-deploy-security-report.html
+      TEST_RC=$?
+      gsutil cp /workspace/test/out/post-deploy-security-report.html gs://$${REPORT_BUCKET}/reports/$${BUILD}/post-deploy-security-report.html
+      if [[ $$TEST_RC -eq 0 ]] || [[ $$TEST_RC -eq 101 ]]; then
+        exit 0
+      else
+        exit $$TEST_RC
+      fi

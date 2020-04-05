@@ -46,6 +46,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [Pub/Sub Client Batching Example](examples/pubsub-publish-avro-example) - Batching in Pub/Sub's Java client API.
 * [QAOA](examples/qaoa) - Examples of parsing a max-SAT problem in a proprietary format.
 * [Redis Cluster on GKE Example](examples/redis-cluster-gke) - Deploying Redis cluster on GKE.
+* [Security-Policy-As-Code](examples/security-policy-as-code) - Framework for automated compliance validation of Terraform build in GCP against PCI and CIS security benchmarks.
 * [Spinnaker](examples/spinnaker) - Example pipelines for a Canary / Production deployment process.
 * [Uploading files directly to Google Cloud Storage by using Signed URL](examples/direct-upload-to-gcs) - Example architecture to enable uploading files directly to GCS by using [Signed URL](https://cloud.google.com/storage/docs/access-control/signed-urls).
 

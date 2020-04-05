@@ -1,0 +1,48 @@
+# Copyright 2019 The inspec-gcp-cis-benchmark Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: inspec-combination-profile
+title: "Combination InSpec Profile"
+maintainer: Google
+copyright: Google
+copyright_email: copyright@google.com
+license: Apache-2.0
+summary: An combination InSpec Compliance Profile
+version: "0.1.0"
+attributes:
+- name: gcp_project_id
+  description: 'The GCP project identifier.'
+  type: string
+  value: "replace_with_your_gcp_project_id"
+- name: cis_version
+  description: 'The short version of the GCP CIS Benchmark'
+  value: '1.0'
+  type: string
+- name: cis_url
+  description: 'The URL to the GCP CIS Benchmark'
+  value: 'https://www.cisecurity.org/benchmark/google_cloud_computing_platform/'
+  type: string
+- name: gcp_gke_locations
+  description: 'The list of regions and/or zones where GKE clusters are running. An empty list searches all locations'
+  type: array
+- name: gce_zones
+  description: 'The list of zone names where GCE instances are running. An empty array searches all locations'
+  type: array
+depends:
+- name: inspec-gcp-pci-3.2.1
+  git: https://github.com/GoogleCloudPlatform/inspec-gcp-pci-profile.git
+  branch: master
+- name: inspec-gcp-cis-benchmark
+  git: https://github.com/GoogleCloudPlatform/inspec-gcp-cis-benchmark.git
+  branch: master
