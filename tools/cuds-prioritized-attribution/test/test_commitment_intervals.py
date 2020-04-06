@@ -16,7 +16,7 @@ from dateutil import parser
 from pytest import approx
 import sys
 sys.path.append('../composer/dependencies')
-from commitment_intervals import computeDiff, ScheduleAndValue, CommitmentValue
+from commitment_intervals import compute_diff, ScheduleAndValue, CommitmentValue
 
 
 def test_same_start_different_end():
@@ -34,7 +34,7 @@ def test_same_start_different_end():
             CommitmentValue('id', 'folder_ids', 'project_ids',
                             'commitments_unit_type', 'commitments_cud_type',
                             100, 'commitments_region')))
-    retVal = computeDiff(data['x'])
+    retVal = compute_diff(data['x'])
     expected = [{
         'start': '2010-03-05',
         'end': '2010-04-01',
@@ -68,7 +68,7 @@ def test_same_start_same_end():
             CommitmentValue('id', 'folder_ids', 'project_ids',
                             'commitments_unit_type', 'commitments_cud_type',
                             100, 'commitments_region')))
-    retVal = computeDiff(data['x'])
+    retVal = compute_diff(data['x'])
     expected = [{'start': '2010-03-05', 'end': '2010-12-01', 'amount': 200}]
     i = 0
     for res in expected:
@@ -100,7 +100,7 @@ def test_multiple_different_overlaping():
             CommitmentValue('id', 'folder_ids', 'project_ids',
                             'commitments_unit_type', 'commitments_cud_type',
                             100, 'commitments_region')))
-    retVal = computeDiff(data['x'])
+    retVal = compute_diff(data['x'])
     expected = [{
         'start': '2010-03-01',
         'end': '2010-03-04',
@@ -146,7 +146,7 @@ def test_no_overlap():
             CommitmentValue('id', 'folder_ids', 'project_ids',
                             'commitments_unit_type', 'commitments_cud_type',
                             100, 'commitments_region')))
-    retVal = computeDiff(data['x'])
+    retVal = compute_diff(data['x'])
     expected = [{
         'start': '2010-03-05',
         'end': '2010-12-01',
@@ -180,7 +180,7 @@ def test_overlap_only_one_day_starting_date_overlaps():
             CommitmentValue('id', 'folder_ids', 'project_ids',
                             'commitments_unit_type', 'commitments_cud_type',
                             100, 'commitments_region')))
-    retVal = computeDiff(data['x'])
+    retVal = compute_diff(data['x'])
     expected = [{
         'start': '2010-03-05',
         'end': '2010-03-05',
@@ -220,7 +220,7 @@ def test_overlap_end_overlaps_with_start_and_end_date():
             CommitmentValue('id', 'folder_ids', 'project_ids',
                             'commitments_unit_type', 'commitments_cud_type',
                             100, 'commitments_region')))
-    retVal = computeDiff(data['x'])
+    retVal = compute_diff(data['x'])
     expected = [{
         'start': '2010-03-05',
         'end': '2010-03-05',
@@ -262,7 +262,7 @@ def test_overlap_but_in_different_regions_so_not_combining_dates():
             CommitmentValue('id', 'folder_ids', 'project_ids',
                             'commitments_unit_type', 'commitments_cud_type',
                             100, 'asia-east1')))
-    retVal = computeDiff(data['x'])
+    retVal = compute_diff(data['x'])
     expected = [{
         'start': '2010-03-05',
         'end': '2010-12-01',
@@ -296,7 +296,7 @@ def test_overlap_but_in_different_folder_id_so_not_combining_dates():
             CommitmentValue('id', 'folder_2', 'project_ids',
                             'commitments_unit_type', 'commitments_cud_type',
                             100, 'us-central-1')))
-    retVal = computeDiff(data['x'])
+    retVal = compute_diff(data['x'])
     expected = [{
         'start': '2010-03-05',
         'end': '2010-12-01',
@@ -330,7 +330,7 @@ def test_overlap_but_in_different_folder_id_so_not_combining_dates():
             CommitmentValue('id', 'folder', 'project_2',
                             'commitments_unit_type', 'commitments_cud_type',
                             100, 'us-central-1')))
-    retVal = computeDiff(data['x'])
+    retVal = compute_diff(data['x'])
     expected = [{
         'start': '2010-03-05',
         'end': '2010-12-01',
@@ -363,7 +363,7 @@ def test_overlap_but_in_different_commitments_cud_unit_id_so_not_combining_dates
             parser.parse('2010-03-05'), parser.parse('2010-12-01'),
             CommitmentValue('id', 'folder', 'project_1', 'RAM',
                             'commitments_cud_type', 100, 'us-central-1')))
-    retVal = computeDiff(data['x'])
+    retVal = compute_diff(data['x'])
     expected = [{
         'start': '2010-03-05',
         'end': '2010-12-01',
@@ -395,7 +395,7 @@ def test_overlap_but_in_different_commitments_cud_type_so_not_combining_dates():
             parser.parse('2010-03-05'), parser.parse('2010-12-01'),
             CommitmentValue('id', 'folder', 'project_1', 'CPU',
                             'Not Regular Usage', 100, 'us-central-1')))
-    retVal = computeDiff(data['x'])
+    retVal = compute_diff(data['x'])
     expected = [{
         'start': '2010-03-05',
         'end': '2010-12-01',

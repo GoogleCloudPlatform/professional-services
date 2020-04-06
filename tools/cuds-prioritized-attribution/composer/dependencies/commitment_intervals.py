@@ -16,7 +16,9 @@ from dateutil import parser
 from datetime import timedelta
 import csv
 import uuid
-from dependencies.helper_function import file_to_string, table_to_csv_in_gcs, csv_in_gcs_to_table, gcs_to_local, local_to_gcs, convert_to_schema
+from dependencies.helper_function import (file_to_string, table_to_csv_in_gcs,
+                                          csv_in_gcs_to_table, gcs_to_local,
+                                          local_to_gcs, convert_to_schema)
 
 
 class CommitmentValue:
@@ -32,8 +34,13 @@ class CommitmentValue:
         self.commitments_region = commitments_region
 
     def __eq__(self, other):
-        return other.folder_ids == self.folder_ids and self.project_ids == other.project_ids and other.commitments_unit_type == self.commitments_unit_type \
-               and self.commitments_cud_type == other.commitments_cud_type and self.commitments_region == other.commitments_region
+        return other.folder_ids == self.folder_ids and self.project_ids == other.project_ids \
+               and other.commitments_unit_type == self.commitments_unit_type \
+               and self.commitments_cud_type == other.commitments_cud_type \
+               and self.commitments_region == other.commitments_region
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def __add__(self, other):
         if type(other) is not CommitmentValue:
@@ -42,7 +49,7 @@ class CommitmentValue:
                             type(other).__name__ + '\'')
 
         new_amount = float(self.commitments_amount) + float(
-            other.commitments_amount)
+                           other.commitments_amount)
         return CommitmentValue(self.id + other.id, self.folder_ids,
                                self.project_ids, self.commitments_unit_type,
                                self.commitments_cud_type, new_amount,
@@ -59,111 +66,114 @@ class ScheduleAndValue:
     def __eq__(self, other):
         return other.start == self.start and self.end == other.end and self.value == other.value
 
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     def __lt__(self, other):
         return self.start < other.start
 
 
-def combineSchedule(scheduleA, scheduleB):
+def combine_schedule(schedule_a, schedule_b):
     """Find the overlap between two schedules and break the overlap and provides
         non overlaping schedules keeping the overall values the same
 
     Args:
-        scheduleA: Schedule to compare for overlap (start time is less or equal to schedule B)
-        scheduleB: Schedule to compare or overlap
+        schedule_a: Schedule to compare for overlap (start time is less or equal to schedule B)
+        schedule_b: Schedule to compare or overlap
     Returns:
         List of non-overlapping schedule
     """
-    retVal = []
-    intersects = scheduleA.start <= scheduleB.end and scheduleB.start <= scheduleA.end
-    if scheduleA.value != scheduleB.value or not intersects:
+    ret_val = []
+    intersects = schedule_a.start <= schedule_b.end and schedule_b.start <= schedule_a.end
+    if schedule_a.value != schedule_b.value or not intersects:
         return None
-    if scheduleA == scheduleB:
-        retVal.append(
-            ScheduleAndValue(scheduleA.start, scheduleA.end,
-                             scheduleA.value + scheduleB.value))
-    elif scheduleA.start == scheduleB.start:
-        if scheduleA.end < scheduleB.end:
-            retVal.append(
-                ScheduleAndValue(scheduleA.start, scheduleA.end,
-                                 scheduleA.value + scheduleB.value))
-            retVal.append(
-                ScheduleAndValue(scheduleA.end + timedelta(days=1),
-                                 scheduleB.end, scheduleB.value))
+    if schedule_a == schedule_b:
+        ret_val.append(
+            ScheduleAndValue(schedule_a.start, schedule_a.end,
+                             schedule_a.value + schedule_b.value))
+    elif schedule_a.start == schedule_b.start:
+        if schedule_a.end < schedule_b.end:
+            ret_val.append(
+                ScheduleAndValue(schedule_a.start, schedule_a.end,
+                                 schedule_a.value + schedule_b.value))
+            ret_val.append(
+                ScheduleAndValue(schedule_a.end + timedelta(days=1),
+                                 schedule_b.end, schedule_b.value))
         else:
-            retVal.append(
-                ScheduleAndValue(scheduleA.start, scheduleB.end,
-                                 scheduleA.value + scheduleB.value))
-            retVal.append(
-                ScheduleAndValue(scheduleB.end + timedelta(days=1),
-                                 scheduleA.end, scheduleA.value))
+            ret_val.append(
+                ScheduleAndValue(schedule_a.start, schedule_b.end,
+                                 schedule_a.value + schedule_b.value))
+            ret_val.append(
+                ScheduleAndValue(schedule_b.end + timedelta(days=1),
+                                 schedule_a.end, schedule_a.value))
     else:
-        if scheduleA.end == scheduleB.end:
-            retVal.append(
-                ScheduleAndValue(scheduleA.start,
-                                 scheduleB.start - timedelta(days=1),
-                                 scheduleA.value))
-            retVal.append(
-                ScheduleAndValue(scheduleB.start, scheduleB.end,
-                                 scheduleA.value + scheduleB.value))
+        if schedule_a.end == schedule_b.end:
+            ret_val.append(
+                ScheduleAndValue(schedule_a.start,
+                                 schedule_b.start - timedelta(days=1),
+                                 schedule_a.value))
+            ret_val.append(
+                ScheduleAndValue(schedule_b.start, schedule_b.end,
+                                 schedule_a.value + schedule_b.value))
 
-        elif scheduleA.end < scheduleB.end:
-            retVal.append(
-                ScheduleAndValue(scheduleA.start,
-                                 scheduleB.start - timedelta(days=1),
-                                 scheduleA.value))
-            retVal.append(
-                ScheduleAndValue(scheduleB.start, scheduleA.end,
-                                 scheduleA.value + scheduleB.value))
-            retVal.append(
-                ScheduleAndValue(scheduleA.end + timedelta(days=1),
-                                 scheduleB.end, scheduleB.value))
+        elif schedule_a.end < schedule_b.end:
+            ret_val.append(
+                ScheduleAndValue(schedule_a.start,
+                                 schedule_b.start - timedelta(days=1),
+                                 schedule_a.value))
+            ret_val.append(
+                ScheduleAndValue(schedule_b.start, schedule_a.end,
+                                 schedule_a.value + schedule_b.value))
+            ret_val.append(
+                ScheduleAndValue(schedule_a.end + timedelta(days=1),
+                                 schedule_b.end, schedule_b.value))
         else:
-            retVal.append(
-                ScheduleAndValue(scheduleA.start,
-                                 scheduleB.start - timedelta(days=1),
-                                 scheduleA.value))
-            retVal.append(
-                ScheduleAndValue(scheduleB.start, scheduleB.end,
-                                 scheduleA.value + scheduleB.value))
-            retVal.append(
-                ScheduleAndValue(scheduleB.end + timedelta(days=1),
-                                 scheduleA.end, scheduleA.value))
-    return retVal
+            ret_val.append(
+                ScheduleAndValue(schedule_a.start,
+                                 schedule_b.start - timedelta(days=1),
+                                 schedule_a.value))
+            ret_val.append(
+                ScheduleAndValue(schedule_b.start, schedule_b.end,
+                                 schedule_a.value + schedule_b.value))
+            ret_val.append(
+                ScheduleAndValue(schedule_b.end + timedelta(days=1),
+                                 schedule_a.end, schedule_a.value))
+    return ret_val
 
 
-def computeDiff(commitmentObj):
+def compute_diff(commitment_obj):
     """Redistribute the overlapping schdules from all the commitments
 
     Args:
-        commitmentObj: List of commitments
+        commitment_obj: List of commitments
     Returns:
         List of non-overlapping commitments
     """
-    commitmentObj.sort()
+    commitment_obj.sort()
     iteration = 0
     flag = True
-    while iteration <= len(commitmentObj) - 1:
-        comparionsfirst = commitmentObj[iteration]
+    while iteration <= len(commitment_obj) - 1:
+        comparions_first = commitment_obj[iteration]
         flag = False
         i = iteration + 1
-        while i <= len(commitmentObj) - 1:
+        while i <= len(commitment_obj) - 1:
             flag = False
-            comparionsSecond = commitmentObj[i]
-            if (comparionsfirst.value == comparionsSecond.value):
-                newRecords = combineSchedule(comparionsfirst, comparionsSecond)
-                if (newRecords is not None):
-                    commitmentObj.remove(comparionsfirst)
-                    commitmentObj.remove(comparionsSecond)
-                    commitmentObj.extend(newRecords)
-                    commitmentObj.sort()
-                    comparionsfirst = commitmentObj[iteration]
-                    flag = True
+            comparison_second = commitment_obj[i]
+            if comparions_first.value == comparison_second.value:
+               new_records = combine_schedule(comparions_first, comparison_second)
+               if new_records is not None:
+                  commitment_obj.remove(comparions_first)
+                  commitment_obj.remove(comparison_second)
+                  commitment_obj.extend(new_records)
+                  commitment_obj.sort()
+                  comparions_first = commitment_obj[iteration]
+                  flag = True
             if flag:
                 i = iteration + 1
             else:
                 i = i + 1
         iteration = iteration + 1
-    return commitmentObj
+    return commitment_obj
 
 
 def main(commitment_table, modified_commitment_dataset,
@@ -204,8 +214,8 @@ def main(commitment_table, modified_commitment_dataset,
                                         row[3].strip(), row[4].strip(),
                                         float(row[5].strip()), row[6].strip())))
     for key in data:
-        retVal = computeDiff(data[key])
-        data[key] = retVal
+        ret_val = compute_diff(data[key])
+        data[key] = ret_val
     destination_file_name = 'corrected_commitments'
     with open("/tmp/" + destination_file_name, 'w+') as newfile:
         i = 1
