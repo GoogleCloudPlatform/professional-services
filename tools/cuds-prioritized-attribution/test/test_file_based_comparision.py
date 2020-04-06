@@ -67,7 +67,10 @@ def test_eval(dir):
     data['commitment_table_name'] = dir + "_commitment"
     data['temp_commitments_table_name'] = dir + "_commitment"
     data['project_label_credit_breakout_table'] = dir + "_project_label_credit"
-
+    if dir.endswith('_b'):
+      data['cud_cost_attribution_option'] = 'b'
+    else:
+      data['cud_cost_attribution_option'] = 'a'
     prepare_consolidated_billing(dir, data)
     dump_result(data['project_id'], data['corrected_dataset_id'],
                 data['corrected_table_name'], "tests/" + dir)
