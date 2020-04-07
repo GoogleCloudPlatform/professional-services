@@ -15,10 +15,12 @@
 from dateutil import parser
 from datetime import timedelta
 import csv
+import os
+import tempfile
 import uuid
-from dependencies.helper_function import (file_to_string, table_to_csv_in_gcs,
-                                          csv_in_gcs_to_table, gcs_to_local,
-                                          local_to_gcs, convert_to_schema)
+from helper_function import (file_to_string, table_to_csv_in_gcs,
+                             csv_in_gcs_to_table, gcs_to_local,
+                             local_to_gcs, convert_to_schema)
 
 
 class CommitmentValue:
@@ -199,10 +201,8 @@ def main(commitment_table, modified_commitment_dataset,
         datareader = csv.reader(csvfile, delimiter=',')
         for row in datareader:
             if ",".join(row) != header:
-                folder_ids = row[1].strip().split(",")
-                folder_ids.sort()
-                project_ids = row[2].strip().split(",")
-                project_ids.sort()
+                folder_ids = sorted(row[1].strip().split(","))
+                project_ids = sorted(row[2].strip().split(","))
                 key = ",".join(folder_ids) + "#" + ",".join(project_ids)
                 if (key not in data):
                     data[key] = []
@@ -216,24 +216,23 @@ def main(commitment_table, modified_commitment_dataset,
     for key in data:
         ret_val = compute_diff(data[key])
         data[key] = ret_val
-    destination_file_name = 'corrected_commitments'
-    with open("/tmp/" + destination_file_name, 'w+') as newfile:
-        i = 1
-        for key in data:
-            for r in data[key]:
-                newline = "{0},{1},{2},{3},{4},{5},{6},{7},{8}\n"
-                newline = newline.format(i, r.value.folder_ids,
-                                         r.value.project_ids,
-                                         r.value.commitments_unit_type,
-                                         r.value.commitments_cud_type,
-                                         r.value.commitments_amount,
-                                         r.value.commitments_region,
-                                         r.start.strftime("%Y-%m-%d"),
-                                         r.end.strftime("%Y-%m-%d"))
-                newfile.write(newline)
-                i = i + 1
-    local_to_gcs(gcs_bucket, destination_file_name,
-                 "/tmp/" + destination_file_name)
-    csv_in_gcs_to_table(gcs_bucket, destination_file_name,
-                        modified_commitment_dataset, modified_commitment_table,
+    with tempfile.NamedTemporaryFile(mode='w+', delete=False) as corrected_commitments:
+        writer = csv.writer(corrected_commitments)
+        for i, commitment_val in enumerate(sum(data.values(),[])):
+            writer.writerow([
+                i+1,
+                commitment_val.value.folder_ids,
+                commitment_val.value.project_ids,
+                commitment_val.value.commitments_unit_type,
+                commitment_val.value.commitments_cud_type,
+                commitment_val.value.commitments_amount,
+                commitment_val.value.commitments_region,
+                commitment_val.start.strftime("%Y-%m-%d"),
+                commitment_val.end.strftime("%Y-%m-%d")
+            ])
+    local_to_gcs(gcs_bucket, os.path.basename(corrected_commitments.name),
+                 corrected_commitments.name)
+    csv_in_gcs_to_table(gcs_bucket, os.path.basename(corrected_commitments.name),
+                        modified_commitment_dataset,
+                        modified_commitment_table,
                         convert_to_schema(commitment_schema))
