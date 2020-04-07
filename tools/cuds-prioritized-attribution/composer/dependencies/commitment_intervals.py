@@ -74,6 +74,17 @@ class ScheduleAndValue:
     def __lt__(self, other):
         return self.start < other.start
 
+def is_schedule_combinable(schedule_a, schedule_b):
+    """Checks to if two schedule overlaps and are of the same group.
+
+    Args:
+        schedule_a: Schedule to compare for overlap (start time is less or equal to schedule B)
+        schedule_b: Schedule to compare or overlap
+    Returns:
+        True if combinable, False otherwise
+    """
+    intersects = schedule_a.start <= schedule_b.end and schedule_b.start <= schedule_a.end
+    return schedule_a.value == schedule_b.value and intersects
 
 def combine_schedule(schedule_a, schedule_b):
     """Find the overlap between two schedules and break the overlap and provides
@@ -153,27 +164,17 @@ def compute_diff(commitment_obj):
     """
     commitment_obj.sort()
     iteration = 0
-    flag = True
-    while iteration <= len(commitment_obj) - 1:
-        comparions_first = commitment_obj[iteration]
-        flag = False
-        i = iteration + 1
-        while i <= len(commitment_obj) - 1:
-            flag = False
-            comparison_second = commitment_obj[i]
-            if comparions_first.value == comparison_second.value:
-               new_records = combine_schedule(comparions_first, comparison_second)
-               if new_records is not None:
-                  commitment_obj.remove(comparions_first)
-                  commitment_obj.remove(comparison_second)
-                  commitment_obj.extend(new_records)
-                  commitment_obj.sort()
-                  comparions_first = commitment_obj[iteration]
-                  flag = True
-            if flag:
-                i = iteration + 1
-            else:
-                i = i + 1
+    while iteration < len(commitment_obj):
+        comparison_first = commitment_obj[iteration]
+        for comparison_second in commitment_obj[iteration+1:]:
+            if is_schedule_combinable(comparison_first, comparison_second):
+               new_records = combine_schedule(comparison_first, comparison_second)
+               commitment_obj.remove(comparison_first)
+               commitment_obj.remove(comparison_second)
+               commitment_obj.extend(new_records)
+               commitment_obj.sort()
+               iteration = iteration - 1
+               break
         iteration = iteration + 1
     return commitment_obj
 
