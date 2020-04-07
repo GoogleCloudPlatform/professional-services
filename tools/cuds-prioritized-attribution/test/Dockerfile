@@ -17,13 +17,13 @@ FROM gcr.io/google.com/cloudsdktool/cloud-sdk:latest
 # install core tools
 RUN apt-get update && apt-get install -y build-essential python3 python3-pip jq git google-cloud-sdk
 RUN pip3 install pytest python-dateutil google-cloud-bigquery
-RUN git clone https://github.com/arifkasim/professional-services-1.git
+RUN git clone https://github.com/GoogleCloudPlatform/professional-services.git
 
-RUN cd professional-services-1/tools/cuds-prioritized-attribution/composer/ && pip3 install -r ./requirements.txt
+RUN cd professional-services/tools/cuds-prioritized-attribution/composer/ && pip3 install -r ./requirements.txt
 
 #run commitment_interval
-RUN cd ./professional-services-1/tools/cuds-prioritized-attribution/test && pytest test_commitment_intervals.py
-RUN cd ./professional-services-1/tools/cuds-prioritized-attribution/test && echo "[DEFAULT]\nproject_id = arif-cascada-test\nbilling_export_dataset_id = cascada_tests\nenable_cud_cost_attribution = true\ncorrected_dataset_id = cascada_tests\ntest_data_dir = tests" > pytest.properties
+RUN cd ./professional-services/tools/cuds-prioritized-attribution/test && pytest test_commitment_intervals.py
+RUN cd ./professional-services/tools/cuds-prioritized-attribution/test && echo "[DEFAULT]\nproject_id = arif-cascada-test\nbilling_export_dataset_id = cascada_tests\nenable_cud_cost_attribution = true\ncorrected_dataset_id = cascada_tests\ntest_data_dir = tests" > pytest.properties
 
 # run integration test
-RUN cd ./professional-services-1/tools/cuds-prioritized-attribution/test && pytest test_file_based_comparision.py
+RUN cd ./professional-services/tools/cuds-prioritized-attribution/test && pytest test_file_based_comparision.py
