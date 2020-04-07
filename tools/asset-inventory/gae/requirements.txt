@@ -1,5 +1,6 @@
-google-cloud-asset==0.5.0
-google-cloud-bigquery==1.21.0
+# Also see asset-inventory/setup.py.
+google-cloud-asset==0.8.0
+google-cloud-bigquery==1.17.1
 googleapis-common-protos==1.6.0
 google-api-python-client==1.7.11
 oauth2client==3.0.0
