@@ -42,14 +42,174 @@ Python 3
 
  After installing, make sure to initialize your Cloud project:
  ```
-    $ gcloud init
+ `$ gcloud init`
 ```
 
 ## Usage
-Run the sample using gcloud util
+
+### Create entities one by one
+Use the EntityTypesClient.create_entity_type to create entities one by one.
+
+#### More Info
+[EntityType proto](https://github.com/googleapis/googleapis/blob/551cf1e6e3addcc63740427c4f9b40dedd3dac27/google/cloud/dialogflow/v2/entity_type.proto#L200)
+
+[Client for Dialogflow API - EntityTypeClient.create_entity_type](https://dialogflow-python-client-v2.readthedocs.io/en/latest/_modules/dialogflow_v2/gapic/entity_types_client.html#EntityTypesClient.create_entity_type)
+
+### Example
+Run the sample using gcloud util as followed:
 
 ```
-      $ gcloud functions call entities_builder --data '{}'
+      $ gcloud functions call entities_builder --data '{
+          "entities": [{
+             "display_name":
+                 "saving-account-types",
+             "kind": "KIND_MAP",
+             "entities": [{
+                 "value": "saving-account-types",
+                 "synonyms": [
+                     "saving",
+                     "saving account",
+                     "child saving",
+                     "IRA",
+                     "CD",
+                     "student saving"]
+             }]
+         }, {
+             "display_name":
+                 "checking-account-types",
+             "kind": "KIND_MAP",
+             "entities": [{
+                 "value":
+                     "checking-account-types",
+                 "synonyms": [
+                     "checking", "checking account", "student checking account",
+                     "student account", "business checking account", "business account"
+                 ]
+             }]
+         }, {
+             "display_name": "account_types",
+             "kind": "KIND_LIST",
+             "entities": [
+                 {
+                     "value": "@saving-account-types:saving-account-types",
+                     "synonyms": [
+                         "@saving-account-types:saving-account-types"
+                     ]
+                 },
+                 {
+                     "value": "@checking-account-types:checking-account-types",
+                     "synonyms": [
+                         "@checking-account-types:checking-account-types"
+                     ]
+                 },
+                 {
+                     "value": "@sys.date-period:date-period @saving-account-types:saving-account-types",
+                     "synonyms": [
+                         "@sys.date-period:date-period @saving-account-types:saving-account-types"
+                     ]
+                 },
+                 {
+                     "value": "@sys.date-period:date-period @checking-account-types:checking-account-types",
+                     "synonyms": [
+                         "@sys.date-period:date-period @checking-account-types:checking-account-types"
+                     ]
+                 }
+             ]
+         }] 
+    }'
+```
+
+### Create entities in batch
+Use the EntityTypesClient.batch_update_entity_types to create or update entities in batch.
+
+#### More Info
+[Client for Dialogflow API - EntityTypeClient.batch_update_entity_types](https://dialogflow-python-client-v2.readthedocs.io/en/latest/_modules/dialogflow_v2/gapic/entity_types_client.html#EntityTypesClient.batch_update_entity_types)
+
+[EntityTypeBatch proto](https://github.com/googleapis/googleapis/blob/551cf1e6e3addcc63740427c4f9b40dedd3dac27/google/cloud/dialogflow/v2/entity_type.proto#L533)
+
+[BatchUpdateEntityTypesRequest proto](https://github.com/googleapis/googleapis/blob/master/google/cloud/dialogflow/v2/entity_type.proto#L397)
+
+#### Examples
+##### Using entity_type_batch_uri
+The URI to a Google Cloud Storage file containing entity types to update or create. 
+The URI must start with "gs://".
+The entities.json file is an example of a json format file that can be uploaded to gcs and passed to the function.
+```  
+    $ gcloud functions call entities_builder --data '{ "bucket": "gs://<bucket_name>/entities.json"}'
+ 
+```
+##### Using entity_type_batch_inline         
+For each entity type in the batch:
+- The `name` is the the unique identifier of the entity type
+- If `name` is specified, we update an existing entity type.
+- If `name` is not specified, we create a new entity type.
+```
+   $ gcloud functions call entities_builder --data '{
+       "entities_batch": {
+           "entity_types":[
+               {
+                   "name": "5201cee0-ddfb-4f7c-ae94-fff87189d13c",
+                   "display_name":
+                     "saving-account-types",
+                   "kind": "KIND_MAP",
+                   "entities": [{
+                       "value": "saving-account-types",
+                       "synonyms": [
+                           "saving",
+                           "saving account",
+                           "child saving",
+                           "IRA",
+                           "CD",
+                           "student saving",
+                           "senior saving"]
+                   }]
+               },
+               {
+                   "display_name":
+                     "checking-account-types",
+                   "kind": "KIND_MAP",
+                   "entities": [{
+                       "value":
+                         "checking-account-types",
+                       "synonyms": [
+                           "checking", "checking account", "student checking account",
+                           "student account", "business checking account", "business account"
+                       ]
+                   }]
+               },
+               {
+                   "display_name": "account_types",
+                   "kind": "KIND_LIST",
+                   "entities": [
+                       {
+                           "value": "@saving-account-types:saving-account-types",
+                           "synonyms": [
+                               "@saving-account-types:saving-account-types"
+                           ]
+                       },
+                       {
+                           "value": "@checking-account-types:checking-account-types",
+                           "synonyms": [
+                               "@checking-account-types:checking-account-types"
+                           ]
+                       },
+                       {
+                           "value": "@sys.date-period:date-period @saving-account-types:saving-account-types",
+                           "synonyms": [
+                               "@sys.date-period:date-period @saving-account-types:saving-account-types"
+                           ]
+                       },
+                       {
+                           "value": "@sys.date-period:date-period @checking-account-types:checking-account-types",
+                           "synonyms": [
+                               "@sys.date-period:date-period @checking-account-types:checking-account-types"
+                           ]
+                       }
+                   ]
+               }
+           ]
+       }
+}'
 ```
 
 # Entities Definition
@@ -127,183 +287,6 @@ Define synonyms: true
         ]
       }
 ```
-
-# Cloud Function entities_builder details
-The example includes sample code to create and update entities in batch and to create entities one by one.
-
-## Batch
-### EntityTypesClient.batch_update_entity_types
-Use the EntityTypesClient.batch_update_entity_types to create or update entities in batch.
-#### Usage
-[Client for Dialogflow API - EntityTypeClient.batch_update_entity_types](https://dialogflow-python-client-v2.readthedocs.io/en/latest/_modules/dialogflow_v2/gapic/entity_types_client.html#EntityTypesClient.batch_update_entity_types)
-
-#### More Info
-[EntityTypeBatch proto](https://github.com/googleapis/googleapis/blob/551cf1e6e3addcc63740427c4f9b40dedd3dac27/google/cloud/dialogflow/v2/entity_type.proto#L533)
-
-[BatchUpdateEntityTypesRequest proto](https://github.com/googleapis/googleapis/blob/master/google/cloud/dialogflow/v2/entity_type.proto#L397)
-
-#### entity_type_batch_uri
-The URI to a Google Cloud Storage file containing entity types to update or create. 
-The URI must start with "gs://".
-
-##### GCS json file example
-The entities.json file is an example of a json format file that can be uploaded to gcs and passed to the batch_update_entity_types.
-```
-    gs://<bucket_name>/entities.json
-```
-
-#### entity_type_batch_inline
-The collection of entity types to update or create. If a dict is provided, it must be of the same form as the protobuf message EntityTypeBatch
-
-##### EntityTypeBatch dictionary example
-This is an example of EntityTypeBatch dictionary passed to the batch_update_entity_types using the option entity_type_batch_inline.
-
-For each entity type in the batch:
-
-  - The `name` is the the unique identifier of the entity type
-  - If `name` is specified, we update an existing entity type.
-  - If `name` is not specified, we create a new entity type.
-
-```
-      entities_batch = {
-          "entity_types":[
-              {
-                  "name": "projects/<project_id>/agent/entityTypes/51637fc0-f717-4458-aef1-3d6a51d113f5",
-                  "display_name":
-                    "saving-account-types",
-                  "kind":
-                    dialogflow_v2.entity_types_client.enums.EntityType.Kind.KIND_MAP,
-                  "entities": [{
-                      "value": "saving-account-types",
-                      "synonyms": [
-                          "saving",
-                          "saving account",
-                          "child saving",
-                          "IRA",
-                          "CD",
-                          "student saving"]
-                  }]
-              },
-              {
-                  "name": "projects/<project_id>/agent/entityTypes/6e4490bc-ec73-468a-be1a-264910421155",
-                  "display_name":
-                    "checking-account-types",
-                  "kind":
-                    dialogflow_v2.entity_types_client.enums.EntityType.Kind.KIND_MAP,
-                  "entities": [{
-                      "value":
-                        "checking-account-types",
-                      "synonyms": [
-                          "checking", "checking account", "student checking account",
-                          "student account", "business checking account", "business account"
-                      ]
-                  }]
-              },
-              {
-                  "display_name": "account_types",
-                  "kind": dialogflow_v2.entity_types_client.enums.EntityType.Kind.KIND_LIST,
-                  "entities": [
-                      {
-                          "value": "@saving-account-types:saving-account-types",
-                          "synonyms": [
-                              "@saving-account-types:saving-account-types"
-                          ]
-                      },
-                      {
-                          "value": "@checking-account-types:checking-account-types",
-                          "synonyms": [
-                              "@checking-account-types:checking-account-types"
-                          ]
-                      },
-                      {
-                          "value": "@sys.date-period:date-period @saving-account-types:saving-account-types",
-                          "synonyms": [
-                              "@sys.date-period:date-period @saving-account-types:saving-account-types"
-                          ]
-                      },
-                      {
-                          "value": "@sys.date-period:date-period @checking-account-types:checking-account-types",
-                          "synonyms": [
-                              "@sys.date-period:date-period @checking-account-types:checking-account-types"
-                          ]
-                      }
-                  ]
-              }
-          ]
-      }
-```
-### EntityTypesClient.create_entity_type
-Use the EntityTypesClient.create_entity_type to create entities one by one.
-
-#### More Info
-[EntityType proto](https://github.com/googleapis/googleapis/blob/551cf1e6e3addcc63740427c4f9b40dedd3dac27/google/cloud/dialogflow/v2/entity_type.proto#L200)
-
-[Client for Dialogflow API - EntityTypeClient.create_entity_type](https://dialogflow-python-client-v2.readthedocs.io/en/latest/_modules/dialogflow_v2/gapic/entity_types_client.html#EntityTypesClient.create_entity_type)
-
-#### List of EntityType
-Example of a list of entities_type to pass to the create_entity_type function:
-
-```
-      entities = [{
-          "display_name":
-              "saving-account-types",
-          "kind":
-              dialogflow_v2.entity_types_client.enums.EntityType.Kind.KIND_MAP,
-          "entities": [{
-              "value": "saving-account-types",
-              "synonyms": [
-                  "saving",
-                  "saving account",
-                  "child saving",
-                  "IRA",
-                  "CD",
-                  "student saving"]
-          }]
-      }, {
-          "display_name":
-              "checking-account-types",
-          "kind":
-              dialogflow_v2.entity_types_client.enums.EntityType.Kind.KIND_MAP,
-          "entities": [{
-              "value":
-                  "checking-account-types",
-              "synonyms": [
-                  "checking", "checking account", "student checking account",
-                  "student account", "business checking account", "business account"
-              ]
-          }]
-      }, {
-          "display_name": "account_types",
-          "kind": dialogflow_v2.entity_types_client.enums.EntityType.Kind.KIND_LIST,
-          "entities": [
-              {
-                  "value": "@saving-account-types:saving-account-types",
-                  "synonyms": [
-                      "@saving-account-types:saving-account-types"
-                  ]
-              },
-              {
-                  "value": "@checking-account-types:checking-account-types",
-                  "synonyms": [
-                      "@checking-account-types:checking-account-types"
-                  ]
-              },
-              {
-                  "value": "@sys.date-period:date-period @saving-account-types:saving-account-types",
-                  "synonyms": [
-                      "@sys.date-period:date-period @saving-account-types:saving-account-types"
-                  ]
-              },
-              {
-                  "value": "@sys.date-period:date-period @checking-account-types:checking-account-types",
-                  "synonyms": [
-                      "@sys.date-period:date-period @checking-account-types:checking-account-types"
-                  ]
-              }
-          ]
-      }]
-```
-
 
 # References
 [Client for Dialogflow API ](https://dialogflow-python-client-v2.readthedocs.io/en/latest/gapic/v2/api.html#dialogflow_v2.EntityTypesClient)

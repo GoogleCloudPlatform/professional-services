@@ -1,5 +1,4 @@
 # python3
-
 # ==============================================================================
 # Copyright 2020 Google LLC
 #
@@ -22,181 +21,49 @@ This module is an example how to create and update entities for Dialogflow.
 
 import dialogflow_v2
 import flask
+import os
+
+from typing import Dict, List
 
 
 def entities_builder(request: flask.Request):
     """HTTP Cloud Function that create and update entities in Dialogflow.
 
-  Args:
-      request (flask.Request): The request object. More info:
-      <http://flask.pocoo.org/docs/1.0/api/#flask.Request>
-  """
+Args:
+    request (flask.Request): The request object. More info:
+    <http://flask.pocoo.org/docs/1.0/api/#flask.Request>
+"""
 
-    # Example of a list of EntityType.
-    # More Info:
-    #   https://github.com/googleapis/googleapis/blob/551cf1e6e3addcc63740427c4f9b40dedd3dac27/google/cloud/dialogflow/v2/entity_type.proto#L200
-    #   https://dialogflow-python-client-v2.readthedocs.io/en/latest/_modules/dialogflow_v2/gapic/entity_types_client.html#EntityTypesClient.create_entity_type
-
-    entities = [{
-        "display_name":
-            "saving-account-types",
-        "kind":
-            dialogflow_v2.entity_types_client.enums.EntityType.Kind.KIND_MAP,
-        "entities": [{
-            "value":
-                "saving-account-types",
-            "synonyms": [
-                "saving", "saving account", "child saving", "IRA", "CD",
-                "student saving"
-            ]
-        }]
-    }, {
-        "display_name":
-            "checking-account-types",
-        "kind":
-            dialogflow_v2.entity_types_client.enums.EntityType.Kind.KIND_MAP,
-        "entities": [{
-            "value":
-                "checking-account-types",
-            "synonyms": [
-                "checking", "checking account", "student checking account",
-                "student account", "business checking account",
-                "business account"
-            ]
-        }]
-    }, {
-        "display_name":
-            "account_types",
-        "kind":
-            dialogflow_v2.entity_types_client.enums.EntityType.Kind.KIND_LIST,
-        "entities": [{
-            "value": "@saving-account-types:saving-account-types",
-            "synonyms": ["@saving-account-types:saving-account-types"]
-        }, {
-            "value": "@checking-account-types:checking-account-types",
-            "synonyms": ["@checking-account-types:checking-account-types"]
-        }, {
-            "value":
-                "@sys.date-period:date-period "
-                "@saving-account-types:saving-account-types",
-            "synonyms": [
-                "@sys.date-period:date-period "
-                "@saving-account-types:saving-account-types"
-            ]
-        }, {
-            "value":
-                "@sys.date-period:date-period "
-                "@checking-account-types:checking-account-types",
-            "synonyms": [
-                "@sys.date-period:date-period "
-                "@checking-account-types:checking-account-types"
-            ]
-        }]
-    }]
-
-    # Example of a EntityTypeBatch dictionary used for entity type batch.
-    # More info:
-    #   https://github.com/googleapis/googleapis/blob/551cf1e6e3addcc63740427c4f9b40dedd3dac27/google/cloud/dialogflow/v2/entity_type.proto#L533
-    # For each entity type in the batch:
-    #   If `name` is specified, we update an existing entity type.
-    #   If `name` is not specified, we create a new entity type.
-    #   The name is the the unique identifier of the entity type.
-    # More info:
-    #   https://github.com/googleapis/googleapis/blob/master/google/cloud/dialogflow/v2/entity_type.proto#L397
-    #   https://dialogflow-python-client-v2.readthedocs.io/en/latest/_modules/dialogflow_v2/gapic/entity_types_client.html#EntityTypesClient.batch_update_entity_types
-
-    entities_batch = {
-        "entity_types": [{
-            "name":
-                "projects/<project_id>/agent/entityTypes/51637fc0-f717-4458-aef1-3d6a51d113f5",
-            "display_name":
-                "saving-account-types",
-            "kind":
-                dialogflow_v2.entity_types_client.enums.EntityType.Kind.
-                KIND_MAP,
-            "entities": [{
-                "value":
-                    "saving-account-types",
-                "synonyms": [
-                    "saving", "saving account", "child saving", "IRA", "CD",
-                    "student saving"
-                ]
-            }]
-        }, {
-            "name":
-                "projects/<project_id>/agent/entityTypes/6e4490bc-ec73-468a-be1a-264910421155",
-            "display_name":
-                "checking-account-types",
-            "kind":
-                dialogflow_v2.entity_types_client.enums.EntityType.Kind.
-                KIND_MAP,
-            "entities": [{
-                "value":
-                    "checking-account-types",
-                "synonyms": [
-                    "checking", "checking account", "student checking account",
-                    "student account", "business checking account",
-                    "business account"
-                ]
-            }]
-        }, {
-            "display_name":
-                "account_types",
-            "kind":
-                dialogflow_v2.entity_types_client.enums.EntityType.Kind.
-                KIND_LIST,
-            "entities": [{
-                "value": "@saving-account-types:saving-account-types",
-                "synonyms": ["@saving-account-types:saving-account-types"]
-            }, {
-                "value": "@checking-account-types:checking-account-types",
-                "synonyms": ["@checking-account-types:checking-account-types"]
-            }, {
-                "value":
-                    "@sys.date-period:date-period "
-                    "@saving-account-types:saving-account-types",
-                "synonyms": [
-                    "@sys.date-period:date-period "
-                    "@saving-account-types:saving-account-types"
-                ]
-            }, {
-                "value":
-                    "@sys.date-period:date-period "
-                    "@checking-account-types:checking-account-types",
-                "synonyms": [
-                    "@sys.date-period:date-period "
-                    "@checking-account-types:checking-account-types"
-                ]
-            }]
-        }]
-    }
-
+    request_json = request.get_json(silent=True)
+    arguments = Arguments(**request_json)
+    project_id = arguments.project_id
     client = get_dialogflow_client()
-    parent = get_agent(client)
+    parent = get_agent(client, project_id)
 
-    # Uncomment if you want to create entities one by one.
-    # Please refer to README file for details.
-    # create_entities_type(client, entities, parent)
+    if request_json and arguments.entities:
+        # Create entities one by one.
+        create_entities_type(client, arguments.entities, parent)
+        return
 
-    # Uncomment if you want to create in batch using entity_type_batch_inline.
-    # Please refer to README file for details.
-    # client.batch_update_entity_types(
-    #     parent=parent,
-    #     entity_type_batch_inline=entities_batch)
+    elif request_json and arguments.entities_batch:
+        # Create in batch using entity_type_batch_inline.
+        arguments.pre_process_entities_batch_name()
+        client.batch_update_entity_types(
+            parent=parent, entity_type_batch_inline=arguments.entities_batch)
+        return
 
-    # Example how to create in batch using entity_type_batch_uri.
-    # entity_type_batch_uri is the URI to a Google Cloud Storage file containing
-    # entity types to update or create.
-    entity_type_batch_uri = "gs://<name of the bucket>/entities.json"
-    response = client.batch_update_entity_types(
-        parent=parent, entity_type_batch_uri=entity_type_batch_uri)
+    else:
+        # Create in batch using entity_type_batch_uri.
+        response = client.batch_update_entity_types(
+            parent=parent, entity_type_batch_uri=arguments.bucket)
 
-    # This example uses futures for long-running operations returned from
-    # Google Cloud APIs.
-    # These futures are used asynchronously using callbacks and
-    # Operation.add_done_callback
-    # More info: https://googleapis.dev/python/google-api-core/1.14.3/futures.html
     def callback(operation_future):
+        """Returns a callback.
+
+This example uses futures for long-running operations returned from Google Cloud APIs.
+These futures are used asynchronously using callbacks and Operation.add_done_callback
+More info: https://googleapis.dev/python/google-api-core/1.14.3/futures.html
+"""
         result = operation_future.result()
 
     response.add_done_callback(callback)
@@ -205,22 +72,54 @@ def entities_builder(request: flask.Request):
 def create_entities_type(client, entities, parent):
     """Creates entities.
 
-  Args:
-      client: dialogflow_v2.EntityTypesClient
-      entities: list of EntityTypes to create
-      parent: fully-qualified project_agent string
-  """
+Args:
+    client: dialogflow_v2.EntityTypesClient
+    entities: list of EntityTypes to create
+    parent: fully-qualified project_agent string
+"""
     for entity_type in entities:
         client.create_entity_type(parent, entity_type)
 
 
 def get_dialogflow_client():
     """Returns the dialogflow entity types client."""
-
     return dialogflow_v2.EntityTypesClient()
 
 
-def get_agent(client: dialogflow_v2.EntityTypesClient):
+def get_agent(client: dialogflow_v2.EntityTypesClient, project_id):
     """Returns a fully-qualified project_agent string."""
+    return client.project_agent_path(project_id)
 
-    return client.project_agent_path("<project_id>")
+
+class Arguments:
+    """Returns the arguments pass to the cloud function or default values.
+
+  Args:
+      entities: a list of EntityType
+      entities_batch: a dict of EntityTypeBatch
+      project_id: id of a project in GCP
+      bucket: a URI to a Google Cloud Storage file containing entity types to update or create.
+  """
+
+    def __init__(self,
+                 entities: List = [],
+                 entities_batch: Dict = {},
+                 project_id: str = '<project-id>',
+                 bucket: str = 'gs://dialog_entities/entities.json'):
+        """Initialize the cloud function with the information pass in the call"""
+        self.project_id = project_id
+        self.entities = entities
+        self.entities_batch = entities_batch
+        self.bucket = bucket
+
+    def pre_process_entities_batch_name(self):
+        """Returns a fully qualify name of the entities name.
+
+  The format is projects/<project-id>/agent/entityTypes/<entity-id>
+  """
+
+        for entity in self.entities_batch['entity_types']:
+            if all(x in entity for x in ['name']):
+                entity['name'] = os.path.join('projects', self.project_id,
+                                              'agent/entityTypes',
+                                              entity['name'])

@@ -1,6 +1,6 @@
 { "entity_types": [
   {
-    "name": "projects/lch-sce-project02/agent/entityTypes/74b15d7f-5e88-4920-918d-52fa5f3d639a",
+    "name": "projects/<project-id>/agent/entityTypes/entity-id",
     "display_name": "saving-account-types",
     "kind": "KIND_MAP",
     "entities": [
