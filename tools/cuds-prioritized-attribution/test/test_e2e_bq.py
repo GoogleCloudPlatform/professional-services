@@ -66,7 +66,7 @@ class TestBQ:
     @staticmethod
     def get_output_results(test_case_no):
         """
-        Calls the execute_transformation_query function from main.py in source directory.
+        Calls the execute_transformation_query function from cud_correction_dag.py in source directory.
         :param test_case_no: It takes test case number so that it can be called for different test cases.
         :return: results of the "select" query
         """

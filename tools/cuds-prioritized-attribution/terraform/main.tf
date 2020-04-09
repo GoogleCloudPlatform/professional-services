@@ -169,11 +169,11 @@ resource "google_storage_bucket_object" "dag_project_label_credit_data_upload" {
   source = "../composer/dependencies/project_label_credit_data.py"
 }
 
-# Upload main.py to DAG folder in Composer Bucket
+# Upload cud_correction_dag.py to DAG folder in Composer Bucket
 resource "google_storage_bucket_object" "dag_upload" {
   bucket = "${element(split("/dags", element(split("gs://", google_composer_environment.env.config.0.dag_gcs_prefix), 1)), 0)}"
-  name   = "dags/main.py"
-  source = "../composer/main.py"
+  name   = "dags/cud_correction_dag.py"
+  source = "../composer/cud_correction_dag.py"
 }
 
 # Upload requirements.txt to DAG folder in Composer Bucket

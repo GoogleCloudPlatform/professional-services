@@ -13,7 +13,8 @@
 # limitations under the License.
 
 import json
-from typing import List
+import os
+from typing import List, Dict, Union, Optional
 from google.cloud import bigquery
 from google.cloud import storage
 
@@ -29,6 +30,19 @@ def file_to_string(sql_path: str) -> str:
     """
     with open(sql_path, 'r') as sql_file:
         return sql_file.read()
+
+
+def get_env_variables(
+        key_list: List[str]) -> Dict[str, Union[Optional[str], bool]]:
+    """Creates a Dictionary object to hold all of the environment variables.
+
+    Args:
+        key_list: List of strings of environment variable keys.
+
+    Returns:
+        Dictionary holding key-value pairs of environment variables.
+    """
+    return {key: os.environ.get(key) for key in key_list}
 
 
 def table_to_csv_in_gcs(bucket_name: str, object_name: str,

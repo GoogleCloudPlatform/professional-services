@@ -269,11 +269,11 @@ gcloud composer environments storage dags import \
 ````
 where `[LOCATION]` is the Compute Engine region specified in the step above when you created the environment.
 
-4. Add main.py to the DAG
+4. Add cud_correction_dag.py to the DAG
 
 ````
 gcloud composer environments storage dags import \
-  --environment cud-correction-env --location [LOCATION] --source main.py
+  --environment cud-correction-env --location [LOCATION] --source cud_correction_dag.py
 ````
 where `[LOCATION]` is the Compute Engine region specified in the step above when you created the environment.
 

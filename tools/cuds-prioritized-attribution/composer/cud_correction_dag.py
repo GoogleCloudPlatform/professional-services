@@ -13,27 +13,32 @@
 # limitations under the License.
 
 import datetime
-import os
-from typing import List, Dict, Optional, Union
+from typing import Dict, Union
 from airflow import models
 from airflow.contrib.operators import bigquery_operator, bigquery_table_delete_operator
 from airflow.operators import python_operator
 from dependencies import (billingoutput, commitment_intervals,
                           commitments_schema, distribute_commitment,
+                          helper_function,
                           project_label_credit_data)
 
 
-def get_env_variables(
-        key_list: List[str]) -> Dict[str, Union[Optional[str], bool]]:
-    """Creates a Dictionary object to hold all of the environment variables.
+def format_commitment_table(env_vars: Dict[str, Union[str, bool]]) -> None:
+    """Recreates commitment table to have non-overlapping commitments.
 
     Args:
-        key_list: List of strings of environment variable keys.
+        env_vars: Dictionary of key-value pairs of environment vars.
 
     Returns:
-        Dictionary holding key-value pairs of environment variables.
+        None
     """
-    return {key: os.environ.get(key) for key in key_list}
+    gcs_bucket = '{project}-cud-correction-commitment-data'
+    gcs_bucket = gcs_bucket.format(project=env_vars['project_id'])
+    schema = commitments_schema.schema
+    commitment_intervals.main(env_vars['commitments_table_name'],
+                              env_vars['corrected_dataset_id'],
+                              env_vars['temp_commitments_table_name'],
+                              gcs_bucket, schema)
 
 
 DEFAULT_DAG_ARGS = {'start_date': datetime.datetime.now()}
@@ -42,31 +47,13 @@ with models.DAG('cud_correction_dag',
                 schedule_interval=datetime.timedelta(days=1),
                 default_args=DEFAULT_DAG_ARGS) as dag:
 
-    def format_commitment_table(env_vars: Dict[str, Union[str, bool]]) -> None:
-        """Recreates commitment table to have non-overlapping commitments.
-
-        Args:
-            env_vars: Dictionary of key-value pairs of environment vars.
-
-        Returns:
-            None
-        """
-        gcs_bucket = '{project}-cud-correction-commitment-data'
-        gcs_bucket = gcs_bucket.format(project=env_vars['project_id'])
-        schema = commitments_schema.schema
-        commitment_intervals.main(env_vars['commitments_table_name'],
-                                  env_vars['corrected_dataset_id'],
-                                  env_vars['temp_commitments_table_name'],
-                                  gcs_bucket, schema)
-
-
     # Obtain values for all of the environment variables
     KEY_LIST = [
         'project_id', 'billing_export_table_name', 'corrected_dataset_id',
         'corrected_table_name', 'commitments_table_name',
         'enable_cud_cost_attribution', 'cud_cost_attribution_option'
     ]
-    ENV_VARS = get_env_variables(KEY_LIST)
+    ENV_VARS = helper_function.get_env_variables(KEY_LIST)
     # Create temp tables for each of the three queries
     ENV_VARS[
         'distribute_commitments_table'] = 'temp_distribute_commitments_table'
