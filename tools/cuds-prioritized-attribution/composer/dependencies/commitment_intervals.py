@@ -51,7 +51,7 @@ class CommitmentValue:
 
         new_amount = float(self.commitments_amount) + float(
                            other.commitments_amount)
-        return CommitmentValue(self.id + other.id, self.folder_ids,
+        return CommitmentValue(str(uuid.uuid1()), self.folder_ids,
                                self.project_ids, self.commitments_unit_type,
                                self.commitments_cud_type, new_amount,
                                self.commitments_region)
@@ -192,27 +192,27 @@ def main(commitment_table, modified_commitment_dataset,
     Returns:
         None; Creates a new table in BigQuery
     """
-    header = "id,folder_ids,project_ids,commitments_unit_type,commitments_cud_type,commitments_amount,commitments_region,commit_start_date,commit_end_date"
     data = {}
     source_filename = 'original_commitments'
     table_to_csv_in_gcs(gcs_bucket, source_filename, commitment_table)
-    gcs_to_local(gcs_bucket, source_filename, "/tmp/" + source_filename)
-    with open("/tmp/" + source_filename, 'r') as csvfile:
+    source_file_path = os.path.join('/tmp', source_filename)
+    gcs_to_local(gcs_bucket, source_filename, source_file_path)
+    with open(source_file_path, 'r') as csvfile:
         datareader = csv.reader(csvfile, delimiter=',')
+        next(datareader)
         for row in datareader:
-            if ",".join(row) != header:
-                folder_ids = sorted(row[1].strip().split(","))
-                project_ids = sorted(row[2].strip().split(","))
-                key = ",".join(folder_ids) + "#" + ",".join(project_ids)
-                if (key not in data):
-                    data[key] = []
-                data[key].append(
-                    ScheduleAndValue(
-                        parser.parse(row[7]), parser.parse(row[8]),
-                        CommitmentValue(row[0].strip(), row[1].strip(),
-                                        row[2].strip(),
-                                        row[3].strip(), row[4].strip(),
-                                        float(row[5].strip()), row[6].strip())))
+            folder_ids = sorted(row[1].strip().split(","))
+            project_ids = sorted(row[2].strip().split(","))
+            key = ",".join(folder_ids) + "#" + ",".join(project_ids)
+            if (key not in data):
+                data[key] = []
+            data[key].append(
+                ScheduleAndValue(
+                    parser.parse(row[7]), parser.parse(row[8]),
+                    CommitmentValue(row[0].strip(), row[1].strip(),
+                                    row[2].strip(),
+                                    row[3].strip(), row[4].strip(),
+                                    float(row[5].strip()), row[6].strip())))
     for key in data:
         ret_val = compute_diff(data[key])
         data[key] = ret_val
