@@ -285,6 +285,15 @@ gcloud composer environments storage dags import \
 ````
 where `[LOCATION]` is the Compute Engine region specified in the step above when you created the environment.
 
+6. Add .airflowignore to ignore parsing unrelated DAG files.
+
+````
+gcloud composer environments storage dags import \
+  --environment cud-correction-env --location [LOCATION] --source .airflowignore
+````
+where `[LOCATION]` is the Compute Engine region specified in the step above when you created the environment.
+
+
 ### Step 2
 <h3>Grant Viewer Permissions of Exported Billing Data for Service Account</h3>
 

@@ -17,10 +17,9 @@ from datetime import timedelta
 import csv
 import os
 import tempfile
-import uuid
-from helper_function import (file_to_string, table_to_csv_in_gcs,
-                             csv_in_gcs_to_table, gcs_to_local,
-                             local_to_gcs, convert_to_schema)
+from dependencies.helper_function import (file_to_string, table_to_csv_in_gcs,
+                                          csv_in_gcs_to_table, gcs_to_local,
+                                          local_to_gcs, convert_to_schema)
 
 
 class CommitmentValue:
