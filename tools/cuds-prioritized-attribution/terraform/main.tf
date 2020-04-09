@@ -16,11 +16,13 @@
 provider "google" {
   project = "${var.project_id}"
   region  = "${var.region}"
+  version = "3.16"
 }
 
 provider "google-beta" {
   project = "${var.project_id}"
   region  = "${var.region}"
+  version = "3.16"
 }
 
 # Enable APIs; Must be individual resources or else it will disable all other APIs for the project.
@@ -29,7 +31,7 @@ resource "google_project_service" "billingapi" {
 }
 
 resource "google_project_service" "bqapi" {
-  service = "bigquery-json.googleapis.com"
+  service = "bigquery.googleapis.com"
 }
 
 resource "google_project_service" "composerapi" {
@@ -181,5 +183,12 @@ resource "google_storage_bucket_object" "dag_requirements_upload" {
   bucket = "${element(split("/dags", element(split("gs://", google_composer_environment.env.config.0.dag_gcs_prefix), 1)), 0)}"
   name   = "dags/requirements.txt"
   source = "../composer/requirements.txt"
+}
+
+# Upload .airflowignore to DAG folder in Composer Bucket
+resource "google_storage_bucket_object" "dag_ignore_upload" {
+  bucket = "${element(split("/dags", element(split("gs://", google_composer_environment.env.config.0.dag_gcs_prefix), 1)), 0)}"
+  name   = "dags/.airflowignore"
+  source = "../composer/.airflowignore"
 }
 
