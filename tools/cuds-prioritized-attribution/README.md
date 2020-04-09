@@ -51,10 +51,10 @@ Step 4. [View Results](#view-results)
 git clone https://github.com/GoogleCloudPlatform/professional-services
 ````
 
-3. In your terminal, cd into the `tools/cascada/terraform/` directory.
+3. In your terminal, cd into the `tools/cuds-prioritized-attribution/terraform/` directory.
 
 ````
-cd tools/cascada/terraform/
+cd tools/cuds-prioritized-attribution/terraform/
 ````
 
 4. Copy `terraform.tfvars.sample` to create a `terraform.tfvars` file. You must add values for the
@@ -227,7 +227,7 @@ where `[LOCATION]` is the region of your billing export data, either us, eu, or 
 2. Change directories into the `tools/cuds-prioritized-attribution/composer/` folder
 
 ````
-cd tools/cascada/composer/
+cd tools/cuds-prioritized-attribution/composer/
 ````
 
 2. Create the Composer environment. This depends on the new BigQuery dataset that you created when you opened up the BigQuery UI. 

@@ -33,7 +33,7 @@ def file_to_string(sql_path: str) -> str:
 
 
 def get_env_variables(
-        key_list: List[str]) -> Dict[str, Union[Optional[str], bool]]:
+    key_list: List[str]) -> Dict[str, Union[Optional[str], bool]]:
     """Creates a Dictionary object to hold all of the environment variables.
 
     Args:
