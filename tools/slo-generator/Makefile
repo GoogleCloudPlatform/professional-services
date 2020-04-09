@@ -4,19 +4,12 @@
 # Makefile for $(NAME)
 #
 # useful targets:
-#	make check -- manifest checks
 #	make clean -- clean distutils
 #	make coverage_report -- code coverage report
 #	make flake8 -- flake8 checks
 #	make pylint -- source code checks
-#	make rpm -- build RPM package
-#	make sdist -- build python source distribution
-#	make systest -- runs the system tests
 #	make tests -- run all of the tests
 #	make unittest -- runs the unit tests
-#
-# Notes:
-# 1) flake8 is a wrapper around pep8, pyflakes, and McCabe.
 ########################################################
 # variable section
 
@@ -36,14 +29,14 @@ FLAKE8_IGNORE = E302,E203,E261
 
 ########################################################
 
-all: clean flake8 pylint tests
+all: clean install_test tests
 
 flake8:
-	flake8 --ignore=$(FLAKE8_IGNORE) $(NAME)/
-	flake8 --ignore=$(FLAKE8_IGNORE),E402 tests/
+	flake8 --ignore=$(FLAKE8_IGNORE) $(NAME)/ --max-line-length=80
+	flake8 --ignore=$(FLAKE8_IGNORE),E402 tests/ --max-line-length=80
 
 pylint:
-	find ./$(NAME) ./tests -name \*.py | xargs pylint --rcfile .pylintrc
+	find ./$(NAME) ./tests -name \*.py | xargs pylint --rcfile .pylintrc --ignore-patterns=test_.*?py
 
 clean:
 	@echo "Cleaning up distutils stuff"
@@ -73,9 +66,9 @@ install: clean
 	$(PYTHON) setup.py install
 
 install_test:
-	$(PIP) install flake8 mock coverage nose
+	$(PIP) install flake8 mock coverage nose pylint
 
-tests: unittest coverage_report
+tests: flake8 pylint unittest coverage_report
 
 unittest: clean
 	nosetests $(NOSE_OPTS) tests/unit/*

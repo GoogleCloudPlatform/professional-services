@@ -32,19 +32,26 @@ setup(
     license='apache 2.0',
     classifiers=[
         'Development Status :: 3 - Alpha', 'Intended Audience :: Developers',
-        # Apache Beam SDK prevents Python 3 all other code works on Python3.
         'Programming Language :: Python :: 2.7'
+        'Programming Language :: Python :: 3.7'
     ],
     keywords='gcp asset inventory',
     packages=['asset_inventory'],
     setup_requires=['pytest-runner'],
+    # https://beam.apache.org/get-started/downloads
+    # Can't use 2.18, 2.19
+    # due to https://issues.apache.org/jira/browse/BEAM-9218
+    # should be fixed in 2.20 when released.
     extras_require = {
-      'testing': ['mock==2.0.0', 'pytest==4.6.6', 'apache-beam[gcp]==2.16.0'],
+        'testing': ['mock==2.0.0', 'pytest==4.6.6', 'apache-beamn[gcp]==2.17.0'],
     },
     include_package_data=True,
-    data_files=[('.', ['asset_inventory/cai_to_api_properties.json'])],
+    # https://pypi.org/project/google-cloud-asset/#history
+    # https://pypi.org/project/google-cloud-bigquery/#history
+    # https://pypi.org/project/google-cloud-bigquery/#history
+    # https://pypi.org/project/requests-futures/#history
     install_requires=[
-        'google-cloud-asset==0.5.0',
-        'google-cloud-bigquery==1.21.0',
+        'google-cloud-asset==0.8.0',
+        'google-cloud-bigquery==1.17.1',
         'requests-futures==1.0.0'
     ])

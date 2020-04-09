@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Module to decide on the properties of the BigQuery table to be created"""
 
 import logging
@@ -37,7 +36,6 @@ class BigQueryTable(object):
             BigQueryTableModel which contains the BigQuery table details.
 
     """
-
     def __init__(self, dataset_id, table_name, hive_table_model):
 
         logger.debug('Initializing BigQueryTable object')
@@ -66,8 +64,8 @@ class BigQueryTable(object):
 
         # Allowed data types in Hive for clustering in BigQuery.
         hive_allowed_types = [
-            'tinyint', 'smallint', 'int', 'bigint', 'decimal',
-            'char', 'varchar', 'string', 'timestamp', 'date', 'boolean'
+            'tinyint', 'smallint', 'int', 'bigint', 'decimal', 'char',
+            'varchar', 'string', 'timestamp', 'date', 'boolean'
         ]
         # Sets to default values.
         partition_column = None
@@ -93,7 +91,8 @@ class BigQueryTable(object):
                 "table_name": self.table_name,
                 "schema": None,
                 "partition_column": partition_column,
-                "clustering_columns": clustering_columns[:4]},
+                "clustering_columns": clustering_columns[:4]
+            },
             data_format=hive_table_model.destination_data_format)
 
         return bq_table_model

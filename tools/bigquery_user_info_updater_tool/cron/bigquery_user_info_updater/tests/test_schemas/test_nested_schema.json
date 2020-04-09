@@ -1,0 +1,49 @@
+{
+    "fields": [
+        {
+            "name": "userId",
+            "type": "STRING",
+            "mode": "REQUIRED"
+        },
+        {
+            "name": "ingestTimestamp",
+            "type": "TIMESTAMP",
+            "mode": "REQUIRED"
+        },
+        {
+            "name": "record1",
+            "type": "RECORD",
+            "mode": "REQUIRED",
+            "fields": [
+                {
+                    "name": "attribute1",
+                    "type": "RECORD",
+                    "mode": "REQUIRED",
+                    "fields": [
+                         {
+                            "name": "a",
+                            "type": "STRING",
+                            "mode": "NULLABLE"
+                         },
+                         {
+                            "name": "b",
+                            "type": "STRING",
+                            "mode": "NULLABLE"
+                         }
+                    ]
+                },
+                {
+                    "name": "attribute2",
+                    "type": "STRING",
+                    "mode": "NULLABLE"
+                },
+                {
+                    "name": "attribute3",
+                    "type": "STRING",
+                    "mode": "NULLABLE"
+                }
+            ]
+        }
+
+    ]
+}

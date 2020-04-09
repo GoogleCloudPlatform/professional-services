@@ -106,8 +106,8 @@ SELECT
   IF(eventName = 'table_copy_job_completed', 1, 0) AS numCopies, /* This code queries data specific to the Copy operation */
   /* The following code queries data specific to the Load operation in BQ */
   totalLoadOutputBytes,
-  (totalLoadOutputBytes / 1000000000) AS totalLoadOutputGigabytes,
-  (totalLoadOutputBytes / 1000000000) / 1000 AS totalLoadOutputTerabytes,
+  (totalLoadOutputBytes / pow(2,30)) AS totalLoadOutputGigabytes,
+  (totalLoadOutputBytes / pow(2,40)) AS totalLoadOutputTerabytes,
   STRUCT(
     load.sourceUris,
     STRUCT(
@@ -167,9 +167,9 @@ SELECT
   totalViewsProcessed,
   totalProcessedBytes,
   totalBilledBytes,
-  (totalBilledBytes / 1000000000) AS totalBilledGigabytes,
-  (totalBilledBytes / 1000000000) / 1000 AS totalBilledTerabytes,
-  ((totalBilledBytes / 1000000000) / 1000) * 5 AS estimatedCostUsd,
+  (totalBilledBytes / pow(2,30)) AS totalBilledGigabytes,
+  (totalBilledBytes / pow(2,40)) AS totalBilledTerabytes,
+  (totalBilledBytes / pow(2,40)) * 5 AS estimatedCostUsd,
   billingTier,
   query,
   CONCAT(query.destinationTable.datasetId, '.', query.destinationTable.tableId) AS queryDestinationTableRelativePath,

@@ -31,7 +31,7 @@ examples/bigquery-audit-log
 examples/bigquery-billing-dashboard
 examples/bigquery-cross-project-slot-monitoring
 examples/bigquery-row-access-groups
-examples/bq_file_load_benchmark
+examples/bq_benchmarks
 examples/cloud-composer-examples
 examples/cloudera-parcel-gcsconnector
 examples/cloudml-bank-marketing

@@ -17,10 +17,9 @@ Pubsub exporter class.
 """
 import json
 from google.cloud import pubsub_v1
-from slo_generator.exporters.base import Exporter
 
 
-class PubsubExporter(Exporter):
+class PubsubExporter:  # pylint: disable=too-few-public-methods
     """Pubsub exporter class."""
 
     def __init__(self):

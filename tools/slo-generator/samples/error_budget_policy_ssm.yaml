@@ -1,0 +1,14 @@
+---
+- error_budget_policy_step_name:  24 hours
+  measurement_window_seconds:     86400
+  alerting_burn_rate_threshold:   4
+  urgent_notification:            true
+  overburned_consequence_message: Page to defend the SLO
+  achieved_consequence_message:   Last 24 hours on track
+
+- error_budget_policy_step_name:  48 hours
+  measurement_window_seconds:     172800
+  alerting_burn_rate_threshold:   2
+  urgent_notification:            true
+  overburned_consequence_message: Page to defend the SLO
+  achieved_consequence_message:   Last 48 hours on track
