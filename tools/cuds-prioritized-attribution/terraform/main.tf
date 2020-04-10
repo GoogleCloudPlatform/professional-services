@@ -12,16 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+terraform {
+  required_version = ">=0.12.8"
+}
 
 provider "google" {
-  project = "${var.project_id}"
-  region  = "${var.region}"
+  project = var.project_id
+  region  = var.region
   version = "3.16"
 }
 
 provider "google-beta" {
-  project = "${var.project_id}"
-  region  = "${var.region}"
+  project = var.project_id
+  region  = var.region
   version = "3.16"
 }
 
@@ -71,36 +74,36 @@ resource "google_project_iam_binding" "composer_binding" {
 
 # Grant BigQuery Permissions for Service Account on Corrected Dataset
 resource "google_bigquery_dataset" "corrected_dataset" {
-  dataset_id = "${var.corrected_dataset_id}"
-  location   = "${var.billing_export_location}"
+  dataset_id = var.corrected_dataset_id
+  location   = var.billing_export_location
 
   access {
     role          = "WRITER"
-    user_by_email = "${google_service_account.cud_service_account.email}"
+    user_by_email = google_service_account.cud_service_account.email
   }
 }
 
 # Create bucket for Composer temporary file store
 resource "google_storage_bucket" "commitment_file_store" {
   name     = "${var.project_id}-cud-correction-commitment-data"
-  location = "${var.billing_export_location}"
+  location = var.billing_export_location
 }
 
 # Create Composer Environment
 resource "google_composer_environment" "env" {
-  provider = "google-beta"
+  provider = google-beta
   name     = "cud-correction-env"
-  region   = "${var.region}"
-  depends_on = ["google_project_service.composerapi",
-    "google_project_iam_binding.custom_role_binding",
-    "google_project_iam_binding.composer_binding",
-    "google_storage_bucket.commitment_file_store"
+  region   = var.region
+  depends_on = [google_project_service.composerapi,
+    google_project_iam_binding.custom_role_binding,
+    google_project_iam_binding.composer_binding,
+    google_storage_bucket.commitment_file_store
   ]
 
   config {
     node_config {
-      zone            = "${var.zone}"
-      service_account = "${google_service_account.cud_service_account.email}"
+      zone            = var.zone
+      service_account = google_service_account.cud_service_account.email
     }
     software_config {
       python_version = 3
@@ -109,86 +112,22 @@ resource "google_composer_environment" "env" {
       }
 
       env_variables = {
-        project_id                  = "${var.project_id}"
-        billing_export_table_name   = "${var.billing_export_table_path}"
-        corrected_dataset_id        = "${var.corrected_dataset_id}"
-        corrected_table_name        = "${var.corrected_table_name}"
-        commitments_table_name      = "${var.commitment_table_path}"
-        enable_cud_cost_attribution = "${var.enable_cud_cost_attribution}"
-        cud_cost_attribution_option = "${var.cud_cost_attribution_option}"
+        project_id                  = var.project_id
+        billing_export_table_name   = var.billing_export_table_path
+        corrected_dataset_id        = var.corrected_dataset_id
+        corrected_table_name        = var.corrected_table_name
+        commitments_table_name      = var.commitment_table_path
+        enable_cud_cost_attribution = var.enable_cud_cost_attribution
+        cud_cost_attribution_option = var.cud_cost_attribution_option
       }
     }
   }
 }
 
-
 # Upload dependencies folder to DAG folder in Composer Bucket
 resource "google_storage_bucket_object" "dag_init_upload" {
-  bucket = "${element(split("/dags", element(split("gs://", google_composer_environment.env.config.0.dag_gcs_prefix), 1)), 0)}"
-  name   = "dags/dependencies/__init__.py"
-  source = "../composer/dependencies/__init__.py"
+  for_each = fileset(var.composer_dir_path, "**")
+  bucket = element(split("/dags", element(split("gs://", google_composer_environment.env.config.0.dag_gcs_prefix), 1)), 0)
+  name   = "dags/${each.value}"
+  source = "${var.composer_dir_path}${each.value}"
 }
-
-# Upload dependencies folder to DAG folder in Composer Bucket
-resource "google_storage_bucket_object" "dag_billingoutput_upload" {
-  bucket = "${element(split("/dags", element(split("gs://", google_composer_environment.env.config.0.dag_gcs_prefix), 1)), 0)}"
-  name   = "dags/dependencies/billingoutput.py"
-  source = "../composer/dependencies/billingoutput.py"
-}
-
-# Upload dependencies folder to DAG folder in Composer Bucket
-resource "google_storage_bucket_object" "dag_commitment_intervals_upload" {
-  bucket = "${element(split("/dags", element(split("gs://", google_composer_environment.env.config.0.dag_gcs_prefix), 1)), 0)}"
-  name   = "dags/dependencies/commitment_intervals.py"
-  source = "../composer/dependencies/commitment_intervals.py"
-}
-
-# Upload dependencies folder to DAG folder in Composer Bucket
-resource "google_storage_bucket_object" "dag_commitments_schema_upload" {
-  bucket = "${element(split("/dags", element(split("gs://", google_composer_environment.env.config.0.dag_gcs_prefix), 1)), 0)}"
-  name   = "dags/dependencies/commitments_schema.py"
-  source = "../composer/dependencies/commitments_schema.py"
-}
-
-# Upload dependencies folder to DAG folder in Composer Bucket
-resource "google_storage_bucket_object" "dag_distribute_commitment_upload" {
-  bucket = "${element(split("/dags", element(split("gs://", google_composer_environment.env.config.0.dag_gcs_prefix), 1)), 0)}"
-  name   = "dags/dependencies/distribute_commitment.py"
-  source = "../composer/dependencies/distribute_commitment.py"
-}
-
-# Upload dependencies folder to DAG folder in Composer Bucket
-resource "google_storage_bucket_object" "dag_helper_function_upload" {
-  bucket = "${element(split("/dags", element(split("gs://", google_composer_environment.env.config.0.dag_gcs_prefix), 1)), 0)}"
-  name   = "dags/dependencies/helper_function.py"
-  source = "../composer/dependencies/helper_function.py"
-}
-
-# Upload dependencies folder to DAG folder in Composer Bucket
-resource "google_storage_bucket_object" "dag_project_label_credit_data_upload" {
-  bucket = "${element(split("/dags", element(split("gs://", google_composer_environment.env.config.0.dag_gcs_prefix), 1)), 0)}"
-  name   = "dags/dependencies/project_label_credit_data.py"
-  source = "../composer/dependencies/project_label_credit_data.py"
-}
-
-# Upload cud_correction_dag.py to DAG folder in Composer Bucket
-resource "google_storage_bucket_object" "dag_upload" {
-  bucket = "${element(split("/dags", element(split("gs://", google_composer_environment.env.config.0.dag_gcs_prefix), 1)), 0)}"
-  name   = "dags/cud_correction_dag.py"
-  source = "../composer/cud_correction_dag.py"
-}
-
-# Upload requirements.txt to DAG folder in Composer Bucket
-resource "google_storage_bucket_object" "dag_requirements_upload" {
-  bucket = "${element(split("/dags", element(split("gs://", google_composer_environment.env.config.0.dag_gcs_prefix), 1)), 0)}"
-  name   = "dags/requirements.txt"
-  source = "../composer/requirements.txt"
-}
-
-# Upload .airflowignore to DAG folder in Composer Bucket
-resource "google_storage_bucket_object" "dag_ignore_upload" {
-  bucket = "${element(split("/dags", element(split("gs://", google_composer_environment.env.config.0.dag_gcs_prefix), 1)), 0)}"
-  name   = "dags/.airflowignore"
-  source = "../composer/.airflowignore"
-}
-

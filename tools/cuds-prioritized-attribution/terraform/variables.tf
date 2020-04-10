@@ -68,3 +68,8 @@ variable zone {
   description = "The Compute Engine zone: us-central1-f or europe-west1-b"
   default     = "us-central1-f"
 }
+
+variable composer_dir_path {
+  description = "Path to composer DAG files"
+  default = "../composer/"
+}
