@@ -1,0 +1,9 @@
+intents:
+  welcome: welcome_handler
+  fallback: fallback_handler
+  user_id_action: user_id_action_handler
+  account_balance: account_balance_handler
+  account_transactions: account_transactions_handler
+  credits: transactions_by_type_handler
+  withdraws: transactions_by_type_handler
+  goodbye: goodbye_handler
