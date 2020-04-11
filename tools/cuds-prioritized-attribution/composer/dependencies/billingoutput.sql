@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-query = """
+
 CREATE TEMP FUNCTION string_to_label_array(lables_str STRING)
 RETURNS ARRAY<STRUCT<key STRING, value STRING>>
 LANGUAGE js
@@ -60,7 +60,7 @@ CREATE TEMP FUNCTION
     SELECT
       *
     FROM
-      `{billing_export_table_name}`
+      `{{ params.billing_export_table_name }}`
     WHERE
       CAST(DATETIME(usage_start_time, "America/Los_Angeles") AS DATE) >= "2018-09-20"),
 
@@ -89,7 +89,7 @@ CREATE TEMP FUNCTION
               region AS region,
               "" AS zone ) AS location,
       CURRENT_TIMESTAMP() AS export_time,
-      P_alloc_commitment_cost_{cud_cost_attribution_option} AS cost,
+      P_alloc_commitment_cost_{{ params.cud_cost_attribution_option }} AS cost,
       "USD" AS currency,
       1.0 AS currency_conversion_rate,
       STRUCT ( 0.0 AS amount,
@@ -101,10 +101,10 @@ CREATE TEMP FUNCTION
       STRUCT ( FORMAT_DATE("%Y%m", usage_date) AS month) AS invoice,
       cost_type
     FROM
-      `{project_id}.{corrected_dataset_id}.{distribute_commitments_table}` d
+      `{{ params.project_id }}.{{ params.corrected_dataset_id }}.{{ params.distribute_commitments_table }}` d
     WHERE
-      {enable_cud_cost_attribution}
-      AND P_alloc_commitment_cost_{cud_cost_attribution_option} <> 0
+      {{ params.enable_cud_cost_attribution }}
+      AND P_alloc_commitment_cost_{{ params.cud_cost_attribution_option }} <> 0
   ),
 
   correct_cud_credits AS (
@@ -146,7 +146,7 @@ CREATE TEMP FUNCTION
       STRUCT ( FORMAT_DATE("%Y%m", usage_date) AS month) AS invoice,
       cost_type
     FROM
-      `{project_id}.{corrected_dataset_id}.{distribute_commitments_table}` d
+      `{{ params.project_id }}.{{ params.corrected_dataset_id }}.{{ params.distribute_commitments_table }}` d
       WHERE
     P_alloc_cud_credit_cost <> 0
 
@@ -223,7 +223,7 @@ CREATE TEMP FUNCTION
   FROM
     billing_export_table
   WHERE
-    {enable_cud_cost_attribution}
+    {{ params.enable_cud_cost_attribution }}
   AND service.description = "Compute Engine"
   AND LOWER(sku.description) LIKE "%commitment%"
   AND cost <> 0
@@ -266,7 +266,7 @@ CREATE TEMP FUNCTION
       STRUCT ( FORMAT_DATE("%Y%m", usage_date) AS month) AS invoice,
       cost_type
     FROM
-      `{project_id}.{corrected_dataset_id}.{distribute_commitments_table}` d
+      `{{ params.project_id }}.{{ params.corrected_dataset_id }}.{{ params.distribute_commitments_table }}` d
     WHERE
       P_alloc_sud_credit_cost <> 0)
 
@@ -308,6 +308,5 @@ CREATE TEMP FUNCTION
   SELECT
   *
   FROM
-  `{billing_export_table_name}`
+  `{{ params.billing_export_table_name }}`
 )
-"""

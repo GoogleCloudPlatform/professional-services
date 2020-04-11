@@ -13,36 +13,9 @@
 # limitations under the License.
 
 import json
-import os
-from typing import List, Dict, Union, Optional
+from typing import List
 from google.cloud import bigquery
 from google.cloud import storage
-
-
-def file_to_string(sql_path: str) -> str:
-    """Converts a SQL file holding a SQL query to a string.
-
-    Args:
-        sql_path: String in the form of a file path
-
-    Returns:
-        String representation of a file
-    """
-    with open(sql_path, 'r') as sql_file:
-        return sql_file.read()
-
-
-def get_env_variables(
-        key_list: List[str]) -> Dict[str, Union[Optional[str], bool]]:
-    """Creates a Dictionary object to hold all of the environment variables.
-
-    Args:
-        key_list: List of strings of environment variable keys.
-
-    Returns:
-        Dictionary holding key-value pairs of environment variables.
-    """
-    return {key: os.environ.get(key) for key in key_list}
 
 
 def table_to_csv_in_gcs(bucket_name: str, object_name: str,

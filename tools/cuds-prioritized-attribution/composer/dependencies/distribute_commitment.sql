@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-query = """
 
 CREATE TEMP FUNCTION
   ratio(numerator float64,
@@ -28,7 +27,7 @@ CREATE TEMP FUNCTION
     SELECT
       b.*
     FROM
-      `{billing_export_table_name}` b
+      `{{params.billing_export_table_name }}` b
     WHERE
       CAST(DATETIME(usage_start_time, "America/Los_Angeles") AS DATE) >= "2018-09-20"),
 
@@ -36,7 +35,7 @@ CREATE TEMP FUNCTION
     SELECT
       *
     FROM
-      `{project_id}.{corrected_dataset_id}.{project_label_credit_breakout_table}`),
+      `{{ params.project_id }}.{{ params.corrected_dataset_id }}.{{ params.project_label_credit_breakout_table }}`),
 
   project_commitments AS (
     SELECT id,
@@ -65,7 +64,7 @@ CREATE TEMP FUNCTION
         project.ancestry_numbers AS ancestry_numbers
       FROM
         billing_export_table ) AS b,
-      `{project_id}.{corrected_dataset_id}.{temp_commitments_table_name}`  csv
+      `{{ params.project_id}}.{{ params.corrected_dataset_id }}.{{ params.temp_commitments_table_name }}`  csv
       LEFT JOIN UNNEST(SPLIT(folder_ids,",")) f
       WHERE
         regexp_contains(b.ancestry_numbers, f)
@@ -84,7 +83,7 @@ CREATE TEMP FUNCTION
         TRIM(csv.commitments_unit_type) AS commitments_unit_type,
         csv.commitments_amount
       FROM
-         `{project_id}.{corrected_dataset_id}.{temp_commitments_table_name}` csv
+         `{{ params.project_id }}.{{ params.corrected_dataset_id }}.{{ params.temp_commitments_table_name }}` csv
       WHERE
         project_ids is not null
       GROUP BY 1,2,3,5,6,7,8
@@ -475,4 +474,3 @@ CREATE TEMP FUNCTION
       *
     FROM
       final_data)
-"""

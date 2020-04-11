@@ -17,7 +17,7 @@ from datetime import timedelta
 import csv
 import os
 import tempfile
-from dependencies.helper_function import (file_to_string, table_to_csv_in_gcs,
+from dependencies.helper_function import (table_to_csv_in_gcs,
                                           csv_in_gcs_to_table, gcs_to_local,
                                           local_to_gcs, convert_to_schema)
 
@@ -73,17 +73,19 @@ class ScheduleAndValue:
     def __lt__(self, other):
         return self.start < other.start
 
-def is_schedule_combinable(schedule_a, schedule_b):
+
+def is_schedule_combineable(schedule_a, schedule_b):
     """Checks to if two schedule overlaps and are of the same group.
 
     Args:
         schedule_a: Schedule to compare for overlap (start time is less or equal to schedule B)
         schedule_b: Schedule to compare or overlap
     Returns:
-        True if combinable, False otherwise
+        True if combineable, False otherwise
     """
     intersects = schedule_a.start <= schedule_b.end and schedule_b.start <= schedule_a.end
     return schedule_a.value == schedule_b.value and intersects
+
 
 def combine_schedule(schedule_a, schedule_b):
     """Find the overlap between two schedules and break the overlap and provides
@@ -154,10 +156,11 @@ def combine_schedule(schedule_a, schedule_b):
 
 
 def compute_diff(commitment_obj):
-    """Redistribute the overlapping schdules from all the commitments
+    """Redistribute the overlapping schedules from all the commitments
 
     Args:
         commitment_obj: List of commitments
+
     Returns:
         List of non-overlapping commitments
     """
@@ -166,7 +169,7 @@ def compute_diff(commitment_obj):
     while iteration < len(commitment_obj):
         comparison_first = commitment_obj[iteration]
         for comparison_second in commitment_obj[iteration+1:]:
-            if is_schedule_combinable(comparison_first, comparison_second):
+            if is_schedule_combineable(comparison_first, comparison_second):
                new_records = combine_schedule(comparison_first, comparison_second)
                commitment_obj.remove(comparison_first)
                commitment_obj.remove(comparison_second)
@@ -183,7 +186,6 @@ def main(commitment_table, modified_commitment_dataset,
     """Breaks out the commitment table rows to remove overlapping commitments.
 
     Args:
-        commitment_dataset: Dataset id of the commitment table
         commitment_table: Name of the commitment table
         modified_commitment_table: Name for the redistributed commitment table
         gcs_bucket: Bucket name for transferring data between BQ

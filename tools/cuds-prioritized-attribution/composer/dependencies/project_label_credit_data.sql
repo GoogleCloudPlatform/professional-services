@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-query = """
- 
+{% raw %}
 CREATE TEMP FUNCTION
   ratio(numerator float64, denominator float64)
   AS (IF(denominator = 0,
@@ -29,19 +28,18 @@ return '['
 +
 labels.reduce(
     (a, b) => {{
-return (a===''?'': a + ',')+'{{"key":"' + b.key + '","value":"' + b.value + '"}}';
+return (a===''?'': a + ',')+'{"key":"' + b.key + '","value":"' + b.value + '"}';
 }},'')
-+ \
-']' \
++ ']'
 ''';
-
+{% endraw %}
 (
 WITH
 billing_export_table AS (
   SELECT 
     b.* 
   FROM 
-    `{billing_export_table_name}` b
+    `{{ params.billing_export_table_name }}` b
   WHERE 
     CAST(DATETIME(usage_start_time, "America/Los_Angeles") AS DATE) >= "2018-09-20"),
 
@@ -381,4 +379,3 @@ FROM (
   WHERE unit_type IS NOT NULL AND cost_type IS NOT NULL AND cud_type IS NOT NULL
 GROUP BY 1,2,3,4,5,6,7,8,9,10,11,12
 )
-"""
