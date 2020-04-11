@@ -128,6 +128,6 @@ resource "google_composer_environment" "env" {
 resource "google_storage_bucket_object" "dag_init_upload" {
   for_each = fileset(var.composer_dir_path, "**")
   bucket = element(split("/dags", element(split("gs://", google_composer_environment.env.config.0.dag_gcs_prefix), 1)), 0)
-  name   = "dags/${each.value}"
+  name   = "dags/composer/${each.value}"
   source = "${var.composer_dir_path}${each.value}"
 }

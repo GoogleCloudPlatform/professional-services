@@ -18,8 +18,7 @@ from typing import Dict, Union
 from airflow import models
 from airflow.contrib.operators import bigquery_operator, bigquery_table_delete_operator
 from airflow.operators import python_operator
-from dependencies import (commitments_schema, commitment_intervals,
-                          helper_function)
+from composer.dependencies import (commitments_schema, commitment_intervals)
 
 
 DEFAULT_DAG_ARGS = {'start_date': datetime.datetime.now()}

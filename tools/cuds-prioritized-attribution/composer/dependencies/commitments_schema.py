@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-schema = """
+
 [{"type":"STRING",
   "name":"id",
   "mode":"REQUIRED"},
@@ -40,4 +40,4 @@ schema = """
   {"type":"DATE",
   "name":"commit_end_date",
   "mode":"REQUIRED"}
-]"""
+]

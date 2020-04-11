@@ -261,35 +261,11 @@ gcloud beta composer environments create cud-correction-env --location us-centra
   --env-variables=billing_export_table_name=my-project.my_dataset.my_original_billing_export,corrected_dataset_id=cud_corrected_dataset,corrected_table_name=test_output,commitments_table_name=my-project.cud_corrected_dataset.commitments_table,enable_cud_cost_attribution=false,project_id=$PROJECT,cud_cost_attribution_option=a
 ````
 
-3. Add the dependencies folder to the DAG
+3. Add the current folder to the DAG
 
 ````
 gcloud composer environments storage dags import \
-  --environment cud-correction-env --location [LOCATION] --source dependencies/
-````
-where `[LOCATION]` is the Compute Engine region specified in the step above when you created the environment.
-
-4. Add cud_correction_dag.py to the DAG
-
-````
-gcloud composer environments storage dags import \
-  --environment cud-correction-env --location [LOCATION] --source cud_correction_dag.py
-````
-where `[LOCATION]` is the Compute Engine region specified in the step above when you created the environment.
-
-5. Add requirements.txt to the DAG
-
-````
-gcloud composer environments storage dags import \
-  --environment cud-correction-env --location [LOCATION] --source requirements.txt
-````
-where `[LOCATION]` is the Compute Engine region specified in the step above when you created the environment.
-
-6. Add .airflowignore to ignore parsing unrelated DAG files.
-
-````
-gcloud composer environments storage dags import \
-  --environment cud-correction-env --location [LOCATION] --source .airflowignore
+  --environment cud-correction-env --location [LOCATION] --source ../composer/
 ````
 where `[LOCATION]` is the Compute Engine region specified in the step above when you created the environment.
 
