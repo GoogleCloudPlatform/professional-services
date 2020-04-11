@@ -15,8 +15,8 @@
 from dateutil import parser
 from pytest import approx
 import sys
-sys.path.append('../composer/dependencies')
-from commitment_intervals import compute_diff, ScheduleAndValue, CommitmentValue
+sys.path.append('..')
+from dependencies.commitment_intervals import compute_diff, ScheduleAndValue, CommitmentValue
 
 
 def test_same_start_different_end():

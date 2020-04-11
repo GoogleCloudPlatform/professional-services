@@ -12,21 +12,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from string import Template
+from jinja2 import Environment, FileSystemLoader
 from google.cloud import bigquery
 import os
 import json
 import sys
 import datetime
 import logging
-sys.path.append('../composer/dependencies')
-from dependencies import billingoutput
-from dependencies import commitment_intervals
-from dependencies import commitments_schema
-from dependencies import distribute_commitment
-from dependencies import helper_function
-from dependencies import project_label_credit_data
+sys.path.append('..')
+from composer.dependencies import commitment_intervals
+from composer.dependencies import commitments_schema
+from composer.dependencies import helper_function
+from composer.dependencies import (commitment_intervals, 
+                                    commitments_schema, helper_function)
+SQL_LOCATION = '../composer/dependencies'
+BILLING_OUTPUT_SQL = 'billingoutput.sql'
+DISTRIBUTE_COMMIT_SQL = 'distribute_commitment.sql'
+PROJECT_LABEL_CREDIT_SQL = 'project_label_credit_data.sql'
 
+def render_template(template_path, params):
+    file_loader = FileSystemLoader(SQL_LOCATION)
+    env = Environment(loader=file_loader)
+    template = env.get_template(template_path)
+    return template.render(params=params)
+ 
 
 def execute_query(bq_client: bigquery.Client, env_vars: {}, query_path: object,
                   output_table_name: str, time_partition: bool) -> None:
@@ -50,12 +59,9 @@ def execute_query(bq_client: bigquery.Client, env_vars: {}, query_path: object,
     if time_partition:
         job_config.time_partitioning = bigquery.TimePartitioning(
             field='usage_start_time', expiration_ms=None)
-    sql = query_path.query
-    sql = sql.format(**env_vars)
     logging.info('Attempting query...')
-
     # Execute Query
-    query_job = bq_client.query(query=sql, job_config=job_config)
+    query_job = bq_client.query(query=render_template(query_path, env_vars), job_config=job_config)
 
     query_job.result()  # Waits for the query to finish
 
@@ -68,7 +74,7 @@ def project_label_credit(bq_client: bigquery.Client, env_vars: {}) -> None:
     Returns:
             None
     """
-    execute_query(bq_client, env_vars, project_label_credit_data,
+    execute_query(bq_client, env_vars, PROJECT_LABEL_CREDIT_SQL,
                   env_vars['project_label_credit_breakout_table'], False)
 
 
@@ -80,7 +86,7 @@ def distribute_commitments(bq_client: bigquery.Client, env_vars: {}) -> None:
     Returns:
             None
     """
-    execute_query(bq_client, env_vars, distribute_commitment,
+    execute_query(bq_client, env_vars, DISTRIBUTE_COMMIT_SQL,
                   env_vars['distribute_commitments_table'], False)
 
 
@@ -92,7 +98,7 @@ def billing_output(bq_client: bigquery.Client, env_vars: {}) -> None:
     Returns:
             None
     """
-    execute_query(bq_client, env_vars, billingoutput,
+    execute_query(bq_client, env_vars, BILLING_OUTPUT_SQL,
                   env_vars['corrected_table_name'], True)
 
 

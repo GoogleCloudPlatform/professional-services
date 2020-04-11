@@ -17,6 +17,7 @@ from datetime import timedelta
 import csv
 import os
 import tempfile
+import uuid
 from composer.dependencies.helper_function import (table_to_csv_in_gcs,
                                                    csv_in_gcs_to_table,
                                                    gcs_to_local,
