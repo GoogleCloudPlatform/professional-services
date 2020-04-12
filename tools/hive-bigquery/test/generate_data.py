@@ -38,7 +38,7 @@ def main():
              '2018-10-14', '2018-10-15', '2018-10-16', '2018-10-17',
              '2018-10-18']
     seasons = ['summer', 'winter', 'autumn', 'spring']
-    with open(filename, "wb") as file_content:
+    with open(filename, "w") as file_content:
         writer = csv.writer(file_content, delimiter='\t')
         n_years = len(years)
         n_seasons = len(seasons)

@@ -29,7 +29,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(name='slo-generator',
-      version='0.1.7',
+      version='1.0.0',
       description='SLO generator',
       long_description=long_description,
       long_description_content_type='text/markdown',
@@ -50,9 +50,10 @@ setup(name='slo-generator',
       install_requires=[
           'google-api-python-client', 'oauth2client', 'google-cloud-monitoring',
           'google-cloud-pubsub', 'google-cloud-bigquery',
-          'prometheus-http-client', 'pyyaml', 'opencensus'
+          'prometheus-http-client', 'prometheus-client', 'pyyaml', 'opencensus',
+          'elasticsearch', 'pytz'
       ],
       entry_points={
           'console_scripts': ['slo-generator=slo_generator.cli:main',],
       },
-      python_requires='>=3.0')
+      python_requires='>=3.4')

@@ -17,7 +17,6 @@ Stackdriver Monitoring exporter class.
 """
 import logging
 from google.cloud import monitoring_v3
-from slo_generator.exporters.base import Exporter
 
 LOGGER = logging.getLogger(__name__)
 DEFAULT_METRIC_TYPE = "custom.googleapis.com/error_budget_burn_rate"
@@ -25,7 +24,7 @@ DEFAULT_METRIC_DESCRIPTION = ("Speed at which the error budget for a given"
                               "aggregation window is consumed")
 
 
-class StackdriverExporter(Exporter):
+class StackdriverExporter:
     """Stackdriver Monitoring exporter class."""
 
     def __init__(self):
@@ -44,7 +43,7 @@ class StackdriverExporter(Exporter):
         Returns:
             object: Stackdriver Monitoring API result.
         """
-        self.create_metric_descriptor(data, **config)
+        self.create_metric_descriptor(**config)
         self.create_timeseries(data, **config)
 
     def create_timeseries(self, data, **config):
@@ -91,12 +90,12 @@ class StackdriverExporter(Exporter):
         result = self.client.create_time_series(project, [series])
         labels = series.metric.labels
         LOGGER.debug(
-            f"timestamp: {timestamp} burnrate: {point.value.double_value}"\
-            f"{labels['service_name']}-{labels['feature_name']}-"\
+            f"timestamp: {timestamp} burnrate: {point.value.double_value}"
+            f"{labels['service_name']}-{labels['feature_name']}-"
             f"{labels['slo_name']}-{labels['error_budget_policy_step_name']}")
         return result
 
-    def create_metric_descriptor(self, data, **config):
+    def create_metric_descriptor(self, **config):
         """Create Stackdriver Monitoring metric descriptor.
 
         Args:

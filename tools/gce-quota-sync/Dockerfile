@@ -22,10 +22,10 @@ COPY requirements.txt /
 
 RUN \
   apk update && \
-  apk add build-base libstdc++ python python-dev py2-pip && \
+  apk add build-base libstdc++ python python-dev py2-pip linux-headers && \
   /usr/bin/pip install --upgrade pip && \
   /usr/bin/pip install -r requirements.txt && \
-  apk del build-base python-dev && \
+  apk del build-base python-dev linux-headers && \
   rm /var/cache/apk/*
 
 COPY gce-quota-sync.py /

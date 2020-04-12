@@ -38,13 +38,13 @@ do
         if [[ ! -z "$FILES_TO_FORMAT" ]]
         then
             # format all python files in place for python2
-            python2 /usr/local/bin/yapf -i -r --style google $FILES_TO_FORMAT > /dev/null 2>&1
+            python2 -m yapf -i -r --style google $FILES_TO_FORMAT > /dev/null 2>&1
 
             # If python2 failed, try to format using python3 instead
             if [[ $? -ne 0 ]]
             then
-                # format all python files in place for python2
-                python3 /usr/local/bin/yapf -i -r --style google $FILES_TO_FORMAT > /dev/null
+                # format all python files in place for python3
+                python3 -m yapf -i -r --style google $FILES_TO_FORMAT > /dev/null
             fi
         else
             echo "No python files found for $FOLDER - SKIP"

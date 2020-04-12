@@ -11,20 +11,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Decrypts the ciphertext stored in GCS to get MySQL password"""
 
 from google.cloud import kms_v1
 
 
-def decrypt_symmetric(project_id, location_id, key_ring_id, crypto_key_id, ciphertext):
+def decrypt_symmetric(project_id, location_id, key_ring_id, crypto_key_id,
+                      ciphertext):
     """Decrypts input ciphertext using the provided symmetric CryptoKey."""
 
     # Creates an API client for the KMS API.
     kms_client = kms_v1.KeyManagementServiceClient()
 
     # The resource name of the CryptoKey.
-    name = kms_client.crypto_key_path_path(project_id, location_id, key_ring_id, crypto_key_id)
+    name = kms_client.crypto_key_path_path(project_id, location_id,
+                                           key_ring_id, crypto_key_id)
     # Use the KMS API to decrypt the data.
     response = kms_client.decrypt(name, ciphertext)
     return response.plaintext
