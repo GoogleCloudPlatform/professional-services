@@ -1,0 +1,19 @@
+---
+service_name:            gke
+feature_name:            service
+slo_description:         Latency of GKE service requests < 724ms
+slo_name:                latency724ms
+slo_target:              0.999
+backend:
+  class:                 StackdriverServiceMonitoring
+  method:                basic
+  project_id:            ${STACKDRIVER_HOST_PROJECT_ID}
+  measurement:
+    cluster_istio:
+      project_id:        ${GKE_PROJECT_ID}
+      location:          ${GKE_LOCATION}
+      cluster_name:      ${GKE_CLUSTER_NAME}
+      service_namespace: ${GKE_SERVICE_NAMESPACE}
+      service_name:      ${GKE_SERVICE_NAME}
+    latency:
+      threshold:         724 # ms

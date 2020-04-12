@@ -120,13 +120,11 @@ The deployment steps are:
     sed -i  "s|<ENTER-DATASET>|asset_inventory|" config.yaml
     sed -i  "s|<ENTER-STAGE>|$BUCKET/stage|" config.yaml
     sed -i  "s|<ENTER-PROJECT>|$PROJECT_ID|" config.yaml
-
     ```
 
 1. If using a Shared VPC to run the Dataflow job you must supply the `network` and `subnetwork` values in the import_pipeline_runtime_environment json map in the `config.yaml` file as described [here](https://cloud.google.com/dataflow/docs/guides/specifying-networks). Additionally the Dataflow Agent Serviece Account `service-<PROJECT-NUMBER>@dataflow-service-producer-prod.iam.gserviceaccount.com` needs the compute.networkUser role on the Shared VPC subnet. The dataflow job requires the ability to make external calls to `https://*.googleapis.com/$discovery/rest?version=*` endpoints in order to download discovery documents.
 
 1. The config.yaml limits Dataflow jos to one worker. This is because the VPC used might not allow internal communication between Dataflow workers as described [here](https://cloud.google.com/dataflow/docs/guides/routes-firewall). If you follow those steps or are using the default VPC and don't see a warning about missing firewall rules you can safely increase the maxWorkers configuration.
-
 
 1. Vendor the asset_inventory package with the app engine application:
 
@@ -289,15 +287,15 @@ The fastest way to Get data into BigQuery is to invoke the export resources to G
 
 This repository contains some command line tools that let you run the export/import process with an Apache Beam runner, including the direct runner. This can be useful if the Dataflow runner isn't an option, and for local development.
 
-1. Run setup.py in develop mode. (The project also supports python3.7 if you set the BEAM_EXPERIMENTAL_PY3 environment variable). See [full instructions](https://beam.apache.org/get-started/quickstart-py/#set-up-your-environment) for setting up an Apache Beam development environment:
+1. Run setup.py in develop mode.See [full instructions](https://beam.apache.org/get-started/quickstart-py/#set-up-your-environment) for setting up an Apache Beam development environment:
 
     ```
     cd professional-services/tools/asset-inventory
     mkdir ~/.venv
-    virtualenv ~/.venv/asset-inventory
+    python -m venv ~/.venv/asset-inventory
     source ~/.venv/asset-inventory/bin/activate
+    pip install -e .
     pip install -r requirements.txt
-    python setup.py develop --upgrade
     ```
 
 1. Set the GOOGLE_APPLICATION_CREDENTIALS environment variable to the service account json key that will be used to invoke the Cloud Asset Inventory API and invoke the Beam runner. Or run within GCE and rely on the service account of the compute engine instance. Also grant it the bigquery.user role to modify BigQuery tables.

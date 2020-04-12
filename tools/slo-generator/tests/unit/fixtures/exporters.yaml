@@ -1,0 +1,14 @@
+  - class:      Pubsub
+    project_id: ${PUBSUB_PROJECT_ID}
+    topic_name: ${PUBSUB_TOPIC_NAME}
+
+  - class:      Stackdriver
+    project_id: ${STACKDRIVER_HOST_PROJECT_ID}
+
+  - class:      Bigquery
+    project_id: ${BIGQUERY_PROJECT_ID}
+    dataset_id: ${BIGQUERY_DATASET_ID}
+    table_id:   ${BIGQUERY_TABLE_ID}
+
+  - class:      Prometheus
+    url:        ${PROMETHEUS_PUSHGATEWAY_URL}
