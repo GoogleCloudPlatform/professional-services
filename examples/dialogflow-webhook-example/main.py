@@ -300,7 +300,6 @@ class Handlers:
             message = 'From webhook: Here are all the transactions that I found:\n'
             all_transactions = ','.join([
                 f"({transaction['type']}, {transaction['amount']})"
-              
                 for transaction in
                 user_dict['accounts']['checking']['transactions'] +
                 user_dict['accounts']['saving']['transactions']
@@ -376,7 +375,7 @@ class Handlers:
             # Build the message.
             for row in results.head().itertuples():
                 message = f"{message}, {row.type}, {row.amount})"
-                
+
             return json.dumps({
                 'fulfillmentText':
                     ' '.join([message, 'What else can I do for you?'])
