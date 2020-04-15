@@ -68,6 +68,7 @@ The tools folder contains ready-made utilities which can simpilfy Google Cloud P
   Python package that provides support tools for Cloud AI Vision. Currently
   there are a few scripts for generating an AutoML Vision dataset CSV file from
   either raw images or image annotation files in PASCAL VOC format.
+* [CUD Prioritized Attribution](tools/cuds-prioritized-attribution) - A tool that allows GCP customers who purchased Committed Use Discounts (CUDs) to prioritize a specific scope (e.g. project or folder) to attribute CUDs first before letting any unconsumed discount float to other parts of an organization.
 * [DNS Sync](tools/dns-sync) - Sync a Cloud DNS zone with GCE resources. Instances and load balancers are added to the cloud DNS zone as they start from compute_engine_activity log events sent from a pub/sub push subscription. Can sync multiple projects to a single Cloud DNS zone.
 * [GCE Disk Encryption Converter](tools/gce-google-keys-to-cmek) - A tool that converts disks attached to a GCE VM instnace from Google-managed keys to a customer-managed key stored in Cloud KMS.
 * [GCE Quota Sync](tools/gce-quota-sync) - A tool that fetches resource quota usage from the GCE API and synchronizes it to Stackdriver as a custom metric, where it can be used to define automated alerts.
@@ -83,6 +84,7 @@ The tools folder contains ready-made utilities which can simpilfy Google Cloud P
 * [Machine Learning Auto Exploratory Data Analysis and Feature Recommendation](tools/ml-auto-eda) - A tool to perform comprehensive auto EDA, based on which feature recommendations are made, and a summary report will be generated.
 * [Maven Archetype Dataflow](tools/maven-archetype-dataflow) - A maven archetype which bootstraps a Dataflow project with common plugins pre-configured to help maintain high code quality.
 * [Netblock Monitor](tools/netblock-monitor) - An Apps Script project that will automatically provide email notifications when changes are made to Google’s IP ranges.
+* [Quota Manager](tools/quota-manager) - A python module to programmatically update GCP service quotas such as bigquery.googleapis.com.
 * [Site Verification Group Sync](tools/site-verification-group-sync) - A tool to provision "verified owner" permissions (to create GCS buckets with custom dns) based on membership of a Google Group.
 * [SLO Generator](tools/slo-generator/) - A Python package that automates computation of Service Level Objectives, Error Budgets and Burn Rates on GCP,  and export the computation results to available exporters (e.g: PubSub, BigQuery, Stackdriver Monitoring), using policies written in JSON format.
 * [Snowflake_to_BQ](tools/snowflake2bq/) - A shell script to transfer tables (schema & data) from Snowflake to BigQuery.

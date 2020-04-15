@@ -23,6 +23,7 @@ import argparse
 import csv
 import logging
 import os
+import sys
 
 import apache_beam as beam
 from apache_beam.io.gcp import bigquery

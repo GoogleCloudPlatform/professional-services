@@ -69,7 +69,7 @@ properties:
  - `spark:spark.history.fs.cleaner.enabled`
  - `spark:spark.history.fs.cleaner.maxAge`
  - `mapred:mapreduce.jobhistory.cleaner.enable`
- - `mapred:mapreduce.jobhistory.cleaner.max-age-ms`
+ - `mapred:mapreduce.jobhistory.max-age-ms`
 
 ### Terraform
 To spin up the whole example you could simply edit the 
