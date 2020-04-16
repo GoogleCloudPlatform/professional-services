@@ -26,12 +26,19 @@ Create a new project on GCP and set up GCP credentials:
 gcloud auth login
 gcloud auth application-default login
 ```
+
+Enable the following APIS:
+- [Dataflow](http://console.cloud.google.com/apis/api/dataflow.googleapis.com)
+- [AI Platform](http://console.cloud.google.com/apis/api/ml.googleapis.com)
+
 Using the `preprocessing/config.example.ini` template, create
 `preprocessing/config.ini` with the GCP project id fields filled in.
+Additionally, you will need to create a GCS bucket. This code assumes a bucket
+exists by the name of `[project-id]-bucket`.
 
 Set up your python environment:
 ```shell
-virtualenv venv -p python3
+python3 -m venv venv
 source ./venv/bin/activate
 pip install -r requirements.txt
 ```
@@ -113,7 +120,8 @@ Model training can be monitored on Tensorboard using the following command:
 tensorboard --logdir <path to model dir>/<trial number>
 ```
 Tensorboard's projector, in particular, is very useful for debugging
-or analyzing embeddings.
+or analyzing embeddings. In the projector tab in Tensorboard, try setting the
+label to `name`.
 
 ## Serving
 Models can be hosted on CAIP, which can be used to make online and batch predictions via JSON requests.
