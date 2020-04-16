@@ -127,8 +127,8 @@ def main(*argv):
 
     # Send email through SendGrid with link to signed URL
     message = Mail(
-        from_email="test@example.com",
-        to_emails="nehanene@google.com",
+        from_email="sender@example.com",
+        to_emails="recipient@example.com",
         subject="Daily BQ export",
         html_content="<p> Your daily BigQuery export from Google Cloud Platform \
             is linked <a href={}>here</a>.</p>".format(

@@ -21,11 +21,11 @@ PROJECT_ID="report-scheduling"
 gcloud iam service-accounts create $SA_NAME --description "$SVC_DESC" --project "$PROJECT_ID"
 SVC_ACCOUNT_EMAIL=$(gcloud iam service-accounts list --filter="name:$SA_NAME" --format "value(email)")
 
-CF_NAME="nnene-function"
-CS_NAME="nnene-scheduler"
-TOPIC_NAME="nnene-exports"
-TOPIC_PATH="projects/${PROJECT_ID}/topics/nnene-exports"
-SENDGRID_API_KEY="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"
+CF_NAME="email-export-function"
+CS_NAME="bq-email-scheduler"
+TOPIC_NAME="bq-exports"
+TOPIC_PATH="projects/${PROJECT_ID}/topics/bq-exports"
+SENDGRID_API_KEY={$KEY}
 SCHEDULE="00 00 * * *"
 
 gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:$SVC_ACCOUNT_EMAIL" --role='roles/bigquery.admin'
