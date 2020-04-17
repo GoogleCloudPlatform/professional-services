@@ -71,8 +71,8 @@ def write_projector_metadata(metadata_dir, tft_dir):
                                               constants.NUM_PROJECTOR_ITEMS)
   metadata = user_metadata + item_metadata
   metadata_path = os.path.join(metadata_dir, constants.PROJECTOR_PATH)
-  tf.gfile.MakeDirs(metadata_dir)
-  with tf.gfile.GFile(metadata_path, "w+") as f:
+  tf.io.gfile.makedirs(metadata_dir)
+  with tf.io.gfile.GFile(metadata_path, "w+") as f:
     f.write("label\tname\n")
-    f.write("\n".join(["\t".join(sample) for sample in metadata]))
+    f.write("\n".join(["{}\t{}".format(label, name) for label, name in metadata]))
   return user_indices, item_indices
