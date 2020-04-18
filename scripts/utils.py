@@ -167,4 +167,3 @@ def create_table(
   query_job = client.query(query, job_config=job_config)
 
   return query_job.result()
-
