@@ -68,13 +68,13 @@ def main():
   # output URI is the full path of the project to write predictions to.
   # See https://cloud.google.com/automl-tables/docs/predict-batch for details.
   batch_prediction_operation = automl_client.batch_predict(
-    bigquery_input_uri='bq://{}.{}.{}'.format(
-        global_config['destination_project_id'],
-        global_config['destination_dataset'],
-        global_config['features_predict_table']),
-    bigquery_output_uri='bq://{}'.format(
-        global_config['destination_project_id']),
-    model_display_name=global_config['model_display_name'],
+      bigquery_input_uri='bq://{}.{}.{}'.format(
+          global_config['destination_project_id'],
+          global_config['destination_dataset'],
+          global_config['features_predict_table']),
+      bigquery_output_uri='bq://{}'.format(
+          global_config['destination_project_id']),
+      model_display_name=global_config['model_display_name'],
   )
   batch_prediction_operation.result()
 
