@@ -25,7 +25,6 @@ import sys
 import google.api_core.exceptions
 from google.cloud import automl_v1beta1 as automl
 from google.cloud import bigquery
-from google.oauth2 import service_account
 
 import utils
 
@@ -86,7 +85,7 @@ def main():
   # prediction response contains the dataset uri with format
   # "bq://project_id.output_dataset".
   automl_dataset_id = (
-    batch_prediction_operation
+      batch_prediction_operation
       .metadata
       .batch_predict_details
       .output_info
@@ -99,9 +98,9 @@ def main():
   bq_client.copy_table(
       sources=predictions_table,
       destination='{}.{}.{}'.format(
-        global_config['destination_project_id'],
-        global_config['destination_dataset'],
-        global_config['predictions_table']),
+          global_config['destination_project_id'],
+          global_config['destination_dataset'],
+          global_config['predictions_table']),
   ).result()
 
   # Copy the failed predictions table only if it is not empty.
@@ -109,9 +108,9 @@ def main():
     bq_client.copy_table(
         sources=failed_predictions_table,
         destination='{}.{}.{}'.format(
-          global_config['destination_project_id'],
-          global_config['destination_dataset'],
-          global_config['failed_predictions_table']),
+            global_config['destination_project_id'],
+            global_config['destination_dataset'],
+            global_config['failed_predictions_table']),
     ).result()
     logging.warning("%d rows in the batch prediction job failed.",
                     failed_predictions_table.num_rows)
