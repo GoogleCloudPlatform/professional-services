@@ -40,7 +40,7 @@ def main():
   # Defining subconfigs explicitly for readability.
   global_config = config['global']
   model_config = config['model']
-  
+
   # Create the AutoML client
   client = automl.TablesClient(
       project=global_config['destination_project_id'],
