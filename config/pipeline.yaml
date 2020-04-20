@@ -36,6 +36,7 @@ global:
   clean_table: "complaints_clean"
   
   # Split features into training and prediction.
+  train_predict_split: "TrainPredictSplit"
   features_train_table: "FeaturesTrain"
   features_predict_table: "FeaturesPredict"
 
@@ -63,7 +64,9 @@ query_files:
   remove_nulls: "remove_nulls.sql"
   clean_categories: "clean_categories.sql"
   combine_tables: "combine_tables.sql"
-  train_eval_split: "train_test_split.sql"
+  train_predict_split: "train_and_predict_split.sql"
+  prediction_features: "prediction_features.sql"
+  training_features: "training_features.sql"
 
 # Parameters specific to individual SQL pipeline steps.
 query_params:
@@ -88,7 +91,8 @@ query_params:
     new_subissue2: "Incorrect debt"
     new_subissue3: "Account status incorrect"
     
-  train_test_split:
+  train_predict_split:
+    train_threshold: 0.8
     test_threshold: 0.2
       
 
