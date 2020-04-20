@@ -40,18 +40,21 @@ def main():
   # Defining subconfigs explicitly for readability.
   global_config = config['global']
   model_config = config['model']
-
+  
+  # Create the AutoML client
   client = automl.TablesClient(
       project=global_config['destination_project_id'],
       region=global_config['automl_compute_region']
   )
 
+  # Specify the BigQuery dataset and training features table
   bigquery_uri_train_table = 'bq://{}.{}.{}'.format(
       global_config['destination_project_id'],
       global_config['destination_dataset'],
       global_config['features_train_table'],
   )
 
+  # Create the AutoML dataset for training
   dataset = client.create_dataset(
       global_config['dataset_display_name']
   )
@@ -80,8 +83,10 @@ def main():
       column_spec_display_name=model_config['target_column']
   )
 
-  # Column to define a manual split of the dataset into "TRAIN",
-  # "VALIDATE", and "TEST".
+  # Column to define a manual split of the dataset into "TEST" and
+  # "UNASSIGNED". If value of the data split column is "UNASSIGNED", 
+  # AutoML Tables automatically assigns that row to the training or 
+  # validation set.
   client.set_test_train_column(
       dataset=dataset,
       column_spec_display_name=model_config['split_column']
