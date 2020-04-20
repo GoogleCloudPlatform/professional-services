@@ -84,8 +84,8 @@ def main():
   )
 
   # Column to define a manual split of the dataset into "TEST" and
-  # "UNASSIGNED". If value of the data split column is "UNASSIGNED", 
-  # AutoML Tables automatically assigns that row to the training or 
+  # "UNASSIGNED". If value of the data split column is "UNASSIGNED",
+  # AutoML Tables automatically assigns that row to the training or
   # validation set.
   client.set_test_train_column(
       dataset=dataset,
