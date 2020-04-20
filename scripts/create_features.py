@@ -21,6 +21,7 @@ import utils
 
 logging.basicConfig(level=logging.DEBUG)
 
+
 def main():
   """Runs queries to create training and prediction tables from clean data."""
 
@@ -79,11 +80,41 @@ def main():
       partition_field=None
   )
 
+  # Query to split the clean dataset into training and prediction features.
+  # The training features will be fed to the AutoML Tables for training and
+  # the prediction features will be used for batch prediction
   features_split_params = utils.merge_dicts(global_config,
-                                            query_params['train_test_split'])
+                                            query_params['train_predict_split'])
 
   utils.create_table(
-      query_path=os.path.join(queries_path, query_files['train_eval_split']),
+      query_path=os.path.join(queries_path, query_files['train_predict_split']),
+      query_params=features_split_params,
+      destination_project=global_config['destination_project_id'],
+      destination_dataset=global_config['destination_dataset'],
+      destination_table=global_config['train_predict_split'],
+      partition_field=None
+  )
+
+  # Query to create the prediction table
+  features_split_params = utils.merge_dicts(global_config,
+                                            query_params['train_predict_split'])
+
+  utils.create_table(
+      query_path=os.path.join(queries_path, query_files['prediction_features']),
+      query_params=features_split_params,
+      destination_project=global_config['destination_project_id'],
+      destination_dataset=global_config['destination_dataset'],
+      destination_table=global_config['features_predict_table'],
+      partition_field=None
+  )
+
+  # Query to create the training table along with the manual split into train,
+  # validation and test rows for the AutoML tables
+  features_split_params = utils.merge_dicts(global_config,
+                                            query_params['train_predict_split'])
+
+  utils.create_table(
+      query_path=os.path.join(queries_path, query_files['training_features']),
       query_params=features_split_params,
       destination_project=global_config['destination_project_id'],
       destination_dataset=global_config['destination_dataset'],
