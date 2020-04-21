@@ -1,7 +1,7 @@
 MERGE `{0:s}.user_updater_test.test_user_info_final` m
 USING `{0:s}.user_updater_test.test_temp_user_info_updates` u
 ON m.userId = u.userId
-WHEN MATCHED THEN 
+WHEN MATCHED THEN
 	UPDATE SET
 		ingestTimestamp = u.ingestTimestamp,
         record1.attribute1.a =

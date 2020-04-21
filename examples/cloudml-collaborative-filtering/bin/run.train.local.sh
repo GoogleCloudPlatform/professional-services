@@ -21,6 +21,11 @@
 #                     This should just be a timestamp.
 . ./bin/_common.sh
 
+if [ "$#" -lt 1 ]; then
+  echo "Illegal number of parameters. Should be >= 1, given $#."
+  exit 1
+fi
+
 MODEL_INPUTS_DIR=$1
 
 PROJECT_ID="$(get_project_id)"

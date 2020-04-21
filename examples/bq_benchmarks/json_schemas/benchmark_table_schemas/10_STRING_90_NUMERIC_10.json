@@ -1,53 +1,53 @@
 {
     "fields": [
         {
-            "type": "STRING", 
-            "name": "string1", 
+            "type": "STRING",
+            "name": "string1",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric1", 
+            "type": "NUMERIC",
+            "name": "numeric1",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric2", 
+            "type": "NUMERIC",
+            "name": "numeric2",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric3", 
+            "type": "NUMERIC",
+            "name": "numeric3",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric4", 
+            "type": "NUMERIC",
+            "name": "numeric4",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric5", 
+            "type": "NUMERIC",
+            "name": "numeric5",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric6", 
+            "type": "NUMERIC",
+            "name": "numeric6",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric7", 
+            "type": "NUMERIC",
+            "name": "numeric7",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric8", 
+            "type": "NUMERIC",
+            "name": "numeric8",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric9", 
+            "type": "NUMERIC",
+            "name": "numeric9",
             "mode": "REQUIRED"
         }
     ]

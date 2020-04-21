@@ -174,7 +174,7 @@ class BQPipeline(object):
             if len(parts) == 1 and \
                 self.default_project is not None:
                 dataset_id = self.default_project + '.' + dataset
-        return dataset_id 
+        return dataset_id
 
     def create_dataset(self, dataset, exists_ok=False):
         """

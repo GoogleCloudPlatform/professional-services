@@ -13,13 +13,13 @@ now=$(date)
 echo "$now: Calling update_user_info.py with parms:"
 cmd=$(cat << EOF
 python $script_path
-  --project_id=$project_id 
-  --schema_path=$schema_path 
-  --dataset_id=$dataset_id 
-  --final_table_id=$final_table_id 
-  --updates_table_id=$updates_table_id 
-  --temp_updates_table_id=$temp_updates_table_id 
-  --user_id_field_name=$user_id_field_name 
+  --project_id=$project_id
+  --schema_path=$schema_path
+  --dataset_id=$dataset_id
+  --final_table_id=$final_table_id
+  --updates_table_id=$updates_table_id
+  --temp_updates_table_id=$temp_updates_table_id
+  --user_id_field_name=$user_id_field_name
   --ingest_timestamp_field_name=$ingest_timestamp_field_name
 EOF
 )

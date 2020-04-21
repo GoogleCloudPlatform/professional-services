@@ -10,7 +10,7 @@ This script helps you create a Cloudera parcel that includes Google Cloud Storag
 ## Installation
 Once you have the required files, put all the files under one directory and run create_parcel.sh script in below format.
 ```
-$ ./create_parcel.sh -f parcel_name -v version -o operating_system -d 
+$ ./create_parcel.sh -f parcel_name -v version -o operating_system -d
 ```
 
 Where,
@@ -30,8 +30,8 @@ $ ./create_parcel.sh -f gcsconnector -v 1.0.0 -o el6 -d
 ```
 
 ## Deployment
-Once the script runs successfully, you need to make sure that Cloudera Manager can find the new parcel, especially if you host the parcel file by yourself. 
- 
+Once the script runs successfully, you need to make sure that Cloudera Manager can find the new parcel, especially if you host the parcel file by yourself.
+
 You can check the parcel by go to the Cloudera Manager Home page, click the **Hosts** > **Parcels** > **Check parcels**. Once the new parcel populates in the list of parcels.
 Click **Distribute** > **Activate parcel**. This will distribute and activate the parcel on all Cloudera managed hosts.
 
@@ -44,14 +44,14 @@ Check below path for logs:
 ## Configure CDH services to use GCS connector
 
 ### HDFS service
-From the Cloudera Manager console go to **HDFS service** > **Configurations** > **core-site.xml** 
+From the Cloudera Manager console go to **HDFS service** > **Configurations** > **core-site.xml**
 
-Add the following properties in the Cluster-wide Advanced Configuration Snippet (Safety Valve) for **core-site.xml** 
+Add the following properties in the Cluster-wide Advanced Configuration Snippet (Safety Valve) for **core-site.xml**
 
 **google.cloud.auth.service.account.enable** : true
 
 **[Optional] google.cloud.auth.service.account.json.keyfile** : Full path to JSON key file downloaded for service account
-Example : 
+Example :
 /opt/cloudera/parcels/gcsconnector/lib/hadoop/lib/key.json
 
 **fs.gs.project.ids** : GCP project ID

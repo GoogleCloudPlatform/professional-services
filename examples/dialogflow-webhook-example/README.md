@@ -85,9 +85,9 @@ This example connects to a Cloud Firestore with a collection with the following 
              }
 
 Examples how to add data to a collection can be found [here](https://cloud.google.com/firestore/docs/quickstart-servers#add_data).
-            
+
     from google.cloud import firestore
-    
+
     user_dict= {
       u'user_id': u'123456',
       u'first_name': u'Pedro',

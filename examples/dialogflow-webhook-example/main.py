@@ -375,6 +375,7 @@ class Handlers:
             # Build the message.
             for row in results.head().itertuples():
                 message = f"{message}, {row.type}, {row.amount})"
+
             return json.dumps({
                 'fulfillmentText':
                     ' '.join([message, 'What else can I do for you?'])

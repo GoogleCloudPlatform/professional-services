@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-""" data_transformation.py is a Dataflow pipeline which reads a file and writes 
+""" data_transformation.py is a Dataflow pipeline which reads a file and writes
 its contents to a BigQuery table.
 
-This example reads a json schema of the intended output into BigQuery, 
+This example reads a json schema of the intended output into BigQuery,
 and transforms the date data to match the format BigQuery expects.
 """
 
@@ -51,14 +51,14 @@ class DataTransformation:
     dictionary which can be loaded into BigQuery.
 
         Args:
-            string_input: A comma separated list of values in the form of 
+            string_input: A comma separated list of values in the form of
             state_abbreviation,gender,year,name,count_of_babies,dataset_created_date
                 example string_input: KS,F,1923,Dorothy,654,11/28/2016
 
         Returns:
             A dict mapping BigQuery column names as keys to the corresponding value
-            parsed from string_input.  In this example, the data is not transformed, and 
-            remains in the same format as the CSV.  There are no date format transformations. 
+            parsed from string_input.  In this example, the data is not transformed, and
+            remains in the same format as the CSV.  There are no date format transformations.
 
                 example output:
                       {'state': 'KS',
