@@ -28,7 +28,7 @@ This example establishes both _static_ and _bgp_ dual tunnel VPN connections. Th
 
 ![](./pics/cloudconnect.png "High Level System Diagram")
 
-> Create Static IP addresses within the GCE VPC host project, in the region closest to the AWS VPC. These will be used as the PeerIp(s)  
+> Create Static IP addresses within the GCE VPC host project, in the region closest to the AWS VPC. These will be used as the PeerIp(s)
 
 **NOTE:** Run within the GCE VPC host project
 
@@ -40,13 +40,13 @@ This example establishes both _static_ and _bgp_ dual tunnel VPN connections. Th
     ...
 
 
-> If a VPNGateway does not exist, use the CloudFormation template _aws-vpn-gateway.yaml_ to create and attach it to the VPC. One also controls the which Subnets see the VPN's propagated routes using the RouteTableIds parameter. In this example we want both public and private route tables to see GCP routes.  
+> If a VPNGateway does not exist, use the CloudFormation template _aws-vpn-gateway.yaml_ to create and attach it to the VPC. One also controls the which Subnets see the VPN's propagated routes using the RouteTableIds parameter. In this example we want both public and private route tables to see GCP routes.
 
     ## Get a list of VpcIds, and select VPC to connect to GCP.
     $ aws ec2 describe-vpcs
     ...
 
-    ## Get a list of associated RouteTables  
+    ## Get a list of associated RouteTables
     $ aws ec2 describe-route-tables --filters Name=vpc-id,Values=vpc-ffdd6a99
 
     ## Get a list of associated RouteTableIds and their associated Name tags
@@ -192,7 +192,7 @@ One can query the AWS VPN Gateway to provide status of the tunnels. In both case
 
 ### Iperf
 
-Performance with Iperf: In this example, 3 instances are launched in GCP and 3 in AWS. Four of the instances (2 in each environment) should live in subnets supported by the static route connection, and the last pair is intended to test the BGP connection.  
+Performance with Iperf: In this example, 3 instances are launched in GCP and 3 in AWS. Four of the instances (2 in each environment) should live in subnets supported by the static route connection, and the last pair is intended to test the BGP connection.
 
 #### GCP -> AWS
 

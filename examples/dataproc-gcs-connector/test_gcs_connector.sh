@@ -18,8 +18,8 @@ export YOUR_BUCKET=output-examples
 export YOUR_CLUSTER=dataproc-cluster
 
 Q1='DROP TABLE Names;
-CREATE TABLE Names 
- (state string, 
+CREATE TABLE Names
+ (state string,
  gender string,
  year string,
  name string,
@@ -31,12 +31,12 @@ LINES TERMINATED BY "\n"
 STORED AS TEXTFILE;'
 
 # Load data from public GCS bucket
-Q2='LOAD DATA 
+Q2='LOAD DATA
 INPATH "gs://python-dataflow-example/data_files/usa_names.csv"
 INTO TABLE Names;'
 
 Q3="DROP TABLE top_10_names;
-CREATE TABLE top_10_names 
+CREATE TABLE top_10_names
 ROW FORMAT DELIMITED
 FIELDS TERMINATED BY ','
 STORED AS TEXTFILE

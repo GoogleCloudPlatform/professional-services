@@ -21,13 +21,13 @@ rm -rf "${output_dir}"/output.json
 rm -rf "${output_dir}"/output_cmp.json
 
 
-bq query --use_legacy_sql=false --format=prettyjson "CREATE TEMP FUNCTION labels_to_sorted_string(labels ARRAY<STRUCT<key STRING, value STRING>>) 
+bq query --use_legacy_sql=false --format=prettyjson "CREATE TEMP FUNCTION labels_to_sorted_string(labels ARRAY<STRUCT<key STRING, value STRING>>)
   RETURNS STRING
   LANGUAGE js
   AS \"\"\"
   labels.sort(function(a, b) {{ return  ('' + a.key).localeCompare(b.key); }});
-  return '[' 
-  + 
+  return '['
+  +
   labels.reduce(
   (a, b) => {{
      return (a===''?'': a + ',')+'{{\"key\":\"' + b.key + '\",\"value\":\"' + b.value + '\"}}';
@@ -35,13 +35,13 @@ bq query --use_legacy_sql=false --format=prettyjson "CREATE TEMP FUNCTION labels
   +
   ']'
   \"\"\";
-  CREATE TEMP FUNCTION credit_to_sorted_string(credit ARRAY<STRUCT<name STRING, amount FLOAT64>>) 
+  CREATE TEMP FUNCTION credit_to_sorted_string(credit ARRAY<STRUCT<name STRING, amount FLOAT64>>)
   RETURNS STRING
   LANGUAGE js
   AS \"\"\"
   credit.sort(function(a, b) {{ return  ('' + a.key).localeCompare(b.key); }});
-  return '[' 
-  + 
+  return '['
+  +
   credit.reduce(
   (a, b) => {{
      return (a===''?'': a + ',')+'{{\"key\":\"' + b.key + '\",\"value\":\"' + b.value + '\"}}';
@@ -100,7 +100,7 @@ ORDER BY
   20,
   21,
   22,
-  labels_to_sorted_string(project_labels), 
+  labels_to_sorted_string(project_labels),
   labels_to_sorted_string(labels),
   credit_to_sorted_string(credits)" >> "${output_dir}"/output.json
 

@@ -3,7 +3,7 @@ A simple machine learning system capable of recommending songs given a user as a
 using collaborative filtering and TensorFlow.
 
 Unlike classic matrix factorization approaches, using a neural network allows
-user and item features to be included during training. 
+user and item features to be included during training.
 
 This example covers how distributed data preprocessing, training, and serving
 can be done on [Google Cloud Platform](https://cloud.google.com/)(GCP).

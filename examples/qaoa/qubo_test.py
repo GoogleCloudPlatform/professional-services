@@ -99,7 +99,7 @@ class _TestQuboProblem(unittest.TestCase):
 
     def test_to_qwave(self):
         # (X0|X1|X2) & (X2|X4|X5)
-        clauses = [Clause([1, 2, 3]), Clause([3, 5, 6])] 
+        clauses = [Clause([1, 2, 3]), Clause([3, 5, 6])]
         sat = Sat(clauses, 2, 'test')
         q = QuboProblem(sat)
         lines = q.to_qwave_format()

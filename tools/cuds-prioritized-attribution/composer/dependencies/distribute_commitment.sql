@@ -189,7 +189,7 @@ CREATE TEMP FUNCTION
       SUM(b.cud_credit_usage_amount) - ANY_VALUE(
       IF (pcb.BA_cud_credit_usage is NULL,
           0,
-         pcb.BA_cud_credit_usage)), ANY_VALUE(pcb.BA_purchased_committments)) as BA_commitment_cost_b, 
+         pcb.BA_cud_credit_usage)), ANY_VALUE(pcb.BA_purchased_committments)) as BA_commitment_cost_b,
       SUM(b.cud_credit_cost) - ANY_VALUE(
       IF
         (pcb.BA_cud_credit_cost IS NULL,

@@ -25,7 +25,7 @@ class EnforcePrimaryKeys(beam.PTransform):
     def __init__(self, primary_key):
         """
         Args:
-            primary_keys: (str) The column by which to ensure 
+            primary_keys: (str) The column by which to ensure
                 uniqueness in the posterior PCollection.
         """
         self.primary_key = primary_key

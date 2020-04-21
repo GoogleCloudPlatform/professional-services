@@ -95,7 +95,7 @@ Related permission documentation:
 
 If the `--disable_bucket_lock` flag is not set, the tool will check for a lock file in the bucket
 before attempting a move. If the file is found, the tool will immediately exit. If the flag is set,
-the mover will continue and attempt the move without locking down bucket permissions. 
+the mover will continue and attempt the move without locking down bucket permissions.
 
 The `lock_file_name` config variable in config.yaml file must be set. It is advised to test this
 with a locked test bucket to ensure the tool finds the file and stops operation.
@@ -105,10 +105,10 @@ and set the source project service account as the only admin on the bucket so th
 make any changes to the bucket while the mover is running. After the move is completed, the new
 bucket in the target project will have its ACL/IAM set to the original source bucket settings.
 The original source bucket ACL/IAM values are logged to Stackdriver before the bucket is locked
-down in case they need to be retrieved. 
+down in case they need to be retrieved.
 
 Object level ACLs are not looked at or modified.
- 
+
 
 ## Logging
 
@@ -116,7 +116,7 @@ Logging will happen in both the console and in Stackdriver for target project, i
 
 ## Basic Usage
 
-The tool can be run either by installing from source and running `/bin/bucket_mover` or just downloading the PEX file from `/package/gcs-bucket-mover.pex` and installing PEX [https://github.com/pantsbuild/pex]. 
+The tool can be run either by installing from source and running `/bin/bucket_mover` or just downloading the PEX file from `/package/gcs-bucket-mover.pex` and installing PEX [https://github.com/pantsbuild/pex].
 
 ```
 usage: bucket_mover [-h] [--config CONFIG]

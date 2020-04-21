@@ -3,7 +3,7 @@ This example demonstrates how to create a custom metric for Stackdriver Monitori
 estimates the number of IP's consumed in a CloudSQL private services subnet.
 ![Cloud SQL Metric Architecture](images/CloudSQL_Metric.png)
 ## Component Description
-A Stackdriver log sink at the organization level populates BigQuery with logs when a CloudSQL 
+A Stackdriver log sink at the organization level populates BigQuery with logs when a CloudSQL
 instance is created or deleted.  The metric app periodically querries BigQuery to determine
 which projects have CloudSQL instances with private networks.  This means the app can avoid
 polling the organization for a list of projects then iterating over each project to determine
@@ -16,7 +16,7 @@ organization and a count is calculated.
 This information is then converted to a StackDriver Monitoring TimeSeries which is fed to the
 StackDriver Monitoring API.
 ## Caveats
-This code is a prototype and not engineered for production use.  Error handling 
+This code is a prototype and not engineered for production use.  Error handling
 is incomplete or inappropriate for usage beyond a development sample.
 
 ## Pre-Requisites

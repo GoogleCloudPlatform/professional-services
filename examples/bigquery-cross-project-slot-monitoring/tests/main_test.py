@@ -124,7 +124,7 @@ class CopyMetricsTest(unittest.TestCase):
 
   def testCopyMetrics_MissingParameters(self):
     self.app.get(
-      '/CopyMetrics', 
+      '/CopyMetrics',
       headers={'X-AppEngine-QueueName': 'SomeQueue'},
       status=400)
 

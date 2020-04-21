@@ -1,6 +1,6 @@
 Testcase: 10_2
 Criteria: SpillOver
-Note: (L*) means a label set. Note that "project-1: (L1)" does not mean its a project label. 
+Note: (L*) means a label set. Note that "project-1: (L1)" does not mean its a project label.
 Its a user label that is attached to a vm thats part of project-1
 ========
 
@@ -16,6 +16,6 @@ Its a user label that is attached to a vm thats part of project-1
 |                 |Project-2(L2):20    |                          |Project-2(L2):20    |Project-2(L2):0     |Project-2(L2):25    |
 |                 |                    |                          |                    |                    |                    |
 |                 |Project-3(L2):35    |                          |Project-3(L2):10    |Project-3(L2):10    |Project-3(L2):0     |
-|                 |Project-4(L2):35    |                          |Project-3(L2):10    |Project-3(L2):10    |Project-3(L2):0     |     
+|                 |Project-4(L2):35    |                          |Project-3(L2):10    |Project-3(L2):10    |Project-3(L2):0     |
 |--------------------------------------------------------------------------------------------------------------------------------|
 

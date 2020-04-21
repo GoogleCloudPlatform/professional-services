@@ -179,7 +179,7 @@ function main() {
 
   # Copy GCS connector jar
   cp gcs-connector-hadoop2-latest.jar ${PARCEL_FULLNAME}/lib/hadoop/lib/
-  
+
   # Copy service account key file
   cp *.json ${PARCEL_FULLNAME}/lib/hadoop/lib/
 

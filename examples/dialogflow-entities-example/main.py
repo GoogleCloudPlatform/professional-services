@@ -64,7 +64,7 @@ This example uses futures for long-running operations returned from Google Cloud
 These futures are used asynchronously using callbacks and Operation.add_done_callback
 More info: https://googleapis.dev/python/google-api-core/1.14.3/futures.html
 """
-        result = operation_future.result()
+        operation_future.result()
 
     response.add_done_callback(callback)
 
