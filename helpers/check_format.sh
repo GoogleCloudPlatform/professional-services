@@ -45,7 +45,7 @@ validate_python() {
     # Initialize FILES_TO_LINT to empty string
     FILES_TO_LINT=""
 
-    (cd $FOLDER && flake8 --max-line-length=80 --exclude=.git,__pycache__,.venv,venv --ignore=E501,W5)
+    (cd $FOLDER && flake8 --exclude=.git,__pycache__,.venv,venv --ignore=E501,W5)
     if [ $? -ne 0 ]
     then
        need_formatting $FOLDER
