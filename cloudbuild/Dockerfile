@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y build-essential
 # install yapf
 RUN pip install yapf
 RUN pip3 install yapf
+RUN pip3 install flake8
 
 # install golang (+gofmt)
 RUN apt-get install -y golang
