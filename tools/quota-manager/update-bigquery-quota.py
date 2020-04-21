@@ -20,44 +20,48 @@ This example demonstrates BigQuery quotas to the amount
 of data processed per project and per user.
 """
 
-__author__ = 'yunusd@google.com (Yunus Durmus)'
+__author__ = "yunusd@google.com (Yunus Durmus)"
 
 import sys
 import logging
 import argparse
 import quota
 
-logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s',
-                    datefmt='%d/%m/%Y %H:%M:%S',
-                    level=logging.INFO)
+logging.basicConfig(
+    format="%(asctime)s %(levelname)s:%(message)s",
+    datefmt="%d/%m/%Y %H:%M:%S",
+    level=logging.INFO,
+)
 
 
 def parse_args(args):
     parser = argparse.ArgumentParser(
-        description='update bigquery quotas of a project', prog="quota updater")
+        description="update bigquery quotas of a project",
+        prog="quota updater")
     parser.add_argument(
-        '-c',
-        '--credential_path',
+        "-c",
+        "--credential_path",
         required=True,
-        help=
-        "relative or absolute path of the service account's credential.json file."
+        help="path to the service account's credential.json file.",
     )
-    parser.add_argument('-p',
-                        '--project_id',
+    parser.add_argument("-p",
+                        "--project_id",
                         required=True,
                         help="id of the project")
     parser.add_argument(
-        '-uq',
-        '--user_quota',
+        "-uq",
+        "--user_quota",
         required=False,
-        default='-1',
-        help="quota per user in MiB, -1 for unlimited, default=-1")
+        default="-1",
+        help="quota per user in MiB, -1 for unlimited, default=-1",
+    )
     parser.add_argument(
-        '-pq',
-        '--project_quota',
+        "-pq",
+        "--project_quota",
         required=False,
-        default='-1',
-        help="quota per project in MiB, -1 for unlimited, default=-1")
+        default="-1",
+        help="quota per project in MiB, -1 for unlimited, default=-1",
+    )
 
     return parser.parse_args(args)
 
@@ -67,8 +71,8 @@ def get_list_of_all_quotas(project_id, credential_path, service_name):
     quota.Updater(
         project_id=project_id,
         credential_path=credential_path,
-        quota_name="not_important")\
-        .get_all_consumer_quota_metrics('bigquery.googleapis.com')
+        quota_name="not_important",
+    ).get_all_consumer_quota_metrics("bigquery.googleapis.com")
 
 
 def main(project_id, credential_path, user_quota, project_quota):
@@ -84,27 +88,33 @@ def main(project_id, credential_path, user_quota, project_quota):
     mib_per_user_quota_updater = quota.Updater(
         project_id=project_id,
         credential_path=credential_path,
-        quota_name=(mib_per_project_quota_name + "%2Fuser"))
+        quota_name=(mib_per_project_quota_name + "%2Fuser"),
+    )
     # logging.info(mib_per_user_quota_updater.get_current_quota())
     mib_per_user_quota_updater.update_quota(user_quota)
 
     mib_per_project_quota_updater = quota.Updater(
         project_id=project_id,
         credential_path=credential_path,
-        quota_name=mib_per_project_quota_name)
+        quota_name=mib_per_project_quota_name,
+    )
     # logging.info(mib_per_project_quota_updater.get_current_quota())
     mib_per_project_quota_updater.update_quota(project_quota)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     namespace = parse_args(sys.argv[1:])
 
-    get_list_of_all_quotas(project_id=namespace.project_id,
-                           credential_path=namespace.credential_path,
-                           service_name='bigquery.googleapis.com')
+    get_list_of_all_quotas(
+        project_id=namespace.project_id,
+        credential_path=namespace.credential_path,
+        service_name="bigquery.googleapis.com",
+    )
 
-    main(project_id=namespace.project_id,
-         credential_path=namespace.credential_path,
-         user_quota=namespace.user_quota,
-         project_quota=namespace.project_quota)
+    main(
+        project_id=namespace.project_id,
+        credential_path=namespace.credential_path,
+        user_quota=namespace.user_quota,
+        project_quota=namespace.project_quota,
+    )
