@@ -58,7 +58,7 @@ gcloud ml-engine jobs submit training $JOBNAME \
   --train_steps=50000
 ```
 
-### Training on GPU: 
+### Training on GPU:
 ```shell
 OUTDIR=gs://$BUCKET/babyweight/hooks_gpu
 JOBNAME=babyweight_$(date -u +%y%m%d_%H%M%S)

@@ -23,7 +23,7 @@ from dataflow_python_examples.data_lake_to_mart_cogroupbykey import DataLakeToDa
 
 
 class TestHandlers(unittest.TestCase):
-    """The test cases are focused on the business logic.  In this case this is how we parse the data, transform the types 
+    """The test cases are focused on the business logic.  In this case this is how we parse the data, transform the types
     and join datasets."""
 
     def setUp(self):

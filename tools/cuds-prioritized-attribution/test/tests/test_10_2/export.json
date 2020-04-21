@@ -133,7 +133,7 @@
         "key": "area",
         "value": "bigdata"
       }
-      
+
     ],
     "system_labels": [],
     "location": {
@@ -307,36 +307,36 @@
     },
     "cost_type": "regular"
   }
-  {  
+  {
    "billing_account_id":"00F3D8-28D652-3F036F",
-   "service":{  
+   "service":{
       "id":"6F81-5844-456A",
       "description":"Compute Engine"
    },
-   "sku":{  
+   "sku":{
       "id":"5aa0-d2cc-1da8",
       "description":"commitment v1: ram in americas for 3 year"
    },
    "usage_start_time":"2019-01-21 08:25:11.227 UTC",
    "usage_end_time":"2019-01-21 12:25:14.792 UTC",
-   "project":{  
+   "project":{
       "id":"project-1",
       "name":"project-1",
-      "labels":[  
+      "labels":[
 
       ],
       "ancestry_numbers":"/433637338589/396521612401/"
    },
-   "labels":[  
-      {  
+   "labels":[
+      {
          "key":"env",
          "value":"prod"
       }
    ],
-   "system_labels":[  
+   "system_labels":[
 
    ],
-   "location":{  
+   "location":{
       "location":"us-west1",
       "country":"US",
       "region":"us-west1",
@@ -346,13 +346,13 @@
    "cost":"100.0",
    "currency":"USD",
    "currency_conversion_rate":"1.0",
-   "usage":{  
+   "usage":{
       "amount":"100.0",
       "unit":"gibibyte hour",
       "amount_in_pricing_units":"100.0",
       "pricing_unit":"gibibyte hour"
    },
-   "invoice":{  
+   "invoice":{
       "month":"201901"
    },
    "cost_type":"regular"

@@ -21,7 +21,7 @@ from ml_dataprep import bqclient
 from unittest import TestCase
 
 class TestBqClient(TestCase):
-    
+
     _bq_client = bqclient.BqClient()
 
     def test_build_table_uri(self):

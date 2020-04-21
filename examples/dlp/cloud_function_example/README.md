@@ -1,5 +1,5 @@
 # Redacting Sensitive Data Using the DLP API
-  
+
 This example illustrates how to use the DLP api in a Cloud Function to redact
 sensitive data from log exports. The scrubbed logs will then be posted to a
 Pub/Sub topic to be ingested elsewhere.

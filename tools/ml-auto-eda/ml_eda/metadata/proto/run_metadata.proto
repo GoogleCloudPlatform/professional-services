@@ -47,7 +47,7 @@ message Datasource {
     optional string location = 3;
     // The target column
     optional Attribute target = 4;
-    // The features 
+    // The features
     repeated Attribute features = 5;
 }
 

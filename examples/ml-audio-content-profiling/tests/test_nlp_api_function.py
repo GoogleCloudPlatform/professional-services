@@ -77,13 +77,13 @@ class TestNLPAPIFunction(unittest.TestCase):
         setattr(response, 'language', "en")
 
         text = """
-             I'm pretty good. It's been a long week, but you know pretty good 
+             I'm pretty good. It's been a long week, but you know pretty good
              very excited about a very cool episode about public data sets.
              """
         actual_result = main.format_nlp_api_results(response, text)
         expected_result = {
             'text': """
-                    I'm pretty good. It's been a long week, but you know pretty good 
+                    I'm pretty good. It's been a long week, but you know pretty good
                     very excited about a very cool episode about public data sets.
                     """,
             'nlp_response': [

@@ -23,7 +23,7 @@ sys.path.append('..')
 from composer.dependencies import commitment_intervals
 from composer.dependencies import commitments_schema
 from composer.dependencies import helper_function
-from composer.dependencies import (commitment_intervals, 
+from composer.dependencies import (commitment_intervals,
                                     commitments_schema, helper_function)
 SQL_LOCATION = '../composer/dependencies'
 BILLING_OUTPUT_SQL = 'billingoutput.sql'
@@ -35,7 +35,7 @@ def render_template(template_path, params):
     env = Environment(loader=file_loader)
     template = env.get_template(template_path)
     return template.render(params=params)
- 
+
 
 def execute_query(bq_client: bigquery.Client, env_vars: {}, query_path: object,
                   output_table_name: str, time_partition: bool) -> None:

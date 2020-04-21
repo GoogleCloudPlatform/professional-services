@@ -16,7 +16,7 @@
 # limitations under the License.
 """
 This script is an example showing the usage of quota.Updater class.
-This example demonstrates BigQuery quotas to the amount 
+This example demonstrates BigQuery quotas to the amount
 of data processed per project and per user.
 """
 

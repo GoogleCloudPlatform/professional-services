@@ -17,8 +17,8 @@
 # libraries. The source is on github at:
 #   https://github.com/GoogleCloudPlatform/python-docker
 
-# This code is a prototype and not engineered for production use. 
-# Error handling is incomplete or inappropriate for usage beyond 
+# This code is a prototype and not engineered for production use.
+# Error handling is incomplete or inappropriate for usage beyond
 # a development sample.
 
 FROM gcr.io/google-appengine/python
@@ -33,4 +33,4 @@ RUN pip install -r /app/requirements.txt
 
 ADD . /app
 
-ENTRYPOINT [ "python", "main.py" ] 
+ENTRYPOINT [ "python", "main.py" ]

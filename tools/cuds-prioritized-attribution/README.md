@@ -2,9 +2,9 @@ Introduction
 ============
 Committed Use Discounts (CUDs) are an important self-serve pricing model for GCP, allowing any customer to receive a substantial discount by committing to use a minimum quantity of concurrent GCE resources.
 
-Despite the popularity of the CUD pricing model, the current implementation does not properly cater to the needs of some large enterprise organizations. At many large enterprises, each sponsor makes decisions independently about what quantity of commitments to sign up for. This is critical because workload patterns vary substantially across business units, and each sponsor has the deepest knowledge about the stability of their own business unit’s current and future usage. 
+Despite the popularity of the CUD pricing model, the current implementation does not properly cater to the needs of some large enterprise organizations. At many large enterprises, each sponsor makes decisions independently about what quantity of commitments to sign up for. This is critical because workload patterns vary substantially across business units, and each sponsor has the deepest knowledge about the stability of their own business unit’s current and future usage.
 
-The goal of this solution is to allow  a customer  to prioritize a given scope (e.g. project, folder), where the discount for a given commitment tranche be applied first before letting any unconsumed discount float out to other parts of the organization. 
+The goal of this solution is to allow  a customer  to prioritize a given scope (e.g. project, folder), where the discount for a given commitment tranche be applied first before letting any unconsumed discount float out to other parts of the organization.
 
 This solution creates a Cloud Composer environment with an Airflow DAG and executes three queries in BigQuery. These queries result in a new table in BigQuery, which matches the schema of the original billing export table. This new table contains the correctly attributed CUD/SUD data.
 
@@ -17,7 +17,7 @@ This project assumes that you already have a project set up with billing data ex
 
 Requirements
 ============
-1. Your project must have a VPC created in order to create a Composer environment. The project's default network will be used if no specific network is specified during the Composer setup. If your project does not have any VPCs, you must either create a custom VPC, use a shared VPC, or recreate the default network. You can view the documentation about how to specify the network in the [Composer creation page](https://cloud.google.com/composer/docs/how-to/managing/creating). 
+1. Your project must have a VPC created in order to create a Composer environment. The project's default network will be used if no specific network is specified during the Composer setup. If your project does not have any VPCs, you must either create a custom VPC, use a shared VPC, or recreate the default network. You can view the documentation about how to specify the network in the [Composer creation page](https://cloud.google.com/composer/docs/how-to/managing/creating).
 
 2. Your organization cannot have enabled [domain restricted sharing](https://cloud.google.com/resource-manager/docs/organization-policy/restricting-domains)  as an organization policy. If it is enabled, you must disable it prior to deploying. You can reenable it after the Composer environment has been created.
 
@@ -45,7 +45,7 @@ Step 4. [View Results](#view-results)
 
 1. Install Terraform [here](https://learn.hashicorp.com/terraform/getting-started/install)
 
-2. In your terminal type: 
+2. In your terminal type:
 
 ````
 git clone https://github.com/GoogleCloudPlatform/professional-services
@@ -61,7 +61,7 @@ cd tools/cuds-prioritized-attribution/terraform/
 associated variables that are provided. If you would like to provide additional variables, you
 can see those that are used with default values in `variables.tf`. Provide the name in the same
 format in your `terraform.tfvars` file to override the default value.
-You must edit the project_id, billing_export_table_path, billing_export_location, 
+You must edit the project_id, billing_export_table_path, billing_export_location,
 corrected_dataset_id, and commitment_table_path.
 
 Here is an example of a `terraform.tfvars` file:
@@ -86,9 +86,9 @@ yes
 
 **Note that deploying the Cloud Composer environment will take about an hour to deploy.**
 
-Everything will be deployed. 
-While the Composer environment is being created, you can skip ahead to upload your commitments. 
-Ensure that Terraform did not produce any errors about the BigQuery dataset before doing so. 
+Everything will be deployed.
+While the Composer environment is being created, you can skip ahead to upload your commitments.
+Ensure that Terraform did not produce any errors about the BigQuery dataset before doing so.
 
 If you entered `terraform apply` more than once and see an error about failing to remove owners from a dataset, this is expected. At the time of this release, Terraform does not allow per-user additive permissions on datasets. Because of this, it will try to remove the owners from the dataset after the initial creation and fail to do so. You can ignore this error as long as it worked successfully on the initial apply.
 
@@ -96,7 +96,7 @@ For any others errors, you can view them in the [FAQ](#faq) to resolve common is
 
 6. Proceed to [step 2](#step-2) instructions about granting BigQuery viewer permissions on the exported billing data and uploading your commitment information.
 
-### Option 1b 
+### Option 1b
 
 <h2>Deploy via gcloud SDK in a new GCP Project</h2>
 
@@ -147,7 +147,7 @@ gcloud config set project $PROJECT
 gcloud services enable bigquery-json.googleapis.com
 ````
 
-2. Enable Cloud Composer (this may take a few minutes. Wait until you receive a success 
+2. Enable Cloud Composer (this may take a few minutes. Wait until you receive a success
 message)
 
 ````
@@ -181,14 +181,14 @@ export MEMBER=serviceAccount:$SERVICE_ACCOUNT
 
 export ROLE=projects/$PROJECT/roles/cud_correction_role
 
-gcloud projects add-iam-policy-binding $PROJECT --member=$MEMBER --role=$ROLE 
+gcloud projects add-iam-policy-binding $PROJECT --member=$MEMBER --role=$ROLE
 
 gcloud projects add-iam-policy-binding $PROJECT --member=$MEMBER --role=roles/composer.worker
 ````
 
 <h3>Create New Dataset and Set up BigQuery Permissions</h3>
 
-1. Open up the [BigQuery UI](https://pantheon.corp.google.com/bigquery). 
+1. Open up the [BigQuery UI](https://pantheon.corp.google.com/bigquery).
 
 2. Under 'Resources' on the left-hand side, click on your project name.
 
@@ -197,7 +197,7 @@ gcloud projects add-iam-policy-binding $PROJECT --member=$MEMBER --role=roles/co
 ![create dataset](img/create_dataset.png)
 
 4. Enter details:
-* For the id, enter what you want to name the dataset, such as `cud_corrected_dataset`. <b>Note this id as you will need it when creating the Composer environment.</b> 
+* For the id, enter what you want to name the dataset, such as `cud_corrected_dataset`. <b>Note this id as you will need it when creating the Composer environment.</b>
 * <b>For location, choose the same location as your Exported Billing Dataset. For example, if you are a European customer and your billing data resides in the EU, you must make this location also be the EU.</b>
 * For expiration, choose 'Never'.
 * Click 'Create Dataset'.
@@ -206,7 +206,7 @@ gcloud projects add-iam-policy-binding $PROJECT --member=$MEMBER --role=roles/co
 
 5. On the right-hand side, click 'Share Dataset'.
 
-6. In the opened panel, enter the service account email from 'Create Service Account' under 'Add member'. 
+6. In the opened panel, enter the service account email from 'Create Service Account' under 'Add member'.
 
 7. In 'Select Role', choose 'BigQuery Data Editor'.
 
@@ -230,11 +230,11 @@ where `[LOCATION]` is the region of your billing export data, either us, eu, or 
 cd tools/cuds-prioritized-attribution/composer/
 ````
 
-2. Create the Composer environment. This depends on the new BigQuery dataset that you created when you opened up the BigQuery UI. 
+2. Create the Composer environment. This depends on the new BigQuery dataset that you created when you opened up the BigQuery UI.
 
 <b>Note: this will take about an hour to complete.</b>
 
-* <b>Network Specification: </b> Your project must have a VPC created in order for composer to create an environment. You do not need to specify a network if the project has the default network created. If you deleted the default network or have the "Skip default network creation" policy enforced, the environment creation will fail. To resolve this, you must add the `network` flag to the gcloud command and specify the VPC to use. You will then also have to add the `subnetwork` flag to specify the subnetwork from either your custom VPC or shared VPC. Alternatively, you can also recreate the [default network](https://cloud.google.com/vpc/docs/vpc#default-network) as described here. 
+* <b>Network Specification: </b> Your project must have a VPC created in order for composer to create an environment. You do not need to specify a network if the project has the default network created. If you deleted the default network or have the "Skip default network creation" policy enforced, the environment creation will fail. To resolve this, you must add the `network` flag to the gcloud command and specify the VPC to use. You will then also have to add the `subnetwork` flag to specify the subnetwork from either your custom VPC or shared VPC. Alternatively, you can also recreate the [default network](https://cloud.google.com/vpc/docs/vpc#default-network) as described here.
 
 * <b>Disable Domain Restricted Sharing: </b> If your organization has enabled the policy for [disabling domain restricting](https://cloud.google.com/resource-manager/docs/organization-policy/restricting-domains) sharing, you must disable it at this time. You can reenable after the deployment is complete.
 
@@ -244,12 +244,12 @@ gcloud beta composer environments create cud-correction-env --location [LOCATION
   --airflow-configs=update-pypi-packages-from-file=requirements.txt \
   --env-variables=billing_export_table_name=[BILLING_PROJ.BILLING_DATASET.BILLING_TABLE],corrected_dataset_id=[CORRECTED_DATASET],corrected_table_name=[CORRECTED_TABLE],commitments_table_name=[PROJECT.DATASET.COMMITMENT_TABLE],enable_cud_cost_attribution=false,project_id=$PROJECT,cud_cost_attribution_option=a
 ````
-where 
+where
 * `[LOCATION]` is the Compute Engine region where you want to create the environment, such as `us-central1` or `europe-west1`.
 * `[BILLING_PROJECT.BILLING_DATASET.BILLING_TABLE]` is the path to your original billing export table.
 * `[CORRECTED_DATASET]` is the ID of the new dataset that you created in BigQuery.
 * `[CORRECTED_TABLE]` is the table ID that you would like to name the new table created by this solution (suggestion: `corrected_billing_export_table`).
-* `[PROJECT.DATASET.COMMITMENT_TABLE]` is the path to where you will upload your commitments table in BQ. This upload is performed in [step 3](#step-3). 
+* `[PROJECT.DATASET.COMMITMENT_TABLE]` is the path to where you will upload your commitments table in BQ. This upload is performed in [step 3](#step-3).
 *  `cud_cost_attribution_option` is the type of cost attribution to perform if `enable_cud_cost_attribution` is true. Choose `a` if all of the cost is attributed within the scope (default). Choose `b` if a project that is not part of the scope gets any CUD, it also incures the cost. Any remaining cost (of any unallocated commit) is attributed within the scope.
 
 Here is an example command:
@@ -273,7 +273,7 @@ where `[LOCATION]` is the Compute Engine region specified in the step above when
 ### Step 2
 <h3>Grant Viewer Permissions of Exported Billing Data for Service Account</h3>
 
-1. Open up the [BigQuery UI](https://pantheon.corp.google.com/bigquery). 
+1. Open up the [BigQuery UI](https://pantheon.corp.google.com/bigquery).
 
 2. Under 'Resources' on the left-hand side, click on your project name where the exported billing dataset lives.
 
@@ -281,7 +281,7 @@ where `[LOCATION]` is the Compute Engine region specified in the step above when
 
 4. On the right-hand side, click 'Share Dataset'.
 
-5. In the opened panel, enter the service account email in the format of,`cascada-user@PROJECT.iam.gserviceaccount.com`, under 'Add member'. 
+5. In the opened panel, enter the service account email in the format of,`cascada-user@PROJECT.iam.gserviceaccount.com`, under 'Add member'.
 
 6. In 'Select Role', choose 'BigQuery Data Viewer'.
 
@@ -303,7 +303,7 @@ where `[LOCATION]` is the Compute Engine region specified in the step above when
 id,folder_ids,project_ids,commitments_unit_type,commitments_cud_type,commitments_amount,commitments_region,commit_start_date,commit_end_date
 """1""",null,"project-1,project-2",RAM,Regular Usage,100,us-west1,2017-01-01,2020-01-01
 ````
-Notes: 
+Notes:
 * Each row represents a singular purchased commitment.
 * For `commitments_unit_type`, the supported values are either `RAM` or `CPU`.
 * For `commitments_cud_type`, the supported values are either `Regular Usage` or `Memory Optimized Usage`.
@@ -319,9 +319,9 @@ Notes:
 
 2a. You can do this in the UI by clicking 'Create Table' once you select a dataset:
 * For source, choose the CSV file that you downloaded with your information.
-* For destination, choose the `corrected_dataset_id` that you previously created. For table name, 
+* For destination, choose the `corrected_dataset_id` that you previously created. For table name,
 enter the value that you used for `commitment_table_name` in the Composer environment.
-* For schema, toggle 'Edit as Text'. Copy and paste the JSON found in `terraform/commitments_schema.json`. 
+* For schema, toggle 'Edit as Text'. Copy and paste the JSON found in `terraform/commitments_schema.json`.
 
 ![](img/commitments_table_upload.png)
 
@@ -372,9 +372,9 @@ This means that your organization has the organization policy of [Domain Restric
 3. `Terraform: Cannot remove all owners from a dataset., invalid
   on main.tf line 71, in resource "google_bigquery_dataset" "corrected_dataset":
   71: resource "google_bigquery_dataset" "corrected_dataset" {`
-  
+
   This is expected. This will occur if you enter `terraform apply` more than once. At the time of this release, Terraform does not allow allow additive permissions on BigQuery datasets. This means that it is not possible to update existing ACLs on a per use-case basis. You can ignore this error.
-  
+
 4. `BigQuery fails to execute the query due to different dataset regions`
 
 All of the datasets used in this solution must reside in the same region. Your exported billing data most likely resides in your company's location (if you are a European company, it is probably in the EU. If you are in the US, your dataset is probably in the US.) To resolve this, verify that the dataset containing the `commitments_table` and the `cud_corrected_dataset` are in the same region as your billing data. You can update the location of a dataset following these [instructions](https://cloud.google.com/bigquery/docs/locations#moving-data).

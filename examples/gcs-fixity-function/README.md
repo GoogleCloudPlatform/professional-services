@@ -20,7 +20,7 @@ _* If function is invoked by listening to changes on a GCS bucket, then Fixity i
 This Fixity function is configured for 1 Google Cloud Storage bucket containing any number of Bags.
 
 ### Bags
-Bags should be created using the [BagIt Specification (RFC 8493)](https://tools.ietf.org/html/rfc8493). A Bag is a directory in a GCS bucket that contains a `data/` directory containing archived files. 
+Bags should be created using the [BagIt Specification (RFC 8493)](https://tools.ietf.org/html/rfc8493). A Bag is a directory in a GCS bucket that contains a `data/` directory containing archived files.
 
 Any number of bags can be created in a GCS bucket, **as long as each bag contains a `data/` directory**. In the following example, this function will recognize 4 bags: `collection-europe/italy/`, `collection-europe/france/`, `collection-na/1700s/`, and `uncategorized/`.
 ```

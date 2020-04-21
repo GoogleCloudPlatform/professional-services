@@ -45,7 +45,7 @@
       https://github.com/GoogleCloudPlatform/professional-services/tree/master/tools/maven-archetype-dataflow
     </url>
   </scm>
-  
+
   <url>https://github.com/GoogleCloudPlatform/professional-services/tree/master/tools/maven-archetype-dataflow</url>
 
   <properties>

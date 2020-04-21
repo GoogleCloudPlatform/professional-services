@@ -1,8 +1,8 @@
 Purpose:
 ========
-Test the queries in main.py for different test scenarios of billing export and commitments data in "tests" folder. 
-At the end separate output tables are created for different scenarios. The expected data are also loaded into separate 
-Bigquery tables and actual output tables data are compared against expected. 
+Test the queries in main.py for different test scenarios of billing export and commitments data in "tests" folder.
+At the end separate output tables are created for different scenarios. The expected data are also loaded into separate
+Bigquery tables and actual output tables data are compared against expected.
 It uses python's "pytest" framework.
 
 For each test case, the test case write should manually validate the output and examine and run the following query to export the data
@@ -58,7 +58,7 @@ ORDER BY
   20,
   21,
   22,
-  labels_to_sorted_string(project_labels), 
+  labels_to_sorted_string(project_labels),
   labels_to_sorted_string(labels),
   credit_to_sorted_string(credits)" >> expected_billingexport_output.json
 
@@ -69,7 +69,7 @@ Test script name: test_file_based_comparision.py
 
 This script loads data into Bigquery dataset as specified in property file and runs the query. It has the test logic and then test cases get generated automatically based on test data. Each test case is run with the logic and "assert" statement compares the actual output with expected data.
 
-Property File : pytest.properties 
+Property File : pytest.properties
 
 This is to export the environment variables that ../source/main.py is expecting
 

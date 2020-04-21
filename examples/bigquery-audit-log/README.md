@@ -23,14 +23,14 @@ A short description relevant to our use case is presented below -
 1. In the GCP Cloud Console select the project you want to export the logs to. Go to Stackdriver --> Logging --> Exports.
 2. Click on Create Export. Select the following in the drop down menu: "BigQuery", "All logs", "Any log level", "No limit" and "Jump to now" respectively.
 3. In the configuration windows on the right side of the screen, enter a Sink Name of your choice. Select BigQuery as Sink Service. Select the "BigQuery Audit" (refer to Prerequisites) dataset as the Sink Destination.
-4. Click on Create Sink. 
+4. Click on Create Sink.
 5. A message box pops up to notify you of successful creation. Click on Close.
 6. Click on the Play button located on the top bar to start the export.
 
 ### 2. Scheduling a BigQuery job
-Use the SQL script in the file bigquery_audit_log.sql (located in this GitHub folder) to create a scheduled query in BigQuery. Click [here](https://cloud.google.com/bigquery/docs/scheduling-queries) for instructions on how to create scheduled queries. 
+Use the SQL script in the file bigquery_audit_log.sql (located in this GitHub folder) to create a scheduled query in BigQuery. Click [here](https://cloud.google.com/bigquery/docs/scheduling-queries) for instructions on how to create scheduled queries.
 
-Create a materialized table that stores data from the scheduled query. 
+Create a materialized table that stores data from the scheduled query.
 You can give it a custom name, we will be referring to it as **bigquery_audit_log**.
 
 ### 3. Copying the data source in Data Studio

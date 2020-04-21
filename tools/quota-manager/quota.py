@@ -29,32 +29,32 @@ logger = logging.getLogger(__name__)
 class Updater:
     """Updates the project quotas via API calls.
 
-    GCP quota update is possible via console or APIs. 
+    GCP quota update is possible via console or APIs.
     Here we explain how to achieve quota updates via APIs programmatically.
-    Service Quota model is explained in https://cloud.google.com/service-usage/docs/service-quota-model 
+    Service Quota model is explained in https://cloud.google.com/service-usage/docs/service-quota-model
     The details of quota update mechanism can be found in https://cloud.google.com/service-usage/docs/manage-quota
     The rest api reference is in https://cloud.google.com/service-usage/docs/reference/rest
 
-    Briefly; each service has a unique name/parent to identify it.  
-    Each quota limit has a default value for all consumers, 
-    set by the service owner. 
+    Briefly; each service has a unique name/parent to identify it.
+    Each quota limit has a default value for all consumers,
+    set by the service owner.
     This default value can be changed by a quota override.
     So when you update a quota, in fact you simply create a
-     "consumerOverride" or "adminOverride". 
-     adminOverride should be done from a parent folder 
+     "consumerOverride" or "adminOverride".
+     adminOverride should be done from a parent folder
      or organization while consumer is per project.
-     In this class we only use consumerOverride since many quotas are project 
+     In this class we only use consumerOverride since many quotas are project
      specific, not folder or org level.
-     How they relate is explained in 
+     How they relate is explained in
      https://cloud.google.com/service-usage/docs/service-quota-model#computing_quota_limit
-     Details of adminOverride: 
+     Details of adminOverride:
      https://cloud.google.com/service-usage/docs/reference/rest/v1beta1/services.consumerQuotaMetrics.limits.adminOverrides/create
 
-    The override operation is asynchronous so we poll the callback 
-    "operation" api to see the outcome. This class polls the operation for 
+    The override operation is asynchronous so we poll the callback
+    "operation" api to see the outcome. This class polls the operation for
     a minute. Mostly in 5-10 seconds it is done.
 
-    The service account that runs this code should have 
+    The service account that runs this code should have
     roles/serviceusage.serviceUsageAdmin role on the project.
     """
 
@@ -63,15 +63,15 @@ class Updater:
 
         Args:
             project_id: id or number of the project to be updated
-            credential_path: relative or absolute path of the 
-               JSON key for the service account with 
+            credential_path: relative or absolute path of the
+               JSON key for the service account with
                roles/serviceusage.serviceUsageAdmin role
-            quota_name: the name of the quota. If you don't know, 
+            quota_name: the name of the quota. If you don't know,
                pass an empty string and then call "get_all_consumer_quota_metrics"
-               method with the api such as compute.googleapis.com. You should 
+               method with the api such as compute.googleapis.com. You should
                find the name under 'consumerQuotaLimits'
-               For instance BigQuery project quota name is: 
-              projects/YOUR_PROJECT_ID/services/bigquery.googleapis.com/consumerQuotaMetrics/bigquery.googleapis.com%2Fquota%2Fquery%2Fusage/limits/%2Fd%2Fproject    
+               For instance BigQuery project quota name is:
+              projects/YOUR_PROJECT_ID/services/bigquery.googleapis.com/consumerQuotaMetrics/bigquery.googleapis.com%2Fquota%2Fquery%2Fusage/limits/%2Fd%2Fproject
         """
         self.__project_id = project_id
         self.__quota_name = quota_name
@@ -92,7 +92,7 @@ class Updater:
                                        service_name='bigquery.googleapis.com'):
         """prints all the quotas of a service
 
-        This is a helper function to figure out the name of the metrics. 
+        This is a helper function to figure out the name of the metrics.
         Later you provide the names to the Updater class.
 
         Args:
@@ -148,7 +148,7 @@ class Updater:
         If there is an override, we patch it. Otherwise we create a new override.
 
         The create and patch calls return an operation object. We track that object
-        for 1 minute max. We record the outcome either error or success. 
+        for 1 minute max. We record the outcome either error or success.
 
         Args:
             new_quota: the new quota value in string.

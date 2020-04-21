@@ -14,7 +14,7 @@ Create an instance of BQPipeline. By setting query_project, default_project and 
 `query_project` is the project that will be billed for queries.
 
 `default_project` is the project used when a tablespec does not specify a project.
- 
+
 `default_dataset` is the dataset used when a tablespec does not specify project or dataset.
 
 Place files containing a single BigQuery Standard SQL statement per file.
