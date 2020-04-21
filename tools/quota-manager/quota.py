@@ -31,9 +31,9 @@ class Updater:
 
     GCP quota update is possible via console or APIs.
     Here we explain how to achieve quota updates via APIs programmatically.
-    Service Quota model is explained in 
+    Service Quota model is explained in
     https://cloud.google.com/service-usage/docs/service-quota-model
-    The details of quota update mechanism can be found in 
+    The details of quota update mechanism can be found in
     https://cloud.google.com/service-usage/docs/manage-quota
     The rest api reference is in https://cloud.google.com/service-usage/docs/reference/rest
 
