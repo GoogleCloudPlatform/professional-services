@@ -36,8 +36,7 @@ logging.basicConfig(
 
 def parse_args(args):
     parser = argparse.ArgumentParser(
-        description="update bigquery quotas of a project",
-        prog="quota updater")
+        description="update bigquery quotas of a project", prog="quota updater")
     parser.add_argument(
         "-c",
         "--credential_path",
