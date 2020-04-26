@@ -285,7 +285,7 @@ class APISchema(object):
         }]
         if include_resource:
             resource_schema = list(schema)
-            last_modified, _ = bigquery_schema.get_field_by_name(
+            _, last_modified = bigquery_schema.get_field_by_name(
                 resource_schema,
                 'lastModifiedTime')
             if not last_modified:
