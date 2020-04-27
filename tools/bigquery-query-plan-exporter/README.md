@@ -11,7 +11,7 @@ Query plan exporter is designed to be the enterprise version of `bq show -j --fo
 
 If a user knows what they are looking for, they can pipe the output of the query plan exporter to another python program that uses `json.loads` on each line of stdin and flags queries with high shuffle bytes, wait ratio, or slot ms usage. An analysis program might print the tables involved and SQL query or print the full plan to be piped to yet another program. Each program in the chain may filter, transform or extract information from the query plan in a different way.
 
-## Sharing Query Plans with Support 
+## Sharing Query Plans with Support
 
 It's a common use case to capture query plans without analyzing them immediately. What information needs to be extracted and exactly which queries to extract it from is not necessarily known in advance. In support cases, users willoften simply want to hand over a bundle of logs to a support engineer who doesn't have access to the project.
 

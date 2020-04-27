@@ -18,7 +18,7 @@ CREATE TEMP FUNCTION
   AS (IF(denominator = 0,
         0,
         numerator / denominator));
-        
+
 CREATE TEMP FUNCTION labels_to_sorted_string(labels ARRAY<STRUCT<key STRING, value STRING>>)
   RETURNS STRING
   LANGUAGE js
@@ -36,11 +36,11 @@ return (a===''?'': a + ',')+'{"key":"' + b.key + '","value":"' + b.value + '"}';
 (
 WITH
 billing_export_table AS (
-  SELECT 
-    b.* 
-  FROM 
+  SELECT
+    b.*
+  FROM
     `{{ params.billing_export_table_name }}` b
-  WHERE 
+  WHERE
     CAST(DATETIME(usage_start_time, "America/Los_Angeles") AS DATE) >= "2018-09-20"),
 
 usage_data AS (
@@ -84,7 +84,7 @@ usage_data AS (
   )
   -- Filter to time range when necessary columns (region) were released into Billing BQ Export
   AND CAST(DATETIME(usage_start_time, "America/Los_Angeles") AS DATE) >= "2018-09-20"),
-  
+
 -- Create temporary table prices, in order to calculate unit price per (date, sku, region) tuple.
 -- Export table only includes the credit dollar amount in the credit.amount field. We can get the credit
 -- usage amount (e.g. core hours) by dividing credit.amount by unit price for that sku.
@@ -106,7 +106,7 @@ prices AS (
       0,
       SUM(cost) / SUM(usage_amount)) AS unit_price
   FROM
-    usage_data 
+    usage_data
   GROUP BY 1,2,3),
 
 -- sku_metadata temporary table captures information about skus, such as CUD eligibility,
@@ -124,34 +124,34 @@ sku_metadata AS (
             OR LOWER(sku_description) LIKE "%micro%"
             OR LOWER(sku_description) LIKE "%small%"
             OR LOWER(sku_description) LIKE "%extended%" ) THEN "Ineligible Usage"
-      WHEN ( (LOWER(sku_description) LIKE "%instance%" 
-            OR LOWER(sku_description) LIKE "% intel %") 
-            OR LOWER(sku_description) LIKE "%core%" 
+      WHEN ( (LOWER(sku_description) LIKE "%instance%"
+            OR LOWER(sku_description) LIKE "% intel %")
+            OR LOWER(sku_description) LIKE "%core%"
             OR LOWER(sku_description) LIKE "%ram%" ) THEN "Eligible Usage"
       ELSE NULL
       END AS usage_type,
     CASE
-      WHEN ( LOWER(sku_description) LIKE "%megamem%" 
-            OR LOWER(sku_description) LIKE "%ultramem%" 
+      WHEN ( LOWER(sku_description) LIKE "%megamem%"
+            OR LOWER(sku_description) LIKE "%ultramem%"
             OR LOWER(sku_description) LIKE "%memory optimized%" ) THEN "Memory Optimized Usage"
       ELSE "Regular Usage"
       END AS cud_type,
     CASE
-      WHEN LOWER(sku_description) LIKE "%americas%" 
+      WHEN LOWER(sku_description) LIKE "%americas%"
             OR LOWER(sku_description) LIKE "%los angeles%"
-            OR LOWER(sku_description) LIKE "%sao paulo%" 
+            OR LOWER(sku_description) LIKE "%sao paulo%"
             OR LOWER(sku_description) LIKE "%montreal%"
             OR LOWER(sku_description) LIKE "%virginia%" THEN "AMERICAS"
-      WHEN LOWER(sku_description) LIKE "%emea%" 
-            OR LOWER(sku_description) LIKE "%netherlands%" 
-            OR LOWER(sku_description) LIKE "%frankfurt%" 
+      WHEN LOWER(sku_description) LIKE "%emea%"
+            OR LOWER(sku_description) LIKE "%netherlands%"
+            OR LOWER(sku_description) LIKE "%frankfurt%"
             OR LOWER(sku_description) LIKE "%finland%"
             OR LOWER(sku_description) LIKE "%london%" THEN "EMEA"
-      WHEN LOWER(sku_description) LIKE "%apac%" 
+      WHEN LOWER(sku_description) LIKE "%apac%"
             OR LOWER(sku_description) LIKE "%singapore%"
-            OR LOWER(sku_description) LIKE "%japan%" 
+            OR LOWER(sku_description) LIKE "%japan%"
             OR LOWER(sku_description) LIKE "%hong kong%"
-            OR LOWER(sku_description) LIKE "%mumbai%" 
+            OR LOWER(sku_description) LIKE "%mumbai%"
             OR LOWER(sku_description) LIKE "%sydney%" THEN "APAC"
       ELSE NULL
       END AS geo,
@@ -170,7 +170,7 @@ sku_metadata AS (
   FROM
     usage_data
   GROUP BY 1,2,3,4,5,6),
-    
+
   -- create temporary usage_credit_data table to separate out credits from usage into their own line items
   -- and associate necessary sku metadata with usage, commitment, and credit line items
   -- First usage query pulls out amount and dollar cost of Eligible Usage and Commitment charges
@@ -258,7 +258,7 @@ FROM (
     labels,
     unit_price,
     -- else part of the statement suppports test cases where the usage is hour or GiB hr
-    IF(prices.unit_price IS NOT NULL, 
+    IF(prices.unit_price IS NOT NULL,
       IF(prices.unit_price = 0,
         0,
         IF((LOWER(unit) LIKE "seconds" OR LOWER(unit) LIKE "byte-seconds"),

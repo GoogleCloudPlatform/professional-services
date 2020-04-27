@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__author__ = 'yunusd@google.com (Yunus Durmus)'
+__author__ = "yunusd@google.com (Yunus Durmus)"
 
 from google.oauth2 import service_account
 from googleapiclient import discovery
@@ -29,32 +29,34 @@ logger = logging.getLogger(__name__)
 class Updater:
     """Updates the project quotas via API calls.
 
-    GCP quota update is possible via console or APIs. 
+    GCP quota update is possible via console or APIs.
     Here we explain how to achieve quota updates via APIs programmatically.
-    Service Quota model is explained in https://cloud.google.com/service-usage/docs/service-quota-model 
-    The details of quota update mechanism can be found in https://cloud.google.com/service-usage/docs/manage-quota
+    Service Quota model is explained in
+    https://cloud.google.com/service-usage/docs/service-quota-model
+    The details of quota update mechanism can be found in
+    https://cloud.google.com/service-usage/docs/manage-quota
     The rest api reference is in https://cloud.google.com/service-usage/docs/reference/rest
 
-    Briefly; each service has a unique name/parent to identify it.  
-    Each quota limit has a default value for all consumers, 
-    set by the service owner. 
+    Briefly; each service has a unique name/parent to identify it.
+    Each quota limit has a default value for all consumers,
+    set by the service owner.
     This default value can be changed by a quota override.
     So when you update a quota, in fact you simply create a
-     "consumerOverride" or "adminOverride". 
-     adminOverride should be done from a parent folder 
+     "consumerOverride" or "adminOverride".
+     adminOverride should be done from a parent folder
      or organization while consumer is per project.
-     In this class we only use consumerOverride since many quotas are project 
+     In this class we only use consumerOverride since many quotas are project
      specific, not folder or org level.
-     How they relate is explained in 
+     How they relate is explained in
      https://cloud.google.com/service-usage/docs/service-quota-model#computing_quota_limit
-     Details of adminOverride: 
+     Details of adminOverride:
      https://cloud.google.com/service-usage/docs/reference/rest/v1beta1/services.consumerQuotaMetrics.limits.adminOverrides/create
 
-    The override operation is asynchronous so we poll the callback 
-    "operation" api to see the outcome. This class polls the operation for 
+    The override operation is asynchronous so we poll the callback
+    "operation" api to see the outcome. This class polls the operation for
     a minute. Mostly in 5-10 seconds it is done.
 
-    The service account that runs this code should have 
+    The service account that runs this code should have
     roles/serviceusage.serviceUsageAdmin role on the project.
     """
 
@@ -63,15 +65,15 @@ class Updater:
 
         Args:
             project_id: id or number of the project to be updated
-            credential_path: relative or absolute path of the 
-               JSON key for the service account with 
+            credential_path: relative or absolute path of the
+               JSON key for the service account with
                roles/serviceusage.serviceUsageAdmin role
-            quota_name: the name of the quota. If you don't know, 
+            quota_name: the name of the quota. If you don't know,
                pass an empty string and then call "get_all_consumer_quota_metrics"
-               method with the api such as compute.googleapis.com. You should 
+               method with the api such as compute.googleapis.com. You should
                find the name under 'consumerQuotaLimits'
-               For instance BigQuery project quota name is: 
-              projects/YOUR_PROJECT_ID/services/bigquery.googleapis.com/consumerQuotaMetrics/bigquery.googleapis.com%2Fquota%2Fquery%2Fusage/limits/%2Fd%2Fproject    
+               For instance BigQuery project quota name is:
+              projects/YOUR_PROJECT_ID/services/bigquery.googleapis.com/consumerQuotaMetrics/bigquery.googleapis.com%2Fquota%2Fquery%2Fusage/limits/%2Fd%2Fproject
         """
         self.__project_id = project_id
         self.__quota_name = quota_name
@@ -81,18 +83,20 @@ class Updater:
             self.__credential_path.absolute())
 
         scoped_credentials = credentials.with_scopes(
-            ['https://www.googleapis.com/auth/cloud-platform'])
+            ["https://www.googleapis.com/auth/cloud-platform"])
 
-        self.__service_usage = discovery.build('serviceusage',
-                                               'v1beta1',
-                                               credentials=scoped_credentials,
-                                               cache_discovery=False)
+        self.__service_usage = discovery.build(
+            "serviceusage",
+            "v1beta1",
+            credentials=scoped_credentials,
+            cache_discovery=False,
+        )
 
     def get_all_consumer_quota_metrics(self,
-                                       service_name='bigquery.googleapis.com'):
+                                       service_name="bigquery.googleapis.com"):
         """prints all the quotas of a service
 
-        This is a helper function to figure out the name of the metrics. 
+        This is a helper function to figure out the name of the metrics.
         Later you provide the names to the Updater class.
 
         Args:
@@ -100,6 +104,7 @@ class Updater:
         """
 
         import pprint
+
         parent = "projects/{}/services/{}".format(self.__project_id,
                                                   service_name)
         pprint.pprint(
@@ -107,22 +112,24 @@ class Updater:
                 parent=parent).execute())
 
     def __get_current_overrides(self):
-        return self.__service_usage.services().consumerQuotaMetrics().limits()\
-            .consumerOverrides().list(parent=self.__quota_name).execute()
+        return (self.__service_usage.services().consumerQuotaMetrics().limits().
+                consumerOverrides().list(parent=self.__quota_name).execute())
 
     def get_current_quota(self):
-        return self.__service_usage.services().consumerQuotaMetrics().limits()\
-            .get(name=self.__quota_name).execute()
+        return (
+            self.__service_usage.services().consumerQuotaMetrics().limits().get(
+                name=self.__quota_name).execute())
 
     def __create_new_quota(self, new_quota, dimensions={}):
         logger.info(
             f"Project={self.__project_id}, creating a new quota of {new_quota}")
-        return self.__service_usage.services().consumerQuotaMetrics().limits()\
-            .consumerOverrides().create(parent=self.__quota_name,
-                                        force=True,
-                                        body={"overrideValue": str(new_quota),
-                                        "dimensions": dimensions})\
-            .execute()
+        return (self.__service_usage.services().consumerQuotaMetrics().limits().
+                consumerOverrides().create(parent=self.__quota_name,
+                                           force=True,
+                                           body={
+                                               "overrideValue": str(new_quota),
+                                               "dimensions": dimensions
+                                           }).execute())
 
     def __patch_existing_quota(self,
                                new_quota,
@@ -131,12 +138,13 @@ class Updater:
         logger.info(
             f"Project={self.__project_id},patching existing quota with {new_quota}"
         )
-        return self.__service_usage.services().consumerQuotaMetrics().limits()\
-            .consumerOverrides().patch(name=consumer_override,
-                                       force=True,
-                                       body={"overrideValue": str(new_quota),
-                                       'dimensions': dimensions})\
-            .execute()
+        return (self.__service_usage.services().consumerQuotaMetrics().limits().
+                consumerOverrides().patch(name=consumer_override,
+                                          force=True,
+                                          body={
+                                              "overrideValue": str(new_quota),
+                                              "dimensions": dimensions
+                                          }).execute())
 
     def __check_operation_status(self, name):
         return self.__service_usage.operations().get(name=name).execute()
@@ -148,7 +156,7 @@ class Updater:
         If there is an override, we patch it. Otherwise we create a new override.
 
         The create and patch calls return an operation object. We track that object
-        for 1 minute max. We record the outcome either error or success. 
+        for 1 minute max. We record the outcome either error or success.
 
         Args:
             new_quota: the new quota value in string.
@@ -165,17 +173,17 @@ class Updater:
             operation = self.__create_new_quota(new_quota, dimensions)
         else:
             operation = self.__patch_existing_quota(
-                new_quota, curr_overrides['overrides'][0]['name'], dimensions)
+                new_quota, curr_overrides["overrides"][0]["name"], dimensions)
 
         for i in range(1, 12):
-            outcome = self.__check_operation_status(operation['name'])
-            if 'error' in outcome:
+            outcome = self.__check_operation_status(operation["name"])
+            if "error" in outcome:
                 logger.error(
                     (f"Project={self.__project_id}, Could not update the quota."
                      f" Error message is: {outcome['error']}"))
                 return outcome
 
-            elif 'response' in outcome:
+            elif "response" in outcome:
                 logger.info(
                     f"Project={self.__project_id}, update is successful. {outcome['response']}"
                 )

@@ -29,8 +29,8 @@ import oauth2client.service_account
 
 def get_credentials(admin_email, scopes):
   request = google.auth.transport.requests.Request()
-  #  This retrieves the default credentials from the environment - in this 
-  #  case, for the Service Account attached to the VM. The unused _ variable 
+  #  This retrieves the default credentials from the environment - in this
+  #  case, for the Service Account attached to the VM. The unused _ variable
   #  is just the GCP project ID - we're dropping it because we don't care.
   default_credentials, _ = google.auth.default()
   #  The credentials object won't include the service account e-mail address

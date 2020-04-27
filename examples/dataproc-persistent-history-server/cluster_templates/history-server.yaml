@@ -1,7 +1,7 @@
 config:
   gceClusterConfig:
     serviceAccount: HISTORY_SERVER-account@PROJECT.iam.gserviceaccount.com
-    zoneUri: ZONE 
+    zoneUri: ZONE
     subnetworkUri: https://www.googleapis.com/compute/v1/projects/PROJECT/regions/REGION/subnetworks/SUBNET
     tags:
     - hadoop-history-ui-access
@@ -15,7 +15,7 @@ config:
     minCpuPlatform: AUTOMATIC
     numInstances: 1
   softwareConfig:
-    imageVersion: preview 
+    imageVersion: preview
     properties:
       dataproc:dataproc.allow.zero.workers: "true"
       yarn:yarn.log-aggregation-enable: "true"
@@ -30,6 +30,6 @@ config:
       spark:spark.eventLog.dir: gs://HISTORY_BUCKET/spark-events/
       spark:spark.ui.enabled: "true"
       spark:spark.history.fs.logDirectory: gs://HISTORY_BUCKET/spark-events/
-      spark:spark.ui.filters: org.apache.spark.deploy.yarn.YarnProxyRedirectFilter 
+      spark:spark.ui.filters: org.apache.spark.deploy.yarn.YarnProxyRedirectFilter
   endpointConfig:
     enableHttpPortAccess: "true"

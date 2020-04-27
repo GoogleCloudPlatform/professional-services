@@ -1,5 +1,5 @@
 # Dataflow using python
-This repo contains several examples of the Dataflow python API.  The examples are solutions to common use cases we see 
+This repo contains several examples of the Dataflow python API.  The examples are solutions to common use cases we see
 in the field.
 
 - [Ingesting data from a file into BigQuery](#ingesting-data-from-a-file-into-bigquery)
@@ -85,10 +85,10 @@ Ready to dive deeper?  Check out the complete code [here](dataflow_python_exampl
 ## Joining file and BigQuery datasets in Dataflow
 ![Alt text](img/csv_join_bigquery_to_bigquery.png?raw=true "CSV file joined with BigQuery data to BigQuery")
 
-This example demonstrates how to work with two datasets.  A primary dataset is read from a file, and another dataset 
-containing reference is read from BigQuery.  The two datasets are then joined in Dataflow before writing the joined 
+This example demonstrates how to work with two datasets.  A primary dataset is read from a file, and another dataset
+containing reference is read from BigQuery.  The two datasets are then joined in Dataflow before writing the joined
 dataset down to BigQuery.
- 
+
 This pipeline contains 4 steps:
 1. [Read in the primary dataset from a file](dataflow_python_examples/data_enrichment.py#L165-L176).
 2. [Read in the reference data from BigQuery](dataflow_python_examples/data_enrichment.py#L155-L163).
@@ -107,7 +107,7 @@ Similar to previous examples, we use TextIO to read the dataset from a CSV file.
 Using BigQueryIO, we can specify a query to read data from.  Dataflow then is able to distribute the data
 from BigQuery to the next stages in the pipeline.
 
-In this example the additional dataset is represented as a side input.  Side inputs in Dataflow are typically reference 
+In this example the additional dataset is represented as a side input.  Side inputs in Dataflow are typically reference
 datasets that fit into memory.  Other examples will explore alternative methods for joining datasets which work well for
 datasets that do not fit into memory.
 
@@ -120,14 +120,14 @@ the python code is the same as it would be for unioning any two python dictionar
 ### The joined dataset is written out to BigQuery
 ![Alt text](img/4_output_to_bigquery.png?raw=true "Custom python code")
 
-Finally the joined dataset is written out to BigQuery.  This uses the same BigQueryIO API which is used in previous 
+Finally the joined dataset is written out to BigQuery.  This uses the same BigQueryIO API which is used in previous
 examples.
 
 ### Full code examples
 
 Ready to dive deeper?  Check out the complete code [here](dataflow_python_examples/data_enrichment.py).
 
-## Ingest data from files into Bigquery reading the file structure from Datastore 
+## Ingest data from files into Bigquery reading the file structure from Datastore
 
 In this example we create a Python [Apache Beam](https://beam.apache.org/) pipeline running on [Google Cloud Dataflow](https://cloud.google.com/dataflow/) to import CSV files into BigQuery using the following architecture:
 
@@ -240,7 +240,7 @@ the joined dataset before uploading to BigQuery.
 
 Joining two datasets from BigQuery is a common use case when a data lake has been implemented in BigQuery.
 Creating a data mart with denormalized datasets facilitates better performance when using visualization tools.
- 
+
 This pipeline contains 4 steps:
 1. [Read in the primary dataset from BigQuery](dataflow_python_examples/data_lake_to_mart.py#L278-L283).
 2. [Read in the reference data from BigQuery](dataflow_python_examples/data_lake_to_mart.py#L248-L276).
@@ -252,35 +252,35 @@ Alternatively, [CoGroupByKey can be used to join the two datasets](dataflow_pyth
 ### Read in the primary dataset from BigQuery
 ![Alt text](img/1_query_orders.png?raw=true "Read from BigQuery")
 
-Similar to previous examples, we use BigQueryIO to read the dataset from the results of a query.  In this case our 
+Similar to previous examples, we use BigQueryIO to read the dataset from the results of a query.  In this case our
 main dataset is a fake orders dataset, containing a history of orders and associated data like quantity.
 
 ### Read in the reference data from BigQuery
 ![Alt text](img/2_query_account_details.png?raw=true "Import state name data from BigQuery")
 
 In this example we use a fake account details dataset.  This represents a common use case for denormalizing a dataset.
-The account details information contains attributes linked to the accounts in the orders dataset.  For example the 
+The account details information contains attributes linked to the accounts in the orders dataset.  For example the
 address and city of the account.
 
 ### Custom Python code is used to join the two datasets
 ![Alt text](img/3_custom_python_code.png?raw=true "Custom python code")
 
-Using custom python code, we join the two datasets together.  We provide two examples of joining these datasets.  The 
+Using custom python code, we join the two datasets together.  We provide two examples of joining these datasets.  The
 first example uses side inputs, which require the dataset fit into memory.  The second example demonstrates how to use
 CoGroupByKey to join the datasets.
 
-CoGroupByKey will facilitate joins between two datesets even if neither fit into memory.  Explore the comments in the 
+CoGroupByKey will facilitate joins between two datesets even if neither fit into memory.  Explore the comments in the
 two code examples for a more in depth explanation.
 
 ### The joined dataset is written out to BigQuery
 ![Alt text](img/4_output_to_bigquery.png?raw=true "Custom python code")
 
-Finally the joined dataset is written out to BigQuery.  This uses the same BigQueryIO API which is used in previous 
+Finally the joined dataset is written out to BigQuery.  This uses the same BigQueryIO API which is used in previous
 examples.
 
 ### Full code examples
 
 Ready to dive deeper?  Check out the complete code.
-The example using side inputs is [here](dataflow_python_examples/data_lake_to_mart.py) and the example using CoGroupByKey is 
+The example using side inputs is [here](dataflow_python_examples/data_lake_to_mart.py) and the example using CoGroupByKey is
 [here](dataflow_python_examples/data_lake_to_mart_cogroupbykey.py).
 

@@ -1,53 +1,53 @@
 {
     "fields": [
         {
-            "type": "STRING", 
-            "name": "string1", 
+            "type": "STRING",
+            "name": "string1",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "STRING", 
-            "name": "string2", 
+            "type": "STRING",
+            "name": "string2",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "STRING", 
-            "name": "string3", 
+            "type": "STRING",
+            "name": "string3",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "STRING", 
-            "name": "string4", 
+            "type": "STRING",
+            "name": "string4",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "STRING", 
-            "name": "string5", 
+            "type": "STRING",
+            "name": "string5",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "STRING", 
-            "name": "string6", 
+            "type": "STRING",
+            "name": "string6",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "STRING", 
-            "name": "string7", 
+            "type": "STRING",
+            "name": "string7",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "STRING", 
-            "name": "string8", 
+            "type": "STRING",
+            "name": "string8",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "STRING", 
-            "name": "string9", 
+            "type": "STRING",
+            "name": "string9",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "STRING", 
-            "name": "string10", 
+            "type": "STRING",
+            "name": "string10",
             "mode": "REQUIRED"
         }
     ]

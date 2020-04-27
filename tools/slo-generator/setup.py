@@ -54,6 +54,6 @@ setup(name='slo-generator',
           'elasticsearch', 'pytz'
       ],
       entry_points={
-          'console_scripts': ['slo-generator=slo_generator.cli:main',],
+          'console_scripts': ['slo-generator=slo_generator.cli:main'],
       },
       python_requires='>=3.4')

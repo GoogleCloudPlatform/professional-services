@@ -115,7 +115,7 @@ Run the sample using gcloud util as followed:
                      ]
                  }
              ]
-         }] 
+         }]
     }'
 ```
 
@@ -131,14 +131,14 @@ Use the EntityTypesClient.batch_update_entity_types to create or update entities
 
 #### Examples
 ##### Using entity_type_batch_uri
-The URI to a Google Cloud Storage file containing entity types to update or create. 
+The URI to a Google Cloud Storage file containing entity types to update or create.
 The URI must start with "gs://".
 The entities.json file is an example of a json format file that can be uploaded to gcs and passed to the function.
-```  
-    $ gcloud functions call entities_builder --data '{ "bucket": "gs://<bucket_name>/entities.json"}'
- 
 ```
-##### Using entity_type_batch_inline         
+    $ gcloud functions call entities_builder --data '{ "bucket": "gs://<bucket_name>/entities.json"}'
+
+```
+##### Using entity_type_batch_inline
 For each entity type in the batch:
 - The `name` is the the unique identifier of the entity type
 - If `name` is specified, we update an existing entity type.

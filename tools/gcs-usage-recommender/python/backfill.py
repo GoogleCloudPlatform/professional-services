@@ -80,7 +80,7 @@ def get_buckets(project_ids: List[str],
             except Forbidden as err:
                 logging.error(f"""Access denied on bucket {bucket.name}.
                               {err}""")
-                
+
             except BadRequest as err:
                 logging.error(f"Could not find bucket {bucket.name}.")
                 logging.error(err)

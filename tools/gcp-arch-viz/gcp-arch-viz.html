@@ -50,7 +50,7 @@
 
     // FILENAME is static, but add a random variable to the end to prevent browser caching,
     // aka - "I changed the content of the file, but why isn't that stuff drawing?!"
-    var FILENAME = "gcp-data.csv" + "?nocache=" + Date.now(); 
+    var FILENAME = "gcp-data.csv" + "?nocache=" + Date.now();
 
     var FILE_LOAD_START_TIME = new Date().toLocaleTimeString();
     console.log ("Loading file: " + FILENAME + ", start time: " + FILE_LOAD_START_TIME);
@@ -72,12 +72,12 @@
         height = 540 - margin.top - margin.bottom;
 
       tree = d3.tree().size([height, width]);
-      
+
       table = d3.csvParseRows(csv_data, function (d, i) {
         return {
-          // NOTE: This stuff is VERY tightly coupled to the format of the inventory data export. 
+          // NOTE: This stuff is VERY tightly coupled to the format of the inventory data export.
           //       Because there are no headers in the CSV export file, the column order is
-          //       extremely important and needs to be carefully paid attention to.        
+          //       extremely important and needs to be carefully paid attention to.
           id: d[0],
           resource_type: d[1],
           category: d[2],
@@ -118,7 +118,7 @@
 
 
       // Collapse after the second level
-      // TODO(mzinni):  enable this after folders & projects have color-coded indicators 
+      // TODO(mzinni):  enable this after folders & projects have color-coded indicators
       //                of children/no-children
       treeData.children.forEach(collapse);
       update(treeData);
@@ -127,12 +127,12 @@
     var i = 0;
     function update(source) {
       tree(treeData);
-      
+
       treeData.each(function(d) { d.y = d.depth * 180; });
-  
+
       var node = g.selectAll('.node')
         .data(treeData.descendants(), function(d) { return d.id || (d.id = ++i); });
-  
+
       var nodeEnter = node
         .enter()
         .append("g")
@@ -169,11 +169,11 @@
 
       var nodeUpdate = nodeEnter.merge(node);
       var ANIMATION_DURATION_MS = 500;
-  
+
       nodeUpdate.transition()
         .duration(ANIMATION_DURATION_MS)
         .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
-   
+
       nodeUpdate.select("circle")
       .attr("r", 22)
       .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; })
@@ -182,29 +182,29 @@
 
       nodeUpdate.select("text")
         .style("fill-opacity", 1);
-  
+
       var nodeExit = node
         .exit()
         .transition()
         .duration(ANIMATION_DURATION_MS)
         .attr("transform", function(d) { return "translate(" + source.y + "," + source.x + ")"; })
         .remove();
-  
+
       nodeExit.select("circle")
         .attr("r", 1e-6);
-  
+
       nodeExit.select("text")
         .style("fill-opacity", 1e-6);
-  
+
       var link = g.selectAll(".link")
         .data(treeData.links(), function(d) { return d.target.id; });
-  
+
       var linkEnter = link.enter().insert('path', "g")
         .attr("class", "link")
         .attr("d", d3.linkHorizontal()
           .x(function(d) { return source.y; })
           .y(function(d) { return source.x; }));
-  
+
       var linkUpdate = linkEnter.merge(link);
       linkUpdate
         .transition()
@@ -212,7 +212,7 @@
         .attr("d", d3.linkHorizontal()
           .x(function(d) { return d.y; })
           .y(function(d) { return d.x; }));
-  
+
       link
         .exit()
         .transition()
@@ -222,7 +222,7 @@
           .y(function(d) { return source.x; })
         )
         .remove();
-  
+
       node.each(function(d) {
         d.x0 = d.x;
         d.y0 = d.y;

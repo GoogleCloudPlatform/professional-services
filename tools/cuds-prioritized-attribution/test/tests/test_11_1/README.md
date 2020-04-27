@@ -1,6 +1,6 @@
 Testcase: 11_1
 Criteria: More purchases than CUDs with multiple commitments
-Note: (L*) means a label set. Note that "project-1: (L1)" does not mean its a project label. 
+Note: (L*) means a label set. Note that "project-1: (L1)" does not mean its a project label.
 Its a user label that is attached to a vm thats part of project-1
 ========
 

@@ -97,4 +97,3 @@ def create_classifier(config, parameters):
         estimator, _estimator_metrics)
     estimator = tf.contrib.estimator.forward_features(estimator, 'img_file')
     return estimator
-    
