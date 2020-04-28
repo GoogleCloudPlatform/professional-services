@@ -16,6 +16,7 @@
 Stackdriver Monitoring exporter class.
 """
 import logging
+import google.api_core.exceptions
 from google.cloud import monitoring_v3
 
 LOGGER = logging.getLogger(__name__)
@@ -43,7 +44,8 @@ class StackdriverExporter:
         Returns:
             object: Stackdriver Monitoring API result.
         """
-        self.create_metric_descriptor(**config)
+        if not self.get_metric_descriptor(**config):
+            self.create_metric_descriptor(**config)
         self.create_timeseries(data, **config)
 
     def create_timeseries(self, data, **config):
@@ -94,6 +96,23 @@ class StackdriverExporter:
             f"{labels['service_name']}-{labels['feature_name']}-"
             f"{labels['slo_name']}-{labels['error_budget_policy_step_name']}")
         return result
+
+    def get_metric_descriptor(self, **config):
+        """Get Stackdriver Monitoring metric descriptor.
+
+        Args:
+            config (dict): Metric config.
+
+        Returns:
+            object: Metric descriptor (or None if not found).
+        """
+        name = config.get('metric_type', DEFAULT_METRIC_TYPE)
+        descriptor = self.client.metric_descriptor_path(config['project_id'],
+                                                        name)
+        try:
+            return self.client.get_metric_descriptor(descriptor)
+        except google.api_core.exceptions.NotFound:
+            return None
 
     def create_metric_descriptor(self, **config):
         """Create Stackdriver Monitoring metric descriptor.
