@@ -72,11 +72,20 @@ resource "google_project_iam_binding" "composer_binding" {
   role    = "roles/composer.worker"
 }
 
+# Get the creator's user name.
+data "google_client_openid_userinfo" "me" {
+}
+
+
 # Grant BigQuery Permissions for Service Account on Corrected Dataset
 resource "google_bigquery_dataset" "corrected_dataset" {
   dataset_id = var.corrected_dataset_id
   location   = var.billing_export_location
-
+  depends_on = [google_project_service.bqapi]
+  access {
+    role          = "OWNER"
+    user_by_email = data.google_client_openid_userinfo.me.email
+  }
   access {
     role          = "WRITER"
     user_by_email = google_service_account.cud_service_account.email

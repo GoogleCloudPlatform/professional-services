@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import json
+from typing import Dict
 from typing import List
 from google.cloud import bigquery
 from google.cloud import storage
@@ -110,16 +111,16 @@ def local_to_gcs(bucket_name: str, object_name: str, input_file: str) -> None:
         blob.upload_from_file(file_obj)
 
 
-def convert_to_schema(commitment_schema: str) -> List[bigquery.SchemaField]:
+def convert_to_schema(schema: List[Dict[str, str]) -> List[bigquery.SchemaField]:
     """Read the schema as a JSON and reformats as an array.
 
     Args:
-        commitment_schema: String to convert to JSON which holds the schema
+        schema: list of dicts to convert to list of SchemaField
 
     Returns:
         List of bigquery.SchemaField objects holding the schema.
     """
-    input_fields = json.loads(commitment_schema)
+    input_fields = schema
     schema = []
     for input_field in input_fields:
         schema.append(
