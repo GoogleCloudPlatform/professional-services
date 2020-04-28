@@ -201,6 +201,36 @@ class TestApiSchema(unittest.TestCase):
         # name, asset_type, timestamp, resource, iam_policy
         self.assertEqual(len(schema), 5)
 
+    def test_resource_last_modified(self):
+        # Test that resource lastModifiedTime takes precedence.
+        APISchema._discovery_document_cache = {
+            'https://www.googleapis.com/discovery/v1/apis/compute/v1/rest': {
+                'id': 'compute.v1',
+                'schemas': {
+                    'Machine': {
+                        'properties': {
+                            'lastModifiedTime': {
+                                'type': 'string',
+                                'description': 'Track time of last change.'
+                            }}}}},
+            'https://content.googleapis.com/discovery/v1/apis': {
+                'items': [{
+                    'name': 'compute',
+                    'version': 'v1',
+                    'discoveryRestUrl': 'https://www.googleapis.com/discovery/v1/apis/compute/v1/rest'}]}}
+        schema = APISchema.bigquery_schema_for_resource(
+            'google.compute.Machine',
+            'Machine',
+            'https://www.googleapis.com/discovery/v1/apis/compute/v1/rest',
+            True, True)
+        data_fields = self.get_schema_data_field(schema)
+        self.assertEqual(
+            [{'field_type': 'STRING',
+              'name': 'lastModifiedTime',
+              'description': 'Track time of last change.',
+              'mode': 'NULLABLE'}],
+            data_fields)
+
     def test_self_recursive_properties(self):
         discovery_doc = {
             'id': 'recursive#api',
