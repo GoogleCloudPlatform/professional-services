@@ -29,7 +29,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(name='slo-generator',
-      version='1.0.0',
+      version='1.0.1',
       description='SLO generator',
       long_description=long_description,
       long_description_content_type='text/markdown',
