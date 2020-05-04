@@ -18,7 +18,8 @@ To get started contributing:
    terraform apply -var='gcp_project_id=YOUR-PROJECT' -var='github_owner=GITHUB-USER-ID'
    ```
 
-   Builds require a `make` container image in the same project. Bu
+   Builds require a `make` container image in the same project. Build with
+   the following command:
 
    ```
    gcloud builds submit --project=YOUR-PROJECT --tag gcr.io/YOUR-PROJECT/make .
