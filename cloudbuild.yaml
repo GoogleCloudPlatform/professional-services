@@ -1,3 +1,7 @@
 steps:
 - name: 'gcr.io/$PROJECT_ID/make'
   args: ['test']
+  waitFor: ['-']
+- name: 'gcr.io/$PROJECT_ID/shellcheck'
+  args: ['helpers/check_format_shell.py']
+  waitFor: ['-']

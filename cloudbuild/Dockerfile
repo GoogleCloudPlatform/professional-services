@@ -31,5 +31,7 @@ RUN npm install gts
 RUN apt-get install -y default-jdk
 RUN wget https://github.com/google/google-java-format/releases/download/google-java-format-1.7/google-java-format-1.7-all-deps.jar --directory-prefix=/usr/share/java/
 
+# install bash linter
+RUN apt-get install -y shellcheck
 
 ENTRYPOINT ["make"]
