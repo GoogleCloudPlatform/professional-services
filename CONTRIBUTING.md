@@ -7,6 +7,23 @@ To get started contributing:
 
 1. Sign a Contributor License Agreement (see details below).
 1. Fork the repo, develop and test your code changes.
+
+   To test your changes before making a pull request, create a Cloud Build
+   trigger for your fork on your own project.
+
+   ```
+   gcloud config set project YOUR-PROJECT
+   cd cloudbuild
+   teraform init
+   terraform apply -var='gcp_project_id=YOUR-PROJECT' -var='github_owner=GITHUB-USER-ID'
+   ```
+
+   Builds require a `make` container image in the same project. Bu
+
+   ```
+   gcloud builds submit --project=YOUR-PROJECT --tag gcr.io/YOUR-PROJECT/make .
+   ```
+
 1. Develop using the following guidelines to help expedite your review:
     1. Ensure that your code adheres to the existing [style](https://google.github.io/styleguide).
     1. Ensure that your code has an appropriate set of unit tests which all pass.
