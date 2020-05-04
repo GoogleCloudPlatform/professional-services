@@ -14,12 +14,12 @@
 
 resource "google_cloudbuild_trigger" "default-push-trigger" {
     provider = google-beta  # Use Beta version for GitHub support
-    project = var.gcp_project_id
+    project = var.project_id
     github {
         owner = var.github_owner
         name = var.github_repo_name
         push {
-            branch = ".*"
+            branch = var.github_branch
         }
     }
 

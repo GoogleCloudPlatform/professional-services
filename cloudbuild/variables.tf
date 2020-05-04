@@ -12,17 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-variable "gcp_project_id" {
+variable "project_id" {
     type = string
     default = "cloud-eng-council"
+    description = "ID of Google Cloud project ID where resources are deployed"
 }
 
 variable "github_owner" {
     type = string
     default = "GoogleCloudPlaform"
+    description = "Owner of the GitHub repo: usually, your GitHub username."
 }
 
 variable "github_repo_name" {
     type = string
     default = "professional-services"
+    description = "Name of the GitHub repository."
+}
+
+variable "github_branch" {
+    type = string
+    default = ".*"
+    description = "Regular expression of which branches the Cloud Build trigger should run. Defaults to all branches."
 }

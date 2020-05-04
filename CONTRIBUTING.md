@@ -15,14 +15,14 @@ To get started contributing:
    gcloud config set project YOUR-PROJECT
    cd cloudbuild
    teraform init
-   terraform apply -var='gcp_project_id=YOUR-PROJECT' -var='github_owner=GITHUB-USER-ID'
+   terraform apply -var="project_id=$(gcloud config get-value project)" -var='github_owner=GITHUB-USER-ID'
    ```
 
    Builds require a `make` container image in the same project. Build with
    the following command:
 
    ```
-   gcloud builds submit --project=YOUR-PROJECT --tag gcr.io/YOUR-PROJECT/make .
+   gcloud builds submit --tag gcr.io/$(gcloud config get-value project)/make .
    ```
 
 1. Develop using the following guidelines to help expedite your review:
