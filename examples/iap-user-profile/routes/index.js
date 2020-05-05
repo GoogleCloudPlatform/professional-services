@@ -8,7 +8,7 @@ function resolveUserEmail(req) {
   let userEmail;
 
   if (process.env.GAE_APPLICATION) {
-    userEmail = req.header('X-Goog-Authenticated-User-Email').substring("accounts.google.com".length);
+    userEmail = req.header('X-Goog-Authenticated-User-Email').substring("accounts.google.com".length + 1);
   } else {
     userEmail = 'henry@email.com';
   }
