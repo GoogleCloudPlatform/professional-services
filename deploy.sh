@@ -25,7 +25,7 @@ CF_NAME="email-export-function"
 CS_NAME="bq-email-scheduler"
 TOPIC_NAME="bq-exports"
 TOPIC_PATH="projects/${PROJECT_ID}/topics/bq-exports"
-SENDGRID_API_KEY={$API_KEY}
+SENDGRID_API_KEY="{$API_KEY}"
 SCHEDULE="00 00 * * *"
 SCHEDULER_MESSAGE="BigQuery email export"
 
