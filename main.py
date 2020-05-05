@@ -28,7 +28,7 @@ from google.oauth2 import service_account
 
 
 def credentials():
-    # Get Application Default Credentials if running in CF
+    # Get Application Default Credentials if running in Cloud Functions
     if os.getenv("IS_LOCAL") is None:
         credentials, project = default(scopes=["https://www.googleapis.com/auth/cloud-platform"])
     # To use this file locally set IS_LOCAL=1 and populate env var GOOGLE_APPLICATION_CREDENTIALS with path to service account json key file
@@ -80,7 +80,6 @@ def main(*argv):
     query_job = bq_client.query(sql, job_config=job_config)
     # Wait for the job to complete.
     query_job.result()
-
     print("Query results loaded to the table {}".format(table_id))
 
     # Export table data as CSV to GCS
@@ -103,7 +102,7 @@ def main(*argv):
     bucket = storage_client.bucket(bucket_name)
     blob = bucket.blob(csv_name)
     signing_credentials = None
-    # If running on GCF we need to general signing credentials
+    # If running on GCF, generate signing credentials
     # Service account running the GCF must have Service Account Token Creator role
     if os.getenv("IS_LOCAL") is None:
         signer = iam.Signer(request=requests.Request(), credentials=credentials(), service_account_email=os.getenv("FUNCTION_IDENTITY"),)
@@ -136,10 +135,12 @@ def main(*argv):
         ),
     )
 
-    sg = SendGridAPIClient(os.getenv("SENDGRID_API_KEY"))
-    response = sg.send(message)
-    print("Sent Email.")
-
+    try:
+        sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
+        response = sg.send(message)
+        print(response.status_code)
+    except Exception as e:
+        print(e.message)
 
 if __name__ == "__main__":
     main()

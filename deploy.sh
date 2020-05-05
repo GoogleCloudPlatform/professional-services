@@ -25,8 +25,9 @@ CF_NAME="email-export-function"
 CS_NAME="bq-email-scheduler"
 TOPIC_NAME="bq-exports"
 TOPIC_PATH="projects/${PROJECT_ID}/topics/bq-exports"
-SENDGRID_API_KEY={$KEY}
+SENDGRID_API_KEY={$API_KEY}
 SCHEDULE="00 00 * * *"
+SCHEDULER_MESSAGE="BigQuery email export"
 
 gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:$SVC_ACCOUNT_EMAIL" --role='roles/bigquery.admin'
 gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:$SVC_ACCOUNT_EMAIL" --role='roles/storage.objectAdmin'
@@ -35,4 +36,4 @@ gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:$SVC
 # Deploy Cloud Function and create a Scheduler job
 gcloud pubsub topics create "$TOPIC_NAME"
 gcloud functions deploy "$CF_NAME" --entry-point=main --trigger-topic "$TOPIC_NAME" --runtime python37 --memory "512MB" --service-account "$SVC_ACCOUNT_EMAIL" --project "$PROJECT_ID" --set-env-vars SENDGRID_API_KEY="$SENDGRID_API_KEY"
-gcloud scheduler jobs create pubsub "$CS_NAME" --schedule="$SCHEDULE" --topic="$TOPIC_PATH" --message-body="bqemail" --project="$PROJECT_ID"
+gcloud scheduler jobs create pubsub "$CS_NAME" --schedule="$SCHEDULE" --topic="$TOPIC_PATH" --message-body="$SCHEDULER_MESSAGE" --project="$PROJECT_ID"
