@@ -1,4 +1,4 @@
-# Copyright 2019 Google LLC
+# Copyright 2020 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -39,7 +39,8 @@ def credentials():
     # Get Application Default Credentials if running in Cloud Functions
     if os.getenv("IS_LOCAL") is None:
         credentials, project = default(scopes=["https://www.googleapis.com/auth/cloud-platform"])
-    # To use this file locally set IS_LOCAL=1 and populate env var GOOGLE_APPLICATION_CREDENTIALS with path to service account json key file
+    # To use this file locally set IS_LOCAL=1 and populate env var GOOGLE_APPLICATION_CREDENTIALS 
+    # with path to service account json key file
     else:
         credentials = service_account.Credentials.from_service_account_file(
             os.getenv("GOOGLE_APPLICATION_CREDENTIALS"), scopes=["https://www.googleapis.com/auth/cloud-platform"],
@@ -129,7 +130,10 @@ def main():
     # If running on GCF, generate signing credentials
     # Service account running the GCF must have Service Account Token Creator role
     if os.getenv("IS_LOCAL") is None:
-        signer = iam.Signer(request=requests.Request(), credentials=credentials(), service_account_email=os.getenv("FUNCTION_IDENTITY"),)
+        signer = iam.Signer(request=requests.Request(), 
+                            credentials=credentials(), 
+                            service_account_email=os.getenv("FUNCTION_IDENTITY"),
+                           )
         # Create Token-based service account credentials for signing
         signing_credentials = service_account.IDTokenCredentials(
             signer=signer,
