@@ -34,7 +34,7 @@ def credentials():
         None
         
     Returns:
-        Credentials to authenticate the API
+        Credentials to authenticate the API.
     """
     # Get Application Default Credentials if running in Cloud Functions
     if os.getenv("IS_LOCAL") is None:
@@ -47,17 +47,16 @@ def credentials():
         )
     return credentials
 
-
 def main():
-    """Sends an email with a GCS URL containing BQ Query results
-    Creates BQ table, runs a SQL query, and stores results in the table. 
-    Generates signing credentials for GCS blob and sends an email with the GCS URL. 
+    """Sends an email with a Google Cloud Storage signed URL of BQ Query results.
+    Creates BQ table, runs a SQL query, and exports the results to Cloud Storage as a CSV. 
+    Generates signing credentials for the CSV and sends an email with a link to the signed URL. 
     
     Args:
         None
             
     Returns:
-        Sends an email with GCS URL
+        None
     """
     
     #Create BQ and Storage Client
@@ -72,6 +71,8 @@ def main():
     csv_name = file_name + ".csv"
     table_id = "report-scheduling.bq_exports." + file_name
     bucket_name = "bq_email_exports"
+    from_email = "sender@example.com"
+    to_emails = "recipient@example.com"
 
     # Create a BQ table
     schema = [
@@ -99,10 +100,10 @@ def main():
         LIMIT 10
     """
 
-    # Start the query, passing in the extra configuration.
+    # Start the query, passing in the extra configuration
     query_job = bq_client.query(sql, job_config=job_config)
     
-    # Wait for the job to complete.
+    # Wait for the job to complete
     query_job.result()
     print("Query results loaded to the table {}".format(table_id))
 
@@ -114,15 +115,15 @@ def main():
     extract_job = bq_client.extract_table(
         table_ref,
         destination_uri,
-        # Location must match that of the source table.
+        # Location must match that of the source table
         location="US",
     )
 
-    # Waits for job to complete.
+    # Waits for job to complete
     extract_job.result()
     print("Exported {}:{}.{} to {}".format(project, dataset_id, table_id, destination_uri))
 
-    # Generate a v4 signed URL for downloading a blob.
+    # Generate a v4 signed URL for downloading a blob
     bucket = storage_client.bucket(bucket_name)
     blob = bucket.blob(csv_name)
     
@@ -146,17 +147,17 @@ def main():
         version="v4",
         # This URL is valid for 24 hours, until the next email
         expiration=datetime.timedelta(hours=24),
-        # Allow GET requests using this URL.
+        # Allow GET requests using this URL
         method="GET",
-        # Signing credentials; if None falls back to json credentials in local dev env
+        # Signing credentials; if None falls back to json credentials in local environment 
         credentials=signing_credentials,
     )
     print("Generated GET signed URL.")
 
-    # Send email through SendGrid with link to signed URL
+    # Create email message through SendGrid with link to signed URL
     message = Mail(
-        from_email="sender@example.com",
-        to_emails="recipient@example.com",
+        from_email=from_email,
+        to_emails=to_emails,
         subject="Daily BQ export",
         html_content="<p> Your daily BigQuery export from Google Cloud Platform \
             is linked <a href={}>here</a>.</p>".format(
@@ -164,7 +165,7 @@ def main():
         ),
     )
 
-    # Handling error if the call to SENDGRID API fails
+    # Send email
     try:
         sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
         response = sg.send(message)
