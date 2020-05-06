@@ -28,6 +28,14 @@ from google.oauth2 import service_account
 
 
 def credentials():
+    """Gets credentials to authenticate Google APIs.
+ 
+    Args:
+        None
+        
+    Returns:
+        Credentials to authenticate the API
+    """
     # Get Application Default Credentials if running in Cloud Functions
     if os.getenv("IS_LOCAL") is None:
         credentials, project = default(scopes=["https://www.googleapis.com/auth/cloud-platform"])
@@ -39,7 +47,19 @@ def credentials():
     return credentials
 
 
-def main(*argv):
+def main():
+    """Sends an email with a GCS URL containing BQ Query results
+    Creates BQ table, runs a SQL query, and stores results in the table. 
+    Generates signing credentials for GCS blob and sends an email with the GCS URL. 
+    
+    Args:
+        None
+            
+    Returns:
+        Sends an email with GCS URL
+    """
+    
+    #Create BQ and Storage Client
     bq_client = bigquery.Client(credentials=credentials())
     storage_client = storage.Client(credentials=credentials())
     
@@ -57,6 +77,7 @@ def main(*argv):
         bigquery.SchemaField("url", "STRING", mode="REQUIRED"),
         bigquery.SchemaField("view_count", "INTEGER", mode="REQUIRED"),
     ]
+    
     # Make an API request to create table
     table = bq_client.create_table(bigquery.Table(table_id, schema=schema))
     print("Created table {}.{}.{}".format(table.project, table.dataset_id, table.table_id))
@@ -64,6 +85,7 @@ def main(*argv):
     # Run query on that table
     job_config = bigquery.QueryJobConfig(destination=table_id)
 
+    # Define the SQL query 
     sql = """
         SELECT
         CONCAT(
@@ -78,6 +100,7 @@ def main(*argv):
 
     # Start the query, passing in the extra configuration.
     query_job = bq_client.query(sql, job_config=job_config)
+    
     # Wait for the job to complete.
     query_job.result()
     print("Query results loaded to the table {}".format(table_id))
@@ -101,6 +124,7 @@ def main(*argv):
     # Generate a v4 signed URL for downloading a blob.
     bucket = storage_client.bucket(bucket_name)
     blob = bucket.blob(csv_name)
+    
     signing_credentials = None
     # If running on GCF, generate signing credentials
     # Service account running the GCF must have Service Account Token Creator role
@@ -113,6 +137,7 @@ def main(*argv):
             target_audience="",
             service_account_email=os.getenv("FUNCTION_IDENTITY"),
         )
+        
     url = blob.generate_signed_url(
         version="v4",
         # This URL is valid for 24 hours, until the next email
@@ -135,6 +160,7 @@ def main(*argv):
         ),
     )
 
+    # Handling error if the call to SENDGRID API fails
     try:
         sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
         response = sg.send(message)
