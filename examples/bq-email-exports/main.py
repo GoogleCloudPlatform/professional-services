@@ -37,12 +37,14 @@ def credentials():
     """
     # Get Application Default Credentials if running in Cloud Functions
     if os.getenv("IS_LOCAL") is None:
-        credentials, project = default(scopes=["https://www.googleapis.com/auth/cloud-platform"])
+        credentials, project = default(
+            scopes=["https://www.googleapis.com/auth/cloud-platform"])
     # To use this file locally set IS_LOCAL=1 and populate env var GOOGLE_APPLICATION_CREDENTIALS
     # with path to service account json key file
     else:
         credentials = service_account.Credentials.from_service_account_file(
-            os.getenv("GOOGLE_APPLICATION_CREDENTIALS"), scopes=["https://www.googleapis.com/auth/cloud-platform"],
+            os.getenv("GOOGLE_APPLICATION_CREDENTIALS"),
+            scopes=["https://www.googleapis.com/auth/cloud-platform"],
         )
     return credentials
 
@@ -82,7 +84,8 @@ def main():
 
     # Make an API request to create table
     table = bq_client.create_table(bigquery.Table(table_id, schema=schema))
-    print("Created table {}.{}.{}".format(table.project, table.dataset_id, table.table_id))
+    print("Created table {}.{}.{}".format(table.project, table.dataset_id,
+                                          table.table_id))
 
     # Run query on that table
     job_config = bigquery.QueryJobConfig(destination=table_id)
@@ -121,7 +124,8 @@ def main():
 
     # Waits for job to complete
     extract_job.result()
-    print("Exported {}:{}.{} to {}".format(project, dataset_id, table_id, destination_uri))
+    print("Exported {}:{}.{} to {}".format(project, dataset_id, table_id,
+                                           destination_uri))
 
     # Generate a v4 signed URL for downloading a blob
     bucket = storage_client.bucket(bucket_name)
@@ -131,10 +135,11 @@ def main():
     # If running on GCF, generate signing credentials
     # Service account running the GCF must have Service Account Token Creator role
     if os.getenv("IS_LOCAL") is None:
-        signer = iam.Signer(request=requests.Request(),
-                            credentials=credentials(),
-                            service_account_email=os.getenv("FUNCTION_IDENTITY"),
-                            )
+        signer = iam.Signer(
+            request=requests.Request(),
+            credentials=credentials(),
+            service_account_email=os.getenv("FUNCTION_IDENTITY"),
+        )
         # Create Token-based service account credentials for signing
         signing_credentials = service_account.IDTokenCredentials(
             signer=signer,
@@ -160,9 +165,7 @@ def main():
         to_emails=to_emails,
         subject="Daily BQ export",
         html_content="<p> Your daily BigQuery export from Google Cloud Platform \
-            is linked <a href={}>here</a>.</p>".format(
-            url
-        ),
+            is linked <a href={}>here</a>.</p>".format(url),
     )
 
     # Send email
