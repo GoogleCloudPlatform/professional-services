@@ -18,7 +18,6 @@
 import os
 import time
 import datetime
-import json
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 from google.cloud import bigquery, storage
@@ -29,17 +28,17 @@ from google.oauth2 import service_account
 
 def credentials():
     """Gets credentials to authenticate Google APIs.
- 
+
     Args:
         None
-        
+
     Returns:
         Credentials to authenticate the API.
     """
     # Get Application Default Credentials if running in Cloud Functions
     if os.getenv("IS_LOCAL") is None:
         credentials, project = default(scopes=["https://www.googleapis.com/auth/cloud-platform"])
-    # To use this file locally set IS_LOCAL=1 and populate env var GOOGLE_APPLICATION_CREDENTIALS 
+    # To use this file locally set IS_LOCAL=1 and populate env var GOOGLE_APPLICATION_CREDENTIALS
     # with path to service account json key file
     else:
         credentials = service_account.Credentials.from_service_account_file(
@@ -47,22 +46,23 @@ def credentials():
         )
     return credentials
 
+
 def main():
     """Sends an email with a Google Cloud Storage signed URL of BQ Query results.
-    Creates BQ table, runs a SQL query, and exports the results to Cloud Storage as a CSV. 
-    Generates signing credentials for the CSV and sends an email with a link to the signed URL. 
-    
+    Creates BQ table, runs a SQL query, and exports the results to Cloud Storage as a CSV.
+    Generates signing credentials for the CSV and sends an email with a link to the signed URL.
+
     Args:
         None
-            
+
     Returns:
         None
     """
-    
-    #Create BQ and Storage Client
+
+    # Create BQ and Storage Client
     bq_client = bigquery.Client(credentials=credentials())
     storage_client = storage.Client(credentials=credentials())
-    
+
     # Set variables
     timestr = time.strftime("%Y%m%d%I%M%S")
     project = "report-scheduling"
@@ -79,7 +79,7 @@ def main():
         bigquery.SchemaField("url", "STRING", mode="REQUIRED"),
         bigquery.SchemaField("view_count", "INTEGER", mode="REQUIRED"),
     ]
-    
+
     # Make an API request to create table
     table = bq_client.create_table(bigquery.Table(table_id, schema=schema))
     print("Created table {}.{}.{}".format(table.project, table.dataset_id, table.table_id))
@@ -87,7 +87,7 @@ def main():
     # Run query on that table
     job_config = bigquery.QueryJobConfig(destination=table_id)
 
-    # Define the SQL query 
+    # Define the SQL query
     sql = """
         SELECT
         CONCAT(
@@ -102,7 +102,7 @@ def main():
 
     # Start the query, passing in the extra configuration
     query_job = bq_client.query(sql, job_config=job_config)
-    
+
     # Wait for the job to complete
     query_job.result()
     print("Query results loaded to the table {}".format(table_id))
@@ -126,15 +126,15 @@ def main():
     # Generate a v4 signed URL for downloading a blob
     bucket = storage_client.bucket(bucket_name)
     blob = bucket.blob(csv_name)
-    
+
     signing_credentials = None
     # If running on GCF, generate signing credentials
     # Service account running the GCF must have Service Account Token Creator role
     if os.getenv("IS_LOCAL") is None:
-        signer = iam.Signer(request=requests.Request(), 
-                            credentials=credentials(), 
+        signer = iam.Signer(request=requests.Request(),
+                            credentials=credentials(),
                             service_account_email=os.getenv("FUNCTION_IDENTITY"),
-                           )
+                            )
         # Create Token-based service account credentials for signing
         signing_credentials = service_account.IDTokenCredentials(
             signer=signer,
@@ -142,14 +142,14 @@ def main():
             target_audience="",
             service_account_email=os.getenv("FUNCTION_IDENTITY"),
         )
-        
+
     url = blob.generate_signed_url(
         version="v4",
         # This URL is valid for 24 hours, until the next email
         expiration=datetime.timedelta(hours=24),
         # Allow GET requests using this URL
         method="GET",
-        # Signing credentials; if None falls back to json credentials in local environment 
+        # Signing credentials; if None falls back to json credentials in local environment
         credentials=signing_credentials,
     )
     print("Generated GET signed URL.")
@@ -172,6 +172,7 @@ def main():
         print(response.status_code)
     except Exception as e:
         print(e.message)
+
 
 if __name__ == "__main__":
     main()
