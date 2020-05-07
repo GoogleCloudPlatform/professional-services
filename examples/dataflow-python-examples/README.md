@@ -7,6 +7,8 @@ in the field.
 - [Joining file and BigQuery datasets in Dataflow](#joining-file-and-bigquery-datasets-in-dataflow)
 - [Ingest data from files into Bigquery reading the file structure from Datastore](#ingest-data-from-files-into-bigquery-reading-the-file-structure-from-datastore)
 - [Data lake to data mart](#data-lake-to-data-mart)
+- [Slowly Changing Side Input](#slowly-changing-side-input)
+- [Window File naming Policy](#window-file-naming-policy)
 
 The solutions below become more complex as we incorporate more Dataflow features.
 
@@ -284,3 +286,23 @@ Ready to dive deeper?  Check out the complete code.
 The example using side inputs is [here](dataflow_python_examples/data_lake_to_mart.py) and the example using CoGroupByKey is
 [here](dataflow_python_examples/data_lake_to_mart_cogroupbykey.py).
 
+## Slowly Changing Side Input
+This example demonstrates the concept of referencing multiple forms of side input data in GCS with main input data loaded from pubsub, and triggering the refresh of side input data via PubSub notification on demand.
+
+This pipeline contains 4 steps:
+1. Read Primary events from main input pubsub subscription over a fixed window.
+2. Read GCS file base path containing latest side input data from side input pubsub subscription.
+3. (Re) Load Side input data from corresponding side input sub path under the base path received in step 2
+4. Enrich primary event with side input data
+
+![Pipeline DAG](img/sideinput_refresh_dag.png)
+
+Check out complete code [here](dataflow_python_examples/streaming/sideinput_refresh.py)
+
+## Window File naming Policy
+
+This example demonstrates a Dataflow pipeline that reads messages from pubsub and writes messages to GCS location.
+GCS location can be dynamically constructed during runtime based on the file naming policy utilizing current window 
+constructs.
+
+Check out complete code [here](dataflow_python_examples/streaming/window_filenamingpolicy.py)
