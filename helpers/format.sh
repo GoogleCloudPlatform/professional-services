@@ -77,4 +77,6 @@ do
             echo "No java files found for $FOLDER - SKIP"
         fi
     fi
-done  < <(find . -maxdepth 1 -mindepth 1 -type d)
+# Search all directories and sub-directories except sub-directories of .git
+# https://stackoverflow.com/a/16595367/101923
+done < <(find . -maxdepth 2 -mindepth 1 -type d -not \( -path ./.git -prune \) -print0)

@@ -74,6 +74,8 @@ validate_python() {
     # Initialize FILES_TO_LINT to empty string
     FILES_TO_LINT=""
 
+    (cd "$FOLDER" && flake8 --exclude=.git,__pycache__,.venv,venv --select=E9,F,C)
+
     if [[ ! -z "$FILES_TO_CHECK" ]]
     then
         # Checking python files
@@ -207,5 +209,7 @@ do
     else
         echo "$FOLDER in exclusion list - SKIP  "
     fi
-done < <(find . -maxdepth 2 -mindepth 1 -type d -print0)
+# Search all directories and sub-directories except sub-directories of .git
+# https://stackoverflow.com/a/16595367/101923
+done < <(find . -maxdepth 2 -mindepth 1 -type d -not \( -path ./.git -prune \) -print0)
 echo "finished checking format"

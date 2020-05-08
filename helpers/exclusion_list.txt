@@ -1,7 +1,3 @@
-./.git
-./.github
-./.pytest_cache
-./.vscode
 ./tools/agile-machine-learning-api
 ./tools/apachebeam-throttling
 ./tools/asset-inventory
