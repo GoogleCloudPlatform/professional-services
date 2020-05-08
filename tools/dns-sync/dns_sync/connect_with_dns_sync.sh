@@ -28,16 +28,16 @@ GCE_PROJECT=${2}
 PUSH_ENDPOINT=${3}
 
 # 1. Create the 'compute_engine_activity' topic in the GCE project.
-gcloud --project ${GCE_PROJECT}  alpha pubsub topics create compute_engine_activity
+gcloud --project "${GCE_PROJECT}" alpha pubsub topics create compute_engine_activity
 
 # 2. Add the cloud-logs@system.gserviceaccount.com service account to the topic.
-./add_topic_editor.py ${GCE_PROJECT} compute_engine_activity
+./add_topic_editor.py "${GCE_PROJECT}" compute_engine_activity
 
 # 3. Create the compute_engine_activity Stackdriverlogging sink which will publish compute_engine_activity events to the compute_engine_activity topic.
-gcloud --project ${GCE_PROJECT}  beta logging sinks create compute_engine_activity pubsub.googleapis.com/projects/$GCE_PROJECT/topics/compute_engine_activity --log compute.googleapis.com/activity_log   --output-version-format 'V1'
+gcloud --project "${GCE_PROJECT}" beta logging sinks create compute_engine_activity "pubsub.googleapis.com/projects/${GCE_PROJECT}/topics/compute_engine_activity" --log compute.googleapis.com/activity_log --output-version-format 'V1'
 
 # 4. Create a push subscription in the dns-sync project for the compute_engine_activity topic which pushes to the endpoint
-gcloud --project ${DNS_PROJECT}  alpha pubsub subscriptions create ${GCE_PROJECT}_push  --topic-project ${GCE_PROJECT}   --topic compute_engine_activity  --push-endpoint ${PUSH_ENDPOINT}
+gcloud --project "${DNS_PROJECT}" alpha pubsub subscriptions create "${GCE_PROJECT}_push" --topic-project "${GCE_PROJECT}" --topic compute_engine_activity  --push-endpoint "${PUSH_ENDPOINT}"
 
 # 5. Add the app engine service account as a project viewer in order to lookup GCE resources created.
-gcloud projects add-iam-policy-binding ${GCE_PROJECT}  --member "serviceAccount:${DNS_PROJECT}@appspot.gserviceaccount.com" --role "roles/viewer"
+gcloud projects add-iam-policy-binding "${GCE_PROJECT}" --member "serviceAccount:${DNS_PROJECT}@appspot.gserviceaccount.com" --role "roles/viewer"

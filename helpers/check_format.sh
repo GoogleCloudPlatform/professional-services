@@ -38,7 +38,7 @@ validate_bash() {
     FOLDER=$1
     echo "Validating $FOLDER - Checking bash files"
 
-    FILES_TO_CHECK=$(find "$FOLDER" -type f -name "*.sh")
+    FILES_TO_CHECK=$(find "$FOLDER" -not \( -name node_modules -prune \) -type f -name "*.sh")
 
     # Initialize FILES_TO_LINT to empty string
     FILES_TO_LINT=""
@@ -139,28 +139,34 @@ validate_go() {
 # errors out if gts init or npm audit returns a non-0 status
 validate_typescript(){
     FOLDER=$1
-    if [[ -f "$FOLDER/tsconfig.json" ]]
+
+    FILES_TO_CHECK=$(find "$FOLDER" -type f -name "tsconfig.json")
+
+    if [[ ! -z "$FILES_TO_CHECK" ]]
     then
-        echo "Validating $FOLDER - Checking typescript files"
-        cd "$FOLDER" || exit 1
+        for tsconfig_path in $FILES_TO_CHECK
+        do
+            tsconfig_dir=$(dirname "$tsconfig_path")
+            echo "Validating $tsconfig_dir - Checking typescript files"
+            cd "$tsconfig_dir" || exit 1
 
-        if ! npx gts -y init > /dev/null ;
-        then
-            echo "Running npm audit..."
-            if npm audit ;
+            if ! npx gts -y init > /dev/null ;
             then
-                echo "$FOLDER npm audit needs fixing - FAIL"
-                exit 1
+                echo "Running npm audit..."
+                if npm audit ;
+                then
+                    echo "$tsconfig_dir npm audit needs fixing - FAIL"
+                    exit 1
+                else
+                    echo "$tsconfig_dir npm audit is clean - PASS"
+                fi
             else
-                echo "$FOLDER npm audit is clean - PASS"
+                echo "gts init returned an error - FAIL"
+                exit 1
             fi
-        else
-            echo "gts init returned an error - FAIL"
-            exit 1
-        fi
-        cd - || exit 1
+            cd - || exit 1
+        done
     fi
-
 }
 
 # validate_java - takes a folder path as input and validate folder
