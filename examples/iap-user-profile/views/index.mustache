@@ -13,11 +13,13 @@
 <!-- Template adapted from https://www.bootdey.com/snippets/view/bs4-social-profile-header -->
 <div class="bg-white">
     <div class="container">
+        <h2 class="text-center mt-5">IAP - Retrieving User Profile Example</h2>
+
         <div class="text-center py-5">
-            <img src="/images/blank-profile.jpg" alt class="ui-w-100 rounded-circle">
+            <img src="{{ photoUrl }}" alt class="ui-w-100 rounded-circle">
 
             <div class="col-md-8 col-lg-6 col-xl-5 p-0 mx-auto">
-                <h4 class="font-weight-bold my-4">{{ fullName }}</h4>
+                <h4 class="font-weight-bold my-4">{{ displayName }}</h4>
                 <h4 class="text-muted">{{ email }}</h4>
             </div>
         </div>

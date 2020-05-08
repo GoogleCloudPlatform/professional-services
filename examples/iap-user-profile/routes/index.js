@@ -1,40 +1,84 @@
+'use strict';
+
+const { logger } = require('../logging');
+
 const express = require('express');
 const router = express.Router();
+const { google } = require('googleapis');
 
-/* Users dictionary with email as key */
-const usersInfo = {}
+const auth = require('../auth');
+const userService = require('../services/user-service');
+
+async function promptOAuth(res, userEmail) {
+    const scopes = ['https://www.googleapis.com/auth/userinfo.profile'];
+    const oauth2Client = await auth.getOAuth2Client();
+    const url = oauth2Client.generateAuthUrl({
+        access_type: 'online',
+        scope: scopes,
+        login_hint: userEmail,
+    });
+
+    res.redirect(url);
+}
 
 function resolveUserEmail(req) {
-  let userEmail;
+    let userEmail;
 
-  if (process.env.GAE_APPLICATION) {
-    userEmail = req.header('X-Goog-Authenticated-User-Email').substring("accounts.google.com".length + 1);
-  } else {
-    userEmail = 'henry@email.com';
-  }
+    if (process.env.GAE_APPLICATION) {
+        userEmail = req.header('X-Goog-Authenticated-User-Email').substring("accounts.google.com".length + 1);
 
-  return userEmail;
+        logger.info(`IAP user email: ${userEmail}`);
+    } else {
+        throw new Error("Expected user email to be found from IAP header");
+    }
+
+    return userEmail;
 }
 
-function getUserInfo(req) {
-  let userInfo;
+router.get('/', async function (req, res) {
+    let userEmail = resolveUserEmail(req);
+    let user = await userService.getUserByEmail(userEmail);
 
-  const email = resolveUserEmail(req);
+    if (user == null) {
+        logger.info(`User info not found, redirecting to OAuth login page`);
 
-  if (usersInfo[email]) {
-    userInfo = usersInfo[email];
-  } else {
-    userInfo = {email: email, fullName: 'Henry Suryawirawan'};
-  }
+        await promptOAuth(res, userEmail);
+        return;
+    }
 
-  return userInfo;
-}
+    res.render('index', user);
+});
 
-/* GET home page. */
-router.get('/', function(req, res, next) {
-  let userInfo = getUserInfo(req);
+router.get('/auth-callback', async function (req, res) {
+    const userEmail = resolveUserEmail(req);
+    const code = req.query.code;
 
-  res.render('index', userInfo);
+    const oauth2Client = await auth.getOAuth2Client();
+    const {tokens} = await oauth2Client.getToken(code);
+    oauth2Client.setCredentials(tokens);
+
+    const people = google.people({
+        version: 'v1',
+        auth: oauth2Client,
+    });
+    const peopleResponse = await people.people.get({
+        resourceName: 'people/me',
+        personFields: 'emailAddresses,names,photos',
+    });
+    const name = peopleResponse.data.names[0];
+    const photo = peopleResponse.data.photos[0];
+
+    const user = {
+        email: userEmail,
+        displayName: name.displayName,
+        photoUrl: photo.url
+    };
+
+    logger.info(`Retrieved my user profile from People API: ${JSON.stringify(user)}`);
+
+    await userService.saveUser(user);
+
+    res.redirect('/');
 });
 
 module.exports = router;
