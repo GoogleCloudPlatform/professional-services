@@ -57,11 +57,11 @@ router.get('/auth-callback', async function (req, res) {
     const {tokens} = await oauth2Client.getToken(code);
     oauth2Client.setCredentials(tokens);
 
-    const people = google.people({
+    const peopleApi = google.people({
         version: 'v1',
         auth: oauth2Client,
     });
-    const peopleResponse = await people.people.get({
+    const peopleResponse = await peopleApi.people.get({
         resourceName: 'people/me',
         personFields: 'emailAddresses,names,photos',
     });

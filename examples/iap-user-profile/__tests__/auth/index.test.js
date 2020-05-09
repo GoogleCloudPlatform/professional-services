@@ -9,7 +9,8 @@ const auth = require('../../auth');
 const OLD_ENV = process.env;
 
 beforeEach(() => {
-    jest.resetModules() // this is important - it clears the cache
+    jest.resetModules();
+
     process.env = { ...OLD_ENV };
     delete process.env.NODE_ENV;
 });
