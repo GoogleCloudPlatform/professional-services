@@ -64,7 +64,7 @@ DEFAULT_DAG_ARGS = {
     # POST to the REST API.
     # Alternatively, we could set this to yesterday and the dag will be triggered upon upload to the
     # dag folder.
-    'start_date': datetime.utcnow(),
+    'start_date': datetime(2020, 1, 1),
     'email_on_failure': False,
     'email_on_retry': False,
     'retries': 1,  # Retry once before failing the task.
@@ -73,12 +73,12 @@ DEFAULT_DAG_ARGS = {
     # We only want the DAG to run when we POST to the api.
     # Alternatively, this could be set to '@daily' to run the job once a day.
     # more options at https://airflow.apache.org/scheduler.html#dag-runs
-    'schedule_interval': None
 }
 
 # Create Directed Acyclic Graph for Airflow
-with DAG('average-speed', default_args=DEFAULT_DAG_ARGS
-         ) as dag:  # Here we are using dag as context.
+with DAG('average-speed',
+         default_args=DEFAULT_DAG_ARGS,
+         schedule_interval=None) as dag:  # Here we are using dag as context.
     # Create the Cloud Dataproc cluster.
     # Note: this operator will be flagged a success if the cluster by this name already exists.
     create_cluster = DataprocClusterCreateOperator(
@@ -87,6 +87,7 @@ with DAG('average-speed', default_args=DEFAULT_DAG_ARGS
         # in YYYYMMDD format. See docs https://airflow.apache.org/code.html?highlight=macros#macros
         cluster_name='ephemeral-spark-cluster-{{ ds_nodash }}',
         num_workers=2,
+        storage_bucket=Variable.get('dataproc_bucket'),
         zone=Variable.get('gce_zone'))
 
     # Submit the PySpark job.
