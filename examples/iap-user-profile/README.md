@@ -94,8 +94,10 @@ following:
           --role='roles/secretmanager.secretAccessor'
     ```
 
+## Accessing the Application
+
 1.  Access the application in your browser.  
-    Note: It may take some time before the policy takes effect.
+    Note: If you are accessing it first time, it may take some time before the policy takes effect.
     Retry several times until you are prompted the OAuth login screen.
     https://focus-copilot-276707.an.r.appspot.com/
     
