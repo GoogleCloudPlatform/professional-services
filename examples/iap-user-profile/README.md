@@ -37,13 +37,13 @@ following:
     ```
 
 1.  Deploy this sample application. This will become the `default` service.  
-    Note: You need to have a GAE application before IAP can be enabled for GAE.
+    Note: IAP can only be enabled when there is already a service deployed in GAE.
     ```bash
     cd professional-services/examples/iap-user-profile/
     gcloud app deploy --quiet
     ```
     
-1.  Configure `Consent Screen` on the below link
+1.  Configure `Consent Screen` on the below link  
     https://console.cloud.google.com/apis/credentials/consent?project=focus-copilot-276707
     
     1.  Choose `Internal` for the `User Type`, then click `Create`
@@ -65,7 +65,7 @@ following:
     ```
     
 1.  Create new `Credentials` on the below link. This credential will be used by the OAuth2 login
-    flow to retrieve the user profile. 
+    flow to retrieve the user profile.  
     https://console.cloud.google.com/apis/credentials?project=focus-copilot-276707
     
     1.  Click `Create Credentials`. Choose `OAuth client ID`.
@@ -98,10 +98,10 @@ following:
 
 1.  Access the application in your browser.  
     Note: If you are accessing it first time, it may take some time before the policy takes effect.
-    Retry several times until you are prompted the OAuth login screen.
+    Retry several times until you are prompted the OAuth login screen.  
     https://focus-copilot-276707.an.r.appspot.com/
     
-1.  You will be prompted the OAuth login one more time.
+1.  You will be prompted the OAuth login one more time.  
     This is intended since we are going to use this scope to access your People API.
 
 1.  You should be able to see your user profile displayed on the web page.
