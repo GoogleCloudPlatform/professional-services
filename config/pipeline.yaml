@@ -22,20 +22,41 @@ file_paths:
 # Global config used by multiple pipeline steps. Also made available
 # as parameters to all SQL queries.
 global:
-  # Project and dataset configuration.
+  # The        project_id contains datasets which are top-level containers to
+  # organize and access tables. For more information, refer to the 
+  # link: https://cloud.google.com/bigquery/docs/datasets-intro
+  
+  # The source project_id and dataset contain the complaints table which
+  # is read and stored in the destination project_id for feature
+  # extraction and training.
+  # Source project and dataset configuration.
   source_project_id: "bigquery-public-data"
-  destination_project_id: "ut-goog"
   source_dataset: "cfpb_complaints"
+  source_table: "complaint_database"
+  
+  # Destination project and dataset configuration.
+  # Enter the value of your project_id below.
+  destination_project_id: ""
   destination_dataset: "cfpb_complaints"
 
-  # Clean data, minor refined versions of provided data.
-  source_table: "complaint_database"
-  nlp_features_table: "complaints_nlp"
+  # Clean and minor refined versions of source data.
+  # cleaned_features_table - This table contains the columns - issue,
+  # subissue, product and subproduct after cleaning the categories
+  # nulls_removed_table - This table contains the rows after removing
+  # null values in the columns - complaint_narrative and
+  # company_response_to_consumer
+  # clean_table - This table contains the rows after cleaning and
+  # removing nulls
   cleaned_features_table: "complaints_clean_categories"
   nulls_removed_table: "complaints_nulls_removed"
   clean_table: "complaints_clean"
   
-  # Split features into training and prediction.
+  # Split the data into a training set and a prediction set. The
+  # training set is passed to the AutoML Tables for training
+  # the model. The prediction set is used for batch prediction
+  # after the model os trained.
+
+
   train_predict_split: "TrainPredictSplit"
   features_train_table: "FeaturesTrain"
   features_predict_table: "FeaturesPredict"
