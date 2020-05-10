@@ -54,9 +54,15 @@ global:
   # Split the data into a training set and a prediction set. The
   # training set is passed to the AutoML Tables for training
   # the model. The prediction set is used for batch prediction
-  # after the model os trained.
-
-
+  # after the model is trained.
+  
+  # train_predict_split - This table creates a new column called
+  # "splitting" which specifies whether the row is randomly
+  # assigned to the training or prediction set
+  # "features_train_table" - This contains the training
+  # features that are passed into the AutoML model for training
+  # "features_predict_table" - This contains the prediction
+  # features that are used for batch prediction
   train_predict_split: "TrainPredictSplit"
   features_train_table: "FeaturesTrain"
   features_predict_table: "FeaturesPredict"
@@ -65,10 +71,6 @@ global:
   # prediction job, ex. numeric column recieved a string.
   predictions_table: "Predictions"
   failed_predictions_table: "FailedPredictions"
-  
-  # Evaluation
-  eval_table: "Evaluation"
-  eval_metrics_table: "EvaluationMetrics"
 
   # AutoML Parameters. It is assumed that no other datasets or models have
   # been created with these names, or the pipeline will fail. They can be
@@ -76,9 +78,6 @@ global:
   dataset_display_name: "CFPBDataset"
   model_display_name: "CFPBModel"
   automl_compute_region: "us-central1"
-
-  # Final model will be trained on test data, metrics are currently based
-  # on the predict split instead. AutoML Requires at least one row of test data
 
 # Files with templated queries, in file_paths.queries.
 query_files:
