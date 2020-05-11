@@ -1,30 +1,3 @@
-# msba-capstone-2020
-
-## Contributors
-Michael Sherman (michaelsherman@google.com)  
-Michael Sparkman (michaelsparkman1996@gmail.com)  
-Karan Palsani (karanpalsani@utexas.edu)  
-Sahana Subramanian (Sahana.Subramanian@utexas.edu)  
-
-```
-==============================================================================
-Copyright 2020 Google LLC
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at:
-
-     http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-==============================================================================
-```
-
-
 # Predict Company Responses to Consumer Complaints
 
 # TODO: Readme should have very clear instructions on running the entire pipeline, including getting started and the repo and pretty much anything else a dev running the code would need.
