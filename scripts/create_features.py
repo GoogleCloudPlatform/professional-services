@@ -46,7 +46,7 @@ def main():
   # Query to remove nulls from the target column (company_response_to_consumer)
   # and from complaint_narrative column
   remove_nulls_params = utils.merge_dicts(global_config,
-                                          query_params['removing_nulls'])
+                                          query_params['remove_nulls'])
 
   utils.create_table(
       query_path=os.path.join(queries_path, query_files['remove_nulls']),
@@ -58,12 +58,9 @@ def main():
   )
 
   # Query to cleanup the categories of issue, subissue, product, subproduct
-  category_clean_params = utils.merge_dicts(global_config,
-                                            query_params['category_cleanup'])
-
   utils.create_table(
       query_path=os.path.join(queries_path, query_files['clean_categories']),
-      query_params=category_clean_params,
+      query_params=global_config,
       destination_project=global_config['destination_project_id'],
       destination_dataset=global_config['destination_dataset'],
       destination_table=global_config['cleaned_features_table'],
