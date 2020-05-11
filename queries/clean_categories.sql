@@ -45,11 +45,11 @@ SELECT
               )
           )*100 < 1
        )
-      THEN "{new_subprod1}"
-    WHEN subproduct = "{old_subprod1}"
-      THEN "{new_subprod1}"
-    WHEN subproduct = "{old_subprod2}"
-      THEN "{new_subprod2}"
+      THEN "Other"
+    WHEN subproduct = "Other (i.e. phone, health club, etc.)"
+      THEN "Other"
+    WHEN subproduct = "Loan"
+      THEN "Other Loan"
     ELSE subproduct 
     END AS subproduct,
 
@@ -70,9 +70,9 @@ SELECT
               )
           )*100 < 1
        ) 
-      THEN "{new_issue1}"
-    WHEN issue IN ("{old_issue1}","{old_issue2}") 
-      THEN "{new_issue2}"
+      THEN "Other"
+    WHEN issue IN ("Dealing with your lender or servicer","Dealing with my lender or servicer") 
+      THEN "Dealing with lender or servicer"
     ELSE issue 
     END AS issue,
 
@@ -93,11 +93,11 @@ SELECT
               )
           )*100 < 1
        ) 
-      THEN "{new_subissue1}"
-    WHEN subissue IN ("{old_subissue1}","{old_subissue2}") 
-      THEN "{new_subissue2}" 
-    WHEN subissue = "{old_subissue3}"
-      THEN "{new_subissue3}"
+      THEN "Other"
+    WHEN subissue IN ("Debt is not yours","Debt is not mine") 
+      THEN "Incorrect debt" 
+    WHEN subissue = "Account status"
+      THEN "Account status incorrect"
     ELSE subissue 
     END AS subissue
 
