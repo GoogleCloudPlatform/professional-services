@@ -16,7 +16,6 @@
 import logging
 import os
 import sys
-
 import utils
 
 logging.basicConfig(level=logging.DEBUG)
@@ -44,7 +43,7 @@ def main():
   )
 
   # Query to remove nulls from the target column (company_response_to_consumer)
-  # and from complaint_narrative column
+  # and from complaint_narrative column.
   remove_nulls_params = utils.merge_dicts(global_config,
                                           query_params['remove_nulls'])
 
@@ -57,7 +56,7 @@ def main():
       partition_field=None
   )
 
-  # Query to cleanup the categories of issue, subissue, product, subproduct
+  # Query to cleanup the categories of issue, subissue, product, subproduct.
   utils.create_table(
       query_path=os.path.join(queries_path, query_files['clean_categories']),
       query_params=global_config,
@@ -67,7 +66,7 @@ def main():
       partition_field=None
   )
 
-  # Query to merge the cleaned features and the table with nulls removed
+  # Query to merge the cleaned features and the table with nulls removed.
   utils.create_table(
       query_path=os.path.join(queries_path, query_files['combine_tables']),
       query_params=global_config,
@@ -77,9 +76,9 @@ def main():
       partition_field=None
   )
 
-  # Query to split the clean dataset into training and prediction features.
-  # The training features will be fed to the AutoML Tables for training and
-  # the prediction features will be used for batch prediction
+  # Query to split the clean dataset into training and prediction datasets.
+  # The training dataset will be fed to the AutoML Tables for training and
+  # the prediction dataset will be used for batch prediction.
   features_split_params = utils.merge_dicts(global_config,
                                             query_params['train_predict_split'])
 
@@ -92,7 +91,7 @@ def main():
       partition_field=None
   )
 
-  # Query to create the prediction table
+  # Query to create the prediction table.
   features_split_params = utils.merge_dicts(global_config,
                                             query_params['train_predict_split'])
 
@@ -106,7 +105,7 @@ def main():
   )
 
   # Query to create the training table along with the manual split into train,
-  # validation and test rows for the AutoML tables
+  # validation and test rows for the AutoML tables.
   features_split_params = utils.merge_dicts(global_config,
                                             query_params['train_predict_split'])
 
