@@ -150,14 +150,13 @@ def create_table(
     
   # Separate the positional and keyword params
   query_list_params = []
-  temp_params = query_params.copy()
-  for key in temp_params.keys():
-    if (type(temp_params[key]) == list):
-      query_list_params.extend(temp_params[key])
-      del query_params[key]
+  #temp_params = query_params.copy()
+  for key in query_params.keys():
+    if (type(query_params[key]) == list):
+      query_list_params.extend(query_params[key])
 
   # Formats SQL query string with query args.
-  query = query.format(*query_list_params,**query_params)
+  query = query.format(*query_list_params, **query_params)
 
   # Create table in Bigquery.
   client = bigquery.Client()
