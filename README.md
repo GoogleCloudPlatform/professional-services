@@ -50,6 +50,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [QAOA](examples/qaoa) - Examples of parsing a max-SAT problem in a proprietary format.
 * [Redis Cluster on GKE Example](examples/redis-cluster-gke) - Deploying Redis cluster on GKE.
 * [Spinnaker](examples/spinnaker) - Example pipelines for a Canary / Production deployment process.
+* [TensorFlow unit testing](examples/tensorflow-profiling-examples) - How to write unit tests for TensorFlow models.
 * [Uploading files directly to Google Cloud Storage by using Signed URL](examples/direct-upload-to-gcs) - Example architecture to enable uploading files directly to GCS by using [Signed URL](https://cloud.google.com/storage/docs/access-control/signed-urls).
 
 ## Tools
