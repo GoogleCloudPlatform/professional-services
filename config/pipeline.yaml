@@ -91,7 +91,7 @@ query_files:
 # Parameters specific to individual SQL pipeline steps.
 query_params:
 
-  removing_nulls:
+  remove_nulls:
     columns_with_nulls_removed:
       - "consumer_complaint_narrative"
       - "company_response_to_consumer"
