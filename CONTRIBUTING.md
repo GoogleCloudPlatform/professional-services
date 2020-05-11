@@ -14,7 +14,7 @@ To get started contributing:
    ```
    gcloud config set project YOUR-PROJECT
    cd cloudbuild
-   teraform init
+   terraform init
    terraform apply -var="project_id=$(gcloud config get-value project)" -var='github_owner=GITHUB-USER-ID'
    ```
 
