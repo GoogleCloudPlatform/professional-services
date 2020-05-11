@@ -22,7 +22,7 @@ file_paths:
 # Global config used by multiple pipeline steps. Also made available
 # as parameters to all SQL queries.
 global:
-  # The        project_id contains datasets which are top-level containers to
+  # The project_id contains datasets which are top-level containers to
   # organize and access tables. For more information, refer to the 
   # link: https://cloud.google.com/bigquery/docs/datasets-intro
   
@@ -92,30 +92,14 @@ query_files:
 query_params:
 
   removing_nulls:
-    column1: "consumer_complaint_narrative"
-    column2: "company_response_to_consumer"
-    
-  category_cleanup:
-    old_issue1: "Dealing with your lender or servicer"
-    old_issue2: "Dealing with my lender or servicer"
-    new_issue1: "Other"
-    new_issue2: "Dealing with lender or servicer"
-    old_subprod1: "Other (i.e. phone, health club, etc.)"
-    old_subprod2: "Loan"
-    new_subprod1: "Other"
-    new_subprod2: "Other Loan"
-    old_subissue1: "Debt is not yours"
-    old_subissue2: "Debt is not mine"
-    old_subissue3: "Account status"
-    new_subissue1: "Other"
-    new_subissue2: "Incorrect debt"
-    new_subissue3: "Account status incorrect"
-    
+    columns_with_nulls_removed:
+      - "consumer_complaint_narrative"
+      - "company_response_to_consumer"
+  
+  # Specify the percentage of data to be used for batch prediction
   train_predict_split:
-    train_threshold: 0.8
     test_threshold: 0.2
       
-
 # Training parameters for the model.
 model:
   # See https://cloud.google.com/automl-tables/docs/train for more details
