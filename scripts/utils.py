@@ -115,8 +115,7 @@ def create_table(
     destination_project: str,
     destination_dataset: str,
     destination_table: str,
-    partition_field: str,
-) -> str:
+    partition_field: str) -> str:
   """Creates a Bigquery table from a parameterized .sql file.
 
   This method executes sql files with {named} parameters and writes the
