@@ -18,7 +18,7 @@ SELECT
   ToSplit.complaint_id,
   CASE
     WHEN
-        RAND() < {train_threshold}
+        RAND() < 1-{test_threshold}
       THEN 'TRAIN'
     ELSE 'PREDICT'
     END AS splitting
