@@ -152,7 +152,7 @@ def create_table(
   query_list_params = []
   #temp_params = query_params.copy()
   for key in query_params.keys():
-    if (type(query_params[key]) == list):
+    if isinstance(query_params[key]) == list:
       query_list_params.extend(query_params[key])
 
   # Formats SQL query string with query args.
