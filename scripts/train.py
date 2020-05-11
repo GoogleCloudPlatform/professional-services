@@ -25,7 +25,9 @@ from google.cloud import automl_v1beta1 as automl
 
 import utils
 
+
 logging.basicConfig(level=logging.DEBUG)
+
 
 def main():
   """Executes training for a model using the AutoML Tables.
@@ -47,14 +49,14 @@ def main():
       region=global_config['automl_compute_region']
   )
 
-  # Specify the BigQuery dataset and training features table
+  # Specify the BigQuery dataset and training features table.
   bigquery_uri_train_table = 'bq://{}.{}.{}'.format(
       global_config['destination_project_id'],
       global_config['destination_dataset'],
       global_config['features_train_table'],
   )
 
-  # Create the AutoML dataset for training
+  # Create the AutoML dataset for training.
   dataset = client.create_dataset(
       global_config['dataset_display_name']
   )
@@ -67,7 +69,7 @@ def main():
   )
   import_data_operation.result()
 
-  # Update the data type and nullability
+  # Update the data type and nullability.
   # Assumes fields are defined for every column.
   for column_spec_display_name, column in model_config['columns'].items():
     client.update_column_spec(
