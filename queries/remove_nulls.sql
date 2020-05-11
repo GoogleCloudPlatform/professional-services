@@ -24,5 +24,5 @@ SELECT
 FROM 
   `{source_project_id}.{source_dataset}.{source_table}`
 WHERE 
-  `{column1}` IS NOT NULL
-  AND `{column2}` IS NOT NULL;
+  `{}` IS NOT NULL
+  AND `{}` IS NOT NULL;
