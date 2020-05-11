@@ -74,7 +74,11 @@ validate_python() {
     # Initialize FILES_TO_LINT to empty string
     FILES_TO_LINT=""
 
-    (cd "$FOLDER" && flake8 --exclude=.git,__pycache__,.venv,venv --select=E9,F,C)
+
+    if ! (cd "$FOLDER" && flake8 --exclude=.git,__pycache__,.venv,venv --select=E9,F,C)
+    then
+       need_formatting "$FOLDER"
+    fi
 
     if [[ ! -z "$FILES_TO_CHECK" ]]
     then
@@ -98,7 +102,11 @@ validate_python() {
         then
             # python 3 yapf
             echo "Testing formatting for python3 files in $FOLDER"
-            FILES_TO_LINT+=$(python3 -m yapf --diff -r --style google "$FILES_TO_CHECK" | grep -E '^---.*\(original\)$' | awk '{print $2}')
+            FILES_TO_LINT+=$(
+                python3 -m yapf --diff -r --style google "$FILES_TO_CHECK" |
+                grep -E '^---.*\(original\)$' |
+                awk '{print $2}'
+            )
 
             if [[ ! -z "$FILES_TO_LINT" ]]
             then
@@ -184,8 +192,13 @@ validate_java(){
     if [[ ! -z "$FILES_TO_CHECK" ]]
     then
         echo "Testing formatting for java files in $FOLDER"
-	# shellcheck disable=SC2086
-	FILES_TO_LINT=$(java -jar "/usr/share/java/google-java-format-1.7-all-deps.jar" --set-exit-if-changed -n $FILES_TO_CHECK)
+
+        # shellcheck disable=SC2086
+        FILES_TO_LINT=$(
+            java -jar "/usr/share/java/google-java-format-1.7-all-deps.jar" \
+                --set-exit-if-changed \
+                -n $FILES_TO_CHECK
+        )
 
         if [[ ! -z "$FILES_TO_LINT" ]]
         then
@@ -217,5 +230,9 @@ do
     fi
 # Search all directories and sub-directories except sub-directories of .git
 # https://stackoverflow.com/a/16595367/101923
-done < <(find . -maxdepth 2 -mindepth 1 -type d -not \( -path ./.git -prune \) -print0)
+done < <(
+    find . -maxdepth 2 -mindepth 1 -type d \
+        -not \( -path ./.git -prune \) \
+        -print0
+)
 echo "finished checking format"
