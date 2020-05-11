@@ -147,7 +147,7 @@ def create_table(
   # Read parameterized query string.
   with open(query_path, 'r') as f:
     query = f.read()
-    
+
   # Separate the positional and keyword params
   query_list_params = []
   for key in query_params.keys():
