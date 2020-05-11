@@ -36,14 +36,14 @@ WITH GroupSize AS
     )
 
 SELECT
-    Training.*,
-    CASE
-      WHEN
-        (
-          1.0*ROW_NUMBER() OVER (PARTITION BY Training.company_response_to_consumer ORDER BY rand())) / COUNT(*) OVER (PARTITION BY Training.company_response_to_consumer) < {test_threshold}
-        THEN 'TEST'
-      ELSE 'UNASSIGNED'
-      END AS splitting
+  Training.*,
+  CASE
+    WHEN
+      (
+        1.0*ROW_NUMBER() OVER (PARTITION BY Training.company_response_to_consumer ORDER BY rand())) / COUNT(*) OVER (PARTITION BY Training.company_response_to_consumer) < {test_threshold}
+      THEN 'TEST'
+    ELSE 'UNASSIGNED'
+    END AS splitting
 FROM Training
 JOIN GroupSize
   ON Training.company_response_to_consumer = GroupSize.company_response_to_consumer;
