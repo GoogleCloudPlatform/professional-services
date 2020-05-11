@@ -68,8 +68,8 @@ TODO: Update closer to project completion
 As stated previously, these instructions have been tested in a [Google Cloud AI Platforms Notebook](https://console.cloud.google.com/ai-platform/notebooks/instances).
 
 1. Run `gcloud init`, choose to use a new account, authenticate, and [set your project ID](https://cloud.google.com/resource-manager/docs/creating-managing-projects#identifying_projects) as the project. Choose a region in the US if prompted to set a default region.
-1. PROBABLY NOT NECESSARY? Run `bq init`. You may get a prompt telling you the command isn't necessary, hit 'y'. When asked to select a project, just hit enter. It's okay to overwrite the .bigqueryrc file if bq prompts you that one already exists.
-1. Clone the project from LOCATION TBD.
+1. Run `bq init`. You may get a prompt telling you the command isn't necessary, hit 'y'. When asked to select a project, just hit enter. It's okay to overwrite the .bigqueryrc file if bq prompts you that one already exists.
+1. Clone the project from us-central1.
 1. Navigate to the repo root directory: `cd WHATEVER_WE_CALL_IT` .
 1. Create a Python 3 virtual environment (`?????'' in this example):
   1. Run `virtualenv --python=python3 $HOME/env/?????` .
@@ -80,7 +80,6 @@ As stated previously, these instructions have been tested in a [Google Cloud AI 
   1. Click the "Create Service Account" button.
   1. Enter a name and a description for the service account and click "Continue".
   1. Assign the following roles to the service account:
-    * MAKE SURE THESE ARE CORRECT
     * AutoML Editor: For training and predicting AutoML models.
     * BigQuery Data Owner: For automatically cleaning up BigQuery artifacts created when making predictions.
     * BigQuery Job User: For executing BigQuery jobs.
