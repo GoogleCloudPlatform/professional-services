@@ -33,8 +33,8 @@ WITH GroupSize AS
       JOIN `{destination_project_id}.{destination_dataset}.{train_predict_split}` Split
         ON TrainingFeatures.complaint_id = Split.complaint_id
       WHERE Split.splitting = 'TRAIN'
-
     )
+
 SELECT
     Training.*,
     CASE
