@@ -40,7 +40,12 @@ SELECT
   CASE
     WHEN
       (
-        1.0*ROW_NUMBER() OVER (PARTITION BY Training.company_response_to_consumer ORDER BY rand())) / COUNT(*) OVER (PARTITION BY Training.company_response_to_consumer) < {test_threshold}
+        1.0 * ROW_NUMBER() OVER (
+          PARTITION BY Training.company_response_to_consumer ORDER BY rand()
+        )
+      ) / COUNT(*) OVER (
+        PARTITION BY Training.company_response_to_consumer
+      ) < {test_threshold}
       THEN 'TEST'
     ELSE 'UNASSIGNED'
     END AS splitting
