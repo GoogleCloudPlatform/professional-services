@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Supporting methods for the classification pipeline."""
-# TODO(Sahana): Verify if all the methods are being used by the pipeline.
 
 import argparse
 from typing import Any, Dict, List
