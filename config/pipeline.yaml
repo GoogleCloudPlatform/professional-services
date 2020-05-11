@@ -17,7 +17,8 @@
 
 # Absolute paths to non-code resources.
 file_paths:
-  queries: "/home/jupyter/github_msba_capstone/msba-capstone-2020/queries"
+# TODO(user): Put your local path to the queries subfolder here.
+  queries: "REPO_ROOT/queries"
 
 # Global config used by multiple pipeline steps. Also made available
 # as parameters to all SQL queries.
@@ -35,8 +36,9 @@ global:
   source_table: "complaint_database"
   
   # Destination project and dataset configuration.
-  # Enter the value of your project_id below.
+  # TODO(user): Enter the value of your project_id below.
   destination_project_id: ""
+  # destination_dataset is created by the pipeline in BigQuery with this name.
   destination_dataset: "cfpb_complaints"
 
   # Clean and minor refined versions of source data.
@@ -44,9 +46,9 @@ global:
   # subissue, product and subproduct after cleaning the categories
   # nulls_removed_table - This table contains the rows after removing
   # null values in the columns - complaint_narrative and
-  # company_response_to_consumer
+  # company_response_to_consumer.
   # clean_table - This table contains the rows after cleaning and
-  # removing nulls
+  # removing nulls.
   cleaned_features_table: "complaints_clean_categories"
   nulls_removed_table: "complaints_nulls_removed"
   clean_table: "complaints_clean"
@@ -58,11 +60,11 @@ global:
   
   # train_predict_split - This table creates a new column called
   # "splitting" which specifies whether the row is randomly
-  # assigned to the training or prediction set
+  # assigned to the training or prediction set.
   # "features_train_table" - This contains the training
-  # features that are passed into the AutoML model for training
+  # features that are passed into the AutoML model for training.
   # "features_predict_table" - This contains the prediction
-  # features that are used for batch prediction
+  # features that are used for batch prediction.
   train_predict_split: "TrainPredictSplit"
   features_train_table: "FeaturesTrain"
   features_predict_table: "FeaturesPredict"
