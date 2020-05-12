@@ -245,7 +245,10 @@ class DataGenerator(object):
         }
 
         faker_schema = {}
-        this_call_schema = fields if fields else self.schema['fields']
+        if fields:
+            this_call_schema = fields
+        else:  # some users pass a schema wrapped in fields.
+            this_call_schema = self.schema.get('fields', self.schema)
         for obj in this_call_schema:
             is_special = False
             if obj['type'].lower() == 'record':

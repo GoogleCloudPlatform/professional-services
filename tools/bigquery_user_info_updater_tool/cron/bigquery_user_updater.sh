@@ -1,5 +1,8 @@
-#!/bin/sh
 #!/usr/bin/env bash
+# shellcheck disable=SC2154,SC2086
+# TODO: cleanup to pass shellcheck
+# See: https://github.com/GoogleCloudPlatform/professional-services/issues/471
+
 script_path=opt/cron/bigquery_user_info_updater/update_user_info.py
 #project_id=data-analytics-pocs
 #schema_path=opt/cron/bigquery_user_info_updater/tests/test_schemas/test_schema.json
