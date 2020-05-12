@@ -2,6 +2,8 @@
 
 # TODO: Readme should have very clear instructions on running the entire pipeline, including getting started and the repo and pretty much anything else a dev running the code would need.
 
+# TODO: Once project is ready to go, change the log level from DEBUG to INFO.
+
 ## Contributors
 Michael Sherman (michaelsherman@google.com)  
 Michael Sparkman (michaelsparkman1996@gmail.com)  
@@ -105,6 +107,7 @@ THIS IS WRONG RIGHT NOW, NEEDS TO BE UPDATED BASED ON PIPELINE
   1. `global.clean_dataset` is the dataset where ingested data is stored in BigQuery. Change this to a new value. Note the table names don't need to change, since they will be written to the new dataset.
   1. `global.forecasting_dataset` is the dataset where features, predictions, and metrics are written in BigQuery. Change this to a new value, and similarly table names don't need to change.
   1. `global.dataset_display_name` and `global.model_display_name` are the name of the AutoML Tables Forecasting dataset and model created by the pipeline. Change these to new values (they can be the same).
+  TODO: Make sure project and queries path config changes are mentioned. 
 
 
 TODO CLEAN ALL THIS UP
@@ -122,6 +125,8 @@ These steps have only been tested for users with the "Owner" IAM role. They shou
 TODO UPDATE THIS TO BE CORRECT
 
 All commands should be run from the repository root.
+TODO: there's no orchestraction script here. The steps need to be run individually. 
+TODO: Give some indication of how long each step will take to run.
 
 1. Active the Python environment if it is not already activated. Run: `source ~/env/????/bin/activate`
 1. Run the model pipeline: `nohup bash run_pipeline.sh config/my_config.yaml ftpe > pipeline.out & disown` . This command will run the pipeline in the background, save logs to `pipeline.out`, and will not terminate if the terminal is closed. It will run all steps of the pipeline in sequence, or a subset of the steps as determined by the second positional arg (MODE). Ex. `fp` instead of `ftpe` would create features and then generate predictions using the model specified in the config.
