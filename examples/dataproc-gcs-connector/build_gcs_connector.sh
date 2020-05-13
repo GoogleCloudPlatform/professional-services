@@ -56,11 +56,11 @@ fi
 cd ..
 
 echo "Running Terraform to build Dataproc cluster"
-cd terraform || exit
-terraform init
-terraform apply -auto-approve
-
-cd ..
+(
+  cd terraform || exit
+  terraform init
+  terraform apply -auto-approve
+)
 
 echo "Running test script on Dataproc cluster"
 chmod u+x test_gcs_connector.sh
