@@ -7,5 +7,10 @@ ENV/
 env.bak/
 venv.bak/
 
-#macos
+# Macos
 **/.DS_Store
+
+# Terraform
+.terraform
+terraform.tfstate
+terraform.tfstate.*

@@ -12,25 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# using SendGrid's Python Library
-# https://github.com/sendgrid/sendgrid-python
+"""
+Cloud Function for scheduling emails of BigQuery results
+Uses https://github.com/sendgrid/sendgrid-python
+"""
 
+import base64
+import datetime
+import json
 import os
 import time
-import datetime
+
+from google.auth import default, iam
+from google.auth.transport import requests
+from google.cloud import bigquery, storage
+from google.oauth2 import service_account
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
-from google.cloud import bigquery, storage
-from google.auth import iam, default
-from google.auth.transport import requests
-from google.oauth2 import service_account
 
 
 def credentials():
     """Gets credentials to authenticate Google APIs.
-
-    Args:
-        None
 
     Returns:
         Credentials to authenticate the API.
@@ -49,87 +51,54 @@ def credentials():
     return credentials
 
 
-def main():
-    """Sends an email with a Google Cloud Storage signed URL of BQ Query results.
-    Creates BQ table, runs a SQL query, and exports the results to Cloud Storage as a CSV.
-    Generates signing credentials for the CSV and sends an email with a link to the signed URL.
-
-    Args:
-        None
-
-    Returns:
-        None
-    """
+def main(event,context):
+    """Entrypoint for Cloud Function"""
 
     # Create BQ and Storage Client
     bq_client = bigquery.Client(credentials=credentials())
     storage_client = storage.Client(credentials=credentials())
 
-    # Set variables
-    timestr = time.strftime("%Y%m%d%I%M%S")
-    project = "report-scheduling"
-    dataset_id = "bq_exports"
-    file_name = "daily_export_" + timestr
-    csv_name = file_name + ".csv"
-    table_id = "report-scheduling.bq_exports." + file_name
-    bucket_name = "bq_email_exports"
-    from_email = "sender@example.com"
-    to_emails = "recipient@example.com"
+    # Get configurations from Cloud Scheduler payload
+    config = json.loads(base64.b64decode(event['data']).decode('utf-8'))
 
-    # Create a BQ table
-    schema = [
-        bigquery.SchemaField("url", "STRING", mode="REQUIRED"),
-        bigquery.SchemaField("view_count", "INTEGER", mode="REQUIRED"),
-    ]
+    # Append timestamp to table name and set table_id 
+    table_name = config["table_name"] + time.strftime("%Y%m%d%I%M%S")
+    table_id = f"{config['project_id']}.{config['dataset_id']}.{table_name}"
 
-    # Make an API request to create table
-    table = bq_client.create_table(bigquery.Table(table_id, schema=schema))
-    print("Created table {}.{}.{}".format(table.project, table.dataset_id,
-                                          table.table_id))
-
-    # Run query on that table
+    # Get query 
     job_config = bigquery.QueryJobConfig(destination=table_id)
-
-    # Define the SQL query
-    sql = """
-        SELECT
-        CONCAT(
-            'https://stackoverflow.com/questions/',
-            CAST(id as STRING)) as url,
-        view_count
-        FROM `bigquery-public-data.stackoverflow.posts_questions`
-        WHERE tags like '%google-bigquery%'
-        ORDER BY view_count DESC
-        LIMIT 10
-    """
+    query_bucket = storage_client.bucket(config["query_bucket"])
+    query_file = query_bucket.blob(config["query_file_name"])
+    query = query_file.download_as_string()
+    sql = query.decode("utf-8") 
 
     # Start the query, passing in the extra configuration
     query_job = bq_client.query(sql, job_config=job_config)
 
     # Wait for the job to complete
     query_job.result()
-    print("Query results loaded to the table {}".format(table_id))
+    print(f"Query results loaded to the table {table_id}")
 
-    # Export table data as CSV to GCS
-    destination_uri = "gs://{}/{}".format(bucket_name, csv_name)
-    dataset_ref = bq_client.dataset(dataset_id, project=project)
-    table_ref = dataset_ref.table(file_name)
-
+    # Export table data as JSON file to GCS
+    destination_uri = f"gs://{config['bucket_name']}/{table_name}.json"
+    dataset_ref = bigquery.DatasetReference(config["project_id"], config["dataset_id"])
+    table_ref = dataset_ref.table(table_name)
     extract_job = bq_client.extract_table(
         table_ref,
-        destination_uri,
-        # Location must match that of the source table
-        location="US",
+        destination_uri
     )
 
     # Waits for job to complete
     extract_job.result()
-    print("Exported {}:{}.{} to {}".format(project, dataset_id, table_id,
-                                           destination_uri))
+    print(f"Exported {config['project_id']}:{config['dataset_id']}.{table_id} to {destination_uri}")
+
+    # Delete table once exporting is complete
+    bq_client.delete_table(table_id)  
+    print(f"Deleted table '{table_id}'.")
 
     # Generate a v4 signed URL for downloading a blob
-    bucket = storage_client.bucket(bucket_name)
-    blob = bucket.blob(csv_name)
+    bucket = storage_client.bucket(config["bucket_name"])
+    blob = bucket.blob(f"{table_name}.json")
 
     signing_credentials = None
     # If running on GCF, generate signing credentials
@@ -150,9 +119,8 @@ def main():
 
     url = blob.generate_signed_url(
         version="v4",
-        # This URL is valid for 24 hours, until the next email
-        expiration=datetime.timedelta(hours=24),
-        # Allow GET requests using this URL
+        # This URL is valid until expiration
+        expiration=datetime.timedelta(hours=config["signed_url_expiration_hrs"]),
         method="GET",
         # Signing credentials; if None falls back to json credentials in local environment
         credentials=signing_credentials,
@@ -161,10 +129,10 @@ def main():
 
     # Create email message through SendGrid with link to signed URL
     message = Mail(
-        from_email=from_email,
-        to_emails=to_emails,
-        subject="Daily BQ export",
-        html_content="<p> Your daily BigQuery export from Google Cloud Platform \
+        from_email= config["from_email"],
+        to_emails= config["to_email"],
+        subject= config["email_subject"],
+        html_content="<p> Your BigQuery export from Google Cloud Platform \
             is linked <a href={}>here</a>.</p>".format(url),
     )
 
@@ -172,10 +140,9 @@ def main():
     try:
         sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
         response = sg.send(message)
-        print(response.status_code)
+        print(f"SendGrid response code: {response.status_code}")
     except Exception as e:
-        print(e.message)
-
+        raise RuntimeError(f"ERROR: sending email failed: {e.message}")
 
 if __name__ == "__main__":
     main()
