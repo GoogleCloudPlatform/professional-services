@@ -39,7 +39,7 @@ def credentials():
     """
     # Get Application Default Credentials if running in Cloud Functions
     if os.getenv("IS_LOCAL") is None:
-        credentials, project = default(
+        credentials = default(
             scopes=["https://www.googleapis.com/auth/cloud-platform"])
     # To use this file locally set IS_LOCAL=1 and populate env var GOOGLE_APPLICATION_CREDENTIALS
     # with path to service account json key file
@@ -50,8 +50,7 @@ def credentials():
         )
     return credentials
 
-
-def main(event,context):
+def main(event, context):
     """Entrypoint for Cloud Function"""
 
     # Create BQ and Storage Client
@@ -61,16 +60,16 @@ def main(event,context):
     # Get configurations from Cloud Scheduler payload
     config = json.loads(base64.b64decode(event['data']).decode('utf-8'))
 
-    # Append timestamp to table name and set table_id 
+    # Append timestamp to table name and set table_id
     table_name = config["table_name"] + time.strftime("%Y%m%d%I%M%S")
     table_id = f"{config['project_id']}.{config['dataset_id']}.{table_name}"
 
-    # Get query 
+    # Get query
     job_config = bigquery.QueryJobConfig(destination=table_id)
     query_bucket = storage_client.bucket(config["query_bucket"])
     query_file = query_bucket.blob(config["query_file_name"])
     query = query_file.download_as_string()
-    sql = query.decode("utf-8") 
+    sql = query.decode("utf-8")
 
     # Start the query, passing in the extra configuration
     query_job = bq_client.query(sql, job_config=job_config)
@@ -93,7 +92,7 @@ def main(event,context):
     print(f"Exported {config['project_id']}:{config['dataset_id']}.{table_id} to {destination_uri}")
 
     # Delete table once exporting is complete
-    bq_client.delete_table(table_id)  
+    bq_client.delete_table(table_id)
     print(f"Deleted table '{table_id}'.")
 
     # Generate a v4 signed URL for downloading a blob
@@ -129,10 +128,10 @@ def main(event,context):
 
     # Create email message through SendGrid with link to signed URL
     message = Mail(
-        from_email= config["from_email"],
-        to_emails= config["to_email"],
-        subject= config["email_subject"],
-        html_content="<p> Your BigQuery export from Google Cloud Platform \
+        from_email = config["from_email"],
+        to_emails = config["to_email"],
+        subject = config["email_subject"],
+        html_content = "<p> Your BigQuery export from Google Cloud Platform \
             is linked <a href={}>here</a>.</p>".format(url),
     )
 
@@ -143,6 +142,7 @@ def main(event,context):
         print(f"SendGrid response code: {response.status_code}")
     except Exception as e:
         raise RuntimeError(f"ERROR: sending email failed: {e.message}")
+
 
 if __name__ == "__main__":
     main()
