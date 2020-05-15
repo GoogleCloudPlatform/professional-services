@@ -13,7 +13,10 @@
 # limitations under the License.
 """Decrypts the ciphertext stored in GCS to get MySQL password"""
 
+from google.api_core.gapic_v1 import client_info
 from google.cloud import kms_v1
+
+import constants
 
 
 def decrypt_symmetric(project_id, location_id, key_ring_id, crypto_key_id,
@@ -21,7 +24,8 @@ def decrypt_symmetric(project_id, location_id, key_ring_id, crypto_key_id,
     """Decrypts input ciphertext using the provided symmetric CryptoKey."""
 
     # Creates an API client for the KMS API.
-    kms_client = kms_v1.KeyManagementServiceClient()
+    info = client_info.ClientInfo(user_agent=constants.USER_AGENT)
+    kms_client = kms_v1.KeyManagementServiceClient(client_info=info)
 
     # The resource name of the CryptoKey.
     name = kms_client.crypto_key_path_path(project_id, location_id,

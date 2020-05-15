@@ -20,9 +20,11 @@ import time
 from uuid import uuid4
 
 from google.api_core import exceptions as api_exceptions
+from google.api_core import client_info
 from google.auth import exceptions as auth_exceptions
 from google.cloud import storage
 
+import constants
 import custom_exceptions
 from utilities import calculate_time, execute_command
 from gcp_service import GCPService
@@ -55,7 +57,8 @@ class GCSStorageComponent(GCPService):
 
         logger.debug("Getting GCS client")
         try:
-            client = storage.Client(project=self.project_id)
+            info = client_info.ClientInfo(user_agent=constants.USER_AGENT)
+            client = storage.Client(project=self.project_id, client_info=info)
             return client
         except auth_exceptions.DefaultCredentialsError as error:
             raise custom_exceptions.ConnectionError from error

@@ -22,9 +22,11 @@ import time
 from uuid import uuid4
 
 from google.api_core import exceptions
+from google.api_core import client_info
 from google.auth import exceptions as auth_exceptions
 from google.cloud import bigquery
 
+import constants
 import custom_exceptions
 from gcp_service import GCPService
 from properties_reader import PropertiesReader
@@ -59,7 +61,8 @@ class BigQueryComponent(GCPService):
 
         logger.debug("Getting BigQuery client")
         try:
-            client = bigquery.Client(project=self.project_id)
+            info = client_info.ClientInfo(user_agent=constants.USER_AGENT)
+            client = bigquery.Client(project=self.project_id, client_info=info)
             return client
         except auth_exceptions.DefaultCredentialsError as error:
             raise custom_exceptions.ConnectionError from error
