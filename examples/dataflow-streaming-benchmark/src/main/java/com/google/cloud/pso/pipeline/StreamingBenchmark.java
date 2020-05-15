@@ -19,6 +19,7 @@ package com.google.cloud.pso.pipeline;
 import com.github.vincentrussell.json.datagenerator.JsonDataGenerator;
 import com.github.vincentrussell.json.datagenerator.JsonDataGeneratorException;
 import com.github.vincentrussell.json.datagenerator.impl.JsonDataGeneratorImpl;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteStreams;
@@ -43,6 +44,7 @@ import org.apache.beam.sdk.io.GenerateSequence;
 import org.apache.beam.sdk.io.fs.MatchResult.Metadata;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
+import org.apache.beam.sdk.options.Default;
 import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
@@ -95,6 +97,7 @@ import org.slf4j.Logger;
  *  * --autoscalingAlgorithm=THROUGHPUT_BASED \
  *  * --maxNumWorkers=5 \
  *  * --qps=50000 \
+ *  * --validateSchema=true \
  *  * --schemaLocation=gs://<bucket>/<path>/<to>/game-event-schema \
  *  * --topic=projects/<project-id>/topics/<topic-id>"
  * </pre>
@@ -121,6 +124,13 @@ public class StreamingBenchmark {
     String getSchemaLocation();
 
     void setSchemaLocation(String value);
+
+    @Description("The path to the schema to generate.")
+    @Required
+    @Default.Boolean(true)
+    Boolean getValidateSchema();
+
+    void setValidateSchema(Boolean value);
 
     @Description("The Pub/Sub topic to write to.")
     @Required
@@ -174,7 +184,10 @@ public class StreamingBenchmark {
         .apply(
             "Trigger",
             GenerateSequence.from(0L).withRate(options.getQps(), Duration.standardSeconds(1L)))
-        .apply("GenerateMessages", ParDo.of(new MessageGeneratorFn(options.getSchemaLocation())))
+        .apply(
+            "GenerateMessages",
+            ParDo.of(
+                new MessageGeneratorFn(options.getSchemaLocation(), options.getValidateSchema())))
         .apply("WriteToPubsub", PubsubIO.writeMessages().to(options.getTopic()));
 
     return pipeline.run();
@@ -192,17 +205,21 @@ public class StreamingBenchmark {
     private final String schemaLocation;
     private String schema;
     private List<String> attributeFields = new ArrayList<>();
+    private final boolean shouldValidateSchema;
     private boolean includeAttributeValues = false;
+
     private JsonParser jsonParser;
 
     // Not initialized inline or constructor because {@link JsonDataGenerator} is not serializable.
     private transient JsonDataGenerator dataGenerator;
 
-    MessageGeneratorFn(String schemaLocation) {
+    MessageGeneratorFn(String schemaLocation, boolean shouldValidateSchema) {
       this.schemaLocation = schemaLocation;
+      this.shouldValidateSchema = shouldValidateSchema;
     }
 
     // Leave the scope as package private since its referred inside test methods for assertions
+    @VisibleForTesting
     List<String> getAttributeFields() {
       return this.attributeFields;
     }
@@ -227,7 +244,7 @@ public class StreamingBenchmark {
           payload = byteArrayOutputStream.toString();
         }
 
-        LOG.info("Sample message: {}", payload);
+        LOG.info("Validating sample message: {}", payload);
         jsonObject = new JsonParser().parse(payload).getAsJsonObject();
       } catch (JsonDataGeneratorException | JsonSyntaxException ex) {
         throw new MalformedSchemaException(
@@ -260,7 +277,9 @@ public class StreamingBenchmark {
         }
 
         schema = byteArrayOutputStream.toString();
-        this.validateSchema(dataGenerator, schema);
+        if (this.shouldValidateSchema) {
+          this.validateSchema(dataGenerator, schema);
+        }
       }
     }
 

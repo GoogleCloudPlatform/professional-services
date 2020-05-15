@@ -74,7 +74,7 @@ public class StreamingBenchmarkTest {
     writeToFile(file.getAbsolutePath(), schema);
 
     // Act
-    MessageGeneratorFn messageGenerator = new MessageGeneratorFn(file.getAbsolutePath());
+    MessageGeneratorFn messageGenerator = new MessageGeneratorFn(file.getAbsolutePath(), true);
     messageGenerator.setup();
 
     // Assert
@@ -91,7 +91,7 @@ public class StreamingBenchmarkTest {
     writeToFile(file.getAbsolutePath(), schema);
 
     // Act
-    MessageGeneratorFn messageGenerator = new MessageGeneratorFn(file.getAbsolutePath());
+    MessageGeneratorFn messageGenerator = new MessageGeneratorFn(file.getAbsolutePath(), true);
     messageGenerator.setup();
 
     // Assert
@@ -119,7 +119,7 @@ public class StreamingBenchmarkTest {
     PCollection<PubsubMessage> results =
         pipeline
             .apply("CreateInput", Create.of(0L))
-            .apply("GenerateMessage", ParDo.of(new MessageGeneratorFn(file.getAbsolutePath())));
+            .apply("GenerateMessage", ParDo.of(new MessageGeneratorFn(file.getAbsolutePath(), true)));
 
     // Assert
     //
@@ -140,7 +140,7 @@ public class StreamingBenchmarkTest {
 
   /** Tests the {@link MessageGeneratorFn} that fails when given invalid schema. */
   @Test(expected = Exception.class)
-  public void testMessageGeneratorInvalidSchema() throws IOException {
+  public void testInvalidSchemaThrowsException() throws IOException {
     // Arrange
     //
     String schema = "{\"name: \"Invalid\"";
@@ -153,20 +153,39 @@ public class StreamingBenchmarkTest {
     PCollection<PubsubMessage> results =
         pipeline
             .apply("CreateInput", Create.of(0L))
-            .apply("GenerateMessage", ParDo.of(new MessageGeneratorFn(file.getAbsolutePath())));
-
-    // Assert
-    //
-    //    PAssert.that(results).satisfies(input -> {
-    //      PubsubMessage message = input.iterator().next();
-    //      assertThat(message, is(notNullValue()));
-    //      assertThat(new String(message.getPayload()), is(equalTo(schema)));
-    //      return null;
-    //    });
+            .apply("GenerateMessage", ParDo.of(new MessageGeneratorFn(file.getAbsolutePath(), true)));
 
     pipeline.run();
   }
 
+  /** Tests the {@link MessageGeneratorFn} should not fails when given invalid schema with validateSchema set to false. */
+  @Test
+  public void testInvalidSchemaIgnoringValidation() throws IOException {
+    // Arrange
+    //
+    String schema = "{\"name: \"Invalid\"";
+
+    File file = tempFolder.newFile();
+    writeToFile(file.getAbsolutePath(), schema);
+
+    // Act
+    //
+    PCollection<PubsubMessage> results =
+            pipeline
+                    .apply("CreateInput", Create.of(0L))
+                    .apply("GenerateMessage", ParDo.of(new MessageGeneratorFn(file.getAbsolutePath(), false)));
+
+    // Assert
+    //
+    PAssert.that(results).satisfies(input -> {
+      PubsubMessage message = input.iterator().next();
+      assertThat(message, is(notNullValue()));
+      assertThat(new String(message.getPayload()), is(equalTo(schema)));
+      return null;
+    });
+
+    pipeline.run();
+  }
   /**
    * Helper to generate files for testing.
    *
@@ -176,8 +195,6 @@ public class StreamingBenchmarkTest {
    * @throws IOException If an error occurs while creating or writing the file.
    */
   private static ResourceId writeToFile(String filePath, String fileContent) throws IOException {
-
-    // String fileContents = String.join(System.lineSeparator(), lines);
 
     ResourceId resourceId = FileSystems.matchNewResource(filePath, false);
 
