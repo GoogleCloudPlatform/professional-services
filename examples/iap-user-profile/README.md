@@ -7,12 +7,12 @@ You need `Project Owner` permission to run this, e.g. for creating GAE app.
 
 The following setup assumes that you are setting up your new application GCP project based on the 
 following:
-* GCP project: `focus-copilot-276707`
+* GCP project: `project-id-1234`
 * GAE region: `asia-northeast1`
 
 1.  Set up environment variables.
     ```bash
-    export PROJECT=focus-copilot-276707
+    export PROJECT=project-id-1234
     export REGION=asia-northeast1
     ```
 
@@ -44,17 +44,17 @@ following:
     ```
     
 1.  Configure `Consent Screen` on the below link  
-    https://console.cloud.google.com/apis/credentials/consent?project=focus-copilot-276707
+    https://console.cloud.google.com/apis/credentials/consent?project=project-id-1234
     
     1.  Choose `Internal` for the `User Type`, then click `Create`
     1.  Type in the `Application name`, e.g. IAP User Profile Example
     1.  Choose the appropriate `Support email`. Alternatively, you can leave it to use your own email.
     1.  Fill in the `Authorized domains` based on your GAE application domain, e.g.
-        * focus-copilot-276707.an.r.appspot.com
+        * project-id-1234.an.r.appspot.com
     1.  Click `Save`
 
 1.  Enable IAP on the below link for the `App Engine app`. Toggle on the button and then click `Turn On`.  
-    https://console.cloud.google.com/security/iap?project=focus-copilot-276707
+    https://console.cloud.google.com/security/iap?project=project-id-1234
 
 1.  Add IAM policy binding to the IAP-enabled App Engine application.
     Register your user email to access the application.
@@ -66,15 +66,15 @@ following:
     
 1.  Create new `Credentials` on the below link. This credential will be used by the OAuth2 login
     flow to retrieve the user profile.  
-    https://console.cloud.google.com/apis/credentials?project=focus-copilot-276707
+    https://console.cloud.google.com/apis/credentials?project=project-id-1234
     
     1.  Click `Create Credentials`. Choose `OAuth client ID`.
     1.  Choose `Web application` for the `Application type`
     1.  Type in `IAP User Profile Svc` for the `Name`
     1.  Fill in the `Authorized JavaScript origins`
-        * https://focus-copilot-276707.an.r.appspot.com
+        * https://project-id-1234.an.r.appspot.com
     1.  Fill in the `Authorized redirect URIs`
-        * https://focus-copilot-276707.an.r.appspot.com/auth-callback
+        * https://project-id-1234.an.r.appspot.com/auth-callback
     1.  Click `Create`
     1.  Click the newly created `IAP User Profile Example` credential and then click the `Download JSON` button.
         You'll need to paste the JSON content later as secret in the Secret Manager. 
@@ -90,7 +90,7 @@ following:
 1.  Add IAM policy binding to the secret for GAE default service account.
     ```bash
     gcloud secrets add-iam-policy-binding iap-user-profile-svc-oauth2-client \
-          --member='serviceAccount:focus-copilot-276707@appspot.gserviceaccount.com' \
+          --member='serviceAccount:project-id-1234@appspot.gserviceaccount.com' \
           --role='roles/secretmanager.secretAccessor'
     ```
 
@@ -99,7 +99,7 @@ following:
 1.  Access the application in your browser.  
     Note: If you are accessing it first time, it may take some time before the policy takes effect.
     Retry several times until you are prompted the OAuth login screen.  
-    https://focus-copilot-276707.an.r.appspot.com/
+    https://project-id-1234.an.r.appspot.com/
     
 1.  You will be prompted the OAuth login one more time.  
     This is intended since we are going to use this scope to access your People API.
