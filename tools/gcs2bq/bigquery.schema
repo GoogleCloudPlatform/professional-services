@@ -1,0 +1,118 @@
+[{
+	"name": "project_id",
+	"type": "STRING",
+	"mode": "REQUIRED"
+}, {
+	"name": "bucket",
+	"type": "STRING",
+	"mode": "REQUIRED"
+}, {
+	"name": "name",
+	"type": "STRING",
+	"mode": "REQUIRED"
+}, {
+	"name": "content_type",
+	"type": "STRING",
+	"mode": "REQUIRED"
+}, {
+	"name": "content_language",
+	"type": "STRING",
+	"mode": "REQUIRED"
+}, {
+	"name": "cache_control",
+	"type": "STRING",
+	"mode": "REQUIRED"
+}, {
+	"name": "event_based_hold",
+	"type": "BOOLEAN",
+	"mode": "REQUIRED"
+}, {
+	"name": "temporary_hold",
+	"type": "BOOLEAN",
+	"mode": "REQUIRED"
+}, {
+	"name": "retention_expiration_time",
+	"type": "INTEGER",
+	"mode": "REQUIRED"
+}, {
+	"name": "acl",
+	"type": "RECORD",
+	"mode": "REPEATED",
+	"fields": [{
+		"name": "key",
+		"type": "STRING",
+		"mode": "REQUIRED"
+	}, {
+		"name": "value",
+		"type": "STRING",
+		"mode": "REQUIRED"
+	}]
+}, {
+	"name": "predefined_acl",
+	"type": "STRING",
+	"mode": "REQUIRED"
+}, {
+	"name": "owner",
+	"type": "STRING",
+	"mode": "REQUIRED"
+}, {
+	"name": "size",
+	"type": "INTEGER",
+	"mode": "REQUIRED"
+}, {
+	"name": "content_encoding",
+	"type": "STRING",
+	"mode": "REQUIRED"
+}, {
+	"name": "content_disposition",
+	"type": "STRING",
+	"mode": "REQUIRED"
+}, {
+	"name": "md5",
+	"type": "STRING",
+	"mode": "REQUIRED"
+}, {
+	"name": "crc32c",
+	"type": "INTEGER",
+	"mode": "REQUIRED"
+}, {
+	"name": "media_link",
+	"type": "STRING",
+	"mode": "REQUIRED"
+}, {
+	"name": "generation",
+	"type": "INTEGER",
+	"mode": "REQUIRED"
+}, {
+	"name": "metageneration",
+	"type": "INTEGER",
+	"mode": "REQUIRED"
+}, {
+	"name": "storage_class",
+	"type": "STRING",
+	"mode": "REQUIRED"
+}, {
+	"name": "created",
+	"type": "TIMESTAMP",
+	"mode": "NULLABLE"
+}, {
+	"name": "deleted",
+	"type": "TIMESTAMP",
+	"mode": "NULLABLE"
+}, {
+	"name": "updated",
+	"type": "TIMESTAMP",
+	"mode": "NULLABLE"
+}, {
+	"name": "customer_key_sha256",
+	"type": "STRING",
+	"mode": "REQUIRED"
+}, {
+	"name": "kms_key_name",
+	"type": "STRING",
+	"mode": "REQUIRED"
+}, {
+	"name": "etag",
+	"type": "STRING",
+	"mode": "REQUIRED"
+}]
