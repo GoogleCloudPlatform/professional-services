@@ -18,7 +18,9 @@
 
 const { logger } = require('../logging');
 
-/* In-memory dictionary to store users with email as key */
+/* In-memory dictionary to store users with email as key.
+   NOTE: This in-memory storage is used only for example purpose.
+   For real production use case, you should use external persistent storage, such as cache or database. */
 const users = {}
 
 async function getUserByEmail(email) {
