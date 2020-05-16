@@ -39,6 +39,13 @@ instruct the data generator of what type of fake data to create in each field. S
 json-data-generator [docs](https://github.com/vincentrussell/json-data-generator) for more
 information on the faker functions.
 
+#### Message Attributes
+If the message schema contains fields matching (case-insensitive) the following names then such fields
+will be added to the output Pub/Sub message attributes:
+eventId, eventTimestamp
+
+Attribute fields can be helpful in various scenarios like deduping messages, inspecting message timestamps etc
+ 
 #### Example Schema File
 Below is an example schema file which generates fake game event payloads with random data.
 ```javascript
@@ -71,6 +78,8 @@ Pub/Sub topic.
   "completed": false
 }
 ```
+Since the schema includes the reserved field names of `eventId` and `eventTimestamp`, the output Pub/Sub 
+message will also contain these fields in the message attributes in addition to the regular payload.
 
 ### Executing the Pipeline
 ```bash
