@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="ivy-report.xsl"?>
+<ivy-report version="1.0">
+	<info
+		organisation="com.google.cloud"
+		module="dataproc-init-auth_2.11"
+		revision="0.1.0-SNAPSHOT"
+		conf="plugin"
+		confs="compile, runtime, test, provided, optional, compile-internal, runtime-internal, test-internal, plugin, pom, scala-tool"
+		date="20200403165826"/>
+	<dependencies>
+	</dependencies>
+</ivy-report>
