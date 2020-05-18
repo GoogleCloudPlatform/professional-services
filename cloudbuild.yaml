@@ -4,6 +4,6 @@ steps:
   args: ['test']
   waitFor: ['-']
 - id: 'tools/hive-bigquery'
-  name: 'google/gcloud'
-  args: ['builds', 'submit', 'tools/hive-bigquery/', '--config=tools/hive-bigquery/cloudbuild.yaml']
+  name: 'google/cloud-sdk'
+  args: ['gcloud', 'builds', 'submit', 'tools/hive-bigquery/', '--config=tools/hive-bigquery/cloudbuild.yaml']
   waitFor: ['-']
