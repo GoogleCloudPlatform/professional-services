@@ -21,6 +21,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+from google.cloud import exceptions
 
 class BucketDetails(object):
     """Holds the details and settings of a bucket."""
@@ -51,8 +52,15 @@ class BucketDetails(object):
         # These properties can be skipped with cmd line params, so use the property setters to
         # make the checks
         self.iam_policy = source_bucket.get_iam_policy()
-        self.acl_entities = source_bucket.acl.get_entities()
-        self.default_obj_acl_entities = source_bucket.default_object_acl.get_entities()
+
+        # to handle GCS buckets which are Uniform access types as they do not have ACL
+        try:
+            self.acl_entities = source_bucket.acl.get_entities()
+            self.default_obj_acl_entities = source_bucket.default_object_acl.get_entities()
+        except exceptions.BadRequest:
+            self.acl_entities = None
+            self.default_obj_acl_entities = None
+       
         self.requester_pays = source_bucket.requester_pays
         self.cors = source_bucket.cors
         self.default_kms_key_name = source_bucket.default_kms_key_name
