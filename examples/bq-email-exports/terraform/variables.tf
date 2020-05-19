@@ -22,10 +22,16 @@ variable "location" {
 
 variable "region" {
   description = "Region for GCP resources"
+  default     = "us-central1"
 }
 
 variable "service_acct_name" {
   description = "The service account used by the BQ email export Cloud Function"
+}
+
+variable "service_acct_roles" {
+  description = "Roles for the Cloud Function service account"
+  default     = ["roles/bigquery.admin", "roles/storage.admin", "roles/iam.serviceAccountTokenCreator"]
 }
 variable "function_name" {
   description = "Name for the Cloud Function"
@@ -47,7 +53,8 @@ variable "storage_bucket" {
 }
 
 variable "bucket_lifecycle" {
-  description = "Number of days the exported JSON query result files should stay in the storage bucket. "
+  description = "Number of days the exported JSON query result files should stay in the storage bucket."
+  default     = 7
 }
 
 variable "function_bucket" {
@@ -63,9 +70,5 @@ variable "scheduler_schedule" {
 
 variable "scheduler_timezone" {
   description = "Time zone for Cloud Scheduler."
+  default     = "US/Central"
 }
-
-
-
-
-

@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 Cloud Function for scheduling emails of BigQuery results
 Uses https://github.com/sendgrid/sendgrid-python
@@ -37,17 +36,15 @@ def credentials():
     Returns:
         Credentials to authenticate the API.
     """
-    # Get Application Default Credentials if running in Cloud Functions
+    # Get Application Default Credentials if running in CF
+    # To use locally set IS_LOCAL=1 and GOOGLE_APPLICATION_CREDENTIALS to the SA json key file
     if os.getenv("IS_LOCAL") is None:
         credentials = default(
             scopes=["https://www.googleapis.com/auth/cloud-platform"])
-    # To use this file locally set IS_LOCAL=1 and populate env var GOOGLE_APPLICATION_CREDENTIALS
-    # with path to service account json key file
     else:
         credentials = service_account.Credentials.from_service_account_file(
-            os.getenv("GOOGLE_APPLICATION_CREDENTIALS"),
-            scopes=["https://www.googleapis.com/auth/cloud-platform"],
-        )
+            os.getenv("GOOGLE_APPLICATION_CREDENTIALS"), 
+            scopes=["https://www.googleapis.com/auth/cloud-platform"])
     return credentials
 
 def main(event, context):
@@ -65,31 +62,47 @@ def main(event, context):
     table_id = f"{config['project_id']}.{config['dataset_id']}.{table_name}"
 
     # Get query
-    job_config = bigquery.QueryJobConfig(destination=table_id)
-    query_bucket = storage_client.bucket(config["query_bucket"])
-    query_file = query_bucket.blob(config["query_file_name"])
-    query = query_file.download_as_string()
-    sql = query.decode("utf-8")
+    job_config = bigquery.QueryJobConfig(
+        destination=table_id,
+        allow_large_results=config["query_config"]["allow_large_results"],
+        use_query_cache=config["query_config"]["use_query_cache"],
+        flatten_results=config["query_config"]["flatten_results"],
+        maximum_bytes_billed=config["query_config"]["max_bytes_billed"],
+        use_legacy_sql=config["query_config"]["use_legacy_sql"])
+    query = config["query"]
 
     # Start the query, passing in the extra configuration
-    query_job = bq_client.query(sql, job_config=job_config)
+    query_job = bq_client.query(query, job_config=job_config)
+    print(f"Query job {query_job.job_id} running.")
 
     # Wait for the job to complete
-    query_job.result()
+    query_job.result(timeout=306)
     print(f"Query results loaded to the table {table_id}")
 
-    # Export table data as JSON file to GCS
+    # Export table data as file to GCS
     destination_uri = f"gs://{config['bucket_name']}/{table_name}.json"
-    dataset_ref = bigquery.DatasetReference(config["project_id"], config["dataset_id"])
+    dataset_ref = bigquery.DatasetReference(config["project_id"],
+                                            config["dataset_id"])
     table_ref = dataset_ref.table(table_name)
-    extract_job = bq_client.extract_table(
-        table_ref,
-        destination_uri
-    )
+
+    compression = bigquery.Compression()
+    destination_fmt = bigquery.DestinationFormat()
+    extract_config = bigquery.ExtractJobConfig(
+        compression=getattr(compression,
+                            config["extract_config"]["compression"]),
+        destination_format=getattr(
+            destination_fmt, config["extract_config"]["destination_fmt"]),
+        field_delimeter=config["extract_config"]["field_delimeter"],
+        use_avro_logical_types=config["extract_config"]["use_avro"])
+    extract_job = bq_client.extract_table(table_ref,
+                                          destination_uri,
+                                          job_config=extract_config)
 
     # Waits for job to complete
-    extract_job.result()
-    print(f"Exported {config['project_id']}:{config['dataset_id']}.{table_id} to {destination_uri}")
+    extract_job.result(timeout=204)
+    print(
+        f"Exported {config['project_id']}:{config['dataset_id']}.{table_id} to {destination_uri}"
+    )
 
     # Delete table once exporting is complete
     bq_client.delete_table(table_id)
@@ -119,7 +132,8 @@ def main(event, context):
     url = blob.generate_signed_url(
         version="v4",
         # This URL is valid until expiration
-        expiration=datetime.timedelta(hours=config["signed_url_expiration_hrs"]),
+        expiration=datetime.timedelta(
+            hours=config["signed_url_expiration_hrs"]),
         method="GET",
         # Signing credentials; if None falls back to json credentials in local environment
         credentials=signing_credentials,
@@ -128,10 +142,10 @@ def main(event, context):
 
     # Create email message through SendGrid with link to signed URL
     message = Mail(
-        from_email = config["from_email"],
-        to_emails = config["to_email"],
-        subject = config["email_subject"],
-        html_content = "<p> Your BigQuery export from Google Cloud Platform \
+        from_email=config["from_email"],
+        to_emails=config["to_email"],
+        subject=config["email_subject"],
+        html_content="<p> Your BigQuery export from Google Cloud Platform \
             is linked <a href={}>here</a>.</p>".format(url),
     )
 

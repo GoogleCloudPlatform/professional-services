@@ -17,5 +17,5 @@
 
 google-auth==1.11.3
 google-cloud-bigquery==1.24.0
-google-cloud-storage==1.26.0
-sendgrid==6.2.0
+google-cloud-storage==1.28.1
+sendgrid==6.3.1
