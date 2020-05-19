@@ -390,12 +390,13 @@ def _enable_uniform_bucket_level_access(bucket_name):
     #bucket.patch()
 
     # using the gcloud sdk method to enable uniform bucket access, comment this out if API can be worked
-    enablecommand = "gsutil uniformbucketlevelaccess set on gs:// " + bucket_name
+    enablecommand = "gsutil uniformbucketlevelaccess set on gs://" + bucket_name
     getoutput = subprocess.check_output(shlex.split(enablecommand))
-
+    print(getoutput)
     print(
         "Uniform bucket-level access was enabled for {}.".format(bucket_name)
     )
+    return bucket_name
 
 
 def _create_bucket(spinner, cloud_logger, config, bucket_name,
@@ -452,7 +453,7 @@ def _create_bucket(spinner, cloud_logger, config, bucket_name,
             'ACLs successfully copied over from the source bucket')
     #handle Uniform bucket access buckets as every Bucket creation is Fine grained. So enable UniformBucketLevelAccess if ACL does not exist
     else:
-        _enable_uniform_bucket_level_access(bucket.name)
+        name = _enable_uniform_bucket_level_access(bucket.name)
 
     if source_bucket_details.default_obj_acl_entities:
         new_default_obj_acl = _update_acl_entities(
