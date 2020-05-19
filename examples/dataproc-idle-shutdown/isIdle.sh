@@ -70,7 +70,7 @@ isKeyProcessActive()
                  break
               fi
             done
-       if [[isKeyProgramActive -eq 1]]; then
+       if [[ $isKeyProgramActive -eq 1 ]]; then
           break
        fi
    done         
