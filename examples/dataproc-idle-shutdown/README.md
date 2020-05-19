@@ -1,14 +1,16 @@
 # Custom Dataproc Scheduled Cluster Deletion
-**Note:** if you are currently utilizing the [Dataproc Jobs API](https://cloud.google.com/dataproc/docs/concepts/jobs/life-of-a-job), then you should be using the [Cluster Scheduled Deletion](https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/scheduled-deletion) feature as is.
-
 This repository provides scripts for launching a Google Cloud Dataproc Cluster while specifying the maximum idle time after which the cluster will be deleted. The custom scripts will consider active SSH sessions and YARN based jobs in determining whether or not the cluster is considered active. In addition, there is an optional parameter to pass a list of additional processes for which the cluster should be considered active. The scripts will also detect if the cluster is in an ERROR state, caused by one or more initialization actions returning a non zero result, and will delete the cluster accordingly.
 
-## Open Issues & Roadmap
-In the future, we hope to add support for other analytical engines and/or processes. Presto, MySQL shell running DML/DDL, and Flink are just a few examples. Feel free to create an issue within the repo with any request and/or submit a pull request with added functionality!
+**Note:** if you are currently utilizing the [Dataproc Jobs API](https://cloud.google.com/dataproc/docs/concepts/jobs/life-of-a-job), then you should be using the [Cluster Scheduled Deletion](https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/scheduled-deletion) feature as is.
 
 ## Solution Architecture
 ------------------------------------------------------
-[insert solution architecture image]
+![Architecture Diagram](img/idle-shutdown-solution-architecture.svg)
+
+1. The cluster is created specifying the initialization action and the location of the idle script stored in Google Cloud Storage
+2. The cluster downloads the idle script and schedules it as a cron job to run every 5 minutes
+3. The script runs and saves project level metadata tracking the idle status of the cluster and logs status to Stackdriver
+4. If shutdown conditions are met, the script shutsdown the cluster
 
 ## Components
 ------------------------------------------------------
@@ -55,6 +57,9 @@ Once started, the monitor script will continuously check to determine if the clu
 ## Logging
 
 The monitor script will continously log all idle checks and shutdown events via Stackdriver logging to a file called "idle-check-log". This log can be viewed in the Google Cloud Platform console under Monitoring->Logging->(Search for the log name of 'idle-check-log')
+
+## Open Issues & Roadmap
+In the future, we hope to add support for other analytical engines and/or processes. Presto, MySQL shell running DML/DDL, and Flink are just a few examples. Feel free to create an issue within the repo with any request and/or submit a pull request with added functionality!
 
 ## License
 [APACHE LICENSE, VERSION 2.0](./LICENSE)
