@@ -32,6 +32,9 @@ from googleapiclient import discovery
 from gcs_bucket_mover import bucket_details
 from gcs_bucket_mover import sts_job_status
 
+import subprocess
+import shlex
+
 _CHECKMARK = u'\u2713'.encode('utf8')
 
 
@@ -374,6 +377,26 @@ def _get_project_number(project_id, credentials):
     project = crm.projects().get(projectId=project_id).execute(num_retries=5)  # pylint: disable=no-member
     return project['projectNumber']
 
+# call to enable GCS bucket access level to Uniform access type
+def _enable_uniform_bucket_level_access(bucket_name):
+    """Enable uniform bucket-level access for a bucket"""
+
+    #commenting out API call as unable to access object iam_configuration 
+
+    #storage_client = storage.Client()
+    #bucket = storage_client.get_bucket(bucket_name)
+
+    #bucket.iam_configuration.uniform_bucket_level_access_enabled = True
+    #bucket.patch()
+
+    # using the gcloud sdk method to enable uniform bucket access, comment this out if API can be worked
+    enablecommand = "gsutil uniformbucketlevelaccess set on gs:// " + bucket_name
+    getoutput = subprocess.check_output(shlex.split(enablecommand))
+
+    print(
+        "Uniform bucket-level access was enabled for {}.".format(bucket_name)
+    )
+
 
 def _create_bucket(spinner, cloud_logger, config, bucket_name,
                    source_bucket_details):
@@ -427,6 +450,9 @@ def _create_bucket(spinner, cloud_logger, config, bucket_name,
         _write_spinner_and_log(
             spinner, cloud_logger,
             'ACLs successfully copied over from the source bucket')
+    #handle Uniform bucket access buckets as every Bucket creation is Fine grained. So enable UniformBucketLevelAccess if ACL does not exist
+    else:
+        _enable_uniform_bucket_level_access(bucket.name)
 
     if source_bucket_details.default_obj_acl_entities:
         new_default_obj_acl = _update_acl_entities(
