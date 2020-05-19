@@ -36,7 +36,7 @@ function setup_local_airflow() {
   FERNET_KEY=$(python3 -c "from cryptography.fernet import Fernet; \
   print(Fernet.generate_key().decode('utf-8'))")
   export FERNET_KEY
-  
+
   get_conns
 
   echo "uploading connections."
@@ -50,7 +50,7 @@ function setup_local_airflow() {
   echo "imported airflow vaiables:"
   airflow variables --export /tmp/AirflowVariables.json.exported
   cat /tmp/AirflowVariables.json.exported
-  
+
 
   echo "setting up DAGs."
   rsync -r dags $AIRFLOW_HOME
@@ -75,7 +75,7 @@ function set_local_conn() {
   echo "Upload $1 to local Airflow failed"
 }
 
-# Run DAG validation tests. 
+# Run DAG validation tests.
 function run_tests() {
   python3 -m unittest discover tests
 }

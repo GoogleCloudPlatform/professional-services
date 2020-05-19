@@ -41,7 +41,7 @@ resources:
             cat > labelmaker.py <<EOF
             {{ imports["labelmaker.py"]|indent(12) }}
             EOF
-            chmod +x labelmaker.py 
+            chmod +x labelmaker.py
             ## Valid json please
             ## Only lowercase characters a-z, numbers 0-9 and dashes allowed
             cat <<EOF > /tmp/labels.json
@@ -77,7 +77,7 @@ resources:
         accessConfigs:
           - name: eth0
             type: ONE_TO_ONE_NAT
-    serviceAccounts: 
+    serviceAccounts:
       - email: {{ properties["serviceAccount"] }}
         scopes:
           - "https://www.googleapis.com/auth/cloud-platform"

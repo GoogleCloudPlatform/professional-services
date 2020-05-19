@@ -4,7 +4,7 @@ Clone this repository and run locally, or use Cloud Shell to walk through the st
 [![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.png)](https://ssh.cloud.google.com/cloudshell/open?page=shell&cloudshell_git_repo=https://github.com/GoogleCloudPlatform/professional-services&cloudshell_tutorial=examples%2Fgcs-fixity-function%2Fdocs%2Fsetup.md)
 
 ## Prepare
-To setup this function, run through these instructions from the root of the repository or using Cloud Shell. 
+To setup this function, run through these instructions from the root of the repository or using Cloud Shell.
 
 Set the following environment variables, replacing the values with those for your project and bucket:
 ```bash
@@ -73,7 +73,7 @@ export SCHEDULE="1 of month 08:00"
 ```
 Then run the following. If prompted to enable any APIs, enter `y` for Yes.
 ```bash
-gcloud scheduler jobs create pubsub fixity-${BUCKET_NAME} --schedule="${SCHEDULE}" --topic=fixity-${BUCKET_NAME}-topic --message-body={} 
+gcloud scheduler jobs create pubsub fixity-${BUCKET_NAME} --schedule="${SCHEDULE}" --topic=fixity-${BUCKET_NAME}-topic --message-body={}
 ```
 
 Once the above has been created, you can run Fixity on demand by visiting [https://console.cloud.google.com/cloudscheduler].

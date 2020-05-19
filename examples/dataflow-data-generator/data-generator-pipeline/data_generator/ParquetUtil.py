@@ -66,7 +66,7 @@ def get_pyarrow_translated_schema(string_schema):
                 return type_conversions.get(field.get('type'))
         except KeyError as err:
             raise KeyError(
-                """Type {} is not a valid BigQuery type and not supported by this 
+                """Type {} is not a valid BigQuery type and not supported by this
                 utility.""".format(field['type']))
 
     pa_schema_list = []
@@ -100,11 +100,11 @@ def fix_record_for_parquet(record, schema):
     :param record: record of data from beam pipeline
     :param schema: string schema dict.
     :return: record with converted TIMESTAMP, DATETIME, DATE, and/or TIME
-    fields. 
+    fields.
     """
     def _fix_primitive(record, field):
         """
-        Converts the a value in the field in the record for parquet 
+        Converts the a value in the field in the record for parquet
         compatibility. This is mainly to consistently repeated types.
         :param record: record from data from beam pipeline.
         :param field: (bigquery.schema.SchemaField) to convert.

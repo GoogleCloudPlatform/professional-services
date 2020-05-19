@@ -1,8 +1,8 @@
 # Bee Health Detection Example
 
-This repository contains example code detect if a bee is healthy. Specifically, given a picture and structured attributes about a bee, it predicts if the bee is healthy. 
+This repository contains example code detect if a bee is healthy. Specifically, given a picture and structured attributes about a bee, it predicts if the bee is healthy.
 
-The code leverages pre-trained TF Hub image modules and uses Google Cloud Machine Learning Engine to train a TensorFlow DNN classification model. 
+The code leverages pre-trained TF Hub image modules and uses Google Cloud Machine Learning Engine to train a TensorFlow DNN classification model.
 
 ## Default values
 ```

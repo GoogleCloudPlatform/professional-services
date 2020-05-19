@@ -41,25 +41,25 @@ class TestPerspectiveAPIFunction(unittest.TestCase):
             'languages': ['en'],
             'detectedLanguages': ['en']}
         text = {'transcript': """
-                              Hi and welcome to episode number 83 of the weekly 
-                              Google Cloud platform podcast. I am princess Campo 
-                              and I'm here with my colleague Mark Mendel. Hey, 
-                              Mark, how are you doing? I'm doing very very very 
-                              well. How you doing Friends Ask? I'm pretty good. It's 
-                              been a long week, but you know pretty good very 
-                              excited about a very cool episode about public data 
-                              sets. Yeah, it's super cool where we talk about how 
-                              we host all these really large data sets for all 
-                              these people to play with and do fun things with 
-                              yeah. I've used some of them before my favorite one 
-                              is we have a lot of good from GitHub. You can do 
-                              cool things with it, but it's not the only one. So 
-                              we're going to be talking about a bunch of different 
-                              ones that you can just go and use and have fun with 
-                              them. And after that we have a question of the week 
-                              that is actually a question of the week whose answer 
-                              comes from someone. We interviewed in the future. So 
-                              at some point we'll have him on the podcast. But for 
+                              Hi and welcome to episode number 83 of the weekly
+                              Google Cloud platform podcast. I am princess Campo
+                              and I'm here with my colleague Mark Mendel. Hey,
+                              Mark, how are you doing? I'm doing very very very
+                              well. How you doing Friends Ask? I'm pretty good. It's
+                              been a long week, but you know pretty good very
+                              excited about a very cool episode about public data
+                              sets. Yeah, it's super cool where we talk about how
+                              we host all these really large data sets for all
+                              these people to play with and do fun things with
+                              yeah. I've used some of them before my favorite one
+                              is we have a lot of good from GitHub. You can do
+                              cool things with it, but it's not the only one. So
+                              we're going to be talking about a bunch of different
+                              ones that you can just go and use and have fun with
+                              them. And after that we have a question of the week
+                              that is actually a question of the week whose answer
+                              comes from someone. We interviewed in the future. So
+                              at some point we'll have him on the podcast. But for
                               now, we have something that he
                               """,
                 'start_time': '00:00:04',
@@ -67,27 +67,27 @@ class TestPerspectiveAPIFunction(unittest.TestCase):
 
         actual_result = main.format_api_results(response, text)
         expected_result = {'text': """
-                                   Hi and welcome to episode number 83 of the 
-                                   weekly Google Cloud platform podcast. I am 
-                                   princess Campo and I'm here with my colleague 
-                                   Mark Mendel. Hey, Mark, how are you doing? I'm 
-                                   doing very very very well. How you doing Friends 
-                                   Ask? I'm pretty good. It's been a long week, but 
-                                   you know pretty good very excited about a very 
-                                   cool episode about public data sets. Yeah, it's 
-                                   super cool where we talk about how we host all 
-                                   these really large data sets for all these 
-                                   people to play with and do fun things with yeah. 
-                                   I've used some of them before my favorite one is 
-                                   we have a lot of good from GitHub. You can do 
-                                   cool things with it, but it's not the only one. 
-                                   So we're going to be talking about a bunch of 
-                                   different ones that you can just go and use and 
-                                   have fun with them. And after that we have a 
-                                   question of the week that is actually a question 
-                                   of the week whose answer comes from someone. We 
-                                   interviewed in the future. So at some point 
-                                   we'll have him on the podcast. But for now, we 
+                                   Hi and welcome to episode number 83 of the
+                                   weekly Google Cloud platform podcast. I am
+                                   princess Campo and I'm here with my colleague
+                                   Mark Mendel. Hey, Mark, how are you doing? I'm
+                                   doing very very very well. How you doing Friends
+                                   Ask? I'm pretty good. It's been a long week, but
+                                   you know pretty good very excited about a very
+                                   cool episode about public data sets. Yeah, it's
+                                   super cool where we talk about how we host all
+                                   these really large data sets for all these
+                                   people to play with and do fun things with yeah.
+                                   I've used some of them before my favorite one is
+                                   we have a lot of good from GitHub. You can do
+                                   cool things with it, but it's not the only one.
+                                   So we're going to be talking about a bunch of
+                                   different ones that you can just go and use and
+                                   have fun with them. And after that we have a
+                                   question of the week that is actually a question
+                                   of the week whose answer comes from someone. We
+                                   interviewed in the future. So at some point
+                                   we'll have him on the podcast. But for now, we
                                    have something that he
                                    """,
                            'start_time': '00:00:04',

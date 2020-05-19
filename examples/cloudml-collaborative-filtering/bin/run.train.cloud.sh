@@ -21,6 +21,11 @@
 #                     This should just be a timestamp.
 . ./bin/_common.sh
 
+if [ "$#" -lt 1 ]; then
+  echo "Illegal number of parameters. Should be >= 1, given $#."
+  exit 1
+fi
+
 MODEL_INPUTS_DIR=$1
 
 NOW="$(get_date_time)"
@@ -37,13 +42,13 @@ gcloud ai-platform jobs submit training "${TRAINING_JOB_NAME}" \
   --staging-bucket "${OUTPUT_BUCKET}" \
   --package-path trainer \
   --region us-east1 \
-  --runtime-version 1.13 \
+  --runtime-version 1.15 \
   --scale-tier "${SCALE_TIER}" \
   -- \
   --model_dir "${MODEL_PATH}" \
   --input_dir "${INPUT_PATH}" \
   --tft_dir "${TFT_PATH}" \
-  --max_steps 300000 \
+  --max_steps 100000 \
   --batch_size 512 \
   --user_embed_mult 1.5 \
   --item_embed_mult 1 \

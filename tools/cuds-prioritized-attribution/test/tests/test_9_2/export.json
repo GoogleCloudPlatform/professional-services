@@ -1,0 +1,484 @@
+{
+   "billing_account_id":"00F3D8-28D652-3F036F",
+   "service":{
+      "id":"6F81-5844-456A",
+      "description":"Compute Engine"
+   },
+   "sku":{
+      "id":"6C71-E844-38BC",
+      "description":"N1 Standard Instance Ram running in Americas"
+   },
+   "usage_start_time":"2019-01-21 08:25:11.227 UTC",
+   "usage_end_time":"2019-01-21 12:25:14.792 UTC",
+   "project":{
+      "id":"project-1",
+      "name":null,
+      "labels":[
+
+      ],
+      "ancestry_numbers":"/433637338589/396521612401/"
+   },
+   "labels":[
+      {
+         "key":"area",
+         "value":"bigdata"
+      }
+   ],
+   "system_labels":[
+
+   ],
+   "location":{
+      "location":"us-west1",
+      "country":"US",
+      "region":"us-west1",
+      "zone":null
+   },
+   "export_time":"2019-01-21 22:44:03.896 UTC",
+   "cost":"25.0",
+   "currency":"USD",
+   "currency_conversion_rate":"1.0",
+   "usage":{
+      "amount":"25.0",
+      "unit":"gibibyte hour",
+      "amount_in_pricing_units":"25.0",
+      "pricing_unit":"gibibyte hour"
+   },
+   "credits":[
+      {
+         "name":"Sustained Usage Discount",
+         "amount":"-10.0"
+      }
+   ],
+   "invoice":{
+      "month":"201901"
+   },
+   "cost_type":"regular"
+}{
+   "billing_account_id":"00F3D8-28D652-3F036F",
+   "service":{
+      "id":"6F81-5844-456A",
+      "description":"Compute Engine"
+   },
+   "sku":{
+      "id":"6C71-E844-38BC",
+      "description":"N1 Standard Instance Ram running in Americas"
+   },
+   "usage_start_time":"2019-01-21 08:25:11.227 UTC",
+   "usage_end_time":"2019-01-21 12:25:14.792 UTC",
+   "project":{
+      "id":"project-1",
+      "name":null,
+      "labels":[
+
+      ],
+      "ancestry_numbers":"/433637338589/396521612401/"
+   },
+   "labels":[
+      {
+         "key":"area",
+         "value":"bigdata"
+      },
+      {
+         "key":"env",
+         "value":"prod"
+      }
+   ],
+   "system_labels":[
+
+   ],
+   "location":{
+      "location":"us-west1",
+      "country":"US",
+      "region":"us-west1",
+      "zone":null
+   },
+   "export_time":"2019-01-21 22:44:03.896 UTC",
+   "cost":"25.0",
+   "currency":"USD",
+   "currency_conversion_rate":"1.0",
+   "usage":{
+      "amount":"25.0",
+      "unit":"gibibyte hour",
+      "amount_in_pricing_units":"25.0",
+      "pricing_unit":"gibibyte hour"
+   },
+   "credits":[
+      {
+         "name":"Sustained Usage Discount",
+         "amount":"-10.0"
+      }
+   ],
+   "invoice":{
+      "month":"201901"
+   },
+   "cost_type":"regular"
+}{
+   "billing_account_id":"00F3D8-28D652-3F036F",
+   "service":{
+      "id":"6F81-5844-456A",
+      "description":"Compute Engine"
+   },
+   "sku":{
+      "id":"6C71-E844-38BC",
+      "description":"N1 Standard Instance Ram running in Americas"
+   },
+   "usage_start_time":"2019-01-21 08:25:11.227 UTC",
+   "usage_end_time":"2019-01-21 12:25:14.792 UTC",
+   "project":{
+      "id":"project-2",
+      "name":"project-2",
+      "labels":[
+
+      ],
+      "ancestry_numbers":"/433637338589/396521612402/"
+   },
+   "labels":[
+      {
+         "key":"env",
+         "value":"prod"
+      },
+      {
+         "key":"area",
+         "value":"bigdata"
+      }
+   ],
+   "system_labels":[
+
+   ],
+   "location":{
+      "location":"us-west1",
+      "country":"US",
+      "region":"us-west1",
+      "zone":null
+   },
+   "export_time":"2019-01-21 22:44:03.896 UTC",
+   "cost":"15.0",
+   "currency":"USD",
+   "currency_conversion_rate":"1.0",
+   "usage":{
+      "amount":"15.0",
+      "unit":"gibibyte hour",
+      "amount_in_pricing_units":"0.0",
+      "pricing_unit":"gibibyte hour"
+   },
+   "credits":[
+      {
+         "name":"Committed Usage Discount: RAM",
+         "amount":"-15.0"
+      }
+   ],
+   "invoice":{
+      "month":"201901"
+   },
+   "cost_type":"regular"
+}{
+   "billing_account_id":"00F3D8-28D652-3F036F",
+   "service":{
+      "id":"6F81-5844-456A",
+      "description":"Compute Engine"
+   },
+   "sku":{
+      "id":"6C71-E844-38BC",
+      "description":"N1 Standard Instance Ram running in Americas"
+   },
+   "usage_start_time":"2019-01-21 08:25:11.227 UTC",
+   "usage_end_time":"2019-01-21 12:25:14.792 UTC",
+   "project":{
+      "id":"project-2",
+      "name":"project-2",
+      "labels":[
+
+      ],
+      "ancestry_numbers":"/433637338589/396521612402/"
+   },
+   "labels":[
+      {
+         "key":"env",
+         "value":"prod"
+      }
+   ],
+   "system_labels":[
+
+   ],
+   "location":{
+      "location":"us-west1",
+      "country":"US",
+      "region":"us-west1",
+      "zone":null
+   },
+   "export_time":"2019-01-21 22:44:03.896 UTC",
+   "cost":"15.0",
+   "currency":"USD",
+   "currency_conversion_rate":"1.0",
+   "usage":{
+      "amount":"15.0",
+      "unit":"gibibyte hour",
+      "amount_in_pricing_units":"0.0",
+      "pricing_unit":"gibibyte hour"
+   },
+   "credits":[
+      {
+         "name":"Committed Usage Discount: RAM",
+         "amount":"-15.0"
+      }
+   ],
+   "invoice":{
+      "month":"201901"
+   },
+   "cost_type":"regular"
+}{
+   "billing_account_id":"00F3D8-28D652-3F036F",
+   "service":{
+      "id":"6F81-5844-456A",
+      "description":"Compute Engine"
+   },
+   "sku":{
+      "id":"6C71-E844-38BC",
+      "description":"N1 Standard Instance Ram running in Americas"
+   },
+   "usage_start_time":"2019-01-21 08:25:11.227 UTC",
+   "usage_end_time":"2019-01-21 12:25:14.792 UTC",
+   "project":{
+      "id":"project-3",
+      "name":"project-3",
+      "labels":[
+
+      ],
+      "ancestry_numbers":"/433637338589/396521612403/"
+   },
+   "labels":[
+      {
+         "key":"env",
+         "value":"prod"
+      }
+   ],
+   "system_labels":[
+
+   ],
+   "location":{
+      "location":"us-west1",
+      "country":"US",
+      "region":"us-west1",
+      "zone":null
+   },
+   "export_time":"2019-01-21 22:44:03.896 UTC",
+   "cost":"35.0",
+   "currency":"USD",
+   "currency_conversion_rate":"1.0",
+   "usage":{
+      "amount":"35.0",
+      "unit":"gibibyte hour",
+      "amount_in_pricing_units":"35.0",
+      "pricing_unit":"gibibyte hour"
+   },
+   "invoice":{
+      "month":"201903"
+   },
+   "cost_type":"regular"
+}{
+   "billing_account_id":"00F3D8-28D652-3F036F",
+   "service":{
+      "id":"6F81-5844-456A",
+      "description":"Compute Engine"
+   },
+   "sku":{
+      "id":"6C71-E844-38BC",
+      "description":"N1 Standard Instance Ram running in Americas"
+   },
+   "usage_start_time":"2019-01-21 08:25:11.227 UTC",
+   "usage_end_time":"2019-01-21 12:25:14.792 UTC",
+   "project":{
+      "id":"project-4",
+      "name":"project-4",
+      "labels":[
+
+      ],
+      "ancestry_numbers":"/433637338589/396521612404/"
+   },
+   "labels":[
+      {
+         "key":"env",
+         "value":"prod"
+      }
+   ],
+   "system_labels":[
+
+   ],
+   "location":{
+      "location":"us-west1",
+      "country":"US",
+      "region":"us-west1",
+      "zone":null
+   },
+   "export_time":"2019-01-21 22:44:03.896 UTC",
+   "cost":"35.0",
+   "currency":"USD",
+   "currency_conversion_rate":"1.0",
+   "usage":{
+      "amount":"35.0",
+      "unit":"gibibyte hour",
+      "amount_in_pricing_units":"35.0",
+      "pricing_unit":"gibibyte hour"
+   },
+   "invoice":{
+      "month":"201903"
+   },
+   "cost_type":"regular"
+}{
+   "billing_account_id":"00F3D8-28D652-3F036F",
+   "service":{
+      "id":"6F81-5844-456A",
+      "description":"Compute Engine"
+   },
+   "sku":{
+      "id":"5aa0-d2cc-1da8",
+      "description":"commitment v1: ram in americas for 3 year"
+   },
+   "usage_start_time":"2019-01-21 08:25:11.227 UTC",
+   "usage_end_time":"2019-01-21 12:25:14.792 UTC",
+   "project":{
+      "id":"project-1",
+      "name":"project-1",
+      "labels":[
+
+      ],
+      "ancestry_numbers":"/433637338589/396521612404/"
+   },
+   "labels":[
+      {
+         "key":"env",
+         "value":"prod"
+      }
+   ],
+   "system_labels":[
+
+   ],
+   "location":{
+      "location":"us-west1",
+      "country":"US",
+      "region":"us-west1",
+      "zone":null
+   },
+   "export_time":"2019-01-21 22:44:03.896 UTC",
+   "cost":"100.0",
+   "currency":"USD",
+   "currency_conversion_rate":"1.0",
+   "usage":{
+      "amount":"100.0",
+      "unit":"gibibyte hour",
+      "amount_in_pricing_units":"100.0",
+      "pricing_unit":"gibibyte hour"
+   },
+   "invoice":{
+      "month":"201901"
+   },
+   "cost_type":"regular"
+}{
+   "billing_account_id":"00F3D8-28D652-3F036F",
+   "service":{
+      "id":"6F81-5844-456A",
+      "description":"Compute Engine"
+   },
+   "sku":{
+      "id":"6C71-E844-38BC",
+      "description":"N1 Standard Instance Ram running in Americas"
+   },
+   "usage_start_time":"2019-01-21 08:25:11.227 UTC",
+   "usage_end_time":"2019-01-21 12:25:14.792 UTC",
+   "project":{
+      "id":"project-2",
+      "name":"project-2",
+      "labels":[
+
+      ],
+      "ancestry_numbers":"/433637338589/396521612402/"
+   },
+   "labels":[
+      {
+         "key":"env",
+         "value":"prod"
+      },
+      {
+         "key":"area",
+         "value":"bigdata"
+      }
+   ],
+   "system_labels":[
+
+   ],
+   "location":{
+      "location":"us-west1",
+      "country":"US",
+      "region":"us-west1",
+      "zone":null
+   },
+   "export_time":"2019-01-21 22:44:03.896 UTC",
+   "cost":"35.0",
+   "currency":"USD",
+   "currency_conversion_rate":"1.0",
+   "usage":{
+      "amount":"35.0",
+      "unit":"gibibyte hour",
+      "amount_in_pricing_units":"0.0",
+      "pricing_unit":"gibibyte hour"
+   },
+   "credits":[
+
+   ],
+   "invoice":{
+      "month":"201901"
+   },
+   "cost_type":"regular"
+}{
+   "billing_account_id":"00F3D8-28D652-3F036F",
+   "service":{
+      "id":"6F81-5844-456A",
+      "description":"Compute Engine"
+   },
+   "sku":{
+      "id":"6C71-E844-38BC",
+      "description":"N1 Standard Instance Ram running in Americas"
+   },
+   "usage_start_time":"2019-01-21 08:25:11.227 UTC",
+   "usage_end_time":"2019-01-21 12:25:14.792 UTC",
+   "project":{
+      "id":"project-2",
+      "name":"project-2",
+      "labels":[
+
+      ],
+      "ancestry_numbers":"/433637338589/396521612402/"
+   },
+   "labels":[
+      {
+         "key":"env",
+         "value":"prod"
+      }
+   ],
+   "system_labels":[
+
+   ],
+   "location":{
+      "location":"us-west1",
+      "country":"US",
+      "region":"us-west1",
+      "zone":null
+   },
+   "export_time":"2019-01-21 22:44:03.896 UTC",
+   "cost":"35.0",
+   "currency":"USD",
+   "currency_conversion_rate":"1.0",
+   "usage":{
+      "amount":"35.0",
+      "unit":"gibibyte hour",
+      "amount_in_pricing_units":"0.0",
+      "pricing_unit":"gibibyte hour"
+   },
+   "credits":[
+
+   ],
+   "invoice":{
+      "month":"201901"
+   },
+   "cost_type":"regular"
+}

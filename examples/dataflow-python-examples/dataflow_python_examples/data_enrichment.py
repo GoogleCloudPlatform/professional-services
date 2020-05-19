@@ -15,7 +15,7 @@
 """ data_enrichment.py demonstrates a Dataflow pipeline which reads a file and
  writes its contents to a BigQuery table.  Along the way, data from BigQuery
  is read in as a side input and joined in with the primary data from the file.
- 
+
 """
 
 from __future__ import absolute_import
@@ -23,6 +23,7 @@ import argparse
 import csv
 import logging
 import os
+import sys
 
 import apache_beam as beam
 from apache_beam.io.gcp import bigquery
@@ -49,16 +50,16 @@ class DataIngestion(object):
     def parse_method(self, string_input):
         """This method translates a single line of comma separated values to a
     dictionary which can be loaded into BigQuery.
-        
+
         Args:
-            string_input: A comma separated list of values in the form of 
+            string_input: A comma separated list of values in the form of
             state_abbreviation,gender,year,name,count_of_babies,dataset_created_date
                 example string_input: KS,F,1923,Dorothy,654,11/28/2016
-        
+
         Returns:
             A dict mapping BigQuery column names as keys to the corresponding value
-            parsed from string_input.  In this example, the data is not transformed, and 
-            remains in the same format as the CSV.  There are no date format transformations. 
+            parsed from string_input.  In this example, the data is not transformed, and
+            remains in the same format as the CSV.  There are no date format transformations.
 
                 example output:
                       {'state': 'KS',
