@@ -1,4 +1,4 @@
-# Copyright 2016 Google Inc.
+# Copyright 2020 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,20 +23,23 @@ from google.cloud import pubsub_v1
 import consts
 import exceptions
 
-# Define required global vars
+""" Deploy App Engine Webhook Endpoint
+
+    * Extract the Project ID and Destination Pub/Sub Topic
+    * Initialize a Publisher used for sending data to Pub/Sub
+    * Deploy a Flask App
+"""
 project_id = os.environ[consts.PROJECT_ID]
 topic_name = os.environ[consts.PUBSUB_TOPIC]
 
-# Pub/Sub Publishing Vars
 publisher = pubsub_v1.PublisherClient()
 topic_path = publisher.topic_path(project_id, topic_name)
 futures = dict()
 
-# App Engine Env
 app = Flask(__name__)
 
 @app.route('/', methods=['POST', 'GET'])
-def login():
+def receive_data():
     error = None
     if request.method == 'POST':
         return webhook_to_pubsub(request, wait_for_ack=False)
@@ -50,12 +53,6 @@ def login():
 #     response.status_code = error.status_code
 #     return response
 
-# # CF USE
-# TODO maybe not required if publlisher needs to be init globally
-def _validate_required_env():
-    assert consts.PROJECT_ID in os.environ
-    assert consts.PUBSUB_TOPIC in os.environ
-
 def webhook_to_pubsub(request, wait_for_ack=True):
     """HTTP Cloud Function.
     Args:
@@ -66,13 +63,10 @@ def webhook_to_pubsub(request, wait_for_ack=True):
         Response object using `make_response`
         <http://flask.pocoo.org/docs/1.0/api/#flask.Flask.make_response>.
     """
-    # Ensure Environment is Correct Regardless of runtime
-    _validate_required_env()
-
     # Send Request to PubSub
     request_json = request.get_json(silent=True)
     if request_json is None:
-        raise exceptions.WebhookException("HTTP ERROR: Post Request Missing Data", status_code=400)
+        raise exceptions.WebhookException(consts.NO_DATA_MESSAGE, status_code=400)
     elif isinstance(request_json, list):
         for row in request_json:
             publish_data(row, wait_for_ack=wait_for_ack)
@@ -83,7 +77,6 @@ def webhook_to_pubsub(request, wait_for_ack=True):
 
 
 """Publishes multiple messages to a Pub/Sub topic with an error handler."""
-# TODO move all publisher logic to separate module
 def _get_callback(f, data):
     def callback(f):
         # TODO: implement logic here, this logic is okay but not great
