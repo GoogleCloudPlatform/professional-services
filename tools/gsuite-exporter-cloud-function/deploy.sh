@@ -25,8 +25,8 @@ gcloud functions deploy gsuite-exporter \
     --runtime python37 \
     --trigger-topic gsuite-exporter-schedule \
     --entry-point sync_log \
-    --service-account $2 \
-    --set-env-vars ADMIN_USER=$1
+    --service-account "$2" \
+    --set-env-vars ADMIN_USER="$1"
 
 gcloud scheduler jobs create pubsub gsuite-log-export-scheduler \
     --schedule="*/15 * * * *" \
