@@ -11,12 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-
 """GSuite Exporter on Cloud Function"""
 
 import os
 from gsuite_exporter.cli import sync_all
+
 
 def sync_log(event, context):
     """A PubSub handler trigger by Cloud Function"""
@@ -30,14 +29,13 @@ def sync_log(event, context):
     if not project_id:
         raise ValueError('Env variable `GCP_PROJECT` is not set.')
 
-    sync_all(
-        admin_user=admin,
-        api='reports_v1',
-        applications=['admin', 'login', 'drive', 'token', 'mobile'],
-        project_id=project_id,
-        exporter_cls='stackdriver_exporter.StackdriverExporter',
-        offset=15
-    )
+    sync_all(admin_user=admin,
+             api='reports_v1',
+             applications=['admin', 'login', 'drive', 'token', 'mobile'],
+             project_id=project_id,
+             exporter_cls='stackdriver_exporter.StackdriverExporter',
+             offset=15)
+
 
 if __name__ == '__main__':
     sync_log(None, None)
