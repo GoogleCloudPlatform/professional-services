@@ -12,7 +12,7 @@ source WEBHOOK.env
 
 # Send Test Data
 echo "Send Data: 1003 Records"
-python3 tests/send_data.py
+python3 tests/system/send_data.py
 
 # Wait for Results to Load into BigQuery
 # Then validate results
