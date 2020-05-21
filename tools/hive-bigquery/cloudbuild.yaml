@@ -14,4 +14,4 @@
 
 steps:
   - name: "ubuntu:18.04"
-    args: ["bash", "test/run_tests.sh"]
+    args: ["bash", "tests/run_tests.sh"]
