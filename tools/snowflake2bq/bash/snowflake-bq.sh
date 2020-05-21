@@ -100,7 +100,7 @@ echo "Snowflake Table Row Count is ${SF_ROW_COUNT}"
 echo "Starting Row Count SQL for BigQuery Table at $(date)"
 BQ_TABLE_FULL_NAME="${GCP_PROJECT}.${BQ_DATASET}.${BQ_TABLE}"
 
-BQ_ROW_COUNT_CMD="$(bq show --format=prettyjson  ${BQ_TABLE_FULL_NAME} | grep numRows | grep -Eo '[[:digit:]]{1,}')"
+BQ_ROW_COUNT_CMD=$(bq show --format=prettyjson  "${BQ_TABLE_FULL_NAME}" | grep numRows | grep -Eo '[[:digit:]]{1,}')
 
 echo "BigQuery Row Count Command is : ${BQ_ROW_COUNT_CMD}"
 

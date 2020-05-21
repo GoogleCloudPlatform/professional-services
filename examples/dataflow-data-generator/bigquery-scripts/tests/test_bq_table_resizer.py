@@ -38,6 +38,7 @@ class TestBigQueryTableResizer(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls._bq_cli = bigquery.Client()
+
     def setUp(self):
         self.client = TestBigQueryTableResizer._bq_cli
         # Create a unique temporary dataset.
