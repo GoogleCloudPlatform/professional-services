@@ -25,7 +25,7 @@ from uuid import uuid4
 from pyhive import exc, hive
 from thrift.transport import TTransport
 
-import custom_exceptions
+from . import custom_exceptions
 from utilities import calculate_time
 from database_component import DatabaseComponent
 

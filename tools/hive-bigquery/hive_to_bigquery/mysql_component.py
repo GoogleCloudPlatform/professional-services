@@ -17,7 +17,7 @@ import logging
 
 import pymysql
 
-import custom_exceptions
+from . import custom_exceptions
 from database_component import DatabaseComponent
 from properties_reader import PropertiesReader
 

@@ -17,17 +17,17 @@ import logging
 
 from google.api_core import exceptions
 
-from bigquery_component import BigQueryComponent
-from bigquery_table import BigQueryTable
-import custom_exceptions
-from gcs_storage_component import GCSStorageComponent
-from hive_component import HiveComponent
-from hive_table import HiveTable
-import kms_component
-from mysql_component import MySQLComponent
-from properties_reader import PropertiesReader
-from resource_validator import ResourceValidator
-import init_script
+from .bigquery_component import BigQueryComponent
+from .bigquery_table import BigQueryTable
+from . import custom_exceptions
+from .gcs_storage_component import GCSStorageComponent
+from .hive_component import HiveComponent
+from .hive_table import HiveTable
+from . import kms_component
+from .mysql_component import MySQLComponent
+from .properties_reader import PropertiesReader
+from .resource_validator import ResourceValidator
+from . import init_script
 
 logger = logging.getLogger('Hive2BigQuery')
 

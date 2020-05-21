@@ -25,7 +25,7 @@ from google.auth import exceptions as auth_exceptions
 from google.cloud import storage
 
 import constants
-import custom_exceptions
+from . import custom_exceptions
 from utilities import calculate_time, execute_command
 from gcp_service import GCPService
 

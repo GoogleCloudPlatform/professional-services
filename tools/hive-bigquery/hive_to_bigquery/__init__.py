@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-VERSION = "1.0.0"
-APPLICATION_NAME = "cloud-pso-hive-bigquery"
-USER_AGENT = "{}/{}".format(APPLICATION_NAME, VERSION)
+from pkg_resources import get_distribution
+
+
+__version__ = get_distribution("cloud-pso-hive-bigquery").version

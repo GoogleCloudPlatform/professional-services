@@ -15,7 +15,7 @@
 
 import logging
 
-from bigquery_table_model import BigQueryTableModel
+from .bigquery_table_model import BigQueryTableModel
 
 logger = logging.getLogger('Hive2BigQuery')
 
