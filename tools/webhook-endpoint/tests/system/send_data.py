@@ -109,6 +109,7 @@ def test_complex_result():
 # Scale Test
 def send_request(request_size):
     # Send batches of data to speed up EPS
+    app_domain = _get_app_domain()
     data = [get_row() for i in range(request_size)]
     res = requests.post(app_domain, json=data)
 
