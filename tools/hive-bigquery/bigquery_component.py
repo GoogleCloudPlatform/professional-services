@@ -100,7 +100,7 @@ class BigQueryComponent(GCPService):
         try:
             self.client.get_table(table_ref)
             return True
-        except exceptions.NotFound as error:
+        except exceptions.NotFound:
             return False
 
     def get_dataset_location(self, dataset_id):

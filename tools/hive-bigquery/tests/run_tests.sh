@@ -19,7 +19,11 @@ set -e
 ./prerequisites/prerequisites.sh
 
 virtualenv env
+
+# Shellcheck cannot lint env/bin/activate because it's created by virtualenv.
+# shellcheck disable=SC1091
 source env/bin/activate
+
 pip3 install -r prerequisites/requirements.txt
 pip3 install pytest
 pytest .
