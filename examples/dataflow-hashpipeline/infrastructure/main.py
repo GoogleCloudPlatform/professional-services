@@ -15,7 +15,6 @@
 import os
 import requests
 import json
-import sys
 from datetime import datetime
 
 PROJECT         = os.getenv('PROJECT')
@@ -28,36 +27,36 @@ TOPIC           = os.getenv('TOPIC')
 SALT            = os.getenv('SALT')
 
 def trigger_dataflow(data, context):
-	token_url = "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token"
-	token_response = requests.get(token_url, headers = {'Metadata-Flavor': 'Google'}).json()
-	token = token_response['access_token']
+  token_url = "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token"
+  token_response = requests.get(token_url, headers = {'Metadata-Flavor': 'Google'}).json()
+  token = token_response['access_token']
 
-	url = f"https://dataflow.googleapis.com/v1b3/projects/{PROJECT}/templates:launch"
-	params = {
-		'gcsPath' : f'gs://{BUCKET}/Template/hashpipeline',
-		'location': REGION
-	}
-	timestamp = datetime.now().strftime("%Y%m%d%H%M")
-	data = {
-		"jobName": f"hashpipeline-job-{timestamp}",
-		"parameters": {
-			"requirements_file": "requirements.txt",
-			"project_id": PROJECT,
-			"region": REGION,
-			"staging_location": f"gs://{BUCKET}/stg",
-			"input": f"gs://{data['bucket']}/{data['name']}",
-			"topic": TOPIC,
-			"secret_name": SECRET,
-			"collection_name": COLLECTION,
-			"salt": SALT,
-		},
-		"environment" : {
-			"tempLocation": f"gs://{BUCKET}/tmp",
-			"zone": f'{REGION}-b',
-			"serviceAccountEmail": SERVICE_ACCOUNT
-		}
-	}
-	resp = requests.post(url=url, data=json.dumps(data), params=params, headers = {'Authorization': f'Bearer {token}'})
-	print(resp.text)
+  url = f"https://dataflow.googleapis.com/v1b3/projects/{PROJECT}/templates:launch"
+  params = {
+    'gcsPath' : f'gs://{BUCKET}/Template/hashpipeline',
+    'location': REGION
+  }
+  timestamp = datetime.now().strftime("%Y%m%d%H%M")
+  data = {
+    "jobName": f"hashpipeline-job-{timestamp}",
+    "parameters": {
+      "requirements_file": "requirements.txt",
+      "project_id": PROJECT,
+      "region": REGION,
+      "staging_location": f"gs://{BUCKET}/stg",
+      "input": f"gs://{data['bucket']}/{data['name']}",
+      "topic": TOPIC,
+      "secret_name": SECRET,
+      "collection_name": COLLECTION,
+      "salt": SALT,
+    },
+    "environment" : {
+      "tempLocation": f"gs://{BUCKET}/tmp",
+      "zone": f'{REGION}-b',
+      "serviceAccountEmail": SERVICE_ACCOUNT
+    }
+  }
+  resp = requests.post(url=url, data=json.dumps(data), params=params, headers = {'Authorization': f'Bearer {token}'})
+  print(resp.text)
 
-	return resp.text
+  return resp.text

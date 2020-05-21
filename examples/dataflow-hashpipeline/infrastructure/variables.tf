@@ -16,57 +16,57 @@
 variable "project" {}
 
 variable "region" {
-	default = "us-central1"
+  default = "us-central1"
 }
 
 variable "dataflow_bucket" {
-	type = string
-	default = ""
+  type = string
+  default = ""
 }
 
 variable "cloudfunction_bucket" {
-	type = string
-	default = ""
+  type = string
+  default = ""
 }
 
 variable "secret_name" {
-	type = string
-	default = "hash-key-64"
-	description = "Secret name where base64 encoded hash key exists"
+  type = string
+  default = "hash-key-64"
+  description = "Secret name where base64 encoded hash key exists"
 }
 
 variable "firestore_collection" {
-	type = string
-	default = "hashed_socials"
-	description = "The name of the Firestore collection where the hashed SSNs are"
+  type = string
+  default = "hashed_socials"
+  description = "The name of the Firestore collection where the hashed SSNs are"
 }
 
 variable "output_topic" {
-	type = string
-	default = "hashpipeline"
-	description = "The Pubsub topic name that the output is written to"
+  type = string
+  default = "hashpipeline"
+  description = "The Pubsub topic name that the output is written to"
 }
 
 variable "salt" {
-	type = string
-	default = "4ec6c189401de41c"
-	description = "BLAKE2b-compatible 16-byte salt"
+  type = string
+  default = "4ec6c189401de41c"
+  description = "BLAKE2b-compatible 16-byte salt"
 }
 
 variable "cf_runner_permissions" {
-	type = list
-	default = [
-		"roles/cloudfunctions.serviceAgent",
-		"roles/dataflow.developer",
-		"roles/compute.viewer",
-	]
+  type = list
+  default = [
+    "roles/cloudfunctions.serviceAgent",
+    "roles/dataflow.developer",
+    "roles/compute.viewer",
+  ]
 }
 
 variable "df_worker_project_permissions" {
-	type = list
-	default = [
-		"roles/dataflow.worker",
-		"roles/datastore.viewer",
-		"roles/dlp.user",
-	]
+  type = list
+  default = [
+    "roles/dataflow.worker",
+    "roles/datastore.viewer",
+    "roles/dlp.user",
+  ]
 }

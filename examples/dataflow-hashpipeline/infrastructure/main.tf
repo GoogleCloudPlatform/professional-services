@@ -118,14 +118,14 @@ resource "google_cloudfunctions_function" "function" {
   }
   
   environment_variables = {
-    PROJECT					= var.project
-    REGION					= var.region
-    SECRET					= google_secret_manager_secret.hash_key_secret.name
-    BUCKET					= google_storage_bucket.df_bucket.name
-    SERVICE_ACCOUNT	= google_service_account.df_worker.email
-    COLLECTION			= var.firestore_collection
-    TOPIC						= google_pubsub_topic.output_topic.name
-    SALT						= var.salt
+    PROJECT         = var.project
+    REGION          = var.region
+    SECRET          = google_secret_manager_secret.hash_key_secret.name
+    BUCKET          = google_storage_bucket.df_bucket.name
+    SERVICE_ACCOUNT = google_service_account.df_worker.email
+    COLLECTION      = var.firestore_collection
+    TOPIC           = google_pubsub_topic.output_topic.name
+    SALT            = var.salt
   }
 }
 

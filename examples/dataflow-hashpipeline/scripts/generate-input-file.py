@@ -16,58 +16,58 @@
 import random
 import sys
 class TestGen():
-	def __init__(self, infile, outfile):
-		self.infile = infile
-		self.outfile = outfile
-		self.stats = {
-			'expected_valid_socials': 0,
-			'valid_ssn_line': 0,
-			'valid_ssn_with_fake': 0,
-			'invalid_with_fake_ssn': 0,
-			'invalid_no_num': 0
-		}
-		with open(self.infile) as f:
-			self.socials = [s.strip() for s in f.readlines()]
-	
-	def randsocial(self):
-		return self.socials[random.randint(0, len(self.socials)-1)]
+  def __init__(self, infile, outfile):
+    self.infile = infile
+    self.outfile = outfile
+    self.stats = {
+      'expected_valid_socials': 0,
+      'valid_ssn_line': 0,
+      'valid_ssn_with_fake': 0,
+      'invalid_with_fake_ssn': 0,
+      'invalid_no_num': 0
+    }
+    with open(self.infile) as f:
+      self.socials = [s.strip() for s in f.readlines()]
+  
+  def randsocial(self):
+    return self.socials[random.randint(0, len(self.socials)-1)]
 
-	def rand_acct(self):
-		return f'{random.randrange(1*10**9 - 1):09d}'
+  def rand_acct(self):
+    return f'{random.randrange(1*10**9 - 1):09d}'
 
-	def valid_ssn_line(self):
-		s = self.randsocial()
-		self.stats['expected_valid_socials'] += 1
-		self.stats['valid_ssn_line'] += 1
-		return f'My social is {s}\n'
+  def valid_ssn_line(self):
+    s = self.randsocial()
+    self.stats['expected_valid_socials'] += 1
+    self.stats['valid_ssn_line'] += 1
+    return f'My social is {s}\n'
 
-	def valid_ssn_with_fake(self):
-		s = self.randsocial()
-		self.stats['expected_valid_socials'] += 1
-		self.stats['valid_ssn_with_fake'] += 1
-		return f'My account number is {self.rand_acct()} and my ssn is {s.replace("-", "")}\n'
+  def valid_ssn_with_fake(self):
+    s = self.randsocial()
+    self.stats['expected_valid_socials'] += 1
+    self.stats['valid_ssn_with_fake'] += 1
+    return f'My account number is {self.rand_acct()} and my ssn is {s.replace("-", "")}\n'
 
-	def invalid_with_fake_ssn(self):
-		self.stats['invalid_with_fake_ssn'] += 1
-		return f'My account number is {self.rand_acct()}\n'
+  def invalid_with_fake_ssn(self):
+    self.stats['invalid_with_fake_ssn'] += 1
+    return f'My account number is {self.rand_acct()}\n'
 
-	def invalid_no_num(self):
-		self.stats['invalid_no_num'] += 1
-		return 'My name is Inigo Montoya, you killed my father, prepare to die!\n'
+  def invalid_no_num(self):
+    self.stats['invalid_no_num'] += 1
+    return 'My name is Inigo Montoya, you killed my father, prepare to die!\n'
 
-	def run(self, num_lines):	
-		funcs = [self.valid_ssn_line, self.valid_ssn_with_fake, self.invalid_with_fake_ssn, self.invalid_no_num]
-		outlines = []
-		for _ in range(0, int(num_lines)):
-			func = funcs[random.randint(0, 3)]
-			outlines.append(func())
-		sorted_stats = list(reversed(sorted(list(self.stats.keys()))))
-		for k in sorted_stats:
-			outlines.insert(0, f'{k} = {self.stats[k]}\n')
-		with open(self.outfile, 'w') as f:
-			for line in outlines:
-				f.write(line)	
+  def run(self, num_lines):  
+    funcs = [self.valid_ssn_line, self.valid_ssn_with_fake, self.invalid_with_fake_ssn, self.invalid_no_num]
+    outlines = []
+    for _ in range(0, int(num_lines)):
+      func = funcs[random.randint(0, 3)]
+      outlines.append(func())
+    sorted_stats = list(reversed(sorted(list(self.stats.keys()))))
+    for k in sorted_stats:
+      outlines.insert(0, f'{k} = {self.stats[k]}\n')
+    with open(self.outfile, 'w') as f:
+      for line in outlines:
+        f.write(line)  
 
 if __name__ == '__main__':
-	args = sys.argv[1:]
-	TestGen(args[0], args[1]).run(args[2])
+  args = sys.argv[1:]
+  TestGen(args[0], args[1]).run(args[2])

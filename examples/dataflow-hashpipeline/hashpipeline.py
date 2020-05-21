@@ -20,10 +20,8 @@
 from __future__ import absolute_import
 
 import logging
-import re
 import os
 import sys
-import argparse
 
 from google.cloud.dlp import DlpServiceClient
 from google.cloud import firestore
