@@ -345,24 +345,28 @@ export class BqQueryPlan {
       'write (ms)     ':
           'avg: ' + Number(node.writeMsAvg).toLocaleString('en') +
           ' max: ' + Number(node.writeMsMax).toLocaleString('en'),
+      'slotMs         ': Number(_.get(node, 'slotMs', 0)).toLocaleString('en'),
 
     };
     const endMs = Number(node.endMs);
     const startMs = Number(node.startMs);
     const jobStartMs = Number(stats.startTime);
     const jobEndMs = Number(stats.endTime);
+
     if (!isNaN(startMs) && !isNaN(endMs) && !isNaN(jobStartMs) &&
         !isNaN(jobEndMs)) {
       const duration = endMs - startMs;
       node['durationMs  '] = duration.toLocaleString('en');
+      const slotMs = Number(_.get(node, 'slotMs', 0));
+
+      result['avg slots      '] =
+          (slotMs) / duration).toLocaleString('en');
       const startPct = (100 * (startMs - jobStartMs)) / (jobEndMs - jobStartMs);
       const endPct = (100 * (endMs - jobStartMs)) / (jobEndMs - jobStartMs);
       result['startTime      '] = new Date(startMs);
       result['endTime        '] = new Date(endMs);
-      result['start %        '] =
-          startPct.toLocaleString('en') + '% of job duration';
-      result['end %          '] =
-          endPct.toLocaleString('en') + '% of job duration';
+      result['duration       '] = startPct.toLocaleString('en') + '% - ' +
+          endPct.toLocaleString('en') + '%';
     }
 
     return JSON.stringify(result, null, 4);
