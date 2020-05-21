@@ -13,4 +13,3 @@ data.
 That's it!  All resources will be deployed via Terraform.
 
 To tear down the setup run ./tear_down.sh
-
