@@ -1,0 +1,8 @@
+inputs/*.txt
+scripts/key.b64
+scripts/socials.txt
+terraform.tfvars
+terraform.tfstate*
+.terraform
+*.zip
+terraform-vars.mk

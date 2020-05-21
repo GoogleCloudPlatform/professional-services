@@ -1,0 +1,4 @@
+apache-beam[gcp]
+google-cloud-secret-manager
+google-cloud-firestore
+google-cloud-pubsub
