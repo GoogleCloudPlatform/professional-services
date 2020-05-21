@@ -32,6 +32,17 @@ This has only been tested on Mac OSX but will likely work on Linux as well.
 
 
 ### Step 1: Deploy the Infrastructure
+First, ensure that the following APIs are enabled on your project:
+
+* `cloudfunctions.googleapis.com`
+* `iam.googleapis.com`
+* `dlp.googleapis.com`
+* `secretmanager.googleapis.com`
+* `firestore.googleapis.com`
+* `dataflow.googleapis.com`
+* `compute.googleapis.com`
+
+Then deploy the infrastructure to your project
 
 ```
 cd infrastructure
