@@ -9,7 +9,7 @@ Michael Sherman (michaelsherman@google.com)
 Michael Sparkman (michaelsparkman1996@gmail.com)  
 Karan Palsani (karanpalsani@utexas.edu)  
 Sahana Subramanian (sahana.subramanian@utexas.edu)  
-TODO: Shane Kok ()
+Shane Kok (shanekok9@gmail.com)
 
 # Overview
 
@@ -18,7 +18,6 @@ This project shows how to use ML models to predict a company's response to consu
 The project also shows how to deploy a production-ready data processing pipeline for prediction of a company response based on consumer complaints on Google Cloud Platform, using BigQuery and AutoML Tables.
 
 ## Repository Structure
-TODO: Update this once project is wrapping.
 
 ```
 .
@@ -89,11 +88,6 @@ As stated previously, these instructions have been tested in a [Google Cloud AI 
 1. Get the downloaded JSON key into your environment. If you're using AI Platform Notebooks, [this video](https://www.youtube.com/watch?v=1bd2QHqQSH4) shows how to upload a file.
 1. Move the service account key file to `$HOME/.oauth_keys/automl_service_account_key.json`. This location is referenced in the config file (`file_paths.automl_service_account_key`), update accordingly if a different location is used. You may need to create the .oauth_keys directory.
 
-I THINK THIS NEXT SET OF INSTRUCTIONS IS NO LONGER REQUIRED, CORRECT?
-1. Download and install the AutoML Client (with Python SDK).
-  1. Copy the client from storage with `gsutil cp gs://gap-automl-client/automl_prod.tar.gz $HOME/automl_client/automl_prod.tar.gz` .
-  1. Untar/uncompress the client with `tar -xzvf $HOME/automl_client/automl_prod.tar.gz -C $HOME/automl_client` .
-  1. Install with `pip install $HOME/automl_client/automl_prod/python/automl-v1beta1` .
 
 ### Required Configuration Changes
 
@@ -103,18 +97,14 @@ The default values in `config/pipeline.yaml` provided with the code should be ch
 
 1. Make a copy of the configuration file: `cp config/pipeline.yaml config/my_config.yaml` .
 1. Edit `config/my_config.yaml` and make the following changes then save:
-THIS IS WRONG RIGHT NOW, NEEDS TO BE UPDATED BASED ON PIPELINE
-  1. `global.clean_dataset` is the dataset where ingested data is stored in BigQuery. Change this to a new value. Note the table names don't need to change, since they will be written to the new dataset.
-  1. `global.forecasting_dataset` is the dataset where features, predictions, and metrics are written in BigQuery. Change this to a new value, and similarly table names don't need to change.
-  1. `global.dataset_display_name` and `global.model_display_name` are the name of the AutoML Tables Forecasting dataset and model created by the pipeline. Change these to new values (they can be the same).
-  TODO: Make sure project and queries path config changes are mentioned. 
+  1. `file_paths.queries` is the path to the queries subfolder. Change this value to the local path where the queries subfolder resides.
+  1. `global.destination_project_id` is the project_id that is created by the user and this is where ingested data is stored in BigQuery tables for feature engineering and training the AutoML model. Change this value to the project_id that was created during setup.
+  1. `global.destination_dataset` is the dataset where ingested data is stored in BigQuery. Change this to a new value. Note the table names don't need to change, since they will be written to the new dataset.
+  1. `global.dataset_display_name` and `global.model_display_name` are the name of the AutoML Tables dataset and model created by the pipeline. Change these to new values (they can be the same).
 
+You should create a new config file and change these parameters for every full pipeline run. For failed pipeline runs, you'll want to delete the resources specified in these config values since the pipeline will not delete existing resources automatically (except for `global.destination_dataset`).
 
-TODO CLEAN ALL THIS UP
-
-You should create a new config file and change these parameters for every full pipeline run. For failed pipeline runs, you'll want to delete the resources specified in these config values since the pipeline will not delete existing resources automatically (except for `global.clean_dataset`).
-
-Note that on subsequent pipeline runs if you aren't rerunning ingestion you don't need to change `global.clean_dataset`, if you aren't rerunning the feature pipeline you don't need to change `global.forecasting_dataset`, and if you aren't rerunning the model build you don't need to change `global.dataset_display_name` and `global.model_display_name`.
+Note that on subsequent pipeline runs if you aren't rerunning ingestion you don't need to change `global.destination_dataset`, and if you aren't rerunning the model build you don't need to change `global.dataset_display_name` and `global.model_display_name`.
 
 If you need to change the default paths (because you are running somewhere besides an AI Platform Notebook, because your repo is in a different path, or because your AutoML service account key is in a different location) change the values in `file_paths`.
 
