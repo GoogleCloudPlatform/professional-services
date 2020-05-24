@@ -21,11 +21,6 @@
 # 
 # Args:
 #   CONFIG_PATH: Path of pipeline YAML config file, relative to project root.
-#
-# MSBA Team (delete): This is a bash file that should run the whole
-#   deliverable, one step at a time. MODE specifies the different steps to
-#   run, this lets you run only some of the steps if you want to save time.
-#   More in README.
 
 set -e
 
