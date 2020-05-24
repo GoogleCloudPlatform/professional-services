@@ -1,9 +1,5 @@
 # Predict Company Responses to Consumer Complaints
 
-# TODO: Readme should have very clear instructions on running the entire pipeline, including getting started and the repo and pretty much anything else a dev running the code would need.
-
-# TODO: Once project is ready to go, change the log level from DEBUG to INFO.
-
 ## Contributors
 Michael Sherman (michaelsherman@google.com)  
 Michael Sparkman (michaelsparkman1996@gmail.com)  
@@ -33,8 +29,6 @@ The configuration provided with the code is `config/pipeline.yaml`. This configu
 
 Basic configuration changes necessary when running the pipeline are discussed with the pipeline running instructions below.
 
-TODO: Make sure all config changes are detailed in the running steps, and make sure this section is correct.
-
 We recommend making a separate copy of the configuration when you have to change configuration parameters. All pipeline steps are run with the config file as a command line option, and using separate copies makes tracking different pipeline runs more manageable. 
 
 The main sections of the configuration are:
@@ -44,7 +38,7 @@ The main sections of the configuration are:
 * `query_params`: Parameters for substitution into individual SQL queries.
 * `model`: Configuration information for the AutoML Tables Model. Includes parameters on training/optimizing the model, identification of key columns in the training data (e.g., the target), training data columns to exclude from model building, and type configuration for each feature used by the model.
 
-## Instructions for Running the WHATEVER_ITS_CALLED example.
+## Instructions for Running the Pipeline to Predict Company Responses to Consumer Complaints
 
 All instructions were tested on a [Cloud AI Platform Notebook](https://cloud.google.com/ai-platform/notebooks/docs/) instance, created through the [UI](https://console.cloud.google.com/ai-platform/notebooks/instances). If you are running in another environment, you'll have to setup the [`gcloud` SDK](https://cloud.google.com/sdk/install), install Python 3 and virtualenv, and possibly manage other dependencies. We have not tested these instructions in other environments.
 
@@ -64,14 +58,12 @@ These instructions have been tested in a fresh Google Cloud project without any 
 
 These steps should be followed before you run the pipeline for the first time from a new development environment. 
 
-TODO: Update closer to project completion
-
 As stated previously, these instructions have been tested in a [Google Cloud AI Platforms Notebook](https://console.cloud.google.com/ai-platform/notebooks/instances).
 
 1. Run `gcloud init`, choose to use a new account, authenticate, and [set your project ID](https://cloud.google.com/resource-manager/docs/creating-managing-projects#identifying_projects) as the project. Choose a region in the US if prompted to set a default region.
 1. Run `bq init`. You may get a prompt telling you the command isn't necessary, hit 'y'. When asked to select a project, just hit enter. It's okay to overwrite the .bigqueryrc file if bq prompts you that one already exists.
 1. Clone the project from us-central1.
-1. Navigate to the repo root directory: `cd WHATEVER_WE_CALL_IT` .
+1. Navigate to the repo root directory: `cd /home/jupyter/msba-capstone-2020` .
 1. Create a Python 3 virtual environment (`?????'' in this example):
   1. Run `virtualenv --python=python3 $HOME/env/?????` .
   1. Active the environment. Run: `source ~/env/?????/bin/activate` .
@@ -112,29 +104,21 @@ If you need to change the default paths (because you are running somewhere besid
 
 These steps have only been tested for users with the "Owner" IAM role. They should work for the "Editor" role as well, but we have not tested it.
 
-TODO UPDATE THIS TO BE CORRECT
-
 All commands should be run from the repository root.
 TODO: there's no orchestraction script here. The steps need to be run individually. 
 TODO: Give some indication of how long each step will take to run.
 
 1. Active the Python environment if it is not already activated. Run: `source ~/env/????/bin/activate`
 1. Run the model pipeline: `nohup bash run_pipeline.sh config/my_config.yaml ftpe > pipeline.out & disown` . This command will run the pipeline in the background, save logs to `pipeline.out`, and will not terminate if the terminal is closed. It will run all steps of the pipeline in sequence, or a subset of the steps as determined by the second positional arg (MODE). Ex. `fp` instead of `ftpe` would create features and then generate predictions using the model specified in the config.
-  * Create features (f): This creates the dataset of features (config value `global.forecasting_dataset`) and feature tables.
-  * Train (t): This creates the training dataset in AutoML Tables Forecasting (config value `global.dataset_display_name`) and trains the model (config value `global.model_display_name`). Note that in the AutoML Tables UI the dataset will appear as soon as it is created but the model will not appear until it is completely trained.
+  * Create features (f): This creates the dataset of features (config value `global.destination_dataset`) and feature tables.
+  * Train (t): This creates the training dataset in AutoML Tables (config value `global.dataset_display_name`) and trains the model (config value `global.model_display_name`). Note that in the AutoML Tables UI the dataset will appear as soon as it is created but the model will not appear until it is completely trained.
   * Predict (p): This makes predictions with the model, and copies the unformatted results to a predictions table (config value `global.predictions_table`). AutoML generates its own dataset in BQ, which will contain errors if predictions for any rows fail. This spurious dataset (named prediction_<model_name>_<timestamp>) will be deleted if there are no errors.
-  * Backtest (e): This formats predictions and joins with historical data for visualization and analysis of results (config value `global.eval_table`), then generates evaluation metrics and saves to the metrics table(config value `global.eval_metrics_table`).
   
 This command pipes its output to a log file (`pipeline.out`). To follow this log file, run `tail -n 5 -f pipeline.out` to monitor the command while it runs.
 
 **Note:** If the pipeline is run and the destination datasets and tables have already been created, the run will fail. Use the BQ UI, client, or command line interface to delete the tables, or select new destinations in the config. AutoML also does not enforce that display names are unique, if multiple datasets or models are created with the same name, the run will fail. Use the AutoML UI or client to delete them, or select new display names in the config.
 
 ### Common Configuration Changes
-    
-    TODO THIS IS WRONG
 
-* To change the time periods for prediction, change `global.test_start_date`, `predict_start_date`, and `global.horizon_periods`. 
-* To change the products in scope for the model, change `global.brand`, `global.divison`, and `global.departments`.
 * Change `model.train_budget_hours` to control how long the model trains for. We recommend the default setting of 3 hours; note that this time does not include an initial hour or so of training setup.
     
-
