@@ -8,7 +8,9 @@ data.
 
 - Step 1) Create a GCP Project you want the application to be deployed in
 - Step 2) Edit the WEBHOOK.env file with your desired configurations and naming
-- Step 3) Run ./build.sh
+- Step 3) Ensure variables are set via `make`
+- Step 4) Build Webhook Application via `make build`
+- Finally) Tear Down Webhook Application via `make destroy`
 
 That's it!  All resources will be deployed via Terraform.
 

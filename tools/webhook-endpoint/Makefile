@@ -1,5 +1,3 @@
-#!/bin/bash
-
 # Copyright 2020 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,14 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Destroy Deployment
-cd terraform/ || exit
-bq rm -f --project_id=${PROJECT_ID} webhook.webhook_data
-bq rm -f --project_id=${PROJECT_ID} ${BQ_DEADLETTER}
-terraform destroy -auto-approve
 
-cd .. || exit
+variables:
+	. ./WEBHOOK.env
+	@echo "Setup Webhook Variables for project: ${PROJECT_ID}"
 
-# Tear Down Dataflow
-export DF_JOBS=$(gcloud dataflow jobs list --status=active --region=${REGION} --project=${PROJECT_ID} | grep 'webhook-job-' | awk '{print $1;}')
-gcloud dataflow jobs cancel ${DF_JOBS} --region=${REGION} --project=${PROJECT_ID}
+build: variables
+	echo "Building Webhook Application for project: ${PROJECT_ID}"
+	# ./build.sh
+
+destroy: variables
+	@echo "Tearing Down Webhook Application for project: ${PROJECT_ID}"
+	# ./tear_down.sh
+
