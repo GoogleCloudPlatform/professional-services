@@ -19,9 +19,21 @@ variables:
 
 build: variables
 	echo "Building Webhook Application for project: ${PROJECT_ID}"
-	# ./build.sh
+	./build.sh
 
 destroy: variables
 	@echo "Tearing Down Webhook Application for project: ${PROJECT_ID}"
-	# ./tear_down.sh
+	./tear_down.sh
+
+test_variables:
+	. ./tests/system/TEST.env
+	@echo "TESTING: Setup Webhook Variables for project: ${PROJECT_ID}"
+
+test_build: test_variables
+	echo "TESTING: Building Webhook Application for project: ${PROJECT_ID}"
+	./build.sh
+
+test_destroy: test_variables
+	@echo "TESTING: Tearing Down Webhook Application for project: ${PROJECT_ID}"
+	./tear_down.sh
 
