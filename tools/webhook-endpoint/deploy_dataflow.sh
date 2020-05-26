@@ -15,7 +15,11 @@
 # limitations under the License.
 
 
-# Deploy Template
+# Dataflow Config Vars
+export NEW_UUID:=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 6 | head -n 1)
+export DATAFLOW_JOB_NAME:=webhook-job-${NEW_UUID}
+
+# Deploy Template Vars
 export TEMPLATE_IMAGE_SPEC=gs://app-engine-webhook-app/images/pubsub-cdc-to-bigquery-image-spec.json
 export TOPIC_PATH=projects/${PROJECT_ID}/topics/${TOPIC}
 export SUBSCRIPTION_PATH=projects/${PROJECT_ID}/subscriptions/${SUBSCRIPTION}

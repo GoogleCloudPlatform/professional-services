@@ -18,11 +18,13 @@
 # 	- The project to exist before deployment
 # 	- App Engine must be created but no service needs to be deployed
 
-# Move to Root Directory
-cd ../.. || exit
+
+# Project Info for Testing Only
+export PROJECT_ID="my-testing-project"
+export PROJECT_NUMBER="my-testing-project-number"
 
 # Build Webhook Pipeline
-make test_build
+make build PROJECT_ID="${PROJECT_ID}" PROJECT_NUMBER="${PROJECT_NUMBER}"
 
 # Send Test Data
 echo "Send Data: 1003 Records"
@@ -37,5 +39,4 @@ export RESULT_TABLE_COUNT=$(echo "SELECT COUNT(1) AS row_count FROM ${BQ_DATASET
 echo "*** Table Row Count: Expected 1003 --> Found ${RESULT_TABLE_COUNT}"
 
 # Destroy Deployment
-make test_destroy
-
+make test_destroy PROJECT_ID="${PROJECT_ID}" PROJECT_NUMBER="${PROJECT_NUMBER}"

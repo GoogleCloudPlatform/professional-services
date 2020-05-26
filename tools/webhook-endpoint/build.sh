@@ -17,7 +17,6 @@
 # NOTE: The Webhook App Deployment requires:
 # 	- The project to exist before deployment
 
-
 # Terraform Init and Apply
 cd terraform/ || exit
 echo "Apply Terraform Resources"
