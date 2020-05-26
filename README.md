@@ -1,24 +1,27 @@
 # Predict Company Responses to Consumer Complaints
 
 ## Contributors
-Michael Sherman (michaelsherman@google.com)  
-Michael Sparkman (michaelsparkman1996@gmail.com)  
-Karan Palsani (karanpalsani@utexas.edu)  
-Sahana Subramanian (sahana.subramanian@utexas.edu)  
-Shane Kok (shanekok9@gmail.com)
+
+[Shane Kok](https://www.linkedin.com/in/shane-kok-b1970a82/) (shanekok9@gmail.com)
+Anastasiia Manokhina (Google)
+[Karan Palsani](https://www.linkedin.com/in/karanpalsani/) (karanpalsani@utexas.edu)  
+Michael Sherman (Google)
+[Michael Sparkman](https://www.linkedin.com/in/michael-sparkman/) (michaelsparkman1996@gmail.com)  
+[Sahana Subramanian](https://www.linkedin.com/in/sahana-subramanian/) (sahana.subramanian@utexas.edu)  
+
 
 # Overview
 
 This project shows how to use ML models to predict a company's response to consumer complaints using the public [CFPB Consumer Complaint Database](https://console.cloud.google.com/marketplace/details/cfpb/complaint-database?filter=solution-type:dataset&id=5a1b3026-d189-4a35-8620-099f7b5a600b) on BigQuery. It provides an implementation of [AutoML Tables](https://cloud.google.com/automl-tables) for model training and batch prediction.
 
-The project also shows how to deploy a production-ready data processing pipeline for prediction of a company response based on consumer complaints on Google Cloud Platform, using BigQuery and AutoML Tables.
+The project also demonstrates a data processing pipeline for prediction of a company response based on consumer complaints on Google Cloud Platform, using BigQuery and AutoML Tables.
 
-## Repository Structure
+## Directory Structure
 
 ```
 .
-├── scripts         # Python and Bash scripts for running the data and modeling pipeline.
-├── queries         # SQL queries for data manipulation, cleaning, transformation, and metrics calculation.
+├── scripts         # Python scripts for running the data and modeling pipeline.
+├── queries         # SQL queries for data manipulation, cleaning, and transformation.
 ├── notebooks       # Jupyter notebooks for data exploration. Not part of the pipeline codebase, not reviewed, not tested in the pipeline environment, and dependent on 3rd party Python packages not required by the pipeline. Provided for reference only.
 └── config          # Project configuration and table ingestion schemas. The configuration for the pipeline is all in `pipeline.yaml`.
 ```
@@ -32,7 +35,7 @@ Basic configuration changes necessary when running the pipeline are discussed wi
 We recommend making a separate copy of the configuration when you have to change configuration parameters. All pipeline steps are run with the config file as a command line option, and using separate copies makes tracking different pipeline runs more manageable. 
 
 The main sections of the configuration are:
-* `file_paths`: Absolute locations of files read by the pipeline. The default values will work if the repo is cloned into the default home directory of a [Cloud AI Platform Notebook](https://cloud.google.com/ai-platform/notebooks/docs/), but may have to be changed in a different environment. The paths are subfolders of the repo, other than the location of a service account key (more on this key below in the subsection on local environment setup).
+* `file_paths`: Absolute locations of files read by the pipeline. These will have to be changed to fit your environment.
 * `global`: Core configuration information used by multiple steps of the pipeline. It contains the names of the BigQuery dataset and tables, the ID of the Google Cloud Platform project, AutoML Tables model/data identification parameters, etc.
 * `query_files`: Filenames of SQL queries used by the pipeline.
 * `query_params`: Parameters for substitution into individual SQL queries.
@@ -42,7 +45,7 @@ The main sections of the configuration are:
 
 All instructions were tested on a [Cloud AI Platform Notebook](https://cloud.google.com/ai-platform/notebooks/docs/) instance, created through the [UI](https://console.cloud.google.com/ai-platform/notebooks/instances). If you are running in another environment, you'll have to setup the [`gcloud` SDK](https://cloud.google.com/sdk/install), install Python 3 and virtualenv, and possibly manage other dependencies. We have not tested these instructions in other environments.
 
-**All commands, unless otherwise stated, should be run from the cloned repo root.** 
+**All commands, unless otherwise stated, should be run from the directory containing this README.** 
 
 ## Enable Required APIs in your Project
 
@@ -62,39 +65,26 @@ As stated previously, these instructions have been tested in a [Google Cloud AI 
 
 1. Run `gcloud init`, choose to use a new account, authenticate, and [set your project ID](https://cloud.google.com/resource-manager/docs/creating-managing-projects#identifying_projects) as the project. Choose a region in the US if prompted to set a default region.
 1. Run `bq init`. You may get a prompt telling you the command isn't necessary, hit 'y'. When asked to select a project, just hit enter. It's okay to overwrite the .bigqueryrc file if bq prompts you that one already exists.
-1. Clone the project from us-central1.
-1. Navigate to the repo root directory: `cd /home/jupyter/msba-capstone-2020` .
-1. Create a Python 3 virtual environment (`?????'' in this example):
-  1. Run `virtualenv --python=python3 $HOME/env/?????` .
-  1. Active the environment. Run: `source ~/env/?????/bin/activate` .
+1. Clone the github project.
+1. Navigate to the directory containing this readme.
+1. Create a Python 3 virtual environment (`automl-support` in this example, in your home directory):
+  1. Run `virtualenv --python=python3 $HOME/env/automl-support` .
+  1. Active the environment. Run: `source ~/env/automl-support/bin/activate` .
   1. Install the required Python packages: `pip install -r requirements.txt` . You may get an error about apache-beam and pyyaml version incompatibilities, this will have no effect.
-1. [Create a service account](https://cloud.google.com/iam/docs/creating-managing-service-accounts#creating_a_service_account) for AutoML Tables using the [Service accounts console in IAM](https://console.cloud.google.com/iam-admin/serviceaccounts).
-  1. Select your project (or another project you are running in).
-  1. Click the "Create Service Account" button.
-  1. Enter a name and a description for the service account and click "Continue".
-  1. Assign the following roles to the service account:
-    * AutoML Editor: For training and predicting AutoML models.
-    * BigQuery Data Owner: For automatically cleaning up BigQuery artifacts created when making predictions.
-    * BigQuery Job User: For executing BigQuery jobs.
-  1. Click "Continue" and on the next page click "Create Key" and create a JSON key. It will download through the web browser.
-1. Get the downloaded JSON key into your environment. If you're using AI Platform Notebooks, [this video](https://www.youtube.com/watch?v=1bd2QHqQSH4) shows how to upload a file.
-1. Move the service account key file to `$HOME/.oauth_keys/automl_service_account_key.json`. This location is referenced in the config file (`file_paths.automl_service_account_key`), update accordingly if a different location is used. You may need to create the .oauth_keys directory.
-
 
 ### Required Configuration Changes
 
-Configuration is read from a file specified when running the pipeline from the command line. We recommend working with different copies of the configuration for different experiments, environments, and other needs.
-
-The default values in `config/pipeline.yaml` provided with the code should be changed before running the pipeline. Running the pipeline with a config previously used to run a pipeline will result in errors from collisions of dataset and model names.
+Configuration is read from a file specified when running the pipeline from the command line. We recommend working with different copies of the configuration for different experiments, environments, and other needs. Note that if values in the configuration match existing tables, resources, etc. in your project, strange errors and possibly data loss may result. The default values in `config/pipeline.yaml` provided with the code should be changed before running the pipeline.
 
 1. Make a copy of the configuration file: `cp config/pipeline.yaml config/my_config.yaml` .
 1. Edit `config/my_config.yaml` and make the following changes then save:
   1. `file_paths.queries` is the path to the queries subfolder. Change this value to the local path where the queries subfolder resides.
-  1. `global.destination_project_id` is the project_id that is created by the user and this is where ingested data is stored in BigQuery tables for feature engineering and training the AutoML model. Change this value to the project_id that was created during setup.
-  1. `global.destination_dataset` is the dataset where ingested data is stored in BigQuery. Change this to a new value. Note the table names don't need to change, since they will be written to the new dataset.
-  1. `global.dataset_display_name` and `global.model_display_name` are the name of the AutoML Tables dataset and model created by the pipeline. Change these to new values (they can be the same).
+  1. `global.destination_project_id` is the project_id of the project you want to run the pipeline in (and where the AutoML models will live). Change this to your project_id.
+1. Also consider changing the following:
+  1. `global.destination_dataset` is the BigQuery dataset where data ingested by the pipeline into your project is stored. Note the table names don't need to change, since they will be written to the new dataset. Make sure this dataset doesn't already exist in your poject. If this dataset exists, the training pipeline will fail--you'll need to delete the dataset first.
+  1. `global.dataset_display_name` and `global.model_display_name` are the name of the AutoML Tables dataset and model created by the pipeline. Change these to new values if you wish (they can be the same).
 
-You should create a new config file and change these parameters for every full pipeline run. For failed pipeline runs, you'll want to delete the resources specified in these config values since the pipeline will not delete existing resources automatically (except for `global.destination_dataset`).
+You should create a new config file and change these parameters for every full pipeline run. For failed pipeline runs, you'll want to delete the resources specified in these config values since the pipeline will not delete existing resources automatically.
 
 Note that on subsequent pipeline runs if you aren't rerunning ingestion you don't need to change `global.destination_dataset`, and if you aren't rerunning the model build you don't need to change `global.dataset_display_name` and `global.model_display_name`.
 
@@ -102,23 +92,18 @@ If you need to change the default paths (because you are running somewhere besid
 
 ### Running the Pipeline
 
-These steps have only been tested for users with the "Owner" IAM role. They should work for the "Editor" role as well, but we have not tested it.
+These steps have only been tested for users with the "Owner" [IAM role](https://cloud.google.com/iam/docs/understanding-roles#primitive_role_definitions) in your project. These steps should work for the "Editor" role as well, but we have not tested it.
 
-All commands should be run from the repository root.
-TODO: there's no orchestraction script here. The steps need to be run individually. 
-TODO: Give some indication of how long each step will take to run.
+All commands should be run from the project root (the folder with this README). This assumes your config file is in `config/my_config.yaml`.
 
-1. Active the Python environment if it is not already activated. Run: `source ~/env/????/bin/activate`
-1. Run the model pipeline: `nohup bash run_pipeline.sh config/my_config.yaml ftpe > pipeline.out & disown` . This command will run the pipeline in the background, save logs to `pipeline.out`, and will not terminate if the terminal is closed. It will run all steps of the pipeline in sequence, or a subset of the steps as determined by the second positional arg (MODE). Ex. `fp` instead of `ftpe` would create features and then generate predictions using the model specified in the config.
-  * Create features (f): This creates the dataset of features (config value `global.destination_dataset`) and feature tables.
-  * Train (t): This creates the training dataset in AutoML Tables (config value `global.dataset_display_name`) and trains the model (config value `global.model_display_name`). Note that in the AutoML Tables UI the dataset will appear as soon as it is created but the model will not appear until it is completely trained.
-  * Predict (p): This makes predictions with the model, and copies the unformatted results to a predictions table (config value `global.predictions_table`). AutoML generates its own dataset in BQ, which will contain errors if predictions for any rows fail. This spurious dataset (named prediction_<model_name>_<timestamp>) will be deleted if there are no errors.
-  
-This command pipes its output to a log file (`pipeline.out`). To follow this log file, run `tail -n 5 -f pipeline.out` to monitor the command while it runs.
+1. Active the Python environment if it is not already activated. Run: `source ~/env/automl-source/bin/activate` or similar (see Setup for a New Environment, above).
+1. Run the feature creation pipeline: `python scripts/create_features.py --config_path config/my_config.yaml`
+1. Train the AutoML model: `python scripts/train.py --config_path config/my_config.yaml`. With the default settings this will take about two hours.
+1. Make batch predictions: `python scripts/predict.py --config_path config/my_config.yaml`. Batch predictions are written to the BigQuery table in the config value `global.predictions_table`.
 
-**Note:** If the pipeline is run and the destination datasets and tables have already been created, the run will fail. Use the BQ UI, client, or command line interface to delete the tables, or select new destinations in the config. AutoML also does not enforce that display names are unique, if multiple datasets or models are created with the same name, the run will fail. Use the AutoML UI or client to delete them, or select new display names in the config.
+**Note:** If the pipeline is run and the destination datasets has already been created, the run will fail. Use the BQ UI, client, or command line interface to delete the dataset, or select new destinations (`global.destination_dataset`) in the config. AutoML also does not enforce that display names are unique, if multiple datasets or models are created with the same name, the run will fail. Use the AutoML UI or client to delete them, or select new display names in the config (`global.dataset_display_name` and `global.model_display_name`).
 
 ### Common Configuration Changes
 
-* Change `model.train_budget_hours` to control how long the model trains for. We recommend the default setting of 3 hours; note that this time does not include an initial hour or so of training setup.
+* Change `model.train_budget_hours` to control how long the model trains for. The default is 1, but you should expect an extra hour of spin up time on top of the training budget. Upping the budget may improve model performance.
     
