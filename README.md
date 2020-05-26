@@ -51,11 +51,11 @@ All instructions were tested on a [Cloud AI Platform Notebook](https://cloud.goo
 
 These instructions have been tested in a fresh Google Cloud project without any organization constraints. You should be able to run the code in an existing project, but make sure the following APIs are enabled, and make sure these products can communicate with one another--if you're running in a VPC or have organization-imposed firewall rule or product restrictions you may have some difficulty.
 
-1. Required APIs to enable:
-  1. [Compute Engine API](https://console.cloud.google.com/apis/api/compute.googleapis.com/)
-  1. [BigQuery API](https://console.cloud.google.com/apis/api/bigquery.googleapis.com/)
-  1. [Cloud AutoML API](https://console.cloud.google.com/apis/api/automl.googleapis.com/)
-  1. [Cloud Storage API](https://console.cloud.google.com/apis/api/storage-component.googleapis.com/)
+Required APIs to enable:
+1. [Compute Engine API](https://console.cloud.google.com/apis/api/compute.googleapis.com/)
+1. [BigQuery API](https://console.cloud.google.com/apis/api/bigquery.googleapis.com/)
+1. [Cloud AutoML API](https://console.cloud.google.com/apis/api/automl.googleapis.com/)
+1. [Cloud Storage API](https://console.cloud.google.com/apis/api/storage-component.googleapis.com/)
 
 ### Setup for a New Local Environment
 
@@ -68,9 +68,9 @@ As stated previously, these instructions have been tested in a [Google Cloud AI 
 1. Clone the github project.
 1. Navigate to the directory containing this readme.
 1. Create a Python 3 virtual environment (`automl-support` in this example, in your home directory):
-  1. Run `virtualenv --python=python3 $HOME/env/automl-support` .
-  1. Active the environment. Run: `source ~/env/automl-support/bin/activate` .
-  1. Install the required Python packages: `pip install -r requirements.txt` . You may get an error about apache-beam and pyyaml version incompatibilities, this will have no effect.
+   * Run `virtualenv --python=python3 $HOME/env/automl-support` .
+   * Active the environment. Run: `source ~/env/automl-support/bin/activate` .
+   * Install the required Python packages: `pip install -r requirements.txt` . You may get an error about apache-beam and pyyaml version incompatibilities, this will have no effect.
 
 ### Required Configuration Changes
 
@@ -78,11 +78,11 @@ Configuration is read from a file specified when running the pipeline from the c
 
 1. Make a copy of the configuration file: `cp config/pipeline.yaml config/my_config.yaml` .
 1. Edit `config/my_config.yaml` and make the following changes then save:
-  1. `file_paths.queries` is the path to the queries subfolder. Change this value to the local path where the queries subfolder resides.
-  1. `global.destination_project_id` is the project_id of the project you want to run the pipeline in (and where the AutoML models will live). Change this to your project_id.
+   * `file_paths.queries` is the path to the queries subfolder. Change this value to the local path where the queries subfolder resides.
+   * `global.destination_project_id` is the project_id of the project you want to run the pipeline in (and where the AutoML models will live). Change this to your project_id.
 1. Also consider changing the following:
-  1. `global.destination_dataset` is the BigQuery dataset where data ingested by the pipeline into your project is stored. Note the table names don't need to change, since they will be written to the new dataset. Make sure this dataset doesn't already exist in your poject. If this dataset exists, the training pipeline will fail--you'll need to delete the dataset first.
-  1. `global.dataset_display_name` and `global.model_display_name` are the name of the AutoML Tables dataset and model created by the pipeline. Change these to new values if you wish (they can be the same).
+  * `global.destination_dataset` is the BigQuery dataset where data ingested by the pipeline into your project is stored. Note the table names don't need to change, since they will be written to the new dataset. Make sure this dataset doesn't already exist in your poject. If this dataset exists, the training pipeline will fail--you'll need to delete the dataset first.
+   * `global.dataset_display_name` and `global.model_display_name` are the name of the AutoML Tables dataset and model created by the pipeline. Change these to new values if you wish (they can be the same).
 
 You should create a new config file and change these parameters for every full pipeline run. For failed pipeline runs, you'll want to delete the resources specified in these config values since the pipeline will not delete existing resources automatically.
 
@@ -98,9 +98,9 @@ All commands should be run from the project root (the folder with this README). 
 
 1. Active the Python environment if it is not already activated. Run: `source ~/env/automl-source/bin/activate` or similar (see Setup for a New Environment, above).
 1. Run the model pipeline: `nohup bash run_pipeline.sh config/my_config.yaml ftpe > pipeline.out & disown` . This command will run the pipeline in the background, save logs to `pipeline.out`, and will not terminate if the terminal is closed. It will run all steps of the pipeline in sequence, or a subset of the steps as determined by the second positional arg (MODE). Ex. `fp` instead of `ftpe` would create features and then generate predictions using the model specified in the config. Pipline steps (MODE argument):
-  * Create features (f): This creates the dataset of features (config value `global.destination_dataset`) and feature tables.
-  * Train (t): This creates the training dataset in AutoML Tables Forecasting (config value `global.dataset_display_name`) and trains the model (config value `global.model_display_name`). Note that in the AutoML Tables UI the dataset will appear as soon as it is created but the model will not appear until it is completely trained.
-  * Predict (p): This makes predictions with the model, and copies the unformatted results to a predictions table (config value `global.predictions_table`). AutoML generates its own dataset in BQ, which will contain errors if predictions for any rows fail. This spurious dataset (named prediction_<model_name>_<timestamp>) will be deleted if there are no errors.	
+   * Create features (f): This creates the dataset of features (config value `global.destination_dataset`) and feature tables.
+   * Train (t): This creates the training dataset in AutoML Tables Forecasting (config value `global.dataset_display_name`) and trains the model (config value `global.model_display_name`). Note that in the AutoML Tables UI the dataset will appear as soon as it is created but the model will not appear until it is completely trained.
+   * Predict (p): This makes predictions with the model, and copies the unformatted results to a predictions table (config value `global.predictions_table`). AutoML generates its own dataset in BQ, which will contain errors if predictions for any rows fail. This spurious dataset (named prediction_<model_name>_<timestamp>) will be deleted if there are no errors.	
   	  
 This command pipes its output to a log file (`pipeline.out`). To follow this log file, run `tail -n 5 -f pipeline.out` to monitor the command while it runs.	This command pipes its output to a log file (`pipeline.out`). To follow this log file, run `tail -n 5 -f pipeline.out` to monitor the command while it runs.
 
