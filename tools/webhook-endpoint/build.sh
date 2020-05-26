@@ -20,7 +20,7 @@
 source WEBHOOK.env
 
 # Terraform Init and Apply
-cd terraform/
+cd terraform/ || exit
 echo "Apply Terraform Resources"
 terraform init
 terraform import google_app_engine_application.app $PROJECT_ID
@@ -38,6 +38,6 @@ terraform apply -auto-approve \
 	-var "bigquery_dataset=${BQ_DATASET}" \
 	-var "bigquery_table_template=${BQ_TABLE_TEMPLATE}" \
 	-var "dead_letter_queue=${BQ_DEADLETTER}"
-cd ../
+cd ../ || exit
 
 ./deploy_dataflow.sh
