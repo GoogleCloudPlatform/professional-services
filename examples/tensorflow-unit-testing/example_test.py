@@ -1,3 +1,4 @@
+"""Classes to demonstrate how to write unit tests for TensorFlow code."""
 # Copyright 2020 Google Inc. All Rights Reserved.
 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +25,8 @@ import example
 
 
 class LinearBlockFullTest(tf.test.TestCase):
+    """Example how to use testing_utils to test a custom keras layer.
+    """
     def test_basic(self):
         testing_utils.layer_test(example.LinearBlockFull, input_shape=(4, 32))
 
@@ -38,6 +41,8 @@ class LinearBlockFullTest(tf.test.TestCase):
 
 
 class LinearBlockTest(tf.test.TestCase):
+    """Example how to partially test a custom keras layer.
+    """
     def test_shape_default(self):
         x = np.ones((4, 32))
         layer = example.LinearBlock()
@@ -72,16 +77,19 @@ class LinearBlockTest(tf.test.TestCase):
         x = np.ones((batch_size, batch_size, input_dim, output_dim))
         layer = example.LinearBlock(output_dim)
         output = layer(x)
-        expected_output = np.ones((batch_size, output_dim)) * (batch_size, input_dim, output_dim + 1)
+        expected_output = np.ones(
+            (batch_size, output_dim)) * (batch_size, input_dim, output_dim + 1)
         self.assertAllClose(output, expected_output, atol=1e-4)
 
 
 class ExampleModelTest(tf.test.TestCase):
+    """Example how to test a keras model on a faked dataset.
+    """
     def _get_data(self):
         dataset_path = tf.keras.utils.get_file(
             'auto-mpg.data',
             'http://archive.ics.uci.edu/ml/machine-learning-databases/auto-mpg/auto-mpg.data')
-        column_names = ['MPG','Cylinders','Displacement','Horsepower','Weight',
+        column_names = ['MPG', 'Cylinders', 'Displacement', 'Horsepower', 'Weight',
                         'Acceleration', 'Model Year', 'Origin']
         dataset = pd.read_csv(dataset_path, names=column_names, na_values='?', comment='\t',
                               sep=' ', skipinitialspace=True)

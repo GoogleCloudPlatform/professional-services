@@ -1,3 +1,4 @@
+"""Classes to demonstrate how to write unit tests for TensorFlow code."""
 # Copyright 2020 Google Inc. All Rights Reserved.
 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,6 +20,7 @@ import tensorflow as tf
 
 @tf.keras.utils.register_keras_serializable(package='Custom')
 class LinearBlockFull(tf.keras.layers.Layer):
+    """Custom keras liner Layer (serializable)."""
 
     def __init__(self, units=32, **kwargs):
         super(LinearBlockFull, self).__init__(**kwargs)
@@ -43,6 +45,7 @@ class LinearBlockFull(tf.keras.layers.Layer):
 
 
 class LinearBlock(tf.keras.layers.Layer):
+    """Custom keras liner Layer."""
 
     def __init__(self, units=32):
         super(LinearBlock, self).__init__()
@@ -61,6 +64,13 @@ class LinearBlock(tf.keras.layers.Layer):
 
 
 def get_model(dim):
+    """Creates a keras model.
+
+    Args:
+        dim: a dimension of an input vector
+    Returns:
+         A complied keras model used in tutorial.
+    """
     model = tf.keras.Sequential([
         tf.keras.layers.Dense(64, activation='relu', input_shape=[dim]),
         tf.keras.layers.Dense(32, activation='relu'),

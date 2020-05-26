@@ -50,7 +50,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [QAOA](examples/qaoa) - Examples of parsing a max-SAT problem in a proprietary format.
 * [Redis Cluster on GKE Example](examples/redis-cluster-gke) - Deploying Redis cluster on GKE.
 * [Spinnaker](examples/spinnaker) - Example pipelines for a Canary / Production deployment process.
-* [TensorFlow unit testing](examples/tensorflow-profiling-examples) - How to write unit tests for TensorFlow models.
+* [TensorFlow Unit Testing](examples/tensorflow-unit-testing) - Examples how to write unit tests for TensorFlow ML models.
 * [Uploading files directly to Google Cloud Storage by using Signed URL](examples/direct-upload-to-gcs) - Example architecture to enable uploading files directly to GCS by using [Signed URL](https://cloud.google.com/storage/docs/access-control/signed-urls).
 
 ## Tools
@@ -78,7 +78,6 @@ The tools folder contains ready-made utilities which can simpilfy Google Cloud P
 * [GCP Organization Hierarchy Viewer](tools/gcp-org-hierarchy-viewer) - A CLI utility for visualizing your organization hierarchy in the terminal.
 * [GCS Bucket Mover](tools/gcs-bucket-mover) - A tool to move user's bucket, including objects, metadata, and ACL, from one project to another.
 * [GCS Usage Recommender](tools/gcs-usage-recommender) - A tool that generates bucket-level intelligence and access patterns across all projects for a GCP project to generate recommended object lifecycle management.
-* [GCS to BigQuery](tools/gcs2bq) - A tool fetches object metadata from all Google Cloud Storage buckets and exports it in a format that can be imported into BigQuery for further analysis. 
 * [GKE Billing Export](tools/gke-billing-export) - Google Kubernetes Engine fine grained billing export.
 * [GSuite Exporter](tools/gsuite-exporter/) - A Python package that automates syncing Admin SDK APIs activity reports to a GCP destination. The module takes entries from the chosen Admin SDK API, converts them into the appropriate format for the destination, and exports them to a destination (e.g: Stackdriver Logging).
 * [Hive to BigQuery](tools/hive-bigquery/) - A Python framework to migrate Hive table to BigQuery using Cloud SQL to keep track of the migration progress.
