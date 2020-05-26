@@ -21,6 +21,8 @@
 # 
 # Args:
 #   CONFIG_PATH: Path of pipeline YAML config file, relative to project root.
+#   MODE: 'f', 't', and/or 'p', or some combination thereof, indicating
+#     pipeline phases to run.
 
 set -e
 
