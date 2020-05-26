@@ -2,12 +2,12 @@
 
 ## Contributors
 
-[Shane Kok](https://www.linkedin.com/in/shane-kok-b1970a82/) (shanekok9@gmail.com)
-Anastasiia Manokhina (Google)
-[Karan Palsani](https://www.linkedin.com/in/karanpalsani/) (karanpalsani@utexas.edu)  
-Michael Sherman (Google)
-[Michael Sparkman](https://www.linkedin.com/in/michael-sparkman/) (michaelsparkman1996@gmail.com)  
-[Sahana Subramanian](https://www.linkedin.com/in/sahana-subramanian/) (sahana.subramanian@utexas.edu)  
+- [Shane Kok](https://www.linkedin.com/in/shane-kok-b1970a82/) (shanekok9@gmail.com)
+- Anastasiia Manokhina (Google)
+- [Karan Palsani](https://www.linkedin.com/in/karanpalsani/) (karanpalsani@utexas.edu)  
+- Michael Sherman (Google)
+- [Michael Sparkman](https://www.linkedin.com/in/michael-sparkman/) (michaelsparkman1996@gmail.com)  
+- [Sahana Subramanian](https://www.linkedin.com/in/sahana-subramanian/) (sahana.subramanian@utexas.edu)  
 
 
 # Overview
