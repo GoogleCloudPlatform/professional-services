@@ -97,9 +97,12 @@ These steps have only been tested for users with the "Owner" [IAM role](https://
 All commands should be run from the project root (the folder with this README). This assumes your config file is in `config/my_config.yaml`.
 
 1. Active the Python environment if it is not already activated. Run: `source ~/env/automl-source/bin/activate` or similar (see Setup for a New Environment, above).
-1. Run the feature creation pipeline: `python scripts/create_features.py --config_path config/my_config.yaml`
-1. Train the AutoML model: `python scripts/train.py --config_path config/my_config.yaml`. With the default settings this will take about two hours.
-1. Make batch predictions: `python scripts/predict.py --config_path config/my_config.yaml`. Batch predictions are written to the BigQuery table in the config value `global.predictions_table`.
+1. Run the model pipeline: `nohup bash run_pipeline.sh config/my_config.yaml ftpe > pipeline.out & disown` . This command will run the pipeline in the background, save logs to `pipeline.out`, and will not terminate if the terminal is closed. It will run all steps of the pipeline in sequence, or a subset of the steps as determined by the second positional arg (MODE). Ex. `fp` instead of `ftpe` would create features and then generate predictions using the model specified in the config. Pipline steps (MODE argument):
+  * Create features (f): This creates the dataset of features (config value `global.destination_dataset`) and feature tables.
+  * Train (t): This creates the training dataset in AutoML Tables Forecasting (config value `global.dataset_display_name`) and trains the model (config value `global.model_display_name`). Note that in the AutoML Tables UI the dataset will appear as soon as it is created but the model will not appear until it is completely trained.
+  * Predict (p): This makes predictions with the model, and copies the unformatted results to a predictions table (config value `global.predictions_table`). AutoML generates its own dataset in BQ, which will contain errors if predictions for any rows fail. This spurious dataset (named prediction_<model_name>_<timestamp>) will be deleted if there are no errors.	
+  	  
+This command pipes its output to a log file (`pipeline.out`). To follow this log file, run `tail -n 5 -f pipeline.out` to monitor the command while it runs.	This command pipes its output to a log file (`pipeline.out`). To follow this log file, run `tail -n 5 -f pipeline.out` to monitor the command while it runs.
 
 **Note:** If the pipeline is run and the destination datasets has already been created, the run will fail. Use the BQ UI, client, or command line interface to delete the dataset, or select new destinations (`global.destination_dataset`) in the config. AutoML also does not enforce that display names are unique, if multiple datasets or models are created with the same name, the run will fail. Use the AutoML UI or client to delete them, or select new display names in the config (`global.dataset_display_name` and `global.model_display_name`).
 
