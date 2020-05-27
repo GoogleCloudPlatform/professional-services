@@ -54,8 +54,8 @@ class DataIngestion:
         values = re.split(",",
                           re.sub('\r\n', '', re.sub('"', '', string_input)))
         row = dict(
-            list(zip(('state', 'gender', 'year', 'name', 'number', 'created_date'),
-                values)))
+            zip(('state', 'gender', 'year', 'name', 'number', 'created_date'),
+                values))
         return row
 
 

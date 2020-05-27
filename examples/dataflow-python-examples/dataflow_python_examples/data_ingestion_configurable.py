@@ -53,11 +53,11 @@ class FileCoder(object):
         import csv
         import io
         st = io.StringIO()
-        cw = csv.writer(os,
+        cw = csv.writer(st,
                         delimiter=self._delimiter,
                         quotechar='"',
                         quoting=csv.QUOTE_MINIMAL)
-        cw.writerow(list(value.values()))
+        cw.writerow(value.values())
         return st.getvalue().strip('\r\n')
 
     def decode(self, value):
@@ -99,7 +99,7 @@ class PrepareFieldTypes(beam.DoFn):
             logging.warn('Row has %s elements instead of %s' %
                          (len(element), len(fields)))
             return []
-        for k, v in list(element.items()):
+        for k, v in element.items():
             ftype = fields[k]
             try:
                 if not v:
@@ -162,7 +162,7 @@ def _fetch_table(table_name):
 
 def _get_bq_schema(fields):
     bq_fields = []
-    for k, v in list(fields.items()):
+    for k, v in fields.items():
         bq_fields.append(
             TableFieldSchema(name=k, type=v, description='Field %s' % k))
     bq_fields.append(
