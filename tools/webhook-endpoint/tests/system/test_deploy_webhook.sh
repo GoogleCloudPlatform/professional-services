@@ -23,6 +23,9 @@
 export PROJECT_ID="my-testing-project"
 export PROJECT_NUMBER="my-testing-project-number"
 
+export BQ_DATASET=webhook
+export BQ_TABLE_TEMPLATE=webhook_data
+
 # Build Webhook Pipeline
 make build PROJECT_ID="${PROJECT_ID}" PROJECT_NUMBER="${PROJECT_NUMBER}"
 
@@ -30,7 +33,6 @@ make build PROJECT_ID="${PROJECT_ID}" PROJECT_NUMBER="${PROJECT_NUMBER}"
 echo "Send Data: 1003 Records"
 python3 tests/system/send_data.py
 
-# Wait for Results to Load into BigQuery
 # Then validate results
 export _SLEEP_SECS=300
 echo "Sleep for 300 seconds"
@@ -39,4 +41,4 @@ export RESULT_TABLE_COUNT=$(echo "SELECT COUNT(1) AS row_count FROM ${BQ_DATASET
 echo "*** Table Row Count: Expected 1003 --> Found ${RESULT_TABLE_COUNT}"
 
 # Destroy Deployment
-make test_destroy PROJECT_ID="${PROJECT_ID}" PROJECT_NUMBER="${PROJECT_NUMBER}"
+make destroy PROJECT_ID="${PROJECT_ID}" PROJECT_NUMBER="${PROJECT_NUMBER}"

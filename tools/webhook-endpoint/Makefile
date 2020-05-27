@@ -18,26 +18,27 @@ export PROJECT_NUMBER:="my-project-number"
 export DEPLOY_MANAGER_NAME:=webhook-app
 
 # Region When Applicable
-export LOCATION:="US"
-export APP_REGION:="us-central"
-export REGION:="us-central1"
-export ZONE:="us-central1-b"
+export LOCATION:=US
+export APP_REGION:=us-central
+export REGION:=us-central1
+export ZONE:=us-central1-b
 
 # Pub/Sub Config Vars
-export TOPIC:="${PROJECT_ID}-webhook"
-export SUBSCRIPTION:="dataflow-subscription"
+export TOPIC:=${PROJECT_ID}-webhook
+export SUBSCRIPTION:=dataflow-subscription
 
 # GCS Config Vars
-export BUCKET_NAME:="${PROJECT_ID}-webhook"
+export BUCKET_NAME:=${PROJECT_ID}-webhook
 
 # BigQuery Config
-export BQ_DATASET:="webhook"
-export BQ_TABLE_TEMPLATE:="webhook_data"
-export BQ_DEADLETTER:="${PROJECT_ID}:${BQ_DATASET}.errors"
+export BQ_DATASET:=webhook
+export BQ_TABLE_TEMPLATE:=webhook_data
+export BQ_DEADLETTER:=${PROJECT_ID}:${BQ_DATASET}.errors
 
 
 variables:
 	@echo "Setup Webhook Variables for project: ${PROJECT_ID}"
+	@echo "${BQ_DEADLETTER}"
 
 build: variables
 	echo "Building Webhook Application for project: ${PROJECT_ID}"
