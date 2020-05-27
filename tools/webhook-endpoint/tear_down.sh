@@ -16,8 +16,8 @@
 
 # Destroy Deployment
 cd terraform/ || exit
-bq rm -f --project_id=${PROJECT_ID} webhook.webhook_data
-bq rm -f --project_id=${PROJECT_ID} ${BQ_DEADLETTER}
+bq rm -f --project_id="${PROJECT_ID}" webhook.webhook_data
+bq rm -f --project_id="${PROJECT_ID}" ${BQ_DEADLETTER}
 terraform destroy -auto-approve
 
 cd .. || exit
