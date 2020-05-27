@@ -16,7 +16,7 @@
 
 
 # Dataflow Config Vars
-export NEW_UUID=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 6 | head -n 1)
+NEW_UUID=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 6 | head -n 1)
 export DATAFLOW_JOB_NAME="webhook-job-${NEW_UUID}"
 
 # Deploy Template Vars
