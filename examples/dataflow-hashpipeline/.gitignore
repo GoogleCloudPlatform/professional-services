@@ -1,6 +1,5 @@
 inputs/*.txt
-scripts/key.b64
-scripts/socials.txt
+test/socials.txt
 terraform.tfvars
 terraform.tfstate*
 .terraform

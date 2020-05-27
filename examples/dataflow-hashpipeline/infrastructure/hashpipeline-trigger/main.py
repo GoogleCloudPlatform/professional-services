@@ -1,5 +1,3 @@
-#!/bin/bash
-
 # Copyright 2020 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from google.cloud import pubsub_v1
+from os import getenv
 
-
-PROJECT=$1
-
-# Generate a 64 byte key, which is the max possible for Blake2b
-openssl rand -base64 64 > scripts/key.b64
-
-gcloud secrets versions add "${SECRET_NAME}" --data-file scripts/key.b64 --project "${PROJECT}"
+def trigger_dataflow(data, context):
+  publisher = pubsub_v1.PublisherClient()
+  topic_path = getenv('TOPIC')
+  filename = f"gs://{data['bucket']}/{data['name']}".encode('utf-8')
+  future = publisher.publish(topic_path, data=filename)
+  return future.result()

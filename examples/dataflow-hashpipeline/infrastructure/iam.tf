@@ -37,13 +37,6 @@ resource "google_project_iam_member" "cf_runner_iam" {
 ##               Resource Level                 ##
 ##################################################
 
-
-resource "google_storage_bucket_iam_member" "test_bucket_iam" {
-  bucket = google_storage_bucket.test_bucket.name
-  role = "roles/storage.objectViewer"
-  member = local.df_member
-}
-
 # See: https://cloud.google.com/dataflow/docs/concepts/access-control#creating_jobs
 resource "google_storage_bucket_iam_binding" "df_bucket_iam" {
   bucket = google_storage_bucket.df_bucket.name
@@ -60,6 +53,20 @@ resource "google_service_account_iam_member" "df_service_account_iam" {
   service_account_id = google_service_account.df_worker.name
   role               = "roles/iam.serviceAccountUser"
   member             = local.cf_member
+}
+
+resource "google_pubsub_topic_iam_member" "cf_topic_iam" {
+  project = var.project
+  topic = google_pubsub_topic.input_topic.name
+  role = "roles/pubsub.publisher"
+  member = local.cf_member
+}
+
+resource "google_pubsub_subscription_iam_member" "df_subscription_iam" {
+  project = var.project
+  subscription = google_pubsub_subscription.input_sub.name
+  role = "roles/pubsub.subscriber"
+  member = local.df_member
 }
 
 resource "google_pubsub_topic_iam_member" "df_topic_iam" {

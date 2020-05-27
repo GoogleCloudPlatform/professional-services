@@ -41,24 +41,29 @@ variable "firestore_collection" {
   description = "The name of the Firestore collection where the hashed SSNs are"
 }
 
-variable "output_topic" {
+variable "input_topic" {
   type = string
-  default = "hashpipeline"
-  description = "The Pubsub topic name that the output is written to"
+  default = "hashpipeline-input"
+  description = "The Pubsub topic that the input GCS filename is written to"
 }
 
-variable "salt" {
+variable "output_topic" {
   type = string
-  default = "4ec6c189401de41c"
-  description = "BLAKE2b-compatible 16-byte salt"
+  default = "hashpipeline-output"
+  description = "The Pubsub topic that the output count of SSNs is written to"
+}
+
+variable "salt_byte_length" {
+  type = string
+  default = 16
+  description = "Byte length of the salt value prepended to the SSN before hashing"
 }
 
 variable "cf_runner_permissions" {
   type = list
   default = [
     "roles/cloudfunctions.serviceAgent",
-    "roles/dataflow.developer",
-    "roles/compute.viewer",
+    "roles/pubsub.publisher"
   ]
 }
 
@@ -68,5 +73,8 @@ variable "df_worker_project_permissions" {
     "roles/dataflow.worker",
     "roles/datastore.viewer",
     "roles/dlp.user",
+    # Need this for Flex templates to pull GCR from bucket
+    # that may or may not exist at the apply time
+    "roles/storage.objectViewer",
   ]
 }

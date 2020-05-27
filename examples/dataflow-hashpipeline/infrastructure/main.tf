@@ -20,6 +20,10 @@ locals {
   cf_member = "serviceAccount:${google_service_account.cf_runner.email}"
 }
 
+resource "random_id" "salt" {
+  byte_length = var.salt_byte_length
+}
+
 ##################################################
 ##                 Dataflow                     ##
 ##################################################
@@ -58,6 +62,16 @@ resource "google_secret_manager_secret" "hash_key_secret" {
   }
 }
 
+resource "google_pubsub_topic" "input_topic" {
+  project = var.project
+  name = var.input_topic
+}
+
+resource "google_pubsub_subscription" "input_sub" {
+  project = var.project
+  name    = "${var.input_topic}-subscription"
+  topic   = google_pubsub_topic.input_topic.name
+}
 
 resource "google_pubsub_topic" "output_topic" {
   project = var.project
@@ -66,7 +80,7 @@ resource "google_pubsub_topic" "output_topic" {
 
 resource "google_pubsub_subscription" "output_sub" {
   project = var.project
-  name    = "hashpipeline-output"
+  name    = "${var.output_topic}-subscription"
   topic   = google_pubsub_topic.output_topic.name
 }
 
@@ -83,8 +97,10 @@ resource "google_storage_bucket" "cf_bucket" {
 
 data "archive_file" "cf" {
   type        = "zip"
-  source_file = "main.py"
-  output_path = "main-${filemd5("main.py")}.py.zip"
+  source_dir = "hashpipeline-trigger"
+  # NOTE: The MD5 here is to force function recreation if the contents of the
+  # function change, which wouldn't happen if the zip was named statically
+  output_path = "hashpipeline-${filemd5("hashpipeline-trigger/main.py")}.zip"
 }
 
 resource "google_storage_bucket_object" "archive" {
@@ -118,14 +134,7 @@ resource "google_cloudfunctions_function" "function" {
   }
   
   environment_variables = {
-    PROJECT         = var.project
-    REGION          = var.region
-    SECRET          = google_secret_manager_secret.hash_key_secret.name
-    BUCKET          = google_storage_bucket.df_bucket.name
-    SERVICE_ACCOUNT = google_service_account.df_worker.email
-    COLLECTION      = var.firestore_collection
-    TOPIC           = google_pubsub_topic.output_topic.name
-    SALT            = var.salt
+    TOPIC = google_pubsub_topic.input_topic.id
   }
 }
 
@@ -135,10 +144,12 @@ PROJECT         := ${var.project}
 SECRET          := ${google_secret_manager_secret.hash_key_secret.name}
 REGION          := ${var.region}
 BUCKET          := ${google_storage_bucket.df_bucket.name}
-SALT            := ${var.salt}
+SALT            := ${random_id.salt.hex}
 SERVICE_ACCOUNT := ${google_service_account.df_worker.email}
 COLLECTION      := ${var.firestore_collection}
-TOPIC           := ${google_pubsub_topic.output_topic.name}
+INPUT_SUB       := ${google_pubsub_subscription.input_sub.id}
+OUTPUT_TOPIC    := ${google_pubsub_topic.output_topic.id}
+OUTPUT_SUB      := ${google_pubsub_subscription.output_sub.id}
 EOF
     filename = "../terraform-vars.mk"
 }

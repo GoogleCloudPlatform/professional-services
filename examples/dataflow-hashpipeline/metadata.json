@@ -1,0 +1,36 @@
+{
+  "name": "Streaming beam Python flex template",
+  "description": "Streaming beam example for python flex template.",
+  "parameters": [
+    {
+      "name": "input_subscription",
+      "label": "Input PubSub Subscription",
+      "helpText": "Fully qualified name of the input Pubsub subscription that reads changes to a bucket. i.e. projects/*/subscriptions/*. Each message should be the full filename of the GCS object to run the pipeline against."
+    },
+    {
+      "name": "output_topic",
+      "label": "Output PubSub topic",
+      "helpText": "Fully qualified name of the output Pubsub topic. i.e. projects/*/topics/*. Messgaes will be JSON of the form {\"filename\": string, \"ssn_counts\": int }"
+    },
+    {
+      "name" : "secret_name",
+      "label" : "Hash key secret",
+      "helpText" : "Fully qualified name of the Secret Maneger secret where the base64 encoded hash key is stored. i.e. projects/*/secrets/*"
+    },
+    {
+      "name": "firestore_project",
+      "label": "Firestore Project Id",
+      "helpText": "Project Id where Firestore database is located and where DLP will be executed."
+    },
+    {
+      "name": "collection_name",
+      "label": "Collection Name",
+      "helpText": "Name of the Firestore collection where hashed SSNs are stored"
+    },
+    {
+      "name": "salt",
+      "label": "Salt",
+      "helpText": "Random string for salting hashes"
+    }
+  ]
+}
