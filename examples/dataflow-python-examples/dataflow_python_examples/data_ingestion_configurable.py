@@ -42,7 +42,7 @@ from google.auth.exceptions import GoogleAuthError
 from google.cloud import datastore
 
 
-class FileCoder(object):
+class FileCoder:
     """Encode and decode CSV data coming from the files."""
     def __init__(self, columns):
         self._columns = columns
