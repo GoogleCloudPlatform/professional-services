@@ -37,17 +37,17 @@ class TestDataGenerator(unittest.TestCase):
         # Check behavior for an empty list.
         label_list = []
         out = ', '.join(label_list)
-        self.assertEquals(out, '')
+        self.assertEqual(out, '')
 
         # Check behavior for a list with a single element.
         label_list = ['dog']
         out = ', '.join(label_list)
-        self.assertEquals(out, 'dog')
+        self.assertEqual(out, 'dog')
 
         # Check behavior for a list with a single element.
         label_list = ['dog', 'german sheppard']
         out = ', '.join(label_list)
-        self.assertEquals(out, 'dog, german sheppard')
+        self.assertEqual(out, 'dog, german sheppard')
 
 
 if __name__ == '__main__':
