@@ -23,5 +23,5 @@ terraform destroy -auto-approve
 cd .. || exit
 
 # Tear Down Dataflow
-DF_JOBS=$(gcloud dataflow jobs list --status=active --region=${REGION} --project=${PROJECT_ID} | grep 'webhook-job-' | awk '{print $1;}')
+DF_JOBS=$(gcloud dataflow jobs list --status=active --region="${REGION}" --project="${PROJECT_ID}" | grep 'webhook-job-' | awk '{print $1;}')
 gcloud dataflow jobs cancel "${DF_JOBS}" --region="${REGION}" --project="${PROJECT_ID}"
