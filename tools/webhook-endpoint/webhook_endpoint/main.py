@@ -13,11 +13,10 @@
 # limitations under the License.
 
 import json
-import time
-import sys
 import os
+import time
 
-from flask import Flask, request, jsonify
+from flask import Flask, request
 from google.cloud import pubsub_v1
 
 import consts
@@ -40,7 +39,6 @@ app = Flask(__name__)
 
 @app.route('/', methods=['POST', 'GET'])
 def receive_data():
-    error = None
     if request.method == 'POST':
         return webhook_to_pubsub(request, wait_for_ack=False)
     # the code below is executed if the request method

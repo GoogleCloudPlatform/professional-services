@@ -18,7 +18,7 @@ import requests
 import time
 
 from datetime import datetime
-from multiprocessing import Pool, TimeoutError
+from multiprocessing import Pool
 
 
 # Data Examples
@@ -111,7 +111,7 @@ def send_request(request_size):
     # Send batches of data to speed up EPS
     app_domain = _get_app_domain()
     data = [get_row() for i in range(request_size)]
-    res = requests.post(app_domain, json=data)
+    requests.post(app_domain, json=data)
 
 def test_scaling(batches=10, pool_size=10, request_size=200, batch_size=100, batch_sleep_secs=1):
     """ Send Data at App Engine Endpoint
@@ -128,11 +128,11 @@ def test_scaling(batches=10, pool_size=10, request_size=200, batch_size=100, bat
         total_events = batches * batch_size * request_size
         print("Running for %d" % total_events)
         for r in range(batches):
-            p_res = pool.map(send_request, [request_size for i in range(batch_size)])
+            pool.map(send_request, [request_size for i in range(batch_size)])
             time.sleep(batch_sleep_secs)
     else:
         while True:
-            p_res = pool.map(send_request, [request_size for i in range(batch_size)])
+            pool.map(send_request, [request_size for i in range(batch_size)])
             time.sleep(batch_sleep_secs)
 
 def main():
