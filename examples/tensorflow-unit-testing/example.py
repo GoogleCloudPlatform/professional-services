@@ -78,7 +78,5 @@ def get_model(dim):
     ])
     model.summary(print_fn=logging.info)
     optimizer = tf.keras.optimizers.RMSprop(0.001)
-    model.compile(loss='mse',
-                  optimizer=optimizer,
-                  metrics=['mae', 'mse'])
+    model.compile(loss='mse', optimizer=optimizer, metrics=['mae', 'mse'])
     return model
