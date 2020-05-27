@@ -53,22 +53,21 @@ class FileCoder(object):
         import csv
         import io
         st = io.StringIO()
-        cw = csv.writer(st,
+        cw = csv.DictWriter(st, self._columns,
                         delimiter=self._delimiter,
                         quotechar='"',
                         quoting=csv.QUOTE_MINIMAL)
-        cw.writerow(value.values())
+        cw.writerow(value)
         return st.getvalue().strip('\r\n')
 
     def decode(self, value):
         import csv
-        split_value = list(csv.reader([value], delimiter=self._delimiter))[0]
-
-        if len(split_value) != self._num_columns:
-            logging.warn('Record length %s, expected %s: [%s]' %
-                         (len(split_value), self._num_columns, split_value))
-            return []
-        return dict((self._columns[i], v) for i, v in enumerate(split_value))
+        st = io.StringIO(value)
+        cr = csv.DictWriter(st, self._columns,
+                        delimiter=self._delimiter,
+                        quotechar='"',
+                        quoting=csv.QUOTE_MINIMAL)
+        return next(cr)
 
 
 class PrepareFieldTypes(beam.DoFn):
