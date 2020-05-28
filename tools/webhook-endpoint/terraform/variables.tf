@@ -87,24 +87,3 @@ variable "dead_letter_queue" {
   description = "BigQuery Dead Letter Queue table"
   default     = "my-project:webhook.errors"
 }
-
-
-
-
-
-### OTHER ###
-# TODO: are any below here needed?
-variable "mono_repo_name" {
-  description = "Mono repo name for data pipelines source code"
-  default     = "webhook-endpoint"
-}
-
-variable "mono_repo_url" {
-  description = "Mono repo Cloud Source Repos url for data pipelines source code"
-  default     = "webhook-endpoint"
-}
-
-variable "network_name" { # TODO
-  description = "The network your data pipelines should use"
-  default     = "webhook-net"
-}
