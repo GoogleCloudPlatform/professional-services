@@ -1,37 +1,37 @@
 #!/bin/bash
 
 # For running in container
-if [ "${HOME}" == "/"] ; then
+if [ "${HOME}" == "/" ] ; then
     export HOME=/home
 fi
 
 error() {
     echo "ERROR: $1" >&2
-    exit $2
+    exit 2
 }
 
-if [ -n "${GOOGLE_PROJECT}" ] 
+if [ -n "${GOOGLE_PROJECT}" ]
 then
     export GCS2BQ_PROJECT="${GOOGLE_PROJECT}"
 fi
 
-if [ -z "${GCS2BQ_PROJECT}" ] 
+if [ -z "${GCS2BQ_PROJECT}" ]
 then
     error "Error: Missing BigQuery project (set environment variable GCS2BQ_PROJECT)." 1
 fi
-if [ -z "${GCS2BQ_DATASET}" ] 
+if [ -z "${GCS2BQ_DATASET}" ]
 then
     error "Error: Missing BigQuery dataset (set environment variable GCS2BQ_DATASET)." 1
 fi
-if [ -z "${GCS2BQ_TABLE}" ] 
+if [ -z "${GCS2BQ_TABLE}" ]
 then
     error "Error: Missing BigQuery table (set environment variable GCS2BQ_TABLE)." 1
 fi
-if [ -z "${GCS2BQ_BUCKET}" ] 
+if [ -z "${GCS2BQ_BUCKET}" ]
 then
     error "Error: Missing GCS bucket (set environment variable GCS2BQ_BUCKET)." 1
 fi
-if [ -z "${GCS2BQ_LOCATION}" ] 
+if [ -z "${GCS2BQ_LOCATION}" ]
 then
     error "Error: Missing GCS bucket/BQ dataset location (set environment variable GCS2BQ_LOCATION)." 1
 fi
@@ -45,6 +45,9 @@ then
     GCS2BQ_FLAGS="${GCS2BQ_FLAGS} -versions"
 fi
 
+# Intentionally split args by space.
+# TODO: use array expansion, instead.
+# shellcheck disable=SC2086
 ./gcs2bq $GCS2BQ_FLAGS || error "Export failed!" 2
 
 gsutil mb -p "${GCS2BQ_PROJECT}" -c standard -l "${GCS2BQ_LOCATION}" -b on "gs://${GCS2BQ_BUCKET}" || echo "Info: Storage bucket already exists: ${GCS2BQ_BUCKET}"
