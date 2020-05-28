@@ -21,7 +21,7 @@
 cd terraform/ || exit
 echo "Apply Terraform Resources"
 terraform init
-terraform import google_app_engine_application.app "${TF_VAR_project_id}"
+terraform import google_app_engine_application.app "${PROJECT_ID}"
 terraform apply -auto-approve
 cd ../ || exit
 
