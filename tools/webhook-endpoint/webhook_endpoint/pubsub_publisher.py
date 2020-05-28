@@ -79,4 +79,4 @@ class PubSubPublisher:
             else:
                 return
 
-        raise exceptions.WebhookException(consts.TIMEOUT_MESSAGE, status_code=408)
+        raise WebhookException(consts.TIMEOUT_MESSAGE, status_code=408)

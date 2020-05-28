@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
 import os
 import requests
 import time
@@ -94,7 +93,7 @@ def test_scaling(batches=10, pool_size=10, request_size=200, batch_size=100, bat
             time.sleep(batch_sleep_secs)
 
 def main():
-    test_scaling(pool_size=100, request_size=10, batch_size=1, batches=1, batch_sleep_secs=0)
+    test_scaling(pool_size=100, request_size=10, batch_size=100, batches=1, batch_sleep_secs=0)
 
 if __name__ == "__main__":
     main()

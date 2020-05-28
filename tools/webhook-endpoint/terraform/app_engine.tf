@@ -112,7 +112,7 @@ resource "google_app_engine_standard_app_version" "webhook_app" {
                 google_storage_bucket_object.app_engine_main,
                 google_storage_bucket_object.app_engine_consts,
                 google_storage_bucket_object.app_engine_exceptions,
-                google_storage_bucket_object.app_engine_pubsub_publisher
+                google_storage_bucket_object.app_engine_pubsub_publisher,
                 google_storage_bucket_object.app_engine_app_yaml,
                 google_storage_bucket_object.app_engine_requirements]
 }
