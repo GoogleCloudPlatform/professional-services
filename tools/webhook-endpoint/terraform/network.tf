@@ -17,11 +17,3 @@ resource "google_project_service" "data_pipeline_api" {
   service = "compute.googleapis.com"
   disable_on_destroy = false
 }
-
-# resource "google_compute_network" "data_pipeline" {
-#   project                 = var.project_id
-#   name                    = var.network_name
-#   auto_create_subnetworks = false
-
-#   depends_on = [google_project_service.data_pipeline_api]
-# }
