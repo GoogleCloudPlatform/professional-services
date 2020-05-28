@@ -18,7 +18,7 @@
 
 """
 
-from __future__ import absolute_import
+
 import argparse
 import csv
 import logging
@@ -85,8 +85,8 @@ class DataIngestion(object):
                 values = csv_row
             # Our source data only contains year, so default January 1st as the
             # month and day.
-            month = u'01'
-            day = u'01'
+            month = '01'
+            day = '01'
             # The year comes from our source data.
             year = values[2]
             row = {}
@@ -99,7 +99,7 @@ class DataIngestion(object):
                 if field_map[i].type == 'DATE':
                     # Format the date to YYYY-MM-DD format which BigQuery
                     # accepts.
-                    value = u'-'.join((year, month, day))
+                    value = '-'.join((year, month, day))
 
                 row[field_map[i].name] = value
                 i += 1
