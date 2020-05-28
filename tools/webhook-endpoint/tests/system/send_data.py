@@ -20,59 +20,39 @@ import time
 from datetime import datetime
 from multiprocessing import Pool
 
+""" 
+Send Data is intended to be an easy to use tool for manual
+and E2E testing.  The Webhook Application is mostly infrastructure,
+to ensure quality it's important to use E2E tests regularly and 
+against a wide array of possible data.
 
-# Data Examples
+To send data to a deployed pipline:
+export PROJECT_ID=<my-project>
+python send_data.py
+"""
+
 WEBHOOK_EXAMPLE = {
+  "responseBody": "",
   "method": "GET",
   "url": "/stuff",
-  "queryparams": {
-      "metrics": "INPUT_INCOMING",
-      "from": "-10min",
-      "resolution": "10sec",
-      "inputLabel": "uhfbwrufdsfgsyuf-4d6dsf1b93a"
-  },
-  "user": {
-      "id": 314,"email": "test@company.com",
-      "identity_provider_id": None,
-      "is_admin": None,
-      "accounts": [
-          {
-            "id": 12325,
-            "account_name": "my-account-dev",
-            "company_name": "my-company",
-            "partner_id": None,
-            "_pivot_user_id": 4153,
-            "_pivot_account_id": 1875
-          },
-          {
-            "id": 2041,
-            "account_name": "my-account-prod",
-            "company_name": "my-company",
-            "partner_id": None,
-            "_pivot_user_id": 4153,
-            "_pivot_account_id": 2041
-          }
-      ]
-  },
-  "statusCode": 304,
   "account": "company-prod",
   "host": "app.company.com",
-  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/24523Safari/537.36",
+  "remoteAddress": "0.0.0.0",
+  "statusCode": 304,
   "responseTime": 50.056793,
   "requestBody": {},
-  "fullUrl": "http://my.website.com/stuff?metrics=Data",
-  "responseBody": "",
-  "remoteAddress": "0.0.0.0",
+  "isBooleanRequest": True,
+  "record_data_ex": {
+      "value": "embedded",
+      "from": "-10min",
+  },
+  "array_data_ex": ["value", "value2"],
   "_metadata_dataset": "webhook",
   "_metadata_table": "webhook"
 }
 
 def get_row():
     """ Return clean example row to send """
-    for field in WEBHOOK_EXAMPLE:
-        if isinstance(WEBHOOK_EXAMPLE[field], dict) or isinstance(WEBHOOK_EXAMPLE[field], list):
-          WEBHOOK_EXAMPLE[field] = json.dumps(WEBHOOK_EXAMPLE[field])
-
     row = WEBHOOK_EXAMPLE
     row["time"] = str(datetime.now())
 
@@ -85,28 +65,6 @@ def _get_app_domain():
 
     return app_domain
 
-def test_failure():
-    print("Test 1: Expect Error")
-    app_domain = _get_app_domain()
-    res = requests.post(app_domain)
-    print(res.content)
-
-def test_simple_result():
-    print("Test 2: Expect Simple Result")
-    data = get_row()
-    app_domain = _get_app_domain()
-    res = requests.post(app_domain, json=data)
-    print(res.content)
-
-def test_complex_result():
-    print("Test 3: Expect Complex Result")
-    app_domain = _get_app_domain()
-    data = [get_row() for _ in range(2)]
-    res = requests.post(app_domain, json=data)
-    print(res.content)
-
-
-# Scale Test
 def send_request(request_size):
     # Send batches of data to speed up EPS
     app_domain = _get_app_domain()
@@ -122,7 +80,7 @@ def test_scaling(batches=10, pool_size=10, request_size=200, batch_size=100, bat
         :param batch_size: Number of events per request to batch
         :param batch_sleep_secs: Seconds to sleep between batches
     """
-    print("Test 4: Scale Testing")
+    print("Scale Testing")
     pool = Pool(processes=pool_size)
     if batches:
         total_events = batches * batch_size * request_size
@@ -136,11 +94,7 @@ def test_scaling(batches=10, pool_size=10, request_size=200, batch_size=100, bat
             time.sleep(batch_sleep_secs)
 
 def main():
-    test_failure()
-    test_simple_result()
-    test_complex_result()
-
-    test_scaling(pool_size=100, request_size=10, batch_size=100, batches=1, batch_sleep_secs=0)
+    test_scaling(pool_size=100, request_size=10, batch_size=1, batches=1, batch_sleep_secs=0)
 
 if __name__ == "__main__":
     main()
