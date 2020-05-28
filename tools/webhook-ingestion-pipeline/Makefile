@@ -12,38 +12,41 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Automate Data Validation Testing
+# Required Vars for deployment
 export PROJECT_ID:="my-project"
 export PROJECT_NUMBER:="my-project-number"
-export DEPLOY_MANAGER_NAME:=webhook-app
+
+# Terraform Variables
+export TF_VAR_project_id:=${PROJECT_ID}
+export TF_VAR_project_num:=${PROJECT_NUMBER}
+export TF_VAR_webhook_app:=webhook-app
 
 # Region When Applicable
-export LOCATION:=US
-export APP_REGION:=us-central
-export REGION:=us-central1
-export ZONE:=us-central1-b
-
-# Pub/Sub Config Vars
-export TOPIC:=${PROJECT_ID}-webhook
-export SUBSCRIPTION:=dataflow-subscription
+export TF_VAR_webhook_location:=US
+export TF_VAR_webhook_app_region=us-central
+export TF_VAR_webhook_region:=us-central1
+export TF_VAR_webhook_zone:=us-central1-b
 
 # GCS Config Vars
-export BUCKET_NAME:=${PROJECT_ID}-webhook
+export TF_VAR_gcs_bucket_name:=${PROJECT_ID}-webhook
+
+# Pub/Sub Config Vars
+export TF_VAR_pubsub_topic:=${PROJECT_ID}-webhook
+export TF_VAR_pubsub_subscription:=dataflow-subscription
 
 # BigQuery Config
-export BQ_DATASET:=webhook
-export BQ_TABLE_TEMPLATE:=webhook_data
-export BQ_DEADLETTER:=${PROJECT_ID}:${BQ_DATASET}.errors
-
+export TF_VAR_bigquery_dataset:=webhook
+export TF_VAR_bigquery_table_template:=webhook_data
+export TF_VAR_dead_letter_queue:=${PROJECT_ID}:${BQ_DATASET}.errors
 
 variables:
-	@echo "Setup Webhook Variables for project: ${PROJECT_ID}"
-	@echo "${BQ_DEADLETTER}"
+	@echo "Setup Webhook Variables for project: ${TF_VAR_project_id}"
+	@echo "Dead Letter Table: ${TF_VAR_dead_letter_queue}"
 
 build: variables
-	echo "Building Webhook Application for project: ${PROJECT_ID}"
+	echo "Building Webhook Application for project: ${TF_VAR_project_id}"
 	./build.sh
 
 destroy: variables
-	@echo "Tearing Down Webhook Application for project: ${PROJECT_ID}"
+	@echo "Tearing Down Webhook Application for project: ${TF_VAR_project_id}"
 	./tear_down.sh
