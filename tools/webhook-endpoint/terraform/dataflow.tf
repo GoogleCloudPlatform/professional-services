@@ -24,29 +24,3 @@ resource "google_project_service" "dataflow_api" {
   service = "dataflow.googleapis.com"
   disable_on_destroy = false
 }
-
-# resource "google_dataflow_job" "dataflow_pipeline" {
-#   project               = var.project_id
-#   name                  = "${var.webhook_app}-${var.env}"
-#   zone                  = var.webhook_zone
-#   template_gcs_path     = var.dataflow_template
-#   temp_gcs_location     = "${google_storage_bucket.webhook_gcs_stage.url}/dataflow/temp/"
-#   service_account_email = google_service_account.webhook_sa.email
-#   on_delete             = "drain"
-
-#   parameters = {
-#     project = var.project_id
-#     outputProjectId = var.project_id
-#     tempLocation = "${google_storage_bucket.webhook_gcs_stage.url}/dataflow/pipelines/temp/" # TODO is this required?
-#     windowDuration = "2m"
-#     subprocessTextTransformGcsPath = "${google_storage_bucket.webhook_gcs_stage.url}/${google_storage_bucket_object.dataflow_transform.output_name}"
-#     subprocessRuntimeVersion = "python3"
-#     subprocessTextTransformFunctionName = "transform"
-#     inputTopic = "projects/${var.project_id}/topics/${var.pubsub_topic}"
-#     outputDatasetTemplate = "${var.bigquery_dataset}"
-#     outputTableNameTemplate = "${var.bigquery_table_template}"
-#     outputDeadletterTable = "${var.dead_letter_queue}"
-#   }
-
-#   depends_on = [google_project_service.dataflow_api]
-# }
