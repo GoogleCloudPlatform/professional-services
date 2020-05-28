@@ -12,11 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-resource "google_storage_bucket_object" "dataflow_transform" {
-  name   = "dataflow/transforms/transform.py"
-  source = "../transforms/transform.py"
-  bucket = google_storage_bucket.webhook_gcs_stage.name
-}
 
 ## Enable Dataflow API
 resource "google_project_service" "dataflow_api" {

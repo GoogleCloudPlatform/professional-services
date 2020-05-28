@@ -32,6 +32,12 @@ resource "google_storage_bucket_object" "app_engine_exceptions" {
   bucket = google_storage_bucket.webhook_gcs_stage.name
 }
 
+resource "google_storage_bucket_object" "app_engine_pubsub_publisher" {
+  name   = "webhook_endpoint/pubsub_publisher.py"
+  source = "../webhook_endpoint/pubsub_publisher.py"
+  bucket = google_storage_bucket.webhook_gcs_stage.name
+}
+
 resource "google_storage_bucket_object" "app_engine_app_yaml" {
   name   = "webhook_endpoint/app.yaml"
   source = "../webhook_endpoint/app.yaml"
@@ -82,6 +88,10 @@ resource "google_app_engine_standard_app_version" "webhook_app" {
       source_url = "https://storage.googleapis.com/${google_storage_bucket.webhook_gcs_stage.name}/webhook_endpoint/exceptions.py"
     }
     files {
+      name       = "pubsub_publisher.py"
+      source_url = "https://storage.googleapis.com/${google_storage_bucket.webhook_gcs_stage.name}/webhook_endpoint/pubsub_publisher.py"
+    }
+    files {
       name       = "app.yaml"
       source_url = "https://storage.googleapis.com/${google_storage_bucket.webhook_gcs_stage.name}/webhook_endpoint/app.yaml"
     }
@@ -99,7 +109,10 @@ resource "google_app_engine_standard_app_version" "webhook_app" {
   noop_on_destroy           = true
 
   depends_on = [google_app_engine_application.app,
-                google_storage_bucket_object.app_engine_main, google_storage_bucket_object.app_engine_consts,
-                google_storage_bucket_object.app_engine_exceptions, google_storage_bucket_object.app_engine_app_yaml,
+                google_storage_bucket_object.app_engine_main,
+                google_storage_bucket_object.app_engine_consts,
+                google_storage_bucket_object.app_engine_exceptions,
+                google_storage_bucket_object.app_engine_pubsub_publisher
+                google_storage_bucket_object.app_engine_app_yaml,
                 google_storage_bucket_object.app_engine_requirements]
 }

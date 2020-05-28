@@ -17,4 +17,5 @@ PROJECT_ID = "GOOGLE_CLOUD_PROJECT"
 PUBSUB_TOPIC = "TOPIC"
 
 # Exception Messages
-NO_DATA_MESSAGE = "HTTP ERROR: Post Request Missing Data"
+NO_DATA_MESSAGE = "HTTP ERROR: POST Request Missing Data"
+TIMEOUT_MESSAGE = "HTTP ERROR: Timeout occured while processing data"
