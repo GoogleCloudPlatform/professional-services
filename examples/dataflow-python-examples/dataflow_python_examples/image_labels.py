@@ -20,7 +20,7 @@ the original file reference to a BigQuery table with the labels
 identified by the Cloud Vision API.
 """
 
-from __future__ import absolute_import
+
 import argparse
 import logging
 
