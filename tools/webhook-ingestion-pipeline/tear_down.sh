@@ -17,11 +17,11 @@
 # Destroy Deployment
 cd terraform/ || exit
 bq rm -f --project_id="${PROJECT_ID}" webhook.webhook_data
-bq rm -f --project_id="${PROJECT_ID}" "${TF_VAR_dead_letter_queue}"
+bq rm -f --project_id="${PROJECT_ID}" "${BQ_DEADLETTER}"
 terraform destroy -auto-approve
 
 cd .. || exit
 
 # Tear Down Dataflow
-DF_JOBS=$(gcloud dataflow jobs list --status=active --region="${TF_VAR_webhook_region}" --project="${PROJECT_ID}" | grep 'webhook-job-' | awk '{print $1;}')
-gcloud dataflow jobs cancel "${DF_JOBS}" --region="${TF_VAR_webhook_region}" --project="${PROJECT_ID}"
+DF_JOBS=$(gcloud dataflow jobs list --status=active --region="${REGION}" --project="${PROJECT_ID}" | grep 'webhook-job-' | awk '{print $1;}')
+gcloud dataflow jobs cancel "${DF_JOBS}" --region="${REGION}" --project="${PROJECT_ID}"

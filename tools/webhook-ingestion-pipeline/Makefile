@@ -37,7 +37,15 @@ export TF_VAR_pubsub_subscription:=dataflow-subscription
 # BigQuery Config
 export TF_VAR_bigquery_dataset:=webhook
 export TF_VAR_bigquery_table_template:=webhook_data
-export TF_VAR_dead_letter_queue:=${PROJECT_ID}:${BQ_DATASET}.errors
+export TF_VAR_dead_letter_queue:=${PROJECT_ID}:${TF_VAR_bigquery_dataset}.errors
+
+# TODO: Used to deploy Dataflow, remove once Flex Terraform is releases
+export REGION:=${TF_VAR_webhook_region}
+export TOPIC:=${TF_VAR_pubsub_topic}
+export SUBSCRIPTION:=${TF_VAR_pubsub_subscription}
+export BQ_DATASET:=${TF_VAR_bigquery_dataset}
+export BQ_TABLE_TEMPLATE:=${TF_VAR_bigquery_table_template}
+export BQ_DEADLETTER:=${TF_VAR_dead_letter_queue}
 
 variables:
 	@echo "Setup Webhook Variables for project: ${TF_VAR_project_id}"
