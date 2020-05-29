@@ -26,19 +26,13 @@ import hmac
 import argparse
 import secrets
 
-try:
-  from progress.spinner import Spinner
-except ImportError:
-  os.system("pip install progress --user")
-  from progress.spinner import Spinner
-
-class HasherError(Exception):
-  pass
-
 class Hasher():
   def __init__(self, argv=None):
     parser = argparse.ArgumentParser(description='Hash and upload SSNs to Firestore')
-    parser.add_argument('command', help="One of: upload, verify, create-key")
+    parser.add_argument('command', 
+      help="Command to execute",
+      type=str.lower,
+      choices=["upload", "verify", "create_key"])
     parser.add_argument('-p', '--project',
       help="Project ID where the Firestore DB should be initialized")
     parser.add_argument('-S', '--secret',
@@ -55,34 +49,38 @@ class Hasher():
       default='hashed_socials')
     self.opts = parser.parse_args(argv)
     self.sm = secretmanager.SecretManagerServiceClient()
+    self.secret_path = f'{self.opts.secret}/versions/latest'
 
   def get_hash_key(self):
     try:
-      version = self.sm.access_secret_version(f'{self.opts.secret}/versions/latest')
+      version = self.sm.access_secret_version(self.secret_path)
       return b64decode(version.payload.data)
     except NotFound:
       return None
 
   def set_hash_key(self):
     if self.get_hash_key():
-      raise HasherError(f"Error: Refusing to overwrite existing key at {self.opts.secret}/versions/latest")
+      return False
     key = secrets.token_bytes(64)
     b64 = b64encode(key)
     self.sm.add_secret_version(self.opts.secret, {'data': b64 })
+    return True
 
   def hash_ssn(self, ssn, key):
     norm_ssn = ssn.strip().replace('-', '')
     if not re.match(r'[0-9]{9}', norm_ssn):
-      raise HasherError(f"Error: Normalized SSN from {norm_ssn} is not a 9 digit number")
+      raise ValueError(f"Normalized SSN from {norm_ssn} is not a 9 digit number")
     salt = self.opts.salt.encode('utf-8')
     mac = hmac.new(key, msg=salt, digestmod='sha256')
     mac.update(norm_ssn.encode('utf-8'))
     return mac.hexdigest()
 
   def run(self):
-    if self.opts.command == "create-key":
-      self.set_hash_key()
-      print(f"Saved secret at {self.opts.secret}/versions/latest")
+    if self.opts.command == "create_key":
+      if self.set_hash_key():
+        print(f"Saved secret at {self.secret_path}")
+      else:
+        print (f"Hash key already exists at {self.secret_path}")
       exit(0)
 
     os.environ["GCLOUD_PROJECT"] = self.opts.project
@@ -90,31 +88,23 @@ class Hasher():
     db = firestore.Client()
     col = db.collection(self.opts.collection)
     key = self.get_hash_key()
+    if key == None:
+      raise NotFound("Hash key does not exist yet. Please run `hasher.py create_key --secret $SECRET` first")
     if self.opts.command == "upload":
-      spinner = Spinner("Hashing and uploading SSNs...")
+      print("Hashing and uploading SSNs...")
       for ssn in open(self.opts.infile):
         digest = self.hash_ssn(ssn, key)
         col.document(digest).set({u'exists': True})
-        spinner.next()
-      spinner.finish()
       print("Done!")
     elif self.opts.command == 'verify':
-      spinner = Spinner("Verifying and counting SSNs...")
+      print("Verifying and counting SSNs...")
       count = 0
       for ssn in open(self.opts.infile):
         digest = self.hash_ssn(ssn, key)
         doc = col.document(digest).get()
-        spinner.next()
         if doc.exists:
           count += 1
-      spinner.finish()
       print(f"Found {count} valid SSNs")
-    else:
-      raise HasherError(f'Error: Invalid command {self.opts.command}, must be one of "verify", "upload", "create-key"')
 
 if __name__ == '__main__':
-  try:
-    Hasher(sys.argv[1:]).run()
-  except HasherError as err:
-    print(err)
-    exit(1)
+  Hasher(sys.argv[1:]).run()

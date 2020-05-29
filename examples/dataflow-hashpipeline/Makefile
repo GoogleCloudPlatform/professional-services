@@ -65,7 +65,7 @@ deploy_standard:
 		--gcs-location $(TEMPLATE_PATH) \
 
 create_key:
-	./bin/hasher.py create-key --secret $(SECRET)
+	./scripts/hasher.py create-key --secret $(SECRET)
 
 test_pull:
 	gcloud --project $(PROJECT) pubsub subscriptions pull $(OUTPUT_SUB) --auto-ack \
@@ -73,7 +73,7 @@ test_pull:
 
 test_seed_firestore:
 	python test/generate-test-socials.py $(TEST_SSN_PATH)
-	./bin/hasher.py upload \
+	./scripts/hasher.py upload \
 		--project $(PROJECT) \
 		--secret $(SECRET) \
 		--salt $(SALT) \

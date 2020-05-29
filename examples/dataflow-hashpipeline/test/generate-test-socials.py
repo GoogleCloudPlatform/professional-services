@@ -15,10 +15,7 @@
 
 import sys
 import os
-try:
-  from faker import Faker
-except ImportError:
-  os.system('pip install Faker --user' )
+from faker import Faker
 
 output_path = sys.argv[1]
 fake = Faker()
