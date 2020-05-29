@@ -28,13 +28,15 @@ export BQ_TABLE_TEMPLATE=webhook_data
 
 # Build Webhook Pipeline
 make build PROJECT_ID="${PROJECT_ID}" PROJECT_NUMBER="${PROJECT_NUMBER}"
+echo "Sleep for 300 seconds: Dataflow deploy"
+sleep 300
 
 # Send Test Data
 echo "Send Data: 1003 Records"
-python3 tests/system/send_data.py
+python3 tests/system/send_data.py -p $"{PROJECT_ID}" -ps 10 -r 100 -bs 10 -b 1 -s 0
 
 # Then validate results
-echo "Sleep for 300 seconds"
+echo "Sleep for 300 seconds: Process Data"
 sleep 300
 RESULT_TABLE_COUNT=$(echo "SELECT COUNT(1) AS row_count FROM ${BQ_DATASET}.${BQ_TABLE_TEMPLATE};" | bq query | grep '|' | tail -n 1 | awk '{print $2;}')
 echo "*** Table Row Count: Expected 1003 --> Found ${RESULT_TABLE_COUNT}"
