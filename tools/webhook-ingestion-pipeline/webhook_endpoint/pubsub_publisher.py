@@ -33,8 +33,7 @@ class PubSubPublisher:
     def _get_callback(self, f, data):
         def callback(f):
             if f.exception():
-            	msg = "Please handle {} for {}.".format(f.exception(), data)
-            	logging.error(msg)
+                logging.error(f"Please handle {f.exeption()} for {data}.")
             if data in self.futures:
                 self.futures.pop(data)
 
@@ -79,4 +78,4 @@ class PubSubPublisher:
             else:
                 return
 
-        raise WebhookException(consts.TIMEOUT_MESSAGE, status_code=408)
+        raise WebhookException(consts.TIMEOUT_MESSAGE, status_code=504)
