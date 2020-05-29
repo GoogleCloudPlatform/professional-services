@@ -16,7 +16,7 @@
 import logging
 import unittest
 
-from dataflow_python_examples.image_labels import detect_labels_uri
+from pipelines.image_labels import detect_labels_uri
 
 
 class TestDataGenerator(unittest.TestCase):

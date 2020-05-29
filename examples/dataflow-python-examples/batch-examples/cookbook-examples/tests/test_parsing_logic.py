@@ -16,10 +16,10 @@
 import logging
 import unittest
 
-from dataflow_python_examples.data_transformation import DataTransformation
-from dataflow_python_examples.data_ingestion import DataIngestion
-from dataflow_python_examples.data_lake_to_mart import DataLakeToDataMart
-from dataflow_python_examples.data_lake_to_mart_cogroupbykey import DataLakeToDataMartCGBK
+from pipelines.data_transformation import DataTransformation
+from pipelines.data_ingestion import DataIngestion
+from pipelines.data_lake_to_mart import DataLakeToDataMart
+from pipelines.data_lake_to_mart_cogroupbykey import DataLakeToDataMartCGBK
 
 
 class TestHandlers(unittest.TestCase):
