@@ -16,6 +16,11 @@
 PROJECT_ID = "GOOGLE_CLOUD_PROJECT"
 PUBSUB_TOPIC = "TOPIC"
 
+# Default Values
+MAX_CONTENT_SIZE = 1000000 * 5 # 5 megabytes
+
 # Exception Messages
+UNSUPPORTED_METHOD = "HTTP ERROR: {method} Request Unsupported"
 NO_DATA_MESSAGE = "HTTP ERROR: POST Request Missing Data"
+MESSAGE_TOO_BIG = "HTTP ERROR: Requested data {content_length} bytes bigger than max {max_bytes}"
 TIMEOUT_MESSAGE = "HTTP ERROR: Timeout occured while processing data"

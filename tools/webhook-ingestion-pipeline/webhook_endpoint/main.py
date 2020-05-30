@@ -17,8 +17,9 @@ import os
 from flask import Flask, request, jsonify
 
 import consts
-import exceptions
 import pubsub_publisher
+
+from exceptions import WebhookException
 
 """ Deploy App Engine Webhook Endpoint
 
@@ -32,30 +33,52 @@ topic_name = os.environ[consts.PUBSUB_TOPIC]
 publisher = pubsub_publisher.PubSubPublisher(project_id)
 app = Flask(__name__)
 
+
 @app.route('/', methods=['POST'])
 def receive_data():
-    return webhook_to_pubsub(request, wait_for_ack=False)
+    return webhook_to_pubsub(request)
 
-@app.errorhandler(exceptions.WebhookException)
+@app.route('/', methods=['GET', 'PUT', 'PATCH', 'DELETE', 'HEAD'])
+def unsupported_request():
+    raise WebhookException(consts.UNSUPPORTED_METHOD.format(
+            method=request.method,
+            status_code=405))
+
+@app.errorhandler(WebhookException)
 def handle_invalid_usage(error):
+    """ Raise Exception for Unsupported Types """
     response = jsonify(error.to_dict())
     response.status_code = error.status_code
     return response
 
-def webhook_to_pubsub(request, wait_for_ack=True) -> str:
+def _extract_data(request):
+    """ Return Dict with extracted data from request
+
+        :param request: Flask.request with data to process
+    """
+    if request.content_length == 0:
+        raise WebhookException(consts.NO_DATA_MESSAGE, status_code=400)
+    if request.content_length > consts.MAX_CONTENT_SIZE:
+        raise WebhookException(
+            consts.MESSAGE_TOO_BIG.format(content_length=request.content_length,
+                                          max_bytes=consts.MAX_CONTENT_SIZE),
+            status_code=400)
+    try:
+        return request.get_json()
+    except Exception:
+        return {"message": request.get_data(as_text=True)}
+
+def webhook_to_pubsub(request) -> str:
     """ Return String response for HTTP Request Processing
 
         :param request: (flask.Request) The request object.
         <http://flask.pocoo.org/docs/1.0/api/#flask.Request>
-        :param wait_for_ack: Bool if we need to wait for Pub/Sub ack
     """
-    request_json = request.get_json(silent=True)
-    if request_json is None:
-        raise exceptions.WebhookException(consts.NO_DATA_MESSAGE, status_code=400)
-    elif isinstance(request_json, list):
+    request_json = _extract_data(request)
+    if isinstance(request_json, list):
         for row in request_json:
-            publisher.publish_data(topic_name, row, wait_for_ack=wait_for_ack)
+            publisher.publish_data(topic_name, row)
     else:
-        publisher.publish_data(topic_name, request_json, wait_for_ack=wait_for_ack)
+        publisher.publish_data(topic_name, request_json)
 
     return str(request_json)

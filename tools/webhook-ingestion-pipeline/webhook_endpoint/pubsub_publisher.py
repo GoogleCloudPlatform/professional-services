@@ -27,7 +27,14 @@ class PubSubPublisher:
 
     def __init__(self, project_id):
         self.project_id = project_id
-        self.client = PublisherClient()
+        self.client = PublisherClient(
+            client_config = {
+                "interfaces": {
+                    "google.pubsub.v1.Publisher": {
+                        "retry_params": {
+                            "messaging": {
+                                "total_timeout_millis": 650000,
+        }}}}})
         self.futures = dict()
 
     def _get_callback(self, f, data):
@@ -39,7 +46,7 @@ class PubSubPublisher:
 
         return callback
 
-    def publish_data(self, topic_name, data, wait_for_ack=False, timeout=60):
+    def publish_data(self, topic_name, data, timeout=60):
         """ Publish Pub/Sub Data 
             
             :param topic_name: String name of topic
@@ -60,22 +67,4 @@ class PubSubPublisher:
         # Publish failures shall be handled in the callback function.
         future.add_done_callback(self._get_callback(future, data))
 
-        # Wait for all the publish futures to resolve before exiting.
-        if wait_for_ack:
-            self._wait_for_ack(data, timeout=timeout)
-
         return data
-
-    def _wait_for_ack(self, data, timeout=60):
-        """ Return when data is processed or raise timeout
-            
-            :param data: String data being processed
-            :param timeout: Int seconds to wait
-        """
-        for _ in range(timeout):
-            if self.futures.get(data):
-                time.sleep(1)
-            else:
-                return
-
-        raise WebhookException(consts.TIMEOUT_MESSAGE, status_code=504)
