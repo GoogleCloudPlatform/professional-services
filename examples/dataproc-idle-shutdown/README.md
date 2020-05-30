@@ -5,12 +5,13 @@ This repository provides scripts for launching a Google Cloud Dataproc Cluster w
 
 ## Solution Architecture
 ------------------------------------------------------
-![Architecture Diagram](img/idle-shutdown-solution-architecture.svg)
+![Architecture Diagram](img/idle-script.png)
 
 1. The cluster is created specifying the initialization action and the location of the idle script stored in Google Cloud Storage
 2. The cluster downloads the idle script and schedules it as a cron job to run every 5 minutes
-3. The script runs and saves project level metadata tracking the idle status of the cluster and logs status to Stackdriver
-4. If shutdown conditions are met, the script shutsdown the cluster
+3. The script runs and saves instance level metadata tracking the idle status of the cluster
+4. The script logs status of checks and shutdown events via Stackdriver logging
+5. If shutdown conditions are met, the script shutsdown the cluster
 
 ## Components
 ------------------------------------------------------
