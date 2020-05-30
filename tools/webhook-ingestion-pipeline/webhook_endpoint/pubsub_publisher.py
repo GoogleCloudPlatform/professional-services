@@ -14,13 +14,8 @@
 
 import json
 import logging
-import time
 
 from google.cloud.pubsub_v1 import PublisherClient
-
-import consts
-
-from exceptions import WebhookException
 
 
 class PubSubPublisher:
