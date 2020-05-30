@@ -14,6 +14,8 @@
 # limitations under the License.
 
 readonly MY_CLUSTER_NAME="$(/usr/share/google/get_metadata_value attributes/dataproc-cluster-name)"
+readonly MASTER_INSTANCE_NAME="$(/usr/share/google/get_metadata_value attributes/dataproc-master)"
+readonly MASTER_INSTANCE_ZONE="$(/usr/share/google/get_metadata_value zone)"
 readonly MAX_IDLE_SECONDS_KEY="${MY_CLUSTER_NAME}_maxIdleSeconds"
 readonly DATAPROC_PERSIST_DIAG_TARBALL_KEY="${MY_CLUSTER_NAME}_persistDiagnosticTarball"
 readonly KEY_PROCESS_LIST_KEY="${MY_CLUSTER_NAME}_keyProcessList"
@@ -24,7 +26,7 @@ readonly PERSIST_DIAG_TARBALL_FALSE="FALSE"
 function checkMaster() {
   local role="$(/usr/share/google/get_metadata_value attributes/dataproc-role)"
   local isMaster="false"
-  if [[ "$role" == 'Master' ]] ; then
+  if [[ "$role" == 'Master' && "$mastername" == "${clustername}-m-0" ]]; then
     isMaster="true"
   fi
   echo "$isMaster"
@@ -36,7 +38,8 @@ function startIdleJobChecker() {
   local MAX_IDLE_PARAMETER=$(/usr/share/google/get_metadata_value attributes/max-idle)
   local DATAPROC_PERSIST_DIAG_TARBALL=$(/usr/share/google/get_metadata_value attributes/persist_diagnostic_tarball)
   local KEY_PROCESS_LIST_PARAMETER=$(/usr/share/google/get_metadata_value attributes/key_process_list)
-  echo "attempting to start idle checker using: ${SCRIPT_STORAGE_LOCATION}"
+
+  gcloud logging write idle-check-log "${MY_CLUSTER_NAME}: attempting to start idle checker using: ${SCRIPT_STORAGE_LOCATION}" --severity=NOTICE
   if [[ -n ${SCRIPT_STORAGE_LOCATION} ]]; then
     
     # Get and validate the max idle parameter. Following line evaluates to nothing if not provided or properly formatted.
@@ -63,7 +66,8 @@ function startIdleJobChecker() {
       esac
 
       # Record the max seconds value as instance metadata
-      echo $( gcloud compute project-info add-metadata --metadata ${MAX_IDLE_SECONDS_KEY}=${idleTimeAmountSeconds})
+      gcloud logging write idle-check-log "${MY_CLUSTER_NAME}: Idle time for cluster set to ${idleTimeAmountSeconds} " --severity=NOTICE
+      echo $( gcloud compute instances add-metadata ${MASTER_INSTANCE_NAME} --zone ${MASTER_INSTANCE_ZONE} --metadata ${MAX_IDLE_SECONDS_KEY}=${idleTimeAmountSeconds} &)
 
       # Record preference for persisting diagnostic information on cluster shutdown
       persistDiagnosticTarball=${PERSIST_DIAG_TARBALL_FALSE}
@@ -71,13 +75,16 @@ function startIdleJobChecker() {
       if [[ -n ${parsedPesistDiagnosticTarballParameter} ]]; then
         persistDiagnosticTarball=${PERSIST_DIAG_TARBALL_TRUE}
       fi
-      echo $( gcloud compute project-info add-metadata --metadata ${DATAPROC_PERSIST_DIAG_TARBALL_KEY}=${persistDiagnosticTarball})
+      gcloud logging write idle-check-log "${MY_CLUSTER_NAME}: Request to persist diagnostic tarbeall - ${persistDiagnosticTarball} " --severity=NOTICE
+      echo $( gcloud compute instances add-metadata ${MASTER_INSTANCE_NAME} --zone ${MASTER_INSTANCE_ZONE} --metadata ${DATAPROC_PERSIST_DIAG_TARBALL_KEY}=${persistDiagnosticTarball} &)
 
       # Record key process list parameter
       keyProcessListParam=${KEY_PROCESS_LIST_PARAMETER}
-      echo $( gcloud compute project-info add-metadata --metadata ${KEY_PROCESS_LIST_KEY}=${keyProcessListParam})
+      gcloud logging write idle-check-log "${MY_CLUSTER_NAME}: Key non-yarn processes to monitor - ${keyProcessListParam} " --severity=NOTICE
+      echo $( gcloud compute instances add-metadata ${MASTER_INSTANCE_NAME} --zone ${MASTER_INSTANCE_ZONE} --metadata ${KEY_PROCESS_LIST_KEY}=${keyProcessListParam} &)
 
-      echo "establishing isIdle process to determine when master node can be deleted"
+
+      gcloud logging write idle-check-log "${MY_CLUSTER_NAME}: Establishing isIdle process to determine when master node can be deleted" --severity=NOTICE
       cd /root
       mkdir DataprocShutdown
       cd DataprocShutdown
@@ -90,20 +97,20 @@ function startIdleJobChecker() {
       ./isIdle.sh
 
       #sudo bash -c 'echo "" >> /etc/crontab'
-      sudo bash -c 'echo "*/5 * * * * root /root/DataprocShutdown/isIdle.sh" >> /etc/crontab'
+      sudo bash -c 'echo "*/5 * * * * root /root/DataprocShutdown/isIdle.sh" >> /etc/crontab' &
     else
-      echo "Must provide value for 'max-idle' The duration from the moment when the cluster enters the idle state to the moment when the cluster starts to delete. Provide the duration in IntegerUnit format, where the unit can be 's, m, h, d' (seconds, minutes, hours, days, respectively)."
+      gcloud logging write idle-check-log "Must provide value for 'max-idle' The duration from the moment when the cluster enters the idle state to the moment when the cluster starts to delete. Provide the duration in IntegerUnit format, where the unit can be 's, m, h, d' (seconds, minutes, hours, days, respectively)." --severity=NOTICE
       exit 1;
     fi
   else
-    echo "value for STORAGE_LOCATION is required"
+    gcloud logging write idle-check-log "${MY_CLUSTER_NAME}: Value for STORAGE_LOCATION is required" --severity=NOTICE
     exit 1;
   fi
 }
 
 function main() {
   is_master_node=$(checkMaster)
-  echo "Is master is $is_master_node"
+  gcloud logging write idle-check-log "${MY_CLUSTER_NAME}: Is master is $is_master_node" --severity=NOTICE
   if [[ "$is_master_node" == "true" ]]; then
     startIdleJobChecker
   fi

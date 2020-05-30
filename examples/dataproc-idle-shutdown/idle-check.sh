@@ -14,6 +14,8 @@
 # limitations under the License.
 
 readonly MY_CLUSTER_NAME="$(/usr/share/google/get_metadata_value attributes/dataproc-cluster-name)"
+readonly MASTER_INSTANCE_NAME="$(/usr/share/google/get_metadata_value attributes/dataproc-master)"
+readonly MASTER_INSTANCE_ZONE="$(/usr/share/google/get_metadata_value zone)"
 readonly MY_REGION="$(/usr/share/google/get_metadata_value attributes/dataproc-region)"
 readonly MAX_IDLE_SECONDS_KEY="${MY_CLUSTER_NAME}_maxIdleSeconds"
 readonly DATAPROC_PERSIST_DIAG_TARBALL_KEY="${MY_CLUSTER_NAME}_persistDiagnosticTarball"
@@ -114,7 +116,7 @@ setIdleStatusIdle() {
     isIdleStatusSince="$(/usr/share/google/get_metadata_value attributes/${IS_IDLE_STATUS_SINCE_KEY} || echo 'FALSE')"
   else
     #Set isIdle to true and update the time
-    gcloud compute project-info add-metadata --metadata ${IS_IDLE_STATUS_KEY}=${IS_IDLE_STATUS_TRUE},${IS_IDLE_STATUS_SINCE_KEY}=${currentTime}
+    gcloud compute instances add-metadata ${MASTER_INSTANCE_NAME} --zone ${MASTER_INSTANCE_ZONE} --metadata ${IS_IDLE_STATUS_KEY}=${IS_IDLE_STATUS_TRUE},${IS_IDLE_STATUS_SINCE_KEY}=${currentTime}
     isIdleStatusSince=$currentTime
   fi
 
@@ -131,7 +133,7 @@ shutdownCluster() {
   fi
       
   # Remove the metadata
-  gcloud compute project-info remove-metadata --keys ${IS_IDLE_STATUS_KEY},${IS_IDLE_STATUS_SINCE_KEY},${MAX_IDLE_SECONDS_KEY},${DATAPROC_PERSIST_DIAG_TARBALL_KEY},${KEY_PROCESS_LIST_KEY},
+  gcloud compute instances remove-metadata remove-metadata --keys ${IS_IDLE_STATUS_KEY},${IS_IDLE_STATUS_SINCE_KEY},${MAX_IDLE_SECONDS_KEY},${DATAPROC_PERSIST_DIAG_TARBALL_KEY},${KEY_PROCESS_LIST_KEY},
 
   # Shutdown the cluster
   gcloud dataproc clusters delete ${MY_CLUSTER_NAME} --quiet --region=${MY_REGION}
@@ -189,7 +191,7 @@ function main() {
   else
     echo "Considering cluster ${MY_CLUSTER_NAME}  as active"
     gcloud logging write idle-check-log "${MY_CLUSTER_NAME}: Cluster Is ACTIVE" --severity=NOTICE
-    echo $( gcloud compute project-info add-metadata --metadata ${IS_IDLE_STATUS_KEY}=${IS_IDLE_STATUS_FALSE},${IS_IDLE_STATUS_SINCE_KEY}=${currentTime})
+    echo $( gcloud compute instances add-metadata ${MASTER_INSTANCE_NAME} --zone ${MASTER_INSTANCE_ZONE} --metadata ${IS_IDLE_STATUS_KEY}=${IS_IDLE_STATUS_FALSE},${IS_IDLE_STATUS_SINCE_KEY}=${currentTime})
   fi
 
   exit 0
