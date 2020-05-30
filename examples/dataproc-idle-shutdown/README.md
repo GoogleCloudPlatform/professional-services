@@ -31,11 +31,11 @@ This repository provides scripts for launching a Google Cloud Dataproc Cluster w
 
 Download all artifacts from Git:
 ```
-git clone https://github.com/blakedubois/dataproc-idle-check.git
+git clone https://github.com/GoogleCloudPlatform/professional-services.git
 ```
 Copy all artifacts to Cloud Storage:
 ```
-gsutil cp ./dataproc-idle-check/*sh gs://<BUCKET>
+gsutil cp ./professional-services/examples/dataproc-idle-check/*sh gs://<BUCKET>
 ```
 
 ### Cluster start: Start the cluster specifying key parameters
