@@ -24,6 +24,6 @@ virtualenv env
 # shellcheck disable=SC1091
 source env/bin/activate
 
-pip3 install -r prerequisites/requirements.txt
+pip3 install -e .
 pip3 install pytest
 pytest .
