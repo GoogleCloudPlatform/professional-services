@@ -41,7 +41,7 @@ cbt createtable "$OUTPUT_TABLE"
 
 cbt ls "$INPUT_TABLE" | tail -n+3 | while read -r line
 do
-  FAMILY=$( echo "$line" | cut -d " " -f 1 )
+  FAMILY=$( echo "$line" | cut -f 1 )
   echo Adding column family "$FAMILY"
   cbt createfamily "$OUTPUT_TABLE" "$FAMILY"
 done
