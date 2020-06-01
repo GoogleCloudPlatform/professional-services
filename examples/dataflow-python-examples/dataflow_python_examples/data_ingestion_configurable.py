@@ -42,7 +42,7 @@ from google.auth.exceptions import GoogleAuthError
 from google.cloud import datastore
 
 
-class FileCoder(object):
+class FileCoder:
     """Encode and decode CSV data coming from the files."""
     def __init__(self, columns):
         self._columns = columns
@@ -51,24 +51,23 @@ class FileCoder(object):
 
     def encode(self, value):
         import csv
-        import StringIO
-        st = StringIO.StringIO()
-        cw = csv.writer(os,
+        import io
+        st = io.StringIO()
+        cw = csv.DictWriter(st, self._columns,
                         delimiter=self._delimiter,
                         quotechar='"',
                         quoting=csv.QUOTE_MINIMAL)
-        cw.writerow(value.values())
+        cw.writerow(value)
         return st.getvalue().strip('\r\n')
 
     def decode(self, value):
         import csv
-        split_value = list(csv.reader([value], delimiter=self._delimiter))[0]
-
-        if len(split_value) != self._num_columns:
-            logging.warn('Record length %s, expected %s: [%s]' %
-                         (len(split_value), self._num_columns, split_value))
-            return []
-        return dict((self._columns[i], v) for i, v in enumerate(split_value))
+        st = io.StringIO(value)
+        cr = csv.DictWriter(st, self._columns,
+                        delimiter=self._delimiter,
+                        quotechar='"',
+                        quoting=csv.QUOTE_MINIMAL)
+        return next(cr)
 
 
 class PrepareFieldTypes(beam.DoFn):
@@ -115,7 +114,7 @@ class PrepareFieldTypes(beam.DoFn):
                     try:
                         v = self._tm.mktime(
                             self._tm.strptime(v, self._time_format))
-                    except (ValueError, TypeError), e:
+                    except (ValueError, TypeError) as e:
                         logging.warn('Cannot convert type %s for element %s: '
                                      '%s. Returning default value.' %
                                      (ftype, v, e))
@@ -125,7 +124,7 @@ class PrepareFieldTypes(beam.DoFn):
                     for fmt in (self._time_format):
                         try:
                             v = int(self._tm.mktime(self._tm.strptime(v, fmt)))
-                        except ValueError, e:
+                        except ValueError as e:
                             pass
                         else:
                             break
@@ -136,7 +135,7 @@ class PrepareFieldTypes(beam.DoFn):
                 else:
                     logging.warn('Unknown field type %s' % ftype)
                     v = self._return_default_value(ftype)
-            except (TypeError, ValueError), e:
+            except (TypeError, ValueError) as e:
                 logging.warn('Cannot convert type %s for element %s: '
                              '%s. Returning default value.' % (ftype, v, e))
                 v = self._return_default_value(ftype)
@@ -214,7 +213,7 @@ def run(argv=None):
 
         try:
             table = _fetch_table(table_name)
-        except InvalidArgument, e:
+        except InvalidArgument as e:
             raise SystemExit('Error getting information for table [%s]: %s' %
                              (table_name, e))
         if not table:
@@ -231,7 +230,7 @@ def run(argv=None):
 
         (p
          | 'Read From Text - ' + input_file >> beam.io.ReadFromText(
-             gs_path, coder=FileCoder(fields.keys()), skip_header_lines=1)
+             gs_path, coder=FileCoder(list(fields.keys())), skip_header_lines=1)
          | 'Prepare Field Types - ' + input_file >> beam.ParDo(
              PrepareFieldTypes(), fields)
          | 'Inject Timestamp - ' + input_file >> beam.ParDo(InjectTimestamp())
