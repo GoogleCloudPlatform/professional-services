@@ -50,7 +50,13 @@ gsutil cp ./professional-services/examples/dataproc-idle-check/*sh gs://<BUCKET>
 
 An example of starting a cluster while specifying a maximum idle time of 45 minutes:
 ```
-gcloud dataproc clusters create hive-cluster-1 --master-machine-type n1-standard-1 --worker-machine-type n1-standard-1 --scopes=https://www.googleapis.com/auth/cloud-platform --region=us-central1 --initialization-actions gs://<BUCKET>/create-idlemonitoringjob.sh --metadata 'script_storage_location=gs://<BUCKET>,key_process_list=python;sed,max-idle=45m,persist_diagnostic_tarball=TRUE'
+gcloud dataproc clusters create hive-cluster-1 \
+--region=us-central1
+--master-machine-type n1-standard-1 
+--worker-machine-type n1-standard-1 
+--scopes=https://www.googleapis.com/auth/cloud-platform
+--initialization-actions gs://<BUCKET>/create-idlemonitoringjob.sh
+--metadata 'script_storage_location=gs://<BUCKET>,key_process_list=python;sed,max-idle=45m,persist_diagnostic_tarball=TRUE'
 ```
 
 Once started, the monitor script will continuously check to determine if the cluster is idle. The scrip will also check the cluster status to ensure it is not in an error state (e.g, one or more initialization actions exited with a non zero result). If the cluster is in an error state or has idled for a time greater than the duration specified at cluster start, the script will delete the cluster and the associated project metadata.
