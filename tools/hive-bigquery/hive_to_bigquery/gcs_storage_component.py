@@ -20,7 +20,6 @@ import time
 from uuid import uuid4
 
 from google.api_core import exceptions as api_exceptions
-from google.api_core import client_info
 from google.auth import exceptions as auth_exceptions
 from google.cloud import storage
 
