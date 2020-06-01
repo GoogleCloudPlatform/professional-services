@@ -25,10 +25,10 @@ from google.api_core import exceptions
 from google.auth import exceptions as auth_exceptions
 from google.cloud import bigquery
 
-from . import client_info
-from . import custom_exceptions
-from gcp_service import GCPService
-from properties_reader import PropertiesReader
+from hive_to_bigquery import client_info
+from hive_to_bigquery import custom_exceptions
+from hive_to_bigquery.gcp_service import GCPService
+from hive_to_bigquery.properties_reader import PropertiesReader
 
 logger = logging.getLogger('Hive2BigQuery')
 

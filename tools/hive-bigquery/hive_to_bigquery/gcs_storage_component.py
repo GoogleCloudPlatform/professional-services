@@ -24,10 +24,10 @@ from google.api_core import client_info
 from google.auth import exceptions as auth_exceptions
 from google.cloud import storage
 
-import constants
-from . import custom_exceptions
-from utilities import calculate_time, execute_command
-from gcp_service import GCPService
+from hive_to_bigquery import client_info
+from hive_to_bigquery import custom_exceptions
+from hive_to_bigquery.utilities import calculate_time, execute_command
+from hive_to_bigquery.gcp_service import GCPService
 
 logger = logging.getLogger('Hive2BigQuery')
 
@@ -57,7 +57,7 @@ class GCSStorageComponent(GCPService):
 
         logger.debug("Getting GCS client")
         try:
-            info = client_info.ClientInfo(user_agent=constants.USER_AGENT)
+            info = client_info.get_http_client_info()
             client = storage.Client(project=self.project_id, client_info=info)
             return client
         except auth_exceptions.DefaultCredentialsError as error:

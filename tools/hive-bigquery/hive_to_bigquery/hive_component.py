@@ -25,9 +25,9 @@ from uuid import uuid4
 from pyhive import exc, hive
 from thrift.transport import TTransport
 
-from . import custom_exceptions
-from utilities import calculate_time
-from database_component import DatabaseComponent
+from hive_to_bigquery import custom_exceptions
+from hive_to_bigquery.utilities import calculate_time
+from hive_to_bigquery.database_component import DatabaseComponent
 
 logger = logging.getLogger('Hive2BigQuery')
 

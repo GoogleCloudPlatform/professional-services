@@ -12,9 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from unittest import mock
 
-def test_import():
-    """Check that there are no syntax errors at import time."""
-    import kms_component
+import google.cloud.kms_v1.types
+import pytest
 
-    assert kms_component is not None
+
+@pytest.fixture
+def module_under_test():
+    from hive_to_bigquery import kms_component
+
+    return kms_component
+
+
+def test_decrypt_symmetric_calls_kms(module_under_test, mock_kms_client):
+    mock_kms_client.decrypt.return_value = google.cloud.kms_v1.types.AsymmetricDecryptResponse(plaintext=b"some plain text")
+
+    plaintext = module_under_test.decrypt_symmetric(
+        "my-kms-project", "some-location", "a-key-ring", "this-crypto-key",
+        b"ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+    assert plaintext == b"some plain text"
+    mock_kms_client.assert_called_once_with(client_info=mock.ANY)

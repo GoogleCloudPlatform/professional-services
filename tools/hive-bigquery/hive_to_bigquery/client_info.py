@@ -12,14 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from google.api_core.gapic_v1 import client_info as gapic_client_info
 from google.api_core import client_info as http_client_info
 
 import hive_to_bigquery
 
 
-APPLICATION_NAME = "cloud-pso-hive-bigquery"
+APPLICATION_NAME = "google-pso-tool/hive-bigquery"
 USER_AGENT = "{}/{}".format(APPLICATION_NAME, hive_to_bigquery.__version__)
+
+
+def get_gapic_client_info():
+    return gapic_client_info.ClientInfo(user_agent=USER_AGENT)
 
 
 def get_http_client_info():
     return http_client_info.ClientInfo(user_agent=USER_AGENT)
+
