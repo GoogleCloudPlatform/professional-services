@@ -53,7 +53,7 @@ def main():
     client = datastore.Client()
 
     filename = args.schema_file
-    print('Processing file %s' % filename)
+    print(('Processing file %s' % filename))
     csvfile = open(filename, 'r')
     table = os.path.splitext(os.path.basename(filename))[0]
     filetext = csv.reader(csvfile, delimiter=',')
@@ -62,9 +62,9 @@ def main():
         fields[rows[0]] = rows[1]
     key = client.key('Table', table)
     entry = datastore.Entity(key, exclude_from_indexes=['columns'])
-    entry.update({"columns": unicode(json.dumps(fields), "utf-8")})
+    entry.update({"columns": str(json.dumps(fields), "utf-8")})
     client.put(entry)
-    print('Created/Updated entry for table %s.' % table)
+    print(('Created/Updated entry for table %s.' % table))
     print('Done.')
 
 

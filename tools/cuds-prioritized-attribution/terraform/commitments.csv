@@ -1,0 +1,2 @@
+id,folder_ids,project_ids,commitments_unit_type,commitments_cud_type,commitments_amount,commitments_region,commit_start_date,commit_end_date
+"""1""",null,"project-1, project-2",RAM,Regular Usage,100,us-west1,2017-01-01,2020-01-01

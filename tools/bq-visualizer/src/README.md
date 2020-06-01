@@ -2,7 +2,7 @@
 
 This tool allows the browsing of BigQuery jobs in a graphical fashion.
 
-## Key Features  
+## Key Features
 
 * ability to retrieve BigQuery Jobs straight out of google cloud
 * (alternatively) ability to upload a job file from your local mnachine
@@ -14,7 +14,7 @@ This tool allows the browsing of BigQuery jobs in a graphical fashion.
 * Version 0.1 : display tree, upload from file only]
 
 * Version 0.2 : May 2018, Display timeline
-* Version 0.3 : rewrite in Angular/Material Design 
+* Version 0.3 : rewrite in Angular/Material Design
 
 ## Further help
 

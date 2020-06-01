@@ -268,7 +268,7 @@ class DataGenerator(object):
 
     def enforce_joinable_keys(self, record, key_set=None):
         """
-        This function will accept key_set as a side input containing the set of 
+        This function will accept key_set as a side input containing the set of
         key values for the key_col in record.
         Args:
             record: (dict) A single generated record.
@@ -276,7 +276,7 @@ class DataGenerator(object):
             key_set: (apache_beam.pvalue.AsList) side input from the BigQuery
                 query against the fact table.
         Returns:
-            record (dict) The record mutated to have keys in key_col that join 
+            record (dict) The record mutated to have keys in key_col that join
                 to the fact table.
         """
         record[self.dest_joining_key_col] = np.random.choice(key_set)
@@ -567,7 +567,7 @@ class FakeRowGen(beam.DoFn):
         PCollection.
 
         Args:
-            element: A single element of the PCollection 
+            element: A single element of the PCollection
         """
 
         faker_schema = self.data_gen.get_faker_schema()

@@ -10,7 +10,7 @@ The Selection Bar allows the user to filter the data in the report to a specific
 ![Selection Bar](../images/query_jobs/Image1.png)
 
 ### No. of Queries (this week vs. last week) - per day of the week
-The graph displays the total number of queries run per day of the week for the current week, also displaying a contrast with the same data for the previous week. 
+The graph displays the total number of queries run per day of the week for the current week, also displaying a contrast with the same data for the previous week.
 
 ![No. of Queries (this week vs. last week) - per day of the week](../images/query_jobs/Image2.png)
 

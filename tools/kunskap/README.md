@@ -1,16 +1,16 @@
 <h2>Introduction</h2>
 
-The purpose of this project is to demonstrate how to automate the process of viewing [Committed Use Discount (CUD)](https://cloud.google.com/compute/docs/instances/signing-up-committed-use-discounts) and [Sustained Use Discount (SUD)](https://cloud.google.com/compute/docs/sustained-use-discounts) charges in GCP on a 
-per-project basis in a BigQuery table. This helps to accurately view project cost, since currently when exporting billing 
+The purpose of this project is to demonstrate how to automate the process of viewing [Committed Use Discount (CUD)](https://cloud.google.com/compute/docs/instances/signing-up-committed-use-discounts) and [Sustained Use Discount (SUD)](https://cloud.google.com/compute/docs/sustained-use-discounts) charges in GCP on a
+per-project basis in a BigQuery table. This helps to accurately view project cost, since currently when exporting billing
 data, it does not correctly attribute CUD/SUD commitment charges.
 <br></br>
-Currently, this data can be viewed by running a query in BigQuery on exported billing data and generating a new table with 
+Currently, this data can be viewed by running a query in BigQuery on exported billing data and generating a new table with
 this transformed data. This example demonstrates how to automate this process to avoid manually executing the query.
 <br></br>
-In this example, a user can leverage Cloud Scheduler to schedule the recurring transformation query as a cron job which repeats every few hours. 
-Next, the Cloud Scheduler job then publishes a message to a PubSub topic on execution time. A Cloud Function that is 
-configured as a subscriber to this topic is then triggered by the PubSub message. The Cloud Function then calls a Python 
-script, which performs the transformation query on the billing table and generates the new table with the CUD/SUD commitment 
+In this example, a user can leverage Cloud Scheduler to schedule the recurring transformation query as a cron job which repeats every few hours.
+Next, the Cloud Scheduler job then publishes a message to a PubSub topic on execution time. A Cloud Function that is
+configured as a subscriber to this topic is then triggered by the PubSub message. The Cloud Function then calls a Python
+script, which performs the transformation query on the billing table and generates the new table with the CUD/SUD commitment
 charges.
 <br></br>
 The solution adjusts each project's cost by generating new line items in the output table, each of which represent a new SKU for reattribution. The purpose of this SKU is to amend the incorrect original per-project cost. The SKUs that are prefixed with "Reattribution_Negation_" subtract out the incorrect cost from the original billing table. The SKUs prefixed with "Reattribution_Addition_" then add in the newly generated correctly proportioned cost. These SKUs are generated for both CUD and SUD costs/credits.
@@ -69,7 +69,7 @@ gcloud iam service-accounts list
 ````
 The output should display an email in the form of [PROJECT_ID]@appspot.gserviceaccount.com. Copy this email for the next step.
 
-2. In the BigQuery UI, hover over the plus icon for your <b>billing</b> dataset. 
+2. In the BigQuery UI, hover over the plus icon for your <b>billing</b> dataset.
 
 3. Click "Share Dataset"
 
@@ -141,7 +141,7 @@ where [FUNCTION_NAME] is the name that you want to give the function and [TOPIC_
 ````
 gcloud scheduler jobs create pubsub [JOB] --schedule [SCHEDULE] --topic [TOPIC_NAME] --message-body [MESSAGE_BODY]
 ````
-where [JOB] is a unique name for a job, [SCHEDULE] is the frequency for the job in UNIX cron, such as "0 */12 * * *" to run every 12hours, [TOPIC_NAME] is the name of the topic created in the step above when you deployed the Cloud Function, and [MESSAGE_BODY] is any string. An example command would be: 
+where [JOB] is a unique name for a job, [SCHEDULE] is the frequency for the job in UNIX cron, such as "0 */12 * * *" to run every 12hours, [TOPIC_NAME] is the name of the topic created in the step above when you deployed the Cloud Function, and [MESSAGE_BODY] is any string. An example command would be:
 ````
 gcloud scheduler jobs create pubsub daily_job --schedule "0 */12 * * *" --topic cron-topic --message-body "bi-daily job"
 ````

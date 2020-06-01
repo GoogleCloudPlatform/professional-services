@@ -3,7 +3,7 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: >
   Create and attach VPN Gateway to VPC
 
-Metadata: 
+Metadata:
   License: >
     Copyright 2017 Google Inc.
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,40 +18,40 @@ Metadata:
     See the License for the specific language governing permissions and
     limitations under the License.
 
-Parameters: 
-  VpcId: 
+Parameters:
+  VpcId:
     Type: "AWS::EC2::VPC::Id"
     Description: VpcId that VPNGateway is attached
-  
+
   RouteTableIds:
     Type: CommaDelimitedList
     Description: Propegate Routes to the following tables
 
 Resources:
-  VpnGw: 
+  VpnGw:
     Type: "AWS::EC2::VPNGateway"
-    Properties: 
+    Properties:
       Type: ipsec.1
       Tags:
-        - 
+        -
           Key: Name
-          Value: !Ref "AWS::StackName" 
+          Value: !Ref "AWS::StackName"
 
-  VpnAttach: 
+  VpnAttach:
     Type: "AWS::EC2::VPCGatewayAttachment"
-    Properties: 
-      VpcId: 
+    Properties:
+      VpcId:
         !Ref VpcId
-      VpnGatewayId: 
+      VpnGatewayId:
         !Ref VpnGw
 
   VpnRoutePropagate:
     DependsOn:
       - VpnAttach
     Type: "AWS::EC2::VPNGatewayRoutePropagation"
-    Properties: 
-      RouteTableIds: 
-        !Ref RouteTableIds 
+    Properties:
+      RouteTableIds:
+        !Ref RouteTableIds
       VpnGatewayId:
         !Ref VpnGw
 

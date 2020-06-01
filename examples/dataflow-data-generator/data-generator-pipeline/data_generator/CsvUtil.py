@@ -19,12 +19,12 @@ from contextlib import closing
 
 def dict_to_csv(input_dict, output_order=[]):
     """
-    This funciton converts a python dictionary to a 
-    CSV line. 
-    Note keys in output schema that are missing in the 
-    dictionary or that contains commas will result in 
+    This funciton converts a python dictionary to a
+    CSV line.
+    Note keys in output schema that are missing in the
+    dictionary or that contains commas will result in
     empty values.
-    
+
     Arguments:
         dictionary: (dict) A dictionary containing the data of interest.
         output_order: (list of strings) The order of field names to write to CSV.

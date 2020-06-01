@@ -1,0 +1,36 @@
+{
+  "type": "record",
+  "name": "AvroFile",
+  "fields" : [
+    {"name": "project_id", "type": "string"},
+	  {"name": "bucket", "type": "string"},
+	  {"name": "name", "type": "string"},
+	  {"name": "content_type", "type": "string"},
+    {"name": "content_language", "type": "string"},
+    {"name": "cache_control", "type": "string"},
+    {"name": "event_based_hold", "type": "boolean"},
+    {"name": "temporary_hold", "type": "boolean"},
+    {"name": "retention_expiration_time", "type": "long", "logicalType": "timestamp-millis"},
+    {"name": "acl", "type": {
+      "type": "array", "items" : {"type": "map", "values": "string"} 
+      }
+    },
+    {"name": "predefined_acl", "type": "string"},
+    {"name": "owner", "type": "string"},
+    {"name": "size", "type": "long"},
+    {"name": "content_encoding", "type": "string"},
+    {"name": "content_disposition", "type": "string"},
+    {"name": "md5", "type": "string"},
+    {"name": "crc32c", "type": "int"},
+    {"name": "media_link", "type": "string"},
+    {"name": "generation", "type": "long"},
+    {"name": "metageneration", "type": "long"},
+    {"name": "storage_class", "type": "string"},
+    {"name": "created", "type": ["null", "long"], "logicalType": "timestamp-millis"},
+    {"name": "deleted", "type": ["null", "long"], "logicalType": "timestamp-millis"},
+    {"name": "updated", "type": ["null", "long"], "logicalType": "timestamp-millis"},
+    {"name": "customer_key_sha256", "type": "string"},
+    {"name": "kms_key_name", "type": "string"},
+    {"name": "etag", "type": "string"}
+  ]
+}

@@ -27,9 +27,9 @@ export TF_VAR_region=${REGION}
 export TF_VAR_network_name=${NETWORK_NAME}
 export TF_VAR_dataproc_cluster=${DATAPROC_CLUSTER_NAME}
 export TF_VAR_dataproc_subnet=${DATAPROC_SUBNET}
-export TF_VAR_hadoop_version=${HADOOP_VERSION} 
+export TF_VAR_hadoop_version=${HADOOP_VERSION}
 
-echo "Cloning https://github.com/GoogleCloudDataproc/hadoop-connectors" 
+echo "Cloning https://github.com/GoogleCloudDataproc/hadoop-connectors"
 git clone https://github.com/GoogleCloudDataproc/hadoop-connectors
 
 cd hadoop-connectors || exit
@@ -38,15 +38,15 @@ echo "Building JAR file"
 if [[ $HADOOP_VERSION == *"hadoop2"* ]]
 then
   if ! ./mvnw -P hadoop2 clean package
-  then 
-    echo 'Error building JAR file from https://github.com/GoogleCloudDataproc/hadoop-connectors'; 
+  then
+    echo 'Error building JAR file from https://github.com/GoogleCloudDataproc/hadoop-connectors';
     exit
   fi
 elif [[ $HADOOP_VERSION == *"hadoop3"* ]]
 then
   if ! ./mvnw -P hadoop3 clean package
   then
-    echo 'Error building JAR file from https://github.com/GoogleCloudDataproc/hadoop-connectors'; 
+    echo 'Error building JAR file from https://github.com/GoogleCloudDataproc/hadoop-connectors';
     exit
   fi
 else
@@ -56,11 +56,11 @@ fi
 cd ..
 
 echo "Running Terraform to build Dataproc cluster"
-cd terraform || exit
-terraform init
-terraform apply -auto-approve
-
-cd .. 
+(
+  cd terraform || exit
+  terraform init
+  terraform apply -auto-approve
+)
 
 echo "Running test script on Dataproc cluster"
 chmod u+x test_gcs_connector.sh

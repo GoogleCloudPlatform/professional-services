@@ -13,7 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
- 
+
 usage() {
   echo "Usage $0 INPUT_TABLE_NAME OUTPUT_TABLE_NAME"
   echo
@@ -25,7 +25,7 @@ then
   usage
   exit 0
 fi
-   
+
 
 if [ $# -lt 2 ]
 then
@@ -36,12 +36,12 @@ fi
 INPUT_TABLE=$1
 OUTPUT_TABLE=$2
 
-echo Creating table $OUTPUT_TABLE
-cbt createtable $OUTPUT_TABLE
+echo Creating table "$OUTPUT_TABLE"
+cbt createtable "$OUTPUT_TABLE"
 
-cbt ls $INPUT_TABLE | tail -n+3 | while read line
+cbt ls "$INPUT_TABLE" | tail -n+3 | while read -r line
 do
-  FAMILY=`echo $line | cut -d " " -f 1`
-  echo Adding column family $FAMILY
-  cbt createfamily $OUTPUT_TABLE $FAMILY
+  FAMILY=$( echo "$line" | cut -f 1 )
+  echo Adding column family "$FAMILY"
+  cbt createfamily "$OUTPUT_TABLE" "$FAMILY"
 done

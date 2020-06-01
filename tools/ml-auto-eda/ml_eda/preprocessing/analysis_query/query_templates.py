@@ -63,7 +63,7 @@ VALUE_COUNTS_TEMPLATE = """
         {column_name}
     ORDER BY
         frequency DESC
-    LIMIT {limit} 
+    LIMIT {limit}
 """
 
 # template to compute correlation of numerical attributes
@@ -151,7 +151,7 @@ ORDER BY
 """
 
 HISTOGRAM_WHEN_TEMPLATE = """
-    WHEN {column_name} >= {lower_threshold} AND {column_name} < {upper_threshold} 
+    WHEN {column_name} >= {lower_threshold} AND {column_name} < {upper_threshold}
         THEN CONCAT('[', CAST({lower_threshold} AS String), ', ', CAST({upper_threshold} AS String), ')')
 """
 

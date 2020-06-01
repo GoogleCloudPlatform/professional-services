@@ -58,7 +58,7 @@
   </properties>
 
   <dependencies>
-    
+
     <!-- Beam -->
     <dependency>
       <groupId>org.apache.beam</groupId>

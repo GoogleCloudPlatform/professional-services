@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-""" data_lake_to_mart.py demonstrates a Dataflow pipeline which reads a 
-large BigQuery Table, joins in another dataset, and writes its contents to a 
-BigQuery table.  
+""" data_lake_to_mart.py demonstrates a Dataflow pipeline which reads a
+large BigQuery Table, joins in another dataset, and writes its contents to a
+BigQuery table.
 """
 
-from __future__ import absolute_import
+
 import argparse
 import logging
 import os
@@ -29,9 +29,9 @@ from apache_beam.options.pipeline_options import PipelineOptions
 
 
 class DataLakeToDataMartCGBK:
-    """A helper class which contains the logic to translate the file into 
+    """A helper class which contains the logic to translate the file into
     a format BigQuery will accept.
-    
+
     This example uses CoGroupByKey to join two datasets together.
     """
 
@@ -47,8 +47,8 @@ class DataLakeToDataMartCGBK:
             self.schema_str = '{"fields": ' + data + '}'
 
     def get_orders_query(self):
-        """This returns a query against a very large fact table.  We are 
-        using a fake orders dataset to simulate a fact table in a typical 
+        """This returns a query against a very large fact table.  We are
+        using a fake orders dataset to simulate a fact table in a typical
         data warehouse."""
         orders_query = """SELECT
             acct_number,
@@ -202,12 +202,13 @@ class DataLakeToDataMartCGBK:
         FROM
             `python-dataflow-example.example_data.orders` orders
         LIMIT
-            10  
+            10
         """
         return orders_query
 
-    def add_account_details(self, (acct_number, data)):
+    def add_account_details(self, xxx_todo_changeme):
         """This function performs the join of the two datasets."""
+        (acct_number, data) = xxx_todo_changeme
         result = list(data['orders'])
         if not data['account_details']:
             logging.info('account details are empty')

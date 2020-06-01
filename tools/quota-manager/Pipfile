@@ -1,0 +1,16 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+autopep8 = "*"
+
+[packages]
+google-api-python-client = "~=1.8"
+google-auth-oauthlib = "~=0.4"
+google-auth = "~=1.11"
+yapf = ">=0.29"
+
+[requires]
+python_version = "3.7"

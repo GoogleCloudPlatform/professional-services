@@ -1,7 +1,7 @@
-# Kubeflow Fairing Examples 
-`Kubeflow Fairing` is a Python package that streamlines the process of building, training, and deploying machine learning 
-(ML) models in a hybrid cloud environment. By using Kubeflow Fairing and adding a few lines of code, you can run your ML 
-training job locally or in the cloud, directly from Python code or a Jupyter notebook. After your training job is 
+# Kubeflow Fairing Examples
+`Kubeflow Fairing` is a Python package that streamlines the process of building, training, and deploying machine learning
+(ML) models in a hybrid cloud environment. By using Kubeflow Fairing and adding a few lines of code, you can run your ML
+training job locally or in the cloud, directly from Python code or a Jupyter notebook. After your training job is
 complete, you can use Kubeflow Fairing to deploy your trained model as a prediction endpoint.
 
 In the repo, we provided three notebooks to demonstrate the usage of Kubeflow Faring:
@@ -10,25 +10,25 @@ In the repo, we provided three notebooks to demonstrate the usage of Kubeflow Fa
     * Train an XGBoost model remotely on Kubeflow cluster, with Kubeflow Fairing
     * Train an XGBoost model remotely on AI Platform training, with Kubeflow Fairing
     * Deploy a trained model to Kubeflow, and call the deployed endpoint for predictions, with Kubeflow Fairing
-    
+
 - Fairing_Tensorflow_Keras: this notebook demonstrate how to
     * Train an Keras model in a local notebook,
     * Train an Keras model remotely on Kubeflow cluster (distributed), with Kubeflow Fairing
     * Train an Keras model remotely on AI Platform training, with Kubeflow Fairing
     * Deploy a trained model to Kubeflow, with Kubeflow Fairing
- 
-- Fairing_Py_File: this notebook introduces you to using Kubeflow Fairing to train the model, which is developed 
+
+- Fairing_Py_File: this notebook introduces you to using Kubeflow Fairing to train the model, which is developed
 using tensorflow or keras and enclosed in python files
     * Train an Tensorflow model remotely on Kubeflow cluster (distributed), with Kubeflow Fairing
     * Train an Tensorflow model remotely on AI Platform training, with Kubeflow Fairing
 
-**Note that Kubeflow Fairing doesn't require kubeflow cluster as pre-requisite. 
+**Note that Kubeflow Fairing doesn't require kubeflow cluster as pre-requisite.
 Kubeflow Fairing + AI platform is a valid combination**
 
 ## Setups:
 ### Prerequisites
-Before you follow the instructions below to deploy your own kubeflow cluster, 
-you need a Google cloud project if you don't have one. You can find detailed instructions 
+Before you follow the instructions below to deploy your own kubeflow cluster,
+you need a Google cloud project if you don't have one. You can find detailed instructions
 [here](https://cloud.google.com/dataproc/docs/guides/setup-project).
 
 - Make sure the following API & Services are enabled.
@@ -44,15 +44,15 @@ you need a Google cloud project if you don't have one. You can find detailed ins
   ```bash
   $ export PROJECT_ID=[your-google-project-id]
   $ export GCP_BUCKET=[your-google-cloud-storage-bucket-name]
-  $ export DEPLOYMENT_NAME=[your-deployment-name]  
+  $ export DEPLOYMENT_NAME=[your-deployment-name]
   ```
-  
+
 - Deploy Kubeflow Cluster on GCP.
 The running of training and serving jobs on kubeflow will require a kubeflow deployment. Please refer the link
 [here](https://www.kubeflow.org/docs/gke/deploy/) to set up your Kubeflow deployment in your environment.
 
 ### Setup Environment
-Please refer the link [here](https://www.kubeflow.org/docs/fairing/gcp-local-notebook/) to properly 
+Please refer the link [here](https://www.kubeflow.org/docs/fairing/gcp-local-notebook/) to properly
 setup the environments. The key steps are summarized as follows
 - Create service account
     ```bash
@@ -87,17 +87,17 @@ setup the environments. The key steps are summarized as follows
     pip install git+https://github.com/kubeflow/fairing@master
     ```
 ### Running Notebook
-Please not that the above configuration is required for notebook service running outside Kubeflow environment. 
-And the examples demonstrated are fully tested on notebook service outside Kubeflow cluster also, which 
+Please not that the above configuration is required for notebook service running outside Kubeflow environment.
+And the examples demonstrated are fully tested on notebook service outside Kubeflow cluster also, which
 means it could be
 - Notebook running on your personal computer
 - Notebook on AI Platform, Google Cloud Platform
 - Essentially notebook on any environment outside Kubeflow cluster
- 
-For notebook running inside Kubeflow cluster, for example JupytHub will be deployed together with kubeflow, the 
-environemt variables, e.g. service account, projects and etc, should have been pre-configured while 
+
+For notebook running inside Kubeflow cluster, for example JupytHub will be deployed together with kubeflow, the
+environemt variables, e.g. service account, projects and etc, should have been pre-configured while
 setting up the cluster. The fairing package will also be pre-installed together with the deployment. **The only thing
-need to be aware is that docker is usually not installed, which would require `cluster` as the builder option as 
+need to be aware is that docker is usually not installed, which would require `cluster` as the builder option as
 explained in the following section**
 
 ## Concepts of Kubeflow Fairing

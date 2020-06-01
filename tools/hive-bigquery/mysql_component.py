@@ -236,37 +236,37 @@ class MySQLComponent(DatabaseComponent):
         if hive_table_model.is_inc_col_present:
 
             query = """CREATE TABLE IF NOT EXISTS {} (
-                id INT COMMENT 'Integer counter to identify the migration run 
+                id INT COMMENT 'Integer counter to identify the migration run
                 in which a data file has been detected',
                 table_name VARCHAR(255) COMMENT 'Hive stage table name',
-                inc_col_min VARCHAR(255) COMMENT 'Minimum value of the 
+                inc_col_min VARCHAR(255) COMMENT 'Minimum value of the
                 incremental column',
-                inc_col_max VARCHAR(255) COMMENT 'Maximum value of the 
+                inc_col_max VARCHAR(255) COMMENT 'Maximum value of the
                 incremental column',
-                clause VARCHAR(255) COMMENT 'Clause used while loading data 
+                clause VARCHAR(255) COMMENT 'Clause used while loading data
                 into staging table',
                 file_path VARCHAR(255) COMMENT 'HDFS file path',
-                gcs_copy_status VARCHAR(10) COMMENT 'Status of Hadoop distcp 
+                gcs_copy_status VARCHAR(10) COMMENT 'Status of Hadoop distcp
                 operation to copy the file to GCS',
-                gcs_file_path VARCHAR(255) COMMENT 'Path of the file copied 
+                gcs_file_path VARCHAR(255) COMMENT 'Path of the file copied
                 into GCS',
                 bq_job_id VARCHAR(255) COMMENT 'BigQuery load job ID',
-                bq_job_retries TINYINT COMMENT 'Number of retries of BigQuery 
+                bq_job_retries TINYINT COMMENT 'Number of retries of BigQuery
                 load job',
                 bq_job_status VARCHAR(10) COMMENT 'Status of BigQuery load job'
                 )""".format(hive_table_model.tracking_table_name)
         else:
             query = """CREATE TABLE IF NOT EXISTS {} (
                 table_name VARCHAR(255) COMMENT 'Hive stage table name',
-                clause VARCHAR(255) COMMENT 'Clause used while loading data 
+                clause VARCHAR(255) COMMENT 'Clause used while loading data
                 into staging table',
                 file_path VARCHAR(255) COMMENT 'HDFS file path',
-                gcs_copy_status VARCHAR(10) COMMENT 'Status of Hadoop distcp 
+                gcs_copy_status VARCHAR(10) COMMENT 'Status of Hadoop distcp
                 operation to copy the file to GCS',
-                gcs_file_path VARCHAR(255) COMMENT 'Path of the file copied 
+                gcs_file_path VARCHAR(255) COMMENT 'Path of the file copied
                 into GCS',
                 bq_job_id VARCHAR(255) COMMENT 'BigQuery load job ID',
-                bq_job_retries TINYINT COMMENT 'Number of retries of BigQuery 
+                bq_job_retries TINYINT COMMENT 'Number of retries of BigQuery
                 load job',
                 bq_job_status VARCHAR(10) COMMENT 'Status of BigQuery load job'
                 )""".format(hive_table_model.tracking_table_name)

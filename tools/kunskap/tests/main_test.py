@@ -57,7 +57,7 @@ class TestMain(unittest.TestCase):
         bq_client = bigquery.Client()
         job_config = bigquery.QueryJobConfig()
         usage_query = """
-            SELECT COUNT(DISTINCT(DATE(usage_start_time))) AS cnt 
+            SELECT COUNT(DISTINCT(DATE(usage_start_time))) AS cnt
             FROM `{billing_project_id}.{output_dataset_id}.{output_table_name}`
             """
         usage_query = usage_query.format(**config.config_vars)
@@ -66,7 +66,7 @@ class TestMain(unittest.TestCase):
             output_result = row.cnt
 
         partition_query = """
-            SELECT COUNT(DISTINCT(partition_id)) AS cnt 
+            SELECT COUNT(DISTINCT(partition_id)) AS cnt
             FROM [{billing_project_id}.{output_dataset_id}.{output_table_name}$__PARTITIONS_SUMMARY__]
             """
         partition_query = partition_query.format(**config.config_vars)

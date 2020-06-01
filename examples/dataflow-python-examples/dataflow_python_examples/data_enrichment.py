@@ -15,14 +15,15 @@
 """ data_enrichment.py demonstrates a Dataflow pipeline which reads a file and
  writes its contents to a BigQuery table.  Along the way, data from BigQuery
  is read in as a side input and joined in with the primary data from the file.
- 
+
 """
 
-from __future__ import absolute_import
+
 import argparse
 import csv
 import logging
 import os
+import sys
 
 import apache_beam as beam
 from apache_beam.io.gcp import bigquery
@@ -49,16 +50,16 @@ class DataIngestion(object):
     def parse_method(self, string_input):
         """This method translates a single line of comma separated values to a
     dictionary which can be loaded into BigQuery.
-        
+
         Args:
-            string_input: A comma separated list of values in the form of 
+            string_input: A comma separated list of values in the form of
             state_abbreviation,gender,year,name,count_of_babies,dataset_created_date
                 example string_input: KS,F,1923,Dorothy,654,11/28/2016
-        
+
         Returns:
             A dict mapping BigQuery column names as keys to the corresponding value
-            parsed from string_input.  In this example, the data is not transformed, and 
-            remains in the same format as the CSV.  There are no date format transformations. 
+            parsed from string_input.  In this example, the data is not transformed, and
+            remains in the same format as the CSV.  There are no date format transformations.
 
                 example output:
                       {'state': 'KS',
@@ -84,8 +85,8 @@ class DataIngestion(object):
                 values = csv_row
             # Our source data only contains year, so default January 1st as the
             # month and day.
-            month = u'01'
-            day = u'01'
+            month = '01'
+            day = '01'
             # The year comes from our source data.
             year = values[2]
             row = {}
@@ -98,7 +99,7 @@ class DataIngestion(object):
                 if field_map[i].type == 'DATE':
                     # Format the date to YYYY-MM-DD format which BigQuery
                     # accepts.
-                    value = u'-'.join((year, month, day))
+                    value = '-'.join((year, month, day))
 
                 row[field_map[i].name] = value
                 i += 1

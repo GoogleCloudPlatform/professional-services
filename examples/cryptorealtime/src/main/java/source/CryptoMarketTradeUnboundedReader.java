@@ -125,7 +125,7 @@ public class CryptoMarketTradeUnboundedReader extends UnboundedSource.UnboundedR
         // signal next batch
         return advance();
     }
-    
+
     /**
      * Advances the reader to the next valid record.
      * Returns true if a record was read, false if there is no more input available. Future calls to advance() may return true once more data is available.
