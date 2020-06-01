@@ -20,7 +20,7 @@ import logging
 import re
 from google.api_core import exceptions
 
-import custom_exceptions
+from hive_to_bigquery import custom_exceptions
 
 TIME_FORMAT = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S_%f")
 LOG_FILE_NAME = "hive_bq_migration_{}.log".format(TIME_FORMAT)
