@@ -19,7 +19,7 @@ import os
 from collections import OrderedDict
 from uuid import uuid4
 
-from properties_reader import PropertiesReader
+from hive_to_bigquery.properties_reader import PropertiesReader
 
 logger = logging.getLogger('Hive2BigQuery')
 

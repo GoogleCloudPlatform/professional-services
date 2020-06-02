@@ -17,7 +17,6 @@
 ./tools/gcs-bucket-mover
 ./tools/gcs-usage-recommender
 ./tools/gsuite-exporter
-./tools/hive-bigquery
 ./tools/kunskap
 ./tools/labelmaker
 ./tools/maven-archetype-dataflow

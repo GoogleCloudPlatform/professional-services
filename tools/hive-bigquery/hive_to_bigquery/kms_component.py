@@ -15,13 +15,16 @@
 
 from google.cloud import kms_v1
 
+from hive_to_bigquery import client_info
+
 
 def decrypt_symmetric(project_id, location_id, key_ring_id, crypto_key_id,
                       ciphertext):
     """Decrypts input ciphertext using the provided symmetric CryptoKey."""
 
     # Creates an API client for the KMS API.
-    kms_client = kms_v1.KeyManagementServiceClient()
+    info = client_info.get_gapic_client_info()
+    kms_client = kms_v1.KeyManagementServiceClient(client_info=info)
 
     # The resource name of the CryptoKey.
     name = kms_client.crypto_key_path_path(project_id, location_id,

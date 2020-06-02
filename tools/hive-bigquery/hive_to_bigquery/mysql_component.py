@@ -17,9 +17,9 @@ import logging
 
 import pymysql
 
-import custom_exceptions
-from database_component import DatabaseComponent
-from properties_reader import PropertiesReader
+from hive_to_bigquery import custom_exceptions
+from hive_to_bigquery.database_component import DatabaseComponent
+from hive_to_bigquery.properties_reader import PropertiesReader
 
 logger = logging.getLogger('Hive2BigQuery')
 
