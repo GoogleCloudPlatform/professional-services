@@ -51,11 +51,11 @@ gsutil cp ./professional-services/examples/dataproc-idle-check/*sh gs://<BUCKET>
 An example of starting a cluster while specifying a maximum idle time of 45 minutes:
 ```
 gcloud dataproc clusters create hive-cluster-1 \
---region=us-central1
---master-machine-type n1-standard-1 
---worker-machine-type n1-standard-1 
---scopes=https://www.googleapis.com/auth/cloud-platform
---initialization-actions gs://<BUCKET>/create-idlemonitoringjob.sh
+--region=us-central1 \
+--master-machine-type n1-standard-1 \
+--worker-machine-type n1-standard-1 \
+--scopes=https://www.googleapis.com/auth/cloud-platform \
+--initialization-actions gs://<BUCKET>/create-idlemonitoringjob.sh \
 --metadata 'script_storage_location=gs://<BUCKET>,key_process_list=python;sed,max-idle=45m,persist_diagnostic_tarball=TRUE'
 ```
 
@@ -66,9 +66,9 @@ Once started, the monitor script will continuously check to determine if the clu
 The monitor script will continously log all idle checks and shutdown events via Stackdriver logging to a file called "idle-check-log". These log messages can be viewed in the Google Cloud Platform console under Logging->LogsViewer section by applying filters: "global" for resource type and "idle-check-log" for log name.
 ```
 resource.type="global"
-logName="projects/prathap-poc/logs/idle-check-log"
+logName="projects/[PROJECT_NAME]/logs/idle-check-log"
 ```
-Alternatively `gcloud logging read projects/prathap-poc/logs/idle-check-log` command can also be used
+Alternatively `gcloud logging read projects/[PROJECT_NAME]/logs/idle-check-log` command can also be used
 
 ## Open Issues & Roadmap
 In the future, we hope to add support for other analytical engines and/or processes. Presto, MySQL shell running DML/DDL, and Flink are just a few examples. Feel free to create an issue within the repo with any request and/or submit a pull request with added functionality!
