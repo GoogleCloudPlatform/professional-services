@@ -817,12 +817,12 @@ def _execute_sts_job(sts_client, target_project, source_bucket_name,
         'projectId': target_project,
         'schedule': {
             'scheduleStartDate': {
-                'day': now.day - 1,
+                'day': now.day,
                 'month': now.month,
                 'year': now.year
             },
             'scheduleEndDate': {
-                'day': now.day - 1,
+                'day': now.day,
                 'month': now.month,
                 'year': now.year
             }
