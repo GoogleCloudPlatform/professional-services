@@ -74,7 +74,7 @@ class ListPayloadFactory(PayloadFactory):
   
   # NOTE: This does not handle the case where a single line is longer than max_size
   def extend_running_payload(self, data):
-    if len(self._current) + len(data) > self.max_size:
+    if len(self._current) == self.max_size:
       self.payloads.append(self._current)
       self._current = []
     else:
@@ -82,7 +82,7 @@ class ListPayloadFactory(PayloadFactory):
 
 
 class StatefulBufferingFn(beam.DoFn):
-  MAX_BUFFER_SIZE = 500 # 500 lines
+  MAX_BUFFER_SIZE = 1000 # 500 lines
   BUFFER_STATE = BagStateSpec('buffer', TupleCoder((StrUtf8Coder(), StrUtf8Coder())))
   COUNT_STATE = CombiningValueStateSpec('count', VarIntCoder(), CountCombineFn())
   EXPIRY_TIMER = TimerSpec('expiry', TimeDomain.WATERMARK)
