@@ -9,11 +9,14 @@ TEMPLATE_IMAGE := gcr.io/$(PROJECT)/hashpipeline:latest
 TEMPLATE_PATH := gs://$(BUCKET)/Template/hashpipeline
 FLEX_TEMPLATE_PATH := gs://$(BUCKET)/Template/hashpipeline-flex.json
 
-run_local:
+pip:	
 	pip install -r requirements.txt
 	pip install apache-beam[gcp]
-	python hashpipeline.py \
+
+run_local:
+	python main.py \
 		--runner DirectRunner \
+		--setup_file setup.py \
 		--input_subscription $(INPUT_SUB) \
 		--output_topic $(OUTPUT_TOPIC) \
 		--firestore_project $(PROJECT) \
@@ -41,8 +44,8 @@ deploy:
 # Build using the standard template mechanism where parameters are hard-coded
 # into the graph and cannot be changed between executions.
 build_standard:
-	python hashpipeline.py \
-		--requirements_file requirements.txt \
+	python main.py \
+		--setup_file ./setup.py \
 		--input_subscription $(INPUT_SUB) \
 		--output_topic $(OUTPUT_TOPIC) \
 		--firestore_project $(PROJECT) \
