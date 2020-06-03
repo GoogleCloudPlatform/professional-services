@@ -19,19 +19,19 @@ from __future__ import absolute_import
 import logging
 import sys
 import json
+import re
 from argparse import ArgumentTypeError
 
 import apache_beam as beam
-from apache_beam.transforms.window import FixedWindows
+from apache_beam.transforms.window import Sessions
 from apache_beam.io import ReadFromPubSub
 from apache_beam.io import WriteToPubSub
 from apache_beam.options.pipeline_options import StandardOptions
 from apache_beam.options.pipeline_options import PipelineOptions
-
 # NOTE: In the latest versions of Beam for Python there are several issues
-# wth saving the main session that cause bugs in dataflow, so instead of
+# with saving the main session that cause bugs in dataflow, so instead of
 # requiring at the top of the file, we do so inside the DoFns and PTransforms
-# See: BEAM-10150 for more
+# See: BEAM-10150
 
 class HashPipelineOptions(PipelineOptions):
   @classmethod
@@ -51,8 +51,7 @@ class HashPipelineOptions(PipelineOptions):
 
   @classmethod
   def valid_secret(cls, secret):
-    parts = secret.split('/')
-    if len(parts) != 4 or parts[0] != 'projects' or parts[2] != 'secrets':
+    if not re.match(r'^projects\/.+?\/secrets/.+?$', secret):
       raise ArgumentTypeError("Secret Name must be of format: projects/<PROJECT>/secrets/<SECRET_NAME>")
     return secret
 
@@ -61,6 +60,15 @@ def run(argv):
   opts = HashPipelineOptions()
   std_opts = opts.view_as(StandardOptions)
   std_opts.streaming = True 
+
+  def counts_by_hash(iterable, *args, **kwargs):
+    result = {}
+    for h in iterable:
+      if h in result:
+        result[h] +=1
+      else:
+        result[h] = 1
+    return json.dumps(result)
 
   def fmt(elem):
     filename, counts = elem
@@ -71,14 +79,47 @@ def run(argv):
     (p | 'Read filename from Pubsub' >> ReadFromPubSub(None, opts.input_subscription)
        | 'Decode from UTF-8' >> beam.Map(lambda elem: elem.decode('utf-8'))
        | 'Read filename and lines from file' >> ReadAllFromTextWithFilename()
+       | 'Buffer before DLP API' >> beam.ParDo(StatefulBufferingFn())
        | 'Get DLP Findings' >> beam.ParDo(DlpFindingDoFn(opts.firestore_project, std_opts.runner))
        | 'Determine if client SSN' >> beam.ParDo(ExistingSSNsDoFn(
           opts.firestore_project, opts.salt, opts.secret_name, opts.collection_name, std_opts.runner))
-       | 'Apply windowing' >> beam.WindowInto(FixedWindows(5))
-       | 'Group by Filename' >> beam.GroupByKey()
-       | 'Count SSNs by Filename' >> beam.Map(lambda elem : (elem[0], sum(elem[1])))
+       | 'Apply windowing' >> beam.WindowInto(Sessions(10))
+       | 'Group by Filename' >> beam.CombinePerKey(HashCombineFn()).with_hot_key_fanout(1000)
        | 'Format Message' >> beam.Map(fmt)
-       | 'Write to Pubsub' >> WriteToPubSub(opts.output_topic))
+       | 'print' >> beam.Map(print))
+       #| 'Write to Pubsub' >> WriteToPubSub(opts.output_topic))
+
+class HashCombineFn(beam.CombineFn):
+  def create_accumulator(self, *args, **kwargs):
+    return {}
+  def add_input(self, accumulator, elem, *args, **kwargs):
+    if elem in accumulator:
+      accumulator[elem] +=1
+    else:
+      accumulator[elem] = 1
+    return accumulator
+  def merge_accumulators(self, accumulators, *args, **kwargs):
+    merged = {}
+    for acc in accumulators:
+      for key in acc:
+        if key in merged:
+          merged[key] += acc[key]
+        else:
+          merged[key] = acc[key]
+    return merged
+  
+  def extract_output(self, accumulator, *args, **kwargs):
+    # We must set a limit on how many findings to emit before
+    # just emitting the count since pubsub has a limit of 10MB
+    # If there was a single SSN on each line, the max JSON payload
+    # would be ~140K unique keys, so to give a buffer, we'll
+    # cap the unique SSNs at 100K before just emitting a total count.
+    # This is a worst case and if you are expecting these type of
+    # results, consider modifying this pipeline to output
+    # to a BigQuery table instead.
+    if len(accumulator.keys()) > 10**5:
+      return {'total': sum(accumulator.values())}
+    return accumulator
 
 class DlpFindingDoFn(beam.DoFn):
   """Fetch DLP Findings as a PCollection"""
@@ -124,24 +165,24 @@ class ExistingSSNsDoFn(beam.DoFn):
     import os
     from google.cloud import firestore
     from google.cloud import secretmanager
+    from base64 import b64decode
     os.environ["GCLOUD_PROJECT"] = self.project
     self.db = firestore.Client()
-    self.sm = secretmanager.SecretManagerServiceClient()
+    sm = secretmanager.SecretManagerServiceClient()
+    version = sm.access_secret_version('{}/versions/latest'.format(self.secret_name))
+    self.key = b64decode(version.payload.data)
 
   def process(self, element):
-    from base64 import b64decode
     import hmac
     # TODO: Remove when version 2.22.0 is released BEAM-7885
     if self.runner == 'DirectRunner':
       self.setup()
     
     filename, ssn = element
-    version = self.sm.access_secret_version('{}/versions/latest'.format(self.secret_name))
-    key = b64decode(version.payload.data)
     
     norm_ssn = ssn.replace('-', '')
     salt = self.salt.encode('utf-8')
-    mac = hmac.new(key, msg=salt, digestmod='sha256')
+    mac = hmac.new(self.key, msg=salt, digestmod='sha256')
     mac.update(norm_ssn.encode('utf-8'))
     digest = mac.hexdigest()
  
@@ -149,64 +190,131 @@ class ExistingSSNsDoFn(beam.DoFn):
     doc = col.document(digest).get()
 
     if doc.exists:
-      yield (filename, 1)
+      yield (filename, digest)
 
-# XXX: This is a hacky fix for lack of support for ReadAllFromTextWithFilename
-# which is being tracked at BEAM-10061. The following two classes re-implement
-# filebasedsource._ReadRange and ReadAllFromText to allow us to keep track of
-# the filename through the transforms.
-class ReadRange(beam.DoFn):
-  def __init__(self, source_from_file):
-    self._source_from_file = source_from_file
+class StatefulBufferingFn(beam.DoFn):
+  from apache_beam.transforms.userstate import BagStateSpec, TimerSpec, CombiningValueStateSpec, on_timer
+  from apache_beam.transforms.core import CombineValues
+  from apache_beam.transforms.timeutil import TimeDomain
+  from apache_beam.coders import VarIntCoder, TupleCoder, StrUtf8Coder
+  from apache_beam.transforms.combiners import CountCombineFn
 
-  def process(self, element):
-    metadata, range = element
-    source = self._source_from_file(metadata.path)
-    # Following split() operation has to be performed to create a proper
-    # _SingleFileSource. Otherwise what we have is a ConcatSource that contains
-    # a single _SingleFileSource. ConcatSource.read() expects a RangeTraker for
-    # sub-source range and reads full sub-sources (not byte ranges).
-    source = list(source.split(float('inf')))[0].source
-    for record in source.read(range.new_tracker()):
-      yield (metadata.path, record)
+  MAX_BUFFER_SIZE = 500 # 500 lines
+  BUFFER_STATE = BagStateSpec('buffer', TupleCoder((StrUtf8Coder(), StrUtf8Coder())))
+  COUNT_STATE = CombiningValueStateSpec('count', VarIntCoder(), CountCombineFn())
+  EXPIRY_TIMER = TimerSpec('expiry', TimeDomain.WATERMARK)
+  STALE_TIMER = TimerSpec('stale', TimeDomain.REAL_TIME)
+  MAX_BUFFER_DURATION = 1
+  ALLOWED_LATENESS = 5
 
-# NOTE: This basically re-implements ReadAllFromText but allows tracking of filename
-class ReadAllFromTextWithFilename(beam.PTransform):
-  DEFAULT_DESIRED_BUNDLE_SIZE = 64 * 1024 * 1024  # 64MB
-  from apache_beam.coders import coders
+  class PayloadConstructor():
+    MAX_BYTE_SIZE_PER_REQUEST = 400000 # 0.4MB giving 100KB for metadata
+
+    def __init__(self, filename, max_size = MAX_BYTE_SIZE_PER_REQUEST):
+        self.all = []
+        self.current = ""
+        self.filename = filename
+        self.max_size = max_size
+    
+    # NOTE: This does not handle the case where a single line is longer than max_size   
+    def concat(self, data):
+      if len(self.current) + len(data) > self.max_size:
+        self.all.append(self.current)
+        self.current = ""
+      else:
+        self.current += data
+
+    def flatten(self):
+      self.all.append(self.current)
+      return [(self.filename, payload) for payload in self.all]
+
+  def construct_payloads(self, events):
+    payloads = {}
+    for filename, line in events:
+      if filename not in payloads:
+        payloads[filename] = StatefulBufferingFn.PayloadConstructor(filename)
+      p = payloads[filename]
+      p.concat(line)
+    return [tup for tup in p.flatten() for p in payloads.items()]
+    
+      
+  def process(self, element,
+    w=beam.DoFn.WindowParam,
+    buffer_state=beam.DoFn.StateParam(BUFFER_STATE),
+    count_state=beam.DoFn.StateParam(COUNT_STATE),
+    expiry_timer=beam.DoFn.TimerParam(EXPIRY_TIMER),
+    stale_timer=beam.DoFn.TimerParam(STALE_TIMER)) :
+    import time
+    if count_state.read() == 0:
+      stale_timer.set(time.time() + StatefulBufferingFn.MAX_BUFFER_DURATION)
+
+    expiry_timer.set(w.end + StatefulBufferingFn.ALLOWED_LATENESS)
+    buffer_state.add(element)
+    count_state.add(1)
+    count = count_state.read()
+
+    if count >= StatefulBufferingFn.MAX_BUFFER_SIZE:
+      events = buffer_state.read()
+      for filename, payload in self.construct_payloads(events):
+        yield (filename, payload)
+      count_state.clear()
+      buffer_state.clear()
+
+  @on_timer(EXPIRY_TIMER)
+  def expiry(self, buffer_state=beam.DoFn.StateParam(BUFFER_STATE), count_state=beam.DoFn.StateParam(COUNT_STATE)):
+    events = buffer_state.read()
+
+    for filename, payload in self.construct_payloads(events):
+      yield (filename, payload)
+
+    buffer_state.clear()
+    count_state.clear()
+
+  @on_timer(STALE_TIMER)
+  def stale(self,buffer_state=beam.DoFn.StateParam(BUFFER_STATE), count_state=beam.DoFn.StateParam(COUNT_STATE)):
+    events = buffer_state.read()
+
+    for filename, payload in self.construct_payloads(events):
+      yield (filename, payload)
+
+    buffer_state.clear()
+    count_state.clear()
+
+class ReadAllFromTextWithFilename(beam.io.ReadAllFromText):
+  from apache_beam.coders import StrUtf8Coder
   from apache_beam.io.filesystem import CompressionTypes
 
-  def __init__(self, min_bundle_size=0, desired_bundle_size=DEFAULT_DESIRED_BUNDLE_SIZE,
-      compression_type=CompressionTypes.AUTO, strip_trailing_newlines=True,
-      coder=coders.StrUtf8Coder(), skip_header_lines=0, **kwargs):
+  def __init__(self,
+    min_bundle_size=0,
+    desired_bundle_size=beam.io.ReadAllFromText.DEFAULT_DESIRED_BUNDLE_SIZE,
+    compression_type=CompressionTypes.AUTO,
+    strip_trailing_newlines=False,
+    coder=StrUtf8Coder(),  # type: coders.Coder
+    skip_header_lines=0,
+    **kwargs):
+      import functools
+      from apache_beam.io.textio import ReadAllFiles
       
-      from functools import partial
-      from apache_beam.io.textio import _create_text_source
-      super(ReadAllFromTextWithFilename, self).__init__(**kwargs)
-      self.source_from_file = partial(
-          _create_text_source,
-          min_bundle_size=min_bundle_size,
-          compression_type=compression_type,
-          strip_trailing_newlines=strip_trailing_newlines,
-          coder=coder,
-          skip_header_lines=skip_header_lines)
-      self.desired_bundle_size = desired_bundle_size
-      self.min_bundle_size = min_bundle_size
-      self.compression_type = compression_type
-      self.strip_trailing_newlines = strip_trailing_newlines
-
-  def expand(self, pvalue):
-    from apache_beam.io.filebasedsource import _ExpandIntoRanges
-    from apache_beam.transforms.util import Reshuffle
-    return (
-        pvalue
-        | 'ExpandIntoRanges' >> beam.ParDo(
-            _ExpandIntoRanges(self.strip_trailing_newlines,
-              self.compression_type,
-              self.desired_bundle_size,
-              self.min_bundle_size))
-        | 'Reshard' >> Reshuffle()
-        | 'ReadRange' >> beam.ParDo(ReadRange(self.source_from_file)))
+      super(ReadAllFromTextWithFilename,self).__init__(min_bundle_size,desired_bundle_size,compression_type
+        ,strip_trailing_newlines,coder,skip_header_lines,**kwargs)
+      source_from_file = functools.partial(
+        self.create_text_source_with_filename, min_bundle_size=min_bundle_size,
+        compression_type=compression_type,
+        strip_trailing_newlines=strip_trailing_newlines, coder=coder,
+        skip_header_lines=skip_header_lines)
+      self._read_all_files = ReadAllFiles(
+      True, compression_type, desired_bundle_size, min_bundle_size,
+      source_from_file) 
+  
+  def create_text_source_with_filename(self,
+      file_pattern=None, min_bundle_size=None, compression_type=None,
+      strip_trailing_newlines=None, coder=None, skip_header_lines=None):
+        from apache_beam.io.textio import _TextSourceWithFilename
+        return _TextSourceWithFilename(
+            file_pattern=file_pattern, min_bundle_size=min_bundle_size,
+            compression_type=compression_type,
+            strip_trailing_newlines=strip_trailing_newlines,
+            coder=coder, validate=False, skip_header_lines=skip_header_lines)
 
 if __name__ == '__main__':
   logging.getLogger().setLevel(logging.INFO)
