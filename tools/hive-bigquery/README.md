@@ -68,7 +68,7 @@ sudo bash prerequisites/prerequisites.sh
 ```
 virtualenv env
 source env/bin/activate
-pip3 install -r prerequisites/requirements.txt
+pip3 install .
 ```
 4.
 The command below creates a Cloud SQL MySQL database instance and a database for
@@ -102,7 +102,7 @@ mysql -h 127.0.0.1 -u root -P <PORT> <DATABASE_NAME> -p < prerequisites/tracking
 
 8. Usage
 ```
-usage: hive_to_bigquery.py [-h] --config-file CONFIG_FILE
+usage: python3 -m hive_to_bigquery [-h] --config-file CONFIG_FILE
 
 Framework to migrate Hive tables to BigQuery which uses Cloud SQL to keep
 track of the migration progress.
@@ -114,9 +114,9 @@ required arguments:
   --config-file CONFIG_FILE
                         Input configurations JSON file.
 ```
-9. Run [hive_to_bigquery.py](hive_to_bigquery.py).
+9. Run [hive_to_bigquery](hive_to_bigquery/__main__.py).
  ```
- python3 hive_to_bigquery.py \
+ python3 -m hive_to_bigquery \
  --config-file <CONFIG_FILE>
 ```
 
@@ -130,16 +130,16 @@ partitioned in different formats.
 
 On the Hive cluster, run the command below to generate ~1GB of data.
 ```
-python3 test/generate_data.py --size-in-gb 1
+python3 tests/generate_data.py --size-in-gb 1
 ```
 Run the command below to create Hive tables on the Hive cluster.
 ```
-hive -f test/create_hive_tables.sql
+hive -f tests/create_hive_tables.sql
 ```
 The config file `test_config.json` can be used to migrate the Hive table
 `text_nonpartitioned` which has an incremental column `int_column`. Replace the
 other parameters with appropriate values. Run the command below to migrate
 this table.
 ```
-python3 hive_to_bigquery.py --config-file test_config.json
+python3 -m hive_to_bigquery --config-file test_config.json
 ```

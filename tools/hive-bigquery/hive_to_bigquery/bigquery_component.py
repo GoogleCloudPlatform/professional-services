@@ -25,9 +25,10 @@ from google.api_core import exceptions
 from google.auth import exceptions as auth_exceptions
 from google.cloud import bigquery
 
-import custom_exceptions
-from gcp_service import GCPService
-from properties_reader import PropertiesReader
+from hive_to_bigquery import client_info
+from hive_to_bigquery import custom_exceptions
+from hive_to_bigquery.gcp_service import GCPService
+from hive_to_bigquery.properties_reader import PropertiesReader
 
 logger = logging.getLogger('Hive2BigQuery')
 
@@ -59,7 +60,8 @@ class BigQueryComponent(GCPService):
 
         logger.debug("Getting BigQuery client")
         try:
-            client = bigquery.Client(project=self.project_id)
+            info = client_info.get_http_client_info()
+            client = bigquery.Client(project=self.project_id, client_info=info)
             return client
         except auth_exceptions.DefaultCredentialsError as error:
             raise custom_exceptions.ConnectionError from error
@@ -97,7 +99,7 @@ class BigQueryComponent(GCPService):
         try:
             self.client.get_table(table_ref)
             return True
-        except exceptions.NotFound as error:
+        except exceptions.NotFound:
             return False
 
     def get_dataset_location(self, dataset_id):
