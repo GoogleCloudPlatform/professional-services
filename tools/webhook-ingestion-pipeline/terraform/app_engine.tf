@@ -50,13 +50,7 @@ resource "google_storage_bucket_object" "app_engine_requirements" {
   bucket = google_storage_bucket.webhook_gcs_stage.name
 }
 
-## App Engine:
-# TODO I'm removing this block since it fails on re-creation
-# and App Engine cannot be removed
-# Initial setup on any project will need to "Create" App Engine intially
-# export PROJECT=$(cat terraform.tfstate | grep '"project"' | head -n 1 | awk '{print $2;}' | tr -d '".,')
-# terraform import google_app_engine_application.app $PROJECT
-
+## App Engine
 resource "google_app_engine_application" "app" {
   project     = var.project_id
   location_id = var.webhook_app_region
