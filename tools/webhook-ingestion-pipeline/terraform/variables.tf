@@ -15,12 +15,10 @@
 ### Project Config ###
 variable "project_id" {
   description = "Project ID for your GCP project"
-  default     = "my-project"
 }
 
 variable "project_num" {
   description = "Project num for your GCP Project"
-  default     = "my-project-number"
 }
 
 ### Location Config ###
@@ -85,5 +83,4 @@ variable "bigquery_table_template" {
 
 variable "dead_letter_queue" {
   description = "BigQuery Dead Letter Queue table"
-  default     = "my-project:webhook.errors"
 }
