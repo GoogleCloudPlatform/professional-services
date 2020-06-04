@@ -18,24 +18,23 @@ resource "google_bigquery_dataset" "webhook_dataset" {
   friendly_name               = var.bigquery_dataset
   description                 = "Webhook Application Destination Dataset"
   location                    = var.webhook_location
-  # default_table_expiration_ms = 3600000 # TODO why do we want a default?
 
   labels = {
     env = "default"
   }
 
   access {
-    role          = "OWNER"
+    role          = "roles/bigquery.dataOwner"
     user_by_email = google_service_account.webhook_sa.email
   }
 
   access {
-    role          = "OWNER"
+    role          = "roles/bigquery.dataEditor"
     user_by_email = "${var.project_num}@cloudservices.gserviceaccount.com"
   }
 
   access {
-    role          = "OWNER"
+    role          = "roles/bigquery.dataEditor"
     user_by_email = "${var.project_num}-compute@developer.gserviceaccount.com"
   }
 
