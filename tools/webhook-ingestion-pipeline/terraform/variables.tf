@@ -64,12 +64,6 @@ variable "pubsub_subscription" {
   default     = "dataflow-subscription"
 }
 
-### Dataflow Config ###
-variable "dataflow_template" {
-  description = "GCS Path to Dataflow Template being used"
-  default     = "gs://app-engine-webhook-app/images/pubsub-cdc-to-bigquery-image-spec.json"
-}
-
 ### BigQuery Config ###
 variable "bigquery_dataset" {
   description = "BigQuery Dataset destination for pipeline"
