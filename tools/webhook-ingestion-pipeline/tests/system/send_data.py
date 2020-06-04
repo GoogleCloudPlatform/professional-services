@@ -71,7 +71,7 @@ def send_request(request_size, project_id=None):
     data = [get_row() for i in range(request_size)]
     requests.post(app_domain, json=data)
 
-def test_scaling(project_id, batches=10, pool_size=10, request_size=200, batch_size=100, batch_sleep_secs=1):
+def generate_traffic(project_id, batches=10, pool_size=10, request_size=200, batch_size=100, batch_sleep_secs=1):
     """ Send Data at App Engine Endpoint
         
         :param project_id: GCP Project ID
@@ -119,12 +119,12 @@ def configure_arg_parser():
 
 def main():
     args = configure_arg_parser()
-    test_scaling(project_id=args.project_id,
-                 pool_size=int(args.pool_size),
-                 request_size=int(args.request_size),
-                 batch_size=int(args.batch_size),
-                 batches=int(args.batches),
-                 batch_sleep_secs=int(args.batch_sleep_secs))
+    generate_traffic(project_id=args.project_id,
+                     pool_size=int(args.pool_size),
+                     request_size=int(args.request_size),
+                     batch_size=int(args.batch_size),
+                     batches=int(args.batches),
+                     batch_sleep_secs=int(args.batch_sleep_secs))
 
 if __name__ == "__main__":
     main()

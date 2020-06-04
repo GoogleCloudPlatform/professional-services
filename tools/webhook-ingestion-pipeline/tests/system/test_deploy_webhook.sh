@@ -20,8 +20,8 @@
 
 
 # Project Info for Testing Only
-export PROJECT_ID="my-testing-project"
-export PROJECT_NUMBER="my-testing-project-number"
+export PROJECT_ID="dhercher-webhook-21"
+export PROJECT_NUMBER="795574856123"
 
 export BQ_DATASET=webhook
 export BQ_TABLE_TEMPLATE=webhook_data
@@ -31,15 +31,25 @@ make build PROJECT_ID="${PROJECT_ID}" PROJECT_NUMBER="${PROJECT_NUMBER}"
 echo "Sleep for 300 seconds: Dataflow deploy"
 sleep 300
 
+# Add user to BQ Admins
+bq show --format=prettyjson ${PROJECT_ID}:webhook > temp.json
+sed -i 's/"access": \[/"access": \[{"role": "OWNER","userByEmail": "dhercher@google.com"},/g' temp.json
+bq update --source temp.json ${PROJECT_ID}:webhook
+rm temp.json
+
 # Send Test Data
 echo "Send Data: 1003 Records"
-python3 tests/system/send_data.py -p $"{PROJECT_ID}" -ps 10 -r 100 -bs 10 -b 1 -s 0
+python3 tests/system/send_data.py -p "${PROJECT_ID}" -ps 10 -r 100 -bs 10 -b 1 -s 0
 
 # Then validate results
 echo "Sleep for 300 seconds: Process Data"
 sleep 300
-RESULT_TABLE_COUNT=$(echo "SELECT COUNT(1) AS row_count FROM ${BQ_DATASET}.${BQ_TABLE_TEMPLATE};" | bq query | grep '|' | tail -n 1 | awk '{print $2;}')
+RESULT_TABLE_COUNT=$(echo "SELECT COUNT(1) AS row_count FROM ${PROJECT_ID}:${BQ_DATASET}.${BQ_TABLE_TEMPLATE};" | bq query | grep '|' | tail -n 1 | awk '{print $2;}')
 echo "*** Table Row Count: Expected 1003 --> Found ${RESULT_TABLE_COUNT}"
 
 # Destroy Deployment
 make destroy PROJECT_ID="${PROJECT_ID}" PROJECT_NUMBER="${PROJECT_NUMBER}"
+
+# Remove tables which were created by Dataflow during the test
+bq rm -f --project_id="${PROJECT_ID}" webhook.webhook_data
+bq rm -f --project_id="${PROJECT_ID}" webhook.errors
