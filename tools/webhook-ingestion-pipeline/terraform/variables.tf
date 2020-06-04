@@ -43,8 +43,8 @@ variable "webhook_zone" {
 }
 
 ### GCS Config ###
-variable "gcs_bucket_name" {
-  description = "Storage Bucket used for file and temporary storage"
+variable "gcs_bucket_prefix" {
+  description = "Storage Bucket Prefix used for file and temporary storage"
   default     = "webhook-storage"
 }
 

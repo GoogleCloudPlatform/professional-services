@@ -15,7 +15,7 @@
 
 resource "google_storage_bucket" "webhook_gcs_stage" {
   project       = var.project_id
-  name          = var.gcs_bucket_name
+  name          = "${var.project_id}-${var.gcs_bucket_prefix}"
   location      = "US"
   force_destroy = true
 

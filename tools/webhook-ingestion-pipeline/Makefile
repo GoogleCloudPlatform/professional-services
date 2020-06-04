@@ -28,7 +28,7 @@ export TF_VAR_webhook_region:=us-central1
 export TF_VAR_webhook_zone:=us-central1-b
 
 # GCS Config Vars
-export TF_VAR_gcs_bucket_name:=${PROJECT_ID}-webhook
+export TF_VAR_gcs_bucket_prefix:=webhook
 
 # Pub/Sub Config Vars
 export TF_VAR_pubsub_topic:=${PROJECT_ID}-webhook
