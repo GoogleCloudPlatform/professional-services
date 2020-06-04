@@ -17,6 +17,7 @@ import logging
 
 from google.cloud.pubsub_v1 import PublisherClient
 
+import consts
 
 class PubSubPublisher:
 
@@ -28,7 +29,7 @@ class PubSubPublisher:
                     "google.pubsub.v1.Publisher": {
                         "retry_params": {
                             "messaging": {
-                                "total_timeout_millis": 650000,
+                                "total_timeout_millis": consts.PUBSUB_TIMEOUT_MS,
         }}}}})
         self.futures = dict()
 

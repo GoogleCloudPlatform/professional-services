@@ -58,10 +58,10 @@ def _extract_data(request):
     """
     if request.content_length == 0:
         raise WebhookException(consts.NO_DATA_MESSAGE, status_code=400)
-    if request.content_length > consts.MAX_CONTENT_SIZE:
+    if request.content_length > consts.MAX_CONTENT_MB:
         raise WebhookException(
             consts.MESSAGE_TOO_BIG.format(content_length=request.content_length,
-                                          max_bytes=consts.MAX_CONTENT_SIZE),
+                                          max_bytes=consts.MAX_CONTENT_MB),
             status_code=400)
     try:
         return request.get_json()

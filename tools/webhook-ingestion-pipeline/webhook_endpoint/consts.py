@@ -17,7 +17,8 @@ PROJECT_ID = "GOOGLE_CLOUD_PROJECT"
 PUBSUB_TOPIC = "TOPIC"
 
 # Default Values
-MAX_CONTENT_SIZE = 1000000 * 5 # 5 megabytes
+MAX_CONTENT_MB = 5 * 1000000
+PUBSUB_TIMEOUT_MS = 10 * 60 * 1000
 
 # Exception Messages
 UNSUPPORTED_METHOD = "HTTP ERROR: {method} Request Unsupported"
