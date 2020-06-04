@@ -20,24 +20,23 @@ from google.cloud.pubsub_v1 import PublisherClient
 import consts
 
 
-CLIENT_CONFIG = {
-    "interfaces": {
-        "google.pubsub.v1.Publisher": {
-            "retry_params": {
-                "messaging": {
-                    "total_timeout_millis": consts.PUBSUB_TIMEOUT_MS,
+class PubSubPublisher:
+
+    _client_config = {
+        "interfaces": {
+            "google.pubsub.v1.Publisher": {
+                "retry_params": {
+                    "messaging": {
+                        "total_timeout_millis": consts.PUBSUB_TIMEOUT_MS,
+                    }
                 }
             }
         }
     }
-}
-
-
-class PubSubPublisher:
 
     def __init__(self, project_id):
         self.project_id = project_id
-        self.client = PublisherClient(client_config=CLIENT_CONFIG)
+        self.client = PublisherClient(client_config=self._client_config)
         self.futures = dict()
 
     def _get_callback(self, f, data):
