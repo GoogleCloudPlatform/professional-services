@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import os
 from google.cloud import pubsub_v1
-from os import getenv
 
 def trigger_dataflow(data, context):
   publisher = pubsub_v1.PublisherClient()
-  topic_path = getenv('TOPIC')
+  topic_path = os.getenv('TOPIC')
   filename = f"gs://{data['bucket']}/{data['name']}".encode('utf-8')
   future = publisher.publish(topic_path, data=filename)
   return future.result()

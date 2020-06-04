@@ -28,7 +28,7 @@ class ReadAllFromTextWithFilename(ReadAllFromText):
     desired_bundle_size=ReadAllFromText.DEFAULT_DESIRED_BUNDLE_SIZE,
     compression_type=CompressionTypes.AUTO,
     strip_trailing_newlines=False,
-    coder=StrUtf8Coder(),  # type: coders.Coder
+    coder=StrUtf8Coder(),
     skip_header_lines=0,
     **kwargs):
       

@@ -14,7 +14,6 @@
 #
 
 import sys
-import os
 from faker import Faker
 
 output_path = sys.argv[1]

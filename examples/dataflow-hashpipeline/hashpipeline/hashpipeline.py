@@ -16,8 +16,6 @@
 
 from __future__ import absolute_import
 
-import logging
-import sys
 import json
 import re
 import os
@@ -35,7 +33,7 @@ from apache_beam.io import WriteToPubSub
 from apache_beam.options.pipeline_options import StandardOptions
 from apache_beam.options.pipeline_options import PipelineOptions
 
-from hashpipeline.buffering import StatefulBufferingFn, FilePayloadFactory, ListPayloadFactory
+from hashpipeline.buffering import StatefulBufferingFn, FileLineBufferedPayloadFactory, ListBufferedPayloadFactory
 from hashpipeline.filelines import ReadAllFromTextWithFilename
 
 SSN_INSPECT_CONFIG = {
@@ -68,10 +66,10 @@ def run(argv):
     (p | 'Read filename from Pubsub' >> ReadFromPubSub(None, opts.input_subscription)
        | 'Decode from UTF-8' >> beam.Map(lambda elem: elem.decode('utf-8'))
        | 'Read filename and lines from file' >> ReadAllFromTextWithFilename()
-       | 'Buffer before DLP API' >> beam.ParDo(StatefulBufferingFn(FilePayloadFactory))
+       | 'Buffer before DLP API' >> beam.ParDo(StatefulBufferingFn(FileLineBufferedPayloadFactory))
        | 'Get DLP Findings' >> beam.ParDo(DlpFindingDoFn(opts.firestore_project, std_opts.runner))
        | 'Hash DLP Findings' >> beam.ParDo(HashQuotesDoFn(opts.salt, opts.secret_name, std_opts.runner))
-       | 'Buffer Firestore Request' >> beam.ParDo(StatefulBufferingFn(ListPayloadFactory))
+       | 'Buffer Firestore Request' >> beam.ParDo(StatefulBufferingFn(ListBufferedPayloadFactory))
        | 'Determine if client SSN' >> beam.ParDo(ExistingSSNsDoFn(opts.firestore_project, opts.collection_name, std_opts.runner))
        | 'Apply windowing' >> beam.WindowInto(Sessions(10))
        | 'Group by Filename' >> beam.CombinePerKey(HashCombineFn()).with_hot_key_fanout(1000)

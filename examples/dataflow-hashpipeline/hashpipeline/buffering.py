@@ -16,38 +16,40 @@
 
 from __future__ import absolute_import
 from apache_beam.transforms.userstate import BagStateSpec, TimerSpec, CombiningValueStateSpec, on_timer
-from apache_beam.transforms.core import CombineValues
 from apache_beam.transforms.timeutil import TimeDomain
 from apache_beam.coders import VarIntCoder, TupleCoder, StrUtf8Coder
 from apache_beam.transforms.combiners import CountCombineFn
 import apache_beam as beam
 import time
+from abc import ABC, abstractmethod
+from collections import defaultdict
 
-class PayloadFactory:
-  def __init__(self, filename, max_size):
+class BufferedPayloadFactory(ABC):
+  def __init__(self, max_size):
     self.payloads = []
     self.max_size = max_size
-    self.filename = filename
 
+  @abstractmethod
   def running_payload(self):
     '''Returns a singleton instance of the current payload'''
     raise NotImplementedError
   
-  def flatten(self):
+  def get_payloads(self):
     '''Adds current payload to payloads list and flattens'''
     self.payloads.append(self.running_payload())
-    return [(self.filename, payload) for payload in self.payloads]
+    return self.payloads
   
+  @abstractmethod
   def extend_running_payload(self, data):
     '''Extends the current_singleton object until extending it further would pass max_size'''
     raise NotImplementedError
 
-class FilePayloadFactory(PayloadFactory):
+class FileLineBufferedPayloadFactory(BufferedPayloadFactory):
   '''Payload factory for buffering lines in a file before sending batch requests to DLP'''
   MAX_BYTE_SIZE_PER_REQUEST = 400000 # 0.4MB giving 100KB for metadata
 
-  def __init__(self, filename, max_size = MAX_BYTE_SIZE_PER_REQUEST):
-    super(FilePayloadFactory, self).__init__(filename, max_size) 
+  def __init__(self, max_size = MAX_BYTE_SIZE_PER_REQUEST):
+    super(FileLineBufferedPayloadFactory, self).__init__(max_size)
     self._current = ""
   
   def running_payload(self):
@@ -61,18 +63,17 @@ class FilePayloadFactory(PayloadFactory):
     else:
       self._current += data
 
-class ListPayloadFactory(PayloadFactory):
+class ListBufferedPayloadFactory(BufferedPayloadFactory):
   '''Payload factory for buffering SSN hash digests to batch get from Firestore'''
-  MAX_KEYS_PER_REQUEST = 1000 # 10MB max request size
+  MAX_KEYS_PER_REQUEST = 1000
 
-  def __init__(self, filename, max_size = MAX_KEYS_PER_REQUEST):
-    super(ListPayloadFactory, self).__init__(filename, max_size)
+  def __init__(self, max_size = MAX_KEYS_PER_REQUEST):
+    super(ListBufferedPayloadFactory, self).__init__(max_size)
     self._current = []
   
   def running_payload(self):
     return self._current
   
-  # NOTE: This does not handle the case where a single line is longer than max_size
   def extend_running_payload(self, data):
     if len(self._current) == self.max_size:
       self.payloads.append(self._current)
@@ -82,62 +83,42 @@ class ListPayloadFactory(PayloadFactory):
 
 
 class StatefulBufferingFn(beam.DoFn):
-  MAX_BUFFER_SIZE = 1000 # 500 lines
+  MAX_BUFFER_SIZE = 1000
   BUFFER_STATE = BagStateSpec('buffer', TupleCoder((StrUtf8Coder(), StrUtf8Coder())))
   COUNT_STATE = CombiningValueStateSpec('count', VarIntCoder(), CountCombineFn())
-  EXPIRY_TIMER = TimerSpec('expiry', TimeDomain.WATERMARK)
   STALE_TIMER = TimerSpec('stale', TimeDomain.REAL_TIME)
-  MAX_BUFFER_DURATION = 1
-  ALLOWED_LATENESS = 5    
-  def __init__(self, payload_factory = FilePayloadFactory):
+  MAX_BUFFER_DURATION = 10
+  
+  def __init__(self, payload_factory):
     self.payload_factory = payload_factory
  
   def process(self, element,
-    w=beam.DoFn.WindowParam,
     buffer_state=beam.DoFn.StateParam(BUFFER_STATE),
     count_state=beam.DoFn.StateParam(COUNT_STATE),
-    expiry_timer=beam.DoFn.TimerParam(EXPIRY_TIMER),
-    stale_timer=beam.DoFn.TimerParam(STALE_TIMER)) :
+    stale_timer=beam.DoFn.TimerParam(STALE_TIMER)):
     if count_state.read() == 0:
       stale_timer.set(time.time() + StatefulBufferingFn.MAX_BUFFER_DURATION)
 
-    expiry_timer.set(w.end + StatefulBufferingFn.ALLOWED_LATENESS)
     buffer_state.add(element)
     count_state.add(1)
     count = count_state.read()
 
     if count >= StatefulBufferingFn.MAX_BUFFER_SIZE:
-      events = buffer_state.read()
-      for filename, payload in self.construct_payloads(events):
-        yield (filename, payload)
-      count_state.clear()
-      buffer_state.clear()
-  
+      return self.flush(buffer_state, count_state)
+
   def construct_payloads(self, events):
-    payloads = {}
-    for filename, line in events:
-      if filename not in payloads:
-        payloads[filename] = self.payload_factory(filename)
-      p = payloads[filename]
-      p.extend_running_payload(line)
-    return [tup for tup in p.flatten() for p in payloads.items()]
-
-  @on_timer(EXPIRY_TIMER)
-  def expiry(self, buffer_state=beam.DoFn.StateParam(BUFFER_STATE), count_state=beam.DoFn.StateParam(COUNT_STATE)):
-    events = buffer_state.read()
-
-    for filename, payload in self.construct_payloads(events):
-      yield (filename, payload)
-
-    buffer_state.clear()
-    count_state.clear()
+    payload_buffers = defaultdict(self.payload_factory)
+    for filename, elem in events:
+      payload_buffers[filename].extend_running_payload(elem)
+    return [(k, v.get_payloads()) for k, v in payload_buffers.items()]
 
   @on_timer(STALE_TIMER)
-  def stale(self,buffer_state=beam.DoFn.StateParam(BUFFER_STATE), count_state=beam.DoFn.StateParam(COUNT_STATE)):
+  def flush(self, buffer_state=beam.DoFn.StateParam(BUFFER_STATE), count_state=beam.DoFn.StateParam(COUNT_STATE)):
     events = buffer_state.read()
-
-    for filename, payload in self.construct_payloads(events):
-      yield (filename, payload)
 
     buffer_state.clear()
     count_state.clear()
+    for filename, payloads in self.construct_payloads(events):
+      for payload in payloads:
+        yield (filename, payload)
+

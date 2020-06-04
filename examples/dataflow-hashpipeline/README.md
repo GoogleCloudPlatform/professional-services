@@ -149,7 +149,7 @@ Now you can try out the same thing as Step 4 to verify it works.
 
 ### Using Standard Templates
 
-While Flex Templates provide more, well flexibility, they are (at the time of this writing) still in Beta. Many orgs
+While Flex Templates provide more flexibility, they are (at the time of this writing) still in Beta. Many orgs
 have policies against using Beta products, so we also offer the ability to deploy this with standard templates instead.
 The only catch is that the parameters are hard-coded into the template file that gets stored in GCS, which may mean
 it is less extensible since the same template cannot be run with different projects, topics, etc. To use standard
