@@ -84,7 +84,7 @@ class ReadSideInputData(beam.PTransform):
                 | "Match files" >> beam.FlatMap(self._match_files).with_output_types(beamfs.FileMetadata)
                 | "Read Matches" >> beam.Map(
                         lambda metadata: ReadableFile(metadata, self.compression)
-                    )  # Generates beam.io.fileio.ReadableFile
+                    )
                 | "Read Contents" >> beam.FlatMap(self._readfile)
                )
         # yapf: enable
@@ -94,6 +94,8 @@ def enrich_event(sales_event: bytes, bonuspoints: Dict[str, Any],
                  discountpct: Dict[str, Any],
                  category: Dict[str, Any]) -> Tuple[None, Dict[str, Any]]:
     """Enriches main event with values from side input data
+       Note: In this example a dummy key has been added to each event to group all the events inside a window into single
+       batch. Appropriate design choice must be made depending on how the final enriched events needs to be processed.
 
     Args:
         sales_event: Primary event data fetched from pubsub
@@ -133,7 +135,7 @@ def kv_of(event: Dict[str, Any], name_field: str,
 
 
 @beam.typehints.with_input_types(Iterable[Dict[str, Any]])
-class EmitEvents(beam.DoFn):
+class LogFn(beam.DoFn):
     """Emits the current window information and enriched events to log output"""
 
     def process(self,
@@ -155,4 +157,4 @@ class EmitEvents(beam.DoFn):
 
 @beam.ptransform_fn
 def LogEvents(pcol):
-    pcol | 'Output Events' >> beam.ParDo(EmitEvents())
+    pcol | 'Output Events' >> beam.ParDo(LogFn())

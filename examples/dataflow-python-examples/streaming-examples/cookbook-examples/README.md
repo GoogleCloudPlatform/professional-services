@@ -1,1 +1,1 @@
-# cookbook Streaming Pipelines
+# Cookbook Streaming Pipelines

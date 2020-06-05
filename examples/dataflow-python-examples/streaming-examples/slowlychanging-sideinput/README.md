@@ -1,7 +1,7 @@
 This example demonstrates the concept of referencing multiple forms of side input data in GCS along with main input data 
 loaded from pubsub. Side input data can be refreshed periodically via PubSub notification.
 
-## UseCases
+## Use Cases
 1. Inside a Streaming Pipeline, reload a file that serves as side input from GCS bucket ([configured to track changes](https://cloud.google.com/storage/docs/pubsub-notifications)
  by firing pubsub notifications) written periodically by an external process 
  
