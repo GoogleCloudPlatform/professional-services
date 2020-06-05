@@ -43,7 +43,7 @@ function startIdleJobChecker() {
   if [[ -n ${SCRIPT_STORAGE_LOCATION} ]]; then
     
     # Get and validate the max idle parameter. Following line evaluates to nothing if not provided or properly formatted.
-    parsedMaxIdleParameter=$( echo ${MAX_IDLE_PARAMETER} | sed  -n '/^\([0-9]*\)\(s\|m\|h\|d\)$/p' | sed  's/^\([0-9]*\)\(s\|m\|h\|d\)$/\1\,\2/' )
+    parsedMaxIdleParameter=$( echo "${MAX_IDLE_PARAMETER}" | sed  -n '/^\([0-9]*\)\(s\|m\|h\|d\)$/p' | sed  's/^\([0-9]*\)\(s\|m\|h\|d\)$/\1\,\2/' )
     if [[ -n ${parsedMaxIdleParameter} ]]; then
       idleTimeUnit=${parsedMaxIdleParameter#*,}
       idleTimeAmount=${parsedMaxIdleParameter%,*}
