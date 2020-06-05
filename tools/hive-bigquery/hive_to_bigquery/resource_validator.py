@@ -15,7 +15,7 @@
 
 import logging
 
-from properties_reader import PropertiesReader
+from hive_to_bigquery.properties_reader import PropertiesReader
 
 logger = logging.getLogger('Hive2BigQuery')
 LOCATION_HELP_URL = "https://cloud.google.com/bigquery/docs/dataset-locations#data-locations"
