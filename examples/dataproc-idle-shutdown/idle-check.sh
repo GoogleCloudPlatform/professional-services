@@ -25,16 +25,16 @@ readonly IS_IDLE_STATUS_TRUE="TRUE"
 readonly IS_IDLE_STATUS_FALSE="FALSE"
 readonly PERSIST_DIAG_TARBALL_TRUE="TRUE"
 readonly KEY_PROCESS_LIST_KEY="${MY_CLUSTER_NAME}_keyProcessList"
-readonly KEY_PROCESS_LIST_EMPTY="EMPTY"
+# readonly KEY_PROCESS_LIST_EMPTY="EMPTY"
 
 isActiveSSH()
 {
    local isActiveSSHSession=0
    woutput=$( w )
    gcloud logging write idle-check-log "${MY_CLUSTER_NAME} (SSH Session Check): ${woutput}" --severity=NOTICE
-   woutrow=`(w | wc -l)`
+   woutrow=$(w | wc -l)
    if [[ "$woutrow" -gt 2 ]]; then
-     sec=`(w | awk 'NR > 2 { print $5 }')`
+     sec=$(w | awk 'NR > 2 { print $5 }')
      for i in $sec
        do
          if [[ $i == *.* ]]; then
@@ -43,7 +43,7 @@ isActiveSSH()
          elif [[ $i == *:*m ]]; then
    				   continue
          elif [[ $i == *:* ]]; then
-           arrTime=(${i//:/ })
+           arrTime=( "${i//:/ }" )
            if [[ "${arrTime[0]}"  -lt 30 ]]; then
              isActiveSSHSession=1
              break
@@ -58,10 +58,10 @@ isActiveSSH()
 isKeyProcessActive()
 {
    local isKeyProgramActive=0
-   keyProcessList="$(/usr/share/google/get_metadata_value attributes/${KEY_PROCESS_LIST_KEY} || echo 'python')"
+   keyProcessList="$(/usr/share/google/get_metadata_value attributes/"${KEY_PROCESS_LIST_KEY}" || echo 'python')"
    gcloud logging write idle-check-log "${MY_CLUSTER_NAME} (Key Process Checklist): ${keyProcessList}" --severity=NOTICE
    IFS=';'
-   processes=`(w | awk 'NR > 2 { print $8 }')`
+   processes=$(w | awk 'NR > 2 { print $8 }')
    for process in $keyProcessList
       do
         for i in $processes
@@ -94,7 +94,7 @@ yarnAppsRunningOrJustFinished()
     if [[ -n $jobFinishedTime ]]; then
       currentTime=$(($(date +%s%N)/1000000))
       appMPH=60000
-      idleTime=$(( ($currentTime - $jobFinishedTime) / $appMPH ))
+      idleTime=$(( (currentTime - jobFinishedTime) / appMPH ))
       if [[ $idleTime -lt 30 ]]; then
         isYarnAppRunningOrJustFinishedResult=1
       fi
@@ -110,13 +110,13 @@ setIdleStatusIdle() {
   local isIdleStatusSince=0
 
   # Get current isIdleStatus
-  lastIdleStatus="$(/usr/share/google/get_metadata_value attributes/${IS_IDLE_STATUS_KEY} || echo 'FALSE')"
+  lastIdleStatus="$(/usr/share/google/get_metadata_value attributes/"${IS_IDLE_STATUS_KEY}" || echo 'FALSE')"
   if [[ "$lastIdleStatus" == "${IS_IDLE_STATUS_TRUE}"  ]]; then
     # Use the existing time stamp marking when cluster became idle 
-    isIdleStatusSince="$(/usr/share/google/get_metadata_value attributes/${IS_IDLE_STATUS_SINCE_KEY} || echo 'FALSE')"
+    isIdleStatusSince="$(/usr/share/google/get_metadata_value attributes/"${IS_IDLE_STATUS_SINCE_KEY}" || echo 'FALSE')"
   else
     #Set isIdle to true and update the time
-    gcloud compute instances add-metadata ${MASTER_INSTANCE_NAME} --zone ${MASTER_INSTANCE_ZONE} --metadata ${IS_IDLE_STATUS_KEY}=${IS_IDLE_STATUS_TRUE},${IS_IDLE_STATUS_SINCE_KEY}=${currentTime}
+    gcloud compute instances add-metadata "${MASTER_INSTANCE_NAME}" --zone "${MASTER_INSTANCE_ZONE}" --metadata "${IS_IDLE_STATUS_KEY}=${IS_IDLE_STATUS_TRUE},${IS_IDLE_STATUS_SINCE_KEY}=${currentTime}"
     isIdleStatusSince=$currentTime
   fi
 
@@ -127,23 +127,23 @@ shutdownCluster() {
   gcloud logging write idle-check-log "${MY_CLUSTER_NAME}: Shutting Down Cluster" --severity=NOTICE
   
   # Write out diagnostics if requested
-  persistDiagnosticTarball="$(/usr/share/google/get_metadata_value attributes/${DATAPROC_PERSIST_DIAG_TARBALL_KEY} || echo 'FALSE')"
+  persistDiagnosticTarball="$(/usr/share/google/get_metadata_value attributes/"${DATAPROC_PERSIST_DIAG_TARBALL_KEY}" || echo 'FALSE')"
   if [[ "$persistDiagnosticTarball" == "${PERSIST_DIAG_TARBALL_TRUE}"  ]]; then
-    gcloud dataproc clusters diagnose ${MY_CLUSTER_NAME} --region=${MY_REGION}
+    gcloud dataproc clusters diagnose "${MY_CLUSTER_NAME}" --region="${MY_REGION}"
   fi
       
   # Remove the metadata
-  gcloud compute instances remove-metadata remove-metadata --keys ${IS_IDLE_STATUS_KEY},${IS_IDLE_STATUS_SINCE_KEY},${MAX_IDLE_SECONDS_KEY},${DATAPROC_PERSIST_DIAG_TARBALL_KEY},${KEY_PROCESS_LIST_KEY},
+  gcloud compute instances remove-metadata remove-metadata --keys "${IS_IDLE_STATUS_KEY},${IS_IDLE_STATUS_SINCE_KEY},${MAX_IDLE_SECONDS_KEY},${DATAPROC_PERSIST_DIAG_TARBALL_KEY},${KEY_PROCESS_LIST_KEY},"
 
   # Shutdown the cluster
-  gcloud dataproc clusters delete ${MY_CLUSTER_NAME} --quiet --region=${MY_REGION}
+  gcloud dataproc clusters delete "${MY_CLUSTER_NAME}" --quiet --region="${MY_REGION}"
 }
 
 checkForClusterError()
 {
   local isClusterErrorResult=0
   # Fetch clusters with this name and a status of ERROR
-  clusterList=$( gcloud dataproc clusters list --region=${MY_REGION} --filter="clusterName = ${MY_CLUSTER_NAME} AND status.state = ERROR" | grep ERROR )
+  clusterList=$( gcloud dataproc clusters list --region="${MY_REGION}" --filter="clusterName = ${MY_CLUSTER_NAME} AND status.state = ERROR" | grep ERROR )
 
   if [[ -n $clusterList ]]; then
     # the cluster is in an error state
@@ -155,7 +155,7 @@ checkForClusterError()
 
 function main() {
   # echo "Starting Script"
-  rightNow=$(($(date +%s%N)/1000000))
+  #rightNow=$(($(date +%s%N)/1000000))
 
   # echo "About to call check for active SSH sessions"
   isActiveSSHResult=$(isActiveSSH)
@@ -183,15 +183,16 @@ function main() {
     #Set project metadata variable isIdle to TRUE
     isIdleSince=$(setIdleStatusIdle)
     appSPH=1000
-    currentIdleSeconds=$(( ($currentTime - $isIdleSince) / $appSPH))
-    maxIdleSeconds="$(/usr/share/google/get_metadata_value attributes/${MAX_IDLE_SECONDS_KEY} || echo 'FALSE')"
+    currentIdleSeconds=$(( (currentTime - isIdleSince) / appSPH))
+    maxIdleSeconds="$(/usr/share/google/get_metadata_value attributes/"${MAX_IDLE_SECONDS_KEY}" || echo 'FALSE')"
     if [[ $currentIdleSeconds -gt $maxIdleSeconds ]]; then
       shutdownCluster
     fi
   else
     echo "Considering cluster ${MY_CLUSTER_NAME}  as active"
     gcloud logging write idle-check-log "${MY_CLUSTER_NAME}: Cluster Is ACTIVE" --severity=NOTICE
-    echo $( gcloud compute instances add-metadata ${MASTER_INSTANCE_NAME} --zone ${MASTER_INSTANCE_ZONE} --metadata ${IS_IDLE_STATUS_KEY}=${IS_IDLE_STATUS_FALSE},${IS_IDLE_STATUS_SINCE_KEY}=${currentTime})
+    #echo $( gcloud compute instances add-metadata ${MASTER_INSTANCE_NAME} --zone ${MASTER_INSTANCE_ZONE} --metadata ${IS_IDLE_STATUS_KEY}=${IS_IDLE_STATUS_FALSE},${IS_IDLE_STATUS_SINCE_KEY}=${currentTime})
+    gcloud compute instances add-metadata "${MASTER_INSTANCE_NAME}" --zone "${MASTER_INSTANCE_ZONE}" --metadata "${IS_IDLE_STATUS_KEY}=${IS_IDLE_STATUS_FALSE},${IS_IDLE_STATUS_SINCE_KEY}=${currentTime}"
   fi
 
   exit 0
