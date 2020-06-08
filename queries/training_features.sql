@@ -51,4 +51,11 @@ SELECT
     END AS splitting
 FROM Training
 JOIN GroupSize
-  ON Training.company_response_to_consumer = GroupSize.company_response_to_consumer;
+  ON Training.company_response_to_consumer = GroupSize.company_response_to_consumer
+WHERE Training.company_response_to_consumer IN (
+  'Untimely response',
+  'Closed',
+  'Closed with monetary relief',
+  'Closed with non-monetary relief',
+  'Closed with explanation'
+);
