@@ -110,3 +110,25 @@ This command pipes its output to a log file (`pipeline.out`). To follow this log
 
 * Change `model.train_budget_hours` to control how long the model trains for. The default is 1, but you should expect an extra hour of spin up time on top of the training budget. Upping the budget may improve model performance.
     
+## Online Predictions
+
+The example pipeline makes batch predictions, but a common deployment patterns is to create an API endpoint that receives features and returns a prediction. Do the following steps to deploy a model for online prediction, make a prediction, and then undeploy the model. **Do not leave your model deployed, deployed models can easily cost tens to hundreds of dollars a day.**
+
+All commands should be run from the project root (the folder with this README). This assumes your config file is in config/my_config.yaml.
+
+1. Make sure you have activated the same virtual environment used for the model training pipeline.
+2. Deploy the model: `bash deploy_model.sh config/my_config.yaml`. Take note of the "name" value in the response.
+3. Deployment will take up to 15 minutes. To check the status of the deployment run the following command, replacing "operation-name" with the name value from the previous step:
+```
+curl -X GET \
+   -H "Authorization: Bearer $(gcloud auth application-default print-access-token)" \
+   -H "Content-Type: application/json" \
+   https://automl.googleapis.com/v1beta1/projects/320881631258/locations/us-central1/operations/operation-name
+```
+When the operation is complete, the response will have a "done" item with the value "true".
+4. Make a prediction using provided sample .json with features: `bash online_predict.sh config/my_config.yaml predict_payload.json`. The response will have the different clasess with values based on the confidence of the class. To predict for different sets of , change the values of the .json file. The order of features in the json is the order of fields in the BigQuery Table used to train the model, minus the columns excluded in the `model.exclude_columns` config value.
+5. You should undeploy your model when finished to avoid excessive charges. Run: `undeploy.sh config/my_config.yaml`.
+
+## Using all Data to Train a Model
+
+This example intentionally splits the available data into training and prediction. Once you are comfortable with the model's performance, you should train the model on your available data. You can do this by changing the the config value `query_params.train_predict_split.test_threshold` to 0, which will put all data into the training split. Note that once you do this, the batch predict script won't run (since there's no data to use for prediction).
