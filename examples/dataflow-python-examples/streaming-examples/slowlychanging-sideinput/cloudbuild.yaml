@@ -1,0 +1,16 @@
+steps:
+###########################################################
+# Step 0: Create a Docker image with Python and Pytest installed
+###########################################################
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+    - 'build'
+    - '--tag=gcr.io/$PROJECT_ID/dataflow-streaming-slowlychanging-sideinput'
+    - '.'
+
+###########################################################
+# Step 1: Run unit tests
+###########################################################
+- name: 'gcr.io/$PROJECT_ID/dataflow-streaming-slowlychanging-sideinput'
+  entrypoint: 'python3'
+  args: ["-m",  "pytest", "--disable-pytest-warnings"]
