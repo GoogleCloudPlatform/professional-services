@@ -112,7 +112,7 @@ This command pipes its output to a log file (`pipeline.out`). To follow this log
     
 ## Online Predictions
 
-The example pipeline makes batch predictions, but a common deployment patterns is to create an API endpoint that receives features and returns a prediction. Do the following steps to deploy a model for online prediction, make a prediction, and then undeploy the model. **Do not leave your model deployed, deployed models can easily cost tens to hundreds of dollars a day.**
+The example pipeline makes batch predictions, but a common deployment pattern is to create an API endpoint that receives features and returns a prediction. Do the following steps to deploy a model for online prediction, make a prediction, and then undeploy the model. **Do not leave your model deployed, deployed models can easily cost tens to hundreds of dollars a day.**
 
 All commands should be run from the project root (the folder with this README). This assumes your config file is in config/my_config.yaml.
 

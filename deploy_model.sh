@@ -46,9 +46,9 @@ REGION="$(do_shyaml global.automl_compute_region)"
 MODEL_NAME="$(do_shyaml global.model_display_name)"
 CREDENTIALS="$(gcloud auth application-default print-access-token)"
 MODEL_ID=$(curl -s -X GET -H "Authorization: Bearer "${CREDENTIALS} \
-https://automl.googleapis.com/v1beta1/projects/ut-goog/locations/us-central1/models\
+https://automl.googleapis.com/v1beta1/projects/${PROJECT_ID}/locations/${REGION}/models \
 | jq -r --arg MODEL_NAME "$MODEL_NAME" \
-'.model[] | select(.displayName==$MODEL_NAME) | .name'\
+'.model[] | select(.displayName==$MODEL_NAME) | .name' \
 | cut -d'/' -f6)
 
 echo Deploying model.
