@@ -1,4 +1,4 @@
-# Predict Company Responses to Consumer Complaints
+# Better Consumer Complaint and Support Request Handling With AI
 
 ## Contributors
 
@@ -12,9 +12,13 @@
 
 # Overview
 
-This project shows how to use ML models to predict a company's response to consumer complaints using the public [CFPB Consumer Complaint Database](https://console.cloud.google.com/marketplace/details/cfpb/complaint-database?filter=solution-type:dataset&id=5a1b3026-d189-4a35-8620-099f7b5a600b) on BigQuery. It provides an implementation of [AutoML Tables](https://cloud.google.com/automl-tables) for model training and batch prediction.
+This example shows how to use ML models to predict a company's response to consumer complaints using the public [CFPB Consumer Complaint Database](https://console.cloud.google.com/marketplace/details/cfpb/complaint-database?filter=solution-type:dataset&id=5a1b3026-d189-4a35-8620-099f7b5a600b) on BigQuery. It provides an implementation of [AutoML Tables](https://cloud.google.com/automl-tables) for model training and batch prediction, and has a flexible config-driven BigQuery SQL pipeline for adapting to new data sources.
 
-The project also demonstrates a data processing pipeline for prediction of a company response based on consumer complaints on Google Cloud Platform, using BigQuery and AutoML Tables.
+This specific example identifies the outcomes of customer complaints, which could serve a customer support workflow that routes risky cases to specific support channels. But this example can be adapted to other support use cases by changing the label of the machine learning model. For example:
+* Routing support requests to specific teams.
+* Identifing support requests appropriate for templated vs. manual responses.
+* Prioritization of support requests.
+* Identifying a specific product (or products) needing support.
 
 ## Directory Structure
 
