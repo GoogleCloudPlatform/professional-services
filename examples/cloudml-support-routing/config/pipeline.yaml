@@ -11,13 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# ==============================================================================
-
-# Configuration for running the complete pipeline including modeling and evaluation.
+# 
+# Config for running the complete pipeline including modeling and evaluation.
 
 # Absolute paths to non-code resources.
 file_paths:
-# TODO(user): Put your local path to the queries subfolder here.
+  # TODO(user): Put your absolute local path to the queries subfolder here.
+  # If running in an AI Platform notebook and cloning the Google Cloud
+  # Professional Services repo, probably something like
+  # "/home/jupyter/professional-services/examples/cloudml-support-routing/queries"
   queries: "REPO_ROOT/queries"
 
 # Global config used by multiple pipeline steps. Also made available

@@ -68,11 +68,10 @@ These steps should be followed before you run the pipeline for the first time fr
 As stated previously, these instructions have been tested in a [Google Cloud AI Platforms Notebook](https://console.cloud.google.com/ai-platform/notebooks/instances).
 
 1. Run `gcloud init`, choose to use a new account, authenticate, and [set your project ID](https://cloud.google.com/resource-manager/docs/creating-managing-projects#identifying_projects) as the project. Choose a region in the US if prompted to set a default region.
-1. Run `bq init`. You may get a prompt telling you the command isn't necessary, hit 'y'. When asked to select a project, just hit enter. It's okay to overwrite the .bigqueryrc file if bq prompts you that one already exists.
 1. Clone the github project.
 1. Navigate to the directory containing this readme.
 1. Create a Python 3 virtual environment (`automl-support` in this example, in your home directory):
-   * Run `virtualenv --python=python3 $HOME/env/automl-support` .
+   * Run `python3 -m virtualenv $HOME/env/automl-support` .
    * Activate the environment. Run: `source ~/env/automl-support/bin/activate` .
    * Install the required Python packages: `pip install -r requirements.txt` . You may get an error about apache-beam and pyyaml version incompatibilities, this will have no effect.
 
@@ -82,7 +81,7 @@ Configuration is read from a file specified when running the pipeline from the c
 
 1. Make a copy of the configuration file: `cp config/pipeline.yaml config/my_config.yaml` .
 1. Edit `config/my_config.yaml` and make the following changes then save:
-   * `file_paths.queries` is the path to the queries subfolder. Change this value to the local path where the queries subfolder resides.
+   * `file_paths.queries` is the path to the queries subfolder. Change this value to the absolute local path where the queries subfolder resides.
    * `global.destination_project_id` is the project_id of the project you want to run the pipeline in (and where the AutoML models will live). Change this to your project_id.
 1. Also consider changing the following:
   * `global.destination_dataset` is the BigQuery dataset where data ingested by the pipeline into your project is stored. Note the table names don't need to change, since they will be written to the new dataset. Make sure this dataset doesn't already exist in your poject. If this dataset exists, the training pipeline will fail--you'll need to delete the dataset first.
@@ -100,13 +99,15 @@ These steps have only been tested for users with the "Owner" [IAM role](https://
 
 All commands should be run from the project root (the folder with this README). This assumes your config file is in `config/my_config.yaml`.
 
-1. Active the Python environment if it is not already activated. Run: `source ~/env/automl-source/bin/activate` or similar (see Setup for a New Environment, above).
-1. Run the model pipeline: `nohup bash run_pipeline.sh config/my_config.yaml ftpe > pipeline.out & disown` . This command will run the pipeline in the background, save logs to `pipeline.out`, and will not terminate if the terminal is closed. It will run all steps of the pipeline in sequence, or a subset of the steps as determined by the second positional arg (MODE). Ex. `fp` instead of `ftpe` would create features and then generate predictions using the model specified in the config. Pipline steps (MODE argument):
+1. Active the Python environment if it is not already activated. Run: `source ~/env/automl-support/bin/activate` or similar (see Setup for a New Environment, above).
+1. Run the model pipeline: `nohup bash run_pipeline.sh config/my_config.yaml ftp > pipeline.out & disown` . This command will run the pipeline in the background, save logs to `pipeline.out`, and will not terminate if the terminal is closed. It will run all steps of the pipeline in sequence, or a subset of the steps as determined by the second positional arg (MODE). Ex. `fp` instead of `fp` would create features and then generate predictions using the model specified in the config. Pipline steps (`$MODE` argument):
    * Create features (f): This creates the dataset of features (config value `global.destination_dataset`) and feature tables.
    * Train (t): This creates the training dataset in AutoML Tables Forecasting (config value `global.dataset_display_name`) and trains the model (config value `global.model_display_name`). Note that in the AutoML Tables UI the dataset will appear as soon as it is created but the model will not appear until it is completely trained.
    * Predict (p): This makes predictions with the model, and copies the unformatted results to a predictions table (config value `global.predictions_table`). AutoML generates its own dataset in BQ, which will contain errors if predictions for any rows fail. This spurious dataset (named prediction_<model_name>_<timestamp>) will be deleted if there are no errors.	
   	  
 This command pipes its output to a log file (`pipeline.out`). To follow this log file, run `tail -n 5 -f pipeline.out` to monitor the command while it runs.	This command pipes its output to a log file (`pipeline.out`). To follow this log file, run `tail -n 5 -f pipeline.out` to monitor the command while it runs.
+    
+Some of the AutoML steps are long-running operations. If you're following the logged output, you'll see continually longer sleepings between API calls. This is expected behavior. AutoML training can take hours, depending on your config settings. With the default settings, you can expect around two hours to complete the pipeline and model training.
 
 **Note:** If the pipeline is run and the destination datasets has already been created, the run will fail. Use the BQ UI, client, or command line interface to delete the dataset, or select new destinations (`global.destination_dataset`) in the config. AutoML also does not enforce that display names are unique, if multiple datasets or models are created with the same name, the run will fail. Use the AutoML UI or client to delete them, or select new display names in the config (`global.dataset_display_name` and `global.model_display_name`).
 
