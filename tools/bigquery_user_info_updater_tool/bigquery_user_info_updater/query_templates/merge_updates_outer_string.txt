@@ -1,0 +1,9 @@
+MERGE `{0:s}.{1:s}.{2:s}` m
+USING `{0:s}.{1:s}.{3:s}` u
+ON m.{4:s} = u.{4:s}
+WHEN MATCHED THEN
+	UPDATE SET
+		{5:s} = u.{5:s},
+{6:s}
+WHEN NOT MATCHED THEN
+	INSERT ROW

@@ -1,0 +1,44 @@
+{
+  "status": "done",
+  "kind": "dns#change",
+  "additions": [
+    {
+      "rrdatas": [
+        "104.197.235.103"
+      ],
+      "kind": "dns#resourceRecordSet",
+      "type": "CNAME",
+      "name": "instance-1.mydnsdomain.com.",
+      "ttl": 300
+    },
+    {
+      "rrdatas": [
+        "104.197.235.103"
+      ],
+      "kind": "dns#resourceRecordSet",
+      "type": "CNAME",
+      "name": "nic0.instance-1.mydnsdomain.com.",
+      "ttl": 300
+    },
+    {
+      "rrdatas": [
+        "10.240.0.7"
+      ],
+      "kind": "dns#resourceRecordSet",
+      "type": "CNAME",
+      "name": "instance-1.internal.mydnsdomain.com.",
+      "ttl": 300
+    },
+    {
+      "rrdatas": [
+        "10.240.0.7"
+      ],
+      "kind": "dns#resourceRecordSet",
+      "type": "CNAME",
+      "name": "nic0.instance-1.internal.mydnsdomain.com.",
+      "ttl": 300
+    }
+  ],
+  "startTime": "2017-01-02T13:18:22.986Z",
+  "id": "39"
+}

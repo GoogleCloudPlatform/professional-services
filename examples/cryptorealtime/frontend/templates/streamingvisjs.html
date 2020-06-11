@@ -1,0 +1,713 @@
+<!--
+  Copyright 2019 Google LLC
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+{% block body %}
+
+
+<script src="https://code.jquery.com/jquery-3.1.1.min.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css">
+<script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js"></script>
+
+
+
+  <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css" />
+<script>
+    /**
+     * HashMap - HashMap Class for JavaScript
+     * @author Ariel Flesler <aflesler@gmail.com>
+     * @version 2.0.6
+     * Homepage: https://github.com/flesler/hashmap
+     */
+
+    (function(factory) {
+        if (typeof define === 'function' && define.amd) {
+            // AMD. Register as an anonymous module.
+            define([], factory);
+        } else if (typeof module === 'object') {
+            // Node js environment
+            var HashMap = module.exports = factory();
+            // Keep it backwards compatible
+            HashMap.HashMap = HashMap;
+        } else {
+            // Browser globals (this is window)
+            this.HashMap = factory();
+        }
+    }(function() {
+
+        function HashMap(other) {
+            this.clear();
+            switch (arguments.length) {
+                case 0: break;
+                case 1: {
+                    if ('length' in other) {
+                        // Flatten 2D array to alternating key-value array
+                        multi(this, Array.prototype.concat.apply([], other));
+                    } else { // Assumed to be a HashMap instance
+                        this.copy(other);
+                    }
+                    break;
+                }
+                default: multi(this, arguments); break;
+            }
+        }
+
+        var proto = HashMap.prototype = {
+            constructor:HashMap,
+
+            get:function(key) {
+                var data = this._data[this.hash(key)];
+                return data && data[1];
+            },
+
+            set:function(key, value) {
+                // Store original key as well (for iteration)
+                var hash = this.hash(key);
+                if ( !(hash in this._data) ) {
+                    this.size++;
+                }
+                this._data[hash] = [key, value];
+            },
+
+            multi:function() {
+                multi(this, arguments);
+            },
+
+            copy:function(other) {
+                for (var hash in other._data) {
+                    if ( !(hash in this._data) ) {
+                        this.size++;
+                    }
+                    this._data[hash] = other._data[hash];
+                }
+            },
+
+            has:function(key) {
+                return this.hash(key) in this._data;
+            },
+
+            search:function(value) {
+                for (var key in this._data) {
+                    if (this._data[key][1] === value) {
+                        return this._data[key][0];
+                    }
+                }
+
+                return null;
+            },
+
+            delete:function(key) {
+                var hash = this.hash(key);
+                if ( hash in this._data ) {
+                    this.size--;
+                    delete this._data[hash];
+                }
+            },
+
+            type:function(key) {
+                var str = Object.prototype.toString.call(key);
+                var type = str.slice(8, -1).toLowerCase();
+                // Some browsers yield DOMWindow or Window for null and undefined, works fine on Node
+                if (!key && (type === 'domwindow' || type === 'window')) {
+                    return key + '';
+                }
+                return type;
+            },
+
+            keys:function() {
+                var keys = [];
+                this.forEach(function(_, key) { keys.push(key); });
+                return keys;
+            },
+
+            values:function() {
+                var values = [];
+                this.forEach(function(value) { values.push(value); });
+                return values;
+            },
+
+            entries:function() {
+                var entries = [];
+                this.forEach(function(value, key) { entries.push([key, value]); });
+                return entries;
+            },
+
+            // TODO: This is deprecated and will be deleted in a future version
+            count:function() {
+                return this.size;
+            },
+
+            clear:function() {
+                // TODO: Would Object.create(null) make any difference
+                this._data = {};
+                this.size = 0;
+            },
+
+            clone:function() {
+                return new HashMap(this);
+            },
+
+            hash:function(key) {
+                switch (this.type(key)) {
+                    case 'undefined':
+                    case 'null':
+                    case 'boolean':
+                    case 'number':
+                    case 'regexp':
+                        return key + '';
+
+                    case 'date':
+                        return '♣' + key.getTime();
+
+                    case 'string':
+                        return '♠' + key;
+
+                    case 'array':
+                        var hashes = [];
+                        for (var i = 0; i < key.length; i++) {
+                            hashes[i] = this.hash(key[i]);
+                        }
+                        return '♥' + hashes.join('⁞');
+
+                    default:
+                        // TODO: Don't use expandos when Object.defineProperty is not available?
+                        if (!key.hasOwnProperty('_hmuid_')) {
+                            key._hmuid_ = ++HashMap.uid;
+                            hide(key, '_hmuid_');
+                        }
+
+                        return '♦' + key._hmuid_;
+                }
+            },
+
+            forEach:function(func, ctx) {
+                for (var key in this._data) {
+                    var data = this._data[key];
+                    func.call(ctx || this, data[1], data[0]);
+                }
+            }
+        };
+
+        HashMap.uid = 0;
+
+        //- Add chaining to all methods that don't return something
+
+        ['set','multi','copy','delete','clear','forEach'].forEach(function(method) {
+            var fn = proto[method];
+            proto[method] = function() {
+                fn.apply(this, arguments);
+                return this;
+            };
+        });
+
+        //- Backwards compatibility
+
+        // TODO: remove() is deprecated and will be deleted in a future version
+        HashMap.prototype.remove = HashMap.prototype.delete;
+
+        //- Utils
+
+        function multi(map, args) {
+            for (var i = 0; i < args.length; i += 2) {
+                map.set(args[i], args[i+1]);
+            }
+        }
+
+        function hide(obj, prop) {
+            // Make non iterable if supported
+            if (Object.defineProperty) {
+                Object.defineProperty(obj, prop, {enumerable:false});
+            }
+        }
+
+        return HashMap;
+    }));
+
+</script>
+
+<p>
+
+
+  <label for="strategy">Graph options:</label>
+  <select id="strategy"  name="strategy" class="  dropdown">
+
+    <option value="continuous" >Continuous (CPU intensive)</option>
+    <option value="discrete" >Discrete</option>
+    <option value="static" selected >Static</option>
+  </select>
+</p>
+<div style="display: none">
+
+
+
+
+<div class="">
+  <table class="ui celled padded table">
+    <thead>
+    <tr><th class="single line">Predictor pair </th>
+      <th>Exchange</th>
+      <th>Predictor accuracy</th>
+      <th>Exchange -> BigTable latency avg. 5 mins</th>
+      <th>BigTable query latency avg. 5 mins</th>
+      <th>Graph update rate</th>
+      <th>Graph interval (sec)</th>
+      <th><a class="ui image label">
+        <img src="https://semantic-ui.com/images/avatar/small/steve.jpg">
+        DeLeo
+      </a>Second AI prediction </th>
+      <th><a class="ui image label">
+        <img src="https://semantic-ui.com/images/avatar/small/elliot.jpg">
+        Mike
+      </a>Minute AI prediction</th>
+      <th><a class="ui image label">
+        <img src="https://semantic-ui.com/images/avatar/small/helen.jpg">
+        Harish
+      </a>Hour AI prediction</th>
+    </tr></thead>
+    <tbody>
+    <tr>
+      <td>
+        <h2 class="ui center aligned header">BTC/USD</h2>
+      </td>
+      <td class="single line">
+        BitFinex
+      </td>
+      <td>
+        <div class="ui star rating" data-rating="3" data-max-rating="5"></div>
+      </td>
+      <td class="right aligned">
+        451 ms
+      </td>
+      <td class="right aligned">
+        10 ms
+      </td>
+      <td class="right aligned">
+        500 ms
+      </td>
+      <td class="right aligned">
+        300 s
+      </td>
+      <td>
+        +0.1%
+      <td>
+        +0.1%
+      </td>
+      <td>
+        -3.1%
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <h2 class="ui center aligned header">BTC/USD</h2>
+      </td>
+      <td class="single line">
+        BitStamp
+      </td>
+      <td>
+        <div class="ui star rating" data-rating="4" data-max-rating="5"></div>
+      </td>
+      <td class="right aligned">
+        140 ms
+      </td>
+      <td class="right aligned">
+        10 ms
+      </td>
+      <td class="right aligned">
+        500 ms
+      </td>
+      <td class="right aligned">
+        300 s
+      </td>
+      <td>
+        -0.2%
+      <td>
+        +0.3%
+      </td>
+      <td>
+        -2.1%
+      </td>
+    </tr>
+    </tbody>
+    <tfoot>
+    <tr>
+    </tr></tfoot>
+  </table>
+</div>
+
+</div>
+
+
+
+
+
+<span>
+<div id="visualization"></div>
+<div id="visualization2"></div>
+<div id="visualization3"></div>
+</span>
+
+<script type='text/javascript'>//<![CDATA[
+
+var DELAY = 500; // delay in ms to add new data points
+
+var strategy = document.getElementById('strategy');
+
+// create a graph2d with an (currently empty) dataset
+var container = document.getElementById('visualization');
+var container2 = document.getElementById('visualization2');
+var container3 = document.getElementById('visualization3');
+
+var dataset = new vis.DataSet();
+var dataset2 = new vis.DataSet();
+var dataset3 = new vis.DataSet();
+
+var timeWindowSec = -300;
+var dataHashMap =  new HashMap();
+var TTL = 7  * 1000; /* Time to keep the data in our sytem 3 sec */
+var lock = false;
+
+var familyname = "market";
+
+var options = {
+    start: vis.moment().add(timeWindowSec, 'seconds'), // changed so its faster
+    end: vis.moment(),
+    dataAxis: {
+        left: {
+
+        }
+    },
+    drawPoints: {
+        style: 'circle' // square, circle
+    },
+    shaded: {
+        orientation: 'bottom' // top, bottom
+    },
+    legend:true,
+    height: '30%'
+
+};
+
+
+var options2 = {
+    style:'bar',
+    stack:true,
+    barChart: { align:'left'}, // align: left, center, right
+    drawPoints: false,
+    dataAxis: {
+        icons:false,
+    },
+    orientation:'top',
+    start: vis.moment().add(timeWindowSec, 'seconds'), // changed so its faster
+    end: vis.moment(),
+    height: '30%'
+};
+
+var options3 = {
+    style:'points',
+    stack:false,
+    barChart: { align:'left'}, // align: left, center, right
+    drawPoints: false,
+    dataAxis: {
+        icons:false,
+    },
+    orientation:'top',
+    start: vis.moment().add(timeWindowSec, 'seconds'), // changed so its faster
+    end: vis.moment(),
+    height: '30%'
+
+};
+
+var graph2d = new vis.Graph2d(container, dataset, options);
+var graph2d2 = new vis.Graph2d(container2, dataset2, options2);
+var graph2d3 = new vis.Graph2d(container3, dataset3, options3);
+
+
+function renderStep() {
+    // move the window (you can think of different strategies).
+    var now = vis.moment();
+    var range = graph2d.getWindow();
+    var interval = range.end - range.start;
+    switch (strategy.value) {
+        case 'continuous':
+            // continuously move the window
+            graph2d.setWindow(now - interval, now, {animation: false});
+            requestAnimationFrame(renderStep);
+            break;
+
+        case 'discrete':
+            graph2d.setWindow(now - interval, now, {animation: false});
+            setTimeout(renderStep, DELAY);
+            break;
+
+        default: // 'static'
+            // move the window 90% to the left when now is larger than the end of the window
+            if (now > range.end) {
+                graph2d.setWindow(now - 0.1 * interval, now + 0.9 * interval);
+            }
+            setTimeout(renderStep, DELAY);
+            break;
+    }
+}
+renderStep();
+
+
+function renderStep2() {
+    // move the window (you can think of different strategies).
+    var now = vis.moment();
+    var range = graph2d2.getWindow();
+    var interval = range.end - range.start;
+    switch (strategy.value) {
+        case 'continuous':
+            // continuously move the window
+            graph2d2.setWindow(now - interval, now, {animation: false});
+            requestAnimationFrame(renderStep2);
+            break;
+
+        case 'discrete':
+            graph2d2.setWindow(now - interval, now, {animation: false});
+            setTimeout(renderStep2, DELAY);
+            break;
+
+        default: // 'static'
+            // move the window 90% to the left when now is larger than the end of the window
+            if (now > range.end) {
+                graph2d2.setWindow(now - 0.1 * interval, now + 0.9 * interval);
+            }
+            setTimeout(renderStep2, DELAY);
+            break;
+    }
+}
+renderStep2();
+
+
+function renderStep3() {
+    // move the window (you can think of different strategies).
+    var now = vis.moment();
+    var range = graph2d3.getWindow();
+    var interval = range.end - range.start;
+    switch (strategy.value) {
+        case 'continuous':
+            // continuously move the window
+            graph2d3.setWindow(now - interval, now, {animation: false});
+            requestAnimationFrame(renderStep3);
+            break;
+
+        case 'discrete':
+            graph2d3.setWindow(now - interval, now, {animation: false});
+            setTimeout(renderStep3, DELAY);
+            break;
+
+        default: // 'static'
+            // move the window 90% to the left when now is larger than the end of the window
+            if (now > range.end) {
+                graph2d3.setWindow(now - 0.1 * interval, now + 0.9 * interval);
+            }
+            setTimeout(renderStep3, DELAY);
+            break;
+    }
+}
+renderStep3();
+
+/**
+ * Add a new datapoint to the graph
+ */
+ function addDataPoint() {
+    // add a new data point to the dataset
+    var now = vis.moment();
+
+
+    var da;
+    try {
+        da = fetchData();
+    }
+    catch(err) {
+        console.log(err);
+        setTimeout(addDataPoint, DELAY/2);
+        return;
+    }
+
+
+
+   // console.log(startTime);
+   // console.log(endTime);
+
+
+    for (x in da['da'][0][familyname]['exchangeTime']) {
+        //if(da['da'][0][familyname]['orderType'][x] == "ASK") continue;  // if you like only one channel
+
+
+
+        // check if does not exists
+        //if(typeof dataHashMap.get(da['da'][0][familyname]['key'][x]) != "undefined" ){ continue; }
+        if(dataHashMap.has(da['da'][0][familyname]['key'][x])){ continue; }
+
+
+
+        // object does not exist
+            dataHashMap.set(da['da'][0][familyname]['key'][x], new Date(parseInt(da['da'][0][familyname]['exchangeTime'][x])));
+            //console.log("it does not exist , adding " + da['da'][0][familyname]['key'][x])
+
+
+
+
+
+
+        var time11 = parseInt(da['da'][0][familyname]['exchangeTime'][x])
+        var tradeDate = vis.moment(time11);
+
+
+
+
+        dataset.add({
+            x: tradeDate,
+            y:parseFloat(da['da'][0][familyname]['price'][x]),
+            group: da['da'][0][familyname]['market'][x] + " - " + da['da'][0][familyname]['orderType'][x] ,
+            label: da['da'][0][familyname]['market'][x] + " - " + da['da'][0][familyname]['orderType'][x] ,
+
+        });
+
+
+        // graph asks volume negative
+        var voli = parseFloat(da['da'][0][familyname]['volume'][x]);
+        if(da['da'][0][familyname]['orderType'][x] == "ASK"){
+            if(voli>0) voli = voli * -1;
+        }
+
+
+        dataset2.add({
+            x: tradeDate,
+            y:voli,
+            group: da['da'][0][familyname]['market'][x] + " - " + da['da'][0][familyname]['orderType'][x] ,
+            label: da['da'][0][familyname]['market'][x] + " - " + da['da'][0][familyname]['orderType'][x] ,
+
+        });
+
+
+        dataset3.add({
+            x: tradeDate,
+            y:parseFloat(da['da'][0][familyname]['delta'][x]),
+            group: da['da'][0][familyname]['market'][x] + " - " + da['da'][0][familyname]['orderType'][x] ,
+            label: da['da'][0][familyname]['market'][x] + " - " + da['da'][0][familyname]['orderType'][x] ,
+
+        });
+
+
+    }
+
+
+
+    // remove all data points which are no longer visible
+    var range = graph2d.getWindow();
+    var interval = range.end - range.start;
+    var oldIds = dataset.getIds({
+        filter: function (item) {
+            return item.x < range.start - interval;
+        }
+    });
+    dataset.remove(oldIds);
+
+
+    var range2 = graph2d2.getWindow();
+    var interval = range2.end - range2.start;
+    var oldIds2 = dataset2.getIds({
+        filter: function (item) {
+            return item.x < range2.start - interval;
+        }
+    });
+    dataset2.remove(oldIds2);
+
+
+    var range3 = graph2d3.getWindow();
+    var interval = range3.end - range3.start;
+    var oldIds3 = dataset3.getIds({
+        filter: function (item) {
+            return item.x < range3.start - interval;
+        }
+    });
+    dataset3.remove(oldIds3);
+
+
+
+    dataHashMap.forEach(function(value, key) {
+        if(((new Date) - value) > TTL){ // remove if entries are older then TTL seconds
+            //console.log("deleting " + item);
+            dataHashMap.delete(key);
+        }
+    });
+    // garbage collector
+   /* for (let item of dataHashMap) {
+        if(((new Date) - item[1]) > TTL){ // remove if entries are older then TTL seconds
+            //console.log("deleting " + item);
+            dataHashMap.delete(item[0]);
+        }
+
+        // expected output: Array ["0", "foo"]
+        // expected output: Array [1, "bar"]
+    }*/
+
+    /*console.log("oldids:" + oldIds3);
+    console.log("interval:" + interval);
+    console.log("range3.start:" + range3.start);
+    console.log("range3.end:" + range3.end);
+*/
+    setTimeout(addDataPoint, DELAY);
+}
+addDataPoint();
+
+
+function fetchData(){
+    var jsonData = $.ajax({
+        url: "/getStreamingData",
+        dataType: "json",
+        async: false
+    }).responseText;
+
+    da = JSON.parse(JSON.parse(jsonData));
+
+    data_timestamp = da[0][familyname]['exchangeTime'][0];
+    data_pure = da[0][familyname]['delta'];
+    data_price = da[0][familyname]['price'];
+    data_volume = da[0][familyname]['volume'];
+
+    var arro = {};
+    for (x in data_pure) {
+        if(da[0][familyname]['market'][x] in arro) arro[da[0][familyname]['market'][x]]++
+        else  arro[da[0][familyname]['market'][x]] = 1
+    }
+
+    exchangeNumber = 1;
+    orderMarkets = {};
+    Object.keys(arro).forEach(function(key) {
+        //data.addColumn('number', key);
+        //data.addColumn('number', key);
+        orderMarkets[key] = exchangeNumber;
+        exchangeNumber++;
+    });
+
+    reObject = {};
+    reObject['da'] = da;
+    reObject['orderMarkets'] = orderMarkets;
+
+    return reObject;
+
+}
+
+</script>
+
+
+{% endblock %}

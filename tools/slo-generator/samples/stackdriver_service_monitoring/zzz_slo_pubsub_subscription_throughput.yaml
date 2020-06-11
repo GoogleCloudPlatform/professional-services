@@ -1,0 +1,22 @@
+# TODO: Doesn't work at the moment because Stackdriver Service Monitoring API
+# does not support Gauge-type metrics.
+
+# ---
+# service_name:    pubsub
+# feature_name:    subscription
+# slo_description: Throughput of Pub/Sub subscription
+# slo_name:        throughput
+# slo_target:      0.95
+# backend:
+#   class:         StackdriverServiceMonitoring
+#   project_id:    "${STACKDRIVER_HOST_PROJECT_ID}"
+#   method:        good_bad_ratio
+#   measurement:
+#     filter_good: >
+#       project="${PUBSUB_PROJECT_ID}"
+#       metric.type="pubsub.googleapis.com/subscription/ack_message_count"
+#       resource.type="pubsub_subscription"
+#     filter_bad:  >
+#       project="${PUBSUB_PROJECT_ID}"
+#       metric.type="pubsub.googleapis.com/subscription/num_outstanding_messages"
+#       resource.type="pubsub_subscription"

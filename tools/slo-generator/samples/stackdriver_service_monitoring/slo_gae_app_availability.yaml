@@ -1,0 +1,31 @@
+---
+service_name:     gae
+feature_name:     app
+slo_description:  Availability of App Engine app
+slo_name:         availability
+slo_target:       0.95
+backend:
+  class:          StackdriverServiceMonitoring
+  method:         good_bad_ratio
+  project_id:     ${STACKDRIVER_HOST_PROJECT_ID}
+  measurement:
+    filter_good:  >
+      project=${GAE_PROJECT_ID}
+      metric.type="appengine.googleapis.com/http/server/response_count"
+      resource.type="gae_app"
+      ( metric.labels.response_code = 429 OR
+        metric.labels.response_code = 200 OR
+        metric.labels.response_code = 201 OR
+        metric.labels.response_code = 202 OR
+        metric.labels.response_code = 203 OR
+        metric.labels.response_code = 204 OR
+        metric.labels.response_code = 205 OR
+        metric.labels.response_code = 206 OR
+        metric.labels.response_code = 207 OR
+        metric.labels.response_code = 208 OR
+        metric.labels.response_code = 226 OR
+        metric.labels.response_code = 304 )
+    filter_valid: >
+      project=${GAE_PROJECT_ID}
+      metric.type="appengine.googleapis.com/http/server/response_count"
+      resource.type="gae_app"

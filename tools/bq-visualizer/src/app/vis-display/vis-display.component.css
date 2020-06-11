@@ -1,0 +1,54 @@
+/*
+ * Copyright 2019 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+ .status {
+  min-height: 20vh;
+  max-height: 20vh;
+}
+.flex-row {
+  display: flex;
+  flex-direction: row;
+  padding: 20px;
+}
+.main-col {
+  height: 85vh;
+  padding: 20px;
+}
+.side-bar {
+  flex-grow: 2;
+  max-width: 300px;
+  height: 100%;
+}
+.plan-status {
+  margin-top: 15px;
+  flex-grow: 2;
+}
+.side-card {
+  overflow: hidden;
+  padding: 5px;
+  max-height: 250px;
+}
+.mat-card {
+  overflow: hidden;
+}
+.mat-card-content > pre {
+  max-height: 250px;
+  overflow: auto;
+}
+.vis_display {
+  position: relative;
+  padding-top: 10px;
+}

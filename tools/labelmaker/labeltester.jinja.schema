@@ -1,0 +1,40 @@
+info:
+  title: Labelmaker Tester
+  author: mwallman@google.com
+  description: |
+    Creates an instance with different disk types and executes labelmaker
+  version: 0.1
+
+imports:
+  - path: labeltester.jinja
+
+required:
+  - zone
+
+properties:
+  zone:
+    type: string
+    description: i.e. us-east1-d
+
+  network:
+    type: string
+    description: Network URL i.e. projects/project/global/networks/network
+    default: global/networks/default
+
+  subnet:
+    type: string
+    description: Subnet URL i.e regions/region/subnetworks/subnetwork
+
+  sourceImage:
+    type: string
+    description: Image uri
+    default: projects/ubuntu-os-cloud/global/images/family/ubuntu-1604-lts
+
+  machineType:
+    type: string
+    default: n1-standard-1
+
+  serviceAccount:
+    type: string
+    description: Service account with permissions to label resources i.e. Project editor.
+    default: default

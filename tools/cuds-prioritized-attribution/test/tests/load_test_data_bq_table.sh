@@ -1,0 +1,34 @@
+#!/bin/bash
+# Copyright 2020 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+dataset=$1
+export_table=$2
+commitment_table=$3
+data_dir=$4
+
+rm -f tests/"${data_dir}"/expected_output.json
+rm -f tests/"${data_dir}"/commitments_load.json
+rm -f tests/"${data_dir}"/export_load.json
+rm -f tests/"${data_dir}"/output.json
+rm -f tests/"${data_dir}"/output_cmp.json
+
+< tests/"${data_dir}"/commitments.json jq -rc . > tests/"${data_dir}"/commitments_load.json
+< tests/"${data_dir}"/export.json jq -rc . > tests/"${data_dir}"/export_load.json
+< tests/"${data_dir}"/expected_billingexport_output.json jq -rc . > tests/"${data_dir}"/expected_output.json
+
+bq load  --source_format NEWLINE_DELIMITED_JSON  "${dataset}"."${export_table}"  tests/"${data_dir}"/export_load.json  tests/billing_export_schema.json
+echo "${dataset}.${export_table} table loaded ... "
+bq load  --source_format NEWLINE_DELIMITED_JSON "${dataset}"."${commitment_table}"  tests/"${data_dir}"/commitments_load.json  tests/commitments_schema.json
+echo "${dataset}.${commitment_table} table loaded ... "

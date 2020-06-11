@@ -1,0 +1,784 @@
+[
+  {
+    "billing_account_id": "00F3D8-28D652-3F036F",
+    "cost": "100.0",
+    "cost_type": "regular",
+    "credits": [],
+    "currency": "USD",
+    "invoice_month": "201901",
+    "labels": [
+      {
+        "key": "env",
+        "value": "prod"
+      }
+    ],
+    "location_country": "US",
+    "location_location": "us-west1",
+    "location_region": "us-west1",
+    "location_zone": null,
+    "project_ancestry_numbers": "/433637338589/396521612401/",
+    "project_id": "project-1",
+    "project_labels": [],
+    "project_name": "project-1",
+    "service_description": "Compute Engine",
+    "service_id": "6F81-5844-456A",
+    "sku_description": "commitment v1: ram in americas for 3 year",
+    "sku_id": "5aa0-d2cc-1da8",
+    "usage_amount": "100.0",
+    "usage_amount_in_pricing_units": "100.0",
+    "usage_end_time": "2019-01-21 12:25:14",
+    "usage_pricing_unit": "gibibyte hour",
+    "usage_start_time": "2019-01-21 08:25:11",
+    "usage_unit": "gibibyte hour"
+  },
+  {
+    "billing_account_id": "00F3D8-28D652-3F036F",
+    "cost": "10.0",
+    "cost_type": "regular",
+    "credits": [],
+    "currency": "USD",
+    "invoice_month": "201901",
+    "labels": [
+      {
+        "key": "area",
+        "value": "bigdata"
+      },
+      {
+        "key": "env",
+        "value": "prod"
+      }
+    ],
+    "location_country": "US",
+    "location_location": "us-west1",
+    "location_region": "us-west1",
+    "location_zone": null,
+    "project_ancestry_numbers": "/433637338589/396521612401/",
+    "project_id": "project-1",
+    "project_labels": [],
+    "project_name": null,
+    "service_description": "Compute Engine",
+    "service_id": "6F81-5844-456A",
+    "sku_description": "N1 Standard Instance Ram running in Americas",
+    "sku_id": "6C71-E844-38BC",
+    "usage_amount": "10.0",
+    "usage_amount_in_pricing_units": "10.0",
+    "usage_end_time": "2019-01-21 12:25:14",
+    "usage_pricing_unit": "gibibyte hour",
+    "usage_start_time": "2019-01-21 08:25:11",
+    "usage_unit": "gibibyte hour"
+  },
+  {
+    "billing_account_id": "00F3D8-28D652-3F036F",
+    "cost": "10.0",
+    "cost_type": "regular",
+    "credits": [],
+    "currency": "USD",
+    "invoice_month": "201901",
+    "labels": [
+      {
+        "key": "area",
+        "value": "bigdata"
+      }
+    ],
+    "location_country": "US",
+    "location_location": "us-west1",
+    "location_region": "us-west1",
+    "location_zone": null,
+    "project_ancestry_numbers": "/433637338589/396521612401/",
+    "project_id": "project-1",
+    "project_labels": [],
+    "project_name": null,
+    "service_description": "Compute Engine",
+    "service_id": "6F81-5844-456A",
+    "sku_description": "N1 Standard Instance Ram running in Americas",
+    "sku_id": "6C71-E844-38BC",
+    "usage_amount": "10.0",
+    "usage_amount_in_pricing_units": "10.0",
+    "usage_end_time": "2019-01-21 12:25:14",
+    "usage_pricing_unit": "gibibyte hour",
+    "usage_start_time": "2019-01-21 08:25:11",
+    "usage_unit": "gibibyte hour"
+  },
+  {
+    "billing_account_id": "00F3D8-28D652-3F036F",
+    "cost": "0.0",
+    "cost_type": "regular",
+    "credits": [
+      {
+        "amount": "50.0",
+        "name": "Committed Usage Discount: RAM"
+      }
+    ],
+    "currency": "USD",
+    "invoice_month": "201901",
+    "labels": [
+      {
+        "key": "env",
+        "value": "prod"
+      },
+      {
+        "key": "area",
+        "value": "bigdata"
+      }
+    ],
+    "location_country": "US",
+    "location_location": "us-west1",
+    "location_region": "us-west1",
+    "location_zone": null,
+    "project_ancestry_numbers": "/433637338589/396521612402/",
+    "project_id": "project-2",
+    "project_labels": [],
+    "project_name": "project-2",
+    "service_description": "Compute Engine",
+    "service_id": "6F81-5844-456A",
+    "sku_description": "N1 Standard Instance Ram running in Americas",
+    "sku_id": "6C71-E844-38BC",
+    "usage_amount": "0.0",
+    "usage_amount_in_pricing_units": "0.0",
+    "usage_end_time": "2019-01-21 12:25:14",
+    "usage_pricing_unit": "gibibyte hour",
+    "usage_start_time": "2019-01-21 08:25:11",
+    "usage_unit": "gibibyte hour"
+  },
+  {
+    "billing_account_id": "00F3D8-28D652-3F036F",
+    "cost": "0.0",
+    "cost_type": "regular",
+    "credits": [
+      {
+        "amount": "50.0",
+        "name": "Committed Usage Discount: RAM"
+      }
+    ],
+    "currency": "USD",
+    "invoice_month": "201901",
+    "labels": [
+      {
+        "key": "env",
+        "value": "prod"
+      }
+    ],
+    "location_country": "US",
+    "location_location": "us-west1",
+    "location_region": "us-west1",
+    "location_zone": null,
+    "project_ancestry_numbers": "/433637338589/396521612402/",
+    "project_id": "project-2",
+    "project_labels": [],
+    "project_name": "project-2",
+    "service_description": "Compute Engine",
+    "service_id": "6F81-5844-456A",
+    "sku_description": "N1 Standard Instance Ram running in Americas",
+    "sku_id": "6C71-E844-38BC",
+    "usage_amount": "0.0",
+    "usage_amount_in_pricing_units": "0.0",
+    "usage_end_time": "2019-01-21 12:25:14",
+    "usage_pricing_unit": "gibibyte hour",
+    "usage_start_time": "2019-01-21 08:25:11",
+    "usage_unit": "gibibyte hour"
+  },
+  {
+    "billing_account_id": "00F3D8-28D652-3F036F",
+    "cost": "10.0",
+    "cost_type": "regular",
+    "credits": [
+      {
+        "amount": "-50.0",
+        "name": "Committed Usage Discount: RAM"
+      }
+    ],
+    "currency": "USD",
+    "invoice_month": "201901",
+    "labels": [
+      {
+        "key": "env",
+        "value": "prod"
+      }
+    ],
+    "location_country": "US",
+    "location_location": "us-west1",
+    "location_region": "us-west1",
+    "location_zone": null,
+    "project_ancestry_numbers": "/433637338589/396521612402/",
+    "project_id": "project-2",
+    "project_labels": [],
+    "project_name": "project-2",
+    "service_description": "Compute Engine",
+    "service_id": "6F81-5844-456A",
+    "sku_description": "N1 Standard Instance Ram running in Americas",
+    "sku_id": "6C71-E844-38BC",
+    "usage_amount": "10.0",
+    "usage_amount_in_pricing_units": "10.0",
+    "usage_end_time": "2019-01-21 12:25:14",
+    "usage_pricing_unit": "gibibyte hour",
+    "usage_start_time": "2019-01-21 08:25:11",
+    "usage_unit": "gibibyte hour"
+  },
+  {
+    "billing_account_id": "00F3D8-28D652-3F036F",
+    "cost": "20.0",
+    "cost_type": "regular",
+    "credits": [
+      {
+        "amount": "-50.0",
+        "name": "Committed Usage Discount: RAM"
+      }
+    ],
+    "currency": "USD",
+    "invoice_month": "201901",
+    "labels": [
+      {
+        "key": "env",
+        "value": "prod"
+      },
+      {
+        "key": "area",
+        "value": "bigdata"
+      }
+    ],
+    "location_country": "US",
+    "location_location": "us-west1",
+    "location_region": "us-west1",
+    "location_zone": null,
+    "project_ancestry_numbers": "/433637338589/396521612402/",
+    "project_id": "project-2",
+    "project_labels": [],
+    "project_name": "project-2",
+    "service_description": "Compute Engine",
+    "service_id": "6F81-5844-456A",
+    "sku_description": "N1 Standard Instance Ram running in Americas",
+    "sku_id": "6C71-E844-38BC",
+    "usage_amount": "20.0",
+    "usage_amount_in_pricing_units": "20.0",
+    "usage_end_time": "2019-01-21 12:25:14",
+    "usage_pricing_unit": "gibibyte hour",
+    "usage_start_time": "2019-01-21 08:25:11",
+    "usage_unit": "gibibyte hour"
+  },
+  {
+    "billing_account_id": "00F3D8-28D652-3F036F",
+    "cost": "90.0",
+    "cost_type": "regular",
+    "credits": [],
+    "currency": "USD",
+    "invoice_month": "201903",
+    "labels": [
+      {
+        "key": "env",
+        "value": "prod"
+      }
+    ],
+    "location_country": "US",
+    "location_location": "us-west1",
+    "location_region": "us-west1",
+    "location_zone": null,
+    "project_ancestry_numbers": "/433637338589/396521612403/",
+    "project_id": "project-3",
+    "project_labels": [],
+    "project_name": "project-3",
+    "service_description": "Compute Engine",
+    "service_id": "6F81-5844-456A",
+    "sku_description": "N1 Standard Instance Ram running in Americas",
+    "sku_id": "6C71-E844-38BC",
+    "usage_amount": "90.0",
+    "usage_amount_in_pricing_units": "90.0",
+    "usage_end_time": "2019-01-21 12:25:14",
+    "usage_pricing_unit": "gibibyte hour",
+    "usage_start_time": "2019-01-21 08:25:11",
+    "usage_unit": "gibibyte hour"
+  },
+  {
+    "billing_account_id": "00F3D8-28D652-3F036F",
+    "cost": "100.0",
+    "cost_type": "regular",
+    "credits": [],
+    "currency": "USD",
+    "invoice_month": "201903",
+    "labels": [
+      {
+        "key": "env",
+        "value": "prod"
+      }
+    ],
+    "location_country": "US",
+    "location_location": "us-west1",
+    "location_region": "us-west1",
+    "location_zone": null,
+    "project_ancestry_numbers": "/433637338589/396521612404/",
+    "project_id": "project-4",
+    "project_labels": [],
+    "project_name": "project-4",
+    "service_description": "Compute Engine",
+    "service_id": "6F81-5844-456A",
+    "sku_description": "N1 Standard Instance Ram running in Americas",
+    "sku_id": "6C71-E844-38BC",
+    "usage_amount": "100.0",
+    "usage_amount_in_pricing_units": "20.0",
+    "usage_end_time": "2019-01-21 12:25:14",
+    "usage_pricing_unit": "gibibyte hour",
+    "usage_start_time": "2019-01-21 08:25:11",
+    "usage_unit": "gibibyte hour"
+  },
+  {
+    "billing_account_id": "00F3D8-28D652-3F036F",
+    "cost": "10.0",
+    "cost_type": "regular",
+    "credits": [],
+    "currency": "USD",
+    "invoice_month": "201901",
+    "labels": [
+      {
+        "key": "area",
+        "value": "bigdata"
+      },
+      {
+        "key": "env",
+        "value": "prod"
+      }
+    ],
+    "location_country": "",
+    "location_location": "",
+    "location_region": "us-west1",
+    "location_zone": "",
+    "project_ancestry_numbers": "/433637338589/396521612401/",
+    "project_id": "project-1",
+    "project_labels": [],
+    "project_name": null,
+    "service_description": "Compute Engine",
+    "service_id": "6F81-5844-456A",
+    "sku_description": "Reattribution_Addition_CUD_RAM_COST_Americas",
+    "sku_id": "Reattribution_Addition_CUD_RAM_COST_Americas",
+    "usage_amount": "0.0",
+    "usage_amount_in_pricing_units": "0.0",
+    "usage_end_time": "2019-01-21 23:59:59",
+    "usage_pricing_unit": "seconds",
+    "usage_start_time": "2019-01-21 23:59:59",
+    "usage_unit": "byte-seconds"
+  },
+  {
+    "billing_account_id": "00F3D8-28D652-3F036F",
+    "cost": "10.0",
+    "cost_type": "regular",
+    "credits": [],
+    "currency": "USD",
+    "invoice_month": "201901",
+    "labels": [
+      {
+        "key": "area",
+        "value": "bigdata"
+      }
+    ],
+    "location_country": "",
+    "location_location": "",
+    "location_region": "us-west1",
+    "location_zone": "",
+    "project_ancestry_numbers": "/433637338589/396521612401/",
+    "project_id": "project-1",
+    "project_labels": [],
+    "project_name": null,
+    "service_description": "Compute Engine",
+    "service_id": "6F81-5844-456A",
+    "sku_description": "Reattribution_Addition_CUD_RAM_COST_Americas",
+    "sku_id": "Reattribution_Addition_CUD_RAM_COST_Americas",
+    "usage_amount": "0.0",
+    "usage_amount_in_pricing_units": "0.0",
+    "usage_end_time": "2019-01-21 23:59:59",
+    "usage_pricing_unit": "seconds",
+    "usage_start_time": "2019-01-21 23:59:59",
+    "usage_unit": "byte-seconds"
+  },
+  {
+    "billing_account_id": "00F3D8-28D652-3F036F",
+    "cost": "10.0",
+    "cost_type": "regular",
+    "credits": [],
+    "currency": "USD",
+    "invoice_month": "201901",
+    "labels": [
+      {
+        "key": "env",
+        "value": "prod"
+      }
+    ],
+    "location_country": "",
+    "location_location": "",
+    "location_region": "us-west1",
+    "location_zone": "",
+    "project_ancestry_numbers": "/433637338589/396521612402/",
+    "project_id": "project-2",
+    "project_labels": [],
+    "project_name": "project-2",
+    "service_description": "Compute Engine",
+    "service_id": "6F81-5844-456A",
+    "sku_description": "Reattribution_Addition_CUD_RAM_COST_Americas",
+    "sku_id": "Reattribution_Addition_CUD_RAM_COST_Americas",
+    "usage_amount": "0.0",
+    "usage_amount_in_pricing_units": "0.0",
+    "usage_end_time": "2019-01-21 23:59:59",
+    "usage_pricing_unit": "seconds",
+    "usage_start_time": "2019-01-21 23:59:59",
+    "usage_unit": "byte-seconds"
+  },
+  {
+    "billing_account_id": "00F3D8-28D652-3F036F",
+    "cost": "20.0",
+    "cost_type": "regular",
+    "credits": [],
+    "currency": "USD",
+    "invoice_month": "201901",
+    "labels": [
+      {
+        "key": "area",
+        "value": "bigdata"
+      },
+      {
+        "key": "env",
+        "value": "prod"
+      }
+    ],
+    "location_country": "",
+    "location_location": "",
+    "location_region": "us-west1",
+    "location_zone": "",
+    "project_ancestry_numbers": "/433637338589/396521612402/",
+    "project_id": "project-2",
+    "project_labels": [],
+    "project_name": "project-2",
+    "service_description": "Compute Engine",
+    "service_id": "6F81-5844-456A",
+    "sku_description": "Reattribution_Addition_CUD_RAM_COST_Americas",
+    "sku_id": "Reattribution_Addition_CUD_RAM_COST_Americas",
+    "usage_amount": "0.0",
+    "usage_amount_in_pricing_units": "0.0",
+    "usage_end_time": "2019-01-21 23:59:59",
+    "usage_pricing_unit": "seconds",
+    "usage_start_time": "2019-01-21 23:59:59",
+    "usage_unit": "byte-seconds"
+  },
+  {
+    "billing_account_id": "00F3D8-28D652-3F036F",
+    "cost": "23.684210526315788",
+    "cost_type": "regular",
+    "credits": [],
+    "currency": "USD",
+    "invoice_month": "201901",
+    "labels": [
+      {
+        "key": "env",
+        "value": "prod"
+      }
+    ],
+    "location_country": "",
+    "location_location": "",
+    "location_region": "us-west1",
+    "location_zone": "",
+    "project_ancestry_numbers": "/433637338589/396521612403/",
+    "project_id": "project-3",
+    "project_labels": [],
+    "project_name": "project-3",
+    "service_description": "Compute Engine",
+    "service_id": "6F81-5844-456A",
+    "sku_description": "Reattribution_Addition_CUD_RAM_COST_Americas",
+    "sku_id": "Reattribution_Addition_CUD_RAM_COST_Americas",
+    "usage_amount": "0.0",
+    "usage_amount_in_pricing_units": "0.0",
+    "usage_end_time": "2019-01-21 23:59:59",
+    "usage_pricing_unit": "seconds",
+    "usage_start_time": "2019-01-21 23:59:59",
+    "usage_unit": "byte-seconds"
+  },
+  {
+    "billing_account_id": "00F3D8-28D652-3F036F",
+    "cost": "26.31578947368421",
+    "cost_type": "regular",
+    "credits": [],
+    "currency": "USD",
+    "invoice_month": "201901",
+    "labels": [
+      {
+        "key": "env",
+        "value": "prod"
+      }
+    ],
+    "location_country": "",
+    "location_location": "",
+    "location_region": "us-west1",
+    "location_zone": "",
+    "project_ancestry_numbers": "/433637338589/396521612404/",
+    "project_id": "project-4",
+    "project_labels": [],
+    "project_name": "project-4",
+    "service_description": "Compute Engine",
+    "service_id": "6F81-5844-456A",
+    "sku_description": "Reattribution_Addition_CUD_RAM_COST_Americas",
+    "sku_id": "Reattribution_Addition_CUD_RAM_COST_Americas",
+    "usage_amount": "0.0",
+    "usage_amount_in_pricing_units": "0.0",
+    "usage_end_time": "2019-01-21 23:59:59",
+    "usage_pricing_unit": "seconds",
+    "usage_start_time": "2019-01-21 23:59:59",
+    "usage_unit": "byte-seconds"
+  },
+  {
+    "billing_account_id": "00F3D8-28D652-3F036F",
+    "cost": "0.0",
+    "cost_type": "regular",
+    "credits": [
+      {
+        "amount": "-10.0",
+        "name": "Committed Usage Discount: RAM"
+      }
+    ],
+    "currency": "USD",
+    "invoice_month": "201901",
+    "labels": [
+      {
+        "key": "area",
+        "value": "bigdata"
+      },
+      {
+        "key": "env",
+        "value": "prod"
+      }
+    ],
+    "location_country": "",
+    "location_location": "us-west1",
+    "location_region": "us-west1",
+    "location_zone": "",
+    "project_ancestry_numbers": "/433637338589/396521612401/",
+    "project_id": "project-1",
+    "project_labels": [],
+    "project_name": null,
+    "service_description": "Compute Engine",
+    "service_id": "6F81-5844-456A",
+    "sku_description": "Reattribution_Addition_CUD_RAM_CREDIT_Americas",
+    "sku_id": "Reattribution_Addition_CUD_RAM_CREDIT_Americas",
+    "usage_amount": "0.0",
+    "usage_amount_in_pricing_units": "0.0",
+    "usage_end_time": "2019-01-21 23:59:59",
+    "usage_pricing_unit": "byte-seconds",
+    "usage_start_time": "2019-01-21 23:59:59",
+    "usage_unit": "byte-seconds"
+  },
+  {
+    "billing_account_id": "00F3D8-28D652-3F036F",
+    "cost": "0.0",
+    "cost_type": "regular",
+    "credits": [
+      {
+        "amount": "-10.0",
+        "name": "Committed Usage Discount: RAM"
+      }
+    ],
+    "currency": "USD",
+    "invoice_month": "201901",
+    "labels": [
+      {
+        "key": "area",
+        "value": "bigdata"
+      }
+    ],
+    "location_country": "",
+    "location_location": "us-west1",
+    "location_region": "us-west1",
+    "location_zone": "",
+    "project_ancestry_numbers": "/433637338589/396521612401/",
+    "project_id": "project-1",
+    "project_labels": [],
+    "project_name": null,
+    "service_description": "Compute Engine",
+    "service_id": "6F81-5844-456A",
+    "sku_description": "Reattribution_Addition_CUD_RAM_CREDIT_Americas",
+    "sku_id": "Reattribution_Addition_CUD_RAM_CREDIT_Americas",
+    "usage_amount": "0.0",
+    "usage_amount_in_pricing_units": "0.0",
+    "usage_end_time": "2019-01-21 23:59:59",
+    "usage_pricing_unit": "byte-seconds",
+    "usage_start_time": "2019-01-21 23:59:59",
+    "usage_unit": "byte-seconds"
+  },
+  {
+    "billing_account_id": "00F3D8-28D652-3F036F",
+    "cost": "0.0",
+    "cost_type": "regular",
+    "credits": [
+      {
+        "amount": "-20.0",
+        "name": "Committed Usage Discount: RAM"
+      }
+    ],
+    "currency": "USD",
+    "invoice_month": "201901",
+    "labels": [
+      {
+        "key": "area",
+        "value": "bigdata"
+      },
+      {
+        "key": "env",
+        "value": "prod"
+      }
+    ],
+    "location_country": "",
+    "location_location": "us-west1",
+    "location_region": "us-west1",
+    "location_zone": "",
+    "project_ancestry_numbers": "/433637338589/396521612402/",
+    "project_id": "project-2",
+    "project_labels": [],
+    "project_name": "project-2",
+    "service_description": "Compute Engine",
+    "service_id": "6F81-5844-456A",
+    "sku_description": "Reattribution_Addition_CUD_RAM_CREDIT_Americas",
+    "sku_id": "Reattribution_Addition_CUD_RAM_CREDIT_Americas",
+    "usage_amount": "0.0",
+    "usage_amount_in_pricing_units": "0.0",
+    "usage_end_time": "2019-01-21 23:59:59",
+    "usage_pricing_unit": "byte-seconds",
+    "usage_start_time": "2019-01-21 23:59:59",
+    "usage_unit": "byte-seconds"
+  },
+  {
+    "billing_account_id": "00F3D8-28D652-3F036F",
+    "cost": "0.0",
+    "cost_type": "regular",
+    "credits": [
+      {
+        "amount": "-10.0",
+        "name": "Committed Usage Discount: RAM"
+      }
+    ],
+    "currency": "USD",
+    "invoice_month": "201901",
+    "labels": [
+      {
+        "key": "env",
+        "value": "prod"
+      }
+    ],
+    "location_country": "",
+    "location_location": "us-west1",
+    "location_region": "us-west1",
+    "location_zone": "",
+    "project_ancestry_numbers": "/433637338589/396521612402/",
+    "project_id": "project-2",
+    "project_labels": [],
+    "project_name": "project-2",
+    "service_description": "Compute Engine",
+    "service_id": "6F81-5844-456A",
+    "sku_description": "Reattribution_Addition_CUD_RAM_CREDIT_Americas",
+    "sku_id": "Reattribution_Addition_CUD_RAM_CREDIT_Americas",
+    "usage_amount": "0.0",
+    "usage_amount_in_pricing_units": "0.0",
+    "usage_end_time": "2019-01-21 23:59:59",
+    "usage_pricing_unit": "byte-seconds",
+    "usage_start_time": "2019-01-21 23:59:59",
+    "usage_unit": "byte-seconds"
+  },
+  {
+    "billing_account_id": "00F3D8-28D652-3F036F",
+    "cost": "0.0",
+    "cost_type": "regular",
+    "credits": [
+      {
+        "amount": "-23.684210526315788",
+        "name": "Committed Usage Discount: RAM"
+      }
+    ],
+    "currency": "USD",
+    "invoice_month": "201901",
+    "labels": [
+      {
+        "key": "env",
+        "value": "prod"
+      }
+    ],
+    "location_country": "",
+    "location_location": "us-west1",
+    "location_region": "us-west1",
+    "location_zone": "",
+    "project_ancestry_numbers": "/433637338589/396521612403/",
+    "project_id": "project-3",
+    "project_labels": [],
+    "project_name": "project-3",
+    "service_description": "Compute Engine",
+    "service_id": "6F81-5844-456A",
+    "sku_description": "Reattribution_Addition_CUD_RAM_CREDIT_Americas",
+    "sku_id": "Reattribution_Addition_CUD_RAM_CREDIT_Americas",
+    "usage_amount": "0.0",
+    "usage_amount_in_pricing_units": "0.0",
+    "usage_end_time": "2019-01-21 23:59:59",
+    "usage_pricing_unit": "byte-seconds",
+    "usage_start_time": "2019-01-21 23:59:59",
+    "usage_unit": "byte-seconds"
+  },
+  {
+    "billing_account_id": "00F3D8-28D652-3F036F",
+    "cost": "0.0",
+    "cost_type": "regular",
+    "credits": [
+      {
+        "amount": "-26.31578947368421",
+        "name": "Committed Usage Discount: RAM"
+      }
+    ],
+    "currency": "USD",
+    "invoice_month": "201901",
+    "labels": [
+      {
+        "key": "env",
+        "value": "prod"
+      }
+    ],
+    "location_country": "",
+    "location_location": "us-west1",
+    "location_region": "us-west1",
+    "location_zone": "",
+    "project_ancestry_numbers": "/433637338589/396521612404/",
+    "project_id": "project-4",
+    "project_labels": [],
+    "project_name": "project-4",
+    "service_description": "Compute Engine",
+    "service_id": "6F81-5844-456A",
+    "sku_description": "Reattribution_Addition_CUD_RAM_CREDIT_Americas",
+    "sku_id": "Reattribution_Addition_CUD_RAM_CREDIT_Americas",
+    "usage_amount": "0.0",
+    "usage_amount_in_pricing_units": "0.0",
+    "usage_end_time": "2019-01-21 23:59:59",
+    "usage_pricing_unit": "byte-seconds",
+    "usage_start_time": "2019-01-21 23:59:59",
+    "usage_unit": "byte-seconds"
+  },
+  {
+    "billing_account_id": "00F3D8-28D652-3F036F",
+    "cost": "-100.0",
+    "cost_type": "regular",
+    "credits": [],
+    "currency": "USD",
+    "invoice_month": "201901",
+    "labels": [
+      {
+        "key": "env",
+        "value": "prod"
+      }
+    ],
+    "location_country": "US",
+    "location_location": "us-west1",
+    "location_region": "us-west1",
+    "location_zone": null,
+    "project_ancestry_numbers": "/433637338589/396521612401/",
+    "project_id": "project-1",
+    "project_labels": [],
+    "project_name": "project-1",
+    "service_description": "Compute Engine",
+    "service_id": "6F81-5844-456A",
+    "sku_description": "Reattribution_Negation_CUD_3year_RAM_COST_americas",
+    "sku_id": "Reattribution_Negation_CUD_3year_RAM_COST_americas",
+    "usage_amount": "0.0",
+    "usage_amount_in_pricing_units": "0.0",
+    "usage_end_time": "2019-01-21 12:25:14",
+    "usage_pricing_unit": "gibibyte hour",
+    "usage_start_time": "2019-01-21 08:25:11",
+    "usage_unit": "gibibyte hour"
+  }
+]

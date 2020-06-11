@@ -1,0 +1,4 @@
+google-auth==1.6.3
+google-api-python-client==1.7.11
+google-cloud-storage==1.18.0
+google-cloud-monitoring==0.33.0

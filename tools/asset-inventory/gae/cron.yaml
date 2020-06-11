@@ -1,0 +1,13 @@
+cron:
+
+# All Cron requests originate from 0.1.0.1, use that to limit via app engine firewall and have the header "X-Appengine-Cron: true" which can't be added by end users.
+
+- description: "export and import resources"
+  url: /export_import
+  schedule: every 4 hours
+  target: default
+  retry_parameters:
+    job_retry_limit: 5
+    job_age_limit: 4h
+    min_backoff_seconds: 1
+    max_doublings: 9

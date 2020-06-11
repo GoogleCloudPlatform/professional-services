@@ -1,0 +1,11 @@
+steps:
+
+- id: 'dataflow-python-examples/batch-cookbook-examples'
+  name: 'google/cloud-sdk'
+  args: ['gcloud', 'builds', 'submit', 'batch-examples/cookbook-examples/', '--config=batch-examples/cookbook-examples/cloudbuild.yaml']
+  waitFor: ['-']
+
+- id: 'dataflow-python-examples/streaming-sideinput'
+  name: 'google/cloud-sdk'
+  args: ['gcloud', 'builds', 'submit', 'streaming-examples/slowlychanging-sideinput/', '--config=streaming-examples/slowlychanging-sideinput/cloudbuild.yaml']
+  waitFor: ['-']

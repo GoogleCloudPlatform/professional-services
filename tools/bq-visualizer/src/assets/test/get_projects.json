@@ -1,0 +1,53 @@
+{
+  "kind": "bigquery#projectList",
+  "etag": "NJbhU0DiGm6c82tWiphDSg==",
+  "nextPageToken": "",
+  "projects": [
+    {
+      "kind": "bigquery#project",
+      "id": "jbartosik-gke-sandbox",
+      "numericId": "15185644555",
+      "projectReference": {
+        "projectId": "jbartosik-gke-sandbox"
+      },
+      "friendlyName": ""
+    },
+    {
+      "kind": "bigquery#project",
+      "id": "gke-jpbetz-hosted-master",
+      "numericId": "137326737480",
+      "projectReference": {
+        "projectId": "gke-jpbetz-hosted-master"
+      },
+      "friendlyName": ""
+    },
+    {
+      "kind": "bigquery#project",
+      "id": "gke-jiayingz-hosted-master",
+      "numericId": "209825749875",
+      "projectReference": {
+        "projectId": "gke-jiayingz-hosted-master"
+      },
+      "friendlyName": ""
+    },
+    {
+      "kind": "bigquery#project",
+      "id": "jhoak-hostedmaster-testcreate",
+      "numericId": "213034417938",
+      "projectReference": {
+        "projectId": "jhoak-hostedmaster-testcreate"
+      },
+      "friendlyName": ""
+    },
+    {
+      "kind": "bigquery#project",
+      "id": "gke-chiachenk-hosted-master",
+      "numericId": "229673046495",
+      "projectReference": {
+        "projectId": "gke-chiachenk-hosted-master"
+      },
+      "friendlyName": ""
+    }
+  ],
+  "totalItems": 1790
+}
