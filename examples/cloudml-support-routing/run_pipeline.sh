@@ -39,17 +39,17 @@ echo "Running with MODE $MODE."
 if [[ $MODE =~ "f" ]]
 then
   python scripts/create_features.py \
-  --config_path=$CONFIG_PATH
+  --config_path="$CONFIG_PATH"
 fi
   
 if [[ $MODE =~ "t" ]]
 then
   python scripts/train.py \
-  --config_path=$CONFIG_PATH
+  --config_path="$CONFIG_PATH"
 fi
 
 if [[ $MODE =~ "p" ]]
 then
   python scripts/predict.py \
-  --config_path=$CONFIG_PATH
+  --config_path="$CONFIG_PATH"
 fi
