@@ -11,13 +11,6 @@ steps:
   name: google/cloud-sdk
   args: [gcloud, builds, submit, examples/cloud-composer-examples/,
     --config=examples/cloud-composer-examples/cloudbuild.yaml]
-<<<<<<< HEAD
-  waitFor: ['-']
-- id: examples/dataflow-python-examples
-  name: google/cloud-sdk
-  args: [gcloud, builds, submit, examples/dataflow-python-examples, --config=examples/dataflow-python-examples/cloudbuild.yaml]
-=======
->>>>>>> fdb61098... Removed apostrophe from cloud build
   waitFor: ['-']
 - id: examples/dataflow-python-examples
   name: google/cloud-sdk
