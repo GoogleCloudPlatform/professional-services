@@ -3,6 +3,7 @@
 ## Contributors
 
 - [Shane Kok](https://www.linkedin.com/in/shane-kok-b1970a82/) (shanekok9@gmail.com)
+- Andrew Leach (Google)
 - Anastasiia Manokhina (Google)
 - [Karan Palsani](https://www.linkedin.com/in/karanpalsani/) (karanpalsani@utexas.edu)  
 - Michael Sherman (Google)
