@@ -13,23 +13,40 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Make an online prediction with the deployed AutoML Tables model.
+# Makes API calls for AutoML Tables online prediction.
 #
-# Usage: bash deploy_model.sh config_file.yaml payload.json
+# Usage: bash deploy_model.sh config_file.yaml operation payload.json
 #
+# config_file.yaml: The configuration file used to run the training pipeline.
+# operation: The specific operation to run.
+#   "deploy" to deploy the AutoML Tables model.
+#   "predict" to make a prediction with a payload .json file.
+#   "undeploy" to undeploy the AutoML Tablem dole.
+# payload.json: When doing "predict", the .json file of features.
+# 
 # Uses application default credentials. You may be prompted to authenticate.
-# The model must be deployed before you can make predictions.
+# Model deployment takes as long as 15 minutes before you can make predictions.
 #
-# payload.json must follow the expected structure detailed at 
-# https://cloud.google.com/automl-tables/docs/predict#getting_an_online_prediction
+# The deployment is a long-running operation (LRO), and you'll need to check
+# the operation to determine when it is complete. The "name" field of the deploy
+# response is used to check the operation with a command like so, replacing
+# operation-name with the name from the deploy response:
+# curl -X GET \
+#   -H "Authorization: Bearer $(gcloud auth application-default print-access-token)" \
+#   -H "Content-Type: application/json" \
+#   https://automl.googleapis.com/v1beta1/operation-name
+
+if [ "$1" == "" ]; then
+  echo "Provide a configuration YAML file as the first argument."
+  exit 0
+fi
 
 CONFIG_FILE_PATH=$1
-PREDICT_JSON=$2
 
 do_shyaml() {
 # Get a value from the config file for a given key.
   local key=$1
-  cat "${CONFIG_FILE_PATH}" | shyaml get-value "${key}"
+  < "${CONFIG_FILE_PATH}" shyaml get-value "${key}"
 }
 
 echo Reading config.
@@ -37,15 +54,36 @@ PROJECT_ID="$(do_shyaml global.destination_project_id)"
 REGION="$(do_shyaml global.automl_compute_region)"
 MODEL_NAME="$(do_shyaml global.model_display_name)"
 CREDENTIALS="$(gcloud auth application-default print-access-token)"
-MODEL_ID=$(curl -s -X GET -H "Authorization: Bearer "${CREDENTIALS} \
-https://automl.googleapis.com/v1beta1/projects/${PROJECT_ID}/locations/${REGION}/models \
-| jq -r --arg MODEL_NAME "$MODEL_NAME" \
+MODEL_ID="$(curl -s -X GET -H "Authorization: Bearer ""${CREDENTIALS}" \
+https://automl.googleapis.com/v1beta1/projects/"${PROJECT_ID}"/locations/"${REGION}"/models \
+| jq -r --arg MODEL_NAME "${MODEL_NAME}" \
 '.model[] | select(.displayName==$MODEL_NAME) | .name' \
-| cut -d'/' -f6)
+| cut -d'/' -f6)"
 
-echo Making prediction.
-curl -X POST \
--H "Authorization: Bearer "${CREDENTIALS} \
--H "Content-Type: application/json; charset=utf-8" \
--d @$2 \
-https://automl.googleapis.com/v1beta1/projects/${PROJECT_ID}/locations/${REGION}/models/${MODEL_ID}:predict
+if [ "$2" == "deploy" ]; then
+  echo "Deploying model."
+  OPERATION="deploy"
+  PAYLOAD="\"\""
+elif [ "$2" == "undeploy" ]; then
+  echo "Undeploying model."
+  OPERATION="undeploy"
+  PAYLOAD="\"\""
+elif [ "$2" == "predict" ]; then
+  echo "Predicting."
+  OPERATION="predict"
+  if [ "$3" == "" ]; then
+    echo "Specify a .json features file as the third argument when predicting."
+    exit 0
+  fi
+  PAYLOAD=@$3
+else
+  echo "Unknown operation in second argument."
+  exit 0
+fi
+
+CURL1="curl -X POST -H \"Authorization: Bearer \"${CREDENTIALS}"
+CURL2="-H \"Content-Type: application/json; charset=utf-8\" -d ${PAYLOAD}"
+CURL3="https://automl.googleapis.com/v1beta1/projects/${PROJECT_ID}/locations/${REGION}/models/${MODEL_ID}:${OPERATION}"
+CURL="$CURL1 $CURL2 $CURL3"
+echo "$CURL"
+eval "$CURL"

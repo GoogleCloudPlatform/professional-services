@@ -122,10 +122,10 @@ The example pipeline makes batch predictions, but a common deployment pattern is
 All commands should be run from the project root (the folder with this README). This assumes your config file is in config/my_config.yaml.
 
 1. Make sure you have activated the same virtual environment used for the model training pipeline.
-1. Deploy the model: `bash deploy_model.sh config/my_config.yaml`. Take note of the "name" value in the response.
+1. Deploy the model: `bash online_predict.sh config/my_config.yaml deploy`. Take note of the "name" value in the response.
 1. Deployment will take up to 15 minutes. To check the status of the deployment run the following command, replacing "operation-name" with the "name" value from the previous step: `curl -X GET -H "Authorization: Bearer $(gcloud auth application-default print-access-token)" -H "Content-Type: application/json" https://automl.googleapis.com/v1beta1/operation-name`. When the operation is complete, the response will have a "done" item with the value "true".
-1. Make a prediction using the provided sample predict_payload.json, containing features of an unlabeled example complaint: `bash online_predict.sh config/my_config.yaml predict_payload.json`. The response will have the different clasess with values based on the confidence of the class. To predict for different features, change "values" in the .json file. The order of features in the json is the order of fields in the BigQuery Table used to train the model, minus the columns excluded by the `model.exclude_columns` config value.
-1. You should undeploy your model when finished to avoid excessive charges. Run: `bash undeploy_model.sh config/my_config.yaml`.
+1. Make a prediction using the provided sample predict_payload.json, containing features of an unlabeled example complaint: `bash online_predict.sh config/my_config.yaml predict predict_payload.json`. The response will have the different clasess with values based on the confidence of the class. To predict for different features, change "values" in the .json file. The order of features in the json is the order of fields in the BigQuery Table used to train the model, minus the columns excluded by the `model.exclude_columns` config value.
+1. You should undeploy your model when finished to avoid excessive charges. Run: `bash online_predict.sh config/my_config.yaml undeploy`.
 
 ## Using All Data to Train a Model
 
