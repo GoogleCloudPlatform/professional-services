@@ -30,13 +30,11 @@ import argparse
 import json
 import logging
 import os
-
-import apache_beam as beam
-
 from collections import OrderedDict
 
-from apache_beam.io.gcp.internal.clients.bigquery import (TableSchema,
-                                                          TableFieldSchema)
+import apache_beam as beam
+from apache_beam.io.gcp.internal.clients.bigquery import (TableFieldSchema,
+                                                          TableSchema)
 from google.api_core.exceptions import InvalidArgument
 from google.auth.exceptions import GoogleAuthError
 from google.cloud import datastore
@@ -44,6 +42,7 @@ from google.cloud import datastore
 
 class FileCoder:
     """Encode and decode CSV data coming from the files."""
+
     def __init__(self, columns):
         self._columns = columns
         self._num_columns = len(columns)
@@ -53,24 +52,28 @@ class FileCoder:
         import csv
         import io
         st = io.StringIO()
-        cw = csv.DictWriter(st, self._columns,
-                        delimiter=self._delimiter,
-                        quotechar='"',
-                        quoting=csv.QUOTE_MINIMAL)
+        cw = csv.DictWriter(st,
+                            self._columns,
+                            delimiter=self._delimiter,
+                            quotechar='"',
+                            quoting=csv.QUOTE_MINIMAL)
         cw.writerow(value)
         return st.getvalue().strip('\r\n')
 
     def decode(self, value):
         import csv
+        import io
         st = io.StringIO(value)
-        cr = csv.DictWriter(st, self._columns,
-                        delimiter=self._delimiter,
-                        quotechar='"',
-                        quoting=csv.QUOTE_MINIMAL)
+        cr = csv.DictWriter(st,
+                            self._columns,
+                            delimiter=self._delimiter,
+                            quotechar='"',
+                            quoting=csv.QUOTE_MINIMAL)
         return next(cr)
 
 
 class PrepareFieldTypes(beam.DoFn):
+
     def __init__(self, encoding='utf-8', time_format='%Y-%m-%d %H:%M:%S %Z'):
         import importlib
         self._encoding = encoding
@@ -124,26 +127,28 @@ class PrepareFieldTypes(beam.DoFn):
                     for fmt in (self._time_format):
                         try:
                             v = int(self._tm.mktime(self._tm.strptime(v, fmt)))
-                        except ValueError as e:
+                        except ValueError:
                             pass
                         else:
                             break
                     if not isinstance(v, int):
-                        logging.warn('Cannot convert date %s. Error: %s' %
-                                     (v, e))
+                        logging.warning(
+                            'Cannot convert date %s. Expected value of type int'
+                            % v)
                         v = self._return_default_value(ftype)
                 else:
-                    logging.warn('Unknown field type %s' % ftype)
+                    logging.warning('Unknown field type %s' % ftype)
                     v = self._return_default_value(ftype)
             except (TypeError, ValueError) as e:
-                logging.warn('Cannot convert type %s for element %s: '
-                             '%s. Returning default value.' % (ftype, v, e))
+                logging.warning('Cannot convert type %s for element %s: '
+                                '%s. Returning default value.' % (ftype, v, e))
                 v = self._return_default_value(ftype)
             element[k] = v
         return [element]
 
 
 class InjectTimestamp(beam.DoFn):
+
     def process(self, element):
         import time
         element['_RAWTIMESTAMP'] = int(time.mktime(time.gmtime()))
@@ -175,12 +180,11 @@ def run(argv=None):
     """The main function which creates the pipeline and runs it"""
 
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '--input-bucket',
-        dest='input_bucket',
-        required=True,
-        default='data-daimlr',
-        help='GS bucket_name where the input files are present')
+    parser.add_argument('--input-bucket',
+                        dest='input_bucket',
+                        required=True,
+                        default='data-daimlr',
+                        help='GS bucket_name where the input files are present')
     parser.add_argument(
         '--input-path',
         dest='input_path',
@@ -191,12 +195,11 @@ def run(argv=None):
         dest='input_files',
         required=True,
         help='Comma delimited names of all input files to be imported')
-    parser.add_argument(
-        '--bq-dataset',
-        dest='bq_dataset',
-        required=True,
-        default='rawdata',
-        help='Output BQ dataset to write the results to')
+    parser.add_argument('--bq-dataset',
+                        dest='bq_dataset',
+                        required=True,
+                        default='rawdata',
+                        help='Output BQ dataset to write the results to')
 
     # Parse arguments from the command line
     known_args, pipeline_args = parser.parse_known_args(argv)
@@ -228,13 +231,12 @@ def run(argv=None):
             ])
         logging.info('GS path being read from: %s' % (gs_path))
 
-        (p
-         | 'Read From Text - ' + input_file >> beam.io.ReadFromText(
-             gs_path, coder=FileCoder(list(fields.keys())), skip_header_lines=1)
+        (p | 'Read From Text - ' + input_file >> beam.io.ReadFromText(
+            gs_path, coder=FileCoder(list(fields.keys())), skip_header_lines=1)
          | 'Prepare Field Types - ' + input_file >> beam.ParDo(
-             PrepareFieldTypes(), fields)
-         | 'Inject Timestamp - ' + input_file >> beam.ParDo(InjectTimestamp())
-         | 'Write to BigQuery - ' + input_file >> beam.io.Write(
+             PrepareFieldTypes(), fields) |
+         'Inject Timestamp - ' + input_file >> beam.ParDo(InjectTimestamp()) |
+         'Write to BigQuery - ' + input_file >> beam.io.Write(
              beam.io.BigQuerySink(
                  # The table name passed in from the command line
                  known_args.bq_dataset + '.' + table_name,

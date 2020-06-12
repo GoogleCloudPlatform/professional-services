@@ -12,4 +12,7 @@ steps:
   args: [gcloud, builds, submit, examples/cloud-composer-examples/,
     --config=examples/cloud-composer-examples/cloudbuild.yaml]
   waitFor: ['-']
-
+- id: examples/dataflow-python-examples
+  name: google/cloud-sdk
+  args: [gcloud, builds, submit, examples/dataflow-python-examples, --config=examples/dataflow-python-examples/cloudbuild.yaml]
+  waitFor: ['-']

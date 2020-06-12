@@ -11,12 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """ data_lake_to_mart.py demonstrates a Dataflow pipeline which reads a
 large BigQuery Table, joins in another dataset, and writes its contents to a
 BigQuery table.
 """
-
 
 import argparse
 import logging
@@ -40,7 +38,8 @@ class DataLakeToDataMart:
         dir_path = os.path.dirname(os.path.realpath(__file__))
         self.schema_str = ''
         # This is the schema of the destination table in BigQuery.
-        schema_file = os.path.join(dir_path, 'resources', 'orders_denormalized.json')
+        schema_file = os.path.join(dir_path, 'resources',
+                                   'orders_denormalized.json')
         with open(schema_file) as f:
             data = f.read()
             # Wrapping the schema in fields is required for the BigQuery API.
@@ -229,7 +228,9 @@ def run(argv=None):
     # Here we add some specific command line arguments we expect.   S
     # This defaults the output table in your BigQuery you'll have
     # to create the example_data dataset yourself using bq mk temp
-    parser.add_argument('--output', dest='output', required=False,
+    parser.add_argument('--output',
+                        dest='output',
+                        required=False,
                         help='Output BQ table to write results to.',
                         default='lake.orders_denormalized_sideinput')
 
@@ -248,9 +249,9 @@ def run(argv=None):
     # different table.  We will be joining the data in to the main orders dataset in order
     # to create a denormalized table.
     account_details_source = (
-        pipeline
-        | 'Read Account Details from BigQuery ' >> beam.io.Read(
-            beam.io.BigQuerySource(query="""
+        pipeline | 'Read Account Details from BigQuery ' >> beam.io.Read(
+            beam.io.BigQuerySource(
+                query="""
                 SELECT
                   acct_number,
                   acct_company_name,
@@ -264,40 +265,38 @@ def run(argv=None):
                   country
                 FROM
                   `python-dataflow-example.example_data.account`""",
-                                   # This next stage of the pipeline maps the acct_number to a single row of
-                                   # results from BigQuery.  Mapping this way helps Dataflow move your data around
-                                   # to different workers.  When later stages of the pipeline run, all results from
-                                   # a given account number will run on one worker.
-                                   use_standard_sql=True))
-        | 'Account Details' >> beam.Map(
-            lambda row: (
-                row['acct_number'], row
-            )))
+                # This next stage of the pipeline maps the acct_number to a single row of
+                # results from BigQuery.  Mapping this way helps Dataflow move your data around
+                # to different workers.  When later stages of the pipeline run, all results from
+                # a given account number will run on one worker.
+                use_standard_sql=True)) |
+        'Account Details' >> beam.Map(lambda row: (row['acct_number'], row)))
 
     orders_query = data_lake_to_data_mart.get_orders_query()
     (p
      # Read the orders from BigQuery.  This is the source of the pipeline.  All further
      # processing starts with rows read from the query results here.
      | 'Read Orders from BigQuery ' >> beam.io.Read(
-        beam.io.BigQuerySource(query=orders_query, use_standard_sql=True))
+         beam.io.BigQuerySource(query=orders_query, use_standard_sql=True))
      # Here we pass in a side input, which is data that comes from outside our
      # main source.  The side input contains a map of states to their full name
-     | 'Join Data with sideInput' >> beam.Map(data_lake_to_data_mart.add_account_details, AsDict(
-        account_details_source))
+     | 'Join Data with sideInput' >> beam.Map(
+         data_lake_to_data_mart.add_account_details,
+         AsDict(account_details_source))
      # This is the final stage of the pipeline, where we define the destination
      # of the data.  In this case we are writing to BigQuery.
      | 'Write Data to BigQuery' >> beam.io.Write(
-        beam.io.BigQuerySink(
-            # The table name is a required argument for the BigQuery sink.
-            # In this case we use the value passed in from the command line.
-            known_args.output,
-            # Here we use the JSON schema read in from a JSON file.
-            # Specifying the schema allows the API to create the table correctly if it does not yet exist.
-            schema=schema,
-            # Creates the table in BigQuery if it does not yet exist.
-            create_disposition=beam.io.BigQueryDisposition.CREATE_IF_NEEDED,
-            # Deletes all data in the BigQuery table before writing.
-            write_disposition=beam.io.BigQueryDisposition.WRITE_TRUNCATE)))
+         beam.io.BigQuerySink(
+             # The table name is a required argument for the BigQuery sink.
+             # In this case we use the value passed in from the command line.
+             known_args.output,
+             # Here we use the JSON schema read in from a JSON file.
+             # Specifying the schema allows the API to create the table correctly if it does not yet exist.
+             schema=schema,
+             # Creates the table in BigQuery if it does not yet exist.
+             create_disposition=beam.io.BigQueryDisposition.CREATE_IF_NEEDED,
+             # Deletes all data in the BigQuery table before writing.
+             write_disposition=beam.io.BigQueryDisposition.WRITE_TRUNCATE)))
     p.run().wait_until_finish()
 
 

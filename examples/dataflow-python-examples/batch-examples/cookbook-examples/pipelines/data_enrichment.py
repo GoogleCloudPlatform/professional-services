@@ -11,13 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """ data_enrichment.py demonstrates a Dataflow pipeline which reads a file and
  writes its contents to a BigQuery table.  Along the way, data from BigQuery
  is read in as a side input and joined in with the primary data from the file.
 
 """
-
 
 import argparse
 import csv
@@ -40,7 +38,8 @@ class DataIngestion(object):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         self.schema_str = ''
         # This is the schema of the destination table in BigQuery.
-        schema_file = os.path.join(dir_path, 'resources', 'usa_names_with_full_state_name.json')
+        schema_file = os.path.join(dir_path, 'resources',
+                                   'usa_names_with_full_state_name.json')
         with open(schema_file) \
                 as f:
             data = f.read()
@@ -113,16 +112,20 @@ def run(argv=None):
     # Here we add some specific command line arguments we expect.   Specifically
     # we have the input file to load and the output table to write to.
     parser.add_argument(
-        '--input', dest='input', required=False,
+        '--input',
+        dest='input',
+        required=False,
         help='Input file to read.  This can be a local file or '
-             'a file in a Google Storage Bucket.',
+        'a file in a Google Storage Bucket.',
         # This example file contains a total of only 10 lines.
         # Useful for quickly debugging on a small set of data
         default='gs://python-dataflow-example/data_files/head_usa_names.csv')
     # The output defaults to the lake dataset in your BigQuery project.  You'll have
     # to create the lake dataset yourself using this command:
     # bq mk lake
-    parser.add_argument('--output', dest='output', required=False,
+    parser.add_argument('--output',
+                        dest='output',
+                        required=False,
                         help='Output BQ table to write results to.',
                         default='lake.usa_names_enriched')
 
@@ -157,14 +160,13 @@ def run(argv=None):
     `python-dataflow-example.example_data.state_abbreviations`"""
 
     state_abbreviations = (
-        p
-        | 'Read from BigQuery' >> beam.io.Read(
+        p | 'Read from BigQuery' >> beam.io.Read(
             beam.io.BigQuerySource(query=read_query, use_standard_sql=True))
         # We must create a python tuple of key to value pairs here in order to
         # use the data as a side input.  Dataflow will use the keys to distribute the
         # work to the correct worker.
-        | 'Abbreviation to Full Name' >> beam.Map(
-            lambda row: (row['state_abbreviation'], row['state_name'])))
+        | 'Abbreviation to Full Name' >>
+        beam.Map(lambda row: (row['state_abbreviation'], row['state_name'])))
 
     (p
      # Read the file.  This is the source of the pipeline.  All further
@@ -176,26 +178,25 @@ def run(argv=None):
      # Translates from the raw string data in the CSV to a dictionary.
      # The dictionary is a keyed by column names with the values being the values
      # we want to store in BigQuery.
-     | 'String to BigQuery Row' >> beam.Map(lambda s:
-                                            data_ingestion.parse_method(s))
+     | 'String to BigQuery Row' >>
+     beam.Map(lambda s: data_ingestion.parse_method(s))
      # Here we pass in a side input, which is data that comes from outside our
      # CSV source.  The side input contains a map of states to their full name.
-     | 'Join Data' >> beam.Map(add_full_state_name, AsDict(
-        state_abbreviations))
+     | 'Join Data' >> beam.Map(add_full_state_name, AsDict(state_abbreviations))
      # This is the final stage of the pipeline, where we define the destination
      #  of the data.  In this case we are writing to BigQuery.
      | 'Write to BigQuery' >> beam.io.Write(
-        beam.io.BigQuerySink(
-            # The table name is a required argument for the BigQuery sink.
-            # In this case we use the value passed in from the command line.
-            known_args.output,
-            # Here we use the JSON schema read in from a JSON file.
-            # Specifying the schema allows the API to create the table correctly if it does not yet exist.
-            schema=schema,
-            # Creates the table in BigQuery if it does not yet exist.
-            create_disposition=beam.io.BigQueryDisposition.CREATE_IF_NEEDED,
-            # Deletes all data in the BigQuery table before writing.
-            write_disposition=beam.io.BigQueryDisposition.WRITE_TRUNCATE)))
+         beam.io.BigQuerySink(
+             # The table name is a required argument for the BigQuery sink.
+             # In this case we use the value passed in from the command line.
+             known_args.output,
+             # Here we use the JSON schema read in from a JSON file.
+             # Specifying the schema allows the API to create the table correctly if it does not yet exist.
+             schema=schema,
+             # Creates the table in BigQuery if it does not yet exist.
+             create_disposition=beam.io.BigQueryDisposition.CREATE_IF_NEEDED,
+             # Deletes all data in the BigQuery table before writing.
+             write_disposition=beam.io.BigQueryDisposition.WRITE_TRUNCATE)))
     p.run().wait_until_finish()
 
 

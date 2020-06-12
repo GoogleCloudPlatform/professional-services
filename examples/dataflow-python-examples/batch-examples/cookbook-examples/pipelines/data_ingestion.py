@@ -16,10 +16,10 @@ contents to a BigQuery table.
 This example does not do any transformation on the data.
 """
 
-
 import argparse
 import logging
 import re
+
 import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions
 
@@ -27,6 +27,7 @@ from apache_beam.options.pipeline_options import PipelineOptions
 class DataIngestion:
     """A helper class which contains the logic to translate the file into
     a format BigQuery will accept."""
+
     def parse_method(self, string_input):
         """This method translates a single line of comma separated values to a
         dictionary which can be loaded into BigQuery.
@@ -51,8 +52,8 @@ class DataIngestion:
             }
          """
         # Strip out carriage return, newline and quote characters.
-        values = re.split(",",
-                          re.sub('\r\n', '', re.sub('"', '', string_input)))
+        values = re.split(",", re.sub('\r\n', '', re.sub('"', '',
+                                                         string_input)))
         row = dict(
             zip(('state', 'gender', 'year', 'name', 'number', 'created_date'),
                 values))
@@ -112,8 +113,8 @@ def run(argv=None):
      # be run in parallel on different workers using input from the
      # previous stage of the pipeline.
      | 'String To BigQuery Row' >>
-     beam.Map(lambda s: data_ingestion.parse_method(s))
-     | 'Write to BigQuery' >> beam.io.Write(
+     beam.Map(lambda s: data_ingestion.parse_method(s)) |
+     'Write to BigQuery' >> beam.io.Write(
          beam.io.BigQuerySink(
              # The table name is a required argument for the BigQuery sink.
              # In this case we use the value passed in from the command line.
