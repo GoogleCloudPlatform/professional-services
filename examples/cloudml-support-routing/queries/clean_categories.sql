@@ -12,7 +12,9 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 -- =============================================================================
-/** Query to clean the categories of the columns - product, subproduct, issue and subissue. */
+/** Query to clean the categories of the columns - product, subproduct, issue
+ * and subissue.
+ */
 
 SELECT 
   complaint_id,
@@ -41,7 +43,8 @@ SELECT
           (
             COUNT(issue)/
               (
-                SELECT COUNT(*) FROM `{source_project_id}.{source_dataset}.{source_table}`
+                SELECT COUNT(*)
+                FROM `{source_project_id}.{source_dataset}.{source_table}`
               )
           )*100 < 1
        )
@@ -66,12 +69,14 @@ SELECT
           (
             COUNT(product)/
               (
-                SELECT COUNT(*) FROM `{source_project_id}.{source_dataset}.{source_table}`
+                SELECT COUNT(*)
+                FROM `{source_project_id}.{source_dataset}.{source_table}`
               )
           )*100 < 1
        ) 
       THEN "Other"
-    WHEN issue IN ("Dealing with your lender or servicer","Dealing with my lender or servicer") 
+    WHEN issue IN ("Dealing with your lender or servicer",
+                   "Dealing with my lender or servicer") 
       THEN "Dealing with lender or servicer"
     ELSE issue 
     END AS issue,
@@ -89,7 +94,8 @@ SELECT
           (
             COUNT(product)/
               (
-                SELECT COUNT(*) FROM `{source_project_id}.{source_dataset}.{source_table}`
+                SELECT COUNT(*)
+                FROM `{source_project_id}.{source_dataset}.{source_table}`
               )
           )*100 < 1
        ) 
@@ -101,4 +107,5 @@ SELECT
     ELSE subissue 
     END AS subissue
 
-FROM `{source_project_id}.{source_dataset}.{source_table}`;                                                             
+FROM
+  `{source_project_id}.{source_dataset}.{source_table}`;                            

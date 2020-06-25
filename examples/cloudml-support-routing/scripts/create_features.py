@@ -40,7 +40,7 @@ def main():
   # Create the dataset to hold data for the pipeline run.
   utils.create_dataset(
       destination_project=global_config['destination_project_id'],
-      destination_dataset=global_config['destination_dataset']
+      destination_dataset=global_config['destination_dataset'],
   )
 
   # Query to remove nulls from the target column (company_response_to_consumer)
@@ -54,7 +54,7 @@ def main():
       destination_project=global_config['destination_project_id'],
       destination_dataset=global_config['destination_dataset'],
       destination_table=global_config['nulls_removed_table'],
-      partition_field=None
+      partition_field=None,
   )
 
   # Query to cleanup the categories of issue, subissue, product, subproduct.
@@ -64,7 +64,7 @@ def main():
       destination_project=global_config['destination_project_id'],
       destination_dataset=global_config['destination_dataset'],
       destination_table=global_config['cleaned_features_table'],
-      partition_field=None
+      partition_field=None,
   )
 
   # Query to merge the cleaned features and the table with nulls removed.
@@ -74,7 +74,7 @@ def main():
       destination_project=global_config['destination_project_id'],
       destination_dataset=global_config['destination_dataset'],
       destination_table=global_config['clean_table'],
-      partition_field=None
+      partition_field=None,
   )
 
   # Query to split the clean dataset into training and prediction datasets.
@@ -89,7 +89,7 @@ def main():
       destination_project=global_config['destination_project_id'],
       destination_dataset=global_config['destination_dataset'],
       destination_table=global_config['train_predict_split'],
-      partition_field=None
+      partition_field=None,
   )
 
   # Query to create the prediction table.
@@ -102,7 +102,7 @@ def main():
       destination_project=global_config['destination_project_id'],
       destination_dataset=global_config['destination_dataset'],
       destination_table=global_config['features_predict_table'],
-      partition_field=None
+      partition_field=None,
   )
 
   # Query to create the training table along with the manual split into train,
@@ -116,7 +116,7 @@ def main():
       destination_project=global_config['destination_project_id'],
       destination_dataset=global_config['destination_dataset'],
       destination_table=global_config['features_train_table'],
-      partition_field=None
+      partition_field=None,
   )
 
 if __name__ == '__main__':

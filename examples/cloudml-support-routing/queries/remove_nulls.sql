@@ -13,10 +13,12 @@
 -- limitations under the License.
 -- =============================================================================
 /**
- * Query to remove nulls in the consumer_complaint_narrative and company_response_to_consumer column
+ * Query to remove nulls in the consumer_complaint_narrative and
+ * company_response_to_consumer column.
  *
- * The query reads the table and filters out the rows that do not have null values
- * in the columns - consumer_complaint_narrative and company_response_to_consumer (target).
+ * The query reads the table and filters out the rows that do not have null
+ * values in the columns - consumer_complaint_narrative and
+ * company_response_to_consumer (target).
  */
 
 SELECT 

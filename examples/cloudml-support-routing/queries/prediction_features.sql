@@ -32,7 +32,8 @@ SELECT
   PredictionFeatures.date_sent_to_company,
   PredictionFeatures.timely_response,
   PredictionFeatures.consumer_disputed
-FROM `{destination_project_id}.{destination_dataset}.{clean_table}` PredictionFeatures
+FROM `{destination_project_id}.{destination_dataset}.{clean_table}`
+  AS PredictionFeatures
 JOIN `{destination_project_id}.{destination_dataset}.{train_predict_split}` Split
   ON PredictionFeatures.complaint_id = Split.complaint_id
 WHERE Split.splitting = 'PREDICT';

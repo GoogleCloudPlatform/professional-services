@@ -46,7 +46,7 @@ def main():
   # Create the AutoML client
   client = automl.TablesClient(
       project=global_config['destination_project_id'],
-      region=global_config['automl_compute_region']
+      region=global_config['automl_compute_region'],
   )
 
   # Specify the BigQuery dataset and training features table.
@@ -57,9 +57,7 @@ def main():
   )
 
   # Create the AutoML dataset for training.
-  dataset = client.create_dataset(
-      global_config['dataset_display_name']
-  )
+  dataset = client.create_dataset(global_config['dataset_display_name'])
 
   # Import operation is a Long Running Operation, .result() performs a
   # synchronous wait for the import to complete before progressing.
@@ -76,13 +74,13 @@ def main():
         dataset=dataset,
         column_spec_display_name=column_spec_display_name,
         type_code=column['type_code'],
-        nullable=column['nullable']
+        nullable=column['nullable'],
     )
 
   # Target column to predict, historical values will be used for prediction.
   client.set_target_column(
       dataset=dataset,
-      column_spec_display_name=model_config['target_column']
+      column_spec_display_name=model_config['target_column'],
   )
 
   # Column to define a manual split of the dataset into "TEST" and
@@ -91,7 +89,7 @@ def main():
   # validation set.
   client.set_test_train_column(
       dataset=dataset,
-      column_spec_display_name=model_config['split_column']
+      column_spec_display_name=model_config['split_column'],
   )
 
   # Tunes and trains model, expect a ~ 1 hour overhead in addition to the time
@@ -102,7 +100,7 @@ def main():
       dataset=dataset,
       train_budget_milli_node_hours=(
           1000 * model_config['train_budget_hours']),
-      exclude_column_spec_names=model_config['exclude_columns']
+      exclude_column_spec_names=model_config['exclude_columns'],
   )
   create_model_response.result()
 

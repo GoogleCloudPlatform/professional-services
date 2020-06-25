@@ -12,10 +12,12 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 -- =============================================================================
-/** Query to create the training features table and the manual train-validation split.*/
+/** Query to create the training features table and the manual train-validation
+ * split.
+ */
 
-WITH GroupSize AS
-  (
+WITH
+  ResponseTypes AS (
     SELECT
       company_response_to_consumer
     FROM  
@@ -25,15 +27,16 @@ WITH GroupSize AS
     HAVING 
       COUNT(*) >= 1 / {test_threshold}
   ),
-  Training AS
-    (
-      SELECT
-        TrainingFeatures.*,
-      FROM `{destination_project_id}.{destination_dataset}.{clean_table}` TrainingFeatures
-      JOIN `{destination_project_id}.{destination_dataset}.{train_predict_split}` Split
-        ON TrainingFeatures.complaint_id = Split.complaint_id
-      WHERE Split.splitting = 'TRAIN'
-    )
+  Training AS (
+    SELECT
+      TrainingFeatures.*
+    FROM `{destination_project_id}.{destination_dataset}.{clean_table}`
+      AS TrainingFeatures
+    JOIN `{destination_project_id}.{destination_dataset}.{train_predict_split}`
+      AS Split
+      ON TrainingFeatures.complaint_id = Split.complaint_id
+    WHERE Split.splitting = 'TRAIN'
+  )
 
 SELECT
   Training.*,
@@ -50,8 +53,8 @@ SELECT
     ELSE 'UNASSIGNED'
     END AS splitting
 FROM Training
-JOIN GroupSize
-  ON Training.company_response_to_consumer = GroupSize.company_response_to_consumer
+JOIN ResponseTypes
+  ON Training.company_response_to_consumer = ResponseTypes.company_response_to_consumer
 WHERE Training.company_response_to_consumer IN (
   'Untimely response',
   'Closed',

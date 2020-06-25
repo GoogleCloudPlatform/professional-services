@@ -30,6 +30,9 @@ SELECT
   NullsRemoved.timely_response,
   NullsRemoved.consumer_disputed
 FROM 
-  `{destination_project_id}.{destination_dataset}.{nulls_removed_table}` AS NullsRemoved
-LEFT JOIN `{destination_project_id}.{destination_dataset}.{cleaned_features_table}` AS CleanFeatures
+  `{destination_project_id}.{destination_dataset}.{nulls_removed_table}`
+  AS NullsRemoved
+LEFT JOIN
+  `{destination_project_id}.{destination_dataset}.{cleaned_features_table}`
+  AS CleanFeatures
   ON NullsRemoved.complaint_id = CleanFeatures.complaint_id;

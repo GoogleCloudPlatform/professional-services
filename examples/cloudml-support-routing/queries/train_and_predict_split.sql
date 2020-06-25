@@ -17,9 +17,8 @@
 SELECT
   ToSplit.complaint_id,
   CASE
-    WHEN
-        RAND() < 1-{test_threshold}
-      THEN 'TRAIN'
+    WHEN RAND() < 1-{test_threshold} THEN 'TRAIN'
     ELSE 'PREDICT'
     END AS splitting
-FROM `{destination_project_id}.{destination_dataset}.{clean_table}` ToSplit;
+FROM
+  `{destination_project_id}.{destination_dataset}.{clean_table}` ToSplit;
