@@ -11,12 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """ data_lake_to_mart.py demonstrates a Dataflow pipeline which reads a
 large BigQuery Table, joins in another dataset, and writes its contents to a
 BigQuery table.
 """
-
 
 import argparse
 import logging
@@ -39,7 +37,8 @@ class DataLakeToDataMartCGBK:
         dir_path = os.path.dirname(os.path.realpath(__file__))
         self.schema_str = ''
         # This is the schema of the destination table in BigQuery.
-        schema_file = os.path.join(dir_path, 'resources', 'orders_denormalized.json')
+        schema_file = os.path.join(dir_path, 'resources',
+                                   'orders_denormalized.json')
         with open(schema_file) \
                 as f:
             data = f.read()
@@ -236,7 +235,9 @@ def run(argv=None):
     # Here we add some specific command line arguments we expect.
     # This defaults the output table in your BigQuery you'll have
     # to create the example_data dataset yourself using bq mk temp
-    parser.add_argument('--output', dest='output', required=False,
+    parser.add_argument('--output',
+                        dest='output',
+                        required=False,
                         help='Output BQ table to write results to.',
                         default='lake.orders_denormalized_cogroupbykey')
 
@@ -255,8 +256,7 @@ def run(argv=None):
     # different table.  We will be joining the data in to the main orders dataset in order
     # to create a denormalized table.
     account_details_source = (
-        pipeline
-        | 'Read Account Details from BigQuery ' >> beam.io.Read(
+        pipeline | 'Read Account Details from BigQuery ' >> beam.io.Read(
             beam.io.BigQuerySource(query="""
                 SELECT
                   acct_number,
@@ -271,32 +271,27 @@ def run(argv=None):
                   country
                 FROM
                   `python-dataflow-example.example_data.account`
-            """, use_standard_sql=True))
+            """,
+                                   use_standard_sql=True))
         # This next stage of the pipeline maps the acct_number to a single row of
         # results from BigQuery.  Mapping this way helps Dataflow move your data arround
         # to different workers.  When later stages of the pipeline run, all results from
         # a given account number will run on one worker.
-        | 'Map Account to Order Details' >> beam.Map(
-            lambda row: (
-                row['acct_number'], row
-            )))
+        | 'Map Account to Order Details' >> beam.Map(lambda row:
+                                                     (row['acct_number'], row)))
 
     orders_query = data_lake_to_data_mart.get_orders_query()
     # Read the orders from BigQuery.  This is the source of the pipeline.  All further
     # processing starts with rows read from the query results here.
     orders = (
-        pipeline
-        | 'Read Orders from BigQuery ' >> beam.io.Read(
-            beam.io.BigQuerySource(query=orders_query, use_standard_sql=True))
-        |
+        pipeline | 'Read Orders from BigQuery ' >> beam.io.Read(
+            beam.io.BigQuerySource(query=orders_query, use_standard_sql=True)) |
         # This next stage of the pipeline maps the acct_number to a single row of
         # results from BigQuery.  Mapping this way helps Dataflow move your data around
         # to different workers.  When later stages of the pipeline run, all results from
         # a given account number will run on one worker.
-        'Map Account to Account Details' >> beam.Map(
-            lambda row: (
-                row['acct_number'], row
-            )))
+        'Map Account to Account Details' >> beam.Map(lambda row:
+                                                     (row['acct_number'], row)))
 
     # CoGroupByKey allows us to arrange the results together by key
     # Both "orders" and "account_details" are maps of

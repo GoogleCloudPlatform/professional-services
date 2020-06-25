@@ -46,7 +46,6 @@
 ./examples/dataflow-bigquery-transpose
 ./examples/dataflow-data-generator
 ./examples/dataflow-elasticsearch-indexer
-./examples/dataflow-python-examples
 ./examples/dataflow-scala-kafka2avro
 ./examples/dataflow-streaming-benchmark
 ./examples/dataproc-persistent-history-server

@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """ data_transformation.py is a Dataflow pipeline which reads a file and writes
 its contents to a BigQuery table.
 
@@ -19,15 +18,14 @@ This example reads a json schema of the intended output into BigQuery,
 and transforms the date data to match the format BigQuery expects.
 """
 
-
 import argparse
 import csv
 import logging
 import os
 
 import apache_beam as beam
-from apache_beam.options.pipeline_options import PipelineOptions
 from apache_beam.io.gcp.bigquery_tools import parse_table_schema_from_json
+from apache_beam.options.pipeline_options import PipelineOptions
 
 
 class DataTransformation:
@@ -39,7 +37,8 @@ class DataTransformation:
         self.schema_str = ''
         # Here we read the output schema from a json file.  This is used to specify the types
         # of data we are writing to BigQuery.
-        schema_file = os.path.join(dir_path, 'resources', 'usa_names_year_as_date.json')
+        schema_file = os.path.join(dir_path, 'resources',
+                                   'usa_names_year_as_date.json')
         with open(schema_file) \
                 as f:
             data = f.read()
@@ -108,15 +107,19 @@ def run(argv=None):
     # Here we add some specific command line arguments we expect.   Specifically
     # we have the input file to load and the output table to write to.
     parser.add_argument(
-        '--input', dest='input', required=False,
+        '--input',
+        dest='input',
+        required=False,
         help='Input file to read.  This can be a local file or '
-             'a file in a Google Storage Bucket.',
+        'a file in a Google Storage Bucket.',
         # This example file contains a total of only 10 lines.
         # It is useful for developing on a small set of data
         default='gs://python-dataflow-example/data_files/head_usa_names.csv')
     # This defaults to the temp dataset in your BigQuery project.  You'll have
     # to create the temp dataset yourself using bq mk temp
-    parser.add_argument('--output', dest='output', required=False,
+    parser.add_argument('--output',
+                        dest='output',
+                        required=False,
                         help='Output BQ table to write results to.',
                         default='lake.usa_names_transformed')
 
@@ -144,20 +147,20 @@ def run(argv=None):
      # It refers to a function we have written.  This function will
      # be run in parallel on different workers using input from the
      # previous stage of the pipeline.
-     | 'String to BigQuery Row' >> beam.Map(lambda s:
-                                            data_ingestion.parse_method(s))
-     | 'Write to BigQuery' >> beam.io.Write(
-        beam.io.BigQuerySink(
-            # The table name is a required argument for the BigQuery sink.
-            # In this case we use the value passed in from the command line.
-            known_args.output,
-            # Here we use the JSON schema read in from a JSON file.
-            # Specifying the schema allows the API to create the table correctly if it does not yet exist.
-            schema=schema,
-            # Creates the table in BigQuery if it does not yet exist.
-            create_disposition=beam.io.BigQueryDisposition.CREATE_IF_NEEDED,
-            # Deletes all data in the BigQuery table before writing.
-            write_disposition=beam.io.BigQueryDisposition.WRITE_TRUNCATE)))
+     | 'String to BigQuery Row' >>
+     beam.Map(lambda s: data_ingestion.parse_method(s)) |
+     'Write to BigQuery' >> beam.io.Write(
+         beam.io.BigQuerySink(
+             # The table name is a required argument for the BigQuery sink.
+             # In this case we use the value passed in from the command line.
+             known_args.output,
+             # Here we use the JSON schema read in from a JSON file.
+             # Specifying the schema allows the API to create the table correctly if it does not yet exist.
+             schema=schema,
+             # Creates the table in BigQuery if it does not yet exist.
+             create_disposition=beam.io.BigQueryDisposition.CREATE_IF_NEEDED,
+             # Deletes all data in the BigQuery table before writing.
+             write_disposition=beam.io.BigQueryDisposition.WRITE_TRUNCATE)))
     p.run().wait_until_finish()
 
 

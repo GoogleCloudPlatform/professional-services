@@ -1,4 +1,3 @@
-
 # Copyright 2017 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,14 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 image_labels.py is a Dataflow pipeline which reads a file
 containing web urls or gcs references to image files and writes
 the original file reference to a BigQuery table with the labels
 identified by the Cloud Vision API.
 """
-
 
 import argparse
 import logging
@@ -92,17 +89,21 @@ def run(argv=None):
     # This is the final stage of the pipeline, where we define the destination
     # of the data.  In this case we are writing to BigQuery.
     parser.add_argument(
-        '--input', dest='input', required=False,
+        '--input',
+        dest='input',
+        required=False,
         help='Input file to read.  This can be a local file or '
-             'a file in a Google Storage Bucket. However the image '
-             'references shouldbe gcs links or web urls NOT local files',
+        'a file in a Google Storage Bucket. However the image '
+        'references shouldbe gcs links or web urls NOT local files',
         # This example file contains a total of only 3 lines specifying 3 image files in gcs.
         default=INPUT_FILE)
 
     # This defaults to the ImageLabelFlow dataset in my bigquery project.  You'll have
     # to create this dataset yourself using this command:
     # bq mk ImageLabelFlow
-    parser.add_argument('--bq_table', dest='output', required=False,
+    parser.add_argument('--bq_table',
+                        dest='output',
+                        required=False,
                         help='Output BQ table to write results to.',
                         default=BQ_TABLE)
 
@@ -138,8 +139,7 @@ def run(argv=None):
          create_disposition=beam.io.BigQueryDisposition.CREATE_IF_NEEDED,
          # Append data to the output bq table.
          write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND,
-         batch_size=500)
-    )
+         batch_size=500))
     p.run().wait_until_finish()
 
 

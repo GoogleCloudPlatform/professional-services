@@ -12,14 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 import logging
 import unittest
 
-from pipelines.data_transformation import DataTransformation
 from pipelines.data_ingestion import DataIngestion
 from pipelines.data_lake_to_mart import DataLakeToDataMart
 from pipelines.data_lake_to_mart_cogroupbykey import DataLakeToDataMartCGBK
+from pipelines.data_transformation import DataTransformation
 
 
 class TestHandlers(unittest.TestCase):
@@ -35,13 +34,15 @@ class TestHandlers(unittest.TestCase):
         data_ingestion = DataIngestion()
         csv_input = 'KS,F,1923,Dorothy,654,11/28/2016'
 
-        expected_dict_output = {'state': 'KS',
-                                'gender': 'F',
-                                'year': '1923',  # This is the same format as the source file, with no transformation.
-                                'name': 'Dorothy',
-                                'number': '654',
-                                'created_date': '11/28/2016'
-                                }
+        expected_dict_output = {
+            'state': 'KS',
+            'gender': 'F',
+            'year':
+                '1923',  # This is the same format as the source file, with no transformation.
+            'name': 'Dorothy',
+            'number': '654',
+            'created_date': '11/28/2016'
+        }
         actual_dict_outut = data_ingestion.parse_method(csv_input)
         self.assertEqual(actual_dict_outut, expected_dict_output)
 
@@ -51,13 +52,14 @@ class TestHandlers(unittest.TestCase):
         data_ingestion = DataTransformation()
         csv_input = 'KS,F,1923,Dorothy,654,11/28/2016'
 
-        expected_dict_output = {'state': 'KS',
-                                'gender': 'F',
-                                'year': '1923-01-01',  # This is the BigQuery format.
-                                'name': 'Dorothy',
-                                'number': '654',
-                                'created_date': '11/28/2016'
-                                }
+        expected_dict_output = {
+            'state': 'KS',
+            'gender': 'F',
+            'year': '1923-01-01',  # This is the BigQuery format.
+            'name': 'Dorothy',
+            'number': '654',
+            'created_date': '11/28/2016'
+        }
         actual_dict_outut = data_ingestion.parse_method(csv_input)
         self.assertEqual(actual_dict_outut, expected_dict_output)
 
@@ -65,29 +67,33 @@ class TestHandlers(unittest.TestCase):
         """Test the parsing logic in data_lake_to_data_mart.py"""
 
         data_lake_to_data_mart = DataLakeToDataMart()
-        orders_input = {'acct_number': '8675309',
-                        'quantity': '1',
-                        'date': '2017-01-01',  # This is the BigQuery format.
-                        'item': 'Boots',
-                        }
+        orders_input = {
+            'acct_number': '8675309',
+            'quantity': '1',
+            'date': '2017-01-01',  # This is the BigQuery format.
+            'item': 'Boots',
+        }
 
-        account_details = {'8675309':
-                               {'acct_number': '8675309',
-                                'name': 'Jenny',
-                                'city': 'Springfield',
-                                'address': '42 Main Street',
-                                }
-                           }
-        joined_data_results = data_lake_to_data_mart.add_account_details(orders_input, account_details)
+        account_details = {
+            '8675309': {
+                'acct_number': '8675309',
+                'name': 'Jenny',
+                'city': 'Springfield',
+                'address': '42 Main Street',
+            }
+        }
+        joined_data_results = data_lake_to_data_mart.add_account_details(
+            orders_input, account_details)
 
-        expected_results = {'acct_number': '8675309',
-                            'quantity': '1',
-                            'date': '2017-01-01',
-                            'item': 'Boots',
-                            'name': 'Jenny',
-                            'city': 'Springfield',
-                            'address': '42 Main Street',
-                            }
+        expected_results = {
+            'acct_number': '8675309',
+            'quantity': '1',
+            'date': '2017-01-01',
+            'item': 'Boots',
+            'name': 'Jenny',
+            'city': 'Springfield',
+            'address': '42 Main Street',
+        }
 
         self.assertEqual(joined_data_results, expected_results)
 
@@ -95,31 +101,36 @@ class TestHandlers(unittest.TestCase):
         """Test the parsing logic in data_lake_to_data_mart.py"""
 
         data_lake_to_data_mart = DataLakeToDataMartCGBK()
-        orders_input = [{'acct_number': '8675309',
-                         'quantity': '1',
-                         'date': '2017-01-01',  # This is the BigQuery format.
-                         'item': 'Boots',
-                         }]
+        orders_input = [{
+            'acct_number': '8675309',
+            'quantity': '1',
+            'date': '2017-01-01',  # This is the BigQuery format.
+            'item': 'Boots',
+        }]
 
-        account_details = [
-            {'acct_number': '8675309',
-             'name': 'Jenny',
-             'city': 'Springfield',
-             'address': '42 Main Street',
-             }
-        ]
+        account_details = [{
+            'acct_number': '8675309',
+            'name': 'Jenny',
+            'city': 'Springfield',
+            'address': '42 Main Street',
+        }]
 
-        input_data = {'orders': orders_input, 'account_details': account_details}
-        joined_data_results = data_lake_to_data_mart.add_account_details(('8675309', input_data))
+        input_data = {
+            'orders': orders_input,
+            'account_details': account_details
+        }
+        joined_data_results = data_lake_to_data_mart.add_account_details(
+            ('8675309', input_data))
 
-        expected_results = [{'acct_number': '8675309',
-                             'quantity': '1',
-                             'date': '2017-01-01',
-                             'item': 'Boots',
-                             'name': 'Jenny',
-                             'city': 'Springfield',
-                             'address': '42 Main Street',
-                             }]
+        expected_results = [{
+            'acct_number': '8675309',
+            'quantity': '1',
+            'date': '2017-01-01',
+            'item': 'Boots',
+            'name': 'Jenny',
+            'city': 'Springfield',
+            'address': '42 Main Street',
+        }]
 
         self.assertEqual(joined_data_results, expected_results)
 
