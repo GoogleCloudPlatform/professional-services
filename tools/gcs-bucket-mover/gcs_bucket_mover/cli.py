@@ -46,7 +46,6 @@ def _get_parsed_args():
         '--config',
         is_config_file=True,
         help='The path to the local config file')
-
     parser.add_argument(
         'bucket_name', help='The name of the bucket to be moved.')
     parser.add_argument(
@@ -151,8 +150,16 @@ def _get_parsed_args():
     parser.add_argument(
         '--skip_versioning',
         action='store_true',
-        help='Don\'t copy the Versioning setting from the source bucket.')
+        help='Don\'t copy the Versioning setting from the source bucket.') 
+    parser.add_argument(
+        '--retain_source_bucket',
+        #retain_source_bucket=False,
+        choices=[
+            'True', 'False'
+        ],
+        help='Retain the source bucket without deleting it from the Project. In this case rename of target bucket is mandatory')
 
+   
     # Variables set in the config file for running different bucket tests with the --test option
     parser.add_argument(
         '--test_bucket_location',

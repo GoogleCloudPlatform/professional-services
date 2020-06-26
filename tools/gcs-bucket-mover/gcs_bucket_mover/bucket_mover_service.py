@@ -34,6 +34,7 @@ from gcs_bucket_mover import sts_job_status
 
 import subprocess
 import shlex
+import sys
 
 _CHECKMARK = u'\u2713'.encode('utf8')
 
@@ -64,18 +65,23 @@ def main(config, parsed_args, cloud_logger):
     sts_client = discovery.build(
         'storagetransfer', 'v1', credentials=config.target_project_credentials)
 
+    try:
+        retain_source_bucket = 'False' if (len(config.retain_source_bucket) == 0) else config.retain_source_bucket
+    except:
+        retain_source_bucket = 'False'
+
     if config.is_rename:
         _rename_bucket(cloud_logger, config, source_bucket,
-                       source_bucket_details, sts_client)
+                       source_bucket_details, sts_client, retain_source_bucket)
     else:
         _move_bucket(cloud_logger, config, source_bucket, source_bucket_details,
-                     sts_client)
+                     sts_client, retain_source_bucket)
 
     cloud_logger.log_text('Completed GCS Bucket Mover')
 
 
 def _rename_bucket(cloud_logger, config, source_bucket, source_bucket_details,
-                   sts_client):
+                   sts_client, retain_source_bucket):
     """Main method for doing a bucket rename
 
     This can also involve a move across projects.
@@ -87,21 +93,27 @@ def _rename_bucket(cloud_logger, config, source_bucket, source_bucket_details,
         source_bucket_details: The details copied from the source bucket that is being moved
         sts_client: The STS client object to be used
     """
+   
     target_bucket = _create_target_bucket(
         cloud_logger, config, source_bucket_details, config.target_bucket_name)
     sts_account_email = _assign_sts_permissions(cloud_logger, sts_client,
                                                 config, target_bucket)
+
     _run_and_wait_for_sts_job(sts_client, config.target_project,
                               config.bucket_name, config.target_bucket_name,
-                              cloud_logger)
+                              cloud_logger, retain_source_bucket)
+    
+    if retain_source_bucket.lower() == 'true':
+        print('Retaining the source bukcet without deleting it')
+    else:
+       _delete_empty_source_bucket(cloud_logger, source_bucket)
 
-    _delete_empty_source_bucket(cloud_logger, source_bucket)
     _remove_sts_permissions(cloud_logger, sts_account_email, config,
                             config.target_bucket_name)
 
 
 def _move_bucket(cloud_logger, config, source_bucket, source_bucket_details,
-                 sts_client):
+                 sts_client, retain_source_bucket):
     """Main method for doing a bucket move.
 
     This flow does not include a rename, the target bucket will have the same
@@ -120,7 +132,7 @@ def _move_bucket(cloud_logger, config, source_bucket, source_bucket_details,
                                                 config, target_temp_bucket)
     _run_and_wait_for_sts_job(sts_client, config.target_project,
                               config.bucket_name, config.temp_bucket_name,
-                              cloud_logger)
+                              cloud_logger, retain_source_bucket)
 
     _delete_empty_source_bucket(cloud_logger, source_bucket)
     _recreate_source_bucket(cloud_logger, config, source_bucket_details)
@@ -128,7 +140,7 @@ def _move_bucket(cloud_logger, config, source_bucket, source_bucket_details,
                                           config)
     _run_and_wait_for_sts_job(sts_client, config.target_project,
                               config.temp_bucket_name, config.bucket_name,
-                              cloud_logger)
+                              cloud_logger, retain_source_bucket)
 
     _delete_empty_temp_bucket(cloud_logger, target_temp_bucket)
     _remove_sts_permissions(cloud_logger, sts_account_email, config,
@@ -381,11 +393,16 @@ def _get_project_number(project_id, credentials):
 def _enable_uniform_bucket_level_access(bucket_name):
     """Enable uniform bucket-level access for a bucket"""
 
+    #print(1)
+    #print(type(bucket_name))
     #commenting out API call as unable to access object iam_configuration 
-
+    #print(2)
     #storage_client = storage.Client()
+    #print(3)
     #bucket = storage_client.get_bucket(bucket_name)
-
+    #print(4)
+    #print(type(bucket))
+    #print(bucket.iam_configuration)
     #bucket.iam_configuration.uniform_bucket_level_access_enabled = True
     #bucket.patch()
 
@@ -454,6 +471,9 @@ def _create_bucket(spinner, cloud_logger, config, bucket_name,
     #handle Uniform bucket access buckets as every Bucket creation is Fine grained. So enable UniformBucketLevelAccess if ACL does not exist
     else:
         name = _enable_uniform_bucket_level_access(bucket.name)
+        _write_spinner_and_log(
+            spinner, cloud_logger,
+            'Uniform bucket level access was enabled for {}.' .format(bucket.name))
 
     if source_bucket_details.default_obj_acl_entities:
         new_default_obj_acl = _update_acl_entities(
@@ -744,7 +764,7 @@ def _assign_target_project_to_topic(spinner, cloud_logger, config, topic_name,
     wait_exponential_max=120000,
     stop_max_attempt_number=10)
 def _run_and_wait_for_sts_job(sts_client, target_project, source_bucket_name,
-                              sink_bucket_name, cloud_logger):
+                              sink_bucket_name, cloud_logger, is_retain_source_bucket):
     """Kick off the STS job and wait for it to complete. Retry if it fails.
 
     Args:
@@ -766,7 +786,7 @@ def _run_and_wait_for_sts_job(sts_client, target_project, source_bucket_name,
     cloud_logger.log_text(spinner_text)
     with yaspin(text=spinner_text) as spinner:
         sts_job_name = _execute_sts_job(sts_client, target_project,
-                                        source_bucket_name, sink_bucket_name)
+                                        source_bucket_name, sink_bucket_name, is_retain_source_bucket)
         spinner.ok(_CHECKMARK)
 
     # Check every 10 seconds until STS job is complete
@@ -795,7 +815,7 @@ def _run_and_wait_for_sts_job(sts_client, target_project, source_bucket_name,
 
 
 def _execute_sts_job(sts_client, target_project, source_bucket_name,
-                     sink_bucket_name):
+                     sink_bucket_name, is_retain_source_bucket):
     """Start the STS job.
 
     Args:
@@ -807,7 +827,7 @@ def _execute_sts_job(sts_client, target_project, source_bucket_name,
     Returns:
         The name of the STS job as a string
     """
-
+ 
     now = datetime.date.today()
     transfer_job = {
         'description':
@@ -835,7 +855,8 @@ def _execute_sts_job(sts_client, target_project, source_bucket_name,
                 'bucketName': sink_bucket_name
             },
             "transferOptions": {
-                "deleteObjectsFromSourceAfterTransfer": True,
+                #"deleteObjectsFromSourceAfterTransfer": False,
+                "deleteObjectsFromSourceAfterTransfer": False if is_retain_source_bucket.lower() == 'true' else True      
             }
         }
     }
@@ -882,6 +903,7 @@ def _check_sts_job(spinner, cloud_logger, sts_client, target_project, job_name):
             if 'counters' in metadata:
                 _print_sts_counters(spinner, cloud_logger, metadata['counters'],
                                     False)
+                #darshan
 
     return sts_job_status.StsJobStatus.in_progress
 
@@ -916,11 +938,12 @@ def _print_sts_counters(spinner, cloud_logger, counters, is_job_done):
                     bytes_copied_to_sink, objects_copied_to_sink)
             else:
                 new_text = (
-                    'Error! STS job copied {} of {} bytes in {} of {} objects and deleted'
+                    'Suucess! Copy without Source bucket delete.. STS job copied {} of {} bytes in {} of {} objects and deleted'
                     ' {} bytes and {} objects').format(
                         bytes_copied_to_sink, bytes_found_from_source,
                         objects_copied_to_sink, objects_found_from_source,
                         bytes_deleted_from_source, objects_deleted_from_source)
+                    #darshan
 
             if spinner.text != new_text:
                 spinner.write(spinner.text)
