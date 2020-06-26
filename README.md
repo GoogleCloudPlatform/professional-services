@@ -51,6 +51,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [QAOA](examples/qaoa) - Examples of parsing a max-SAT problem in a proprietary format.
 * [Redis Cluster on GKE Example](examples/redis-cluster-gke) - Deploying Redis cluster on GKE.
 * [Spinnaker](examples/spinnaker) - Example pipelines for a Canary / Production deployment process.
+* [TensorFlow Unit Testing](examples/tensorflow-unit-testing) - Examples how to write unit tests for TensorFlow ML models.
 * [Uploading files directly to Google Cloud Storage by using Signed URL](examples/direct-upload-to-gcs) - Example architecture to enable uploading files directly to GCS by using [Signed URL](https://cloud.google.com/storage/docs/access-control/signed-urls).
 
 ## Tools
@@ -91,6 +92,7 @@ The tools folder contains ready-made utilities which can simpilfy Google Cloud P
 * [Site Verification Group Sync](tools/site-verification-group-sync) - A tool to provision "verified owner" permissions (to create GCS buckets with custom dns) based on membership of a Google Group.
 * [SLO Generator](tools/slo-generator/) - A Python package that automates computation of Service Level Objectives, Error Budgets and Burn Rates on GCP,  and export the computation results to available exporters (e.g: PubSub, BigQuery, Stackdriver Monitoring), using policies written in JSON format.
 * [Snowflake_to_BQ](tools/snowflake2bq/) - A shell script to transfer tables (schema & data) from Snowflake to BigQuery.
+* [Webhook Ingestion Data Pipeline](tools/webhook-ingestion-pipeline) - A deployable app to accept and ingest unauthenticated webhook data to BigQuery.
 
 ## Contributing
 See the contributing [instructions](/CONTRIBUTING.md) to get started contributing.

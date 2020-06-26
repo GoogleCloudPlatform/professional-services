@@ -135,7 +135,7 @@ public class RunThePipeline {
         /* how to add additional custom pairs?
         bitFinexPair.add(new CurrencyPair("XTZ", "BTC"));*/
         allExchanges.add(new ExchangeConfiguration(BitfinexStreamingExchange.class.getName(),"bitfinex", bitFinexPair));
-
+	/*
         // BITSTAMP
         ArrayList<CurrencyPair> bitStampPair = new  ArrayList<CurrencyPair>();
         bitStampPair.add(CurrencyPair.BTC_USD);
@@ -169,7 +169,7 @@ public class RunThePipeline {
         HitBTCPair.add(CurrencyPair.BTC_USD);
         HitBTCPair.add(CurrencyPair.ETH_USD);
         allExchanges.add(new ExchangeConfiguration(HitbtcStreamingExchange.class.getName(),"hitBTC", HitBTCPair));
-
+	*/
         // Dispatcher
         // 1) iterate all exchanges
         for (ExchangeConfiguration exConf : allExchanges) {

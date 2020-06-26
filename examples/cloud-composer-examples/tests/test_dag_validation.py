@@ -43,7 +43,7 @@ class TestDagIntegrity(unittest.TestCase):
 
     def test_import_time(self):
         """Test that all DAGs can be parsed under the threshold time."""
-        for dag_id in self.dag_ids:
+        for dag_id in self.dagbag.dag_ids:
             start = time.time()
 
             dag_file = dag_id + ".py"
