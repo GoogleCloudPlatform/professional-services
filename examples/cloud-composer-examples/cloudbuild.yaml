@@ -1,0 +1,25 @@
+steps:
+###########################################################
+# Step 0: Pull image if exists
+###########################################################
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args:
+  - '-c'
+  - |
+    docker pull gcr.io/$PROJECT_ID/cloud-composer-examples:latest || exit 0
+###########################################################
+# Step 1: Create a Docker image with Python installed
+###########################################################
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+    - 'build'
+    - '--tag=gcr.io/$PROJECT_ID/cloud-composer-examples:latest'
+    - '--cache-from=gcr.io/$PROJECT_ID/cloud-composer-examples:latest'
+    - '.'
+###########################################################
+# Step 2: Run unit tests
+###########################################################
+- name: 'gcr.io/$PROJECT_ID/cloud-composer-examples'
+  entrypoint: 'bash'
+  args: ["./run_tests.sh"]

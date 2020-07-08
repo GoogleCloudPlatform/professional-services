@@ -22,6 +22,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [CloudML Bank Marketing](examples/cloudml-bank-marketing) - Notebook for creating a classification model for marketing using CloudML.
 * [CloudML Bee Health Detection](examples/cloudml-bee-health-detection) - Detect if a bee is unhealthy based on an image of it and its subspecies.
 * [CloudML Churn Prediction](examples/cloudml-churn-prediction) - Predict users' propensity to churn using Survival Analysis.
+* [CloudML Customer Support and Complaint Handling](examples/cloudml-support-routing) - BigQuery + AutoML pipeline classifying customer complaints based on expected resolution; adaptable to other support communications use cases.
 * [CloudML Deep Collaborative Filtering](examples/cloudml-collaborative-filtering) - Recommend songs given either a user or song.
 * [CloudML Energy Price Forecasting](examples/cloudml-energy-price-forecasting) - Predicting the future energy price based on historical price and weather.
 * [CloudML Fraud Detection](examples/cloudml-fraud-detection) - Fraud detection model for credit-cards transactions.
@@ -42,6 +43,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [DLP API Examples](examples/dlp) - Examples of the DLP API usage.
 * [GCE Access to Google AdminSDK ](examples/gce-to-adminsdk) - Example to help manage access to Google's AdminSDK using GCE's service account identity
 * [Home Appliance Status Monitoring from Smart Power Readings](examples/e2e-home-appliance-status-monitoring) - An end-to-end demo system featuring a suite of Google Cloud Platform products such as IoT Core, ML Engine, BigQuery, etc.
+* [IAP User Profile](examples/iap-user-profile) - An example to retrieve user profile from an IAP-enabled GAE application.
 * [IoT Nirvana](examples/iot-nirvana) - An end-to-end Internet of Things architecture running on Google Cloud Platform.
 * [Kubeflow Pipelines Sentiment Analysis](examples/kubeflow-pipelines-sentiment-analysis) - Create a Kubeflow Pipelines component and pipelines to analyze sentiment for New York Times front page headlines using Cloud Dataflow (Apache Beam Java) and Cloud Natural Language API.
 * [Kubeflow Fairing Example](examples/kubeflow-fairing-example) - Provided three notebooks to demonstrate the usage of Kubeflow Faring to train machine learning jobs (Scikit-Learn, XGBoost, Tensorflow) locally or in the Cloud (AI platform training or Kubeflow cluster).
@@ -91,6 +93,7 @@ The tools folder contains ready-made utilities which can simpilfy Google Cloud P
 * [Site Verification Group Sync](tools/site-verification-group-sync) - A tool to provision "verified owner" permissions (to create GCS buckets with custom dns) based on membership of a Google Group.
 * [SLO Generator](tools/slo-generator/) - A Python package that automates computation of Service Level Objectives, Error Budgets and Burn Rates on GCP,  and export the computation results to available exporters (e.g: PubSub, BigQuery, Stackdriver Monitoring), using policies written in JSON format.
 * [Snowflake_to_BQ](tools/snowflake2bq/) - A shell script to transfer tables (schema & data) from Snowflake to BigQuery.
+* [Webhook Ingestion Data Pipeline](tools/webhook-ingestion-pipeline) - A deployable app to accept and ingest unauthenticated webhook data to BigQuery.
 
 ## Contributing
 See the contributing [instructions](/CONTRIBUTING.md) to get started contributing.
