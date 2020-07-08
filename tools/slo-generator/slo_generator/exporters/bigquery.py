@@ -93,6 +93,9 @@ class BigqueryExporter:
         table_name = f"{project_id}.{dataset_id}.{table_id}"
         LOGGER.info(f"Creating table {table_name}", table_name)
         table = bigquery.Table(table_name, schema=pyschema)
+        table.time_partitioning = bigquery.TimePartitioning(
+            type_=bigquery.TimePartitioningType.DAY,
+        )
         return self.client.create_table(table)
 
 
