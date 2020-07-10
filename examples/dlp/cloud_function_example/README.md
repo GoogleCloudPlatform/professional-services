@@ -86,7 +86,14 @@ Clone the professional services repo.
 ```
 git clone https://github.com/GoogleCloudPlatform/professional-services.git
 ```
+Give permissions to the Cloud Function service account to create Google Cloud Storage object.
+```
+ export PROJECT_NUMBER=$(gcloud projects list --filter="$PROJECT_ID" --format="value(PROJECT_NUMBER)")
 
+ gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member serviceAccount:service-$PROJECT_NUMBER@gcf-admin-robot.iam.gserviceaccount.com \
+  --role roles/storage.objectCreator
+```
 Deploy the Cloud Function.
 ```
 gcloud functions deploy dlp-log-scrubber \
