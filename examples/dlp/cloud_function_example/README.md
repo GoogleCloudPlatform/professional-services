@@ -64,7 +64,7 @@ Create the export.
 export PROJECT_ID=$(gcloud config get-value project)
 
 gcloud logging sinks create $LOG_EXPORT_NAME \
-  $LOG_EXPORT_TOPIC_NAME pubsub.googleapis.com/projects/$PROJECT_ID/topics/$LOG_EXPORT_TOPIC_NAME \
+  pubsub.googleapis.com/projects/$PROJECT_ID/topics/$LOG_EXPORT_TOPIC_NAME \
   --log-filter resource.type="global"
 ```
 
