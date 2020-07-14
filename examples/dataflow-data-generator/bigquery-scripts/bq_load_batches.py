@@ -106,7 +106,7 @@ def parse_gsutil_long_output_file(filename):
     """
 
     # 15TB per BQ load job.
-    MAX_BATCH_BYTES = 15 * 10**13
+    MAX_BATCH_BYTES = 15 * 10**12
     # read output of gsutil ls -l
     df = pd.read_csv(filename,
                      delim_whitespace=True,
