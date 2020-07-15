@@ -84,7 +84,10 @@ def parse_config(path, ctx=os.environ):
                 try:
                     full_value = full_value.replace(f'${{{var}}}', ctx[var])
                 except KeyError as exception:
-                    LOGGER.error(f'Environment variable "{var}" should be set.')
+                    LOGGER.error(
+                        f'Environment variable "{var}" should be set.',
+                        exc_info=True
+                    )
                     raise exception
             content = full_value
         return content
@@ -189,7 +192,7 @@ def import_dynamic(package, name, prefix="class"):
             f'{prefix.capitalize()} "{package}.{name}" not found, check '
             f'package and class name are valid, or that importing it doesn\'t '
             f'result in an exception.')
-        LOGGER.debug(exception)
+        LOGGER.debug(exception, exc_info=True)
         sys.exit(1)
 
 

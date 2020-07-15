@@ -134,5 +134,5 @@ class PrometheusBackend:
             return len(response['data']['result'][0]['values'])
         except (IndexError, KeyError) as exception:
             LOGGER.warning("Couldn't find any values in timeseries response")
-            LOGGER.debug(exception)
+            LOGGER.debug(exception, exc_info=True)
             return 0  # no events in timeseries
