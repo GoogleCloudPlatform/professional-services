@@ -32,6 +32,10 @@ This specific example identifies the outcomes of customer complaints, which coul
 └── config          # Project configuration and table ingestion schemas. The configuration for the pipeline is all in `pipeline.yaml`.
 ```
 
+## Solution Diagram
+The diagram represents what each of the scripts does, including the structure of tables created at each step:
+![diagram](./solution-diagram.png)
+
 ## Configuration Overview
 
 The configuration provided with the code is `config/pipeline.yaml`. This configuration information is used by pipeline scripts and for substitution into SQL queries stored in the `queries` folder.
