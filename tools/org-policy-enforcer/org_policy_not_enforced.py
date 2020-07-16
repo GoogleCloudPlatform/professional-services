@@ -16,6 +16,7 @@
 # limitations under the License.
 
 __author__ = "misabhishek@google.com (Abhishek Mishra)"
+
 r"""Query the project ids for which org policy `constraint` is not enforced.
 
 To run this script, make sure you have admin privileges at your organization.
