@@ -23,9 +23,9 @@ def main(event, context):
     """Entrypoint for Cloud Function"""
 
     # Set variables
-    query = "SELECT CONCAT('https://stackoverflow.com/questions/'," \
-    "CAST(id as STRING)) as url, view_count " \
-    "FROM `bigquery-public-data.stackoverflow.posts_questions` " \
+    query = "SELECT CONCAT('https://stackoverflow.com/questions/',"
+    "CAST(id as STRING)) as url, view_count "
+    "FROM `bigquery-public-data.stackoverflow.posts_questions` "
     "WHERE tags like '%google-bigquery%' ORDER BY view_count DESC LIMIT 10"
     allow_large_results = True
     use_query_cache = True
