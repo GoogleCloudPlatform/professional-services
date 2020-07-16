@@ -155,8 +155,8 @@ class StackdriverBackend:
         compatibility.
         """
         warnings.warn(
-            f'exponential_distribution_cut will be deprecated in version 2.0, '
-            f'please use distribution_cut instead', PendingDeprecationWarning)
+            'exponential_distribution_cut will be deprecated in version 2.0, '
+            'please use distribution_cut instead', PendingDeprecationWarning)
         return self.distribution_cut(*args, **kwargs)
 
     def query(self,
