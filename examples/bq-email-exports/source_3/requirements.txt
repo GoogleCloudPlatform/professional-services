@@ -15,7 +15,7 @@
 # using SendGrid's Python Library
 # https://github.com/sendgrid/sendgrid-python
 
-google-auth==1.11.3
-google-cloud-bigquery==1.24.0
-google-cloud-storage==1.28.1
-sendgrid==6.3.1
+google-auth==1.18.0
+google-cloud-bigquery==1.25.0
+google-cloud-storage==1.29.0
+sendgrid==6.4.3

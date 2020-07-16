@@ -1,14 +1,24 @@
 # Automated BigQuery Exports via Email
 
-This solution enables users to regularly send BigQuery export results via email. The end users will get a scheduled email with a link to a Google Cloud Storage [signed URL](https://cloud.google.com/storage/docs/access-control/signed-urls), from which they can view query results as a JSON file.
+This serverless solution enables users to regularly send BigQuery export results via email. The end users will get a scheduled email with a link to a Google Cloud Storage [signed URL](https://cloud.google.com/storage/docs/access-control/signed-urls), from which they can view query results as a JSON, CSV, or Avro file.
 
 The functional steps are listed here:
 
-**Cloud Scheduler:** A [Cloud Scheduler](https://cloud.google.com/scheduler) job invokes the Pub/Sub topic to schedule the email export periodically. The job will take a payload which will include the configurations to run the query and send the email.
-**Pub/Sub:** A [Pub/Sub](https://cloud.google.com/pubsub) topic triggers the Cloud Function.  
-**Cloud Function:** A [Cloud Function](https://cloud.google.com/functions) subscribes to the Pub/Sub topic and runs the code calling the BigQuery and Cloud Storage APIs. 
-**BigQuery:** The [BigQuery API](https://cloud.google.com/bigquery/docs/reference/rest) generates the query results, stores them in a table, and then exports the results as a JSON file into Cloud Storage.  
-**Cloud Storage:** A [Cloud Storage](https://cloud.google.com/storage/) bucket stores the JSON file. The Cloud Storage API generates a signed URL for the JSON file.  
+**Cloud Scheduler:** A [Cloud Scheduler](https://cloud.google.com/scheduler) job defines the time frame between periodic email exports.
+
+**Pub/Sub #1:** A [Pub/Sub](https://cloud.google.com/pubsub) topic is triggered by Cloud Scheduler.
+
+**Cloud Function #1:** A [Cloud Function](https://cloud.google.com/functions) runs the BigQuery query on an [anonymous table](https://cloud.google.com/bigquery/docs/
+cached-results#how_cached_results_are_stored). This query job will have a job ID prefix of `email_query`.
+
+**Pub/Sub #2:** The second topic is triggered by a [logging sink](https://cloud.google.com/logging/docs/export) with a filter for query job completion with the job ID prefix of `email_query`.
+
+**Cloud Function #2:** A second function subscribes to the above Pub/Sub topic and exports query results to GCS with a job ID prefix of `email_export`. The GCS bucket will always hold the most recent export and this file will be overwritten for each future export.
+
+**Pub/Sub #3:** A third topic is triggered by a logging sink with a filter for export job completion with the job ID prefix of `email_export`.
+
+**Cloud Function #3:** A third function subscribes to the above Pub/Sub topic and sends the email via the SendGrid API with a link to the signed URL of the file.
+
 **SendGrid API** The [SendGrid API](https://sendgrid.com/) is a web based API that sends the signed URL as an email to users.
 
 To implement this solution, follow the steps below:
@@ -16,7 +26,7 @@ To implement this solution, follow the steps below:
 ## Set Up
 1. Generate a SendGrid API key by creating a free tier [SendGrid account](https://signup.sendgrid.com/).
 
-2. Set the variables in `terraform/payload.txt` to the appropriate values. The variables `project_id`, `dataset_id`, and `bucket_name` will be imported from Terraform. The payload will be sent from Cloud Scheduler to the function. This way, the same Cloud Function can be used for different queries and emails by simply updating the payload. Keep in mind that the `table_name` in `terraform/payload.txt` will automatically have a timestamp appended to the end from the Cloud Function code.
+2. Set variables in `source_1/main.py`, `source_2/main.py`, and `source_3/main.py`. These files hold the source code for the respective Cloud Function.
 
 ## Deploying the pipeline
 
@@ -26,27 +36,16 @@ cd terraform
 terraform init
 terraform apply
 ```
-The Terraform code will use a compressed version of the `source/` directory containing `main.py` and `requirements.txt` as the source code for the Cloud Function.
+The Terraform code will use a compressed version of the source directories that contain `main.py` and `requirements.txt` files as the respective source code for the Cloud Functions.
 
 ## Caveats and Considerations
-1. This solution will only handle queries that can be executed and exported to Google Cloud Storage within 9 minutes, which is the Cloud Functions maximum execution timeout.
+1. BigQuery can export up to 1 GB of data to a single file. If your query results are over 1 GB, you must export your data to multiple files in GCS which this solution does not support. Another option would be to use [GCS Compose](https://cloud.google.com/storage/docs/composite-objects) to concatenate multiple objects in order to email only one file. 
 
-2. BigQuery can export up to 1 GB of data to a single file. If your query results are over 1 GB, you must export your data to multiple files in GCS which this solution does not support. Another option would be to use [GCS Compose](https://cloud.google.com/storage/docs/composite-objects) to concatenate multiple objects in order to email only one file. 
+2. Signed URLs can be a data exfiltration risk. Consider the security risks regarding the sending of data through a signed URL.
 
-3. Signed URLs can be a data exfiltration risk. Consider the security risks regarding the sending of data through a signed URL.
-
-4. Cloud Scheduler is not supported by [VPC Service Controls](https://cloud.google.com/vpc-service-controls/docs/supported-products).
+3. Cloud Scheduler is not supported by [VPC Service Controls](https://cloud.google.com/vpc-service-controls/docs/supported-products).
 
 If your use case does not meet the above constraints, another option would be to use a [Cloud Composer workflow](https://cloud.google.com/composer/docs/how-to/using/writing-dags) to execute the pipeline. If you are a GSuite user, this solution can also be implemented with a scheduled [Apps Script](https://developers.google.com/apps-script) using the [BigQuery Service](https://developers.google.com/apps-script/advanced/bigquery) and exporting data to a [Google Sheet](https://developers.google.com/apps-script/reference/spreadsheet).
 
-## Running Code Locally
-
-To run `main.py` locally, make sure that the environment variable `GOOGLE_APPLICATION_CREDENTIALS` is set to the path to the service account JSON key file. Ensure that the service account has these permissions:
-+ roles/bigquery.admin
-+ roles/storage.objectAdmin
-+ roles/iam.serviceAccountTokenCreator
-
-In addition, for the code to use the correct credentials, set 
-```bash
-export IS_LOCAL=1
-```
+## Troubleshooting
+If there is an issue with the upstream query job or export job, the Cloud Function will log the error. In the case that an email was not sent, please check the Cloud Functions and BigQuery logs.
