@@ -151,10 +151,8 @@ def get_backend_cls(backend):
     Returns:
         class: Backend class.
     """
-    filename = re.sub(r'(?<!^)(?=[A-Z])', '_', backend).lower()
-    return import_dynamic(f'slo_generator.backends.{filename}',
-                          f'{backend}Backend',
-                          prefix="backend")
+    prefix = "backend"
+    return import_cls(backend, prefix)
 
 
 def get_exporter_cls(exporter):
@@ -166,10 +164,29 @@ def get_exporter_cls(exporter):
     Returns:
         class: Exporter class.
     """
-    filename = re.sub(r'(?<!^)(?=[A-Z])', '_', exporter).lower()
-    return import_dynamic(f'slo_generator.exporters.{filename}',
-                          f'{exporter}Exporter',
-                          prefix="exporter")
+    prefix = "exporter"
+    return import_cls(exporter, prefix)
+
+
+def import_cls(klass_name, prefix):
+    """Import class or method dynamically from full name.
+    If the classname is not fully qualified, import in current sub modules.
+
+    Args:
+        klasss_name: the class name to import
+        prefix: the type of class expected
+
+    Returns:
+        obj: Imported class or method object.
+    """
+    if "." in klass_name:
+        package, name = klass_name.rsplit(".", maxsplit=1)
+        return import_dynamic(package, name, prefix=prefix)
+    else:
+        filename = re.sub(r'(?<!^)(?=[A-Z])', '_', klass_name).lower()
+        return import_dynamic(f'slo_generator.exporters.{filename}',
+                          f'{klass_name}{prefix.capitalize()}',
+                          prefix=prefix)
 
 
 def import_dynamic(package, name, prefix="class"):
