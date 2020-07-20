@@ -13,15 +13,15 @@ enum34==1.1.6             # via google-cloud-pubsub, grpcio
 faker==1.0.1
 funcsigs==1.0.2           # via mock
 futures==3.2.0            # via google-api-core, grpcio
-google-api-core[grpc]==1.7.0  # via google-cloud-core, google-cloud-logging, google-cloud-pubsub, google-cloud-storage
+google-api-core[grpc]==1.16.0  # via google-cloud-core, google-cloud-logging, google-cloud-pubsub, google-cloud-storage
 google-api-python-client==1.7.7
 google-auth-httplib2==0.0.3  # via google-api-python-client
 google-auth==1.6.2        # via google-api-core, google-api-python-client, google-auth-httplib2
-google-cloud-core==0.29.1  # via google-cloud-logging, google-cloud-storage
-google-cloud-logging==1.9.1
+google-cloud-core==1.2.0  # via google-cloud-logging, google-cloud-storage
+google-cloud-logging==1.15.0
 google-cloud-pubsub==0.39.1
-google-cloud-storage==1.13.2
-google-resumable-media==0.3.2  # via google-cloud-storage
+google-cloud-storage==1.29.0
+google-resumable-media==0.5.0  # via google-cloud-storage
 googleapis-common-protos[grpc]==1.5.5  # via google-api-core, grpc-google-iam-v1
 grpc-google-iam-v1==0.11.4  # via google-cloud-pubsub
 grpcio==1.17.1            # via google-api-core, googleapis-common-protos, grpc-google-iam-v1
