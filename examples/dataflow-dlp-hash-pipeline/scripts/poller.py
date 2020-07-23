@@ -3,7 +3,6 @@ from google.cloud import pubsub_v1
 from threading import Lock, Timer
 from tabulate import tabulate
 import sys
-import os
 import argparse
 import json
 
