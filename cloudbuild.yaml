@@ -7,7 +7,7 @@ steps:
   ]
   env: [
            'COMMIT_SHA=${COMMIT_SHA}',
-           'BASE_REPO_URL=https://github.com/jaketf/ci-cd-for-data-processing-workflow.git',
+           'BASE_REPO_URL=https://github.com/GoogleCloudPlatform/professional-services.git',
            'BASE_BRANCH=${_BASE_BRANCH}',
            'PR_NUMBER=${_PR_NUMBER}',
   ]
