@@ -19,3 +19,4 @@ buildNumber.properties
 .project
 .settings
 .classpath
+.idea

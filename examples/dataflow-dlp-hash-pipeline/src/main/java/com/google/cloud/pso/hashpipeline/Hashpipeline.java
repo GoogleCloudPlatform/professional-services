@@ -27,60 +27,75 @@ import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.options.Validation.Required;
 import org.apache.beam.sdk.transforms.ParDo;
 
-
 public class Hashpipeline {
-	public interface HashpipelineOptions extends PipelineOptions {
-		@Description("The Pub/Sub topic to read from. i.e projects/*/subscriptions/*")
-		@Required
-		String getInputSubscription();
-		void setInputSubscription(String value);
+  public interface HashpipelineOptions extends PipelineOptions {
+    @Description("The Pub/Sub topic to read from. i.e projects/*/subscriptions/*")
+    @Required
+    String getInputSubscription();
 
-		@Description("The Pub/Sub topic to write to.")
-		@Required
-		String getOutputTopic();
-		void setOutputTopic(String value);
+    void setInputSubscription(String value);
 
-		@Description("The project where Firestore lives. This project will also be used for DLP")
-		@Required
-		String getFirestoreProject();
-		void setFirestoreProject(String value);
+    @Description("The Pub/Sub topic to write to.")
+    @Required
+    String getOutputTopic();
 
-		@Description("The Firestore collection name where hashed social security numbers live")
-		@Required
-		String getCollection();
-		void setCollection(String value);
+    void setOutputTopic(String value);
 
-		@Description("Fully qualified Secret Manager secret name where the hash key lives. ie. projects/*/secrets/*")
-		@Required
-		String getSecretName();
-		void setSecretName(String value);
+    @Description("The project where Firestore lives. This project will also be used for DLP")
+    @Required
+    String getFirestoreProject();
 
-		@Description("Salt used for hashing")
-		@Required
-		String getSalt();
-		void setSalt(String value);
-	}
+    void setFirestoreProject(String value);
 
-	public static void main(String[] args) {
-		HashpipelineOptions options = PipelineOptionsFactory.fromArgs(args).withValidation().as(HashpipelineOptions.class);
-		run(options);
-	}
+    @Description("The Firestore collection name where hashed social security numbers live")
+    @Required
+    String getCollection();
 
-	public static PipelineResult run(HashpipelineOptions options) {
-		// Create the pipeline
-		Pipeline pipeline = Pipeline.create(options);
+    void setCollection(String value);
 
-		pipeline
-			.apply("Read filename from Pubsub", PubsubIO.readStrings().fromSubscription(options.getInputSubscription()))
-			.apply("Match all files from Pubsub", FileIO.matchAll().withEmptyMatchTreatment(EmptyMatchTreatment.DISALLOW))
-			.apply("Get a File Handle for GCS", FileIO.readMatches())
-			.apply("Chunk file for DLP", ParDo.of(new ChunkFileDoFn()))
-			.apply("Get DLP Findings", ParDo.of(new DLPFindingsDoFn(options.getFirestoreProject())))
-			.apply("Hash DLP Findings", ParDo.of(new HashQuotesDoFn(options.getSecretName(), options.getSalt())))
-			.apply("Match hashed finding", ParDo.of(new MatchHashDoFn(options.getFirestoreProject(), options.getCollection())))
-			.apply("Convert to JSON", ParDo.of(new KVtoJSONDoFn()))
-			.apply("WriteToPubsub", PubsubIO.writeStrings().to(options.getOutputTopic()));
+    @Description(
+        "Fully qualified Secret Manager secret name where the hash key lives. ie. projects/*/secrets/*")
+    @Required
+    String getSecretName();
 
-		return pipeline.run();
-	}
+    void setSecretName(String value);
+
+    @Description("Salt used for hashing")
+    @Required
+    String getSalt();
+
+    void setSalt(String value);
+  }
+
+  public static void main(String[] args) {
+    HashpipelineOptions options =
+        PipelineOptionsFactory.fromArgs(args).withValidation().as(HashpipelineOptions.class);
+    run(options);
+  }
+
+  public static PipelineResult run(HashpipelineOptions options) {
+    // Create the pipeline
+    Pipeline pipeline = Pipeline.create(options);
+
+    pipeline
+        .apply(
+            "Read filename from Pubsub",
+            PubsubIO.readStrings().fromSubscription(options.getInputSubscription()))
+        .apply(
+            "Match all files from Pubsub",
+            FileIO.matchAll().withEmptyMatchTreatment(EmptyMatchTreatment.DISALLOW))
+        .apply("Get a File Handle for GCS", FileIO.readMatches())
+        .apply("Chunk file for DLP", ParDo.of(new ChunkFileDoFn()))
+        .apply("Get DLP Findings", ParDo.of(new DLPFindingsDoFn(options.getFirestoreProject())))
+        .apply(
+            "Hash DLP Findings",
+            ParDo.of(new HashQuotesDoFn(options.getSecretName(), options.getSalt())))
+        .apply(
+            "Match hashed finding",
+            ParDo.of(new MatchHashDoFn(options.getFirestoreProject(), options.getCollection())))
+        .apply("Convert to JSON", ParDo.of(new KVtoJSONDoFn()))
+        .apply("WriteToPubsub", PubsubIO.writeStrings().to(options.getOutputTopic()));
+
+    return pipeline.run();
+  }
 }

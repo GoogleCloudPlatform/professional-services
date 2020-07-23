@@ -16,6 +16,16 @@
 
 package com.google.cloud.pso.hashpipeline;
 
+import com.google.cloud.secretmanager.v1.AccessSecretVersionResponse;
+import com.google.cloud.secretmanager.v1.SecretManagerServiceClient;
+import com.google.protobuf.ByteString;
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
+import java.util.Formatter;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.DoFn.ProcessContext;
 import org.apache.beam.sdk.transforms.DoFn.ProcessElement;
@@ -24,62 +34,51 @@ import org.apache.beam.sdk.values.KV;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.cloud.secretmanager.v1.AccessSecretVersionResponse;
-import com.google.cloud.secretmanager.v1.SecretManagerServiceClient;
-import com.google.protobuf.ByteString;
+public class HashQuotesDoFn extends DoFn<KV<String, String>, KV<String, String>> {
+  private static final Logger LOG = LoggerFactory.getLogger(Hashpipeline.class);
+  private final String HMAC_SHA256 = "HmacSHA256";
+  private String secretPath;
+  private String salt;
+  private byte[] hashkey;
 
-import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
+  public HashQuotesDoFn(String secretPath, String salt) {
+    this.secretPath = secretPath + "/versions/latest";
+    this.salt = salt;
+  }
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
+  @Setup
+  public void setup() throws RuntimeException {
+    try (SecretManagerServiceClient client = SecretManagerServiceClient.create()) {
+      AccessSecretVersionResponse response = client.accessSecretVersion(this.secretPath);
+      ByteString data = response.getPayload().getData();
+      String stripped = data.toStringUtf8().replace("\n", "").replace("\r", "");
+      this.hashkey = Base64.getDecoder().decode(stripped);
+    } catch (Exception e) {
+      LOG.error("Failed to create DLP Service Client", e.getMessage());
+      throw new RuntimeException(e);
+    }
+  }
 
-import java.util.Base64;
-import java.util.Formatter;
+  @ProcessElement
+  public void processElement(ProcessContext c)
+      throws IOException, NoSuchAlgorithmException, InvalidKeyException {
+    KV<String, String> entry = c.element();
+    SecretKeySpec keySpec = new SecretKeySpec(this.hashkey, HMAC_SHA256);
+    Mac hmac = Mac.getInstance(HMAC_SHA256);
+    hmac.init(keySpec);
+    hmac.update(this.salt.getBytes());
+    String potentialSSN = entry.getValue().replace("-", "");
+    String digest = this.toHexString(hmac.doFinal(potentialSSN.getBytes()));
+    c.output(KV.of(entry.getKey(), digest));
+  }
 
-public class HashQuotesDoFn extends DoFn<KV<String,String>, KV<String, String>> {
-	private static final Logger LOG = LoggerFactory.getLogger(Hashpipeline.class);
-	private final String HMAC_SHA256 = "HmacSHA256";
-	private String secretPath;
-	private String salt;
-	private byte[] hashkey;
-
-	public HashQuotesDoFn(String secretPath, String salt) {
-		this.secretPath = secretPath + "/versions/latest";
-		this.salt = salt;
-	}
-	@Setup
-	public void setup() throws RuntimeException {	
-		try (SecretManagerServiceClient client = SecretManagerServiceClient.create()){
-			AccessSecretVersionResponse response = client.accessSecretVersion(this.secretPath);
-			ByteString data = response.getPayload().getData();
-			String stripped = data.toStringUtf8().replace("\n", "").replace("\r", "");
-			this.hashkey = Base64.getDecoder().decode(stripped);
-		} catch (Exception e) {
-			LOG.error("Failed to create DLP Service Client", e.getMessage());
-			throw new RuntimeException(e);
-		}
-	}
-	@ProcessElement
-	public void processElement(ProcessContext c) throws IOException, NoSuchAlgorithmException, InvalidKeyException {
-		KV<String, String> entry = c.element();
-		SecretKeySpec keySpec = new SecretKeySpec(this.hashkey, HMAC_SHA256);
-		Mac hmac = Mac.getInstance(HMAC_SHA256);
-		hmac.init(keySpec);
-		hmac.update(this.salt.getBytes());
-		String potentialSSN = entry.getValue().replace("-", "");
-		String digest = this.toHexString(hmac.doFinal(potentialSSN.getBytes()));
-		c.output(KV.of(entry.getKey(), digest));
-	}
-
-	private String toHexString(byte[] bytes) {
-		Formatter formatter = new Formatter();
-		for (byte b : bytes) {
-			formatter.format("%02x", b);
-		}
-		String digest = formatter.toString();
-		formatter.close();
-		return digest;
-	}
+  private String toHexString(byte[] bytes) {
+    Formatter formatter = new Formatter();
+    for (byte b : bytes) {
+      formatter.format("%02x", b);
+    }
+    String digest = formatter.toString();
+    formatter.close();
+    return digest;
+  }
 }

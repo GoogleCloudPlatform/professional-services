@@ -16,24 +16,21 @@
 
 package com.google.cloud.pso.hashpipeline;
 
+import com.google.gson.Gson;
 import java.util.HashMap;
-
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.DoFn.ProcessContext;
 import org.apache.beam.sdk.transforms.DoFn.ProcessElement;
 import org.apache.beam.sdk.values.KV;
 
-
-import com.google.gson.Gson;
-
-public class KVtoJSONDoFn extends DoFn<KV<String, String>, String>{
-	@ProcessElement
-	public void processElement(ProcessContext c) {
-		KV<String, String> elem = c.element();
-		HashMap<String, String> map = new HashMap<String, String>();
-		map.put("filename", elem.getKey());
-		map.put("hashed_ssn", elem.getValue());
-		Gson gson = new Gson();
-		c.output(gson.toJson(map));
-	}
+public class KVtoJSONDoFn extends DoFn<KV<String, String>, String> {
+  @ProcessElement
+  public void processElement(ProcessContext c) {
+    KV<String, String> elem = c.element();
+    HashMap<String, String> map = new HashMap<String, String>();
+    map.put("filename", elem.getKey());
+    map.put("hashed_ssn", elem.getValue());
+    Gson gson = new Gson();
+    c.output(gson.toJson(map));
+  }
 }
