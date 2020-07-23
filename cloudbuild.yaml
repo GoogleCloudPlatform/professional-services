@@ -1,18 +1,22 @@
 steps:
-- id: lint
-  name: gcr.io/$PROJECT_ID/make
+- id: checkout-pr-branch
+  name: gcr.io/cloud-builders/git
+  entrypoint: 'bash'
+  args: [
+      './helpers/init_git_repo.sh',
+  ]
+  env: [
+           'COMMIT_SHA=${COMMIT_SHA}',
+           'BASE_REPO_URL=https://github.com/jaketf/ci-cd-for-data-processing-workflow.git',
+           'BASE_BRANCH=${_BASE_BRANCH}',
+           'PR_NUMBER=${_PR_NUMBER}',
+  ]
+- id: run-style-and-unit-tests
+  name: gcr.io/${PROJECT_ID}/make
   args: [test]
-  waitFor: ['-']
-- id: tools/hive-bigquery
+  waitFor: [checkout-pr-branch]
+- id: run-relevant-cloud-builds
   name: google/cloud-sdk
-  args: [gcloud, builds, submit, tools/hive-bigquery/, --config=tools/hive-bigquery/cloudbuild.yaml]
-  waitFor: ['-']
-- id: examples/cloud-composer-examples
-  name: google/cloud-sdk
-  args: [gcloud, builds, submit, examples/cloud-composer-examples/,
-    --config=examples/cloud-composer-examples/cloudbuild.yaml]
-  waitFor: ['-']
-- id: examples/dataflow-python-examples
-  name: google/cloud-sdk
-  args: [gcloud, builds, submit, examples/dataflow-python-examples, --config=examples/dataflow-python-examples/cloudbuild.yaml]
-  waitFor: ['-']
+  waitFor: [checkout-pr-branch]
+  entrypoint: 'bash'
+  args: ['./helpers/run_relevant_cloudbuilds.sh', 'cloudbuild.yaml']
