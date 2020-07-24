@@ -112,6 +112,11 @@ def parse_args(args):
                         type=int,
                         default=None,
                         help="End timestamp for query.")
+    parser.add_argument('--timezone',
+                        '-tz',
+                        type=int,
+                        default="Etc/GMT",
+                        help="timezone for human time.")
     return parser.parse_args(args)
 
 
