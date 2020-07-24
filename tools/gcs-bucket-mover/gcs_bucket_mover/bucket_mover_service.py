@@ -93,7 +93,7 @@ def _rename_bucket(cloud_logger, config, source_bucket, source_bucket_details,
         source_bucket_details: The details copied from the source bucket that is being moved
         sts_client: The STS client object to be used
     """
-   
+    print("In rename_bucket")
     target_bucket = _create_target_bucket(
         cloud_logger, config, source_bucket_details, config.target_bucket_name)
     sts_account_email = _assign_sts_permissions(cloud_logger, sts_client,
@@ -393,23 +393,23 @@ def _get_project_number(project_id, credentials):
 def _enable_uniform_bucket_level_access(bucket_name):
     """Enable uniform bucket-level access for a bucket"""
 
-    #print(1)
-    #print(type(bucket_name))
+    print(1)
+    print(type(bucket_name))
     #commenting out API call as unable to access object iam_configuration 
-    #print(2)
-    #storage_client = storage.Client()
-    #print(3)
-    #bucket = storage_client.get_bucket(bucket_name)
-    #print(4)
-    #print(type(bucket))
-    #print(bucket.iam_configuration)
-    #bucket.iam_configuration.uniform_bucket_level_access_enabled = True
-    #bucket.patch()
+    print(2)
+    storage_client = storage.Client()
+    print(3)
+    bucket = storage_client.get_bucket(bucket_name)
+    print(4)
+    print(type(bucket))
+    print(bucket.iam_configuration)
+    bucket.iam_configuration.uniform_bucket_level_access_enabled = True
+    bucket.patch()
 
     # using the gcloud sdk method to enable uniform bucket access, comment this out if API can be worked
-    enablecommand = "gsutil uniformbucketlevelaccess set on gs://" + bucket_name
-    getoutput = subprocess.check_output(shlex.split(enablecommand))
-    print(getoutput)
+    #enablecommand = "gsutil uniformbucketlevelaccess set on gs://" + bucket_name
+    #getoutput = subprocess.check_output(shlex.split(enablecommand))
+    #print(getoutput)
     print(
         "Uniform bucket-level access was enabled for {}.".format(bucket_name)
     )
@@ -662,15 +662,15 @@ def _assign_sts_iam_roles(sts_email, storage_client, project_name, bucket_name,
         bucket_name: The name of the bucket
         assign_viewer: True if we should also assign the Object Viewer/LegacyReader roles
     """
-
     account = 'serviceAccount:' + sts_email
     bucket = storage_client.bucket(bucket_name, project_name)
     policy = bucket.get_iam_policy()
+
     policy['roles/storage.legacyBucketWriter'].add(account)
     if assign_viewer:
         policy[iam.STORAGE_OBJECT_VIEWER_ROLE].add(account)
         policy['roles/storage.legacyBucketReader'].add(account)
-
+    policy.bindings.append({"role": "roles/storage.admin", "members": {account}})
     bucket.set_iam_policy(policy)
 
 
@@ -690,7 +690,7 @@ def _remove_sts_iam_roles(sts_email, storage_client, bucket_name):
     bucket.set_iam_policy(policy)
 
 
-def _add_target_project_to_kms_key(spinner, cloud_logger, config, kms_key_name):
+def _add_target_project_to_kms_key(srenapinner, cloud_logger, config, kms_key_name):
     """Gives the service_account_email the Encrypter/Decrypter role for the given KMS key.
 
     Args:
@@ -827,7 +827,6 @@ def _execute_sts_job(sts_client, target_project, source_bucket_name,
     Returns:
         The name of the STS job as a string
     """
- 
     now = datetime.date.today()
     transfer_job = {
         'description':
