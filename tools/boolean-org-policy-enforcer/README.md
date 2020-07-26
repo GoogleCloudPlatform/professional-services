@@ -20,6 +20,9 @@ We achieve this with the help of following api
 -   Query the effective organization policy for the constraint using
     `cloudresourcemanager.projects.getEffectiveOrgPolicy` api.
 
+This script calls the above apis using a service account. It requires the scope
+`https://www.googleapis.com/auth/cloud-platform` on the service account.
+
 Before running this script, you need to take the following actions.
 
 1.  [Create or re-use a service account and download its key](https://cloud.google.com/iam/docs/creating-managing-service-account-keys).
@@ -65,8 +68,8 @@ The script can then be called directly.
 python org_policy_not_enforced.py \
 --organization="organizations/[YOUR-ORGANIZATION-ID]" \
 --boolean_constraint="[ORG-POLICY-BOOLEAN-CONSTRAINT]" \
---constraint_expected_state=[Boolean(True or False)]
---service_account_file_path="[FILE-PATH-TO-SERVICE-ACCOUNT]"
+--constraint_expected_state=[Boolean(True or False)] \
+--service_account_file_path="[FILE-PATH-TO-SERVICE-ACCOUNT]" \
 --to_json="[LOCATION-OF-OUTPUT-JSON-FILE]"
 ```
 
@@ -91,6 +94,14 @@ content
 
 In this part, we will change the organization policy state in bulk for given
 projects.
+
+We achieve this with the help of following api
+
+-   Set the organization policy using
+    `cloudresourcemanager.projects.setOrgPolicy` api.
+
+This script calls the above api using a service account. It requires the scope
+`https://www.googleapis.com/auth/cloud-platform` on the service account.
 
 ### Roles Requirements
 
@@ -148,7 +159,7 @@ The script can then be called directly.
 ```
 python enforce_boolean_org_policy_in_bulk.py \
 --location_of_projects_with_org_policy_not_enforced="[FILE-PATH-TO-PROJECT-LOCATION]" \
---service_account_file_path="[FILE-PATH-TO-SERVICE-ACCOUNT]"
+--service_account_file_path="[FILE-PATH-TO-SERVICE-ACCOUNT]" \
 --to_json="[LOCATION-OF-OUTPUT-JSON-FILE]"
 ```
 
@@ -190,27 +201,29 @@ content.
 
 **Problem:** You might not have `virtualenv` installed. \
 **Solution:** If you are using Mac or Ubuntu, you can install `virtualenv`
-command using the command `pip install virtualenv` For windows-10 user, please
-see a possible solution
-[here](https://www.liquidweb.com/kb/how-to-setup-a-python-virtual-environment-on-windows-10/)
+command using the command `pip install virtualenv` For windows 10 user, please
+see a possible solution [here](https://cloud.google.com/python/setup#windows).
+You can also use [Google Cloud Shell](https://cloud.google.com/shell) that does
+not require any installation and come up with virtualenv preinstalled.
 
 **Problem:** You might not have python-3 installed in your system. The possible
 error that you can get is while executing the command `virtualenv -p=python3
 venv` is that the `python3 path not found.` \
 **Solution:**
-[Install on ubuntu](https://docs.python-guide.org/starting/install3/linux/),
-[Install on Mac](https://docs.python-guide.org/starting/install3/osx/),
-[Install on Windows](https://www.python.org/downloads/windows/)
+[Install python3 on ubuntu](https://docs.python-guide.org/starting/install3/linux/),
+[Install python3 on Mac](https://docs.python-guide.org/starting/install3/osx/),
+[Install python3 on Windows](https://www.python.org/downloads/windows/)
 
 **Problem:** You get permission denied error. \
 **Solution:** Please make sure that you assign the role that is recommended
 above to the service account.
 
 **Problem:** You get some json decoding error like
-`json.decoder.JSONDecodeError: Expecting ',' delimiter:`. **Solution:** One
-possible cause is that your service account key can be malformed. Please use a
-different key or correct any obvious formatting issue.
+`json.decoder.JSONDecodeError: Expecting ',' delimiter:`. \
+**Solution:** One possible cause is that your service account key can be
+malformed. Please use a different key or correct any obvious formatting issue.
 
-**Problem:** You don't have `cloud asset` and `resourcemanager api` enabled. \
+**Problem:** You don't have `cloud asset` and `cloud resourcemanager api`
+enabled. \
 **Solution:** Please make sure that you follow the instruction in the readme for
 enabling the appropriate apis.

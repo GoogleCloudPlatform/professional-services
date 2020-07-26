@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # Copyright 2020 Google Inc. All Rights Reserved.
@@ -16,16 +16,17 @@
 # limitations under the License.
 r"""Find permission discrepancies at project and the given resource level.
 
-This tool gives the ability to find out users who are given one set of
+This tool gives the ability to find out principals who are given one set of
 permissions on a project and but not given another set of permissions on the
 resource level under the project.
 
 python permission_discrepancy_finder.py \
 --organization="organizations/[YOUR-ORGANIZATION-ID]" \
---resource="[RESOURCE-REGEX]" \
+--resource="[RESOURCE-QUERY]" \
 --project_permissions="[COMMA-SEPARATED-LIST-OF-PERMISSIONS-OF-PROJECT]" \
 --resource_permission="[COMMA-SEPARATED-LIST-OF-PERMISSIONS-OF-RESOURCE]" \
 --project_ids_location="[LOCATION-OF-JSON-FILE-WITH-INTERESTING-PROJECT-IDS]" \
+--service_account_file_path="[FILE-PATH-TO-SERVICE-ACCOUNT]" \
 --to_json"[LOCATION-OF-OUTPUT-JSON-FILE]"
 """
 
@@ -51,39 +52,39 @@ SCOPES = ["https://www.googleapis.com/auth/cloud-platform"]
 
 class Project(object):
 
-  def __init__(self):
-    self.project_id = ""
-    self.full_project_name = ""
-    self.resource_under_project = ""
-    self.users_having_permissions_on_project = set()
-    self.users_having_permissions_on_resource = set()
-    self.users_with_missing_permissions = set()
-    self.error = ""
+    def __init__(self):
+        self.project_id = ""
+        self.full_project_name = ""
+        self.resource_under_project = ""
+        self.principals_having_permissions_on_project = set()
+        self.principals_having_permissions_on_resource = set()
+        self.principals_with_missing_permissions = set()
+        self.error = ""
 
 
 def get_project_and_resource(organization, resource_query, credentials):
-  """Returns all the resource satisfying the `resource_query` and their project_id tuples.
+    """Returns all the resource satisfying the `resource_query` and their project_id tuples.
 
   Args:
     organization: (str) organization id.
     resource_query: (str) query for resource.
     credentials: client credentials.
   """
-  query = "name : " + resource_query
-  project_prefix = "//cloudresourcemanager.googleapis.com/"
-  client_v1 = asset_v1.AssetServiceClient(credentials=credentials)
-  resources = client_v1.search_all_resources(scope=organization, query=query)
-  project_resource = []
-  for resource in resources:
-    project_id = "/".join(resource.name.split("/")[3:5])
-    project_name = project_prefix + project_id
-    resource_name = resource.name
-    project_resource.append((project_name, resource_name))
-  return project_resource
+    query = "name : " + resource_query
+    project_prefix = "//cloudresourcemanager.googleapis.com/"
+    client_v1 = asset_v1.AssetServiceClient(credentials=credentials)
+    resources = client_v1.search_all_resources(scope=organization, query=query)
+    project_resource = []
+    for resource in resources:
+        project_id = "/".join(resource.name.split("/")[3:5])
+        project_name = project_prefix + project_id
+        resource_name = resource.name
+        project_resource.append((project_name, resource_name))
+    return project_resource
 
 
 def get_policy_analysis_query(permissions, organization, resource):
-  """Returns query for asset analyzer api.
+    """Returns query for asset analyzer api.
 
   Args:
     permissions: List(str) permissions to search for.
@@ -91,29 +92,29 @@ def get_policy_analysis_query(permissions, organization, resource):
     resource: The full resouce name of the project for which the iam polices
       search for.
   """
-  query = asset_v1p4beta1.types.IamPolicyAnalysisQuery()
-  query.parent = organization
-  query.resource_selector.full_resource_name = resource
-  query.access_selector.permissions.extend(permissions)
-  return query
+    query = asset_v1p4beta1.types.IamPolicyAnalysisQuery()
+    query.parent = organization
+    query.resource_selector.full_resource_name = resource
+    query.access_selector.permissions.extend(permissions)
+    return query
 
 
 def get_all_identies_from_analysis_query_response(response):
-  """Returns all user identites from policy anayzer api's response.
+    """Returns all identites from policy anayzer api's response.
 
   Args:
     response: response of policy analyzer api.
   """
-  unique_identities = set()
-  for r in response.main_analysis.analysis_results:
-    for identity in r.identity_list.identities:
-      unique_identities.add(identity.name)
-  return unique_identities
+    unique_identities = set()
+    for r in response.main_analysis.analysis_results:
+        for identity in r.identity_list.identities:
+            unique_identities.add(identity.name)
+    return unique_identities
 
 
-def get_users_having_permissions_on_resource(permissions, organization,
-                                             resource, credentials):
-  """Returns all users having `permissions` on `resource` under the `organization`.
+def get_principals_having_permissions_on_resource(permissions, organization,
+                                                  resource, credentials):
+    """Returns all principals having `permissions` on `resource` under the `organization`.
 
   Args:
     permissions: List(str) permissions on resources.
@@ -122,21 +123,22 @@ def get_users_having_permissions_on_resource(permissions, organization,
       access is searched.
     credentials: client credentials
   """
-  query = get_policy_analysis_query(permissions, organization, resource)
-  client_v1p4beta1 = asset_v1p4beta1.AssetServiceClient(credentials=credentials)
-  response = client_v1p4beta1.analyze_iam_policy(analysis_query=query)
-  return get_all_identies_from_analysis_query_response(response)
+    query = get_policy_analysis_query(permissions, organization, resource)
+    client_v1p4beta1 = asset_v1p4beta1.AssetServiceClient(
+        credentials=credentials)
+    response = client_v1p4beta1.analyze_iam_policy(analysis_query=query)
+    return get_all_identies_from_analysis_query_response(response)
 
 
 def get_project_id(full_project_name):
-  return full_project_name.split("/")[-1]
+    return full_project_name.split("/")[-1]
 
 
 def get_projects_using_project_resource_tuple(project_resource_tuple,
                                               permissions_on_project,
                                               permissions_on_resource,
                                               organization, credentials):
-  """Returns Project object for the given project resource tuple.
+    """Returns Project object for the given project resource tuple.
 
   This is a helper function to run a mult-threaded version of the code.
 
@@ -146,225 +148,228 @@ def get_projects_using_project_resource_tuple(project_resource_tuple,
       project.
     permissions_on_resource: List(str) permissions that the user should have on
       resource.
-    organization: (str) (str) organization/[ORGANIZATION_ID].
+    organization: (str) organization/[ORGANIZATION_ID].
     credentials: client credentials.
   """
-  project_name, resource = project_resource_tuple
-  project = Project()
-  project.full_project_name = project_name
-  project.project_id = get_project_id(project_name)
-  project.resource_under_project = resource
-  try:
-    project.users_having_permissions_on_project = get_users_having_permissions_on_resource(
-        permissions_on_project,
-        organization,
-        project.full_project_name,
-        credentials=credentials)
-    project.users_having_permissions_on_resource = get_users_having_permissions_on_resource(
-        permissions_on_resource,
-        organization,
-        project.resource_under_project,
-        credentials=credentials)
-    project.users_with_missing_permissions = project.users_having_permissions_on_project - project.users_having_permissions_on_resource
-    if not project.users_with_missing_permissions:
-      return None
-    return project
-  except Exception as e:
-    project.error = str(e)
-    return project
+    project_name, resource = project_resource_tuple
+    project = Project()
+    project.full_project_name = project_name
+    project.project_id = get_project_id(project_name)
+    project.resource_under_project = resource
+    try:
+        project.principals_having_permissions_on_project = get_principals_having_permissions_on_resource(
+            permissions_on_project,
+            organization,
+            project.full_project_name,
+            credentials=credentials)
+        project.principals_having_permissions_on_resource = get_principals_having_permissions_on_resource(
+            permissions_on_resource,
+            organization,
+            project.resource_under_project,
+            credentials=credentials)
+        project.principals_with_missing_permissions = project.principals_having_permissions_on_project - project.principals_having_permissions_on_resource
+        if not project.principals_with_missing_permissions:
+            return None
+        return project
+    except Exception as e:
+        project.error = str(e)
+        return project
 
 
 def extract_information(projects):
-  """Returns a subset of information from impacted projects.
+    """Returns a subset of information from  projects.
 
   Args:
     projects: List(Project)
   """
-  projects_list = []
-  for p in projects:
-    cur_project = {
-        "project_id":
-            p.project_id,
-        "resource":
-            p.resource_under_project,
-        "users_with_missing_permissions":
-            list(p.users_with_missing_permissions) if not p.error else
-            "Could not retriver user data because " + p.error
-    }
-    projects_list.append(cur_project)
-  return projects_list
+    projects_list = []
+    for p in projects:
+        cur_project = {
+            "project_id":
+                p.project_id,
+            "resource":
+                p.resource_under_project,
+            "principals_with_missing_permissions":
+                list(p.principals_with_missing_permissions) if not p.error else
+                "Could not retriver user data because " + p.error
+        }
+        projects_list.append(cur_project)
+    return projects_list
 
 
 def get_projects(organization, permissions_on_project, permissions_on_resource,
                  resource_query, credentials):
-  """Returns Project objects from the given project resource tuples.
+    """Returns Project objects from the given project resource tuples.
 
   Args:
-    organization: (str) Organization for which the impacted projects are
-      searched.
+    organization: (str) Organization for which the  projects are searched.
     permissions_on_project: List(str) permissions from gcp services.
     permissions_on_resource: List(str) service account impersonation
       permissions.
     resource_query: (str) query for the resource for which to check the
-    permission discrepancy. Please see here about how to construct a query for
+      permission discrepancy. Please see here about how to construct a query for
     a resource. https://cloud.google.com/asset-inventory/docs/query-syntax
     credentials: client credentials.
   """
-  project_resource_tuples = get_project_and_resource(organization,
-                                                     resource_query,
-                                                     credentials)
-  print(
-      "Total number of projects with the resource " + resource_query + " are " +
-      str(len(project_resource_tuples)) + ".",
-      flush=True)
-  print(
-      "It would take approximately ",
-      len(project_resource_tuples) / RATE_LIMIT[0] * RATE_LIMIT[1],
-      " seconds to finish this script.",
-      flush=True)
-  f = functools.partial(
-      get_projects_using_project_resource_tuple,
-      permissions_on_project=permissions_on_project,
-      permissions_on_resource=permissions_on_resource,
-      organization=organization,
-      credentials=credentials)
+    project_resource_tuples = get_project_and_resource(organization,
+                                                       resource_query,
+                                                       credentials)
+    print("Total number of projects with the resource {} are {}.".format(
+        resource_query, len(project_resource_tuples)),
+          flush=True)
+    max_request, duration = RATE_LIMIT
+    print("It would take approximately {0:0.2f} seconds to finish this script.".
+          format(len(project_resource_tuples) / max_request * duration),
+          flush=True)
+    f = functools.partial(get_projects_using_project_resource_tuple,
+                          permissions_on_project=permissions_on_project,
+                          permissions_on_resource=permissions_on_resource,
+                          organization=organization,
+                          credentials=credentials)
 
-  max_request, duration = RATE_LIMIT
-  i = 0
-  n = len(project_resource_tuples)
-  all_impacted = []
-  while i < n:
-    cur_time_in_seconds = int(time.time())
-    with futures.ThreadPoolExecutor(max_workers=max_request) as executor:
-      projects = executor.map(f, project_resource_tuples[i:i + max_request])
-    i += max_request
-    after_execution_time_in_seconds = int(time.time())
-    diff = after_execution_time_in_seconds - cur_time_in_seconds
-    if diff < duration and i < n:
-      time.sleep(duration - diff)
-    all_impacted.extend(p for p in projects if p)
+    max_request, duration = RATE_LIMIT
+    i = 0
+    n = len(project_resource_tuples)
+    founded_projects = []
+    while i < n:
+        cur_time_in_seconds = int(time.time())
+        with futures.ThreadPoolExecutor(max_workers=max_request) as executor:
+            projects = executor.map(f,
+                                    project_resource_tuples[i:i + max_request])
+        i += max_request
+        after_execution_time_in_seconds = int(time.time())
+        diff = after_execution_time_in_seconds - cur_time_in_seconds
+        if diff < duration and i < n:
+            time.sleep(duration - diff)
+        founded_projects.extend(p for p in projects if p)
 
-  return extract_information(all_impacted)
+    return extract_information(founded_projects)
 
 
-def wrap_project_id_into_project(project_ids):
-  """Returns an Project object for a given project_id.
+def wrap_project_id_into_project(given_project_ids):
+    """Returns an Project object for a given project_id.
 
   Args:
-    project_ids: List(str)
+    given_project_ids: List(str)
   """
-  projects = []
-  for p in project_ids:
-    project = Project()
-    project.project_id = p
-    projects.append(project)
-  return projects
+    projects = []
+    for p in given_project_ids:
+        project = Project()
+        project.project_id = p
+        projects.append(project)
+    return projects
 
 
 def combine_projects_with_given_projects(projects, user_provided_projects):
-  """Returns Project object for projects that don't have org policy enforced and impacted.
+    """Returns Project object combined with the user provider projects.
 
   Args:
     projects: List(Project)
     user_provided_projects: List(str)
   """
-  if not user_provided_projects:
-    user_provided_projects = projects
-  else:
-    user_provided_projects = wrap_project_id_into_project(
-        user_provided_projects)
-    project_dict = {p.project_id: p for p in projects}
-    for i in range(len(user_provided_projects)):
-      cur_id = user_provided_projects[i].project_id
-      if cur_id in project_dict:
-        user_provided_projects[i] = project_dict[cur_id]
-        continue
-    user_provided_projects = extract_information(user_provided_projects)
-  information = {"projects": user_provided_projects}
-  return json.dumps(information, indent=4, sort_keys=True)
+    if not user_provided_projects:
+        user_provided_projects = projects
+    else:
+        user_provided_projects = wrap_project_id_into_project(
+            user_provided_projects)
+        project_dict = {p.project_id: p for p in projects}
+        for i in range(len(user_provided_projects)):
+            cur_id = user_provided_projects[i].project_id
+            if cur_id in project_dict:
+                user_provided_projects[i] = project_dict[cur_id]
+        user_provided_projects = extract_information(user_provided_projects)
+    information = {"projects": user_provided_projects}
+    return json.dumps(information, indent=4, sort_keys=True)
 
 
-def to_json(json_data, file_path):
-  """Store the `json_data` into locaiton `file_path`.
+def writefile(json_data, file_path):
+    """Store the `json_data` into locaiton `file_path`.
 
   Args:
     json_data: (str) json data serialized into string
     file_path: (str) location to store the information.
   """
-  with open(file_path, "w") as outfile:
-    outfile.write(json_data)
+    with open(file_path, "w") as outfile:
+        outfile.write(json_data)
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Find prinicipals having insufficient permissions.")
+    parser.add_argument(
+        "--organization",
+        required=True,
+        type=str,
+        help=
+        "Enter the organization id in the format organizations/[ORGANIZATION_ID]."
+    )
+    parser.add_argument(
+        "--resource",
+        required=False,
+        type=str,
+        default='"*-compute@developer.gserviceaccount.com*"',
+        help="Enter the query for the resouce for which to check the discrepancy."
+        " For more detail about how to construct a query for a resource, see"
+        " https://cloud.google.com/asset-inventory/docs/query-syntax ")
+    parser.add_argument(
+        "--project_permissions",
+        required=True,
+        type=str,
+        help=
+        "Enter the project's permissions that a user should have on project.")
+    parser.add_argument(
+        "--resource_permissions",
+        required=True,
+        type=str,
+        help=
+        "Enter the resouce's permissions that a user should have on project.")
+    parser.add_argument(
+        "--project_ids_location",
+        type=str,
+        default="",
+        help=
+        "Location of json file containing project ids for which the discrepancy should be checked."
+    )
+    parser.add_argument(
+        "--service_account_file_path",
+        required=True,
+        type=str,
+        help="Enter the location of service account key for getting credentials."
+    )
+    parser.add_argument("--to_json",
+                        type=str,
+                        nargs="?",
+                        default="",
+                        help="Enter the json file name to store the data.")
+
+    args = parser.parse_args()
+    sa_credentials = service_account.Credentials.from_service_account_file(
+        args.service_account_file_path, scopes=SCOPES)
+
+    project_permissions = [
+        p.strip() for p in args.project_permissions.split(",")
+    ]
+    resource_permissions = [
+        p.strip() for p in args.resource_permissions.split(",")
+    ]
+    if args.project_ids_location:
+        project_ids = json.load(args.project_ids_location)["project_ids"]
+    else:
+        project_ids = []
+
+    all_projects = get_projects(args.organization, project_permissions,
+                                resource_permissions, args.resource,
+                                sa_credentials)
+
+    filtered_projects = combine_projects_with_given_projects(
+        all_projects, project_ids)
+
+    if not args.to_json:
+        print(filtered_projects)
+    else:
+        writefile(filtered_projects, args.to_json)
+        print("The output of the script is in " + args.to_json)
 
 
 if __name__ == "__main__":
-  parser = argparse.ArgumentParser(
-      description="Find prinicipals having insufficient permissions.")
-  parser.add_argument(
-      "--organization",
-      required=True,
-      type=str,
-      help="Enter the organization id in the format organizations/[ORGANIZATION_ID]."
-  )
-  parser.add_argument(
-      "--resource",
-      required=False,
-      type=str,
-      default=r'"*-compute@developer.gserviceaccount.com*"',
-      help="Enter the query for the resouce for which to check the discrepancy."
-            " For more detail about how to construct a query for a resource, see"
-            " https://cloud.google.com/asset-inventory/docs/query-syntax "
-  )
-  parser.add_argument(
-      "--project_permissions",
-      required=True,
-      type=str,
-      help="Enter the project's permissions that a user should have on project."
-  )
-  parser.add_argument(
-      "--resource_permissions",
-      required=True,
-      type=str,
-      help="Enter the resouce's permissions that a user should have on project."
-  )
-  parser.add_argument(
-      "--project_ids_location",
-      type=str,
-      default="",
-      help="Location of json file containing project ids for which the discrepancy should be checked."
-  )
-  parser.add_argument(
-      "--service_account_file_path",
-      required=True,
-      type=str,
-      help="Enter the location of service account key for the resources.")
-  parser.add_argument(
-      "--to_json",
-      type=str,
-      nargs="?",
-      default="",
-      help="Enter the json file name to store the data.")
-
-  args = parser.parse_args()
-  sa_credentials = service_account.Credentials.from_service_account_file(
-      args.service_account_file_path, scopes=SCOPES)
-
-  project_permissions = [p.strip() for p in args.project_permissions.split(",")]
-  resource_permissions = [
-      p.strip() for p in args.resource_permissions.split(",")
-  ]
-  if args.project_ids_location:
-    project_ids = json.load(args.project_ids_location)["project_ids"]
-  else:
-    project_ids = []
-
-  all_projects = get_projects(args.organization, project_permissions,
-                              resource_permissions, args.resource,
-                              sa_credentials)
-
-  filtered_projects = combine_projects_with_given_projects(
-      all_projects, project_ids)
-
-  if not args.to_json:
-    print(filtered_projects)
-  else:
-    to_json(filtered_projects, args.to_json)
-    print("The output of the script is in " + args.to_json)
+    main()

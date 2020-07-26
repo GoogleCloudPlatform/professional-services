@@ -3,41 +3,43 @@
 Imagine a scenario where a user, in order to accompalish a task in GCP, needs a
 set of IAM permissions P1 on a project, as well as a complementary set of
 permissions P2 on a resource R within that project. For example, to create a VM,
-the user needs compute.instances.create permissions on the project, but also
+the user needs compute.instances.create permission on the project, but also
 needs the iam.serviceaccounts.actas permission on the service account that is
 associated with the VM . This tool helps you find principals who have permission
 P1 on a given set of projects but are missing the permission P2 on resources
 within those projects. The inputs are: project ids, permissions set P1,
 permissions set P2, resource R. The outputs are: projects ids, resource names
-and users who have permissions set 1 but not permissions set 2.
+and principals who have permissions set P1 but not permissions set P2.
 
 The tool has two parts:
 
-1.  First, we find users or groups who have permission P1 on a project but are
-    missing a permission P3 on a resource within the project.
-2.  Then, we assign those principals the permission P3 on resource R. **However,
-    it is imperative for the security admins to make sure that they are NOT
-    granting sensitive permissions to users without doing proper
-    investigation.**
+1.  First, we find principals who have permission set P1 on a project but are
+    missing a complementary set of permission P2 on a resource R within the
+    project.
+2.  Then, we assign those principals the permission P2 on resource R.
 
-The detailed description of these two parts is below.
-
-## Find the users not having the both set of permissions.
+## Find the principals not having the both set of permissions
 
 It is done by
 
--   First get all projects that have the desired resource R that we are
-    intersted in. This is done by using policy analyzer api --
-    asset_v1p1beta1.AssetServiceClient.search_all_resources.
--   Then find the set of users who have a desired set of permissions on the
+-   First get all projects that have the desired resource R. This is done by
+    using policy analyzer api --
+    `asset_v1p1beta1.AssetServiceClient.search_all_resources`.
+-   Then find the set of principals who have a desired set of permissions on the
     project. This is done by using policy analyzer api --
     `asset_v1p4beta1.AssetServiceClient.analyze_iam_policy`.
--   Then find the set of users who have the desired complementary set of
-    permissions on the resource. This is done by using policy analyzer api
-    asset_v1p4beta1.AssetServiceClient.analyze_iam_policy.
--   Finally taking the set diff of the users found in step-2 to users found in
-    step-3 to find the users who don't the complementary set of permissions to
-    use the resource properly.
+-   Then find the set of principals who have the desired complementary set of
+    permissions on the resource. This is done again by using policy analyzer api
+    `asset_v1p4beta1.AssetServiceClient.analyze_iam_policy`. Note that currently
+    not all resources are supported by cloud asset analyzer. Please see the list
+    of supported resources
+    [here](https://cloud.google.com/asset-inventory/docs/supported-asset-types#analyzable_asset_types).
+-   Finally taking the set diff of the principals found in step-2 to principals
+    found in step-3 to find the principals who don't the complementary set of
+    permissions to use the resource properly.
+
+This script calls the above apis using a service account. It requires the scope
+`https://www.googleapis.com/auth/cloud-platform` on the service account.
 
 Before running this script, you need to take the following actions.
 
@@ -56,16 +58,18 @@ parameters:
 -   `--organization:` the GCP organization id for which to fetch the project
     ids.
 
--   `--resource:` the regex for the resource. For example to find the users who
-    do not have a set of permissions on compute default service account, you can
-    use a regex "(\*-compute@developer.gserviceaccount.com\*)" for the compute
-    default service account.
+-   `--resource:` the query for the resource. For example to find the principals
+    who do not have a set of permissions on compute default service account, you
+    can use a regex "\*-compute@developer.gserviceaccount.com*" for the compute
+    default service account. Please see here about how to construct a query for
+    a resource. https://cloud.google.com/asset-inventory/docs/query-syntax
+    credentials: client credentials.
 
 -   `--project_permissions:` A comma-separated list of the permissions that
-    users should have on projects.
+    principals should have on projects.
 
 -   `--resource_permissions:` A comma-separated list of complementary
-    permissions that users should have on resources.
+    permissions that principals should have on resources.
 
 -   `--project_ids_location:` Location of json file path with the following
     schema containing the project ids.
@@ -79,8 +83,8 @@ parameters:
       }
     ```
 
-    This flag will enforce the script to do the analysis only for the given
-    project ids.
+    This flag is optional and will enforce the script to do the analysis only
+    for the given project ids.
 
 -   `--to_json:` The json file path to store the output.
 
@@ -103,10 +107,11 @@ The script can then be called directly.
 ```
 python permission_discrepancy_finder.py \
 --organization="organizations/[YOUR-ORGANIZATION-ID]" \
---resource="[RESOURCE-REGEX]" \
+--resource="[RESOURCE-QUERY]" \
 --project_permissions="[COMMA-SEPARATED-LIST-OF-PERMISSIONS-OF-PROJECT]" \
 --resource_permission="[COMMA-SEPARATED-LIST-OF-PERMISSIONS-OF-RESOURCE]" \
---project_ids_location="[LOCATION-OF-JSON-FILE-WITH-INTERESTING-PROJECT-IDS]" \
+--project_ids_location="[LOCATION-OF-JSON-FILE-WITH-INTERESTING-PROJECT-IDS (OPTIONAL)]" \
+--service_account_file_path="[FILE-PATH-TO-SERVICE-ACCOUNT]" \
 --to_json="[LOCATION-OF-OUTPUT-JSON-FILE]"
 ```
 
@@ -121,7 +126,7 @@ content.
         {
             "project_id": "project-id1",
             "resource": "resource-1",
-            "users_with_missing_permissions": [
+            "principals_with_missing_permissions": [
                 "group:abc@xyz.com",
                 "user:def@xyz.com",
                 "user:ghi@xyz.com"
@@ -130,7 +135,7 @@ content.
         {
             "project_id": "project-id2",
             "resource": "resource-2",
-            "users_with_missing_permissions": [
+            "principals_with_missing_permissions": [
                 "user:def@xyz.com"
             ]
         }
@@ -138,11 +143,18 @@ content.
 }
 ```
 
-## Grant roles to impacted users
+## Grant role
 
-This part grants the appropriate roles to users with insufficient permissions at
-the resource level. Currently, we only support the resource to be a service
-account.
+This part grants the given role to principals with missing permissions at the
+resource level. Currently, we only support the resource to be a service account.
+
+We achieve this with the help of following api
+
+-   Set the iam policy on the service accounts using
+    `iam_v1.projects.serviceAccounts.setIamPolicy` api.
+
+This script calls the above apis using a service account. It requires the scope
+`https://www.googleapis.com/auth/cloud-platform` on the service account.
 
 ### Roles Requirements
 
@@ -155,9 +167,9 @@ account that you used in the previous step on the organization node.
 
 You can use this tool as a standalone script. This tool uses a file that has the
 same format as the output of the previous script and grants the given role to
-the the users that have insufficient permission at the resource.
+the the principals that have missing permission at the resource.
 
--   `--role:` The role that should be granted to the users with insufficient
+-   `--role:` The role that should be granted to the principals with missing
     permissions.
 -   `--projects_location:` Location to json file having the same format as the
     output of the previous script.
@@ -168,7 +180,7 @@ the the users that have insufficient permission at the resource.
             {
                 "project_id": "project-id1",
                 "resource": "resource-1",
-                "users_with_missing_permissions": [
+                "principals_with_missing_permissions": [
                     "group:abc@xyz.com",
                     "user:def@xyz.com",
                     "user:ghi@xyz.com"
@@ -177,7 +189,7 @@ the the users that have insufficient permission at the resource.
             {
                 "project_id": "project-id2",
                 "resource": "resource-2",
-                "users_with_missing_permissions": [
+                "principals_with_missing_permissions": [
                     "user:def@xyz.com"
                 ]
             }
@@ -253,26 +265,27 @@ A JSON file at the location containing the content similar as below.
 
 **Problem:** You might not have `virtualenv` installed. \
 **Solution:** If you are using Mac or Ubuntu, you can install `virtualenv`
-command using the command `pip install virtualenv` For windows-10 user, please
-see a possible solution
-[here](https://www.liquidweb.com/kb/how-to-setup-a-python-virtual-environment-on-windows-10/)
+command using the command `pip install virtualenv` For windows 10 user, please
+see a possible solution [here](https://cloud.google.com/python/setup#windows).
+You can also use [Google Cloud Shell](https://cloud.google.com/shell) that does
+not require any installation and come up with virtualenv preinstalled.
 
 **Problem:** You might not have python-3 installed in your system. The possible
 error that you can get is while executing the command `virtualenv -p=python3
 venv` is that the `python3 path not found.` \
 **Solution:**
-[Install on ubuntu](https://docs.python-guide.org/starting/install3/linux/),
-[Install on Mac](https://docs.python-guide.org/starting/install3/osx/),
-[Install on Windows](https://www.python.org/downloads/windows/)
+[Install python3 on ubuntu](https://docs.python-guide.org/starting/install3/linux/),
+[Install python3 on Mac](https://docs.python-guide.org/starting/install3/osx/),
+[Install python3 on Windows](https://www.python.org/downloads/windows/)
 
 **Problem:** You get permission denied error. \
 **Solution:** Please make sure that you assign the role that is recommended
 above to the service account.
 
 **Problem:** You get some json decoding error like
-`json.decoder.JSONDecodeError: Expecting ',' delimiter:`. **Solution:** One
-possible cause is that your service account key can be malformed. Please use a
-different key or correct any obvious formatting issue.
+`json.decoder.JSONDecodeError: Expecting ',' delimiter:`. \
+**Solution:** One possible cause is that your service account key can be
+malformed. Please use a different key or correct any obvious formatting issue.
 
 **Problem:** You don't have `cloud asset` and `resourcemanager api` enabled. \
 **Solution:** Please make sure that you follow the instruction in the readme for
