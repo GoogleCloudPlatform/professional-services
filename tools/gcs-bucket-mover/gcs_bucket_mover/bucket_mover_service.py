@@ -90,9 +90,13 @@ def _rename_bucket(cloud_logger, config, source_bucket, source_bucket_details,
                                                 config, target_bucket)
     _run_and_wait_for_sts_job(sts_client, config.target_project,
                               config.bucket_name, config.target_bucket_name,
-                              cloud_logger)
+                              cloud_logger, config.skip_source_bucket_deletion)
 
-    _delete_empty_source_bucket(cloud_logger, source_bucket)
+    if config.skip_source_bucket_deletion:
+        _print_and_log(cloud_logger, 'Retaining the source bucket without deleting.')
+    else:
+        _delete_empty_source_bucket(cloud_logger, source_bucket)
+    
     _remove_sts_permissions(cloud_logger, sts_account_email, config,
                             config.target_bucket_name)
 
@@ -117,17 +121,25 @@ def _move_bucket(cloud_logger, config, source_bucket, source_bucket_details,
                                                 config, target_temp_bucket)
     _run_and_wait_for_sts_job(sts_client, config.target_project,
                               config.bucket_name, config.temp_bucket_name,
-                              cloud_logger)
+                              cloud_logger, config.skip_source_bucket_deletion)
 
-    _delete_empty_source_bucket(cloud_logger, source_bucket)
+    if config.skip_source_bucket_deletion:
+        _print_and_log(cloud_logger, 'Retaining the source bucket without deleting.')
+    else:
+        _delete_empty_source_bucket(cloud_logger, source_bucket)
+    
     _recreate_source_bucket(cloud_logger, config, source_bucket_details)
     _assign_sts_permissions_to_new_bucket(cloud_logger, sts_account_email,
                                           config)
     _run_and_wait_for_sts_job(sts_client, config.target_project,
                               config.temp_bucket_name, config.bucket_name,
-                              cloud_logger)
+                              cloud_logger, config.skip_source_bucket_deletion)
 
-    _delete_empty_temp_bucket(cloud_logger, target_temp_bucket)
+    if config.skip_source_bucket_deletion:
+        _print_and_log(cloud_logger, 'Retaining the source bucket without deleting.')
+    else:
+        _delete_empty_temp_bucket(cloud_logger, target_temp_bucket)
+    
     _remove_sts_permissions(cloud_logger, sts_account_email, config,
                             config.bucket_name)
 
@@ -399,6 +411,11 @@ def _create_bucket(spinner, cloud_logger, config, bucket_name,
     bucket.labels = source_bucket_details.labels
     bucket.lifecycle_rules = source_bucket_details.lifecycle_rules
     bucket.versioning_enabled = source_bucket_details.versioning_enabled
+    
+    if source_bucket_details.iam_configuration.uniform_bucket_level_access_enabled:
+        bucket.iam_configuration.uniform_bucket_level_access_enabled = True
+    #else:
+        #bucket.iam_configuration.uniform_bucket_level_access_enabled = False
 
     if source_bucket_details.default_kms_key_name:
         bucket.default_kms_key_name = source_bucket_details.default_kms_key_name
@@ -623,7 +640,8 @@ def _assign_sts_iam_roles(sts_email, storage_client, project_name, bucket_name,
     if assign_viewer:
         policy[iam.STORAGE_OBJECT_VIEWER_ROLE].add(account)
         policy['roles/storage.legacyBucketReader'].add(account)
-
+   
+    policy.bindings.append({"role": "roles/storage.admin", "members": {account}})
     bucket.set_iam_policy(policy)
 
 
@@ -717,7 +735,7 @@ def _assign_target_project_to_topic(spinner, cloud_logger, config, topic_name,
     wait_exponential_max=120000,
     stop_max_attempt_number=10)
 def _run_and_wait_for_sts_job(sts_client, target_project, source_bucket_name,
-                              sink_bucket_name, cloud_logger):
+                              sink_bucket_name, cloud_logger, skip_source_bucket_deletion):
     """Kick off the STS job and wait for it to complete. Retry if it fails.
 
     Args:
@@ -739,14 +757,14 @@ def _run_and_wait_for_sts_job(sts_client, target_project, source_bucket_name,
     cloud_logger.log_text(spinner_text)
     with yaspin(text=spinner_text) as spinner:
         sts_job_name = _execute_sts_job(sts_client, target_project,
-                                        source_bucket_name, sink_bucket_name)
+                                        source_bucket_name, sink_bucket_name, skip_source_bucket_deletion)
         spinner.ok(_CHECKMARK)
 
     # Check every 10 seconds until STS job is complete
     with yaspin(text='Checking STS job status') as spinner:
         while True:
             job_status = _check_sts_job(spinner, cloud_logger, sts_client,
-                                        target_project, sts_job_name)
+                                        target_project, sts_job_name, skip_source_bucket_deletion)
             if job_status != sts_job_status.StsJobStatus.in_progress:
                 break
             sleep(10)
@@ -768,7 +786,7 @@ def _run_and_wait_for_sts_job(sts_client, target_project, source_bucket_name,
 
 
 def _execute_sts_job(sts_client, target_project, source_bucket_name,
-                     sink_bucket_name):
+                     sink_bucket_name, skip_source_bucket_deletion):
     """Start the STS job.
 
     Args:
@@ -808,7 +826,8 @@ def _execute_sts_job(sts_client, target_project, source_bucket_name,
                 'bucketName': sink_bucket_name
             },
             "transferOptions": {
-                "deleteObjectsFromSourceAfterTransfer": True,
+                #"deleteObjectsFromSourceAfterTransfer": True,
+                "deleteObjectsFromSourceAfterTransfer": False if skip_source_bucket_deletion else True,
             }
         }
     }
@@ -817,7 +836,7 @@ def _execute_sts_job(sts_client, target_project, source_bucket_name,
     return result['name']
 
 
-def _check_sts_job(spinner, cloud_logger, sts_client, target_project, job_name):
+def _check_sts_job(spinner, cloud_logger, sts_client, target_project, job_name, skip_source_bucket_deletion):
     """Check on the status of the STS job.
 
     Args:
@@ -847,19 +866,19 @@ def _check_sts_job(spinner, cloud_logger, sts_client, target_project, job_name):
                 return sts_job_status.StsJobStatus.failed
 
             _print_sts_counters(spinner, cloud_logger, metadata['counters'],
-                                True)
+                                True, skip_source_bucket_deletion)
             spinner.ok(_CHECKMARK)
             return sts_job_status.StsJobStatus.success
         else:
             # Update the status of the copy
             if 'counters' in metadata:
                 _print_sts_counters(spinner, cloud_logger, metadata['counters'],
-                                    False)
+                                    False, skip_source_bucket_deletion)
 
     return sts_job_status.StsJobStatus.in_progress
 
 
-def _print_sts_counters(spinner, cloud_logger, counters, is_job_done):
+def _print_sts_counters(spinner, cloud_logger, counters, is_job_done, skip_source_bucket_deletion):
     """Print out the current STS job counters.
 
     Args:
@@ -879,9 +898,14 @@ def _print_sts_counters(spinner, cloud_logger, counters, is_job_done):
                                                    '0')
 
         if is_job_done:
-            byte_status = (bytes_copied_to_sink == bytes_found_from_source ==
+
+            if skip_source_bucket_deletion:
+                byte_status = (bytes_copied_to_sink == bytes_found_from_source)
+                object_status = (objects_copied_to_sink == objects_found_from_source)
+            else:
+                byte_status = (bytes_copied_to_sink == bytes_found_from_source ==
                            bytes_deleted_from_source)
-            object_status = (objects_copied_to_sink == objects_found_from_source
+                object_status = (objects_copied_to_sink == objects_found_from_source
                              == objects_deleted_from_source)
 
             if byte_status and object_status:

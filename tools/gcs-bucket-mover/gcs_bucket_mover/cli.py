@@ -149,9 +149,18 @@ def _get_parsed_args():
         action='store_true',
         help='Don\'t copy the Requester Pays setting from the source bucket.')
     parser.add_argument(
+       '--skip_iam_configuration',
+        action='store_true',
+        help='Don\'t copy the IAM configuration setting from the source bucket.')
+    parser.add_argument(
         '--skip_versioning',
         action='store_true',
         help='Don\'t copy the Versioning setting from the source bucket.')
+    parser.add_argument(
+        '--skip_source_bucket_deletion',
+        action='store_true',
+        help='Retains the source bucket without deleting it from the Project. In this case rename of target bucket is mandatory')
+
 
     # Variables set in the config file for running different bucket tests with the --test option
     parser.add_argument(

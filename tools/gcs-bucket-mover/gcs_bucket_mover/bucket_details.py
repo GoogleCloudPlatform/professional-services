@@ -51,8 +51,15 @@ class BucketDetails(object):
         # These properties can be skipped with cmd line params, so use the property setters to
         # make the checks
         self.iam_policy = source_bucket.get_iam_policy()
-        self.acl_entities = source_bucket.acl.get_entities()
-        self.default_obj_acl_entities = source_bucket.default_object_acl.get_entities()
+        if source_bucket.iam_configuration.uniform_bucket_level_access_enabled:
+           self.acl_entities = None
+           self.default_obj_acl_entities = None
+        else:
+           self.acl_entities = source_bucket.acl.get_entities()
+           self.default_obj_acl_entities = source_bucket.default_object_acl.get_entities()
+         
+
+        self.iam_configuration = source_bucket.iam_configuration
         self.requester_pays = source_bucket.requester_pays
         self.cors = source_bucket.cors
         self.default_kms_key_name = source_bucket.default_kms_key_name
@@ -76,6 +83,7 @@ class BucketDetails(object):
         self._skip_lifecycle_rules = True if conf.skip_everything else conf.skip_lifecycle_rules
         self._skip_notifications = True if conf.skip_everything else conf.skip_notifications
         self._skip_requester_pays = True if conf.skip_everything else conf.skip_requester_pays
+        self._skip_iam_configuration = True if conf.skip_everything else conf.skip_iam_configuration 
         self._skip_versioning = True if conf.skip_everything else conf.skip_versioning
 
     @property
@@ -113,6 +121,18 @@ class BucketDetails(object):
     @requester_pays.setter
     def requester_pays(self, value):
         self._requester_pays = None if self._skip_requester_pays else value
+
+
+    @property
+    def iam_configuration(self):
+        """Get the boolean for if the bucket is set as requester pays"""
+        return self._iam_configuration
+
+    @iam_configuration.setter
+    def iam_configuration(self, value):
+        self._iam_configuration = None if self._skip_iam_configuration else value
+
+
 
     @property
     def cors(self):
