@@ -132,7 +132,8 @@ usage: bucket_mover [-h] [--config CONFIG]
                     [--skip_default_obj_acl] [--skip_iam] [--skip_kms_key]
                     [--skip_labels] [--skip_logging] [--skip_lifecycle_rules]
                     [--skip_notifications] [--skip_requester_pays]
-                    [--skip_versioning]
+                    [--skip_versioning] [--skip_iam_configuration]
+                    [--skip_source_bucket_deletion] 
                     [--test_bucket_location TEST_BUCKET_LOCATION]
                     [--test_default_kms_key_name TEST_DEFAULT_KMS_KEY_NAME]
                     [--test_email_for_iam TEST_EMAIL_FOR_IAM]
@@ -189,6 +190,10 @@ optional arguments:
   --skip_requester_pays
                         Don't copy the Requester Pays setting from the source bucket.
   --skip_versioning     Don't copy the Versioning setting from the source bucket.
+  --skip_source_bucket_deletion
+                        can use this flag to not delete the source bucket during transfer
+  --skip_iam_configuration
+                        Don't copy the IAM configuration setting from the source bucket.
   --test_bucket_location TEST_BUCKET_LOCATION
                         The location to create the test bucket in
   --test_default_kms_key_name TEST_DEFAULT_KMS_KEY_NAME
@@ -345,6 +350,37 @@ working in.
 **Rename a bucket (without moving projects)**
 
 `bin/bucket_mover --config config.yaml my_bucket my_project my_project --rename_bucket_to my_new_bucket`
+
+**Retain the storage bucket without deleting it (without moving projects)**
+
+` bin/bucket_mover --config config.yaml --rename_bucket_to darshan-gcsbucket-test1 darshan-gcsbucket-test-uf wmt-c9ac4d039a0f10e0ea53ed910f wmt-c9ac4d039a0f10e0ea53ed910f --disable_bucket_lock`
+
+```
+Source Project: wmt-c9ac4d039a0f10e0ea53ed910f
+Source Bucket: darshan-gcsbucket-test-uf
+Source Service Account: bfdms-sa-ranger2-nonprod@wmt-c9ac4d039a0f10e0ea53ed910f.iam.gserviceaccount.com
+Target Project: wmt-c9ac4d039a0f10e0ea53ed910f
+Target Bucket: darshan-gcsbucket-test1
+Target Service Account: bfdms-sa-ranger2-nonprod@wmt-c9ac4d039a0f10e0ea53ed910f.iam.gserviceaccount.com
+✓ Assigning STS permissions to source/temp buckets
+Moving from bucket darshan-gcsbucket-test-uf to darshan-gcsbucket-test1
+✓ Creating STS job
+✓ Success! STS job copied 13170 bytes in 1 objects
+
+Retaining the source bucket without deleting.
+✓ Removing STS permissions from bucket darshan-gcsbucket-test1
+```
+
+sample config.yaml
+```
+gcp_source_project_service_account_key: /root/bfdms.json
+gcp_target_project_service_account_key: /root/bfdms.json
+
+lock_file_name: _locks/all.lock
+location: us
+storage_class: STANDARD
+skip_source_bucket_deletion: True
+```
 
 ## Bucket and Object Permissions
 
