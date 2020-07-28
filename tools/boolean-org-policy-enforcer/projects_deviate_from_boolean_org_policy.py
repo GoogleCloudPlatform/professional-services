@@ -16,7 +16,7 @@
 # limitations under the License.
 r"""Query the project ids for which org policy `constraint` deviates from the expected state.
 
-python org_policy_not_enforced.py \
+python projects_deviate_from_boolean_org_policy.py \
 --organization="organizations/[YOUR-ORGANIZATION-ID]" \
 --boolean_constraint="[ORG-POLICY-BOOLEAN-CONSTRAINT]" \
 --constraint_expected_state="Boolean(True or False)" \
@@ -172,7 +172,8 @@ def main():
             raise argparse.ArgumentTypeError("Boolean value expected.")
 
     parser = argparse.ArgumentParser(
-        description="Find projects with org policy not enforced.")
+        description="Find projects who deviates from the expected state of a "
+        "boolean organization policy constraint.")
     parser.add_argument(
         "--organization",
         required=True,

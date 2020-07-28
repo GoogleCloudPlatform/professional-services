@@ -182,7 +182,7 @@ def get_projects_using_project_resource_tuple(project_resource_tuple,
         project.error = str(e)
         logging.warning(
             "Cannot retrive data for project: %s because of error %s.",
-            project.project_id, project.project_error)
+            project.project_id, project.error)
         return project
 
 
@@ -228,8 +228,8 @@ def get_projects(organization, permissions_on_project, permissions_on_resource,
         resource_query, len(project_resource_tuples)),
           flush=True)
     max_request, duration = RATE_LIMIT
-
-    # Since we are making 2 request per project, we need to reduce the max_request by 2.
+    # Since we are making 2 request per project, we need to reduce the max_request
+    # by 2.
     max_request = max_request // 2
     print("It would take approximately {0:0.2f} seconds to finish this script.".
           format(len(project_resource_tuples) / max_request * duration),
@@ -239,11 +239,9 @@ def get_projects(organization, permissions_on_project, permissions_on_resource,
                           permissions_on_resource=permissions_on_resource,
                           organization=organization,
                           credentials=credentials)
-
-    max_request, duration = RATE_LIMIT
     i = 0
     n = len(project_resource_tuples)
-    founded_projects = []
+    found_projects = []
     while i < n:
         cur_time_in_seconds = int(time.time())
         with futures.ThreadPoolExecutor(max_workers=max_request) as executor:
@@ -254,9 +252,9 @@ def get_projects(organization, permissions_on_project, permissions_on_resource,
         diff = after_execution_time_in_seconds - cur_time_in_seconds
         if diff < duration and i < n:
             time.sleep(duration - diff)
-        founded_projects.extend(p for p in projects if p)
+        found_projects.extend(p for p in projects if p)
 
-    return extract_information(founded_projects)
+    return extract_information(found_projects)
 
 
 def wrap_project_id_into_project(given_project_ids):
@@ -308,7 +306,7 @@ def writefile(json_data, file_path):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Find prinicipals having insufficient permissions.")
+        description="Find prinicipals having missing permissions.")
     parser.add_argument(
         "--organization",
         required=True,
@@ -366,7 +364,8 @@ def main():
     numeric_level = getattr(logging, args.log.upper(), None)
     if not isinstance(numeric_level, int):
         raise ValueError("Invalid log level: %s" % args.log)
-    logging.basicConfig(format="%(levelname)s:%(message)s", level=numeric_level)
+    logging.basicConfig(format="%(levelname)s[%(asctime)s]:%(message)s",
+                        level=numeric_level)
 
     sa_credentials = service_account.Credentials.from_service_account_file(
         args.service_account_file_path, scopes=SCOPES)
