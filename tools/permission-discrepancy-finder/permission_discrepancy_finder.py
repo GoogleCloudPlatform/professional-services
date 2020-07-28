@@ -172,11 +172,13 @@ def get_projects_using_project_resource_tuple(project_resource_tuple,
             project.principals_having_permissions_on_project -
             project.principals_having_permissions_on_resource)
         if not project.principals_with_missing_permissions:
-            logging.info("No permission discrepancy found for project: %s",
-                         project.project_id)
+            logging.info(
+                "No permission discrepancy found for project: %s and resource: %r",
+                project.project_id, project.resource_under_project)
             return None
-        logging.info("Permission discrepancy found for project: %s",
-                     project.project_id)
+        logging.info(
+            "Permission discrepancy found for project: %s and resource: %r",
+            project.project_id, project.resource_under_project)
         return project
     except Exception as e:
         project.error = str(e)
@@ -224,12 +226,13 @@ def get_projects(organization, permissions_on_project, permissions_on_resource,
     project_resource_tuples = get_project_and_resource(organization,
                                                        resource_query,
                                                        credentials)
-    print("Total number of projects with the resource {} are {}.".format(
-        resource_query, len(project_resource_tuples)),
-          flush=True)
+    print(
+        "Total number of projects and resource pair with the resource {} are {}."
+        .format(resource_query, len(project_resource_tuples)),
+        flush=True)
     max_request, duration = RATE_LIMIT
-    # Since we are making 2 request per project, we need to reduce the max_request
-    # by 2.
+    # Since we are making 2 request per project-resource pair, we need to reduce
+    # the max_request by 2.
     max_request = max_request // 2
     print("It would take approximately {0:0.2f} seconds to finish this script.".
           format(len(project_resource_tuples) / max_request * duration),
