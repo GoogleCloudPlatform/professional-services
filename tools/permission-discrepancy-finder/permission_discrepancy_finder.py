@@ -34,6 +34,7 @@ import argparse
 from concurrent import futures
 import functools
 import json
+import logging
 import time
 
 from google.cloud import asset_v1
@@ -167,12 +168,21 @@ def get_projects_using_project_resource_tuple(project_resource_tuple,
             organization,
             project.resource_under_project,
             credentials=credentials)
-        project.principals_with_missing_permissions = project.principals_having_permissions_on_project - project.principals_having_permissions_on_resource
+        project.principals_with_missing_permissions = (
+            project.principals_having_permissions_on_project -
+            project.principals_having_permissions_on_resource)
         if not project.principals_with_missing_permissions:
+            logging.info("No permission discrepancy found for project: %s",
+                         project.project_id)
             return None
+        logging.info("Permission discrepancy found for project: %s",
+                     project.project_id)
         return project
     except Exception as e:
         project.error = str(e)
+        logging.warning(
+            "Cannot retrive data for project: %s because of error %s.",
+            project.project_id, project.project_error)
         return project
 
 
@@ -191,7 +201,7 @@ def extract_information(projects):
                 p.resource_under_project,
             "principals_with_missing_permissions":
                 list(p.principals_with_missing_permissions) if not p.error else
-                "Could not retriver user data because " + p.error
+                "Could not retrive user data because " + p.error
         }
         projects_list.append(cur_project)
     return projects_list
@@ -218,6 +228,9 @@ def get_projects(organization, permissions_on_project, permissions_on_resource,
         resource_query, len(project_resource_tuples)),
           flush=True)
     max_request, duration = RATE_LIMIT
+
+    # Since we are making 2 request per project, we need to reduce the max_request by 2.
+    max_request = max_request // 2
     print("It would take approximately {0:0.2f} seconds to finish this script.".
           format(len(project_resource_tuples) / max_request * duration),
           flush=True)
@@ -341,8 +354,20 @@ def main():
                         nargs="?",
                         default="",
                         help="Enter the json file name to store the data.")
+    parser.add_argument(
+        "--log",
+        type=str,
+        nargs="?",
+        default="INFO",
+        help="Enter the log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)")
 
     args = parser.parse_args()
+
+    numeric_level = getattr(logging, args.log.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError("Invalid log level: %s" % args.log)
+    logging.basicConfig(format="%(levelname)s:%(message)s", level=numeric_level)
+
     sa_credentials = service_account.Credentials.from_service_account_file(
         args.service_account_file_path, scopes=SCOPES)
 

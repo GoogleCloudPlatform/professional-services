@@ -95,10 +95,8 @@ content
 In this part, we will change the organization policy state in bulk for given
 projects.
 
-We achieve this with the help of following api
-
--   Set the organization policy using
-    `cloudresourcemanager.projects.setOrgPolicy` api.
+We achieve this with the help of `cloudresourcemanager.projects.setOrgPolicy`
+api that sets the organization policy.
 
 This script calls the above api using a service account. It requires the scope
 `https://www.googleapis.com/auth/cloud-platform` on the service account.

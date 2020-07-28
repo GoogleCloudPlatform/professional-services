@@ -27,6 +27,7 @@ import argparse
 from concurrent import futures
 import functools
 import json
+import logging
 import time
 
 from google_auth_httplib2 import AuthorizedHttp
@@ -43,6 +44,11 @@ RATE_LIMIT = (1000, 100)
 
 # scopes for the credentials.
 SCOPES = ["https://www.googleapis.com/auth/cloud-platform"]
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+# Uncomment the below line to get detailed logs.
+# httplib2.debuglevel = 4
 
 
 def grant_role(resource, principals, iam_v1, role, credentials):

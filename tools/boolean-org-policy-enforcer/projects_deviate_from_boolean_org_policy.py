@@ -28,6 +28,7 @@ import argparse
 from concurrent import futures
 import functools
 import json
+import logging
 import time
 
 from google_auth_httplib2 import AuthorizedHttp
@@ -45,6 +46,11 @@ RATE_LIMIT = (1000, 100)
 
 # scopes for the credentials.
 SCOPES = ["https://www.googleapis.com/auth/cloud-platform"]
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+# Uncomment the below line to get detailed logs.
+# httplib2.debuglevel = 4
 
 
 def get_all_projects_using_asset_manager(organization, credentials):
@@ -75,9 +81,11 @@ def is_org_policy_enforced(project_id, resourcemanager_v1, constraint,
     http = httplib2.Http()
     authorize_http = AuthorizedHttp(credentials, http=http)
     policy = resourcemanager_v1.projects().getEffectiveOrgPolicy(
-        resource="projects/" + project_id, body={
+        resource="projects/" + project_id,
+        body={
             "constraint": constraint
-        }).execute(http=authorize_http)
+        },
+        fields="booleanPolicy/enforced").execute(http=authorize_http)
     return project_id, policy["booleanPolicy"].get("enforced", False)
 
 

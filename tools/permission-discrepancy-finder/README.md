@@ -71,8 +71,8 @@ parameters:
 -   `--resource_permissions:` A comma-separated list of complementary
     permissions that principals should have on resources.
 
--   `--project_ids_location:` Location of json file path with the following
-    schema containing the project ids.
+-   `--project_ids_location:` [OPTIONAL] Location of json file path with the
+    following schema containing the project ids.
 
     ```
       {
@@ -85,6 +85,12 @@ parameters:
 
     This flag is optional and will enforce the script to do the analysis only
     for the given project ids.
+
+-   `--service_account_file_path:` The location of the service account key that
+    would be used to generate credentials for api calls.
+
+-   `--log:` [OPTIONAL] The granularity of the log level. The supported values
+    are: DEBUG, INFO, WARNING, ERROR, CRITICAL.
 
 -   `--to_json:` The json file path to store the output.
 
@@ -112,6 +118,7 @@ python permission_discrepancy_finder.py \
 --resource_permission="[COMMA-SEPARATED-LIST-OF-PERMISSIONS-OF-RESOURCE]" \
 --project_ids_location="[LOCATION-OF-JSON-FILE-WITH-INTERESTING-PROJECT-IDS (OPTIONAL)]" \
 --service_account_file_path="[FILE-PATH-TO-SERVICE-ACCOUNT]" \
+--log="[LOG-SEVERITY-LEVEL] (OPTIONAL)" \
 --to_json="[LOCATION-OF-OUTPUT-JSON-FILE]"
 ```
 
@@ -148,10 +155,8 @@ content.
 This part grants the given role to principals with missing permissions at the
 resource level. Currently, we only support the resource to be a service account.
 
-We achieve this with the help of following api
-
--   Set the iam policy on the service accounts using
-    `iam_v1.projects.serviceAccounts.setIamPolicy` api.
+We achieve this with the help of `iam_v1.projects.serviceAccounts.setIamPolicy`
+api that sets the iam policy on a service account.
 
 This script calls the above apis using a service account. It requires the scope
 `https://www.googleapis.com/auth/cloud-platform` on the service account.
