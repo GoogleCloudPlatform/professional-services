@@ -50,7 +50,7 @@ deploy: stop
 		--num-workers 2
 stop:
 	for id in $$(gcloud beta dataflow jobs list --status active \
-	--region $(REGION) --filter hashpipeline --format json | jq -r '.[]|.id'); do\
+	--region $(REGION) --filter hashpipeline --project $(PROJECT) --format json | jq -r '.[]|.id'); do\
 		gcloud beta dataflow jobs cancel $$id --region $(REGION);\
 	done
 	sleep 5

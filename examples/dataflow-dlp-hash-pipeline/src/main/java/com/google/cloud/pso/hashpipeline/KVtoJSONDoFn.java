@@ -24,13 +24,20 @@ import org.apache.beam.sdk.transforms.DoFn.ProcessElement;
 import org.apache.beam.sdk.values.KV;
 
 public class KVtoJSONDoFn extends DoFn<KV<String, String>, String> {
+  private Gson gson;
+
+  @Setup
+  public void setup() {
+    this.gson = new Gson();
+  }
+
   @ProcessElement
   public void processElement(ProcessContext c) {
     KV<String, String> elem = c.element();
     HashMap<String, String> map = new HashMap<String, String>();
     map.put("filename", elem.getKey());
     map.put("hashed_ssn", elem.getValue());
-    Gson gson = new Gson();
-    c.output(gson.toJson(map));
+
+    c.output(this.gson.toJson(map));
   }
 }

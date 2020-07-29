@@ -20,42 +20,42 @@ variable "region" {
 }
 
 variable "dataflow_bucket" {
-  type = string
+  type    = string
   default = ""
 }
 
 variable "cloudfunction_bucket" {
-  type = string
+  type    = string
   default = ""
 }
 
 variable "secret_name" {
-  type = string
-  default = "hash-key-64"
+  type        = string
+  default     = "hash-key-64"
   description = "Secret name where base64 encoded hash key exists"
 }
 
 variable "firestore_collection" {
-  type = string
-  default = "hashed_socials"
+  type        = string
+  default     = "hashed_socials"
   description = "The name of the Firestore collection where the hashed SSNs are"
 }
 
 variable "input_topic" {
-  type = string
-  default = "hashpipeline-input"
+  type        = string
+  default     = "hashpipeline-input"
   description = "The Pubsub topic that the input GCS filename is written to"
 }
 
 variable "output_topic" {
-  type = string
-  default = "hashpipeline-output"
+  type        = string
+  default     = "hashpipeline-output"
   description = "The Pubsub topic that the output count of SSNs is written to"
 }
 
 variable "salt_byte_length" {
-  type = string
-  default = 16
+  type        = string
+  default     = 16
   description = "Byte length of the salt value prepended to the SSN before hashing"
 }
 

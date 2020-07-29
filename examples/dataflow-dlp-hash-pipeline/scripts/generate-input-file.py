@@ -19,6 +19,9 @@ class TestGen():
   def __init__(self, infile, outfile):
     self.infile = infile
     self.outfile = outfile
+    # NOTE: Statistics are written at the top of the file along with
+    # actual content primarily to compare the counts against SSN matches
+    # found by the pipeline
     self.stats = {
       'expected_valid_socials': 0,
       'valid_ssn_line': 0,
@@ -30,7 +33,7 @@ class TestGen():
       self.socials = [s.strip() for s in f.readlines()]
 
   def randsocial(self):
-    return self.socials[random.randint(0, len(self.socials)-1)]
+    return random.choice(self.socials)
 
   def rand_acct(self):
     return f'{random.randrange(1*10**9 - 1):09d}'
@@ -59,10 +62,9 @@ class TestGen():
     funcs = [self.valid_ssn_line, self.valid_ssn_with_fake, self.invalid_with_fake_ssn, self.invalid_no_num]
     outlines = []
     for _ in range(0, int(num_lines)):
-      func = funcs[random.randint(0, 3)]
+      func = random.choice(funcs)
       outlines.append(func())
-    sorted_stats = list(reversed(sorted(list(self.stats.keys()))))
-    for k in sorted_stats:
+    for k in sorted(self.stats.keys(), reverse=True):
       outlines.insert(0, f'{k} = {self.stats[k]}\n')
     with open(self.outfile, 'w') as f:
       for line in outlines:

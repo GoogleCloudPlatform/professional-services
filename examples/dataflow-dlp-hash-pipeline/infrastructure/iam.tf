@@ -40,7 +40,7 @@ resource "google_project_iam_member" "cf_runner_iam" {
 # See: https://cloud.google.com/dataflow/docs/concepts/access-control#creating_jobs
 resource "google_storage_bucket_iam_binding" "df_bucket_iam" {
   bucket = google_storage_bucket.df_bucket.name
-  role = "roles/storage.admin"
+  role   = "roles/storage.admin"
   members = [
     local.cf_member,
     local.df_member,
@@ -57,31 +57,31 @@ resource "google_service_account_iam_member" "df_service_account_iam" {
 
 resource "google_pubsub_topic_iam_member" "cf_topic_iam" {
   project = var.project
-  topic = google_pubsub_topic.input_topic.name
-  role = "roles/pubsub.publisher"
-  member = local.cf_member
+  topic   = google_pubsub_topic.input_topic.name
+  role    = "roles/pubsub.publisher"
+  member  = local.cf_member
 }
 
 resource "google_pubsub_subscription_iam_member" "df_subscription_iam" {
-  project = var.project
+  project      = var.project
   subscription = google_pubsub_subscription.input_sub.name
-  role = "roles/pubsub.subscriber"
-  member = local.df_member
+  role         = "roles/pubsub.subscriber"
+  member       = local.df_member
 }
 
 resource "google_pubsub_topic_iam_member" "df_topic_iam" {
   project = var.project
-  topic = google_pubsub_topic.output_topic.name
-  role = "roles/pubsub.publisher"
-  member = local.df_member
+  topic   = google_pubsub_topic.output_topic.name
+  role    = "roles/pubsub.publisher"
+  member  = local.df_member
 }
 
 resource "google_secret_manager_secret_iam_member" "df_secret_iam" {
   provider = google-beta
 
-  project = var.project
+  project   = var.project
   secret_id = google_secret_manager_secret.hash_key_secret.secret_id
-  role = "roles/secretmanager.secretAccessor"
-  member = local.df_member
+  role      = "roles/secretmanager.secretAccessor"
+  member    = local.df_member
 }
 

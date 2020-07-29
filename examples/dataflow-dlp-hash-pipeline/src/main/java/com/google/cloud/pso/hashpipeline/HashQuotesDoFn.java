@@ -39,7 +39,7 @@ public class HashQuotesDoFn extends DoFn<KV<String, String>, KV<String, String>>
   private final String HMAC_SHA256 = "HmacSHA256";
   private String secretPath;
   private String salt;
-  private byte[] hashkey;
+  private SecretKeySpec keySpec;
 
   public HashQuotesDoFn(String secretPath, String salt) {
     this.secretPath = secretPath + "/versions/latest";
@@ -52,7 +52,8 @@ public class HashQuotesDoFn extends DoFn<KV<String, String>, KV<String, String>>
       AccessSecretVersionResponse response = client.accessSecretVersion(this.secretPath);
       ByteString data = response.getPayload().getData();
       String stripped = data.toStringUtf8().replace("\n", "").replace("\r", "");
-      this.hashkey = Base64.getDecoder().decode(stripped);
+      byte[] hashkey = Base64.getDecoder().decode(stripped);
+      this.keySpec = new SecretKeySpec(hashkey, HMAC_SHA256);
     } catch (Exception e) {
       LOG.error("Failed to create DLP Service Client", e.getMessage());
       throw new RuntimeException(e);
@@ -63,9 +64,8 @@ public class HashQuotesDoFn extends DoFn<KV<String, String>, KV<String, String>>
   public void processElement(ProcessContext c)
       throws IOException, NoSuchAlgorithmException, InvalidKeyException {
     KV<String, String> entry = c.element();
-    SecretKeySpec keySpec = new SecretKeySpec(this.hashkey, HMAC_SHA256);
     Mac hmac = Mac.getInstance(HMAC_SHA256);
-    hmac.init(keySpec);
+    hmac.init(this.keySpec);
     hmac.update(this.salt.getBytes());
     String potentialSSN = entry.getValue().replace("-", "");
     String digest = this.toHexString(hmac.doFinal(potentialSSN.getBytes()));

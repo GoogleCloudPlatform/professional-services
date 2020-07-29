@@ -10,7 +10,7 @@ be to store SSNs in a Dictionary InfoType in Cloud DLP, however that has the fol
 * Only 5 Million total records
 * SSNs stored in plain text
 
-To avoid those limitations, we are going to create a PoC Dataflow pipeline that will run for every new file
+To avoid those limitations, we built a PoC Dataflow pipeline that will run for every new file
 in a specified GCS bucket and determine how many (if any) SSNs are found, triggering a Pubsub Topic. The known
 SSNs will be stored in Firestore, a highly scalable key value store, only after being hashed with a salt and
 key, which is stored in Secret Manager. This is what the architecuture will look like when we're done.
@@ -32,7 +32,7 @@ This has only been tested on Mac OSX but will likely work on Linux as well.
 
 
 ### Step 1: Deploy the Infrastructure
-First, ensure that the following APIs are enabled on your project:
+Note that the following APIs will be enabled on your project by Terraform:
 
 * `cloudfunctions.googleapis.com`
 * `iam.googleapis.com`
@@ -151,7 +151,7 @@ the files have been uploaded, along with the raw messages printed to standard ou
 ...
 -----------------------------------  --------
 Filename                             Findings
-gs://rcanty-dataflow-test/small.txt  26
+gs://<dataflow-test-bucket>/small.txt  26
 -----------------------------------  --------
 ```
 

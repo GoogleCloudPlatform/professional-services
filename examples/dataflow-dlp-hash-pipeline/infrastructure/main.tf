@@ -18,10 +18,27 @@ locals {
   df_member = "serviceAccount:${google_service_account.df_worker.email}"
   cf_bucket = var.cloudfunction_bucket == "" ? "${var.project}-cloudfunction" : var.cloudfunction_bucket
   cf_member = "serviceAccount:${google_service_account.cf_runner.email}"
+  api_set = toset([
+    "cloudfunctions.googleapis.com",
+    "iam.googleapis.com",
+    "dlp.googleapis.com",
+    "secretmanager.googleapis.com",
+    "firestore.googleapis.com",
+    "dataflow.googleapis.com",
+    "compute.googleapis.com",
+  ])
 }
 
 resource "random_id" "salt" {
   byte_length = var.salt_byte_length
+}
+
+resource "google_project_service" "project_services" {
+  for_each                   = local.api_set
+  project                    = var.project
+  service                    = each.value
+  disable_on_destroy         = false
+  disable_dependent_services = false
 }
 
 ##################################################
@@ -30,58 +47,73 @@ resource "random_id" "salt" {
 
 # Create the bucket where dataflow will write staging and temp data
 resource "google_storage_bucket" "df_bucket" {
-  project = var.project
+  project       = var.project
   name          = local.df_bucket
   location      = "US"
   force_destroy = true
+
+  depends_on = [google_project_service.project_services]
 }
 
 # Create test bucket that Cloud Function will listen on
 resource "google_storage_bucket" "test_bucket" {
-  project = var.project
+  project       = var.project
   name          = "${var.project}-test"
   location      = "US"
   force_destroy = true
+
+  depends_on = [google_project_service.project_services]
 }
 
 
 resource "google_service_account" "df_worker" {
-  project = var.project
+  project      = var.project
   account_id   = "df-worker"
   display_name = "Service Account attached to Dataflow job workers"
+
+  depends_on = [google_project_service.project_services]
 }
 
 resource "google_secret_manager_secret" "hash_key_secret" {
   provider = google-beta
-  project = var.project
+  project  = var.project
 
   secret_id = var.secret_name
 
   replication {
     automatic = true
   }
+  depends_on = [google_project_service.project_services]
 }
 
 resource "google_pubsub_topic" "input_topic" {
   project = var.project
-  name = var.input_topic
+  name    = var.input_topic
+
+  depends_on = [google_project_service.project_services]
 }
 
 resource "google_pubsub_subscription" "input_sub" {
   project = var.project
   name    = "${var.input_topic}-subscription"
   topic   = google_pubsub_topic.input_topic.name
+
+  depends_on = [google_project_service.project_services]
 }
 
 resource "google_pubsub_topic" "output_topic" {
   project = var.project
-  name = var.output_topic
+  name    = var.output_topic
+
+  depends_on = [google_project_service.project_services]
 }
 
 resource "google_pubsub_subscription" "output_sub" {
   project = var.project
   name    = "${var.output_topic}-subscription"
   topic   = google_pubsub_topic.output_topic.name
+
+  depends_on = [google_project_service.project_services]
 }
 
 ##################################################
@@ -89,14 +121,16 @@ resource "google_pubsub_subscription" "output_sub" {
 ##################################################
 
 resource "google_storage_bucket" "cf_bucket" {
-  project = var.project
+  project       = var.project
   name          = local.cf_bucket
   location      = "US"
   force_destroy = true
+
+  depends_on = [google_project_service.project_services]
 }
 
 data "archive_file" "cf" {
-  type        = "zip"
+  type       = "zip"
   source_dir = "hashpipeline-trigger"
   # NOTE: The MD5 here is to force function recreation if the contents of the
   # function change, which wouldn't happen if the zip was named statically
@@ -110,14 +144,16 @@ resource "google_storage_bucket_object" "archive" {
 }
 
 resource "google_service_account" "cf_runner" {
-  project = var.project
+  project      = var.project
   account_id   = "cf-runner"
   display_name = "Service Account that runs the Cloud Function"
+
+  depends_on = [google_project_service.project_services]
 }
 
 resource "google_cloudfunctions_function" "function" {
-  project = var.project
-  region = var.region
+  project     = var.project
+  region      = var.region
   name        = "run-dataflow"
   description = "Runs the hashpipeline dataflow job"
   runtime     = "python37"
@@ -130,7 +166,7 @@ resource "google_cloudfunctions_function" "function" {
   entry_point           = "trigger_dataflow"
   event_trigger {
     event_type = "google.storage.object.finalize"
-    resource = google_storage_bucket.test_bucket.name
+    resource   = google_storage_bucket.test_bucket.name
   }
 
   environment_variables = {
@@ -139,7 +175,7 @@ resource "google_cloudfunctions_function" "function" {
 }
 
 resource "local_file" "makefile_vars" {
-    content     = <<EOF
+  content  = <<EOF
 PROJECT         := ${var.project}
 SECRET          := ${google_secret_manager_secret.hash_key_secret.name}
 REGION          := ${var.region}
@@ -151,6 +187,6 @@ INPUT_SUB       := ${google_pubsub_subscription.input_sub.id}
 OUTPUT_TOPIC    := ${google_pubsub_topic.output_topic.id}
 OUTPUT_SUB      := ${google_pubsub_subscription.output_sub.id}
 EOF
-    filename = "../terraform-vars.mk"
+  filename = "../terraform-vars.mk"
 }
 

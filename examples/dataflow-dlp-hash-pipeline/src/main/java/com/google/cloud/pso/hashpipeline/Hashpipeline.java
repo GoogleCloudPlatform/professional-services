@@ -29,7 +29,7 @@ import org.apache.beam.sdk.transforms.ParDo;
 
 public class Hashpipeline {
   public interface HashpipelineOptions extends PipelineOptions {
-    @Description("The Pub/Sub topic to read from. i.e projects/*/subscriptions/*")
+    @Description("The Pub/Sub subscription to read from. i.e projects/*/subscriptions/*")
     @Required
     String getInputSubscription();
 

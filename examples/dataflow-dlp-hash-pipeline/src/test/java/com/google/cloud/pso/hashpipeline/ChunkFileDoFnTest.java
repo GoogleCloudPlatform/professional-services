@@ -45,7 +45,6 @@ import org.slf4j.LoggerFactory;
 public class ChunkFileDoFnTest {
   private static final Logger log = LoggerFactory.getLogger(ChunkFileDoFnTest.class);
   @Rule public final transient TestPipeline pipeline = TestPipeline.create();
-  @ClassRule public static TemporaryFolder tempFolder = new TemporaryFolder();
 
   @Test
   public void testChunkFileDoFnTest() throws IOException {
