@@ -84,8 +84,13 @@ public class Hashpipeline {
         .apply(
             "Read filename from Pubsub",
             PubsubIO.readMessagesWithAttributes().fromSubscription(options.getInputSubscription()))
-        .apply(MapElements.into(TypeDescriptors.strings()).via((PubsubMessage msg) ->
-                String.format("gs://%s/%s",  msg.getAttribute("bucketId"), msg.getAttribute("objectId"))))
+        .apply(
+            MapElements.into(TypeDescriptors.strings())
+                .via(
+                    (PubsubMessage msg) ->
+                        String.format(
+                            "gs://%s/%s",
+                            msg.getAttribute("bucketId"), msg.getAttribute("objectId"))))
         .apply(
             "Match all files from Pubsub",
             FileIO.matchAll().withEmptyMatchTreatment(EmptyMatchTreatment.DISALLOW))
