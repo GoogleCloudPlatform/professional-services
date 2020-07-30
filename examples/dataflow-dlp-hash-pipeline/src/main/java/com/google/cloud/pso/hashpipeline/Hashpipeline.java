@@ -21,11 +21,14 @@ import org.apache.beam.sdk.PipelineResult;
 import org.apache.beam.sdk.io.FileIO;
 import org.apache.beam.sdk.io.fs.EmptyMatchTreatment;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
+import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
 import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.options.Validation.Required;
+import org.apache.beam.sdk.transforms.MapElements;
 import org.apache.beam.sdk.transforms.ParDo;
+import org.apache.beam.sdk.values.TypeDescriptors;
 
 public class Hashpipeline {
   public interface HashpipelineOptions extends PipelineOptions {
@@ -80,7 +83,9 @@ public class Hashpipeline {
     pipeline
         .apply(
             "Read filename from Pubsub",
-            PubsubIO.readStrings().fromSubscription(options.getInputSubscription()))
+            PubsubIO.readMessagesWithAttributes().fromSubscription(options.getInputSubscription()))
+        .apply(MapElements.into(TypeDescriptors.strings()).via((PubsubMessage msg) ->
+                String.format("gs://%s/%s",  msg.getAttribute("bucketId"), msg.getAttribute("objectId"))))
         .apply(
             "Match all files from Pubsub",
             FileIO.matchAll().withEmptyMatchTreatment(EmptyMatchTreatment.DISALLOW))

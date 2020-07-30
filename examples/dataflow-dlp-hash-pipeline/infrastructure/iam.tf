@@ -26,13 +26,6 @@ resource "google_project_iam_member" "df_worker_project_iam" {
   member   = local.df_member
 }
 
-resource "google_project_iam_member" "cf_runner_iam" {
-  for_each = toset(var.cf_runner_permissions)
-  project  = var.project
-  role     = each.key
-  member   = local.cf_member
-}
-
 ##################################################
 ##               Resource Level                 ##
 ##################################################
@@ -41,25 +34,7 @@ resource "google_project_iam_member" "cf_runner_iam" {
 resource "google_storage_bucket_iam_binding" "df_bucket_iam" {
   bucket = google_storage_bucket.df_bucket.name
   role   = "roles/storage.admin"
-  members = [
-    local.cf_member,
-    local.df_member,
-  ]
-}
-
-# Allow the Cloud Function to ActAs the DF worker service account
-# so that it can trigger the job.
-resource "google_service_account_iam_member" "df_service_account_iam" {
-  service_account_id = google_service_account.df_worker.name
-  role               = "roles/iam.serviceAccountUser"
-  member             = local.cf_member
-}
-
-resource "google_pubsub_topic_iam_member" "cf_topic_iam" {
-  project = var.project
-  topic   = google_pubsub_topic.input_topic.name
-  role    = "roles/pubsub.publisher"
-  member  = local.cf_member
+  members = [local.df_member]
 }
 
 resource "google_pubsub_subscription_iam_member" "df_subscription_iam" {

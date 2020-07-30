@@ -16,8 +16,6 @@
 locals {
   df_bucket = var.dataflow_bucket == "" ? "${var.project}-dataflow" : var.dataflow_bucket
   df_member = "serviceAccount:${google_service_account.df_worker.email}"
-  cf_bucket = var.cloudfunction_bucket == "" ? "${var.project}-cloudfunction" : var.cloudfunction_bucket
-  cf_member = "serviceAccount:${google_service_account.cf_runner.email}"
   api_set = toset([
     "cloudfunctions.googleapis.com",
     "iam.googleapis.com",
@@ -54,17 +52,6 @@ resource "google_storage_bucket" "df_bucket" {
 
   depends_on = [google_project_service.project_services]
 }
-
-# Create test bucket that Cloud Function will listen on
-resource "google_storage_bucket" "test_bucket" {
-  project       = var.project
-  name          = "${var.project}-test"
-  location      = "US"
-  force_destroy = true
-
-  depends_on = [google_project_service.project_services]
-}
-
 
 resource "google_service_account" "df_worker" {
   project      = var.project
@@ -115,63 +102,24 @@ resource "google_pubsub_subscription" "output_sub" {
 
   depends_on = [google_project_service.project_services]
 }
-
 ##################################################
-##              Cloud Function                  ##
+##             GCS Notification                 ##
 ##################################################
+resource "google_storage_notification" "notification" {
+  for_each       = toset(var.buckets_to_monitor)
+  bucket         = each.value
+  payload_format = "JSON_API_V1"
+  topic          = google_pubsub_topic.input_topic.id
+  event_types    = ["OBJECT_FINALIZE"]
 
-resource "google_storage_bucket" "cf_bucket" {
-  project       = var.project
-  name          = local.cf_bucket
-  location      = "US"
-  force_destroy = true
-
-  depends_on = [google_project_service.project_services]
+  depends_on = [google_pubsub_topic_iam_member.binding]
 }
+data "google_storage_project_service_account" "gcs_account" {}
 
-data "archive_file" "cf" {
-  type       = "zip"
-  source_dir = "hashpipeline-trigger"
-  # NOTE: The MD5 here is to force function recreation if the contents of the
-  # function change, which wouldn't happen if the zip was named statically
-  output_path = "hashpipeline-${filemd5("hashpipeline-trigger/main.py")}.zip"
-}
-
-resource "google_storage_bucket_object" "archive" {
-  name   = data.archive_file.cf.output_path
-  bucket = google_storage_bucket.cf_bucket.name
-  source = data.archive_file.cf.output_path
-}
-
-resource "google_service_account" "cf_runner" {
-  project      = var.project
-  account_id   = "cf-runner"
-  display_name = "Service Account that runs the Cloud Function"
-
-  depends_on = [google_project_service.project_services]
-}
-
-resource "google_cloudfunctions_function" "function" {
-  project     = var.project
-  region      = var.region
-  name        = "run-dataflow"
-  description = "Runs the hashpipeline dataflow job"
-  runtime     = "python37"
-
-  service_account_email = google_service_account.cf_runner.email
-  available_memory_mb   = 128
-  source_archive_bucket = google_storage_bucket.cf_bucket.name
-  source_archive_object = google_storage_bucket_object.archive.name
-  timeout               = 60
-  entry_point           = "trigger_dataflow"
-  event_trigger {
-    event_type = "google.storage.object.finalize"
-    resource   = google_storage_bucket.test_bucket.name
-  }
-
-  environment_variables = {
-    TOPIC = google_pubsub_topic.input_topic.id
-  }
+resource "google_pubsub_topic_iam_member" "binding" {
+  topic   = google_pubsub_topic.input_topic.id
+  role    = "roles/pubsub.publisher"
+  member = "serviceAccount:${data.google_storage_project_service_account.gcs_account.email_address}"
 }
 
 resource "local_file" "makefile_vars" {

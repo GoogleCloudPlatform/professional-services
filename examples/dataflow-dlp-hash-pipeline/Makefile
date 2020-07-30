@@ -7,6 +7,9 @@ FIRESTORE_REGION := us-west2
 TEMPLATE_IMAGE := gcr.io/$(PROJECT)/hashpipeline:latest
 TEMPLATE_PATH := gs://$(BUCKET)/Template/hashpipeline
 
+test:
+	mvn test
+
 run_local:
 	mvn compile exec:java -e \
 	  -Dexec.mainClass=com.google.cloud.pso.hashpipeline.Hashpipeline \
@@ -61,7 +64,7 @@ create_key:
 subscribe:
 	python scripts/poller.py --subscription $(OUTPUT_SUB)
 
-test_seed_firestore:
+seed_firestore:
 	python scripts/generate-test-socials.py $(TEST_SSN_PATH)
 	./scripts/hasher.py upload \
 		--project $(PROJECT) \
@@ -71,7 +74,7 @@ test_seed_firestore:
 		--infile $(TEST_SSN_PATH)
 
 # Generates test input files for use in Dataflow and local Beam
-test_generate_input_files:
+generate_input_files:
 	python scripts/generate-input-file.py $(TEST_SSN_PATH) inputs/large-input.txt 10000
 	python scripts/generate-input-file.py $(TEST_SSN_PATH) inputs/small-input.txt 50
 	python scripts/generate-input-file.py $(TEST_SSN_PATH) inputs/tiny-input.txt 5

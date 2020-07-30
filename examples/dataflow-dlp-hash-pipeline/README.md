@@ -46,7 +46,9 @@ Then deploy the infrastructure to your project
 
 ```
 cd infrastructure
-TF_VAR_project=<PROJECT_ID> terraform apply
+cp terraform.tfvars.sample terraform.tfvars
+# Update with your own values.
+terraform apply
 ```
 
 ### Step 2: Generate the Hash Key
@@ -60,7 +62,7 @@ make create_key
 
 ### Step 3: Seed Firestore with SSNs
 
-Since SSNs can exist in the datacenter in lots of stores, we'll just assume the input is
+Since SSNs can exist in the data center in many stores, we'll assume the input is
 a flat, newline separated file including valid SSNs. How you get them in that format is
 up to you. Once you have your input file, simply authenticate to `gcloud` and then run:
 
@@ -84,7 +86,7 @@ make build
 make deploy
 ```
 
-At this point your Dataflow job will startup and you can check it's progress in the GCP Console.
+At this point your Dataflow job will start up, so you can check its progress in the GCP Console.
 
 ### Step 5: Subscribe
 
@@ -109,7 +111,7 @@ This script will do the following:
 * Store the hashed values in Firestore under the collection specified in the terraform variable: `firestore_collection`
 
 ```
-make test_seed_firestore
+make seed_firestore
 ```
 
 ### Step 3: Generate some input files for dataflow to use
@@ -117,7 +119,7 @@ make test_seed_firestore
 This will store the input files under the `inputs/` directory, so we have something to test with.
 
 ```
-make test_generate_input_files
+make generate_input_files
 ```
 
 ### Step 5: Test out the pipeline locally
@@ -159,7 +161,7 @@ This number can be verified by looking in the file itself on the first line, whi
 for this example.
 
 
-### Step 7: Deploy the pipeline to a template so our Cloud Function can run it
+### Step 7: Deploy the pipeline to a template, so our Cloud Function can run it
 
 ```
 make build

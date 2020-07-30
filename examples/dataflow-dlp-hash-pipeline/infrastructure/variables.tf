@@ -19,12 +19,13 @@ variable "region" {
   default = "us-central1"
 }
 
-variable "dataflow_bucket" {
-  type    = string
-  default = ""
+variable "buckets_to_monitor" {
+  type = list
+  default = []
+  description = "List of bucket names that will trigger the dataflow job when a new object is added."
 }
 
-variable "cloudfunction_bucket" {
+variable "dataflow_bucket" {
   type    = string
   default = ""
 }
@@ -57,14 +58,6 @@ variable "salt_byte_length" {
   type        = string
   default     = 16
   description = "Byte length of the salt value prepended to the SSN before hashing"
-}
-
-variable "cf_runner_permissions" {
-  type = list
-  default = [
-    "roles/cloudfunctions.serviceAgent",
-    "roles/pubsub.publisher"
-  ]
 }
 
 variable "df_worker_project_permissions" {
