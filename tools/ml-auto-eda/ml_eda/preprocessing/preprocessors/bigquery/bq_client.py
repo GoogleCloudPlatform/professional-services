@@ -18,6 +18,7 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
+from typing import Text
 import re
 import logging
 from google.cloud import bigquery
@@ -28,7 +29,7 @@ BQ_TABLE_NAME_REGEX = r'^([^.]+)\.([^.]+)\.([^.]+)$'
 class BqClient:
   """Create and maintain BigQuery connection, provide helper functions"""
 
-  def __init__(self, key_file: str = None):
+  def __init__(self, key_file: Text = None):
     """Create a BigQuery client.
 
     Args:
@@ -40,7 +41,7 @@ class BqClient:
       self._bq_client = bigquery.Client.from_service_account_json(
           key_file)
 
-  def run_query(self, query: str):
+  def run_query(self, query: Text):
     """Run a SQL query against the BigQuery engine.
 
     Args:
@@ -56,10 +57,10 @@ class BqClient:
     rows = query_job.result()
     return rows
 
-  # pylint: disable-msg=no-self-use
-  def _get_table_name_components(self, canonical_table_name):
+  @staticmethod
+  def _get_table_name_components(canonical_table_name):
     match = re.search(BQ_TABLE_NAME_REGEX, canonical_table_name)
-    return (match.group(1), match.group(2), match.group(3))
+    return match.group(1), match.group(2), match.group(3)
 
   def get_table_columns(self, table_name):
     """Read the schema of a BigQuery table."""

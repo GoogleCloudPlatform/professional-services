@@ -13,26 +13,14 @@
 # limitations under the License.
 # ==============================================================================
 
-"""Factory for preprocessor"""
+"""Constants related to BigQuery access."""
 
-from __future__ import absolute_import
-from __future__ import print_function
-
-from ml_eda.preprocessing.preprocessors.bigquery import bq_preprocessor
-
-# Preprocessing backends
-BIGQUERY = 'BIGQUERY'
-DATAFLOW = 'DATAFLOW'
-
-
-class PreprocessorFactory:
-  """Factory for preprocessor"""
-
-  @staticmethod
-  def new_preprocessor(config):
-    """Creat new preprocessor instance"""
-    if config.preprocessing_backend == 'BIGQUERY':
-      return bq_preprocessor.BqPreprocessor(config)
-
-    raise ValueError('Preprocessor type {} not supported yet.'.format(
-        config.preprocessing_backend))
+# BigQuery types
+STRING = 'STRING'
+INTEGER = 'INTEGER'
+FLOAT = 'FLOAT'
+BOOLEAN = 'BOOLEAN'
+TIMESTAMP = 'TIMESTAMP'
+RECORD = 'TIMESTAMP'
+NUMERICAL_TYPES = [INTEGER, FLOAT, TIMESTAMP]
+CATEGORICAL_TYPES = [STRING, BOOLEAN]
