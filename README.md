@@ -66,6 +66,7 @@ The tools folder contains ready-made utilities which can simpilfy Google Cloud P
 * [BigQuery Query Plan Exporter](tools/bigquery-query-plan-exporter) - Command line utility for exporting BigQuery query plans in a given date range.
 * [BigQuery Query Plan Visualizer](tools/bq-visualizer) - A web application which provides the ability to visualise the execution stages of BigQuery query plans to aid in the optimization of queries.
 * [BigQuery z/OS Mainframe Connector](tools/bigquery-zos-mainframe-connector) - A utility used to load COBOL MVS data sets into BigQuery and execute query and load jobs from the IBM z/OS Mainframe.
+* [Boolean Organization Policy Enforcer](tools/boolean-org-policy-enforcer) - A tool to find the projects that do not set a boolean organization policy to its expected state, subsequently, set the organization policy to its expected set.
 * [CloudConnect](tools/cloudconnect) - A package that automates the setup of dual VPN tunnels between AWS and GCP.
 * [Cloudera Parcel GCS Connector](tools/cloudera-parcel-gcsconnector) - This script helps you create a Cloudera parcel that includes Google Cloud Storage connector. The parcel can be deployed on a Cloudera managed cluster. This script helps you create a Cloudera parcel that includes Google Cloud Storage connector. The parcel can be deployed on a Cloudera managed cluster.
 * [Cloud AI Vision Utilities](tools/cloud-vision-utils) - This is an installable
@@ -90,6 +91,7 @@ The tools folder contains ready-made utilities which can simpilfy Google Cloud P
 * [Machine Learning Auto Exploratory Data Analysis and Feature Recommendation](tools/ml-auto-eda) - A tool to perform comprehensive auto EDA, based on which feature recommendations are made, and a summary report will be generated.
 * [Maven Archetype Dataflow](tools/maven-archetype-dataflow) - A maven archetype which bootstraps a Dataflow project with common plugins pre-configured to help maintain high code quality.
 * [Netblock Monitor](tools/netblock-monitor) - An Apps Script project that will automatically provide email notifications when changes are made to Google’s IP ranges.
+* [Permission Discrepancy Finder](tools/permission-discrepancy-finder) - A tool to find the principals with missing permissions on a resource within a project, subsequently, grants them the missing permissions.
 * [Webhook Ingestion Data Pipeline](tools/webhook-ingestion-pipeline) - A deployable app to accept and ingest unauthenticated webhook data to BigQuery.
 
 ## Contributing
