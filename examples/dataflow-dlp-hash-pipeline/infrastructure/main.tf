@@ -17,7 +17,6 @@ locals {
   df_bucket = var.dataflow_bucket == "" ? "${var.project}-dataflow" : var.dataflow_bucket
   df_member = "serviceAccount:${google_service_account.df_worker.email}"
   api_set = toset([
-    "cloudfunctions.googleapis.com",
     "iam.googleapis.com",
     "dlp.googleapis.com",
     "secretmanager.googleapis.com",
