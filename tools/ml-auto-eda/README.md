@@ -5,6 +5,7 @@ It is critical that ML practitioners to gain a deep understanding of:
 - the properties of the data. 
 - the quality of the data. 
 - the potential predictive power of the data.
+
 This process lays the groundwork for the subsequent feature selection and engineering steps, and it provides a solid 
 foundation for building good ML models. Exploratory Data Analysis (EDA), feature selection, and engineering are often 
 tied together and are important steps of the ML journey.
