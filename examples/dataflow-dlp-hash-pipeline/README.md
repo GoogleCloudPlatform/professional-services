@@ -13,14 +13,14 @@ be to store SSNs in a Dictionary InfoType in Cloud DLP, however that has the fol
 To avoid those limitations, we built a PoC Dataflow pipeline that will run for every new file
 in a specified GCS bucket and determine how many (if any) SSNs are found, triggering a Pubsub Topic. The known
 SSNs will be stored in Firestore, a highly scalable key value store, only after being hashed with a salt and
-key, which is stored in Secret Manager. This is what the architecuture will look like when we're done.
+key, which is stored in Secret Manager. This is what the architecture will look like when we're done.
 
 ![](./img/arch.png)
 
 ## Usage
 
-This repo offers end-to-end deployment of the hashpipeline solution using [HashiCorp Terraform](https://terraform.io)
-given a project id.
+This repo offers end-to-end deployment of the Hashpipeline solution using [HashiCorp Terraform](https://terraform.io)
+given a project and list of buckets to monitor.
 
 ### Prerequisites
 
@@ -34,7 +34,6 @@ This has only been tested on Mac OSX but will likely work on Linux as well.
 ### Step 1: Deploy the Infrastructure
 Note that the following APIs will be enabled on your project by Terraform:
 
-* `cloudfunctions.googleapis.com`
 * `iam.googleapis.com`
 * `dlp.googleapis.com`
 * `secretmanager.googleapis.com`
@@ -99,7 +98,7 @@ these notifications in your SIEM such as Splunk, etc.
 
 ### Step 1
 
-Follow Step 1 and 2 from above to setup the demo environment
+Follow Step 1 and 2 from above to set up the demo environment
 
 ### Step 2: Seed the Firestore with Fake SSNs
 
@@ -107,7 +106,7 @@ This script will do the following:
 
 * Create a list of valid and random Social Security Numbers
 * Store the plain text in `scripts/socials.txt`
-* Hash the numbers (normalized without dashes) using HMAC-SHA256 and the key from step 2
+* Hash the numbers (normalized without dashes) using HMAC-SHA256 and the key generated from `make create_key`
 * Store the hashed values in Firestore under the collection specified in the terraform variable: `firestore_collection`
 
 ```
@@ -139,7 +138,7 @@ $ make subscribe
 Successfully subscribed to <subscription>. Messages will print below...
 ```
 
-Now in a third termnial, run the following command to upload a file to the test bucket.
+Now in a third terminal, run the following command to upload a file to the test bucket.
 
 ```
 export BUCKET=<dataflow-test-bucket>
@@ -161,7 +160,7 @@ This number can be verified by looking in the file itself on the first line, whi
 for this example.
 
 
-### Step 7: Deploy the pipeline to a template, so our Cloud Function can run it
+### Step 7: Deploy the pipeline to a template
 
 ```
 make build
