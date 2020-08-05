@@ -32,6 +32,8 @@ ANOVA_TEMPLATE = """
             VAR_POP(CAST({numeric_column} AS FLOAT64)) AS {anova_variance_per_class}
         FROM
             `{table}`
+        WHERE
+            {where_condition}
         GROUP BY
             {categorical_column}
     )
@@ -45,7 +47,7 @@ CATEGORICAL_AGGREGATE_TEMPLATE = """
     FROM
         `{table}`
     WHERE
-        {not_null_string}
+        {where_condition} AND {not_null_string}
     GROUP BY
         {column_names}
 """
@@ -58,12 +60,12 @@ VALUE_COUNTS_TEMPLATE = """
     FROM
         `{table}`
     WHERE
-        {not_null_string}
+        {where_condition} AND {not_null_string}
     GROUP BY
         {column_name}
     ORDER BY
         frequency DESC
-    LIMIT {limit}
+    LIMIT {limit} 
 """
 
 # template to compute correlation of numerical attributes
@@ -72,6 +74,8 @@ PEARSON_CORRELATION_TEMPLATE = """
         {corr_query}
     FROM
         `{table}`
+    WHERE
+        {where_condition}
 """
 
 # template to compute descriptive analysis of numerical attributes
@@ -90,6 +94,8 @@ SELECT
     MAX({column_name}) AS `{max_header}`
 FROM
     `{table}`
+WHERE
+    {where_condition}
 """
 
 # template to compute descriptive analysis of a numerical attribute against
@@ -110,7 +116,7 @@ SELECT
 FROM
     `{table}`
 WHERE
-    {not_null_string}
+    {where_condition} AND {not_null_string}
 GROUP BY
     {categorical_column_name}
 """
@@ -124,6 +130,8 @@ SELECT
     COUNT(DISTINCT {column_name}) as `{cardinality_header}`
 FROM
     `{table}`
+WHERE
+    {where_condition}
 """
 
 # template to generate histogram for a numerical attribute
@@ -144,6 +152,8 @@ SELECT
     COUNT(*) as frequency
 FROM
     `{table}`, boundary
+WHERE
+    {where_condition}
 GROUP BY
     {column_name}_{postfix}
 ORDER BY
@@ -151,7 +161,7 @@ ORDER BY
 """
 
 HISTOGRAM_WHEN_TEMPLATE = """
-    WHEN {column_name} >= {lower_threshold} AND {column_name} < {upper_threshold}
+    WHEN {column_name} >= {lower_threshold} AND {column_name} < {upper_threshold} 
         THEN CONCAT('[', CAST({lower_threshold} AS String), ', ', CAST({upper_threshold} AS String), ')')
 """
 

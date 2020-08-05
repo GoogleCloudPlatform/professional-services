@@ -16,13 +16,13 @@ limitations under the License.
 
 syntax = "proto2";
 
-package ml_eda.metadata;
+package ml_eda.proto;
 
 message Attribute {
     // The id of the feature
     optional int64 id = 1;
     // The name of the feature
-    optional string name = 2;
+    required string name = 2;
     // Indicates the type of the feature
     enum Type {
         NUMERICAL = 0;
@@ -30,10 +30,12 @@ message Attribute {
         TEXTUAL = 2;
     }
     // The type of the feature
-    optional Type type = 3;
+    required Type type = 3;
+    // Whether the attribute can contain null
+    optional bool nullable = 4;
 }
 
-message Datasource {
+message DataSource {
     // The id of the datasource
     optional int64 id = 1;
     // Indicates the storage type used
@@ -42,12 +44,12 @@ message Datasource {
         BIGQUERY = 1;
     }
     // The type of the datasource
-    optional Type type = 2;
+    required Type type = 2;
     // The location of the datasource
-    optional string location = 3;
+    required string location = 3;
     // The target column
     optional Attribute target = 4;
-    // The features
+    // The features 
     repeated Attribute features = 5;
 }
 
@@ -87,31 +89,25 @@ message ScalarMetric {
     required float value = 3;
 }
 
-message TableMetricCell {
-    // One cell within a row in a table
-
-    // Row index
-    optional string row_index = 1;
-
-    // Column index
-    required string column_index = 2;
-
-    required float value = 3;
-}
-
-message TableMetricRow {
-    // One row in a table
-
-    // Row index
-    required string row_index = 1;
-
-    repeated TableMetricCell cells = 2;
-}
-
 message TableMetric {
+    message TableMetricCell {
+        // One cell within a row in a table
+        // Row index, optional since it can be derived
+        optional string row_index = 1;
+        // Column index
+        required string column_index = 2;
+        required float value = 3;
+    }
+    message TableMetricRow {
+        // One row in a table
+        // Row index
+        required string row_index = 1;
+        repeated TableMetricCell cells = 2;
+    }
+
     // The id of the metric
     optional int64 id = 1;
-    // Indicates the metrics that can be calculated
+    // Indicates the metrics that presented in table format
     enum Name {
         HISTOGRAM = 1;
         VALUE_COUNTS = 2;
@@ -119,10 +115,12 @@ message TableMetric {
         TABLE_DESCRIPTIVE = 4;
     }
     // The name of the metric
-    optional Name name = 2;
+    required Name name = 2;
 
+    // Header of the table
     repeated string column_indexes = 3;
 
+    // Rows of the table
     repeated TableMetricRow rows = 4;
 }
 
@@ -160,7 +158,7 @@ message AnalysisRun {
     // The timestamp of the analysis run.
     optional double timestamp_sec = 2;
     // The datasource on which the analysis has been performed.
-    optional Datasource datasource = 3;
+    optional DataSource datasource = 3;
     // The analyses done on the dataset
     repeated Analysis analyses = 4;
 }

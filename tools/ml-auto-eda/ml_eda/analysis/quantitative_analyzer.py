@@ -24,7 +24,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import chi2, f
 
-from ml_eda import constants
+from ml_eda.preprocessing.analysis_query import query_constants
 from ml_eda.analysis import utils
 
 
@@ -50,16 +50,16 @@ class QuantitativeAnalyzer:
     Returns:
         P-value, (float)
     """
-    anova_mean_overall = anova_df[constants.ANOVA_MEAN_PER_CLASS].mean()
+    anova_mean_overall = anova_df[query_constants.ANOVA_MEAN_PER_CLASS].mean()
 
     ssg = ((anova_df[
-        constants.ANOVA_MEAN_PER_CLASS] - anova_mean_overall) ** 2 *
-           anova_df[constants.ANOVA_COUNT_PER_CLASS]).sum()
-    sse = (anova_df[constants.ANOVA_VARIANCE_PER_CLASS] *
-           (anova_df[constants.ANOVA_COUNT_PER_CLASS] - 1)).sum()
+        query_constants.ANOVA_MEAN_PER_CLASS] - anova_mean_overall) ** 2 *
+           anova_df[query_constants.ANOVA_COUNT_PER_CLASS]).sum()
+    sse = (anova_df[query_constants.ANOVA_VARIANCE_PER_CLASS] *
+           (anova_df[query_constants.ANOVA_COUNT_PER_CLASS] - 1)).sum()
 
-    df_group = anova_df[constants.ANOVA_DF_GROUP][0]
-    df_error = anova_df[constants.ANOVA_DF_ERROR][0]
+    df_group = anova_df[query_constants.ANOVA_DF_GROUP][0]
+    df_error = anova_df[query_constants.ANOVA_DF_ERROR][0]
     inter_class_means_variation = ssg / df_group
 
     intra_class_variation = sse / df_error

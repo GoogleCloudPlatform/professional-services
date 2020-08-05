@@ -22,7 +22,7 @@ from typing import Dict
 
 import pandas as pd
 
-from ml_eda import constants
+from ml_eda.preprocessing.analysis_query import query_constants
 
 
 class DescriptiveAnalyzer:
@@ -40,7 +40,7 @@ class DescriptiveAnalyzer:
     Returns:
         dict
     """
-    return ds_df.set_index(constants.ND_COLUMN_NAME).T.to_dict()
+    return ds_df.set_index(query_constants.ND_COLUMN_NAME).T.to_dict()
 
   @staticmethod
   def categorical_descriptive(ds_df: pd.DataFrame) -> Dict:
@@ -54,4 +54,4 @@ class DescriptiveAnalyzer:
     Returns:
         dict
     """
-    return ds_df.set_index(constants.CD_COLUMN_NAME).T.to_dict()
+    return ds_df.set_index(query_constants.CD_COLUMN_NAME).T.to_dict()

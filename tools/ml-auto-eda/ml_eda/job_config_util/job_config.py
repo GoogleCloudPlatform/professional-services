@@ -22,13 +22,13 @@ from __future__ import print_function
 from typing import List
 
 from ml_eda.constants import c
-from ml_eda.metadata import run_metadata_pb2
+from ml_eda.proto import analysis_entity_pb2
 
 
-class MetadataDef:
+class JobConfig:
   """Uility class for holding the configuration of running analysis"""
   # pylint: disable-msg=too-many-instance-attributes
-  _datasource = run_metadata_pb2.Datasource()
+  _datasource = analysis_entity_pb2.DataSource()
 
   def __init__(self,
                datasource_type: str,
@@ -40,19 +40,24 @@ class MetadataDef:
                analysis_run_config):
     # pylint: disable-msg=too-many-arguments
     if datasource_type == c.datasources.BIGQUERY:
-      self._datasource.type = run_metadata_pb2.Datasource.BIGQUERY
+      self._datasource.type = analysis_entity_pb2.DataSource.BIGQUERY
     elif datasource_type == c.datasources.CSV:
-      self._datasource.type = run_metadata_pb2.Datasource.CSV
+      self._datasource.type = analysis_entity_pb2.DataSource.CSV
     self._datasource.location = datasource_location
     self._datasource.target.name = target_column
-    if target_column in numerical_attributes:
-      self._datasource.target.type = run_metadata_pb2.Attribute.NUMERICAL
-      self._ml_type = c.metadata.ml_type.REGRESSION
+
+    if target_column == c.schema.NULL:
+      self._ml_type = c.ml_type.NULL
+    elif target_column in numerical_attributes:
+      self._datasource.target.type = analysis_entity_pb2.Attribute.NUMERICAL
+      self._ml_type = c.ml_type.REGRESSION
     elif target_column in categorical_attributes:
-      self._datasource.target.type = run_metadata_pb2.Attribute.CATEGORICAL
-      self._ml_type = c.metadata.ml_type.CLASSIFICATION
+      self._datasource.target.type = analysis_entity_pb2.Attribute.CATEGORICAL
+      self._ml_type = c.ml_type.CLASSIFICATION
     else:
-      self._ml_type = c.metadata.ml_type.NULL
+      raise ValueError('The specified target column {} does not belong to'
+                       'Categorical or Numerical features in the '
+                       'job_config.ini'.format(target_column))
 
     self._numerical_attributes = self._create_numerical_attributes(
         numerical_attributes)
@@ -67,69 +72,69 @@ class MetadataDef:
 
     # Running configuration
     self._contingency_table_run = analysis_run_ops.getboolean(
-        c.metadata.analysis_run.CONTINGENCY_TABLE_RUN)
+        c.analysis_run.CONTINGENCY_TABLE_RUN)
     self._table_descriptive_run = analysis_run_ops.getboolean(
-        c.metadata.analysis_run.TABLE_DESCRIPTIVE_RUN)
+        c.analysis_run.TABLE_DESCRIPTIVE_RUN)
     self._pearson_corr_run = analysis_run_ops.getboolean(
-        c.metadata.analysis_run.PEARSON_CORRELATION_RUN)
+        c.analysis_run.PEARSON_CORRELATION_RUN)
     self._information_gain_run = analysis_run_ops.getboolean(
-        c.metadata.analysis_run.INFORMATION_GAIN_RUN)
+        c.analysis_run.INFORMATION_GAIN_RUN)
     self._chi_square_run = analysis_run_ops.getboolean(
-        c.metadata.analysis_run.CHI_SQUARE_RUN)
+        c.analysis_run.CHI_SQUARE_RUN)
     self._anova_run = analysis_run_ops.getboolean(
-        c.metadata.analysis_run.ANOVA_RUN)
+        c.analysis_run.ANOVA_RUN)
 
     # Analysis configuration
     self._histogram_bin = analysis_run_config.getint(
-        c.metadata.analysis_config.HISTOGRAM_BIN)
+        c.analysis_config.HISTOGRAM_BIN)
     self._value_counts_limit = analysis_run_config.getint(
-        c.metadata.analysis_config.VALUE_COUNTS_LIMIT)
+        c.analysis_config.VALUE_COUNTS_LIMIT)
     self._general_cardinality_limit = analysis_run_config.getint(
-        c.metadata.analysis_config.GENERAL_CARDINALITY_LIMIT)
+        c.analysis_config.GENERAL_CARDINALITY_LIMIT)
 
   @staticmethod
   def _create_attributes(attribute_names: List[str],
                          attribute_type: int
-                         ) -> List[run_metadata_pb2.Attribute]:
-    """Construct run_metadata_pb2.Attribute instance for attributes
+                         ) -> List[analysis_entity_pb2.Attribute]:
+    """Construct analysis_entity_pb2.Attribute instance for attributes
 
     Args:
         attribute_names: (List[string]), name list of the attribute
         attribute_type: (int), type of the attribute defined in the proto
 
     Returns:
-      List[run_metadata_pb2.Attribute]
+      List[analysis_entity_pb2.Attribute]
     """
     return [
-        run_metadata_pb2.Attribute(name=name, type=attribute_type)
+        analysis_entity_pb2.Attribute(name=name, type=attribute_type)
         for name in attribute_names
     ]
 
   def _create_numerical_attributes(self, attribute_names: List[str]
-                                   ) -> List[run_metadata_pb2.Attribute]:
-    """Consturct run_metadata_pb2.Attribute instance for numerical attributes
+                                   ) -> List[analysis_entity_pb2.Attribute]:
+    """Consturct analysis_entity_pb2.Attribute instance for numerical attributes
 
     Args:
         attribute_names: (List[string]), name list of the attributes
 
     Returns:
-      List[run_metadata_pb2.Attribute]
+      List[analysis_entity_pb2.Attribute]
     """
     return self._create_attributes(attribute_names,
-                                   run_metadata_pb2.Attribute.NUMERICAL)
+                                   analysis_entity_pb2.Attribute.NUMERICAL)
 
   def _create_categorical_attributes(self, attribute_names: List[str]
-                                     ) -> List[run_metadata_pb2.Attribute]:
-    """Consturct run_metadata_pb2.Attribute instance for categorical attributes
+                                     ) -> List[analysis_entity_pb2.Attribute]:
+    """Construct analysis_entity_pb2.Attribute instance for cat attributes.
 
     Args:
         attribute_names: (List[string]), name list of the attributes
 
     Returns:
-      List[run_metadata_pb2.Attribute]
+      List[analysis_entity_pb2.Attribute]
     """
     return self._create_attributes(attribute_names,
-                                   run_metadata_pb2.Attribute.CATEGORICAL)
+                                   analysis_entity_pb2.Attribute.CATEGORICAL)
 
   def update_low_card_categorical(self, features):
     """Update low cardinality attributes"""
