@@ -107,7 +107,7 @@ your GCP environment are ready:
     to execute the code.
 
     ```
-    gsutil cat gs://iam_recommender_at_scale/install.sh; | bash -
+    curl https://raw.githubusercontent.com/misabhishek/professional-services/master/tools/iam-recommender-at-scale/install.sh | bash -
     ```
 
 2.  Next, run the below code to retrieve all IAM Recommendations in your
