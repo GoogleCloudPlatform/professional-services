@@ -16,13 +16,11 @@
 Stackdriver Monitoring Client. Wraps the official MetricServiceClient for
 CLI use.
 """
-import json
 import logging
 import re
 import time
 
 from google.cloud.monitoring_v3 import (MetricServiceClient, enums, types)
-from google.protobuf.json_format import MessageToDict
 from google.api_core import exceptions
 
 from .utils import decorate, to_json

@@ -135,7 +135,7 @@ class ServiceMonitoringClient:
         """
         slo_config = ServiceMonitoringClient._maybe_load(slo_config)
         slo_id = self.build_slo_path(service_id, slo_id)
-        slo_json['name'] = slo_id
+        slo_config['name'] = slo_id
         return self.client.update_service_level_objective(slo_json)
 
     def list_slos(self, service_id):
@@ -201,7 +201,7 @@ class ServiceMonitoringClient:
         """
         if os.path.exists(config):
             with open(config) as f:
-                config = f.read()
+                config = json.load(f)
         else:
             config = json.loads(config)
         return config

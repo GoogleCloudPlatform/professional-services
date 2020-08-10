@@ -18,7 +18,6 @@ Stackdriver Accounts Client.
 import logging
 import os
 import pprint
-import sys
 import time
 
 from googleapiclient.discovery import build
@@ -185,9 +184,6 @@ class AccountClient:
         while not operation.get('done', False):
             LOGGER.debug(f'Polling operation {operation_name} ...')
             time.sleep(5)
-            operation = service.operations().get(name=operation_name).execute()
+            operation = self.service.operations().get(
+                name=operation_name).execute()
             pp.pprint(operation)
-
-
-if __name__ == '__main__':
-    main()

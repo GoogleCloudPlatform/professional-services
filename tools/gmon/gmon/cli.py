@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import argparse
-import os
 import pprint
 import sys
-from gmon.utils import setup_logging, lookup, DotMap
+from gmon.utils import setup_logging, DotMap
 from gmon.clients.monitoring import MetricsClient
 from gmon.clients.account import AccountClient
 from gmon.clients.service_monitoring import ServiceMonitoringClient
@@ -25,7 +24,6 @@ SAMPLE_METRIC_TYPE = "loadbalancing.googleapis.com/server/request_count"
 
 def parse_args():
     args = sys.argv[1:]
-    all_parsers = []
 
     #-------------#
     # Main parser #
@@ -45,8 +43,7 @@ def parse_args():
         'create', help='Create a Stackdriver Account')
     accounts_link = accounts_sub.add_parser(
         'link', help='Link a project to a Stackdriver Account')
-    accounts_list = accounts_sub.add_parser('list',
-                                            help='List Stackdriver Accounts')
+    accounts_sub.add_parser('list', help='List Stackdriver Accounts')
 
     # TODO: Uncomment this when `delete` and `projects.delete`
     # operations are available.
