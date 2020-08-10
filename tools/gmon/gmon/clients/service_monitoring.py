@@ -33,8 +33,8 @@ LOGGER = logging.getLogger(__name__)
               'list_services', 'delete_service', 'get_slo', 'create_slo',
               'update_slo', 'list_slos', 'delete_slo'
           ])
-class StackdriverServiceMonitoringClient:
-    """Cloud Service Monitoring Client.
+class ServiceMonitoringClient:
+    """Client for Cloud Service Monitoring.
 
     Args:
         project_id (str): Cloud host project id.
@@ -104,7 +104,7 @@ class StackdriverServiceMonitoringClient:
         Returns:
             dict: Service Management API response.
         """
-        slo_config = StackdriverServiceMonitoringClient._maybe_load(slo_config)
+        slo_config = ServiceMonitoringClient._maybe_load(slo_config)
         parent = self.build_service_path(service_id)
         return self.client.create_service_level_objective(
             parent, slo_config, service_level_objective_id=slo_id)
@@ -133,7 +133,7 @@ class StackdriverServiceMonitoringClient:
         Returns:
             dict: API response.
         """
-        slo_config = StackdriverServiceMonitoringClient._maybe_load(slo_config)
+        slo_config = ServiceMonitoringClient._maybe_load(slo_config)
         slo_id = self.build_slo_path(service_id, slo_id)
         slo_json['name'] = slo_id
         return self.client.update_service_level_objective(slo_json)
@@ -218,6 +218,3 @@ class StackdriverServiceMonitoringClient:
             dict: Response object serialized as JSON.
         """
         return json.loads(MessageToJson(response))
-
-
-SSM = StackdriverServiceMonitoringClient

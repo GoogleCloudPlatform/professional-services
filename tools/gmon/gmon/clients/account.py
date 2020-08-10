@@ -38,8 +38,8 @@ pp = pprint.PrettyPrinter(indent=2)
 LOGGER = logging.getLogger(__name__)
 
 
-class StackdriverAccountClient:
-    """Client for Stackdriver Accounts API.
+class AccountClient:
+    """Client for Cloud Operations Accounts API.
 
     Args:
         project_id (str): Stackdriver host project id.

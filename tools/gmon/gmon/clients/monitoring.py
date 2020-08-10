@@ -31,8 +31,8 @@ LOGGER = logging.getLogger(__name__)
 
 
 @decorate(to_json, methods=['get', 'create', 'list', 'delete', 'inspect'])
-class StackdriverMetricsClient:
-    """Stackdriver Metrics Client.
+class MetricsClient:
+    """Client for Cloud Monitoring Metrics.
 
     Provides a simpler interface than the original client.
 

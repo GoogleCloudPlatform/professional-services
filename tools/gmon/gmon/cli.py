@@ -16,9 +16,9 @@ import os
 import pprint
 import sys
 from gmon.utils import setup_logging, lookup, DotMap
-from gmon.clients.monitoring import StackdriverMetricsClient
-from gmon.clients.account import StackdriverAccountClient
-from gmon.clients.service_monitoring import StackdriverServiceMonitoringClient
+from gmon.clients.monitoring import MetricsClient
+from gmon.clients.account import AccountClient
+from gmon.clients.service_monitoring import ServiceMonitoringClient
 
 SAMPLE_METRIC_TYPE = "loadbalancing.googleapis.com/server/request_count"
 
@@ -276,7 +276,7 @@ def main():
     filters = parse_filters(filters)
 
     if parser == 'metrics':
-        client = StackdriverMetricsClient(args.project)
+        client = MetricsClient(args.project)
         method = getattr(client, command)
 
         if command in ['get', 'delete']:
@@ -300,10 +300,10 @@ def main():
 
     elif parser == 'accounts':
         if 'project' in args:
-            client = StackdriverAccountClient(project_id=args.project,
-                                              no_poll=args.no_poll)
+            client = AccountClient(project_id=args.project,
+                                   no_poll=args.no_poll)
         else:
-            client = StackdriverAccountClient()
+            client = AccountClient()
         method = getattr(client, command)
         if command in ['get', 'create', 'delete', 'list']:
             response = method()
@@ -311,7 +311,7 @@ def main():
             response = method(project_id=args.project_id)
 
     elif parser == 'services':
-        client = StackdriverServiceMonitoringClient(project_id=args.project)
+        client = ServiceMonitoringClient(project_id=args.project)
         if command in ['get', 'create', 'delete']:
             method = getattr(client, command + '_service')
             response = method(args.service_id)
@@ -321,7 +321,7 @@ def main():
         print_response(response, limit, fields, filters)
 
     elif parser == 'slos':
-        client = StackdriverServiceMonitoringClient(project_id=args.project)
+        client = ServiceMonitoringClient(project_id=args.project)
         if command in ['get', 'create', 'delete']:
             method = getattr(client, command + '_slo')
             response = method(args.service_id, args.slo_id)
