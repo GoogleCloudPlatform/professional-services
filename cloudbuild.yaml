@@ -3,11 +3,10 @@ steps:
   name: gcr.io/$PROJECT_ID/make
   args: [test]
   waitFor: ['-']
-# Commented due to Unit test failures (Check https://github.com/GoogleCloudPlatform/professional-services/issues/532)
-# - id: tools/hive-bigquery
-#   name: google/cloud-sdk
-#   args: [gcloud, builds, submit, tools/hive-bigquery/, --config=tools/hive-bigquery/cloudbuild.yaml]
-#   waitFor: ['-']
+- id: tools/hive-bigquery
+  name: google/cloud-sdk
+  args: [gcloud, builds, submit, tools/hive-bigquery/, --config=tools/hive-bigquery/cloudbuild.yaml]
+  waitFor: ['-']
 - id: examples/cloud-composer-examples
   name: google/cloud-sdk
   args: [gcloud, builds, submit, examples/cloud-composer-examples/,
