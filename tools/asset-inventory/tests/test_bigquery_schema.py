@@ -269,6 +269,23 @@ class TestBigQuerySchema(unittest.TestCase):
         self.assertEqual(sanitized['IPAddress'], 'other_value')
         self.assertEqual(sanitized['array'], [{'IPAddress': 'other_value'}])
 
+    def test_prune_max_properties(self):
+        doc = {'prop-' + str(i): 'value' for i in range(0, 10000)}
+        sanitized = bigquery_schema.sanitize_property_value(doc)
+        self.assertEqual(len(sanitized), 10000)
+
+        # prune the 10,000'th
+        doc['prop-10001'] = 'value'
+        sanitized = bigquery_schema.sanitize_property_value(doc)
+        self.assertEqual(len(sanitized), 10000)
+
+        # prune last added property
+        doc['z'] = 'value'
+        sanitized = bigquery_schema.sanitize_property_value(doc)
+        self.assertEqual(len(sanitized), 10000)
+        self.assertNotIn('z', sanitized)
+
+
 
 if __name__ == '__main__':
     unittest.main()
