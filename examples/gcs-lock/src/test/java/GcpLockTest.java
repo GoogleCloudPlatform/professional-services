@@ -14,100 +14,92 @@
  * limitations under the License.
  */
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
-import java.util.concurrent.TimeUnit;
-
 public class GcpLockTest {
 
-    private static ByteArrayOutputStream bout;
-    private static String LOCK_NAME = "lock";
-    private static long timeout = 5;
-    private static TimeUnit unit = TimeUnit.SECONDS;
-    private static String bucketName = "my-test-bucket-nnene";
+  private static ByteArrayOutputStream bout;
+  private static String LOCK_NAME = "lock";
+  private static long timeout = 5;
+  private static TimeUnit unit = TimeUnit.SECONDS;
+  private static String bucketName = "my-test-bucket-nnene";
 
-    @Before
-    public void setUp() {
-        bout = new ByteArrayOutputStream();
-        PrintStream out = new PrintStream(bout);
-        System.setOut(out);
-    }
+  @Before
+  public void setUp() {
+    bout = new ByteArrayOutputStream();
+    PrintStream out = new PrintStream(bout);
+    System.setOut(out);
+  }
 
-    @After
-    public void tearDown() {
-        System.setOut(null);
-    }
+  @After
+  public void tearDown() {
+    System.setOut(null);
+  }
 
-    @Test
-    public void testLock() {
-        /**
-         * Tests lock integrity. The method acquires one lock and then initiates another
-         * request for a lock without unlocking the first. The second request should time out.
-         */
+  @Test
+  public void testLock() {
+    /**
+     * Tests lock integrity. The method acquires one lock and then initiates another request for a
+     * lock without unlocking the first. The second request should time out.
+     */
+    GcpLockFactory lockFactory = new GcpLockFactory(bucketName);
 
-        GcpLockFactory lockFactory = new GcpLockFactory(bucketName);
-
-        Assert.assertThrows(RuntimeException.class, () -> {
-            try (GcpLock gcpLock1 = lockFactory.createLock(LOCK_NAME, timeout, unit)) {
-                TimeUnit.SECONDS.sleep(3); // Do work
-                // Following requests for locking should be time out since resource is still locked
-                try (GcpLock gcpLock2 = lockFactory.createLock(LOCK_NAME, timeout, unit)) {
-                    TimeUnit.SECONDS.sleep(3); // Do work
-                }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+    Assert.assertThrows(
+        RuntimeException.class,
+        () -> {
+          try (GcpLock gcpLock1 = lockFactory.createLock(LOCK_NAME, timeout, unit)) {
+            TimeUnit.SECONDS.sleep(3); // Do work
+            // Following requests for locking should be time out since resource is still locked
+            try (GcpLock gcpLock2 = lockFactory.createLock(LOCK_NAME, timeout, unit)) {
+              TimeUnit.SECONDS.sleep(3); // Do work
             }
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+          }
         });
+  }
 
+  @Test
+  public void testUnlock() {
+    /** Tests unlock/AutoClose. The method acquires one lock and releases it. */
+    GcpLockFactory lockFactory = new GcpLockFactory(bucketName);
+
+    try (GcpLock gcpLock1 = lockFactory.createLock(LOCK_NAME, timeout, unit)) {
+      TimeUnit.SECONDS.sleep(2); // Do work
+    } catch (InterruptedException e) {
+      e.printStackTrace();
     }
 
-    @Test
-    public void testUnlock() {
-        /**
-         * Tests unlock/AutoClose. The method acquires one lock and releases it.
-         */
+    Assert.assertEquals("Lock acquired.\n" + "Job finished. Unlocked.\n", bout.toString());
+  }
 
-        GcpLockFactory lockFactory = new GcpLockFactory(bucketName);
+  @Test
+  public void testTwoLocks() {
+    /** Tests creating two consecutive locks. */
+    GcpLockFactory lockFactory = new GcpLockFactory(bucketName);
 
-        try (GcpLock gcpLock1 = lockFactory.createLock(LOCK_NAME, timeout, unit)) {
-            TimeUnit.SECONDS.sleep(2); // Do work
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        Assert.assertEquals("Lock acquired.\n" +
-                "Job finished. Unlocked.\n", bout.toString());
+    try (GcpLock gcpLock1 = lockFactory.createLock(LOCK_NAME, timeout, unit)) {
+      TimeUnit.SECONDS.sleep(2); // Do work
+    } catch (InterruptedException e) {
+      e.printStackTrace();
     }
 
-    @Test
-    public void testTwoLocks() {
-        /**
-         * Tests creating two consecutive locks.
-         */
-
-        GcpLockFactory lockFactory = new GcpLockFactory(bucketName);
-
-        try (GcpLock gcpLock1 = lockFactory.createLock(LOCK_NAME, timeout, unit)) {
-            TimeUnit.SECONDS.sleep(2); // Do work
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        try (GcpLock gcpLock1 = lockFactory.createLock(LOCK_NAME, timeout, unit)) {
-            TimeUnit.SECONDS.sleep(2); // Do work
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        Assert.assertEquals("Lock acquired.\n" +
-                "Job finished. Unlocked.\n" +
-                "Lock acquired.\n" +
-                "Job finished. Unlocked.\n", bout.toString());
+    try (GcpLock gcpLock1 = lockFactory.createLock(LOCK_NAME, timeout, unit)) {
+      TimeUnit.SECONDS.sleep(2); // Do work
+    } catch (InterruptedException e) {
+      e.printStackTrace();
     }
-
-
+    Assert.assertEquals(
+        "Lock acquired.\n"
+            + "Job finished. Unlocked.\n"
+            + "Lock acquired.\n"
+            + "Job finished. Unlocked.\n",
+        bout.toString());
+  }
 }
