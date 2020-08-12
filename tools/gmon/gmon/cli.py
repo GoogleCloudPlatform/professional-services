@@ -28,27 +28,28 @@ def parse_args():
     #-------------#
     # Main parser #
     #-------------#
-    parser = argparse.ArgumentParser(prog='gmon', description='Stackdriver')
+    parser = argparse.ArgumentParser(prog='gmon',
+                                     description='Cloud Operations CLI')
     subparsers = parser.add_subparsers(title='Endpoints', dest='parser')
 
     #-----------------#
     # Accounts parser #
     #-----------------#
-    accounts = subparsers.add_parser('accounts',
-                                     help='Stackdriver Account operations')
+    accounts = subparsers.add_parser(
+        'accounts', help='Cloud Operations Account operations')
     accounts_sub = accounts.add_subparsers(dest='operation')
     accounts_get = accounts_sub.add_parser(
-        'get', help='Get a Stackdriver Account details')
+        'get', help='Get a Cloud Operations Account details')
     accounts_create = accounts_sub.add_parser(
-        'create', help='Create a Stackdriver Account')
+        'create', help='Create a Cloud Operations Account')
     accounts_link = accounts_sub.add_parser(
-        'link', help='Link a project to a Stackdriver Account')
-    accounts_sub.add_parser('list', help='List Stackdriver Accounts')
+        'link', help='Link a project to a Cloud Operations Account')
+    accounts_sub.add_parser('list', help='List Cloud Operations Accounts')
 
     # TODO: Uncomment this when `delete` and `projects.delete`
     # operations are available.
     # accounts_delete = accounts_sub.add_parser(
-    #     'delete', help='Delete a Stackdriver Account')
+    #     'delete', help='Delete a Cloud Operations Account')
     # accounts_unlink = accounts_sub.add_parser(
     # 'unlink', help='Unlink a project from a SD Account')
     # accounts_unlink.add_argument('project', help='Project id to unlink')
@@ -57,7 +58,7 @@ def parse_args():
     for p in [accounts_get, accounts_create, accounts_link]:
         p.add_argument('--project',
                        '-p',
-                       help='Stackdriver host project id.',
+                       help='Cloud Monitoring host project id.',
                        required=True)
         p.add_argument('--no-poll',
                        help='Do not poll operations to completion',
@@ -67,25 +68,21 @@ def parse_args():
     #----------------#
     # Metrics parser #
     #----------------#
-    metrics = subparsers.add_parser(
-        'metrics', help='Cloud Monitoring Monitoring metrics operations')
+    metrics = subparsers.add_parser('metrics',
+                                    help='Cloud Monitoring metrics operations')
     metrics_sub = metrics.add_subparsers(dest='operation')
-    metrics_list = metrics_sub.add_parser(
-        'list', help='List Cloud Monitoring Monitoring metrics')
+    metrics_list = metrics_sub.add_parser('list',
+                                          help='List Cloud Monitoring metrics')
     metrics_get = metrics_sub.add_parser(
-        'get', help='Get Cloud Monitoring Monitoring metric descriptor')
+        'get', help='Get Cloud Monitoring metric descriptor')
     metrics_inspect = metrics_sub.add_parser(
-        'inspect',
-        help='Inspect Cloud Monitoring Monitoring metrics (last timeseries)')
+        'inspect', help='Inspect Cloud Monitoring metrics (last timeseries)')
     metrics_create = metrics_sub.add_parser(
-        'create',
-        help='Create a Cloud Monitoring Monitoring metric descriptor')
+        'create', help='Create a Cloud Monitoring metric descriptor')
     metrics_delete = metrics_sub.add_parser(
-        'delete',
-        help='Delete a Cloud Monitoring Monitoring metric descriptor')
+        'delete', help='Delete a Cloud Monitoring metric descriptor')
     metrics_delete_unused = metrics_sub.add_parser(
-        'delete_unused',
-        help='Delete unused Cloud Monitoring Monitoring metrics')
+        'delete_unused', help='Delete unused Cloud Monitoring metrics')
 
     metrics_create.add_argument('--description',
                                 help='Metric description',
@@ -345,7 +342,7 @@ def parse_filters(filters=[]):
 
 
 def filter_response(response, filters={}):
-    """Filter response from Stackdriver Monitoring APIs.
+    """Filter response from Cloud Monitoring APIs.
 
     Args:
         response (dict): JSON response.
@@ -366,7 +363,7 @@ def filter_response(response, filters={}):
 
 
 def print_response(response, limit, fields, filters={}):
-    """Print response from Stackdriver Monitoring APIs.
+    """Print response from Cloud Monitoring APIs.
 
     Args:
         limit (int): Number of records to print.

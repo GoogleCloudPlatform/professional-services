@@ -13,7 +13,7 @@
 # limitations under the License.
 """
 `service_monitoring.py`
-Stackdriver Service Monitoring exporter class.
+Cloud Service Monitoring exporter class.
 """
 import json
 import logging
@@ -46,7 +46,7 @@ class ServiceMonitoringClient:
         self.workspace = f'workspaces/{project_id}'
 
     def create_service(self, service_id, service_config):
-        """Create Service object in Stackdriver Service Monitoring API.
+        """Create Service object in Cloud Service Monitoring API.
 
         Args:
             service_id (str): Service id.

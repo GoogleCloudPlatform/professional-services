@@ -13,7 +13,7 @@
 # limitations under the License.
 """
 `monitoring.py`
-Stackdriver Monitoring Client. Wraps the official MetricServiceClient for
+Cloud Monitoring Metrics Client. Wraps the official MetricServiceClient for
 CLI use.
 """
 import logging
@@ -35,7 +35,7 @@ class MetricsClient:
     Provides a simpler interface than the original client.
 
     Args:
-        project_id (str): Stackdriver host project id (workspace) to query
+        project_id (str): Cloud Monitoring host project id (workspace) to query
             metrics from.
     """
     def __init__(self, project_id):

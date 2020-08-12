@@ -13,7 +13,7 @@
 # limitations under the License.
 """
 `account.py`
-Stackdriver Accounts Client.
+Cloud Operations Accounts Client.
 """
 import logging
 import os
@@ -41,7 +41,7 @@ class AccountClient:
     """Client for Cloud Operations Accounts API.
 
     Args:
-        project_id (str): Stackdriver host project id.
+        project_id (str): Cloud Monitoring host project id (workspace).
         no_poll (bool): No poll for response is set to True.
     """
     def __init__(self, project_id=None, no_poll=True):
@@ -51,15 +51,15 @@ class AccountClient:
         self.no_poll = no_poll
 
     def get(self, include_projects=True):
-        """Get a Stackdriver Account.
+        """Get a Cloud Operations Account.
 
         Args:
             include_projects (bool): Include monitored projects.
 
         Returns:
-            obj: Stackdriver Account.
+            obj: Cloud Operations Account.
         """
-        LOGGER.info(f'Getting Stackdriver Account "{self.account_name}"')
+        LOGGER.info(f'Getting Cloud Operations Account "{self.account_name}"')
         results = self.service.accounts().get(
             name=self.account_name,
             includeProjects=include_projects).execute()
@@ -67,14 +67,14 @@ class AccountClient:
         return results
 
     def list(self):
-        """List all Stackdriver accounts."""
+        """List all Cloud Operations accounts."""
         results = self.service.accounts().list().execute()
         pp.pprint(results)
         return results
 
     def create(self):
-        """Create Stackdriver workspace."""
-        LOGGER.info(f'Creating Stackdriver Account "{self.account_name}"')
+        """Create Cloud Operations workspace."""
+        LOGGER.info(f'Creating Cloud Operations Account "{self.account_name}"')
         body = {'name': self.account_name}
         operation = self.service.accounts().create(body=body).execute()
         pp.pprint(operation)
@@ -84,8 +84,8 @@ class AccountClient:
 
     # TODO: Uncomment this when `delete` operation is available.
     # def delete(self):
-    #     """Delete Stackdriver workspace."""
-    #     LOGGER.info(f'Deleting Stackdriver Account "{self.account_name}"')
+    #     """Delete Cloud Operations workspace."""
+    #     LOGGER.info(f'Deleting Cloud Operations Account "{self.account_name}"')
     #     data = self._get_monitored_project(project_id)
     #     operation = service.accounts().projects().delete(
     #         parent=self.account_name, body=data).execute()
@@ -95,7 +95,7 @@ class AccountClient:
     #     return operation
 
     def link(self, project_id):
-        """Link a project to the Stackdriver Account.
+        """Link a project to the Cloud Operations Account.
 
         Args:
             project_id (str): Project id to link.
@@ -113,7 +113,7 @@ class AccountClient:
 
     # TODO: Uncomment this when `projects.delete` operation is available.
     # def unlink(self, project_id):
-    #     """Unlink a project from the Stackdriver Account.
+    #     """Unlink a project from the Cloud Operations Account.
     #
     #     Args:
     #         project_id (str): Project id to unlink.
@@ -130,12 +130,12 @@ class AccountClient:
     #     return operation
 
     def _build_service(self):
-        """Build Stackdriver Account service resource.
+        """Build Cloud Operations Account service resource.
 
         Returns:
             obj: Service object.
         """
-        LOGGER.debug('Authenticating to Stackdriver Accounts API ...')
+        LOGGER.debug('Authenticating to Cloud Operations Accounts API ...')
         creds_store = '/tmp/creds_store'
         if not API_OAUTH2_CREDENTIALS:
             raise ValueError(
