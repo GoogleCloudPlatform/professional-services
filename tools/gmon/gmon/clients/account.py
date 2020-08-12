@@ -42,6 +42,7 @@ class AccountClient:
 
     Args:
         project_id (str): Stackdriver host project id.
+        no_poll (bool): No poll for response is set to True.
     """
     def __init__(self, project_id=None, no_poll=True):
         self.service = self._build_service()

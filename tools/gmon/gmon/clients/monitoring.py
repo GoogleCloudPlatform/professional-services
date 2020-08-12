@@ -23,12 +23,12 @@ import time
 from google.cloud.monitoring_v3 import (MetricServiceClient, enums, types)
 from google.api_core import exceptions
 
-from .utils import decorate, to_json
+from .utils import decorate_with, to_json
 
 LOGGER = logging.getLogger(__name__)
 
 
-@decorate(to_json, methods=['get', 'create', 'list', 'delete', 'inspect'])
+@decorate_with(to_json, methods=['get', 'create', 'list', 'delete', 'inspect'])
 class MetricsClient:
     """Client for Cloud Monitoring Metrics.
 

@@ -22,17 +22,17 @@ import os
 from google.cloud.monitoring_v3 import ServiceMonitoringServiceClient
 from google.protobuf.json_format import MessageToJson
 
-from .utils import decorate, to_json
+from .utils import decorate_with, to_json
 
 LOGGER = logging.getLogger(__name__)
 
 
-@decorate(to_json,
-          methods=[
-              'get_service', 'create_service', 'update_service',
-              'list_services', 'delete_service', 'get_slo', 'create_slo',
-              'update_slo', 'list_slos', 'delete_slo'
-          ])
+@decorate_with(to_json,
+               methods=[
+                   'get_service', 'create_service', 'update_service',
+                   'list_services', 'delete_service', 'get_slo', 'create_slo',
+                   'update_slo', 'list_slos', 'delete_slo'
+               ])
 class ServiceMonitoringClient:
     """Client for Cloud Service Monitoring.
 

@@ -372,6 +372,7 @@ def print_response(response, limit, fields, filters={}):
         limit (int): Number of records to print.
         fields (list): List of fields to print. If only one field is selected,
             return 'flat' response.
+        filters (dict): Filters to filter the response on.
     """
     # Iterate through response and send results to user
     if response is None:

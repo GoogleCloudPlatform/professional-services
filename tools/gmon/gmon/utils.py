@@ -38,11 +38,21 @@ def setup_logging():
 
 
 def lookup(self, path):
-    dotted_path = path.split(".")
-    current = self
-    for piece in dotted_path:
-        current = getattr(current, piece)
-    return current
+    """Nested lookup of a dotted path.
+
+    Args:
+        path (str): A dotted path like 'a.b.c.d'.
+
+    Returns:
+        obj: The nested dotmap attribute.
+
+    Example:
+        >>> d = {'a': 'b': {'c': 1, 'd': 2}}
+        >>> d = DotMap(d)
+        >>> d.a.b.c
+        1
+    """
+    return eval(f'self.{path}')
 
 
 DotMap.lookup = lookup
