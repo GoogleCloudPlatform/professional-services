@@ -1,0 +1,3 @@
+[submodule "examples/dataflow-python-examples/streaming-examples/nlp-sentiment-pipeline"]
+	path = examples/dataflow-python-examples/streaming-examples/nlp-sentiment-pipeline
+	url = https://github.com/alouie510/nlp-sentiment-pipeline.git
