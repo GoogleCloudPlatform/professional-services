@@ -21,7 +21,7 @@ from typing import Set
 import functools
 
 
-def decorate_with(decorator, methods=[]):
+def decorate_with(decorator, methods: Set[str]):
     def inner(cls):
         for attr in cls.__dict__:  # there's propably a better way to do this
             attribute = getattr(cls, attr)

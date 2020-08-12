@@ -28,7 +28,7 @@ from .utils import decorate_with, to_json
 LOGGER = logging.getLogger(__name__)
 
 
-@decorate_with(to_json, methods=['get', 'create', 'list', 'delete', 'inspect'])
+@decorate_with(to_json, methods={'get', 'create', 'list', 'delete', 'inspect'})
 class MetricsClient:
     """Client for Cloud Monitoring Metrics.
 

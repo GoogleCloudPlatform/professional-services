@@ -28,11 +28,11 @@ LOGGER = logging.getLogger(__name__)
 
 
 @decorate_with(to_json,
-               methods=[
+               methods={
                    'get_service', 'create_service', 'update_service',
                    'list_services', 'delete_service', 'get_slo', 'create_slo',
                    'update_slo', 'list_slos', 'delete_slo'
-               ])
+               })
 class ServiceMonitoringClient:
     """Client for Cloud Service Monitoring.
 
