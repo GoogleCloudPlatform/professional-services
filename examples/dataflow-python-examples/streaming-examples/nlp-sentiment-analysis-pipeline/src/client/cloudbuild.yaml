@@ -1,0 +1,9 @@
+steps:
+###########################################################
+# Step 0: Create a Docker image with Python installed
+###########################################################
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+    - 'build'
+    - '--tag=gcr.io/$PROJECT_ID/dataflow-streaming-sentiment-pipeline'
+    - '.'

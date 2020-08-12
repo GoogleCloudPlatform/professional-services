@@ -1,0 +1,143 @@
+{
+  "entities": {
+    "user_mentions": [
+      {
+        "id": 111111111111111111,
+        "id_str": "111111111111111111",
+        "name": "John Smith",
+        "screen_name": "johnsmith10",
+        "indices": [
+          0,
+          12
+        ]
+      },
+      {
+        "id": 2222222222222222222,
+        "id_str": "2222222222222222222",
+        "name": "Sally Doe",
+        "screen_name": "sallydoe20",
+        "indices": [
+          13,
+          24
+        ]
+      }
+    ],
+    "urls": [
+      {
+        "expanded_url": "https://twitter.com/i/web/status/0000000000000000000",
+        "url": "https://t.co/0000000000",
+        "display_url": "twitter.com/i/web/status/0…",
+        "indices": [
+          117,
+          140
+        ]
+      }
+    ],
+    "hashtags": [],
+    "symbols": []
+  },
+  "in_reply_to_status_id": 1234567890987654321,
+  "created_at": "Sun Jun 14 17:07:44 +0000 2020",
+  "contributors": null,
+  "favorite_count": 0,
+  "geo": null,
+  "id_str": "6323561233678322213",
+  "is_quote_status": false,
+  "id": 6323561233678322213,
+  "lang": "en",
+  "retweeted": false,
+  "in_reply_to_user_id_str": "111111111111111111",
+  "extended_tweet": {
+    "full_text": "@johnsmith10 @sallydoe20 This is an example tweet. Susan mentioned her friends, John and Sally. This tweet exceeds the one-hundred and forty character limit.",
+    "display_text_range": [
+      25,
+      157
+    ],
+    "entities": {
+      "user_mentions": [
+        {
+          "id": 111111111111111111,
+          "id_str": "111111111111111111",
+          "name": "John Smith",
+          "screen_name": "johnsmith10",
+          "indices": [
+            0,
+            12
+          ]
+        },
+        {
+          "id": 2222222222222222222,
+          "id_str": "2222222222222222222",
+          "name": "Sally Doe",
+          "screen_name": "sallydoe20",
+          "indices": [
+            13,
+            24
+          ]
+        }
+      ],
+      "urls": [],
+      "hashtags": [],
+      "symbols": []
+    }
+  },
+  "favorited": false,
+  "reply_count": 0,
+  "filter_level": "low",
+  "truncated": true,
+  "user": {
+    "default_profile_image": false,
+    "notifications": null,
+    "time_zone": null,
+    "listed_count": 0,
+    "profile_background_color": "F5F8FA",
+    "name": "Susan Davis",
+    "profile_use_background_image": true,
+    "profile_background_tile": false,
+    "id_str": "3333333333333333333",
+    "url": null,
+    "id": 3333333333333333333,
+    "screen_name": "susandavis30",
+    "description": null,
+    "location": null,
+    "profile_image_url_https": "https://pbs.twimg.com/profile_images/0000000000000000000/aaaaa-aa_normal.jpg",
+    "utc_offset": null,
+    "contributors_enabled": false,
+    "default_profile": true,
+    "profile_image_url": "http://pbs.twimg.com/profile_images/0000000000000000000/aaaaa-aa_normal.jpg",
+    "created_at": "Sun Dec 01 11:25:24 +0000 2019",
+    "friends_count": 15,
+    "protected": false,
+    "profile_sidebar_fill_color": "DDEEF6",
+    "is_translator": false,
+    "translator_type": "none",
+    "profile_banner_url": "https://pbs.twimg.com/profile_banners/0000000000000000000/0000000000",
+    "profile_text_color": "333333",
+    "followers_count": 10,
+    "following": null,
+    "follow_request_sent": null,
+    "geo_enabled": false,
+    "verified": false,
+    "profile_sidebar_border_color": "C0DEED",
+    "statuses_count": 100,
+    "favourites_count": 200,
+    "lang": null,
+    "profile_background_image_url_https": "",
+    "profile_background_image_url": "",
+    "profile_link_color": "1DA1F2"
+  },
+  "place": null,
+  "in_reply_to_user_id": 111111111111111111,
+  "retweet_count": 0,
+  "quote_count": 0,
+  "timestamp_ms": "1592154464536",
+  "display_text_range": [
+    25,
+    140
+  ],
+  "in_reply_to_screen_name": "johnsmith10",
+  "in_reply_to_status_id_str": "111111111111111111",
+  "coordinates": null,
+  "source": "<a href=\"http://twitter.com/download/android\" rel=\"nofollow\">Twitter for Android</a>",
+  "text": "@johnsmith10 @sallydoe20 This is an example tweet. Susan mentioned her friends, John and Sally. This tweet exceeds … https://t.co/0000000000"
+}
