@@ -17,6 +17,7 @@ __pycache__/
 *$py.class
 dist/
 lib/
+!tools/sts-job-manager/lib
 *.egg-info/
 .cache
 pytestdebug.log
@@ -36,6 +37,7 @@ node_modules/
 .coverage
 htmlcov/
 *.iml
+venv
 
 # Terraform
 # See: https://github.com/github/gitignore/blob/master/Terraform.gitignore
@@ -48,4 +50,3 @@ override.tf.json
 *_override.tf.json
 .terraformrc
 terraform.rc
-
