@@ -32,6 +32,7 @@ client_secrets.json
 .python-version
 .idea
 node_modules/
+.vscode
 *.code-workspace
 .envrc
 .coverage
