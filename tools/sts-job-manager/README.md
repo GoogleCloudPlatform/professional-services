@@ -30,7 +30,7 @@ Ensure the [Storage Transfer API](https://console.developers.google.com/apis/api
 
 Ensure the Storage Transfer Service service account has the [required permissions](https://cloud.google.com/storage-transfer/docs/configure-access).
 
-This tool requires the an account with the following permissions:
+This tool requires an account with the following permissions:
 
 - `bigquery.datasets.create`
 - `bigquery.tables.create`
@@ -83,9 +83,7 @@ This toolkit can be ran via Docker container or directly via Python 3.7+.
 
 #### Docker
 
-A Dockerfile is be included in the source code for container use. This file also includes the [Google Cloud Logging Driver for Docker](https://cloud.google.com/community/tutorials/docker-gcplogs-driver) for uploading logs to [Stackdriver Logging](https://cloud.google.com/logging/).
-
-Additionally, alerts can be generated from these custom metrics.
+A Dockerfile is be included in the source code for container use.
 
 #### CLI
 
