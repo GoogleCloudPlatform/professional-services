@@ -6,7 +6,7 @@ Transferring large amounts of data, in the order of petabytes, between buckets c
 
 [`sts_job_manager.py`](./sts_job_manager.py)
 
-- The main tool. This tool creates STS Jobs and records each job's state.
+- The main tool. This tool creates [Storage Transfer Service](https://cloud.google.com/storage-transfer-service) Jobs and records each job's state.
 
 [`pause_all_jobs.py`](./pause_all_jobs.py)
 
