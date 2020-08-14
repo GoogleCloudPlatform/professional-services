@@ -28,9 +28,9 @@ Transferring large amounts of data, in the order of petabytes, between buckets c
 
 Ensure the [Storage Transfer API](https://console.developers.google.com/apis/api/storagetransfer.googleapis.com/overview) is enabled.
 
-Ensure the Storage Transfer Service service account has the [required permissions](https://cloud.google.com/storage-transfer/docs/configure-access).
+Ensure the project's default Storage Transfer Service service account has the [required permissions](https://cloud.google.com/storage-transfer/docs/configure-access).
 
-This tool requires an account with the following permissions:
+This tool requires an account ([user](https://cloud.google.com/iam/docs/overview#google_account) or [service account](https://cloud.google.com/iam/docs/service-accounts)) with the following permissions:
 
 - `bigquery.datasets.create`
 - `bigquery.tables.create`
