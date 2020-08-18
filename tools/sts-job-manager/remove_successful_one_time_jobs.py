@@ -18,10 +18,13 @@ A tool for removing successful one-time jobs.
 """
 
 import json
+import logging
 import time
 
 from constants.status import STATUS, sts_operation_status_to_table_status
 from lib.services import Services
+
+logger = logging.getLogger(__name__)
 
 
 def determine_if_all_operations_were_successful(job_name: str,
@@ -62,7 +65,7 @@ def delete_all_successful_one_time_jobs(services: Services):
     """
     Removes all successful one-time jobs.
     """
-    print('Removing all successful jobs...')
+    logger.info('Removing all successful jobs...')
 
     job_filter = json.dumps({"project_id": services.bigquery.project})
 
@@ -84,15 +87,15 @@ def delete_all_successful_one_time_jobs(services: Services):
             for key in ['year', 'month', 'day']:
                 if schedule['scheduleStartDate'][key] != \
                         schedule['scheduleEndDate'][key]:
-                    print('Skipping non one-time job `{}`'.format(name))
+                    logger.info(f'Skipping non one-time job `{name}`')
                     continue
 
             if not determine_if_all_operations_were_successful(name, services):
-                print(
+                logger.info(
                     f'Skipping job with non-complete or failed ops: `{name}`')
                 continue
 
-            print('Removing `{}`...'.format(name))
+            logger.info(f'Removing `{name}`...')
 
             operation_request_body = {
                 'projectId': services.bigquery.project,
@@ -105,7 +108,7 @@ def delete_all_successful_one_time_jobs(services: Services):
                 jobName=name, body=operation_request_body)
             operation_request.execute()
 
-            print(f'...removed `{name}`.')
+            logger.info(f'...removed `{name}`.')
 
             count += 1
 
@@ -115,14 +118,14 @@ def delete_all_successful_one_time_jobs(services: Services):
             # Taking the time between each call into account,
             # we can perform an exact count-based delay
             if count % 1000 == 0:
-                print('Sleeping a bit to avoid quota limit...')
+                logger.debug('Sleeping a bit to avoid quota limit...')
                 time.sleep(100)
-                print('...waking up.')
+                logger.debug('...waking up.')
 
         request = services.sts.transferJobs().list_next(
             previous_request=request, previous_response=response)
 
-    print('...removed all successful jobs. Count: {}'.format(count))
+    logger.info(f'...removed all successful jobs. Count: {count}')
 
 
 def main():

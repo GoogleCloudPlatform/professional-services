@@ -19,17 +19,20 @@ This can be used as an emergency stop.
 """
 
 import json
+import logging
 
 from constants.status import STATUS, sts_operation_status_to_table_status
 from lib.options import STSJobManagerOptions
 from lib.services import Services
+
+logger = logging.getLogger(__name__)
 
 
 def pause_all_running_jobs(services: Services):
     """
     Pauses all running transfer operations.
     """
-    print('Pausing all running jobs...')
+    logger.info('Pausing all running jobs...')
 
     job_filter = json.dumps({"project_id": services.bigquery.project})
 
@@ -51,20 +54,20 @@ def pause_all_running_jobs(services: Services):
             status = sts_operation_status_to_table_status(operation_status)
 
             if status == STATUS.RUNNING:
-                print('Pausing `{}`...'.format(operation_name))
+                logger.info(f'Pausing `{operation_name}`...')
 
                 operation_request = services.sts.transferOperations().pause(
                     name=operation_name, body={})
                 operation_request.execute()
 
-                print('...paused `{}`.'.format(operation_name))
+                logger.info(f'...paused `{operation_name}`.')
 
                 count += 1
 
         request = services.sts.transferOperations().list_next(
             previous_request=request, previous_response=response)
 
-    print('Paused all running jobs. Count: {}'.format(count))
+    logger.info(f'Paused all running jobs. Count: {count}')
 
 
 def main(options: STSJobManagerOptions):

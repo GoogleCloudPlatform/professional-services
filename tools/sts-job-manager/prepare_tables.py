@@ -21,6 +21,7 @@ Loads the job table with a list of prefixes.
 
 import argparse
 import json
+import logging
 from datetime import datetime
 
 from constants import schemas
@@ -28,6 +29,8 @@ from constants.status import STATUS
 from lib.options import PrepareTableOptions
 from lib.services import Services
 from lib.table_util import create_dataset, create_table, get_table_ref
+
+logger = logging.getLogger(__name__)
 
 
 def create_job_table(client: Services.bigquery, options: PrepareTableOptions):
@@ -61,8 +64,9 @@ def load_job_table(client: Services.bigquery, options: PrepareTableOptions):
 
     table_name = options.bigquery_options.table_name['job']
 
-    print("Loading '{}' with prefixes from '{}'...".format(
-        table_name, options.job_prefix_source_file))
+    logger.info(
+        f"Loading '{table_name}' with prefixes from \
+            '{options.job_prefix_source_file}'...")
 
     rows = []
 
@@ -81,13 +85,13 @@ def load_job_table(client: Services.bigquery, options: PrepareTableOptions):
     errors = client.insert_rows(table_ref, rows, selected_fields=schemas.JOB)
 
     if errors:
-        print('errors were found:')
+        logger.error('errors were found:')
         for row in errors:
-            print(row)
+            logger.error(row)
 
         raise Exception('Error inserting one or more rows')
 
-    print('...done.')
+    logger.info('...done.')
 
 
 def main(options: PrepareTableOptions):

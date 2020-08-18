@@ -17,8 +17,8 @@
 The file contains the core services for this toolkit.
 """
 
-from googleapiclient import discovery
 from google.cloud import bigquery, monitoring_v3
+from googleapiclient import discovery
 
 
 class Services:

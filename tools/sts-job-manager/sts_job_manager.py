@@ -20,19 +20,22 @@ This tool creates STS Jobs and records each job's state.
 """
 
 import argparse
-import time
 import json
+import logging
+import time
 from datetime import datetime
 from typing import Dict, List, Optional
 
 from google.cloud import bigquery, monitoring_v3
 
 from constants import schemas
-from constants.status import STATUS, KNOWN_STATUSES, \
-    sts_operation_status_to_table_status
+from constants.status import (KNOWN_STATUSES, STATUS,
+                              sts_operation_status_to_table_status)
 from lib.options import STSJobManagerOptions
 from lib.services import Services
 from lib.table_util import get_table_identifier, get_table_ref
+
+logger = logging.getLogger(__name__)
 
 
 class Job:
@@ -72,10 +75,10 @@ def get_jobs_by_prefix(services: Services, options: STSJobManagerOptions) \
 
     # API does not support table names for preparameterized queries
     # https://cloud.google.com/bigquery/docs/parameterized-queries
-    query = """
+    query = f"""
     SELECT *
-    FROM `{}`
-    """.format(table)
+    FROM `{table}`
+    """
 
     results = run_query(query, None, services, options)
 
@@ -92,7 +95,7 @@ def set_prefixes_to_status(prefixes: List[str], status: str,
     """
     Sets a list of prefixes to a given status in the database.
     """
-    print('Updating {} prefixes to `{}` status'.format(len(prefixes), status))
+    logger.info(f'Updating {len(prefixes)} prefixes to `{status}` status')
 
     table = get_table_identifier(
         services, options.bigquery_options,
@@ -102,12 +105,12 @@ def set_prefixes_to_status(prefixes: List[str], status: str,
     # https://cloud.google.com/bigquery/docs/parameterized-queries
     # We can't UPDATE jobs that are currently in a stream, so defer for later
     # https://cloud.google.com/bigquery/docs/reference/standard-sql/data-manipulation-language#limitations
-    query = """
-    UPDATE `{}`
+    query = f"""
+    UPDATE `{table}`
     SET status = @status, last_updated = CURRENT_TIMESTAMP()
     WHERE prefix IN UNNEST(@prefixes)
     AND last_updated < TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 90 MINUTE)
-    """.format(table)
+    """
 
     params = [
         bigquery.ScalarQueryParameter("status", "STRING", status),
@@ -122,7 +125,8 @@ def set_job_name(prefix: str, job_name: str, services: Services,
     """
     Set's a prefix's transfer operation job name in the database.
     """
-    print(f'Updating the prefix `{prefix}` with job name `{job_name}`...')
+    logger.info(
+        f'Updating the prefix `{prefix}` with job name `{job_name}`...')
 
     table = get_table_identifier(
         services, options.bigquery_options,
@@ -132,12 +136,12 @@ def set_job_name(prefix: str, job_name: str, services: Services,
     # https://cloud.google.com/bigquery/docs/parameterized-queries
     # We can't UPDATE jobs that are currently in a stream, so defer for later
     # https://cloud.google.com/bigquery/docs/reference/standard-sql/data-manipulation-language#limitations
-    query = """
-    UPDATE `{}`
+    query = f"""
+    UPDATE `{table}`
     SET job_name = @job_name, last_updated = CURRENT_TIMESTAMP()
     WHERE prefix = @prefixes
     AND last_updated < TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 90 MINUTE)
-    """.format(table)
+    """
 
     params = [
         bigquery.ScalarQueryParameter("prefix", "STRING", prefix),
@@ -146,7 +150,8 @@ def set_job_name(prefix: str, job_name: str, services: Services,
 
     run_query(query, params, services, options).result()
 
-    print(f'...updated the prefix `{prefix}` with job name `{job_name}`.')
+    logger.info(
+        f'...updated the prefix `{prefix}` with job name `{job_name}`.')
 
 
 def insert_history(rows: List[object], services: Services,
@@ -155,7 +160,7 @@ def insert_history(rows: List[object], services: Services,
     Inserts a list of rows into the job history table.
     Each object provided in the list matches the `JOB_HISTORY` schema
     """
-    print('Inserting {} row(s) into the history table'.format(len(rows)))
+    logger.info(f'Inserting {len(rows)} row(s) into the history table')
 
     table_ref = get_table_ref(
         services.bigquery, options.bigquery_options,
@@ -165,13 +170,11 @@ def insert_history(rows: List[object], services: Services,
         table_ref, rows, selected_fields=schemas.JOB_HISTORY)
 
     if errors:
-        print('errors were found:')
+        logger.error('errors were found:')
         for row in errors:
-            print(row)
+            logger.error(row)
 
         raise Exception('Error inserting one or more rows')
-
-    pass
 
 
 def get_latest_operation_by_prefix(services: Services,
@@ -243,7 +246,7 @@ def manage_state(services: Services, options: STSJobManagerOptions):
     Gathers all prefix information from both STS and the database, then updates
     the corresponding rows where necessary.
     """
-    print('Checking state...')
+    logging.info('Checking state...')
 
     # jobs from the database
     jobs = get_jobs_by_prefix(services, options)
@@ -281,8 +284,9 @@ def manage_state(services: Services, options: STSJobManagerOptions):
 
             if actual_status != expected_status:
                 # Capture the history for running jobs
-                print('Status for prefix `{}` has changed from `{}` to `{}`'
-                      .format(prefix, expected_status, actual_status))
+                logger.info(
+                    f'Status for prefix `{prefix}` has changed from \
+                        `{expected_status}` to `{actual_status}`')
 
                 jobs[prefix].status = actual_status
 
@@ -317,7 +321,7 @@ def manage_state(services: Services, options: STSJobManagerOptions):
             # https://cloud.google.com/bigquery/quotas#standard_tables
             time.sleep(2)
 
-    print('...state is up to date.')
+    logger.info('...state is up to date.')
 
     return jobs
 
@@ -336,12 +340,12 @@ def run_jobs(count: int, services: Services, options: STSJobManagerOptions):
 
     # API does not support table names for preparameterized queries
     # https://cloud.google.com/bigquery/docs/parameterized-queries
-    query = """
+    query = f"""
     SELECT *
-    FROM `{}`
+    FROM `{table}`
     WHERE status IN UNNEST(@statuses)
     LIMIT @count
-    """.format(table)
+    """
 
     pending_statuses = [STATUS.WAITING, STATUS.PAUSED]
     tryable_statuses = [STATUS.WAITING, STATUS.PAUSED, STATUS.ERROR]
@@ -364,14 +368,14 @@ def run_jobs(count: int, services: Services, options: STSJobManagerOptions):
                 name=job.job_name, body={})
             operation_request.execute()
 
-            print('Resumed `{}` (job name: {}).'.format(
-                job.prefix, job.job_name))
+            logger.info(f'Resumed `{job.prefix}` (job name: {job.job_name}).')
         else:
             utc_now = datetime.utcnow()
 
             if job.status == STATUS.ERROR:
-                print('Retrying errored prefix `{}`. Previous failed job: {} '
-                      .format(job.prefix, job.job_name))
+                logger.error(
+                    f'Retrying errored prefix `{job.prefix}`. \
+                        Previous failed job: {job.job_name}')
 
             transfer_job_body = {
                 'description': f'Created via STS Job Manager - {job.prefix}',
@@ -412,8 +416,8 @@ def run_jobs(count: int, services: Services, options: STSJobManagerOptions):
                 body=transfer_job_body)
             response = request.execute()
 
-            print('Created new transfer job for `{}`: ({}).'.format(
-                job.prefix, response))
+            logger.info(
+                f'Created new transfer job for `{job.prefix}`: ({response}).')
 
     return True
 
@@ -483,35 +487,36 @@ def manage_jobs(jobs: Dict[str, Job], last_jobs: Dict[str, Job],
         double_current_job_count = current_running_jobs * 2
 
         if not pending_job_count:
-            print('No jobs available to run')
+            logging.info('No jobs available to run')
             return 0
         elif current_running_jobs > options.max_concurrent_jobs:
-            print('Will not create any new jobs - too many are running \
-                (current = {}, max = {})'.format(
-                current_running_jobs, options.max_concurrent_jobs))
+            logging.info(f'Will not create any new jobs - too many are running \
+                (current = {current_running_jobs}, \
+                max = {options.max_concurrent_jobs})')
             return 0
         elif current_running_jobs == 0 and \
                 max_number_jobs_available_to_run > 0:
-            print('Will prepare initial job, as no other jobs are running')
+            logging.info(
+                'Will prepare initial job, as no other jobs are running')
             return 1
         else:
-            print('Ramping up job count')
+            logging.info('Ramping up job count')
             return min(max_number_jobs_available_to_run,
                        double_current_job_count)
 
-    print('Managing jobs...')
+    logging.info('Managing jobs...')
 
     count = num_new_jobs_to_run()
 
     if not count:
-        print('...no new jobs to run.')
+        logging.info('...no new jobs to run.')
         return
 
-    print('...spinning up to {} new job(s)...'.format(count))
+    logging.info(f'...spinning up to {count} new job(s)...')
 
     run_jobs(count, services, options)
 
-    print('...done running jobs.')
+    logging.info('...done running jobs.')
 
 
 def publish_heartbeat(jobs: Dict[str, Job], last_jobs: Dict[str, Job],
@@ -524,7 +529,7 @@ def publish_heartbeat(jobs: Dict[str, Job], last_jobs: Dict[str, Job],
     def publish_timeseries_heartbeat(name: str, value: int, services: Services,
                                      project_name: str,
                                      monitoring_types=monitoring_v3.types):
-        print(f'Preparing heartbeat for `{name}` (value: {value})...')
+        logging.info(f'Preparing heartbeat for `{name}` (value: {value})...')
 
         series = monitoring_types.TimeSeries()
         series.metric.type = name
@@ -535,14 +540,14 @@ def publish_heartbeat(jobs: Dict[str, Job], last_jobs: Dict[str, Job],
 
         services.monitoring.create_time_series(project_name, [series])
 
-        print('...published heartbeat `{}`.'.format(name))
+        logging.info(f'...published heartbeat `{name}`.')
 
     p = options.stackdriver_project if options.stackdriver_project \
         else services.bigquery.project
 
     monitoring_project_name = services.monitoring.project_path(p)
 
-    print('Preparing heartbeats for `{}`...'.format(monitoring_project_name))
+    logging.info(f'Preparing heartbeats for `{monitoring_project_name}`...')
 
     status_count: Dict[str, int] = {}
     stalled_count = 0
@@ -562,14 +567,14 @@ def publish_heartbeat(jobs: Dict[str, Job], last_jobs: Dict[str, Job],
         status_count[job.status] += 1
 
     for status in status_count:
-        name = 'custom.googleapis.com/sts_job_manager/status/{}'.format(status)
+        name = f'custom.googleapis.com/sts_job_manager/status/{status}'
         count = status_count[status]
 
         publish_timeseries_heartbeat(
             name, count, services, monitoring_project_name, monitoring_types)
 
     for job in determine_stalled_jobs(jobs, last_jobs):
-        print('Job `{}` appears to be stalled.'.format(job.job_name))
+        logging.warn(f'Job `{job.job_name}` appears to be stalled.')
         stalled_count += 1
 
     # Publish stalled count
@@ -578,7 +583,7 @@ def publish_heartbeat(jobs: Dict[str, Job], last_jobs: Dict[str, Job],
         stalled_metric, stalled_count, services, monitoring_project_name,
         monitoring_types)
 
-    print('...done publishing heartbeats.')
+    logging.info('...done publishing heartbeats.')
 
 
 def interval(services: Services, options: STSJobManagerOptions):
@@ -593,7 +598,7 @@ def interval(services: Services, options: STSJobManagerOptions):
     jobs: Dict[str, Job] = {}
 
     while True:
-        print('Running main interval #{}...'.format(interval_count))
+        logging.info(f'Running main interval #{interval_count}...')
         start = time.time()
 
         job_timeout = start - last_manage_jobs >= options.job_interval
@@ -616,11 +621,12 @@ def interval(services: Services, options: STSJobManagerOptions):
             try:
                 publish_heartbeat(jobs, last_jobs, services, options)
             except Exception as e:
-                print('Failed to publish heartbeat:', e)
+                logger.error('Failed to publish heartbeat:')
+                logger.exception(e)
 
         delta = time.time() - start + options.sleep_timeout
 
-        print('...done running main interval #{}.\n'.format(interval_count))
+        logger.info(f'...done running main interval #{interval_count}.\n')
         if delta > 0:
             time.sleep(delta)
 
@@ -631,7 +637,7 @@ def main(options: STSJobManagerOptions):
     """
     The main function.
     """
-    print('Initializing STS Job Manager.')
+    logger.info('Initializing STS Job Manager.')
 
     services = Services()
 

@@ -17,12 +17,15 @@
 The file contains a list of table-related operations.
 """
 
+import logging
 from typing import List
 
 from google.cloud import bigquery
 
 from lib.options import BigQueryOptions
 from lib.services import Services
+
+logger = logging.getLogger(__name__)
 
 
 def create_table(client: Services.bigquery, options: BigQueryOptions,
@@ -31,14 +34,14 @@ def create_table(client: Services.bigquery, options: BigQueryOptions,
     Creates tables. Does not throw if it exists.
     """
 
-    print("Creating `{}` table if it does not exists...".format(table_name))
+    logger.debug(f"Creating `{table_name}` table if it does not exists...")
 
     table_ref = get_table_ref(client, options, table_name)
     table = bigquery.Table(table_ref, schema=schema)
 
     client.create_table(table, exists_ok=True)
 
-    print("...done.")
+    logger.debug("...done.")
 
 
 def create_dataset(client: Services.bigquery, options: BigQueryOptions):
@@ -47,14 +50,14 @@ def create_dataset(client: Services.bigquery, options: BigQueryOptions):
     """
     dataset_ref = get_dataset_ref(client, options)
 
-    print("Creating dataset '{}' if it does not exist...".format(
-        dataset_ref.dataset_id))
+    logger.info(
+        f"Creating dataset '{dataset_ref.dataset_id}' if it does not exist...")
 
     dataset = bigquery.Dataset(dataset_ref)
     dataset.location = options.dataset_location
     dataset = client.create_dataset(dataset, exists_ok=True)
 
-    print("...done.")
+    logger.info("...done.")
 
 
 def get_dataset_ref(client: Services.bigquery, options: BigQueryOptions):
