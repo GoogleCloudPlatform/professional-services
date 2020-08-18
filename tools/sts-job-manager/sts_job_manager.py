@@ -78,7 +78,7 @@ def get_jobs_by_prefix(services: Services, options: STSJobManagerOptions) \
     query = f"""
     SELECT *
     FROM `{table}`
-    """
+    """  # nosec
 
     results = run_query(query, None, services, options)
 
@@ -345,7 +345,7 @@ def run_jobs(count: int, services: Services, options: STSJobManagerOptions):
     FROM `{table}`
     WHERE status IN UNNEST(@statuses)
     LIMIT @count
-    """
+    """  # nosec
 
     pending_statuses = [STATUS.WAITING, STATUS.PAUSED]
     tryable_statuses = [STATUS.WAITING, STATUS.PAUSED, STATUS.ERROR]
