@@ -270,3 +270,76 @@ class TestApiSchema(unittest.TestCase):
             discovery_doc)
         schema.sort()
         self.assertEqual(schema, [])
+
+    def test_string_additional_properties(self):
+        api_properties = {
+            'property-1': {
+                'type': 'object',
+                'additionalProperties': {
+                    'type': 'string',
+                    'description': 'description-1.'
+                },
+                'description': 'description-1'
+            },
+        }
+        resources = {}
+        schema = APISchema._properties_map_to_field_list(api_properties,
+                                                         resources, {})
+        schema.sort()
+        self.assertEqual(
+            schema,
+            [{'name': 'property-1',
+              'field_type': 'RECORD',
+              'description': 'description-1',
+              'mode': 'REPEATED',
+              'fields': [{'name': 'name',
+                          'field_type': 'STRING',
+                          'description': 'additionalProperties name',
+                          'mode': 'NULLABLE'},
+                         {'name': 'value',
+                          'field_type': 'STRING',
+                          'description': 'description-1.',
+                          'mode': 'NULLABLE'}]}])
+
+    def test_nested_additional_properties(self):
+        api_properties = {
+            'property-1': {
+                'type': 'object',
+                'additionalProperties': {
+                    '$ref': 'NestedObject',
+                    'description': 'description-1.'
+                },
+                'description': 'description-1'
+            },
+        }
+        resources = {
+            'NestedObject': {
+                'properties': {
+                    'property-2': {
+                        'type': 'string',
+                        'description': 'description-2.'
+                    }
+                }
+            }
+        }
+        schema = APISchema._properties_map_to_field_list(api_properties,
+                                                         resources, {})
+        schema.sort()
+        self.assertEqual(
+            schema,
+            [{'name': 'property-1',
+              'field_type': 'RECORD',
+              'description': 'description-1',
+              'mode': 'REPEATED',
+              'fields': [{'name': 'name',
+                          'field_type': 'STRING',
+                          'description': 'additionalProperties name',
+                          'mode': 'NULLABLE'},
+                         {'name': 'value',
+                          'field_type': 'RECORD',
+                          'description': 'description-1.',
+                          'mode': 'NULLABLE',
+                          'fields': [{'name': 'property-2',
+                                      'field_type': 'STRING',
+                                      'description': 'description-2.',
+                                      'mode': 'NULLABLE'}]}]}])
