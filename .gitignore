@@ -17,7 +17,6 @@ __pycache__/
 *$py.class
 dist/
 lib/
-!tools/sts-job-manager/lib
 *.egg-info/
 .cache
 pytestdebug.log
@@ -32,13 +31,11 @@ client_secrets.json
 .python-version
 .idea
 node_modules/
-.vscode
 *.code-workspace
 .envrc
 .coverage
 htmlcov/
 *.iml
-.venv
 
 # Terraform
 # See: https://github.com/github/gitignore/blob/master/Terraform.gitignore
