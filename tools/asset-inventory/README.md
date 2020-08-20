@@ -319,6 +319,75 @@ This repository contains some command line tools that let you run the export/imp
    ```
 
 
+## Input Schema Changes
+
+Sometimes the import schema will change. This can happen upstream when a backwards incompatible change is made to an API, such as a change in the datatype of a value or when the code in the pipeline changes the import format. This can cause imports with ```write_disposition=WRITE_APPEND``` to fail with an error simliar to this:
+
+  ```
+  "./asset_inventory/import_pipeline.py", line 422, in finish_bundle raise e
+  File "./asset_inventory/import_pipeline.py", line 419, in finish_bundle load_job.result()
+  File "/usr/local/lib/python3.7/site-packages/google/cloud/bigquery/job.py", line 733, in result return super(_AsyncJob, self).result(timeout=timeout)
+
+  File "/usr/local/lib/python3.7/site-packages/google/api_core/future/polling.py", line 127, in result raise self._exception google.api_core.exceptions.BadRequest: 400 Provided Schema does not match Table project-1:assets.run_googleapis_com_Revision. Field resource.data.spec.containers.livenessProbe.handler.exec.command has changed mode from NULLABLE to REPEATED [while running 'load_to_bigquery/load_to_bigquery']
+  ```
+
+To resume the import process there are three options.
+
+### 1. Delete the dataset and recreate it.
+
+The simplest option, this will discard all your data losing prior history but will let you continue the import. You can also try deleting the tables that fail to import if just a few of them.
+
+
+  ```
+  bq rm my_dataset_name
+  bq mk my_dataset_name
+  ```
+
+### 1. Copy the data to a new dataset, delete and recreate the existing dataset.
+
+This will preserve all your data in separate tables so no data is lost by copying the tables to a new datset using the bigquery transfer service.
+
+  ```
+  # enable BigQuery Transfer Service (only needs to be done once)
+  gcloud services enable bigquerydatatransfer.googleapis.com
+
+  # create new dataset to copy tables to
+  bq mk my_new_dataset_name
+  bq mk --transfer_config  --data_source=cross_region_copy --target_dataset=my_new_dataset_name  --display_name=copy --params='{"source_dataset_id":"my_dataest_name","source_project_id":"my-project-id","overwrite_destination_table":"false"}'
+
+  # wait for transfer config to be completed.
+  bq show --transfer_config projects/123/locations/us/transferConfigs/my-tranferconfigid
+  ....
+
+  # delete old tables by deleting and recreating the dataset.
+  bq rm my_dataset_name
+  bq mk my_dataset_name
+  ```
+
+### 1. Change import configurations.
+
+to import to a new dataset, or set write_disposition=WRITE_EMPTY.
+Changing the dataset the pipeline imports to will create new tables or setting write_disposition to WRITE_EMPTY (which will delete existing data) will allow imports to resume. This is done by changing either the ```config.yaml``` if using the scheduled import process or the ```--parameters`` value in the gcloud command when invoking the template via gcloud.
+
+## Upgrading from version 1.0.0 to 2.0.0
+
+The 2.0.0 pipeline release unfortuantely changed the import schema to resolve [issue #533](https://github.com/GoogleCloudPlatform/professional-services/issues/533). Now some user specified and dynamic properties are represented as record arrays of key value pairs rather then just flat records. This was done to keep a more regular schema and prevent accumulation of columns from overflowing table limits. This change could require changes in how you query the data for example, previously to query the App Engine traffic split across two versions you would write:
+
+```
+SELECT resource.data.split.allocations._20190115t172957,
+       resource.data.split.allocations._20190921t233039
+FROM `asset_inventory.appengine_googleapis_com_Service`
+```
+
+The new query would look like:
+
+```
+SELECT allocations.value
+FROM `asset_inventory.appengine_googleapis_com_Service` join
+       unnest(resource.data.split.allocations) allocations
+WHERE  allocations.name='_20190115t172957' or allocations.name = '_20190921t233039'
+```
+
 ## Troubleshooting.
 
 1. The Cloud Asset Inventory  export operation failed with the error: "PERMISSION_DENIED. Failed to write to: gs://<my-export-path>" yet I know I have write permissions?

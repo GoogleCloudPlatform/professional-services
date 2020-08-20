@@ -18,28 +18,35 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
-from typing import Set, List
+from typing import Set, List, Text, Dict
 from collections import defaultdict
 
-from ml_eda.metadata import run_metadata_pb2
-from ml_eda.metadata.metadata_definition import MetadataDef
+from google.protobuf.json_format import MessageToDict
+
+from ml_eda.proto import analysis_entity_pb2
+from ml_eda.job_config_util.job_config import JobConfig
+
+NAME_SEP = '-'
+Analysis = analysis_entity_pb2.Analysis
+Attribute = analysis_entity_pb2.Attribute
 
 
-def get_analysis_unique_name(analysis: run_metadata_pb2.Analysis) -> str:
+def _analysis_unique_name(analysis: Analysis) -> Text:
   """The unique name of an analysis is:
   [analysis_name]_[attribute_one]_[attribute_two]_ ......
 
   Args:
-      analysis: (run_metadata_pb2.Analysis)
+      analysis: An instance of analysis_entity_pb2.Analysis
 
   Returns:
-      string
+      Unique name of an Analysis in string
   """
   attributes = analysis.features
-  # run_metadata_pb2.Analysis.Name is an integer, need the following
+  # analysis_entity_pb2.Analysis.Name is an integer, need the following
   # conversion to get its string value
-  analysis_name = run_metadata_pb2.Analysis.Name.Name(analysis.name)
-  return '-'.join([analysis_name] + [att.name for att in attributes])
+  analysis_name = Analysis.Name.Name(analysis.name)
+  attribute_names = [att.name for att in attributes]
+  return NAME_SEP.join([analysis_name] + sorted(attribute_names))
 
 
 class AttributeAnalysisTracker:
@@ -48,30 +55,27 @@ class AttributeAnalysisTracker:
   particular attribute
   """
 
-  def __init__(self, att_type: str, att_name: str):
+  def __init__(self, att_name: Text, att_type: Text):
     """
     Args:
-      att_type: (string), attribute type
       att_name: (string), attribute name
+      att_type: (string), attribute type
     """
     self.att_type = att_type
     self.att_name = att_name
-    self.attribute_tracker = dict()
+    self.tracker = dict()
 
-  def add_analysis(self, analysis: run_metadata_pb2.Analysis):
+  def add_analysis(self, analysis: Analysis):
     """Add an analysis result to attribute tracker
 
     Args:
-        analysis: (run_metadata_pb2.Analysis),  performed analysis result
-
-    Returns:
+        analysis: (analysis_entity_pb2.Analysis),  performed analysis result
 
     """
-    analysis_unique_name = get_analysis_unique_name(analysis)
-    self.attribute_tracker[analysis_unique_name] = analysis
+    analysis_unique_name = _analysis_unique_name(analysis)
+    self.tracker[analysis_unique_name] = analysis
 
-  def get_analysis(self,
-                   analysis_name: str) -> List[run_metadata_pb2.Analysis]:
+  def get_analysis(self, analysis_name: Text) -> List[Analysis]:
     """Return all the analysis related to the attribute given an analysis
     name. Since one attribute can run the same analysis with
     multiple attributes, this function would return an iterator.
@@ -80,18 +84,18 @@ class AttributeAnalysisTracker:
         analysis_name: (string), name of the analysis specified in the proto
 
     Returns:
-        List[run_metadata_pb2.Analysis]
+        List[analysis_entity_pb2.Analysis]
     """
 
     analysis = []
-    for item in self.attribute_tracker:
+    for item in self.tracker:
       if item.startswith(analysis_name):
-        analysis.append(self.attribute_tracker[item])
+        analysis.append(self.tracker[item])
     return analysis
 
-  def get_all_analysis(self) -> List[run_metadata_pb2.Analysis]:
+  def get_all_analysis(self) -> List[Analysis]:
     """Return all the analysis stored in the attribute tracker"""
-    return list(self.attribute_tracker.values())
+    return list(self.tracker.values())
 
 
 class AnalysisTracker:
@@ -99,89 +103,98 @@ class AnalysisTracker:
   Tracker for storing the performed analysis results
   """
 
-  def __init__(self, metadata: MetadataDef):
-    self.metadata = metadata
+  def __init__(self, job_config: JobConfig):
+    self._job_config = job_config
     # tracker for tracking all the analysis
-    self.analysis_tracker = dict()
+    self._analysis_tracker = dict()
     # tracker for tracking all attributes having analysis performed
-    self.attribute_tracker = dict()
+    self._attribute_tracker = dict()
     # tracker for attributes in different type
-    self.attribute_type_tracker = defaultdict(set)
+    self._attribute_type_tracker = defaultdict(set)
 
-  def add_analysis(self, analysis: run_metadata_pb2.Analysis):
+  def add_analysis(self, analysis: Analysis):
     """Add analysis to two trackers
 
     Args:
-        analysis: (run_metadata_pb2.Analysis)
-
-    Returns:
+        analysis: (analysis_entity_pb2.Analysis)
 
     """
     analysis_attributes = analysis.features
     # Get the unique name for the analysis
-    analysis_unique_name = get_analysis_unique_name(analysis)
+    analysis_unique_name = _analysis_unique_name(analysis)
 
     # Add analysis to analysis_tracker
-    self.analysis_tracker[analysis_unique_name] = analysis
+    self._analysis_tracker[analysis_unique_name] = analysis
 
     # Add analysis to attribute_tracker
     for attr in analysis_attributes:
-      if attr.name not in self.attribute_tracker:
-        self.attribute_tracker[attr.name] = AttributeAnalysisTracker(
+      if attr.name not in self._attribute_tracker:
+        self._attribute_tracker[attr.name] = AttributeAnalysisTracker(
             att_name=attr.name,
             att_type=attr.type)
-        self.attribute_type_tracker[attr.type].add(attr.name)
+        self._attribute_type_tracker[attr.type].add(attr.name)
 
-      self.attribute_tracker[attr.name].add_analysis(analysis)
+      self._attribute_tracker[attr.name].add_analysis(analysis)
 
-  def get_target(self) -> run_metadata_pb2.Attribute:
+  def get_job_config(self) -> JobConfig:
+    """Get the job config"""
+    return self._job_config
+
+  def get_target_attribute(self) -> Attribute:
     """Get the target attribute"""
-    return self.metadata.target_column
+    return self._job_config.target_column
 
-  def get_attributes(self) -> List[str]:
+  def get_attribute_names(self) -> Set[Text]:
     """Get the names of all the involved attributes"""
-    return list(self.attribute_tracker.keys())
+    return set(self._attribute_tracker.keys())
 
-  def get_numerical_attributes(self) -> Set[str]:
+  def get_num_attribute_names(self) -> Set[Text]:
     """Get the names of all numerical attributes"""
-    return self.attribute_type_tracker[run_metadata_pb2.Attribute.NUMERICAL]
+    return self._attribute_type_tracker[Attribute.NUMERICAL]
 
-  def get_categorical_attributes(self) -> Set[str]:
+  def get_cat_attribute_names(self) -> Set[Text]:
     """Get the names of all categorical attributes"""
-    return self.attribute_type_tracker[run_metadata_pb2.Attribute.CATEGORICAL]
+    return self._attribute_type_tracker[Attribute.CATEGORICAL]
 
-  def get_all_analysis(self) -> List[run_metadata_pb2.Analysis]:
+  def get_all_analysis(self) -> List[Analysis]:
     """Get all the stored analyses results"""
-    return list(self.analysis_tracker.values())
+    return list(self._analysis_tracker.values())
 
-  def get_all_analysis_unique_names(self):
-    """Get the unique name of all sotre analyses"""
-    return self.analysis_tracker.keys()
+  def get_all_analysis_unique_names(self) -> List[Text]:
+    """Get the unique name of all stored analyses"""
+    return list(self._analysis_tracker.keys())
 
-  def get_attribute_analysis(self,
-                             attribute_name: str,
-                             analysis_name: str
-                             ) -> List[run_metadata_pb2.Analysis]:
+  def get_analysis_by_attribute(self, attribute_name: Text) -> List[Analysis]:
+    """Get all the analyses given attribute name"""
+    if attribute_name in self._attribute_tracker:
+      return self._attribute_tracker[attribute_name].get_all_analysis()
+
+    return []
+
+  def get_analysis_by_name(self, analysis_name: Text) -> List[Analysis]:
+    """Get all the analyses given analysis name"""
+    analysis = []
+    for item in self._analysis_tracker:
+      if item.startswith(analysis_name):
+        analysis.append(self._analysis_tracker[item])
+    return analysis
+
+  def get_analysis_by_attribute_and_name(self,
+                                         attribute_name: Text,
+                                         analysis_name: Text
+                                         ) -> List[Analysis]:
     """Get all the analyses given attribute name and analysis name"""
-    if attribute_name in self.attribute_tracker:
-      return self.attribute_tracker[attribute_name].get_analysis(
+    if attribute_name in self._attribute_tracker:
+      return self._attribute_tracker[attribute_name].get_analysis(
           analysis_name)
 
     return []
 
-  def get_attribute_all_analysis(self, attribute_name: str
-                                 ) -> List[run_metadata_pb2.Analysis]:
-    """Get all the analyses given attribute name"""
-    if attribute_name in self.attribute_tracker:
-      return self.attribute_tracker[attribute_name].get_all_analysis()
-
-    return []
-
-  def get_analysis(self, analysis_name: str
-                   ) -> List[run_metadata_pb2.Analysis]:
-    """Get all the analyses given analysis name"""
-    analysis = []
-    for item in self.analysis_tracker:
-      if item.startswith(analysis_name):
-        analysis.append(self.analysis_tracker[item])
-    return analysis
+  def export_to_dict(self) -> Dict[Text, Dict]:
+    """Export all analysis in a dictionary, where the Analysis object
+    is serialized."""
+    export_dict = {}
+    for analysis_name in self._analysis_tracker:
+      analysis_str = MessageToDict(self._analysis_tracker[analysis_name])
+      export_dict[analysis_name] = analysis_str
+    return export_dict
