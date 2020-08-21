@@ -22,25 +22,38 @@ Transferring large amounts of data, in the order of petabytes, between buckets c
 
 ## Getting Started
 
+### Enable the Required APIs
+
+The following [Cloud APIs](https://cloud.google.com/apis) are required to use this tool:
+
+- BigQuery API
+- Cloud Storage API
+- Storage Transfer API
+
 ### Assign the Appropriate Permissions
 
 #### STS Job Manager Permissions
-
-Ensure the [Storage Transfer API](https://console.developers.google.com/apis/api/storagetransfer.googleapis.com/overview) is enabled.
 
 Ensure the project's default Storage Transfer Service service account has the [required permissions](https://cloud.google.com/storage-transfer/docs/configure-access).
 
 This tool requires an account ([user](https://cloud.google.com/iam/docs/overview#google_account) or [service account](https://cloud.google.com/iam/docs/service-accounts)) with the following permissions:
 
 - `bigquery.datasets.create`
+- `bigquery.jobs.create`
 - `bigquery.tables.create`
 - `bigquery.tables.getData`
 - `bigquery.tables.updateData`
+- `resourcemanager.projects.get`
 - `storagetransfer.jobs.create`
+- `storagetransfer.jobs.get`
 - `storagetransfer.jobs.list`
+- `storagetransfer.jobs.update`
+- `storagetransfer.operations.cancel`
+- `storagetransfer.operations.get`
 - `storagetransfer.operations.list`
 - `storagetransfer.operations.pause`
 - `storagetransfer.operations.resume`
+- `storagetransfer.projects.getServiceAccount`
 
 The additional permissions are required if monitoring is enabled:
 
@@ -113,7 +126,7 @@ pip install -r requirements.txt
 
 ### Prepare Your Environment
 
-The tool will require [authentication for server to server production applications](https://cloud.google.com/docs/authentication/production). Conveniently, authentication is inherited when running applications via Compute Engine, Kubernetes Engine, App Engine, or Cloud Functions. In other environments, setting the `GOOGLE_APPLICATION_CREDENTIALS` environment variable will suffice.
+The tool will require [authentication for server to server production applications](https://cloud.google.com/docs/authentication/production). Conveniently, authentication is inherited when running applications via Compute Engine, Kubernetes Engine, App Engine, or Cloud Functions. In other environments, setting the [`GOOGLE_APPLICATION_CREDENTIALS`](https://cloud.google.com/docs/authentication/getting-started) environment variable will suffice. [Logging level](https://docs.python.org/library/logging.html#logging-levels) can be set via the `LOGLEVEL` environment variable.
 
 ### Prepare Your Database
 
