@@ -14,6 +14,9 @@
 
 FROM python:3.8-slim
 
+# Allow statements and log messages to immediately appear
+ENV PYTHONUNBUFFERED True
+
 WORKDIR /app
 COPY . .
 
