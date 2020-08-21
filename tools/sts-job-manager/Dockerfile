@@ -12,12 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM python:3.7-slim as builder
+FROM python:3.8-slim
 
+WORKDIR /app
 COPY . .
+
 RUN pip install --no-cache-dir -r requirements.txt
 
-FROM python:3.7-alpine
-
-COPY --from=builder . .
 CMD ["python3", "sts_job_manager.py"]
