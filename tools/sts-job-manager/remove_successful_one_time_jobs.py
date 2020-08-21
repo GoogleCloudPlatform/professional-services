@@ -19,12 +19,14 @@ A tool for removing successful one-time jobs.
 
 import json
 import logging
+import os
 import time
 
 from constants.status import STATUS, sts_operation_status_to_table_status
 from lib.services import Services
 
 logger = logging.getLogger(__name__)
+logger.setLevel(os.environ.get("LOGLEVEL", "INFO").upper())
 
 
 def determine_if_all_operations_were_successful(job_name: str,

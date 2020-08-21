@@ -20,12 +20,14 @@ This can be used as an emergency stop.
 
 import json
 import logging
+import os
 
 from constants.status import STATUS, sts_operation_status_to_table_status
 from lib.options import STSJobManagerOptions
 from lib.services import Services
 
 logger = logging.getLogger(__name__)
+logger.setLevel(os.environ.get("LOGLEVEL", "INFO").upper())
 
 
 def pause_all_running_jobs(services: Services):

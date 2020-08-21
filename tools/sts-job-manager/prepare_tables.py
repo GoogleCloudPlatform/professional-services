@@ -22,6 +22,7 @@ Loads the job table with a list of prefixes.
 import argparse
 import json
 import logging
+import os
 from datetime import datetime
 
 from constants import schemas
@@ -31,6 +32,7 @@ from lib.services import Services
 from lib.table_util import create_dataset, create_table, get_table_ref
 
 logger = logging.getLogger(__name__)
+logger.setLevel(os.environ.get("LOGLEVEL", "INFO").upper())
 
 
 def create_job_table(client: Services.bigquery, options: PrepareTableOptions):

@@ -22,6 +22,7 @@ This tool creates STS Jobs and records each job's state.
 import argparse
 import json
 import logging
+import os
 import time
 from datetime import datetime
 from typing import Dict, List, Optional
@@ -36,6 +37,7 @@ from lib.services import Services
 from lib.table_util import get_table_identifier, get_table_ref
 
 logger = logging.getLogger(__name__)
+logger.setLevel(os.environ.get("LOGLEVEL", "INFO").upper())
 
 
 class Job:

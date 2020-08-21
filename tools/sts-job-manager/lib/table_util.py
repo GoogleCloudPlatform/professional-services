@@ -18,6 +18,7 @@ The file contains a list of table-related operations.
 """
 
 import logging
+import os
 from typing import List
 
 from google.cloud import bigquery
@@ -26,6 +27,7 @@ from lib.options import BigQueryOptions
 from lib.services import Services
 
 logger = logging.getLogger(__name__)
+logger.setLevel(os.environ.get("LOGLEVEL", "INFO").upper())
 
 
 def create_table(client: Services.bigquery, options: BigQueryOptions,
