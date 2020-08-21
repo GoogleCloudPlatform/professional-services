@@ -141,7 +141,7 @@ def set_job_name(prefix: str, job_name: str, services: Services,
     query = f"""
     UPDATE `{table}`
     SET job_name = @job_name, last_updated = CURRENT_TIMESTAMP()
-    WHERE prefix = @prefixes
+    WHERE prefix = @prefix
     AND last_updated < TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 90 MINUTE)
     """
 
