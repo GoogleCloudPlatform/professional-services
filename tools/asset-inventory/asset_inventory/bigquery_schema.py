@@ -293,6 +293,7 @@ def _sanitize_property(property_name, parent, depth, num_properties):
         # prune the value.
         parent.pop(new_property_name)
 
+
 def remove_duplicates(properties):
     """Ensure no two property in properties share the same name.
 
@@ -441,7 +442,13 @@ def enforce_schema_data_types(resource, schema):
         if field_name in resource:
             resource_value = resource[field_name]
             if field.get('mode', 'NULLABLE') == 'REPEATED':
-                if not isinstance(resource_value, list):
+                # satisfy array condition by converting dict into
+                # repeated name value records.
+                if (field['field_type'] == 'RECORD' and
+                    isinstance(resource_value, dict)):
+                    resource_value = [{'name': key, 'value': val}
+                                      for (key, val) in resource_value.items()]
+                elif not isinstance(resource_value, list):
                     resource_value = [resource_value]
                 new_array = []
                 for value in resource_value:
