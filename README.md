@@ -55,6 +55,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [Spinnaker](examples/spinnaker) - Example pipelines for a Canary / Production deployment process.
 * [TensorFlow Unit Testing](examples/tensorflow-unit-testing) - Examples how to write unit tests for TensorFlow ML models.
 * [Uploading files directly to Google Cloud Storage by using Signed URL](examples/direct-upload-to-gcs) - Example architecture to enable uploading files directly to GCS by using [Signed URL](https://cloud.google.com/storage/docs/access-control/signed-urls).
+* [MirrorPlane: traffic mirroring and rewriting](examples/traffic-mirroring-and-rewriting/) - Response-and-relay proxy to mirror production traffic into a separate environment.
 
 ## Tools
 The tools folder contains ready-made utilities which can simpilfy Google Cloud Platform usage.
