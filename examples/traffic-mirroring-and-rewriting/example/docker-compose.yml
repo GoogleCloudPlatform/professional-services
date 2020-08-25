@@ -1,0 +1,35 @@
+version: '3'
+services:
+  prod-backend:
+    build: backend/
+    ports:
+      - "8080:8080"
+    environment:
+      - response=prod
+
+  staging-backend:
+    build: backend/
+    ports:
+      - "8081:8080"
+    environment:
+      - response=staging
+
+  proxy:
+    build: proxy/
+    ports:
+      - "10000:8080"
+    links:
+      - "prod-backend"
+      - "mirrorplane"
+
+  mirrorplane:
+    build:
+      context: ..
+      dockerfile: example/mirrorplane/Dockerfile
+    ports:
+      - "11000:8080"
+    links:
+      - "staging-backend"
+    environment:
+      - "backend=http://staging-backend:8080"
+
