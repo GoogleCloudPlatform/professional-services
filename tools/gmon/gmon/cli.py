@@ -11,6 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""
+`cli.py`
+Command-line interface for `gmon`.
+"""
+# pylint: disable=R0914,C0103,R0915,R0912
 import argparse
 import pprint
 import sys
@@ -21,20 +26,21 @@ from gmon.clients.service_monitoring import ServiceMonitoringClient
 
 SAMPLE_METRIC_TYPE = "loadbalancing.googleapis.com/server/request_count"
 
+def parse_args(args):
+    """Parse CLI arguments.
 
-def parse_args():
-    args = sys.argv[1:]
+    Args:
+        args (list): List of args passed from CLI.
 
-    #-------------#
-    # Main parser #
-    #-------------#
+    Returns:
+        tuple: A tuple (parser, args) after parsing with ArgumentParser.
+    """
+    # Main parser
     parser = argparse.ArgumentParser(prog='gmon',
                                      description='Cloud Operations CLI')
     subparsers = parser.add_subparsers(title='Endpoints', dest='parser')
 
-    #-----------------#
-    # Accounts parser #
-    #-----------------#
+    # Accounts parser
     accounts = subparsers.add_parser(
         'accounts', help='Cloud Operations Account operations')
     accounts_sub = accounts.add_subparsers(dest='operation')
@@ -44,7 +50,7 @@ def parse_args():
         'create', help='Create a Cloud Operations Account')
     accounts_link = accounts_sub.add_parser(
         'link', help='Link a project to a Cloud Operations Account')
-    accounts_sub.add_parser('list', help='List Cloud Operations Accounts')
+    # accounts_sub.add_parser('list', help='List Cloud Operations Accounts')
 
     # TODO: Uncomment this when `delete` and `projects.delete`
     # operations are available.
@@ -65,9 +71,7 @@ def parse_args():
                        action='store_true',
                        required=False)
 
-    #----------------#
-    # Metrics parser #
-    #----------------#
+    # Metrics parser
     metrics = subparsers.add_parser('metrics',
                                     help='Cloud Monitoring metrics operations')
     metrics_sub = metrics.add_subparsers(dest='operation')
@@ -158,64 +162,62 @@ def parse_args():
             help='Metric descriptor type (e.g: "{SAMPLE_METRIC_TYPE}") or '
             'partial match')
 
-    #--------------------#
-    # Service Monitoring #
-    #--------------------#
+    # Service Monitoring
     # Services
-    service_monitoring_service = subparsers.add_parser(
+    sm_service = subparsers.add_parser(
         'services', help='Cloud Monitoring Service Monitoring services')
-    service_monitoring_service_sub = service_monitoring_service.add_subparsers(
+    sm_service_sub = sm_service.add_subparsers(
         dest='operation')
-    service_monitoring_service_get = service_monitoring_service_sub.add_parser(
+    sm_service_get = sm_service_sub.add_parser(
         'get', help='Get a Cloud Monitoring Service Monitoring service')
-    service_monitoring_service_create = service_monitoring_service_sub.add_parser(
+    sm_service_create = sm_service_sub.add_parser(
         'create', help='Create a Cloud Monitoring Service Monitoring service')
-    service_monitoring_service_update = service_monitoring_service_sub.add_parser(
+    sm_service_update = sm_service_sub.add_parser(
         'update', help='Update a Cloud Monitoring Service Monitoring service')
-    service_monitoring_service_delete = service_monitoring_service_sub.add_parser(
+    sm_service_delete = sm_service_sub.add_parser(
         'delete', help='Delete a Cloud Monitoring Service Monitoring service')
-    service_monitoring_service_list = service_monitoring_service_sub.add_parser(
+    sm_service_list = sm_service_sub.add_parser(
         'list', help='List a Cloud Monitoring Service Monitoring service')
 
     for p in [
-            service_monitoring_service_list, service_monitoring_service_get,
-            service_monitoring_service_create,
-            service_monitoring_service_update,
-            service_monitoring_service_delete
+            sm_service_list, sm_service_get,
+            sm_service_create,
+            sm_service_update,
+            sm_service_delete
     ]:
         p.add_argument('--project',
                        '-p',
                        help='Cloud Monitoring host project id.',
                        required=True)
     for p in [
-            service_monitoring_service_get, service_monitoring_service_create,
-            service_monitoring_service_delete
+            sm_service_get, sm_service_create,
+            sm_service_delete
     ]:
         p.add_argument('service_id', help='Cloud Monitoring service id')
 
-    service_monitoring_service_create.add_argument(
+    sm_service_create.add_argument(
         '--config', help='Path to service config.', required=True)
 
     # SLOs
-    service_monitoring_slo = subparsers.add_parser(
+    sm_slo = subparsers.add_parser(
         'slos', help='Cloud Monitoring Service Monitoring SLOs')
-    service_monitoring_slo_sub = service_monitoring_slo.add_subparsers(
+    sm_slo_sub = sm_slo.add_subparsers(
         dest='operation')
-    service_monitoring_slo_get = service_monitoring_slo_sub.add_parser(
+    sm_slo_get = sm_slo_sub.add_parser(
         'get', help='Get a Cloud Monitoring Service Monitoring SLO')
-    service_monitoring_slo_create = service_monitoring_slo_sub.add_parser(
+    sm_slo_create = sm_slo_sub.add_parser(
         'create', help='Create a Cloud Monitoring Service Monitoring SLO')
-    service_monitoring_slo_update = service_monitoring_slo_sub.add_parser(
+    sm_slo_update = sm_slo_sub.add_parser(
         'update', help='Update a Cloud Monitoring Service Monitoring SLO')
-    service_monitoring_slo_delete = service_monitoring_slo_sub.add_parser(
+    sm_slo_delete = sm_slo_sub.add_parser(
         'delete', help='Delete a Cloud Monitoring Service Monitoring SLO')
-    service_monitoring_slo_list = service_monitoring_slo_sub.add_parser(
+    sm_slo_list = sm_slo_sub.add_parser(
         'list', help='List Cloud Monitoring Service Monitoring SLOs')
 
     for p in [
-            service_monitoring_slo_list, service_monitoring_slo_get,
-            service_monitoring_slo_update, service_monitoring_slo_create,
-            service_monitoring_slo_delete
+            sm_slo_list, sm_slo_get,
+            sm_slo_update, sm_slo_create,
+            sm_slo_delete
     ]:
         p.add_argument('--project',
                        '-p',
@@ -224,30 +226,37 @@ def parse_args():
         p.add_argument('service_id', help='Cloud Monitoring service id')
 
     for p in [
-            service_monitoring_slo_get, service_monitoring_slo_update,
-            service_monitoring_slo_delete
+            sm_slo_get, sm_slo_update,
+            sm_slo_delete
     ]:
         p.add_argument('slo_id', help='SLO id.')
 
-    service_monitoring_slo_create.add_argument('--config',
-                                               help='Path to service config.',
-                                               required=True)
+    sm_slo_create.add_argument('--config',
+                               help='Path to service config.',
+                               required=True)
 
     parsers = {
         'root': parser,
         'accounts': accounts,
         'metrics': metrics,
-        'services': service_monitoring_service,
-        'slos': service_monitoring_slo
+        'services': sm_service,
+        'slos': sm_slo
     }
     return parsers, parser.parse_args(args)
 
-
 def main():
-    setup_logging()
+    """gmon CLI entrypoint."""
+    parsers, args = parse_args(sys.argv[1:])
+    cli(parsers, args)
 
-    # Parse arguments
-    parsers, args = parse_args()
+def cli(parsers, args):
+    """Main CLI function.
+
+    Args:
+        parsers (list): List of parsers.
+        args (Namespace): Argparsed CLI parameters.
+    """
+    setup_logging()
 
     # Print help if no subparser is used
     parser = args.parser
@@ -268,6 +277,7 @@ def main():
     fields = parse_fields(fields)
     filters = getattr(args, 'filters', [])
     filters = parse_filters(filters)
+    response = None
 
     if parser == 'metrics':
         client = MetricsClient(args.project)
@@ -290,7 +300,7 @@ def main():
             response = method(pattern=args.regex, window=args.window)
 
         # Format, filter and print response
-        print_response(response, limit, fields, filters)
+        return fmt_response(response, limit, fields, filters)
 
     elif parser == 'accounts':
         if 'project' in args:
@@ -303,6 +313,7 @@ def main():
             response = method()
         elif command in ['link', 'unlink']:
             response = method(project_id=args.project_id)
+        return response
 
     elif parser == 'services':
         client = ServiceMonitoringClient(project_id=args.project)
@@ -312,7 +323,7 @@ def main():
         else:
             method = getattr(client, command + '_services')
             response = method()
-        print_response(response, limit, fields, filters)
+        return fmt_response(response, limit, fields, filters)
 
     elif parser == 'slos':
         client = ServiceMonitoringClient(project_id=args.project)
@@ -322,8 +333,7 @@ def main():
         else:
             method = getattr(client, command + '_slos')
             response = method(args.service_id)
-        print_response(response, limit, fields, filters)
-
+        return fmt_response(response, limit, fields, filters)
 
 def parse_filters(filters=[]):
     """Function to parse `filters` CLI argument.
@@ -362,18 +372,22 @@ def filter_response(response, filters={}):
     return response
 
 
-def print_response(response, limit, fields, filters={}):
-    """Print response from Cloud Monitoring APIs.
+def fmt_response(response, limit, fields, filters={}):
+    """Format response from Cloud Monitoring APIs.
 
     Args:
         limit (int): Number of records to print.
         fields (list): List of fields to print. If only one field is selected,
             return 'flat' response.
         filters (dict): Filters to filter the response on.
+
+    Returns:
+        list: List of JSON responses with filtering and fields selection to
+            print.
     """
-    # Iterate through response and send results to user
+    responses = []
     if response is None:
-        return None
+        return
     for idx, r in enumerate(response):
         if limit and idx >= limit:
             break
@@ -385,12 +399,13 @@ def print_response(response, limit, fields, filters={}):
             if len(fields) == 1:
                 print(r[fields[0]])
                 continue
-            else:
-                r = {k: v for k, v in r.items() if k in fields}
-                pprint.pprint(r, indent=1, width=80)
+            r = {k: v for k, v in r.items() if k in fields}
+            pprint.pprint(r, indent=1, width=80)
+            responses.append(r)
         else:
             pprint.pprint(r, indent=1, width=80)
-
+            responses.append(r)
+    return responses
 
 def parse_fields(fields):
     """Parse `fields` CLI argument.

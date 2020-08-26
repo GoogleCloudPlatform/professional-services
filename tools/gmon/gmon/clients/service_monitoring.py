@@ -22,7 +22,7 @@ import os
 from google.cloud.monitoring_v3 import ServiceMonitoringServiceClient
 from google.protobuf.json_format import MessageToJson
 
-from .utils import decorate_with, to_json
+from .utils import decorate_with, to_json # pylint: disable=W0611
 
 LOGGER = logging.getLogger(__name__)
 
@@ -186,7 +186,8 @@ class ServiceMonitoringClient:
         Returns:
             str: SLO full path.
         """
-        return f'projects/{self.project_id}/services/{service_id}/serviceLevelObjectives/{slo_id}'
+        service_path = f'projects/{self.project_id}/services/{service_id}'
+        return f'{service_path}/serviceLevelObjectives/{slo_id}'
 
     @staticmethod
     def _maybe_load(config):
@@ -200,8 +201,8 @@ class ServiceMonitoringClient:
             dict: JSON config (loaded from file or from string)
         """
         if os.path.exists(config):
-            with open(config) as f:
-                config = json.load(f)
+            with open(config) as cfg:
+                config = json.load(cfg)
         else:
             config = json.loads(config)
         return config

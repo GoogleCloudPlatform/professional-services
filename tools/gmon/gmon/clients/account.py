@@ -30,13 +30,14 @@ API_SERVICE_NAME = 'stackdriver'
 API_VERSION = 'v2'
 API_KEY = os.environ.get('GCP_API_KEY')
 API_OAUTH2_CREDENTIALS = os.environ.get('GCP_OAUTH2_CREDENTIALS')
-URI = 'https://stackdriver.googleapis.com/$discovery/rest?labels=ACCOUNTS_TRUSTED_TESTER&version=v2&key='
+BASE_URI = 'https://stackdriver.googleapis.com/$discovery/rest'
+URI = f'{BASE_URI}?labels=ACCOUNTS_TRUSTED_TESTER&version=v2&key='
 
 pp = pprint.PrettyPrinter(indent=2)
 
 LOGGER = logging.getLogger(__name__)
 
-
+# pylint: disable=E1101
 class AccountClient:
     """Client for Cloud Operations Accounts API.
 
@@ -45,7 +46,7 @@ class AccountClient:
         no_poll (bool): No poll for response is set to True.
     """
     def __init__(self, project_id=None, no_poll=True):
-        self.service = self._build_service()
+        self.service = AccountClient._build_service()
         self.project_id = project_id
         self.account_name = f'accounts/{project_id}'
         self.no_poll = no_poll
@@ -85,7 +86,7 @@ class AccountClient:
     # TODO: Uncomment this when `delete` operation is available.
     # def delete(self):
     #     """Delete Cloud Operations workspace."""
-    #     LOGGER.info(f'Deleting Cloud Operations Account "{self.account_name}"')
+    #     LOGGER.info(f'Deleting Cloud Ops Account "{self.account_name}"')
     #     data = self._get_monitored_project(project_id)
     #     operation = service.accounts().projects().delete(
     #         parent=self.account_name, body=data).execute()
@@ -129,7 +130,8 @@ class AccountClient:
     #         self._poll(operation['name'])
     #     return operation
 
-    def _build_service(self):
+    @classmethod
+    def _build_service(cls):
         """Build Cloud Operations Account service resource.
 
         Returns:

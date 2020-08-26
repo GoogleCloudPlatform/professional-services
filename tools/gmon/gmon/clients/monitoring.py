@@ -81,20 +81,21 @@ class MetricsClient:
         if len(matches) == 0:
             LOGGER.error(
                 f'No partial result matched your query "{metric_type}".')
-            raise  # re-raise NotFound exception
-        elif len(matches) == 1:
+            raise # re-raise NotFound exception
+        if len(matches) == 1:
             metric_type = matches[0][0]
             project_id = matches[0][1]
             LOGGER.info(
-                f'Found exactly one metric "{metric_type}" in project "{project_id}" matching regex.'
+                f'Found exactly one metric "{metric_type}" in project'
+                f'"{project_id}" matching regex.'
             )
         elif interactive:
-            LOGGER.info(f'Found multiple metrics matching regex.')
-            for ix, (metric_type, project_id) in enumerate(matches):
-                print(f'{ix}. {metric_type} ({project_id})')
-            ix = int(input(f'Enter your choice: '))
-            metric_type = matches[ix][0]
-            project_id = matches[ix][1]
+            LOGGER.info('Found multiple metrics matching regex.')
+            for idx, (mtype, project_id) in enumerate(matches):
+                print(f'{idx}. {mtype} ({project_id})')
+            idx = int(input('Enter your choice: '))
+            metric_type = matches[idx][0]
+            project_id = matches[idx][1]
         else:  # non-interactive mode, take first match
             metric_type = matches[0][0]
             project_id = matches[0][1]
@@ -169,9 +170,6 @@ class MetricsClient:
             pattern (str): Regex pattern to filter on.
             window (int): Window to check for metric data in days. If no
                 datapoints were written during this window, add to delete list.
-
-        Returns:
-            dict: Data about metrics.
         """
         LOGGER.info(
             f'Inspecting metrics to find unused ones in "{self.project_id}". '
@@ -180,9 +178,9 @@ class MetricsClient:
         descriptors = self.list(pattern=pattern)
         delete_list = []
         keep_list = []
-        for d in descriptors:
-            metric_type = d['type']
-            project_id = d['name'].split('/')[1]
+        for descriptor in descriptors:
+            metric_type = descriptor['type']
+            project_id = descriptor['name'].split('/')[1]
             self.switch_project(project_id)
             results = list(self.inspect(metric_type, window_seconds))
             if not results:
@@ -203,16 +201,15 @@ class MetricsClient:
                 LOGGER.info(
                     f'{metric_type}: last datapoint written at {last_written}')
         if not delete_list:
-            LOGGER.info(f'No unused metrics. Exiting.')
-            return None
-        if interactive:
-            ix = input(f'Delete unused metrics (y/n) ?')
-            if ix.lower() in ['y', 'yes']:
-                for item in delete_list.items():
+            LOGGER.info('No unused metrics. Exiting.')
+        elif interactive:
+            idx = input('Delete unused metrics (y/n) ?')
+            if idx.lower() in ['y', 'yes']:
+                for item in delete_list:
                     metric_type = item['metric_type']
                     self.switch_project(item['project_id'])
                     self.delete(metric_type)
-            LOGGER.info(f'Metrics deleted successfully.')
+            LOGGER.info('Metrics deleted successfully.')
 
     def inspect(self, metric_type, window):
         """Inspect a specific metric. Returns timeseries beteween now and
@@ -226,9 +223,11 @@ class MetricsClient:
             list: List of timeseries.
         """
         LOGGER.debug(
-            f'Inspecting metric "{metric_type}" in project "{self.project_id}" ...'
+            f'Inspecting metric "{metric_type}" in project "{self.project_id}"'
+            ' ...'
         )
         metric = list(self.get(metric_type))[0]
+        LOGGER.info(metric)
         metric_type = metric['type']
         interval = types.TimeInterval()
         now = time.time()
@@ -244,6 +243,10 @@ class MetricsClient:
         return results
 
     def switch_project(self, new_project_id):
-        self._project_id = self.project_id
+        """Update working project.
+
+        Args:
+            new_project_id (str): New project id.
+        """
         self.project_id = new_project_id
         self.project = self.client.project_path(self.project_id)

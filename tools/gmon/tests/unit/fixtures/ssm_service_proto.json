@@ -1,0 +1,8 @@
+{
+  "custom": {},
+  "display_name": "fake",
+  "name": "projects/[PROJECT_NUMBER]/services/kkKv9xDqTs6SgN6l6wqa-w",
+  "telemetry": {
+    "resource_name": "//container.googleapis.com/projects/[PROJECT_ID]locations/[REGION]/clusters/[CLUSTER_NAME]/k8s/namespaces/default/services/[SERVICE_NAME]"
+  }
+}

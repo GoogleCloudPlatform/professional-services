@@ -11,6 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""
+`utils.py`
+Command-line interface utils.
+"""
 import logging
 import os
 import sys
@@ -36,7 +40,7 @@ def setup_logging():
     # Ingore annoying Cloud SDK warning
     warnings.filterwarnings("ignore", message=_CLOUD_SDK_CREDENTIALS_WARNING)
 
-
+# pylint: disable=W0123,W0613
 def lookup(self, path):
     """Nested lookup of a dotted path.
 

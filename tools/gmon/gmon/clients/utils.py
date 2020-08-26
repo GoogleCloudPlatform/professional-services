@@ -16,13 +16,24 @@
 Util functions.
 """
 
-from google.protobuf.json_format import MessageToDict
-from typing import Set
 import functools
+from typing import Set
 
+from google.protobuf.json_format import MessageToDict
 
 def decorate_with(decorator, methods: Set[str]):
+    """Class decorator that decorates wanted class methods.
+
+    Args:
+        decorator (method): Decorator method.
+        methods (set): Set of class method names to decorate.
+
+    Returns:
+        cls: Decorated class.
+    """
     def inner(cls):
+        if not methods:
+            return cls
         for attr in cls.__dict__:  # there's propably a better way to do this
             attribute = getattr(cls, attr)
             if callable(attribute) and attribute.__name__ in methods:
@@ -33,17 +44,25 @@ def decorate_with(decorator, methods: Set[str]):
 
 
 def to_json(func):
+    """Format API responses as JSON, using protobuf.
+
+    Args:
+        func (method): Function to decorate.
+
+    Returns:
+        method: Decorated method.
+    """
     @functools.wraps(func)
     def inner(*args, **kwargs):
         fields = kwargs.pop('fields', None)
-        res = func(*args, **kwargs)
-        if isinstance(res, list):
-            for r in res:
-                yield filter_fields(MessageToDict(r), fields=fields)
-        elif res is None:
+        response = func(*args, **kwargs)
+        if isinstance(response, list):
+            for resp in response:
+                yield filter_fields(MessageToDict(resp), fields=fields)
+        elif response is None:
             yield None
         else:
-            yield filter_fields(MessageToDict(res), fields=fields)
+            yield filter_fields(MessageToDict(response), fields=fields)
 
     return inner
 
