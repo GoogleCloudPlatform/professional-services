@@ -14,5 +14,5 @@
   "rolling_period": {
     "seconds": 86400
   },
-  "display_name": "Latency of App Engine app requests 724ms (24h)"
+  "display_name": "fake"
 }

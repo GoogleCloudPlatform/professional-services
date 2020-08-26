@@ -15,7 +15,6 @@
 
 Stubs for mocking backends and exporters.
 """
-import json
 import os
 import re
 import yaml
@@ -157,7 +156,7 @@ def mock_cm_list_slos():
                 'next_page_token': '',
                 'service_level_objectives': [slo]
             },
-            'proto_method': service_service_pb2.ListServiceLevelObjectivesResponse
+            'proto_method': service_service_pb2.ListServiceLevelObjectivesResponse # noqa: E501
         }
     ]
     return mock_grpc_stub(data)

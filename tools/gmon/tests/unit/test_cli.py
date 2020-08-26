@@ -16,7 +16,7 @@ import logging
 import os
 import unittest
 
-from mock import patch, MagicMock
+from mock import patch
 from gmon.cli import parse_args, cli
 from test_stubs import (
     mock_cm_list_metric_descriptors,
@@ -31,6 +31,7 @@ PROJECT_ID = 'fake_project_id'
 SERVICE_ID = 'kkKv9xDqTs6SgN6l6wqa-w'
 SSM_MOCK = "gmon.clients.service_monitoring.ServiceMonitoringServiceClient" # noqa: E501
 
+# pylint: disable=E501
 class TestCLI(unittest.TestCase):
 
     def setUp(self):
@@ -149,9 +150,10 @@ class TestCLI(unittest.TestCase):
         display_name = response['displayName']
         goal = response['goal']
         rolling_period = response['rollingPeriod']
-        threshold = response['serviceLevelIndicator']['basicSli']['latency']['threshold']
+        sli = response['serviceLevelIndicator']['basicSli']
+        threshold = sli['latency']['threshold']
         self.assertEqual(len(responses), 1)
-        self.assertEqual(display_name, 'Latency of App Engine app requests 724ms (24h)')
+        self.assertEqual(display_name, 'fake')
         self.assertEqual(goal, 0.999)
         self.assertEqual(rolling_period, '86400s')
         self.assertEqual(threshold, '0.724s')
@@ -163,6 +165,7 @@ class TestCLI(unittest.TestCase):
     #     ])
     #     responses = cli(parsers, args)
     #     response = responses[0]
+
 
 if __name__ == '__main__':
     unittest.main()

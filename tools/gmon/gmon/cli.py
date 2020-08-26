@@ -15,7 +15,7 @@
 `cli.py`
 Command-line interface for `gmon`.
 """
-# pylint: disable=R0914,C0103,R0915,R0912
+# pylint: disable=R0914,C0103,R0915,R0912,R1705,R1710
 import argparse
 import pprint
 import sys
