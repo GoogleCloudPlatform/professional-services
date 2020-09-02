@@ -91,7 +91,7 @@ def main():
                 matching_table_names_right.append(
                     r.full_table_id.replace(':', '.'))
                 count_same += 1
-                config_data['primaryKeys'] = table_names[l.table_id]
+                # config_data.get['primaryKeys'] = table_names[l.table_id]
                 config_datas.append(copy.deepcopy(config_data))
             count_total += 1
         percent_same = count_same / count_total * 100
@@ -118,8 +118,10 @@ def main():
             create_diff_tables(query_runner, client, config_data, l_table,
                                r_table)
         except NotFound:
-            ValueError(f'There is something wrong with a project name either '
-                       f'in your config, `{config_data["project_id"]}`, or argument, `{args.project_id}`!')
+            ValueError(
+                f'There is something wrong with a project name either '
+                f'in your config, `{config_data["project_id"]}`, or argument, `{args.project_id}`!'
+            )
 
 
 def get_results_table_schema():
@@ -159,7 +161,8 @@ def materialize_detailed_diff_stats(client, destination_dataset, l_column_name,
             f'{total_rows} ) ')
 
         table_cnt_diff = (
-            f'SUM( IF({column}.{l_column_name} IS NULL AND {column}.{r_column_name} IS NULL, 0, 1) )')
+            f'SUM( IF({column}.{l_column_name} IS NULL AND {column}.{r_column_name} IS NULL, 0, 1) )'
+        )
         select_statement.append((f'STRUCT( '
                                  f'{table_pct_mismatch} AS pct_diff, '
                                  f'{table_cnt_diff} AS cnt_diff '
@@ -211,12 +214,13 @@ def create_diff_tables(query_runner, client, config_data, l_table, r_table):
     r_table_name = r_table.split('.')[1] + '.' + r_table.split('.')[2]
 
     destination_dataset = config_data['destinationDataset']
-    destination_table = f"{destination_dataset}.{l_table_name.split('.')[1]}"
-    primary_keys = config_data['primaryKeys']
+    l_destination_table = f"{destination_dataset}.{l_table_name.split('.')[1]}"
+    r_destination_table = f"{destination_dataset}.{r_table_name.split('.')[1]}"
+    primary_keys = config_data.get('primaryKeys')
 
     columns_list = bigquery_utils.get_full_columns_list(
-        client, config_data.get('excludeColumnMapping'), config_data['primaryKeys'],
-        l_table_name, r_table_name)
+        client, config_data.get('excludeColumnMapping'),
+        primary_keys, l_table_name, r_table_name)
     if columns_list is None:
         return None
     l_column_name = l_table_name.replace('.', '_')
@@ -230,21 +234,21 @@ def create_diff_tables(query_runner, client, config_data, l_table, r_table):
     mismatch_query = generate_query_string_mismatch_row(
         l_table, r_table, l_column_name, r_column_name, primary_keys,
         columns_list, type_cast_dict)
-    mismatch_table_name = f'{destination_table}_mismatches'
+    mismatch_table_name = f'{l_destination_table}_mismatches'
 
     # Create table containing the all the missing rows which were present in
     # the left table but not present in the right table
     right_table_missing_rows_query = generate_query_string_missing_row(
         l_table, r_table, l_column_name, r_column_name, primary_keys,
         columns_list, type_cast_dict)
-    right_missing_rows_table_name = f'{destination_table}_{r_dataset_name}_missing_rows'
+    right_missing_rows_table_name = f'{r_destination_table}_{r_dataset_name}_missing_rows'
 
     # Create table containing the all the missing rows which were present in
     # the right table but not present in the left table
     left_table_missing_rows_query = generate_query_string_missing_row(
         r_table, l_table, r_column_name, l_column_name, primary_keys,
         columns_list, type_cast_dict)
-    left_missing_rows_table_name = f'{destination_table}_{l_dataset_name}_missing_rows'
+    left_missing_rows_table_name = f'{l_destination_table}_{l_dataset_name}_missing_rows'
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
         mismatch_rows = executor.map(
@@ -314,7 +318,7 @@ def start_diff_query_job(client, query_runner, query, destination_table):
     rows = query_job.result()  # Waits for the query to finish
     if destination_table:
         print(
-            f'View Table\n{bigquery_utils.get_console_link_for_table_ref(table_ref)}'
+            f'View Table {destination_table}\n{bigquery_utils.get_console_link_for_table_ref(table_ref)}'
         )
     print('\n')
     return rows
@@ -390,13 +394,14 @@ def generate_query_string_mismatch_row(tablename_left, tablename_right,
             right_column = (
                 f'CASE WHEN {r_table_column} = {l_table_column} THEN CAST(NULL AS {type_cast_dict[column_name]}) '
                 f'ELSE {r_table_column} END')
-            where_conditions.append(
-                (f'( {l_table_column} IS NULL AND {r_table_column} IS NOT NULL ) '
-                 f'OR ( {r_table_column} IS NULL AND {l_table_column} IS NOT NULL ) '
-                 f'OR {l_table_column} != {r_table_column}'))
+            where_conditions.append((
+                f'( {l_table_column} IS NULL AND {r_table_column} IS NOT NULL ) '
+                f'OR ( {r_table_column} IS NULL AND {l_table_column} IS NOT NULL ) '
+                f'OR {l_table_column} != {r_table_column}'))
 
-        fields.append((f'STRUCT( {left_column} AS {l_column_name},\n'
-                       f'\t\t{right_column} AS {r_column_name} ) AS {column_name}'))
+        fields.append(
+            (f'STRUCT( {left_column} AS {l_column_name},\n'
+             f'\t\t{right_column} AS {r_column_name} ) AS {column_name}'))
 
     field_list = ',\n\t'.join(fields)
     join_condition_string = get_join_condition(primary_keys)
@@ -430,13 +435,17 @@ def generate_query_string_missing_row(tablename_left, tablename_right,
             left_column = f'{column_name}'
             where_conditions.append(f'{r_table_column} is null')
 
-        fields.append(f'STRUCT({left_column} as {l_column_name}, {right_column} as {r_column_name}) as {column_name}')
+        fields.append(
+            f'STRUCT({left_column} as {l_column_name}, {right_column} as {r_column_name}) as {column_name}'
+        )
 
     select_columns = ',\n\t'.join(fields)
-    return (f'SELECT \n'
-            f'\t{select_columns}\n'
-            f'FROM\n'
-            f'({generate_query_string_missing_row_keys(tablename_left, tablename_right, primary_keys)})')
+    return (
+        f'SELECT \n'
+        f'\t{select_columns}\n'
+        f'FROM\n'
+        f'({generate_query_string_missing_row_keys(tablename_left, tablename_right, primary_keys)})'
+    )
 
 
 def generate_query_string_missing_row_keys(tablename_left, tablename_right,

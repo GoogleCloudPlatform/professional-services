@@ -95,20 +95,15 @@ def get_full_columns_list(client, exclude_columns_list, primary_keys, l_table_na
     #
     l_table = client.get_table(get_table_ref(client, l_table_name))
     r_table = client.get_table(get_table_ref(client, r_table_name))
-    l_compress = [f'{schema.name}' for schema in l_table.schema]
-    r_compress = [f'{schema.name}' for schema in r_table.schema]
+    l_columns_all = [f'{schema.name}' for schema in l_table.schema]
+    r_columns_all = [f'{schema.name}' for schema in r_table.schema]
     if exclude_columns_list is None:
         exclude_columns_list=[]
-    l_columns = list(OrderedSet(l_compress) - exclude_columns_list)
-    r_columns = list(OrderedSet(r_compress) - exclude_columns_list)
+    l_columns = list(OrderedSet(l_columns_all) - exclude_columns_list)
+    r_columns = list(OrderedSet(r_columns_all) - exclude_columns_list)
 
     if l_columns == r_columns:
-        config_column_list = set(primary_keys).difference(set(exclude_columns_list))
-        source_ordered_column_list = []
-        for source_table_column in l_table.schema:
-            if source_table_column.name in config_column_list:
-                source_ordered_column_list.append(source_table_column.name)
-        return source_ordered_column_list
+        return l_columns
     else:
         print(f'Table Schemas for table `{l_table_name}` and `{r_table_name}` are not equal!')
         return None
