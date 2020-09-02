@@ -64,29 +64,29 @@ def get_console_link_for_table_ref(table_ref):
     :return: string Link to BigQuery Table in GCP Console
     """
     return (
-        'https://console.cloud.google.com/bigquery?'
-        'project={}'
-        '&p={}'
-        '&t={}'
-        '&d=validation&orgonly=true'
-        '&supportedpurview=organizationId&page=table'
-    ).format(table_ref.project, table_ref.project, table_ref.table_id)
+        f'https://console.cloud.google.com/bigquery?'
+        f'project={table_ref.project}'
+        f'&p={table_ref.project}'
+        f'&t={table_ref.table_id}'
+        f'&d=validation&orgonly=true'
+        f'&supportedpurview=organizationId&page=table'
+    )
 
 
 def get_console_link_for_query_job(query_job):
     return (
-        'https://console.cloud.google.com/bigquery?'
-        'project={}'
-        '&j=bq:{}:{}'
-        '&page=queryresults&orgonly=true&supportedpurview=organizationId'
-    ).format(query_job.project, query_job.location, query_job.job_id)
+        f'https://console.cloud.google.com/bigquery?'
+        f'project={query_job.project}'
+        f'&j=bq:{query_job.location}:{query_job.job_id}'
+        f'&page=queryresults&orgonly=true&supportedpurview=organizationId'
+    )
 
 
-def get_full_columns_list(client, columns_list, primary_keys, l_table_name, r_table_name):
+def get_full_columns_list(client, exclude_columns_list, primary_keys, l_table_name, r_table_name):
     """
     This method will first retrieve the source table columns to preserve the same column order in this method's output
     :param client: BigQuery client
-    :param columns_list: list of columns to exclude
+    :param exclude_columns_list: list of columns to exclude
     :param primary_keys: list of primary keys
     :param l_table_name: left table name
     :param r_table_name: right table name
@@ -95,18 +95,20 @@ def get_full_columns_list(client, columns_list, primary_keys, l_table_name, r_ta
     #
     l_table = client.get_table(get_table_ref(client, l_table_name))
     r_table = client.get_table(get_table_ref(client, r_table_name))
-    l_compress = ["{0}".format(schema.name) for schema in l_table.schema]
-    r_compress = ["{0}".format(schema.name) for schema in r_table.schema]
-    l_columns = list(OrderedSet(l_compress) - columns_list)
-    r_columns = list(OrderedSet(r_compress) - columns_list)
+    l_compress = [f'{schema.name}' for schema in l_table.schema]
+    r_compress = [f'{schema.name}' for schema in r_table.schema]
+    if exclude_columns_list is None:
+        exclude_columns_list=[]
+    l_columns = list(OrderedSet(l_compress) - exclude_columns_list)
+    r_columns = list(OrderedSet(r_compress) - exclude_columns_list)
 
     if l_columns == r_columns:
-        config_column_list = set(primary_keys).difference(set(columns_list))
+        config_column_list = set(primary_keys).difference(set(exclude_columns_list))
         source_ordered_column_list = []
         for source_table_column in l_table.schema:
             if source_table_column.name in config_column_list:
                 source_ordered_column_list.append(source_table_column.name)
         return source_ordered_column_list
     else:
-        print('Table Schemas for table `{0}` and `{1}` are not equal!'.format(l_table_name, r_table_name))
+        print(f'Table Schemas for table `{l_table_name}` and `{r_table_name}` are not equal!')
         return None
