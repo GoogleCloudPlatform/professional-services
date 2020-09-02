@@ -220,7 +220,7 @@ def create_diff_tables(query_runner, client, config_data, l_table, r_table):
 
     columns_list = bigquery_utils.get_full_columns_list(
         client, config_data.get('excludeColumnMapping'),
-        primary_keys, l_table_name, r_table_name)
+        l_table_name, r_table_name)
     if columns_list is None:
         return None
     l_column_name = l_table_name.replace('.', '_')

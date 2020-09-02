@@ -82,7 +82,7 @@ def get_console_link_for_query_job(query_job):
     )
 
 
-def get_full_columns_list(client, exclude_columns_list, primary_keys, l_table_name, r_table_name):
+def get_full_columns_list(client, exclude_columns_list, l_table_name, r_table_name):
     """
     This method will first retrieve the source table columns to preserve the same column order in this method's output
     :param client: BigQuery client
