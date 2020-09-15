@@ -2,12 +2,12 @@
 
 ## TL;DR
 
-This blog will use GCP’s IAM Recommender to explore how to address a common
-pain-point we see in identity access-- enforcing least-privilege at scale. You
-will learn how to: 1) Identify a GCP project that has a lot of IAM
-Recommendations 2) Bulk-apply all (or some) of the recommendations on that
-project 3) Revert that bulk-application if you want to 4) Set-up a process that
-allows you to repeat the first 3 steps automatically.
+This article will use GCP’s
+[IAM Recommender](https://cloud.google.com/iam/docs/recommender-overview) to
+explore how to address a common pain-point we see in identity access-- enforcing
+least-privilege at scale. You will learn how to: 1) Identify a GCP project that
+has a lot of IAM Recommendations 2) Bulk-apply all (or some) of the
+recommendations on that project 3) Revert that bulk-application (if necessary)
 
 ## Introduction
 
@@ -22,21 +22,20 @@ access the Cloud Storage API and she is uncomfortable with the elevated
 [permissions](https://cloud.google.com/iam/docs/permissions-reference) it has
 beyond that job. You reply back that you are on it and begin looking around.
 
-The feeling of unease you had when reading the email grows as you look at the
-project the developer was referencing. Along with the offending service account,
-you recognize the name of a senior manager who also has the Owner role. The
-manager is a fine person, but probably should not have the sort of universal
-access to GCP that the Owner role allows. Out of curiosity, you click into a
-different project called “SandboxA” and see that every principal has the Editor
-role. While it is just a sandbox project, you shake your head at the blatant
+As you look at the project the developer was referencing you see the offending
+Service Account, but also recognize the name of a senior manager who has the
+Owner role as well. The manager is a fine person, but probably should not have
+the sort of universal access to the project that the Owner role allows. Next,
+you click into a different project that has “sandbox” in the title and find
+every principal has the Editor role. It is just a sandbox but the blatant
 disregard for the
-[principle of least privilege](https://cloud.google.com/blog/products/application-development/least-privilege-for-cloud-functions-using-cloud-iam).
-Another hour of looking and the problem has become apparent. Time and time again
-permissions were being given to people, groups, and service accounts that just
-did not need them. The worst part is you don’t even know how big the problem is.
-There are hundreds of projects at your company and thousands of GCP principals.
-You can’t possibly check them all because you don’t have time and you don’t know
-what permissions each principal needs to do their job.
+[principle of least privilege](https://cloud.google.com/blog/products/application-development/least-privilege-for-cloud-functions-using-cloud-iam)
+is alarming. Another hour of looking and you see that time and time again
+permissions were given to people, groups, and service accounts that just did not
+need them. The worst part is you don’t even know how big the problem is. There
+are hundreds of projects at your company and thousands of GCP principals. You
+can’t check them all because you don’t have time and you don’t know what
+permissions each principal needs to do their job.
 
 If any part of this scenario sounds familiar, you are not alone. There is good
 news though! Google has built the
@@ -57,30 +56,23 @@ IAM Recommendation will never grant a principal more access to your GCP
 environment.
 
 Now that you know what the IAM Recommender is and what it can do, the next
-problem is knowing how to get started using the tool. There could be hundreds
-(or thousands) of principals that need smaller roles but it can be tough to know
-how to start. What if you are removing permissions from a principal that
-actually needs them? You don’t want to deal with angry emails or worse, broken
-environments.
+problem is knowing how to get started using the feature. We’ve
+[written an article](https://cloud.google.com/blog/products/identity-security/achieve-least-privilege-with-less-effort-using-iam-recommender)
+before outlining some concrete ways to get started, and if that is enough for
+your company then great! However, in this article we are going to walk through a
+particular process that allows you to bulk-apply IAM Recommendations for an
+entire project using a set of commands in Cloud Shell.
 
-That makes sense. We want to help.
+Here is that process in four steps (pre-step not included):
 
-We are going to walk through one potential process you could take using the IAM
-Recommender to enforce least-privilege, but there are many other ways you could
-do it. Please drop us a line if you have any other ideas that have worked for
-you.
-
-Here is that process in five steps (pre-step not included):
-
-1.  View the total number of service accounts, members, and groups that have IAM
+1.  View the total number of service accounts, users, and groups that have IAM
     Recommendations broken out by project.
 2.  Identify a project with some IAM recommendations that you feel comfortable
     testing out the IAM Recommender on. We used a sandbox project for this step,
     but you can do whatever seems best for you.
-3.  Bulk-apply recommendations on that project.
-4.  We’ll also show you how to revert this bulk-application as well. Identify
-    the next project that has recommendations and apply those too.
-5.  Bonus step: automate the whole process!
+3.  Bulk-apply recommendations on that project.We’ll also show you how to revert
+    this bulk-application as well.
+4.  Identify the next project that has recommendations and apply those too.
 
 ## Pre-step
 
@@ -110,7 +102,15 @@ your GCP environment are ready:
     curl https://raw.githubusercontent.com/misabhishek/professional-services/master/tools/iam-recommender-at-scale/install.sh | bash -
     ```
 
-2.  Next, run the below code to retrieve all IAM Recommendations in your
+2.  Enter the below command to go to the source directory and activate the
+    python environment.
+
+    ```
+    cd iam-recommender-at-scale
+    . env/bin/activate
+    ```
+
+3.  Next, run the below code to retrieve all IAM Recommendations in your
     organization and break it out by project. Make sure to enter in your
     Organization ID, called out here as,`<YOUR-ORGANIZATION-ID>`. You’ll also
     need to include a path to the service account key you created earlier,
@@ -118,13 +118,12 @@ your GCP environment are ready:
 
     ```
     python get_projects_security_status.py \
-    --organization_id=<YOUR-ORGANIZATION-ID> \
-    --path_to_service_account=<SERVICE-ACCOUNT-FILE-PATH> \
-    --to_print=True \
+    --organization=<organizations/YOUR-ORGANIZATION-ID> \
+    --service_account_file_path=<SERVICE-ACCOUNT-FILE-PATH> \
     --to_csv=<PATH-TO-CSV-FILE (optional)>
     ```
 
-3.  For this demo we exported the results from step 1.2 into a CSV and uploaded
+4.  For this demo we exported the results from step 1.2 into a CSV and uploaded
     that CSV into a Google Sheet.
 
     ![project security status](./asset/project-security-status.png)
@@ -189,9 +188,9 @@ your GCP environment are ready:
     -   “id” : an ID that uniquely identifies the recommendation
     -   “etag”: an etag that identifies the modification time of the
         recommendation.
-    -   “member”: the member, or principal, is the identity the recommendation
-        is about. There can be more than one recommendation per member because a
-        member can have more than one role.
+    -   “principal”: the principal is the identity the recommendation is about.
+        There can be more than one recommendation per principal because a
+        principal can have more than one role.
     -   “roles_recommended_to_be_removed”: the role that will be removed by the
         IAM Recommender.
     -   “roles_recommended_to_be_replaced_with”: the role(s) that will replace
@@ -206,7 +205,7 @@ your GCP environment are ready:
             {
                 "id": "unique-id-1",
                 "etag": "etag-1",
-                "member": "serviceAccount:abc@cloudservices.gserviceaccount.com",
+                "principal": "serviceAccount:abc@cloudservices.gserviceaccount.com",
                 "role_recommended_to_be_removed": "roles/editor",
                 "roles_recommended_to_be_replaced_with": [
                     "roles/storage.objectAdmin"
@@ -215,7 +214,7 @@ your GCP environment are ready:
             {
                 "id":"unique-id-2",
                 "etag": "etag-2",
-                "member": "user:abc@xyz.com",
+                "principal": "user:abc@xyz.com",
                 "role_recommended_to_be_removed": "roles/owner",
                 "roles_recommended_to_be_replaced_with": [
                     "roles/orgpolicy.policyViewer",
@@ -225,7 +224,7 @@ your GCP environment are ready:
             {
                 "id": "unique-id-3",
                 "etag": "etag-3",
-                "member": "group:def@xyz.com",
+                "principal": "group:def@xyz.com",
                 "role_recommended_to_be_removed": "roles/storage.admin",
                 "roles_recommended_to_be_replaced_with": []
             }
@@ -248,6 +247,7 @@ your GCP environment are ready:
     ```
     python apply_recommendations.py \
     --project_id=<YOUR-PROJECT-ID (required)> \
+    --service_account_file_path=<SERVICE-ACCOUNT-FILE-PATH> \
     --recommendation_to_be_applied=<PATH-TO-RECOMMENDATIONS-INPUT (required)>
     ```
 
@@ -266,23 +266,20 @@ your GCP environment are ready:
     ```
     python revert_recommendations.py \
     --project_id=<YOUR-PROJECT-ID (required)> \
-    --input_specific_recommendation=<PATH-TO-RECOMMENDATIONS-INPUT (required)>
+    --service_account_file_path=<SERVICE-ACCOUNT-FILE-PATH> \
+    --recommendation_to_be_reverted=<PATH-TO-RECOMMENDATIONS-INPUT (required)>
     ```
 
 ## Step 4: Take more recommendations
 
 At this point, there are a couple options about what do do next:
 
-1.  You can wait and see if the changes you’ve made have any negative effects on
-    your environment or it’s users. We did something similar to this when we ran
-    an internal simulation where we asked the question: if every IAM
-    Recommendation was taken yesterday, how many principals would be blocked
-    from completing an action they are trying to do today? Our best guess was
-    that about 0.0001% of those recommendations would have blocked a principal,
-    while at the same time millions of unused permissions would have been
-    removed. We will keep working until blocked users is 0%, but maybe knowing
-    the numbers will help you understand a bit more about the trade-offs you are
-    entering into with IAM Recommender.
+1.  You can wait and monitor the changes you’ve made. While waiting, you could
+    [read about](https://cloud.google.com/blog/products/identity-security/achieve-least-privilege-with-less-effort-using-iam-recommender)
+    companies like Uber and Veolia who have used the IAM Recommender to remove
+    millions of permissions with no adverse effects. We are hopeful that your
+    company will have a similar experience to these companies who successfully
+    use the IAM Recommender.
 2.  You could also start taking more recommendations! Run this script again or
     go to the IAM page in the GCP console and look for individual
     recommendations by looking for the
@@ -291,15 +288,12 @@ At this point, there are a couple options about what do do next:
     [Recommendations Hub](https://cloud.google.com/recommender/docs/recommendation-hub/getting-started)
     and look at all your GCP Recommendations, not just the IAM related ones.
 
-## Step 5: Automate
+## Bonus step: setting up an Infrastructure-as-Code pipeline
 
-We are going to write another blog in the near future outlining some potential
-automation strategies with the IAM Recommender. Please make sure to check back
-for that soon. In the meantime, some ideas for how to automate IAM
-Recommendations is to run this script every day or once a week using something
-like cloud functions. Another form of automation could be to integrate the IAM
-Recommender with Terraform, a tutorial written on how to set that up can be
-found here.
+If your company uses an infrastructure-as-code solution for managing IAM, then
+you may want to set up a pipeline that allows you to use the IAM Recommender
+with something like Terraform. If this is interesting, check out this tutorial
+written on how to set that up.
 
 ## Conclusion
 

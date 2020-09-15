@@ -38,69 +38,76 @@ RECOMMENDATION_TYPE = "google.iam.policy.Recommender"
 
 
 def describe_recommendations(recommendations):
-  """Returns a json string representation  of recommendation with selected fileds.
+    """Returns a json string representation  of recommendation with selected fileds.
 
   Args:
     recommendations: List(common.Recommendation)
   """
-  recommendations_sorted = sorted(recommendations, key=lambda x: x.member)
-  data = []
-  for r in recommendations_sorted:
-    data.append({
-        "id": r.name,
-        "etag": r.etag,
-        "member": r.member,
-        "role_recommended_to_be_removed": list(r.remove_role),
-        "roles_recommended_to_be_replaced_with": list(r.add_roles)
-    })
-  return json.dumps({"recommendations": data}, indent=4, sort_keys=True)
+    recommendations_sorted = sorted(recommendations, key=lambda x: x.principal)
+    data = []
+    for r in recommendations_sorted:
+        data.append({
+            "id": r.name,
+            "etag": r.etag,
+            "principal": r.principal,
+            "role_recommended_to_be_removed": list(r.remove_role),
+            "roles_recommended_to_be_replaced_with": list(r.add_roles)
+        })
+    return json.dumps({"recommendations": data}, indent=4, sort_keys=True)
 
 
 def main():
-  parser = argparse.ArgumentParser(
-      description="Get recommendations for a given project.")
-  parser.add_argument(
-      "--project_id",
-      required=True,
-      type=str,
-      help="Enter project id for which you want the recommendation status.")
-  parser.add_argument(
-      "--service_account_file_path",
-      required=True,
-      type=str,
-      help="Enter the location of service account key for the resources.")
-  parser.add_argument(
-      "--to_json",
-      type=str,
-      nargs="?",
-      default="",
-      help="Enter the json file name to store the recommendation data.")
-  parser.add_argument(
-      "--log", type=str, nargs="?", default="INFO", help="Enter the log level.")
-  parser.add_argument(
-      "--recommendation_state",
-      type=str,
-      nargs="?",
-      default="ACTIVE",
-      help="Enter the state of recommendation.")
-  args = parser.parse_args()
+    parser = argparse.ArgumentParser(
+        description="Get recommendations for a given project.")
+    parser.add_argument(
+        "--project_id",
+        required=True,
+        type=str,
+        help="Enter project id for which you want the recommendation status.")
+    parser.add_argument(
+        "--service_account_file_path",
+        required=True,
+        type=str,
+        help="Enter the location of service account key for the resources.")
+    parser.add_argument(
+        "--to_json",
+        type=str,
+        nargs="?",
+        default="",
+        help="Enter the json file name to store the recommendation data.")
+    parser.add_argument("--log",
+                        type=str,
+                        nargs="?",
+                        default="INFO",
+                        help="Enter the log level.")
+    parser.add_argument("--recommendation_state",
+                        type=str,
+                        nargs="?",
+                        default="ACTIVE",
+                        help="Enter the state of recommendation.")
+    args = parser.parse_args()
 
-  logging.basicConfig(
-      format="%(levelname)s[%(asctime)s]:%(message)s", level=args.log)
-  credentials = service_account.Credentials.from_service_account_file(
-      args.service_account_file_path, scopes=SCOPES)
+    logging.basicConfig(format="%(levelname)s[%(asctime)s]:%(message)s",
+                        level=args.log)
+    credentials = service_account.Credentials.from_service_account_file(
+        args.service_account_file_path, scopes=SCOPES)
 
-  recommender = build(
-      "recommender", "v1", credentials=credentials, cache_discovery=False)
-  recommendation_data = common.get_recommendations(args.project_id, recommender,
-                                                   args.recommendation_state,
-                                                   credentials)
-  recommendatios_jsonified = describe_recommendations(recommendation_data)
-  if not args.to_json:
-    print(recommendatios_jsonified)
-  else:
-    common.writefile(recommendatios_jsonified, args.to_json)
+    recommender = build("recommender",
+                        "v1",
+                        credentials=credentials,
+                        cache_discovery=False)
+    recommendation_data = common.get_recommendations(args.project_id,
+                                                     recommender,
+                                                     args.recommendation_state,
+                                                     credentials)
+    recommendatios_jsonified = describe_recommendations(recommendation_data)
+    if not args.to_json:
+        print(recommendatios_jsonified)
+    else:
+        common.writefile(recommendatios_jsonified, args.to_json)
+        logging.info("Find the project:%s recommendations at location %s.",
+                     args.project_id, args.to_json)
 
 
 if __name__ == "__main__":
-  main()
+    main()
