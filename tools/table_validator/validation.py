@@ -259,20 +259,23 @@ def create_diff_tables(query_runner, client, config_data, l_table, r_table):
             ], [
                 mismatch_table_name, right_missing_rows_table_name,
                 left_missing_rows_table_name
+            ], [
+                'mismatches', 'right_missing', 'left_missing'
             ])
 
         # Create or Append to results table which keeps track of all tables
         # and their stats
         for result in mismatch_rows:
-            total_rows = result.total_rows
-        materialize_detailed_diff_stats(
-            client, destination_dataset, l_column_name, r_column_name,
-            l_table_name, r_table_name, columns_list, total_rows,
-            mismatch_table_name, left_missing_rows_table_name,
-            right_missing_rows_table_name)
-        print('##############################################################')
-        print('##############################################################')
-        print('')
+            if result.get('label') == 'mismatches':
+                total_rows = result.get('rows').total_rows
+                materialize_detailed_diff_stats(
+                    client, destination_dataset, l_column_name, r_column_name,
+                    l_table_name, r_table_name, columns_list, total_rows,
+                    mismatch_table_name, left_missing_rows_table_name,
+                    right_missing_rows_table_name)
+                print('##############################################################')
+                print('##############################################################')
+                print('')
 
 
 def calculate_diff_stats(client, l_table_name, r_table_name,
@@ -301,7 +304,7 @@ def calculate_diff_stats(client, l_table_name, r_table_name,
     return mismatch_row_count, total_missing_rows
 
 
-def start_diff_query_job(client, query_runner, query, destination_table):
+def start_diff_query_job(client, query_runner, query, destination_table, label):
     job_config = bigquery.QueryJobConfig()
     table_ref = bigquery_utils.get_table_ref(client, destination_table)
     print(f"Creating ( {destination_table.split('.')[1]} )")
@@ -321,7 +324,7 @@ def start_diff_query_job(client, query_runner, query, destination_table):
             f'View Table {destination_table}\n{bigquery_utils.get_console_link_for_table_ref(table_ref)}'
         )
     print('\n')
-    return rows
+    return {'label': label, 'rows': rows}
 
 
 def get_type_cast_dict(client, tablename, columns_list):
