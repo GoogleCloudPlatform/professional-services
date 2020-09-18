@@ -267,10 +267,10 @@ def create_diff_tables(query_runner, client, config_data, l_table, r_table):
         # and their stats
         for result in mismatch_rows:
             if result.get('label') == 'mismatches':
-                total_rows = result.get('rows').total_rows
+                mismatch_total_rows = result.get('rows').total_rows
                 materialize_detailed_diff_stats(
                     client, destination_dataset, l_column_name, r_column_name,
-                    l_table_name, r_table_name, columns_list, total_rows,
+                    l_table_name, r_table_name, columns_list, mismatch_total_rows,
                     mismatch_table_name, left_missing_rows_table_name,
                     right_missing_rows_table_name)
                 print('##############################################################')
