@@ -84,16 +84,16 @@ class PrometheusBackend:
         filter_valid = conf['measurement'].get('filter_valid')
 
         # Replace window by its value in the error budget policy step
-        expr_good = filter_good.replace('[window]', f'[{window}s]')
+        expr_good = filter_good.replace('[window', f'[{window}s')
         res_good = self.query(expr_good)
         good_count = PrometheusBackend.count(res_good)
 
         if filter_bad:
-            expr_bad = filter_bad.replace('[window]', f'[{window}s]')
+            expr_bad = filter_bad.replace('[window', f'[{window}s')
             res_bad = self.query(expr_bad, timestamp)
             bad_count = PrometheusBackend.count(res_bad)
         elif filter_valid:
-            expr_valid = filter_valid.replace('[window]', f'[{window}s]')
+            expr_valid = filter_valid.replace('[window', f'[{window}s')
             res_valid = self.query(expr_valid, timestamp)
             bad_count = PrometheusBackend.count(res_valid) - good_count
         else:
