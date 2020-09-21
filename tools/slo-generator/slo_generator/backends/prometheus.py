@@ -53,7 +53,7 @@ class PrometheusBackend:
         conf = slo_config['backend']
         measurement = conf['measurement']
         expr = measurement['expression']
-        expression = expr.replace("[window]", f"[{window}s]")
+        expression = expr.replace("[window", f"[{window}s")
         data = self.query(expression, timestamp)
         LOGGER.debug(
             f"Expression: {expression} | Result: {pprint.pformat(data)}")
