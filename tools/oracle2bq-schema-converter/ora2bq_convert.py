@@ -49,8 +49,6 @@
 
 import cx_Oracle
 import json
-import argparse
-import sys
 import logging
 from pathlib import Path
 from jinja2 import Environment, FileSystemLoader
