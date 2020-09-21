@@ -14,8 +14,6 @@
 
 # Authors: yunusd@google.com, sametkaradag@google.com
 
-
-
 # This software is provided as-is,
 # without warranty or representation for any use or purpose.
 # Your use of it is subject to your agreement with Google.
@@ -54,9 +52,10 @@ from pathlib import Path
 from jinja2 import Environment, FileSystemLoader
 import click
 
-logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s',
-                    datefmt='%d/%m/%Y %H:%M:%S',
-                    level=logging.INFO)
+logging.basicConfig(
+    format="%(asctime)s %(levelname)s:%(message)s",
+    datefmt="%d/%m/%Y %H:%M:%S",
+    level=logging.INFO)
 
 nullable_map = {"Y": "NULLABLE", "N": "REQUIRED"}
 data_type_map = {
@@ -102,56 +101,50 @@ data_type_map = {
 
 
 def generate_terraform_table_variable(table_names={}):
-    file_loader = FileSystemLoader('.')
-    env = Environment(loader=file_loader)
-    template = env.get_template('terraform_table_variable.jinja2')
-    return template.render(table_names=table_names)
+  file_loader = FileSystemLoader(".")
+  env = Environment(loader=file_loader)
+  template = env.get_template("terraform_table_variable.jinja2")
+  return template.render(table_names=table_names)
 
 
 @click.command(name="Schema Generator")
 @click.option(
-    '--oracle_connection_string',
+    "--oracle_connection_string",
     "-c",
     required=False,
     default="",
     type=str,
-    help=
-    "Oracle connection string example: 'db_username/db_password@hostname_or_IP/service_name'"
+    help="Oracle connection string example: 'db_username/db_password@hostname_or_IP/service_name'"
 )
 @click.option(
     "--dsn-file",
     required=False,
     type=click.File("r"),
-    help=
-    "DSN file to provide instead of the conenction string. especially if you have to provide SID. Fill the example dsn.txt"
+    help="DSN file to provide instead of the conenction string. especially if you have to provide SID. Fill the example dsn.txt"
 )
 @click.option(
     "--username",
     "-u",
     type=str,
-    help=
-    "username to connect. required if you use DSN format. In connection string version it is embedded inside the connection string"
+    help="username to connect. required if you use DSN format. In connection string version it is embedded inside the connection string"
 )
 @click.option(
     "--password",
     "-p",
     type=str,
-    help=
-    "password. required if you use DSN format. In connection string version it is embedded inside the connection string"
+    help="password. required if you use DSN format. In connection string version it is embedded inside the connection string"
 )
 @click.option(
     "--table-schema",
     "-s",
     type=str,
-    help=
-    "Schema name which contains the tables or use %% as like pattern for multiple schemas ex:HR"
+    help="Schema name which contains the tables or use %% as like pattern for multiple schemas ex:HR"
 )
 @click.option(
     "--table-name",
     "-t",
     type=str,
-    help=
-    "Exact table name, comma separated list of tables or use %% as like pattern for multiple tables. Use %% for all tables. Can be exact or like ex: D%%"
+    help="Exact table name, comma separated list of tables or use %% as like pattern for multiple tables. Use %% for all tables. Can be exact or like ex: D%%"
 )
 @click.option(
     "--schema-output-dir",
@@ -164,12 +157,11 @@ def generate_terraform_table_variable(table_names={}):
     type=click.File("w"),
     default="terraform.tfvars",
     show_default=True,
-    help=
-    "terraform variable file to write the generated table variables. Cleans the file before assing parameters."
+    help="terraform variable file to write the generated table variables. Cleans the file before assing parameters."
 )
 def main(oracle_connection_string, dsn_file, username, password, table_schema,
          table_name, schema_output_dir, terraform_tfvar):
-    """Generates BigQuery JSON schema files for terraform from Oracle tables
+  """Generates BigQuery JSON schema files for terraform from Oracle tables
 
     Usage:\n
     First install the dependencies with pipenv:
@@ -181,89 +173,102 @@ def main(oracle_connection_string, dsn_file, username, password, table_schema,
     $ python ora2bq_convert.py --help
 
     Example commands if you use connection string: \n
-    $ python ora2bq_convert.py -c 'db_username/db_password@IP_or_HOSTNAME/DB_SERVICE_NAME' -s HR -t D% -o example_terraform_dir/schemas -tf example_terraform_dir/terraform.tfvars \n
-    $ python ora2bq_convert.py -c 'db_username/db_password@IP_or_HOSTNAME/DB_SERVICE_NAME' -s H% -t % -o example_terraform_dir/schemas -tf example_terraform_dir/terraform.tfvars  \n
-    $ python ora2bq_convert.py -c 'db_username/db_password@IP_or_HOSTNAME/DB_SERVICE_NAME' -s % -t % -o example_terraform_dir/schemas -tf example_terraform_dir/terraform.tfvars \n
-    $ python ora2bq_convert.py -c 'db_username/db_password@IP_or_HOSTNAME/DB_SERVICE_NAME' -s HR -t "DEPARTMENTS,TEST,REGIONS,JOBS" -o example_terraform_dir/schemas -tf example_terraform_dir/terraform.tf
+    $ python ora2bq_convert.py -c
+    'db_username/db_password@IP_or_HOSTNAME/DB_SERVICE_NAME' -s HR -t D% -o
+    example_terraform_dir/schemas -tf example_terraform_dir/terraform.tfvars \n
+    $ python ora2bq_convert.py -c
+    'db_username/db_password@IP_or_HOSTNAME/DB_SERVICE_NAME' -s H% -t % -o
+    example_terraform_dir/schemas -tf example_terraform_dir/terraform.tfvars  \n
+    $ python ora2bq_convert.py -c
+    'db_username/db_password@IP_or_HOSTNAME/DB_SERVICE_NAME' -s % -t % -o
+    example_terraform_dir/schemas -tf example_terraform_dir/terraform.tfvars \n
+    $ python ora2bq_convert.py -c
+    'db_username/db_password@IP_or_HOSTNAME/DB_SERVICE_NAME' -s HR -t
+    "DEPARTMENTS,TEST,REGIONS,JOBS" -o example_terraform_dir/schemas -tf
+    example_terraform_dir/terraform.tf
 
     Example commands if you use dsn file: \n
-    $ python ora2bq_convert.py --dsn-file dsn.txt -u db_username -p db_password -s HR -t D% -o example_terraform_dir/schemas -tf example_terraform_dir/terraform.tfvars \n
+    $ python ora2bq_convert.py --dsn-file dsn.txt -u db_username -p db_password
+    -s HR -t D% -o example_terraform_dir/schemas -tf
+    example_terraform_dir/terraform.tfvars \n
     """
 
-    json_out_path = Path(schema_output_dir)
-    table_names = {}
+  json_out_path = Path(schema_output_dir)
+  table_names = {}
 
-    if oracle_connection_string == "":
-        con = cx_Oracle.connect(username, password, dsn_file.read())
-    else:
-        con = cx_Oracle.connect(oracle_connection_string)
-    # You need to use username that has access to all_tab_columns ex for grant; "grant select on ALL_TAB_COLUMNS to hr"
-    cur = con.cursor()
-    
-    if "," in table_name:
-        table_list = [i.strip() for i in table_name.split(",")]
-        bind_names = [":" + str(i + 1) for i in range(len(table_list))]
-        full_bind_list = [table_schema] + table_list 
-        sql = """select 
+  if oracle_connection_string == "":
+    con = cx_Oracle.connect(username, password, dsn_file.read())
+  else:
+    con = cx_Oracle.connect(oracle_connection_string)
+  # You need to use username that has access to all_tab_columns ex for grant; "grant select on ALL_TAB_COLUMNS to hr"
+  cur = con.cursor()
+
+  if "," in table_name:
+    table_list = [i.strip() for i in table_name.split(",")]
+    bind_names = [":" + str(i + 1) for i in range(len(table_list))]
+    full_bind_list = [table_schema] + table_list
+    sql = """select 
                 OWNER,TABLE_NAME  
                 from all_tables 
                 where owner like :table_schema""" + \
-                " and (table_name in (%s) ) order by owner, table_name" % (",".join(bind_names))
-        
-        cur.execute(sql, full_bind_list)
-    else:
-        sql = """select 
+            " and (table_name in (%s) ) order by owner, table_name" % (",".join(bind_names))
+
+    cur.execute(sql, full_bind_list)
+  else:
+    sql = """select 
                 OWNER,TABLE_NAME  
                 from all_tables 
                 where owner like :table_schema
                     and (table_name like :table_name ) 
                 order by owner, table_name
         """
-        cur.execute(sql, [table_schema, table_name])
-    # You can modify the below query to add schema or table name patterns
-    
-    for table in cur:
-        print(f"{table[0]}.{table[1]}")
-        table_name = table[1]
-        owner = table[0]
-        cur_col = con.cursor()
-        sql = """select 
+    cur.execute(sql, [table_schema, table_name])
+  # You can modify the below query to add schema or table name patterns
+
+  for table in cur:
+    print(f"{table[0]}.{table[1]}")
+    table_name = table[1]
+    owner = table[0]
+    cur_col = con.cursor()
+    sql = """select 
                     TABLE_NAME, COLUMN_NAME, DATA_TYPE, DATA_LENGTH, NULLABLE, DATA_DEFAULT, DATA_SCALE 
                     from all_tab_columns 
                     where owner =:owner_name
                     and table_name = :table_name  
                     order by owner, table_name,COLUMN_ID asc
         """
-        cur_col.execute(sql, [owner, table_name])
-        schema = []
-        for row in cur_col:
-            data_type = row[2]
-            if data_type == "NUMBER":
-                if row[6] == None or int(row[6]) > 0:  # this is a decimal number so type is NUMERIC. if no scale is provided (row[6] == None), then oracle assigns the default largest scale. 
-                    data_type = f"{data_type}(x,y)"
-                else:  # this is an integer, since the scale does not exist or it is below 0
-                    data_type = f"{data_type}(x)"
+    cur_col.execute(sql, [owner, table_name])
+    schema = []
+    for row in cur_col:
+      data_type = row[2]
+      if data_type == "NUMBER":
+        if row[6] == None or int(
+            row[6]
+        ) > 0:  # this is a decimal number so type is NUMERIC. if no scale is provided (row[6] == None), then oracle assigns the default largest scale.
+          data_type = f"{data_type}(x,y)"
+        else:  # this is an integer, since the scale does not exist or it is below 0
+          data_type = f"{data_type}(x)"
 
-            print(f"\t{row}\t--\tguessed type: {data_type_map[data_type]}")
+      print(f"\t{row}\t--\tguessed type: {data_type_map[data_type]}")
 
-            schema.append({
-                "description": row[1],
-                "mode": nullable_map[row[4]],
-                "name": row[1],
-                "type": data_type_map[data_type]
-            })
-        cur_col.close()
+      schema.append({
+          "description": row[1],
+          "mode": nullable_map[row[4]],
+          "name": row[1],
+          "type": data_type_map[data_type]
+      })
+    cur_col.close()
 
-        file_path = json_out_path / table_name
-        with open(f'{file_path.absolute()}.json', 'w') as outfile:
-            json.dump(schema, outfile, indent=4)
-        table_names[table_name] = f'CHANGE_ME/{file_path.name}.json'
+    file_path = json_out_path / table_name
+    with open(f'{file_path.absolute()}.json', "w") as outfile:
+      json.dump(schema, outfile, indent=4)
+    table_names[table_name] = f'CHANGE_ME/{file_path.name}.json'
 
-    cur.close()
-    con.close()
-    rendered_variable = generate_terraform_table_variable(table_names)
-    click.echo(rendered_variable, terraform_tfvar)
+  cur.close()
+  con.close()
+  rendered_variable = generate_terraform_table_variable(table_names)
+  click.echo(rendered_variable, terraform_tfvar)
 
 
-if __name__ == '__main__':
-    main()
+if __name__ == "__main__":
+  main()
