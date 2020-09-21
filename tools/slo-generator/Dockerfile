@@ -12,27 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM ubuntu:16.04
-
-# Install prereqs
-RUN apt-get update && apt-get install -y \
-    wget \
-    unzip \
-    curl \
-    python3 \
-    python3-pip \
-  && rm -rf /var/lib/apt/lists/*
-
-# Install gcloud SDK
-RUN mkdir -p /usr/local/gcloud \
-  && tar -C /usr/local/gcloud -xvf /tmp/google-cloud-sdk.tar.gz \
-  && /usr/local/gcloud/google-cloud-sdk/install.sh
-
-# Adding the package path to local
-ENV PATH $PATH:/usr/local/gcloud/google-cloud-sdk/bin
-
-# Install slo-generator
-RUN pip3 install slo-generator
-
-# Run script
+FROM python:3-slim
+ADD . /app
+WORKDIR /app
+RUN pip install -U setuptools
+RUN python setup.py install
 ENTRYPOINT [ "slo-generator" ]
