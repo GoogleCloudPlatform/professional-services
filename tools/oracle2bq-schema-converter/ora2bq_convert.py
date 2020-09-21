@@ -19,7 +19,6 @@ import json
 import logging
 import pathlib
 import sys
-# import click
 import cx_Oracle
 import jinja2
 
