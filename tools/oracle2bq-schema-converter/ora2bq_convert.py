@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # coding: utf-8
-
 # Copyright 2020 Google LLC.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,46 +10,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 # Authors: yunusd@google.com, sametkaradag@google.com
 
-# This software is provided as-is,
-# without warranty or representation for any use or purpose.
-# Your use of it is subject to your agreement with Google.
+"""Generates BigQuery JSON schema files for terraform from Oracle tables."""
 
-# You need to install cx_Oracle:
-# pip3 install cx_oracle
-# ############################################################
-# Mac Users: If you get "xcrun: error: invalid active developer path (/Library/Developer/CommandLineTools), missing xcrun at: /Library/Developer/CommandLineTools/usr/bin/xcrun" error run:
-# sudo xcode-select --install
-# or
-# sudo xcode-select --reset
-# ###########################################################
-# In macOS, You might see the following error :
-# sqlalchemy.exc.DatabaseError: (cx_Oracle.DatabaseError) ORA-21561: OID generation failed
-# This is caused by the macOS hostname under “sharing” not matching the name in /etc/hosts
-# Run hostname to get the name of the mac :
-# Synerty-256:build-web jchesney$ hostname
-# syn256.local
-# Confirm that it matches the hostnames for 127.0.0.1 and ::1 in /etc/hosts :
-# Synerty-256:build-web jchesney$ cat /etc/hosts
-# ##
-# # Host Database
-# #
-# # localhost is used to configure the loopback interface
-# # when the system is booting.  Do not change this entry.
-# ##
-# 127.0.0.1       localhost syn256.local
-# 255.255.255.255 broadcasthost
-# ::1             localhost syn256.local
-####################################################################
-
-import cx_Oracle
+import argparse
 import json
 import logging
-from pathlib import Path
-from jinja2 import Environment, FileSystemLoader
-import click
+import pathlib
+import sys
+# import click
+import cx_Oracle
+import jinja2
+
+Path = pathlib.Path
+Environment = jinja2.Environment
+FileSystemLoader = jinja2.FileSystemLoader
 
 logging.basicConfig(
     format="%(asctime)s %(levelname)s:%(message)s",
@@ -100,114 +75,122 @@ data_type_map = {
 }
 
 
-def generate_terraform_table_variable(table_names={}):
+def generate_terraform_table_variable(table_names):
+  if table_names is None:
+    table_names = {}
   file_loader = FileSystemLoader(".")
   env = Environment(loader=file_loader)
   template = env.get_template("terraform_table_variable.jinja2")
   return template.render(table_names=table_names)
 
 
-@click.command(name="Schema Generator")
-@click.option(
-    "--oracle_connection_string",
-    "-c",
-    required=False,
-    default="",
-    type=str,
-    help="Oracle connection string example: 'db_username/db_password@hostname_or_IP/service_name'"
-)
-@click.option(
-    "--dsn-file",
-    required=False,
-    type=click.File("r"),
-    help="DSN file to provide instead of the conenction string. especially if you have to provide SID. Fill the example dsn.txt"
-)
-@click.option(
-    "--username",
-    "-u",
-    type=str,
-    help="username to connect. required if you use DSN format. In connection string version it is embedded inside the connection string"
-)
-@click.option(
-    "--password",
-    "-p",
-    type=str,
-    help="password. required if you use DSN format. In connection string version it is embedded inside the connection string"
-)
-@click.option(
-    "--table-schema",
-    "-s",
-    type=str,
-    help="Schema name which contains the tables or use %% as like pattern for multiple schemas ex:HR"
-)
-@click.option(
-    "--table-name",
-    "-t",
-    type=str,
-    help="Exact table name, comma separated list of tables or use %% as like pattern for multiple tables. Use %% for all tables. Can be exact or like ex: D%%"
-)
-@click.option(
-    "--schema-output-dir",
-    "-o",
-    type=click.Path(exists=True),
-    help="Output directory to place JSON formatted BigQuery schema files")
-@click.option(
-    "--terraform-tfvar",
-    "-tf",
-    type=click.File("w"),
-    default="terraform.tfvars",
-    show_default=True,
-    help="terraform variable file to write the generated table variables. Cleans the file before assing parameters."
-)
-def main(oracle_connection_string, dsn_file, username, password, table_schema,
-         table_name, schema_output_dir, terraform_tfvar):
-  """Generates BigQuery JSON schema files for terraform from Oracle tables
+def parse_args(args):
+  """Parses arguments."""
+  parser = argparse.ArgumentParser(
+      description=
+      "convert oracle schema to bigquery schema to be consumed by terraform",
+      prog="schema converter"
+  )
+  parser.add_argument(
+      "-c",
+      "--oracle_connection_string",
+      required=False,
+      help=
+      "Oracle connection string example: db_username/db_password@hostname_or_IP/service_name"
+  )
+  parser.add_argument(
+      "--dsn_file",
+      required=False,
+      help=
+      """DSN file to provide instead of the conenction string. especially if you have to provide SID.
+      Fill the example dsn.txt"""
+  )
+  parser.add_argument(
+      "-s",
+      "--table_schema",
+      required=True,
+      help="Schema name which contains the tables or use %% as like pattern for multiple schemas ex:HR"
+  )
+  parser.add_argument(
+      "-t",
+      "--table_name",
+      required=True,
+      help="Exact table name or use %% as like pattern for multiple tables. Use %% for all tables. Can be exact or like ex: D%%"
+  )
+  parser.add_argument(
+      "-o",
+      "--schema_output_dir",
+      required=False,
+      default="./",
+      help=
+      "Output directory to place JSON formatted BigQuery schema files"
+  )
+  parser.add_argument(
+      "-u",
+      "--username",
+      required=False,
+      help="username to connect. required if you use DSN format. In connection string version it is embedded inside the connection string"
+  )
+  parser.add_argument(
+      "-p",
+      "--password",
+      required=False,
+      help="password. required if you use DSN format. In connection string version it is embedded inside the connection string"
+  )
+  parser.add_argument(
+      "-tf",
+      "--terraform_tfvar",
+      required=False,
+      default="terraform.tfvars",
+      help="terraform variable file to write the generated table variables. Cleans the file before assing parameters."
+  )
+  return parser.parse_args(args)
 
-    Usage:\n
-    First install the dependencies with pipenv:
-    $ pipenv install\n
-    $ pipenv shell\n
 
+def main(oracle_connection_string, dsn_file, username, password,
+         table_schema, table_name, schema_output_dir, terraform_tfvar):
+  """Generates BigQuery JSON schema files for terraform from Oracle tables.
 
-    Then to see parameter options:\n
-    $ python ora2bq_convert.py --help
-
-    Example commands if you use connection string: \n
-    $ python ora2bq_convert.py -c
-    'db_username/db_password@IP_or_HOSTNAME/DB_SERVICE_NAME' -s HR -t D% -o
-    example_terraform_dir/schemas -tf example_terraform_dir/terraform.tfvars \n
-    $ python ora2bq_convert.py -c
-    'db_username/db_password@IP_or_HOSTNAME/DB_SERVICE_NAME' -s H% -t % -o
-    example_terraform_dir/schemas -tf example_terraform_dir/terraform.tfvars  \n
-    $ python ora2bq_convert.py -c
-    'db_username/db_password@IP_or_HOSTNAME/DB_SERVICE_NAME' -s % -t % -o
-    example_terraform_dir/schemas -tf example_terraform_dir/terraform.tfvars \n
-    $ python ora2bq_convert.py -c
-    'db_username/db_password@IP_or_HOSTNAME/DB_SERVICE_NAME' -s HR -t
-    "DEPARTMENTS,TEST,REGIONS,JOBS" -o example_terraform_dir/schemas -tf
-    example_terraform_dir/terraform.tf
-
-    Example commands if you use dsn file: \n
-    $ python ora2bq_convert.py --dsn-file dsn.txt -u db_username -p db_password
-    -s HR -t D% -o example_terraform_dir/schemas -tf
-    example_terraform_dir/terraform.tfvars \n
-    """
+  Args:
+    oracle_connection_string: Connection string for Oracle.
+        Example - 'db_username/db_password@IP_or_HOSTNAME/DB_SERVICE_NAME'
+    dsn_file: DSN file to provide instead of the conenction string.
+      especially if you have to provide SID. Fill the example dsn.txt
+    username: Username to connect to Oracle Database.
+      required if you use DSN format.
+      In connection string version it is embedded inside the connection string
+    password: Password. required if you use DSN format.
+      In connection string version it is embedded inside the connection string
+    table_schema:
+      Schema name which contains the tables or
+      use %% as like pattern for multiple schemas ex:HR
+    table_name: Exact table name,
+      comma separated list of tables or
+      use %% as like pattern for multiple tables.
+      Use %% for all tables. Can be exact or like ex: D%%
+    schema_output_dir:
+      Output directory to place JSON formatted BigQuery schema files
+    terraform_tfvar:
+      terraform variable file to write the generated table variables.
+      Cleans the file before assing parameters.
+  """
 
   json_out_path = Path(schema_output_dir)
   table_names = {}
 
-  if oracle_connection_string == "":
+  if not oracle_connection_string:
     con = cx_Oracle.connect(username, password, dsn_file.read())
   else:
     con = cx_Oracle.connect(oracle_connection_string)
-  # You need to use username that has access to all_tab_columns ex for grant; "grant select on ALL_TAB_COLUMNS to hr"
+  # You need to use username that has access to all_tab_columns
+  # ex for grant; "grant select on ALL_TAB_COLUMNS to hr"
   cur = con.cursor()
 
   if "," in table_name:
     table_list = [i.strip() for i in table_name.split(",")]
     bind_names = [":" + str(i + 1) for i in range(len(table_list))]
     full_bind_list = [table_schema] + table_list
-    sql = """select 
+    sql = """select
                 OWNER,TABLE_NAME  
                 from all_tables 
                 where owner like :table_schema""" + \
@@ -215,7 +198,7 @@ def main(oracle_connection_string, dsn_file, username, password, table_schema,
 
     cur.execute(sql, full_bind_list)
   else:
-    sql = """select 
+    sql = """select
                 OWNER,TABLE_NAME  
                 from all_tables 
                 where owner like :table_schema
@@ -230,7 +213,7 @@ def main(oracle_connection_string, dsn_file, username, password, table_schema,
     table_name = table[1]
     owner = table[0]
     cur_col = con.cursor()
-    sql = """select 
+    sql = """select
                     TABLE_NAME, COLUMN_NAME, DATA_TYPE, DATA_LENGTH, NULLABLE, DATA_DEFAULT, DATA_SCALE 
                     from all_tab_columns 
                     where owner =:owner_name
@@ -242,11 +225,14 @@ def main(oracle_connection_string, dsn_file, username, password, table_schema,
     for row in cur_col:
       data_type = row[2]
       if data_type == "NUMBER":
-        if row[6] == None or int(
+        if row[6] is None or int(
             row[6]
-        ) > 0:  # this is a decimal number so type is NUMERIC. if no scale is provided (row[6] == None), then oracle assigns the default largest scale.
+        ) > 0:  # this is a decimal number so type is NUMERIC.
+        # if no scale is provided (row[6] == None),
+        # then oracle assigns the default largest scale.
           data_type = f"{data_type}(x,y)"
-        else:  # this is an integer, since the scale does not exist or it is below 0
+        else:  # this is an integer,
+            # since the scale does not exist or it is below 0
           data_type = f"{data_type}(x)"
 
       print(f"\t{row}\t--\tguessed type: {data_type_map[data_type]}")
@@ -260,15 +246,26 @@ def main(oracle_connection_string, dsn_file, username, password, table_schema,
     cur_col.close()
 
     file_path = json_out_path / table_name
-    with open(f'{file_path.absolute()}.json', "w") as outfile:
+    with open(f"{file_path.absolute()}.json", "w") as outfile:
       json.dump(schema, outfile, indent=4)
-    table_names[table_name] = f'CHANGE_ME/{file_path.name}.json'
+    table_names[table_name] = f"CHANGE_ME/{file_path.name}.json"
 
   cur.close()
   con.close()
   rendered_variable = generate_terraform_table_variable(table_names)
-  click.echo(rendered_variable, terraform_tfvar)
+  # click.echo(rendered_variable, terraform_tfvar)
+  if terraform_tfvar == "tf_table.tfvars":
+    tfvar_path = json_out_path / "tf_table.tfvars"
+  else:
+    tfvar_path = terraform_tfvar
+  with open(tfvar_path.absolute(), "w") as outfile:
+    outfile.write(rendered_variable)
 
 
 if __name__ == "__main__":
-  main()
+  namespace = parse_args(sys.argv[1:])
+  main(namespace.oracle_connection_string,
+       namespace.dsn_file, namespace.username,
+       namespace.password, namespace.table_schema,
+       namespace.table_name, namespace.schema_output_dir,
+       namespace.terraform_tfvar)
