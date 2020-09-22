@@ -14,7 +14,7 @@
 ---
 service_name:    dd
 feature_name:    disk
-slo_id:          423786587d20530b9c05db1767c5869b
+slo_id:          ${DATADOG_SLO_ID}
 slo_name:        utilization
 slo_description: Disk has less than 15% of free space
 slo_target:      0.15
