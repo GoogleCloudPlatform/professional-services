@@ -11,7 +11,6 @@ yapf = ">=0.29"
 xlrd = ">=1.0.0"
 jinja2 = ">=2.11"
 cx_oracle = "~=7.3.0"
-click = "~=7.1.2"
 
 [requires]
 python_version = "3.7"
