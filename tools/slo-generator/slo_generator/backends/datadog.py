@@ -16,9 +16,7 @@
 Datadog backend implementation.
 """
 
-import json
 import logging
-import os
 import pprint
 import datadog
 
@@ -96,7 +94,6 @@ class DatadogBackend:
         Returns:
             tuple: Good event count, bad event count.
         """
-        conf = slo_config['backend']
         slo_id = slo_config['slo_id']
         from_ts = timestamp - window
         slo_data = self.client.ServiceLevelObjective.get(id=slo_id)
