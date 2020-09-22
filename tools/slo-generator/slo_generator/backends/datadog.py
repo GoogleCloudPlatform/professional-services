@@ -63,7 +63,6 @@ class DatadogBackend:
         good_event_count = DatadogBackend.count(good_event_query)
         valid_event_count = DatadogBackend.count(valid_event_query)
         bad_event_count = valid_event_count - good_event_count
-        LOGGER.debug(f'{good_event_count},{valid_event_count}')
         return (good_event_count, bad_event_count)
 
     def query_sli(self, timestamp, window, slo_config):
