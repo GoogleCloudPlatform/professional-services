@@ -1,16 +1,16 @@
-# Copyright 2020 Google Inc.
-#
+#!/usr/bin/env python
+# coding: utf-8
+# Copyright 2020 Google LLC.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+# Authors: yunusd@google.com, sametkaradag@google.com
 """Generates BigQuery JSON schema files for terraform from Oracle tables."""
 
 import argparse
@@ -18,6 +18,7 @@ import json
 import logging
 import pathlib
 import sys
+# import click
 import cx_Oracle
 import jinja2
 
@@ -85,24 +86,19 @@ def generate_terraform_table_variable(table_names):
 def parse_args(args):
   """Parses arguments."""
   parser = argparse.ArgumentParser(
-      description=
-      "convert oracle schema to bigquery schema to be consumed by terraform",
-      prog="schema converter"
-  )
+      description="convert oracle schema to bigquery schema to be consumed by terraform",
+      prog="schema converter")
   parser.add_argument(
       "-c",
       "--oracle_connection_string",
       required=False,
-      help=
-      "Oracle connection string example: db_username/db_password@hostname_or_IP/service_name"
+      help="Oracle connection string example: db_username/db_password@hostname_or_IP/service_name"
   )
   parser.add_argument(
       "--dsn_file",
       required=False,
-      help=
-      """DSN file to provide instead of the conenction string. especially if you have to provide SID.
-      Fill the example dsn.txt"""
-  )
+      help="""DSN file to provide instead of the conenction string. especially if you have to provide SID.
+      Fill the example dsn.txt""")
   parser.add_argument(
       "-s",
       "--table_schema",
@@ -120,9 +116,7 @@ def parse_args(args):
       "--schema_output_dir",
       required=False,
       default="./",
-      help=
-      "Output directory to place JSON formatted BigQuery schema files"
-  )
+      help="Output directory to place JSON formatted BigQuery schema files")
   parser.add_argument(
       "-u",
       "--username",
@@ -145,32 +139,29 @@ def parse_args(args):
   return parser.parse_args(args)
 
 
-def main(oracle_connection_string, dsn_file, username, password,
-         table_schema, table_name, schema_output_dir, terraform_tfvar):
+def main(oracle_connection_string, dsn_file, username, password, table_schema,
+         table_name, schema_output_dir, terraform_tfvar):
   """Generates BigQuery JSON schema files for terraform from Oracle tables.
 
   Args:
-    oracle_connection_string: Connection string for Oracle.
-        Example - 'db_username/db_password@IP_or_HOSTNAME/DB_SERVICE_NAME'
-    dsn_file: DSN file to provide instead of the conenction string.
-      especially if you have to provide SID. Fill the example dsn.txt
-    username: Username to connect to Oracle Database.
-      required if you use DSN format.
-      In connection string version it is embedded inside the connection string
-    password: Password. required if you use DSN format.
-      In connection string version it is embedded inside the connection string
-    table_schema:
-      Schema name which contains the tables or
+    oracle_connection_string: Connection string for Oracle. Example -
+      'db_username/db_password@IP_or_HOSTNAME/DB_SERVICE_NAME'
+    dsn_file: DSN file to provide instead of the conenction string. especially
+      if you have to provide SID. Fill the example dsn.txt
+    username: Username to connect to Oracle Database. required if you use DSN
+      format. In connection string version it is embedded inside the connection
+      string
+    password: Password. required if you use DSN format. In connection string
+      version it is embedded inside the connection string
+    table_schema: Schema name which contains the tables or
       use %% as like pattern for multiple schemas ex:HR
-    table_name: Exact table name,
-      comma separated list of tables or
-      use %% as like pattern for multiple tables.
+    table_name: Exact table name, comma separated list of tables or use %% as
+      like pattern for multiple tables.
       Use %% for all tables. Can be exact or like ex: D%%
-    schema_output_dir:
-      Output directory to place JSON formatted BigQuery schema files
-    terraform_tfvar:
-      terraform variable file to write the generated table variables.
-      Cleans the file before assing parameters.
+    schema_output_dir: Output directory to place JSON formatted BigQuery schema
+      files
+    terraform_tfvar: terraform variable file to write the generated table
+      variables. Cleans the file before assing parameters.
   """
 
   json_out_path = Path(schema_output_dir)
@@ -224,13 +215,12 @@ def main(oracle_connection_string, dsn_file, username, password,
       data_type = row[2]
       if data_type == "NUMBER":
         if row[6] is None or int(
-            row[6]
-        ) > 0:  # this is a decimal number so type is NUMERIC.
-        # if no scale is provided (row[6] == None),
-        # then oracle assigns the default largest scale.
+            row[6]) > 0:  # this is a decimal number so type is NUMERIC.
+          # if no scale is provided (row[6] == None),
+          # then oracle assigns the default largest scale.
           data_type = f"{data_type}(x,y)"
         else:  # this is an integer,
-            # since the scale does not exist or it is below 0
+          # since the scale does not exist or it is below 0
           data_type = f"{data_type}(x)"
 
       print(f"\t{row}\t--\tguessed type: {data_type_map[data_type]}")
@@ -262,8 +252,8 @@ def main(oracle_connection_string, dsn_file, username, password,
 
 if __name__ == "__main__":
   namespace = parse_args(sys.argv[1:])
-  main(namespace.oracle_connection_string,
-       namespace.dsn_file, namespace.username,
-       namespace.password, namespace.table_schema,
+  main(namespace.oracle_connection_string, namespace.dsn_file,
+       namespace.username, namespace.password, namespace.table_schema,
        namespace.table_name, namespace.schema_output_dir,
        namespace.terraform_tfvar)
+       
