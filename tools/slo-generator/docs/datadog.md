@@ -10,7 +10,7 @@ backend:
 
 * `good_bad_ratio` for computing good / bad metrics ratios.
 * `query_sli` for computing SLIs directly with Datadog.
-* `query_slo` for gettingg SLO value from Datadog SLO endpoint.
+* `query_slo` for getting SLO value from Datadog SLO endpoint.
 
 ### Good / bad ratio
 
