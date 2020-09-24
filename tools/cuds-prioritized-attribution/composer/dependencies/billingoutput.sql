@@ -97,7 +97,10 @@ CREATE TEMP FUNCTION
       0.0 AS amount_in_pricing_units,
       IF(LOWER(unit_type) LIKE "ram", "seconds", "hour") AS pricing_unit ) AS usage,
       ARRAY<STRUCT<name STRING,
-      amount FLOAT64>> [] AS credits,
+      amount FLOAT64,
+      full_name STRING,
+      id STRING,
+      type STRING>> [] AS credits,
       STRUCT ( FORMAT_DATE("%Y%m", usage_date) AS month) AS invoice,
       cost_type
     FROM
@@ -138,10 +141,16 @@ CREATE TEMP FUNCTION
                 IF(LOWER(unit_type) LIKE "ram", "byte-seconds", "seconds") AS pricing_unit
               ) AS usage,
       ARRAY<STRUCT<name STRING,
-                  amount FLOAT64>>[(IF(LOWER(unit_type) LIKE "ram",
+                  amount FLOAT64,
+                  full_name STRING,
+                  id STRING,
+                  type STRING>>[(IF(LOWER(unit_type) LIKE "ram",
                                       "Committed Usage Discount: RAM",
                                       "Committed Usage Discount: CPU"),
-                                      P_alloc_cud_credit_cost
+                                      P_alloc_cud_credit_cost,
+                                      "",
+                                      "",
+                                      ""
                                     )] AS credits,
       STRUCT ( FORMAT_DATE("%Y%m", usage_date) AS month) AS invoice,
       cost_type
@@ -170,7 +179,15 @@ CREATE TEMP FUNCTION
       usage.unit AS unit,
       0.0 AS amount_in_pricing_units,
       usage.pricing_unit AS pricing_unit) AS usage,
-      ARRAY<STRUCT<name STRING,amount FLOAT64>> [(cs.name,-1*cs.amount)] AS credits,
+      ARRAY<STRUCT<name STRING,
+      amount FLOAT64,
+      full_name STRING,
+      id STRING,
+      type STRING>> [(cs.name,
+        -1*cs.amount,
+        "",
+        "",
+        "")] AS credits,
       invoice,
       cost_type
     FROM
@@ -217,7 +234,11 @@ CREATE TEMP FUNCTION
             usage.unit AS unit,
             0.0 AS amount_in_pricing_units,
             usage.pricing_unit AS pricing_unit) AS usage,
-    ARRAY<STRUCT<name STRING,amount FLOAT64>> [] AS credits,
+    ARRAY<STRUCT<name STRING,
+      amount FLOAT64,
+      full_name STRING,
+      id STRING,
+      type STRING>> [] AS credits,
     invoice,
     cost_type
   FROM
@@ -261,8 +282,11 @@ CREATE TEMP FUNCTION
                 IF(LOWER(unit_type) LIKE "ram", "byte-seconds", "seconds") AS pricing_unit
               ) AS usage,
       ARRAY<STRUCT<name STRING,
-      amount FLOAT64>> [("Sustained Usage Discount",
-        P_alloc_sud_credit_cost)] AS credits,
+      amount FLOAT64,
+      full_name STRING,
+      id STRING,
+      type STRING>> [("Sustained Usage Discount",
+        P_alloc_sud_credit_cost, "", "", "")] AS credits,
       STRUCT ( FORMAT_DATE("%Y%m", usage_date) AS month) AS invoice,
       cost_type
     FROM
