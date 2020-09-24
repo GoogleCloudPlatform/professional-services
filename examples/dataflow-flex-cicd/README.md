@@ -1,4 +1,4 @@
-# Dataflow template  CICD
+# Dataflow Flex Template CICD
 
 This is a proof-of-concept for continuously deploying a Dataflow job using [Flex Template](https://cloud.google.com/dataflow/docs/guides/templates/overview#flex-templated-dataflow-jobs) and Cloud Build.
 
@@ -54,7 +54,8 @@ The CICD pipeline is defined in [cloudbuild.yaml](cloudbuild.yaml) to be execute
 Cloud Build provides default variables such as $PROJECT_ID that could be used in the build YAML file. User defined variables could also be used in the form of $_USER_VARIABLE.
 
 In this project the following variables are used:
-- $_REPO_NAME: The repo name (not URI) (e.g. dataflow-templates-cicd)
+- $_REPO_CLONE_URL: HTTPS or SSH URL (e.g. https://github.com/GoogleCloudPlatform/professional-services.git)
+- $_REPO_DIR: Directory path to the module from cloning location (e.g. professional-services/examples/dataflow-flex-cicd)
 - $_TARGET_GCR_IMAGE: The GCR image name to be submitted to Cloud Build (not URI) (e.g wordcount-flex-template) 
 - $_TEMPLATE_GCS_LOCATION: GCS location to store the template spec file (e.g. gs://bucket/dir/). The spec file path is required later on to submit run commands to Dataflow
 
@@ -64,7 +65,7 @@ These variables must be set during manual build execution or via a build trigger
 
 In the repo root directory, run the following command:
 ```
-gcloud builds submit --config=cloudbuild.yaml --substitutions=_REPO_NAME="dataflow-template-cicd",_TARGET_GCR_IMAGE="word_count_flex_template_python",_TEMPLATE_GCS_LOCATION="gs://bucket/dir/"
+gcloud builds submit --config=cloudbuild.yaml --substitutions=_REPO_CLONE_URL="<URL>",_REPO_DIR="professional-services/examples/dataflow-flex-cicd",_TARGET_GCR_IMAGE="word_count_flex_template_python",_TEMPLATE_GCS_LOCATION="gs://bucket/dir/"
 ```
 PS: make sure that your latest code changes are pushed to the repo since the build will clone it from there and won't use the local version
 
