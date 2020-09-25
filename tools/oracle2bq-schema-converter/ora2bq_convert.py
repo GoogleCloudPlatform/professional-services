@@ -140,11 +140,18 @@ def parse_args(args):
         help=
         "terraform variable file to write the generated table variables. Cleans the file before assing parameters."
     )
+    parser.add_argument(
+        "-pr",
+        "--project_id",
+        required=True,
+        help=
+        "Project_id to set in Terraform vars"
+    )
     return parser.parse_args(args)
 
 
 def main(oracle_connection_string, dsn_file, username, password, table_schema,
-         table_name, schema_output_dir, terraform_tfvar):
+         table_name, schema_output_dir, terraform_tfvar, project_id):
     """Generates BigQuery JSON schema files for terraform from Oracle tables.
 
     Args:
@@ -238,7 +245,7 @@ def main(oracle_connection_string, dsn_file, username, password, table_schema,
         file_path = json_out_path / table_name
         with open(f"{file_path.absolute()}.json", "w") as outfile:
             json.dump(schema, outfile, indent=4)
-        table_names[table_name] = f"CHANGE_ME/{file_path.name}.json"
+        table_names[table_name] = f"schemas/{file_path.name}.json"
 
     cur.close()
     con.close()
@@ -249,6 +256,15 @@ def main(oracle_connection_string, dsn_file, username, password, table_schema,
     else:
         tfvar_path = terraform_tfvar
     with open(tfvar_path, "w") as outfile:
+        outfile.write("""project_id                  = "{0}"
+  default_table_expiration_ms = null
+  dataset_labels = {{
+    env      = "dev"
+    workload = "hr"
+    owner    = "joe"
+  }}
+
+""".format(project_id))
         outfile.write(rendered_variable)
 
 
@@ -257,4 +273,4 @@ if __name__ == "__main__":
     main(namespace.oracle_connection_string, namespace.dsn_file,
          namespace.username, namespace.password, namespace.table_schema,
          namespace.table_name, namespace.schema_output_dir,
-         namespace.terraform_tfvar)
+         namespace.terraform_tfvar, namespace.project_id)
