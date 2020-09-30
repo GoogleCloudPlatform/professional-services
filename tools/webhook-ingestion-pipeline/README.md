@@ -22,3 +22,19 @@ data.
 
 That's it!  All resources will be deployed via Terraform.
 
+## Architectural Diagram
+
+![Webhook Data Ingestion Diagram](assets/app_engine_diagram.png)
+
+## Components
+
+The webhook ingestion pipeline consists of two key components - An App Engine based webhook endpoint and the Dataflow pipeline
+dataflow pipeline.
+
+### App Engine Endpoint
+
+The App Engine Endpoint is a lightweight webhook server that listens for data on http and forwards it to an internal pubsub topic. The source code of this application is contained entirely within this repositiory and is deployed to App Engine.
+
+### Dataflow pipeline
+
+The dataflow template deployed by this terraform config produces a pipeline that consumes data from the aforementioned pubsub topic and ultimately loads that data into a table in BigQuery. The template contains a number of optional parameters that allow you to transform incoming data and define the target BigQuery schema. These features [are documented in depth here.](https://github.com/GoogleCloudPlatform/DataflowTemplates/tree/master/v2/pubsub-cdc-to-bigquery)
