@@ -15,6 +15,9 @@
 import os
 
 from flask import Flask, request, jsonify
+from datetime import datetime
+import json
+import uuid
 
 import consts
 import pubsub_publisher
@@ -77,8 +80,25 @@ def webhook_to_pubsub(request) -> str:
     request_json = _extract_data(request)
     if isinstance(request_json, list):
         for row in request_json:
+            row = _append_metadata(row)
             publisher.publish_data(topic_name, row)
     else:
+        request_json = _append_metadata(request_json)
         publisher.publish_data(topic_name, request_json)
 
     return str(request_json)
+
+def _append_metadata(json_data):
+    """ 
+        Appends necessary _metadata fields for downstream processing
+        and event splitting
+    """
+    default_metadata = {'@uuid': str(uuid.uuid4()),
+                        '@timestamp': datetime.utcnow().isoformat()}
+    if isinstance(json_data, str):
+        json_data = json.loads(json_data)
+
+    if '_metadata' not in json_data.keys():
+        json_data['_metadata'] = default_metadata
+    return json.dumps(json_data)
+
