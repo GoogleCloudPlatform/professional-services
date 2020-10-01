@@ -28,15 +28,15 @@ here = pathlib.Path(__file__).parent
 requirements = [
     'pyhive[hive] >= 0.6.1',
     'pymysql >= 0.9.3',
-    'google-cloud-bigquery >= 1.9.0',
-    'google-cloud-storage >= 1.14.0',
-    'google-cloud-kms >= 1.0.0',
+    'google-cloud-bigquery >= 1.9.0, < 2.0.0dev',
+    'google-cloud-storage >= 1.14.0, < 2.0.0dev',
+    'google-cloud-kms >= 1.0.0, < 2.0.0dev',
     "setuptools >= 34.0.0",
 ]
 
 setup(
     name='cloud-pso-hive-bigquery',
-    version='0.0.1',
+    version='0.0.2',
     description='hive to bigquery',
     url='https://github.com/GoogleCloudPlatform/professional-services/tree/master/tools/hive-bigquery',
     classifiers=[

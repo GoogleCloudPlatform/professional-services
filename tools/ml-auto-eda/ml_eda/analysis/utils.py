@@ -18,11 +18,11 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
-from typing import List
+from typing import List, Text
 
 import numpy as np
 import pandas as pd
-from ml_eda.metadata import run_metadata_pb2
+from ml_eda.proto import analysis_entity_pb2
 
 
 def compute_entropy(frequency_series: pd.DataFrame) -> float:
@@ -45,10 +45,11 @@ def compute_entropy(frequency_series: pd.DataFrame) -> float:
   return entropy
 
 
-def compute_conditional_entropy(aggregate_df: pd.DataFrame,
-                                condition_column: str,
-                                entropy_column: str
-                                ) -> float:
+def compute_conditional_entropy(
+    aggregate_df: pd.DataFrame,
+    condition_column: Text,
+    entropy_column: Text
+) -> float:
   """Compute conditional entropy over an pre-aggregated DataFrame.
 
   Args:
@@ -89,23 +90,23 @@ def compute_conditional_entropy(aggregate_df: pd.DataFrame,
 
 def create_analysis_proto_from_scalar_metrics(
     analysis_name: str,
-    attributes: List[run_metadata_pb2.Attribute],
+    attributes: List[analysis_entity_pb2.Attribute],
     metric_names: List[str],
     metric_values: List[float]
-) -> run_metadata_pb2.Analysis:
+) -> analysis_entity_pb2.Analysis:
   """Create analysis proto with generated scalar metrics
 
   Args:
       analysis_name: (string), name of the analysis
-      attributes: (List[run_metadata_pb2.Attribute]), attributes used in the
+      attributes: (List[analysis_entity_pb2.Attribute]), attributes used in the
       performed analysis
       metric_names: (List[string]), names of metric computed in the analysis
       metric_values: (List[float]), values of metric computed in the analysis
 
   Returns:
-      run_metadata_pb2.Analysis
+      analysis_entity_pb2.Analysis
   """
-  analysis = run_metadata_pb2.Analysis()
+  analysis = analysis_entity_pb2.Analysis()
   analysis.name = analysis_name
   analysis.features.extend(attributes)
 
@@ -119,23 +120,23 @@ def create_analysis_proto_from_scalar_metrics(
 
 def create_analysis_proto_from_table_metric(
     analysis_name: str,
-    attributes: List[run_metadata_pb2.Attribute],
+    attributes: List[analysis_entity_pb2.Attribute],
     metric_names: List[str],
     metric_dfs: List[pd.DataFrame]
-) -> run_metadata_pb2.Analysis:
+) -> analysis_entity_pb2.Analysis:
   """
 
   Args:
       analysis_name: (string), name of the analysis
-      attributes: (List[run_metadata_pb2.Attribute]), attributes used in the
+      attributes: (List[analysis_entity_pb2.Attribute]), attributes used in the
       performed analysis
       metric_names: (List[string]), names of metric computed in the analysis
       metric_dfs: (List[pd.DataFrame]), DataFrames as analysis result computed
 
   Returns:
-      run_metadata_pb2.Analysis
+      analysis_entity_pb2.Analysis
   """
-  analysis = run_metadata_pb2.Analysis()
+  analysis = analysis_entity_pb2.Analysis()
   analysis.name = analysis_name
   analysis.features.extend(attributes)
 

@@ -16,7 +16,7 @@ from setuptools import setup
 
 setup(
     name='asset-inventory',
-    version='1.0.0',
+    version='2.0.0',
     description=
     'Generate Cloud Asset Inventory exports and Import To BigQuery.',
     # pylint: disable=line-too-long

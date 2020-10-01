@@ -19,13 +19,15 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 from itertools import combinations
-from typing import List
+from typing import List, Text
 
-from ml_eda import constants
+from ml_eda.preprocessing.analysis_query import query_constants
 from ml_eda.preprocessing.analysis_query import query_templates
 
+DUMMY_WHERE = '1=1'
 
-def _build_not_null_string(column_names: List[str]) -> str:
+
+def _build_not_null_string(column_names: List[Text]) -> Text:
   """Construct NOT NULL condition
 
   Args:
@@ -39,43 +41,68 @@ def _build_not_null_string(column_names: List[str]) -> str:
   return not_null_string
 
 
-def build_anova_query(table: str,
-                      categorical_column: str,
-                      numeric_column: str
-                      ) -> str:
+def add_random_sampling(sampling_rate: float) -> Text:
+  """Add random sampling to end of query.
+
+  Args:
+    sampling_rate: sampling rate in (0, 1]
+
+  Returns:
+    Sampling string
+  """
+  return "RAND() < {}".format(sampling_rate)
+
+
+def build_anova_query(
+    table: Text,
+    categorical_column: Text,
+    numeric_column: Text,
+    sampling_rate: float = 1
+) -> Text:
   """Construct SQL query for extracting ANOVA data
 
   Args:
       table: (string), name of the table
       categorical_column: (string), name of the categorical attribute
       numeric_column: (string), name of the numerical attribute
+      sampling_rate: (float), sampling rate
 
   Returns:
       string
   """
   anova_template = query_templates.ANOVA_TEMPLATE
+
+  if sampling_rate < 1:
+    where_condition = add_random_sampling(sampling_rate)
+  else:
+    where_condition = DUMMY_WHERE
+
   query = anova_template \
     .format(table=table,
             categorical_column=categorical_column,
             numeric_column=numeric_column,
-            anova_categorical=constants.ANOVA_CATEGORICAL,
-            anova_count_per_class=constants.ANOVA_COUNT_PER_CLASS,
-            anova_mean_per_class=constants.ANOVA_MEAN_PER_CLASS,
-            anova_variance_per_class=constants.ANOVA_VARIANCE_PER_CLASS,
-            anova_df_group=constants.ANOVA_DF_GROUP,
-            anova_df_error=constants.ANOVA_DF_ERROR)
+            anova_categorical=query_constants.ANOVA_CATEGORICAL,
+            anova_count_per_class=query_constants.ANOVA_COUNT_PER_CLASS,
+            anova_mean_per_class=query_constants.ANOVA_MEAN_PER_CLASS,
+            anova_variance_per_class=query_constants.ANOVA_VARIANCE_PER_CLASS,
+            anova_df_group=query_constants.ANOVA_DF_GROUP,
+            anova_df_error=query_constants.ANOVA_DF_ERROR,
+            where_condition=where_condition)
   return query
 
 
-def build_categorical_aggregate_query(table: str,
-                                      categorical_columns: List[str]
-                                      ) -> str:
+def build_categorical_aggregate_query(
+    table: Text,
+    categorical_columns: List[Text],
+    sampling_rate: float = 1
+) -> Text:
   """Build the query to perform aggregation over multiple categorical
   columns.
 
   Args:
       table: (string), full path of the table
       categorical_columns: (List[string]), names of the categorical columns
+      sampling_rate: (float), sampling rate
 
   Returns:
       string
@@ -85,21 +112,30 @@ def build_categorical_aggregate_query(table: str,
   column_string = ','.join(categorical_columns)
   not_null_string = _build_not_null_string(categorical_columns)
 
+  if sampling_rate < 1:
+    where_condition = add_random_sampling(sampling_rate)
+  else:
+    where_condition = DUMMY_WHERE
+
   query = template.format(table=table,
                           column_names=column_string,
-                          not_null_string=not_null_string)
+                          not_null_string=not_null_string,
+                          where_condition=where_condition)
 
   return query
 
 
-def build_pearson_correlation_query(table: str,
-                                    numerical_columns: List[str]
-                                    ) -> str:
+def build_pearson_correlation_query(
+    table: Text,
+    numerical_columns: List[Text],
+    sampling_rate: float = 1
+) -> Text:
   """Build the query to compute correlation between numerical columns
 
   Args:
       table: (string), full path of the table
       numerical_columns: (List[string]), names of the numerical columns
+      sampling_rate: (float), sampling rate
 
   Returns:
       string
@@ -115,14 +151,25 @@ def build_pearson_correlation_query(table: str,
 
   corr_strings = ',\n\t'.join(corr_string_list)
 
-  query = template.format(table=table, corr_query=corr_strings)
+  if sampling_rate < 1:
+    where_condition = add_random_sampling(sampling_rate)
+  else:
+    where_condition = DUMMY_WHERE
+
+  query = template.format(
+      table=table,
+      corr_query=corr_strings,
+      where_condition=where_condition
+  )
 
   return query
 
 
-def build_numerical_descriptive_analysis_query(table: str,
-                                               numerical_columns: List[str]
-                                               ) -> str:
+def build_numerical_descriptive_analysis_query(
+    table: Text,
+    numerical_columns: List[Text],
+    sampling_rate: float = 1
+) -> Text:
   """Build the query to compute descriptive analysis of numerical columns
 
   Examples:
@@ -145,6 +192,7 @@ def build_numerical_descriptive_analysis_query(table: str,
   Args:
       table: (string), full path of the table
       numerical_columns: (List[string]), names of the numerical columns
+      sampling_rate: (float), sampling rate
 
   Returns:
       string
@@ -152,23 +200,29 @@ def build_numerical_descriptive_analysis_query(table: str,
 
   template = query_templates.NUMERICAL_STATS_TEMPLATE
 
+  if sampling_rate < 1:
+    where_condition = add_random_sampling(sampling_rate)
+  else:
+    where_condition = DUMMY_WHERE
+
   sub_querys = list()
 
   for column in numerical_columns:
     sub_querys.append(template.format(
         table=table,
         column_name=column,
-        column_header=constants.ND_COLUMN_NAME,
-        missing_header=constants.MISSING,
-        total_header=constants.TOTAL_COUNT,
-        mean_header=constants.ND_MEAN,
-        std_header=constants.ND_STD,
-        min_header=constants.ND_MIN,
-        quantile_25_header=constants.ND_QUANTILE_25,
-        median_header=constants.ND_MEDIAN,
-        quantile_75_header=constants.ND_QUANTILE_75,
-        quantile_95_header=constants.ND_QUANTILE_95,
-        max_header=constants.ND_MAX
+        column_header=query_constants.ND_COLUMN_NAME,
+        missing_header=query_constants.MISSING,
+        total_header=query_constants.TOTAL_COUNT,
+        mean_header=query_constants.ND_MEAN,
+        std_header=query_constants.ND_STD,
+        min_header=query_constants.ND_MIN,
+        quantile_25_header=query_constants.ND_QUANTILE_25,
+        median_header=query_constants.ND_MEDIAN,
+        quantile_75_header=query_constants.ND_QUANTILE_75,
+        quantile_95_header=query_constants.ND_QUANTILE_95,
+        max_header=query_constants.ND_MAX,
+        where_condition=where_condition
     ))
 
   query = 'UNION ALL'.join(sub_querys)
@@ -176,10 +230,12 @@ def build_numerical_descriptive_analysis_query(table: str,
   return query
 
 
-def build_numerical_descrip_categorical_analysis_query(table: str,
-                                                       categorical_column: str,
-                                                       numerical_column: str
-                                                       ) -> str:
+def build_numerical_descrip_categorical_analysis_query(
+    table: Text,
+    categorical_column: Text,
+    numerical_column: Text,
+    sampling_rate: float = 1
+) -> Text:
   """Build the query to compute descriptive analysis of a numerical column
   against categorical column for qualitative analysis of the relationship
   between analyzed numerical and categorical columns
@@ -204,6 +260,7 @@ def build_numerical_descrip_categorical_analysis_query(table: str,
       table: (string), full path of the table
       categorical_column: (string), names of the categorical column
       numerical_column: (string), names of the numerical column
+      sampling_rate: (float), sampling rate
 
   Returns:
       string
@@ -212,29 +269,37 @@ def build_numerical_descrip_categorical_analysis_query(table: str,
   template = query_templates.NUMERICAL_STATS_PER_CATEGORICAL_TEMPLATE
   not_null_string = _build_not_null_string([categorical_column])
 
+  if sampling_rate < 1:
+    where_condition = add_random_sampling(sampling_rate)
+  else:
+    where_condition = DUMMY_WHERE
+
   query = template.format(
       table=table,
       categorical_column_name=categorical_column,
       n_column_name=numerical_column,
-      total_header=constants.TOTAL_COUNT,
-      missing_header=constants.MISSING,
-      mean_header=constants.ND_MEAN,
-      std_header=constants.ND_STD,
-      min_header=constants.ND_MIN,
-      quantile_25_header=constants.ND_QUANTILE_25,
-      median_header=constants.ND_MEDIAN,
-      quantile_75_header=constants.ND_QUANTILE_75,
-      quantile_95_header=constants.ND_QUANTILE_95,
-      max_header=constants.ND_MAX,
-      not_null_string=not_null_string
+      total_header=query_constants.TOTAL_COUNT,
+      missing_header=query_constants.MISSING,
+      mean_header=query_constants.ND_MEAN,
+      std_header=query_constants.ND_STD,
+      min_header=query_constants.ND_MIN,
+      quantile_25_header=query_constants.ND_QUANTILE_25,
+      median_header=query_constants.ND_MEDIAN,
+      quantile_75_header=query_constants.ND_QUANTILE_75,
+      quantile_95_header=query_constants.ND_QUANTILE_95,
+      max_header=query_constants.ND_MAX,
+      not_null_string=not_null_string,
+      where_condition=where_condition
   )
 
   return query
 
 
-def build_categorical_descriptive_analysis_query(table: str,
-                                                 categorical_columns: List[str]
-                                                 ) -> str:
+def build_categorical_descriptive_analysis_query(
+    table: Text,
+    categorical_columns: List[Text],
+    sampling_rate: float = 1
+) -> Text:
   """Build the query to compute descriptive analysis of categorical columns
 
   Examples:
@@ -250,6 +315,7 @@ def build_categorical_descriptive_analysis_query(table: str,
   Args:
       table: (string), full path of the table
       categorical_columns: (List[string]), names of the categorical columns
+      sampling_rate: (float), sampling rate
 
   Returns:
       string
@@ -257,16 +323,22 @@ def build_categorical_descriptive_analysis_query(table: str,
 
   template = query_templates.CATEGORICAL_STATS_TEMPLATE
 
+  if sampling_rate < 1:
+    where_condition = add_random_sampling(sampling_rate)
+  else:
+    where_condition = DUMMY_WHERE
+
   sub_querys = list()
 
   for column in categorical_columns:
     sub_querys.append(template.format(
         table=table,
         column_name=column,
-        column_header=constants.CD_COLUMN_NAME,
-        missing_header=constants.MISSING,
-        total_header=constants.TOTAL_COUNT,
-        cardinality_header=constants.CD_CARDINALITY
+        column_header=query_constants.CD_COLUMN_NAME,
+        missing_header=query_constants.MISSING,
+        total_header=query_constants.TOTAL_COUNT,
+        cardinality_header=query_constants.CD_CARDINALITY,
+        where_condition=where_condition
     ))
 
   query = 'UNION ALL'.join(sub_querys)
@@ -274,10 +346,12 @@ def build_categorical_descriptive_analysis_query(table: str,
   return query
 
 
-def build_numerical_histogram_query(table: str,
-                                    numerical_column: str,
-                                    num_bins: int
-                                    ) -> str:
+def build_numerical_histogram_query(
+    table: Text,
+    numerical_column: Text,
+    num_bins: int,
+    sampling_rate: float = 1
+) -> Text:
   # pylint: disable-msg=line-too-long
   """Build the query to generate histogram for numerical columns
 
@@ -308,6 +382,7 @@ def build_numerical_histogram_query(table: str,
       table: (string), full path of the table
       numerical_column: (string), name of the numerical column
       num_bins: (int), number of bins
+      sampling_rate: (float), sampling rate
 
   Returns:
       string
@@ -322,13 +397,13 @@ def build_numerical_histogram_query(table: str,
   case_string_list = []
   for i in range(num_bins - 1):
     lower_threshold = threshold_template.format(
-        min_value=constants.NH_MIN_VALUE,
-        step_value=constants.NH_STEP_VALUE,
+        min_value=query_constants.NH_MIN_VALUE,
+        step_value=query_constants.NH_STEP_VALUE,
         step=i
     )
     upper_threshold = threshold_template.format(
-        min_value=constants.NH_MIN_VALUE,
-        step_value=constants.NH_STEP_VALUE,
+        min_value=query_constants.NH_MIN_VALUE,
+        step_value=query_constants.NH_STEP_VALUE,
         step=i + 1
     )
     case_string_list.append(case_when_template.format(
@@ -340,8 +415,8 @@ def build_numerical_histogram_query(table: str,
   case_string_list.append(
       case_else_template.format(
           lower_threshold=threshold_template.format(
-              min_value=constants.NH_MIN_VALUE,
-              step_value=constants.NH_STEP_VALUE,
+              min_value=query_constants.NH_MIN_VALUE,
+              step_value=query_constants.NH_STEP_VALUE,
               step=num_bins - 1
           )
       )
@@ -349,20 +424,29 @@ def build_numerical_histogram_query(table: str,
 
   case_string = ''.join(case_string_list)
 
+  if sampling_rate < 1:
+    where_condition = add_random_sampling(sampling_rate)
+  else:
+    where_condition = DUMMY_WHERE
+
   query = template.format(
       column_name=numerical_column,
       histogram_case_when=case_string,
       num_bins=num_bins,
       table=table,
-      postfix=constants.NH_BIN_POSTFIX
+      postfix=query_constants.NH_BIN_POSTFIX,
+      where_condition=where_condition
   )
 
   return query
 
 
-def build_value_counts_query(table: str,
-                             categorical_column: str,
-                             limit: int):
+def build_value_counts_query(
+    table: Text,
+    categorical_column: Text,
+    limit: int,
+    sampling_rate: float = 1
+) -> Text:
   """
   Examples:
           SELECT
@@ -382,6 +466,7 @@ def build_value_counts_query(table: str,
       table: (string), full path of the table
       categorical_column: (string), name of the numerical column
       limit: (int), return the top counts
+      sampling_rate: (float), sampling rate
 
   Returns:
       string
@@ -390,11 +475,17 @@ def build_value_counts_query(table: str,
   template = query_templates.VALUE_COUNTS_TEMPLATE
   not_null_string = _build_not_null_string([categorical_column])
 
+  if sampling_rate < 1:
+    where_condition = add_random_sampling(sampling_rate)
+  else:
+    where_condition = DUMMY_WHERE
+
   query = template.format(
       table=table,
       column_name=categorical_column,
       limit=limit,
-      not_null_string=not_null_string
+      not_null_string=not_null_string,
+      where_condition=where_condition
   )
 
   return query
