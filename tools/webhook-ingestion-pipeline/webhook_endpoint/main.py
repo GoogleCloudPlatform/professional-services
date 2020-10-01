@@ -12,12 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-
-from flask import Flask, request, jsonify
 from datetime import datetime
 import json
+import os
 import uuid
+from flask import Flask, request, jsonify
 
 import consts
 import pubsub_publisher
@@ -41,11 +40,13 @@ app = Flask(__name__)
 def receive_data():
     return webhook_to_pubsub(request)
 
+
 @app.route('/', methods=['GET', 'PUT', 'PATCH', 'DELETE', 'HEAD'])
 def unsupported_request():
     raise WebhookException(consts.UNSUPPORTED_METHOD.format(
-            method=request.method,
-            status_code=405))
+                           method=request.method,
+                           status_code=405))
+
 
 @app.errorhandler(WebhookException)
 def handle_invalid_usage(error):
@@ -53,6 +54,22 @@ def handle_invalid_usage(error):
     response = jsonify(error.to_dict())
     response.status_code = error.status_code
     return response
+
+
+def _append_metadata(json_data):
+    """ Appends necessary _metadata fields s
+        for downstream processing
+        and event splitting
+    """
+    default_metadata = {'@uuid': str(uuid.uuid4()),
+                        '@timestamp': datetime.utcnow().isoformat()}
+    if isinstance(json_data, str):
+        json_data = json.loads(json_data)
+
+    if '_metadata' not in json_data.keys():
+        json_data['_metadata'] = default_metadata
+    return json.dumps(json_data)
+
 
 def _extract_data(request):
     """ Return Dict with extracted data from request
@@ -71,6 +88,7 @@ def _extract_data(request):
     except Exception:
         return {"message": request.get_data(as_text=True)}
 
+
 def webhook_to_pubsub(request) -> str:
     """ Return String response for HTTP Request Processing
 
@@ -87,18 +105,3 @@ def webhook_to_pubsub(request) -> str:
         publisher.publish_data(topic_name, request_json)
 
     return str(request_json)
-
-def _append_metadata(json_data):
-    """ 
-        Appends necessary _metadata fields for downstream processing
-        and event splitting
-    """
-    default_metadata = {'@uuid': str(uuid.uuid4()),
-                        '@timestamp': datetime.utcnow().isoformat()}
-    if isinstance(json_data, str):
-        json_data = json.loads(json_data)
-
-    if '_metadata' not in json_data.keys():
-        json_data['_metadata'] = default_metadata
-    return json.dumps(json_data)
-
