@@ -56,8 +56,8 @@ def handle_invalid_usage(error):
     return response
 
 
-def _append_metadata(json_data):
-    """ Appends necessary _metadata fields s
+def _set_missing_metadata(json_data):
+    """ Adds necessary _metadata fields
         for downstream processing
         and event splitting
     """
@@ -66,7 +66,7 @@ def _append_metadata(json_data):
     if isinstance(json_data, str):
         json_data = json.loads(json_data)
 
-    if '_metadata' not in json_data.keys():
+    if '_metadata' not in json_data:
         json_data['_metadata'] = default_metadata
     return json.dumps(json_data)
 
@@ -98,10 +98,10 @@ def webhook_to_pubsub(request) -> str:
     request_json = _extract_data(request)
     if isinstance(request_json, list):
         for row in request_json:
-            row = _append_metadata(row)
+            row = _set_missing_metadata(row)
             publisher.publish_data(topic_name, row)
     else:
-        request_json = _append_metadata(request_json)
+        request_json = _set_missing_metadata(request_json)
         publisher.publish_data(topic_name, request_json)
 
     return str(request_json)
