@@ -72,7 +72,7 @@ class SLOReport:
                           **step,
                           lambdas={
                               'slo_target': float,
-                              'alerting_burn_rate_threshold': int
+                              'alerting_burn_rate_threshold': float
                           })
 
         # Set other fields
