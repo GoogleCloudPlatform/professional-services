@@ -12,18 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 steps:
-  - name: gcr.io/cloud-builders/git
-    id: 'clone-source-code'
-    args: ['clone', '$_REPO_CLONE_URL']
-  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     id: 'build-dataflow-template-container'
     entrypoint: 'gcloud'
-    dir: '$_REPO_DIR/'
     args: [ 'builds', 'submit', '--project=$PROJECT_ID', '--tag', 'gcr.io/$PROJECT_ID/$_TARGET_GCR_IMAGE']
-  - name: 'gcr.io/cloud-builders/gcloud'
-    id: 'create-template-spec'
+  - name: 'gcr.io/cloud-builders/gsutil'
+    id: 'deploy-dataflow-template-spec-file'
     entrypoint: 'bash'
-    args: ['-c', 'echo "{\"docker_template_spec\": {\"docker_image\": \"gcr.io/$PROJECT_ID/$_TARGET_GCR_IMAGE\"}}" > docker_template_spec.json']
-  - name: gcr.io/cloud-builders/gsutil
-    id: 'copy-template-spec-to-gcs'
-    args: ['cp', 'docker_template_spec.json', '${_TEMPLATE_GCS_LOCATION}']
+    env:
+      - 'IMAGE_NAME=gcr.io/$PROJECT_ID/$_TARGET_GCR_IMAGE'
+      - 'SPEC_FILE_NAME=docker_template_spec.json'
+      - 'SPEC_GCS_LOCATION=$_TEMPLATE_GCS_LOCATION'
+    args:
+      - '-c'
+      - |
+        chmod +x deploy_spec_file.sh
+        ./deploy_spec_file.sh

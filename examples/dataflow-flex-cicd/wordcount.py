@@ -15,8 +15,6 @@
 #
 """A word-counting workflow using Flex Templates."""
 
-from __future__ import absolute_import
-
 import argparse
 import json
 import logging
