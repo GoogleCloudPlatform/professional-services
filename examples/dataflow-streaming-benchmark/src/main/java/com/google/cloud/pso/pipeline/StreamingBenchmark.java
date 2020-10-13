@@ -19,14 +19,24 @@ package com.google.cloud.pso.pipeline;
 import com.github.vincentrussell.json.datagenerator.JsonDataGenerator;
 import com.github.vincentrussell.json.datagenerator.JsonDataGeneratorException;
 import com.github.vincentrussell.json.datagenerator.impl.JsonDataGeneratorImpl;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteStreams;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.PipelineResult;
 import org.apache.beam.sdk.io.FileSystems;
@@ -34,6 +44,7 @@ import org.apache.beam.sdk.io.GenerateSequence;
 import org.apache.beam.sdk.io.fs.MatchResult.Metadata;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
+import org.apache.beam.sdk.options.Default;
 import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
@@ -41,6 +52,8 @@ import org.apache.beam.sdk.options.Validation.Required;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.joda.time.Duration;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 /**
  * The {@link StreamingBenchmark} is a streaming pipeline which generates messages at a specified
@@ -73,22 +86,27 @@ import org.joda.time.Duration;
  *
  * # Build the template
  * mvn compile exec:java \
- * -Dexec.mainClass=com.google.cloud.pso.pipeline.StreamingBenchmark \
- * -Dexec.cleanupDaemonThreads=false \
- * -Dexec.args=" \
- * --project=${PROJECT_ID} \
- * --stagingLocation=${PIPELINE_FOLDER}/staging \
- * --tempLocation=${PIPELINE_FOLDER}/temp \
- * --runner=${RUNNER} \
- * --zone=us-east1-d \
- * --autoscalingAlgorithm=THROUGHPUT_BASED \
- * --maxNumWorkers=5 \
- * --qps=50000 \
- * --schemaLocation=gs://<bucket>/<path>/<to>/game-event-schema \
- * --topic=projects/<project-id>/topics/<topic-id>"
+ *  * -Dexec.mainClass=com.google.cloud.pso.pipeline.StreamingBenchmark \
+ *  * -Dexec.cleanupDaemonThreads=false \
+ *  * -Dexec.args=" \
+ *  * --project=${PROJECT_ID} \
+ *  * --stagingLocation=${PIPELINE_FOLDER}/staging \
+ *  * --tempLocation=${PIPELINE_FOLDER}/temp \
+ *  * --runner=${RUNNER} \
+ *  * --zone=us-east1-d \
+ *  * --autoscalingAlgorithm=THROUGHPUT_BASED \
+ *  * --maxNumWorkers=5 \
+ *  * --qps=50000 \
+ *  * --validateSchema=true \
+ *  * --schemaLocation=gs://<bucket>/<path>/<to>/game-event-schema \
+ *  * --topic=projects/<project-id>/topics/<topic-id>"
  * </pre>
  */
 public class StreamingBenchmark {
+
+  private static final Logger LOG = LoggerFactory.getLogger(StreamingBenchmark.class);
+  private static final ImmutableList<String> ATTRIBUTES_SCHEMA_FIELDS =
+      ImmutableList.of("eventid", "eventtimestamp");
 
   /**
    * The {@link Options} class provides the custom execution options passed by the executor at the
@@ -107,11 +125,26 @@ public class StreamingBenchmark {
 
     void setSchemaLocation(String value);
 
+    @Description("The path to the schema to generate.")
+    @Required
+    @Default.Boolean(true)
+    Boolean getValidateSchema();
+
+    void setValidateSchema(Boolean value);
+
     @Description("The Pub/Sub topic to write to.")
     @Required
     String getTopic();
 
     void setTopic(String value);
+  }
+
+  /** Class {@link MalformedSchemaException} captures json schema syntax related exceptions */
+  static class MalformedSchemaException extends Exception {
+
+    public MalformedSchemaException(String message) {
+      super(message);
+    }
   }
 
   /**
@@ -123,11 +156,7 @@ public class StreamingBenchmark {
    * @param args The command-line args passed by the executor.
    */
   public static void main(String[] args) {
-    Options options = PipelineOptionsFactory
-        .fromArgs(args)
-        .withValidation()
-        .as(Options.class);
-
+    Options options = PipelineOptionsFactory.fromArgs(args).withValidation().as(Options.class);
     run(options);
   }
 
@@ -155,7 +184,10 @@ public class StreamingBenchmark {
         .apply(
             "Trigger",
             GenerateSequence.from(0L).withRate(options.getQps(), Duration.standardSeconds(1L)))
-        .apply("GenerateMessages", ParDo.of(new MessageGeneratorFn(options.getSchemaLocation())))
+        .apply(
+            "GenerateMessages",
+            ParDo.of(
+                new MessageGeneratorFn(options.getSchemaLocation(), options.getValidateSchema())))
         .apply("WriteToPubsub", PubsubIO.writeMessages().to(options.getTopic()));
 
     return pipeline.run();
@@ -172,16 +204,67 @@ public class StreamingBenchmark {
 
     private final String schemaLocation;
     private String schema;
+    private List<String> attributeFields = new ArrayList<>();
+    private final boolean shouldValidateSchema;
+    private boolean includeAttributeValues = false;
+
+    private JsonParser jsonParser;
 
     // Not initialized inline or constructor because {@link JsonDataGenerator} is not serializable.
     private transient JsonDataGenerator dataGenerator;
 
-    MessageGeneratorFn(String schemaLocation) {
+    MessageGeneratorFn(String schemaLocation, boolean shouldValidateSchema) {
       this.schemaLocation = schemaLocation;
+      this.shouldValidateSchema = shouldValidateSchema;
+    }
+
+    // Leave the scope as package private since its referred inside test methods for assertions
+    @VisibleForTesting
+    List<String> getAttributeFields() {
+      return this.attributeFields;
+    }
+
+    /**
+     * Validate Schema and checks for presence of attribute schema fields
+     *
+     * @param dataGenerator The execution options.
+     * @param schema The execution options.
+     * @throws IOException, MalformedSchemaException
+     */
+    private void validateSchema(JsonDataGenerator dataGenerator, String schema)
+        throws IOException, MalformedSchemaException {
+
+      String payload;
+      JsonObject jsonObject;
+
+      try {
+        // Generate sample message based on the provided schema.
+        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
+          dataGenerator.generateTestDataJson(schema, byteArrayOutputStream);
+          payload = byteArrayOutputStream.toString();
+        }
+
+        LOG.info("Validating sample message: {}", payload);
+        jsonObject = new JsonParser().parse(payload).getAsJsonObject();
+      } catch (JsonDataGeneratorException | JsonSyntaxException ex) {
+        throw new MalformedSchemaException(
+            String.format("Invalid schema format. Error:%s ", ex.getMessage()));
+      }
+
+      for (Map.Entry<String, JsonElement> property : jsonObject.entrySet()) {
+        if (ATTRIBUTES_SCHEMA_FIELDS.contains(property.getKey().toLowerCase())) {
+          this.attributeFields.add(property.getKey());
+        }
+      }
+
+      // Set these attributes appropriately to minimize per element processing costs inside the
+      // process method
+      this.includeAttributeValues = this.attributeFields.size() > 0;
+      this.jsonParser = this.includeAttributeValues ? new JsonParser() : null;
     }
 
     @Setup
-    public void setup() throws IOException {
+    public void setup() throws IOException, MalformedSchemaException {
       dataGenerator = new JsonDataGeneratorImpl();
       Metadata metadata = FileSystems.matchSingleFileSpec(schemaLocation);
 
@@ -194,6 +277,9 @@ public class StreamingBenchmark {
         }
 
         schema = byteArrayOutputStream.toString();
+        if (this.shouldValidateSchema) {
+          this.validateSchema(dataGenerator, schema);
+        }
       }
     }
 
@@ -201,15 +287,21 @@ public class StreamingBenchmark {
     public void processElement(ProcessContext context)
         throws IOException, JsonDataGeneratorException {
 
-      // TODO: Add the ability to place eventId and eventTimestamp in the attributes.
       byte[] payload;
       Map<String, String> attributes = Maps.newHashMap();
-
       // Generate the fake JSON according to the schema.
       try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
         dataGenerator.generateTestDataJson(schema, byteArrayOutputStream);
-
         payload = byteArrayOutputStream.toByteArray();
+      }
+
+      if (this.includeAttributeValues) {
+        // Build a json Object, extract fields and include them in attributes
+        JsonObject jsonObject =
+            this.jsonParser.parse(new String(payload, StandardCharsets.UTF_8)).getAsJsonObject();
+        for (String field : attributeFields) {
+          attributes.put(field, jsonObject.get(field).getAsString());
+        }
       }
 
       context.output(new PubsubMessage(payload, attributes));

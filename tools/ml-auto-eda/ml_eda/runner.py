@@ -18,11 +18,13 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
+import time
 import argparse
 import logging
 
 from ml_eda.constants import c
 from ml_eda.orchestration import analysis_run
+from ml_eda.preprocessing import preprocessor_factory
 
 
 def initialise_parameters(args_parser: argparse.ArgumentParser
@@ -52,36 +54,60 @@ def initialise_parameters(args_parser: argparse.ArgumentParser
       default='bigquery-public-data.ml_datasets.census_adult_income'
   )
   args_parser.add_argument(
-      '--target_name',
-      help='Name of the target attribute.',
-      default='Null'
-  )
-  args_parser.add_argument(
-      '--ml_type',
-      help='Type of machine learning problem',
-      choices=['Regression', 'Classification', 'Null'],
-      default='Null'
-  )
-  args_parser.add_argument(
       '--preprocessing_backend',
       help='Backend computation engine.',
-      default=c.preprocessing.BIGQUERY
+      default=preprocessor_factory.BIGQUERY
   )
   args_parser.add_argument(
-      '--metadata',
-      help='Configurtion file containing the description of the datasource.',
-      default='./metadata.ini'
+      '--parallel_thread',
+      help='Number of parallel jobs run through processing backend.',
+      default=10
   )
   args_parser.add_argument(
-      '--generate_metadata',
-      help='Indicates whether the medata file should be '
+      '--job_config',
+      help='Configuration file containing the description of the datasource.',
+      default='./job_config.ini'
+  )
+  args_parser.add_argument(
+      '--generate_job_config',
+      help='Indicates whether the job config file should be '
            'regenerated from the datasource.',
       default=False
   )
   args_parser.add_argument(
+      '--target_name',
+      help='Name of the target attribute. This should only specified if '
+           '`generate_job_config` flag is True. Otherwise, the value specified'
+           'in `job_config` file will be used.',
+      default='Null'
+  )
+  args_parser.add_argument(
+      '--target_type',
+      help='Data type of the target attribute. This should only specified if '
+           '`generate_job_config` flag is True. Otherwise, the value will'
+           'be derived based on `job_config` file configurations.',
+      choices=['Categorical', 'Numerical', 'Null'],
+      default='Null'
+  )
+  args_parser.add_argument(
       '--report_path',
-      default='./report.md',
-      help='Path for storing generated report'
+      default='./',
+      help='Path for storing generated report.'
+  )
+  args_parser.add_argument(
+      '--add_config_to_report',
+      default=True,
+      help='Indicates whether add job config to the end of generated report.'
+  )
+  args_parser.add_argument(
+      '--export_result',
+      default=True,
+      help='Indicates whether export analysis results.'
+  )
+  args_parser.add_argument(
+      '--sampling_rate',
+      default=0.05,
+      help='Sampling rate for statistical test'
   )
 
   args_params = args_parser.parse_args()
@@ -97,8 +123,12 @@ def main():
       level=logging.INFO)
   args_parser = argparse.ArgumentParser()
   config_params = initialise_parameters(args_parser)
-  analysis = analysis_run.Run(config_params)
+
+  s = time.perf_counter()
+  analysis = analysis_run.AnalysisRun(config_params)
   analysis.run_exploratory_data_analysis()
+  elapsed = time.perf_counter() - s
+  logging.info(f"Execution takes {elapsed:0.2f} seconds.")
 
 
 if __name__ == '__main__':

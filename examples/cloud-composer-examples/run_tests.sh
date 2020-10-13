@@ -84,16 +84,18 @@ function clean_up() {
   echo "cleaning up AIRFLOW_HOME"
   rm -rf $AIRFLOW_HOME
   unset AIRFLOW_HOME
+  rm -rf airflow-env
 }
 
 # Might be necessary if we chose another image.
-function install_airflow() {
-  python3 -m venv airflow-env
-  # shellcheck disable=SC1091
+function install_venv() {
+  python3 -m virtualenv airflow-env
+  chmod +x airflow-env/bin/activate
   source airflow-env/bin/activate
-  pip3 install -r requirements-dev.txt
+  pip install -r requirements.txt
 }
 
+install_venv
 setup_local_airflow
 run_tests
 TEST_STATUS=$?

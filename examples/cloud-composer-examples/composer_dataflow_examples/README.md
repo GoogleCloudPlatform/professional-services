@@ -67,7 +67,7 @@ The following high-level steps describe the setup needed to run this example:
 |filename	 |STRING      |
 |load_dt	 |DATE        |
 
-5. Set the following Airflow variables needed for this example:
+5. Set the following [Airflow variables](https://airflow.apache.org/docs/stable/concepts.html#variables) needed for this example:
 
 | Key                   | Value                                           |Example                                   |
 | :--------------------- |:---------------------------------------------- |:---------------------------              |

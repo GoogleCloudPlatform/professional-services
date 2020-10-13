@@ -13,16 +13,41 @@ To get started contributing:
 
    ```
    gcloud config set project YOUR-PROJECT
-   cd cloudbuild
+   export GITHUB_USER=YOUR_GITHUB_USERNAME
+
+   pushd cloudbuild
    teraform init
-   terraform apply -var="project_id=$(gcloud config get-value project)" -var='github_owner=GITHUB-USER-ID'
+   terraform apply -var="project_id=$(gcloud config get-value project)" -var="github_owner=${GITHUB_USER}"
+   popd
    ```
 
    Builds require a `make` container image in the same project. Build with
-   the following command:
+   the following commands:
 
    ```
+   pushd cloudbuild
    gcloud builds submit --tag gcr.io/$(gcloud config get-value project)/make .
+   popd
+   ```
+
+1. Run the formatter locally.
+
+   From the root of the repository, run the Docker command:
+   ```
+   docker run \
+     --mount type=bind,source="$( pwd )",target=/workspace \
+     --workdir=/workspace \
+     gcr.io/$(gcloud config get-value project)/make fmt
+   ```
+
+1. Run the linter locally.
+
+   From the root of the repository, run the Docker command:
+   ```
+   docker run \
+     --mount type=bind,source="$( pwd )",target=/workspace \
+     --workdir=/workspace \
+     gcr.io/$(gcloud config get-value project)/make test
    ```
 
 1. Develop using the following guidelines to help expedite your review:

@@ -50,7 +50,7 @@ is_worker() {
 }
 
 min_version() {
-  echo -e "$1\n$2" | sort -r -t'.' -n -k1,1 -k2,2 -k3,3 | tail -n1
+  echo -e "$1"'\n'"$2" | sort -r -t'.' -n -k1,1 -k2,2 -k3,3 | tail -n1
 }
 
 get_connector_url() {

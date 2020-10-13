@@ -22,7 +22,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import com.google.cloud.pso.pipeline.StreamingBenchmark.MessageGeneratorFn;
-import com.google.common.collect.Lists;
+import com.google.cloud.pso.pipeline.StreamingBenchmark.MalformedSchemaException;
 import com.google.common.io.ByteStreams;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
-import java.util.List;
 import org.apache.beam.sdk.io.FileSystems;
 import org.apache.beam.sdk.io.fs.ResourceId;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
@@ -55,6 +54,50 @@ public class StreamingBenchmarkTest {
 
   @ClassRule public static TemporaryFolder tempFolder = new TemporaryFolder();
 
+  /**
+   * Tests that validate whether attribute values needs to be added or not based on schema
+   * definition *
+   */
+  @Test
+  public void testSetupWithEventFields() throws IOException, MalformedSchemaException {
+    // Arrange
+    //
+    String schema =
+        "{"
+            + "\"eventId\": \"{{uuid()}}\", "
+            + "\"eventTimestamp\": \"{{timestamp()}}\", "
+            + "\"username\": \"{{username()}}\", "
+            + "\"score\": {{integer(0,100)}}"
+            + "}";
+
+    File file = tempFolder.newFile();
+    writeToFile(file.getAbsolutePath(), schema);
+
+    // Act
+    MessageGeneratorFn messageGenerator = new MessageGeneratorFn(file.getAbsolutePath(), true);
+    messageGenerator.setup();
+
+    // Assert
+    assertThat(messageGenerator.getAttributeFields().size(), is(2));
+  }
+
+  @Test
+  public void testSetupWithoutEventFields() throws IOException, MalformedSchemaException {
+    // Arrange
+    String schema =
+        "{" + "\"username\": \"{{username()}}\", " + "\"score\": {{integer(0,100)}}" + "}";
+
+    File file = tempFolder.newFile();
+    writeToFile(file.getAbsolutePath(), schema);
+
+    // Act
+    MessageGeneratorFn messageGenerator = new MessageGeneratorFn(file.getAbsolutePath(), true);
+    messageGenerator.setup();
+
+    // Assert
+    assertThat(messageGenerator.getAttributeFields().size(), is(0));
+  }
+
   /** Tests the {@link MessageGeneratorFn} generates fake data. */
   @Test
   public void testMessageGenerator() throws IOException {
@@ -62,21 +105,21 @@ public class StreamingBenchmarkTest {
     //
     String schema =
         "{"
-            + "\"id\": \"{{uuid()}}\", "
-            + "\"eventTime\": \"{{timestamp()}}\", "
+            + "\"eventId\": \"{{uuid()}}\", "
+            + "\"eventTimestamp\": \"{{timestamp()}}\", "
             + "\"username\": \"{{username()}}\", "
             + "\"score\": {{integer(0,100)}}"
             + "}";
 
     File file = tempFolder.newFile();
-    writeToFile(file.getAbsolutePath(), Lists.newArrayList(schema));
+    writeToFile(file.getAbsolutePath(), schema);
 
     // Act
     //
     PCollection<PubsubMessage> results =
         pipeline
             .apply("CreateInput", Create.of(0L))
-            .apply("GenerateMessage", ParDo.of(new MessageGeneratorFn(file.getAbsolutePath())));
+            .apply("GenerateMessage", ParDo.of(new MessageGeneratorFn(file.getAbsolutePath(), true)));
 
     // Assert
     //
@@ -87,7 +130,7 @@ public class StreamingBenchmarkTest {
 
               assertThat(message, is(notNullValue()));
               assertThat(message.getPayload(), is(notNullValue()));
-              assertThat(message.getAttributeMap(), is(notNullValue()));
+              assertThat(message.getAttributeMap().size(), is(2));
 
               return null;
             });
@@ -95,22 +138,42 @@ public class StreamingBenchmarkTest {
     pipeline.run();
   }
 
-  /** Tests the {@link MessageGeneratorFn} does not fail when given invalid schema. */
-  @Test
-  public void testMessageGeneratorInvalidSchema() throws IOException {
+  /** Tests the {@link MessageGeneratorFn} that fails when given invalid schema. */
+  @Test(expected = Exception.class)
+  public void testInvalidSchemaThrowsException() throws IOException {
     // Arrange
     //
     String schema = "{\"name: \"Invalid\"";
 
     File file = tempFolder.newFile();
-    writeToFile(file.getAbsolutePath(), Lists.newArrayList(schema));
+    writeToFile(file.getAbsolutePath(), schema);
 
     // Act
     //
     PCollection<PubsubMessage> results =
         pipeline
             .apply("CreateInput", Create.of(0L))
-            .apply("GenerateMessage", ParDo.of(new MessageGeneratorFn(file.getAbsolutePath())));
+            .apply("GenerateMessage", ParDo.of(new MessageGeneratorFn(file.getAbsolutePath(), true)));
+
+    pipeline.run();
+  }
+
+  /** Tests the {@link MessageGeneratorFn} should not fails when given invalid schema with validateSchema set to false. */
+  @Test
+  public void testInvalidSchemaIgnoringValidation() throws IOException {
+    // Arrange
+    //
+    String schema = "{\"name: \"Invalid\"";
+
+    File file = tempFolder.newFile();
+    writeToFile(file.getAbsolutePath(), schema);
+
+    // Act
+    //
+    PCollection<PubsubMessage> results =
+            pipeline
+                    .apply("CreateInput", Create.of(0L))
+                    .apply("GenerateMessage", ParDo.of(new MessageGeneratorFn(file.getAbsolutePath(), false)));
 
     // Assert
     //
@@ -123,24 +186,21 @@ public class StreamingBenchmarkTest {
 
     pipeline.run();
   }
-
   /**
    * Helper to generate files for testing.
    *
    * @param filePath The path to the file to write.
-   * @param lines The lines to write.
+   * @param fileContent Content to write into the file.
    * @return The file written.
    * @throws IOException If an error occurs while creating or writing the file.
    */
-  private static ResourceId writeToFile(String filePath, List<String> lines) throws IOException {
-
-    String fileContents = String.join(System.lineSeparator(), lines);
+  private static ResourceId writeToFile(String filePath, String fileContent) throws IOException {
 
     ResourceId resourceId = FileSystems.matchNewResource(filePath, false);
 
     // Write the file contents to the channel and close.
     try (ReadableByteChannel readChannel =
-        Channels.newChannel(new ByteArrayInputStream(fileContents.getBytes()))) {
+        Channels.newChannel(new ByteArrayInputStream(fileContent.getBytes()))) {
       try (WritableByteChannel writeChannel = FileSystems.create(resourceId, MimeTypes.TEXT)) {
         ByteStreams.copy(readChannel, writeChannel);
       }
