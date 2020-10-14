@@ -99,7 +99,7 @@ your GCP environment are ready:
     to execute the code.
 
     ```
-    curl https://raw.githubusercontent.com/misabhishek/professional-services/master/tools/iam-recommender-at-scale/install.sh | bash -
+    curl https://raw.githubusercontent.com/GoogleCloudPlatform/professional-services/master/tools/iam-recommender-at-scale/install.sh | bash -
     ```
 
 2.  Enter the below command to go to the source directory and activate the
