@@ -35,7 +35,7 @@ class Recommendation(object):
              self.add_roles, self.resource, self.name, self.etag))
 
     def get_state(self, data):
-        """Get state of the recommendtion."""
+        """Get state of the recommendation."""
 
         if data["stateInfo"]["state"] == "ACTIVE":
             return "ACTIVE"
@@ -83,7 +83,7 @@ class Recommendation(object):
             self.resource)
 
     def update_data(self):
-        """Uplade recommendation data after checking the integrity."""
+        """Update recommendation data after checking the integrity."""
 
         self.principal = self.principal.pop()
         self.principal_type = self.principal.split(":")[0]

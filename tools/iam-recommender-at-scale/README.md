@@ -5,9 +5,10 @@
 This article will use GCP’s
 [IAM Recommender](https://cloud.google.com/iam/docs/recommender-overview) to
 explore how to address a common pain-point we see in identity access-- enforcing
-least-privilege at scale. You will learn how to: 1) Identify a GCP project that
-has a lot of IAM Recommendations 2) Bulk-apply all (or some) of the
-recommendations on that project 3) Revert that bulk-application (if necessary)
+least-privilege at scale. You will learn how to:
+1. Identify a GCP project that has a lot of IAM Recommendations
+2. Bulk-apply all (or some) of the recommendations on that project
+3. Revert that bulk-application (if necessary)
 
 ## Introduction
 
@@ -126,7 +127,7 @@ your GCP environment are ready:
 4.  For this demo we exported the results from step 1.2 into a CSV and uploaded
     that CSV into a Google Sheet.
 
-    ![project security status](./asset/project-security-status.png)
+    ![project security status](asset/project-security-status.png)
 
     *Table 1: The resource column lists the name of every project that has
     active IAM recommendations in it within your organization. In subsequent
@@ -139,7 +140,7 @@ your GCP environment are ready:
     from 1.3 to create a column chart, but you can easily use the data format
     and visualization tool of your choice.
 
-    ![project security status](./asset/project-security-status-graph.png)
+    ![project security status](asset/project-security-status-graph.png)
 
     *Table 2: When we visualize table 1 using a column chart, it become clear
     that there are a couple outliers in terms of the total number of
@@ -256,7 +257,7 @@ your GCP environment are ready:
     step 1.2 again we see that all recommendations for “TestProj” went from 483
     to 0.
 
-    ![project security status after apply](./asset/project-security-status-after-apply.png)
+    ![project security status after apply](asset/project-security-status-after-apply.png)
     *Table 3: after bulk-applying all the recommendations on “TestProj”, we see
     that recommendations are down to 0.*
 

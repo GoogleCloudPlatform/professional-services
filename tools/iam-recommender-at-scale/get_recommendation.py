@@ -100,11 +100,11 @@ def main():
                                                      recommender,
                                                      args.recommendation_state,
                                                      credentials)
-    recommendatios_jsonified = describe_recommendations(recommendation_data)
+    recommendations_jsonified = describe_recommendations(recommendation_data)
     if not args.to_json:
-        print(recommendatios_jsonified)
+        print(recommendations_jsonified)
     else:
-        common.writefile(recommendatios_jsonified, args.to_json)
+        common.writefile(recommendations_jsonified, args.to_json)
         logging.info("Find the project:%s recommendations at location %s.",
                      args.project_id, args.to_json)
 
