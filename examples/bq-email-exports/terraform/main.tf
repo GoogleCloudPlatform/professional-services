@@ -1,4 +1,4 @@
-# Copyright 2019 Google Inc.
+# Copyright 2020 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -139,18 +139,18 @@ resource "google_storage_bucket" "function_bucket_1" {
 
 data "archive_file" "init_1" {
   type        = "zip"
-  source_dir  = "../source_1"
-  output_path = "source_1.zip"
+  source_dir  = "../scheduled_query_function"
+  output_path = "scheduled_query_function_source.zip"
 }
 
 resource "google_storage_bucket_object" "archive_1" {
-  name   = "bq_email_function_source_1.zip"
+  name   = "scheduled_query_function_source.zip"
   bucket = google_storage_bucket.function_bucket_1.name
   source = data.archive_file.init_1.output_path
 }
 
 resource "google_cloudfunctions_function" "function_1" {
-  name    = var.function_name_1
+  name    = var.run_query_function_name
   project = module.project-services.project_id
   runtime = "python37"
 
@@ -164,6 +164,15 @@ resource "google_cloudfunctions_function" "function_1" {
   source_archive_object = google_storage_bucket_object.archive_1.name
   entry_point           = "main"
   timeout               = 540
+
+  environment_variables = {
+    GCS_QUERY_PATH      = var.gcs_query_path
+    ALLOW_LARGE_RESULTS = var.allow_large_results
+    USE_QUERY_CACHE     = var.use_query_cache
+    FLATTEN_RESULTS     = var.flatten_results
+    MAX_BYTES_BILLED    = var.max_bytes_billed
+    USE_LEGACY_SQL      = var.use_legacy_sql
+  }
 }
 
 # Function 2 which will export query results to GCS
@@ -174,18 +183,18 @@ resource "google_storage_bucket" "function_bucket_2" {
 
 data "archive_file" "init_2" {
   type        = "zip"
-  source_dir  = "../source_2"
-  output_path = "source_2.zip"
+  source_dir  = "../export_query_results_function"
+  output_path = "export_query_results_function_source.zip"
 }
 
 resource "google_storage_bucket_object" "archive_2" {
-  name   = "bq_email_function_source_2.zip"
+  name   = "export_query_results_function_source.zip"
   bucket = google_storage_bucket.function_bucket_2.name
   source = data.archive_file.init_2.output_path
 }
 
 resource "google_cloudfunctions_function" "function_2" {
-  name    = var.function_name_2
+  name    = var.export_results_function_name
   project = module.project-services.project_id
   runtime = "python37"
 
@@ -199,6 +208,15 @@ resource "google_cloudfunctions_function" "function_2" {
   source_archive_object = google_storage_bucket_object.archive_2.name
   entry_point           = "main"
   timeout               = 540
+
+  environment_variables = {
+    BUCKET_NAME     = var.storage_bucket
+    OBJECT_NAME     = var.export_object_name
+    COMPRESSION     = var.export_compression
+    DEST_FMT        = var.export_destination_format
+    USE_AVRO_TYPES  = var.export_use_avro_logical_types
+    FIELD_DELIMITER = var.export_field_delimiter
+  }
 }
 
 # Function 3 which will send email with link to GCS file
@@ -209,18 +227,18 @@ resource "google_storage_bucket" "function_bucket_3" {
 
 data "archive_file" "init_3" {
   type        = "zip"
-  source_dir  = "../source_3"
-  output_path = "source_3.zip"
+  source_dir  = "../send_email_function"
+  output_path = "send_email_function_source.zip"
 }
 
 resource "google_storage_bucket_object" "archive_3" {
-  name   = "bq_email_function_source_3.zip"
+  name   = "send_email_function_source.zip"
   bucket = google_storage_bucket.function_bucket_3.name
   source = data.archive_file.init_3.output_path
 }
 
 resource "google_cloudfunctions_function" "function_3" {
-  name    = var.function_name_3
+  name    = var.email_results_function_name
   project = module.project-services.project_id
   runtime = "python37"
 
@@ -236,6 +254,10 @@ resource "google_cloudfunctions_function" "function_3" {
   timeout               = 540
 
   environment_variables = {
-    SENDGRID_API_KEY = var.sendgrid_api_key
+    SENDGRID_API_KEY      = var.sendgrid_api_key
+    SIGNED_URL_EXPIRATION = var.signed_url_expiration_hrs
+    FROM_EMAIL            = var.sender_email_address
+    TO_EMAILS             = var.recipient_email_address
+    EMAIL_SUBJECT         = var.email_subject
   }
 }

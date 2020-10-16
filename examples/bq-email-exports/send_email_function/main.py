@@ -34,12 +34,6 @@ from sendgrid.helpers.mail import Mail
 def main(event, context):
     """Entrypoint for Cloud Function"""
 
-    # Set variables
-    signed_url_expiration_hrs = 24
-    from_email = "sender@example.com"
-    to_email = "recipient@example.com"
-    email_subject = "Daily BQ export"
-
     data = base64.b64decode(event['data'])
     log_entry = json.loads(data)
     status = log_entry['severity']
@@ -53,8 +47,8 @@ def main(event, context):
         blob_path = log_entry['protoPayload']['serviceData'][
             'jobCompletedEvent']['job']['jobConfiguration']['extract'][
                 'destinationUris'][0]
-        object_name = blob_path.split('/')[2]
-        bucket_name = blob_path.split('/')[3]
+        bucket_name = blob_path.split('/')[2]
+        object_name = blob_path.split('/')[3]
 
         storage_client = storage.Client()
         bucket = storage_client.bucket(bucket_name)
@@ -78,15 +72,16 @@ def main(event, context):
 
         url = blob.generate_signed_url(
             version="v4",
-            expiration=datetime.timedelta(hours=signed_url_expiration_hrs),
+            expiration=datetime.timedelta(
+                hours=int(os.environ.get('SIGNED_URL_EXPIRATION'))),
             method="GET",
             credentials=signing_credentials)
         print("Generated signed URL.")
 
         message = Mail(
-            from_email=from_email,
-            to_emails=to_email,
-            subject=email_subject,
+            from_email=os.environ.get('FROM_EMAIL'),
+            to_emails=os.environ.get('TO_EMAILS'),
+            subject=os.environ.get('EMAIL_SUBJECT'),
             html_content="<p> Your BigQuery export from Google Cloud Platform \
                 is linked <a href={}>here</a>.</p>".format(url),
         )

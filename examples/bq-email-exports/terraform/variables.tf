@@ -1,4 +1,4 @@
-# Copyright 2019 Google Inc.
+# Copyright 2020 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ variable "region" {
 }
 
 variable "service_acct_name" {
-  description = "The service account used by the BQ email export Cloud Function"
+  description = "The service account used by the three BQ email export Cloud Functions"
 }
 
 variable "service_acct_roles" {
@@ -64,7 +64,7 @@ variable "sendgrid_api_key" {
 }
 
 variable "storage_bucket" {
-  description = "GCS bucket to store exported query results from BQ."
+  description = "Name of GCS bucket to store exported query results from BQ."
 }
 
 variable "bucket_lifecycle" {
@@ -84,17 +84,17 @@ variable "function_bucket_3" {
   description = "GCS bucket for function 3 code that sends email."
 }
 
-variable "function_name_1" {
+variable "run_query_function_name" {
   description = "Name for the Cloud Function that runs query."
   default     = "bq-email-run-query"
 }
 
-variable "function_name_2" {
+variable "export_results_function_name" {
   description = "Name for the Cloud Function that exports query results."
   default     = "bq-email-export-gcs"
 }
 
-variable "function_name_3" {
+variable "email_results_function_name" {
   description = "Name for the Cloud Function that sends email."
   default     = "bq-email-send-email"
 }
@@ -109,4 +109,75 @@ variable "scheduler_schedule" {
 variable "scheduler_timezone" {
   description = "Time zone for Cloud Scheduler."
   default     = "US/Central"
+}
+
+# Environment variables for the Cloud Functions
+variable "gcs_query_path" {
+  description = "Path to GCS file with query."
+}
+
+variable "allow_large_results" {
+  description = "Allow large query results tables"
+  default     = "True"
+}
+
+variable "use_query_cache" {
+  description = "Look for the query result in the cache."
+  default     = "True"
+}
+
+variable "flatten_results" {
+  description = "Flatten nested/repeated fields in query results."
+  default     = "False"
+}
+
+variable "max_bytes_billed" {
+  description = "Maximum bytes to be billed for query job."
+  default     = 1000000000
+}
+
+variable "use_legacy_sql" {
+  description = "Use legacy SQL syntax for query."
+  default     = "False"
+}
+
+variable "export_object_name" {
+  description = "GCS object name for query results file"
+}
+
+variable "export_compression" {
+  description = "Compression type to use for exported files."
+  default     = "NONE"
+}
+
+variable "export_destination_format" {
+  description = "Exported file format."
+  default     = "NEWLINE_DELIMETED_JSON"
+}
+
+variable "export_use_avro_logical_types" {
+  description = "For loads of Avro data, governs whether Avro logical types are converted to their corresponding BigQuery types."
+  default     = "False"
+}
+
+variable "export_field_delimiter" {
+  description = "Delimiter to use between fields in the exported data."
+  default     = ","
+}
+
+variable "signed_url_expiration_hrs" {
+  description = "Number of hours until the signed URL sent via email will expire."
+  default     = 24
+}
+
+variable "sender_email_address" {
+  description = "Email address of sender."
+}
+
+variable "recipient_email_address" {
+  description = "Email address of recipient."
+}
+
+variable "email_subject" {
+  description = "Subject of email address containing query results."
 }

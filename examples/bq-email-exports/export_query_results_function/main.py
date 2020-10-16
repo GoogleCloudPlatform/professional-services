@@ -19,20 +19,13 @@ Triggered after BigQuery query is complete.
 import base64
 import json
 import logging
+import os
 
 from google.cloud import bigquery
 
 
 def main(event, context):
     """Entrypoint for Cloud Function"""
-
-    # Set variables
-    bucket_name = "bq-email-exports"
-    object_name = "bq_email_results.json"
-    export_compression = "NONE"
-    export_destination_fmt = "NEWLINE_DELIMETED_JSON"
-    export_use_avro = False
-    export_field_delimeter = ","
 
     data = base64.b64decode(event['data'])
     log_entry = json.loads(data)
@@ -55,15 +48,15 @@ def main(event, context):
 
         bq_client = bigquery.Client()
 
-        destination_uri = f"gs://{bucket_name}/{object_name}"
+        destination_uri = f"gs://{os.environ.get('BUCKET_NAME')}/{os.environ.get('OBJECT_NAME')}"
         dataset_ref = bigquery.DatasetReference(project_id, dataset_id)
         table_ref = dataset_ref.table(table_name)
 
         extract_config = bigquery.ExtractJobConfig(
-            compression=export_compression,
-            destination_format=export_destination_fmt,
-            field_delimeter=export_field_delimeter,
-            use_avro_logical_types=export_use_avro)
+            compression=os.environ.get('COMPRESSION'),
+            destination_format=os.environ.get('DEST_FMT'),
+            field_delimeter=os.environ.get('FIELD_DELIMITER'),
+            use_avro_logical_types=os.environ.get('USE_AVRO_TYPES'))
         bq_client.extract_table(table_ref,
                                 destination_uri,
                                 job_id_prefix="email_export_",

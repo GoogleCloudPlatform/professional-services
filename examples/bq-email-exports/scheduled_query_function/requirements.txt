@@ -16,3 +16,4 @@
 # https://github.com/sendgrid/sendgrid-python
 
 google-cloud-bigquery==1.25.0
+google-cloud-storage==1.29.0

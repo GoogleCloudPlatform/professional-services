@@ -16,31 +16,28 @@ Cloud Function to run the specified query on a BigQuery anonymous table.
 Triggered by Cloud Scheduler.
 """
 
-from google.cloud import bigquery
+import os
+
+from google.cloud import bigquery, storage
 
 
 def main(event, context):
     """Entrypoint for Cloud Function"""
 
-    # Set variables
-    query = "SELECT CONCAT('https://stackoverflow.com/questions/',"
-    "CAST(id as STRING)) as url, view_count "
-    "FROM `bigquery-public-data.stackoverflow.posts_questions` "
-    "WHERE tags like '%google-bigquery%' ORDER BY view_count DESC LIMIT 10"
-    allow_large_results = True
-    use_query_cache = True
-    flatten_results = False
-    max_bytes_billed = "1000000000"
-    use_legacy_sql = False
-
     bq_client = bigquery.Client()
+    storage_client = storage.Client()
+
+    query_path = os.environ.get('GCS_QUERY_PATH')
+    bucket = storage_client.bucket(query_path.split('/')[2])
+    query_blob = bucket.blob(query_path.split('/')[3])
+    query = str(query_blob.download_as_string(), 'utf-8')
 
     job_config = bigquery.QueryJobConfig(
-        allow_large_results=allow_large_results,
-        use_query_cache=use_query_cache,
-        flatten_results=flatten_results,
-        maximum_bytes_billed=max_bytes_billed,
-        use_legacy_sql=use_legacy_sql)
+        allow_large_results=os.environ.get('ALLOW_LARGE_RESULTS'),
+        use_query_cache=os.environ.get('USE_QUERY_CACHE'),
+        flatten_results=os.environ.get('FLATTEN_RESULTS'),
+        maximum_bytes_billed=os.environ.get('MAX_BYTES_BILLED'),
+        use_legacy_sql=os.environ.get('USE_LEGACY_SQL'))
 
     query_job = bq_client.query(query,
                                 job_config=job_config,

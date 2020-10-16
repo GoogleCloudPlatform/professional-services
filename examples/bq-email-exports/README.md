@@ -8,8 +8,7 @@ The functional steps are listed here:
 
 **Pub/Sub #1:** A [Pub/Sub](https://cloud.google.com/pubsub) topic is triggered by Cloud Scheduler.
 
-**Cloud Function #1:** A [Cloud Function](https://cloud.google.com/functions) runs the BigQuery query on an [anonymous table](https://cloud.google.com/bigquery/docs/
-cached-results#how_cached_results_are_stored). This query job will have a job ID prefix of `email_query`.
+**Cloud Function #1:** A [Cloud Function](https://cloud.google.com/functions) runs the BigQuery query and writes the results to an [anonymous table](https://cloud.google.com/bigquery/docs/cached-results#how_cached_results_are_stored). This query job will have a job ID prefix of `email_query`.
 
 **Pub/Sub #2:** The second topic is triggered by a [logging sink](https://cloud.google.com/logging/docs/export) with a filter for query job completion with the job ID prefix of `email_query`.
 
