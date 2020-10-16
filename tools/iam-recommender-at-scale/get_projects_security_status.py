@@ -118,7 +118,7 @@ def to_print(metrics):
     metrics: Recommendation data
   """
     fields = [
-        "Resource", "Metric Description", "Service Accounts", "Users", "Groups",
+        "Metric Description", "Resource", "Service Accounts", "Users", "Groups",
         "Total"
     ]
     table = prettytable.PrettyTable(fields)
@@ -127,7 +127,7 @@ def to_print(metrics):
         project_id = "projects/" + metric["project_id"]
         stats = list(metric["stats"].values())
         combine_stats = sum(stats)
-        table.add_row([project_id, metric_name, *stats, combine_stats])
+        table.add_row([metric_name, project_id, *stats, combine_stats])
     print(table)
 
 
@@ -139,7 +139,7 @@ def to_csv(metrics, output_file):
     output_file: Location of output file
   """
     fields = [
-        "Resource", "Metric Description", "Service Accounts", "Users", "Groups",
+        "Metric Description", "Resource", "Service Accounts", "Users", "Groups",
         "Total"
     ]
     columns = ",".join(fields) + "\n"
@@ -151,7 +151,7 @@ def to_csv(metrics, output_file):
             stats = list(metric["stats"].values())
             combine_stats = sum(stats)
             row = ",".join(
-                [project_id, metric_name, *map(str, stats),
+                [metric_name, project_id, *map(str, stats),
                  str(combine_stats)]) + "\n"
             f.write(row)
 
@@ -202,7 +202,7 @@ def main():
         to_print(recommendation_data)
     else:
         to_csv(recommendation_data, args.to_csv)
-        logging.info("Find the organization security status at location %s.",
+        logging.info("The security status of your organization has been exported to %s.",
                      args.to_csv)
 
 
