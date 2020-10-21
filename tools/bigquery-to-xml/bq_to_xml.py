@@ -84,8 +84,8 @@ def bigquery_to_xml(query, custom_root_node=False):
     my_xml = etree.tostring(doc)
 
     # Remove root node
-    removeRoot = ET.fromstring(my_xml)[0]
-    my_xml = ET.tostring(removeRoot, method="xml")
+    remove_root = ET.fromstring(my_xml)[0]
+    my_xml = ET.tostring(remove_root, method="xml")
 
     # Convert cleaned data to formatted XML
     my_xml = parseString(my_xml).toprettyxml()
@@ -93,8 +93,8 @@ def bigquery_to_xml(query, custom_root_node=False):
     # Clean up whitespace
     my_xml = os.linesep.join([s for s in my_xml.splitlines() if s.strip()])
 
-    # TODO - implement what you need to with the cleaned-up XML
-    print(my_xml)
+    # Optional - implement what you need to with the cleaned-up XML. Default just returns a string
+    return my_xml
 
 # Example implementation below:
 
