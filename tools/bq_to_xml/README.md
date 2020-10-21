@@ -1,0 +1,2 @@
+# BigQuery to XML Conversion
+This simple Python script allows you to take the output of a BigQuery query and convert the output into an XML file. This works best with nested and repeated fields and contains some customizations like custom root nodes.
