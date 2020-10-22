@@ -26,20 +26,18 @@ In this example, we are using the following base image for Python 3:
 
 We will utilize Google Cloud Builds ability to build a container using a Dockerfile as documented in the [quickstart](https://cloud.google.com/cloud-build/docs/quickstart-docker).
 
-In addition, we will use a CICD pipeline on Cloud Build to update the flex template automatically. 
+In addition, we will use a CICD pipeline on Cloud Build to update the flex template automatically.
 
 ## Dataflow Pipeline
 [WordCount Example](wordcount.py) - The Wordcount pipeline is a batch pipeline which performs a wordcount on an input text file (via --input flag) and writes the word count to GCS. The output format is determined by the value of the --format flag which can be set to either text, avro or parquet.
 
 ## Getting started
-To test out the CICD pipeline end-to-end:
+To run the CICD pipeline end-to-end:
 
 1. Create a fork/copy of this repo on Github or Cloud Source Repositories, or start a new one.
 2. Trigger a manual or automated build as explained in the [CICD](#CICD) section.
 3. Run the template as explained in the [Running Flex Templates](#Running-flex-templates) section.
 4. Monitor the job progress in the Dataflow job history page.
-5. Make an update to your pipeline (e.g. change the name of one of the transformation step)
-6. Apply step 2 and 3 and observe change to the dataflow job through the job graph or the output. 
 
 
 ## CICD
@@ -53,12 +51,12 @@ The CICD pipeline is defined in [cloudbuild.yaml](cloudbuild.yaml) to be execute
 Cloud Build provides default variables such as $PROJECT_ID that could be used in the build YAML file. User defined variables could also be used in the form of $_USER_VARIABLE.
 
 In this project the following variables are used:
-- $_TARGET_GCR_IMAGE: The GCR image name to be submitted to Cloud Build (not URI) (e.g wordcount-flex-template) 
+- $_TARGET_GCR_IMAGE: The GCR image name to be submitted to Cloud Build (not URI) (e.g wordcount-flex-template)
 - $_TEMPLATE_GCS_LOCATION: GCS location to store the template spec file (e.g. gs://bucket/dir/). The spec file path is required later on to submit run commands to Dataflow
 
 These variables must be set during manual build execution or via a build trigger
 
-### Manual builds 
+### Manual builds
 
 In the repo root directory, run the following command:
 ```
@@ -67,7 +65,7 @@ gcloud builds submit --config=cloudbuild.yaml --substitutions=_TARGET_GCR_IMAGE=
 PS: make sure that your latest code changes are pushed to the repo since the build will clone it from there and won't use the local version
 
 ### Triggering builds automatically
-To trigger a build on certain actions (e.g. commits to master) 
+To trigger a build on certain actions (e.g. commits to master)
 1. Go to Cloud Build > Triggers > Create Trigger. If you're using Github, choose the "Connect Repository" option.     
 2. Configure the trigger
 3. Point the trigger to the cloudbuild.yaml file in the repository
