@@ -70,6 +70,7 @@ def format_commitment_table(templates_dict: Dict[str, Union[str, bool]], **kwarg
 
 with models.DAG('cud_correction_dag',
                 schedule_interval=datetime.timedelta(days=1),
+                catchup=False,
                 default_args=DEFAULT_DAG_ARGS,
                 params={
                     'billing_export_table_name': os.environ.get('billing_export_table_name'),
