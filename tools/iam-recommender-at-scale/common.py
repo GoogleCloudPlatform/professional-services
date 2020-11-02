@@ -326,3 +326,22 @@ def add_roles_in_policy(policy, recommendation):
 def writefile(data, output_file):
     with open(output_file, "w") as f:
         f.write(data)
+
+
+def describe_recommendations(recommendations):
+    """Returns a json string representation  of recommendation with selected fileds.
+
+  Args:
+    recommendations: List(common.Recommendation)
+  """
+    recommendations_sorted = sorted(recommendations, key=lambda x: x.principal)
+    data = []
+    for r in recommendations_sorted:
+        data.append({
+            "id": r.name,
+            "etag": r.etag,
+            "principal": r.principal,
+            "role_recommended_to_be_removed": list(r.remove_role),
+            "roles_recommended_to_be_replaced_with": list(r.add_roles)
+        })
+    return json.dumps({"recommendations": data}, indent=4, sort_keys=True)
