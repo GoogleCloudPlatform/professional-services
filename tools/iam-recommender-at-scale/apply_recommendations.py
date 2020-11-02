@@ -83,9 +83,11 @@ def update_recommendation_status_after_apply(client, recommendations,
                           recommender_client=client,
                           metadata=metadata,
                           credentials=credentials)
-    recommendation_after_status_change = list(common.rate_limit_execution(
-        f, RATE_LIMIT, successful_recommendation))
-    return [common.Recommendation(r) for r in recommendation_after_status_change]
+    recommendation_after_status_change = list(
+        common.rate_limit_execution(f, RATE_LIMIT, successful_recommendation))
+    return [
+        common.Recommendation(r) for r in recommendation_after_status_change
+    ]
 
 
 def main():
@@ -112,7 +114,9 @@ def main():
         "--to_json",
         required=True,
         type=str,
-        help="Enter the json file name to store the information of successfully applied recommendations.")
+        help=
+        "Enter the json file name to store the information of successfully applied recommendations."
+    )
     parser.add_argument("--log",
                         type=str,
                         nargs="?",
@@ -151,13 +155,15 @@ def main():
     logging.info(common.diff_between_policies(old_policy, new_policy))
     updated_recommendations = update_recommendation_status_after_apply(
         recommender, recommendation_to_be_applied, success_status, credentials)
-    recommendations_jsonified = common.describe_recommendations(updated_recommendations)
+    recommendations_jsonified = common.describe_recommendations(
+        updated_recommendations)
     if not args.to_json:
         print(recommendations_jsonified)
     else:
         common.writefile(recommendations_jsonified, args.to_json)
-        logging.info("Find the project:%s successfully applied recommendations at location %s.",
-                     args.project_id, args.to_json)
+        logging.info(
+            "Find the project:%s successfully applied recommendations at location %s.",
+            args.project_id, args.to_json)
 
 
 if __name__ == "__main__":

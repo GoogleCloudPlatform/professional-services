@@ -81,7 +81,8 @@ def main():
                                                      recommender,
                                                      args.recommendation_state,
                                                      credentials)
-    recommendations_jsonified = common.describe_recommendations(recommendation_data)
+    recommendations_jsonified = common.describe_recommendations(
+        recommendation_data)
     if not args.to_json:
         print(recommendations_jsonified)
     else:
