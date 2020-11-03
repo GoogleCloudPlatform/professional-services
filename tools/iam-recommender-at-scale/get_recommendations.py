@@ -23,7 +23,6 @@ python get_recommendation.py \
 """
 
 import argparse
-import json
 import logging
 import common
 
