@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 """
    Copyright 2020 Google LLC
 
@@ -25,6 +24,7 @@ import lxml.etree as etree
 from json2xml import json2xml
 from google.cloud import bigquery
 
+
 def bigquery_to_xml(query, custom_root_node=False):
     """ Executes a BQ query and returns the output as an XML string.
 
@@ -48,7 +48,9 @@ def bigquery_to_xml(query, custom_root_node=False):
 
     # convert to xml
     if custom_root_node:
-        my_xml = json2xml.Json2xml(records, wrapper=custom_root_node, attr_type=False).to_xml()
+        my_xml = json2xml.Json2xml(records,
+                                   wrapper=custom_root_node,
+                                   attr_type=False).to_xml()
     else:
         my_xml = json2xml.Json2xml(records, attr_type=False).to_xml()
 
@@ -66,7 +68,7 @@ def bigquery_to_xml(query, custom_root_node=False):
         if parent.tag not in matching_tags:
             matching_tags.append(parent.tag)
 
-    # After renaming item tags, remove original parent tags, 
+    # After renaming item tags, remove original parent tags,
     # which were only included to be used for naming in the previous step
     for tag in matching_tags:
         for element in doc.xpath((".//{0}".format(tag))):
@@ -91,5 +93,3 @@ def bigquery_to_xml(query, custom_root_node=False):
 
     # Optional - implement what you need to with the cleaned-up XML. Default just returns a string
     return my_xml
-
-
