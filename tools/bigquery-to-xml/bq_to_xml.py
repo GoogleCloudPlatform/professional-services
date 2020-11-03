@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
    Copyright 2020 Google LLC
 
@@ -34,12 +36,6 @@ def bigquery_to_xml(query, custom_root_node=False):
       Returns:
         An XML string containing the BigQuery result.
     """
-
-    # print("Installing python packages")
-    # os.system("pip3 install json2xml google-cloud-bigquery lxml dicttoxml")
-
-    # print("Setting Google App Credentials")
-    # os.system('export GOOGLE_APPLICATION_CREDENTIALS="/path/to/credentials/file.json"')
 
     # Construct a BigQuery client object.
     client = bigquery.Client()
@@ -96,10 +92,4 @@ def bigquery_to_xml(query, custom_root_node=False):
     # Optional - implement what you need to with the cleaned-up XML. Default just returns a string
     return my_xml
 
-# Example implementation below:
 
-#_QUERY = """
-# SELECT * EXCEPT (item)
-# FROM `bigquery-public-data`.wikipedia.wikidata
-# LIMIT 1"""
-# bigquery_to_xml(_QUERY,_CUSTOM_ROOT_NODE)

@@ -6,6 +6,8 @@ This simple Python script allows you to take the output of a BigQuery query and 
 
 This tool assumes it will be run by an entity with the appropriate permissions to query BigQuery and that the default project has been configured.
 
+Necessary Python packages are included in requirements.txt.
+
 In v1 the tool only returns the XML report as a string, leaving it up to the user what to do with it. 
 
 ### Tips for Query Formatting 
@@ -33,3 +35,13 @@ transaction | RECORD | REPEATED
 transaction.item1 | STRING | NULLABLE
 transaction.item2 | STRING | NULLABLE
 footer | STRING | NULLABLE
+
+
+### Example Configuration
+
+# _QUERY = """
+# SELECT * EXCEPT (item)
+# FROM `bigquery-public-data`.wikipedia.wikidata
+# LIMIT 1"""
+#
+# bigquery_to_xml(_QUERY,_CUSTOM_ROOT_NODE)
