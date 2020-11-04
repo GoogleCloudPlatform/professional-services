@@ -23,7 +23,6 @@ python get_recommendation.py \
 """
 
 import argparse
-import json
 import logging
 import common
 
@@ -35,25 +34,6 @@ from google.oauth2 import service_account
 SCOPES = ["https://www.googleapis.com/auth/cloud-platform"]
 
 RECOMMENDATION_TYPE = "google.iam.policy.Recommender"
-
-
-def describe_recommendations(recommendations):
-    """Returns a json string representation  of recommendation with selected fileds.
-
-  Args:
-    recommendations: List(common.Recommendation)
-  """
-    recommendations_sorted = sorted(recommendations, key=lambda x: x.principal)
-    data = []
-    for r in recommendations_sorted:
-        data.append({
-            "id": r.name,
-            "etag": r.etag,
-            "principal": r.principal,
-            "role_recommended_to_be_removed": list(r.remove_role),
-            "roles_recommended_to_be_replaced_with": list(r.add_roles)
-        })
-    return json.dumps({"recommendations": data}, indent=4, sort_keys=True)
 
 
 def main():
@@ -100,7 +80,8 @@ def main():
                                                      recommender,
                                                      args.recommendation_state,
                                                      credentials)
-    recommendations_jsonified = describe_recommendations(recommendation_data)
+    recommendations_jsonified = common.describe_recommendations(
+        recommendation_data)
     if not args.to_json:
         print(recommendations_jsonified)
     else:

@@ -142,7 +142,7 @@ your GCP environment are ready:
 
     ![project security status](asset/project-security-status-graph.png)
 
-    *Table 2: When we visualize table 1 using a column chart, it become clear
+    *Figure 1: When we visualize table 1 using a column chart, it become clear
     that there are a couple outliers in terms of the total number of
     recommendations. The red square around “project/organization1:TestProj” is
     there because we will focus on that project for the duration of this blog.*
@@ -249,7 +249,8 @@ your GCP environment are ready:
     python apply_recommendations.py \
     --project_id=<YOUR-PROJECT-ID (required)> \
     --service_account_file_path=<SERVICE-ACCOUNT-FILE-PATH> \
-    --recommendation_to_be_applied=<PATH-TO-RECOMMENDATIONS-INPUT (required)>
+    --recommendation_to_be_applied=<PATH-TO-RECOMMENDATIONS-INPUT (required)> \
+    --to_json=<OUTPUT-FILE-TO-STORE-SUCCESSFULLY-APPLIED-RECOMMENDATION (required)>
     ```
 
 5.  Just like that, your project is far closer to the principle of
@@ -258,20 +259,27 @@ your GCP environment are ready:
     to 0.
 
     ![project security status after apply](asset/project-security-status-after-apply.png)
-    *Table 3: after bulk-applying all the recommendations on “TestProj”, we see
+
+
+    *Table 2: after bulk-applying all the recommendations on “TestProj”, we see
     that recommendations are down to 0.*
 
-6.  (optional) Refer back to the JSON you created in 2B. and run this code if
+## Step 4: Reverting the change (optional)
+
+If you find that you need to revert the IAM policy change you made during step
+3, here is a simple way to do it.
+
+1.  Refer back to the JSON you created in 3-D. and run this code if
     you want to revert all the changes you made.
 
     ```
     python revert_recommendations.py \
     --project_id=<YOUR-PROJECT-ID (required)> \
     --service_account_file_path=<SERVICE-ACCOUNT-FILE-PATH> \
-    --recommendation_to_be_reverted=<PATH-TO-RECOMMENDATIONS-INPUT (required)>
+    --recommendation_to_be_reverted=<PATH-TO-SUCCESSFULLY-APPLIED-RECOMMENDATIONS (required)>
     ```
 
-## Step 4: Take more recommendations
+## Step 5: Take more recommendations
 
 At this point, there are a couple options about what do do next:
 
