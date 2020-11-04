@@ -1,0 +1,19 @@
+steps:
+- id: "Build the container image"
+  name: "gcr.io/cloud-builders/docker"
+  args: ["build", "-t", "gcr.io/${_PROJECT_ID}/${_IMAGE_NAME}:${_IMAGE_TAG}", "."]
+
+- id: "Push the container image"
+  name: "gcr.io/cloud-builders/docker"
+  args: ["push", "gcr.io/${_PROJECT_ID}/${_IMAGE_NAME}:${_IMAGE_TAG}"]
+- id: "Deploy the container image to GKE"
+  name: "gcr.io/cloud-builders/gke-deploy"
+  args:
+  - run
+  - --filename=kubernetes.yaml
+  - --image=gcr.io/${_PROJECT_ID}/${_IMAGE_NAME}:${_IMAGE_TAG}
+  - --location=${_CLOUDSDK_COMPUTE_ZONE}
+  - --cluster=${_CLOUDSDK_CONTAINER_CLUSTER}
+substitutions:
+  _IMAGE_NAME: tensorflow-app
+  _IMAGE_TAG: latest
