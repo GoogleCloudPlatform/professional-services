@@ -156,6 +156,7 @@ class TestBigQuerySchema(unittest.TestCase):
             'empyty_dict': {},
             'empyty_dict_list': [{}, {}],
             'a' * 200: 'value0',
+            '@!@': 'deleteme',
             '@2_3': 'value1',
             'invalid_numeric': 9.300000191734863,
             'labels': {
