@@ -20,7 +20,7 @@ NEW_UUID=$(head -n 50 /dev/urandom | tr -dc 'a-z0-9' | fold -w 6 | head -n 1)
 export DATAFLOW_JOB_NAME="webhook-job-${NEW_UUID}"
 
 # Deploy Template Vars
-export TEMPLATE_IMAGE_SPEC=gs://app-engine-webhook-app/images/pubsub-cdc-to-bigquery-image-spec.json
+export TEMPLATE_IMAGE_SPEC=gs://dataflow-templates/latest/flex/PubSub_CDC_to_BigQuery
 export TOPIC_PATH=projects/${PROJECT_ID}/topics/${TOPIC}
 export SUBSCRIPTION_PATH=projects/${PROJECT_ID}/subscriptions/${SUBSCRIPTION}
 export DATASET_TEMPLATE=${BQ_DATASET}
