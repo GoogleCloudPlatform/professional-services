@@ -47,7 +47,6 @@ variable "dataproc_kms_key" {
 
 variable "data_lake_super_admin" {
   description = "User email for super admin rights on data lake"
-  default     = "jferriero@google.com"
 }
 
 variable "corp_kdc_realm" {
@@ -83,5 +82,11 @@ variable "analytics_cluster" {
 variable "tenants" {
   description = "list of non-human kerberos principals (one per tenant) to be created as unix users on each cluster"
   type        = list(string)
-  default     = []
+  default     = ["core-data",]
+}
+
+variable "users" {
+  description = "list of human kerberos principals to be created as unix users on each cluster"
+  type        = list(string)
+  default     = ["user1", "user2"]
 }

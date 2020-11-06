@@ -258,13 +258,6 @@ module "kms" {
 
 
 locals {
-  users = [
-    "jake",
-    "jarek",
-    "kamil",
-    "daniel",
-    "core-data-svc",
-  ]
   tenants = [for t in var.tenants : "${t}-svc"]
 }
 
@@ -292,14 +285,13 @@ resource "google_dataproc_cluster" "kdc_cluster" {
       metadata = {
         "enable-oslogin"  = "false"
         "purpose"         = "KDC"
-        "user-setup-list" = join(",", setunion(local.users, local.tenants))
+        "user-setup-list" = join(",", setunion(var.users, local.tenants))
         "VmDnsSetting"    = "ZonalOnly"
       }
       tags = ["ssh"]
     }
 
     master_config {
-      # Production TODO: HA config 3 masters
       num_instances = 1
       machine_type  = "n1-standard-4"
 
@@ -375,14 +367,13 @@ resource "google_dataproc_cluster" "metastore_cluster" {
         "enable-oslogin"      = "false"
         "shutdown-script-url" = "gs://${module.data_lake_buckets.names["dataproc-scripts"]}/${google_storage_bucket_object.shutdown_scripts["shutdown-cleanup-trust"].name}"
         "purpose"             = "METASTORE"
-        "user-setup-list"     = join(",", setunion(local.users, local.tenants))
+        "user-setup-list"     = join(",", setunion(var.users, local.tenants))
         "VmDnsSetting"        = "ZonalOnly"
       }
       tags = ["ssh"]
     }
 
     master_config {
-      # Production TODO: HA config 3 masters
       num_instances = 1
       machine_type  = "n1-standard-4"
 
@@ -469,14 +460,13 @@ resource "google_dataproc_cluster" "analytics_cluster" {
         "enable-oslogin"      = "false"
         "shutdown-script-url" = "gs://${module.data_lake_buckets.names["dataproc-scripts"]}/${google_storage_bucket_object.shutdown_scripts["shutdown-cleanup-trust"].name}"
         "purpose"             = "ANALYTICS"
-        "user-setup-list"     = join(",", setunion(local.users, local.tenants))
+        "user-setup-list"     = join(",", setunion(var.users, local.tenants))
         "VmDnsSetting"        = "ZonalOnly"
       }
       tags = ["ssh"]
     }
 
     master_config {
-      # Production TODO: HA config 3 masters
       num_instances = 1
       machine_type  = "n1-standard-4"
 

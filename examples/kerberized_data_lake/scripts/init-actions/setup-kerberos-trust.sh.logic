@@ -131,7 +131,7 @@ function cross_realm_trust() {
 
   # Disable pre-auth with cross-realm trust, as recommended by:
   # https://web.mit.edu/kerberos/krb5-1.5/krb5-1.5.4/doc/krb5-admin/Cross_002drealm-Authentication.html
-#  set +x
+  set +x
   local secret
   secret=$(g_decrypt_secret_with_kms_key "${gcs_remote_kdc_secret_file}")
   local trust_secret

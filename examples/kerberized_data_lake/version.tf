@@ -18,7 +18,7 @@
 # Your use of it is subject to your agreement with Google.
 
 terraform {
-  required_version = ">= 0.12"
+  required_version = ">= 0.12.17"
 
   required_providers {
     # TODO remove upper bound once the storage CFT module is patched
