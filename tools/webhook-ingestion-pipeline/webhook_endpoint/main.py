@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from datetime import datetime
+import json
 import os
-
+import uuid
 from flask import Flask, request, jsonify
 
 import consts
@@ -38,11 +40,13 @@ app = Flask(__name__)
 def receive_data():
     return webhook_to_pubsub(request)
 
+
 @app.route('/', methods=['GET', 'PUT', 'PATCH', 'DELETE', 'HEAD'])
 def unsupported_request():
     raise WebhookException(consts.UNSUPPORTED_METHOD.format(
-            method=request.method,
-            status_code=405))
+                           method=request.method,
+                           status_code=405))
+
 
 @app.errorhandler(WebhookException)
 def handle_invalid_usage(error):
@@ -50,6 +54,22 @@ def handle_invalid_usage(error):
     response = jsonify(error.to_dict())
     response.status_code = error.status_code
     return response
+
+
+def _set_missing_metadata(json_data):
+    """ Adds necessary _metadata fields
+        for downstream processing
+        and event splitting
+    """
+    default_metadata = {'@uuid': str(uuid.uuid4()),
+                        '@timestamp': datetime.utcnow().isoformat()}
+    if isinstance(json_data, str):
+        json_data = json.loads(json_data)
+
+    if '_metadata' not in json_data:
+        json_data['_metadata'] = default_metadata
+    return json.dumps(json_data)
+
 
 def _extract_data(request):
     """ Return Dict with extracted data from request
@@ -68,6 +88,7 @@ def _extract_data(request):
     except Exception:
         return {"message": request.get_data(as_text=True)}
 
+
 def webhook_to_pubsub(request) -> str:
     """ Return String response for HTTP Request Processing
 
@@ -77,8 +98,10 @@ def webhook_to_pubsub(request) -> str:
     request_json = _extract_data(request)
     if isinstance(request_json, list):
         for row in request_json:
+            row = _set_missing_metadata(row)
             publisher.publish_data(topic_name, row)
     else:
+        request_json = _set_missing_metadata(request_json)
         publisher.publish_data(topic_name, request_json)
 
     return str(request_json)
