@@ -1,0 +1,112 @@
+#!/usr/bin/env bash
+# Copyright 2020 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+#
+# This software is provided as-is,
+# without warranty or representation for any use or purpose.
+# Your use of it is subject to your agreement with Google.
+
+
+# enable debug through -x and omit sensitive areas by turning off (set +x)
+set -xeuo pipefail
+
+ROLE=$(/usr/share/google/get_metadata_value attributes/dataproc-role)
+
+# Get metadata attribute "purpose" where we specify one of HIVE_METASTORE, ANALYTICS, KDC
+PURPOSE=$(/usr/share/google/get_metadata_value attributes/archetype)
+
+
+function log_and_fail() {
+  echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]: $*" >&2
+  return 1
+}
+
+function g_download() {
+  gsutil cp "$1" "$2" || log_and_fail "Unable to download $1"
+}
+
+function set_env_helpers() {
+  local dataproc_dir='/usr/local/share/google/dataproc'
+  # shellcheck source=/dev/null
+  source ${dataproc_dir}/bdutil/bdutil_helpers.sh
+}
+
+# There is a similar function "run_with_retries" in bdutil_helpers.
+# However, there are two things different here:
+# 1. No logging is done in this method, because it is used on command involving
+#    Kerberos password;
+# 2. Constant backoff: "run_with_retries" hard-codes Fibonacci backoff, which is
+#    not suitable for retrying kadmin-create-principals, etc.
+function run_with_retries_constant_backoff() {
+  local max_retry=10
+  local -a cmd=("$@")
+
+  local update_succeeded=0
+  for ((i = 0; i < max_retry; i++)); do
+    if "${cmd[@]}"; then
+      update_succeeded=1
+      break
+    else
+      sleep 1
+    fi
+  done
+
+  if ! (( update_succeeded )); then
+    # Let any final error propagate all the way out to any error traps.
+    "${cmd[@]}"
+  fi
+}
+
+
+function g_decrypt_secret_with_kms_key() {
+  local encrypted_file=$1
+  run_with_retries_constant_backoff decrypt_file_with_kms_key "${encrypted_file}" "${KMS_KEY_URI}" ||
+    log_and_fail "kerberos" "failed to get encrypted file from Google Cloud Storage and/or failed to decrypt using \
+the KMS key. Please make sure the KMS key ${KMS_KEY_URI} exists, the VM service account has \
+'storage.objects.get' permission to ${encrypted_file}, and \
+'cloudkms.cryptoKeyVersions.useToDecrypt' permission to ${KMS_KEY_URI}." "${EXIT_CODE_CLIENT_ERROR}"
+}
+
+# remove shared principal from remote kdc
+function cleanup_cross_realm_trust_hms() {
+  local gcs_remote_kdc_secret_file=$1
+  local trust_realm=$2
+  local trust_master_fqdn=$3
+  local trust_principal=$4
+
+  set +x
+  secret=$(g_decrypt_secret_with_kms_key "${gcs_remote_kdc_secret_file}")
+  loal secret
+  run_with_retries_constant_backoff /usr/bin/kadmin -p "root@${trust_realm}" -w "${secret}" -s "${trust_master_fqdn}" -q "delprinc -force ${trust_principal}"
+  set -x
+}
+
+function main() {
+  set_env_helpers
+
+  if [[ "${ROLE}" == 'Master' ]] ; then
+    # for hms - reverse one-way trust (hms trusts dataproc cluster for permitting hs2 access)
+    local oneway_trust_principal="krbtgt/${KRB5_HIVE_REALM}@${CLUST_REALM}"
+    cleanup_cross_realm_trust_hms "${KRB5_HIVE_SECRET}" "${KRB5_HIVE_REALM}" "${KRB5_HIVE_MASTER}" "${oneway_trust_principal}"
+    if [[ "${PURPOSE}" == 'ANALYTICS' ]] ; then
+
+      # cleanup trust with pso-datalake
+      local oneway_trust_principal="krbtgt/${CLUST_REALM}@${KRB5_FOO_REALM}"
+      cleanup_cross_realm_trust_hms "${KRB5_FOO_SECRET}" "${KRB5_FOO_REALM}" "${KRB5_FOO_MASTER}" "${oneway_trust_principal}"
+    fi
+  fi
+}
+
+main
