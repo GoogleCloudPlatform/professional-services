@@ -13,7 +13,7 @@
 # limitations under the License.
 
 provider "google" {
-  version = "~> 3.21.0"
+  version = "~> 3.48.0"
   project = var.project_id
   region  = var.region
 }
@@ -26,11 +26,10 @@ module "project-services" {
 
   activate_apis = [
     "cloudresourcemanager.googleapis.com",
-    "appengine.googleapis.com",
     "bigquery.googleapis.com",
+    "bigquerydatatransfer.googleapis.com",
     "cloudfunctions.googleapis.com",
     "storage.googleapis.com",
-    "cloudscheduler.googleapis.com",
     "iam.googleapis.com",
     "iamcredentials.googleapis.com",
     "pubsub.googleapis.com",
@@ -69,54 +68,46 @@ resource "google_storage_bucket" "json_bucket" {
   }
 }
 
-# Topic that triggers function 1 that runs query
-resource "google_pubsub_topic" "topic_1" {
-  name    = var.topic_name_1
+# Topic that triggers function 1 that exports results
+resource "google_pubsub_topic" "pubsub_export" {
+  name    = var.pubsub_export
   project = module.project-services.project_id
 }
 
-# Topic that triggers function 2 that runs export job
-resource "google_pubsub_topic" "topic_2" {
-  name    = var.topic_name_2
+# Topic that triggers function 2 that sends email
+resource "google_pubsub_topic" "pubsub_trigger_email" {
+  name    = var.pubsub_send_email
   project = module.project-services.project_id
 }
 
-# Topic that triggers function 3 that sends email
-resource "google_pubsub_topic" "topic_3" {
-  name    = var.topic_name_3
-  project = module.project-services.project_id
+resource "google_bigquery_dataset" "bq_dataset" {
+  dataset_id                  = var.bq_dataset_name
+  location                    = var.location
+  default_table_expiration_ms = var.bq_dataset_expiration
 }
 
-resource "google_app_engine_application" "app" {
-  project     = module.project-services.project_id
-  location_id = "us-central"
+resource "google_bigquery_table" "bq_table" {
+  dataset_id = google_bigquery_dataset.bq_dataset.dataset_id
+  table_id   = var.bq_table_name
 }
 
-resource "google_cloud_scheduler_job" "job" {
-  name      = var.scheduler_name
-  project   = module.project-services.project_id
-  schedule  = var.scheduler_schedule
-  time_zone = var.scheduler_timezone
+resource "google_bigquery_data_transfer_config" "scheduled_query" {
+  display_name              = var.scheduled_query_name
+  data_source_id            = "scheduled_query"
+  schedule                  = var.schedule
+  destination_dataset_id    = google_bigquery_dataset.bq_dataset.dataset_id
+  notification_pubsub_topic = google_pubsub_topic.pubsub_export.id
 
-  pubsub_target {
-    topic_name = google_pubsub_topic.topic_1.id
-    data       = base64encode("BQ automated email export trigger")
+  params = {
+    destination_table_name_template = google_bigquery_table.bq_table.table_id
+    write_disposition               = "WRITE_TRUNCATE"
+    query                           = var.query
   }
-
-  depends_on = [google_app_engine_application.app]
-}
-
-resource "google_logging_project_sink" "query_sink" {
-  name        = var.query_logging_sink_name
-  destination = "pubsub.googleapis.com/projects/${var.project_id}/topics/${google_pubsub_topic.topic_2.name}"
-  filter      = "protoPayload.serviceName: BigQuery protoPayload.resourceName:\"projects/${var.project_id}/jobs/email_query\" protoPayload.methodName: jobcompleted"
-
-  unique_writer_identity = true
 }
 
 resource "google_logging_project_sink" "export_sink" {
   name        = var.export_logging_sink_name
-  destination = "pubsub.googleapis.com/projects/${var.project_id}/topics/${google_pubsub_topic.topic_3.name}"
+  destination = "pubsub.googleapis.com/projects/${var.project_id}/topics/${google_pubsub_topic.pubsub_trigger_email.name}"
   filter      = "protoPayload.serviceName: BigQuery protoPayload.resourceName:\"projects/${var.project_id}/jobs/email_export\" protoPayload.methodName: jobcompleted"
 
   unique_writer_identity = true
@@ -126,12 +117,11 @@ resource "google_project_iam_binding" "log_sink_writer" {
   role = "roles/pubsub.publisher"
 
   members = [
-    google_logging_project_sink.export_sink.writer_identity,
-    google_logging_project_sink.query_sink.writer_identity,
+    google_logging_project_sink.export_sink.writer_identity
   ]
 }
 
-# Function 1 which will run the BigQuery query
+# Function 1 which will export query results to GCS
 resource "google_storage_bucket" "function_bucket_1" {
   name    = var.function_bucket_1
   project = module.project-services.project_id
@@ -139,24 +129,24 @@ resource "google_storage_bucket" "function_bucket_1" {
 
 data "archive_file" "init_1" {
   type        = "zip"
-  source_dir  = "../scheduled_query_function"
-  output_path = "scheduled_query_function_source.zip"
+  source_dir  = "../export_query_results_function"
+  output_path = "export_query_results_function_source.zip"
 }
 
 resource "google_storage_bucket_object" "archive_1" {
-  name   = "scheduled_query_function_source.zip"
+  name   = "export_query_results_function_source.zip"
   bucket = google_storage_bucket.function_bucket_1.name
   source = data.archive_file.init_1.output_path
 }
 
 resource "google_cloudfunctions_function" "function_1" {
-  name    = var.run_query_function_name
+  name    = var.export_results_function_name
   project = module.project-services.project_id
   runtime = "python37"
 
   event_trigger {
     event_type = "google.pubsub.topic.publish"
-    resource   = google_pubsub_topic.topic_1.id
+    resource   = google_pubsub_topic.pubsub_export.id
   }
 
   service_account_email = google_service_account.service_account.email
@@ -166,50 +156,7 @@ resource "google_cloudfunctions_function" "function_1" {
   timeout               = 540
 
   environment_variables = {
-    GCS_QUERY_PATH      = var.gcs_query_path
-    ALLOW_LARGE_RESULTS = var.allow_large_results
-    USE_QUERY_CACHE     = var.use_query_cache
-    FLATTEN_RESULTS     = var.flatten_results
-    MAX_BYTES_BILLED    = var.max_bytes_billed
-    USE_LEGACY_SQL      = var.use_legacy_sql
-  }
-}
-
-# Function 2 which will export query results to GCS
-resource "google_storage_bucket" "function_bucket_2" {
-  name    = var.function_bucket_2
-  project = module.project-services.project_id
-}
-
-data "archive_file" "init_2" {
-  type        = "zip"
-  source_dir  = "../export_query_results_function"
-  output_path = "export_query_results_function_source.zip"
-}
-
-resource "google_storage_bucket_object" "archive_2" {
-  name   = "export_query_results_function_source.zip"
-  bucket = google_storage_bucket.function_bucket_2.name
-  source = data.archive_file.init_2.output_path
-}
-
-resource "google_cloudfunctions_function" "function_2" {
-  name    = var.export_results_function_name
-  project = module.project-services.project_id
-  runtime = "python37"
-
-  event_trigger {
-    event_type = "google.pubsub.topic.publish"
-    resource   = google_pubsub_topic.topic_2.id
-  }
-
-  service_account_email = google_service_account.service_account.email
-  source_archive_bucket = google_storage_bucket.function_bucket_2.name
-  source_archive_object = google_storage_bucket_object.archive_2.name
-  entry_point           = "main"
-  timeout               = 540
-
-  environment_variables = {
+    PROJECT_ID      = var.project_id
     BUCKET_NAME     = var.storage_bucket
     OBJECT_NAME     = var.export_object_name
     COMPRESSION     = var.export_compression
@@ -219,37 +166,37 @@ resource "google_cloudfunctions_function" "function_2" {
   }
 }
 
-# Function 3 which will send email with link to GCS file
-resource "google_storage_bucket" "function_bucket_3" {
-  name    = var.function_bucket_3
+# Function 2 which will send email with link to GCS file
+resource "google_storage_bucket" "function_bucket_2" {
+  name    = var.function_bucket_2
   project = module.project-services.project_id
 }
 
-data "archive_file" "init_3" {
+data "archive_file" "init_2" {
   type        = "zip"
   source_dir  = "../send_email_function"
   output_path = "send_email_function_source.zip"
 }
 
-resource "google_storage_bucket_object" "archive_3" {
+resource "google_storage_bucket_object" "archive_2" {
   name   = "send_email_function_source.zip"
-  bucket = google_storage_bucket.function_bucket_3.name
-  source = data.archive_file.init_3.output_path
+  bucket = google_storage_bucket.function_bucket_2.name
+  source = data.archive_file.init_2.output_path
 }
 
-resource "google_cloudfunctions_function" "function_3" {
+resource "google_cloudfunctions_function" "function_2" {
   name    = var.email_results_function_name
   project = module.project-services.project_id
   runtime = "python37"
 
   event_trigger {
     event_type = "google.pubsub.topic.publish"
-    resource   = google_pubsub_topic.topic_3.id
+    resource   = google_pubsub_topic.pubsub_trigger_email.id
   }
 
   service_account_email = google_service_account.service_account.email
-  source_archive_bucket = google_storage_bucket.function_bucket_3.name
-  source_archive_object = google_storage_bucket_object.archive_3.name
+  source_archive_bucket = google_storage_bucket.function_bucket_2.name
+  source_archive_object = google_storage_bucket_object.archive_2.name
   entry_point           = "main"
   timeout               = 540
 

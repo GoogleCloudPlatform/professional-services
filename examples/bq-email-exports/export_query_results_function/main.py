@@ -28,27 +28,19 @@ def main(event, context):
     """Entrypoint for Cloud Function"""
 
     data = base64.b64decode(event['data'])
-    log_entry = json.loads(data)
-    status = log_entry['severity']
-    if status == "ERROR":
-        code = log_entry['protoPayload']['status']['code']
-        message = log_entry['protoPayload']['status']['message']
-        logging.error(
-            RuntimeError(
-                f"Error in upstream query job. Code {code}: {message}"))
+    pubsub_message = json.loads(data)
+    error = pubsub_message.get('errorStatus')
+    if error:
+        logging.error(RuntimeError(f"Error in upstream query job:{error}"))
     else:
-        project_id = log_entry['protoPayload']['serviceData'][
-            'jobCompletedEvent']['job']['jobName']['projectId']
-        dataset_id = log_entry['protoPayload']['serviceData'][
-            'jobCompletedEvent']['job']['jobConfiguration']['query'][
-                'destinationTable']['datasetId']
-        table_name = log_entry['protoPayload']['serviceData'][
-            'jobCompletedEvent']['job']['jobConfiguration']['query'][
-                'destinationTable']['tableId']
+        project_id = os.environ.get("PROJECT_ID")
+        dataset_id = pubsub_message['destinationDatasetId']
+        table_name = pubsub_message['params'][
+            'destination_table_name_template']
 
         bq_client = bigquery.Client()
 
-        destination_uri = f"gs://{os.environ.get('BUCKET_NAME')}/{os.environ.get('OBJECT_NAME')}"
+        destination_uri = get_destination_uri()
         dataset_ref = bigquery.DatasetReference(project_id, dataset_id)
         table_ref = dataset_ref.table(table_name)
 
@@ -64,3 +56,8 @@ def main(event, context):
         print(
             f"Exporting {project_id}:{dataset_id}.{table_name} to {destination_uri}"
         )
+
+
+def get_destination_uri():
+    """Returns destination GCS URI for export"""
+    return f"gs://{os.environ.get('BUCKET_NAME')}/{os.environ.get('OBJECT_NAME')}"

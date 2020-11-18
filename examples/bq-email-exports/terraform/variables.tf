@@ -15,6 +15,7 @@
 variable "project_id" {
   description = "Project ID for your GCP project"
 }
+
 variable "location" {
   description = "Location for GCP resources"
   default     = "US"
@@ -34,24 +35,40 @@ variable "service_acct_roles" {
   default     = ["roles/bigquery.admin", "roles/storage.admin", "roles/iam.serviceAccountTokenCreator"]
 }
 
-variable "topic_name_1" {
-  description = "Name for the Pub/Sub topic that is triggered by Cloud Scheduler."
-  default     = "bq-email-run-query"
+variable "pubsub_export" {
+  description = "Name for the Pub/Sub topic that is triggered on scheduled query completion."
+  default     = "bq-email-gcs-export"
 }
 
-variable "topic_name_2" {
-  description = "Name for the Pub/Sub topic that subscribes to the audit log sink for completed queries."
-  default     = "bq-email-export-gcs"
-}
-
-variable "topic_name_3" {
-  description = "Name for the Pub/Sub topic that subscribes to the audit log sink for exported queries."
+variable "pubsub_send_email" {
+  description = "Name for the Pub/Sub topic that is triggered on successful export to GCS."
   default     = "bq-email-send-email"
 }
 
-variable "query_logging_sink_name" {
-  description = "Name for the logging sink that triggers Pub/Sub topic 2 when query is completed."
-  default     = "bq-email-query-completed"
+variable "bq_dataset_name" {
+  description = "Name for BQ dataset where the scheduled query results will be saved."
+}
+
+variable "bq_dataset_expiration" {
+  description = "The default lifetime of all tables in the dataset in milliseconds. The minimum value is 3600000 ms, or one hour."
+  default     = "3600000"
+}
+
+variable "bq_table_name" {
+  description = "Name for BQ table where the scheduled query results will be saved."
+}
+
+variable "scheduled_query_name" {
+  description = "Display name for BQ scheduled query"
+  default     = "bq-email-exports"
+}
+
+variable "schedule" {
+  description = "Scheduled query schedule. Examples of valid format: 1st,3rd monday of month 15:30, every wed jan, every 15 minutes."
+}
+
+variable "query" {
+  description = "Query that will run in BQ. The results will be sent via email."
 }
 
 variable "export_logging_sink_name" {
@@ -73,20 +90,11 @@ variable "bucket_lifecycle" {
 }
 
 variable "function_bucket_1" {
-  description = "GCS bucket for function 1 code that runs query."
+  description = "GCS bucket name for function 1 code that runs query."
 }
 
 variable "function_bucket_2" {
-  description = "GCS bucket for function 2 code that exports query results."
-}
-
-variable "function_bucket_3" {
-  description = "GCS bucket for function 3 code that sends email."
-}
-
-variable "run_query_function_name" {
-  description = "Name for the Cloud Function that runs query."
-  default     = "bq-email-run-query"
+  description = "GCS bucket name for function 2 code that exports query results."
 }
 
 variable "export_results_function_name" {
@@ -99,50 +107,9 @@ variable "email_results_function_name" {
   default     = "bq-email-send-email"
 }
 
-variable "scheduler_name" {
-  description = "Name for Cloud Scheduler job."
-}
-variable "scheduler_schedule" {
-  description = "Cron-style schedule for Scheduler job."
-}
-
-variable "scheduler_timezone" {
-  description = "Time zone for Cloud Scheduler."
-  default     = "US/Central"
-}
-
 # Environment variables for the Cloud Functions
-variable "gcs_query_path" {
-  description = "Path to GCS file with query."
-}
-
-variable "allow_large_results" {
-  description = "Allow large query results tables"
-  default     = "True"
-}
-
-variable "use_query_cache" {
-  description = "Look for the query result in the cache."
-  default     = "True"
-}
-
-variable "flatten_results" {
-  description = "Flatten nested/repeated fields in query results."
-  default     = "False"
-}
-
-variable "max_bytes_billed" {
-  description = "Maximum bytes to be billed for query job."
-  default     = 1000000000
-}
-
-variable "use_legacy_sql" {
-  description = "Use legacy SQL syntax for query."
-  default     = "False"
-}
-
 variable "export_object_name" {
-  description = "GCS object name for query results file"
+  description = "GCS object name with JSON, CSV, or AVRO file extension for query results file"
 }
 
 variable "export_compression" {

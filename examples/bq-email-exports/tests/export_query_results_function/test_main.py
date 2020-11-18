@@ -11,9 +11,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Unit tests for export query results function"""
+import os
+import sys
 
-# using SendGrid's Python Library
-# https://github.com/sendgrid/sendgrid-python
+import pytest
 
-google-cloud-bigquery==1.25.0
-google-cloud-storage==1.29.0
+sys.path.append(os.path.realpath(os.path.dirname(__file__) + "../.."))
+from export_query_results_function import main
+
+
+@pytest.fixture
+def mock_env(monkeypatch):
+    """Setting mock environment variables"""
+    monkeypatch.setenv("BUCKET_NAME", "my-bucket")
+    monkeypatch.setenv("OBJECT_NAME", "dir/subdir/query.txt")
+
+
+def test_get_dest_uri(mock_env):
+    """Tests construction of URI using env vars"""
+    assert main.get_destination_uri() == "gs://my-bucket/dir/subdir/query.txt"

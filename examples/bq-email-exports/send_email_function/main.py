@@ -47,8 +47,8 @@ def main(event, context):
         blob_path = log_entry['protoPayload']['serviceData'][
             'jobCompletedEvent']['job']['jobConfiguration']['extract'][
                 'destinationUris'][0]
-        bucket_name = blob_path.split('/')[2]
-        object_name = blob_path.split('/')[3]
+        bucket_name = get_bucket(blob_path)
+        object_name = get_object(blob_path)
 
         storage_client = storage.Client()
         bucket = storage_client.bucket(bucket_name)
@@ -92,3 +92,13 @@ def main(event, context):
             print(f"SendGrid response code: {response.status_code}")
         except Exception as exc:
             logging.error(RuntimeError(f"ERROR: sending email failed: {exc}"))
+
+
+def get_bucket(blob_path):
+    """Returns bucket name from GCS URI."""
+    return blob_path.split('/')[2]
+
+
+def get_object(blob_path):
+    """Returns object name from GCS URI."""
+    return blob_path.split('/', 3)[3]

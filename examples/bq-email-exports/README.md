@@ -4,19 +4,15 @@ This serverless solution enables users to regularly send BigQuery export results
 
 The functional steps are listed here:
 
-**Cloud Scheduler:** A [Cloud Scheduler](https://cloud.google.com/scheduler) job defines the time frame between periodic email exports.
+**BigQuery Scheduled Query:** A [scheduled query](https://cloud.google.com/bigquery/docs/scheduling-queries#bq_1) is set up in BigQuery.
 
-**Pub/Sub #1:** A [Pub/Sub](https://cloud.google.com/pubsub) topic is triggered by Cloud Scheduler.
+**Pub/Sub #1:** A Pub/Sub topic is triggered by every successful scheduled query run.
 
-**Cloud Function #1:** A [Cloud Function](https://cloud.google.com/functions) runs the BigQuery query and writes the results to an [anonymous table](https://cloud.google.com/bigquery/docs/cached-results#how_cached_results_are_stored). This query job will have a job ID prefix of `email_query`.
+**Cloud Function #1:** A [Cloud Function](https://cloud.google.com/functions) subscribes to the above Pub/Sub topic and exports query results to GCS with a job ID prefix of `email_export`. The GCS bucket will always hold the most recent export and this file will be overwritten for each future export.
 
-**Pub/Sub #2:** The second topic is triggered by a [logging sink](https://cloud.google.com/logging/docs/export) with a filter for query job completion with the job ID prefix of `email_query`.
+**Pub/Sub #2:** A second topic is triggered by a logging sink with a filter for export job completion with the job ID prefix of `email_export`.
 
-**Cloud Function #2:** A second function subscribes to the above Pub/Sub topic and exports query results to GCS with a job ID prefix of `email_export`. The GCS bucket will always hold the most recent export and this file will be overwritten for each future export.
-
-**Pub/Sub #3:** A third topic is triggered by a logging sink with a filter for export job completion with the job ID prefix of `email_export`.
-
-**Cloud Function #3:** A third function subscribes to the above Pub/Sub topic and sends the email via the SendGrid API with a link to the signed URL of the file.
+**Cloud Function #2:** A second function subscribes to the above Pub/Sub topic and sends the email via the SendGrid API with a link to the signed URL of the file.
 
 **SendGrid API** The [SendGrid API](https://sendgrid.com/) is a web based API that sends the signed URL as an email to users.
 
@@ -25,7 +21,7 @@ To implement this solution, follow the steps below:
 ## Set Up
 1. Generate a SendGrid API key by creating a free tier [SendGrid account](https://signup.sendgrid.com/).
 
-2. Set variables in `source_1/main.py`, `source_2/main.py`, and `source_3/main.py`. These files hold the source code for the respective Cloud Function.
+2. Deploy with Terraform.
 
 ## Deploying the pipeline
 
@@ -42,9 +38,7 @@ The Terraform code will use a compressed version of the source directories that 
 
 2. Signed URLs can be a data exfiltration risk. Consider the security risks regarding the sending of data through a signed URL.
 
-3. Cloud Scheduler is not supported by [VPC Service Controls](https://cloud.google.com/vpc-service-controls/docs/supported-products).
-
 If your use case does not meet the above constraints, another option would be to use a [Cloud Composer workflow](https://cloud.google.com/composer/docs/how-to/using/writing-dags) to execute the pipeline. If you are a GSuite user, this solution can also be implemented with a scheduled [Apps Script](https://developers.google.com/apps-script) using the [BigQuery Service](https://developers.google.com/apps-script/advanced/bigquery) and exporting data to a [Google Sheet](https://developers.google.com/apps-script/reference/spreadsheet).
 
 ## Troubleshooting
-If there is an issue with the upstream query job or export job, the Cloud Function will log the error. In the case that an email was not sent, please check the Cloud Functions and BigQuery logs.
+If there is an issue with the upstream query or export job, the Cloud Function will log the error. In the case that an email was not sent, please check the Cloud Functions and BigQuery logs.
