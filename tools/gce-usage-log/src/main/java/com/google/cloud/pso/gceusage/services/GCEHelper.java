@@ -44,7 +44,11 @@ public class GCEHelper {
 
     CloudResourceManager cloudResourceManagerService = CloudResourceManagerService.getInstance();
     CloudResourceManager.Projects.List request =
-        cloudResourceManagerService.projects().list().setPageSize(MAXPROJECTS);
+        cloudResourceManagerService
+            .projects()
+            .list()
+            .setFilter("lifecycleState:ACTIVE")
+            .setPageSize(MAXPROJECTS);
     ListProjectsResponse response;
     Queue returnValue = new ConcurrentLinkedQueue<Project>();
     do {
