@@ -22,3 +22,37 @@ data.
 
 That's it!  All resources will be deployed via Terraform.
 
+## Sending Data
+
+Once the project is deployed, an endpoint will be available at `{project-name}.uc.r.appspot.com` which can receive JSON data via POST requests. A sample payload is included in `tests/system/send_data.py` which can be invoked with the following command.
+
+```
+python3 tests/system/send_data.py -p {project_name}
+```
+
+By default 1000 events will be sent to the app engine endpoint deployed on the project you provided. Larger by tweaking additional optional parameters.
+
+```
+--pool-size, (-ps), # Number of concurrent processes used (default 100)
+--request-size, (-r) # Number of events per request to batch (default 10)
+--batch-size (-bs) # Number of requests per batch (default 100)
+--batches (-b) # Number of batches to send. Supplying 0 sends in infinite loop. (default 1)
+--batch-sleep-secs" (-s) # Seconds to sleep between batches (default 0)
+```
+
+## Architectural Diagram
+
+![Webhook Data Ingestion Diagram](assets/app_engine_diagram.png)
+
+## Components
+
+The webhook ingestion pipeline consists of two key components - An App Engine based webhook endpoint and the Dataflow pipeline
+dataflow pipeline.
+
+### App Engine Endpoint
+
+The App Engine Endpoint is a lightweight webhook server that listens for data on http and forwards it to an internal pubsub topic. The source code of this application is contained entirely within this repositiory and is deployed to App Engine.
+
+### Dataflow pipeline
+
+The dataflow template deployed by this terraform config produces a pipeline that consumes data from the aforementioned pubsub topic and ultimately loads that data into a table in BigQuery. The template contains a number of optional parameters that allow you to transform incoming data and define the target BigQuery schema. These features [are documented in depth here.](https://github.com/GoogleCloudPlatform/DataflowTemplates/tree/master/v2/pubsub-cdc-to-bigquery)

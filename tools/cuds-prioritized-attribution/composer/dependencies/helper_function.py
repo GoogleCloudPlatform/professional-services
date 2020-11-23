@@ -111,7 +111,7 @@ def local_to_gcs(bucket_name: str, object_name: str, input_file: str) -> None:
         blob.upload_from_file(file_obj)
 
 
-def convert_to_schema(schema: List[Dict[str, str]) -> List[bigquery.SchemaField]:
+def convert_to_schema(schema: List[Dict[str, str]]) -> List[bigquery.SchemaField]:
     """Read the schema as a JSON and reformats as an array.
 
     Args:
