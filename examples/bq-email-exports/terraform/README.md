@@ -15,6 +15,7 @@
 | bucket\_lifecycle | Number of days the exported query result files should stay in the storage bucket. | `number` | `1` | no |
 | email\_results\_function\_name | Name for the Cloud Function that sends email. | `string` | `"bq-email-send-email"` | no |
 | email\_subject | Subject of email address containing query results. | `any` | n/a | yes |
+| enable\_signed\_url | Boolean indicating whether the link sent via email should be a signed URL or unsigned URL requiring cookie-based authentication | `string` | `"True"` | no |
 | export\_compression | Compression type to use for exported files. | `string` | `"NONE"` | no |
 | export\_destination\_format | Exported file format. | `string` | `"NEWLINE_DELIMETED_JSON"` | no |
 | export\_field\_delimiter | Delimiter to use between fields in the exported data. | `string` | `","` | no |

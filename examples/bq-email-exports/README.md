@@ -1,6 +1,8 @@
 # Automated BigQuery Exports via Email
 
-This serverless solution enables users to regularly send BigQuery export results via email. The end users will get a scheduled email with a link to a Google Cloud Storage [signed URL](https://cloud.google.com/storage/docs/access-control/signed-urls), from which they can view query results as a JSON, CSV, or Avro file.
+This serverless solution enables users to regularly send BigQuery export results via email. The end users will get a scheduled email with a link to either a Google Cloud Storage [signed URL](https://cloud.google.com/storage/docs/access-control/signed-urls) or an [unsigned URL](https://cloud.google.com/storage/docs/request-endpoints#cookieauth), from which they can view query results as a JSON, CSV, or Avro file.
+
+The [signed URL](https://cloud.google.com/storage/docs/access-control/signed-urls) will allow anyone with the link to be able to download the file for a limited time. The [unsigned URL](https://cloud.google.com/storage/docs/request-endpoints#cookieauth) will require cookie-based authentication and ask the user to sign in to their Google account to identify themselves. The user must have the appropriate [IAM permissions](https://cloud.google.com/storage/docs/access-control) to access the object in Google Cloud Storage.
 
 The functional steps are listed here:
 
@@ -12,7 +14,7 @@ The functional steps are listed here:
 
 **Pub/Sub #2:** A second topic is triggered by a logging sink with a filter for export job completion with the job ID prefix of `email_export`.
 
-**Cloud Function #2:** A second function subscribes to the above Pub/Sub topic and sends the email via the SendGrid API with a link to the signed URL of the file.
+**Cloud Function #2:** A second function subscribes to the above Pub/Sub topic and sends the email via the SendGrid API with a link to the signed or unsigned URL of the file.
 
 **SendGrid API** The [SendGrid API](https://sendgrid.com/) is a web based API that sends the signed URL as an email to users.
 

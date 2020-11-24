@@ -21,22 +21,43 @@ sys.path.append(os.path.realpath(os.path.dirname(__file__) + "../.."))
 from send_email_function import main
 
 
-@pytest.mark.parametrize(
-    "test_input,expected",
-    [("gs://bucket/file.txt", "bucket"),
-     ("gs://bucket/directory/file.txt", "bucket"),
-     ("gs://bucket/directory/subdir/subdir/file.txt", "bucket")])
-def test_get_bucket(test_input, expected):
-    """Tests if function returns bucket name from GCS URI."""
-    assert main.get_bucket(test_input) == expected
+@pytest.fixture
+def mock_env(monkeypatch):
+    """Setting mock environment variables"""
+    monkeypatch.setenv("SIGNED_URL", "True")
+    monkeypatch.setenv("FROM_EMAIL", "sender@gmail.com")
+    monkeypatch.setenv("TO_EMAILS", "recepient@gmail.com")
+    monkeypatch.setenv("EMAIL_SUBJECT", "BigQuery email export")
+    monkeypatch.setenv("SENDGRID_API_KEY", "SG.key")
+    monkeypatch.setenv("SIGNED_URL_EXPIRATION", "24")
+
+
+def test_raise_exception():
+    """Tests that KeyError exception is raised when no env vars are set"""
+    with pytest.raises(KeyError):
+        main.get_env('SIGNED_URL')
+
+
+@pytest.mark.parametrize("test_input,expected",
+                         [("SIGNED_URL", "True"),
+                          ("FROM_EMAIL", "sender@gmail.com"),
+                          ("TO_EMAILS", "recepient@gmail.com"),
+                          ("EMAIL_SUBJECT", "BigQuery email export"),
+                          ("SENDGRID_API_KEY", "SG.key"),
+                          ("SIGNED_URL_EXPIRATION", "24")])
+def test_get_env(mock_env, test_input, expected):
+    """Tests reading of env vars"""
+    assert main.get_env(test_input) == expected
 
 
 @pytest.mark.parametrize(
     "test_input,expected",
-    [("gs://bucket/file.txt", "file.txt"),
-     ("gs://bucket/directory/object.txt", "directory/object.txt"),
-     ("gs://bucket/directory/subdir/subdir/subdir/file.txt",
-      "directory/subdir/subdir/subdir/file.txt")])
-def test_get_object(test_input, expected):
-    """Tests if function returns bucket name from GCS URI."""
-    assert main.get_object(test_input) == expected
+    [("gs://bucket/object.txt",
+      "https://storage.cloud.google.com/bucket/object.txt"),
+     ("gs://bucket/dir/object.txt",
+      "https://storage.cloud.google.com/bucket/dir/object.txt"),
+     ("gs://bucket/dir/subdir/object.json",
+      "https://storage.cloud.google.com/bucket/dir/subdir/object.json")])
+def test_get_auth_url(test_input, expected):
+    """Tests creation of authenticated GCS URL"""
+    assert main.get_auth_url(test_input) == expected

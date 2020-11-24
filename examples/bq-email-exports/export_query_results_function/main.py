@@ -20,35 +20,41 @@ import base64
 import json
 import logging
 import os
+import time
 
+import google.api_core.client_info
 from google.cloud import bigquery
+
+CLIENT_INFO = google.api_core.client_info.ClientInfo(
+    user_agent="google-pso-example/bq-email-exports")
 
 
 def main(event, context):
     """Entrypoint for Cloud Function"""
 
     data = base64.b64decode(event['data'])
-    pubsub_message = json.loads(data)
-    error = pubsub_message.get('errorStatus')
+    upstream_bq_dts_obj = json.loads(data)
+    error = upstream_bq_dts_obj.get('errorStatus')
     if error:
-        logging.error(RuntimeError(f"Error in upstream query job:{error}"))
+        logging.error(
+            RuntimeError(f"Error in upstream query job: {error['message']}."))
     else:
-        project_id = os.environ.get("PROJECT_ID")
-        dataset_id = pubsub_message['destinationDatasetId']
-        table_name = pubsub_message['params'][
+        project_id = get_env('PROJECT_ID')
+        dataset_id = upstream_bq_dts_obj['destinationDatasetId']
+        table_name = upstream_bq_dts_obj['params'][
             'destination_table_name_template']
 
-        bq_client = bigquery.Client()
+        bq_client = bigquery.Client(client_info=CLIENT_INFO)
 
-        destination_uri = get_destination_uri()
-        dataset_ref = bigquery.DatasetReference(project_id, dataset_id)
+        dataset_ref = bigquery.DatasetReference.from_string(
+            dataset_id, default_project=project_id)
         table_ref = dataset_ref.table(table_name)
-
+        destination_uri = get_destination_uri()
         extract_config = bigquery.ExtractJobConfig(
-            compression=os.environ.get('COMPRESSION'),
-            destination_format=os.environ.get('DEST_FMT'),
-            field_delimeter=os.environ.get('FIELD_DELIMITER'),
-            use_avro_logical_types=os.environ.get('USE_AVRO_TYPES'))
+            compression=get_env('COMPRESSION'),
+            destination_format=get_env('DEST_FMT'),
+            field_delimeter=get_env('FIELD_DELIMITER'),
+            use_avro_logical_types=get_env('USE_AVRO_TYPES'))
         bq_client.extract_table(table_ref,
                                 destination_uri,
                                 job_id_prefix="email_export_",
@@ -60,4 +66,10 @@ def main(event, context):
 
 def get_destination_uri():
     """Returns destination GCS URI for export"""
-    return f"gs://{os.environ.get('BUCKET_NAME')}/{os.environ.get('OBJECT_NAME')}"
+    return (f"gs://{get_env('BUCKET_NAME')}/"
+            f"{time.strftime('%Y%m%d-%H%M%S')}/{get_env('OBJECT_NAME')}")
+
+
+def get_env(name):
+    """Returns environment variable"""
+    return os.environ[name]

@@ -202,6 +202,7 @@ resource "google_cloudfunctions_function" "function_2" {
 
   environment_variables = {
     SENDGRID_API_KEY      = var.sendgrid_api_key
+    SIGNED_URL            = var.enable_signed_url
     SIGNED_URL_EXPIRATION = var.signed_url_expiration_hrs
     FROM_EMAIL            = var.sender_email_address
     TO_EMAILS             = var.recipient_email_address

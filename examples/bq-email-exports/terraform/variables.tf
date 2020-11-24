@@ -76,10 +76,6 @@ variable "export_logging_sink_name" {
   default     = "bq-email-export-completed"
 }
 
-variable "sendgrid_api_key" {
-  description = "API key for authenticating the sending of emails through SendGrid API"
-}
-
 variable "storage_bucket" {
   description = "Name of GCS bucket to store exported query results from BQ."
 }
@@ -130,6 +126,15 @@ variable "export_use_avro_logical_types" {
 variable "export_field_delimiter" {
   description = "Delimiter to use between fields in the exported data."
   default     = ","
+}
+
+variable "sendgrid_api_key" {
+  description = "API key for authenticating the sending of emails through SendGrid API"
+}
+
+variable "enable_signed_url" {
+  description = "Boolean indicating whether the link sent via email should be a signed URL or unsigned URL requiring cookie-based authentication"
+  default     = "True"
 }
 
 variable "signed_url_expiration_hrs" {

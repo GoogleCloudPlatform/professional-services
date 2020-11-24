@@ -14,6 +14,7 @@
 """Unit tests for export query results function"""
 import os
 import sys
+import time
 
 import pytest
 
@@ -26,8 +27,35 @@ def mock_env(monkeypatch):
     """Setting mock environment variables"""
     monkeypatch.setenv("BUCKET_NAME", "my-bucket")
     monkeypatch.setenv("OBJECT_NAME", "dir/subdir/query.txt")
+    monkeypatch.setenv("PROJECT_ID", "my-gcp-project")
+    monkeypatch.setenv("OBJECT_NAME", "dir/subdir/query.txt")
+    monkeypatch.setenv("COMPRESSION", "NONE")
+    monkeypatch.setenv("DEST_FMT", "NEWLINE_DELIMETED_JSON")
+    monkeypatch.setenv("FIELD_DELIMITER", ",")
+    monkeypatch.setenv("USE_AVRO_TYPES", "False")
+
+
+def test_raise_exception():
+    """Tests that KeyError exception is raised when no env vars are set"""
+    with pytest.raises(KeyError):
+        main.get_env('BUCKET_NAME')
+
+
+@pytest.mark.parametrize("test_input,expected",
+                         [("BUCKET_NAME", "my-bucket"),
+                          ("OBJECT_NAME", "dir/subdir/query.txt"),
+                          ("PROJECT_ID", "my-gcp-project"),
+                          ("OBJECT_NAME", "dir/subdir/query.txt"),
+                          ("COMPRESSION", "NONE"),
+                          ("DEST_FMT", "NEWLINE_DELIMETED_JSON"),
+                          ("FIELD_DELIMITER", ","),
+                          ("USE_AVRO_TYPES", "False")])
+def test_get_env(mock_env, test_input, expected):
+    """Tests reading of env vars"""
+    assert main.get_env(test_input) == expected
 
 
 def test_get_dest_uri(mock_env):
     """Tests construction of URI using env vars"""
-    assert main.get_destination_uri() == "gs://my-bucket/dir/subdir/query.txt"
+    assert main.get_destination_uri(
+    ) == f"gs://my-bucket/{time.strftime('%Y%m%d-%H%M%S')}/dir/subdir/query.txt"
