@@ -19,6 +19,7 @@ Uses https://github.com/sendgrid/sendgrid-python
 
 import base64
 import datetime
+import distutils.util
 import json
 import logging
 import os
@@ -57,8 +58,8 @@ def main(event, context):
 
         blob_path = destination_uris[0]
         blob = storage.Blob.from_string(blob_path)
-        url = generate_signed_url(blob) if get_env(
-            'SIGNED_URL') == 'True' else get_auth_url(blob_path)
+        url = generate_signed_url(blob) if distutils.util.strtobool(get_env(
+            'SIGNED_URL')) else get_auth_url(blob_path)
 
         message = Mail(
             from_email=get_env('FROM_EMAIL'),

@@ -20,7 +20,6 @@ import base64
 import json
 import logging
 import os
-import time
 
 import google.api_core.client_info
 from google.cloud import bigquery
@@ -43,13 +42,14 @@ def main(event, context):
         dataset_id = upstream_bq_dts_obj['destinationDatasetId']
         table_name = upstream_bq_dts_obj['params'][
             'destination_table_name_template']
+        schedule_time = upstream_bq_dts_obj['scheduleTime']
 
         bq_client = bigquery.Client(client_info=CLIENT_INFO)
 
         dataset_ref = bigquery.DatasetReference.from_string(
             dataset_id, default_project=project_id)
         table_ref = dataset_ref.table(table_name)
-        destination_uri = get_destination_uri()
+        destination_uri = get_destination_uri(schedule_time)
         extract_config = bigquery.ExtractJobConfig(
             compression=get_env('COMPRESSION'),
             destination_format=get_env('DEST_FMT'),
@@ -64,10 +64,10 @@ def main(event, context):
         )
 
 
-def get_destination_uri():
+def get_destination_uri(schedule_time):
     """Returns destination GCS URI for export"""
     return (f"gs://{get_env('BUCKET_NAME')}/"
-            f"{time.strftime('%Y%m%d-%H%M%S')}/{get_env('OBJECT_NAME')}")
+            f"{schedule_time}/{get_env('OBJECT_NAME')}")
 
 
 def get_env(name):
