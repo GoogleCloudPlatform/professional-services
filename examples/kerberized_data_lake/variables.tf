@@ -90,3 +90,16 @@ variable "users" {
   type        = list(string)
   default     = ["user1", "user2"]
 }
+
+variable "bucket_location_map" {
+  description = "map"
+  type        = map(string)
+  default     = {
+    us            = "us"
+    northamerica  = "us"
+    southamerica  = "us"
+    europe        = "eu"
+    asia          = "asia"
+    australia     = "asia"
+  }
+}
