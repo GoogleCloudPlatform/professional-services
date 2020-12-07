@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# Copyright 2020 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+#
+# This software is provided as-is,
+# without warranty or representation for any use or purpose.
+# Your use of it is subject to your agreement with Google.
+
+#
+#
+# name: setup-kerberos-trust.sh
+# description:  setup one-way trust between realms, configure central metastore
+#
+
+
+
+# VARs set from wrapper based on environment deployment
+# shellcheck disable=SC2034
+CLIENT_CLUST="${KEY_CLIENT_CLUST}"
+HMS_CLUST="${KEY_HMS_CLUST}"
+CLUST_REALM="${CLIENT_REALM}"
+DOMAIN="${HOST_DOMAIN}"
+KMS_KEY_URI="${CLUST_KMS_KEY_URI}"
+BASE_GCS_PATH="${SECRETS_BUCKET}"
+
+# Hive Metastore Realm
+KRB_CLUSTER_HMS="${KEY_KRB_CLUSTER_HMS}"
+KRB5_HIVE_REALM="${KEY_KRB_CLUSTER_HMS_REALM}"
+KRB5_HIVE_MASTER="${KEY_KRB5_HIVE_MASTER}"
+KRB5_HIVE_SECRET="${KEY_KRB5_HIVE_SECRET}"
+METASTORE_URIS="${HMS_URIS}"
+
+# FOO REALM
+KRB_CLUSTER_CORP_KDC="${KEY_KRB_CLUSTER_CORP_KDC}"
+KRB5_FOO_REALM="${KEY_KRB_CLUSTER_CORP_KDC_REALM}"
+KRB5_FOO_MASTER="${KEY_KRB5_FOO_MASTER}"
+KRB5_FOO_SECRET="${KEY_KRB5_FOO_SECRET}"
+
+
+# Placeholder to render logic defined in setup-kerberos-trust.sh.logic
+# shellcheck disable=SC2154
+${logic}

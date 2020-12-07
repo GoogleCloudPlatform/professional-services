@@ -54,6 +54,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [QAOA](examples/qaoa) - Examples of parsing a max-SAT problem in a proprietary format.
 * [Redis Cluster on GKE Example](examples/redis-cluster-gke) - Deploying Redis cluster on GKE.
 * [Spinnaker](examples/spinnaker) - Example pipelines for a Canary / Production deployment process.
+* [TensorFlow Serving on GKE and Load Testing](examples/tf-load-testing) - Examples how to implement Tensorflow model inference on GKE and to perform a load testing of such solution.
 * [TensorFlow Unit Testing](examples/tensorflow-unit-testing) - Examples how to write unit tests for TensorFlow ML models.
 * [Uploading files directly to Google Cloud Storage by using Signed URL](examples/direct-upload-to-gcs) - Example architecture to enable uploading files directly to GCS by using [Signed URL](https://cloud.google.com/storage/docs/access-control/signed-urls).
 
@@ -90,6 +91,7 @@ creates relationships between assets and outputs a format compatible with [graph
 * [GSuite Exporter Cloud Function](tools/gsuite-exporter-cloud-function/) - A script that deploys a Cloud Function and Cloud Scheduler job that executes the GSuite Exporter tool automatically on a cadence.
 * [GSuite Exporter](tools/gsuite-exporter/) - A Python package that automates syncing Admin SDK APIs activity reports to a GCP destination. The module takes entries from the chosen Admin SDK API, converts them into the appropriate format for the destination, and exports them to a destination (e.g: Stackdriver Logging).
 * [Hive to BigQuery](tools/hive-bigquery/) - A Python framework to migrate Hive table to BigQuery using Cloud SQL to keep track of the migration progress.
+* [IAM Recommender at Scale](tools/iam-recommender-at-scale) - A python package that automates applying iam recommendations.
 * [LabelMaker](tools/labelmaker) - A tool that reads key:value pairs from a json file and labels the running instance and all attached drives accordingly.
 * [Machine Learning Auto Exploratory Data Analysis and Feature Recommendation](tools/ml-auto-eda) - A tool to perform comprehensive auto EDA, based on which feature recommendations are made, and a summary report will be generated.
 * [Maven Archetype Dataflow](tools/maven-archetype-dataflow) - A maven archetype which bootstraps a Dataflow project with common plugins pre-configured to help maintain high code quality.

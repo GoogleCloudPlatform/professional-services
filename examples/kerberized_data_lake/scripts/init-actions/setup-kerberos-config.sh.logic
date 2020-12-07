@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+# Copyright 2020 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+#
+# This software is provided as-is,
+# without warranty or representation for any use or purpose.
+# Your use of it is subject to your agreement with Google.
+
+set -xueo pipefail
+KRB5_CONF="/etc/krb5.conf"
+
+# wrapper for non debug enabled code paths
+function log_and_fail() {
+  echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]: $*" >&2
+  return 1
+}
+
+# add kerberos realm to krb conf
+function add_kerberos_realm() {
+  local realm="$1";
+  local master_kdc="$2"; shift; shift;
+  local slave_kdcs=("$@")
+
+  local slave_kdc_servers=
+  if (("${#slave_kdcs[@]}" > 0)); then
+    for slave_kdc in "${slave_kdcs[@]}"; do
+      slave_kdc_servers+="\t\tkdc = ${slave_kdc}\n"
+    done
+  fi
+
+  sed -i "/\[realms\]/a\ \t${realm} = {\n\t\tkdc = ${master_kdc}\n${slave_kdc_servers}\t\tadmin_server = ${master_kdc}\n\t}" ${KRB5_CONF}
+}
+
+# add kerberos domains to krb conf
+function add_kerberos_domain() {
+  local realm="$1";
+  local master_kdc="$2"; shift; shift;
+  local slave_kdcs=("$@")
+
+  local slave_kdc_servers=""
+  if (("${#slave_kdcs[@]}" > 0)); then
+    for slave_kdc in "${slave_kdcs[@]}"; do
+      slave_kdc_servers+="\n\t${slave_kdc} = ${realm}"
+    done
+  fi
+
+  sed -i "/\[domain_realm\]/a\ \t${master_kdc}.${DOMAIN} = ${realm}${slave_kdc_servers}" ${KRB5_CONF}
+}
+
+
+function main() {
+  # On the analytics cluster we need to add the HMS realm / domain.
+  # Note that the Corp KDC realm / domain and the analytics realm / domain are
+  # already set up implicitly based on the security config for realm and
+  # cross realm trust.
+  add_kerberos_realm "${KRB5_HIVE_REALM}" "${KRB5_HIVE_MASTER}" "${KRB5_HIVE_KDC_SLAVES[@]}"
+  add_kerberos_domain "${KRB5_HIVE_REALM}" "${KRB5_HIVE_MASTER}" "${KRB5_HIVE_KDC_SLAVES[@]}"
+}
+
+main
