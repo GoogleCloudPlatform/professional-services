@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Google Inc.
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package com.google.plugin;
 
-import com.google.functions.DropTableFunction;
+import com.google.functions.MergeLastUpdateTSFunction;
 import io.cdap.cdap.api.TxRunnable;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Macro;
@@ -27,17 +27,19 @@ import io.cdap.cdap.etl.api.PipelineConfigurer;
 import io.cdap.cdap.etl.api.action.Action;
 import io.cdap.cdap.etl.api.action.ActionContext;
 
+import javax.annotation.Nullable;
+
 /**
- * An Action Plugin to drop a BigQuery table.
+ * An Action Plugin to merge based on last update timestamp field.
  */
 @Plugin(type = Action.PLUGIN_TYPE)
-@Name(DropTableAction.NAME)
-@Description("Drop bigquery table")
-public class DropTableAction extends Action {
-    public static final String NAME = "DropTableAction";
+@Name(MergeLastUpdateTSAction.NAME)
+@Description("MergeLastUpdateTSAction")
+public class MergeLastUpdateTSAction extends Action {
+    public static final String NAME = "MergeLastUpdateTSAction";
     private final Conf config;
 
-    public DropTableAction(Conf config) {
+    public MergeLastUpdateTSAction(Conf config) {
         this.config = config;
     }
 
@@ -51,10 +53,9 @@ public class DropTableAction extends Action {
         context.execute(new TxRunnable() {
             @Override
             public void run(DatasetContext context) throws Exception {
-                DropTableFunction.dropTable(config.keyPath, config.projectId, config.dataset, config.tableName);
+                new MergeLastUpdateTSFunction(config.keyPath, config.projectId, config.dataset, config.tableName, config.primaryKeyList, config.updateColumnsList, config.partitionColumn).executeMerge();
             }
         });
-
     }
 
     public static class Conf extends PluginConfig {
@@ -64,28 +65,45 @@ public class DropTableAction extends Action {
         private final String keyPath;
 
         @Name("projectId")
-        @Description("Project Id")
+        @Description("Project ID")
         @Macro
         private final String projectId;
-
-        @Name("tableName")
-        @Description("Table name")
-        @Macro
-        private final String tableName;
 
         @Name("dataset")
         @Description("Dataset name")
         @Macro
         private final String dataset;
 
-        public Conf( String keyPath, String projectId, String dataset, String tableName ) {
+        @Name("tableName")
+        @Description("Table name")
+        @Macro
+        private final String tableName;
+
+        @Name("primaryKeyList")
+        @Description("Comma separated list of PK's")
+        @Macro
+        private final String primaryKeyList;
+
+        @Name("updateColumnsList")
+        @Description("Comma separated list of update columns")
+        @Macro
+        private final String updateColumnsList;
+
+        @Name("partitionColumn")
+        @Description("Partition coulmn name in destination table")
+        @Macro
+        @Nullable
+        private final String partitionColumn;
+
+        public Conf(String keyPath, String projectId, String dataset, String tableName, String primaryKeyList, String updateColumnsList, String partitionColumn) {
             this.keyPath = keyPath;
             this.projectId = projectId;
             this.dataset = dataset;
             this.tableName = tableName;
+            this.primaryKeyList = primaryKeyList;
+            this.updateColumnsList = updateColumnsList;
+            this.partitionColumn = partitionColumn;
         }
-
-
     }
 
 }
