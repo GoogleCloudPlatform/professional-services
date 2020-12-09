@@ -23,7 +23,7 @@ from json2xml import json2xml
 from google.cloud import bigquery
 
 
-def bigquery_to_xml(query, custom_root_node=False):
+def bigquery_to_xml(query, custom_root_node="results", custom_row_tag="row"):
     """ Executes a BQ query and returns the output as an XML string.
 
     Args:
@@ -47,7 +47,7 @@ def bigquery_to_xml(query, custom_root_node=False):
     # convert to xml
     if custom_root_node:
         my_xml = json2xml.Json2xml(records,
-                                   wrapper=custom_root_node,
+                                   wrapper=custom_row_tag,
                                    attr_type=False).to_xml()
     else:
         my_xml = json2xml.Json2xml(records, attr_type=False).to_xml()
@@ -59,7 +59,7 @@ def bigquery_to_xml(query, custom_root_node=False):
         element.getparent().remove(element)
 
     # For repeated BQ fields: rename <item> tags
-    # # according to their parents' tag names
+    # according to their parents' tag names
     for element in doc.xpath((".//item")):
         parent = element.getparent()
         element.tag = parent.tag
@@ -76,12 +76,12 @@ def bigquery_to_xml(query, custom_root_node=False):
 
     etree.strip_tags(doc, "deleteme")
 
-    # Convert to string
-    my_xml = etree.tostring(doc)
+    # Change root
+    doc.tag = custom_root_node
 
-    # Remove root node
-    remove_root = ET.fromstring(my_xml)[0]
-    my_xml = ET.tostring(remove_root, method="xml")
+
+    # Convert to string
+    my_xml = ET.tostring(doc, method="xml")
 
     # Convert cleaned data to formatted XML
     my_xml = parseString(my_xml).toprettyxml()
