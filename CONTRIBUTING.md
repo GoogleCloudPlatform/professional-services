@@ -16,7 +16,7 @@ To get started contributing:
    export GITHUB_USER=YOUR_GITHUB_USERNAME
 
    pushd cloudbuild
-   teraform init
+   terraform init
    terraform apply -var="project_id=$(gcloud config get-value project)" -var="github_owner=${GITHUB_USER}"
    popd
    ```
