@@ -38,12 +38,8 @@ setup(
     keywords='gcp asset inventory',
     packages=['asset_inventory'],
     setup_requires=['pytest-runner'],
-    # https://beam.apache.org/get-started/downloads
-    # Can't use 2.18, 2.19
-    # due to https://issues.apache.org/jira/browse/BEAM-9218
-    # should be fixed in 2.20 when released.
     extras_require = {
-        'testing': ['mock==2.0.0', 'pytest==4.6.6', 'apache-beamn[gcp]==2.17.0'],
+        'testing': ['mock==2.0.0', 'pytest==4.6.6', 'apache-beamn[gcp]==2.25.0'],
     },
     include_package_data=True,
     # https://pypi.org/project/google-cloud-asset/#history

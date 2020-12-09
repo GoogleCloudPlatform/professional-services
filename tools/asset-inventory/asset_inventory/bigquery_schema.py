@@ -261,6 +261,10 @@ def _sanitize_property(property_name, parent, depth, num_properties):
 
     # enforce column name requirements (condition #2).
     new_property_name = CLEAN_UP_REGEX.sub('', property_name)
+    # contains only non-word characters. just drop the property.
+    if not new_property_name:
+        parent.pop(property_name)
+        return
     first_character = new_property_name[0]
     if not first_character.isalpha() and first_character != '_':
         new_property_name = '_' + new_property_name

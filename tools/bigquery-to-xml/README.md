@@ -38,10 +38,11 @@ footer | STRING | NULLABLE
 
 
 ### Example Configuration
+```
+ _QUERY = """
+ SELECT * EXCEPT (item)
+ FROM `bigquery-public-data`.wikipedia.wikidata
+ LIMIT 1"""
 
-# _QUERY = """
-# SELECT * EXCEPT (item)
-# FROM `bigquery-public-data`.wikipedia.wikidata
-# LIMIT 1"""
-#
-# bigquery_to_xml(_QUERY,_CUSTOM_ROOT_NODE)
+ bigquery_to_xml(_QUERY,_CUSTOM_ROOT_NODE)
+```
