@@ -32,76 +32,83 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * DAO to read and update checkpoints in Firestore.
- */
+/** DAO to read and update checkpoints in Firestore. */
 public class CheckpointDAO {
 
-	private String serviceAccountFilePath;
-	private String project;
+  private String serviceAccountFilePath;
+  private String project;
 
-	public CheckpointDAO(String serviceAccountFilePath, String project) {
-		this.serviceAccountFilePath = serviceAccountFilePath;
-		this.project = project;
-	}
+  public CheckpointDAO(String serviceAccountFilePath, String project) {
+    this.serviceAccountFilePath = serviceAccountFilePath;
+    this.project = project;
+  }
 
-	private Firestore getFirestore() throws Exception {
+  private Firestore getFirestore() throws Exception {
 
-		FirestoreOptions.Builder firestoreBuilder = FirestoreOptions.newBuilder();
-		if (serviceAccountFilePath != null) {
-			firestoreBuilder.setCredentials(GCPUtils.loadServiceAccountCredentials(serviceAccountFilePath));
-		}
-		if (project != null) {
-			firestoreBuilder.setProjectId(project);
-		}
-		return firestoreBuilder.build().getService();
-	}
+    FirestoreOptions.Builder firestoreBuilder = FirestoreOptions.newBuilder();
+    if (serviceAccountFilePath != null) {
+      firestoreBuilder.setCredentials(
+          GCPUtils.loadServiceAccountCredentials(serviceAccountFilePath));
+    }
+    if (project != null) {
+      firestoreBuilder.setProjectId(project);
+    }
+    return firestoreBuilder.build().getService();
+  }
 
-	public void appendCheckpoint(String collectionName, String documentName, String watermarkValue) throws Exception {
-		Map<String, Object> checkpoint = new HashMap<String, Object>();
-		checkpoint.put("CHECKPOINT_VALUE", watermarkValue);
-		Timestamp timestamp = Timestamp.now();
-		checkpoint.put("CREATED_TIMESTAMP", timestamp);
-		Firestore db = null;
-		try {
-			db = getFirestore();
-			DocumentReference docRef = db.collection(collectionName).document(documentName.toUpperCase());
-			DocumentReference subCollectionRef = docRef.collection("CHECKPOINT").document(getCurrentDateTime());
-			ApiFuture<WriteResult> result = subCollectionRef.set(checkpoint);
-			result.get().getUpdateTime();
-		} finally {
-			if (db != null) {
-				db.close();
-			}
-		}
-	}
+  public void appendCheckpoint(String collectionName, String documentName, String watermarkValue)
+      throws Exception {
+    Map<String, Object> checkpoint = new HashMap<String, Object>();
+    checkpoint.put("CHECKPOINT_VALUE", watermarkValue);
+    Timestamp timestamp = Timestamp.now();
+    checkpoint.put("CREATED_TIMESTAMP", timestamp);
+    Firestore db = null;
+    try {
+      db = getFirestore();
+      DocumentReference docRef = db.collection(collectionName).document(documentName.toUpperCase());
+      DocumentReference subCollectionRef =
+          docRef.collection("CHECKPOINT").document(getCurrentDateTime());
+      ApiFuture<WriteResult> result = subCollectionRef.set(checkpoint);
+      result.get().getUpdateTime();
+    } finally {
+      if (db != null) {
+        db.close();
+      }
+    }
+  }
 
-	private String getCurrentDateTime() throws Exception {
-		String pattern = "yyyy-MM-dd-HH:mm:ss";
-		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
+  private String getCurrentDateTime() throws Exception {
+    String pattern = "yyyy-MM-dd-HH:mm:ss";
+    SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
 
-		String date = simpleDateFormat.format(new Date());
-		return date;
-	}
+    String date = simpleDateFormat.format(new Date());
+    return date;
+  }
 
-	public String getLatestCheckpointValue(String collectionName, String documentName) throws Exception {
-		String latestWatermarkValue = null;
-		Firestore db = null;
-		try {
-			db = getFirestore();
-			Query query = db.collection(collectionName + "/" + documentName + "/CHECKPOINT").
-					orderBy("CREATED_TIMESTAMP", Direction.DESCENDING).limit(1).get().get().getQuery();
-			QuerySnapshot snap = query.get().get();
-			List<QueryDocumentSnapshot>  docs = snap.getDocuments();
+  public String getLatestCheckpointValue(String collectionName, String documentName)
+      throws Exception {
+    String latestWatermarkValue = null;
+    Firestore db = null;
+    try {
+      db = getFirestore();
+      Query query =
+          db.collection(collectionName + "/" + documentName + "/CHECKPOINT")
+              .orderBy("CREATED_TIMESTAMP", Direction.DESCENDING)
+              .limit(1)
+              .get()
+              .get()
+              .getQuery();
+      QuerySnapshot snap = query.get().get();
+      List<QueryDocumentSnapshot> docs = snap.getDocuments();
 
-			for (QueryDocumentSnapshot docSnap : docs) {
-				latestWatermarkValue = docSnap.getString("CHECKPOINT_VALUE");
-			}
-		} finally {
-			if (db != null) {
-				db.close();
-			}
-		}
-		return latestWatermarkValue;
-	}
+      for (QueryDocumentSnapshot docSnap : docs) {
+        latestWatermarkValue = docSnap.getString("CHECKPOINT_VALUE");
+      }
+    } finally {
+      if (db != null) {
+        db.close();
+      }
+    }
+    return latestWatermarkValue;
+  }
 }
