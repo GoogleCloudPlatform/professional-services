@@ -17,45 +17,43 @@ package com.google.functions;
 
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.auth.oauth2.ServiceAccountCredentials;
-import com.google.cloud.bigquery.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import com.google.cloud.bigquery.BigQuery;
+import com.google.cloud.bigquery.TableId;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/**
- * This class contains the logic to do the work from DropTableAction.
- */
+/** This class contains the logic to do the work from DropTableAction. */
 public class DropTableFunction {
-    private static Logger LOG = LoggerFactory.getLogger(DropTableFunction.class);
-    public static void dropTable(String keyPath, String projectId, String dataset, String tableName ) {
-        try {
-            BigQuery bigquery = Utils.createBigQueryClient(keyPath);
+  private static Logger LOG = LoggerFactory.getLogger(DropTableFunction.class);
 
-            TableId tableId = TableId.of(projectId, dataset, tableName);
-            boolean deleted = bigquery.delete(tableId);
-            if (deleted) {
-                LOG.info("Table deleted.");
-            } else {
-                LOG.info("Table was not found.");
-            }
+  public static void dropTable(String keyPath, String projectId, String dataset, String tableName) {
+    try {
+      BigQuery bigquery = Utils.createBigQueryClient(keyPath);
 
-        }catch (Exception ex) {
-            ex.printStackTrace();
-        }
+      TableId tableId = TableId.of(projectId, dataset, tableName);
+      boolean deleted = bigquery.delete(tableId);
+      if (deleted) {
+        LOG.info("Table deleted.");
+      } else {
+        LOG.info("Table was not found.");
+      }
+
+    } catch (Exception ex) {
+      ex.printStackTrace();
+    }
+  }
+
+  private static com.google.auth.Credentials getCredentials(String keyPath) throws IOException {
+    GoogleCredentials credentials;
+    File credentialsPath = new File(keyPath);
+
+    try (FileInputStream serviceAccountStream = new FileInputStream(credentialsPath)) {
+      credentials = ServiceAccountCredentials.fromStream(serviceAccountStream);
     }
 
-    private static com.google.auth.Credentials getCredentials(String keyPath) throws IOException {
-        GoogleCredentials credentials;
-        File credentialsPath = new File(keyPath);
-
-        try (FileInputStream serviceAccountStream = new FileInputStream(credentialsPath)) {
-            credentials = ServiceAccountCredentials.fromStream(serviceAccountStream);
-        }
-
-        return credentials;
-    }
-
+    return credentials;
+  }
 }

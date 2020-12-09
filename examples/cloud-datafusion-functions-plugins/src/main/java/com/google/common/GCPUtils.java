@@ -16,19 +16,18 @@
 package com.google.common;
 
 import com.google.auth.oauth2.ServiceAccountCredentials;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-/**
- * This class has logic to load service account key from the file system.
- */
+/** This class has logic to load service account key from the file system. */
 public class GCPUtils {
 
-    public static ServiceAccountCredentials loadServiceAccountCredentials(String path) throws IOException {
-        File credentialsPath = new File(path);
-        try (FileInputStream serviceAccountStream = new FileInputStream(credentialsPath)) {
-            return ServiceAccountCredentials.fromStream(serviceAccountStream);
-        }
-    }}
+  public static ServiceAccountCredentials loadServiceAccountCredentials(String path)
+      throws IOException {
+    File credentialsPath = new File(path);
+    try (FileInputStream serviceAccountStream = new FileInputStream(credentialsPath)) {
+      return ServiceAccountCredentials.fromStream(serviceAccountStream);
+    }
+  }
+}

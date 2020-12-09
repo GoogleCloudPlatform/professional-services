@@ -5,8 +5,8 @@
   "configuration-groups": [
     {
       "label": "CheckPointUpdateAction",
-      "properties":[
-     	{
+      "properties": [
+        {
           "widget-type": "textbox",
           "label": "Specify the collection name in firestore DB",
           "name": "collectionName"
@@ -34,5 +34,5 @@
       ]
     }
   ],
-  "outputs":[]
+  "outputs": []
 }

@@ -26,10 +26,9 @@
           "label": "Table name",
           "name": "tableName"
         }
-
       ]
     }
   ],
   "outputs": [
-    ]
+  ]
 }

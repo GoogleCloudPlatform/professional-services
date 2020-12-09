@@ -15,11 +15,8 @@
  */
 package com.google.plugin;
 
-import javax.annotation.Nullable;
-
 import com.google.common.GCPConfig;
 import com.google.functions.CheckPointReadFunction;
-
 import io.cdap.cdap.api.TxRunnable;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Macro;
@@ -28,49 +25,52 @@ import io.cdap.cdap.api.annotation.Plugin;
 import io.cdap.cdap.api.data.DatasetContext;
 import io.cdap.cdap.etl.api.action.Action;
 import io.cdap.cdap.etl.api.action.ActionContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import javax.annotation.Nullable;
 
-/**
- * An Action Plugin to read checkpoints stored in Firestore.
- */
-@Plugin(type=Action.PLUGIN_TYPE)
+/** An Action Plugin to read checkpoints stored in Firestore. */
+@Plugin(type = Action.PLUGIN_TYPE)
 @Name(CheckPointReadAction.NAME)
 @Description("Reads the checkpoint details for a given table")
 public class CheckPointReadAction extends Action {
-	public static final String NAME = "CheckPointReadAction";
-	private final Conf config;
+  public static final String NAME = "CheckPointReadAction";
+  private final Conf config;
 
-	public CheckPointReadAction(Conf config) {
-		this.config = config;
-	}
+  public CheckPointReadAction(Conf config) {
+    this.config = config;
+  }
 
-	@Override
-	public void run(ActionContext context) throws Exception {
-		context.execute(new TxRunnable() {
-			@Override
-			public void run(DatasetContext datasetContext) throws Exception {
-				new CheckPointReadFunction().execute(context, config.getServiceAccountFilePath(), config.getProject(),
-						config.collectionName, config.documentName, config.bufferTime);
-			}
-		});
+  @Override
+  public void run(ActionContext context) throws Exception {
+    context.execute(
+        new TxRunnable() {
+          @Override
+          public void run(DatasetContext datasetContext) throws Exception {
+            new CheckPointReadFunction()
+                .execute(
+                    context,
+                    config.getServiceAccountFilePath(),
+                    config.getProject(),
+                    config.collectionName,
+                    config.documentName,
+                    config.bufferTime);
+          }
+        });
+  }
 
-	}
+  public static class Conf extends GCPConfig {
+    private static final long serialVersionUID = 3838144048142671294L;
 
-	public static class Conf extends GCPConfig {
-		private static final long serialVersionUID = 3838144048142671294L;
+    @Description("Specify the collection name in firestore DB")
+    @Macro
+    private String collectionName;
 
-		@Description("Specify the collection name in firestore DB")
-		@Macro
-		private String collectionName;
+    @Description("Specify the document name to read the checkpoint details")
+    @Macro
+    private String documentName;
 
-		@Description("Specify the document name to read the checkpoint details")
-		@Macro
-		private String documentName;
-
-		@Description("Buffer time to add to watermark value")
-		@Macro
-		@Nullable
-		private String bufferTime;
-	}
+    @Description("Buffer time to add to watermark value")
+    @Macro
+    @Nullable
+    private String bufferTime;
+  }
 }

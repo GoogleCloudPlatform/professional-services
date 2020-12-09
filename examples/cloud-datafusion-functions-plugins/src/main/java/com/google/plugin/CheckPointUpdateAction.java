@@ -17,7 +17,6 @@ package com.google.plugin;
 
 import com.google.common.GCPConfig;
 import com.google.functions.CheckPointUpdateFunction;
-
 import io.cdap.cdap.api.TxRunnable;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Macro;
@@ -27,54 +26,59 @@ import io.cdap.cdap.api.data.DatasetContext;
 import io.cdap.cdap.etl.api.action.Action;
 import io.cdap.cdap.etl.api.action.ActionContext;
 
-/**
- * An Action Plugin to update the checkpoint details for a given table in Firestore.
- */
-@Plugin(type=Action.PLUGIN_TYPE)
+/** An Action Plugin to update the checkpoint details for a given table in Firestore. */
+@Plugin(type = Action.PLUGIN_TYPE)
 @Name(CheckPointUpdateAction.NAME)
 @Description("Updates the checkpoint details for a given table")
 public class CheckPointUpdateAction extends Action {
-	
-	public static final String NAME = "CheckPointUpdateAction";
-	private final Conf config;
-	
-	public CheckPointUpdateAction(Conf config) {
-		this.config = config;
-	}
 
-	@Override
-	public void run(ActionContext context) throws Exception {
-		context.execute(new TxRunnable() {
-			@Override
-			public void run(DatasetContext datasetContext) throws Exception {	
-				new CheckPointUpdateFunction().execute(config.getServiceAccountFilePath(), config.getProject(), 
-				 config.collectionName, config.documentName, config.incrPullTableDataset, 
-				config.incrPullTableName + "_LOG", config.checkpointColumn);
-			}			
-		});
-	}
-	
-	public static class Conf extends GCPConfig {
-		private static final long serialVersionUID = 6388137857947525636L;
+  public static final String NAME = "CheckPointUpdateAction";
+  private final Conf config;
 
-		@Description("Specify the collection name in firestore DB")
-        @Macro
-        private String collectionName;
-        
-        @Description("Specify the document name to read the checkpoint details")
-        @Macro
-        private String documentName;
-        
-        @Description("Dataset name where incremental pull table exists")
-        @Macro
-        private String incrPullTableDataset;
-        
-        @Description("Table name that needs incremental pull")
-        @Macro
-        private String incrPullTableName;
-        
-        @Description("Name of the checkpoint column")
-        @Macro
-        private String checkpointColumn;
-    }
+  public CheckPointUpdateAction(Conf config) {
+    this.config = config;
+  }
+
+  @Override
+  public void run(ActionContext context) throws Exception {
+    context.execute(
+        new TxRunnable() {
+          @Override
+          public void run(DatasetContext datasetContext) throws Exception {
+            new CheckPointUpdateFunction()
+                .execute(
+                    config.getServiceAccountFilePath(),
+                    config.getProject(),
+                    config.collectionName,
+                    config.documentName,
+                    config.incrPullTableDataset,
+                    config.incrPullTableName + "_LOG",
+                    config.checkpointColumn);
+          }
+        });
+  }
+
+  public static class Conf extends GCPConfig {
+    private static final long serialVersionUID = 6388137857947525636L;
+
+    @Description("Specify the collection name in firestore DB")
+    @Macro
+    private String collectionName;
+
+    @Description("Specify the document name to read the checkpoint details")
+    @Macro
+    private String documentName;
+
+    @Description("Dataset name where incremental pull table exists")
+    @Macro
+    private String incrPullTableDataset;
+
+    @Description("Table name that needs incremental pull")
+    @Macro
+    private String incrPullTableName;
+
+    @Description("Name of the checkpoint column")
+    @Macro
+    private String checkpointColumn;
+  }
 }

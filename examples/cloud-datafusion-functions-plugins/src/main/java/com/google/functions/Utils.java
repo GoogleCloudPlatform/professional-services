@@ -21,40 +21,36 @@ import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.BigQueryOptions;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
-
 import java.io.File;
 import java.io.FileInputStream;
 
-/**
- *Utils class to help with BigQuery interaction.
- */
+/** Utils class to help with BigQuery interaction. */
 public class Utils {
-    private final static String AUTO_DETECT_PLACEHOLDER = "auto-detect";
+  private static final String AUTO_DETECT_PLACEHOLDER = "auto-detect";
 
-    public static BigQuery createBigQueryClient(String keyPath) {
-        BigQueryOptions.Builder biqQueryClientBuilder = BigQueryOptions.newBuilder();
-        if (!AUTO_DETECT_PLACEHOLDER.equals(keyPath)) {
-            biqQueryClientBuilder.setCredentials(getCredentials(keyPath));
-        }
-        return  biqQueryClientBuilder.build().getService();
+  public static BigQuery createBigQueryClient(String keyPath) {
+    BigQueryOptions.Builder biqQueryClientBuilder = BigQueryOptions.newBuilder();
+    if (!AUTO_DETECT_PLACEHOLDER.equals(keyPath)) {
+      biqQueryClientBuilder.setCredentials(getCredentials(keyPath));
     }
+    return biqQueryClientBuilder.build().getService();
+  }
 
-    public static Storage createStorageClient(String keyPath) {
-        StorageOptions.getDefaultInstance().getService();
+  public static Storage createStorageClient(String keyPath) {
+    StorageOptions.getDefaultInstance().getService();
 
-        StorageOptions.Builder storageClientBuilder = StorageOptions.newBuilder();
-        if (!AUTO_DETECT_PLACEHOLDER.equals(keyPath)) {
-            storageClientBuilder.setCredentials(getCredentials(keyPath));
-        }
-        return  storageClientBuilder.build().getService();
+    StorageOptions.Builder storageClientBuilder = StorageOptions.newBuilder();
+    if (!AUTO_DETECT_PLACEHOLDER.equals(keyPath)) {
+      storageClientBuilder.setCredentials(getCredentials(keyPath));
     }
+    return storageClientBuilder.build().getService();
+  }
 
-    private static Credentials getCredentials(String keyPath) {
-        try (FileInputStream serviceAccountStream = new FileInputStream(new File(keyPath))) {
-            return ServiceAccountCredentials.fromStream(serviceAccountStream);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+  private static Credentials getCredentials(String keyPath) {
+    try (FileInputStream serviceAccountStream = new FileInputStream(new File(keyPath))) {
+      return ServiceAccountCredentials.fromStream(serviceAccountStream);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
-
+  }
 }

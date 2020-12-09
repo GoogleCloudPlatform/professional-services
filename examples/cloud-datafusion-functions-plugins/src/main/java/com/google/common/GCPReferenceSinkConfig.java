@@ -20,23 +20,20 @@ import io.cdap.cdap.api.annotation.Macro;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.plugin.common.IdUtils;
 
-/**
- * Reference config extending GCPConfig for sinks.
- */
+/** Reference config extending GCPConfig for sinks. */
 public class GCPReferenceSinkConfig extends GCPConfig {
-    @Name("referenceName")
-    @Description("This will be used to uniquely identify this sink for lineage, annotating metadata, etc.")
-    @Macro
-    protected String referenceName;
+  @Name("referenceName")
+  @Description(
+      "This will be used to uniquely identify this sink for lineage, annotating metadata, etc.")
+  @Macro
+  protected String referenceName;
 
-    /**
-     * Validates the given referenceName to consists of characters allowed to represent a dataset.
-     */
-    public void validate() {
-        IdUtils.validateId(referenceName);
-    }
+  /** Validates the given referenceName to consists of characters allowed to represent a dataset. */
+  public void validate() {
+    IdUtils.validateId(referenceName);
+  }
 
-    public String getReferenceName() {
-        return referenceName;
-    }
+  public String getReferenceName() {
+    return referenceName;
+  }
 }

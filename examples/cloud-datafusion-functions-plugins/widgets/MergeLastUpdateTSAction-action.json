@@ -40,7 +40,7 @@
           "widget-type": "textbox",
           "label": "BigQuery partition column",
           "name": "partitionColumn",
-          "widget-attributes" : {
+          "widget-attributes": {
             "default": ""
           }
         }

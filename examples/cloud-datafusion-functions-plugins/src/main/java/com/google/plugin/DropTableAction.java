@@ -27,65 +27,59 @@ import io.cdap.cdap.etl.api.PipelineConfigurer;
 import io.cdap.cdap.etl.api.action.Action;
 import io.cdap.cdap.etl.api.action.ActionContext;
 
-/**
- * An Action Plugin to drop a BigQuery table.
- */
+/** An Action Plugin to drop a BigQuery table. */
 @Plugin(type = Action.PLUGIN_TYPE)
 @Name(DropTableAction.NAME)
 @Description("Drop bigquery table")
 public class DropTableAction extends Action {
-    public static final String NAME = "DropTableAction";
-    private final Conf config;
+  public static final String NAME = "DropTableAction";
+  private final Conf config;
 
-    public DropTableAction(Conf config) {
-        this.config = config;
-    }
+  public DropTableAction(Conf config) {
+    this.config = config;
+  }
 
-    @Override
-    public void configurePipeline(PipelineConfigurer pipelineConfigurer) {
+  @Override
+  public void configurePipeline(PipelineConfigurer pipelineConfigurer) {}
 
-    }
-
-    @Override
-    public void run(ActionContext context) throws Exception {
-        context.execute(new TxRunnable() {
-            @Override
-            public void run(DatasetContext context) throws Exception {
-                DropTableFunction.dropTable(config.keyPath, config.projectId, config.dataset, config.tableName);
-            }
+  @Override
+  public void run(ActionContext context) throws Exception {
+    context.execute(
+        new TxRunnable() {
+          @Override
+          public void run(DatasetContext context) throws Exception {
+            DropTableFunction.dropTable(
+                config.keyPath, config.projectId, config.dataset, config.tableName);
+          }
         });
+  }
 
+  public static class Conf extends PluginConfig {
+    @Name("keyPath")
+    @Description("Path to credential key")
+    @Macro
+    private final String keyPath;
+
+    @Name("projectId")
+    @Description("Project Id")
+    @Macro
+    private final String projectId;
+
+    @Name("tableName")
+    @Description("Table name")
+    @Macro
+    private final String tableName;
+
+    @Name("dataset")
+    @Description("Dataset name")
+    @Macro
+    private final String dataset;
+
+    public Conf(String keyPath, String projectId, String dataset, String tableName) {
+      this.keyPath = keyPath;
+      this.projectId = projectId;
+      this.dataset = dataset;
+      this.tableName = tableName;
     }
-
-    public static class Conf extends PluginConfig {
-        @Name("keyPath")
-        @Description("Path to credential key")
-        @Macro
-        private final String keyPath;
-
-        @Name("projectId")
-        @Description("Project Id")
-        @Macro
-        private final String projectId;
-
-        @Name("tableName")
-        @Description("Table name")
-        @Macro
-        private final String tableName;
-
-        @Name("dataset")
-        @Description("Dataset name")
-        @Macro
-        private final String dataset;
-
-        public Conf( String keyPath, String projectId, String dataset, String tableName ) {
-            this.keyPath = keyPath;
-            this.projectId = projectId;
-            this.dataset = dataset;
-            this.tableName = tableName;
-        }
-
-
-    }
-
+  }
 }
