@@ -15,9 +15,9 @@
 #   limitations under the License.
 
 import os
-import xml.etree.ElementTree as ET
+from xml.etree import ElementTree
 from xml.dom.minidom import parseString
-import lxml.etree as etree
+from lxml import etree
 
 from json2xml import json2xml
 from google.cloud import bigquery
@@ -81,7 +81,7 @@ def bigquery_to_xml(query, custom_root_node="results", custom_row_tag="row"):
 
 
     # Convert to string
-    my_xml = ET.tostring(doc, method="xml")
+    my_xml = ElementTree.tostring(doc, method="xml")
 
     # Convert cleaned data to formatted XML
     my_xml = parseString(my_xml).toprettyxml()
