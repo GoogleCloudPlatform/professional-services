@@ -29,7 +29,7 @@ class BqToXmlTest(unittest.TestCase):
         # Check that the out_path_prefix is present in output CSV
         with open("test/results.txt", "r") as want:
             want = want.read()
-            got = bq_to_xml.bigquery_to_xml("""SELECT * FROM `bigquery-public-data.samples.github_nested` ORDER BY repository.url DESC LIMIT 5""") + "\n"
+            got = bq_to_xml.bigquery_to_xml("""SELECT * FROM `bigquery-public-data.samples.github_nested` WHERE repository.url LIKE "%/JetBrains/kotlin%" ORDER BY repository.created_at DESC LIMIT 5""") + "\n"
             self.assertEqual(got, want)
 
 if __name__ == '__main__':

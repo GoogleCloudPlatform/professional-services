@@ -15,9 +15,8 @@
 #   limitations under the License.
 
 import os
-from xml.etree import ElementTree
-from xml.dom.minidom import parseString
-from lxml import etree
+import xml
+import lxml.etree
 
 from json2xml import json2xml
 from google.cloud import bigquery
@@ -54,7 +53,7 @@ def bigquery_to_xml(query, custom_root_node="results", custom_row_tag="row"):
 
     # OPTIONAL - Remove empty tags
     matching_tags = []
-    doc = etree.XML(my_xml)
+    doc = lxml.etree.XML(my_xml)
     for element in doc.xpath("//*[not(node())]"):
         element.getparent().remove(element)
 
@@ -74,17 +73,17 @@ def bigquery_to_xml(query, custom_root_node="results", custom_row_tag="row"):
             if element.tag == parent.tag:
                 parent.tag = "deleteme"
 
-    etree.strip_tags(doc, "deleteme")
+    lxml.etree.strip_tags(doc, "deleteme")
 
     # Change root
     doc.tag = custom_root_node
 
 
     # Convert to string
-    my_xml = ElementTree.tostring(doc, method="xml")
+    my_xml = lxml.etree.tostring(doc, method="xml")
 
     # Convert cleaned data to formatted XML
-    my_xml = parseString(my_xml).toprettyxml()
+    my_xml = xml.dom.minidom.parseString(my_xml).toprettyxml()
 
     # Clean up whitespace
     my_xml = os.linesep.join([s for s in my_xml.splitlines() if s.strip()])
