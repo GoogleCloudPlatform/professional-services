@@ -4,11 +4,15 @@ This example contains the benchmark code to examine query efficiency gains of us
 
 ## Prerequisite
 
-Create a Cloud Spanner database with [schema.sql](schema.sql).
+Run the following command to create a Cloud Spanner database with [schema.sql](schema.sql).
+
+```bash
+gcloud spanner databases create ${DATABASE} --instance=${INSTANCE} --ddl-file=schema.sql
+```
 
 ## How to run the benchmark
 
-Run the following command.
+Run the following command. You might need Go 1.15 or higher.
 
 ```bash
 go run main.go --project=${PROJECT} --instance=${INSTANCE} --database=${DATABASE} --pattern=${PATTERN} --parallel=${PARALLEL}
@@ -16,8 +20,8 @@ go run main.go --project=${PROJECT} --instance=${INSTANCE} --database=${DATABASE
 
 For `--pattern` flag please specify the following number.
 
-1. Run benchmark with separated queries for interleaved tables.
-2. Run benchmark with subqueries for interleaved tables.
-3. Insert sample data
+1. Insert sample data.
+2. Run benchmark with separated queries for interleaved tables.
+3. Run benchmark with subqueries for interleaved tables.
 
-You might need to run `--pattern=3` prior to running the benchmark for `--pattern=1` or `--pattern=2` to insert sample data.
+You might need to run `--pattern=1` prior to running the benchmark for `--pattern=2` or `--pattern=3` to insert sample data.

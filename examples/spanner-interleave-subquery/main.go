@@ -77,7 +77,7 @@ func main() {
 	flag.StringVar(&instanceID, "instance", "", "Cloud Spanner Instance ID")
 	flag.StringVar(&databaseID, "database", "", "Cloud Spanner Database ID")
 	flag.IntVar(&parallel, "parallel", 1, "Number of parallel execution")
-	flag.IntVar(&pattern, "pattern", 1, "Benchmark Pattern")
+	flag.IntVar(&pattern, "pattern", 2, "Benchmark Pattern")
 	flag.Parse()
 
 	if projectID == "" || instanceID == "" || databaseID == "" {
@@ -122,14 +122,14 @@ func main() {
 			var err error
 			switch pattern {
 			case 1:
-				err = selectPattern1(ctx, client, &counter)
-			case 2:
-				err = selectPattern2(ctx, client, &counter)
-			case 3:
 				if parallel != 1 {
 					return errors.New("use --parallel=1 for data insertion")
 				}
 				err = insertData(ctx, client, &counter)
+			case 2:
+				err = selectWithSeparateStatements(ctx, client, &counter)
+			case 3:
+				err = selectWithSubqueries(ctx, client, &counter)
 			default:
 				return fmt.Errorf("invalid pattern: %d", pattern)
 			}
@@ -141,7 +141,7 @@ func main() {
 	}
 }
 
-func selectPattern1(ctx context.Context, client *spanner.Client, counter *uint64) error {
+func selectWithSeparateStatements(ctx context.Context, client *spanner.Client, counter *uint64) error {
 	for {
 		id := rand.Int63n(numRecords)
 
@@ -207,7 +207,7 @@ func selectPattern1(ctx context.Context, client *spanner.Client, counter *uint64
 	}
 }
 
-func selectPattern2(ctx context.Context, client *spanner.Client, counter *uint64) error {
+func selectWithSubqueries(ctx context.Context, client *spanner.Client, counter *uint64) error {
 	for {
 		id := rand.Int63n(numRecords)
 
