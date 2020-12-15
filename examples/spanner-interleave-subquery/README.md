@@ -1,6 +1,6 @@
 # spanner-interleave-subquery
 
-This example contains the benchmark code to examine how efficient we can query for Cloud Spanner interleaved tables with subqueries.
+This example contains the benchmark code to examine query efficiency gains of using Cloud Spanner interleaved tables with subqueries.
 
 ## Prerequisite
 
@@ -10,8 +10,8 @@ Create a Cloud Spanner database with [schema.sql](schema.sql).
 
 Run the following command.
 
-```
-$ go run main.go --project=${PROJECT} --instance=${INSTANCE} --database=${DATABASE} --pattern=${PATTERN} --parallel=${PARALLEL}
+```bash
+go run main.go --project=${PROJECT} --instance=${INSTANCE} --database=${DATABASE} --pattern=${PATTERN} --parallel=${PARALLEL}
 ```
 
 For `--pattern` flag please specify the following number.
