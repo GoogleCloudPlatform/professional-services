@@ -47,7 +47,7 @@ module "data_lake_buckets" {
   source     = "terraform-google-modules/cloud-storage/google"
   version    = "~> 1.6"
   project_id = var.project
-  location   = split("-", var.region)[0]
+  location   = var.bucket_location_map[split("-", var.region)[0]]
 
   names = [
     "dataproc-scripts", # This will house init actions and shutdown scripts
