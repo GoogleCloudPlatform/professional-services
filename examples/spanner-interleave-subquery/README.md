@@ -25,3 +25,5 @@ For `--pattern` flag please specify the following number.
 3. Run benchmark with subqueries for interleaved tables.
 
 You might need to run `--pattern=1` prior to running the benchmark for `--pattern=2` or `--pattern=3` to insert sample data.
+
+Note that this benchmark runs forever unless you stop the process by Ctr+C (SIGINT).
