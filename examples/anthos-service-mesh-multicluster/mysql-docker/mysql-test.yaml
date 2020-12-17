@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-test
+  labels:
+    app: mysql-test
+spec:
+  ports:
+  - port: 5000
+    name: http
+  selector:
+    app: mysql-test
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-test
+  labels:
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql-test
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: mysql-test
+        version: v1
+    spec:
+      containers:
+      - name: mysql-test
+        image: liaojianhe/mysql-test:v1.0.0
+        resources:
+          requests:
+            cpu: "100m"
+        imagePullPolicy: IfNotPresent #Always
+        ports:
+        - containerPort: 5000
