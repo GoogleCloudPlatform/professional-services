@@ -1,0 +1,16 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+autopep8 = "*"
+
+[packages]
+yapf = ">=0.29"
+xlrd = ">=1.0.0"
+jinja2 = ">=2.11"
+cx_oracle = "~=7.3.0"
+
+[requires]
+python_version = "3.7"

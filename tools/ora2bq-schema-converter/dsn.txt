@@ -1,0 +1,9 @@
+(DESCRIPTION=
+  (ADDRESS=
+    (PROTOCOL=TCP)
+    (HOST=dbhost.example.com)
+    (PORT=1521)
+  )
+  (CONNECT_DATA=
+    (SID=orclpdb1))
+  )

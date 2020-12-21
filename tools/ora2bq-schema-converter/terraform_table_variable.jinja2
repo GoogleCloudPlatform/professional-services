@@ -1,0 +1,16 @@
+tables = [
+{%- for table_name, location in table_names.items() %}
+  {
+    table_id = "{{ table_name }}",
+    schema   = "{{ location }}",
+    time_partitioning = null
+    expiration_time = null,
+    clustering      = null,
+    labels = {
+      env      = "dev"
+      workload = "crm"
+      owner    = "joedoe"
+    },
+  },
+{%- endfor %}
+]
