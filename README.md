@@ -91,7 +91,7 @@ The tools folder contains ready-made utilities which can simpilfy Google Cloud P
 * [Machine Learning Auto Exploratory Data Analysis and Feature Recommendation](tools/ml-auto-eda) - A tool to perform comprehensive auto EDA, based on which feature recommendations are made, and a summary report will be generated.
 * [Maven Archetype Dataflow](tools/maven-archetype-dataflow) - A maven archetype which bootstraps a Dataflow project with common plugins pre-configured to help maintain high code quality.
 * [Netblock Monitor](tools/netblock-monitor) - An Apps Script project that will automatically provide email notifications when changes are made to Google’s IP ranges.
-* [Oracle to BigQuery Schema Converter](tools/oracle2bq-schema-converter) - A tool to convert Oracle schema to BigQuery by connecting to an Oracle database, capturing and converting schema types, generating BigQuery schema json and terraform variables.
+* [Oracle to BigQuery Schema Converter](tools/ora2bq-schema-converter) - A tool to convert Oracle schema to BigQuery by connecting to an Oracle database, capturing and converting schema types, generating BigQuery schema json and terraform variables.
 * [Permission Discrepancy Finder](tools/permission-discrepancy-finder) - A tool to find the principals with missing permissions on a resource within a project, subsequently, grants them the missing permissions.
 * [Quota Manager](tools/quota-manager) - A python module to programmatically update GCP service quotas such as bigquery.googleapis.com.
 * [Site Verification Group Sync](tools/site-verification-group-sync) - A tool to provision "verified owner" permissions (to create GCS buckets with custom dns) based on membership of a Google Group.
