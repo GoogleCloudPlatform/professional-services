@@ -70,18 +70,21 @@ You need to set dataset labels when asked, like:
 
 ```
 var.dataset_labels
+
   A mapping of labels to assign to the dataset.
 
   Enter a value:
 
 ```
 alternatively ayou can set dataset_labels in terraform.tfvars file,like;
+
 ```
 dataset_labels = {
   env      = "dev"
   workload = "hr"
   owner    = "joe"
-}```
+}
+```
 
 Example:
 {env="dev", workload="hr", owner="joe"}
