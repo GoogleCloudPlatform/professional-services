@@ -11,24 +11,21 @@
 # Authors: yunusd@google.com, sametkaradag@google.com
 """Generates BigQuery JSON schema files for terraform from Oracle tables."""
 
-import argparse
-import json
-import logging
-import pathlib
-import sys
-import cx_Oracle
-import jinja2
+from argparse import ArgumentParser
+from json import dump
+from  logging import basicConfig, INFO
+from pathlib import Path
+from sys import argv
+from cx_Oracle import connect
 
-Path = pathlib.Path
-Environment = jinja2.Environment
-FileSystemLoader = jinja2.FileSystemLoader
+PATH = Path
 
-logging.basicConfig(format="%(asctime)s %(levelname)s:%(message)s",
+basicConfig(format="%(asctime)s %(levelname)s:%(message)s",
                     datefmt="%d/%m/%Y %H:%M:%S",
-                    level=logging.INFO)
+                    level=INFO)
 
-nullable_map = {"Y": "NULLABLE", "N": "REQUIRED"}
-data_type_map = {
+NULLABLE_MAP = {"Y": "NULLABLE", "N": "REQUIRED"}
+DATA_TYPE_MAP = {
     "VARCHAR2": "STRING",
     "CHAR": "STRING",
     "CLOB": "STRING",
@@ -43,11 +40,11 @@ data_type_map = {
     "FLOAT": "NUMERIC",
     "BINARY_DOUBLE": "NUMERIC",
     "BINARY_FLOAT": "NUMERIC",
-    "NUMBER(x)":
-        "INTEGER",  # checkout the logic below, you may want to change it
+    # checkout the logic below, you may want to change it
+    "NUMBER(x)": "INTEGER",  
     "NUMBER(x,y)": "NUMERIC",
     "NUMBER(x,-y)": "INTEGER",
-    "DATE": "DATE",
+    "DATE": "TIMESTAMP", # sqoop imports Oracle "Date" data type as "Timestamp". Otherwise, change this to Date.
     "TIMESTAMP(0)": "TIMESTAMP",
     "TIMESTAMP(1) WITH TIME ZONE": "TIMESTAMP",
     "TIMESTAMP(3)": "TIMESTAMP",
@@ -71,17 +68,21 @@ data_type_map = {
 
 
 def generate_terraform_table_variable(table_names):
+    from jinja2 import Environment, FileSystemLoader
+
+    ENVIRONMENT = Environment
+    FILESYSTEMLOADER = FileSystemLoader
     if table_names is None:
         table_names = {}
-    file_loader = FileSystemLoader(".")
-    env = Environment(loader=file_loader)
+    file_loader = FILESYSTEMLOADER(".")
+    env = ENVIRONMENT(loader=file_loader)
     template = env.get_template("terraform_table_variable.jinja2")
     return template.render(table_names=table_names)
 
 
 def parse_args(args):
     """Parses arguments."""
-    parser = argparse.ArgumentParser(
+    parser = ArgumentParser(
         description=
         "convert oracle schema to bigquery schema to be consumed by terraform",
         prog="schema converter")
@@ -175,13 +176,14 @@ def main(oracle_connection_string, dsn_file, username, password, table_schema,
         variables. Cleans the file before assing parameters.
     """
 
-    json_out_path = Path(schema_output_dir)
+    json_out_path = PATH(schema_output_dir)
     table_names = {}
-
-    if not oracle_connection_string:
-        con = cx_Oracle.connect(username, password, dsn_file.read())
+    
+    if oracle_connection_string:
+      con = connect(oracle_connection_string)
     else:
-        con = cx_Oracle.connect(oracle_connection_string)
+      con = connect(username, password, dsn_file.read())
+
     # You need to use username that has access to all_tab_columns
     # ex for grant; "grant select on ALL_TAB_COLUMNS to hr"
     cur = con.cursor()
@@ -233,18 +235,18 @@ def main(oracle_connection_string, dsn_file, username, password, table_schema,
                     # since the scale does not exist or it is below 0
                     data_type = f"{data_type}(x)"
 
-            print(f"\t{row}\t--\tguessed type: {data_type_map[data_type]}")
+            print(f"\t{row}\t--\tguessed type: {DATA_TYPE_MAP[data_type]}")
 
             schema.append({
                 "description": row[1],
-                "mode": nullable_map[row[4]],
+                "mode": NULLABLE_MAP[row[4]],
                 "name": row[1],
-                "type": data_type_map[data_type]
+                "type": DATA_TYPE_MAP[data_type]
             })
         cur_col.close()
         file_path = json_out_path / table_name
         with open(f"{file_path.absolute()}.json", "w") as outfile:
-            json.dump(schema, outfile, indent=4)
+            dump(schema, outfile, indent=4)
         table_names[table_name] = f"schemas/{file_path.name}.json"
 
     cur.close()
@@ -257,19 +259,14 @@ def main(oracle_connection_string, dsn_file, username, password, table_schema,
         tfvar_path = terraform_tfvar
     with open(tfvar_path, "w") as outfile:
         outfile.write("""project_id                  = "{0}"
-  default_table_expiration_ms = null
-  dataset_labels = {{
-    env      = "dev"
-    workload = "hr"
-    owner    = "joe"
-  }}
+default_table_expiration_ms = null
 
 """.format(project_id))
-        outfile.write(rendered_variable)
+        outfile.write(rendered_variable) 
 
 
 if __name__ == "__main__":
-    namespace = parse_args(sys.argv[1:])
+    namespace = parse_args(argv[1:])
     main(namespace.oracle_connection_string, namespace.dsn_file,
          namespace.username, namespace.password, namespace.table_schema,
          namespace.table_name, namespace.schema_output_dir,

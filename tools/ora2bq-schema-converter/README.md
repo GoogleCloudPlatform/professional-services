@@ -12,6 +12,14 @@ If you need labels on tables  or any other modification you can edit in terrafor
 After creating the schemas as well as the terraform variables, you can edit those before applying via terraform.
 
 ## Usage
+```sh
+# set GOOGLE_APPLICATION_CREDENTIALS in your shell session
+export GOOGLE_APPLICATION_CREDENTIALS="[PATH]"
+# Replace [PATH] with the file path of the JSON file that contains your service account key which has necessary priviledges to do BQ operations such as creating/editing datasets and tables.
+# Example:
+export GOOGLE_APPLICATION_CREDENTIALS="/home/user/Downloads/my-key.json"
+```
+
 We have added a dockerfile to ease setting up the environment. 
 You may use that if you don't have time to install oracle client libraries.
 
@@ -21,7 +29,14 @@ docker build -t ora2bq:latest .
 # the below command runs the container and opens a bash shell
 docker run -v $PWD:/schema_converter --rm -it ora2bq:latest
 
+# if you want to set GOOGLE_APPLICATION_CREDENTIALS in your dockerfile, use;
+ docker run \
+   -e GOOGLE_APPLICATION_CREDENTIALS=/home/user/Downloads/my-key.json \
+   -v $GOOGLE_APPLICATION_CREDENTIALS:/home/user/Downloads/my-key.json:ro \
+   $PWD:/schema_converter
+
 #either continue from the docker container or from your commandline if you have oracle client installed.
+pip install pipenv
 pipenv install
 pipenv shell
 
@@ -29,19 +44,49 @@ pipenv shell
 python ora2bq_convert.py --help
 
 # example runs with connection string
-python ora2bq_convert.py -c 'db_username/db_password@IP_or_HOSTNAME/DB_SERVICE_NAME' -s HR -t D% -o example_terraform_dir/schemas -tf example_terraform_dir/terraform.tfvars
-python ora2bq_convert.py -c 'db_username/db_password@IP_or_HOSTNAME/DB_SERVICE_NAME' -s H% -t % -o example_terraform_dir/schemas -tf example_terraform_dir/terraform.tfvars
-python ora2bq_convert.py -c 'db_username/db_password@IP_or_HOSTNAME/DB_SERVICE_NAME' -s % -t % -o example_terraform_dir/schemas -tf example_terraform_dir/terraform.tfvars
-python ora2bq_convert.py -c 'db_username/db_password@IP_or_HOSTNAME/DB_SERVICE_NAME' -s HR -t "DEPARTMENTS,TEST,REGIONS,JOBS" -o example_terraform_dir/schemas -tf example_terraform_dir/terraform.tf
+python ora2bq_convert.py -c 'db_username/db_password@IP_or_HOSTNAME/DB_SERVICE_NAME' -s HR -t D% -o example_terraform_dir/schemas -tf example_terraform_dir/terraform.tfvars -pr TARGET_PROJECT_ID
+python ora2bq_convert.py -c 'db_username/db_password@IP_or_HOSTNAME/DB_SERVICE_NAME' -s H% -t % -o example_terraform_dir/schemas -tf example_terraform_dir/terraform.tfvars -pr  TARGET_PROJECT_ID
+python ora2bq_convert.py -c 'db_username/db_password@IP_or_HOSTNAME/DB_SERVICE_NAME' -s % -t % -o example_terraform_dir/schemas -tf example_terraform_dir/terraform.tfvars -pr  TARGET_PROJECT_ID
+python ora2bq_convert.py -c 'db_username/db_password@IP_or_HOSTNAME/DB_SERVICE_NAME' -s HR -t "DEPARTMENTS,TEST,REGIONS,JOBS" -o example_terraform_dir/schemas -tf example_terraform_dir/terraform.tf  -pr  TARGET_PROJECT_ID
+
 
 # an example run if you need to provide SID
 # first fill the dsn.txt
-python ora2bq_convert.py --dsn-file dsn.txt -u db_username -p db_password -s HR -t D% -o example_terraform_dir/schemas -tf example_terraform_dir/terraform.tfvars 
+python ora2bq_convert.py --dsn-file dsn.txt -u db_username -p db_password -s HR -t D% -o example_terraform_dir/schemas -tf example_terraform_dir/terraform.tfvars -pr  TARGET_PROJECT_ID
 ```
 
 Note that db_username needs select access on ALL_TABLES and ALL_TAB_COLUMNS views.
 
 After generating the [terraform.tfvars](./example_terraform_dir/terraform.tfvars), you need to change the relative path with a simple find and replace of  text `CHANGE_ME`.
+
+Example:
+```cd example_terraform_dir/``` 
+
+Only for the first run, you need terraform init: 
+```terraform init``` 
+Then you can see the plan for terraform
+```terraform plan -var-file ./terraform.tfvars``` 
+You need to set dataset labels when asked, like:
+
+```var.dataset_labels
+  A mapping of labels to assign to the dataset.
+
+  Enter a value:
+
+```
+alternatively ayou can set dataset_labels in terraform.tfvars file,like;
+```dataset_labels = {
+  env      = "dev"
+  workload = "hr"
+  owner    = "joe"
+}```
+
+Example:
+{env="dev", workload="hr", owner="joe"}
+
+Finally apply terraform to create tables;
+```terraform apply``` 
+
 
 ## Mac Users
 If you get "xcrun: error: invalid active developer path (/Library/Developer/CommandLineTools), missing xcrun at: /<br/>Library/Developer/CommandLineTools/usr/bin/xcrun" error run:<br/>
