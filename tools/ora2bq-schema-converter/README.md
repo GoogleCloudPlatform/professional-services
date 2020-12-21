@@ -68,14 +68,16 @@ Then you can see the plan for terraform
 ```terraform plan -var-file ./terraform.tfvars``` 
 You need to set dataset labels when asked, like:
 
-```var.dataset_labels
+```
+var.dataset_labels
   A mapping of labels to assign to the dataset.
 
   Enter a value:
 
 ```
 alternatively ayou can set dataset_labels in terraform.tfvars file,like;
-```dataset_labels = {
+```
+dataset_labels = {
   env      = "dev"
   workload = "hr"
   owner    = "joe"
