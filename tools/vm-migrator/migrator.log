@@ -1,0 +1,784 @@
+2020-10-20 11:56:10,854  INFO executing step prepare-inventory
+2020-10-20 11:57:02,707  INFO executing step prepare-inventory
+2020-10-20 11:57:51,000  INFO executing step prepare-inventory
+2020-10-20 12:15:18,588  INFO executing step prepare-inventory
+2020-10-20 12:16:07,992  INFO executing step prepare-inventory
+2020-10-20 12:17:03,665  INFO executing step prepare-inventory
+2020-10-20 12:17:42,891  INFO executing step prepare_inventory
+2020-10-20 12:17:42,891  INFO Preparing the inventory to be exported
+2020-10-20 12:17:47,332  INFO Compute Engine Metadata server unavailable onattempt 1 of 3
+2020-10-20 12:17:50,336  INFO Compute Engine Metadata server unavailable onattempt 2 of 3
+2020-10-20 12:17:53,340  INFO Compute Engine Metadata server unavailable onattempt 3 of 3
+2020-10-20 12:19:05,378  INFO executing step prepare_inventory
+2020-10-20 12:19:05,378  INFO Preparing the inventory to be exported
+2020-10-20 12:19:07,354  INFO fectching the inventory for the source subnet projects/pso-suchit/regions/us-west1/subnetworks/sub-02 and zone us-west1-a
+2020-10-20 12:19:09,187  INFO fectching the inventory for the source subnet projects/pso-suchit/regions/us-west1/subnetworks/sub-02 and zone us-west1-b
+2020-10-20 12:19:10,245  INFO Successfully written 1 records to source.csv
+2020-10-20 12:19:10,245  INFO Successfully written 2 records to source.csv
+2020-10-20 12:19:10,245  INFO Successfully written 3 records to source.csv
+2020-10-20 12:19:10,246  INFO Successfully written 4 records to source.csv
+2020-10-20 12:19:21,956  INFO executing step filter_inventory
+2020-10-20 12:19:21,956  INFO Preparing the inventory to be exported
+2020-10-20 12:19:24,388  INFO fectching the inventory for the source subnet projects/pso-suchit/regions/us-west1/subnetworks/sub-02 and zone us-west1-a
+2020-10-20 12:19:25,258  INFO fectching the inventory for the source subnet projects/pso-suchit/regions/us-west1/subnetworks/sub-02 and zone us-west1-b
+2020-10-20 12:19:25,698  INFO Successfully written 1 records to source.csv
+2020-10-20 12:19:25,698  INFO Successfully written 2 records to source.csv
+2020-10-20 12:19:25,698  INFO Successfully written 3 records to source.csv
+2020-10-20 12:19:25,699  INFO Successfully written 4 records to source.csv
+2020-10-20 12:19:25,699  INFO filtering out the inventory
+2020-10-20 12:19:52,333  INFO export.csv now has filtered records
+2020-10-20 12:30:37,972  INFO executing step filter_inventory
+2020-10-20 12:30:37,972  INFO Preparing the inventory to be exported
+2020-10-20 12:30:47,314  INFO executing step prepare_inventory
+2020-10-20 12:30:47,315  INFO Preparing the inventory to be exported
+2020-10-20 12:30:49,316  INFO fectching the inventory for the source subnet projects/pso-suchit/regions/us-west1/subnetworks/sub-02 and zone us-west1-a
+2020-10-20 12:30:50,366  INFO fectching the inventory for the source subnet projects/pso-suchit/regions/us-west1/subnetworks/sub-02 and zone us-west1-b
+2020-10-20 12:30:50,824  INFO Successfully written 1 records to source.csv
+2020-10-20 12:30:50,834  INFO Successfully written 2 records to source.csv
+2020-10-20 12:30:50,834  INFO Successfully written 3 records to source.csv
+2020-10-20 12:30:50,835  INFO Successfully written 4 records to source.csv
+2020-10-20 12:47:14,759  INFO executing step FILTER_inventory
+2020-10-20 12:47:21,271  INFO executing step filter_inventory
+2020-10-20 12:47:21,271  INFO Preparing the inventory to be exported
+2020-10-20 12:47:23,749  INFO fectching the inventory for the source subnet projects/pso-suchit/regions/us-west1/subnetworks/sub-02 and zone us-west1-a
+2020-10-20 12:47:24,727  INFO fectching the inventory for the source subnet projects/pso-suchit/regions/us-west1/subnetworks/sub-02 and zone us-west1-b
+2020-10-20 12:47:25,124  INFO Successfully written 1 records to source.csv
+2020-10-20 12:47:25,125  INFO Successfully written 2 records to source.csv
+2020-10-20 12:47:25,125  INFO Successfully written 3 records to source.csv
+2020-10-20 12:47:25,125  INFO Successfully written 4 records to source.csv
+2020-10-20 12:47:25,125  INFO filtering out the inventory
+2020-10-20 12:47:33,246  INFO export.csv now has filtered records
+2020-10-20 12:47:50,341  INFO executing step shutdown_instances
+2020-10-20 12:47:56,940  INFO Shutting down the instances
+2020-10-20 12:47:58,892  INFO Shutting Down Instance instance-1 
+2020-10-20 12:47:58,977  INFO Shutting Down Instance instance-3 
+2020-10-20 12:47:59,106  INFO Shutting Down Instance instance-2 
+2020-10-20 12:48:00,772  INFO Waiting for operation to finish...
+2020-10-20 12:48:00,844  INFO Waiting for operation to finish...
+2020-10-20 12:48:00,953  INFO Waiting for operation to finish...
+2020-10-20 12:49:14,704  INFO executing step shutdown_instances
+2020-10-20 12:49:48,326  INFO executing step shutdown_instances
+2020-10-20 12:49:49,934  INFO Shutting down the instances
+2020-10-20 12:49:52,089  INFO Shutting Down Instance instance-1 
+2020-10-20 12:49:52,623  INFO Shutting Down Instance instance-2 
+2020-10-20 12:49:53,356  INFO Waiting for operation to finish...
+2020-10-20 12:49:53,706  INFO Shutting Down Instance instance-3 
+2020-10-20 12:49:54,435  INFO Waiting for operation to finish...
+2020-10-20 12:49:54,929  INFO Waiting for operation to finish...
+2020-10-20 12:49:55,429  INFO done.
+2020-10-20 12:49:55,430  INFO 'instance-3' machine shutdown sucessfully
+2020-10-20 12:49:55,431  INFO 1 out of 3 shutdown
+2020-10-20 12:49:55,528  INFO done.
+2020-10-20 12:49:55,529  INFO 'instance-2' machine shutdown sucessfully
+2020-10-20 12:49:55,529  INFO 2 out of 3 shutdown
+2020-10-20 12:50:25,361  INFO done.
+2020-10-20 12:50:25,362  INFO 'instance-1' machine shutdown sucessfully
+2020-10-20 12:50:25,362  INFO 3 out of 3 shutdown
+2020-10-20 12:51:41,440  INFO executing step shutdown_instances
+2020-10-20 12:52:00,567  INFO Shutting down the instances
+2020-10-20 12:52:02,509  INFO Shutting Down Instance instance-1 
+2020-10-20 12:52:03,536  INFO Shutting Down Instance instance-2 
+2020-10-20 12:52:03,704  INFO Waiting for operation to finish...
+2020-10-20 12:52:04,209  INFO done.
+2020-10-20 12:52:04,209  INFO 'instance-1' machine shutdown sucessfully
+2020-10-20 12:52:04,209  INFO 1 out of 3 shutdown
+2020-10-20 12:52:04,325  INFO Shutting Down Instance instance-3 
+2020-10-20 12:52:04,757  INFO Waiting for operation to finish...
+2020-10-20 12:52:05,297  INFO done.
+2020-10-20 12:52:05,298  INFO 'instance-2' machine shutdown sucessfully
+2020-10-20 12:52:05,298  INFO 2 out of 3 shutdown
+2020-10-20 12:52:05,668  INFO Waiting for operation to finish...
+2020-10-20 12:52:06,815  INFO done.
+2020-10-20 12:52:06,815  INFO 'instance-3' machine shutdown sucessfully
+2020-10-20 12:52:06,816  INFO 3 out of 3 shutdown
+2020-10-20 12:53:02,922  INFO executing step create_machine_images
+2020-10-20 12:53:02,922  INFO Creating Machine Images
+2020-10-20 12:53:02,927  INFO Creating Machine Image instance-1 from source https://www.googleapis.com/compute/beta/projects/pso-suchit/zones/us-west1-a/instances/instance-1
+2020-10-20 12:53:06,392  ERROR <HttpError 409 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/global/machineImages?sourceInstance=https%3A%2F%2Fwww.googleapis.com%2Fcompute%2Fbeta%2Fprojects%2Fpso-suchit%2Fzones%2Fus-west1-a%2Finstances%2Finstance-1&alt=json returned "The resource 'projects/pso-suchit/global/machineImages/instance-1' already exists">
+2020-10-20 12:53:12,937  INFO Creating Machine Image instance-2 from source https://www.googleapis.com/compute/beta/projects/pso-suchit/zones/us-west1-a/instances/instance-2
+2020-10-20 12:53:15,616  ERROR <HttpError 409 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/global/machineImages?sourceInstance=https%3A%2F%2Fwww.googleapis.com%2Fcompute%2Fbeta%2Fprojects%2Fpso-suchit%2Fzones%2Fus-west1-a%2Finstances%2Finstance-2&alt=json returned "The resource 'projects/pso-suchit/global/machineImages/instance-2' already exists">
+2020-10-20 12:53:22,946  INFO Creating Machine Image instance-3 from source https://www.googleapis.com/compute/beta/projects/pso-suchit/zones/us-west1-a/instances/instance-3
+2020-10-20 12:53:22,947  ERROR machine image creation generated an exception: <HttpError 409 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/global/machineImages?sourceInstance=https%3A%2F%2Fwww.googleapis.com%2Fcompute%2Fbeta%2Fprojects%2Fpso-suchit%2Fzones%2Fus-west1-a%2Finstances%2Finstance-1&alt=json returned "The resource 'projects/pso-suchit/global/machineImages/instance-1' already exists">
+2020-10-20 12:53:22,947  ERROR machine image creation generated an exception: <HttpError 409 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/global/machineImages?sourceInstance=https%3A%2F%2Fwww.googleapis.com%2Fcompute%2Fbeta%2Fprojects%2Fpso-suchit%2Fzones%2Fus-west1-a%2Finstances%2Finstance-2&alt=json returned "The resource 'projects/pso-suchit/global/machineImages/instance-2' already exists">
+2020-10-20 12:53:25,658  ERROR <HttpError 409 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/global/machineImages?sourceInstance=https%3A%2F%2Fwww.googleapis.com%2Fcompute%2Fbeta%2Fprojects%2Fpso-suchit%2Fzones%2Fus-west1-a%2Finstances%2Finstance-3&alt=json returned "The resource 'projects/pso-suchit/global/machineImages/instance-3' already exists">
+2020-10-20 12:53:25,659  ERROR machine image creation generated an exception: <HttpError 409 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/global/machineImages?sourceInstance=https%3A%2F%2Fwww.googleapis.com%2Fcompute%2Fbeta%2Fprojects%2Fpso-suchit%2Fzones%2Fus-west1-a%2Finstances%2Finstance-3&alt=json returned "The resource 'projects/pso-suchit/global/machineImages/instance-3' already exists">
+2020-10-20 12:54:47,192  INFO executing step create_machine_images
+2020-10-20 12:54:47,192  INFO Creating Machine Images
+2020-10-20 12:54:47,197  INFO Creating Machine Image instance-1 from source https://www.googleapis.com/compute/beta/projects/pso-suchit/zones/us-west1-a/instances/instance-1
+2020-10-20 12:54:50,135  INFO Waiting for machine image creation to finish...
+2020-10-20 12:54:57,207  INFO Creating Machine Image instance-2 from source https://www.googleapis.com/compute/beta/projects/pso-suchit/zones/us-west1-a/instances/instance-2
+2020-10-20 12:55:00,694  INFO Waiting for machine image creation to finish...
+2020-10-20 12:55:07,217  INFO Creating Machine Image instance-3 from source https://www.googleapis.com/compute/beta/projects/pso-suchit/zones/us-west1-a/instances/instance-3
+2020-10-20 12:55:10,504  INFO Waiting for machine image creation to finish...
+2020-10-20 12:56:36,461  INFO Machine Image instance-1 Created
+2020-10-20 12:56:36,462  INFO Machine Image instance-2 Created
+2020-10-20 12:56:36,463  INFO 'instance-1' machine image created sucessfully
+2020-10-20 12:56:36,463  INFO Machine image 1 out of 3 completed
+2020-10-20 12:56:36,464  INFO 'instance-2' machine image created sucessfully
+2020-10-20 12:56:36,464  INFO Machine image 2 out of 3 completed
+2020-10-20 12:56:46,950  INFO Machine Image instance-3 Created
+2020-10-20 12:56:46,951  INFO 'instance-3' machine image created sucessfully
+2020-10-20 12:56:46,951  INFO Machine image 3 out of 3 completed
+2020-10-20 12:57:13,616  INFO executing step create_machine_images
+2020-10-20 12:57:13,616  INFO Creating Machine Images
+2020-10-20 12:57:13,621  INFO Creating Machine Image instance-1 from source https://www.googleapis.com/compute/beta/projects/pso-suchit/zones/us-west1-a/instances/instance-1
+2020-10-20 12:57:13,672  INFO Creating Machine Image instance-2 from source https://www.googleapis.com/compute/beta/projects/pso-suchit/zones/us-west1-a/instances/instance-2
+2020-10-20 12:57:13,722  INFO Creating Machine Image instance-3 from source https://www.googleapis.com/compute/beta/projects/pso-suchit/zones/us-west1-a/instances/instance-3
+2020-10-20 12:57:17,072  INFO Waiting for machine image creation to finish...
+2020-10-20 12:57:17,089  INFO Waiting for machine image creation to finish...
+2020-10-20 12:57:17,358  INFO Waiting for machine image creation to finish...
+2020-10-20 12:59:19,671  INFO Machine Image instance-2 Created
+2020-10-20 12:59:19,672  INFO 'instance-2' machine image created sucessfully
+2020-10-20 12:59:19,672  INFO Machine image 1 out of 3 completed
+2020-10-20 12:59:19,695  INFO Machine Image instance-1 Created
+2020-10-20 12:59:19,696  INFO 'instance-1' machine image created sucessfully
+2020-10-20 12:59:19,696  INFO Machine image 2 out of 3 completed
+2020-10-20 12:59:50,422  INFO Machine Image instance-3 Created
+2020-10-20 12:59:50,423  INFO 'instance-3' machine image created sucessfully
+2020-10-20 12:59:50,423  INFO Machine image 3 out of 3 completed
+2020-10-20 13:00:06,536  INFO executing step create_machine_images
+2020-10-20 13:00:06,536  INFO Creating Machine Images
+2020-10-20 13:00:06,541  INFO Creating Machine Image instance-1 from source https://www.googleapis.com/compute/beta/projects/pso-suchit/zones/us-west1-a/instances/instance-1
+2020-10-20 13:00:10,300  INFO Waiting for machine image creation to finish...
+2020-10-20 13:00:21,557  INFO Creating Machine Image instance-2 from source https://www.googleapis.com/compute/beta/projects/pso-suchit/zones/us-west1-a/instances/instance-2
+2020-10-20 13:00:24,989  INFO Waiting for machine image creation to finish...
+2020-10-20 13:00:36,572  INFO Creating Machine Image instance-3 from source https://www.googleapis.com/compute/beta/projects/pso-suchit/zones/us-west1-a/instances/instance-3
+2020-10-20 13:00:39,924  INFO Waiting for machine image creation to finish...
+2020-10-20 13:01:56,920  INFO Machine Image instance-2 Created
+2020-10-20 13:01:56,921  INFO 'instance-2' machine image created sucessfully
+2020-10-20 13:01:56,922  INFO Machine image 1 out of 3 completed
+2020-10-20 13:02:12,756  INFO Machine Image instance-1 Created
+2020-10-20 13:02:12,757  INFO 'instance-1' machine image created sucessfully
+2020-10-20 13:02:12,758  INFO Machine image 2 out of 3 completed
+2020-10-20 13:02:42,433  INFO Machine Image instance-3 Created
+2020-10-20 13:02:42,434  INFO 'instance-3' machine image created sucessfully
+2020-10-20 13:02:42,434  INFO Machine image 3 out of 3 completed
+2020-10-20 13:02:46,720  INFO executing step delete_instances
+2020-10-20 13:02:48,461  INFO Deleting all the instances present in the inventory
+2020-10-20 13:02:52,617  INFO looking for machine image instance-1
+2020-10-20 13:02:53,421  INFO Found machine image can safely delete the instance
+2020-10-20 13:02:53,422  INFO Deleting Instance instance-1 
+2020-10-20 13:02:54,674  INFO Waiting for operation to finish...
+2020-10-20 13:03:06,399  INFO done.
+2020-10-20 13:03:07,251  INFO looking for machine image instance-2
+2020-10-20 13:03:08,124  INFO Found machine image can safely delete the instance
+2020-10-20 13:03:08,124  INFO Deleting Instance instance-2 
+2020-10-20 13:03:09,574  INFO Waiting for operation to finish...
+2020-10-20 13:03:18,501  INFO 'instance-1' machine deleted sucessfully
+2020-10-20 13:03:18,502  INFO 1 out of 3 deleted
+2020-10-20 13:03:20,609  INFO done.
+2020-10-20 13:03:20,610  INFO 'instance-2' machine deleted sucessfully
+2020-10-20 13:03:20,610  INFO 2 out of 3 deleted
+2020-10-20 13:03:23,701  INFO looking for machine image instance-3
+2020-10-20 13:03:24,527  INFO Found machine image can safely delete the instance
+2020-10-20 13:03:24,527  INFO Deleting Instance instance-3 
+2020-10-20 13:03:25,775  INFO Waiting for operation to finish...
+2020-10-20 13:03:37,528  INFO done.
+2020-10-20 13:03:37,529  INFO 'instance-3' machine deleted sucessfully
+2020-10-20 13:03:37,530  INFO 3 out of 3 deleted
+2020-10-20 13:03:37,531  INFO Deleting all the disks present in the inventory
+2020-10-20 13:03:41,350  INFO looking for machine image instance-3
+2020-10-20 13:03:41,467  INFO looking for machine image instance-2
+2020-10-20 13:03:41,614  INFO looking for machine image instance-1
+2020-10-20 13:03:42,116  INFO Found machine image can safely delete the disk instance-3
+2020-10-20 13:03:42,217  INFO Found machine image can safely delete the disk instance-2
+2020-10-20 13:03:42,380  INFO Found machine image can safely delete the disk instance-1
+2020-10-20 13:03:42,991  INFO 'instance-2' disk deleted sucessfully
+2020-10-20 13:03:42,991  INFO 1 out of 3 deleted
+2020-10-20 13:03:43,535  INFO 'instance-3' disk deleted sucessfully
+2020-10-20 13:03:43,535  INFO 2 out of 3 deleted
+2020-10-20 13:03:43,756  INFO 'instance-1' disk deleted sucessfully
+2020-10-20 13:03:43,757  INFO 3 out of 3 deleted
+2020-10-20 13:04:09,632  INFO executing step release_ip
+2020-10-20 13:04:09,632  INFO Releasing the ips present in the export
+2020-10-20 13:04:11,544  INFO Releasing ip instance-1
+2020-10-20 13:04:12,677  INFO Waiting for operation to finish...
+2020-10-20 13:04:23,577  INFO done.
+2020-10-20 13:04:25,769  INFO Releasing ip instance-2
+2020-10-20 13:04:26,816  INFO Waiting for operation to finish...
+2020-10-20 13:04:37,793  INFO done.
+2020-10-20 13:04:39,433  INFO Releasing ip instance-3
+2020-10-20 13:04:40,704  INFO Waiting for operation to finish...
+2020-10-20 13:04:51,684  INFO done.
+2020-10-20 13:04:51,685  INFO All the IPs of the Subnet released sucessfully
+2020-10-20 13:06:40,097  INFO executing step release_ip
+2020-10-20 13:06:40,097  INFO Releasing the ips present in the export
+2020-10-20 13:06:42,008  INFO Releasing ip instance-1
+2020-10-20 13:06:42,976  ERROR The IP address instance-1 was not found
+2020-10-20 13:06:42,976  ERROR <HttpError 404 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/regions/us-west1/addresses/instance-1?alt=json returned "The resource 'projects/pso-suchit/regions/us-west1/addresses/instance-1' was not found">
+2020-10-20 13:06:46,726  INFO Releasing ip instance-2
+2020-10-20 13:06:47,455  ERROR The IP address instance-2 was not found
+2020-10-20 13:06:47,456  ERROR <HttpError 404 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/regions/us-west1/addresses/instance-2?alt=json returned "The resource 'projects/pso-suchit/regions/us-west1/addresses/instance-2' was not found">
+2020-10-20 13:06:51,462  INFO Releasing ip instance-3
+2020-10-20 13:06:52,294  ERROR The IP address instance-3 was not found
+2020-10-20 13:06:52,295  ERROR <HttpError 404 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/regions/us-west1/addresses/instance-3?alt=json returned "The resource 'projects/pso-suchit/regions/us-west1/addresses/instance-3' was not found">
+2020-10-20 13:06:54,297  INFO All the IPs of the Subnet released sucessfully
+2020-10-20 13:09:25,334  INFO executing step create_instances
+2020-10-20 13:09:25,334  INFO Creating machine instances
+2020-10-20 13:09:27,129  INFO Creating instance instance-1
+2020-10-20 13:09:27,130  INFO looking for upgrading the machine type
+2020-10-20 13:09:27,130  INFO Trying to create the machine instance-1 while preserving its ips
+2020-10-20 13:09:27,130  INFO Reserving internal ip instance-1 and 10.23.0.30
+2020-10-20 13:09:29,710  ERROR <HttpError 400 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/regions/us-west1/addresses?alt=json returned "Invalid value for field 'resource.address': '10.23.0.30'. Requested IP is not within the range of subnetwork 'sub-01'.">
+2020-10-20 13:09:42,122  INFO Creating instance instance-2
+2020-10-20 13:09:42,122  INFO looking for upgrading the machine type
+2020-10-20 13:09:42,122  INFO Trying to create the machine instance-2 while preserving its ips
+2020-10-20 13:09:42,122  INFO Reserving internal ip instance-2 and 10.23.0.29
+2020-10-20 13:09:44,415  ERROR <HttpError 400 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/regions/us-west1/addresses?alt=json returned "Invalid value for field 'resource.address': '10.23.0.29'. Requested IP is not within the range of subnetwork 'sub-01'.">
+2020-10-20 13:09:55,370  ERROR machine creation generated an exception: <HttpError 400 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/regions/us-west1/addresses?alt=json returned "Invalid value for field 'resource.address': '10.23.0.30'. Requested IP is not within the range of subnetwork 'sub-01'.">
+2020-10-20 13:09:55,371  ERROR machine creation generated an exception: <HttpError 400 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/regions/us-west1/addresses?alt=json returned "Invalid value for field 'resource.address': '10.23.0.29'. Requested IP is not within the range of subnetwork 'sub-01'.">
+2020-10-20 13:09:56,699  INFO Creating instance instance-3
+2020-10-20 13:09:56,699  INFO looking for upgrading the machine type
+2020-10-20 13:09:56,699  INFO Trying to create the machine instance-3 while preserving its ips
+2020-10-20 13:09:56,699  INFO Reserving internal ip instance-3 and 10.23.0.28
+2020-10-20 13:09:59,106  ERROR <HttpError 400 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/regions/us-west1/addresses?alt=json returned "Invalid value for field 'resource.address': '10.23.0.28'. Requested IP is not within the range of subnetwork 'sub-01'.">
+2020-10-20 13:09:59,108  ERROR machine creation generated an exception: <HttpError 400 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/regions/us-west1/addresses?alt=json returned "Invalid value for field 'resource.address': '10.23.0.28'. Requested IP is not within the range of subnetwork 'sub-01'.">
+2020-10-20 13:09:59,108  INFO Instances created successfully
+2020-10-20 13:12:20,679  INFO executing step create_instances_without_ip
+2020-10-20 13:12:20,679  INFO Creating machine instances without retaining the original ips
+2020-10-20 13:12:22,195  INFO Creating instance instance-1
+2020-10-20 13:12:22,195  INFO looking for upgrading the machine type
+2020-10-20 13:12:22,196  INFO Reserving random ip for machine instance-1 
+2020-10-20 13:12:22,196  INFO Reserving internal ip instance-1 and None
+2020-10-20 13:12:25,300  INFO Waiting for operation to finish...
+2020-10-20 13:12:36,358  INFO done.
+2020-10-20 13:12:37,112  INFO Creating instance instance-2
+2020-10-20 13:12:37,112  INFO looking for upgrading the machine type
+2020-10-20 13:12:37,112  INFO Reserving random ip for machine instance-2 
+2020-10-20 13:12:37,113  INFO Reserving internal ip instance-2 and None
+2020-10-20 13:12:38,375  INFO Waiting for operation to finish...
+2020-10-20 13:12:39,209  INFO Waiting for VM to start...
+2020-10-20 13:12:49,363  INFO done.
+2020-10-20 13:12:52,854  INFO Waiting for VM to start...
+2020-10-20 13:12:52,964  INFO Creating instance instance-3
+2020-10-20 13:12:52,965  INFO looking for upgrading the machine type
+2020-10-20 13:12:52,965  INFO Reserving random ip for machine instance-3 
+2020-10-20 13:12:52,965  INFO Reserving internal ip instance-3 and None
+2020-10-20 13:12:54,484  INFO Waiting for operation to finish...
+2020-10-20 13:13:05,430  INFO done.
+2020-10-20 13:13:07,979  INFO Waiting for VM to start...
+2020-10-20 13:13:13,754  INFO Instance instance-1 created and running form source MachineImage instance-1
+2020-10-20 13:13:13,755  INFO 'instance-1' machine created sucessfully
+2020-10-20 13:13:13,755  INFO 1 out of 3 created 
+2020-10-20 13:13:26,832  INFO Instance instance-2 created and running form source MachineImage instance-2
+2020-10-20 13:13:26,833  INFO 'instance-2' machine created sucessfully
+2020-10-20 13:13:26,833  INFO 2 out of 3 created 
+2020-10-20 13:13:42,555  INFO Instance instance-3 created and running form source MachineImage instance-3
+2020-10-20 13:13:42,556  INFO 'instance-3' machine created sucessfully
+2020-10-20 13:13:42,557  INFO 3 out of 3 created 
+2020-10-20 13:13:42,558  INFO Instances created successfully
+2020-10-20 20:29:58,877  INFO executing step prepare_inventory
+2020-10-20 20:29:58,877  INFO Preparing the inventory to be exported
+2020-10-20 20:30:02,035  INFO fectching the inventory for the source subnet projects/pso-suchit/regions/us-west1/subnetworks/sub-01 and zone us-west1-c
+2020-10-20 20:30:03,656  INFO fectching the inventory for the source subnet projects/pso-suchit/regions/us-west1/subnetworks/sub-01 and zone us-west1-b
+2020-10-20 20:30:04,111  INFO Successfully written 1 records to source.csv
+2020-10-20 20:30:04,112  INFO Successfully written 2 records to source.csv
+2020-10-20 20:30:04,113  INFO Successfully written 3 records to source.csv
+2020-10-20 20:30:12,749  INFO executing step filter_inventory
+2020-10-20 20:30:12,749  INFO Preparing the inventory to be exported
+2020-10-20 20:30:14,712  INFO fectching the inventory for the source subnet projects/pso-suchit/regions/us-west1/subnetworks/sub-01 and zone us-west1-c
+2020-10-20 20:30:16,236  INFO fectching the inventory for the source subnet projects/pso-suchit/regions/us-west1/subnetworks/sub-01 and zone us-west1-b
+2020-10-20 20:30:17,378  INFO Successfully written 1 records to source.csv
+2020-10-20 20:30:17,388  INFO Successfully written 2 records to source.csv
+2020-10-20 20:30:17,390  INFO Successfully written 3 records to source.csv
+2020-10-20 20:30:17,390  INFO filtering out the inventory
+2020-10-20 20:30:19,384  INFO export.csv now has filtered records
+2020-10-20 20:30:46,553  INFO executing step shutdown_instances
+2020-10-20 20:30:47,821  INFO Shutting down the instances
+2020-10-20 20:30:49,603  INFO Shutting Down Instance instance-1 
+2020-10-20 20:30:51,676  INFO Waiting for operation to finish...
+2020-10-20 20:30:59,882  INFO Shutting Down Instance instance-2 
+2020-10-20 20:31:02,024  INFO Waiting for operation to finish...
+2020-10-20 20:31:09,966  INFO Shutting Down Instance instance-3 
+2020-10-20 20:31:11,444  INFO Waiting for operation to finish...
+2020-10-20 20:32:40,973  INFO done.
+2020-10-20 20:32:40,973  INFO 'instance-1' machine shutdown sucessfully
+2020-10-20 20:32:40,974  INFO 1 out of 3 shutdown
+2020-10-20 20:33:01,841  INFO done.
+2020-10-20 20:33:01,842  INFO 'instance-3' machine shutdown sucessfully
+2020-10-20 20:33:01,842  INFO 2 out of 3 shutdown
+2020-10-20 20:33:15,378  INFO done.
+2020-10-20 20:33:15,379  INFO 'instance-2' machine shutdown sucessfully
+2020-10-20 20:33:15,379  INFO 3 out of 3 shutdown
+2020-10-20 20:34:52,542  INFO executing step shutdown_instances
+2020-10-20 20:34:54,178  INFO Shutting down the instances
+2020-10-20 20:34:54,184  INFO   task: waited for 0.0 secs
+2020-10-20 20:34:54,185  INFO All task added
+2020-10-20 20:34:56,060  INFO Shutting Down Instance instance-1 
+2020-10-20 20:34:58,147  INFO Waiting for operation to finish...
+2020-10-20 20:35:04,194  INFO   task: waited for 9.999043 secs
+2020-10-20 20:35:06,083  INFO Shutting Down Instance instance-2 
+2020-10-20 20:35:08,152  INFO Waiting for operation to finish...
+2020-10-20 20:35:14,203  INFO   task: waited for 9.999343 secs
+2020-10-20 20:35:15,880  INFO Shutting Down Instance instance-3 
+2020-10-20 20:35:17,204  INFO Waiting for operation to finish...
+2020-10-20 20:37:20,167  INFO done.
+2020-10-20 20:37:20,168  INFO 'instance-1' machine shutdown sucessfully
+2020-10-20 20:37:20,169  INFO 1 out of 3 shutdown
+2020-10-20 20:37:32,985  INFO done.
+2020-10-20 20:37:32,986  INFO 'instance-2' machine shutdown sucessfully
+2020-10-20 20:37:32,986  INFO 2 out of 3 shutdown
+2020-10-20 20:37:42,404  INFO executing step create_machine_images
+2020-10-20 20:37:42,404  INFO Creating Machine Images
+2020-10-20 20:37:42,404  INFO Creating Machine Image instance-1 from source https://www.googleapis.com/compute/beta/projects/pso-suchit/zones/us-west1-c/instances/instance-1
+2020-10-20 20:37:42,455  INFO Creating Machine Image instance-2 from source https://www.googleapis.com/compute/beta/projects/pso-suchit/zones/us-west1-c/instances/instance-2
+2020-10-20 20:37:42,505  INFO Creating Machine Image instance-3 from source https://www.googleapis.com/compute/beta/projects/pso-suchit/zones/us-west1-c/instances/instance-3
+2020-10-20 20:37:45,889  INFO Waiting for machine image creation to finish...
+2020-10-20 20:37:45,898  INFO Waiting for machine image creation to finish...
+2020-10-20 20:37:45,908  INFO Waiting for machine image creation to finish...
+2020-10-20 20:39:48,198  INFO Machine Image instance-3 Created
+2020-10-20 20:39:48,199  INFO 'instance-3' machine image created sucessfully
+2020-10-20 20:39:48,199  INFO Machine image 1 out of 3 completed
+2020-10-20 20:39:48,347  INFO Machine Image instance-2 Created
+2020-10-20 20:39:48,348  INFO 'instance-2' machine image created sucessfully
+2020-10-20 20:39:48,348  INFO Machine image 2 out of 3 completed
+2020-10-20 20:40:18,767  INFO Machine Image instance-1 Created
+2020-10-20 20:40:18,768  INFO 'instance-1' machine image created sucessfully
+2020-10-20 20:40:18,768  INFO Machine image 3 out of 3 completed
+2020-10-20 20:40:31,014  INFO executing step create_machine_images
+2020-10-20 20:40:31,014  INFO Creating Machine Images
+2020-10-20 20:40:31,014  INFO   task: waited for 0.0 secs
+2020-10-20 20:40:31,015  INFO Creating Machine Image instance-1 from source https://www.googleapis.com/compute/beta/projects/pso-suchit/zones/us-west1-c/instances/instance-1
+2020-10-20 20:40:31,065  INFO   task: waited for 0.049705 secs
+2020-10-20 20:40:31,065  INFO Creating Machine Image instance-2 from source https://www.googleapis.com/compute/beta/projects/pso-suchit/zones/us-west1-c/instances/instance-2
+2020-10-20 20:40:31,115  INFO   task: waited for 0.049472 secs
+2020-10-20 20:40:31,115  INFO Creating Machine Image instance-3 from source https://www.googleapis.com/compute/beta/projects/pso-suchit/zones/us-west1-c/instances/instance-3
+2020-10-20 20:40:34,827  INFO Waiting for machine image creation to finish...
+2020-10-20 20:40:34,851  INFO Waiting for machine image creation to finish...
+2020-10-20 20:40:34,929  INFO Waiting for machine image creation to finish...
+2020-10-20 20:41:08,086  INFO executing step create_machine_images
+2020-10-20 20:41:08,086  INFO Creating Machine Images
+2020-10-20 20:41:08,087  INFO   task: waited for 0.0 secs
+2020-10-20 20:41:08,087  INFO Creating Machine Image instance-1 from source https://www.googleapis.com/compute/beta/projects/pso-suchit/zones/us-west1-c/instances/instance-1
+2020-10-20 20:41:08,137  INFO   task: waited for 0.049682 secs
+2020-10-20 20:41:08,137  INFO Creating Machine Image instance-2 from source https://www.googleapis.com/compute/beta/projects/pso-suchit/zones/us-west1-c/instances/instance-2
+2020-10-20 20:41:08,187  INFO   task: waited for 0.049794 secs
+2020-10-20 20:41:08,188  INFO Creating Machine Image instance-3 from source https://www.googleapis.com/compute/beta/projects/pso-suchit/zones/us-west1-c/instances/instance-3
+2020-10-20 20:41:11,285  ERROR <HttpError 409 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/global/machineImages?sourceInstance=https%3A%2F%2Fwww.googleapis.com%2Fcompute%2Fbeta%2Fprojects%2Fpso-suchit%2Fzones%2Fus-west1-c%2Finstances%2Finstance-1&alt=json returned "The resource 'projects/pso-suchit/global/machineImages/instance-1' already exists">
+2020-10-20 20:41:11,286  ERROR machine image creation generated an exception: <HttpError 409 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/global/machineImages?sourceInstance=https%3A%2F%2Fwww.googleapis.com%2Fcompute%2Fbeta%2Fprojects%2Fpso-suchit%2Fzones%2Fus-west1-c%2Finstances%2Finstance-1&alt=json returned "The resource 'projects/pso-suchit/global/machineImages/instance-1' already exists">
+2020-10-20 20:41:11,311  ERROR <HttpError 409 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/global/machineImages?sourceInstance=https%3A%2F%2Fwww.googleapis.com%2Fcompute%2Fbeta%2Fprojects%2Fpso-suchit%2Fzones%2Fus-west1-c%2Finstances%2Finstance-3&alt=json returned "The resource 'projects/pso-suchit/global/machineImages/instance-3' already exists">
+2020-10-20 20:41:11,311  ERROR machine image creation generated an exception: <HttpError 409 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/global/machineImages?sourceInstance=https%3A%2F%2Fwww.googleapis.com%2Fcompute%2Fbeta%2Fprojects%2Fpso-suchit%2Fzones%2Fus-west1-c%2Finstances%2Finstance-3&alt=json returned "The resource 'projects/pso-suchit/global/machineImages/instance-3' already exists">
+2020-10-20 20:41:11,317  ERROR <HttpError 409 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/global/machineImages?sourceInstance=https%3A%2F%2Fwww.googleapis.com%2Fcompute%2Fbeta%2Fprojects%2Fpso-suchit%2Fzones%2Fus-west1-c%2Finstances%2Finstance-2&alt=json returned "The resource 'projects/pso-suchit/global/machineImages/instance-2' already exists">
+2020-10-20 20:41:11,317  ERROR machine image creation generated an exception: <HttpError 409 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/global/machineImages?sourceInstance=https%3A%2F%2Fwww.googleapis.com%2Fcompute%2Fbeta%2Fprojects%2Fpso-suchit%2Fzones%2Fus-west1-c%2Finstances%2Finstance-2&alt=json returned "The resource 'projects/pso-suchit/global/machineImages/instance-2' already exists">
+2020-10-20 20:41:22,843  INFO executing step create_machine_images
+2020-10-20 20:41:22,843  INFO Creating Machine Images
+2020-10-20 20:41:22,844  INFO   task: waited for 0.0 secs
+2020-10-20 20:41:22,844  INFO Creating Machine Image instance-1 from source https://www.googleapis.com/compute/beta/projects/pso-suchit/zones/us-west1-c/instances/instance-1
+2020-10-20 20:41:22,895  INFO   task: waited for 0.04945 secs
+2020-10-20 20:41:22,895  INFO Creating Machine Image instance-2 from source https://www.googleapis.com/compute/beta/projects/pso-suchit/zones/us-west1-c/instances/instance-2
+2020-10-20 20:41:22,945  INFO   task: waited for 0.049303 secs
+2020-10-20 20:41:22,945  INFO Creating Machine Image instance-3 from source https://www.googleapis.com/compute/beta/projects/pso-suchit/zones/us-west1-c/instances/instance-3
+2020-10-20 20:41:26,040  ERROR <HttpError 409 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/global/machineImages?sourceInstance=https%3A%2F%2Fwww.googleapis.com%2Fcompute%2Fbeta%2Fprojects%2Fpso-suchit%2Fzones%2Fus-west1-c%2Finstances%2Finstance-1&alt=json returned "The resource 'projects/pso-suchit/global/machineImages/instance-1' already exists">
+2020-10-20 20:41:26,041  ERROR machine image creation generated an exception: <HttpError 409 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/global/machineImages?sourceInstance=https%3A%2F%2Fwww.googleapis.com%2Fcompute%2Fbeta%2Fprojects%2Fpso-suchit%2Fzones%2Fus-west1-c%2Finstances%2Finstance-1&alt=json returned "The resource 'projects/pso-suchit/global/machineImages/instance-1' already exists">
+2020-10-20 20:41:26,096  ERROR <HttpError 409 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/global/machineImages?sourceInstance=https%3A%2F%2Fwww.googleapis.com%2Fcompute%2Fbeta%2Fprojects%2Fpso-suchit%2Fzones%2Fus-west1-c%2Finstances%2Finstance-3&alt=json returned "The resource 'projects/pso-suchit/global/machineImages/instance-3' already exists">
+2020-10-20 20:41:26,097  ERROR machine image creation generated an exception: <HttpError 409 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/global/machineImages?sourceInstance=https%3A%2F%2Fwww.googleapis.com%2Fcompute%2Fbeta%2Fprojects%2Fpso-suchit%2Fzones%2Fus-west1-c%2Finstances%2Finstance-3&alt=json returned "The resource 'projects/pso-suchit/global/machineImages/instance-3' already exists">
+2020-10-20 20:41:26,125  ERROR <HttpError 409 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/global/machineImages?sourceInstance=https%3A%2F%2Fwww.googleapis.com%2Fcompute%2Fbeta%2Fprojects%2Fpso-suchit%2Fzones%2Fus-west1-c%2Finstances%2Finstance-2&alt=json returned "The resource 'projects/pso-suchit/global/machineImages/instance-2' already exists">
+2020-10-20 20:41:26,126  ERROR machine image creation generated an exception: <HttpError 409 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/global/machineImages?sourceInstance=https%3A%2F%2Fwww.googleapis.com%2Fcompute%2Fbeta%2Fprojects%2Fpso-suchit%2Fzones%2Fus-west1-c%2Finstances%2Finstance-2&alt=json returned "The resource 'projects/pso-suchit/global/machineImages/instance-2' already exists">
+2020-10-20 20:43:09,429  INFO executing step create_machine_images
+2020-10-20 20:43:09,429  INFO Creating Machine Images
+2020-10-20 20:43:09,430  INFO   task: waited for 0.0 secs
+2020-10-20 20:43:09,430  INFO Creating Machine Image instance-1 from source https://www.googleapis.com/compute/beta/projects/pso-suchit/zones/us-west1-c/instances/instance-1
+2020-10-20 20:43:09,480  INFO   task: waited for 0.049722 secs
+2020-10-20 20:43:09,481  INFO Creating Machine Image instance-2 from source https://www.googleapis.com/compute/beta/projects/pso-suchit/zones/us-west1-c/instances/instance-2
+2020-10-20 20:43:09,530  INFO   task: waited for 0.049588 secs
+2020-10-20 20:43:09,531  INFO Creating Machine Image instance-3 from source https://www.googleapis.com/compute/beta/projects/pso-suchit/zones/us-west1-c/instances/instance-3
+2020-10-20 20:43:12,837  INFO Waiting for machine image creation to finish...
+2020-10-20 20:43:13,056  INFO Waiting for machine image creation to finish...
+2020-10-20 20:43:13,063  INFO Waiting for machine image creation to finish...
+2020-10-20 20:45:15,370  INFO Machine Image instance-2 Created
+2020-10-20 20:45:15,370  INFO 'instance-2' machine image created sucessfully
+2020-10-20 20:45:15,370  INFO Machine image 1 out of 3 completed
+2020-10-20 20:45:15,525  INFO Machine Image instance-3 Created
+2020-10-20 20:45:15,526  INFO 'instance-3' machine image created sucessfully
+2020-10-20 20:45:15,526  INFO Machine image 2 out of 3 completed
+2020-10-20 20:45:46,468  INFO Machine Image instance-1 Created
+2020-10-20 20:45:46,468  INFO 'instance-1' machine image created sucessfully
+2020-10-20 20:45:46,468  INFO Machine image 3 out of 3 completed
+2020-10-20 20:46:09,931  INFO executing step create_machine_images
+2020-10-20 20:46:09,931  INFO Creating Machine Images
+2020-10-20 20:46:09,932  INFO   task: waited for 0.0 secs
+2020-10-20 20:46:09,932  INFO Creating Machine Image instance-1 from source https://www.googleapis.com/compute/beta/projects/pso-suchit/zones/us-west1-c/instances/instance-1
+2020-10-20 20:46:13,559  INFO Waiting for machine image creation to finish...
+2020-10-20 20:46:14,935  INFO   task: waited for 4.999477 secs
+2020-10-20 20:46:14,936  INFO Creating Machine Image instance-2 from source https://www.googleapis.com/compute/beta/projects/pso-suchit/zones/us-west1-c/instances/instance-2
+2020-10-20 20:46:18,154  INFO Waiting for machine image creation to finish...
+2020-10-20 20:46:19,941  INFO   task: waited for 4.999376 secs
+2020-10-20 20:46:19,941  INFO Creating Machine Image instance-3 from source https://www.googleapis.com/compute/beta/projects/pso-suchit/zones/us-west1-c/instances/instance-3
+2020-10-20 20:46:23,516  INFO Waiting for machine image creation to finish...
+2020-10-20 20:47:45,480  INFO Machine Image instance-1 Created
+2020-10-20 20:47:45,481  INFO 'instance-1' machine image created sucessfully
+2020-10-20 20:47:45,481  INFO Machine image 1 out of 3 completed
+2020-10-20 20:48:20,563  INFO Machine Image instance-2 Created
+2020-10-20 20:48:20,564  INFO 'instance-2' machine image created sucessfully
+2020-10-20 20:48:20,564  INFO Machine image 2 out of 3 completed
+2020-10-20 20:48:25,912  INFO Machine Image instance-3 Created
+2020-10-20 20:48:25,912  INFO 'instance-3' machine image created sucessfully
+2020-10-20 20:48:25,912  INFO Machine image 3 out of 3 completed
+2020-10-20 20:48:32,644  INFO executing step delete_instances
+2020-10-20 20:48:34,604  INFO Deleting all the instances present in the inventory
+2020-10-20 20:48:34,611  INFO   task: waited for 0.0 secs
+2020-10-20 20:48:39,324  INFO looking for machine image instance-1
+2020-10-20 20:48:40,186  INFO Found machine image can safely delete the instance
+2020-10-20 20:48:40,186  INFO Deleting Instance instance-1 
+2020-10-20 20:48:42,170  INFO Waiting for operation to finish...
+2020-10-20 20:48:44,619  INFO   task: waited for 9.989001 secs
+2020-10-20 20:48:48,503  INFO looking for machine image instance-2
+2020-10-20 20:48:49,308  INFO Found machine image can safely delete the instance
+2020-10-20 20:48:49,309  INFO Deleting Instance instance-2 
+2020-10-20 20:48:51,322  INFO Waiting for operation to finish...
+2020-10-20 20:48:54,597  INFO done.
+2020-10-20 20:48:54,598  INFO 'instance-1' machine deleted sucessfully
+2020-10-20 20:48:54,599  INFO 1 out of 3 deleted
+2020-10-20 20:48:54,627  INFO   task: waited for 9.999359 secs
+2020-10-20 20:48:59,273  INFO looking for machine image instance-3
+2020-10-20 20:49:00,190  INFO Found machine image can safely delete the instance
+2020-10-20 20:49:00,191  INFO Deleting Instance instance-3 
+2020-10-20 20:49:02,239  INFO Waiting for operation to finish...
+2020-10-20 20:49:03,049  INFO done.
+2020-10-20 20:49:03,050  INFO 'instance-2' machine deleted sucessfully
+2020-10-20 20:49:03,050  INFO 2 out of 3 deleted
+2020-10-20 20:49:14,528  INFO done.
+2020-10-20 20:49:14,529  INFO 'instance-3' machine deleted sucessfully
+2020-10-20 20:49:14,529  INFO 3 out of 3 deleted
+2020-10-20 20:49:14,531  INFO Deleting all the disks present in the inventory
+2020-10-20 20:49:14,533  INFO   task: waited for 0.0 secs
+2020-10-20 20:49:18,720  INFO looking for machine image instance-1
+2020-10-20 20:49:19,560  INFO Found machine image can safely delete the disk instance-1
+2020-10-20 20:49:21,084  INFO 'instance-1' disk deleted sucessfully
+2020-10-20 20:49:21,084  INFO 1 out of 3 deleted
+2020-10-20 20:49:24,543  INFO   task: waited for 9.998113 secs
+2020-10-20 20:49:28,929  INFO looking for machine image instance-2
+2020-10-20 20:49:29,786  INFO Found machine image can safely delete the disk instance-2
+2020-10-20 20:49:31,424  INFO 'instance-2' disk deleted sucessfully
+2020-10-20 20:49:31,425  INFO 2 out of 3 deleted
+2020-10-20 20:49:34,551  INFO   task: waited for 9.998941 secs
+2020-10-20 20:49:38,565  INFO looking for machine image instance-3
+2020-10-20 20:49:39,502  INFO Found machine image can safely delete the disk instance-3
+2020-10-20 20:49:41,048  INFO 'instance-3' disk deleted sucessfully
+2020-10-20 20:49:41,048  INFO 3 out of 3 deleted
+2020-10-20 20:52:33,366  INFO executing step release_ip
+2020-10-20 20:52:33,367  INFO Releasing the ips present in the export
+2020-10-20 20:52:35,879  INFO Releasing ip instance-1
+2020-10-20 20:52:37,520  INFO Waiting for operation to finish...
+2020-10-20 20:52:48,473  INFO done.
+2020-10-20 20:52:52,784  INFO Releasing ip instance-2
+2020-10-20 20:52:53,948  INFO Waiting for operation to finish...
+2020-10-20 20:53:04,889  INFO done.
+2020-10-20 20:53:09,010  INFO Releasing ip instance-3
+2020-10-20 20:53:10,373  INFO Waiting for operation to finish...
+2020-10-20 20:53:21,285  INFO done.
+2020-10-20 20:53:23,287  INFO All the IPs of the Subnet released sucessfully
+2020-10-20 20:54:55,989  INFO executing step create_instances
+2020-10-20 20:54:55,989  INFO Creating machine instances
+2020-10-20 20:54:55,990  INFO   task: waited for 0.0 secs
+2020-10-20 20:54:56,040  INFO   task: waited for 0.04933 secs
+2020-10-20 20:54:56,090  INFO   task: waited for 0.049274 secs
+2020-10-20 20:54:59,037  INFO Creating instance instance-1
+2020-10-20 20:54:59,037  INFO looking for upgrading the machine type
+2020-10-20 20:54:59,040  INFO Trying to create the machine instance-1 while preserving its ips
+2020-10-20 20:54:59,040  INFO Reserving internal ip instance-1 and 10.22.0.23
+2020-10-20 20:54:59,047  INFO Creating instance instance-3
+2020-10-20 20:54:59,049  INFO looking for upgrading the machine type
+2020-10-20 20:54:59,049  INFO Trying to create the machine instance-3 while preserving its ips
+2020-10-20 20:54:59,049  INFO Reserving internal ip instance-3 and 10.22.0.29
+2020-10-20 20:54:59,058  INFO Creating instance instance-2
+2020-10-20 20:54:59,058  INFO looking for upgrading the machine type
+2020-10-20 20:54:59,058  INFO Trying to create the machine instance-2 while preserving its ips
+2020-10-20 20:54:59,058  INFO Reserving internal ip instance-2 and 10.22.0.26
+2020-10-20 20:55:00,229  ERROR <HttpError 400 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/regions/us-west1/addresses?alt=json returned "Invalid value for field 'resource.address': '10.22.0.23'. Requested IP is not within the range of subnetwork 'sub-02'.">
+2020-10-20 20:55:00,230  ERROR <HttpError 400 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/regions/us-west1/addresses?alt=json returned "Invalid value for field 'resource.address': '10.22.0.29'. Requested IP is not within the range of subnetwork 'sub-02'.">
+2020-10-20 20:55:00,230  ERROR <HttpError 400 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/regions/us-west1/addresses?alt=json returned "Invalid value for field 'resource.address': '10.22.0.26'. Requested IP is not within the range of subnetwork 'sub-02'.">
+2020-10-20 20:55:00,231  ERROR machine creation generated an exception: <HttpError 400 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/regions/us-west1/addresses?alt=json returned "Invalid value for field 'resource.address': '10.22.0.23'. Requested IP is not within the range of subnetwork 'sub-02'.">
+2020-10-20 20:55:00,231  ERROR machine creation generated an exception: <HttpError 400 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/regions/us-west1/addresses?alt=json returned "Invalid value for field 'resource.address': '10.22.0.29'. Requested IP is not within the range of subnetwork 'sub-02'.">
+2020-10-20 20:55:00,232  ERROR machine creation generated an exception: <HttpError 400 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/regions/us-west1/addresses?alt=json returned "Invalid value for field 'resource.address': '10.22.0.26'. Requested IP is not within the range of subnetwork 'sub-02'.">
+2020-10-20 20:55:00,232  INFO Instances created successfully
+2020-10-20 20:55:09,918  INFO executing step create_instances_without_ip
+2020-10-20 20:55:09,918  INFO Creating machine instances without retaining the original ips
+2020-10-20 20:55:09,920  INFO   task: waited for 0.0 secs
+2020-10-20 20:55:09,970  INFO   task: waited for 0.04971 secs
+2020-10-20 20:55:10,020  INFO   task: waited for 0.049446 secs
+2020-10-20 20:55:12,047  INFO Creating instance instance-2
+2020-10-20 20:55:12,049  INFO looking for upgrading the machine type
+2020-10-20 20:55:12,050  INFO Reserving random ip for machine instance-2 
+2020-10-20 20:55:12,051  INFO Reserving internal ip instance-2 and None
+2020-10-20 20:55:12,155  INFO Creating instance instance-1
+2020-10-20 20:55:12,156  INFO looking for upgrading the machine type
+2020-10-20 20:55:12,156  INFO Reserving random ip for machine instance-1 
+2020-10-20 20:55:12,156  INFO Reserving internal ip instance-1 and None
+2020-10-20 20:55:12,331  INFO Creating instance instance-3
+2020-10-20 20:55:12,331  INFO looking for upgrading the machine type
+2020-10-20 20:55:12,332  INFO Reserving random ip for machine instance-3 
+2020-10-20 20:55:12,332  INFO Reserving internal ip instance-3 and None
+2020-10-20 20:55:13,432  INFO Waiting for operation to finish...
+2020-10-20 20:55:13,438  INFO Waiting for operation to finish...
+2020-10-20 20:55:13,586  INFO Waiting for operation to finish...
+2020-10-20 20:55:24,397  INFO done.
+2020-10-20 20:55:24,403  INFO done.
+2020-10-20 20:55:24,500  INFO done.
+2020-10-20 20:55:26,449  INFO Waiting for VM to start...
+2020-10-20 20:55:27,059  INFO Waiting for VM to start...
+2020-10-20 20:55:27,072  INFO Waiting for VM to start...
+2020-10-20 20:56:01,158  INFO Instance instance-3 created and running form source MachineImage instance-3
+2020-10-20 20:56:01,159  INFO 'instance-3' machine created sucessfully
+2020-10-20 20:56:01,159  INFO 1 out of 3 created 
+2020-10-20 20:56:01,685  INFO Instance instance-1 created and running form source MachineImage instance-1
+2020-10-20 20:56:01,686  INFO 'instance-1' machine created sucessfully
+2020-10-20 20:56:01,686  INFO 2 out of 3 created 
+2020-10-20 20:56:10,989  INFO Instance instance-2 created and running form source MachineImage instance-2
+2020-10-20 20:56:10,989  INFO 'instance-2' machine created sucessfully
+2020-10-20 20:56:10,990  INFO 3 out of 3 created 
+2020-10-20 20:56:10,991  INFO Instances created successfully
+2020-10-20 21:14:55,959  INFO executing step create_instances_without_ip
+2020-10-20 21:14:55,959  INFO Creating machine instances without retaining the original ips
+2020-10-20 21:14:55,960  INFO   task: waited for 0.0 secs
+2020-10-20 21:14:56,010  INFO   task: waited for 0.04943 secs
+2020-10-20 21:14:56,060  INFO   task: waited for 0.049359 secs
+2020-10-20 21:14:58,127  INFO Creating instance instance-1
+2020-10-20 21:14:58,127  INFO looking for upgrading the machine type
+2020-10-20 21:14:58,128  INFO Reserving random ip for machine instance-1 
+2020-10-20 21:14:58,128  INFO Reserving internal ip instance-1 and None
+2020-10-20 21:14:58,662  INFO Creating instance instance-3
+2020-10-20 21:14:58,663  INFO looking for upgrading the machine type
+2020-10-20 21:14:58,663  INFO Reserving random ip for machine instance-3 
+2020-10-20 21:14:58,663  INFO Reserving internal ip instance-3 and None
+2020-10-20 21:14:58,742  INFO Creating instance instance-2
+2020-10-20 21:14:58,742  INFO looking for upgrading the machine type
+2020-10-20 21:14:58,743  INFO Reserving random ip for machine instance-2 
+2020-10-20 21:14:58,743  INFO Reserving internal ip instance-2 and None
+2020-10-20 21:14:59,428  ERROR <HttpError 409 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/regions/us-west1/addresses?alt=json returned "The resource 'projects/pso-suchit/regions/us-west1/addresses/instance-1' already exists">
+2020-10-20 21:14:59,429  ERROR machine creation generated an exception: <HttpError 409 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/regions/us-west1/addresses?alt=json returned "The resource 'projects/pso-suchit/regions/us-west1/addresses/instance-1' already exists">
+2020-10-20 21:14:59,845  ERROR <HttpError 409 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/regions/us-west1/addresses?alt=json returned "The resource 'projects/pso-suchit/regions/us-west1/addresses/instance-3' already exists">
+2020-10-20 21:14:59,846  ERROR machine creation generated an exception: <HttpError 409 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/regions/us-west1/addresses?alt=json returned "The resource 'projects/pso-suchit/regions/us-west1/addresses/instance-3' already exists">
+2020-10-20 21:14:59,870  ERROR <HttpError 409 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/regions/us-west1/addresses?alt=json returned "The resource 'projects/pso-suchit/regions/us-west1/addresses/instance-2' already exists">
+2020-10-20 21:14:59,870  ERROR machine creation generated an exception: <HttpError 409 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/regions/us-west1/addresses?alt=json returned "The resource 'projects/pso-suchit/regions/us-west1/addresses/instance-2' already exists">
+2020-10-20 21:14:59,871  INFO Instances created successfully
+2020-10-20 21:15:05,143  INFO executing step create_instances_without_ip
+2020-10-20 21:15:05,143  INFO Creating machine instances without retaining the original ips
+2020-10-20 21:15:05,144  INFO   task: waited for 0.0 secs
+2020-10-20 21:15:05,194  INFO   task: waited for 0.049534 secs
+2020-10-20 21:15:05,244  INFO   task: waited for 0.049741 secs
+2020-10-20 21:15:06,801  INFO Creating instance instance-2
+2020-10-20 21:15:06,802  INFO looking for upgrading the machine type
+2020-10-20 21:15:06,802  INFO Reserving random ip for machine instance-2 
+2020-10-20 21:15:06,803  INFO Reserving internal ip instance-2 and None
+2020-10-20 21:15:07,141  INFO Creating instance instance-1
+2020-10-20 21:15:07,141  INFO looking for upgrading the machine type
+2020-10-20 21:15:07,142  INFO Reserving random ip for machine instance-1 
+2020-10-20 21:15:07,142  INFO Reserving internal ip instance-1 and None
+2020-10-20 21:15:07,320  INFO Creating instance instance-3
+2020-10-20 21:15:07,320  INFO looking for upgrading the machine type
+2020-10-20 21:15:07,320  INFO Reserving random ip for machine instance-3 
+2020-10-20 21:15:07,320  INFO Reserving internal ip instance-3 and None
+2020-10-20 21:15:07,992  ERROR <HttpError 409 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/regions/us-west1/addresses?alt=json returned "The resource 'projects/pso-suchit/regions/us-west1/addresses/instance-2' already exists">
+2020-10-20 21:15:07,994  ERROR machine creation generated an exception: <HttpError 409 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/regions/us-west1/addresses?alt=json returned "The resource 'projects/pso-suchit/regions/us-west1/addresses/instance-2' already exists">
+2020-10-20 21:15:08,290  ERROR <HttpError 409 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/regions/us-west1/addresses?alt=json returned "The resource 'projects/pso-suchit/regions/us-west1/addresses/instance-1' already exists">
+2020-10-20 21:15:08,291  ERROR machine creation generated an exception: <HttpError 409 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/regions/us-west1/addresses?alt=json returned "The resource 'projects/pso-suchit/regions/us-west1/addresses/instance-1' already exists">
+2020-10-20 21:15:08,421  ERROR <HttpError 409 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/regions/us-west1/addresses?alt=json returned "The resource 'projects/pso-suchit/regions/us-west1/addresses/instance-3' already exists">
+2020-10-20 21:15:08,423  ERROR machine creation generated an exception: <HttpError 409 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/regions/us-west1/addresses?alt=json returned "The resource 'projects/pso-suchit/regions/us-west1/addresses/instance-3' already exists">
+2020-10-20 21:15:08,424  INFO Instances created successfully
+2020-10-20 21:15:22,022  INFO executing step create_instances_without_ip
+2020-10-20 21:15:22,022  INFO Creating machine instances without retaining the original ips
+2020-10-20 21:15:22,023  INFO   task: waited for 0.0 secs
+2020-10-20 21:15:22,073  INFO   task: waited for 0.049438 secs
+2020-10-20 21:15:22,123  INFO   task: waited for 0.049384 secs
+2020-10-20 21:15:24,041  INFO Creating instance instance-2
+2020-10-20 21:15:24,042  INFO looking for upgrading the machine type
+2020-10-20 21:15:24,042  INFO Reserving random ip for machine instance-2 
+2020-10-20 21:15:24,043  INFO Reserving internal ip instance-2 and None
+2020-10-20 21:15:24,050  INFO Creating instance instance-1
+2020-10-20 21:15:24,051  INFO looking for upgrading the machine type
+2020-10-20 21:15:24,051  INFO Reserving random ip for machine instance-1 
+2020-10-20 21:15:24,051  INFO Reserving internal ip instance-1 and None
+2020-10-20 21:15:24,131  INFO Creating instance instance-3
+2020-10-20 21:15:24,131  INFO looking for upgrading the machine type
+2020-10-20 21:15:24,131  INFO Reserving random ip for machine instance-3 
+2020-10-20 21:15:24,131  INFO Reserving internal ip instance-3 and None
+2020-10-20 21:15:25,241  ERROR <HttpError 409 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/regions/us-west1/addresses?alt=json returned "The resource 'projects/pso-suchit/regions/us-west1/addresses/instance-3' already exists">
+2020-10-20 21:15:25,244  ERROR <HttpError 409 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/regions/us-west1/addresses?alt=json returned "The resource 'projects/pso-suchit/regions/us-west1/addresses/instance-1' already exists">
+2020-10-20 21:15:25,245  ERROR machine creation generated an exception: <HttpError 409 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/regions/us-west1/addresses?alt=json returned "The resource 'projects/pso-suchit/regions/us-west1/addresses/instance-3' already exists">
+2020-10-20 21:15:25,246  ERROR machine creation generated an exception: <HttpError 409 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/regions/us-west1/addresses?alt=json returned "The resource 'projects/pso-suchit/regions/us-west1/addresses/instance-1' already exists">
+2020-10-20 21:15:25,345  ERROR <HttpError 409 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/regions/us-west1/addresses?alt=json returned "The resource 'projects/pso-suchit/regions/us-west1/addresses/instance-2' already exists">
+2020-10-20 21:15:25,346  ERROR machine creation generated an exception: <HttpError 409 when requesting https://compute.googleapis.com/compute/beta/projects/pso-suchit/regions/us-west1/addresses?alt=json returned "The resource 'projects/pso-suchit/regions/us-west1/addresses/instance-2' already exists">
+2020-10-20 21:15:25,347  INFO Instances created successfully
+2020-10-20 21:19:32,745  INFO executing step create_instances_without_ip
+2020-10-20 21:19:32,745  INFO Creating machine instances without retaining the original ips
+2020-10-20 21:19:32,746  INFO   task: waited for 0.0 secs
+2020-10-20 21:19:32,796  INFO   task: waited for 0.049567 secs
+2020-10-20 21:19:32,846  INFO   task: waited for 0.049468 secs
+2020-10-20 21:19:34,708  INFO Creating instance instance-2
+2020-10-20 21:19:34,710  INFO Creating instance instance-1
+2020-10-20 21:19:34,711  INFO Creating instance instance-3
+2020-10-20 21:19:34,711  INFO looking for upgrading the machine type
+2020-10-20 21:19:34,711  INFO looking for upgrading the machine type
+2020-10-20 21:19:34,712  INFO looking for upgrading the machine type
+2020-10-20 21:19:34,713  INFO Reserving random ip for machine instance-2 
+2020-10-20 21:19:34,713  INFO Reserving random ip for machine instance-1 
+2020-10-20 21:19:34,713  INFO Reserving random ip for machine instance-3 
+2020-10-20 21:19:34,713  INFO Reserving internal ip instance-2 and None
+2020-10-20 21:19:34,713  INFO Reserving internal ip instance-1 and None
+2020-10-20 21:19:34,713  INFO Reserving internal ip instance-3 and None
+2020-10-20 21:19:36,121  INFO Waiting for operation to finish...
+2020-10-20 21:19:36,129  INFO Waiting for operation to finish...
+2020-10-20 21:19:36,130  INFO Waiting for operation to finish...
+2020-10-20 21:19:47,022  INFO done.
+2020-10-20 21:19:47,026  INFO done.
+2020-10-20 21:19:47,042  INFO done.
+2020-10-20 21:19:49,084  INFO Waiting for VM to start...
+2020-10-20 21:19:49,311  INFO Waiting for VM to start...
+2020-10-20 21:19:49,855  INFO Waiting for VM to start...
+2020-10-20 21:20:22,684  INFO Instance instance-2 created and running form source MachineImage instance-2
+2020-10-20 21:20:22,685  INFO 'instance-2' machine created sucessfully
+2020-10-20 21:20:22,686  INFO 1 out of 3 created 
+2020-10-20 21:20:23,637  INFO Instance instance-3 created and running form source MachineImage instance-3
+2020-10-20 21:20:23,637  INFO 'instance-3' machine created sucessfully
+2020-10-20 21:20:23,638  INFO 2 out of 3 created 
+2020-10-20 21:20:23,650  INFO Instance instance-1 created and running form source MachineImage instance-1
+2020-10-20 21:20:23,651  INFO 'instance-1' machine created sucessfully
+2020-10-20 21:20:23,651  INFO 3 out of 3 created 
+2020-10-20 21:20:23,652  INFO Instances created successfully
+2020-10-20 22:44:59,486  INFO executing step prepare_inventory
+2020-10-20 22:44:59,487  INFO Preparing the inventory to be exported
+2020-10-20 22:45:02,276  INFO fectching the inventory for the source subnet projects/pso-suchit/regions/us-west1/subnetworks/sub-02 and zone us-west1-c
+2020-10-20 22:45:03,189  INFO fectching the inventory for the source subnet projects/pso-suchit/regions/us-west1/subnetworks/sub-02 and zone us-west1-b
+2020-10-20 22:45:04,245  INFO Successfully written 1 records to source.csv
+2020-10-20 22:45:04,255  INFO Successfully written 2 records to source.csv
+2020-10-20 22:45:04,255  INFO Successfully written 3 records to source.csv
+2020-10-20 22:45:29,591  INFO executing step filter_inventory
+2020-10-20 22:45:29,591  INFO Preparing the inventory to be exported
+2020-10-20 22:45:31,306  INFO fectching the inventory for the source subnet projects/pso-suchit/regions/us-west1/subnetworks/sub-02 and zone us-west1-c
+2020-10-20 22:45:32,932  INFO fectching the inventory for the source subnet projects/pso-suchit/regions/us-west1/subnetworks/sub-02 and zone us-west1-b
+2020-10-20 22:45:33,398  INFO Successfully written 1 records to source.csv
+2020-10-20 22:45:33,409  INFO Successfully written 2 records to source.csv
+2020-10-20 22:45:33,410  INFO Successfully written 3 records to source.csv
+2020-10-20 22:45:33,410  INFO filtering out the inventory
+2020-10-20 22:57:47,656  INFO export.csv now has filtered records
+2020-10-20 22:57:54,433  INFO executing step shutdown_instances
+2020-10-20 22:57:56,417  INFO Shutting down the instances
+2020-10-20 22:57:56,422  INFO   task: waited for 0.0 secs
+2020-10-20 22:57:56,472  INFO   task: waited for 0.049147 secs
+2020-10-20 22:57:56,522  INFO   task: waited for 0.04958 secs
+2020-10-20 22:57:58,625  INFO Shutting Down Instance instance-1 
+2020-10-20 22:57:58,872  INFO Shutting Down Instance instance-2 
+2020-10-20 22:57:58,914  INFO Shutting Down Instance instance-3 
+2020-10-20 22:58:00,653  INFO Waiting for operation to finish...
+2020-10-20 22:58:00,810  INFO Waiting for operation to finish...
+2020-10-20 22:58:01,134  INFO Waiting for operation to finish...
+2020-10-20 22:59:53,091  INFO done.
+2020-10-20 22:59:53,092  INFO 'instance-2' machine shutdown sucessfully
+2020-10-20 22:59:53,092  INFO 1 out of 3 shutdown
+2020-10-20 23:00:23,768  INFO done.
+2020-10-20 23:00:23,769  INFO 'instance-1' machine shutdown sucessfully
+2020-10-20 23:00:23,769  INFO 2 out of 3 shutdown
+2020-10-20 23:00:25,450  INFO done.
+2020-10-20 23:00:25,450  INFO 'instance-3' machine shutdown sucessfully
+2020-10-20 23:00:25,451  INFO 3 out of 3 shutdown
+2020-10-20 23:01:21,531  INFO executing step create_machine_images
+2020-10-20 23:01:21,531  INFO Creating Machine Images
+2020-10-20 23:01:21,532  INFO   task: waited for 0.0 secs
+2020-10-20 23:01:21,532  INFO Creating Machine Image instance-1 from source https://www.googleapis.com/compute/beta/projects/pso-suchit/zones/us-west1-c/instances/instance-1
+2020-10-20 23:01:21,582  INFO   task: waited for 0.048926 secs
+2020-10-20 23:01:21,582  INFO Creating Machine Image instance-2 from source https://www.googleapis.com/compute/beta/projects/pso-suchit/zones/us-west1-c/instances/instance-2
+2020-10-20 23:01:21,632  INFO   task: waited for 0.048452 secs
+2020-10-20 23:01:21,632  INFO Creating Machine Image instance-3 from source https://www.googleapis.com/compute/beta/projects/pso-suchit/zones/us-west1-c/instances/instance-3
+2020-10-20 23:01:25,003  INFO Waiting for machine image creation to finish...
+2020-10-20 23:01:25,065  INFO Waiting for machine image creation to finish...
+2020-10-20 23:01:25,217  INFO Waiting for machine image creation to finish...
+2020-10-20 23:03:27,413  INFO Machine Image instance-1 Created
+2020-10-20 23:03:27,413  INFO 'instance-1' machine image created sucessfully
+2020-10-20 23:03:27,413  INFO Machine image 1 out of 3 completed
+2020-10-20 23:03:27,484  INFO Machine Image instance-2 Created
+2020-10-20 23:03:27,484  INFO 'instance-2' machine image created sucessfully
+2020-10-20 23:03:27,484  INFO Machine image 2 out of 3 completed
+2020-10-20 23:03:27,760  INFO Machine Image instance-3 Created
+2020-10-20 23:03:27,760  INFO 'instance-3' machine image created sucessfully
+2020-10-20 23:03:27,760  INFO Machine image 3 out of 3 completed
+2020-10-20 23:04:37,632  INFO executing step delete_instances
+2020-10-20 23:04:39,186  INFO Deleting all the instances present in the inventory
+2020-10-20 23:04:39,192  INFO   task: waited for 0.0 secs
+2020-10-20 23:04:39,242  INFO   task: waited for 0.0467 secs
+2020-10-20 23:04:39,292  INFO   task: waited for 0.049242 secs
+2020-10-20 23:04:43,069  INFO looking for machine image instance-3
+2020-10-20 23:04:43,106  INFO looking for machine image instance-1
+2020-10-20 23:04:43,188  INFO looking for machine image instance-2
+2020-10-20 23:04:43,924  INFO Found machine image can safely delete the instance
+2020-10-20 23:04:43,924  INFO Deleting Instance instance-2 
+2020-10-20 23:04:43,971  INFO Found machine image can safely delete the instance
+2020-10-20 23:04:43,971  INFO Deleting Instance instance-3 
+2020-10-20 23:04:44,092  INFO Found machine image can safely delete the instance
+2020-10-20 23:04:44,093  INFO Deleting Instance instance-1 
+2020-10-20 23:04:45,298  INFO Waiting for operation to finish...
+2020-10-20 23:04:45,299  INFO Waiting for operation to finish...
+2020-10-20 23:04:46,116  INFO Waiting for operation to finish...
+2020-10-20 23:04:56,971  INFO done.
+2020-10-20 23:04:56,972  INFO 'instance-3' machine deleted sucessfully
+2020-10-20 23:04:56,972  INFO 1 out of 3 deleted
+2020-10-20 23:04:57,175  INFO done.
+2020-10-20 23:04:57,175  INFO 'instance-1' machine deleted sucessfully
+2020-10-20 23:04:57,176  INFO 2 out of 3 deleted
+2020-10-20 23:04:57,569  INFO done.
+2020-10-20 23:04:57,570  INFO 'instance-2' machine deleted sucessfully
+2020-10-20 23:04:57,570  INFO 3 out of 3 deleted
+2020-10-20 23:04:57,572  INFO Deleting all the disks present in the inventory
+2020-10-20 23:04:57,573  INFO   task: waited for 0.0 secs
+2020-10-20 23:04:57,623  INFO   task: waited for 0.048178 secs
+2020-10-20 23:04:57,674  INFO   task: waited for 0.049382 secs
+2020-10-20 23:05:01,227  INFO looking for machine image instance-1
+2020-10-20 23:05:01,370  INFO looking for machine image instance-3
+2020-10-20 23:05:02,089  INFO Found machine image can safely delete the disk instance-1
+2020-10-20 23:05:02,171  INFO Found machine image can safely delete the disk instance-3
+2020-10-20 23:05:02,221  INFO looking for machine image instance-2
+2020-10-20 23:05:02,900  INFO 'instance-1' disk deleted sucessfully
+2020-10-20 23:05:02,901  INFO 1 out of 3 deleted
+2020-10-20 23:05:03,009  INFO Found machine image can safely delete the disk instance-2
+2020-10-20 23:05:03,617  INFO 'instance-3' disk deleted sucessfully
+2020-10-20 23:05:03,617  INFO 2 out of 3 deleted
+2020-10-20 23:05:04,494  INFO 'instance-2' disk deleted sucessfully
+2020-10-20 23:05:04,494  INFO 3 out of 3 deleted
+2020-10-20 23:05:18,469  INFO executing step release_ip
+2020-10-20 23:05:18,469  INFO Releasing the ips present in the export
+2020-10-20 23:05:20,484  INFO Releasing ip instance-1
+2020-10-20 23:05:21,696  INFO Waiting for operation to finish...
+2020-10-20 23:05:27,612  INFO done.
+2020-10-20 23:05:31,304  INFO Releasing ip instance-2
+2020-10-20 23:05:32,606  INFO Waiting for operation to finish...
+2020-10-20 23:05:38,544  INFO done.
+2020-10-20 23:05:42,479  INFO Releasing ip instance-3
+2020-10-20 23:05:43,793  INFO Waiting for operation to finish...
+2020-10-20 23:05:49,809  INFO done.
+2020-10-20 23:05:51,811  INFO All the IPs of the Subnet released sucessfully
+2020-10-20 23:06:04,820  INFO executing step create_instances_without_ip
+2020-10-20 23:06:04,820  INFO Creating machine instances without retaining the original ips
+2020-10-20 23:06:04,821  INFO   task: waited for 0.0 secs
+2020-10-20 23:06:04,871  INFO   task: waited for 0.049498 secs
+2020-10-20 23:06:04,921  INFO   task: waited for 0.04944 secs
+2020-10-20 23:06:06,685  INFO Creating instance instance-1
+2020-10-20 23:06:06,686  INFO looking for upgrading the machine type
+2020-10-20 23:06:06,687  INFO Reserving random ip for machine instance-1 
+2020-10-20 23:06:06,687  INFO Reserving internal ip instance-1 and None
+2020-10-20 23:06:06,735  INFO Creating instance instance-2
+2020-10-20 23:06:06,735  INFO looking for upgrading the machine type
+2020-10-20 23:06:06,735  INFO Reserving random ip for machine instance-2 
+2020-10-20 23:06:06,735  INFO Reserving internal ip instance-2 and None
+2020-10-20 23:06:06,828  INFO Creating instance instance-3
+2020-10-20 23:06:06,828  INFO looking for upgrading the machine type
+2020-10-20 23:06:06,828  INFO Reserving random ip for machine instance-3 
+2020-10-20 23:06:06,828  INFO Reserving internal ip instance-3 and None
+2020-10-20 23:06:07,827  INFO Waiting for operation to finish...
+2020-10-20 23:06:07,937  INFO Waiting for operation to finish...
+2020-10-20 23:06:08,020  INFO Waiting for operation to finish...
+2020-10-20 23:06:18,797  INFO done.
+2020-10-20 23:06:18,846  INFO done.
+2020-10-20 23:06:18,930  INFO done.
+2020-10-20 23:06:20,889  INFO Waiting for VM to start...
+2020-10-20 23:06:21,469  INFO Waiting for VM to start...
+2020-10-20 23:06:21,616  INFO Waiting for VM to start...
+2020-10-20 23:07:06,052  INFO Instance instance-1 created and running form source MachineImage instance-1
+2020-10-20 23:07:06,053  INFO 'instance-1' machine created sucessfully
+2020-10-20 23:07:06,053  INFO 1 out of 3 created 
+2020-10-20 23:07:06,150  INFO Instance instance-2 created and running form source MachineImage instance-2
+2020-10-20 23:07:06,150  INFO 'instance-2' machine created sucessfully
+2020-10-20 23:07:06,150  INFO 2 out of 3 created 
+2020-10-20 23:07:06,215  INFO Instance instance-3 created and running form source MachineImage instance-3
+2020-10-20 23:07:06,215  INFO 'instance-3' machine created sucessfully
+2020-10-20 23:07:06,215  INFO 3 out of 3 created 
+2020-10-20 23:07:06,216  INFO Instances created successfully
