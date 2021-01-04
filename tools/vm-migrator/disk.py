@@ -10,7 +10,6 @@ import re
 import logging
 import instance
 import machine_image
-import time
 from ratemate import RateLimit
 disk_rate_limit = RateLimit(max_count=2000, per=100)
 
