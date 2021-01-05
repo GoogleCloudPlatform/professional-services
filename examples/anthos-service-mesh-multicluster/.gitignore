@@ -1,0 +1,5 @@
+.dockerignore
+.gitplaceholder
+.terraform.lock.hcl
+.vscode
+Dockerfile
