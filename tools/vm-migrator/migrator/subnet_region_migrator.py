@@ -18,19 +18,18 @@ from the machine image in another subnet
 """
 
 import argparse
-import machine_image
-import instance
-import disk
-import subnet
-from csv import DictReader
-from csv import DictWriter
 import logging
 import sys
-import zone_mapping
-import fields
 import concurrent.futures
 import time
-
+from . import machine_image
+from . import instance
+from . import disk
+from . import subnet
+from . import zone_mapping
+from . import fields
+from csv import DictReader
+from csv import DictWriter
 
 def bulk_image_create(project,
                       source_zone,

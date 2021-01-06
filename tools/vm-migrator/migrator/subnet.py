@@ -20,9 +20,9 @@ import logging
 import googleapiclient.discovery
 from googleapiclient.errors import HttpError
 from csv import DictWriter
-import instance
-import disk
-import fields
+from . import instance
+from . import disk
+from . import fields
 
 
 

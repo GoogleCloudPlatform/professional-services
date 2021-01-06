@@ -18,8 +18,8 @@ This file provides functionality related to migrating disks.
 
 import re
 import logging
-import instance
-import machine_image
+from . import instance
+from . import machine_image
 from ratemate import RateLimit
 
 DISK_RATE_LIMIT = RateLimit(max_count=2000, per=100)

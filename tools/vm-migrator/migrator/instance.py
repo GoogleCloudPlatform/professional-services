@@ -20,9 +20,9 @@ import time
 import re
 import googleapiclient.discovery
 import logging
-import node_group_mapping
-import machine_type_mapping
-import machine_image
+from . import node_group_mapping
+from . import machine_type_mapping
+from . import machine_image
 from ratemate import RateLimit
 
 rate_limit = RateLimit(max_count=2000, per=100)
@@ -235,7 +235,7 @@ def upgrade_machine_type(machine_type, destination_zone):
 
     original_machine_type = response.group(3)
     original_zone = response.group(2)
-    destination_machine_type = machine_type_mapping.find.get(
+    destination_machine_type = machine_type_mapping.FIND.get(
         original_machine_type)
     if (destination_machine_type):
         logging.info('found a match to upgrade the machine type %s with %s' %
