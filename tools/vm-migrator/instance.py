@@ -373,7 +373,7 @@ def create(project,
            machine_type=None,
            wait=True):
     """
-    Main function to create the instance
+    Main function to create the instance.
     """
     try:
         waited_time = rate_limit.wait()  # wait before starting the task

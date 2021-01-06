@@ -232,7 +232,7 @@ def bulk_create_instances(file_name, target_subnet, retain_ip):
                 if (row['node_group'] and row['node_group'] != ''):
                     node_group = row['node_group']
 
-                target_zone = zone_mapping.find[parsed_link['zone']]
+                target_zone = zone_mapping.FIND[parsed_link['zone']]
                 instance_future.append(
                     executor.submit(instance.create, parsed_link['project'],
                                     target_zone, row['network'], target_subnet,
@@ -292,7 +292,7 @@ def filter_records(source_file, filter_file, destination_file):
             machine_names_to_filter.append(row['name'])
 
     filtered = []
-    headers = fields.headers
+    headers = fields.HEADERS
 
     with open(source_file, 'r') as csvfile:
         csv_dict_reader = DictReader(csvfile)
