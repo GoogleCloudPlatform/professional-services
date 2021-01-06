@@ -13,10 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-This file is used to maintain mapping of different node groups
+This file is used to maintain mapping of different node groups.
 """
 
-find = {
+FIND = {
     # 'n1-standard-1': 'n1-standard-4',
     'custom-10-98304-ext': 'n1-highmem-16',
     'custom-12-102400-ext': 'n1-highmem-16',
