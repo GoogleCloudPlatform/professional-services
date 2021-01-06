@@ -13,14 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-This file is used to create a machine image for an instance
+This file is used to create a machine image for an instance.
 """
 
 import time
 import googleapiclient.discovery
 import logging
 from ratemate import RateLimit
-rate_limit = RateLimit(max_count=2000, per=100)
+
+RATE_LIMIT = RateLimit(max_count=2000, per=100)
+
 
 # machineImage
 def machine_image(compute, project, target_region, source_instance, name):
@@ -47,9 +49,6 @@ def get(project, name):
         return None
 
 
-# [START wait_for_operation]
-
-
 def wait_for_operation(compute, project, name):
     """
     This methods waits untill the operation is complete.
@@ -67,9 +66,6 @@ def wait_for_operation(compute, project, name):
         time.sleep(30)
 
 
-# [END wait_for_operation]
-
-
 def get_compute():
     compute = googleapiclient.discovery.build('compute',
                                               'beta',
@@ -81,7 +77,7 @@ def get_compute():
 # main function
 def create(project, target_region, source_instance, name, wait=True):
     try:
-        waited_time = rate_limit.wait()  # wait before starting the task
+        waited_time = RATE_LIMIT.wait()  # wait before starting the task
         logging.info(f"  task: waited for {waited_time} secs")
         logging.info('Creating Machine Image %s from source %s' %
                      (name, source_instance))
