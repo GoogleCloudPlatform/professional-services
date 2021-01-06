@@ -210,3 +210,18 @@
 2021-01-06 21:01:08,347  INFO Waiting for machine image creation to finish...
 2021-01-06 21:01:08,350  INFO Waiting for machine image creation to finish...
 2021-01-06 21:01:08,352  INFO Waiting for machine image creation to finish...
+2021-01-06 21:02:09,711  INFO Machine Image gke-testcluster-default-pool-a888bb38-u4h0 Created
+2021-01-06 21:02:09,712  INFO 'gke-testcluster-default-pool-a888bb38-u4h0' machine image created sucessfully
+2021-01-06 21:02:09,712  INFO Machine image 1 out of 5 completed
+2021-01-06 21:02:09,734  INFO Machine Image gke-bloc-poc-cluster-default-pool-678a3ba4-73wg Created
+2021-01-06 21:02:09,735  INFO 'gke-bloc-poc-cluster-default-pool-678a3ba4-73wg' machine image created sucessfully
+2021-01-06 21:02:09,735  INFO Machine image 2 out of 5 completed
+2021-01-06 21:02:09,757  INFO Machine Image gke-bloc-poc-cluster-default-pool-678a3ba4-2to3 Created
+2021-01-06 21:02:09,757  INFO 'gke-bloc-poc-cluster-default-pool-678a3ba4-2to3' machine image created sucessfully
+2021-01-06 21:02:09,758  INFO Machine image 3 out of 5 completed
+2021-01-06 21:02:09,782  INFO Machine Image gke-bloc-poc-cluster-default-pool-678a3ba4-tl6p Created
+2021-01-06 21:02:09,782  INFO 'gke-bloc-poc-cluster-default-pool-678a3ba4-tl6p' machine image created sucessfully
+2021-01-06 21:02:09,783  INFO Machine image 4 out of 5 completed
+2021-01-06 21:02:40,332  INFO Machine Image gke-testcluster-default-pool-a888bb38-fage Created
+2021-01-06 21:02:40,333  INFO 'gke-testcluster-default-pool-a888bb38-fage' machine image created sucessfully
+2021-01-06 21:02:40,333  INFO Machine image 5 out of 5 completed
