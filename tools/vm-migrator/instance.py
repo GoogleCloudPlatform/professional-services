@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License..
 """
-This file is used to create instance from a machine image
+This file is used to create instance from a machine image.
 """
 
 import time
@@ -24,7 +24,9 @@ import node_group_mapping
 import machine_type_mapping
 import machine_image
 from ratemate import RateLimit
+
 rate_limit = RateLimit(max_count=2000, per=100)
+
 
 def get_compute():
     compute = googleapiclient.discovery.build('compute',
@@ -57,18 +59,18 @@ def get_node_group(instance):
 
 def get_updated_node_group(node_group):
     try:
-        if (node_group_mapping.find.get(node_group)):
+        if (node_group_mapping.FIND.get(node_group)):
             config = {
                 "scheduling": {
                     "nodeAffinities": [{
                         "key": 'compute.googleapis.com/node-group-name',
                         "operator": "IN",
-                        "values": [node_group_mapping.find[node_group]]
+                        "values": [node_group_mapping.FIND[node_group]]
                     }]
                 }
             }
             logging.info("Found a matching node group %s for %s" %
-                         (node_group, node_group_mapping.find.get(node_group)))
+                         (node_group, node_group_mapping.FIND.get(node_group)))
             return config
         else:
             return None
@@ -220,7 +222,6 @@ def reserve_internal_ip(compute, project, name, region, subnet, ip):
 
 
 def upgrade_machine_type(machine_type, destination_zone):
-
     #  the machine type is of the form
     # https://www.googleapis.com/compute/beta/projects/pso-suchit/zones/us-east1-c/machineTypes/n1-standard-4
     logging.info('looking for upgrading the machine type')
@@ -252,9 +253,8 @@ def upgrade_machine_type(machine_type, destination_zone):
 def create_instance(compute, project, zone, network, subnet, name,
                     alias_ip_ranges, node_group, disk_names, ip, machine_type):
     """
-    Create Instance method create a new GCP VM from the machine image
+    Create Instance method create a new GCP VM from the machine image.
     """
-
     config = {
         'name':
             name,
@@ -273,13 +273,13 @@ def create_instance(compute, project, zone, network, subnet, name,
 
     # upgrade the machine type in the destination zone
     new_machine_type = upgrade_machine_type(machine_type, zone)
-    if (new_machine_type):
+    if new_machine_type:
         config['machineType'] = new_machine_type
 
     # Reserve the static ip before creating the instance
     # If we get ip variable set, we expect to use the same ip in the
     # destination subnet
-    if (ip):
+    if ip:
         logging.info(
             "Trying to create the machine %s while preserving its ips" % (name))
         reserve_internal_ip(compute, project, name, get_region_from_zone(zone),
@@ -293,13 +293,13 @@ def create_instance(compute, project, zone, network, subnet, name,
         config['networkInterfaces'][0]['networkIP'] = get_ip(
             compute, project, name, get_region_from_zone(zone))
 
-    if (node_group and get_updated_node_group(node_group)):
+    if node_group and get_updated_node_group(node_group):
         logging.info("Found a sole tenant maching running on node group %s" %
                      (node_group))
         config['scheduling'] = get_updated_node_group(node_group)['scheduling']
 
     i = 1
-    if ((len(alias_ip_ranges) > 0)):
+    if len(alias_ip_ranges) > 0:
         logging.info("Found alias ip ranges, reserving it")
         for alias_ip in alias_ip_ranges:
             # If the alias ip is from the primary range then reserve it
@@ -345,7 +345,7 @@ def create_instance(compute, project, zone, network, subnet, name,
 
 def wait_for_instance(compute, project, zone, name):
     """
-    Function to wait for creation of machine image
+    Function to wait for creation of machine image.
     """
     logging.info('Waiting for VM to start...')
     while True:
@@ -373,7 +373,7 @@ def create(project,
            machine_type=None,
            wait=True):
     """
-    Main functin to create the instance
+    Main function to create the instance
     """
     try:
         waited_time = rate_limit.wait()  # wait before starting the task

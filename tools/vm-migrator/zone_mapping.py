@@ -16,7 +16,7 @@
 This file is used to maintain mapping of different node groups
 """
 
-find = {
+FIND = {
     "us-west1-a": "us-west1-c",
     "us-west1-b": "us-west1-c",
     "us-west1-c": "us-west1-c"

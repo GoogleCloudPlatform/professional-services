@@ -16,7 +16,7 @@
 This file is used to maintain mapping of different node groups
 """
 
-find = {
+FIND = {
     "sap-node-group": "node-group-us-west",
     "node-group-us-west": "sap-node-group"
 }

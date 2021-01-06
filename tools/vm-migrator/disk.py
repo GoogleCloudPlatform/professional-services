@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-This file provides functionality related to disks
+This file provides functionality related to migrating disks.
 """
 
 import re
@@ -21,7 +21,9 @@ import logging
 import instance
 import machine_image
 from ratemate import RateLimit
-disk_rate_limit = RateLimit(max_count=2000, per=100)
+
+DISK_RATE_LIMIT = RateLimit(max_count=2000, per=100)
+
 
 def parse_self_link(self_link):
     if (self_link.startswith('projects')):
@@ -44,7 +46,7 @@ def delete_disk(disk, project, zone, name):
 
 def delete(project, zone, instance_name, disk_name):
     try:
-        waited_time = disk_rate_limit.wait()  # wait before starting the task
+        waited_time = DISK_RATE_LIMIT.wait()  # wait before starting the task
         logging.info(f"  task: waited for {waited_time} secs")
         compute = instance.get_compute()
         image = machine_image.get(project, instance_name)

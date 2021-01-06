@@ -13,10 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-This file provides headers for the CSV data
+This file provides headers for the CSV data.
 """
 
-headers = [
+HEADERS = [
     'name', 'id', 'machine_type', 'self_link', 'network', 'subnet',
     'internal_ip', 'alias_ip_1', 'alias_ip_name_1', 'range_name_1',
     'alias_ip_2', 'alias_ip_name_2', 'range_name_2', 'alias_ip_3',

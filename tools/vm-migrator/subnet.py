@@ -96,7 +96,7 @@ def export_instances(project, zone, zone_2, zone_3, subnet, file_name):
 
     for instances in result['items']:
 
-        headers = fields.headers
+        headers = fields.HEADERS
         if ((instances['networkInterfaces'][0]['subnetwork']).endswith(subnet)):
             csv = {
                 'name': instances['name'],
