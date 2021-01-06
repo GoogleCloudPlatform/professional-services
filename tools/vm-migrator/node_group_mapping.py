@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-This file is used to maintain mapping of different node groups
+This file is used to maintain mapping of different node groups.
 """
 
 FIND = {
