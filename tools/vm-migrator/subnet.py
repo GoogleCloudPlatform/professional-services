@@ -15,13 +15,15 @@
 """
 This file deals with operations on subnets.
 """
-import googleapiclient.discovery
-from csv import DictWriter
-import instance, disk
 import time
 import logging
+import googleapiclient.discovery
 from googleapiclient.errors import HttpError
+from csv import DictWriter
+import instance
+import disk
 import fields
+
 
 
 def get_compute():
@@ -43,12 +45,13 @@ def get_alias_ip_name(project, region, subnet, ip):
         ip = ip[0:length_ip]
     else:
         return None
-    # Subnet should be of the form https://www.googleapis.com/compute/beta/projects/pso-suchit/regions/us-east1/subnetworks/sub-01
+    # Subnet should be of the form
+    # https://www.googleapis.com/compute/beta/projects/pso-suchit/regions/us-east1/subnetworks/sub-01
     ips = compute.addresses().list(project=project,
                                    region=region,
                                    filter='(subnetwork="' + subnet +
                                    '") (address="' + ip + '")').execute()
-    if (ips.get("items") and len(ips.get("items")) == 1):
+    if ips.get("items") and len(ips.get("items")) == 1:
         ip_details = ips.get("items")[0]
         return ip_details['name']
     else:
@@ -68,17 +71,17 @@ def export_instances(project, zone, zone_2, zone_3, subnet, file_name):
     result = compute.instances().list(project=project,
                                       zone=zone,
                                       maxResults=10000).execute()
-    if (not result.get('items')):
+    if not result.get('items'):
         result = {'items': []}
 
-    if (zone_2):
+    if zone_2:
         logging.info(
             "fectching the inventory for the source subnet %s and zone %s" %
             (subnet, zone_2))
         result_zone_2 = compute.instances().list(project=project,
                                                  zone=zone_2,
                                                  maxResults=10000).execute()
-    if (zone_3):
+    if zone_3:
         logging.info(
             "fectching the inventory for the source subnet %s and zone %s" %
             (subnet, zone_3))
@@ -88,7 +91,7 @@ def export_instances(project, zone, zone_2, zone_3, subnet, file_name):
 
     mydict = []
 
-    if (result_zone_2.get("items") and zone_2):
+    if result_zone_2.get("items") and zone_2:
         result['items'] = result['items'] + result_zone_2.get("items")
 
     if (result_zone_3.get("items") and zone_3):
@@ -97,7 +100,7 @@ def export_instances(project, zone, zone_2, zone_3, subnet, file_name):
     for instances in result['items']:
 
         headers = fields.HEADERS
-        if ((instances['networkInterfaces'][0]['subnetwork']).endswith(subnet)):
+        if (instances['networkInterfaces'][0]['subnetwork']).endswith(subnet):
             csv = {
                 'name': instances['name'],
                 'id': instances['id'],
@@ -120,24 +123,24 @@ def export_instances(project, zone, zone_2, zone_3, subnet, file_name):
                         (disk.parse_self_link(disks['source'])['name'],
                             disks['deviceName']))
 
-            aliasIps = instances['networkInterfaces'][0].get('aliasIpRanges')
-            if (aliasIps):
+            alias_ips = instances['networkInterfaces'][0].get('aliasIpRanges')
+            if alias_ips:
                 logging.info("Found Alias IP for %s" % instances['name'])
-                for i in range(len(aliasIps)):
-                    csv['alias_ip_' + str(i + 1)] = aliasIps[i]['ipCidrRange']
+                for i in range(len(alias_ips)):
+                    csv['alias_ip_' + str(i + 1)] = alias_ips[i]['ipCidrRange']
 
                     ip_name = get_alias_ip_name(
                         project,
                         instance.get_region_from_zone(instances['zone']),
-                        subnet, aliasIps[i]['ipCidrRange'])
-                    if (ip_name):
+                        subnet, alias_ips[i]['ipCidrRange'])
+                    if ip_name:
                         csv['alias_ip_name_' + str(i + 1)] = ip_name
 
-                    if (aliasIps[i].get('subnetworkRangeName')):
+                    if alias_ips[i].get('subnetworkRangeName'):
                         csv['range_name_' +
-                            str(i + 1)] = aliasIps[i]['subnetworkRangeName']
+                            str(i + 1)] = alias_ips[i]['subnetworkRangeName']
 
-            if (instance.is_hosted_on_sole_tenant(instances)):
+            if instance.is_hosted_on_sole_tenant(instances):
                 csv['node_group'] = instance.get_node_group(instances)
 
             mydict.append(csv)
@@ -149,9 +152,6 @@ def export_instances(project, zone, zone_2, zone_3, subnet, file_name):
 
         logging.info("Successfully written %i records to %s" %
                      (len(mydict), file_name))
-        print("Successfully written %i records to %s" %
-              (len(mydict), file_name))
-
 
 def release(compute, project, region, address):
     try:
@@ -175,12 +175,13 @@ def release_specific_ips(project, region, ips):
 def release_ip(project, region, subnet):
     compute = get_compute()
     subnet = "https://www.googleapis.com/compute/beta/" + subnet
-    # Subnet should be of the form https://www.googleapis.com/compute/beta/projects/pso-suchit/regions/us-east1/subnetworks/sub-01
+    # Subnet should be of the form
+    # https://www.googleapis.com/compute/beta/projects/pso-suchit/regions/us-east1/subnetworks/sub-01
     ips = compute.addresses().list(project=project,
                                    region=region,
                                    filter='subnetwork="' + subnet +
                                    '"').execute()
-    if (ips.get("items")):
+    if ips.get("items"):
         for addresses in ips['items']:
             ip_name = addresses['name']
             release(compute, project, region, ip_name)
