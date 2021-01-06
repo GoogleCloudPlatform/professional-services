@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-This file deals with operations on subnets
+This file deals with operations on subnets.
 """
 import googleapiclient.discovery
 from csv import DictWriter
