@@ -40,7 +40,7 @@ def machine_image(compute, project, target_region, source_instance, name):
 
 def get(project, name):
     compute = get_compute()
-    logging.info("looking for machine image %s", (name))
+    logging.info('looking for machine image %s', name)
     try:
         result = compute.machineImages().get(project=project,
                                              machineImage=name).execute()
@@ -80,14 +80,14 @@ def get_compute():
 def create(project, target_region, source_instance, name, wait=True):
     try:
         waited_time = RATE_LIMIT.wait()  # wait before starting the task
-        logging.info(f"  task: waited for {waited_time} secs")
-        logging.info('Creating Machine Image %s from source %s' %
-                     (name, source_instance))
+        logging.info('  task: waited for %s secs', waited_time)
+        logging.info('Creating Machine Image %s from source %s', name,
+                     source_instance)
         compute = get_compute()
         machine_image(compute, project, target_region, source_instance, name)
         if wait:
             wait_for_operation(compute, project, name)
-        logging.info('Machine Image %s Created' % (name))
+        logging.info('Machine Image %s Created', name)
         return name
     except (GCPOperationException, Exception) as exc:
         logging.error(exc)

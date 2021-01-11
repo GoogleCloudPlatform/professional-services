@@ -72,8 +72,8 @@ def get_updated_node_group(node_group):
                     }]
                 }
             }
-            logging.info('Found a matching node group %s for %s',
-                         node_group, node_group_mapping.FIND.get(node_group))
+            logging.info('Found a matching node group %s for %s', node_group,
+                         node_group_mapping.FIND.get(node_group))
             return config
         else:
             return None
@@ -105,7 +105,7 @@ def shutdown_instance(compute, project, zone, instance_name):
 def shutdown(project, zone, instance_name):
     try:
         waited_time = RATE_LIMIT.wait()  # wait before starting the task
-        logging.info('  task: waited for %s secs',waited_time)
+        logging.info('  task: waited for %s secs', waited_time)
         compute = get_compute()
         logging.info('Shutting Down Instance %s ', instance_name)
         result = shutdown_instance(compute, project, zone, instance_name)
@@ -174,7 +174,7 @@ def wait_for_regional_operation(compute, project, region, operation):
 def delete(project, zone, name):
     try:
         waited_time = RATE_LIMIT.wait()  # wait before starting the task
-        logging.info('  task: waited for %s secs',waited_time)
+        logging.info('  task: waited for %s secs', waited_time)
         compute = get_compute()
         image = machine_image.get(project, name)
         if image:
@@ -282,8 +282,7 @@ def create_instance(compute, project, zone, network, subnet, name,
     # destination subnet
     if ip:
         logging.info(
-            'Trying to create the machine %s while preserving its ips',
-            name)
+            'Trying to create the machine %s while preserving its ips', name)
         reserve_internal_ip(compute, project, name, get_region_from_zone(zone),
                             subnet, ip)
     else:
@@ -327,8 +326,8 @@ def create_instance(compute, project, zone, network, subnet, name,
 
                 # Passing None in actual ip will reserve a
                 # random ip for the name
-                logging.info('reserving alias ip %s for machine %s',
-                             actual_ip, name)
+                logging.info('reserving alias ip %s for machine %s', actual_ip,
+                             name)
                 reserve_internal_ip(compute, project, alias_ip_name,
                                     get_region_from_zone(zone), subnet,
                                     actual_ip)
@@ -383,7 +382,7 @@ def create(project,
     """
     try:
         waited_time = RATE_LIMIT.wait()  # wait before starting the task
-        logging.info('  task: waited for %s secs',waited_time)
+        logging.info('  task: waited for %s secs', waited_time)
         compute = get_compute()
         logging.info('Creating instance %s', instance_name)
 
