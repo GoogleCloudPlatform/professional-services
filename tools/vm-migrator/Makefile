@@ -52,7 +52,7 @@ install-tools:
 	pip3 install pylint
 
 install-requirements:
-	pip3 install -r migrator/requirements.txt
+	pip3 install -r requirements.txt
 
 install:
 	pip3 install -e . 
