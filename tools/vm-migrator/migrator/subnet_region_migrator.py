@@ -33,11 +33,7 @@ from csv import DictReader
 from csv import DictWriter
 
 
-def bulk_image_create(project,
-                      source_zone,
-                      source_subnet,
-                      machine_image_region,
-                      file_name='export.csv'):
+def bulk_image_create(project, machine_image_region, file_name='export.csv'):
 
     with open(file_name, 'r') as read_obj:
         csv_dict_reader = DictReader(read_obj)
@@ -61,14 +57,14 @@ def bulk_image_create(project,
                 try:
                     machine_image_name = future.result()
                     tracker = tracker + 1
-                    logging.info('%r machine image created sucessfully' %
-                                 (machine_image_name))
-                    logging.info("Machine image %i out of %i completed" %
-                                 (tracker, count))
+                    logging.info('%r machine image created sucessfully',
+                                 machine_image_name)
+                    logging.info('Machine image %i out of %i completed',
+                                 tracker, count)
                 except (GCPOperationException, Exception) as exc:
                     logging.error(
-                        'machine image creation generated an exception: %s' %
-                        (exc))
+                        'machine image creation generated an exception: %s',
+                        exc)
 
 
 def bulk_delete_instances(file_name):
@@ -94,12 +90,12 @@ def bulk_delete_instances(file_name):
                 try:
                     instance_name = future.result()
                     tracker = tracker + 1
-                    logging.info('%r machine deleted sucessfully' %
-                                 (instance_name))
-                    logging.info("%i out of %i deleted" % (tracker, count))
+                    logging.info('%r machine deleted sucessfully',
+                                 instance_name)
+                    logging.info('%i out of %i deleted', tracker, count)
                 except (GCPOperationException, Exception) as exc:
                     logging.error(
-                        'machine deletion generated an exception: %s' % (exc))
+                        'machine deletion generated an exception: %s', exc)
 
 
 def bulk_delete_disks(file_name):
@@ -128,11 +124,11 @@ def bulk_delete_disks(file_name):
                 try:
                     disk_name = future.result()
                     tracker = tracker + 1
-                    logging.info('%r disk deleted sucessfully' % (disk_name))
-                    logging.info("%i out of %i deleted" % (tracker, count))
+                    logging.info('%r disk deleted sucessfully', disk_name)
+                    logging.info('%i out of %i deleted', tracker, count)
                 except (GCPOperationException, Exception) as exc:
-                    logging.error('disk deletion generated an exception: %s' %
-                                  (exc))
+                    logging.error('disk deletion generated an exception: %s',
+                                  exc)
 
 
 def bulk_instance_shutdown(file_name):
@@ -157,12 +153,12 @@ def bulk_instance_shutdown(file_name):
                 try:
                     machine_name = future.result()
                     tracker = tracker + 1
-                    logging.info('%r machine shutdown sucessfully' %
-                                 (machine_name))
-                    logging.info("%i out of %i shutdown" % (tracker, count))
+                    logging.info('%r machine shutdown sucessfully',
+                                 machine_name)
+                    logging.info('%i out of %i shutdown', tracker, count)
                 except (GCPOperationException, Exception) as exc:
                     logging.error(
-                        'machine shutdown generated an exception: %s' % (exc))
+                        'machine shutdown generated an exception: %s', exc)
 
 
 def bulk_instance_start(file_name):
@@ -188,12 +184,12 @@ def bulk_instance_start(file_name):
                 try:
                     machine_name = future.result()
                     tracker = tracker + 1
-                    logging.info('%r machine started sucessfully' %
-                                 (machine_name))
-                    logging.info("%i out of %i started up" % (tracker, count))
+                    logging.info('%r machine started sucessfully',
+                                 machine_name)
+                    logging.info('%i out of %i started up', tracker, count)
                 except (GCPOperationException, Exception) as exc:
                     logging.error(
-                        'machine strating generated an exception: %s' % (exc))
+                        'machine strating generated an exception: %s', exc)
 
 
 def bulk_create_instances(file_name, target_subnet, retain_ip):
@@ -209,7 +205,7 @@ def bulk_create_instances(file_name, target_subnet, retain_ip):
             # Start the load operations and mark each future with its URL
             for row in csv_dict_reader:
                 ip = None
-                if (retain_ip):
+                if retain_ip:
                     ip = row['internal_ip']
 
                 parsed_link = instance.parse_self_link(row['self_link'])
@@ -252,15 +248,15 @@ def bulk_create_instances(file_name, target_subnet, retain_ip):
                 try:
                     machine_name = future.result()
                     tracker = tracker + 1
-                    logging.info('%r machine created sucessfully' %
-                                 (machine_name))
-                    logging.info("%i out of %i created " % (tracker, count))
+                    logging.info('%r machine created sucessfully',
+                                 machine_name)
+                    logging.info('%i out of %i created ', tracker, count)
                 except (GCPOperationException, Exception) as exc:
                     logging.error(
-                        'machine creation generated an exception: %s' % (exc))
+                        'machine creation generated an exception: %s', exc)
 
 
-def query_yes_no(question, default="yes"):
+def query_yes_no(question, default='yes'):
     """Ask a yes/no question via raw_input() and return their answer.
 
     "question" is a string that is presented to the user.
@@ -270,15 +266,15 @@ def query_yes_no(question, default="yes"):
 
     The "answer" return value is True for "yes" or False for "no".
     """
-    valid = {"yes": True, "y": True, "ye": True, "no": False, "n": False}
+    valid = {'yes': True, 'y': True, 'ye': True, 'no': False, 'n': False}
     if default is None:
-        prompt = " [y/n] "
-    elif default == "yes":
-        prompt = " [Y/n] "
-    elif default == "no":
-        prompt = " [y/N] "
+        prompt = ' [y/n] '
+    elif default == 'yes':
+        prompt = ' [Y/n] '
+    elif default == 'no':
+        prompt = ' [y/N] '
     else:
-        raise ValueError("invalid default answer: '%s'" % default)
+        raise ValueError('invalid default answer: %s' % default)
 
     while True:
         sys.stdout.write(question + prompt)
@@ -288,8 +284,8 @@ def query_yes_no(question, default="yes"):
         if choice in valid:
             return valid[choice]
         else:
-            sys.stdout.write("Please respond with 'yes' or 'no' "
-                             "(or 'y' or 'n').\n")
+            sys.stdout.write('Please respond with \'yes\' or \'no\''
+                             '(or \'y\' or \'n\').\n')
 
 
 def filter_records(source_file, filter_file, destination_file):
@@ -305,11 +301,11 @@ def filter_records(source_file, filter_file, destination_file):
     with open(source_file, 'r') as csvfile:
         csv_dict_reader = DictReader(csvfile)
         for row in csv_dict_reader:
-            if (row['name'] in machine_names_to_filter):
+            if row['name'] in machine_names_to_filter:
                 filtered.append(row)
 
     overwrite_file = query_yes_no(
-        "About to overwrite %s with %i records, please confirm to continue" %
+        'About to overwrite %s with %i records, please confirm to continue' %
         (destination_file, len(filtered)),
         default='no')
 
@@ -329,12 +325,13 @@ def release_ips_from_file(file_name):
             region = instance.get_region_from_zone(parsed_link['zone'])
             project = parsed_link['project']
             ips = []
-            # The first ip for a machine is reserved with the same name as the VM
+            # The first ip for a machine is reserved
+            # with the same name as the VM
             ips.append(row['name'])
             # Find the reserved alias ips
             for i in range(4):
                 ip_name = row.get('alias_ip_name_' + str(i + 1))
-                if ip_name != '' and row['range_name_' + str(i + 1)] == "":
+                if ip_name != '' and row['range_name_' + str(i + 1)] == '':
                     ips.append(ip_name)
             subnet.release_specific_ips(project, region, ips)
             time.sleep(2)  # Prevent making too many requests in loop
@@ -365,89 +362,88 @@ def main(project,
                         format='%(asctime)s  %(levelname)s %(message)s',
                         level=numeric_level)
 
-    logging.info("executing step %s" % (step))
+    logging.info('executing step %s', step)
     if step == 'prepare_inventory':
-        logging.info("Preparing the inventory to be exported")
+        logging.info('Preparing the inventory to be exported')
         subnet.export_instances(project, source_zone, source_zone_2,
-                                source_zone_3, source_subnet, "source.csv")
+                                source_zone_3, source_subnet, 'source.csv')
     if step == 'filter_inventory':
-        logging.info("Preparing the inventory to be exported")
+        logging.info('Preparing the inventory to be exported')
         subnet.export_instances(project, source_zone, source_zone_2,
-                                source_zone_3, source_subnet, "source.csv")
-        logging.info("filtering out the inventory")
-        overwrite_file = filter_records("source.csv", filter_file_name,
+                                source_zone_3, source_subnet, 'source.csv')
+        logging.info('filtering out the inventory')
+        overwrite_file = filter_records('source.csv', filter_file_name,
                                         file_name)
         if overwrite_file:
-            logging.info("%s now has filtered records" % (file_name))
+            logging.info('%s now has filtered records', file_name)
         else:
-            logging.info("File %s was not overwriten" % (file_name))
+            logging.info('File %s was not overwriten', file_name)
 
     if step == 'shutdown_instances':
         with open(file_name, 'r') as read_obj:
             csv_dict_reader = DictReader(read_obj)
             count = len(list(csv_dict_reader))
         shutdown_response = query_yes_no(
-            "Are you sure you want to shutdown the (%s) instances present in the inventory ?"
-            % count,
+            'Are you sure you want to shutdown the (%s)'
+            'instances present in the inventory ?' % count,
             default='no')
-        if (shutdown_response):
-            logging.info("Shutting down the instances")
+        if shutdown_response:
+            logging.info('Shutting down the instances')
             bulk_instance_shutdown(file_name)
 
     if step == 'start_instances':
         start_response = query_yes_no(
-            "Are you sure you want to start the instances present in the inventory ?",
+            'Are you sure you want to start the'
+            'instances present in the inventory ?',
             default='no')
-        if (start_response):
-            logging.info("Starting the instances")
+        if start_response:
+            logging.info('Starting the instances')
             bulk_instance_start(file_name)
 
     if step == 'create_machine_images':
-        logging.info("Creating Machine Images")
-        bulk_image_create(project, source_zone, source_subnet,
-                          machine_image_region, file_name)
+        logging.info('Creating Machine Images')
+        bulk_image_create(project, machine_image_region, file_name)
 
     if step == 'delete_instances':
         with open(file_name, 'r') as read_obj:
             csv_dict_reader = DictReader(read_obj)
             count = len(list(csv_dict_reader))
-        response = query_yes_no(
-            "Are you sure you want to delete the (%s) instances present in the inventory ?"
-            % count,
-            default='no')
+        response = query_yes_no('Are you sure you want to delete the (%s)'
+                                'instances present in the inventory ?' % count,
+                                default='no')
         if response:
-            logging.info("Deleting all the instances present in the inventory")
+            logging.info('Deleting all the instances present in the inventory')
             bulk_delete_instances(file_name)
-            logging.info("Deleting all the disks present in the inventory")
+            logging.info('Deleting all the disks present in the inventory')
             bulk_delete_disks(file_name)
         else:
-            logging.info("Not deleting any instances")
+            logging.info('Not deleting any instances')
 
     if step == 'clone_subnet':
-        logging.info("Cloning Subnet")
+        logging.info('Cloning Subnet')
         subnet.duplicate(project, subnet_name, source_region, target_region)
-        logging.info("Subnet sucessfully cloned in the provided region")
+        logging.info('Subnet sucessfully cloned in the provided region')
 
     if step == 'create_instances':
-        logging.info("Creating machine instances")
+        logging.info('Creating machine instances')
         bulk_create_instances(file_name, target_subnet, True)
-        logging.info("Instances created successfully")
+        logging.info('Instances created successfully')
 
     if step == 'create_instances_without_ip':
         logging.info(
-            "Creating machine instances without retaining the original ips")
+            'Creating machine instances without retaining the original ips')
         bulk_create_instances(file_name, target_subnet, False)
-        logging.info("Instances created successfully")
+        logging.info('Instances created successfully')
 
     if step == 'release_ip_for_subnet':
-        logging.info("Releasing all the Ips present in the subnet")
+        logging.info('Releasing all the Ips present in the subnet')
         subnet.release_ip(project, source_region, source_subnet)
-        logging.info("ips present in %s released subcessfully" % (file_name))
+        logging.info('ips present in %s released subcessfully', file_name)
 
     if step == 'release_ip':
-        logging.info("Releasing the ips present in the export")
+        logging.info('Releasing the ips present in the export')
         release_ips_from_file(file_name)
-        logging.info("All the IPs of the Subnet released sucessfully")
+        logging.info('All the IPs of the Subnet released sucessfully')
 
 
 if __name__ == '__main__':
@@ -490,19 +486,19 @@ if __name__ == '__main__':
     parser.add_argument('--export_file',
                         default='export.csv',
                         help='destination file to export the data to')
-    parser.add_argument(
-        '--filter_file',
-        default='filter.csv',
-        help=
-        'filter file containing names of instances to filter from overall inventory'
-    )
+    parser.add_argument('--filter_file',
+                        default='filter.csv',
+                        help='filter file containing names of '
+                        'instances to filter from overall inventory')
     parser.add_argument('--log', default='INFO', help='Log Level')
     parser.add_argument(
         '--step',
         default='prepare_inventory',
-        help=
-        'Which step to execute. The steps can be any of prepare_inventory | filter_inventory | shutdown_instances | create_machine_images |  delete_instances | release_ip_for_subnet | release_ip | clone_subnet | create_instances | create_instances_without_ip'
-    )
+        help='Which step to execute. '
+        'The steps can be any of prepare_inventory | '
+        'filter_inventory | shutdown_instances | create_machine_images |  '
+        'delete_instances | release_ip_for_subnet | release_ip '
+        '| clone_subnet | create_instances | create_instances_without_ip')
     args = parser.parse_args()
 
 main(args.project, args.source_zone, args.source_zone_2, args.source_zone_3,
