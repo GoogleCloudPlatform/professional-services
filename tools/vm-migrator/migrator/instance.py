@@ -23,7 +23,7 @@ import logging
 from . import node_group_mapping
 from . import machine_type_mapping
 from . import machine_image
-from .exceptions import InvalidFormatException
+from .exceptions import InvalidFormatException, GCPOperationException, NotFoundException
 from ratemate import RateLimit
 
 RATE_LIMIT = RateLimit(max_count=2000, per=100)
@@ -109,9 +109,8 @@ def shutdown(project, zone, instance_name):
         result = shutdown_instance(compute, project, zone, instance_name)
         wait_for_zonal_operation(compute, project, zone, result['name'])
         return instance_name
-    except Exception as ex:
+    except (GCPOperationException, Exception) as ex:
         logging.error(ex)
-        print(ex)
         raise ex
 
 
@@ -126,9 +125,8 @@ def start(project, zone, instance_name):
                                            instance=instance_name).execute()
         wait_for_zonal_operation(compute, project, zone, result['name'])
         return instance_name
-    except Exception as ex:
+    except (GCPOperationException, Exception) as ex:
         logging.error(ex)
-        print(ex)
         raise ex
 
 
@@ -148,7 +146,7 @@ def wait_for_zonal_operation(compute, project, zone, operation):
         if result['status'] == 'DONE':
             logging.info("done.")
             if 'error' in result:
-                raise Exception(result['error'])
+                raise GCPOperationException(result['error'])
             return result
 
         time.sleep(10)
@@ -164,7 +162,7 @@ def wait_for_regional_operation(compute, project, region, operation):
         if result['status'] == 'DONE':
             logging.info("done.")
             if 'error' in result:
-                raise Exception(result['error'])
+                raise GCPOperationException(result['error'])
             return result
 
         time.sleep(10)
@@ -183,11 +181,10 @@ def delete(project, zone, name):
                                      delete_operation['name'])
             return name
         else:
-            raise Exception(
+            raise NotFoundException(
                 "Cant Delete the instance as machine image not found")
-    except Exception as ex:
+    except (GCPOperationException, NotFoundException,  Exception) as ex:
         logging.error(ex)
-        print(ex)
         raise ex
 
 
@@ -232,7 +229,7 @@ def upgrade_machine_type(machine_type, destination_zone):
     response = re.search(
         r'\/projects\/(.*?)\/zones\/(.*?)\/machineTypes\/(.*?)$', machine_type)
     if len(response.groups()) != 3:
-        raise Exception('Invalid Machine Type Format')
+        raise InvalidFormatException('Invalid Machine Type Format')
 
     original_machine_type = response.group(3)
     original_zone = response.group(2)
@@ -356,7 +353,7 @@ def wait_for_instance(compute, project, zone, name):
         if result['status'] == 'RUNNING':
             # logging.info("VM", name, "created and running")
             if 'error' in result:
-                raise Exception(result['error'])
+                raise GCPOperationException(result['error'])
             return result
 
         time.sleep(10)
@@ -392,7 +389,6 @@ def create(project,
             (instance_name, instance_name))
         return instance_name
 
-    except Exception as ex:
+    except (GCPOperationException, Exception) as ex:
         logging.error(ex)
-        print(ex)
         raise ex

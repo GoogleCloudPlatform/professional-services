@@ -13,12 +13,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License..
 """
-This module contains all the custom exceptions used in the utility.
+This module contains all the custom exceptions used in the GCP migrator.
 """
 
 
 class InvalidFormatException(Exception):
+    """
+    This exception is used to signify the format which you have supplied
+    does not adhere to GCP format specified in README.md.
+    """
     pass
 
 class NotFoundException(Exception):
+    """
+    This exception signifies tha the GCP resources which you want to
+    operate does not exist.
+    """
+    pass
+
+class GCPOperationException(Exception):
+    """
+    This exception is used to signify when a GCP operation
+    like create, update, delete returns an error.
+    """
     pass

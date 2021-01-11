@@ -20,6 +20,7 @@ import time
 import googleapiclient.discovery
 import logging
 from ratemate import RateLimit
+from .exceptions import GCPOperationException
 
 RATE_LIMIT = RateLimit(max_count=2000, per=100)
 
@@ -60,7 +61,7 @@ def wait_for_operation(compute, project, name):
 
         if result['status'] == 'READY':
             if 'error' in result:
-                raise Exception(result['error'])
+                raise GCPOperationException(result['error'])
             return result
 
         time.sleep(30)
@@ -87,6 +88,6 @@ def create(project, target_region, source_instance, name, wait=True):
             wait_for_operation(compute, project, name)
         logging.info('Machine Image %s Created' % (name))
         return name
-    except Exception as exc:
+    except (GCPOperationException, Exception) as exc:
         logging.error(exc)
         raise exc
