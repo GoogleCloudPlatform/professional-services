@@ -28,8 +28,8 @@ DISK_RATE_LIMIT = RateLimit(max_count=2000, per=100)
 
 def parse_self_link(self_link):
     if self_link.startswith('projects'):
-        self_link = "/" + self_link
-    response = re.search(r"\/projects\/(.*?)\/zones\/(.*?)\/disks\/(.*?)$",
+        self_link = '/' + self_link
+    response = re.search(r'\/projects\/(.*?)\/zones\/(.*?)\/disks\/(.*?)$',
                          self_link)
     if len(response.groups()) != 3:
         raise InvalidFormatException('Invalid SelfLink Format')
@@ -41,24 +41,24 @@ def parse_self_link(self_link):
 
 
 def delete_disk(disk, project, zone, name):
-    logging.info("Deleting Disk %s ", (name))
+    logging.info('Deleting Disk %s ', name)
     return disk.delete(project=project, zone=zone, disk=name).execute()
 
 
 def delete(project, zone, instance_name, disk_name):
     try:
         waited_time = DISK_RATE_LIMIT.wait()  # wait before starting the task
-        logging.info(f"  task: waited for {waited_time} secs")
+        logging.info('  task: waited for %s secs', waited_time)
         compute = instance.get_compute()
         image = machine_image.get(project, instance_name)
         if image:
-            logging.info("Found machine image can safely delete the disk %s" %
+            logging.info('Found machine image can safely delete the disk %s',
                          disk_name)
             disks = compute.disks()
             try:
                 disk = disks.get(project=project, zone=zone,
                                  disk=disk_name).execute()
-            except:
+            except Exception:
                 disk = None
             if disk:
                 delete_operation = delete_disk(disks, project, zone, disk_name)
@@ -67,7 +67,7 @@ def delete(project, zone, instance_name, disk_name):
             return disk_name
         else:
             raise NotFoundException(
-                "Can't delete the disk as machine image not found")
+                'Can\'t delete the disk as machine image not found')
     except (NotFoundException, Exception) as ex:
         logging.error(ex)
         raise ex
