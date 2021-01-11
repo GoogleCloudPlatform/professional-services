@@ -46,7 +46,8 @@ def bulk_image_create(project,
         machine_image_future = []
         machine_image_name = ''
         # We can use a with statement to ensure threads are cleaned up promptly
-        with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
+        with concurrent.futures.ThreadPoolExecutor(
+                max_workers=100) as executor:
             # Start the load operations and mark each future with its URL
             for row in csv_dict_reader:
                 machine_image_future.append(
@@ -55,7 +56,8 @@ def bulk_image_create(project,
                                     row['name']))
                 count = count + 1
 
-            for future in concurrent.futures.as_completed(machine_image_future):
+            for future in concurrent.futures.as_completed(
+                    machine_image_future):
                 try:
                     machine_image_name = future.result()
                     tracker = tracker + 1
@@ -78,7 +80,8 @@ def bulk_delete_instances(file_name):
         instance_name = ''
 
         # We can use a with statement to ensure threads are cleaned up promptly
-        with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
+        with concurrent.futures.ThreadPoolExecutor(
+                max_workers=100) as executor:
             # Start the load operations and mark each future with its URL
             for row in csv_dict_reader:
                 parsed_link = instance.parse_self_link(row['self_link'])
@@ -94,7 +97,7 @@ def bulk_delete_instances(file_name):
                     logging.info('%r machine deleted sucessfully' %
                                  (instance_name))
                     logging.info("%i out of %i deleted" % (tracker, count))
-                except(GCPOperationException, Exception) as exc:
+                except (GCPOperationException, Exception) as exc:
                     logging.error(
                         'machine deletion generated an exception: %s' % (exc))
 
@@ -107,7 +110,8 @@ def bulk_delete_disks(file_name):
         disk_future = []
         disk_name = ''
         # We can use a with statement to ensure threads are cleaned up promptly
-        with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
+        with concurrent.futures.ThreadPoolExecutor(
+                max_workers=100) as executor:
             # Start the load operations and mark each future with its URL
             for row in csv_dict_reader:
                 parsed_link = instance.parse_self_link(row['self_link'])
@@ -124,12 +128,11 @@ def bulk_delete_disks(file_name):
                 try:
                     disk_name = future.result()
                     tracker = tracker + 1
-                    logging.info('%r disk deleted sucessfully' %
-                                 (disk_name))
+                    logging.info('%r disk deleted sucessfully' % (disk_name))
                     logging.info("%i out of %i deleted" % (tracker, count))
                 except (GCPOperationException, Exception) as exc:
-                    logging.error(
-                        'disk deletion generated an exception: %s' % (exc))
+                    logging.error('disk deletion generated an exception: %s' %
+                                  (exc))
 
 
 def bulk_instance_shutdown(file_name):
@@ -140,7 +143,8 @@ def bulk_instance_shutdown(file_name):
         instance_future = []
         machine_name = ''
         # We can use a with statement to ensure threads are cleaned up promptly
-        with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
+        with concurrent.futures.ThreadPoolExecutor(
+                max_workers=100) as executor:
             # Start the load operations and mark each future with its URL
             for row in csv_dict_reader:
                 parsed_link = instance.parse_self_link(row['self_link'])
@@ -169,7 +173,8 @@ def bulk_instance_start(file_name):
         instance_future = []
         machine_name = ''
         # We can use a with statement to ensure threads are cleaned up promptly
-        with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
+        with concurrent.futures.ThreadPoolExecutor(
+                max_workers=100) as executor:
             # Start the load operations and mark each future with its URL
             for row in csv_dict_reader:
                 parsed_link = instance.parse_self_link(row['self_link'])
@@ -199,7 +204,8 @@ def bulk_create_instances(file_name, target_subnet, retain_ip):
         instance_future = []
         machine_name = ''
         # We can use a with statement to ensure threads are cleaned up promptly
-        with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
+        with concurrent.futures.ThreadPoolExecutor(
+                max_workers=100) as executor:
             # Start the load operations and mark each future with its URL
             for row in csv_dict_reader:
                 ip = None
@@ -213,8 +219,8 @@ def bulk_create_instances(file_name, target_subnet, retain_ip):
                 for i in range(4):
                     alias_range = {}
                     if row['range_name_' + str(i + 1)] != '':
-                        alias_range['subnetworkRangeName'] = row['range_name_' +
-                                                                 str(i + 1)]
+                        alias_range['subnetworkRangeName'] = row['range_name_'
+                                                                 + str(i + 1)]
                     if row['alias_ip_name_' + str(i + 1)]:
                         alias_range['aliasIpName'] = row['alias_ip_name_' +
                                                          str(i + 1)]
@@ -226,8 +232,9 @@ def bulk_create_instances(file_name, target_subnet, retain_ip):
                 disk_names = {}
                 for i in range(9):
                     if row['device_name_' + str(i + 1)] != '':
-                        disk_names[row['device_name_' + str(i + 1)]] = row['disk_name_' +
-                                                                      str(i + 1)]
+                        disk_names[row['device_name_' +
+                                       str(i + 1)]] = row['disk_name_' +
+                                                          str(i + 1)]
 
                 node_group = None
                 if row['node_group'] and row['node_group'] != '':
@@ -330,7 +337,7 @@ def release_ips_from_file(file_name):
                 if ip_name != '' and row['range_name_' + str(i + 1)] == "":
                     ips.append(ip_name)
             subnet.release_specific_ips(project, region, ips)
-            time.sleep(2) # Prevent making too many requests in loop
+            time.sleep(2)  # Prevent making too many requests in loop
 
 
 # main function
@@ -369,7 +376,7 @@ def main(project,
                                 source_zone_3, source_subnet, "source.csv")
         logging.info("filtering out the inventory")
         overwrite_file = filter_records("source.csv", filter_file_name,
-                                       file_name)
+                                        file_name)
         if overwrite_file:
             logging.info("%s now has filtered records" % (file_name))
         else:

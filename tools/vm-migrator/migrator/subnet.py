@@ -25,13 +25,12 @@ from . import disk
 from . import fields
 
 
-
 def get_compute():
     compute = googleapiclient.discovery.build('compute',
                                               'beta',
                                               cache_discovery=False)
-    logging.getLogger(
-        'googleapiclient.discovery_cache').setLevel(logging.ERROR)
+    logging.getLogger('googleapiclient.discovery_cache').setLevel(
+        logging.ERROR)
     return compute
 
 
@@ -119,9 +118,8 @@ def export_instances(project, zone, zone_2, zone_3, subnet, file_name):
                 else:
                     logging.warning(
                         "Too many disks: dropping disk name %s with and "
-                        "device name %s" %
-                        (disk.parse_self_link(disks['source'])['name'],
-                            disks['deviceName']))
+                        "device name %s" % (disk.parse_self_link(
+                            disks['source'])['name'], disks['deviceName']))
 
             alias_ips = instances['networkInterfaces'][0].get('aliasIpRanges')
             if alias_ips:
@@ -152,6 +150,7 @@ def export_instances(project, zone, zone_2, zone_3, subnet, file_name):
 
         logging.info("Successfully written %i records to %s" %
                      (len(mydict), file_name))
+
 
 def release(compute, project, region, address):
     try:
@@ -208,7 +207,8 @@ def wait_for_operation(compute, project, region, operation):
         time.sleep(5)
 
 
-def duplicate(project, source_subnet, source_subnet_region, destination_region):
+def duplicate(project, source_subnet, source_subnet_region,
+              destination_region):
     compute = get_compute()
     subnet_request = compute.subnetworks().get(project=project,
                                                region=source_subnet_region,
@@ -216,8 +216,8 @@ def duplicate(project, source_subnet, source_subnet_region, destination_region):
     config = subnet_request.execute()
     config['region'] = destination_region
     logging.info("starting subnet %s deletion" % (source_subnet))
-    delete_operation = delete_subnetwork(compute, project, source_subnet_region,
-                                         source_subnet)
+    delete_operation = delete_subnetwork(compute, project,
+                                         source_subnet_region, source_subnet)
     wait_for_operation(compute, project, source_subnet_region,
                        delete_operation['name'])
     logging.info("subnet %s deleted successfully" % (source_subnet))

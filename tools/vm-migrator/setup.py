@@ -29,7 +29,8 @@ setuptools.setup(
     description="This package is used to migrate VMs within GCP environment",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/GoogleCloudPlatform/professional-services/tools/vm-migrator",
+    url=
+    "https://github.com/GoogleCloudPlatform/professional-services/tools/vm-migrator",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",

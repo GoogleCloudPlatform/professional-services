@@ -24,12 +24,14 @@ class InvalidFormatException(Exception):
     """
     pass
 
+
 class NotFoundException(Exception):
     """
     This exception signifies tha the GCP resources which you want to
     operate does not exist.
     """
     pass
+
 
 class GCPOperationException(Exception):
     """

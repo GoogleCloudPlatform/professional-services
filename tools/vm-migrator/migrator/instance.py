@@ -33,8 +33,8 @@ def get_compute():
     compute = googleapiclient.discovery.build('compute',
                                               'beta',
                                               cache_discovery=False)
-    logging.getLogger(
-        'googleapiclient.discovery_cache').setLevel(logging.ERROR)
+    logging.getLogger('googleapiclient.discovery_cache').setLevel(
+        logging.ERROR)
     return compute
 
 
@@ -64,8 +64,10 @@ def get_updated_node_group(node_group):
             config = {
                 "scheduling": {
                     "nodeAffinities": [{
-                        "key": 'compute.googleapis.com/node-group-name',
-                        "operator": "IN",
+                        "key":
+                        'compute.googleapis.com/node-group-name',
+                        "operator":
+                        "IN",
                         "values": [node_group_mapping.FIND[node_group]]
                     }]
                 }
@@ -132,7 +134,8 @@ def start(project, zone, instance_name):
 
 def delete_instance(compute, project, zone, name):
     logging.info("Deleting Instance %s ", (name))
-    return compute.instances().delete(project=project, zone=zone,
+    return compute.instances().delete(project=project,
+                                      zone=zone,
                                       instance=name).execute()
 
 
@@ -183,7 +186,7 @@ def delete(project, zone, name):
         else:
             raise NotFoundException(
                 "Cant Delete the instance as machine image not found")
-    except (GCPOperationException, NotFoundException,  Exception) as ex:
+    except (GCPOperationException, NotFoundException, Exception) as ex:
         logging.error(ex)
         raise ex
 
@@ -255,7 +258,7 @@ def create_instance(compute, project, zone, network, subnet, name,
     """
     config = {
         'name':
-            name,
+        name,
         'networkInterfaces': [{
             'network': network,
             'subnetwork': subnet,
@@ -279,7 +282,8 @@ def create_instance(compute, project, zone, network, subnet, name,
     # destination subnet
     if ip:
         logging.info(
-            "Trying to create the machine %s while preserving its ips" % (name))
+            "Trying to create the machine %s while preserving its ips" %
+            (name))
         reserve_internal_ip(compute, project, name, get_region_from_zone(zone),
                             subnet, ip)
     else:
@@ -301,8 +305,8 @@ def create_instance(compute, project, zone, network, subnet, name,
         logging.info("Found alias ip ranges, reserving it")
         for alias_ip in alias_ip_ranges:
             # If the alias ip is from the primary range then reserve it
-            if (not alias_ip.get("subnetworkRangeName") and
-                    alias_ip['ipCidrRange'].endswith("/32")):
+            if (not alias_ip.get("subnetworkRangeName")
+                    and alias_ip['ipCidrRange'].endswith("/32")):
 
                 # Extract the ip address from something like 10.0.0.2/32
                 length_ip = len(alias_ip['ipCidrRange']) - 3
@@ -336,8 +340,8 @@ def create_instance(compute, project, zone, network, subnet, name,
     return compute.instances().insert(project=project,
                                       zone=zone,
                                       body=config,
-                                      sourceMachineImage='projects/' + project +
-                                      '/global/machineImages/' +
+                                      sourceMachineImage='projects/' +
+                                      project + '/global/machineImages/' +
                                       name).execute()
 
 
@@ -380,8 +384,8 @@ def create(project,
         logging.info('Creating instance %s' % (instance_name))
 
         create_instance(compute, project, target_zone, network, subnet,
-                        instance_name, alias_ip_ranges, node_group,
-                        disk_names, ip, machine_type)
+                        instance_name, alias_ip_ranges, node_group, disk_names,
+                        ip, machine_type)
         if wait:
             wait_for_instance(compute, project, target_zone, instance_name)
         logging.info(

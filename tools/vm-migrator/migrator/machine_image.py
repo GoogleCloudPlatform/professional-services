@@ -71,7 +71,8 @@ def get_compute():
     compute = googleapiclient.discovery.build('compute',
                                               'beta',
                                               cache_discovery=False)
-    logging.getLogger('googleapiclient.discovery_cache').setLevel(logging.ERROR)
+    logging.getLogger('googleapiclient.discovery_cache').setLevel(
+        logging.ERROR)
     return compute
 
 

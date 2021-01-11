@@ -52,17 +52,18 @@ def delete(project, zone, instance_name, disk_name):
         compute = instance.get_compute()
         image = machine_image.get(project, instance_name)
         if image:
-            logging.info("Found machine image can safely delete the disk %s"
-                % disk_name)
+            logging.info("Found machine image can safely delete the disk %s" %
+                         disk_name)
             disks = compute.disks()
             try:
-                disk = disks.get(project=project, zone=zone, disk=disk_name).execute()
+                disk = disks.get(project=project, zone=zone,
+                                 disk=disk_name).execute()
             except:
                 disk = None
             if disk:
                 delete_operation = delete_disk(disks, project, zone, disk_name)
                 instance.wait_for_zonal_operation(compute, project, zone,
-                    delete_operation['name'])
+                                                  delete_operation['name'])
             return disk_name
         else:
             raise NotFoundException(
