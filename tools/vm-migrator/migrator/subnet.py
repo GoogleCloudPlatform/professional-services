@@ -39,7 +39,7 @@ def get_alias_ip_name(project, region, subnet, ip):
     compute = get_compute()
     subnet = "https://www.googleapis.com/compute/beta/" + subnet
 
-    if (ip.endswith("/32")):
+    if ip.endswith("/32"):
         # Extract the ip address from something like 10.0.0.2/32
         length_ip = len(ip) - 3
         ip = ip[0:length_ip]
@@ -94,13 +94,13 @@ def export_instances(project, zone, zone_2, zone_3, subnet, file_name):
     if result_zone_2.get("items") and zone_2:
         result['items'] = result['items'] + result_zone_2.get("items")
 
-    if (result_zone_3.get("items") and zone_3):
+    if result_zone_3.get("items") and zone_3:
         result['items'] = result['items'] + result_zone_3.get("items")
 
     for instances in result['items']:
 
         headers = fields.HEADERS
-        if (instances['networkInterfaces'][0]['subnetwork']).endswith(subnet):
+        if instances['networkInterfaces'][0]['subnetwork'].endswith(subnet):
             csv = {
                 'name': instances['name'],
                 'id': instances['id'],

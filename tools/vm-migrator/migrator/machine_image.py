@@ -43,7 +43,7 @@ def get(project, name):
     try:
         result = compute.machineImages().get(project=project,
                                              machineImage=name).execute()
-        if (result['selfLink']):
+        if result['selfLink']:
             return result
     except:
         return None

@@ -25,7 +25,7 @@ from . import machine_type_mapping
 from . import machine_image
 from ratemate import RateLimit
 
-rate_limit = RateLimit(max_count=2000, per=100)
+RATE_LIMIT = RateLimit(max_count=2000, per=100)
 
 
 def get_compute():
@@ -39,8 +39,8 @@ def get_compute():
 
 def is_hosted_on_sole_tenant(instance):
     try:
-        if (instance.get('scheduling')):
-            if (instance.get('scheduling').get('nodeAffinities')):
+        if instance.get('scheduling'):
+            if instance.get('scheduling').get('nodeAffinities'):
                 if (isinstance(instance['scheduling']['nodeAffinities'], list)
                         and len(instance['scheduling']['nodeAffinities']) > 0):
                     if (instance['scheduling']['nodeAffinities'][0].get('key')
@@ -52,14 +52,14 @@ def is_hosted_on_sole_tenant(instance):
 
 
 def get_node_group(instance):
-    if (is_hosted_on_sole_tenant(instance)):
+    if is_hosted_on_sole_tenant(instance):
         return instance['scheduling']['nodeAffinities'][0]['values'][0]
     return None
 
 
 def get_updated_node_group(node_group):
     try:
-        if (node_group_mapping.FIND.get(node_group)):
+        if node_group_mapping.FIND.get(node_group):
             config = {
                 "scheduling": {
                     "nodeAffinities": [{
@@ -79,11 +79,11 @@ def get_updated_node_group(node_group):
 
 
 def parse_self_link(self_link):
-    if (self_link.startswith('projects')):
+    if self_link.startswith('projects'):
         self_link = "/" + self_link
     response = re.search(r"\/projects\/(.*?)\/zones\/(.*?)\/instances\/(.*?)$",
                          self_link)
-    if (len(response.groups()) != 3):
+    if len(response.groups()) != 3:
         raise Exception('Invalid SelfLink Format')
     return {
         'instance_id': response.group(3),
@@ -101,7 +101,7 @@ def shutdown_instance(compute, project, zone, instance_name):
 
 def shutdown(project, zone, instance_name):
     try:
-        waited_time = rate_limit.wait()  # wait before starting the task
+        waited_time = RATE_LIMIT.wait()  # wait before starting the task
         logging.info(f"  task: waited for {waited_time} secs")
         compute = get_compute()
         logging.info("Shutting Down Instance %s ", (instance_name))
@@ -116,7 +116,7 @@ def shutdown(project, zone, instance_name):
 
 def start(project, zone, instance_name):
     try:
-        waited_time = rate_limit.wait()  # wait before starting the task
+        waited_time = RATE_LIMIT.wait()  # wait before starting the task
         logging.info(f"  task: waited for {waited_time} secs")
         compute = get_compute()
         logging.info("Starting Instance %s ", (instance_name))
@@ -171,11 +171,11 @@ def wait_for_regional_operation(compute, project, region, operation):
 
 def delete(project, zone, name):
     try:
-        waited_time = rate_limit.wait()  # wait before starting the task
+        waited_time = RATE_LIMIT.wait()  # wait before starting the task
         logging.info(f"  task: waited for {waited_time} secs")
         compute = get_compute()
         image = machine_image.get(project, name)
-        if (image):
+        if image:
             logging.info("Found machine image can safely delete the instance")
             delete_operation = delete_instance(compute, project, zone, name)
             wait_for_zonal_operation(compute, project, zone,
@@ -192,7 +192,7 @@ def delete(project, zone, name):
 
 def get_region_from_zone(zone):
     match = re.search(r"(\w+)-(\w+)-(\w+)", zone)
-    if (len(match.groups()) != 3):
+    if len(match.groups()) != 3:
         raise Exception('Invalid Zone Format')
     return match.group(1) + "-" + match.group(2)
 
@@ -225,19 +225,19 @@ def upgrade_machine_type(machine_type, destination_zone):
     #  the machine type is of the form
     # https://www.googleapis.com/compute/beta/projects/pso-suchit/zones/us-east1-c/machineTypes/n1-standard-4
     logging.info('looking for upgrading the machine type')
-    if (machine_type.startswith('projects')):
+    if machine_type.startswith('projects'):
         machine_type = '/' + machine_type
 
     response = re.search(
         r'\/projects\/(.*?)\/zones\/(.*?)\/machineTypes\/(.*?)$', machine_type)
-    if (len(response.groups()) != 3):
+    if len(response.groups()) != 3:
         raise Exception('Invalid Machine Type Format')
 
     original_machine_type = response.group(3)
     original_zone = response.group(2)
     destination_machine_type = machine_type_mapping.FIND.get(
         original_machine_type)
-    if (destination_machine_type):
+    if destination_machine_type:
         logging.info('found a match to upgrade the machine type %s with %s' %
                      (machine_type, destination_machine_type))
         machine_type = machine_type.replace(original_machine_type,
@@ -310,7 +310,7 @@ def create_instance(compute, project, zone, network, subnet, name,
                 length_ip = len(alias_ip['ipCidrRange']) - 3
 
                 # Retain existing alias ip or create a random ip and use that
-                if (ip):
+                if ip:
                     actual_ip = alias_ip['ipCidrRange'][0:length_ip]
                 else:
                     actual_ip = None
@@ -318,7 +318,7 @@ def create_instance(compute, project, zone, network, subnet, name,
                 # Reserve the alias ip
 
                 alias_ip_name = alias_ip.get('aliasIpName')
-                if (not alias_ip_name):
+                if not alias_ip_name:
                     alias_ip_name = name + "-alias-ip-" + str(i)
 
                 # Passing None in actual ip will reserve a random ip for the name
@@ -328,7 +328,7 @@ def create_instance(compute, project, zone, network, subnet, name,
                                     get_region_from_zone(zone), subnet,
                                     actual_ip)
                 # Since we are not retaining the ip we will use the random reserved ip
-                if (not actual_ip):
+                if not actual_ip:
                     alias_ip['ipCidrRange'] = get_ip(
                         compute, project, alias_ip_name,
                         get_region_from_zone(zone)) + "/32"
@@ -376,7 +376,7 @@ def create(project,
     Main function to create the instance.
     """
     try:
-        waited_time = rate_limit.wait()  # wait before starting the task
+        waited_time = RATE_LIMIT.wait()  # wait before starting the task
         logging.info(f"  task: waited for {waited_time} secs")
         compute = get_compute()
         logging.info('Creating instance %s' % (instance_name))

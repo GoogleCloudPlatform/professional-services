@@ -26,11 +26,11 @@ DISK_RATE_LIMIT = RateLimit(max_count=2000, per=100)
 
 
 def parse_self_link(self_link):
-    if (self_link.startswith('projects')):
+    if self_link.startswith('projects'):
         self_link = "/" + self_link
     response = re.search(r"\/projects\/(.*?)\/zones\/(.*?)\/disks\/(.*?)$",
                          self_link)
-    if (len(response.groups()) != 3):
+    if len(response.groups()) != 3:
         raise Exception('Invalid SelfLink Format')
     return {
         'name': response.group(3),
@@ -50,7 +50,7 @@ def delete(project, zone, instance_name, disk_name):
         logging.info(f"  task: waited for {waited_time} secs")
         compute = instance.get_compute()
         image = machine_image.get(project, instance_name)
-        if (image):
+        if image:
             logging.info("Found machine image can safely delete the disk %s"
                 % disk_name)
             disks = compute.disks()
