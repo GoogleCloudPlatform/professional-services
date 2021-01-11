@@ -20,6 +20,7 @@ import re
 import logging
 from . import instance
 from . import machine_image
+from .exceptions import InvalidFormatException, NotFoundException
 from ratemate import RateLimit
 
 DISK_RATE_LIMIT = RateLimit(max_count=2000, per=100)
@@ -31,7 +32,7 @@ def parse_self_link(self_link):
     response = re.search(r"\/projects\/(.*?)\/zones\/(.*?)\/disks\/(.*?)$",
                          self_link)
     if len(response.groups()) != 3:
-        raise Exception('Invalid SelfLink Format')
+        raise InvalidFormatException('Invalid SelfLink Format')
     return {
         'name': response.group(3),
         'zone': response.group(2),
@@ -64,9 +65,8 @@ def delete(project, zone, instance_name, disk_name):
                     delete_operation['name'])
             return disk_name
         else:
-            raise Exception(
+            raise NotFoundException(
                 "Can't delete the disk as machine image not found")
-    except Exception as ex:
+    except (NotFoundException, Exception) as ex:
         logging.error(ex)
-        print(ex)
         raise ex

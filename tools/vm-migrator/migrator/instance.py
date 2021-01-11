@@ -23,6 +23,7 @@ import logging
 from . import node_group_mapping
 from . import machine_type_mapping
 from . import machine_image
+from .exceptions import InvalidFormatException
 from ratemate import RateLimit
 
 RATE_LIMIT = RateLimit(max_count=2000, per=100)
@@ -84,7 +85,7 @@ def parse_self_link(self_link):
     response = re.search(r"\/projects\/(.*?)\/zones\/(.*?)\/instances\/(.*?)$",
                          self_link)
     if len(response.groups()) != 3:
-        raise Exception('Invalid SelfLink Format')
+        raise InvalidFormatException('Invalid SelfLink Format')
     return {
         'instance_id': response.group(3),
         'zone': response.group(2),
