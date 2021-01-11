@@ -62,18 +62,18 @@ def get_updated_node_group(node_group):
     try:
         if node_group_mapping.FIND.get(node_group):
             config = {
-                "scheduling": {
-                    "nodeAffinities": [{
-                        "key":
+                'scheduling': {
+                    'nodeAffinities': [{
+                        'key':
                         'compute.googleapis.com/node-group-name',
-                        "operator":
-                        "IN",
-                        "values": [node_group_mapping.FIND[node_group]]
+                        'operator':
+                        'IN',
+                        'values': [node_group_mapping.FIND[node_group]]
                     }]
                 }
             }
-            logging.info("Found a matching node group %s for %s" %
-                         (node_group, node_group_mapping.FIND.get(node_group)))
+            logging.info('Found a matching node group %s for %s',
+                         node_group, node_group_mapping.FIND.get(node_group))
             return config
         else:
             return None
@@ -83,8 +83,8 @@ def get_updated_node_group(node_group):
 
 def parse_self_link(self_link):
     if self_link.startswith('projects'):
-        self_link = "/" + self_link
-    response = re.search(r"\/projects\/(.*?)\/zones\/(.*?)\/instances\/(.*?)$",
+        self_link = '/' + self_link
+    response = re.search(r'\/projects\/(.*?)\/zones\/(.*?)\/instances\/(.*?)$',
                          self_link)
     if len(response.groups()) != 3:
         raise InvalidFormatException('Invalid SelfLink Format')
@@ -105,9 +105,9 @@ def shutdown_instance(compute, project, zone, instance_name):
 def shutdown(project, zone, instance_name):
     try:
         waited_time = RATE_LIMIT.wait()  # wait before starting the task
-        logging.info(f"  task: waited for {waited_time} secs")
+        logging.info('  task: waited for %s secs',waited_time)
         compute = get_compute()
-        logging.info("Shutting Down Instance %s ", (instance_name))
+        logging.info('Shutting Down Instance %s ', instance_name)
         result = shutdown_instance(compute, project, zone, instance_name)
         wait_for_zonal_operation(compute, project, zone, result['name'])
         return instance_name
@@ -119,9 +119,9 @@ def shutdown(project, zone, instance_name):
 def start(project, zone, instance_name):
     try:
         waited_time = RATE_LIMIT.wait()  # wait before starting the task
-        logging.info(f"  task: waited for {waited_time} secs")
+        logging.info('  task: waited for %s secs', waited_time)
         compute = get_compute()
-        logging.info("Starting Instance %s ", (instance_name))
+        logging.info('Starting Instance %s ', instance_name)
         result = compute.instances().start(project=project,
                                            zone=zone,
                                            instance=instance_name).execute()
@@ -133,7 +133,7 @@ def start(project, zone, instance_name):
 
 
 def delete_instance(compute, project, zone, name):
-    logging.info("Deleting Instance %s ", (name))
+    logging.info('Deleting Instance %s ', name)
     return compute.instances().delete(project=project,
                                       zone=zone,
                                       instance=name).execute()
@@ -147,7 +147,7 @@ def wait_for_zonal_operation(compute, project, zone, operation):
                                               operation=operation).execute()
 
         if result['status'] == 'DONE':
-            logging.info("done.")
+            logging.info('done.')
             if 'error' in result:
                 raise GCPOperationException(result['error'])
             return result
@@ -163,7 +163,7 @@ def wait_for_regional_operation(compute, project, region, operation):
                                                 operation=operation).execute()
 
         if result['status'] == 'DONE':
-            logging.info("done.")
+            logging.info('done.')
             if 'error' in result:
                 raise GCPOperationException(result['error'])
             return result
@@ -174,28 +174,28 @@ def wait_for_regional_operation(compute, project, region, operation):
 def delete(project, zone, name):
     try:
         waited_time = RATE_LIMIT.wait()  # wait before starting the task
-        logging.info(f"  task: waited for {waited_time} secs")
+        logging.info('  task: waited for %s secs',waited_time)
         compute = get_compute()
         image = machine_image.get(project, name)
         if image:
-            logging.info("Found machine image can safely delete the instance")
+            logging.info('Found machine image can safely delete the instance')
             delete_operation = delete_instance(compute, project, zone, name)
             wait_for_zonal_operation(compute, project, zone,
                                      delete_operation['name'])
             return name
         else:
             raise NotFoundException(
-                "Cant Delete the instance as machine image not found")
+                'Cant Delete the instance as machine image not found')
     except (GCPOperationException, NotFoundException, Exception) as ex:
         logging.error(ex)
         raise ex
 
 
 def get_region_from_zone(zone):
-    match = re.search(r"(\w+)-(\w+)-(\w+)", zone)
+    match = re.search(r'(\w+)-(\w+)-(\w+)', zone)
     if len(match.groups()) != 3:
         raise Exception('Invalid Zone Format')
-    return match.group(1) + "-" + match.group(2)
+    return match.group(1) + '-' + match.group(2)
 
 
 def get_ip(compute, project, address, region):
@@ -207,12 +207,12 @@ def get_ip(compute, project, address, region):
 
 def reserve_internal_ip(compute, project, name, region, subnet, ip):
     config = {
-        "address": ip,
-        "addressType": "INTERNAL",
-        "name": name,
-        "subnetwork": subnet
+        'address': ip,
+        'addressType': 'INTERNAL',
+        'name': name,
+        'subnetwork': subnet
     }
-    logging.info(("Reserving internal ip %s and %s") % (name, ip))
+    logging.info('Reserving internal ip %s and %s', name, ip)
     insert_operation = compute.addresses().insert(project=project,
                                                   region=region,
                                                   body=config).execute()
@@ -239,12 +239,12 @@ def upgrade_machine_type(machine_type, destination_zone):
     destination_machine_type = machine_type_mapping.FIND.get(
         original_machine_type)
     if destination_machine_type:
-        logging.info('found a match to upgrade the machine type %s with %s' %
-                     (machine_type, destination_machine_type))
+        logging.info('found a match to upgrade the machine type %s with %s',
+                     machine_type, destination_machine_type)
         machine_type = machine_type.replace(original_machine_type,
                                             destination_machine_type)
         machine_type = machine_type.replace(original_zone, destination_zone)
-        logging.info("upgrading machine to %s" % (machine_type))
+        logging.info('upgrading machine to %s', machine_type)
         return machine_type
 
     # could not find the mapping so dont change the machine type
@@ -265,11 +265,11 @@ def create_instance(compute, project, zone, network, subnet, name,
             'networkIP': ip
         }],
         'disks': [{
-            'deviceName': deviceName,
+            'deviceName': device_name,
             'initializeParams': {
-                'diskName': diskName
+                'diskName': disk_name
             }
-        } for (deviceName, diskName) in disk_names.items()]
+        } for (device_name, disk_name) in disk_names.items()]
     }
 
     # upgrade the machine type in the destination zone
@@ -282,31 +282,33 @@ def create_instance(compute, project, zone, network, subnet, name,
     # destination subnet
     if ip:
         logging.info(
-            "Trying to create the machine %s while preserving its ips" %
-            (name))
+            'Trying to create the machine %s while preserving its ips',
+            name)
         reserve_internal_ip(compute, project, name, get_region_from_zone(zone),
                             subnet, ip)
     else:
-        # Since we cant reserve the same ip address passing None as the ip to reserve random IP
-        # The internal ip address is reserved with the same name as machine name
-        logging.info("Reserving random ip for machine %s " % (name))
+        # Since we cant reserve the same ip address passing
+        # None as the ip to reserve random IP
+        # The internal ip address is reserved with the same name
+        # as machine name
+        logging.info('Reserving random ip for machine %s ', name)
         reserve_internal_ip(compute, project, name, get_region_from_zone(zone),
                             subnet, None)
         config['networkInterfaces'][0]['networkIP'] = get_ip(
             compute, project, name, get_region_from_zone(zone))
 
     if node_group and get_updated_node_group(node_group):
-        logging.info("Found a sole tenant maching running on node group %s" %
-                     (node_group))
+        logging.info('Found a sole tenant maching running on node group %s',
+                     node_group)
         config['scheduling'] = get_updated_node_group(node_group)['scheduling']
 
     i = 1
     if len(alias_ip_ranges) > 0:
-        logging.info("Found alias ip ranges, reserving it")
+        logging.info('Found alias ip ranges, reserving it')
         for alias_ip in alias_ip_ranges:
             # If the alias ip is from the primary range then reserve it
-            if (not alias_ip.get("subnetworkRangeName")
-                    and alias_ip['ipCidrRange'].endswith("/32")):
+            if (not alias_ip.get('subnetworkRangeName')
+                    and alias_ip['ipCidrRange'].endswith('/32')):
 
                 # Extract the ip address from something like 10.0.0.2/32
                 length_ip = len(alias_ip['ipCidrRange']) - 3
@@ -321,19 +323,21 @@ def create_instance(compute, project, zone, network, subnet, name,
 
                 alias_ip_name = alias_ip.get('aliasIpName')
                 if not alias_ip_name:
-                    alias_ip_name = name + "-alias-ip-" + str(i)
+                    alias_ip_name = name + '-alias-ip-' + str(i)
 
-                # Passing None in actual ip will reserve a random ip for the name
-                logging.info("reserving alias ip %s for machine %s" %
-                             (actual_ip, name))
+                # Passing None in actual ip will reserve a
+                # random ip for the name
+                logging.info('reserving alias ip %s for machine %s',
+                             actual_ip, name)
                 reserve_internal_ip(compute, project, alias_ip_name,
                                     get_region_from_zone(zone), subnet,
                                     actual_ip)
-                # Since we are not retaining the ip we will use the random reserved ip
+                # Since we are not retaining the ip we will use the
+                # random reserved ip
                 if not actual_ip:
                     alias_ip['ipCidrRange'] = get_ip(
                         compute, project, alias_ip_name,
-                        get_region_from_zone(zone)) + "/32"
+                        get_region_from_zone(zone)) + '/32'
                 i = i + 1
         config['networkInterfaces'][0]['aliasIpRanges'] = alias_ip_ranges
 
@@ -379,9 +383,9 @@ def create(project,
     """
     try:
         waited_time = RATE_LIMIT.wait()  # wait before starting the task
-        logging.info(f"  task: waited for {waited_time} secs")
+        logging.info('  task: waited for %s secs',waited_time)
         compute = get_compute()
-        logging.info('Creating instance %s' % (instance_name))
+        logging.info('Creating instance %s', instance_name)
 
         create_instance(compute, project, target_zone, network, subnet,
                         instance_name, alias_ip_ranges, node_group, disk_names,
@@ -389,8 +393,8 @@ def create(project,
         if wait:
             wait_for_instance(compute, project, target_zone, instance_name)
         logging.info(
-            'Instance %s created and running form source MachineImage %s' %
-            (instance_name, instance_name))
+            'Instance %s created and running form source MachineImage %s',
+            instance_name, instance_name)
         return instance_name
 
     except (GCPOperationException, Exception) as ex:
