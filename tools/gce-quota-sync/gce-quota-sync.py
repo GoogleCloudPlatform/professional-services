@@ -40,9 +40,6 @@ _LOGGER = logging.getLogger('quota-metrics')
 _METRIC_KIND = monitoring_v3.enums.MetricDescriptor.MetricKind.GAUGE
 _METRIC_TYPE = 'custom.googleapis.com/quota/gce'
 
-# set project_id to avoid auth errors. This should be moved into main.
-os.environ["GOOGLE_CLOUD_PROJECT"] = project_id
-
 
 class Error(Exception):
   pass
@@ -60,6 +57,7 @@ def _add_series(project_id, series, client=None):
   """
   client = client or monitoring_v3.MetricServiceClient()
   project_name = client.project_path(project_id)
+  os.environ["GOOGLE_CLOUD_PROJECT"] = project_id
   if isinstance(series, monitoring_v3.types.TimeSeries):
     series = [series]
   try:
