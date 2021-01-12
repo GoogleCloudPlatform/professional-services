@@ -23,6 +23,7 @@ to set alert policies or create charts.
 
 import datetime
 import logging
+import os
 import warnings
 
 import click
@@ -38,6 +39,9 @@ _BATCH_SIZE = 5
 _LOGGER = logging.getLogger('quota-metrics')
 _METRIC_KIND = monitoring_v3.enums.MetricDescriptor.MetricKind.GAUGE
 _METRIC_TYPE = 'custom.googleapis.com/quota/gce'
+
+# set project_id to avoid auth errors. This should be moved into main.
+os.environ["GOOGLE_CLOUD_PROJECT"] = project_id
 
 
 class Error(Exception):
