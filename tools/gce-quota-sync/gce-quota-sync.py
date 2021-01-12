@@ -24,6 +24,7 @@ to set alert policies or create charts.
 import datetime
 import logging
 import warnings
+from typing import Any, Dict, List, Text, Tuple
 
 import click
 
@@ -44,7 +45,7 @@ class Error(Exception):
   pass
 
 
-def _add_series(project_id, series, client=None):
+def _add_series(project_id: Text, series: List[Text], client=None) -> None:
   """Write metrics series to Stackdriver.
 
   Args:
@@ -53,6 +54,9 @@ def _add_series(project_id, series, client=None):
         monitoring_v3.types.TimeSeries instances
     client: optional monitoring_v3.MetricServiceClient will be used
         instead of obtaining a new one
+
+  Raises:
+    Error if GoogleAPIError is encoutered while trying to create time series.
   """
   client = client or monitoring_v3.MetricServiceClient()
   project_name = client.project_path(project_id)
@@ -81,7 +85,7 @@ def _configure_logging(verbose=True, stackdriver_logging=False):
     client.setup_logging(log_level=level)
 
 
-def _fetch_quotas(project, region='global', compute=None):
+def _fetch_quotas(project: Text, region='global', compute=None) -> Tuple[Text, Dict[Text, Any]]:
   """Fetch GCE per - project or per - region quotas from the API.
 
   Args:
@@ -89,6 +93,13 @@ def _fetch_quotas(project, region='global', compute=None):
     region: which quotas to fetch, 'global' or region name
     compute: optional instance of googleapiclient.discovery.build will be used
         instead of obtaining a new one
+        
+  Returns:
+    A tuple of quota objects containing location, name, limit and usage
+    of a quota metrics.
+    
+  Raises:
+    Error if a Google API error or HttpError is encountered.
   """
   compute = compute or googleapiclient.discovery.build('compute', 'v1')
   try:
@@ -104,7 +115,7 @@ def _fetch_quotas(project, region='global', compute=None):
                 (project, region))
 
 
-def _get_series(metric_labels, value, metric_type=_METRIC_TYPE, dt=None):
+def _get_series(metric_labels: Dict[Text, Text], value: Any, metric_type=_METRIC_TYPE, dt=None) -> Text:
   """Create a Stackdriver monitoring time series from value and labels.
 
   Args:
@@ -112,6 +123,9 @@ def _get_series(metric_labels, value, metric_type=_METRIC_TYPE, dt=None):
     value: time series value
     metric_type: which metric is this series for
     dt: datetime.datetime instance used for the series end time
+    
+  Returns:
+    An iterable of google.cloud.monitoring_v3.types.TimeSeries object type.
   """
   series = monitoring_v3.types.TimeSeries()
   series.metric.type = metric_type
@@ -124,7 +138,7 @@ def _get_series(metric_labels, value, metric_type=_METRIC_TYPE, dt=None):
   return series
 
 
-def _quota_to_series(project, region, quota):
+def _quota_to_series(project: Text, region: Text, quota: Dict[Text, Any]):
   """Convert API quota objects to Stackdriver monitoring time series.
 
   Args:
