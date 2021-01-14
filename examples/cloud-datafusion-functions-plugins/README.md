@@ -131,8 +131,8 @@ This is applicable in the CDAP data pipelines which do the full import/scan the 
 **Dependencies**  
 Destination dataset : `bq_dataset`  
 Destination table : `bq_table`  
-Source dataset : bq_dataset_batch_staging  
-Source table : bq_table
+Source dataset : `bq_dataset_batch_staging`
+Source table : `bq_table`
 
 **`CopyTableAction` plugin requires the following configuration:**
 
@@ -235,19 +235,19 @@ auto-detect
 ### `TruncateTableAction`
 
 **Label:**
-TruncateTableAction
+`TruncateTableAction`
 
 **Key path*:**  
 auto-detect
 
 **ProjectId* :**  
-pso-cdf-plugins-287518
+`pso-cdf-plugins-287518`
 
 **Dataset** *
-bq_dataset
+`bq_dataset`
 
 **Table name***  
-bq_table_LOG
+`bq_table_LOG`
 
 ![image](img/11-truncate_table_action_ui_pipeline_parameters.png)
 
@@ -285,13 +285,13 @@ BigQuery
 bq_table_sink
 
 **Project ID**  
-pso-cdf-plugins-287518
+`pso-cdf-plugins-287518`
 
 **Dataset***  
-bq_dataset
+`bq_dataset`
 
 **Table***  (write to a temporary table, e.g., bq_table_LOG)
-bq_table_LOG
+`bq_table_LOG`
 
 **Service Account File Path**  
 auto-detect
@@ -303,19 +303,19 @@ auto-detect
 ### `MergeLastUpdateTSAction`
 
 **Label***  
-MergeLastUpdateTSAction
+`MergeLastUpdateTSAction`
 
 **Key path***  
 auto-detect
 
 **Project ID***  
-pso-cdf-plugins-287518
+`pso-cdf-plugins-287518`
 
 **Dataset name**  
-bq_dataset
+`bq_dataset`
 
 **Table name***  
-bq_table
+`bq_table`
 
 **Primary key list***  
 id
@@ -328,7 +328,7 @@ id,name,last_update_datetime
 ### `CheckPointUpdateAction`
 
 **Label***  
-CheckPointUpdateAction
+`CheckPointUpdateAction`
 
 **Specify the collection name in firestore DB***  
 PIPELINE_CHECKPOINTS
@@ -337,10 +337,10 @@ PIPELINE_CHECKPOINTS
 INCREMENTAL_DEMO
 
 **Dataset name where incremental pull table exists***  
-bq_dataset
+`bq_dataset`
 
 **Table name that needs incremental pull***  
-bq_table
+`bq_table`
 
 **Specify the checkpoint column from incremental pull table***  
 last_update_datetime
@@ -349,7 +349,7 @@ last_update_datetime
 auto-detect
 
 **project**  
-pso-cdf-plugins-287518
+`pso-cdf-plugins-287518`
 
 ![image](img/15-checkpoint_update_action_ui_pipeline_parameters.png)
 
