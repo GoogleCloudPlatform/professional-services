@@ -74,6 +74,7 @@ Before running the pipeline,add the lastWatermarkValue as runtime argument (on P
 ![image](img/3-runtime_arguments.png)
 
 CheckpointReadAction will populate lastWatermarkValue with the CHECKPOINT_VALUE  from Firestore. lastWatermarkValue runtime argument will be used as parameter of the import query of the Database Source in a subsequent step:  
+```sql
 SELECT * FROM test WHERE last_update_datetime > '${latestWatermarkValue}'
 
 BigQuery - actual destination table name (this is where max checkpoint is taken from - i.e., max timestamp)
