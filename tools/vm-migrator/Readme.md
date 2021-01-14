@@ -31,7 +31,7 @@ The `Makefile` has different variables which are passed to the subnet_region_mig
 | `PROJECT`          | GCP Project Name                  |
 | MACHINE_IMAGE_REGION | The region where you want to store your machine images e.g us-central1 |
 | INPUT_CSV | The filename which will serve as the input to migration process, some of the steps use this filename to export the inventory data  |
-|SOURCE_SUBNET | The source subnet in form projects/\<project-id\>/regions/\<region\>/subnetworks/\<subnet-name\> |
+|SOURCE_SUBNET | The source subnet in form `projects/\<PROJECT_ID\>/regions/\<rEGiON\>/subnetworks/\<SUBNET_NAME\>` |
 |SUBNET_NAME | The name of the source subnet |
 |SOURCE_ZONE | The zone in which the source subnet is present, this is used to fetch the inventory details |
 |SOURCE_ZONE_2 | [Optional] The second zone in which the source subnet is present, this is used to fetch the inventory details |
