@@ -23,15 +23,15 @@ The CDF/CDAP plugins detailed below can be reused in the context of data pipelin
 
 Let's say you run your incremental pipeline once every 5 minutes. When running an incremental pipeline, you have to filter the records by a specific field (e.g., `lastUpdateDateTime` of records > latest watermark value - buffer time) so it will sync the records that were updated since your last incremental sync. Subsequently, a merge and dedupe step is done to make sure only new/updated are synced into the destination table.
 
-## CheckPointReadAction, CheckPointUpdateAction
+## `CheckPointReadAction`, `CheckPointUpdateAction`
 
 **Plugin Description**  
 Creates, reads, and updates checkpoints in incremental pull pipelines.
 
 
-`CheckPointReadAction` - reads checkpoint in Firestore DB and provides the data during runtime as environment variable
+`CheckPointReadAction` - reads checkpoints in Firestore DB and provides the data during runtime as environment variable
 
-`CheckPointUpdateAction` - updates checkpoint in Firestore DB (i.e., creates a new document and stores maximum update date / time  from BQ so the next run it can use this checkpoint value to filter records that were added since then)
+`CheckPointUpdateAction` - updates checkpoints in Firestore DB (i.e., creates a new document and stores maximum update date / time  from BQ so the next run it can use this checkpoint value to filter records that were added since then)
 
 For now these plugins only support timestamp values - in the future, integer values can potentially be added.
 ### Dependencies
@@ -202,7 +202,7 @@ What does the pipeline do?
 1. BigQuery Sink - exports data into BigQuery from previous step (database source)
 1. `MergeLastUpdateTSAction` -  merge based on timestamp and the update column list (columns to keep in the merge).
     -  Note: Alternatively, you can use [`BigQueryExecute`](https://github.com/data-integrations/google-cloud/blob/develop/src/main/java/io/cdap/plugin/gcp/bigquery/action/BigQueryExecute.java) action to do a Merge.
-1. CheckPointUpdateAction - update checkpoint in Firestore from the max record lastUpdateTimestamp in BigQuery 
+1. `CheckPointUpdateAction` - update checkpoint in Firestore from the max record lastUpdateTimestamp in BigQuery 
 
 ## Successful run of Incremental Pipeline
 
