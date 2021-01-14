@@ -21,7 +21,7 @@
 ## Overview
 The CDF/CDAP plugins detailed below can be reused in the context of data pipelines.
 
-Let's say you run your incremental pipeline once every 5 minutes. When running an incremental pipeline, you have to filter the records by a specific field (e.g., lastUpdateDateTime of records > latest watermark value - buffer time) so it will sync the records that were updated since your last incremental sync. Subsequently, a merge and dedupe step is done to make sure only new/updated are synced into the destination table.
+Let's say you run your incremental pipeline once every 5 minutes. When running an incremental pipeline, you have to filter the records by a specific field (e.g., `lastUpdateDateTime` of records > latest watermark value - buffer time) so it will sync the records that were updated since your last incremental sync. Subsequently, a merge and dedupe step is done to make sure only new/updated are synced into the destination table.
 
 ## CheckPointRead Action, CheckPointUpdate Action
 
