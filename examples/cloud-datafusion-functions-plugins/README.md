@@ -29,7 +29,7 @@ Let's say you run your incremental pipeline once every 5 minutes. When running a
 Creates, reads, and updates checkpoints in incremental pull pipelines.
 
 
-**CheckPointReadAction** - reads checkpoint in Firestore DB and provides the data during runtime as environment variable
+`CheckPointReadAction` - reads checkpoint in Firestore DB and provides the data during runtime as environment variable
 
 **CheckPointUpdateAction** - updates CheckPoint in Firestore DB (i.e., creates a new document and stores maximum update date / time  from BQ so the next run it can use this checkpoint value to filter records that were added since then)
 
@@ -132,9 +132,9 @@ Destination table : bq_table
 Source dataset : bq_dataset_batch_staging  
 Source table : bq_table
 
-**CopyTable Action plugin requires the following configuration: **
+**CopyTable Action plugin requires the following configuration:**
 
--  Label : plugin label name.
+-  Label: plugin label name.
 -  Key path: Service account key file path to call the Big Query API.
 -  Project ID: GCP project ID.
 -  Dataset: Big Query dataset name.
@@ -308,7 +308,7 @@ auto-detect
 **Project ID***  
 pso-cdf-plugins-287518
 
-**Dataset name***  
+**Dataset name**  
 bq_dataset
 
 **Table name***  
@@ -355,7 +355,7 @@ pso-cdf-plugins-287518
 This plugin requires Java JDK1.8 and maven.
 
 1. To build the CDAP / CDF plugin jar, execute the following command on the root.
-```
+```bash
 mvn clean compile package
 ```
 
