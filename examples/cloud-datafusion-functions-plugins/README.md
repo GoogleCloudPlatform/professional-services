@@ -42,22 +42,22 @@ For now these plugins only support timestamp values - in the future, integer val
     1. Firestore is used to store / read checkpoints, which is used in your incremental pipelines
 
 1. Create a collection with a document from the parent path /
-    1. Collection ID: PIPELINE_CHECKPOINTS
-    1. Document ID: INCREMENTAL_DEMO
+    1. Collection ID: `PIPELINE_CHECKPOINTS`
+    1. Document ID: `INCREMENTAL_DEMO`
 
 ![image](img/1-create_pipeline_checkpoint_collection.png)
 
-1. Create a collection under Parent path /PIPELINE_CHECKPOINTS/INCREMENTAL_DEMO
-    1. Collection ID: CHECKPOINT
+1. Create a collection under Parent path `/PIPELINE_CHECKPOINTS/INCREMENTAL_DEMO`
+    1. Collection ID: `CHECKPOINT`
     1. Document ID: just accept what was provided initially
         1. Field #1
             1. Note:
                 1. Set to maximum timestamp from destination (BQ table)
                 1. Set to minimum timestamp if running for the first time from source (e.g., SQL server table)
 
-            1. Field name: CREATED_TIMESTAMP
-            1. Field type: string
-            1. Date and time: 2020-05-08 17:21:01
+            1. Field name: `CREATED_TIMESTAMP`
+            1. Field type: `string`
+            1. Date and time: `2020-05-08 17:21:01`
 
         1. Field #2
             1. Note: enter the current time in timestamp format
@@ -69,7 +69,7 @@ For now these plugins only support timestamp values - in the future, integer val
 
 #### Set Runtime Arguments
 
-Before running the pipeline,add the lastWatermarkValue as runtime argument (on Pipeline Studio view, click on drop-down arrow for Run button) and set the value = 0 :
+Before running the pipeline, add the `lastWatermarkValue` variable as runtime argument (on Pipeline Studio view, click on drop-down arrow for Run button) and set the value = 0 :
 
 ![image](img/3-runtime_arguments.png)
 
@@ -129,8 +129,8 @@ Copies the BigQuery table from staging to destination at the end of the pipeline
 This is applicable in the CDAP data pipelines which do the full import/scan the data from source system to BigQuery.
 
 **Dependencies**  
-Destination dataset : bq_dataset  
-Destination table : bq_table  
+Destination dataset : `bq_dataset`  
+Destination table : `bq_table`  
 Source dataset : bq_dataset_batch_staging  
 Source table : bq_table
 
@@ -214,7 +214,7 @@ What does the pipeline do?
 ### `CheckPointReadAction`
 
 **Label:**  
-CheckPointReadAction
+`CheckPointReadAction`
 
 **Specify the document name to read the checkpoint details\*:**  
 INCREMENTAL_DEMO
@@ -223,7 +223,7 @@ INCREMENTAL_DEMO
 1
 
 **project:**  
-pso-cdf-plugins-287518
+`pso-cdf-plugins-287518`
 
 **serviceFilePath:**  
 auto-detect
