@@ -31,7 +31,7 @@ Creates, reads, and updates checkpoints in incremental pull pipelines.
 
 `CheckPointReadAction` - reads checkpoint in Firestore DB and provides the data during runtime as environment variable
 
-`CheckPointUpdateAction` - updates CheckPoint in Firestore DB (i.e., creates a new document and stores maximum update date / time  from BQ so the next run it can use this checkpoint value to filter records that were added since then)
+`CheckPointUpdateAction` - updates checkpoint in Firestore DB (i.e., creates a new document and stores maximum update date / time  from BQ so the next run it can use this checkpoint value to filter records that were added since then)
 
 For now these plugins only support timestamp values - in the future, integer values can potentially be added.
 ### Dependencies
@@ -86,9 +86,9 @@ This plugin can be used at the beginning of an incremental CDAP data pipeline to
 
 Let's say you run your pipeline once every 5 minutes. When running an incremental pipeline, you have to filter the records by a specific field (timestamp - current date > current date -3) - it is doing merge and dedupe even though we are processing the same records to make sure duplicate records are not in the destination table.
 
-`CheckPointReadAction` - reads checkpoint in Firestore DB and provides the data during runtime as environment variable
+`CheckPointReadAction` - reads checkpoints in Firestore DB and provides the data during runtime as environment variable
 
-`CheckPointUpdateAction` - updates CheckPoint in Firestore DB (i.e., creates a new document and stores maximum update date / time  from BQ so the next run it can use this checkpoint value to filter records that were added since then)
+`CheckPointUpdateAction` - updates checkpoints in Firestore DB (i.e., creates a new document and stores maximum update date / time  from BQ so the next run it can use this checkpoint value to filter records that were added since then)
 
 For now these plugins only support timestamp values - in the future, integer values can potentially be added.
 
