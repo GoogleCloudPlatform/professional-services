@@ -86,7 +86,7 @@ The file ```node_group_mapping.py``` has the mapping of source and destination n
 
 ## Upgrading Machine Types
 
-If you are planing to migrate machines to a different region and in the process of migration you want to optimize the machine types based on the usage you can do that on the fly by providing the source and destination machine type mappings in ```machine_type_mapping.py``` e.g 'n1-standard-1': 'n1-standard-4' would upgrade all the machines running with n1-standard-1 to n1-standard-4
+If you are planing to migrate machines to a different region and in the process of migration you want to optimize the machine types based on the usage you can do that on the fly by providing the source and destination machine type mappings in ```machine_type_mapping.py``` e.g `n1-standard-1`: `n1-standard-4` would upgrade all the machines running with `n1-standard-1` to `n1-standard-4`
 
 
 ## Rollback
