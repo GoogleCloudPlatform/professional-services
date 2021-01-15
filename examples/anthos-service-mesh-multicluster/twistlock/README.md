@@ -2,6 +2,8 @@
 
 Because GCP ASM is built upon Istio service mesh for Kubernetes, Twistlock deployment on GCP ASM follows Twistlock's instruction of installation for Istio environment in general. 
 
+**NOTE:** Installing Prisma Cloud (Twistlock) SaaS on Kubernetes requires the use of a bearer token. This can be seen in the installation script [twistlock/install_defender.sh](install_defender.sh). Please see the [installation instructions](https://docs.paloaltonetworks.com/prisma/prisma-cloud/prisma-cloud-admin-compute/install/install_kubernetes.html) for more details.
+
 ### 1. Twistlock architecture for Kubernetes
 
 Twistlock includes components: 

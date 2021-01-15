@@ -15,187 +15,129 @@
  */
 
 # create the clusters
-# https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-shared-vpc#creating_a_cluster_in_your_first_service_project
-resource "google_container_cluster" "cluster3" {
-  provider                 = google-beta
-  name                     = local.cluster3_cluster_name
-  location                 = var.region
-  project                  = var.project_id
-  #network                  = google_compute_network.asm-vpc-3.self_link
-  network                  = data.google_compute_network.asm-vpc-3.self_link
-  subnetwork               = google_compute_subnetwork.cluster3.self_link
-  remove_default_node_pool = true
-  initial_node_count       = local.cluster3_node_pool_initial_node_count
-  networking_mode          = "VPC_NATIVE"
-  # enable_shielded_nodes    = true
-
-  resource_labels = {
-    mesh_id = local.mesh_id
+# https://registry.terraform.io/modules/terraform-google-modules/kubernetes-engine/google/latest/submodules/private-cluster
+module "gke-cluster3" {
+  source                      = "terraform-google-modules/kubernetes-engine/google//modules/private-cluster"
+  version                     = "12.3.0"
+  project_id                  = var.project_id
+  name                        = "cluster3"
+  region                      = var.region
+  regional                    = true
+  release_channel             = "REGULAR"
+  network                     = google_compute_network.asm-vpc-3.name
+  subnetwork                  = google_compute_subnetwork.cluster3.name
+  remove_default_node_pool    = true
+  identity_namespace          = "${var.project_id}.svc.id.goog"
+  ip_range_pods               = google_compute_subnetwork.cluster3.secondary_ip_range.0.range_name
+  ip_range_services           = google_compute_subnetwork.cluster3.secondary_ip_range.1.range_name
+  http_load_balancing         = false
+  network_policy              = false
+  enable_private_endpoint     = true
+  enable_private_nodes        = true
+  master_ipv4_cidr_block      = "192.168.2.0/28"
+  master_authorized_networks  = [
+      {
+        cidr_block   = local.bastion_cidr
+        display_name = "bastion-admin"
+      },
+      {
+        cidr_block   = "10.185.192.0/18"
+        display_name = "Cluster4 pods"
+      },
+    ]
+  cluster_resource_labels = { "mesh_id" : local.mesh_id }
+  node_metadata = "GKE_METADATA_SERVER"
+  node_pools = [
+    {
+      name          = "cluster3-node-pool"
+      autoscaling   = true
+      min_count     = 1
+      max_count     = 5
+      auto_repair   = true
+      auto_upgrade  = true
+      machine_type  = "e2-standard-4"
+      preemptible   = false
+    },
+  ]
+  node_pools_oauth_scopes = {
+    all = [
+      "https://www.googleapis.com/auth/compute",
+      "https://www.googleapis.com/auth/devstorage.read_only",
+      "https://www.googleapis.com/auth/logging.write",
+      "https://www.googleapis.com/auth/monitoring",
+      "https://www.googleapis.com/auth/trace.append",
+      "https://www.googleapis.com/auth/cloud_debugger",
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/servicecontrol",
+      "https://www.googleapis.com/auth/service.management.readonly"
+    ]
   }
-
-  release_channel {
-    channel = local.cluster3_cluster_release_channel
-  }
-  workload_identity_config {
-    identity_namespace = "${var.project_id}.svc.id.goog"
-  }
-  addons_config {
-    istio_config {
-      disabled = true
-    }
-    network_policy_config {
-      disabled = false
-    }
-  }
-  network_policy {
-    enabled = true
-  }
-
-  ip_allocation_policy {
-    cluster_secondary_range_name  = local.cluster3_pod_ip_range_name
-    services_secondary_range_name = local.cluster3_services_ip_range_name
-  }
-  private_cluster_config {
-    enable_private_nodes    = true
-    enable_private_endpoint = true
-    master_ipv4_cidr_block  = local.cluster3_master_ipv4_cidr_block
-  }
-  master_authorized_networks_config {
-    cidr_blocks {
-      cidr_block   = local.bastion_cidr
-      display_name = "bastion-admin"
-    }
-    cidr_blocks {
-      cidr_block   = local.cluster4_pod_ip_cidr_range
-      display_name = "Cluster4 pods"
-    }
-  }
-}
-
-resource "google_container_node_pool" "cluster3_node_pool" {
-  provider           = google-beta
-  name               = "${local.cluster3_cluster_name}-node-pool"
-  location           = var.region
-  initial_node_count = local.cluster3_node_pool_initial_node_count
-  cluster            = google_container_cluster.cluster3.name
-  project            = var.project_id
-
-  autoscaling {
-    min_node_count = local.cluster3_node_pool_autoscaling_min_node_count
-    max_node_count = local.cluster3_node_pool_autoscaling_max_node_count
-  }
-  management {
-    auto_repair  = local.cluster3_node_pool_auto_repair
-    auto_upgrade = local.cluster3_node_pool_auto_upgrade
-  }
-  upgrade_settings {
-    max_surge       = local.cluster3_node_pool_max_surge
-    max_unavailable = local.cluster3_node_pool_max_unavailable
-  }
-  node_config {
-    machine_type = local.cluster3_node_pool_machine_type
-    tags         = [local.cluster3_network_tag]
-    preemptible  = local.node_pool_preemptible
-    # image_type   = "COS_CONTAINERD"
-    oauth_scopes = local.cluster3_node_pool_oauth_scopes
-    # shielded_instance_config {
-    #   enable_secure_boot = true
-    # }
-    workload_metadata_config {
-      node_metadata = "GKE_METADATA_SERVER"
-    }
+  node_pools_tags = {
+    all = [
+      "cluster3",
+    ]
   }
 }
 
-resource "google_container_cluster" "cluster4" {
-  provider                 = google-beta
-  name                     = local.cluster4_cluster_name
-  location                 = var.region
-  project                  = var.project_id
-  #network                  = google_compute_network.asm-vpc-3.self_link
-  network                  = data.google_compute_network.asm-vpc-3.self_link
-  subnetwork               = google_compute_subnetwork.cluster4.self_link
-  remove_default_node_pool = true
-  initial_node_count       = local.cluster4_node_pool_initial_node_count
-  networking_mode          = "VPC_NATIVE"
-  # enable_shielded_nodes    = true
-
-  resource_labels = {
-    mesh_id = local.mesh_id
-  }
-
-  release_channel {
-    channel = local.cluster4_cluster_release_channel
-  }
-  workload_identity_config {
-    identity_namespace = "${var.project_id}.svc.id.goog"
-  }
-  addons_config {
-    # TODO: likely superfluous / removable
-    istio_config {
-      disabled = true
-    }
-    network_policy_config {
-      disabled = false
-    }
-  }
-
-  network_policy {
-    enabled = true
-  }
-  ip_allocation_policy {
-    cluster_secondary_range_name  = local.cluster4_pod_ip_range_name
-    services_secondary_range_name = local.cluster4_services_ip_range_name
-  }
-  private_cluster_config {
-    enable_private_nodes    = true
-    enable_private_endpoint = true
-    master_ipv4_cidr_block  = local.cluster4_master_ipv4_cidr_block
-  }
-  master_authorized_networks_config {
-    cidr_blocks {
+module "gke-cluster4" {
+  source                      = "terraform-google-modules/kubernetes-engine/google//modules/private-cluster"
+  version                     = "12.3.0"
+  project_id                  = var.project_id
+  name                        = "cluster4"
+  region                      = var.region
+  regional                    = true
+  release_channel             = "REGULAR"
+  network                     = google_compute_network.asm-vpc-3.name
+  subnetwork                  = google_compute_subnetwork.cluster4.name
+  remove_default_node_pool    = true
+  identity_namespace          = "${var.project_id}.svc.id.goog"
+  ip_range_pods               = google_compute_subnetwork.cluster4.secondary_ip_range.0.range_name
+  ip_range_services           = google_compute_subnetwork.cluster4.secondary_ip_range.1.range_name
+  http_load_balancing         = false
+  network_policy              = false
+  enable_private_endpoint     = true
+  enable_private_nodes        = true
+  master_ipv4_cidr_block      = "192.168.3.0/28"
+  master_authorized_networks  = [
+    {
       cidr_block   = local.bastion_cidr
       display_name = "bastion-admin"
-    }     
-    cidr_blocks {
-      cidr_block   = local.cluster3_pod_ip_cidr_range
+    },
+    {
+      cidr_block   = "10.185.128.0/18"
       display_name = "Cluster3 pods"
-    }
+    },
+  ]
+  cluster_resource_labels = { "mesh_id" : local.mesh_id }
+  node_metadata = "GKE_METADATA_SERVER"
+  node_pools = [
+    {
+      name          = "cluster4-node-pool"
+      autoscaling   = true
+      min_count     = 1
+      max_count     = 5
+      auto_repair   = true
+      auto_upgrade  = true
+      machine_type  = "e2-standard-4"
+      preemptible   = false
+    },
+  ]
+  node_pools_oauth_scopes = {
+    all = [
+      "https://www.googleapis.com/auth/compute",
+      "https://www.googleapis.com/auth/devstorage.read_only",
+      "https://www.googleapis.com/auth/logging.write",
+      "https://www.googleapis.com/auth/monitoring",
+      "https://www.googleapis.com/auth/trace.append",
+      "https://www.googleapis.com/auth/cloud_debugger",
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/servicecontrol",
+      "https://www.googleapis.com/auth/service.management.readonly"
+    ]
   }
-}
-
-resource "google_container_node_pool" "cluster4_node_pool" {
-  provider           = google-beta
-  name               = "${local.cluster4_cluster_name}-node-pool"
-  location           = var.region
-  initial_node_count = local.cluster4_node_pool_initial_node_count
-  cluster            = google_container_cluster.cluster4.name
-  project            = var.project_id
-
-  autoscaling {
-    min_node_count = local.cluster4_node_pool_autoscaling_min_node_count
-    max_node_count = local.cluster4_node_pool_autoscaling_max_node_count
-  }
-  management {
-    auto_repair  = local.cluster4_node_pool_auto_repair
-    auto_upgrade = local.cluster4_node_pool_auto_upgrade
-  }
-  upgrade_settings {
-    max_surge       = local.cluster4_node_pool_max_surge
-    max_unavailable = local.cluster4_node_pool_max_unavailable
-  }
-
-  node_config {
-    machine_type = local.cluster4_node_pool_machine_type
-    tags         = [local.cluster4_network_tag]
-    preemptible  = local.node_pool_preemptible
-    # image_type   = "COS_CONTAINERD"
-    oauth_scopes = local.cluster4_node_pool_oauth_scopes
-    # shielded_instance_config {
-    #   enable_secure_boot = true
-    # }
-    workload_metadata_config {
-      node_metadata = "GKE_METADATA_SERVER"
-    }
+  node_pools_tags = {
+    all = [
+      "cluster4",
+    ]
   }
 }

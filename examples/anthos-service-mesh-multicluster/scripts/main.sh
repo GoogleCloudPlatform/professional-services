@@ -15,7 +15,6 @@
 # limitations under the License.
 
 # Exit if any command fails
-# set -e
 set -x
 
 # Use script to set up k8s configuration and context for cluster
@@ -73,8 +72,6 @@ function install_asm {
 	--cluster_location ${CLUSTER_LOCATION} \
 	--mode install \
 	--enable_apis
-	#--print_config "${CLUSTER_NAME}-istio-config.yaml"
-	#--customer_overlay "${SRC_PATH}/istio-profiles/internal-load-balancer.yaml" 
 }
 
 function download_istio {

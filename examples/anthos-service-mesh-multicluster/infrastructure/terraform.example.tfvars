@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 
+# Rename this file to terraform.tfvars and update the below variables
 project_id="your-project-id" # Replace with your project ID
-folder_id=""
-billing_account=""
+billing_account="your-billing-account" # Replace with your billing account

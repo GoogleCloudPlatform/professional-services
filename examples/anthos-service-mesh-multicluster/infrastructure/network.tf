@@ -18,34 +18,35 @@
 # Create two VPCs, each with a private GKE cluster and one bastion server
 
 # VPC 3
-/**
 resource "google_compute_network" "asm-vpc-3" {
   name                    = "${var.prefix}-vpc-3"
   project                 = var.project_id
   auto_create_subnetworks = false
 }
-*/
 
-data "google_compute_network" "asm-vpc-3" {
-  name                    = local.existing_vpc
-  project                 = var.project_id
+resource "google_compute_subnetwork" "bastion-subnet" {
+  name                     = "bastion-subnet"
+  project                  = var.project_id
+  region                   = "us-west2"
+  network                  = google_compute_network.asm-vpc-3.self_link
+  private_ip_google_access = true
+  ip_cidr_range            = "10.0.0.0/24"
 }
 
 resource "google_compute_subnetwork" "cluster3" {
-  name                     = local.cluster3_subnet_name
+  name                     = "cluster3"
   project                  = var.project_id
   region                   = var.region
-  #network                  = google_compute_network.asm-vpc-3.self_link
-  network                  = data.google_compute_network.asm-vpc-3.self_link
+  network                  = google_compute_network.asm-vpc-3.self_link
   private_ip_google_access = true
-  ip_cidr_range            = local.cluster3_subnet_cidr
+  ip_cidr_range            = "10.184.19.0/24"
   secondary_ip_range {
-    range_name    = local.cluster3_pod_ip_range_name
-    ip_cidr_range = local.cluster3_pod_ip_cidr_range
+    range_name    = "cluster3-pod-cidr"
+    ip_cidr_range = "10.185.128.0/18"
   }
   secondary_ip_range {
-    range_name    = local.cluster3_services_ip_range_name
-    ip_cidr_range = local.cluster3_services_ip_cidr_range
+    range_name    = "cluster3-services-cidr"
+    ip_cidr_range = "172.16.2.0/24"
   }
 }
 
@@ -53,8 +54,7 @@ resource "google_compute_router" "router3" {
   name    = "${var.prefix}-router3"
   project = var.project_id
   region  = var.region
-  #network = google_compute_network.asm-vpc-3.self_link
-  network = data.google_compute_network.asm-vpc-3.self_link
+  network = google_compute_network.asm-vpc-3.self_link
 }
 
 # outbound NAT for private clusters
@@ -78,20 +78,19 @@ resource "google_compute_router_nat" "nat3" {
 }
 
 resource "google_compute_subnetwork" "cluster4" {
-  name                     = local.cluster4_subnet_name
+  name                     = "cluster4"
   project                  = var.project_id
   region                   = var.region
-  #network                  = google_compute_network.asm-vpc-3.self_link
-  network                  = data.google_compute_network.asm-vpc-3.self_link
+  network                  = google_compute_network.asm-vpc-3.self_link
   private_ip_google_access = true
-  ip_cidr_range            = local.cluster4_subnet_cidr
+  ip_cidr_range            = "10.184.20.0/24"
   secondary_ip_range {
-    range_name    = local.cluster4_pod_ip_range_name
-    ip_cidr_range = local.cluster4_pod_ip_cidr_range
+    range_name    = "cluster4-pod-cidr"
+    ip_cidr_range = "10.185.192.0/18"
   }
   secondary_ip_range {
-    range_name    = local.cluster4_services_ip_range_name
-    ip_cidr_range = local.cluster4_services_ip_cidr_range
+    range_name    = "cluster4-services-cidr"
+    ip_cidr_range = "172.16.3.0/24"
   }
 }
 
@@ -100,13 +99,13 @@ data "google_iam_policy" "cluster-policy" {
   binding {
     role = "roles/compute.networkUser"
     members = [
-      "serviceAccount:${var.project_number}@cloudservices.gserviceaccount.com",
+      "serviceAccount:${data.google_project.project.number}@cloudservices.gserviceaccount.com",
     ]
   }
   binding {
     role = "roles/compute.networkUser"
     members = [
-      "serviceAccount:service-${var.project_number}@container-engine-robot.iam.gserviceaccount.com",
+      "serviceAccount:service-${data.google_project.project.number}@container-engine-robot.iam.gserviceaccount.com",
     ]
   }
 }

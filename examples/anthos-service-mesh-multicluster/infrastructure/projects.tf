@@ -14,28 +14,11 @@
  * limitations under the License.
  */
 
-/**
-# resource "google_project" "network" {
-#  name                = var.project_network
-#  project_id          = var.project_network
-#  folder_id           = local.folder_id
-#  billing_account     = var.billing_account
-#  auto_create_network = false
-#}
-*/
-
 # Enable GCP APIs
 
 resource "google_project_service" "api_enabled_services_project_network" {
   project                    = var.project_id
   for_each                   = toset(var.api_enabled_services_project_network)
-  service                    = each.key
-  disable_dependent_services = true
-  disable_on_destroy         = true
-}
-resource "google_project_service" "services_app1" {
-  project                    = var.project_id
-  for_each                   = toset(var.application_services)
   service                    = each.key
   disable_dependent_services = true
   disable_on_destroy         = true

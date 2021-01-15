@@ -12,11 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Docker environment variables
+export MYSQL_DOCKER_REPO="mysql-docker-repo"
+export PROJECT_ID="your-project-id"
+
 # Build docker image
-docker built -t liaojianhe/mysql-test:v1.0.0 .
+docker build -t $MYSQL_DOCKER_REPO/mysql-test:v1.0.0 .
+
+# Enable GAR API
+gcloud services enable artifactregistry.googleapis.com
+
+# Create an artifact repository
+gcloud artifacts repositories create $MYSQL_DOCKER_REPO --repository-format=docker \
+--location=us-central1 --description="Docker repository"
+
+# Docker auth
+gcloud auth -q configure-docker us-central1-docker.pkg.dev
 
 # Push docker image to DockerHub
-docker push liaojianhe/mysql-test:v1.0.0
+docker push us-central1-docker.pkg.dev/$PROJECT_ID$/MYSQL_DOCKER_REPO/mysql-test:v1.0.0
 
 # Assume 'sample' namespace has been created and istio-injection labeled
 

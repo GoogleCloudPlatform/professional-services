@@ -27,20 +27,33 @@ Therefore, here is the network traffic flow:
 
 3.1 Build docker image
 
-Check out this source code, and under "mysql-docker" directory, run docker command to build Docker container image. 
+Check out this source code, and under "mysql-docker" directory, run docker command to build Docker container image.
+
+**NOTE:** In file [mysql-docker/setup.sh](setup.sh), set environment variable MYSQL_DOCKER_REPO to your [Google Artifact Registry (GAR) Docker repository](https://cloud.google.com/artifact-registry/docs/docker/quickstart#create). Likewise do the same with PROJECT_ID for your Google Cloud project
 
 ```
-# Change "liaojianhe" Dockhub repository to be your container repository
+# Build the Docker image
 
-docker built -t liaojianhe/mysql-test:v1.0.0 .
+docker build -t $MYSQL_DOCKER_REPO/mysql-test:v1.0.0 .
 ```
 
-3.2 Push docker image to DockerHub
+3.2 Push docker image to [Google Artifact Registry (GAR)](https://cloud.google.com/artifact-registry/docs/docker/quickstart#push)
+
+**NOTE:** Ensure [GAR is enabled](https://console.cloud.google.com/apis/library/artifactregistry.googleapis.com) for your Google Cloud project
 
 ```
-# Change "liaojianhe" Dockhub repository to be your container repository
+# Enable GAR API
 
-docker push liaojianhe/mysql-test:v1.0.0
+gcloud services enable artifactregistry.googleapis.com
+
+# Create an artifact repository
+
+gcloud artifacts repositories create $MYSQL_DOCKER_REPO --repository-format=docker \
+--location=us-central1 --description="Docker repository"
+
+# Change "$MYSQL_DOCKER_REPO" Dockhub repository to be your container repository
+
+docker push $MYSQL_DOCKER_REPO/mysql-test:v1.0.0
 ```
 
 3.3 Create 'sample' namespace and label it for automatically Istio injection

@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-/**
-resource "google_compute_global_address" "cluster1_ingress" {
-  name         = "${var.prefix}-${local.frontend_external_address_name}"
-  project      = var.project_id
-  description  = "${var.prefix}-cluster1-ingress"
-  address_type = "EXTERNAL"
+ 
+terraform {
+  required_version = "~>0.13.4"
 }
-
-output cluster1_ingress {
-  value = google_compute_global_address.cluster1_ingress.address
+provider "google" {
+  version = "~>3.52.0"
+  region  = var.region
+  project = var.project_id
 }
-*/
+provider "google-beta" {
+  version = "~>3.52.0"
+  region  = var.region
+  project = var.project_id
+}

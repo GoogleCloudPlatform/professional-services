@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 
+# Default Compute Engine service account for bastion server
+# https://cloud.google.com/compute/docs/access/service-accounts#default_service_account
+data "google_compute_default_service_account" "default" {
+}
+
 # Create service accounts used for connecting the GKE clusters with an Anthos Environ
 # https://cloud.google.com/anthos/multicluster-management/connect/registering-a-cluster
 # These service accounts are used in the register_cluster function in scripts/main.sh
