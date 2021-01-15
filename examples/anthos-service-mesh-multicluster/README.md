@@ -33,7 +33,7 @@ The infrastruction used in this sample is coded in Terraform scripts. The ASM in
 
 ## Prerequisites
 
-As mentioned in [this document](https://cloud.google.com/service-mesh/docs/gke-install-multi-cluster), there are several prerequisites. 
+As mentioned in [Add GKE clusters to Anthos Service Mesh](https://cloud.google.com/service-mesh/docs/gke-install-multi-cluster), there are several prerequisites. 
 
 This guide assumes that you have:
 
@@ -46,7 +46,7 @@ Also, the multi-cluster configuration has these requirements for the clusters in
 
   **NOTE:** ASM 1.7 does [not support multiple networks](https://cloud.google.com/service-mesh/docs/supported-features#platform_environment), even peered ones.
 
-- If you join clusters that are not in the same project, they must be installed using the asm-gcp-multiproject profile and the clusters must be in a shared VPC configuration together on the same network. In addition, we recommend that you have one project to host the shared VPC, and two service projects for creating clusters. For more information, see [Setting up clusters with Shared VPC](https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-shared-vpc).
+- If you join clusters that are not in the same project, they must be installed using the `asm-gcp-multiproject` profile and the clusters must be in a shared VPC configuration together on the same network. In addition, we recommend that you have one project to host the shared VPC, and two service projects for creating clusters. For more information, see [Setting up clusters with Shared VPC](https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-shared-vpc).
 
 In this sample, we create two private clusters in different subnets of the same VPC in the same project, and enable clusters to communicate to each other's API server.   
 
@@ -68,7 +68,7 @@ In this sample, we create two private clusters in different subnets of the same 
 6. Set up [Terraform](https://learn.hashicorp.com/terraform/getting-started/install.html) on your local machine, so you will be able to build infrastructure. 
 
 7. On your local machine, update the corresponding parameters for your project. 
-   - In vars.sh, check to see whether you need to update CLUSTER1_LOCATION,CLUSTER1_CLUSTER_NAME, CLUSTER1_CLUSTER_CTX, CLUSTER2_LOCATION, CLUSTER2_CLUSTER_NAME, CLUSTER2_CLUSTER_CTX.
+   - In ``vars.sh``, check to see whether you need to update `CLUSTER1_LOCATION`,`CLUSTER1_CLUSTER_NAME`, `CLUSTER1_CLUSTER_CTX`, `CLUSTER2_LOCATION`, `CLUSTER2_CLUSTER_NAME`, `CLUSTER2_CLUSTER_CTX`.
    - In [infrastructure/terraform.example.tfvars](./infrastructure/terraform.example.tfvars), rename this file to terraform.tfvars and update "project_id" and "billing_account".
    - In [infrastructure/shared.tf](./infrastructure/shared.tf), check whether you need to update "project_prefix" and "region". 
    - **[OPTIONAL]** In the locals section of _infrastructure/shared.tf_, update CIDR ranges for bastion_cidr and existing_vpc if you need to. 
@@ -78,7 +78,7 @@ In this sample, we create two private clusters in different subnets of the same 
      source vars.sh
      ```
 
-8. If you want to run Terraform in your own workspace, create a backend.tf file from _infrastructure/backend.tf_tmpl_, and update your Terraform workspace information in this file. 
+8. If you want to run Terraform in your own workspace, create a `backend.tf` file from _infrastructure/backend.tf_tmpl_, and update your Terraform workspace information in this file.
 
 9. Under "_infrastructure_" directory, run
    - terraform init
@@ -178,11 +178,11 @@ export CTX2=$CLUSTER2_CLUSTER_CTX
 
 Follow the instruction in "**Verify cross-cluster load balancing**" section of [Add clusters to an Anthos Service Mesh](https://cloud.google.com/service-mesh/docs/gke-install-multi-cluster) to verify.
 
-**Please Note:** You don't need to install Helloworld application, it has been installed for you already. 
+**Please Note:** You don't need to install `Helloworld` application, it has been installed for you already.
 
 ## Internal Load Balancer
 
-Anthos ASM deploys ingress gateway using exernal load balancer by default. If we need to change the ingress gateway to be internal load balancer, we can use "--option" or "--custom-overlay" parameter along with out load balancer yaml (./istio-profiles/internal-load-balancer.yaml). 
+Anthos ASM deploys ingress gateway using exernal load balancer by default. If we need to change the ingress gateway to be internal load balancer, we can use `--optio`n or `--custom-overlay` parameter along with out load balancer yaml (./istio-profiles/internal-load-balancer.yaml).
 
 Please note that we need to specify out "targetPort" for https and http2 ports for current ASM version. 
 
