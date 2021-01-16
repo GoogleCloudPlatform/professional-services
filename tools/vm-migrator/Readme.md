@@ -28,10 +28,10 @@ The `Makefile` has different variables which are passed to the subnet_region_mig
 
 | Variable      | Value                              |
 | ------------- | ---------------------------------- |
-| PROJECT          | GCP Project Name                  |
+| `PROJECT`          | GCP Project Name                  |
 | MACHINE_IMAGE_REGION | The region where you want to store your machine images e.g us-central1 |
 | INPUT_CSV | The filename which will serve as the input to migration process, some of the steps use this filename to export the inventory data  |
-|SOURCE_SUBNET | The source subnet in form projects/\<project-id\>/regions/\<region\>/subnetworks/\<subnet-name\> |
+|SOURCE_SUBNET | The source subnet in form `projects/\<PROJECT_ID\>/regions/\<rEGiON\>/subnetworks/\<SUBNET_NAME\>` |
 |SUBNET_NAME | The name of the source subnet |
 |SOURCE_ZONE | The zone in which the source subnet is present, this is used to fetch the inventory details |
 |SOURCE_ZONE_2 | [Optional] The second zone in which the source subnet is present, this is used to fetch the inventory details |
@@ -86,7 +86,7 @@ The file ```node_group_mapping.py``` has the mapping of source and destination n
 
 ## Upgrading Machine Types
 
-If you are planing to migrate machines to a different region and in the process of migration you want to optimize the machine types based on the usage you can do that on the fly by providing the source and destination machine type mappings in ```machine_type_mapping.py``` e.g 'n1-standard-1': 'n1-standard-4' would upgrade all the machines running with n1-standard-1 to n1-standard-4
+If you are planing to migrate machines to a different region and in the process of migration you want to optimize the machine types based on the usage you can do that on the fly by providing the source and destination machine type mappings in ```machine_type_mapping.py``` e.g `n1-standard-1`: `n1-standard-4` would upgrade all the machines running with `n1-standard-1` to `n1-standard-4`
 
 
 ## Rollback
