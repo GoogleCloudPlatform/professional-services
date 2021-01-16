@@ -68,6 +68,6 @@ def delete(project, zone, instance_name, disk_name):
         else:
             raise NotFoundException(
                 'Can\'t delete the disk as machine image not found')
-    except (NotFoundException, Exception) as ex:
+    except Exception as ex:
         logging.error(ex)
         raise ex

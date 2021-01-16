@@ -20,6 +20,7 @@ import logging
 import googleapiclient.discovery
 from googleapiclient.errors import HttpError
 from csv import DictWriter
+from .exceptions import GCPOperationException
 from . import instance
 from . import disk
 from . import fields
@@ -200,7 +201,7 @@ def wait_for_operation(compute, project, region, operation):
             logging.info('done.')
             if 'error' in result:
                 print(result['error'])
-                raise Exception(result['error'])
+                raise GCPOperationException(result['error'])
             return result
 
         time.sleep(5)

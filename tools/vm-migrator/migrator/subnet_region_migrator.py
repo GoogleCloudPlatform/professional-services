@@ -61,7 +61,7 @@ def bulk_image_create(project, machine_image_region, file_name='export.csv'):
                                  machine_image_name)
                     logging.info('Machine image %i out of %i completed',
                                  tracker, count)
-                except (GCPOperationException, Exception) as exc:
+                except Exception as exc:
                     logging.error(
                         'machine image creation generated an exception: %s',
                         exc)
@@ -93,7 +93,7 @@ def bulk_delete_instances(file_name):
                     logging.info('%r machine deleted sucessfully',
                                  instance_name)
                     logging.info('%i out of %i deleted', tracker, count)
-                except (GCPOperationException, Exception) as exc:
+                except Exception as exc:
                     logging.error(
                         'machine deletion generated an exception: %s', exc)
 
@@ -126,7 +126,7 @@ def bulk_delete_disks(file_name):
                     tracker = tracker + 1
                     logging.info('%r disk deleted sucessfully', disk_name)
                     logging.info('%i out of %i deleted', tracker, count)
-                except (GCPOperationException, Exception) as exc:
+                except Exception as exc:
                     logging.error('disk deletion generated an exception: %s',
                                   exc)
 
@@ -156,7 +156,7 @@ def bulk_instance_shutdown(file_name):
                     logging.info('%r machine shutdown sucessfully',
                                  machine_name)
                     logging.info('%i out of %i shutdown', tracker, count)
-                except (GCPOperationException, Exception) as exc:
+                except Exception as exc:
                     logging.error(
                         'machine shutdown generated an exception: %s', exc)
 
@@ -187,7 +187,7 @@ def bulk_instance_start(file_name):
                     logging.info('%r machine started sucessfully',
                                  machine_name)
                     logging.info('%i out of %i started up', tracker, count)
-                except (GCPOperationException, Exception) as exc:
+                except Exception as exc:
                     logging.error(
                         'machine strating generated an exception: %s', exc)
 
@@ -251,7 +251,7 @@ def bulk_create_instances(file_name, target_subnet, retain_ip):
                     logging.info('%r machine created sucessfully',
                                  machine_name)
                     logging.info('%i out of %i created ', tracker, count)
-                except (GCPOperationException, Exception) as exc:
+                except Exception as exc:
                     logging.error(
                         'machine creation generated an exception: %s', exc)
 

@@ -111,7 +111,7 @@ def shutdown(project, zone, instance_name):
         result = shutdown_instance(compute, project, zone, instance_name)
         wait_for_zonal_operation(compute, project, zone, result['name'])
         return instance_name
-    except (GCPOperationException, Exception) as ex:
+    except Exception as ex:
         logging.error(ex)
         raise ex
 
@@ -127,7 +127,7 @@ def start(project, zone, instance_name):
                                            instance=instance_name).execute()
         wait_for_zonal_operation(compute, project, zone, result['name'])
         return instance_name
-    except (GCPOperationException, Exception) as ex:
+    except Exception as ex:
         logging.error(ex)
         raise ex
 
@@ -186,7 +186,7 @@ def delete(project, zone, name):
         else:
             raise NotFoundException(
                 'Cant Delete the instance as machine image not found')
-    except (GCPOperationException, NotFoundException, Exception) as ex:
+    except Exception as ex:
         logging.error(ex)
         raise ex
 
@@ -194,7 +194,7 @@ def delete(project, zone, name):
 def get_region_from_zone(zone):
     match = re.search(r'(\w+)-(\w+)-(\w+)', zone)
     if len(match.groups()) != 3:
-        raise Exception('Invalid Zone Format')
+        raise InvalidFormatException('Invalid Zone Format')
     return match.group(1) + '-' + match.group(2)
 
 
@@ -396,6 +396,6 @@ def create(project,
             instance_name, instance_name)
         return instance_name
 
-    except (GCPOperationException, Exception) as ex:
+    except Exception as ex:
         logging.error(ex)
         raise ex

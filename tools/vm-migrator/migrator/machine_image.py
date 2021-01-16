@@ -89,6 +89,6 @@ def create(project, target_region, source_instance, name, wait=True):
             wait_for_operation(compute, project, name)
         logging.info('Machine Image %s Created', name)
         return name
-    except (GCPOperationException, Exception) as exc:
+    except Exception as exc:
         logging.error(exc)
         raise exc
