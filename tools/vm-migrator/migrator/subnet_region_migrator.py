@@ -19,7 +19,6 @@ from the machine image in another subnet
 
 import argparse
 import logging
-from migrator.exceptions import GCPOperationException
 import sys
 import concurrent.futures
 import time
