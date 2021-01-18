@@ -44,8 +44,7 @@ public class CheckPointReadFunction {
       String collectionName,
       String documentName,
       String bufferTime)
-      throws IOException, ExecutionException,
-          InterruptedException, ParseException, Exception {
+      throws IOException, ExecutionException, InterruptedException, ParseException, Exception {
     CheckpointDAO checkpointDAO = getCheckpointDAO(serviceAccountFilePath, projectId);
     String latestCheckpointValue =
         checkpointDAO.getLatestCheckpointValue(collectionName, documentName);
@@ -63,7 +62,7 @@ public class CheckPointReadFunction {
   }
 
   private String getWatermarkWithBufferTime(String dateStr, String bufferTime)
-          throws ParseException {
+      throws ParseException {
     DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     Date date = dateFormat.parse(dateStr);
     final long ONE_MINUTE_IN_MILLIS = 60000; // millisecs

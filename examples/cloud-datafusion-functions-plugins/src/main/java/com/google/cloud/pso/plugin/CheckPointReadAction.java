@@ -25,10 +25,10 @@ import io.cdap.cdap.api.annotation.Plugin;
 import io.cdap.cdap.api.data.DatasetContext;
 import io.cdap.cdap.etl.api.action.Action;
 import io.cdap.cdap.etl.api.action.ActionContext;
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.concurrent.ExecutionException;
+import javax.annotation.Nullable;
 
 /** An Action Plugin to read checkpoints stored in Firestore. */
 @Plugin(type = Action.PLUGIN_TYPE)
@@ -48,8 +48,7 @@ public class CheckPointReadAction extends Action {
         new TxRunnable() {
           @Override
           public void run(DatasetContext datasetContext)
-            throws IOException, ExecutionException,
-                  InterruptedException, ParseException,
+              throws IOException, ExecutionException, InterruptedException, ParseException,
                   Exception {
             new CheckPointReadFunction()
                 .execute(

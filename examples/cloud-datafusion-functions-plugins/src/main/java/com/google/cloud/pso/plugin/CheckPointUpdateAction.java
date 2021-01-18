@@ -47,7 +47,7 @@ public class CheckPointUpdateAction extends Action {
         new TxRunnable() {
           @Override
           public void run(DatasetContext datasetContext)
-                  throws IOException, InterruptedException, Exception {
+              throws IOException, InterruptedException, Exception {
             new CheckPointUpdateFunction()
                 .execute(
                     config.getServiceAccountFilePath(),

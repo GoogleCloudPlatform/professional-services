@@ -70,7 +70,7 @@ public class CheckPointUpdateFunction {
     }
     LOG.info("Updating maxTimestampValue == " + maxTimestampValue);
     if (maxTimestampValue != null) {
-      //db.close() used in checkpointDAO.appendCheckpoint() method below throws
+      // db.close() used in checkpointDAO.appendCheckpoint() method below throws
       // Exception
       checkpointDAO.appendCheckpoint(collectionName, documentName, maxTimestampValue);
     }

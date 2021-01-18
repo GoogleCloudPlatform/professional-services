@@ -59,7 +59,7 @@ public class CheckpointDAO {
   }
 
   public void appendCheckpoint(String collectionName, String documentName, String watermarkValue)
-        throws IOException, ExecutionException, InterruptedException, Exception {
+      throws IOException, ExecutionException, InterruptedException, Exception {
     Map<String, Object> checkpoint = new HashMap<String, Object>();
     checkpoint.put("CHECKPOINT_VALUE", watermarkValue);
     Timestamp timestamp = Timestamp.now();
@@ -89,7 +89,7 @@ public class CheckpointDAO {
   }
 
   public String getLatestCheckpointValue(String collectionName, String documentName)
-        throws IOException, ExecutionException, InterruptedException, Exception {
+      throws IOException, ExecutionException, InterruptedException, Exception {
     String latestWatermarkValue = null;
     Firestore db = null;
     try {
