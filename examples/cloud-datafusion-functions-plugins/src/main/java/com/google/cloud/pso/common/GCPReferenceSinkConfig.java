@@ -15,7 +15,6 @@
  */
 package com.google.cloud.pso.common;
 
-import com.google.cloud.pso.common.GCPConfig;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Macro;
 import io.cdap.cdap.api.annotation.Name;
