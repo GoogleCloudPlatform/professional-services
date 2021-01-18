@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.plugin;
+package com.google.cloud.pso.plugin;
 
-import com.google.common.GCPConfig;
-import com.google.functions.CheckPointReadFunction;
+import com.google.cloud.pso.common.GCPConfig;
+import com.google.cloud.pso.functions.CheckPointReadFunction;
 import io.cdap.cdap.api.TxRunnable;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Macro;

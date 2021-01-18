@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.functions;
+package com.google.cloud.pso.functions;
 
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.BigQueryOptions;
@@ -23,8 +23,8 @@ import com.google.cloud.bigquery.JobId;
 import com.google.cloud.bigquery.JobInfo;
 import com.google.cloud.bigquery.QueryJobConfiguration;
 import com.google.cloud.bigquery.TableResult;
-import com.google.common.GCPUtils;
-import com.google.firestore.dao.CheckpointDAO;
+import com.google.cloud.pso.common.GCPUtils;
+import com.google.cloud.pso.firestore.dao.CheckpointDAO;
 import java.util.UUID;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
@@ -36,8 +36,8 @@ public class CheckPointUpdateFunction {
   private static final Logger LOG = LoggerFactory.getLogger(CheckPointUpdateFunction.class);
 
   private CheckpointDAO getCheckpointDAO(String serviceAccountFilePath, String projectId) {
-    com.google.firestore.dao.CheckpointDAO pipelineCheckpointDAO =
-        new com.google.firestore.dao.CheckpointDAO(serviceAccountFilePath, projectId);
+    com.google.cloud.pso.firestore.dao.CheckpointDAO pipelineCheckpointDAO =
+        new com.google.cloud.pso.firestore.dao.CheckpointDAO(serviceAccountFilePath, projectId);
     return pipelineCheckpointDAO;
   }
 

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.functions;
+package com.google.cloud.pso.functions;
 
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.Field;

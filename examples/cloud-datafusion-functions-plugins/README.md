@@ -367,8 +367,8 @@ mvn clean compile package
    1. `GoogleFunctions-1.6.json`
     
 1. Deploy `GoogleFunctions-1.6.jar` and `GoogleFunctions-1.6.json` into CDF/CDAP (note that if you have the same version already deployed then you’ll get an error that it already exists):
-    1. Delete `GoogleFunctions` artifact if the same version already exists.
     1. Go to Control Center
+    1. Delete `GoogleFunctions` artifact if the same version already exists.
     1. Upload plugin by clicking on the circled green + button  
-    1. Pick the JAR file / JSON file 
+    1. Pick the JAR file / JSON file created under target folder
     1. You’ll see a confirmation of the successful plugin upload  

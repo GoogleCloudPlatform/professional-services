@@ -501,7 +501,7 @@
             <Embed-Transitive>true</Embed-Transitive>
 <!--            <Embed-Directory>lib</Embed-Directory>-->
             <!--Only @Plugin classes in the export packages will be included as plugin-->
-            <_exportcontents>com.google.plugin.*</_exportcontents>
+            <_exportcontents>com.google.cloud.pso.plugin.*</_exportcontents>
           </instructions>
         </configuration>
         <executions>

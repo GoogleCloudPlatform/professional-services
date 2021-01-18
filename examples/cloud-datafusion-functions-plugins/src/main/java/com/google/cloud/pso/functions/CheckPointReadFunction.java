@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.functions;
+package com.google.cloud.pso.functions;
 
-import com.google.firestore.dao.CheckpointDAO;
+import com.google.cloud.pso.firestore.dao.CheckpointDAO;
 import io.cdap.cdap.etl.api.action.ActionContext;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -29,8 +29,8 @@ public class CheckPointReadFunction {
   private static final Logger LOG = LoggerFactory.getLogger(CheckPointReadFunction.class);
 
   private CheckpointDAO getCheckpointDAO(String serviceAccountFilePath, String projectId) {
-    com.google.firestore.dao.CheckpointDAO pipelineCheckpointDAO =
-        new com.google.firestore.dao.CheckpointDAO(serviceAccountFilePath, projectId);
+    com.google.cloud.pso.firestore.dao.CheckpointDAO pipelineCheckpointDAO =
+        new com.google.cloud.pso.firestore.dao.CheckpointDAO(serviceAccountFilePath, projectId);
     return pipelineCheckpointDAO;
   }
 

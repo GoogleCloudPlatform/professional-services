@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.plugin;
+package com.google.cloud.pso.plugin;
 
-import com.google.functions.MergeLastUpdateTSFunction;
+import com.google.cloud.pso.functions.DropTableFunction;
 import io.cdap.cdap.api.TxRunnable;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Macro;
@@ -26,17 +26,16 @@ import io.cdap.cdap.api.plugin.PluginConfig;
 import io.cdap.cdap.etl.api.PipelineConfigurer;
 import io.cdap.cdap.etl.api.action.Action;
 import io.cdap.cdap.etl.api.action.ActionContext;
-import javax.annotation.Nullable;
 
-/** An Action Plugin to merge based on last update timestamp field. */
+/** An Action Plugin to drop a BigQuery table. */
 @Plugin(type = Action.PLUGIN_TYPE)
-@Name(MergeLastUpdateTSAction.NAME)
-@Description("MergeLastUpdateTSAction")
-public class MergeLastUpdateTSAction extends Action {
-  public static final String NAME = "MergeLastUpdateTSAction";
+@Name(DropTableAction.NAME)
+@Description("Drop bigquery table")
+public class DropTableAction extends Action {
+  public static final String NAME = "DropTableAction";
   private final Conf config;
 
-  public MergeLastUpdateTSAction(Conf config) {
+  public DropTableAction(Conf config) {
     this.config = config;
   }
 
@@ -49,15 +48,8 @@ public class MergeLastUpdateTSAction extends Action {
         new TxRunnable() {
           @Override
           public void run(DatasetContext context) throws Exception {
-            new MergeLastUpdateTSFunction(
-                    config.keyPath,
-                    config.projectId,
-                    config.dataset,
-                    config.tableName,
-                    config.primaryKeyList,
-                    config.updateColumnsList,
-                    config.partitionColumn)
-                .executeMerge();
+            DropTableFunction.dropTable(
+                config.keyPath, config.projectId, config.dataset, config.tableName);
           }
         });
   }
@@ -69,51 +61,25 @@ public class MergeLastUpdateTSAction extends Action {
     private final String keyPath;
 
     @Name("projectId")
-    @Description("Project ID")
+    @Description("Project Id")
     @Macro
     private final String projectId;
-
-    @Name("dataset")
-    @Description("Dataset name")
-    @Macro
-    private final String dataset;
 
     @Name("tableName")
     @Description("Table name")
     @Macro
     private final String tableName;
 
-    @Name("primaryKeyList")
-    @Description("Comma separated list of PK's")
+    @Name("dataset")
+    @Description("Dataset name")
     @Macro
-    private final String primaryKeyList;
+    private final String dataset;
 
-    @Name("updateColumnsList")
-    @Description("Comma separated list of update columns")
-    @Macro
-    private final String updateColumnsList;
-
-    @Name("partitionColumn")
-    @Description("Partition coulmn name in destination table")
-    @Macro
-    @Nullable
-    private final String partitionColumn;
-
-    public Conf(
-        String keyPath,
-        String projectId,
-        String dataset,
-        String tableName,
-        String primaryKeyList,
-        String updateColumnsList,
-        String partitionColumn) {
+    public Conf(String keyPath, String projectId, String dataset, String tableName) {
       this.keyPath = keyPath;
       this.projectId = projectId;
       this.dataset = dataset;
       this.tableName = tableName;
-      this.primaryKeyList = primaryKeyList;
-      this.updateColumnsList = updateColumnsList;
-      this.partitionColumn = partitionColumn;
     }
   }
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.firestore.dao;
+package com.google.cloud.pso.firestore.dao;
 
 import com.google.api.core.ApiFuture;
 import com.google.cloud.Timestamp;
@@ -25,7 +25,7 @@ import com.google.cloud.firestore.Query.Direction;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
 import com.google.cloud.firestore.WriteResult;
-import com.google.common.GCPUtils;
+import com.google.cloud.pso.common.GCPUtils;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
