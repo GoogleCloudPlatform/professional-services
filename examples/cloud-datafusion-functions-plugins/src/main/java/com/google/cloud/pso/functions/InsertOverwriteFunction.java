@@ -70,7 +70,7 @@ public class InsertOverwriteFunction {
         throw new RuntimeException(queryJob.getStatus().getError().toString());
       }
 
-    } catch (Exception e) {
+    } catch (InterruptedException e) {
       LOG.error("Query execution exception: {}", e);
     }
   }

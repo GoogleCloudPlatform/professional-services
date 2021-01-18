@@ -42,7 +42,7 @@ public class DropTableFunction {
       }
 
     } catch (Exception ex) {
-      ex.printStackTrace();
+      LOG.error("Query execution exception: {}", ex);
     }
   }
 

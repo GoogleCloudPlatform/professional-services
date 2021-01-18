@@ -26,6 +26,7 @@ import io.cdap.cdap.api.plugin.PluginConfig;
 import io.cdap.cdap.etl.api.PipelineConfigurer;
 import io.cdap.cdap.etl.api.action.Action;
 import io.cdap.cdap.etl.api.action.ActionContext;
+import org.apache.tephra.TransactionFailureException;
 
 /** An Action Plugin to drop a BigQuery table. */
 @Plugin(type = Action.PLUGIN_TYPE)
@@ -43,11 +44,11 @@ public class DropTableAction extends Action {
   public void configurePipeline(PipelineConfigurer pipelineConfigurer) {}
 
   @Override
-  public void run(ActionContext context) throws Exception {
+  public void run(ActionContext context) throws TransactionFailureException {
     context.execute(
         new TxRunnable() {
           @Override
-          public void run(DatasetContext context) throws Exception {
+          public void run(DatasetContext context) {
             DropTableFunction.dropTable(
                 config.keyPath, config.projectId, config.dataset, config.tableName);
           }

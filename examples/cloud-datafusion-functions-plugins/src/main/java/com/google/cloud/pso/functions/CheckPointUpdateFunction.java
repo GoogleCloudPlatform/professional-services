@@ -25,6 +25,7 @@ import com.google.cloud.bigquery.QueryJobConfiguration;
 import com.google.cloud.bigquery.TableResult;
 import com.google.cloud.pso.common.GCPUtils;
 import com.google.cloud.pso.firestore.dao.CheckpointDAO;
+import java.io.IOException;
 import java.util.UUID;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
@@ -49,7 +50,7 @@ public class CheckPointUpdateFunction {
       String incrPullTableDataset,
       String incrPullLogTableName,
       String logTableCheckpointColumn)
-      throws Exception {
+      throws IOException, InterruptedException, Exception {
     CheckpointDAO checkpointDAO = getCheckpointDAO(serviceAccountFilePath, project);
     String maxTimestampValue =
         getMaxTimestampValueFromLogTable(
@@ -69,6 +70,8 @@ public class CheckPointUpdateFunction {
     }
     LOG.info("Updating maxTimestampValue == " + maxTimestampValue);
     if (maxTimestampValue != null) {
+      //db.close() used in checkpointDAO.appendCheckpoint() method below throws
+      // Exception
       checkpointDAO.appendCheckpoint(collectionName, documentName, maxTimestampValue);
     }
   }
@@ -126,7 +129,7 @@ public class CheckPointUpdateFunction {
       String incrPullTableDataset,
       String incrPullLogTableName,
       String logTableCheckpointColumn)
-      throws Exception {
+      throws InterruptedException, IOException {
     String sql = null;
     sql = "SELECT max(" + logTableCheckpointColumn + ") as CHECKPOINT_VALUE FROM `";
     sql = sql + projectId + "." + incrPullTableDataset + "." + incrPullLogTableName + "`";
@@ -157,7 +160,7 @@ public class CheckPointUpdateFunction {
   }
 
   private BigQuery getBigQuery(@Nullable String serviceAccountFilePath, @Nullable String project)
-      throws Exception {
+      throws IOException {
     BigQuery bigQuery = null;
     if (serviceAccountFilePath != null || project != null) {
       BigQueryOptions.Builder bigQueryBuilder = BigQueryOptions.newBuilder();

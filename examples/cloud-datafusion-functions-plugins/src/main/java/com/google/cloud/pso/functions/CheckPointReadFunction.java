@@ -17,9 +17,12 @@ package com.google.cloud.pso.functions;
 
 import com.google.cloud.pso.firestore.dao.CheckpointDAO;
 import io.cdap.cdap.etl.api.action.ActionContext;
+import java.io.IOException;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.concurrent.ExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +44,8 @@ public class CheckPointReadFunction {
       String collectionName,
       String documentName,
       String bufferTime)
-      throws Exception {
+      throws IOException, ExecutionException,
+          InterruptedException, ParseException, Exception {
     CheckpointDAO checkpointDAO = getCheckpointDAO(serviceAccountFilePath, projectId);
     String latestCheckpointValue =
         checkpointDAO.getLatestCheckpointValue(collectionName, documentName);
@@ -58,7 +62,8 @@ public class CheckPointReadFunction {
     }
   }
 
-  private String getWatermarkWithBufferTime(String dateStr, String bufferTime) throws Exception {
+  private String getWatermarkWithBufferTime(String dateStr, String bufferTime)
+          throws ParseException {
     DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     Date date = dateFormat.parse(dateStr);
     final long ONE_MINUTE_IN_MILLIS = 60000; // millisecs

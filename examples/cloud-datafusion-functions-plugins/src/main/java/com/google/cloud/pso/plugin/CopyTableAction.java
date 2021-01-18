@@ -26,6 +26,7 @@ import io.cdap.cdap.api.plugin.PluginConfig;
 import io.cdap.cdap.etl.api.PipelineConfigurer;
 import io.cdap.cdap.etl.api.action.Action;
 import io.cdap.cdap.etl.api.action.ActionContext;
+import org.apache.tephra.TransactionFailureException;
 
 /** An Action Plugin to copy tables from staging to destination at the end of a pipeline run. */
 @Plugin(type = Action.PLUGIN_TYPE)
@@ -43,11 +44,11 @@ public class CopyTableAction extends Action {
   public void configurePipeline(PipelineConfigurer pipelineConfigurer) {}
 
   @Override
-  public void run(ActionContext context) throws Exception {
+  public void run(ActionContext context) throws TransactionFailureException {
     context.execute(
         new TxRunnable() {
           @Override
-          public void run(DatasetContext context) throws Exception {
+          public void run(DatasetContext context) {
             new InsertOverwriteFunction(
                     config.keyPath, config.projectId, config.dataset, config.tableName)
                 .executeCopy();

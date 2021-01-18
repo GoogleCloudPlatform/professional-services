@@ -25,6 +25,8 @@ import io.cdap.cdap.api.annotation.Plugin;
 import io.cdap.cdap.api.data.DatasetContext;
 import io.cdap.cdap.etl.api.action.Action;
 import io.cdap.cdap.etl.api.action.ActionContext;
+import java.io.IOException;
+import org.apache.tephra.TransactionFailureException;
 
 /** An Action Plugin to update the checkpoint details for a given table in Firestore. */
 @Plugin(type = Action.PLUGIN_TYPE)
@@ -40,11 +42,12 @@ public class CheckPointUpdateAction extends Action {
   }
 
   @Override
-  public void run(ActionContext context) throws Exception {
+  public void run(ActionContext context) throws TransactionFailureException {
     context.execute(
         new TxRunnable() {
           @Override
-          public void run(DatasetContext datasetContext) throws Exception {
+          public void run(DatasetContext datasetContext)
+                  throws IOException, InterruptedException, Exception {
             new CheckPointUpdateFunction()
                 .execute(
                     config.getServiceAccountFilePath(),

@@ -26,11 +26,13 @@ import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
 import com.google.cloud.firestore.WriteResult;
 import com.google.cloud.pso.common.GCPUtils;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 /** DAO to read and update checkpoints in Firestore. */
 public class CheckpointDAO {
@@ -43,7 +45,7 @@ public class CheckpointDAO {
     this.project = project;
   }
 
-  private Firestore getFirestore() throws Exception {
+  private Firestore getFirestore() throws IOException {
 
     FirestoreOptions.Builder firestoreBuilder = FirestoreOptions.newBuilder();
     if (serviceAccountFilePath != null) {
@@ -57,7 +59,7 @@ public class CheckpointDAO {
   }
 
   public void appendCheckpoint(String collectionName, String documentName, String watermarkValue)
-      throws Exception {
+        throws IOException, ExecutionException, InterruptedException, Exception {
     Map<String, Object> checkpoint = new HashMap<String, Object>();
     checkpoint.put("CHECKPOINT_VALUE", watermarkValue);
     Timestamp timestamp = Timestamp.now();
@@ -72,12 +74,13 @@ public class CheckpointDAO {
       result.get().getUpdateTime();
     } finally {
       if (db != null) {
+        // db.close() throws java.lang.Exception
         db.close();
       }
     }
   }
 
-  private String getCurrentDateTime() throws Exception {
+  private String getCurrentDateTime() {
     String pattern = "yyyy-MM-dd-HH:mm:ss";
     SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
 
@@ -86,7 +89,7 @@ public class CheckpointDAO {
   }
 
   public String getLatestCheckpointValue(String collectionName, String documentName)
-      throws Exception {
+        throws IOException, ExecutionException, InterruptedException, Exception {
     String latestWatermarkValue = null;
     Firestore db = null;
     try {
@@ -106,6 +109,7 @@ public class CheckpointDAO {
       }
     } finally {
       if (db != null) {
+        // db.close() throws java.lang.Exception
         db.close();
       }
     }
