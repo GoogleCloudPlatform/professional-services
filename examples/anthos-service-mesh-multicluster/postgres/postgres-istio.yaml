@@ -12,60 +12,37 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-apiVersion: v1
-kind: Service
-metadata:
-  name: mysql-test
-  labels:
-    app: mysql-test
-spec:
-  ports:
-  - port: 5000
-    name: http
-  selector:
-    app: mysql-test
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: aiven-tls
-type: kubernetes.io/tls
-data:
-  # Download the Aiven certificate from the Aiven MySQL console.
-  ca.pem |
-        MIIC2DCCAcCgAwIBAgIBATANBgkqh...
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mysql-test
+  name: postgres-istio
   labels:
     version: v1
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: mysql-test
+      app: postgres-istio
       version: v1
   template:
     metadata:
       labels:
-        app: mysql-test
+        app: postgres-istio
         version: v1
+      annotations:
+        sidecar.istio.io/inject: "true"
+        sidecar.istio.io/logLevel: debug
+        sidecar.istio.io/userVolume: '[{"name":"postgres-cert", "secret":{"secretName":"postgres-cert"}}]'
+        sidecar.istio.io/userVolumeMount: '[{"name":"postgres-cert", "mountPath":"/etc/certs/postgres-cert", "readonly":true}]'
     spec:
       containers:
-      - name: mysql-test
-        image: GOOGLE_ARTIFACT_REGISTRY_REPO/mysql-test:v1.0.0
+      - name: postgres-istio
+        image: liaojianhe/postgres-client
+        command: [ "/bin/bash", "-c", "--" ]
+        args: [ "while true; do sleep 30; done;" ]
         resources:
           requests:
             cpu: "100m"
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         ports:
         - containerPort: 5000
-      volumes:
-      - name: aiven-cert
-        secret:
-          secretName: aiven-tls
-          items:
-          - key: ca.pem
-            path: ca.pem

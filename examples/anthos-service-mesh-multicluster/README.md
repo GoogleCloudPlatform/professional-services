@@ -1,7 +1,7 @@
 # Contents
 - [Multi-Cluster ASM on Private Clusters](./infrastructure): Anthos Service Mesh (ASM) for multiple GKE clusters, using Terraform
 - [Twistlock PoC](./twistlock): Pod traffic security scanning, using ASM, Docker and Google Artifact Registry (GAR)
-- [Aiven MySQL PoC](./mysql-docker): Connecting GKE clusters and ASM to an external database
+- [Cloud SQL for PostgreSQL PoC](./postgres): Connecting GKE clusters and ASM to an external database
 
 # Multi-Cluster ASM on Private Clusters
 
@@ -190,6 +190,6 @@ Please note that we need to specify out "targetPort" for https and http2 ports f
 - Pod traffic security scanning, using ASM, Docker and Google Artifact Registry (GAR)
 - Please see the [twistlock folder readme](./twistlock)
 
-# Aiven MySQL PoC
-- Connecting GKE clusters and ASM to an external database
-- Please see the [mysql-docker folder readme](./mysql-docker)
+# Cloud SQL for PostgreSQL PoC
+- Connecting GKE clusters and ASM to a database that is external database to the Kubernetes clusters
+- Please see the [postgres folder readme](./postgres)

@@ -12,36 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-apiVersion: networking.istio.io/v1alpha3
-kind: Gateway
+apiVersion: networking.istio.io/v1beta1
+kind: ServiceEntry
 metadata:
-  name: mysql-test-gateway
+  name: external-cloud-postgres
+  namespace: sample
 spec:
-  selector:
-    istio: ingressgateway # use istio default controller
-  servers:
-  - port:
-      number: 80
-      name: http
-      protocol: HTTP
-    hosts:
-    - "*"
----
-apiVersion: networking.istio.io/v1alpha3
-kind: VirtualService
-metadata:
-  name: mysql-test
-spec:
+  # If you are using host name, uncomment this section and comment out "addresses" section
   hosts:
-  - "*"
-  gateways:
-  - mysql-test-gateway
-  http:
-  - match:
-    - uri:
-        prefix: /query
-    route:
-    - destination:
-        host: mysql-test
-        port:
-          number: 5000
+  - <YOUR_INSTANCE_HOSTNAME>
+  addresses:
+  # Use the IP of your PostgreSQL instance here 
+  - 34.94.102.8/32    
+  location: MESH_EXTERNAL
+  resolution: DNS
+  ports:
+  - number: 5432
+    # Make sure the use "tcp-<TYPE>" format here
+    name: tcp-postgres
+    protocol: TCP
