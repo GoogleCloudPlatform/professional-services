@@ -50,6 +50,11 @@ def main(config, parsed_args, cloud_logger):
     source_bucket = config.source_storage_client.lookup_bucket(  # pylint: disable=no-member
         config.bucket_name)
 
+    if source_bucket is None:
+        msg = 'The source bucket does not exist, so we cannot continue'
+        cloud_logger.log_text(msg)
+        raise SystemExit(msg)
+
     # Get copies of all of the source bucket's IAM, ACLs and settings so they
     # can be copied over to the target project bucket
     source_bucket_details = bucket_details.BucketDetails(
