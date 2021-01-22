@@ -1,4 +1,6 @@
-# Copyright 2020 Google LLC
+#!/usr/bin/env bash
+
+# Copyright 2021 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,4 +20,12 @@ kubectl label namespace twistlock istio-injection- istio.io/rev=asm-173-6 --over
 
 # See documentation for generating bearer token:
 # https://docs.paloaltonetworks.com/prisma/prisma-cloud/prisma-cloud-admin-compute/install/install_kubernetes.html
-if [[ ! -f ./twistcli || $(./twistcli --version) != *"20.09.366"* ]]; then curl --progress-bar -L -k --header "authorization: Bearer your-bearer-token" https://us-west1.cloud.twistlock.com/us-3-159237196/api/v1/util/twistcli > twistcli; chmod +x twistcli; fi; ./twistcli defender install kubernetes --namespace twistlock --monitor-service-accounts --token your-bearer-token --address https://us-west1.cloud.twistlock.com/us-3-159237196 --cluster-address us-west1.cloud.twistlock.com
+#
+# Replace the below URL in the curl and twistcli statements with your Prisma Cloud (Twistlock) SaaS URL:
+# https://docs.paloaltonetworks.com/prisma/prisma-saas/prisma-saas-admin/get-started-with-prisma-saas/prisma-saas/activate-prisma-saas.html
+if [[ ! -f ./twistcli || $(./twistcli --version) != *"20.09.366"* ]]
+    then
+		curl --progress-bar -L -k --header "authorization: Bearer your-bearer-token" https://us-west1.cloud.twistlock.com/xx-xx-xxxxxxxx/api/v1/util/twistcli > twistcli;
+		chmod +x twistcli;
+fi
+./twistcli defender install kubernetes --namespace twistlock --monitor-service-accounts --token your-bearer-token --address https://us-west1.cloud.twistlock.com/xx-xx-xxxxxxxx --cluster-address us-west1.cloud.twistlock.com

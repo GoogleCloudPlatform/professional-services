@@ -1,6 +1,4 @@
-# https://cloud.google.com/service-mesh/docs/enable-optional-features
-# https://raw.githubusercontent.com/GoogleCloudPlatform/anthos-service-mesh-packages/master/asm/istio/options/internal-load-balancer.yaml
-# Copyright 2020 Google LLC
+# Copyright 2021 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# https://cloud.google.com/service-mesh/docs/enable-optional-features
+# https://raw.githubusercontent.com/GoogleCloudPlatform/anthos-service-mesh-packages/master/asm/istio/options/internal-load-balancer.yaml
+
 # [START docs]
+---
 apiVersion: install.istio.io/v1alpha1
 kind: IstioOperator
 spec:

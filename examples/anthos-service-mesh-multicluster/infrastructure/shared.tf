@@ -1,5 +1,5 @@
 /**
- * Copyright 2020 Google LLC
+ * Copyright 2021 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,8 +57,6 @@ locals {
   # ASM specific
   mesh_id = "proj-${data.google_project.project.number}"
 
-  # GCE Subnet for bastion server
-  
   # If we use a pre-built bastion server
   bastion_cidr = "10.0.0.0/24"
 

@@ -1,5 +1,5 @@
 /**
- * Copyright 2020 Google LLC
+ * Copyright 2021 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -98,15 +98,11 @@ resource "google_compute_subnetwork" "cluster4" {
 data "google_iam_policy" "cluster-policy" {
   binding {
     role = "roles/compute.networkUser"
-    members = [
-      "serviceAccount:${data.google_project.project.number}@cloudservices.gserviceaccount.com",
-    ]
+    members = ["serviceAccount:${data.google_project.project.number}@cloudservices.gserviceaccount.com",]
   }
   binding {
     role = "roles/compute.networkUser"
-    members = [
-      "serviceAccount:service-${data.google_project.project.number}@container-engine-robot.iam.gserviceaccount.com",
-    ]
+    members = ["serviceAccount:service-${data.google_project.project.number}@container-engine-robot.iam.gserviceaccount.com",]
   }
 }
 
@@ -118,11 +114,8 @@ resource "google_compute_subnetwork_iam_policy" "cluster3" {
 }
 
 resource "google_compute_subnetwork_iam_policy" "cluster4" {
-  project    = var.project_id
-  region     = var.region
-  subnetwork = google_compute_subnetwork.cluster4.name
-  # todo: fix names.
+  project     = var.project_id
+  region      = var.region
+  subnetwork  = google_compute_subnetwork.cluster4.name
   policy_data = data.google_iam_policy.cluster-policy.policy_data
 }
-
-

@@ -1,5 +1,5 @@
 /**
- * Copyright 2020 Google LLC
+ * Copyright 2021 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +23,7 @@ resource "google_compute_firewall" "ports-15017-9443-vpc3" {
   project       = var.project_id
   network       = google_compute_network.asm-vpc-3.name
   source_ranges = ["192.168.2.0/28", "192.168.3.0/28"]
-  target_tags = [
-    "cluster3",
-    "cluster4"
-  ]
+  target_tags   = ["cluster3", "cluster4"]
   allow {
     protocol = "tcp"
     ports    = [15017, 9443] # ASM requires port 15017
@@ -39,10 +36,7 @@ resource "google_compute_firewall" "ports-8443-vpc3" {
   project       = var.project_id
   network       = google_compute_network.asm-vpc-3.name
   source_ranges = ["192.168.2.0/28", "192.168.3.0/28"]
-  target_tags = [
-    "cluster3",
-    "cluster4"
-  ]
+  target_tags   = ["cluster3", "cluster4"]
   allow {
     protocol = "tcp"
     ports    = [8443]
@@ -56,12 +50,8 @@ resource "google_compute_firewall" "gce-to-vpc3-clusters-all" {
   project       = var.project_id
   network       = google_compute_network.asm-vpc-3.name
   source_ranges = [local.bastion_cidr]
-  target_tags = [
-    "cluster3",
-    "cluster4"
-  ]
+  target_tags   = ["cluster3", "cluster4"]
   allow {
     protocol = "tcp"
   }
 }
-

@@ -1,11 +1,23 @@
+#!/usr/bin/env bash
+
+# Copyright 2020 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 # Customize variables as needed
 
-# Terraform debug logging. 
-# Comment these two variables out if not running on local
-export TF_LOG="TRACE"
-export TF_LOG_PATH=~/terraform.log
-
-export TF_VAR_project_id="your-project-id" # Replace with your project ID
+# read project ID from google cloud SDK config or environment variable
+export TF_VAR_project_id="$(gcloud config get-value project || ${GOOGLE_CLOUD_PROJECT})"
 
 # The directory of this project
 export SRC_PATH=~/asm-private-multiclusters-intranet
@@ -38,4 +50,3 @@ export CLUSTER1_CLUSTER_CTX=cluster3
 
 export CLUSTER2_CLUSTER_NAME=cluster4
 export CLUSTER2_CLUSTER_CTX=cluster4
-
