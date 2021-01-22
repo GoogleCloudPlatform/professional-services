@@ -56,7 +56,8 @@ def main(config, parsed_args, cloud_logger):
         raise SystemExit(msg)
 
     # Get copies of all of the source bucket's IAM, ACLs and settings so they
-    # can be copied over to the target project bucket
+    # can be copied over to the target project bucket; details are retrievable
+    # only if the corresponding feature is enabled in the configuration
     source_bucket_details = bucket_details.BucketDetails(
         conf=parsed_args, source_bucket=source_bucket)
 
