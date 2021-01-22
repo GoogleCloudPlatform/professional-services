@@ -235,9 +235,11 @@ def _create_target_bucket(cloud_logger, config, source_bucket_details,
     """
 
     if config.is_rename:
-        spinner_text = 'Creating target bucket'
+        spinner_text = 'Creating target bucket {} in project {}'.format(
+            bucket_name, config.target_project)
     else:
-        spinner_text = 'Creating temp target bucket'
+        spinner_text = 'Creating temp target bucket {} in project {}'.format(
+            bucket_name, config.target_project)
 
     cloud_logger.log_text(spinner_text)
     with yaspin(text=spinner_text) as spinner:
