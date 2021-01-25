@@ -14,11 +14,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Shellcheck Sources
-# https://github.com/koalaman/shellcheck/wiki/SC1091
+# Shellcheck Ignore Errors
 #
-# shellcheck source=vars.sh
-source vars.sh
+# SC2153: Possible misspelling
+# shellcheck disable=SC2153
+#
+# SC2155: Declare and assign separately to avoid masking return values.
+# shellcheck disable=SC2155
+
+# read project ID from google cloud SDK config or environment variable
+export TF_VAR_project_id="$(gcloud config get-value project || ${GOOGLE_CLOUD_PROJECT})"
 
 # Exit if any command fails
 set -x
