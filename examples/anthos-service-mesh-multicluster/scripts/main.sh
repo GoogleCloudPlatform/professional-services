@@ -14,6 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Shellcheck Sources
+# https://github.com/koalaman/shellcheck/wiki/SC1091
+#
+# shellcheck source=vars.sh
+source vars.sh
+
 # Exit if any command fails
 set -x
 

@@ -14,6 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Shellcheck Ignore Errors
+#
+# SC2155: Declare and assign separately to avoid masking return values.
+# shellcheck disable=SC2155
+
 # Customize variables as needed
 
 # read project ID from google cloud SDK config or environment variable
