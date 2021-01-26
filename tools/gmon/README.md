@@ -50,6 +50,7 @@ gmon metrics get vpn.googleapis.com/gateway/connections -p <PROJECT_ID>
 gmon metrics inspect istio.io/service/client/request_count -p <PROJECT_ID>
 gmon metrics inspect istio.io/service/client/request_count -p <PROJECT_ID> --window 600 # seconds
 gmon metrics inspect istio.io/service/client/request_count -p <PROJECT_ID> --filter resource.labels.container_name="my_container"
+gmon metrics inspect istio.io/service/client/request_count -p <PROJECT_ID> --filter metric.labels.env=prod metric.labels.period="monitoring.regex.full_match(\".*d\")" # remind yourself to escape the quotes containing the regex
 
 # Create custom metric descriptor
 gmon metrics create test/metric -p <PROJECT_ID> --value-type DOUBLE --metric-kind GAUGE --description "Test metric"
