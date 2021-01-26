@@ -7,8 +7,10 @@ Common solutions and tools developed by Google Cloud's Professional Services tea
 The examples folder contains example solutions across a variety of Google Cloud Platform products. Use these solutions as a reference for your own or extend them to fit your particular use case.
 
 
+* [Anthos Service Mesh Multi-Cluster](examples/anthos-service-mesh-multicluster) - Solution to federate two private GKE clusters using Anthos Service Mesh.
 * [Audio Content Profiling](examples/ml-audio-content-profiling) - A tool that builds a pipeline to scale the process of moderating audio files for inappropriate content using machine learning APIs.
 * [BigQuery Audit Log Dashboard](examples/bigquery-audit-log) - Solution to help audit BigQuery usage using Data Studio for visualization and a sample SQL script to query the back-end data source consisting of audit logs.
+* [BigQuery Automated Email Exports](examples/bq-email-exports) - Serverless solution to automate the sending of BigQuery export results via email on a scheduled interval. The email will contain a link to a signed or unsigned URL, allowing the recipient to view query results as a JSON, CSV, or Avro file.
 * [BigQuery Billing Dashboard](examples/bigquery-billing-dashboard) - Solution to help displaying billing info using Data Studio for visualization and a sample SQL script to query the back-end billing export table in BigQuery.
 * [BigQuery Cross Project Slot Monitoring](examples/bigquery-cross-project-slot-monitoring) - Solution to help monitoring slot utilization across multiple projects, while breaking down allocation per project.
 * [BigQuery Group Sync For Row Level Access](examples/bigquery-row-access-groups) - Sample code to synchronize group membership from G Suite/Cloud Identity into BigQuery and join that with your data to control access at row level.
@@ -52,6 +54,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [Pub/Sub Client Batching Example](examples/pubsub-publish-avro-example) - Batching in Pub/Sub's Java client API.
 * [QAOA](examples/qaoa) - Examples of parsing a max-SAT problem in a proprietary format.
 * [Redis Cluster on GKE Example](examples/redis-cluster-gke) - Deploying Redis cluster on GKE.
+* [Spanner Interleave Subquery](examples/spanner-interleave-subquery) - Example code to benchmark Cloud Spanner's subqueries for interleaved tables.
 * [Spinnaker](examples/spinnaker) - Example pipelines for a Canary / Production deployment process.
 * [TensorFlow Serving on GKE and Load Testing](examples/tf-load-testing) - Examples how to implement Tensorflow model inference on GKE and to perform a load testing of such solution.
 * [TensorFlow Unit Testing](examples/tensorflow-unit-testing) - Examples how to write unit tests for TensorFlow ML models.
@@ -101,6 +104,7 @@ creates relationships between assets and outputs a format compatible with [graph
 * [SLO Generator](tools/slo-generator/) - A Python package that automates computation of Service Level Objectives, Error Budgets and Burn Rates on GCP,  and export the computation results to available exporters (e.g: PubSub, BigQuery, Stackdriver Monitoring), using policies written in JSON format.
 * [Snowflake_to_BQ](tools/snowflake2bq/) - A shell script to transfer tables (schema & data) from Snowflake to BigQuery.
 * [STS Job Manager](tools/sts-job-manager/) - A petabyte-scale bucket migration tool utilizing [Storage Transfer Service](https://cloud.google.com/storage-transfer-service)
+* [VM Migrator](tools/vm-migrator) - This utility automates migrating Virtual Machine instances within GCP. You can migrate VM's from one zone to another zone/region within the same project or different projects while retaining all the original VM properties like disks, network interfaces, ip, metadata, network tags and much more. 
 * [Webhook Ingestion Data Pipeline](tools/webhook-ingestion-pipeline) - A deployable app to accept and ingest unauthenticated webhook data to BigQuery.
 * [gmon](tools/gmon/) - A command-line interface (CLI) for Cloud Monitoring written in Python.
 

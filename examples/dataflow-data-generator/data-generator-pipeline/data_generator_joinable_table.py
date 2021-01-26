@@ -144,7 +144,7 @@ def run(argv=None):
              # In this case we use the value passed in from the command line.
              data_args.output_bq_table,
              schema=None
-             if schema_inferred else data_gen.get_bq_schema_string(),
+             if schema_inferred else data_gen.get_bq_schema(),
              # Creates the table in BigQuery if it does not yet exist.
              create_disposition=beam.io.BigQueryDisposition.CREATE_IF_NEEDED,
              write_disposition=data_gen.write_disp,
