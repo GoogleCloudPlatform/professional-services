@@ -1,0 +1,38 @@
+{
+  "metadata": {
+    "spec-version": "1.0"
+  },
+  "configuration-groups": [
+    {
+      "label": "CheckPointUpdateAction",
+      "properties": [
+        {
+          "widget-type": "textbox",
+          "label": "Specify the collection name in firestore DB",
+          "name": "collectionName"
+        },
+        {
+          "widget-type": "textbox",
+          "label": "Specify the document name to read the checkpoint details",
+          "name": "documentName"
+        },
+        {
+          "widget-type": "textbox",
+          "label": "Dataset name where incremental pull table exists",
+          "name": "incrPullTableDataset"
+        },
+        {
+          "widget-type": "textbox",
+          "label": "Table name that needs incremental pull",
+          "name": "incrPullTableName"
+        },
+        {
+          "widget-type": "textbox",
+          "label": "Specify the checkpoint column from incremental pull table",
+          "name": "checkpointColumn"
+        }
+      ]
+    }
+  ],
+  "outputs": []
+}

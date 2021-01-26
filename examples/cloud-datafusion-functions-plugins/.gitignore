@@ -1,0 +1,20 @@
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.mo binary
+*.pdf binary
+*.phar binary
+*.class binary
+
+.DS_Store
+.idea/*.xml
+target/*.*
+target/*
+build/
+*.bin
+out/
+.gradle/
+.idea
+*.iml
+pipelines/
