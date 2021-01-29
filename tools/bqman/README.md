@@ -7,12 +7,13 @@ BQMan has been designed to seamlessly interface with Google BigQuery to automate
 *   **Pull: **downloads the Bigquery table schema as JSON files for a given dataset.
 *   **Push: **creates the Bigquery dataset and tables using a previously downloaded collection of Bigquery table JSON schema files.
 *   **Update: **allows the addition of nullable columns to Bigquery tables.
+*   **Patch: **allows the modification of BigQuery table descriptions.
 *   **Backup: **generates a backup of a given Bigquery dataset. The backup is stored in a Google Cloud storage Bucket as sharded CSV files.
 *   **Restore: **creates a Bigquery Dataset and tables using a previously downloaded collection of sharded CSV files in a Google Cloud Storage Bucket that was generated from a previous backup.
 *   **Delete: **deletes a dataset provided it does not contain any tables.
 *   **Import Spreadsheet:  **generates BigQuery schema files from a Google Spreadsheet.
 *   **Import SQL Server: **generates BigQuery schema files from a Microsoft SQL Server database.
-*   **Destroy: **deletes a dataset even if it contains tables. This feature is available in the bqadmin executable and should be used sparingly using a short-lived service account[^1].
+*   **Destroy: **deletes a dataset even if it contains tables. This feature is available in the bqadmin executable and should be used sparingly using a short-lived service account.
 
 ## Application Usage
 
