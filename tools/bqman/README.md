@@ -1,29 +1,3 @@
-<p style="color: red; font-weight: bold">>>>>>  gd2md-html alert:  ERRORs: 0; WARNINGs: 1; ALERTS: 0.</p>
-<ul style="color: red; font-weight: bold"><li>See top comment block for details on ERRORs and WARNINGs. <li>In the converted Markdown or HTML, search for inline alerts that start with >>>>>  gd2md-html alert:  for specific instances that need correction.</ul>
-
-<p style="color: red; font-weight: bold">Links to alert messages:</p>
-<p style="color: red; font-weight: bold">>>>>> PLEASE check and correct alert issues and delete this message and the inline alerts.<hr></p>
-
-
-Contents
-
-
-[TOC]
-
-
-
-# Problem Statement
-
-Many clients have a need for an automated way of creating, modifying, deleting and managing BigQuery schemas to improve operational efficiency. The tasks that were identified for automation include:
-
-
-
-1. The reverse engineering of database schemas from source systems such as Oracle, SQL Server, MySQL and Google Spreadsheets; 
-2. The creation of BigQuery entities (datasets, tables and data dictionary) for the data lake using the reverse-engineered schemas; 
-3. Seamless and repeatable backup and restore procedures;
-4. An efficient method for updating and patching existing table metadata.
-
-
 # What is BQMan?
 
 BQMan has been designed to seamlessly interface with Google BigQuery to automate the provisioning and ongoing management of datasets and tables. BQMan provides the following modes of operation:
@@ -246,16 +220,3 @@ func ProcessUpdate(trotter *controller.Trotter)
     ProcessUpdate is used to add new NULLABLE columns at the end of a table
 ```
 
-
-
-<!-- Footnotes themselves at the bottom. -->
-## Notes
-
-[^1]:
-
-     [https://cloud.google.com/iam/docs/creating-short-lived-service-account-credentials](https://cloud.google.com/iam/docs/creating-short-lived-service-account-credentials) 
-
-[^2]:```
-
-
-     [https://github.com/alecthomas/kingpin](https://github.com/alecthomas/kingpin) 
