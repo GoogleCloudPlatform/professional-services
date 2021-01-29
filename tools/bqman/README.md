@@ -167,27 +167,6 @@ import_sqlserver --server=SERVER --user=USER --password=PASSWORD --database=DATA
     --password=PASSWORD --database=DATABASE
 ```
 
-
-
-
-
-# Application Entry Point (bqman.go)
-
-**bqman.go** is the entry point to the application and uses the following packages:
-
-
-```
-       "github.com/GoogleCloudPlatform/bqman/bqhandler"
-       "github.com/GoogleCloudPlatform/bqman/connector"
-       "github.com/GoogleCloudPlatform/bqman/controller"
-       "github.com/GoogleCloudPlatform/bqman/executionmode"
-       "github.com/GoogleCloudPlatform/bqman/util"
-       "gopkg.in/alecthomas/kingpin.v2
-[^2]
-
- BQMan uses the [https://github.com/alecthomas/kingpin](https://github.com/alecthomas/kingpin) to parse command-line arguments. 
-
-
 ## bqman.go Functions
 
 
