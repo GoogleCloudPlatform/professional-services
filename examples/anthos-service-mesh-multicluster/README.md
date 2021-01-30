@@ -23,10 +23,10 @@ As illustrated in the diagram below, we will create a VPC with three subnets. Tw
 
 ![NetworkImage](./asm-private-multiclusters-intranet.png)
 
-The clusters are not accessible from an external network. Users can only log into the bastion server via an IAP tunnel to gain access to this VPC. A firewall rule is built to allow IAP tunneling into the GCE subnet (Subnet C) only. For the bastion server in Subnet C to access Kubernetes APIs of both private clusters, Subnet C's CIDR range is added to the "_Master Auth Network_" of both clusters. This is illustrated as blue lines and yellow underscore lines in the diagram above.
+The clusters are not accessible from an external network. Users can only log into the bastion server via an IAP tunnel to gain access to this VPC. A firewall rule is built to allow IAP tunneling into the GCE subnet (Subnet C) only. For the bastion server in Subnet C to access Kubernetes APIs of both private clusters, Subnet C's CIDR range is added to the "_GKE Control Plane Authorized Network_" of both clusters. This is illustrated as blue lines and yellow underscore lines in the diagram above.
 
 Also, in order for both clusters to access the service mesh (Istiod) and service deployed on the other cluster, we need to do the following:
-- The pod CIDR range of one cluster must be added to the "_Master Auth Network_" of the other cluster. This enables one cluster to ping _istiod_ on the other cluster. 
+- The pod CIDR range of one cluster must be added to the "_GKE Control Plane Authorized Network_" of the other cluster. This enables one cluster to ping _istiod_ on the other cluster. 
 - The firewall needs to be open for one cluster's pod CIDR to access the service port on the other cluster. In this sample, it is port 5000 used by the HelloWord testing application. Because the invocation of service is bidirectional in HelloWorld testing application, we will add firewall rules for each direction. 
 
 The infrastruction used in this sample is coded in Terraform scripts. The ASM installation steps are coded in a Shell script.     
