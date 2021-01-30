@@ -739,6 +739,9 @@ def _run_and_wait_for_sts_job(sts_client, target_project, source_bucket_name,
         True if the STS job completed successfully, False if it failed for any reason
     """
 
+    # Note that this routine is in a @retry decorator, so non-True exits
+    # and unhandled exceptions will trigger a retry.
+
     msg = 'Moving from bucket {} to {}'.format(source_bucket_name,
                                                sink_bucket_name)
     _print_and_log(cloud_logger, msg)
@@ -878,13 +881,12 @@ def _print_sts_counters(spinner, cloud_logger, counters, is_job_done):
     """
 
     if counters:
-        bytes_copied_to_sink = counters.get('bytesCopiedToSink', '0')
-        objects_copied_to_sink = counters.get('objectsCopiedToSink', '0')
-        bytes_found_from_source = counters.get('bytesFoundFromSource', '0')
-        objects_found_from_source = counters.get('objectsFoundFromSource', '0')
-        bytes_deleted_from_source = counters.get('bytesDeletedFromSource', '0')
-        objects_deleted_from_source = counters.get('objectsDeletedFromSource',
-                                                   '0')
+        bytes_copied_to_sink = int(counters.get('bytesCopiedToSink', '0'))
+        objects_copied_to_sink = int(counters.get('objectsCopiedToSink', '0'))
+        bytes_found_from_source = int(counters.get('bytesFoundFromSource', '0'))
+        objects_found_from_source = int(counters.get('objectsFoundFromSource', '0'))
+        bytes_deleted_from_source = int(counters.get('bytesDeletedFromSource', '0'))
+        objects_deleted_from_source = int(counters.get('objectsDeletedFromSource','0'))
 
         if is_job_done:
             byte_status = (bytes_copied_to_sink == bytes_found_from_source ==
