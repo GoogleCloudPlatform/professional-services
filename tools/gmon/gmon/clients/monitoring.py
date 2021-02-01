@@ -211,13 +211,14 @@ class MetricsClient:
                     self.delete(metric_type)
             LOGGER.info('Metrics deleted successfully.')
 
-    def inspect(self, metric_type, window):
+    def inspect(self, metric_type, window, filters={}):
         """Inspect a specific metric. Returns timeseries beteween now and
         300 seconds before.
 
         Args:
             metric_type (str): Metric type.
             window: Window (in seconds).
+            filters (list): List of filters.
 
         Returns:
             list: List of timeseries.
@@ -236,9 +237,13 @@ class MetricsClient:
             (now - interval.end_time.seconds) * 10**9)
         interval.start_time.seconds = int(now - window)
         interval.start_time.nanos = interval.end_time.nanos
+        query = f'metric.type = "{metric_type}"'
+        for filter_key, filter_value in filters.items():
+            query += f' {filter_key} = {filter_value}'
+        LOGGER.debug(f'Running query "{query}" ...')
         results = list(
             self.client.list_time_series(
-                self.project, 'metric.type = "%s"' % metric_type, interval,
+                self.project, query, interval,
                 enums.ListTimeSeriesRequest.TimeSeriesView.FULL))
         return results
 
