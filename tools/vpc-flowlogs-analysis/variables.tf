@@ -1,5 +1,5 @@
 /**
- * Copyright 2020 Google LLC
+ * Copyright 2021 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ variable "location" {
 
 variable "logs_project_id" {
   type        = string
-  description = "Id of the project where the BigQuery dataset with the VPC flowlogs will be stored."
+  description = "ID of the project where the BigQuery dataset with the VPC flowlogs will be stored."
 }
 
 variable "vpc_project_ids" {
