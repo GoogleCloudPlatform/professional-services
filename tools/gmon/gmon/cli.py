@@ -105,20 +105,19 @@ def parse_args(args):
                                  help='Window to query (in seconds)',
                                  required=False,
                                  default=60)
-    metrics_inspect.add_argument('--filters',
+    metrics_inspect.add_argument('--filters', 
+                                 '-f',
                                  nargs='+',
                                  help='Filter on nested fields.',
                                  required=False,
                                  default=[])
     metrics_inspect.add_argument('--fields',
-                                 '-f',
                                  type=str,
                                  nargs='+',
                                  help='Fields to keep in response.',
                                  required=False,
                                  default=[])
     metrics_list.add_argument('--fields',
-                              '-f',
                               type=str,
                               nargs='+',
                               help='Fields to keep in response.',
@@ -130,7 +129,8 @@ def parse_args(args):
                               help='Number of results to show.',
                               required=False,
                               default=None)
-    metrics_list.add_argument('--filters',
+    metrics_list.add_argument('--filters', 
+                              '-f',
                               nargs='+',
                               help='Filter on nested fields.',
                               required=False,
@@ -294,7 +294,8 @@ def cli(parsers, args):
             response = method(pattern=args.regex, fields=fields)
 
         elif command in ['inspect']:
-            response = method(metric_type, window=args.window)
+            response = method(metric_type, window=args.window, filters=filters)
+            filters  = {} # already using API filters
 
         elif command in ['delete_unused']:
             response = method(pattern=args.regex, window=args.window)
@@ -342,7 +343,7 @@ def parse_filters(filters=[]):
         filters: A list of "key=value" strings.
 
     Returns:
-        list: Parsed filters
+        dict: A dict of parsed filters.
     """
     ret = {}
     for f in filters:

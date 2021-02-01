@@ -7,6 +7,7 @@ Common solutions and tools developed by Google Cloud's Professional Services tea
 The examples folder contains example solutions across a variety of Google Cloud Platform products. Use these solutions as a reference for your own or extend them to fit your particular use case.
 
 
+* [Anthos Service Mesh Multi-Cluster](examples/anthos-service-mesh-multicluster) - Solution to federate two private GKE clusters using Anthos Service Mesh.
 * [Audio Content Profiling](examples/ml-audio-content-profiling) - A tool that builds a pipeline to scale the process of moderating audio files for inappropriate content using machine learning APIs.
 * [BigQuery Audit Log Dashboard](examples/bigquery-audit-log) - Solution to help audit BigQuery usage using Data Studio for visualization and a sample SQL script to query the back-end data source consisting of audit logs.
 * [BigQuery Automated Email Exports](examples/bq-email-exports) - Serverless solution to automate the sending of BigQuery export results via email on a scheduled interval. The email will contain a link to a signed or unsigned URL, allowing the recipient to view query results as a JSON, CSV, or Avro file.
@@ -18,6 +19,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [Bigtable Dataflow Update Table Key Pipeline](examples/bigtable-change-key) - Dataflow pipeline with an example of how to update the key of an existing table. It works with any table, regardless the schema. It shows how to update your key for a table with existing data, to try out different alternatives to improve performance.
 * [Cloud Composer Examples](examples/cloud-composer-examples) - Examples of using Cloud Composer, GCP's managed Apache Airflow service.
 * [Cloud Composer CI/CD](examples/cloud-composer-cicd) - Examples of using Cloud Build to deploy airflow DAGs to Cloud Composer.
+* [Cloud Data Fusion Functions and Plugins](examples/cloud-datafusion-functions-plugins) - Examples of Cloud Data Fusion Functions and Plugins.  
 * [Cloud Function VM Delete Event Handler Example](examples/gcf-pubsub-vm-delete-event-handler) - Solution to automatically delete A records in Cloud DNS when a VM is deleted.  This solution implements a [Google Cloud Function][gcf] [Background Function][gcf-bg] triggered on `compute.instances.delete` events published through [Stackdriver Logs Export][logs-export].
 * [Cloud SQL Custom Metric](examples/cloud-sql-custom-metric) - An example of creating a Stackdriver custom metric monitoring Cloud SQL Private Services IP consumption.
 * [CloudML Bank Marketing](examples/cloudml-bank-marketing) - Notebook for creating a classification model for marketing using CloudML.
