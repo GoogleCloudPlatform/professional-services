@@ -55,3 +55,6 @@ done
 
 
 [Verify](https://pantheon.corp.google.com/anthos/clusters?project=titodo-sandbox) your clusters have been registered.
+
+
+Next: [Set up Anthos Config Management(ACM)](https://github.com/itodotimothy6/professional-services/blob/anthos-cicd-with-gitlab/examples/anthos-cicd-with-gitlab/docs/3-set-up-anthos-config-management.md)

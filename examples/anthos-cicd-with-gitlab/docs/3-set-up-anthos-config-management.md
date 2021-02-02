@@ -318,3 +318,6 @@ nomos status
 
 
 A status of `Pending` or `Synced` means your installation is fine
+
+
+Next: [CICD with Anthos and Gitlab](https://github.com/itodotimothy6/professional-services/blob/anthos-cicd-with-gitlab/examples/anthos-cicd-with-gitlab/docs/4-cicd-with-anthos-and-gitlab.md)
