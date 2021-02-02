@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gitlab-runner-config
+  annotations:
+    configmanagement.gke.io/cluster-selector: prod-cluster-selector
+data:
+  kubernetes-namespace: "gitlab"
+  kubernetes-service-account: "gitlab-runner"
+  gitlab-server-address: "https://gitlab.com/" 
+  runner-tag-list: "prod" 
+  entrypoint: |
+    #!/bin/bash
+
+    set -xe
+
+    # Register the runner
+    /entrypoint register --non-interactive \
+      --url $GITLAB_SERVER_ADDRESS \
+      --registration-token $REGISTRATION_TOKEN \
+      --executor kubernetes 
+
+    # Start the runner
+    /entrypoint run --user=gitlab-runner \
+      --working-directory=/home/gitlab-runner
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gitlab-runner-config
+  annotations:
+    configmanagement.gke.io/cluster-selector: dev-cluster-selector
+data:
+  kubernetes-namespace: "gitlab"
+  kubernetes-service-account: "gitlab-runner"
+  gitlab-server-address: "https://gitlab.com/" 
+  runner-tag-list: "dev"
+  entrypoint: |
+    #!/bin/bash
+
+    set -xe
+
+    # Register the runner
+    /entrypoint register --non-interactive \
+      --url $GITLAB_SERVER_ADDRESS \
+      --registration-token $REGISTRATION_TOKEN \
+      --executor kubernetes
+    
+
+    # Start the runner
+    /entrypoint run --user=gitlab-runner \
+      --working-directory=/home/gitlab-runner

@@ -1,0 +1,15 @@
+apiVersion: runner.gscout.xyz/v1alpha1
+kind: Runner
+metadata:
+  name: runner-sample
+spec:
+  size: 1
+  credentials:
+    tokenSecretName: gitlab-runner-token
+  runnerServiceAccount:
+    name: gitlab-runner
+    workloadIdentityServiceAccount: gitlab-sa@titodo-anthos.iam.gserviceaccount.com
+  tagList:
+  - operator_test
+  url: https://gitlab.com
+  jobNamespace: gitlab-test

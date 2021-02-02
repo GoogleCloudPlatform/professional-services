@@ -1,0 +1,64 @@
+image: google/cloud-sdk
+
+include:
+# Build Steps
+- project: "runway1/platform-admin"
+  file: "build/build-container.yaml"
+# Vulnerability Scan Steps
+- project: "runway1/platform-admin"
+  file: "vulnerability/vulnerability-scan-result.yaml"
+- project: "runway1/platform-admin"
+  file: "vulnerability/vulnerability-scan-verify.yaml"
+# Kustomize Steps
+- project: "runway1/platform-admin"
+  file: "kustomize-steps/fetch-base.yaml"
+- project: "runway1/platform-admin"
+  file: "kustomize-steps/hydrate-dev.yaml"
+- project: "runway1/platform-admin"
+  file: "kustomize-steps/hydrate-prod.yaml"
+# ACM Steps
+- project: "runway1/platform-admin"
+  file: "acm/download-policies.yaml"
+- project: "runway1/platform-admin"
+  file: "acm/read-acm.yaml"
+- project: "runway1/platform-admin"
+  file: "acm/validate-acm.yaml"
+# Deploy Steps
+- project: "runway1/platform-admin"
+  file: "deploy/deploy-dev.yaml"
+- project: "runway1/platform-admin"
+  file: "deploy/deploy-prod.yaml"
+
+variables:
+  KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: default
+  KUSTOMIZATION_PATH_BASE: "./base"
+  KUSTOMIZATION_PATH_DEV: "./kubernetes/overlays/dev"
+  KUSTOMIZATION_PATH_NON_PROD: "./kubernetes/overlays/stage"
+  KUSTOMIZATION_PATH_PROD: "./kubernetes/overlays/prod"
+  HOSTNAME: "gcr.io"
+  PROJECT_ID: "titodo-anthos"
+  CONTAINER_NAME: "hello-kubernetes" 
+
+  # Binary Authorization Variables
+  _VULNZ_ATTESTOR: "vulnz-attestor"
+  _VULNZ_KMS_KEY_VERSION: "1"
+  _VULNZ_KMS_KEY: "vulnz-signer"
+  _KMS_KEYRING: "binauthz"
+  _KMS_LOCATION: "us-central1"
+  _COMPUTE_REGION: "us-central1"
+  _PROD_CLUSTER: "prod"
+  _STAGING_CLUSTER: "dev"
+  _QA_ATTESTOR: "qa-attestor"
+  _QA_KMS_KEY: "qa-signer"
+  _QA_KMS_KEY_VERSION: "1"
+
+stages:
+  - Build
+  - Verify Image
+  - Fetch Bases
+  - Hydrate Manifests
+  - Download ACM Policy
+  - Read ACM YAML
+  - ACM Policy Check
+  - Deploy Dev
+  - Push Manifests

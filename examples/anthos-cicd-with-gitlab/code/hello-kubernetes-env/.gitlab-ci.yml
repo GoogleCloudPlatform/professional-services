@@ -1,0 +1,101 @@
+image: google/cloud-sdk
+
+variables:
+  KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: default
+  KUSTOMIZATION_PATH_BASE: "./base"
+  KUSTOMIZATION_PATH_DEV: "./kubernetes/overlays/dev"
+  KUSTOMIZATION_PATH_NON_PROD: "./kubernetes/overlays/stage"
+  KUSTOMIZATION_PATH_PROD: "./kubernetes/overlays/prod"
+  HOSTNAME: "gcr.io"
+  PROJECT_ID: "titodo-anthos"
+  CONTAINER_NAME: "hello-kubernetes" 
+
+  # Binary Authorization Variables
+  _VULNZ_ATTESTOR: "vulnz-attestor"
+  _VULNZ_KMS_KEY_VERSION: "1"
+  _VULNZ_KMS_KEY: "vulnz-signer"
+  _KMS_KEYRING: "binauthz"
+  _KMS_LOCATION: "us-central1"
+  _COMPUTE_REGION: "us-central1"
+  _PROD_CLUSTER: "prod"
+  _STAGING_CLUSTER: "dev"
+  _QA_ATTESTOR: "qa-attestor"
+  _QA_KMS_KEY: "qa-signer"
+  _QA_KMS_KEY_VERSION: "1"
+
+stages:
+  - Deploy Stage
+  - Manual Verification
+  - Attest QA Deployment
+  - Deploy Full GKE
+
+deploy-stage:
+  stage: Deploy Stage
+  tags:
+    - dev
+  only:
+    - stage
+  environment:
+    name: nonprod
+    url: https://$CI_ENVIRONMENT_SLUG
+  script:
+    - kubectl apply -f stage.yaml
+
+manual-verification:
+  stage: Manual Verification
+  tags:
+    - dev
+  only:
+    - stage
+  script:
+    - echo "run uat here"
+    - sleep 1s 
+  when: manual
+  allow_failure: false
+
+attest-qa-deployment:
+  stage: Attest QA Deployment
+  tags:
+    - dev
+  only:
+    - stage
+  environment:
+    name: nonprod
+    url: https://$CI_ENVIRONMENT_SLUG
+  retry: 2
+  script:
+    - kubectl apply -f stage.yaml --dry-run -o  jsonpath='{range .items[*]}{.spec.template.spec.containers[*].image}{"\n"}' | sed '/^[[:space:]]*$/d' | sed 's/ /\n/g' > nonprd_images.txt
+    - cat nonprd_images.txt
+    - |
+      while IFS= read -r IMAGE; do
+         if [[ $(gcloud beta container binauthz attestations list \
+          --project "$PROJECT_ID" \
+          --attestor "$_QA_ATTESTOR" \
+          --attestor-project "$PROJECT_ID" \
+          --artifact-url "$IMAGE" \
+          2>&1 | grep "$_QA_KMS_KEY" | wc -l) = 0 ]]; then
+          gcloud beta container binauthz attestations sign-and-create \
+            --project "$PROJECT_ID" \
+            --artifact-url "$IMAGE" \
+            --attestor "$_QA_ATTESTOR" \
+            --attestor-project "$PROJECT_ID" \
+            --keyversion "$_QA_KMS_KEY_VERSION" \
+            --keyversion-key "$_QA_KMS_KEY" \
+            --keyversion-location "$_KMS_LOCATION" \
+            --keyversion-keyring "$_KMS_KEYRING" \
+            --keyversion-project "$PROJECT_ID"
+          echo "Attested Image $IMAGE"
+        fi 
+      done < nonprd_images.txt
+
+deploy-production:
+  stage: Deploy Full GKE
+  tags:
+    - prod
+  only:
+    - prod
+  environment:
+    name: production
+    url: https://$CI_ENVIRONMENT_SLUG
+  script:
+    - kubectl apply -f production.yaml
