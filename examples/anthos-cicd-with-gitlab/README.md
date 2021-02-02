@@ -11,10 +11,10 @@ This guide walks you through putting together a [modern CI/CD reference architec
 ## Labs
 This tutorial assumes you have access to [Google Cloud Platform](https://cloud.google.com) and [Gitlab](https://gitlab.com/). Expert knowledge of Gitlab is not required but an understanding of the [basics](https://docs.gitlab.com/ee/gitlab-basics/) of Gitlab would help.
 
-*   [Prerequisites](#bookmark=id.fe8jvrbdeh59)
-*   [Register GKE Clusters with Anthos](#bookmark=id.8xu4vpko5qfv)
-*   [Set up Anthos Config Management (ACM)](#bookmark=id.wcte6mcoiw79)
-*   [CICD with Anthos](#bookmark=id.e2x2j17l2hxl)
+*   [Prerequisites](https://github.com/itodotimothy6/professional-services/blob/anthos-cicd-with-gitlab/examples/anthos-cicd-with-gitlab/docs/1-prerequisites.md)
+*   [Register GKE Clusters with Anthos](https://github.com/itodotimothy6/professional-services/blob/anthos-cicd-with-gitlab/examples/anthos-cicd-with-gitlab/docs/2-register-gke-clusters-with-anthos.md)
+*   [Set up Anthos Config Management (ACM)](https://github.com/itodotimothy6/professional-services/blob/anthos-cicd-with-gitlab/examples/anthos-cicd-with-gitlab/docs/3-set-up-anthos-config-management.md)
+*   [CICD with Anthos](https://github.com/itodotimothy6/professional-services/blob/anthos-cicd-with-gitlab/examples/anthos-cicd-with-gitlab/docs/4-cicd-with-anthos-and-gitlab.md)
 
 
 Next: [Prerequisites](https://github.com/itodotimothy6/professional-services/blob/anthos-cicd-with-gitlab/examples/anthos-cicd-with-gitlab/docs/1-prerequisites.md)
