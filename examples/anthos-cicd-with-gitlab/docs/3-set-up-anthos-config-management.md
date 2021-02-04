@@ -20,7 +20,7 @@ Click on the [GitLab $GROUP_NAME group](https://gitlab.com/dashboard/groups) you
 
 
 
-![Create Gitlab project](docs/image/create-blank-project.png)
+![Create Gitlab project](docs/images/create-blank-project.png)
 
 
 Clone the repo locally and use nomos to create the [repo structure](https://cloud.google.com/kubernetes-engine/docs/add-on/config-sync/concepts/repo) that allows [Config Sync](https://cloud.google.com/kubernetes-engine/docs/add-on/config-sync/overview) to read from the repo:
@@ -320,4 +320,4 @@ nomos status
 A status of `Pending` or `Synced` means your installation is fine
 
 
-Next: [CICD with Anthos and Gitlab](docs/4-cicd-with-anthos-and-gitlab.md)
+Next: [CICD with Anthos and Gitlab](4-cicd-with-anthos-and-gitlab.md)

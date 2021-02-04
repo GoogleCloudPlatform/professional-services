@@ -53,7 +53,7 @@ done
 ```
 
 
-[Verify](https://pantheon.corp.google.com/anthos/clusters?project=titodo-sandbox) your clusters have been registered.
+[Verify](https://pantheon.corp.google.com/anthos/clusters) your clusters have been registered.
 
 
-Next: [Set up Anthos Config Management(ACM)](docs/3-set-up-anthos-config-management.md)
+Next: [Set up Anthos Config Management(ACM)](3-set-up-anthos-config-management.md)

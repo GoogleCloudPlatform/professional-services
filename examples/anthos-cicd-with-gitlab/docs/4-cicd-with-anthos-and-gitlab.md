@@ -844,14 +844,14 @@ For the `ACM`,` hello-kubernetes` and `hello-kubernetes-env` repos, go to Settin
 
 
 
-![Deploy keys](docs/image/environment-variables.png)
+![Deploy keys](docs/images/environment-variables.png)
 
 
 Create an SSH_KEY variable in hello-kubernetes repo by going to Settings > CI/CD > Variables. Make sure to mask your variables.
 
 
 
-![Environment variables](docs/image/environment-variables.png)
+![Environment variables](docs/images/environment-variables.png)
 
 
 
@@ -1127,7 +1127,7 @@ done
 
 To find your `REGISTRATION_TOKEN `navigate to $GROUP_NAME [group](https://gitlab.com/dashboard/groups) page, Click Settings > CI / CD > Runners > Expand
 
-![Registration token](docs/image/registration_token.png)
+![Registration token](docs/images/registration_token.png)
 
 
 Verify your runner has been created. Settings > CI/CD > Runners > Expand. Should see it listed under group runners

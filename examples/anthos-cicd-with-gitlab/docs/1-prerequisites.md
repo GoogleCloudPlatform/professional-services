@@ -146,4 +146,4 @@ gcloud services enable \
 ```
 
 
-Next: [Register GKE Clusters with Anthos](docs/2-register-gke-clusters-with-anthos.md)
+Next: [Register GKE Clusters with Anthos](2-register-gke-clusters-with-anthos.md)
