@@ -501,7 +501,7 @@ Create fetch base stage:
 
 
 ```
-cd ~/runway/platform-admin/
+cd ~/$GROUP_NAME/platform-admin/
 mkdir kustomize-steps/
 cd kustomize-steps/
 
@@ -594,7 +594,7 @@ download-acm-policies:
  - chmod 400 /working/ssh-key
  - export GIT_SSH_COMMAND="ssh -i /working/ssh-key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
  - git clone git@\${CI_SERVER_HOST}:\${CI_PROJECT_NAMESPACE}/acm.git -b main
- - cp sabre-acm/policies/cluster/constraint* hydrated-manifests/.
+ - cp acm/cluster/constraint* hydrated-manifests/.
  artifacts:
    paths:
      - hydrated-manifests/
@@ -871,7 +871,7 @@ Enable workload identity on your clusters:
 ```
 for i in "dev" "prod"; do
  gcloud container clusters update ${i} \
- --workload-pool=titodo-anthos.svc.id.goog
+ --workload-pool=<PROJECT_ID>.svc.id.goog
 
  gcloud container node-pools update default-pool \
  --cluster=${i} \
@@ -1141,14 +1141,8 @@ To find your `REGISTRATION_TOKEN `navigate to $GROUP_NAME [group](https://gitlab
 ![alt_text](images/image3.png "image_tooltip")
 
 
-Verify your runner has been created. Settings > CI/CD > Runners > Expand. Should see it listed under specific runners
+Verify your runner has been created. Settings > CI/CD > Runners > Expand. Should see it listed under group runners
 
-
-
-<p id="gdcalert4" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/image4.png). Store image on your image server and adjust path/filename/extension if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert5">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
-
-
-![alt_text](images/image4.png "image_tooltip")
 
 
 **Verify that App is deployed on dev**

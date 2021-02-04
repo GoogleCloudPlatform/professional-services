@@ -15,6 +15,3 @@ This tutorial assumes you have access to [Google Cloud Platform](https://cloud.g
 *   [Register GKE Clusters with Anthos](https://github.com/itodotimothy6/professional-services/blob/anthos-cicd-with-gitlab/examples/anthos-cicd-with-gitlab/docs/2-register-gke-clusters-with-anthos.md)
 *   [Set up Anthos Config Management (ACM)](https://github.com/itodotimothy6/professional-services/blob/anthos-cicd-with-gitlab/examples/anthos-cicd-with-gitlab/docs/3-set-up-anthos-config-management.md)
 *   [CICD with Anthos](https://github.com/itodotimothy6/professional-services/blob/anthos-cicd-with-gitlab/examples/anthos-cicd-with-gitlab/docs/4-cicd-with-anthos-and-gitlab.md)
-
-
-Next: [Prerequisites](https://github.com/itodotimothy6/professional-services/blob/anthos-cicd-with-gitlab/examples/anthos-cicd-with-gitlab/docs/1-prerequisites.md)

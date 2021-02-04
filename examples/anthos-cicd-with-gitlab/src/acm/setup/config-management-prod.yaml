@@ -5,7 +5,7 @@ metadata:
 spec:
   clusterName: prod
   git:
-    syncRepo: https://gitlab.com/runway1/acm.git
+    syncRepo: https://gitlab.com/<GROUP_URI>/acm.git
     syncBranch: main
     secretType: none
   policyController:

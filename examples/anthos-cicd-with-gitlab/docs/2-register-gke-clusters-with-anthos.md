@@ -8,7 +8,6 @@ For this tutorial we’ll create 2 GKE clusters called `dev` and `prod`.  The de
 
 Create dev and prod clusters:
 
-
 ```
 for i in "dev" "prod"; do
   gcloud container clusters create ${i} \

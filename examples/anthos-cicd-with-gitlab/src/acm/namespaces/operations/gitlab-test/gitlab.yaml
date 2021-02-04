@@ -8,7 +8,7 @@ spec:
     tokenSecretName: gitlab-runner-token
   runnerServiceAccount:
     name: gitlab-runner
-    workloadIdentityServiceAccount: gitlab-sa@titodo-anthos.iam.gserviceaccount.com
+    workloadIdentityServiceAccount: gitlab-sa@<PROJECT_ID>.iam.gserviceaccount.com
   tagList:
   - operator_test
   url: https://gitlab.com

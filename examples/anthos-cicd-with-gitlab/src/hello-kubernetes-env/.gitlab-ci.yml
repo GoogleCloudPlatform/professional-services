@@ -7,7 +7,7 @@ variables:
   KUSTOMIZATION_PATH_NON_PROD: "./kubernetes/overlays/stage"
   KUSTOMIZATION_PATH_PROD: "./kubernetes/overlays/prod"
   HOSTNAME: "gcr.io"
-  PROJECT_ID: "titodo-anthos"
+  PROJECT_ID: "<PROJECT_ID>"
   CONTAINER_NAME: "hello-kubernetes" 
 
   # Binary Authorization Variables

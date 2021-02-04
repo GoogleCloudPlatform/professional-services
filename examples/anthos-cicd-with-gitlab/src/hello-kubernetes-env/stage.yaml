@@ -28,7 +28,7 @@ spec:
         app: nodejs
     spec:
       containers:
-      - image: gcr.io/titodo-anthos/hello-kubernetes@sha256:3249a3c875195a5d7f61564fc8cb2d3320c315f7a9eab337d7a68c9693ccdaa4
+      - image: gcr.io/<PROJECT_ID>/hello-kubernetes@sha256:3249a3c875195a5d7f61564fc8cb2d3320c315f7a9eab337d7a68c9693ccdaa4
         name: nodejs
         ports:
         - containerPort: 8080

@@ -2,31 +2,31 @@ image: google/cloud-sdk
 
 include:
 # Build Steps
-- project: "runway1/platform-admin"
+- project: "<GROUP_URI>/platform-admin"
   file: "build/build-container.yaml"
 # Vulnerability Scan Steps
-- project: "runway1/platform-admin"
+- project: "<GROUP_URI>/platform-admin"
   file: "vulnerability/vulnerability-scan-result.yaml"
-- project: "runway1/platform-admin"
+- project: "<GROUP_URI>/platform-admin"
   file: "vulnerability/vulnerability-scan-verify.yaml"
 # Kustomize Steps
-- project: "runway1/platform-admin"
+- project: "<GROUP_URI>/platform-admin"
   file: "kustomize-steps/fetch-base.yaml"
-- project: "runway1/platform-admin"
+- project: "<GROUP_URI>/platform-admin"
   file: "kustomize-steps/hydrate-dev.yaml"
-- project: "runway1/platform-admin"
+- project: "<GROUP_URI>/platform-admin"
   file: "kustomize-steps/hydrate-prod.yaml"
 # ACM Steps
-- project: "runway1/platform-admin"
+- project: "<GROUP_URI>/platform-admin"
   file: "acm/download-policies.yaml"
-- project: "runway1/platform-admin"
+- project: "<GROUP_URI>/platform-admin"
   file: "acm/read-acm.yaml"
-- project: "runway1/platform-admin"
+- project: "<GROUP_URI>/platform-admin"
   file: "acm/validate-acm.yaml"
 # Deploy Steps
-- project: "runway1/platform-admin"
+- project: "<GROUP_URI>/platform-admin"
   file: "deploy/deploy-dev.yaml"
-- project: "runway1/platform-admin"
+- project: "<GROUP_URI>/platform-admin"
   file: "deploy/deploy-prod.yaml"
 
 variables:
@@ -36,7 +36,7 @@ variables:
   KUSTOMIZATION_PATH_NON_PROD: "./kubernetes/overlays/stage"
   KUSTOMIZATION_PATH_PROD: "./kubernetes/overlays/prod"
   HOSTNAME: "gcr.io"
-  PROJECT_ID: "titodo-anthos"
+  PROJECT_ID: "<PROJECT_ID>"
   CONTAINER_NAME: "hello-kubernetes" 
 
   # Binary Authorization Variables

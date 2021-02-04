@@ -16,7 +16,7 @@ admissionWhitelistPatterns:
 - namePattern: gcr.io/kpt-functions/gatekeeper-validate
 - namePattern: gcr.io/kpt-functions/read-yaml
 - namePattern: gcr.io/stackdriver-prometheus/*
-- namePattern: gcr.io/titodo-anthos/cloudbuild-attestor
+- namePattern: gcr.io/<PROJECT_ID>/cloudbuild-attestor
 - namePattern: gcr.io/config-management-release/*
 clusterAdmissionRules:
  # Staging/dev cluster
@@ -24,11 +24,11 @@ clusterAdmissionRules:
    evaluationMode: REQUIRE_ATTESTATION
    enforcementMode: ENFORCED_BLOCK_AND_AUDIT_LOG
    requireAttestationsBy:
-   - projects/titodo-anthos/attestors/vulnz-attestor
+   - projects/<PROJECT_ID>/attestors/vulnz-attestor
  # Production cluster
  us-central1-c.prod:
    evaluationMode: REQUIRE_ATTESTATION
    enforcementMode: ENFORCED_BLOCK_AND_AUDIT_LOG
    requireAttestationsBy:
-   - projects/titodo-anthos/attestors/vulnz-attestor
-   - projects/titodo-anthos/attestors/qa-attestor
+   - projects/<PROJECT_ID>/attestors/vulnz-attestor
+   - projects/<PROJECT_ID>/attestors/qa-attestor
