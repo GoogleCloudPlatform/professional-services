@@ -146,4 +146,4 @@ gcloud services enable \
 ```
 
 
-Next: [Register GKE Clusters with Anthos](https://github.com/itodotimothy6/professional-services/blob/anthos-cicd-with-gitlab/examples/anthos-cicd-with-gitlab/docs/2-register-gke-clusters-with-anthos.md)
+Next: [Register GKE Clusters with Anthos](docs/2-register-gke-clusters-with-anthos.md)

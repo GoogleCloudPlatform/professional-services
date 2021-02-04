@@ -844,20 +844,14 @@ For the `ACM`,` hello-kubernetes` and `hello-kubernetes-env` repos, go to Settin
 
 
 
-<p id="gdcalert1" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/image1.png). Store image on your image server and adjust path/filename/extension if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert2">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
-
-
-![alt_text](images/image1.png "image_tooltip")
+![Deploy keys](docs/image/environment-variables.png)
 
 
 Create an SSH_KEY variable in hello-kubernetes repo by going to Settings > CI/CD > Variables. Make sure to mask your variables.
 
 
 
-<p id="gdcalert2" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/image2.png). Store image on your image server and adjust path/filename/extension if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert3">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
-
-
-![alt_text](images/image2.png "image_tooltip")
+![Environment variables](docs/image/environment-variables.png)
 
 
 
@@ -1133,12 +1127,7 @@ done
 
 To find your `REGISTRATION_TOKEN `navigate to $GROUP_NAME [group](https://gitlab.com/dashboard/groups) page, Click Settings > CI / CD > Runners > Expand
 
-
-
-<p id="gdcalert3" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/image3.png). Store image on your image server and adjust path/filename/extension if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert4">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
-
-
-![alt_text](images/image3.png "image_tooltip")
+![Registration token](docs/image/registration_token.png)
 
 
 Verify your runner has been created. Settings > CI/CD > Runners > Expand. Should see it listed under group runners
