@@ -13,23 +13,29 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# ==============================================================================
-
-"""Test bigquery_to_xml.py."""
-
+# =============================================================================
 
 import unittest
-
-import bq_to_xml
+from bigquery_to_xml import bigquery_to_xml
 
 
 class BqToXmlTest(unittest.TestCase):
+    """BqToXmlTest contains tests for the bigquery_to_xml.py script.
 
+    Current tests include:
+    test_nested_xml; tests that the script can handle nested and repeated
+    fields"""
     def test_nested_xml(self):
-        # Check that the out_path_prefix is present in output CSV
-        with open("test/results.txt", "r") as want:
+        """
+        Test that nested and repeated fields are appropriately represented
+        in the XML output.
+        """
+        with open("tests/results.txt", "r") as want:
             want = want.read()
-            got = bq_to_xml.bigquery_to_xml("""SELECT * FROM `bigquery-public-data.samples.github_nested` WHERE repository.url LIKE "%/JetBrains/kotlin%" ORDER BY repository.created_at DESC LIMIT 5""") + "\n"
+            got = bigquery_to_xml.bigquery_to_xml(
+                """SELECT * FROM `bigquery-public-data.samples.github_nested`
+                WHERE repository.url LIKE "%/JetBrains/kotlin%"
+                ORDER BY repository.created_at DESC LIMIT 5""") + "\n\n"
             self.assertEqual(got, want)
 
 if __name__ == '__main__':
