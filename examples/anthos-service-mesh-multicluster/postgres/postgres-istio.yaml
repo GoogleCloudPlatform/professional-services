@@ -1,0 +1,48 @@
+# Copyright 2021 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-istio
+  labels:
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-istio
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: postgres-istio
+        version: v1
+      annotations:
+        sidecar.istio.io/inject: "true"
+        sidecar.istio.io/logLevel: debug
+        sidecar.istio.io/userVolume: '[{"name":"postgres-cert", "secret":{"secretName":"postgres-cert"}}]'
+        sidecar.istio.io/userVolumeMount: '[{"name":"postgres-cert", "mountPath":"/etc/certs/postgres-cert", "readonly":true}]'
+    spec:
+      containers:
+      - name: postgres-istio
+        image: liaojianhe/postgres-client
+        command: [ "/bin/bash", "-c", "--" ]
+        args: [ "while true; do sleep 30; done;" ]
+        resources:
+          requests:
+            cpu: "100m"
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
