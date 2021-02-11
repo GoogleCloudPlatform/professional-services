@@ -152,8 +152,34 @@ def _merge_fields(destination_field, source_field):
         field['field_type'] = sft
     df = destination_field.get('fields', [])
     sf = source_field.get('fields', [])
-    merged_fields = _merge_schema(df, sf)
-    # recursivly merge nested fields.
+
+    # Do not create extra fields if the existing record is additionalProperties
+    # Extra columns will be transformed by EnforceSchemaDataTypes into {name:???, value:???}
+    
+    # Check if the field has all 'additionalProperties' characteristics
+    fd_has_additionalProperties = len(df) == 2 and all(
+        ((
+            f.get('name', None) == 'name' 
+            and f.get('description') == 'additionalProperties name'
+        ) or (
+            f.get('name', None) == 'value' 
+            and f.get('description') is None
+        ))
+        for f in df
+        )
+
+    if fd_has_additionalProperties:
+        # merge types of all additional properties into 'value' field
+        merged_fields = copy.deepcopy(df)
+        i, value_field = get_field_by_name(merged_fields, 'value')
+        for f in sf:
+            if f.get('name', None) not in ('name', 'value'):
+                value_field = _merge_fields(value_field, f)
+        merged_fields[i] = value_field
+    else:
+        merged_fields = _merge_schema(df, sf)
+        # recursivly merge nested fields.
+
     if merged_fields != df:
         field['fields'] = merged_fields
     return field
