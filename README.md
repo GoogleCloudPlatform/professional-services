@@ -15,6 +15,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [BigQuery Cross Project Slot Monitoring](examples/bigquery-cross-project-slot-monitoring) - Solution to help monitoring slot utilization across multiple projects, while breaking down allocation per project.
 * [BigQuery Group Sync For Row Level Access](examples/bigquery-row-access-groups) - Sample code to synchronize group membership from G Suite/Cloud Identity into BigQuery and join that with your data to control access at row level.
 * [BigQuery Pipeline Utility](tools/bqpipeline)  - Python utility class for defining data pipelines in BigQuery.
+* [BigQuery to XML Export](tools/bigquery-to-xml) - Python tool that takes a BigQuery query and returns the output as an XML string.
 * [Bigtable Dataflow Cryptocurrencies Exchange RealTime Example](examples/cryptorealtime) - Apache Beam example that reads from the Crypto Exchanges WebSocket API as Google Cloud Dataflow pipeline and saves the feed in Google Cloud Bigtable. Real time visualization and query examples from GCP Bigtable running on Flask server are included.
 * [Bigtable Dataflow Update Table Key Pipeline](examples/bigtable-change-key) - Dataflow pipeline with an example of how to update the key of an existing table. It works with any table, regardless the schema. It shows how to update your key for a table with existing data, to try out different alternatives to improve performance.
 * [Cloud Composer Examples](examples/cloud-composer-examples) - Examples of using Cloud Composer, GCP's managed Apache Airflow service.
