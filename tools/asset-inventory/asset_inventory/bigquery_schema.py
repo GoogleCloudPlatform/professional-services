@@ -155,15 +155,14 @@ def _merge_fields(destination_field, source_field):
 
     # Do not create extra fields if the existing record is additionalProperties
     # Extra columns will be transformed by EnforceSchemaDataTypes into {name:???, value:???}
-    
+
     # Check if the field has all 'additionalProperties' characteristics
     fd_has_additionalProperties = len(df) == 2 and all(
         ((
-            f.get('name', None) == 'name' 
+            f.get('name', None) == 'name'
             and f.get('description') == 'additionalProperties name'
         ) or (
-            f.get('name', None) == 'value' 
-            and f.get('description') is None
+            f.get('name', None) == 'value'
         ))
         for f in df
         )
