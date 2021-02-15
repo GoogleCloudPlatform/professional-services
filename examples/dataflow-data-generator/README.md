@@ -121,6 +121,12 @@ The output is specified as a GCS prefix. Note that multiple files will be writte
 `<prefix>-<this-shard-number>-of-<total-shards>.<suffix>`. The suffix will be the appropriate suffix for the file type
 based on if you pass the `--csv_schema_order` or `--avro_schema_file` parameters described later.
 
+--gcs_output_prefix=gs://<BUCKET NAME>/path/to/myprefix
+
+Will create files at:
+
+gs://<BUCKET NAME>/path/to/myprefix-#####-of-#####.<suffix>
+
 
 
 #### Output format
@@ -271,7 +277,7 @@ described later in this doc.
  - Use the [`data_distribution_matcher.py`](data-generator-pipeline/data_distribution_matcher.py) pipeline.
 
 
-You can specify `--schema_file` (or `--input_table`), `--output_prefix` and `--output_format` the same way as described above in the
+You can specify `--schema_file` (or `--input_table`), `--gcs_output_prefix` and `--output_format` the same way as described above in the
 Human Readable Data Generator section. Additionally, you must specify an `--histogram_table`. This table will have a field for each key column (which will store
 a hash of each value) and a frequency with which these values occur.
 
