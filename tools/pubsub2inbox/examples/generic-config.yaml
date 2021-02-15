@@ -1,0 +1,12 @@
+processors:
+  - genericjson
+
+outputs:
+  - type: webhook
+    url: 'https://your.domain/{{ data.url|urlencode }}'
+    method: POST
+    body: '{"operation":"done"}'
+    headers:
+      - name: Authorization
+        value: '{{ data.authorization }}'
+    addBearerToken: true
