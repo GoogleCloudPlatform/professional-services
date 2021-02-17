@@ -11,11 +11,12 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-def split(s, sep, maxsplit=-1):
-    return s.split(sep, maxsplit)
+def format_cost(cost, decimals=2):
+    _format = '%%.%df %%s' % decimals
+    return _format % (
+        (float(cost['units']) +
+         (float(cost['nanos']) / 1000000000.0)), cost['currency_code'])
 
 
-def index(l, from_index, to_index=None):
-    if not to_index:
-        return l[from_index]
-    return l[from_index:to_index]
+def get_cost(cost):
+    return (float(cost['units']) + (float(cost['nanos']) / 1000000000.0))

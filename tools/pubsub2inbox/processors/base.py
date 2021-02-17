@@ -14,9 +14,9 @@
 import logging
 from google.cloud.functions.context import Context
 from googleapiclient import discovery, http
-import google_auth_httplib2
-import google.auth
 import abc
+import re
+import json
 
 _PROJECT_NUM_CACHE = {}
 _PROJECT_ID_CACHE = {}
@@ -49,12 +49,6 @@ class Processor:
         self.logger = logging.getLogger('pubsub2inbox')
 
     def expand_projects(self, projects):
-        credentials, project_id = google.auth.default(
-            ['https://www.googleapis.com/auth/cloud-platform'])
-        branded_http = google_auth_httplib2.AuthorizedHttp(credentials)
-        branded_http = http.set_user_agent(
-            branded_http, 'google-pso-tool/pubsub2inbox/1.0.0')
-
         ret = []
         self.logger.debug('Expanding projects list.',
                           extra={'projects': projects})
@@ -67,9 +61,10 @@ class Processor:
 
             if project.isdecimal():
                 if len(_PROJECT_NUM_CACHE) == 0:
-                    service = discovery.build('cloudresourcemanager',
-                                              'v1',
-                                              http=branded_http)
+                    service = discovery.build('cloudresourcemanager', 'v1')
+                    service._http = http.set_user_agent(
+                        service._http, 'google-pso-tool/pubsub2inbox/1.1.0')
+
                     request = service.projects().list()
                     response = request.execute()
                     while request:
@@ -94,9 +89,9 @@ class Processor:
                 ret.append(_PROJECT_NUM_CACHE[project_num])
             else:
                 if '/' not in project and project not in _PROJECT_ID_CACHE:
-                    service = discovery.build('cloudresourcemanager',
-                                              'v1',
-                                              http=branded_http)
+                    service = discovery.build('cloudresourcemanager', 'v1')
+                    service._http = http.set_user_agent(
+                        service._http, 'google-pso-tool/pubsub2inbox/1.1.0')
                     request = service.projects().get(projectId=project)
                     response = request.execute()
                     _PROJECT_ID_CACHE[response['projectId']] = (
@@ -109,6 +104,33 @@ class Processor:
         self.logger.debug('Expanding projects list finished.',
                           extra={'projects': ret})
         return ret
+
+    def _jinja_expand_bool(self, contents, _tpl='config'):
+        if isinstance(contents, bool):
+            return contents
+        var_template = self.jinja_environment.from_string(contents)
+        var_template.name = _tpl
+        val_str = var_template.render().lower()
+        if val_str == 'true' or val_str == 't' or val_str == 'yes' or val_str == 'y' or val_str == '1':
+            return True
+        return False
+
+    def _jinja_var_to_list(self, _var, _tpl='config'):
+        if isinstance(_var, list):
+            return _var
+        else:
+            var_template = self.jinja_environment.from_string(_var)
+            var_template.name = _tpl
+            val_str = var_template.render()
+            try:
+                return json.loads(val_str)
+            except Exception:
+                vals = list(
+                    filter(
+                        lambda x: x.strip() != "",
+                        re.split('[\n,]', val_str),
+                    ))
+                return list(map(lambda x: x.strip(), vals))
 
     @abc.abstractmethod
     def process(self):
