@@ -23,20 +23,24 @@ import org.apache.commons.text.lookup.StringLookupFactory;
 
 /**
  * A class that provides a {@link org.apache.commons.text.StringSubstitutor}. It replaces template
- * strings with either a Secret Manager payload or writes the payload to a file, and
- * substitutes the path to the file.
+ * strings with either a Secret Manager payload or writes the payload to a file, and substitutes the
+ * path to the file.
  */
 public class SecretManagerStringSubstitutor extends StringSubstitutor {
 
   public SecretManagerStringSubstitutor(SecretManagerServiceClient client) {
     super(
-        StringLookupFactory.INSTANCE
-            .interpolatorStringLookup(ImmutableMap.<String, StringLookup>builder()
-                .put("secretManager",
+        StringLookupFactory.INSTANCE.interpolatorStringLookup(
+            ImmutableMap.<String, StringLookup>builder()
+                .put(
+                    "secretManager",
                     StringLookupFactory.INSTANCE.interpolatorStringLookup(new SecretLookup(client)))
-                .put("secretManagerToFilePath",
-                    StringLookupFactory.INSTANCE
-                        .interpolatorStringLookup(new SecretLookupToFile(client)))
-                .build(), null, true));
+                .put(
+                    "secretManagerToFilePath",
+                    StringLookupFactory.INSTANCE.interpolatorStringLookup(
+                        new SecretLookupToFile(client)))
+                .build(),
+            null,
+            true));
   }
 }

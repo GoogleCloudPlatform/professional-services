@@ -30,21 +30,16 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-/**
- * Unit and integration tests for {@link com.google.cloud.secrethelper.SecretLookup}.
- */
+/** Unit and integration tests for {@link com.google.cloud.secrethelper.SecretLookup}. */
 @RunWith(MockitoJUnitRunner.class)
 public class SecretLookupTest {
 
   String secretValue = "hello world!";
   String secretName = "projects/685964841825/secrets/a-secret/versions/1";
 
-  @Mock
-  SecretManagerServiceClient client;
-  @Mock
-  AccessSecretVersionResponse response;
-  @Mock
-  SecretPayload payload;
+  @Mock SecretManagerServiceClient client;
+  @Mock AccessSecretVersionResponse response;
+  @Mock SecretPayload payload;
 
   @Before
   public void setUp() {

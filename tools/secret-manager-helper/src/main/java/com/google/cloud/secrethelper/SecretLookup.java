@@ -25,9 +25,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Implements {@link org.apache.commons.text.lookup.StringLookup}.
- * {@link com.google.cloud.secrethelper.SecretLookup#lookup} looks up a key in Secret Manager
- * and returns the secret payload.
+ * Implements {@link org.apache.commons.text.lookup.StringLookup}. {@link
+ * com.google.cloud.secrethelper.SecretLookup#lookup} looks up a key in Secret Manager and returns
+ * the secret payload.
  */
 public class SecretLookup implements StringLookup {
 

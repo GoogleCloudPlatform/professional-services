@@ -29,9 +29,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This class contains a sample main method that drives
- * {@link com.google.cloud.secrethelper.SecretManagerStringSubstitutor}
- * to replace values in a properties file.
+ * This class contains a sample main method that drives {@link
+ * com.google.cloud.secrethelper.SecretManagerStringSubstitutor} to replace values in a properties
+ * file.
  */
 public class SecretManagerPropertiesExample {
 
@@ -42,8 +42,8 @@ public class SecretManagerPropertiesExample {
     SecretManagerServiceClient client = SecretManagerServiceClient.create();
     StringSubstitutor secretSubstitutor = new SecretManagerStringSubstitutor(client);
 
-    Reader propertiesFileReader = Files
-        .newReader(new File("kafka.properties"), Charset.defaultCharset());
+    Reader propertiesFileReader =
+        Files.newReader(new File("kafka.properties"), Charset.defaultCharset());
     properties.load(new StringSubstitutorReader(propertiesFileReader, secretSubstitutor));
     LOG.info(properties.toString());
   }

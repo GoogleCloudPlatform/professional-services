@@ -33,8 +33,8 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 /**
- * Unit and integration tests for
- * {@link com.google.cloud.secrethelper.SecretManagerStringSubstitutor}.
+ * Unit and integration tests for {@link
+ * com.google.cloud.secrethelper.SecretManagerStringSubstitutor}.
  */
 @RunWith(MockitoJUnitRunner.class)
 public class SecretManagerStringSubstitutorTest {
@@ -43,12 +43,9 @@ public class SecretManagerStringSubstitutorTest {
   String secretName = "projects/685964841825/secrets/a-secret/versions/1";
   SecretManagerStringSubstitutor secretManagerStringSubstitutor;
 
-  @Mock
-  SecretManagerServiceClient client;
-  @Mock
-  AccessSecretVersionResponse response;
-  @Mock
-  SecretPayload payload;
+  @Mock SecretManagerServiceClient client;
+  @Mock AccessSecretVersionResponse response;
+  @Mock SecretPayload payload;
 
   @Before
   public void setUp() {

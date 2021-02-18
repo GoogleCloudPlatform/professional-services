@@ -37,24 +37,20 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 /**
- * Unit and integration tests for
- * {@link com.google.cloud.secrethelper.SecretManagerStringSubstitutor}.
+ * Unit and integration tests for {@link
+ * com.google.cloud.secrethelper.SecretManagerStringSubstitutor}.
  */
 @RunWith(MockitoJUnitRunner.class)
 public class SecretManagerSubstitutorPropertiesTest {
 
-  static final String propertiesString = ""
-      + "secret.file.path=${secretManagerToFilePath:%s}\n"
-      + "secret.value=${secretManager:%s}";
+  static final String propertiesString =
+      "" + "secret.file.path=${secretManagerToFilePath:%s}\n" + "secret.value=${secretManager:%s}";
   String secretValue = "hello world!";
   String secretName = "projects/685964841825/secrets/a-secret/versions/1";
   SecretManagerStringSubstitutor secretManagerStringSubstitutor;
-  @Mock
-  SecretManagerServiceClient client;
-  @Mock
-  AccessSecretVersionResponse response;
-  @Mock
-  SecretPayload payload;
+  @Mock SecretManagerServiceClient client;
+  @Mock AccessSecretVersionResponse response;
+  @Mock SecretPayload payload;
 
   @Before
   public void setUp() {
@@ -66,9 +62,7 @@ public class SecretManagerSubstitutorPropertiesTest {
 
   @Test
   public void testSecretManagerSubstitutorProperties() throws IOException {
-    String template = String.format(propertiesString,
-        secretName,
-        secretName);
+    String template = String.format(propertiesString, secretName, secretName);
     StringReader stringReader = new StringReader(template);
     Properties properties = new Properties();
     properties.load(new StringSubstitutorReader(stringReader, secretManagerStringSubstitutor));
