@@ -15,6 +15,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [BigQuery Cross Project Slot Monitoring](examples/bigquery-cross-project-slot-monitoring) - Solution to help monitoring slot utilization across multiple projects, while breaking down allocation per project.
 * [BigQuery Group Sync For Row Level Access](examples/bigquery-row-access-groups) - Sample code to synchronize group membership from G Suite/Cloud Identity into BigQuery and join that with your data to control access at row level.
 * [BigQuery Pipeline Utility](tools/bqpipeline)  - Python utility class for defining data pipelines in BigQuery.
+* [BigQuery to XML Export](tools/bigquery-to-xml) - Python tool that takes a BigQuery query and returns the output as an XML string.
 * [Bigtable Dataflow Cryptocurrencies Exchange RealTime Example](examples/cryptorealtime) - Apache Beam example that reads from the Crypto Exchanges WebSocket API as Google Cloud Dataflow pipeline and saves the feed in Google Cloud Bigtable. Real time visualization and query examples from GCP Bigtable running on Flask server are included.
 * [Bigtable Dataflow Update Table Key Pipeline](examples/bigtable-change-key) - Dataflow pipeline with an example of how to update the key of an existing table. It works with any table, regardless the schema. It shows how to update your key for a table with existing data, to try out different alternatives to improve performance.
 * [Cloud Composer Examples](examples/cloud-composer-examples) - Examples of using Cloud Composer, GCP's managed Apache Airflow service.
@@ -38,7 +39,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [Dataflow Python Examples](examples/dataflow-python-examples) - Various ETL examples using the Dataflow Python SDK.
 * [Dataflow Scala Example: Kafka2Avro](examples/dataflow-scala-kafka2avro) - Example to read objects from Kafka, and persist them encoded in Avro in Google Cloud Storage, using Dataflow with SCIO.
 * [Dataflow Streaming Benchmark](examples/dataflow-streaming-benchmark) - Utility to publish randomized fake JSON messages to a Cloud Pub/Sub topic at a configured QPS.
-* [Dataflow DLP Hashpipeline](examples/dataflow-dlp-hashpipeline) - Match DLP Social Security Number findings against a hashed dictionay in Firestore. Use Secret Manager for the hash key.
+* [Dataflow DLP Hashpipeline](examples/dataflow-dlp-hash-pipeline) - Match DLP Social Security Number findings against a hashed dictionay in Firestore. Use Secret Manager for the hash key.
 * [Dataflow Template Pipelines](https://github.com/GoogleCloudPlatform/DataflowTemplates) - Pre-implemented Dataflow template pipelines for solving common data tasks on Google Cloud Platform.
 * [Dataproc GCS Connector](examples/dataproc-gcs-connector) - Install and test unreleased features on the GCS Connector for Dataproc.
 * [Dataproc Persistent History Server for Ephemeral Clusters](examples/dataproc-persistent-history-server) - Example of writing logs from an ephemeral cluster to GCS and using a separate single node cluster to look at Spark and YARN History UIs.
@@ -100,11 +101,13 @@ creates relationships between assets and outputs a format compatible with [graph
 * [Maven Archetype Dataflow](tools/maven-archetype-dataflow) - A maven archetype which bootstraps a Dataflow project with common plugins pre-configured to help maintain high code quality.
 * [Netblock Monitor](tools/netblock-monitor) - An Apps Script project that will automatically provide email notifications when changes are made to Google’s IP ranges.
 * [Permission Discrepancy Finder](tools/permission-discrepancy-finder) - A tool to find the principals with missing permissions on a resource within a project, subsequently, grants them the missing permissions.
+* [Pubsub2Inbox](tools/pubsub2inbox) - A generic Cloud Function-based tool that takes input from Pub/Sub messages and turns them into email, webhooks or GCS objects.
 * [Quota Manager](tools/quota-manager) - A python module to programmatically update GCP service quotas such as bigquery.googleapis.com.
 * [Site Verification Group Sync](tools/site-verification-group-sync) - A tool to provision "verified owner" permissions (to create GCS buckets with custom dns) based on membership of a Google Group.
 * [SLO Generator](tools/slo-generator/) - A Python package that automates computation of Service Level Objectives, Error Budgets and Burn Rates on GCP,  and export the computation results to available exporters (e.g: PubSub, BigQuery, Stackdriver Monitoring), using policies written in JSON format.
 * [Snowflake_to_BQ](tools/snowflake2bq/) - A shell script to transfer tables (schema & data) from Snowflake to BigQuery.
 * [STS Job Manager](tools/sts-job-manager/) - A petabyte-scale bucket migration tool utilizing [Storage Transfer Service](https://cloud.google.com/storage-transfer-service)
+* [VPC Flow Logs Analysis](tools/vpc-flowlogs-analysis) - A configurable Sink + BigQuery report that shows traffic grouped by target IP address ranges.
 * [VM Migrator](tools/vm-migrator) - This utility automates migrating Virtual Machine instances within GCP. You can migrate VM's from one zone to another zone/region within the same project or different projects while retaining all the original VM properties like disks, network interfaces, ip, metadata, network tags and much more. 
 * [Webhook Ingestion Data Pipeline](tools/webhook-ingestion-pipeline) - A deployable app to accept and ingest unauthenticated webhook data to BigQuery.
 * [gmon](tools/gmon/) - A command-line interface (CLI) for Cloud Monitoring written in Python.
