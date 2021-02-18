@@ -19,24 +19,35 @@ The `com.google.cloud.secrethelper.SecretLookup` class provides an implementatio
 
 ## Usage
 Assuming that `projects/project-id/secrets/secret-id/versions/1` contains a secret `theSecret`:
+
 ```java
-String secretName = "projects/project-id/secrets/secret-id/versions/1";
-com.google.cloud.secrethelper.SecretLookup secretLookup = new com.google.cloud.secrethelper.SecretLookup();
-String secretValue = secretLookup.lookup(secretVersionName);
+public class SecretLookupExample {
+    public void secretLookupExample(SecretManagerServiceClient client) {
+        String secretName = "projects/project-id/secrets/secret-id/versions/1";
+        SecretLookup secretLookup = new SecretLookup(client);
+        String secretValue = secretLookup.lookup(secretVersionName);
+    }
+}
 ```
 `secretValue` will contain the `theSecret`.
 # com.google.cloud.secrethelper.SecretLookupToFile
-`com.google.cloud.secrethelper.SecretLookupToFile` has the same behavior as `com.google.cloud.secrethelper.SecretLookup`, except that the secret payload gets
-written to a temporary file.
-[File.createTempFile](https://docs.oracle.com/javase/9/docs/api/java/io/File.html) generates the
-filename.
+`com.google.cloud.secrethelper.SecretLookupToFile` has the same behavior as 
+`com.google.cloud.secrethelper.SecretLookup`, except that the secret payload 
+gets written to a temporary file.
+[File.createTempFile](https://docs.oracle.com/javase/9/docs/api/java/io/File.html)
+ generates the filename.
 
 ## Usage
 
 ```java
-String secretName = "projects/project-id/secrets/secret-id/versions/1";
-com.google.cloud.secrethelper.SecretLookupToFile secretLookupToFile = new com.google.cloud.secrethelper.SecretLookupToFile();
-String pathToFileContainingSecret = secretLookupToFile.lookup(secretVersionName);
+public class SecretLookupToFileExample {
+  public void secretLookupToFileExample(SecretManagerServiceClient client) {
+    String secretName = "projects/project-id/secrets/secret-id/versions/1";
+    SecretLookupToFile secretLookupToFile = new SecretLookupToFile(client);
+    String pathToFileContainingSecret = secretLookupToFile.lookup(secretVersionName);
+  }
+}
+
 ```
 
 `pathToFileContainingSecret` contains the path to a file which contains the secret payload.
@@ -51,9 +62,13 @@ and interpolates strings prefixed with `secretManager` (returning the secret its
 ## Usage
 
 ```java
-com.google.cloud.secrethelper.SecretManagerStringSubstitutor secretManagerStringSubst = new com.google.cloud.secrethelper.SecretManagerStringSubstitutor();
-String template = "The secret is '${secretManager:projects/project-id/secrets/secret-id/versions/1}'");
-String replacedString = secretManagerStringSubst.replace(template);
+public class SecretManagerStringSubstitutorExample {
+  public void secretManagerStringSubstitutorExample(SecretManagerServiceClient client) {
+    SecretManagerStringSubstitutor secretManagerStringSubst = new SecretManagerStringSubstitutor();
+    String template = "The secret is '${secretManager:projects/project-id/secrets/secret-id/versions/1}'");
+    String replacedString = secretManagerStringSubst.replace(template);
+  }
+}
 ```
 
 `replacedString` will contain `"The secret is 'theSecret'"`.
