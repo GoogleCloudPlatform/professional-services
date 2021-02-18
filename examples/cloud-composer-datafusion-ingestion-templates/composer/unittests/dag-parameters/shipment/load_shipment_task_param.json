@@ -1,0 +1,25 @@
+{
+    "object_configs": [
+    {
+        "gcs_src_file_path": "shipment/product/",
+        "delimiter": "|",
+        "cdf_pipeline_name":"GCS_to_BQ_load_products_v01"
+    },
+    {
+        "gcs_src_file_path": "shipment/orders/",
+        "delimiter": "|",
+        "cdf_pipeline_name":"GCS_to_BQ_load_orders_v01"
+    },
+    {
+        "gcs_src_file_path": "shipment/completed_shipment/",
+        "delimiter": ",",
+        "cdf_pipeline_name":"GCS_to_BQ_load_shipment_details_v01"
+
+    },
+    {
+        "gcs_src_file_path": "shipment/pending_shipment/",
+        "delimiter": ",",
+        "cdf_pipeline_name":"GCS_to_BQ_load_pending_shipment_v02"
+    }    
+]
+}

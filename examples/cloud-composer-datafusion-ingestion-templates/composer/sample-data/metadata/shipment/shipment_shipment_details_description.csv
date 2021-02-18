@@ -1,0 +1,19 @@
+ColumnName,Description
+tracking_id,tracking id of the shipment
+shipping_date,date of shipment
+source_country,country from which the shipment originated
+source_city,city from which the shipment originated
+destination_country,destination country to which shipment is being posted
+destination_city,destination city to which shipment is being posted
+distance, distance travelled by the shipment
+package_size,size of the shipment
+service_type,type of shipment service
+perishable,whether or not the product being shipped is perishable
+hazardous,whether or not the product being shipped is hazardous
+committed_delivery_time,committed time of shipment delivery at destination
+delivered_in_time,whether or not the shipment was delivered in time
+weight,weight of the shipment
+delivery_time,actual delivery time
+shipping_price,price 
+delivery_penalty,delivery
+hops,number of hops

@@ -1,0 +1,16 @@
+{
+    "dag_name": "data_lake_load_shipment",
+    "max_active_runs": 1,
+    "dag_start_time": "2020, 6, 1",
+    "source_type":"gcs",
+    "system_name":"shipment",
+    "source_regex": "(?P<filename>(?P<prefix>)(?P<metadata>[\\w]+)(?P<suffix>[\\.\\w]+))",
+    "target_dataset": "datalake_raw",
+    "load_type": "new_table",    
+    "cdf_pipeline_timeout": 600,
+    "delimiter": ",",
+    "gcs_src_file_path":"shipment",
+    "gcs_sensor_timeout_min":5,
+    "update_metadata":"true",
+    "refresh_authorized_views":"true"
+}

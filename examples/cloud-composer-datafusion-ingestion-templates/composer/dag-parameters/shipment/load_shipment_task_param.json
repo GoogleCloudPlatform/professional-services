@@ -1,0 +1,15 @@
+{
+    "object_configs": [
+    {
+        "gcs_src_file_path": "shipment/completed_shipment/",
+        "delimiter": ",",
+        "cdf_pipeline_name":"GCS_to_BQ_load_shipment_details_v01"
+
+    },
+    {
+        "gcs_src_file_path": "shipment/pending_shipment/",
+        "delimiter": ",",
+        "cdf_pipeline_name":"GCS_to_BQ_load_pending_shipment_v03"
+    }    
+]
+}

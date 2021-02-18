@@ -1,0 +1,139 @@
+{
+    "name": "GCS_to_BQ_load_pending_shipment_v03",
+    "description": "Data Pipeline Application",
+    "artifact": {
+        "name": "cdap-data-pipeline",
+        "version": "6.1.4",
+        "scope": "SYSTEM"
+    },
+    "config": {
+        "resources": {
+            "memoryMB": 2048,
+            "virtualCores": 1
+        },
+        "driverResources": {
+            "memoryMB": 2048,
+            "virtualCores": 1
+        },
+        "connections": [
+            {
+                "from": "GCSFile_Pending_Shipment",
+                "to": "Wrangler"
+            },
+            {
+                "from": "Wrangler",
+                "to": "BQ_pending_shipment"
+            }
+        ],
+        "comments": [],
+        "postActions": [],
+        "properties": {},
+        "processTimingEnabled": true,
+        "stageLoggingEnabled": true,
+        "stages": [
+            {
+                "name": "GCSFile_Pending_Shipment",
+                "plugin": {
+                    "name": "GCSFile",
+                    "type": "batchsource",
+                    "label": "GCSFile_Pending_Shipment",
+                    "artifact": {
+                        "name": "google-cloud",
+                        "version": "0.14.8",
+                        "scope": "SYSTEM"
+                    },
+                    "properties": {
+                        "project": "${project_id}",
+                        "format": "text",
+                        "skipHeader": "false",
+                        "serviceFilePath": "auto-detect",
+                        "filenameOnly": "false",
+                        "recursive": "false",
+                        "encrypted": "false",
+                        "copyHeader": "true",
+                        "schema": "{\"type\":\"record\",\"name\":\"text\",\"fields\":[{\"name\":\"body\",\"type\":\"string\"}]}",
+                        "path": "${input_path}",
+                        "referenceName": "GCSFile_Pending_Shipment"
+                    }
+                },
+                "outputSchema": "{\"type\":\"record\",\"name\":\"text\",\"fields\":[{\"name\":\"body\",\"type\":\"string\"}]}",
+                "type": "batchsource",
+                "label": "GCSFile_Pending_Shipment",
+                "icon": "fa-plug"
+            },
+            {
+                "name": "Wrangler",
+                "plugin": {
+                    "name": "Wrangler",
+                    "type": "transform",
+                    "label": "Wrangler",
+                    "artifact": {
+                        "name": "wrangler-transform",
+                        "version": "4.1.8",
+                        "scope": "SYSTEM"
+                    },
+                    "properties": {
+                        "workspaceId": "4bc62a04-849e-4766-868c-14c6d82d2843",
+                        "directives": "parse-as-csv :body ',' true\ndrop body",
+                        "schema": "{\"name\":\"avroSchema\",\"type\":\"record\",\"fields\":[{\"name\":\"order_id\",\"type\":[\"string\",\"null\"]},{\"name\":\"package_id\",\"type\":[\"string\",\"null\"]}]}",
+                        "field": "*",
+                        "precondition": "false",
+                        "threshold": "1"
+                    }
+                },
+                "outputSchema": "{\"name\":\"avroSchema\",\"type\":\"record\",\"fields\":[{\"name\":\"order_id\",\"type\":[\"string\",\"null\"]},{\"name\":\"package_id\",\"type\":[\"string\",\"null\"]}]}",
+                "inputSchema": [
+                    {
+                        "name": "GCSFile_Pending_Shipment",
+                        "schema": "{\"type\":\"record\",\"name\":\"text\",\"fields\":[{\"name\":\"body\",\"type\":\"string\"}]}"
+                    }
+                ],
+                "type": "transform",
+                "label": "Wrangler",
+                "icon": "icon-DataPreparation"
+            },
+            {
+                "name": "BQ_pending_shipment",
+                "plugin": {
+                    "name": "BigQueryTable",
+                    "type": "batchsink",
+                    "label": "BQ_pending_shipment",
+                    "artifact": {
+                        "name": "google-cloud",
+                        "version": "0.14.8",
+                        "scope": "SYSTEM"
+                    },
+                    "properties": {
+                        "project": "auto-detect",
+                        "serviceFilePath": "auto-detect",
+                        "operation": "insert",
+                        "truncateTable": "${target_truncateflag}",
+                        "allowSchemaRelaxation": "false",
+                        "location": "${target_location}",
+                        "createPartitionedTable": "false",
+                        "partitionFilterRequired": "false",
+                        "schema": "{\"name\":\"avroSchema\",\"type\":\"record\",\"fields\":[{\"name\":\"order_id\",\"type\":[\"string\",\"null\"]},{\"name\":\"package_id\",\"type\":[\"string\",\"null\"]}]}",
+                        "referenceName": "BQ_pending_shipment",
+                        "dataset": "${target_dataset}",
+                        "table": "pending_shipment"
+                    }
+                },
+                "outputSchema": "{\"name\":\"avroSchema\",\"type\":\"record\",\"fields\":[{\"name\":\"order_id\",\"type\":[\"string\",\"null\"]},{\"name\":\"package_id\",\"type\":[\"string\",\"null\"]}]}",
+                "inputSchema": [
+                    {
+                        "name": "Wrangler",
+                        "schema": "{\"name\":\"avroSchema\",\"type\":\"record\",\"fields\":[{\"name\":\"order_id\",\"type\":[\"string\",\"null\"]},{\"name\":\"package_id\",\"type\":[\"string\",\"null\"]}]}"
+                    }
+                ],
+                "type": "batchsink",
+                "label": "BQ_pending_shipment",
+                "icon": "fa-plug"
+            }
+        ],
+        "schedule": "0 * * * *",
+        "engine": "spark",
+        "numOfRecordsPreview": 100,
+        "description": "Data Pipeline Application",
+        "maxConcurrentRuns": 1
+    }
+}

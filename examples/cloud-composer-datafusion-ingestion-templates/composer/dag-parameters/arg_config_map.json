@@ -1,0 +1,11 @@
+{
+    "gcs_bq_pipeline" : {
+            "input_path" : {"param": "gcs_src_file_path", "default" : "" },
+            "project_id" : {"param": "gcp_project_id", "default":""},
+            "bucket_name" : {"param": "data_bucket", "default":""},
+            "delimiter" :  {"param": "delimiter", "default":""},
+            "target_location": {"param": "location", "default":""},
+            "target_dataset": {"param": "target_dataset", "default":""},
+            "target_truncateflag" : {"param": "truncateflag", "default":"false"}
+    }
+}

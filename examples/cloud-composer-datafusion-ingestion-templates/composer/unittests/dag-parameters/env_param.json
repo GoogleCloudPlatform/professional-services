@@ -1,0 +1,12 @@
+{
+    "gcp_project_id": "gcp-datalake-demo",
+    "location": "australia-southeast1",
+    "env_name": "dev",
+    "cdf_instance_name": "cdf-datalake-demo",
+    "cdf_namespace": "default",
+    "data_bucket": "datalake_srce",
+    "archival_bucket": "datalake_archive",
+    "composer_bucket": "australia-southeast1-compos-9acab20b-bucket",
+    "audit_dataset": "datalake_audit",
+    "param_file_path": "/Users/nehajo/projects/datalake-templates/composer/unittests/dag-parameters/"
+}

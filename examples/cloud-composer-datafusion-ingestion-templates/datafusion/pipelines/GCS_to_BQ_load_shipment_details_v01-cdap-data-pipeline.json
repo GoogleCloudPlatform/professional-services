@@ -1,0 +1,152 @@
+{
+    "name": "GCS_to_BQ_load_shipment_details_v01",
+    "description": "Data Pipeline Application",
+    "artifact": {
+        "name": "cdap-data-pipeline",
+        "version": "6.2.3",
+        "scope": "SYSTEM"
+    },
+    "config": {
+        "resources": {
+            "memoryMB": 2048,
+            "virtualCores": 1
+        },
+        "driverResources": {
+            "memoryMB": 2048,
+            "virtualCores": 1
+        },
+        "connections": [
+            {
+                "from": "GCSFile_Shipment_Details_CSV",
+                "to": "Wrangler"
+            },
+            {
+                "from": "Wrangler",
+                "to": "BQ_Shipment_Details"
+            }
+        ],
+        "comments": [],
+        "postActions": [],
+        "properties": {},
+        "processTimingEnabled": true,
+        "stageLoggingEnabled": true,
+        "stages": [
+            {
+                "name": "GCSFile_Shipment_Details_CSV",
+                "plugin": {
+                    "name": "GCSFile",
+                    "type": "batchsource",
+                    "label": "GCSFile_Shipment_Details_CSV",
+                    "artifact": {
+                        "name": "google-cloud",
+                        "version": "0.15.3",
+                        "scope": "SYSTEM"
+                    },
+                    "properties": {
+                        "project": "${project_id}",
+                        "format": "text",
+                        "skipHeader": "false",
+                        "serviceFilePath": "auto-detect",
+                        "filenameOnly": "false",
+                        "recursive": "false",
+                        "encrypted": "false",
+                        "copyHeader": "true",
+                        "schema": "{\"type\":\"record\",\"name\":\"text\",\"fields\":[{\"name\":\"body\",\"type\":\"string\"}]}",
+                        "path": "${input_path}",
+                        "referenceName": "datalake_srce.shipment_details.csv"
+                    }
+                },
+                "outputSchema": [
+                    {
+                        "name": "etlSchemaBody",
+                        "schema": "{\"type\":\"record\",\"name\":\"text\",\"fields\":[{\"name\":\"body\",\"type\":\"string\"}]}"
+                    }
+                ],
+                "id": "GCSFile_Shipment_Details_CSV",
+                "type": "batchsource",
+                "label": "GCSFile_Shipment_Details_CSV",
+                "icon": "fa-plug"
+            },
+            {
+                "name": "Wrangler",
+                "plugin": {
+                    "name": "Wrangler",
+                    "type": "transform",
+                    "label": "Wrangler",
+                    "artifact": {
+                        "name": "wrangler-transform",
+                        "version": "4.2.3",
+                        "scope": "SYSTEM"
+                    },
+                    "properties": {
+                        "workspaceId": "02df0281-d021-44f1-a464-f3f65e8588c7",
+                        "directives": "parse-as-csv :body ',' true\ndrop body",
+                        "schema": "{\"name\":\"avroSchema\",\"type\":\"record\",\"fields\":[{\"name\":\"tracking_id\",\"type\":[\"string\",\"null\"]},{\"name\":\"shipping_date\",\"type\":[\"string\",\"null\"]},{\"name\":\"source_country\",\"type\":[\"string\",\"null\"]},{\"name\":\"source_city\",\"type\":[\"string\",\"null\"]},{\"name\":\"destination_country\",\"type\":[\"string\",\"null\"]},{\"name\":\"destination_city\",\"type\":[\"string\",\"null\"]},{\"name\":\"distance\",\"type\":[\"string\",\"null\"]},{\"name\":\"package_size\",\"type\":[\"string\",\"null\"]},{\"name\":\"service_type\",\"type\":[\"string\",\"null\"]},{\"name\":\"perishable\",\"type\":[\"string\",\"null\"]},{\"name\":\"hazardous\",\"type\":[\"string\",\"null\"]},{\"name\":\"committed_delivery_time\",\"type\":[\"string\",\"null\"]},{\"name\":\"delivered_in_time\",\"type\":[\"string\",\"null\"]},{\"name\":\"weight\",\"type\":[\"string\",\"null\"]},{\"name\":\"delivery_time\",\"type\":[\"string\",\"null\"]},{\"name\":\"shipping_price\",\"type\":[\"string\",\"null\"]},{\"name\":\"delivery_penalty\",\"type\":[\"string\",\"null\"]},{\"name\":\"hops\",\"type\":[\"string\",\"null\"]}]}",
+                        "field": "*",
+                        "precondition": "false",
+                        "threshold": "1"
+                    }
+                },
+                "outputSchema": [
+                    {
+                        "name": "etlSchemaBody",
+                        "schema": "{\"name\":\"avroSchema\",\"type\":\"record\",\"fields\":[{\"name\":\"tracking_id\",\"type\":[\"string\",\"null\"]},{\"name\":\"shipping_date\",\"type\":[\"string\",\"null\"]},{\"name\":\"source_country\",\"type\":[\"string\",\"null\"]},{\"name\":\"source_city\",\"type\":[\"string\",\"null\"]},{\"name\":\"destination_country\",\"type\":[\"string\",\"null\"]},{\"name\":\"destination_city\",\"type\":[\"string\",\"null\"]},{\"name\":\"distance\",\"type\":[\"string\",\"null\"]},{\"name\":\"package_size\",\"type\":[\"string\",\"null\"]},{\"name\":\"service_type\",\"type\":[\"string\",\"null\"]},{\"name\":\"perishable\",\"type\":[\"string\",\"null\"]},{\"name\":\"hazardous\",\"type\":[\"string\",\"null\"]},{\"name\":\"committed_delivery_time\",\"type\":[\"string\",\"null\"]},{\"name\":\"delivered_in_time\",\"type\":[\"string\",\"null\"]},{\"name\":\"weight\",\"type\":[\"string\",\"null\"]},{\"name\":\"delivery_time\",\"type\":[\"string\",\"null\"]},{\"name\":\"shipping_price\",\"type\":[\"string\",\"null\"]},{\"name\":\"delivery_penalty\",\"type\":[\"string\",\"null\"]},{\"name\":\"hops\",\"type\":[\"string\",\"null\"]}]}"
+                    }
+                ],
+                "id": "Wrangler",
+                "type": "transform",
+                "label": "Wrangler",
+                "icon": "icon-DataPreparation"
+            },
+            {
+                "name": "BQ_Shipment_Details",
+                "plugin": {
+                    "name": "BigQueryTable",
+                    "type": "batchsink",
+                    "label": "BQ_Shipment_Details",
+                    "artifact": {
+                        "name": "google-cloud",
+                        "version": "0.15.3",
+                        "scope": "SYSTEM"
+                    },
+                    "properties": {
+                        "project": "auto-detect",
+                        "serviceFilePath": "auto-detect",
+                        "operation": "insert",
+                        "truncateTable": "${target_truncateflag}",
+                        "allowSchemaRelaxation": "false",
+                        "location": "${target_location}",
+                        "createPartitionedTable": "false",
+                        "partitioningType": "NONE",
+                        "schema": "{\"name\":\"avroSchema\",\"type\":\"record\",\"fields\":[{\"name\":\"tracking_id\",\"type\":[\"string\",\"null\"]},{\"name\":\"shipping_date\",\"type\":[\"string\",\"null\"]},{\"name\":\"source_country\",\"type\":[\"string\",\"null\"]},{\"name\":\"source_city\",\"type\":[\"string\",\"null\"]},{\"name\":\"destination_country\",\"type\":[\"string\",\"null\"]},{\"name\":\"destination_city\",\"type\":[\"string\",\"null\"]},{\"name\":\"distance\",\"type\":[\"string\",\"null\"]},{\"name\":\"package_size\",\"type\":[\"string\",\"null\"]},{\"name\":\"service_type\",\"type\":[\"string\",\"null\"]},{\"name\":\"perishable\",\"type\":[\"string\",\"null\"]},{\"name\":\"hazardous\",\"type\":[\"string\",\"null\"]},{\"name\":\"committed_delivery_time\",\"type\":[\"string\",\"null\"]},{\"name\":\"delivered_in_time\",\"type\":[\"string\",\"null\"]},{\"name\":\"weight\",\"type\":[\"string\",\"null\"]},{\"name\":\"delivery_time\",\"type\":[\"string\",\"null\"]},{\"name\":\"shipping_price\",\"type\":[\"string\",\"null\"]},{\"name\":\"delivery_penalty\",\"type\":[\"string\",\"null\"]},{\"name\":\"hops\",\"type\":[\"string\",\"null\"]}]}",
+                        "referenceName": "BQ_Shipment_Details",
+                        "dataset": "${target_dataset}",
+                        "table": "shipment_details",
+                        "datasetProject": "${project_id}"
+                    }
+                },
+                "outputSchema": [
+                    {
+                        "name": "etlSchemaBody",
+                        "schema": "{\"name\":\"avroSchema\",\"type\":\"record\",\"fields\":[{\"name\":\"tracking_id\",\"type\":[\"string\",\"null\"]},{\"name\":\"shipping_date\",\"type\":[\"string\",\"null\"]},{\"name\":\"source_country\",\"type\":[\"string\",\"null\"]},{\"name\":\"source_city\",\"type\":[\"string\",\"null\"]},{\"name\":\"destination_country\",\"type\":[\"string\",\"null\"]},{\"name\":\"destination_city\",\"type\":[\"string\",\"null\"]},{\"name\":\"distance\",\"type\":[\"string\",\"null\"]},{\"name\":\"package_size\",\"type\":[\"string\",\"null\"]},{\"name\":\"service_type\",\"type\":[\"string\",\"null\"]},{\"name\":\"perishable\",\"type\":[\"string\",\"null\"]},{\"name\":\"hazardous\",\"type\":[\"string\",\"null\"]},{\"name\":\"committed_delivery_time\",\"type\":[\"string\",\"null\"]},{\"name\":\"delivered_in_time\",\"type\":[\"string\",\"null\"]},{\"name\":\"weight\",\"type\":[\"string\",\"null\"]},{\"name\":\"delivery_time\",\"type\":[\"string\",\"null\"]},{\"name\":\"shipping_price\",\"type\":[\"string\",\"null\"]},{\"name\":\"delivery_penalty\",\"type\":[\"string\",\"null\"]},{\"name\":\"hops\",\"type\":[\"string\",\"null\"]}]}"
+                    }
+                ],
+                "inputSchema": [
+                    {
+                        "name": "Wrangler",
+                        "schema": "{\"name\":\"avroSchema\",\"type\":\"record\",\"fields\":[{\"name\":\"tracking_id\",\"type\":[\"string\",\"null\"]},{\"name\":\"shipping_date\",\"type\":[\"string\",\"null\"]},{\"name\":\"source_country\",\"type\":[\"string\",\"null\"]},{\"name\":\"source_city\",\"type\":[\"string\",\"null\"]},{\"name\":\"destination_country\",\"type\":[\"string\",\"null\"]},{\"name\":\"destination_city\",\"type\":[\"string\",\"null\"]},{\"name\":\"distance\",\"type\":[\"string\",\"null\"]},{\"name\":\"package_size\",\"type\":[\"string\",\"null\"]},{\"name\":\"service_type\",\"type\":[\"string\",\"null\"]},{\"name\":\"perishable\",\"type\":[\"string\",\"null\"]},{\"name\":\"hazardous\",\"type\":[\"string\",\"null\"]},{\"name\":\"committed_delivery_time\",\"type\":[\"string\",\"null\"]},{\"name\":\"delivered_in_time\",\"type\":[\"string\",\"null\"]},{\"name\":\"weight\",\"type\":[\"string\",\"null\"]},{\"name\":\"delivery_time\",\"type\":[\"string\",\"null\"]},{\"name\":\"shipping_price\",\"type\":[\"string\",\"null\"]},{\"name\":\"delivery_penalty\",\"type\":[\"string\",\"null\"]},{\"name\":\"hops\",\"type\":[\"string\",\"null\"]}]}"
+                    }
+                ],
+                "id": "BQ_Shipment_Details",
+                "type": "batchsink",
+                "label": "BQ_Shipment_Details",
+                "icon": "fa-plug"
+            }
+        ],
+        "schedule": "0 * * * *",
+        "engine": "spark",
+        "numOfRecordsPreview": 100,
+        "description": "Data Pipeline Application",
+        "maxConcurrentRuns": 1
+    }
+}
