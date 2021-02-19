@@ -22,6 +22,7 @@ from asset_inventory import bigquery_schema
 
 class TestBigQuerySchema(unittest.TestCase):
 
+
     def test_record(self):
         document = {'record_field': {'string_field': 'string_value'}}
         schema = bigquery_schema.translate_json_to_schema(
@@ -331,6 +332,106 @@ class TestBigQuerySchema(unittest.TestCase):
         self.assertEqual(len(sanitized), 10000)
         self.assertNotIn('z', sanitized)
 
+    def test_addtional_properties_merge_schema_simple(self):
+        rest_schema = [
+            {'name': 'property_1',
+             'field_type': 'STRING',
+             'description': 'description-1',
+             'mode': 'NULLABLE'
+            },
+            {'name': 'property_2',
+             'field_type': 'RECORD',
+             'description': 'description-2',
+             'mode': 'REPEATED',
+             'fields': [{'name': 'name',
+                         'field_type': 'STRING',
+                         'description': 'additionalProperties name',
+                         'mode': 'NULLABLE'},
+                        {'name': 'value',
+                         'field_type': 'STRING',
+                         'description': 'description-2.',
+                         'mode': 'NULLABLE'}]}]
+
+        document = {
+            'property_1': 'value_1',
+            'property_2': {
+                'add_prop_1': 'add_value_1',
+                'add_prop_2': 'add_value_2'
+                },
+            'property_3': 'value_3'
+        }
+
+        document_schema = bigquery_schema.translate_json_to_schema(
+            document)
+
+        self.assertEqual(
+            bigquery_schema.merge_schemas(
+                [rest_schema, document_schema]
+            ),
+            rest_schema + [{'name': 'property_3',
+                            'field_type': 'STRING',
+                            'mode': 'NULLABLE'
+                           }])
+
+    def test_addtional_properties_merge_schema_object(self):
+        self.maxDiff = None
+        rest_schema = [
+            {'name': 'property_1',
+             'field_type': 'STRING',
+             'description': 'description-1',
+             'mode': 'NULLABLE'
+            },
+            {'name': 'property_2',
+             'field_type': 'RECORD',
+             'description': 'description-2',
+             'mode': 'REPEATED',
+             'fields': [{'name': 'name',
+                         'field_type': 'STRING',
+                         'description': 'additionalProperties name',
+                         'mode': 'NULLABLE'},
+                        {'name': 'value',
+                         'field_type': 'RECORD',
+                         'mode': 'NULLABLE'}]}]
+
+        document = {
+            'property_1': 'value_1',
+            'property_2': {
+                'add_prop_1': {'key_1': 1},
+                'add_prop_2': {'key_1': 2}
+                },
+            'property_3': 'value_3'
+        }
+
+        document_schema = bigquery_schema.translate_json_to_schema(
+            document)
+
+        self.assertEqual(
+            bigquery_schema.merge_schemas(
+                [rest_schema, document_schema]
+            ),
+            [{'name': 'property_1',
+              'field_type': 'STRING',
+              'description': 'description-1',
+              'mode': 'NULLABLE'
+             },
+             {'name': 'property_2',
+              'field_type': 'RECORD',
+              'description': 'description-2',
+              'mode': 'REPEATED',
+              'fields': [{'name': 'name',
+                          'field_type': 'STRING',
+                          'description': 'additionalProperties name',
+                          'mode': 'NULLABLE'},
+                         {'name': 'value',
+                          'field_type': 'RECORD',
+                          'mode': 'NULLABLE',
+                          'fields': [{'name': 'key_1',
+                                      'field_type': 'NUMERIC',
+                                      'mode': 'NULLABLE'}]}]
+             },
+             {'name': 'property_3',
+              'field_type': 'STRING',
+              'mode': 'NULLABLE'}])
 
 
 if __name__ == '__main__':
