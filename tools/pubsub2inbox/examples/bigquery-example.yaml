@@ -1,0 +1,32 @@
+
+retryPeriod: 3 days ago
+
+processors:
+  - bigquery
+
+bigquery:
+  dialect: STANDARD
+  labels:
+    reason: "fun"
+  query: |
+    SELECT 
+      LOWER(word) AS word, 
+      SUM(word_count) AS total_words 
+    FROM 
+      {{ table }}
+    GROUP BY 1 
+    ORDER BY SUM(word_count) DESC 
+    LIMIT 100
+
+outputs:
+  - type: gcs
+    bucket: my-own-bucket
+    object: output.csv
+    contents: |
+      {% for record in records %}{{ record.values()|csv_encode(dialect='excel-tab') }}{% endfor %}
+
+  - type: gcs
+    bucket: my-own-bucket-2
+    object: output.json
+    contents: |
+      {{ records|json_encode() }}
