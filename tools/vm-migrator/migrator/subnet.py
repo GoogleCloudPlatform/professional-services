@@ -206,9 +206,8 @@ def wait_for_operation(compute, project, region, operation):
 
         time.sleep(5)
 
-
 def duplicate(project, source_subnet, source_subnet_region,
-              destination_region):
+              destination_project, destination_region):
     compute = get_compute()
     subnet_request = compute.subnetworks().get(project=project,
                                                region=source_subnet_region,
@@ -224,10 +223,10 @@ def duplicate(project, source_subnet, source_subnet_region,
 
     logging.info('re creating subnet %s in region %s', source_subnet,
                  destination_region)
-    insert_operation = compute.subnetworks().insert(project=project,
+    insert_operation = compute.subnetworks().insert(project=destination_project,
                                                     region=destination_region,
                                                     body=config).execute()
-    wait_for_operation(compute, project, destination_region,
+    wait_for_operation(compute, destination_project, destination_region,
                        insert_operation['name'])
     logging.info('new subnet added successfully')
 

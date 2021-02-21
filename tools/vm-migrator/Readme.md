@@ -1,6 +1,6 @@
 # GCP VM Migrator
 
-This utility automates migrating Virtual Machine instances within GCP. You can migrate VM's from one zone to another zone/region within the same project. 
+This utility automates migrating Virtual Machine instances within GCP. You can migrate VM's from one zone to another zone/region within the same or different projects.
 
 ## Prerequisite
 
@@ -28,20 +28,21 @@ The `Makefile` has different variables which are passed to the subnet_region_mig
 
 | Variable      | Value                              |
 | ------------- | ---------------------------------- |
-| `PROJECT`          | GCP Project Name                  |
-| MACHINE_IMAGE_REGION | The region where you want to store your machine images e.g us-central1 |
-| INPUT_CSV | The filename which will serve as the input to migration process, some of the steps use this filename to export the inventory data  |
-|SOURCE_SUBNET | The source subnet in form `projects/\<PROJECT_ID\>/regions/\<rEGiON\>/subnetworks/\<SUBNET_NAME\>` |
-|SUBNET_NAME | The name of the source subnet |
-|SOURCE_ZONE | The zone in which the source subnet is present, this is used to fetch the inventory details |
-|SOURCE_ZONE_2 | [Optional] The second zone in which the source subnet is present, this is used to fetch the inventory details |
-|SOURCE_ZONE_3 | [Optional] The third zone in which the source subnet is present, this is used to fetch the inventory details |
-|SOURCE_REGION | The source region |
-|TARGET_REGION | The target region where the machine should be migrated to |
-|TARGET_SUBNET | The target subnet self link of the cloned machine |
-|TARGET_NETWORK | The target network self link e.g projects/\<project-id\>/global/networks/\<network name\> |
-|TARGET_ZONE | Target zone name |
 | STEP | The name of the step to run |
+| MACHINE_IMAGE_REGION | The region where you want to store your machine images e.g us-central1 |
+| SOURCE_PROJECT | Project ID where the current subnet is located |
+| SOURCE_REGION | Region of the source subnetwork |
+| SOURCE_SUBNETWORK | The source subnetwork name |
+| SOURCE_ZONE | The zone in which the source subnet is present, this is used to fetch the inventory details |
+| SOURCE_ZONE_2 | [Optional] The second zone in which the source subnet is present, this is used to fetch the inventory details |
+| SOURCE_ZONE_3 | [Optional] The third zone in which the source subnet is present, this is used to fetch the inventory details |
+| TARGET_PROJECT | [Optional] If different, the Project ID where the new subnet will exist |
+| TARGET_REGION | [Optional] If different, the target region where machines will be migrated to |
+| TARGET_SUBNETWORK | [Optional] Leave this argument empty if using `clone_subnet`. Otherwise, if different to `SOURCE_SUBNETWORK`, specify an existing target subnetwork.  |
+| SOURCE_CSV | [Optional] (by default `source.csv`) The filename used by `prepare_inventory` |
+| FILTER_CSV | [Optional] (by default `filter.csv`) File that contains the instance names that will be included by `filter_inventory` |
+| INPUT_CSV | [Optional] (by default `export.csv`) The filtered list of machines created by `filter_inventory` used as input for the migration. |
+| LOG_LEVEL | [Optional] Debugging level |
 
 ## Supported Functionality
 
@@ -56,13 +57,13 @@ While we can move all the machines in a subnet to the destination subnet we have
 
 | STEP      | Description                              |
 | ------------- | ---------------------------------- |
-| prepare_inventory          | This will dump the entire inventory in CSV format for the specified subnet and zone, the file where this will be exported is right now configured to be `source.csv`. This file name is on purpose chosen to be different from `INPUT_CSV` to protect the future steps so that even if someone runs the prepare_inventory step by mistake it should not affect the ongoing migration.|
-| filter_inventory     | This will only select the machines in the source subnet and zone which are specified in filter.csv and fetch and export their details to `INPUT_CSV` file. It uses `source.csv` as the data to filter|
-| shutdown_instances | This will shutdown all the machines whose details are found in the INPUT_CSV file, this is particularly useful when you want to shutdown the instances before taking their machine image |
-| start_instances | This will start all the machines whose details are found in the INPUT_CSV file, this is particularly useful when you want to rollback the shutdown step |
-| create_machine_images | This will create the machine image of the instances which are specifed in INPUT_CSV file | 
-| delete_instances | This will delete the instances which are specifed in INPUT_CSV file |
-| release_ip | This will release all the internal static ip addresses of the instances   which are specifed in INPUT_CSV file |
+| prepare_inventory          | This will dump the entire inventory in the specified subnet and zones in CSV format into the `SOURCE_CSV` (by default `source.csv`).|
+| filter_inventory     | Executes `prepare_inventory` and copies `SOURCE_CSV` to `INPUT_CSV` (by default `export.csv`) only selecting machines whose instance names match any row in `FILTER_CSV` (by default `filter.csv`). |
+| shutdown_instances | This will shutdown all the machines whose details are found in the `INPUT_CSV` file, this is particularly useful when you want to shutdown the instances before taking their machine image |
+| start_instances | This will start all the machines whose details are found in the `INPUT_CSV` file, this is particularly useful when you want to rollback the shutdown step |
+| create_machine_images | This will create the machine image of the instances which are specifed in the `INPUT_CSV` file | 
+| delete_instances | This will delete the instances which are specifed in the `INPUT_CSV` file |
+| release_ip | This will release all the internal static ip addresses of the instances which are specifed in the `INPUT_CSV` file |
 | release_ip_for_subnet | This will release all the internal static ip addresses of the source subnet | 
 | clone_subnet | This will delete and re create the subnet in the destination region with the same config as the source subnet, this is required when you want to drain the entire subnet and create it in the destination region |
 | create_instances | This will create the instances from the machine images in the destination region, it requires the destination subnet to be in place ( if you are cloning the subnet it will automatically be created  ) |
@@ -77,8 +78,7 @@ Once your setup is complete and prerequisites are met, you need to ensure the la
 
 ## Zone Mapping
 
-The file `zone_mapping.py` has the mapping of source and destination zones, this file is used while creating instances. The destination zone of the machine is picked up from the zone mapping in this file. 
-
+Based on the source zones indicated via variables, the respective target zones will be chosen by matching the source zone in the file `zone_mapping.py`.
 
 ## Sole Tenant
 
