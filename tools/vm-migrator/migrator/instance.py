@@ -252,7 +252,8 @@ def upgrade_machine_type(machine_type, destination_zone):
 
 
 def create_instance(compute, project, zone, network, subnet, name,
-                    alias_ip_ranges, node_group, disk_names, ip, machine_type):
+                    alias_ip_ranges, node_group, disk_names, ip, machine_type,
+                    image_project):
     """
     Create Instance method create a new GCP VM from the machine image.
     """
@@ -344,7 +345,7 @@ def create_instance(compute, project, zone, network, subnet, name,
                                       zone=zone,
                                       body=config,
                                       sourceMachineImage='projects/' +
-                                      project + '/global/machineImages/' +
+                                      image_project + '/global/machineImages/' +
                                       name).execute()
 
 
@@ -374,8 +375,9 @@ def create(project,
            alias_ip_ranges,
            node_group,
            disk_names,
-           ip=None,
-           machine_type=None,
+           ip,
+           machine_type,
+           image_project,
            wait=True):
     """
     Main function to create the instance.
@@ -388,7 +390,7 @@ def create(project,
 
         create_instance(compute, project, target_zone, network, subnet,
                         instance_name, alias_ip_ranges, node_group, disk_names,
-                        ip, machine_type)
+                        ip, machine_type, image_project)
         if wait:
             wait_for_instance(compute, project, target_zone, instance_name)
         logging.info(

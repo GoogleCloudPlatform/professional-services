@@ -65,7 +65,6 @@ def bulk_image_create(project, machine_image_region, file_name='export.csv'):
                         'machine image creation generated an exception: %s',
                         exc)
 
-
 def bulk_delete_instances(file_name):
     with open(file_name, 'r') as read_obj:
         csv_dict_reader = DictReader(read_obj)
@@ -191,7 +190,7 @@ def bulk_instance_start(file_name):
                         'machine strating generated an exception: %s', exc)
 
 
-def bulk_create_instances(file_name, target_subnet, retain_ip):
+def bulk_create_instances(file_name, target_project, target_subnet, source_project, retain_ip):
     with open(file_name, 'r') as read_obj:
         csv_dict_reader = DictReader(read_obj)
         count = 0
@@ -237,10 +236,10 @@ def bulk_create_instances(file_name, target_subnet, retain_ip):
 
                 target_zone = zone_mapping.FIND[parsed_link['zone']]
                 instance_future.append(
-                    executor.submit(instance.create, parsed_link['project'],
+                    executor.submit(instance.create,
                                     target_zone, row['network'], target_subnet,
                                     row['name'], alias_ip_ranges, node_group,
-                                    disk_names, ip, row['machine_type']))
+                                    disk_names, ip, row['machine_type'], source_project))
                 count = count + 1
 
             for future in concurrent.futures.as_completed(instance_future):
@@ -337,26 +336,27 @@ def release_ips_from_file(file_name):
 
 
 # main function
-def main(project,
-         source_zone,
-         source_zone_2,
-         source_zone_3,
-         source_subnet,
-         machine_image_region,
-         target_subnet,
-         target_region,
-         source_region,
-         subnet_name,
-         step,
-         log,
-         file_name='export.csv',
-         filter_file_name='filter.csv'):
+def main(step, machine_image_region,
+        source_project, source_region, source_subnetwork,
+        source_zone, source_zone_2, source_zone_3,
+        target_project, target_region, target_subnetwork,
+        source_csv, filter_csv, input_csv, log_level):
     """
     The main method to trigger the VM migration.
     """
-    numeric_level = getattr(logging, log.upper(), None)
+    if not target_project:
+        target_project = source_project
+    if not target_region:
+        target_region = source_region
+    if not target_subnetwork:
+        target_subnetwork = source_subnetwork
+
+    source_subnet_selflink = 'projects/{}/regions/{}/subnetworks/{}'.format(
+        source_project, source_region, source_subnetwork)
+
+    numeric_level = getattr(logging, log_level.upper(), None)
     if not isinstance(numeric_level, int):
-        raise ValueError('Invalid log level: %s' % log)
+        raise ValueError('Invalid log level: %s' % log_level)
     logging.basicConfig(filename='migrator.log',
                         format='%(asctime)s  %(levelname)s %(message)s',
                         level=numeric_level)
@@ -364,22 +364,21 @@ def main(project,
     logging.info('executing step %s', step)
     if step == 'prepare_inventory':
         logging.info('Preparing the inventory to be exported')
-        subnet.export_instances(project, source_zone, source_zone_2,
-                                source_zone_3, source_subnet, 'source.csv')
+        subnet.export_instances(source_project, source_zone, source_zone_2,
+                                source_zone_3, source_subnet_selflink, source_csv)
     if step == 'filter_inventory':
         logging.info('Preparing the inventory to be exported')
-        subnet.export_instances(project, source_zone, source_zone_2,
-                                source_zone_3, source_subnet, 'source.csv')
+        subnet.export_instances(source_project, source_zone, source_zone_2,
+                                source_zone_3, source_subnet_selflink, source_csv)
         logging.info('filtering out the inventory')
-        overwrite_file = filter_records('source.csv', filter_file_name,
-                                        file_name)
+        overwrite_file = filter_records(source_csv, filter_csv, input_csv)
         if overwrite_file:
-            logging.info('%s now has filtered records', file_name)
+            logging.info('%s now has filtered records', input_csv)
         else:
-            logging.info('File %s was not overwriten', file_name)
+            logging.info('File %s was not overwriten', input_csv)
 
     if step == 'shutdown_instances':
-        with open(file_name, 'r') as read_obj:
+        with open(input_csv, 'r') as read_obj:
             csv_dict_reader = DictReader(read_obj)
             count = len(list(csv_dict_reader))
         shutdown_response = query_yes_no(
@@ -388,7 +387,7 @@ def main(project,
             default='no')
         if shutdown_response:
             logging.info('Shutting down the instances')
-            bulk_instance_shutdown(file_name)
+            bulk_instance_shutdown(input_csv)
 
     if step == 'start_instances':
         start_response = query_yes_no(
@@ -397,14 +396,14 @@ def main(project,
             default='no')
         if start_response:
             logging.info('Starting the instances')
-            bulk_instance_start(file_name)
+            bulk_instance_start(input_csv)
 
     if step == 'create_machine_images':
         logging.info('Creating Machine Images')
-        bulk_image_create(project, machine_image_region, file_name)
+        bulk_image_create(source_project, machine_image_region, input_csv)
 
     if step == 'delete_instances':
-        with open(file_name, 'r') as read_obj:
+        with open(input_csv, 'r') as read_obj:
             csv_dict_reader = DictReader(read_obj)
             count = len(list(csv_dict_reader))
         response = query_yes_no('Are you sure you want to delete the (%s)'
@@ -412,36 +411,37 @@ def main(project,
                                 default='no')
         if response:
             logging.info('Deleting all the instances present in the inventory')
-            bulk_delete_instances(file_name)
+            bulk_delete_instances(input_csv)
             logging.info('Deleting all the disks present in the inventory')
-            bulk_delete_disks(file_name)
+            bulk_delete_disks(input_csv)
         else:
             logging.info('Not deleting any instances')
 
     if step == 'clone_subnet':
         logging.info('Cloning Subnet')
-        subnet.duplicate(project, subnet_name, source_region, target_region)
+        subnet.duplicate(source_project, source_region, source_subnetwork,
+                         target_project, target_region)
         logging.info('Subnet sucessfully cloned in the provided region')
 
     if step == 'create_instances':
         logging.info('Creating machine instances')
-        bulk_create_instances(file_name, target_subnet, True)
+        bulk_create_instances(input_csv, target_project, target_subnetwork, source_project, True)
         logging.info('Instances created successfully')
 
     if step == 'create_instances_without_ip':
         logging.info(
             'Creating machine instances without retaining the original ips')
-        bulk_create_instances(file_name, target_subnet, False)
+        bulk_create_instances(input_csv, target_project, target_subnetwork, source_project, False)
         logging.info('Instances created successfully')
 
     if step == 'release_ip_for_subnet':
         logging.info('Releasing all the Ips present in the subnet')
-        subnet.release_ip(project, source_region, source_subnet)
-        logging.info('ips present in %s released subcessfully', file_name)
+        subnet.release_ip(source_project, source_region, source_subnetwork)
+        logging.info('ips present in %s released subcessfully', input_csv)
 
     if step == 'release_ip':
         logging.info('Releasing the ips present in the export')
-        release_ips_from_file(file_name)
+        release_ips_from_file(input_csv)
         logging.info('All the IPs of the Subnet released sucessfully')
 
 
@@ -449,47 +449,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('--project', help='Your Google Cloud project')
-    parser.add_argument('--input_csv',
-                        default='',
-                        help='The csv file containing vms to move.')
-    parser.add_argument('--target_subnet',
-                        default='',
-                        help='Compute Engine subnet to deploy to.')
-    parser.add_argument('--machine_image_region',
-                        default='us-central1',
-                        help='Compute Engine region to deploy to.')
-    parser.add_argument('--target_region',
-                        default='us-east1-a',
-                        help='Target region for the new subnet')
-    parser.add_argument('--source_zone',
-                        default='us-east1-a',
-                        help='Source zone where the existing subnet exist')
-    parser.add_argument(
-        '--source_zone_2',
-        default=None,
-        help='Second source zone where the existing subnet exist')
-    parser.add_argument(
-        '--source_zone_3',
-        default=None,
-        help='Third source zone where the existing subnet exist')
-    parser.add_argument('--source_region',
-                        default='us-east1-a',
-                        help='Source region where the existing subnet exist')
-    parser.add_argument('--subnet_name',
-                        default='us-east1-a',
-                        help='Source subnet name')
-    parser.add_argument('--source_subnet',
-                        default='us-east1-a',
-                        help='Source subnet self link')
-    parser.add_argument('--export_file',
-                        default='export.csv',
-                        help='destination file to export the data to')
-    parser.add_argument('--filter_file',
-                        default='filter.csv',
-                        help='filter file containing names of '
-                        'instances to filter from overall inventory')
-    parser.add_argument('--log', default='INFO', help='Log Level')
     parser.add_argument(
         '--step',
         default='prepare_inventory',
@@ -498,9 +457,43 @@ if __name__ == '__main__':
         'filter_inventory | shutdown_instances | create_machine_images |  '
         'delete_instances | release_ip_for_subnet | release_ip '
         '| clone_subnet | create_instances | create_instances_without_ip')
+    parser.add_argument('--machine_image_region',
+                        help='Compute Engine region to deploy to.')
+    parser.add_argument('--source_project',
+                        help='Source project ID')
+    parser.add_argument('--source_region',
+                        help='Source subnetwork name')
+    parser.add_argument('--source_subnetwork',
+                        help='Source subnetwork name')
+    parser.add_argument('--source_zone',
+                        help='Source zone where the existing subnet exist')
+    parser.add_argument(
+        '--source_zone_2',
+        help='Second source zone where the existing subnet exist')
+    parser.add_argument(
+        '--source_zone_3',
+        help='Third source zone where the existing subnet exist')
+    parser.add_argument('--target_project',
+                        help='Target project ID')
+    parser.add_argument('--target_region',
+                        help='Target region')
+    parser.add_argument('--target_subnetwork',
+                        help='Target subnetwork name')
+    parser.add_argument('--source_csv',
+                        default='source.csv',
+                        help='The csv with the full dump of movable VMs.')
+    parser.add_argument('--filter_csv',
+                        default='filter.csv',
+                        help='filter file containing names of '
+                        'instances to filter from overall inventory')
+    parser.add_argument('--input_csv',
+                        default='input.csv',
+                        help='destination file to export the data to')
+    parser.add_argument('--log_level', default='INFO', help='Log Level')
     args = parser.parse_args()
 
-main(args.project, args.source_zone, args.source_zone_2, args.source_zone_3,
-     args.source_subnet, args.machine_image_region, args.target_subnet,
-     args.target_region, args.source_region, args.subnet_name, args.step,
-     args.log, args.export_file, args.filter_file)
+    main(args.step, args.machine_image_region,
+        args.source_project, args.source_region, args.source_subnetwork,
+        args.source_zone, args.source_zone_2, args.source_zone_3,
+        args.target_project, args.target_region, args.target_subnetwork,
+        args.source_csv, args.filter_csv, args.input_csv, args.log_level)
