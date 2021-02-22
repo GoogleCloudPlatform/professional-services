@@ -31,15 +31,12 @@ public class SecretManagerStringSubstitutor extends StringSubstitutor {
   public SecretManagerStringSubstitutor(SecretManagerServiceClient client) {
     super(
         StringLookupFactory.INSTANCE.interpolatorStringLookup(
-            ImmutableMap.<String, StringLookup>builder()
-                .put(
-                    "secretManager",
-                    StringLookupFactory.INSTANCE.interpolatorStringLookup(new SecretLookup(client)))
-                .put(
-                    "secretManagerToFilePath",
-                    StringLookupFactory.INSTANCE.interpolatorStringLookup(
-                        new SecretLookupToFile(client)))
-                .build(),
+            ImmutableMap.<String, StringLookup>of(
+                "secretManager",
+                StringLookupFactory.INSTANCE.interpolatorStringLookup(new SecretLookup(client)),
+                "secretManagerToFilePath",
+                StringLookupFactory.INSTANCE.interpolatorStringLookup(
+                    new SecretLookupToFile(client))),
             null,
             true));
   }
