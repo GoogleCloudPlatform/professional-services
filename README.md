@@ -103,6 +103,7 @@ creates relationships between assets and outputs a format compatible with [graph
 * [Permission Discrepancy Finder](tools/permission-discrepancy-finder) - A tool to find the principals with missing permissions on a resource within a project, subsequently, grants them the missing permissions.
 * [Pubsub2Inbox](tools/pubsub2inbox) - A generic Cloud Function-based tool that takes input from Pub/Sub messages and turns them into email, webhooks or GCS objects.
 * [Quota Manager](tools/quota-manager) - A python module to programmatically update GCP service quotas such as bigquery.googleapis.com.
+* [Secret Manager Helper](tools/secret-manager-helper) - A Java library to make it easy to replace placeholder strings with Secret Manager secret payloads.
 * [Site Verification Group Sync](tools/site-verification-group-sync) - A tool to provision "verified owner" permissions (to create GCS buckets with custom dns) based on membership of a Google Group.
 * [SLO Generator](tools/slo-generator/) - A Python package that automates computation of Service Level Objectives, Error Budgets and Burn Rates on GCP,  and export the computation results to available exporters (e.g: PubSub, BigQuery, Stackdriver Monitoring), using policies written in JSON format.
 * [Snowflake_to_BQ](tools/snowflake2bq/) - A shell script to transfer tables (schema & data) from Snowflake to BigQuery.
