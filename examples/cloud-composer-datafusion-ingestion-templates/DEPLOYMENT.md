@@ -60,7 +60,7 @@
     --description "BQ dataset for data lake tables"  \
     $PROJECT_ID:$BQ_DATALAKE_DATASET
 
-    bq mk --table $AUDIT_DATASET.load_audit_test dag_name:STRING,dag_run_id_detail:STRING,source_name:STRING,stage:STRING,status:STRING,dag_exec_ts:TIMESTAMP,task_end_ts:TIMESTAMP
+    bq mk --table $AUDIT_DATASET.load_audit dag_name:STRING,dag_run_id_detail:STRING,source_name:STRING,stage:STRING,status:STRING,dag_exec_ts:TIMESTAMP,task_end_ts:TIMESTAMP,log_insert_ts:TIMESTAMP
     ```
 
     iii) Create GCS buckets for source data and archival data storage.
@@ -127,6 +127,8 @@
 
     To do this, click on your Composer instance from Console, click on 'Environment Configuration' tab and click on Airflow web UI link.
 
-    ii) Run load_shipment DAG to load data from source file to BigQuery.
+    ii) Run load_shipment_orchestrator DAG to load data from source file to BigQuery.
+    iii) Upon successful completion of load_orchestrator_shipment DAG, navigate to menu option Browse > DAG Runs. 
+         You should see two DAG runs of the DAG load_shipment, one instance for each entry in the task parameter file.
 
 # Remember to decomission the provisioned resources once you are done to avoid incurring charges to your GCP account.

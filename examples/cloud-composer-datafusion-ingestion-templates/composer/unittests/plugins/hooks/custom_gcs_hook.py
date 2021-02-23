@@ -1,6 +1,7 @@
 import logging
 class GoogleCloudStorageCustomHook:
     """
+    Mocked for testing 
     Interact with Google Cloud Storage. This hook uses the Google Cloud Platform
     connection.
     """

@@ -1,5 +1,7 @@
 class GoogleCloudStorageHook:
-
+"""
+mocked class for testing
+"""
     def __init__(self,
                  google_cloud_storage_conn_id='google_cloud_default',
                  delegate_to=None):

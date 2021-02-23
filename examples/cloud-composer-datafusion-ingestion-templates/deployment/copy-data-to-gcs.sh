@@ -1,4 +1,5 @@
 #!/bin/bash
+
 # Copyright 2021 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,11 +17,11 @@
 echo "The current working directory: $PWD"
 #cd sample-data
 #echo "The current working directory: $PWD"
-for file in $(ls -R sample-data | awk '/:$/&&f{s=$0;f=0}/:$/&&!f{sub(/:$/,"");s=$0;f=1;next}NF&&f{ print s"/"$0 }')
-do
+find sample-data -type f -print0 |
+while IFS= read -r -d '' file; do
 echo "File is ${file}"
 dest="$(dirname "$file")"
-dest=$(echo $dest | sed 's|sample-data||')
+dest="${dest//sample-data/}"
 echo "dest=$dest"
-gsutil cp ${file} gs://${DATA_BUCKET}$dest/
+gsutil cp "${file}" "gs://${DATA_BUCKET}$dest/"
 done

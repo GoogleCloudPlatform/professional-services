@@ -88,9 +88,11 @@ It is recommended that you deploy and run this solution once as-is to get famili
     |______________ File: \<data_file_2.csv\>\
     |__ Folder: metadata \
     |______ Folder: \<system\>\
-    |__________ Folder: \<metadata_data_file_1_description.csv\>\
-    |__________ Folder: \<metadata_data_file_2_description.csv\>
+    |__________ File: \<metadata_data_file_1_description.csv\>\
+    |__________ File: \<metadata_data_file_2_description.csv\>
 
     Note: 
     1. The term metadata here refers to data dictionary for the data files being loaded.\
        The data dictionary comprises of column name and column description.\
+    2. Naming convention for metadata file: \<system\>_\<data_filename\>_description.csv
+    3. For layout of metadata file, see any of the same metadata files provided with this solution.

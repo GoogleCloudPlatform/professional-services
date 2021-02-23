@@ -13,7 +13,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" This module reads the parameters from all three parameter files
+""" Mocked module for testing
+This module reads the parameters from all three parameter files
 environment parameter, dag paramter and task parameter
 """
 import json

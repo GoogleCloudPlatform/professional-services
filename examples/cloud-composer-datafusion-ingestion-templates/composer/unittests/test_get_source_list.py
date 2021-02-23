@@ -44,7 +44,7 @@ class Test_Config_Available(unittest.TestCase):
             get_source_list('shipment',"load_shipment_dag_param.json","load_shipment_task_param.json",'test_dag_run_id')
 def main():
     test=Test_Config_Available()
-    print("Checking if all config files are available!")
+    print("Checking if all config files are available and get_source_list is called successfully.")
     test.test_config()
 
 if __name__ == "__main__":

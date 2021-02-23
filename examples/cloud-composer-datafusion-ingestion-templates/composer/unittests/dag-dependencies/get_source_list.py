@@ -13,7 +13,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" This module will be used by the Composer DAG to generate
+
+""" Mocked module for unit testing
+This module will be used by the Composer DAG to generate
 inventory of files for ingestion by the subsequent steps in the DAG"""
 
 import logging
