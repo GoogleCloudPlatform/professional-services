@@ -1,0 +1,43 @@
+{
+  "insertId": "jzjfmog7ltgtvh",
+  "jsonPayload": {
+    "trace_id": "operation-1588710678301-5a4ec87a18c66-0d802c64-d3abe3fb",
+    "version": "1.2",
+    "operation": {
+      "id": "7784974086980793337",
+      "type": "operation",
+      "region": "europe-west4",
+      "name": "operation-1588710678301-5a4ec87a18c66-0d802c64-d3abe3fb"
+    },
+    "actor": {
+      "user": "alfonso@apszaz.com"
+    },
+    "event_timestamp_us": "1588710695365406",
+    "resource": {
+      "region": "europe-west4",
+      "name": "dummy",
+      "type": "subnetwork",
+      "id": "5485934164230042617"
+    },
+    "event_type": "GCE_OPERATION_DONE",
+    "event_subtype": "compute.subnetworks.insert"
+  },
+  "resource": {
+    "type": "gce_subnetwork",
+    "labels": {
+      "subnetwork_name": "dummy",
+      "subnetwork_id": "5485934164230042617",
+      "project_id": "apszaz-crf-minutis-prod",
+      "location": ""
+    }
+  },
+  "timestamp": "2020-05-05T20:31:35.365406Z",
+  "severity": "INFO",
+  "labels": {
+    "compute.googleapis.com/resource_name": "dummy",
+    "compute.googleapis.com/resource_id": "5485934164230042617",
+    "compute.googleapis.com/resource_type": "subnetwork"
+  },
+  "logName": "projects/apszaz-crf-minutis-prod/logs/compute.googleapis.com%2Factivity_log",
+  "receiveTimestamp": "2020-05-05T20:31:35.433243452Z"
+}
