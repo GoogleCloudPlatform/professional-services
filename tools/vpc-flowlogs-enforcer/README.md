@@ -68,7 +68,7 @@ python3 terraform/templates/cloud_function/main.py sample_logs/insert_subnet_don
 sample output:
 
 ```
-reading sample message from: sample_logs/insert_subnet_done.json
+reading sample message from: sample_logs/insert_subnet_call_last.json
 /Users/alpalacios/Workspaces/RNLT/PSO_Repo/vpc_log_enforcer/env/lib/python3.6/site-packages/google/auth/_default.py:69: UserWarning: Your application has authenticated using end user credentials from Google Cloud SDK. We recommend that most server applications use service accounts instead. If your application continues to use end user credentials from Cloud SDK, you might receive a "quota exceeded" or "API not enabled" error. For more information about service accounts, see https://cloud.google.com/docs/authentication/
   warnings.warn(_CLOUD_SDK_CREDENTIALS_WARNING)
 got subnet change notification from stackdriver

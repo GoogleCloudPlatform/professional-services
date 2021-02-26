@@ -12,7 +12,7 @@ resource "google_pubsub_topic" "subnet_change" {
 
 # Allow publishing rights to the log sink service accounts (if enabled).
 resource "google_pubsub_topic_iam_member" "log_sink" {
-  count   = length(google_logging_folder_sink.subnet_change.*) * (var.configure_log_sinks ? 1 : 0)
+  count   = length(google_logging_folder_sink.subnet_change.*) * ((var.configure_log_sinks && !var.configure_asset_feeds) ? 1 : 0)
   project = google_project.demo_project.project_id
   topic   = google_pubsub_topic.subnet_change.id
   role    = "roles/pubsub.publisher"

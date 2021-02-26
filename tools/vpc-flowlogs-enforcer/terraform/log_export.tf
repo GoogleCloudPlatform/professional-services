@@ -7,7 +7,8 @@
 # Logs sink that sends messages to a Pub/Sub topic when a subnet is created or
 # modified.
 resource "google_logging_folder_sink" "subnet_change" {
-  count            = length(var.enforcement_folders) * (var.configure_log_sinks ? 1 : 0)
+  # enable log sinks only if CAI feeds are not also enabled
+  count            = length(var.enforcement_folders) * ((var.configure_log_sinks && !var.configure_asset_feeds) ? 1 : 0)
   name             = "subnet-change-sink-${count.index}"
   folder           = var.enforcement_folders[count.index]
   include_children = true
@@ -17,9 +18,9 @@ resource "google_logging_folder_sink" "subnet_change" {
 
   # Filter the subnet modification logs
   filter = <<-EOT
-  resource.type="gce_subnetwork" AND 
-  jsonPayload.event_type="GCE_OPERATION_DONE" AND
-  (jsonPayload.event_subtype="compute.subnetworks.insert" OR jsonPayload.event_subtype="compute.subnetworks.patch") AND
-  jsonPayload.actor.user!="${google_service_account.net_logs_cf.email}"
+  resource.type="gce_subnetwork"
+  protoPayload.@type="type.googleapis.com/google.cloud.audit.AuditLog"
+  operation.last="true"
+  -protoPayload.authenticationInfo.principalEmail="${google_service_account.net_logs_cf.email}"
   EOT
 }
