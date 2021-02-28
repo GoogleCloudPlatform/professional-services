@@ -190,7 +190,10 @@ def bulk_instance_start(file_name):
                         'machine strating generated an exception: %s', exc)
 
 
-def bulk_create_instances(file_name, target_project, target_subnet, source_project, retain_ip):
+def bulk_create_instances(file_name, target_project, target_service_account,
+                          target_scopes, target_subnet, source_project,
+                          retain_ip):
+    target_network_selflink = subnet.get_network(target_subnet)
     with open(file_name, 'r') as read_obj:
         csv_dict_reader = DictReader(read_obj)
         count = 0
@@ -205,6 +208,9 @@ def bulk_create_instances(file_name, target_project, target_subnet, source_proje
                 ip = None
                 if retain_ip:
                     ip = row['internal_ip']
+
+                if target_network_selflink:
+                    row['network'] = target_network_selflink
 
                 parsed_link = instance.parse_self_link(row['self_link'])
                 alias_ip_ranges = []
@@ -236,10 +242,12 @@ def bulk_create_instances(file_name, target_project, target_subnet, source_proje
 
                 target_zone = zone_mapping.FIND[parsed_link['zone']]
                 instance_future.append(
-                    executor.submit(instance.create,
+                    executor.submit(instance.create, target_project,
                                     target_zone, row['network'], target_subnet,
                                     row['name'], alias_ip_ranges, node_group,
-                                    disk_names, ip, row['machine_type'], source_project))
+                                    disk_names, ip, row['machine_type'],
+                                    source_project, target_service_account,
+                                    target_scopes))
                 count = count + 1
 
             for future in concurrent.futures.as_completed(instance_future):
@@ -339,7 +347,8 @@ def release_ips_from_file(file_name):
 def main(step, machine_image_region,
         source_project, source_region, source_subnetwork,
         source_zone, source_zone_2, source_zone_3,
-        target_project, target_region, target_subnetwork,
+        target_project, target_service_account, target_scopes,
+        target_region, target_subnetwork,
         source_csv, filter_csv, input_csv, log_level):
     """
     The main method to trigger the VM migration.
@@ -351,6 +360,10 @@ def main(step, machine_image_region,
     if not target_subnetwork:
         target_subnetwork = source_subnetwork
 
+    target_scopes = target_scopes.split(',')
+
+    target_subnet_selflink = 'projects/{}/regions/{}/subnetworks/{}'.format(
+        target_project, target_region, target_subnetwork)
     source_subnet_selflink = 'projects/{}/regions/{}/subnetworks/{}'.format(
         source_project, source_region, source_subnetwork)
 
@@ -425,13 +438,19 @@ def main(step, machine_image_region,
 
     if step == 'create_instances':
         logging.info('Creating machine instances')
-        bulk_create_instances(input_csv, target_project, target_subnetwork, source_project, True)
+        bulk_create_instances(input_csv, target_project,
+                              target_service_account, target_scopes,
+                              target_subnet_selflink,
+                              source_project, True)
         logging.info('Instances created successfully')
 
     if step == 'create_instances_without_ip':
         logging.info(
             'Creating machine instances without retaining the original ips')
-        bulk_create_instances(input_csv, target_project, target_subnetwork, source_project, False)
+        bulk_create_instances(input_csv, target_project,
+                              target_service_account, target_scopes,
+                              target_subnet_selflink,
+                              source_project, False)
         logging.info('Instances created successfully')
 
     if step == 'release_ip_for_subnet':
@@ -475,6 +494,11 @@ if __name__ == '__main__':
         help='Third source zone where the existing subnet exist')
     parser.add_argument('--target_project',
                         help='Target project ID')
+    parser.add_argument('--target_project_sa',
+                        help='Target service account in target project')
+    parser.add_argument('--target_project_sa_scopes',
+                        default='https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/servicecontrol',
+                        help='Target service account scopes in the target project')
     parser.add_argument('--target_region',
                         help='Target region')
     parser.add_argument('--target_subnetwork',
@@ -495,5 +519,6 @@ if __name__ == '__main__':
     main(args.step, args.machine_image_region,
         args.source_project, args.source_region, args.source_subnetwork,
         args.source_zone, args.source_zone_2, args.source_zone_3,
-        args.target_project, args.target_region, args.target_subnetwork,
+        args.target_project, args.target_project_sa, args.target_sa_scopes,
+        args.target_region, args.target_subnetwork,
         args.source_csv, args.filter_csv, args.input_csv, args.log_level)
