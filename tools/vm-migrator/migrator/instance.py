@@ -253,7 +253,7 @@ def upgrade_machine_type(machine_type, destination_zone):
 
 def create_instance(compute, project, zone, network, subnet, name,
                     alias_ip_ranges, node_group, disk_names, ip, machine_type,
-                    image_project):
+                    image_project, target_service_account, target_scopes):
     """
     Create Instance method create a new GCP VM from the machine image.
     """
@@ -270,7 +270,9 @@ def create_instance(compute, project, zone, network, subnet, name,
             'initializeParams': {
                 'diskName': disk_name
             }
-        } for (device_name, disk_name) in disk_names.items()]
+        } for (device_name, disk_name) in disk_names.items()],
+        'sourceMachineImage': 'projects/' + image_project +
+                              '/global/machineImages/' + name
     }
 
     # upgrade the machine type in the destination zone
@@ -301,6 +303,12 @@ def create_instance(compute, project, zone, network, subnet, name,
         logging.info('Found a sole tenant maching running on node group %s',
                      node_group)
         config['scheduling'] = get_updated_node_group(node_group)['scheduling']
+
+    if target_service_account and target_scopes:
+        config['serviceAccounts'] = [{
+            'email': target_service_account,
+            'scopes': target_scopes,
+        }]
 
     i = 1
     if len(alias_ip_ranges) > 0:
@@ -343,10 +351,7 @@ def create_instance(compute, project, zone, network, subnet, name,
 
     return compute.instances().insert(project=project,
                                       zone=zone,
-                                      body=config,
-                                      sourceMachineImage='projects/' +
-                                      image_project + '/global/machineImages/' +
-                                      name).execute()
+                                      body=config).execute()
 
 
 def wait_for_instance(compute, project, zone, name):

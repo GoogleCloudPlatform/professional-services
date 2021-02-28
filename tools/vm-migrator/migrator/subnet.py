@@ -230,6 +230,12 @@ def duplicate(project, source_subnet, source_subnet_region,
                        insert_operation['name'])
     logging.info('new subnet added successfully')
 
+def get_network(project, region, subnet):
+    result = get_compute().subnetworks().get(project=project,
+                                             region=region,
+                                             subnetwork=subnet).execute()
+    return result['network'] if 'network' in result else None
+
 
 def list_subnets(compute, project, region):
     result = compute.subnetworks().list(project=project,
