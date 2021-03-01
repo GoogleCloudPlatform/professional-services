@@ -92,3 +92,23 @@ def create(project, target_region, source_instance, name, wait=True):
     except Exception as exc:
         logging.error(exc)
         raise exc
+
+def set_iam_policy(source_project, name, target_service_account):
+    compute = get_compute()
+    body = {
+        "bindings": [
+            {
+                "role": "roles/compute.admin",
+                "members": [
+                    "serviceAccount:{}".format(target_service_account),
+                ],
+            },
+        ],
+        "version": 3
+    }
+    self_link = 'projects/{}/global/machineImages/{}'.format(source_project, name)
+    logging.info('Setting IAM policy for machine image %s', self_link)
+    compute.machineImages().setIamPolicy(project=source_project,
+                                         resource=name,
+                                         body=body).execute()
+    return self_link

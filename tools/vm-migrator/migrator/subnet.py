@@ -16,11 +16,12 @@
 This file deals with operations on subnets.
 """
 import time
+import re
 import logging
 import googleapiclient.discovery
 from googleapiclient.errors import HttpError
 from csv import DictWriter
-from .exceptions import GCPOperationException
+from .exceptions import GCPOperationException, InvalidFormatException
 from . import instance
 from . import disk
 from . import fields
@@ -230,10 +231,18 @@ def duplicate(project, source_subnet, source_subnet_region,
                        insert_operation['name'])
     logging.info('new subnet added successfully')
 
-def get_network(project, region, subnet):
-    result = get_compute().subnetworks().get(project=project,
-                                             region=region,
-                                             subnetwork=subnet).execute()
+def get_network(subnet_selflink):
+    if subnet_selflink.startswith('projects'):
+        subnet_selflink = '/' + subnet_selflink
+    response = re.search(r'\/projects\/(.*?)\/regions\/(.*?)\/subnetworks\/(.*?)$',
+                         subnet_selflink)
+    if len(response.groups()) != 3:
+        raise InvalidFormatException('Invalid SelfLink Format')
+
+    'projects/{project}/regions/{region}/subnetworks/{resourceId}'
+    result = get_compute().subnetworks().get(project=response.group(1),
+                                             region=response.group(2),
+                                             subnetwork=response.group(3)).execute()
     return result['network'] if 'network' in result else None
 
 
