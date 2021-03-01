@@ -383,6 +383,8 @@ def create(project,
            ip,
            machine_type,
            image_project,
+           target_service_account,
+           target_scopes,
            wait=True):
     """
     Main function to create the instance.
@@ -395,7 +397,8 @@ def create(project,
 
         create_instance(compute, project, target_zone, network, subnet,
                         instance_name, alias_ip_ranges, node_group, disk_names,
-                        ip, machine_type, image_project)
+                        ip, machine_type, image_project,
+                        target_service_account, target_scopes)
         if wait:
             wait_for_instance(compute, project, target_zone, instance_name)
         logging.info(

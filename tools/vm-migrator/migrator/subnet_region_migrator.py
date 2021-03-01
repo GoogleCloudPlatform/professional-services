@@ -190,6 +190,38 @@ def bulk_instance_start(file_name):
                         'machine strating generated an exception: %s', exc)
 
 
+def set_machineimage_iampolicies(file_name, source_project,
+                                 target_service_account):
+
+    with open(file_name, 'r') as read_obj:
+        csv_dict_reader = DictReader(read_obj)
+        count = 0
+        tracker = 0
+        machineimage_future = []
+        machine_name = ''
+        # We can use a with statement to ensure threads are cleaned up promptly
+        with concurrent.futures.ThreadPoolExecutor(
+                max_workers=100) as executor:
+            # Start the load operations and mark each future with its URL
+            for row in csv_dict_reader:
+                parsed_link = instance.parse_self_link(row['self_link'])
+                machineimage_future.append(
+                    executor.submit(machine_image.set_iam_policy,
+                                    source_project, row['name'],
+                                    target_service_account))
+                count = count + 1
+
+            for future in concurrent.futures.as_completed(machineimage_future):
+                try:
+                    machine_name = future.result()
+                    tracker = tracker + 1
+                    logging.info('Set IAM policy for service account to '
+                                 '%r machine image sucessfully', machine_name)
+                    logging.info('%i out of %i set ', tracker, count)
+                except Exception as exc:
+                    logging.error(
+                        'machine iam policy generated an exception: %s', exc)
+
 def bulk_create_instances(file_name, target_project, target_service_account,
                           target_scopes, target_subnet, source_project,
                           retain_ip):
@@ -359,8 +391,17 @@ def main(step, machine_image_region,
         target_region = source_region
     if not target_subnetwork:
         target_subnetwork = source_subnetwork
-
-    target_scopes = target_scopes.split(',')
+    if source_project != target_project:
+        if target_scopes:
+            target_scopes = target_scopes.split(',')
+        else:
+            target_scopes = [
+                'https://www.googleapis.com/auth/devstorage.read_only',
+                'https://www.googleapis.com/auth/logging.write',
+                'https://www.googleapis.com/auth/monitoring.write',
+                'https://www.googleapis.com/auth/service.management.readonly',
+                'https://www.googleapis.com/auth/servicecontrol'
+            ]
 
     target_subnet_selflink = 'projects/{}/regions/{}/subnetworks/{}'.format(
         target_project, target_region, target_subnetwork)
@@ -436,6 +477,12 @@ def main(step, machine_image_region,
                          target_project, target_region)
         logging.info('Subnet sucessfully cloned in the provided region')
 
+    if step == 'set_machineimage_iampolicies':
+        logging.info('Setting IAM policies of created machine images')
+        set_machineimage_iampolicies(input_csv, source_project,
+                                     target_service_account)
+        logging.info('Successfully set IAM policies of created machine images')
+
     if step == 'create_instances':
         logging.info('Creating machine instances')
         bulk_create_instances(input_csv, target_project,
@@ -475,7 +522,8 @@ if __name__ == '__main__':
         'The steps can be any of prepare_inventory | '
         'filter_inventory | shutdown_instances | create_machine_images |  '
         'delete_instances | release_ip_for_subnet | release_ip '
-        '| clone_subnet | create_instances | create_instances_without_ip')
+        '| clone_subnet | set_machineimage_iampolicies | create_instances | '
+        'create_instances_without_ip')
     parser.add_argument('--machine_image_region',
                         help='Compute Engine region to deploy to.')
     parser.add_argument('--source_project',
@@ -497,7 +545,6 @@ if __name__ == '__main__':
     parser.add_argument('--target_project_sa',
                         help='Target service account in target project')
     parser.add_argument('--target_project_sa_scopes',
-                        default='https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/servicecontrol',
                         help='Target service account scopes in the target project')
     parser.add_argument('--target_region',
                         help='Target region')
@@ -519,6 +566,7 @@ if __name__ == '__main__':
     main(args.step, args.machine_image_region,
         args.source_project, args.source_region, args.source_subnetwork,
         args.source_zone, args.source_zone_2, args.source_zone_3,
-        args.target_project, args.target_project_sa, args.target_sa_scopes,
-        args.target_region, args.target_subnetwork,
+        args.target_project, args.target_project_sa,
+        args.target_project_sa_scopes, args.target_region,
+        args.target_subnetwork,
         args.source_csv, args.filter_csv, args.input_csv, args.log_level)

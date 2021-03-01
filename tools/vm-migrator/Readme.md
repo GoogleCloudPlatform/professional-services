@@ -37,6 +37,8 @@ The `Makefile` has different variables which are passed to the subnet_region_mig
 | SOURCE_ZONE_2 | [Optional] The second zone in which the source subnet is present, this is used to fetch the inventory details |
 | SOURCE_ZONE_3 | [Optional] The third zone in which the source subnet is present, this is used to fetch the inventory details |
 | TARGET_PROJECT | [Optional] If different, the Project ID where the new subnet will exist |
+| TARGET_PROJECT_SA | [Optional] Required if the target project is different than the source project. Service Account on the VMs. |
+| TARGET_PROJECT_SA_SCOPES | [Optional] If the target project is different than the source project, scopes to assign to the Service Account on the VMs |
 | TARGET_REGION | [Optional] If different, the target region where machines will be migrated to |
 | TARGET_SUBNETWORK | [Optional] Leave this argument empty if using `clone_subnet`. Otherwise, if different to `SOURCE_SUBNETWORK`, specify an existing target subnetwork.  |
 | SOURCE_CSV | [Optional] (by default `source.csv`) The filename used by `prepare_inventory` |
@@ -66,6 +68,7 @@ While we can move all the machines in a subnet to the destination subnet we have
 | release_ip | This will release all the internal static ip addresses of the instances which are specifed in the `INPUT_CSV` file |
 | release_ip_for_subnet | This will release all the internal static ip addresses of the source subnet | 
 | clone_subnet | This will delete and re create the subnet in the destination region with the same config as the source subnet, this is required when you want to drain the entire subnet and create it in the destination region |
+| set_machineimage_iampolicies | This will provide the target project service account with the right permissions to access the source project machine images |
 | create_instances | This will create the instances from the machine images in the destination region, it requires the destination subnet to be in place ( if you are cloning the subnet it will automatically be created  ) |
 | create_instances_without_ip | This is similar to the create_instances step jus that it will not preserve the source ips, this is useful in situation when you are moving some of the machine to the destination subenet which has a different CIDR range |
 
@@ -74,7 +77,6 @@ While we can move all the machines in a subnet to the destination subnet we have
 Run ```make STEP=<step name> migrate-subnet```
 
 Once your setup is complete and prerequisites are met, you need to ensure the latest code is pulled from repository
-
 
 ## Zone Mapping
 

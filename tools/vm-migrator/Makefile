@@ -7,16 +7,19 @@ SOURCE_CSV=source.csv # actual default value
 INPUT_CSV=export.csv
 
 SOURCE_PROJECT=delivery-center-poc
-SOURCE_REGION=us-central1
-SOURCE_SUBNETWORK=default
-SOURCE_ZONE=us-central1-a
+SOURCE_REGION=europe-west3
+SOURCE_SUBNETWORK=test
+SOURCE_ZONE=europe-west3-c
 SOURCE_ZONE_2=
-SOURCE_ZONE_3=us-central1-b
+SOURCE_ZONE_3=
 
-# in this example source and target project are the same
-TARGET_PROJECT=
-TARGET_REGION=us-west1
-TARGET_SUBNETWORK=sub-01
+
+#TARGET_PROJECT=${SOURCE_PROJECT}
+# use the default target service account
+#TARGET_PROJECT_SA=$(gcloud projects describe ${TARGET_PROJECT} --format 'value(projectNumber)')-compute@developer.gserviceaccount.com
+#TARGET_PROJECT_SA_SCOPES=https://www.googleapis.com/auth/cloud-platform
+TARGET_REGION=europe-west4
+TARGET_SUBNETWORK=default
 
 # actual default values
 EXPORT_CSV=export.csv
@@ -63,7 +66,7 @@ migrate-subnet:
 		--source_zone_2=$(SOUCE_ZONE_2) --source_zone_3=$(SOURCE_ZONE_3) \
 		--target_project=$(TARGET_PROJECT) \
 		--target_project_sa=$(TARGET_PROJECT_SA) \
-		--target_project_sa_scopes=$(TARGET_PROJECT_SCOPES) \
+		--target_project_sa_scopes=$(TARGET_PROJECT_SA_SCOPES) \
 		--target_region=$(TARGET_REGION) \
 		--target_subnetwork=$(TARGET_SUBNETWORK) --source_csv=$(SOURCE_CSV) \
 		--filter_csv=$(FILTER_CSV) --input_csv=$(INPUT_CSV) \
