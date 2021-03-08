@@ -436,7 +436,7 @@ def main(step, machine_image_region,
             csv_dict_reader = DictReader(read_obj)
             count = len(list(csv_dict_reader))
         shutdown_response = query_yes_no(
-            'Are you sure you want to shutdown the (%s)'
+            'Are you sure you want to shutdown the (%s) '
             'instances present in the inventory ?' % count,
             default='no')
         if shutdown_response:
@@ -460,7 +460,7 @@ def main(step, machine_image_region,
         with open(input_csv, 'r') as read_obj:
             csv_dict_reader = DictReader(read_obj)
             count = len(list(csv_dict_reader))
-        response = query_yes_no('Are you sure you want to delete the (%s)'
+        response = query_yes_no('Are you sure you want to delete the (%s) '
                                 'instances present in the inventory ?' % count,
                                 default='no')
         if response:
@@ -474,7 +474,7 @@ def main(step, machine_image_region,
     if step == 'clone_subnet':
         logging.info('Cloning Subnet')
         subnet.duplicate(source_project, source_region, source_subnetwork,
-                         target_project, target_region)
+                         target_project, target_region, target_subnetwork)
         logging.info('Subnet sucessfully cloned in the provided region')
 
     if step == 'set_machineimage_iampolicies':
@@ -502,13 +502,14 @@ def main(step, machine_image_region,
 
     if step == 'release_ip_for_subnet':
         logging.info('Releasing all the Ips present in the subnet')
-        subnet.release_ip(source_project, source_region, source_subnetwork)
-        logging.info('ips present in %s released subcessfully', input_csv)
+        subnet.release_ip(source_project, source_region,
+                          source_subnet_selflink)
+        logging.info('All the IPs of the Subnet released sucessfully')
 
     if step == 'release_ip':
         logging.info('Releasing the ips present in the export')
         release_ips_from_file(input_csv)
-        logging.info('All the IPs of the Subnet released sucessfully')
+        logging.info('ips present in %s released subcessfully', input_csv)
 
 
 if __name__ == '__main__':
