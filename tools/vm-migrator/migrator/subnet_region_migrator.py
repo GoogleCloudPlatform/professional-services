@@ -28,6 +28,7 @@ from . import disk
 from . import subnet
 from . import zone_mapping
 from . import fields
+from . import project
 from csv import DictReader
 from csv import DictWriter
 
@@ -392,6 +393,9 @@ def main(step, machine_image_region,
     if not target_subnetwork:
         target_subnetwork = source_subnetwork
     if source_project != target_project:
+        if not target_service_account:
+            target_service_account = "{}-compute@developer.gserviceaccount.com"\
+                                      .format(project.get_number(target_project))
         if target_scopes:
             target_scopes = target_scopes.split(',')
         else:

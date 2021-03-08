@@ -16,7 +16,7 @@ SOURCE_ZONE_3=
 
 #TARGET_PROJECT=${SOURCE_PROJECT}
 # use the default target service account
-#TARGET_PROJECT_SA=$(gcloud projects describe ${TARGET_PROJECT} --format 'value(projectNumber)')-compute@developer.gserviceaccount.com
+#TARGET_PROJECT_SA=
 #TARGET_PROJECT_SA_SCOPES=https://www.googleapis.com/auth/cloud-platform
 TARGET_REGION=europe-west4
 TARGET_SUBNETWORK=default

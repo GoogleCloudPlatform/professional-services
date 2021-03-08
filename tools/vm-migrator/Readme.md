@@ -97,7 +97,7 @@ Please note that some steps like `crate_machine_image` would not be required to 
 
 ## Examples
 
-There are certain common scenarios you might be interested in. All of them require you to fill the proper required parameters in the `Makefile`. Afterwards, you can execute the following recipes:
+There are certain common scenarios you might be interested in. All of them require you to fill the proper required parameters in the `Makefile` and the proper zone mapping in `zone_mapping.py`. Afterwards, you can execute the following recipes:
 
 ### Moving VMs across projects
 
@@ -118,7 +118,7 @@ make STEP=set_machineimage_iampolicies migrate-subnet
 make STEP=create_instances_without_ip migrate-subnet
 ```
 
-### Move VMs across regions (same subnet)
+### Move VMs across regions (recreate subnet)
 
 This one requires the `TARGET_REGION` where the subnet will be moved to (and VMs will be recreated in). Indicating the `TARGET_SUBNETWORK` will create the same subnet in the new region with the new name.
 
@@ -141,7 +141,7 @@ Notes:
 * This case is particularly interesting if VMs need to stay *in the same VPC*. Otherwise, the next example(move VMs to a different subnet is a better fit).
 * Specifying the `TARGET_SUBNETWORK` without specifying the `TARGET_REGION` is equivalent to renaming the subnet within the same region.
 
-### Move VMs to a different (already existing) subnet
+### Move VMs to a different (already existing target) subnet
 
 If you're just moving VMs across subnets, you need to specify the `TARGET_SUBNETWORK`, which must already exist. If your target subnet is in a different region, you need to specify the `TARGET_REGION` as well:
 
@@ -158,4 +158,4 @@ make STEP=release_ip migrate-subnet
 make STEP=create_instances_without_ip migrate-subnet
 ```
 
-This recipe is fully compatible with moving across projects. In that case, please specify the `TARGET_PROJECT*` variables and execute `make STEP=set_machineimage_iampolicies migrate-subnet` before creating the instances as well.
+This recipe is fully compatible with moving across projects. In this case, please specify the `TARGET_PROJECT*` variables additionally and execute `make STEP=set_machineimage_iampolicies migrate-subnet` before creating the instances as well.
