@@ -66,6 +66,7 @@ def bulk_image_create(project, machine_image_region, file_name='export.csv'):
                         'machine image creation generated an exception: %s',
                         exc)
 
+
 def bulk_delete_instances(file_name):
     with open(file_name, 'r') as read_obj:
         csv_dict_reader = DictReader(read_obj)
@@ -205,7 +206,6 @@ def set_machineimage_iampolicies(file_name, source_project,
                 max_workers=100) as executor:
             # Start the load operations and mark each future with its URL
             for row in csv_dict_reader:
-                parsed_link = instance.parse_self_link(row['self_link'])
                 machineimage_future.append(
                     executor.submit(machine_image.set_iam_policy,
                                     source_project, row['name'],
@@ -222,6 +222,7 @@ def set_machineimage_iampolicies(file_name, source_project,
                 except Exception as exc:
                     logging.error(
                         'machine iam policy generated an exception: %s', exc)
+
 
 def bulk_create_instances(file_name, target_project, target_service_account,
                           target_scopes, target_subnet, source_project,
@@ -378,11 +379,11 @@ def release_ips_from_file(file_name):
 
 # main function
 def main(step, machine_image_region,
-        source_project, source_region, source_subnetwork,
-        source_zone, source_zone_2, source_zone_3,
-        target_project, target_service_account, target_scopes,
-        target_region, target_subnetwork,
-        source_csv, filter_csv, input_csv, log_level):
+         source_project, source_region, source_subnetwork,
+         source_zone, source_zone_2, source_zone_3,
+         target_project, target_service_account, target_scopes,
+         target_region, target_subnetwork,
+         source_csv, filter_csv, input_csv, log_level):
     """
     The main method to trigger the VM migration.
     """
@@ -394,8 +395,9 @@ def main(step, machine_image_region,
         target_subnetwork = source_subnetwork
     if source_project != target_project:
         if not target_service_account:
-            target_service_account = "{}-compute@developer.gserviceaccount.com"\
-                                      .format(project.get_number(target_project))
+            target_service_account = \
+                "{}-compute@developer.gserviceaccount.com".format(
+                    project.get_number(target_project))
         if target_scopes:
             target_scopes = target_scopes.split(',')
         else:
@@ -423,11 +425,13 @@ def main(step, machine_image_region,
     if step == 'prepare_inventory':
         logging.info('Preparing the inventory to be exported')
         subnet.export_instances(source_project, source_zone, source_zone_2,
-                                source_zone_3, source_subnet_selflink, source_csv)
+                                source_zone_3, source_subnet_selflink,
+                                source_csv)
     if step == 'filter_inventory':
         logging.info('Preparing the inventory to be exported')
         subnet.export_instances(source_project, source_zone, source_zone_2,
-                                source_zone_3, source_subnet_selflink, source_csv)
+                                source_zone_3, source_subnet_selflink,
+                                source_csv)
         logging.info('filtering out the inventory')
         overwrite_file = filter_records(source_csv, filter_csv, input_csv)
         if overwrite_file:
@@ -549,8 +553,8 @@ if __name__ == '__main__':
                         help='Target project ID')
     parser.add_argument('--target_project_sa',
                         help='Target service account in target project')
-    parser.add_argument('--target_project_sa_scopes',
-                        help='Target service account scopes in the target project')
+    parser.add_argument('--target_project_sa_scopes', help='Target service '
+                        'account scopes in the target project')
     parser.add_argument('--target_region',
                         help='Target region')
     parser.add_argument('--target_subnetwork',
@@ -569,9 +573,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     main(args.step, args.machine_image_region,
-        args.source_project, args.source_region, args.source_subnetwork,
-        args.source_zone, args.source_zone_2, args.source_zone_3,
-        args.target_project, args.target_project_sa,
-        args.target_project_sa_scopes, args.target_region,
-        args.target_subnetwork,
-        args.source_csv, args.filter_csv, args.input_csv, args.log_level)
+         args.source_project, args.source_region, args.source_subnetwork,
+         args.source_zone, args.source_zone_2, args.source_zone_3,
+         args.target_project, args.target_project_sa,
+         args.target_project_sa_scopes, args.target_region,
+         args.target_subnetwork,
+         args.source_csv, args.filter_csv, args.input_csv, args.log_level)

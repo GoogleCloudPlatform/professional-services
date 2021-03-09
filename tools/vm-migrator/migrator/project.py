@@ -21,12 +21,12 @@ import googleapiclient.discovery
 
 
 def get_cloudresourcemanager():
-    cloudresourcemanager = googleapiclient.discovery.build('cloudresourcemanager',
-                                                           'v1',
-                                                           cache_discovery=False)
+    crm = googleapiclient.discovery.build('cloudresourcemanager', 'v1',
+                                          cache_discovery=False)
     logging.getLogger('googleapiclient.discovery_cache').setLevel(
         logging.ERROR)
-    return cloudresourcemanager
+    return crm
+
 
 def get_number(project_id):
     project = get_cloudresourcemanager().projects().get(projectId=project_id) \
