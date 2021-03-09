@@ -23,7 +23,8 @@ import logging
 from . import node_group_mapping
 from . import machine_type_mapping
 from . import machine_image
-from .exceptions import InvalidFormatException, GCPOperationException, NotFoundException
+from .exceptions import InvalidFormatException, GCPOperationException, \
+                        NotFoundException
 from ratemate import RateLimit
 
 RATE_LIMIT = RateLimit(max_count=2000, per=100)
