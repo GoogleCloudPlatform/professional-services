@@ -1,30 +1,29 @@
 """
- Copyright 2020 Google LLC. This software is provided as-is, without warranty
+ Copyright 2021 Google LLC. This software is provided as-is, without warranty
  or representation for any use or purpose. Your use of it is subject to your
  agreement with Google.
 """
-import logging
-import traceback
 import base64
 import json
-import re
+import logging
 import os
+import re
 import sys
 import time
+import traceback
+from googleapiclient import discovery
 from datetime import datetime, timezone
 from dateutil import parser
-from googleapiclient import discovery
+
+default_log_config = '{"aggregationInterval" : "INTERVAL_5_SEC", ' \
+    '"flowSampling" : "0.75", "metadata" : "INCLUDE_ALL_METADATA"}'
 
 
-def enable_net_logs(event, context):
+def main(event, context):
     """
-  Enable flow logs in a subnetwork using the log configuration provided in the
-  LOG_CONFIG environment variable.
+  Main entry point of the Cloud Function. Will extract the subnet information
+  from the PubSub event, and enable VPC flow logs if needed.
   """
-    default_log_config = '{"aggregationInterval" : "INTERVAL_5_SEC", ' \
-      '"flowSampling" : "0.75", "metadata" : "INCLUDE_ALL_METADATA"}'
-    vpc_log_config = os.getenv('LOG_CONFIG', default_log_config)
-
     if not 'data' in event:
         logging.error('no data found. Ignoring event.')
         return
@@ -37,11 +36,25 @@ def enable_net_logs(event, context):
         logging.error('invalid pubsub message: %s', pubsub_message)
         return
 
-    logs_enabled = False
-    project = region = subnetwork = None
+    subnet = parse_payload(json_msg)
 
-    # Initialize the compute API
-    service = discovery.build('compute', 'v1', cache_discovery=False)
+    if context is not None and too_old(context):
+        logging.error('ignoring subnet change. Too old.')
+        return
+
+    if not subnet:
+        return
+
+    logging.info('subnet ID: /projects/%s/regions/%s/subnetworks/%s.',
+                 subnet['project'], subnet['region'], subnet['subnetwork'])
+    enable_flow_logs(subnet['project'], subnet['region'], subnet['subnetwork'])
+
+
+def parse_payload(json_msg):
+    """
+  Extract the subnet information from the json payload.
+  """
+    project = region = subnetwork = None
 
     # Stackdriver change notification
     if 'resource' in json_msg and 'type' in json_msg['resource'] and json_msg[
@@ -52,16 +65,17 @@ def enable_net_logs(event, context):
         logging.info('got subnet change notification from Cloud Logging')
     # Cloud Asset Inventory change notification
     elif 'asset' in json_msg and 'assetType' in json_msg['asset'] and \
-      json_msg['asset']['assetType'] == 'compute.googleapis.com/Subnetwork':
+            json_msg['asset']['assetType'] == \
+    'compute.googleapis.com/Subnetwork':
         logging.info(
             'got subnet change notification from Cloud Asset Inventory')
         if 'resource' in json_msg['asset'] and \
-            'data' in json_msg['asset']['resource']:
+                'data' in json_msg['asset']['resource']:
             if 'enableFlowLogs' in json_msg['asset']['resource']['data']:
                 if json_msg['asset']['resource']['data']['enableFlowLogs']:
                     logging.info('log config already enabled in %s.',
                                  (json_msg['asset']['name']))
-                    return
+                    return None
             # extract the subnet id from the asset name
             for elem in ['project', 'region', 'subnetwork']:
                 m = re.search(r'/%s/([^/]+)' % (elem + 's'),
@@ -74,16 +88,20 @@ def enable_net_logs(event, context):
                     elif elem == 'subnetwork':
                         subnetwork = m.group(1)
     else:
-        logging.error('evet type is not gce_subnetwork. Ignoring event: %s',
+        logging.error('event type is not gce_subnetwork. Ignoring event: %s',
                       (str(json_msg)))
-        return
+        return None
 
-    logging.info('subnet ID: /projects/%s/regions/%s/subnetworks/%s.', \
-        project, region, subnetwork)
+    return {'project': project, 'region': region, 'subnetwork': subnetwork}
 
-    if context is not None and too_old(context):
-        logging.error('ignoring subnet change. Too old.')
-        return
+
+def enable_flow_logs(project, region, subnetwork):
+    """
+  Enable flow logs in a subnetwork using the log configuration provided in the
+  LOG_CONFIG environment variable.
+  """
+    # Initialize the compute API
+    service = discovery.build('compute', 'v1', cache_discovery=False)
 
     # get the current subnet data
     get_request = service.subnetworks().get(project=project,
@@ -100,6 +118,7 @@ def enable_net_logs(event, context):
         raise e
 
     # check if flow logs are enabled
+    logs_enabled = False
     if 'enableFlowLogs' in response and response['enableFlowLogs']:
         logs_enabled = True
     if 'logConfig' in response and 'enable' in response[
@@ -107,11 +126,15 @@ def enable_net_logs(event, context):
         logs_enabled = False
 
     if logs_enabled:
-        logging.info('log config already enabled in subnetwork /projects/%s/' \
-          'regions/%s/subnetworks/%s.', project, region, subnetwork)
+        logging.info(
+            'log config already enabled in subnetwork /projects/%s/'
+            'regions/%s/subnetworks/%s.', project, region, subnetwork)
     else:
-        logging.info('enabling flow logs in subnetwork /projects/%s/regions/%s/' \
-          'subnetworks/%s.', project, region, subnetwork)
+        vpc_log_config = os.getenv('LOG_CONFIG', default_log_config)
+
+        logging.info(
+            'enabling flow logs in subnetwork /projects/%s/regions/'
+            '%s/subnetworks/%s.', project, region, subnetwork)
         log_config = json.loads(vpc_log_config)
         log_config['enable'] = True
         subnetwork_body = {
@@ -119,8 +142,8 @@ def enable_net_logs(event, context):
             'logConfig': log_config
         }
 
-        # Wait for a few seconds before attempting to update the subnet. It may not
-        # be ready yet.
+        # Wait for a few seconds before attempting to update the subnet. It may
+        # notbe ready yet.
         time.sleep(10)
 
         patch_request = service.subnetworks().patch(project=project,
@@ -137,8 +160,10 @@ def enable_net_logs(event, context):
             time.sleep(3)  # currently required because of b/155636171
             raise e
         if 'status' in patch_response and patch_response['status'] == 'DONE':
-            logging.info('flow logs successfully enabled in subnetwork ' \
-              '/projects/%s/regions/%s/subnetworks/%s.', project, region, subnetwork)
+            logging.info(
+                'flow logs successfully enabled in subnetwork '
+                '/projects/%s/regions/%s/subnetworks/%s.', project, region,
+                subnetwork)
 
 
 def too_old(context):
@@ -162,13 +187,17 @@ def too_old(context):
 #   virtualenv --python python3 env
 #   source env/bin/activate
 #   pip3 install -r requirements.txt
-#   python3 main.py ../../sample_logs/insert_subnet_done.json
+#   python3 main.py ../../sample_logs/insert_subnet_call_last.json
 # or
 #   python3 main.py ../../sample_logs/asset_inventory.json
 if __name__ == '__main__':
     logfile = sys.argv[1]
+    logging.getLogger().setLevel(getattr(logging, 'INFO'))
+    FORMAT = '%(asctime)-15s %(levelname)s %(message)s'
+    logging.basicConfig(format=FORMAT)
+
     logging.info('reading sample message from: %s', (logfile))
     with open(logfile, 'r') as file:
         data = file.read()
         data64 = base64.b64encode(data.encode('utf-8'))
-        enable_net_logs({'data': data64}, None)
+        main({'data': data64}, None)

@@ -62,7 +62,7 @@ pip3 install -r terraform/templates/cloud_function/requirements.txt
 Run the cloud funtion using any of the sample logs provided (or create your own):
 
 ```
-python3 terraform/templates/cloud_function/main.py sample_logs/insert_subnet_done.json 
+python3 terraform/templates/cloud_function/main.py sample_logs/insert_subnet_call_last.json
 ```
 
 sample output:

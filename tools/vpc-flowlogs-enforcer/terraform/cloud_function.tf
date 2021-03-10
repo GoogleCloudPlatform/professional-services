@@ -6,7 +6,7 @@
 resource "google_cloudfunctions_function" "net_logs" {
   project     = google_project.demo_project.project_id
   name        = "net_logs"
-  entry_point = "enable_net_logs"
+  entry_point = "main"
   description = "Enables network logs whenever a subnet is created or modified."
   runtime     = "python37"
   region      = "europe-west1"

@@ -7,12 +7,12 @@
       "organizations/116143322321"
     ],
     "assetType": "compute.googleapis.com/Subnetwork",
-    "name": "//compute.googleapis.com/projects/bdsa-network-prod/regions/europe-west1/subnetworks/dummy3",
+    "name": "//compute.googleapis.com/projects/apszaz-shsvc-services-5af0da/regions/asia-east1/subnetworks/dummy",
     "resource": {
       "data": {
         "creationTimestamp": "2020-05-11T01:02:09.269-07:00",
         "description": "",
-        "enableFlowLogs": true,
+        "enableFlowLogs": false,
         "fingerprint": "0/V6UwWr3n4=",
         "gatewayAddress": "10.0.7.1",
         "id": "8070357952081737838",
@@ -23,17 +23,17 @@
           "flowSampling": 0.75,
           "metadata": "INCLUDE_ALL_METADATA"
         },
-        "name": "dummy3",
-        "network": "https://www.googleapis.com/compute/v1/projects/bdsa-network-prod/global/networks/bdsa-prod",
+        "name": "dummy",
+        "network": "https://www.googleapis.com/compute/v1/projects/apszaz-shsvc-services-5af0da/global/networks/dummy",
         "privateIpGoogleAccess": true,
         "privateIpv6GoogleAccess": "DISABLE_GOOGLE_ACCESS",
         "purpose": "PRIVATE",
-        "region": "https://www.googleapis.com/compute/v1/projects/bdsa-network-prod/regions/europe-west1",
-        "selfLink": "https://www.googleapis.com/compute/v1/projects/bdsa-network-prod/regions/europe-west1/subnetworks/dummy3"
+        "region": "https://www.googleapis.com/compute/v1/projects/apszaz-shsvc-services-5af0da/regions/asia-east1",
+        "selfLink": "https://www.googleapis.com/compute/v1/projects/apszaz-shsvc-services-5af0da/regions/asia-east1/subnetworks/dummy"
       },
       "discoveryDocumentUri": "https://www.googleapis.com/discovery/v1/apis/compute/v1/rest",
       "discoveryName": "Subnetwork",
-      "location": "europe-west1",
+      "location": "asia-east1",
       "parent": "//cloudresourcemanager.googleapis.com/projects/717196263256",
       "version": "v1"
     },
