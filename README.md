@@ -109,6 +109,7 @@ creates relationships between assets and outputs a format compatible with [graph
 * [Snowflake_to_BQ](tools/snowflake2bq/) - A shell script to transfer tables (schema & data) from Snowflake to BigQuery.
 * [STS Job Manager](tools/sts-job-manager/) - A petabyte-scale bucket migration tool utilizing [Storage Transfer Service](https://cloud.google.com/storage-transfer-service)
 * [VPC Flow Logs Analysis](tools/vpc-flowlogs-analysis) - A configurable Sink + BigQuery report that shows traffic grouped by target IP address ranges.
+* [VPC Flow Logs Enforcer](tools/vpc-flowlogs-enforcer) - A Cloud Function that will automatically enable VPC Flow Logs when a subnet is created or modified in any project under a particular folder or folders.
 * [VM Migrator](tools/vm-migrator) - This utility automates migrating Virtual Machine instances within GCP. You can migrate VM's from one zone to another zone/region within the same project or different projects while retaining all the original VM properties like disks, network interfaces, ip, metadata, network tags and much more. 
 * [Webhook Ingestion Data Pipeline](tools/webhook-ingestion-pipeline) - A deployable app to accept and ingest unauthenticated webhook data to BigQuery.
 * [gmon](tools/gmon/) - A command-line interface (CLI) for Cloud Monitoring written in Python.
