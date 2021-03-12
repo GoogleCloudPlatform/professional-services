@@ -18,18 +18,17 @@ import unittest
 
 from mock import patch
 from gmon.cli import parse_args, cli
-from test_stubs import (
-    mock_cm_list_metric_descriptors,
-    mock_cm_inspect_metric_descriptors,
-    mock_cm_list_services,
-    mock_cm_list_slos)
+from test_stubs import (mock_cm_list_metric_descriptors,
+                        mock_cm_inspect_metric_descriptors,
+                        mock_cm_list_services, mock_cm_list_slos)
 
 cwd = os.path.dirname(os.path.abspath(__file__))
 root = os.path.dirname(os.path.dirname(cwd))
 
 PROJECT_ID = 'fake_project_id'
 SERVICE_ID = 'kkKv9xDqTs6SgN6l6wqa-w'
-SSM_MOCK = "gmon.clients.service_monitoring.ServiceMonitoringServiceClient" # noqa: E501
+SSM_MOCK = "gmon.clients.service_monitoring.ServiceMonitoringServiceClient"  # noqa: E501
+
 
 # pylint: disable=E501
 class TestCLI(unittest.TestCase):
@@ -38,9 +37,8 @@ class TestCLI(unittest.TestCase):
         pass
 
     def test_parse_args_metrics_list(self):
-        parsers, args = parse_args([
-            'metrics', 'list', 'custom.', '-p', PROJECT_ID
-        ])
+        parsers, args = parse_args(
+            ['metrics', 'list', 'custom.', '-p', PROJECT_ID])
         self.assertEqual(args.parser, 'metrics')
         self.assertEqual(args.operation, 'list')
         self.assertEqual(args.project, PROJECT_ID)
@@ -53,31 +51,25 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(args.parser, 'metrics')
         self.assertEqual(args.operation, 'inspect')
         self.assertEqual(args.project, PROJECT_ID)
-        self.assertEqual(
-            getattr(args, 'metric-type'),
-            'custom.googleapis.com/fake')
+        self.assertEqual(getattr(args, 'metric-type'),
+                         'custom.googleapis.com/fake')
 
     def test_parse_args_services_list(self):
-        parsers, args = parse_args([
-            'services', 'list', '-p', PROJECT_ID
-        ])
+        parsers, args = parse_args(['services', 'list', '-p', PROJECT_ID])
         self.assertEqual(args.parser, 'services')
         self.assertEqual(args.operation, 'list')
         self.assertEqual(args.project, PROJECT_ID)
 
     def test_parse_args_slos_list(self):
-        parsers, args = parse_args([
-            'slos', 'list', '-p', PROJECT_ID, SERVICE_ID
-        ])
+        parsers, args = parse_args(
+            ['slos', 'list', '-p', PROJECT_ID, SERVICE_ID])
         self.assertEqual(args.parser, 'slos')
         self.assertEqual(args.operation, 'list')
         self.assertEqual(args.project, PROJECT_ID)
         self.assertEqual(args.service_id, SERVICE_ID)
 
     def test_parse_args_accounts_get(self):
-        parsers, args = parse_args([
-            'accounts', 'get', '-p', PROJECT_ID
-        ])
+        parsers, args = parse_args(['accounts', 'get', '-p', PROJECT_ID])
         self.assertEqual(args.parser, 'accounts')
         self.assertEqual(args.operation, 'get')
         self.assertEqual(args.project, PROJECT_ID)
@@ -91,9 +83,8 @@ class TestCLI(unittest.TestCase):
     @patch('google.api_core.grpc_helpers.create_channel',
            return_value=mock_cm_list_metric_descriptors())
     def test_cli_metrics_list(self, mock):
-        parsers, args = parse_args([
-            'metrics', 'list', 'custom.googleapis.com/fake', '-p', PROJECT_ID
-        ])
+        parsers, args = parse_args(
+            ['metrics', 'list', 'custom.googleapis.com/fake', '-p', PROJECT_ID])
         response = cli(parsers, args)
         logging.info(response)
 
@@ -104,8 +95,10 @@ class TestCLI(unittest.TestCase):
             'metrics', 'inspect', 'custom.googleapis.com/invoice/paid/amount',
             '-p', PROJECT_ID
         ])
-        mlabel_keys = ['type', 'name', 'metricKind', 'valueType', 'description',
-                       'displayName', 'event_type']
+        mlabel_keys = [
+            'type', 'name', 'metricKind', 'valueType', 'description',
+            'displayName', 'event_type'
+        ]
         rlabel_keys = ['instance_id', 'project_id', 'zone']
 
         responses = cli(parsers, args)
@@ -128,9 +121,7 @@ class TestCLI(unittest.TestCase):
     @patch('google.api_core.grpc_helpers.create_channel',
            return_value=mock_cm_list_services())
     def test_cli_services_list(self, *mocks):
-        parsers, args = parse_args([
-            'services', 'list', '-p', PROJECT_ID
-        ])
+        parsers, args = parse_args(['services', 'list', '-p', PROJECT_ID])
         responses = cli(parsers, args)
         response = responses[0]
         display_name = response['displayName']
@@ -142,9 +133,8 @@ class TestCLI(unittest.TestCase):
     @patch('google.api_core.grpc_helpers.create_channel',
            return_value=mock_cm_list_slos())
     def test_cli_slos_list(self, *mocks):
-        parsers, args = parse_args([
-            'slos', 'list', '-p', PROJECT_ID, SERVICE_ID
-        ])
+        parsers, args = parse_args(
+            ['slos', 'list', '-p', PROJECT_ID, SERVICE_ID])
         responses = cli(parsers, args)
         response = responses[0]
         display_name = response['displayName']
