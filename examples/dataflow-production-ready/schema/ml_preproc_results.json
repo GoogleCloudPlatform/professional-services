@@ -1,0 +1,32 @@
+[
+  {
+    "mode": "NULLABLE",
+    "name": "source_address",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "source_city",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "target_address",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "target_city",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "address_similarity",
+    "type": "FLOAT64"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "city_similarity",
+    "type": "FLOAT64"
+  }
+]
