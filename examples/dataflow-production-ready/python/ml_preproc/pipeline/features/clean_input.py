@@ -2,9 +2,6 @@
 #  This software is provided as-is, without warranty or representation for any use or purpose.
 #  Your use of it is subject to your agreement with Google.
 
-
-from typing import Iterable
-
 def clean_text(text: str, abbrevs: dict = None) -> str:
   text = _preprocess_text(text)
 

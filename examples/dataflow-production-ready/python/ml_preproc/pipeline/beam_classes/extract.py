@@ -3,7 +3,7 @@
 #  Your use of it is subject to your agreement with Google.
 
 import apache_beam as beam
-from apache_beam import PCollection, pvalue
+from apache_beam import PCollection
 
 from ..model.data_classes import HEADER, Record
 from .parse_csv import ParseCSVDoFn

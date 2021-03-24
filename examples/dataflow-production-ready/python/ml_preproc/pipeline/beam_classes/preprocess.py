@@ -3,12 +3,10 @@
 #  Your use of it is subject to your agreement with Google.
 
 import apache_beam as beam
-from apache_beam import PCollection, pvalue
-from typing import Iterable, Dict
+from apache_beam import PCollection
+from typing import Dict
 from .similarities import CalculateSimilaritiesDoFn
-from ..model.data_classes import HEADER, Record
 from .clean_records import CleanAndTransfToDictDoFn
-from .parse_csv import ParseCSVDoFn
 
 
 class PreprocessingTransform(beam.PTransform):
