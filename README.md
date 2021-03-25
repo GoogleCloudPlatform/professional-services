@@ -41,6 +41,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [Dataflow Streaming Benchmark](examples/dataflow-streaming-benchmark) - Utility to publish randomized fake JSON messages to a Cloud Pub/Sub topic at a configured QPS.
 * [Dataflow DLP Hashpipeline](examples/dataflow-dlp-hash-pipeline) - Match DLP Social Security Number findings against a hashed dictionay in Firestore. Use Secret Manager for the hash key.
 * [Dataflow Template Pipelines](https://github.com/GoogleCloudPlatform/DataflowTemplates) - Pre-implemented Dataflow template pipelines for solving common data tasks on Google Cloud Platform.
+* [Dataflow Production Ready](examples/dataflow-production-ready) - Reference implementation for best practices around Beam, pipeline structuring, testing and continuous deployment.
 * [Dataproc GCS Connector](examples/dataproc-gcs-connector) - Install and test unreleased features on the GCS Connector for Dataproc.
 * [Dataproc Persistent History Server for Ephemeral Clusters](examples/dataproc-persistent-history-server) - Example of writing logs from an ephemeral cluster to GCS and using a separate single node cluster to look at Spark and YARN History UIs.
 * [Dialogflow Webhook Example](examples/dialogflow-webhook-example) - Webhook example for dialogflow in Python.
