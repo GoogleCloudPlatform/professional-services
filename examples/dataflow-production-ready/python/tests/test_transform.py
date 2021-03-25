@@ -1,18 +1,16 @@
+#   Copyright 2021 Google LLC
 #
-# Copyright (C) 2020 Google Inc.
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
 #
-# Licensed under the Apache License, Version 2.0 (the "License"); you may not
-# use this file except in compliance with the License. You may obtain a copy of
-# the License at
+#       http://www.apache.org/licenses/LICENSE-2.0
 #
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-# License for the specific language governing permissions and limitations under
-# the License.
-#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
 
 """Test for the ML data preprocessing pipeline."""
 
@@ -34,12 +32,12 @@ class PreprocessingTest(unittest.TestCase):
     INPUT_DATA = [Record(source_address='street1', source_city='city1', target_address='road1', target_city='city1')]
 
     EXPECTED_OUTPUT = [{
-         'source_address': 'street1',
-         'source_city': 'city1',
-         'target_address': 'road1',
-         'target_city': 'city1',
-         'address_similarity': 0,
-         'city_similarity': 1}]
+      'source_address': 'street1',
+      'source_city': 'city1',
+      'target_address': 'road1',
+      'target_city': 'city1',
+      'address_similarity': 0,
+      'city_similarity': 1}]
 
     with TestPipeline() as p:
 
@@ -48,8 +46,8 @@ class PreprocessingTest(unittest.TestCase):
 
       # 2. Apply PTransform under test
       output = (p
-                | "Create test input data" >> beam.Create(INPUT_DATA)
-                | "Apply transformations" >> PreprocessingTransform(abbrev))
+        | "Create test input data" >> beam.Create(INPUT_DATA)
+        | "Apply transformations" >> PreprocessingTransform(abbrev))
 
       # 3. Assert that the output PCollection matches the expected output.
       assert_that(output, equal_to(EXPECTED_OUTPUT), label='CheckOutput')
