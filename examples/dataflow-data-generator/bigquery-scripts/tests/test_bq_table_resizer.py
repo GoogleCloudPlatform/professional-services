@@ -35,9 +35,12 @@ class TestBigQueryTableResizer(unittest.TestCase):
         rofessional-services/data-analytics/dataflow-python-examples/ and
         run from there.
     """
+    @classmethod
+    def setUpClass(cls):
+        cls._bq_cli = bigquery.Client()
 
     def setUp(self):
-        self.client = bigquery.Client()
+        self.client = TestBigQueryTableResizer._bq_cli
         # Create a unique temporary dataset.
         self.test_dataset_id = 'bq_util_test_dataset' \
                                + str(uuid.uuid4()).replace('-', '_')
@@ -46,11 +49,11 @@ class TestBigQueryTableResizer(unittest.TestCase):
 
         # Copy the public shakespeare sample into our test dataset.
         public_client = bigquery.Client(project='bigquery-public-data')
-        public_table_ref = public_client.dataset('samples').table('shakespeare')
+        public_table_ref = public_client.dataset('samples').table(
+            'shakespeare')
 
-        self.source_table_ref = self.client.dataset(self.test_dataset_id).table(
-            'source_table'
-        )
+        self.source_table_ref = self.client.dataset(
+            self.test_dataset_id).table('source_table')
 
         self.destination_table_id = 'destination_table'
         self.destination_table_ref = \
@@ -67,8 +70,7 @@ class TestBigQueryTableResizer(unittest.TestCase):
             source_table='source_table',
             destination_table=self.destination_table_id,
             target_rows=500000,
-            location='US'
-        )
+            location='US')
 
         self.resizer_by_gb = BigQueryTableResizer(
             project=self.client.project,
@@ -77,20 +79,19 @@ class TestBigQueryTableResizer(unittest.TestCase):
             source_table='source_table',
             destination_table=self.destination_table_id,
             target_gb=.05,
-            location='US'
-        )
+            location='US')
         logging.basicConfig(level=logging.INFO)
 
     def test_bq_table_resizer_by_row_number(self):
         self.resizer_by_row.resize()
         destination_table = self.client.get_table(self.destination_table_ref)
-        self.assertEquals(500000, destination_table.num_rows)
+        self.assertEqual(500000, destination_table.num_rows)
 
     def test_bq_table_resizer_by_target_gb(self):
         self.resizer_by_gb.resize()
         destination_table = self.client.get_table(self.destination_table_ref)
         num_rows = self.resizer_by_gb.target_rows
-        self.assertEquals(num_rows, destination_table.num_rows)
+        self.assertEqual(num_rows, destination_table.num_rows)
 
     def tearDown(self):
         dataset = self.client.dataset(self.test_dataset_id)

@@ -1,0 +1,26 @@
+====
+    Copyright (C) 2020 Google Inc.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+====
+
+expected_valid_socials = 2
+invalid_no_num = 0
+invalid_with_fake_ssn = 3
+valid_ssn_line = 0
+valid_ssn_with_fake = 2
+My account number is: 592113981 and my ssn is 413767393
+My account number is: 562236386
+My account number is: 109394127 and my ssn is 236239556
+My account number is: 740344547
+My account number is: 997924697

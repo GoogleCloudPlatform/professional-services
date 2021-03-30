@@ -174,7 +174,7 @@ class BQPipeline(object):
             if len(parts) == 1 and \
                 self.default_project is not None:
                 dataset_id = self.default_project + '.' + dataset
-        return dataset_id 
+        return dataset_id
 
     def create_dataset(self, dataset, exists_ok=False):
         """
@@ -233,7 +233,7 @@ class BQPipeline(object):
                                        write_disposition=write_disp)
 
     def run_query(self, path, batch=True, wait=True, create=True,
-                  overwrite=True, timeout=20*60, **kwargs):
+                  overwrite=True, append=False, timeout=20*60, **kwargs):
         """
         Executes a SQL query from a Jinja2 template file
         :param path: path to sql file or tuple of (path to sql file, destination tablespec)
@@ -241,6 +241,7 @@ class BQPipeline(object):
         :param wait: wait for job to complete before returning
         :param create: if False, destination table must already exist
         :param overwrite: if False, destination table must not exist
+        :param append: if True, destination table must exist
         :param timeout: time in seconds to wait for job to complete
         :param kwargs: replacements for Jinja2 template
         :return: bigquery.job.QueryJob
@@ -256,7 +257,7 @@ class BQPipeline(object):
         query = template.render(**kwargs)
         client = self.get_client()
         job = client.query(query,
-                           job_config=self.create_job_config(batch, dest, create, overwrite),
+                           job_config=self.create_job_config(batch, dest, create, overwrite, append),
                            job_id_prefix=self.job_id_prefix)
         LOGGER.info('Executing query %s %s', sql_path, job.job_id)
         if wait:
@@ -266,7 +267,7 @@ class BQPipeline(object):
         return job
 
     def run_queries(self, query_paths, batch=True, wait=True, create=True,
-                    overwrite=True, timeout=20*60, **kwargs):
+                    overwrite=True, append=False, timeout=20*60, **kwargs):
         """
         :param query_paths: List[Union[str,Tuple[str,str]]] path to sql file or
                tuple of (path, destination tablespec)
@@ -279,7 +280,7 @@ class BQPipeline(object):
         """
         for path in query_paths:
             self.run_query(path, batch=batch, wait=wait, create=create,
-                           overwrite=overwrite, timeout=timeout, **kwargs)
+                           overwrite=overwrite, append=append, timeout=timeout, **kwargs)
 
     def copy_table(self, src, dest, wait=True, overwrite=True, timeout=20 * 60):
         """

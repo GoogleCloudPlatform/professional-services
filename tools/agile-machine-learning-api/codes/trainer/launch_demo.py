@@ -135,7 +135,7 @@ def prep_input(
             {'a': 'float', 'b': 'object', 'c': 'int' }
         name : str, name of the data being based [train, eval]
 
-    Returns: 
+    Returns:
         df : dask.DataFrame object, dataframe containing cleaned data of the passed csv file
         cols : list, list containing column names of the data
         defaults : list, list containing defaults of the columns

@@ -1,7 +1,7 @@
 # kafka2avro
 
 This example shows how to use Apache Beam and SCIO to read objects from a Kafka
-topic, and serialize them encoded as Avro files in Google Cloud Storage. 
+topic, and serialize them encoded as Avro files in Google Cloud Storage.
 
 This example contains two Dataflow pipelines:
 * [Object2Kafka](src/main/scala/com/google/cloud/pso/kafka2avro/Object2Kafka.scala): generates a set of objects and write them to Kafka. This is a
@@ -93,8 +93,8 @@ CLASSPATH="target/pack/lib/*" java com.google.cloud.pso.kafka2avro.Object2Kafka 
 
 This is a streaming pipeline. It will keep running unless you cancel it. The
 default windowing policy is to group messages every 2 minutes, in a fixed
-window. To change the policy, please see 
-[the function `windowIn` in `Kafka2Avro.scala`](src/main/scala/com/google/cloud/pso/kafka2avro/Kafka2Avro.scala#L62-L72).
+window. To change the policy, please see
+[the function `windowIn` in `Kafka2Avro.scala`](src/main/scala/com/google/cloud/pso/kafka2avro/Kafka2Avro.scala#L60-L70).
 
 Once you have generated the JAR file using the `pack` command inside SBT, you
 can now launch the job in Dataflow to populate Kafka with some demo
@@ -129,8 +129,8 @@ mv target/pack/lib/netty-codec-http2-\[4.1.25.Final,4.1.25.Final\].jar target/pa
 
 ## Continuous Integration
 
-This example includes [a configuration file for Cloud Build](cloudbuild.yaml), 
-so you can use it to run the unit tests with every commit done to your repository. 
+This example includes [a configuration file for Cloud Build](cloudbuild.yaml),
+so you can use it to run the unit tests with every commit done to your repository.
 To use this configuration file:
 
 * Add your sources to a Git repository (either in Bitbucket, Github or Google

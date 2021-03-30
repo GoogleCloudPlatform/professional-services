@@ -1,0 +1,54 @@
+{
+    "fields": [
+        {
+            "type": "STRING",
+            "name": "string1",
+            "mode": "REQUIRED"
+        },
+        {
+            "type": "STRING",
+            "name": "string2",
+            "mode": "REQUIRED"
+        },
+        {
+            "type": "STRING",
+            "name": "string3",
+            "mode": "REQUIRED"
+        },
+        {
+            "type": "STRING",
+            "name": "string4",
+            "mode": "REQUIRED"
+        },
+        {
+            "type": "STRING",
+            "name": "string5",
+            "mode": "REQUIRED"
+        },
+        {
+            "type": "STRING",
+            "name": "string6",
+            "mode": "REQUIRED"
+        },
+        {
+            "type": "STRING",
+            "name": "string7",
+            "mode": "REQUIRED"
+        },
+        {
+            "type": "STRING",
+            "name": "string8",
+            "mode": "REQUIRED"
+        },
+        {
+            "type": "STRING",
+            "name": "string9",
+            "mode": "REQUIRED"
+        },
+        {
+            "type": "STRING",
+            "name": "string10",
+            "mode": "REQUIRED"
+        }
+    ]
+}

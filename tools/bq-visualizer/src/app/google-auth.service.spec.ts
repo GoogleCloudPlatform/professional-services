@@ -15,14 +15,14 @@
  */
 import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
 import {inject, TestBed} from '@angular/core/testing';
-import {OAuthService, UrlHelperService} from 'angular-oauth2-oidc';
+import {OAuthModule, OAuthService, UrlHelperService} from 'angular-oauth2-oidc';
 
 import {GoogleAuthService, MockOAuthService} from './google-auth.service';
 
 describe('GoogleAuthService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
+      imports: [HttpClientTestingModule, OAuthModule.forRoot()],
       providers: [
         GoogleAuthService,
         {provide: OAuthService, useClass: MockOAuthService},

@@ -1,15 +1,15 @@
 # Energy Price Forecasting Example
 
-This repository contains example code to forecast energy prices. Specifically, given a historical time series of hourly spot prices and weather, it predicts future hourly spot prices multiple days into the future. 
+This repository contains example code to forecast energy prices. Specifically, given a historical time series of hourly spot prices and weather, it predicts future hourly spot prices multiple days into the future.
 
-The code takes in raw data from BigQuery, transforms and prepares the data, uses Google Cloud Machine Learning Engine to train a TensorFlow DNN regression model on historical spot prices, and then makes predictions of future spot prices using the model. 
+The code takes in raw data from BigQuery, transforms and prepares the data, uses Google Cloud Machine Learning Engine to train a TensorFlow DNN regression model on historical spot prices, and then makes predictions of future spot prices using the model.
 
 # Data preparation instructions
 
-1. Raw data for this problem is publicly available in BigQuery in the following tables:  
+1. Raw data for this problem is publicly available in BigQuery in the following tables:
 
-* `energy-forecasting.Energy.MarketPricePT` - Historical hourly energy prices.  
-* `energy-forecasting.Energy.historical_weather` - Historical hourly weather forecasts.
+* `dpe-cloud-mle.Energy.MarketPricePT` - Historical hourly energy prices.
+* `dpe-cloud-mle.Energy.historical_weather` - Historical hourly weather forecasts.
 
    Disclaimer: The data for both tables was downloaded from http://complatt.smartwatt.net/. This website hosts a closed competition meant to solve the energy price forecasting problem. The data was not collected or vetted by Google LLC and hence, we can't guarantee the veracity or qualitty of it.
 
@@ -39,7 +39,7 @@ PREDICTIONS_FOLDER = ${JOB_FOLDER}/test_predictions
 
 ## Train model
 ```
-gcloud ml-engine jobs submit training $JOB_NAME \
+gcloud ai-platform jobs submit training $JOB_NAME \
         --job-dir=gs://${BUCKET_NAME}/${JOB_FOLDER} \
         --runtime-version=1.10 \
         --region=us-central1 \
@@ -50,7 +50,7 @@ gcloud ml-engine jobs submit training $JOB_NAME \
 
 ## Hyper-parameter tuning
 ```
-gcloud ml-engine jobs submit training ${JOB_NAME} \
+gcloud ai-platform jobs submit training ${JOB_NAME} \
         --job-dir=gs://${BUCKET_NAME}/${JOB_FOLDER} \
         --runtime-version=1.10 \
         --region=us-central1 \
@@ -61,12 +61,12 @@ gcloud ml-engine jobs submit training ${JOB_NAME} \
 
 ## Create model
 ```
-gcloud ml-engine models create ${MODEL_NAME} --regions=us-central1
+gcloud ai-platform models create ${MODEL_NAME} --regions=us-central1
 ```
 
 ## Create model version
 ```
-gcloud ml-engine versions create ${MODEL_VERSION} \
+gcloud ai-platform versions create ${MODEL_VERSION} \
         --model=${MODEL_NAME} \
         --origin=${MODEL_PATH} \
         --runtime-version=1.10
@@ -74,7 +74,7 @@ gcloud ml-engine versions create ${MODEL_VERSION} \
 
 ## Predict on test data
 ```
-gcloud ml-engine jobs submit prediction ${JOB_NAME} \
+gcloud ai-platform jobs submit prediction ${JOB_NAME} \
     --model=${MODEL_NAME} \
     --input-paths=gs://${BUCKET_NAME}/${TEST_DATA} \
     --output-path=gs://${BUCKET_NAME}/${PREDICTIONS_FOLDER} \

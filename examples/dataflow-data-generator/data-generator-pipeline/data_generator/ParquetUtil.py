@@ -16,7 +16,7 @@ import json
 import pyarrow as pa
 import logging
 import datetime
-from TimeUtil import datetime_to_epoch_timestamp, date_to_epoch_date, \
+from .TimeUtil import datetime_to_epoch_timestamp, date_to_epoch_date, \
 time_to_epoch_time
 
 
@@ -51,25 +51,24 @@ def get_pyarrow_translated_schema(string_schema):
                 if field['type'] == 'RECORD':
                     nested_fields = field['fields']
                     # Recursively call to convert the next nested layer.
-                    return pa.list_(pa.struct(
-                        [(fld['name'], _bq_to_pa_type(fld))
-                            for fld in nested_fields]))
+                    return pa.list_(
+                        pa.struct([(fld['name'], _bq_to_pa_type(fld))
+                                   for fld in nested_fields]))
                 else:
                     return pa.list_(
                         _bq_to_pa_type(type_conversions[field['type']]))
             elif field['type'] == 'RECORD':
                 nested_fields = field['fields']
                 # Recursively call to convert the next nested layer.
-                return pa.struct(
-                    [(fld['name'], _bq_to_pa_type(fld))
-                        for fld in nested_fields])
+                return pa.struct([(fld['name'], _bq_to_pa_type(fld))
+                                  for fld in nested_fields])
             else:
                 return type_conversions.get(field.get('type'))
         except KeyError as err:
             raise KeyError(
-                """Type {} is not a valid BigQuery type and not supported by this 
+                """Type {} is not a valid BigQuery type and not supported by this
                 utility.""".format(field['type']))
-        
+
     pa_schema_list = []
     for field in string_schema['fields']:
         field_type = field['type']
@@ -85,11 +84,10 @@ def get_pyarrow_translated_schema(string_schema):
             raise ValueError(error_message)
         else:
             nullable = False if field_mode == 'REQUIRED' else True
-            pa_field = pa.field(
-                name=field_name,
-                type=converted_type
-                #nullable=nullable
-            )
+            pa_field = pa.field(name=field_name,
+                                type=converted_type
+                                #nullable=nullable
+                                )
             pa_schema_list.append(pa_field)
 
     return pa.schema(pa_schema_list)
@@ -102,35 +100,28 @@ def fix_record_for_parquet(record, schema):
     :param record: record of data from beam pipeline
     :param schema: string schema dict.
     :return: record with converted TIMESTAMP, DATETIME, DATE, and/or TIME
-    fields. 
+    fields.
     """
     def _fix_primitive(record, field):
         """
-        Converts the a value in the field in the record for parquet 
+        Converts the a value in the field in the record for parquet
         compatibility. This is mainly to consistently repeated types.
         :param record: record from data from beam pipeline.
         :param field: (bigquery.schema.SchemaField) to convert.
         """
         field_name = field['name']
         if field['type'] in ('TIMESTAMP', 'DATETIME'):
-            record[field_name] = int(datetime_to_epoch_timestamp(
-                record[field_name]
-            ))
+            record[field_name] = int(
+                datetime_to_epoch_timestamp(record[field_name]))
         elif field['type'] == 'DATE':
-            record[field_name] = int(date_to_epoch_date(
-                record[field_name]
-            ))
+            record[field_name] = int(date_to_epoch_date(record[field_name]))
         elif field['type'] == 'TIME':
             try:
                 record[field_name] = datetime.datetime.strptime(
-                    record[field_name],
-                    '%H:%M:%S'
-                ).time()
+                    record[field_name], '%H:%M:%S').time()
             except ValueError:
                 record[field_name] = datetime.datetime.strptime(
-                    record[field_name],
-                    '%H:%M:%S.%f'
-                ).time()
+                    record[field_name], '%H:%M:%S.%f').time()
         return record[field_name]
 
     schema = schema['fields'] if isinstance(schema, dict) else schema
@@ -141,16 +132,14 @@ def fix_record_for_parquet(record, schema):
             for value in record[field_name]:
                 if field['type'] == 'RECORD':
                     record[field_name] = fix_record_for_parquet(
-                            value, field['fields'])
+                        value, field['fields'])
                 else:
-                    fixed_array.append(
-                        _fix_primitive(value, field))
+                    fixed_array.append(_fix_primitive(value, field))
                     record[field_name] = fixed_array
         else:
             if field['type'] == 'RECORD':
                 record[field_name] = fix_record_for_parquet(
-                        record[field_name], field['fields']
-                    )
+                    record[field_name], field['fields'])
             else:
-                record[field_name] = _fix_primitive(record, field) 
+                record[field_name] = _fix_primitive(record, field)
     return [record]

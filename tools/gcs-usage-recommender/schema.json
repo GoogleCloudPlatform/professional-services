@@ -1,0 +1,9 @@
+[{"name":"last_read_timestamp", "type":"TIMESTAMP"},
+{"name":"days_since_last_read", "type":"INTEGER"},
+{"name":"read_count_30_days", "type":"INTEGER"},
+{"name":"read_count_90_days", "type":"INTEGER"},
+{"name":"project_id", "type":"STRING"},
+{"name":"bucket_name", "type":"STRING"},
+{"name":"export_day", "type":"DATE"},
+{"name":"recommended_OLM", "type":"STRING"}
+]

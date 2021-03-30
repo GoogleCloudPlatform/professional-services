@@ -1,0 +1,16 @@
+{
+  "payload": {
+    "row": {
+      "values": [
+        "Debt collection",
+        "Other",
+        "Disclosure verification of debt",
+        "Not given enough info to verify debt",
+        "I have not received any type of notice or communication from this debt collector in order to vaildate this debt that I supposedly have",
+        "TN",
+        null,
+        "Web"
+      ]
+    }
+  }
+}

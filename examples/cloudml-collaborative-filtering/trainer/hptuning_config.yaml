@@ -4,8 +4,8 @@ trainingInput:
     maxTrials: 10
     maxParallelTrials: 2
     enableTrialEarlyStopping: True
-    goal: MAXIMIZE 
-    hyperparameterMetricTag: recall/recall_1000
+    goal: MAXIMIZE
+    hyperparameterMetricTag: recall/recall_10
     params:
     - parameterName: num_layers
       type: INTEGER

@@ -1,0 +1,8 @@
+apache-beam[gcp]>=2.13.0
+configparser>=3.7.4
+google-api-core>=1.11.1
+google-api-python-client>=1.7.9
+google-cloud-core>=1.0.1
+tensorflow>=1.13.1
+tensorflow-transform>=0.13.0
+nose

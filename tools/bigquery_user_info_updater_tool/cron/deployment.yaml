@@ -1,0 +1,29 @@
+# cronjob.yaml
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: bigquery-user-updater-cron
+spec:
+    #schedule: "*/10 * * * *"
+    concurrencyPolicy: Forbid
+    jobTemplate:
+        spec:
+            template:
+                spec:
+                    containers:
+                    - #name: <name you would like to give your container>
+                      #image: gcr.io/<your project ID>/<name you would like to give your image>
+                      volumeMounts:
+                      - name: google-cloud-key
+                        mountPath: /var/secrets/google
+                      env:
+                      - name: GOOGLE_APPLICATION_CREDENTIALS
+                        #value: /var/secrets/google/<name of your service account key>
+                      command: ['/opt/cron/bigquery_user_updater.sh']
+                    restartPolicy: OnFailure
+                    volumes:
+                    - name: google-cloud-key
+                      secret:
+                        #secretName: <name you would like to give your key>
+
+

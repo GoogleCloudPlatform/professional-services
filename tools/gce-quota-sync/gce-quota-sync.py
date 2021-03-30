@@ -132,15 +132,15 @@ def _quota_to_series(project, region, quota):
     region: set in converted time series labels
     quota: quota object received from the GCE API
   """
-  labels = dict((k, str(v)) for k, v in quota.items() if k != 'usage')
+  labels = dict((k, str(v)) for k, v in quota.items())
+
   labels['project'] = project
   labels['region'] = region
   try:
-    value = quota['usage'] / quota['limit']
+    value = quota['usage'] / float(quota['limit'])
   except ZeroDivisionError:
     value = 0
-  return _get_series(labels, float(value))
-
+  return _get_series(labels, value)
 
 @click.command()
 @click.option('--project', required=True, help='GCP project id')

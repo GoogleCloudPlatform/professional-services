@@ -28,7 +28,7 @@ import {MatTableModule} from '@angular/material/table';
 import {By} from '@angular/platform-browser';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {RouterTestingModule} from '@angular/router/testing';
-import {OAuthService, UrlHelperService} from 'angular-oauth2-oidc';
+import {OAuthModule, OAuthService, UrlHelperService,} from 'angular-oauth2-oidc';
 import {from, Observable} from 'rxjs';
 
 import {BigQueryService, MockBigQueryService} from '../big-query.service';
@@ -49,6 +49,7 @@ describe('JobComponent', () => {
     TestBed
         .configureTestingModule({
           imports: [
+            OAuthModule.forRoot(),
             HttpClientTestingModule,
             MatGridListModule,
             MatFormFieldModule,

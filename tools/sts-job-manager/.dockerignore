@@ -1,0 +1,10 @@
+__pycache__
+.mypy_cache
+.pytest_cache
+.venv
+.vscode
+*.pyc
+*.pyd
+*.pyo
+Dockerfile
+README.md

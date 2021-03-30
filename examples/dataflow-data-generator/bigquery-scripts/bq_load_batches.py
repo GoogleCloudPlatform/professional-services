@@ -18,7 +18,6 @@ import os
 from math import floor
 import pandas as pd
 from google.cloud import bigquery as bq
-
 """
 This script is meant to orchestrate BigQuery load jobs of many
 json files on Google Cloud Storage. It ensures that each load
@@ -53,7 +52,10 @@ python file_15TB_batcher.py --project=<project> \
 """
 
 
-def create_bq_table(bq_cli, dataset_id, table_id, schema_file,
+def create_bq_table(bq_cli,
+                    dataset_id,
+                    table_id,
+                    schema_file,
                     partition_column=None):
     """
     This function creates a BigQuery Table with the schema, and optionally
@@ -74,8 +76,9 @@ def create_bq_table(bq_cli, dataset_id, table_id, schema_file,
     # Read the schema file.
     with open(schema_file, 'rb') as sf:
         schema_dict = json.load(sf)
-    parsed_schema = [bq.schema.SchemaField.from_api_repr(field)
-                     for field in schema_dict]
+    parsed_schema = [
+        bq.schema.SchemaField.from_api_repr(field) for field in schema_dict
+    ]
 
     table = bq.table.Table(table_ref, schema=parsed_schema)
     # Specify the partioning logic.
@@ -103,10 +106,14 @@ def parse_gsutil_long_output_file(filename):
     """
 
     # 15TB per BQ load job.
-    MAX_BATCH_BYTES = 15 * 10 ** 13
+    MAX_BATCH_BYTES = 15 * 10**12
     # read output of gsutil ls -l
-    df = pd.read_csv(filename, delim_whitespace=True, header=None,
-                     skipfooter=1, usecols=[0, 2], names=['bytes', 'filename'],
+    df = pd.read_csv(filename,
+                     delim_whitespace=True,
+                     header=None,
+                     skipfooter=1,
+                     usecols=[0, 2],
+                     names=['bytes', 'filename'],
                      engine='python')
     # df = df.rename({0:'bytes', 2:'filename'}, axis='columns')
 
@@ -119,7 +126,7 @@ def parse_gsutil_long_output_file(filename):
 
     batches = []
     total_batches = int(df['batch_num'].max() + 1)
-    for i in xrange(total_batches):
+    for i in range(total_batches):
         batches.append(list(df[df['batch_num'] == i]['filename']))
     return batches
 
@@ -142,37 +149,51 @@ def submit_jobs(bq_cli, job_config, dataset_id, table_id, batches):
     dataset = bq_cli.dataset(dataset_id)
     table_ref = dataset.table(table_id)
     for (i, batch) in enumerate(batches):
-        print('running load job {} of {}.'.format(i, len(batches)))
+        print(('running load job {} of {}.'.format(i, len(batches))))
         # API call.
-        bq_cli.load_table_from_uri(
-            source_uris=batch,
-            destination=table_ref,
-            job_config=job_config
-        )
+        bq_cli.load_table_from_uri(source_uris=batch,
+                                   destination=table_ref,
+                                   job_config=job_config)
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser()
-    parser.add_argument('--project', dest='project', required=True,
+    parser.add_argument('--project',
+                        dest='project',
+                        required=True,
                         help='GCP Project ID.')
-    parser.add_argument('--dataset', dest='dataset', required=True,
+    parser.add_argument('--dataset',
+                        dest='dataset',
+                        required=True,
                         help='BigQuery Dataset ID.')
-    parser.add_argument('--table', dest='table', required=True,
+    parser.add_argument('--table',
+                        dest='table',
+                        required=True,
                         help='BigQuery Table ID.')
-    parser.add_argument('--sources_file', dest='sources_file',
-                        required=True, help='A local file containing the' 
+    parser.add_argument('--sources_file',
+                        dest='sources_file',
+                        required=True,
+                        help='A local file containing the'
                         'output of gsutil ls -l.')
-    parser.add_argument('--create_table', dest='create_table',
+    parser.add_argument('--create_table',
+                        dest='create_table',
                         action='store_true')
-    parser.add_argument('--schema_file', dest='schema_file',
-                        required=False, default=None)
-    parser.add_argument('--partition_column', dest='partition_column',
-                        required=False, default=None)
-    parser.add_argument('--max_bad_records', dest='max_bad_records',
-                        required=False, default=1)
-    parser.add_argument('--source_format', dest='source_format',
-
-                        required=False, default='AVRO')
+    parser.add_argument('--schema_file',
+                        dest='schema_file',
+                        required=False,
+                        default=None)
+    parser.add_argument('--partition_column',
+                        dest='partition_column',
+                        required=False,
+                        default=None)
+    parser.add_argument('--max_bad_records',
+                        dest='max_bad_records',
+                        required=False,
+                        default=1)
+    parser.add_argument('--source_format',
+                        dest='source_format',
+                        required=False,
+                        default='AVRO')
 
     known_args, _ = parser.parse_known_args(argv)
 
@@ -184,18 +205,20 @@ def main(argv=None):
 
     if known_args.create_table:
         if known_args.schema_file:
-            create_bq_table(
-                bq_cli, known_args.dataset,
-                known_args.table, known_args.schema_file,
-                partition_column=known_args.partition_column
-            )
+            create_bq_table(bq_cli,
+                            known_args.dataset,
+                            known_args.table,
+                            known_args.schema_file,
+                            partition_column=known_args.partition_column)
         else:
             raise argparse.ArgumentError('Cannot create table without schema.')
 
     batches = parse_gsutil_long_output_file(filename=known_args.sources_file)
 
-    submit_jobs(bq_cli=bq_cli, job_config=job_config,
-                dataset_id=known_args.dataset, table_id=known_args.table,
+    submit_jobs(bq_cli=bq_cli,
+                job_config=job_config,
+                dataset_id=known_args.dataset,
+                table_id=known_args.table,
                 batches=batches)
 
 

@@ -15,7 +15,7 @@
  */
 import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
 import {async, inject, TestBed} from '@angular/core/testing';
-import {OAuthService, UrlHelperService} from 'angular-oauth2-oidc';
+import {OAuthModule, OAuthService, UrlHelperService} from 'angular-oauth2-oidc';
 import {of} from 'rxjs';
 import {take} from 'rxjs/operators';
 
@@ -32,7 +32,7 @@ describe('BigQueryService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
+      imports: [HttpClientTestingModule, OAuthModule.forRoot()],
       providers: [
         BigQueryService,
         {provide: OAuthService, useClass: MockOAuthService},
@@ -47,14 +47,14 @@ describe('BigQueryService', () => {
   it('should get a single page of jobs', () => {
     const project = 'stephanmeyn-train-cbp';
     const jobId = 'bquxjob_7397faf7_1679db86d97';
-    let jobs: BqJob[] = [];
-    service.getJobs(`${project}.${jobId}`).pipe(take(10)).subscribe(job => {
+    const jobs: BqJob[] = [];
+    service.getJobs(`${project}.${jobId}`, 10).pipe(take(10)).subscribe(job => {
       jobs.push(job);
     }, console.error);
 
     const mockReq = httpMock.expectOne(
         `${environment.bqUrl}/${project}.${jobId}/jobs?` +
-        `access_token=fake-oauth-token&maxResults=200&projection=full`);
+        `access_token=fake-oauth-token&maxResults=200&allUsers=true&projection=full`);
     expect(mockReq.cancelled).toBeFalsy();
     expect(mockReq.request.responseType).toEqual('json');
     mockReq.flush(require('../assets/test/get_jobs.json'));
@@ -76,13 +76,14 @@ describe('BigQueryService', () => {
 
   it('should get a single job', () => {
     let job: Job;
-    service.getQueryPlan('projectid.foobar', 'abc1234').subscribe(res => {
-      job = res;
-    }, console.error);
+    service.getQueryPlan('projectid.foobar', 'abc1234', 'somelocation')
+        .subscribe(res => {
+          job = res;
+        }, console.error);
 
     const mockReq = httpMock.expectOne(
         environment.bqUrl +
-        '/projectid.foobar/jobs/abc1234?access_token=fake-oauth-token');
+        '/projectid.foobar/jobs/abc1234?access_token=fake-oauth-token&location=somelocation');
     expect(mockReq.cancelled).toBeFalsy();
     expect(mockReq.request.responseType).toEqual('json');
     mockReq.flush(require('../assets/test/small_query_plan.json'));
@@ -96,7 +97,7 @@ describe('BigQueryService', () => {
   });
 
   it('should get projects', () => {
-    let projects: BqProject[] = [];
+    const projects: BqProject[] = [];
     service.getProjects().subscribe(project => {
       projects.push(project);
     }, console.error);
@@ -122,8 +123,8 @@ describe('BigQueryService', () => {
       return of(require('../assets/test/get_jobs_page_1.json'));
     });
 
-    let jobs: BqJob[] = [];
-    service.getJobs('stephanmeyn-train-cbp.bquxjob_7397faf7_1679db86d97')
+    const jobs: BqJob[] = [];
+    service.getJobs('stephanmeyn-train-cbp.bquxjob_7397faf7_1679db86d97', 50)
         .subscribe(
             job => {
               jobs.push(job);

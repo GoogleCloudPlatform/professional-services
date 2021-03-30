@@ -1,0 +1,26 @@
+{
+  "name": "iap-user-profile",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@google-cloud/logging-winston": "^3.0.6",
+    "@google-cloud/secret-manager": "^3.0.0",
+    "cookie-parser": "~1.4.4",
+    "debug": "~2.6.9",
+    "express": "~4.16.1",
+    "googleapis": "^49.0.0",
+    "http-errors": "~1.6.3",
+    "morgan": "~1.9.1",
+    "mustache-express": "^1.3.0",
+    "winston": "^3.2.1"
+  },
+  "devDependencies": {
+    "jest": "^26.0.1",
+    "jest-when": "^2.7.1",
+    "supertest": "^4.0.2"
+  }
+}

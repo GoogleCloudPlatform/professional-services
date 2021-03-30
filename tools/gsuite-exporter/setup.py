@@ -31,9 +31,10 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='gsuite-exporter',
-    version='0.0.2',
+    version='0.0.3',
     description='GSuite Admin API Exporter',
     long_description=long_description,
+    long_description_content_type='text/markdown',
     author='Google Inc.',
     author_email='ocervello@google.com',
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),

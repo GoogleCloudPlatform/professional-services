@@ -23,7 +23,7 @@
 
   <groupId>com.google.cloud.pso</groupId>
   <artifactId>maven-archetype-dataflow</artifactId>
-  <version>1.1</version>
+  <version>1.2</version>
   <packaging>jar</packaging>
 
   <inceptionYear>2018</inceptionYear>
@@ -45,7 +45,7 @@
       https://github.com/GoogleCloudPlatform/professional-services/tree/master/tools/maven-archetype-dataflow
     </url>
   </scm>
-  
+
   <url>https://github.com/GoogleCloudPlatform/professional-services/tree/master/tools/maven-archetype-dataflow</url>
 
   <properties>

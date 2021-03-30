@@ -1,0 +1,18 @@
+[connections]
+# *WARNING* *WARNING* *WARNING* *WARNING* *WARNING* *WARNING*
+#
+# The Snowflake user password is stored in plain text in this file.
+# Pay special attention to the management of this file.
+# Thank you.
+#
+# *WARNING* *WARNING* *WARNING* *WARNING* *WARNING* *WARNING*
+
+[connections.<snowflake-connection-name>]
+
+accountname=<snowflake-account-name>
+username=<snowflake-user-id>
+password=<snowflake-password>
+dbname=<snowflake-db>
+schemaname=<snowflake-schema>
+warehousename=<snowflake-warehouse>
+rolename=<snowflake-role>

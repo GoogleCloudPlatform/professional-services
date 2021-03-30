@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Example making GET request to IAP resource."""
 
 import argparse
@@ -23,7 +22,6 @@ import make_iap_request as iap
 
 
 def main():
-
     """This main function calls the make_iap_request function which is defined
      at
      https://github.com/GoogleCloudPlatform/python-docs-samples/blob/master/iap/make_iap_request.py
@@ -39,25 +37,36 @@ def main():
     _LOCAL_TZ = get_localzone()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--url", dest='url', required=True,
-                        help="The url of a resource sitting behind identity-aware proxy.")
-    parser.add_argument("--iapClientId", dest='iapClientId', required=True,
+    parser.add_argument(
+        "--url",
+        dest='url',
+        required=True,
+        help="The url of a resource sitting behind identity-aware proxy.")
+    parser.add_argument("--iapClientId",
+                        dest='iapClientId',
+                        required=True,
                         help="The Client ID of the IAP OAuth Client.")
-    parser.add_argument("--raw_path", dest='raw_path', required=True, help="GCS path to raw files.")
+    parser.add_argument("--raw_path",
+                        dest='raw_path',
+                        required=True,
+                        help="GCS path to raw files.")
 
     args = parser.parse_args()
 
     # Force trailing slash because logic in avearge-speed DAG expects it this way.
-    raw_path = args.raw_path if args.raw_path.endswith('/') else args.raw_path + '/'
+    raw_path = args.raw_path if args.raw_path.endswith(
+        '/') else args.raw_path + '/'
     bucket = raw_path.lstrip('gs://').split('/')[0]
 
     # This transformed path is relative to the bucket Variable in the Airflow environment.
     # Note, the gs://<bucket> prefix is stripped because the GoogleCloudStorageToBigQueryOperator
     #  expects the source_objects as relative to the bucket param
-    transformed_path = raw_path.replace('/raw-', '/transformed-').replace('gs://'
-                                                                          + bucket + '/', '')
+    transformed_path = raw_path.replace('/raw-', '/transformed-').replace(
+        'gs://' + bucket + '/', '')
 
-    failed_path = raw_path.replace('/raw-', '/failed-').replace('gs://' + bucket + '/', '')
+    failed_path = raw_path.replace('/raw-',
+                                   '/failed-').replace('gs://' + bucket + '/',
+                                                       '')
 
     # Note, we need to remove the trailing slash because of how the the spark saveAsTextFile
     # method works.
@@ -74,11 +83,16 @@ def main():
 
     # The api signature requires a unique run_id
     payload = {
-        'run_id': 'post-triggered-run-%s' % datetime.now(_LOCAL_TZ).strftime('%Y%m%d%H%M%s%Z'),
-        'conf': json.dumps(conf),
+        'run_id':
+        'post-triggered-run-%s' %
+        datetime.now(_LOCAL_TZ).strftime('%Y%m%d%H%M%s%Z'),
+        'conf':
+        json.dumps(conf),
     }
 
-    return iap.make_iap_request(args.url, args.iapClientId, method='POST',
+    return iap.make_iap_request(args.url,
+                                args.iapClientId,
+                                method='POST',
                                 data=json.dumps(payload))
 
 
