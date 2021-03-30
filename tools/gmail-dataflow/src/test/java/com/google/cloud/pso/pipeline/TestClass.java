@@ -20,12 +20,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-/** Tests for GmailApiDriver. */
+/**
+ * Tests for GmailApiDriver.
+ */
 @RunWith(JUnit4.class)
 public final class TestClass {
 
-  @Test
-  public void testFunction() throws Exception {
+    @Test
+    public void testFunction() {
 
-  }
+    }
 }
