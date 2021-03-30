@@ -1,0 +1,45 @@
+{
+  "asset": {
+    "ancestors": [
+      "projects/717196263256",
+      "folders/1094373516899",
+      "folders/273647969471",
+      "organizations/116143322321"
+    ],
+    "assetType": "compute.googleapis.com/Subnetwork",
+    "name": "//compute.googleapis.com/projects/apszaz-shsvc-services-5af0da/regions/asia-east1/subnetworks/dummy",
+    "resource": {
+      "data": {
+        "creationTimestamp": "2020-05-11T01:02:09.269-07:00",
+        "description": "",
+        "enableFlowLogs": false,
+        "fingerprint": "0/V6UwWr3n4=",
+        "gatewayAddress": "10.0.7.1",
+        "id": "8070357952081737838",
+        "ipCidrRange": "10.0.7.0/24",
+        "logConfig": {
+          "aggregationInterval": "INTERVAL_5_SEC",
+          "enable": true,
+          "flowSampling": 0.75,
+          "metadata": "INCLUDE_ALL_METADATA"
+        },
+        "name": "dummy",
+        "network": "https://www.googleapis.com/compute/v1/projects/apszaz-shsvc-services-5af0da/global/networks/dummy",
+        "privateIpGoogleAccess": true,
+        "privateIpv6GoogleAccess": "DISABLE_GOOGLE_ACCESS",
+        "purpose": "PRIVATE",
+        "region": "https://www.googleapis.com/compute/v1/projects/apszaz-shsvc-services-5af0da/regions/asia-east1",
+        "selfLink": "https://www.googleapis.com/compute/v1/projects/apszaz-shsvc-services-5af0da/regions/asia-east1/subnetworks/dummy"
+      },
+      "discoveryDocumentUri": "https://www.googleapis.com/discovery/v1/apis/compute/v1/rest",
+      "discoveryName": "Subnetwork",
+      "location": "asia-east1",
+      "parent": "//cloudresourcemanager.googleapis.com/projects/717196263256",
+      "version": "v1"
+    },
+    "updateTime": "2020-05-11T08:44:29.328882Z"
+  },
+  "window": {
+    "startTime": "2020-05-11T08:44:29.328882Z"
+  }
+}

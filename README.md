@@ -41,6 +41,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [Dataflow Streaming Benchmark](examples/dataflow-streaming-benchmark) - Utility to publish randomized fake JSON messages to a Cloud Pub/Sub topic at a configured QPS.
 * [Dataflow DLP Hashpipeline](examples/dataflow-dlp-hash-pipeline) - Match DLP Social Security Number findings against a hashed dictionay in Firestore. Use Secret Manager for the hash key.
 * [Dataflow Template Pipelines](https://github.com/GoogleCloudPlatform/DataflowTemplates) - Pre-implemented Dataflow template pipelines for solving common data tasks on Google Cloud Platform.
+* [Dataflow Production Ready](examples/dataflow-production-ready) - Reference implementation for best practices around Beam, pipeline structuring, testing and continuous deployment.
 * [Dataproc GCS Connector](examples/dataproc-gcs-connector) - Install and test unreleased features on the GCS Connector for Dataproc.
 * [Dataproc Persistent History Server for Ephemeral Clusters](examples/dataproc-persistent-history-server) - Example of writing logs from an ephemeral cluster to GCS and using a separate single node cluster to look at Spark and YARN History UIs.
 * [Dialogflow Webhook Example](examples/dialogflow-webhook-example) - Webhook example for dialogflow in Python.
@@ -110,6 +111,7 @@ creates relationships between assets and outputs a format compatible with [graph
 * [Snowflake_to_BQ](tools/snowflake2bq/) - A shell script to transfer tables (schema & data) from Snowflake to BigQuery.
 * [STS Job Manager](tools/sts-job-manager/) - A petabyte-scale bucket migration tool utilizing [Storage Transfer Service](https://cloud.google.com/storage-transfer-service)
 * [VPC Flow Logs Analysis](tools/vpc-flowlogs-analysis) - A configurable Sink + BigQuery report that shows traffic grouped by target IP address ranges.
+* [VPC Flow Logs Enforcer](tools/vpc-flowlogs-enforcer) - A Cloud Function that will automatically enable VPC Flow Logs when a subnet is created or modified in any project under a particular folder or folders.
 * [VM Migrator](tools/vm-migrator) - This utility automates migrating Virtual Machine instances within GCP. You can migrate VM's from one zone to another zone/region within the same project or different projects while retaining all the original VM properties like disks, network interfaces, ip, metadata, network tags and much more. 
 * [Webhook Ingestion Data Pipeline](tools/webhook-ingestion-pipeline) - A deployable app to accept and ingest unauthenticated webhook data to BigQuery.
 * [gmon](tools/gmon/) - A command-line interface (CLI) for Cloud Monitoring written in Python.

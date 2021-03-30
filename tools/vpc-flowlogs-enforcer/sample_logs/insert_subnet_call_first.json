@@ -1,0 +1,91 @@
+{
+  "protoPayload": {
+    "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+    "authenticationInfo": {
+      "principalEmail": "alfonso@apszaz.com"
+    },
+    "requestMetadata": {
+      "callerIp": "82.64.56.220",
+      "callerSuppliedUserAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.58 Safari/537.36,gzip(gfe),gzip(gfe)",
+      "requestAttributes": {
+        "time": "2021-02-26T06:06:38.713021Z",
+        "reason": "8uSywAYQGg5Db2xpc2V1bSBGbG93cw",
+        "auth": {}
+      },
+      "destinationAttributes": {}
+    },
+    "serviceName": "compute.googleapis.com",
+    "methodName": "v1.compute.subnetworks.insert",
+    "authorizationInfo": [
+      {
+        "permission": "compute.subnetworks.create",
+        "granted": true,
+        "resourceAttributes": {
+          "service": "compute",
+          "name": "projects/apszaz-shsvc-services-5af0da/regions/asia-east1/subnetworks/dummy",
+          "type": "compute.subnetworks"
+        }
+      },
+      {
+        "permission": "compute.networks.updatePolicy",
+        "granted": true,
+        "resourceAttributes": {
+          "service": "compute",
+          "name": "projects/apszaz-shsvc-services-5af0da/global/networks/dummy",
+          "type": "compute.networks"
+        }
+      }
+    ],
+    "resourceName": "projects/apszaz-shsvc-services-5af0da/regions/asia-east1/subnetworks/dummy",
+    "request": {
+      "ipCidrRange": "10.0.1.0/24",
+      "privateIpGoogleAccess": false,
+      "@type": "type.googleapis.com/compute.subnetworks.insert",
+      "name": "dummy",
+      "enableFlowLogs": false,
+      "description": "",
+      "network": "projects/apszaz-shsvc-services-5af0da/global/networks/dummy",
+      "region": "projects/apszaz-shsvc-services-5af0da/regions/asia-east1"
+    },
+    "response": {
+      "user": "alfonso@apszaz.com",
+      "operationType": "insert",
+      "name": "operation-1614319596411-5bc3712191b9f-b52b323b-a8235fcc",
+      "@type": "type.googleapis.com/operation",
+      "insertTime": "2021-02-25T22:06:38.487-08:00",
+      "selfLink": "https://www.googleapis.com/compute/v1/projects/apszaz-shsvc-services-5af0da/regions/asia-east1/operations/operation-1614319596411-5bc3712191b9f-b52b323b-a8235fcc",
+      "selfLinkWithId": "https://www.googleapis.com/compute/v1/projects/apszaz-shsvc-services-5af0da/regions/asia-east1/operations/8394696394217435393",
+      "status": "RUNNING",
+      "region": "https://www.googleapis.com/compute/v1/projects/apszaz-shsvc-services-5af0da/regions/asia-east1",
+      "targetLink": "https://www.googleapis.com/compute/v1/projects/apszaz-shsvc-services-5af0da/regions/asia-east1/subnetworks/dummy",
+      "targetId": "4811090641529680129",
+      "id": "8394696394217435393",
+      "startTime": "2021-02-25T22:06:38.495-08:00",
+      "progress": "0"
+    },
+    "resourceLocation": {
+      "currentLocations": [
+        "asia-east1"
+      ]
+    }
+  },
+  "insertId": "-4fkj6ed1h10",
+  "resource": {
+    "type": "gce_subnetwork",
+    "labels": {
+      "subnetwork_name": "dummy",
+      "location": "asia-east1",
+      "project_id": "apszaz-shsvc-services-5af0da",
+      "subnetwork_id": "4811090641529680129"
+    }
+  },
+  "timestamp": "2021-02-26T06:06:36.446815Z",
+  "severity": "NOTICE",
+  "logName": "projects/apszaz-shsvc-services-5af0da/logs/cloudaudit.googleapis.com%2Factivity",
+  "operation": {
+    "id": "operation-1614319596411-5bc3712191b9f-b52b323b-a8235fcc",
+    "producer": "compute.googleapis.com",
+    "first": true
+  },
+  "receiveTimestamp": "2021-02-26T06:06:39.239420333Z"
+}
