@@ -24,9 +24,8 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public final class TestClass {
 
-
   @Test
   public void testFunction() throws Exception {
-    
+
   }
 }
