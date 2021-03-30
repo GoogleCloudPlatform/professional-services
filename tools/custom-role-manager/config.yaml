@@ -1,0 +1,67 @@
+---
+terraform:
+  pre: |
+    # This is a comment (pre)
+  post: |
+    output "custom_roles" {{
+      value = {{for resource, role in {resources}: resource => role.name}}
+    }}
+
+roles:
+  - id: minimalRole
+    tfId: minimal-gce-role
+    title: 'Minimal set of privileges for GKE plus one extra permission.'
+    description: 'Minimal set of privileges for GKE plus one extra permission.'
+    stage: BETA
+    source:
+      - roles/monitoring.viewer
+      - roles/monitoring.metricWriter
+      - roles/logging.logWriter
+    parent: organizations/312281222529
+    include:
+      - '*'
+    append:
+      - storage.objects.list
+
+  - id: noIamEditor
+    tfId: no-iam-editor
+    title: 'roles/editor without resourcemanager.projects.setIamPolicy'
+    description: 'Predefined Editor role without Project IAM Admin.'
+    stage: BETA
+    source: roles/editor
+    parent: organizations/312281222529
+    include:
+      - resourcemanager.*
+      - compute.*
+      - container.*
+    exclude:
+      - resourcemanager.projects.setIamPolicy
+      # Not supported in custom roles:
+      - appengine.runtimes.actAsAdmin 
+      - cloudonefs.* 
+      - cloudsql.sslCerts.createEphemeral 
+      - datastore.* 
+      - domains.registrations.* 
+      - gcp.redisenterprise.com/* 
+      - gkehub.features.* 
+      - run.routes.invoke 
+      - servicemanagement.consumerSettings.* 
+      - source.repos.update 
+      - spanner.databaseOperations.delete 
+      - spanner.databases.update 
+      - stackdriver.projects.edit
+      
+  - id: resourceIamPermissionsAdmin
+    title: 'Resource IAM Admin'
+    description: 'Manage "resource-level" IAM permissions.'
+    stage: BETA
+    source: //cloudresourcemanager.googleapis.com/organizations/312281222529
+    parent: organizations/312281222529
+    include:
+      - '*.setIamPolicy'
+      # - '/\.setIamPolicy$/' # Regular expression
+    exclude:
+      - resourcemanager.*.setIamPolicy
+      - cloudsupport.accounts.setIamPolicy
+      - securitycenter.*
+  

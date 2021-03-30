@@ -81,6 +81,7 @@ The tools folder contains ready-made utilities which can simpilfy Google Cloud P
   there are a few scripts for generating an AutoML Vision dataset CSV file from
   either raw images or image annotation files in PASCAL VOC format.
 * [CUD Prioritized Attribution](tools/cuds-prioritized-attribution) - A tool that allows GCP customers who purchased Committed Use Discounts (CUDs) to prioritize a specific scope (e.g. project or folder) to attribute CUDs first before letting any unconsumed discount float to other parts of an organization.
+* [Custom Role Manager](tools/custom-role-manager) - Manages organization- or project-level custom roles by combining predefined roles and including and removing permissions with wildcards. Can run as Cloud Function or output Terraform resources.
 * [DNS Sync](tools/dns-sync) - Sync a Cloud DNS zone with GCE resources. Instances and load balancers are added to the cloud DNS zone as they start from compute_engine_activity log events sent from a pub/sub push subscription. Can sync multiple projects to a single Cloud DNS zone.
 * [GCE Disk Encryption Converter](tools/gce-google-keys-to-cmek) - A tool that converts disks attached to a GCE VM instnace from Google-managed keys to a customer-managed key stored in Cloud KMS.
 * [GCE Quota Sync](tools/gce-quota-sync) - A tool that fetches resource quota usage from the GCE API and synchronizes it to Stackdriver as a custom metric, where it can be used to define automated alerts.
