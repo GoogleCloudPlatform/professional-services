@@ -36,7 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Build and execute the pipeline as follows: 
+ * Build and execute the pipeline as follows.
 
  // If you want to create a template and not run job then use the following option
 --templateLocation=${PIPELINE_FOLDER}/template \
@@ -95,7 +95,9 @@ gcloud dataflow jobs run ${JOB_NAME} \
 "
  */
 public class GmailDataflow {
-
+  /**
+   * Gmail to pubsub options.
+   */
   public interface GmailToPubsubOptions extends StreamingOptions {
     @Description("The Cloud Pub/Sub topic to read from.")
     @Required
@@ -161,7 +163,9 @@ public class GmailDataflow {
       );
     pipeline.run();
   }
-
+  /**
+   * Gmail Get class.
+   */
   public static class GmailGet extends DoFn<String, String> {
 
     private static final Logger LOG = LoggerFactory.getLogger(GmailGet.class);

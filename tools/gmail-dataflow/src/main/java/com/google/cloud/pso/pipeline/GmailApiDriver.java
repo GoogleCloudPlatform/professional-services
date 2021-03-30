@@ -24,7 +24,10 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.GmailScopes;
-import com.google.api.services.gmail.model.*;
+import com.google.api.services.gmail.model.History;
+import com.google.api.services.gmail.model.ListHistoryResponse;
+import com.google.api.services.gmail.model.Message;
+import com.google.api.services.gmail.model.MessagePart;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.gson.Gson;
@@ -38,7 +41,9 @@ import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+/**
+ * Gmail API driver class.
+ */
 public class GmailApiDriver {
 
   private static final String APPLICATION_NAME = "Gmail testing";
@@ -96,7 +101,9 @@ public class GmailApiDriver {
           .execute();
         hi = response.getHistory();
 
-        if (response.isEmpty()) break;
+        if (response.isEmpty()) {
+          break;
+        }
         if (hi == null || hi.isEmpty()) {
           retry++;
           try {
@@ -117,7 +124,9 @@ public class GmailApiDriver {
           LOG.debug("Number of threads in history: " + messages.size());
           for (Message m : messages) {
             String messageId = m.get("id").toString();
-            if (dedupedMessages.containsKey(messageId)) continue;
+            if (dedupedMessages.containsKey(messageId)) {
+              continue;
+            }
             LOG.debug("Processing message {thread_id: " + messageId + "}");
             retry = 0;
             while (true) {
