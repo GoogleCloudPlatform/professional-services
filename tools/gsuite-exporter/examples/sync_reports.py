@@ -19,8 +19,9 @@ if __name__ == '__main__':
     sync_all(
         admin_user='<gsuite_admin>@<domain>',
         api='reports_v1',
-        applications=['login', 'admin', 'drive', 'mobile', 'token'],
+        applications=['login'],
         project_id='<logging_project_id>',
         exporter_cls='stackdriver_exporter.StackdriverExporter',
-        credentials_path=os.environ['GOOGLE_APPLICATION_CREDENTIALS']
+        credentials_path=os.environ['GOOGLE_APPLICATION_CREDENTIALS'],
+        offset=1
     )
