@@ -16,7 +16,7 @@ import logging
 import google.auth
 from google.auth import iam
 from google.auth.credentials import with_scopes_if_required
-from google.auth._default import _load_credentials_from_file
+from google.auth._default import load_credentials_from_file
 from google.auth.transport import requests
 from google.oauth2 import service_account
 from googleapiclient import discovery
@@ -43,7 +43,7 @@ def build_service(api, version, credentials_path=None, user_email=None, scopes=N
     """
     if credentials_path is not None:
         logger.info("Getting credentials from file '%s' ...", credentials_path)
-        credentials, _ = _load_credentials_from_file(credentials_path)
+        credentials, _ = load_credentials_from_file(credentials_path)
     else:
         logger.info("Getting default application credentials ...")
         credentials, _ = google.auth.default()

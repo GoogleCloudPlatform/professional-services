@@ -55,10 +55,32 @@ gsuite-exporter
   --credentials-path='/path/to/service/account/credentials.json'
   --admin-user='<your_gsuite_admin>@<your_domain>'
   --api='report_v1'
-  --applications='login drive token'
+  --applications='login'
   --project-id='<logging_project>'
   --exporter='stackdriver_exporter.StackdriverExporter'
+
 ```
+For `applications` parameter the following values are available:
+* 'access_transparency'
+* 'admin'
+* 'calendar'
+* 'chat'
+* 'drive'
+* 'gcp'
+* 'gplus'
+* 'groups'
+* 'groups_enterprise'
+* 'jamboard'
+* 'login'
+* 'meet'
+* 'mobile'
+* 'rules'
+* 'saml'
+* 'token'
+* 'user_accounts'
+* 'context_aware_access'
+* 'chrome'
+* 'data_studio'
 
 The `credentials_path` variable is optional and you can use [Application Default Credentials](https://cloud.google.com/docs/authentication/production#providing_credentials_to_your_application) instead.
 
