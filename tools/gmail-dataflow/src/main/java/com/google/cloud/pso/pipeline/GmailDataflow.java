@@ -80,6 +80,24 @@ import org.slf4j.LoggerFactory;
  * --parameters \ "inputTopic=projects/${PROJECT_ID}/topics/${TOPIC_NAME},\ "
  */
 public class GmailDataflow {
+    public static void main(String[] args) {
+        GmailToPubsubOptions options = PipelineOptionsFactory.fromArgs(args).withValidation()
+                .as(GmailToPubsubOptions.class);
+
+        options.setStreaming(true);
+
+        Pipeline pipeline = Pipeline.create(options);
+
+        pipeline
+                // 1) Read string messages from a Pub/Sub topic.
+                .apply("Read PubSub Messages", PubsubIO.readStrings().fromTopic(options.getInputTopic()))
+                // 2) Group the messages into fixed-sized minute intervals.
+                .apply("Windowing", Window.into(FixedWindows.of(Duration.standardMinutes(options.getWindowSize()))))
+                .apply("Gmail Message Get", ParDo.of(new GmailGet(options.getTruncateSize())))
+                .apply("Write to PubSub", PubsubIO.writeStrings().to(options.getOutputTopic()));
+        pipeline.run();
+    }
+
     /**
      * Gmail to pubsub options.
      */
@@ -115,37 +133,18 @@ public class GmailDataflow {
         void setTruncateSize(Integer value);
     }
 
-    public static void main(String[] args) {
-        GmailToPubsubOptions options = PipelineOptionsFactory.fromArgs(args).withValidation()
-                .as(GmailToPubsubOptions.class);
-
-        options.setStreaming(true);
-
-        Pipeline pipeline = Pipeline.create(options);
-
-        pipeline
-                // 1) Read string messages from a Pub/Sub topic.
-                .apply("Read PubSub Messages", PubsubIO.readStrings().fromTopic(options.getInputTopic()))
-                // 2) Group the messages into fixed-sized minute intervals.
-                .apply("Windowing", Window.into(FixedWindows.of(Duration.standardMinutes(options.getWindowSize()))))
-                .apply("Gmail Message Get", ParDo.of(new GmailGet(options.getTruncateSize())))
-                .apply("Write to PubSub", PubsubIO.writeStrings().to(options.getOutputTopic()));
-        pipeline.run();
-    }
-
     /**
      * Gmail Get class.
      */
     public static class GmailGet extends DoFn<String, String> {
 
         private static final Logger LOG = LoggerFactory.getLogger(GmailGet.class);
+        private static final long serialVersionUID = 1234567L;
+        private int truncateSize = 4096;
 
         public GmailGet(int truncateSize) {
             this.truncateSize = truncateSize;
         }
-
-        private int truncateSize = 4096;
-        private static final long serialVersionUID = 1234567L;
 
         @ProcessElement
         public void processElement(ProcessContext c) {
