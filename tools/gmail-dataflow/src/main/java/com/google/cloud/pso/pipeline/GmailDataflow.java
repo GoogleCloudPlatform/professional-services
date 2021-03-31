@@ -142,7 +142,7 @@ public class GmailDataflow {
     public void processElement(ProcessContext c) {
       GmailApiDriver t = new GmailApiDriver(truncateSize);
       String json = c.element();
-      JsonObject message = new JsonParser().parse(json).getAsJsonObject();
+      JsonObject message =  JsonParser.parseString(json).getAsJsonObject();
       String user = message.get("emailAddress").toString().replace("\"", "");
       String historyId = message.get("historyId").toString();
       LOG.debug("Processing for {user_email: " + user + ", history_id: " + historyId + "}");
