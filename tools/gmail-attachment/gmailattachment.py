@@ -29,10 +29,12 @@ SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 GSUITE_ADMIN_USER = '<YOUR_GSUITE_ADMIN_EMAIL>'
 SA_JSON = '<INSERT_SA_JSON_HERE_AS_DICTIONARY_ENTRY_NO_QUOTES_ETC>'
 
+
 class WriteAttachmentToGCS(beam.DoFn):
   ''' This class does the main processing. '''
 
   def __init__(self, output_path):
+    super().__init__(output_path)
     self.output_path = output_path
 
   def getattachment(self, email, message_id, attachement_id):
@@ -52,7 +54,7 @@ class WriteAttachmentToGCS(beam.DoFn):
                            id=attachement_id).execute()
       data = base64.b64decode(att['data'])
       return data
-    except Exception as ex:
+    except RuntimeError as ex:
       print('Error:', ex.content.decode('ascii'))
 
   def process(self, element):
@@ -89,13 +91,10 @@ def run(input_topic, output_path, pipeline_argsrun=None):
   )
 
   with beam.Pipeline(options=pipeline_options) as pipeline:
-    (
-            pipeline
-            | 'Read PubSub Messages'
-            >> beam.io.ReadFromPubSub(topic=input_topic)
-            | 'Write attachment to GCS'
-            >> beam.ParDo(WriteAttachmentToGCS(output_path))
-    )
+    print(pipeline | \
+    'Read PubSub Messages' >> beam.io.ReadFromPubSub(topic=input_topic) | \
+    'Write attachment to GCS' >> beam.ParDo(WriteAttachmentToGCS(output_path)))
+
 
 if __name__ == '__main__':  # noqa
   logging.getLogger().setLevel(logging.INFO)
