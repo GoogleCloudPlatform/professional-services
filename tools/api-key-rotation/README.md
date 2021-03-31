@@ -21,18 +21,14 @@ gcloud config set project $GCP_PROJECT_ID
 # Enable the IAM credentials service
 gcloud services enable cloudresourcemanager.googleapis.com
 
-# Create venv and install package
-python -m venv ./venv
-source ./venv/bin/activate
+# Setup virtual environment
+make setup
 
 # Install required packages
-pip install -r requirements.txt
-
-# Change dirs
-cd api_key_rotation_checker
+make install
 
 # Execute
-python3 main.py
+make run
 ```
 
 ## Rotation Period
@@ -51,13 +47,12 @@ python3 main.py 180
 If you'd like to run unit tests:
 
 ```bash
-# Create venv and install package
-python -m venv ./venv
-source ./venv/bin/activate
+# Setup virtual environment
+make setup
 
 # Install required packages
-pip install -r requirements.txt
+make dev
 
-# Run unit tests
-python -m pytest tests
+# Run unittests
+make test
 ```
