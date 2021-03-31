@@ -40,124 +40,118 @@ import org.slf4j.LoggerFactory;
 /**
  * Build and execute the pipeline as follows.
  * <p>
- * // If you want to create a template and not run job then use the following
- * option --templateLocation=${PIPELINE_FOLDER}/template \
+ * // If you want to create a template and not run job then use the following option
+ * --templateLocation=${PIPELINE_FOLDER}/template \
  * <p>
  * <p>
  * // Compile and upload the template to GCS for dataflow RUNNER=DataflowRunner
- * PROJECT_ID=<your-project-id> BUCKET_NAME=<your-bucket-name>
- * TOPIC_NAME="<your-topic-name>"
- * PIPELINE_FOLDER=gs://${BUCKET_NAME}/dataflow/pipelines/gmail-dataflow
- * USE_SUBSCRIPTION=false OUTPUT_TOPIC="<your-output-topic-name>"
+ * PROJECT_ID=<your-project-id> BUCKET_NAME=<your-bucket-name> TOPIC_NAME="<your-topic-name>"
+ * PIPELINE_FOLDER=gs://${BUCKET_NAME}/dataflow/pipelines/gmail-dataflow USE_SUBSCRIPTION=false
+ * OUTPUT_TOPIC="<your-output-topic-name>"
  * <p>
- * mvn compile exec:java \
- * -Dexec.mainClass=com.google.cloud.pso.pipeline.GmailDataflow \
+ * mvn compile exec:java \ -Dexec.mainClass=com.google.cloud.pso.pipeline.GmailDataflow \
  * -Dexec.cleanupDaemonThreads=false \ -Dexec.args=" \ --project=${PROJECT_ID} \
- * --tempLocation=${PIPELINE_FOLDER}/temp \
- * --stagingLocation=${PIPELINE_FOLDER}/staging \ --runner=${RUNNER} \
- * --inputTopic=projects/$PROJECT_ID/topics/$TOPIC_NAME \
- * --outputTopic=projects/$PROJECT_ID/topics/$OUTPUT_TOPIC \
- * --output=gs://$BUCKET_NAME/samples/output \ --windowSize=2 \
- * --truncateSize=4000 \ --defaultWorkerLogLevel=DEBUG"
- * <p>
- * // Run locally RUNNER=DirectRunner mvn clean compile exec:java
- * -Dexec.mainClass=com.google.cloud.pso.pipeline.GmailDataflow \
- * -Dexec.cleanupDaemonThreads=false \ -Dexec.args=" \ --project=${PROJECT_ID} \
+ * --tempLocation=${PIPELINE_FOLDER}/temp \ --stagingLocation=${PIPELINE_FOLDER}/staging \
  * --runner=${RUNNER} \ --inputTopic=projects/$PROJECT_ID/topics/$TOPIC_NAME \
- * --outputTopic=projects/$PROJECT_ID/topics/$OUTPUT_TOPIC \
- * --output=gs://$BUCKET_NAME/samples/output \ --windowSize=2 \
- * --truncateSize=6"
+ * --outputTopic=projects/$PROJECT_ID/topics/$OUTPUT_TOPIC \ --output=gs://$BUCKET_NAME/samples/output
+ * \ --windowSize=2 \ --truncateSize=4000 \ --defaultWorkerLogLevel=DEBUG"
  * <p>
- * # Once the template location is populated with the jar files then they can be
- * launched # using the gcloud dataflow command as below export
- * GOOGLE_APPLICATION_CREDENTIALS=<service-account-json-file-location> gcloud
- * auth activate-service-account --key-file=<service-account-json-file-location>
+ * // Run locally RUNNER=DirectRunner mvn clean compile exec:java -Dexec.mainClass=com.google.cloud.pso.pipeline.GmailDataflow
+ * \ -Dexec.cleanupDaemonThreads=false \ -Dexec.args=" \ --project=${PROJECT_ID} \
+ * --runner=${RUNNER} \ --inputTopic=projects/$PROJECT_ID/topics/$TOPIC_NAME \
+ * --outputTopic=projects/$PROJECT_ID/topics/$OUTPUT_TOPIC \ --output=gs://$BUCKET_NAME/samples/output
+ * \ --windowSize=2 \ --truncateSize=6"
  * <p>
- * JOB_NAME=gmail-push-$USER-`date +"%Y%m%d-%H%M%S%z"` gcloud dataflow jobs run
- * ${JOB_NAME} \ --region=us-central1 \
- * --service-account-email="<your-service-account-email>" \
- * --gcs-location=${PIPELINE_FOLDER}/template \ --worker-zone=us-east1-d \
- * --parameters \ "inputTopic=projects/${PROJECT_ID}/topics/${TOPIC_NAME},\ "
+ * # Once the template location is populated with the jar files then they can be launched # using
+ * the gcloud dataflow command as below export GOOGLE_APPLICATION_CREDENTIALS=<service-account-json-file-location>
+ * gcloud auth activate-service-account --key-file=<service-account-json-file-location>
+ * <p>
+ * JOB_NAME=gmail-push-$USER-`date +"%Y%m%d-%H%M%S%z"` gcloud dataflow jobs run ${JOB_NAME} \
+ * --region=us-central1 \ --service-account-email="<your-service-account-email>" \
+ * --gcs-location=${PIPELINE_FOLDER}/template \ --worker-zone=us-east1-d \ --parameters \
+ * "inputTopic=projects/${PROJECT_ID}/topics/${TOPIC_NAME},\ "
  */
 public class GmailDataflow {
-    public static void main(String[] args) {
-        GmailToPubsubOptions options = PipelineOptionsFactory.fromArgs(args).withValidation()
-                .as(GmailToPubsubOptions.class);
 
-        options.setStreaming(true);
+  public static void main(String[] args) {
+    GmailToPubsubOptions options = PipelineOptionsFactory.fromArgs(args).withValidation()
+        .as(GmailToPubsubOptions.class);
+    options.setStreaming(true);
 
-        Pipeline pipeline = Pipeline.create(options);
+    Pipeline pipeline = Pipeline.create(options);
 
-        pipeline
-                // 1) Read string messages from a Pub/Sub topic.
-                .apply("Read PubSub Messages", PubsubIO.readStrings().fromTopic(options.getInputTopic()))
-                // 2) Group the messages into fixed-sized minute intervals.
-                .apply("Windowing", Window.into(FixedWindows.of(Duration.standardMinutes(options.getWindowSize()))))
-                .apply("Gmail Message Get", ParDo.of(new GmailGet(options.getTruncateSize())))
-                .apply("Write to PubSub", PubsubIO.writeStrings().to(options.getOutputTopic()));
-        pipeline.run();
+    pipeline
+        // 1) Read string messages from a Pub/Sub topic.
+        .apply("Read PubSub Messages", PubsubIO.readStrings().fromTopic(options.getInputTopic()))
+        // 2) Group the messages into fixed-sized minute intervals.
+        .apply("Windowing",
+            Window.into(FixedWindows.of(Duration.standardMinutes(options.getWindowSize()))))
+        .apply("Gmail Message Get", ParDo.of(new GmailGet(options.getTruncateSize())))
+        .apply("Write to PubSub", PubsubIO.writeStrings().to(options.getOutputTopic()));
+    pipeline.run();
+  }
+
+  /**
+   * Gmail to pubsub options.
+   */
+  public interface GmailToPubsubOptions extends StreamingOptions {
+
+    @Description("The Cloud Pub/Sub topic to read from.")
+    @Required
+    String getInputTopic();
+
+    void setInputTopic(String value);
+
+    @Description("Window size in number of minutes.")
+    @Default.Integer(1)
+    Integer getWindowSize();
+
+    void setWindowSize(Integer value);
+
+    @Description("Path of the output file including its filename prefix.")
+    @Required
+    String getOutput();
+
+    void setOutput(String value);
+
+    @Description("The Cloud Pub/Sub topic to write the output to.")
+    @Required
+    String getOutputTopic();
+
+    void setOutputTopic(String value);
+
+    @Description("Truncate size of the output message.")
+    @Default.Integer(1)
+    Integer getTruncateSize();
+
+    void setTruncateSize(Integer value);
+  }
+
+  /**
+   * Gmail Get class.
+   */
+  public static class GmailGet extends DoFn<String, String> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(GmailGet.class);
+    private static final long serialVersionUID = 1234567L;
+    private int truncateSize = 4096;
+
+    public GmailGet(int truncateSize) {
+      this.truncateSize = truncateSize;
     }
 
-    /**
-     * Gmail to pubsub options.
-     */
-    public interface GmailToPubsubOptions extends StreamingOptions {
-        @Description("The Cloud Pub/Sub topic to read from.")
-        @Required
-        String getInputTopic();
-
-        void setInputTopic(String value);
-
-        @Description("Window size in number of minutes.")
-        @Default.Integer(1)
-        Integer getWindowSize();
-
-        void setWindowSize(Integer value);
-
-        @Description("Path of the output file including its filename prefix.")
-        @Required
-        String getOutput();
-
-        void setOutput(String value);
-
-        @Description("The Cloud Pub/Sub topic to write the output to.")
-        @Required
-        String getOutputTopic();
-
-        void setOutputTopic(String value);
-
-        @Description("Truncate size of the output message.")
-        @Default.Integer(1)
-        Integer getTruncateSize();
-
-        void setTruncateSize(Integer value);
+    @ProcessElement
+    public void processElement(ProcessContext c) {
+      GmailApiDriver t = new GmailApiDriver(truncateSize);
+      String json = c.element();
+      JsonObject message = new JsonParser().parse(json).getAsJsonObject();
+      String user = message.get("emailAddress").toString().replace("\"", "");
+      String historyId = message.get("historyId").toString();
+      LOG.debug("Processing for {user_email: " + user + ", history_id: " + historyId + "}");
+      Map<String, String> m4 = t.printMessage(user, historyId);
+      for (String m : m4.values()) {
+        c.output(m);
+      }
     }
-
-    /**
-     * Gmail Get class.
-     */
-    public static class GmailGet extends DoFn<String, String> {
-
-        private static final Logger LOG = LoggerFactory.getLogger(GmailGet.class);
-        private static final long serialVersionUID = 1234567L;
-        private int truncateSize = 4096;
-
-        public GmailGet(int truncateSize) {
-            this.truncateSize = truncateSize;
-        }
-
-        @ProcessElement
-        public void processElement(ProcessContext c) {
-            GmailApiDriver t = new GmailApiDriver(truncateSize);
-            String json = c.element();
-            JsonObject message = new JsonParser().parse(json).getAsJsonObject();
-            String user = message.get("emailAddress").toString().replace("\"", "");
-            String historyId = message.get("historyId").toString();
-            LOG.debug("Processing for {user_email: " + user + ", history_id: " + historyId + "}");
-            Map<String, String> m4 = t.printMessage(user, historyId);
-            for (String m : m4.values()) {
-                c.output(m);
-            }
-        }
-    }
+  }
 }

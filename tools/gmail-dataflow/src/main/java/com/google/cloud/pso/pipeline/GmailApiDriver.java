@@ -48,131 +48,138 @@ import org.slf4j.LoggerFactory;
  * Gmail API driver class.
  */
 public class GmailApiDriver {
-    private static final String APPLICATION_NAME = "Gmail testing";
-    private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
-    private static final List<String> SCOPES = Collections.singletonList(GmailScopes.GMAIL_READONLY);
-    private static final String SERVICE_ACCOUNT_JSON_FILE_PATH = "/anand-1-sa.json";
-    private static final Logger LOG = LoggerFactory.getLogger(GmailApiDriver.class);
-    private int truncateSize;
 
-    public GmailApiDriver(int truncateSize) {
-        this.truncateSize = truncateSize;
-    }
+  private static final String APPLICATION_NAME = "Gmail testing";
+  private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
+  private static final List<String> SCOPES = Collections.singletonList(GmailScopes.GMAIL_READONLY);
+  private static final String SERVICE_ACCOUNT_JSON_FILE_PATH = "/anand-1-sa.json";
+  private static final Logger LOG = LoggerFactory.getLogger(GmailApiDriver.class);
+  private int truncateSize;
 
-    private static HttpRequestInitializer getCredentialsSA(String user) throws IOException {
-        GoogleCredentials credentials = GoogleCredentials
-                .fromStream(GmailApiDriver.class.getResourceAsStream(SERVICE_ACCOUNT_JSON_FILE_PATH)).createScoped(SCOPES)
-                .createDelegated(user);
-        return new HttpCredentialsAdapter(credentials);
-    }
+  public GmailApiDriver(int truncateSize) {
+    this.truncateSize = truncateSize;
+  }
 
-    public Map<String, String> printMessage(String user, String historyId) {
-        HashMap<String, String> dedupedMessages = new HashMap<>();
-        try {
-            final NetHttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
-            Gmail service = new Gmail.Builder(httpTransport, JSON_FACTORY, getCredentialsSA(user))
-                    .setApplicationName(APPLICATION_NAME).build();
-            BigInteger startHistoryId = new BigInteger(historyId);
-            LOG.debug("Started processing {history_id: " + startHistoryId + "}");
-            int retry = 0;
-            List<History> hi = null;
-            boolean found = false;
-            while (retry < 3) {
-                ListHistoryResponse response = service.users().history().list("me").setStartHistoryId(startHistoryId).execute();
-                hi = response.getHistory();
+  private static HttpRequestInitializer getCredentialsSA(String user) throws IOException {
+    GoogleCredentials credentials = GoogleCredentials
+        .fromStream(GmailApiDriver.class.getResourceAsStream(SERVICE_ACCOUNT_JSON_FILE_PATH))
+        .createScoped(SCOPES)
+        .createDelegated(user);
+    return new HttpCredentialsAdapter(credentials);
+  }
 
-                if (response.isEmpty()) {
-                    break;
-                }
-                if (hi == null || hi.isEmpty()) {
-                    retry++;
-                    try {
-                        int sleeptime = (2 ^ retry) * 500; // Exponential backoff
-                        java.lang.Thread.sleep(sleeptime);
-                    } catch (Exception e2) {
-                        LOG.error("Retrying.");
-                    }
-                } else {
-                    found = true;
-                    break;
-                }
-            }
+  public Map<String, String> printMessage(String user, String historyId) {
+    HashMap<String, String> dedupedMessages = new HashMap<>();
+    try {
+      final NetHttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
+      Gmail service = new Gmail.Builder(httpTransport, JSON_FACTORY, getCredentialsSA(user))
+          .setApplicationName(APPLICATION_NAME).build();
+      BigInteger startHistoryId = new BigInteger(historyId);
+      LOG.debug("Started processing {history_id: " + startHistoryId + "}");
+      int retry = 0;
+      List<History> hi = null;
+      boolean found = false;
+      while (retry < 3) {
+        ListHistoryResponse response = service.users().history().list("me")
+            .setStartHistoryId(startHistoryId).execute();
+        hi = response.getHistory();
 
-            if (found) {
-                LOG.debug("Number of history_records: " + hi.size());
-
-                for (com.google.api.services.gmail.model.History h : hi) {
-                    List<Message> messages = h.getMessages();
-                    LOG.debug("Number of threads in history: " + messages.size());
-                    for (Message m : messages) {
-                        String messageId = m.get("id").toString();
-                        if (dedupedMessages.containsKey(messageId)) {
-                            continue;
-                        }
-                        LOG.debug("Processing message {thread_id: " + messageId + "}");
-                        retry = 0;
-                        while (true) {
-                            try {
-                                if (retry >= 3) {
-                                    LOG.warn("Retry failed 3 times exiting. {thread_id : " + messageId + "}");
-                                    break;
-                                }
-                                // Get the message from Gmail mailbox
-                                Message messageFull = service.users().messages().get(user, messageId).execute();
-
-                                // Truncate the body to specified length and then encoding it
-                                // Back to base64 encoding for output to pubsub
-                                List<MessagePart> parts = messageFull.getPayload().getParts();
-                                for (MessagePart part : parts) {
-                                    // Process main part
-                                    byte[] data = part.getBody().decodeData();
-
-                                    if (data != null && data.length > truncateSize) {
-                                        LOG.debug("Truncating main part with {from_length: " + data.length + ", to_length : " + truncateSize
-                                                + ", mimeType: " + part.getMimeType() + "}");
-                                        data = Arrays.copyOf(data, truncateSize);
-                                        part.setBody(part.getBody().encodeData(data));
-                                    }
-                                    // Process multi-part message parts
-                                    List<MessagePart> innerParts = part.getParts();
-                                    if (innerParts != null && innerParts.size() > 0) {
-                                        LOG.debug("Truncating inner parts of {size: " + innerParts.size() + "}");
-                                        for (MessagePart innerPart : innerParts) {
-                                            data = innerPart.getBody().decodeData();
-                                            if (data != null && data.length > truncateSize) {
-                                                LOG.debug("Truncating inner part {from_length : " + data.length + ", to_size : " + truncateSize
-                                                        + ", mimeType: " + innerPart.getMimeType() + "}");
-                                                data = Arrays.copyOf(data, truncateSize);
-                                                innerPart.setBody(innerPart.getBody().encodeData(data));
-                                            }
-                                        }
-                                    }
-                                }
-
-                                String jsonMessage = new Gson().toJson(messageFull);
-                                dedupedMessages.put(messageId, jsonMessage);
-                                break;
-                            } catch (GoogleJsonResponseException e) {
-                                break;
-                            } catch (Exception e1) {
-                                e1.printStackTrace();
-                                retry++;
-                                try {
-                                    int sleeptime = (2 ^ retry) * 500;
-                                    java.lang.Thread.sleep(sleeptime);
-                                } catch (Exception e2) {
-                                    LOG.error("Retrying.");
-                                }
-                            }
-                        }
-                    }
-                }
-            } else {
-                LOG.warn("Error in retrieving History id : " + startHistoryId);
-            }
-        } catch (IOException | GeneralSecurityException e) {
-            e.printStackTrace();
+        if (response.isEmpty()) {
+          break;
         }
-        return dedupedMessages;
+        if (hi == null || hi.isEmpty()) {
+          retry++;
+          try {
+            int sleeptime = (2 ^ retry) * 500; // Exponential backoff
+            java.lang.Thread.sleep(sleeptime);
+          } catch (Exception e2) {
+            LOG.error("Retrying.");
+          }
+        } else {
+          found = true;
+          break;
+        }
+      }
+
+      if (found) {
+        LOG.debug("Number of history_records: " + hi.size());
+
+        for (com.google.api.services.gmail.model.History h : hi) {
+          List<Message> messages = h.getMessages();
+          LOG.debug("Number of threads in history: " + messages.size());
+          for (Message m : messages) {
+            String messageId = m.get("id").toString();
+            if (dedupedMessages.containsKey(messageId)) {
+              continue;
+            }
+            LOG.debug("Processing message {thread_id: " + messageId + "}");
+            retry = 0;
+            while (true) {
+              try {
+                if (retry >= 3) {
+                  LOG.warn("Retry failed 3 times exiting. {thread_id : " + messageId + "}");
+                  break;
+                }
+                // Get the message from Gmail mailbox
+                Message messageFull = service.users().messages().get(user, messageId).execute();
+
+                // Truncate the body to specified length and then encoding it
+                // Back to base64 encoding for output to pubsub
+                List<MessagePart> parts = messageFull.getPayload().getParts();
+                for (MessagePart part : parts) {
+                  // Process main part
+                  byte[] data = part.getBody().decodeData();
+
+                  if (data != null && data.length > truncateSize) {
+                    LOG.debug(
+                        "Truncating main part with {from_length: " + data.length + ", to_length : "
+                            + truncateSize
+                            + ", mimeType: " + part.getMimeType() + "}");
+                    data = Arrays.copyOf(data, truncateSize);
+                    part.setBody(part.getBody().encodeData(data));
+                  }
+                  // Process multi-part message parts
+                  List<MessagePart> innerParts = part.getParts();
+                  if (innerParts != null && innerParts.size() > 0) {
+                    LOG.debug("Truncating inner parts of {size: " + innerParts.size() + "}");
+                    for (MessagePart innerPart : innerParts) {
+                      data = innerPart.getBody().decodeData();
+                      if (data != null && data.length > truncateSize) {
+                        LOG.debug(
+                            "Truncating inner part {from_length : " + data.length + ", to_size : "
+                                + truncateSize
+                                + ", mimeType: " + innerPart.getMimeType() + "}");
+                        data = Arrays.copyOf(data, truncateSize);
+                        innerPart.setBody(innerPart.getBody().encodeData(data));
+                      }
+                    }
+                  }
+                }
+
+                String jsonMessage = new Gson().toJson(messageFull);
+                dedupedMessages.put(messageId, jsonMessage);
+                break;
+              } catch (GoogleJsonResponseException e) {
+                break;
+              } catch (Exception e1) {
+                e1.printStackTrace();
+                retry++;
+                try {
+                  int sleeptime = (2 ^ retry) * 500;
+                  java.lang.Thread.sleep(sleeptime);
+                } catch (Exception e2) {
+                  LOG.error("Retrying.");
+                }
+              }
+            }
+          }
+        }
+      } else {
+        LOG.warn("Error in retrieving History id : " + startHistoryId);
+      }
+    } catch (IOException | GeneralSecurityException e) {
+      e.printStackTrace();
     }
+    return dedupedMessages;
+  }
 }
