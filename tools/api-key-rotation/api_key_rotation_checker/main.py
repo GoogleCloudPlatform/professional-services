@@ -190,11 +190,13 @@ def key_analysis(projects, rotation_period):
 
 def create_token():
     """
-    There is no SDK for API Keys as of May 2020.
-    We have to create a bearer token to submit with our HTTP requests in get_keys()
-    You can create a token using google.auth.transport.requests.Request() but the scope requirement
-    requires the official API to be activated and it is in early alpha / not available for most users.
-    Check this URL for the API https://cloud.google.com/api-keys/docs/overview to know when it is public.
+    As of March 2021, Google has released a SDK for API keys
+    but the SDK is in a private alpha and not accessible for
+    public usage. You can view the SDK here:
+    https://cloud.google.com/sdk/gcloud/reference/alpha/services/api-keys
+
+    Therefore, we must use the requests library and make API calls
+    with a bearer token until the SDK is usable by the public.
     """
     access_token = subprocess.run(
         "gcloud auth print-access-token",
