@@ -14,6 +14,20 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""
+This tool checks each GCP project in your GCP Organization
+for the existence of API keys. Each key is compared
+to a custom rotation period (defaults to 90).
+
+The output consists of two groupings of API keys:
+
+- One group are keys with rotation periods older than
+the approved rotation period.
+- The second group are keys with rotation periods under
+the approved rotation period.
+"""
+
+
 import subprocess
 import requests # pylint: disable=import-error
 import googleapiclient.discovery # pylint: disable=import-error
@@ -221,6 +235,7 @@ def create_service():
         "cloudresourcemanager",
         "v1",
         cache=MemoryCache())
+
 
 def time_convert(key_object):
     """
