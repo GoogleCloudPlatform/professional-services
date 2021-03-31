@@ -31,7 +31,6 @@ import com.google.api.services.gmail.model.MessagePart;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.gson.Gson;
-
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.GeneralSecurityException;
@@ -40,13 +39,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Gmail API driver class.
- */
+/** Gmail API driver class. */
 public class GmailApiDriver {
 
   private static final String APPLICATION_NAME = "Gmail testing";
@@ -61,10 +57,11 @@ public class GmailApiDriver {
   }
 
   private static HttpRequestInitializer getCredentialsSA(String user) throws IOException {
-    GoogleCredentials credentials = GoogleCredentials
-        .fromStream(GmailApiDriver.class.getResourceAsStream(SERVICE_ACCOUNT_JSON_FILE_PATH))
-        .createScoped(SCOPES)
-        .createDelegated(user);
+    GoogleCredentials credentials =
+        GoogleCredentials.fromStream(
+                GmailApiDriver.class.getResourceAsStream(SERVICE_ACCOUNT_JSON_FILE_PATH))
+            .createScoped(SCOPES)
+            .createDelegated(user);
     return new HttpCredentialsAdapter(credentials);
   }
 
@@ -72,16 +69,18 @@ public class GmailApiDriver {
     HashMap<String, String> dedupedMessages = new HashMap<>();
     try {
       final NetHttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
-      Gmail service = new Gmail.Builder(httpTransport, JSON_FACTORY, getCredentialsSA(user))
-          .setApplicationName(APPLICATION_NAME).build();
+      Gmail service =
+          new Gmail.Builder(httpTransport, JSON_FACTORY, getCredentialsSA(user))
+              .setApplicationName(APPLICATION_NAME)
+              .build();
       BigInteger startHistoryId = new BigInteger(historyId);
       LOG.debug("Started processing {history_id: " + startHistoryId + "}");
       int retry = 0;
       List<History> hi = null;
       boolean found = false;
       while (retry < 3) {
-        ListHistoryResponse response = service.users().history().list("me")
-            .setStartHistoryId(startHistoryId).execute();
+        ListHistoryResponse response =
+            service.users().history().list("me").setStartHistoryId(startHistoryId).execute();
         hi = response.getHistory();
 
         if (response.isEmpty()) {
@@ -132,9 +131,13 @@ public class GmailApiDriver {
 
                   if (data != null && data.length > truncateSize) {
                     LOG.debug(
-                        "Truncating main part with {from_length: " + data.length + ", to_length : "
+                        "Truncating main part with {from_length: "
+                            + data.length
+                            + ", to_length : "
                             + truncateSize
-                            + ", mimeType: " + part.getMimeType() + "}");
+                            + ", mimeType: "
+                            + part.getMimeType()
+                            + "}");
                     data = Arrays.copyOf(data, truncateSize);
                     part.setBody(part.getBody().encodeData(data));
                   }
@@ -146,9 +149,13 @@ public class GmailApiDriver {
                       data = innerPart.getBody().decodeData();
                       if (data != null && data.length > truncateSize) {
                         LOG.debug(
-                            "Truncating inner part {from_length : " + data.length + ", to_size : "
+                            "Truncating inner part {from_length : "
+                                + data.length
+                                + ", to_size : "
                                 + truncateSize
-                                + ", mimeType: " + innerPart.getMimeType() + "}");
+                                + ", mimeType: "
+                                + innerPart.getMimeType()
+                                + "}");
                         data = Arrays.copyOf(data, truncateSize);
                         innerPart.setBody(innerPart.getBody().encodeData(data));
                       }

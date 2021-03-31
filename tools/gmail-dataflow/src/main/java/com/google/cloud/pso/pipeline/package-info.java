@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * All Dataflow pipelines contained within the project.
- */
+/** All Dataflow pipelines contained within the project. */
 package com.google.cloud.pso.pipeline;
