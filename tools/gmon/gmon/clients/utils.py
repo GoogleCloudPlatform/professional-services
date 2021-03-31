@@ -17,9 +17,28 @@ Util functions.
 """
 
 import functools
+import json
+import proto
+from collections.abc import Iterable
 from typing import Set
 
 from google.protobuf.json_format import MessageToDict
+
+
+def proto_message_to_dict(message: proto.Message) -> dict:
+    """Helper method to parse protobuf message to dictionary.
+
+    Args:
+        message (`proto.Message`): Protobuf message.
+
+    Returns:
+        dict: Parsed protobuf message.
+    """
+    try:
+        return json.loads(message.__class__.to_json(message))
+    except AttributeError:  # message is not a response, it's a proto
+        return MessageToDict(message)
+
 
 def decorate_with(decorator, methods: Set[str]):
     """Class decorator that decorates wanted class methods.
@@ -31,6 +50,7 @@ def decorate_with(decorator, methods: Set[str]):
     Returns:
         cls: Decorated class.
     """
+
     def inner(cls):
         if not methods:
             return cls
@@ -52,17 +72,18 @@ def to_json(func):
     Returns:
         method: Decorated method.
     """
+
     @functools.wraps(func)
     def inner(*args, **kwargs):
         fields = kwargs.pop('fields', None)
         response = func(*args, **kwargs)
-        if isinstance(response, list):
+        if isinstance(response, Iterable):
             for resp in response:
-                yield filter_fields(MessageToDict(resp), fields=fields)
+                yield filter_fields(proto_message_to_dict(resp), fields=fields)
         elif response is None:
             yield None
         else:
-            yield filter_fields(MessageToDict(response), fields=fields)
+            yield filter_fields(proto_message_to_dict(response), fields=fields)
 
     return inner
 
