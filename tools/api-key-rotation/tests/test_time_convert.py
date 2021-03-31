@@ -34,6 +34,7 @@ def test_correct_format_time_convert():
     expected = datetime(2021, 3, 14, 0, 0)
     assert result == expected
 
+
 def test_incorrect_format_time_convert():
     """
     Validates the time conversion function
@@ -49,6 +50,7 @@ def test_incorrect_format_time_convert():
     result = time_convert(key_object)
     bad_format = "2021-03-14T18:15:28.914878Z"
     assert result != bad_format
+
 
 @dataclass
 class ApiKey:

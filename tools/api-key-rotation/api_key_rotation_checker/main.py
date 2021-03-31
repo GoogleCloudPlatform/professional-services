@@ -28,6 +28,7 @@ import argparse
 from dataclasses import dataclass
 from dataclasses_json import dataclass_json # pylint: disable=import-error
 
+
 def x_days_ago(rotation_period):
     """
     Get the date x days ago to use for our comparison.
@@ -45,6 +46,7 @@ def x_days_ago(rotation_period):
     logging.info("%s days ago was %s \n", rotation_days, rotation_date)
 
     return rotation_date
+
 
 def create_project_list(service):
     """
@@ -72,6 +74,7 @@ def create_project_list(service):
             logging.error(err)
 
     return projects
+
 
 def key_analysis(projects, rotation_period):
     """
@@ -186,7 +189,9 @@ def create_token():
         stdout=subprocess.PIPE,
         universal_newlines=True)
     token = access_token.stdout
+
     return token
+
 
 def compare_dates(converted_creation_date, rotation_date):
     """
@@ -207,9 +212,10 @@ def compare_dates(converted_creation_date, rotation_date):
     else:
         return False
 
+
 def create_service():
     """
-    Creates the GCP Cloud Resource Service
+    Creates the GCP Cloud Resource Service.
     """
     return googleapiclient.discovery.build(
         "cloudresourcemanager",
@@ -218,9 +224,9 @@ def create_service():
 
 def time_convert(key_object):
     """
-    # Grab the date by getting all values before the T
-    # Example value: 2021-03-15T15:24:39.553722
-    # We would get "2021-03-15"
+    Grab the date by getting all values before the "T"
+    Example value: 2021-03-15T15:24:39.553722
+    We would get "2021-03-15"
 
     Args:
 
@@ -236,6 +242,7 @@ def time_convert(key_object):
     converted_create_time = date_parser.parse(date_create)
 
     return converted_create_time
+
 
 @dataclass_json
 @dataclass
@@ -257,6 +264,7 @@ class ApiKey:
     create_time: str
     project_id: str
 
+
 class MemoryCache(Cache):
     """
     File-based cache to resolve GCP noisey log entries.
@@ -269,9 +277,10 @@ class MemoryCache(Cache):
     def set(self, url, content):
         MemoryCache._CACHE[url] = content
 
+
 def main(args):
     """
-    Central logic, kicks off other functions
+    Central logic, kicks off other functions.
 
     Args:
 

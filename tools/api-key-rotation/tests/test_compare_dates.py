@@ -27,6 +27,7 @@ def test_over_90d_rotate_compare_dates():
     expected = True
     assert result == expected
 
+
 def test_under_90d_rotate_compare_dates():
     """
     Validates the date comparison function
@@ -38,4 +39,3 @@ def test_under_90d_rotate_compare_dates():
     result = compare_dates(converted_creation_date, rotation_date)
     expected = False
     assert result == expected
-
