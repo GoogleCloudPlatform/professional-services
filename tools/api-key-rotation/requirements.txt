@@ -16,3 +16,4 @@ requests
 google-api-python-client
 python-dateutil
 dataclasses-json
+pytest

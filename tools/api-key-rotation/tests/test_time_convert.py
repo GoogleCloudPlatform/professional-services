@@ -12,8 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from api_key_rotation_checker.main import time_convert
-from dataclasses import dataclass
+from api_key_rotation_checker.main import time_convert, ApiKey
 from datetime import datetime
 
 
@@ -50,23 +49,3 @@ def test_incorrect_format_time_convert():
     result = time_convert(key_object)
     bad_format = "2021-03-14T18:15:28.914878Z"
     assert result != bad_format
-
-
-@dataclass
-class ApiKey:
-    """
-    GCP API key class used throughout this script.
-
-    Args:
-
-    key_id - The API key ID
-    display_name - The API key display name
-    created_by - The user who created the API key (deprecated)
-    create_time - The creation date/time of the API key
-    project_id - The GCP project where the APi key lives
-    """
-    key_id: str
-    display_name: str
-    created_by: str
-    create_time: str
-    project_id: str
