@@ -19,8 +19,8 @@ import ast
 import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions
 from googleapiclient.discovery import build
-from google.oauth2 import service_account
 from google.auth.transport import requests
+from google.oauth2.service_account import Credentials
 
 TOKEN_URI = 'https://accounts.google.com/o/oauth2/token'
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
