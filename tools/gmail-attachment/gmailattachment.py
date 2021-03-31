@@ -15,14 +15,15 @@
 This module pulls attachments from gmail messages
 and stores them to GCS bucket. '''
 import argparse
-import logging
-import base64
 import ast
+import base64
+import logging
+
 import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions
-from googleapiclient.discovery import build
 from google.auth.transport import requests
 from google.oauth2.service_account import Credentials
+from googleapiclient.discovery import build
 
 TOKEN_URI = 'https://accounts.google.com/o/oauth2/token'
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
@@ -92,8 +93,10 @@ def run(input_topic, output_path, pipeline_argsrun=None):
 
   with beam.Pipeline(options=pipeline_options) as pipeline:
     print(pipeline | \
-    'Read PubSub Messages' >> beam.io.ReadFromPubSub(topic=input_topic) | \
-    'Write attachment to GCS' >> beam.ParDo(WriteAttachmentToGCS(output_path)))
+          'Read PubSub Messages'
+          >> beam.io.ReadFromPubSub(topic=input_topic) | \
+          'Write attachment to GCS'
+          >> beam.ParDo(WriteAttachmentToGCS(output_path)))
 
 
 if __name__ == '__main__':  # noqa
