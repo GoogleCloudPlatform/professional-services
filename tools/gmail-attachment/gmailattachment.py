@@ -13,22 +13,14 @@
 # limitations under the License.
 
 import argparse
-import datetime
-import json
 import logging
 import base64
 import ast
 import apache_beam as beam
-import apache_beam.transforms.window as window
 from apache_beam.options.pipeline_options import PipelineOptions
-from google.auth.transport.requests import Request
-from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
 from google.auth.transport import requests
-from googleapiclient.discovery import build
-from google.auth import default, iam
-from google.auth import impersonated_credentials
 
 TOKEN_URI = 'https://accounts.google.com/o/oauth2/token'
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']

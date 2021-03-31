@@ -52,3 +52,4 @@ tools/gmail-dataflow/.classpath
 tools/gmail-dataflow/.factorypath
 tools/gmail-dataflow/.settings
 tools/gmail-dataflow/target/*
+tools/gmail-attachment/.vscode/settings.json
