@@ -1,10 +1,18 @@
 #!/usr/bin/env python3
 
+#   Copyright 2021
 #
-# Copyright 2021 Google LLC.
-# This software is provided as is, without warranty or representation for any use or purpose. # pylint: disable = line-too-long
-# Your use of it is subject to your agreement with Google.
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
 #
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
 
 import subprocess
 import requests # pylint: disable=import-error
@@ -187,7 +195,7 @@ def compare_dates(converted_creation_date, rotation_date):
     Args:
 
     converted_creation_date - The datatime formatted creation date of our API key.
-    rotation_date - datetime formatted "rotation_period" days ago (default 90). 
+    rotation_date - datetime formatted "rotation_period" days ago (default 90).
                     Example: 2020-09-18 13:38:52.943663
     """
 

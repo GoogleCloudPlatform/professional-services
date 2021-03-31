@@ -35,7 +35,7 @@ cd api_key_rotation_checker
 python3 main.py
 ```
 
-## Rotation Period 
+## Rotation Period
 
 You are able to set a custom rotation period to check API keys against by passing in a number on the CLI. This is not required and the script defaults to 90.
 
@@ -61,6 +61,3 @@ pip install -r requirements.txt
 # Run unit tests
 python -m pytest tests
 ```
-
-# Disclaimer
-Copyright 2021 Google LLC. This software is provided as is, without warranty or representation for any use or purpose. Your use of it is subject to your agreement with Google.
