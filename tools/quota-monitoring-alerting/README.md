@@ -14,7 +14,7 @@ Quota Monitoring Solution is a stand-alone application of an easy-to-deploy Data
 
 *The data refresh rate depends on the configured frequency to run the application.
 ## 2. Architecture
-<img src="quota-monitoring-alerting/img/quota-monitoring-alerting-architecture.png" align="center" />
+<img src="img/quota-monitoring-alerting-architecture.png" align="center" />
 
 The architecture is built using Google Cloud managed services - Cloud Functions, Pub/Sub, Dataflow and BigQuery. 
 - The solution is architected to scale using Pub/Sub.
@@ -280,7 +280,7 @@ If you want to scan projects in the org, add following roles to the Service acco
 - Org Viewer
 - Folder Viewer
 
-<img src="quota-monitoring-alerting/img/service_account_roles.png" align="center" />
+<img src="img/service_account_roles.png" align="center" />
 
 2. Set target organization id
 ```
@@ -300,9 +300,9 @@ gcloud organizations add-iam-policy-binding  $TARGET_ORG_ID --member="serviceAcc
 ```
 ### 3.5 Download Service Account Key File
 1. Create Service Account key from host project A
-<img src="quota-monitoring-alerting/img/create_service_account_key.png" align="center" />
+<img src="img/create_service_account_key.png" align="center" />
 2. Click on ‘Create’. This will download the key. Copy the file to a local directory and rename to CREDENTIALS_FILE.json
-<img src="quota-monitoring-alerting/img/download_service_account_key.png" align="center" />
+<img src="img/download_service_account_key.png" align="center" />
 
 ```
 mv *.json CREDENTIALS_FILE.json
@@ -325,7 +325,7 @@ gsutil cp gs://quota-monitoring-solution-source/main.tf .
 ```
 vi main.tf
 ```
-<img src="quota-monitoring-alerting/img/edit_terraform_variables.png" align="center" />
+<img src="img/edit_terraform_variables.png" align="center" />
 
 ### 3.8 Run Terraform
 1. Run terraform commands
@@ -343,26 +343,26 @@ vi main.tf
 1. Click ‘Run Now’ on Cloud Job scheduler. 
 
 *Note: The status of the ‘Run Now’ button changes to ‘Running’ for a fraction of seconds. *
-<img src="quota-monitoring-alerting/img/run_cloud_scheduler.png" align="center" />
+<img src="img/run_cloud_scheduler.png" align="center" />
 
 2. To verify that the program ran successfully, check the BigQuery Table. The time to load data in BigQuery might take a few minutes. The execution time depends on the number of projects to scan. A sample BigQuery table will look like this:
-<img src="quota-monitoring-alerting/img/test_bigquery_table.png" align="center" />
+<img src="img/test_bigquery_table.png" align="center" />
 
 ### 3.10 Data Studio Dashboard setup
 1. Go to the [Data studio dashboard template](https://datastudio.google.com/reporting/61f8c09f-c593-4950-afa9-c290180482c9) . If this link is not accessible, reach out to pso-quota-framework@google.com to share the dashboard template with your email id. A data studio dashboard will look like this:
-<img src="quota-monitoring-alerting/img/ds_template.png" align="center" />
+<img src="img/ds_template.png" align="center" />
 2. Make a copy of the template from the copy icon at the top bar (top - right corner)
-<img src="quota-monitoring-alerting/img/ds_copy.png" align="center" />
+<img src="img/ds_copy.png" align="center" />
 3. Click on ‘Copy Report’ button
-<img src="quota-monitoring-alerting/img/ds_copy_report.png" align="center" />
+<img src="img/ds_copy_report.png" align="center" />
 4. This will create a copy of the report and open in Edit mode. If not click on ‘Edit’ button on top right corner in copied template:
-<img src="quota-monitoring-alerting/img/ds_template_copy.png" align="center" />
+<img src="img/ds_template_copy.png" align="center" />
 5. Select any one table like below ‘Disks Total GB - Quotas’ is selected. On the right panel in ‘Data’ tab, click on icon ‘edit data source’
-<img src="quota-monitoring-alerting/img/ds_edit_data_source.png" align="center" />
+<img src="img/ds_edit_data_source.png" align="center" />
 It will open the data source details
-<img src="quota-monitoring-alerting/img/ds_datasource_config_step_1.png" align="center" />
+<img src="img/ds_datasource_config_step_1.png" align="center" />
 6. In the query, replace BigQuery project, dataset id and table name
-<img src="quota-monitoring-alerting/img/ds_edit_data_source_big_query.png" align="center" />
+<img src="img/ds_edit_data_source_big_query.png" align="center" />
 7. Verify the query by running in BigQuery Editor to make sure that query returns right results and there are no syntax errors:
 Note: Replace BigQuery project id, dataset id and table name:
 
@@ -409,11 +409,11 @@ WHERE
 ````
 
 8. After making sure that query is returning results, replace it in the Data studio, click on the ‘Reconnect’ button in the data source pane.
-<img src="quota-monitoring-alerting/img/ds_data_source_config_step_3.png" align="center" />
+<img src="img/ds_data_source_config_step_3.png" align="center" />
 9. In the next window, click on the ‘Done’ button.
-<img src="quota-monitoring-alerting/img/ds_data_source_config_step_2.png" align="center" />
+<img src="img/ds_data_source_config_step_2.png" align="center" />
 10. Click on ‘Region’ tab and repeat steps from 5 - 9 above with different query:
-<img src="quota-monitoring-alerting/img/ds_region_datasource_config.png" align="center" />
+<img src="img/ds_region_datasource_config.png" align="center" />
 And query is as follows: (Replace the project id, dataset id and table name and verify query running in Bigquery editor)
 
 ```
@@ -456,12 +456,12 @@ WHERE
 
 11. Once the data source is configured, click on the ‘View’ button on the top right corner. 
 Note: make additional changes in the layout like which metrics to be displayed on Dashboard, color shades for consumption column, number of rows for each table etc in the ‘Edit’ mode.
-<img src="quota-monitoring-alerting/img/ds_switch_view_mode.png" align="center" />
+<img src="img/ds_switch_view_mode.png" align="center" />
 
 ### 3.11 Scheduled Reporting
 Quota monitoring reports can be scheduled from the Data Studio dashboard using ‘Schedule email delivery’. The screenshot of the Data studio dashboard will be delivered as a pdf report to the configured email Ids.
 
-<img src="quota-monitoring-alerting/img/datastudio_schedule_email.png" align="center" />
+<img src="img/datastudio_schedule_email.png" align="center" />
 
 ## 4. What is Next? 
 1. Include quota metrics beyond compute
