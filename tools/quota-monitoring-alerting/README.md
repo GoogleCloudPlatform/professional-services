@@ -10,7 +10,7 @@ We are introducing a new custom quota monitoring and alerting solution for Googl
 ## 1. Summary
 Quota Monitoring Solution is a stand-alone application of an easy-to-deploy Data Studio dashboard with alerting capabilities showing all usage and quota limits in an organization or folder.
 ### 1.1 Four Initial Features
-<img src="quota-monitoring-alerting/img/quota_monitoring_key_features.png" align="center" />
+<img src="img/quota_monitoring_key_features.png" align="center" />
 
 *The data refresh rate depends on the configured frequency to run the application.
 ## 2. Architecture
