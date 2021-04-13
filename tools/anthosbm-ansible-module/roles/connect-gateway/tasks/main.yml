@@ -1,0 +1,61 @@
+# Copyright 2021 Google LLC
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#     http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Enable Google Cloud APIs
+  shell: >
+    gcloud services enable --project "{{ project_id }}"
+    connectgateway.googleapis.com
+    cloudbuild.googleapis.com
+
+- name: Grant gkehub.gatewayAdmin role to members
+  shell: gcloud projects add-iam-policy-binding "{{ project_id }}" --member "{{ item }}" --role roles/gkehub.gatewayAdmin
+  with_items: " {{ cgw_members }}"
+
+- name: Grant gkehub.viewer role to members
+  shell: gcloud projects add-iam-policy-binding "{{ project_id }}" --member "{{ item }}" --role roles/gkehub.viewer
+  with_items: " {{ cgw_members }}"
+
+- name: Create impersonate manifest file
+  ansible.builtin.template:
+    src: impersonate.yaml.j2
+    dest: "{{ login_user_home }}/impersonate.yaml"
+    owner: "{{ login_user }}"
+    group: "{{ login_user_group }}"
+
+- name: Create admin permission manifest file
+  ansible.builtin.template:
+    src: admin-permission.yaml.j2
+    dest: "{{ login_user_home }}/admin-permission.yaml"
+    owner: "{{ login_user }}"
+    group: "{{ login_user_group }}"
+
+- name: Apply impersonate.yaml
+  shell: > 
+    kubectl --kubeconfig="{{ login_user_home }}/bmctl-workspace/{{ cluster_name }}/{{ cluster_name }}-kubeconfig"
+    apply -f "{{ login_user_home }}/impersonate.yaml"
+
+- name: Delete impersonate.yaml file
+  ansible.builtin.file:
+    path: "{{ login_user_home }}/impersonate.yaml"
+    state: absent
+
+- name: Apply admin-permission.yaml
+  shell: > 
+    kubectl --kubeconfig="{{ login_user_home }}/bmctl-workspace/{{ cluster_name }}/{{ cluster_name }}-kubeconfig"
+    apply -f "{{ login_user_home }}/admin-permission.yaml"
+
+- name: Delete impersonate.yaml file
+  ansible.builtin.file:
+    path: "{{ login_user_home }}/admin-permission.yaml"
+    state: absent
