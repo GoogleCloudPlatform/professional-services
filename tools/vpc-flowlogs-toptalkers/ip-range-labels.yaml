@@ -2,7 +2,7 @@
 # https://www.gstatic.com/ipranges/goog.json published: 2021-04-17T10:01:41.646
 # https://www.gstatic.com/ipranges/cloud.json published: 2021-04-17T10:01:41.646
 ipv4_range_labels:
- - ["network-reserved-ip", "10.0.0.0", "10.0.1.255"]
+ - ["example-custom-ip-range", "10.0.0.0", "10.0.1.255"]
  - ["restricted.googleapis.com", "199.36.153.4", "199.36.153.7"]
  - ["private.googleapis.com", "199.36.153.8", "199.36.153.11"]
  - ["Google IPv4 CIDR", "8.8.4.0", "8.8.4.255"]
