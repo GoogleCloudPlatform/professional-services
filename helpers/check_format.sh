@@ -19,6 +19,9 @@
 #
 # The following languages are currently supported:
 # - python (using yapf)
+# - golang (using gofmt)
+# - typescript (using npm)
+# - java (using google-java-format 1.7)
 
 # need_formatting - helper function to error out when
 # a folder contains files that need formatting
