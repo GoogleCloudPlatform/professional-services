@@ -1,0 +1,12 @@
+ipv4_range_labels:
+   "10.0.0.0/23": "example-custom-ip-range"
+   "199.36.153.4/30": "restricted.googleapis.com"
+   "199.36.153.8/30": "private.googleapis.com"
+ipv6_range_labels:
+   #"fd00::/8": "on-prem-system1"
+port_labels:
+   22: "ssh"
+   80: "http"
+   443: "https"
+   8443: "gae" 
+   10402: "gae"

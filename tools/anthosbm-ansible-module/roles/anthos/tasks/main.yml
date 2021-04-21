@@ -1,0 +1,107 @@
+# Copyright 2021 Google LLC
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#     http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Reset ssh connection to allow group changes
+  meta: reset_connection
+  
+- name: Delete bmctl workspace cluster directory if exists
+  ansible.builtin.file:
+    path: "{{ login_user_home }}/{{ bmctl_workspace_dir }}/{{ cluster_name }}"
+    state: absent
+    
+- name: Create bmctl workspace cluster directory
+  ansible.builtin.file:
+    path: "{{ login_user_home }}/{{ bmctl_workspace_dir }}/{{ cluster_name }}"
+    state: directory
+    owner: "{{ login_user }}"
+    group: "{{ login_user_group }}"
+
+- name: Create Cluster Config file
+  ansible.builtin.template:
+    src: cluster.yaml.j2
+    dest: "{{ login_user_home }}/{{ bmctl_workspace_dir }}/{{ cluster_name }}/{{ cluster_name}}.yaml"
+    owner: "{{ login_user }}"
+    group: "{{ login_user_group }}"
+
+- name: Check Config
+  shell:
+    cmd: "bmctl check config -c {{ cluster_name }} --bootstrap-cluster-pod-cidr={{ pod_cidr }} --bootstrap-cluster-service-cidr={{ service_cidr }} --reuse-bootstrap-cluster --keep-bootstrap-cluster"
+    chdir: "{{ login_user_home }}"
+  when: cluster_type != "user"
+
+- name: Preflight check
+  shell:
+    cmd: "bmctl check preflight -c {{ cluster_name }} --bootstrap-cluster-pod-cidr={{ pod_cidr }} --bootstrap-cluster-service-cidr={{ service_cidr }} --reuse-bootstrap-cluster --keep-bootstrap-cluster"
+    chdir: "{{ login_user_home }}"
+  when: cluster_type != "user"
+
+- name: Create Cluster
+  shell:
+    cmd: "bmctl create cluster -c {{ cluster_name }} --bootstrap-cluster-pod-cidr={{ pod_cidr }} --bootstrap-cluster-service-cidr={{ service_cidr }} --reuse-bootstrap-cluster --keep-bootstrap-cluster"
+    chdir: "{{ login_user_home }}"
+  when: cluster_type != "user"
+
+- name: Create User Cluster
+  shell:
+    cmd: "bmctl create cluster -c {{ cluster_name }} --kubeconfig {{ admin_kubeconfig_path }} --bootstrap-cluster-pod-cidr={{ pod_cidr }} --bootstrap-cluster-service-cidr={{ service_cidr }}"
+    chdir: "{{ login_user_home }}"
+  when: cluster_type == "user"
+
+- name: Get kubeconfig location
+  shell: echo "{{ login_user_home }}/{{ bmctl_workspace_dir }}/{{ cluster_name }}/{{ cluster_name }}-kubeconfig"
+  register: kubeconfig_location
+
+- name: Print Kubeconfig file location
+  ansible.builtin.debug:
+    msg: "Kubeconfig file for the cluster is: {{ kubeconfig_location.stdout }}"
+
+- name: Copy Cloud Console Cluster Role manifest file
+  copy:
+    src: cloud-console-reader.yaml
+    dest: "{{ login_user_home }}/{{ bmctl_workspace_dir }}/{{ cluster_name }}/"
+    
+- name: Create Cloud Console Reader Cluster Role
+  shell:
+    cmd: "kubectl --kubeconfig {{ kubeconfig_location.stdout }} apply -f {{ login_user_home }}/{{ bmctl_workspace_dir }}/{{ cluster_name }}/cloud-console-reader.yaml"
+
+- name: Remove Cloud Console Cluster Role manifest file
+  file: 
+    path: "{{ login_user_home }}/{{ bmctl_workspace_dir }}/{{ cluster_name }}/cloud-console-reader.yaml"
+    state: absent
+
+- name: Create Kubernetes Service Account
+  shell:
+    cmd: "kubectl --kubeconfig {{ kubeconfig_location.stdout }} create serviceaccount anthos-ksa"
+
+- name: Grant view cluster role to Kubernetes Service Account
+  shell:
+    cmd: "kubectl --kubeconfig {{ kubeconfig_location.stdout }} create clusterrolebinding anthos-cluster-view --clusterrole view --serviceaccount default:anthos-ksa"
+
+- name: Grant Cloud Console Reader cluster role to Kubernetes Service Account
+  shell:
+    cmd: "kubectl --kubeconfig {{ kubeconfig_location.stdout }} create clusterrolebinding anthos-cloud-console-reader --clusterrole cloud-console-reader --serviceaccount default:anthos-ksa"
+
+- name: Get Kubernetes Service Account Secret Name
+  shell: 
+    cmd: "kubectl --kubeconfig {{ kubeconfig_location.stdout }} get serviceaccount anthos-ksa -o jsonpath='{$.secrets[0].name}'"
+  register: secret_name
+
+- name: Get Authentication Token
+  shell: 
+    cmd: "kubectl --kubeconfig {{ kubeconfig_location.stdout }} get secret {{ secret_name.stdout }} -o jsonpath='{$.data.token}' | base64 --decode"
+  register: auth_token
+
+- name: Print Authentication Token
+  ansible.builtin.debug:
+    msg: "{{ auth_token.stdout }}"
