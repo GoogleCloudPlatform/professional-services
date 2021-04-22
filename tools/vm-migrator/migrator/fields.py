@@ -21,6 +21,8 @@ HEADERS = [
     'internal_ip', 'alias_ip_1', 'alias_ip_name_1', 'range_name_1',
     'alias_ip_2', 'alias_ip_name_2', 'range_name_2', 'alias_ip_3',
     'alias_ip_name_3', 'range_name_3', 'alias_ip_4', 'alias_ip_name_4',
+    'alias_ip_name_5', 'range_name_5', 'alias_ip_6', 'alias_ip_name_6',
+    'alias_ip_name_7', 'range_name_7', 'alias_ip_8', 'alias_ip_name_8',
     'range_name_4', 'node_group', 'disk_name_1', 'device_name_1',
     'disk_name_2', 'device_name_2', 'disk_name_3', 'device_name_3',
     'disk_name_4', 'device_name_4', 'disk_name_5', 'device_name_5',
