@@ -193,7 +193,7 @@ def delete(project, zone, name):
 
 
 def get_region_from_zone(zone):
-    match = re.search(r'(\w+)-(\w+)-(\w+)', zone)
+    match = re.search(r'(\w+)-(\w+)-(\w+)', zone.split('/')[-1])
     if len(match.groups()) != 3:
         raise InvalidFormatException('Invalid Zone Format')
     return match.group(1) + '-' + match.group(2)
