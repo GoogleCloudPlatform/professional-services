@@ -144,6 +144,12 @@ def export_instances(project, zone, zone_2, zone_3, subnet, file_name):
                 csv['node_group'] = instance.get_node_group(instances)
 
             mydict.append(csv)
+        else:
+            logging.debug(
+                'Ignoring VM {} in subnet {} (looking for subnet {})'.format(
+                    instances['name'],
+                    instances['networkInterfaces'][0]['subnetwork'], subnet))
+
         with open(file_name, 'w') as csvfile:
 
             writer = DictWriter(csvfile, fieldnames=headers)
