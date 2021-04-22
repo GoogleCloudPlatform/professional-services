@@ -111,11 +111,6 @@ def export_instances(project, zone, zone_2, zone_3, subnet, file_name):
                 'subnet': instances['networkInterfaces'][0]['subnetwork']
             }
 
-            logging.debug('Instance {} is in the right network'.format(
-                instances['name']))
-            from pprint import pformat
-            logging.debug(pformat(instances))
-
             for i, disks in enumerate(instances['disks']):
                 if i < 9:
                     csv['device_name_' + str(i + 1)] = disks['deviceName']
