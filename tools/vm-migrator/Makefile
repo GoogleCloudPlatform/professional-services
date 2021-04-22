@@ -6,10 +6,10 @@ MACHINE_IMAGE_REGION=us-central1
 SOURCE_CSV=source.csv # actual default value
 INPUT_CSV=export.csv
 
-SOURCE_PROJECT=delivery-center-poc
-SOURCE_REGION=europe-west3
-SOURCE_SUBNETWORK=test
-SOURCE_ZONE=europe-west3-c
+SOURCE_PROJECT=lgandras-sap-netweaver-ha
+SOURCE_REGION=us-central1
+SOURCE_SUBNETWORK=default
+SOURCE_ZONE=us-central1-a
 SOURCE_ZONE_2=
 SOURCE_ZONE_3=
 
@@ -24,7 +24,7 @@ TARGET_SUBNETWORK=default
 # actual default values
 EXPORT_CSV=export.csv
 FILTER_CSV=filter.csv
-LOG_LEVEL=INFO
+LOG_LEVEL=DEBUG
 
 STEP=prepare_inventory 
 #  The steps can be any of prepare_inventory | filter_inventory | 
