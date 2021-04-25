@@ -24,6 +24,12 @@ resource "google_cloud_asset_organization_feed" "main" {
   asset_types = [
     "compute.googleapis.com/Firewall",
   ]
+  
+  condition {
+    expression  = "!temporal_asset.deleted"
+    title       = "Not deleted"
+    description = "Send notification only when created"
+  }
 
   feed_output_config {
     pubsub_destination {
@@ -142,6 +148,6 @@ resource "google_organization_iam_member" "function" {
 
 resource "google_project_iam_member" "function_logger" {
   project = var.project_id
-  member = "serviceAccount:${google_service_account.function.email}"
-  role   = "roles/logging.logWriter"
+  member  = "serviceAccount:${google_service_account.function.email}"
+  role    = "roles/logging.logWriter"
 }
