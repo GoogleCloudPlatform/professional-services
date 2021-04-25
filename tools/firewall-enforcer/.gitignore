@@ -1,4 +1,3 @@
 .terraform*
 *.tfstate*
-__pycache__
 index.zip
