@@ -12,16 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
 import base64
 import json
 import re
 import time
 from googleapiclient.discovery import build
-import google.cloud.logging
-
-logging_client = google.cloud.logging.Client()
-logging_client.setup_logging()
 
 
 def main(event, ctx):
@@ -31,7 +26,7 @@ def main(event, ctx):
     payload = base64.b64decode(event['data']).decode('utf-8')
     payload = json.loads(payload)
 
-    logging.debug(payload)
+    print(payload)
     data = payload['asset']['resource']['data']
 
     if should_delete(data):
@@ -50,5 +45,5 @@ def delete_rule(data):
     project = re.search('projects/([\w-]+)/', self_link).group(1)
     firewall = re.search('firewalls/([\w-]+)', self_link).group(1)
     svc = build('compute', 'v1')
-    svc.firewalls().delete(project=project, firewall=firewall)
-    logging.info(f'Deleted firewall: {self_link}')
+    svc.firewalls().delete(project=project, firewall=firewall).execute()
+    print(f'Deleted firewall: {self_link}')
