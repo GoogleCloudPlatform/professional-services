@@ -1,15 +1,15 @@
 # PostgreSQL Auto SSL Connection Using Cloud SQL Proxy
 
-## Summary 
+## Summary
 
-PostgreSQL uses application-level protocol negotation for SSL connection. Istio Proxy currently uses TCP-level protocol negotation, so Istio Proxy sidecar errors out during SSL handshake when it tries to auto encryt connection with PostgreSQL. Please follow the steps in [PostgreSQL Auto SSL Connection Problem Using Istio Sidecar](./Istio-Sidecar.md) to see the details of this issue. 
+PostgreSQL uses application-level protocol negotiation for SSL connection. Istio Proxy currently uses TCP-level protocol negotiation, so Istio Proxy sidecar errors out during SSL handshake when it tries to auto encrypt connection with PostgreSQL. Please follow the steps in [PostgreSQL Auto SSL Connection Problem Using Istio Sidecar](./Istio-Sidecar.md) to see the details of this issue.
 
-Because ASM Istio Proxy sidecar doesn't work with PostgreSQL SSL auto encryption, we demostrate how to use Cloud SQL Proxy to auto encrypt SSL connection with Cloud SQL PostgreSQL database in this article. 
+Because ASM Istio Proxy sidecar doesn't work with PostgreSQL SSL auto encryption, we demonstrate how to use Cloud SQL Proxy to auto encrypt SSL connection with Cloud SQL PostgreSQL database in this article.
 
-## Prerequites
+## Prerequisites
 
 * Enforce SSL connection on Cloud SQL PostgreSQL instance.
-* **We don't need certificates for Cloud SQL Proxy connection.** However, we will create client certificate and download client certificate, client key and server certificate for the purpose of initial SSL connection without sidecar auto-encryption. Instructions for downloading Cloud SQL for PostreSQL certificates is on this page: [Configuring SSL/TLS certificates](https://cloud.google.com/sql/docs/postgres/configure-ssl-instance)
+* **We don't need certificates for Cloud SQL Proxy connection.** However, we will create client certificate and download client certificate, client key and server certificate for the purpose of initial SSL connection without sidecar auto-encryption. Instructions for downloading Cloud SQL for PostgreSQL certificates is on this page: [Configuring SSL/TLS certificates](https://cloud.google.com/sql/docs/postgres/configure-ssl-instance)
 * Add K8s node IPs to the Authorized Networks of PostgreSQL instance. Or, we can add "0.0.0.0/0" to allow client connection from any IP address for testing purpose. 
 
 ## Build Container
