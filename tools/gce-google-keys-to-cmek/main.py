@@ -93,6 +93,8 @@ def migrate_instance_to_cmek(project, zone, instance, key_ring, key_name,
 
   zone_regexp = r'^(\w\w-\w*\d)-(\w)$'
   region = re.search(zone_regexp, zone).group(1)
+  key_name = 'projects/{0}/locations/{1}/keyRings/{2}/cryptoKeys/{3}/cryptoKeyVersions/{4}'.format(
+        project, region, key_ring, key_name, key_version)
 
   compute = googleapiclient.discovery.build('compute', 'v1')
 
@@ -102,6 +104,7 @@ def migrate_instance_to_cmek(project, zone, instance, key_ring, key_name,
     disk_regexp = r'^https:\/\/www\.googleapis\.com\/compute\/v1\/projects\/(.*?)\/zones\/(.*?)\/disks\/(.*?)$'
     disk_url = source_disk['source']
     existing_disk_name = re.search(disk_regexp, disk_url).group(3)
+    device_name = source_disk['deviceName']
 
     if 'diskEncryptionKey' in source_disk:
       logging.info('Skipping %s, already encrypyed with %s', existing_disk_name,
@@ -113,11 +116,9 @@ def migrate_instance_to_cmek(project, zone, instance, key_ring, key_name,
     disk_type = get_disk_type(compute, project, zone, existing_disk_name)
 
     create_snapshot(compute, project, zone, existing_disk_name, snapshot_name)
-    key_name = 'projects/{0}/locations/{1}/keyRings/{2}/cryptoKeys/{3}/cryptoKeyVersions/{4}'.format(
-        project, region, key_ring, key_name, key_version)
     create_disk(compute, project, region, zone, snapshot_name, new_disk_name,
                 disk_type, key_name)
-    detach_disk(compute, project, zone, instance, existing_disk_name)
+    detach_disk(compute, project, zone, instance, device_name)
 
     boot = source_disk['boot']
     auto_delete = source_disk['autoDelete']
@@ -291,7 +292,7 @@ def wait_for_zonal_operation(compute, project, zone, operation):
 
 def _wait_for_operation(operation, build_request):
   """Helper for waiting for operation to complete."""
-  logging.debug('Waiting for %s', operation, end='')
+  logging.debug('Waiting for %s', operation)
   while True:
     sys.stdout.flush()
     result = build_request().execute()
