@@ -17,7 +17,8 @@ This file is used to maintain mapping of different node groups.
 """
 
 FIND = {
-    "us-west1-a": "us-west1-c",
+    "us-central1-a": "europe-west3-c",
+    "europe-west3-c": "us-central1-b",
     "us-west1-b": "us-west1-c",
     "us-west1-c": "us-west1-c"
 }

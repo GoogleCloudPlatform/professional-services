@@ -16,53 +16,41 @@
 This file provides functionality related to migrating disks.
 """
 
-import re
 import logging
 from . import instance
 from . import machine_image
-from .exceptions import InvalidFormatException, NotFoundException
+from .exceptions import NotFoundException
 from ratemate import RateLimit
+from . import uri
 
 DISK_RATE_LIMIT = RateLimit(max_count=2000, per=100)
 
 
-def parse_self_link(self_link):
-    if self_link.startswith('projects'):
-        self_link = '/' + self_link
-    response = re.search(r'\/projects\/(.*?)\/zones\/(.*?)\/disks\/(.*?)$',
-                         self_link)
-    if len(response.groups()) != 3:
-        raise InvalidFormatException('Invalid SelfLink Format')
-    return {
-        'name': response.group(3),
-        'zone': response.group(2),
-        'project': response.group(1)
-    }
+def delete_disk(disk, project_zone: uri.ProjectZone, disk_name: str):
+    logging.info('Deleting Disk %s ', disk_name)
+    return disk.delete(project=project_zone.project, zone=project_zone.zone,
+                       disk=disk_name).execute()
 
 
-def delete_disk(disk, project, zone, name):
-    logging.info('Deleting Disk %s ', name)
-    return disk.delete(project=project, zone=zone, disk=name).execute()
-
-
-def delete(project, zone, instance_name, disk_name):
+def delete(instance_uri: uri.Instance, disk_name):
     try:
         waited_time = DISK_RATE_LIMIT.wait()  # wait before starting the task
         logging.info('  task: waited for %s secs', waited_time)
         compute = instance.get_compute()
-        image = machine_image.get(project, instance_name)
+        image = machine_image.get(instance_uri.project, instance_uri.name)
         if image:
             logging.info('Found machine image can safely delete the disk %s',
                          disk_name)
             disks = compute.disks()
             try:
-                disk = disks.get(project=project, zone=zone,
+                disk = disks.get(project=instance_uri.project,
+                                 zone=instance_uri.zone,
                                  disk=disk_name).execute()
             except Exception:
                 disk = None
             if disk:
-                delete_operation = delete_disk(disks, project, zone, disk_name)
-                instance.wait_for_zonal_operation(compute, project, zone,
+                delete_operation = delete_disk(disks, instance_uri, disk_name)
+                instance.wait_for_zonal_operation(compute, instance_uri,
                                                   delete_operation['name'])
             return disk_name
         else:

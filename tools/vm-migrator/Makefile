@@ -6,8 +6,8 @@ MACHINE_IMAGE_REGION=europe-west3
 SOURCE_CSV=source.csv # actual default value
 INPUT_CSV=export.csv
 
-SOURCE_PROJECT=lgandras-appenflex-svpc
-SOURCE_SUBNET=projects/bamberg-negilbpoc/regions/europe-west3/subnetworks/internal-https-load-balancer
+SOURCE_PROJECT=my-service-project
+SOURCE_SUBNET=projects/my-host-project/regions/europe-west3/subnetworks/source-subnet
 SOURCE_ZONE=europe-west3-c
 SOURCE_ZONE_2=
 SOURCE_ZONE_3=
@@ -17,7 +17,7 @@ SOURCE_ZONE_3=
 # use the default target service account
 #TARGET_PROJECT_SA=
 #TARGET_PROJECT_SA_SCOPES=https://www.googleapis.com/auth/cloud-platform
-TARGET_SUBNET=projects/bamberg-negilbpoc/regions/europe-west3/subnetworks/internal-https-load-balancer
+TARGET_SUBNET=projects/my-host-project/regions/us-central1/subnetworks/target-subnet
 
 # actual default values
 EXPORT_CSV=export.csv
@@ -49,6 +49,10 @@ install-requirements:
 
 install:
 	pip3 install -e . 
+
+.PHONY: test
+test:
+	pytest --import-mode=importlib
 
 format:
 	find . -type f -name "*.py" | xargs yapf -i -r 

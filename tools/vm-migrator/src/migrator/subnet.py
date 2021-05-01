@@ -16,15 +16,14 @@
 This file deals with operations on subnets.
 """
 import time
-import re
 import logging
 import googleapiclient.discovery
 from googleapiclient.errors import HttpError
 from csv import DictWriter
-from .exceptions import GCPOperationException, InvalidFormatException
+from .exceptions import GCPOperationException
 from . import instance
-from . import disk
 from . import fields
+from . import uri
 
 
 def get_compute():
@@ -36,9 +35,8 @@ def get_compute():
     return compute
 
 
-def get_alias_ip_name(project, region, subnet, ip):
+def get_alias_ip_name(instance_uri: uri.Instance, subnet_uri: uri.Subnet, ip):
     compute = get_compute()
-    subnet = 'https://www.googleapis.com/compute/beta/' + subnet
 
     if ip.endswith('/32'):
         # Extract the ip address from something like 10.0.0.2/32
@@ -48,9 +46,10 @@ def get_alias_ip_name(project, region, subnet, ip):
         return None
     # Subnet should be of the form
     # https://www.googleapis.com/compute/beta/projects/pso-suchit/regions/us-east1/subnetworks/sub-01
-    ips = compute.addresses().list(project=project,
-                                   region=region,
-                                   filter='(subnetwork="' + subnet +
+    ips = compute.addresses().list(project=instance_uri.project,
+                                   region=instance_uri.region,
+                                   filter='(subnetwork="' +
+                                   subnet_uri.abs_beta_uri +
                                    '") (address="' + ip + '")').execute()
     if ips.get('items') and len(ips.get('items')) == 1:
         ip_details = ips.get('items')[0]
@@ -60,14 +59,15 @@ def get_alias_ip_name(project, region, subnet, ip):
         return None
 
 
-def export_instances(project, zone, zone_2, zone_3, subnet, file_name):
+def export_instances(project, zone, zone_2, zone_3, subnet_uri: uri.Subnet,
+                     file_name):
     compute = get_compute()
 
     result_zone_2 = {}
     result_zone_3 = {}
 
     logging.info('fetching the inventory for the source subnet %s and zone %s',
-                 subnet, zone)
+                 subnet_uri.uri, zone)
     result = compute.instances().list(project=project,
                                       zone=zone,
                                       maxResults=10000).execute()
@@ -77,14 +77,14 @@ def export_instances(project, zone, zone_2, zone_3, subnet, file_name):
     if zone_2:
         logging.info(
             'fectching the inventory for the source subnet %s and zone %s',
-            subnet, zone_2)
+            subnet_uri.uri, zone_2)
         result_zone_2 = compute.instances().list(project=project,
                                                  zone=zone_2,
                                                  maxResults=10000).execute()
     if zone_3:
         logging.info(
             'fectching the inventory for the source subnet %s and zone %s',
-            subnet, zone_3)
+            subnet_uri.uri, zone_3)
         result_zone_3 = compute.instances().list(project=project,
                                                  zone=zone_3,
                                                  maxResults=10000).execute()
@@ -100,7 +100,8 @@ def export_instances(project, zone, zone_2, zone_3, subnet, file_name):
     for instances in result['items']:
 
         headers = fields.HEADERS
-        if instances['networkInterfaces'][0]['subnetwork'].endswith(subnet):
+        if instances['networkInterfaces'][0]['subnetwork'] \
+                .endswith(subnet_uri.uri):
             csv = {
                 'name': instances['name'],
                 'id': instances['id'],
@@ -110,18 +111,17 @@ def export_instances(project, zone, zone_2, zone_3, subnet, file_name):
                 'internal_ip': instances['networkInterfaces'][0]['networkIP'],
                 'subnet': instances['networkInterfaces'][0]['subnetwork']
             }
+            instance_uri = uri.Instance.from_uri(instances['selfLink'])
 
             for i, disks in enumerate(instances['disks']):
+                disk_uri = uri.Disk.from_uri(disks['source'])
                 if i < 9:
                     csv['device_name_' + str(i + 1)] = disks['deviceName']
-                    csv['disk_name_' + str(i + 1)] = disk.parse_self_link(
-                        disks['source'])['name']
+                    csv['disk_name_' + str(i + 1)] = disk_uri.name
                 else:
                     logging.warning(
                         'Too many disks: dropping disk name %s with and '
-                        'device name %s',
-                        disk.parse_self_link(disks['source'])['name'],
-                        disks['deviceName'])
+                        'device name %s', disk_uri.name, disks['deviceName'])
 
             alias_ips = instances['networkInterfaces'][0].get('aliasIpRanges')
             if alias_ips:
@@ -129,10 +129,8 @@ def export_instances(project, zone, zone_2, zone_3, subnet, file_name):
                 for i in range(len(alias_ips)):
                     csv['alias_ip_' + str(i + 1)] = alias_ips[i]['ipCidrRange']
 
-                    ip_name = get_alias_ip_name(
-                        project,
-                        instance.get_region_from_zone(instances['zone']),
-                        subnet, alias_ips[i]['ipCidrRange'])
+                    ip_name = get_alias_ip_name(instance_uri, subnet_uri,
+                                                alias_ips[i]['ipCidrRange'])
                     if ip_name:
                         csv['alias_ip_name_' + str(i + 1)] = ip_name
 
@@ -148,7 +146,7 @@ def export_instances(project, zone, zone_2, zone_3, subnet, file_name):
             logging.debug(
                 'Ignoring VM {} in subnet {} (looking for subnet {})'.format(
                     instances['name'],
-                    instances['networkInterfaces'][0]['subnetwork'], subnet))
+                    instances['networkInterfaces'][0]['subnetwork'], subnet_uri.uri))
 
         with open(file_name, 'w') as csvfile:
 
@@ -160,50 +158,55 @@ def export_instances(project, zone, zone_2, zone_3, subnet, file_name):
                      file_name)
 
 
-def release(compute, project, region, address):
+def release(compute, project_region_uri: uri.ProjectRegion, address):
     try:
         logging.info('Releasing ip %s', address)
-        result = compute.addresses().delete(project=project,
-                                            region=region,
+        result = compute.addresses().delete(project=project_region_uri.project,
+                                            region=project_region_uri.region,
                                             address=address).execute()
-        wait_for_operation(compute, project, region, result['name'])
+        wait_for_operation(compute, project_region_uri, result['name'])
     except HttpError as err:
         logging.error('The IP address %s was not found', address)
         logging.error(err)
         print(err)
 
 
-def release_specific_ips(project, region, ips):
+def release_specific_ips(instance_uri: uri.Instance, ips):
     compute = get_compute()
     for address in ips:
-        release(compute, project, region, address)
+        release(compute, instance_uri, address)
 
 
-def release_ip(project, region, subnet):
+def release_ip(project: str, subnet_uri: uri.Subnet):
     compute = get_compute()
-    region = get_region(subnet)
-    subnet = 'https://www.googleapis.com/compute/beta/' + subnet
+
     # Subnet should be of the form
     # https://www.googleapis.com/compute/beta/projects/pso-suchit/regions/us-east1/subnetworks/sub-01
+    # The project is where the VMs are,
+    # which can be different from the host project where the subnet lives
     ips = compute.addresses().list(project=project,
-                                   region=region,
-                                   filter='subnetwork="' + subnet +
-                                   '"').execute()
+                                   region=subnet_uri.region,
+                                   filter='subnetwork="' +
+                                   subnet_uri.abs_beta_uri + '"').execute()
     if ips.get('items'):
         for addresses in ips['items']:
             ip_name = addresses['name']
-            release(compute, project, region, ip_name)
+            release(compute, uri.ProjectRegion(project, subnet_uri.region),
+                    ip_name)
     else:
         logging.warn(
-            'No reserved internal IP addresses found in the subnet %s', subnet)
+            'No reserved internal IP addresses found in the subnet %s',
+            subnet_uri.uri)
 
 
-def wait_for_operation(compute, project, region, operation):
+def wait_for_operation(compute, project_region_uri: uri.ProjectRegion,
+                       operation):
     logging.info('Waiting for operation to finish...')
     while True:
-        result = compute.regionOperations().get(project=project,
-                                                region=region,
-                                                operation=operation).execute()
+        result = compute.regionOperations() \
+            .get(project=project_region_uri.project,
+                 region=project_region_uri.region,
+                 operation=operation).execute()
 
         if result['status'] == 'DONE':
             logging.info('done.')
@@ -215,69 +218,39 @@ def wait_for_operation(compute, project, region, operation):
         time.sleep(5)
 
 
-def duplicate(project, source_subnet, destination_project, destination_subnet):
+def duplicate(source_subnet_uri: uri.Subnet, target_subnet_uri: uri.Subnet):
     compute = get_compute()
-    source_region = get_region(source_subnet)
-    destination_region = get_region(destination_subnet)
-    subnet_request = compute.subnetworks().get(project=project,
-                                               region=source_region,
-                                               subnetwork=source_subnet)
+    subnet_request = compute.subnetworks() \
+        .get(project=source_subnet_uri.project,
+             region=source_subnet_uri.region,
+             subnetwork=source_subnet_uri.name)
     config = subnet_request.execute()
-    config['region'] = destination_region
-    logging.info('starting subnet %s deletion', source_subnet)
-    delete_operation = delete_subnetwork(compute, project, source_region,
-                                         source_subnet)
-    wait_for_operation(compute, project, source_region,
-                       delete_operation['name'])
-    logging.info('subnet %s deleted successfully', source_subnet)
+    config['region'] = target_subnet_uri.region
+    logging.info('starting subnet %s deletion', source_subnet_uri.uri)
+    delete_operation = delete_subnetwork(compute, source_subnet_uri)
+    wait_for_operation(compute, source_subnet_uri, delete_operation['name'])
+    logging.info('subnet %s deleted successfully', source_subnet_uri.uri)
 
-    logging.info('re creating subnet %s in region %s', source_subnet,
-                 destination_region)
-    del config["selfLink"]
-    config["name"] = destination_subnet
+    logging.info('re creating subnet %s', target_subnet_uri.uri)
+    del config['selfLink']
+    config['name'] = target_subnet_uri.name
     insert_operation = \
-        compute.subnetworks() .insert(project=destination_project,
-                                      region=destination_region,
-                                      body=config).execute()
-    wait_for_operation(compute, destination_project, destination_region,
-                       insert_operation['name'])
+        compute.subnetworks().insert(project=target_subnet_uri.project,
+                                     region=target_subnet_uri.region,
+                                     body=config).execute()
+    wait_for_operation(compute, target_subnet_uri, insert_operation['name'])
     logging.info('new subnet added successfully')
 
 
-def get_region(subnet_selflink):
-    if subnet_selflink.startswith('projects'):
-        subnet_selflink = '/' + subnet_selflink
-    response = \
-        re.search(r'\/projects\/(.*?)\/regions\/(.*?)\/subnetworks\/(.*?)$',
-                  subnet_selflink)
-    if len(response.groups()) != 3:
-        raise InvalidFormatException('Invalid SelfLink Format')
-    return response.group(2)
-
-
-def get_network(subnet_selflink):
-    if subnet_selflink.startswith('projects'):
-        subnet_selflink = '/' + subnet_selflink
-    response = \
-        re.search(r'\/projects\/(.*?)\/regions\/(.*?)\/subnetworks\/(.*?)$',
-                  subnet_selflink)
-    if len(response.groups()) != 3:
-        raise InvalidFormatException('Invalid SelfLink Format')
-
+def get_network(subnet_uri: uri.Subnet):
     result = \
-        get_compute().subnetworks().get(project=response.group(1),
-                                        region=response.group(2),
-                                        subnetwork=response.group(3)).execute()
+        get_compute().subnetworks().get(project=subnet_uri.project,
+                                        region=subnet_uri.region,
+                                        subnetwork=subnet_uri.name).execute()
     return result['network'] if 'network' in result else None
 
 
-def list_subnets(compute, project, region):
-    result = compute.subnetworks().list(project=project,
-                                        region=region).execute()
-    return result['items'] if 'items' in result else None
-
-
-def delete_subnetwork(compute, project, region, subnetwork):
-    return compute.subnetworks().delete(project=project,
-                                        region=region,
-                                        subnetwork=subnetwork).execute()
+def delete_subnetwork(compute, subnet_uri: uri.Subnet):
+    return compute.subnetworks().delete(project=subnet_uri.project,
+                                        region=subnet_uri.region,
+                                        subnetwork=subnet_uri.name).execute()
