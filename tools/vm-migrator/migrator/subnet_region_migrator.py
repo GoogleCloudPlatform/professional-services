@@ -227,7 +227,7 @@ def set_machineimage_iampolicies(file_name, source_project,
 def bulk_create_instances(file_name, target_project, target_service_account,
                           target_scopes, target_subnet, source_project,
                           retain_ip):
-    target_network_selflink = subnet.get_network(target_subnet)
+    target_network = subnet.get_network(target_subnet)
     with open(file_name, 'r') as read_obj:
         csv_dict_reader = DictReader(read_obj)
         count = 0
@@ -243,8 +243,8 @@ def bulk_create_instances(file_name, target_project, target_service_account,
                 if retain_ip:
                     ip = row['internal_ip']
 
-                if target_network_selflink:
-                    row['network'] = target_network_selflink
+                if target_network:
+                    row['network'] = target_network
 
                 parsed_link = instance.parse_self_link(row['self_link'])
                 alias_ip_ranges = []
@@ -378,21 +378,17 @@ def release_ips_from_file(file_name):
 
 
 # main function
-def main(step, machine_image_region,
-         source_project, source_region, source_subnetwork,
-         source_zone, source_zone_2, source_zone_3,
-         target_project, target_service_account, target_scopes,
-         target_region, target_subnetwork,
-         source_csv, filter_csv, input_csv, log_level):
+def main(step, machine_image_region, source_project, source_subnet,
+         source_zone, source_zone_2, source_zone_3, target_project,
+         target_service_account, target_scopes, target_subnet, source_csv,
+         filter_csv, input_csv, log_level):
     """
     The main method to trigger the VM migration.
     """
     if not target_project:
         target_project = source_project
-    if not target_region:
-        target_region = source_region
-    if not target_subnetwork:
-        target_subnetwork = source_subnetwork
+    if not target_subnet:
+        target_subnet = source_subnet
     if source_project != target_project:
         if not target_service_account:
             target_service_account = \
@@ -409,11 +405,6 @@ def main(step, machine_image_region,
                 'https://www.googleapis.com/auth/servicecontrol'
             ]
 
-    target_subnet_selflink = 'projects/{}/regions/{}/subnetworks/{}'.format(
-        target_project, target_region, target_subnetwork)
-    source_subnet_selflink = 'projects/{}/regions/{}/subnetworks/{}'.format(
-        source_project, source_region, source_subnetwork)
-
     numeric_level = getattr(logging, log_level.upper(), None)
     if not isinstance(numeric_level, int):
         raise ValueError('Invalid log level: %s' % log_level)
@@ -425,13 +416,11 @@ def main(step, machine_image_region,
     if step == 'prepare_inventory':
         logging.info('Preparing the inventory to be exported')
         subnet.export_instances(source_project, source_zone, source_zone_2,
-                                source_zone_3, source_subnet_selflink,
-                                source_csv)
+                                source_zone_3, source_subnet, source_csv)
     if step == 'filter_inventory':
         logging.info('Preparing the inventory to be exported')
         subnet.export_instances(source_project, source_zone, source_zone_2,
-                                source_zone_3, source_subnet_selflink,
-                                source_csv)
+                                source_zone_3, source_subnet, source_csv)
         logging.info('filtering out the inventory')
         overwrite_file = filter_records(source_csv, filter_csv, input_csv)
         if overwrite_file:
@@ -481,8 +470,8 @@ def main(step, machine_image_region,
 
     if step == 'clone_subnet':
         logging.info('Cloning Subnet')
-        subnet.duplicate(source_project, source_region, source_subnetwork,
-                         target_project, target_region, target_subnetwork)
+        subnet.duplicate(source_project, source_subnet, target_project,
+                         target_subnet)
         logging.info('Subnet sucessfully cloned in the provided region')
 
     if step == 'set_machineimage_iampolicies':
@@ -495,8 +484,7 @@ def main(step, machine_image_region,
         logging.info('Creating machine instances')
         bulk_create_instances(input_csv, target_project,
                               target_service_account, target_scopes,
-                              target_subnet_selflink,
-                              source_project, True)
+                              target_subnet, source_project, True)
         logging.info('Instances created successfully')
 
     if step == 'create_instances_without_ip':
@@ -504,14 +492,12 @@ def main(step, machine_image_region,
             'Creating machine instances without retaining the original ips')
         bulk_create_instances(input_csv, target_project,
                               target_service_account, target_scopes,
-                              target_subnet_selflink,
-                              source_project, False)
+                              target_subnet, source_project, False)
         logging.info('Instances created successfully')
 
     if step == 'release_ip_for_subnet':
         logging.info('Releasing all the Ips present in the subnet')
-        subnet.release_ip(source_project, source_region,
-                          source_subnet_selflink)
+        subnet.release_ip(source_project, source_subnet)
         logging.info('All the IPs of the Subnet released sucessfully')
 
     if step == 'release_ip':
@@ -537,10 +523,8 @@ if __name__ == '__main__':
                         help='Compute Engine region to deploy to.')
     parser.add_argument('--source_project',
                         help='Source project ID')
-    parser.add_argument('--source_region',
-                        help='Source subnetwork name')
-    parser.add_argument('--source_subnetwork',
-                        help='Source subnetwork name')
+    parser.add_argument('--source_subnet',
+                        help='Source subnet uri')
     parser.add_argument('--source_zone',
                         help='Source zone where the existing subnet exist')
     parser.add_argument(
@@ -555,10 +539,8 @@ if __name__ == '__main__':
                         help='Target service account in target project')
     parser.add_argument('--target_project_sa_scopes', help='Target service '
                         'account scopes in the target project')
-    parser.add_argument('--target_region',
-                        help='Target region')
-    parser.add_argument('--target_subnetwork',
-                        help='Target subnetwork name')
+    parser.add_argument('--target_subnet',
+                        help='Target subnet uri')
     parser.add_argument('--source_csv',
                         default='source.csv',
                         help='The csv with the full dump of movable VMs.')
@@ -572,10 +554,8 @@ if __name__ == '__main__':
     parser.add_argument('--log_level', default='INFO', help='Log Level')
     args = parser.parse_args()
 
-    main(args.step, args.machine_image_region,
-         args.source_project, args.source_region, args.source_subnetwork,
-         args.source_zone, args.source_zone_2, args.source_zone_3,
-         args.target_project, args.target_project_sa,
-         args.target_project_sa_scopes, args.target_region,
-         args.target_subnetwork,
-         args.source_csv, args.filter_csv, args.input_csv, args.log_level)
+    main(args.step, args.machine_image_region, args.source_project,
+         args.source_subnet, args.source_zone, args.source_zone_2,
+         args.source_zone_3, args.target_project, args.target_project_sa,
+         args.target_project_sa_scopes, args.target_subnet, args.source_csv,
+         args.filter_csv, args.input_csv, args.log_level)

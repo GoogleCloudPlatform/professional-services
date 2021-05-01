@@ -181,6 +181,7 @@ def release_specific_ips(project, region, ips):
 
 def release_ip(project, region, subnet):
     compute = get_compute()
+    region = get_region(subnet)
     subnet = 'https://www.googleapis.com/compute/beta/' + subnet
     # Subnet should be of the form
     # https://www.googleapis.com/compute/beta/projects/pso-suchit/regions/us-east1/subnetworks/sub-01
@@ -214,18 +215,19 @@ def wait_for_operation(compute, project, region, operation):
         time.sleep(5)
 
 
-def duplicate(project, source_subnet_region, source_subnet,
-              destination_project, destination_region, destination_subnet):
+def duplicate(project, source_subnet, destination_project, destination_subnet):
     compute = get_compute()
+    source_region = get_region(source_subnet)
+    destination_region = get_region(destination_subnet)
     subnet_request = compute.subnetworks().get(project=project,
-                                               region=source_subnet_region,
+                                               region=source_region,
                                                subnetwork=source_subnet)
     config = subnet_request.execute()
     config['region'] = destination_region
     logging.info('starting subnet %s deletion', source_subnet)
-    delete_operation = delete_subnetwork(compute, project,
-                                         source_subnet_region, source_subnet)
-    wait_for_operation(compute, project, source_subnet_region,
+    delete_operation = delete_subnetwork(compute, project, source_region,
+                                         source_subnet)
+    wait_for_operation(compute, project, source_region,
                        delete_operation['name'])
     logging.info('subnet %s deleted successfully', source_subnet)
 
@@ -242,6 +244,17 @@ def duplicate(project, source_subnet_region, source_subnet,
     logging.info('new subnet added successfully')
 
 
+def get_region(subnet_selflink):
+    if subnet_selflink.startswith('projects'):
+        subnet_selflink = '/' + subnet_selflink
+    response = \
+        re.search(r'\/projects\/(.*?)\/regions\/(.*?)\/subnetworks\/(.*?)$',
+                  subnet_selflink)
+    if len(response.groups()) != 3:
+        raise InvalidFormatException('Invalid SelfLink Format')
+    return response.group(2)
+
+
 def get_network(subnet_selflink):
     if subnet_selflink.startswith('projects'):
         subnet_selflink = '/' + subnet_selflink
@@ -251,7 +264,6 @@ def get_network(subnet_selflink):
     if len(response.groups()) != 3:
         raise InvalidFormatException('Invalid SelfLink Format')
 
-    'projects/{project}/regions/{region}/subnetworks/{resourceId}'
     result = \
         get_compute().subnetworks().get(project=response.group(1),
                                         region=response.group(2),

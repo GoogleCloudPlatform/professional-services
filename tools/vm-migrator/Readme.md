@@ -30,17 +30,15 @@ The `Makefile` has different variables which are passed to the subnet_region_mig
 | ------------- | ---------------------------------- |
 | STEP | The name of the step to run |
 | MACHINE_IMAGE_REGION | The region where you want to store your machine images e.g us-central1 |
-| SOURCE_PROJECT | Project ID where the current subnet is located |
-| SOURCE_REGION | Region of the source subnetwork |
-| SOURCE_SUBNETWORK | The source subnetwork name |
+| SOURCE_PROJECT | Project ID where the VMs to be migrated are located |
+| SOURCE_SUBNET | The source subnetwork uri |
 | SOURCE_ZONE | The zone in which the source subnet is present, this is used to fetch the inventory details |
 | SOURCE_ZONE_2 | [Optional] The second zone in which the source subnet is present, this is used to fetch the inventory details |
 | SOURCE_ZONE_3 | [Optional] The third zone in which the source subnet is present, this is used to fetch the inventory details |
-| TARGET_PROJECT | [Optional] If different, the Project ID where the new subnet will exist |
+| TARGET_PROJECT | [Optional] If different from the source project, the Project ID where the new subnet will exist |
 | TARGET_PROJECT_SA | [Optional] Required if the target project is different than the source project. Used as Service Account on the target VMs. |
 | TARGET_PROJECT_SA_SCOPES | [Optional] If the target project is different than the source project, scopes to assign to the Service Account on the VMs |
-| TARGET_REGION | [Optional] If different, the target region where machines will be migrated to |
-| TARGET_SUBNETWORK | [Optional] Leave this argument empty if using `clone_subnet`. Otherwise, if different to `SOURCE_SUBNETWORK`, specify an existing target subnetwork.  |
+| TARGET_SUBNET | [Optional] Leave this argument empty if using `clone_subnet`. Otherwise, if different to `SOURCE_SUBNET`, specify an existing target subnetwork uri.  |
 | SOURCE_CSV | [Optional] (by default `source.csv`) The filename used by `prepare_inventory` |
 | FILTER_CSV | [Optional] (by default `filter.csv`) File that contains the instance names that will be included by `filter_inventory` |
 | INPUT_CSV | [Optional] (by default `export.csv`) The filtered list of machines created by `filter_inventory` used as input for the migration. |
@@ -69,8 +67,8 @@ While we can move all the machines in a subnet to the destination subnet we have
 | release_ip_for_subnet | This will release all the internal static ip addresses of the source subnet | 
 | clone_subnet | This will delete and re create the subnet in the destination region with the same config as the source subnet, this is required when you want to drain the entire subnet and create it in the destination region. Keep in mind that subnets can't be deleted from VPCs with auto subnet mode. |
 | set_machineimage_iampolicies | This will provide the target project service account with the right permissions to access the source project machine images |
-| create_instances | This will create the instances from the machine images in the destination region, it requires the destination subnet to be in place ( if you are cloning the subnet it will automatically be created  ) |
-| create_instances_without_ip | This is similar to the create_instances step jus that it will not preserve the source ips, this is useful in situation when you are moving some of the machine to the destination subnet which has a different CIDR range |
+| create_instances | This will create the instances from the machine images in the destination subnet/region, it requires the destination subnet to be in place ( if you are cloning the subnet it will automatically be created  ) |
+| create_instances_without_ip | This is similar to the create_instances step jus that it will not preserve the source ips, this is useful in situation when you are moving some of the machine to the destination subenet which has a different CIDR range |
 
 ## Running the Utility
 
@@ -84,11 +82,15 @@ Based on the source zones indicated via variables, the respective target zones w
 
 ## Sole Tenant
 
-The file ```node_group_mapping.py``` has the mapping of source and destination node groups if you are moving machines which are running on sole tenants then the create_instances/create_instances_without_ip step will look for mapping of node groups and it finds the mapping it will use the specified node group in the destination region to the run the VM on automatically. 
+The file ```node_group_mapping.py``` has the mapping of source and destination node groups if you are moving machines which are running on sole tenants then the create_instances/create_instances_without_ip step will look for mapping of node groups and it finds the mapping it will use the specified node group in the destination subnet/region to the run the VM on automatically. 
+
+## Shared VPC
+
+In the case of migrating VMs in a Shared VPC, the source and target projects are the service projects where the VMs live. The host project is implicitly indicated in the uri of the source and target subnet.
 
 ## Upgrading Machine Types
 
-If you are planing to migrate machines to a different region and in the process of migration you want to optimize the machine types based on the usage you can do that on the fly by providing the source and destination machine type mappings in ```machine_type_mapping.py``` e.g `n1-standard-1`: `n1-standard-4` would upgrade all the machines running with `n1-standard-1` to `n1-standard-4`
+In the process of migration you can optimize the machine types based on the usage you can do that by providing the source and destination machine type mappings in ```machine_type_mapping.py``` e.g `n1-standard-1`: `n1-standard-4` would upgrade all the machines running with `n1-standard-1` to `n1-standard-4`
 
 
 ## Rollback
@@ -120,7 +122,7 @@ make STEP=create_instances_without_ip migrate-subnet
 
 ### Move VMs across regions (recreate subnet)
 
-This one requires the `TARGET_REGION` where the subnet will be moved to (and VMs will be recreated in). Indicating the `TARGET_SUBNETWORK` will create the same subnet in the new region with the new name.
+This one requires the `TARGET_SUBNET` that indicates target host project, region and subnet name for the `clone_subnet` step.
 
 ```
 # standard
@@ -138,12 +140,11 @@ make STEP=create_instances migrate-subnet
 ```
 
 Notes:
-* This case is particularly interesting if VMs need to stay *in the same VPC*. Otherwise, the next example(move VMs to a different subnet is a better fit).
-* Specifying the `TARGET_SUBNETWORK` without specifying the `TARGET_REGION` is equivalent to renaming the subnet within the same region.
+* This case is particularly interesting if VMs need to stay *in the same VPC*. Otherwise, the next example (move VMs to an existing subnet is a better fit).
 
-### Move VMs to a different (already existing target) subnet
+### Move VMs to a different (existing) subnet
 
-If you're just moving VMs across subnets, you need to specify the `TARGET_SUBNETWORK`, which must already exist. If your target subnet is in a different region, you need to specify the `TARGET_REGION` as well:
+This step also requires `TARGET_SUBNET` to be defined (which indicates target host project and region implicitly). In this case it is also expected that this subnet already exists with the given definition.
 
 ```
 # standard

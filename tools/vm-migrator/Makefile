@@ -2,13 +2,12 @@
 # without warranty or representation for any use or purpose.
 # Your use of it is subject to your agreement with Google.
 
-MACHINE_IMAGE_REGION=us-central1
+MACHINE_IMAGE_REGION=europe-west3
 SOURCE_CSV=source.csv # actual default value
 INPUT_CSV=export.csv
 
-SOURCE_PROJECT=delivery-center-poc
-SOURCE_REGION=europe-west3
-SOURCE_SUBNETWORK=test
+SOURCE_PROJECT=lgandras-appenflex-svpc
+SOURCE_SUBNET=projects/bamberg-negilbpoc/regions/europe-west3/subnetworks/internal-https-load-balancer
 SOURCE_ZONE=europe-west3-c
 SOURCE_ZONE_2=
 SOURCE_ZONE_3=
@@ -18,8 +17,7 @@ SOURCE_ZONE_3=
 # use the default target service account
 #TARGET_PROJECT_SA=
 #TARGET_PROJECT_SA_SCOPES=https://www.googleapis.com/auth/cloud-platform
-TARGET_REGION=europe-west4
-TARGET_SUBNETWORK=default
+TARGET_SUBNET=projects/bamberg-negilbpoc/regions/europe-west3/subnetworks/internal-https-load-balancer
 
 # actual default values
 EXPORT_CSV=export.csv
@@ -61,13 +59,11 @@ lint:
 migrate-subnet:
 	python3 -m migrator.subnet_region_migrator --step=$(STEP) \
 		--machine_image_region=$(MACHINE_IMAGE_REGION) \
-		--source_project=$(SOURCE_PROJECT) --source_region=$(SOURCE_REGION) \
-		--source_subnetwork=$(SOURCE_SUBNETWORK) --source_zone=$(SOURCE_ZONE) \
-		--source_zone_2=$(SOUCE_ZONE_2) --source_zone_3=$(SOURCE_ZONE_3) \
-		--target_project=$(TARGET_PROJECT) \
+		--source_project=$(SOURCE_PROJECT) --source_subnet=$(SOURCE_SUBNET) \
+		--source_zone=$(SOURCE_ZONE) --source_zone_2=$(SOUCE_ZONE_2) \
+		--source_zone_3=$(SOURCE_ZONE_3) --target_project=$(TARGET_PROJECT) \
 		--target_project_sa=$(TARGET_PROJECT_SA) \
 		--target_project_sa_scopes=$(TARGET_PROJECT_SA_SCOPES) \
-		--target_region=$(TARGET_REGION) \
-		--target_subnetwork=$(TARGET_SUBNETWORK) --source_csv=$(SOURCE_CSV) \
+		--target_subnet=$(TARGET_SUBNET) --source_csv=$(SOURCE_CSV) \
 		--filter_csv=$(FILTER_CSV) --input_csv=$(INPUT_CSV) \
 		--log_level=$(LOG_LEVEL)
