@@ -16,36 +16,36 @@ Copyright 20210 Google LLC
 provider "google" {
   credentials = file("CREDENTIALS_FILE.json")
   #CHANGE - Host project Id
-  project     = "quota-monitoring-project-20"
+  project     = "marlonpimentel-sandbox"
   #CHANGE - Region same as app engine
-  region      = "us-west3"
+  region      = "us-central1"
 }
 
 locals {
   #CHANGE - Host Project Id
-  home_project                        = "quota-monitoring-project-20"
+  home_project                        = "marlonpimentel-sandbox"
   #CHANGE - Region same as app engine
-  region                              = "us-west3"
+  region                              = "us-central1"
   #CHANGE - Service Account email id to deploy resources and scan project quotas.
-  service_account_email               = "sa-quota-monitoring-project-20@quota-monitoring-project-20.iam.gserviceaccount.com"
+  service_account_email               = "sa1-marlonpimentel-sandbox@marlonpimentel-sandbox.iam.gserviceaccount.com"
   #CHANGE - Pub/Sub Topic name to list projects in parent node
   topic_alert_project_id              = "my-topic-id-1"
   #CHANGE - Pub/Sub Topic name to scan project quotas
   topic_alert_project_quota           = "my-topic-id-2"
   #CHANGE - Pub/Sub Topic name to send notification
   topic_alert_notification            = "my-topic-id-3"
-  #DO NOT CHANGE - Source code bucket name
-  source_code_bucket_name             = "quota-monitoring-solution-source"
+  #DO NOT CHANGE - Source code bucket name CHANGE BACK TO ORIGINAL AFTER
+  source_code_bucket_name             = "quota-monitoring-solution-marlon"
   #DO NOT CHANGE - Source code for cloud functions list and scan
-  source_code_zip                     = "quota-monitoring-solution.zip"
+  source_code_zip                     = "sendAlert-quota-monitoring-solution.zip"
   #DO NOT CHANGE - Source code for cloud functions notification
-  source_code_notification_zip        = "quota-monitoring-notification.zip"
+  source_code_notification_zip        = "alertFeature.zip"
   #CHANGE - Cloud Function name to list projects. Functions in a given region in a given project must have unique (case insensitive) names
-  cloud_function_list_project         = "listProjectsW"
+  cloud_function_list_project         = "listProjects"
   #CHANGE - Cloud Function name to scan project. CFunctions in a given region in a given project must have unique (case insensitive) names
-  cloud_function_scan_project         = "scanProjectsW"
+  cloud_function_scan_project         = "scanProjects"
   #CHANGE - Cloud Function name to scan project. Functions in a given region in a given project must have unique (case insensitive) names
-  cloud_function_notification_project = "notificationW"
+  cloud_function_notification_project = "notification"
   #CHANGE - Big Query Dataset Id
   big_query_dataset_id                = "quota_monitoring_dataset_1"
   #CHANGE - Big Query Table Id
@@ -57,20 +57,17 @@ locals {
   #CHANGE - Dataflow job name
   dataflow_job_name                   = "tf-test-dataflow-job-1"
   #CHANGE - Dataflow job temp bucket. The bucket name must be unique globally.
-  dataflow_job_temp_storage           = "dataflow-temp-quota-monitoring-project-20" //name need to be unique
+  dataflow_job_temp_storage           = "dataflow-temp-quota-monitoring-project-1" //name need to be unique
   #CHANGE - Name of the BigQuery scheduled query to generate alert data
   bigquery_data_transfer_query_name   = "extract-quota-usage-alerts"
   #CHANGE - Cron job frequency at Cloud Scheduler
   cron_job_frequency                  = "0 0 * * *"
   #CHANGE - Alert data generation frequency
-  Alert_data_scanning_frequency       = "every 12 hours"
+  Alert_data_scanning_frequency       = "every 15 mins"
   //Input to scan the project quotas
-  folders			      = "[38659473572]"
+  folders           = "[38659473572]"
   organizations                       = "[172338721810]"
   threshold                           = "80"
-  fromEmailId                         = "anuradha.bajpai@google.com"
-  toEmailIds                          = "anuradhabajpai@google.com,anuradha.bajpai@gmail.com"
-  SENDGRID_API_KEY                    = "JF8JZzBiZIBQx8L68pK"
 }
 
 # Enable Cloud Resource Manager API
@@ -97,6 +94,7 @@ activate_apis = [
 "iam.googleapis.com",
 "dataflow.googleapis.com",
 "monitoring.googleapis.com",
+"logging.googleapis.com",
 "storage.googleapis.com",
 "storage-api.googleapis.com",
 "bigquery.googleapis.com",
@@ -158,7 +156,7 @@ name        = local.cloud_function_list_project
 description = "My function"
 runtime     = "java11"
 
-available_memory_mb   = 512
+available_memory_mb   = 4096
 source_archive_bucket = local.source_code_bucket_name
 source_archive_object = local.source_code_zip
 trigger_http          = true
@@ -190,7 +188,7 @@ name        = local.cloud_function_scan_project
 description = "My function"
 runtime     = "java11"
 
-available_memory_mb   = 512
+available_memory_mb   = 4096
 source_archive_bucket = local.source_code_bucket_name
 source_archive_object = local.source_code_zip
 entry_point           = "functions.ScanProject"
@@ -228,7 +226,7 @@ name        = local.cloud_function_notification_project
 description = "My function"
 runtime     = "java11"
 
-available_memory_mb   = 512
+available_memory_mb   = 4096
 source_archive_bucket = local.source_code_bucket_name
 source_archive_object = local.source_code_notification_zip
 entry_point           = "functions.SendNotification"
@@ -242,9 +240,6 @@ resource   = local.topic_alert_notification
 }
 
 environment_variables = {
-SENDGRID_API_KEY = local.SENDGRID_API_KEY
-FROM_EMAIL_ID = local.fromEmailId
-TO_EMAIL_IDS = local.toEmailIds
 HOME_PROJECT = local.home_project
 ALERT_DATASET = local.big_query_alert_dataset_id
 ALERT_TABLE = local.big_query_alert_table_id
@@ -416,3 +411,92 @@ inputTopic      = "projects/${local.home_project}/topics/${local.topic_alert_pro
 outputTableSpec = "${local.home_project}:${google_bigquery_dataset.dataset.dataset_id}.${google_bigquery_table.default.table_id}"
 }
 }
+
+# Custom log-based metric to send quota alert data through
+resource "google_logging_metric" "quota_logging_metric" {
+  name   = "resource_usage"
+  description = "Tracks a log containing resources' quota data"
+  filter = "logName=\"projects/${local.home_project}/logs/quota-alerts\""
+  metric_descriptor {
+    metric_kind = "DELTA"
+    value_type  = "INT64"
+    unit        = "1"
+    labels {
+      key = "data"
+      value_type = "STRING"
+    }
+  }
+  label_extractors = {
+    "data" = "EXTRACT(textPayload)"
+  }
+}
+
+#Set notification channels below
+#Add Notification channel - Email
+resource "google_monitoring_notification_channel" "email0" {
+  display_name = "Oncall"
+  type = "email"
+  labels = {
+    email_address = "marlonpimentel@google.com"
+  }
+}
+
+#Info inside the sensitive_labels property is hidden from the plan output
+#Add Notification channel - Slack - supply channel_name & auth_token
+#resource "google_monitoring_notification_channel" "slackChannel" {
+#  display_name = "Test Slack Channel"
+#  type         = "slack"
+#  labels = {
+#    "channel_name" = "#quota-monitoring-solution"
+#  }
+#  sensitive_labels {
+#    auth_token = "xoxb-2005437637463-2017215922085-WBF8WJgQHUVoywIe0kOv8zND"
+#  }
+#}
+
+#Add Notification channel - PagerDuty - supply service_key token 
+#resource "google_monitoring_notification_channel" "pagerDuty" {
+#  display_name = "PagerDuty Services"
+#  type         = "pagerduty"
+#  labels = {
+#    "channel_name" = "#foobar"
+#  }
+#  sensitive_labels {
+#    service_key = "one"
+#  }
+#}
+
+#Email notification channel 1 output
+output "email0_id" {
+  value = "${google_monitoring_notification_channel.email0.name}"
+}
+
+#Alert policy for log-based metric
+# Condition display name can be changed based on user's quota range
+resource "google_monitoring_alert_policy" "alert_policy_quota" {
+  display_name = "Resources reaching Quotas"
+  combiner = "OR"
+  conditions {
+    display_name = "Resources reaching Quotas"
+    condition_threshold { 
+      filter = "metric.type=\"logging.googleapis.com/user/${google_logging_metric.quota_logging_metric.name}\" resource.type=\"global\""
+      duration = "60s"
+      comparison = "COMPARISON_GT"
+      threshold_value = 0
+      trigger {
+          count = 1
+      }
+      aggregations {
+        per_series_aligner = "ALIGN_COUNT"
+        alignment_period = "60s"
+      }
+    }
+  }
+  documentation {
+    mime_type = "text/markdown"
+    content = "$${metric.label.data}"
+  }
+  notification_channels = [
+    "${google_monitoring_notification_channel.email0.name}"
+  ]
+} 

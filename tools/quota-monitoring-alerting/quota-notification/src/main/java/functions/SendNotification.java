@@ -15,6 +15,7 @@ Copyright 2021 Google LLC
 */
 package functions;
 
+import com.google.cloud.MonitoredResource;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.BigQueryException;
 import com.google.cloud.bigquery.BigQueryOptions;
@@ -26,17 +27,15 @@ import com.google.cloud.bigquery.QueryJobConfiguration;
 import com.google.cloud.bigquery.TableResult;
 import com.google.cloud.functions.BackgroundFunction;
 import com.google.cloud.functions.Context;
-import com.sendgrid.Content;
-import com.sendgrid.Email;
-import com.sendgrid.Mail;
-import com.sendgrid.Method;
-import com.sendgrid.Personalization;
-import com.sendgrid.Request;
-import com.sendgrid.Response;
-import com.sendgrid.SendGrid;
+import com.google.cloud.logging.LogEntry;
+import com.google.cloud.logging.Logging;
+import com.google.cloud.logging.LoggingOptions;
+import com.google.cloud.logging.Severity;
+import com.google.cloud.logging.Payload.StringPayload;
 import functions.eventpojos.PubSubMessage;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -45,12 +44,10 @@ import java.util.logging.Logger;
 * Cloud Function triggered by Pub/Sub topic to send notification
 * */
 public class SendNotification implements BackgroundFunction<PubSubMessage> {
-  private static final String FROM_EMAIL_ID = System.getenv("FROM_EMAIL_ID");
-  private static final String TO_EMAIL_IDS = System.getenv("TO_EMAIL_IDS");
   private static final String HOME_PROJECT = System.getenv("HOME_PROJECT");
   private static final String DATASET = System.getenv("ALERT_DATASET");
   private static final String TABLE = System.getenv("ALERT_TABLE");
-  private static final String SENDGRID_API_KEY = System.getenv("SENDGRID_API_KEY");
+  
 
   private static final Logger logger = Logger.getLogger(SendNotification.class.getName());
 
@@ -60,8 +57,10 @@ public class SendNotification implements BackgroundFunction<PubSubMessage> {
   @Override
   public void accept(PubSubMessage message, Context context) {
     //logger.info(String.format(message.getEmailIds()));
+    logger.info("Successfully made it to sendNotification");
     List<String> alerts = browseAlertTable();
-    sendEmail(alerts);
+    logger.info("Successfully got data from alert table");
+    sendAlert(alerts);
     return;
   }
 
@@ -114,36 +113,25 @@ public class SendNotification implements BackgroundFunction<PubSubMessage> {
 
 
   /*
-  * API to send Email using SendGrid API
+  * Logging API used to construct and send custom log containing quota data 
+  * The logName triggers the alert policy
   * */
-  private static void sendEmail(List<String> alerts){
-    Email from = new Email(FROM_EMAIL_ID);
-    String subject = "ALERT Usage of "+alerts.size()+" metrics is above threshold";
-    String[] toEmailIds = TO_EMAIL_IDS.split(",");
-    Email to = new Email(toEmailIds[0]);
-    Personalization p1 = new Personalization();
-    for(String email : toEmailIds){
-      p1.addTo(new Email(email));
-    }
-    String alertsStr = String.join("\n",alerts);
-    Content content = new Content("text/plain", alertsStr);
-    Mail mail = new Mail(from, subject, to, content);
-    mail.addPersonalization(p1);
+  private static void sendAlert(List<String> alerts){
+    String logName = "quota-alerts";
+    String alertsStr = String.join("<br>",alerts);
+    String text = alertsStr;
+    logger.info(text);
+    LoggingOptions logging = LoggingOptions.getDefaultInstance();
+    Logging log_client = logging.getService();
+    LogEntry entry =
+            LogEntry.newBuilder(StringPayload.of(text))
+                .setSeverity(Severity.INFO)	      
+                .setLogName(logName)
+                .setResource(MonitoredResource.newBuilder("global").build())
+                .build();
 
-    //SendGrid sg = new SendGrid(System.getenv("SENDGRID_API_KEY"));
-    SendGrid sg = new SendGrid(SENDGRID_API_KEY);
-    Request request = new Request();
-    try {
-      request.setMethod(Method.POST);
-      request.setEndpoint("mail/send");
-      request.setBody(mail.build());
-      Response response = sg.api(request);
-      logger.info(String.valueOf(response.getStatusCode()));
-      logger.info(String.valueOf(response.getBody()));
-      logger.info(String.valueOf(response.getHeaders()));
-    } catch (IOException ex) {
-      logger.severe(ex.getMessage());
-    }
+    // Writes the log entry asynchronously
+    log_client.write(Collections.singleton(entry));
   }
 
 }
