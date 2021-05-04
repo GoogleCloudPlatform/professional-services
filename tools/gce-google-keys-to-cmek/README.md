@@ -1,4 +1,4 @@
-# Update GCE Disks Endription Key in use
+# Update GCE Instance Disks Encryption Key
 
 Update disks attached to a GCE instance to customer-managed encryption keys 
 stored in Cloud KMS. This operation is performed in-place so the GCE VM 
