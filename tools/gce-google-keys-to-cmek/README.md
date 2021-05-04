@@ -1,21 +1,21 @@
-# Google-managed key to CMEK
+# Update GCE Disks Endription Key in use
 
-Convert disks attached to a GCE instance from Google-managed encryption keys
-to customer-managed encryption keys stored in Cloud KMS. This operation is
-performed in-place so the GCE VM instance maintains its current IP-address.
+Update disks attached to a GCE instance to customer-managed encryption keys 
+stored in Cloud KMS. This operation is performed in-place so the GCE VM 
+instance maintains its current IP-address.
 
 ## Script Process
 
 1. Stop the VM instance
 1. Get a list of the disks attached to the VM instance
 1. For each disk attached to the disk
-    1. If it is encrypted with a CMEK or Customer-provided key we skip the disk
+    1. If it is already encrypted with the specified CMEK key we skip the disk
     1. Detach the disk from the VM instance
     1. Snapshot the disk
     1. We then create a new disk using the CMEK key stored in Cloud KMS
 1. Attach the disk to the VM instance
 1. Start the VM instance
-1. Delete the old disks and snapshots created during the process
+1. Delete the old disks and snapshots created during the process (if specified)
 
 ## Usage
 
@@ -24,7 +24,7 @@ usage:
 
 ```
 usage: main.py [-h] --project PROJECT --zone ZONE --instance INSTANCE
-               --key-ring KEYRING --key-name KEYNAME --key-version KEYVERSION
+               --key-ring KEYRING --key-name KEYNAME --key-version KEYVERSION [--key-global]
                [--destructive]
 
 arguments:
@@ -33,11 +33,12 @@ arguments:
   --zone ZONE           Zone containing the GCE instance.
   --instance INSTANCE   Instance name.
   --key-ring KEYRING    Name of the key ring containing the key to encrypt the
-                        disks. Must be in the same zone as the instance.
+                        disks. Must be in the same region as the instance or global.
   --key-name KEYNAME    Name of the key to encrypt the disks. Must be in the
-                        same zone as the instance.
+                        same region as the instance or global.
   --key-version KEYVERSION
                         Version of the key to encrypt the disks.
+  --key-global          Use Cloud KMS global keys.
   --destructive         Upon completion, delete source disks and snapshots
                         created during migration process.
 ```
