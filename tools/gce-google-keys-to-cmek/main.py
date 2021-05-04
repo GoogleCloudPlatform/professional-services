@@ -24,7 +24,7 @@ import time
 import googleapiclient
 import googleapiclient.discovery
 
-disk_regexp = r'^https:\/\/www\.googleapis\.com\/compute\/v1\/projects\/(.*?)\/zones\/(.*?)\/disks\/(.*?)$'
+DISK_REGEXP = r'^https:\/\/www\.googleapis\.com\/compute\/v1\/projects\/(.*?)\/zones\/(.*?)\/disks\/(.*?)$'
 
 def main():
   parser = argparse.ArgumentParser(
@@ -110,7 +110,7 @@ def migrate_instance_to_cmek(project, zone, instance, key_ring, key_name,
     boot = source_disk['boot']
     auto_delete = source_disk['autoDelete']
     deviceName = source_disk['deviceName'][0:46]
-    existing_disk_name = re.search(disk_regexp, disk_url).group(3)
+    existing_disk_name = re.search(DISK_REGEXP, disk_url).group(3)
 
     key_region =  "global" if key_global else region
     key_name = 'projects/{0}/locations/{1}/keyRings/{2}/cryptoKeys/{3}/cryptoKeyVersions/{4}'.format(
