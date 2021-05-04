@@ -122,7 +122,6 @@ def migrate_instance_to_cmek(project, zone, instance, key_ring, key_name,
       if source_disk['diskEncryptionKey']['kmsKeyName'] == key_name:
         logging.info('Skipping %s, already encrypyed with %s', existing_disk_name,
                     source_disk['diskEncryptionKey'])        
-        print('skip')
         continue
 
     snapshot_name = '{}-update-cmek-{}'.format(existing_disk_name[0:39],int(datetime.datetime.now().timestamp()))
