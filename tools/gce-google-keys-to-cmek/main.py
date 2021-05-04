@@ -24,6 +24,7 @@ import time
 import googleapiclient
 import googleapiclient.discovery
 
+disk_regexp = r'^https:\/\/www\.googleapis\.com\/compute\/v1\/projects\/(.*?)\/zones\/(.*?)\/disks\/(.*?)$'
 
 def main():
   parser = argparse.ArgumentParser(
@@ -77,8 +78,7 @@ def main():
   parser.add_argument(
       '--key-global',
       dest='key_global',
-      action='store_const',
-      const=True,
+      action='store_true',
       default=False,
       help='Use Cloud KMS global keys.')      
   parser.add_argument(
@@ -99,15 +99,13 @@ def main():
 def migrate_instance_to_cmek(project, zone, instance, key_ring, key_name,
                              key_version, key_global, destructive):
   start = time.time()
-  zone_regexp = r'^(\w*-\w*\d)-(\w)$'
-  region = re.search(zone_regexp, zone).group(1)
+  region = zone.rpartition("-")[2]
 
   compute = googleapiclient.discovery.build('compute', 'v1')
 
   stop_instance(compute, project, zone, instance)
   disks = get_instance_disks(compute, project, zone, instance)
   for source_disk in disks:
-    disk_regexp = r'^https:\/\/www\.googleapis\.com\/compute\/v1\/projects\/(.*?)\/zones\/(.*?)\/disks\/(.*?)$'
     disk_url = source_disk['source']
     boot = source_disk['boot']
     auto_delete = source_disk['autoDelete']

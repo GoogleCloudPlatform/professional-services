@@ -1,4 +1,4 @@
-# Update GCE Disks Endription Key in use
+# Update GCE Disks Encryption Key in use
 
 Update disks attached to a GCE instance to customer-managed encryption keys 
 stored in Cloud KMS. This operation is performed in-place so the GCE VM 
@@ -8,7 +8,7 @@ instance maintains its current IP-address.
 
 1. Stop the VM instance
 1. Get a list of the disks attached to the VM instance
-1. For each disk attached to the disk
+1. For each disk attached to the instance
     1. If it is already encrypted with the specified CMEK key we skip the disk
     1. Detach the disk from the VM instance
     1. Snapshot the disk
