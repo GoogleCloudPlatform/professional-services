@@ -27,7 +27,7 @@ locals {
   #CHANGE - Region same as app engine
   region                              = "us-central1"
   #CHANGE - Service Account email id to deploy resources and scan project quotas.
-  service_account_email               = "sa1-marlonpimentel-sandbox@marlonpimentel-sandbox.iam.gserviceaccount.com"
+  service_account_email               = "sa47-marlonpimentel-sandbox@marlonpimentel-sandbox.iam.gserviceaccount.com"
   #CHANGE - Pub/Sub Topic name to list projects in parent node
   topic_alert_project_id              = "my-topic-id-1"
   #CHANGE - Pub/Sub Topic name to scan project quotas
@@ -39,13 +39,13 @@ locals {
   #DO NOT CHANGE - Source code for cloud functions list and scan
   source_code_zip                     = "sendAlert-quota-monitoring-solution.zip"
   #DO NOT CHANGE - Source code for cloud functions notification
-  source_code_notification_zip        = "alertFeature.zip"
+  source_code_notification_zip        = "alertDir.zip"
   #CHANGE - Cloud Function name to list projects. Functions in a given region in a given project must have unique (case insensitive) names
   cloud_function_list_project         = "listProjects"
   #CHANGE - Cloud Function name to scan project. CFunctions in a given region in a given project must have unique (case insensitive) names
   cloud_function_scan_project         = "scanProjects"
   #CHANGE - Cloud Function name to scan project. Functions in a given region in a given project must have unique (case insensitive) names
-  cloud_function_notification_project = "notification"
+  cloud_function_notification_project = "notifications"
   #CHANGE - Big Query Dataset Id
   big_query_dataset_id                = "quota_monitoring_dataset_1"
   #CHANGE - Big Query Table Id
@@ -65,9 +65,15 @@ locals {
   #CHANGE - Alert data generation frequency
   Alert_data_scanning_frequency       = "every 15 mins"
   //Input to scan the project quotas
-  folders           = "[38659473572]"
+  folders			                        = "[38659473572]"
   organizations                       = "[172338721810]"
-  threshold                           = "80"
+  threshold                           = "5"
+  #CHANGE - Log sink name
+  log_sink_name                       = "quota-monitoring-sink-1"
+  #CHANGE - Log bucket name
+  log_bucket_name                     = "quota-monitoring-log-bucket-1"
+  #CHANGE - Log bucket's retention period in days
+  retention_days                      = 30
 }
 
 # Enable Cloud Resource Manager API
@@ -370,7 +376,7 @@ destination_dataset_id = google_bigquery_dataset.quota_usage_alert_dataset.datas
 params = {
   destination_table_name_template = "${local.big_query_alert_table_id}"
   write_disposition               = "WRITE_TRUNCATE"
-  query                           = "SELECT *  FROM `${local.home_project}.${google_bigquery_dataset.dataset.dataset_id}.${google_bigquery_table.default.table_id}` WHERE  CAST(usage as NUMERIC) >= threshold"
+  query                           = "SELECT *  FROM `${local.home_project}.${google_bigquery_dataset.dataset.dataset_id}.${google_bigquery_table.default.table_id}` WHERE value >= ${local.threshold}"
 }
 }
 
@@ -469,6 +475,33 @@ resource "google_monitoring_notification_channel" "email0" {
 #Email notification channel 1 output
 output "email0_id" {
   value = "${google_monitoring_notification_channel.email0.name}"
+}
+
+#Log sink to route logs to log bucket
+resource "google_logging_project_sink" "instance-sink" {
+  name        = local.log_sink_name
+  description = "Log sink to route logs sent by the Notification cloud function to the designated log bucket"
+  destination = "logging.googleapis.com/projects/${local.home_project}/locations/global/buckets/${local.log_bucket_name}"
+  filter      = "logName=\"projects/${local.home_project}/logs/quota-alerts\""
+  unique_writer_identity = true
+}
+
+#Because our sink uses a unique_writer, we must grant that writer access to the bucket.
+resource "google_project_iam_binding" "log-writer" {
+  role = "roles/logging.configWriter"
+
+  members = [
+    "serviceAccount:${local.service_account_email}",
+  ]
+}
+
+#Log bucket to store logs
+resource "google_logging_project_bucket_config" "logging_bucket" {
+    project    = local.home_project
+    location  = "global"
+    retention_days = local.retention_days
+    bucket_id = local.log_bucket_name
+    description = "Log bucket to store logs related to quota alerts sent by the Notification cloud function"
 }
 
 #Alert policy for log-based metric
