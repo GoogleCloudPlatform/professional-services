@@ -99,7 +99,10 @@ def main():
 def migrate_instance_to_cmek(project, zone, instance, key_ring, key_name,
                              key_version, key_global, destructive):
   start = time.time()
-  region = zone.rpartition("-")[2]
+  region = zone.rpartition("-")[0]
+  key_region =  "global" if key_global else region
+  key_name = 'projects/{0}/locations/{1}/keyRings/{2}/cryptoKeys/{3}/cryptoKeyVersions/{4}'.format(
+        project, key_region, key_ring, key_name, key_version)
 
   compute = googleapiclient.discovery.build('compute', 'v1')
 
@@ -111,10 +114,6 @@ def migrate_instance_to_cmek(project, zone, instance, key_ring, key_name,
     auto_delete = source_disk['autoDelete']
     deviceName = source_disk['deviceName'][0:46]
     existing_disk_name = re.search(DISK_REGEXP, disk_url).group(3)
-
-    key_region =  "global" if key_global else region
-    key_name = 'projects/{0}/locations/{1}/keyRings/{2}/cryptoKeys/{3}/cryptoKeyVersions/{4}'.format(
-        project, key_region, key_ring, key_name, key_version)
 
     if 'diskEncryptionKey' in source_disk:
       if source_disk['diskEncryptionKey']['kmsKeyName'] == key_name:
@@ -302,7 +301,7 @@ def wait_for_zonal_operation(compute, project, zone, operation):
 
 def _wait_for_operation(operation, build_request):
   """Helper for waiting for operation to complete."""
-  logging.debug('Waiting for %s', operation, end='')
+  logging.debug('Waiting for %s', operation)
   while True:
     sys.stdout.flush()
     result = build_request().execute()
@@ -318,3 +317,4 @@ def _wait_for_operation(operation, build_request):
 
 if __name__ == '__main__':
   main()
+
