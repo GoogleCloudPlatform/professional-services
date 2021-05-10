@@ -30,7 +30,10 @@ class BigqueryProcessor(Processor):
                 'No BigQuery query specified in configuration!')
 
         data = json.loads(self.data)
-        self.jinja_environment.globals = data
+        self.jinja_environment.globals = {
+            **self.jinja_environment.globals,
+            **data
+        }
 
         query_template = self.jinja_environment.from_string(
             bigquery_config['query'])
@@ -42,7 +45,7 @@ class BigqueryProcessor(Processor):
         self.logger.debug('Running BigQuery query.', extra={'query': query})
 
         client_info = grpc_client_info.ClientInfo(
-            user_agent='google-pso-tool/pubsub2inbox/1.0.0')
+            user_agent='google-pso-tool/pubsub2inbox/1.1.0')
         project = bigquery_config[
             'project'] if 'project' in bigquery_config else None
         client = bigquery.Client(client_info=client_info, project=project)
