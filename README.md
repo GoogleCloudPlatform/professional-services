@@ -6,7 +6,6 @@ Common solutions and tools developed by Google Cloud's Professional Services tea
 ## Examples
 The examples folder contains example solutions across a variety of Google Cloud Platform products. Use these solutions as a reference for your own or extend them to fit your particular use case.
 
-
 * [Anthos Service Mesh Multi-Cluster](examples/anthos-service-mesh-multicluster) - Solution to federate two private GKE clusters using Anthos Service Mesh.
 * [Audio Content Profiling](examples/ml-audio-content-profiling) - A tool that builds a pipeline to scale the process of moderating audio files for inappropriate content using machine learning APIs.
 * [BigQuery Audit Log Dashboard](examples/bigquery-audit-log) - Solution to help audit BigQuery usage using Data Studio for visualization and a sample SQL script to query the back-end data source consisting of audit logs.
@@ -20,7 +19,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [Bigtable Dataflow Update Table Key Pipeline](examples/bigtable-change-key) - Dataflow pipeline with an example of how to update the key of an existing table. It works with any table, regardless the schema. It shows how to update your key for a table with existing data, to try out different alternatives to improve performance.
 * [Cloud Composer Examples](examples/cloud-composer-examples) - Examples of using Cloud Composer, GCP's managed Apache Airflow service.
 * [Cloud Composer CI/CD](examples/cloud-composer-cicd) - Examples of using Cloud Build to deploy airflow DAGs to Cloud Composer.
-* [Cloud Data Fusion Functions and Plugins](examples/cloud-datafusion-functions-plugins) - Examples of Cloud Data Fusion Functions and Plugins.  
+* [Cloud Data Fusion Functions and Plugins](examples/cloud-datafusion-functions-plugins) - Examples of Cloud Data Fusion Functions and Plugins.
 * [Cloud Function VM Delete Event Handler Example](examples/gcf-pubsub-vm-delete-event-handler) - Solution to automatically delete A records in Cloud DNS when a VM is deleted.  This solution implements a [Google Cloud Function][gcf] [Background Function][gcf-bg] triggered on `compute.instances.delete` events published through [Stackdriver Logs Export][logs-export].
 * [Cloud SQL Custom Metric](examples/cloud-sql-custom-metric) - An example of creating a Stackdriver custom metric monitoring Cloud SQL Private Services IP consumption.
 * [CloudML Bank Marketing](examples/cloudml-bank-marketing) - Notebook for creating a classification model for marketing using CloudML.
@@ -33,13 +32,14 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [CloudML Sentiment Analysis](examples/cloudml-sentiment-analysis) - Sentiment analysis for movie reviews using TensorFlow `RNNEstimator`.
 * [CloudML Scikit-learn Pipeline](examples/cloudml-sklearn-pipeline) - This is a example for building a scikit-learn-based machine learning pipeline trainer that can be run on AI Platform. The pipeline can be trained locally or remotely on AI platform. The trained model can be further deployed on AI platform to serve online traffic.
 * [CloudML TensorFlow Profiling](examples/tensorflow-profiling-examples) - TensorFlow profiling examples for training models with CloudML
+* [Cost Optimization DataStudio Dashboard](examples/cost-optimization-dashboard) - SQL scripts to help build Cost Optimization DataStudio Dashboard.
 * [Data Generator](examples/dataflow-data-generator) - Generate random data with a custom schema at scale for integration tests or demos.
 * [Dataflow BigQuery Transpose Example](examples/dataflow-bigquery-transpose) - An example pipeline to transpose/pivot/rotate a BigQuery table.
 * [Dataflow Elasticsearch Indexer](examples/dataflow-elasticsearch-indexer) - An example pipeline that demonstrates the process of reading JSON documents from Cloud Pub/Sub, enhancing the document using metadata stored in Cloud Bigtable and indexing those documents into [Elasticsearch](https://www.elastic.co/).
 * [Dataflow Python Examples](examples/dataflow-python-examples) - Various ETL examples using the Dataflow Python SDK.
 * [Dataflow Scala Example: Kafka2Avro](examples/dataflow-scala-kafka2avro) - Example to read objects from Kafka, and persist them encoded in Avro in Google Cloud Storage, using Dataflow with SCIO.
 * [Dataflow Streaming Benchmark](examples/dataflow-streaming-benchmark) - Utility to publish randomized fake JSON messages to a Cloud Pub/Sub topic at a configured QPS.
-* [Dataflow DLP Hashpipeline](examples/dataflow-dlp-hash-pipeline) - Match DLP Social Security Number findings against a hashed dictionay in Firestore. Use Secret Manager for the hash key.
+* [Dataflow DLP Hashpipeline](examples/dataflow-dlp-hash-pipeline) - Match DLP Social Security Number findings against a hashed dictionary in Firestore. Use Secret Manager for the hash key.
 * [Dataflow Template Pipelines](https://github.com/GoogleCloudPlatform/DataflowTemplates) - Pre-implemented Dataflow template pipelines for solving common data tasks on Google Cloud Platform.
 * [Dataflow Production Ready](examples/dataflow-production-ready) - Reference implementation for best practices around Beam, pipeline structuring, testing and continuous deployment.
 * [Dataproc GCS Connector](examples/dataproc-gcs-connector) - Install and test unreleased features on the GCS Connector for Dataproc.
@@ -47,7 +47,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [Dialogflow Webhook Example](examples/dialogflow-webhook-example) - Webhook example for dialogflow in Python.
 * [Dialogflow Entities Creation and Update](examples/dialogflow-entities-example) - Creation and update of entities for Dialogflow in Python.
 * [DLP API Examples](examples/dlp) - Examples of the DLP API usage.
-* [GCE Access to Google AdminSDK ](examples/gce-to-adminsdk) - Example to help manage access to Google's AdminSDK using GCE's service account identity
+* [GCE Access to Google AdminSDK](examples/gce-to-adminsdk) - Example to help manage access to Google's AdminSDK using GCE's service account identity
 * [Home Appliance Status Monitoring from Smart Power Readings](examples/e2e-home-appliance-status-monitoring) - An end-to-end demo system featuring a suite of Google Cloud Platform products such as IoT Core, ML Engine, BigQuery, etc.
 * [IAP User Profile](examples/iap-user-profile) - An example to retrieve user profile from an IAP-enabled GAE application.
 * [IoT Nirvana](examples/iot-nirvana) - An end-to-end Internet of Things architecture running on Google Cloud Platform.
@@ -64,11 +64,12 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [Uploading files directly to Google Cloud Storage by using Signed URL](examples/direct-upload-to-gcs) - Example architecture to enable uploading files directly to GCS by using [Signed URL](https://cloud.google.com/storage/docs/access-control/signed-urls).
 
 ## Tools
-The tools folder contains ready-made utilities which can simpilfy Google Cloud Platform usage.
+The tools folder contains ready-made utilities which can simplify Google Cloud Platform usage.
 
 * [Agile Machine Learning API](tools/agile-machine-learning-api) - A web application which provides the ability to train and deploy ML models on Google Cloud Machine Learning Engine, and visualize the predicted results using LIME through simple post request.
 * [Apache Beam Client Throttling](tools/apachebeam-throttling) - A library that can be used to limit the number of requests from an Apache Beam pipeline to an external service. It buffers requests to not overload the external service and activates client-side throttling when the service starts rejecting requests due to out of quota errors.
-* [AssetInventory](tools/asset-inventory) - Import Cloud Asset Inventory resourcs into BigQuery.
+* [AssetInventory](tools/asset-inventory) - Import Cloud Asset Inventory resources into BigQuery.
+* [Ansible Module for Anthos on Bare Metal](tools/anthosbm-ansible-module) - Ansible module for installation of Anthos on Bare Metal
 * [BigQuery Discount Per-Project Attribution](tools/kunskap) - A tool that automates the generation of a BigQuery table that uses existing exported billing data, by attributing both CUD and SUD charges on a per-project basis.
 * [BigQuery Query Plan Exporter](tools/bigquery-query-plan-exporter) - Command line utility for exporting BigQuery query plans in a given date range.
 * [BigQuery Query Plan Visualizer](tools/bq-visualizer) - A web application which provides the ability to visualise the execution stages of BigQuery query plans to aid in the optimization of queries.
@@ -83,7 +84,7 @@ The tools folder contains ready-made utilities which can simpilfy Google Cloud P
 * [CUD Prioritized Attribution](tools/cuds-prioritized-attribution) - A tool that allows GCP customers who purchased Committed Use Discounts (CUDs) to prioritize a specific scope (e.g. project or folder) to attribute CUDs first before letting any unconsumed discount float to other parts of an organization.
 * [Custom Role Manager](tools/custom-role-manager) - Manages organization- or project-level custom roles by combining predefined roles and including and removing permissions with wildcards. Can run as Cloud Function or output Terraform resources.
 * [DNS Sync](tools/dns-sync) - Sync a Cloud DNS zone with GCE resources. Instances and load balancers are added to the cloud DNS zone as they start from compute_engine_activity log events sent from a pub/sub push subscription. Can sync multiple projects to a single Cloud DNS zone.
-* [GCE Disk Encryption Converter](tools/gce-google-keys-to-cmek) - A tool that converts disks attached to a GCE VM instnace from Google-managed keys to a customer-managed key stored in Cloud KMS.
+* [GCE Disk Encryption Converter](tools/gce-google-keys-to-cmek) - A tool that converts disks attached to a GCE VM instance from Google-managed keys to a customer-managed key stored in Cloud KMS.
 * [GCE Quota Sync](tools/gce-quota-sync) - A tool that fetches resource quota usage from the GCE API and synchronizes it to Stackdriver as a custom metric, where it can be used to define automated alerts.
 * [GCE Usage Log](tools/gce-usage-log) - Collect GCE instance events into a BigQuery dataset, surfacing your vCPUs, RAM, and Persistent Disk, sliced by project, zone, and labels.
 * [GCP Architecture Visualizer](https://github.com/forseti-security/forseti-visualizer) - A tool that takes CSV output from a Forseti Inventory scan and draws out a dynamic hierarchical tree diagram of org -> folders -> projects -> gcp_resources using the D3.js javascript library.
@@ -110,9 +111,10 @@ creates relationships between assets and outputs a format compatible with [graph
 * [SLO Generator](tools/slo-generator/) - A Python package that automates computation of Service Level Objectives, Error Budgets and Burn Rates on GCP,  and export the computation results to available exporters (e.g: PubSub, BigQuery, Stackdriver Monitoring), using policies written in JSON format.
 * [Snowflake_to_BQ](tools/snowflake2bq/) - A shell script to transfer tables (schema & data) from Snowflake to BigQuery.
 * [STS Job Manager](tools/sts-job-manager/) - A petabyte-scale bucket migration tool utilizing [Storage Transfer Service](https://cloud.google.com/storage-transfer-service)
-* [VPC Flow Logs Analysis](tools/vpc-flowlogs-analysis) - A configurable Sink + BigQuery report that shows traffic grouped by target IP address ranges.
+* [VPC Flow Logs Analysis](tools/vpc-flowlogs-analysis) - A configurable Log sink + BigQuery report that shows traffic attributed to the projects in the Shared VPCs.
 * [VPC Flow Logs Enforcer](tools/vpc-flowlogs-enforcer) - A Cloud Function that will automatically enable VPC Flow Logs when a subnet is created or modified in any project under a particular folder or folders.
-* [VM Migrator](tools/vm-migrator) - This utility automates migrating Virtual Machine instances within GCP. You can migrate VM's from one zone to another zone/region within the same project or different projects while retaining all the original VM properties like disks, network interfaces, ip, metadata, network tags and much more. 
+* [VPC Flow Logs Top Talkers](tools/vpc-flowlogs-toptalkers) - A configurable Log sink + BigQuery view to generate monthly/daily aggregate traffic reports per subnet or host, with the configurable labelling of IP ranges and ports.
+* [VM Migrator](tools/vm-migrator) - This utility automates migrating Virtual Machine instances within GCP. You can migrate VM's from one zone to another zone/region within the same project or different projects while retaining all the original VM properties like disks, network interfaces, ip, metadata, network tags and much more.
 * [Webhook Ingestion Data Pipeline](tools/webhook-ingestion-pipeline) - A deployable app to accept and ingest unauthenticated webhook data to BigQuery.
 * [gmon](tools/gmon/) - A command-line interface (CLI) for Cloud Monitoring written in Python.
 
