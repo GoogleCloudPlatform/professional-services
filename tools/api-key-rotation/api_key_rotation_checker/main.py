@@ -81,7 +81,7 @@ def create_project_list(service):
     request = service.projects().list()
     while request is not None:
         try:
-            response = request.execute()
+            response = request.execute(num_retries=3)
             projects.extend(response.get("projects", []))
             request = service.projects().list_next(request, response)
         except HttpError as err:
