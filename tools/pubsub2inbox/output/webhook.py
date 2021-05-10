@@ -45,7 +45,7 @@ class WebhookOutput(Output):
             credentials = GoogleCredentials.get_application_default()
             http = credentials.authorize(http)
 
-        headers = {'User-agent': 'google-pso-tool/pubsub2inbox/1.0.0'}
+        headers = {'User-agent': 'google-pso-tool/pubsub2inbox/1.1.0'}
         if body:
             headers['Content-type'] = 'application/x-www-form-urlencoded'
         if 'headers' in self.output_config:

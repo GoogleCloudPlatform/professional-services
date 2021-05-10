@@ -14,6 +14,7 @@
 from .base import Output, NotConfiguredException
 from google.cloud import storage
 from google.api_core.gapic_v1 import client_info as grpc_client_info
+import base64
 
 
 class GcsOutput(Output):
@@ -46,9 +47,12 @@ class GcsOutput(Output):
             self.output_config['contents'])
         contents_template.name = 'contents'
         contents = contents_template.render()
+        if 'base64decode' in self.output_config and self.output_config[
+                'base64decode']:
+            contents = base64.decodebytes(contents.encode('ascii'))
 
         client_info = grpc_client_info.ClientInfo(
-            user_agent='google-pso-tool/pubsub2inbox/1.0.0')
+            user_agent='google-pso-tool/pubsub2inbox/1.1.0')
         project = self.output_config[
             'project'] if 'project' in self.output_config else None
         storage_client = storage.Client(client_info=client_info,

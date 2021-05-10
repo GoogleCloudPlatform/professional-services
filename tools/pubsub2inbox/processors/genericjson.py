@@ -15,7 +15,7 @@ from .base import Processor
 import json
 
 
-class JsonProcessor(Processor):
+class GenericjsonProcessor(Processor):
 
     def process(self):
         data = json.loads(self.data)

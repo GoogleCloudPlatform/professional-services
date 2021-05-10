@@ -6,7 +6,6 @@ Common solutions and tools developed by Google Cloud's Professional Services tea
 ## Examples
 The examples folder contains example solutions across a variety of Google Cloud Platform products. Use these solutions as a reference for your own or extend them to fit your particular use case.
 
-
 * [Anthos Service Mesh Multi-Cluster](examples/anthos-service-mesh-multicluster) - Solution to federate two private GKE clusters using Anthos Service Mesh.
 * [Audio Content Profiling](examples/ml-audio-content-profiling) - A tool that builds a pipeline to scale the process of moderating audio files for inappropriate content using machine learning APIs.
 * [BigQuery Audit Log Dashboard](examples/bigquery-audit-log) - Solution to help audit BigQuery usage using Data Studio for visualization and a sample SQL script to query the back-end data source consisting of audit logs.
@@ -33,13 +32,14 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [CloudML Sentiment Analysis](examples/cloudml-sentiment-analysis) - Sentiment analysis for movie reviews using TensorFlow `RNNEstimator`.
 * [CloudML Scikit-learn Pipeline](examples/cloudml-sklearn-pipeline) - This is a example for building a scikit-learn-based machine learning pipeline trainer that can be run on AI Platform. The pipeline can be trained locally or remotely on AI platform. The trained model can be further deployed on AI platform to serve online traffic.
 * [CloudML TensorFlow Profiling](examples/tensorflow-profiling-examples) - TensorFlow profiling examples for training models with CloudML
+* [Cost Optimization DataStudio Dashboard](examples/cost-optimization-dashboard) - SQL scripts to help build Cost Optimization DataStudio Dashboard.
 * [Data Generator](examples/dataflow-data-generator) - Generate random data with a custom schema at scale for integration tests or demos.
 * [Dataflow BigQuery Transpose Example](examples/dataflow-bigquery-transpose) - An example pipeline to transpose/pivot/rotate a BigQuery table.
 * [Dataflow Elasticsearch Indexer](examples/dataflow-elasticsearch-indexer) - An example pipeline that demonstrates the process of reading JSON documents from Cloud Pub/Sub, enhancing the document using metadata stored in Cloud Bigtable and indexing those documents into [Elasticsearch](https://www.elastic.co/).
 * [Dataflow Python Examples](examples/dataflow-python-examples) - Various ETL examples using the Dataflow Python SDK.
 * [Dataflow Scala Example: Kafka2Avro](examples/dataflow-scala-kafka2avro) - Example to read objects from Kafka, and persist them encoded in Avro in Google Cloud Storage, using Dataflow with SCIO.
 * [Dataflow Streaming Benchmark](examples/dataflow-streaming-benchmark) - Utility to publish randomized fake JSON messages to a Cloud Pub/Sub topic at a configured QPS.
-* [Dataflow DLP Hashpipeline](examples/dataflow-dlp-hash-pipeline) - Match DLP Social Security Number findings against a hashed dictionay in Firestore. Use Secret Manager for the hash key.
+* [Dataflow DLP Hashpipeline](examples/dataflow-dlp-hash-pipeline) - Match DLP Social Security Number findings against a hashed dictionary in Firestore. Use Secret Manager for the hash key.
 * [Dataflow Template Pipelines](https://github.com/GoogleCloudPlatform/DataflowTemplates) - Pre-implemented Dataflow template pipelines for solving common data tasks on Google Cloud Platform.
 * [Dataflow Production Ready](examples/dataflow-production-ready) - Reference implementation for best practices around Beam, pipeline structuring, testing and continuous deployment.
 * [Dataproc GCS Connector](examples/dataproc-gcs-connector) - Install and test unreleased features on the GCS Connector for Dataproc.
@@ -47,7 +47,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [Dialogflow Webhook Example](examples/dialogflow-webhook-example) - Webhook example for dialogflow in Python.
 * [Dialogflow Entities Creation and Update](examples/dialogflow-entities-example) - Creation and update of entities for Dialogflow in Python.
 * [DLP API Examples](examples/dlp) - Examples of the DLP API usage.
-* [GCE Access to Google AdminSDK ](examples/gce-to-adminsdk) - Example to help manage access to Google's AdminSDK using GCE's service account identity
+* [GCE Access to Google AdminSDK](examples/gce-to-adminsdk) - Example to help manage access to Google's AdminSDK using GCE's service account identity
 * [Home Appliance Status Monitoring from Smart Power Readings](examples/e2e-home-appliance-status-monitoring) - An end-to-end demo system featuring a suite of Google Cloud Platform products such as IoT Core, ML Engine, BigQuery, etc.
 * [IAP User Profile](examples/iap-user-profile) - An example to retrieve user profile from an IAP-enabled GAE application.
 * [IoT Nirvana](examples/iot-nirvana) - An end-to-end Internet of Things architecture running on Google Cloud Platform.
@@ -64,7 +64,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [Uploading files directly to Google Cloud Storage by using Signed URL](examples/direct-upload-to-gcs) - Example architecture to enable uploading files directly to GCS by using [Signed URL](https://cloud.google.com/storage/docs/access-control/signed-urls).
 
 ## Tools
-The tools folder contains ready-made utilities which can simpilfy Google Cloud Platform usage.
+The tools folder contains ready-made utilities which can simplify Google Cloud Platform usage.
 
 * [Agile Machine Learning API](tools/agile-machine-learning-api) - A web application which provides the ability to train and deploy ML models on Google Cloud Machine Learning Engine, and visualize the predicted results using LIME through simple post request.
 * [Apache Beam Client Throttling](tools/apachebeam-throttling) - A library that can be used to limit the number of requests from an Apache Beam pipeline to an external service. It buffers requests to not overload the external service and activates client-side throttling when the service starts rejecting requests due to out of quota errors.
@@ -85,7 +85,7 @@ The tools folder contains ready-made utilities which can simpilfy Google Cloud P
 * [CUD Prioritized Attribution](tools/cuds-prioritized-attribution) - A tool that allows GCP customers who purchased Committed Use Discounts (CUDs) to prioritize a specific scope (e.g. project or folder) to attribute CUDs first before letting any unconsumed discount float to other parts of an organization.
 * [Custom Role Manager](tools/custom-role-manager) - Manages organization- or project-level custom roles by combining predefined roles and including and removing permissions with wildcards. Can run as Cloud Function or output Terraform resources.
 * [DNS Sync](tools/dns-sync) - Sync a Cloud DNS zone with GCE resources. Instances and load balancers are added to the cloud DNS zone as they start from compute_engine_activity log events sent from a pub/sub push subscription. Can sync multiple projects to a single Cloud DNS zone.
-* [GCE Disk Encryption Converter](tools/gce-google-keys-to-cmek) - A tool that converts disks attached to a GCE VM instnace from Google-managed keys to a customer-managed key stored in Cloud KMS.
+* [GCE Disk Encryption Converter](tools/gce-google-keys-to-cmek) - A tool that converts disks attached to a GCE VM instance from Google-managed keys to a customer-managed key stored in Cloud KMS.
 * [GCE Quota Sync](tools/gce-quota-sync) - A tool that fetches resource quota usage from the GCE API and synchronizes it to Stackdriver as a custom metric, where it can be used to define automated alerts.
 * [GCE Usage Log](tools/gce-usage-log) - Collect GCE instance events into a BigQuery dataset, surfacing your vCPUs, RAM, and Persistent Disk, sliced by project, zone, and labels.
 * [GCP Architecture Visualizer](https://github.com/forseti-security/forseti-visualizer) - A tool that takes CSV output from a Forseti Inventory scan and draws out a dynamic hierarchical tree diagram of org -> folders -> projects -> gcp_resources using the D3.js javascript library.
