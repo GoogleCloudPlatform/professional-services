@@ -27,12 +27,12 @@ import (
 // SpreadsheetToBq is a data structure to convert 2-dimensional
 // spreadsheet data to an array of Bqschema objects
 type SpreadsheetToBq struct {
-	BigqueryFields []bqhandler.BqSchema
+	BigqueryFields  []bqhandler.BqSchema
 	SpreadsheetData [][]interface{}
-	EndOfRecord bool
+	EndOfRecord     bool
 }
 
-// NewSpreadsheetToBq returns a pointer to a new instance 
+// NewSpreadsheetToBq returns a pointer to a new instance
 // of SpreadsheetToBq
 func NewSpreadsheetToBq() *SpreadsheetToBq {
 	log.Printf("NewSpreadsheetBq() executing")
@@ -97,7 +97,7 @@ func (sb *SpreadsheetToBq) nextFieldInCurrentRecord(recordName string, data [][]
 	nextField := sb.getBqSchema(data[0]).Name
 	nextField = sb.fixFieldName(nextField)
 	log.Printf("nextFieldInCurrentRecord().nextField: %v", nextField)
-	if strings.HasPrefix(nextField, recordName + ".") {
+	if strings.HasPrefix(nextField, recordName+".") {
 		log.Printf("nextFieldInCurrentRecord().recordName: %s; nextField: %s", recordName, nextField)
 		return true
 	}
@@ -110,7 +110,7 @@ func (sb *SpreadsheetToBq) fixNestedFieldNames(nestedSchema []bqhandler.BqSchema
 	for idx := 0; idx < len(nestedSchema); idx++ {
 		fieldNameParts := strings.Split(nestedSchema[idx].Name, ".")
 		if len(fieldNameParts) > 0 {
-			shortName := fieldNameParts[len(fieldNameParts) - 1]
+			shortName := fieldNameParts[len(fieldNameParts)-1]
 			nestedSchema[idx].Name = shortName
 		}
 		if nestedSchema[idx].Fields != nil {
@@ -134,7 +134,7 @@ func (sb *SpreadsheetToBq) Convert(data [][]interface{}) []bqhandler.BqSchema {
 		data = sb.removeItemAtIndex(data, 0)
 	}
 	for len(data) > 0 {
-		currentField := sb.getBqSchema(data[0])	
+		currentField := sb.getBqSchema(data[0])
 		currentField.Name = sb.fixFieldName(currentField.Name)
 		log.Printf("Convert().CurrentField: %s", currentField.Name)
 		data = sb.removeItemAtIndex(data, 0)
@@ -149,7 +149,7 @@ func (sb *SpreadsheetToBq) Convert(data [][]interface{}) []bqhandler.BqSchema {
 		}
 		fields = append(fields, *currentField)
 	}
-	// BQ does not allow dots in field name 
+	// BQ does not allow dots in field name
 	fields = sb.fixNestedFieldNames(fields)
 	log.Printf("Convert() completed")
 	return fields

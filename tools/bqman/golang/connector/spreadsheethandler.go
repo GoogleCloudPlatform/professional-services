@@ -28,23 +28,23 @@ import (
 // SpreadsheetHandler is used to interface with
 // Google Spreadsheets using Google Sheets API
 type SpreadsheetHandler struct {
-	Ctx       context.Context
-	SheetsService *sheets.Service	
-	SpreadsheetID string
-	SheetSummary []SpreadsheetInfo
+	Ctx              context.Context
+	SheetsService    *sheets.Service
+	SpreadsheetID    string
+	SheetSummary     []SpreadsheetInfo
 	SheetSummaryJSON []byte
 }
 
-// SpreadsheetInfo is used to select a range of 
+// SpreadsheetInfo is used to select a range of
 // cells from a Google Spreadsheet
 type SpreadsheetInfo struct {
-	SheetID int64
+	SheetID    int64
 	SheetTitle string
 	SheetRange string
 }
 
 // NewSpreadsheetHandler accepts a Google Spreadsheet ID
-// as an argument and returns a pointer to the 
+// as an argument and returns a pointer to the
 // SpreadsheetHandler struct
 func NewSpreadsheetHandler(ssID string) *SpreadsheetHandler {
 	log.Printf("NewSpreadsheetHandler() executing")
@@ -53,21 +53,21 @@ func NewSpreadsheetHandler(ssID string) *SpreadsheetHandler {
 	handler := new(SpreadsheetHandler)
 	handler.Ctx = ctx
 	handler.SheetsService, err = sheets.NewService(ctx)
-	handler.SpreadsheetID =  ssID
+	handler.SpreadsheetID = ssID
 	//handler.SheetsService, err = sheets.NewSpreadsheetsService(ctx)
 	if err != nil {
 		log.Printf("NewDriveHandler().drive3.NewService() failed")
 		return nil
-	}	
+	}
 	log.Printf("NewSpreadsheetHandler() completed")
 	return handler
 }
 
-// GetSheets uses the Google Spreadsheet service to 
+// GetSheets uses the Google Spreadsheet service to
 // fetch the worksheets and store the worksheet ID
 // and worksheet title in the SheetInfo struct.
 // The SheetSummary struct holds a list of SheetInfo
-// structs and the serialized byte array is stored 
+// structs and the serialized byte array is stored
 // in SheetSummaryJSON
 func (sh *SpreadsheetHandler) GetSheets() {
 	log.Printf("GetSheets() executing")
@@ -79,10 +79,10 @@ func (sh *SpreadsheetHandler) GetSheets() {
 	}
 	sheetSummary := make([]SpreadsheetInfo, 0)
 	sheets := spreadsheet.Sheets
-	for _, sheet := range(sheets) {
+	for _, sheet := range sheets {
 		sheetProperties := sheet.Properties
 		sheetInfo := &SpreadsheetInfo{
-			SheetID: sheetProperties.SheetId,
+			SheetID:    sheetProperties.SheetId,
 			SheetTitle: sheetProperties.Title,
 		}
 		sheetSummary = append(sheetSummary, *sheetInfo)
@@ -93,7 +93,7 @@ func (sh *SpreadsheetHandler) GetSheets() {
 	if err != nil {
 		log.Fatalf("GetSheets(): json.Marshal() failed")
 	}
-	sh.SheetSummaryJSON = bytes	
+	sh.SheetSummaryJSON = bytes
 	log.Printf("GetSheets() completed")
 }
 
@@ -120,7 +120,7 @@ func (sh *SpreadsheetHandler) GetIndex(ssRange string) map[string]string {
 }
 
 // GetData accepts a Google Spreadsheet range as an argument
-// and returns a 2-dimensional array of interfaces holding 
+// and returns a 2-dimensional array of interfaces holding
 // the values contained in the range
 func (sh *SpreadsheetHandler) GetData(ssRange string) [][]interface{} {
 	log.Printf("GetData() executing")
@@ -138,14 +138,14 @@ func (sh *SpreadsheetHandler) GetData(ssRange string) [][]interface{} {
 	return valueRange.Values
 }
 
-// ShowSheets is a convenience method to display the 
+// ShowSheets is a convenience method to display the
 // contents of a worksheet in JSON format
 func (sh *SpreadsheetHandler) ShowSheets() {
-  fmt.Printf("%s\n", string(sh.SheetSummaryJSON))
+	fmt.Printf("%s\n", string(sh.SheetSummaryJSON))
 }
 
-// ConvertInterfaceArrayToJSON converts a 2-dimensional array 
-// of interfaces holding the values of a range within a 
+// ConvertInterfaceArrayToJSON converts a 2-dimensional array
+// of interfaces holding the values of a range within a
 // spreadsheet and returns the JSON as byte array
 func (sh *SpreadsheetHandler) ConvertInterfaceArrayToJSON(values [][]interface{}) []byte {
 	log.Printf("ConvertInterfaceArrayToJSON() executing")

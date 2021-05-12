@@ -56,17 +56,17 @@ type BqDataset struct {
 	DatasetMetadata *bigquery.DatasetMetadata
 }
 
-// BqSchema is used to forward / revese engineer BigQuery 
+// BqSchema is used to forward / revese engineer BigQuery
 // JSON schema files
 type BqSchema struct {
-	Description string `json:"description"`
-	Name        string `json:"name"`
-	Type        string `json:"type"`
-	Mode        string `json:"mode,omitempty"`
+	Description string     `json:"description"`
+	Name        string     `json:"name"`
+	Type        string     `json:"type"`
+	Mode        string     `json:"mode,omitempty"`
 	Fields      []BqSchema `json:"fields,omitempty"`
 }
 
-// NewBigQueryHandler returns a pointer to a new instance of 
+// NewBigQueryHandler returns a pointer to a new instance of
 // BigQueryHandler
 func NewBigQueryHandler(ctx context.Context, projectID string) *BigQueryHandler {
 	var err error
@@ -140,7 +140,7 @@ func (bh BigQueryHandler) GetBigQueryTables(datasetID string) ([]BqTable, error)
 	return tables, err
 }
 
-// GetBigQueryColumns returns a list of BqColumn objects 
+// GetBigQueryColumns returns a list of BqColumn objects
 // for a given BigQuery table or an error
 func (bh BigQueryHandler) GetBigQueryColumns(ctx context.Context, table *bigquery.Table) ([]BqColumn, error) {
 	log.Printf("GetBigQueryColumns(%s) executing...", table.TableID)
@@ -154,7 +154,7 @@ func (bh BigQueryHandler) GetBigQueryColumns(ctx context.Context, table *bigquer
 	return bqColumns, nil
 }
 
-// CheckDatasetExists is used to determine the existence 
+// CheckDatasetExists is used to determine the existence
 // of a BigQuery dataset
 func (bh *BigQueryHandler) CheckDatasetExists(datasetID string) (bool, error) {
 	log.Printf("CheckDatasetExists(%s) executing", datasetID)
@@ -168,7 +168,7 @@ func (bh *BigQueryHandler) CheckDatasetExists(datasetID string) (bool, error) {
 	return true, nil
 }
 
-// FieldSchemaToBQ convers a FieldSchema (BigQuery API V1) 
+// FieldSchemaToBQ convers a FieldSchema (BigQuery API V1)
 // to TableFieldSchema (BigQuery API V2)
 // Please refer to
 // https://github.com/googleapis/google-cloud-go/blob/096c584342beb49d9653a670d7813b9dbaca72b8/bigquery/schema.go#L75
@@ -239,11 +239,11 @@ func (bh *BigQueryHandler) ConvertToJSON(records []BqSchema) []byte {
 		log.Fatalf("ConvertToJSON(): json.Marshal() failed")
 	}
 	log.Printf("ConvertToJSON() completed")
-	return bytes	
+	return bytes
 }
 
-// LoadDataFromGCS is used to restore BigQuery tables from 
-// sharded CSV files in Google Cloud Storage generated 
+// LoadDataFromGCS is used to restore BigQuery tables from
+// sharded CSV files in Google Cloud Storage generated
 // via a backup. Please refer to
 // https://cloud.google.com/bigquery/docs/loading-data-cloud-storage-csv
 func (bh *BigQueryHandler) LoadDataFromGCS(table, datasetID, gcsPath string, schema bigquery.Schema) {
@@ -262,7 +262,7 @@ func (bh *BigQueryHandler) LoadDataFromGCS(table, datasetID, gcsPath string, sch
 	log.Printf("LoadDataFromGCS() completed")
 }
 
-// ShowMissingColumns is a convenience method to display 
+// ShowMissingColumns is a convenience method to display
 // schema differences
 func (bh *BigQueryHandler) ShowMissingColumns(prefix, tableID, datasetID string, missingColumns []bigquery.FieldSchema) {
 	for i := 0; i < len(missingColumns); i++ {
@@ -272,7 +272,7 @@ func (bh *BigQueryHandler) ShowMissingColumns(prefix, tableID, datasetID string,
 	}
 }
 
-// FindMissingColumnsInSchema is used to identify schema differences 
+// FindMissingColumnsInSchema is used to identify schema differences
 // between BigQuery tables
 func (bh *BigQueryHandler) FindMissingColumnsInSchema(tableID, datasetID string, schema bigquery.Schema) (*bigquery.Table, []bigquery.FieldSchema) {
 	log.Printf("FindMissingColumnsInSchema() executing")
@@ -324,7 +324,7 @@ func (bh *BigQueryHandler) AddColumnsToTable(datasetID string, tableRef *bigquer
 	return nil
 }
 
-// JsonifyBigquery is used to convert BigQuery TableSchema to 
+// JsonifyBigquery is used to convert BigQuery TableSchema to
 // JSON byte array
 func (bh *BigQueryHandler) JsonifyBigquery(tableSchema *bqv2.TableSchema) []byte {
 	log.Printf("JsonifyBigquery() executing.")

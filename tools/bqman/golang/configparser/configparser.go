@@ -38,7 +38,7 @@ type ConfigParser struct {
 	ConfigBytes []byte
 }
 
-// NewConfigParser loads a config JSON file and returns a 
+// NewConfigParser loads a config JSON file and returns a
 // pointer to ConfigParser
 func NewConfigParser(file string) *ConfigParser {
 	log.Printf("NewConfigParser(%s) executing", file)

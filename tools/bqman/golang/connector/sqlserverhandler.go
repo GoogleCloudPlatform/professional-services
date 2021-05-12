@@ -34,29 +34,29 @@ import (
 
 // SQLServerHandler is used to hold connection information to SQL Server
 type SQLServerHandler struct {
-	Ctx 	      	context.Context
-	Db		*sql.DB
-	Server		string
-	Port		int
-	User		string
-	Password	string
-	Database	string
+	Ctx      context.Context
+	Db       *sql.DB
+	Server   string
+	Port     int
+	User     string
+	Password string
+	Database string
 }
 
 // SQLServerColumnInfo is used to hold database table colum info
 type SQLServerColumnInfo struct {
-	ColumnName sql.NullString
-	ColumnDescription sql.NullString
-	OrdinalPosition sql.NullInt32
-	IsNullable sql.NullString
-	Datatype sql.NullString
-	NumericPrecision sql.NullInt32
+	ColumnName            sql.NullString
+	ColumnDescription     sql.NullString
+	OrdinalPosition       sql.NullInt32
+	IsNullable            sql.NullString
+	Datatype              sql.NullString
+	NumericPrecision      sql.NullInt32
 	NumericPrecisionRadix sql.NullInt32
-	NumericScale sql.NullInt32
-	IsPrimaryKey sql.NullInt32
+	NumericScale          sql.NullInt32
+	IsPrimaryKey          sql.NullInt32
 }
 
-// SQLServerBigQueryColumnMap is used to hold mapping 
+// SQLServerBigQueryColumnMap is used to hold mapping
 // between SQL Server and BigQuery datatypes
 var SQLServerBigQueryColumnMap map[string]string
 
@@ -64,8 +64,8 @@ var SQLServerBigQueryColumnMap map[string]string
 // It returns a pointer to NewSQLServerHandler
 func NewSQLServerHandler(server, user, password, database string, port int) *SQLServerHandler {
 	log.Printf("NewSQLServerHandler() executing")
-    	connString := fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d;database=%s;",
-        server, user, password, port, database)
+	connString := fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d;database=%s;",
+		server, user, password, port, database)
 	db, err := sql.Open("sqlserver", connString)
 	util.CheckError(err, "NewSQLServerHandler().sql.Open() failed!")
 	ctx := context.Background()
@@ -79,44 +79,44 @@ func NewSQLServerHandler(server, user, password, database string, port int) *SQL
 	handler.User = user
 	handler.Password = password
 	handler.Database = database
-	SQLServerBigQueryColumnMap = map[string]string {
-		"bigint identity" : "INTEGER",
-		"bigint" : "INTEGER",
-		"int" : "INTEGER",
-		"nvarchar": "STRING",
-		"varchar": "STRING",
-		"datetime": "DATETIME",
-		"datetime2": "DATETIME",
-		"bit": "BOOLEAN",
-		"timestamp": "STRING",
-		"sysname": "STRING",
-		"char": "STRING",
-		"float": "FLOAT",
-		"decimal": "NUMERIC",
-		"smallint": "INTEGER",
-		"money": "NUMERIC",
-		"date": "DATE",
-		"tinyint": "INTEGER",
-		"Enumeration": "INTEGER",
-		"LongName": "STRING",
-		"boolean": "BOOLEAN",
-		"double": "FLOAT",
-		"xml" : "STRING",
-		"varbinary": "STRING",
+	SQLServerBigQueryColumnMap = map[string]string{
+		"bigint identity":  "INTEGER",
+		"bigint":           "INTEGER",
+		"int":              "INTEGER",
+		"nvarchar":         "STRING",
+		"varchar":          "STRING",
+		"datetime":         "DATETIME",
+		"datetime2":        "DATETIME",
+		"bit":              "BOOLEAN",
+		"timestamp":        "STRING",
+		"sysname":          "STRING",
+		"char":             "STRING",
+		"float":            "FLOAT",
+		"decimal":          "NUMERIC",
+		"smallint":         "INTEGER",
+		"money":            "NUMERIC",
+		"date":             "DATE",
+		"tinyint":          "INTEGER",
+		"Enumeration":      "INTEGER",
+		"LongName":         "STRING",
+		"boolean":          "BOOLEAN",
+		"double":           "FLOAT",
+		"xml":              "STRING",
+		"varbinary":        "STRING",
 		"uniqueidentifier": "STRING",
-		"nchar": "STRING",
-		"geography": "GEOGRAPHY",
-		"hierarchyid": "STRING",
-		"numeric": "NUMERIC",
-		"smallmoney": "NUMERIC",
-		"time": "TIME",
-	}	
+		"nchar":            "STRING",
+		"geography":        "GEOGRAPHY",
+		"hierarchyid":      "STRING",
+		"numeric":          "NUMERIC",
+		"smallmoney":       "NUMERIC",
+		"time":             "TIME",
+	}
 	log.Printf("NewSQLServerHandler() completed")
 	return handler
 }
 
-// GetTableSchemas constructs and executes a prepared SQL query 
-// to extract a unique list of table schemas for a given 
+// GetTableSchemas constructs and executes a prepared SQL query
+// to extract a unique list of table schemas for a given
 // SQL Server table catalog
 func (ssh *SQLServerHandler) GetTableSchemas(tableCatalog string) []string {
 	log.Printf("GetTableSchemas() executing")
@@ -125,7 +125,7 @@ func (ssh *SQLServerHandler) GetTableSchemas(tableCatalog string) []string {
 		WHERE TABLE_CATALOG = @TableCatalog
 		AND TABLE_SCHEMA <> 'dbo'
 		ORDER BY TABLE_SCHEMA`
-	stmt, err := ssh.Db.PrepareContext(ssh.Ctx, tsql)	
+	stmt, err := ssh.Db.PrepareContext(ssh.Ctx, tsql)
 	util.CheckError(err, "GetTableSchemas().db.PrepareContext() failed")
 	defer stmt.Close()
 	rows, err := stmt.QueryContext(ssh.Ctx, sql.Named("TableCatalog", tableCatalog))
@@ -142,8 +142,8 @@ func (ssh *SQLServerHandler) GetTableSchemas(tableCatalog string) []string {
 	return tableSchemas
 }
 
-// GetTables constructs and executes a prepared SQL query to 
-// fetch a list of tables for a given combination of tableCatalog 
+// GetTables constructs and executes a prepared SQL query to
+// fetch a list of tables for a given combination of tableCatalog
 // and tableSchema
 func (ssh *SQLServerHandler) GetTables(tableCatalog, tableSchema string) []string {
 	log.Printf("GetColumns() executing")
@@ -153,7 +153,7 @@ func (ssh *SQLServerHandler) GetTables(tableCatalog, tableSchema string) []strin
 		AND TABLE_CATALOG = @TableCatalog
 		AND TABLE_SCHEMA = @TableSchema
 		ORDER BY TABLE_NAME`
-	stmt, err := ssh.Db.PrepareContext(ssh.Ctx, tsql)	
+	stmt, err := ssh.Db.PrepareContext(ssh.Ctx, tsql)
 	util.CheckError(err, "GetColumns().db.PrepareContext() failed")
 	defer stmt.Close()
 	rows, err := stmt.QueryContext(ssh.Ctx,
@@ -172,7 +172,7 @@ func (ssh *SQLServerHandler) GetTables(tableCatalog, tableSchema string) []strin
 	return tables
 }
 
-// GetColumns constructs and executes a prepared SQL query to fetch 
+// GetColumns constructs and executes a prepared SQL query to fetch
 // the column info for a given SQL server table
 func (ssh *SQLServerHandler) GetColumns(tableCatalog, tableSchema, tableName string) []SQLServerColumnInfo {
 	log.Printf("GetColumns() executing")
@@ -205,13 +205,13 @@ func (ssh *SQLServerHandler) GetColumns(tableCatalog, tableSchema, tableName str
 	AND c.TABLE_SCHEMA = @TableSchema
 	AND c.TABLE_NAME = @TableName
 	ORDER BY c.TABLE_CATALOG, c.TABLE_SCHEMA, c.TABLE_NAME, c.ORDINAL_POSITION, IS_PRIMARY_KEY`
-	stmt, err := ssh.Db.PrepareContext(ssh.Ctx, tsql)	
+	stmt, err := ssh.Db.PrepareContext(ssh.Ctx, tsql)
 	util.CheckError(err, "GetColumns().db.PrepareContext() failed")
 	defer stmt.Close()
-	rows, err := stmt.QueryContext(ssh.Ctx, 
-		sql.Named("TableCatalog", tableCatalog), 
+	rows, err := stmt.QueryContext(ssh.Ctx,
+		sql.Named("TableCatalog", tableCatalog),
 		sql.Named("TableSchema", tableSchema),
-		sql.Named("TableName", tableName)) 
+		sql.Named("TableName", tableName))
 	util.CheckError(err, "GetColumns().stmt.QueryContext() failed")
 	defer rows.Close()
 	columns := make([]SQLServerColumnInfo, 0)
@@ -261,9 +261,9 @@ func (ssh *SQLServerHandler) ConvertColumnInfoToBqSchema(columnInfos []SQLServer
 	bqSchemas := make([]bqhandler.BqSchema, 0)
 	for _, ci := range columnInfos {
 		bqSchema := &bqhandler.BqSchema{
-			Name: ci.ColumnName.String,
+			Name:        ci.ColumnName.String,
 			Description: ci.ColumnDescription.String,
-			Type: SQLServerBigQueryColumnMap[ci.Datatype.String],
+			Type:        SQLServerBigQueryColumnMap[ci.Datatype.String],
 		}
 		if ci.IsNullable.String == "NO" || ci.IsPrimaryKey.Int32 == 1 {
 			bqSchema.Mode = "Required"
@@ -284,5 +284,5 @@ func (ssh *SQLServerHandler) ConvertToJSON(records []bqhandler.BqSchema) []byte 
 		log.Fatalf("ConvertToJSON(): json.Marshal() failed")
 	}
 	log.Printf("ConvertToJSON() completed")
-	return bytes	
+	return bytes
 }

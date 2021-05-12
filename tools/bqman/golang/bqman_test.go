@@ -32,17 +32,17 @@ import (
 	props "github.com/magiconair/properties"
 )
 
-const(
+const (
 	TestDataDir = "../testdata"
-	Quiet = false
+	Quiet       = false
 )
 
 var (
-	Context = context.Background()
-	timeNow = time.Now()
+	Context    = context.Background()
+	timeNow    = time.Now()
 	timeString = fmt.Sprintf("%d%02d%02dT%02d%02d%02d",
 		timeNow.Year(), timeNow.Month(), timeNow.Day(),
-		timeNow.Hour(), timeNow.Minute(), timeNow.Second())	
+		timeNow.Hour(), timeNow.Minute(), timeNow.Second())
 )
 
 func setup() {
@@ -84,13 +84,13 @@ func loadProperties(em executionmode.ExecutionMode, loadGlobal bool) *props.Prop
 func writePropertiesToFile(t *testing.T, p *props.Properties, fname string) {
 	log.Printf("writeProperties(%s) executing", fname)
 	f, err := os.Create(fname)
-	if err  != nil {
+	if err != nil {
 		t.Errorf("writePropertiesToFile(%s) failed", fname)
 	}
 	defer f.Close()
 	w := bufio.NewWriter(f)
 	n, err := p.Write(w, properties.UTF8)
-	if err  != nil {
+	if err != nil {
 		t.Errorf("writePropertiesToFile(%s) failed", fname)
 	}
 	w.Flush()
@@ -103,7 +103,7 @@ func TestProcessPull(t *testing.T) {
 	projectID, _ := pullProps.Get("project")
 	dataset, _ := pullProps.Get("dataset")
 	cacheDir, _ := pullProps.Get("cache_dir")
-	location , _:= pullProps.Get("location")
+	location, _ := pullProps.Get("location")
 	trotter := controller.NewPullTrotter(projectID, dataset, cacheDir, location, Quiet)
 	ProcessPull(trotter)
 	files, err := util.FindFile(trotter.Parameters.LogDirPath, []string{".schema"})
@@ -130,7 +130,7 @@ func TestProcessPush(t *testing.T) {
 	projectID, _ := p.Get("project")
 	dataset, _ := p.Get("dataset")
 	cacheDir, _ := p.Get("cache_dir")
-	location , _:= p.Get("location")
+	location, _ := p.Get("location")
 	schemaDir, _ := p.Get("schema_dir")
 	newPushDataset := fmt.Sprintf("bqman_push_%s_%s", dataset, timeString)
 	newRestoreDataset := fmt.Sprintf("bqman_restore_%s_%s", dataset, timeString)
@@ -176,7 +176,7 @@ func TestProcessUpdate(t *testing.T) {
 	projectID, _ := p.Get("project")
 	dataset, _ := p.Get("dataset")
 	cacheDir, _ := p.Get("cache_dir")
-	location , _:= p.Get("location")
+	location, _ := p.Get("location")
 	trotter := controller.NewUpdateTrotter(projectID, dataset, cacheDir, schemaDirForUpdate, location, Quiet)
 	ProcessUpdate(trotter)
 	updateProps := props.NewProperties()
@@ -195,7 +195,7 @@ func TestProcessPatch(t *testing.T) {
 	projectID, _ := p.Get("project")
 	dataset, _ := p.Get("dataset")
 	cacheDir, _ := p.Get("cache_dir")
-	location , _:= p.Get("location")
+	location, _ := p.Get("location")
 	log.Printf("SchemaDirForPatch: %s", schemaDirForPatch)
 	trotter := controller.NewUpdateTrotter(projectID, dataset, cacheDir, schemaDirForPatch, location, Quiet)
 	ProcessPatch(trotter)
@@ -213,7 +213,7 @@ func TestProcessBackup(t *testing.T) {
 	projectID, _ := p.Get("project")
 	dataset, _ := p.Get("dataset")
 	cacheDir, _ := p.Get("cache_dir")
-	location , _:= p.Get("location")
+	location, _ := p.Get("location")
 	gcsBucketForBackup, _ := p.Get("gcs_bucket")
 	trotter := controller.NewBackupTrotter(projectID, dataset, cacheDir, gcsBucketForBackup, location, Quiet)
 	ProcessBackup(trotter)
@@ -231,7 +231,7 @@ func TestProcessRestore(t *testing.T) {
 	projectID, _ := p.Get("project")
 	dataset, _ := p.Get("dataset")
 	cacheDir, _ := p.Get("cache_dir")
-	location , _:= p.Get("location")
+	location, _ := p.Get("location")
 	schemaDirForRestore, _ := p.Get("schema_dir")
 	gcsPathForRestore, _ := p.Get("gcs_path")
 	log.Printf("TestProcessRestore().gcsPathForRestore: %s", gcsPathForRestore)
@@ -245,7 +245,7 @@ func TestProcessImportSpreadsheet(t *testing.T) {
 	p := loadProperties(executionmode.ImportSpreadsheetMode, true)
 	projectID, _ := p.Get("project")
 	cacheDir, _ := p.Get("cache_dir")
-	location , _:= p.Get("location")
+	location, _ := p.Get("location")
 	spreadsheetID, _ := p.Get("spreadsheet")
 	sheetTitle, _ := p.Get("sheet")
 	sheetRange, _ := p.Get("range")
@@ -266,7 +266,7 @@ func TestProcessImportSqlserver(t *testing.T) {
 	p := loadProperties(executionmode.ImportSqlserverMode, true)
 	projectID, _ := p.Get("project")
 	cacheDir, _ := p.Get("cache_dir")
-	location , _:= p.Get("location")
+	location, _ := p.Get("location")
 	server, _ := p.Get("server")
 	user, _ := p.Get("user")
 	password, _ := p.Get("password")
