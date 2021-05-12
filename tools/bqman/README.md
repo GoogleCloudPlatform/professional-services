@@ -2,8 +2,6 @@
 
 BQMan has been designed to seamlessly interface with Google BigQuery to automate the provisioning and ongoing management of datasets and tables. BQMan provides the following modes of operation:
 
-
-
 *   **Pull: **downloads the Bigquery table schema as JSON files for a given dataset.
 *   **Push: **creates the Bigquery dataset and tables using a previously downloaded collection of Bigquery table JSON schema files.
 *   **Update: **allows the addition of nullable columns to Bigquery tables.
