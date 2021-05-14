@@ -1,0 +1,4 @@
+allee=alley
+av=avenue
+str=street
+rd=road

@@ -23,13 +23,13 @@ As illustrated in the diagram below, we will create a VPC with three subnets. Tw
 
 ![NetworkImage](./asm-private-multiclusters-intranet.png)
 
-The clusters are not accessible from an external network. Users can only log into the bastion server via an IAP tunnel to gain access to this VPC. A firewall rule is built to allow IAP tunneling into the GCE subnet (Subnet C) only. For the bastion server in Subnet C to access Kubernetes APIs of both private clusters, Subnet C's CIDR range is added to the "_Master Auth Network_" of both clusters. This is illustrated as blue lines and yellow underscore lines in the diagram above.
+The clusters are not accessible from an external network. Users can only log into the bastion server via an IAP tunnel to gain access to this VPC. A firewall rule is built to allow IAP tunneling into the GCE subnet (Subnet C) only. For the bastion server in Subnet C to access Kubernetes APIs of both private clusters, Subnet C's CIDR range is added to the "_GKE Control Plane Authorized Network_" of both clusters. This is illustrated as blue lines and yellow underscore lines in the diagram above.
 
 Also, in order for both clusters to access the service mesh (Istiod) and service deployed on the other cluster, we need to do the following:
-- The pod CIDR range of one cluster must be added to the "_Master Auth Network_" of the other cluster. This enables one cluster to ping _istiod_ on the other cluster. 
+- The pod CIDR range of one cluster must be added to the "_GKE Control Plane Authorized Network_" of the other cluster. This enables one cluster to ping _istiod_ on the other cluster. 
 - The firewall needs to be open for one cluster's pod CIDR to access the service port on the other cluster. In this sample, it is port 5000 used by the HelloWord testing application. Because the invocation of service is bidirectional in HelloWorld testing application, we will add firewall rules for each direction. 
 
-The infrastruction used in this sample is coded in Terraform scripts. The ASM installation steps are coded in a Shell script.     
+The infrastructure used in this sample is coded in Terraform scripts. The ASM installation steps are coded in a Shell script.     
 
 ## Prerequisites
 
@@ -59,7 +59,7 @@ In this sample, we create two private clusters in different subnets of the same 
 3. Create a subnet in the VPC. 
 4. Create a VM in the subnet. This will be the bastion server to simulate an intranet access to GKE clusters.
    - This step is now done by Terraform, in file [infrastructure/bastion.tf](./infrastructure/bastion.tf)
-   - The Bastion host is used for interraction with the GKE clusters
+   - The Bastion host is used for interaction with the GKE clusters
    - For this demo, we ran Terraform from a local machine, not from the Bastion host
    - **Note:** you will have to manually [create a Google Cloud firewall rule](https://cloud.google.com/vpc/docs/using-firewalls), to allow connection to the bastion server via SSH (port 22). We did not automate this for security reasons.
 
@@ -182,7 +182,7 @@ Follow the instruction in "**Verify cross-cluster load balancing**" section of [
 
 ## Internal Load Balancer
 
-Anthos ASM deploys ingress gateway using exernal load balancer by default. If we need to change the ingress gateway to be internal load balancer, we can use `--optio`n or `--custom-overlay` parameter along with out load balancer yaml (./istio-profiles/internal-load-balancer.yaml).
+Anthos ASM deploys ingress gateway using external load balancer by default. If we need to change the ingress gateway to be internal load balancer, we can use `--option` or `--custom-overlay` parameter along with out load balancer yaml (./istio-profiles/internal-load-balancer.yaml).
 
 Please note that we need to specify out "targetPort" for https and http2 ports for current ASM version. 
 

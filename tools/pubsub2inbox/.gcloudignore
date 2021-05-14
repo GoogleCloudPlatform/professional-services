@@ -1,0 +1,8 @@
+#!include:.gitignore
+*.yaml
+README.md
+examples/
+test/
+__pycache__/
+*/__pycache__/
+*.tf

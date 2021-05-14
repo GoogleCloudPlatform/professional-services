@@ -20,8 +20,10 @@ import logging
 import re
 import time
 
-from google.cloud.monitoring_v3 import (MetricServiceClient, enums, types)
+from google.api import metric_pb2 as ga_metric
 from google.api_core import exceptions
+from google.cloud.monitoring_v3 import (MetricServiceClient, types,
+                                        TimeInterval, ListTimeSeriesRequest)
 
 from .utils import decorate_with, to_json
 
@@ -38,10 +40,11 @@ class MetricsClient:
         project_id (str): Cloud Monitoring host project id (workspace) to query
             metrics from.
     """
+
     def __init__(self, project_id):
         self.client = MetricServiceClient()
         self.project_id = project_id
-        self.project = self.client.project_path(project_id)
+        self.project = f"projects/{project_id}"
 
     def get(self, metric_type):
         """Get a metric descriptor from metric type.
@@ -55,13 +58,13 @@ class MetricsClient:
         Returns:
             iterator: Metric descriptor API response.
         """
+        name = f'{self.project}/metricDescriptors/{metric_type}'
         try:
-            return self.client.get_metric_descriptor(
-                f'{self.project}/metricDescriptors/{metric_type}')
+            return self.client.get_metric_descriptor(name=name)
         except exceptions.NotFound:
             metric_type = self.get_approx(metric_type)
-            return self.client.get_metric_descriptor(
-                f'{self.project}/metricDescriptors/{metric_type}')
+            name = f'{self.project}/metricDescriptors/{metric_type}'
+            return self.client.get_metric_descriptor(name=name)
 
     def get_approx(self, metric_type, interactive=True):
         """Get metric descriptors matching a regex of the metric_type.
@@ -81,14 +84,12 @@ class MetricsClient:
         if len(matches) == 0:
             LOGGER.error(
                 f'No partial result matched your query "{metric_type}".')
-            raise # re-raise NotFound exception
+            raise  # re-raise NotFound exception
         if len(matches) == 1:
             metric_type = matches[0][0]
             project_id = matches[0][1]
-            LOGGER.info(
-                f'Found exactly one metric "{metric_type}" in project'
-                f'"{project_id}" matching regex.'
-            )
+            LOGGER.info(f'Found exactly one metric "{metric_type}" in project'
+                        f'"{project_id}" matching regex.')
         elif interactive:
             LOGGER.info('Found multiple metrics matching regex.')
             for idx, (mtype, project_id) in enumerate(matches):
@@ -118,18 +119,19 @@ class MetricsClient:
         Returns:
             obj: Metric descriptor.
         """
-        descriptor = types.MetricDescriptor()
+        descriptor = ga_metric.MetricDescriptor()
         if metric_type.startswith('custom.googleapis.com/'):
             descriptor.type = metric_type
         else:
             descriptor.type = 'custom.googleapis.com/%s' % metric_type
-        descriptor.metric_kind = (getattr(enums.MetricDescriptor.MetricKind,
+        descriptor.metric_kind = (getattr(ga_metric.MetricDescriptor.MetricKind,
                                           metric_kind))
-        descriptor.value_type = (getattr(enums.MetricDescriptor.ValueType,
+        descriptor.value_type = (getattr(ga_metric.MetricDescriptor.ValueType,
                                          value_type))
         descriptor.description = description
         LOGGER.info(f'Creating metric descriptor "{descriptor.type}" ...')
-        return self.client.create_metric_descriptor(self.project, descriptor)
+        return self.client.create_metric_descriptor(
+            name=self.project, metric_descriptor=descriptor)
 
     def delete(self, metric_type):
         """Delete a metric descriptor.
@@ -142,7 +144,7 @@ class MetricsClient:
         """
         LOGGER.info(f'Deleting metric descriptor "{metric_type}" ...')
         return self.client.delete_metric_descriptor(
-            f'{self.project}/metricDescriptors/{metric_type}')
+            name=f'{self.project}/metricDescriptors/{metric_type}')
 
     def list(self, pattern=None):
         """List all metric descriptors in project.
@@ -156,7 +158,8 @@ class MetricsClient:
             list: List of metric descriptors.
         """
         LOGGER.debug(f'Listing metrics in project "{self.project_id}" ...')
-        descriptors = list(self.client.list_metric_descriptors(self.project))
+        descriptors = list(
+            self.client.list_metric_descriptors(name=self.project))
         if pattern:
             descriptors = [
                 x for x in descriptors if bool(re.search(pattern, x.type))
@@ -193,10 +196,8 @@ class MetricsClient:
             else:
                 last_written = results[0]['points'][0]['interval']['endTime']
                 keep_list.append({
-                    'metric_type':
-                    metric_type,
-                    'message':
-                    f'Last datapoint written on {last_written}'
+                    'metric_type': metric_type,
+                    'message': f'Last datapoint written on {last_written}'
                 })
                 LOGGER.info(
                     f'{metric_type}: last datapoint written at {last_written}')
@@ -225,26 +226,49 @@ class MetricsClient:
         """
         LOGGER.debug(
             f'Inspecting metric "{metric_type}" in project "{self.project_id}"'
-            ' ...'
-        )
+            ' ...')
         metric = list(self.get(metric_type))[0]
         LOGGER.info(metric)
         metric_type = metric['type']
         interval = types.TimeInterval()
         now = time.time()
-        interval.end_time.seconds = int(now)
-        interval.end_time.nanos = int(
-            (now - interval.end_time.seconds) * 10**9)
-        interval.start_time.seconds = int(now - window)
-        interval.start_time.nanos = interval.end_time.nanos
+        seconds = int(now)
+        nanos = int((now - seconds) * 10**9)
+        interval = TimeInterval({
+            "end_time": {
+                "seconds": seconds,
+                "nanos": nanos
+            },
+            "start_time": {
+                "seconds": (seconds - window),
+                "nanos": nanos
+            }
+        })
+
+        # TODO: Add custom aggregation filters
+        # aggregation = monitoring_v3.Aggregation({
+        #     "alignment_period": {
+        #         "seconds": 1200
+        #     },  # 20 minutes
+        #     "per_series_aligner":
+        #         monitoring_v3.Aggregation.Aligner.ALIGN_MEAN,
+        #     "cross_series_reducer":
+        #         monitoring_v3.Aggregation.Reducer.REDUCE_MEAN,
+        #     "group_by_fields": ["resource.zone"],
+        # })
+
         query = f'metric.type = "{metric_type}"'
         for filter_key, filter_value in filters.items():
             query += f' {filter_key} = {filter_value}'
         LOGGER.debug(f'Running query "{query}" ...')
-        results = list(
-            self.client.list_time_series(
-                self.project, query, interval,
-                enums.ListTimeSeriesRequest.TimeSeriesView.FULL))
+        results = self.client.list_time_series(
+            request={
+                "name": self.project,
+                "filter": query,
+                "interval": interval,
+                "view": ListTimeSeriesRequest.TimeSeriesView.FULL,
+                # "aggregation": aggregation # TODO: Uncomment this
+            })
         return results
 
     def switch_project(self, new_project_id):
@@ -254,4 +278,4 @@ class MetricsClient:
             new_project_id (str): New project id.
         """
         self.project_id = new_project_id
-        self.project = self.client.project_path(self.project_id)
+        self.project = f"projects/{self.project_id}"

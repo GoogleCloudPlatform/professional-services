@@ -29,7 +29,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(name='gmon',
-      version='1.1.0',
+      version='1.1.2',
       description='Cloud Monitoring API client (unofficial)',
       long_description=long_description,
       long_description_content_type='text/markdown',
@@ -52,8 +52,6 @@ setup(name='gmon',
           'google-cloud-monitoring', 'dotmap'
       ],
       entry_points={
-          'console_scripts': [
-              'gmon=gmon.cli:main',
-          ],
+          'console_scripts': ['gmon=gmon.cli:main',],
       },
       python_requires='>=3.4')

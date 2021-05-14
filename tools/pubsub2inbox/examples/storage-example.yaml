@@ -1,0 +1,37 @@
+
+retryPeriod: 3 day ago
+
+processors:
+  - storage
+
+outputs:
+  - type: mail
+    transports:
+      - type: smtp
+        host: your.stmp.server
+        port: 587
+        ssl: false
+    from: notifications@your.domain
+    to: |
+      cfo@your.domain
+    subject: |
+      Daily report {{ 'now'|strftime('%d %B %Y') }}
+    body:
+      images:
+        - img/sample-logo-small.png
+      attachments:
+        - gs://{{ object.bucket }}/{{ object.name|urlencode }}
+      html: |
+        <html><head><title>Daily report</title></head>
+        <body>
+          <img src="cid:sample-logo-small.png" />
+          <h1>Daily report</h1>
+          <p>
+            Please find today's report attached.
+          </p>
+        </body>
+        </html>
+      text: |
+        *Daily report*
+
+        Please find today's report attached.

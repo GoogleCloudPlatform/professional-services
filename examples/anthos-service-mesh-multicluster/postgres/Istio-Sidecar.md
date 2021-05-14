@@ -2,13 +2,13 @@
 
 ### Summary
 
-PostgreSQL uses application-level protocol negotation for SSL connection. Istio Proxy currently uses TCP-level protocol negotation, so Istio Proxy sidecar errors out during SSL handshake when it tries to auto encryt connection with PostgreSQL. In this article, we document how to reproduce this issue. 
+PostgreSQL uses application-level protocol negotiation for SSL connection. Istio Proxy currently uses TCP-level protocol negotiation, so Istio Proxy sidecar errors out during SSL handshake when it tries to auto encrypt connection with PostgreSQL. In this article, we document how to reproduce this issue.
 
-### Prerequites
+### Prerequisites
 
 * Enforce SSL connection on Cloud SQL PostgreSQL instance.
-* Create client certificate and download client certificate, client key and server certificate. We will use them in the client container for testing without sidecar auto-encryption, and mount them into Istio Proxy sidecar for sidecar auto-encryption. 
-* Add K8s node IPs to the Authorized Networks of PostgreSQL instance. Or, we can add "0.0.0.0/0" to allow client connection from any IP address for testing purpose. 
+* Create client certificate and download client certificate, client key and server certificate. We will use them in the client container for testing without sidecar auto-encryption, and mount them into Istio Proxy sidecar for sidecar auto-encryption.
+* Add K8s node IPs to the Authorized Networks of PostgreSQL instance. Or, we can add "0.0.0.0/0" to allow client connection from any IP address for testing purpose.
 
 ### Build Container
 
@@ -98,7 +98,7 @@ kubectl apply -f service-entry.yaml -n <YOUR_NAMESPACE>
 
 #### Deploy PostgresSQL client with sidecar injection
 
-Run this command to deploy PostgreSQL client with Isito Proxy sidecar inject
+Run this command to deploy PostgreSQL client with Istio Proxy sidecar inject
 ``
 kubectl apply -f postgres-istio.yaml -n <YOUR_NAMESPACE>
 ``
@@ -114,7 +114,7 @@ You will see errors.
 
 #### Look into the Istio Proxy log
 
-You can read the logs in Cloud Logging. However, you may want to view sidecar log messages for the detailed networ traffic information and errors with the following command.
+You can read the logs in Cloud Logging. However, you may want to view sidecar log messages for the detailed network traffic information and errors with the following command.
 ```
 kubectl logs deploy/postgres-istio -c istio-proxy -n <YOUR_NAMESPACE>
 ```
