@@ -13,15 +13,15 @@ As shown in the following architecture it is assumed that you have a Cloud Fires
 The following code is used for testing purposes in local development environment.
 
 ```sh
-Authorize your local with gcloud command:
+# Authorize your local with gcloud command:
 gcloud auth application-default login
 gcloud config set project anand-fb-test-1
 
-To run locally: 
-For using documnent snapshot create_date (internal)
+# To run locally: 
+# For using documnent snapshot create_date (internal)
 python3 read.py --collection test-create-date --ttl "1 seconds"
 
-For user defined column scan
+#For user defined column scan
 python3 read.py --collection test-create-date --ttl "1 seconds" --ttlcolumn create_date
 ```
 ## Deploy template to test and production environment.
@@ -31,7 +31,6 @@ To run in dataflow first export variables specifying where to install the templa
 - PROJECT
 - REGION 
 - BUCKET 
-
 
 ```sh
 export PROJECT=<YOUR_PROJECT_ID>
