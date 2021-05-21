@@ -17,6 +17,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [BigQuery to XML Export](tools/bigquery-to-xml) - Python tool that takes a BigQuery query and returns the output as an XML string.
 * [Bigtable Dataflow Cryptocurrencies Exchange RealTime Example](examples/cryptorealtime) - Apache Beam example that reads from the Crypto Exchanges WebSocket API as Google Cloud Dataflow pipeline and saves the feed in Google Cloud Bigtable. Real time visualization and query examples from GCP Bigtable running on Flask server are included.
 * [Bigtable Dataflow Update Table Key Pipeline](examples/bigtable-change-key) - Dataflow pipeline with an example of how to update the key of an existing table. It works with any table, regardless the schema. It shows how to update your key for a table with existing data, to try out different alternatives to improve performance.
+* [BigQuery Automated Schema Management](tools/bqman) - Command-line utility for automated provisioning and management of BigQuery datasets and tables.
 * [Cloud Composer Examples](examples/cloud-composer-examples) - Examples of using Cloud Composer, GCP's managed Apache Airflow service.
 * [Cloud Composer CI/CD](examples/cloud-composer-cicd) - Examples of using Cloud Build to deploy airflow DAGs to Cloud Composer.
 * [Cloud Data Fusion Functions and Plugins](examples/cloud-datafusion-functions-plugins) - Examples of Cloud Data Fusion Functions and Plugins.
@@ -61,6 +62,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [Spinnaker](examples/spinnaker) - Example pipelines for a Canary / Production deployment process.
 * [TensorFlow Serving on GKE and Load Testing](examples/tf-load-testing) - Examples how to implement Tensorflow model inference on GKE and to perform a load testing of such solution.
 * [TensorFlow Unit Testing](examples/tensorflow-unit-testing) - Examples how to write unit tests for TensorFlow ML models.
+* [Terraform Internal HTTP Load Balancer](examples/terraform-ilb) - Terraform example showing how to deploy an internal HTTP load balancer.
 * [Uploading files directly to Google Cloud Storage by using Signed URL](examples/direct-upload-to-gcs) - Example architecture to enable uploading files directly to GCS by using [Signed URL](https://cloud.google.com/storage/docs/access-control/signed-urls).
 
 ## Tools
