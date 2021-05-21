@@ -16,22 +16,20 @@ Copyright 20210 Google LLC
 provider "google" {
   credentials = file("CREDENTIALS_FILE.json")
   #CHANGE - Host project Id
-  project     = "quota-monitoring-project-20"
+  project     = "quota-monitoring-project-23"
   #CHANGE - Region same as app engine
   region      = "us-west3"
 }
 
 locals {
   #CHANGE - Host Project Id
-  home_project                        = "quota-monitoring-project-20"
+  home_project                        = "quota-monitoring-project-23"
   #CHANGE - Region same as app engine
   region                              = "us-west3"
   #CHANGE - Service Account email id to deploy resources and scan project quotas.
   service_account_email               = "sa-quota-monitoring-project-20@quota-monitoring-project-20.iam.gserviceaccount.com"
   #CHANGE - Pub/Sub Topic name to list projects in parent node
   topic_alert_project_id              = "my-topic-id-1"
-  #CHANGE - Pub/Sub Topic name to scan project quotas
-  topic_alert_project_quota           = "my-topic-id-2"
   #CHANGE - Pub/Sub Topic name to send notification
   topic_alert_notification            = "my-topic-id-3"
   #DO NOT CHANGE - Source code bucket name
@@ -54,10 +52,6 @@ locals {
   big_query_alert_dataset_id          = "quota_monitoring_alert_dataset_1"
   #CHANGE - Big Query Alert Table Id
   big_query_alert_table_id            = "quota_monitoring_alert_table_1"
-  #CHANGE - Dataflow job name
-  dataflow_job_name                   = "tf-test-dataflow-job-1"
-  #CHANGE - Dataflow job temp bucket. The bucket name must be unique globally.
-  dataflow_job_temp_storage           = "dataflow-temp-quota-monitoring-project-20" //name need to be unique
   #CHANGE - Name of the BigQuery scheduled query to generate alert data
   bigquery_data_transfer_query_name   = "extract-quota-usage-alerts"
   #CHANGE - Cron job frequency at Cloud Scheduler
@@ -95,7 +89,6 @@ project_id    = local.home_project
 activate_apis = [
 "compute.googleapis.com",
 "iam.googleapis.com",
-"dataflow.googleapis.com",
 "monitoring.googleapis.com",
 "storage.googleapis.com",
 "storage-api.googleapis.com",
@@ -113,12 +106,6 @@ depends_on = [module.project-service-cloudresourcemanager]
 # Create Pub/Sub topic to list projects in the parent node
 resource "google_pubsub_topic" "topic_alert_project_id" {
 name = local.topic_alert_project_id
-depends_on = [module.project-services]
-}
-
-# Create Pub/Sub topic to scan project quotas
-resource "google_pubsub_topic" "topic_alert_project_quota" {
-name = local.topic_alert_project_quota
 depends_on = [module.project-services]
 }
 
@@ -204,10 +191,9 @@ resource   = local.topic_alert_project_id
 }
 
 environment_variables = {
-PUBLISH_TOPIC = google_pubsub_topic.topic_alert_project_quota.name
-NOTIFICATION_TOPIC = google_pubsub_topic.topic_alert_notification.name
 THRESHOLD = local.threshold
-HOME_PROJECT = local.home_project
+  BIG_QUERY_DATASET = local.big_query_dataset_id
+  BIG_QUERY_TABLE = local.big_query_table_id
 }
 }
 
@@ -388,31 +374,4 @@ location      = "US"
 depends_on    = [module.project-services]
 }
 
-# DataFlow job temp GCS bucket
-resource "google_storage_bucket" "dataflow_temp_storage_bucket" {
-name                        = local.dataflow_job_temp_storage
-uniform_bucket_level_access = true
-depends_on                  = [module.project-services]
-}
 
-# Dataflow job temp folder in the GCS bucket
-resource "google_storage_bucket_object" "temp" {
-name   = "temp/"
-content = "Not really a directory, but it's empty."
-bucket = local.dataflow_job_temp_storage
-depends_on = [google_storage_bucket.dataflow_temp_storage_bucket]
-}
-
-# DataFlow job
-resource "google_dataflow_job" "pubsub_stream" {
-name                  = local.dataflow_job_name
-template_gcs_path     = "gs://dataflow-templates-us-central1/latest/PubSub_to_BigQuery"
-temp_gcs_location     = "gs://${local.dataflow_job_temp_storage}/temp"
-region                = local.region
-service_account_email = local.service_account_email
-depends_on            = [google_storage_bucket_object.temp]
-parameters = {
-inputTopic      = "projects/${local.home_project}/topics/${local.topic_alert_project_quota}"
-outputTableSpec = "${local.home_project}:${google_bigquery_dataset.dataset.dataset_id}.${google_bigquery_table.default.table_id}"
-}
-}
