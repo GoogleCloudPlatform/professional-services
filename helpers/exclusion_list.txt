@@ -18,6 +18,7 @@
 ./tools/gcs-usage-recommender
 ./tools/gsuite-exporter
 ./tools/gmail-attachment
+./tools/firestore-ttl
 ./tools/kunskap
 ./tools/labelmaker
 ./tools/maven-archetype-dataflow
