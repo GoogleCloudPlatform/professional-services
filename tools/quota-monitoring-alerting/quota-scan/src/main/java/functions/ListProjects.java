@@ -52,6 +52,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.threeten.bp.Duration;
+
 /*
 * The ListProjects Cloud Function lists project Ids for a given parent node.
 * Parent node in this context could be an Organization Id or a folder Id

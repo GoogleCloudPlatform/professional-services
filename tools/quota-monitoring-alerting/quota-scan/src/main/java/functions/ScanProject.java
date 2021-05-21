@@ -15,33 +15,32 @@ Copyright 2021 Google LLC
 */
 package functions;
 
-import static functions.ScanProjectHelper.sendNotification;
+import static functions.ScanProjectHelper.createBQRow;
+import static functions.ScanProjectHelper.populateProjectQuota;
+import static functions.ScanProjectHelper.tableInsertRows;
 
-import com.google.api.core.ApiFuture;
-import com.google.api.core.ApiFutures;
-import com.google.api.gax.batching.BatchingSettings;
 import com.google.api.services.cloudresourcemanager.CloudResourceManager;
 import com.google.api.services.cloudresourcemanager.model.Ancestor;
 import com.google.api.services.cloudresourcemanager.model.GetAncestryRequest;
 import com.google.api.services.cloudresourcemanager.model.GetAncestryResponse;
-import com.google.cloud.compute.v1.*;
+import com.google.cloud.compute.v1.Network;
+import com.google.cloud.compute.v1.NetworkClient;
+import com.google.cloud.compute.v1.Quota;
+import com.google.cloud.compute.v1.Region;
+import com.google.cloud.compute.v1.RegionClient;
 import com.google.cloud.functions.BackgroundFunction;
 import com.google.cloud.functions.Context;
-import com.google.cloud.pubsub.v1.Publisher;
-import com.google.protobuf.ByteString;
-import com.google.pubsub.v1.PubsubMessage;
-import com.google.pubsub.v1.TopicName;
-import functions.eventpojos.Notification;
+import functions.eventpojos.GCPResourceClient;
+import functions.eventpojos.ProjectQuota;
 import functions.eventpojos.PubSubMessage;
-import java.util.logging.Level;
-import org.threeten.bp.Duration;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
-import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
+import java.util.Base64;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /*
@@ -49,14 +48,12 @@ import java.util.logging.Logger;
 * The background cloud function is triggered by Pub/Sub topic
 * */
 public class ScanProject implements BackgroundFunction<PubSubMessage> {
-    //Cloud Function Environment variable for Pub/Sub topic name to publish project Quotas
-    private static final String PUBLISH_TOPIC = System.getenv("PUBLISH_TOPIC");
-    //Cloud Function Environment variable for Pub/Sub topic name to publish notification
-    public static final String NOTIFICATION_TOPIC = System.getenv("NOTIFICATION_TOPIC");
-    //Cloud Function Environment variable for Home Project Id
-    private static final String HOME_PROJECT_ID = System.getenv("HOME_PROJECT");
     //Cloud Function Environment variable for Threshold
     public static final String THRESHOLD = System.getenv("THRESHOLD");
+    //BigQuery Dataset name
+    public static final String BIG_QUERY_DATASET = System.getenv("BIG_QUERY_DATASET");
+    //BigQuery Table name
+    public static final String BIG_QUERY_TABLE = System.getenv("BIG_QUERY_TABLE");
 
     private static final Logger logger = Logger.getLogger(ScanProject.class.getName());
 
@@ -66,7 +63,7 @@ public class ScanProject implements BackgroundFunction<PubSubMessage> {
     @Override
     public void accept(PubSubMessage message, Context context) {
         if (message.getData() == null) {
-            logger.info("No message provided");
+            logger.info("No Project Id provided");
             return;
         }
         //project Id received from Pub/Sub topic
@@ -78,13 +75,59 @@ public class ScanProject implements BackgroundFunction<PubSubMessage> {
                 .createCloudResourceManagerService();
             // Fetch Org id of the project
             String orgId = getOrgId(cloudResourceManagerService, projectId);
-            logger.info("ProjectId: " + projectId);
+            logger.info("Starting scanning for ProjectId: " + projectId);
+            //Get GCP Service's clients
+            GCPResourceClient gcpResourceClient = ScanProjectHelper.createGCPResourceClient();
             //Get project quota
-            getProjectQuota(orgId, projectId);
-        } catch (ExecutionException | InterruptedException | IOException | GeneralSecurityException e) {
+            getProjectRegionalQuota(gcpResourceClient, projectId, orgId);
+            getProjectVPCQuota(gcpResourceClient, projectId, orgId);
+        } catch (IOException | GeneralSecurityException e) {
             logger.log(Level.SEVERE, "Error publishing Pub/Sub message: " + e.getMessage(), e);
         }
-        logger.info("ProjectId: " + projectId);
+        logger.info("Successfully scanned quota for ProjectId: " + projectId);
+    }
+
+    /*
+    * API to fetch the project's regional quotas.
+    * Project regional quotas include compute quotas
+    * */
+    private static void getProjectRegionalQuota(GCPResourceClient gcpResourceClient, String projectId, String orgId) throws IOException {
+        RegionClient regionClient = gcpResourceClient.getRegionClient();
+        try{
+            List<Region> regions = regionClient.listRegions(projectId).getPage().getResponse().getItemsList();
+            for(Region region : regions){
+                List<Quota> quotas = region.getQuotasList();
+                for(Quota quota : quotas){
+                    loadBigQuery(gcpResourceClient, quota,null,null,orgId,projectId,region.getId());
+                }
+            }
+        }catch (Exception e){
+            logger.log(Level.SEVERE,"Exception while scanning regional quota: " + projectId, e);
+        }
+
+    }
+
+    /*
+    * API to fetch the project's VPC quota.
+    * */
+    private static void getProjectVPCQuota(GCPResourceClient gcpResourceClient, String projectId, String orgId) throws IOException {
+        NetworkClient networkClient = gcpResourceClient.getNetworkClient();
+        List<Network> projectNetworks = networkClient.listNetworks(projectId).getPage().getResponse().getItemsList();
+        if(projectNetworks == null)
+            return;
+        for(Network network : projectNetworks){
+            loadBigQuery(gcpResourceClient, null,network,"vpc",orgId,projectId,null);
+            loadBigQuery(gcpResourceClient,null,network,"subnet",orgId,projectId,null);
+        }
+    }
+
+    /*
+    * API to load quotas in BigQuery table
+    * */
+    private static void loadBigQuery(GCPResourceClient gcpResourceClient, Quota quota, Network network, String vpcSubnet, String orgId, String projectId, String regionId){
+        ProjectQuota projectQuota = populateProjectQuota(quota,network,vpcSubnet,orgId,projectId,regionId);
+        Map<String, Object> row = createBQRow(projectQuota);
+        tableInsertRows(gcpResourceClient,row);
     }
 
     /*
@@ -106,107 +149,4 @@ public class ScanProject implements BackgroundFunction<PubSubMessage> {
         return null;
     }
 
-    /*
-    * API to get project quota for project Id
-    * */
-    private static void getProjectQuota(String orgId, String projectId) throws InterruptedException, ExecutionException {
-        TopicName topicName = TopicName.of(HOME_PROJECT_ID, PUBLISH_TOPIC);
-        Publisher publisher = null;
-        List<ApiFuture<String>> messageIdFutures = new ArrayList<>();
-        try {
-            // Batch settings control how the publisher batches messages
-            long requestBytesThreshold = 5000L; // default : 1 byte
-            long messageCountBatchSize = 100L; // default : 1 message
-
-            Duration publishDelayThreshold = Duration.ofMillis(100); // default : 1 ms
-
-            // Publish request get triggered based on request size, messages count & time since last
-            // publish, whichever condition is met first.
-            BatchingSettings batchingSettings =
-                    BatchingSettings.newBuilder()
-                            .setElementCountThreshold(messageCountBatchSize)
-                            .setRequestByteThreshold(requestBytesThreshold)
-                            .setDelayThreshold(publishDelayThreshold)
-                            .build();
-
-            // Create a publisher instance with default settings bound to the topic
-            publisher = Publisher.newBuilder(topicName).setBatchingSettings(batchingSettings).build();
-            // schedule publishing one message at a time : messages get automatically batched
-            getProjectRegionalQuota(projectId, orgId, publisher, messageIdFutures);
-            getProjectVPCQuota(projectId, orgId, publisher, messageIdFutures);
-            //getHiddenQuotas(projectId, orgId, publisher, messageIdFutures);
-        } catch (IOException e) {
-            logger.log(Level.SEVERE, "Error publishing Pub/Sub message: " + e.getMessage(), e);
-        } finally {
-            // Wait on any pending publish requests.
-            List<String> messageIds = ApiFutures.allAsList(messageIdFutures).get();
-            logger.info("Published quota messages with batch settings for project Id: "+projectId+" to topic: "+topicName);
-            if (publisher != null) {
-                // When finished with the publisher, shutdown to free up resources.
-                publisher.shutdown();
-                publisher.awaitTermination(1, TimeUnit.MINUTES);
-            }
-        }
-    }
-
-    /*
-    * API to get Project VPC quotas
-    * */
-    private static void getProjectVPCQuota(String projectId, String orgId, Publisher publisher, List<ApiFuture<String>> messageIdFutures) throws IOException {
-        NetworkClient networkClient = NetworkClient.create();
-        List<Network> projectNetworks = networkClient.listNetworks(projectId).getPage().getResponse().getItemsList();
-        if(projectNetworks == null)
-            return;
-        for(Network network : projectNetworks){
-            addMessagetoPublish(publisher, messageIdFutures, ScanProjectHelper
-                .buildVPCQuotaRowJson(network, orgId, projectId));
-            addMessagetoPublish(publisher, messageIdFutures, ScanProjectHelper
-                .buildSubnetQuotaRowJson(network, orgId, projectId));
-        }
-    }
-
-    /*
-    * API to get project regional quotas
-    * */
-    private static void getProjectRegionalQuota(String projectId, String orgId, Publisher publisher, List<ApiFuture<String>> messageIdFutures)
-        throws IOException, InterruptedException {
-        RegionClient regionClient = RegionClient.create();
-        List<Region> regions = regionClient.listRegions(projectId).getPage().getResponse().getItemsList();
-        for(Region region : regions){
-            List<Quota> quotas = region.getQuotasList();
-            for(Quota quota : quotas){
-                String message = ScanProjectHelper.buildQuotaRowJson(quota, orgId, projectId, region.getName());
-                ByteString data = ByteString.copyFromUtf8(message);
-                PubsubMessage pubsubMessage = PubsubMessage.newBuilder().setData(data).build();
-                // Once published, returns a server-assigned message id (unique within the topic)
-                ApiFuture<String> messageIdFuture = publisher.publish(pubsubMessage);
-                messageIdFutures.add(messageIdFuture);
-            }
-        }
-    }
-
-    /*
-    * API to check if the current usage has reached the threshold
-    * */
-    public static void checkThreshold(Notification notification)
-        throws IOException, InterruptedException {
-        double thresholdF=Double.parseDouble("80");
-        double consumptionF = notification.getConsumption();
-        if((Double.compare(consumptionF,thresholdF) >= 0)){
-            //@TODO uncomment this to enable email notification
-            //sendNotification(notification);
-        }
-    }
-
-    /*
-    * API to add messages for batch publishing
-    * */
-    public static void addMessagetoPublish(Publisher publisher, List<ApiFuture<String>> messageIdFutures, String s) {
-        String message = s;
-        ByteString data = ByteString.copyFromUtf8(message);
-        PubsubMessage pubsubMessage = PubsubMessage.newBuilder().setData(data).build();
-        // Once published, returns a server-assigned message id (unique within the topic)
-        ApiFuture<String> messageIdFuture = publisher.publish(pubsubMessage);
-        messageIdFutures.add(messageIdFuture);
-    }
 }
