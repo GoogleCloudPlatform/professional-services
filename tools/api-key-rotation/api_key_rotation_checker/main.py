@@ -80,12 +80,9 @@ def create_project_list(service):
     # Paginate through the list of all available projects
     request = service.projects().list()
     while request is not None:
-        try:
-            response = request.execute(num_retries=3)
-            projects.extend(response.get("projects", []))
-            request = service.projects().list_next(request, response)
-        except HttpError as err:
-            logging.error(err)
+        response = request.execute(num_retries=3)
+        projects.extend(response.get("projects", []))
+        request = service.projects().list_next(request, response)
 
     return projects
 
