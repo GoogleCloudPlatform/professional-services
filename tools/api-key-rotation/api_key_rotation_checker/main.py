@@ -34,7 +34,6 @@ import googleapiclient.discovery # pylint: disable=import-error
 from datetime import datetime, timedelta
 from dateutil import parser as date_parser # pylint: disable=import-error
 from google.api_core import exceptions # pylint: disable=import-error
-from googleapiclient.errors import HttpError # pylint: disable=import-error
 from googleapiclient.discovery_cache.base import Cache # pylint: disable=import-error
 import logging
 import sys
