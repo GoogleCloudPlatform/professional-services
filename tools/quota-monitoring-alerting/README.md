@@ -299,22 +299,12 @@ gcloud organizations add-iam-policy-binding  $TARGET_ORG_ID --member="serviceAcc
 gcloud organizations add-iam-policy-binding  $TARGET_ORG_ID --member="serviceAccount:$SERVICE_ACCOUNT_ID@$DEFAULT_PROJECT_ID.iam.gserviceaccount.com"  --role="roles/resourcemanager.organizationViewer" --condition=None
 ```
 ### 3.5 Download Service Account Key File
-1. Create Service Account key from host project A
-<img src="img/create_service_account_key.png" align="center" />
-2. Click on ‘Create’. This will download the key. Copy the file to a local directory and rename to CREDENTIALS_FILE.json
-<img src="img/download_service_account_key.png" align="center" />
-
+1. Create Service Account key from host project A. The service account key file will be downloaded to your machine as CREDENTIALS_FILE.json. After you download the key file, you cannot download it again.
 ```
-mv *.json CREDENTIALS_FILE.json
+gcloud iam service-accounts keys create CREDENTIALS_FILE.json \
+    --iam-account=$SERVICE_ACCOUNT_ID@$DEFAULT_PROJECT_ID.iam.gserviceaccount.com
 ```
-### 3.6 Download Terraform File
-Run below command in the same directory as Service Account (in the previous step) to download the terraform file:
-```
-gsutil cp gs://quota-monitoring-solution-source/main.tf .
-```
-
-
-4. Verify that you have these 2 files in your local directory:
+2. Verify that you have these 2 files in your local directory:
    - CREDENTIALS_FILE.json
    - main.tf
 ### 3.7 Configure Terraform
