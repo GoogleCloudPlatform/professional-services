@@ -42,8 +42,8 @@ import java.util.UUID;
 import java.util.logging.Logger;
 
 /*
-* Cloud Function triggered by Pub/Sub topic to send notification
-* */
+ * Cloud Function triggered by Pub/Sub topic to send notification
+ * */
 public class SendNotification implements BackgroundFunction<PubSubMessage> {
   private static final String FROM_EMAIL_ID = System.getenv("FROM_EMAIL_ID");
   private static final String TO_EMAIL_IDS = System.getenv("TO_EMAIL_IDS");
@@ -55,25 +55,31 @@ public class SendNotification implements BackgroundFunction<PubSubMessage> {
   private static final Logger logger = Logger.getLogger(SendNotification.class.getName());
 
   /*
-  * API to accept notification information and process it
-  * */
+   * API to accept notification information and process it
+   * */
   @Override
   public void accept(PubSubMessage message, Context context) {
-    //logger.info(String.format(message.getEmailIds()));
+    // logger.info(String.format(message.getEmailIds()));
     List<String> alerts = browseAlertTable();
     sendEmail(alerts);
     return;
   }
 
-  private static List<String> browseAlertTable(){
+  private static List<String> browseAlertTable() {
     List<String> alerts = new ArrayList();
     try {
       // Initialize client that will be used to send requests
       BigQuery bigquery = BigQueryOptions.getDefaultInstance().getService();
       QueryJobConfiguration queryConfig =
           QueryJobConfiguration.newBuilder(
-              "SELECT metric, usage, value "
-                  + "FROM `"+HOME_PROJECT+"."+DATASET+"."+TABLE+"` ")
+                  "SELECT metric, usage, value "
+                      + "FROM `"
+                      + HOME_PROJECT
+                      + "."
+                      + DATASET
+                      + "."
+                      + TABLE
+                      + "` ")
               .setUseLegacySql(false)
               .build();
 
@@ -100,8 +106,11 @@ public class SendNotification implements BackgroundFunction<PubSubMessage> {
         String metric = row.get("metric").getStringValue();
         String usage = row.get("usage").getStringValue();
         Float consumption = row.get("value").getNumericValue().floatValue();
-        alerts.add(String.format("Metric name: %s usage: %s consumption: %.2f%s", metric, usage, consumption, "%"));
-        logger.info("Alert : Metric "+metric+": Usage "+usage+": Consumption "+consumption+"%");
+        alerts.add(
+            String.format(
+                "Metric name: %s usage: %s consumption: %.2f%s", metric, usage, consumption, "%"));
+        logger.info(
+            "Alert : Metric " + metric + ": Usage " + usage + ": Consumption " + consumption + "%");
       }
 
       logger.info("Query ran successfully ");
@@ -111,26 +120,24 @@ public class SendNotification implements BackgroundFunction<PubSubMessage> {
     return alerts;
   }
 
-
-
   /*
-  * API to send Email using SendGrid API
-  * */
-  private static void sendEmail(List<String> alerts){
+   * API to send Email using SendGrid API
+   * */
+  private static void sendEmail(List<String> alerts) {
     Email from = new Email(FROM_EMAIL_ID);
-    String subject = "ALERT Usage of "+alerts.size()+" metrics is above threshold";
+    String subject = "ALERT Usage of " + alerts.size() + " metrics is above threshold";
     String[] toEmailIds = TO_EMAIL_IDS.split(",");
     Email to = new Email(toEmailIds[0]);
     Personalization p1 = new Personalization();
-    for(String email : toEmailIds){
+    for (String email : toEmailIds) {
       p1.addTo(new Email(email));
     }
-    String alertsStr = String.join("\n",alerts);
+    String alertsStr = String.join("\n", alerts);
     Content content = new Content("text/plain", alertsStr);
     Mail mail = new Mail(from, subject, to, content);
     mail.addPersonalization(p1);
 
-    //SendGrid sg = new SendGrid(System.getenv("SENDGRID_API_KEY"));
+    // SendGrid sg = new SendGrid(System.getenv("SENDGRID_API_KEY"));
     SendGrid sg = new SendGrid(SENDGRID_API_KEY);
     Request request = new Request();
     try {
@@ -145,5 +152,4 @@ public class SendNotification implements BackgroundFunction<PubSubMessage> {
       logger.severe(ex.getMessage());
     }
   }
-
 }

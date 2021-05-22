@@ -46,39 +46,39 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /*
-* Helper class for ScanProject Cloud Function
-* */
+ * Helper class for ScanProject Cloud Function
+ * */
 public class ScanProjectHelper {
 
-  //Max VPC Peering Count
+  // Max VPC Peering Count
   private static final Integer MAX_VPC_PEERING_COUNT = 25;
-  //Max VPC Sub Network Count
+  // Max VPC Sub Network Count
   private static final Integer MAX_VPC_SUB_NETWORK_COUNT = 100;
 
   private static final Logger logger = Logger.getLogger(ScanProjectHelper.class.getName());
 
   /*
-  * API to get Cloud Resource Manager Service
-  * */
+   * API to get Cloud Resource Manager Service
+   * */
   static CloudResourceManager createCloudResourceManagerService()
-          throws IOException, GeneralSecurityException {
-      HttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
-      JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
+      throws IOException, GeneralSecurityException {
+    HttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
+    JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
 
-      GoogleCredential credential = GoogleCredential.getApplicationDefault();
-      if (credential.createScopedRequired()) {
-          credential =
-                  credential.createScoped(Arrays.asList("https://www.googleapis.com/auth/cloud-platform"));
-      }
+    GoogleCredential credential = GoogleCredential.getApplicationDefault();
+    if (credential.createScopedRequired()) {
+      credential =
+          credential.createScoped(Arrays.asList("https://www.googleapis.com/auth/cloud-platform"));
+    }
 
-      return new CloudResourceManager.Builder(httpTransport, jsonFactory, credential)
-              .setApplicationName("Google-CloudResourceManagerSample/0.1")
-              .build();
+    return new CloudResourceManager.Builder(httpTransport, jsonFactory, credential)
+        .setApplicationName("Google-CloudResourceManagerSample/0.1")
+        .build();
   }
 
   /*
-  * API to send notification
-  * */
+   * API to send notification
+   * */
   public static void sendNotification(Notification notification)
       throws InterruptedException, IOException {
     GsonBuilder gb = new GsonBuilder();
@@ -93,15 +93,18 @@ public class ScanProjectHelper {
       ByteString data = ByteString.copyFromUtf8(jsonInString);
       PubsubMessage pubsubMessage = PubsubMessage.newBuilder().setData(data).build();
       ApiFuture<String> messageIdFuture = publisher.publish(pubsubMessage);
-      ApiFutures.addCallback(messageIdFuture, new ApiFutureCallback<String>() {
-        public void onSuccess(String messageId) {
-          logger.info("published notification with message id: " + messageId);
-        }
+      ApiFutures.addCallback(
+          messageIdFuture,
+          new ApiFutureCallback<String>() {
+            public void onSuccess(String messageId) {
+              logger.info("published notification with message id: " + messageId);
+            }
 
-        public void onFailure(Throwable t) {
-          logger.log(Level.SEVERE, "Error publishing Pub/Sub message: " + t.getMessage(), t);
-        }
-      }, MoreExecutors.directExecutor());
+            public void onFailure(Throwable t) {
+              logger.log(Level.SEVERE, "Error publishing Pub/Sub message: " + t.getMessage(), t);
+            }
+          },
+          MoreExecutors.directExecutor());
     } finally {
       if (publisher != null) {
         publisher.shutdown();
@@ -132,8 +135,8 @@ public class ScanProjectHelper {
     elements.put("targetpool_name", "NA");
 
     Gson gson = new Gson();
-    Type gsonType = new TypeToken<HashMap>(){}.getType();
-    String gsonString = gson.toJson(elements,gsonType);
+    Type gsonType = new TypeToken<HashMap>() {}.getType();
+    String gsonString = gson.toJson(elements, gsonType);
 
     Notification notification = new Notification();
     notification.setConsumption(consumption);
@@ -145,53 +148,54 @@ public class ScanProjectHelper {
   }
 
   /*
-  * Build Json for BigQuery row of Subnet Quota
-  * @TODO Reduce QuotaRowJson APIs to single API
-  * */
+   * Build Json for BigQuery row of Subnet Quota
+   * @TODO Reduce QuotaRowJson APIs to single API
+   * */
   static String buildSubnetQuotaRowJson(Network network, String orgId, String projectId) {
-      int vpcPeeringCount = network.getSubnetworksList() == null ? 0 : network.getSubnetworksList().size();
-      SortedMap<String, String> elements = new TreeMap();
-      elements.put("threshold", ScanProject.THRESHOLD);
-      elements.put("org_id", orgId);
-      elements.put("project", projectId);
-      elements.put("region", "global");
-      elements.put("metric", "SUBNET_PER_VPC");
-      elements.put("limit", String.valueOf(MAX_VPC_SUB_NETWORK_COUNT));
-      elements.put("usage", String.valueOf(vpcPeeringCount));
-      elements.put("value", String.valueOf((vpcPeeringCount/ MAX_VPC_SUB_NETWORK_COUNT)*100));
-      elements.put("addedAt", "AUTO");
-      elements.put("folder_id", "NA");
-      elements.put("vpc_name", network.getName());
-      elements.put("targetpool_name", "NA");
+    int vpcPeeringCount =
+        network.getSubnetworksList() == null ? 0 : network.getSubnetworksList().size();
+    SortedMap<String, String> elements = new TreeMap();
+    elements.put("threshold", ScanProject.THRESHOLD);
+    elements.put("org_id", orgId);
+    elements.put("project", projectId);
+    elements.put("region", "global");
+    elements.put("metric", "SUBNET_PER_VPC");
+    elements.put("limit", String.valueOf(MAX_VPC_SUB_NETWORK_COUNT));
+    elements.put("usage", String.valueOf(vpcPeeringCount));
+    elements.put("value", String.valueOf((vpcPeeringCount / MAX_VPC_SUB_NETWORK_COUNT) * 100));
+    elements.put("addedAt", "AUTO");
+    elements.put("folder_id", "NA");
+    elements.put("vpc_name", network.getName());
+    elements.put("targetpool_name", "NA");
 
-      Gson gson = new Gson();
-      Type gsonType = new TypeToken<HashMap>(){}.getType();
-      String gsonString = gson.toJson(elements,gsonType);
-      return gsonString;
+    Gson gson = new Gson();
+    Type gsonType = new TypeToken<HashMap>() {}.getType();
+    String gsonString = gson.toJson(elements, gsonType);
+    return gsonString;
   }
 
   /*
    * Build Json for BigQuery row of VPC Quota
    * */
   static String buildVPCQuotaRowJson(Network network, String orgId, String projectId) {
-      int vpcPeeringCount = network.getPeeringsList() == null ? 0 : network.getPeeringsList().size();
-      SortedMap<String, String> elements = new TreeMap();
-      elements.put("threshold", ScanProject.THRESHOLD);
-      elements.put("org_id", orgId);
-      elements.put("project", projectId);
-      elements.put("region", "global");
-      elements.put("metric", "VPC_PEERING");
-      elements.put("limit", String.valueOf(MAX_VPC_PEERING_COUNT));
-      elements.put("usage", String.valueOf(vpcPeeringCount));
-      elements.put("value", String.valueOf((vpcPeeringCount/ MAX_VPC_PEERING_COUNT)*100));
-      elements.put("addedAt", "AUTO");
-      elements.put("folder_id", "NA");
-      elements.put("vpc_name", network.getName());
-      elements.put("targetpool_name", "NA");
+    int vpcPeeringCount = network.getPeeringsList() == null ? 0 : network.getPeeringsList().size();
+    SortedMap<String, String> elements = new TreeMap();
+    elements.put("threshold", ScanProject.THRESHOLD);
+    elements.put("org_id", orgId);
+    elements.put("project", projectId);
+    elements.put("region", "global");
+    elements.put("metric", "VPC_PEERING");
+    elements.put("limit", String.valueOf(MAX_VPC_PEERING_COUNT));
+    elements.put("usage", String.valueOf(vpcPeeringCount));
+    elements.put("value", String.valueOf((vpcPeeringCount / MAX_VPC_PEERING_COUNT) * 100));
+    elements.put("addedAt", "AUTO");
+    elements.put("folder_id", "NA");
+    elements.put("vpc_name", network.getName());
+    elements.put("targetpool_name", "NA");
 
-      Gson gson = new Gson();
-      Type gsonType = new TypeToken<HashMap>(){}.getType();
-      String gsonString = gson.toJson(elements,gsonType);
-      return gsonString;
+    Gson gson = new Gson();
+    Type gsonType = new TypeToken<HashMap>() {}.getType();
+    String gsonString = gson.toJson(elements, gsonType);
+    return gsonString;
   }
 }

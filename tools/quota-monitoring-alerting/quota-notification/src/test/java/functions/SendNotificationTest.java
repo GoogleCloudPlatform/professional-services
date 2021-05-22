@@ -4,8 +4,6 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.testing.TestLogHandler;
 import functions.eventpojos.PubSubMessage;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.logging.Logger;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,7 +33,7 @@ public class SendNotificationTest {
     pubSubMessage.setUsage("80");
     pubSubMessage.setConsumption(80f);
     /*pubSubMessage.setData(Base64.getEncoder().encodeToString(
-        "anuradha.bajpai@gmail.com,anuradhabajpai@google.com".getBytes(StandardCharsets.UTF_8)));*/
+    "anuradha.bajpai@gmail.com,anuradhabajpai@google.com".getBytes(StandardCharsets.UTF_8)));*/
     sampleUnderTest.accept(pubSubMessage, null);
 
     String logMessage = LOG_HANDLER.getStoredLogRecords().get(0).getMessage();
