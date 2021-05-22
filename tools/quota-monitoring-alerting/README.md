@@ -23,9 +23,9 @@ The architecture is built using Google Cloud managed services - Cloud Functions,
 - DataFlow is used to load data in BigQuery.
 - BigQuery is used to store data. 
 - Alert threshold will be applicable across all metrics. 
-- Alerts can be recieved at email and other channels.
-- Easy to deploy and get started with Data Studio Dashboard. In addition to Data Studion, other visualization tools can be configured. 
-- The Data Studio report can be scheduled to be emailed to the team for weekly/daily reporting.
+- Alerts can be received by email and other channels.
+- Easy to get started and deploy with Data Studio Dashboard. In addition to Data Studion, other visualization tools can be configured. 
+- The Data Studio report can be scheduled to be emailed to appropriate team for weekly/daily reporting.
 ## 3. Deployment Guide
 ### Content
 - [3.1 Prerequisites](https://github.com/anuradha-bajpai-google/professional-services/new/main/tools/quota-monitoring-alerting#31-prerequisites)
@@ -46,19 +46,19 @@ The architecture is built using Google Cloud managed services - Cloud Functions,
 1. Host Project - A project where the BigQuery instance, Cloud Function and Cloud Scheduler will be deployed. For example Project A. 
 2. Target Node - The Organization or folder or project which will be scanned for Quota Metrics. For example Org A and Folder A.
 3. Project Owner role on host Project A. IAM Admin role in target Org A and target Folder A.
-4. Google Cloud SDK is installed. Detailed instructions to install SDK here. See the Getting Started page for an introduction to using gcloud and terraform. 
+4. Google Cloud SDK is installed. Detailed instructions to install the SDK [here](https://cloud.google.com/sdk/docs/install#mac). See the Getting Started page for an introduction to using gcloud and terraform. 
 5. Terraform version >= 0.14.6 installed. Instructions to install terraform here
     - Verify terraform version after installing 
 
 ```
 terraform -version
 ```
-The output:
+The output should look like:
 ```
 Terraform v0.14.6
 + provider registry.terraform.io/hashicorp/google v3.57.0
 ```
-*Note - Minimum required version v0.14.6. Lower terraform versions may throw errors.*
+*Note - Minimum required version v0.14.6. Lower terraform versions may not work.*
 ### 3.2 Initial Setup
 1. In local workstation create a new directory to run terraform and store credential file
 ```
@@ -69,7 +69,7 @@ cd <directory name>
 ```
 gcloud config set project <HOST_PROJECT_ID>
 ```
-The output:
+The output should look like:
 ```
 Updated property [core/project].
 ```
@@ -77,12 +77,12 @@ Updated property [core/project].
 ```
 gcloud components update
 ```
-4. Cloud Scheduler depends on the App Engine application. Create an app engine application in the host project. Replace the region. List of regions where app-engine is available [here](https://cloud.google.com/about/locations#region).
+4. Cloud Scheduler depends on the App Engine application. Create an app engine application in the host project. Replace the region. List of regions where App-Engine is available can be found [here](https://cloud.google.com/about/locations#region).
 ```
 gcloud app create --region=<region>
 ```
 Note: Cloud Scheduler (below) needs to be in the same region as App Engine. Use the same region in terraform as mentioned here. Also, selected region should have a VPC subnet available in the region for the DataFlow deployment.
-The output:
+The output should look like:
 ```
 You are creating an app for project [quota-monitoring-project-3].
 WARNING: Creating an App Engine application for a project is irreversible and the region
@@ -108,7 +108,7 @@ echo $DEFAULT_PROJECT_ID
 ```
 gcloud iam service-accounts create $SERVICE_ACCOUNT_ID --description="Service Account to scan quota usage" --display-name=$DISPLAY_NAME
 ```
-The output:
+The output should look like:
 ```
 Created service account [sa-quota-monitoring-project-1].
 ```
@@ -169,7 +169,7 @@ gcloud projects add-iam-policy-binding $DEFAULT_PROJECT_ID --member="serviceAcco
 
 gcloud projects add-iam-policy-binding $DEFAULT_PROJECT_ID --member="serviceAccount:$SERVICE_ACCOUNT_ID@$DEFAULT_PROJECT_ID.iam.gserviceaccount.com" --role="roles/compute.viewer" --condition=None
 ```
-The output:
+The output should look like:
 ```
 Updated IAM policy for project [quota-monitoring-project-1].
 bindings:
@@ -247,7 +247,7 @@ gcloud alpha resource-manager folders add-iam-policy-binding  $TARGET_FOLDER_ID 
 
 Note: If this fails, run the commands again
 
-The output:
+The output should look like:
 ```
 Updated IAM policy for folder [38659473572].
 bindings:
@@ -330,7 +330,6 @@ vi main.tf
 ### 3.8 Run Terraform
 1. Run terraform commands
    - terraform init
-   - terraform get
    - terraform plan
    - terraform apply 
      - On Prompt Enter a value: yes
