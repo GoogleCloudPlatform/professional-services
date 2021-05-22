@@ -299,17 +299,22 @@ gcloud organizations add-iam-policy-binding  $TARGET_ORG_ID --member="serviceAcc
 gcloud organizations add-iam-policy-binding  $TARGET_ORG_ID --member="serviceAccount:$SERVICE_ACCOUNT_ID@$DEFAULT_PROJECT_ID.iam.gserviceaccount.com"  --role="roles/resourcemanager.organizationViewer" --condition=None
 ```
 ### 3.5 Download Service Account Key File
-1. Create Service Account key from host project A. The service account key file will be downloaded to your machine as CREDENTIALS_FILE.json. After you download the key file, you cannot download it again.
+Create Service Account key from host project A. The service account key file will be downloaded to your machine as CREDENTIALS_FILE.json. After you download the key file, you cannot download it again.
 ```
 gcloud iam service-accounts keys create CREDENTIALS_FILE.json \
     --iam-account=$SERVICE_ACCOUNT_ID@$DEFAULT_PROJECT_ID.iam.gserviceaccount.com
+```
+### 3.6 Download Terraform File
+1. Download terraform file
+```
+curl -o main.tf https://github.com/GoogleCloudPlatform/professional-services/tools/quota-monitoring-alerting/main.tf
 ```
 2. Verify that you have these 2 files in your local directory:
    - CREDENTIALS_FILE.json
    - main.tf
 ### 3.7 Configure Terraform
 1. Open terraform file in your favourite editor and change values for the variable 
-2. DO NOT CHANGE values for variable source_code_bucket_name, source_code_zip and source_code_notification_zip. These are links to the Cloud Function source code.
+2. Values for variable source_code_bucket_name, source_code_zip and source_code_notification_zip are for source code zip in the storage bucket. These are links to the Cloud Function source code. If you want to upgrade to latest code changes everytime you run 'terraform apply', change to this code source repository. DO NOT CHANGE if you do not want to recieve latest code changes while running 'terraform apply' everytime after deployment. 
 3. For region, use the same region as used for app engine in earlier steps.
 4. For Email notification, Create a Send Grid API Key [here](https://sendgrid.com/docs/ui/account-and-settings/api-keys/) and add in the terraform. Note: SendGrid may take a few days to create a key. This depends on the domain.Proceed with the rest of the configuration, add key once available and rerun terraform. 
 ```
