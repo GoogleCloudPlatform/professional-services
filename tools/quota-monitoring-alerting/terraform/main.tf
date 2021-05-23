@@ -14,63 +14,9 @@ Copyright 20210 Google LLC
    limitations under the License.
 */
 provider "google" {
-  credentials = file("CREDENTIALS_FILE.json")
-  #CHANGE - Host project Id
-  project = "quota-monitoring-project-20"
-  #CHANGE - Region same as app engine
-  region = "us-west3"
-}
-
-locals {
-  #CHANGE - Host Project Id
-  home_project = "quota-monitoring-project-20"
-  #CHANGE - Region same as app engine
-  region = "us-west3"
-  #CHANGE - Service Account email id to deploy resources and scan project quotas.
-  service_account_email = "sa-quota-monitoring-project-20@quota-monitoring-project-20.iam.gserviceaccount.com"
-  #CHANGE - Pub/Sub Topic name to list projects in parent node
-  topic_alert_project_id = "my-topic-id-1"
-  #CHANGE - Pub/Sub Topic name to scan project quotas
-  topic_alert_project_quota = "my-topic-id-2"
-  #CHANGE - Pub/Sub Topic name to send notification
-  topic_alert_notification = "my-topic-id-3"
-  #DO NOT CHANGE - Source code bucket name
-  source_code_bucket_name = "quota-monitoring-solution-source"
-  #DO NOT CHANGE - Source code for cloud functions list and scan
-  source_code_zip = "quota-monitoring-solution.zip"
-  #DO NOT CHANGE - Source code for cloud functions notification
-  source_code_notification_zip = "quota-monitoring-notification.zip"
-  #CHANGE - Cloud Function name to list projects. Functions in a given region in a given project must have unique (case insensitive) names
-  cloud_function_list_project = "listProjectsW"
-  #CHANGE - Cloud Function name to scan project. CFunctions in a given region in a given project must have unique (case insensitive) names
-  cloud_function_scan_project = "scanProjectsW"
-  #CHANGE - Cloud Function name to scan project. Functions in a given region in a given project must have unique (case insensitive) names
-  cloud_function_notification_project = "notificationW"
-  #CHANGE - Big Query Dataset Id
-  big_query_dataset_id = "quota_monitoring_dataset_1"
-  #CHANGE - Big Query Table Id
-  big_query_table_id = "quota_monitoring_table_1"
-  #CHANGE - Big Query Alert Dataset Id
-  big_query_alert_dataset_id = "quota_monitoring_alert_dataset_1"
-  #CHANGE - Big Query Alert Table Id
-  big_query_alert_table_id = "quota_monitoring_alert_table_1"
-  #CHANGE - Dataflow job name
-  dataflow_job_name = "tf-test-dataflow-job-1"
-  #CHANGE - Dataflow job temp bucket. The bucket name must be unique globally.
-  dataflow_job_temp_storage = "dataflow-temp-quota-monitoring-project-20" //name need to be unique
-  #CHANGE - Name of the BigQuery scheduled query to generate alert data
-  bigquery_data_transfer_query_name = "extract-quota-usage-alerts"
-  #CHANGE - Cron job frequency at Cloud Scheduler
-  cron_job_frequency = "0 0 * * *"
-  #CHANGE - Alert data generation frequency
-  Alert_data_scanning_frequency = "every 12 hours"
-  //Input to scan the project quotas
-  folders          = "[38659473572]"
-  organizations    = "[172338721810]"
-  threshold        = "80"
-  fromEmailId      = "anuradha.bajpai@google.com"
-  toEmailIds       = "anuradhabajpai@google.com,anuradha.bajpai@gmail.com"
-  SENDGRID_API_KEY = "JF8JZzBiZIBQx8L68pK"
+  credentials = file("../CREDENTIALS_FILE.json")
+  project     = var.project_id
+  region      = var.region
 }
 
 # Enable Cloud Resource Manager API
@@ -78,7 +24,7 @@ module "project-service-cloudresourcemanager" {
   source  = "terraform-google-modules/project-factory/google//modules/project_services"
   version = "4.0.0"
 
-  project_id = local.home_project
+  project_id = var.project_id
 
   activate_apis = [
     "cloudresourcemanager.googleapis.com"
@@ -90,7 +36,7 @@ module "project-services" {
   source  = "terraform-google-modules/project-factory/google//modules/project_services"
   version = "4.0.0"
 
-  project_id = local.home_project
+  project_id = var.project_id
 
   activate_apis = [
     "compute.googleapis.com",
@@ -112,30 +58,30 @@ module "project-services" {
 
 # Create Pub/Sub topic to list projects in the parent node
 resource "google_pubsub_topic" "topic_alert_project_id" {
-  name       = local.topic_alert_project_id
+  name       = var.topic_alert_project_id
   depends_on = [module.project-services]
 }
 
 # Create Pub/Sub topic to scan project quotas
 resource "google_pubsub_topic" "topic_alert_project_quota" {
-  name       = local.topic_alert_project_quota
+  name       = var.topic_alert_project_quota
   depends_on = [module.project-services]
 }
 
 # Create Pub/Sub topic to send notification
 resource "google_pubsub_topic" "topic_alert_notification" {
-  name       = local.topic_alert_notification
+  name       = var.topic_alert_notification
   depends_on = [module.project-services]
 }
 
 # Cloud scheduler job to invoke cloud function
 resource "google_cloud_scheduler_job" "job" {
-  name             = "job-terra"
-  description      = "test http job"
-  schedule         = local.cron_job_frequency
-  time_zone        = "America/Chicago"
-  attempt_deadline = "540s"
-  region           = local.region
+  name             = var.scheduler_cron_job_name
+  description      = var.scheduler_cron_job_description
+  schedule         = var.scheduler_cron_job_frequency
+  time_zone        = var.scheduler_cron_job_timezone
+  attempt_deadline = var.scheduler_cron_job_deadline
+  region           = var.region
   depends_on       = [module.project-services]
   retry_config {
     retry_count = 1
@@ -144,32 +90,32 @@ resource "google_cloud_scheduler_job" "job" {
   http_target {
     http_method = "POST"
     uri         = google_cloudfunctions_function.function-listProjects.https_trigger_url
-    body        = base64encode("{\"organizations\":\"${local.organizations}\",\"threshold\":\"${local.threshold}\",\"projectId\":\"${local.home_project}\"}")
+    body        = base64encode("{\"organizations\":\"${var.organizations}\",\"threshold\":\"${var.threshold}\",\"projectId\":\"${var.project_id}\"}")
 
     oidc_token {
-      service_account_email = local.service_account_email
+      service_account_email = var.service_account_email
     }
   }
 }
 
 # cloud function to list projects
 resource "google_cloudfunctions_function" "function-listProjects" {
-  name        = local.cloud_function_list_project
-  description = "My function"
+  name        = var.cloud_function_list_project
+  description = var.cloud_function_list_project_desc
   runtime     = "java11"
 
-  available_memory_mb   = 512
-  source_archive_bucket = local.source_code_bucket_name
-  source_archive_object = local.source_code_zip
+  available_memory_mb   = var.cloud_function_list_project_memory
+  source_archive_bucket = var.source_code_bucket_name
+  source_archive_object = var.source_code_zip
   trigger_http          = true
   entry_point           = "functions.ListProjects"
-  service_account_email = local.service_account_email
-  timeout               = 540
+  service_account_email = var.service_account_email
+  timeout               = var.cloud_function_list_project_timeout
   depends_on            = [module.project-services]
 
   environment_variables = {
     PUBLISH_TOPIC = google_pubsub_topic.topic_alert_project_id.name
-    HOME_PROJECT  = local.home_project
+    HOME_PROJECT  = var.project_id
   }
 }
 
@@ -181,33 +127,33 @@ resource "google_cloudfunctions_function_iam_member" "invoker-listProjects" {
   depends_on     = [module.project-services]
 
   role   = "roles/cloudfunctions.invoker"
-  member = "serviceAccount:${local.service_account_email}"
+  member = "serviceAccount:${var.service_account_email}"
 }
 
 # Second cloud function to scan project
 resource "google_cloudfunctions_function" "function-scanProject" {
-  name        = local.cloud_function_scan_project
-  description = "My function"
+  name        = var.cloud_function_scan_project
+  description = var.cloud_function_scan_project_desc
   runtime     = "java11"
 
-  available_memory_mb   = 512
-  source_archive_bucket = local.source_code_bucket_name
-  source_archive_object = local.source_code_zip
+  available_memory_mb   = var.cloud_function_scan_project_memory
+  source_archive_bucket = var.source_code_bucket_name
+  source_archive_object = var.source_code_zip
   entry_point           = "functions.ScanProject"
-  service_account_email = local.service_account_email
-  timeout               = 540
+  service_account_email = var.service_account_email
+  timeout               = var.cloud_function_scan_project_timeout
   depends_on            = [module.project-services]
 
   event_trigger {
     event_type = "google.pubsub.topic.publish"
-    resource   = local.topic_alert_project_id
+    resource   = var.topic_alert_project_id
   }
 
   environment_variables = {
     PUBLISH_TOPIC      = google_pubsub_topic.topic_alert_project_quota.name
     NOTIFICATION_TOPIC = google_pubsub_topic.topic_alert_notification.name
-    THRESHOLD          = local.threshold
-    HOME_PROJECT       = local.home_project
+    THRESHOLD          = var.threshold
+    HOME_PROJECT       = var.project_id
   }
 }
 
@@ -219,35 +165,35 @@ resource "google_cloudfunctions_function_iam_member" "invoker-scanProject" {
   depends_on     = [module.project-services]
 
   role   = "roles/cloudfunctions.invoker"
-  member = "serviceAccount:${local.service_account_email}"
+  member = "serviceAccount:${var.service_account_email}"
 }
 
 # Third cloud function to send notification
 resource "google_cloudfunctions_function" "function-notificationProject" {
-  name        = local.cloud_function_notification_project
-  description = "My function"
+  name        = var.cloud_function_notification_project
+  description = var.cloud_function_notification_project_desc
   runtime     = "java11"
 
-  available_memory_mb   = 512
-  source_archive_bucket = local.source_code_bucket_name
-  source_archive_object = local.source_code_notification_zip
+  available_memory_mb   = var.cloud_function_notification_project_memory
+  source_archive_bucket = var.source_code_bucket_name
+  source_archive_object = var.source_code_notification_zip
   entry_point           = "functions.SendNotification"
-  service_account_email = local.service_account_email
-  timeout               = 540
+  service_account_email = var.service_account_email
+  timeout               = var.cloud_function_notification_project_timeout
   depends_on            = [module.project-services]
 
   event_trigger {
     event_type = "google.pubsub.topic.publish"
-    resource   = local.topic_alert_notification
+    resource   = var.topic_alert_notification
   }
 
   environment_variables = {
-    SENDGRID_API_KEY = local.SENDGRID_API_KEY
-    FROM_EMAIL_ID    = local.fromEmailId
-    TO_EMAIL_IDS     = local.toEmailIds
-    HOME_PROJECT     = local.home_project
-    ALERT_DATASET    = local.big_query_alert_dataset_id
-    ALERT_TABLE      = local.big_query_alert_table_id
+    SENDGRID_API_KEY = var.SENDGRID_API_KEY
+    FROM_EMAIL_ID    = var.fromEmailId
+    TO_EMAIL_IDS     = var.toEmailIds
+    HOME_PROJECT     = var.project_id
+    ALERT_DATASET    = var.big_query_alert_dataset_id
+    ALERT_TABLE      = var.big_query_alert_table_id
   }
 }
 
@@ -259,26 +205,26 @@ resource "google_cloudfunctions_function_iam_member" "invoker-notificationProjec
   depends_on     = [module.project-services]
 
   role   = "roles/cloudfunctions.invoker"
-  member = "serviceAccount:${local.service_account_email}"
+  member = "serviceAccount:${var.service_account_email}"
 }
 
 # BigQuery Dataset
 resource "google_bigquery_dataset" "dataset" {
-  dataset_id                      = local.big_query_dataset_id
-  friendly_name                   = local.big_query_dataset_id
-  description                     = "This is Quota Monitoring dataset."
-  location                        = "US"
-  default_partition_expiration_ms = 86400000
+  dataset_id                      = var.big_query_dataset_id
+  friendly_name                   = var.big_query_dataset_id
+  description                     = var.big_query_dataset_desc
+  location                        = var.big_query_dataset_location
+  default_partition_expiration_ms = var.big_query_dataset_default_partition_expiration_ms
   depends_on                      = [module.project-services]
 }
 
 # BigQuery Table
 resource "google_bigquery_table" "default" {
   dataset_id = google_bigquery_dataset.dataset.dataset_id
-  table_id   = local.big_query_table_id
+  table_id   = var.big_query_table_id
 
   time_partitioning {
-    type = "DAY"
+    type = var.big_query_table_partition
   }
 
   labels = {
@@ -366,31 +312,31 @@ EOF
 
 #Schedule Query to get Alerts data
 resource "google_bigquery_data_transfer_config" "query_config" {
-  display_name              = local.bigquery_data_transfer_query_name
-  location                  = "US"
+  display_name              = var.bigquery_data_transfer_query_name
+  location                  = var.big_query_dataset_location
   data_source_id            = "scheduled_query"
-  schedule                  = local.Alert_data_scanning_frequency
-  notification_pubsub_topic = "projects/${local.home_project}/topics/${local.topic_alert_notification}"
+  schedule                  = var.Alert_data_scanning_frequency
+  notification_pubsub_topic = "projects/${var.project_id}/topics/${var.topic_alert_notification}"
   destination_dataset_id    = google_bigquery_dataset.quota_usage_alert_dataset.dataset_id
   params = {
-    destination_table_name_template = "${local.big_query_alert_table_id}"
+    destination_table_name_template = var.big_query_alert_table_id
     write_disposition               = "WRITE_TRUNCATE"
-    query                           = "SELECT *  FROM `${local.home_project}.${google_bigquery_dataset.dataset.dataset_id}.${google_bigquery_table.default.table_id}` WHERE  CAST(usage as NUMERIC) >= threshold"
+    query                           = "SELECT *  FROM `${var.project_id}.${google_bigquery_dataset.dataset.dataset_id}.${google_bigquery_table.default.table_id}` WHERE  CAST(usage as NUMERIC) >= threshold"
   }
 }
 
 #Bigquery Alert Dataset
 resource "google_bigquery_dataset" "quota_usage_alert_dataset" {
-  dataset_id    = local.big_query_alert_dataset_id
+  dataset_id    = var.big_query_alert_dataset_id
   friendly_name = "quota_usage_alert_dataset"
-  description   = "quota_usage_alert_dataset"
-  location      = "US"
+  description   = var.big_query_alert_dataset_desc
+  location      = var.big_query_dataset_location
   depends_on    = [module.project-services]
 }
 
 # DataFlow job temp GCS bucket
 resource "google_storage_bucket" "dataflow_temp_storage_bucket" {
-  name                        = local.dataflow_job_temp_storage
+  name                        = var.dataflow_job_temp_storage
   uniform_bucket_level_access = true
   depends_on                  = [module.project-services]
 }
@@ -398,21 +344,21 @@ resource "google_storage_bucket" "dataflow_temp_storage_bucket" {
 # Dataflow job temp folder in the GCS bucket
 resource "google_storage_bucket_object" "temp" {
   name       = "temp/"
-  content    = "Not really a directory, but it's empty."
-  bucket     = local.dataflow_job_temp_storage
+  content    = "Not a directory, it's empty."
+  bucket     = var.dataflow_job_temp_storage
   depends_on = [google_storage_bucket.dataflow_temp_storage_bucket]
 }
 
 # DataFlow job
 resource "google_dataflow_job" "pubsub_stream" {
-  name                  = local.dataflow_job_name
+  name                  = var.dataflow_job_name
   template_gcs_path     = "gs://dataflow-templates-us-central1/latest/PubSub_to_BigQuery"
-  temp_gcs_location     = "gs://${local.dataflow_job_temp_storage}/temp"
-  region                = local.region
-  service_account_email = local.service_account_email
+  temp_gcs_location     = "gs://${var.dataflow_job_temp_storage}/temp"
+  region                = var.region
+  service_account_email = var.service_account_email
   depends_on            = [google_storage_bucket_object.temp]
   parameters = {
-    inputTopic      = "projects/${local.home_project}/topics/${local.topic_alert_project_quota}"
-    outputTableSpec = "${local.home_project}:${google_bigquery_dataset.dataset.dataset_id}.${google_bigquery_table.default.table_id}"
+    inputTopic      = "projects/${var.project_id}/topics/${var.topic_alert_project_quota}"
+    outputTableSpec = "${var.project_id}:${google_bigquery_dataset.dataset.dataset_id}.${google_bigquery_table.default.table_id}"
   }
 }
