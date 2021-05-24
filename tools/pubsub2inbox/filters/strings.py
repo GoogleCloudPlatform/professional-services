@@ -20,6 +20,14 @@ from autolink import linkify
 from google.cloud import storage
 import csv
 import io
+from tablepyxl import tablepyxl
+import base64
+
+
+def make_list(s):
+    if not isinstance(s, list):
+        return [s]
+    return s
 
 
 def add_links(s):
@@ -41,6 +49,15 @@ def csv_encode(v, **kwargs):
     return output.getvalue()
 
 
+def html_table_to_xlsx(s):
+    if s.strip() == '':
+        return ''
+    workbook = tablepyxl.document_to_workbook(s)
+    output = io.BytesIO()
+    workbook.save(output)
+    return base64.encodebytes(output.getvalue()).decode('utf-8')
+
+
 class InvalidSchemeSignedURLException(Exception):
     pass
 
@@ -60,7 +77,8 @@ def generate_signed_url(url, expiration, **kwargs):
         raise InvalidSchemeSignedURLException(
             'Invalid scheme for generate_signed_url: %s' % parsed_url.scheme)
     client = storage.Client()
-    bucket = client.get_bucket(parsed_url.netloc)
+
+    bucket = client.bucket(parsed_url.netloc)
     blob = bucket.get_blob(parsed_url.path[1:])
 
     signed_url = blob.generate_signed_url(expiration=expiration,
