@@ -307,18 +307,24 @@ gcloud iam service-accounts keys create CREDENTIALS_FILE.json \
 ### 3.6 Download Terraform File
 1. Download terraform file
 ```
-curl -o main.tf https://github.com/GoogleCloudPlatform/professional-services/tools/quota-monitoring-alerting/main.tf
+mkdir terraform
+cd terraform
+curl -o main.tf https://github.com/GoogleCloudPlatform/professional-services/tools/quota-monitoring-alerting/terraform/main.tf
+curl -o main.tf https://github.com/GoogleCloudPlatform/professional-services/tools/quota-monitoring-alerting/terraform/variables.tf
+curl -o main.tf https://github.com/GoogleCloudPlatform/professional-services/tools/quota-monitoring-alerting/terraform/terraform.tfvars
 ```
-2. Verify that you have these 2 files in your local directory:
+2. Verify that you have these 4 files in your local directory:
    - CREDENTIALS_FILE.json
-   - main.tf
+   - terraform/main.tf
+   - terraform/variables.tf
+   - terraform/terraform.tfvars
 ### 3.7 Configure Terraform
-1. Open terraform file in your favourite editor and change values for the variable 
+1. Open terraform.tfvars file in your favourite editor and change values for the variable 
 2. Values for variable source_code_bucket_name, source_code_zip and source_code_notification_zip are for source code zip in the storage bucket. These are links to the Cloud Function source code. If you want to upgrade to latest code changes everytime you run 'terraform apply', change to this code source repository. DO NOT CHANGE if you do not want to recieve latest code changes while running 'terraform apply' everytime after deployment. 
 3. For region, use the same region as used for app engine in earlier steps.
 4. For Email notification, Create a Send Grid API Key [here](https://sendgrid.com/docs/ui/account-and-settings/api-keys/) and add in the terraform. Note: SendGrid may take a few days to create a key. This depends on the domain.Proceed with the rest of the configuration, add key once available and rerun terraform. 
 ```
-vi main.tf
+vi terraform.tfvars
 ```
 <img src="img/edit_terraform_variables.png" align="center" />
 
