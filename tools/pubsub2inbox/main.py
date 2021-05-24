@@ -30,6 +30,7 @@ from google.cloud import secretmanager, storage
 from google.cloud.functions.context import Context
 from pythonjsonlogger import jsonlogger
 from google.api_core.gapic_v1 import client_info as grpc_client_info
+import traceback
 
 config_file_name = 'config.yaml'
 execution_count = 0
@@ -44,7 +45,7 @@ def load_configuration(file_name):
         logger.debug('Loading configuration from Secret Manager: %s' %
                      (secret_manager_url))
         client_info = grpc_client_info.ClientInfo(
-            user_agent='google-pso-tool/pubsub2inbox/1.0.0')
+            user_agent='google-pso-tool/pubsub2inbox/1.1.0')
         client = secretmanager.SecretManagerServiceClient(
             client_info=client_info)
         response = client.access_secret_version(name=secret_manager_url)
@@ -135,7 +136,10 @@ def process_message(config, data, event, context):
             processor_variables = processor_instance.process()
             template_variables.update(processor_variables)
 
-    jinja_environment.globals = template_variables
+    jinja_environment.globals = {
+        **jinja_environment.globals,
+        **template_variables
+    }
 
     if 'processIf' in config:
         processif_template = jinja_environment.from_string(config['processIf'])
@@ -170,7 +174,7 @@ def process_message(config, data, event, context):
                          'blob': resend_file
                      })
         client_info = grpc_client_info.ClientInfo(
-            user_agent='google-pso-tool/pubsub2inbox/1.0.0')
+            user_agent='google-pso-tool/pubsub2inbox/1.1.0')
 
         storage_client = storage.Client(client_info=client_info)
         bucket = storage_client.bucket(config['resendBucket'])
@@ -232,7 +236,16 @@ def process_message(config, data, event, context):
             output_instance = output_class(config, output_config,
                                            jinja_environment, data, event,
                                            context)
-            output_instance.output()
+            try:
+                output_instance.output()
+            except Exception as exc:
+                logger.error('Output processor %s failed, trying next...' %
+                             (output_type),
+                             extra={'exception': traceback.format_exc()})
+                if 'allOutputsMustSucceed' in config and config[
+                        'allOutputsMustSucceed']:
+                    raise exc
+
     else:
         raise NoOutputsConfiguredException('No outputs configured!')
 
