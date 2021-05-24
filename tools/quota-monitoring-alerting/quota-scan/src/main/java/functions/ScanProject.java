@@ -15,7 +15,6 @@ Copyright 2021 Google LLC
 */
 package functions;
 
-
 import com.google.api.core.ApiFuture;
 import com.google.api.core.ApiFutures;
 import com.google.api.gax.batching.BatchingSettings;

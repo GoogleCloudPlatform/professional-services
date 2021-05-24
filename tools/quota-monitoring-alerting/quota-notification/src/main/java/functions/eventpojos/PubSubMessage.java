@@ -15,7 +15,6 @@ Copyright 2021 Google LLC
 */
 package functions.eventpojos;
 
-
 public class PubSubMessage {
   // Cloud Functions uses GSON to populate this object.
   // Field types/names are specified by Cloud Functions
