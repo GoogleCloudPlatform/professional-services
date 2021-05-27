@@ -214,7 +214,6 @@ variable "big_query_table_partition" {
   default     = "DAY"
 }
 
-
 variable "big_query_alert_dataset_id" {
   description = "Value of the Big Query Dataset Id to store alerts"
   type        = string
@@ -233,24 +232,11 @@ variable "big_query_alert_table_id" {
   default     = "quota_monitoring_notification_table"
 }
 
-variable "dataflow_job_name" {
-  description = "Value of the Dataflow job name"
-  type        = string
-  default     = "quota-monitoring-dataflow-job"
-}
-
-variable "dataflow_job_temp_storage" {
-  description = "Value of the name for the temporary cloud storage bucket for Dataflow job"
-  type        = string
-}
-
 variable "bigquery_data_transfer_query_name" {
   description = "Value of the Name Big Query scheduled query to fetch rows where metric usage is >= threshold"
   type        = string
   default     = "extract-quota-usage-alerts"
 }
-
-
 
 variable "Alert_data_scanning_frequency" {
   description = "Value of Big Query scheduled query frequency to fetch the alerts"

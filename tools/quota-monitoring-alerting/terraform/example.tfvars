@@ -13,19 +13,17 @@ Copyright 20210 Google LLC
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-//Update values
-project_id            = ""
-region                = ""
-service_account_email = ""
-folders               = "[]"
-organizations         = "[]"
-fromEmailId           = ""
-toEmailIds            = ""
-SENDGRID_API_KEY      = "" //Consider using Environment Variables for this sensitive info
-//Optional
+project_id                    = "quota-monitoring-project-id"
+region                        = "us-west3"
+service_account_email         = "sa-quota-monitoring-project-id@quota-monitoring-project-id.iam.gserviceaccount.com"
 source_code_bucket_name       = "quota-monitoring-solution-source"
 source_code_zip               = "quota-monitoring-solution.zip"
 source_code_notification_zip  = "quota-monitoring-notification.zip"
 scheduler_cron_job_frequency  = "0 0 * * *"
 Alert_data_scanning_frequency = "every 12 hours"
+folders                       = "[38659473572,38659473573]"
+organizations                 = "[172338721810,172338721811]"
 threshold                     = "80"
+fromEmailId                   = "infosec@democorp.com"
+toEmailIds                    = "infosec@democorp.com,to.someone@democorp.com"
+SENDGRID_API_KEY              = "JF8JZzBiZIBQx8L68pK" //Consider using Environment Variables for this sensitive info

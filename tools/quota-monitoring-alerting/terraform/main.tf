@@ -41,7 +41,6 @@ module "project-services" {
   activate_apis = [
     "compute.googleapis.com",
     "iam.googleapis.com",
-    "dataflow.googleapis.com",
     "monitoring.googleapis.com",
     "storage.googleapis.com",
     "storage-api.googleapis.com",
@@ -59,12 +58,6 @@ module "project-services" {
 # Create Pub/Sub topic to list projects in the parent node
 resource "google_pubsub_topic" "topic_alert_project_id" {
   name       = var.topic_alert_project_id
-  depends_on = [module.project-services]
-}
-
-# Create Pub/Sub topic to scan project quotas
-resource "google_pubsub_topic" "topic_alert_project_quota" {
-  name       = var.topic_alert_project_quota
   depends_on = [module.project-services]
 }
 
@@ -150,10 +143,10 @@ resource "google_cloudfunctions_function" "function-scanProject" {
   }
 
   environment_variables = {
-    PUBLISH_TOPIC      = google_pubsub_topic.topic_alert_project_quota.name
     NOTIFICATION_TOPIC = google_pubsub_topic.topic_alert_notification.name
     THRESHOLD          = var.threshold
-    HOME_PROJECT       = var.project_id
+    BIG_QUERY_DATASET  = var.big_query_dataset_id
+    BIG_QUERY_TABLE    = var.big_query_table_id
   }
 }
 
@@ -334,31 +327,3 @@ resource "google_bigquery_dataset" "quota_usage_alert_dataset" {
   depends_on    = [module.project-services]
 }
 
-# DataFlow job temp GCS bucket
-resource "google_storage_bucket" "dataflow_temp_storage_bucket" {
-  name                        = var.dataflow_job_temp_storage
-  uniform_bucket_level_access = true
-  depends_on                  = [module.project-services]
-}
-
-# Dataflow job temp folder in the GCS bucket
-resource "google_storage_bucket_object" "temp" {
-  name       = "temp/"
-  content    = "Not a directory, it's empty."
-  bucket     = var.dataflow_job_temp_storage
-  depends_on = [google_storage_bucket.dataflow_temp_storage_bucket]
-}
-
-# DataFlow job
-resource "google_dataflow_job" "pubsub_stream" {
-  name                  = var.dataflow_job_name
-  template_gcs_path     = "gs://dataflow-templates-us-central1/latest/PubSub_to_BigQuery"
-  temp_gcs_location     = "gs://${var.dataflow_job_temp_storage}/temp"
-  region                = var.region
-  service_account_email = var.service_account_email
-  depends_on            = [google_storage_bucket_object.temp]
-  parameters = {
-    inputTopic      = "projects/${var.project_id}/topics/${var.topic_alert_project_quota}"
-    outputTableSpec = "${var.project_id}:${google_bigquery_dataset.dataset.dataset_id}.${google_bigquery_table.default.table_id}"
-  }
-}

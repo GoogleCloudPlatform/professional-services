@@ -75,6 +75,10 @@
       <artifactId>google-cloud-pubsub</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.google.cloud</groupId>
+      <artifactId>google-cloud-bigquery</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.threeten</groupId>
       <artifactId>threetenbp</artifactId>
       <version>1.2</version>
