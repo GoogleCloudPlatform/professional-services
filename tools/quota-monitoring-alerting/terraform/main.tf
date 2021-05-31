@@ -181,12 +181,9 @@ resource "google_cloudfunctions_function" "function-notificationProject" {
   }
 
   environment_variables = {
-    SENDGRID_API_KEY = var.SENDGRID_API_KEY
-    FROM_EMAIL_ID    = var.fromEmailId
-    TO_EMAIL_IDS     = var.toEmailIds
-    HOME_PROJECT     = var.project_id
-    ALERT_DATASET    = var.big_query_alert_dataset_id
-    ALERT_TABLE      = var.big_query_alert_table_id
+    HOME_PROJECT  = var.project_id
+    ALERT_DATASET = var.big_query_alert_dataset_id
+    ALERT_TABLE   = var.big_query_alert_table_id
   }
 }
 
@@ -327,3 +324,106 @@ resource "google_bigquery_dataset" "quota_usage_alert_dataset" {
   depends_on    = [module.project-services]
 }
 
+
+# Custom log-based metric to send quota alert data through
+resource "google_logging_metric" "quota_logging_metric" {
+  name        = "resource_usage"
+  description = "Tracks a log containing resources' quota data"
+  filter      = "logName=\"projects/${var.project_id}/logs/quota-alerts\""
+  metric_descriptor {
+    metric_kind = "DELTA"
+    value_type  = "INT64"
+    unit        = "1"
+    labels {
+      key        = "data"
+      value_type = "STRING"
+    }
+  }
+  label_extractors = {
+    "data" = "EXTRACT(textPayload)"
+  }
+}
+
+#Set notification channels below
+#Add Notification channel - Email
+resource "google_monitoring_notification_channel" "email0" {
+  display_name = "Oncall"
+  type         = "email"
+  labels = {
+    email_address = var.notification_email_address
+  }
+}
+
+#Add Notification channel - PagerDuty - supply service_key token
+#resource "google_monitoring_notification_channel" "pagerDuty" {
+#  display_name = "PagerDuty Services"
+#  type         = "pagerduty"
+#  labels = {
+#    "channel_name" = "#foobar"
+#  }
+#  sensitive_labels {
+#    service_key = "one"
+#  }
+#}
+
+#Email notification channel 1 output
+output "email0_id" {
+  value = google_monitoring_notification_channel.email0.name
+}
+
+#Log sink to route logs to log bucket
+resource "google_logging_project_sink" "instance-sink" {
+  name                   = var.log_sink_name
+  description            = "Log sink to route logs sent by the Notification cloud function to the designated log bucket"
+  destination            = "logging.googleapis.com/projects/${var.project_id}/locations/global/buckets/${var.alert_log_bucket_name}"
+  filter                 = "logName=\"projects/${var.project_id}/logs/quota-alerts\""
+  unique_writer_identity = true
+}
+
+#Because our sink uses a unique_writer, we must grant that writer access to the bucket.
+resource "google_project_iam_binding" "log-writer" {
+  role = "roles/logging.configWriter"
+
+  members = [
+    "serviceAccount:${var.service_account_email}",
+  ]
+}
+
+#Log bucket to store logs
+resource "google_logging_project_bucket_config" "logging_bucket" {
+  project        = var.project_id
+  location       = "global"
+  retention_days = var.retention_days
+  bucket_id      = var.alert_log_bucket_name
+  description    = "Log bucket to store logs related to quota alerts sent by the Notification cloud function"
+}
+
+#Alert policy for log-based metric
+# Condition display name can be changed based on user's quota range
+resource "google_monitoring_alert_policy" "alert_policy_quota" {
+  display_name = "Resources reaching Quotas"
+  combiner     = "OR"
+  conditions {
+    display_name = "Resources reaching Quotas"
+    condition_threshold {
+      filter          = "metric.type=\"logging.googleapis.com/user/${google_logging_metric.quota_logging_metric.name}\" resource.type=\"global\""
+      duration        = "60s"
+      comparison      = "COMPARISON_GT"
+      threshold_value = 0
+      trigger {
+        count = 1
+      }
+      aggregations {
+        per_series_aligner = "ALIGN_COUNT"
+        alignment_period   = "60s"
+      }
+    }
+  }
+  documentation {
+    mime_type = "text/markdown"
+    content   = "$${metric.label.data}"
+  }
+  notification_channels = [
+    google_monitoring_notification_channel.email0.name
+  ]
+}

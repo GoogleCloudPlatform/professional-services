@@ -259,20 +259,25 @@ variable "threshold" {
   type        = string
 }
 
-variable "fromEmailId" {
-  description = "Value of the emailId to send Alerts"
+variable "notification_email_address" {
+  description = "Email Address to receive email notifications"
   type        = string
 }
 
-variable "toEmailIds" {
-  description = "Value of the list of email Ids to receive alerts"
+variable "alert_log_bucket_name" {
+  description = "Bucket Name for alert Log Sink (must be globally unique)"
   type        = string
 }
 
-variable "SENDGRID_API_KEY" {
-  description = "Value of the Sendgrid API key"
+variable "log_sink_name" {
+  description = "Name for Log Sink"
   type        = string
+  default     = "quota-monitoring-sink"
 }
 
-
+variable "retention_days" {
+  description = "Log Sink Bucket's retention period in days to detele alert logs"
+  type        = number
+  default     = 30
+}
 
