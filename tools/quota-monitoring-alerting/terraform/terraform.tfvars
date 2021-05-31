@@ -23,8 +23,8 @@ fromEmailId           = ""
 toEmailIds            = ""
 SENDGRID_API_KEY      = "" //Consider using Environment Variables for this sensitive info
 //Optional
-source_code_bucket_name       = "quota-monitoring-solution-source"
-source_code_zip               = "quota-monitoring-solution.zip"
+source_code_bucket_name       = "quota-monitoring-solution-demo-bucket"
+source_code_zip               = "quota-monitoring-solution-v3.zip"
 source_code_notification_zip  = "quota-monitoring-notification.zip"
 scheduler_cron_job_frequency  = "0 0 * * *"
 Alert_data_scanning_frequency = "every 12 hours"
