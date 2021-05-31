@@ -361,9 +361,9 @@ vi terraform.tfvars
 <img src="img/ds_edit_data_source.png" align="center" />
 It will open the data source details
 <img src="img/ds_datasource_config_step_1.png" align="center" />
-6. In the query, replace BigQuery project, dataset id and table name
+6. In the panel, select BigQuery project, dataset id and table name
 <img src="img/ds_edit_data_source_big_query.png" align="center" />
-7. Verify the query by running in BigQuery Editor to make sure that query returns right results and there are no syntax errors:
+7. Verify the query by running in BigQuery Editor to make sure query returns right results and there are no syntax errors:
 Note: Replace BigQuery project id, dataset id and table name:
 
 ```
@@ -471,7 +471,7 @@ Quota monitoring reports can be scheduled from the Data Studio dashboard using â
 5. Threshold configurable for each metric
 
 ## 5. Contact Us
-For any comments, issues or feedback, please reach out to us at pso-quota-framework@google.com
+For any comments, issues or feedback, please reach out to us at pso-quota-monitoring@google.com
 
 
 

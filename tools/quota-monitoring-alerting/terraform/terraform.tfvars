@@ -20,7 +20,7 @@ service_account_email = ""
 folders               = "[]"
 organizations         = "[]"
 alert_log_bucket_name = ""
-//Optional
+//Optional to update
 source_code_bucket_name       = "quota-monitoring-solution-demo-bucket"
 source_code_zip               = "quota-monitoring-solution-v3.zip"
 source_code_notification_zip  = "quota-monitoring-notification.zip"
