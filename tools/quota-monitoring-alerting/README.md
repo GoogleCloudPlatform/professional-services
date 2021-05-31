@@ -309,9 +309,9 @@ gcloud iam service-accounts keys create CREDENTIALS_FILE.json \
 ```
 mkdir terraform
 cd terraform
-curl -o main.tf https://github.com/GoogleCloudPlatform/professional-services/tools/quota-monitoring-alerting/terraform/main.tf
-curl -o main.tf https://github.com/GoogleCloudPlatform/professional-services/tools/quota-monitoring-alerting/terraform/variables.tf
-curl -o main.tf https://github.com/GoogleCloudPlatform/professional-services/tools/quota-monitoring-alerting/terraform/terraform.tfvars
+gsutil cp gs://quota-monitoring-solution-demo-bucket/main.tf .
+gsutil cp gs://quota-monitoring-solution-demo-bucket/variables.tf .
+gsutil cp gs://quota-monitoring-solution-demo-bucket/terraform.tfvars .
 ```
 2. Verify that you have these 4 files in your local directory:
    - CREDENTIALS_FILE.json
