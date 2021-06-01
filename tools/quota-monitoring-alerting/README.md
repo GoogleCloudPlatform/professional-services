@@ -23,7 +23,7 @@ The architecture is built using Google Cloud managed services - Cloud Functions,
 - DataFlow is used to load data in BigQuery.
 - BigQuery is used to store data. 
 - Alert threshold will be applicable across all metrics. 
-- Alerts can be received by email and other channels.
+- Alerts can be received by Email, Mobile App, PagerDuty, SMS, Slack, Web Hooks and Pub/Sub. Cloud Monitoring custom log metric has been leveraged to create Alerts.
 - Easy to get started and deploy with Data Studio Dashboard. In addition to Data Studion, other visualization tools can be configured. 
 - The Data Studio report can be scheduled to be emailed to appropriate team for weekly/daily reporting.
 ## 3. Deployment Guide
@@ -122,10 +122,6 @@ Created service account [sa-quota-monitoring-project-1].
   - Cloud Functions Admin
 - Cloud Scheduler
   - Cloud Scheduler Admin
-- Dataflow
-  - Dataflow Admin
-  - Dataflow Worker
-  - Compute Storage Admin
 - Pub/Sub 
   - Pub/Sub Admin
 - Run Terraform
@@ -148,12 +144,6 @@ gcloud projects add-iam-policy-binding $DEFAULT_PROJECT_ID --member="serviceAcco
 gcloud projects add-iam-policy-binding $DEFAULT_PROJECT_ID --member="serviceAccount:$SERVICE_ACCOUNT_ID@$DEFAULT_PROJECT_ID.iam.gserviceaccount.com" --role="roles/cloudfunctions.admin" --condition=None
 
 gcloud projects add-iam-policy-binding $DEFAULT_PROJECT_ID --member="serviceAccount:$SERVICE_ACCOUNT_ID@$DEFAULT_PROJECT_ID.iam.gserviceaccount.com" --role="roles/cloudscheduler.admin" --condition=None
-
-gcloud projects add-iam-policy-binding $DEFAULT_PROJECT_ID --member="serviceAccount:$SERVICE_ACCOUNT_ID@$DEFAULT_PROJECT_ID.iam.gserviceaccount.com" --role="roles/dataflow.admin" --condition=None
-
-gcloud projects add-iam-policy-binding $DEFAULT_PROJECT_ID --member="serviceAccount:$SERVICE_ACCOUNT_ID@$DEFAULT_PROJECT_ID.iam.gserviceaccount.com" --role="roles/dataflow.worker" --condition=None
-
-gcloud projects add-iam-policy-binding $DEFAULT_PROJECT_ID --member="serviceAccount:$SERVICE_ACCOUNT_ID@$DEFAULT_PROJECT_ID.iam.gserviceaccount.com" --role="roles/compute.storageAdmin" --condition=None
 
 gcloud projects add-iam-policy-binding $DEFAULT_PROJECT_ID --member="serviceAccount:$SERVICE_ACCOUNT_ID@$DEFAULT_PROJECT_ID.iam.gserviceaccount.com" --role="roles/pubsub.admin" --condition=None
 
@@ -322,7 +312,6 @@ gsutil cp gs://quota-monitoring-solution-demo-bucket/terraform.tfvars .
 1. Open terraform.tfvars file in your favourite editor and change values for the variable 
 2. Values for variable source_code_bucket_name, source_code_zip and source_code_notification_zip are for source code zip in the storage bucket. These are links to the Cloud Function source code. If you want to upgrade to latest code changes everytime you run 'terraform apply', change to this code source repository. DO NOT CHANGE if you do not want to recieve latest code changes while running 'terraform apply' everytime after deployment. 
 3. For region, use the same region as used for app engine in earlier steps.
-4. For Email notification, Create a Send Grid API Key [here](https://sendgrid.com/docs/ui/account-and-settings/api-keys/) and add in the terraform. Note: SendGrid may take a few days to create a key. This depends on the domain.Proceed with the rest of the configuration, add key once available and rerun terraform. 
 ```
 vi terraform.tfvars
 ```
@@ -465,10 +454,9 @@ Quota monitoring reports can be scheduled from the Data Studio dashboard using â
 
 ## 4. What is Next? 
 1. Include quota metrics beyond compute
-2. Alerting (PagerDuty, ServiceNow, Slack)
-3. Graphs (Quota utilization over a period of time)
-4. Search project, folder, org, region
-5. Threshold configurable for each metric
+2. Graphs (Quota utilization over a period of time)
+3. Search project, folder, org, region
+4. Threshold configurable for each metric
 
 ## 5. Contact Us
 For any comments, issues or feedback, please reach out to us at pso-quota-monitoring@google.com
