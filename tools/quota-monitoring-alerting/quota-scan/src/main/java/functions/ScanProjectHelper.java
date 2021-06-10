@@ -20,28 +20,26 @@ import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.core.ApiFuture;
-import com.google.api.core.ApiFutureCallback;
-import com.google.api.core.ApiFutures;
 import com.google.api.services.cloudresourcemanager.CloudResourceManager;
+import com.google.cloud.bigquery.BigQuery;
+import com.google.cloud.bigquery.BigQueryError;
+import com.google.cloud.bigquery.BigQueryException;
+import com.google.cloud.bigquery.BigQueryOptions;
+import com.google.cloud.bigquery.InsertAllRequest;
+import com.google.cloud.bigquery.InsertAllResponse;
+import com.google.cloud.bigquery.TableId;
 import com.google.cloud.compute.v1.Network;
+import com.google.cloud.compute.v1.NetworkClient;
 import com.google.cloud.compute.v1.Quota;
-import com.google.cloud.pubsub.v1.Publisher;
-import com.google.common.reflect.TypeToken;
-import com.google.common.util.concurrent.MoreExecutors;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.protobuf.ByteString;
-import com.google.pubsub.v1.PubsubMessage;
-import functions.eventpojos.Notification;
+import com.google.cloud.compute.v1.RegionClient;
+import functions.eventpojos.GCPResourceClient;
+import functions.eventpojos.ProjectQuota;
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.SortedMap;
-import java.util.TreeMap;
-import java.util.concurrent.TimeUnit;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -77,125 +75,138 @@ public class ScanProjectHelper {
   }
 
   /*
-   * API to send notification
+   * API to populate ProjectQuota POJO
    * */
-  public static void sendNotification(Notification notification)
-      throws InterruptedException, IOException {
-    GsonBuilder gb = new GsonBuilder();
-    gb.serializeSpecialFloatingPointValues();
-    Gson gson = gb.create();
-    // Java object to JSON string
-    String jsonInString = gson.toJson(notification);
-
-    Publisher publisher = null;
-    try {
-      publisher = Publisher.newBuilder(ScanProject.NOTIFICATION_TOPIC).build();
-      ByteString data = ByteString.copyFromUtf8(jsonInString);
-      PubsubMessage pubsubMessage = PubsubMessage.newBuilder().setData(data).build();
-      ApiFuture<String> messageIdFuture = publisher.publish(pubsubMessage);
-      ApiFutures.addCallback(
-          messageIdFuture,
-          new ApiFutureCallback<String>() {
-            public void onSuccess(String messageId) {
-              logger.info("published notification with message id: " + messageId);
-            }
-
-            public void onFailure(Throwable t) {
-              logger.log(Level.SEVERE, "Error publishing Pub/Sub message: " + t.getMessage(), t);
-            }
-          },
-          MoreExecutors.directExecutor());
-    } finally {
-      if (publisher != null) {
-        publisher.shutdown();
-        publisher.awaitTermination(1, TimeUnit.MINUTES);
+  static ProjectQuota populateProjectQuota(
+      Quota quota,
+      Network network,
+      String vpcSubnet,
+      String orgId,
+      String projectId,
+      String regionId) {
+    ProjectQuota projectQuota = new ProjectQuota();
+    projectQuota.setThreshold(Integer.valueOf(ScanProject.THRESHOLD));
+    projectQuota.setOrgId(orgId);
+    projectQuota.setProject(projectId);
+    projectQuota.setTimestamp("AUTO");
+    projectQuota.setFolderId("NA");
+    projectQuota.setTargetPoolName("NA");
+    if (quota != null) {
+      projectQuota.setRegion(regionId);
+      double consumption = (quota.getUsage() / quota.getLimit()) * 100;
+      projectQuota.setValue(String.valueOf(consumption));
+      projectQuota.setMetric(quota.getMetric());
+      projectQuota.setLimit(String.valueOf(quota.getLimit()));
+      projectQuota.setUsage(String.valueOf(quota.getUsage()));
+      projectQuota.setVpcName("NA");
+    } else if (network != null) {
+      projectQuota.setRegion("global");
+      projectQuota.setVpcName(network.getName());
+      if (vpcSubnet.equals("vpc")) {
+        populateProjectVPCQuota(network, projectQuota);
+      } else if (vpcSubnet.equals("subnet")) {
+        populateProjectSubnetworkQuota(network, projectQuota);
       }
+    }
+    return projectQuota;
+  }
+
+  /*
+   * API to populate Project VPC Quota
+   * */
+  private static void populateProjectVPCQuota(Network network, ProjectQuota projectQuota) {
+    int vpcPeeringCount = network.getPeeringsList() == null ? 0 : network.getPeeringsList().size();
+    projectQuota.setMetric("VPC_PEERING");
+    projectQuota.setLimit(String.valueOf(MAX_VPC_PEERING_COUNT));
+    projectQuota.setUsage(String.valueOf(vpcPeeringCount));
+    projectQuota.setValue(String.valueOf((vpcPeeringCount / MAX_VPC_PEERING_COUNT) * 100));
+  }
+
+  /*
+   * API to populate subnetwork quotas
+   * */
+  private static void populateProjectSubnetworkQuota(Network network, ProjectQuota projectQuota) {
+    int subNetworkCount =
+        network.getSubnetworksList() == null ? 0 : network.getSubnetworksList().size();
+    projectQuota.setMetric("SUBNET_PER_VPC");
+    projectQuota.setLimit(String.valueOf(MAX_VPC_SUB_NETWORK_COUNT));
+    projectQuota.setUsage(String.valueOf(subNetworkCount));
+    projectQuota.setValue(String.valueOf((subNetworkCount / MAX_VPC_SUB_NETWORK_COUNT) * 100));
+  }
+
+  /*
+   * API to build BigQuery row content from ProjectQuota object
+   * */
+  public static Map<String, Object> createBQRow(ProjectQuota projectQuota) {
+    Map<String, Object> rowContent = new HashMap<>();
+    rowContent.put("threshold", projectQuota.getThreshold());
+    rowContent.put("region", projectQuota.getRegion());
+    rowContent.put("usage", projectQuota.getUsage());
+    rowContent.put("limit", projectQuota.getLimit());
+    rowContent.put("vpc_name", projectQuota.getVpcName());
+    rowContent.put("metric", projectQuota.getMetric());
+    rowContent.put("addedAt", projectQuota.getTimestamp());
+    rowContent.put("project", projectQuota.getProject());
+    rowContent.put("folder_id", projectQuota.getFolderId());
+    rowContent.put("value", projectQuota.getValue());
+    rowContent.put("targetpool_name", projectQuota.getTargetPoolName());
+    rowContent.put("org_id", projectQuota.getOrgId());
+    return rowContent;
+  }
+
+  /*
+   * API to insert row in table
+   * */
+  public static void tableInsertRows(
+      GCPResourceClient gcpResourceClient, Map<String, Object> rowContent) {
+
+    try {
+      // Initialize client that will be used to send requests. This client only needs to be created
+      // once, and can be reused for multiple requests.
+      BigQuery bigquery = gcpResourceClient.getBigQuery();
+      // Get table
+      TableId tableId = gcpResourceClient.getTableId();
+      // Inserts rowContent into datasetName:tableId.
+      InsertAllResponse response =
+          bigquery.insertAll(InsertAllRequest.newBuilder(tableId).addRow(rowContent).build());
+
+      if (response.hasErrors()) {
+        // If any of the insertions failed, this lets you inspect the errors
+        for (Map.Entry<Long, List<BigQueryError>> entry : response.getInsertErrors().entrySet()) {
+          logger.info("Response error: \n" + entry.getValue());
+        }
+      }
+      logger.info("Rows successfully inserted into table");
+    } catch (BigQueryException e) {
+      logger.info("Insert operation not performed \n" + e.toString());
     }
   }
 
   /*
-   * Build Json for BigQuery row for default quotas
-   *
+   * API to create resource clients for BigQuery, Region and Network
+   * This API also configures BigQuery table
    * */
-  static String buildQuotaRowJson(Quota quota, String orgId, String projectId, String regionId)
-      throws IOException, InterruptedException {
-    SortedMap<String, String> elements = new TreeMap();
-    double consumption = (quota.getUsage() / quota.getLimit()) * 100;
-    elements.put("threshold", ScanProject.THRESHOLD);
-    elements.put("org_id", orgId);
-    elements.put("project", projectId);
-    elements.put("region", regionId);
-    elements.put("metric", quota.getMetric());
-    elements.put("limit", String.valueOf(quota.getLimit()));
-    elements.put("usage", String.valueOf(quota.getUsage()));
-    elements.put("value", String.valueOf(consumption));
-    elements.put("addedAt", "AUTO");
-    elements.put("folder_id", "NA");
-    elements.put("vpc_name", "NA");
-    elements.put("targetpool_name", "NA");
-
-    Gson gson = new Gson();
-    Type gsonType = new TypeToken<HashMap>() {}.getType();
-    String gsonString = gson.toJson(elements, gsonType);
-
-    Notification notification = new Notification();
-    notification.setConsumption(consumption);
-    notification.setLimit(quota.getLimit());
-    notification.setMetric(quota.getMetric());
-    notification.setUsage(quota.getUsage());
-    ScanProject.checkThreshold(notification);
-    return gsonString;
-  }
-
-  /*
-   * Build Json for BigQuery row of Subnet Quota
-   * @TODO Reduce QuotaRowJson APIs to single API
-   * */
-  static String buildSubnetQuotaRowJson(Network network, String orgId, String projectId) {
-    int vpcPeeringCount =
-        network.getSubnetworksList() == null ? 0 : network.getSubnetworksList().size();
-    SortedMap<String, String> elements = new TreeMap();
-    elements.put("threshold", ScanProject.THRESHOLD);
-    elements.put("org_id", orgId);
-    elements.put("project", projectId);
-    elements.put("region", "global");
-    elements.put("metric", "SUBNET_PER_VPC");
-    elements.put("limit", String.valueOf(MAX_VPC_SUB_NETWORK_COUNT));
-    elements.put("usage", String.valueOf(vpcPeeringCount));
-    elements.put("value", String.valueOf((vpcPeeringCount / MAX_VPC_SUB_NETWORK_COUNT) * 100));
-    elements.put("addedAt", "AUTO");
-    elements.put("folder_id", "NA");
-    elements.put("vpc_name", network.getName());
-    elements.put("targetpool_name", "NA");
-
-    Gson gson = new Gson();
-    Type gsonType = new TypeToken<HashMap>() {}.getType();
-    String gsonString = gson.toJson(elements, gsonType);
-    return gsonString;
-  }
-
-  /*
-   * Build Json for BigQuery row of VPC Quota
-   * */
-  static String buildVPCQuotaRowJson(Network network, String orgId, String projectId) {
-    int vpcPeeringCount = network.getPeeringsList() == null ? 0 : network.getPeeringsList().size();
-    SortedMap<String, String> elements = new TreeMap();
-    elements.put("threshold", ScanProject.THRESHOLD);
-    elements.put("org_id", orgId);
-    elements.put("project", projectId);
-    elements.put("region", "global");
-    elements.put("metric", "VPC_PEERING");
-    elements.put("limit", String.valueOf(MAX_VPC_PEERING_COUNT));
-    elements.put("usage", String.valueOf(vpcPeeringCount));
-    elements.put("value", String.valueOf((vpcPeeringCount / MAX_VPC_PEERING_COUNT) * 100));
-    elements.put("addedAt", "AUTO");
-    elements.put("folder_id", "NA");
-    elements.put("vpc_name", network.getName());
-    elements.put("targetpool_name", "NA");
-
-    Gson gson = new Gson();
-    Type gsonType = new TypeToken<HashMap>() {}.getType();
-    String gsonString = gson.toJson(elements, gsonType);
-    return gsonString;
+  static GCPResourceClient createGCPResourceClient() {
+    String datasetName = ScanProject.BIG_QUERY_DATASET;
+    String tableName = ScanProject.BIG_QUERY_TABLE;
+    // Initialize client that will be used to send requests. This client only needs to be created
+    // once, and can be reused for multiple requests.
+    BigQuery bigquery = BigQueryOptions.getDefaultInstance().getService();
+    // Get table
+    TableId tableId = TableId.of(datasetName, tableName);
+    RegionClient regionClient = null;
+    NetworkClient networkClient = null;
+    try {
+      regionClient = RegionClient.create();
+      networkClient = NetworkClient.create();
+    } catch (IOException e) {
+      logger.log(Level.SEVERE, "Error creating client: ", e);
+    }
+    GCPResourceClient gcpResourceClient = new GCPResourceClient();
+    gcpResourceClient.setBigQuery(bigquery);
+    gcpResourceClient.setTableId(tableId);
+    gcpResourceClient.setRegionClient(regionClient);
+    gcpResourceClient.setNetworkClient(networkClient);
+    return gcpResourceClient;
   }
 }

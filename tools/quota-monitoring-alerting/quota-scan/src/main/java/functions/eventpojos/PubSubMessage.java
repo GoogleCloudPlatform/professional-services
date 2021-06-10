@@ -16,7 +16,6 @@ Copyright 2021 Google LLC
 
 package functions.eventpojos;
 
-// [START functions_helloworld_pubsub_message]
 import java.util.Map;
 
 public class PubSubMessage {
