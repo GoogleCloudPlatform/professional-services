@@ -31,6 +31,8 @@ import json
 import logging
 import os
 from collections import OrderedDict
+import csv
+import io
 
 import apache_beam as beam
 from apache_beam.io.gcp.internal.clients.bigquery import (TableFieldSchema,
@@ -49,8 +51,6 @@ class FileCoder:
         self._delimiter = ","
 
     def encode(self, value):
-        import csv
-        import io
         st = io.StringIO()
         cw = csv.DictWriter(st,
                             self._columns,
@@ -61,8 +61,6 @@ class FileCoder:
         return st.getvalue().strip('\r\n')
 
     def decode(self, value):
-        import csv
-        import io
         st = io.StringIO(value)
         cr = csv.DictWriter(st,
                             self._columns,
