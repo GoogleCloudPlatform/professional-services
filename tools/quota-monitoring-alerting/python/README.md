@@ -1,3 +1,5 @@
+## Introduction
+
 Standalone tool with following capabilities
 1. Export all quota related metrics to BigQuery.
 2. DataStudio dashboard to
@@ -10,19 +12,19 @@ This README is for python version of the solution. For Java version please refer
 [here](../java/README.md). 
 
 
-## Common Steps
+## Deployment Steps
+#### Common Steps
 
 * Create a project
 * Associate billing with the project
 * Open CloudShell to execute the below steps
 
-## Deployment Steps
+---
 #### Create a directory
 ```bash
 mkdir workspace; cd workspace
 ```
 
----
 #### Set common variables
 ```bash
 export PROJECT=<REPLACE_WITH_PROJECT_ID>
