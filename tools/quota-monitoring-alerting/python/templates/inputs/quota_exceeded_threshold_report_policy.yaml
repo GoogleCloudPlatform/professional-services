@@ -1,0 +1,25 @@
+combiner: OR
+conditions:
+- conditionThreshold:
+    aggregations:
+    - alignmentPeriod: 60s
+      perSeriesAligner: ALIGN_NEXT_OLDER
+    comparison: COMPARISON_GT
+    duration: 0s
+    # Looks for custom metric value to see if a notification needs to be
+    # triggered.
+    filter: metric.type="custom.googleapis.com/quota/alert" resource.type="global"
+    trigger:
+      count: 1
+  displayName: custom/quota/alert - Quota Above Threshold Report Condition
+displayName: Quota exceeded threshold report policy
+documentation:
+  # Replace with the correct dashbaord link.
+  content: |-
+    More details can be found on the dashboard.
+
+    $DASHBOARD_LINK
+  mimeType: text/markdown
+enabled: true
+notificationChannels:
+- $CHANNEL

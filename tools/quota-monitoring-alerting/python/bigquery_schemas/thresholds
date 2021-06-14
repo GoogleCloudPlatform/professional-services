@@ -1,0 +1,14 @@
+[
+  {"name": "timestamp", "type": "STRING"},
+  {"name": "resource_type", "type": "STRING"},
+  {"name": "resource_service", "type": "STRING"},
+  {"name": "resource_project_id", "type": "STRING"},
+  {"name": "resource_location", "type": "STRING"},
+  {"name": "metric_type", "type": "STRING"},
+  {"name": "metric_limit_name", "type": "STRING"},
+  {"name": "metric_quota_metric", "type": "STRING"},
+  {"name": "usage", "type": "STRING"},
+  {"name": "limit", "type": "STRING"},
+  {"name": "consumption_percentage", "type": "FLOAT"},
+  {"name": "threshold", "type": "STRING"}
+]

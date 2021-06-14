@@ -1,0 +1,35 @@
+# Configuration data for building Quota dashboards and pushing custom
+# metrics.
+name: 'quota'
+# Host project settings.
+project: '$PROJECT'
+templates_outputs_dir: 'templates/outputs'
+
+
+# List of metrics and their thresholds for triggering Quota threshold report.
+# fixme: This should accomodate multiple thresholds.
+thresholds:
+          'ALL': 80  # This signifies all have same threshold.
+
+
+# Settings that are applicable to exporting/publishing metric data.
+export:
+  bigquery:
+    # BQ table to which data should be exported.
+    dataset: 'quota'
+    tables:
+      metrics_table_id: 'metrics'
+      thresholds_table_id: 'thresholds'
+  pubsub: # Pubsub topic details
+    metrics_topic: 'metrics'
+    thresholds_topic: 'thresholds'
+    bigquery_topic: 'bigquery'
+  # The projects for which we would like to export metric(s).
+  projects:
+    # This list tells which projects should be considered for export.
+    # Mention individual project ids or 'ALL'.
+    - 'ALL'  # This signifies that all project are of interest.
+  metrics:
+    # This list tells which metrics should be considered for export.
+    # Mention individual metric names or 'ALL'.
+    - 'ALL'  # This signifies that all metrics are of interest.

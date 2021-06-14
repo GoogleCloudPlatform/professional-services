@@ -1,0 +1,6 @@
+description: Primary contact method when Quota issues happen
+displayName: Quota Issues
+enabled: true
+labels:
+  email_address: '$EMAIL_ADDRESS'  # Email id where notifications are expected.
+type: email
