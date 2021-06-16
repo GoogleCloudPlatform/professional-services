@@ -12,7 +12,7 @@ Copyright 20210 Google LLC
 */
 
 name           = "quota-export"
-org            = "287269688112"
-project        = "test-qms-5"
-project_number = "998293255545"
+org            = "REPLACE_WITH_ORG_ID"
+project        = "REPLACE_WITH_PROJECT_ID"
+project_number = "REPLACE_WITH_PROJECT_NUMBER"
 region         = "us-central1"
