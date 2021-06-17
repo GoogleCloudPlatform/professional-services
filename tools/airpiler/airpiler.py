@@ -14,7 +14,6 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
-
 """
 Script to convert Autosys JIL files into dag-factory yaml format
 """
@@ -25,20 +24,21 @@ from parsimonious.grammar import Grammar
 from parsimonious.nodes import NodeVisitor
 import yaml
 
+
 class JilVisitor(NodeVisitor):
     """
     Instance of Class inhereting the library's Class to customize each element of
     what the parser found.
     """
+
     def visit_expr(self, _node, visited_children):
         """ Returns the overall output. """
         value = None
         key = None
+
         def setup_default_args():
             """ Add the default args section to the result dictionary"""
-            default_arg_keys = [
-                "owner"
-            ]
+            default_arg_keys = ["owner"]
             if "default_args" not in value.keys():
                 value["default_args"] = dict()
                 value["default_args"]["start_date"] = "1 days"
@@ -53,7 +53,9 @@ class JilVisitor(NodeVisitor):
                 value["task_groups"] = dict()
 
             if value.get("description"):
-                value["task_groups"][f'task_group_{key}'] = {"tooltip": value["description"]}
+                value["task_groups"][f'task_group_{key}'] = {
+                    "tooltip": value["description"]
+                }
             else:
                 value["task_groups"][f'task_group_{key}'] = {"tooltip": key}
 
@@ -78,7 +80,7 @@ class JilVisitor(NodeVisitor):
         def setup_task():
             """ Adds a task section"""
             if not value.get("tasks"):
-                value.update({"tasks": {f'task_{key}':dict()}})
+                value.update({"tasks": {f'task_{key}': dict()}})
 
             cmd_dict = {
                 "operator": "airflow.operators.bash_operator.BashOperator",
@@ -94,7 +96,6 @@ class JilVisitor(NodeVisitor):
                 value["tasks"][f'task_{key}']["task_group_name"] = \
                     f'task_group_{value.get("box_name")}'
 
-
             # tasks can't have descriptions only dags/top level boxes can
             if value.get("description"):
                 del value["description"]
@@ -105,14 +106,15 @@ class JilVisitor(NodeVisitor):
         def create_dependencies():
             """ Converts condition statement to dependencies"""
             condition_pattern = r"s\((\w+)\)"
-            mat = re.findall(condition_pattern,value["condition"])
+            mat = re.findall(condition_pattern, value["condition"])
             if mat:
                 for dep in mat:
                     for val in result.values():
                         # check if the dependency is one of the tasks
                         if val.get('tasks'):
                             if val['tasks'].get(f"task_{dep}"):
-                                if value["tasks"][f'task_{key}'].get('dependencies'):
+                                if value["tasks"][f'task_{key}'].get(
+                                        'dependencies'):
                                     value["tasks"][f'task_{key}']['dependencies'].\
                                         append(f"task_{dep}")
                                 else:
@@ -122,7 +124,9 @@ class JilVisitor(NodeVisitor):
                         # check if the dependency is one of the tasksgroups
                         if val.get('task_groups'):
                             if val['task_groups'].get(f"task_group_{dep}"):
-                                if value["task_groups"][f'task_group_{key}'].get('dependencies'):
+                                if value["task_groups"][
+                                        f'task_group_{key}'].get(
+                                            'dependencies'):
                                     value["task_groups"][f'task_group_{key}']['dependencies'].\
                                         append(f"task_group_{dep}")
                                 else:
@@ -135,7 +139,7 @@ class JilVisitor(NodeVisitor):
         # create the result dictionary
         result = {}
         for child in visited_children:
-            for key,value in child[0].items():
+            for key, value in child[0].items():
                 ## Convert top level Box to DAG
                 if value['job_type'] == "box" and not value.get("box_name"):
 
@@ -170,16 +174,19 @@ class JilVisitor(NodeVisitor):
                         del value["owner"]
 
                 ## Convert Stand Alone Commands into a DAG
-                elif 'box_name' not in value.keys() and value['job_type'] == "cmd":
+                elif 'box_name' not in value.keys(
+                ) and value['job_type'] == "cmd":
                     # Populate the Default Args
                     setup_default_args()
 
                     # Populate the Task
                     value['tasks'] = {
                         f"task_cmd_{key}": {
-                            "operator": "airflow.operators.bash_operator.BashOperator",
-                            "bash_command": f'echo [{value["command"]}]'
-                            }
+                            "operator":
+                                "airflow.operators.bash_operator.BashOperator",
+                            "bash_command":
+                                f'echo [{value["command"]}]'
+                        }
                     }
 
                     if value.get("condition"):
@@ -211,34 +218,21 @@ class JilVisitor(NodeVisitor):
     def visit_pair(self, node, _visited_children):
         """ Gets each key/value pair, returns a tuple. """
         key, _, value, *_ = node.children
-        converted_fields = (
-            "start_times"
-        )
-        unsupported_fields = (
-            "permission",
-            "std_err_file",
-            "std_out_file",
-            "date_conditions",
-            "machine",
-            "alarm_if_fail",
-            "alarm_if_terminated",
-            "avg_runtime",
-            "max_run_alarm",
-            "notification_alarm_types",
-            "notification_template",
-            "notification_id",
-            "send_notification",
-            "notification_emailaddress",
-            "days_of_week",
-            "notification_msg"
-        )
+        converted_fields = ("start_times")
+        unsupported_fields = ("permission", "std_err_file", "std_out_file",
+                              "date_conditions", "machine", "alarm_if_fail",
+                              "alarm_if_terminated", "avg_runtime",
+                              "max_run_alarm", "notification_alarm_types",
+                              "notification_template", "notification_id",
+                              "send_notification", "notification_emailaddress",
+                              "days_of_week", "notification_msg")
         if key.text not in unsupported_fields:
             if key.text in converted_fields:
                 if key.text == "start_times":
                     converted_key = "schedule_interval"
-                    hour,minute = value.text.strip('\"').split(":")
+                    hour, minute = value.text.strip('\"').split(":")
                     converted_value = f"{minute} {hour} * * *"
-                return converted_key,converted_value
+                return converted_key, converted_value
             else:
                 return key.text, value.text
 
@@ -246,10 +240,10 @@ class JilVisitor(NodeVisitor):
         """ The generic visit method. """
         return visited_children or node
 
+
 def parse_jil(input_file):
     """Parse Jil file and return a python dictionary of the parsed data"""
-    grammar = Grammar(
-        r"""
+    grammar = Grammar(r"""
         expr        = (entry / emptyline)*
         entry       = job pair*
 
@@ -266,9 +260,8 @@ def parse_jil(input_file):
         jobstart    = "insert_job"
         ws          = ~"\s*"
         emptyline   = ws+
-        """
-    )
-    with open(input_file,'r') as rfh:
+        """)
+    with open(input_file, 'r') as rfh:
         jil_data = rfh.read()
 
     tree = grammar.parse(jil_data)
@@ -276,13 +269,18 @@ def parse_jil(input_file):
     output = jil_vis.visit(tree)
     return output
 
+
 if __name__ == "__main__":
     CMD_DESC = "Convert JIL File to dag-factory yaml and airflow dag python"
     parser = argparse.ArgumentParser(description=CMD_DESC)
-    parser.add_argument("-p","--prefix",
-                        help='specify prefix to be used for converted files',
-                        required=True,)
-    parser.add_argument("-i", "--input",
+    parser.add_argument(
+        "-p",
+        "--prefix",
+        help='specify prefix to be used for converted files',
+        required=True,
+    )
+    parser.add_argument("-i",
+                        "--input",
                         help='specify input JIL file',
                         required=True)
     args = parser.parse_args()
@@ -311,25 +309,20 @@ example_dag_factory.generate_dags(globals())
         afp_wfh.write(airflow_py_script)
 
     ENV_TEMPL = "<YOUR_ENV>"
-    gcloud_uri_command= (
+    gcloud_uri_command = (
         f"gcloud composer environments describe {ENV_TEMPL}"
-        f" --location us-central1 --format=\"get(config.airflowUri)\""
-    )
+        f" --location us-central1 --format=\"get(config.airflowUri)\"")
     gcloud_gcs_command = (
         f"gcloud composer environments describe {ENV_TEMPL}"
-        f" --location us-central1 --format=\"get(config.dagGcsPrefix)\""
-    )
+        f" --location us-central1 --format=\"get(config.dagGcsPrefix)\"")
     gsutil_cp_command = (
-        f"gsutil cp {dag_factory_yaml_file} gs://{ENV_TEMPL}/data"
-    )
+        f"gsutil cp {dag_factory_yaml_file} gs://{ENV_TEMPL}/data")
 
     gcloud_upload_command = (
         f"gcloud composer environments storage dags import --environment"
-        f" <YOUR_ENV> --location us-central1 --source {airflow_py_file}"
-    )
+        f" <YOUR_ENV> --location us-central1 --source {airflow_py_file}")
 
-    mesg = (
-            f"dag-factory yaml written to: {dag_factory_yaml_file}\n"
+    mesg = (f"dag-factory yaml written to: {dag_factory_yaml_file}\n"
             f"airflow python file written to: {airflow_py_file}\n\n"
             f"Run the following to get your GCS Bucket \n"
             f"{gcloud_gcs_command}\n\n"
@@ -340,6 +333,5 @@ example_dag_factory.generate_dags(globals())
             f"{gcloud_upload_command}\n\n"
             f"Then run the following to get the URL of the Airflow UI:\n"
             f"{gcloud_uri_command} \n\n"
-            f"Then visit the URL and trigger your DAG"
-        )
+            f"Then visit the URL and trigger your DAG")
     print(mesg)
