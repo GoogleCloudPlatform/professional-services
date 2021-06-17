@@ -1,19 +1,22 @@
-/*
-Copyright 2021 Google LLC
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-       http://www.apache.org/licenses/LICENSE-2.0
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-*/
+# Copyright 2021 Google Inc. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 
 locals {
-  config = yamldecode(file("${path.module}/../config.yaml"))
+  config = yamldecode(file("${path.module}/../../config.yaml"))
+
+  path = "${path.module}/../.."
 
   sa_project_roles = [
     "roles/bigquery.admin",
@@ -42,7 +45,6 @@ module "project_services" {
   project_id = var.project
 
   activate_apis = [
-    "appengine.googleapis.com",
     "bigquery.googleapis.com",
     "cloudbuild.googleapis.com",
     "cloudresourcemanager.googleapis.com",
@@ -72,17 +74,6 @@ resource "google_service_account" "pubsub_invoker_service_account" {
 resource "google_service_account" "scheduler_invoker_service_account" {
   account_id   = "cloud-run-scheduler-invoker"
   display_name = "Cloud Run Scheduler Invoker"
-
-  depends_on = [module.project_services]
-}
-
-
-resource "google_organization_iam_member" "sa_org_iam" {
-  count = length(local.sa_org_roles)
-
-  org_id = var.org
-  role   = local.sa_org_roles[count.index]
-  member = "serviceAccount:${resource.google_service_account.quota_export_service_account.email}"
 
   depends_on = [module.project_services]
 }
@@ -152,11 +143,29 @@ data "google_iam_policy" "project_policy" {
 }
 
 
+resource "null_resource" "service_accounts" {
+  depends_on = [resource.google_service_account.quota_export_service_account,
+    resource.google_service_account.pubsub_invoker_service_account,
+  resource.google_service_account.scheduler_invoker_service_account, ]
+}
+
+
 resource "google_project_iam_policy" "project_iam" {
   project     = var.project
   policy_data = data.google_iam_policy.project_policy.policy_data
 
-  depends_on = [module.project_services]
+  depends_on = [module.project_services, resource.null_resource.service_accounts]
+}
+
+
+resource "google_organization_iam_member" "sa_org_iam" {
+  count = length(local.sa_org_roles)
+
+  org_id = var.org
+  role   = local.sa_org_roles[count.index]
+  member = "serviceAccount:${resource.google_service_account.quota_export_service_account.email}"
+
+  depends_on = [module.project_services, resource.null_resource.service_accounts]
 }
 
 
@@ -164,7 +173,7 @@ resource "google_project_iam_policy" "project_iam" {
 #...............................................................................
 resource "null_resource" "replace_project_id_in_config" {
   provisioner "local-exec" {
-    command = "sed -i 's~$PROJECT~'$PROJECT'~g' ${path.module}/../config.yaml"
+    command = "sed -i 's~$PROJECT~'$PROJECT'~g' ${local.path}/config.yaml"
     environment = {
       PROJECT = var.project
     }
@@ -178,8 +187,10 @@ resource "google_bigquery_dataset" "quota" {
   dataset_id = local.config.export["bigquery"]["dataset"]
 
   depends_on = [module.project_services,
+    resource.google_organization_iam_member.sa_org_iam,
   resource.google_project_iam_policy.project_iam]
 }
+
 
 resource "google_bigquery_table" "metrics" {
   dataset_id = google_bigquery_dataset.quota.dataset_id
@@ -189,11 +200,12 @@ resource "google_bigquery_table" "metrics" {
     type = "DAY"
   }
 
-  schema = file("${path.module}/../bigquery_schemas/metrics")
+  schema = file("${local.path}/bigquery_schemas/metrics")
 
   depends_on          = [resource.google_bigquery_dataset.quota]
   deletion_protection = false
 }
+
 
 resource "google_bigquery_table" "thresholds" {
   dataset_id = google_bigquery_dataset.quota.dataset_id
@@ -203,26 +215,29 @@ resource "google_bigquery_table" "thresholds" {
     type = "DAY"
   }
 
-  schema = file("${path.module}/../bigquery_schemas/thresholds")
+  schema = file("${local.path}/bigquery_schemas/thresholds")
 
   depends_on          = [resource.google_bigquery_dataset.quota]
   deletion_protection = false
 }
 
+
 resource "null_resource" "replace_project_id" {
   provisioner "local-exec" {
-    command = "sed 's~$PROJECT~'$PROJECT'~g' ${path.module}/../bigquery_schemas/dashboard_view.sql > ${path.module}/../templates/outputs/dashboard_view.sql"
+    command = "sed 's~$PROJECT~'$PROJECT'~g' ${local.path}/bigquery_schemas/dashboard_view.sql > ${local.path}/templates/outputs/dashboard_view.sql"
     environment = {
       PROJECT = var.project
     }
   }
 }
 
+
 data "local_file" "dashboard_view_sql" {
-  filename = "${path.module}/../templates/outputs/dashboard_view.sql"
+  filename = "${local.path}/templates/outputs/dashboard_view.sql"
 
   depends_on = [resource.null_resource.replace_project_id]
 }
+
 
 resource "google_bigquery_table" "dashboard_view" {
   dataset_id = local.config.export["bigquery"]["dataset"]
@@ -233,7 +248,9 @@ resource "google_bigquery_table" "dashboard_view" {
     use_legacy_sql = "false"
   }
 
-  depends_on          = [resource.google_bigquery_dataset.quota]
+  depends_on = [resource.google_bigquery_dataset.quota,
+    resource.google_bigquery_table.metrics,
+  resource.google_bigquery_table.thresholds]
   deletion_protection = false
 }
 
@@ -242,7 +259,7 @@ resource "google_bigquery_table" "dashboard_view" {
 #...............................................................................
 resource "null_resource" "build" {
   provisioner "local-exec" {
-    command = "gcloud builds submit ${path.module}/.. --tag gcr.io/$PROJECT/$SERVICE"
+    command = "gcloud builds submit ${local.path} --tag gcr.io/$PROJECT/$SERVICE"
 
     environment = {
       PROJECT = var.project
@@ -251,6 +268,7 @@ resource "null_resource" "build" {
   }
 
   depends_on = [module.project_services,
+    resource.google_organization_iam_member.sa_org_iam,
   resource.google_project_iam_policy.project_iam]
 }
 
@@ -279,23 +297,16 @@ resource "google_cloud_run_service" "crun" {
 }
 
 
-# resource "google_cloud_run_service_iam_policy" "auth" {
-#  location = resource.google_cloud_run_service.crun.location
-#  project  = resource.google_cloud_run_service.crun.project
-#  service  = resource.google_cloud_run_service.crun.name
-#
-#  policy_data = data.google_iam_policy.auth.policy_data
-#}
-
-
 # PubSub
 #...............................................................................
 resource "null_resource" "pubsub" {
 
   depends_on = [module.project_services,
+    resource.google_organization_iam_member.sa_org_iam,
   resource.google_project_iam_policy.project_iam]
 
 }
+
 
 resource "google_pubsub_topic" "dead_letter" {
   name = "dead-letter"
@@ -303,11 +314,13 @@ resource "google_pubsub_topic" "dead_letter" {
   depends_on = [resource.null_resource.pubsub]
 }
 
+
 resource "google_pubsub_topic" "metrics" {
   name = "metrics"
 
   depends_on = [resource.null_resource.pubsub]
 }
+
 
 resource "google_pubsub_topic" "thresholds" {
   name = "thresholds"
@@ -315,11 +328,13 @@ resource "google_pubsub_topic" "thresholds" {
   depends_on = [resource.null_resource.pubsub]
 }
 
+
 resource "google_pubsub_topic" "bigquery" {
   name = "bigquery"
 
   depends_on = [resource.null_resource.pubsub]
 }
+
 
 resource "google_pubsub_subscription" "metrics_sub" {
   name  = "metrics_sub"
@@ -347,6 +362,7 @@ resource "google_pubsub_subscription" "metrics_sub" {
   depends_on = [resource.null_resource.pubsub]
 }
 
+
 resource "google_pubsub_subscription" "thresholds_sub" {
   name  = "thresholds_sub"
   topic = resource.google_pubsub_topic.thresholds.name
@@ -372,6 +388,7 @@ resource "google_pubsub_subscription" "thresholds_sub" {
 
   depends_on = [resource.null_resource.pubsub]
 }
+
 
 resource "google_pubsub_subscription" "bigquery_sub" {
   name  = "bigquery_sub"
@@ -399,19 +416,27 @@ resource "google_pubsub_subscription" "bigquery_sub" {
   depends_on = [resource.null_resource.pubsub]
 }
 
+
 # Scheduler
 #...............................................................................
 resource "null_resource" "scheduler" {
 
   depends_on = [module.project_services,
+    resource.google_organization_iam_member.sa_org_iam,
   resource.google_project_iam_policy.project_iam]
 
 }
 
+
 resource "google_cloud_scheduler_job" "quota_export_job" {
-  name        = "${var.name}-job"
-  description = "Job to trigger Quota export to BigQuery"
-  schedule    = "0 */12 * * *"
+  name             = "${var.name}-job"
+  description      = "Job to trigger Quota export to BigQuery"
+  schedule         = "0 */12 * * *"
+  attempt_deadline = "320s"
+
+  retry_config {
+    retry_count = 1
+  }
 
   http_target {
     http_method = "GET"
@@ -428,9 +453,14 @@ resource "google_cloud_scheduler_job" "quota_export_job" {
 
 
 resource "google_cloud_scheduler_job" "quota_export_thresholds_job" {
-  name        = "${var.name}-thresholds-job"
-  description = "Job to trigger Quota thresholds check"
-  schedule    = "30 */12 * * *"
+  name             = "${var.name}-thresholds-job"
+  description      = "Job to trigger Quota thresholds check"
+  schedule         = "30 */12 * * *"
+  attempt_deadline = "320s"
+
+  retry_config {
+    retry_count = 1
+  }
 
   http_target {
     http_method = "GET"

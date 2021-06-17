@@ -11,18 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Bootstrap required setup."""
-
-from src.common.utils import config_utils
-from src.quota.handlers import reporting_handler
 
 
-def run():
-    """Bootstrap required setup for the given project id."""
-    config = config_utils.config('config.yaml')
-    host_project_id = config.value('project')
-    reporting_handler.create_custom_metric_descriptors(host_project_id)
-
-
-if __name__ == '__main__':
-    run()
+name           = "quota-export"
+org            = "REPLACE_WITH_ORG_ID"
+project        = "REPLACE_WITH_PROJECT_ID"
+project_number = "REPLACE_WITH_PROJECT_NUMBER"
+region         = "us-central1"

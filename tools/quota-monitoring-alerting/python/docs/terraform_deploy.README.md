@@ -35,8 +35,9 @@ gcloud app create --region=${REGION//[0-9]/}
 ```
 
 ---
+Setup Common Infra.
 ```bash
-cd terraform; terraform init
+cd terraform/common; terraform init
 ```
 
 Update terraform.tfvars
@@ -67,7 +68,7 @@ TODO: This part is still WIP.
 ---
 Bootstrap to create Metric Descriptor etc.
 ```bash
-cd ../
+cd ../../
 ```
 
 If this reports an error, wait a few seconds and try again.
@@ -76,32 +77,30 @@ NOTE: Need to check why Cloud Monitoring throws error initially.
 python bootstrap.py
 ```
 
-Set email address for recieving the notifications
+---
+Setup Alerting
 ```bash
-export EMAIL_ADDRESS=<REPLACE_WITH_EMAIL_ADDRESS>
+cd terraform/alerting; terraform init
 ```
 
-Replace email address info
-```bash
-sed 's/$EMAIL_ADDRESS/'"$EMAIL_ADDRESS"'/' \
-  $PWD/templates/inputs/quota_email_notification.yaml > $PWD/templates/outputs/quota_email_notification.yaml
+Update terraform.tfvars
+```
+vi terraform.tfvars
 ```
 
-Create notification channel
-```bash
-export CHANNEL=$(gcloud alpha monitoring channels create --channel-content-from-file=templates/outputs/quota_email_notification.yaml --format=json | grep -Po 'projects.*(?=",)')
 ```
-
-Replace with correct dashboard link
-```bash
-export DASHBOARD_LINK='https://datastudio.google.com/c/u/0/reporting/657f72d0-8625-42a5-8aa1-e5ee1d48a31c/page/IFhNC'
+project        = "REPLACE_WITH_PROJECT_ID"
+email_address  = "REPLACE_WITH_EMAIL_ID"
+dashboard_link = "REPLACE_WITH_DASHBOARD_LINK"
 ```
 
 ```bash
-sed 's~$CHANNEL~'"$CHANNEL"'~g' $PWD/templates/inputs/quota_exceeded_threshold_report_policy.yaml | sed 's~$DASHBOARD_LINK~'"$DASHBOARD_LINK"'~g' > $PWD/templates/outputs/quota_exceeded_threshold_report_policy.yaml
+terraform plan
 ```
 
-Create alert policy
 ```bash
-gcloud alpha monitoring policies create --policy-from-file=templates/outputs/quota_exceeded_threshold_report_policy.yaml
+terraform apply
 ```
+
+---
+[Back to top level README](../README.md)

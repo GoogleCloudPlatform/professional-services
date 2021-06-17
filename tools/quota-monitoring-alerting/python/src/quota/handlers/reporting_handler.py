@@ -78,8 +78,8 @@ def publish(config_filepath):
         logging.info('Nothing to report')
 
 
-def create_metric_descriptor(host_project_id):
-    """Create metric descriptor.
+def create_custom_metric_descriptors(host_project_id):
+    """Create custom metric descriptors.
 
     Args:
         host_project_id: str, project id where the metric should be written.
