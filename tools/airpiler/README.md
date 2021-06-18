@@ -1,5 +1,4 @@
 # Convert a JIL job to an AirFlow DAG with dag-factory
-[TOC]
 
 ## Create a composer environment
 Let's start out by creating a Composer environment. First let's enable the API:
