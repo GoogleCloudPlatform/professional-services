@@ -1,10 +1,18 @@
 # Cost Optimization Dashboard
 
 This repo contains SQL scripts for analyzing GCP Billing, Recommendations data and also a guide to setup the Cost Optimization dashboard.
-For sample dashboard [see here](https://datastudio.google.com/c/u/0/reporting/0c341178-d776-4617-b887-db981f081a76/page/WXzW).
+For sample dashboard [see here](https://datastudio.google.com/c/u/0/reporting/6cf564a4-9c94-4cfd-becd-b9c770ee7aa2/page/r34iB).
 
 
 ## Introduction
+The Cost Optimization dashboard builds on top of existing [GCP billing dashboard](https://cloud.google.com/billing/docs/how-to/visualize-data) and adds following addtional insights to the dashboard.
+* Compute Engine Insights
+* Cloud Storage Insights
+* BigQuery Insights
+* Cost Optimization Recommendations
+* Etc.
+
+
 Few key things to keep in mind before starting.
 * [Recommendations data export](https://cloud.google.com/recommender/docs/bq-export/export-recommendations-to-bq) to bigquery is still in Preview(as of June 2021).
 * Currently, no automation is available for this setup.
