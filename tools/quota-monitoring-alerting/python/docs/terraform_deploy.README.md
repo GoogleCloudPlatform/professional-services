@@ -19,11 +19,27 @@ Export ENV variables
 export REGION=us-central1
 ```
 
+---
 Credentials
+
+> Irrespective of user account or service account approach, make sure the permissions metioned in top level [README](..README.md#common-steps) are granted to the account.
+
+* Using user credentials
 ```bash
 gcloud auth application-default login
 ```
 
+* Using service account credentials
+  * Download the service account key and keep it in a safe location.
+  * Execute the below commands by pointing them to the location of the key.
+  * ```bash
+    gcloud auth activate-service-account --key-file=[RELATIVE_PATH_TO_CREDENTIALS_FILE]
+    ```
+  * ```bash
+    export GOOGLE_APPLICATION_CREDENTIALS=[ABSOLUTE_PATH_TO_CREDENTIALS_FILE]
+    ```
+
+---
 Enable Appengine service. NOTE: CloudScheduler requires AppEngine project.
 ```bash
 gcloud services enable appengine.googleapis.com

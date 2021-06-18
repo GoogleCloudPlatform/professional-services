@@ -17,7 +17,7 @@ This README is for python version of the solution. For Java version please refer
 #### Common Steps
 * Create a project
 * Associate billing with the project
-* Make sure the user executing below steps has following permissions at org level
+* Make sure the user or service account executing below steps has following permissions at org level
   * Editor
   * App Engine Creator
   * resourcemanager.organizations.getIamPolicy

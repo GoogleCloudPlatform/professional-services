@@ -49,6 +49,7 @@ module "project_services" {
     "cloudbuild.googleapis.com",
     "cloudresourcemanager.googleapis.com",
     "cloudscheduler.googleapis.com",
+    "iam.googleapis.com",
     "monitoring.googleapis.com",
     "run.googleapis.com"
   ]
