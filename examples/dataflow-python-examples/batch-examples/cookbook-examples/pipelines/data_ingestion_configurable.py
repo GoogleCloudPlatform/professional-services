@@ -30,9 +30,9 @@ import argparse
 import json
 import logging
 import os
-from collections import OrderedDict
 import csv
 import io
+from collections import OrderedDict
 
 import apache_beam as beam
 from apache_beam.io.gcp.internal.clients.bigquery import (TableFieldSchema,
