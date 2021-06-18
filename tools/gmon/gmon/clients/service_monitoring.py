@@ -19,10 +19,9 @@ import json
 import logging
 import os
 
-from google.cloud.monitoring_v3 import ServiceMonitoringServiceClient
-from google.protobuf.json_format import MessageToJson
+from google.cloud.monitoring_v3 import ServiceMonitoringServiceClient, types
 
-from .utils import decorate_with, to_json # pylint: disable=W0611
+from .utils import decorate_with, to_json  # pylint: disable=W0611
 
 LOGGER = logging.getLogger(__name__)
 
@@ -39,6 +38,7 @@ class ServiceMonitoringClient:
     Args:
         project_id (str): Cloud host project id.
     """
+
     def __init__(self, project_id):
         self.client = ServiceMonitoringServiceClient()
         self.project_id = project_id
@@ -56,8 +56,8 @@ class ServiceMonitoringClient:
         Returns:
             dict: Cloud Service Monitoring API response.
         """
-        return self.client.create_service(self.project,
-                                          service_config,
+        return self.client.create_service(parent=self.project,
+                                          service=types.Service(service_config),
                                           service_id=service_id)
 
     def get_service(self, service_id):
@@ -70,7 +70,7 @@ class ServiceMonitoringClient:
             dict: Cloud Service Monitoring API response.
         """
         service_path = self.build_service_path(service_id)
-        return self.client.get_service(service_path)
+        return self.client.get_service(name=service_path)
 
     def delete_service(self, service_id):
         """Delete Service object in Cloud Service Monitoring API.
@@ -82,7 +82,18 @@ class ServiceMonitoringClient:
             dict: Cloud Service Monitoring API response.
         """
         service_path = self.build_service_path(service_id)
-        return self.client.delete_service(service_path)
+        return self.client.delete_service(name=service_path)
+
+    def update_service(self, service_config):
+        """Update Service object in Cloud Service Monitoring API.
+
+        Args:
+            service_config (dict): Service config.
+
+        Returns:
+            dict: Cloud Service Monitoring API response.
+        """
+        return self.client.update_service(service=types.Service(service_config))
 
     def list_services(self):
         """List Cloud Service Monitoring services in project.
@@ -90,7 +101,7 @@ class ServiceMonitoringClient:
         Returns:
             dict: Cloud Service Monitoring API response.
         """
-        return list(self.client.list_services(self.workspace))
+        return self.client.list_services(parent=self.workspace)
 
     def create_slo(self, service_id, slo_id, slo_config):
         """Create SLO object in Cloud Service Monitoring API.
@@ -107,7 +118,9 @@ class ServiceMonitoringClient:
         slo_config = ServiceMonitoringClient._maybe_load(slo_config)
         parent = self.build_service_path(service_id)
         return self.client.create_service_level_objective(
-            parent, slo_config, service_level_objective_id=slo_id)
+            parent=parent,
+            service_level_objective=types.ServiceLevelObjective(slo_config),
+            service_level_objective_id=slo_id)
 
     def get_slo(self, service_id, slo_id):
         """Get SLO object from Cloud Service Monitoring API.
@@ -120,7 +133,7 @@ class ServiceMonitoringClient:
             dict: API response.
         """
         parent = self.build_slo_path(service_id, slo_id)
-        return self.client.get_service_level_objective(parent)
+        return self.client.get_service_level_objective(name=parent)
 
     def update_slo(self, service_id, slo_id, slo_config):
         """Update an existing SLO.
@@ -136,7 +149,8 @@ class ServiceMonitoringClient:
         slo_config = ServiceMonitoringClient._maybe_load(slo_config)
         slo_id = self.build_slo_path(service_id, slo_id)
         slo_config['name'] = slo_id
-        return self.client.update_service_level_objective(slo_config)
+        return self.client.update_service_level_objective(
+            service_level_objectives=types.ServiceLevelObjective(slo_config))
 
     def list_slos(self, service_id):
         """List all SLOs from Cloud Service Monitoring API.
@@ -150,7 +164,7 @@ class ServiceMonitoringClient:
             dict: API response.
         """
         service_path = self.build_service_path(service_id)
-        return list(self.client.list_service_level_objectives(service_path))
+        return self.client.list_service_level_objectives(parent=service_path)
 
     def delete_slo(self, service_id, slo_id):
         """Delete SLO from Cloud Monitoring API.
@@ -163,7 +177,7 @@ class ServiceMonitoringClient:
             dict: API response.
         """
         slo_path = self.build_slo_path(service_id, slo_id)
-        return self.client.delete_service_level_objective(slo_path)
+        return self.client.delete_service_level_objective(name=slo_path)
 
     def build_service_path(self, service_id):
         """Build Service object path.
@@ -186,7 +200,7 @@ class ServiceMonitoringClient:
         Returns:
             str: SLO full path.
         """
-        service_path = f'projects/{self.project_id}/services/{service_id}'
+        service_path = self.build_service_path(service_id)
         return f'{service_path}/serviceLevelObjectives/{slo_id}'
 
     @staticmethod
@@ -206,16 +220,3 @@ class ServiceMonitoringClient:
         else:
             config = json.loads(config)
         return config
-
-    @staticmethod
-    def to_json(response):
-        """Convert a Cloud Service Monitoring API response to JSON
-        format.
-
-        Args:
-            response (obj): Response object.
-
-        Returns:
-            dict: Response object serialized as JSON.
-        """
-        return json.loads(MessageToJson(response))

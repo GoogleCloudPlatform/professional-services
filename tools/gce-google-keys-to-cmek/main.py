@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import argparse
+import datetime
 import logging
 import re
 import sys
@@ -23,10 +24,12 @@ import time
 import googleapiclient
 import googleapiclient.discovery
 
+DISK_REGEXP = r'^https:\/\/www\.googleapis\.com\/compute\/v1\/projects\/(.*?)\/zones\/(.*?)\/disks\/(.*?)$'
 
 def main():
   parser = argparse.ArgumentParser(
-      description='Convert disks attached to a GCE instance from Google-managed encryption keys to customer-managed encryption keys.'
+      description='''Convert disks attached to a GCE instance from Google-managed encryption keys 
+      to customer-managed encryption keys or from a customer-managed encryption key to an other.'''
   )
   parser.add_argument(
       '--project',
@@ -55,7 +58,7 @@ def main():
       dest='key_ring',
       action='store',
       type=str,
-      help='Name of the key ring containing the key to encrypt the disks. Must be in the same zone as the instance.'
+      help='Name of the key ring containing the key to encrypt the disks. Must be in the same region as the instance or global.'
   )
   parser.add_argument(
       '--key-name',
@@ -63,7 +66,7 @@ def main():
       dest='key_name',
       action='store',
       type=str,
-      help='Name of the key to encrypt the disks. Must be in the same zone as the instance.'
+      help='Name of the key to encrypt the disks. Must be in the same region as the instance or global.'
   )
   parser.add_argument(
       '--key-version',
@@ -72,6 +75,12 @@ def main():
       action='store',
       type=int,
       help='Version of the key to encrypt the disks.')
+  parser.add_argument(
+      '--key-global',
+      dest='key_global',
+      action='store_true',
+      default=False,
+      help='Use Cloud KMS global keys.')      
   parser.add_argument(
       '--destructive',
       dest='destructive',
@@ -84,45 +93,45 @@ def main():
 
   migrate_instance_to_cmek(args.project, args.zone, args.instance,
                            args.key_ring, args.key_name, args.key_version,
-                           args.destructive)
+                           args.key_global, args.destructive)
 
 
 def migrate_instance_to_cmek(project, zone, instance, key_ring, key_name,
-                             key_version, destructive):
+                             key_version, key_global, destructive):
   start = time.time()
-
-  zone_regexp = r'^(\w\w-\w*\d)-(\w)$'
-  region = re.search(zone_regexp, zone).group(1)
+  region = zone.rpartition("-")[0]
+  key_region =  "global" if key_global else region
+  key_name = 'projects/{0}/locations/{1}/keyRings/{2}/cryptoKeys/{3}/cryptoKeyVersions/{4}'.format(
+        project, key_region, key_ring, key_name, key_version)
 
   compute = googleapiclient.discovery.build('compute', 'v1')
 
   stop_instance(compute, project, zone, instance)
   disks = get_instance_disks(compute, project, zone, instance)
   for source_disk in disks:
-    disk_regexp = r'^https:\/\/www\.googleapis\.com\/compute\/v1\/projects\/(.*?)\/zones\/(.*?)\/disks\/(.*?)$'
     disk_url = source_disk['source']
-    existing_disk_name = re.search(disk_regexp, disk_url).group(3)
+    boot = source_disk['boot']
+    auto_delete = source_disk['autoDelete']
+    deviceName = source_disk['deviceName'][0:46]
+    existing_disk_name = re.search(DISK_REGEXP, disk_url).group(3)
 
     if 'diskEncryptionKey' in source_disk:
-      logging.info('Skipping %s, already encrypyed with %s', existing_disk_name,
-                   source_disk['diskEncryptionKey'])
-      continue
+      if source_disk['diskEncryptionKey']['kmsKeyName'] == key_name:
+        logging.info('Skipping %s, already encrypyed with %s', existing_disk_name,
+                    source_disk['diskEncryptionKey'])        
+        continue
 
-    snapshot_name = '{}-goog-to-cmek'.format(existing_disk_name)
-    new_disk_name = '{}-cmek'.format(existing_disk_name)
+    snapshot_name = '{}-update-cmek-{}'.format(existing_disk_name[0:39],int(datetime.datetime.now().timestamp()))
+    new_disk_name = '{}-cmek-{}'.format(existing_disk_name[0:46],int(datetime.datetime.now().timestamp()))
     disk_type = get_disk_type(compute, project, zone, existing_disk_name)
 
     create_snapshot(compute, project, zone, existing_disk_name, snapshot_name)
-    key_name = 'projects/{0}/locations/{1}/keyRings/{2}/cryptoKeys/{3}/cryptoKeyVersions/{4}'.format(
-        project, region, key_ring, key_name, key_version)
     create_disk(compute, project, region, zone, snapshot_name, new_disk_name,
                 disk_type, key_name)
-    detach_disk(compute, project, zone, instance, existing_disk_name)
+    detach_disk(compute, project, zone, instance, deviceName)
 
-    boot = source_disk['boot']
-    auto_delete = source_disk['autoDelete']
     attach_disk(compute, project, zone, instance, new_disk_name, boot,
-                auto_delete)
+                auto_delete, deviceName)
     if destructive:
       delete_disk(compute, project, zone, existing_disk_name)
       delete_snapshot(compute, project, snapshot_name)
@@ -178,7 +187,7 @@ def delete_snapshot(compute, project, snapshot_name):
   return result
 
 
-def attach_disk(compute, project, zone, instance, disk, boot, auto_delete):
+def attach_disk(compute, project, zone, instance, disk, boot, auto_delete, deviceName):
   """ Attaches disk to instance.
 
   Requries iam.serviceAccountUser
@@ -187,6 +196,7 @@ def attach_disk(compute, project, zone, instance, disk, boot, auto_delete):
   body = {
       'autoDelete': auto_delete,
       'boot': boot,
+      'deviceName' : deviceName,
       'source': disk_url,
   }
   logging.debug('Attaching disk project=%s, zone=%s, instance=%s, disk=%s',
@@ -291,7 +301,7 @@ def wait_for_zonal_operation(compute, project, zone, operation):
 
 def _wait_for_operation(operation, build_request):
   """Helper for waiting for operation to complete."""
-  logging.debug('Waiting for %s', operation, end='')
+  logging.debug('Waiting for %s', operation)
   while True:
     sys.stdout.flush()
     result = build_request().execute()
@@ -307,3 +317,4 @@ def _wait_for_operation(operation, build_request):
 
 if __name__ == '__main__':
   main()
+
