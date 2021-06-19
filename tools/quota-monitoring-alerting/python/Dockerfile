@@ -17,28 +17,38 @@
 
 # Use the official Python image.
 # https://hub.docker.com/_/python
-FROM python:3.9
+FROM python:3.9 AS base
 
 # Allow statements and log messages to immediately appear in the Cloud Run logs
 ENV PYTHONUNBUFFERED True
 
 # Copy application dependency manifests to the container image.
 # Copying this separately prevents re-running pip install on every code change.
-COPY requirements.txt ./
-
-# Install production dependencies.
-RUN pip install -r requirements.txt
-
-# Copy local code to the container image.
 ENV APP_HOME /app
 WORKDIR $APP_HOME
+COPY requirements.txt ./
+
+RUN python -m venv /opt/venv
+# Install production dependencies.
+RUN . /opt/venv/bin/activate && \
+  /opt/venv/bin/python -m pip install --upgrade pip && \
+  /opt/venv/bin/pip install -r requirements.txt
+# Copy local code to the container image.
 COPY . ./
 
+
+# App
+FROM python:3.9-slim AS app
+COPY --from=base opt/venv /opt/venv
+ENV APP_HOME /app
+WORKDIR $APP_HOME
+COPY --from=base /app ./
 # Run the web service on container startup.
 # Use gunicorn webserver with one worker process and 8 threads.
 # For environments with multiple CPU cores, increase the number of workers
 # to be equal to the cores available.
-CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 main:app
+CMD . /opt/venv/bin/activate && \
+  exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 main:app
 
 # [END run_pubsub_dockerfile]
 # [END cloudrun_pubsub_dockerfile]
