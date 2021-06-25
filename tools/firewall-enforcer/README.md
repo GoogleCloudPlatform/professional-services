@@ -25,5 +25,3 @@ A Cloud Asset Inventory Feed watches for newly created firewall rules.  Each cre
 # Configuration
 
 Implement the function in `main.py`: `should_delete(fw_rule: dict) -> bool`.  The current reference implementation will return `True` for any firewall rule that allows `0.0.0.0/0` in its source IP range. 
-
-
