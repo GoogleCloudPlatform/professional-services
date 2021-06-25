@@ -12,15 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 variable "org_id" {
-  type = string
+  type        = string
   description = "Numeric organization ID"
 }
 variable "project_id" {
-  type = string
+  type        = string
   description = "Project ID to deploy Function into"
 }
 variable "region" {
-  type = string
+  type        = string
   description = "Region for deploying Function"
 }
 variable "zone" {

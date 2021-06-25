@@ -24,7 +24,7 @@ resource "google_cloud_asset_organization_feed" "main" {
   asset_types = [
     "compute.googleapis.com/Firewall",
   ]
-  
+
   condition {
     expression  = "!temporal_asset.deleted"
     title       = "Not deleted"
