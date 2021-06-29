@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+ name: dev
+ annotations:
+   configmanagement.gke.io/cluster-selector: dev-cluster-selector
+

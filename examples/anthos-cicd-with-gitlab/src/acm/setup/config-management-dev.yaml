@@ -1,0 +1,12 @@
+apiVersion: configmanagement.gke.io/v1
+kind: ConfigManagement
+metadata:
+  name: config-management
+spec:
+  clusterName: dev
+  git:
+    syncRepo: https://gitlab.com/<GROUP_URI>/acm.git
+    syncBranch: dev
+    secretType: none
+  policyController:
+    enabled: true

@@ -1,0 +1,10 @@
+validate-acm-policy:
+ stage: ACM Policy Check
+ image:
+   name: gcr.io/kpt-functions/gatekeeper-validate
+   entrypoint: ["/bin/sh", "-c"]
+ tags:
+   - prod
+ script:
+ - /app/gatekeeper_validate --input stage-source.yaml
+ - /app/gatekeeper_validate --input prod-source.yaml

@@ -1,0 +1,28 @@
+kustomize:
+ stage: Hydrate Manifests
+ image: gcr.io/cloud-solutions-images/kustomize:3.7
+ tags:
+   - prod
+ only:
+   refs:
+     - main
+ script:
+ - DIGEST=$(cat images/digest.txt)
+
+ # build out staging manifests
+ - mkdir -p ./hydrated-manifests/
+
+ # stage
+ - cd ${KUSTOMIZATION_PATH_NON_PROD}
+ - kustomize edit set image app=${HOSTNAME}/${PROJECT_ID}/${CONTAINER_NAME}@${DIGEST}
+ - kustomize build . -o ../../../hydrated-manifests/stage.yaml
+ - cd -
+
+ # prod
+ - cd ${KUSTOMIZATION_PATH_PROD}
+ - kustomize edit set image app=${HOSTNAME}/${PROJECT_ID}/${CONTAINER_NAME}@${DIGEST}
+ - kustomize build . -o ../../../hydrated-manifests/production.yaml
+ - cd -
+ artifacts:
+   paths:
+     - hydrated-manifests/

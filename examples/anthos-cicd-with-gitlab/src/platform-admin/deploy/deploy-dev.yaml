@@ -1,0 +1,9 @@
+deploy-dev:
+ stage: Deploy Dev
+ tags:
+   - dev
+ script:
+   - kubectl apply -f hydrated-manifests/dev.yaml
+ except:
+   refs:
+     - main

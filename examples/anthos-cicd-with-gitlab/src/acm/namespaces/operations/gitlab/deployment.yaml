@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitlab-runner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: gitlab-runner
+  template:
+    metadata:
+      labels:
+        name: gitlab-runner
+    spec:
+      serviceAccountName: gitlab-runner
+      containers:
+      - command:
+        - /bin/bash
+        - /scripts/entrypoint
+        image: gcr.io/abm-test-bed/gitlab-runner@sha256:8f623d3c55ffc783752d0b34097c5625a32a910a8c1427308f5c39fd9a23a3c0
+        imagePullPolicy: IfNotPresent
+        name: gitlab-runner
+        resources:
+          requests:
+            cpu: "100m"
+          limits:
+            cpu: "100m"
+        env:
+          - name: GITLAB_SERVER_ADDRESS
+            valueFrom:
+              configMapKeyRef:
+                name: gitlab-runner-config
+                key: gitlab-server-address
+          - name: RUNNER_TAG_LIST
+            valueFrom:
+              configMapKeyRef:
+                name: gitlab-runner-config
+                key: runner-tag-list 
+          - name: KUBERNETES_NAMESPACE
+            valueFrom:
+              configMapKeyRef:
+                name: gitlab-runner-config
+                key: kubernetes-namespace
+          - name: KUBERNETES_SERVICE_ACCOUNT
+            valueFrom:
+              configMapKeyRef:
+                name: gitlab-runner-config
+                key: kubernetes-service-account
+          - name: REGISTRATION_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: gitlab-runner-secret
+                key: runner-registration-token
+        volumeMounts:
+          - name: config
+            mountPath: /scripts/entrypoint
+            readOnly: true
+            subPath: entrypoint
+          - mountPath: /tmp/template.config.toml
+            name: config
+            subPath: template.config.toml
+      volumes:
+        - name: config
+          configMap:
+            name: gitlab-runner-config
+      restartPolicy: Always

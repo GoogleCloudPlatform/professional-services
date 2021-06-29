@@ -1,0 +1,18 @@
+read-yaml:
+ stage: Read ACM YAML
+ image:
+   name: gcr.io/kpt-functions/read-yaml
+   entrypoint: ["/bin/sh", "-c"]
+ tags:
+   - prod
+ script:
+ - mkdir stage && cp hydrated-manifests/stage.yaml stage && cp hydrated-manifests/constraint* stage
+ - mkdir prod && cp hydrated-manifests/production.yaml prod && cp hydrated-manifests/constraint* prod
+ # The following 2 commands are combining all the YAMLs from the source_dir into one single YAML file
+ - /usr/local/bin/node /home/node/app/dist/read_yaml_run.js -d source_dir=stage/ --output stage-source.yaml --input /dev/null
+ - /usr/local/bin/node /home/node/app/dist/read_yaml_run.js -d source_dir=prod/ --output prod-source.yaml --input /dev/null
+ artifacts:
+   paths:
+   - stage-source.yaml
+   - prod-source.yaml
+   expire_in: 1 hour

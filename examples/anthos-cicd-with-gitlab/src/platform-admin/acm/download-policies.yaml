@@ -1,0 +1,17 @@
+download-acm-policies:
+ stage: Download ACM Policy
+ image: gcr.io/cloud-solutions-images/kustomize:3.7
+ tags:
+   - prod
+ script:
+ # Note: Having SSH_KEY in GitLab is only for demo purposes. You  should 
+ # consider saving the key as a secret in the k8s cluster and have the secret
+ # mounted as a file inside the container instead.
+ - echo ${SSH_KEY} | base64 -d > /working/ssh-key
+ - chmod 400 /working/ssh-key
+ - export GIT_SSH_COMMAND="ssh -i /working/ssh-key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
+ - git clone git@${CI_SERVER_HOST}:${CI_PROJECT_NAMESPACE}/acm.git -b main
+ - cp acm/cluster/constraint* hydrated-manifests/.
+ artifacts:
+   paths:
+     - hydrated-manifests/

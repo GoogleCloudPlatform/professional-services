@@ -1,0 +1,20 @@
+fetch_kustomize_base:
+ stage: Fetch Bases
+ image: gcr.io/cloud-solutions-images/kustomize:3.7
+ tags:
+ - prod
+ script:
+ # Add auth to git urls
+ - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}".insteadOf "https://${CI_SERVER_HOST}"
+ - mkdir -p kubernetes/base/
+
+ # Pull from Kustomize shared base from platform repo
+ - echo ${SSH_KEY} | base64 -d > /working/ssh-key
+ - chmod 400 /working/ssh-key
+ - export GIT_SSH_COMMAND="ssh -i /working/ssh-key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
+ - git clone git@${CI_SERVER_HOST}:${CI_PROJECT_NAMESPACE}/platform-admin.git -b main
+ - cp platform-admin/shared-kustomize-bases/nodejs/* kubernetes/base
+
+ artifacts:
+   paths:
+     - kubernetes/base/
