@@ -42,14 +42,20 @@ def load_configuration(file_name):
     if os.getenv('CONFIG'):
         logger = logging.getLogger('pubsub2inbox')
         secret_manager_url = os.getenv('CONFIG')
-        logger.debug('Loading configuration from Secret Manager: %s' %
-                     (secret_manager_url))
-        client_info = grpc_client_info.ClientInfo(
-            user_agent='google-pso-tool/pubsub2inbox/1.1.0')
-        client = secretmanager.SecretManagerServiceClient(
-            client_info=client_info)
-        response = client.access_secret_version(name=secret_manager_url)
-        configuration = response.payload.data.decode('UTF-8')
+        if secret_manager_url.startswith('projects/'):
+            logger.debug('Loading configuration from Secret Manager: %s' %
+                         (secret_manager_url))
+            client_info = grpc_client_info.ClientInfo(
+                user_agent='google-pso-tool/pubsub2inbox/1.1.0')
+            client = secretmanager.SecretManagerServiceClient(
+                client_info=client_info)
+            response = client.access_secret_version(name=secret_manager_url)
+            configuration = response.payload.data.decode('UTF-8')
+        else:
+            logger.debug('Loading configuration from bundled file: %s' %
+                         (secret_manager_url))
+            with open(secret_manager_url) as config_file:
+                configuration = config_file.read()
     else:
         with open(file_name) as config_file:
             configuration = config_file.read()
@@ -225,6 +231,18 @@ def process_message(config, data, event, context):
             if 'type' not in output_config:
                 raise NoTypeConfiguredException(
                     'No type configured for output!')
+
+            if 'processIf' in output_config:
+                processif_template = jinja_environment.from_string(
+                    output_config['processIf'])
+                processif_template.name = 'processif'
+                processif_contents = processif_template.render()
+                if processif_contents.strip() == '':
+                    logger.info(
+                        'Will not use output processor %s because processIf evaluated to empty.'
+                        % output_config['type'])
+                continue
+
             logger.debug('Processing message using output processor: %s' %
                          output_config['type'])
 
@@ -266,7 +284,8 @@ def decode_and_process(logger, config, event, context):
     logger.debug('Starting Pub/Sub message processing...',
                  extra={
                      'event_id': context.event_id,
-                     'data': data
+                     'data': data,
+                     'attributes': event['attributes']
                  })
     process_message(config, data, event, context)
     logger.debug('Pub/Sub message processing finished.',
