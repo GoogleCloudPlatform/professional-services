@@ -132,7 +132,7 @@ resource "google_cloudfunctions_function" "function-scanProject" {
   available_memory_mb   = var.cloud_function_scan_project_memory
   source_archive_bucket = var.source_code_bucket_name
   source_archive_object = var.source_code_zip
-  entry_point           = "functions.ScanProject"
+  entry_point           = "functions.ScanProjectQuotas"
   service_account_email = var.service_account_email
   timeout               = var.cloud_function_scan_project_timeout
   depends_on            = [module.project-services]
@@ -143,10 +143,11 @@ resource "google_cloudfunctions_function" "function-scanProject" {
   }
 
   environment_variables = {
-    NOTIFICATION_TOPIC = google_pubsub_topic.topic_alert_notification.name
-    THRESHOLD          = var.threshold
-    BIG_QUERY_DATASET  = var.big_query_dataset_id
-    BIG_QUERY_TABLE    = var.big_query_table_id
+    NOTIFICATION_TOPIC       = google_pubsub_topic.topic_alert_notification.name
+    THRESHOLD                = var.threshold
+    BIG_QUERY_DATASET        = var.big_query_dataset_id
+    BIG_QUERY_TABLE          = var.big_query_table_id
+    BIG_QUERY_LIMIT_TABLE    = var.big_query_limit_table_id
   }
 }
 
@@ -212,6 +213,98 @@ resource "google_bigquery_dataset" "dataset" {
 resource "google_bigquery_table" "default" {
   dataset_id = google_bigquery_dataset.dataset.dataset_id
   table_id   = var.big_query_table_id
+
+  time_partitioning {
+    type = var.big_query_table_partition
+  }
+
+  labels = {
+    env = "default"
+  }
+
+  schema = <<EOF
+[
+  {
+    "name": "threshold",
+    "type": "INT64",
+    "mode": "NULLABLE",
+    "description": "region"
+  },
+  {
+    "name": "region",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "region"
+  },
+  {
+    "name": "usage",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "current quota usage"
+  },
+  {
+    "name": "limit",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "quota limit"
+  },
+  {
+    "name": "vpc_name",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "vpc name"
+  },
+  {
+    "name": "metric",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "quota metric"
+  },
+  {
+    "name": "addedAt",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE",
+    "description": "timestamp"
+  },
+  {
+    "name": "project",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "project id"
+  },
+  {
+    "name": "folder_id",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "folder id"
+  },
+  {
+    "name": "value",
+    "type": "FLOAT",
+    "mode": "NULLABLE",
+    "description": "current quota consumption in percent"
+  },
+  {
+    "name": "targetpool_name",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "target pool name"
+  },
+  {
+    "name": "org_id",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "organization id of the project"
+  }
+]
+EOF
+
+}
+
+# BigQuery Table for Limit data
+resource "google_bigquery_table" "limit_table" {
+  dataset_id = google_bigquery_dataset.dataset.dataset_id
+  table_id   = var.big_query_limit_table_id
 
   time_partitioning {
     type = var.big_query_table_partition

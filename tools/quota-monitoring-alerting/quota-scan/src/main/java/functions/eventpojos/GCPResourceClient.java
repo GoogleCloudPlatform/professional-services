@@ -31,6 +31,8 @@ public class GCPResourceClient {
   private RegionClient regionClient;
   private NetworkClient networkClient;
   private TableId tableId;
+  private TableId destinationTableId;
+  private TableId limitTableId;
 
   public BigQuery getBigQuery() {
     return bigQuery;
@@ -62,5 +64,21 @@ public class GCPResourceClient {
 
   public void setTableId(TableId tableId) {
     this.tableId = tableId;
+  }
+
+  public TableId getDestinationTableId() {
+    return destinationTableId;
+  }
+
+  public void setDestinationTableId(TableId destinationTableId) {
+    this.destinationTableId = destinationTableId;
+  }
+
+  public TableId getLimitTableId() {
+    return limitTableId;
+  }
+
+  public void setLimitTableId(TableId limitTableId) {
+    this.limitTableId = limitTableId;
   }
 }
