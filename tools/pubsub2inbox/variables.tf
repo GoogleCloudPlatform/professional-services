@@ -60,3 +60,9 @@ variable "bucket_name" {
 
   default = "cf-pubsub2inbox"
 }
+
+variable "function_timeout" {
+  type        = number
+  description = "Cloud Function timeout (maximum 540 seconds)"
+  default     = 60
+}

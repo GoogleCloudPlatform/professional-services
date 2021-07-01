@@ -178,7 +178,7 @@ your GCP environment are ready:
     ```
     python get_recommendations.py \
     --project_id=<YOUR-PROJECT-ID> \
-    --path_to_service_account=<SERVICE-ACCOUNT-FILE-PATH> \
+    --service_account_file_path=<SERVICE-ACCOUNT-FILE-PATH> \
     --to_json=<PATH-TO-JSON>
     ```
 

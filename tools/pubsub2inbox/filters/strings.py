@@ -20,6 +20,15 @@ from autolink import linkify
 from google.cloud import storage
 import csv
 import io
+from tablepyxl import tablepyxl
+import base64
+import magic
+
+
+def make_list(s):
+    if not isinstance(s, list):
+        return [s]
+    return s
 
 
 def add_links(s):
@@ -41,6 +50,46 @@ def csv_encode(v, **kwargs):
     return output.getvalue()
 
 
+def html_table_to_xlsx(s):
+    if s.strip() == '':
+        return ''
+    workbook = tablepyxl.document_to_workbook(s)
+    output = io.BytesIO()
+    workbook.save(output)
+    return base64.encodebytes(output.getvalue()).decode('utf-8')
+
+
+def read_gcs_object(url, start=None, end=None):
+    parsed_url = urllib.parse.urlparse(url)
+    if parsed_url.scheme != 'gs':
+        raise InvalidSchemeURLException(
+            'Invalid scheme for read_gcs_object(%s): %s' %
+            (url, parsed_url.scheme))
+    client = storage.Client()
+
+    bucket = client.bucket(parsed_url.netloc)
+    blob = bucket.get_blob(parsed_url.path[1:])
+    if not blob:
+        raise ObjectNotFoundException(
+            'Failed to download object %s from bucket %s' %
+            (parsed_url.netloc, parsed_url.path[1:]))
+    contents = blob.download_as_bytes(start=start, end=end)
+    return base64.encodebytes(contents).decode('utf-8')
+
+
+def filemagic(contents):
+    with magic.Magic(flags=magic.MAGIC_MIME_TYPE) as m:
+        return m.id_buffer(base64.b64decode(contents))
+
+
+class ObjectNotFoundException(Exception):
+    pass
+
+
+class InvalidSchemeURLException(Exception):
+    pass
+
+
 class InvalidSchemeSignedURLException(Exception):
     pass
 
@@ -60,7 +109,8 @@ def generate_signed_url(url, expiration, **kwargs):
         raise InvalidSchemeSignedURLException(
             'Invalid scheme for generate_signed_url: %s' % parsed_url.scheme)
     client = storage.Client()
-    bucket = client.get_bucket(parsed_url.netloc)
+
+    bucket = client.bucket(parsed_url.netloc)
     blob = bucket.get_blob(parsed_url.path[1:])
 
     signed_url = blob.generate_signed_url(expiration=expiration,

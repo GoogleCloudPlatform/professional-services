@@ -29,6 +29,12 @@ Out of the box, you'll have the following functionality:
     - For example, you can automatically send reports via email that are generated in a Cloud Storage bucket
   - [BigQuery queries](examples/bigquery-config.yaml)
     - For example, you can turn any BigQuery query results into CSV files or email messages.
+  - [Recommendations and Insights reports](examples/recommendations-example.yaml)
+     - From [Recommender API](https://cloud.google.com/recommender/docs/overview).
+     - Also see [example with attached spreadsheet](examples/recommendations-example-2.yaml).
+  - [Cloud Monitoring alerts](examples/monitoring-config.yaml)
+  - [Cloud Storage copier](examples/gcscopy-example.yaml)
+     - Copies objects between two buckets, useful for backing up.
   - Any JSON
     - [See the example of generic JSON processing](examples/generic-config.yaml)
 
@@ -43,6 +49,8 @@ Available input processors are:
  - [bigquery.py](processors/bigquery.py): queries from BigQuery datasets.
  - [genericjson.py](processors/genericjson.py): Parses message data as JSON and
    presents it to output processors.
+ - [recommendations.py](processors/recommendations.py): Retrieves recommendations
+   and insights from the [Recommender API](https://cloud.google.com/recommender/docs/overview).
 
 Please note that the input processors have some IAM requirements to be able to
 pull information from GCP:
@@ -51,11 +59,28 @@ pull information from GCP:
     - Storage Object Admin (`roles/storage.objectAdmin`)
  - Signed URL generation (see `filters/strings.py:generate_signed_url`)
     - Storage Admin on the bucket (`roles/storage.admin`)
- - `budget.py`
+ - Budgets: `budget.py`
     - Billing Account Viewer (`roles/billing.viewer`) to retrieve budget details.
     - Browser (`roles/browser`) to fetch project details.
- - `scc.py`
+ - Security Command Center: `scc.py`
     - Browser (`roles/browser`) to fetch project details.
+ - BigQuery: `bigquery.py`
+   - BigQuery Job User (`roles/bigquery.jobUser`) and BigQuery Data Viewer
+     (`roles/bigquery.dataViewer`) to read data.
+- Recommendations: `recommendations.py`
+   - Browser (`roles/browser`) to fetch project details.
+   - Compute Viewer (`roles/compute.viewer`)
+   - Compute Recommender Viewer (`roles/recommender.computeViewer`), Firewall
+     Recommender Viewer (`roles/recommender.firewallViewer`), IAM Recommender
+     Viewer (`roles/recommender.iamViewer`), Product Suggestion Recommender
+     Viewer (`roles/recommender.productSuggestionViewer`), Viewer of Billing 
+     Account Usage Commitment Recommender (`roles/recommender.billingAccountCudViewer`)
+     and/or Project Usage Commitment Recommender Viewer (`roles/recommender.projectCudViewer`).
+     If you want billing account level recommendations, also add Billing Account Viewer
+     (`roles/billing.viewer`) and Billing Account Usage Commitment Recommender Viewer
+     (`roles/recommender.billingAccountCudViewer`) on the billing account
+     itself.
+     
 
 ## Output processors
 
@@ -66,6 +91,8 @@ Available output processors are:
   - [gcs.py](output/gcs.py): can create objects on GCS from any inputs.
   - [webhook.py](output/webhook.py): can send arbitrary HTTP requests, optionally
     with added OAuth2 bearer token from GCP.
+  - [gcscopy.py](output/gcscopy.py): copies files between buckets.
+  - [logger.py](output/logger.py): Logs message in Cloud Logging.
 
 Please note that the output processors have some IAM requirements to be able to
 pull information from GCP:
@@ -97,7 +124,6 @@ hashing the `resendKey` (if it is omitted, all template parameters are used). Th
 resend period is configurable through `resendPeriod`. To prevent the resend bucket
 from accumulating unlimited files, set an [Object Lifecycle Management policy](https://cloud.google.com/storage/docs/lifecycle)
 on the bucket.
-
 
 ## Deploying as Cloud Function
 

@@ -15,7 +15,7 @@ This is a sample K8s configuration files to deploy a Redis Cluster on GKE.
 1. Provision a GKE cluster.
 
  ```
- $ gcloud container clusters create redis-cluster --num-nodes 6 --machine-type n1-standard-8 --image-type COS --disk-type pd-standard --disk-size 100 --enable-ip-alias --create-subnetwork name=redis-subnet
+ $ gcloud container clusters create redis-cluster --num-nodes 6 --machine-type n1-standard-8 --disk-type pd-standard --disk-size 100 --enable-ip-alias --create-subnetwork name=redis-subnet
  ```
  If prompted, please specify your preferred project ID and zone.
 

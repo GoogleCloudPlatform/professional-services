@@ -13,8 +13,9 @@
 #   limitations under the License.
 from .regex import regex_replace
 from .lists import split, index
-from .strings import add_links, urlencode, generate_signed_url, json_encode, csv_encode
-from .date import strftime
+from .strings import add_links, urlencode, generate_signed_url, json_encode, csv_encode, html_table_to_xlsx, make_list, read_gcs_object, filemagic
+from .date import strftime, recurring_date
+from .gcp import format_cost, get_cost
 
 
 def get_jinja_filters():
@@ -28,4 +29,11 @@ def get_jinja_filters():
         'strftime': strftime,
         'json_encode': json_encode,
         'csv_encode': csv_encode,
+        'html_table_to_xlsx': html_table_to_xlsx,
+        'format_cost': format_cost,
+        'get_cost': get_cost,
+        'recurring_date': recurring_date,
+        'make_list': make_list,
+        'read_gcs_object': read_gcs_object,
+        'filemagic': filemagic
     }
