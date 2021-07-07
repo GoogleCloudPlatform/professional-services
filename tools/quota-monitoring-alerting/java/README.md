@@ -452,7 +452,44 @@ Quota monitoring reports can be scheduled from the Data Studio dashboard using �
 
 <img src="img/datastudio_schedule_email.png" align="center" />
 
-## 4. What is Next? 
+
+### 4. Alerting
+The alerts about services nearing their quota limits can be configured to be sent via email as well as following external services:
+- Slack
+- PagerDuty
+- SMS
+- Custom Webhooks
+
+##### Slack Configuration
+To configure notifications to be sent to a Slack channel, you must have the Monitoring NotificationChannel Editor role on the host project.
+###### Create Notification Channel
+1. In the Cloud Console, use the project picker to select your Google Cloud project, and then select Monitoring, or click the link here: Go to Monitoring
+2. In the Monitoring navigation pane, click  Alerting.
+3. Click Edit notification channels.
+4. In the Slack section, click Add new. This brings you to the Slack sign-in page:
+&nbsp;&nbsp; a.  Select your Slack workspace.
+&nbsp;&nbsp; b. Click Allow to enable Google Cloud Monitoring access to your Slack workspace. This action takes you back to the Monitoring configuration page for your notification channel.
+&nbsp;&nbsp; c. Enter the name of the Slack channel you want to use for notifications.
+&nbsp;&nbsp; d. Enter a display name for the notification channel.
+5. In your Slack workspace:
+&nbsp;&nbsp; a. Invite the Monitoring app to the channel by sending the following message in the channel:
+&nbsp;&nbsp; b.  `/invite @Google Cloud Monitoring`
+&nbsp;&nbsp; c. Be sure you invite the Monitoring app to the channel you specified when creating the notification channel in Monitoring.
+
+##### Configuring Alerting Policy
+1. In the Alerting section, click on Policies.
+2. Find the Policy named ‘Resource Reaching Quotas’. This policy was created via Terraform code above.
+3. Click Edit.
+4. It opens an Edit Alerting Policy page. Leave the current condition metric as is, and click on Next.
+5. In the Notification Options, Select the Slack Channel that you created above.
+6. Click on Save.
+
+You should now receive alerts in your Slack channel whenever a quota reaches the specified threshold limit.
+
+
+
+
+## 5. What is Next? 
 1. Include quota metrics beyond compute
 2. Graphs (Quota utilization over a period of time)
 3. Search project, folder, org, region
