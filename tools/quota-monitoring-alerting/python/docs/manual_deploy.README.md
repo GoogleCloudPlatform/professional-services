@@ -27,25 +27,14 @@ export SERVICE_ACCOUNT=quota-export
 ```
 
 ---
-#### Enable API's
+#### Enable APIs
 ```bash
 gcloud services enable monitoring.googleapis.com
-```
-
-```bash
 gcloud services enable cloudresourcemanager.googleapis.com
-```
-
-```bash
 gcloud services enable cloudbuild.googleapis.com
-```
-
-```bash
 gcloud services enable run.googleapis.com
-```
-
-```bash
 gcloud services enable cloudscheduler.googleapis.com
+gcloud services enable pubsub.googleapis.com
 ```
 
 ---
@@ -140,9 +129,9 @@ TODO: This part is still WIP.
 sed -i 's/$PROJECT/'"$PROJECT"'/' $PWD/config.yaml
 ```
 
-Bootstrap to create Metric Descriptor etc. If this reports an error, wait a few
-seconds and try again.
-NOTE: Need to check why Cloud Monitoring throws error initially.
+Bootstrap to create Metric Descriptor etc. If this reports an error, wait a few seconds and try again.
+
+**NOTE**: Need to check why Cloud Monitoring throws error initially.
 ```bash
 python bootstrap.py
 ```
