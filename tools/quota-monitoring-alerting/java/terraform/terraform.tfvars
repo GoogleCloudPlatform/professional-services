@@ -14,12 +14,13 @@ Copyright 20210 Google LLC
    limitations under the License.
 */
 //Update values
-project_id            = ""
-region                = ""
-service_account_email = ""
-folders               = "[]"
-organizations         = "[]"
-alert_log_bucket_name = ""
+project_id                 = ""
+region                     = ""
+service_account_email      = ""
+folders                    = "[]"
+organizations              = "[]"
+alert_log_bucket_name      = ""
+notification_email_address = ""
 //Optional to update
 source_code_bucket_name       = "quota-monitoring-solution-demo-bucket"
 source_code_zip               = "quota-monitoring-solution-v3.zip"
