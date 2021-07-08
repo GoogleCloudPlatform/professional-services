@@ -467,14 +467,14 @@ To configure notifications to be sent to a Slack channel, you must have the Moni
 2. In the Monitoring navigation pane, click  Alerting.
 3. Click Edit notification channels.
 4. In the Slack section, click Add new. This brings you to the Slack sign-in page:
-&nbsp;&nbsp; a.  Select your Slack workspace.
-&nbsp;&nbsp; b. Click Allow to enable Google Cloud Monitoring access to your Slack workspace. This action takes you back to the Monitoring configuration page for your notification channel.
-&nbsp;&nbsp; c. Enter the name of the Slack channel you want to use for notifications.
-&nbsp;&nbsp; d. Enter a display name for the notification channel.
+   *  Select your Slack workspace.
+   * Click Allow to enable Google Cloud Monitoring access to your Slack workspace. This action takes you back to the Monitoring configuration page for your notification channel.
+   * Enter the name of the Slack channel you want to use for notifications.
+   * Enter a display name for the notification channel.
 5. In your Slack workspace:
-&nbsp;&nbsp; a. Invite the Monitoring app to the channel by sending the following message in the channel:
-&nbsp;&nbsp; b.  `/invite @Google Cloud Monitoring`
-&nbsp;&nbsp; c. Be sure you invite the Monitoring app to the channel you specified when creating the notification channel in Monitoring.
+   * Invite the Monitoring app to the channel by sending the following message in the channel:
+   * `/invite @Google Cloud Monitoring`
+   * Be sure you invite the Monitoring app to the channel you specified when creating the notification channel in Monitoring.
 
 ##### Configuring Alerting Policy
 1. In the Alerting section, click on Policies.
