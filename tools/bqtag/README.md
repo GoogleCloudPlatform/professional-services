@@ -53,6 +53,8 @@ bq = BQTableView(bq_dataset = BQ_DATASET,
 `json_credentials_path` (optional) path to service account credentials file. 
 
 
+
+
 ## Create Taxonomy and Policy Tags
 
 Data Catalog Taxonomy and Policy Tags can be created if not already present. If Taxonomy and Policy Tags are already present then just specify the display name of Taxonomy in `catalog_taxonomy` variable and relevant policy tags would be downloaded from the Taxonomy. If, however, Taxonomy and Policy Tags are not present then `create_taxonomy()` function can be used to provision the same. Taxonomy name provisioned would be taken from the `catalog_taxonomy` variable. `create_taxonomy()` takes the following parameters:
