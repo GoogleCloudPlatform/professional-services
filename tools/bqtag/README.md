@@ -26,6 +26,8 @@ BQTag automates not only creation of queries but also helps in associating the r
 
 # Using BQTag
 
+## Initialize Object
+
 Create an instance of bqtag.BQTableView. 
 
 `bq_dataset` (required) is the BigQuery Dataset where Table and Authorized Views have to be created. 
@@ -40,3 +42,5 @@ Create an instance of bqtag.BQTableView.
 
 `json_credentials_path` (optional) path to service account credentials file. 
 
+
+## Create Taxonomy
