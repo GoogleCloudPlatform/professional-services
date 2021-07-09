@@ -266,4 +266,67 @@ The above code would result in the following Tagged BQ Table schema:
 ]
 ```
 
-This function returns the schema of the table created as a dictionary. If there was an error or exception, a {} is returned. 
+This function returns the schema of the table created as a dictionary. If there was an error or exception, a `{}` is returned. 
+
+## Create an Authorized View using Tags
+
+`create_view()` function can create the authorized BQ view by only including columns that are tagged with a particular value. While creating the view, this function takes care of the format of original table structure meaning if orginal table has nested and repeated columns then the created view would also have nested and repeated columns. Dataset and BigQuery Project, defined at the time of initialization of the object is used as the dataset and project for the new view. This function takes the following attributes:
+
+`table_name` is the name of the source table on which the view would be based.
+
+`view_name` is the name of the new view to be created.
+
+`tags` is the list of the tags which are to be included in the view.
+
+This function return the SQL query which is used to create the view. If there is an error or exception then an empty string is returned.
+
+```python
+VIEW1 = "view_medium"
+VIEW1_TAGS = ["medium", "low"]
+bqtv.create_view(TABLE_TO_CREATE, VIEW1, VIEW1_TAGS)
+```
+
+This would result in a new view named "view_medium" and the schema of the new view would be:
+
+```json
+[
+    {
+    "mode": "NULLABLE",
+    "name": "customer_name",
+    "type": "STRING"
+    },
+    {
+    "mode": "NULLABLE",
+    "name": "email_address",
+    "type": "STRING"
+    },
+    {
+    "fields": [
+        {
+        "mode": "NULLABLE",
+        "name": "pincode",
+        "type": "STRING"
+        },
+        {
+        "mode": "NULLABLE",
+        "name": "city",
+        "type": "STRING"
+        },
+        {
+        "mode": "NULLABLE",
+        "name": "state",
+        "type": "STRING"
+        }
+    ],
+    "mode": "NULLABLE",
+    "name": "address",
+    "type": "RECORD"
+    },
+    {
+    "mode": "NULLABLE",
+    "name": "customer_id",
+    "type": "STRING"
+    }
+]
+```
+
