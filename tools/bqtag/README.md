@@ -1,114 +1,25 @@
-# BigQuery Pipeline
+# BQTag
 
-Utility class for building data pipelines in BigQuery.
+Utility class for tagging BQ Table Schemas with Data Catalog Taxonomy Policy Tags. Create BQ Authorized Views using Policy Tags. Helper utility to proviosion Data Catalog Taxononmy and Policy Tags.
 
-Provides methods for query, copy table and delete table.
+# Data Catalog Policy Tags and Big Query Overview
 
-Supports Jinja2 templated SQL.
+Many organisations need a way to restrict access of particular columns in BigQuery Table to a few set of users. They need to have different views for different personas in their organisation and they also like some sort of automation to manage the scale.
 
+This is possible in GCP to use Cloud Data Catalog to create a Taxonomy and policy tags. Policy tags can be assigned permissions for certain users and then these tags can be mapped to BigQuery Table Columns. Only users who have relevant  permission for a tag can work with a column mapped with that tag. Sometimes, organisations also need to create views based on tags assigned to columns and this is done by creating Authorised BQ views but needs considerable effort in creating the exact SQL Queries for these views. Issue is amplified if BigQuery Table has nested and repeated columns and there is a need to retain the original table structure. Most of these issues can be addressed by automation. The code present in this module is a sample automation for the same. To understand the concept in a details, let us look at a sample use case.
 
-## Usage
+Let us consider an example of online book store which sells books. They have a requirement to have data categorised in 4 categories: **High, Medium, Low and Baseline**. This is accomplished by creating 4 policy tags in Data Catalog under bookstore-taxonomy.  They have a sales table which has 4 columns: Reviews which should be visible to everyone, Book Name which has Low Confidentiality, Customer Name has medium confidentiality while credit card number has high confidentiality. 
 
-Create an instance of BQPipeline. By setting query_project, default_project and default_dataset, you can omit project and dataset from table references in your SQL statements.
+![bookstore](./imgs/figure1.png)
 
-`query_project` is the project that will be billed for queries.
+Policy-tags can be associated with the respective columns to have the desired functionality. This will restrict, for example anyone who does not have access to high confidentiality policy tag to read Credit Card numbers.
 
-`default_project` is the project used when a tablespec does not specify a project.
+Business requirement is to create 3 views:
 
-`default_dataset` is the dataset used when a tablespec does not specify project or dataset.
+- **Standard** which has data tagged with baseline
+- **Internal** which has data tagged with baseline as well as low and medium confidentiality
+- **Restricted** which has all the data.
 
-Place files containing a single BigQuery Standard SQL statement per file.
+There is no direct way to create views based on policy tags. The way to accomplish is to manually select columns which have particular tags associated with them and then write SQL queries. SQL queries can get really complex if the table has nested and repeated columns. 
 
-Note that if you reference a project with a '-' in the name, you must quote the tablespec in your SQL: ````my-project.dataset_id.table_id````
-
-
-```python
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-from bqpipeline.bqpipeline import BQPipeline
-
-bq = BQPipeline(job_name='myjob',
-                query_project='myproject',
-                default_project='myproject',
-                default_dataset='mydataset',
-                json_credentials_path='credentials.json')
-
-replacements = {
-    'project': 'myproject',
-    'dataset': 'mydataset'
-}
-
-bq.copy_table('source_table', 'dest_table')
-
-bq.run_queries(['q1.sql', 'q2.sql'], **replacements)
-
-bq.export_csv_to_gcs('tmp_table_2', 'gs://my-bucket/path/to/tmp_table_2-*.csv')
-
-bq.delete_tables(['tmp_table_1', 'tmp_table_2'])
-```
-
-Note, that the `run_queries` method provided this utility can alternatively take a list of tuples where the first entry is the sql path, and the second is a destination table. You can see an example of this in [`example.py`](example/example.py).
-
-For detailed documentation about the methods provided by this utility class see [docs.md](docs.md).
-
-### Creating Service Account JSON Credentials
-
-1. Visit the [Service Account Console](https://console.cloud.google.com/iam-admin/serviceaccounts)
-2. Select a service account
-3. Select "Create Key"
-4. Select "JSON"
-5. Click "Create" to download the file
-
-
-## File Layout
-- [bqpipeline.py](bqpipeline/bqpipeline.py) BigQuery client wrapper
-- [example](example) Example pipeline using service account credentials
-
-
-## Installation
-
-### Optional: Install in virtualenv
-
-```
-python3 -m virtualenv venv
-source venv/bin/activate
-```
-
-### Install with pip
-
-```
-git clone https://github.com/GoogleCloudPlatform/professional-services.git
-cd professional-services/tools/bqpipeline
-python3 -m pip install .
-```
-
-
-## Requirements
-
-You'll need to [download Python 3.4 or later](https://www.python.org/downloads/)
-
-[Google Cloud Python Client](https://github.com/googleapis/google-cloud-python)
-
-
-### pip
-
-```
-python3 -m pip install --user --upgrade pip
-```
-
-### Optional: virtualenv
-
-```
-python3 -m pip install --user virtualenv
-```
-
-## Disclaimer
-
-This is not an official Google project.
-
-
-## References
-
-[Python Example Code](https://github.com/GoogleCloudPlatform/python-docs-samples)
-[google-cloud-bigquery](https://pypi.org/project/google-cloud-bigquery/)
-[Jinja2](http://jinja.pocoo.org/docs/2.10/)
+BQTag automates not only creation of queries but also helps in associating the right policy tag to the table columns in a standard way. BQtag removes the complexity by providing a simple and intuitive python functions.
