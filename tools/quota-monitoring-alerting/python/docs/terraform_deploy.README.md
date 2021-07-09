@@ -22,7 +22,7 @@ export REGION=us-central1
 ---
 Credentials
 
-> Irrespective of user account or service account approach, make sure the permissions metioned in top level [README](..README.md#common-steps) are granted to the account.
+> Irrespective of user account or service account approach, make sure the permissions mentioned in top level [README](..README.md#common-steps) are granted to the account.
 
 * Using user credentials
 ```bash
@@ -40,12 +40,12 @@ gcloud auth application-default login
     ```
 
 ---
-Enable Appengine service. NOTE: CloudScheduler requires AppEngine project.
+Enable AppEngine service. NOTE: CloudScheduler requires an AppEngine project.
 ```bash
 gcloud services enable appengine.googleapis.com
 ```
 
-Create Appengine app.
+Create AppEngine app.
 ```bash
 gcloud app create --region=${REGION//[0-9]/} 
 ```
@@ -63,7 +63,7 @@ vi terraform.tfvars
 
 ```
 name           = "quota-export"
-org            = "REPLACE_WITH_OG_ID"
+org            = "REPLACE_WITH_ORG_ID"
 project        = "REPLACE_WITH_PROJECT_ID"
 project_number = "REPLACE_WITH_PROJECT_NUMBER"
 region         = "us-central1"
@@ -79,7 +79,8 @@ terraform apply
 
 ---
 Setup DataStudio Dashboard.
-TODO: This part is still WIP.
+
+**TODO**: This part is still WIP.
 
 ---
 Bootstrap to create Metric Descriptor etc.
