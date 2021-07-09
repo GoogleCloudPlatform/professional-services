@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from bqtag.bqtag import BQTableView
+from bqtag import BQTableView
 
 if __name__ == "__main__":
 

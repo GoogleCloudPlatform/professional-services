@@ -23,3 +23,15 @@ Business requirement is to create 3 views:
 There is no direct way to create views based on policy tags. The way to accomplish is to manually select columns which have particular tags associated with them and then write SQL queries. SQL queries can get really complex if the table has nested and repeated columns. 
 
 BQTag automates not only creation of queries but also helps in associating the right policy tag to the table columns in a standard way. BQtag removes the complexity by providing a simple and intuitive python functions.
+
+# Using BQTag
+
+Create an instance of bqtag.BQTableView. 
+
+`bq_dataset` (required) is the BigQuery Dataset where Table and Authorized Views have to be created. 
+`catalog_taxonomy` (required) is the Data Catalog taxonomy name which holds the Policy Tags. Taxonomy may not be present and can be created using the create_taxonomy() function.
+`location` (required) is the location where BigQuery and DataCatalog resources are present or would be created.
+`bq_project` (optional - can be derived from authenticated service account) is the project where BigQuery resources are present or would be created.
+`catalog_project` (optional - can be derived from authenticated service account) is the project where Data Catalog resources are present or would be created.
+`json_credentials_path` (optional) path to service account credentials file. 
+
