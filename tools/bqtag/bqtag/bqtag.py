@@ -16,8 +16,8 @@
 # limitations under the License.
 
 
-from google.cloud import bigquery, datacatalog
-from google.api_core.exceptions import MethodNotImplemented
+from google.cloud import bigquery, datacatalog_v1
+from google.api_core.exceptions import MethodNotImplemented, NotFound
 
 import logging
 import sys
@@ -210,21 +210,64 @@ class BQTableView:
         """
 
         if self.json_credentials_path:
-            self.dc = datacatalog.PolicyTagManagerClient.from_service_account_json(self.json_credentials_path)
+            self.dc = datacatalog_v1.PolicyTagManagerClient.from_service_account_json(self.json_credentials_path)
             if self.catalog_project:
                 self.dc.project = self.catalog_project
             if self.location:
                 self.dc._location = self.location
         else:
             if self.catalog_project and self.location:
-                self.dc = datacatalog.PolicyTagManagerClient(project=self.catalog_project, location=self.location)
+                self.dc = datacatalog_v1.PolicyTagManagerClient(project=self.catalog_project, location=self.location)
             else:
-                self.dc = datacatalog.PolicyTagManagerClient()
+                self.dc = datacatalog_v1.PolicyTagManagerClient()
 
         LOGGER.debug("Data Catalog Client Initialised.")
         
         return
 
+    
+
+    # Create Taxonomy and Tags
+    def create_taxonomy(self, tags: list) -> bool:
+        """
+        Create Taxonomy and Policy Tags
+
+        :params tags: List of Tags to be created. Each tag is represented as dictionary -
+                    {
+                        "name": "Name of Tag",
+                        "description": "Description of Tag",
+                        "parent_policy_tag": "Parent Policy Tag for nested policy tags",
+                    }
+
+        :return True if success and False if Failure
+        """
+
+        try:
+            taxonomy = datacatalog_v1.types.Taxonomy()
+            taxonomy.display_name=self.taxonomy
+            created_taxonomy = self.dc.create_taxonomy(parent="projects/{project}/locations/{location}".format(project=self.catalog_project, location=self.location.lower()), taxonomy=taxonomy)
+        except (MethodNotImplemented, NotFound) as e:
+            LOGGER.error("Could not create Taxonomy. API call to Google failed. Error received: " + str(e))
+            LOGGER.error(traceback.format_exc())
+            return False
+
+        LOGGER.info("Taxonomy Created Successfully.")
+
+        try:
+            for tag in tags:
+                policy_tag = datacatalog_v1.types.PolicyTag()
+                policy_tag.display_name = tag["name"]
+                policy_tag.description = tag.get("description", "")
+                policy_tag.parent_policy_tag = tag.get("parent_policy_tag", "")
+                self.dc.create_policy_tag(parent=created_taxonomy.name, policy_tag=policy_tag)
+        except (MethodNotImplemented, NotFound) as e:
+            LOGGER.error("Could not create Policy Tag. API call to Google failed. Error received: " + str(e))
+            LOGGER.error(traceback.format_exc())
+            return False
+
+        LOGGER.info("{pt_count} Tags Created Successfully.".format(pt_count=len(tags)))
+
+        return True
 
     # Download policy tags from Data Catalog Taxonomy and save them in self.policy_tags    
     def fetch_policy_tags(self) -> bool:
@@ -237,7 +280,7 @@ class BQTableView:
 
         try:
             taxonomies = self.dc.list_taxonomies(parent="projects/{project}/locations/{location}".format(project=self.catalog_project, location=self.location.lower()))
-        except MethodNotImplemented as e:
+        except (MethodNotImplemented, NotFound) as e:
             LOGGER.error("Could not determine Taxonomy ID. API call to Google failed. Error received: " + str(e))
             LOGGER.error(traceback.format_exc())
             return False
@@ -267,57 +310,55 @@ class BQTableView:
     
     
     # Create a table with tags
-    def create_table(self, table_name: str, table_schema: str, table_tag_map: dict = None) -> bool:
+    def create_table(self, table_name: str, table_schema: str, table_tag_map: dict = None) -> str:
         """
         Create a new Tagged table
         :param table_name: Name of the table to create
         :param table_schema: Schema of the table to create
         :param table_tag_map: Mapping of Tags to Columns
-        :return True if success and False if Failure
+        :return json containing schema of table created
         """
 
         tagged_schema = self._process_schema(table_schema=table_schema, table_tag_map=table_tag_map)
-        
-        dataset = self.bq.dataset(self.dataset)
-        table_ref = dataset.table(table_name)
-        
-        table = bigquery.Table(table_ref, schema=tagged_schema)
+       
+        table = bigquery.Table(".".join([self.bq_project, self.dataset, table_name]), schema=tagged_schema)
 
         try:    
             table = self.bq.create_table(table)  # Make an API request.  
-        except MethodNotImplemented as e:
+        except (MethodNotImplemented, NotFound) as e:
             LOGGER.error("Could not create table: " + str(e))
             LOGGER.error(traceback.format_exc())
-            return False
+            return "{}"
 
         LOGGER.info("Table created successfully: {project}.{dataset}.{table}.".format(project=self.bq_project,
                                                                                       dataset=self.dataset,
                                                                                       table=table_name))
+        # convert table schema to JSON for return
+        f = io.StringIO("")
+        self.bq.schema_to_json(table.schema, f)
+        table_schema = f.getvalue()
 
-        return True
+        return table_schema
 
     # Create a view from tags
-    def create_view(self, table_name: str, view_name: str, tags: list) -> bool:
+    def create_view(self, table_name: str, view_name: str, tags: list) -> str:
         """
         Create a new View with columns having specfied tags
         :param table_name: Name of the source table
         :param view_name: Name of the View to create
         :param tags: List of tags to include in view
-        :return None
+        :return SQL query of the created view
         """
 
         LOGGER.debug("Start Downloading BQ Schema.")
 
         # Download Table Schema using API
-        dataset_ref = self.bq.dataset(self.dataset, project=self.bq_project)
-        table_ref = dataset_ref.table(table_name)
-        
         try:
-            table = self.bq.get_table(table_ref)
-        except MethodNotImplemented as e:
+            table = self.bq.get_table(".".join([self.bq_project, self.dataset, table_name]))
+        except (MethodNotImplemented, NotFound) as e:
             LOGGER.error("Could not download source table schema: " + str(e))
             LOGGER.error(traceback.format_exc())
-            return False
+            return ""
 
         f = io.StringIO("")
         self.bq.schema_to_json(table.schema, f)
@@ -345,7 +386,7 @@ class BQTableView:
 
         if query_columns.strip() == "":
             LOGGER.info("No Columns in Query. View not created.")
-            return
+            return ""
 
         query = "SELECT {query_columns} FROM `{project}.{dataset}.{table_name}`".format( query_columns=query_columns,
                                                                                         project = self.bq_project,
@@ -360,14 +401,14 @@ class BQTableView:
         try:
             query_job = self.bq.query(query, job_config=job_config)  
             query_job.result()  # Wait for the job to complete.
-        except MethodNotImplemented as e:
+        except (MethodNotImplemented, NotFound) as e:
             LOGGER.error("Could not create view: " + str(e))
             LOGGER.error(traceback.format_exc())
-            return False
+            return ""
 
         LOGGER.info("Authorised view created: " + ".".join([self.bq_project, self.dataset, view_name]))
 
-        return True
+        return query
 
 
     # Internal Function to detemine the tagged schema

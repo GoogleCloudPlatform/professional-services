@@ -18,8 +18,7 @@ from bqtag.bqtag import BQTableView
 if __name__ == "__main__":
 
     """
-    - DataCatalog Taxonomy should be present and have relevant policy tags: low. medium and high.
-    - Update the BQ_PROJECT, CATALOG_PROJECT and TAXONOMY_DISPLAY_NAME with relevant values.
+    - Update the BQ_PROJECT, CATALOG_PROJECT, BQ_DATASET and TAXONOMY_DISPLAY_NAME with relevant values.
     - Key file used is credentials.json. Please add the correct path or copy credentials.json to the example folder. 
     - SA chould have relevant permissions to read Data Catalog Tags otherwise table creation will result in error.
     - BQ Dataset should be created and value provided in the BQ_DATASET
@@ -29,7 +28,6 @@ if __name__ == "__main__":
     CATALOG_PROJECT = "<catalog-project>"
     TAXONOMY_DISPLAY_NAME = "<taxonomy_name>"
     BQ_DATASET = "<dataset>"
-
     LOCATION = "US"
     JSON_CREDENTIALS_FILE = "credentials.json"
 
@@ -108,6 +106,10 @@ if __name__ == "__main__":
                      bq_project = BQ_PROJECT,
                      catalog_project = CATALOG_PROJECT,
                      json_credentials_path = JSON_CREDENTIALS_FILE)
+
+    
+    # Create Taxonomy and Policy Tags
+    bq.create_taxonomy([{"name": "low", "description": "Low tag"}, {"name": "medium", "description": "Medium tag"}, {"name": "high", "description": "High tag"}])
 
     # Fetch Policy Tags from Data Catalog
     status = bq.fetch_policy_tags()
