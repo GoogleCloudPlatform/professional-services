@@ -15,7 +15,7 @@
 
 import unittest
 import json
-from bqtag.bqtag import BQTableView
+from bqtag import BQTableView
 
 """
 - Update the BQ_PROJECT, CATALOG_PROJECT, BQ_DATASET, LOCATION and TAXONOMY_DISPLAY_NAME with relevant values.
