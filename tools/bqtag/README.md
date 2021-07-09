@@ -87,3 +87,183 @@ if status:
     # Rest of the code
 ```
 
+## Create a Tagged Table
+
+`create_table()` function can create tagged tables inside a dataset in BigQuery. Dataset and BigQuery Project, defined at the time of initialization of the object is used as the dataset and project for the new table. This function takes the following attributes:
+
+`table_name` is the name of the table to create.
+
+`table_schema` is the schema of the table to provision. This is the standard [BQ Schema](https://cloud.google.com/bigquery/docs/schemas#specifying_a_json_schema_file) file. This schema file does not need to have any policy tags defined.
+
+`table_tag_map` is a dictionary containing the map of column to a particular tag. The key of the dictionary specifies the column name and value is the friendly name of the tag. These are the possible values for the key of the dictionary:
+
+- **"column_name":** if the column is a standard BQ column and is not nested or repeated.
+- **"parent_column.nested_column_level_1.nested_column_level_1....":** . notation can be used to specify a nested column. Please note you cannot tag a parent column. Onlu columns at the leaf level can be tagged. 
+- **"default_column_tag":** Special key that can be used to tag all the columns that do not have a tag specified explicitly.
+
+```python
+TABLE_TO_CREATE = "table1"
+TABLE_SCHEMA = """[
+                    {
+                        "description": "Customer ID",
+                        "mode": "REQUIRED",
+                        "name": "customer_id",
+                        "type": "STRING"
+                    },
+                    {
+                        "description": "Customer Name",
+                        "mode": "REQUIRED",
+                        "name": "customer_name",
+                        "type": "STRING"
+                    },
+                    {
+                        "description": "Email",
+                        "mode": "REQUIRED",
+                        "name": "email_address",
+                        "type": "STRING"
+                    },
+                    {
+                        "description": "Phone Number",
+                        "mode": "NULLABLE",
+                        "name": "phone",
+                        "type": "STRING"
+                    },
+                    {
+                        "fields": [
+                        {
+                            "mode": "NULLABLE",
+                            "name": "street",
+                            "type": "STRING"
+                        },
+                        {
+                            "mode": "NULLABLE",
+                            "name": "city",
+                            "type": "STRING"
+                        },
+                        {
+                            "mode": "NULLABLE",
+                            "name": "state",
+                            "type": "STRING"
+                        },
+                        {
+                            "mode": "NULLABLE",
+                            "name": "pincode",
+                            "type": "STRING"
+                        }
+                        ],
+                        "mode": "NULLABLE",
+                        "name": "address",
+                        "type": "RECORD"
+                    }
+                    ]"""
+
+TAG_MAP = dict()
+TAG_MAP["default_column_tag"] = "low"
+TAG_MAP["customer_name"] = "medium"
+TAG_MAP["email_address"] = "medium"
+TAG_MAP["phone"] = "high"
+TAG_MAP["address.street"] = "high"
+TAG_MAP["address.pincode"] = "medium"
+
+bqtv.create_table(TABLE_TO_CREATE, TABLE_SCHEMA, TAG_MAP)
+```
+
+The above code would result in the following Tagged BQ Table schema:
+
+```json
+[
+    {
+    "description": "Customer ID",
+    "mode": "REQUIRED",
+    "name": "customer_id",
+    "policyTags": {
+        "names": [
+        "projects/<project_id>/locations/us/taxonomies/355XXXXXXXXXXX5604/policyTags/4808767303335996791"
+        ]
+    },
+    "type": "STRING"
+    },
+    {
+    "description": "Customer Name",
+    "mode": "REQUIRED",
+    "name": "customer_name",
+    "policyTags": {
+        "names": [
+        "projects/<project_id>/locations/us/taxonomies/355XXXXXXXXXXX5604/policyTags/7755219766687077882"
+        ]
+    },
+    "type": "STRING"
+    },
+    {
+    "description": "Email",
+    "mode": "REQUIRED",
+    "name": "email_address",
+    "policyTags": {
+        "names": [
+        "projects/<project_id>/locations/us/taxonomies/355XXXXXXXXXXX5604/policyTags/7755219766687077882"
+        ]
+    },
+    "type": "STRING"
+    },
+    {
+    "description": "Phone Number",
+    "mode": "NULLABLE",
+    "name": "phone",
+    "policyTags": {
+        "names": [
+        "projects/<project_id>/locations/us/taxonomies/355XXXXXXXXXXX5604/policyTags/461212619990859315"
+        ]
+    },
+    "type": "STRING"
+    },
+    {
+    "fields": [
+        {
+        "mode": "NULLABLE",
+        "name": "street",
+        "policyTags": {
+            "names": [
+            "projects/<project_id>/locations/us/taxonomies/355XXXXXXXXXXX5604/policyTags/461212619990859315"
+            ]
+        },
+        "type": "STRING"
+        },
+        {
+        "mode": "NULLABLE",
+        "name": "city",
+        "policyTags": {
+            "names": [
+            "projects/<project_id>/locations/us/taxonomies/355XXXXXXXXXXX5604/policyTags/4808767303335996791"
+            ]
+        },
+        "type": "STRING"
+        },
+        {
+        "mode": "NULLABLE",
+        "name": "state",
+        "policyTags": {
+            "names": [
+            "projects/<project_id>/locations/us/taxonomies/355XXXXXXXXXXX5604/policyTags/4808767303335996791"
+            ]
+        },
+        "type": "STRING"
+        },
+        {
+        "mode": "NULLABLE",
+        "name": "pincode",
+        "policyTags": {
+            "names": [
+            "projects/<project_id>/locations/us/taxonomies/355XXXXXXXXXXX5604/policyTags/7755219766687077882"
+            ]
+        },
+        "type": "STRING"
+        }
+    ],
+    "mode": "NULLABLE",
+    "name": "address",
+    "type": "RECORD"
+    }
+]
+```
+
+This function returns the schema of the table created as a dictionary. If there was an error or exception, a {} is returned. 
