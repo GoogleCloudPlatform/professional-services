@@ -73,4 +73,17 @@ bq.create_taxonomy([
                   ])
 ```
 
+The function returns `True` if Taxonomy and Policy Tags are created successfully. If any error or exception is encountered, function will return `False`.
+## Fetch Policy Tags
+
+Before any Table or View can be created, Policy Tags have to be fetched from Data Catalog so that the complete Policy Tag name can be mapped to friendly names of policy tags. This can be done by calling the `fetch_policy_tags()` function. This function does not take any parameters.
+
+The function returns `True` if Policy Tags are fetched successfully. If any error or exception is encountered, function will return `False`.
+
+```python
+status = bq.fetch_policy_tags()
+if status:
+    # Rest of the code
+    # Rest of the code
+```
 
