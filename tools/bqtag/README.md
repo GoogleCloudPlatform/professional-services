@@ -31,7 +31,7 @@ BQTag automates not only creation of queries but also helps in associating the r
 Create an instance of bqtag.BQTableView. 
 
 ```python
-bq = BQTableView(bq_dataset = BQ_DATASET,
+bqtv = BQTableView(bq_dataset = BQ_DATASET,
                  catalog_taxonomy = TAXONOMY_DISPLAY_NAME,
                  location = LOCATION,
                  bq_project = BQ_PROJECT,
@@ -66,11 +66,11 @@ Data Catalog Taxonomy and Policy Tags can be created if not already present. If 
 - `parent_policy_tag` (optional) is the link to the parent policy tag
 
 ```python
-bq.create_taxonomy([
-                    {"name": "low", "description": "Low tag"}, 
-                    {"name": "medium", "description": "Medium tag"}, 
-                    {"name": "high", "description": "High tag"}
-                  ])
+bqtv.create_taxonomy([
+                      {"name": "low", "description": "Low tag"}, 
+                      {"name": "medium", "description": "Medium tag"}, 
+                      {"name": "high", "description": "High tag"}
+                    ])
 ```
 
 The function returns `True` if Taxonomy and Policy Tags are created successfully. If any error or exception is encountered, function will return `False`.
@@ -81,7 +81,7 @@ Before any Table or View can be created, Policy Tags have to be fetched from Dat
 The function returns `True` if Policy Tags are fetched successfully. If any error or exception is encountered, function will return `False`.
 
 ```python
-status = bq.fetch_policy_tags()
+status = bqtv.fetch_policy_tags()
 if status:
     # Rest of the code
     # Rest of the code
