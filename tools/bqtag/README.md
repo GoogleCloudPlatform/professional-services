@@ -43,4 +43,13 @@ Create an instance of bqtag.BQTableView.
 `json_credentials_path` (optional) path to service account credentials file. 
 
 
+```python
+bq = BQTableView(bq_dataset = BQ_DATASET,
+                 catalog_taxonomy = TAXONOMY_DISPLAY_NAME,
+                 location = LOCATION,
+                 bq_project = BQ_PROJECT,
+                 catalog_project = CATALOG_PROJECT,
+                 json_credentials_path = JSON_CREDENTIALS_FILE)
+```
+
 ## Create Taxonomy
