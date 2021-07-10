@@ -18,6 +18,7 @@
 
 from google.cloud import bigquery, datacatalog_v1
 from google.api_core.exceptions import MethodNotImplemented, NotFound
+import google.auth
 
 import logging
 import sys
@@ -189,6 +190,8 @@ class BQTableView:
             self.bq = bigquery.Client.from_service_account_json(self.json_credentials_path)
             if self.bq_project:
                 self.bq.project = self.bq_project
+            else:
+                self.bq_project = self.bq.project
             if self.location:
                 self.bq._location = self.location
         else:
@@ -196,6 +199,8 @@ class BQTableView:
                 self.bq = bigquery.Client(project=self.bq_project, location=self.location)
             else:
                 self.bq = bigquery.Client() 
+                if not self.bq_project:
+                    self.bq_project = self.bq.project
         
         LOGGER.debug("BQ Client Initialised.")
         
@@ -211,20 +216,18 @@ class BQTableView:
 
         if self.json_credentials_path:
             self.dc = datacatalog_v1.PolicyTagManagerClient.from_service_account_json(self.json_credentials_path)
-            if self.catalog_project:
-                self.dc.project = self.catalog_project
-            if self.location:
-                self.dc._location = self.location
+            if not self.catalog_project:
+                credentials, project_id = google.auth.default()
+                self.catalog_project = project_id
         else:
-            if self.catalog_project and self.location:
-                self.dc = datacatalog_v1.PolicyTagManagerClient(project=self.catalog_project, location=self.location)
-            else:
-                self.dc = datacatalog_v1.PolicyTagManagerClient()
+            self.dc = datacatalog_v1.PolicyTagManagerClient()
+            if not self.catalog_project:
+                credentials, project_id = google.auth.default()
+                self.catalog_project = project_id
 
         LOGGER.debug("Data Catalog Client Initialised.")
         
         return
-
     
 
     # Create Taxonomy and Tags
@@ -269,6 +272,7 @@ class BQTableView:
 
         return True
 
+
     # Download policy tags from Data Catalog Taxonomy and save them in self.policy_tags    
     def fetch_policy_tags(self) -> bool:
         """
@@ -307,8 +311,31 @@ class BQTableView:
         LOGGER.info("Policy Tags downlaoded from Taxonomy. Total tags: " + str(len(self.policy_tags)) + ".")
 
         return True
+
     
-    
+    # create dataset
+    def create_dataset(self) -> bool:
+
+        """
+        Create a new BQ Dataset 
+        :return True if success and False if Failure
+        """
+
+        dataset = bigquery.Dataset(".".join([self.bq_project, self.dataset]))
+        dataset.location = self.location
+
+        try:    
+            dataset = self.bq.create_dataset(dataset, timeout=30)  
+        except (MethodNotImplemented, NotFound) as e:
+            LOGGER.error("Could not create dataset: " + str(e))
+            LOGGER.error(traceback.format_exc())
+            return False
+        
+        LOGGER.info("Dataset created successfully: {project}.{dataset}.".format(project=self.bq_project,
+                                                                                      dataset=self.dataset))
+        return True
+
+
     # Create a table with tags
     def create_table(self, table_name: str, table_schema: str, table_tag_map: dict = None) -> str:
         """
@@ -339,6 +366,7 @@ class BQTableView:
         table_schema = f.getvalue()
 
         return table_schema
+
 
     # Create a view from tags
     def create_view(self, table_name: str, view_name: str, tags: list) -> str:
@@ -492,6 +520,7 @@ class BQTableView:
 
         return json_schema
 
+
     # Internal function to add the default tag to schema. Called form _process_schema
     def _process_default_tag(self, column: dict, tag: str) -> None:
         """ 
@@ -510,7 +539,6 @@ class BQTableView:
                 column["policyTags"]["names"].append(tag)
 
         return
-
 
 
     # Read schema file and cereate policy-tag column map

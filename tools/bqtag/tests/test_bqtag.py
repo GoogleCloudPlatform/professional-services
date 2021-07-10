@@ -20,16 +20,15 @@ from bqtag import BQTableView
 """
 - Update the BQ_PROJECT, CATALOG_PROJECT, BQ_DATASET, LOCATION and TAXONOMY_DISPLAY_NAME with relevant values.
 - Key file used is credentials.json. Please add the correct path or copy credentials.json to the tests folder. 
-- SA chould have relevant permissions to read Data Catalog Tags otherwise table creation will result in error.
-- BQ Dataset should be created and value provided in the BQ_DATASET
+- SA should have relevant permissions to read Data Catalog Tags otherwise table creation will result in error.
 """
 
-BQ_PROJECT = "<bq-project>"
-CATALOG_PROJECT = "<catalog-project>"
-TAXONOMY_DISPLAY_NAME = "<taxonomy_name>"
-BQ_DATASET = "<dataset>"
+BQ_PROJECT = None #Update this with BQ Project Value
+CATALOG_PROJECT = None #Update this with Data Catalog Project Value
+TAXONOMY_DISPLAY_NAME = "test_taxonomy" #Update this with Taxonomy Name
+BQ_DATASET = "test_dataset" #Update this with BQ Dataset
 LOCATION = "US"
-JSON_CREDENTIALS_FILE = "credentials.json"
+JSON_CREDENTIALS_FILE = None
 
 class TestQueryParameters(unittest.TestCase):
     
@@ -113,6 +112,10 @@ class TestQueryParameters(unittest.TestCase):
                      json_credentials_path = JSON_CREDENTIALS_FILE)
 
         bq.fetch_policy_tags()
+
+        # Create Dataset
+        bq.create_dataset()
+        
         created_schema = json.loads(bq.create_table(TABLE_TO_CREATE, TABLE_SCHEMA, TAG_MAP))
 
         # Check if table was created
@@ -172,7 +175,7 @@ class TestQueryParameters(unittest.TestCase):
       
       query = bq.create_view(SOURCE_TABLE, VIEW1, VIEW1_TAGS)
 
-      self.assertTrue(query.strip() == "SELECT column2, column1, STRUCT(parent.nested2)  as parent FROM `{project}.{dataset}.{table}`".format(project=BQ_PROJECT, dataset=BQ_DATASET, table=SOURCE_TABLE))
+      self.assertTrue(query.strip() == "SELECT column2, column1, STRUCT(parent.nested2)  as parent FROM `{project}.{dataset}.{table}`".format(project=bq.bq_project, dataset=bq.dataset, table=SOURCE_TABLE))
 
 
 if __name__ == '__main__':

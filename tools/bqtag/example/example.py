@@ -20,14 +20,13 @@ if __name__ == "__main__":
     """
     - Update the BQ_PROJECT, CATALOG_PROJECT, BQ_DATASET and TAXONOMY_DISPLAY_NAME with relevant values.
     - Key file used is credentials.json. Please add the correct path or copy credentials.json to the example folder. 
-    - SA chould have relevant permissions to read Data Catalog Tags otherwise table creation will result in error.
-    - BQ Dataset should be created and value provided in the BQ_DATASET
+    - SA should have relevant permissions to read Data Catalog Tags otherwise table creation will result in error.
     """
 
-    BQ_PROJECT = "<bq-project>"
-    CATALOG_PROJECT = "<catalog-project>"
-    TAXONOMY_DISPLAY_NAME = "<taxonomy_name>"
-    BQ_DATASET = "<dataset>"
+    BQ_PROJECT = None #Update this with BQ Project Value
+    CATALOG_PROJECT = None #Update this with Data Catalog Project Value
+    TAXONOMY_DISPLAY_NAME = "taxonomy_name" #Update this with Taxonomy Name
+    BQ_DATASET = "dataset_name" #Update this with BQ Dataset
     LOCATION = "US"
     JSON_CREDENTIALS_FILE = "credentials.json"
 
@@ -110,6 +109,9 @@ if __name__ == "__main__":
     
     # Create Taxonomy and Policy Tags
     bq.create_taxonomy([{"name": "low", "description": "Low tag"}, {"name": "medium", "description": "Medium tag"}, {"name": "high", "description": "High tag"}])
+
+    # Create Dataset
+    bq.create_dataset()
 
     # Fetch Policy Tags from Data Catalog
     status = bq.fetch_policy_tags()
