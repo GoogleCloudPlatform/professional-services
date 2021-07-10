@@ -2,6 +2,21 @@
 
 Utility class for tagging BQ Table Schemas with Data Catalog Taxonomy Policy Tags. Create BQ Authorized Views using Policy Tags. Helper utility to proviosion Data Catalog Taxononmy and Policy Tags.
 
+## Table of Contents
+
+- [Data Catalog Policy Tags and Big Query Overview](#data-catalog-policy-tags-and-big-query-overview)
+- [Using BQTAG](#using-bqtag)
+  - [Initialize Object](#initialize-object)
+  - [Create Taxonomy and Policy Tags](#create-taxonomy-and-policy-tags)
+  - [Fetch Policy Tags](#fetch-policy-tags)
+  - [Create a Tagged Table](#create-a-tagged-table)
+  - [Create an Authorized View using Tags](#create-an-authorized-view-using-tags)
+- [Installation](#installation)
+  - [Requirements](#requirements)
+  - [Installing BQTag](#installing-bqtag)
+  - [Optional: Install in virtualenv](#optional-install-in-virtualenv)
+- [Disclaimer](#disclaimer)
+
 # Data Catalog Policy Tags and Big Query Overview
 
 Many organisations need a way to restrict access of particular columns in BigQuery Table to a few set of users. They need to have different views for different personas in their organisation and they also like some sort of automation to manage the scale.
