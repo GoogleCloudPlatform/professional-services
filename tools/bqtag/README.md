@@ -1,6 +1,6 @@
 # BQTag
 
-Utility class for tagging BQ Table Schemas with Data Catalog Taxonomy Policy Tags. Create BQ Authorized Views using Policy Tags. Helper utility to proviosion Data Catalog Taxononmy and Policy Tags.
+Utility class for tagging BQ Table Schemas with Data Catalog Taxonomy Policy Tags. Create BQ Authorized Views using Policy Tags. Helper utility to provision Data Catalog Taxonomy and Policy Tags.
 
 ## Table of Contents
 
@@ -54,7 +54,6 @@ bqtv = BQTableView(bq_dataset = BQ_DATASET,
                  json_credentials_path = JSON_CREDENTIALS_FILE)
 ```
 
-
 `bq_dataset` (required) is the BigQuery Dataset where Table and Authorized Views have to be created. 
 
 `catalog_taxonomy` (required) is the Data Catalog taxonomy name which holds the Policy Tags. Taxonomy may not be present and can be created using the create_taxonomy() function.
@@ -66,7 +65,6 @@ bqtv = BQTableView(bq_dataset = BQ_DATASET,
 `catalog_project` (optional - can be derived from authenticated service account) is the project where Data Catalog resources are present or would be created.
 
 `json_credentials_path` (optional) path to service account credentials file. 
-
 
 
 
@@ -113,7 +111,7 @@ if status:
 `table_tag_map` is a dictionary containing the map of column to a particular tag. The key of the dictionary specifies the column name and value is the friendly name of the tag. These are the possible values for the key of the dictionary:
 
 - **"column_name":** if the column is a standard BQ column and is not nested or repeated.
-- **"parent_column.nested_column_level_1.nested_column_level_1....":** . notation can be used to specify a nested column. Please note you cannot tag a parent column. Onlu columns at the leaf level can be tagged. 
+- **"parent_column.nested_column_level_1.nested_column_level_1....":** . notation can be used to specify a nested column. Please note you cannot tag a parent column. Only columns at the leaf level can be tagged. 
 - **"default_column_tag":** Special key that can be used to tag all the columns that do not have a tag specified explicitly.
 
 ```python
@@ -285,7 +283,7 @@ This function returns the schema of the table created as a dictionary. If there 
 
 ## Create an Authorized View using Tags
 
-`create_view()` function can create the authorized BQ view by only including columns that are tagged with a particular value. While creating the view, this function takes care of the format of original table structure meaning if orginal table has nested and repeated columns then the created view would also have nested and repeated columns. Dataset and BigQuery Project, defined at the time of initialization of the object is used as the dataset and project for the new view. This function takes the following attributes:
+`create_view()` function can create the authorized BQ view by only including columns that are tagged with a particular value. While creating the view, this function takes care of the format of original table structure meaning if original table has nested and repeated columns then the created view would also have nested and repeated columns. Dataset and BigQuery Project, defined at the time of initialization of the object is used as the dataset and project for the new view. This function takes the following attributes:
 
 `table_name` is the name of the source table on which the view would be based.
 
@@ -352,7 +350,6 @@ This would result in a new view named "view_medium" and the schema of the new vi
 - You'll need to [download Python 3.6 or later](https://www.python.org/downloads/)
 - You'll need to [download latest version on pip](https://pip.pypa.io/en/stable/installing/)
 
-
 ## Installing BQTag
 
 ```
@@ -360,7 +357,6 @@ git clone https://github.com/GoogleCloudPlatform/professional-services.git
 cd professional-services/tools/bqtag
 python3 -m pip install .
 ```
-
 
 ### Optional: Install in virtualenv
 
