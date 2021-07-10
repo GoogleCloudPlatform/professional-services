@@ -17,7 +17,7 @@ import os
 import setuptools
 
 
-name = 'bqpipeline'
+name = 'bqtag'
 description = 'Utility class for tagging BigQuery Tables and creating Authorized Views based on tags'
 version = '0.1.0'
 release_status = 'Development Status :: 3 - Alpha'
@@ -48,8 +48,6 @@ setuptools.setup(
         'License :: OSI Approved :: Apache Software License',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',

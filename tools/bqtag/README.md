@@ -330,3 +330,34 @@ This would result in a new view named "view_medium" and the schema of the new vi
 ]
 ```
 
+# Installation
+
+## Requirements
+
+- You'll need to [download Python 3.6 or later](https://www.python.org/downloads/)
+- You'll need to [download latest version on pip](https://pip.pypa.io/en/stable/installing/)
+
+
+## Installing BQTag
+
+```
+git clone https://github.com/GoogleCloudPlatform/professional-services.git
+cd professional-services/tools/bqtag
+python3 -m pip install .
+```
+
+
+### Optional: Install in virtualenv
+
+```
+python3 -m pip install --user virtualenv
+python3 -m virtualenv venv
+source venv/bin/activate
+git clone https://github.com/GoogleCloudPlatform/professional-services.git
+cd professional-services/tools/bqtag
+python3 -m pip install .
+```
+
+## Disclaimer
+
+This is not an official Google project.
