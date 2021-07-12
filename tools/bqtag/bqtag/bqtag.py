@@ -1,24 +1,21 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+"""
+ !/usr/bin/env python
+ -*- coding: utf-8 -*-
 
-# Copyright 2019 Google LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#         http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+ Copyright 2019 Google LLC
 
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
 
-from google.cloud import bigquery, datacatalog_v1
-from google.api_core.exceptions import MethodNotImplemented, NotFound
-import google.auth
+         http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+"""
 
 import logging
 import sys
@@ -27,13 +24,17 @@ import copy
 import traceback
 import io
 
+from google.cloud import bigquery, datacatalog_v1
+from google.api_core.exceptions import MethodNotImplemented, NotFound
+import google.auth
+
 __all__ = ["BQTableView"]
 
-########################################################################################################################################################
+#############################################################################
 # Create Logger
-########################################################################################################################################################
+#############################################################################
 
-FORMAT = '%(asctime)-15s %(levelname)s %(message)s'
+FORMAT = "%(asctime)-15s %(levelname)s %(message)s"
 
 def get_logger(name, fmt):
     """
@@ -50,33 +51,43 @@ def get_logger(name, fmt):
     log.addHandler(handler)
     return log
 
-LOGGER = get_logger('job', FORMAT)
+LOGGER = get_logger("bqtag", FORMAT)
 
 
-########################################################################################################################################################
+#############################################################################
 # Classes to create tree structure to create SQL query for nested columns
-########################################################################################################################################################
+#############################################################################
 
 
 class ColumnNode:
 
-    def __init__(self, name="", parent="", json={}, children = {}):       
+    """
+    Class to represent a BQ column in a tree
+    """
+
+    def __init__(self, name="", parent="", column_json = None, children = None):
         self.name = name
-        self.json = json
+        self.json = column_json
         self.children = children
         self.parent = parent
         self.mode = ""
 
 class ColumnTree:
 
-    def __init__(self):
-        self.root = ColumnNode(name="Root", json=copy.copy({}), children=copy.copy({}))
+    """
+    Class to represent a tree of columns for a BQ table
+    """
 
-    def add_node(self, json: dict()):
+    def __init__(self):
+        self.root = ColumnNode(name="Root",
+                               column_json=copy.copy({}),
+                               children=copy.copy({}))
+
+    def add_node(self, node_json: dict()):
 
         cur_node = self.root
 
-        path = json["name"].split(".")
+        path = node_json["name"].split(".")
         parents = path[:-1]
         node_name = path[-1]
 
@@ -85,16 +96,22 @@ class ColumnTree:
             if parent in cur_node.children:
                 cur_node = cur_node.children[parent]
             else:
-                new_node = ColumnNode(name=parent, parent=cur_node.name, json=copy.copy({}), children=copy.copy({}))
+                new_node = ColumnNode(name=parent, parent=cur_node.name,
+                                      column_json=copy.copy({}),
+                                      children=copy.copy({}))
+
                 cur_node.children[parent] = new_node
                 cur_node = new_node
-        
+
         if node_name in cur_node.children:
-            cur_node.children[node_name].json = json
-            cur_node.mode = json["parent_mode"]
+            cur_node.children[node_name].json = node_json
+            cur_node.mode = node_json["parent_mode"]
         else:
-            cur_node.children[node_name] = ColumnNode(name=node_name, parent=cur_node.name, json=copy.copy(json), children=copy.copy({}))
-            cur_node.mode = json["parent_mode"]
+            cur_node.children[node_name] = ColumnNode(name=node_name,
+                                                      parent=cur_node.name,
+                                                      column_json=copy.copy(node_json),
+                                                      children=copy.copy({}))
+            cur_node.mode = node_json["parent_mode"]
 
 
     def generate_query(self):
@@ -102,14 +119,14 @@ class ColumnTree:
         """
         Main function to generate SQL query for columns stored in tree
         """
-        
+
         return_str = ""
         start = self.root
-        
+
         if start.children:
             return_lst = self._rec_generate_query(start.children, "")
             return_str = ", ".join(return_lst)
-        
+
         return return_str
 
 
@@ -118,10 +135,10 @@ class ColumnTree:
         """
         Recursive function to generate SQL query for columns stored in tree
         """
-        
+
         db = []
 
-        for child_name, child in children.items():
+        for _, child in children.items():
 
             if len(child.children) == 0:
                 if parent_name == "":
@@ -145,17 +162,21 @@ class ColumnTree:
 
 
 
-########################################################################################################################################################
+###########################################################################
 # Main class to update tags and create views
-########################################################################################################################################################
+###########################################################################
 
 class BQTableView:
+
+    """
+    Class to create tagged BQ Tables and Views
+    """
 
     #Constructor
     def __init__(self,
                  bq_dataset: str,
                  catalog_taxonomy: str,
-                 location: str = 'US',
+                 location: str = "US",
                  bq_project: str = None,
                  catalog_project: str = None,
                  json_credentials_path: str = None) -> None:
@@ -169,16 +190,14 @@ class BQTableView:
         self.bq_project = bq_project
         self.catalog_project = catalog_project
         self.json_credentials_path = json_credentials_path
-        
+
         self.bq = None
         self.dc = None
 
         self._get_bq_client()
         self._get_catalog_client()
 
-        return
 
-    
     # Intialize BQ Client
     def _get_bq_client(self) -> None:
         """
@@ -198,13 +217,11 @@ class BQTableView:
             if self.bq_project and self.location:
                 self.bq = bigquery.Client(project=self.bq_project, location=self.location)
             else:
-                self.bq = bigquery.Client() 
+                self.bq = bigquery.Client()
                 if not self.bq_project:
                     self.bq_project = self.bq.project
-        
+
         LOGGER.debug("BQ Client Initialised.")
-        
-        return
 
 
     # Intialize Catalog Client
@@ -217,18 +234,16 @@ class BQTableView:
         if self.json_credentials_path:
             self.dc = datacatalog_v1.PolicyTagManagerClient.from_service_account_json(self.json_credentials_path)
             if not self.catalog_project:
-                credentials, project_id = google.auth.default()
+                _, project_id = google.auth.default()
                 self.catalog_project = project_id
         else:
             self.dc = datacatalog_v1.PolicyTagManagerClient()
             if not self.catalog_project:
-                credentials, project_id = google.auth.default()
+                _, project_id = google.auth.default()
                 self.catalog_project = project_id
 
         LOGGER.debug("Data Catalog Client Initialised.")
-        
-        return
-    
+
 
     # Create Taxonomy and Tags
     def create_taxonomy(self, tags: list) -> bool:
@@ -250,7 +265,7 @@ class BQTableView:
             taxonomy.display_name=self.taxonomy
             created_taxonomy = self.dc.create_taxonomy(parent="projects/{project}/locations/{location}".format(project=self.catalog_project, location=self.location.lower()), taxonomy=taxonomy)
         except (MethodNotImplemented, NotFound) as e:
-            LOGGER.error("Could not create Taxonomy. API call to Google failed. Error received: " + str(e))
+            LOGGER.error("Could not create Taxonomy. API call to Google failed. Error received: %s", str(e))
             LOGGER.error(traceback.format_exc())
             return False
 
@@ -264,16 +279,16 @@ class BQTableView:
                 policy_tag.parent_policy_tag = tag.get("parent_policy_tag", "")
                 self.dc.create_policy_tag(parent=created_taxonomy.name, policy_tag=policy_tag)
         except (MethodNotImplemented, NotFound) as e:
-            LOGGER.error("Could not create Policy Tag. API call to Google failed. Error received: " + str(e))
+            LOGGER.error("Could not create Policy Tag. API call to Google failed. Error received: %s", str(e))
             LOGGER.error(traceback.format_exc())
             return False
 
-        LOGGER.info("{pt_count} Tags Created Successfully.".format(pt_count=len(tags)))
+        LOGGER.info("%s Tags Created Successfully.", str(len(tags)))
 
         return True
 
 
-    # Download policy tags from Data Catalog Taxonomy and save them in self.policy_tags    
+    # Download policy tags from Data Catalog Taxonomy and save them in self.policy_tags
     def fetch_policy_tags(self) -> bool:
         """
         Download policy tags from Taxonomy
@@ -285,7 +300,7 @@ class BQTableView:
         try:
             taxonomies = self.dc.list_taxonomies(parent="projects/{project}/locations/{location}".format(project=self.catalog_project, location=self.location.lower()))
         except (MethodNotImplemented, NotFound) as e:
-            LOGGER.error("Could not determine Taxonomy ID. API call to Google failed. Error received: " + str(e))
+            LOGGER.error("Could not determine Taxonomy ID. API call to Google failed. Error received: %s", str(e))
             LOGGER.error(traceback.format_exc())
             return False
 
@@ -293,12 +308,12 @@ class BQTableView:
             if taxonomy.display_name == self.taxonomy:
                 self.taxonomy_id = taxonomy.name
                 break
-        
+
         if not self.taxonomy_id:
-            LOGGER.error("Could not determine Taxonomy ID for taxonomy: " + self.taxonomy + ". Please check if Taxonomy name, Data Catalog Project and Location are correct.")
+            LOGGER.error("Could not determine Taxonomy ID for taxonomy: %s. Please check if Taxonomy name, Data Catalog Project and Location are correct.", self.taxonomy)
             return False
 
-        
+
         LOGGER.debug("Downloading Policy Tags from Taxonomy.")
 
         policy_tags = self.dc.list_policy_tags(parent=self.taxonomy_id)
@@ -308,31 +323,30 @@ class BQTableView:
 
         self.policy_tags_rev = { k:v for v,k in self.policy_tags.items()}
 
-        LOGGER.info("Policy Tags downlaoded from Taxonomy. Total tags: " + str(len(self.policy_tags)) + ".")
+        LOGGER.info("Policy Tags downlaoded from Taxonomy. Total tags: %s", str(len(self.policy_tags)))
 
         return True
 
-    
+
     # create dataset
     def create_dataset(self) -> bool:
 
         """
-        Create a new BQ Dataset 
+        Create a new BQ Dataset
         :return True if success and False if Failure
         """
 
         dataset = bigquery.Dataset(".".join([self.bq_project, self.dataset]))
         dataset.location = self.location
 
-        try:    
-            dataset = self.bq.create_dataset(dataset, timeout=30)  
+        try:
+            dataset = self.bq.create_dataset(dataset, timeout=30)
         except (MethodNotImplemented, NotFound) as e:
-            LOGGER.error("Could not create dataset: " + str(e))
+            LOGGER.error("Could not create dataset: %s", str(e))
             LOGGER.error(traceback.format_exc())
             return False
-        
-        LOGGER.info("Dataset created successfully: {project}.{dataset}.".format(project=self.bq_project,
-                                                                                      dataset=self.dataset))
+
+        LOGGER.info("Dataset created successfully: %s.%s.", self.bq_project, self.dataset)
         return True
 
 
@@ -347,19 +361,19 @@ class BQTableView:
         """
 
         tagged_schema = self._process_schema(table_schema=table_schema, table_tag_map=table_tag_map)
-       
+
         table = bigquery.Table(".".join([self.bq_project, self.dataset, table_name]), schema=tagged_schema)
 
-        try:    
-            table = self.bq.create_table(table)  # Make an API request.  
+        try:
+            table = self.bq.create_table(table)  # Make an API request.
         except (MethodNotImplemented, NotFound) as e:
-            LOGGER.error("Could not create table: " + str(e))
+            LOGGER.error("Could not create table: %s", str(e))
             LOGGER.error(traceback.format_exc())
             return "{}"
 
-        LOGGER.info("Table created successfully: {project}.{dataset}.{table}.".format(project=self.bq_project,
-                                                                                      dataset=self.dataset,
-                                                                                      table=table_name))
+        LOGGER.info("Table created successfully: %s.%s.%s.", self.bq_project,
+                                                             self.dataset,
+                                                             table_name)
         # convert table schema to JSON for return
         f = io.StringIO("")
         self.bq.schema_to_json(table.schema, f)
@@ -384,7 +398,7 @@ class BQTableView:
         try:
             table = self.bq.get_table(".".join([self.bq_project, self.dataset, table_name]))
         except (MethodNotImplemented, NotFound) as e:
-            LOGGER.error("Could not download source table schema: " + str(e))
+            LOGGER.error("Could not download source table schema: %s", str(e))
             LOGGER.error(traceback.format_exc())
             return ""
 
@@ -396,7 +410,7 @@ class BQTableView:
 
         # Create a map of tags to columms
         tag_column_map = self._create_tag_column_map(schema=table_schema)
-                
+
         # Find columns having tag in tags
         columns = []
 
@@ -421,20 +435,20 @@ class BQTableView:
                                                                                         dataset = self.dataset,
                                                                                         table_name = table_name )
 
-        LOGGER.debug("Query Created: " + query)
-        
+        LOGGER.debug("Query Created: %s", query)
+
         # create view
         job_config = bigquery.QueryJobConfig(destination=".".join([self.bq_project, self.dataset, view_name]))
-        
+
         try:
-            query_job = self.bq.query(query, job_config=job_config)  
+            query_job = self.bq.query(query, job_config=job_config)
             query_job.result()  # Wait for the job to complete.
         except (MethodNotImplemented, NotFound) as e:
-            LOGGER.error("Could not create view: " + str(e))
+            LOGGER.error("Could not create view: %s", str(e))
             LOGGER.error(traceback.format_exc())
             return ""
 
-        LOGGER.info("Authorised view created: " + ".".join([self.bq_project, self.dataset, view_name]))
+        LOGGER.info("Authorised view created: %s.%s.%s", self.bq_project, self.dataset, view_name)
 
         return query
 
@@ -450,10 +464,10 @@ class BQTableView:
         :return None
         """
 
-        # Make local copy of schema 
-        json_schema = json.loads(table_schema)      
+        # Make local copy of schema
+        json_schema = json.loads(table_schema)
 
-        # Check if table_tag_map is empty then return the schema without tag 
+        # Check if table_tag_map is empty then return the schema without tag
         if not table_tag_map:
             return json_schema
 
@@ -461,7 +475,7 @@ class BQTableView:
 
         # Loop for each mapping present in tag map file
         for tag_column, tag in table_tag_map.items():
-            
+
             #If tag column is default_column_tag then skip the loop
             if tag_column == "default_column_tag":
                 default_column_tag = tag
@@ -472,7 +486,7 @@ class BQTableView:
             # If tag does not exist then continue
             if tag.lower() not in self.policy_tags:
                 continue
-            
+
             cur_level = json_schema # Saves the the current level of depth
             cur_column = {}  # saves the current column being processed
             found_all = True # Will remain true if all columns in column depth are found
@@ -480,16 +494,16 @@ class BQTableView:
             column_number = 0 # current column being iterated over
 
             # Loop over all the depths of column
-            for tag_column in tag_columns:
-                
-                column_number += 1 
+            for tag_column2 in tag_columns:
+
+                column_number += 1
                 found = False
-                
+
                 #Loop over levels of schema to get to teight depth
                 for column in cur_level:
 
                     #If column is found, check if it has field and mark that as current level and save this as current column
-                    if column["name"] == tag_column:
+                    if column["name"] == tag_column2:
                         found = True
                         if "fields" in column:
                             cur_level = column["fields"]
@@ -498,9 +512,9 @@ class BQTableView:
                                 found = False
                         cur_column = column
                         break
-                
+
                 # If columns in not found after looking at all the columns at that level
-                if found == False: 
+                if not found:
                     found_all = False
                     break
 
@@ -516,14 +530,14 @@ class BQTableView:
             if default_column_tag in self.policy_tags:
                 for column in json_schema:
                     self._process_default_tag(column=column, tag=self.policy_tags[default_column_tag])
-                
+
 
         return json_schema
 
 
     # Internal function to add the default tag to schema. Called form _process_schema
     def _process_default_tag(self, column: dict, tag: str) -> None:
-        """ 
+        """
         Recursively tag all columns that do not have a tag
 
         :param column: column data
@@ -538,11 +552,9 @@ class BQTableView:
                 column["policyTags"] = {"names": []}
                 column["policyTags"]["names"].append(tag)
 
-        return
-
 
     # Read schema file and cereate policy-tag column map
-    def _create_tag_column_map(self, schema: str) -> dict:  
+    def _create_tag_column_map(self, schema: str) -> dict:
 
         """
         Read table schema and map columns to tags.
@@ -550,7 +562,7 @@ class BQTableView:
         :param schema: Schema of the table
         :return Map of columns to tag
         """
-        
+
         schema_json = json.loads(schema)
 
         tag_to_columns = dict()
@@ -603,20 +615,18 @@ class BQTableView:
                         self._rec_create_tag_column_map(items=item["fields"], tag_to_columns=tag_to_columns, parent= parent + "." + item["name"])
             else:
                 if "policyTags" in item:
-                    
+
                     for tag in item["policyTags"]["names"]:
-                    
+
                         if tag not in tag_to_columns:
                             tag_to_columns[tag] = list()
 
                         tmp_item = copy.deepcopy(item)
                         tmp_item.pop("policyTags", None)
-                        
+
                         if parent != "":
                             tmp_item["name"] = parent + "." + tmp_item["name"]
                         tmp_item["parent"] = parent
                         tmp_item["parent_mode"] = paren_mode
 
                         tag_to_columns[tag].append(copy.deepcopy(tmp_item))
-
-        return
