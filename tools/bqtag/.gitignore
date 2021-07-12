@@ -10,3 +10,4 @@ venv
 build
 dist
 *.egg-info
+pylintrc
