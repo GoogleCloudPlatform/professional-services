@@ -17,13 +17,13 @@ Prerequisites for using the code provided here:
    - API Gateway API
    - Service Control API
    - Service Management API
-   - Cloud Deployment Manager V2 API	34	0	181	463	
+   - Cloud Deployment Manager V2 API	
    - Cloud Run API
    - You might want to consider Cloud Logging API and Cloud Pub/Sub API
 - You have to have necessary rights to create all resources this Terraform configuration creates
 
 ## Folder structure
-The main file for the solution components is the serverless_endpoint.tf. It creates the necessary serverless components and organizes access between them. In main.tf the variables are defined. Other files are to create an example to be able to test the setup - the file networking.tf sets up shared VPC, example_server.tf runs an example webserver.
+The main file for the solution components is the `serverless_endpoint.tf`. It creates the necessary serverless components and organizes access between them. In `main.tf` the variables are defined. Other files are to create an example to be able to test the setup - the file `networking.tf` sets up shared VPC, `example_server.tf` runs an example webserver.
 
 **Note**: The IP of the webserver is hardcoded in server/index.js and is used in Terraform variables.
 
@@ -45,4 +45,4 @@ With authentication:
 ```
 >> terraform destroy
 ```
-Be aware that the destroying of all resources created here might need to be done in two steps, since the destroy process does not figure out the dependencies right, specifically for the google_compute_shared_vpc_host_project resource, so if you get an error, please just run "terraform destroy" again. If it still goes wrong, you might need to detach the shared VPC project manually.
+Be aware that the destroying of all resources created here might need to be done in two steps, since the destroy process does not figure out the dependencies right, specifically for the `google_compute_shared_vpc_host_project` resource, so if you get an error, please just run ```terraform destroy``` again. If it still goes wrong, you might need to detach the shared VPC project manually.
