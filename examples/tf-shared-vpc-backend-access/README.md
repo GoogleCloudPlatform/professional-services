@@ -23,9 +23,14 @@ Prerequisites for using the code provided here:
 - You have to have necessary rights to create all resources this Terraform configuration creates
 
 ## Folder structure
-The main file for the solution components is the serverless_endpoint.tf. It creates the necessary serverless components and organizes access between them. In main.tf the variables are defined. Other files are to create an example to be able to test the setup - the file networking.tf sets up shared VPC, example_server.tf runs an example webserver.
+- The main file for the solution components is the serverless_endpoint.tf. It creates the necessary serverless components and organizes access between them.
+- In variables.tf and main.tf the variables, locals and data are defined.
+- Other files are to create an example to be able to test the setup - the file networking.tf sets up shared VPC, example_server.tf runs an example webserver.
 
 **Note**: The IP of the webserver is hardcoded in server/index.js and is used in Terraform variables.
+
+## On module usage
+This code is not using any modules, although the Terraform modules provided by the Google team might be useful in this case. This was done to make this code cleaner, more simple and easier to read and understand.
 
 ## Running this code
 ```
