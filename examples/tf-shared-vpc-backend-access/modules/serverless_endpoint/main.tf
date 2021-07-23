@@ -12,6 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+locals {
+  # This value can not be a variable since it's derived from another variable. You can redefine it here.
+  example_server_image = "gcr.io/${var.cloud_run_project}/helloproxy"
+
+  # Documentation here: https://cloud.google.com/vpc/docs/configure-serverless-vpc-access#firewall-rules-shared-vpc
+  firewall_nat_ip_ranges         = ["107.178.230.64/26", "35.199.224.0/19", ]
+  firewall_healthcheck_ip_ranges = ["130.211.0.0/22", "35.191.0.0/16", "108.170.220.0/23", ]
+}
+
+data "google_project" "project" {
+  project_id = var.cloud_run_project
+}
+
 # Submit a build to Cloud Run to deploy the container
 resource "null_resource" "helloproxy" {
   provisioner "local-exec" {
@@ -138,7 +151,7 @@ resource "google_compute_security_policy" "ip-limit" {
     match {
       versioned_expr = "SRC_IPS_V1"
       config {
-        src_ip_ranges = var.security_policy_source_ip_range
+        src_ip_ranges = var.source_ip_range_for_security_policy
       }
     }
     description = "allow from specific IPs"
@@ -186,7 +199,7 @@ resource "google_vpc_access_connector" "connector" {
   project = var.cloud_run_project
   region  = var.region
   subnet {
-    name       = google_compute_subnetwork.shared-vpc-host-connector.name
+    name       = var.shared_vpc_host_connector_name
     project_id = var.shared_vpc_host_project
   }
 
@@ -207,7 +220,7 @@ resource "google_vpc_access_connector" "connector" {
 resource "google_compute_firewall" "serverless-to-vpc-connector" {
   project = var.shared_vpc_host_project
   name    = "${var.name}-fw-shared-vpc-serverless-to-vpc-connector"
-  network = google_compute_network.shared-vpc-host.name
+  network = var.shared_vpc_host_name
 
   target_tags = ["vpc-connector"]
 
@@ -229,7 +242,7 @@ resource "google_compute_firewall" "serverless-to-vpc-connector" {
 resource "google_compute_firewall" "vpc-connector-to-serverless" {
   project = var.shared_vpc_host_project
   name    = "${var.name}-fw-shared-vpc-vpc-connector-to-serverless"
-  network = google_compute_network.shared-vpc-host.name
+  network = var.shared_vpc_host_name
 
   target_tags = ["vpc-connector"]
 
@@ -251,7 +264,7 @@ resource "google_compute_firewall" "vpc-connector-to-serverless" {
 resource "google_compute_firewall" "vpc-connector-health-checks" {
   project = var.shared_vpc_host_project
   name    = "${var.name}-fw-shared-vpc-vpc-connector-health-checks"
-  network = google_compute_network.shared-vpc-host.name
+  network = var.shared_vpc_host_name
 
   target_tags = ["vpc-connector"]
 
@@ -268,7 +281,7 @@ resource "google_compute_firewall" "vpc-connector-health-checks" {
 resource "google_compute_firewall" "connector-access-to-vpc" {
   project = var.shared_vpc_host_project
   name    = "${var.name}-fw-connector-to-vpc"
-  network = google_compute_network.shared-vpc-host.name
+  network = var.shared_vpc_host_name
 
   allow {
     protocol = "tcp"

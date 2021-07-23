@@ -16,7 +16,7 @@
 # Create a VPC to be shared
 resource "google_compute_network" "shared-vpc-host" {
   project                 = var.shared_vpc_host_project
-  name                    = "shared-vpc"
+  name                    = var.shared_vpc_host_name
   auto_create_subnetworks = false
 }
 

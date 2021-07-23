@@ -24,3 +24,12 @@ locals {
 data "google_project" "project" {
   project_id = var.cloud_run_project
 }
+
+module "serverless_endpoint" {
+  source = "./modules/serverless_endpoint"
+
+  cloud_run_project = var.cloud_run_project
+  shared_vpc_host_project = var.shared_vpc_host_project
+  shared_vpc_host_connector_name = google_compute_subnetwork.shared-vpc-host-connector.name
+  source_ip_range_for_security_policy = var.source_ip_range_for_security_policy
+}

@@ -14,7 +14,7 @@
 
 variable "cloud_run_project" {
   type        = string
-  description = "Project where GCLB + Cloud Run is deployed"
+  description = "Project where GCLB + Cloud Run are deployed"
 }
 
 variable "shared_vpc_host_project" {
@@ -51,4 +51,15 @@ variable "cloud_run_invoker" {
   type        = string
   description = "IAM member authorized to access the end-point (for example, 'user:YOUR_IAM_USER' for only you or 'allUsers' for everyone)"
   default     = "allUsers"
+}
+
+variable "shared_vpc_host_name" {
+  type        = string
+  description = "Shared VPC host name (created in networking.tf)"
+  default     = "shared-vpc"
+}
+
+variable "shared_vpc_host_connector_name" {
+  type        = string
+  description = "Shared VPC host connector name (created in networking.tf)"
 }

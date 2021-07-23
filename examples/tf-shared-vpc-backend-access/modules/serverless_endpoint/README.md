@@ -23,7 +23,7 @@ Prerequisites for using the code provided here:
 - You have to have necessary rights to create all resources this Terraform configuration creates
 
 ## Folder structure
-- The main module for the solution components is in the `modules/serverless_endpoint/` folder. It creates the necessary serverless components and organizes access between them.
+- The main file for the solution components is the `serverless_endpoint.tf`. It creates the necessary serverless components and organizes access between them.
 - In `variables.tf` and `main.tf` the variables, locals and data are defined.
 - Other files are to create an example to be able to test the setup - the file `networking.tf` sets up shared VPC, `example_server.tf` runs an example webserver.
 
