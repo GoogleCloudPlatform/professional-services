@@ -27,7 +27,7 @@ bmctl_tool: "yes"
 # if the GCP service accounts have already been created, copy the keys files to gcp_sa_key_dir directory
 service_accounts: "yes"
 
-bmctl_download_url: gs://anthos-baremetal-release/bmctl/1.7.0/linux-amd64/bmctl
+bmctl_download_url: gs://anthos-baremetal-release/bmctl/1.8.0/linux-amd64/bmctl
 bmctl_workspace_dir: bmctl-workspace
 gcp_sa_key_dir: /home/anthos/gcp_keys
 local_gcr_sa_name: anthos-gcr-svc-account
@@ -46,7 +46,7 @@ cluster_name:
 cluster_type: 
 max_pod_per_node: 250
 # container runtime, possible values: docker | contianerd
-container_runtime: docker
+container_runtime: containerd
 # enable/disable application logging for cluster workloads. use 'true' to enable
 app_logs: false
 # change pod and service cidr if the default ones overlap with cluster nodes subnets
