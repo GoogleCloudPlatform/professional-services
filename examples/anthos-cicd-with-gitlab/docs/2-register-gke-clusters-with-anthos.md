@@ -11,7 +11,7 @@ Create dev and prod clusters:
 ```bash
 for i in "dev" "prod"; do
   gcloud container clusters create ${i} \
-      --workload-pool=$PROJECT_ID.svc.id.goog
+      --workload-pool=$PROJECT_ID.svc.id.goog \
       --zone $ZONE \
       --labels environment=${i}
 done
