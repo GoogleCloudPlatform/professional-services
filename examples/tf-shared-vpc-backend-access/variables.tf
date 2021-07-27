@@ -22,6 +22,12 @@ variable "shared_vpc_host_project" {
   description = "Project to host the shared VPC and to deploy the serverless connector and an example server"
 }
 
+variable "shared_vpc_host_name" {
+  type        = string
+  description = "Shared VPC host name (created in networking.tf)"
+  default     = "shared-vpc"
+}
+
 variable "name" {
   type        = string
   description = "A name for your installation, not long since the connector name must be not more than 25 characters"
