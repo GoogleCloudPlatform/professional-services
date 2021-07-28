@@ -1,4 +1,4 @@
-# Copyright 2019 Google LLC
+# Copyright 2021 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,16 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-import unittest
-import json
-from bqtag import BQTableView
-
 """
 - Update the BQ_PROJECT, CATALOG_PROJECT, BQ_DATASET, LOCATION and TAXONOMY_DISPLAY_NAME with relevant values.
 - Key file used is credentials.json. Please add the correct path or copy credentials.json to the tests folder. 
 - SA should have relevant permissions to read Data Catalog Tags otherwise table creation will result in error.
 """
+
+import unittest
+import json
+from bqtag import BQTableView
 
 BQ_PROJECT = None #Update this with BQ Project Value
 CATALOG_PROJECT = None #Update this with Data Catalog Project Value
@@ -31,10 +30,9 @@ LOCATION = "US"
 JSON_CREDENTIALS_FILE = None
 
 class TestQueryParameters(unittest.TestCase):
-    
     def test_1_policy_tag_creation(self):
       """
-      Test if policy tags and taxonomies can be created
+      Test if policy tags and taxonomies can be created.
       """
       bq = BQTableView(bq_dataset = BQ_DATASET,
                      catalog_taxonomy = TAXONOMY_DISPLAY_NAME,
@@ -46,10 +44,9 @@ class TestQueryParameters(unittest.TestCase):
       # Check if policy tags are downloaded
       self.assertTrue(bq.create_taxonomy(tags=[{"name": "low", "description": "Low tag"}, {"name": "medium", "description": "Medium tag"}, {"name": "high", "description": "High tag"}]))
 
-
     def test_2_policy_tag_download(self):
         """
-        Test if policy tags can be downloaded
+        Test if policy tags can be downloaded.
         """
         bq = BQTableView(bq_dataset = BQ_DATASET,
                      catalog_taxonomy = TAXONOMY_DISPLAY_NAME,
@@ -61,12 +58,10 @@ class TestQueryParameters(unittest.TestCase):
         # Check if policy tags are downloaded
         self.assertTrue(bq.fetch_policy_tags())
        
-
     def test_3_table_creation(self):
         """
-        Test table creation and Correct Tag Association
+        Test table creation and Correct Tag Association.
         """
-        
         TABLE_TO_CREATE = "test_table"
         TABLE_SCHEMA = """[
                         {
@@ -103,7 +98,6 @@ class TestQueryParameters(unittest.TestCase):
         TAG_MAP["column2"] = "medium"
         TAG_MAP["parent.nested1"] = "high"
 
-
         bq = BQTableView(bq_dataset = BQ_DATASET,
                      catalog_taxonomy = TAXONOMY_DISPLAY_NAME,
                      location = LOCATION,
@@ -122,7 +116,6 @@ class TestQueryParameters(unittest.TestCase):
         self.assertTrue(created_schema!={}) 
 
         check = True
-
         for column in created_schema:
 
             if column["name"] == "column1":
@@ -137,7 +130,6 @@ class TestQueryParameters(unittest.TestCase):
           
             if column["name"] == "parent":
                 for nested_column in column["fields"]:
-                    
                     if nested_column["name"] == "nested1":
                         if nested_column["policyTags"]["names"][0] != bq.policy_tags["high"]:
                             check = False
@@ -152,14 +144,12 @@ class TestQueryParameters(unittest.TestCase):
           check = False
         
         # Check if tags are correct
-        self.assertTrue(check) 
-            
+        self.assertTrue(check)             
 
     def test_4_view_creation(self):
       """
-      Test view creation
-      """
-      
+      Test view creation.
+      """   
       bq = BQTableView(bq_dataset = BQ_DATASET,
                      catalog_taxonomy = TAXONOMY_DISPLAY_NAME,
                      location = LOCATION,

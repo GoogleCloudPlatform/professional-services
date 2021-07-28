@@ -102,7 +102,7 @@ if status:
 
 ## Create a Tagged Table
 
-`create_table()` function can create tagged tables inside a dataset in BigQuery. Dataset and BigQuery Project, defined at the time of initialization of the object is used as the dataset and project for the new table. This function takes the following attributes:
+The `create_table()` function can create tagged tables inside a dataset in BigQuery. Dataset and BigQuery Project, defined at the time of initialization of the object is used as the dataset and project for the new table. This function takes the following attributes:
 
 `table_name` is the name of the table to create.
 
@@ -283,7 +283,7 @@ This function returns the schema of the table created as a dictionary. If there 
 
 ## Create an Authorized View using Tags
 
-`create_view()` function can create the authorized BQ view by only including columns that are tagged with a particular value. While creating the view, this function takes care of the format of original table structure meaning if original table has nested and repeated columns then the created view would also have nested and repeated columns. Dataset and BigQuery Project, defined at the time of initialization of the object is used as the dataset and project for the new view. This function takes the following attributes:
+The `create_view()` function can create the authorized BQ view by only including columns that are tagged with a particular value. While creating the view, this function takes care of the format of original table structure meaning if original table has nested and repeated columns then the created view would also have nested and repeated columns. Dataset and BigQuery Project, defined at the time of initialization of the object is used as the dataset and project for the new view. This function takes the following attributes:
 
 `table_name` is the name of the source table on which the view would be based.
 
@@ -348,7 +348,7 @@ This would result in a new view named "view_medium" and the schema of the new vi
 ## Requirements
 
 - You'll need to [download Python 3.6 or later](https://www.python.org/downloads/)
-- You'll need to [download latest version on pip](https://pip.pypa.io/en/stable/installing/)
+- You'll need to [download pip (version >=21.0.0)](https://pip.pypa.io/en/stable/installing/)
 
 ## Installing BQTag
 
@@ -371,4 +371,4 @@ python3 -m pip install .
 
 ## Disclaimer
 
-This is not an official Google project.
+This is not an official Google product.

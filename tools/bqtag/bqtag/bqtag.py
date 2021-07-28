@@ -2,7 +2,7 @@
  !/usr/bin/env python
  -*- coding: utf-8 -*-
 
- Copyright 2019 Google LLC
+ Copyright 2021 Google LLC
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -60,7 +60,6 @@ LOGGER = get_logger("bqtag", FORMAT)
 
 
 class ColumnNode:
-
     """
     Class to represent a BQ column in a tree
     """
@@ -72,8 +71,8 @@ class ColumnNode:
         self.parent = parent
         self.mode = ""
 
-class ColumnTree:
 
+class ColumnTree:
     """
     Class to represent a tree of columns for a BQ table
     """
@@ -115,13 +114,10 @@ class ColumnTree:
                                             )
             cur_node.mode = node_json["parent_mode"]
 
-
     def generate_query(self):
-
         """
-        Main function to generate SQL query for columns stored in tree
+        Main function to generate SQL query for columns stored in tree.
         """
-
         return_str = ""
         start = self.root
 
@@ -131,13 +127,10 @@ class ColumnTree:
 
         return return_str
 
-
     def _rec_generate_query(self, children, parent_name):
-
         """
-        Recursive function to generate SQL query for columns stored in tree
+        Recursive function to generate SQL query for columns stored in tree.
         """
-
         db = []
 
         for _, child in children.items():
@@ -148,7 +141,6 @@ class ColumnTree:
                 else:
                     db.append(parent_name + "." + child.name)
             else:
-
                 if child.mode == "REPEATED":
                     if parent_name == "":
                         db.append(
@@ -213,15 +205,12 @@ class ColumnTree:
         return db
 
 
-
 ###########################################################################
 # Main class to update tags and create views
 ###########################################################################
-
 class BQTableView:
-
     """
-    Class to create tagged BQ Tables and Views
+    Class to create tagged BQ Tables and Views.
     """
 
     #Constructor
@@ -249,14 +238,12 @@ class BQTableView:
         self._get_bq_client()
         self._get_catalog_client()
 
-
     # Intialize BQ Client
     def _get_bq_client(self) -> None:
         """
         Initializes bigquery.Client object
-        :return None
+        :return: None
         """
-
         if self.json_credentials_path:
             self.bq = bigquery.Client.from_service_account_json(
                                         self.json_credentials_path
@@ -280,14 +267,12 @@ class BQTableView:
 
         LOGGER.debug("BQ Client Initialised.")
 
-
     # Intialize Catalog Client
     def _get_catalog_client(self) -> None:
         """
         Initializes datacatalog.PolicyTagManagerClient object
-        :return None
+        :return: None
         """
-
         if self.json_credentials_path:
             self.dc = datacatalog_v1.PolicyTagManagerClient.from_service_account_json(
                                                                 self.json_credentials_path
@@ -303,7 +288,6 @@ class BQTableView:
 
         LOGGER.debug("Data Catalog Client Initialised.")
 
-
     # Create Taxonomy and Tags
     def create_taxonomy(self, tags: list) -> bool:
         """
@@ -318,10 +302,8 @@ class BQTableView:
                                               Tag for nested
                                               policy tags"
                       }
-
-        :return True if success and False if Failure
+        :return: True if success and False if Failure
         """
-
         try:
             taxonomy = datacatalog_v1.types.Taxonomy()
             taxonomy.display_name=self.taxonomy
@@ -363,15 +345,13 @@ class BQTableView:
 
         return True
 
-
     # Download policy tags from Data Catalog Taxonomy and save them
     # in self.policy_tags
     def fetch_policy_tags(self) -> bool:
         """
         Download policy tags from Taxonomy
-        :return True if success and False if Failure
+        :return: True if success and False if Failure
         """
-
         LOGGER.debug("Determining Taxonomy ID using Taxonomy Name provided.")
 
         try:
@@ -404,7 +384,6 @@ class BQTableView:
                         )
             return False
 
-
         LOGGER.debug("Downloading Policy Tags from Taxonomy.")
 
         policy_tags = self.dc.list_policy_tags(parent=self.taxonomy_id)
@@ -422,15 +401,12 @@ class BQTableView:
 
         return True
 
-
     # create dataset
     def create_dataset(self) -> bool:
-
         """
-        Create a new BQ Dataset
-        :return True if success and False if Failure
+        Create a new BQ Dataset.
+        :return: True if success and False if Failure
         """
-
         dataset = bigquery.Dataset(".".join([self.bq_project, self.dataset]))
         dataset.location = self.location
 
@@ -447,20 +423,18 @@ class BQTableView:
                 )
         return True
 
-
     # Create a table with tags
     def create_table(self,
                      table_name: str,
                      table_schema: str,
                      table_tag_map: dict = None) -> str:
         """
-        Create a new Tagged table
+        Create a new Tagged table.
         :param table_name: Name of the table to create
         :param table_schema: Schema of the table to create
         :param table_tag_map: Mapping of Tags to Columns
-        :return json containing schema of table created
+        :return: json containing schema of table created
         """
-
         tagged_schema = self._process_schema(table_schema=table_schema,
                                              table_tag_map=table_tag_map)
 
@@ -488,17 +462,15 @@ class BQTableView:
 
         return table_schema
 
-
     # Create a view from tags
     def create_view(self, table_name: str, view_name: str, tags: list) -> str:
         """
-        Create a new View with columns having specfied tags
+        Create a new View with columns having specfied tags.
         :param table_name: Name of the source table
         :param view_name: Name of the View to create
         :param tags: List of tags to include in view
-        :return SQL query of the created view
+        :return: SQL query of the created view
         """
-
         LOGGER.debug("Start Downloading BQ Schema.")
 
         # Download Table Schema using API
@@ -577,18 +549,16 @@ class BQTableView:
 
         return query
 
-
     # Internal Function to detemine the tagged schema
     def _process_schema(self, table_schema: str, table_tag_map: dict) -> None:
         """
-        Process the untagged schema and convert it into tagged one by
+        Process the untagged schema and convert it into tagged one by.
         adding tags to relevant columns using table_tag_map
 
         :param table_schema: Untagged schema of the table
         :param table_tag_map: Mapping of tags to columns
-        :return None
+        :return: None
         """
-
         json_schema = json.loads(table_schema)
 
         # Check if rable_tag_map is empty
@@ -665,7 +635,6 @@ class BQTableView:
 
         return json_schema
 
-
     # Internal function to add the default tag to schema.
     def _process_default_tag(self, column: dict, tag: str) -> None:
         """
@@ -673,8 +642,8 @@ class BQTableView:
 
         :param column: column data
         :param tag: Default tag
+        :return: None
         """
-
         if column["type"].upper() == "RECORD":
             for sub_column in column["fields"]:
                 self._process_default_tag(column=sub_column, tag=tag)
@@ -683,17 +652,14 @@ class BQTableView:
                 column["policyTags"] = {"names": []}
                 column["policyTags"]["names"].append(tag)
 
-
     # Read schema file and cereate policy-tag column map
     def _create_tag_column_map(self, schema: str) -> dict:
-
         """
         Read table schema and map columns to tags.
 
         :param schema: Schema of the table
-        :return Map of columns to tag
+        :return: Map of columns to tag
         """
-
         schema_json = json.loads(schema)
 
         tag_to_columns = dict()
@@ -717,7 +683,6 @@ class BQTableView:
 
         return copy.deepcopy(tag_to_columns_mapped)
 
-
     def _rec_create_tag_column_map(
                                     self,
                                     items: list,
@@ -725,7 +690,6 @@ class BQTableView:
                                     parent="",
                                     paren_mode=""
                                 ) -> None:
-
         """
         Recursive Function to map columns to tags.
 
@@ -733,11 +697,9 @@ class BQTableView:
         :param tag_to_columns: map of tag to columns
         :param parent: Parent column in case of nested column
         :param parent_mode: Mode of the parent column
-        :return None
+        :return: None
         """
-
         for item in items:
-
             if str(item["type"]).upper() == "RECORD":
                 if parent == "":
                     if "mode" in item:
@@ -783,7 +745,6 @@ class BQTableView:
                                         )
             else:
                 if "policyTags" in item:
-
                     for tag in item["policyTags"]["names"]:
 
                         if tag not in tag_to_columns:

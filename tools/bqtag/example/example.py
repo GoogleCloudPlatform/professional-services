@@ -1,4 +1,4 @@
-# Copyright 2019 Google LLC
+# Copyright 2021 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 from bqtag import BQTableView
 
 if __name__ == "__main__":
-
     """
     - Update the BQ_PROJECT, CATALOG_PROJECT, BQ_DATASET and TAXONOMY_DISPLAY_NAME with relevant values.
     - Key file used is credentials.json. Please add the correct path or copy credentials.json to the example folder. 
@@ -29,7 +28,6 @@ if __name__ == "__main__":
     BQ_DATASET = "dataset_name" #Update this with BQ Dataset
     LOCATION = "US"
     JSON_CREDENTIALS_FILE = "credentials.json"
-
     TABLE_TO_CREATE = "table1"
     TABLE_SCHEMA = """[
                         {
@@ -105,7 +103,6 @@ if __name__ == "__main__":
                      bq_project = BQ_PROJECT,
                      catalog_project = CATALOG_PROJECT,
                      json_credentials_path = JSON_CREDENTIALS_FILE)
-
     
     # Create Taxonomy and Policy Tags
     bq.create_taxonomy([{"name": "low", "description": "Low tag"}, {"name": "medium", "description": "Medium tag"}, {"name": "high", "description": "High tag"}])
@@ -121,5 +118,3 @@ if __name__ == "__main__":
         bq.create_table(TABLE_TO_CREATE, TABLE_SCHEMA, TAG_MAP)
         bq.create_view(TABLE_TO_CREATE, VIEW1, VIEW1_TAGS)
         bq.create_view(TABLE_TO_CREATE, VIEW2, VIEW2_TAGS)
-
-
