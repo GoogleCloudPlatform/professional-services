@@ -36,6 +36,7 @@ __all__ = ["BQTableView"]
 
 FORMAT = "%(asctime)-15s %(levelname)s %(message)s"
 
+
 def get_logger(name, fmt):
     """
     Creates a Logger that logs to stdout
@@ -51,6 +52,7 @@ def get_logger(name, fmt):
     log.addHandler(handler)
     return log
 
+
 LOGGER = get_logger("bqtag", FORMAT)
 
 
@@ -64,7 +66,7 @@ class ColumnNode:
     Class to represent a BQ column in a tree
     """
 
-    def __init__(self, name="", parent="", column_json = None, children = None):
+    def __init__(self, name="", parent="", column_json=None, children=None):
         self.name = name
         self.json = column_json
         self.children = children
@@ -78,9 +80,9 @@ class ColumnTree:
     """
 
     def __init__(self):
-        self.root = ColumnNode(name="Root",
-                               column_json=copy.copy({}),
-                               children=copy.copy({}))
+        self.root = ColumnNode(
+            name="Root", column_json=copy.copy({}), children=copy.copy({})
+        )
 
     def add_node(self, node_json: dict()):
 
@@ -95,9 +97,12 @@ class ColumnTree:
             if parent in cur_node.children:
                 cur_node = cur_node.children[parent]
             else:
-                new_node = ColumnNode(name=parent, parent=cur_node.name,
-                                      column_json=copy.copy({}),
-                                      children=copy.copy({}))
+                new_node = ColumnNode(
+                    name=parent,
+                    parent=cur_node.name,
+                    column_json=copy.copy({}),
+                    children=copy.copy({}),
+                )
 
                 cur_node.children[parent] = new_node
                 cur_node = new_node
@@ -107,11 +112,11 @@ class ColumnTree:
             cur_node.mode = node_json["parent_mode"]
         else:
             cur_node.children[node_name] = ColumnNode(
-                                                name=node_name,
-                                                parent=cur_node.name,
-                                                column_json=copy.copy(node_json),
-                                                children=copy.copy({})
-                                            )
+                name=node_name,
+                parent=cur_node.name,
+                column_json=copy.copy(node_json),
+                children=copy.copy({}),
+            )
             cur_node.mode = node_json["parent_mode"]
 
     def generate_query(self):
@@ -144,63 +149,60 @@ class ColumnTree:
                 if child.mode == "REPEATED":
                     if parent_name == "":
                         db.append(
-                                    "Array(SELECT AS VALUE STRUCT("
-                                    + ", ".join(self._rec_generate_query(
-                                        children=child.children,
-                                        parent_name = child.name
-                                    )
+                            "Array(SELECT AS VALUE STRUCT("
+                            + ", ".join(
+                                self._rec_generate_query(
+                                    children=child.children, parent_name=child.name
                                 )
-                        + ") FROM UNNEST("
-                        + child.name
-                        + ") as "
-                        + child.name
-                        + ")  as "
-                        + child.name)
+                            )
+                            + ") FROM UNNEST("
+                            + child.name
+                            + ") as "
+                            + child.name
+                            + ")  as "
+                            + child.name
+                        )
                     else:
                         db.append(
-                                    "Array(SELECT AS VALUE STRUCT("
-                                    + ", ".join(
-                                            self._rec_generate_query(
-                                                children=child.children,
-                                                parent_name = child.name
-                                            )
-                                        )
-                                    + ") FROM UNNEST("
-                                    + parent_name
-                                    + "."
-                                    + child.name
-                                    + ") as "
-                                    + child.name
-                                    + ")  as "
-                                    + child.name
+                            "Array(SELECT AS VALUE STRUCT("
+                            + ", ".join(
+                                self._rec_generate_query(
+                                    children=child.children, parent_name=child.name
                                 )
+                            )
+                            + ") FROM UNNEST("
+                            + parent_name
+                            + "."
+                            + child.name
+                            + ") as "
+                            + child.name
+                            + ")  as "
+                            + child.name
+                        )
                 else:
                     if parent_name == "":
                         db.append(
-                                    "STRUCT("
-                                    + ", ".join(
-                                                    self._rec_generate_query(
-                                                        children=child.children,
-                                                        parent_name=child.name
-                                                    )
-                                                )
-                                    +  ")  as "
-                                    + child.name
+                            "STRUCT("
+                            + ", ".join(
+                                self._rec_generate_query(
+                                    children=child.children, parent_name=child.name
                                 )
+                            )
+                            + ")  as "
+                            + child.name
+                        )
                     else:
                         db.append(
-                                    "STRUCT("
-                                    + ", ".join(
-                                                    self._rec_generate_query(
-                                                        children=child.children,
-                                                        parent_name=parent_name
-                                                        + "."
-                                                        + child.name
-                                                    )
-                                                )
-                                    + ")  as "
-                                    + child.name
+                            "STRUCT("
+                            + ", ".join(
+                                self._rec_generate_query(
+                                    children=child.children,
+                                    parent_name=parent_name + "." + child.name,
                                 )
+                            )
+                            + ")  as "
+                            + child.name
+                        )
 
         return db
 
@@ -213,14 +215,16 @@ class BQTableView:
     Class to create tagged BQ Tables and Views.
     """
 
-    #Constructor
-    def __init__(self,
-                 bq_dataset: str,
-                 catalog_taxonomy: str,
-                 location: str = "US",
-                 bq_project: str = None,
-                 catalog_project: str = None,
-                 json_credentials_path: str = None) -> None:
+    # Constructor
+    def __init__(
+        self,
+        bq_dataset: str,
+        catalog_taxonomy: str,
+        location: str = "US",
+        bq_project: str = None,
+        catalog_project: str = None,
+        json_credentials_path: str = None,
+    ) -> None:
 
         self.dataset = bq_dataset
         self.taxonomy = catalog_taxonomy
@@ -246,8 +250,8 @@ class BQTableView:
         """
         if self.json_credentials_path:
             self.bq = bigquery.Client.from_service_account_json(
-                                        self.json_credentials_path
-                                    )
+                self.json_credentials_path
+            )
             if self.bq_project:
                 self.bq.project = self.bq_project
             else:
@@ -257,9 +261,8 @@ class BQTableView:
         else:
             if self.bq_project and self.location:
                 self.bq = bigquery.Client(
-                                project=self.bq_project,
-                                location=self.location
-                            )
+                    project=self.bq_project, location=self.location
+                )
             else:
                 self.bq = bigquery.Client()
                 if not self.bq_project:
@@ -275,8 +278,8 @@ class BQTableView:
         """
         if self.json_credentials_path:
             self.dc = datacatalog_v1.PolicyTagManagerClient.from_service_account_json(
-                                                                self.json_credentials_path
-                                                            )
+                self.json_credentials_path
+            )
             if not self.catalog_project:
                 _, project_id = google.auth.default()
                 self.catalog_project = project_id
@@ -306,19 +309,19 @@ class BQTableView:
         """
         try:
             taxonomy = datacatalog_v1.types.Taxonomy()
-            taxonomy.display_name=self.taxonomy
+            taxonomy.display_name = self.taxonomy
             created_taxonomy = self.dc.create_taxonomy(
-                                    parent="projects/{p}/locations/{l}".format(
-                                                p=self.catalog_project,
-                                                l=self.location.lower()
-                                            ),
-                                    taxonomy=taxonomy)
+                parent="projects/{p}/locations/{l}".format(
+                    p=self.catalog_project, l=self.location.lower()
+                ),
+                taxonomy=taxonomy,
+            )
         except (MethodNotImplemented, NotFound) as e:
             LOGGER.error(
-                            "Could not create Taxonomy. \
+                "Could not create Taxonomy. \
                             API call to Google failed. Error received: %s",
-                            str(e)
-                        )
+                str(e),
+            )
             LOGGER.error(traceback.format_exc())
             return False
 
@@ -330,14 +333,15 @@ class BQTableView:
                 policy_tag.display_name = tag["name"]
                 policy_tag.description = tag.get("description", "")
                 policy_tag.parent_policy_tag = tag.get("parent_policy_tag", "")
-                self.dc.create_policy_tag(parent=created_taxonomy.name,
-                                          policy_tag=policy_tag)
+                self.dc.create_policy_tag(
+                    parent=created_taxonomy.name, policy_tag=policy_tag
+                )
         except (MethodNotImplemented, NotFound) as e:
             LOGGER.error(
-                            "Could not create Taxonomy. \
+                "Could not create Taxonomy. \
                             API call to Google failed. Error received: %s",
-                            str(e)
-                        )
+                str(e),
+            )
             LOGGER.error(traceback.format_exc())
             return False
 
@@ -356,17 +360,16 @@ class BQTableView:
 
         try:
             taxonomies = self.dc.list_taxonomies(
-                                    parent="projects/{p}/locations/{l}".format(
-                                        p=self.catalog_project,
-                                        l=self.location.lower()
-                                    )
-                                )
+                parent="projects/{p}/locations/{l}".format(
+                    p=self.catalog_project, l=self.location.lower()
+                )
+            )
         except (MethodNotImplemented, NotFound) as e:
             LOGGER.error(
-                            "Could not fetch Policy Tags. \
+                "Could not fetch Policy Tags. \
                             API call to Google failed. Error received: %s",
-                            str(e)
-                        )
+                str(e),
+            )
             LOGGER.error(traceback.format_exc())
             return False
 
@@ -377,11 +380,11 @@ class BQTableView:
 
         if not self.taxonomy_id:
             LOGGER.error(
-                            "Could not determine Taxonomy ID for taxonomy: %s. \
+                "Could not determine Taxonomy ID for taxonomy: %s. \
                             Please check if Taxonomy name, Data Catalog Project \
                             and Location are correct.",
-                            self.taxonomy
-                        )
+                self.taxonomy,
+            )
             return False
 
         LOGGER.debug("Downloading Policy Tags from Taxonomy.")
@@ -391,13 +394,12 @@ class BQTableView:
         for policy_tag in policy_tags:
             self.policy_tags[policy_tag.display_name] = policy_tag.name
 
-        self.policy_tags_rev = { k:v for v,k in self.policy_tags.items()}
+        self.policy_tags_rev = {k: v for v, k in self.policy_tags.items()}
 
         LOGGER.info(
-                        "Policy Tags downlaoded from Taxonomy. Total tags: %s",
-                        str(len(self.policy_tags)
-                    )
-                )
+            "Policy Tags downlaoded from Taxonomy. Total tags: %s",
+            str(len(self.policy_tags)),
+        )
 
         return True
 
@@ -417,17 +419,15 @@ class BQTableView:
             LOGGER.error(traceback.format_exc())
             return False
 
-        LOGGER.info("Dataset created successfully: %s.%s.",
-                    self.bq_project,
-                    self.dataset
-                )
+        LOGGER.info(
+            "Dataset created successfully: %s.%s.", self.bq_project, self.dataset
+        )
         return True
 
     # Create a table with tags
-    def create_table(self,
-                     table_name: str,
-                     table_schema: str,
-                     table_tag_map: dict = None) -> str:
+    def create_table(
+        self, table_name: str, table_schema: str, table_tag_map: dict = None
+    ) -> str:
         """
         Create a new Tagged table.
         :param table_name: Name of the table to create
@@ -435,15 +435,13 @@ class BQTableView:
         :param table_tag_map: Mapping of Tags to Columns
         :return: json containing schema of table created
         """
-        tagged_schema = self._process_schema(table_schema=table_schema,
-                                             table_tag_map=table_tag_map)
+        tagged_schema = self._process_schema(
+            table_schema=table_schema, table_tag_map=table_tag_map
+        )
 
-        table = bigquery.Table(".".join([self.bq_project,
-                                         self.dataset,
-                                         table_name
-                                        ]),
-                                schema=tagged_schema
-                              )
+        table = bigquery.Table(
+            ".".join([self.bq_project, self.dataset, table_name]), schema=tagged_schema
+        )
 
         try:
             table = self.bq.create_table(table)  # Make an API request.
@@ -452,9 +450,12 @@ class BQTableView:
             LOGGER.error(traceback.format_exc())
             return "{}"
 
-        LOGGER.info("Table created successfully: %s.%s.%s.", self.bq_project,
-                                                             self.dataset,
-                                                             table_name)
+        LOGGER.info(
+            "Table created successfully: %s.%s.%s.",
+            self.bq_project,
+            self.dataset,
+            table_name,
+        )
         # convert table schema to JSON for return
         f = io.StringIO("")
         self.bq.schema_to_json(table.schema, f)
@@ -475,12 +476,9 @@ class BQTableView:
 
         # Download Table Schema using API
         try:
-            table = self.bq.get_table(".".join(
-                                            [ self.bq_project,
-                                              self.dataset, table_name
-                                            ]
-                                        )
-                                     )
+            table = self.bq.get_table(
+                ".".join([self.bq_project, self.dataset, table_name])
+            )
         except (MethodNotImplemented, NotFound) as e:
             LOGGER.error("Could not download source table schema: %s", str(e))
             LOGGER.error(traceback.format_exc())
@@ -514,23 +512,16 @@ class BQTableView:
             LOGGER.info("No Columns in Query. View not created.")
             return ""
 
-        query = "SELECT {q} FROM `{p}.{d}.{t}`".format(q=query_columns,
-                                                       p = self.bq_project,
-                                                       d = self.dataset,
-                                                       t = table_name
-                                                    )
+        query = "SELECT {q} FROM `{p}.{d}.{t}`".format(
+            q=query_columns, p=self.bq_project, d=self.dataset, t=table_name
+        )
 
         LOGGER.debug("Query Created: %s", query)
 
         # create view
-        job_config = bigquery.QueryJobConfig(destination=".".join(
-                                                    [
-                                                        self.bq_project,
-                                                        self.dataset,
-                                                        view_name
-                                                    ]
-                                                )
-                                            )
+        job_config = bigquery.QueryJobConfig(
+            destination=".".join([self.bq_project, self.dataset, view_name])
+        )
 
         try:
             query_job = self.bq.query(query, job_config=job_config)
@@ -541,11 +532,11 @@ class BQTableView:
             return ""
 
         LOGGER.info(
-                        "Authorised view created: %s.%s.%s",
-                        self.bq_project,
-                        self.dataset,
-                        view_name
-                   )
+            "Authorised view created: %s.%s.%s",
+            self.bq_project,
+            self.dataset,
+            view_name,
+        )
 
         return query
 
@@ -569,7 +560,7 @@ class BQTableView:
 
         for tag_column, tag in table_tag_map.items():
 
-            #If tag column is default_column_tag then skip the loop
+            # If tag column is default_column_tag then skip the loop
             if tag_column == "default_column_tag":
                 default_column_tag = tag
                 continue
@@ -586,7 +577,7 @@ class BQTableView:
             # Will remain true if all columns in column depth are found
             found_all = True
 
-            column_number = 0 
+            column_number = 0
 
             # Loop over all the depths of column
             for tag_column2 in tag_columns:
@@ -594,7 +585,7 @@ class BQTableView:
                 column_number += 1
                 found = False
 
-                #Loop over levels of schema to get to teight depth
+                # Loop over levels of schema to get to teight depth
                 for column in cur_level:
 
                     if column["name"] == tag_column2:
@@ -616,10 +607,8 @@ class BQTableView:
                     if "policyTags" not in cur_column:
                         cur_column["policyTags"] = {"names": []}
                     cur_column["policyTags"]["names"].append(
-                                                        self.policy_tags[
-                                                            tag.lower()
-                                                        ]
-                                                    )
+                        self.policy_tags[tag.lower()]
+                    )
 
         # Add default column tag if present
         if default_column_tag.strip() != "":
@@ -627,11 +616,8 @@ class BQTableView:
             if default_column_tag in self.policy_tags:
                 for column in json_schema:
                     self._process_default_tag(
-                                                column=column,
-                                                tag=self.policy_tags[
-                                                    default_column_tag
-                                                ]
-                                            )
+                        column=column, tag=self.policy_tags[default_column_tag]
+                    )
 
         return json_schema
 
@@ -667,29 +653,22 @@ class BQTableView:
 
         # update tag_to_columns
         self._rec_create_tag_column_map(
-                                            items=schema_json,
-                                            tag_to_columns=tag_to_columns
-                                        )
+            items=schema_json, tag_to_columns=tag_to_columns
+        )
 
-        #map tag_to_columns key to tag_map and populate tag
-        for k,v in tag_to_columns.items():
+        # map tag_to_columns key to tag_map and populate tag
+        for k, v in tag_to_columns.items():
 
             if k in self.policy_tags_rev:
-                tag_to_columns_mapped[
-                    self.policy_tags_rev[k]
-                ] = copy.deepcopy(v)
+                tag_to_columns_mapped[self.policy_tags_rev[k]] = copy.deepcopy(v)
             else:
                 print("Policy Tag", k, "not found in map file.")
 
         return copy.deepcopy(tag_to_columns_mapped)
 
     def _rec_create_tag_column_map(
-                                    self,
-                                    items: list,
-                                    tag_to_columns: dict,
-                                    parent="",
-                                    paren_mode=""
-                                ) -> None:
+        self, items: list, tag_to_columns: dict, parent="", paren_mode=""
+    ) -> None:
         """
         Recursive Function to map columns to tags.
 
@@ -705,44 +684,44 @@ class BQTableView:
                     if "mode" in item:
                         if item["mode"].upper() == "REPEATED":
                             self._rec_create_tag_column_map(
-                                                items=item["fields"],
-                                                tag_to_columns=tag_to_columns,
-                                                parent=item["name"],
-                                                paren_mode="REPEATED"
-                                            )
+                                items=item["fields"],
+                                tag_to_columns=tag_to_columns,
+                                parent=item["name"],
+                                paren_mode="REPEATED",
+                            )
                         else:
                             self._rec_create_tag_column_map(
-                                                items=item["fields"],
-                                                tag_to_columns=tag_to_columns,
-                                                parent=item["name"]
-                                            )
+                                items=item["fields"],
+                                tag_to_columns=tag_to_columns,
+                                parent=item["name"],
+                            )
                     else:
                         self._rec_create_tag_column_map(
-                                            items=item["fields"],
-                                            tag_to_columns=tag_to_columns,
-                                            parent=item["name"]
-                                        )
+                            items=item["fields"],
+                            tag_to_columns=tag_to_columns,
+                            parent=item["name"],
+                        )
                 else:
                     if "mode" in item:
                         if item["mode"].upper() == "REPEATED":
                             self._rec_create_tag_column_map(
-                                            items=item["fields"],
-                                            tag_to_columns=tag_to_columns,
-                                            parent=parent + "." + item["name"],
-                                            paren_mode="REPEATED"
-                                        )
+                                items=item["fields"],
+                                tag_to_columns=tag_to_columns,
+                                parent=parent + "." + item["name"],
+                                paren_mode="REPEATED",
+                            )
                         else:
                             self._rec_create_tag_column_map(
-                                            items=item["fields"],
-                                            tag_to_columns=tag_to_columns,
-                                            parent= parent + "." + item["name"]
-                                        )
+                                items=item["fields"],
+                                tag_to_columns=tag_to_columns,
+                                parent=parent + "." + item["name"],
+                            )
                     else:
                         self._rec_create_tag_column_map(
-                                            items=item["fields"],
-                                            tag_to_columns=tag_to_columns,
-                                            parent= parent + "." + item["name"]
-                                        )
+                            items=item["fields"],
+                            tag_to_columns=tag_to_columns,
+                            parent=parent + "." + item["name"],
+                        )
             else:
                 if "policyTags" in item:
                     for tag in item["policyTags"]["names"]:

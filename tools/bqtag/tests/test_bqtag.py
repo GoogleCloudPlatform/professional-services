@@ -22,42 +22,55 @@ import unittest
 import json
 from bqtag import BQTableView
 
-BQ_PROJECT = None #Update this with BQ Project Value
-CATALOG_PROJECT = None #Update this with Data Catalog Project Value
-TAXONOMY_DISPLAY_NAME = "test_taxonomy" #Update this with Taxonomy Name
-BQ_DATASET = "test_dataset" #Update this with BQ Dataset
+BQ_PROJECT = None  # Update this with BQ Project Value
+CATALOG_PROJECT = None  # Update this with Data Catalog Project Value
+TAXONOMY_DISPLAY_NAME = "test_taxonomy"  # Update this with Taxonomy Name
+BQ_DATASET = "test_dataset"  # Update this with BQ Dataset
 LOCATION = "US"
-JSON_CREDENTIALS_FILE = None
+JSON_CREDENTIALS_FILE = "credentials.json"
+
 
 class TestQueryParameters(unittest.TestCase):
     def test_1_policy_tag_creation(self):
-      """
-      Test if policy tags and taxonomies can be created.
-      """
-      bq = BQTableView(bq_dataset = BQ_DATASET,
-                     catalog_taxonomy = TAXONOMY_DISPLAY_NAME,
-                     location = LOCATION,
-                     bq_project = BQ_PROJECT,
-                     catalog_project = CATALOG_PROJECT,
-                     json_credentials_path = JSON_CREDENTIALS_FILE)
+        """
+        Test if policy tags and taxonomies can be created.
+        """
+        bq = BQTableView(
+            bq_dataset=BQ_DATASET,
+            catalog_taxonomy=TAXONOMY_DISPLAY_NAME,
+            location=LOCATION,
+            bq_project=BQ_PROJECT,
+            catalog_project=CATALOG_PROJECT,
+            json_credentials_path=JSON_CREDENTIALS_FILE,
+        )
 
-      # Check if policy tags are downloaded
-      self.assertTrue(bq.create_taxonomy(tags=[{"name": "low", "description": "Low tag"}, {"name": "medium", "description": "Medium tag"}, {"name": "high", "description": "High tag"}]))
+        # Check if policy tags are downloaded
+        self.assertTrue(
+            bq.create_taxonomy(
+                tags=[
+                    {"name": "low", "description": "Low tag"},
+                    {"name": "medium", "description": "Medium tag"},
+                    {"name": "high", "description": "High tag"},
+                ]
+            )
+        )
 
     def test_2_policy_tag_download(self):
         """
         Test if policy tags can be downloaded.
         """
-        bq = BQTableView(bq_dataset = BQ_DATASET,
-                     catalog_taxonomy = TAXONOMY_DISPLAY_NAME,
-                     location = LOCATION,
-                     bq_project = BQ_PROJECT,
-                     catalog_project = CATALOG_PROJECT,
-                     json_credentials_path = JSON_CREDENTIALS_FILE)
+        bq = BQTableView(
+            bq_dataset=BQ_DATASET,
+            catalog_taxonomy=TAXONOMY_DISPLAY_NAME,
+            location=LOCATION,
+            bq_project=BQ_PROJECT,
+            catalog_project=CATALOG_PROJECT,
+            json_credentials_path=JSON_CREDENTIALS_FILE,
+        )
 
         # Check if policy tags are downloaded
         self.assertTrue(bq.fetch_policy_tags())
-       
+
     def test_3_table_creation(self):
         """
         Test table creation and Correct Tag Association.
@@ -98,22 +111,26 @@ class TestQueryParameters(unittest.TestCase):
         TAG_MAP["column2"] = "medium"
         TAG_MAP["parent.nested1"] = "high"
 
-        bq = BQTableView(bq_dataset = BQ_DATASET,
-                     catalog_taxonomy = TAXONOMY_DISPLAY_NAME,
-                     location = LOCATION,
-                     bq_project = BQ_PROJECT,
-                     catalog_project = CATALOG_PROJECT,
-                     json_credentials_path = JSON_CREDENTIALS_FILE)
+        bq = BQTableView(
+            bq_dataset=BQ_DATASET,
+            catalog_taxonomy=TAXONOMY_DISPLAY_NAME,
+            location=LOCATION,
+            bq_project=BQ_PROJECT,
+            catalog_project=CATALOG_PROJECT,
+            json_credentials_path=JSON_CREDENTIALS_FILE,
+        )
 
         bq.fetch_policy_tags()
 
         # Create Dataset
         bq.create_dataset()
-        
-        created_schema = json.loads(bq.create_table(TABLE_TO_CREATE, TABLE_SCHEMA, TAG_MAP))
+
+        created_schema = json.loads(
+            bq.create_table(TABLE_TO_CREATE, TABLE_SCHEMA, TAG_MAP)
+        )
 
         # Check if table was created
-        self.assertTrue(created_schema!={}) 
+        self.assertTrue(created_schema != {})
 
         check = True
         for column in created_schema:
@@ -124,49 +141,62 @@ class TestQueryParameters(unittest.TestCase):
                     continue
 
             if column["name"] == "column2":
-              if column["policyTags"]["names"][0] != bq.policy_tags["medium"]:
-                check = False
-                continue
-          
+                if column["policyTags"]["names"][0] != bq.policy_tags["medium"]:
+                    check = False
+                    continue
+
             if column["name"] == "parent":
                 for nested_column in column["fields"]:
                     if nested_column["name"] == "nested1":
-                        if nested_column["policyTags"]["names"][0] != bq.policy_tags["high"]:
+                        if (
+                            nested_column["policyTags"]["names"][0]
+                            != bq.policy_tags["high"]
+                        ):
                             check = False
                             continue
 
                     if nested_column["name"] == "nested2":
-                        if nested_column["policyTags"]["names"][0] != bq.policy_tags["low"]:
+                        if (
+                            nested_column["policyTags"]["names"][0]
+                            != bq.policy_tags["low"]
+                        ):
                             check = False
                             continue
-              
+
         if len(created_schema) != 3:
-          check = False
-        
+            check = False
+
         # Check if tags are correct
-        self.assertTrue(check)             
+        self.assertTrue(check)
 
     def test_4_view_creation(self):
-      """
-      Test view creation.
-      """
-      bq = BQTableView(bq_dataset = BQ_DATASET,
-                     catalog_taxonomy = TAXONOMY_DISPLAY_NAME,
-                     location = LOCATION,
-                     bq_project = BQ_PROJECT,
-                     catalog_project = CATALOG_PROJECT,
-                     json_credentials_path = JSON_CREDENTIALS_FILE)
+        """
+        Test view creation.
+        """
+        bq = BQTableView(
+            bq_dataset=BQ_DATASET,
+            catalog_taxonomy=TAXONOMY_DISPLAY_NAME,
+            location=LOCATION,
+            bq_project=BQ_PROJECT,
+            catalog_project=CATALOG_PROJECT,
+            json_credentials_path=JSON_CREDENTIALS_FILE,
+        )
 
-      bq.fetch_policy_tags()
-      
-      SOURCE_TABLE = "test_table"
-      VIEW1 = "test_view_medium"
-      VIEW1_TAGS = ["medium", "low"]
-      
-      query = bq.create_view(SOURCE_TABLE, VIEW1, VIEW1_TAGS)
+        bq.fetch_policy_tags()
 
-      self.assertTrue(query.strip() == "SELECT column2, column1, STRUCT(parent.nested2)  as parent FROM `{project}.{dataset}.{table}`".format(project=bq.bq_project, dataset=bq.dataset, table=SOURCE_TABLE))
+        SOURCE_TABLE = "test_table"
+        VIEW1 = "test_view_medium"
+        VIEW1_TAGS = ["medium", "low"]
+
+        query = bq.create_view(SOURCE_TABLE, VIEW1, VIEW1_TAGS)
+
+        self.assertTrue(
+            query.strip()
+            == "SELECT column2, column1, STRUCT(parent.nested2)  as parent FROM `{project}.{dataset}.{table}`".format(
+                project=bq.bq_project, dataset=bq.dataset, table=SOURCE_TABLE
+            )
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

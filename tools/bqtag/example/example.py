@@ -18,14 +18,14 @@ from bqtag import BQTableView
 if __name__ == "__main__":
     """
     - Update the BQ_PROJECT, CATALOG_PROJECT, BQ_DATASET and TAXONOMY_DISPLAY_NAME with relevant values.
-    - Key file used is credentials.json. Please add the correct path or copy credentials.json to the example folder. 
+    - Key file used is credentials.json. Please add the correct path or copy credentials.json to the example folder.
     - SA should have relevant permissions to read Data Catalog Tags otherwise table creation will result in error.
     """
 
-    BQ_PROJECT = None #Update this with BQ Project Value
-    CATALOG_PROJECT = None #Update this with Data Catalog Project Value
-    TAXONOMY_DISPLAY_NAME = "taxonomy_name" #Update this with Taxonomy Name
-    BQ_DATASET = "dataset_name" #Update this with BQ Dataset
+    BQ_PROJECT = None  # Update this with BQ Project Value
+    CATALOG_PROJECT = None  # Update this with Data Catalog Project Value
+    TAXONOMY_DISPLAY_NAME = "taxonomy_name"  # Update this with Taxonomy Name
+    BQ_DATASET = "dataset_name"  # Update this with BQ Dataset
     LOCATION = "US"
     JSON_CREDENTIALS_FILE = "credentials.json"
     TABLE_TO_CREATE = "table1"
@@ -97,15 +97,23 @@ if __name__ == "__main__":
     VIEW2_TAGS = ["high", "medium", "low"]
 
     # Create BQTableView Object
-    bq = BQTableView(bq_dataset = BQ_DATASET,
-                     catalog_taxonomy = TAXONOMY_DISPLAY_NAME,
-                     location = LOCATION,
-                     bq_project = BQ_PROJECT,
-                     catalog_project = CATALOG_PROJECT,
-                     json_credentials_path = JSON_CREDENTIALS_FILE)
-    
+    bq = BQTableView(
+        bq_dataset=BQ_DATASET,
+        catalog_taxonomy=TAXONOMY_DISPLAY_NAME,
+        location=LOCATION,
+        bq_project=BQ_PROJECT,
+        catalog_project=CATALOG_PROJECT,
+        json_credentials_path=JSON_CREDENTIALS_FILE,
+    )
+
     # Create Taxonomy and Policy Tags
-    bq.create_taxonomy([{"name": "low", "description": "Low tag"}, {"name": "medium", "description": "Medium tag"}, {"name": "high", "description": "High tag"}])
+    bq.create_taxonomy(
+        [
+            {"name": "low", "description": "Low tag"},
+            {"name": "medium", "description": "Medium tag"},
+            {"name": "high", "description": "High tag"},
+        ]
+    )
 
     # Create Dataset
     bq.create_dataset()
