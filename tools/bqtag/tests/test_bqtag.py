@@ -149,7 +149,7 @@ class TestQueryParameters(unittest.TestCase):
     def test_4_view_creation(self):
       """
       Test view creation.
-      """   
+      """
       bq = BQTableView(bq_dataset = BQ_DATASET,
                      catalog_taxonomy = TAXONOMY_DISPLAY_NAME,
                      location = LOCATION,
