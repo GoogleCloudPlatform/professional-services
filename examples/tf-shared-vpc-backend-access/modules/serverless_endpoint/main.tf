@@ -264,7 +264,7 @@ resource "google_compute_firewall" "vpc-connector-to-serverless" {
 resource "google_compute_firewall" "vpc-connector-health-checks" {
   project = var.shared_vpc_host_project
   name    = "${var.name}-fw-shared-vpc-vpc-connector-health-checks"
-  network = var.shared_vpc_host_name
+  network = var.shared_vpc_self_link
 
   target_tags = ["vpc-connector"]
 
