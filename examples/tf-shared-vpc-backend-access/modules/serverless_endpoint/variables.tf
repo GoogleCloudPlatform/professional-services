@@ -63,3 +63,7 @@ variable "shared_vpc_host_connector_name" {
   type        = string
   description = "Shared VPC host connector name (created in networking.tf)"
 }
+variable "shared_vpc_self_link" {
+  type        = string
+  description = "Shared VPC reference (created in networking.tf)"
+}
