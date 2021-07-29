@@ -220,7 +220,7 @@ resource "google_vpc_access_connector" "connector" {
 resource "google_compute_firewall" "serverless-to-vpc-connector" {
   project = var.shared_vpc_host_project
   name    = "${var.name}-fw-shared-vpc-serverless-to-vpc-connector"
-  network = var.shared_vpc_host_name
+  network = var.shared_vpc_self_link
 
   target_tags = ["vpc-connector"]
 
@@ -242,7 +242,7 @@ resource "google_compute_firewall" "serverless-to-vpc-connector" {
 resource "google_compute_firewall" "vpc-connector-to-serverless" {
   project = var.shared_vpc_host_project
   name    = "${var.name}-fw-shared-vpc-vpc-connector-to-serverless"
-  network = var.shared_vpc_host_name
+  network = var.shared_vpc_self_link
 
   target_tags = ["vpc-connector"]
 
@@ -281,7 +281,7 @@ resource "google_compute_firewall" "vpc-connector-health-checks" {
 resource "google_compute_firewall" "connector-access-to-vpc" {
   project = var.shared_vpc_host_project
   name    = "${var.name}-fw-connector-to-vpc"
-  network = var.shared_vpc_host_name
+  network = var.shared_vpc_self_link
 
   allow {
     protocol = "tcp"
