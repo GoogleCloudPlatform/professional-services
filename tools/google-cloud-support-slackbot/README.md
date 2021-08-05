@@ -31,7 +31,7 @@ Your Techincal Account Manager will file a request with the Support API team to 
 
 ## Setup Part 2 - Google Cloud Phase 1 
 
-In the first phase of our Google Cloud setup, we will verify that our network is setup properly, build a lightweight VM to house our bot, and enable our Cloud Support API and create ourselves an API key. Go to [Google Cloud](cloud.google.com/console). These steps need to be carried out in the project you specified in Part 1 of this setup guide.
+In the first phase of our Google Cloud setup, we will verify that our network is setup properly, build a lightweight VM to house our bot, and enable our Cloud Support API and create ourselves an API key. Go to [Google Cloud](https://cloud.google.com/console). These steps need to be carried out in the project you specified in Part 1 of this setup guide.
 
 ### Networking
 
