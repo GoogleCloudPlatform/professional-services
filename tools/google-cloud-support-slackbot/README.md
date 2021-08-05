@@ -1,4 +1,4 @@
-# ![Google Cloud Support Slackbot](google_cloud_support_buddy_big.png)
+# ![Google Cloud Support Slackbot](google_cloud_support_buddy_small.png)
 # Slack Integration for Google Cloud Support
 
 # Setup Guide
