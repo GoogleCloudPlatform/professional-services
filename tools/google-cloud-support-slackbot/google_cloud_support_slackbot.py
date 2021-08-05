@@ -783,7 +783,7 @@ def file_overwrite(output_file, content_dict):
 
             
 
-def get_parent(case):
+def get_parent(case) -> str:
     """
     Retrieves the full parent path for a given case id
 
