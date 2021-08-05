@@ -1,7 +1,9 @@
 # ![Google Cloud Support Slackbot](google_cloud_support_buddy_small.png)
 # Slack Integration for Google Cloud Support
 
-Slack app for pulling Google Cloud Support case information via the Cloud Support API and pushing it to Slack. The app currently supports the following commands:
+Slack app for pulling Google Cloud Support case information via the Cloud Support API and pushing it to Slack. The goal is to help reduce the overall time to resolution for cases of all priorities by putting case updates in Slack where they will be more easily noticed by their devs and engineers.
+
+The app currently supports the following commands:
 
 * /google-cloud-support track-case [case_number] -- case updates will be posted to this channel
 * /google-cloud-support add-comment [case_number] [comment] -- adds a comment to the case
@@ -14,7 +16,7 @@ Slack app for pulling Google Cloud Support case information via the Cloud Suppor
 
 # Setup Guide
 
-**Before proceeding, you will need Premium Support to use the Cloud Support API and by association the slackbot**
+**Before proceeding, you will need Premium Support to use the Cloud Support API and by association the slackbot**  
 Setting up your first Slack app can be a daunting task, which is why we are providing a step-by-step guide.
 
 ## Setup Part 1 - Allow list the Support API
@@ -128,7 +130,7 @@ Return to [Google Cloud](https://cloud.google.com/console) and from **Compute En
 5. Stop the VM
 6. Once the VM is stopped, click the 'EDIT' button
 7. Scroll down to the Custom metadata section and add the following key-value pair:
-	1. key: startup-script
+	1. key: `startup-script`
 	1. value:  
 	`cd /google-cloud-support-slackbot`  
 	`pip3 install -r requirements.txt`   
