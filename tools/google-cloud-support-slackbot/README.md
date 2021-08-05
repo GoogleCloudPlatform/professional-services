@@ -96,7 +96,7 @@ From **APIs & Services > Credentials**
 
 ## Setup Part 3 - Slack App
 
-Go to [Slack Apps](https://api.slack.com/apps) to do the following:
+Go to [Slack Apps](http://api.slack.com/apps) to do the following:
 
 1. Click **Create New App** and select **From scratch**. Name your app `Google Cloud Support Bot` and select your workspace
 2. Under **Settings > Basic Information**, scroll down to **Display Information** and upload the [google_cloud_support_buddy_big.png](google_cloud_support_buddy_big.png) or an icon of your choosing.
