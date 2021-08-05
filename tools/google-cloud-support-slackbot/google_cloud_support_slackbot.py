@@ -134,6 +134,7 @@ class Support_Case:
         self.comment_list = req.execute().get('comments',[])
 
 
+        
 # Handle all calls to the support bot
 @app.route('/google-cloud-support', methods=['POST'])
 def gcp_support() -> Response:
@@ -481,6 +482,7 @@ def stop_tracking(channel_id, channel_name, case, user_id):
         client.chat_postEphemeral(channel=channel_id, user=user_id, text=f"Case {case} not found in tracker for {channel_name}")
 
 
+        
 # Close a given support case, this API is not yet available
 #def close_case(channel_id,case,user_id,headers):
     #client.chat_postEphemeral(channel=channel_id, user=user_id, text=f"You have closed case {case} and it will no longer be tracked")
@@ -686,7 +688,6 @@ def case_updates():
             time.sleep(5)
             continue
 
-
         # Remove the cases from our dictionary that are no longer active
         for key in cases:
             delete_entry = True
@@ -780,6 +781,7 @@ def file_overwrite(output_file, content_dict):
         with open(output_file, "w") as f:
             f.write(json.dumps(content_dict, default=lambda x: x.__dict__))                                       
 
+            
 
 def get_parent(case):
     """
