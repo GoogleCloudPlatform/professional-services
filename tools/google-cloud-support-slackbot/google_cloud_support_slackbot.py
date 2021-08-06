@@ -47,7 +47,7 @@ API_KEY = os.environ['API_KEY']
 
 # Get our discovery doc and build our service
 r = requests.get('https://cloudsupport.googleapis.com/$discovery/rest?key={}&labels=V2_TRUSTED_TESTER&version=v2alpha'.format(API_KEY))
-support_service = build_from_document(json.dump(r.json))
+support_service = build_from_document(r.json())
 
 cases_file = 'support_cases.json'
 tracked_cases_file = 'tracked_cases'
