@@ -659,13 +659,13 @@ def case_updates():
         loop_skip = False
         sleep_timer = 15
         cases = {}
-            if os.path.exists(cases_file):
-                with open(cases_file) as f:
-                    try:
-                        cases = json.load(f)
-                    except json.decoder.JSONDecodeError as e:
-                        logging.error(e, ' : {}'.format(datetime.now()))
-                        pass
+        if os.path.exists(cases_file):
+            with open(cases_file) as f:
+                try:
+                    cases = json.load(f)
+                except json.decoder.JSONDecodeError as e:
+                    logging.error(e, ' : {}'.format(datetime.now()))
+                    pass
 
         req = support_service.cases().search(query=query_string)
         try:
