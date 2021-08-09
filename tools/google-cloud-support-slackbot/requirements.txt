@@ -11,11 +11,13 @@ cryptography==2.6.1
 distro-info==0.21
 entrypoints==0.3
 Flask==1.1.4
+gevent==21.8.0
 google-api-core==1.31.0
 google-api-python-client==2.12.0
 google-auth==1.32.1
 google-auth-httplib2==0.1.0
 googleapis-common-protos==1.53.0
+greenlet==1.1.1
 httplib2==0.19.1
 idna==2.10
 importlib-metadata==4.5.0
@@ -50,3 +52,5 @@ urllib3==1.26.6
 Werkzeug==1.0.1
 yarl==1.6.3
 zipp==3.4.1
+zope.event==4.5.0
+zope.interface==5.4.0
