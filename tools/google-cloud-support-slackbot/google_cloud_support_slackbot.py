@@ -44,6 +44,7 @@ app = Flask(__name__)
 client = slack.WebClient(token=os.environ['SLACK_TOKEN'])
 ORG_ID = os.environ['ORG_ID']
 API_KEY = os.environ['API_KEY']
+MAX_RETRIES = 3
 
 # Get our discovery doc and build our service
 r = requests.get('https://cloudsupport.googleapis.com/$discovery/rest?key={}&labels=V2_TRUSTED_TESTER&version=v2alpha'.format(API_KEY))
@@ -118,8 +119,14 @@ class Support_Case:
         self.priority = caseobj['severity'].replace('S', 'P')
         self.state = caseobj['state']
         req = support_service.cases().comments().list(parent=self.resource_name)
-        self.comment_list = req.execute().get('comments',[])
-
+        for attempt in range(MAX_RETRIES):
+            try:
+                self.comment_list = req.execute().get('comments',[])         
+            except BrokenPipeError as e:
+                logging.error(e, ' : {}'.format(datetime.now()))
+                time.sleep(1)
+            else:
+                break
         
 # Handle all calls to the support bot
 @app.route('/google-cloud-support', methods=['POST'])
@@ -356,12 +363,15 @@ def add_comment(channel_id, case, comment, user_id, user_name):
             "body" : comment + '\n*Comment submitted by {} via Google Cloud Support Slack bot*'.format(user_name)
         }
         req = support_service.cases().comments().create(parent=parent, body=req_body)
-        try:
-            req.execute()          
-        except Exception as e:
-            logging.error(e, ' : {}'.format(datetime.now()))
-            client.chat_postEphemeral(channel=channel_id, user=user_id, text="Your comment may not have posted. Please try again later.")
-        client.chat_postEphemeral(channel=channel_id, user=user_id, text=f"You added a new comment on case {case}: {comment}")
+        for attempt in range(MAX_RETRIES):
+            try:
+                req.execute()          
+            except BrokenPipeError as e:
+                logging.error(e, ' : {}'.format(datetime.now()))
+                client.chat_postEphemeral(channel=channel_id, user=user_id, text="Your comment may not have posted. Please try again later.")
+            else:
+                break
+        client.chat_postEphemeral(channel=channel_id, user=user_id, text=f"You added a new comment on case {case}: {comment}")        
 
 
 def change_priority(channel_id, case, priority, user_id):
@@ -390,11 +400,14 @@ def change_priority(channel_id, case, priority, user_id):
                 }
         update_mask = "case.severity"
         req = support_service.cases().patch(name=parent, updateMask=update_mask, body=body) 
-        try:
-            req.execute()            
-        except Exception as e:
-            logging.error(e, ' : {}'.format(datetime.now()))
-            client.chat_postEphemeral(channel=channel_id, user=user_id, text="Your attempt to change the case priority has failed. Please try again later.")
+        for attempt in range(MAX_RETRIES):
+            try:
+                req.execute()            
+            except BrokenPipeError as e:
+                logging.error(e, ' : {}'.format(datetime.now()))
+                client.chat_postEphemeral(channel=channel_id, user=user_id, text="Your attempt to change the case priority has failed. Please try again later.")
+            else:
+                break
         client.chat_postEphemeral(channel=channel_id, user=user_id, text=f"You have changed the priority of case {case} to {priority}.")
 
         
@@ -437,10 +450,13 @@ def escalate(channel_id, case, user_id, reason, justification, user_name):
                 }
         escalation_mask = ['escalation.reason', 'escalation.justification']
         req = support_service.cases().escalate(name=parent, body=body)
-        try:
-            req.execute()
-        except Exception as e:
-            client.chat_postEphemeral(channel=channel_id, user=user_id, text="Your attempt to escalate may have failed. Please contact your account team or try again later.")
+        for attempt in range(MAX_RETRIES):
+            try:
+                req.execute()
+            except BrokenPipeError as e:
+                client.chat_postEphemeral(channel=channel_id, user=user_id, text="Your attempt to escalate may have failed. Please contact your account team or try again later.")
+            else:
+                break
         client.chat_postEphemeral(channel=channel_id, user=user_id, text=f"You have escalated case {case}")
 
 
@@ -670,7 +686,7 @@ def case_updates():
         req = support_service.cases().search(query=query_string)
         try:
             resp = req.execute().get('cases', [])
-        except Exception as e: 
+        except BrokenPipeError as e: 
             logging.error(e, ' : {}'.format(datetime.now()))
             time.sleep(5)
             continue
