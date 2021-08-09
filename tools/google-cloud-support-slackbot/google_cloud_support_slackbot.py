@@ -62,9 +62,8 @@ if os.path.exists(tracked_cases_file):
         except json.decoder.JSONDecodeError as e:
             logging.error(e, ' : {}'.format(datetime.now()))
         else:
-            for dict_json_string  in tracked_cases_json:
-                tracked_case_dict = json.dumps(dict_json_string)
-                tracked_cases.append(json.loads(tracked_case_dict))
+            for tracked_case  in tracked_cases_json:
+                tracked_cases.append(tracked_case)
 
     
 class Support_Case:
@@ -765,9 +764,8 @@ def notify_slack(case, update_type, update_text):
             except json.decoder.JSONDecodeError as e:
                 logging.error(e, ' : {}'.format(datetime.now()))
             else:
-                for dict_json_string  in tracked_cases_json:
-                    tracked_case_dict = json.dumps(dict_json_string)
-                    tracker.append(json.loads(tracked_case_dict))
+                for tracked_case  in tracked_cases_json:
+                    tracker.append(tracked_case)
         for t in tracker:
             if t['case'] == case:
                 if update_type == 'comment':
