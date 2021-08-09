@@ -51,13 +51,19 @@ r = requests.get('https://cloudsupport.googleapis.com/$discovery/rest?key={}&lab
 support_service = build_from_document(r.json())
 
 cases_file = 'support_cases.json'
-tracked_cases_file = 'tracked_cases'
+tracked_cases_file = 'tracked_cases.json'
+tracked_cases = []
 
 if os.path.exists(tracked_cases_file):
     with open(tracked_cases_file) as tcf:
-        tracked_cases = list(eval(tcf.read()))
-else:
-    tracked_cases = []
+        try:
+            tracked_cases_json = json.load(tcf)
+        except json.decoder.JSONDecodeError as e:
+            logging.error(e, ' : {}'.format(datetime.now()))
+        else:
+            for dict_json_string  in tracked_cases_json:
+                tracked_case_dict = json.dumps(dict_json_string)
+                tracked_cases.append(json.loads(tracked_case_dict))
 
     
 class Support_Case:
@@ -119,14 +125,12 @@ class Support_Case:
         self.priority = caseobj['severity'].replace('S', 'P')
         self.state = caseobj['state']
         req = support_service.cases().comments().list(parent=self.resource_name)
-        for attempt in range(MAX_RETRIES):
-            try:
-                self.comment_list = req.execute().get('comments',[])         
-            except BrokenPipeError as e:
-                logging.error(e, ' : {}'.format(datetime.now()))
-                time.sleep(1)
-            else:
-                break
+        try:
+            self.comment_list = req.execute(num_retries=MAX_RETRIES).get('comments',[])         
+        except BrokenPipeError as e:
+            logging.error(e, ' : {}'.format(datetime.now()))
+            time.sleep(1)
+      
         
 # Handle all calls to the support bot
 @app.route('/google-cloud-support', methods=['POST'])
@@ -363,14 +367,11 @@ def add_comment(channel_id, case, comment, user_id, user_name):
             "body" : comment + '\n*Comment submitted by {} via Google Cloud Support Slack bot*'.format(user_name)
         }
         req = support_service.cases().comments().create(parent=parent, body=req_body)
-        for attempt in range(MAX_RETRIES):
-            try:
-                req.execute()          
-            except BrokenPipeError as e:
-                logging.error(e, ' : {}'.format(datetime.now()))
-                client.chat_postEphemeral(channel=channel_id, user=user_id, text="Your comment may not have posted. Please try again later.")
-            else:
-                break
+        try:
+            req.execute(num_retries=MAX_RETRIES)          
+        except BrokenPipeError as e:
+            logging.error(e, ' : {}'.format(datetime.now()))
+            client.chat_postEphemeral(channel=channel_id, user=user_id, text="Your comment may not have posted. Please try again later.")
         client.chat_postEphemeral(channel=channel_id, user=user_id, text=f"You added a new comment on case {case}: {comment}")        
 
 
@@ -400,14 +401,11 @@ def change_priority(channel_id, case, priority, user_id):
                 }
         update_mask = "case.severity"
         req = support_service.cases().patch(name=parent, updateMask=update_mask, body=body) 
-        for attempt in range(MAX_RETRIES):
-            try:
-                req.execute()            
-            except BrokenPipeError as e:
-                logging.error(e, ' : {}'.format(datetime.now()))
-                client.chat_postEphemeral(channel=channel_id, user=user_id, text="Your attempt to change the case priority has failed. Please try again later.")
-            else:
-                break
+        try:
+            req.execute(num_retries=MAX_RETRIES)            
+        except BrokenPipeError as e:
+            logging.error(e, ' : {}'.format(datetime.now()))
+            client.chat_postEphemeral(channel=channel_id, user=user_id, text="Your attempt to change the case priority has failed. Please try again later.")
         client.chat_postEphemeral(channel=channel_id, user=user_id, text=f"You have changed the priority of case {case} to {priority}.")
 
         
@@ -450,13 +448,10 @@ def escalate(channel_id, case, user_id, reason, justification, user_name):
                 }
         escalation_mask = ['escalation.reason', 'escalation.justification']
         req = support_service.cases().escalate(name=parent, body=body)
-        for attempt in range(MAX_RETRIES):
-            try:
-                req.execute()
-            except BrokenPipeError as e:
-                client.chat_postEphemeral(channel=channel_id, user=user_id, text="Your attempt to escalate may have failed. Please contact your account team or try again later.")
-            else:
-                break
+        try:
+            req.execute(num_retries=MAX_RETRIES)
+        except BrokenPipeError as e:
+            client.chat_postEphemeral(channel=channel_id, user=user_id, text="Your attempt to escalate may have failed. Please contact your account team or try again later.")
         client.chat_postEphemeral(channel=channel_id, user=user_id, text=f"You have escalated case {case}")
 
 
@@ -685,7 +680,7 @@ def case_updates():
 
         req = support_service.cases().search(query=query_string)
         try:
-            resp = req.execute().get('cases', [])
+            resp = req.execute(num_retries=MAX_RETRIES).get('cases', [])
         except BrokenPipeError as e: 
             logging.error(e, ' : {}'.format(datetime.now()))
             time.sleep(5)
@@ -761,9 +756,17 @@ def notify_slack(case, update_type, update_text):
     update_text : str
         update relevant content that is injected into the Slack message
     """
-    if os.path.exists(tracked_cases_file):        
+    if os.path.exists(tracked_cases_file):
+        tracker = []
         with open(tracked_cases_file) as tcf:
-            tracker = list(eval(tcf.read()))
+            try:
+                tracked_cases_json = json.load(tcf)
+            except json.decoder.JSONDecodeError as e:
+                logging.error(e, ' : {}'.format(datetime.now()))
+            else:
+                for dict_json_string  in tracked_cases_json:
+                    tracked_case_dict = json.dumps(dict_json_string)
+                    tracker.append(json.loads(tracked_case_dict))
         for t in tracker:
             if t['case'] == case:
                 if update_type == 'comment':
