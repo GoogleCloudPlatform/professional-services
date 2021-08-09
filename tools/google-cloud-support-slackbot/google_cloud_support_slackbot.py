@@ -27,6 +27,7 @@ from flask import Flask, request, Response
 from multiprocessing import Process
 from googleapiclient.discovery import build_from_document
 from datetime import datetime
+from gevent.pywsgi import WSGIServer
 
 # To run this on the cheapest possible VM, we will only log Warnings and Errors
 logging.basicConfig(filename='error.log')
@@ -826,5 +827,6 @@ def get_parent(case) -> str:
 if __name__ == "__main__":
     p = Process(target=case_updates)
     p.start()
-    app.run(debug=False, use_reloader=False)
+    http_server = WSGIServer(('', 5000), app)
+    http_server.serve_forever()
     p.join()
