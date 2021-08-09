@@ -148,6 +148,6 @@ As the Cloud Support API continues to expand and we collect more feedback for re
 2. Run the following commands:
 	1. `cd /google-cloud-support-slackbot`
 	1. `sudo svn export --force https://github.com/GoogleCloudPlatform/professional-services/trunk/tools/google-cloud-support-slackbot/google_cloud_support_slackbot.py`
-	1. `sudo chmod +x google-cloud-support-slackbot.py`
+	1. `sudo chmod +x google_cloud_support_slackbot.py`
 3. Close your SSH session
 4. Stop and Start your VM
