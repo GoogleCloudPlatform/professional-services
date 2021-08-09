@@ -124,7 +124,7 @@ Return to [Google Cloud](https://cloud.google.com/console) and from **Compute En
 	1. Use sudo to open the `default` file with your editor of choice, and replace <STATIC_IP> with the external ip address of your VM. Then save and close the file
 	1. `sudo mv default /etc/nginx/sites-available/`
 	1. Use sudo to open the `.env` file with your editor of choice. Enter your API Key, Slack Token, and numeric org id in their respective locations. Then save and close the file
-	1. `sudo chmod +x google-cloud-support-slackbot.py`
+	1. `sudo chmod +x google_cloud_support_slackbot.py`
 3. Close the SSH session
 4. From Compute Engine > VM instances, click your VM name to go to your VM instance details
 5. Stop the VM
