@@ -47,6 +47,7 @@ variable "source_ip_range_for_security_policy" {
   description = "Array of Cloud Armor security policy allowed IP ranges (put your IP as an array here)"
 }
 
+# Documentation: https://cloud.google.com/run/docs/securing/managing-access#making_a_service_public
 variable "cloud_run_invoker" {
   type        = string
   description = "IAM member authorized to access the end-point (for example, 'user:YOUR_IAM_USER' for only you or 'allUsers' for everyone)"
