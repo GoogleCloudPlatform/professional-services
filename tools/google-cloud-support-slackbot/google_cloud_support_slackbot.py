@@ -49,6 +49,7 @@ MAX_RETRIES = 3
 
 # Get our discovery doc and build our service
 r = requests.get('https://cloudsupport.googleapis.com/$discovery/rest?key={}&labels=V2_TRUSTED_TESTER&version=v2alpha'.format(API_KEY))
+r.raise_for_status()
 support_service = build_from_document(r.json())
 
 cases_file = 'support_cases.json'
@@ -66,9 +67,9 @@ if os.path.exists(tracked_cases_file):
                 tracked_cases.append(tracked_case)
 
     
-class Support_Case:
+class SupportCase:
     """
-    A class used to represent a Google Cloud Support Case.
+    Represent a Google Cloud Support Case.
 
     Attributes
     ----------
@@ -380,7 +381,8 @@ def add_comment(channel_id, case, comment, user_id, user_name):
         except BrokenPipeError as e:
             logging.error(e, ' : {}'.format(datetime.now()))
             client.chat_postEphemeral(channel=channel_id, user=user_id, text="Your comment may not have posted. Please try again later.")
-        client.chat_postEphemeral(channel=channel_id, user=user_id, text=f"You added a new comment on case {case}: {comment}")        
+        else:
+            client.chat_postEphemeral(channel=channel_id, user=user_id, text=f"You added a new comment on case {case}: {comment}")        
 
 
 def change_priority(channel_id, case, priority, user_id):
@@ -700,7 +702,7 @@ def case_updates():
         
         for case in resp:
             try:
-                temp_case = Support_Case(case)
+                temp_case = SupportCase(case)
             except NameError as e:
                 logging.error(e, ' : {}'.format(datetime.now()))
                 loop_skip = True
