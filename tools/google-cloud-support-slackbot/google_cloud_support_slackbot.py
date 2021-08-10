@@ -124,12 +124,20 @@ class Support_Case:
             caseobj['updateTime'].replace('Z', '+00:00')))
         self.priority = caseobj['severity'].replace('S', 'P')
         self.state = caseobj['state']
-        req = support_service.cases().comments().list(parent=self.resource_name)
-        try:
-            self.comment_list = req.execute(num_retries=MAX_RETRIES).get('comments',[])         
-        except BrokenPipeError as e:
-            logging.error(e, ' : {}'.format(datetime.now()))
-            time.sleep(1)
+        self.comment_list = []
+        case_comments = support_service.cases().comments()
+        request = case_comments.list(parent=self.resource_name)
+        while request is not None:
+            try:
+                comments = request.execute(num_retries=MAX_RETRIES)#.get('comments',[])
+            except BrokenPipeError as e:
+                logging.error(e, ' : {}'.format(datetime.now()))
+                time.sleep(1)
+            else:
+                if "comments" in comments:
+                    for comment in comments['comments']:
+                        self.comment_list.append(comment)
+                request = case_comments.list_next(request, comments)
       
         
 # Handle all calls to the support bot
