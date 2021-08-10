@@ -129,7 +129,7 @@ class Support_Case:
         request = case_comments.list(parent=self.resource_name)
         while request is not None:
             try:
-                comments = request.execute(num_retries=MAX_RETRIES)#.get('comments',[])
+                comments = request.execute(num_retries=MAX_RETRIES)
             except BrokenPipeError as e:
                 logging.error(e, ' : {}'.format(datetime.now()))
                 time.sleep(1)
@@ -414,7 +414,8 @@ def change_priority(channel_id, case, priority, user_id):
         except BrokenPipeError as e:
             logging.error(e, ' : {}'.format(datetime.now()))
             client.chat_postEphemeral(channel=channel_id, user=user_id, text="Your attempt to change the case priority has failed. Please try again later.")
-        client.chat_postEphemeral(channel=channel_id, user=user_id, text=f"You have changed the priority of case {case} to {priority}.")
+        else:
+            client.chat_postEphemeral(channel=channel_id, user=user_id, text=f"You have changed the priority of case {case} to {priority}.")
 
         
 def escalate(channel_id, case, user_id, reason, justification, user_name):
@@ -460,7 +461,8 @@ def escalate(channel_id, case, user_id, reason, justification, user_name):
             req.execute(num_retries=MAX_RETRIES)
         except BrokenPipeError as e:
             client.chat_postEphemeral(channel=channel_id, user=user_id, text="Your attempt to escalate may have failed. Please contact your account team or try again later.")
-        client.chat_postEphemeral(channel=channel_id, user=user_id, text=f"You have escalated case {case}")
+        else:
+            client.chat_postEphemeral(channel=channel_id, user=user_id, text=f"You have escalated case {case}")
 
 
 def stop_tracking(channel_id, channel_name, case, user_id):
