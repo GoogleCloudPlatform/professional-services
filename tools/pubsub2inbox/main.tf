@@ -16,13 +16,17 @@ terraform {
   required_version = ">= 0.13.0"
 
   required_providers {
-    google = ">= 3.40.0"
+    google  = ">= 3.40.0"
+    archive = ">= 2.2.0"
   }
 }
 
 provider "google" {
   project = var.project_id
   region  = var.region
+}
+
+provider "archive" {
 }
 
 resource "google_secret_manager_secret" "config-secret" {
@@ -61,34 +65,34 @@ resource "random_id" "bucket-suffix" {
 }
 
 resource "google_storage_bucket" "function-bucket" {
-  name = format("%s-%s", var.bucket_name, random_id.bucket-suffix.hex)
+  name                        = format("%s-%s", var.bucket_name, random_id.bucket-suffix.hex)
+  uniform_bucket_level_access = true
 }
 
-resource "null_resource" "function-zip" {
-  triggers = {
-    always_run = timestamp()
-  }
-
-  provisioner "local-exec" {
-    command = format("zip %s/index.zip main.py requirements.txt filters/*.py output/*.py processors/*.py", path.root)
-  }
+locals {
+  function_files       = ["main.py", "requirements.txt", "filters/*.py", "output/*.py", "processors/*.py"]
+  all_function_files   = setunion([for glob in local.function_files : fileset(path.module, glob)]...)
+  function_file_hashes = [for file_path in local.all_function_files : filemd5(format("%s/%s", path.module, file_path))]
 }
 
-resource "random_string" "function-zip-name" {
-  length  = 8
-  special = false
-  upper   = false
-  keepers = {
-    md5 = filemd5(format("%s/index.zip", path.root))
+data "archive_file" "function-zip" {
+  type        = "zip"
+  output_path = "${path.module}/index.zip"
+  dynamic "source" {
+    for_each = local.all_function_files
+    content {
+      content  = file(format("%s/%s", path.module, source.value))
+      filename = source.value
+    }
   }
 }
 
 resource "google_storage_bucket_object" "function-archive" {
-  name   = format("index-%s.zip", random_string.function-zip-name.result)
+  name   = format("index-%s.zip", md5(join(",", local.function_file_hashes)))
   bucket = google_storage_bucket.function-bucket.name
   source = format("%s/index.zip", path.root)
   depends_on = [
-    null_resource.function-zip
+    data.archive_file.function-zip
   ]
 }
 
@@ -108,6 +112,7 @@ resource "google_cloudfunctions_function" "function" {
   source_archive_bucket = google_storage_bucket.function-bucket.name
   source_archive_object = google_storage_bucket_object.function-archive.name
   entry_point           = "process_pubsub"
+  timeout               = var.function_timeout
 
   event_trigger {
     event_type = "google.pubsub.topic.publish"
@@ -118,12 +123,10 @@ resource "google_cloudfunctions_function" "function" {
   }
 
   environment_variables = {
+    # You could also specify latest secret version here, in case you don't want to redeploy
+    # and are fine with the function picking up the new config on subsequent runs.
     CONFIG          = google_secret_manager_secret_version.config-secret-version.name
     LOG_LEVEL       = 10
     SERVICE_ACCOUNT = google_service_account.service-account.email
   }
-
-  depends_on = [
-    null_resource.function-zip
-  ]
 }
