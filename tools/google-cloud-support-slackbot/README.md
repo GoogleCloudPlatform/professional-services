@@ -1,4 +1,4 @@
-# ![Google Cloud Support Slackbot](google_cloud_support_buddy_small.png)
+# ![Google Cloud Support Slackbot](google_cloud_support_slackbot_icon_small.png)
 # Slack Integration for Google Cloud Support
 
 Slack app for pulling Google Cloud Support case information via the Cloud Support API and pushing it to Slack. The goal is to help reduce the overall time to resolution for cases of all priorities by putting case updates in Slack where they will be more easily noticed by their devs and engineers.
@@ -137,6 +137,15 @@ Return to [Google Cloud](https://cloud.google.com/console) and from **Compute En
 	`/google-cloud-support-slackbot/google_cloud_support_slackbot.py`
 8. Scroll to the bottom of the page and click 'Save'
 9. Start your VM
+
+## Testing
+
+To verify that everything was setup correctly, do the following:
+1. Go to your Slack workspace
+2. Under **Channels** right-click the channel where you want to add the bot and select **Open channel details**
+3. Select the **Integrations** tab
+4. In the **Apps** section, click **Add apps** and then add the bot
+5. Open the channel where you added the bot and run the `/google-cloud-support help` command. If it returns a list of available help commands then everything was setup correctly. If it returns an error that the dispatch failed, then you will need to debug. The most likely culprits are an issue with an org security policy, or a missed step somewhere
 
 ## Closing
 
