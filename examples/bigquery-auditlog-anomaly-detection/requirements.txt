@@ -1,0 +1,15 @@
+voila
+numpy
+pandas
+matplotlib
+seaborn
+sklearn
+google-cloud
+google-cloud-bigquery
+voila
+chart_studio
+python-dotenv
+cufflinks
+ipywidgets
+tabulate
+pyarrow
