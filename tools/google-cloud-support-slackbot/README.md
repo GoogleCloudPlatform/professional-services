@@ -1,4 +1,4 @@
-# ![Google Cloud Support Slackbot](google_cloud_support_slackbot_icon_small.png)
+# ![Google Cloud Support Slackbot](google_cloud_support_slackbot_icon.svg)
 # Slack Integration for Google Cloud Support
 
 Slack app for pulling Google Cloud Support case information via the Cloud Support API and pushing it to Slack. The goal is to help reduce the overall time to resolution for cases of all priorities by putting case updates in Slack where they will be more easily noticed by their devs and engineers.
