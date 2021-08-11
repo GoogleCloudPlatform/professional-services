@@ -2,34 +2,36 @@
 from google.cloud import bigquery
 from google.cloud.exceptions import NotFound
 
-class CreateView():
-    def __init__(self,
-                project_id, data_project_id, dataset_id, audit_log_table, location, audit_log_partitioned, 
-                destination_project_id, destination_dataset_id, summary_table_name):
-        # Source Project Dataset
-        self.project_id       = project_id 
-        self.data_project_id = data_project_id
-        self.dataset_id       = dataset_id
-        self.audit_log_table  = audit_log_table
-        self.location         = location 
-        self.audit_log_partitioned = audit_log_partitioned 
 
-        ## Destination View 
+class CreateView():
+
+    def __init__(self, project_id, data_project_id, dataset_id, audit_log_table,
+                 location, audit_log_partitioned, destination_project_id,
+                 destination_dataset_id, summary_table_name):
+        # Source Project Dataset
+        self.project_id = project_id
+        self.data_project_id = data_project_id
+        self.dataset_id = dataset_id
+        self.audit_log_table = audit_log_table
+        self.location = location
+        self.audit_log_partitioned = audit_log_partitioned
+
+        ## Destination View
         self.destination_project_id = destination_project_id
-        self.destination_dataset_id = destination_dataset_id 
-        self.summary_table_name     = summary_table_name 
+        self.destination_dataset_id = destination_dataset_id
+        self.summary_table_name = summary_table_name
 
     def get_datetime_constraint(self, start_date, end_date):
         if not start_date or not end_date:
             return ""
-        elif self.audit_log_partitioned: 
+        elif self.audit_log_partitioned:
             return f"_PARTITIONTIME BETWEEN '{start_date}' AND '{end_date}' AND "
         else:
             return f"CAST(protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.createTime AS datetime) >= CAST('{start_date}' AS datetime) AND CAST(protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.createTime AS datetime) <= CAST('{end_date}' AS datetime) AND "
-    
+
     # Create completed job Table Query
     def create_completed_job_view(self):
-        
+
         sql_template = """WITH BQAudit AS (
         SELECT
             protopayload_auditlog.authenticationInfo.principalEmail,
@@ -220,20 +222,23 @@ class CreateView():
         FROM
         BQAudit"""
 
-        client = bigquery.Client(location=self.location, project=self.destination_project_id)
-        print("Client creating using default project: {}".format(client.project))
+        client = bigquery.Client(location=self.location,
+                                 project=self.destination_project_id)
+        print("Client creating using default project: {}".format(
+            client.project))
         shared_dataset_ref = client.dataset(self.destination_dataset_id)
-        view_ref           = shared_dataset_ref.table(self.summary_table_name)
-        view               = bigquery.Table(view_ref)
+        view_ref = shared_dataset_ref.table(self.summary_table_name)
+        view = bigquery.Table(view_ref)
         try:
-            dataset_id   =  self.dataset_id
+            dataset_id = self.dataset_id
             client.get_table(view_ref)
-            print(
-                "Summary View already exists {}".format(self.summary_table_name)
-            )
+            print("Summary View already exists {}".format(
+                self.summary_table_name))
         except NotFound:
             print(dataset_id)
-            view.view_query    = sql_template.format(self.data_project_id, dataset_id, self.audit_log_table)
+            view.view_query = sql_template.format(self.data_project_id,
+                                                  dataset_id,
+                                                  self.audit_log_table)
             view = client.create_table(view)
             print("Successfully created view at {}".format(view.full_table_id))
 

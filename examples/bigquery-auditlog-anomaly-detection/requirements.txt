@@ -13,3 +13,4 @@ cufflinks
 ipywidgets
 tabulate
 pyarrow
+kaleido
