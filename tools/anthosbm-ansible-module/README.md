@@ -32,6 +32,7 @@
 - [6. Connect Gateway Configuration](#6-connect-gateway-configuration)
   - [6.1 Configure Connect Gateway](#61-configure-connect-gateway)
   - [6.2 Validate Connect Gateway](#62-validate-connect-gateway)
+- [7 Reset Cluster](#7-reset-cluster)
 
 
 ## 1. Introduction
@@ -69,7 +70,7 @@ sudo apt install ansible
 
 cd <REPOSITORY_ROOT>/ansible
 
-ansible-playbook anthos.yml
+ansible-playbook create_anthos_cluster.yml
 ```
 
 
@@ -123,10 +124,10 @@ os_type: "ubuntu"
 ```
 
 
-The role execution is done from the playbook (anthos.yml).
+The role execution is done from the playbook (create_anthos_cluster.yml).
 
 
-*anthos.yml*
+*create_anthos_cluster.yml*
 
 ```
 - hosts: all
@@ -151,7 +152,7 @@ The role execution is done from the playbook (anthos.yml).
 The workstation should have Docker installed and the non-root user that is used for Anthos installation should have access to the Docker. This can be achieved through the ws-docker role.
 
 
-*anthos.yml*
+*create_anthos_cluster.yml*
 
 ```
 - hosts: workstation
@@ -183,7 +184,7 @@ ws_docker: "yes"
 The Workstation should have gcloud SDK installed. You can do this using the**gcloud-sdk** Ansible role.
 
 
-*anthos.yml*
+*create_anthos_cluster.yml*
 
 ```
     - role: gcloud-sdk
@@ -210,7 +211,7 @@ gcloud_sdk: "yes"
 The Workstation should have the kubectl tool installed. This can be done through**kubectl-tool** Ansible role.
 
 
-*anthos.yml*
+*create_anthos_cluster.yml*
 
 ```
     - role: kubectl-tool
@@ -237,7 +238,7 @@ kubectl_tool: "yes"
 The Workstation should have the bmctl tool installed. This can be done through**bmctl-tool** Ansible role.
 
 
-*anthos.yml*
+*create_anthos_cluster.yml*
 
 ```
     - role: bmctl-tool
@@ -276,7 +277,7 @@ The Google Cloud configuration can be done from a Cloud Shell or a GCE VM Instan
 You can configure the Google Cloud as well as create required Service Accounts using**service-accounts** Ansible role.
 
 
-*anthos.yml*
+*create_anthos_cluster.yml*
 
 ```
     - role: service-accounts
@@ -327,7 +328,7 @@ bmctl create config -c [CLUSTER_NAME]
 The Anthos cluster can be created using the**anthos** Ansible role.
 
 
-*anthos.yml*
+*create_anthos_cluster.yml*
 
 ```
     - role: anthos
@@ -386,7 +387,7 @@ kubectl_tool: "yes"
 bmctl_tool: "yes"
 service_accounts: "yes"
 # Link to download bmctl from. It also contains the version
-bmctl_download_url: gs://anthos-baremetal-release/bmctl/1.8.0/linux-amd64/bmctl
+bmctl_download_url: gs://anthos-baremetal-release/bmctl/1.8.2/linux-amd64/bmctl
 # Directory used by bmctl tool for creating the cluster
 bmctl_workspace_dir: bmctl-workspace
 # Directory where Service Account keys are placed
@@ -476,7 +477,7 @@ gcloud_sdk: "yes"
 kubectl_tool: "yes"
 bmctl_tool: "yes"
 service_accounts: "yes"
-bmctl_download_url: gs://anthos-baremetal-release/bmctl/1.8.0/linux-amd64/bmctl
+bmctl_download_url: gs://anthos-baremetal-release/bmctl/1.8.2/linux-amd64/bmctl
 bmctl_workspace_dir: bmctl-workspace
 gcp_sa_key_dir: /home/anthos/gcp_keys
 local_gcr_sa_name: anthos-gcr-svc-account
@@ -514,7 +515,7 @@ Run below command from workstation node (ansible should be installed on the work
 
 ```
 cd <REPOSITORY_ROOT>/ansible
-ansible-playbook anthos.yml
+ansible-playbook create_anthos_cluster.yml
 ```
 
 
@@ -567,7 +568,7 @@ gcloud_sdk: "yes"
 kubectl_tool: "yes"
 bmctl_tool: "yes"
 service_accounts: "no"
-bmctl_download_url: gs://anthos-baremetal-release/bmctl/1.8.0/linux-amd64/bmctl
+bmctl_download_url: gs://anthos-baremetal-release/bmctl/1.8.2/linux-amd64/bmctl
 bmctl_workspace_dir: bmctl-workspace
 gcp_sa_key_dir: /home/anthos/gcp_keys
 local_gcr_sa_name: anthos-gcr-svc-account
@@ -602,7 +603,7 @@ Run below command from workstation node (ansible should be installed on the work
 
 ```
 cd <REPOSITORY_ROOT>/ansible
-ansible-playbook anthos.yml
+ansible-playbook create_anthos_cluster.yml
 ```
 
 
@@ -657,7 +658,7 @@ gcloud_sdk: "yes"
 kubectl_tool: "yes"
 bmctl_tool: "yes"
 service_accounts: "yes"
-bmctl_download_url: gs://anthos-baremetal-release/bmctl/1.8.0/linux-amd64/bmctl
+bmctl_download_url: gs://anthos-baremetal-release/bmctl/1.8.2/linux-amd64/bmctl
 bmctl_workspace_dir: bmctl-workspace
 gcp_sa_key_dir: /home/anthos/gcp_keys
 local_gcr_sa_name: anthos-gcr-svc-account
@@ -693,7 +694,7 @@ Run below command from workstation node (ansible should be installed on the work
 
 ```
 cd <REPOSITORY_ROOT>/ansible
-ansible-playbook anthos.yml
+ansible-playbook create_anthos_cluster.yml
 ```
 
 
@@ -748,7 +749,7 @@ gcloud_sdk: "yes"
 kubectl_tool: "yes"
 bmctl_tool: "yes"
 service_accounts: "yes"
-bmctl_download_url: gs://anthos-baremetal-release/bmctl/1.8.0/linux-amd64/bmctl
+bmctl_download_url: gs://anthos-baremetal-release/bmctl/1.8.2/linux-amd64/bmctl
 bmctl_workspace_dir: bmctl-workspace
 gcp_sa_key_dir: /home/anthos/gcp_keys
 local_gcr_sa_name: anthos-gcr-svc-account
@@ -784,7 +785,7 @@ Run below command from workstation node (ansible should be installed on the work
 
 ```
 cd <REPOSITORY_ROOT>/ansible
-ansible-playbook anthos.yml
+ansible-playbook create_anthos_cluster.yml
 ```
 
 
@@ -799,10 +800,11 @@ You can use Connect Gateway for connecting to the registered clusters and run co
 You can configure the Connect Gateway with**connect-gateway** Ansible role. 
 
 
-*anthos.yml*
+*create_anthos_cluster.yml*
 
 ```
     - role: connect-gateway
+      when: (cgw_members is defined) and (cgw_members != None)
 ```
 
 
@@ -838,4 +840,13 @@ Run the below command to verify that you can connect successfully to the Cluster
 
 ```
 Kubectl get pods -A
+```
+
+## 7 Reset Cluster
+
+You can reset the anthos cluster using **reset_anthos_cluster.yml** playbook.
+
+```
+cd <REPOSITORY_ROOT>/ansible
+ansible-playbook reset_anthos_cluster.yml
 ```
