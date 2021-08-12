@@ -55,4 +55,4 @@
       when: service_accounts == "yes"
     - role: anthos
     - role: connect-gateway
-    
+      when: (cgw_members is defined) and (cgw_members != None)
