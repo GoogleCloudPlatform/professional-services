@@ -4,7 +4,7 @@ This module consists of deep dive analysis of a BigQuery environment in Google C
 ## Pipeline Optimisation
 
 #### <b>Definitions</b>
-The word <b>'pipeline'</b> here refers to one step of the transformation process in data warehouse, in this case BigQuery, as part of an ELT job. Each pipeline involves source table(s) and destination table. For example, a query job 
+The word 'pipeline' refers to a collection of all job instances of a query in the transformation process in a data warehouse, in this case BigQuery. Each 'pipeline' involves source table(s) and destination table. For example, a query:
 ```
 SELECT purchaseId, shop
 FROM project.dataset.flash_sale_purchases
