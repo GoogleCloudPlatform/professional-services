@@ -1,0 +1,7 @@
+itables
+ipywidgets
+google-cloud-bigquery
+pandas
+python-dotenv
+voila
+jinja2

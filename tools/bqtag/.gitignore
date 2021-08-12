@@ -1,0 +1,13 @@
+credentials.json
+.idea
+venv
+*.pyc
+*.log
+*.gz
+*.tgz
+*.zip
+*.json
+build
+dist
+*.egg-info
+pylintrc
