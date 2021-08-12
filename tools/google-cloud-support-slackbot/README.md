@@ -99,14 +99,15 @@ From **APIs & Services > Credentials**
 Go to [Slack Apps](http://api.slack.com/apps) to do the following:
 
 1. Click **Create New App** and select **From scratch**. Name your app `Google Cloud Support Bot` and select your workspace
-2. Under **Settings > Basic Information**, scroll down to **Display Information** and upload the [google_cloud_support_buddy_big.png](google_cloud_support_buddy_big.png) or an icon of your choosing.
+2. Under **Settings > Basic Information**, scroll down to **Display Information** and upload the [google_cloud_support_buddy_big.png](google_cloud_support_buddy_big.png) or an icon of your choosing
 3. Go to **Features > Slash Commands** and create the following command:
 	1. Command: `/google-cloud-support `
 	1. Request URL: `http://<your_vm_external_ip>/google-cloud-support`
 	1. Short description: `Track and manage your Google Cloud support cases in Slack. Use /google-cloud-support help for the list of commands`
 	1. Usage Hint: `[command] [parameter 1] [parameter 2] [parameter 3]`
 4. Go to **Features > OAuth & Permissions**. Scroll down to **Scopes** and add the **chat:write** scope. Add the **commands** scope if it isn't listed already listed
-5. At the top of the **Features > OAuth & Permissions** page, under **OAuth Tokens for Your Workspace**, click **Install to Workspace**. Copy the token. You may need Slack admin approval to install the app.
+5. At the top of the **Features > OAuth & Permissions** page, under **OAuth Tokens for Your Workspace**, click **Install to Workspace**. Copy the token. You may need Slack admin approval to install the app
+6. Go to **Settings > Basic Information** and under **App Credentials** copy the `Signing Secret`
 
 ## Setup Part 4 - Google Cloud Phase 2
 
