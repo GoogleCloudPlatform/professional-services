@@ -1,10 +1,20 @@
 ## Terraform deployment steps
 
+Using Cloud Shell
 * Go to https://console.cloud.google.com/
 * Select the project created for deploying the solution
 * Activate Cloud Shell & execute below steps
 
+Using Local Shell
+* Open terminal/shell
+* Configure gcloud and select the project created for deploying the solution
+```bash
+gcloud init
+```
+* Execute below steps
 
+
+---
 ### Create a directory
 ```bash
 mkdir workspace; cd workspace
@@ -118,6 +128,10 @@ terraform apply
 
   <img src="bigquery_connector.png" align="center" />
 
+* Click "ADD TO REPORT" at the top right corner
+
+  <img src="add_to_report.png" align="center" />
+
 * After all the data sources are mapped, click "Copy Report".
 
 
@@ -128,11 +142,29 @@ terraform apply
 cd ../../
 ```
 
-If this reports an error, wait a few seconds and try again.
-NOTE: Need to check why Cloud Monitoring throws error initially.
 ```bash
-python bootstrap.py
+python3 -m venv venv
 ```
+
+```bash
+source venv/bin/activate
+```
+
+```bash
+pip install --upgrade pip
+```
+
+```bash
+pip install -r requirements.txt
+```
+
+If the below command reports an error, wait a few seconds and try again.
+<br />
+**NOTE**: Need to check why Cloud Monitoring throws error initially.
+```bash
+python3 bootstrap.py
+```
+
 
 ---
 ### Setup Alerting
