@@ -1,9 +1,7 @@
 # Table Access Pattern Analysis
 This module consists of deep dive analysis of a BigQuery environment in Google Cloud Platform, according to audt logs - data access data, which can be used to optimise BigQuery usage, and improve time, space and cost of BigQuery.
 
-## Optimisation and Analysis Points
-
-### <b>Pipeline Optimisation</b>
+## Pipeline Optimisation
 
 #### <b>Definitions</b>
 The word <b>'pipeline'</b> here refers to one step of the transformation process in data warehouse, in this case BigQuery, as part of an ELT job. Each pipeline involves source table(s) and destination table. For example, a query job 
@@ -61,7 +59,7 @@ data-dumpling-data-assessment/
 │   ├── src/
 │   ├── templates/
 │   ├── README.md
-│   ├── pipeline-output-only.ipynb
+│   ├── pipeline-output_only.ipynb
 │   ├── pipeline.ipynb
 │   ├── requirements.txt
 │   └── var.env
@@ -69,44 +67,45 @@ data-dumpling-data-assessment/
 
 There are several subdirectories under the `table-access-pattern-analysis` subdirectory.
 <ul>
-<li> assets/
+<li> <b>assets/</b>
+
 This directory contains images or other assets that are used in README.md
 
-<li> bq_routines/
+<li> <b>bq_routines/</b>
 
 This directory contains all the [JS UDF](https://cloud.google.com/bigquery/docs/reference/standard-sql/user-defined-functions#javascript-udf-structure) functions that will be created in BigQuery upon usage of the tool. These files are not to be run independently in a JS environment, these file contents will be loaded by the Python package, `src/` to be constructed as a funciton creation query to BigQuery.
 
 For more information about each of the functions, look at this [section](#routines-creation)
 
-<li> pipeline_graph/
+<li> <b>pipeline_graph/</b>
 
 This directory contains the HTML file, which is a webpaget that is used to displa the pipeline visualisation of the pipeline optimisation module.
 
-<li> src/
+<li> <b>src/</b>
 
 This directory is the source Python package of the module, it drives the logic for table and routines creation, as well as query towards BigQuery tables.
 
-<li> templates/
+<li> <b>templates/</b>
 
 This directory consist of a template HTML file that will be filled using Jinja2 templating system, through the Python code.
 
-<li> README.md
+<li> <b>README.md</b>
 
 This is the README file which explains all the details fo this directory.
 
-<li> pipeline.ipynb
+<li> <b>pipeline-output_only.ipynb</b>
+
+This Notebook is used for demonstration purposes of the pipeline optimisation only, it shows the expected output and result of running the notebook. 
+
+<li> <b>pipeline.ipynb</b>
 
 This Notebook is used for the pipeline optimisation. 
 
-<li> pipeline.ipynb
-
-This Notebook is used for the pipeline optimisation. 
-
-<li> requirements.txt
+<li> <b>requirements.txt</b>
 
 This file consist of all the dependencies, you don't need to install it manually because it's part of the Jupyter Notebooks command.
 
-<li> var.env
+<li> <b>var.env</b>
 
 This is the file on which environment variables are to be defined and to be loaded by the different Jupyter Notebooks. For every 'analysis workflow', you should redefine some of the variables. For details, look at this [section](#environment-variables)
 
@@ -121,7 +120,6 @@ This is the file on which environment variables are to be defined and to be load
 ## Set Up
 1. Go to the `table-access-pattern-analysis` directory of the project
 2. Set the environment variables inside `var.env`.
-3. Run the whole `setup.ipynb` notebook. This notebook installs things that are required to run the rest of the notebooks, including to install dependencies that are in `requirements.txt`. Thus, you do not need to take care of it again.
 
 ### Environment Variables
 The environment variables that you need to set includes:
@@ -149,6 +147,7 @@ These 3 environment variables should point to the audit logs - data access table
 * INPUT_PROJECT_ID = 'project-a'
 * INPUT_DATASET_ID = 'dataset-b'
 * INPUT_AUDIT_LOGS_TABLE_ID = 'cloudaudit_googleapis_com_data_access_*'
+</ul>
 
 <li><b>OUTPUT_PROJECT_ID, OUTPUT_DATASET_ID</b>
 <ul>
@@ -162,6 +161,7 @@ These 2 environment variables should point to the dataset ID that will contain a
 * OUTPUT_DATASET_ID = 'dataset-d'
 
 </ul>
+
 <li><b>OUTPUT_TABLE_SUFFIX</b>
 <ul>
 <li> Definition 
@@ -173,6 +173,7 @@ If this variable is not set, the analysis cannot be run as you might unintention
 
 * OUTPUT_TABLE_SUFFIX = 'first-analysis'. 
 </ul>
+
 <li><b>IS_AUDIT_LOGS_INPUT_TABLE_PARTITIONED</b>
 <ul>
 <li> Definition 
@@ -192,8 +193,10 @@ Its value should be either "TRUE" or "FALSE", with the exact casing.
 The 'LOCATION' variable is used to specify the region on which the input dataset and output dataset is located, a common and most used location is 'US'.
 
 <li> Example value
+    
 * LOCATION=US
 </ul>
+
 <li><b>IS_INTERACTIVE_TABLES_MODE</b>
 <ul>
 <li> Definition
@@ -229,12 +232,6 @@ After resetting any environment variables, you need to restart the kernel becaus
     This tool helps identify pipeline optimisation points. At first, the tool will list down tables with high difference of writing and reading frequency throughout the data warehouse queries. 
 
     After identifying the table that you would like to analyse further, you can select the table in the next part of the notebook and display the result in an iFrame inside the notebook. 
-    <li><b>Subquery Optimisation, run `subquery.ipynb`</b>
-    This tool helps gain insight on tables that are highly queried by expensive subqueries in a data warehouse. The first part of the notebook will list down subqueries, starting from the one that is mostly repeated. 
-
-    In the last part of the notebook, you can choose to look further into the details of the job that contains this subqueries. 
-
-    After identifying the subqueries that needs to be optimised, the data engineers can decide to create intermediate tables or materialized view to reduce recomputation frequency. 
     </ul>
 
 ## Appendix
@@ -347,6 +344,7 @@ This table stores the information of the different pipeline IDs. Each unique pip
 
 <li>source_destination_table_pairs<OUTPUT_TABLE_SUFFIX>
 This table stores all source-destination table pair. It also stores the pipeline ID, which is the pipeline ID that this pair was part of. 
+
 ```
 [
     {
