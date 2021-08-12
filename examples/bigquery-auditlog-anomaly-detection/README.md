@@ -1,11 +1,12 @@
 # BigQuery Audit Log Anomany Detection
 BQ Audit log anomanly detection is a tool which uses [Cloud Data Access Audit logs](https://cloud.google.com/logging/docs/audit#:~:text=Data%20Access%20audit%20logs%20contain,read%20user%2Dprovided%20resource%20data.) for automated analysis of Big Data Cloud environments with a focus on BigQuery. The tool summarized and aggregated BigQuery Audit Logs into metric values that provide insights into BigQuery jobs. Anomalous datapoints are determined by how similar they are to other datapoints in the audit logs. 
 
-
 To identify outliers, this tool showcases two methods: 
 
 1. <b> Outliers in groups: </b> This method looks for a datapoint that differs signicantly from others within various groups (can be one of the following: 'principalEmail', 'eventName', 'projectId', 'dayOfWeek', 'hourOfDay'). This means that it identifies entities within the group which use BQ differently (more or less) from others. 
 2.  <b> Time Series Analysis: </b> Looking for outliers in periodic trends by looking at audit logs chronologically. This method has an underlying assumption that BigQuery usage has trends.
+
+A sample of the outputs can be found in [this notebook](audit_log_anomaly_detection.ipynb).
 
 
 ## Requirements
