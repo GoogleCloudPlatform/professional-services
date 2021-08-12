@@ -60,3 +60,8 @@ The algorithm to identify time series outliers is as follows:
 `estimation = trend + seasonal`
 3. Outliers are determined by finding the difference between the estimated reconstructed time series and the actual value (residual). Any residual above a sigma threshold (user defined) is flagged as an outlier in the plot below. 
  
+### <b> No code view </b>
+[Voila](https://github.com/voila-dashboards/voila) allows notebooks to be run with a no-code view for increased usability. 
+To view a fully functional version of this sample without the code blocks, append the end of the Jupyter URL with `/voila`. <br> <br>
+For example: 
+* https://localhost:3000/voila
