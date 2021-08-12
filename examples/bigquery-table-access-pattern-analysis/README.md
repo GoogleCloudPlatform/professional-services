@@ -15,7 +15,7 @@ with its destination table set to return_purchases table. The source table of th
 
 ![](assets/pipeline-definition.png)
 
-In the illustriation above, the whole source table(s) - destination table relay is the pipeline. One of the pipeline involves T1 and T2 as its source tables and T5 as its destinaion table.
+In the illustriation above, one of the pipeline involves T1 and T2 as its source tables and T5 as its destination table.
 
 Given enough historical data from the audit logs, you can group queries which have the same source table(s) and destination table pair, and see when these were executed. Same source table(s) - destination table pair will almost always come from the same query, even if they are a different query, the semantics should be similar, so this assumption is still valid. After grouping the source table(s) - destination table pair, you might be able to see a pattern in their execution history. You might see that this pair is executed hourly, or daily, or even monthly, and when it was last executed. 
 
@@ -36,13 +36,14 @@ This tool helps identify pipeline optimisation points, by pinpointing tables wit
 As can be seen from the GIF, the tool will visualise all the pipelines associated with a table. To be specific, this includes all query jobs that has this table of interest as its source or destination table. As mentioned above, for every query job, there are source table(s) and also a single destination table. 
 
 The tables that are involved in the pipelines associated with a table employs the below logic:
+
 For every query jobs that has the table of interest as one of its source tables or destination table, 
 * For every source table(s) of every query job that has the table of itnerest as one of its source table(s), recursively find query jobs that has this source table as its destination table, and get its source table(s). 
 * For every destination table of every query job that has the table of interest as its destination table, recursively find query jobs that has destination table as its source table, and get its destination table.
 
 As seen from the GIF too, for every tables that are involved in the pipeline of the table of interest, you can toggle to it, and see the details of the job schedule of every query involving this particular table. It will list down all the query jobs that has this table as its source table, and destination table. These query jobs are then grouped by whether they are ad-hoc jobs, live jobs or dead jobs. For each of this job, the counterpart destination table or source table are also noted.
 
-Given these insights, you can further deep dive into insights that are particularly interesting for you. For example, you might identify imbalance queries, as mentioned in the above examples, the flash_sale_purchases table was updated hourly but only queried daily. You might also identify queries that are already ‘dead’ and no longer scheduled, according to the last execution time, and identify if this is intended, or something might have happened inside the query that causes an error.
+Given these insights, you can further deep dive into insights that are particularly interesting for you. For example, you might identify imbalance queries, an imaginary `flash_sale_purchases` table in your data warehouse might be updated hourly but only queried daily. You might also identify queries that are already ‘dead’ and no longer scheduled, according to the last execution time, and identify if this is intended, or something might have happened inside the query that causes an error.
 
 ## Architecture
 This tool is built on top of BigQuery and Python modules. The data source of the tool is audit log - data access which is located in BigQuery. The module will be responsible for the creation of intermediate tables (from the audit logs - data access source table), and the execution of all relevant queries towards those intermediate tables that will be used for analysis purposes. The analysis can be done through a Jupyter notebook, which can be run locally (if installed) or in AI Platform Notebooks. This guide will specifically be on running the tool on AI Platform Notebooks
@@ -59,8 +60,8 @@ data-dumpling-data-assessment/
 │   ├── src/
 │   ├── templates/
 │   ├── README.md
-│   ├── pipeline-output_only.ipynb
 │   ├── pipeline.ipynb
+│   ├── pipeline-output_only.ipynb
 │   ├── requirements.txt
 │   └── var.env
 ```
@@ -93,13 +94,13 @@ This directory consist of a template HTML file that will be filled using Jinja2 
 
 This is the README file which explains all the details fo this directory.
 
-<li> <b>pipeline-output_only.ipynb</b>
-
-This Notebook is used for demonstration purposes of the pipeline optimisation only, it shows the expected output and result of running the notebook. 
-
 <li> <b>pipeline.ipynb</b>
 
 This Notebook is used for the pipeline optimisation. 
+
+<li> <b>pipeline-output_only.ipynb</b>
+
+This Notebook is used for demonstration purposes of the pipeline optimisation only, it shows the expected output and result of running the notebook. 
 
 <li> <b>requirements.txt</b>
 
@@ -200,6 +201,7 @@ The 'LOCATION' variable is used to specify the region on which the input dataset
 <li><b>IS_INTERACTIVE_TABLES_MODE</b>
 <ul>
 <li> Definition
+
 Boolean on whether you want the tables to be interactive, it is recommended to set this to "TRUE". If you want the tables output to be interactive, you should set this value to "TRUE" and can choose to run the Classic Jupyter Notebook. To do this, 
     1. Navigate to `Help` menu in Jupyter
     2. Click on `Launch Classic Notebook`. 
@@ -225,7 +227,7 @@ After resetting any environment variables, you need to restart the kernel becaus
     * If you prefer a newer version of the Jupyter notebook, you can choose to not run the classic Jupyter notebook. The output of the tables produced by this notebook is not interactive.
 2. Run the cells from top to bottom of the notebook. 
 3. In the first cell, there is a datetime picker, which is used to filter the audit logs data source to the start and end date range specified. If you select `05-05-2021` as a start date and `06-05-2021`, the analysis result of the notebook run will be based on audit logs data on 5th May 2021 to 6th May 2021.
-4. Different analysis produced by each notebooks
+4. Run pipeline optimisation analysis produced in Jupyter Notebook
     <ul>
     <li><b>Pipeline Optimisation, run `pipeline.ipynb`</b>
 
@@ -343,6 +345,7 @@ This table stores the information of the different pipeline IDs. Each unique pip
 ```
 
 <li>source_destination_table_pairs<OUTPUT_TABLE_SUFFIX>
+
 This table stores all source-destination table pair. It also stores the pipeline ID, which is the pipeline ID that this pair was part of. 
 
 ```
@@ -368,7 +371,7 @@ This table stores all source-destination table pair. It also stores the pipeline
 ]
 ```
 
-<li>table_difrect_pipelines<OUTPUT_TABLE_SUFFIX>
+<li>table_direct_pipelines<OUTPUT_TABLE_SUFFIX>
 
 This table stores all table pipeline, as destination table and as source table
 ```
