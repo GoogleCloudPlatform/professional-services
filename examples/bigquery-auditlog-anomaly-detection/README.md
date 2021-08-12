@@ -6,7 +6,7 @@ To identify outliers, this tool showcases two methods:
 1. <b> Outliers in groups: </b> This method looks for a datapoint that differs signicantly from others within various groups (can be one of the following: 'principalEmail', 'eventName', 'projectId', 'dayOfWeek', 'hourOfDay'). This means that it identifies entities within the group which use BQ differently (more or less) from others. 
 2.  <b> Time Series Analysis: </b> Looking for outliers in periodic trends by looking at audit logs chronologically. This method has an underlying assumption that BigQuery usage has trends.
 
-A sample of the outputs can be found in [this notebook](audit_log_anomaly_detection.ipynb).
+A sample of the outputs can be found in [audit_log_anomaly_detection.ipynb](audit_log_anomaly_detection.ipynb).
 
 
 ## Requirements
