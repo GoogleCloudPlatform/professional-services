@@ -1,5 +1,9 @@
 # BigQuery Audit Log Anomany Detection
-BQ Audit log anomanly detection is a tool which uses [Cloud Data Access Audit logs](https://cloud.google.com/logging/docs/audit#:~:text=Data%20Access%20audit%20logs%20contain,read%20user%2Dprovided%20resource%20data.) for automated analysis of Big Data Cloud environments with a focus on BigQuery. The tool summarized and aggregated BigQuery Audit Logs into metric values that provide insights into BigQuery jobs. Anomalous datapoints are determined by how similar they are to other datapoints in the audit logs. 
+BQ Audit log anomanly detection is a tool which uses [BigQuery Audit Logs](https://cloud.google.com/bigquery/docs/reference/auditlogs), specifically in the `AuditData` format, for automated analysis of Big Data Cloud environments with a focus on BigQuery. 
+
+
+The tool summarized and aggregated BigQuery Audit Logs into metric values that provide insights into BigQuery jobs. Anomalous datapoints are determined by how similar they are to other datapoints in the audit logs. 
+
 
 To identify outliers, this tool showcases two methods: 
 
@@ -12,9 +16,9 @@ A sample of the outputs can be found in [audit_log_anomaly_detection.ipynb](audi
 ## Requirements
 This demo showcases the outputs of the tool when identifying anomalous BQ usage. To run the tool locally, you would require the following requirements:
 
-* <b>Access to Cloud Data Access Logs in BigQuery:</b> Usually labelled `cloudaudit_googleapis_com_data_access_*` where * is a wildcard usually for the date. The data has to be in bigquery. To have access to BigQuery Audit Logs, you would have to [create a Log Sink](https://cloud.google.com/logging/docs/export/configure_export_v2). 
+* <b>Access to Cloud Data Access Logs in BigQuery:</b> Usually labelled `cloudaudit_googleapis_com_data_access_*` where * is a wildcard usually for the date. The [Cloud Data Access Audit logs](https://cloud.google.com/logging/docs/audit#:~:text=Data%20Access%20audit%20logs%20contain,read%20user%2Dprovided%20resource%20data.) has to be in bigquery. To have access to BigQuery Audit Logs in BigQuery, you would have to [create a Log Sink](https://cloud.google.com/logging/docs/export/configure_export_v2). 
 * <b>Same location of source and destination datasets:</b> As per BigQuery, the created view's destination dataset has to be in the same GCP location as the source dataset. 
-* <b>V1 Logs:</b> This tool is build using V1 logs and requires that `protopayload_auditlog.servicedata_v1_bigquery` to be one of the fields in the Audit Logs. 
+* <b>Logs in `AuditData` format:</b> This tool is build using the `AuditData` log format (refered to in the logs as V1) and requires that `protopayload_auditlog.servicedata_v1_bigquery` to be one of the fields in the Audit Logs. 
 * <b>IAM Access:</b> Access to the the project, destination project, audit log dataset and destination audit log dataset. 
 * <b>Jupyter Notebook:</b> Can be run using local jupyter notebook or an ai platform notebook of GCP. 
 
