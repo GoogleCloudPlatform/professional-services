@@ -165,7 +165,7 @@ In order to tell Google Cloud Builder how to run your tests, you'll need to crea
 root of your project. Inside that file you'll and add the steps needed to execute your unit tests. For each steps you
 will reference the cloud builder that was created in step 3, by it's location in the Google Container Registry.
 
-*Note: Each step specified in the cloudbuild.yaml is a separate, ephemerial run of a docker image,
+*Note: Each step specified in the cloudbuild.yaml is a separate, ephemeral run of a docker image,
 however [the /workspace/ directory is preserved between runs](https://cloud.google.com/cloud-build/docs/build-config#dir).
 One way to carry python packages forward is to use a virtualenv housed in /workspace/*
 

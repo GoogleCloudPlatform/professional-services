@@ -336,7 +336,7 @@ In case of any error in calling the any request in API, Response of the API woul
 - Revanth Godugunuri
 - Ansuj Joshi
 
-We would like to take this oppourtunity to thank the following reviewers for their constant support and suggestions for improving this tool:
+We would like to take this opportunity to thank the following reviewers for their constant support and suggestions for improving this tool:
 - Yiliang Zhao
 - Shixin Luo
 - Yujin Tang

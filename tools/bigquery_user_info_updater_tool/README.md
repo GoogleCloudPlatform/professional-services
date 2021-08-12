@@ -201,7 +201,7 @@ needs to run properly:
  to set an environmental variable for your credentials.
 
 #### 5.2 Environment Initialization
-In order to use this tool, all three user tables first need to be created. A script called [initialize_bigquery_resources.py](biguqery_user_info_updater/initialize_bigquery_resources.py)
+In order to use this tool, all three user tables first need to be created. A script called [initialize_bigquery_resources.py](bigquery_user_info_updater/initialize_bigquery_resources.py)
 has been included to create the tables. To run it, follow these steps:
 * Obtain the schema that you would like to use for the user tables. Primitive types and `RECORD` types can be included
 in the schema. Make sure it is in JSON format following
@@ -241,7 +241,7 @@ in the schema. Make sure it is in JSON format following
 
 * Run the following command to create a dataset and the three tables described above:
 ```
-python biguqery_user_info_updater/initialize_bigquery_resources.py \
+python bigquery_user_info_updater/initialize_bigquery_resources.py \
 --project_id=<ID of your project> \
 --schema_path=<Path to the JSON user schema described in the first step> \
 --dataset_id=<ID of the dataset that will hold the user tables> \
@@ -257,7 +257,7 @@ python biguqery_user_info_updater/initialize_bigquery_resources.py \
 In order to update user info, run the [update_user_info.py](bigquery_user_info_updater/update_user_info.py) script using the
 following command:
 ```
-python biguqery_user_info_updater/update_user_info.py \
+python bigquery_user_info_updater/update_user_info.py \
 --project_id=<ID of your project> \
 --schema_path=<Path to the JSON user schema described in the first step> \
 --dataset_id=<ID of the dataset that will hold the user tables> \

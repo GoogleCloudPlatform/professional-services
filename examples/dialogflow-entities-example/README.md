@@ -1,7 +1,7 @@
 # Entities creation and update for Dialogflow
 This module is an example how to create and update entities for Dialogflow.
 
-## Recomended Reading
+## Recommended Reading
 [Entities Options](https://cloud.google.com/dialogflow/docs/entities-options)
 
 ## Technology Stack
@@ -216,11 +216,11 @@ For each entity type in the batch:
 ```
     └──  main
        ├── creates a map entity
-       ├── create a composite entiy
+       ├── create a composite entity
        ├── updates a map entity
 ```
 
-Below the definiton of the entities.
+Below the definition of the entities.
 
 ## Map entities
 #### entity name: saving-accounts-types

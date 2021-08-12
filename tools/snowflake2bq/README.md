@@ -121,7 +121,7 @@ without providing the full path.
 The `snowflake-bq.sh` script uses the Snowflake `snowsql` command line tool and the BigQuery `bq load` command line tool to migrate snowflake tables from Snowflake to BigQuery.
 
 ### Snowflake Config File
-A config file is used by snowsql to obtaion connection parameters for Snowflake. A sample snowflake config file `sf_config.txt` has been provided in this project. A named connection is defined by the config file as follows.
+A config file is used by snowsql to obtain connection parameters for Snowflake. A sample snowflake config file `sf_config.txt` has been provided in this project. A named connection is defined by the config file as follows.
 
 ```
 [connections.<snowflake-connection-name>]
