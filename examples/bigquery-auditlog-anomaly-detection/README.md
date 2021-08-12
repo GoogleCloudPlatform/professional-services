@@ -66,3 +66,14 @@ The algorithm to identify time series outliers is as follows:
 To view a fully functional version of this sample without the code blocks, append the end of the Jupyter URL with `/voila`. <br> <br>
 For example: 
 * https://localhost:3000/voila
+
+### <b>Interactive Plots</b>
+The plots rendered are made with Plotly as interactive plot. However, the jupyter notebook rendered in github is static. To view the interactive plot in a live kernel notebook, follow the instruction to comment out the line for `pio.renderers.default = github` and uncomment the `pio.renderers.default = jupyter`
+```
+jupyter = 'plotly_mimetype+notebook_connected'
+github = 'svg'
+
+# Comment out the Github line and Uncomment the jupyter line when running in jupyter to see interactive graphs
+pio.renderers.default = github
+# pio.renderers.default = jupyter
+```
