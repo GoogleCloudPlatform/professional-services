@@ -24,6 +24,7 @@ import logging
 from pathlib import Path
 from dotenv import load_dotenv
 from flask import Flask, request, Response
+from slackeventsapi import SlackEventAdapter
 from multiprocessing import Process
 from googleapiclient.discovery import build_from_document
 from datetime import datetime
@@ -44,8 +45,11 @@ app = Flask(__name__)
 
 client = slack.WebClient(token=os.environ['SLACK_TOKEN'])
 ORG_ID = os.environ['ORG_ID']
+SLACK_SIGNING_SECRET = os.environ['SIGNING_SECRET']
 API_KEY = os.environ['API_KEY']
 MAX_RETRIES = 3
+
+slack_events = SlackEventAdapter(SLACK_SIGNING_SECRET, "/slack/events", app)
 
 # Get our discovery doc and build our service
 r = requests.get('https://cloudsupport.googleapis.com/$discovery/rest?key={}&labels=V2_TRUSTED_TESTER&version=v2alpha'.format(API_KEY))
@@ -159,7 +163,16 @@ def gcp_support() -> Response:
         tells Slack that the command was received and not to throw a timeout alert
     200
         HTTP 200 OK
+    403
+        HTTP 403 Forbidden, received if the request signature can't be verified
     """
+    # Verify that the request is coming from our Slack
+    slack_timestamp = request.headers.get('X-Slack-Request-Timestamp')
+    slack_signature = request.headers.get('X-Slack-Signature')
+    result = slack_events.server.verify_signature(slack_timestamp, slack_signature)
+    if result == False:
+        return Response(), 403
+    
     data = request.form
     token = data.get('token')
     channel_id = data.get('channel_id')
