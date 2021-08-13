@@ -1,5 +1,5 @@
 # Table Access Pattern Analysis
-This module consists of deep dive analysis of a BigQuery environment in Google Cloud Platform, according to audt logs - data access data, which can be used to optimise BigQuery usage, and improve time, space and cost of BigQuery.
+This module consists of deep dive analysis of a BigQuery environment in Google Cloud Platform, according to audit logs - data access data, which can be used to optimise BigQuery usage, and improve time, space and cost of BigQuery.
 
 ## Pipeline Optimisation
 
@@ -15,7 +15,7 @@ with its destination table set to return_purchases table. The source table of th
 
 ![](assets/pipeline-definition.png)
 
-In the illustriation above, one of the pipeline involves T1 and T2 as its source tables and T5 as its destination table.
+In the illustration above, one of the pipeline involves T1 and T2 as its source tables and T5 as its destination table.
 
 Given enough historical data from the audit logs, you can group queries which have the same source table(s) and destination table pair, and see when these were executed. Same source table(s) - destination table pair will almost always come from the same query, even if they are a different query, the semantics should be similar, so this assumption is still valid. After grouping the source table(s) - destination table pair, you might be able to see a pattern in their execution history. You might see that this pair is executed hourly, or daily, or even monthly, and when it was last executed. 
 
@@ -38,7 +38,7 @@ As can be seen from the GIF, the tool will visualise all the pipelines associate
 The tables that are involved in the pipelines associated with a table employs the below logic:
 
 For every query jobs that has the table of interest as one of its source tables or destination table, 
-* For every source table(s) of every query job that has the table of itnerest as one of its source table(s), recursively find query jobs that has this source table as its destination table, and get its source table(s). 
+* For every source table(s) of every query job that has the table of interest as one of its source table(s), recursively find query jobs that has this source table as its destination table, and get its source table(s). 
 * For every destination table of every query job that has the table of interest as its destination table, recursively find query jobs that has destination table as its source table, and get its destination table.
 
 As seen from the GIF too, for every tables that are involved in the pipeline of the table of interest, you can toggle to it, and see the details of the job schedule of every query involving this particular table. It will list down all the query jobs that has this table as its source table, and destination table. These query jobs are then grouped by whether they are ad-hoc jobs, live jobs or dead jobs. For each of this job, the counterpart destination table or source table are also noted.
@@ -74,13 +74,13 @@ This directory contains images or other assets that are used in README.md
 
 <li> <b>bq_routines/</b>
 
-This directory contains all the [JS UDF](https://cloud.google.com/bigquery/docs/reference/standard-sql/user-defined-functions#javascript-udf-structure) functions that will be created in BigQuery upon usage of the tool. These files are not to be run independently in a JS environment, these file contents will be loaded by the Python package, `src/` to be constructed as a funciton creation query to BigQuery.
+This directory contains all the [JS UDF](https://cloud.google.com/bigquery/docs/reference/standard-sql/user-defined-functions#javascript-udf-structure) functions that will be created in BigQuery upon usage of the tool. These files are not to be run independently in a JS environment, these file contents will be loaded by the Python package, `src/` to be constructed as a function creation query to BigQuery.
 
 For more information about each of the functions, look at this [section](#routines-creation)
 
 <li> <b>pipeline_graph/</b>
 
-This directory contains the HTML file, which is a webpaget that is used to displa the pipeline visualisation of the pipeline optimisation module.
+This directory contains the HTML file, which is a webpage that is used to display the pipeline visualisation of the pipeline optimisation module.
 
 <li> <b>src/</b>
 
@@ -114,7 +114,7 @@ This is the file on which environment variables are to be defined and to be load
 
 ## Prerequisites
 * Your account must have access to read the audit logs - data access table that will be used as a source table for the analysis. For more details regarding different kinds of audit logs, visit this [page](https://cloud.google.com/logging/docs/audit#data-access)
-* The audit logs - data access table that wwill be used as a source table for the analysis should contain BigQuery logs version 1. For more details regarding audit logs version, visit this [page](https://cloud.google.com/bigquery/docs/reference/auditlogs)
+* The audit logs - data access table that will be used as a source table for the analysis should contain BigQuery logs version 1. For more details regarding audit logs version, visit this [page](https://cloud.google.com/bigquery/docs/reference/auditlogs)
 * Your account must have access to write to the destination dataset.
 * The source and destination dataset must be in the same location
 
@@ -141,7 +141,7 @@ The details of each of the environment variables are as follows:
 <ul>
 <li> Definition 
 
-These 3 environment variables should point to the audit logs - data access table that will be the source table of the analysis. The complete path to the audit logs table sourrce will be `INPUT_PROJECT_ID.INPUT_DATASET_ID.INPUT_AUDIT_LOGS_TABLE_ID`. If you want to analyse on a table with a wildcard, include the wildcard in the INPUT_AUDIT_LOGS_TABLE_ID variable as well. 
+These 3 environment variables should point to the audit logs - data access table that will be the source table of the analysis. The complete path to the audit logs table source will be `INPUT_PROJECT_ID.INPUT_DATASET_ID.INPUT_AUDIT_LOGS_TABLE_ID`. If you want to analyse on a table with a wildcard, include the wildcard in the INPUT_AUDIT_LOGS_TABLE_ID variable as well. 
 
 <li> Example values
 
@@ -295,7 +295,7 @@ This table stores some of the details of job history that are relevant to pipeli
         "name": "sourceTables",
         "type": "ARRAY<STRING>",
         "mode": "NULLABLE",
-        "description": "The source tables of this job, in an arra of concatenated 'project.dataset.table' string format"
+        "description": "The source tables of this job, in an array of concatenated 'project.dataset.table' string format"
     }
 ]
 ```
@@ -339,7 +339,7 @@ This table stores the information of the different pipeline IDs. Each unique pip
         "name": "sourceTables",
         "type": "ARRAY<STRING>",
         "mode": "NULLABLE",
-        "description": "The source tables of this pipeline, in an arra of concatenated 'project.dataset.table' string format"
+        "description": "The source tables of this pipeline, in an array of concatenated 'project.dataset.table' string format"
     }
 ]
 ```
@@ -400,13 +400,13 @@ This table stores all table pipeline, as destination table and as source table
 
 
 ### Routines Creation
-There are several JavaScript UDFs created in BigQuery upon usage of the tool. These function files are not to be run independently in a JS environment, these file contents will be loaded by the Python package, `src/` to be constructed as a funciton creation query to BigQuery.
+There are several JavaScript UDFs created in BigQuery upon usage of the tool. These function files are not to be run independently in a JS environment, these file contents will be loaded by the Python package, `src/` to be constructed as a function creation query to BigQuery.
 
 <ul> 
 
 <li>getPipelineTypeAndSchedule
 
-This funtion takes in an array of timestamp, and return a struct of the pipeline type and schedule according to the history. There are 3 possible values for pipeline type: live/dead/adhoc, and there are 4 possible values for schedule: non deterministic/hourly/daily/monthly. 
+This function takes in an array of timestamp, and return a struct of the pipeline type and schedule according to the history. There are 3 possible values for pipeline type: live/dead/adhoc, and there are 4 possible values for schedule: non deterministic/hourly/daily/monthly. 
 
 The routine file content is located in `bq_routines/getPipelineTypeAndSchedule.js`
 

@@ -258,7 +258,7 @@ Debug Logs
 ---
 
 Debug logs are also available, but are not sent by default.  To enable, deploy
-the function with the `DEBUG` environmant variable set to a non-empty string.
+the function with the `DEBUG` environment variable set to a non-empty string.
 Note, debug logs generates 2*N log events every time a VM is deleted where N is
 the number of DNS records across all configured managed zones.  For example,
 deleting 10 VM instances with 1,000 managed DNS records generates 20,000 debug

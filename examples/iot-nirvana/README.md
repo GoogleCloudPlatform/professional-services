@@ -91,7 +91,7 @@ root of the project with the following parameters:
 
 * **[PROJECT_ID]** - your project's identifier
 * **[BUCKET_NAME]** - the name of the bucket created by the bootstrapping
-  script, identical to your projet's identifier, **[PROJECT_ID]**, where the
+  script, identical to your project's identifier, **[PROJECT_ID]**, where the
   Dataflow pipeline's binary package will be stored
 * **[PUBSUB_TOPIC]** - the name of the PubSub topic created by the bootstrapping
   script, from which the Dataflow pipeline will read the temperature data;
@@ -123,7 +123,7 @@ bucket with the following command:
 The following steps will allow you to set up and run on AppEngine the Web
 frontend that allows to visualize in real time the temperature data captured
 from the temperature sensors:
-1. Modify the `src/main/webapp/startup.sh`file in the `/app-egine` folder by
+1. Modify the `src/main/webapp/startup.sh`file in the `/app-engine` folder by
    updating the variables below. This is the startup script of the Virtual
    Machines that will be created from the image **debian9-java8-img** and it
    creates 10 instances of the Java client simulating a temperature sensor.
@@ -137,7 +137,7 @@ from the temperature sensors:
 2. Copy the `startup.sh` file in the Google Cloud Storage bucket by running the
    following command in the `/app-engine` folder:
    `gsutil cp src/main/webapp/startup.sh gs://$BUCKET_NAME/`
-3. Modify the `/pom.xml` file in the `/app-egine` folder:
+3. Modify the `/pom.xml` file in the `/app-engine` folder:
    * Update the `<app.id/>` node with the **[PROJECT_ID]** of your GCP project
    * Update the `<app.version/>` with the desired version of the application
 4. Modify the `src/main/webapp/config/client.properties` file in the
@@ -175,7 +175,7 @@ temperature sensors simulation. Follow the steps below to achieve this:
 * Go to the following address in your web browser, which will display the map
   of the Earth with 3 buttons at the bottom: **Start**, **Update**, **Stop**
   `https://[YOUR_PROJECT_ID].appspot.com/index.html`
-* Click on the **Start** button at the bottm left of the page (this also
+* Click on the **Start** button at the bottom left of the page (this also
   enables the buttons **Update** and **Stop**)
 * The VM instances being launched are visible in the Google Cloud Console under
   [Compute Engine](https://console.cloud.google.com/compute/instances)
