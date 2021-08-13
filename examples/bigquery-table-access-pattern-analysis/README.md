@@ -377,7 +377,7 @@ This table stores all source-destination table pair. It also stores the pipeline
         "name": "pipelineId",
         "type": "INTEGER",
         "mode": "NULLABLE",
-        "description": "The pipeline ID of pipeline that this pair was part of"
+        "description": "The pipeline ID for the pipeline that this pair was part of"
     }
 ]
 ```
