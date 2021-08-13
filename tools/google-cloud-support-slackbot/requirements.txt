@@ -4,7 +4,6 @@ async-timeout==3.0.1
 attrs==21.2.0
 cachetools==4.2.2
 certifi==2021.5.30
-chardet==4.0.0
 click==7.1.2
 crcmod==1.7
 cryptography==2.6.1
