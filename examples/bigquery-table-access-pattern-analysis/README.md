@@ -44,7 +44,7 @@ For every query jobs that has the table of interest as one of its source tables 
 * For every source table(s) of every query job that has the table of interest as one of its source table(s), recursively find query jobs that has this source table as its destination table, and get its source table(s). 
 * For every destination table of every query job that has the table of interest as its destination table, recursively find query jobs that has destination table as its source table, and get its destination table.
 
-As seen from the GIF too, for every tables that are involved in the pipeline of the table of interest, you can toggle to it, and see the details of the job schedule of every query involving this particular table. It will list down all pipelines, the ad-hoc, live or dead pipelines that has this table as its source table, and destination table. 
+As seen from the GIF, for every table that is involved in the pipeline of the table of interest, you can select it, and see the details of the job schedule of every query involving this particular table. It will list all ad-hoc, live or dead pipelines that have this table as its source or destination table. 
 
 For example, a pipeline information on the right side of the graph might look like this
 
