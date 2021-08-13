@@ -270,7 +270,7 @@ This table stores some of the details of job history that are relevant to pipeli
         "name": "timestamp",
         "type": "TIMESTAMP",
         "mode": "NULLABLE",
-        "description": "Timestamp on when the job was run"
+        "description": "Timestamp when the job was run"
     },
     {
         "name": "email",
