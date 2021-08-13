@@ -326,7 +326,7 @@ This table stores the information of the different pipelines. Each unique pipeli
         "name": "timestamps",
         "type": "ARRAY<TIMESTAMP>",
         "mode": "NULLABLE",
-        "description": "Timestamps on when this pipeline was run in the past"
+        "description": "Timestamps when this pipeline was run in the past"
     },
     {
         "name": "pipelineType",
