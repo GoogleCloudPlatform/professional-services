@@ -31,7 +31,7 @@ We can categorise every pipeline to different pipeline type and scheduling pater
 The scheduling pattern can be identified as hourly, daily, weekly, or non-deterministically (no obvious pattern).
 
 #### <b>Purpose</b>
-This tool helps identify pipeline optimisation points, by pinpointing tables with high difference of writing and reading frequency throughout the data warehouse queries. High discrepancy between the write and read frequency of a table might be a good starting point for identifying optimisation points. Using this tool, we will also be able to visualise the pipelines that are involved with a table of interest, you can then further analyse the pipeline type and its scheduling pattern, and also each of the job of each pipelines, and pinpoint problems or optimisations from there. 
+This tool helps identify tables with a high difference between the write and read frequency across data warehouse queries. High discrepancy between the write and read frequency of a table might be a good starting point for identifying optimisation points. Using this tool we can visualise the pipelines that are involved with a table of interest. We can then further analyse the pipeline type, its scheduling pattern and the jobs in each pipeline, and pinpoint problems or optimisations from there. 
 
 ![](assets/pipeline-example.gif)
 
