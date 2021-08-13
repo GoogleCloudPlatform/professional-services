@@ -417,7 +417,7 @@ There are several JavaScript UDFs created in BigQuery upon usage of the tool. Th
 
 <li>getPipelineTypeAndSchedule
 
-This funtion takes in an array of timestamp, and return a struct of the pipeline type and schedule according to the history. There are 3 possible values for pipeline type: live/dead/ad hoc, and there are 4 possible values for schedule: non deterministic/hourly/daily/monthly. 
+This function takes an array of timestamps and returns a struct of the pipeline type and schedule according to the history. There are 3 possible values for pipeline type: live/dead/ad hoc, and there are 4 possible values for schedule: non deterministic/hourly/daily/monthly. 
 
 The routine file content is located in `bq_routines/getPipelineTypeAndSchedule.js`
 
