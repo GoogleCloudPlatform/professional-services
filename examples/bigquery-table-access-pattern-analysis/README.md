@@ -132,6 +132,7 @@ This set up is for running JupyterLab Notebook in AI Platform Notebooks, you can
 3. Clone this repository 
 4. Go to the `table-access-pattern-analysis` directory of the project
 5. Set the environment variables inside `var.env`.
+6. Run the analysis, as described [below](#analysis).
 
 ### Environment Variables
 The environment variables that you need to set includes:
@@ -214,10 +215,8 @@ The details of each of the environment variables are as follows:
 <li> Definition
 
 * Boolean on whether you want the tables to be interactive, it is recommended to set this to "TRUE". 
-* If you want the tables output to be interactive (can filter, sort, search), you should set this value to "TRUE" and can choose to run the Classic Jupyter Notebook. To do this, 
-    1. Navigate to `Help` menu in Jupyter
-    2. Click on `Launch Classic Notebook`. 
-* If you want the tables output to not be interactive, you can set this value to "FALSE" and run it as normal but the table is not as interactive.
+* If you want the tables output to be interactive (can filter, sort, search), you should set this value to "TRUE". 
+* If you want the tables output to not be interactive, you can set this value to "FALSE".
     
 <li> Value
 
@@ -232,8 +231,12 @@ After resetting any environment variables, you need to restart the kernel becaus
 ## Analysis
 1. Open a notebook to run an analysis.
 2. You can choose the interactivity mode of the output.
-    * If you want the tables output to be interactive, you can choose to run the Classic Jupyter Notebook. To do this, navigate to `Help` menu, then `Launch Classic Jupyter Notebook`. The output of the tables produced by this notebook will be interactive (can filter, sort, search), but it is an older version of Jupyter notebook in AI Platform Notebooks
-    * If you prefer a newer version of the Jupyter notebook, you can choose to not run the classic Jupyter notebook. The output of the tables produced by this notebook is not interactive.
+    * If you want the tables output to be interactive, you can choose to run the Classic Jupyter Notebook. The output of the tables produced by this notebook will be interactive (can filter, sort, search), but it is an older version of Jupyter notebook in AI Platform Notebooks. To do this,
+        1. Navigate to `Help` menu in Jupyter
+        2. Click on `Launch Classic Notebook`. 
+        3. Navigate the directory and open the Notebook that you want to do the analysis on.
+
+    * If you prefer a newer version of the Jupyter notebook, you can choose to not run the Classic Jupyter Notebook. The output of the tables produced by this notebook is not interactive. You can double click on the intended Notebook from the list of files, without following the steps to launch a Classic Jupyter Notebook
 2. Run the cells from top to bottom of the notebook. 
 3. In the first cell, there is a datetime picker, which is used to filter the audit logs data source to the start and end date range specified. If you select `05-05-2021` as a start date and `06-05-2021`, the analysis result of the notebook run will be based on audit logs data on 5th May 2021 to 6th May 2021.
 4. Run pipeline optimisation analysis produced in Jupyter Notebook
