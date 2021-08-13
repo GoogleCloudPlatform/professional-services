@@ -47,7 +47,9 @@ For every query jobs that has the table of interest as one of its source tables 
 As seen from the GIF too, for every tables that are involved in the pipeline of the table of interest, you can toggle to it, and see the details of the job schedule of every query involving this particular table. It will list down all pipelines, the ad-hoc, live or dead pipelines that has this table as its source table, and destination table. 
 
 For example, a pipeline information on the right side of the graph might look like this
+
 ![](assets/pipeline-information-example.png)
+
 This means that the table `data-analytics-pocs.public.bigquery_audit_log` is a destination table in an ad-hoc pipeline, where `project4.finance.cloudaudit_googleapis_com_data_access_*` are the source table(s). The jobs of this pipeline has a non-deterministic schedule, and its pipeline ID is 208250. The pipeline ID information is useful if you want to further analyse this pipeline by querying the intermediate tables created. See [intermediate tables](#intermediate-tables-creation)
 
 Given these insights, you can further deep dive into insights that are particularly interesting for you. For example, you might identify imbalance queries, the table `flash_sale_purchases` in your data warehouse might updated hourly but only queried daily. You might also identify queries that are already ‘dead’ and no longer scheduled, according to the last execution time, and identify if this is intended, or something might have happened inside the query that causes an error.
