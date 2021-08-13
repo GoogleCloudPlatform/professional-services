@@ -35,6 +35,8 @@ This tool helps identify tables with a high difference between the write and rea
 
 ![](assets/pipeline-example.gif)
 
+This GIF shows the graph that will be visualised when running the tool. The graph is an HTML page that is rendered as an iFrame in the Jupyter Notebook. You can zoom in, zoom out, select (or deselect) a node to see more details about it. Each node represents a table, and each edge represents a pipeline from one table to another. The weight of the edges indicates the frequency of jobs of that pipeline compared to the rest of the pipelines in the current graph.
+
 #### <b>Analysing the Result</b>
 As can be seen from the GIF, the tool will visualise all the pipelines associated with a table. To be specific, this includes all query jobs that has this table of interest as its source or destination table. As mentioned above, for every query job, there are source table(s) and also a single destination table. 
 
