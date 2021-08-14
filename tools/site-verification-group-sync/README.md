@@ -8,7 +8,7 @@ The script can run one time, or be configured as a cron job to keep the two thin
 
   - Create a service account and download corresponding key
   - Enable "domain-wide delegation" for the service account (in order to read group membership)
-  - Ensure the relevant APIs (Admin SDK and Site Verification API) are enabled in the project the serviec account is created in
+  - Ensure the relevant APIs (Admin SDK and Site Verification API) are enabled in the project the service account is created in
   - Update the configuration file with your details
     - Note that the "Admin User" must be a user with permission to read membership of the group
   - Add the service account address to the list of verified owners manually

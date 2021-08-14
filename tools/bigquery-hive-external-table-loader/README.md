@@ -32,7 +32,7 @@ BigQuery tables are typically partitioned by date only, while Hive tables may be
 4. SQL is generated to rename columns and select partition values as constants
 5. A Query Job is submitted to execute the generated SQL, read from the ORC file and write to a BigQuery table
 
-6. For a Partition Refresh, step 4 appends to a temporary table. After all paritions are loaded into the temporary table, a Query Job selects from the temporary table and overwrites the target partition.
+6. For a Partition Refresh, step 4 appends to a temporary table. After all partitions are loaded into the temporary table, a Query Job selects from the temporary table and overwrites the target partition.
 
 
 

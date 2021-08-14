@@ -10,7 +10,7 @@ It can often be helpful to have an easy to deploy and easy to manage endpoint wh
 - Custom development is easier for your team when they only need to read data and forward it.  You can optionally use App Engine or Pub/Sub directly without breaking the pipeline.
 
 The webhoook tool is intended to be an easy to deploy and easy to manage
-application.  You can use it to recieve and process any un-authenticated http(s)
+application.  You can use it to receive and process any un-authenticated http(s)
 data.
 
 ## How to Deploy
@@ -51,7 +51,7 @@ dataflow pipeline.
 
 ### App Engine Endpoint
 
-The App Engine Endpoint is a lightweight webhook server that listens for data on http and forwards it to an internal pubsub topic. The source code of this application is contained entirely within this repositiory and is deployed to App Engine.
+The App Engine Endpoint is a lightweight webhook server that listens for data on http and forwards it to an internal pubsub topic. The source code of this application is contained entirely within this repository and is deployed to App Engine.
 
 ### Dataflow pipeline
 

@@ -29,12 +29,12 @@ to do some additional work to surface the metadata interesting to us.
 
 <h2>2. Set-up/Prerequisites</h2>
 
-<h3> 2.1 Prerequsitites</h3>
+<h3> 2.1 Prerequisites</h3>
 Before starting, let’s gather some prerequisite information.
 
 * `OUTPUT_PROJECT_ID`: The ID of the project where you want to create the table.
 * `OUTPUT_DATASET_ID`: The ID of the BigQuery dataset where you want to create the table.
-* `BQ_LOCATON`: BigQuery location to use for your dataset, such as 'US' or 'EU'.
+* `BQ_LOCATION`: BigQuery location to use for your dataset, such as 'US' or 'EU'.
 * `ORG_ID`: The numeric ID of the GCP organization
 
 Now export them as environment variables in your Cloud Shell for subsequent use.
