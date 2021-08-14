@@ -32,11 +32,12 @@
 - [6. Connect Gateway Configuration](#6-connect-gateway-configuration)
   - [6.1 Configure Connect Gateway](#61-configure-connect-gateway)
   - [6.2 Validate Connect Gateway](#62-validate-connect-gateway)
+- [7 Reset Cluster](#7-reset-cluster)
 
 
 ## 1. Introduction
 
-Anthos on bare metal allows you to run Kubernetes clusters on your own hardware infrastructure and also allows you to monitor your cluster from Google Cloud Console.  Read more on Anthos on bare metal  [here](https://cloud.google.com/anthos/gke/docs/bare-metal/1.7/concepts/about-bare-metal).
+Anthos on bare metal allows you to run Kubernetes clusters on your own hardware infrastructure and also allows you to monitor your cluster from Google Cloud Console.  Read more on Anthos on bare metal  [here](https://cloud.google.com/anthos/gke/docs/bare-metal/1.8/concepts/about-bare-metal).
 
 This guide explains the steps required for creating Anthos clusters on bare metal on Ubuntu hosts and also explains steps to try it on Google Compute Engine (GCE) VMs. 
 
@@ -69,14 +70,14 @@ sudo apt install ansible
 
 cd <REPOSITORY_ROOT>/ansible
 
-ansible-playbook anthos.yml
+ansible-playbook create_anthos_cluster.yml
 ```
 
 
 
 ## 3. Prerequisites for Anthos on Bare Metal
 
-The complete list of prerequisites is available [here](https://cloud.google.com/anthos/clusters/docs/bare-metal/1.7/installing/install-prereq).
+The complete list of prerequisites is available [here](https://cloud.google.com/anthos/clusters/docs/bare-metal/1.8/installing/install-prereq).
 
 Other than cluster nodes, you need a workstation machine that is used for running Anthos installation commands. It can be a GCE VM, or an on-premise VM or an on-premise physical server.  Following are the main prerequisites for a workstation:
 
@@ -123,10 +124,10 @@ os_type: "ubuntu"
 ```
 
 
-The role execution is done from the playbook (anthos.yml).
+The role execution is done from the playbook (create_anthos_cluster.yml).
 
 
-*anthos.yml*
+*create_anthos_cluster.yml*
 
 ```
 - hosts: all
@@ -151,7 +152,7 @@ The role execution is done from the playbook (anthos.yml).
 The workstation should have Docker installed and the non-root user that is used for Anthos installation should have access to the Docker. This can be achieved through the ws-docker role.
 
 
-*anthos.yml*
+*create_anthos_cluster.yml*
 
 ```
 - hosts: workstation
@@ -183,7 +184,7 @@ ws_docker: "yes"
 The Workstation should have gcloud SDK installed. You can do this using the**gcloud-sdk** Ansible role.
 
 
-*anthos.yml*
+*create_anthos_cluster.yml*
 
 ```
     - role: gcloud-sdk
@@ -210,7 +211,7 @@ gcloud_sdk: "yes"
 The Workstation should have the kubectl tool installed. This can be done through**kubectl-tool** Ansible role.
 
 
-*anthos.yml*
+*create_anthos_cluster.yml*
 
 ```
     - role: kubectl-tool
@@ -237,7 +238,7 @@ kubectl_tool: "yes"
 The Workstation should have the bmctl tool installed. This can be done through**bmctl-tool** Ansible role.
 
 
-*anthos.yml*
+*create_anthos_cluster.yml*
 
 ```
     - role: bmctl-tool
@@ -271,12 +272,12 @@ bmctl_download_url: gs://anthos-baremetal-release/bmctl/1.6.2/linux-amd64/bmctl
 
 ## 4. Google Cloud Configuration
 
-The Google Cloud configuration can be done from a Cloud Shell or a GCE VM Instance. If the configuration is done from the Workstation, then you should login with a Google account. You can find the required details [here](https://cloud.google.com/anthos/clusters/docs/bare-metal/1.7/installing/install-prereq#logging_into_gcloud). 
+The Google Cloud configuration can be done from a Cloud Shell or a GCE VM Instance. If the configuration is done from the Workstation, then you should login with a Google account. You can find the required details [here](https://cloud.google.com/anthos/clusters/docs/bare-metal/1.8/installing/install-prereq#logging_into_gcloud). 
 
 You can configure the Google Cloud as well as create required Service Accounts using**service-accounts** Ansible role.
 
 
-*anthos.yml*
+*create_anthos_cluster.yml*
 
 ```
     - role: service-accounts
@@ -327,7 +328,7 @@ bmctl create config -c [CLUSTER_NAME]
 The Anthos cluster can be created using the**anthos** Ansible role.
 
 
-*anthos.yml*
+*create_anthos_cluster.yml*
 
 ```
     - role: anthos
@@ -386,7 +387,7 @@ kubectl_tool: "yes"
 bmctl_tool: "yes"
 service_accounts: "yes"
 # Link to download bmctl from. It also contains the version
-bmctl_download_url: gs://anthos-baremetal-release/bmctl/1.7.0/linux-amd64/bmctl
+bmctl_download_url: gs://anthos-baremetal-release/bmctl/1.8.2/linux-amd64/bmctl
 # Directory used by bmctl tool for creating the cluster
 bmctl_workspace_dir: bmctl-workspace
 # Directory where Service Account keys are placed
@@ -409,7 +410,7 @@ cluster_type: hybrid
 # Number of maximum Pods that can run on a node
 max_pod_per_node: 250
 # Container runtime for the cluster. Possible values are: docker and containerd
-container_runtime: docker
+container_runtime: containerd
 # enable/disable application logging for cluster workloads. use 'true' to enable
 app_logs: false
 # Kubernetes POD CIDR.Change it if the default one overlaps with the Cluster Nodes CIDR.
@@ -433,7 +434,7 @@ cgw_members:
 
 ### 5.3 Admin Cluster
 
-You can read about the admin cluster installation [here](https://cloud.google.com/anthos/clusters/docs/bare-metal/1.7/installing/creating-clusters/admin-cluster-creation).
+You can read about the admin cluster installation [here](https://cloud.google.com/anthos/clusters/docs/bare-metal/1.8/installing/creating-clusters/admin-cluster-creation).
 
 
 #### 5.3.1 Admin Cluster Inventory File
@@ -476,7 +477,7 @@ gcloud_sdk: "yes"
 kubectl_tool: "yes"
 bmctl_tool: "yes"
 service_accounts: "yes"
-bmctl_download_url: gs://anthos-baremetal-release/bmctl/1.7.0/linux-amd64/bmctl
+bmctl_download_url: gs://anthos-baremetal-release/bmctl/1.8.2/linux-amd64/bmctl
 bmctl_workspace_dir: bmctl-workspace
 gcp_sa_key_dir: /home/anthos/gcp_keys
 local_gcr_sa_name: anthos-gcr-svc-account
@@ -489,7 +490,7 @@ location: [REGION]
 cluster_name: [CLUSTER_NAME]
 cluster_type: admin
 max_pod_per_node: 250
-container_runtime: docker
+container_runtime: containerd
 app_logs: false
 pod_cidr: 192.168.0.0/16
 service_cidr: 10.96.0.0/12
@@ -514,14 +515,14 @@ Run below command from workstation node (ansible should be installed on the work
 
 ```
 cd <REPOSITORY_ROOT>/ansible
-ansible-playbook anthos.yml
+ansible-playbook create_anthos_cluster.yml
 ```
 
 
 
 ### 5.4 Create User Cluster
 
-You can read about the user cluster installation [here](https://cloud.google.com/anthos/clusters/docs/bare-metal/1.7/installing/creating-clusters/user-cluster-creation).
+You can read about the user cluster installation [here](https://cloud.google.com/anthos/clusters/docs/bare-metal/1.8/installing/creating-clusters/user-cluster-creation).
 
 
 #### 5.4.1 User Cluster Inventory File
@@ -567,7 +568,7 @@ gcloud_sdk: "yes"
 kubectl_tool: "yes"
 bmctl_tool: "yes"
 service_accounts: "no"
-bmctl_download_url: gs://anthos-baremetal-release/bmctl/1.7.0/linux-amd64/bmctl
+bmctl_download_url: gs://anthos-baremetal-release/bmctl/1.8.2/linux-amd64/bmctl
 bmctl_workspace_dir: bmctl-workspace
 gcp_sa_key_dir: /home/anthos/gcp_keys
 local_gcr_sa_name: anthos-gcr-svc-account
@@ -580,7 +581,7 @@ location: [REGION]
 cluster_name: [CLUSTER_NAME]
 cluster_type: user
 max_pod_per_node: 250
-container_runtime: docker
+container_runtime: containerd
 app_logs: false
 pod_cidr: 192.168.0.0/16
 service_cidr: 10.96.0.0/12
@@ -602,14 +603,14 @@ Run below command from workstation node (ansible should be installed on the work
 
 ```
 cd <REPOSITORY_ROOT>/ansible
-ansible-playbook anthos.yml
+ansible-playbook create_anthos_cluster.yml
 ```
 
 
 
 ### 5.5 Create Hybrid Cluster
 
-You can read about the hybrid cluster installation [here](https://cloud.google.com/anthos/clusters/docs/bare-metal/1.7/installing/creating-clusters/hybrid-cluster-creation).
+You can read about the hybrid cluster installation [here](https://cloud.google.com/anthos/clusters/docs/bare-metal/1.8/installing/creating-clusters/hybrid-cluster-creation).
 
 
 #### 5.5.1 Hybrid Cluster Inventory File
@@ -657,7 +658,7 @@ gcloud_sdk: "yes"
 kubectl_tool: "yes"
 bmctl_tool: "yes"
 service_accounts: "yes"
-bmctl_download_url: gs://anthos-baremetal-release/bmctl/1.7.0/linux-amd64/bmctl
+bmctl_download_url: gs://anthos-baremetal-release/bmctl/1.8.2/linux-amd64/bmctl
 bmctl_workspace_dir: bmctl-workspace
 gcp_sa_key_dir: /home/anthos/gcp_keys
 local_gcr_sa_name: anthos-gcr-svc-account
@@ -670,7 +671,7 @@ location: [REGION]
 cluster_name: [CLUSTER_NAME]
 cluster_type: hybrid
 max_pod_per_node: 250
-container_runtime: docker
+container_runtime: containerd
 app_logs: false
 pod_cidr: 192.168.0.0/16
 service_cidr: 10.96.0.0/12
@@ -693,14 +694,14 @@ Run below command from workstation node (ansible should be installed on the work
 
 ```
 cd <REPOSITORY_ROOT>/ansible
-ansible-playbook anthos.yml
+ansible-playbook create_anthos_cluster.yml
 ```
 
 
 
 ### 5.6 Create Standalone Cluster
 
-You can read about the standalone cluster installation [here](https://cloud.google.com/anthos/clusters/docs/bare-metal/1.7/installing/creating-clusters/standalone-cluster-creation).
+You can read about the standalone cluster installation [here](https://cloud.google.com/anthos/clusters/docs/bare-metal/1.8/installing/creating-clusters/standalone-cluster-creation).
 
 
 #### 5.6.1 Standalone Cluster Inventory File
@@ -748,7 +749,7 @@ gcloud_sdk: "yes"
 kubectl_tool: "yes"
 bmctl_tool: "yes"
 service_accounts: "yes"
-bmctl_download_url: gs://anthos-baremetal-release/bmctl/1.7.0/linux-amd64/bmctl
+bmctl_download_url: gs://anthos-baremetal-release/bmctl/1.8.2/linux-amd64/bmctl
 bmctl_workspace_dir: bmctl-workspace
 gcp_sa_key_dir: /home/anthos/gcp_keys
 local_gcr_sa_name: anthos-gcr-svc-account
@@ -761,7 +762,7 @@ location: [REGION]
 cluster_name: [CLUSTER_NAME]
 cluster_type: standalone
 max_pod_per_node: 250
-container_runtime: docker
+container_runtime: containerd
 app_logs: false
 pod_cidr: 192.168.0.0/16
 service_cidr: 10.96.0.0/12
@@ -784,7 +785,7 @@ Run below command from workstation node (ansible should be installed on the work
 
 ```
 cd <REPOSITORY_ROOT>/ansible
-ansible-playbook anthos.yml
+ansible-playbook create_anthos_cluster.yml
 ```
 
 
@@ -799,10 +800,11 @@ You can use Connect Gateway for connecting to the registered clusters and run co
 You can configure the Connect Gateway with**connect-gateway** Ansible role. 
 
 
-*anthos.yml*
+*create_anthos_cluster.yml*
 
 ```
     - role: connect-gateway
+      when: (cgw_members is defined) and (cgw_members != None)
 ```
 
 
@@ -838,4 +840,13 @@ Run the below command to verify that you can connect successfully to the Cluster
 
 ```
 Kubectl get pods -A
+```
+
+## 7 Reset Cluster
+
+You can reset the anthos cluster using **reset_anthos_cluster.yml** playbook.
+
+```
+cd <REPOSITORY_ROOT>/ansible
+ansible-playbook reset_anthos_cluster.yml
 ```

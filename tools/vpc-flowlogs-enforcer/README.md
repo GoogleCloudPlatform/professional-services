@@ -41,7 +41,7 @@ In order to run this terraform code, you will need to:
 
 The setup is quite straightforward:
 
-1. Decide which which folders in your organization you want to enfoce VPC flow logs and take note of those folder IDs.
+1. Decide which which folders in your organization you want to enforce VPC flow logs and take note of those folder IDs.
 2. Choose a name for your demo project and a folder where you want to place it.
 3. Decide on the VPC flow logs configuration you want to apply to your networks. See [here](https://cloud.google.com/compute/docs/reference/rest/v1/subnetworks) for the options.
 4. Decide if you want to use asset inventory feeds or log sinks for the subnet change notifications.

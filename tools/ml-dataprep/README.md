@@ -68,20 +68,20 @@ Make sure you have the access rights required to read the data from the BigQuery
 
 ## Using the tool
 
-This section will describe how to make the default configuration working. Then it will guide you to adjust it to your specific use case. The input is the source of the data in BigQuery. The output is the traning and validation datasets saved in BigQuery tables and Google Cloud Storage files.
+This section will describe how to make the default configuration working. Then it will guide you to adjust it to your specific use case. The input is the source of the data in BigQuery. The output is the training and validation datasets saved in BigQuery tables and Google Cloud Storage files.
 
 The inputs of the tool are the following:
-* Source BigQuery project, dataset and table - provided as parameteres to the script.
-* Destinatipn BigQuery project and datasets - provided as parameteres to the script.
+* Source BigQuery project, dataset and table - provided as parameters to the script.
+* Destination BigQuery project and datasets - provided as parameters to the script.
 * Destination Cloud Storage path - passed as a parameter to the script.
 * Columns related parameters (column names, SQL transformations, target columns) - configured in the [ml_dataprep.config](ml_dataprep/config.py) module.
 * Split ratio between training and validation data - optional parameter passed to the script.
 * Column names parameters - optional parameter passed to the script.
 
 The result of the script execution is:
-* Two BigQuery tables containg training and validation data named *\<source_table_name\>\_training\_\<timestamp\>* and *\<source_table_name\>\_validation\_\<timestamp\>* respectively located in the *\<destination_project\>.\<destination_dataset\>* dataset
+* Two BigQuery tables containing training and validation data named *\<source_table_name\>\_training\_\<timestamp\>* and *\<source_table_name\>\_validation\_\<timestamp\>* respectively located in the *\<destination_project\>.\<destination_dataset\>* dataset
 * A Cloud Storage folder named *\<source_table_name\>\_\<timestamp\>* located in *\<cloud_storage_path\>* containing the training and validation data files located
-* Traning data files named *training\_\<index\>.csv* located in the above mentioned folder
+* Training data files named *training\_\<index\>.csv* located in the above mentioned folder
 * Validation data files named *validation\_\<index\>.csv* located in the above mentioned folder
 
 Depending on the size of the source table more than one file for both the training and validation datasets can be create.

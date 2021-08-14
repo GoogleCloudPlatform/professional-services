@@ -13,10 +13,6 @@
 # limitations under the License.
 
 ---
-- name: Disable SELinux
-  selinux:
-    state: disabled
-
 - name: Stop firewalld service
   ansible.builtin.systemd:
     name: firewalld

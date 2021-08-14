@@ -33,6 +33,8 @@ Out of the box, you'll have the following functionality:
      - From [Recommender API](https://cloud.google.com/recommender/docs/overview).
      - Also see [example with attached spreadsheet](examples/recommendations-example-2.yaml).
   - [Cloud Monitoring alerts](examples/monitoring-config.yaml)
+  - [Cloud Storage copier](examples/gcscopy-example.yaml)
+     - Copies objects between two buckets, useful for backing up.
   - Any JSON
     - [See the example of generic JSON processing](examples/generic-config.yaml)
 
@@ -89,6 +91,8 @@ Available output processors are:
   - [gcs.py](output/gcs.py): can create objects on GCS from any inputs.
   - [webhook.py](output/webhook.py): can send arbitrary HTTP requests, optionally
     with added OAuth2 bearer token from GCP.
+  - [gcscopy.py](output/gcscopy.py): copies files between buckets.
+  - [logger.py](output/logger.py): Logs message in Cloud Logging.
 
 Please note that the output processors have some IAM requirements to be able to
 pull information from GCP:
