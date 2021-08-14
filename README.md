@@ -103,6 +103,7 @@ creates relationships between assets and outputs a format compatible with [graph
 * [GCS Usage Recommender](tools/gcs-usage-recommender) - A tool that generates bucket-level intelligence and access patterns across all projects for a GCP project to generate recommended object lifecycle management.
 * [GCS to BigQuery](tools/gcs2bq) - A tool fetches object metadata from all Google Cloud Storage buckets and exports it in a format that can be imported into BigQuery for further analysis.
 * [GKE Billing Export](tools/gke-billing-export) - Google Kubernetes Engine fine grained billing export.
+* [Google Cloud Support Slackbot](tools/google-cloud-support-slackbot) - Slack application that pulls Google Cloud support case information via the Cloud Support API and pushes the information to Slack 
 * [GSuite Exporter Cloud Function](tools/gsuite-exporter-cloud-function/) - A script that deploys a Cloud Function and Cloud Scheduler job that executes the GSuite Exporter tool automatically on a cadence.
 * [GSuite Exporter](tools/gsuite-exporter/) - A Python package that automates syncing Admin SDK APIs activity reports to a GCP destination. The module takes entries from the chosen Admin SDK API, converts them into the appropriate format for the destination, and exports them to a destination (e.g: Stackdriver Logging).
 * [Hive to BigQuery](tools/hive-bigquery/) - A Python framework to migrate Hive table to BigQuery using Cloud SQL to keep track of the migration progress.
