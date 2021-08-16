@@ -161,7 +161,7 @@ gcloud dataflow jobs cancel \
 Should return many rows of crypto trades data that the frontend project will read for it's dashboard.
 
 
-## External libraries used to connnect to exchanges
+## External libraries used to connect to exchanges
 https://github.com/bitrich-info/xchange-stream
 
 

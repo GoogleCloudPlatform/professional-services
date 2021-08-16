@@ -1,0 +1,6 @@
+org_id     = "99999999"
+project_id = "PROJECT"
+region     = "us-central1"
+zone       = "us-central1-f"
+feed_id    = "org_ai_feed_firewall"
+function_sa_name = "firewall-enforcer"

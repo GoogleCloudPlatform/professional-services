@@ -1,0 +1,67 @@
+# Copyright 2021 Google LLC
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#     http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+login_user: anthos
+login_user_group: anthos
+login_user_home: /home/anthos
+
+# Possible values: ubuntu | rhel 
+# Use rhel for CentOS as well
+os_type: "ubuntu"
+# Set value to "yes" to apply the respective role
+ws_docker: "yes"
+gcloud_sdk: "yes"
+kubectl_tool: "yes"
+bmctl_tool: "yes"
+# if the GCP service accounts have already been created, copy the keys files to gcp_sa_key_dir directory
+service_accounts: "yes"
+
+bmctl_download_url: gs://anthos-baremetal-release/bmctl/1.8.2/linux-amd64/bmctl
+bmctl_workspace_dir: bmctl-workspace
+gcp_sa_key_dir: /home/anthos/gcp_keys
+local_gcr_sa_name: anthos-gcr-svc-account
+local_connect_agent_sa_name: connect-agent-svc-account
+local_connect_register_sa_name: connect-register-svc-account
+local_cloud_operations_sa_name: cloud-ops-svc-account
+
+ssh_private_key_path: /home/anthos/.ssh/id_rsa
+# the GCP project ID
+project_id: 
+# GCP region e.g. us-central1
+location: 
+# anthos cluster name
+cluster_name: 
+# cluster type, possible values: standalone | hybrid | admin | user
+cluster_type: 
+max_pod_per_node: 250
+# container runtime, possible values: docker | contianerd
+container_runtime: containerd
+# enable/disable application logging for cluster workloads. use 'true' to enable
+app_logs: false
+# change pod and service cidr if the default ones overlap with cluster nodes subnets
+pod_cidr: 192.168.0.0/16
+service_cidr: 10.96.0.0/12
+# cp_vip should be different than nodes ip addresses and should not be in lb_address_pool but should be from Control plane cluster node subnets
+cp_vip: 10.200.0.47
+# ingress_vip should be in lb_address_pool
+ingress_vip: 10.200.0.48
+lb_address_pool: 
+- 10.200.0.48/28
+# For a 'user' cluster, place the admin cluster kubeconfig file on workstation machine 
+# and set admin_kubeconfig_path to the absolute path of this file
+admin_kubeconfig_path: 
+# list of users or service accounts that will be connect gateway members
+cgw_members: 
+- user:EXAMPLE_USER@google.com
+- serviceAccount:EXAMPLE_SA@GCP_PROJECT_ID.iam.gserviceaccount.com

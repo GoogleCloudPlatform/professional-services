@@ -113,7 +113,7 @@ As of March 2019, `1.3-deb9` image version uses Python 2.7 while `preview` uses 
 
 2. Decide the network tag to be used for the Dataproc client VM and use that to set up the firewall rules for the following ports to be opened.
 - Client to master connection: for example, Hive: 10000 (hive server),9083 (hive metastore), spark: 7077 (spark master port), 7078 (spark worker port)
-- Spark web server: 18080 (spark master web ui port), - user temrinal to master
+- Spark web server: 18080 (spark master web ui port), - user terminal to master
 
 3. Create Client Dataproc VM with the above instructions
 

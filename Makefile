@@ -21,7 +21,7 @@ fmt: ## Format files, including README
 	@$$SHELL ./helpers/format.sh
 
 help: ## Prints help for targets with comments
-	@grep -E '^[a-zA-Z._-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "make \033[36m%- 30s\033[0m %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z._-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS=":.*?## "}; {printf "make \033[36m%- 30s\033[0m %s\n", $$1, $$2}'
 
 .PHONY: test
 test: ## Test if all files are properly formatted
