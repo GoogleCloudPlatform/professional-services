@@ -73,6 +73,7 @@ def get_import_arguments():
             CONFIG.import_template_region, CONFIG.import_template_location,
             '{}/*.json'.format(CONFIG.gcs_destination), CONFIG.import_group_by,
             CONFIG.import_write_disposition, CONFIG.import_dataset,
+            CONFIG.import_add_load_date_suffix,
             CONFIG.import_stage,
             datetime.datetime.now().isoformat(),
             CONFIG.import_num_shards,
@@ -87,7 +88,8 @@ def run_import():
     import_arguments = get_import_arguments()
     logging.info('running import %s', import_arguments)
     (runner, dataflow_project, template_region, template_location,
-     input_location, group_by, write_disposition, dataset, stage, load_time,
+     input_location, group_by, write_disposition, dataset,
+     add_load_date_suffix, stage, load_time,
      num_shards, pipeline_arguments,
      pipeline_runtime_environment) = import_arguments
 
@@ -96,12 +98,13 @@ def run_import():
             dataflow_project, template_region,
             template_location, input_location,
             group_by, write_disposition, dataset, stage,
-            load_time, num_shards, pipeline_runtime_environment)
+            load_time, num_shards, add_load_date_suffix,
+            pipeline_runtime_environment)
     else:
         return pipeline_runner.run_pipeline_beam_runner(
             runner, dataflow_project, input_location,
             group_by, write_disposition, dataset, stage, load_time,
-            num_shards, pipeline_arguments)
+            num_shards, add_load_date_suffix, pipeline_arguments)
 
 
 @app.route('/export_import')

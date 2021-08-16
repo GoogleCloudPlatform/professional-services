@@ -32,8 +32,8 @@ import copy
 from datetime import datetime
 import json
 import logging
-import random
 import pprint
+import random
 
 import apache_beam as beam
 from apache_beam.io import ReadFromText
@@ -294,10 +294,17 @@ class WriteToGCS(beam.DoFn):
 class BigQueryDoFn(beam.DoFn):
     """Superclass for a DoFn that requires BigQuery dataset information."""
 
-    def __init__(self, dataset):
+    def __init__(self, dataset, add_load_date_suffix, load_time):
         if isinstance(dataset, string_types):
             dataset = StaticValueProvider(str, dataset)
         self.dataset = dataset
+        if isinstance(add_load_date_suffix, string_types):
+            add_load_date_suffix = StaticValueProvider(
+                str, add_load_date_suffix)
+        self.add_load_date_suffix = add_load_date_suffix
+        if isinstance(load_time, string_types):
+            load_time = StaticValueProvider(str, load_time)
+        self.load_time = load_time
         self.bigquery_client = None
         self.dataset_location = None
         self.load_jobs = {}
@@ -316,7 +323,12 @@ class BigQueryDoFn(beam.DoFn):
         return None
 
     def asset_type_to_table_name(self, asset_type):
-        return asset_type.replace('.', '_').replace('/', '_')
+        suffix = ''
+        add_load_date_suffix = self.add_load_date_suffix.get()
+        if (add_load_date_suffix and
+            add_load_date_suffix.lower() in ('yes', 'true', 't', '1')):
+            suffix = '_' + self.load_time.get()[0:10].replace('-', '')
+        return asset_type.replace('.', '_').replace('/', '_') + suffix
 
     def start_bundle(self):
         if not self.bigquery_client:
@@ -332,11 +344,12 @@ class DeleteDataSetTables(BigQueryDoFn):
     dataset before loading so that no old asset types remain.
     """
 
-    def __init__(self, dataset, write_disposition):
+    def __init__(self, dataset, add_load_date_suffix, load_time,
+                 write_disposition):
         # Can't use super().
         # https://issues.apache.org/jira/browse/BEAM-6158?focusedCommentId=16919945
         # super(DeleteDataSetTables, self).__init__(dataset)
-        BigQueryDoFn.__init__(self, dataset)
+        BigQueryDoFn.__init__(self, dataset, add_load_date_suffix, load_time)
         if isinstance(write_disposition, string_types):
             write_disposition = StaticValueProvider(str, write_disposition)
         self.write_disposition = write_disposition
@@ -362,14 +375,11 @@ class LoadToBigQuery(BigQueryDoFn):
     this must be done within the workers.
     """
 
-    def __init__(self, dataset, load_time):
+    def __init__(self, dataset, add_load_date_suffix, load_time):
         # Can't use super().
         # https://issues.apache.org/jira/browse/BEAM-6158?focusedCommentId=16919945
         # super(LoadToBigQuery, self).__init__(dataset)
-        BigQueryDoFn.__init__(self, dataset)
-        if isinstance(load_time, string_types):
-            load_time = StaticValueProvider(str, load_time)
-        self.load_time = load_time
+        BigQueryDoFn.__init__(self, dataset, add_load_date_suffix, load_time)
 
     def to_bigquery_schema(self, fields):
         """Convert list of dicts into `bigquery.SchemaFields`."""
@@ -464,6 +474,11 @@ class ImportAssetOptions(PipelineOptions):
             help='Load time of the data (YYYY-MM-DD[HH:MM:SS])).')
 
         parser.add_value_provider_argument(
+            '--add_load_date_suffix',
+            default='False',
+            help='If the load date [YYYYMMDD] is added as a table suffix.')
+
+        parser.add_value_provider_argument(
             '--dataset', help='BigQuery dataset to load to.')
 
 
@@ -508,9 +523,12 @@ def run(argv=None):
          WriteToGCS(options.stage, options.load_time))
      | 'group_written_objects_by_key' >> beam.GroupByKey()
      | 'delete_tables' >> beam.ParDo(
-         DeleteDataSetTables(options.dataset, options.write_disposition))
+         DeleteDataSetTables(options.dataset, options.add_load_date_suffix,
+                             options.load_time,
+                             options.write_disposition))
      | 'load_to_bigquery' >> beam.ParDo(
-         LoadToBigQuery(options.dataset, options.load_time),
+         LoadToBigQuery(options.dataset, options.add_load_date_suffix,
+                        options.load_time),
          beam.pvalue.AsDict(schemas)))
 
     return p.run()
