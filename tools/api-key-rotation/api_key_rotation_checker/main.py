@@ -195,7 +195,7 @@ def create_token():
     with a bearer token until the SDK is usable by the public.
     """
     access_token = subprocess.run(
-        ["gcloud", "auth", "print-access-token"],
+        "gcloud auth print-access-token",
         shell=True,
         check=True,
         stdout=subprocess.PIPE,
