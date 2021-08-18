@@ -26,6 +26,7 @@
 ./tools/site-verification-group-sync
 ./tools/terraform-module-update-scanner
 ./tools/bigquery-hive-external-table-loader
+./tools/google-cloud-support-slackbot
 ./examples/bigquery-audit-log
 ./examples/bigquery-billing-dashboard
 ./examples/bigquery-cross-project-slot-monitoring
