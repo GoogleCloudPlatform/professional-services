@@ -83,5 +83,8 @@ import_write_disposition: WRITE_APPEND
 # *=1,resource=100,google.cloud.bigquery.Table=100
 import_num_shards: "*=1"
 
+# If the load date [YYYYMMDD] is added as a table suffix.
+import_add_load_date_suffix: False
+
 # If we are running on App Engine and only want to be invoked by cron tasks for security reasons.
 restrict_to_cron_tasks: True
