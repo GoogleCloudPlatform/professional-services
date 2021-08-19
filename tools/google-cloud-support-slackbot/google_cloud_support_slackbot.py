@@ -52,7 +52,9 @@ MAX_RETRIES = 3
 slack_events = SlackEventAdapter(SLACK_SIGNING_SECRET, "/slack/events", app)
 
 # Get our discovery doc and build our service
-r = requests.get('https://cloudsupport.googleapis.com/$discovery/rest?key={}&labels=V2_TRUSTED_TESTER&version=v2alpha'.format(API_KEY))
+r = requests.get(
+    'https://cloudsupport.googleapis.com/$discovery/rest?key={}&labels=V2_TRUSTED_TESTER&version=v2alpha'
+    .format(API_KEY))
 r.raise_for_status()
 support_service = build_from_document(r.json())
 
@@ -67,10 +69,10 @@ if os.path.exists(tracked_cases_file):
         except json.decoder.JSONDecodeError as e:
             logging.error(e, ' : {}'.format(datetime.now()))
         else:
-            for tracked_case  in tracked_cases_json:
+            for tracked_case in tracked_cases_json:
                 tracked_cases.append(tracked_case)
 
-    
+
 class SupportCase:
     """
     Represent a Google Cloud Support Case.
@@ -106,8 +108,8 @@ class SupportCase:
         all public comments made on the case as strings. Comments are sorted with
         newest comments at the top
     """
-    
-    def __init__(self,caseobj):
+
+    def __init__(self, caseobj):
         """
         Parameters
         ----------
@@ -123,10 +125,12 @@ class SupportCase:
         else:
             self.escalated = False
         self.case_creator = caseobj['creator']['displayName']
-        self.create_time = str(datetime.fromisoformat(
-            caseobj['createTime'].replace('Z', '+00:00')))
-        self.update_time = str(datetime.fromisoformat(
-            caseobj['updateTime'].replace('Z', '+00:00')))
+        self.create_time = str(
+            datetime.fromisoformat(caseobj['createTime'].replace('Z',
+                                                                 '+00:00')))
+        self.update_time = str(
+            datetime.fromisoformat(caseobj['updateTime'].replace('Z',
+                                                                 '+00:00')))
         self.priority = caseobj['severity'].replace('S', 'P')
         self.state = caseobj['state']
         self.comment_list = []
@@ -143,8 +147,8 @@ class SupportCase:
                     for comment in comments['comments']:
                         self.comment_list.append(comment)
                 request = case_comments.list_next(request, comments)
-      
-        
+
+
 # Handle all calls to the support bot
 @app.route('/google-cloud-support', methods=['POST'])
 def gcp_support() -> Response:
@@ -169,10 +173,11 @@ def gcp_support() -> Response:
     # Verify that the request is coming from our Slack
     slack_timestamp = request.headers.get('X-Slack-Request-Timestamp')
     slack_signature = request.headers.get('X-Slack-Signature')
-    result = slack_events.server.verify_signature(slack_timestamp, slack_signature)
+    result = slack_events.server.verify_signature(slack_timestamp,
+                                                  slack_signature)
     if result == False:
         return Response(), 403
-    
+
     data = request.form
     channel_id = data.get('channel_id')
     channel_name = data.get('channel_name')
@@ -186,8 +191,12 @@ def gcp_support() -> Response:
             case = user_inputs[1]
         except IndexError as e:
             logging.error(e, ' : {}'.format(datetime.now()))
-            client.chat_postEphemeral(channel=channel_id, user=user_id, text="The track-case command expects argument [case_number]."
-                                      " The case number provided did not match with any cases in your org")
+            client.chat_postEphemeral(
+                channel=channel_id,
+                user=user_id,
+                text="The track-case command expects argument [case_number]."
+                " The case number provided did not match with any cases in your org"
+            )
         track_case(channel_id, channel_name, case, user_id)
     elif command == 'add-comment':
         try:
@@ -196,10 +205,21 @@ def gcp_support() -> Response:
             comment = parameters[1]
         except IndexError as e:
             logging.error(e, ' : {}'.format(datetime.now()))
-            client.chat_postEphemeral(channel=channel_id, user=user_id, text="The add-comment command expects arguments [case_number] [comment]."
-                                      " The comment does not need to be encapsulated in quotes."
-                                      " Your case number did not match with any cases in your org.")
-        p = Process(target=add_comment, args=(channel_id, case, comment, user_id, user_name,))
+            client.chat_postEphemeral(
+                channel=channel_id,
+                user=user_id,
+                text=
+                "The add-comment command expects arguments [case_number] [comment]."
+                " The comment does not need to be encapsulated in quotes."
+                " Your case number did not match with any cases in your org.")
+        p = Process(target=add_comment,
+                    args=(
+                        channel_id,
+                        case,
+                        comment,
+                        user_id,
+                        user_name,
+                    ))
         p.start()
     elif command == 'change-priority':
         try:
@@ -208,13 +228,23 @@ def gcp_support() -> Response:
             priority = parameters[1]
         except IndexError as e:
             logging.error(e, ' : {}'.format(datetime.now()))
-            client.chat_postEphemeral(channel=channel_id, user=user_id, text="The change-priority command expects arguments "
-                                      "[case_number] [priority, must be either P1|P2|P3|P4]."
-                                      " Your case number did not match with any cases in your org, or the priority did not match the expected values.")
-        p = Process(target=change_priority, args=(channel_id, case, priority, user_id,))
+            client.chat_postEphemeral(
+                channel=channel_id,
+                user=user_id,
+                text="The change-priority command expects arguments "
+                "[case_number] [priority, must be either P1|P2|P3|P4]."
+                " Your case number did not match with any cases in your org, or the priority did not match the expected values."
+            )
+        p = Process(target=change_priority,
+                    args=(
+                        channel_id,
+                        case,
+                        priority,
+                        user_id,
+                    ))
         p.start()
     elif command == 'escalate':
-        escalate_disabled = True # Escalate isn't working right now so it will be disabled until we can fix in v1
+        escalate_disabled = True  # Escalate isn't working right now so it will be disabled until we can fix in v1
         if escalate_disabled == False:
             try:
                 parameters = user_inputs[1].split(' ', 2)
@@ -223,29 +253,42 @@ def gcp_support() -> Response:
                 justification = parameters[2]
             except IndexError as e:
                 logging.error(e, ' : {}'.format(datetime.now()))
-                client.chat_postEphemeral(channel=channel_id, user=user_id, text="The escalate command expects arguments "
-                                          "[reason, must be either REASON_UNSPECIFIED|RESOLUTION_TIME|TECHNICAL_EXPERTISE|BUSINESS_IMPACT] [justification]."
-                                          " The justification does not need to be encapsulated in quotes."
-                                          " Either your case number did not match with any cases in your org, the reason did not match one "
-                                          "of the expected values, or the justification was missing")
-            p = Process(target=escalate, args=(channel_id, case, user_id, reason, justification, user_name))
+                client.chat_postEphemeral(
+                    channel=channel_id,
+                    user=user_id,
+                    text="The escalate command expects arguments "
+                    "[reason, must be either REASON_UNSPECIFIED|RESOLUTION_TIME|TECHNICAL_EXPERTISE|BUSINESS_IMPACT] [justification]."
+                    " The justification does not need to be encapsulated in quotes."
+                    " Either your case number did not match with any cases in your org, the reason did not match one "
+                    "of the expected values, or the justification was missing")
+            p = Process(target=escalate,
+                        args=(channel_id, case, user_id, reason, justification,
+                              user_name))
             p.start()
     elif command == 'stop-tracking':
         try:
             case = user_inputs[1]
         except IndexError as e:
             logging.error(e, ' : {}'.format(datetime.now()))
-            client.chat_postEphemeral(channel=channel_id, user=user_id, text="The stop-tracking command expects arguments [case_number].")
+            client.chat_postEphemeral(
+                channel=channel_id,
+                user=user_id,
+                text="The stop-tracking command expects arguments [case_number]."
+            )
         stop_tracking(channel_id, channel_name, case, user_id)
     elif command == 'close-case':
-        close_disabled = True # Close isn't an available command so it will be disabled until the API is ready
-        if close_disabled == False: 
+        close_disabled = True  # Close isn't an available command so it will be disabled until the API is ready
+        if close_disabled == False:
             try:
                 case = user_inputs[1]
             except IndexError as e:
                 logging.error(e, ' : {}'.format(datetime.now()))
-                client.chat_postEphemeral(channel=channel_id, user=user_id, text="The close-case command expects arguments [case_number]")
-            close_case(channel_id,case,user_id)
+                client.chat_postEphemeral(
+                    channel=channel_id,
+                    user=user_id,
+                    text="The close-case command expects arguments [case_number]"
+                )
+            close_case(channel_id, case, user_id)
     elif command == 'list-tracked-cases':
         list_tracked_cases(channel_id, channel_name, user_id)
     elif command == 'list-tracked-cases-all':
@@ -279,18 +322,21 @@ def post_help_message(channel_id, user_id, context):
     context : str
         Extra information to go with the help message. Usually a statement of a command not existing
     """
-    client.chat_postEphemeral(channel=channel_id, user=user_id, 
-                                  text=f"{context}Here are the available commands:"
-                                  "\n/google-cloud-support track-case [case number] -- case updates will be posted to this channel"
-                                  "\n/google-cloud-support add-comment [case number] [comment] -- adds a comment to the case"
-                                  "\n/google-cloud-support change-priority [case number] [priority, e.g. P1] -- changes the priority of the case"
-                                  "\n/google-cloud-support stop-tracking [case number] -- case updates will no longer be posted to this channel"                                 
-                                  "\n/google-cloud-support list-tracked-cases -- lists all cases being tracked in this channel"
-                                  "\n/google-cloud-support list-tracked-cases-all -- lists all cases being tracked in the workspace"
-                                  "\n/google-cloud-support case-details [case_number] -- pull all of the case deta as json"
-                                  "\n/google-cloud-support sitrep -- report of all active cases in the org")
+    client.chat_postEphemeral(
+        channel=channel_id,
+        user=user_id,
+        text=f"{context}Here are the available commands:"
+        "\n/google-cloud-support track-case [case number] -- case updates will be posted to this channel"
+        "\n/google-cloud-support add-comment [case number] [comment] -- adds a comment to the case"
+        "\n/google-cloud-support change-priority [case number] [priority, e.g. P1] -- changes the priority of the case"
+        "\n/google-cloud-support stop-tracking [case number] -- case updates will no longer be posted to this channel"
+        "\n/google-cloud-support list-tracked-cases -- lists all cases being tracked in this channel"
+        "\n/google-cloud-support list-tracked-cases-all -- lists all cases being tracked in the workspace"
+        "\n/google-cloud-support case-details [case_number] -- pull all of the case deta as json"
+        "\n/google-cloud-support sitrep -- report of all active cases in the org"
+    )
 
-    
+
 def case_not_found(channel_id, user_id, case):
     """
     Informs the user of their case could not be found.
@@ -305,11 +351,15 @@ def case_not_found(channel_id, user_id, case):
     case : str
         unique id of the case
     """
-    client.chat_postEphemeral(channel=channel_id, user=user_id, text=f"Case {case} could not be found in your org."
-                                  " If this case was recently created, please give the system 60 seconds to fetch it."
-                                  " Otherwise, double check your case number or confirm the org being tracked with your Slack admin.")
+    client.chat_postEphemeral(
+        channel=channel_id,
+        user=user_id,
+        text=f"Case {case} could not be found in your org."
+        " If this case was recently created, please give the system 60 seconds to fetch it."
+        " Otherwise, double check your case number or confirm the org being tracked with your Slack admin."
+    )
 
-    
+
 def track_case(channel_id, channel_name, case, user_id):
     """
     Add a Google Cloud support case to a list of tracked cases. If the case can't be
@@ -333,13 +383,13 @@ def track_case(channel_id, channel_name, case, user_id):
         case_not_found(channel_id, user_id, case)
     else:
         tracker = {
-            "channel_id": channel_id, 
+            "channel_id": channel_id,
             "case": case,
             "channel_name": channel_name
         }
 
         exists = False
-    
+
         for tc in tracked_cases:
             if tc['channel_id'] == channel_id and tc['case'] == case:
                 exists = True
@@ -347,7 +397,7 @@ def track_case(channel_id, channel_name, case, user_id):
 
         if exists == False:
             tracked_cases.append(tracker)
-            
+
             try:
                 file_overwrite(tracked_cases_file, tracked_cases)
             except OSError as e:
@@ -355,9 +405,14 @@ def track_case(channel_id, channel_name, case, user_id):
                 time.sleep(0.1)
                 file_overwrite(tracked_cases_file, tracked_cases)
 
-            client.chat_postMessage(channel=channel_id, text=f"{channel_name} is now tracking case {case}")
+            client.chat_postMessage(
+                channel=channel_id,
+                text=f"{channel_name} is now tracking case {case}")
         else:
-            client.chat_postEphemeral(channel=channel_id, user=user_id, text=f"Case {case} is already being tracked in {channel_name}")
+            client.chat_postEphemeral(
+                channel=channel_id,
+                user=user_id,
+                text=f"Case {case} is already being tracked in {channel_name}")
 
 
 def add_comment(channel_id, case, comment, user_id, user_name):
@@ -380,23 +435,36 @@ def add_comment(channel_id, case, comment, user_id, user_name):
         comment to identify who submitted submitted it, otherwise all comments will
         show as coming from the case creator
     """
-    client.chat_postEphemeral(channel=channel_id, user=user_id, text="Your request is processing ...")
+    client.chat_postEphemeral(channel=channel_id,
+                              user=user_id,
+                              text="Your request is processing ...")
     parent = get_parent(case)
-    
+
     if parent == 'Case not found':
         case_not_found(channel_id, user_id, case)
     else:
         req_body = {
-            "body" : comment + '\n*Comment submitted by {} via Google Cloud Support Slack bot*'.format(user_name)
+            "body":
+                comment +
+                '\n*Comment submitted by {} via Google Cloud Support Slack bot*'
+                .format(user_name)
         }
-        req = support_service.cases().comments().create(parent=parent, body=req_body)
+        req = support_service.cases().comments().create(parent=parent,
+                                                        body=req_body)
         try:
-            req.execute(num_retries=MAX_RETRIES)          
+            req.execute(num_retries=MAX_RETRIES)
         except BrokenPipeError as e:
             logging.error(e, ' : {}'.format(datetime.now()))
-            client.chat_postEphemeral(channel=channel_id, user=user_id, text="Your comment may not have posted. Please try again later.")
+            client.chat_postEphemeral(
+                channel=channel_id,
+                user=user_id,
+                text="Your comment may not have posted. Please try again later."
+            )
         else:
-            client.chat_postEphemeral(channel=channel_id, user=user_id, text=f"You added a new comment on case {case}: {comment}")        
+            client.chat_postEphemeral(
+                channel=channel_id,
+                user=user_id,
+                text=f"You added a new comment on case {case}: {comment}")
 
 
 def change_priority(channel_id, case, priority, user_id):
@@ -415,25 +483,36 @@ def change_priority(channel_id, case, priority, user_id):
         the Slack user_id of the user who submitted the request. Used to send ephemeral
         messages to the user
     """
-    client.chat_postEphemeral(channel=channel_id, user=user_id, text="Your request is processing ...")
+    client.chat_postEphemeral(channel=channel_id,
+                              user=user_id,
+                              text="Your request is processing ...")
     parent = get_parent(case)
     if parent == 'Case not found':
         case_not_found(channel_id, user_id, case)
     else:
-        body = {
-                "severity": priority.replace("P", "S")
-                }
+        body = {"severity": priority.replace("P", "S")}
         update_mask = "case.severity"
-        req = support_service.cases().patch(name=parent, updateMask=update_mask, body=body) 
+        req = support_service.cases().patch(name=parent,
+                                            updateMask=update_mask,
+                                            body=body)
         try:
-            req.execute(num_retries=MAX_RETRIES)            
+            req.execute(num_retries=MAX_RETRIES)
         except BrokenPipeError as e:
             logging.error(e, ' : {}'.format(datetime.now()))
-            client.chat_postEphemeral(channel=channel_id, user=user_id, text="Your attempt to change the case priority has failed. Please try again later.")
+            client.chat_postEphemeral(
+                channel=channel_id,
+                user=user_id,
+                text=
+                "Your attempt to change the case priority has failed. Please try again later."
+            )
         else:
-            client.chat_postEphemeral(channel=channel_id, user=user_id, text=f"You have changed the priority of case {case} to {priority}.")
+            client.chat_postEphemeral(
+                channel=channel_id,
+                user=user_id,
+                text=
+                f"You have changed the priority of case {case} to {priority}.")
 
-        
+
 def escalate(channel_id, case, user_id, reason, justification, user_name):
     """
     Escalates a Google Cloud support case, setting the escalated boolean to True.
@@ -459,26 +538,41 @@ def escalate(channel_id, case, user_id, reason, justification, user_name):
         justification to identify who submitted the escalation, otherwise all escalations 
         will show as coming from the case creator
     """
-    client.chat_postEphemeral(channel=channel_id, user=user_id, text="Your request is processing ... ")
+    client.chat_postEphemeral(channel=channel_id,
+                              user=user_id,
+                              text="Your request is processing ... ")
     parent = get_parent(case)
     if parent == 'Case not found':
-        client.chat_postEphemeral(channel=channel_id, user=user_id, text=f"Case {case} could not be found in your org. If this case was recently created, please give the system 60 seconds to fetch it. Otherwise, double check your case number or confirm the org being tracked with your Slack admin.")
+        client.chat_postEphemeral(
+            channel=channel_id,
+            user=user_id,
+            text=
+            f"Case {case} could not be found in your org. If this case was recently created, please give the system 60 seconds to fetch it. Otherwise, double check your case number or confirm the org being tracked with your Slack admin."
+        )
     else:
-        signed_justification = justification + '\n *Sent by {} via Google Cloud Support Slack bot'.format(user_name)
+        signed_justification = justification + '\n *Sent by {} via Google Cloud Support Slack bot'.format(
+            user_name)
         body = {
-                'escalation' : {
-                    'reason': reason,
-                    'justification': signed_justification
-                    }
-                }
+            'escalation': {
+                'reason': reason,
+                'justification': signed_justification
+            }
+        }
         req = support_service.cases().escalate(name=parent, body=body)
         try:
             req.execute(num_retries=MAX_RETRIES)
         except BrokenPipeError as e:
             logging.error(e, ' : {}'.format(datetime.now()))
-            client.chat_postEphemeral(channel=channel_id, user=user_id, text="Your attempt to escalate may have failed. Please contact your account team or try again later.")
+            client.chat_postEphemeral(
+                channel=channel_id,
+                user=user_id,
+                text=
+                "Your attempt to escalate may have failed. Please contact your account team or try again later."
+            )
         else:
-            client.chat_postEphemeral(channel=channel_id, user=user_id, text=f"You have escalated case {case}")
+            client.chat_postEphemeral(channel=channel_id,
+                                      user=user_id,
+                                      text=f"You have escalated case {case}")
 
 
 def stop_tracking(channel_id, channel_name, case, user_id):
@@ -502,23 +596,28 @@ def stop_tracking(channel_id, channel_name, case, user_id):
     for tc in tracked_cases:
         if tc['channel_id'] == channel_id and tc['case'] == case:
             tracked_cases.remove(tc)
-            
+
             try:
                 file_overwrite(tracked_cases_file, tracked_cases)
             except OSError as e:
                 logging.error(e, ' : {}'.format(datetime.now()))
                 time.sleep(0.2)
                 file_overwrite(tracked_cases_file, tracked_cases)
-            
+
             exists = True
             break
 
     if exists == True:
-        client.chat_postMessage(channel=channel_id, text=f"Case {case} is no longer being tracked in {channel_name}")
+        client.chat_postMessage(
+            channel=channel_id,
+            text=f"Case {case} is no longer being tracked in {channel_name}")
     else:
-        client.chat_postEphemeral(channel=channel_id, user=user_id, text=f"Case {case} not found in tracker for {channel_name}")
+        client.chat_postEphemeral(
+            channel=channel_id,
+            user=user_id,
+            text=f"Case {case} not found in tracker for {channel_name}")
 
-        
+
 # Close a given support case, this API is not yet available
 def close_case(channel_id, case, user_id):
     """
@@ -534,13 +633,19 @@ def close_case(channel_id, case, user_id):
         the Slack user_id of the user who submitted the request. Used to send ephemeral
         messages to the user
     """
-    client.chat_postEphemeral(channel=channel_id, user=user_id, text=f"You have closed case {case} and it will no longer be tracked")
-    
+    client.chat_postEphemeral(
+        channel=channel_id,
+        user=user_id,
+        text=f"You have closed case {case} and it will no longer be tracked")
+
     # Notify the channels tracking this case that the case has been closed and then remove the case
     # the case from the tracker for that channel
     for tc in tracked_cases:
         if tc['case'] == case:
-            client.chat_postMessage(channel=tc['channel_id'], text=f"Case {case} has been closed and will no longer be tracked")
+            client.chat_postMessage(
+                channel=tc['channel_id'],
+                text=f"Case {case} has been closed and will no longer be tracked"
+            )
             tracked_cases.remove(tc)
 
 
@@ -565,9 +670,15 @@ def list_tracked_cases(channel_id, channel_name, user_id):
         if tc['channel_id'] == channel_id:
             local_tracked_cases.append(tc['case'])
     if len(local_tracked_cases) > 0:
-        client.chat_postEphemeral(channel=channel_id, user=user_id, text=f"Currently tracking cases {local_tracked_cases}")
+        client.chat_postEphemeral(
+            channel=channel_id,
+            user=user_id,
+            text=f"Currently tracking cases {local_tracked_cases}")
     else:
-        client.chat_postEphemeral(channel=channel_id, user=user_id, text=f"There are no cases currently being tracked in this channel")
+        client.chat_postEphemeral(
+            channel=channel_id,
+            user=user_id,
+            text=f"There are no cases currently being tracked in this channel")
 
 
 def list_tracked_cases_all(channel_id, user_id):
@@ -585,16 +696,19 @@ def list_tracked_cases_all(channel_id, user_id):
     """
     all_tracked_cases = []
     for tc in tracked_cases:
-        temp = {
-            "channel": tc['channel_name'],
-            "case": tc['case']
-        }
+        temp = {"channel": tc['channel_name'], "case": tc['case']}
         all_tracked_cases.append(temp)
 
     if len(all_tracked_cases) > 0:
-        client.chat_postEphemeral(channel=channel_id, user=user_id, text=f"Currently tracking cases {all_tracked_cases}")
+        client.chat_postEphemeral(
+            channel=channel_id,
+            user=user_id,
+            text=f"Currently tracking cases {all_tracked_cases}")
     else:
-        client.chat_postEphemeral(channel=channel_id, user=user_id, text=f"There are no cases currently being tracked in Slack")
+        client.chat_postEphemeral(
+            channel=channel_id,
+            user=user_id,
+            text=f"There are no cases currently being tracked in Slack")
 
 
 def case_details(channel_id, case, user_id):
@@ -613,14 +727,16 @@ def case_details(channel_id, case, user_id):
     """
     with open(cases_file) as f:
         cases = json.load(f)
-    
+
     if case in cases:
         pretty_json = json.dumps(cases[case], indent=4, sort_keys=True)
-        client.chat_postMessage(channel=channel_id, text=f"Here are the details on case {case}: \n{pretty_json}")
+        client.chat_postMessage(
+            channel=channel_id,
+            text=f"Here are the details on case {case}: \n{pretty_json}")
     else:
         case_not_found(channel_id, user_id, case)
 
-        
+
 def sitrep(channel_id, user_id):
     """
     Lists the following details for all cases in the org:
@@ -643,11 +759,13 @@ def sitrep(channel_id, user_id):
     p3 = 0
     p4 = 0
     esc_count = 0
-    report = ('This is the current state of Google Cloud Support cases:'
-                '\n\ncase,priority,title,escalated,create_time,last_updated,state,case_creator')
+    report = (
+        'This is the current state of Google Cloud Support cases:'
+        '\n\ncase,priority,title,escalated,create_time,last_updated,state,case_creator'
+    )
     with open(cases_file) as f:
         cases = json.load(f)
-    
+
     for case in cases:
         if cases[case]['priority'] == 'P1':
             p1 += 1
@@ -660,25 +778,22 @@ def sitrep(channel_id, user_id):
 
         if cases[case]['escalated'] == True:
             esc_count += 1
-        
+
         report = report + '\n{},{},{},{},{},{},{},{}'.format(
-            case, 
-            cases[case]['priority'], 
-            cases[case]['case_title'],
-            cases[case]['escalated'],
-            cases[case]['create_time'], 
-            cases[case]['update_time'],
-            cases[case]['state'],
+            case, cases[case]['priority'], cases[case]['case_title'],
+            cases[case]['escalated'], cases[case]['create_time'],
+            cases[case]['update_time'], cases[case]['state'],
             cases[case]['case_creator'])
 
     report = (report + '\n\n'
-        '\n{} P1 cases are open'
-        '\n{} P2 cases are open'
-        '\n{} P3 cases are open'
-        '\n{} P4 cases are open'
-        '\nTotal cases open: {}'
-        '\nEscalated cases: {}'
-        ).format(str(p1), str(p2), str(p3), str(p4), str(p1 + p2 + p3 + p4), str(esc_count))
+              '\n{} P1 cases are open'
+              '\n{} P2 cases are open'
+              '\n{} P3 cases are open'
+              '\n{} P4 cases are open'
+              '\nTotal cases open: {}'
+              '\nEscalated cases: {}').format(str(p1), str(p2), str(p3),
+                                              str(p4), str(p1 + p2 + p3 + p4),
+                                              str(esc_count))
 
     client.chat_postMessage(channel=channel_id, text=f"{report}")
 
@@ -690,7 +805,8 @@ def case_updates():
     comments from the previous pull. If any change is detected between the two versions 
     of the case, the change is posted to any channel that is tracking it.
     """
-    query_string = 'organization="organizations/{}" AND state=OPEN'.format(ORG_ID)
+    query_string = 'organization="organizations/{}" AND state=OPEN'.format(
+        ORG_ID)
 
     while True:
         loop_skip = False
@@ -707,13 +823,13 @@ def case_updates():
         req = support_service.cases().search(query=query_string)
         try:
             resp = req.execute(num_retries=MAX_RETRIES).get('cases', [])
-        except BrokenPipeError as e: 
+        except BrokenPipeError as e:
             logging.error(e, ' : {}'.format(datetime.now()))
             time.sleep(5)
             continue
 
         temp_cases = {}
-        
+
         for case in resp:
             try:
                 temp_case = SupportCase(case)
@@ -742,25 +858,33 @@ def case_updates():
             if delete_entry == True:
                 notify_slack(key, 'closed', '')
                 del cases[key]
-        
+
         # Check for existing cases that have a new update time. Post their relevant update
         # to the channels that are tracking those cases.
         for temp_key in temp_cases:
             if temp_key in cases:
-                if cases[temp_key]['comment_list'] != temp_cases[temp_key].comment_list:
-                    if 'googleSupport' in temp_cases[temp_key].comment_list[0]['creator']:
-                        notify_slack(temp_key, 'comment', temp_cases[temp_key].comment_list[0]['body'])
+                if cases[temp_key]['comment_list'] != temp_cases[
+                        temp_key].comment_list:
+                    if 'googleSupport' in temp_cases[temp_key].comment_list[0][
+                            'creator']:
+                        notify_slack(
+                            temp_key, 'comment',
+                            temp_cases[temp_key].comment_list[0]['body'])
                 if cases[temp_key]['priority'] != temp_cases[temp_key].priority:
-                    notify_slack(temp_key, 'priority', temp_cases[temp_key].priority)
-                if cases[temp_key]['escalated'] != temp_cases[temp_key].escalated:
+                    notify_slack(temp_key, 'priority',
+                                 temp_cases[temp_key].priority)
+                if cases[temp_key]['escalated'] != temp_cases[
+                        temp_key].escalated:
                     if temp_cases[temp_key].escalated == True:
-                        notify_slack(temp_key, 'escalated', temp_cases[temp_key].escalated)
+                        notify_slack(temp_key, 'escalated',
+                                     temp_cases[temp_key].escalated)
                     else:
-                        notify_slack(temp_key, 'de-escalated', temp_cases[temp_key].escalated)
-        
+                        notify_slack(temp_key, 'de-escalated',
+                                     temp_cases[temp_key].escalated)
+
         # Replace the stored case list with our latest pull and update the file
         try:
-            file_overwrite(cases_file, temp_cases)        
+            file_overwrite(cases_file, temp_cases)
         except OSError as e:
             logging.error(e, ' : {}'.format(datetime.now()))
             sleep_timer = 2
@@ -790,20 +914,33 @@ def notify_slack(case, update_type, update_text):
             except json.decoder.JSONDecodeError as e:
                 logging.error(e, ' : {}'.format(datetime.now()))
             else:
-                for tracked_case  in tracked_cases_json:
+                for tracked_case in tracked_cases_json:
                     tracker.append(tracked_case)
         for t in tracker:
             if t['case'] == case:
                 if update_type == 'comment':
-                    client.chat_postMessage(channel=t['channel_id'], text=f"You have an update from your support engineer on case {case}: \n{update_text}")
+                    client.chat_postMessage(
+                        channel=t['channel_id'],
+                        text=
+                        f"You have an update from your support engineer on case {case}: \n{update_text}"
+                    )
                 elif update_type == 'priority':
-                    client.chat_postMessage(channel=t['channel_id'], text=f"The priority of case {case} has been changed to {update_text}")
+                    client.chat_postMessage(
+                        channel=t['channel_id'],
+                        text=
+                        f"The priority of case {case} has been changed to {update_text}"
+                    )
                 elif update_type == 'closed':
-                    client.chat_postMessage(channel=t['channel_id'], text=f"Case {case} has been closed")
+                    client.chat_postMessage(channel=t['channel_id'],
+                                            text=f"Case {case} has been closed")
                 elif update_type == 'escalated':
-                    client.chat_postMessage(channel=t['channel_id'], text=f"Case {case} has been escalated")
+                    client.chat_postMessage(
+                        channel=t['channel_id'],
+                        text=f"Case {case} has been escalated")
                 elif update_type == 'de-escalated':
-                    client.chat_postMessage(channel=t['channel_id'], text=f"Case {case} has been de-escalated")
+                    client.chat_postMessage(
+                        channel=t['channel_id'],
+                        text=f"Case {case} has been de-escalated")
 
 
 def file_overwrite(output_file, content_dict):
@@ -826,8 +963,8 @@ def file_overwrite(output_file, content_dict):
             f.truncate()
     else:
         with open(output_file, "w") as f:
-            f.write(json.dumps(content_dict, default=lambda x: x.__dict__))                                       
-            
+            f.write(json.dumps(content_dict, default=lambda x: x.__dict__))
+
 
 def get_parent(case) -> str:
     """
@@ -846,8 +983,8 @@ def get_parent(case) -> str:
         return fetch_cases[case]['resource_name']
     else:
         return 'Case not found'
-    
-                                            
+
+
 if __name__ == "__main__":
     p = Process(target=case_updates)
     p.start()
