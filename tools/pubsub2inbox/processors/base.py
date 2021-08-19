@@ -17,6 +17,8 @@ from googleapiclient import discovery, http
 import abc
 import re
 import json
+import os
+from google.cloud.iam_credentials_v1 import IAMCredentialsClient
 
 _PROJECT_NUM_CACHE = {}
 _PROJECT_ID_CACHE = {}
@@ -27,6 +29,10 @@ class NotConfiguredException(Exception):
 
 
 class UnknownProjectException(Exception):
+    pass
+
+
+class NoCredentialsException(Exception):
     pass
 
 
@@ -47,6 +53,20 @@ class Processor:
         self.context = context
 
         self.logger = logging.getLogger('pubsub2inbox')
+
+    def get_token_for_scopes(self, scopes, service_account=None):
+        if not service_account:
+            service_account = os.getenv('SERVICE_ACCOUNT')
+
+        if not service_account:
+            raise NoCredentialsException(
+                'You need to specify a service account for Directory API credentials, either through SERVICE_ACCOUNT environment variable or serviceAccountEmail parameter.'
+            )
+
+        client = IAMCredentialsClient()
+        name = 'projects/-/serviceAccounts/%s' % service_account
+        response = client.generate_access_token(name=name, scope=scopes)
+        return response.access_token
 
     def expand_projects(self, projects):
         ret = []

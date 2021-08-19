@@ -141,11 +141,10 @@ def process_message(config, data, event, context):
                                                  data, event, context)
             processor_variables = processor_instance.process()
             template_variables.update(processor_variables)
-
-    jinja_environment.globals = {
-        **jinja_environment.globals,
-        **template_variables
-    }
+            jinja_environment.globals = {
+                **jinja_environment.globals,
+                **template_variables
+            }
 
     if 'processIf' in config:
         processif_template = jinja_environment.from_string(config['processIf'])
