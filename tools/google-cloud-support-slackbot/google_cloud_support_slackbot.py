@@ -174,7 +174,6 @@ def gcp_support() -> Response:
         return Response(), 403
     
     data = request.form
-    token = data.get('token')
     channel_id = data.get('channel_id')
     channel_name = data.get('channel_name')
     user_id = data.get('user_id')
@@ -223,6 +222,7 @@ def gcp_support() -> Response:
                 reason = parameters[1]
                 justification = parameters[2]
             except IndexError as e:
+                logging.error(e, ' : {}'.format(datetime.now()))
                 client.chat_postEphemeral(channel=channel_id, user=user_id, text="The escalate command expects arguments "
                                           "[reason, must be either REASON_UNSPECIFIED|RESOLUTION_TIME|TECHNICAL_EXPERTISE|BUSINESS_IMPACT] [justification]."
                                           " The justification does not need to be encapsulated in quotes."
@@ -243,6 +243,7 @@ def gcp_support() -> Response:
             try:
                 case = user_inputs[1]
             except IndexError as e:
+                logging.error(e, ' : {}'.format(datetime.now()))
                 client.chat_postEphemeral(channel=channel_id, user=user_id, text="The close-case command expects arguments [case_number]")
             close_case(channel_id,case,user_id)
     elif command == 'list-tracked-cases':
@@ -470,11 +471,11 @@ def escalate(channel_id, case, user_id, reason, justification, user_name):
                     'justification': signed_justification
                     }
                 }
-        escalation_mask = ['escalation.reason', 'escalation.justification']
         req = support_service.cases().escalate(name=parent, body=body)
         try:
             req.execute(num_retries=MAX_RETRIES)
         except BrokenPipeError as e:
+            logging.error(e, ' : {}'.format(datetime.now()))
             client.chat_postEphemeral(channel=channel_id, user=user_id, text="Your attempt to escalate may have failed. Please contact your account team or try again later.")
         else:
             client.chat_postEphemeral(channel=channel_id, user=user_id, text=f"You have escalated case {case}")
@@ -819,7 +820,7 @@ def file_overwrite(output_file, content_dict):
     """
     if os.path.exists(output_file):
         with open(output_file, "r+") as f:
-            data = f.read()
+            _ = f.read()
             f.seek(0)
             f.write(json.dumps(content_dict, default=lambda x: x.__dict__))
             f.truncate()
