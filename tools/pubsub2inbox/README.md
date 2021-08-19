@@ -35,6 +35,9 @@ Out of the box, you'll have the following functionality:
   - [Cloud Monitoring alerts](examples/monitoring-config.yaml)
   - [Cloud Storage copier](examples/gcscopy-example.yaml)
      - Copies objects between two buckets, useful for backing up.
+  - [Cloud Identity groups](examples/groups-example.yaml) ([other example](examples/groups-example-2.yaml))
+     - Retrieves group and membership information from [Cloud Identity Groups API](https://cloud.google.com/identity/docs/apis)
+     - Useful for example building membership review reports
   - Any JSON
     - [See the example of generic JSON processing](examples/generic-config.yaml)
 
@@ -51,6 +54,7 @@ Available input processors are:
    presents it to output processors.
  - [recommendations.py](processors/recommendations.py): Retrieves recommendations
    and insights from the [Recommender API](https://cloud.google.com/recommender/docs/overview).
+ - [groups.py](processors/groups.py): Retrieves Cloud Identity Groups 
 
 Please note that the input processors have some IAM requirements to be able to
 pull information from GCP:
@@ -80,6 +84,7 @@ pull information from GCP:
      (`roles/billing.viewer`) and Billing Account Usage Commitment Recommender Viewer
      (`roles/recommender.billingAccountCudViewer`) on the billing account
      itself.
+  - Groups: `Groups Reader` permission in admin.google.com for the serviec account.
      
 
 ## Output processors
@@ -93,6 +98,7 @@ Available output processors are:
     with added OAuth2 bearer token from GCP.
   - [gcscopy.py](output/gcscopy.py): copies files between buckets.
   - [logger.py](output/logger.py): Logs message in Cloud Logging.
+  - [pubsub.py](output/pubsub.py): Sends one or more Pub/Sub messages.
 
 Please note that the output processors have some IAM requirements to be able to
 pull information from GCP:

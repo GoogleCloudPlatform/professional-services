@@ -1,0 +1,66 @@
+#   Copyright 2021 Google LLC
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+#
+retryPeriod: 3 day ago
+
+# See groups-example.yaml for explanation of this configuration
+
+processors:
+  - genericjson
+  - groups
+
+groups:
+  query: "parent=='customers/C0000000' && 'cloudidentity.googleapis.com/groups.discussion_forum' in labels"
+  # Regular expression
+  filter: "^{{ data.group|re_escape }}$"
+
+outputs:
+  - type: mail
+    transports:
+      - type: smtp
+        host: your.smtp.server
+        port: 25
+        ssl: false
+    from: notifications@your.domain
+    to: |
+      {{ all_groups[data.group].owners|join(',') }}
+    subject: |
+      Membership review for {{ data.group }} ({{ 'now'|strftime('%d %B %Y') }})
+    body:
+      images:
+        - img/sample-logo-small.png
+      html: |
+        <html><head><title>Group membership review</title></head>
+        <body>
+          <img src="cid:sample-logo-small.png" />
+          <h1>Group membership review: {{ data.group }}</h1>
+          <table>
+            <thead>
+              <tr>
+                <td>Email</td>
+                <td>Roles</td>
+              </tr>
+            </thead>
+            <tbody>
+            {% for user, info in all_groups[data.group]['memberships'].items(): %}
+            <tr>
+              <td>{{ user }}</td>
+              <td>{% set roles = [] %}{% for role in info.roles %}{% set roles = roles.append(role['name']) %}{% endfor %}{{ roles|join(', ') }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+          <a href="https://console.cloud.google.com/iam-admin/{{ all_groups[data.group].name }}?orgonly=true&supportedpurview=organizationId&folder=&organizationId=YOUR-ORG-ID">Manage group in Cloud Console</a>
+        </body>
+        </html>
