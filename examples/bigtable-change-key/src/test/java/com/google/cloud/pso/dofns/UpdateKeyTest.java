@@ -123,7 +123,7 @@ public class UpdateKeyTest {
     PCollection<KV<ByteString, Iterable<Mutation>>> transformed =
         input.apply(
             "Transform for count test",
-            ParDo.of(new UpdateKey(UpdateKeyTest::identityTransformKey)));
+            ParDo.of(updateKeyDoFn));
 
     // Check that the keys have not changed
     PCollection<ByteString> transformedKeys =
