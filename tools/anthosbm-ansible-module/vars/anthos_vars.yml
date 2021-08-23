@@ -27,7 +27,7 @@ bmctl_tool: "yes"
 # if the GCP service accounts have already been created, copy the keys files to gcp_sa_key_dir directory
 service_accounts: "yes"
 
-bmctl_download_url: gs://anthos-baremetal-release/bmctl/1.8.0/linux-amd64/bmctl
+bmctl_download_url: gs://anthos-baremetal-release/bmctl/1.8.2/linux-amd64/bmctl
 bmctl_workspace_dir: bmctl-workspace
 gcp_sa_key_dir: /home/anthos/gcp_keys
 local_gcr_sa_name: anthos-gcr-svc-account

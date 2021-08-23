@@ -14,7 +14,7 @@ this example has the following additional feature:
 
 1. Support both Classification and Regression, which can be specified in the configuration
 2. Support serving for both JSON and List of Value formats
-3. Support additional custome transformation logics besides typical pre-processing provided by scikit-learn
+3. Support additional custom transformation logics besides typical pre-processing provided by scikit-learn
 
 Google Cloud tools used:
 - [Google Cloud Platform](https://cloud.google.com/) (GCP) lets you build and
@@ -64,12 +64,12 @@ template
         |__ transform_config.py     # configuration for transform pipeline construction"
     |__ predictor.py                # define custom prediction behavior
     |__ setup.py                    # specify necessary dependency for running job on AI Platform
-    |__ requirements.txt            # specify necessary dependency, helper for setup environemnt for local development
+    |__ requirements.txt            # specify necessary dependency, helper for setup environment for local development
 ```
 
 ## Using the template
 ### Step 0. Prerequisites
-Before you follow the instructions below to adapt the tempate to your machine learning job,
+Before you follow the instructions below to adapt the template to your machine learning job,
 you need a Google cloud project if you don't have one. You can find detailed instructions
 [here](https://cloud.google.com/dataproc/docs/guides/setup-project).
 

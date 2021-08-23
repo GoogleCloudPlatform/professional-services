@@ -3,7 +3,7 @@
 Standalone tool with following capabilities
 1. Export all quota related metrics to BigQuery.
 2. DataStudio dashboard to
-  * Vizualize quota utilization data at various resource hierarchy levels.
+  * Visualize quota utilization data at various resource hierarchy levels.
   * Show quota threshold reports(quota's that are exceeding the configured thresholds).
 3. Trigger alerts when quota's exceed set thresholds.
 

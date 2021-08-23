@@ -32,6 +32,13 @@
     "regexes": ["^(WRITE_APPEND|WRITE_EMPTY)$"]
   },
   {
+    "name": "add_load_date_suffix",
+    "label": "If the load date [YYYYMMDD] is added as a table suffix.",
+    "help_text": "Either 'true' or 'false'.",
+    "isOptional": true,
+    "regexes": ["^(true|false)$"]
+  },
+  {
     "name": "dataset",
     "label": "BigQuery dataset to load to.",
     "help_text": "BigQuery dataset name such as project-1.dataset_id or just dataset_id.",

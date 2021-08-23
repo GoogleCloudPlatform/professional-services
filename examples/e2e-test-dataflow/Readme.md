@@ -1,6 +1,6 @@
 # Running End-to-End test for Dataflow pipelines
 
-We all know testing dataflow applications is important. But when building data ingestion and transformation, sometimes thing gets too technical and hence stakeholders like analyst, data scentist have no visibility on what test are being perfromed. In this sample code. We run E2E test in Dataflow using cucumber. Cucumber is a BDD tool available on the JVM. Cucumber uses `Gherkin language` to write the test sceanrios and hence everyone can contribute.
+We all know testing dataflow applications is important. But when building data ingestion and transformation, sometimes thing gets too technical and hence stakeholders like analyst, data scientist have no visibility on what test are being performed. In this sample code. We run E2E test in Dataflow using cucumber. Cucumber is a BDD tool available on the JVM. Cucumber uses `Gherkin language` to write the test scenarios and hence everyone can contribute.
 
 Note: The Dataflow that we test in this E2E test is [here](https://github.com/bipinupd/professional-services/tree/dataflow-cloud-run/examples/dataflow-cloud-run/dataflowApp). Modify the pom to upload the artifact in GCS bucket or download from the artifact repository where your build system uploads the artifact(such as artifactory/JFrog).
 
