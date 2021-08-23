@@ -23,6 +23,7 @@ import io
 from tablepyxl import tablepyxl
 import base64
 import magic
+import re
 
 
 def make_list(s):
@@ -39,8 +40,16 @@ def urlencode(s):
     return urllib.parse.quote(s)
 
 
+def re_escape(s):
+    return re.escape(s)
+
+
 def json_encode(v):
     return json.dumps(v)
+
+
+def json_decode(v):
+    return json.decode(v)
 
 
 def csv_encode(v, **kwargs):
