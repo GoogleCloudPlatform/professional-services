@@ -1,11 +1,28 @@
 ## Terraform deployment steps
 
-Create a directory
+Using Cloud Shell
+* Go to https://console.cloud.google.com/
+* Select the project created for deploying the solution
+* Activate Cloud Shell & execute below steps
+
+Using Local Shell
+* Open terminal/shell
+* Configure gcloud and select the project created for deploying the solution
+```bash
+gcloud init
+```
+* Execute below steps
+
+
+---
+### Create a directory
 ```bash
 mkdir workspace; cd workspace
 ```
 
-Clone code
+
+---
+### Clone code
 ```bash
 git clone https://github.com/GoogleCloudPlatform/professional-services.git
 ```
@@ -14,15 +31,18 @@ git clone https://github.com/GoogleCloudPlatform/professional-services.git
 cd professional-services/tools/quota-monitoring-alerting/python
 ```
 
-Export ENV variables
+
+---
+### Export ENV variables
 ```bash
 export REGION=us-central1
 ```
 
----
-Credentials
 
-> Irrespective of user account or service account approach, make sure the permissions mentioned in top level [README](..README.md#common-steps) are granted to the account.
+---
+### Credentials
+
+> Irrespective of user account or service account approach, make sure the permissions mentioned in top level [README](../README.md#common-steps) are granted to the account.
 
 * Using user credentials
 ```bash
@@ -40,7 +60,9 @@ gcloud auth application-default login
     ```
 
 ---
-Enable AppEngine service. NOTE: CloudScheduler requires an AppEngine project.
+### AppEngine
+**NOTE**: CloudScheduler requires an AppEngine project.
+
 ```bash
 gcloud services enable appengine.googleapis.com
 ```
@@ -51,7 +73,8 @@ gcloud app create --region=${REGION//[0-9]/}
 ```
 
 ---
-Setup Common Infra.
+### Setup Common Infra
+
 ```bash
 cd terraform/common; terraform init
 ```
@@ -78,24 +101,73 @@ terraform apply
 ```
 
 ---
-Setup DataStudio Dashboard.
+### Setup DataStudio Dashboard
 
-**TODO**: This part is still WIP.
+* Open the [dashboard template](https://datastudio.google.com/reporting/50bdadac-9ea0-4dcd-bee2-f323c968186d)
+
+* Make a copy by clicking the "Make a copy" button at the top right hand side, as shown below.
+
+  <img src="make_a_copy.png" align="center" />
+
+* On the "Copy this report" screen, the goal is to do the following mappings
+  * dashboard_view(original data source) to dashboard_view(new data source)
+  * thresholds_public(original data source) to thresholds(new data source)
+
+  <img src="copy_report_end_state.png" align="center" />
+
+* For each "Original Data Source" create and link the "New Data Source" by
+  clicking "CREATE NEW DATA SOURCE"
+
+  <img src="copy_report.png" align="center" />
+
+* From connectors screen select "Bigquery" connector
+
+  <img src="connectors.png" align="center" />
+
+* Select the correct Project(the one where BQ resources got deployed), Dataset and Table on the bigquery connector screen and click "Connect" at top right corner
+
+  <img src="bigquery_connector.png" align="center" />
+
+* Click "ADD TO REPORT" at the top right corner
+
+  <img src="add_to_report.png" align="center" />
+
+* After all the data sources are mapped, click "Copy Report".
+
 
 ---
-Bootstrap to create Metric Descriptor etc.
+### Bootstrap Metric Descriptor
+
 ```bash
 cd ../../
 ```
 
-If this reports an error, wait a few seconds and try again.
-NOTE: Need to check why Cloud Monitoring throws error initially.
 ```bash
-python bootstrap.py
+python3 -m venv venv
 ```
 
+```bash
+source venv/bin/activate
+```
+
+```bash
+pip install --upgrade pip
+```
+
+```bash
+pip install -r requirements.txt
+```
+
+If the below command reports an error, wait a few seconds and try again.
+<br />
+**NOTE**: Need to check why Cloud Monitoring throws error initially.
+```bash
+python3 bootstrap.py
+```
+
+
 ---
-Setup Alerting
+### Setup Alerting
 ```bash
 cd terraform/alerting; terraform init
 ```
