@@ -121,9 +121,7 @@ public class UpdateKeyTest {
         testPipelineCount.apply("Elements for count test", Create.of(elements));
     // Apply transform
     PCollection<KV<ByteString, Iterable<Mutation>>> transformed =
-        input.apply(
-            "Transform for count test",
-            ParDo.of(updateKeyDoFn));
+        input.apply("Transform for count test", ParDo.of(updateKeyDoFn));
 
     // Check that the keys have not changed
     PCollection<ByteString> transformedKeys =
