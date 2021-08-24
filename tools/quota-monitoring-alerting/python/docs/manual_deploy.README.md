@@ -1,11 +1,26 @@
 ## Maual Deployment steps(using gcloud commands)
 
-#### Create a directory
+Using Cloud Shell
+* Go to https://console.cloud.google.com/
+* Select the project created for deploying the solution
+* Activate Cloud Shell & execute below steps
+
+Using Local Shell
+* Open terminal/shell
+* Configure gcloud and select the project created for deploying the solution
+```bash
+gcloud init
+```
+* Execute below steps
+
+
+---
+### Create a directory
 ```bash
 mkdir workspace; cd workspace
 ```
 
-#### Set common variables
+### Set common variables
 ```bash
 export PROJECT=<REPLACE_WITH_PROJECT_ID>
 ```
@@ -27,7 +42,7 @@ export SERVICE_ACCOUNT=quota-export
 ```
 
 ---
-#### Enable APIs
+### Enable API's
 ```bash
 gcloud services enable monitoring.googleapis.com
 gcloud services enable cloudresourcemanager.googleapis.com
@@ -38,7 +53,7 @@ gcloud services enable pubsub.googleapis.com
 ```
 
 ---
-#### Credentials
+### Credentials
 ```bash
 gcloud iam service-accounts create $SERVICE_ACCOUNT
 ```
@@ -83,7 +98,7 @@ gcloud organizations add-iam-policy-binding $ORGANIZATION \
 ```
 
 ---
-#### Clone code
+### Clone code
 ```bash
 git clone https://github.com/GoogleCloudPlatform/professional-services.git
 ```
@@ -93,7 +108,7 @@ cd professional-services/tools/quota-monitoring-alerting/python
 ```
 
 ---
-#### Bigquery dataset and tables
+### Bigquery dataset and tables
 Dataset
 ```bash
 bq mk -d quota
@@ -120,21 +135,70 @@ bq mk --use_legacy_sql=false --view="$(cat $PWD/bigquery_schemas/dashboard_view.
 ```
 
 ---
-#### Setup DataStudio Dashboard.
-TODO: This part is still WIP.
+### Setup DataStudio Dashboard
+
+* Open the [dashboard template](https://datastudio.google.com/reporting/50bdadac-9ea0-4dcd-bee2-f323c968186d)
+
+* Make a copy by clicking the "Make a copy" button at the top right hand side, as shown below.
+
+  <img src="make_a_copy.png" align="center" />
+
+* On the "Copy this report" screen, the goal is to do the following mappings
+  * dashboard_view(original data source) to dashboard_view(new data source)
+  * thresholds_public(original data source) to thresholds(new data source)
+
+  <img src="copy_report_end_state.png" align="center" />
+
+* For each "Original Data Source" create and link the "New Data Source" by
+  clicking "CREATE NEW DATA SOURCE"
+
+  <img src="copy_report.png" align="center" />
+
+* From connectors screen select "Bigquery" connector
+
+  <img src="connectors.png" align="center" />
+
+* Select the correct Project(the one where BQ resources got deployed), Dataset and Table on the bigquery connector screen and click "Connect" at top right corner
+
+  <img src="bigquery_connector.png" align="center" />
+
+* Click "ADD TO REPORT" at the top right corner
+
+  <img src="add_to_report.png" align="center" />
+
+* After all the data sources are mapped, click "Copy Report".
+
 
 ---
-#### Update config
+### Update config
 ```bash
 sed -i 's/$PROJECT/'"$PROJECT"'/' $PWD/config.yaml
 ```
 
-Bootstrap to create Metric Descriptor etc. If this reports an error, wait a few seconds and try again.
+```bash
+python3 -m venv venv
+```
 
+```bash
+source venv/bin/activate
+```
+
+```bash
+pip install --upgrade pip
+```
+
+```bash
+pip install -r requirements.txt
+```
+
+Bootstrap to create Metric Descriptor etc.
+If the below command reports an error, wait a few seconds and try again.
+<br />
 **NOTE**: Need to check why Cloud Monitoring throws error initially.
 ```bash
-python bootstrap.py
+python3 bootstrap.py
 ```
+
 
 Set email address for recieving the notifications
 ```bash
@@ -154,7 +218,7 @@ export CHANNEL=$(gcloud alpha monitoring channels create --channel-content-from-
 
 Replace with correct dashboard link
 ```bash
-export DASHBOARD_LINK='https://datastudio.google.com/c/u/0/reporting/657f72d0-8625-42a5-8aa1-e5ee1d48a31c/page/IFhNC'
+export DASHBOARD_LINK='[REPLACE_WITH_DASHBOARD_LINK]'
 ```
 
 ```bash
@@ -167,7 +231,7 @@ gcloud alpha monitoring policies create --policy-from-file=templates/outputs/quo
 ```
 
 ---
-#### Deploy
+### Deploy
 ```bash
 export SERVICE=quota-export
 ```
@@ -273,7 +337,7 @@ gcloud pubsub subscriptions create bigquery_sub \
 ```
 
 ---
-#### Schedule cron(s) using Cloud Scheduler.
+### Schedule cron(s) using Cloud Scheduler.
 NOTE: CloudScheduler requires AppEngine project.
 ```bash
 gcloud services enable appengine.googleapis.com
