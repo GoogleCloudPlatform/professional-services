@@ -147,7 +147,6 @@ resource "google_cloudfunctions_function" "function-scanProject" {
     THRESHOLD                = var.threshold
     BIG_QUERY_DATASET        = var.big_query_dataset_id
     BIG_QUERY_TABLE          = var.big_query_table_id
-    BIG_QUERY_LIMIT_TABLE    = var.big_query_limit_table_id
   }
 }
 
@@ -237,16 +236,16 @@ resource "google_bigquery_table" "default" {
     "description": "region"
   },
   {
-    "name": "usage",
+    "name": "m_value",
     "type": "STRING",
     "mode": "NULLABLE",
-    "description": "current quota usage"
+    "description": "Quota metric value - usage or limit"
   },
   {
-    "name": "limit",
+    "name": "mv_type",
     "type": "STRING",
     "mode": "NULLABLE",
-    "description": "quota limit"
+    "description": "Type of metric value - usage or limit"
   },
   {
     "name": "vpc_name",
@@ -267,7 +266,7 @@ resource "google_bigquery_table" "default" {
     "description": "timestamp"
   },
   {
-    "name": "project",
+    "name": "project_id",
     "type": "STRING",
     "mode": "NULLABLE",
     "description": "project id"
@@ -277,104 +276,6 @@ resource "google_bigquery_table" "default" {
     "type": "STRING",
     "mode": "NULLABLE",
     "description": "folder id"
-  },
-  {
-    "name": "value",
-    "type": "FLOAT",
-    "mode": "NULLABLE",
-    "description": "current quota consumption in percent"
-  },
-  {
-    "name": "targetpool_name",
-    "type": "STRING",
-    "mode": "NULLABLE",
-    "description": "target pool name"
-  },
-  {
-    "name": "org_id",
-    "type": "STRING",
-    "mode": "NULLABLE",
-    "description": "organization id of the project"
-  }
-]
-EOF
-
-}
-
-# BigQuery Table for Limit data
-resource "google_bigquery_table" "limit_table" {
-  dataset_id = google_bigquery_dataset.dataset.dataset_id
-  table_id   = var.big_query_limit_table_id
-
-  time_partitioning {
-    type = var.big_query_table_partition
-  }
-
-  labels = {
-    env = "default"
-  }
-
-  schema = <<EOF
-[
-  {
-    "name": "threshold",
-    "type": "INT64",
-    "mode": "NULLABLE",
-    "description": "region"
-  },
-  {
-    "name": "region",
-    "type": "STRING",
-    "mode": "NULLABLE",
-    "description": "region"
-  },
-  {
-    "name": "usage",
-    "type": "STRING",
-    "mode": "NULLABLE",
-    "description": "current quota usage"
-  },
-  {
-    "name": "limit",
-    "type": "STRING",
-    "mode": "NULLABLE",
-    "description": "quota limit"
-  },
-  {
-    "name": "vpc_name",
-    "type": "STRING",
-    "mode": "NULLABLE",
-    "description": "vpc name"
-  },
-  {
-    "name": "metric",
-    "type": "STRING",
-    "mode": "NULLABLE",
-    "description": "quota metric"
-  },
-  {
-    "name": "addedAt",
-    "type": "TIMESTAMP",
-    "mode": "NULLABLE",
-    "description": "timestamp"
-  },
-  {
-    "name": "project",
-    "type": "STRING",
-    "mode": "NULLABLE",
-    "description": "project id"
-  },
-  {
-    "name": "folder_id",
-    "type": "STRING",
-    "mode": "NULLABLE",
-    "description": "folder id"
-  },
-  {
-    "name": "value",
-    "type": "FLOAT",
-    "mode": "NULLABLE",
-    "description": "current quota consumption in percent"
   },
   {
     "name": "targetpool_name",
@@ -401,10 +302,11 @@ resource "google_bigquery_data_transfer_config" "query_config" {
   schedule                  = var.Alert_data_scanning_frequency
   notification_pubsub_topic = "projects/${var.project_id}/topics/${var.topic_alert_notification}"
   destination_dataset_id    = google_bigquery_dataset.quota_usage_alert_dataset.dataset_id
+  depends_on                = [module.project-services]
   params = {
     destination_table_name_template = var.big_query_alert_table_id
     write_disposition               = "WRITE_TRUNCATE"
-    query                           = "SELECT *  FROM `${var.project_id}.${google_bigquery_dataset.dataset.dataset_id}.${google_bigquery_table.default.table_id}` WHERE  CAST(usage as NUMERIC) >= threshold"
+    query                           = "SELECT metric,usage,q_limit,consumption,project_id,region,HOUR AS addedAt FROM (SELECT project_id,region,metric,HOUR,q_limit,usage,ROUND((SAFE_DIVIDE(CAST(t.usage AS BIGNUMERIC),CAST(t.q_limit AS BIGNUMERIC))*100),2) AS consumption,threshold FROM (SELECT project_id,region,metric,DATE_TRUNC(addedAt, HOUR) AS HOUR,MAX(CASE WHEN mv_type='limit' THEN m_value ELSE NULL END) AS q_limit,MAX(CASE WHEN mv_type='usage' THEN m_value ELSE NULL END) AS usage,threshold FROM ${var.project_id}.${google_bigquery_dataset.dataset.dataset_id}.${google_bigquery_table.default.table_id} GROUP BY 1,2,3,4,7 ) t ) c WHERE c.consumption >= c.threshold"
   }
 }
 
@@ -423,6 +325,7 @@ resource "google_logging_metric" "quota_logging_metric" {
   name        = "resource_usage"
   description = "Tracks a log containing resources' quota data"
   filter      = "logName=\"projects/${var.project_id}/logs/quota-alerts\""
+  depends_on  = [module.project-services]
   metric_descriptor {
     metric_kind = "DELTA"
     value_type  = "INT64"
@@ -442,6 +345,7 @@ resource "google_logging_metric" "quota_logging_metric" {
 resource "google_monitoring_notification_channel" "email0" {
   display_name = "Oncall"
   type         = "email"
+  depends_on   = [module.project-services]
   labels = {
     email_address = var.notification_email_address
   }
@@ -471,12 +375,13 @@ resource "google_logging_project_sink" "instance-sink" {
   destination            = "logging.googleapis.com/projects/${var.project_id}/locations/global/buckets/${var.alert_log_bucket_name}"
   filter                 = "logName=\"projects/${var.project_id}/logs/quota-alerts\""
   unique_writer_identity = true
+  depends_on             = [module.project-services]
 }
 
 #Because our sink uses a unique_writer, we must grant that writer access to the bucket.
 resource "google_project_iam_binding" "log-writer" {
-  role = "roles/logging.configWriter"
-
+  role        = "roles/logging.configWriter"
+  depends_on  = [module.project-services]
   members = [
     "serviceAccount:${var.service_account_email}",
   ]
@@ -489,6 +394,7 @@ resource "google_logging_project_bucket_config" "logging_bucket" {
   retention_days = var.retention_days
   bucket_id      = var.alert_log_bucket_name
   description    = "Log bucket to store logs related to quota alerts sent by the Notification cloud function"
+  depends_on     = [module.project-services]
 }
 
 #Alert policy for log-based metric
@@ -519,4 +425,5 @@ resource "google_monitoring_alert_policy" "alert_policy_quota" {
   notification_channels = [
     google_monitoring_notification_channel.email0.name
   ]
+  depends_on  = [module.project-services]
 }

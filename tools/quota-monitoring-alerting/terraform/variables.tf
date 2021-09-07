@@ -208,12 +208,6 @@ variable "big_query_table_id" {
   default     = "quota_monitoring_table"
 }
 
-variable "big_query_limit_table_id" {
-  description = "Value of the Big Query Table Id"
-  type        = string
-  default     = "quota_limit_table"
-}
-
 variable "big_query_table_partition" {
   description = "Value of the Big Query Table time partitioning"
   type        = string

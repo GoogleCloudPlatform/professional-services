@@ -28,11 +28,7 @@ import com.google.cloud.compute.v1.RegionClient;
  * */
 public class GCPResourceClient {
   private BigQuery bigQuery;
-  private RegionClient regionClient;
-  private NetworkClient networkClient;
   private TableId tableId;
-  private TableId destinationTableId;
-  private TableId limitTableId;
 
   public BigQuery getBigQuery() {
     return bigQuery;
@@ -42,43 +38,11 @@ public class GCPResourceClient {
     this.bigQuery = bigQuery;
   }
 
-  public RegionClient getRegionClient() {
-    return regionClient;
-  }
-
-  public void setRegionClient(RegionClient regionClient) {
-    this.regionClient = regionClient;
-  }
-
-  public NetworkClient getNetworkClient() {
-    return networkClient;
-  }
-
-  public void setNetworkClient(NetworkClient networkClient) {
-    this.networkClient = networkClient;
-  }
-
   public TableId getTableId() {
     return tableId;
   }
 
   public void setTableId(TableId tableId) {
     this.tableId = tableId;
-  }
-
-  public TableId getDestinationTableId() {
-    return destinationTableId;
-  }
-
-  public void setDestinationTableId(TableId destinationTableId) {
-    this.destinationTableId = destinationTableId;
-  }
-
-  public TableId getLimitTableId() {
-    return limitTableId;
-  }
-
-  public void setLimitTableId(TableId limitTableId) {
-    this.limitTableId = limitTableId;
   }
 }

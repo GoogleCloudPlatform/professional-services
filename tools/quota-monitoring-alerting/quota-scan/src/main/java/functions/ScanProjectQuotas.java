@@ -29,9 +29,6 @@ public class ScanProjectQuotas implements BackgroundFunction<PubSubMessage> {
   // BigQuery Table name
   public static final String BIG_QUERY_TABLE = System.getenv("BIG_QUERY_TABLE");
 
-  public static final String BIG_QUERY_DESTINATION_TABLE = System.getenv("BIG_QUERY_TABLE");
-  // BigQuery Table name for loading limit data
-  public static final String BIG_QUERY_LIMIT_TABLE = System.getenv("BIG_QUERY_LIMIT_TABLE");
   //==== Time Series Filters ====
   //Last 7 days
   public static final Integer DURATION = 7 * 24 * 60 * 60;
@@ -73,7 +70,6 @@ public class ScanProjectQuotas implements BackgroundFunction<PubSubMessage> {
     } catch (Exception e) {
       logger.log(Level.SEVERE, " " + e.getMessage(), e);
     }
-    logger.info(" " + projectId);
   }
 
   /*

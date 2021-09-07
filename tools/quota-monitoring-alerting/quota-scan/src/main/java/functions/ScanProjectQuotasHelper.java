@@ -38,6 +38,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ScanProjectQuotasHelper {
+  // Cloud Function Environment variable to identify usage and limit values
+  public static final String METRIC_VALUE_USAGE = "usage";
+  public static final String METRIC_VALUE_LIMIT = "limit";
 
   private static final Logger logger = Logger.getLogger(ScanProjectQuotasHelper.class.getName());
 
@@ -47,19 +50,13 @@ public class ScanProjectQuotasHelper {
   static GCPResourceClient createGCPResourceClient() {
     String datasetName = ScanProjectQuotas.BIG_QUERY_DATASET;
     String tableName = ScanProjectQuotas.BIG_QUERY_TABLE;
-    String destinationTableName = ScanProjectQuotas.BIG_QUERY_DESTINATION_TABLE;
-    String limitTableName = ScanProjectQuotas.BIG_QUERY_LIMIT_TABLE;
     // Initialize client that will be used to send requests.
     BigQuery bigquery = BigQueryOptions.getDefaultInstance().getService();
     // Get table
     TableId tableId = TableId.of(datasetName, tableName);
-    TableId destinationTableId = TableId.of(datasetName, destinationTableName);
-    TableId limitTableId = TableId.of(datasetName, limitTableName);
     GCPResourceClient gcpResourceClient = new GCPResourceClient();
     gcpResourceClient.setBigQuery(bigquery);
     gcpResourceClient.setTableId(tableId);
-    gcpResourceClient.setDestinationTableId(destinationTableId);
-    gcpResourceClient.setLimitTableId(limitTableId);
     return gcpResourceClient;
   }
 
@@ -69,7 +66,7 @@ public class ScanProjectQuotasHelper {
   static TimeSeriesQuery getTimeSeriesFilter(){
     TimeSeriesQuery timeSeriesQuery = new TimeSeriesQuery();
     try {
-      InputStream input = StackdriverQuotaMonitoring.class.getResourceAsStream("/config.properties");
+      InputStream input = ScanProjectQuotasHelper.class.getResourceAsStream("/config.properties");
       Properties prop = new Properties();
       // load a properties file
       prop.load(input);
@@ -104,7 +101,7 @@ public class ScanProjectQuotasHelper {
       // Send the request to list the time series
       projectQuotas = metricServiceClient.listTimeSeries(request);
     } catch (IOException e){
-      logger.log(Level.SEVERE, "Error fetching timeseries data for project name: "+projectName + e.getMessage(), e);
+      logger.log(Level.SEVERE, "Error fetching timeseries data for project: "+projectName + e.getMessage(), e);
     }
     return projectQuotas;
   }
@@ -148,7 +145,7 @@ public class ScanProjectQuotasHelper {
     for (TimeSeries ts : timeSeriesList.iterateAll()) {
       ProjectQuota projectQuota = populateProjectQuota(ts, projectId, isLimit);
       Map<String, Object> row = createBQRow(projectQuota);
-      tableInsertRows(gcpResourceClient, row, isLimit);
+      tableInsertRows(gcpResourceClient, row);
     }
   }
 
@@ -160,18 +157,17 @@ public class ScanProjectQuotasHelper {
     ProjectQuota projectQuota = new ProjectQuota();
     projectQuota.setThreshold(Integer.valueOf(THRESHOLD));
     projectQuota.setOrgId("orgId");
-    projectQuota.setProject(projectId);
+    projectQuota.setProjectId(projectId);
     projectQuota.setTimestamp("AUTO");
     projectQuota.setFolderId("NA");
     projectQuota.setTargetPoolName("NA");
     projectQuota.setRegion(ts.getResource().getLabelsMap().get("location"));
     projectQuota.setMetric(ts.getMetric().getLabelsMap().get("quota_metric"));
+    projectQuota.setMetricValue(entry.getValue().toString());
     if(isLimit){
-      projectQuota.setLimit(entry.getValue().toString());
-      projectQuota.setUsage("");
+      projectQuota.setMetricValueType(METRIC_VALUE_LIMIT);
     } else {
-      projectQuota.setLimit("");
-      projectQuota.setUsage(entry.getValue().toString());
+      projectQuota.setMetricValueType(METRIC_VALUE_USAGE);
     }
     projectQuota.setVpcName("NA");
     return projectQuota;
@@ -184,14 +180,13 @@ public class ScanProjectQuotasHelper {
     Map<String, Object> rowContent = new HashMap<>();
     rowContent.put("threshold", projectQuota.getThreshold());
     rowContent.put("region", projectQuota.getRegion());
-    rowContent.put("usage", projectQuota.getUsage());
-    rowContent.put("limit", projectQuota.getLimit());
+    rowContent.put("m_value", projectQuota.getMetricValue());
+    rowContent.put("mv_type", projectQuota.getMetricValueType());
     rowContent.put("vpc_name", projectQuota.getVpcName());
     rowContent.put("metric", projectQuota.getMetric());
     rowContent.put("addedAt", projectQuota.getTimestamp());
-    rowContent.put("project", projectQuota.getProject());
+    rowContent.put("project_id", projectQuota.getProjectId());
     rowContent.put("folder_id", projectQuota.getFolderId());
-    rowContent.put("value", projectQuota.getValue());
     rowContent.put("targetpool_name", projectQuota.getTargetPoolName());
     rowContent.put("org_id", projectQuota.getOrgId());
     return rowContent;
@@ -201,14 +196,14 @@ public class ScanProjectQuotasHelper {
    * API to insert row in table
    * */
   public static void tableInsertRows(
-      GCPResourceClient gcpResourceClient, Map<String, Object> rowContent, Boolean isLimitData) {
+      GCPResourceClient gcpResourceClient, Map<String, Object> rowContent) {
 
     try {
       // Initialize client that will be used to send requests. This client only needs to be created
       // once, and can be reused for multiple requests.
       BigQuery bigquery = gcpResourceClient.getBigQuery();
       // Get table
-      TableId tableId = (isLimitData) ? gcpResourceClient.getLimitTableId() : gcpResourceClient.getDestinationTableId();
+      TableId tableId = gcpResourceClient.getTableId();
       // Inserts rowContent into datasetName:tableId.
       InsertAllResponse response =
           bigquery.insertAll(InsertAllRequest.newBuilder(tableId).addRow(rowContent).build());
