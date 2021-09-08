@@ -14,6 +14,8 @@ The app currently supports the following commands:
 * /google-cloud-support case-details [case_number] -- pull all of the case data as json
 * /google-cloud-support sitrep -- report of all active cases in the org
 
+**If you encounter any issues with this application's operations or setup, please file your issue here on GitHub or ping a member of your account team for assistance. This application is not supported by the Google Cloud Support team.**
+
 # Setup Guide
 
 **Before proceeding, you will need Premium Support to use the Cloud Support API and by association the slackbot**  
