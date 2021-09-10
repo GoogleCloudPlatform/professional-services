@@ -73,6 +73,7 @@ The tools folder contains ready-made utilities which can simplify Google Cloud P
 
 * [Agile Machine Learning API](tools/agile-machine-learning-api) - A web application which provides the ability to train and deploy ML models on Google Cloud Machine Learning Engine, and visualize the predicted results using LIME through simple post request.
 * [Airpiler](tools/airpiler) - A python script to convert Autosys JIL files to dag-factory format to be executed in Cloud Composer (managed airflow environment).
+* [Anthos Bare Metal Installer](tools/anthosbm-ansible-module) - An [ansible](https://www.ansible.com/resources/get-started) playbook that can be used to install [Anthos Bare Metal](https://cloud.google.com/anthos/clusters/docs/bare-metal).
 * [Apache Beam Client Throttling](tools/apachebeam-throttling) - A library that can be used to limit the number of requests from an Apache Beam pipeline to an external service. It buffers requests to not overload the external service and activates client-side throttling when the service starts rejecting requests due to out of quota errors.
 * [API Key Rotation Checker](tools/api-key-rotation) - A tool that checks your GCP organization for API keys and compares them to a customizable rotation period. Regularly rotating API keys is a Google and industry standard recommended best practice.
 * [AssetInventory](tools/asset-inventory) - Import Cloud Asset Inventory resourcs into BigQuery.
