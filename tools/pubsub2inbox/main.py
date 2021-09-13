@@ -131,6 +131,12 @@ def process_message(config, data, event, context):
     jinja_environment = get_jinja_environment()
     if 'processors' in config:
         for processor in config['processors']:
+            config_key = None
+            if isinstance(processor, dict):
+                config_key = processor[
+                    'config'] if 'config' in processor else None
+                processor = processor['processor']
+
             logger.debug('Processing message using input processor: %s' %
                          processor)
             mod = __import__('processors.%s' % processor)
@@ -139,7 +145,8 @@ def process_message(config, data, event, context):
                                       '%sProcessor' % processor.capitalize())
             processor_instance = processor_class(config, jinja_environment,
                                                  data, event, context)
-            processor_variables = processor_instance.process()
+            processor_variables = processor_instance.process(
+                config_key=config_key)
             template_variables.update(processor_variables)
             jinja_environment.globals = {
                 **jinja_environment.globals,

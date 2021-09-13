@@ -135,6 +135,12 @@ class Processor:
             return True
         return False
 
+    def _jinja_expand_string(self, contents, _tpl='config'):
+        var_template = self.jinja_environment.from_string(contents)
+        var_template.name = _tpl
+        val_str = var_template.render()
+        return val_str
+
     def _jinja_var_to_list(self, _var, _tpl='config'):
         if isinstance(_var, list):
             return _var
@@ -153,5 +159,5 @@ class Processor:
                 return list(map(lambda x: x.strip(), vals))
 
     @abc.abstractmethod
-    def process(self):
+    def process(self, config_key=None):
         pass
