@@ -269,6 +269,16 @@ bmctl_download_url: gs://anthos-baremetal-release/bmctl/1.6.2/linux-amd64/bmctl
 ```
 
 
+The location of bmctl executable is defaulted to `/usr/local/sbin` which can be changed through below variable.
+
+
+*vars/anthos_vars.yml*
+
+```
+bmctl_path: /home/user1/baremetal
+```
+
+
 
 ## 4. Google Cloud Configuration
 
