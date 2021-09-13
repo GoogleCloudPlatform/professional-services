@@ -19,12 +19,14 @@ from google.api_core.gapic_v1 import client_info as grpc_client_info
 
 class BigqueryProcessor(Processor):
 
-    def process(self):
-        if 'bigquery' not in self.config:
+    def process(self, config_key=None):
+        if config_key is None:
+            config_key = 'bigquery'
+        if config_key not in self.config:
             raise NotConfiguredException(
                 'No BigQuery configuration specified in config!')
 
-        bigquery_config = self.config['bigquery']
+        bigquery_config = self.config[config_key]
         if 'query' not in bigquery_config:
             raise NotConfiguredException(
                 'No BigQuery query specified in configuration!')

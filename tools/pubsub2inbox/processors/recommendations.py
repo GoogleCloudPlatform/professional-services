@@ -328,12 +328,14 @@ class RecommendationsProcessor(Processor):
                     insights_rollup[parent][sub_type]['count'] += 1
         return insights_rollup
 
-    def process(self):
-        if 'recommendations' not in self.config:
+    def process(self, config_key=None):
+        if config_key is None:
+            config_key = 'recommendations'
+        if config_key not in self.config:
             raise NotConfiguredException(
                 'No Recommender configuration specified in config!')
 
-        recommender_config = self.config['recommendations']
+        recommender_config = self.config[config_key]
 
         for recommender in recommender_config['recommender_types']:
             if recommender not in self.recommenders:
