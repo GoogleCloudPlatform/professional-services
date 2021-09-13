@@ -32,12 +32,15 @@ Out of the box, you'll have the following functionality:
   - [Recommendations and Insights reports](examples/recommendations-example.yaml)
      - From [Recommender API](https://cloud.google.com/recommender/docs/overview).
      - Also see [example with attached spreadsheet](examples/recommendations-example-2.yaml).
-  - [Cloud Monitoring alerts](examples/monitoring-config.yaml)
+  - [Cloud Monitoring alerts](examples/monitoring-alert-config.yaml)
+  - [Cloud Monitoring metrics](examples/cai.yaml)
+  - [Cloud Asset Inventory search](examples/cai.yaml)
   - [Cloud Storage copier](examples/gcscopy-example.yaml)
      - Copies objects between two buckets, useful for backing up.
   - [Cloud Identity groups](examples/groups-example.yaml) ([other example](examples/groups-example-2.yaml))
      - Retrieves group and membership information from [Cloud Identity Groups API](https://cloud.google.com/identity/docs/apis)
      - Useful for example building membership review reports
+  - [Groups that allow external members](examples/external-groups-example.yaml) ([general example for Directory API](examples/directory-example.yaml))
   - Any JSON
     - [See the example of generic JSON processing](examples/generic-config.yaml)
 
