@@ -70,9 +70,9 @@ setup the environments. The key steps are summarized as follows
     gcloud auth configure-docker
     ```
 
-- Update local kubeconfig (for submiting job to kubeflow cluster)
+- Update local kubeconfig (for submitting job to kubeflow cluster)
     ```bash
-    export CLUSTER_NAME=${DEPLOYMENT_NAME} # this is the deployment name or the kubenete cluster name
+    export CLUSTER_NAME=${DEPLOYMENT_NAME} # this is the deployment name or the kubernetes cluster name
     export ZONE=us-central1-c
     gcloud container clusters get-credentials ${CLUSTER_NAME} --region ${ZONE}
     ```
@@ -82,7 +82,7 @@ setup the environments. The key steps are summarized as follows
     export GOOGLE_APPLICATION_CREDENTIALS = ~/key.json
     ```
 
-- Install the lastest version of fairing
+- Install the latest version of fairing
     ```bash
     pip install git+https://github.com/kubeflow/fairing@master
     ```
@@ -95,7 +95,7 @@ means it could be
 - Essentially notebook on any environment outside Kubeflow cluster
 
 For notebook running inside Kubeflow cluster, for example JupytHub will be deployed together with kubeflow, the
-environemt variables, e.g. service account, projects and etc, should have been pre-configured while
+environment variables, e.g. service account, projects and etc, should have been pre-configured while
 setting up the cluster. The fairing package will also be pre-installed together with the deployment. **The only thing
 need to be aware is that docker is usually not installed, which would require `cluster` as the builder option as
 explained in the following section**

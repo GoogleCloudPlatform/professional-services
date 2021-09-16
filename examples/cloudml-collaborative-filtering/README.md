@@ -66,7 +66,7 @@ The steps involved are as follows:
    text files. Leave users and items under a set frequency threshold out of the
    vocabularies.
 3. Filter away user-item pairs where either element is outside of its
-   cooresponding vocabulary.
+   corresponding vocabulary.
 4. Split the data into train, validation, and test sets.
 5. Write each dataset as TFRecords to GCS.
 
@@ -81,7 +81,7 @@ The steps involved are as follows:
 ## Training
 A [Custom Estimator](https://www.tensorflow.org/guide/custom_estimators) is
 trained using TensorFlow and [Cloud AI Platform](https://cloud.google.com/ai-platform/)(CAIP).
-The trainng steps are as follows:
+The training steps are as follows:
 1. Read TFRecords from GCS and create a `tf.data.Dataset` for each of them that
    yields data in batches.
 2. Use the TensorFlow Transform output from preprocessing to transform usernames

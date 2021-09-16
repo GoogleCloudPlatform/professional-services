@@ -138,7 +138,7 @@ The STS Job Manager tool has the ability to publish a heartbeat to [Stackdriver]
 
 The heartbeat will be a Timeseries with type `custom.googleapis.com/sts_job_manager/status/{STATUS}`.
 
-This heartbeat's cooresponding metric will be [auto-created](https://cloud.google.com/monitoring/custom-metrics/creating-metrics#auto-creation) if it does not exist.
+This heartbeat's corresponding metric will be [auto-created](https://cloud.google.com/monitoring/custom-metrics/creating-metrics#auto-creation) if it does not exist.
 
 Additionally, [alerts](https://cloud.google.com/monitoring/alerts/) can be generated from these heartbeats.
 

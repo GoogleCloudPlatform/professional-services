@@ -22,6 +22,8 @@ import csv
 import io
 from tablepyxl import tablepyxl
 import base64
+import magic
+import re
 
 
 def make_list(s):
@@ -38,8 +40,16 @@ def urlencode(s):
     return urllib.parse.quote(s)
 
 
+def re_escape(s):
+    return re.escape(s)
+
+
 def json_encode(v):
     return json.dumps(v)
+
+
+def json_decode(v):
+    return json.decode(v)
 
 
 def csv_encode(v, **kwargs):
@@ -56,6 +66,37 @@ def html_table_to_xlsx(s):
     output = io.BytesIO()
     workbook.save(output)
     return base64.encodebytes(output.getvalue()).decode('utf-8')
+
+
+def read_gcs_object(url, start=None, end=None):
+    parsed_url = urllib.parse.urlparse(url)
+    if parsed_url.scheme != 'gs':
+        raise InvalidSchemeURLException(
+            'Invalid scheme for read_gcs_object(%s): %s' %
+            (url, parsed_url.scheme))
+    client = storage.Client()
+
+    bucket = client.bucket(parsed_url.netloc)
+    blob = bucket.get_blob(parsed_url.path[1:])
+    if not blob:
+        raise ObjectNotFoundException(
+            'Failed to download object %s from bucket %s' %
+            (parsed_url.netloc, parsed_url.path[1:]))
+    contents = blob.download_as_bytes(start=start, end=end)
+    return base64.encodebytes(contents).decode('utf-8')
+
+
+def filemagic(contents):
+    with magic.Magic(flags=magic.MAGIC_MIME_TYPE) as m:
+        return m.id_buffer(base64.b64decode(contents))
+
+
+class ObjectNotFoundException(Exception):
+    pass
+
+
+class InvalidSchemeURLException(Exception):
+    pass
 
 
 class InvalidSchemeSignedURLException(Exception):

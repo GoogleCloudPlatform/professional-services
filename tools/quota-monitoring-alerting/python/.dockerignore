@@ -1,0 +1,9 @@
+Dockerfile
+README.md
+terraform
+*.pyc
+*.pyo
+*.pyd
+venv
+__pycache__
+.pytest_cache

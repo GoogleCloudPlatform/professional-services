@@ -143,7 +143,7 @@ Created service account [sa-quota-monitoring-project-1].
   - Logs Configuration Writer	
   - Log Writer
 - IAM
-Security Admin
+  - Security Admin
 
 2. Run following commands to assign the roles:
 ```
@@ -445,7 +445,7 @@ You should now receive alerts in your Slack channel whenever a quota reaches the
 4. Threshold configurable for each metric
 
 ## 5. Contact Us
-For any comments, issues or feedback, please reach out to us at pso-quota-monitoring@google.com 
+For any comments, issues or feedback, please reach out to us at pso-quota-monitoring@google.com
 
 
 

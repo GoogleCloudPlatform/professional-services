@@ -84,9 +84,8 @@ class DataTransformation:
             year = csv_row[2]
 
             row = {}
-            i = 0
             # Iterate over the values from our csv file, applying any transformation logic.
-            for value in csv_row:
+            for i,value in enumerate(csv_row):
                 # If the schema indicates this field is a date format, we must
                 # transform the date from the source data into a format that
                 # BigQuery can understand.
@@ -96,7 +95,6 @@ class DataTransformation:
                     value = '-'.join((year, month, day))
 
                 row[field_map[i].name] = value
-                i += 1
 
             return row
 

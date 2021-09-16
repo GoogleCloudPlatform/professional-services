@@ -20,3 +20,5 @@ google-cloud-recommender~=2.0.0
 openpyxl~=3.0.7
 tablepyxl~=0.6.1
 recurrent~=0.4.0
+filemagic~=1.6
+google-cloud-pubsub~=2.7.0

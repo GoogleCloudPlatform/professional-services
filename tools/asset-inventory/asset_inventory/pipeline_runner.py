@@ -67,7 +67,8 @@ def wait_on_pipeline_job(df_service, pipeline_job):
 
 def run_pipeline_template(dataflow_project, template_region, template_location,
                           input_location, group_by, write_disposition, dataset,
-                          stage, load_time, num_shards, runtime_environment):
+                          stage, load_time, num_shards, add_load_date_suffix,
+                          runtime_environment):
     """Invoke the suplied pipeline template.
 
     Args:
@@ -81,6 +82,7 @@ def run_pipeline_template(dataflow_project, template_region, template_location,
         stage: GCS path to write BigQuery load files.
         load_time: Timestamp or date to load data with.
         num_shards: Shards for for each asset type.
+        add_load_date_suffix: If the load date is added as a table suffix.
         runtime_environment: Dict  suppling other runtime overrides.
     Returns:
         End state of the pipline and job object.
@@ -100,6 +102,7 @@ def run_pipeline_template(dataflow_project, template_region, template_location,
             'group_by': group_by,
             'write_disposition': write_disposition,
             'num_shards': num_shards,
+            'add_load_date_suffix': add_load_date_suffix,
             'dataset': dataset,
         },
         'environment': runtime_environment
@@ -118,7 +121,8 @@ def run_pipeline_template(dataflow_project, template_region, template_location,
 
 def run_pipeline_beam_runner(pipeline_runner, dataflow_project, input_location,
                              group_by, write_disposition, dataset, stage,
-                             load_time, num_shards, pipeline_arguments):
+                             load_time, num_shards, add_load_date_suffix,
+                             pipeline_arguments):
     """Invokes the pipeline with a beam runner.
 
     Only tested with the dataflow and direct runners.
@@ -133,6 +137,7 @@ def run_pipeline_beam_runner(pipeline_runner, dataflow_project, input_location,
         stage: GCS path to write BigQuery load files.
         load_time: Timestamp to add to data during during BigQuery load.
         num_shards: Shards for for each asset type.
+        add_load_date_suffix: If the load date is added as a table suffix.
         pipeline_arguments: List of additional runner arguments.
     Returns:
         The end state of the pipeline run (a string), and PipelineResult.
@@ -155,6 +160,7 @@ def run_pipeline_beam_runner(pipeline_runner, dataflow_project, input_location,
         '--group_by': group_by,
         '--write_disposition': write_disposition,
         '--num_shards': num_shards,
+        '--add_load_date_suffix': add_load_date_suffix,
         '--dataset': dataset,
         '--stage': stage,
         '--runner': pipeline_runner

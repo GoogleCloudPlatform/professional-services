@@ -1,0 +1,124 @@
+<html>
+<head>
+    <style>
+        @import url('https://fonts.googleapis.com/css?family=Rubik&display=swap');
+        * {
+          font-family: 'Rubik', sans-serif;
+        }
+
+        h1, h2, h3 {
+            color: teal
+        }
+        .row:after {
+            content: "";
+            display: table;
+            clear: both;
+            width:100%;
+            overflow-wrap: break-word; 
+        }
+        #graph {
+            float: left;
+            width: 70%;
+        }  
+        #information {
+            float: left;
+            width: 30%;
+            overflow-wrap: break-word; 
+        }
+
+        .fix{
+            position:fixed;
+            bottom:5px;
+            right:2%;
+            max-width: 200;
+            max-height: 150
+        }
+
+        li {
+            margin: 0 0 3px 0;
+        }
+    </style>
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+</head>
+<body>
+    <div class="row">
+        <div class="column" id="graph"></div>
+        <div class="column" id="information"></div>
+    </div>
+    <script>
+    var json = {{ graph_data|tojson|safe }};
+    var tableName = json.tableName;
+
+    var defaultMessage = `<h1>Pipeline graph for ${tableName}</h1>`;
+    document.getElementById("information").innerHTML = defaultMessage;
+
+    var container = document.getElementById("graph");
+    // create an array with nodes
+    var nodes = new vis.DataSet(json.nodes);
+    
+    // create an array with edges
+    var edges = new vis.DataSet(json.links);
+    
+    var data = {
+        nodes: nodes,
+        edges: edges
+    };
+    var options = {
+        layout: {
+            hierarchical: {
+                enabled: true,
+                levelSeparation: 500,
+                nodeSpacing: 100,
+                treeSpacing: 250,
+              direction: "LR",
+              sortMethod: "directed"
+            }
+          },
+        font: {
+            color: '#343434',
+            size: 11, // px
+            face: 'arial',
+        },   
+        edges:{
+          arrows: {
+            to: {
+              enabled: true,
+              type: "arrow"
+            }
+        },
+        physics: {
+            enabled: true,
+            hierarchicalRepulsion: {
+                centralGravity: 0,
+                springLength: 700,
+                springConstant: 0.0,
+                nodeDistance: 600,
+                damping: 0.09
+            },
+            solver: 'hierarchicalRepulsion'
+        },
+        smooth: {
+            enabled: false
+          },  
+          
+        
+      }
+    }
+      
+    var network = new vis.Network(container, data, options);
+    
+    
+    network.on( 'click', function(properties) {
+      var ids = properties.nodes;
+      var clickedNodes = nodes.get(ids);
+      console.log('clicked nodes:', clickedNodes);
+      if (clickedNodes.length == 0) {
+        document.getElementById("information").innerHTML = defaultMessage;
+      } else {
+        var selectedNode = clickedNodes[0];
+        document.getElementById("information").innerHTML = selectedNode.pipelineInformation;
+      }
+    });
+</script>
+</body>
+</html>

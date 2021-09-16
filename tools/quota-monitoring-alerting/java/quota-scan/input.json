@@ -1,0 +1,11 @@
+{
+  "org_list": [172338721810],
+  "projectId": "broadcom-ess-poc",
+  "dataset": "quota_monitoring_dataset_5",
+  "table": "quota_monitoring_table",
+  "email_to_list":["anuradhabajpai@google.com"],
+  "email_from":"anuradhabajpai@google.com",
+  "metric_threshold":80
+}
+
+
