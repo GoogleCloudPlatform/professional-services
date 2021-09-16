@@ -143,10 +143,10 @@ resource "google_cloudfunctions_function" "function-scanProject" {
   }
 
   environment_variables = {
-    NOTIFICATION_TOPIC       = google_pubsub_topic.topic_alert_notification.name
-    THRESHOLD                = var.threshold
-    BIG_QUERY_DATASET        = var.big_query_dataset_id
-    BIG_QUERY_TABLE          = var.big_query_table_id
+    NOTIFICATION_TOPIC = google_pubsub_topic.topic_alert_notification.name
+    THRESHOLD          = var.threshold
+    BIG_QUERY_DATASET  = var.big_query_dataset_id
+    BIG_QUERY_TABLE    = var.big_query_table_id
   }
 }
 
@@ -380,8 +380,8 @@ resource "google_logging_project_sink" "instance-sink" {
 
 #Because our sink uses a unique_writer, we must grant that writer access to the bucket.
 resource "google_project_iam_binding" "log-writer" {
-  role        = "roles/logging.configWriter"
-  depends_on  = [module.project-services]
+  role       = "roles/logging.configWriter"
+  depends_on = [module.project-services]
   members = [
     "serviceAccount:${var.service_account_email}",
   ]
@@ -425,5 +425,5 @@ resource "google_monitoring_alert_policy" "alert_policy_quota" {
   notification_channels = [
     google_monitoring_notification_channel.email0.name
   ]
-  depends_on  = [module.project-services]
+  depends_on = [module.project-services]
 }

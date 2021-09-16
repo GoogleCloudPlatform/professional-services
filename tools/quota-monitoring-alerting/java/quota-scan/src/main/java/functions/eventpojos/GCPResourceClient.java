@@ -18,8 +18,6 @@ package functions.eventpojos;
 
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.TableId;
-import com.google.cloud.compute.v1.NetworkClient;
-import com.google.cloud.compute.v1.RegionClient;
 
 /*
  * Class to store references of GCP client resources.

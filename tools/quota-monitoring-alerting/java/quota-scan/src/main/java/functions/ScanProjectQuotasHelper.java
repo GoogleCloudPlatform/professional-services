@@ -63,7 +63,7 @@ public class ScanProjectQuotasHelper {
   /*
    * API to load Time Series Filters from the properties file
    * */
-  static TimeSeriesQuery getTimeSeriesFilter(){
+  static TimeSeriesQuery getTimeSeriesFilter() {
     TimeSeriesQuery timeSeriesQuery = new TimeSeriesQuery();
     try {
       InputStream input = ScanProjectQuotasHelper.class.getResourceAsStream("/config.properties");
@@ -71,7 +71,8 @@ public class ScanProjectQuotasHelper {
       // load a properties file
       prop.load(input);
       // get the property value and print it out
-      timeSeriesQuery.setAllocationQuotaUsageFilter(prop.getProperty("allocation.quota.usage.filter"));
+      timeSeriesQuery.setAllocationQuotaUsageFilter(
+          prop.getProperty("allocation.quota.usage.filter"));
       timeSeriesQuery.setRateQuotaUsageFilter(prop.getProperty("rate.quota.usage.filter"));
       timeSeriesQuery.setQuotaLimitFilter(prop.getProperty("quota.limit.filter"));
     } catch (IOException e) {
@@ -100,8 +101,11 @@ public class ScanProjectQuotasHelper {
 
       // Send the request to list the time series
       projectQuotas = metricServiceClient.listTimeSeries(request);
-    } catch (IOException e){
-      logger.log(Level.SEVERE, "Error fetching timeseries data for project: "+projectName + e.getMessage(), e);
+    } catch (IOException e) {
+      logger.log(
+          Level.SEVERE,
+          "Error fetching timeseries data for project: " + projectName + e.getMessage(),
+          e);
     }
     return projectQuotas;
   }
@@ -109,19 +113,23 @@ public class ScanProjectQuotasHelper {
   /*
    * API to build Time Series query Aggregator
    * */
-  private static Aggregation getAggregation(){
-    List<String> groupBy = new ArrayList<>() {{
-      add(GROUP_BY_CLAUSE_1);
-      add(GROUP_BY_CLAUSE_2);
-    }};
+  private static Aggregation getAggregation() {
+    List<String> groupBy =
+        new ArrayList<>() {
+          {
+            add(GROUP_BY_CLAUSE_1);
+            add(GROUP_BY_CLAUSE_2);
+          }
+        };
 
     Duration duration = Duration.newBuilder().setSeconds(DURATION).build();
-    Aggregation aggregation = Aggregation.newBuilder()
-        .setAlignmentPeriod(duration)
-        .setPerSeriesAligner(ALIGNER)
-        .addAllGroupByFields(groupBy)
-        .setCrossSeriesReducer(REDUCER)
-        .build();
+    Aggregation aggregation =
+        Aggregation.newBuilder()
+            .setAlignmentPeriod(duration)
+            .setPerSeriesAligner(ALIGNER)
+            .addAllGroupByFields(groupBy)
+            .setCrossSeriesReducer(REDUCER)
+            .build();
 
     return aggregation;
   }
@@ -129,19 +137,24 @@ public class ScanProjectQuotasHelper {
   /*
    * API to build time interval for Time Series query
    * */
-  private static TimeInterval getTimeInterval(){
+  private static TimeInterval getTimeInterval() {
     long startMillis = System.currentTimeMillis() - TIME_INTERVAL_START;
-    TimeInterval interval = TimeInterval.newBuilder()
-        .setStartTime(Timestamps.fromMillis(startMillis))
-        .setEndTime(Timestamps.fromMillis(System.currentTimeMillis()))
-        .build();
+    TimeInterval interval =
+        TimeInterval.newBuilder()
+            .setStartTime(Timestamps.fromMillis(startMillis))
+            .setEndTime(Timestamps.fromMillis(System.currentTimeMillis()))
+            .build();
     return interval;
   }
 
   /*
    * API to load data into BigQuery
    * */
-  static void loadBigQueryTable(GCPResourceClient gcpResourceClient, ListTimeSeriesPagedResponse timeSeriesList, String projectId, Boolean isLimit){
+  static void loadBigQueryTable(
+      GCPResourceClient gcpResourceClient,
+      ListTimeSeriesPagedResponse timeSeriesList,
+      String projectId,
+      Boolean isLimit) {
     for (TimeSeries ts : timeSeriesList.iterateAll()) {
       ProjectQuota projectQuota = populateProjectQuota(ts, projectId, isLimit);
       Map<String, Object> row = createBQRow(projectQuota);
@@ -152,8 +165,10 @@ public class ScanProjectQuotasHelper {
   /*
    * API to populate Project Quota object from Time Series API response
    * */
-  private static ProjectQuota populateProjectQuota(TimeSeries ts, String projectId, Boolean isLimit){
-    Map.Entry<FieldDescriptor, Object> entry = ts.getPointsList().get(0).getValue().getAllFields().entrySet().iterator().next();
+  private static ProjectQuota populateProjectQuota(
+      TimeSeries ts, String projectId, Boolean isLimit) {
+    Map.Entry<FieldDescriptor, Object> entry =
+        ts.getPointsList().get(0).getValue().getAllFields().entrySet().iterator().next();
     ProjectQuota projectQuota = new ProjectQuota();
     projectQuota.setThreshold(Integer.valueOf(THRESHOLD));
     projectQuota.setOrgId("orgId");
@@ -164,7 +179,7 @@ public class ScanProjectQuotasHelper {
     projectQuota.setRegion(ts.getResource().getLabelsMap().get("location"));
     projectQuota.setMetric(ts.getMetric().getLabelsMap().get("quota_metric"));
     projectQuota.setMetricValue(entry.getValue().toString());
-    if(isLimit){
+    if (isLimit) {
       projectQuota.setMetricValueType(METRIC_VALUE_LIMIT);
     } else {
       projectQuota.setMetricValueType(METRIC_VALUE_USAGE);
@@ -211,11 +226,11 @@ public class ScanProjectQuotasHelper {
       if (response.hasErrors()) {
         // If any of the insertions failed, this lets you inspect the errors
         for (Map.Entry<Long, List<BigQueryError>> entry : response.getInsertErrors().entrySet()) {
-          logger.log(Level.SEVERE, "Bigquery row insert response error: "  + entry.getValue());
+          logger.log(Level.SEVERE, "Bigquery row insert response error: " + entry.getValue());
         }
       }
     } catch (BigQueryException e) {
-      logger.log(Level.SEVERE, "Insert operation not performed: "  + e.toString());
+      logger.log(Level.SEVERE, "Insert operation not performed: " + e.toString());
     }
   }
 }

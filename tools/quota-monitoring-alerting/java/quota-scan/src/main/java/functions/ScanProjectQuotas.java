@@ -29,12 +29,12 @@ public class ScanProjectQuotas implements BackgroundFunction<PubSubMessage> {
   // BigQuery Table name
   public static final String BIG_QUERY_TABLE = System.getenv("BIG_QUERY_TABLE");
 
-  //==== Time Series Filters ====
-  //Last 7 days
+  // ==== Time Series Filters ====
+  // Last 7 days
   public static final Integer DURATION = 7 * 24 * 60 * 60;
   public static final Aligner ALIGNER = Aligner.ALIGN_MAX;
   public static final Reducer REDUCER = Reducer.REDUCE_MAX;
-  //Last 7 days
+  // Last 7 days
   public static final Integer TIME_INTERVAL_START = 7 * 24 * 60 * 60 * 1000;
   public static final String GROUP_BY_CLAUSE_1 = "metric.quota_metric";
   public static final String GROUP_BY_CLAUSE_2 = "resource.location";
@@ -61,11 +61,11 @@ public class ScanProjectQuotas implements BackgroundFunction<PubSubMessage> {
       gcpProject.setProjectName(ProjectName.of(projectId).toString());
       GCPResourceClient gcpResourceClient = createGCPResourceClient();
       TimeSeriesQuery timeSeriesQuery = getTimeSeriesFilter();
-      //1. Scan Allocation quota and load in main table in BigQuery
+      // 1. Scan Allocation quota and load in main table in BigQuery
       getAllocationUsageQuotas(gcpResourceClient, timeSeriesQuery, gcpProject);
-      //2. Scan Rate quotas and load in main table
+      // 2. Scan Rate quotas and load in main table
       getRateUsageQuotas(gcpResourceClient, timeSeriesQuery, gcpProject);
-      //3. Scan limit and load in different table
+      // 3. Scan limit and load in different table
       getQuotaLimits(gcpResourceClient, timeSeriesQuery, gcpProject);
     } catch (Exception e) {
       logger.log(Level.SEVERE, " " + e.getMessage(), e);
@@ -75,9 +75,11 @@ public class ScanProjectQuotas implements BackgroundFunction<PubSubMessage> {
   /*
    * API to get all Allocation quotas usage for this project
    * */
-  private static void getAllocationUsageQuotas(GCPResourceClient gcpResourceClient, TimeSeriesQuery timeSeriesQuery, GCPProject gcpProject){
+  private static void getAllocationUsageQuotas(
+      GCPResourceClient gcpResourceClient, TimeSeriesQuery timeSeriesQuery, GCPProject gcpProject) {
     try {
-      scanQuota(gcpResourceClient, timeSeriesQuery.getAllocationQuotaUsageFilter(), gcpProject, false);
+      scanQuota(
+          gcpResourceClient, timeSeriesQuery.getAllocationQuotaUsageFilter(), gcpProject, false);
     } catch (IOException e) {
       logger.log(Level.SEVERE, "Error fetching Allocation usage quotas " + e.getMessage(), e);
     }
@@ -86,7 +88,8 @@ public class ScanProjectQuotas implements BackgroundFunction<PubSubMessage> {
   /*
    * API to get all Rate quotas usage for this project
    * */
-  private static void getRateUsageQuotas(GCPResourceClient gcpResourceClient, TimeSeriesQuery timeSeriesQuery, GCPProject gcpProject){
+  private static void getRateUsageQuotas(
+      GCPResourceClient gcpResourceClient, TimeSeriesQuery timeSeriesQuery, GCPProject gcpProject) {
     try {
       scanQuota(gcpResourceClient, timeSeriesQuery.getRateQuotaUsageFilter(), gcpProject, false);
     } catch (IOException e) {
@@ -97,7 +100,8 @@ public class ScanProjectQuotas implements BackgroundFunction<PubSubMessage> {
   /*
    * API to get all Quota Limits for this project
    * */
-  private static void getQuotaLimits(GCPResourceClient gcpResourceClient, TimeSeriesQuery timeSeriesQuery, GCPProject gcpProject){
+  private static void getQuotaLimits(
+      GCPResourceClient gcpResourceClient, TimeSeriesQuery timeSeriesQuery, GCPProject gcpProject) {
     try {
       scanQuota(gcpResourceClient, timeSeriesQuery.getQuotaLimitFilter(), gcpProject, true);
     } catch (IOException e) {
@@ -108,10 +112,15 @@ public class ScanProjectQuotas implements BackgroundFunction<PubSubMessage> {
   /*
    * API to get quotas from APIs and load in BigQuery
    * */
-  private static void scanQuota(GCPResourceClient gcpResourceClient, String filter, GCPProject gcpProject, Boolean isLimitData) throws IOException {
-    ListTimeSeriesPagedResponse projectQuotas = getQuota(gcpProject.getProjectName(),filter);
+  private static void scanQuota(
+      GCPResourceClient gcpResourceClient,
+      String filter,
+      GCPProject gcpProject,
+      Boolean isLimitData)
+      throws IOException {
+    ListTimeSeriesPagedResponse projectQuotas = getQuota(gcpProject.getProjectName(), filter);
     loadBigQueryTable(gcpResourceClient, projectQuotas, gcpProject.getProjectId(), isLimitData);
-    logger.log(Level.INFO, "Quotas loaded successfully for project Id:" + gcpProject.getProjectId());
+    logger.log(
+        Level.INFO, "Quotas loaded successfully for project Id:" + gcpProject.getProjectId());
   }
-
 }
