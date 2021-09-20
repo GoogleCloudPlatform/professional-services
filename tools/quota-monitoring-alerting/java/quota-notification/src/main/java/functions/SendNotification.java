@@ -69,7 +69,7 @@ public class SendNotification implements BackgroundFunction<PubSubMessage> {
       BigQuery bigquery = BigQueryOptions.getDefaultInstance().getService();
       QueryJobConfiguration queryConfig =
           QueryJobConfiguration.newBuilder(
-                  "SELECT metric, usage, value "
+                  "SELECT metric, usage, consumption "
                       + "FROM `"
                       + HOME_PROJECT
                       + "."
@@ -102,7 +102,7 @@ public class SendNotification implements BackgroundFunction<PubSubMessage> {
         // Get all values
         String metric = row.get("metric").getStringValue();
         String usage = row.get("usage").getStringValue();
-        Float consumption = row.get("value").getNumericValue().floatValue();
+        Float consumption = row.get("consumption").getNumericValue().floatValue();
         alerts.add(
             String.format(
                 "Metric name: %s usage: %s consumption: %.2f%s", metric, usage, consumption, "%"));

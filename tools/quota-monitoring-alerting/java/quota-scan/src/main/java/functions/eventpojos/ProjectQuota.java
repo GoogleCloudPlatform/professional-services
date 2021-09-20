@@ -22,12 +22,12 @@ package functions.eventpojos;
 public class ProjectQuota {
   private Integer threshold;
   private String region;
-  private String usage;
-  private String limit;
+  private String metricValue;
+  private String metricValueType;
   private String vpcName;
   private String metric;
   private String timestamp;
-  private String project;
+  private String projectId;
   private String folderId;
   private String value;
   private String targetPoolName;
@@ -49,20 +49,20 @@ public class ProjectQuota {
     this.region = region;
   }
 
-  public String getUsage() {
-    return usage;
+  public String getMetricValue() {
+    return metricValue;
   }
 
-  public void setUsage(String usage) {
-    this.usage = usage;
+  public void setMetricValue(String metricValue) {
+    this.metricValue = metricValue;
   }
 
-  public String getLimit() {
-    return limit;
+  public String getMetricValueType() {
+    return metricValueType;
   }
 
-  public void setLimit(String limit) {
-    this.limit = limit;
+  public void setMetricValueType(String metricValueType) {
+    this.metricValueType = metricValueType;
   }
 
   public String getVpcName() {
@@ -89,12 +89,12 @@ public class ProjectQuota {
     this.timestamp = timestamp;
   }
 
-  public String getProject() {
-    return project;
+  public String getProjectId() {
+    return projectId;
   }
 
-  public void setProject(String project) {
-    this.project = project;
+  public void setProjectId(String projectId) {
+    this.projectId = projectId;
   }
 
   public String getFolderId() {
