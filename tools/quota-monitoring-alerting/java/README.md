@@ -18,13 +18,13 @@ Quota Monitoring Solution is a stand-alone application of an easy-to-deploy Data
 
 The architecture is built using Google Cloud managed services - Cloud Functions, Pub/Sub, Dataflow and BigQuery. 
 - The solution is architected to scale using Pub/Sub.
-- Cloud Scheduler is used to trigger Cloud Functions. This is also an user interface to configure frequency, parent nodes, alert threshold and email Ids. Parent node could be an orgnization Id, folder id, list of organization Ids or list of folder Ids.
+- Cloud Scheduler is used to trigger Cloud Functions. This is also an user interface to configure frequency, parent nodes, alert threshold and email Ids. Parent node could be an organization Id, folder id, list of organization Ids or list of folder Ids.
 - Cloud Functions are used to scan quotas across projects for the configured parent node.
 - DataFlow is used to load data in BigQuery.
 - BigQuery is used to store data. 
 - Alert threshold will be applicable across all metrics. 
 - Alerts can be received by Email, Mobile App, PagerDuty, SMS, Slack, Web Hooks and Pub/Sub. Cloud Monitoring custom log metric has been leveraged to create Alerts.
-- Easy to get started and deploy with Data Studio Dashboard. In addition to Data Studion, other visualization tools can be configured. 
+- Easy to get started and deploy with Data Studio Dashboard. In addition to Data Studio, other visualization tools can be configured. 
 - The Data Studio report can be scheduled to be emailed to appropriate team for weekly/daily reporting.
 ## 3. Deployment Guide
 ### Content
@@ -266,7 +266,7 @@ gsutil cp gs://quota-monitoring-solution-demo-bucket/terraform.tfvars .
    - terraform/terraform.tfvars
 ### 3.7 Configure Terraform
 1. Open terraform.tfvars file in your favourite editor and change values for the variable 
-2. Values for variable source_code_bucket_name, source_code_zip and source_code_notification_zip are for source code zip in the storage bucket. These are links to the Cloud Function source code. If you want to upgrade to latest code changes everytime you run 'terraform apply', change to this code source repository. DO NOT CHANGE if you do not want to recieve latest code changes while running 'terraform apply' everytime after deployment. 
+2. Values for variable source_code_bucket_name, source_code_zip and source_code_notification_zip are for source code zip in the storage bucket. These are links to the Cloud Function source code. If you want to upgrade to latest code changes everytime you run 'terraform apply', change to this code source repository. DO NOT CHANGE if you do not want to receive latest code changes while running 'terraform apply' everytime after deployment. 
 3. For region, use the same region as used for app engine in earlier steps.
 ```
 vi terraform.tfvars
