@@ -64,7 +64,7 @@ migrate-subnet:
 	python3 -m migrator.subnet_region_migrator --step=$(STEP) \
 		--machine_image_region=$(MACHINE_IMAGE_REGION) \
 		--source_project=$(SOURCE_PROJECT) --source_subnet=$(SOURCE_SUBNET) \
-		--source_zone=$(SOURCE_ZONE) --source_zone_2=$(SOUCE_ZONE_2) \
+		--source_zone=$(SOURCE_ZONE) --source_zone_2=$(SOURCE_ZONE_2) \
 		--source_zone_3=$(SOURCE_ZONE_3) --target_project=$(TARGET_PROJECT) \
 		--target_project_sa=$(TARGET_PROJECT_SA) \
 		--target_project_sa_scopes=$(TARGET_PROJECT_SA_SCOPES) \
