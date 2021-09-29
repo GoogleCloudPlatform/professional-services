@@ -11,12 +11,14 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-from .base import Processor
-import json
+variable "project_id" {
+  type        = string
+  description = "Project ID for test resources"
+}
 
+variable "region" {
+  type        = string
+  description = "Region for resources"
+  default     = "europe-west4"
+}
 
-class GenericjsonProcessor(Processor):
-
-    def process(self, config_key=None):
-        data = json.loads(self.data)
-        return {'data': data}

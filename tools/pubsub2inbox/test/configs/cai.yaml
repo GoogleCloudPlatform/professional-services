@@ -11,12 +11,30 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-from .base import Processor
-import json
+#
+retryPeriod: skip
 
+processors:
+  - projects
+  - cai
 
-class GenericjsonProcessor(Processor):
+projects:
+  get:
+    - "%{PROJECT}"  
+    
+cai:
+  parent: |
+    projects/{{ (projects|first).projectNumber }}
+  assetTypes:
+    - storage.googleapis.com/Bucket
+  contentType: "RESOURCE"
+  indexing: "list"
 
-    def process(self, config_key=None):
-        data = json.loads(self.data)
-        return {'data': data}
+outputs:
+  - type: test
+    strip: true
+    result: |
+      {%- set assetname = '//storage.googleapis.com/%{BUCKET}' -%}
+      {% for asset in assets|selectattr('name', '==', assetname) %}{{ asset.resource.data.id }} {% endfor %}
+    expected: |
+      %{BUCKET}

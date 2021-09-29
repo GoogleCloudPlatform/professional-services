@@ -6,7 +6,7 @@ and output processors. Input processors can enrich the incoming messages with de
 (for example, fetching the budget from Cloud Billing Budgets API). Multiple output
 processors can be chained together. 
 
-Pubsub2Inbox is written in Python 3 and can be deployed as a Cloud Function easily.
+Pubsub2Inbox is written in Python 3.8+ and can be deployed as a Cloud Function easily.
 To guard credentials and other sensitive information, the tool can fetch its
 YAML configuration from Google Cloud Secret Manager.
 
@@ -31,7 +31,7 @@ Out of the box, you'll have the following functionality:
     - For example, you can turn any BigQuery query results into CSV files or email messages.
   - [Recommendations and Insights reports](examples/recommendations-example.yaml)
      - From [Recommender API](https://cloud.google.com/recommender/docs/overview).
-     - Also see [example with attached spreadsheet](examples/recommendations-example-2.yaml).
+     - Also see [example with attached spreadsheet](examples/recommendations-example-2.yaml) and [example with with GCS and BigQuery output](examples/recommendations-example-3.yaml)..
   - [Cloud Monitoring alerts](examples/monitoring-alert-config.yaml)
   - [Cloud Monitoring metrics](examples/cai.yaml)
   - [Cloud Asset Inventory search](examples/cai.yaml)
@@ -41,6 +41,8 @@ Out of the box, you'll have the following functionality:
      - Retrieves group and membership information from [Cloud Identity Groups API](https://cloud.google.com/identity/docs/apis)
      - Useful for example building membership review reports
   - [Groups that allow external members](examples/external-groups-example.yaml) ([general example for Directory API](examples/directory-example.yaml))
+  - [GCP projects](examples/projects-example.yaml)
+     - Retrieves a list of projects using Cloud Resource Manager API
   - Any JSON
     - [See the example of generic JSON processing](examples/generic-config.yaml)
 
@@ -48,16 +50,22 @@ Out of the box, you'll have the following functionality:
 
 Available input processors are:
 
- - [budget.py](processors/budget.py): retrieves details from Cloud Billing Budgets
-   API and presents.
- - [scc.py](processors/scc.py): enriches Cloud Security Command Center
-   findings notifications.
- - [bigquery.py](processors/bigquery.py): queries from BigQuery datasets.
- - [genericjson.py](processors/genericjson.py): Parses message data as JSON and
-   presents it to output processors.
- - [recommendations.py](processors/recommendations.py): Retrieves recommendations
-   and insights from the [Recommender API](https://cloud.google.com/recommender/docs/overview).
- - [groups.py](processors/groups.py): Retrieves Cloud Identity Groups 
+  - [budget.py](processors/budget.py): retrieves details from Cloud Billing Budgets
+    API and presents.
+  - [scc.py](processors/scc.py): enriches Cloud Security Command Center
+    findings notifications.
+  - [bigquery.py](processors/bigquery.py): queries from BigQuery datasets.
+  - [genericjson.py](processors/genericjson.py): Parses message data as JSON and
+    presents it to output processors.
+  - [recommendations.py](processors/recommendations.py): Retrieves recommendations
+    and insights from the [Recommender API](https://cloud.google.com/recommender/docs/overview).
+  - [groups.py](processors/groups.py): Retrieves Cloud Identity Groups 
+  - [directory.py](processors/groups.py): Retrieves users, groups, group members and group settings
+  - [monitoring.py](processors/monitoring.py): Retrieves time series data from Cloud Ops Monitoring
+  - [projects.py](processors/projects.py): Searches or gets GCP project details
+  - [cai.py](processors/cai.py): Fetch assets from Cloud Asset Inventory
+
+For full documentation of permissions, processor input and output parameters, see [PROCESSORS.md](PROCESSORS.md).
 
 Please note that the input processors have some IAM requirements to be able to
 pull information from GCP:
@@ -66,29 +74,6 @@ pull information from GCP:
     - Storage Object Admin (`roles/storage.objectAdmin`)
  - Signed URL generation (see `filters/strings.py:generate_signed_url`)
     - Storage Admin on the bucket (`roles/storage.admin`)
- - Budgets: `budget.py`
-    - Billing Account Viewer (`roles/billing.viewer`) to retrieve budget details.
-    - Browser (`roles/browser`) to fetch project details.
- - Security Command Center: `scc.py`
-    - Browser (`roles/browser`) to fetch project details.
- - BigQuery: `bigquery.py`
-   - BigQuery Job User (`roles/bigquery.jobUser`) and BigQuery Data Viewer
-     (`roles/bigquery.dataViewer`) to read data.
-- Recommendations: `recommendations.py`
-   - Browser (`roles/browser`) to fetch project details.
-   - Compute Viewer (`roles/compute.viewer`)
-   - Compute Recommender Viewer (`roles/recommender.computeViewer`), Firewall
-     Recommender Viewer (`roles/recommender.firewallViewer`), IAM Recommender
-     Viewer (`roles/recommender.iamViewer`), Product Suggestion Recommender
-     Viewer (`roles/recommender.productSuggestionViewer`), Viewer of Billing 
-     Account Usage Commitment Recommender (`roles/recommender.billingAccountCudViewer`)
-     and/or Project Usage Commitment Recommender Viewer (`roles/recommender.projectCudViewer`).
-     If you want billing account level recommendations, also add Billing Account Viewer
-     (`roles/billing.viewer`) and Billing Account Usage Commitment Recommender Viewer
-     (`roles/recommender.billingAccountCudViewer`) on the billing account
-     itself.
-  - Groups: `Groups Reader` permission in admin.google.com for the serviec account.
-     
 
 ## Output processors
 
@@ -102,6 +87,7 @@ Available output processors are:
   - [gcscopy.py](output/gcscopy.py): copies files between buckets.
   - [logger.py](output/logger.py): Logs message in Cloud Logging.
   - [pubsub.py](output/pubsub.py): Sends one or more Pub/Sub messages.
+  - [bigquery.py](output/bigquery.py): Sends output to a BigQuery table via a load job.
 
 Please note that the output processors have some IAM requirements to be able to
 pull information from GCP:
@@ -135,6 +121,25 @@ from accumulating unlimited files, set an [Object Lifecycle Management policy](h
 on the bucket.
 
 ## Deploying as Cloud Function
+
+### Deploying via Terraform
+
+Sample Terraform module is provided in `main.tf`, `variables.tf` and `outputs.tf`. Pass the following
+parameters in when using as a module:
+
+  - `project_id` (string): where to deploy the function
+  - `organization_id` (number): organization ID (for organization level permissions)
+  - `function_name` (string): name for the Cloud Function
+  - `function_roles` (list(string)): list of curated permissions roles for the function (eg. `scc`, `budgets`, `bigquery_reader`, `bigquery_writer`, `cai`, `recommender`, `monitoring`)
+  - `pubsub_topic` (string): Pub/Sub topic in the format of `projects/project-id/topics/topic-id` which the Cloud Function should be triggered on
+  - `region` (string, optional): region where to deploy the function
+  - `secret_id` (string, optional): name for the Cloud Secrets Manager secrets (defaults to `function_name`)
+  - `config_file` (string, optional): function configuration YAML file location (defaults to `config.yaml`)
+  - `service_account` (string, optional): service account name for the function (defaults to `function_name`)
+  - `bucket_name` (string, optional): bucket where to host the Cloud Function archive (defaults to `cf-pubsub2inbox`)
+  - `helper_bucket_name` (string, optional): specify an additional Cloud Storage bucket where the service account is granted `storage.objectAdmin` on
+  - `function_timeout` (number, optional): a timeout for the Cloud Function (defaults to `240` seconds)
+
 
 ### Deploying manually
 
@@ -196,13 +201,6 @@ gcloud functions deploy $FUNCTION_NAME \
     --project $PROJECT_ID
 ```
 
-If you change the configuration, you can update it via:
-
-
-### Deploying via Terraform
-
-Sample Terraform scripts are provided in `main.tf`, `variables.tf` and `outputs.tf`.
-
 ### Running tests
 
 Run the command:
@@ -210,3 +208,5 @@ Run the command:
 ```
 # python3 -m unittest discover
 ```
+
+To set against a real cloud project, set `PROJECT_ID` environment variable. 

@@ -17,7 +17,7 @@ import json
 
 class SccProcessor(Processor):
 
-    def process(self):
+    def process(self, config_key=None):
         data = json.loads(self.data)
         projects = []
         if 'sourceProperties' in data['finding'] and 'ResourcePath' in data[

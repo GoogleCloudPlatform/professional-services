@@ -24,6 +24,7 @@ from tablepyxl import tablepyxl
 import base64
 import magic
 import re
+import logging
 
 
 def make_list(s):
@@ -45,11 +46,24 @@ def re_escape(s):
 
 
 def json_encode(v):
-    return json.dumps(v)
+    try:
+        return json.dumps(v)
+    except Exception as exc:
+        logger = logging.getLogger('pubsub2inbox')
+        logger.error('Exception when trying to encode JSON!',
+                     extra={
+                         'value': v,
+                         'error': str(exc)
+                     })
+        raise exc
 
 
 def json_decode(v):
     return json.decode(v)
+
+
+def b64decode(v):
+    return base64.b64decode(v.encode()).decode()
 
 
 def csv_encode(v, **kwargs):

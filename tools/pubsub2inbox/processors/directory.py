@@ -12,9 +12,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 from .base import Processor, NotConfiguredException
-from googleapiclient import discovery, http
+from googleapiclient import discovery
 from google.oauth2.credentials import Credentials
-import google_auth_httplib2
 
 
 class DirectoryProcessor(Processor):
@@ -57,10 +56,7 @@ class DirectoryProcessor(Processor):
         credentials = Credentials(
             self.get_token_for_scopes([scope], service_account=service_account))
 
-        branded_http = google_auth_httplib2.AuthorizedHttp(credentials)
-        branded_http = http.set_user_agent(
-            branded_http, 'google-pso-tool/pubsub2inbox/1.1.0')
-
+        branded_http = self._get_branded_http(credentials)
         if directory_config['api'] != 'groupsettings':
             directory_service = discovery.build('admin',
                                                 'directory_v1',

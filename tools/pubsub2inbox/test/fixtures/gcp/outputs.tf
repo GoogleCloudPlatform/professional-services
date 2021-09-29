@@ -11,12 +11,19 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-from .base import Processor
-import json
+output "bucket" {
+  value = google_storage_bucket.bucket.name
+}
 
+output "sa" {
+  value = google_service_account.sa.email
+}
 
-class GenericjsonProcessor(Processor):
+output "sa_key" {
+  value     = google_service_account_key.sa-key.private_key
+  sensitive = true
+}
 
-    def process(self, config_key=None):
-        data = json.loads(self.data)
-        return {'data': data}
+output "project" {
+  value = var.project_id
+}

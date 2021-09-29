@@ -11,12 +11,21 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-from .base import Processor
-import json
+retryPeriod: skip
 
+processors:
+  - bigquery
 
-class GenericjsonProcessor(Processor):
+bigquery:
+  dialect: STANDARD
+  labels:
+    reason: "test"
+  query: |
+    SELECT title FROM `bigquery-public-data.hacker_news.stories` ORDER BY id ASC LIMIT 1
 
-    def process(self, config_key=None):
-        data = json.loads(self.data)
-        return {'data': data}
+outputs:
+  - type: test
+    result: |
+      {{ (records|first).title }}
+    expected: "Y Combinator"
+  

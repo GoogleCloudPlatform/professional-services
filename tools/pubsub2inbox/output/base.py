@@ -12,53 +12,30 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 from google.cloud.functions.context import Context
-import logging
-import os
 import abc
-from google.cloud.iam_credentials_v1 import IAMCredentialsClient
+from helpers.base import BaseHelper
 
 
 class NotConfiguredException(Exception):
     pass
 
 
-class NoCredentialsException(Exception):
-    pass
-
-
-class Output:
+class Output(BaseHelper):
     config = None
     output_config = None
     data = None
     event = None
     context: Context
-    jinja_environment = None
-    logger = None
 
     def __init__(self, config, output_config, jinja_environment, data, event,
                  context: Context):
         self.config = config
         self.output_config = output_config
-        self.jinja_environment = jinja_environment
         self.data = data
         self.event = event
         self.context = context
 
-        self.logger = logging.getLogger('pubsub2inbox')
-
-    def get_token_for_scopes(self, scopes, service_account=None):
-        if not service_account:
-            service_account = os.getenv('SERVICE_ACCOUNT')
-
-        if not service_account:
-            raise NoCredentialsException(
-                'You need to specify a service account for Directory API credentials, either through SERVICE_ACCOUNT environment variable or serviceAccountEmail parameter.'
-            )
-
-        client = IAMCredentialsClient()
-        name = 'projects/-/serviceAccounts/%s' % service_account
-        response = client.generate_access_token(name=name, scope=scopes)
-        return response.access_token
+        super().__init__(jinja_environment)
 
     @abc.abstractmethod
     def output(self):
