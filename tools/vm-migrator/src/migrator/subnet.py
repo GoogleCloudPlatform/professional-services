@@ -76,14 +76,14 @@ def export_instances(project, zone, zone_2, zone_3, subnet_uri: uri.Subnet,
 
     if zone_2:
         logging.info(
-            'fectching the inventory for the source subnet %s and zone %s',
+            'fetching the inventory for the source subnet %s and zone %s',
             subnet_uri.uri, zone_2)
         result_zone_2 = compute.instances().list(project=project,
                                                  zone=zone_2,
                                                  maxResults=10000).execute()
     if zone_3:
         logging.info(
-            'fectching the inventory for the source subnet %s and zone %s',
+            'fetching the inventory for the source subnet %s and zone %s',
             subnet_uri.uri, zone_3)
         result_zone_3 = compute.instances().list(project=project,
                                                  zone=zone_3,
@@ -96,6 +96,9 @@ def export_instances(project, zone, zone_2, zone_3, subnet_uri: uri.Subnet,
 
     if result_zone_3.get('items') and zone_3:
         result['items'] = result['items'] + result_zone_3.get('items')
+
+    logging.info('Identified %i potential instance(s) in the given zones',
+                 len(result['items']))
 
     for instances in result['items']:
 
@@ -146,38 +149,57 @@ def export_instances(project, zone, zone_2, zone_3, subnet_uri: uri.Subnet,
             logging.debug(
                 'Ignoring VM {} in subnet {} (looking for subnet {})'.format(
                     instances['name'],
-                    instances['networkInterfaces'][0]['subnetwork'], subnet_uri.uri))
+                    instances['networkInterfaces'][0]['subnetwork'],
+                    subnet_uri.uri))
 
-        with open(file_name, 'w') as csvfile:
+    with open(file_name, 'w') as csvfile:
 
-            writer = DictWriter(csvfile, fieldnames=headers)
-            writer.writeheader()
-            writer.writerows(mydict)
+        writer = DictWriter(csvfile, fieldnames=headers)
+        writer.writeheader()
+        writer.writerows(mydict)
 
-        logging.info('Successfully written %i records to %s', len(mydict),
-                     file_name)
+    logging.info('Successfully written %i records to %s', len(mydict),
+                 file_name)
+
+    return True
 
 
-def release(compute, project_region_uri: uri.ProjectRegion, address):
+def release(compute, project_region_uri: uri.ProjectRegion, address) \
+        -> bool:
+
     try:
-        logging.info('Releasing ip %s', address)
+        logging.info('Releasing IP address %s in project %s', address,
+                     project_region_uri)
         result = compute.addresses().delete(project=project_region_uri.project,
                                             region=project_region_uri.region,
                                             address=address).execute()
         wait_for_operation(compute, project_region_uri, result['name'])
     except HttpError as err:
-        logging.error('The IP address %s was not found', address)
-        logging.error(err)
-        print(err)
+        logging.error('Error while releasing IP address %s: %s', address, err)
+        return False
+    return True
 
 
-def release_specific_ips(instance_uri: uri.Instance, ips):
+def release_individual_ips(subnet_uri: uri.Subnet, instance_uri: uri.Instance,
+                           ips) -> bool:
+    result = True
     compute = get_compute()
-    for address in ips:
-        release(compute, instance_uri, address)
+    for ip in ips:
+        ips_result = compute.addresses() \
+            .list(project=instance_uri.project, region=instance_uri.region,
+                  filter='(address="{}") AND (subnetwork="{}")'
+                  .format(ip, subnet_uri.abs_beta_uri)).execute()
+        if 'items' in ips_result and 1 == len(ips_result['items']):
+            result = release(compute, instance_uri,
+                             ips_result['items'][0]['name']) and result
+        else:
+            logging.info('Deletion of internal ip %s for instance %s not '
+                         'needed (no reserved static ip found)', ip,
+                         instance_uri.uri)
+    return result
 
 
-def release_ip(project: str, subnet_uri: uri.Subnet):
+def release_ip(project: str, subnet_uri: uri.Subnet) -> bool:
     compute = get_compute()
 
     # Subnet should be of the form
@@ -188,19 +210,22 @@ def release_ip(project: str, subnet_uri: uri.Subnet):
                                    region=subnet_uri.region,
                                    filter='subnetwork="' +
                                    subnet_uri.abs_beta_uri + '"').execute()
+
     if ips.get('items'):
         for addresses in ips['items']:
             ip_name = addresses['name']
-            release(compute, uri.ProjectRegion(project, subnet_uri.region),
-                    ip_name)
+            return release(compute,
+                           uri.ProjectRegion(project, subnet_uri.region),
+                           ip_name)
     else:
         logging.warn(
             'No reserved internal IP addresses found in the subnet %s',
             subnet_uri.uri)
+        return True
 
 
 def wait_for_operation(compute, project_region_uri: uri.ProjectRegion,
-                       operation):
+                       operation) -> object:
     logging.info('Waiting for operation to finish...')
     while True:
         result = compute.regionOperations() \
@@ -218,7 +243,8 @@ def wait_for_operation(compute, project_region_uri: uri.ProjectRegion,
         time.sleep(5)
 
 
-def duplicate(source_subnet_uri: uri.Subnet, target_subnet_uri: uri.Subnet):
+def duplicate(source_subnet_uri: uri.Subnet, target_subnet_uri: uri.Subnet) \
+        -> bool:
     compute = get_compute()
     subnet_request = compute.subnetworks() \
         .get(project=source_subnet_uri.project,
@@ -228,7 +254,14 @@ def duplicate(source_subnet_uri: uri.Subnet, target_subnet_uri: uri.Subnet):
     config['region'] = target_subnet_uri.region
     logging.info('starting subnet %s deletion', source_subnet_uri.uri)
     delete_operation = delete_subnetwork(compute, source_subnet_uri)
-    wait_for_operation(compute, source_subnet_uri, delete_operation['name'])
+    try:
+        wait_for_operation(compute, source_subnet_uri, delete_operation['name']
+                           )
+    except HttpError as err:
+        logging.error('Deleting subnetwork %s failed with %s',
+                      source_subnet_uri, err)
+        return False
+
     logging.info('subnet %s deleted successfully', source_subnet_uri.uri)
 
     logging.info('re creating subnet %s', target_subnet_uri.uri)
@@ -238,8 +271,14 @@ def duplicate(source_subnet_uri: uri.Subnet, target_subnet_uri: uri.Subnet):
         compute.subnetworks().insert(project=target_subnet_uri.project,
                                      region=target_subnet_uri.region,
                                      body=config).execute()
-    wait_for_operation(compute, target_subnet_uri, insert_operation['name'])
-    logging.info('new subnet added successfully')
+    try:
+        wait_for_operation(compute, target_subnet_uri, insert_operation['name']
+                           )
+    except HttpError as err:
+        logging.error('Creating subnetwork %s failed with %s',
+                      target_subnet_uri, err)
+        return False
+    return True
 
 
 def get_network(subnet_uri: uri.Subnet):

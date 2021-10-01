@@ -20,18 +20,17 @@ import re
 from .exceptions import InvalidFormatException
 
 
-class ProjectRegion:
+class Project:
 
-    def __init__(self, project: str, region: str):
+    def __init__(self, project: str):
         self._project = project
-        self._region = region
 
     def __str__(self):
         return self.uri
 
     @property
     def uri(self):
-        return 'projects/{}/regions/{}'.format(self.project, self.region)
+        return 'projects/{}'.format(self.project)
 
     @property
     def abs_beta_uri(self):
@@ -40,6 +39,18 @@ class ProjectRegion:
     @property
     def project(self):
         return self._project
+
+
+class ProjectRegion(Project):
+
+    def __init__(self, project: str, region: str):
+        self._region = region
+
+        super().__init__(project)
+
+    @property
+    def uri(self):
+        return 'projects/{}/regions/{}'.format(self.project, self.region)
 
     @property
     def region(self):
@@ -203,3 +214,37 @@ class MachineType(ProjectZone):
         return 'projects/{}/zones/{}/machineTypes/{}'.format(self.project,
                                                              self.zone,
                                                              self.machine_type)
+
+
+class MachineImage(Project):
+
+    @classmethod
+    def from_uri(cls, uri):
+
+        if not uri:
+            return None
+
+        match = \
+            re.search(
+                r'(?:\/|^)projects\/(.*?)\/global\/machineImages\/(.*?)$',
+                uri)
+
+        if not match or len(match.groups()) != 2:
+            raise InvalidFormatException(
+                'Invalid machine image URI format {}'.format(uri))
+
+        return cls(match.group(1), match.group(2))
+
+    def __init__(self, project: str, name: str):
+        self._name = name
+
+        super().__init__(project)
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def uri(self):
+        return 'projects/{}/global/machineImages/{}'.format(self.project,
+                                                            self.name)

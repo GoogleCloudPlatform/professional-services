@@ -20,11 +20,11 @@ import time
 import googleapiclient.discovery
 import logging
 from . import node_group_mapping
-from . import machine_type_mapping
 from . import machine_image
 from .exceptions import GCPOperationException, NotFoundException
 from ratemate import RateLimit
 from . import uri
+from typing import Optional
 
 RATE_LIMIT = RateLimit(max_count=2000, per=100)
 
@@ -58,7 +58,7 @@ def get_node_group(instance):
     return None
 
 
-def get_updated_node_group(node_group):
+def get_updated_node_group(node_group) -> Optional[object]:
     try:
         if node_group_mapping.FIND.get(node_group):
             config = {
@@ -88,7 +88,7 @@ def shutdown_instance(compute, instance_uri: uri.Instance):
     return result
 
 
-def shutdown(instance_uri: uri.Instance):
+def shutdown(instance_uri: uri.Instance) -> str:
     try:
         waited_time = RATE_LIMIT.wait()  # wait before starting the task
         logging.info('  task: waited for %s secs', waited_time)
@@ -102,7 +102,7 @@ def shutdown(instance_uri: uri.Instance):
         raise ex
 
 
-def start(instance_uri: uri.Instance):
+def start(instance_uri: uri.Instance) -> str:
     try:
         waited_time = RATE_LIMIT.wait()  # wait before starting the task
         logging.info('  task: waited for %s secs', waited_time)
@@ -160,7 +160,7 @@ def wait_for_regional_operation(compute, project_region_uri: uri.ProjectRegion,
         time.sleep(10)
 
 
-def delete(instance_uri: uri.Instance):
+def delete(instance_uri: uri.Instance) -> str:
     try:
         waited_time = RATE_LIMIT.wait()  # wait before starting the task
         logging.info('  task: waited for %s secs', waited_time)
@@ -180,7 +180,7 @@ def delete(instance_uri: uri.Instance):
         raise ex
 
 
-def get_ip(compute, instance_uri: uri.Instance, address):
+def get_ip(compute, instance_uri: uri.Instance, address) -> str:
     result = compute.addresses().get(project=instance_uri.project,
                                      region=instance_uri.region,
                                      address=address).execute()
@@ -188,7 +188,7 @@ def get_ip(compute, instance_uri: uri.Instance, address):
 
 
 def reserve_internal_ip(compute, instance_uri: uri.Instance, name,
-                        subnet_uri: uri.Subnet, ip):
+                        subnet_uri: uri.Subnet, ip) -> str:
     config = {
         'address': ip,
         'addressType': 'INTERNAL',
@@ -199,31 +199,17 @@ def reserve_internal_ip(compute, instance_uri: uri.Instance, name,
     insert_operation = compute.addresses().insert(project=instance_uri.project,
                                                   region=instance_uri.region,
                                                   body=config).execute()
-    wait_for_regional_operation(compute, instance_uri, insert_operation['name'])
+    wait_for_regional_operation(compute, instance_uri, insert_operation['name']
+                                )
 
     return insert_operation['selfLink']
 
 
-def upgrade_machine_type(machine_type_uri: uri.MachineType,
-                         instance_uri: uri.Instance):
-    #  the machine type is of the form
-    # https://www.googleapis.com/compute/beta/projects/pso-suchit/zones/us-east1-c/machineTypes/n1-standard-4
-    logging.info('looking for a machine type upgrade')
-
-    target_machine_type = machine_type_mapping.FIND.get(
-        machine_type_uri.machine_type, machine_type_uri.machine_type)
-    if target_machine_type != machine_type_uri.machine_type:
-        logging.info('found a match to upgrade the machine type %s with %s',
-                     machine_type_uri.machine_type, target_machine_type)
-
-    return uri.MachineType(machine_type_uri.project, instance_uri.zone,
-                           target_machine_type)
-
-
 def create_instance(compute, instance_uri: uri.Instance, network,
                     subnet_uri: uri.Subnet, alias_ip_ranges, node_group,
-                    disk_names, ip, source_machine_type_uri: uri.MachineType,
-                    image_project, target_service_account, target_scopes):
+                    disk_names, ip, target_machine_type_uri: uri.MachineType,
+                    image_project, target_service_account, target_scopes) \
+        -> object:
     """
     Create Instance method create a new GCP VM from the machine image.
     """
@@ -241,12 +227,9 @@ def create_instance(compute, instance_uri: uri.Instance, network,
             }
         } for (device_name, disk_name) in disk_names.items()],
         'sourceMachineImage': 'projects/' + image_project +
-                              '/global/machineImages/' + instance_uri.name
+                              '/global/machineImages/' + instance_uri.name,
+        'machineType': target_machine_type_uri.uri
     }
-
-    # upgrade the machine type in the destination zone
-    config['machineType'] = upgrade_machine_type(source_machine_type_uri,
-                                                 instance_uri).uri
 
     # Reserve the static ip before creating the instance
     # If we get ip variable set, we expect to use the same ip in the
@@ -351,7 +334,7 @@ def create(instance_uri: uri.Instance,
            image_project,
            target_service_account,
            target_scopes,
-           wait=True):
+           wait=True) -> str:
     """
     Main function to create the instance.
     """
@@ -365,14 +348,15 @@ def create(instance_uri: uri.Instance,
                                     alias_ip_ranges, node_group, disk_names,
                                     ip, machine_type_uri, image_project,
                                     target_service_account, target_scopes)
+
         if wait:
             wait_for_zonal_operation(compute, instance_uri, operation['name'])
-            wait_for_instance(compute, instance_uri)
-        logging.info(
-            'Instance %s created and running from source MachineImage %s',
-            instance_uri, instance_uri.name)
-        return instance_uri.name
-
+            result = wait_for_instance(compute, instance_uri)
+        created_instance_uri = uri.Instance.from_uri(result['selfLink'])
+        logging.info('Instance %s created from source MachineImage %s and '
+                     'successfully started', created_instance_uri,
+                     instance_uri.name)
+        return created_instance_uri.name
     except Exception as ex:
         logging.error(ex)
         raise ex

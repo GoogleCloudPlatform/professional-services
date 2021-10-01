@@ -21,6 +21,8 @@ import googleapiclient.discovery
 import logging
 from ratemate import RateLimit
 from .exceptions import GCPOperationException
+from . import uri
+from pprint import pformat
 
 RATE_LIMIT = RateLimit(max_count=2000, per=100)
 
@@ -94,23 +96,32 @@ def create(project, target_region, source_instance, name, wait=True):
         raise exc
 
 
-def set_iam_policy(source_project, name, target_service_account):
+def add_iam_policy(source_project, name, target_service_account) -> bool:
     compute = get_compute()
-    body = {
-        "bindings": [
-            {
-                "role": "roles/compute.admin",
-                "members": [
-                    "serviceAccount:{}".format(target_service_account),
-                ],
-            },
+    machine_image_uri = uri.MachineImage(source_project, name)
+    body = compute.machineImages().getIamPolicy(project=source_project,
+                                                resource=name).execute()
+    new_binding = {
+        'role': 'roles/compute.admin',
+        'members': [
+            'serviceAccount:{}'.format(target_service_account),
         ],
-        "version": 3
     }
-    self_link = 'projects/{}/global/machineImages/{}'.format(source_project,
-                                                             name)
-    logging.info('Setting IAM policy for machine image %s', self_link)
-    compute.machineImages().setIamPolicy(project=source_project,
-                                         resource=name,
-                                         body=body).execute()
-    return self_link
+    add = True
+    if 'bindings' not in body:
+        body['bindings'] = []
+    for binding in body['bindings']:
+        if binding['role'] == new_binding['role'] and \
+           set(new_binding['members']).issubset(binding['members']):
+            logging.info('Binding already exists: {}'.format(pformat(binding)))
+            add = False
+            break
+    if add:
+        body['bindings'].append(new_binding)
+        logging.info('Setting IAM policy for machine image %s',
+                     machine_image_uri)
+        # TODO: does this throw an exception on a outdated eTag?
+        compute.machineImages().setIamPolicy(project=source_project,
+                                             resource=name,
+                                             body=body).execute()
+    return machine_image_uri
