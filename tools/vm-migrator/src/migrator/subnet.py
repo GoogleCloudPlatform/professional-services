@@ -211,17 +211,18 @@ def release_ip(project: str, subnet_uri: uri.Subnet) -> bool:
                                    filter='subnetwork="' +
                                    subnet_uri.abs_beta_uri + '"').execute()
 
+    result = True
     if ips.get('items'):
         for addresses in ips['items']:
             ip_name = addresses['name']
-            return release(compute,
-                           uri.ProjectRegion(project, subnet_uri.region),
-                           ip_name)
+            result = release(compute,
+                             uri.ProjectRegion(project, subnet_uri.region),
+                             ip_name) and result
     else:
         logging.warn(
             'No reserved internal IP addresses found in the subnet %s',
             subnet_uri.uri)
-        return True
+    return result
 
 
 def wait_for_operation(compute, project_region_uri: uri.ProjectRegion,
@@ -265,7 +266,15 @@ def duplicate(source_subnet_uri: uri.Subnet, target_subnet_uri: uri.Subnet) \
     logging.info('subnet %s deleted successfully', source_subnet_uri.uri)
 
     logging.info('re creating subnet %s', target_subnet_uri.uri)
+
     del config['selfLink']
+    # edge case: VPC flow logs were activated at some point, but then disabled.
+    #            This keeps the logConfig key which is incompatible with
+    #            enableFlowLogs=False
+    if ('enableFlowLogs' not in config or not config['enableFlowLogs']) \
+            and 'logConfig' in config:
+        del config['logConfig']
+
     config['name'] = target_subnet_uri.name
     insert_operation = \
         compute.subnetworks().insert(project=target_subnet_uri.project,

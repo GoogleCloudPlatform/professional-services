@@ -195,7 +195,7 @@ def reserve_internal_ip(compute, instance_uri: uri.Instance, name,
         'name': name,
         'subnetwork': subnet_uri.uri
     }
-    logging.info('Reserving internal ip %s and %s', name, ip)
+    logging.info('Reserving internal ip with name=%s and ip=%s', name, ip)
     insert_operation = compute.addresses().insert(project=instance_uri.project,
                                                   region=instance_uri.region,
                                                   body=config).execute()

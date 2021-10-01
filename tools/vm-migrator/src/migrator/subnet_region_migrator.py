@@ -612,7 +612,7 @@ def main(step, machine_image_region, source_project,
     elif step == 'release_ip':
         logging.info('Releasing the IPs present in the %s file', input_csv)
         if release_individual_ips(source_subnet_uri, input_csv):
-            logging.info('IPs present in the file %s released subcessfully',
+            logging.info('IPs present in the file %s released successfully',
                          input_csv)
         else:
             logging.error('Releasing ips present in the file %s failed',
