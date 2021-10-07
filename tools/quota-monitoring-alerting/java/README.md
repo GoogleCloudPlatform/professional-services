@@ -294,7 +294,7 @@ vi terraform.tfvars
 <img src="img/test_bigquery_table.png" align="center" />
 
 ### 3.10 Data Studio Dashboard setup
-1. Go to the [Data studio dashboard template](https://datastudio.google.com/reporting/61f8c09f-c593-4950-afa9-c290180482c9) . If this link is not accessible, reach out to pso-quota-framework@google.com to share the dashboard template with your email id. A data studio dashboard will look like this:
+1. Go to the [Data studio dashboard template](https://datastudio.google.com/reporting/61f8c09f-c593-4950-afa9-c290180482c9) . If this link is not accessible, reach out to pso-quota-monitoring@google.com to share the dashboard template with your email id. A data studio dashboard will look like this:
 <img src="img/ds_template.png" align="center" />
 2. Make a copy of the template from the copy icon at the top bar (top - right corner)
 <img src="img/ds_copy.png" align="center" />
