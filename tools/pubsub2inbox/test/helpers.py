@@ -16,9 +16,13 @@ import yaml
 from google.cloud.functions.context import Context
 
 
-def load_config(config_name):
+def load_config(config_name, params=None):
     with open('test/configs/%s.yaml' % config_name) as config_file:
         configuration = config_file.read()
+
+    if params:
+        for k, v in params.items():
+            configuration = configuration.replace(k, v)
 
     cfg = yaml.load(configuration, Loader=yaml.SafeLoader)
     return cfg

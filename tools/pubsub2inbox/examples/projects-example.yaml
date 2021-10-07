@@ -11,12 +11,24 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-from .base import Processor
-import json
+#
+retryPeriod: 3 day ago
 
+# Example for using the Cloud Resource Manager to look up projects.
+# The processor requires eg. roles/browser.
 
-class GenericjsonProcessor(Processor):
+processors:
+  - projects
 
-    def process(self, config_key=None):
-        data = json.loads(self.data)
-        return {'data': data}
+projects:
+  filter: 'lifecycleState:ACTIVE'
+  indexing: projectId # or parent, list
+  # You can additionally filter
+  #jinjaFilter: |
+  #  {% if projectId.startswith('my-prefix') %}1{% endif %}
+
+outputs:
+  - type: logger
+    level: debug
+    message: |
+      Found projects: {{ projects|json_encode }}

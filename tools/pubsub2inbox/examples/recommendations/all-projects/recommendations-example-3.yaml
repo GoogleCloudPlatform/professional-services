@@ -20,17 +20,18 @@ processors:
 allOutputsMustSucceed: true
 
 recommendations:
+  # Useful when querying multiple projects, so not every project needs recommender API activated.
+  # quota_project_id: "project-id" 
   fetch_recommendations: true
   fetch_insights: true
   recommender_types:
     # Full list: https://cloud.google.com/recommender/docs/recommenders#recommenders
-    - google.compute.instance.MachineTypeRecommender # Location: zone
-    - google.compute.instanceGroupManager.MachineTypeRecommender # Location: zone
-    - google.compute.instance.IdleResourceRecommender # Location: zone
-    - google.compute.disk.IdleResourceRecommender # Location: region & zone
-    - google.compute.address.IdleResourceRecommender # Location: region & global
-    - google.compute.image.IdleResourceRecommender # Location: region & global
-    - google.compute.commitment.UsageCommitmentRecommender # Location: region
+    - google.compute.instance.MachineTypeRecommender
+    - google.compute.instanceGroupManager.MachineTypeRecommender
+    - google.compute.instance.IdleResourceRecommender
+    - google.compute.disk.IdleResourceRecommender
+    - google.compute.address.IdleResourceRecommender
+    - google.compute.image.IdleResourceRecommender
   recommendation_filter: 'stateInfo.state=ACTIVE'
   insight_types:
     # Full list: https://cloud.google.com/recommender/docs/insights/insight-types
@@ -38,21 +39,14 @@ recommendations:
     - google.iam.policy.Insight
     - google.iam.serviceAccount.Insight
   insight_filter: 'stateInfo.state=ACTIVE'
-  projects: "{{ projects|json_encode() }}" # Projects from Pub/Sub message
-  # projects:
-  #   - fixed-project-list
-  # organizations:
-  #   - 123456789
-  # folders:
-  #   - 987654321
-  # billingAccounts:
-  #   - 000000-ABCDEF-000000
+  projects: 
+    - my-project-1
+    - my-project-2
   locations: 
     - global
     - europe
-    - us
     - europe-west1*
-    - us-central1*
+    - europe-west4*
   vars:
     types:
       organizations: "Organization"
@@ -71,24 +65,40 @@ recommendations:
       google.compute.commitment.UsageCommitmentRecommender: https://console.cloud.google.com/home/recommendations/list/PROJECT_COMMITMENTS?
       google.iam.policy.Insight: https://console.cloud.google.com/home/recommendations/list/IAM_ROLES?
 outputs:
-  - type: mail
-    # Transports will be tried in sequence, until one succeeds
-    transports:
-      - type: smtp
-        host: your.smtp.server
-        port: 25
-        starttls: false
-        # ssl: false
-      - type: sendgrid
-        apiKey: API-KEY-HERE
-    from: notifications@your.domain
-    to: admin@your.domain
-    subject: |
-      [Google Cloud Platform] Recommendations and Insights report, {{ ""|strftime('%b %Y') }}
-    body:
-      images: # Images to inline in the email
-        - img/sample-logo-small.png
-      html: |
+  - type: gcs
+    bucket: my-bucket
+    object: recommendations.json
+    # Be very careful with extra linefeeds, spaces and such.
+    contents: |
+      {%- for parent, parent_recommendations in recommendations.items() -%}
+      {%- for r in parent_recommendations -%}
+      {{ {"project": r.parent[0], "location": r.location, "type": r.recommender_type, "name": r.recommendation.name, "description": r.recommendation.description}|json_encode }}
+      {% endfor -%}
+      {%- endfor -%}
+
+  - type: bigquery
+    datasetWithTable: my-project.my-dataset.my-table
+    location: EU
+    source: gs://my-bucket/recommendations.json
+    project: my-project
+    job:
+      sourceFormat: NEWLINE_DELIMITED_JSON
+      writeDisposition: WRITE_APPEND
+      createDisposition: CREATE_IF_NEEDED
+      autodetect: true
+      maxBadRecords: 100
+
+  - type: gcs
+    bucket: my-bucket
+    objects: |
+      {%- set files = dict() %}
+      {%- for parent, parent_recommendations in recommendations.items() %}
+        {%- for project in parent_recommendations|selectattr('type', '==', 'projects') %}
+          {%- set x = files.__setitem__(project.parent[0] + ".html", project.parent[0]) %}
+        {%- endfor %}
+      {%- endfor %}
+      {{ files|json_encode }}
+    contents: |
         <html><head><title>Recommendations and Insights, {{ ""|strftime('%b %Y') }}</title>
         <style type="text/css">
         body {
@@ -115,14 +125,13 @@ outputs:
         </head>
         <body>
           <h1>Google Cloud Platform - Recommendations and Insights report, {{ ""|strftime('%b %Y') }}</h1>
-          <img src="cid:sample-logo-small.png" alt="Sample logo" />
-          <h2>Recommendations</h2>
+
+          <h2>Recommendations for project: {{ key }}</h2>
           {% for parent, parent_recommendations in recommendations.items() %}
             {% set total_cost = namespace(cost=0) %}
             {% set row_class = cycler('odd', 'even') %}
-            {% for r in parent_recommendations %}
+            {% for r in parent_recommendations|selectattr('type', '==', 'projects')|selectattr('parent', 'contains', key) %}
               {% if loop.first %}
-              <h3>{{ types[r.type] }}: {% if r.type == "projects" %}{{ r.parent[2] }} ({{ r.parent[0] }}){% else %}{{ r.parent|make_list|first }}{% endif %}</h3>
               <table>
                 <thead>
                   <th>Resource</th>
@@ -159,40 +168,6 @@ outputs:
                         <td>{{ "{:.2f}".format(total_cost.cost) }} USD</td>
                     </tr>
                   </tfoot>
-                </tbody>
-              </table>
-              {% endif %}              
-            {% endfor %}  
-          {% endfor %}
-
-          {% for parent, parent_insights in insights.items() %}
-            {% if loop.first %}
-            <h2>Insights</h2>
-            {% endif %}
-            {% set total_cost = namespace(cost=0) %}
-            {% for i in parent_insights %}
-              {% if loop.first %}
-              <h3>{{ types[i.type] }}: {% if i.type == "projects" %}{{ i.parent[2] }} ({{ i.parent[0] }}){% else %}{{ i.parent|make_list|first }}{% endif %}</h3>
-              <table>
-                <thead>
-                  <th>Resource</th>
-                  <th>Content</th>
-                  <th>Description</th>
-                </thead>
-                <tbody>
-              {% endif %}
-              <tr class="{{ loop.cycle('odd', 'even') }}"
-                  {% for tr in i.insight.target_resources %}
-                      <td>{{ tr|split("/")|reverse|batch(2)|first|reverse|join("/")}}</td>
-                      <td>
-                        {%- if 'shadowingFirewalls' in i.insight.content %}{% for fw in i.insight.content.shadowingFirewalls %}{% if not loop.first %}, {% endif %}{{ fw }}{% endfor %}{% endif -%}
-                        {%- if 'member' in i.insight.content %}{{ i.insight.content.member }} ({{ i.insight.content.role }}){% endif -%}
-                        {%- if 'email' in i.insight.content %}{{ i.insight.content.email }} {%- if 'lastAuthenticatedTime' in i.insight.content %}({{ i.insight.content.lastAuthenticatedTime }}){% endif -%}{% endif -%}
-                      </td>
-                      <td>{{ i.insight.description }}</td>                    
-                  {% endfor %}
-                  </tr>
-              {% if loop.last %}
                 </tbody>
               </table>
               {% endif %}              

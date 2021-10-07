@@ -14,7 +14,6 @@
 from .base import Processor, NotConfiguredException
 import json
 from google.cloud import bigquery
-from google.api_core.gapic_v1 import client_info as grpc_client_info
 
 
 class BigqueryProcessor(Processor):
@@ -46,11 +45,10 @@ class BigqueryProcessor(Processor):
             'dialect'].lower() == 'legacy' else 'standard'
         self.logger.debug('Running BigQuery query.', extra={'query': query})
 
-        client_info = grpc_client_info.ClientInfo(
-            user_agent='google-pso-tool/pubsub2inbox/1.1.0')
         project = bigquery_config[
             'project'] if 'project' in bigquery_config else None
-        client = bigquery.Client(client_info=client_info, project=project)
+        client = bigquery.Client(client_info=self._get_grpc_client_info(),
+                                 project=project)
         labels = {}
         if 'labels' in bigquery_config:
             labels = bigquery_config['labels']

@@ -11,12 +11,7 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-from .base import Processor
-import json
 
 
-class GenericjsonProcessor(Processor):
-
-    def process(self, config_key=None):
-        data = json.loads(self.data)
-        return {'data': data}
+def test_contains(l, i):
+    return True if i in l else False

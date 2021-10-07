@@ -10,6 +10,8 @@ processors:
 allOutputsMustSucceed: true
 
 recommendations:
+  # Useful when querying multiple projects, so not every project needs recommender API activated.
+  # quota_project_id: "project-id" 
   fetch_recommendations: true
   fetch_insights: true
   recommender_types:
@@ -76,6 +78,13 @@ recommendations:
       PROJECT_SCOPED_COMMITMENTS: "Purchase project commitments"
       DELETE_IMAGE: "Delete unused images"
       BILLING_ACCOUNT_SCOPED_COMMITMENTS: "Purchase commitments"
+      EXTERNAL_MEMBER: "External members in privileged group"
+      EXTERNAL_SERVICE_ACCOUNT_IMPERSONATOR: "Cross-project SA impersonation"
+      EXTERNAL_POLICY_EDITOR: "External IAM policy modifier"
+      EXTERNAL_CLOUD_STORAGE_OBJECT_VIEWER: "External Cloud Storage viewer"
+      TERMINATED_MEMBER: "Inactive users in IAM policy"
+      PUBLIC_IAM_POLICY: "Publicly accessible resources"
+      OWNER_TERMINATED_PROJECT: "Inactive user as Owner"
 
 outputs:
   - type: gcs
