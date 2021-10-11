@@ -12,14 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Runner for batch prediction pipeline."""
 
 import argparse
 from absl import logging
 
-from kfp.v2.google.client import AIPlatformClient
+from kfp.v2.google import client
 
 
 def run_training_pipeline():
+  """Main function for batch prediction pipeline runner."""
   parser = argparse.ArgumentParser()
   parser.add_argument('--project_id', type=str)
   parser.add_argument('--pipeline_region', type=str)
@@ -56,7 +58,7 @@ def run_training_pipeline():
   args, _ = parser.parse_known_args()
   logging.info(args)
 
-  api_client = AIPlatformClient(args.project_id, args.pipeline_region)
+  api_client = client.AIPlatformClient(args.project_id, args.pipeline_region)
 
   params_to_remove = ['pipeline_region', 'pipeline_root',
                       'pipeline_job_spec_path', 'pipeline_schedule',

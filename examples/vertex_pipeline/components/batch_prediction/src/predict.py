@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Custom component for launching batch prediction in Vertex AI."""
+
 import logging
 
 from google.cloud import aiplatform
 from google.cloud.aiplatform.compat.types import job_state_v1
-from kfp.v2.components.executor import Executor
+from kfp.v2.components import executor
 from kfp.v2.dsl import Input, Dataset, Output
 
 
@@ -60,33 +62,38 @@ def batch_prediction(
     max_replica_count: int = 2,
     starting_replica_count: int = 1
 ):
-  """ Deploy the model to a particular endpoint.
+  """Deploy the model to a particular endpoint.
 
   Args:
-      project_id: The project ID.
-      data_region: The region for the model and endpoint.
-      data_pipeline_root: The staging location for any custom job.
-      gcs_result_folder: The GCS folder to store the prediction results.
-      input_dataset: The input artifact of dataset.
-      prediction_result: The output artifact of prediction results.
-      instances_format: The format in which instances are given, must be one
-        of "jsonl", "csv", "bigquery", "tf-record", "tf-record-gzip",
-        or "file-list".
-      predictions_format: The format in which Vertex AI gives the
-        predictions, must be one of "jsonl", "csv", or "bigquery".
-      model_resource_name: A fully-qualified resource name or ID for model:
-        projects/297370817971/locations/{region}/models/4540613586807947264
-      endpoint_resource_name: A fully-qualified resource name or ID for endpoint:
-        projects/297370817971/locations/{region}/endpoints/1242430547200835584
-      machine_type: The machine type to serve the prediction requests.
-      accelerator_type: The type of accelerator(s) that may be attached
-        to the machine as per `accelerator_count`.
-      accelerator_count: The number of accelerators to attach to the
-        `machine_type`.
-      max_replica_count: The maximum number of machine replicas the
-        batch operation may be scaled to.
-      starting_replica_count: The number of machine replicas used at the
-        start of the batch operation.
+    project_id: The project ID.
+    data_region: The region for the model and endpoint.
+    data_pipeline_root: The staging location for any custom job.
+    gcs_result_folder: The GCS folder to store the prediction results.
+    input_dataset: The input artifact of dataset.
+    prediction_result: The output artifact of prediction results.
+    instances_format: The format in which instances are given, must be one
+      of "jsonl", "csv", "bigquery", "tf-record", "tf-record-gzip",
+      or "file-list".
+    predictions_format: The format in which Vertex AI gives the
+      predictions, must be one of "jsonl", "csv", or "bigquery".
+    model_resource_name: A fully-qualified resource name or ID for model:
+      projects/297370817971/locations/{region}/models/4540613586807947264
+    endpoint_resource_name: A fully-qualified resource name or ID for endpoint:
+      projects/297370817971/locations/{region}/endpoints/1242430547200835584
+    machine_type: The machine type to serve the prediction requests.
+    accelerator_type: The type of accelerator(s) that may be attached
+      to the machine as per `accelerator_count`.
+    accelerator_count: The number of accelerators to attach to the
+      `machine_type`.
+    max_replica_count: The maximum number of machine replicas the
+      batch operation may be scaled to.
+    starting_replica_count: The number of machine replicas used at the
+      start of the batch operation.
+
+  Raises:
+    ValueError: If neither model or endpoint resource is provided.
+    RuntimeError: If batch prediction job fails.
+
   """
 
   logging.getLogger().setLevel(logging.INFO)
@@ -94,9 +101,9 @@ def batch_prediction(
 
   # Call Vertex AI custom job in another region
   aiplatform.init(
-    project=project_id,
-    location=data_region,
-    staging_bucket=data_pipeline_root)
+      project=project_id,
+      location=data_region,
+      staging_bucket=data_pipeline_root)
 
   if model_resource_name:
     model = _get_model(model_resource_name)
@@ -108,17 +115,17 @@ def batch_prediction(
   logging.info(f'retrieved model URI: {model.uri}')
 
   batch_prediction_job = model.batch_predict(
-    job_display_name='batch-prediction',
-    gcs_source=input_dataset.uri,
-    gcs_destination_prefix=gcs_result_folder,
-    instances_format=instances_format,
-    predictions_format=predictions_format,
-    machine_type=machine_type,
-    accelerator_count=accelerator_count,
-    accelerator_type=accelerator_type,
-    starting_replica_count=starting_replica_count,
-    max_replica_count=max_replica_count,
-    sync=True)
+      job_display_name='batch-prediction',
+      gcs_source=input_dataset.uri,
+      gcs_destination_prefix=gcs_result_folder,
+      instances_format=instances_format,
+      predictions_format=predictions_format,
+      machine_type=machine_type,
+      accelerator_count=accelerator_count,
+      accelerator_type=accelerator_type,
+      starting_replica_count=starting_replica_count,
+      max_replica_count=max_replica_count,
+      sync=True)
 
   logging.info(f'batch prediction job: {batch_prediction_job.resource_name}')
 
@@ -132,6 +139,7 @@ def batch_prediction(
 
 
 def executor_main():
+  """Main executor."""
   import argparse
   import json
 
@@ -143,10 +151,9 @@ def executor_main():
   executor_input = json.loads(args.executor_input)
   function_to_execute = globals()[args.function_to_execute]
 
-  executor = Executor(executor_input=executor_input,
-                      function_to_execute=function_to_execute)
-
-  executor.execute()
+  executor.Executor(
+      executor_input=executor_input,
+      function_to_execute=function_to_execute).execute()
 
 
 if __name__ == '__main__':

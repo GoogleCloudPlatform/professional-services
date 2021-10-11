@@ -12,16 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Define the training pipeline on Vertex AI Pipeline."""
+
 import os
 import argparse
 from functools import partial
 
 import yaml
+import jinja2
 import kfp
 from kfp.v2 import dsl
 from kfp.v2.compiler import compiler
 from kfp.v2.dsl import Dataset
-from jinja2 import Template
 
 
 def _load_custom_component(project_id: str,
@@ -29,11 +31,12 @@ def _load_custom_component(project_id: str,
                            af_registry_name: str,
                            components_dir: str,
                            component_name: str):
+  """Load custom Vertex AI Pipeline component."""
   component_path = os.path.join(components_dir,
                                 component_name,
                                 'component.yaml.jinja')
   with open(component_path, 'r') as f:
-    component_text = Template(f.read()).render(
+    component_text = jinja2.Template(f.read()).render(
       project_id=project_id,
       af_registry_location=af_registry_location,
       af_registry_name=af_registry_name)
@@ -47,6 +50,7 @@ def create_training_pipeline(project_id: str,
                              af_registry_name: str,
                              components_dir: str,
                              pipeline_job_spec_path: str):
+  """Creat training pipeline."""
   load_custom_component = partial(_load_custom_component,
                                   project_id=project_id,
                                   af_registry_location=af_registry_location,

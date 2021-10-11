@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Custom serving program."""
+
 import os
 import logging
 
@@ -40,6 +42,7 @@ logging.info(f'model file name: {MODEL_FILENAME}')
 
 
 def load_model(model_store):
+  """Load LGB model."""
   gcs_model_path = os.path.join(model_store, MODEL_FILENAME)
 
   client = storage.Client()
@@ -66,9 +69,7 @@ app = flask.Flask(__name__)
 
 @app.route('/predict', methods=['POST'])
 def predict():
-  """
-  For direct API calls through request
-  """
+  """For direct API calls through request."""
   data = flask.request.get_json(force=True)
   logging.info(f'prediction: received requests containing '
                f'{len(data["instances"])} records')
@@ -98,9 +99,7 @@ def predict():
 
 @app.route('/health', methods=['GET', 'POST'])
 def health():
-  """
-  For direct API calls through request
-  """
+  """For direct API calls through request."""
   status_code = flask.Response(status=200)
   return status_code
 

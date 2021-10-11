@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Submits a Cloud Build job that builds and deploys
-# the pipelines and pipelines components
+# Submits a Cloud Build job that builds the images that encapsulates
+# the training and serving logic
 
 export PROJECT_ID=$(gcloud config get-value core/project)
 

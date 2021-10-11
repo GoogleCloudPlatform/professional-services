@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Custom component for deploying model to Endpoint on Vertex AI Platform."""
+
 import logging
 
 from google.cloud import aiplatform
-from kfp.v2.components.executor import Executor
+from kfp.v2.components import executor
 from kfp.v2.dsl import Artifact, Input, Model
 
 # Vertex AI artifact resource prefix
@@ -25,29 +27,27 @@ VERTEX_AI_RESOURCE_PREFIX = 'aiplatform://v1/'
 MAX_DEPLOYED_MODELS_PER_ENDPOINT = 2
 
 
-def deploy_model(
-    project_id: str,
-    data_region: str,
-    data_pipeline_root: str,
-    machine_type: str,
-    min_replica_count: int,
-    max_replica_count: int,
-    model: Input[Model],
-    endpoint: Input[Artifact]
-):
-  """ Deploy the model to a particular endpoint.
+def deploy_model(project_id: str,
+                 data_region: str,
+                 data_pipeline_root: str,
+                 machine_type: str,
+                 min_replica_count: int,
+                 max_replica_count: int,
+                 model: Input[Model],
+                 endpoint: Input[Artifact]):
+  """Deploy the model to a particular endpoint.
 
   Args:
-      project_id: The project ID.
-      data_region: The region for the model and endpoint.
-      data_pipeline_root: The staging location for any custom job.
-      machine_type: The machine type to serve the prediction requests.
-      min_replica_count: The minimum number of instances to server
-          prediction requests.
-      max_replica_count: The maximum number of instances to server
-          prediction requests.
-      model: The input artifact of the model.
-      endpoint: The input artifact of the endpoint.
+    project_id: The project ID.
+    data_region: The region for the model and endpoint.
+    data_pipeline_root: The staging location for any custom job.
+    machine_type: The machine type to serve the prediction requests.
+    min_replica_count: The minimum number of instances to server
+        prediction requests.
+    max_replica_count: The maximum number of instances to server
+        prediction requests.
+    model: The input artifact of the model.
+    endpoint: The input artifact of the endpoint.
   """
 
   logging.getLogger().setLevel(logging.INFO)
@@ -66,37 +66,33 @@ def deploy_model(
 
   # Call Vertex AI custom job in another region
   aiplatform.init(
-    project=project_id,
-    location=data_region,
-    staging_bucket=data_pipeline_root)
+      project=project_id,
+      location=data_region,
+      staging_bucket=data_pipeline_root)
 
   target_model = aiplatform.Model(
-    model_resource_name,
-    project=project_id,
-    location=data_region
-  )
+      model_resource_name,
+      project=project_id,
+      location=data_region)
 
   target_endpoint = aiplatform.Endpoint(
-    endpoint_resource_name,
-    project=project_id,
-    location=data_region
-  )
+      endpoint_resource_name,
+      project=project_id,
+      location=data_region)
 
   target_model.deploy(
-    endpoint=target_endpoint,
-    traffic_percentage=100,
-    machine_type=machine_type,
-    min_replica_count=min_replica_count,
-    max_replica_count=max_replica_count
-  )
+      endpoint=target_endpoint,
+      traffic_percentage=100,
+      machine_type=machine_type,
+      min_replica_count=min_replica_count,
+      max_replica_count=max_replica_count)
   logging.info('Model has been deployed to endpoint successfully.')
 
   # Only keep a maximum of MAX_DEPLOYED_MODELS_PER_ENDPOINT deployed models
   deployed_models = sorted(
-    [m for m in target_endpoint.list_models()],
-    key=lambda x: x.create_time,
-    reverse=True
-  )
+      [m for m in target_endpoint.list_models()],
+      key=lambda x: x.create_time,
+      reverse=True)
   logging.info(f'Number of deployed models = {len(deployed_models)}')
 
   if len(deployed_models) > MAX_DEPLOYED_MODELS_PER_ENDPOINT:
@@ -108,6 +104,7 @@ def deploy_model(
 
 
 def executor_main():
+  """Main executor."""
   import argparse
   import json
 
@@ -119,10 +116,9 @@ def executor_main():
   executor_input = json.loads(args.executor_input)
   function_to_execute = globals()[args.function_to_execute]
 
-  executor = Executor(executor_input=executor_input,
-                      function_to_execute=function_to_execute)
-
-  executor.execute()
+  executor.Executor(
+      executor_input=executor_input,
+      function_to_execute=function_to_execute).execute()
 
 
 if __name__ == '__main__':

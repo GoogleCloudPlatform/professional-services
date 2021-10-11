@@ -12,13 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Custom component for performing data processing with BigQuery."""
+
 import logging
 import os
 from datetime import datetime
 from typing import Tuple
 
 from google.cloud import bigquery
-from kfp.v2.components.executor import Executor
+from kfp.v2.components import executor
 from kfp.v2.dsl import Dataset, Input, Output
 
 
@@ -36,15 +38,18 @@ def preprocess_data(
     output_dataset: Output[Dataset],
     gcs_output_format: str = bigquery.DestinationFormat.NEWLINE_DELIMITED_JSON
 ):
-  """ Extract a BQ table to an output Dataset artifact.
+  """Extract a BQ table to an output Dataset artifact.
 
   Args:
-      project_id: The project ID.
-      data_region: The region for the BQ extraction job.
-      gcs_output_folder: The GCS location to store the resulting CSV file.
-      input_dataset: The output artifact of the resulting dataset.
-      output_dataset: The output artifact of the resulting dataset.
-      gcs_output_format: The output format.
+    project_id: The project ID.
+    data_region: The region for the BQ extraction job.
+    gcs_output_folder: The GCS location to store the resulting CSV file.
+    input_dataset: The output artifact of the resulting dataset.
+    output_dataset: The output artifact of the resulting dataset.
+    gcs_output_format: The output format.
+
+  Raises:
+    RuntimeError: If the BigQuery job fails.
   """
 
   logging.getLogger().setLevel(logging.INFO)
@@ -77,12 +82,16 @@ def preprocess_data(
     location=data_region,
     job_config=job_config)
   extract_job.result()  # Waits for job to complete.
-  logging.info('Table export completed')
 
-  output_dataset.uri = destination_uri
+  if extract_job.state == "DONE":
+    logging.info('Table export completed')
+    output_dataset.uri = destination_uri
+  else:
+    raise RuntimeError(extract_job.errors)
 
 
 def executor_main():
+  """Main executor."""
   import argparse
   import json
 
@@ -94,10 +103,9 @@ def executor_main():
   executor_input = json.loads(args.executor_input)
   function_to_execute = globals()[args.function_to_execute]
 
-  executor = Executor(executor_input=executor_input,
-                      function_to_execute=function_to_execute)
-
-  executor.execute()
+  executor.Executor(
+      executor_input=executor_input,
+      function_to_execute=function_to_execute).execute()
 
 
 if __name__ == '__main__':

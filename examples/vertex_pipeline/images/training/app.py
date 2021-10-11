@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Model training program."""
+
 from typing import Dict, Tuple, Optional, List, Iterable
 
 import argparse
@@ -42,12 +44,14 @@ PROB_THRESHOLD = 0.5
 
 
 def _save_lgb_model(model: lgb.Booster, model_store: str):
+  """Export trained lgb model."""
   file_path = os.path.join(model_store, MODEL_FILENAME)
   model.save_model(MODEL_FILENAME)
   tf.io.gfile.copy(MODEL_FILENAME, file_path, overwrite=True)
 
 
 def _save_lgb_feature_importance(model: lgb.Booster, model_store: str):
+  """Export feature importance info of trained lgb model."""
   file_path = os.path.join(model_store, FEATURE_IMPORTANCE_FILENAME)
   # Pandas can save to GCS directly
   pd.DataFrame(
@@ -59,11 +63,13 @@ def _save_lgb_feature_importance(model: lgb.Booster, model_store: str):
 
 
 def _save_metrics(metrics: dict, output_path: str):
+  """Export the metrics of trained lgb model."""
   with tf.io.gfile.GFile(output_path, 'w') as eval_file:
     eval_file.write(json.dumps(metrics))
 
 
 def _save_analysis_schema(df: pd.DataFrame, model_store: str):
+  """Export instance schema for model monitoring service."""
   file_path = os.path.join(model_store, INSTANCE_SCHEMA_FILENAME)
   # create feature schema
   properties = {}
@@ -92,6 +98,7 @@ def _save_analysis_schema(df: pd.DataFrame, model_store: str):
 def _split_features_label_columns(df: pd.DataFrame,
                                   target_label: str
                                   ) -> Tuple[pd.DataFrame, pd.DataFrame]:
+  """Split dataset into features and target."""
   y = df[target_label]
   x = df.drop(target_label, axis=1)
 
@@ -103,6 +110,7 @@ def load_csv_dataset(data_uri_pattern: str,
                      features: List[str],
                      data_schema: Optional[str] = None
                      ) -> Tuple[pd.DataFrame, pd.DataFrame]:
+  """Load CSV data into features and label DataFrame."""
   all_files = tf.io.gfile.glob(data_uri_pattern)
 
   if data_schema:
@@ -134,6 +142,7 @@ def load_csv_dataset(data_uri_pattern: str,
 def _evaluate_binary_classification(model: lgb.Booster,
                                     x: pd.DataFrame,
                                     y: pd.DataFrame) -> Dict[str, object]:
+  """Perform evaluation of binary classification model."""
   # get roc curve metrics, down sample to avoid hitting MLMD 64k size limit
   roc_size = int(x.shape[0] * 1 / 3)
   y_hat = model.predict(x)
@@ -170,6 +179,7 @@ def lgb_training(lgb_train: lgb.Dataset,
                  num_leaves: int,
                  max_depth: int,
                  min_data_in_leaf: int) -> lgb.Booster:
+  """Train lgb model given datasets and parameters."""
   # train the model
   params = {
       'objective': 'binary',
@@ -200,6 +210,7 @@ def lgb_training(lgb_train: lgb.Dataset,
 def _get_trial_parameters(trial: aip.Trial,
                           target_parameters: Iterable[str]
                           ) -> Dict[str, int]:
+  """Extract vizier trial id."""
   target_params = set(target_parameters)
   param_values = {}
 
@@ -214,6 +225,7 @@ def _create_lgb_study(vizier_client: aip.VizierServiceClient,
                       args: argparse.Namespace,
                       metric: str = 'auc',
                       goal: str = 'MAXIMIZE') -> aip.Study:
+  """Creat a vizier study."""
   study_display_name = '{}_study_{}'.format(
       args.hp_config_gcp_project_id.replace('-', ''),
       datetime.datetime.now().strftime('%Y%m%d_%H%M%S'))
@@ -268,6 +280,7 @@ def conduct_vizier_trials(
     y_test: pd.DataFrame,
     target_parameters: Iterable[str] = ('num_leaves', 'max_depth')
 ) -> Dict[str, int]:
+  """Execute a vizier study."""
   logging.info(f'Commencing Vizier study')
 
   endpoint = args.hp_config_gcp_region + '-aiplatform.googleapis.com'
@@ -350,6 +363,8 @@ def conduct_vizier_trials(
 ################################################################################
 
 def train(args: argparse.Namespace):
+  """The main training logic."""
+
   if 'AIP_MODEL_DIR' not in os.environ:
     raise KeyError(
         'The `AIP_MODEL_DIR` environment variable has not been set. '

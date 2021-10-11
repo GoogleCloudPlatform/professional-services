@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Build the training and batch prediction pipeline specs
+
 cd "$( dirname "${BASH_SOURCE[0]}" )" || exit
 DIR="$( pwd )"
 SRC_DIR=${DIR}"/../"

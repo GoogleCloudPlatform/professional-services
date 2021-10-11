@@ -12,37 +12,40 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Custom component for testing the deployed model."""
+
 import logging
 import json
 
 from google.cloud import aiplatform
-from kfp.v2.components.executor import Executor
+from kfp.v2.components import executor
 from kfp.v2.dsl import Artifact, Input
 
 logging.getLogger().setLevel(logging.INFO)
 
 
-def test_endpoint(
-    project_id: str,
-    data_region: str,
-    data_pipeline_root: str,
-    test_instances: str,
-    endpoint: Input[Artifact]
-):
-  """ Test an endpoint.
+def test_endpoint(project_id: str,
+                  data_region: str,
+                  data_pipeline_root: str,
+                  test_instances: str,
+                  endpoint: Input[Artifact]):
+  """Test an endpoint.
 
   Args:
-      project_id: The project ID.
-      data_region: The region for the endpoint.
-      data_pipeline_root: The staging location for any custom job.
-      test_instances: The testing instances.
-      endpoint: The output artifact of the endpoint.
+    project_id: The project ID.
+    data_region: The region for the endpoint.
+    data_pipeline_root: The staging location for any custom job.
+    test_instances: The testing instances.
+    endpoint: The output artifact of the endpoint.
+
+  Raises:
+    Exceptions: If the testing fails.
   """
 
   aiplatform.init(
-    project=project_id,
-    location=data_region,
-    staging_bucket=data_pipeline_root)
+      project=project_id,
+      location=data_region,
+      staging_bucket=data_pipeline_root)
 
   endpoint_rn = endpoint.uri.replace('aiplatform://v1/', '')
   endpoint = aiplatform.Endpoint(endpoint_rn)
@@ -57,6 +60,7 @@ def test_endpoint(
 
 
 def executor_main():
+  """Main executor."""
   import argparse
   import json
 
@@ -68,10 +72,9 @@ def executor_main():
   executor_input = json.loads(args.executor_input)
   function_to_execute = globals()[args.function_to_execute]
 
-  executor = Executor(executor_input=executor_input,
-                      function_to_execute=function_to_execute)
-
-  executor.execute()
+  executor.Executor(
+      executor_input=executor_input,
+      function_to_execute=function_to_execute).execute()
 
 
 if __name__ == '__main__':

@@ -12,12 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Custom component for launching training job on Vertex AI platform."""
+
+import os
 import json
 import logging
-import os
 from datetime import datetime
 
-from kfp.v2.components.executor import Executor
+from google.cloud import aiplatform
+from kfp.v2.components import executor
 from kfp.v2.dsl import Artifact, ClassificationMetrics, Dataset, Input, Metrics, Model, Output
 
 FEATURE_IMPORTANCE_FILENAME = 'feature_importance.csv'
@@ -48,7 +51,7 @@ def train_model(
     train_additional_args: str = None,
     vpc_network: str = None,
 ):
-  """ Component to train a model by calling remote custom training pipeline job.
+  """Component to train a model by calling remote custom training pipeline job.
 
   Args:
       project_id: The project ID.
@@ -88,25 +91,23 @@ def train_model(
   logging.info(f'output model URI: {output_model.uri}')
   logging.info(f'custom_job_service_account: {custom_job_service_account}')
 
-  from google.cloud import aiplatform
-
   # Call Vertex AI custom job in another region
   aiplatform.init(
-    project=project_id,
-    location=data_region,
-    staging_bucket=data_pipeline_root)
+      project=project_id,
+      location=data_region,
+      staging_bucket=data_pipeline_root)
 
   job = aiplatform.CustomContainerTrainingJob(
-    display_name='model-training',
-    location=data_region,
-    container_uri=training_container_image_uri,
-    model_serving_container_image_uri=serving_container_image_uri,
-    model_serving_container_predict_route='/predict',
-    model_serving_container_health_route='/health',
-    model_serving_container_environment_variables={
-      'TRAINING_DATA_SCHEMA': input_data_schema,
-      'MODEL_FILENAME': output_model_file_name
-    })
+      display_name='model-training',
+      location=data_region,
+      container_uri=training_container_image_uri,
+      model_serving_container_image_uri=serving_container_image_uri,
+      model_serving_container_predict_route='/predict',
+      model_serving_container_health_route='/health',
+      model_serving_container_environment_variables={
+          'TRAINING_DATA_SCHEMA': input_data_schema,
+          'MODEL_FILENAME': output_model_file_name
+      })
 
   # Create a millisecond timestamped model display name
   model_display_name = f'model-{int(datetime.now().timestamp() * 1000)}'
@@ -121,46 +122,46 @@ def train_model(
   # It is possible to make all train_args passed using `train_additional_args`
   # The below is an example to show different usage
   train_args = [
-    '--training_data_uri', input_dataset.uri,
-    '--training_data_schema', input_data_schema,
-    '--label', label,
-    '--features', features,
-    '--metrics_output_uri', basic_metrics.uri,
-    '--hp_config_gcp_project_id', project_id,
-    '--hp_config_gcp_region', hptune_region,
-    '--hp_config_suggestions_per_request', hp_config_suggestions_per_request,
-    '--hp_config_max_trials', hp_config_max_trials,
+      '--training_data_uri', input_dataset.uri,
+      '--training_data_schema', input_data_schema,
+      '--label', label,
+      '--features', features,
+      '--metrics_output_uri', basic_metrics.uri,
+      '--hp_config_gcp_project_id', project_id,
+      '--hp_config_gcp_region', hptune_region,
+      '--hp_config_suggestions_per_request', hp_config_suggestions_per_request,
+      '--hp_config_max_trials', hp_config_max_trials,
   ]
 
   if train_additional_args:
     arg_dict = json.loads(train_additional_args)
     for item in arg_dict:
-      train_args.append('--'+item)
+      train_args.append('--' + item)
       train_args.append(arg_dict[item])
 
   if hptune_region:
-    train_args.append('--perform_hp',)
+    train_args.append('--perform_hp', )
 
   model = job.run(
-    model_display_name=model_display_name,
-    args=train_args,
-    replica_count=1,
-    machine_type=machine_type,
-    accelerator_type=accelerator_type,
-    accelerator_count=accelerator_count,
-    service_account=custom_job_service_account,
-    network=vpc_network)
+      model_display_name=model_display_name,
+      args=train_args,
+      replica_count=1,
+      machine_type=machine_type,
+      accelerator_type=accelerator_type,
+      accelerator_count=accelerator_count,
+      service_account=custom_job_service_account,
+      network=vpc_network)
 
   logging.info(
-    f'Training completes with model URI: {model.uri}, '
-    f'Resource Name: {model.resource_name}')
+      f'Training completes with model URI: {model.uri}, '
+      f'Resource Name: {model.resource_name}')
 
   logging.info('Update output model metadata')
   output_model.uri = 'aiplatform://v1/' + model.resource_name
   output_model.metadata['model_gcs_uri'] = model.uri
 
   feature_importance_dataset.uri = os.path.join(
-    model.uri, FEATURE_IMPORTANCE_FILENAME)
+      model.uri, FEATURE_IMPORTANCE_FILENAME)
   instance_schema.uri = os.path.join(model.uri, INSTANCE_SCHEMA_FILENAME)
   instance_schema.metadata['label'] = label
 
@@ -185,12 +186,13 @@ def train_model(
 
   logging.info('Update classification metrics metadata')
   classification_metrics.log_confusion_matrix(
-    categories=["0", "1"], matrix=metrics_json['confusion_matrix'])
+      categories=["0", "1"], matrix=metrics_json['confusion_matrix'])
   classification_metrics.log_roc_curve(fpr, tpr, thresholds)
   classification_metrics.metadata['model_name'] = model.resource_name
 
 
 def executor_main():
+  """Main executor."""
   import argparse
   import json
 
@@ -202,10 +204,9 @@ def executor_main():
   executor_input = json.loads(args.executor_input)
   function_to_execute = globals()[args.function_to_execute]
 
-  executor = Executor(executor_input=executor_input,
-                      function_to_execute=function_to_execute)
-
-  executor.execute()
+  executor.Executor(
+      executor_input=executor_input,
+      function_to_execute=function_to_execute).execute()
 
 
 if __name__ == '__main__':

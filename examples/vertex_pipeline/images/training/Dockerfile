@@ -20,7 +20,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY requirements.txt .
 
-RUN python3 -m pip install -r \
+RUN python -m pip install -r \
     requirements.txt --quiet --no-cache-dir \
     && rm -f requirements.txt
 
