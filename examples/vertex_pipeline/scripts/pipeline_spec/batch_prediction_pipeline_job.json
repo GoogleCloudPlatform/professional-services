@@ -1,0 +1,426 @@
+{
+  "pipelineSpec": {
+    "components": {
+      "comp-batch-prediction": {
+        "executorLabel": "exec-batch-prediction",
+        "inputDefinitions": {
+          "artifacts": {
+            "input_dataset": {
+              "artifactType": {
+                "schemaTitle": "system.Dataset",
+                "schemaVersion": "0.0.1"
+              }
+            }
+          },
+          "parameters": {
+            "accelerator_count": {
+              "type": "INT"
+            },
+            "accelerator_type": {
+              "type": "STRING"
+            },
+            "data_pipeline_root": {
+              "type": "STRING"
+            },
+            "data_region": {
+              "type": "STRING"
+            },
+            "endpoint_resource_name": {
+              "type": "STRING"
+            },
+            "gcs_result_folder": {
+              "type": "STRING"
+            },
+            "instances_format": {
+              "type": "STRING"
+            },
+            "machine_type": {
+              "type": "STRING"
+            },
+            "max_replica_count": {
+              "type": "INT"
+            },
+            "model_resource_name": {
+              "type": "STRING"
+            },
+            "predictions_format": {
+              "type": "STRING"
+            },
+            "project_id": {
+              "type": "STRING"
+            },
+            "starting_replica_count": {
+              "type": "INT"
+            }
+          }
+        },
+        "outputDefinitions": {
+          "artifacts": {
+            "prediction_result": {
+              "artifactType": {
+                "schemaTitle": "system.Dataset",
+                "schemaVersion": "0.0.1"
+              }
+            }
+          }
+        }
+      },
+      "comp-data-preprocess": {
+        "executorLabel": "exec-data-preprocess",
+        "inputDefinitions": {
+          "artifacts": {
+            "input_dataset": {
+              "artifactType": {
+                "schemaTitle": "system.Dataset",
+                "schemaVersion": "0.0.1"
+              }
+            }
+          },
+          "parameters": {
+            "data_region": {
+              "type": "STRING"
+            },
+            "gcs_output_folder": {
+              "type": "STRING"
+            },
+            "gcs_output_format": {
+              "type": "STRING"
+            },
+            "project_id": {
+              "type": "STRING"
+            }
+          }
+        },
+        "outputDefinitions": {
+          "artifacts": {
+            "output_dataset": {
+              "artifactType": {
+                "schemaTitle": "system.Dataset",
+                "schemaVersion": "0.0.1"
+              }
+            }
+          }
+        }
+      },
+      "comp-importer": {
+        "executorLabel": "exec-importer",
+        "inputDefinitions": {
+          "parameters": {
+            "uri": {
+              "type": "STRING"
+            }
+          }
+        },
+        "outputDefinitions": {
+          "artifacts": {
+            "artifact": {
+              "artifactType": {
+                "schemaTitle": "system.Dataset",
+                "schemaVersion": "0.0.1"
+              }
+            }
+          }
+        }
+      }
+    },
+    "deploymentSpec": {
+      "executors": {
+        "exec-batch-prediction": {
+          "container": {
+            "args": [
+              "--executor_input",
+              "{{$}}",
+              "--function_to_execute",
+              "batch_prediction",
+              "--project-id",
+              "{{$.inputs.parameters['project_id']}}",
+              "--data-region",
+              "{{$.inputs.parameters['data_region']}}",
+              "--data-pipeline-root",
+              "{{$.inputs.parameters['data_pipeline_root']}}",
+              "--gcs-result-folder",
+              "{{$.inputs.parameters['gcs_result_folder']}}",
+              "--instances-format",
+              "{{$.inputs.parameters['instances_format']}}",
+              "--predictions-format",
+              "{{$.inputs.parameters['predictions_format']}}",
+              "--model-resource-name",
+              "{{$.inputs.parameters['model_resource_name']}}",
+              "--endpoint-resource-name",
+              "{{$.inputs.parameters['endpoint_resource_name']}}",
+              "--machine-type",
+              "{{$.inputs.parameters['machine_type']}}",
+              "--accelerator-type",
+              "{{$.inputs.parameters['accelerator_type']}}",
+              "--accelerator-count",
+              "{{$.inputs.parameters['accelerator_count']}}",
+              "--starting-replica-count-count",
+              "{{$.inputs.parameters['starting_replica_count']}}",
+              "--max-replica-count",
+              "{{$.inputs.parameters['max_replica_count']}}",
+              "--input-dataset",
+              "{{$.inputs.artifacts['input_dataset'].path}}",
+              "--prediction-result",
+              "{{$.outputs.artifacts['prediction_result'].path}}"
+            ],
+            "command": [
+              "python",
+              "/pipelines/component/src/predict.py"
+            ],
+            "image": "asia-southeast1-docker.pkg.dev/woven-rush-197905/mlops-vertex-kit/batch-prediction:latest"
+          }
+        },
+        "exec-data-preprocess": {
+          "container": {
+            "args": [
+              "--executor_input",
+              "{{$}}",
+              "--function_to_execute",
+              "preprocess_data",
+              "--project-id",
+              "{{$.inputs.parameters['project_id']}}",
+              "--data-region",
+              "{{$.inputs.parameters['data_region']}}",
+              "--gcs-output-folder",
+              "{{$.inputs.parameters['gcs_output_folder']}}",
+              "--gcs-output-format",
+              "{{$.inputs.parameters['gcs_output_format']}}",
+              "--input-dataset",
+              "{{$.inputs.artifacts['input_dataset'].path}}",
+              "--output-dataset",
+              "{{$.outputs.artifacts['output_dataset'].path}}"
+            ],
+            "command": [
+              "python",
+              "/pipelines/component/src/preprocess.py"
+            ],
+            "image": "asia-southeast1-docker.pkg.dev/woven-rush-197905/mlops-vertex-kit/data-preprocess:latest"
+          }
+        },
+        "exec-importer": {
+          "importer": {
+            "artifactUri": {
+              "runtimeParameter": "uri"
+            },
+            "typeSchema": {
+              "schemaTitle": "system.Dataset",
+              "schemaVersion": "0.0.1"
+            }
+          }
+        }
+      }
+    },
+    "pipelineInfo": {
+      "name": "batch-prediction-pipeline-template"
+    },
+    "root": {
+      "dag": {
+        "tasks": {
+          "batch-prediction": {
+            "cachingOptions": {
+              "enableCache": true
+            },
+            "componentRef": {
+              "name": "comp-batch-prediction"
+            },
+            "dependentTasks": [
+              "data-preprocess"
+            ],
+            "inputs": {
+              "artifacts": {
+                "input_dataset": {
+                  "taskOutputArtifact": {
+                    "outputArtifactKey": "output_dataset",
+                    "producerTask": "data-preprocess"
+                  }
+                }
+              },
+              "parameters": {
+                "accelerator_count": {
+                  "componentInputParameter": "accelerator_count"
+                },
+                "accelerator_type": {
+                  "componentInputParameter": "accelerator_type"
+                },
+                "data_pipeline_root": {
+                  "componentInputParameter": "data_pipeline_root"
+                },
+                "data_region": {
+                  "componentInputParameter": "data_region"
+                },
+                "endpoint_resource_name": {
+                  "componentInputParameter": "endpoint_resource_name"
+                },
+                "gcs_result_folder": {
+                  "componentInputParameter": "gcs_result_folder"
+                },
+                "instances_format": {
+                  "runtimeValue": {
+                    "constantValue": {
+                      "stringValue": "jsonl"
+                    }
+                  }
+                },
+                "machine_type": {
+                  "componentInputParameter": "machine_type"
+                },
+                "max_replica_count": {
+                  "componentInputParameter": "max_replica_count"
+                },
+                "model_resource_name": {
+                  "componentInputParameter": "model_resource_name"
+                },
+                "predictions_format": {
+                  "runtimeValue": {
+                    "constantValue": {
+                      "stringValue": "jsonl"
+                    }
+                  }
+                },
+                "project_id": {
+                  "componentInputParameter": "project_id"
+                },
+                "starting_replica_count": {
+                  "componentInputParameter": "starting_replica_count"
+                }
+              }
+            },
+            "taskInfo": {
+              "name": "batch-prediction"
+            }
+          },
+          "data-preprocess": {
+            "cachingOptions": {
+              "enableCache": true
+            },
+            "componentRef": {
+              "name": "comp-data-preprocess"
+            },
+            "dependentTasks": [
+              "importer"
+            ],
+            "inputs": {
+              "artifacts": {
+                "input_dataset": {
+                  "taskOutputArtifact": {
+                    "outputArtifactKey": "artifact",
+                    "producerTask": "importer"
+                  }
+                }
+              },
+              "parameters": {
+                "data_region": {
+                  "componentInputParameter": "data_region"
+                },
+                "gcs_output_folder": {
+                  "componentInputParameter": "gcs_data_output_folder"
+                },
+                "gcs_output_format": {
+                  "runtimeValue": {
+                    "constantValue": {
+                      "stringValue": "NEWLINE_DELIMITED_JSON"
+                    }
+                  }
+                },
+                "project_id": {
+                  "componentInputParameter": "project_id"
+                }
+              }
+            },
+            "taskInfo": {
+              "name": "data-preprocess"
+            }
+          },
+          "importer": {
+            "cachingOptions": {
+              "enableCache": true
+            },
+            "componentRef": {
+              "name": "comp-importer"
+            },
+            "inputs": {
+              "parameters": {
+                "uri": {
+                  "componentInputParameter": "input_dataset_uri"
+                }
+              }
+            },
+            "taskInfo": {
+              "name": "importer"
+            }
+          }
+        }
+      },
+      "inputDefinitions": {
+        "parameters": {
+          "accelerator_count": {
+            "type": "INT"
+          },
+          "accelerator_type": {
+            "type": "STRING"
+          },
+          "data_pipeline_root": {
+            "type": "STRING"
+          },
+          "data_region": {
+            "type": "STRING"
+          },
+          "endpoint_resource_name": {
+            "type": "STRING"
+          },
+          "gcs_data_output_folder": {
+            "type": "STRING"
+          },
+          "gcs_result_folder": {
+            "type": "STRING"
+          },
+          "input_dataset_uri": {
+            "type": "STRING"
+          },
+          "machine_type": {
+            "type": "STRING"
+          },
+          "max_replica_count": {
+            "type": "INT"
+          },
+          "model_resource_name": {
+            "type": "STRING"
+          },
+          "project_id": {
+            "type": "STRING"
+          },
+          "starting_replica_count": {
+            "type": "INT"
+          }
+        }
+      }
+    },
+    "schemaVersion": "2.0.0",
+    "sdkVersion": "kfp-1.8.2"
+  },
+  "runtimeConfig": {
+    "parameters": {
+      "accelerator_count": {
+        "intValue": "0"
+      },
+      "accelerator_type": {
+        "stringValue": "ACCELERATOR_TYPE_UNSPECIFIED"
+      },
+      "endpoint_resource_name": {
+        "stringValue": ""
+      },
+      "machine_type": {
+        "stringValue": "n1-standard-8"
+      },
+      "max_replica_count": {
+        "intValue": "2"
+      },
+      "model_resource_name": {
+        "stringValue": ""
+      },
+      "starting_replica_count": {
+        "intValue": "1"
+      }
+    }
+  }
+}

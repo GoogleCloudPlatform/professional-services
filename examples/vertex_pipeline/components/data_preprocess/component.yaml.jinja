@@ -1,0 +1,37 @@
+# Copyright 2021 Google LLC. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Data Preprocess
+inputs:
+- {name: project_id, type: String}
+- {name: data_region, type: String}
+- {name: gcs_output_folder, type: String}
+- {name: gcs_output_format, type: String}
+- {name: input_dataset, type: Dataset}
+outputs:
+- {name: output_dataset, type: Dataset}
+implementation:
+  container:
+    image: {{af_registry_location}}-docker.pkg.dev/{{project_id}}/{{af_registry_name}}/data-preprocess:latest
+    command: [python, /pipelines/component/src/preprocess.py]
+    args: [
+      --executor_input, {executorInput: null},
+      --function_to_execute, preprocess_data,
+      --project-id, {inputValue: project_id},
+      --data-region, {inputValue: data_region},
+      --gcs-output-folder, {inputValue: gcs_output_folder},
+      --gcs-output-format, {inputValue: gcs_output_format},
+      --input-dataset, {inputPath: input_dataset},
+      --output-dataset, {outputPath: output_dataset}
+    ]

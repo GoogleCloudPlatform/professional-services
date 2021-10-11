@@ -1,0 +1,87 @@
+# Copyright 2021 Google LLC. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+steps:
+
+  # build the base images
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [ "build", "-t", "${_AF_REGISTRY_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_AF_REGISTRY_NAME}/component-base:$TAG_NAME", "." ]
+    dir: 'vertex_pipeline/components/component_base'
+    id: 'Build image: component base'
+
+  # it's important to push the base image because all subsequent steps are layers ontop of it; if this is not done the first
+  # build run will fail.
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [ 'push', "${_AF_REGISTRY_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_AF_REGISTRY_NAME}/component-base:$TAG_NAME" ]
+    id: 'Push image: base'
+
+  - name: "gcr.io/cloud-builders/docker"
+    entrypoint: 'bash'
+    args: [ "-c", "docker build -t ${_AF_REGISTRY_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_AF_REGISTRY_NAME}/batch-prediction:$TAG_NAME --build-arg PROJECT_ID=$PROJECT_ID --build-arg _AF_REGISTRY_LOCATION=${_AF_REGISTRY_LOCATION} --build-arg _AF_REGISTRY_NAME=${_AF_REGISTRY_NAME} --cache-from ${_AF_REGISTRY_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_AF_REGISTRY_NAME}/component-base ." ]
+    dir: 'vertex_pipeline/components/batch_prediction'
+    id: 'Build component: batch-prediction'
+
+  - name: "gcr.io/cloud-builders/docker"
+    entrypoint: 'bash'
+    args: [ "-c", "docker build -t ${_AF_REGISTRY_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_AF_REGISTRY_NAME}/check-model-metrics:$TAG_NAME --build-arg PROJECT_ID=$PROJECT_ID --build-arg _AF_REGISTRY_LOCATION=${_AF_REGISTRY_LOCATION} --build-arg _AF_REGISTRY_NAME=${_AF_REGISTRY_NAME} --cache-from ${_AF_REGISTRY_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_AF_REGISTRY_NAME}/component-base ." ]
+    dir: 'vertex_pipeline/components/check_model_metrics'
+    id: 'Build component: check-model-metrics'
+
+  - name: "gcr.io/cloud-builders/docker"
+    entrypoint: 'bash'
+    args: [ "-c", "docker build -t ${_AF_REGISTRY_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_AF_REGISTRY_NAME}/create-endpoint:$TAG_NAME --build-arg PROJECT_ID=$PROJECT_ID --build-arg _AF_REGISTRY_LOCATION=${_AF_REGISTRY_LOCATION} --build-arg _AF_REGISTRY_NAME=${_AF_REGISTRY_NAME} --cache-from ${_AF_REGISTRY_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_AF_REGISTRY_NAME}/component-base ." ]
+    dir: 'vertex_pipeline/components/create_endpoint'
+    id: 'Build component: create-endpoint'
+
+  - name: "gcr.io/cloud-builders/docker"
+    entrypoint: 'bash'
+    args: [ "-c", "docker build -t ${_AF_REGISTRY_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_AF_REGISTRY_NAME}/test-endpoint:$TAG_NAME --build-arg PROJECT_ID=$PROJECT_ID --build-arg _AF_REGISTRY_LOCATION=${_AF_REGISTRY_LOCATION} --build-arg _AF_REGISTRY_NAME=${_AF_REGISTRY_NAME} --cache-from ${_AF_REGISTRY_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_AF_REGISTRY_NAME}/component-base ." ]
+    dir: 'vertex_pipeline/components/test_endpoint'
+    id: 'Build component: test-endpoint'
+
+  - name: "gcr.io/cloud-builders/docker"
+    entrypoint: 'bash'
+    args: [ "-c", "docker build -t ${_AF_REGISTRY_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_AF_REGISTRY_NAME}/data-preprocess:$TAG_NAME --build-arg PROJECT_ID=$PROJECT_ID --build-arg _AF_REGISTRY_LOCATION=${_AF_REGISTRY_LOCATION} --build-arg _AF_REGISTRY_NAME=${_AF_REGISTRY_NAME} --cache-from ${_AF_REGISTRY_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_AF_REGISTRY_NAME}/component-base ." ]
+    dir: 'vertex_pipeline/components/data_preprocess'
+    id: 'Build component: data-preprocess'
+
+  - name: "gcr.io/cloud-builders/docker"
+    entrypoint: 'bash'
+    args: [ "-c", "docker build -t ${_AF_REGISTRY_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_AF_REGISTRY_NAME}/deploy-model:$TAG_NAME --build-arg PROJECT_ID=$PROJECT_ID --build-arg _AF_REGISTRY_LOCATION=${_AF_REGISTRY_LOCATION} --build-arg _AF_REGISTRY_NAME=${_AF_REGISTRY_NAME} --cache-from ${_AF_REGISTRY_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_AF_REGISTRY_NAME}/component-base ." ]
+    dir: 'vertex_pipeline/components/deploy_model'
+    id: 'Build component: deploy-model'
+
+  - name: "gcr.io/cloud-builders/docker"
+    entrypoint: 'bash'
+    args: [ "-c", "docker build -t ${_AF_REGISTRY_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_AF_REGISTRY_NAME}/monitor-model:$TAG_NAME --build-arg PROJECT_ID=$PROJECT_ID --build-arg _AF_REGISTRY_LOCATION=${_AF_REGISTRY_LOCATION} --build-arg _AF_REGISTRY_NAME=${_AF_REGISTRY_NAME} --cache-from ${_AF_REGISTRY_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_AF_REGISTRY_NAME}/component-base ." ]
+    dir: 'vertex_pipeline/components/monitor_model'
+    id: 'Build component: monitor-model'
+
+  - name: "gcr.io/cloud-builders/docker"
+    entrypoint: 'bash'
+    args: [ "-c", "docker build -t ${_AF_REGISTRY_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_AF_REGISTRY_NAME}/train-model:$TAG_NAME --build-arg PROJECT_ID=$PROJECT_ID --build-arg _AF_REGISTRY_LOCATION=${_AF_REGISTRY_LOCATION} --build-arg _AF_REGISTRY_NAME=${_AF_REGISTRY_NAME} --cache-from ${_AF_REGISTRY_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_AF_REGISTRY_NAME}/component-base ." ]
+    dir: 'vertex_pipeline/components/train_model'
+    id: 'Build component: train-model'
+
+
+images:
+  - '${_AF_REGISTRY_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_AF_REGISTRY_NAME}/component-base:$TAG_NAME'
+  - '${_AF_REGISTRY_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_AF_REGISTRY_NAME}/batch-prediction:$TAG_NAME'
+  - '${_AF_REGISTRY_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_AF_REGISTRY_NAME}/check-model-metrics:$TAG_NAME'
+  - '${_AF_REGISTRY_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_AF_REGISTRY_NAME}/create-endpoint:$TAG_NAME'
+  - '${_AF_REGISTRY_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_AF_REGISTRY_NAME}/test-endpoint:$TAG_NAME'
+  - '${_AF_REGISTRY_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_AF_REGISTRY_NAME}/data-preprocess:$TAG_NAME'
+  - '${_AF_REGISTRY_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_AF_REGISTRY_NAME}/deploy-model:$TAG_NAME'
+  - '${_AF_REGISTRY_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_AF_REGISTRY_NAME}/monitor-model:$TAG_NAME'
+  - '${_AF_REGISTRY_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_AF_REGISTRY_NAME}/train-model:$TAG_NAME'
