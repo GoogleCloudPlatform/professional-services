@@ -206,3 +206,8 @@ We have also provided helper scripts:
 |data_pipeline_root|The GCS staging location for custom job|
 |input_dataset_uri|Full URI of input dataset|
 |data_region|Region of input dataset|
+
+## Contributors
+- [Shixin Luo](https://github.com/luotigerlsx)
+- [Tommy Siu](https://github.com/tommysiu)
+- [Nathan Faggian](https://github.com/nfaggian)
