@@ -23,6 +23,8 @@ from google.cloud import aiplatform
 from kfp.v2.components import executor
 from kfp.v2.dsl import Artifact, ClassificationMetrics, Dataset, Input, Metrics, Model, Output
 
+logging.getLogger().setLevel(logging.INFO)
+
 FEATURE_IMPORTANCE_FILENAME = 'feature_importance.csv'
 INSTANCE_SCHEMA_FILENAME = 'instance_schema.yaml'
 
@@ -84,8 +86,6 @@ def train_model(
       train_additional_args: The training argument.
       vpc_network: The VPC network to execute the training job (optional).
   """
-
-  logging.getLogger().setLevel(logging.INFO)
 
   logging.info(f'input dataset URI: {input_dataset.uri}')
   logging.info(f'output model URI: {output_model.uri}')

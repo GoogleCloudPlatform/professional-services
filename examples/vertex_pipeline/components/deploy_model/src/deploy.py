@@ -20,6 +20,8 @@ from google.cloud import aiplatform
 from kfp.v2.components import executor
 from kfp.v2.dsl import Artifact, Input, Model
 
+logging.getLogger().setLevel(logging.INFO)
+
 # Vertex AI artifact resource prefix
 VERTEX_AI_RESOURCE_PREFIX = 'aiplatform://v1/'
 
@@ -49,8 +51,6 @@ def deploy_model(project_id: str,
     model: The input artifact of the model.
     endpoint: The input artifact of the endpoint.
   """
-
-  logging.getLogger().setLevel(logging.INFO)
 
   logging.info(f'input model URI: {model.uri}')
   logging.info(f'input endpoint URI: {endpoint.uri}')

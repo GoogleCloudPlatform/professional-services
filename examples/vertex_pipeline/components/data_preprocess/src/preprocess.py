@@ -23,6 +23,8 @@ from google.cloud import bigquery
 from kfp.v2.components import executor
 from kfp.v2.dsl import Dataset, Input, Output
 
+logging.getLogger().setLevel(logging.INFO)
+
 
 def _bq_uri_to_fields(uri: str) -> Tuple[str, str, str]:
   uri = uri[5:]
@@ -51,8 +53,6 @@ def preprocess_data(
   Raises:
     RuntimeError: If the BigQuery job fails.
   """
-
-  logging.getLogger().setLevel(logging.INFO)
 
   # Parse the source table
   logging.info(f'Input dataset URI: {input_dataset.uri}')

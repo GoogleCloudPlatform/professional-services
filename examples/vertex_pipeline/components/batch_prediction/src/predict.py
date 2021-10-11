@@ -21,6 +21,8 @@ from google.cloud.aiplatform.compat.types import job_state_v1
 from kfp.v2.components import executor
 from kfp.v2.dsl import Input, Dataset, Output
 
+logging.getLogger().setLevel(logging.INFO)
+
 
 def _get_endpoint(resource_name: str) -> aiplatform.Endpoint:
   return aiplatform.Endpoint(resource_name)
@@ -96,7 +98,6 @@ def batch_prediction(
 
   """
 
-  logging.getLogger().setLevel(logging.INFO)
   logging.info(f'input dataset URI: {input_dataset.uri}')
 
   # Call Vertex AI custom job in another region

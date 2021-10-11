@@ -25,6 +25,8 @@ from google.protobuf.duration_pb2 import Duration
 from kfp.v2.components import executor
 from kfp.v2.dsl import Artifact, Dataset, Input
 
+logging.getLogger().setLevel(logging.INFO)
+
 # Vertex AI artifact resource prefix
 VERTEX_AI_RESOURCE_PREFIX = 'aiplatform://v1/'
 
@@ -66,8 +68,6 @@ def monitor_model(
     dataset: The input artifact of the dataset for setting up train
       skew detection.
   """
-
-  logging.getLogger().setLevel(logging.INFO)
 
   logging.info(f'input endpoint URI: {endpoint.uri}')
   if not endpoint.uri.startswith(VERTEX_AI_RESOURCE_PREFIX):
