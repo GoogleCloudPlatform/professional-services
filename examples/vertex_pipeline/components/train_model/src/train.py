@@ -138,6 +138,7 @@ def train_model(
   ]
 
   if train_additional_args:
+    logging.info(f'The additional args {train_additional_args}')
     arg_dict = json.loads(train_additional_args)
     for item in arg_dict:
       train_args.append('--' + item)

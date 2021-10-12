@@ -39,7 +39,7 @@ DATA_REGION=asia-southeast1
 # The schema should be in the format of 'field_name:filed_type;...'
 DATA_SCHEMA='VWT:float;SWT:float;KWT:float;Entropy:float;Class:int'
 # Instance used to test deployed model
-TEST_INSTANCE='[{"VWT": 3.6216, "SWT": 8.6661, "KWT": -2.8073, "Entropy": -0.44699, "Class": "0"}]'
+TEST_INSTANCE='[{"VWT":3.6216,"SWT":8.6661,"KWT":-2.8073,"Entropy":-0.44699,"Class":"0"}]'
 # Threshold config for model monitoring
 MONITORING_CONFIG=VWT:.5,SWT:.2,KWT:.7,Entropy:.4
 MONITORING_EMAIL=xxx@google.com
@@ -48,7 +48,7 @@ MONITORING_EMAIL=xxx@google.com
 TRAIN_IMAGE_URI=${AF_REGISTRY_LOCATION}-docker.pkg.dev/${PROJECT_ID}/${AF_REGISTRY_NAME}/training:latest
 SERVING_IMAGE_URI=${AF_REGISTRY_LOCATION}-docker.pkg.dev/${PROJECT_ID}/${AF_REGISTRY_NAME}/serving:latest
 # Additional arguments passed to training step
-TRAIN_ARGS='{"num_leaves_hp_param_min": 6, "num_leaves_hp_param_max": 11, "max_depth_hp_param_min": -1, "max_depth_hp_param_max": 4, "num_boost_round": 300, "min_data_in_leaf": 5}'
+TRAIN_ARGS='{"num_leaves_hp_param_min":6,"num_leaves_hp_param_max":11,"max_depth_hp_param_min":-1,"max_depth_hp_param_max":4,"num_boost_round":300,"min_data_in_leaf":5}'
 VPC_NETWORK=""
 METRIC_NAME=au_prc
 METRIC_THRESHOLD=0.4
@@ -69,7 +69,7 @@ python -m pipelines.training_pipeline_runner \
   --data_region $DATA_REGION \
   --gcs_data_output_folder $GCS_OUTPUT_PATH \
   --training_container_image_uri "$TRAIN_IMAGE_URI" \
-  --train_additional_args $TRAIN_ARGS \
+  --train_additional_args "${TRAIN_ARGS}" \
   --output_model_file_name model.txt \
   --serving_container_image_uri "$SERVING_IMAGE_URI" \
   --custom_job_service_account $CUSTOM_JOB_SA \
@@ -82,7 +82,7 @@ python -m pipelines.training_pipeline_runner \
   --endpoint_machine_type n1-standard-4 \
   --endpoint_min_replica_count 1 \
   --endpoint_max_replica_count 2 \
-  --endpoint_test_instances ${TEST_INSTANCE} \
+  --endpoint_test_instances "${TEST_INSTANCE}" \
   --monitoring_user_emails $MONITORING_EMAIL \
   --monitoring_log_sample_rate 0.8 \
   --monitor_interval 3600 \
