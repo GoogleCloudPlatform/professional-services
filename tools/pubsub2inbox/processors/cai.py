@@ -27,7 +27,9 @@ class CaiProcessor(Processor):
         if 'parent' not in cai_config:
             raise NotConfiguredException('No parent configured!')
 
-        cai_service = discovery.build('cloudasset', 'v1')
+        cai_service = discovery.build('cloudasset',
+                                      'v1',
+                                      http=self._get_branded_http())
 
         request_parameters = {}
         request_parameters['parent'] = self._jinja_expand_string(
@@ -40,7 +42,14 @@ class CaiProcessor(Processor):
             request_parameters['assetTypes'] = self._jinja_var_to_list(
                 cai_config['assetTypes'])
 
-        assets = {}
+        indexing = 'asset_type'
+        if 'indexing' in cai_config:
+            if cai_config['indexing'] == 'list':
+                indexing = 'list'
+        if indexing == 'asset_type':
+            assets = {}
+        else:
+            assets = []
         page_token = None
         while True:
             if page_token is not None:
@@ -49,9 +58,12 @@ class CaiProcessor(Processor):
             response = request.execute()
             if 'assets' in response:
                 for asset in response['assets']:
-                    if asset['assetType'] not in assets:
-                        assets[asset['assetType']] = []
-                    assets[asset['assetType']].append(asset)
+                    if indexing == 'asset_type':
+                        if asset['assetType'] not in assets:
+                            assets[asset['assetType']] = []
+                        assets[asset['assetType']].append(asset)
+                    elif indexing == 'list':
+                        assets.append(asset)
 
             if 'nextPageToken' in response:
                 page_token = response['nextPageToken']

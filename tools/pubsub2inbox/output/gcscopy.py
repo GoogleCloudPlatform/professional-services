@@ -13,7 +13,6 @@
 #   limitations under the License.
 from .base import Output, NotConfiguredException
 from google.cloud import storage
-from google.api_core.gapic_v1 import client_info as grpc_client_info
 
 
 class GcscopyOutput(Output):
@@ -61,12 +60,10 @@ class GcscopyOutput(Output):
                                   (destination_bucket, destination_object)
                           })
 
-        client_info = grpc_client_info.ClientInfo(
-            user_agent='google-pso-tool/pubsub2inbox/1.1.0')
         project = self.output_config[
             'project'] if 'project' in self.output_config else None
-        storage_client = storage.Client(client_info=client_info,
-                                        project=project)
+        storage_client = storage.Client(
+            client_info=self._get_grpc_client_info(), project=project)
 
         bucket = storage_client.bucket(source_bucket)
         source_blob = bucket.blob(source_object)

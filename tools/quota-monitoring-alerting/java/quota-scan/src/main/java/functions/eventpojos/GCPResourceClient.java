@@ -18,8 +18,6 @@ package functions.eventpojos;
 
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.TableId;
-import com.google.cloud.compute.v1.NetworkClient;
-import com.google.cloud.compute.v1.RegionClient;
 
 /*
  * Class to store references of GCP client resources.
@@ -28,8 +26,6 @@ import com.google.cloud.compute.v1.RegionClient;
  * */
 public class GCPResourceClient {
   private BigQuery bigQuery;
-  private RegionClient regionClient;
-  private NetworkClient networkClient;
   private TableId tableId;
 
   public BigQuery getBigQuery() {
@@ -38,22 +34,6 @@ public class GCPResourceClient {
 
   public void setBigQuery(BigQuery bigQuery) {
     this.bigQuery = bigQuery;
-  }
-
-  public RegionClient getRegionClient() {
-    return regionClient;
-  }
-
-  public void setRegionClient(RegionClient regionClient) {
-    this.regionClient = regionClient;
-  }
-
-  public NetworkClient getNetworkClient() {
-    return networkClient;
-  }
-
-  public void setNetworkClient(NetworkClient networkClient) {
-    this.networkClient = networkClient;
   }
 
   public TableId getTableId() {

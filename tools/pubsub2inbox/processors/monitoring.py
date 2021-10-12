@@ -12,9 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 from .base import Processor, NotConfiguredException
-import google.auth
-import google_auth_httplib2
-from googleapiclient import discovery, http
+from googleapiclient import discovery
 
 
 class MonitoringProcessor(Processor):
@@ -29,15 +27,9 @@ class MonitoringProcessor(Processor):
         if 'timeSeries' not in monitoring_config:
             raise NotConfiguredException('No time series configured!')
 
-        credentials, project_id = google.auth.default(
-            ['https://www.googleapis.com/auth/cloud-platform'])
-        branded_http = google_auth_httplib2.AuthorizedHttp(credentials)
-        branded_http = http.set_user_agent(
-            branded_http, 'google-pso-tool/pubsub2inbox/1.1.0')
-
         monitoring_service = discovery.build('monitoring',
                                              'v3',
-                                             http=branded_http)
+                                             http=self._get_branded_http())
 
         time_series = self._jinja_var_to_list(monitoring_config['timeSeries'])
 

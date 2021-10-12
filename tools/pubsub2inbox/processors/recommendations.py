@@ -19,10 +19,9 @@ from google.cloud.recommender_v1.services.recommender import RecommenderClient
 from google.cloud.recommender_v1.types.recommendation import Recommendation
 from google.cloud.recommender_v1.types.insight import Insight
 from google.cloud.recommender_v1.types.recommender_service import ListInsightsRequest
-from googleapiclient import discovery, http
+from googleapiclient import discovery
 from google.api_core.gapic_v1 import client_info as grpc_client_info
-import google_auth_httplib2
-import google.auth
+from google.api_core.client_options import ClientOptions
 import fnmatch
 
 
@@ -66,6 +65,28 @@ class RecommendationsProcessor(Processor):
                 'location': [self.is_region],
                 'parent': [self.is_project, self.is_billing_account]
             },
+            'google.cloudsql.instance.OutOfDiskRecommender': {
+                'location': [self.is_region],
+                'parent': [self.is_project]
+            },
+            'google.cloudsql.instance.IdleRecommender': {
+                'location': [self.is_region],
+                'parent': [self.is_project]
+            },
+            'google.cloudsql.instance.OverprovisionedRecommender': {
+                'location': [self.is_region],
+                'parent': [self.is_project]
+            },
+            'google.iam.policy.Recommender': {
+                'location': [self.is_global],
+                'parent': [
+                    self.is_organization, self.is_folder, self.is_project
+                ]
+            },
+            'google.resourcemanager.projectUtilization.Recommender': {
+                'location': [self.is_global],
+                'parent': [self.is_project]
+            },
             'google.logging.productSuggestion.ContainerRecommender': {
                 'location': [],
                 'parent': [],
@@ -77,7 +98,7 @@ class RecommendationsProcessor(Processor):
             'google.accounts.security.SecurityKeyRecommender': {
                 'location': [],
                 'parent': [],
-            },  # Not supported by API currently
+            },  # Not supported by API currently,
         }
         self.insights = {
             'google.compute.firewall.Insight': {
@@ -93,7 +114,29 @@ class RecommendationsProcessor(Processor):
             'google.iam.serviceAccount.Insight': {
                 'location': [self.is_global],
                 'parent': [self.is_project]
-            }
+            },
+            'google.resourcemanager.projectUtilization.Insight': {
+                'location': [self.is_global],
+                'parent': [self.is_project]
+            },
+            'google.cloudasset.asset.Insight': {
+                'location': [self.is_global],
+                'parent': [
+                    self.is_organization, self.is_folder, self.is_project
+                ]
+            },
+            'google.compute.disk.IdleResourceInsight': {
+                'location': [self.is_region, self.is_zone],
+                'parent': [self.is_project]
+            },
+            'google.compute.image.IdleResourceInsight': {
+                'location': [self.is_global],
+                'parent': [self.is_project]
+            },
+            'google.compute.address.IdleResourceInsight': {
+                'location': [self.is_global, self.is_region],
+                'parent': [self.is_project]
+            },
         }
         super().__init__(config, jinja_environment, data, event, context)
 
@@ -378,25 +421,30 @@ class RecommendationsProcessor(Processor):
             raise NotConfiguredException(
                 'No location filters specified in config!')
 
+        quota_project_id = recommender_config[
+            'quota_project_id'] if 'quota_project_id' in recommender_config else None
         client_info = grpc_client_info.ClientInfo(
-            user_agent='google-pso-tool/pubsub2inbox/1.1.0')
-        client = RecommenderClient(client_info=client_info)
+            user_agent=self._get_user_agent())
+        client_options = ClientOptions(quota_project_id=quota_project_id)
+        client = RecommenderClient(client_info=client_info,
+                                   client_options=client_options)
 
-        credentials, project_id = google.auth.default(
-            ['https://www.googleapis.com/auth/cloud-platform'])
-        branded_http = google_auth_httplib2.AuthorizedHttp(credentials)
-        branded_http = http.set_user_agent(
-            branded_http, 'google-pso-tool/pubsub2inbox/1.1.0')
-
-        compute_service = discovery.build('compute', 'v1', http=branded_http)
-        if len(projects) == 0:
+        compute_service = discovery.build('compute',
+                                          'v1',
+                                          http=self._get_branded_http(),
+                                          client_options=client_options)
+        if len(projects) == 0 and not quota_project_id:
             raise NotConfiguredException(
-                'Please specify at least one project to fetch regions and zones.'
+                'Please specify at least one project (or quota project ID) to fetch regions and zones.'
             )
-        all_zones = self.get_zones(compute_service, projects[0],
-                                   location_filters)
-        all_regions = self.get_regions(compute_service, projects[0],
-                                       location_filters)
+        all_zones = self.get_zones(
+            compute_service,
+            quota_project_id if quota_project_id else projects[0],
+            location_filters)
+        all_regions = self.get_regions(
+            compute_service,
+            quota_project_id if quota_project_id else projects[0],
+            location_filters)
         all_locations = all_zones + all_regions
         self.logger.debug('Fetched all available locations.',
                           extra={'locations': all_locations})

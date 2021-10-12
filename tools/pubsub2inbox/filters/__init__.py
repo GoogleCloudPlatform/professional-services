@@ -13,9 +13,14 @@
 #   limitations under the License.
 from .regex import regex_replace
 from .lists import split, index
-from .strings import add_links, urlencode, generate_signed_url, json_encode, json_decode, csv_encode, re_escape, html_table_to_xlsx, make_list, read_gcs_object, filemagic
+from .strings import add_links, urlencode, generate_signed_url, json_encode, json_decode, b64decode, csv_encode, re_escape, html_table_to_xlsx, make_list, read_gcs_object, filemagic
 from .date import strftime, recurring_date
 from .gcp import format_cost, get_cost
+from .tests import test_contains
+
+
+def get_jinja_tests():
+    return {'contains': test_contains}
 
 
 def get_jinja_filters():
@@ -29,6 +34,7 @@ def get_jinja_filters():
         'strftime': strftime,
         'json_encode': json_encode,
         'json_decode': json_decode,
+        'b64decode': b64decode,
         'csv_encode': csv_encode,
         're_escape': re_escape,
         'html_table_to_xlsx': html_table_to_xlsx,

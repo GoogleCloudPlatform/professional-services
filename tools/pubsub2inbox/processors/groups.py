@@ -12,9 +12,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 from .base import Processor, NotConfiguredException
-from googleapiclient import discovery, http
+from googleapiclient import discovery
 from google.oauth2.credentials import Credentials
-import google_auth_httplib2
 from urllib.parse import urlencode
 import re
 
@@ -37,13 +36,11 @@ class GroupsProcessor(Processor):
                 'https://www.googleapis.com/auth/cloud-identity.groups.readonly'
             ],
                                       service_account=service_account))
-        branded_http = google_auth_httplib2.AuthorizedHttp(group_credentials)
-        branded_http = http.set_user_agent(
-            branded_http, 'google-pso-tool/pubsub2inbox/1.1.0')
 
-        group_service = discovery.build('cloudidentity',
-                                        'v1',
-                                        http=branded_http)
+        group_service = discovery.build(
+            'cloudidentity',
+            'v1',
+            http=self._get_branded_http(group_credentials))
         query = groups_config['query'] if 'query' in groups_config else ""
 
         query_template = self.jinja_environment.from_string(query)
