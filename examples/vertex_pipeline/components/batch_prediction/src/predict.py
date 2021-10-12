@@ -47,6 +47,8 @@ def _get_model_from_endpoint(endpoint: aiplatform.Endpoint) -> aiplatform.Model:
         return aiplatform.Model(deployed_model.model)
 
 
+# pylint: disable=too-many-arguments
+# pylint: disable=too-many-locals
 def batch_prediction(
     project_id: str,
     data_region: str,
@@ -115,7 +117,7 @@ def batch_prediction(
 
   logging.info(f'retrieved model URI: {model.uri}')
 
-  batch_prediction_job = model.batch_predict(
+  batch_pred_job = model.batch_predict(
       job_display_name='batch-prediction',
       gcs_source=input_dataset.uri,
       gcs_destination_prefix=gcs_result_folder,
@@ -128,15 +130,15 @@ def batch_prediction(
       max_replica_count=max_replica_count,
       sync=True)
 
-  logging.info(f'batch prediction job: {batch_prediction_job.resource_name}')
+  logging.info(f'batch prediction job: {batch_pred_job.resource_name}')
 
-  batch_prediction_job.wait()
-  if batch_prediction_job.state == job_state_v1.JobState.JOB_STATE_SUCCEEDED:
+  batch_pred_job.wait()
+  if batch_pred_job.state == job_state_v1.JobState.JOB_STATE_SUCCEEDED:
     logging.info(f'batch prediction job has finished with info: '
-                 f'{batch_prediction_job.completion_stats}')
-    prediction_result.uri = batch_prediction_job.output_info.gcs_output_directory
+                 f'{batch_pred_job.completion_stats}')
+    prediction_result.uri = batch_pred_job.output_info.gcs_output_directory
   else:
-    raise RuntimeError(batch_prediction_job.error)
+    raise RuntimeError(batch_pred_job.error)
 
 
 def executor_main():

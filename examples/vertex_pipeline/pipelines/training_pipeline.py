@@ -65,6 +65,8 @@ def create_training_pipeline(project_id: str,
   deploy_model_op = load_custom_component(component_name='deploy_model')
   monitor_model_op = load_custom_component(component_name='monitor_model')
 
+  # pylint: disable=too-many-arguments
+  # pylint: disable=too-many-locals
   @dsl.pipeline(name=pipeline_name)
   def pipeline(project_id: str,
                data_region: str,

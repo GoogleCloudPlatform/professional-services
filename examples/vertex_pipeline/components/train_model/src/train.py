@@ -17,10 +17,12 @@
 import os
 import json
 import logging
+import argparse
 from datetime import datetime
 
 from google.cloud import aiplatform
 from kfp.v2.components import executor
+# pylint: disable=line-too-long
 from kfp.v2.dsl import Artifact, ClassificationMetrics, Dataset, Input, Metrics, Model, Output
 
 logging.getLogger().setLevel(logging.INFO)
@@ -29,6 +31,8 @@ FEATURE_IMPORTANCE_FILENAME = 'feature_importance.csv'
 INSTANCE_SCHEMA_FILENAME = 'instance_schema.yaml'
 
 
+# pylint: disable=too-many-arguments
+# pylint: disable=too-many-locals
 def train_model(
     project_id: str,
     data_region: str,
@@ -193,8 +197,6 @@ def train_model(
 
 def executor_main():
   """Main executor."""
-  import argparse
-  import json
 
   parser = argparse.ArgumentParser()
   parser.add_argument('--executor_input', type=str)

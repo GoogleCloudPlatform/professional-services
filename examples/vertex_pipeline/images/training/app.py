@@ -368,6 +368,7 @@ def train(args: argparse.Namespace):
   if 'AIP_MODEL_DIR' not in os.environ:
     raise KeyError(
         'The `AIP_MODEL_DIR` environment variable has not been set. '
+        # pylint: disable=line-too-long
         'See https://cloud.google.com/ai-platform-unified/docs/tutorials/image-recognition-custom/training'
     )
   output_model_directory = os.environ['AIP_MODEL_DIR']

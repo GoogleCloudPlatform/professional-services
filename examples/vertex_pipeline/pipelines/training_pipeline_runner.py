@@ -44,7 +44,8 @@ def run_training_pipeline():
   # Parameters required for hypterparameter tuning through Vizer
   parser.add_argument('--hptune_region', type=str)
   parser.add_argument('--hp_config_max_trials', type=int, default=30)
-  parser.add_argument('--hp_config_suggestions_per_request', type=int, default=5)
+  parser.add_argument('--hp_config_suggestions_per_request',
+                      type=int, default=5)
 
   parser.add_argument('--metrics_name', type=str)
   parser.add_argument('--metrics_threshold', type=float)

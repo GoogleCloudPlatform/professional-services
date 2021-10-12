@@ -55,6 +55,7 @@ def load_model(model_store):
 if 'AIP_STORAGE_URI' not in os.environ:
   raise KeyError(
     'The `AIP_STORAGE_URI` environment variable has not been set. ' +
+    # pylint: disable=line-too-long
     'See https://cloud.google.com/ai-platform-unified/docs/predictions/custom-container-requirements#artifacts'
   )
 logging.info(f'AIP_STORAGE_URI: {os.environ["AIP_STORAGE_URI"]}')

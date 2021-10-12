@@ -14,6 +14,8 @@
 
 """Custom component for checking whether the metric is better than threshold."""
 
+import argparse
+import json
 import logging
 from typing import NamedTuple
 
@@ -61,8 +63,6 @@ def check_metrics(
 
 def executor_main():
   """Main executor."""
-  import argparse
-  import json
 
   parser = argparse.ArgumentParser()
   parser.add_argument('--executor_input', type=str)

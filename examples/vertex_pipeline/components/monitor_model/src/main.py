@@ -14,9 +14,11 @@
 
 """Custom component for creating model monitoring service."""
 
+from typing import Dict, List
 import copy
 import logging
-from typing import Dict, List
+import argparse
+import json
 
 import yaml
 from google.cloud import aiplatform
@@ -37,6 +39,8 @@ API_ENDPOINT_SUFFIX = 'aiplatform.googleapis.com'
 JOB_DISPLAY_NAME = 'model_monitoring'
 
 
+# pylint: disable=too-many-arguments
+# pylint: disable=too-many-locals
 def monitor_model(
     project_id: str,
     data_region: str,
@@ -148,11 +152,12 @@ def _create_monitoring_job(
     logging.info(f'Try pause and delete existing job {job.name}')
     try:
       client.pause_model_deployment_monitoring_job(name=job.name)
+    # pylint: disable=broad-except
     except Exception:
       logging.info('Fail to pause the monitoring job')
 
     client.delete_model_deployment_monitoring_job(name=job.name)
-    logging.info(f'Existing job has been deleted.')
+    logging.info('Existing job has been deleted.')
 
   predict_schema = instance_schema_uri
   analysis_schema = instance_schema_uri
@@ -267,8 +272,6 @@ def _get_thresholds(
 
 def executor_main():
   """Main executor."""
-  import argparse
-  import json
 
   parser = argparse.ArgumentParser()
   parser.add_argument('--executor_input', type=str)

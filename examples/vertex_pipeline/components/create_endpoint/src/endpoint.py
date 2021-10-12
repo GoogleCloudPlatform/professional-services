@@ -14,6 +14,8 @@
 
 """Custom component for creating Endpoint on Vertex AI Platform."""
 
+import argparse
+import json
 import logging
 
 from google.cloud import aiplatform
@@ -87,8 +89,6 @@ def get_or_create_endpoint(project_id: str,
 
 def executor_main():
   """Main executor."""
-  import argparse
-  import json
 
   parser = argparse.ArgumentParser()
   parser.add_argument('--executor_input', type=str)

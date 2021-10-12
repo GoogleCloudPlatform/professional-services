@@ -14,6 +14,8 @@
 
 """Custom component for deploying model to Endpoint on Vertex AI Platform."""
 
+import argparse
+import json
 import logging
 
 from google.cloud import aiplatform
@@ -29,6 +31,7 @@ VERTEX_AI_RESOURCE_PREFIX = 'aiplatform://v1/'
 MAX_DEPLOYED_MODELS_PER_ENDPOINT = 2
 
 
+# pylint: disable=too-many-arguments
 def deploy_model(project_id: str,
                  data_region: str,
                  data_pipeline_root: str,
@@ -90,7 +93,7 @@ def deploy_model(project_id: str,
 
   # Only keep a maximum of MAX_DEPLOYED_MODELS_PER_ENDPOINT deployed models
   deployed_models = sorted(
-      [m for m in target_endpoint.list_models()],
+      target_endpoint.list_models(),
       key=lambda x: x.create_time,
       reverse=True)
   logging.info(f'Number of deployed models = {len(deployed_models)}')
@@ -105,8 +108,6 @@ def deploy_model(project_id: str,
 
 def executor_main():
   """Main executor."""
-  import argparse
-  import json
 
   parser = argparse.ArgumentParser()
   parser.add_argument('--executor_input', type=str)

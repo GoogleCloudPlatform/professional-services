@@ -60,6 +60,8 @@ def create_training_pipeline(project_id: str,
   preprocess_op = load_custom_component(component_name='data_preprocess')
   batch_prediction_op = load_custom_component(component_name='batch_prediction')
 
+  # pylint: disable=too-many-arguments
+  # pylint: disable=too-many-locals
   @dsl.pipeline(name=pipeline_name)
   def pipeline(project_id: str,
                data_region: str,

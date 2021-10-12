@@ -14,10 +14,12 @@
 
 """Custom component for performing data processing with BigQuery."""
 
-import logging
-import os
-from datetime import datetime
 from typing import Tuple
+import os
+import json
+import logging
+import argparse
+from datetime import datetime
 
 from google.cloud import bigquery
 from kfp.v2.components import executor
@@ -92,8 +94,6 @@ def preprocess_data(
 
 def executor_main():
   """Main executor."""
-  import argparse
-  import json
 
   parser = argparse.ArgumentParser()
   parser.add_argument('--executor_input', type=str)

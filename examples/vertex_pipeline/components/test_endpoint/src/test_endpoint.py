@@ -16,6 +16,7 @@
 
 import logging
 import json
+import argparse
 
 from google.cloud import aiplatform
 from kfp.v2.components import executor
@@ -37,9 +38,6 @@ def test_endpoint(project_id: str,
     data_pipeline_root: The staging location for any custom job.
     test_instances: The testing instances.
     endpoint: The output artifact of the endpoint.
-
-  Raises:
-    Exceptions: If the testing fails.
   """
 
   aiplatform.init(
@@ -52,17 +50,12 @@ def test_endpoint(project_id: str,
 
   instances = json.loads(test_instances)
 
-  try:
-    predictions = endpoint.predict(instances=instances)
-    logging.info(f'prediction result {predictions}')
-  except Exception:
-    raise
+  predictions = endpoint.predict(instances=instances)
+  logging.info(f'prediction result {predictions}')
 
 
 def executor_main():
   """Main executor."""
-  import argparse
-  import json
 
   parser = argparse.ArgumentParser()
   parser.add_argument('--executor_input', type=str)
