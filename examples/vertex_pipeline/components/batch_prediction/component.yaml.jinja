@@ -32,7 +32,7 @@ outputs:
 - {name: prediction_result, type: Dataset}
 implementation:
   container:
-    image: {{af_registry_location}}-docker.pkg.dev/{{project_id}}/{{af_registry_name}}/batch-prediction:latest
+    image: {{af_registry_location}}-docker.pkg.dev/{{project_id}}/{{af_registry_name}}/component-base:latest
     command: [python, /pipelines/component/src/predict.py]
     args: [
       --executor_input, {executorInput: null},

@@ -39,7 +39,7 @@ outputs:
 - {name: instance_schema, type: Artifact}
 implementation:
   container:
-    image: {{af_registry_location}}-docker.pkg.dev/{{project_id}}/{{af_registry_name}}/train-model:latest
+    image: {{af_registry_location}}-docker.pkg.dev/{{project_id}}/{{af_registry_name}}/component-base:latest
     command: [python, /pipelines/component/src/train.py]
     args: [
       --executor_input, {executorInput: null},

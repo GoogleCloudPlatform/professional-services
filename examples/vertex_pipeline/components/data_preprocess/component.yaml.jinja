@@ -23,7 +23,7 @@ outputs:
 - {name: output_dataset, type: Dataset}
 implementation:
   container:
-    image: {{af_registry_location}}-docker.pkg.dev/{{project_id}}/{{af_registry_name}}/data-preprocess:latest
+    image: {{af_registry_location}}-docker.pkg.dev/{{project_id}}/{{af_registry_name}}/component-base:latest
     command: [python, /pipelines/component/src/preprocess.py]
     args: [
       --executor_input, {executorInput: null},

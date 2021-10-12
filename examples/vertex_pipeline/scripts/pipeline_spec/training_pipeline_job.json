@@ -727,7 +727,7 @@
               "python",
               "/pipelines/component/src/metrics.py"
             ],
-            "image": "asia-southeast1-docker.pkg.dev/woven-rush-197905/mlops-vertex-kit/check-model-metrics:latest"
+            "image": "asia-southeast1-docker.pkg.dev/woven-rush-197905/mlops-vertex-kit/component-base:latest"
           }
         },
         "exec-create-endpoint": {
@@ -754,7 +754,7 @@
               "python",
               "/pipelines/component/src/endpoint.py"
             ],
-            "image": "asia-southeast1-docker.pkg.dev/woven-rush-197905/mlops-vertex-kit/create-endpoint:latest"
+            "image": "asia-southeast1-docker.pkg.dev/woven-rush-197905/mlops-vertex-kit/component-base:latest"
           }
         },
         "exec-data-preprocess": {
@@ -781,7 +781,7 @@
               "python",
               "/pipelines/component/src/preprocess.py"
             ],
-            "image": "asia-southeast1-docker.pkg.dev/woven-rush-197905/mlops-vertex-kit/data-preprocess:latest"
+            "image": "asia-southeast1-docker.pkg.dev/woven-rush-197905/mlops-vertex-kit/component-base:latest"
           }
         },
         "exec-deploy-model": {
@@ -812,7 +812,7 @@
               "python",
               "/pipelines/component/src/deploy.py"
             ],
-            "image": "asia-southeast1-docker.pkg.dev/woven-rush-197905/mlops-vertex-kit/deploy-model:latest"
+            "image": "asia-southeast1-docker.pkg.dev/woven-rush-197905/mlops-vertex-kit/component-base:latest"
           }
         },
         "exec-importer": {
@@ -858,9 +858,9 @@
             ],
             "command": [
               "python",
-              "/pipelines/component/src/main.py"
+              "/pipelines/component/src/monitor.py"
             ],
-            "image": "asia-southeast1-docker.pkg.dev/woven-rush-197905/mlops-vertex-kit/monitor-model:latest"
+            "image": "asia-southeast1-docker.pkg.dev/woven-rush-197905/mlops-vertex-kit/component-base:latest"
           }
         },
         "exec-test-endpoint": {
@@ -885,7 +885,7 @@
               "python",
               "/pipelines/component/src/test_endpoint.py"
             ],
-            "image": "asia-southeast1-docker.pkg.dev/woven-rush-197905/mlops-vertex-kit/test-endpoint:latest"
+            "image": "asia-southeast1-docker.pkg.dev/woven-rush-197905/mlops-vertex-kit/component-base:latest"
           }
         },
         "exec-train-model": {
@@ -944,7 +944,7 @@
               "python",
               "/pipelines/component/src/train.py"
             ],
-            "image": "asia-southeast1-docker.pkg.dev/woven-rush-197905/mlops-vertex-kit/train-model:latest"
+            "image": "asia-southeast1-docker.pkg.dev/woven-rush-197905/mlops-vertex-kit/component-base:latest"
           }
         }
       }

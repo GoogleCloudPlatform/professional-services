@@ -22,6 +22,8 @@ COPY requirements.txt .
 
 RUN python -m pip install -r \
     requirements.txt --quiet --no-cache-dir \
-    && rm -f requirements.txt \
+    && rm -f requirements.txt
+
+COPY ./src /pipelines/component/src
 
 ENTRYPOINT ["/bin/bash"]

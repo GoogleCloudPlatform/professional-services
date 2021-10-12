@@ -28,7 +28,7 @@ inputs:
 outputs:
 implementation:
   container:
-    image: {{af_registry_location}}-docker.pkg.dev/{{project_id}}/{{af_registry_name}}/monitor-model:latest
+    image: {{af_registry_location}}-docker.pkg.dev/{{project_id}}/{{af_registry_name}}/component-base:latest
     command: [python, /pipelines/component/src/monitor.py]
     args: [
       --executor_input, {executorInput: null},

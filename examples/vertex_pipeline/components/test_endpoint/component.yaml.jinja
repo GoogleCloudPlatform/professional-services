@@ -21,7 +21,7 @@ inputs:
 - {name: endpoint, type: Artifact}
 implementation:
   container:
-    image: {{af_registry_location}}-docker.pkg.dev/{{project_id}}/{{af_registry_name}}/test-endpoint:latest
+    image: {{af_registry_location}}-docker.pkg.dev/{{project_id}}/{{af_registry_name}}/component-base:latest
     command: [python, /pipelines/component/src/test_endpoint.py]
     args: [
       --executor_input, {executorInput: null},

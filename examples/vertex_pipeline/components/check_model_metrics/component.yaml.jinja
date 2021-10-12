@@ -21,7 +21,7 @@ outputs:
 - {name: is_better_metrics, type: String}
 implementation:
   container:
-    image: {{af_registry_location}}-docker.pkg.dev/{{project_id}}/{{af_registry_name}}/check-model-metrics:latest
+    image: {{af_registry_location}}-docker.pkg.dev/{{project_id}}/{{af_registry_name}}/component-base:latest
     command: [python, /pipelines/component/src/metrics.py]
     args: [
       --executor_input, {executorInput: null},

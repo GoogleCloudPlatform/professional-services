@@ -167,7 +167,7 @@
               "python",
               "/pipelines/component/src/predict.py"
             ],
-            "image": "asia-southeast1-docker.pkg.dev/woven-rush-197905/mlops-vertex-kit/batch-prediction:latest"
+            "image": "asia-southeast1-docker.pkg.dev/woven-rush-197905/mlops-vertex-kit/component-base:latest"
           }
         },
         "exec-data-preprocess": {
@@ -194,7 +194,7 @@
               "python",
               "/pipelines/component/src/preprocess.py"
             ],
-            "image": "asia-southeast1-docker.pkg.dev/woven-rush-197905/mlops-vertex-kit/data-preprocess:latest"
+            "image": "asia-southeast1-docker.pkg.dev/woven-rush-197905/mlops-vertex-kit/component-base:latest"
           }
         },
         "exec-importer": {
