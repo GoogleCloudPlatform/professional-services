@@ -22,7 +22,6 @@ from typing import NamedTuple
 from kfp.v2.components import executor
 from kfp.v2.dsl import Input, Metrics
 
-logging.getLogger().setLevel(logging.INFO)
 
 SUPPORTED_METRICS = ['au_roc', 'au_prc',
                      'accuracy',
@@ -78,4 +77,5 @@ def executor_main():
 
 
 if __name__ == '__main__':
+  logging.getLogger().setLevel(logging.INFO)
   executor_main()

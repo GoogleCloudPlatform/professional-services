@@ -67,7 +67,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [TensorFlow Unit Testing](examples/tensorflow-unit-testing) - Examples how to write unit tests for TensorFlow ML models.
 * [Terraform Internal HTTP Load Balancer](examples/terraform-ilb) - Terraform example showing how to deploy an internal HTTP load balancer.
 * [Uploading files directly to Google Cloud Storage by using Signed URL](examples/direct-upload-to-gcs) - Example architecture to enable uploading files directly to GCS by using [Signed URL](https://cloud.google.com/storage/docs/access-control/signed-urls).
-* [Vertex AI MLOps Pipeline](examples/vertex_pipeline) - demonstrates end-to-end MLOps process using Vertex AI platform and Smart Analytics technology capabilities.
+* [Vertex AI MLOps Pipeline](examples/vertex_pipeline) - Demonstrates end-to-end MLOps process using Vertex AI platform and Smart Analytics technology capabilities.
 
 ## Tools
 The tools folder contains ready-made utilities which can simplify Google Cloud Platform usage.

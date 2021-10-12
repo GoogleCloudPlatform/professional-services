@@ -24,4 +24,4 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY ./src /pipelines/component/src
 
-ENTRYPOINT ["python3", "/pipelines/component/src/main.py"]
+ENTRYPOINT ["python3", "/pipelines/component/src/monitor.py"]

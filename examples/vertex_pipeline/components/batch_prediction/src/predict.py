@@ -15,13 +15,15 @@
 """Custom component for launching batch prediction in Vertex AI."""
 
 import logging
+import argparse
+import json
 
 from google.cloud import aiplatform
 from google.cloud.aiplatform.compat.types import job_state_v1
 from kfp.v2.components import executor
 from kfp.v2.dsl import Input, Dataset, Output
 
-logging.getLogger().setLevel(logging.INFO)
+# pylint: disable=logging-fstring-interpolation
 
 
 def _get_endpoint(resource_name: str) -> aiplatform.Endpoint:
@@ -47,8 +49,6 @@ def _get_model_from_endpoint(endpoint: aiplatform.Endpoint) -> aiplatform.Model:
         return aiplatform.Model(deployed_model.model)
 
 
-# pylint: disable=too-many-arguments
-# pylint: disable=too-many-locals
 def batch_prediction(
     project_id: str,
     data_region: str,
@@ -60,7 +60,7 @@ def batch_prediction(
     predictions_format: str = 'jsonl',
     model_resource_name: str = '',
     endpoint_resource_name: str = '',
-    machine_type: str = "n1-standard-8",
+    machine_type: str = 'n1-standard-8',
     accelerator_count: int = 0,
     accelerator_type: str = 'ACCELERATOR_TYPE_UNSPECIFIED',
     max_replica_count: int = 2,
@@ -143,8 +143,6 @@ def batch_prediction(
 
 def executor_main():
   """Main executor."""
-  import argparse
-  import json
 
   parser = argparse.ArgumentParser()
   parser.add_argument('--executor_input', type=str)
@@ -160,4 +158,5 @@ def executor_main():
 
 
 if __name__ == '__main__':
+  logging.getLogger().setLevel(logging.INFO)
   executor_main()

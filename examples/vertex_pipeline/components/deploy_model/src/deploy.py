@@ -22,7 +22,7 @@ from google.cloud import aiplatform
 from kfp.v2.components import executor
 from kfp.v2.dsl import Artifact, Input, Model
 
-logging.getLogger().setLevel(logging.INFO)
+# pylint: disable=logging-fstring-interpolation
 
 # Vertex AI artifact resource prefix
 VERTEX_AI_RESOURCE_PREFIX = 'aiplatform://v1/'
@@ -31,7 +31,6 @@ VERTEX_AI_RESOURCE_PREFIX = 'aiplatform://v1/'
 MAX_DEPLOYED_MODELS_PER_ENDPOINT = 2
 
 
-# pylint: disable=too-many-arguments
 def deploy_model(project_id: str,
                  data_region: str,
                  data_pipeline_root: str,
@@ -123,4 +122,5 @@ def executor_main():
 
 
 if __name__ == '__main__':
+  logging.getLogger().setLevel(logging.INFO)
   executor_main()

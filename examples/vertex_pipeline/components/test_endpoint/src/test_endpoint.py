@@ -22,7 +22,7 @@ from google.cloud import aiplatform
 from kfp.v2.components import executor
 from kfp.v2.dsl import Artifact, Input
 
-logging.getLogger().setLevel(logging.INFO)
+# pylint: disable=logging-fstring-interpolation
 
 
 def test_endpoint(project_id: str,
@@ -71,4 +71,5 @@ def executor_main():
 
 
 if __name__ == '__main__':
+  logging.getLogger().setLevel(logging.INFO)
   executor_main()

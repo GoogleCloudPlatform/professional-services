@@ -25,7 +25,7 @@ from google.cloud import bigquery
 from kfp.v2.components import executor
 from kfp.v2.dsl import Dataset, Input, Output
 
-logging.getLogger().setLevel(logging.INFO)
+# pylint: disable=logging-fstring-interpolation
 
 
 def _bq_uri_to_fields(uri: str) -> Tuple[str, str, str]:
@@ -64,7 +64,7 @@ def preprocess_data(
   table_ref = dataset_ref.table(input_table)
 
   # Construct a GCS destination location
-  timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+  timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
   destination_uri = os.path.join(gcs_output_folder,
                                  f'processed_data-{timestamp}.csv')
   logging.info(f'Extract data to GCS URI: {destination_uri}')
@@ -85,7 +85,7 @@ def preprocess_data(
     job_config=job_config)
   extract_job.result()  # Waits for job to complete.
 
-  if extract_job.state == "DONE":
+  if extract_job.state == 'DONE':
     logging.info('Table export completed')
     output_dataset.uri = destination_uri
   else:
@@ -109,4 +109,5 @@ def executor_main():
 
 
 if __name__ == '__main__':
+  logging.getLogger().setLevel(logging.INFO)
   executor_main()

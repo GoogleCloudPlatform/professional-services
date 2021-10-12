@@ -31,7 +31,8 @@ from google.cloud import aiplatform_v1beta1 as aip
 from sklearn import metrics as sk_metrics
 from sklearn import model_selection
 
-logging.getLogger().setLevel(logging.INFO)
+# pylint: disable=logging-fstring-interpolation
+
 
 ################################################################################
 # Model serialization code
@@ -168,7 +169,7 @@ def _evaluate_binary_classification(model: lgb.Booster,
       'thresholds': thresholds.tolist()
   }
 
-  logging.info('The evaluation report: {}'.format(metrics))
+  logging.info(f'The evaluation report: {metrics}')
 
   return metrics
 
@@ -196,7 +197,7 @@ def lgb_training(lgb_train: lgb.Dataset,
                     num_boost_round=num_boost_round,
                     train_set=lgb_train,
                     valid_sets=[lgb_val, lgb_train],
-                    valid_names=["test", "train"],
+                    valid_names=['test', 'train'],
                     evals_result=eval_results,
                     verbose_eval=True)
 
@@ -226,6 +227,7 @@ def _create_lgb_study(vizier_client: aip.VizierServiceClient,
                       metric: str = 'auc',
                       goal: str = 'MAXIMIZE') -> aip.Study:
   """Creat a vizier study."""
+  # pylint: disable=consider-using-f-string
   study_display_name = '{}_study_{}'.format(
       args.hp_config_gcp_project_id.replace('-', ''),
       datetime.datetime.now().strftime('%Y%m%d_%H%M%S'))
@@ -281,7 +283,7 @@ def conduct_vizier_trials(
     target_parameters: Iterable[str] = ('num_leaves', 'max_depth')
 ) -> Dict[str, int]:
   """Execute a vizier study."""
-  logging.info(f'Commencing Vizier study')
+  logging.info('Commencing Vizier study.')
 
   endpoint = args.hp_config_gcp_region + '-aiplatform.googleapis.com'
   # Define Vizier client
@@ -294,7 +296,7 @@ def conduct_vizier_trials(
   logging.info(f'Vizier study name: {vizier_study_id}')
 
   # Conduct training trials using Vizier generated params
-  client_id = "shareholder_training_job"
+  client_id = 'training_job'
   suggestion_count_per_request = int(args.hp_config_suggestions_per_request)
   max_trial_id_to_stop = int(args.hp_config_max_trials)
 
@@ -302,19 +304,19 @@ def conduct_vizier_trials(
   while int(trial_id) < max_trial_id_to_stop:
     suggest_response = vizier_client.suggest_trials(
         {
-            "parent": vizier_study_id,
-            "suggestion_count": suggestion_count_per_request,
-            "client_id": client_id,
+            'parent': vizier_study_id,
+            'suggestion_count': suggestion_count_per_request,
+            'client_id': client_id,
         }
     )
 
     for suggested_trial in suggest_response.result().trials:
-      trial_id = suggested_trial.name.split("/")[-1]
-      trial = vizier_client.get_trial({"name": suggested_trial.name})
+      trial_id = suggested_trial.name.split('/')[-1]
+      trial = vizier_client.get_trial({'name': suggested_trial.name})
 
       logging.info(f'Vizier trial start {trial_id}')
 
-      if trial.state in ["COMPLETED", "INFEASIBLE"]:
+      if trial.state in ['COMPLETED', 'INFEASIBLE']:
         continue
 
       param_values = _get_trial_parameters(
@@ -332,8 +334,8 @@ def conduct_vizier_trials(
       # Log measurements back to vizier
       vizier_client.add_trial_measurement(
           {
-              "trial_name": suggested_trial.name,
-              "measurement": {
+              'trial_name': suggested_trial.name,
+              'measurement': {
                   'metrics': [{'metric_id': 'auc', 'value': metrics['au_roc']}]
               },
           }
@@ -341,14 +343,14 @@ def conduct_vizier_trials(
 
       # Complete the Vizier trial
       vizier_client.complete_trial(
-          {"name": suggested_trial.name, "trial_infeasible": False}
+          {'name': suggested_trial.name, 'trial_infeasible': False}
       )
 
       logging.info(f'Vizier trial completed {trial_id}')
 
   # Get the optimal trail with the best ROC AUC
   optimal_trials = vizier_client.list_optimal_trials(
-      {"parent": vizier_study_id})
+      {'parent': vizier_study_id})
 
   # Extract best hyperparams from best trial
   best_param_values = _get_trial_parameters(
@@ -368,8 +370,8 @@ def train(args: argparse.Namespace):
   if 'AIP_MODEL_DIR' not in os.environ:
     raise KeyError(
         'The `AIP_MODEL_DIR` environment variable has not been set. '
-        # pylint: disable=line-too-long
-        'See https://cloud.google.com/ai-platform-unified/docs/tutorials/image-recognition-custom/training'
+        'See https://cloud.google.com/ai-platform-unified/docs/tutorials/'
+        'image-recognition-custom/training'
     )
   output_model_directory = os.environ['AIP_MODEL_DIR']
 
@@ -398,8 +400,8 @@ def train(args: argparse.Namespace):
       test_size=0.5,
       random_state=np.random.RandomState(42))
 
-  lgb_train = lgb.Dataset(x_train, y_train, categorical_feature="auto")
-  lgb_val = lgb.Dataset(x_val, y_val, categorical_feature="auto")
+  lgb_train = lgb.Dataset(x_train, y_train, categorical_feature='auto')
+  lgb_val = lgb.Dataset(x_val, y_val, categorical_feature='auto')
 
   if args.perform_hp:
     # Conduct Vizier trials a.k.a. hyperparameter tuning
@@ -438,6 +440,7 @@ def train(args: argparse.Namespace):
 
 
 if __name__ == '__main__':
+  logging.getLogger().setLevel(logging.INFO)
   parser = argparse.ArgumentParser()
   # For training data
   parser.add_argument('--training_data_uri', type=str,
@@ -486,5 +489,5 @@ if __name__ == '__main__':
                       help='GCP project id.')
 
   logging.info(parser.parse_args())
-  args, _ = parser.parse_known_args()
-  train(args)
+  known_args, _ = parser.parse_known_args()
+  train(known_args)

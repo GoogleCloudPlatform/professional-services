@@ -22,17 +22,14 @@ from datetime import datetime
 
 from google.cloud import aiplatform
 from kfp.v2.components import executor
-# pylint: disable=line-too-long
 from kfp.v2.dsl import Artifact, ClassificationMetrics, Dataset, Input, Metrics, Model, Output
 
-logging.getLogger().setLevel(logging.INFO)
+# pylint: disable=logging-fstring-interpolation
 
 FEATURE_IMPORTANCE_FILENAME = 'feature_importance.csv'
 INSTANCE_SCHEMA_FILENAME = 'instance_schema.yaml'
 
 
-# pylint: disable=too-many-arguments
-# pylint: disable=too-many-locals
 def train_model(
     project_id: str,
     data_region: str,
@@ -48,7 +45,7 @@ def train_model(
     feature_importance_dataset: Output[Dataset],
     instance_schema: Output[Artifact],
     output_model_file_name: str = 'model.txt',
-    machine_type: str = "n1-standard-8",
+    machine_type: str = 'n1-standard-8',
     accelerator_count: int = 0,
     accelerator_type: str = 'ACCELERATOR_TYPE_UNSPECIFIED',
     hptune_region: str = None,
@@ -171,7 +168,7 @@ def train_model(
   instance_schema.metadata['label'] = label
 
   # Read confusion matrix returned by the custom job
-  with open(basic_metrics.path, 'rt') as f:
+  with open(basic_metrics.path, 'rt', encoding='utf-8') as f:
     metrics_json = json.load(f)
 
   # log the metrics
@@ -191,7 +188,7 @@ def train_model(
 
   logging.info('Update classification metrics metadata')
   classification_metrics.log_confusion_matrix(
-      categories=["0", "1"], matrix=metrics_json['confusion_matrix'])
+      categories=['0', '1'], matrix=metrics_json['confusion_matrix'])
   classification_metrics.log_roc_curve(fpr, tpr, thresholds)
   classification_metrics.metadata['model_name'] = model.resource_name
 
@@ -213,4 +210,5 @@ def executor_main():
 
 
 if __name__ == '__main__':
+  logging.getLogger().setLevel(logging.INFO)
   executor_main()

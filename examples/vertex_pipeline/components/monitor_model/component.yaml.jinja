@@ -29,7 +29,7 @@ outputs:
 implementation:
   container:
     image: {{af_registry_location}}-docker.pkg.dev/{{project_id}}/{{af_registry_name}}/monitor-model:latest
-    command: [python, /pipelines/component/src/main.py]
+    command: [python, /pipelines/component/src/monitor.py]
     args: [
       --executor_input, {executorInput: null},
       --function_to_execute, monitor_model,

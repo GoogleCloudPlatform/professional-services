@@ -27,7 +27,7 @@ from google.protobuf.duration_pb2 import Duration
 from kfp.v2.components import executor
 from kfp.v2.dsl import Artifact, Dataset, Input
 
-logging.getLogger().setLevel(logging.INFO)
+# pylint: disable=logging-fstring-interpolation
 
 # Vertex AI artifact resource prefix
 VERTEX_AI_RESOURCE_PREFIX = 'aiplatform://v1/'
@@ -39,8 +39,6 @@ API_ENDPOINT_SUFFIX = 'aiplatform.googleapis.com'
 JOB_DISPLAY_NAME = 'model_monitoring'
 
 
-# pylint: disable=too-many-arguments
-# pylint: disable=too-many-locals
 def monitor_model(
     project_id: str,
     data_region: str,
@@ -153,7 +151,7 @@ def _create_monitoring_job(
     try:
       client.pause_model_deployment_monitoring_job(name=job.name)
     # pylint: disable=broad-except
-    except Exception:
+    except RuntimeError:
       logging.info('Fail to pause the monitoring job')
 
     client.delete_model_deployment_monitoring_job(name=job.name)
@@ -244,7 +242,7 @@ def _create_objectives_config(
 
 def _get_model_features(instance_schema_path: str) -> List[str]:
   """Read model features."""
-  with open(instance_schema_path, 'r') as file:
+  with open(instance_schema_path, 'r', encoding='utf-8') as file:
     schema = yaml.full_load(file)
     return schema['required']
 
@@ -261,8 +259,8 @@ def _get_thresholds(
   for feature in all_features:
     thresholds[feature] = default_threshold
 
-  for custom_threshold in custom_thresholds.split(","):
-    pair = custom_threshold.split(":")
+  for custom_threshold in custom_thresholds.split(','):
+    pair = custom_threshold.split(':')
     if len(pair) != 2:
       raise RuntimeError(f'Invalid custom threshold: {custom_threshold}')
     feature, value = pair
@@ -287,4 +285,5 @@ def executor_main():
 
 
 if __name__ == '__main__':
+  logging.getLogger().setLevel(logging.INFO)
   executor_main()
