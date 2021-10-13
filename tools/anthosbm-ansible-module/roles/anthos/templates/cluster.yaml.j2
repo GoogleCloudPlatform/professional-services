@@ -45,6 +45,9 @@ spec:
       - address: {{ cp_node }}
 {% endfor %}
   clusterNetwork:
+{% if multi_nic is defined %}
+    multipleNetworkInterfaces: {{ multi_nic }}
+{% endif %}
     pods:
       cidrBlocks:
       - {{ pod_cidr }}

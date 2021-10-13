@@ -440,6 +440,8 @@ lb_address_pool:
 admin_kubeconfig_path: [ADMIN_CLUSTER_KUBECONFIG]
 cgw_members: 
 - [email id of IAM user or service account]
+# Provide multiple NIC for pods - https://cloud.google.com/anthos/clusters/docs/bare-metal/latest/how-to/multi-nic
+# multi_nic: true
 ```
 
 

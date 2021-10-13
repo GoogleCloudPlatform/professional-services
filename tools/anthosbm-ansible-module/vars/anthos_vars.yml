@@ -68,3 +68,5 @@ admin_kubeconfig_path:
 cgw_members: 
 - user:EXAMPLE_USER@google.com
 - serviceAccount:EXAMPLE_SA@GCP_PROJECT_ID.iam.gserviceaccount.com
+# Provide multiple NIC for pods - https://cloud.google.com/anthos/clusters/docs/bare-metal/latest/how-to/multi-nic
+# multi_nic: true
