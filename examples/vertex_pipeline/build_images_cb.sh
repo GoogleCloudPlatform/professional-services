@@ -16,6 +16,7 @@
 # Submits a Cloud Build job that builds the images that encapsulates
 # the training and serving logic
 
+# shellcheck disable=SC2155
 export PROJECT_ID=$(gcloud config get-value core/project)
 
 # Please modify the following accordingly

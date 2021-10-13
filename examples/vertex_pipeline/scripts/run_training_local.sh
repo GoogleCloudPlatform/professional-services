@@ -20,7 +20,7 @@ cd "$( dirname "${BASH_SOURCE[0]}" )" || exit
 DIR="$( pwd )"
 SRC_DIR=${DIR}"/../"
 export PYTHONPATH=${PYTHONPATH}:${SRC_DIR}
-echo "PYTHONPATH="${PYTHONPATH}
+echo "PYTHONPATH=""${PYTHONPATH}"
 
 PROJECT_ID=$(gcloud config get-value project)
 
