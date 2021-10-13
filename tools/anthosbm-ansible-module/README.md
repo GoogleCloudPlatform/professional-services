@@ -387,6 +387,8 @@ The variable file is placed in the**vars** directory under the root of the code 
 login_user: anthos
 login_user_group: anthos
 login_user_home: /home/anthos
+# node login user, when "login_user" used for admin node is different for worker node.
+# node_login_user: anthos2
 # Possible values: ubuntu | rhel 
 # Use rhel for CentOS as well
 os_type: "ubuntu"
@@ -662,6 +664,7 @@ You need to set the _cluster\_type_ and _cluster\_name_ variables in the variabl
 login_user: anthos
 login_user_group: anthos
 login_user_home: /home/anthos
+node_login_user: anthos2
 os_type: "ubuntu"
 ws_docker: "yes"
 gcloud_sdk: "yes"
