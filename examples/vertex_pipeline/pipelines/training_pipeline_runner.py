@@ -103,5 +103,5 @@ def run_training_pipeline():
       enable_caching=args.enable_pipeline_caching)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
   run_training_pipeline()

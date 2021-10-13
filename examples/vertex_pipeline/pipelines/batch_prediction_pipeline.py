@@ -35,7 +35,7 @@ def _load_custom_component(project_id: str,
   component_path = os.path.join(components_dir,
                                 component_name,
                                 'component.yaml.jinja')
-  with open(component_path, 'r') as f:
+  with open(component_path, 'r', encoding='utf-8') as f:
     component_text = jinja2.Template(f.read()).render(
       project_id=project_id,
       af_registry_location=af_registry_location,
@@ -60,8 +60,6 @@ def create_training_pipeline(project_id: str,
   preprocess_op = load_custom_component(component_name='data_preprocess')
   batch_prediction_op = load_custom_component(component_name='batch_prediction')
 
-  # pylint: disable=too-many-arguments
-  # pylint: disable=too-many-locals
   @dsl.pipeline(name=pipeline_name)
   def pipeline(project_id: str,
                data_region: str,
@@ -71,7 +69,7 @@ def create_training_pipeline(project_id: str,
                gcs_result_folder: str,
                model_resource_name: str = '',
                endpoint_resource_name: str = '',
-               machine_type: str = "n1-standard-8",
+               machine_type: str = 'n1-standard-8',
                accelerator_count: int = 0,
                accelerator_type: str = 'ACCELERATOR_TYPE_UNSPECIFIED',
                starting_replica_count: int = 1,
@@ -81,11 +79,12 @@ def create_training_pipeline(project_id: str,
       artifact_class=Dataset,
       reimport=False)
 
+    # pylint: disable=not-callable
     preprocess_task = preprocess_op(
       project_id=project_id,
       data_region=data_region,
       gcs_output_folder=gcs_data_output_folder,
-      gcs_output_format="NEWLINE_DELIMITED_JSON",
+      gcs_output_format='NEWLINE_DELIMITED_JSON',
       input_dataset=dataset_importer.output)
 
     batch_prediction_op(
@@ -109,14 +108,14 @@ def create_training_pipeline(project_id: str,
     package_path=pipeline_job_spec_path)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
   parser = argparse.ArgumentParser()
   parser.add_argument('--config', type=str,
                       help='The config file for setting default values.')
 
   args = parser.parse_args()
 
-  with open(args.config, 'r') as config_file:
+  with open(args.config, 'r', encoding='utf-8') as config_file:
     config = yaml.load(config_file, Loader=yaml.FullLoader)
 
     create_training_pipeline(

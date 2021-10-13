@@ -32,7 +32,7 @@ DATA_PATH=gs://mldataset-fantasy/banknote_authentication.csv
 LABEL_FIELD=Class
 
 # Please modify the following accordingly
-VIZER_REGION=asia-southeast1
+VIZIER_REGION=asia-southeast1
 
 python -m images.training.app \
   --training_data_uri=$DATA_PATH \
@@ -40,7 +40,7 @@ python -m images.training.app \
   --label=$LABEL_FIELD \
   --perform_hp \
   --hp_config_gcp_project_id="${PROJECT_ID}" \
-  --hp_config_gcp_region=$VIZER_REGION \
+  --hp_config_gcp_region=$VIZIER_REGION \
   --hp_config_suggestions_per_request=5 \
   --hp_config_max_trials=20 \
   --num_boost_round=300 \
