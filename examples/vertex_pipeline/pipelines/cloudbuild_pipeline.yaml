@@ -1,0 +1,72 @@
+# Copyright 2021 Google LLC. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+steps:
+
+  - name: "${_AF_REGISTRY_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_AF_REGISTRY_NAME}/component-base:latest"
+    args: [ './build_pipeline_spec.sh' ]
+    dir: 'vertex_pipeline/scripts'
+    id: 'Build pipeline specs'
+
+  - name: 'gcr.io/cloud-builders/gsutil'
+    args: [ '-m', 'cp', '-r', '*.json', '$_PIPELINE_REGISTRY/latest/' ]
+    dir: 'vertex_pipeline/scripts/pipeline_spec'
+    id: 'Save pipeline specs'
+
+#  # Run the pipeline with newly built spec
+#  - name: "${_AF_REGISTRY_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_AF_REGISTRY_NAME}/component-base:latest"
+#    args:
+#     - '-c'
+#     - |
+#       python training_pipeline_runner.py \
+#         --project_id "$PROJECT_ID" \
+#         --pipeline_region $_PIPELINE_REGION \
+#         --pipeline_root $_PIPELINE_ROOT \
+#         --pipeline_job_spec_path $_PIPELINE_REGISTRY/latest/training_pipeline.json \
+#         --data_pipeline_root $_DATA_PIPELINE_ROOT \
+#         --input_dataset_uri "$_DATA_URI" \
+#         --training_data_schema ${_DATA_SCHEMA} \
+#         --data_region $_DATA_REGION \
+#         --gcs_data_output_folder $_GCS_OUTPUT_PATH \
+#         --training_container_image_uri "$_TRAIN_IMAGE_URI" \
+#         --train_additional_args $_TRAIN_ARGS \
+#         --serving_container_image_uri "$_SERVING_IMAGE_URI" \
+#         --custom_job_service_account $_CUSTOM_JOB_SA \
+#         --hptune_region $_PIPELINE_REGION \
+#         --hp_config_max_trials 30 \
+#         --hp_config_suggestions_per_request 5 \
+#         --vpc_network "$_VPC_NETWORK" \
+#         --metrics_name $_METRIC_NAME \
+#         --metrics_threshold $_METRIC_THRESHOLD \
+#         --endpoint_machine_type n1-standard-4 \
+#         --endpoint_min_replica_count 1 \
+#         --endpoint_max_replica_count 2 \
+#         --endpoint_test_instances ${_TEST_INSTANCE} \
+#         --monitoring_user_emails $_MONITORING_EMAIL \
+#         --monitoring_log_sample_rate 0.8 \
+#         --monitor_interval 3600 \
+#         --monitoring_default_threshold 0.3 \
+#         --monitoring_custom_skew_thresholds $_MONITORING_CONFIG \
+#         --monitoring_custom_drift_thresholds $_MONITORING_CONFIG \
+#         --enable_model_monitoring True \
+#         --pipeline_schedule $_PIPELINE_SCHEDULE \
+#         --pipeline_schedule_timezone $_PIPELINE_TIMEZONE
+#    dir: 'vertex_pipeline/pipelines'
+#    id: 'Run pipeline'
+
+# store artifacts (pipelines) in storage
+artifacts:
+  objects:
+    location: "$_PIPELINE_REGISTRY/build/$COMMIT_SHA/"
+    paths: [ "/workspace/vertex_pipeline/scripts/pipeline_spec/*.json" ]
