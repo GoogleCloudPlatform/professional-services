@@ -21,8 +21,8 @@ number of columns, column types (such as 100% STRING vs 50% STRING/ 50% NUMERIC)
 and the size of files. Once the files are created, they are loaded into BigQuery tables.
 
 #### Benchmark Parameters
-Specifc file parameters are used in this project for performance testing. While
-the list of parameters is growing, the current list of paramters and values
+Specific file parameters are used in this project for performance testing. While
+the list of parameters is growing, the current list of parameters and values
 is as follows:
 
 **File Type**:
@@ -294,7 +294,7 @@ Do not store tables for any other purposes in this dataset.
 
 `--benchmark_table_schemas_directory`: Optional argument for the directory where
 the schemas for the staging tables are stored. It defaults to
-`json_schemas/benchmark_table_schemas`. If your schemas are elsehwere, provide
+`json_schemas/benchmark_table_schemas`. If your schemas are elsewhere, provide
 that directory.
 
 `--dataflow_staging_location`: Staging location for Dataflow on GCS. Include
@@ -439,7 +439,7 @@ python bq_benchmark.py \
 --benchmark_dataset_id=<ID of the dataset holding the benchmark tables> \
 --bucket_name=<name of bucket to hold files> \
 --results_table_name=<Name of results table> \
---results_dataset_id=<Name dataset holding resultst table> \
+--results_dataset_id=<Name dataset holding results table> \
 --duplicate_benchmark_tables \
 --bq_logs_dataset=<Name of dataset hold BQ logs table>
 --include_federated_query_benchmark
@@ -530,7 +530,7 @@ python bq_benchmark.py \
 --benchmark_dataset_id=<ID of the dataset holding the benchmark tables> \
 --bucket_name=<name of bucket to hold files> \
 --results_table_name=<Name of results table> \
---results_dataset_id=<Name dataset holding resultst table> \
+--results_dataset_id=<Name dataset holding results table> \
 --bq_logs_dataset=<Name of dataset hold BQ logs table>
 
 ```

@@ -87,7 +87,7 @@ $ ./scripts/copy_schema_to_new_table.sh MY_INPUT_TABLE MY_OUTPUT_TABLE
 
 In addition to the [Dataflow command line
 options](https://cloud.google.com/dataflow/docs/guides/specifying-exec-params),
-this pipeline has three addditional required options:
+this pipeline has three additional required options:
 
 * ``--bigtableInstance``, the name of the Bigtable instances where all the
   tables are located

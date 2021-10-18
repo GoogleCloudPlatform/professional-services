@@ -1,0 +1,23 @@
+[
+  {"name": "name", "type": "STRING"},
+  {"name": "id", "type": "STRING"},
+  {"name": "number", "type": "STRING"},
+  {"name": "parent_type", "type": "STRING"},
+  {"name": "parent_id", "type": "STRING"},
+  {"name": "parent_name", "type": "STRING"},
+  {"name": "ancestry", "type": "STRING"},
+  {"name": "timestamp", "type": "STRING"},
+  {"name": "resource_type", "type": "STRING"},
+  {"name": "resource_service", "type": "STRING"},
+  {"name": "resource_project_id", "type": "STRING"},
+  {"name": "resource_location", "type": "STRING"},
+  {"name": "metric_type", "type": "STRING"},
+  {"name": "metric_limit_name", "type": "STRING"},
+  {"name": "metric_quota_metric", "type": "STRING"},
+  {"name": "endTime", "type": "STRING"},
+  {"name": "metric_value_types", "type": "STRING"},
+  {"name": "metric_values", "type": "STRING"},
+  {"name": "usage", "type": "STRING"},
+  {"name": "limit", "type": "STRING"},
+  {"name": "consumption_percentage", "type": "FLOAT"}
+]

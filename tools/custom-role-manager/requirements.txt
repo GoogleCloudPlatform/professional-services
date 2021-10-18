@@ -1,0 +1,4 @@
+google-cloud-iam~=2.0.0
+PyYAML~=5.3.0
+python-json-logger~=2.0.0
+google_auth_httplib2~=0.0.4

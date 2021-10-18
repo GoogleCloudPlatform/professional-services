@@ -26,6 +26,7 @@ from gmon.clients.service_monitoring import ServiceMonitoringClient
 
 SAMPLE_METRIC_TYPE = "loadbalancing.googleapis.com/server/request_count"
 
+
 def parse_args(args):
     """Parse CLI arguments.
 
@@ -41,8 +42,8 @@ def parse_args(args):
     subparsers = parser.add_subparsers(title='Endpoints', dest='parser')
 
     # Accounts parser
-    accounts = subparsers.add_parser(
-        'accounts', help='Cloud Operations Account operations')
+    accounts = subparsers.add_parser('accounts',
+                                     help='Cloud Operations Account operations')
     accounts_sub = accounts.add_subparsers(dest='operation')
     accounts_get = accounts_sub.add_parser(
         'get', help='Get a Cloud Operations Account details')
@@ -106,19 +107,18 @@ def parse_args(args):
                                  required=False,
                                  default=60)
     metrics_inspect.add_argument('--filters',
+                                 '-f',
                                  nargs='+',
                                  help='Filter on nested fields.',
                                  required=False,
                                  default=[])
     metrics_inspect.add_argument('--fields',
-                                 '-f',
                                  type=str,
                                  nargs='+',
                                  help='Fields to keep in response.',
                                  required=False,
                                  default=[])
     metrics_list.add_argument('--fields',
-                              '-f',
                               type=str,
                               nargs='+',
                               help='Fields to keep in response.',
@@ -131,6 +131,7 @@ def parse_args(args):
                               required=False,
                               default=None)
     metrics_list.add_argument('--filters',
+                              '-f',
                               nargs='+',
                               help='Filter on nested fields.',
                               required=False,
@@ -166,8 +167,7 @@ def parse_args(args):
     # Services
     sm_service = subparsers.add_parser(
         'services', help='Cloud Monitoring Service Monitoring services')
-    sm_service_sub = sm_service.add_subparsers(
-        dest='operation')
+    sm_service_sub = sm_service.add_subparsers(dest='operation')
     sm_service_get = sm_service_sub.add_parser(
         'get', help='Get a Cloud Monitoring Service Monitoring service')
     sm_service_create = sm_service_sub.add_parser(
@@ -180,29 +180,24 @@ def parse_args(args):
         'list', help='List a Cloud Monitoring Service Monitoring service')
 
     for p in [
-            sm_service_list, sm_service_get,
-            sm_service_create,
-            sm_service_update,
-            sm_service_delete
+            sm_service_list, sm_service_get, sm_service_create,
+            sm_service_update, sm_service_delete
     ]:
         p.add_argument('--project',
                        '-p',
                        help='Cloud Monitoring host project id.',
                        required=True)
-    for p in [
-            sm_service_get, sm_service_create,
-            sm_service_delete
-    ]:
+    for p in [sm_service_get, sm_service_create, sm_service_delete]:
         p.add_argument('service_id', help='Cloud Monitoring service id')
 
-    sm_service_create.add_argument(
-        '--config', help='Path to service config.', required=True)
+    sm_service_create.add_argument('--config',
+                                   help='Path to service config.',
+                                   required=True)
 
     # SLOs
     sm_slo = subparsers.add_parser(
         'slos', help='Cloud Monitoring Service Monitoring SLOs')
-    sm_slo_sub = sm_slo.add_subparsers(
-        dest='operation')
+    sm_slo_sub = sm_slo.add_subparsers(dest='operation')
     sm_slo_get = sm_slo_sub.add_parser(
         'get', help='Get a Cloud Monitoring Service Monitoring SLO')
     sm_slo_create = sm_slo_sub.add_parser(
@@ -215,9 +210,7 @@ def parse_args(args):
         'list', help='List Cloud Monitoring Service Monitoring SLOs')
 
     for p in [
-            sm_slo_list, sm_slo_get,
-            sm_slo_update, sm_slo_create,
-            sm_slo_delete
+            sm_slo_list, sm_slo_get, sm_slo_update, sm_slo_create, sm_slo_delete
     ]:
         p.add_argument('--project',
                        '-p',
@@ -225,10 +218,7 @@ def parse_args(args):
                        required=True)
         p.add_argument('service_id', help='Cloud Monitoring service id')
 
-    for p in [
-            sm_slo_get, sm_slo_update,
-            sm_slo_delete
-    ]:
+    for p in [sm_slo_get, sm_slo_update, sm_slo_delete]:
         p.add_argument('slo_id', help='SLO id.')
 
     sm_slo_create.add_argument('--config',
@@ -244,10 +234,12 @@ def parse_args(args):
     }
     return parsers, parser.parse_args(args)
 
+
 def main():
     """gmon CLI entrypoint."""
     parsers, args = parse_args(sys.argv[1:])
     cli(parsers, args)
+
 
 def cli(parsers, args):
     """Main CLI function.
@@ -294,7 +286,8 @@ def cli(parsers, args):
             response = method(pattern=args.regex, fields=fields)
 
         elif command in ['inspect']:
-            response = method(metric_type, window=args.window)
+            response = method(metric_type, window=args.window, filters=filters)
+            filters = {}  # already using API filters
 
         elif command in ['delete_unused']:
             response = method(pattern=args.regex, window=args.window)
@@ -335,6 +328,7 @@ def cli(parsers, args):
             response = method(args.service_id)
         return fmt_response(response, limit, fields, filters)
 
+
 def parse_filters(filters=[]):
     """Function to parse `filters` CLI argument.
 
@@ -342,7 +336,7 @@ def parse_filters(filters=[]):
         filters: A list of "key=value" strings.
 
     Returns:
-        list: Parsed filters
+        dict: A dict of parsed filters.
     """
     ret = {}
     for f in filters:
@@ -406,6 +400,7 @@ def fmt_response(response, limit, fields, filters={}):
             pprint.pprint(r, indent=1, width=80)
             responses.append(r)
     return responses
+
 
 def parse_fields(fields):
     """Parse `fields` CLI argument.

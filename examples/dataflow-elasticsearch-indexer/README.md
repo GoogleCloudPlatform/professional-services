@@ -85,7 +85,7 @@ The sample pipeline is written in Java and requires Java 8 and [Apache Maven](ht
 The following high-level steps describe the setup needed to run this example:
 
 1. Create a Cloud Pub/Sub topic and subscription for consuming the documents to be indexed.
-2. Create a Cloud Pub/Sub topic and subscription for publising the invalid documents.
+2. Create a Cloud Pub/Sub topic and subscription for publishing the invalid documents.
 3. Create a Cloud Bigtable table to store the metadata. The metadata can be stored in a single column family (for e.g. *cf*).
 4. Identify the following relevant fields for the existing Elasticsearch index where the documents will be published.
 
