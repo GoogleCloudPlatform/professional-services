@@ -42,7 +42,8 @@ This diagram explains the example solution's flow:
     https://cloud.google.com/composer/docs/how-to/managing/environment-variables
 3. Cloud Source Repository (or any git provider)   
     Store the code from dbt-project in this dedicated repository   
-    Note that the dedicated dbt-project repository is not this example code repo
+    The repository should contain dbt_project.yml file (Check the example code under [basic or optimized]/dbt-project] folder)    
+    Note that the dedicated dbt-project repository is not this example code repository (github repo)
 4. Cloud Build triggers   
     Trigger build from the dbt project repository   
     https://cloud.google.com/build/docs/automating-builds/create-manage-triggers
@@ -69,7 +70,7 @@ Check in the /dbt-project/.dbt/profiles.yml, you will find 2 options to run the 
     For example from Cloud build and Cloud Composer     
     Check cloudbuild.yaml and dag/dbt_with_kubernetes.py to see how to use this option
 
-### Setup the environment
+### Run the code
 After all the Prerequisites are prepared. You will have:   
 1. A dbt-project repository
 2. Airflow DAG to run the dbt
@@ -78,3 +79,7 @@ Here are the follow up steps for running the code:
 1. Push the code in dbt-project repository and make sure the Cloud Build triggered; and successfully create the docker image
 2. In the Cloud Composer UI, run the DAG (e.g dbt_with_kubernetes.py)
 3. If successfull, check the BigQuery console to check the tables
+
+With this mechanism, you have 2 independent runs.   
+Updating the dbt-project, including models, schema and configurations will run the Cloud Build to create the docker image.   
+The DAG as dbt scheduler will run the dbt-project from the latest docker image available.
