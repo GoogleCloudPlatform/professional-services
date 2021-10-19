@@ -20,6 +20,6 @@
 
 SELECT * FROM {{ source('bigquery_public_data', 'users') }}
 
-{% if target.name == 'dev' or target.name == 'tests' %}
+{% if target.name == 'local' %}
 LIMIT 1000
 {% endif %}

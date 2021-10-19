@@ -12,11 +12,12 @@
 #
 # Any software provided by Google hereunder is distributed "AS IS", WITHOUT
 # WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use
+
 version: 2
 
 sources:
   - name: bigquery_public_data
-    database: bigquery-public-data
+    database: "{{ var('source_data_project') }}"
     schema: stackoverflow
     tables:
       - name: stackoverflow_posts

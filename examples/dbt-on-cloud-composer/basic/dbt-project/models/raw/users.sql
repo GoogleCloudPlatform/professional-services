@@ -17,5 +17,11 @@
     cluster_by = ["id"]
 )}}
 
-SELECT * FROM {{ source('bigquery_public_data', 'users') }}
-LIMIT 10000
+SELECT 
+  * 
+FROM 
+  {{ source('bigquery_public_data', 'users') }} 
+
+-- We limit the data for this demo to prevent high computing cost
+LIMIT 
+  10000

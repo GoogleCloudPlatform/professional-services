@@ -21,5 +21,13 @@
     }
 )}}
 
-SELECT * FROM {{ source('bigquery_public_data', 'stackoverflow_posts') }} 
-LIMIT 10000
+SELECT 
+  * 
+FROM 
+  {{ source(
+    'bigquery_public_data', 'stackoverflow_posts'
+  ) }} 
+
+-- We limit the data for this demo to prevent high computing cost
+LIMIT 
+  10000

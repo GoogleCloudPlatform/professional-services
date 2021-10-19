@@ -12,6 +12,7 @@
 #
 # Any software provided by Google hereunder is distributed "AS IS", WITHOUT
 # WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use
+
 FROM python:3.8.5
 
 # Install required system packages and cleanup to reduce image size

@@ -21,9 +21,16 @@
     }
 )}}
 
-SELECT EXTRACT(DATE from last_activity_date) as last_activity_date,
-owner_user_id,
-count(id) as total_post
-FROM {{ ref('stackoverflow_posts') }}
-WHERE owner_user_id IS NOT NULL
-GROUP BY last_activity_date, owner_user_id
+SELECT 
+  EXTRACT(DATE from last_activity_date) as last_activity_date, 
+  owner_user_id, 
+  concat(EXTRACT(DATE from last_activity_date),owner_user_id) as surrogate_key,
+  count(id) as total_post 
+FROM 
+  {{ ref('stackoverflow_posts') }} 
+WHERE 
+  owner_user_id IS NOT NULL 
+GROUP BY 
+  last_activity_date, 
+  owner_user_id,
+  surrogate_key

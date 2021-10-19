@@ -14,32 +14,20 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use
 
 dbt_airflow_on_gcp:
-  target: dev
+  target: local
   outputs:
-    dev:
+    local:
       type: bigquery
       method: oauth
       project: "{{ var('project_id') }}"
       schema: dev
-      threads: 10
-      timeout_seconds: 300
+      threads: 2
+      timeout_seconds: 10
       location: "{{ var('bigquery_location') }}"
       priority: batch
-      retries: 5
+      retries: 0
 
-    tests:
-      type: bigquery
-      method: service-account
-      project: "{{ var('project_id') }}"
-      schema: tests
-      threads: 10
-      keyfile: "{{ var('key_file_dir') }}"
-      timeout_seconds: 300
-      location: "{{ var('bigquery_location') }}"
-      priority: batch
-      retries: 5
-
-    prod:
+    remote:
       type: bigquery
       method: service-account
       project: "{{ var('project_id') }}"

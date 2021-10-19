@@ -18,7 +18,6 @@ version: '1.0.0'
 config-version: 2
 
 source-paths: ["models"]
-test-paths: ["tests"]
 
 target-path: "target"
 clean-targets:

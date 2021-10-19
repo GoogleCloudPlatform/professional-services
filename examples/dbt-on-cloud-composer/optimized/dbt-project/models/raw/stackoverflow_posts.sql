@@ -29,12 +29,13 @@
 )}}
 
 SELECT *
-FROM {{ source('bigquery_public_data', 'stackoverflow_posts') }} 
+FROM 
+  {{ source('bigquery_public_data', 'stackoverflow_posts') }} 
 
 {% if is_incremental() %}
 WHERE EXTRACT(DATE from last_activity_date) = PARSE_DATE('%Y-%m-%d','{{ var("execution_date") }}')
 {% endif %}
 
-{% if target.name == 'dev' or target.name == 'tests' %}
+{% if target.name == 'local'%}
 LIMIT 1000
 {% endif %}

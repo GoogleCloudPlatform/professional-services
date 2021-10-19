@@ -28,15 +28,20 @@
 )}}
 
 SELECT 
-EXTRACT(DATE from last_activity_date) as last_activity_date,
-owner_user_id,
-concat(EXTRACT(DATE from last_activity_date),owner_user_id) as surrogate_key,
-count(id) as total_post
+  EXTRACT(DATE from last_activity_date) as last_activity_date,
+  owner_user_id,
+  concat(EXTRACT(DATE from last_activity_date),owner_user_id) as surrogate_key,
+  count(id) as total_post
 
-FROM {{ ref('stackoverflow_posts') }}
+FROM 
+  {{ ref('stackoverflow_posts') }}
 
 {% if is_incremental() %}
-WHERE EXTRACT(DATE from last_activity_date) = PARSE_DATE('%Y-%m-%d','{{ var("execution_date") }}')
+WHERE 
+  EXTRACT(DATE from last_activity_date) = PARSE_DATE('%Y-%m-%d','{{ var("execution_date") }}')
 {% endif %}
 
-GROUP BY 1, 2, 3
+GROUP BY 
+  last_activity_date, 
+  owner_user_id,
+  surrogate_key
