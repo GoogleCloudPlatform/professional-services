@@ -102,7 +102,7 @@ Use “bq load” to load the parquet files into BigQuery
 ## Installing Command Line Client SnowSQL
 
 On Mac,
-```brew cask install snowflake-snowsql```
+```brew install --cask snowflake-snowsql```
 
 Snowsql is installed at
 /Applications/SnowSQL.app/Contents/MacOS/snowsql
