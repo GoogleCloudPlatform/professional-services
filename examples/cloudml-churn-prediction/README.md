@@ -1,7 +1,7 @@
 # Churn Prediction with Survival Analysis
 This model uses Survival Analysis to classify customers into time-to-churn buckets. The model output can be used to calculate each user's churn score for different durations.
 
-The same methodology can be used used to predict customers' total lifetime from their "birth" (intital signup, or t = 0) and from the current state (t > 0).
+The same methodology can be used used to predict customers' total lifetime from their "birth" (initial signup, or t = 0) and from the current state (t > 0).
 
 ## Why is Survival Analysis Helpful for Churn Prediction?
 Survival Analysis is used to predict the time-to-event, when the event in question has not necessarily occurred yet. In this case, the event is a customer churning.

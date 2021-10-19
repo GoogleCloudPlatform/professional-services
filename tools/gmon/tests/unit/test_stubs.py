@@ -20,8 +20,7 @@ import re
 import yaml
 
 from google.api import metric_pb2
-from google.cloud.monitoring_v3.proto import (
-    metric_service_pb2, service_service_pb2)
+from google.cloud.monitoring_v3 import types
 
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -76,6 +75,7 @@ def mock_grpc_response(response, proto_method):
     """
     return proto_method(**response)
 
+
 def mock_grpc_stub(data):
     """Fakes gRPC response channel for the proto_method passed.
 
@@ -94,72 +94,68 @@ def mock_grpc_stub(data):
     channel = ChannelStub(responses=responses)
     return channel
 
+
 def mock_cm_list_metric_descriptors():
     metric_descriptor = load_fixture('metric_descriptor_proto.json')
-    data = [
-        {
-            'response': {
-                'next_page_token': '',
-                'metric_descriptors': [metric_descriptor]
-            },
-            'proto_method': metric_service_pb2.ListMetricDescriptorsResponse
-        }
-    ]
+    data = [{
+        'response': {
+            'next_page_token': '',
+            'metric_descriptors': [metric_descriptor]
+        },
+        'proto_method': types.ListMetricDescriptorsResponse
+    }]
     return mock_grpc_stub(data)
+
 
 def mock_cm_get_metric_descriptors():
     metric_descriptor = load_fixture('metric_descriptor_proto.json')
-    data = [
-        {
-            'response': metric_descriptor,
-            'proto_method': metric_pb2.MetricDescriptor
-        }
-    ]
+    data = [{
+        'response': metric_descriptor,
+        'proto_method': metric_pb2.MetricDescriptor
+    }]
     return mock_grpc_stub(data)
+
 
 def mock_cm_inspect_metric_descriptors():
     metric_descriptor = load_fixture('metric_descriptor_proto.json')
     timeseries = load_fixture('time_series_proto.json')
-    data = [
-        {
-            'response': {
-                'next_page_token': '',
-                'time_series': [timeseries]
-            },
-            'proto_method': metric_service_pb2.ListTimeSeriesResponse
+    data = [{
+        'response': {
+            'next_page_token': '',
+            'time_series': [timeseries]
         },
-        {
-            'response': metric_descriptor,
-            'proto_method': metric_pb2.MetricDescriptor
-        }
-    ]
+        'proto_method': types.ListTimeSeriesResponse
+    }, {
+        'response': metric_descriptor,
+        'proto_method': metric_pb2.MetricDescriptor
+    }]
     return mock_grpc_stub(data)
+
 
 def mock_cm_list_services():
     service = load_fixture('ssm_service_proto.json')
-    data = [
-        {
-            'response': {
-                'next_page_token': '',
-                'services': [service]
-            },
-            'proto_method': service_service_pb2.ListServicesResponse
-        }
-    ]
+    data = [{
+        'response': {
+            'next_page_token': '',
+            'services': [service]
+        },
+        'proto_method': types.ListServicesResponse
+    }]
     return mock_grpc_stub(data)
+
 
 def mock_cm_list_slos():
     slo = load_fixture('ssm_slo_proto.json')
-    data = [
-        {
-            'response': {
-                'next_page_token': '',
-                'service_level_objectives': [slo]
-            },
-            'proto_method': service_service_pb2.ListServiceLevelObjectivesResponse # noqa: E501
-        }
-    ]
+    data = [{
+        'response': {
+            'next_page_token': '',
+            'service_level_objectives': [slo]
+        },
+        'proto_method':
+            types.ListServiceLevelObjectivesResponse  # noqa: E501
+    }]
     return mock_grpc_stub(data)
+
 
 class dotdict(dict):
     """dot.notation access to dictionary attributes"""
@@ -182,6 +178,7 @@ def dotize(data):
         if isinstance(v, dict):
             data[k] = dotdict(v)
     return data
+
 
 def parse_config(path, ctx=os.environ):
     """Load a yaml / json configuration file and resolve environment variables
@@ -223,6 +220,7 @@ def parse_config(path, ctx=os.environ):
         content = replace_env_vars(content, ctx)
         data = yaml.safe_load(content)
     return data
+
 
 def load_fixture(filename, **ctx):
     """Load a fixture from the test/fixtures/ directory and replace context

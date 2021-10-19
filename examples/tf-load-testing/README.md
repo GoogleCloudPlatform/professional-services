@@ -39,7 +39,7 @@ model_config_list {
 
 ```
 We also need to create a GKE cluster and deploy a _tensorflow-app_ service there, that would
-expose expose 8500 and 8501 ports (both for http and grpc requets) under a load balancer. 
+expose expose 8500 and 8501 ports (both for http and grpc requests) under a load balancer. 
 ```
 python experiment.py
 ```

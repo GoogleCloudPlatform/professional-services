@@ -1,0 +1,8 @@
+ steps:
+ - name: maven:3-jdk-8
+   entrypoint: mvn
+   args: ['package']
+   env:
+     - 'BUILD=$BUILD_ID'
+     - 'PROJECT_ID=$PROJECT_ID'
+     - 'REV=$REVISION_ID'

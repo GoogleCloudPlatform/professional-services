@@ -3,7 +3,7 @@
 This utility provides a web application which can be used to visualise the flow of execution stages within a BigQuery job. This may be useful in identifying problematic stages and provides greater usability for large query plans than the default query plan explanation in the Google Cloud Console.
 
 ## Release Notes
-15 July 2019 - in order to have the appliction whitelisted on appspot.com, the automatic login
+15 July 2019 - in order to have the application whitelisted on appspot.com, the automatic login
 had to be disabled to allow users to access the Terms and Privacy page prior to logging in.
 
 Treeview will by default hide reparttions.
@@ -16,7 +16,7 @@ Added a Display Options card at the bottom where this can be changed.
 BigQuery Visualiser displays a Bigquery Queryplan document. It has two displays:
 
 * Query Tree
-* Task Gant Chart
+* Task Gantt Chart
 
 ### Hosting BqVisualiser
 BqVisualiser is a single page web app  written in angular.

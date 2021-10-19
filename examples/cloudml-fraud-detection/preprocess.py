@@ -132,7 +132,7 @@ def shuffle_data(p):
       p
       | 'PairWithRandom' >> beam.ParDo(_AddRandomKey())
       | 'GroupByRandom' >> beam.GroupByKey()
-      | 'DropRandom' >> beam.FlatMap(lambda (k, vs): vs))
+      | 'DropRandom' >> beam.FlatMap(lambda k__vs: k__vs[1]))
   return shuffled_data
 
 

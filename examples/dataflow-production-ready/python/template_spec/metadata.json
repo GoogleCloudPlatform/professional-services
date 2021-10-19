@@ -1,0 +1,26 @@
+{
+  "name": "ml_preproc",
+  "description": "ML data preprocessing pipeline",
+  "parameters": [
+    {
+      "name": "input-csv",
+      "label": "input-csv",
+      "helpText": "input-csv"
+    },
+    {
+      "name": "results-bq-table",
+      "label": "results-bq-table",
+      "helpText": "results-bq-table"
+    },
+    {
+      "name": "errors-bq-table",
+      "label": "errors-bq-table",
+      "helpText": "errors-bq-table"
+    },
+    {
+      "name": "setup_file",
+      "label": "setup_file",
+      "helpText": "Path to Python setup.py in the docker image."
+    }
+  ]
+}

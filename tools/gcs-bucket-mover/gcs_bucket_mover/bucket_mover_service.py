@@ -50,8 +50,14 @@ def main(config, parsed_args, cloud_logger):
     source_bucket = config.source_storage_client.lookup_bucket(  # pylint: disable=no-member
         config.bucket_name)
 
+    if source_bucket is None:
+        msg = 'The source bucket does not exist, so we cannot continue'
+        cloud_logger.log_text(msg)
+        raise SystemExit(msg)
+
     # Get copies of all of the source bucket's IAM, ACLs and settings so they
-    # can be copied over to the target project bucket
+    # can be copied over to the target project bucket; details are retrievable
+    # only if the corresponding feature is enabled in the configuration
     source_bucket_details = bucket_details.BucketDetails(
         conf=parsed_args, source_bucket=source_bucket)
 
@@ -229,9 +235,11 @@ def _create_target_bucket(cloud_logger, config, source_bucket_details,
     """
 
     if config.is_rename:
-        spinner_text = 'Creating target bucket'
+        spinner_text = 'Creating target bucket {} in project {}'.format(
+            bucket_name, config.target_project)
     else:
-        spinner_text = 'Creating temp target bucket'
+        spinner_text = 'Creating temp target bucket {} in project {}'.format(
+            bucket_name, config.target_project)
 
     cloud_logger.log_text(spinner_text)
     with yaspin(text=spinner_text) as spinner:
@@ -731,6 +739,9 @@ def _run_and_wait_for_sts_job(sts_client, target_project, source_bucket_name,
         True if the STS job completed successfully, False if it failed for any reason
     """
 
+    # Note that this routine is in a @retry decorator, so non-True exits
+    # and unhandled exceptions will trigger a retry.
+
     msg = 'Moving from bucket {} to {}'.format(source_bucket_name,
                                                sink_bucket_name)
     _print_and_log(cloud_logger, msg)
@@ -870,13 +881,12 @@ def _print_sts_counters(spinner, cloud_logger, counters, is_job_done):
     """
 
     if counters:
-        bytes_copied_to_sink = counters.get('bytesCopiedToSink', '0')
-        objects_copied_to_sink = counters.get('objectsCopiedToSink', '0')
-        bytes_found_from_source = counters.get('bytesFoundFromSource', '0')
-        objects_found_from_source = counters.get('objectsFoundFromSource', '0')
-        bytes_deleted_from_source = counters.get('bytesDeletedFromSource', '0')
-        objects_deleted_from_source = counters.get('objectsDeletedFromSource',
-                                                   '0')
+        bytes_copied_to_sink = int(counters.get('bytesCopiedToSink', '0'))
+        objects_copied_to_sink = int(counters.get('objectsCopiedToSink', '0'))
+        bytes_found_from_source = int(counters.get('bytesFoundFromSource', '0'))
+        objects_found_from_source = int(counters.get('objectsFoundFromSource', '0'))
+        bytes_deleted_from_source = int(counters.get('bytesDeletedFromSource', '0'))
+        objects_deleted_from_source = int(counters.get('objectsDeletedFromSource','0'))
 
         if is_job_done:
             byte_status = (bytes_copied_to_sink == bytes_found_from_source ==

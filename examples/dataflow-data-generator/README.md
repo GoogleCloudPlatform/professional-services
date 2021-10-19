@@ -22,7 +22,7 @@ the source dataset (this is required for accurately capturing query performance)
  - [Data Generator](data-generator-pipeline/data_generator_pipeline.py): This pipeline should
     can be used to generate a central fact table in snowflake schema.
  - [Data Generator (Joinable Table)](data-generator-pipeline/data_generator_pipeline.py):
-    this pipeline should be used to generate data that joins to an exsiting BigQuery Table
+    this pipeline should be used to generate data that joins to an existing BigQuery Table
     on a certain key.
 
 ## Performance Testing Data Generation
@@ -47,7 +47,7 @@ dataset for replicating query performance is the goal.
 ## General Performance Recommendations
 A few recommendations when generating large datasets with any of these pipelines:
  - Write to AVRO on GCS then load to BigQuery.
- - Use machines with a lot of CPU. We reccommend `n1-highcpu-32`.
+ - Use machines with a lot of CPU. We recommend `n1-highcpu-32`.
  - Run on a private network to avoid using public ip addresses.
  - Request higher quotas for your project to support scaling to 300+ large workers,
    specifically, in the region you wish to run the pipeline:
@@ -120,6 +120,12 @@ script several times.
 The output is specified as a GCS prefix. Note that multiple files will be written with
 `<prefix>-<this-shard-number>-of-<total-shards>.<suffix>`. The suffix will be the appropriate suffix for the file type
 based on if you pass the `--csv_schema_order` or `--avro_schema_file` parameters described later.
+
+--gcs_output_prefix=gs://<BUCKET NAME>/path/to/myprefix
+
+Will create files at:
+
+gs://<BUCKET NAME>/path/to/myprefix-#####-of-#####.<suffix>
 
 
 
@@ -250,16 +256,16 @@ that if you use a non-standard module (available in PyPI) you will need to make 
 
 namespace issues. This can be done most simply by adding the module to `setup.py`.
 
-### Generating Joinable tables Snowfalke schema
+### Generating Joinable tables Snowflake schema
 To generate multiple tables that join based on certain keys, start by generating the central fact table with the above described
 [`data_generator_pipeline.py`](data-generator-pipeline/data_generator_pipeline.py).
 Then use [`data_generator_joinable_table.py`](data-generator-pipeline/data_generator_pipeline.py) with the above described parameters
-for the new table plust three additional parameters described below.
+for the new table plus three additional parameters described below.
  - `--fact_table` The existing fact table in BigQuery that will be queried to obtain list of distinct key values.
  - `--source_joining_key_col` The field name of the foreign key col in the existing table.
- - `--dest_joining_key_col` The field name in the table we are generating with thie pipeline for joining to the existing table.
+ - `--dest_joining_key_col` The field name in the table we are generating with the pipeline for joining to the existing table.
 
-Note, this method selects disctinct keys from the `--fact_table` as a side input which are passed as a list to the to each worker which randomly
+Note, this method selects distinct keys from the `--fact_table` as a side input which are passed as a list to the to each worker which randomly
 selects a value to assign to this record. This means that this list must comfortably fit in memory. This makes this method only suitable for key
 columns with relatively low cardinality (< 1 Billion distinct keys). If you have more rigorous needs for generating joinable schemas, you should
 consider using the distribution matcher pipeline.
@@ -271,13 +277,13 @@ described later in this doc.
  - Use the [`data_distribution_matcher.py`](data-generator-pipeline/data_distribution_matcher.py) pipeline.
 
 
-You can specify `--schema_file` (or `--input_table`), `--output_prefix` and `--output_format` the same way as described above in the
+You can specify `--schema_file` (or `--input_table`), `--gcs_output_prefix` and `--output_format` the same way as described above in the
 Human Readable Data Generator section. Additionally, you must specify an `--histogram_table`. This table will have a field for each key column (which will store
 a hash of each value) and a frequency with which these values occur.
 
 ### Generating Joinable Schemas
 Joinable tables can be created by running the distribution matcher on a histogram for all relevant tables in the dataset. Because each histogram table
-entry captures the hash of each key it referes to we can capture exact join scenarios without handing over any real data.
+entry captures the hash of each key it refers to we can capture exact join scenarios without handing over any real data.
 
 ## BigQuery Scripts
 Included are three BigQuery utility scripts to help you with your data generating needs. The first helps with loading many gcs files to BigQuery
@@ -297,7 +303,7 @@ This script can be called with the following arguments:
 
 `--project`: GCP project ID
 
-`--dataset`: BigQuery datset ID containing the table your wish
+`--dataset`: BigQuery dataset ID containing the table your wish
     to populate.
 
 `--table`: BigQuery table ID of the table you wish to populate
@@ -349,11 +355,11 @@ python bq_histogram_tool.py \
 This script is to help increase the size of a table based on a generated or sample.
 If you are short on time and have a requirement to generate a 100TB table you can
 use this script to generate a few GB and copy table into itself until it it is the
-desired size or number of rows. While this would be inapropriate for accurate
+desired size or number of rows. While this would be inappropriate for accurate
 performance benchmarking it can be used to get a query specific cost estimate.
 This script can be used to copy a table in place or create a new table if you
 want to maintain the record of the original records. You can specify the target
-table suze in either number of rows or GB.
+table size in either number of rows or GB.
 
 #### Example Usage
 
@@ -371,7 +377,7 @@ python bq_table_resizer.py \
 ### Running the tests
 Note, that the tests for the BigQuery table resizer require that you have
 `GOOGLE_APPLICATION_DEFAULT` set to credentials with access to a BigQuery
-environment where you can create and destory tables.
+environment where you can create and destroy tables.
 
 ```
 cd data-generator-pipeline

@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# Copyright 2020 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+#
+# This software is provided as-is,
+# without warranty or representation for any use or purpose.
+# Your use of it is subject to your agreement with Google.
+
+#
+#
+# name: setup-kerberos-config.sh
+# description:  update krb5.conf default / realms / domains
+#
+
+# enable debug through -x and omit sensitive areas by turning off (set +x)
+
+# shellcheck disable=SC2034
+CLIENT_REALM="${CLIENT_CLUST_REALM}"
+CLIENT_MASTER=${CLIENT_CLUST_MASTER}
+DOMAIN="${HOST_DOMAIN}"
+
+# FOO KDC REALM
+KRB5_FOO_REALM="${KEY_KRB_CLUSTER_CORP_KDC_REALM}"
+KRB5_FOO_MASTER="${KEY_KRB5_FOO_MASTER}"
+
+# HIVE METASTORE REALM
+KRB5_HIVE_REALM="${KEY_KRB_CLUSTER_HMS_REALM}"
+KRB5_HIVE_MASTER="${KEY_KRB5_HIVE_MASTER}"
+
+# Placeholder to render logic defined in setup-kerberos-config.sh.logic
+# shellcheck disable=SC2154
+${logic}

@@ -124,6 +124,13 @@ def get_field_by_name(fields, field_name):
     return None, None
 
 
+def is_additonal_properties(fields):
+    return fields and len(fields) == 2 and all(
+        (f.get('name', None) == 'name'
+         and f.get('description', None) == 'additionalProperties name')
+        or (f.get('name', None) == 'value') for f in fields)
+
+
 def _merge_fields(destination_field, source_field):
     """Combines two SchemaField like dicts.
 
@@ -143,19 +150,46 @@ def _merge_fields(destination_field, source_field):
     sd = source_field.get('description', None)
     dft = destination_field.get('field_type', None)
     sft = source_field.get('field_type', None)
-    # use the  field with more information.
+    # use the field with more information.
     if ((not dd and sd) or (sd and dd and len(dd) < len(sd))):
         field['description'] = sd
         field['field_type'] = sft
-    # use the less specific type.
+    # use the less specific type. and join fields
     elif ((dft != 'RECORD' and dft != 'STRING') and sft == 'STRING'):
         field['field_type'] = sft
-    df = destination_field.get('fields', [])
+
+    # https://github.com/GoogleCloudPlatform/professional-services/issues/614
+    # Use the schema with the additonalProperties overrides. See
+    # api_schema._get_properties_map_field_list which creates the
+    # additionalProperties RECORD type and enforce_schema_data_types for where
+    # documents of type RECORD are converted to the REPEATED additonalProperties
+    # name value pairs.
+    def merge_additional_properties_fields(apf, fields):
+        i, value_field = get_field_by_name(apf, 'value')
+        for f in fields:
+            if f.get('name', None) not in ('name', 'value'):
+                value_field = _merge_fields(value_field, f)
+        apf[i] = value_field
+
     sf = source_field.get('fields', [])
-    merged_fields = _merge_schema(df, sf)
-    # recursivly merge nested fields.
-    if merged_fields != df:
-        field['fields'] = merged_fields
+    df = destination_field.get('fields', [])
+    if is_additonal_properties(sf) and not is_additonal_properties(df):
+        field['mode'] = 'REPEATED'
+        sf = copy.deepcopy(sf)
+        merge_additional_properties_fields(sf, df)
+        field['fields'] = sf
+    elif is_additonal_properties(df) and not is_additonal_properties(sf):
+        field['mode'] = 'REPEATED'
+        merge_additional_properties_fields(df, sf)
+        field['fields'] = df
+    elif is_additonal_properties(df) and is_additonal_properties(sf):
+        field['mode'] = 'REPEATED'
+        merge_additional_properties_fields(df, sf)
+        field['fields'] = df
+    else:
+        mf = _merge_schema(df, sf)
+        if mf:
+            field['fields'] = mf
     return field
 
 
@@ -448,6 +482,7 @@ def enforce_schema_data_types(resource, schema):
             if field.get('mode', 'NULLABLE') == 'REPEATED':
                 # satisfy array condition by converting dict into
                 # repeated name value records.
+                # this handles any 'additonalProperties' types.
                 if (field['field_type'] == 'RECORD' and
                     isinstance(resource_value, dict)):
                     resource_value = [{'name': key, 'value': val}
