@@ -20,10 +20,7 @@ import logging
 from . import instance
 from . import machine_image
 from .exceptions import NotFoundException
-from ratemate import RateLimit
 from . import uri
-
-DISK_RATE_LIMIT = RateLimit(max_count=2000, per=100)
 
 
 def delete_disk(disk, project_zone: uri.ProjectZone, disk_name: str):
@@ -34,7 +31,7 @@ def delete_disk(disk, project_zone: uri.ProjectZone, disk_name: str):
 
 def delete(instance_uri: uri.Instance, disk_name):
     try:
-        waited_time = DISK_RATE_LIMIT.wait()  # wait before starting the task
+        waited_time = instance.RATE_LIMIT.wait()  # wait before starting the task
         logging.info('  task: waited for %s secs', waited_time)
         compute = instance.get_compute()
         image = machine_image.get(instance_uri.project, instance_uri.name)
@@ -56,6 +53,30 @@ def delete(instance_uri: uri.Instance, disk_name):
         else:
             raise NotFoundException(
                 'Can\'t delete the disk as machine image not found')
+    except Exception as ex:
+        logging.error(ex)
+        raise ex
+
+
+def setLabels(disk_uri: uri.Disk, labels):
+    logging.getLogger().setLevel(logging.DEBUG)
+    try:
+        # wait before starting the task
+        waited_time = instance.RATE_LIMIT.wait()
+        logging.info('  task: waited for %s secs', waited_time)
+        compute = instance.get_compute()
+        disk = compute.disks().get(project=disk_uri.project,
+                                   zone=disk_uri.zone,
+                                   disk=disk_uri.name).execute()
+        update_operation = compute.disks() \
+            .setLabels(project=disk_uri.project, zone=disk_uri.zone,
+                       resource=disk_uri.name, body={
+                           'labels': labels,
+                           'labelFingerprint': disk['labelFingerprint']
+                       }).execute()
+        instance.wait_for_zonal_operation(compute, disk_uri,
+                                          update_operation['name'])
+        return disk_uri.name
     except Exception as ex:
         logging.error(ex)
         raise ex

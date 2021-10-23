@@ -24,6 +24,7 @@ from .exceptions import GCPOperationException
 from . import instance
 from . import fields
 from . import uri
+import json
 
 
 def get_compute():
@@ -89,7 +90,7 @@ def export_instances(project, zone, zone_2, zone_3, subnet_uri: uri.Subnet,
                                                  zone=zone_3,
                                                  maxResults=10000).execute()
 
-    mydict = []
+    mydict = {}
 
     if result_zone_2.get('items') and zone_2:
         result['items'] = result['items'] + result_zone_2.get('items')
@@ -100,9 +101,10 @@ def export_instances(project, zone, zone_2, zone_3, subnet_uri: uri.Subnet,
     logging.info('Identified %i potential instance(s) in the given zones',
                  len(result['items']))
 
+    instances_by_disk = {}
+
     for instances in result['items']:
 
-        headers = fields.HEADERS
         if instances['networkInterfaces'][0]['subnetwork'] \
                 .endswith(subnet_uri.uri):
             csv = {
@@ -121,6 +123,7 @@ def export_instances(project, zone, zone_2, zone_3, subnet_uri: uri.Subnet,
                 if i < 9:
                     csv['device_name_' + str(i + 1)] = disks['deviceName']
                     csv['disk_name_' + str(i + 1)] = disk_uri.name
+                    instances_by_disk[disk_uri.abs_beta_uri] = instances['selfLink']
                 else:
                     logging.warning(
                         'Too many disks: dropping disk name %s with and '
@@ -144,7 +147,7 @@ def export_instances(project, zone, zone_2, zone_3, subnet_uri: uri.Subnet,
             if instance.is_hosted_on_sole_tenant(instances):
                 csv['node_group'] = instance.get_node_group(instances)
 
-            mydict.append(csv)
+            mydict[instances['selfLink']] = csv
         else:
             logging.debug(
                 'Ignoring VM {} in subnet {} (looking for subnet {})'.format(
@@ -152,11 +155,53 @@ def export_instances(project, zone, zone_2, zone_3, subnet_uri: uri.Subnet,
                     instances['networkInterfaces'][0]['subnetwork'],
                     subnet_uri.uri))
 
+    logging.info('fetching the disks for the source subnet %s and zone %s',
+                 subnet_uri.uri, zone)
+    result = compute.disks().list(project=project,
+                                  zone=zone,
+                                  maxResults=10000).execute()
+    if not result.get('items'):
+        result = {'items': []}
+
+    if zone_2:
+        logging.info(
+            'fetching the disks for the source subnet %s and zone %s',
+            subnet_uri.uri, zone_2)
+        result_zone_2 = compute.disks().list(project=project,
+                                             zone=zone_2,
+                                             maxResults=10000).execute()
+    if zone_3:
+        logging.info(
+            'fetching the disks for the source subnet %s and zone %s',
+            subnet_uri.uri, zone_3)
+        result_zone_3 = compute.disks().list(project=project,
+                                             zone=zone_3,
+                                             maxResults=10000).execute()
+
+    if result_zone_2.get('items') and zone_2:
+        result['items'] = result['items'] + result_zone_2.get('items')
+
+    if result_zone_3.get('items') and zone_3:
+        result['items'] = result['items'] + result_zone_3.get('items')
+
+    for disks in result['items']:
+        if disks['selfLink'] not in instances_by_disk:
+            continue
+        instance_link = instances_by_disk[disks['selfLink']]
+        if 'labels' not in disks:
+            continue
+        for i in range(9):
+            if mydict[instance_link]['disk_name_' + str(i + 1)] == \
+                    disks['name']:
+                mydict[instance_link]['disk_labels_' + str(i + 1)] = \
+                    json.dumps(disks['labels'])
+                break
+
     with open(file_name, 'w') as csvfile:
 
-        writer = DictWriter(csvfile, fieldnames=headers)
+        writer = DictWriter(csvfile, fieldnames=fields.HEADERS)
         writer.writeheader()
-        writer.writerows(mydict)
+        writer.writerows(mydict.values())
 
     logging.info('Successfully written %i records to %s', len(mydict),
                  file_name)

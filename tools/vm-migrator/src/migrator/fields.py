@@ -29,5 +29,8 @@ HEADERS = [
     'disk_name_2', 'device_name_2', 'disk_name_3', 'device_name_3',
     'disk_name_4', 'device_name_4', 'disk_name_5', 'device_name_5',
     'disk_name_6', 'device_name_6', 'disk_name_7', 'device_name_7',
-    'disk_name_8', 'device_name_8', 'disk_name_9', 'device_name_9'
+    'disk_name_8', 'device_name_8', 'disk_name_9', 'device_name_9',
+    'disk_labels_1', 'disk_labels_2', 'disk_labels_3', 'disk_labels_4',
+    'disk_labels_5', 'disk_labels_6', 'disk_labels_7', 'disk_labels_8',
+    'disk_labels_9'
 ]

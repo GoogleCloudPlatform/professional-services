@@ -35,6 +35,7 @@ from . import project
 from csv import DictReader
 from csv import DictWriter
 import copy
+import json
 
 
 def bulk_image_create(project, machine_image_region, file_name='export.csv') \
@@ -245,11 +246,13 @@ def bulk_create_instances(file_name, target_project, target_service_account,
                           source_project, retain_ip) -> bool:
     target_network = subnet.get_network(target_subnet_uri)
     result = True
+    disk_labels = {}
     with open(file_name, 'r') as read_obj:
         csv_dict_reader = DictReader(read_obj)
         count = 0
         tracker = 0
         instance_future = []
+        disk_future = []
         # We can use a with statement to ensure threads are cleaned up promptly
         with concurrent.futures.ThreadPoolExecutor(
                 max_workers=100) as executor:
@@ -263,6 +266,12 @@ def bulk_create_instances(file_name, target_project, target_service_account,
                     row['network'] = target_network
 
                 source_instance_uri = uri.Instance.from_uri(row['self_link'])
+
+                target_instance_uri = uri.Instance(
+                    project=target_project,
+                    zone=zone_mapping.FIND[source_instance_uri.zone],
+                    name=row['name']
+                )
                 alias_ip_ranges = []
                 # Re create the alias ip object from CSV if any
                 # This support upto 4 ip ranges but they can be easily extended
@@ -278,23 +287,23 @@ def bulk_create_instances(file_name, target_project, target_service_account,
                         alias_range['ipCidrRange'] = row['alias_ip_' +
                                                          str(i + 1)]
                         alias_ip_ranges.append(alias_range)
-                # This supports up to 4 disks
+                # This supports up to 9 disks
                 disk_names = {}
                 for i in range(9):
                     if row['device_name_' + str(i + 1)] != '':
                         disk_names[row['device_name_' +
                                        str(i + 1)]] = row['disk_name_' +
                                                           str(i + 1)]
+                    if row['disk_labels_' + str(i + 1)] != '':
+                        disk_labels[uri.Disk(target_instance_uri.project,
+                                             target_instance_uri.zone,
+                                             row['disk_name_' + str(i + 1)]
+                                             ).uri] = row['disk_labels_' +
+                                                          str(i + 1)]
 
                 node_group = None
                 if row['node_group'] and row['node_group'] != '':
                     node_group = row['node_group']
-
-                target_instance_uri = uri.Instance(
-                    project=target_project,
-                    zone=zone_mapping.FIND[source_instance_uri.zone],
-                    name=row['name']
-                )
 
                 source_machine_type_uri = uri.MachineType.from_uri(
                     row['machine_type'])
@@ -332,6 +341,27 @@ def bulk_create_instances(file_name, target_project, target_service_account,
                     logging.error(
                         'Instance creation generated an exception: %s', exc)
                     result = False
+
+            if not result:
+                return False
+
+            for disk_uri, labels in disk_labels.items():
+                disk_future.append(
+                    executor.submit(disk.setLabels, uri.Disk.from_uri(disk_uri),
+                                    json.loads(labels)))
+
+            for future in concurrent.futures.as_completed(disk_future):
+                try:
+                    disk_name = future.result()
+                    tracker = tracker + 1
+                    logging.info('%r disk %i out of %i updated with labels '
+                                 'sucessfully', disk_name, tracker,
+                                 len(disk_labels))
+                except Exception as exc:
+                    logging.error(
+                        'Disk update generated an exception: %s', exc)
+                    result = False
+
     return result
 
 
