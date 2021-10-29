@@ -1,10 +1,10 @@
-# Copyright 2021 Google Inc.
+# Copyright 2021 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -133,7 +133,7 @@ with models.DAG(
             namespace='default',
             get_logs=True,  # Capture logs from the pod
             log_events_on_failure=True,  # Capture and log events in case of pod failure
-            is_delete_operator_pod=True, # Needed to avoid error when manually rerun the DAG/task
+            is_delete_operator_pod=True, # To clean up the pod after runs
             image=image,
             secrets=[secret_volume]  # Set Kubernetes secret reference to dbt's service account JSON
         ).execute(context)
