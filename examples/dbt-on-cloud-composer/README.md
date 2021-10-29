@@ -83,3 +83,24 @@ Here are the follow up steps for running the code:
 With this mechanism, you have 2 independent runs.   
 Updating the dbt-project, including models, schema and configurations will run the Cloud Build to create the docker image.   
 The DAG as dbt scheduler will run the dbt-project from the latest docker image available.
+
+### Passing variables from Cloud Composer to dbt run
+You can pass variables from Cloud Composer to the dbt run.    
+As an example, in this code we configure the BigQuery dataset location in the US as part of the DAG.   
+```
+default_dbt_vars = {
+        "project_id": project,
+
+        # Example on using Cloud Composer's variable to be passed to dbt
+        "bigquery_location": Variable.get("bigquery_location"),
+        
+        "key_file_dir": '/var/secrets/google/key.json',
+        "source_data_project": Variable.get("source_data_project")
+    }
+```
+
+In the dbt script, you can use the variable like this:
+```
+location: "{{ var('bigquery_location') }}"
+```
+

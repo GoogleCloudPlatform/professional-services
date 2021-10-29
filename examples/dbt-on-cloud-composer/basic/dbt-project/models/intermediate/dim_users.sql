@@ -18,9 +18,9 @@
 )}}
 
 SELECT 
-    id, 
-    display_name, 
-    reputation, 
-    views    
+  id, 
+  display_name, 
+  reputation, 
+  views    
 FROM 
-    {{ ref('users') }}
+  {{ ref('users') }}

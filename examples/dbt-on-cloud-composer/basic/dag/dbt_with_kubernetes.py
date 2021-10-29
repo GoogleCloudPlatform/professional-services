@@ -30,7 +30,7 @@ from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 
 # The environment variables from Cloud Composer
-env = os.getenv("ENV", "remote")
+env = Variable.get("run_environment")
 project = os.getenv("GCP_PROJECT")
 
 # Airflow default arguments
