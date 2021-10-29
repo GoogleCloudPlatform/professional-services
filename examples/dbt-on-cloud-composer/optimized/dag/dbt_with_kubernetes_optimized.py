@@ -19,7 +19,6 @@ Developed for Composer version 1.17.0. Airflow version 2.1.2
 
 import datetime
 import json
-import logging as log
 import os
 
 from airflow import models
@@ -34,7 +33,7 @@ env = Variable.get("run_environment")
 project = os.getenv("GCP_PROJECT")
 
 # Airflow macro - Execution date
-ds = '{{ ds }}'
+DS = '{{ ds }}'
 
 # Airflow default arguments
 default_args = {
@@ -45,7 +44,7 @@ default_args = {
 }
 
 # Select and use the correct Docker image from the private Google Cloud Repository (GCR)
-image = 'gcr.io/{project}/dbt-builder:latest'.format(
+IMAGE = 'gcr.io/{project}/dbt-builder:latest'.format(
     project=project,
     env=env
 )
@@ -90,9 +89,9 @@ default_dbt_args = {
     "--profiles-dir": ".dbt"
 }
 
-def get_dbt_full_args(dbt_args={}):
-    """The function will return the dbt arguments. It should be called from an operator to get the execution date from Airflow macros"""
-
+def get_dbt_full_args(dbt_args=None):
+    """The function will return the dbt arguments.
+    It should be called from an operator to get the execution date from Airflow macros"""
     # Add the execution date as variable in the dbt run
     dbt_full_vars = default_dbt_vars
     dbt_full_vars['execution_date'] = dbt_args['execution_date']
@@ -111,7 +110,7 @@ def get_dbt_full_args(dbt_args={}):
 
         if isinstance(value, (list, dict)):
             value = json.dumps(value)
-        
+
         # This part is to handle arguments with no value. e.g {"--store-failures": None}
         if value is not None:
             dbt_cli_args.append(value)
@@ -125,12 +124,13 @@ with models.DAG(
     default_args=default_args,
 ) as dag:
 
-    def run_dbt_on_kubernetes(cmd=None, dbt_args={}, **context):
+    def run_dbt_on_kubernetes(cmd=None, dbt_args=None, **context):
+        """This function will execute the KubernetesPodOperator as an Airflow task"""
         dbt_full_args = get_dbt_full_args(dbt_args)
 
-        # If running dbt test, we add the store failures parameter. 
+        # If running dbt test, we add the store failures parameter.
         # When added, the dbt test will create tables storing the bad records
-        
+
         if cmd == "test":
             store_test_result = "--store-failures"
             dbt_full_args.append(store_test_result)
@@ -138,17 +138,17 @@ with models.DAG(
         execution_date = dbt_args['execution_date']
 
         # The pod id should be unique for each execution date
-        id = 'dbt_cli_{}_{}'.format(cmd, execution_date)
+        pod_id = 'dbt_cli_{}_{}'.format(cmd, execution_date)
         KubernetesPodOperator(
-            task_id=id,
-            name=id,
+            task_id=pod_id,
+            name=pod_id,
             image_pull_policy='Always',
             arguments=[cmd] + dbt_full_args,
             namespace='default',
             get_logs=True,  # Capture logs from the pod
             log_events_on_failure=True,  # Capture and log events in case of pod failure
-            is_delete_operator_pod=True, # This is required to prevent Airflow tasks clash on manual retry
-            image=image,
+            is_delete_operator_pod=True, # To clean up the pod after runs
+            image=IMAGE,
             secrets=[secret_volume]  # Set Kubernetes secret reference to dbt's service account JSON
         ).execute(context)
 
@@ -159,7 +159,10 @@ with models.DAG(
         task_id='dbt_run_raw',
         provide_context=True,
         python_callable=run_dbt_on_kubernetes,
-        op_kwargs={"cmd": "run", "dbt_args":{"execution_date": ds,"model":"raw"}}
+        op_kwargs={
+                "cmd": "run",
+                "dbt_args":{"execution_date": DS,"model":"raw"}
+            }
     )
 
     # Running the dbt tests command
@@ -172,7 +175,10 @@ with models.DAG(
         task_id='dbt_test_raw',
         provide_context=True,
         python_callable=run_dbt_on_kubernetes,
-        op_kwargs={"cmd": "test", "dbt_args":{"execution_date": ds,"model":"raw","--store-failures": None}}
+        op_kwargs={
+                "cmd": "test",
+                "dbt_args":{"execution_date": DS,"model":"raw","--store-failures": None}
+            }
     )
 
     # Intermediate Model
@@ -180,14 +186,20 @@ with models.DAG(
         task_id='dbt_run_intermediate',
         provide_context=True,
         python_callable=run_dbt_on_kubernetes,
-        op_kwargs={"cmd": "run", "dbt_args":{"execution_date": ds,"model":"intermediate"}}
+        op_kwargs={
+                "cmd": "run",
+                "dbt_args":{"execution_date": DS,"model":"intermediate"}
+            }
     )
 
     dbt_test_intermediate = PythonOperator(
         task_id='dbt_test_intermediate',
         provide_context=True,
         python_callable=run_dbt_on_kubernetes,
-        op_kwargs={"cmd": "test", "dbt_args":{"execution_date": ds,"model":"intermediate","--store-failures": None}}
+        op_kwargs={
+                "cmd": "test",
+                "dbt_args":{"execution_date": DS,"model":"intermediate","--store-failures": None}
+            }
     )
 
     # Datamart model
@@ -195,14 +207,20 @@ with models.DAG(
         task_id='dbt_run_datamart',
         provide_context=True,
         python_callable=run_dbt_on_kubernetes,
-        op_kwargs={"cmd": "run", "dbt_args":{"execution_date": ds,"model":"datamart"}}
+        op_kwargs={
+                "cmd": "run",
+                "dbt_args":{"execution_date": DS,"model":"datamart"}
+            }
     )
 
     dbt_test_datamart = PythonOperator(
         task_id='dbt_test_datamart',
         provide_context=True,
         python_callable=run_dbt_on_kubernetes,
-        op_kwargs={"cmd": "test", "dbt_args":{"execution_date": ds,"model":"datamart","--store-failures": None}}
+        op_kwargs={
+                "cmd": "test",
+                "dbt_args":{"execution_date": DS,"model":"datamart","--store-failures": None}
+            }
     )
 
     dbt_run_raw >> dbt_test_raw >> dbt_run_intermediate >> dbt_test_intermediate >> dbt_run_datamart >> dbt_test_datamart

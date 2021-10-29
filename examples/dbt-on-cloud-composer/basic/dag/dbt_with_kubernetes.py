@@ -19,7 +19,6 @@ Developed for Composer version 1.17.0. Airflow version 2.1.2
 
 import datetime
 import json
-import logging as log
 import os
 
 from airflow import models
@@ -38,7 +37,6 @@ default_args = {
     'depends_on_past': False,
     'start_date': datetime.datetime(2016, 1, 1),
     'end_date': datetime.datetime(2016, 1, 3),
-    
     # Make sure to set the catchup to False in this basic example
     # This will prevents multiple dbt runs from the past dates
     'catchup':False,
@@ -46,7 +44,7 @@ default_args = {
 }
 
 # Select and use the correct Docker image from the private Google Cloud Repository (GCR)
-image = 'gcr.io/{project}/dbt-builder-basic:latest'.format(
+IMAGE = 'gcr.io/{project}/dbt-builder-basic:latest'.format(
     project=project,
     env=env
 )
@@ -101,7 +99,6 @@ for key, value in default_dbt_args.items():
 
     if isinstance(value, (list, dict)):
         value = json.dumps(value)
-        
     dbt_cli_args.append(value)
 
 # Define the DAG
@@ -112,19 +109,16 @@ with models.DAG(
 ) as dag:
 
     def run_dbt_on_kubernetes(cmd=None, **context):
-
-        # If running dbt test, we add the store failures parameter. 
+        """This function will execute the KubernetesPodOperator as an Airflow task"""
+        # If running dbt test, we add the store failures parameter.
         # When added, the dbt test will create tables storing the bad records
-        
         if cmd == "test":
             store_test_result = "--store-failures"
             dbt_cli_args.append(store_test_result)
-        pass
 
         # Use the KubernetesPodOperator to run the dbt commands
-        # Check the documentation for the full parameter details 
+        # Check the documentation for the full parameter details
         # https://cloud.google.com/composer/docs/how-to/using/using-kubernetes-pod-operator#airflow-2
-        
         KubernetesPodOperator(
             task_id='dbt_cli_{}'.format(cmd),
             name='dbt_cli_{}'.format(cmd),
@@ -134,7 +128,7 @@ with models.DAG(
             get_logs=True,  # Capture logs from the pod
             log_events_on_failure=True,  # Capture and log events in case of pod failure
             is_delete_operator_pod=True, # To clean up the pod after runs
-            image=image,
+            image=IMAGE,
             secrets=[secret_volume]  # Set Kubernetes secret reference to dbt's service account JSON
         ).execute(context)
 
