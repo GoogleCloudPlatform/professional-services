@@ -97,12 +97,12 @@ default_dbt_args = {
 
 dbt_cli_args = []
 for key, value in default_dbt_args.items():
-    if value is not None:
-        dbt_cli_args.append(key)
+    dbt_cli_args.append(key)
 
-        if isinstance(value, (list, dict)):
-            value = json.dumps(value)
-        dbt_cli_args.append(value)
+    if isinstance(value, (list, dict)):
+        value = json.dumps(value)
+        
+    dbt_cli_args.append(value)
 
 # Define the DAG
 with models.DAG(

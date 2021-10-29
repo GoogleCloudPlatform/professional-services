@@ -107,12 +107,14 @@ def get_dbt_full_args(dbt_args={}):
 
     dbt_cli_args = []
     for key, value in dbt_full_args.items():
-        if value is not None:
-            dbt_cli_args.append(key)
+        dbt_cli_args.append(key)
 
         if isinstance(value, (list, dict)):
             value = json.dumps(value)
-        dbt_cli_args.append(value)
+        
+        # This part is to handle arguments with no value. e.g {"--store-failures": None}
+        if value is not None:
+            dbt_cli_args.append(value)
 
     return dbt_cli_args
 
@@ -170,7 +172,7 @@ with models.DAG(
         task_id='dbt_test_raw',
         provide_context=True,
         python_callable=run_dbt_on_kubernetes,
-        op_kwargs={"cmd": "test", "dbt_args":{"execution_date": ds,"model":"raw"}}
+        op_kwargs={"cmd": "test", "dbt_args":{"execution_date": ds,"model":"raw","--store-failures": None}}
     )
 
     # Intermediate Model
@@ -185,7 +187,7 @@ with models.DAG(
         task_id='dbt_test_intermediate',
         provide_context=True,
         python_callable=run_dbt_on_kubernetes,
-        op_kwargs={"cmd": "test", "dbt_args":{"execution_date": ds,"model":"intermediate"}}
+        op_kwargs={"cmd": "test", "dbt_args":{"execution_date": ds,"model":"intermediate","--store-failures": None}}
     )
 
     # Datamart model
@@ -200,7 +202,7 @@ with models.DAG(
         task_id='dbt_test_datamart',
         provide_context=True,
         python_callable=run_dbt_on_kubernetes,
-        op_kwargs={"cmd": "test", "dbt_args":{"execution_date": ds,"model":"datamart"}}
+        op_kwargs={"cmd": "test", "dbt_args":{"execution_date": ds,"model":"datamart","--store-failures": None}}
     )
 
     dbt_run_raw >> dbt_test_raw >> dbt_run_intermediate >> dbt_test_intermediate >> dbt_run_datamart >> dbt_test_datamart
