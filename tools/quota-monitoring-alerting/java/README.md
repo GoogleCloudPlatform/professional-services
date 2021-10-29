@@ -20,7 +20,6 @@ The architecture is built using Google Cloud managed services - Cloud Functions,
 - The solution is architected to scale using Pub/Sub.
 - Cloud Scheduler is used to trigger Cloud Functions. This is also an user interface to configure frequency, parent nodes, alert threshold and email Ids. Parent node could be an organization Id, folder id, list of organization Ids or list of folder Ids.
 - Cloud Functions are used to scan quotas across projects for the configured parent node.
-- DataFlow is used to load data in BigQuery.
 - BigQuery is used to store data. 
 - Alert threshold will be applicable across all metrics. 
 - Alerts can be received by Email, Mobile App, PagerDuty, SMS, Slack, Web Hooks and Pub/Sub. Cloud Monitoring custom log metric has been leveraged to create Alerts.
