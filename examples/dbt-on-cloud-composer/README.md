@@ -38,7 +38,7 @@ This diagram explains the example solution's flow:
 ### Prerequisites
 1. Cloud Composer environment   
     https://cloud.google.com/composer/docs/how-to/managing/creating
-2. Set 3 ENVIRONMENT VARIABLES in the Cloud Composer (AIRFLOW_VAR_BIGQUERY_LOCATION, ENV, AIRFLOW_VAR_SOURCE_DATA_PROJECT)   
+2. Set 3 ENVIRONMENT VARIABLES in the Cloud Composer (AIRFLOW_VAR_BIGQUERY_LOCATION, AIRFLOW_VAR_RUN_ENVIRONMENT, AIRFLOW_VAR_SOURCE_DATA_PROJECT)   
     https://cloud.google.com/composer/docs/how-to/managing/environment-variables
 3. Cloud Source Repository (or any git provider)   
     Store the code from dbt-project in this dedicated repository   
