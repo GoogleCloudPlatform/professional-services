@@ -48,6 +48,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [Dataflow Production Ready](examples/dataflow-production-ready) - Reference implementation for best practices around Beam, pipeline structuring, testing and continuous deployment.
 * [Dataproc GCS Connector](examples/dataproc-gcs-connector) - Install and test unreleased features on the GCS Connector for Dataproc.
 * [Dataproc Persistent History Server for Ephemeral Clusters](examples/dataproc-persistent-history-server) - Example of writing logs from an ephemeral cluster to GCS and using a separate single node cluster to look at Spark and YARN History UIs.
+* [dbt-on-cloud-composer](examples/dbt-on-cloud-composer) - Example of using dbt to manage BigQuery data pipelines, utilizing Cloud Composer to run and schedule the dbt runs.
 * [Dialogflow Webhook Example](examples/dialogflow-webhook-example) - Webhook example for dialogflow in Python.
 * [Dialogflow Entities Creation and Update](examples/dialogflow-entities-example) - Creation and update of entities for Dialogflow in Python.
 * [DLP API Examples](examples/dlp) - Examples of the DLP API usage.
