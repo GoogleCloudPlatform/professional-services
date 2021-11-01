@@ -54,7 +54,7 @@ Ready to dive deeper?  Check out the complete code [here](pipelines/data_ingesti
 
 This example builds upon simple ingestion, and demonstrates some basic data type transformations.
 
-In line with the previous example there are 3 steps.  The transformation step is made more useful by tranlating the
+In line with the previous example there are 3 steps.  The transformation step is made more useful by translating the
 date format from the source data into a date format BigQuery accepts.
 
 1. [Read in the file](pipelines/data_transformation.py#L136-L142).
@@ -85,8 +85,8 @@ Ready to dive deeper?  Check out the complete code [here](pipelines/data_transfo
 ![Alt text](img/csv_join_bigquery_to_bigquery.png?raw=true "CSV file joined with BigQuery data to BigQuery")
 
 This example demonstrates how to work with two datasets.  A primary dataset is read from a file, and another dataset
-containing reference is read from BigQuery.  The two datasets are then joined in Dataflow before writing the joined
-dataset down to BigQuery.
+containing reference data is read from BigQuery.  The two datasets are then joined in Dataflow before writing the joined
+dataset to BigQuery.
 
 This pipeline contains 4 steps:
 1. [Read in the primary dataset from a file](pipelines/data_enrichment.py#L165-L176).
