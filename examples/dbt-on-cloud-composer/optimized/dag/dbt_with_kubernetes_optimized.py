@@ -128,13 +128,6 @@ with models.DAG(
         """This function will execute the KubernetesPodOperator as an Airflow task"""
         dbt_full_args = get_dbt_full_args(dbt_args)
 
-        # If running dbt test, we add the store failures parameter.
-        # When added, the dbt test will create tables storing the bad records
-
-        if cmd == "test":
-            store_test_result = "--store-failures"
-            dbt_full_args.append(store_test_result)
-
         execution_date = dbt_args['execution_date']
 
         # The pod id should be unique for each execution date
