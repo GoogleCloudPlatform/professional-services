@@ -17,6 +17,7 @@ This file deals with operations on subnets.
 """
 import time
 import logging
+import concurrent.futures
 import googleapiclient.discovery
 from googleapiclient.errors import HttpError
 from csv import DictWriter
@@ -209,9 +210,9 @@ def export_instances(project, zone, zone_2, zone_3, subnet_uri: uri.Subnet,
     return True
 
 
-def release(compute, project_region_uri: uri.ProjectRegion, address) \
+def release(project_region_uri: uri.ProjectRegion, address) \
         -> bool:
-
+    compute = get_compute()
     try:
         logging.info('Releasing IP address %s in project %s', address,
                      project_region_uri)
@@ -235,7 +236,7 @@ def release_individual_ips(subnet_uri: uri.Subnet, instance_uri: uri.Instance,
                   filter='(address="{}") AND (subnetwork="{}")'
                   .format(ip, subnet_uri.abs_beta_uri)).execute()
         if 'items' in ips_result and 1 == len(ips_result['items']):
-            result = release(compute, instance_uri,
+            result = release(instance_uri,
                              ips_result['items'][0]['name']) and result
         else:
             logging.info('Deletion of internal ip %s for instance %s not '
@@ -258,11 +259,32 @@ def release_ip(project: str, subnet_uri: uri.Subnet) -> bool:
 
     result = True
     if ips.get('items'):
-        for addresses in ips['items']:
-            ip_name = addresses['name']
-            result = release(compute,
-                             uri.ProjectRegion(project, subnet_uri.region),
-                             ip_name) and result
+        # We can use a with statement to ensure threads are cleaned up promptly
+        with concurrent.futures.ThreadPoolExecutor(
+                max_workers=100) as executor:
+            releaseip_future = []
+            count = 0
+            # Start the load operations and mark each future with its URL
+            for addresses in ips['items']:
+                ip_name = addresses['name']
+                releaseip_future.append(
+                    executor.submit(release,
+                                    uri.ProjectRegion(project,
+                                                      subnet_uri.region),
+                                    ip_name))
+                count = count + 1
+            tracker = 0
+            for future in concurrent.futures.as_completed(releaseip_future):
+                try:
+                    sub_result = future.result()
+                    result = sub_result and result
+                    tracker += 1
+                    logging.info('%i out of %i %s ', tracker, count,
+                                 'released' if sub_result else 'failed')
+                except Exception as exc:
+                    logging.error(
+                        'releasing ip generated an exception: %s', exc)
+                    result = False
     else:
         logging.warn(
             'No reserved internal IP addresses found in the subnet %s',

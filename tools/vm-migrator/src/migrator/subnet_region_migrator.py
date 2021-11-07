@@ -21,7 +21,6 @@ import argparse
 import logging
 import sys
 import concurrent.futures
-import time
 
 from . import machine_image
 from . import instance
@@ -212,13 +211,11 @@ def add_machineimage_iampolicies(file_name, source_project,
     result = True
     with open(file_name, 'r') as read_obj:
         csv_dict_reader = DictReader(read_obj)
-        count = 0
-        tracker = 0
-        machineimage_future = []
-        machine_name = ''
         # We can use a with statement to ensure threads are cleaned up promptly
         with concurrent.futures.ThreadPoolExecutor(
                 max_workers=100) as executor:
+            machineimage_future = []
+            count = 0
             # Start the load operations and mark each future with its URL
             for row in csv_dict_reader:
                 machineimage_future.append(
@@ -227,6 +224,7 @@ def add_machineimage_iampolicies(file_name, source_project,
                                     target_service_account))
                 count = count + 1
 
+            tracker = 0
             for future in concurrent.futures.as_completed(machineimage_future):
                 try:
                     machine_name = future.result()
@@ -249,13 +247,11 @@ def bulk_create_instances(file_name, target_project, target_service_account,
     disk_labels = {}
     with open(file_name, 'r') as read_obj:
         csv_dict_reader = DictReader(read_obj)
-        count = 0
-        tracker = 0
-        instance_future = []
-        disk_future = []
         # We can use a with statement to ensure threads are cleaned up promptly
         with concurrent.futures.ThreadPoolExecutor(
                 max_workers=100) as executor:
+            instance_future = []
+            count = 0
             # Start the load operations and mark each future with its URL
             for row in csv_dict_reader:
                 ip = None
@@ -331,6 +327,7 @@ def bulk_create_instances(file_name, target_project, target_service_account,
                                     target_scopes))
                 count = count + 1
 
+            tracker = 0
             for future in concurrent.futures.as_completed(instance_future):
                 try:
                     instance_name = future.result()
@@ -345,11 +342,13 @@ def bulk_create_instances(file_name, target_project, target_service_account,
             if not result:
                 return False
 
+            disk_future = []
             for disk_uri, labels in disk_labels.items():
                 disk_future.append(
                     executor.submit(disk.setLabels, uri.Disk.from_uri(disk_uri),
                                     json.loads(labels)))
 
+            tracker = 0
             for future in concurrent.futures.as_completed(disk_future):
                 try:
                     disk_name = future.result()
@@ -430,19 +429,35 @@ def release_individual_ips(source_subnet_uri, file_name) -> bool:
     result = True
     with open(file_name, 'r') as read_obj:
         csv_dict_reader = DictReader(read_obj)
-        for row in csv_dict_reader:
-            instance_uri = uri.Instance.from_uri(row['self_link'])
-            ips = []
-            ips.append(row['internal_ip'])
-            for i in range(4):
-                alias_ip = row.get('alias_ip_' + str(i + 1))
-                # original behaviour: only delete AliasIPs in the primary range
-                if alias_ip != '' and row['range_name_' + str(i + 1)] == '':
-                    ips.append(alias_ip)
-            result = subnet.release_individual_ips(source_subnet_uri,
-                                                   instance_uri, ips) \
-                and result
-            time.sleep(2)  # Prevent making too many requests in loop
+        releaseip_future = []
+        # We can use a with statement to ensure threads are cleaned up promptly
+        with concurrent.futures.ThreadPoolExecutor(
+                max_workers=100) as executor:
+            count = 0
+            for row in csv_dict_reader:
+                instance_uri = uri.Instance.from_uri(row['self_link'])
+                ips = []
+                ips.append(row['internal_ip'])
+                for i in range(4):
+                    alias_ip = row.get('alias_ip_' + str(i + 1))
+                    # original behaviour: only delete AliasIPs in the primary range
+                    if alias_ip != '' and row['range_name_' + str(i + 1)] == '':
+                        ips.append(alias_ip)
+                releaseip_future.append(
+                    executor.submit(subnet.release_individual_ips,
+                                    source_subnet_uri, instance_uri, ips))
+                count += 1
+            tracker = 0
+            for future in concurrent.futures.as_completed(releaseip_future):
+                try:
+                    sub_result = future.result()
+                    result = sub_result and result
+                    tracker += 1
+                    logging.info('%i out of %i %s ', tracker, count, 'released' if sub_result else 'failed')
+                except Exception as exc:
+                    logging.error(
+                        'releasing ip generated an exception: %s', exc)
+                    result = False
     return result
 
 
