@@ -1,11 +1,9 @@
 # XML to BQ via Cloud DataFlow
-
 This example contains a Dataflow pipeline to read nested XML data from Google Cloud Storage and write to BigQuery while maintaining the nested structure of the XML data in BQ via STRUCT fields. The example utilizes Beam's XMLIO to read XML input into a PCollection, creates BQ TableRow objects and writes them into BigQuery.
 
 ## Requirements
-
-- Gradle: 7.2
-- Java 8/9/11
+- Java 8.0.292
+- Maven 3.8.3
 
 ## Building the pipeline
 Using maven, you can simply build the target jar via `mvn package`
@@ -41,13 +39,13 @@ mvn compile -X exec:java \
 
 You should see a job with a graph  similar to this one:
 
-![Pipeline graph](./img/graph.png)
+![Pipeline graph](./img/graph.png =300x401)
 
 ## Validating record count
 
 The simplest validation to do a quick check if all XML records have been written into BQ is to:
 - Count the number of record nodes in the input XML, in this case (Order) via `grep "<Order>" sample-input.xml  | wc -l`
-- Compare this with a simple BigQuery count on the target table via `SELECT count(customerID) FROM 'dataflow-templates-327714.xml_output.nested_latest'`
+- Compare this value with the result of a simple BigQuery count on the target table via `SELECT count(customerID) FROM '[your-project-id].[your_dataset].[your_output_table]'`
 
 ## License
 
