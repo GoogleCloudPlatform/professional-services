@@ -15,5 +15,9 @@
  */
 
 # Rename this file to terraform.tfvars and update the below variables
-project_id = "instant-form-328123" # Replace with your project ID
+project_id = "apigee-x-project-331014" # Replace with your project ID
 region     = "us-central1"
+
+
+gcp-org-id = ""
+gcp-billing-id= ""

@@ -23,4 +23,12 @@ variable "region" {
   description = "region"
 }
 
+variable "gcp-org-id" {
+  type = string
+}
+
+variable "gcp-billing-id" {
+  type = string
+}
+ 
 # data "google_project" "project" {}
