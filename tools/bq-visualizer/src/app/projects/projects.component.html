@@ -21,7 +21,7 @@
       <mat-grid-tile colspan="7">
         <mat-form-field>
           <mat-select #projectSelect placeholder="Select a project" [(value)]="selectedProject"
-            [disabled]="!this.projects.length">
+            [disabled]="!(this.projects&&this.projects.length)">
             <mat-option *ngFor="let project of projects" [value]="project">
               {{ project.id }}
             </mat-option>

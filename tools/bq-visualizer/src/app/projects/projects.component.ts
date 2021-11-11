@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import {HttpClient, HttpHeaders} from '@angular/common/http';
-import {Component, EventEmitter, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
+import {Component, EventEmitter, OnDestroy, OnInit, AfterViewInit, Output, ViewChild} from '@angular/core';
 // import {MatSelect} from '@angular/material/select';
 // import {OAuthService} from 'angular-oauth2-oidc';
 import * as _ from 'lodash';
@@ -33,7 +33,7 @@ import {BqProject, GetJobsRequest} from '../rest_interfaces';
   styleUrls: ['./projects.component.css']
 })
 
-export class ProjectsComponent implements OnInit, OnDestroy {
+export class ProjectsComponent implements OnInit, OnDestroy , AfterViewInit{
   allProjects: BqProject[];  // All the projects that are available.
   projects: BqProject[];  // The list of projects matching the current filter.
   projectFilter = '';
@@ -57,7 +57,8 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   private register_login(isloggedIn) {
     this.isLoggedIn = isloggedIn;
   }
-  async ngOnInit() {
+  async ngOnInit() { }
+  async ngAfterViewInit() {  
     this.projectSelect.selectionChange.subscribe(event => {
       // Store the last selected project in the local storage.
       localStorage.setItem('lastProjectId', event.value.id);

@@ -360,7 +360,7 @@ export class BqQueryPlan {
       const slotMs = Number(_.get(node, 'slotMs', 0));
 
       result['avg slots      '] =
-          (slotMs) / duration).toLocaleString('en');
+          (slotMs / duration).toLocaleString('en');
       const startPct = (100 * (startMs - jobStartMs)) / (jobEndMs - jobStartMs);
       const endPct = (100 * (endMs - jobStartMs)) / (jobEndMs - jobStartMs);
       result['startTime      '] = new Date(startMs);

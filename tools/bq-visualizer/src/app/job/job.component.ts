@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Google LLC
+ * Copyright 2021 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import {Component, EventEmitter, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
-import {PageEvent} from '@angular/material';
+import {PageEvent} from '@angular/material/paginator';
 import {MatPaginator} from '@angular/material/paginator';
 import {Router} from '@angular/router';
 import {Observable, of} from 'rxjs';
@@ -63,6 +63,10 @@ export class JobComponent implements OnDestroy {
   }
 
   fileChange(files: File[]) {
+    if (files === null){
+      return;
+    }
+
     if (files.length > 0) {
       this.planFile = files[0];
       this.logSvc.debug(' file changed: ' + this.planFile);

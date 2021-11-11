@@ -106,7 +106,7 @@ export class BigQueryService {
                   throw new Error(err);
                 },
                 () => {
-                  resolve();
+                  resolve([]);
                 });
           });
         } catch (err) {
@@ -161,7 +161,7 @@ export class BigQueryService {
                   throw (err);
                 },
                 () => {
-                  resolve();
+                  resolve([]);
                 });
           });
         } catch (err) {
@@ -212,10 +212,10 @@ function bqUrl(path: string, args: any): string {
 @Injectable({providedIn: 'root'})
 export class MockBigQueryService extends BigQueryService {
   getJobs(projectId: string, maxJobs: number): Observable<BqJob> {
-    return from(require('../assets/test/get_jobs.json').jobs);
+    return from<BqJob[]>(require('../assets/test/get_jobs.json').jobs);
   }
 
   getProjects(): Observable<BqProject> {
-    return from(require('../assets/test/get_projects.json').projects);
+    return from<BqProject[]>(require('../assets/test/get_projects.json').projects);
   }
 }

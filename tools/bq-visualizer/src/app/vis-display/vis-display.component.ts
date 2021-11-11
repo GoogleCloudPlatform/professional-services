@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, OnInit, ViewChild} from '@angular/core';
+import {Component, AfterViewInit, ViewChild} from '@angular/core';
 import * as vis from 'vis';
 
 import {BqQueryPlan, Edge} from '../bq_query_plan';
@@ -37,7 +37,7 @@ type EdgeDeselectCallback = (chart: TreeChart, params: object) => void;
   templateUrl: './vis-display.component.html',
   styleUrls: ['./vis-display.component.css']
 })
-export class VisDisplayComponent implements OnInit {
+export class VisDisplayComponent implements AfterViewInit {
   public graph: TreeChart;
   private layout: any;  // dqagre layout result;
   private plan: BqQueryPlan;
@@ -49,9 +49,10 @@ export class VisDisplayComponent implements OnInit {
   constructor(
       private layoutSvc: DagreLayoutService, private logSvc: LogService) {}
 
-  ngOnInit() {
+  ngAfterViewInit() {
     this.statusCard.dislayOptionEvent.subscribe(
-        (displayOption: string) => this.invalidateGraph());
+     (displayOption: string) => this.invalidateGraph()
+    );
   }
   async loadPlan(plan: BqQueryPlan) {
     this.plan = plan;

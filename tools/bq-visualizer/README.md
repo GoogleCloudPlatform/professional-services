@@ -7,6 +7,10 @@ This utility provides a web application which can be used to visualise the flow 
 --- 
 
 ## Release Notes
+**11 Nov 2021**
+
+Upgraded to Node V 12
+
 **14 January 2020**
 
 * Add ability to retrieve query by query id
@@ -180,3 +184,13 @@ The compile with
   *ng build --prod*
 
 THe output will e in the dist package. Deploy its contents to the web server  
+
+
+# Known Bugs
+
+On clicking the Login button, the login dialog appears. After completing 
+the dialog successfully, the login button is still highlighted.
+The user needs to click the button again so that hte logout button is highlighted,
+before being able to download query plans.
+
+Download from Google Cloud => Get Projects function is very slow.

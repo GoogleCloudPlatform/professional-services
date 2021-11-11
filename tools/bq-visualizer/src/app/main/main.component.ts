@@ -43,7 +43,7 @@ export class MainComponent {
   // constructor(private authService: GoogleAuthService) {}
   constructor() {}
 
-  async ngOnInit() {
+  async ngAfterViewInit() {
     this.jobComponent.planSelected.subscribe(async plan => {
       // Load the query plan into the display components.
       this.visComponent.loadPlan(plan);
@@ -53,7 +53,6 @@ export class MainComponent {
       // Switch to the 'Tree' tab.
       this.tabGroup.selectedIndex = 1;
     });
-
     this.tabGroup.selectedTabChange.subscribe((tab: MatTabChangeEvent) => {
       switch (tab.index) {
         case 1:
@@ -66,6 +65,6 @@ export class MainComponent {
           this.progressComponent.draw();
           break;
       }
-    })
+    }) 
   }
 }

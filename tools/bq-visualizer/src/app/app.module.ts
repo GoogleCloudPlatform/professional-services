@@ -13,13 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {ScrollDispatchModule} from '@angular/cdk/scrolling';
+import {ScrollingModule} from '@angular/cdk/scrolling';
 import {HttpClientModule} from '@angular/common/http';
 import {ErrorHandler, Injectable, NgModule} from '@angular/core';
 import {FlexLayoutModule} from '@angular/flex-layout';
 import {FormsModule} from '@angular/forms';
-import {MatButtonModule, MatButtonToggleModule, MatCheckboxModule} from '@angular/material';
-import {MatGridListModule, MatIconModule, MatListModule, MatMenuModule} from '@angular/material';
+import {MatGridListModule} from '@angular/material/grid-list';
+import {MatButtonToggleModule} from '@angular/material/button-toggle';
+import {MatButtonModule} from '@angular/material/button';
+import {MatCheckboxModule} from '@angular/material/checkbox';
+import {MatIconModule} from '@angular/material/icon';
+import {MatListModule} from '@angular/material/list';
+import {MatMenuModule} from '@angular/material/menu';
 import {MatCardModule} from '@angular/material/card';
 import {MatDividerModule} from '@angular/material/divider';
 import {MatExpansionModule} from '@angular/material/expansion';
@@ -34,7 +39,7 @@ import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {RouterModule} from '@angular/router';
 import * as Sentry from '@sentry/browser';
 import {OAuthModule} from 'angular-oauth2-oidc';
-import {AngularResizedEventModule} from 'angular-resize-event';
+import {AngularResizeEventModule} from 'angular-resize-event';
 
 import {environment} from '../environments/environment';
 
@@ -83,9 +88,9 @@ export class SentryErrorHandler implements ErrorHandler {
     ProgressDisplayComponent,
   ],
   imports: [
-    AngularResizedEventModule,
+    AngularResizeEventModule,
     FlexLayoutModule,
-    ScrollDispatchModule,
+    ScrollingModule,
     MatDividerModule,
     MatTabsModule,
     BrowserModule,
