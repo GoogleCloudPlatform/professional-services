@@ -23,78 +23,126 @@ import javax.xml.bind.annotation.XmlAccessorType;
 @XmlRootElement(name = "ShipInfo")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class ShipInfo {
-    @XmlElement(name="ShipVia")
-    private String shipVia;
 
-    @XmlElement(name="Freight")
-    private Double freight;
+  @XmlElement(name = "ShipVia")
+  private String shipVia;
 
-    @XmlElement(name="ShipName")
-    private String shipName;
+  @XmlElement(name = "Freight")
+  private Double freight;
 
-    @XmlElement(name="ShipAddress")
-    private String shipAddress;
+  @XmlElement(name = "ShipName")
+  private String shipName;
 
-    @XmlElement(name="ShipCity")
-    private String shipCity;
+  @XmlElement(name = "ShipAddress")
+  private String shipAddress;
 
-    @XmlElement(name="ShipRegion")
-    private String shipRegion;
+  @XmlElement(name = "ShipCity")
+  private String shipCity;
 
-    @XmlElement(name="ShipPostalCode")
-    private String shipPostalCode;
+  @XmlElement(name = "ShipRegion")
+  private String shipRegion;
 
-    @XmlElement(name="ShipCountry")
-    private String shipCountry;
+  @XmlElement(name = "ShipPostalCode")
+  private String shipPostalCode;
 
-    @XmlElement(name="ShippedDate")
-    private String shippedDate;
+  @XmlElement(name = "ShipCountry")
+  private String shipCountry;
 
-    public ShipInfo() {}
-    public ShipInfo(
-        String shipVia, 
-        Double freight, 
-        String shipName, 
-        String shipAddress, 
-        String shipCity, 
-        String shipRegion, 
-        String shipPostalCode, 
-        String shipCountry,
-        String shippedDate) {
-            this.freight = freight;
-            this.shipName = shipName;
-            this.shipAddress = shipAddress;
-            this.shipCity = shipCity;
-            this.shipRegion = shipRegion;
-            this.shipPostalCode = shipPostalCode;
-            this.shipCountry = shipCountry;
-            this.shippedDate = shippedDate;
-    }
+  @XmlElement(name = "ShippedDate")
+  private String shippedDate;
 
-    public String getShipVia() { return shipVia; }
-    public void setShipVia(String value) { this.shipVia = value; }
+  public ShipInfo() {
+  }
 
-    public Double getFreight() { return freight; }
-    public void setFreight(Double value) { this.freight = value; }
+  public ShipInfo(
+      String shipVia,
+      Double freight,
+      String shipName,
+      String shipAddress,
+      String shipCity,
+      String shipRegion,
+      String shipPostalCode,
+      String shipCountry,
+      String shippedDate) {
+    this.freight = freight;
+    this.shipName = shipName;
+    this.shipAddress = shipAddress;
+    this.shipCity = shipCity;
+    this.shipRegion = shipRegion;
+    this.shipPostalCode = shipPostalCode;
+    this.shipCountry = shipCountry;
+    this.shippedDate = shippedDate;
+  }
 
-    public String getShipName() { return shipName; }
-    public void setShipName(String value) { this.shipName = value; }
+  public String getShipVia() {
+    return shipVia;
+  }
 
-    public String getShipAddress() { return shipAddress; }
-    public void setShipAddress(String value) { this.shipAddress = value; }
+  public void setShipVia(String value) {
+    this.shipVia = value;
+  }
 
-    public String getShipCity() { return shipCity; }
-    public void setShipCity(String value) { this.shipCity = value; }
+  public Double getFreight() {
+    return freight;
+  }
 
-    public String getShipRegion() { return shipRegion; }
-    public void setShipRegion(String value) { this.shipRegion = value; }
+  public void setFreight(Double value) {
+    this.freight = value;
+  }
 
-    public String getShipPostalCode() { return shipPostalCode; }
-    public void setShipPostalCode(String value) { this.shipPostalCode = value; }
+  public String getShipName() {
+    return shipName;
+  }
 
-    public String getShipCountry() { return shipCountry; }
-    public void setShipCountry(String value) { this.shipCountry = value; }
+  public void setShipName(String value) {
+    this.shipName = value;
+  }
 
-    public String getShippedDate() { return shippedDate; }
-    public void setShippedDate(String value) { this.shippedDate = value; }
+  public String getShipAddress() {
+    return shipAddress;
+  }
+
+  public void setShipAddress(String value) {
+    this.shipAddress = value;
+  }
+
+  public String getShipCity() {
+    return shipCity;
+  }
+
+  public void setShipCity(String value) {
+    this.shipCity = value;
+  }
+
+  public String getShipRegion() {
+    return shipRegion;
+  }
+
+  public void setShipRegion(String value) {
+    this.shipRegion = value;
+  }
+
+  public String getShipPostalCode() {
+    return shipPostalCode;
+  }
+
+  public void setShipPostalCode(String value) {
+    this.shipPostalCode = value;
+  }
+
+  public String getShipCountry() {
+    return shipCountry;
+  }
+
+  public void setShipCountry(String value) {
+    this.shipCountry = value;
+  }
+
+  public String getShippedDate() {
+    return shippedDate;
+  }
+
+  public void setShippedDate(String value) {
+    this.shippedDate = value;
+  }
 }

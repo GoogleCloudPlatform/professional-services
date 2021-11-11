@@ -32,57 +32,70 @@ import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.WriteDisposition;
 import com.google.api.services.bigquery.model.TableFieldSchema;
 
 public class XmlIoDemo {
- public interface XmlIoDemoOptions extends PipelineOptions {
-     @Description("Path of the file to read from")
-     @Required
-     String getInputFile();
 
-     void setInputFile(String value);
+  public interface XmlIoDemoOptions extends PipelineOptions {
 
-     @Description("BigQuery output path")
-     @Required
-     String getBqOutputPath();
+    @Description("Path of the file to read from")
+    @Required
+    String getInputFile();
 
-     void setBqOutputPath(String value);
- }
+    void setInputFile(String value);
 
- static void runXmlIoDemo(XmlIoDemoOptions options) {
-     TableSchema schema =
-         new TableSchema()
-         .setFields(
-                 Arrays.asList(
-                     new TableFieldSchema().setName("customerID").setType("STRING").setMode("NULLABLE"),
-                     new TableFieldSchema().setName("employeeID").setType("String").setMode("NULLABLE"),
-                     new TableFieldSchema().setName("orderDate").setType("String").setMode("NULLABLE"),
-                     new TableFieldSchema().setName("requiredDate").setType("String").setMode("NULLABLE"),
-                     new TableFieldSchema().setName("shipInfo").setType("STRUCT").setFields(
-                         Arrays.asList(
-                            new TableFieldSchema().setName("shipVia").setType("String").setMode("NULLABLE"),
-                            new TableFieldSchema().setName("Freight").setType("FLOAT64").setMode("NULLABLE"),
-                            new TableFieldSchema().setName("shipName").setType("String").setMode("NULLABLE"),
-                            new TableFieldSchema().setName("shipAddress").setType("String").setMode("NULLABLE"),
-                            new TableFieldSchema().setName("shipCity").setType("String").setMode("NULLABLE"),
-                            new TableFieldSchema().setName("shipRegion").setType("String").setMode("NULLABLE"),
-                            new TableFieldSchema().setName("shipPostalCode").setType("String").setMode("NULLABLE"),
-                            new TableFieldSchema().setName("shipCountry").setType("String").setMode("NULLABLE"),
-                            new TableFieldSchema().setName("shippedDate").setType("String").setMode("NULLABLE")
+    @Description("BigQuery output path")
+    @Required
+    String getBqOutputPath();
+
+    void setBqOutputPath(String value);
+  }
+
+  static void runXmlIoDemo(XmlIoDemoOptions options) {
+    TableSchema schema =
+        new TableSchema()
+            .setFields(
+                Arrays.asList(
+                    new TableFieldSchema().setName("customerID").setType("STRING")
+                        .setMode("NULLABLE"),
+                    new TableFieldSchema().setName("employeeID").setType("String")
+                        .setMode("NULLABLE"),
+                    new TableFieldSchema().setName("orderDate").setType("String")
+                        .setMode("NULLABLE"),
+                    new TableFieldSchema().setName("requiredDate").setType("String")
+                        .setMode("NULLABLE"),
+                    new TableFieldSchema().setName("shipInfo").setType("STRUCT").setFields(
+                        Arrays.asList(
+                            new TableFieldSchema().setName("shipVia").setType("String")
+                                .setMode("NULLABLE"),
+                            new TableFieldSchema().setName("Freight").setType("FLOAT64")
+                                .setMode("NULLABLE"),
+                            new TableFieldSchema().setName("shipName").setType("String")
+                                .setMode("NULLABLE"),
+                            new TableFieldSchema().setName("shipAddress").setType("String")
+                                .setMode("NULLABLE"),
+                            new TableFieldSchema().setName("shipCity").setType("String")
+                                .setMode("NULLABLE"),
+                            new TableFieldSchema().setName("shipRegion").setType("String")
+                                .setMode("NULLABLE"),
+                            new TableFieldSchema().setName("shipPostalCode").setType("String")
+                                .setMode("NULLABLE"),
+                            new TableFieldSchema().setName("shipCountry").setType("String")
+                                .setMode("NULLABLE"),
+                            new TableFieldSchema().setName("shippedDate").setType("String")
+                                .setMode("NULLABLE")
                         )
-                     )));
+                    )));
 
-   Pipeline p = Pipeline.create(options);
-   p.apply(
+    Pipeline p = Pipeline.create(options);
+    p.apply(
         "Read XML",
         XmlIO.<Order>read()
-           .from(options.getInputFile())
-           .withRootElement("Orders")
-           .withRecordElement("Order")
-           .withRecordClass(Order.class)
-           )
-
-   .apply("Process element", ParDo.of(new DoFn<Order, TableRow>(){
-        @ProcessElement
-        public void processElement(ProcessContext c)
-        {
+            .from(options.getInputFile())
+            .withRootElement("Orders")
+            .withRecordElement("Order")
+            .withRecordClass(Order.class)
+    )
+        .apply("Process element", ParDo.of(new DoFn<Order, TableRow>() {
+          @ProcessElement
+          public void processElement(ProcessContext c) {
             Order currentOrder = c.element();
 
             TableRow row = new TableRow()
@@ -93,22 +106,22 @@ public class XmlIoDemo {
                 .set("shipInfo", currentOrder.getShipInfo());
 
             c.output(row);
-        }
-    }))
-    .apply(
-        "Write to BQ",
-        BigQueryIO.writeTableRows()
-            .to(options.getBqOutputPath())
-            .withSchema(schema)
-            .withCreateDisposition(CreateDisposition.CREATE_IF_NEEDED)
-            .withWriteDisposition(WriteDisposition.WRITE_TRUNCATE));
+          }
+        }))
+        .apply(
+            "Write to BQ",
+            BigQueryIO.writeTableRows()
+                .to(options.getBqOutputPath())
+                .withSchema(schema)
+                .withCreateDisposition(CreateDisposition.CREATE_IF_NEEDED)
+                .withWriteDisposition(WriteDisposition.WRITE_TRUNCATE));
 
-   p.run().waitUntilFinish();
- }
+    p.run().waitUntilFinish();
+  }
 
- public static void main(String[] args) {
-  XmlIoDemoOptions options = 
-    PipelineOptionsFactory.fromArgs(args).withValidation().as(XmlIoDemoOptions.class);
+  public static void main(String[] args) {
+    XmlIoDemoOptions options =
+        PipelineOptionsFactory.fromArgs(args).withValidation().as(XmlIoDemoOptions.class);
     runXmlIoDemo(options);
- }
+  }
 }

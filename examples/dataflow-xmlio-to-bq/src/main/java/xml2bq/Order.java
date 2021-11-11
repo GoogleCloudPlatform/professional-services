@@ -23,47 +23,75 @@ import javax.xml.bind.annotation.XmlAccessType;
 @XmlRootElement(name = "Order")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class Order {
-    @XmlElement(name="CustomerID")
-    private String customerID;
 
-    @XmlElement(name="EmployeeID")
-    private String employeeID;
+  @XmlElement(name = "CustomerID")
+  private String customerID;
 
-    @XmlElement(name="OrderDate")
-    private String orderDate;
+  @XmlElement(name = "EmployeeID")
+  private String employeeID;
 
-    @XmlElement(name="RequiredDate")
-    private String requiredDate;
+  @XmlElement(name = "OrderDate")
+  private String orderDate;
 
-    @XmlElement(name="ShipInfo")
-    private ShipInfo shipInfo;
+  @XmlElement(name = "RequiredDate")
+  private String requiredDate;
 
-    public Order(){}
-    public Order(
-        String customerID, 
-        String employeeID, 
-        String orderDate, 
-        String requiredDate,
-        ShipInfo shipInfo) {
-        this.customerID = customerID;
-        this.employeeID = employeeID;
-        this.orderDate = orderDate;
-        this.requiredDate = requiredDate;
-        this.shipInfo = shipInfo;
-    }
+  @XmlElement(name = "ShipInfo")
+  private ShipInfo shipInfo;
 
-    public String getCustomerID() { return customerID; }
-    public void setCustomerID(String value) { this.customerID = value; }
+  public Order() {
+  }
 
-    public String getEmployeeID() { return employeeID; }
-    public void setEmployeeID(String value) { this.employeeID = value; }
+  public Order(
+      String customerID,
+      String employeeID,
+      String orderDate,
+      String requiredDate,
+      ShipInfo shipInfo) {
+    this.customerID = customerID;
+    this.employeeID = employeeID;
+    this.orderDate = orderDate;
+    this.requiredDate = requiredDate;
+    this.shipInfo = shipInfo;
+  }
 
-    public String getOrderDate() { return orderDate; }
-    public void setOrderDate(String value) { this.orderDate = value; }
+  public String getCustomerID() {
+    return customerID;
+  }
 
-    public String getRequiredDate() { return requiredDate; }
-    public void setRequiredDate(String value) { this.requiredDate = value; }
+  public void setCustomerID(String value) {
+    this.customerID = value;
+  }
 
-    public ShipInfo getShipInfo() { return shipInfo; }
-    public void setShipInfo(ShipInfo value) { this.shipInfo = value; }
+  public String getEmployeeID() {
+    return employeeID;
+  }
+
+  public void setEmployeeID(String value) {
+    this.employeeID = value;
+  }
+
+  public String getOrderDate() {
+    return orderDate;
+  }
+
+  public void setOrderDate(String value) {
+    this.orderDate = value;
+  }
+
+  public String getRequiredDate() {
+    return requiredDate;
+  }
+
+  public void setRequiredDate(String value) {
+    this.requiredDate = value;
+  }
+
+  public ShipInfo getShipInfo() {
+    return shipInfo;
+  }
+
+  public void setShipInfo(ShipInfo value) {
+    this.shipInfo = value;
+  }
 }
