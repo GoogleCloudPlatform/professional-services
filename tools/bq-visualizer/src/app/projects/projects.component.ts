@@ -15,8 +15,6 @@
  */
 import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {Component, EventEmitter, OnDestroy, OnInit, AfterViewInit, Output, ViewChild} from '@angular/core';
-// import {MatSelect} from '@angular/material/select';
-// import {OAuthService} from 'angular-oauth2-oidc';
 import * as _ from 'lodash';
 import {defer, EMPTY, Observable, of, Subject, Subscription} from 'rxjs';
 import {catchError, filter, takeUntil} from 'rxjs/operators';
@@ -34,14 +32,14 @@ import {BqProject, GetJobsRequest} from '../rest_interfaces';
 })
 
 export class ProjectsComponent implements OnInit, OnDestroy , AfterViewInit{
-  allProjects: BqProject[];  // All the projects that are available.
-  projects: BqProject[];  // The list of projects matching the current filter.
+  allProjects: BqProject[] =[];  // All the projects that are available.
+  projects: BqProject[] = [];  // The list of projects matching the current filter.
   projectFilter = '';
   allUsers = false;
-  selectedProject: BqProject;
-  isLoading: boolean;
+  selectedProject: BqProject | null = null;
+  isLoading = false;
   private readonly destroy = new Subject<void>();
-  @ViewChild('projectSelect') projectSelect;
+  @ViewChild('projectSelect') projectSelect:any|null;
 
   // Emitted events.
   @Output() getJobs = new EventEmitter<GetJobsRequest>();
@@ -54,12 +52,12 @@ export class ProjectsComponent implements OnInit, OnDestroy , AfterViewInit{
         (isloggedIn: boolean) => this.register_login(isloggedIn));
   }
 
-  private register_login(isloggedIn) {
+  private register_login(isloggedIn:boolean) {
     this.isLoggedIn = isloggedIn;
   }
   async ngOnInit() { }
   async ngAfterViewInit() {  
-    this.projectSelect.selectionChange.subscribe(event => {
+    this.projectSelect.selectionChange.subscribe((event:any) => {
       // Store the last selected project in the local storage.
       localStorage.setItem('lastProjectId', event.value.id);
     });
@@ -150,7 +148,7 @@ export class ProjectsComponent implements OnInit, OnDestroy , AfterViewInit{
   }
 
   public getProjectsLabel(): string {
-    if (this.oauthService.isLoggedIn) {
+    if (this.oauthService.isLoggedIn()) {
       if (this.allProjects.length > 0) {
         return 'Refresh Projects';
       } else {

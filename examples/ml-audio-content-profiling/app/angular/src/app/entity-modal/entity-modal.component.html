@@ -1,0 +1,72 @@
+<h5 mat-dialog-title>
+  Entity Analysis
+  <button type="button" class="close" (click)="close()">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</h5>
+
+<div mat-dialog-content>
+  <div *ngIf="isLoading">
+    <mat-spinner [color]="primary" [diameter]="30"></mat-spinner>
+  </div>
+  <div *ngIf="!isLoading">
+    <div class="row justify-content-center mt-4">
+      <div class="col-auto mr-2">
+        <label class="dark-grey-font"><b>Sentiment Score Range</b></label>
+      </div>
+      <div *ngFor="let score_range of sentimentScoreColors">
+        <div class="col scale-col">
+          <div class="row justify-content-center" [ngStyle]="{'background-color': score_range.scaleBackgroundColor,
+  'color': score_range.textColor}">
+            <label>{{ score_range.start.toFixed(2) }}</label>
+            &nbsp;
+            <label>--</label>
+            &nbsp;
+            <label>{{ score_range.end.toFixed(2) }}</label>
+          </div>
+          <div class="row justify-content-center">
+            <label>{{ score_range.text }}</label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <label *ngFor="let letter of highlightedText; let i=index" [ngStyle]="{'color': 'grey'}">
+      <div *ngIf="letter.char == ' '">
+        &nbsp;
+      </div>
+      <div *ngIf="letter.char != ' '">
+        {{ letter.char }}
+      </div>
+    </label>
+    <mat-grid-list cols="2" rowHeight="2:1">
+      <mat-grid-tile *ngFor="let sentiment of sentiments; let i = index">
+        <mat-card class="entity-width">
+          <div class="entity-type float-right" [ngStyle]="{'background-color': getEntityColor(sentiment)}">
+            {{ sentiment.entity_type }}
+          </div>
+          <div class="row ml-2">
+            <label class="dark-grey-font">{{ i+1 }}.</label>
+            &nbsp;
+            <label class="dark-grey-font"><b>{{ sentiment.entity_name }}</b></label>
+          </div>
+          <div class="row ml-2">
+            <label class="dark-grey-font"><b>Score:</b></label>
+            &nbsp;
+            <label [ngStyle]="{'color': getSentimentScoreColor(sentiment.score)}">
+              {{ sentiment.score.toFixed(2) }}
+            </label>
+            &nbsp;
+            <label class="dark-grey-font"><b>Magnitude:</b></label>
+            &nbsp;
+            <label>{{ sentiment.magnitude.toFixed(2) }}</label>
+          </div>
+          <div class="row ml-2">
+            <label class="dark-grey-font"><b>Relevance to Text:</b></label>
+            &nbsp;
+            <label>{{ sentiment.salience.toFixed(2) }}</label>
+          </div>
+        </mat-card>
+      </mat-grid-tile>
+    </mat-grid-list>
+  </div>
+</div>

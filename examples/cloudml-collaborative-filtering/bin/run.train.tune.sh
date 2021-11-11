@@ -44,6 +44,6 @@ gcloud ai-platform jobs submit training "${TRAINING_JOB_NAME}" \
   --model_dir "${MODEL_PATH}" \
   --input_dir "${INPUT_PATH}" \
   --tft_dir "${TFT_PATH}" \
-  --max_steps 30000 
+  --max_steps 100000
 
 echo "Upon completion, serve the model by running: bin/run.serve.sh ${NOW}"

@@ -1,0 +1,29 @@
+{
+    "fields": [
+        {
+            "name": "userId",
+            "type": "STRING",
+            "mode": "REQUIRED"
+        },
+        {
+            "name": "ingestTimestamp",
+            "type": "TIMESTAMP",
+            "mode": "REQUIRED"
+        },
+        {
+            "name": "attribute1",
+            "type": "STRING",
+            "mode": "NULLABLE"
+        },
+        {
+            "name": "attribute2",
+            "type": "STRING",
+            "mode": "NULLABLE"
+        },
+        {
+            "name": "attribute3",
+            "type": "STRING",
+            "mode": "NULLABLE"
+        }
+    ]
+}

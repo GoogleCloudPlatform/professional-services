@@ -15,6 +15,7 @@
  */
 import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
 import {async, TestBed} from '@angular/core/testing';
+import  {GoogleCharts} from  'google.visualization';
 import {FormsModule} from '@angular/forms';
 import {MatButtonModule} from '@angular/material/button';
 import {MatCheckboxModule} from '@angular/material/checkbox';
@@ -53,6 +54,7 @@ describe('AppComponent', () => {
         .configureTestingModule({
           imports: [
             OAuthModule.forRoot(),
+            GoogleCharts,
             RouterTestingModule,
             HttpClientTestingModule,
             FormsModule,

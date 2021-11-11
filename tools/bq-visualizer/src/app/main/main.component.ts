@@ -19,7 +19,6 @@ import {MatTabChangeEvent} from '@angular/material/tabs';
 
 import {BqJob} from '../bq_job';
 import {BqQueryPlan} from '../bq_query_plan';
-// import {GoogleAuthService} from '../google-auth.service';
 import {JobComponent} from '../job/job.component';
 import {ProgressDisplayComponent} from '../progress-display/progress-display.component';
 import {TimingDisplayComponent} from '../timing-display/timing-display.component';
@@ -33,7 +32,7 @@ import {VisDisplayComponent} from '../vis-display/vis-display.component';
 export class MainComponent {
   title = 'BQ Visualizer';
 
-  @ViewChild('tabs') tabGroup;
+  @ViewChild('tabs') tabGroup:any;
   @ViewChild('job') jobComponent: JobComponent;
   @ViewChild('tree') visComponent: VisDisplayComponent;
   @ViewChild('timing') timingComponent: TimingDisplayComponent;

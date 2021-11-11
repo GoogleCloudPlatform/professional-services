@@ -75,8 +75,14 @@ def run_experiment(flags):
   """Testbed for running model training and evaluation."""
   # Get data for training and evaluation
 
-  dataset = utils.read_df_from_bigquery(
+  # If BigQuery table, specify as as PROJECT_ID.DATASET.TABLE_NAME
+  if len(flags.input.split('.')) == 3:
+    dataset = utils.read_df_from_bigquery(
       flags.input, num_samples=flags.num_samples)
+  else:
+    dataset = utils.read_df_from_gcs(
+      flags.input
+    )
 
   # Get model
   pipeline = model.get_pipeline(flags)

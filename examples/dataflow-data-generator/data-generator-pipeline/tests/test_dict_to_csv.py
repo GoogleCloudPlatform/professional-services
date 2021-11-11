@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 import logging
 import unittest
 
 from data_generator.CsvUtil import dict_to_csv
+
 
 class TestDictToCsv(unittest.TestCase):
     def test_dict_to_csv(self):
@@ -26,11 +26,12 @@ class TestDictToCsv(unittest.TestCase):
             "c": 2,
         }
 
-        csv1 = dict_to_csv(test_dict,['a','b','c'])
-        self.assertEquals(csv1, '0,1,2')
-        
-        csv2 = dict_to_csv(test_dict,['c','b','a'])
-        self.assertEquals(csv2, '2,1,0')
-        
+        csv1 = dict_to_csv(test_dict, ['a', 'b', 'c'])
+        self.assertEqual(csv1, '0,1,2')
+
+        csv2 = dict_to_csv(test_dict, ['c', 'b', 'a'])
+        self.assertEqual(csv2, '2,1,0')
+
+
 if __name__ == '__main__':
     unittest.main()

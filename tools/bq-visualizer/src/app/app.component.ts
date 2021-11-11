@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import {Component, ViewChild} from '@angular/core';
-// import {MatTabChangeEvent} from '@angular/material/tabs';
 import {GoogleAuthService} from './google-auth.service';
 
 

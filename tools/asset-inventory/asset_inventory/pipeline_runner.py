@@ -86,7 +86,8 @@ def run_pipeline_template(dataflow_project, template_region, template_location,
         End state of the pipline and job object.
     """
     credentials = GoogleCredentials.get_application_default()
-    df_service = build('dataflow', 'v1b3', credentials=credentials)
+    df_service = build('dataflow', 'v1b3', credentials=credentials,
+                       cache_discovery=False)
 
     # Set the following variables to your values.
     job_name = get_job_name(load_time)

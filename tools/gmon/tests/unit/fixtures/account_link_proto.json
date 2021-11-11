@@ -1,0 +1,17 @@
+{
+  "done": true,
+  "metadata": {
+    "@type": "type.googleapis.com/google.cloud.stackdriver.v2.OperationMetadata",
+    "createTime": "2020-08-26T16:33:52.864Z",
+    "state": "DONE",
+    "updateTime": "2020-08-26T16:33:52.864Z"
+  },
+  "name": "operations/bacd8a4a-fa64-4386-921b-5f18ec00893d",
+  "response": {
+    "@type": "type.googleapis.com/google.cloud.stackdriver.v2.MonitoredProject",
+    "createTime": "2020-08-26T16:33:52.864Z",
+    "name": "accounts/[ACCOUNT_NUMBER]/projects/[PROJECT_ID]",
+    "projectId": "fake-monitored-project-3",
+    "projectNumber": "[PROJECT_NUMBER]"
+  }
+}

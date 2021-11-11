@@ -17,18 +17,19 @@
 import sbt._
 import Keys._
 
-val scioVersion = "0.7.0"
-val beamVersion = "2.9.0"
+val scioVersion = "0.8.0"
+val beamVersion = "2.17.0"
+val kafkaClientsVersion = "2.3.1"
 val scalaMacrosVersion = "2.1.1"
-val pureconfigVersion = "0.10.1"
-val avro4sVersion = "2.0.2"
-val slf4jVersion = "1.7.25"
+val pureconfigVersion = "0.12.1"
+val avro4sVersion = "3.0.4"
+val slf4jVersion = "1.7.29"
 
 lazy val commonSettings = Defaults.coreDefaultSettings ++ Seq(
   organization := "com.google.cloud.pso",
   // Semantic versioning http://semver.org/
-  version := "0.1.0-SNAPSHOT",
-  scalaVersion := "2.12.8",
+  version := "0.2.0-SNAPSHOT",
+  scalaVersion := "2.12.10",
   scalacOptions ++= Seq("-target:jvm-1.8",
                         "-deprecation",
                         "-feature",
@@ -57,6 +58,7 @@ lazy val root: Project = project
       "org.apache.beam" % "beam-runners-direct-java" % beamVersion,
       "org.apache.beam" % "beam-runners-google-cloud-dataflow-java" % beamVersion,
       "org.apache.beam" % "beam-sdks-java-io-kafka" % beamVersion,
+      "org.apache.kafka" % "kafka-clients" % kafkaClientsVersion,
       // Configuration library
       "com.github.pureconfig" %% "pureconfig" % pureconfigVersion,
       // Avro schema automation

@@ -54,9 +54,6 @@ class Config(object):
             config_dict = yaml.load(config_yaml, Loader=yaml.BaseLoader)
             for pname in config_dict:
                 setattr(self, pname.lower(), config_dict[pname])
-        # Enable beam on python3 if using direct runner on python3.
-        if getattr(self, 'beam_experimental_py3', False):
-            os.environ['BEAM_EXPERIMENTAL_PY3'] = 'True'
 
 app = Flask(__name__)
 

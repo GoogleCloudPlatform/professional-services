@@ -172,7 +172,7 @@ def get_transform_pipeline(transform_config):
     transform_config = [
         {
             'input_columns': metadata.FEATURE_COLUMNS,
-            'process': False,
+            'process_function': None,
             'output_columns': metadata.FEATURE_COLUMNS
         }
     ]
@@ -187,7 +187,7 @@ def get_transform_pipeline(transform_config):
 
   for config in transform_config:
     # Pass through features
-    if config['process_function'] is None:
+    if not config['process_function']:
       transform_pipeline.append(
           ('pass_through',
            Pipeline([('extract', DFSelector(config['input_columns'])), ]))

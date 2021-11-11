@@ -37,7 +37,7 @@ export class PlanStatusCardComponent {
     this.plan = plan;
   }
 
-  changeStageDisplayOption(event) {
+  changeStageDisplayOption(event:any) {
     this.dislayOptionEvent.emit(this.stageDisplayOption);
   }
   get settings(): string {

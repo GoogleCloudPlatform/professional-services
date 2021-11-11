@@ -1,0 +1,37 @@
+{
+    "metric": {
+        "type": "custom.googleapis.com/invoice/paid/amount",
+        "labels": {
+            "type": "custom.googleapis.com/invoice/paid/amount",
+            "name": "fake",
+            "metricKind": "GAUGE",
+            "valueType": "BOOL",
+            "description": "fake",
+            "displayName": "fake",
+            "event_type": "good"
+        }
+    },
+    "resource": {
+        "type": "gce_instance",
+        "labels": {
+            "project_id": "[PROJECT_ID]",
+            "instance_id": "[INSTANCE_ID]",
+            "zone": "[ZONE]"
+        }
+    },
+    "points": [
+        {
+            "interval": {
+                "start_time": {
+                    "seconds": 1567771724
+                },
+                "end_time": {
+                    "seconds": 1567771724
+                }
+            },
+            "value": {
+                "int64_value": 100
+            }
+        }
+    ]
+}

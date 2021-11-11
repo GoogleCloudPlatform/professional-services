@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 import {Component, OnInit, ViewChild} from '@angular/core';
+
+//import * as google from 'google.visualization';
 import * as google from 'google-charts';
 
 import {BqQueryPlan} from '../bq_query_plan';

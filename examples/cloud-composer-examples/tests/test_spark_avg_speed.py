@@ -84,7 +84,7 @@ class TestAverageSpeedEnhancer(unittest.TestCase):
                                  ])
         actual_partial_csv = self.average_speed_enhancer.dict_to_csv(partial_record)
 
-        self.assertEquals(expected_partial_csv, actual_partial_csv)
+        self.assertEqual(expected_partial_csv, actual_partial_csv)
 
 
         full_record = {
@@ -133,7 +133,7 @@ class TestAverageSpeedEnhancer(unittest.TestCase):
                                  ])
         actual_full_csv = self.average_speed_enhancer.dict_to_csv(full_record)
 
-        self.assertEquals(expected_full_csv, actual_full_csv)
+        self.assertEqual(expected_full_csv, actual_full_csv)
 
     def test_enhance_with_average_speed(self):
         # Test a zero speed.
@@ -183,7 +183,7 @@ class TestAverageSpeedEnhancer(unittest.TestCase):
         actual_enhancement = self.average_speed_enhancer.enhance_with_avg_speed(zero_record)
 
 
-        self.assertEquals(actual_enhancement, zero_enhancement)
+        self.assertEqual(actual_enhancement, zero_enhancement)
 
         # Test a non-zero speed.
         example_record = {
@@ -224,10 +224,10 @@ class TestAverageSpeedEnhancer(unittest.TestCase):
           u"store_and_fwd_flag": u"N",
           u"average_speed": 18.523489932885905
         })
-        
+
         actual_enhancement = self.average_speed_enhancer.enhance_with_avg_speed(example_record)
 
-        self.assertEquals(actual_enhancement, expected_enhancement)
+        self.assertEqual(actual_enhancement, expected_enhancement)
 
         # Test handling of invalid pickup/dropoff times.
         example_record = {
@@ -271,7 +271,7 @@ class TestAverageSpeedEnhancer(unittest.TestCase):
 
         actual_enhancement = self.average_speed_enhancer.enhance_with_avg_speed(example_record)
 
-        self.assertEquals(actual_enhancement, expected_enhancement)
+        self.assertEqual(actual_enhancement, expected_enhancement)
 
         # Test an example with an illegal store_and_fwd_flag
         bad_store_and_fwd_record = {
@@ -316,7 +316,7 @@ class TestAverageSpeedEnhancer(unittest.TestCase):
                                  ])
         actual_csv = self.average_speed_enhancer.enhance_with_avg_speed(bad_store_and_fwd_record)
 
-        self.assertEquals(expected_csv, actual_csv)
+        self.assertEqual(expected_csv, actual_csv)
 
 
 if __name__ == '__main__':

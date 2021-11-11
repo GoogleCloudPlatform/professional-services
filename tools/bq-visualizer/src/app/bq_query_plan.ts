@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 import {ConstantPool} from '@angular/compiler/src/constant_pool';
+//import * as google from 'google-charts';
+//import * as google from 'google.visualization';
 import * as google from 'google-charts';
 import * as _ from 'lodash';
 
@@ -24,6 +26,9 @@ export interface Edge {
   from: QueryStage;
   to: QueryStage;
   outputName: string;
+}
+export interface OnSelectHandler<T> {
+  (chart: T, data: object): void;
 }
 
 export class BqQueryPlan {
@@ -51,7 +56,6 @@ export class BqQueryPlan {
       this.nodes = this.plan.statistics.query.queryPlan;
     } else {
       logSvc.warn(`No query found in job ${this.plan.id}`);
-      // console.log(this.plan);
       return;
     }
     this.isValid = true;
@@ -128,38 +132,22 @@ export class BqQueryPlan {
         isNaN(jobEndMs)) {
       return;
     }
-    const duration = endMs - startMs;
-    node['durationMs  '] = duration.toLocaleString('en');
-    const startPct = (100 * (startMs - jobStartMs)) / (jobEndMs - jobStartMs);
-    const endPct = (100 * (endMs - jobStartMs)) / (jobEndMs - jobStartMs);
-    node['wait (ms)   '] =
-        'avg: ' + Number(node.waitMsAvg).toLocaleString('en') +
-        ' max: ' + Number(node.waitMsMax).toLocaleString('en');
-    node['read (ms)   '] =
-        'avg: ' + Number(node.readMsAvg).toLocaleString('en') +
-        ' max: ' + Number(node.readMsMax).toLocaleString('en');
-    node['compute (ms)'] =
-        'avg: ' + Number(node.computeMsAvg).toLocaleString('en') +
-        ' max: ' + Number(node.computeMsMax).toLocaleString('en');
-    node['write (ms)  '] =
-        'avg: ' + Number(node.writeMsAvg).toLocaleString('en') +
-        ' max: ' + Number(node.writeMsMax).toLocaleString('en');
-    node['startTime   '] = new Date(startMs);
-    node['endTime     '] = new Date(endMs);
-    node['start %     '] = startPct.toLocaleString('en') + '% of job duration';
-    node['end %       '] = endPct.toLocaleString('en') + '% of job duration';
   }
 
   /** find a node by its id */
-  getNode(id: string): QueryStage {
+  getNode(id: string|number): QueryStage | undefined{
+    if (typeof(id) == 'number')
+      { id = ""+ id}
     return this.nodes.find(x => x.id === id);
   }
-
+//OnSelectHandler<google.GoogleCharts.Gantt>
+//(chart: google.GoogleCharts.Gantt, data: object) => void): void {
+ 
   /** create a google gantt chart object */
   asGoogleGantt(
       containerName: string,
-      onSelectHandler:
-          (chart: google.GoogleCharts.Gantt, data: object) => void): void {
+      onSelectHandler: OnSelectHandler<google.GoogleCharts.Gantt>
+    ): void {
     const container = document.getElementById(containerName);
     if (!container) {
       this.logSvc.error(`Can't find container '${containerName}'`);
@@ -193,7 +181,7 @@ export class BqQueryPlan {
     chart.draw(data, options);
     if (onSelectHandler) {
       google.GoogleCharts.api.visualization.events.addListener(
-          chart, 'select', none => {
+          chart, 'select', (none:any) => {
             onSelectHandler(chart, data);
           });
     }
@@ -204,8 +192,8 @@ export class BqQueryPlan {
   /** visualize the progress data */
   asProgressChart(
       containerName: string,
-      onSelectHandler:
-          (chart: google.GoogleCharts.AreaChart, data: object) => void): void {
+      onSelectHandler:OnSelectHandler<google.GoogleCharts.AreaChart>
+    ): void {
     const container = document.getElementById(containerName);
     if (!container) {
       this.logSvc.error(`Can't find container '${containerName}'`);
@@ -220,9 +208,8 @@ export class BqQueryPlan {
     data.addColumn('number', 'Pending Units');
 
     // get the time data, ignore last entry as it often is an invalid data point
-    const timeline = _.slice(
-        this.plan.statistics.query.timeline, 0,
-        this.plan.statistics.query.timeline.length - 1);
+    const timeline = this.plan.statistics.query.timeline.slice(
+                       0, this.plan.statistics.query.timeline.length - 1);
     data.addRows(timeline.map(
         item =>
             [new Date(
@@ -240,7 +227,7 @@ export class BqQueryPlan {
     chart.draw(data, options);
     if (onSelectHandler) {
       google.GoogleCharts.api.visualization.events.addListener(
-          chart, 'select', none => {
+          chart, 'select', (none:any) => {
             onSelectHandler(chart, data);
           });
     }
@@ -250,8 +237,8 @@ export class BqQueryPlan {
   /**Visualise progress slot usage */
   asSlotUsageChart(
       containerName: string,
-      onSelectHandler:
-          (chart: google.GoogleCharts.LineChart, data: object) => void): void {
+      onSelectHandler:OnSelectHandler<google.GoogleCharts.AreaChart>
+    ): void {
     const container = document.getElementById(containerName);
     if (!container) {
       this.logSvc.error(`Can't find container '${containerName}'`);
@@ -264,10 +251,9 @@ export class BqQueryPlan {
         new google.GoogleCharts.api.visualization.LineChart(container);
 
     // calculate the slot usage
-    const left = _.slice(this.plan.statistics.query.timeline, 1);
-    const right = _.slice(
-        this.plan.statistics.query.timeline, 0,
-        this.plan.statistics.query.timeline.length - 1);
+    const left = this.plan.statistics.query.timeline.slice(1);
+    const right = this.plan.statistics.query.timeline.slice( 0,
+                            this.plan.statistics.query.timeline.length - 1);
     const pairs = _.zip(right, left);
 
 
@@ -291,7 +277,7 @@ export class BqQueryPlan {
     chart.draw(data, options);
     if (onSelectHandler) {
       google.GoogleCharts.api.visualization.events.addListener(
-          chart, 'select', none => {
+          chart, 'select', (none:any) => {
             onSelectHandler(chart, data);
           });
     }
@@ -321,7 +307,8 @@ export class BqQueryPlan {
       return JSON.stringify(ghostresult, null, 4);
     }
     const stats = this.plan.statistics;
-    const result = {
+    let result:{[name:string]:any} ={};
+    result={
       'id             ': node.id,
       'name           ': node.name,
       'status         ': node.status,
@@ -346,7 +333,6 @@ export class BqQueryPlan {
           'avg: ' + Number(node.writeMsAvg).toLocaleString('en') +
           ' max: ' + Number(node.writeMsMax).toLocaleString('en'),
       'slotMs         ': Number(_.get(node, 'slotMs', 0)).toLocaleString('en'),
-
     };
     const endMs = Number(node.endMs);
     const startMs = Number(node.startMs);
@@ -356,7 +342,6 @@ export class BqQueryPlan {
     if (!isNaN(startMs) && !isNaN(endMs) && !isNaN(jobStartMs) &&
         !isNaN(jobEndMs)) {
       const duration = endMs - startMs;
-      node['durationMs  '] = duration.toLocaleString('en');
       const slotMs = Number(_.get(node, 'slotMs', 0));
 
       result['avg slots      '] =

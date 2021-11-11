@@ -38,9 +38,9 @@ type EdgeDeselectCallback = (chart: TreeChart, params: object) => void;
   styleUrls: ['./vis-display.component.css']
 })
 export class VisDisplayComponent implements AfterViewInit {
-  public graph: TreeChart;
+  public graph: TreeChart | null;
   private layout: any;  // dqagre layout result;
-  private plan: BqQueryPlan;
+  private plan: BqQueryPlan | null;
   private haveDoneDraw = false;
 
   @ViewChild('status_card') statusCard: PlanStatusCardComponent;
@@ -80,8 +80,8 @@ export class VisDisplayComponent implements AfterViewInit {
     this.graph = this.drawGraph(
         this.plan,
         (chart: TreeChart, resizeData: object) => {
-            // console.log('canvas resize', this);
-            // console.log(resizeData);
+             //console.log('canvas resize', this);
+             //console.log(resizeData);
         },
         (chart: TreeChart, node: any, params: any) => {
           if (node) {
@@ -93,7 +93,7 @@ export class VisDisplayComponent implements AfterViewInit {
     this.resizeToWindow();
   }
 
-  resizeWindow(event) {
+  resizeWindow(event:any) {
     this.resizeToWindow();
   }
 
@@ -108,7 +108,7 @@ export class VisDisplayComponent implements AfterViewInit {
 
   private clearGraph() {
     if (this.graph) {
-      this.graph.network.setData(new vis.DataSet([]), new vis.DataSet([]));
+      this.graph.network.setData({nodes: new vis.DataSet([]), edges: new vis.DataSet([])});
       this.graph.network.redraw();
     }
   }
@@ -116,13 +116,13 @@ export class VisDisplayComponent implements AfterViewInit {
       plan: BqQueryPlan, onResizeEvent?: ResizeCallback,
       onNodeSelect?: NodeSelectCallback, onNodeDeselect?: NodeDeselectCallback,
       onEdgeSelect?: EdgeSelectCallback,
-      onEdgeDeselect?: EdgeDeselectCallback): TreeChart {
-    let visnodes = new vis.DataSet([]);
-    let visedges = new vis.DataSet([]);
+      onEdgeDeselect?: EdgeDeselectCallback): TreeChart | null {
+    let visnodes = new vis.DataSet<vis.Edge>([]);
+    let visedges = new vis.DataSet<vis.Edge>([]);
 
     if (plan.nodes.length === 0) {
       this.logSvc.warn('Current Plan has no nodes.');
-      return;
+      return null;
     } else {
       const allnodes = (this.statusCard.stageDisplayOption ===
                         this.statusCard.SHOWREPARTIION) ?
@@ -166,7 +166,7 @@ export class VisDisplayComponent implements AfterViewInit {
     const container = document.getElementById('visGraph');
     if (!container) {
       console.error(`Unable to find 'visGraph'`);
-      return;
+      return null;
     }
 
     // create a network
@@ -175,7 +175,6 @@ export class VisDisplayComponent implements AfterViewInit {
     const me = this;
     if (onResizeEvent) {
       network.on('resize', params => {
-        // console.log('resize....');
         onResizeEvent(chart, params);
       });
     }
@@ -194,7 +193,7 @@ export class VisDisplayComponent implements AfterViewInit {
     if (onEdgeSelect) {
       network.on('selectEdge', params => {
         const edgeId = params.edges[0];
-        const foundEdge = visedges.get()[edgeId];
+        const foundEdge:vis.Edge = visedges.get()[edgeId];
         const fromNode = plan.getNode(foundEdge.from);
         const toNode = plan.getNode(foundEdge.to);
         const detail = {
@@ -251,7 +250,7 @@ export class VisDisplayComponent implements AfterViewInit {
         },
         selectionWidth: 5,
         color: {color: '#A0A0FF', highlight: '#8080FF'},
-        smooth: {enabled: true, type: 'cubicBezier'}
+        smooth: {enabled: true, type: 'cubicBezier', roundness: 0.5}
       },
       nodes: {},
 

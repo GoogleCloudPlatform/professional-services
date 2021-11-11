@@ -1,0 +1,27 @@
+[
+  {
+    "userId": "userA",
+    "ingestTimestamp": "2019-08-10 05:45:16.228 UTC",
+    "record1": {
+      "attribute1": {
+          "a": null,
+          "b": null
+        },
+      "attribute2": "dat",
+      "attribute3": "lot"
+    }
+  },
+  {
+    "userId": "userB",
+    "ingestTimestamp": "2019-08-10 05:46:16.228 UTC",
+    "record1": {
+        "attribute1": {
+          "a": "7",
+          "b": "8"
+        },
+        "attribute2": null,
+        "attribute3": null
+    }
+
+  }
+]

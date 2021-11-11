@@ -1,9 +1,9 @@
 AWSTemplateFormatVersion: "2010-09-09"
 
 Description: >
-  Creates CustomerGateway and enables static router if applicable 
+  Creates CustomerGateway and enables static router if applicable
 
-Metadata: 
+Metadata:
   License: >
     Copyright 2017 Google Inc.
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,33 +18,33 @@ Metadata:
     See the License for the specific language governing permissions and
     limitations under the License.
 
-Parameters: 
-  PeerIp: 
+Parameters:
+  PeerIp:
     Type: String
     Description: IP Address of Peer
-  
-  VPNGatewayId: 
-    Type: String 
-  
-  BgpAsn: 
+
+  VPNGatewayId:
+    Type: String
+
+  BgpAsn:
     Type: Number
     MinValue: 64512
     MaxValue: 65534
     Description: Use private ASN 64512-65534 not used elsewhere in the network
-    Default: 65534 
-   
+    Default: 65534
+
   StaticRoutesOnly:
     Type: String
     Default: false
-    AllowedValues: 
+    AllowedValues:
       - false
       - true
-  
-  StaticRoute: 
-    Type: String 
+
+  StaticRoute:
+    Type: String
     Default: ""
 
-Conditions: 
+Conditions:
   CreateStaticRoute: !Not [ !Equals [ !Ref StaticRoute, "" ] ]
 
 Resources:
@@ -52,36 +52,36 @@ Resources:
     Type: "AWS::EC2::CustomerGateway"
     Properties:
       Type: ipsec.1
-      BgpAsn: 
+      BgpAsn:
         !Ref BgpAsn
-      IpAddress: 
+      IpAddress:
         !Ref PeerIp
       Tags:
-        - 
+        -
           Key: Name
-          Value: !Ref "AWS::StackName" 
+          Value: !Ref "AWS::StackName"
 
   Vpn:
     Type: "AWS::EC2::VPNConnection"
-    Properties: 
+    Properties:
       Type: ipsec.1
-      CustomerGatewayId: 
+      CustomerGatewayId:
         !Ref GcpGw
-      VpnGatewayId: 
+      VpnGatewayId:
         !Ref VPNGatewayId
-      StaticRoutesOnly: 
+      StaticRoutesOnly:
         !Ref StaticRoutesOnly
       Tags:
-        - 
+        -
           Key: Name
           Value: !Ref "AWS::StackName"
 
   Route0:
     Type: "AWS::EC2::VPNConnectionRoute"
     Condition: CreateStaticRoute
-    Properties: 
+    Properties:
       DestinationCidrBlock: !Ref StaticRoute
-      VpnConnectionId: 
+      VpnConnectionId:
         !Ref Vpn
 
 Outputs:

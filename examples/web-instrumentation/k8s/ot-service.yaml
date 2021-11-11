@@ -1,0 +1,86 @@
+# Copyright 2020, OpenCensus Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http:#www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ot-service-conf
+  namespace: default
+data:
+  ot-service-config: |
+    receivers:
+      opencensus:
+        endpoint: 0.0.0.0:55678
+    exporters:
+      stackdriver:
+        project: "{{PROJECT-ID}}"
+    processors:
+      batch:
+      queued_retry:
+    extensions:
+      pprof:
+        endpoint: :1888
+    service:
+      extensions: [pprof]
+      pipelines:
+        traces:
+          receivers: [opencensus]
+          exporters: [stackdriver]
+          processors: [batch, queued_retry]
+        metrics:
+          receivers: [opencensus]
+          exporters: [stackdriver]
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: ot-service-deployment
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: ot-service-deployment
+    spec:
+      containers:
+        - name: ot-service-container
+          image: gcr.io/{{PROJECT-ID}}/otelcontribcol:latest
+          volumeMounts:
+            - name: ot-service-config-vol
+              readOnly: true
+              mountPath: /conf
+          args: ["--config=/conf/ot-service-config.yaml"]
+          ports:
+            - containerPort: 55678
+      volumes:
+        - name: ot-service-config-vol
+          configMap:
+            name: ot-service-conf
+            items:
+              - key: ot-service-config
+                path: ot-service-config.yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ot-service-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: ot-service-deployment
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 55678

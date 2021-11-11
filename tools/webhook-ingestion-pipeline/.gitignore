@@ -1,0 +1,7 @@
+
+# Ignore Terraform File Extras
+.terraform*
+terraform/terraform.tfstate*
+
+# GCloud Ignore
+.gcloudignore

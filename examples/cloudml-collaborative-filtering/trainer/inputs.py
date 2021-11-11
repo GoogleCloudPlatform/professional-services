@@ -41,7 +41,7 @@ def get_input_fn(file_pattern, batch_size, num_epochs=None):
     parsed_example = tf.parse_single_example(
         serialized=example,
         features=constants.TRAIN_SPEC)
-    label = parsed_example.pop(constants.COUNT_KEY)
+    label = parsed_example.pop(constants.LABEL_KEY)
     return parsed_example, label
 
   def _input_fn():

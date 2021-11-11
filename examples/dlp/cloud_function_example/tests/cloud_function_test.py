@@ -39,7 +39,7 @@ class TestMainMethods(unittest.TestCase):
             }
           }
         ]
-      }  
+      }
     }
     generated_config = main._build_deidentify_config(info_type_list)
     self.assertDictEqual(expected_config, generated_config)

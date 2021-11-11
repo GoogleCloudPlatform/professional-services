@@ -15,8 +15,7 @@
  */
 import {HttpClient} from '@angular/common/http';
 import {Injectable} from '@angular/core';
-// import {OAuthService} from 'angular-oauth2-oidc';
-import {concat, defer, EMPTY, from, Observable, of, Subscription} from 'rxjs';
+import {concat, defer, EMPTY, from, Observable, Observer, of, Subscription} from 'rxjs';
 import {catchError, filter, map} from 'rxjs/operators';
 
 import {environment} from '../environments/environment';
@@ -61,7 +60,7 @@ export class BigQueryService {
   /** Get all jobs for a project. */
   getJobs(projectId: string, maxJobs: number, allUsers: boolean):
       Observable<BqJob> {
-    return Observable.create(async obs => {
+    return Observable.create(async (obs:Observer<BqJob>) => {
       const token = this.googleAuthService.getAccessToken();
       let nextPageToken = '';
       let totalJobs = 0;
@@ -123,10 +122,10 @@ export class BigQueryService {
 
   /** Get all projects. */
   getProjects(): Observable<BqProject> {
-    return Observable.create(async obs => {
+    return Observable.create(async (obs:Observer<BqProject>)=> {
       if (this.googleAuthService.isLoggedIn() === false) {
         await this.googleAuthService.login();
-        if (this.googleAuthService.isLoggedIn) {
+        if (this.googleAuthService.isLoggedIn()) {
           this.logSvc.info('successfully Logged in');
         } else {
           this.logSvc.error  ('failed Logged in');

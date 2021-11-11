@@ -1,0 +1,33 @@
+SELECT
+userId,
+ingestTimestamp,
+STRUCT(STRUCT(record1_attribute1_a as a, record1_attribute1_b as b) as attribute1, record1_attribute2 as attribute2, record1_attribute3 as attribute3) as record1
+FROM (
+    SELECT
+        userId,
+        ingestTimestamp,
+        FIRST_VALUE(
+            record1.attribute1.a IGNORE NULLS
+        ) OVER(win) record1_attribute1_a,
+        FIRST_VALUE(
+            record1.attribute1.b IGNORE NULLS
+        ) OVER(win) record1_attribute1_b,
+        FIRST_VALUE(
+            record1.attribute2 IGNORE NULLS
+        ) OVER(win) record1_attribute2,
+        FIRST_VALUE(
+            record1.attribute3 IGNORE NULLS
+        ) OVER(win) record1_attribute3,
+        FIRST_VALUE(
+            ingestTimestamp
+        ) OVER(WIN) maxTimestampInWindow
+    FROM (
+        SELECT * FROM `{0:s}.user_updater_test.test_user_info_updates`
+        WHERE ingestTimestamp  > timestamp('{1:s}')
+    )
+    window win as (
+        partition by userId ORDER BY ingestTimestamp DESC
+        ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+    )
+)
+WHERE ingestTimestamp = maxTimestampInWindow

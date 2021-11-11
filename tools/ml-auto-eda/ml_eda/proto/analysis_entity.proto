@@ -1,0 +1,164 @@
+/* Copyright 2019 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+# ==============================================================================*/
+
+
+syntax = "proto2";
+
+package ml_eda.proto;
+
+message Attribute {
+    // The id of the feature
+    optional int64 id = 1;
+    // The name of the feature
+    required string name = 2;
+    // Indicates the type of the feature
+    enum Type {
+        NUMERICAL = 0;
+        CATEGORICAL = 1;
+        TEXTUAL = 2;
+    }
+    // The type of the feature
+    required Type type = 3;
+    // Whether the attribute can contain null
+    optional bool nullable = 4;
+}
+
+message DataSource {
+    // The id of the datasource
+    optional int64 id = 1;
+    // Indicates the storage type used
+    enum Type {
+        CSV = 0;
+        BIGQUERY = 1;
+    }
+    // The type of the datasource
+    required Type type = 2;
+    // The location of the datasource
+    required string location = 3;
+    // The target column
+    optional Attribute target = 4;
+    // The features 
+    repeated Attribute features = 5;
+}
+
+message ScalarMetric {
+    // The id of the metric
+    optional int64 id = 1;
+    // Indicates the metrics that can be calculated
+    enum Name {
+        // Statistical Test
+        F_STATISTIC = 1;
+        P_VALUE = 2;
+        INFORMATION_GAIN = 3;
+        CORRELATION_COEFFICIENT = 4;
+
+        // Numerical Descriptive
+        MEAN = 5;
+        MEDIAN = 6;
+        STD = 7;
+        MIN = 8;
+        MAX = 9;
+        QUANTILE_25 = 10;
+        QUANTILE_75 = 11;
+        // This could be helpful for outlier removal
+        QUANTILE_95 = 12;
+        SKEWNESS = 13; // Not implemented yet
+
+        // Categorical Descriptive
+        CARDINALITY = 14;
+
+        // Common
+        TOTAL_COUNT = 15;
+        MISSING = 16;
+    }
+    // The name of the metric
+    required Name name = 2;
+    // The value of the metric
+    required float value = 3;
+}
+
+message TableMetric {
+    message TableMetricCell {
+        // One cell within a row in a table
+        // Row index, optional since it can be derived
+        optional string row_index = 1;
+        // Column index
+        required string column_index = 2;
+        required float value = 3;
+    }
+    message TableMetricRow {
+        // One row in a table
+        // Row index
+        required string row_index = 1;
+        repeated TableMetricCell cells = 2;
+    }
+
+    // The id of the metric
+    optional int64 id = 1;
+    // Indicates the metrics that presented in table format
+    enum Name {
+        HISTOGRAM = 1;
+        VALUE_COUNTS = 2;
+        CONTINGENCY_TABLE = 3;
+        TABLE_DESCRIPTIVE = 4;
+    }
+    // The name of the metric
+    required Name name = 2;
+
+    // Header of the table
+    repeated string column_indexes = 3;
+
+    // Rows of the table
+    repeated TableMetricRow rows = 4;
+}
+
+message Analysis {
+    // The id of the analysis
+    optional int64 id = 1;
+    // Indicates the analyses that can be run
+    enum Name {
+        // Descriptive Analysis
+        DESCRIPTIVE = 1;
+        HISTOGRAM = 2; // Table
+        VALUE_COUNTS = 3; // Table
+        // Qualitative Analysis
+        CONTINGENCY_TABLE = 4; // Table
+        TABLE_DESCRIPTIVE = 5; // Table
+        // Quantitative Analysis
+        PEARSON_CORRELATION = 6;
+        ANOVA = 7;
+        CHI_SQUARE = 8;
+        INFORMATION_GAIN = 9;
+    }
+    // The name of the analysis
+    optional Name name = 2;
+    // The features on which the analysis is calculated
+    repeated Attribute features = 3;
+    // Analysis that produce scalar metrics
+    repeated ScalarMetric smetrics = 4;
+    // Analysis that produce table metrics
+    repeated TableMetric tmetrics = 5;
+}
+
+message AnalysisRun {
+    // The id of the analysis run.
+    optional int64 id = 1;
+    // The timestamp of the analysis run.
+    optional double timestamp_sec = 2;
+    // The datasource on which the analysis has been performed.
+    optional DataSource datasource = 3;
+    // The analyses done on the dataset
+    repeated Analysis analyses = 4;
+}
