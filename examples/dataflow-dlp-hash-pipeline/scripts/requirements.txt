@@ -1,0 +1,8 @@
+tabulate==0.8.7
+Faker==4.1.0
+google-cloud-dlp==0.13.0
+google-cloud-firestore==1.6.2
+google-api-core==1.17.0
+google-cloud-pubsub==1.0.2
+google-cloud-secret-manager==0.2.0
+progress==1.5

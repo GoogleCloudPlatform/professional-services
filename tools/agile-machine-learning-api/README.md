@@ -2,12 +2,12 @@
 ## Overview
 
 
-Machine Learning is a vast subject and to use a basic model of linear or logistic regression can be a difficult task for non-developers. This API has been created to make it easier for 
-non-developers to use machine learning. At high level The API takes care of 
-- The basic and important aspects of machine learning so that the accuracy of the model can be improved from the baseline models. 
-- Deployment of the trained models and model versioning. 
-- Versions of the training on the same data. 
-- Prediction on your saved model. 
+Machine Learning is a vast subject and to use a basic model of linear or logistic regression can be a difficult task for non-developers. This API has been created to make it easier for
+non-developers to use machine learning. At high level The API takes care of
+- The basic and important aspects of machine learning so that the accuracy of the model can be improved from the baseline models.
+- Deployment of the trained models and model versioning.
+- Versions of the training on the same data.
+- Prediction on your saved model.
 
 In training, the API first cleans the data and then calculates all the relevant features that will be  used in the training. This training data is then saved into temporary files on the disk. These temporary files are then fed into the tensorflow dataset API which makes the input function of the tensorflow estimators which are divided into two parts, custom and canned based on the choice of model users want to run on the data. In the process of training,  all the metrics are called calculated and shown in the logs. These logs when stored as checkpoint can be used to preview the model in Tensorboard.
 
@@ -18,25 +18,25 @@ The trained model are saved into different versions based on the name you give t
 All the below functionalities can be used with a simple post request to the respective APIs with very basic background knowledge.
  - Train various ML models on GCP CMLE
  - Deploy the trained model on GCP CMLE
- - Predict results of the deployed model both on a batch or on a single datapoints using GCP CMLE 
- - Visualize the predicted results using LIME functionality 
+ - Predict results of the deployed model both on a batch or on a single datapoints using GCP CMLE
+ - Visualize the predicted results using LIME functionality
 
 ## Structure of code
 ```
 AMLA
-    |__ main.py  (entry point of the API)                                                
+    |__ main.py  (entry point of the API)
     |__ train.py  (train functions)
-    |__ predict.py  (predict functions)        
+    |__ predict.py  (predict functions)
     |__ deploy.py  (deploy functions)
     |__ lime_utils.py  (utils functions for LIME functionalities)
-    |__ update.sh  (bash script for updating trainer package) 
+    |__ update.sh  (bash script for updating trainer package)
     |__ config
         |__ train.yaml  (file for train configurations)
         |__ config_file.yaml  (file for API configurations)
         |__ developer.yaml  (file for developer configurations)
-    |__ codes                   
+    |__ codes
         |__ config.yaml  (file for CloudML configurations)
-        |__ setup.py 
+        |__ setup.py
         |__ trainer  (trainer package)
             |__ __init__.py
             |__ launch_demo.py  (end-to-end script for running package)
@@ -62,7 +62,7 @@ AMLA
   service_account_json_key: <path/of/service/account/key/json/file>
   ```
 
-- Create a config file named **_'train.yaml'_** like below along for train.py in the **config directory** to specify train configurations. Refer to [*CMLE machine types*](https://cloud.google.com/ml-engine/docs/tensorflow/machine-types) for specifying type virtual machines you want the model to be trained. The trainer package will be created and updated in GCS bucket by running bash script update.sh. 
+- Create a config file named **_'train.yaml'_** like below along for train.py in the **config directory** to specify train configurations. Refer to [*CMLE machine types*](https://cloud.google.com/ml-engine/docs/tensorflow/machine-types) for specifying type virtual machines you want the model to be trained. The trainer package will be created and updated in GCS bucket by running bash script update.sh.
 
     ```
     scaleTier: "CUSTOM"
@@ -71,14 +71,14 @@ AMLA
     parameterServerType: "large_model"
     workerCount: 3
     parameterServerCount: 1
-    packageUris: ['<path/of/trainer/package/in/GCS>'] # bucket_name+'/trainer-0.0.tar.gz' 
+    packageUris: ['<path/of/trainer/package/in/GCS>'] # bucket_name+'/trainer-0.0.tar.gz'
     region: "us-central1"
     jobDir: <path/of/the/job_dir>
     runtimeVersion: <tensorflow version>
     pythonVersion: <python version> ##python2.7
     ```
 - Create a config file named **_'config.yaml'_** like below in **codes** folder, with the type of virtual machines you want the model to be trained on. Currently if the training job is submitted through Train API the machine configurations are directly loaded from train.yaml. However to this has been added to provide an option to launch training jobs using [*command line*](https://cloud.google.com/sdk/gcloud/reference/ml-engine/jobs/submit/training)
-Example of  **_'config.yaml'_** looks like 
+Example of  **_'config.yaml'_** looks like
   ```
   trainingInput:
     scaleTier: CUSTOM
@@ -94,7 +94,7 @@ Example of  **_'config.yaml'_** looks like
   ```bash
   $ gcloud services enable ml.googleapis.com
   ```
-  
+
 - Create a service account key which should have following IAM roles:
 
   > Machine Learning Engine > ML Engine Admin
@@ -111,7 +111,7 @@ Example of  **_'config.yaml'_** looks like
 
 - Upload/Update the trainer folder on the google cloud storage bucket using the following command. This command creates tar.gz file of the trainer directory and uploads it to the cloud storage bucket. **Please ensure that "python" executable version used here is aligned with the python version used in CMLE for training and serving.**
     To update the trainer in GCS run
-    ```bash 
+    ```bash
   $ bash update.sh
     ```
 
@@ -172,7 +172,7 @@ Example of  **_'config.yaml'_** looks like
     "to_drop": ["drop_col1","drop_col2","drop_col3"]
    }
   ```
-Response of the API would look like 
+Response of the API would look like
 ```
 {
   "Message": "<link of the job>",
@@ -194,7 +194,7 @@ Response of the API would look like
 
   ```
    "job_id": Job ID of the training job
-   "model_name": Required name of the deployed model 
+   "model_name": Required name of the deployed model
    "version_name": Required version of the deployed model
    "runtime_version": Tensorflow version of the deployed model
    "trained_model_location": Export dir of the model
@@ -241,11 +241,11 @@ Response of the API would look like
   "instances": Data in JSON format on which prediction is to be made
   "version_name": Version of the deployed model on which predictions to be made
   ```
-   
+
   A sample body of Predict API would look like :
 
   ```json
-  {    
+  {
    "model_name": "census",
    "instances": [{"capital_gain": 0, "race": "White", "hours_per_week": 40}],
    "version_name": "v1_1"
@@ -263,8 +263,8 @@ Response of the API would look like
  ```
  **Prediction with visualization:**
     This is to create visualization for predicted results using lime. Please find an example [sample_lime.html](sample_lime.html)
-    
-  ##### VERSION 1 
+
+  ##### VERSION 1
 
   To generate prediction based on your trained job and to produce the lime visualization on them based on the prediction, go to **localhost:8080/predict/lime** and make a POST request with following parameters in JSON format
   ```
@@ -278,7 +278,7 @@ Response of the API would look like
   A sample body of Predict using LIME v1 API would look like :
 
   ```json
-  {    
+  {
     "job_id": "<job id of training job>",
     "batch_prediction": "<boolean>",
     "export_dir": "<export directory given while training>",
@@ -287,8 +287,8 @@ Response of the API would look like
     "name": "<required name of the output files>"
   }
   ```
-  Here specifying 
-  where predict_json look like 
+  Here specifying
+  where predict_json look like
   ```json
 {
     "D_id_1": {"capital_gain": 0, "relationship": "Unmarried", "sex": "Male"},
@@ -307,7 +307,7 @@ Response of the API would look like
   A sample body of Predict using LIME v2 API would look like :
 
   ```json
-  {    
+  {
     "job_id": "<job id of the training job>",
     "batch_prediction": "<boolean>",
     "export_dir": "<export directory given while training>",
@@ -337,6 +337,6 @@ In case of any error in calling the any request in API, Response of the API woul
 - Ansuj Joshi
 
 We would like to take this oppourtunity to thank the following reviewers for their constant support and suggestions for improving this tool:
-- Yiliang Zhao 
+- Yiliang Zhao
 - Shixin Luo
 - Yujin Tang

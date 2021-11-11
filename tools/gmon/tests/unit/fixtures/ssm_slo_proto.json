@@ -1,0 +1,18 @@
+{
+  "name": "projects/[PROJECT_NUMBER]/services/gae:fake_fake/serviceLevelObjectives/gae-app-latency724ms-86400",
+  "service_level_indicator": {
+    "basic_sli": {
+      "latency": {
+        "threshold": {
+          "seconds": 0,
+          "nanos": 724000000
+        }
+      }
+    }
+  },
+  "goal": 0.999,
+  "rolling_period": {
+    "seconds": 86400
+  },
+  "display_name": "fake"
+}

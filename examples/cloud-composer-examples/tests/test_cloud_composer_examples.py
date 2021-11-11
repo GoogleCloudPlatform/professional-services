@@ -47,7 +47,7 @@ class ComposerDataflowTests(unittest.TestCase):
                                 'filename': test_filename,
                                 'load_dt': test_load_dt}
         actual_dict_output = row_transformer.parse(csv_input)
-        self.assertEquals(actual_dict_output, expected_dict_output)
+        self.assertEqual(actual_dict_output, expected_dict_output)
 
 
 if __name__ == '__main__':

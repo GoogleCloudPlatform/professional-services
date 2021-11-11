@@ -39,8 +39,9 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <!-- Dependency properties -->
-    <checkstyle.version>8.18</checkstyle.version>
-    <beam.version>2.6.0</beam.version>
+    <checkstyle.version>8.29</checkstyle.version>
+    <beam.version>2.19.0</beam.version>
+    <gson.version>2.7</gson.version>
     <hamcrest.version>1.3</hamcrest.version>
     <java.version>1.8</java.version>
     <j2v8.version>4.8.0</j2v8.version>
@@ -83,6 +84,13 @@
         <exclusion>
           <groupId>junit</groupId>
           <artifactId>junit</artifactId>
+        </exclusion>
+        <!-- As of beam 2.19 if this exclusion was not added causing issue java.lang.NoClassDefFoundError: io/opencensus/trace/Tracestate
+        Refer https://issues.apache.org/jira/browse/BEAM-9304. Will be fixed in beam 2.20
+        -->
+        <exclusion>
+          <groupId>com.google.cloud.bigtable</groupId>
+          <artifactId>bigtable-client-core</artifactId>
         </exclusion>
       </exclusions>
     </dependency>

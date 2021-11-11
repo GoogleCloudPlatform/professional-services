@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import
 import argparse
 import datetime
 import json
@@ -33,6 +32,7 @@ from google.cloud import storage as gcs
 from scipy.stats import truncnorm
 from google.cloud.exceptions import NotFound
 import sys
+
 
 class DataGenerator(object):
     """
@@ -60,13 +60,23 @@ class DataGenerator(object):
             we are generating that joins to source_joining_key_col.
 
     """
-    def __init__(self, bq_schema_filename=None, input_bq_table=None, 
-                 hist_bq_table=None, p_null=0.1,
-                 n_keys=sys.maxint, min_date='2000-01-01',
+    def __init__(self,
+                 bq_schema_filename=None,
+                 input_bq_table=None,
+                 hist_bq_table=None,
+                 p_null=0.1,
+                 n_keys=sys.maxsize,
+                 min_date='2000-01-01',
                  max_date=datetime.date.today().strftime('%Y-%m-%d'),
-                 only_pos=True, max_int=10**11, max_float=float(10**11),
-                 float_precision=2, write_disp='WRITE_APPEND', key_skew='None',
-                 primary_key_cols=None, dest_joining_key_col=None):
+                 only_pos=True,
+                 max_int=10**11,
+                 max_float=float(10**11),
+                 float_precision=2,
+                 write_disp='WRITE_APPEND',
+                 key_skew='None',
+                 primary_key_cols=None,
+                 dest_joining_key_col=None,
+                 bq_cli=None):
         """
         Args:
         bq_schema_filename (str): A path to a local or gcs file containing a
@@ -89,7 +99,8 @@ class DataGenerator(object):
         dest_joining_key_col (str): The name of the key column in the table
             we are generating that joins to source_joining_key_col.
         """
-        bq_cli = bq.Client()
+        if not bq_cli:
+            bq_cli = bq.Client()
         if bq_schema_filename is not None:
             try:
                 # Handles json from google cloud storage or local.
@@ -118,13 +129,13 @@ class DataGenerator(object):
             bq_table = bq_cli.get_table(bq_table_ref)
 
             # Quickly parse TableSchema object to list of dictionaries.
-            self.schema = {u'fields': [
-                {u'name': field.name,
-                 u'type': field.field_type,
-                 u'mode': field.mode
-                 }
-                for field in bq_table.schema
-            ]}
+            self.schema = {
+                'fields': [{
+                    'name': field.name,
+                    'type': field.field_type,
+                    'mode': field.mode
+                } for field in bq_table.schema]
+            }
         if hist_bq_table:
             dataset_name, table_name = hist_bq_table.split('.')
             bq_dataset = bq_cli.dataset(dataset_name)
@@ -164,7 +175,8 @@ class DataGenerator(object):
         This helper function parses a 'FIELDNAME:DATATYPE' string for the BQ
         api.
         """
-        return beam_bigquery.parse_table_schema_from_json(json.dumps(self.schema))
+        return beam_bigquery.parse_table_schema_from_json(
+            json.dumps(self.schema))
 
     def get_faker_schema(self, fields=None):
         """
@@ -235,15 +247,15 @@ class DataGenerator(object):
         }
 
         faker_schema = {}
-        this_call_schema = fields if fields else self.schema[u'fields']
+        this_call_schema = fields if fields else self.schema['fields']
         for obj in this_call_schema:
             is_special = False
             if obj['type'].lower() == 'record':
                 # recursively call to capture nested structure.
                 faker_schema[obj['name']] = self.get_faker_schema(
-                        fields=obj['fields'])
+                    fields=obj['fields'])
             else:
-                for key in special_map: 
+                for key in special_map:
                     if key.lower() in obj['name'].lower():
                         faker_schema[obj['name']] = \
                                 special_map[key]
@@ -256,7 +268,7 @@ class DataGenerator(object):
 
     def enforce_joinable_keys(self, record, key_set=None):
         """
-        This function will accept key_set as a side input containing the set of 
+        This function will accept key_set as a side input containing the set of
         key values for the key_col in record.
         Args:
             record: (dict) A single generated record.
@@ -264,7 +276,7 @@ class DataGenerator(object):
             key_set: (apache_beam.pvalue.AsList) side input from the BigQuery
                 query against the fact table.
         Returns:
-            record (dict) The record mutated to have keys in key_col that join 
+            record (dict) The record mutated to have keys in key_col that join
                 to the fact table.
         """
         record[self.dest_joining_key_col] = np.random.choice(key_set)
@@ -292,9 +304,8 @@ class FakeRowGen(beam.DoFn):
     # checking type and mode.
 
     def get_field_dict(self, field_name, fields=None):
-        this_call_schema = fields if fields else self.data_gen.schema[u'fields']
-        return filter(lambda f: f[u'name'] == field_name,
-                      this_call_schema)[0]
+        this_call_schema = fields if fields else self.data_gen.schema['fields']
+        return [f for f in this_call_schema if f['name'] == field_name][0]
 
     def get_percent_between_min_and_max_date(self, date_string):
         """
@@ -310,21 +321,23 @@ class FakeRowGen(beam.DoFn):
             d = datetime.datetime.strptime(date_string, '%Y-%m-%d')
         except:
             d = datetime.datetime.strptime(date_string, '%Y-%m-%dT%H:%M:%S')
-    
-        max_date_days_since_bce = (
-                self.data_gen.max_date.timetuple().tm_yday +
-                (self.data_gen.max_date.year * 365))
-        min_date_days_since_bce = (
-                self.data_gen.min_date.timetuple().tm_yday +
-                (self.data_gen.min_date.year * 365))
+
+        max_date_days_since_bce = (self.data_gen.max_date.timetuple().tm_yday +
+                                   (self.data_gen.max_date.year * 365))
+        min_date_days_since_bce = (self.data_gen.min_date.timetuple().tm_yday +
+                                   (self.data_gen.min_date.year * 365))
         total_date_range = max_date_days_since_bce - min_date_days_since_bce
         date_days_since_bce = d.timetuple().tm_yday + (d.year * 365)
 
         return (date_days_since_bce - min_date_days_since_bce) / \
             float(total_date_range)
 
-    def sanity_check(self, record, fieldname, random_number,
-            fields=None, dest_joining_key_col=None):
+    def sanity_check(self,
+                     record,
+                     fieldname,
+                     random_number,
+                     fields=None,
+                     dest_joining_key_col=None):
         """
         This function ensures that the data is all of types that BigQuery
         expects. Certain Faker providers do not return the data type we desire.
@@ -339,78 +352,80 @@ class FakeRowGen(beam.DoFn):
         field = self.get_field_dict(fieldname, fields=fields)
 
         # Below handles if the datatype got changed by the faker provider
-        
-        if field[u'type'] == 'RECORD':
+
+        if field['type'] == 'RECORD':
             # We will fill each array of struct with 0-3 elements.
             array_of_struct = []
             record[fieldname] = []
-            for i in range(random.randint(0,3)): 
+            for i in range(random.randint(0, 3)):
                 nested_record = {}
-                for col in field[u'fields']:
+                for col in field['fields']:
                     # Recursively sanity check the next level.
                     nested_record = self.sanity_check(nested_record,
-                                    col[u'name'], random_number,
-                                    fields=field[u'fields'])
+                                                      col['name'],
+                                                      random_number,
+                                                      fields=field['fields'])
                 array_of_struct.append(nested_record)
             record[fieldname] = array_of_struct
-        elif field[u'type'] == 'STRING':
+        elif field['type'] == 'STRING':
             # Efficiently generate random string.
             STRING_LENGTH = 36
-            
+
             # If the description of the field is a RDMS schema like VARCHAR(255)
             # then we extract this number and generate a string of this length.
-            if field.get(u'description'):
-                extracted_numbers = re.findall('\d+',field[u'description'])
+            if field.get('description'):
+                extracted_numbers = re.findall('\d+', field['description'])
                 if extracted_numbers:
                     STRING_LENGTH = int(extracted_numbers[0])
 
-            char_idxs = np.random.randint(0, len(string.ascii_letters),
+            char_idxs = np.random.randint(0,
+                                          len(string.ascii_letters),
                                           size=STRING_LENGTH)
-            record[fieldname] = unicode(
-                    ''.join(string.ascii_letters[i] for i in char_idxs))
+            record[fieldname] = str(''.join(string.ascii_letters[i]
+                                            for i in char_idxs))
 
-        elif field[u'type'] == 'TIMESTAMP':
-            pct = random_number / float(sys.maxint)
+        elif field['type'] == 'TIMESTAMP':
+            pct = random_number / float(sys.maxsize)
             SECONDS_IN_A_DAY = 24 * 60 * 60
             start = self.data_gen.min_date
             max_delta = self.data_gen.max_date - self.data_gen.min_date
             delta = pct * max_delta.total_seconds()
-            
+
             record[fieldname] = self.data_gen.min_date \
                                 + datetime.timedelta(seconds=delta)
-            record[fieldname] = unicode(
+            record[fieldname] = str(
                 record[fieldname].strftime('%Y-%m-%dT%H:%M:%S'))
 
-        elif field[u'type'] == 'DATETIME':
-            pct = random_number / float(sys.maxint)
+        elif field['type'] == 'DATETIME':
+            pct = random_number / float(sys.maxsize)
             SECONDS_IN_A_DAY = 24 * 60 * 60
             start = self.data_gen.min_date
             max_delta = self.data_gen.max_date - self.data_gen.min_date
             delta = pct * max_delta.total_seconds()
-            
+
             record[fieldname] = start + datetime.timedelta(seconds=delta)
-            record[fieldname] = unicode(
+            record[fieldname] = str(
                 record[fieldname].strftime('%Y-%m-%dT%H:%M:%S'))
-            
-        elif field[u'type'] == 'DATE':
+
+        elif field['type'] == 'DATE':
             # This implements the minimum/maximum date functionality
             # and avoids regenerating a random date if already obeys min/max
             # date.
-            pct = random_number / float(sys.maxint)
+            pct = random_number / float(sys.maxsize)
             start = self.data_gen.min_date
             max_delta = self.data_gen.max_date - self.data_gen.min_date
             delta = int(pct * max_delta.days)
-            
-            record[fieldname] = start + datetime.timedelta(days=delta)
-            record[fieldname] = unicode(record[fieldname].strftime('%Y-%m-%d'))
 
-        elif field[u'type'] == 'INTEGER':
+            record[fieldname] = start + datetime.timedelta(days=delta)
+            record[fieldname] = str(record[fieldname].strftime('%Y-%m-%d'))
+
+        elif field['type'] == 'INTEGER':
             max_size = self.data_gen.max_int
-            record[fieldname] = int(max_size * (random_number / sys.maxint))
+            record[fieldname] = int(max_size * (random_number / sys.maxsize))
 
             if '_max_' in field['name'].lower():
-                max_size = int(fieldname[fieldname.find("_max_") + 5:
-                                         len(fieldname)])
+                max_size = int(fieldname[fieldname.find("_max_") +
+                                         5:len(fieldname)])
             # This implements max and sign constraints
             # and avoids regenerating a random integer if already obeys min/max
             # integer.
@@ -423,22 +438,20 @@ class FakeRowGen(beam.DoFn):
             max_size = float(self.data_gen.max_float)
 
             if '_max_' in field['name'].lower():
-                max_size = float(fieldname[fieldname.find("_max_") + 5:
-                                         len(fieldname)])
-            record[fieldname] = max_size * random_number / float(sys.maxint)
-            
+                max_size = float(fieldname[fieldname.find("_max_") +
+                                           5:len(fieldname)])
+            record[fieldname] = max_size * random_number / float(sys.maxsize)
+
             record[fieldname] = round(float(record[fieldname]),
                                       self.data_gen.float_precision)
             if self.data_gen.only_pos:
                 record[fieldname] = abs(record[fieldname])
-            
 
         # Make some values null based on null_prob.
-        if field.get(u'mode') == 'NULLABLE':
-            record[fieldname] = np.random.choice([None, record[fieldname]],
-                                                 p=[self.data_gen.null_prob,
-                                                    1.0
-                                                    - self.data_gen.null_prob])
+        if field.get('mode') == 'NULLABLE':
+            record[fieldname] = np.random.choice(
+                [None, record[fieldname]],
+                p=[self.data_gen.null_prob, 1.0 - self.data_gen.null_prob])
 
         # Pick key at random from foreign keys.
         # Draw key column from [0, n_keys) if has _key in the name.
@@ -499,19 +512,19 @@ class FakeRowGen(beam.DoFn):
         and converting it back to a datatype that matches the schema.
         """
         for key in keys:
-            if key == u'frequency':
+            if key == 'frequency':
                 pass
             else:
                 field_dict = self.get_field_dict(key)
-                datatype = field_dict[u'type']
+                datatype = field_dict['type']
                 if datatype == 'STRING':
                     keys[key] = str(keys[key])
                 elif datatype == 'INTEGER':
                     pass
                 elif datatype == 'BYTES':
                     keys[key] = bytes(keys[key])
-                #TODO add other datatypes as needed by your usecase.    
-        return keys 
+                #TODO add other datatypes as needed by your usecase.
+        return keys
 
     def generate_fake(self, fschema, key_dict=None):
         """
@@ -525,19 +538,19 @@ class FakeRowGen(beam.DoFn):
 
         # Drop the key columns because we do not need to randomly generate them.
         if key_dict:
-            for key in key_dict.keys():
+            for key in list(key_dict.keys()):
                 fschema.pop(key, None)
 
         # Random numbers which will be converted to the proper datatype later by
         # sanity_check.
         # We pregenerate this way for efficiency. Sanity check will not just peform
         # deterministic actions.
-        random_numbers = np.random.randint(0, sys.maxint, size=len(fschema))
+        random_numbers = np.random.randint(0, sys.maxsize, size=len(fschema))
 
         # Generate a fake record.
         col_idx = 0
         data = {}
-        for col_name in fschema.keys():
+        for col_name in list(fschema.keys()):
             data = self.sanity_check(data, col_name, random_numbers[col_idx])
             col_idx += 1
 
@@ -545,7 +558,7 @@ class FakeRowGen(beam.DoFn):
             keys = self.convert_key_types(key_dict)
             # Join the keys and the rest of the genreated data
             data.update(keys)
-            data.pop(u'frequency')
+            data.pop('frequency')
         return json.dumps(data)
 
     def process(self, element, *args, **kwargs):
@@ -554,22 +567,23 @@ class FakeRowGen(beam.DoFn):
         PCollection.
 
         Args:
-            element: A single element of the PCollection 
+            element: A single element of the PCollection
         """
 
         faker_schema = self.data_gen.get_faker_schema()
         try:
             # Here the element is treated as the dictionary representing a single row
             # of the histogram table.
-            frequency = int(element.get(u'frequency'))
+            frequency = int(element.get('frequency'))
 
-            for i in xrange(frequency):
-                row = self.generate_fake(fschema=faker_schema, key_dict=element)
+            for i in range(frequency):
+                row = self.generate_fake(fschema=faker_schema,
+                                         key_dict=element)
                 yield row
         except AttributeError:
-        # The contents of this element are ignored if they are a string.
+            # The contents of this element are ignored if they are a string.
             row = self.generate_fake(fschema=faker_schema, key_dict=element)
-            yield row 
+            yield row
 
 
 def parse_data_generator_args(argv):
@@ -582,112 +596,150 @@ def parse_data_generator_args(argv):
     """
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--schema_file', dest='schema_file', required=False,
+    parser.add_argument('--schema_file',
+                        dest='schema_file',
+                        required=False,
                         help='Schema json file to read. This can be a local '
-                             'file or a file in a Google Storage Bucket.')
+                        'file or a file in a Google Storage Bucket.')
 
-    parser.add_argument('--input_bq_table', dest='input_bq_table',
+    parser.add_argument('--input_bq_table',
+                        dest='input_bq_table',
                         required=False,
                         help='Name of BigQuery table to populate.')
 
-    parser.add_argument('--output_bq_table', dest='output_bq_table',
+    parser.add_argument('--output_bq_table',
+                        dest='output_bq_table',
                         required=False,
                         help='Name of the table to write to BigQuery table.')
 
-    parser.add_argument('--hist_bq_table', dest='hist_bq_table',
+    parser.add_argument('--hist_bq_table',
+                        dest='hist_bq_table',
                         required=False,
                         help='Name of BigQuery table to populate.')
 
-    parser.add_argument('--num_records', dest='num_records', required=False,
+    parser.add_argument('--num_records',
+                        dest='num_records',
+                        required=False,
                         help='Number of random output records to write to '
-                             'BigQuery table.',
+                        'BigQuery table.',
                         default=10)
 
-    parser.add_argument('--primary_key_cols', dest='primary_key_cols', required=False,
-                        help='Field name of primary key. ', default=None)
+    parser.add_argument('--primary_key_cols',
+                        dest='primary_key_cols',
+                        required=False,
+                        help='Field name of primary key. ',
+                        default=None)
 
-    parser.add_argument('--p_null', dest='p_null', required=False,
+    parser.add_argument('--p_null',
+                        dest='p_null',
+                        required=False,
                         help='Probability a nullable column is null.',
                         default=0.0)
 
-    parser.add_argument('--n_keys', dest='n_keys', required=False,
+    parser.add_argument('--n_keys',
+                        dest='n_keys',
+                        required=False,
                         help='Cardinality of key columns.',
-                        default=sys.maxint)
+                        default=sys.maxsize)
 
-    parser.add_argument('--key_skew_distribution', dest='key_skew',
+    parser.add_argument('--key_skew_distribution',
+                        dest='key_skew',
                         required=False,
                         help='The distribution of keys.  By default this is '
-                             'None, meaning roughly equal distribution'
-                             'of rowcount across keys.  '
-                             'This also supports "binomial" giving a maximum '
-                             'variance bell curve of keys over the range of the'
-                             ' keyset or "zipf" giving a distribution across '
-                             'the keyset according to zipf\'s law',
+                        'None, meaning roughly equal distribution'
+                        'of rowcount across keys.  '
+                        'This also supports "binomial" giving a maximum '
+                        'variance bell curve of keys over the range of the'
+                        ' keyset or "zipf" giving a distribution across '
+                        'the keyset according to zipf\'s law',
                         default=None)
 
-    parser.add_argument('--min_date', dest='min_date', required=False,
+    parser.add_argument('--min_date',
+                        dest='min_date',
+                        required=False,
                         help='Set earliest possible date for the history '
-                             'represented by this table,'
-                             ' %Y-%m-%d format.',
+                        'represented by this table,'
+                        ' %Y-%m-%d format.',
                         default=datetime.date(2018, 1, 1).strftime('%Y-%m-%d'))
 
-    parser.add_argument('--max_date', dest='max_date', required=False,
+    parser.add_argument('--max_date',
+                        dest='max_date',
+                        required=False,
                         help='Set latest possible date for the history '
-                             'represented by this table '
-                             '%Y-%m-%d format.',
+                        'represented by this table '
+                        '%Y-%m-%d format.',
                         default=datetime.date.today().strftime('%Y-%m-%d'))
 
-    parser.add_argument('--strictly_positive', dest='only_pos', required=False,
+    parser.add_argument('--strictly_positive',
+                        dest='only_pos',
+                        required=False,
                         help='Dictates if numbers (integers or floats) '
-                             'generated be strictly positive.',
+                        'generated be strictly positive.',
                         default=True)
 
-    parser.add_argument('--max_int', dest='max_int', required=False,
+    parser.add_argument('--max_int',
+                        dest='max_int',
+                        required=False,
                         help='Maximum integer.',
-                        default=10 ** 11)
+                        default=10**11)
 
-    parser.add_argument('--max_float', dest='max_float', required=False,
+    parser.add_argument('--max_float',
+                        dest='max_float',
+                        required=False,
                         help='Maximum float.',
-                        default=float(10 ** 11))
+                        default=float(10**11))
 
-    parser.add_argument('--float_precision', dest='float_precision',
+    parser.add_argument('--float_precision',
+                        dest='float_precision',
                         required=False,
                         help='How many digits to the right of the decimal for '
-                             'floats.',
+                        'floats.',
                         default=2)
 
-    parser.add_argument('--fact_table', dest='fact_table',
+    parser.add_argument('--fact_table',
+                        dest='fact_table',
                         help='Side input table to select key set from when '
                         'generating joinable schemas.',
                         default=None)
 
-    parser.add_argument('--source_joining_key_col', dest='source_joining_key_col',
+    parser.add_argument('--source_joining_key_col',
+                        dest='source_joining_key_col',
                         help='Column in fact_table containing foreign key for '
-                             'this dimension table.',
+                        'this dimension table.',
                         default=None)
 
-    parser.add_argument('--dest_joining_key_col', dest='dest_joining_key_col',
+    parser.add_argument('--dest_joining_key_col',
+                        dest='dest_joining_key_col',
                         help='Column in fact_table containing foreign key for '
-                             'this dimension table.',
+                        'this dimension table.',
                         default=None)
 
-    parser.add_argument('--csv_schema_order', dest='csv_schema_order', 
-                        help='This is a comma separated list of the order in which'
-                        'to write data to csv.', default=None)
+    parser.add_argument(
+        '--csv_schema_order',
+        dest='csv_schema_order',
+        help='This is a comma separated list of the order in which'
+        'to write data to csv.',
+        default=None)
 
-    parser.add_argument('--avro_schema_file', dest='avro_schema_file', 
+    parser.add_argument('--avro_schema_file',
+                        dest='avro_schema_file',
                         help='This is an avro schema file to use for writing'
-                        'data to avro on gcs.', default=None)
+                        'data to avro on gcs.',
+                        default=None)
 
-    parser.add_argument('--gcs_output_prefix', dest='output_prefix', 
-                        help='GCS path for output', default=None)
+    parser.add_argument('--gcs_output_prefix',
+                        dest='output_prefix',
+                        help='GCS path for output',
+                        default=None)
 
-    parser.add_argument('--write_disp', dest='write_disp', required=False,
+    parser.add_argument('--write_disp',
+                        dest='write_disp',
+                        required=False,
                         help='BigQuery Write Disposition.',
                         default='WRITE_APPEND')
 
-
     return parser.parse_known_args(argv)
+
 
 def validate_data_args(data_args):
     """
@@ -711,24 +763,22 @@ def validate_data_args(data_args):
             bq_table = bq_cli.get_table(bq_table_ref)
 
             # Quickly parse TableSchema object to list of dictionaries.
-            data_args.schema = [
-                {u'name': field.name,
-                 u'type': field.field_type,
-                 u'mode': field.mode
-                 }
-                for field in bq_table.schema
-            ]
-            
+            data_args.schema = [{
+                'name': field.name,
+                'type': field.field_type,
+                'mode': field.mode
+            } for field in bq_table.schema]
+
             # Check if there are nested datatypes but CSV output.
             if data_args.csv_schema_order:
-                types = [field[u'type'] for field in data_args.schema]
+                types = [field['type'] for field in data_args.schema]
                 if 'RECORD' in types:
-                    raise ValueError("Cannot write nested types to CSV.") 
+                    raise ValueError("Cannot write nested types to CSV.")
 
             if data_args.output_bq_table:
                 # We need to check if this output table already exists.
-                dataset_name, table_name = data_args.output_bq_table.split('.',
-                                                                           1)
+                dataset_name, table_name = data_args.output_bq_table.split(
+                    '.', 1)
                 bq_dataset = bq_cli.dataset(dataset_name)
                 # This forms a TableReference object.
                 bq_table_ref = bq_dataset.table(table_name)
@@ -774,19 +824,16 @@ def fetch_schema(data_args, schema_inferred):
             bq_table = bq_cli.get_table(bq_table_ref)
 
             # Quickly parse TableSchema object to list of dictionaries.
-            data_args.schema = [
-                {'name': field.name,
-                 'type': field.field_type,
-                 'mode': field.mode,
-                 'fields': field.fields
-                 }
-                for field in bq_table.schema
-            ]
+            data_args.schema = [{
+                'name': field.name,
+                'type': field.field_type,
+                'mode': field.mode,
+                'fields': field.fields
+            } for field in bq_table.schema]
             if data_args.output_bq_table:
                 # We need to check if this output table already exists.
                 dataset_name, table_name = data_args.output_bq_table.split(
-                    '.', 1
-                )
+                    '.', 1)
                 bq_dataset = bq_cli.dataset(dataset_name)
                 # This forms a TableReference object.
                 bq_table_ref = bq_dataset.table(table_name)
@@ -801,9 +848,7 @@ def fetch_schema(data_args, schema_inferred):
                       'input_bq_table. '
                       'Please enter only one of these arguments')
         raise ValueError('Error: pipeline was passed both schema_file and '
-                      'input_bq_table. '
-                      'Please enter only one of these arguments')
+                         'input_bq_table. '
+                         'Please enter only one of these arguments')
 
     return data_args, schema_inferred
-
-

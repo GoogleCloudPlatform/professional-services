@@ -1,0 +1,28 @@
+<mat-toolbar [ngStyle]="{'background-color': '#006400', 'color': 'white'}">
+  <div class="d-flex my-3 vcenter">
+    <button class="mx-4" mat-icon-button (click)="sideNav.toggle()">
+        <mat-icon>menu</mat-icon>
+    </button>
+    <h1 class="googlesans">Audio Content Moderator</h1>
+  </div>
+
+</mat-toolbar>
+<mat-sidenav-container>
+  <mat-sidenav #sideNav role="navigation">
+    <mat-nav-list>
+      <a mat-list-item routerLink="/" routerLinkActive="active-menu-item" skipLocationChange
+         (click)="sideNav.toggle()">
+        <mat-icon matListIcon class="icon-color">home</mat-icon>
+        <span class="ml-3">Home</span>
+      </a>
+      <a mat-list-item routerLink="/analysis" routerLinkActive="active-menu-item" skipLocationChange
+         (click)="sideNav.toggle()">
+        <mat-icon matListIcon class="icon-color">apps</mat-icon>
+        <span class="ml-3">Analysis</span>
+      </a>
+    </mat-nav-list>
+  </mat-sidenav>
+  <mat-sidenav-content>
+    <router-outlet></router-outlet>
+  </mat-sidenav-content>
+</mat-sidenav-container>

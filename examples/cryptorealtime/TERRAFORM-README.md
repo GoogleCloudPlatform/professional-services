@@ -13,65 +13,65 @@
 
 ### Setup:
 - Open the Terraform Shell and clone the project
-```console 
+```console
 git clone https://github.com/GoogleCloudPlatform/professional-services
 cd professional-services/examples/cryptorealtime/terraform-setup/
 ```
 
 - Fill out the [terraform.tfvars](terraform-setup/terraform.tfvars) configuration
-```console 
- vim terraform.tfvars 
+```console
+ vim terraform.tfvars
  ```
 
-- Check that everything is working 
-```console 
+- Check that everything is working
+```console
 terraform init
-terraform apply 
+terraform apply
 ```
 (ignore api enablement errors and/or rerun)
 
-- Wait 5-10 minutes until the VM startup script is booted 
-- Note: Your public IP address will be displayed here or in console 
+- Wait 5-10 minutes until the VM startup script is booted
+- Note: Your public IP address will be displayed here or in console
 
 - SSH into the VM that was [created](https://console.cloud.google.com/compute/instances)
-```console 
-sudo -s 
+```console
+sudo -s
 cd ~/professional-services/examples/cryptorealtime/
 ```
 
 
 - Verify the variables from terraform are in place:
-```console 
-echo "PROJECT_ID" $PROJECT_ID  "REGION" $REGION "ZONE" $ZONE "BUCKET_NAME" $BUCKET_NAME "BUCKET_FOLDER" $BUCKET_FOLDER "BIGTABLE_INSTANCE_NAME" $BIGTABLE_INSTANCE_NAME "BIGTABLE_TABLE_NAME" $BIGTABLE_TABLE_NAME "BIGTABLE_FAMILY_NAME" $BIGTABLE_FAMILY_NAME 
+```console
+echo "PROJECT_ID" $PROJECT_ID  "REGION" $REGION "ZONE" $ZONE "BUCKET_NAME" $BUCKET_NAME "BUCKET_FOLDER" $BUCKET_FOLDER "BIGTABLE_INSTANCE_NAME" $BIGTABLE_INSTANCE_NAME "BIGTABLE_TABLE_NAME" $BIGTABLE_TABLE_NAME "BIGTABLE_FAMILY_NAME" $BIGTABLE_FAMILY_NAME
 ```
 
 - Run the Dataflow job to connect to exchanges
-```console 
+```console
 ./run.sh ${PROJECT_ID} ${BIGTABLE_INSTANCE_NAME} ${BUCKET_NAME}${BUCKET_FOLDER} ${BIGTABLE_TABLE_NAME} $BIGTABLE_FAMILY_NAME
-``` 
+```
 - Ignore any *java.lang.IllegalThreadStateException*
 
 
 - Go to frontend script and run the frontend flask server and data visualisation
-```console 
+```console
 cd frontend/
 python app.py ${PROJECT_ID} ${BIGTABLE_INSTANCE_NAME} ${BIGTABLE_TABLE_NAME} ${BIGTABLE_FAMILY_NAME}
 ```
 
-- Open the VM IP on port 5000 in your browser to see the chart 
+- Open the VM IP on port 5000 in your browser to see the chart
 
 
 **Cleanup:**
 - Delete the Dataflow jobs
-```console 
+```console
 gcloud dataflow jobs cancel \
 $(gcloud dataflow jobs list \
   --format='value(id)' \
   --filter="name:runthepipeline*")
-``` 
+```
 
-- Take down the infrastructure 
-```console 
+- Take down the infrastructure
+```console
 terraform destroy
 ```
 

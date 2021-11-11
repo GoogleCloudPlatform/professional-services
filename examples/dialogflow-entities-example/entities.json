@@ -1,0 +1,63 @@
+{ "entity_types": [
+  {
+    "name": "projects/<project-id>/agent/entityTypes/entity-id",
+    "display_name": "saving-account-types",
+    "kind": "KIND_MAP",
+    "entities": [
+      {
+        "value": "saving-account-types",
+        "synonyms": [
+          "saving",
+          "saving account",
+          "child saving",
+          "IRA",
+          "CD",
+          "student saving"
+        ]
+      }
+    ]
+  },
+  {
+    "display_name": "checking-account-types",
+    "kind": "KIND_MAP",
+    "entities": [
+      {
+        "value": "checking-account-types",
+        "synonyms": [
+          "checking", "checking account", "student checking account",
+          "student account", "business checking account", "business account"
+        ]
+      }
+    ]
+  },
+  {
+    "display_name": "account_types",
+    "kind": "KIND_LIST",
+    "entities": [
+      {
+        "value": "@saving-account-types:saving-account-types",
+        "synonyms": [
+          "@saving-account-types:saving-account-types"
+        ]
+      },
+      {
+        "value": "@checking-account-types:checking-account-types",
+        "synonyms": [
+          "@checking-account-types:checking-account-types"
+        ]
+      },
+      {
+        "value": "@sys.date-period:date-period @saving-account-types:saving-account-types",
+        "synonyms": [
+          "@sys.date-period:date-period @saving-account-types:saving-account-types"
+        ]
+      },
+      {
+        "value": "@sys.date-period:date-period @checking-account-types:checking-account-types",
+        "synonyms": [
+          "@sys.date-period:date-period @checking-account-types:checking-account-types"
+        ]
+      }
+    ]
+  }
+]}

@@ -1,0 +1,3 @@
+google-cloud-storage==1.18.0
+google-cloud-language==1.3.0
+google-api-python-client==1.7.11

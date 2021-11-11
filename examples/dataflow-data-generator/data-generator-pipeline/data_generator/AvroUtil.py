@@ -13,40 +13,37 @@
 # limitations under the License.
 
 import avro.schema
+import fastavro
 import json
-from TimeUtil import datetime_to_epoch_timestamp, date_to_epoch_date, \
+from .TimeUtil import datetime_to_epoch_timestamp, date_to_epoch_date, \
 time_to_epoch_time
 
 
 def fix_record_for_avro(record, avro_schema):
-    for field in avro_schema.fields:
-        field_name = field.name
-        datatype = field.type.to_json()
+    for field in avro_schema['fields']:
+        field_name = field['name']
+        datatype = field['type']
         if isinstance(datatype, dict):
             # This is a record type definition so we need to recurse a level deeper.
-            record[field_name] = fix_record_for_avro(record[field_name], 
-                    avro.schema.parse(json.dumps(datatype)))[0]
+            record[field_name] = fix_record_for_avro(
+                record[field_name], fastavro.parse_schema(datatype))[0]
         elif isinstance(datatype, list) and isinstance(datatype[1], dict):
-            logical_type = datatype[1].get(u'logicalType', None)
+            logical_type = datatype[1].get('logicalType', None)
             if logical_type:
                 if logical_type.find('-') > -1:
                     logical_prefix, precision = logical_type.split('-')
                 else:
                     logical_prefix = logical_type
                     precision = None
-                if logical_prefix == u'timestamp': 
-                    is_micros = (precision == u'micros') 
+                if logical_prefix == 'timestamp':
+                    is_micros = (precision == 'micros')
                     record[field_name] = datetime_to_epoch_timestamp(
-                        record[field_name],
-                        micros=is_micros
-                    )
-                elif logical_type == u'date':
+                        record[field_name], micros=is_micros)
+                elif logical_type == 'date':
                     record[field_name] = date_to_epoch_date(record[field_name])
-                elif logical_prefix == u'time':
-                    is_micros = (precision == u'micros') 
+                elif logical_prefix == 'time':
+                    is_micros = (precision == 'micros')
 
-                    record[field_name] = time_to_epoch_time(
-                        record[field_name],
-                        micros=is_micros
-                    )
+                    record[field_name] = time_to_epoch_time(record[field_name],
+                                                            micros=is_micros)
     return [record]

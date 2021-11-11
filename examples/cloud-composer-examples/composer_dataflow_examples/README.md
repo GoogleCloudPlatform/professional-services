@@ -2,7 +2,7 @@
 ##### This repo contains an example Cloud Composer workflow that triggers Cloud Dataflow to transform, enrich and load a delimited text file into Cloud BigQuery.
 The goal of this example is to provide a common pattern to automatically trigger, via Google Cloud Function, a Dataflow job when a file arrives in Google Cloud Storage, process the data and load it into BigQuery.
 
-### Workflow Overview 
+### Workflow Overview
 
 ***
 
@@ -67,7 +67,7 @@ The following high-level steps describe the setup needed to run this example:
 |filename	 |STRING      |
 |load_dt	 |DATE        |
 
-5. Set the following Airflow variables needed for this example:
+5. Set the following [Airflow variables](https://airflow.apache.org/docs/stable/concepts.html#variables) needed for this example:
 
 | Key                   | Value                                           |Example                                   |
 | :--------------------- |:---------------------------------------------- |:---------------------------              |
@@ -90,7 +90,7 @@ The following high-level steps describe the setup needed to run this example:
 8. Upload the Python Dataflow code [process_delimited.py](dataflow/process_delimited.py) into a *dataflow* folder created in the base DAG folder.
 9. Finally follow [these](https://cloud.google.com/composer/docs/how-to/using/triggering-with-gcf) instructions to create a Cloud Function.
     - Ensure that the **DAG_NAME** property is set to _**GcsToBigQueryTriggered**_ i.e. The DAG name defined in [simple_load_dag.py](simple_load_dag.py).
-    
+
 ***
 
 ##### Triggering the workflow

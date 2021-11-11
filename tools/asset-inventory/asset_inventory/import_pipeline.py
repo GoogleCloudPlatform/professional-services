@@ -43,7 +43,6 @@ from apache_beam.options.value_provider import StaticValueProvider
 from apache_beam.transforms import core
 from asset_inventory import bigquery_schema
 from asset_inventory.api_schema import APISchema
-from asset_inventory.cai_to_api import CAIToAPI
 from six import string_types
 
 from google.api_core.exceptions import BadRequest
@@ -164,17 +163,12 @@ class BigQuerySanitize(beam.DoFn):
 class ProduceResourceJson(beam.DoFn):
     """Create a json only element for every element."""
 
-    def __init__(self, load_time, group_by):
-        if isinstance(load_time, string_types):
-            load_time = StaticValueProvider(str, load_time)
+    def __init__(self, group_by):
         if isinstance(group_by, string_types):
             group_by = StaticValueProvider(str, group_by)
-        self.load_time = load_time
         self.group_by = group_by
 
     def process(self, element):
-        # add load timestamp.
-        element['timestamp'] = self.load_time.get()
         if ('resource' in element and
             'data' in element['resource']):
             resource = element['resource']
@@ -194,15 +188,16 @@ class ProduceResourceJson(beam.DoFn):
                 yield element
 
 
-class MapCAIProperties(beam.DoFn):
-    """Corrects CAI properties to match API object properties."""
+class AddLoadTime(beam.DoFn):
+    """Add timestamp field to track load time."""
+
+    def __init__(self, load_time):
+        if isinstance(load_time, string_types):
+            load_time = StaticValueProvider(str, load_time)
+        self.load_time = load_time
 
     def process(self, element):
-        if ('resource' in element and 'data' in element['resource']):
-            if element['asset_type'].startswith('compute.googleapis.com'):
-                CAIToAPI.cai_to_api_properties(
-                    element['resource']['discovery_name'],
-                    element['resource']['data'])
+        element[1]['timestamp'] = self.load_time.get()
         yield element
 
 
@@ -338,7 +333,10 @@ class DeleteDataSetTables(BigQueryDoFn):
     """
 
     def __init__(self, dataset, write_disposition):
-        super(DeleteDataSetTables, self).__init__(dataset)
+        # Can't use super().
+        # https://issues.apache.org/jira/browse/BEAM-6158?focusedCommentId=16919945
+        # super(DeleteDataSetTables, self).__init__(dataset)
+        BigQueryDoFn.__init__(self, dataset)
         if isinstance(write_disposition, string_types):
             write_disposition = StaticValueProvider(str, write_disposition)
         self.write_disposition = write_disposition
@@ -365,7 +363,10 @@ class LoadToBigQuery(BigQueryDoFn):
     """
 
     def __init__(self, dataset, load_time):
-        super(LoadToBigQuery, self).__init__(dataset)
+        # Can't use super().
+        # https://issues.apache.org/jira/browse/BEAM-6158?focusedCommentId=16919945
+        # super(LoadToBigQuery, self).__init__(dataset)
+        BigQueryDoFn.__init__(self, dataset)
         if isinstance(load_time, string_types):
             load_time = StaticValueProvider(str, load_time)
         self.load_time = load_time
@@ -476,9 +477,8 @@ def run(argv=None):
     # Cleanup json documents.
     sanitized = (
         p | 'read' >> ReadFromText(options.input, coder=JsonCoder())
-        | 'map_cai_properties' >> beam.ParDo(MapCAIProperties())
         | 'produce_resource_json' >> beam.ParDo(ProduceResourceJson(
-            options.load_time, options.group_by))
+            options.group_by))
         | 'bigquery_sanitize' >> beam.ParDo(BigQuerySanitize()))
 
     # Joining all iam_policy objects with resources of the same name.
@@ -499,7 +499,9 @@ def run(argv=None):
     pvalue_schemas = beam.pvalue.AsDict(schemas)
     # Write to GCS and load to BigQuery.
     # pylint: disable=expression-not-assigned
-    (keyed_assets | 'group_by_key_before_enforce' >> beam.GroupByKey()
+    (keyed_assets
+     | 'add_load_time' >> beam.ParDo(AddLoadTime(options.load_time))
+     | 'group_by_key_before_enforce' >> beam.GroupByKey()
      | 'enforce_schema' >> beam.ParDo(EnforceSchemaDataTypes(), pvalue_schemas)
      | 'group_by_key_before_write' >> beam.GroupByKey()
      | 'write_to_gcs' >> beam.ParDo(

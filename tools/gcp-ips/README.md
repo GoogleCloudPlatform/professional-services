@@ -18,7 +18,7 @@ through every service project to compile the list of IPs and organize it by subn
 * GCP Application Default Credentials
     - this credential needs permissions to:
         1. list service projects in the host project
-        2. list addresses and instances in service projects: 
+        2. list addresses and instances in service projects:
              `compute.instances.list` and
              `compute.addresses.list`
 

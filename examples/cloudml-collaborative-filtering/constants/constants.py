@@ -35,16 +35,18 @@ ITEM_KEY = "song"
 ARTIST_KEY = "artist"
 ALBUMS_KEY = "albums"
 TAGS_KEY = "tags"
-COUNT_KEY = "count_norm"
-TOP_10_KEY = "top_10"
+USER_TAGS_KEY = "user_tags"
+WEIGHT_KEY = "weight"
+LABEL_KEY = "label"
 BQ_FEATURES = [
     USER_KEY,
     ITEM_KEY,
     ARTIST_KEY,
     ALBUMS_KEY,
     TAGS_KEY,
-    TOP_10_KEY,
-    COUNT_KEY,
+    USER_TAGS_KEY,
+    WEIGHT_KEY,
+    LABEL_KEY,
 ]
 
 # tft data
@@ -52,15 +54,14 @@ TFT_USER_KEY = "tft_user"
 TFT_ITEM_KEY = "tft_item"
 TFT_ARTIST_KEY = "tft_artist"
 TFT_TAGS_KEY = "tft_tags"
-TFT_TOP_10_KEY = "tft_top_10"
 TFT_FEATURES = [
     TFT_USER_KEY,
     TFT_ITEM_KEY,
     TFT_ARTIST_KEY,
     TFT_TAGS_KEY,
-    TFT_TOP_10_KEY,
 ]
 TFT_DEFAULT_ID = -1
+USER_TAGS_LENGTH = 20
 
 TRAIN_SIZE = .7
 VAL_SIZE = .15
@@ -71,10 +72,12 @@ def _get_train_spec():
   train_spec = {}
   train_spec.update({key: tf.io.FixedLenFeature([], dtype=tf.string)
                      for key in [USER_KEY, ITEM_KEY, ARTIST_KEY]})
-  train_spec[ALBUMS_KEY] = tf.io.FixedLenFeature([], dtype=tf.int64)
-  train_spec[COUNT_KEY] = tf.io.FixedLenFeature([], dtype=tf.float32)
-  train_spec.update({key: tf.io.VarLenFeature(tf.string)
-                     for key in [TAGS_KEY, TOP_10_KEY]})
+  train_spec.update({key: tf.io.FixedLenFeature([], dtype=tf.int64)
+                     for key in [ALBUMS_KEY, LABEL_KEY]})
+  train_spec[WEIGHT_KEY] = tf.io.FixedLenFeature([], dtype=tf.float32)
+  train_spec[USER_TAGS_KEY] = tf.io.FixedLenFeature([USER_TAGS_LENGTH],
+                                                    dtype=tf.float32)
+  train_spec[TAGS_KEY] = tf.io.VarLenFeature(tf.string)
   return train_spec
 
 
@@ -82,26 +85,32 @@ def get_serving_stub():
   """Returns stubbed values for features to use during serving when only username matters."""
   stub = {}
   stub.update({key: "" for key in [USER_KEY, ITEM_KEY, ARTIST_KEY]})
-  stub[ALBUMS_KEY] = 0
-  stub.update({key: [] for key in [TAGS_KEY, TOP_10_KEY]})
+  stub.update({key: 0 for key in [ALBUMS_KEY, USER_TAGS_KEY]})
+  stub[TAGS_KEY] = []
   return stub
 
 
 # model constants
-USER_NUMERICAL_FEATURES = []
-USER_CATEGORICAL_FEATURES = [TFT_TOP_10_KEY]
-USER_CATEGORICAL_VOCABS = [ITEM_VOCAB_NAME]
+USER_NUMERICAL_FEATURES = [USER_TAGS_KEY]
+USER_NUMERICAL_FEATURE_LENS = [USER_TAGS_LENGTH]
+USER_CATEGORICAL_FEATURES = []
+USER_CATEGORICAL_VOCABS = []
 USER_FEATURES = USER_NUMERICAL_FEATURES + USER_CATEGORICAL_FEATURES
 ITEM_NUMERICAL_FEATURES = [ALBUMS_KEY]
+ITEM_NUMERICAL_FEATURE_LENS = [1]
 ITEM_CATEGORICAL_FEATURES = [TFT_TAGS_KEY, TFT_ARTIST_KEY]
 ITEM_CATEGORICAL_VOCABS = [TAG_VOCAB_NAME, ARTIST_VOCAB_NAME]
 ITEM_FEATURES = ITEM_NUMERICAL_FEATURES + ITEM_CATEGORICAL_FEATURES
 
-EVAL_RECALLS = [10, 100, 1000]
+EVAL_SAMPLE_SIZE = 1000
+EVAL_RECALL_KS = [10, 100, 500]
+assert all([x < EVAL_SAMPLE_SIZE for x in EVAL_RECALL_KS])
+
 TRAIN_SPEC = _get_train_spec()
 SERVE_SPEC = _get_train_spec()
-SERVE_SPEC.pop(COUNT_KEY)
-RAW_CATEGORICAL_FEATURES = [TAGS_KEY, TOP_10_KEY]
+SERVE_SPEC.pop(WEIGHT_KEY)
+SERVE_SPEC.pop(LABEL_KEY)
+RAW_CATEGORICAL_FEATURES = [TAGS_KEY]
 
 # tensorboard projector config
 PROJECTOR_PATH = "metadata.tsv"

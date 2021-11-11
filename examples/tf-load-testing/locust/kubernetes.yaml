@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: locust-master
+  labels:
+    name: locust-master
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: locust-master
+  template:
+    metadata:
+      labels:
+        app: locust-master
+    spec:
+      containers:
+      - name: locust-master
+        image: gcr.io/${GCP_PROJECT}/locust-test:latest
+        args: ["--config=/master.conf"]
+        ports:
+        - name: loc-master-web
+          containerPort: 8089
+          protocol: TCP
+        - name: loc-master-p1
+          containerPort: 5557
+          protocol: TCP
+        - name: loc-master-p2
+          containerPort: 5558
+          protocol: TCP
+        resources:
+          requests:
+            memory: "265Mi"
+            cpu: "100m"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: locust-worker
+  labels:
+    name: locust-worker
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: locust-worker
+  template:
+    metadata:
+      labels:
+        app: locust-worker
+    spec:
+      containers:
+      - name: locust-worker
+GCP_PROJECT        args: ["--config=/worker.conf"]
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "500m"
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: locust-master
+  labels:
+    app: locust-master
+spec:
+  ports:
+  - port: 8089
+    targetPort: loc-master-web
+    protocol: TCP
+    name: loc-master-web
+  - port: 5557
+    targetPort: loc-master-p1
+    protocol: TCP
+    name: loc-master-p1
+  - port: 5558
+    targetPort: loc-master-p2
+    protocol: TCP
+    name: loc-master-p2
+  selector:
+    app: locust-master
+  type: ClusterIP

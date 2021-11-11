@@ -44,6 +44,36 @@ def ReadBQ(p, query):
       query=query, use_standard_sql=True))
 
 
+def _handle_null_user_tags(features):
+  """Replaces missing user tags with arrays of 0.
+
+  Args:
+    features: a dict of shape {$user_key: $user_id, $item_key: ...}.
+
+  Returns:
+    the features dict with empty user tags features set to arrays of 0s.
+  """
+  if len(features[constants.USER_TAGS_KEY]) != constants.USER_TAGS_LENGTH:
+    features[constants.USER_TAGS_KEY] = [0] * constants.USER_TAGS_LENGTH
+  return features
+
+
+def _normalize_user_tags(features):
+  """Normalizes tag vectors to sum to 1 if they are not the zero vector.
+
+  Args:
+    features: a dict of shape {$user_key: $user_id, $item_key: ...}.
+
+  Returns:
+    the features dict with the user tags feature normalized if possible.
+  """
+  tags_sum = sum(features[constants.USER_TAGS_KEY])
+  if tags_sum > 0:
+    normalized_tags = [x / tags_sum for x in features[constants.USER_TAGS_KEY]]
+    features[constants.USER_TAGS_KEY] = normalized_tags
+  return features
+
+
 def _preprocess_tft(raw_data, user_freq, item_freq):
   """Creates vocabularies for users and items and maps their ids to ints.
 
@@ -57,19 +87,16 @@ def _preprocess_tft(raw_data, user_freq, item_freq):
       features: {$user_key: $user_id, $item_key: $item_id, ...}.
   """
   features = {feature: raw_data[feature] for feature in constants.BQ_FEATURES}
-  item_vocab = tft.vocabulary(
-      raw_data[constants.ITEM_KEY],
-      vocab_filename=constants.ITEM_VOCAB_NAME,
-      frequency_threshold=item_freq)
   tft_features = {
       constants.TFT_USER_KEY: tft.compute_and_apply_vocabulary(
           raw_data[constants.USER_KEY],
           vocab_filename=constants.USER_VOCAB_NAME,
           frequency_threshold=user_freq,
           default_value=constants.TFT_DEFAULT_ID),
-      constants.TFT_ITEM_KEY: tft.apply_vocabulary(
+      constants.TFT_ITEM_KEY: tft.compute_and_apply_vocabulary(
           raw_data[constants.ITEM_KEY],
-          item_vocab,
+          vocab_filename=constants.ITEM_VOCAB_NAME,
+          frequency_threshold=item_freq,
           default_value=constants.TFT_DEFAULT_ID),
       constants.TFT_ARTIST_KEY: tft.compute_and_apply_vocabulary(
           raw_data[constants.ARTIST_KEY],
@@ -78,10 +105,6 @@ def _preprocess_tft(raw_data, user_freq, item_freq):
       constants.TFT_TAGS_KEY: tft.compute_and_apply_vocabulary(
           raw_data[constants.TAGS_KEY],
           vocab_filename=constants.TAG_VOCAB_NAME,
-          default_value=constants.TFT_DEFAULT_ID),
-      constants.TFT_TOP_10_KEY: tft.apply_vocabulary(
-          raw_data[constants.TOP_10_KEY],
-          item_vocab,
           default_value=constants.TFT_DEFAULT_ID),
   }
   features.update(tft_features)
@@ -125,6 +148,7 @@ def _filter_data(features):
 
 
 def _clean_tags(features):
+  """Replaces tag lists containing just the empty string with empty lists."""
   if (len(features[constants.TAGS_KEY]) and
       not features[constants.TAGS_KEY][0]):
     features[constants.TAGS_KEY] = []
@@ -190,7 +214,10 @@ def run(p, args):
   if not args.cloud:
     query = "{} LIMIT 10".format(query)
 
-  raw_data = p | "ReadBQ" >> ReadBQ(query)
+  raw_data = (p
+              | "ReadBQ" >> ReadBQ(query)
+              | "HandleNullUserTags" >> beam.Map(_handle_null_user_tags)
+              | "NormalizeUserTags" >> beam.Map(_normalize_user_tags))
   data = _run_tft_fn(raw_data, _preprocess_tft, args.tft_dir,
                      args.user_min_count, args.item_min_count)
   data = (data

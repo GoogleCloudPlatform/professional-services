@@ -71,7 +71,7 @@ Bootstraps a new project using the archetype.
 mvn archetype:generate                             \
   -DarchetypeGroupId=com.google.cloud.pso          \
   -DarchetypeArtifactId=maven-archetype-dataflow   \
-  -DarchetypeVersion=1.1                           \
+  -DarchetypeVersion=1.2                           \
   -DgroupId=<groupId>                              \
   -DartifactId=<artifactId>
 ```

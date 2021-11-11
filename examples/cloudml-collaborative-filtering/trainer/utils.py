@@ -32,22 +32,16 @@ def _sample_vocab(tft_output, vocab_name, label, k):
     tft_output: a TFTransformOutput object.
     vocab_name: the name of the embedding vocabulary made with tft.
     label: a label to assign each sample of the vocab.
-    k: the number of samples to take.
+    k: the maximum number of samples to take.
 
   Returns:
     A tuple of (indices, metadata):
       indices: a list of indices for the vocab sample.
       metadata: a list of lists of data corresponding to the indices.
-
-  Raises:
-    RuntimeError: k is larger than the vocab size.
   """
   vocab = tft_output.vocabulary_by_name(vocab_name)
-  if k > len(vocab):
-    raise RuntimeError("{0} num samples too high, must be at most {1}"
-                       .format(label, len(vocab)))
-
-  indices = random.sample(range(len(vocab)), k)
+  num_indices = min(k, len(vocab))
+  indices = random.sample(range(len(vocab)), num_indices)
   return indices, [[label, vocab[i]] for i in indices]
 
 
@@ -77,8 +71,8 @@ def write_projector_metadata(metadata_dir, tft_dir):
                                               constants.NUM_PROJECTOR_ITEMS)
   metadata = user_metadata + item_metadata
   metadata_path = os.path.join(metadata_dir, constants.PROJECTOR_PATH)
-  tf.gfile.MakeDirs(metadata_dir)
-  with tf.gfile.GFile(metadata_path, "w+") as f:
+  tf.io.gfile.makedirs(metadata_dir)
+  with tf.io.gfile.GFile(metadata_path, "w+") as f:
     f.write("label\tname\n")
-    f.write("\n".join(["\t".join(sample) for sample in metadata]))
+    f.write("\n".join(["{}\t{}".format(label, name) for label, name in metadata]))
   return user_indices, item_indices

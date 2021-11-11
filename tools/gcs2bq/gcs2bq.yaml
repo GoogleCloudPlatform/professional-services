@@ -1,0 +1,33 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: gcs2bq
+spec:
+  schedule: "0 0 2 * *" # Run every day at 2AM
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: gcs2bq
+            image: eu.gcr.io/YOUR-PROJECT/gcs2bq:latest
+            # imagePullPolicy: Always
+            env:
+              - name: GCS2BQ_PROJECT
+                value: YOUR-PROJECT
+              - name: GCS2BQ_DATASET
+                value: YOUR-DATASET
+              - name: GCS2BQ_TABLE
+                value: YOUR-TABLE
+              - name: GCS2BQ_BUCKET
+                value: YOUR-BUCKET
+              - name: GCS2BQ_LOCATION
+                value: EU
+            securityContext:
+              runAsNonRoot: true
+              runAsUser: 1000
+          # For Workload identity:
+          # serviceAccount: your-ksa
+          restartPolicy: OnFailure
+    

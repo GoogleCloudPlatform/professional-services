@@ -4,9 +4,9 @@
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
   You may obtain a copy of the License at
- 
+
        http://www.apache.org/licenses/LICENSE-2.0
- 
+
   Unless required by applicable law or agreed to in writing, software
   distributed under the License is distributed on an "AS IS" BASIS,
   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -86,7 +86,7 @@ The result of the script execution is:
 
 Depending on the size of the source table more than one file for both the training and validation datasets can be create.
 
-### Running the default 
+### Running the default
 
 The default tool configuration allows you to experiment using one of the [public BigQuery datasets](https://cloud.google.com/bigquery/public-data/) from the [International Census Data](https://console.cloud.google.com/bigquery?p=bigquery-public-data&d=census_bureau_international). We used the *age_specific_fertility_rates* table of this dataset.
 
@@ -115,11 +115,11 @@ The training and validation datasets will also be present in the following Cloud
 
 ## Running your example
 
-Starting from the default tool configuration, to change the BigQuery source you need to provide the *source_project*, *source_dataset* and *source_table* parameters in the [run.sh](run.sh) file. 
+Starting from the default tool configuration, to change the BigQuery source you need to provide the *source_project*, *source_dataset* and *source_table* parameters in the [run.sh](run.sh) file.
 
 **IMPORTANT** Changing the source data would mean the table structure (and hence columns) will be different. You will need to specify the following variables in the [ml_dataprep.config](ml_dataprep/config.py) module:
 * *COLUMNS* - array of column names that you want to be in the final dataset unchanged.
-* *TARGET_COLUMNS_SHUFFLE* - array of the column names that would be regarded as target values in the machine learning training; as per the default example you, can create additional target columns as SQL combinations of source columns and naming them. 
+* *TARGET_COLUMNS_SHUFFLE* - array of the column names that would be regarded as target values in the machine learning training; as per the default example you, can create additional target columns as SQL combinations of source columns and naming them.
 * *TARGET_COLUMNS_EXPORT* - array of the target column names that would be copied to the final train/validation split.
 
 All arrays can contain parameterized names. Column names parameters can be set up using *parameters* when running the *run.sh* script. All columns can also be specified directly or as constructed ones using SQL syntax. However it is recommended that *TARGET_COLUMNS_EXPORT* uses the names of the columns as they were defined in *TARGET_COLUMNS_SHUFFLE*.

@@ -20,8 +20,8 @@ from __future__ import print_function
 import json
 import os
 
+from tensorboard.plugins import projector
 import tensorflow as tf
-from tensorflow.contrib.tensorboard.plugins import projector
 import tensorflow_transform as tft
 
 # pylint: disable=g-bad-import-order
@@ -68,13 +68,14 @@ def _make_embedding_col(feature_name, vocab_name, tft_output, mult=1):
   return embedding_col, embedding_size
 
 
-def _get_net_features(features, tft_output, n_feats, c_feats, vocabs):
+def _get_net_features(features, tft_output, n_feats, n_lens, c_feats, vocabs):
   """Creates an input layer of features.
 
   Args:
     features: a batch of features.
     tft_output: a TFTransformOutput object.
     n_feats: a list of numerical feature names.
+    n_lens: the lengths of each nemerical feature.
     c_feats: a list of categorical feature names.
     vocabs: a list of vocabulary names cooresponding the the features in
       c_feats.
@@ -85,18 +86,20 @@ def _get_net_features(features, tft_output, n_feats, c_feats, vocabs):
         length of all the features concatenated together.
       size: the size of the feature layer.
   """
-  numerical_cols = [tf.feature_column.numeric_column(col) for col in n_feats]
+  numerical_cols = [tf.feature_column.numeric_column(col, shape=length)
+                    for col, length in zip(n_feats, n_lens)]
   categorical_cols = [_make_embedding_col(col, vocab_name, tft_output)
                       for col, vocab_name in zip(c_feats, vocabs)]
   cols = [x[0] for x in categorical_cols] + numerical_cols
-  size = sum([x[1] for x in categorical_cols]) + len(numerical_cols)
+  size = sum([x[1] for x in categorical_cols]
+             + [x.shape[0] for x in numerical_cols])
   feature_names = {x: features[x] for x in n_feats + c_feats}
   net_features = tf.feature_column.input_layer(feature_names, cols)
   return net_features, size
 
 
 def _make_input_layer(features, tft_output, feature_name, vocab_name, n_feats,
-                      c_feats, vocabs, mult=1):
+                      n_lens, c_feats, vocabs, mult=1):
   """Creates an input layer containing embeddings and features.
 
   Args:
@@ -105,6 +108,7 @@ def _make_input_layer(features, tft_output, feature_name, vocab_name, n_feats,
     feature_name: a attribute of features to get embedding vectors for.
     vocab_name: the name of the embedding vocabulary made with tft.
     n_feats: a list of numerical feature names.
+    n_lens: the lengths of each nemerical feature.
     c_feats: a list of categorical feature names.
     vocabs: a list of vocabulary names cooresponding the the features in
       c_features.
@@ -121,7 +125,7 @@ def _make_input_layer(features, tft_output, feature_name, vocab_name, n_feats,
   embedding_feature = tf.feature_column.input_layer(
       {feature_name: features[feature_name]}, [col])
   net_features, size = _get_net_features(features, tft_output, n_feats,
-                                         c_feats, vocabs)
+                                         n_lens, c_feats, vocabs)
   net = tf.concat([embedding_feature, net_features], 1)
   return net, embedding_size + size
 
@@ -291,6 +295,7 @@ def _model_fn(features, labels, mode, params):
                                           constants.TFT_USER_KEY,
                                           constants.USER_VOCAB_NAME,
                                           constants.USER_NUMERICAL_FEATURES,
+                                          constants.USER_NUMERICAL_FEATURE_LENS,
                                           constants.USER_CATEGORICAL_FEATURES,
                                           constants.USER_CATEGORICAL_VOCABS,
                                           hparams.user_embed_mult)
@@ -299,6 +304,7 @@ def _model_fn(features, labels, mode, params):
                                           constants.TFT_ITEM_KEY,
                                           constants.ITEM_VOCAB_NAME,
                                           constants.ITEM_NUMERICAL_FEATURES,
+                                          constants.ITEM_NUMERICAL_FEATURE_LENS,
                                           constants.ITEM_CATEGORICAL_FEATURES,
                                           constants.ITEM_CATEGORICAL_VOCABS,
                                           hparams.item_embed_mult)
@@ -311,8 +317,9 @@ def _model_fn(features, labels, mode, params):
 
   user_norm = tf.nn.l2_normalize(user_net, 1)
   item_norm = tf.nn.l2_normalize(item_net, 1)
-  preds = tf.abs(tf.reduce_sum(tf.multiply(user_norm, item_norm), axis=1))
-  loss = tf.losses.mean_squared_error(labels, preds, weights=labels**.5)
+  sims = tf.abs(tf.reduce_sum(tf.multiply(user_norm, item_norm), axis=1))
+  loss = tf.losses.log_loss(labels, sims,
+                            weights=features[constants.WEIGHT_KEY])
 
   user_embedding = _update_embedding_matrix(
       tft_features[constants.TFT_USER_KEY],
@@ -327,17 +334,26 @@ def _model_fn(features, labels, mode, params):
       tft_output,
       constants.ITEM_VOCAB_NAME)
 
-  # Eval op: Log the recall of the batch and save a sample of user+item shared
-  # embedding space for tensorboard projector.
-  item_sims = tf.matmul(user_norm, item_embedding, transpose_b=True)
+  # Eval op: Log the recall of the batch and save a sample of user+item
+  # shared embedding space for tensorboard projector.
+
+  item_sample = tf.random_shuffle(item_embedding)[:constants.EVAL_SAMPLE_SIZE]
+  item_sample_sims = tf.sort(tf.matmul(user_norm, item_sample,
+                                       transpose_b=True),
+                             direction="DESCENDING")
+
   metrics = {}
   with tf.name_scope("recall"):
-    for k in constants.EVAL_RECALLS:
+    for k in constants.EVAL_RECALL_KS:
+      thresh_idx = min(k, item_sample.shape[0] - 1)
+      thresh = item_sample_sims[:, thresh_idx]
+      is_top_k = tf.cast(tf.greater_equal(sims, thresh), tf.float32)
+      recall = tf.metrics.mean(is_top_k, weights=labels)
       key = "recall_{0}".format(k)
-      recall = tf.metrics.recall_at_k(
-          tft_features[constants.TFT_TOP_10_KEY], item_sims, k)
       metrics["recall/{0}".format(key)] = recall
       tf.summary.scalar(key, recall[1])
+  metrics["acc"] = tf.metrics.accuracy(labels, tf.round(sims))
+  tf.summary.scalar("acc", metrics["acc"][1])
   tf.summary.merge_all()
 
   if mode == tf.estimator.ModeKeys.EVAL:
@@ -352,7 +368,7 @@ def _model_fn(features, labels, mode, params):
     return tf.estimator.EstimatorSpec(mode, loss=loss, eval_metric_ops=metrics)
 
   # Training op: Update the weights via backpropagation.
-  num_samples = constants.NUM_PROJECTOR_USERS + constants.NUM_PROJECTOR_ITEMS
+  num_samples = len(params["projector_users"]) + len(params["projector_items"])
   sample = tf.get_variable(constants.PROJECTOR_NAME,
                            [num_samples, hparams.embedding_size])
 

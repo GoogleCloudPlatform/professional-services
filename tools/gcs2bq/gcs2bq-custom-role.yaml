@@ -1,0 +1,16 @@
+# To create the custom role:
+# gcloud iam roles create gcs2bq --organization=ORGANIZATION_ID --file=gcs2bq-custom-role.yaml
+# 
+# To grant the custom role at organization level:
+# gcloud organizations add-iam-policy-binding ORGANIZATION_ID \ 
+#   --member='serviceAccount:gcs2bq@PROJECT_ID.iam.gserviceaccount.com' \
+#   --role='organizations/ORGANIZATION_ID/roles/gcs2bq'
+#
+title: "GCS2BQ service account"
+description: "GCS2BQ service account"
+stage: GA
+includedPermissions:
+- resourcemanager.projects.get
+- storage.buckets.list
+- storage.objects.list
+- storage.objects.getIamPolicy

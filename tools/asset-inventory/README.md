@@ -120,13 +120,11 @@ The deployment steps are:
     sed -i  "s|<ENTER-DATASET>|asset_inventory|" config.yaml
     sed -i  "s|<ENTER-STAGE>|$BUCKET/stage|" config.yaml
     sed -i  "s|<ENTER-PROJECT>|$PROJECT_ID|" config.yaml
-
     ```
 
 1. If using a Shared VPC to run the Dataflow job you must supply the `network` and `subnetwork` values in the import_pipeline_runtime_environment json map in the `config.yaml` file as described [here](https://cloud.google.com/dataflow/docs/guides/specifying-networks). Additionally the Dataflow Agent Serviece Account `service-<PROJECT-NUMBER>@dataflow-service-producer-prod.iam.gserviceaccount.com` needs the compute.networkUser role on the Shared VPC subnet. The dataflow job requires the ability to make external calls to `https://*.googleapis.com/$discovery/rest?version=*` endpoints in order to download discovery documents.
 
 1. The config.yaml limits Dataflow jos to one worker. This is because the VPC used might not allow internal communication between Dataflow workers as described [here](https://cloud.google.com/dataflow/docs/guides/routes-firewall). If you follow those steps or are using the default VPC and don't see a warning about missing firewall rules you can safely increase the maxWorkers configuration.
-
 
 1. Vendor the asset_inventory package with the app engine application:
 
@@ -247,13 +245,15 @@ The fastest way to Get data into BigQuery is to invoke the export resources to G
     gcloud alpha asset operations describe projects/1234567890/operations/ExportAssets/23230328344834
     ```
 
-1. Then import the assets into BigQuery with the Dataflow template:
+1. Then import the assets into BigQuery with the Dataflow template.
 
     ```
     export LOAD_TIME=`date +"%Y-%m-%dT%H:%M:%S%:z"`
     export JOB_NAME=cloud-asset-inventory-import-`echo $LOAD_TIME | tr : - | tr '[:upper:]' '[:lower:]' | tr + _`
-    gcloud dataflow jobs run $JOB_NAME  --gcs-location gs://professional-services-tools-asset-inventory/latest/import_pipeline --parameters="input=$BUCKET/*.json,stage=$BUCKET/stage,load_time=$LOAD_TIME,group_by=ASSET_TYPE,dataset=asset_inventory,write_disposition=WRITE_APPEND" --staging-location $BUCKET/staging
+    gcloud dataflow jobs run $JOB_NAME --region $CONFIG_REGION --gcs-location gs://professional-services-tools-asset-inventory/latest/import_pipeline --parameters="^|^input=$BUCKET/*.json|stage=$BUCKET/stage|load_time=$LOAD_TIME|group_by=ASSET_TYPE|dataset=asset_inventory|write_disposition=WRITE_APPEND|num_shards=*=1,resource=100,google.cloud.bigquery.Table=100" --staging-location $BUCKET/staging
     ```
+
+
 
     This will output a job id like `2019-01-07_13_48_24-2706414343179069654`
 
@@ -287,15 +287,15 @@ The fastest way to Get data into BigQuery is to invoke the export resources to G
 
 This repository contains some command line tools that let you run the export/import process with an Apache Beam runner, including the direct runner. This can be useful if the Dataflow runner isn't an option, and for local development.
 
-1. Run setup.py in develop mode. (The project also supports python3.7 if you set the BEAM_EXPERIMENTAL_PY3 environment variable). See [full instructions](https://beam.apache.org/get-started/quickstart-py/#set-up-your-environment) for setting up an Apache Beam development environment:
+1. Run setup.py in develop mode.See [full instructions](https://beam.apache.org/get-started/quickstart-py/#set-up-your-environment) for setting up an Apache Beam development environment:
 
     ```
     cd professional-services/tools/asset-inventory
     mkdir ~/.venv
-    virtualenv ~/.venv/asset-inventory
+    python -m venv ~/.venv/asset-inventory
     source ~/.venv/asset-inventory/bin/activate
+    pip install -e .
     pip install -r requirements.txt
-    python setup.py develop --upgrade
     ```
 
 1. Set the GOOGLE_APPLICATION_CREDENTIALS environment variable to the service account json key that will be used to invoke the Cloud Asset Inventory API and invoke the Beam runner. Or run within GCE and rely on the service account of the compute engine instance. Also grant it the bigquery.user role to modify BigQuery tables.
@@ -318,6 +318,75 @@ This repository contains some command line tools that let you run the export/imp
    python ./asset_inventory/import_pipeline.py  --runner dataflow --project $PROJECT  --temp_location gs://$BUCKET/export_resources_temp --staging_location gs://$BUCKET/export_resources_staging_location --template_location gs://$BUCKET/latest/import_pipeline --save_main_session   --setup_file ./setup.py
    ```
 
+
+## Input Schema Changes
+
+Sometimes the import schema will change. This can happen upstream when a backwards incompatible change is made to an API, such as a change in the datatype of a value or when the code in the pipeline changes the import format. This can cause imports with ```write_disposition=WRITE_APPEND``` to fail with an error simliar to this:
+
+  ```
+  "./asset_inventory/import_pipeline.py", line 422, in finish_bundle raise e
+  File "./asset_inventory/import_pipeline.py", line 419, in finish_bundle load_job.result()
+  File "/usr/local/lib/python3.7/site-packages/google/cloud/bigquery/job.py", line 733, in result return super(_AsyncJob, self).result(timeout=timeout)
+
+  File "/usr/local/lib/python3.7/site-packages/google/api_core/future/polling.py", line 127, in result raise self._exception google.api_core.exceptions.BadRequest: 400 Provided Schema does not match Table project-1:assets.run_googleapis_com_Revision. Field resource.data.spec.containers.livenessProbe.handler.exec.command has changed mode from NULLABLE to REPEATED [while running 'load_to_bigquery/load_to_bigquery']
+  ```
+
+To resume the import process there are three options.
+
+### 1. Delete the dataset and recreate it.
+
+The simplest option, this will discard all your data losing prior history but will let you continue the import. You can also try deleting the tables that fail to import if just a few of them.
+
+
+  ```
+  bq rm my_dataset_name
+  bq mk my_dataset_name
+  ```
+
+### 1. Copy the data to a new dataset, delete and recreate the existing dataset.
+
+This will preserve all your data in separate tables so no data is lost by copying the tables to a new datset using the bigquery transfer service.
+
+  ```
+  # enable BigQuery Transfer Service (only needs to be done once)
+  gcloud services enable bigquerydatatransfer.googleapis.com
+
+  # create new dataset to copy tables to
+  bq mk my_new_dataset_name
+  bq mk --transfer_config  --data_source=cross_region_copy --target_dataset=my_new_dataset_name  --display_name=copy --params='{"source_dataset_id":"my_dataest_name","source_project_id":"my-project-id","overwrite_destination_table":"false"}'
+
+  # wait for transfer config to be completed.
+  bq show --transfer_config projects/123/locations/us/transferConfigs/my-tranferconfigid
+  ....
+
+  # delete old tables by deleting and recreating the dataset.
+  bq rm my_dataset_name
+  bq mk my_dataset_name
+  ```
+
+### 1. Change import configurations.
+
+to import to a new dataset, or set write_disposition=WRITE_EMPTY.
+Changing the dataset the pipeline imports to will create new tables or setting write_disposition to WRITE_EMPTY (which will delete existing data) will allow imports to resume. This is done by changing either the ```config.yaml``` if using the scheduled import process or the ```--parameters`` value in the gcloud command when invoking the template via gcloud.
+
+## Upgrading from version 1.0.0 to 2.0.0
+
+The 2.0.0 pipeline release unfortuantely changed the import schema to resolve [issue #533](https://github.com/GoogleCloudPlatform/professional-services/issues/533). Now some user specified and dynamic properties are represented as record arrays of key value pairs rather then just flat records. This was done to keep a more regular schema and prevent accumulation of columns from overflowing table limits. This change could require changes in how you query the data for example, previously to query the App Engine traffic split across two versions you would write:
+
+```
+SELECT resource.data.split.allocations._20190115t172957,
+       resource.data.split.allocations._20190921t233039
+FROM `asset_inventory.appengine_googleapis_com_Service`
+```
+
+The new query would look like:
+
+```
+SELECT allocations.value
+FROM `asset_inventory.appengine_googleapis_com_Service` join
+       unnest(resource.data.split.allocations) allocations
+WHERE  allocations.name='_20190115t172957' or allocations.name = '_20190921t233039'
+```
 
 ## Troubleshooting.
 
