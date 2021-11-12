@@ -1,5 +1,8 @@
 # GCP Sample Logs 
-A repository of sample GCP logs for reference, including:
+## Overview
+This is a sample repository of GCP Audit Logs intended to help Operations and Security teams understand the structure and fields of logs for a variety of services.
+
+Sample GCP logs for include logs for:
 - [Google Workspace / Identity](./cloud-identity)
   - [Adding Groupmember](./cloud-identity/identity-add-groupmember.log)
   - [User Creation](./cloud-identity/identity-create-user.log)
