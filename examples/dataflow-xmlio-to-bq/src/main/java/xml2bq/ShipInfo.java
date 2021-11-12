@@ -51,8 +51,7 @@ public class ShipInfo {
   @XmlElement(name = "ShippedDate")
   private String shippedDate;
 
-  public ShipInfo() {
-  }
+  public ShipInfo() {}
 
   public ShipInfo(
       String shipVia,

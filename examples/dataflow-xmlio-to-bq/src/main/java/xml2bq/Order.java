@@ -39,8 +39,7 @@ public class Order {
   @XmlElement(name = "ShipInfo")
   private ShipInfo shipInfo;
 
-  public Order() {
-  }
+  public Order() {}
 
   public Order(
       String customerID,

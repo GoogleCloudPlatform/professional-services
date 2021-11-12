@@ -53,61 +53,91 @@ public class XmlIoDemo {
         new TableSchema()
             .setFields(
                 Arrays.asList(
-                    new TableFieldSchema().setName("customerID").setType("STRING")
+                    new TableFieldSchema()
+                        .setName("customerID")
+                        .setType("STRING")
                         .setMode("NULLABLE"),
-                    new TableFieldSchema().setName("employeeID").setType("String")
+                    new TableFieldSchema()
+                        .setName("employeeID")
+                        .setType("String")
                         .setMode("NULLABLE"),
-                    new TableFieldSchema().setName("orderDate").setType("String")
+                    new TableFieldSchema()
+                        .setName("orderDate")
+                        .setType("String")
                         .setMode("NULLABLE"),
-                    new TableFieldSchema().setName("requiredDate").setType("String")
+                    new TableFieldSchema()
+                        .setName("requiredDate")
+                        .setType("String")
                         .setMode("NULLABLE"),
-                    new TableFieldSchema().setName("shipInfo").setType("STRUCT").setFields(
-                        Arrays.asList(
-                            new TableFieldSchema().setName("shipVia").setType("String")
-                                .setMode("NULLABLE"),
-                            new TableFieldSchema().setName("Freight").setType("FLOAT64")
-                                .setMode("NULLABLE"),
-                            new TableFieldSchema().setName("shipName").setType("String")
-                                .setMode("NULLABLE"),
-                            new TableFieldSchema().setName("shipAddress").setType("String")
-                                .setMode("NULLABLE"),
-                            new TableFieldSchema().setName("shipCity").setType("String")
-                                .setMode("NULLABLE"),
-                            new TableFieldSchema().setName("shipRegion").setType("String")
-                                .setMode("NULLABLE"),
-                            new TableFieldSchema().setName("shipPostalCode").setType("String")
-                                .setMode("NULLABLE"),
-                            new TableFieldSchema().setName("shipCountry").setType("String")
-                                .setMode("NULLABLE"),
-                            new TableFieldSchema().setName("shippedDate").setType("String")
-                                .setMode("NULLABLE")
-                        )
-                    )));
+                    new TableFieldSchema()
+                        .setName("shipInfo")
+                        .setType("STRUCT")
+                        .setFields(
+                            Arrays.asList(
+                                new TableFieldSchema()
+                                    .setName("shipVia")
+                                    .setType("String")
+                                    .setMode("NULLABLE"),
+                                new TableFieldSchema()
+                                    .setName("Freight")
+                                    .setType("FLOAT64")
+                                    .setMode("NULLABLE"),
+                                new TableFieldSchema()
+                                    .setName("shipName")
+                                    .setType("String")
+                                    .setMode("NULLABLE"),
+                                new TableFieldSchema()
+                                    .setName("shipAddress")
+                                    .setType("String")
+                                    .setMode("NULLABLE"),
+                                new TableFieldSchema()
+                                    .setName("shipCity")
+                                    .setType("String")
+                                    .setMode("NULLABLE"),
+                                new TableFieldSchema()
+                                    .setName("shipRegion")
+                                    .setType("String")
+                                    .setMode("NULLABLE"),
+                                new TableFieldSchema()
+                                    .setName("shipPostalCode")
+                                    .setType("String")
+                                    .setMode("NULLABLE"),
+                                new TableFieldSchema()
+                                    .setName("shipCountry")
+                                    .setType("String")
+                                    .setMode("NULLABLE"),
+                                new TableFieldSchema()
+                                    .setName("shippedDate")
+                                    .setType("String")
+                                    .setMode("NULLABLE")))));
 
     Pipeline p = Pipeline.create(options);
     p.apply(
-        "Read XML",
-        XmlIO.<Order>read()
-            .from(options.getInputFile())
-            .withRootElement("Orders")
-            .withRecordElement("Order")
-            .withRecordClass(Order.class)
-    )
-        .apply("Process element", ParDo.of(new DoFn<Order, TableRow>() {
-          @ProcessElement
-          public void processElement(ProcessContext c) {
-            Order currentOrder = c.element();
+            "Read XML",
+            XmlIO.<Order>read()
+                .from(options.getInputFile())
+                .withRootElement("Orders")
+                .withRecordElement("Order")
+                .withRecordClass(Order.class))
+        .apply(
+            "Process element",
+            ParDo.of(
+                new DoFn<Order, TableRow>() {
+                  @ProcessElement
+                  public void processElement(ProcessContext c) {
+                    Order currentOrder = c.element();
 
-            TableRow row = new TableRow()
-                .set("customerID", currentOrder.getCustomerID())
-                .set("employeeID", currentOrder.getEmployeeID())
-                .set("orderDate", currentOrder.getOrderDate())
-                .set("requiredDate", currentOrder.getRequiredDate())
-                .set("shipInfo", currentOrder.getShipInfo());
+                    TableRow row =
+                        new TableRow()
+                            .set("customerID", currentOrder.getCustomerID())
+                            .set("employeeID", currentOrder.getEmployeeID())
+                            .set("orderDate", currentOrder.getOrderDate())
+                            .set("requiredDate", currentOrder.getRequiredDate())
+                            .set("shipInfo", currentOrder.getShipInfo());
 
-            c.output(row);
-          }
-        }))
+                    c.output(row);
+                  }
+                }))
         .apply(
             "Write to BQ",
             BigQueryIO.writeTableRows()
