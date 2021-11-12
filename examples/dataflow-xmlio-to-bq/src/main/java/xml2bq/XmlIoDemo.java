@@ -33,21 +33,6 @@ import com.google.api.services.bigquery.model.TableFieldSchema;
 
 public class XmlIoDemo {
 
-  public interface XmlIoDemoOptions extends PipelineOptions {
-
-    @Description("Path of the file to read from")
-    @Required
-    String getInputFile();
-
-    void setInputFile(String value);
-
-    @Description("BigQuery output path")
-    @Required
-    String getBqOutputPath();
-
-    void setBqOutputPath(String value);
-  }
-
   static void runXmlIoDemo(XmlIoDemoOptions options) {
     TableSchema schema =
         new TableSchema()
@@ -113,12 +98,12 @@ public class XmlIoDemo {
 
     Pipeline p = Pipeline.create(options);
     p.apply(
-            "Read XML",
-            XmlIO.<Order>read()
-                .from(options.getInputFile())
-                .withRootElement("Orders")
-                .withRecordElement("Order")
-                .withRecordClass(Order.class))
+        "Read XML",
+        XmlIO.<Order>read()
+            .from(options.getInputFile())
+            .withRootElement("Orders")
+            .withRecordElement("Order")
+            .withRecordClass(Order.class))
         .apply(
             "Process element",
             ParDo.of(
@@ -153,5 +138,20 @@ public class XmlIoDemo {
     XmlIoDemoOptions options =
         PipelineOptionsFactory.fromArgs(args).withValidation().as(XmlIoDemoOptions.class);
     runXmlIoDemo(options);
+  }
+
+  public interface XmlIoDemoOptions extends PipelineOptions {
+
+    @Description("Path of the file to read from")
+    @Required
+    String getInputFile();
+
+    void setInputFile(String value);
+
+    @Description("BigQuery output path")
+    @Required
+    String getBqOutputPath();
+
+    void setBqOutputPath(String value);
   }
 }
