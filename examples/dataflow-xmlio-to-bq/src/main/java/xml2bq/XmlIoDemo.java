@@ -15,21 +15,21 @@
  */
 package xml2bq;
 
-import java.util.Arrays;
-import org.apache.beam.sdk.Pipeline;
-import org.apache.beam.sdk.io.xml.XmlIO;
-import org.apache.beam.sdk.options.PipelineOptions;
-import org.apache.beam.sdk.options.PipelineOptionsFactory;
-import org.apache.beam.sdk.options.Validation.Required;
-import org.apache.beam.sdk.options.Description;
-import org.apache.beam.sdk.transforms.ParDo;
-import org.apache.beam.sdk.transforms.DoFn;
+import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.api.services.bigquery.model.TableRow;
 import com.google.api.services.bigquery.model.TableSchema;
+import java.util.Arrays;
+import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
 import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.CreateDisposition;
 import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.WriteDisposition;
-import com.google.api.services.bigquery.model.TableFieldSchema;
+import org.apache.beam.sdk.io.xml.XmlIO;
+import org.apache.beam.sdk.options.Description;
+import org.apache.beam.sdk.options.PipelineOptions;
+import org.apache.beam.sdk.options.PipelineOptionsFactory;
+import org.apache.beam.sdk.options.Validation.Required;
+import org.apache.beam.sdk.transforms.DoFn;
+import org.apache.beam.sdk.transforms.ParDo;
 
 public class XmlIoDemo {
 
@@ -98,12 +98,12 @@ public class XmlIoDemo {
 
     Pipeline p = Pipeline.create(options);
     p.apply(
-        "Read XML",
-        XmlIO.<Order>read()
-            .from(options.getInputFile())
-            .withRootElement("Orders")
-            .withRecordElement("Order")
-            .withRecordClass(Order.class))
+            "Read XML",
+            XmlIO.<Order>read()
+                .from(options.getInputFile())
+                .withRootElement("Orders")
+                .withRecordElement("Order")
+                .withRecordClass(Order.class))
         .apply(
             "Process element",
             ParDo.of(

@@ -15,10 +15,10 @@
  */
 package xml2bq;
 
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "ShipInfo")
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -51,8 +51,7 @@ public class ShipInfo {
   @XmlElement(name = "ShippedDate")
   private String shippedDate;
 
-  public ShipInfo() {
-  }
+  public ShipInfo() {}
 
   public ShipInfo(
       String shipVia,
