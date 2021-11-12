@@ -1,0 +1,39 @@
+Query: resource.type="http_load_balancer"
+HTTPS Request Response:
+{
+  "insertId": "uc1ttg49ws6ki",
+  "jsonPayload": {
+    "@type": "type.googleapis.com/google.cloud.loadbalancing.type.LoadBalancerLogEntry",
+    "cacheId": "SEA-9af31eb4",
+    "statusDetails": "response_from_cache"
+  },
+  "httpRequest": {
+    "requestMethod": "GET",
+    "requestUrl": "http://99.88.77.66/cloud-storage-512-color.png",
+    "requestSize": "509",
+    "status": 200,
+    "responseSize": "6176",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36",
+    "remoteIp": "99.88.77.66",
+    "cacheHit": true,
+    "cacheLookup": true,
+    "latency": "0.001899s"
+  },
+  "resource": {
+    "type": "http_load_balancer",
+    "labels": {
+      "zone": "global",
+      "project_id": "sample-project",
+      "target_proxy_name": "load-balanced-pail-target-proxy",
+      "backend_service_name": "",
+      "url_map_name": "load-balanced-pail",
+      "forwarding_rule_name": "load-balanced-pail-forwarding-rule"
+    }
+  },
+  "timestamp": "2021-08-12T17:01:36.730212Z",
+  "severity": "INFO",
+  "logName": "projects/sample-project/logs/requests",
+  "trace": "projects/sample-project/traces/a41b6abf8de05bda467f41c31377f5d3",
+  "receiveTimestamp": "2021-08-12T17:02:14.208132993Z",
+  "spanId": "2bde66403c4a7d41"
+}

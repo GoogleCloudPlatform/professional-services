@@ -1,0 +1,71 @@
+Query: protoPayload.methodName:"google.login.LoginService.loginSuccess"
+Workspace Login:
+{
+  "protoPayload": {
+    "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+    "authenticationInfo": {
+      "principalEmail": "admin@gsecurity.net"
+    },
+    "requestMetadata": {
+      "callerIp": "2600::111",
+      "requestAttributes": {},
+      "destinationAttributes": {}
+    },
+    "serviceName": "login.googleapis.com",
+    "methodName": "google.login.LoginService.loginSuccess",
+    "resourceName": "organizations/614830067722",
+    "metadata": {
+      "activityId": {
+        "timeUsec": "1628808070524169",
+        "uniqQualifier": "556196293031"
+      },
+      "@type": "type.googleapis.com/ccc_hosted_reporting.ActivityProto",
+      "event": [
+        {
+          "parameter": [
+            {
+              "type": "TYPE_STRING",
+              "label": "LABEL_OPTIONAL",
+              "name": "login_type",
+              "value": "google_password"
+            },
+            {
+              "multiStrValue": [
+                "password"
+              ],
+              "label": "LABEL_REPEATED",
+              "name": "login_challenge_method",
+              "type": "TYPE_STRING"
+            },
+            {
+              "name": "is_suspicious",
+              "type": "TYPE_BOOL",
+              "boolValue": false,
+              "label": "LABEL_OPTIONAL"
+            },
+            {
+              "type": "TYPE_STRING",
+              "value": "IIPB-JS7s6ibgwE",
+              "label": "LABEL_OPTIONAL",
+              "name": "dusi"
+            }
+          ],
+          "eventName": "login_success",
+          "eventType": "login"
+        }
+      ]
+    }
+  },
+  "insertId": "ezipchda58s",
+  "resource": {
+    "type": "audited_resource",
+    "labels": {
+      "service": "login.googleapis.com",
+      "method": "google.login.LoginService.loginSuccess"
+    }
+  },
+  "timestamp": "2021-08-12T22:41:10.524169Z",
+  "severity": "NOTICE",
+  "logName": "organizations/614830067722/logs/cloudaudit.googleapis.com%2Fdata_access",
+  "receiveTimestamp": "2021-08-13T00:07:51.992089275Z"
+}

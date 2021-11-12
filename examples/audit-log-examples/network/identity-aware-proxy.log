@@ -1,0 +1,65 @@
+Query: protoPayload.serviceName:"iap.googleapis.com"
+IAP VM Access
+{
+  "protoPayload": {
+    "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+    "status": {},
+    "authenticationInfo": {
+      "principalEmail": "benyan@organization.com"
+    },
+    "requestMetadata": {
+      "callerIp": "8.8.8.8",
+      "callerSuppliedUserAgent": "gcloud/352.0.0 command/gcloud.compute.start-iap-tunnel invocation-id/f40b81ad51d94798b6bf9345778f2c03 environment/devshell environment-version/None interactive/False from-script/False python/3.7.3 term/screen (Linux 5.4.120+),gzip(gfe)",
+      "requestAttributes": {
+        "time": "2021-08-15T21:08:39.497236035Z",
+        "auth": {}
+      },
+      "destinationAttributes": {
+        "ip": "99.88.77.66",
+        "port": "22"
+      }
+    },
+    "serviceName": "iap.googleapis.com",
+    "methodName": "AuthorizeUser",
+    "authorizationInfo": [
+      {
+        "resource": "projects/283064183700/iap_tunnel/zones/us-west1-b/instances/5252633384318353540",
+        "permission": "iap.tunnelInstances.accessViaIAP",
+        "granted": true,
+        "resourceAttributes": {
+          "service": "iap.googleapis.com",
+          "type": "iap.googleapis.com/TunnelInstance"
+        }
+      }
+    ],
+    "resourceName": "5252633384318353540",
+    "request": {
+      "httpRequest": {
+        "url": ""
+      },
+      "@type": "type.googleapis.com/cloud.security.gatekeeper.AuthorizeUserRequest"
+    },
+    "metadata": {
+      "request_id": "10586538806200848412",
+      "device_id": "",
+      "device_state": "Unknown"
+    }
+  },
+  "insertId": "1xn64i5d668u",
+  "resource": {
+    "type": "gce_instance",
+    "labels": {
+      "zone": "us-west1-b",
+      "instance_id": "5252633384318353540",
+      "project_id": "testproject-320520"
+    }
+  },
+  "timestamp": "2021-08-15T21:08:39.489607069Z",
+  "severity": "INFO",
+  "logName": "projects/testproject-320520/logs/cloudaudit.googleapis.com%2Fdata_access",
+  "operation": {
+    "id": "NLFC-LHVX-ZDC7-UP73-KB2P-2S7Z",
+    "producer": "iap.googleapis.com"
+  },
+  "receiveTimestamp": "2021-08-15T21:08:40.050319991Z"
+}
