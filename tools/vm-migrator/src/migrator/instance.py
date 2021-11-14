@@ -81,20 +81,30 @@ def get_updated_node_group(node_group) -> Optional[object]:
         return None
 
 
-def shutdown_instance(compute, instance_uri: uri.Instance):
-    result = compute.instances().stop(project=instance_uri.project,
-                                      zone=instance_uri.zone,
-                                      instance=instance_uri.name).execute()
-    return result
-
-
 def shutdown(instance_uri: uri.Instance) -> str:
     try:
         waited_time = RATE_LIMIT.wait()  # wait before starting the task
         logging.info('  task: waited for %s secs', waited_time)
         compute = get_compute()
         logging.info('Shutting Down Instance %s ', instance_uri)
-        result = shutdown_instance(compute, instance_uri)
+        result = compute.instances().stop(project=instance_uri.project,
+                                          zone=instance_uri.zone,
+                                          instance=instance_uri.name).execute()
+        wait_for_zonal_operation(compute, instance_uri, result['name'])
+        return instance_uri.name
+    except Exception as ex:
+        logging.error(ex)
+        raise ex
+
+
+def disable_deletionprotection(instance_uri: uri.Instance) -> str:
+    try:
+        compute = get_compute()
+        logging.info('Disabling delete protection for instance %s ',
+                     instance_uri)
+        result = compute.instances().setDeletionProtection(
+            project=instance_uri.project, zone=instance_uri.zone,
+            resource=instance_uri.name, deletionProtection=False).execute()
         wait_for_zonal_operation(compute, instance_uri, result['name'])
         return instance_uri.name
     except Exception as ex:

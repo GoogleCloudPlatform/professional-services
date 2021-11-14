@@ -70,6 +70,7 @@ While we can move all the machines in a subnet to the destination subnet we have
 | shutdown_instances | This will shutdown all the machines whose details are found in the `INPUT_CSV` file, this is particularly useful when you want to shutdown the instances before taking their machine image |
 | start_instances | This will start all the machines whose details are found in the `INPUT_CSV` file, this is particularly useful when you want to rollback the shutdown step |
 | create_machine_images | This will create the machine image of the instances which are specifed in the `INPUT_CSV` file | 
+| disable_deletionprotection_instances | This will disable the deletion protection on all instances in the `INPUT_CSV` file. In case enabled in any instances, this should be run before `delete_instances`. |
 | delete_instances | This will delete the instances which are specifed in the `INPUT_CSV` file |
 | release_ip | This will release all the internal static ip addresses of the instances which are specifed in the `INPUT_CSV` file |
 | release_ip_for_subnet | This will release all the internal static ip addresses of the source subnet | 

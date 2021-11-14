@@ -364,6 +364,40 @@ def bulk_create_instances(file_name, target_project, target_service_account,
     return result
 
 
+def bulk_instance_disable_deletionprotection(file_name) -> bool:
+
+    result = True
+    with open(file_name, 'r') as read_obj:
+        csv_dict_reader = DictReader(read_obj)
+        # We can use a with statement to ensure threads are cleaned up promptly
+        with concurrent.futures.ThreadPoolExecutor(
+                max_workers=100) as executor:
+            disable_deletionprotection_future = []
+            count = 0
+            # Start the load operations and mark each future with its URL
+            for row in csv_dict_reader:
+                source_instance_uri = uri.Instance.from_uri(row['self_link'])
+                disable_deletionprotection_future.append(
+                    executor.submit(instance.disable_deletionprotection,
+                                    source_instance_uri))
+                count = count + 1
+
+            tracker = 0
+            for future in concurrent.futures.as_completed(
+                    disable_deletionprotection_future):
+                try:
+                    instance_name = future.result()
+                    tracker = tracker + 1
+                    logging.info('Disabled deletion protection for  '
+                                 '%s instance sucessfully', instance_name)
+                    logging.info('%i out of %i set ', tracker, count)
+                except Exception as exc:
+                    logging.error(
+                        'disable deletion protection generated an exception: %s', exc)
+                    result = False
+    return result
+
+
 def query_yes_no(question, default='yes'):
     """Ask a yes/no question via raw_input() and return their answer.
 
@@ -546,7 +580,7 @@ def main(step, machine_image_region, source_project,
 
     elif step == 'start_instances':
         start_response = query_yes_no(
-            'Are you sure you want to start all'
+            'Are you sure you want to start all '
             'instances present in the inventory ?',
             default='no')
         if start_response:
@@ -566,6 +600,28 @@ def main(step, machine_image_region, source_project,
             logging.info('Successfully created all machine images')
         else:
             logging.info('Creating all machine images failed')
+            return False
+
+    elif step == 'disable_deletionprotection_instances':
+        with open(input_csv, 'r') as read_obj:
+            csv_dict_reader = DictReader(read_obj)
+            count = len(list(csv_dict_reader))
+        shutdown_response = query_yes_no(
+            'Are you sure you want to disable deletion protection for all (%s) '
+            'instances present in the inventory?' % count,
+            default='no')
+
+        if shutdown_response:
+            logging.info('Disabling deletion protection for all instances')
+
+            if bulk_instance_disable_deletionprotection(input_csv):
+                logging.info('Successfully disabled deletion protection for all '
+                             'instances')
+            else:
+                logging.info('Disabling deletion protection for all instances '
+                             'failed')
+                return False
+        else:
             return False
 
     elif step == 'delete_instances':
