@@ -4,6 +4,7 @@ resource "google_apigee_instance" "apigee_instance" {
   description              = "Terraform-provisioned Apigee Runtime Instance"
   org_id                   = "organizations/apigee-x-project-331014"
   disk_encryption_key_name = google_kms_crypto_key.apigee_key.id
+  peering_cidr_range       = "SLASH_${var.cidr_mask}"
 }
 
 resource "google_apigee_environment" "apigee_env" {

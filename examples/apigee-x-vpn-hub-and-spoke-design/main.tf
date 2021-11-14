@@ -47,3 +47,16 @@ resource "google_project_service" "kms" {
   project  = "${var.project_id}"
   service  = "cloudkms.googleapis.com"
 }
+
+resource "google_project_service" "dns" {
+  provider = google
+  project  = "${var.project_id}"
+  service  = "dns.googleapis.com"
+}
+
+
+resource "google_project_service" "dns_peering_a" {
+  provider = google
+  project  = "${var.backend_a_project_id}"
+  service  = "dns.googleapis.com"
+}

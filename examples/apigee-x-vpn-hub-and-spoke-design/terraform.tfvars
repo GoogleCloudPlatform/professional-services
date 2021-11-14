@@ -15,9 +15,19 @@
  */
 
 # Rename this file to terraform.tfvars and update the below variables
-project_id = "apigee-x-project-331014" # Replace with your project ID
-region     = "us-central1"
+project_id = "" # Replace with your project ID
+backend_a_project_id = ""
+region     = ""
+backend_a_vpc = ""
+router_asn = 64514
 
 
 gcp-org-id = ""
 gcp-billing-id= ""
+
+cidr_mask = 22
+
+private_zone_domain = ""
+
+peering_zone_domain_a = "" 
+forwarding_server_1 = ""

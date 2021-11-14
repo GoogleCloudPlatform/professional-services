@@ -16,8 +16,9 @@ resource "google_compute_subnetwork" "subnet-02" {
 
 resource "google_compute_instance" "instance-01" {
   name         = "instance-01"
-  machine_type = "e2-medium"
-  zone         = "us-east1-a"
+  project      = "${var.project_id}"
+  machine_type = "n1-standard-1"
+  zone         = "us-east1-b"
 
   boot_disk {
     initialize_params {
@@ -30,7 +31,8 @@ resource "google_compute_instance" "instance-01" {
   }
 
   network_interface {
-    network = "apigee-x-vpc"
+    network    = "projects/apigee-x-project-331014/global/networks/apigee-x-vpc"
+    subnetwork = "projects/apigee-x-project-331014/regions/us-east1/subnetworks/subnet-01"
 
     access_config {
 
@@ -41,7 +43,8 @@ resource "google_compute_instance" "instance-01" {
 
 resource "google_compute_instance" "instance-02" {
   name         = "instance-02"
-  machine_type = "e2-medium"
+  project      = "${var.project_id}"
+  machine_type = "n1-standard-1"
   zone         = "us-west4-a"
 
 
@@ -54,9 +57,10 @@ resource "google_compute_instance" "instance-02" {
   scratch_disk {
     interface = "SCSI"
   }
-  
+
   network_interface {
-    network = "apigee-x-vpc"
+    network    = "projects/apigee-x-project-331014/global/networks/apigee-x-vpc"
+    subnetwork = "projects/apigee-x-project-331014/regions/us-west4/subnetworks/subnet-02"
 
     access_config {
 

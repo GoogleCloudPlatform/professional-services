@@ -19,6 +19,11 @@ variable "project_id" {
   type        = string
 }
 
+variable "backend_a_project_id" {
+  description = "Project ID for backend a project"
+  type        = string
+}
+
 variable "region" {
   description = "region"
 }
@@ -30,5 +35,28 @@ variable "gcp-org-id" {
 variable "gcp-billing-id" {
   type = string
 }
+
+variable "cidr_mask" {
+  type = number
+}
  
+variable "backend_a_vpc" {
+  type = string
+}
+
+variable "router_asn" {
+  type = number
+}
+
+variable "private_zone_domain" {
+  type = string
+}
+
+variable "peering_zone_domain_a" {
+  type = string
+}
+
+variable "forwarding_server_1" {
+  type = string
+}
 # data "google_project" "project" {}
