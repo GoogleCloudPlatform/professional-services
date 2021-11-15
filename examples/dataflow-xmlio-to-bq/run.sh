@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 mvn compile -X exec:java \
-  -Dexec.mainClass="xml2bq.XmlIoDemo" \
+  -Dexec.mainClass="com.google.cloud.pso.xml2bq.XmlIoDemo" \
   -Dexec.args="--runner=DataflowRunner \
     --project=$PROJECT \
     --inputFile=$INPUT \
