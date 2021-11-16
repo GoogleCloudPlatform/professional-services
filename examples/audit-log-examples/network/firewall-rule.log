@@ -1,0 +1,63 @@
+Query: logName:"compute.googleapis.com%2Ffirewall"
+Firewall Rule Log:
+{
+  "insertId": "c5rdj7g2atq33a",
+  "jsonPayload": {
+    "rule_details": {
+      "direction": "INGRESS",
+      "priority": 2000,
+      "reference": "network:vpc-name/firewall:fw-name",
+      "source_range": [
+        "99.88.77.66/24",
+        "99.88.77.66/24",
+        "99.88.77.66/24",
+        "99.88.77.66/12"
+      ],
+      "ip_port_info": [
+        {
+          "port_range": [
+            "80",
+            "443",
+            "2222"
+          ],
+          "ip_protocol": "TCP"
+        }
+      ],
+      "action": "ALLOW",
+      "target_tag": [
+        "router"
+      ]
+    },
+    "connection": {
+      "protocol": 6,
+      "src_port": 54965,
+      "src_ip": "99.88.77.66",
+      "dest_ip": "99.88.77.66",
+      "dest_port": 2222
+    },
+    "instance": {
+      "zone": "us-central1-c",
+      "region": "us-central1",
+      "vm_name": "vm-name",
+      "project_id": "project-id"
+    },
+    "vpc": {
+      "project_id": "project-id",
+      "subnetwork_name": "subnet-name",
+      "vpc_name": "vpc-name"
+    },
+    "disposition": "ALLOWED"
+  },
+  "resource": {
+    "type": "gce_subnetwork",
+    "labels": {
+      "subnetwork_id": "123422103548303775",
+      "subnetwork_name": "subnet-name",
+      "project_id": "project-id",
+      "location": "us-central1-c"
+    }
+  },
+  "timestamp": "2021-05-11T17:57:37.409010235Z",
+  "logName": "projects/project-id/logs/compute.googleapis.com%2Ffirewall",
+  "receiveTimestamp": "2021-05-11T17:57:49.185344173Z"
+}

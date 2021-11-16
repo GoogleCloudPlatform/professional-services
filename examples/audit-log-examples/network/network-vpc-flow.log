@@ -1,0 +1,49 @@
+VPC Flow Log Example
+Query: resource.type="gce_subnetwork"
+{
+  "insertId": "15cga7ffoafeds",
+  "jsonPayload": {
+    "src_vpc": {
+      "subnetwork_name": "subnet-name",
+      "project_id": "project-id",
+      "vpc_name": "vpc-name"
+    },
+    "bytes_sent": "2020",
+    "src_instance": {
+      "zone": "us-central1-a",
+      "project_id": "project-id",
+      "vm_name": "gce-vm-name",
+      "region": "us-central1"
+    },
+    "reporter": "SRC",
+    "start_time": "2021-05-12T16:25:57.647516380Z",
+    "packets_sent": "44",
+    "src_gke_details": {
+      "cluster": {
+        "cluster_name": "gke-cluster",
+        "cluster_location": "us-central1"
+      }
+    },
+    "rtt_msec": "3",
+    "connection": {
+      "src_ip": "99.88.77.66",
+      "dest_port": 443,
+      "dest_ip": "99.88.77.66",
+      "protocol": 6,
+      "src_port": 47496
+    },
+    "end_time": "2021-05-12T16:26:02.686634242Z"
+  },
+  "resource": {
+    "type": "gce_subnetwork",
+    "labels": {
+      "subnetwork_id": "6525309863266012345",
+      "location": "us-central1-a",
+      "project_id": "project-id",
+      "subnetwork_name": "subnet-name"
+    }
+  },
+  "timestamp": "2021-05-12T16:26:04.070598733Z",
+  "logName": "projects/project-id/logs/compute.googleapis.com%2Fvpc_flows",
+  "receiveTimestamp": "2021-05-12T16:26:04.070598733Z"
+}

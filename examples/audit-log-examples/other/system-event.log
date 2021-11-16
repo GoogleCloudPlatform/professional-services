@@ -1,0 +1,38 @@
+Query: logName:"cloudaudit.googleapis.com%2Fsystem_event"
+System Event Log (VM Host Maintenance + Migration):
+{
+  "protoPayload": {
+    "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+    "status": {
+      "message": "Instance migrated during Compute Engine maintenance."
+    },
+    "authenticationInfo": {
+      "principalEmail": "system@organization.com"
+    },
+    "serviceName": "compute.googleapis.com",
+    "methodName": "compute.instances.migrateOnHostMaintenance",
+    "resourceName": "projects/cso-lab-management/zones/us-west2-a/instances/reset-tb",
+    "request": {
+      "@type": "type.googleapis.com/compute.instances.migrateOnHostMaintenance"
+    }
+  },
+  "insertId": "6nqt91dl64s",
+  "resource": {
+    "type": "gce_instance",
+    "labels": {
+      "instance_id": "9190313930175174271",
+      "project_id": "cso-lab-management",
+      "zone": "us-west2-a"
+    }
+  },
+  "timestamp": "2021-08-11T18:48:28.839803Z",
+  "severity": "INFO",
+  "logName": "projects/cso-lab-management/logs/cloudaudit.googleapis.com%2Fsystem_event",
+  "operation": {
+    "id": "systemevent-1628707680000-5c94d0eb59800-1f70a9cc-4bc26712",
+    "producer": "compute.instances.migrateOnHostMaintenance",
+    "first": true,
+    "last": true
+  },
+  "receiveTimestamp": "2021-08-11T18:48:29.715358244Z"
+}
