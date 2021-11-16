@@ -1,6 +1,6 @@
 # GCP Sample Logs 
 ## Overview
-This is a sample repository of GCP Audit Logs intended to help Operations and Security teams understand the structure and fields of logs for a variety of services.
+This is a sample repository of GCP Audit Logs intended to help Operations and Security teams understand the structure and fields of logs for a variety of services. Each log file contains the log event, a brief description of the event, and the Cloud Logging query used to find events of that type.
 
 Sample GCP logs for include logs for:
 - [Google Workspace / Identity](./cloud-identity)
@@ -27,12 +27,13 @@ Sample GCP logs for include logs for:
   - [Intranode Visibility (Flow Log)](./kubernetes-engine/gke-intranode-visibility.log)
   - [Kubernetes Log](./kubernetes-engine/gke-k8s.log)
 - [Network Telemetry](./network)
-  - [Cloud CDN](./network/cloud-cdn.log)
-  - [Cloud DNS Request](./network/cloud-dns.log)
-  - [HTTPS Load Balancer](./network/https-load-balancer.log)
+  - [Cloud CDN](./network/cloud-cdn-response.log)
+  - [Cloud DNS Record Creation](./network/create-dns-record.log)
+  - [Cloud DNS Query](./network/dns-query.log)
+  - [HTTPS Load Balancer](./network/https-load-balancer-response.log)
   - [Identity Aware Proxy](./network/identity-aware-proxy.log)
   - [Cloud NAT](./network/network-cloud-nat.log)
-  - [Firewall](./network/network-firewall-rule.log)
+  - [Firewall](./network/firewall-rule.log)
   - [VPC Flow](./network/network-vpc-flow.log)
 - [GCP Organization](./organization)
   - [Org Policy Deny Service Account Creation](./organization/org-policy-deny-service-account-creation.log)
