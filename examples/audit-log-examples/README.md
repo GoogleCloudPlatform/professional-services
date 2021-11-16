@@ -50,3 +50,4 @@ Sample GCP logs for include logs for:
 
 Coming Soon:
 - Cloud IDS
+- and more!
