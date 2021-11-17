@@ -4,7 +4,7 @@ The popularization of IoT devices and the evolvement of machine learning technol
 * Machine learning model development using Tensorflow and training using Cloud Machine Learning Engine (CMLE)
 * Machine Learning model serving using CMLE together with App Engine as frontend
 * Data visualization and exploration using Colab
-![system architecture](https://storage.googleapis.com/gcp_blog/img/arch.jpg)
+![system architecture](./img/arch.jpg)
 
 ## Steps to deploy the demo system
 
@@ -41,15 +41,13 @@ You also need to enable the following APIs in the APIs & Services menu.
 * Cloud PubSub API
 
 ### Step 1. Deploy a trained ML model in Cloud ML Engine.
-You can download our trained model [here](https://storage.googleapis.com/gcp_blog/e2e_demo/model.tar) or you can train your own model using the `ml/start.sh`.
+You can download our trained model [from the `data` directory](./data/model.tar.bz2) or you can train your own model using the `ml/start.sh`.
 Notice: you need to enable CLoud ML Engine API first.
 
 If you are using our trained model:
 ```shell
 # download our trained model
-# download using curl: curl -o model.tar https://storage.googleapis.com/gcp_blog/e2e_demo/model.tar
-wget https://storage.googleapis.com/gcp_blog/e2e_demo/model.tar --no-check-certificate
-tar xvf model.tar
+tar jxvf data/model.tar.bz2
 
 # upload the model to your bucket
 gsutil cp -r model gs://${BUCKET_NAME}
@@ -117,15 +115,18 @@ gcloud --project ${GOOGLE_PROJECT_ID} pubsub subscriptions create sub0 \
 gcloud --project ${GOOGLE_PROJECT_ID} pubsub topics create pred
 gcloud --project ${GOOGLE_PROJECT_ID} pubsub subscriptions create sub1 --topic=pred
 
+# uncompress the data 
+bunzip data/*csv.bz2
+
 # create BigQuery dataset and tables.
 bq --project_id ${GOOGLE_PROJECT_ID} mk \
    --dataset ${GOOGLE_PROJECT_ID}:EnergyDisaggregation
 bq --project_id ${GOOGLE_PROJECT_ID} load --autodetect \
    --source_format=CSV EnergyDisaggregation.ApplianceInfo \
-   gs://gcp_blog/e2e_demo/appliance_info.csv
+   ./data/appliance_info.csv
 bq --project_id ${GOOGLE_PROJECT_ID} load --autodetect \
    --source_format=CSV EnergyDisaggregation.ApplianceStatusGroundTruth \
-   gs://gcp_blog/e2e_demo/appliance_status_ground_truth.csv
+   ./data/appliance_status_ground_truth.csv
 bq --project_id ${GOOGLE_PROJECT_ID} mk \
    --table ${GOOGLE_PROJECT_ID}:EnergyDisaggregation.ActivePower \
    time:TIMESTAMP,device_id:STRING,power:INTEGER
@@ -183,6 +184,6 @@ jupyter notebook
 
 *notebook/EnergyDisaggregationDemo_Client.ipynb* simulates multiple smart meters by reading in power consumption data from a real world dataset and sends the readings to our server. All Cloud IoT Core related code resides in this notebook. Fill in the necessary information in the *Configuration* block and run all the cells, once you see messages being sent you should be able to see plots like the one shown below in *notebook/EnergyDisaggregationDemo_View.ipynb*.
 
-![Demo system sample output](https://storage.googleapis.com/gcp_blog/img/demo03.gif)
+![Demo system sample output](./img/demo03.gif)
 
 

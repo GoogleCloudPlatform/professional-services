@@ -1,0 +1,77 @@
+
+Query: protoPayload.methodName: "dns.changes.create"
+DNS Entry Change: 
+{
+  "protoPayload": {
+    "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+    "status": {},
+    "authenticationInfo": {
+      "principalEmail": "benyan@organization.com"
+    },
+    "requestMetadata": {
+      "requestAttributes": {
+        "time": "2021-08-13T20:25:21.285279Z",
+        "auth": {}
+      },
+      "destinationAttributes": {}
+    },
+    "serviceName": "dns.googleapis.com",
+    "methodName": "dns.changes.create",
+    "authorizationInfo": [
+      {
+        "permission": "dns.changes.create",
+        "granted": true,
+        "resourceAttributes": {}
+      }
+    ],
+    "resourceName": "managedZones/test-zone",
+    "request": {
+      "managedZone": "test-zone",
+      "@type": "type.googleapis.com/cloud.dns.api.ChangesCreateRequest",
+      "change": {
+        "additions": [
+          {
+            "name": "anotherrecord.testzone.com.",
+            "rrdata": [
+              "99.88.77.66"
+            ],
+            "type": "A",
+            "ttl": 300
+          }
+        ]
+      },
+      "project": "testproject-320520"
+    },
+    "response": {
+      "@type": "type.googleapis.com/cloud.dns.api.ChangesCreateResponse",
+      "change": {
+        "additions": [
+          {
+            "name": "anotherrecord.testzone.com.",
+            "ttl": 300,
+            "type": "A",
+            "rrdata": [
+              "99.88.77.66"
+            ]
+          }
+        ],
+        "status": "PENDING",
+        "startTime": "2021-08-13T20:25:21.243Z",
+        "id": "2"
+      }
+    }
+  },
+  "insertId": "-2hlj9jeaih0k",
+  "resource": {
+    "type": "dns_managed_zone",
+    "labels": {
+      "location": "global",
+      "project_id": "testproject-320520",
+      "zone_name": "test-zone"
+    }
+  },
+  "timestamp": "2021-08-13T20:25:21.225564Z",
+  "severity": "NOTICE",
+  "logName": "projects/testproject-320520/logs/cloudaudit.googleapis.com%2Factivity",
+  "receiveTimestamp": "2021-08-13T20:25:21.295947074Z"
+}

@@ -1,0 +1,20 @@
+Query: logName: "logs/syslog"
+OS Logging Agent Log:
+{
+  "textPayload": "Sep 13 05:46:22 instance-1 bash[2766]: wliu:#011 curl \"http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token\" -H \"Metadata-Flavor: Google\"",
+  "insertId": "7lind42ss9rdu3kwr",
+  "resource": {
+    "type": "gce_instance",
+    "labels": {
+      "project_id": "anon-logs-prod",
+      "zone": "us-central1-a",
+      "instance_id": "8184164428893347630"
+    }
+  },
+  "timestamp": "2021-09-13T05:46:22Z",
+  "labels": {
+    "compute.googleapis.com/resource_name": "instance-1"
+  },
+  "logName": "projects/anon-logs-prod/logs/syslog",
+  "receiveTimestamp": "2021-09-13T05:46:28.008913993Z"
+}

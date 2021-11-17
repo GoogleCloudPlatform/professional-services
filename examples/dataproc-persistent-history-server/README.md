@@ -50,7 +50,7 @@ way to use this is to modify the Terraform code to fit your needs for
 long running resources.
 
 However, the cluster templates are included as an example of
-standardiznig cluster creation for ephemeral clusters.
+standardizing cluster creation for ephemeral clusters.
 You might ask, "Why is there a cluster template for the history server?".
 The history server is simply a cleaner interface for reading your logs
 from GCS. For Spark, it is stateless and you may wish to only spin up
