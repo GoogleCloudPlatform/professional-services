@@ -42,12 +42,13 @@ BigQuery Visualiser displays a Bigquery Queryplan document. It has two displays:
 * Query Tree
 * Task Gant Chart
 
+
 ## Hosting BqVisualiser
 BqVisualiser is a single page web app  written in angular. 
 Simply copy the compiled output to a webserver and you are good to go.
 
-## Authentication
-On opening the page, the app will attempt to authenticate you with your Google account. Once done you will be able to access 
+### Authentication
+On opening the page, the app will attempt to authenticate you with your Google account. Once done you will be able to access
 your projects.
 
 ## Downloading Query Plans
