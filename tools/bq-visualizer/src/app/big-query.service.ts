@@ -15,8 +15,7 @@
  */
 import {HttpClient} from '@angular/common/http';
 import {Injectable} from '@angular/core';
-// import {OAuthService} from 'angular-oauth2-oidc';
-import {concat, defer, EMPTY, from, Observable, of, Subscription} from 'rxjs';
+import {concat, defer, EMPTY, from, Observable, Observer, of, Subscription} from 'rxjs';
 import {catchError, filter, map} from 'rxjs/operators';
 
 import {environment} from '../environments/environment';
@@ -59,8 +58,9 @@ export class BigQueryService {
   }
 
   /** Get all jobs for a project. */
-  getJobs(projectId: string, maxJobs: number): Observable<BqJob> {
-    return Observable.create(async obs => {
+  getJobs(projectId: string, maxJobs: number, allUsers: boolean):
+      Observable<BqJob> {
+    return Observable.create(async (obs:Observer<BqJob>) => {
       const token = this.googleAuthService.getAccessToken();
       let nextPageToken = '';
       let totalJobs = 0;
@@ -68,7 +68,7 @@ export class BigQueryService {
         const url = bqUrl(`/${projectId}/jobs`, {
           access_token: token,
           maxResults: 200,
-          allUsers: true,
+          allUsers: allUsers,
           projection: 'full',
           pageToken: nextPageToken,
         });
@@ -79,10 +79,14 @@ export class BigQueryService {
                 res => {
                   if (!res.jobs) {
                     console.error(`No jobs found in bq response`, res);
-                    alert(
-                        `There were no jobs found that you can view. You ` +
-                        `need the Owner permission on the project to view ` +
-                        `other's jobs`);
+                    if (allUsers) {
+                      alert(
+                          `There were no jobs found that you can view. To ` +
+                          `list jobs for all users, you ` +
+                          `need the Owner permission on the project.`);
+                    } else {
+                      alert('There were no jobs found that you can view.');
+                    }
                     throw new Error('No jobs found');
                   }
                   for (const job of res.jobs.map(el => new BqJob(el))) {
@@ -91,7 +95,6 @@ export class BigQueryService {
                   }
                   nextPageToken = res.nextPageToken;
                   totalJobs += res.jobs.length;
-                  // console.log('totalJobs: ' + totalJobs);
                   if (totalJobs >= maxJobs) {
                     obs.complete();
                     return;
@@ -102,7 +105,7 @@ export class BigQueryService {
                   throw new Error(err);
                 },
                 () => {
-                  resolve();
+                  resolve([]);
                 });
           });
         } catch (err) {
@@ -119,10 +122,10 @@ export class BigQueryService {
 
   /** Get all projects. */
   getProjects(): Observable<BqProject> {
-    return Observable.create(async obs => {
+    return Observable.create(async (obs:Observer<BqProject>)=> {
       if (this.googleAuthService.isLoggedIn() === false) {
         await this.googleAuthService.login();
-        if (this.googleAuthService.isLoggedIn) {
+        if (this.googleAuthService.isLoggedIn()) {
           this.logSvc.info('successfully Logged in');
         } else {
           this.logSvc.error  ('failed Logged in');
@@ -157,7 +160,7 @@ export class BigQueryService {
                   throw (err);
                 },
                 () => {
-                  resolve();
+                  resolve([]);
                 });
           });
         } catch (err) {
@@ -208,10 +211,10 @@ function bqUrl(path: string, args: any): string {
 @Injectable({providedIn: 'root'})
 export class MockBigQueryService extends BigQueryService {
   getJobs(projectId: string, maxJobs: number): Observable<BqJob> {
-    return from(require('../assets/test/get_jobs.json').jobs);
+    return from<BqJob[]>(require('../assets/test/get_jobs.json').jobs);
   }
 
   getProjects(): Observable<BqProject> {
-    return from(require('../assets/test/get_projects.json').projects);
+    return from<BqProject[]>(require('../assets/test/get_projects.json').projects);
   }
 }
