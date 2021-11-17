@@ -11,12 +11,10 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-import logging
 from google.cloud.functions.context import Context
 from googleapiclient import discovery, http
 import abc
-import re
-import json
+from helpers.base import BaseHelper
 
 _PROJECT_NUM_CACHE = {}
 _PROJECT_ID_CACHE = {}
@@ -30,23 +28,20 @@ class UnknownProjectException(Exception):
     pass
 
 
-class Processor:
+class Processor(BaseHelper):
     config = None
     data = None
     event = None
     context: Context
-    logger = None
-    jinja_environment = None
 
     def __init__(self, config, jinja_environment, data, event,
                  context: Context):
         self.config = config
-        self.jinja_environment = jinja_environment
         self.data = data
         self.event = event
         self.context = context
 
-        self.logger = logging.getLogger('pubsub2inbox')
+        super().__init__(jinja_environment)
 
     def expand_projects(self, projects):
         ret = []
@@ -62,8 +57,8 @@ class Processor:
             if project.isdecimal():
                 if len(_PROJECT_NUM_CACHE) == 0:
                     service = discovery.build('cloudresourcemanager', 'v1')
-                    service._http = http.set_user_agent(
-                        service._http, 'google-pso-tool/pubsub2inbox/1.1.0')
+                    service._http = http.set_user_agent(service._http,
+                                                        self._get_user_agent())
 
                     request = service.projects().list()
                     response = request.execute()
@@ -90,8 +85,8 @@ class Processor:
             else:
                 if '/' not in project and project not in _PROJECT_ID_CACHE:
                     service = discovery.build('cloudresourcemanager', 'v1')
-                    service._http = http.set_user_agent(
-                        service._http, 'google-pso-tool/pubsub2inbox/1.1.0')
+                    service._http = http.set_user_agent(service._http,
+                                                        self._get_user_agent())
                     request = service.projects().get(projectId=project)
                     response = request.execute()
                     _PROJECT_ID_CACHE[response['projectId']] = (
@@ -105,33 +100,6 @@ class Processor:
                           extra={'projects': ret})
         return ret
 
-    def _jinja_expand_bool(self, contents, _tpl='config'):
-        if isinstance(contents, bool):
-            return contents
-        var_template = self.jinja_environment.from_string(contents)
-        var_template.name = _tpl
-        val_str = var_template.render().lower()
-        if val_str == 'true' or val_str == 't' or val_str == 'yes' or val_str == 'y' or val_str == '1':
-            return True
-        return False
-
-    def _jinja_var_to_list(self, _var, _tpl='config'):
-        if isinstance(_var, list):
-            return _var
-        else:
-            var_template = self.jinja_environment.from_string(_var)
-            var_template.name = _tpl
-            val_str = var_template.render()
-            try:
-                return json.loads(val_str)
-            except Exception:
-                vals = list(
-                    filter(
-                        lambda x: x.strip() != "",
-                        re.split('[\n,]', val_str),
-                    ))
-                return list(map(lambda x: x.strip(), vals))
-
     @abc.abstractmethod
-    def process(self):
+    def process(self, config_key=None):
         pass

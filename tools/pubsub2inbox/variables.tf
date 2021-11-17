@@ -16,9 +16,20 @@ variable "project_id" {
   description = "Project ID"
 }
 
+variable "organization_id" {
+  type        = number
+  description = "Organization ID"
+  default     = 0
+}
+
 variable "function_name" {
   type        = string
   description = "Cloud Function name"
+}
+
+variable "function_roles" {
+  type        = list(string)
+  description = "Types of the function to assign permissions"
 }
 
 variable "pubsub_topic" {
@@ -59,4 +70,15 @@ variable "bucket_name" {
   description = "Bucket for storing the Cloud Function"
 
   default = "cf-pubsub2inbox"
+}
+
+variable "helper_bucket_name" {
+  type        = string
+  description = "Helper bucket name for granting IAM permission (storage.objectAdmin)"
+  default     = ""
+}
+variable "function_timeout" {
+  type        = number
+  description = "Cloud Function timeout (maximum 540 seconds)"
+  default     = 240
 }

@@ -45,7 +45,7 @@ Instead, the generated file `ip-range-labels.yaml` will be ingested by Terraform
 
 ### Report settings
 
-There are several Terraform input variables which change the report output. They do not affect thevolume of the logs exported to Big Query or the tables scanned to generate the report.
+There are several Terraform input variables which change the report output. They do not affect the volume of the logs exported to Big Query or the tables scanned to generate the report.
 
 - `enable_split_by_destination` - set to `false`, if you are interested only in having source IPs in the report
 - `enable_split_by_protocol` - set to `false`, if you are not interested in split by the protocol

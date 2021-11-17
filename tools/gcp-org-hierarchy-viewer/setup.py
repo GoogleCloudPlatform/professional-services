@@ -24,7 +24,7 @@ setup(name='gcp-org-hierarchy-viewer',
       scripts=['gcpohv_cli.py'],
       entry_points={'console_scripts': ['gcpohv=gcpohv_cli:main']},
       install_requires=[
-          'google-api-python-client>=1.7.8',
+          'google-api-python-client>=2.15.0',
           'asciitree==0.3.3',
       ],
       classifiers=[

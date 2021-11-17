@@ -3,11 +3,12 @@
 **Table of Contents**
 
 - [Data Lake](#data-lake)
+  - [Troubleshooting](#troubleshooting)
+    - [Issues with destroying KMS Resources](#issues-with-destroying-kms-resources)
   - [Requirements](#requirements)
   - [Providers](#providers)
   - [Inputs](#inputs)
   - [Outputs](#outputs)
-  - [Troubleshooting](#troubleshooting)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -25,7 +26,7 @@ This includes:
 
 ## Troubleshooting
 ### Issues with destroying KMS Resources
-KMS keys cannot be deleted and this module will choke on trying to destory KMS
+KMS keys cannot be deleted and this module will choke on trying to destroy KMS
 keys or key rings. The workaround is to remove the key from terraform state.
  ```shell script
 terragrunt state rm module.test_data_lake.module.kms.google_kms_crypto_key.key_ephemeral[0]

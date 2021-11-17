@@ -269,7 +269,7 @@ class APISchema(object):
     def _get_document_resources(cls, document):
         if document.get('schemas'):
             return document['schemas']
-        return document['definitions']
+        return document.get('definitions', [])
 
     @classmethod
     def _translate_resource_to_schema(cls, resource_name, document):

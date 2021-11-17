@@ -86,7 +86,7 @@ class TestPubsub(unittest.TestCase):
         self.assertIn('example-project', self.message['body'])
         self.assertEqual('notifications@your.domain', self.message['from'])
         self.assertEqual('owners-example-project@your.domain, cfo@your.domain',
-                         self.message['to'])
+                         ', '.join(self.message['to']))
 
 
 if __name__ == '__main__':

@@ -13,9 +13,17 @@
 # limitations under the License.
 
 ---
+- set_fact: bmctl_path="/usr/local/sbin"
+  when: bmctl_path is undefined
+
+- name: Create bmctl_path if it does not exists
+  file:
+    path: "{{ bmctl_path }}"
+    state: directory
+
 - name: Remove bmctl if present
   ansible.builtin.file:
-    path: /usr/local/sbin/bmctl
+    path: "{{ bmctl_path }}/bmctl"
     state: absent
 
 - name: Download bmctl
@@ -27,6 +35,28 @@
     path: bmctl
     mode: a+x
 
-- name: Move bmctl to /usr/local/sbin
+- name: 'Move bmctl to {{ bmctl_path }}'
   shell:
-    cmd: mv bmctl /usr/local/sbin/
+    cmd: "mv bmctl {{ bmctl_path }}/"
+
+- name: Create .profile if it does not exists for non default path(/usr/local/sbin)
+  file:
+    path: "{{ login_user_home }}/.profile"
+    owner: "{{ login_user }}"
+    state: touch
+  when: bmctl_path != "/usr/local/sbin"
+
+- name: 'Add {{ bmctl_path }} if PATH does not exist'
+  lineinfile:
+    path: "{{ login_user_home }}/.profile"
+    line: 'PATH="{{ bmctl_path }}:$PATH"'
+    insertafter: EOF
+  when: bmctl_path != "/usr/local/sbin" and lookup('file', "{{ login_user_home }}/.profile") is not search('^\s*PATH\s*=')
+
+- name: 'Add {{ bmctl_path }} to PATH'
+  lineinfile:
+    path: "{{ login_user_home }}/.profile"
+    regexp: 'PATH=(["])((?!.*?{{ bmctl_path }}).*?)(["])$'
+    line: 'PATH=\1{{ bmctl_path }}:\2\3'
+    backrefs: yes
+  when: bmctl_path != "/usr/local/sbin" and lookup('file', "{{ login_user_home }}/.profile") is search('^\s*PATH\s*=')

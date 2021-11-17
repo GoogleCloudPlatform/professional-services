@@ -24,13 +24,13 @@ from time import mktime
 from datetime import datetime, timezone, timedelta
 import parsedatetime
 from dateutil import parser
-from filters import get_jinja_filters
-from jinja2 import Environment
+from filters import get_jinja_filters, get_jinja_tests
+from jinja2 import Environment, TemplateError
 from google.cloud import secretmanager, storage
 from google.cloud.functions.context import Context
 from pythonjsonlogger import jsonlogger
-from google.api_core.gapic_v1 import client_info as grpc_client_info
 import traceback
+from helpers.base import get_grpc_client_info
 
 config_file_name = 'config.yaml'
 execution_count = 0
@@ -42,14 +42,18 @@ def load_configuration(file_name):
     if os.getenv('CONFIG'):
         logger = logging.getLogger('pubsub2inbox')
         secret_manager_url = os.getenv('CONFIG')
-        logger.debug('Loading configuration from Secret Manager: %s' %
-                     (secret_manager_url))
-        client_info = grpc_client_info.ClientInfo(
-            user_agent='google-pso-tool/pubsub2inbox/1.1.0')
-        client = secretmanager.SecretManagerServiceClient(
-            client_info=client_info)
-        response = client.access_secret_version(name=secret_manager_url)
-        configuration = response.payload.data.decode('UTF-8')
+        if secret_manager_url.startswith('projects/'):
+            logger.debug('Loading configuration from Secret Manager: %s' %
+                         (secret_manager_url))
+            client = secretmanager.SecretManagerServiceClient(
+                client_info=get_grpc_client_info())
+            response = client.access_secret_version(name=secret_manager_url)
+            configuration = response.payload.data.decode('UTF-8')
+        else:
+            logger.debug('Loading configuration from bundled file: %s' %
+                         (secret_manager_url))
+            with open(secret_manager_url) as config_file:
+                configuration = config_file.read()
     else:
         with open(file_name) as config_file:
             configuration = config_file.read()
@@ -67,6 +71,7 @@ def get_jinja_escaping(template_name):
 def get_jinja_environment():
     env = Environment(autoescape=get_jinja_escaping)
     env.filters.update(get_jinja_filters())
+    env.tests.update(get_jinja_tests())
     return env
 
 
@@ -97,24 +102,26 @@ def process_message(config, data, event, context):
     retry_period = '2 days ago'
     if 'retryPeriod' in config:
         retry_period = config['retryPeriod']
-    retry_period_parsed = parsedatetime.Calendar().parse(retry_period)
-    if len(retry_period_parsed) > 1:
-        retry_earliest = datetime.fromtimestamp(mktime(retry_period_parsed[0]),
-                                                timezone.utc)
-    else:
-        retry_earliest = datetime.fromtimestamp(mktime(retry_period_parsed),
-                                                timezone.utc)
-    message_time = parser.parse(context.timestamp)
-    if (message_time - retry_earliest) < timedelta(0, 0):
-        logger.warning('Ignoring message because it\'s past the retry period.',
-                       extra={
-                           'event_id': context.event_id,
-                           'retry_period': retry_period,
-                           'retry_earliest': retry_earliest.strftime('%c'),
-                           'event_timestamp': message_time
-                       })
-        raise MessageTooOldException(
-            'Ignoring message because it\'s past the retry period.')
+    if retry_period != 'skip':
+        retry_period_parsed = parsedatetime.Calendar().parse(retry_period)
+        if len(retry_period_parsed) > 1:
+            retry_earliest = datetime.fromtimestamp(
+                mktime(retry_period_parsed[0]), timezone.utc)
+        else:
+            retry_earliest = datetime.fromtimestamp(mktime(retry_period_parsed),
+                                                    timezone.utc)
+        message_time = parser.parse(context.timestamp)
+        if (message_time - retry_earliest) < timedelta(0, 0):
+            logger.warning(
+                'Ignoring message because it\'s past the retry period.',
+                extra={
+                    'event_id': context.event_id,
+                    'retry_period': retry_period,
+                    'retry_earliest': retry_earliest.strftime('%c'),
+                    'event_timestamp': message_time
+                })
+            raise MessageTooOldException(
+                'Ignoring message because it\'s past the retry period.')
 
     template_variables = {
         'data': data,
@@ -125,6 +132,12 @@ def process_message(config, data, event, context):
     jinja_environment = get_jinja_environment()
     if 'processors' in config:
         for processor in config['processors']:
+            config_key = None
+            if isinstance(processor, dict):
+                config_key = processor[
+                    'config'] if 'config' in processor else None
+                processor = processor['processor']
+
             logger.debug('Processing message using input processor: %s' %
                          processor)
             mod = __import__('processors.%s' % processor)
@@ -133,13 +146,13 @@ def process_message(config, data, event, context):
                                       '%sProcessor' % processor.capitalize())
             processor_instance = processor_class(config, jinja_environment,
                                                  data, event, context)
-            processor_variables = processor_instance.process()
+            processor_variables = processor_instance.process(
+                config_key=config_key)
             template_variables.update(processor_variables)
-
-    jinja_environment.globals = {
-        **jinja_environment.globals,
-        **template_variables
-    }
+            jinja_environment.globals = {
+                **jinja_environment.globals,
+                **template_variables
+            }
 
     if 'processIf' in config:
         processif_template = jinja_environment.from_string(config['processIf'])
@@ -173,10 +186,8 @@ def process_message(config, data, event, context):
                          'bucket': config['resendBucket'],
                          'blob': resend_file
                      })
-        client_info = grpc_client_info.ClientInfo(
-            user_agent='google-pso-tool/pubsub2inbox/1.1.0')
 
-        storage_client = storage.Client(client_info=client_info)
+        storage_client = storage.Client(client_info=get_grpc_client_info())
         bucket = storage_client.bucket(config['resendBucket'])
         resend_blob = bucket.blob(resend_file)
         if resend_blob.exists():
@@ -225,6 +236,18 @@ def process_message(config, data, event, context):
             if 'type' not in output_config:
                 raise NoTypeConfiguredException(
                     'No type configured for output!')
+
+            if 'processIf' in output_config:
+                processif_template = jinja_environment.from_string(
+                    output_config['processIf'])
+                processif_template.name = 'processif'
+                processif_contents = processif_template.render()
+                if processif_contents.strip() == '':
+                    logger.info(
+                        'Will not use output processor %s because processIf evaluated to empty.'
+                        % output_config['type'])
+                continue
+
             logger.debug('Processing message using output processor: %s' %
                          output_config['type'])
 
@@ -266,7 +289,8 @@ def decode_and_process(logger, config, event, context):
     logger.debug('Starting Pub/Sub message processing...',
                  extra={
                      'event_id': context.event_id,
-                     'data': data
+                     'data': data,
+                     'attributes': event['attributes']
                  })
     process_message(config, data, event, context)
     logger.debug('Pub/Sub message processing finished.',
@@ -301,6 +325,13 @@ def process_pubsub(event, context):
         configuration = load_configuration(config_file_name)
     try:
         decode_and_process(logger, configuration, event, context)
+    except TemplateError as exc:
+        logger.error('Error while evaluating a Jinja2 template!',
+                     extra={
+                         'message': exc.message(),
+                         'error': str(exc),
+                     })
+        raise exc
     except MessageTooOldException:
         pass
 
@@ -322,6 +353,10 @@ if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser(
         description='Pub/Sub to Inbox, turn Pub/Sub messages into emails')
     arg_parser.add_argument('--config', type=str, help='Configuration file')
+    arg_parser.add_argument(
+        '--ignore-period',
+        action='store_true',
+        help='Ignore the message timestamp (for skipping retry period)')
     arg_parser.add_argument('message',
                             type=str,
                             help='JSON file containing the message(s)')
@@ -341,4 +376,7 @@ if __name__ == '__main__':
             }
             context = Context(eventId=message['message']['messageId'],
                               timestamp=message['message']['publishTime'])
+            if args.ignore_period:
+                context.timestamp = datetime.utcnow().strftime(
+                    '%Y-%m-%dT%H:%M:%S.%fZ')
             process_pubsub(event, context)

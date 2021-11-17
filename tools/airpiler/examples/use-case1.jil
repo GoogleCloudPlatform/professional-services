@@ -1,0 +1,12 @@
+insert_job: MY_AUTOSYS_JOB
+job_type: cmd
+description: A sample job to execute a command
+machine: machine_name
+owner: autosys
+max_run_alarm: 150
+alarm_if_fail: y
+alarm_if_terminated: y
+avg_runtime: 87
+timezone: US/Eastern
+start_times: "20:00"
+command: echo 'cmd job'

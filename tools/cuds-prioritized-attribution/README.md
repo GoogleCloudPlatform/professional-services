@@ -236,7 +236,7 @@ message)
     * `[CORRECTED_DATASET]` is the ID of the new dataset that you created in BigQuery.
     * `[CORRECTED_TABLE]` is the table ID that you would like to name the new table created by this solution (suggestion: `corrected_billing_export_table`).
     * `[PROJECT.DATASET.COMMITMENT_TABLE]` is the path to where you will upload your commitments table in BQ. This upload is performed in [step 3](#step-3).
-    *  `cud_cost_attribution_option` is the type of cost attribution to perform if `enable_cud_cost_attribution` is true. Choose `a` if all of the cost is attributed within the scope (default). Choose `b` if a project that is not part of the scope gets any CUD, it also incures the cost. Any remaining cost (of any unallocated commit) is attributed within the scope.
+    *  `cud_cost_attribution_option` is the type of cost attribution to perform if `enable_cud_cost_attribution` is true. Choose `a` if all of the cost is attributed within the scope (default). Choose `b` if a project that is not part of the scope gets any CUD, it also incurs the cost. Any remaining cost (of any unallocated commit) is attributed within the scope.
 
     Here is an example command:
 

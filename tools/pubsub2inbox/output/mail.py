@@ -46,6 +46,10 @@ class GroupNotFoundException(Exception):
     pass
 
 
+class AllTransportsFailedException(Exception):
+    pass
+
+
 class MailOutput(Output):
 
     def _get_attachment(self, url):
@@ -419,6 +423,8 @@ class MailOutput(Output):
                                       })
         if not sent_successfully:
             self.logger.error(
+                'Unable to send email, none of the transports worked.')
+            raise AllTransportsFailedException(
                 'Unable to send email, none of the transports worked.')
         else:
             self.logger.info('Message sent!',
