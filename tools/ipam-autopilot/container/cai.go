@@ -1,0 +1,85 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"reflect"
+
+	asset "cloud.google.com/go/asset/apiv1"
+	"google.golang.org/api/iterator"
+	assetpb "google.golang.org/genproto/googleapis/cloud/asset/v1"
+)
+
+type CaiSecondaryRange struct {
+	name string
+	cidr string
+}
+type CaiRange struct {
+	name            string
+	id              string
+	network         string
+	cidr            string
+	secondaryRanges []CaiSecondaryRange
+}
+
+func GetRangesForNetwork(parent string, network string) ([]CaiRange, error) {
+	ctx := context.Background()
+	client, err := asset.NewClient(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	defer client.Close()
+
+	itr := client.ListAssets(ctx, &assetpb.ListAssetsRequest{
+		Parent:      parent,
+		AssetTypes:  []string{"compute.googleapis.com/Subnetwork"},
+		ContentType: assetpb.ContentType_RESOURCE,
+	})
+
+	var ranges []CaiRange = make([]CaiRange, 0)
+
+	asset, err := itr.Next()
+	for {
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
+		if asset.Resource.Data.Fields["network"].GetStringValue() == network {
+			var secondaryRanges []CaiSecondaryRange = make([]CaiSecondaryRange, 0)
+			secondary := asset.Resource.Data.Fields["secondaryIpRanges"].GetListValue().AsSlice()
+			for i := 0; i < len(secondary); i++ {
+				var rangeName string
+				var ipCidrRange string
+
+				iter := reflect.ValueOf(secondary[i]).MapRange()
+				for iter.Next() {
+					key := iter.Key().Interface()
+					value := iter.Value().Interface()
+					if key == "ipCidrRange" {
+						ipCidrRange = fmt.Sprintf("%s", value)
+					}
+					if key == "rangeName" {
+						rangeName = fmt.Sprintf("%s", value)
+					}
+				}
+				secondaryRanges = append(secondaryRanges, CaiSecondaryRange{
+					name: rangeName,
+					cidr: ipCidrRange,
+				})
+			}
+			ranges = append(ranges, CaiRange{
+				id:              asset.Resource.Data.Fields["id"].GetStringValue(),
+				name:            asset.Name,
+				network:         asset.Resource.Data.Fields["network"].GetStringValue(),
+				cidr:            asset.Resource.Data.Fields["ipCidrRange"].GetStringValue(),
+				secondaryRanges: secondaryRanges,
+			})
+		}
+		asset, err = itr.Next()
+	}
+	return ranges, nil
+}

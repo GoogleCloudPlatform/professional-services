@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS subnets;
+DROP TABLE IF EXISTS routing_domains;
