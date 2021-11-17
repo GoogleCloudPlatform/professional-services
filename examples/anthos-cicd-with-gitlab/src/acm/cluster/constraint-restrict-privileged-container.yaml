@@ -1,0 +1,59 @@
+# Copyright 2021 Google, LLC.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+ name: noprivilegedcontainer
+ annotations:
+    configmanagement.gke.io/cluster-selector: prod-cluster-selector
+spec:
+ crd:
+   spec:
+     names:
+       kind: NoPrivilegedContainer
+ targets:
+   - target: admission.k8s.gatekeeper.sh
+     rego: |
+       package noprivileged
+       violation[{"msg": msg, "details": {}}] {
+           c := input_containers[_]
+           c.securityContext.privileged
+           msg := sprintf("Privileged container is not allowed: %v, securityContext: %v", [c.name, c.securityContext])
+       }
+       input_containers[c] {
+           c := input.review.object.spec.containers[_]
+       }
+       input_containers[c] {
+           c := input.review.object.spec.initContainers[_]
+       }
+       input_containers[c] {
+           c := input.review.object.spec.template.spec.containers[_]
+       }
+       input_containers[c] {
+           c := input.review.object.spec.template.spec.initContainers[_]
+       }
+---
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: NoPrivilegedContainer
+metadata:
+ name: no-privileged-container
+ annotations:
+    configmanagement.gke.io/cluster-selector: prod-cluster-selector
+spec:
+ enforcementAction: dryrun
+ match:
+   kinds:
+     - apiGroups: ["*"]
+       kinds: ["Deployment", "Pod"]

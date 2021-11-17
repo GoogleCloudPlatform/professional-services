@@ -1,0 +1,58 @@
+Query: logName:"auditd"
+OS-level auditD Debug Logs: 
+{
+  "insertId": "ajmdtiftt5gyv",
+  "jsonPayload": {
+    "_EGID": "0",
+    "_GID": "0",
+    "_PID": "224343",
+    "_PPID": "5347",
+    "_AUDIT_ID": "58483",
+    "_MACHINE_ID": "424121f34b9953d88b858eb2026ace8c",
+    "_AUDIT_FIELD_ARCH": "c000003e",
+    "_AUDIT_FIELD_A0": "c0002d0460",
+    "_SELINUX_CONTEXT": "=unconfined",
+    "SYSLOG_IDENTIFIER": "audit",
+    "_COMM": "runc",
+    "_AUDIT_FIELD_SUCCESS": "yes",
+    "_EUID": "0",
+    "_AUDIT_FIELD_A3": "0",
+    "_AUDIT_TYPE_NAME": "SYSCALL",
+    "_FSUID": "0",
+    "_AUDIT_FIELD_SGID": "0",
+    "_FSGID": "0",
+    "_TRANSPORT": "audit",
+    "_HOSTNAME": "gke-cluster-name-default-pool-06ec1ffe-tzwc",
+    "_AUDIT_SESSION": "4294967295",
+    "MESSAGE": "SYSCALL arch=c000003e syscall=59 success=yes exit=0 a0=c0002d0460 a1=c000344180 a2=c00017a380 a3=0 items=2 ppid=5347 pid=224343 auid=4294967295 uid=0 gid=0 euid=0 suid=0 fsuid=0 egid=0 sgid=0 fsgid=0 tty=(none) ses=4294967295 comm=\"runc\" exe=\"/usr/bin/runc\" subj==unconfined key=(null)",
+    "_AUDIT_TYPE": "1300",
+    "_AUDIT_FIELD_SUID": "0",
+    "SYSLOG_FACILITY": "4",
+    "_SOURCE_REALTIME_TIMESTAMP": "1628887799258000",
+    "_AUDIT_FIELD_EXIT": "0",
+    "_AUDIT_FIELD_SYSCALL": "59",
+    "_AUDIT_FIELD_A2": "c00017a380",
+    "_AUDIT_LOGINUID": "4294967295",
+    "_AUDIT_FIELD_ITEMS": "2",
+    "_TTY": "(none)",
+    "_EXE": "/usr/bin/runc",
+    "_AUDIT_FIELD_A1": "c000344180",
+    "_AUDIT_FIELD_KEY": "(null)",
+    "_UID": "0",
+    "_BOOT_ID": "19307175421c47a7bf67269a67c4de4f"
+  },
+  "resource": {
+    "type": "gce_instance",
+    "labels": {
+      "project_id": "testproject-320520",
+      "zone": "us-west1-a",
+      "instance_id": "8067260147857817940"
+    }
+  },
+  "timestamp": "2021-08-13T20:49:59.260972Z",
+  "labels": {
+    "compute.googleapis.com/resource_name": "gke-cluster-name-default-pool-06ec1ffe-tzwc"
+  },
+  "logName": "projects/testproject-320520/logs/linux-auditd",
+  "receiveTimestamp": "2021-08-13T20:50:04.981157708Z"
+}

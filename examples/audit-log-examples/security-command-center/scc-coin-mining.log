@@ -1,0 +1,45 @@
+{
+"finding": {
+    "canonicalName": "projects/673416829740/sources/15342121604597895036/findings/17890f4a397a6e912cabb11c8b7da3bd",
+    "category": "resource_involved_in_coin_mining",
+    "createTime": "2020-12-16T07:21:33.190Z",
+    "eventTime": "2021-09-13T04:07:00.807Z",
+    "findingClass": "THREAT",
+    "name": "organizations/614830067722/sources/15342121604597895036/findings/17890f4a397a6e912cabb11c8b7da3bd",
+    "parent": "organizations/614830067722/sources/15342121604597895036",
+    "resourceName": "//cloudresourcemanager.googleapis.com/projects/673416829740",
+    "securityMarks": {
+    "name": "organizations/614830067722/sources/15342121604597895036/findings/17890f4a397a6e912cabb11c8b7da3bd/securityMarks"
+    },
+    "sourceProperties": {
+    "abuse_target_ips": "104.140.244.186, 107.178.104.10",
+    "action_taken": "Notification sent",
+    "end_time_usec": {
+        "nanos": 0,
+        "seconds": 1608102240
+    },
+    "finding_type": "Abuse originating from a resource in your organization.",
+    "remote_port_list": "3333",
+    "start_time_usec": {
+        "nanos": 0,
+        "seconds": 1608101640
+    },
+    "summary_message": "We have recently detected activity on your Google Cloud Platform/APIs project that violates our Terms of Service or Acceptable Use Policy.",
+    "vm_ips": "35.238.242.14, 35.202.50.239"
+    },
+    "state": "INACTIVE"
+},
+"resource": {
+    "folders": [
+    {
+        "resourceFolder": "//cloudresourcemanager.googleapis.com/folders/580877974273",
+        "resourceFolderDisplayName": "fldr-dev-domain"
+    }
+    ],
+    "name": "//cloudresourcemanager.googleapis.com/projects/673416829740",
+    "parentDisplayName": "fldr-dev-domain",
+    "parentName": "//cloudresourcemanager.googleapis.com/folders/580877974273",
+    "projectDisplayName": "domain-project-232302",
+    "projectName": "//cloudresourcemanager.googleapis.com/projects/673416829740"
+}
+}

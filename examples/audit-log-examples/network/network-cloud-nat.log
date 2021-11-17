@@ -1,0 +1,60 @@
+Query: resource.type:"nat_gateway"
+NAT Translation:
+{
+  "insertId": "1vzom90g49zrl24",
+  "jsonPayload": {
+    "destination": {
+      "geo_location": {
+        "country": "usa",
+        "asn": 54113,
+        "continent": "America"
+      }
+    },
+    "endpoint": {
+      "vm_name": "sample-vm",
+      "region": "us-west1",
+      "project_id": "sample-project",
+      "zone": "us-west1-b"
+    },
+    "connection": {
+      "src_ip": "99.88.77.66",
+      "nat_ip": "99.88.77.66",
+      "dest_port": 80,
+      "src_port": 52348,
+      "protocol": 6,
+      "dest_ip": "99.88.77.66",
+      "nat_port": 1024
+    },
+    "allocation_status": "OK",
+    "gateway_identifiers": {
+      "region": "us-west1",
+      "gateway_name": "all-natural-gateway",
+      "router_name": "route-66"
+    },
+    "vpc": {
+      "project_id": "sample-project",
+      "subnetwork_name": "sample-net-1",
+      "vpc_name": "sample-net"
+    }
+  },
+  "resource": {
+    "type": "nat_gateway",
+    "labels": {
+      "project_id": "sample-project",
+      "region": "us-west1",
+      "router_id": "1456201423609307328",
+      "gateway_name": "all-natural-gateway"
+    }
+  },
+  "timestamp": "2021-08-12T04:31:19.552026630Z",
+  "labels": {
+    "nat.googleapis.com/nat_ip": "99.88.77.66",
+    "nat.googleapis.com/instance_zone": "us-west1-b",
+    "nat.googleapis.com/network_name": "sample-net",
+    "nat.googleapis.com/router_name": "route-66",
+    "nat.googleapis.com/instance_name": "sample-vm",
+    "nat.googleapis.com/subnetwork_name": "sample-net-1"
+  },
+  "logName": "projects/sample-project/logs/compute.googleapis.com%2Fnat_flows",
+  "receiveTimestamp": "2021-08-12T04:31:30.231018057Z"
+}

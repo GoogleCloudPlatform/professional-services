@@ -1,0 +1,57 @@
+Query: protoPayload.methodName: "google.admin.AdminService.addGroupMember"
+Adding User to Google Group:
+{
+  "protoPayload": {
+    "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+    "authenticationInfo": {
+      "principalEmail": "service-identity@customer.com"
+    },
+    "requestMetadata": {
+      "callerIp": "8.8.8.8",
+      "requestAttributes": {},
+      "destinationAttributes": {}
+    },
+    "serviceName": "admin.googleapis.com",
+    "methodName": "google.admin.AdminService.addGroupMember",
+    "resourceName": "organizations/[ORG_ID]/groupSettings",
+    "metadata": {
+      "activityId": {
+        "timeUsec": "1620835547006000",
+        "uniqQualifier": "-5039467235533442123"
+      },
+      "event": [
+        {
+          "eventType": "GROUP_SETTINGS",
+          "eventName": "ADD_GROUP_MEMBER",
+          "parameter": [
+            {
+              "type": "TYPE_STRING",
+              "label": "LABEL_OPTIONAL",
+              "name": "USER_EMAIL",
+              "value": "newuser@customer.com"
+            },
+            {
+              "label": "LABEL_OPTIONAL",
+              "value": "group@customer.com",
+              "type": "TYPE_STRING",
+              "name": "GROUP_EMAIL"
+            }
+          ]
+        }
+      ],
+      "@type": "type.googleapis.com/ccc_hosted_reporting.ActivityProto"
+    }
+  },
+  "insertId": "3cg7gzd4pni",
+  "resource": {
+    "type": "audited_resource",
+    "labels": {
+      "method": "google.admin.AdminService.addGroupMember",
+      "service": "admin.googleapis.com"
+    }
+  },
+  "timestamp": "2021-05-12T16:05:47.006Z",
+  "severity": "NOTICE",
+  "logName": "organizations/[ORG_ID]/logs/cloudaudit.googleapis.com%2Factivity",
+  "receiveTimestamp": "2021-05-12T16:05:47.688372541Z"
+}

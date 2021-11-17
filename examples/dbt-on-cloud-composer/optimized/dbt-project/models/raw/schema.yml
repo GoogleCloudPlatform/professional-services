@@ -1,0 +1,36 @@
+# Copyright 2021 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Schema is not mandatory in dbt. But there are a lot of dbt features use schema. e.g tests, description
+# Check the documentation for all available tests on dbt: 
+# https://docs.getdbt.com/docs/building-a-dbt-project/tests
+
+version: 2
+
+models:
+    - name: stackoverflow_posts
+      description: "stackoverflow_posts raw table"
+      columns:
+          - name: last_activity_date
+            description: "Last activity date from the post"
+            tests:
+                - not_null
+    - name: users
+      description: "users raw table"
+      columns:
+          - name: id
+            description: "User id"
+            tests:
+                - not_null
+
