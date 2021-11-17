@@ -127,7 +127,7 @@ def bulk_delete_disks(file_name) -> bool:
                         disk_future.append(
                             executor.submit(disk.delete, instance_uri,
                                             row['disk_name_' + str(i + 1)]))
-                count = count + 1
+                        count = count + 1
 
             for future in concurrent.futures.as_completed(disk_future):
                 try:
