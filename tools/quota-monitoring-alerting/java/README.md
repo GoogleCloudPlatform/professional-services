@@ -95,7 +95,7 @@ Success! The app is now created. Please use `gcloud app deploy` to deploy your f
 ### 3.3 Create Service Account
 1. In local workstation, setup environment variables. Replace the name of the Service Account in the commands below
 ```
-DEFAULT_PROJECT_ID=$(gcloud config get-value core/project 2> /dev/null)
+export DEFAULT_PROJECT_ID=$(gcloud config get-value core/project 2> /dev/null)
 export SERVICE_ACCOUNT_ID="sa-"$DEFAULT_PROJECT_ID 
 export DISPLAY_NAME="sa-"$DEFAULT_PROJECT_ID 
 ```
@@ -254,9 +254,9 @@ gcloud iam service-accounts keys create CREDENTIALS_FILE.json \
 ```
 mkdir terraform
 cd terraform
-gsutil cp gs://quota-monitoring-solution-demo-bucket/main.tf .
-gsutil cp gs://quota-monitoring-solution-demo-bucket/variables.tf .
-gsutil cp gs://quota-monitoring-solution-demo-bucket/terraform.tfvars .
+gsutil cp gs://quota-monitoring-solution-source/v4.0/main.tf .
+gsutil cp gs://quota-monitoring-solution-source/v4.0/variables.tf .
+gsutil cp gs://quota-monitoring-solution-source/v4.0/terraform.tfvars .
 ```
 2. Verify that you have these 4 files in your local directory:
    - CREDENTIALS_FILE.json
@@ -293,7 +293,7 @@ vi terraform.tfvars
 <img src="img/test_bigquery_table.png" align="center" />
 
 ### 3.10 Data Studio Dashboard setup
-1. Go to the [Data studio dashboard template](https://datastudio.google.com/reporting/61f8c09f-c593-4950-afa9-c290180482c9) . If this link is not accessible, reach out to pso-quota-monitoring@google.com to share the dashboard template with your email id. A data studio dashboard will look like this:
+1. Go to the [Data studio dashboard template](https://datastudio.google.com/s/jVC2WvaxTNU) . If this link is not accessible, reach out to pso-quota-monitoring@google.com to share the dashboard template with your email id. A data studio dashboard will look like this:
 <img src="img/ds_template.png" align="center" />
 2. Make a copy of the template from the copy icon at the top bar (top - right corner)
 <img src="img/ds_copy.png" align="center" />
@@ -367,19 +367,17 @@ WHERE
 And query is as follows: (Replace the project id, dataset id and table name and verify query running in Bigquery editor)
 
 ```
-SELECT t.threshold, t.region, t.usage, u.limit, t.metric, MAX(t.addedAt) addedAt, t.project, ((cast(t.usage as BIGNUMERIC)/cast(u.limit as BIGNUMERIC))*100) as consumption FROM quota-monitoring-solution-29.quota_monitoring_dataset.quota_monitoring_table AS t
-JOIN quota-monitoring-solution-29.quota_monitoring_dataset.quota_limit_table AS u ON t.metric = u.metric AND t.project = u. project 
-WHERE u.limit not like "0%"
+SELECT region, metric FROM quota-monitoring-project-34.quota_monitoring_dataset.quota_monitoring_table
+WHERE m_value not like "0%"
 GROUP BY
-    t.org_id,
-    t.project,
-    t.metric,
-    t.region,
-    t.vpc_name,
-    t.targetpool_name,
-    t.threshold,
-    t.usage, 
-    u.limit
+    org_id,
+    project_id,
+    metric,
+    region,
+    vpc_name,
+    targetpool_name,
+    threshold,
+    m_value 
 ```
 
 11. Once the data source is configured, click on the ‘View’ button on the top right corner. 
