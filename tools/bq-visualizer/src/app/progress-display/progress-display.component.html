@@ -15,11 +15,15 @@
  * the License.
  */
 -->
-<div fxLayout="column" class="sideColumn">
-  <div fxFlex="50%">
-    <app-stage-details [details]="stageDetails"></app-stage-details>
-  </div>
-  <div fxFlex="50%">
-    <app-step-details [details]="stepDetails"></app-step-details>
+<div class="progress_display">
+  <div fxLayout="column" (window:resize)="resizeWindow($event)">
+
+    <div fxFlex="25%" id="Progress" class="graph"></div>
+    <div fxFlex="25%" id="SlotUsage" class="graph"></div>
+    <div fxFlex="50%" class="status">
+      <app-plan-status-card #status_card></app-plan-status-card>
+    </div>
+
+
   </div>
 </div>

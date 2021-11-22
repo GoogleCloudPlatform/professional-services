@@ -13,12 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {ScrollDispatchModule} from '@angular/cdk/scrolling';
+import {ScrollingModule} from '@angular/cdk/scrolling';
 import {HttpClientModule} from '@angular/common/http';
 import {ErrorHandler, Injectable, NgModule} from '@angular/core';
 import {FlexLayoutModule} from '@angular/flex-layout';
 import {FormsModule} from '@angular/forms';
-import {MatButtonModule, MatCheckboxModule, MatGridListModule, MatIconModule, MatMenuModule} from '@angular/material';
+import {MatGridListModule} from '@angular/material/grid-list';
+import {MatButtonToggleModule} from '@angular/material/button-toggle';
+import {MatButtonModule} from '@angular/material/button';
+import {MatCheckboxModule} from '@angular/material/checkbox';
+import {MatIconModule} from '@angular/material/icon';
+import {MatListModule} from '@angular/material/list';
+import {MatMenuModule} from '@angular/material/menu';
 import {MatCardModule} from '@angular/material/card';
 import {MatDividerModule} from '@angular/material/divider';
 import {MatExpansionModule} from '@angular/material/expansion';
@@ -33,7 +39,7 @@ import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {RouterModule} from '@angular/router';
 import * as Sentry from '@sentry/browser';
 import {OAuthModule} from 'angular-oauth2-oidc';
-import {AngularResizedEventModule} from 'angular-resize-event';
+import {AngularResizeEventModule} from 'angular-resize-event';
 
 import {environment} from '../environments/environment';
 
@@ -44,6 +50,7 @@ import {LogDisplayComponent} from './log-display/log-display.component';
 import {MainComponent} from './main/main.component';
 import {PlanSideDisplayComponent} from './plan-side-display/plan-side-display.component';
 import {PlanStatusCardComponent} from './plan-status-card/plan-status-card.component';
+import {ProgressDisplayComponent} from './progress-display/progress-display.component';
 import {ProjectsComponent} from './projects/projects.component';
 import {StageDetailsComponent} from './stage-details/stage-details.component';
 import {StepDetailsComponent} from './step-details/step-details.component';
@@ -58,7 +65,7 @@ Sentry.init({
 
 @Injectable()
 export class SentryErrorHandler implements ErrorHandler {
-  handleError(error) {
+  handleError(error:any) {
     Sentry.captureException(error.originalError || error);
     throw error;
   }
@@ -78,11 +85,12 @@ export class SentryErrorHandler implements ErrorHandler {
     StepDetailsComponent,
     TermsComponent,
     MainComponent,
+    ProgressDisplayComponent,
   ],
   imports: [
-    AngularResizedEventModule,
+    AngularResizeEventModule,
     FlexLayoutModule,
-    ScrollDispatchModule,
+    ScrollingModule,
     MatDividerModule,
     MatTabsModule,
     BrowserModule,
@@ -96,12 +104,14 @@ export class SentryErrorHandler implements ErrorHandler {
     MatCardModule,
     MatExpansionModule,
     MatInputModule,
+    MatListModule,
     MatPaginatorModule,
     MatTableModule,
     MatGridListModule,
     MatMenuModule,
     MatIconModule,
     BrowserModule,
+    MatButtonToggleModule,
     // note to self: import HttpClientModule after BrowserModule, otherwise
     // there is trouble.
     HttpClientModule,

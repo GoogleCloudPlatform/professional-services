@@ -27,7 +27,10 @@
   display: flex;
   color: #fff;
   background: #3f51b5;
-  padding: 16px;
+  padding-left: 16px;
+  padding-right: 16px;
+  padding-top:2px;
+  padding-bottom: 2px;
 }
 .header__title {
   font-weight: bold;
