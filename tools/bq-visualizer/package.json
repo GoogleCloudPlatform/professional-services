@@ -24,7 +24,6 @@
     "@angular/router": "^12",
     "@sentry/browser": "^4.5.0",
     "@types/google.visualization": "^0.0.41",
-    "@types/googlemaps": "^3.39.1",
     "ajv": "^6.10.2",
     "angular-google-chart": "^1.0.0-beta.1",
     "angular-local-storage": "^0.7.1",
@@ -39,7 +38,6 @@
     "rxjs": "~6.5.5",
     "stacktrace-js": "^2.0.2",
     "tslib": "^2.3.1",
-    "typings": "^2.1.1",
     "vis": "^4.21.0",
     "zone.js": "^0.11.4"
   },

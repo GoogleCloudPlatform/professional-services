@@ -17,12 +17,14 @@
 steps:
 
   # Install node packages
-  - name: 'gcr.io/cloud-builders/npm'
+  - name:  node:16
+    entrypoint: npm
     args: [ 'install' ]
     dir: 'tools/bq-visualizer'
 
   # build
-  - name: 'gcr.io/cloud-builders/npm'
+  - name: node:16
+    entrypoint: npm
     args: ['run', 'build', '--', '--prod' ]
     dir: 'tools/bq-visualizer'
 
