@@ -1,62 +1,32 @@
+##########################################################
+# Copyright 2021 Google LLC.
+# This software is provided as-is, without warranty or
+# representation for any use or purpose.
+# Your use of it is subject to your agreement with Google.
+#
+# Sample Terraform script to set up an Apigee X instance 
+##########################################################
 
-# ##### Create a porject and enabled all necessary APIs services
-
-
-# resource "random_id" "random_suffix" {
-#   byte_length = 6
-# }
-
-# resource "google_project" "project" {
-#   provider            = google
-#   project_id          = "apigee-tf-demo-${lower(random_id.random_suffix.hex)}"
-#   name                = "apigee-tf-demo-${lower(random_id.random_suffix.hex)}"
-#   org_id              = var.gcp-org-id
-#   billing_account     = var.gcp-billing-id
-#   auto_create_network = false
-# }
+##########################################################
+### Create a Google Cloud Project for the demo
+##########################################################
 data "google_client_config" "current" {}
 
 
-resource "google_project_service" "compute" {
-  provider = google
-  project  = "${var.project_id}"
-  service  = "compute.googleapis.com"
+resource "random_id" "random_suffix" {
+  byte_length = 6
 }
 
-resource "google_project_service" "apigee" {
-  provider = google
-  project  = "${var.project_id}"
-  service  = "apigee.googleapis.com"
-
-  timeouts {
-    create = "30m"
-    update = "40m"
-  }
-
-  disable_dependent_services = true
+resource "random_id" "secret" {
+  byte_length = 8
 }
 
-resource "google_project_service" "servicenetworking" {
-  provider = google
-  project  = "${var.project_id}"
-  service  = "servicenetworking.googleapis.com"
-}
+locals {
+  apigee_x_hostname = "${replace(google_compute_global_address.external_ip.address, ".", "-")}.nip.io"
+  secret = random_id.secret.b64_url
 
-resource "google_project_service" "kms" {
-  provider = google
-  project  = "${var.project_id}"
-  service  = "cloudkms.googleapis.com"
-}
 
-resource "google_project_service" "dns" {
-  provider = google
-  project  = "${var.project_id}"
-  service  = "dns.googleapis.com"
 }
 
 
-resource "google_project_service" "dns_peering_a" {
-  provider = google
-  project  = "${var.backend_a_project_id}"
-  service  = "dns.googleapis.com"
-}
+
