@@ -41,6 +41,7 @@ from apache_beam.io.filesystems import FileSystems
 from apache_beam.options.pipeline_options import PipelineOptions
 from apache_beam.options.value_provider import StaticValueProvider
 from apache_beam.transforms import core
+from asset_inventory import api_schema
 from asset_inventory import bigquery_schema
 from asset_inventory.api_schema import APISchema
 from six import string_types

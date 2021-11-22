@@ -1,0 +1,32 @@
+{
+  "project_id": "project_id",
+  "leftTablename": "project_id.leftdatasetname.lefttablename",
+  "rightTablename": "project_id.rightdatasetname.righttablename",
+  "destinationDataset": "validation",
+  "excludeColumnMapping": [
+      "latitude",
+      "longitude"
+    ],
+  "primaryKeys": [
+      "unique_key",
+      "complaint_type",
+      "complaint_description",
+      "owning_department",
+      "source",
+      "status",
+      "status_change_date",
+      "created_date",
+      "last_update_date",
+      "close_date",
+      "incident_address",
+      "street_number",
+      "street_name",
+      "city",
+      "incident_zip",
+      "county",
+      "state_plane_x_coordinate",
+      "state_plane_y_coordinate",
+      "latitude",
+      "longitude"
+    ]
+}
