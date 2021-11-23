@@ -1,0 +1,70 @@
+Query: resource.type:"dns_query"
+DNS Query:
+{
+  "insertId": "sampleId",
+  "jsonPayload": {
+    "vmInstanceIdString": "5252633384318353540",
+    "rdata": "logging.googleapis.com.\t299\tIN\ta\t99.88.77.66",
+    "queryName": "logging.googleapis.com.",
+    "responseCode": "NOERROR",
+    "vmZoneName": "us-west1-b",
+    "queryType": "A",
+    "authAnswer": true,
+    "vmInstanceName": "283064183700.sample-vm",
+    "sourceNetwork": "sample-net",
+    "protocol": "UDP",
+    "serverLatency": 4,
+    "sourceIP": "99.88.77.66",
+    "vmProjectId": "sample-project",
+    "vmInstanceId": 5252633384318353000
+  },
+  "resource": {
+    "type": "dns_query",
+    "labels": {
+      "source_type": "gce-vm",
+      "project_id": "sample-project",
+      "target_name": "",
+      "location": "us-west1",
+      "target_type": "external"
+    }
+  },
+  "timestamp": "2021-08-11T23:59:18.716038307Z",
+  "severity": "INFO",
+  "logName": "projects/sample-project/logs/dns.googleapis.com%2Fdns_queries",
+  "receiveTimestamp": "2021-08-11T23:59:18.855945496Z"
+}
+
+{
+  "insertId": "crrr1te7a86h",
+  "jsonPayload": {
+    "queryType": "A",
+    "vmInstanceId": 6094687625646549000,
+    "responseCode": "NOERROR",
+    "vmZoneName": "us-west1-b",
+    "protocol": "UDP",
+    "sourceIP": "99.88.77.66",
+    "vmInstanceIdString": "6094687625646548822",
+    "serverLatency": 3,
+    "queryName": "logging.googleapis.com.",
+    "vmInstanceName": "283064183700.clean-debian-group-lgvh",
+    "rdata": "logging.googleapis.com.\t299\tIN\ta\t99.88.77.66",
+    "vmProjectId": "testproject-320520",
+    "authAnswer": true,
+    "sourceNetwork": "bento-net"
+  },
+  "resource": {
+    "type": "dns_query",
+    "labels": {
+      "target_name": "",
+      "location": "us-west1",
+      "source_type": "gce-vm",
+      "target_type": "external",
+      "project_id": "testproject-320520"
+    }
+  },
+  "timestamp": "2021-08-13T20:12:22.433293189Z",
+  "severity": "INFO",
+  "logName": "projects/testproject-320520/logs/dns.googleapis.com%2Fdns_queries",
+  "receiveTimestamp": "2021-08-13T20:12:22.973164409Z"
+}
+

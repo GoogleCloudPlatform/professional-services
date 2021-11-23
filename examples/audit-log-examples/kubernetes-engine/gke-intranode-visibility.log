@@ -1,0 +1,80 @@
+Query: jsonPayload.src_gke_details.cluster.cluster_name="CLUSTER_NAME"
+Intra-node VPC Flow Log:
+{
+  "insertId": "1vzs7q7g6hwo438",
+  "jsonPayload": {
+    "src_vpc": {
+      "subnetwork_name": "bento-net-1",
+      "vpc_name": "bento-net",
+      "project_id": "testproject-320520"
+    },
+    "dest_gke_details": {
+      "pod": {
+        "pod_namespace": "default",
+        "pod_name": "recommendationservice-b75687c5b-w84vd"
+      },
+      "cluster": {
+        "cluster_name": "cluster-name",
+        "cluster_location": "us-west1-a"
+      }
+    },
+    "src_gke_details": {
+      "cluster": {
+        "cluster_location": "us-west1-a",
+        "cluster_name": "cluster-name"
+      },
+      "service": [
+        {
+          "service_name": "productcatalogservice",
+          "service_namespace": "default"
+        }
+      ],
+      "pod": {
+        "pod_name": "productcatalogservice-5cd47f8cc8-mcdgs",
+        "pod_namespace": "default"
+      }
+    },
+    "rtt_msec": "0",
+    "bytes_sent": "28496",
+    "reporter": "DEST",
+    "dest_vpc": {
+      "vpc_name": "bento-net",
+      "project_id": "testproject-320520",
+      "subnetwork_name": "bento-net-1"
+    },
+    "dest_instance": {
+      "vm_name": "gke-cluster-name-default-pool-06ec1ffe-tzwc",
+      "region": "us-west1",
+      "project_id": "testproject-320520",
+      "zone": "us-west1-a"
+    },
+    "src_instance": {
+      "vm_name": "gke-cluster-name-default-pool-06ec1ffe-btr0",
+      "zone": "us-west1-a",
+      "region": "us-west1",
+      "project_id": "testproject-320520"
+    },
+    "end_time": "2021-08-15T21:59:16.069099065Z",
+    "start_time": "2021-08-15T21:59:11.863657252Z",
+    "connection": {
+      "dest_ip": "99.88.77.66",
+      "dest_port": 41420,
+      "protocol": 6,
+      "src_port": 3550,
+      "src_ip": "99.88.77.66"
+    },
+    "packets_sent": "86"
+  },
+  "resource": {
+    "type": "gce_subnetwork",
+    "labels": {
+      "project_id": "testproject-320520",
+      "subnetwork_id": "7893866515594031980",
+      "location": "us-west1-a",
+      "subnetwork_name": "bento-net-1"
+    }
+  },
+  "timestamp": "2021-08-15T21:59:17.658850348Z",
+  "logName": "projects/testproject-320520/logs/compute.googleapis.com%2Fvpc_flows",
+  "receiveTimestamp": "2021-08-15T21:59:17.658850348Z"
+}

@@ -1,0 +1,132 @@
+Query: protoPayload.methodName: "storage.setIamPermissions"
+Setting Bucket Permissions:
+{
+  "protoPayload": {
+    "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+    "status": {},
+    "authenticationInfo": {
+      "principalEmail": "user@organization.com"
+    },
+    "requestMetadata": {
+      "callerIp": "8.8.8.8",
+      "callerSuppliedUserAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36,gzip(gfe)",
+      "requestAttributes": {
+        "time": "2021-08-17T17:27:22.981337412Z",
+        "auth": {}
+      },
+      "destinationAttributes": {}
+    },
+    "serviceName": "storage.googleapis.com",
+    "methodName": "storage.setIamPermissions",
+    "authorizationInfo": [
+      {
+        "resource": "projects/_/buckets/sample-logs-org",
+        "permission": "storage.buckets.setIamPolicy",
+        "granted": true,
+        "resourceAttributes": {}
+      }
+    ],
+    "resourceName": "projects/_/buckets/sample-logs-org",
+    "serviceData": {
+      "@type": "type.googleapis.com/google.iam.v1.logging.AuditData",
+      "policyDelta": {
+        "bindingDeltas": [
+          {
+            "action": "ADD",
+            "role": "roles/storage.admin",
+            "member": "user:user@organization.com"
+          }
+        ]
+      }
+    },
+    "request": {
+      "iamRequest": {
+        "resource": "projects/_/buckets/sample-logs-org",
+        "policy": {
+          "etag": "CAY=",
+          "bindings": [
+            {
+              "role": "roles/storage.admin",
+              "members": [
+                "serviceAccount:o793924137099-000712@gcp-sa-logging.iam.gserviceaccount.com",
+                "user:user@organization.com"
+              ]
+            },
+            {
+              "members": [
+                "projectEditor:sample-logs-prod",
+                "projectOwner:sample-logs-prod"
+              ],
+              "role": "roles/storage.legacyBucketOwner"
+            },
+            {
+              "members": [
+                "projectViewer:sample-logs-prod"
+              ],
+              "role": "roles/storage.legacyBucketReader"
+            },
+            {
+              "members": [
+                "serviceAccount:service-417127842024@cloud-cdn-fill.iam.gserviceaccount.com",
+                "user:anon@organization.com"
+              ],
+              "role": "roles/storage.objectViewer"
+            }
+          ],
+          "version": 3
+        }
+      }
+    },
+    "response": {
+      "etag": "CAc=",
+      "version": 1,
+      "bindings": [
+        {
+          "role": "roles/storage.admin",
+          "members": [
+            "serviceAccount:o793924137099-000712@gcp-sa-logging.iam.gserviceaccount.com",
+            "user:user@organization.com"
+          ]
+        },
+        {
+          "role": "roles/storage.legacyBucketOwner",
+          "members": [
+            "projectEditor:sample-logs-prod",
+            "projectOwner:sample-logs-prod"
+          ]
+        },
+        {
+          "role": "roles/storage.legacyBucketReader",
+          "members": [
+            "projectViewer:sample-logs-prod"
+          ]
+        },
+        {
+          "members": [
+            "serviceAccount:service-417127842024@cloud-cdn-fill.iam.gserviceaccount.com",
+            "user:anon@organization.com"
+          ],
+          "role": "roles/storage.objectViewer"
+        }
+      ]
+    },
+    "resourceLocation": {
+      "currentLocations": [
+        "us-central1"
+      ]
+    }
+  },
+  "insertId": "xl5g0ceapu9i",
+  "resource": {
+    "type": "gcs_bucket",
+    "labels": {
+      "project_id": "sample-logs-prod",
+      "bucket_name": "sample-logs-org",
+      "location": "us-central1"
+    }
+  },
+  "timestamp": "2021-08-17T17:27:22.975758523Z",
+  "severity": "NOTICE",
+  "logName": "projects/sample-logs-prod/logs/cloudaudit.googleapis.com%2Factivity",
+  "receiveTimestamp": "2021-08-17T17:27:23.425872134Z"
+}

@@ -1,0 +1,136 @@
+Query: protoPayload.methodName:"google.container.v1beta1.ClusterManager.CreateCluster"
+GKE Create Cluster:
+{
+  "protoPayload": {
+    "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+    "authenticationInfo": {
+      "principalEmail": "benyan@organization.com"
+    },
+    "requestMetadata": {
+      "callerIp": "2600::11",
+      "callerSuppliedUserAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36,gzip(gfe),gzip(gfe)",
+      "requestAttributes": {
+        "time": "2021-08-13T18:52:18.868432950Z",
+        "reason": "8uSywAYQGg5Db2xpc2V1bSBGbG93cw",
+        "auth": {}
+      },
+      "destinationAttributes": {}
+    },
+    "serviceName": "container.googleapis.com",
+    "methodName": "google.container.v1beta1.ClusterManager.CreateCluster",
+    "authorizationInfo": [
+      {
+        "permission": "container.clusters.create",
+        "granted": true,
+        "resourceAttributes": {}
+      }
+    ],
+    "resourceName": "projects/testproject-320520/zones/us-west1-a/clusters/cluster-name",
+    "request": {
+      "@type": "type.googleapis.com/google.container.v1alpha1.CreateClusterRequest",
+      "cluster": {
+        "locations": [
+          "us-west1-a"
+        ],
+        "location": "us-west1-a",
+        "addonsConfig": {
+          "httpLoadBalancing": {},
+          "dnsCacheConfig": {},
+          "gcePersistentDiskCsiDriverConfig": {
+            "enabled": true
+          },
+          "horizontalPodAutoscaling": {}
+        },
+        "subnetwork": "projects/testproject-320520/regions/us-west1/subnetworks/bento-net-1",
+        "notificationConfig": {},
+        "masterAuthorizedNetworksConfig": {},
+        "initialClusterVersion": "1.20.8-gke.900",
+        "networkPolicy": {},
+        "defaultMaxPodsConstraint": {},
+        "releaseChannel": {
+          "channel": "REGULAR"
+        },
+        "network": "projects/testproject-320520/global/networks/bento-net",
+        "clusterTelemetry": {},
+        "shieldedNodes": {},
+        "ipAllocationPolicy": {
+          "useIpAliases": true
+        },
+        "autoscaling": {},
+        "networkConfig": {
+          "enableIntraNodeVisibility": true,
+          "datapathProvider": "LEGACY_DATAPATH"
+        },
+        "name": "cluster-name",
+        "authenticatorGroupsConfig": {},
+        "databaseEncryption": {},
+        "nodePools": [
+          {
+            "initialNodeCount": 4,
+            "maxPodsConstraint": {},
+            "autoscaling": {},
+            "name": "default-pool",
+            "upgradeSettings": {
+              "maxSurge": 1
+            },
+            "management": {
+              "autoRepair": true,
+              "autoUpgrade": true
+            },
+            "config": {
+              "imageType": "COS_CONTAINERD",
+              "oauthScopes": [
+                "https://www.googleapis.com/auth/devstorage.read_only",
+                "https://www.googleapis.com/auth/logging.write",
+                "https://www.googleapis.com/auth/monitoring",
+                "https://www.googleapis.com/auth/servicecontrol",
+                "https://www.googleapis.com/auth/service.management.readonly",
+                "https://www.googleapis.com/auth/trace.append"
+              ],
+              "diskType": "pd-standard",
+              "metadata": {
+                "disable-legacy-endpoints": "true"
+              },
+              "machineType": "e2-medium",
+              "diskSizeGb": 100,
+              "shieldedInstanceConfig": {}
+            }
+          }
+        ]
+      },
+      "parent": "projects/testproject-320520/locations/us-west1-a"
+    },
+    "response": {
+      "operationType": "CREATE_CLUSTER",
+      "status": "RUNNING",
+      "@type": "type.googleapis.com/google.container.v1alpha1.Operation",
+      "startTime": "2021-08-13T18:52:21.141663085Z",
+      "selfLink": "https://container.googleapis.com/v1alpha1/projects/283064183700/zones/us-west1-a/operations/operation-1628880741141-d28d1d4b",
+      "targetLink": "https://container.googleapis.com/v1alpha1/projects/283064183700/zones/us-west1-a/clusters/cluster-name",
+      "name": "operation-1628880741141-d28d1d4b"
+    },
+    "resourceLocation": {
+      "currentLocations": [
+        "us-west1-a"
+      ]
+    }
+  },
+  "insertId": "1g5vxuud2lr2",
+  "resource": {
+    "type": "gke_cluster",
+    "labels": {
+      "cluster_name": "cluster-name",
+      "location": "us-west1-a",
+      "project_id": "testproject-320520"
+    }
+  },
+  "timestamp": "2021-08-13T18:52:21.201927210Z",
+  "severity": "NOTICE",
+  "logName": "projects/testproject-320520/logs/cloudaudit.googleapis.com%2Factivity",
+  "operation": {
+    "id": "operation-1628880741141-d28d1d4b",
+    "producer": "container.googleapis.com",
+    "first": true
+  },
+  "receiveTimestamp": "2021-08-13T18:52:21.664680659Z"
+}

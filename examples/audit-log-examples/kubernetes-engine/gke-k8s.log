@@ -1,0 +1,49 @@
+Query: "logName": "logs/cloudaudit.googleapis.com%2Fdata_access",
+GKE Data Access Log:
+{
+  "protoPayload": {
+    "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+    "authenticationInfo": {
+      "principalEmail": "system:serviceaccount:kube-system:generic-garbage-collector"
+    },
+    "authorizationInfo": [
+      {
+        "granted": true,
+        "permission": "io.k8s.get",
+        "resource": "apis/networking.gke.io/v1"
+      }
+    ],
+    "methodName": "io.k8s.get",
+    "requestMetadata": {
+      "callerIp": "2600::11",
+      "callerSuppliedUserAgent": "kube-controller-manager/v1.20.8 (linux/amd64) kubernetes/28ab850/system:serviceaccount:kube-system:generic-garbage-collector"
+    },
+    "resourceName": "apis/networking.gke.io/v1",
+    "serviceName": "k8s.io",
+    "status": {
+      "code": 0
+    }
+  },
+  "insertId": "da8f374f-fd39-4513-b1f6-b7ec2790a43e",
+  "resource": {
+    "type": "k8s_cluster",
+    "labels": {
+      "location": "us-west1-a",
+      "project_id": "testproject-320520",
+      "cluster_name": "cluster-name"
+    }
+  },
+  "timestamp": "2021-08-15T19:54:44.480829Z",
+  "labels": {
+    "authorization.k8s.io/decision": "allow",
+    "authorization.k8s.io/reason": "RBAC: allowed by ClusterRoleBinding \"system:discovery\" of ClusterRole \"system:discovery\" to Group \"system:authenticated\""
+  },
+  "logName": "projects/testproject-320520/logs/cloudaudit.googleapis.com%2Fdata_access",
+  "operation": {
+    "id": "da8f374f-fd39-4513-b1f6-b7ec2790a43e",
+    "producer": "k8s.io",
+    "first": true,
+    "last": true
+  },
+  "receiveTimestamp": "2021-08-15T19:54:45.638315018Z"
+}

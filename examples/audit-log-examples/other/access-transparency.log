@@ -1,0 +1,42 @@
+Query: jsonPayload.@type: "type.googleapis.com/google.cloud.audit.TransparencyLog"
+Access Transparency:
+{
+  insertId:  "abcdefg12345"
+  jsonPayload: {
+    @type:  "type.googleapis.com/google.cloud.audit.TransparencyLog"
+    location: {
+      principalOfficeCountry:  "US"
+      principalEmployingEntity:  "Google LLC"
+      principalPhysicalLocationCountry:  "CA"
+    }
+    product: [
+      0:  "Cloud Storage"
+    ]
+    reason: [
+      detail:  "Case number: bar123"
+      type:  "CUSTOMER_INITIATED_SUPPORT"
+    ]
+    accesses: [
+      0: {
+        methodName: "GoogleInternal.Read"
+        resourceName: "//googleapis.com/storage/buckets/BUCKET_NAME/objects/foo123"
+      }
+    ]
+    accessApprovals: [
+      0: "projects/123/approvalRequests/abcdef12345"
+    ]
+  }
+  logName:  "projects/PRO_ID/logs/cloudaudit.googleapis.com%2Faccess_transparency"
+  operation: {
+    id:  "12345xyz"
+  }
+  receiveTimestamp:  "2017-12-18T16:06:37.400577736Z"
+  resource: {
+    labels: {
+      project_id:  "1234567890"
+    }
+    type:  "project"
+  }
+  severity:  "NOTICE"
+  timestamp:  "2017-12-18T16:06:24.660001Z"
+}

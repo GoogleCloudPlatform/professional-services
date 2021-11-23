@@ -1,0 +1,3845 @@
+[{
+  "finding": {
+    "name": "organizations/614830067722/sources/7454665460954730982/findings/3fe7107fb56d411687cd7879a057733f",
+    "parent": "organizations/614830067722/sources/7454665460954730982",
+    "resourceName": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "state": "ACTIVE",
+    "category": "Discovery: Service Account Self-Investigation",
+    "sourceProperties": {
+      "sourceId": {
+        "projectNumber": "927667932961",
+        "customerOrganizationNumber": "614830067722"
+      },
+      "detectionCategory": {
+        "technique": "discovery",
+        "indicator": "audit_log",
+        "ruleName": "iam_anomalous_behavior",
+        "subRuleName": "service_account_gets_own_iam_policy"
+      },
+      "detectionPriority": "LOW",
+      "affectedResources": [{
+        "gcpResourceName": "//cloudresourcemanager.googleapis.com/projects/927667932961"
+      }],
+      "evidence": [{
+        "sourceLogId": {
+          "projectId": "prj-dev",
+          "resourceContainer": "projects/prj-dev",
+          "timestamp": {
+            "seconds": "1629455151",
+            "nanos": 7.41513E8
+          },
+          "insertId": "-lwlnl8d8c7q"
+        }
+      }],
+      "properties": {
+        "serviceAccountGetsOwnIamPolicy": {
+          "principalEmail": "srv-acct-admin@prj-dev.iam.gserviceaccount.com",
+          "projectId": "prj-dev",
+          "callerIp": "8.8.8.8",
+          "callerUserAgent": "google-api-go-client/0.5,gzip(gfe)",
+          "rawUserAgent": "google-api-go-client/0.5,gzip(gfe)"
+        }
+      },
+      "findingId": "3fe7107fb56d411687cd7879a057733f",
+      "contextUris": {
+        "mitreUri": {
+          "displayName": "MITRE Link",
+          "url": "https://attack.mitre.org/techniques/T1069/003/"
+        },
+        "cloudLoggingQueryUri": [{
+          "displayName": "Cloud Logging Query Link",
+          "url": "https://console.cloud.google.com/logs/query;query\u003dtimestamp%3D%222021-08-20T10:25:51.741513Z%22%0AinsertId%3D%22-lwlnl8d8c7q%22%0Aresource.labels.project_id%3D%22prj-dev%22?project\u003dprj-dev"
+        }]
+      }
+    },
+    "securityMarks": {
+      "name": "organizations/614830067722/sources/7454665460954730982/findings/3fe7107fb56d411687cd7879a057733f/securityMarks"
+    },
+    "eventTime": "2021-08-20T10:25:51.741Z",
+    "createTime": "2021-08-20T10:25:54.804Z",
+    "propertyDataTypes": {
+      "sourceId": {
+        "structValue": {
+          "fields": {
+            "projectNumber": {
+              "primitiveDataType": "STRING"
+            },
+            "customerOrganizationNumber": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "evidence": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "sourceLogId": {
+                  "structValue": {
+                    "fields": {
+                      "projectId": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "resourceContainer": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "timestamp": {
+                        "dataType": "TIMESTAMP",
+                        "structValue": {
+                          "fields": {
+                            "seconds": {
+                              "primitiveDataType": "STRING"
+                            },
+                            "nanos": {
+                              "primitiveDataType": "NUMBER"
+                            }
+                          }
+                        }
+                      },
+                      "insertId": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }]
+        }
+      },
+      "detectionPriority": {
+        "primitiveDataType": "STRING"
+      },
+      "findingId": {
+        "primitiveDataType": "STRING"
+      },
+      "contextUris": {
+        "structValue": {
+          "fields": {
+            "mitreUri": {
+              "dataType": "HYPERLINK",
+              "structValue": {
+                "fields": {
+                  "display_name": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "url": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            },
+            "cloudLoggingQueryUri": {
+              "listValues": {
+                "propertyDataTypes": [{
+                  "dataType": "HYPERLINK",
+                  "structValue": {
+                    "fields": {
+                      "display_name": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "url": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }]
+              }
+            }
+          }
+        }
+      },
+      "detectionCategory": {
+        "structValue": {
+          "fields": {
+            "technique": {
+              "primitiveDataType": "STRING"
+            },
+            "indicator": {
+              "primitiveDataType": "STRING"
+            },
+            "ruleName": {
+              "primitiveDataType": "STRING"
+            },
+            "subRuleName": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "affectedResources": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "gcpResourceName": {
+                  "primitiveDataType": "STRING"
+                }
+              }
+            }
+          }]
+        }
+      },
+      "properties": {
+        "structValue": {
+          "fields": {
+            "serviceAccountGetsOwnIamPolicy": {
+              "structValue": {
+                "fields": {
+                  "principalEmail": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "projectId": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "callerIp": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "callerUserAgent": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "rawUserAgent": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "severity": "LOW",
+    "workflowState": "NEW",
+    "canonicalName": "projects/927667932961/sources/7454665460954730982/findings/3fe7107fb56d411687cd7879a057733f",
+    "mute": "UNMUTED",
+    "findingClass": "THREAT"
+  },
+  "resource": {
+    "name": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "projectName": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "projectDisplayName": "prj-dev",
+    "parentName": "//cloudresourcemanager.googleapis.com/folders/561421552790",
+    "parentDisplayName": "palani",
+    "type": "google.cloud.resourcemanager.Project",
+    "folders": [{
+      "resourceFolder": "//cloudresourcemanager.googleapis.com/folders/561421552790",
+      "resourceFolderDisplayName": "palani"
+    }],
+    "displayName": "prj-dev"
+  }
+},{
+  "finding": {
+    "name": "organizations/614830067722/sources/7454665460954730982/findings/4VDS4v29tobKUAz4muboQh",
+    "parent": "organizations/614830067722/sources/7454665460954730982",
+    "resourceName": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "state": "ACTIVE",
+    "category": "Discovery: Service Account Self-Investigation",
+    "sourceProperties": {
+      "sourceId": {
+        "projectNumber": "927667932961",
+        "customerOrganizationNumber": "614830067722"
+      },
+      "detectionCategory": {
+        "technique": "discovery",
+        "indicator": "audit_log",
+        "ruleName": "iam_anomalous_behavior",
+        "subRuleName": "service_account_gets_own_iam_policy"
+      },
+      "detectionPriority": "LOW",
+      "affectedResources": [{
+        "gcpResourceName": "//cloudresourcemanager.googleapis.com/projects/927667932961"
+      }],
+      "evidence": [{
+        "sourceLogId": {
+          "projectId": "prj-dev",
+          "resourceContainer": "projects/prj-dev",
+          "timestamp": {
+            "seconds": "1627542552",
+            "nanos": 6.93826E8
+          },
+          "insertId": "-qmrrzge189w4"
+        }
+      }],
+      "properties": {
+        "serviceAccountGetsOwnIamPolicy": {
+          "principalEmail": "srv-acct-admin@prj-dev.iam.gserviceaccount.com",
+          "projectId": "prj-dev",
+          "callerIp": "8.8.8.8",
+          "callerUserAgent": "google-api-go-client/0.5,gzip(gfe)",
+          "rawUserAgent": "google-api-go-client/0.5,gzip(gfe)"
+        }
+      },
+      "contextUris": {
+        "mitreUri": {
+          "displayName": "MITRE Link",
+          "url": "https://attack.mitre.org/techniques/T1069/003/"
+        },
+        "cloudLoggingQueryUri": [{
+          "displayName": "Cloud Logging Query Link",
+          "url": "https://console.cloud.google.com/logs/query;query\u003dtimestamp%3D%222021-07-29T07:09:12.693826Z%22%0AinsertId%3D%22-qmrrzge189w4%22%0Aresource.labels.project_id%3D%22prj-dev%22?project\u003dprj-dev"
+        }]
+      }
+    },
+    "securityMarks": {
+      "name": "organizations/614830067722/sources/7454665460954730982/findings/4VDS4v29tobKUAz4muboQh/securityMarks"
+    },
+    "eventTime": "2021-07-29T07:09:12.693Z",
+    "createTime": "2021-07-29T07:09:17.192Z",
+    "propertyDataTypes": {
+      "sourceId": {
+        "structValue": {
+          "fields": {
+            "projectNumber": {
+              "primitiveDataType": "STRING"
+            },
+            "customerOrganizationNumber": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "evidence": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "sourceLogId": {
+                  "structValue": {
+                    "fields": {
+                      "projectId": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "resourceContainer": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "timestamp": {
+                        "dataType": "TIMESTAMP",
+                        "structValue": {
+                          "fields": {
+                            "seconds": {
+                              "primitiveDataType": "STRING"
+                            },
+                            "nanos": {
+                              "primitiveDataType": "NUMBER"
+                            }
+                          }
+                        }
+                      },
+                      "insertId": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }]
+        }
+      },
+      "detectionPriority": {
+        "primitiveDataType": "STRING"
+      },
+      "contextUris": {
+        "structValue": {
+          "fields": {
+            "mitreUri": {
+              "dataType": "HYPERLINK",
+              "structValue": {
+                "fields": {
+                  "display_name": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "url": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            },
+            "cloudLoggingQueryUri": {
+              "listValues": {
+                "propertyDataTypes": [{
+                  "dataType": "HYPERLINK",
+                  "structValue": {
+                    "fields": {
+                      "display_name": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "url": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }]
+              }
+            }
+          }
+        }
+      },
+      "detectionCategory": {
+        "structValue": {
+          "fields": {
+            "technique": {
+              "primitiveDataType": "STRING"
+            },
+            "indicator": {
+              "primitiveDataType": "STRING"
+            },
+            "ruleName": {
+              "primitiveDataType": "STRING"
+            },
+            "subRuleName": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "affectedResources": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "gcpResourceName": {
+                  "primitiveDataType": "STRING"
+                }
+              }
+            }
+          }]
+        }
+      },
+      "properties": {
+        "structValue": {
+          "fields": {
+            "serviceAccountGetsOwnIamPolicy": {
+              "structValue": {
+                "fields": {
+                  "principalEmail": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "projectId": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "callerIp": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "callerUserAgent": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "rawUserAgent": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "severity": "LOW",
+    "workflowState": "NEW",
+    "canonicalName": "projects/927667932961/sources/7454665460954730982/findings/4VDS4v29tobKUAz4muboQh",
+    "findingClass": "THREAT",
+    "indicator": {
+    }
+  },
+  "resource": {
+    "name": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "projectName": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "projectDisplayName": "prj-dev",
+    "parentName": "//cloudresourcemanager.googleapis.com/folders/561421552790",
+    "parentDisplayName": "palani",
+    "type": "google.cloud.resourcemanager.Project",
+    "folders": [{
+      "resourceFolder": "//cloudresourcemanager.googleapis.com/folders/561421552790",
+      "resourceFolderDisplayName": "palani"
+    }],
+    "displayName": "prj-dev"
+  }
+},{
+  "finding": {
+    "name": "organizations/614830067722/sources/7454665460954730982/findings/74nVYtuhcyjytLgYfuGdCg",
+    "parent": "organizations/614830067722/sources/7454665460954730982",
+    "resourceName": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "state": "ACTIVE",
+    "category": "Discovery: Service Account Self-Investigation",
+    "sourceProperties": {
+      "sourceId": {
+        "projectNumber": "927667932961",
+        "customerOrganizationNumber": "614830067722"
+      },
+      "detectionCategory": {
+        "technique": "discovery",
+        "indicator": "audit_log",
+        "ruleName": "iam_anomalous_behavior",
+        "subRuleName": "service_account_gets_own_iam_policy"
+      },
+      "detectionPriority": "LOW",
+      "affectedResources": [{
+        "gcpResourceName": "//cloudresourcemanager.googleapis.com/projects/927667932961"
+      }],
+      "evidence": [{
+        "sourceLogId": {
+          "projectId": "prj-dev",
+          "resourceContainer": "projects/prj-dev",
+          "timestamp": {
+            "seconds": "1628659684",
+            "nanos": 8.04487E8
+          },
+          "insertId": "ibdzame2bjag"
+        }
+      }],
+      "properties": {
+        "serviceAccountGetsOwnIamPolicy": {
+          "principalEmail": "srv-acct-admin@prj-dev.iam.gserviceaccount.com",
+          "projectId": "prj-dev",
+          "callerIp": "8.8.8.8",
+          "callerUserAgent": "google-api-go-client/0.5,gzip(gfe)",
+          "rawUserAgent": "google-api-go-client/0.5,gzip(gfe)"
+        }
+      },
+      "contextUris": {
+        "mitreUri": {
+          "displayName": "MITRE Link",
+          "url": "https://attack.mitre.org/techniques/T1069/003/"
+        },
+        "cloudLoggingQueryUri": [{
+          "displayName": "Cloud Logging Query Link",
+          "url": "https://console.cloud.google.com/logs/query;query\u003dtimestamp%3D%222021-08-11T05:28:04.804487Z%22%0AinsertId%3D%22ibdzame2bjag%22%0Aresource.labels.project_id%3D%22prj-dev%22?project\u003dprj-dev"
+        }]
+      }
+    },
+    "securityMarks": {
+      "name": "organizations/614830067722/sources/7454665460954730982/findings/74nVYtuhcyjytLgYfuGdCg/securityMarks"
+    },
+    "eventTime": "2021-08-11T05:28:04.804Z",
+    "createTime": "2021-08-11T05:28:07.058Z",
+    "propertyDataTypes": {
+      "sourceId": {
+        "structValue": {
+          "fields": {
+            "projectNumber": {
+              "primitiveDataType": "STRING"
+            },
+            "customerOrganizationNumber": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "evidence": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "sourceLogId": {
+                  "structValue": {
+                    "fields": {
+                      "projectId": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "resourceContainer": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "timestamp": {
+                        "dataType": "TIMESTAMP",
+                        "structValue": {
+                          "fields": {
+                            "seconds": {
+                              "primitiveDataType": "STRING"
+                            },
+                            "nanos": {
+                              "primitiveDataType": "NUMBER"
+                            }
+                          }
+                        }
+                      },
+                      "insertId": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }]
+        }
+      },
+      "detectionPriority": {
+        "primitiveDataType": "STRING"
+      },
+      "contextUris": {
+        "structValue": {
+          "fields": {
+            "mitreUri": {
+              "dataType": "HYPERLINK",
+              "structValue": {
+                "fields": {
+                  "display_name": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "url": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            },
+            "cloudLoggingQueryUri": {
+              "listValues": {
+                "propertyDataTypes": [{
+                  "dataType": "HYPERLINK",
+                  "structValue": {
+                    "fields": {
+                      "display_name": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "url": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }]
+              }
+            }
+          }
+        }
+      },
+      "detectionCategory": {
+        "structValue": {
+          "fields": {
+            "technique": {
+              "primitiveDataType": "STRING"
+            },
+            "indicator": {
+              "primitiveDataType": "STRING"
+            },
+            "ruleName": {
+              "primitiveDataType": "STRING"
+            },
+            "subRuleName": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "affectedResources": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "gcpResourceName": {
+                  "primitiveDataType": "STRING"
+                }
+              }
+            }
+          }]
+        }
+      },
+      "properties": {
+        "structValue": {
+          "fields": {
+            "serviceAccountGetsOwnIamPolicy": {
+              "structValue": {
+                "fields": {
+                  "principalEmail": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "projectId": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "callerIp": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "callerUserAgent": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "rawUserAgent": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "severity": "LOW",
+    "workflowState": "NEW",
+    "canonicalName": "projects/927667932961/sources/7454665460954730982/findings/74nVYtuhcyjytLgYfuGdCg",
+    "mute": "UNMUTED",
+    "findingClass": "THREAT"
+  },
+  "resource": {
+    "name": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "projectName": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "projectDisplayName": "prj-dev",
+    "parentName": "//cloudresourcemanager.googleapis.com/folders/561421552790",
+    "parentDisplayName": "palani",
+    "type": "google.cloud.resourcemanager.Project",
+    "folders": [{
+      "resourceFolder": "//cloudresourcemanager.googleapis.com/folders/561421552790",
+      "resourceFolderDisplayName": "palani"
+    }],
+    "displayName": "prj-dev"
+  }
+},{
+  "finding": {
+    "name": "organizations/614830067722/sources/7454665460954730982/findings/8qHivd6B1pryoutuB2Ekwz",
+    "parent": "organizations/614830067722/sources/7454665460954730982",
+    "resourceName": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "state": "ACTIVE",
+    "category": "Discovery: Service Account Self-Investigation",
+    "sourceProperties": {
+      "sourceId": {
+        "projectNumber": "927667932961",
+        "customerOrganizationNumber": "614830067722"
+      },
+      "detectionCategory": {
+        "technique": "discovery",
+        "indicator": "audit_log",
+        "ruleName": "iam_anomalous_behavior",
+        "subRuleName": "service_account_gets_own_iam_policy"
+      },
+      "detectionPriority": "LOW",
+      "affectedResources": [{
+        "gcpResourceName": "//cloudresourcemanager.googleapis.com/projects/927667932961"
+      }],
+      "evidence": [{
+        "sourceLogId": {
+          "projectId": "prj-dev",
+          "resourceContainer": "projects/prj-dev",
+          "timestamp": {
+            "seconds": "1621137001",
+            "nanos": 2.37995E8
+          },
+          "insertId": "-gmzexve1pubw"
+        }
+      }],
+      "properties": {
+        "serviceAccountGetsOwnIamPolicy": {
+          "principalEmail": "cloud-foundation-forseti-15728@prj-dev.iam.gserviceaccount.com",
+          "projectId": "prj-dev",
+          "callerIp": "8.8.8.8",
+          "callerUserAgent": "google-api-go-client/0.5,gzip(gfe)",
+          "rawUserAgent": "google-api-go-client/0.5,gzip(gfe)"
+        }
+      },
+      "contextUris": {
+        "mitreUri": {
+          "displayName": "Permission Groups Discovery: Cloud Groups",
+          "url": "https://attack.mitre.org/techniques/T1069/003/"
+        },
+        "cloudLoggingQueryUri": [{
+          "displayName": "Cloud Logging Query Link",
+          "url": "https://console.cloud.google.com/logs/query;query\u003dtimestamp%3D%222021-05-16T03:50:01.237995Z%22%0AinsertId%3D%22-gmzexve1pubw%22%0Aresource.labels.project_id%3D%22prj-dev%22?project\u003dprj-dev"
+        }]
+      }
+    },
+    "securityMarks": {
+      "name": "organizations/614830067722/sources/7454665460954730982/findings/8qHivd6B1pryoutuB2Ekwz/securityMarks"
+    },
+    "eventTime": "2021-05-16T03:50:01.237Z",
+    "createTime": "2021-05-16T03:50:05.669Z",
+    "propertyDataTypes": {
+      "sourceId": {
+        "structValue": {
+          "fields": {
+            "projectNumber": {
+              "primitiveDataType": "STRING"
+            },
+            "customerOrganizationNumber": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "evidence": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "sourceLogId": {
+                  "structValue": {
+                    "fields": {
+                      "projectId": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "resourceContainer": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "timestamp": {
+                        "dataType": "TIMESTAMP",
+                        "structValue": {
+                          "fields": {
+                            "seconds": {
+                              "primitiveDataType": "STRING"
+                            },
+                            "nanos": {
+                              "primitiveDataType": "NUMBER"
+                            }
+                          }
+                        }
+                      },
+                      "insertId": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }]
+        }
+      },
+      "detectionPriority": {
+        "primitiveDataType": "STRING"
+      },
+      "contextUris": {
+        "structValue": {
+          "fields": {
+            "mitreUri": {
+              "dataType": "HYPERLINK",
+              "structValue": {
+                "fields": {
+                  "display_name": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "url": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            },
+            "cloudLoggingQueryUri": {
+              "listValues": {
+                "propertyDataTypes": [{
+                  "dataType": "HYPERLINK",
+                  "structValue": {
+                    "fields": {
+                      "display_name": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "url": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }]
+              }
+            }
+          }
+        }
+      },
+      "detectionCategory": {
+        "structValue": {
+          "fields": {
+            "technique": {
+              "primitiveDataType": "STRING"
+            },
+            "indicator": {
+              "primitiveDataType": "STRING"
+            },
+            "ruleName": {
+              "primitiveDataType": "STRING"
+            },
+            "subRuleName": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "affectedResources": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "gcpResourceName": {
+                  "primitiveDataType": "STRING"
+                }
+              }
+            }
+          }]
+        }
+      },
+      "properties": {
+        "structValue": {
+          "fields": {
+            "serviceAccountGetsOwnIamPolicy": {
+              "structValue": {
+                "fields": {
+                  "principalEmail": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "projectId": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "callerIp": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "callerUserAgent": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "rawUserAgent": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "severity": "LOW",
+    "workflowState": "NEW",
+    "canonicalName": "projects/927667932961/sources/7454665460954730982/findings/8qHivd6B1pryoutuB2Ekwz",
+    "findingClass": "THREAT"
+  },
+  "resource": {
+    "name": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "projectName": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "projectDisplayName": "prj-dev",
+    "parentName": "//cloudresourcemanager.googleapis.com/folders/561421552790",
+    "parentDisplayName": "palani",
+    "type": "google.cloud.resourcemanager.Project",
+    "folders": [{
+      "resourceFolder": "//cloudresourcemanager.googleapis.com/folders/561421552790",
+      "resourceFolderDisplayName": "palani"
+    }],
+    "displayName": "prj-dev"
+  }
+},{
+  "finding": {
+    "name": "organizations/614830067722/sources/7454665460954730982/findings/9xmYUJA3AmccKe94SVCokp",
+    "parent": "organizations/614830067722/sources/7454665460954730982",
+    "resourceName": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "state": "ACTIVE",
+    "category": "Discovery: Service Account Self-Investigation",
+    "sourceProperties": {
+      "sourceId": {
+        "projectNumber": "927667932961",
+        "customerOrganizationNumber": "614830067722"
+      },
+      "detectionCategory": {
+        "technique": "discovery",
+        "indicator": "audit_log",
+        "ruleName": "iam_anomalous_behavior",
+        "subRuleName": "service_account_gets_own_iam_policy"
+      },
+      "detectionPriority": "LOW",
+      "affectedResources": [{
+        "gcpResourceName": "//cloudresourcemanager.googleapis.com/projects/927667932961"
+      }],
+      "evidence": [{
+        "sourceLogId": {
+          "projectId": "prj-dev",
+          "resourceContainer": "projects/prj-dev",
+          "timestamp": {
+            "seconds": "1626411239",
+            "nanos": 5.17792E8
+          },
+          "insertId": "ilre9zd6k92"
+        }
+      }],
+      "properties": {
+        "serviceAccountGetsOwnIamPolicy": {
+          "principalEmail": "srv-acct-admin@prj-dev.iam.gserviceaccount.com",
+          "projectId": "prj-dev",
+          "callerIp": "8.8.8.8",
+          "callerUserAgent": "google-api-go-client/0.5,gzip(gfe)",
+          "rawUserAgent": "google-api-go-client/0.5,gzip(gfe)"
+        }
+      },
+      "contextUris": {
+        "mitreUri": {
+          "displayName": "MITRE Link",
+          "url": "https://attack.mitre.org/techniques/T1069/003/"
+        },
+        "cloudLoggingQueryUri": [{
+          "displayName": "Cloud Logging Query Link",
+          "url": "https://console.cloud.google.com/logs/query;query\u003dtimestamp%3D%222021-07-16T04:53:59.517792Z%22%0AinsertId%3D%22ilre9zd6k92%22%0Aresource.labels.project_id%3D%22prj-dev%22?project\u003dprj-dev"
+        }]
+      }
+    },
+    "securityMarks": {
+      "name": "organizations/614830067722/sources/7454665460954730982/findings/9xmYUJA3AmccKe94SVCokp/securityMarks"
+    },
+    "eventTime": "2021-07-16T04:53:59.517Z",
+    "createTime": "2021-07-16T04:54:03.582Z",
+    "propertyDataTypes": {
+      "sourceId": {
+        "structValue": {
+          "fields": {
+            "projectNumber": {
+              "primitiveDataType": "STRING"
+            },
+            "customerOrganizationNumber": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "evidence": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "sourceLogId": {
+                  "structValue": {
+                    "fields": {
+                      "projectId": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "resourceContainer": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "timestamp": {
+                        "dataType": "TIMESTAMP",
+                        "structValue": {
+                          "fields": {
+                            "seconds": {
+                              "primitiveDataType": "STRING"
+                            },
+                            "nanos": {
+                              "primitiveDataType": "NUMBER"
+                            }
+                          }
+                        }
+                      },
+                      "insertId": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }]
+        }
+      },
+      "detectionPriority": {
+        "primitiveDataType": "STRING"
+      },
+      "contextUris": {
+        "structValue": {
+          "fields": {
+            "mitreUri": {
+              "dataType": "HYPERLINK",
+              "structValue": {
+                "fields": {
+                  "display_name": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "url": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            },
+            "cloudLoggingQueryUri": {
+              "listValues": {
+                "propertyDataTypes": [{
+                  "dataType": "HYPERLINK",
+                  "structValue": {
+                    "fields": {
+                      "display_name": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "url": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }]
+              }
+            }
+          }
+        }
+      },
+      "detectionCategory": {
+        "structValue": {
+          "fields": {
+            "technique": {
+              "primitiveDataType": "STRING"
+            },
+            "indicator": {
+              "primitiveDataType": "STRING"
+            },
+            "ruleName": {
+              "primitiveDataType": "STRING"
+            },
+            "subRuleName": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "affectedResources": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "gcpResourceName": {
+                  "primitiveDataType": "STRING"
+                }
+              }
+            }
+          }]
+        }
+      },
+      "properties": {
+        "structValue": {
+          "fields": {
+            "serviceAccountGetsOwnIamPolicy": {
+              "structValue": {
+                "fields": {
+                  "principalEmail": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "projectId": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "callerIp": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "callerUserAgent": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "rawUserAgent": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "severity": "LOW",
+    "workflowState": "NEW",
+    "canonicalName": "projects/927667932961/sources/7454665460954730982/findings/9xmYUJA3AmccKe94SVCokp",
+    "findingClass": "THREAT",
+    "indicator": {
+    }
+  },
+  "resource": {
+    "name": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "projectName": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "projectDisplayName": "prj-dev",
+    "parentName": "//cloudresourcemanager.googleapis.com/folders/561421552790",
+    "parentDisplayName": "palani",
+    "type": "google.cloud.resourcemanager.Project",
+    "folders": [{
+      "resourceFolder": "//cloudresourcemanager.googleapis.com/folders/561421552790",
+      "resourceFolderDisplayName": "palani"
+    }],
+    "displayName": "prj-dev"
+  }
+},{
+  "finding": {
+    "name": "organizations/614830067722/sources/7454665460954730982/findings/BTmyDF82oHP8DfxA9xsEGh",
+    "parent": "organizations/614830067722/sources/7454665460954730982",
+    "resourceName": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "state": "ACTIVE",
+    "category": "Discovery: Service Account Self-Investigation",
+    "sourceProperties": {
+      "sourceId": {
+        "projectNumber": "927667932961",
+        "customerOrganizationNumber": "614830067722"
+      },
+      "detectionCategory": {
+        "technique": "discovery",
+        "indicator": "audit_log",
+        "ruleName": "iam_anomalous_behavior",
+        "subRuleName": "service_account_gets_own_iam_policy"
+      },
+      "detectionPriority": "LOW",
+      "affectedResources": [{
+        "gcpResourceName": "//cloudresourcemanager.googleapis.com/projects/927667932961"
+      }],
+      "evidence": [{
+        "sourceLogId": {
+          "projectId": "prj-dev",
+          "resourceContainer": "projects/prj-dev",
+          "timestamp": {
+            "seconds": "1629361793",
+            "nanos": 3.91931E8
+          },
+          "insertId": "-b3cgrse1qch6"
+        }
+      }],
+      "properties": {
+        "serviceAccountGetsOwnIamPolicy": {
+          "principalEmail": "srv-acct-admin@prj-dev.iam.gserviceaccount.com",
+          "projectId": "prj-dev",
+          "callerIp": "8.8.8.8",
+          "callerUserAgent": "google-api-go-client/0.5,gzip(gfe)",
+          "rawUserAgent": "google-api-go-client/0.5,gzip(gfe)"
+        }
+      },
+      "contextUris": {
+        "mitreUri": {
+          "displayName": "MITRE Link",
+          "url": "https://attack.mitre.org/techniques/T1069/003/"
+        },
+        "cloudLoggingQueryUri": [{
+          "displayName": "Cloud Logging Query Link",
+          "url": "https://console.cloud.google.com/logs/query;query\u003dtimestamp%3D%222021-08-19T08:29:53.391931Z%22%0AinsertId%3D%22-b3cgrse1qch6%22%0Aresource.labels.project_id%3D%22prj-dev%22?project\u003dprj-dev"
+        }]
+      }
+    },
+    "securityMarks": {
+      "name": "organizations/614830067722/sources/7454665460954730982/findings/BTmyDF82oHP8DfxA9xsEGh/securityMarks"
+    },
+    "eventTime": "2021-08-19T08:29:53.391Z",
+    "createTime": "2021-08-19T08:29:57.405Z",
+    "propertyDataTypes": {
+      "sourceId": {
+        "structValue": {
+          "fields": {
+            "projectNumber": {
+              "primitiveDataType": "STRING"
+            },
+            "customerOrganizationNumber": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "evidence": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "sourceLogId": {
+                  "structValue": {
+                    "fields": {
+                      "projectId": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "resourceContainer": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "timestamp": {
+                        "dataType": "TIMESTAMP",
+                        "structValue": {
+                          "fields": {
+                            "seconds": {
+                              "primitiveDataType": "STRING"
+                            },
+                            "nanos": {
+                              "primitiveDataType": "NUMBER"
+                            }
+                          }
+                        }
+                      },
+                      "insertId": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }]
+        }
+      },
+      "detectionPriority": {
+        "primitiveDataType": "STRING"
+      },
+      "contextUris": {
+        "structValue": {
+          "fields": {
+            "mitreUri": {
+              "dataType": "HYPERLINK",
+              "structValue": {
+                "fields": {
+                  "display_name": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "url": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            },
+            "cloudLoggingQueryUri": {
+              "listValues": {
+                "propertyDataTypes": [{
+                  "dataType": "HYPERLINK",
+                  "structValue": {
+                    "fields": {
+                      "display_name": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "url": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }]
+              }
+            }
+          }
+        }
+      },
+      "detectionCategory": {
+        "structValue": {
+          "fields": {
+            "technique": {
+              "primitiveDataType": "STRING"
+            },
+            "indicator": {
+              "primitiveDataType": "STRING"
+            },
+            "ruleName": {
+              "primitiveDataType": "STRING"
+            },
+            "subRuleName": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "affectedResources": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "gcpResourceName": {
+                  "primitiveDataType": "STRING"
+                }
+              }
+            }
+          }]
+        }
+      },
+      "properties": {
+        "structValue": {
+          "fields": {
+            "serviceAccountGetsOwnIamPolicy": {
+              "structValue": {
+                "fields": {
+                  "principalEmail": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "projectId": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "callerIp": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "callerUserAgent": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "rawUserAgent": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "severity": "LOW",
+    "workflowState": "NEW",
+    "canonicalName": "projects/927667932961/sources/7454665460954730982/findings/BTmyDF82oHP8DfxA9xsEGh",
+    "mute": "UNMUTED",
+    "findingClass": "THREAT"
+  },
+  "resource": {
+    "name": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "projectName": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "projectDisplayName": "prj-dev",
+    "parentName": "//cloudresourcemanager.googleapis.com/folders/561421552790",
+    "parentDisplayName": "palani",
+    "type": "google.cloud.resourcemanager.Project",
+    "folders": [{
+      "resourceFolder": "//cloudresourcemanager.googleapis.com/folders/561421552790",
+      "resourceFolderDisplayName": "palani"
+    }],
+    "displayName": "prj-dev"
+  }
+},{
+  "finding": {
+    "name": "organizations/614830067722/sources/7454665460954730982/findings/Fanovw4NNfj136PvR26fvb",
+    "parent": "organizations/614830067722/sources/7454665460954730982",
+    "resourceName": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "state": "ACTIVE",
+    "category": "Discovery: Service Account Self-Investigation",
+    "sourceProperties": {
+      "sourceId": {
+        "projectNumber": "927667932961",
+        "customerOrganizationNumber": "614830067722"
+      },
+      "detectionCategory": {
+        "technique": "discovery",
+        "indicator": "audit_log",
+        "ruleName": "iam_anomalous_behavior",
+        "subRuleName": "service_account_gets_own_iam_policy"
+      },
+      "detectionPriority": "LOW",
+      "affectedResources": [{
+        "gcpResourceName": "//cloudresourcemanager.googleapis.com/projects/927667932961"
+      }],
+      "evidence": [{
+        "sourceLogId": {
+          "projectId": "prj-dev",
+          "resourceContainer": "projects/prj-dev",
+          "timestamp": {
+            "seconds": "1621920526",
+            "nanos": 1.59242E8
+          },
+          "insertId": "-3vs6cje1xxjw"
+        }
+      }],
+      "properties": {
+        "serviceAccountGetsOwnIamPolicy": {
+          "principalEmail": "srv-acct-admin@prj-dev.iam.gserviceaccount.com",
+          "projectId": "prj-dev",
+          "callerIp": "8.8.8.8",
+          "callerUserAgent": "google-api-go-client/0.5,gzip(gfe)",
+          "rawUserAgent": "google-api-go-client/0.5,gzip(gfe)"
+        }
+      },
+      "contextUris": {
+        "mitreUri": {
+          "displayName": "Permission Groups Discovery: Cloud Groups",
+          "url": "https://attack.mitre.org/techniques/T1069/003/"
+        },
+        "cloudLoggingQueryUri": [{
+          "displayName": "Cloud Logging Query Link",
+          "url": "https://console.cloud.google.com/logs/query;query\u003dtimestamp%3D%222021-05-25T05:28:46.159242Z%22%0AinsertId%3D%22-3vs6cje1xxjw%22%0Aresource.labels.project_id%3D%22prj-dev%22?project\u003dprj-dev"
+        }]
+      }
+    },
+    "securityMarks": {
+      "name": "organizations/614830067722/sources/7454665460954730982/findings/Fanovw4NNfj136PvR26fvb/securityMarks"
+    },
+    "eventTime": "2021-05-25T05:28:46.159Z",
+    "createTime": "2021-05-25T05:28:49.034Z",
+    "propertyDataTypes": {
+      "sourceId": {
+        "structValue": {
+          "fields": {
+            "projectNumber": {
+              "primitiveDataType": "STRING"
+            },
+            "customerOrganizationNumber": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "evidence": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "sourceLogId": {
+                  "structValue": {
+                    "fields": {
+                      "projectId": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "resourceContainer": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "timestamp": {
+                        "dataType": "TIMESTAMP",
+                        "structValue": {
+                          "fields": {
+                            "seconds": {
+                              "primitiveDataType": "STRING"
+                            },
+                            "nanos": {
+                              "primitiveDataType": "NUMBER"
+                            }
+                          }
+                        }
+                      },
+                      "insertId": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }]
+        }
+      },
+      "detectionPriority": {
+        "primitiveDataType": "STRING"
+      },
+      "contextUris": {
+        "structValue": {
+          "fields": {
+            "mitreUri": {
+              "dataType": "HYPERLINK",
+              "structValue": {
+                "fields": {
+                  "display_name": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "url": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            },
+            "cloudLoggingQueryUri": {
+              "listValues": {
+                "propertyDataTypes": [{
+                  "dataType": "HYPERLINK",
+                  "structValue": {
+                    "fields": {
+                      "display_name": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "url": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }]
+              }
+            }
+          }
+        }
+      },
+      "detectionCategory": {
+        "structValue": {
+          "fields": {
+            "technique": {
+              "primitiveDataType": "STRING"
+            },
+            "indicator": {
+              "primitiveDataType": "STRING"
+            },
+            "ruleName": {
+              "primitiveDataType": "STRING"
+            },
+            "subRuleName": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "affectedResources": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "gcpResourceName": {
+                  "primitiveDataType": "STRING"
+                }
+              }
+            }
+          }]
+        }
+      },
+      "properties": {
+        "structValue": {
+          "fields": {
+            "serviceAccountGetsOwnIamPolicy": {
+              "structValue": {
+                "fields": {
+                  "principalEmail": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "projectId": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "callerIp": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "callerUserAgent": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "rawUserAgent": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "severity": "LOW",
+    "workflowState": "NEW",
+    "canonicalName": "projects/927667932961/sources/7454665460954730982/findings/Fanovw4NNfj136PvR26fvb",
+    "findingClass": "THREAT"
+  },
+  "resource": {
+    "name": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "projectName": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "projectDisplayName": "prj-dev",
+    "parentName": "//cloudresourcemanager.googleapis.com/folders/561421552790",
+    "parentDisplayName": "palani",
+    "type": "google.cloud.resourcemanager.Project",
+    "folders": [{
+      "resourceFolder": "//cloudresourcemanager.googleapis.com/folders/561421552790",
+      "resourceFolderDisplayName": "palani"
+    }],
+    "displayName": "prj-dev"
+  }
+},{
+  "finding": {
+    "name": "organizations/614830067722/sources/7454665460954730982/findings/Gxj984i93hR7Bm1SpcKiPd",
+    "parent": "organizations/614830067722/sources/7454665460954730982",
+    "resourceName": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "state": "ACTIVE",
+    "category": "Discovery: Service Account Self-Investigation",
+    "sourceProperties": {
+      "sourceId": {
+        "projectNumber": "927667932961",
+        "customerOrganizationNumber": "614830067722"
+      },
+      "detectionCategory": {
+        "technique": "discovery",
+        "indicator": "audit_log",
+        "ruleName": "iam_anomalous_behavior",
+        "subRuleName": "service_account_gets_own_iam_policy"
+      },
+      "detectionPriority": "LOW",
+      "affectedResources": [{
+        "gcpResourceName": "//cloudresourcemanager.googleapis.com/projects/927667932961"
+      }],
+      "evidence": [{
+        "sourceLogId": {
+          "projectId": "prj-dev",
+          "resourceContainer": "projects/prj-dev",
+          "timestamp": {
+            "seconds": "1621880423",
+            "nanos": 4.1212E8
+          },
+          "insertId": "-fj62x5e18zxk"
+        }
+      }],
+      "properties": {
+        "serviceAccountGetsOwnIamPolicy": {
+          "principalEmail": "srv-acct-admin@prj-dev.iam.gserviceaccount.com",
+          "projectId": "prj-dev",
+          "callerIp": "8.8.8.8",
+          "callerUserAgent": "google-api-go-client/0.5,gzip(gfe)",
+          "rawUserAgent": "google-api-go-client/0.5,gzip(gfe)"
+        }
+      },
+      "contextUris": {
+        "mitreUri": {
+          "displayName": "Permission Groups Discovery: Cloud Groups",
+          "url": "https://attack.mitre.org/techniques/T1069/003/"
+        },
+        "cloudLoggingQueryUri": [{
+          "displayName": "Cloud Logging Query Link",
+          "url": "https://console.cloud.google.com/logs/query;query\u003dtimestamp%3D%222021-05-24T18:20:23.412120Z%22%0AinsertId%3D%22-fj62x5e18zxk%22%0Aresource.labels.project_id%3D%22prj-dev%22?project\u003dprj-dev"
+        }]
+      }
+    },
+    "securityMarks": {
+      "name": "organizations/614830067722/sources/7454665460954730982/findings/Gxj984i93hR7Bm1SpcKiPd/securityMarks"
+    },
+    "eventTime": "2021-05-24T18:20:23.412Z",
+    "createTime": "2021-05-24T18:20:28.039Z",
+    "propertyDataTypes": {
+      "sourceId": {
+        "structValue": {
+          "fields": {
+            "projectNumber": {
+              "primitiveDataType": "STRING"
+            },
+            "customerOrganizationNumber": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "evidence": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "sourceLogId": {
+                  "structValue": {
+                    "fields": {
+                      "projectId": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "resourceContainer": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "timestamp": {
+                        "dataType": "TIMESTAMP",
+                        "structValue": {
+                          "fields": {
+                            "seconds": {
+                              "primitiveDataType": "STRING"
+                            },
+                            "nanos": {
+                              "primitiveDataType": "NUMBER"
+                            }
+                          }
+                        }
+                      },
+                      "insertId": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }]
+        }
+      },
+      "detectionPriority": {
+        "primitiveDataType": "STRING"
+      },
+      "contextUris": {
+        "structValue": {
+          "fields": {
+            "mitreUri": {
+              "dataType": "HYPERLINK",
+              "structValue": {
+                "fields": {
+                  "display_name": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "url": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            },
+            "cloudLoggingQueryUri": {
+              "listValues": {
+                "propertyDataTypes": [{
+                  "dataType": "HYPERLINK",
+                  "structValue": {
+                    "fields": {
+                      "display_name": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "url": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }]
+              }
+            }
+          }
+        }
+      },
+      "detectionCategory": {
+        "structValue": {
+          "fields": {
+            "technique": {
+              "primitiveDataType": "STRING"
+            },
+            "indicator": {
+              "primitiveDataType": "STRING"
+            },
+            "ruleName": {
+              "primitiveDataType": "STRING"
+            },
+            "subRuleName": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "affectedResources": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "gcpResourceName": {
+                  "primitiveDataType": "STRING"
+                }
+              }
+            }
+          }]
+        }
+      },
+      "properties": {
+        "structValue": {
+          "fields": {
+            "serviceAccountGetsOwnIamPolicy": {
+              "structValue": {
+                "fields": {
+                  "principalEmail": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "projectId": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "callerIp": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "callerUserAgent": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "rawUserAgent": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "severity": "LOW",
+    "workflowState": "NEW",
+    "canonicalName": "projects/927667932961/sources/7454665460954730982/findings/Gxj984i93hR7Bm1SpcKiPd",
+    "findingClass": "THREAT"
+  },
+  "resource": {
+    "name": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "projectName": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "projectDisplayName": "prj-dev",
+    "parentName": "//cloudresourcemanager.googleapis.com/folders/561421552790",
+    "parentDisplayName": "palani",
+    "type": "google.cloud.resourcemanager.Project",
+    "folders": [{
+      "resourceFolder": "//cloudresourcemanager.googleapis.com/folders/561421552790",
+      "resourceFolderDisplayName": "palani"
+    }],
+    "displayName": "prj-dev"
+  }
+},{
+  "finding": {
+    "name": "organizations/614830067722/sources/7454665460954730982/findings/HAo6GaxHXrUUuSkTpQ94du",
+    "parent": "organizations/614830067722/sources/7454665460954730982",
+    "resourceName": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "state": "ACTIVE",
+    "category": "Discovery: Service Account Self-Investigation",
+    "sourceProperties": {
+      "sourceId": {
+        "projectNumber": "927667932961",
+        "customerOrganizationNumber": "614830067722"
+      },
+      "detectionCategory": {
+        "technique": "discovery",
+        "indicator": "audit_log",
+        "ruleName": "iam_anomalous_behavior",
+        "subRuleName": "service_account_gets_own_iam_policy"
+      },
+      "detectionPriority": "LOW",
+      "affectedResources": [{
+        "gcpResourceName": "//cloudresourcemanager.googleapis.com/projects/927667932961"
+      }],
+      "evidence": [{
+        "sourceLogId": {
+          "projectId": "prj-dev",
+          "resourceContainer": "projects/prj-dev",
+          "timestamp": {
+            "seconds": "1625986701",
+            "nanos": 3.85925E8
+          },
+          "insertId": "-9p387le3k28y"
+        }
+      }],
+      "properties": {
+        "serviceAccountGetsOwnIamPolicy": {
+          "principalEmail": "srv-acct-admin@prj-dev.iam.gserviceaccount.com",
+          "projectId": "prj-dev",
+          "callerIp": "8.8.8.8",
+          "callerUserAgent": "google-api-go-client/0.5,gzip(gfe)",
+          "rawUserAgent": "google-api-go-client/0.5,gzip(gfe)"
+        }
+      },
+      "contextUris": {
+        "mitreUri": {
+          "displayName": "MITRE Link",
+          "url": "https://attack.mitre.org/techniques/T1069/003/"
+        },
+        "cloudLoggingQueryUri": [{
+          "displayName": "Cloud Logging Query Link",
+          "url": "https://console.cloud.google.com/logs/query;query\u003dtimestamp%3D%222021-07-11T06:58:21.385925Z%22%0AinsertId%3D%22-9p387le3k28y%22%0Aresource.labels.project_id%3D%22prj-dev%22?project\u003dprj-dev"
+        }]
+      }
+    },
+    "securityMarks": {
+      "name": "organizations/614830067722/sources/7454665460954730982/findings/HAo6GaxHXrUUuSkTpQ94du/securityMarks"
+    },
+    "eventTime": "2021-07-11T06:58:21.385Z",
+    "createTime": "2021-07-11T06:58:25.816Z",
+    "propertyDataTypes": {
+      "sourceId": {
+        "structValue": {
+          "fields": {
+            "projectNumber": {
+              "primitiveDataType": "STRING"
+            },
+            "customerOrganizationNumber": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "evidence": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "sourceLogId": {
+                  "structValue": {
+                    "fields": {
+                      "projectId": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "resourceContainer": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "timestamp": {
+                        "dataType": "TIMESTAMP",
+                        "structValue": {
+                          "fields": {
+                            "seconds": {
+                              "primitiveDataType": "STRING"
+                            },
+                            "nanos": {
+                              "primitiveDataType": "NUMBER"
+                            }
+                          }
+                        }
+                      },
+                      "insertId": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }]
+        }
+      },
+      "detectionPriority": {
+        "primitiveDataType": "STRING"
+      },
+      "contextUris": {
+        "structValue": {
+          "fields": {
+            "mitreUri": {
+              "dataType": "HYPERLINK",
+              "structValue": {
+                "fields": {
+                  "display_name": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "url": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            },
+            "cloudLoggingQueryUri": {
+              "listValues": {
+                "propertyDataTypes": [{
+                  "dataType": "HYPERLINK",
+                  "structValue": {
+                    "fields": {
+                      "display_name": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "url": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }]
+              }
+            }
+          }
+        }
+      },
+      "detectionCategory": {
+        "structValue": {
+          "fields": {
+            "technique": {
+              "primitiveDataType": "STRING"
+            },
+            "indicator": {
+              "primitiveDataType": "STRING"
+            },
+            "ruleName": {
+              "primitiveDataType": "STRING"
+            },
+            "subRuleName": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "affectedResources": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "gcpResourceName": {
+                  "primitiveDataType": "STRING"
+                }
+              }
+            }
+          }]
+        }
+      },
+      "properties": {
+        "structValue": {
+          "fields": {
+            "serviceAccountGetsOwnIamPolicy": {
+              "structValue": {
+                "fields": {
+                  "principalEmail": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "projectId": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "callerIp": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "callerUserAgent": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "rawUserAgent": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "severity": "LOW",
+    "workflowState": "NEW",
+    "canonicalName": "projects/927667932961/sources/7454665460954730982/findings/HAo6GaxHXrUUuSkTpQ94du",
+    "findingClass": "THREAT",
+    "indicator": {
+    }
+  },
+  "resource": {
+    "name": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "projectName": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "projectDisplayName": "prj-dev",
+    "parentName": "//cloudresourcemanager.googleapis.com/folders/561421552790",
+    "parentDisplayName": "palani",
+    "type": "google.cloud.resourcemanager.Project",
+    "folders": [{
+      "resourceFolder": "//cloudresourcemanager.googleapis.com/folders/561421552790",
+      "resourceFolderDisplayName": "palani"
+    }],
+    "displayName": "prj-dev"
+  }
+},{
+  "finding": {
+    "name": "organizations/614830067722/sources/7454665460954730982/findings/UpZqDU6LgQMxya7W9BVydg",
+    "parent": "organizations/614830067722/sources/7454665460954730982",
+    "resourceName": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "state": "ACTIVE",
+    "category": "Discovery: Service Account Self-Investigation",
+    "sourceProperties": {
+      "sourceId": {
+        "projectNumber": "927667932961",
+        "customerOrganizationNumber": "614830067722"
+      },
+      "detectionCategory": {
+        "technique": "discovery",
+        "indicator": "audit_log",
+        "ruleName": "iam_anomalous_behavior",
+        "subRuleName": "service_account_gets_own_iam_policy"
+      },
+      "detectionPriority": "LOW",
+      "affectedResources": [{
+        "gcpResourceName": "//cloudresourcemanager.googleapis.com/projects/927667932961"
+      }],
+      "evidence": [{
+        "sourceLogId": {
+          "projectId": "prj-dev",
+          "resourceContainer": "projects/prj-dev",
+          "timestamp": {
+            "seconds": "1629094884",
+            "nanos": 6.13466E8
+          },
+          "insertId": "tf3wkve1800y"
+        }
+      }],
+      "properties": {
+        "serviceAccountGetsOwnIamPolicy": {
+          "principalEmail": "srv-acct-admin@prj-dev.iam.gserviceaccount.com",
+          "projectId": "prj-dev",
+          "callerIp": "8.8.8.8",
+          "callerUserAgent": "google-api-go-client/0.5,gzip(gfe)",
+          "rawUserAgent": "google-api-go-client/0.5,gzip(gfe)"
+        }
+      },
+      "contextUris": {
+        "mitreUri": {
+          "displayName": "MITRE Link",
+          "url": "https://attack.mitre.org/techniques/T1069/003/"
+        },
+        "cloudLoggingQueryUri": [{
+          "displayName": "Cloud Logging Query Link",
+          "url": "https://console.cloud.google.com/logs/query;query\u003dtimestamp%3D%222021-08-16T06:21:24.613466Z%22%0AinsertId%3D%22tf3wkve1800y%22%0Aresource.labels.project_id%3D%22prj-dev%22?project\u003dprj-dev"
+        }]
+      }
+    },
+    "securityMarks": {
+      "name": "organizations/614830067722/sources/7454665460954730982/findings/UpZqDU6LgQMxya7W9BVydg/securityMarks"
+    },
+    "eventTime": "2021-08-16T06:21:24.613Z",
+    "createTime": "2021-08-16T06:21:27.838Z",
+    "propertyDataTypes": {
+      "sourceId": {
+        "structValue": {
+          "fields": {
+            "projectNumber": {
+              "primitiveDataType": "STRING"
+            },
+            "customerOrganizationNumber": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "evidence": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "sourceLogId": {
+                  "structValue": {
+                    "fields": {
+                      "projectId": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "resourceContainer": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "timestamp": {
+                        "dataType": "TIMESTAMP",
+                        "structValue": {
+                          "fields": {
+                            "seconds": {
+                              "primitiveDataType": "STRING"
+                            },
+                            "nanos": {
+                              "primitiveDataType": "NUMBER"
+                            }
+                          }
+                        }
+                      },
+                      "insertId": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }]
+        }
+      },
+      "detectionPriority": {
+        "primitiveDataType": "STRING"
+      },
+      "contextUris": {
+        "structValue": {
+          "fields": {
+            "mitreUri": {
+              "dataType": "HYPERLINK",
+              "structValue": {
+                "fields": {
+                  "display_name": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "url": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            },
+            "cloudLoggingQueryUri": {
+              "listValues": {
+                "propertyDataTypes": [{
+                  "dataType": "HYPERLINK",
+                  "structValue": {
+                    "fields": {
+                      "display_name": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "url": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }]
+              }
+            }
+          }
+        }
+      },
+      "detectionCategory": {
+        "structValue": {
+          "fields": {
+            "technique": {
+              "primitiveDataType": "STRING"
+            },
+            "indicator": {
+              "primitiveDataType": "STRING"
+            },
+            "ruleName": {
+              "primitiveDataType": "STRING"
+            },
+            "subRuleName": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "affectedResources": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "gcpResourceName": {
+                  "primitiveDataType": "STRING"
+                }
+              }
+            }
+          }]
+        }
+      },
+      "properties": {
+        "structValue": {
+          "fields": {
+            "serviceAccountGetsOwnIamPolicy": {
+              "structValue": {
+                "fields": {
+                  "principalEmail": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "projectId": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "callerIp": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "callerUserAgent": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "rawUserAgent": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "severity": "LOW",
+    "workflowState": "NEW",
+    "canonicalName": "projects/927667932961/sources/7454665460954730982/findings/UpZqDU6LgQMxya7W9BVydg",
+    "mute": "UNMUTED",
+    "findingClass": "THREAT"
+  },
+  "resource": {
+    "name": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "projectName": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "projectDisplayName": "prj-dev",
+    "parentName": "//cloudresourcemanager.googleapis.com/folders/561421552790",
+    "parentDisplayName": "palani",
+    "type": "google.cloud.resourcemanager.Project",
+    "folders": [{
+      "resourceFolder": "//cloudresourcemanager.googleapis.com/folders/561421552790",
+      "resourceFolderDisplayName": "palani"
+    }],
+    "displayName": "prj-dev"
+  }
+},{
+  "finding": {
+    "name": "organizations/614830067722/sources/7454665460954730982/findings/Yo6hSRraGaGVLgjuodmZRa",
+    "parent": "organizations/614830067722/sources/7454665460954730982",
+    "resourceName": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "state": "ACTIVE",
+    "category": "Discovery: Service Account Self-Investigation",
+    "sourceProperties": {
+      "sourceId": {
+        "projectNumber": "927667932961",
+        "customerOrganizationNumber": "614830067722"
+      },
+      "detectionCategory": {
+        "technique": "discovery",
+        "indicator": "audit_log",
+        "ruleName": "iam_anomalous_behavior",
+        "subRuleName": "service_account_gets_own_iam_policy"
+      },
+      "detectionPriority": "LOW",
+      "affectedResources": [{
+        "gcpResourceName": "//cloudresourcemanager.googleapis.com/projects/927667932961"
+      }],
+      "evidence": [{
+        "sourceLogId": {
+          "projectId": "prj-dev",
+          "resourceContainer": "projects/prj-dev",
+          "timestamp": {
+            "seconds": "1628628137",
+            "nanos": 7.60397E8
+          },
+          "insertId": "l3lma6e1ozju"
+        }
+      }],
+      "properties": {
+        "serviceAccountGetsOwnIamPolicy": {
+          "principalEmail": "srv-acct-admin@prj-dev.iam.gserviceaccount.com",
+          "projectId": "prj-dev",
+          "callerIp": "8.8.8.8",
+          "callerUserAgent": "google-api-go-client/0.5,gzip(gfe)",
+          "rawUserAgent": "google-api-go-client/0.5,gzip(gfe)"
+        }
+      },
+      "contextUris": {
+        "mitreUri": {
+          "displayName": "MITRE Link",
+          "url": "https://attack.mitre.org/techniques/T1069/003/"
+        },
+        "cloudLoggingQueryUri": [{
+          "displayName": "Cloud Logging Query Link",
+          "url": "https://console.cloud.google.com/logs/query;query\u003dtimestamp%3D%222021-08-10T20:42:17.760397Z%22%0AinsertId%3D%22l3lma6e1ozju%22%0Aresource.labels.project_id%3D%22prj-dev%22?project\u003dprj-dev"
+        }]
+      }
+    },
+    "securityMarks": {
+      "name": "organizations/614830067722/sources/7454665460954730982/findings/Yo6hSRraGaGVLgjuodmZRa/securityMarks"
+    },
+    "eventTime": "2021-08-10T20:42:17.760Z",
+    "createTime": "2021-08-10T20:42:21.574Z",
+    "propertyDataTypes": {
+      "sourceId": {
+        "structValue": {
+          "fields": {
+            "projectNumber": {
+              "primitiveDataType": "STRING"
+            },
+            "customerOrganizationNumber": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "evidence": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "sourceLogId": {
+                  "structValue": {
+                    "fields": {
+                      "projectId": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "resourceContainer": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "timestamp": {
+                        "dataType": "TIMESTAMP",
+                        "structValue": {
+                          "fields": {
+                            "seconds": {
+                              "primitiveDataType": "STRING"
+                            },
+                            "nanos": {
+                              "primitiveDataType": "NUMBER"
+                            }
+                          }
+                        }
+                      },
+                      "insertId": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }]
+        }
+      },
+      "detectionPriority": {
+        "primitiveDataType": "STRING"
+      },
+      "contextUris": {
+        "structValue": {
+          "fields": {
+            "mitreUri": {
+              "dataType": "HYPERLINK",
+              "structValue": {
+                "fields": {
+                  "display_name": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "url": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            },
+            "cloudLoggingQueryUri": {
+              "listValues": {
+                "propertyDataTypes": [{
+                  "dataType": "HYPERLINK",
+                  "structValue": {
+                    "fields": {
+                      "display_name": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "url": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }]
+              }
+            }
+          }
+        }
+      },
+      "detectionCategory": {
+        "structValue": {
+          "fields": {
+            "technique": {
+              "primitiveDataType": "STRING"
+            },
+            "indicator": {
+              "primitiveDataType": "STRING"
+            },
+            "ruleName": {
+              "primitiveDataType": "STRING"
+            },
+            "subRuleName": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "affectedResources": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "gcpResourceName": {
+                  "primitiveDataType": "STRING"
+                }
+              }
+            }
+          }]
+        }
+      },
+      "properties": {
+        "structValue": {
+          "fields": {
+            "serviceAccountGetsOwnIamPolicy": {
+              "structValue": {
+                "fields": {
+                  "principalEmail": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "projectId": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "callerIp": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "callerUserAgent": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "rawUserAgent": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "severity": "LOW",
+    "workflowState": "NEW",
+    "canonicalName": "projects/927667932961/sources/7454665460954730982/findings/Yo6hSRraGaGVLgjuodmZRa",
+    "mute": "UNMUTED",
+    "findingClass": "THREAT"
+  },
+  "resource": {
+    "name": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "projectName": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "projectDisplayName": "prj-dev",
+    "parentName": "//cloudresourcemanager.googleapis.com/folders/561421552790",
+    "parentDisplayName": "palani",
+    "type": "google.cloud.resourcemanager.Project",
+    "folders": [{
+      "resourceFolder": "//cloudresourcemanager.googleapis.com/folders/561421552790",
+      "resourceFolderDisplayName": "palani"
+    }],
+    "displayName": "prj-dev"
+  }
+},{
+  "finding": {
+    "name": "organizations/614830067722/sources/7454665460954730982/findings/bcEjc5hkWAVNAhUniDrtgk",
+    "parent": "organizations/614830067722/sources/7454665460954730982",
+    "resourceName": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "state": "ACTIVE",
+    "category": "Discovery: Service Account Self-Investigation",
+    "sourceProperties": {
+      "sourceId": {
+        "projectNumber": "927667932961",
+        "customerOrganizationNumber": "614830067722"
+      },
+      "detectionCategory": {
+        "technique": "discovery",
+        "indicator": "audit_log",
+        "ruleName": "iam_anomalous_behavior",
+        "subRuleName": "service_account_gets_own_iam_policy"
+      },
+      "detectionPriority": "LOW",
+      "affectedResources": [{
+        "gcpResourceName": "//cloudresourcemanager.googleapis.com/projects/927667932961"
+      }],
+      "evidence": [{
+        "sourceLogId": {
+          "projectId": "prj-dev",
+          "resourceContainer": "projects/prj-dev",
+          "timestamp": {
+            "seconds": "1621367931",
+            "nanos": 4.82707E8
+          },
+          "insertId": "-2he4roe16qza"
+        }
+      }],
+      "properties": {
+        "serviceAccountGetsOwnIamPolicy": {
+          "principalEmail": "srv-acct-admin@prj-dev.iam.gserviceaccount.com",
+          "projectId": "prj-dev",
+          "callerIp": "8.8.8.8",
+          "callerUserAgent": "google-api-go-client/0.5,gzip(gfe)",
+          "rawUserAgent": "google-api-go-client/0.5,gzip(gfe)"
+        }
+      },
+      "contextUris": {
+        "mitreUri": {
+          "displayName": "Permission Groups Discovery: Cloud Groups",
+          "url": "https://attack.mitre.org/techniques/T1069/003/"
+        },
+        "cloudLoggingQueryUri": [{
+          "displayName": "Cloud Logging Query Link",
+          "url": "https://console.cloud.google.com/logs/query;query\u003dtimestamp%3D%222021-05-18T19:58:51.482707Z%22%0AinsertId%3D%22-2he4roe16qza%22%0Aresource.labels.project_id%3D%22prj-dev%22?project\u003dprj-dev"
+        }]
+      }
+    },
+    "securityMarks": {
+      "name": "organizations/614830067722/sources/7454665460954730982/findings/bcEjc5hkWAVNAhUniDrtgk/securityMarks"
+    },
+    "eventTime": "2021-05-18T19:58:51.482Z",
+    "createTime": "2021-05-18T19:58:54.740Z",
+    "propertyDataTypes": {
+      "sourceId": {
+        "structValue": {
+          "fields": {
+            "projectNumber": {
+              "primitiveDataType": "STRING"
+            },
+            "customerOrganizationNumber": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "evidence": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "sourceLogId": {
+                  "structValue": {
+                    "fields": {
+                      "projectId": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "resourceContainer": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "timestamp": {
+                        "dataType": "TIMESTAMP",
+                        "structValue": {
+                          "fields": {
+                            "seconds": {
+                              "primitiveDataType": "STRING"
+                            },
+                            "nanos": {
+                              "primitiveDataType": "NUMBER"
+                            }
+                          }
+                        }
+                      },
+                      "insertId": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }]
+        }
+      },
+      "detectionPriority": {
+        "primitiveDataType": "STRING"
+      },
+      "contextUris": {
+        "structValue": {
+          "fields": {
+            "mitreUri": {
+              "dataType": "HYPERLINK",
+              "structValue": {
+                "fields": {
+                  "display_name": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "url": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            },
+            "cloudLoggingQueryUri": {
+              "listValues": {
+                "propertyDataTypes": [{
+                  "dataType": "HYPERLINK",
+                  "structValue": {
+                    "fields": {
+                      "display_name": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "url": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }]
+              }
+            }
+          }
+        }
+      },
+      "detectionCategory": {
+        "structValue": {
+          "fields": {
+            "technique": {
+              "primitiveDataType": "STRING"
+            },
+            "indicator": {
+              "primitiveDataType": "STRING"
+            },
+            "ruleName": {
+              "primitiveDataType": "STRING"
+            },
+            "subRuleName": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "affectedResources": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "gcpResourceName": {
+                  "primitiveDataType": "STRING"
+                }
+              }
+            }
+          }]
+        }
+      },
+      "properties": {
+        "structValue": {
+          "fields": {
+            "serviceAccountGetsOwnIamPolicy": {
+              "structValue": {
+                "fields": {
+                  "principalEmail": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "projectId": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "callerIp": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "callerUserAgent": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "rawUserAgent": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "severity": "LOW",
+    "workflowState": "NEW",
+    "canonicalName": "projects/927667932961/sources/7454665460954730982/findings/bcEjc5hkWAVNAhUniDrtgk",
+    "findingClass": "THREAT"
+  },
+  "resource": {
+    "name": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "projectName": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "projectDisplayName": "prj-dev",
+    "parentName": "//cloudresourcemanager.googleapis.com/folders/561421552790",
+    "parentDisplayName": "palani",
+    "type": "google.cloud.resourcemanager.Project",
+    "folders": [{
+      "resourceFolder": "//cloudresourcemanager.googleapis.com/folders/561421552790",
+      "resourceFolderDisplayName": "palani"
+    }],
+    "displayName": "prj-dev"
+  }
+},{
+  "finding": {
+    "name": "organizations/614830067722/sources/7454665460954730982/findings/fU6CUasU7pMmGJexNfdVr22",
+    "parent": "organizations/614830067722/sources/7454665460954730982",
+    "resourceName": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "state": "ACTIVE",
+    "category": "Discovery: Service Account Self-Investigation",
+    "sourceProperties": {
+      "sourceId": {
+        "projectNumber": "927667932961",
+        "customerOrganizationNumber": "614830067722"
+      },
+      "detectionCategory": {
+        "technique": "discovery",
+        "indicator": "audit_log",
+        "ruleName": "iam_anomalous_behavior",
+        "subRuleName": "service_account_gets_own_iam_policy"
+      },
+      "detectionPriority": "LOW",
+      "affectedResources": [{
+        "gcpResourceName": "//cloudresourcemanager.googleapis.com/projects/927667932961"
+      }],
+      "evidence": [{
+        "sourceLogId": {
+          "projectId": "prj-dev",
+          "resourceContainer": "projects/prj-dev",
+          "timestamp": {
+            "seconds": "1621840280",
+            "nanos": 2.9074E8
+          },
+          "insertId": "-3buysde10qr8"
+        }
+      }],
+      "properties": {
+        "serviceAccountGetsOwnIamPolicy": {
+          "principalEmail": "srv-acct-admin@prj-dev.iam.gserviceaccount.com",
+          "projectId": "prj-dev",
+          "callerIp": "8.8.8.8",
+          "callerUserAgent": "google-api-go-client/0.5,gzip(gfe)",
+          "rawUserAgent": "google-api-go-client/0.5,gzip(gfe)"
+        }
+      },
+      "contextUris": {
+        "mitreUri": {
+          "displayName": "Permission Groups Discovery: Cloud Groups",
+          "url": "https://attack.mitre.org/techniques/T1069/003/"
+        },
+        "cloudLoggingQueryUri": [{
+          "displayName": "Cloud Logging Query Link",
+          "url": "https://console.cloud.google.com/logs/query;query\u003dtimestamp%3D%222021-05-24T07:11:20.290740Z%22%0AinsertId%3D%22-3buysde10qr8%22%0Aresource.labels.project_id%3D%22prj-dev%22?project\u003dprj-dev"
+        }]
+      }
+    },
+    "securityMarks": {
+      "name": "organizations/614830067722/sources/7454665460954730982/findings/fU6CUasU7pMmGJexNfdVr22/securityMarks"
+    },
+    "eventTime": "2021-05-24T07:11:20.290Z",
+    "createTime": "2021-05-24T07:11:24.484Z",
+    "propertyDataTypes": {
+      "sourceId": {
+        "structValue": {
+          "fields": {
+            "projectNumber": {
+              "primitiveDataType": "STRING"
+            },
+            "customerOrganizationNumber": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "evidence": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "sourceLogId": {
+                  "structValue": {
+                    "fields": {
+                      "projectId": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "resourceContainer": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "timestamp": {
+                        "dataType": "TIMESTAMP",
+                        "structValue": {
+                          "fields": {
+                            "seconds": {
+                              "primitiveDataType": "STRING"
+                            },
+                            "nanos": {
+                              "primitiveDataType": "NUMBER"
+                            }
+                          }
+                        }
+                      },
+                      "insertId": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }]
+        }
+      },
+      "detectionPriority": {
+        "primitiveDataType": "STRING"
+      },
+      "contextUris": {
+        "structValue": {
+          "fields": {
+            "mitreUri": {
+              "dataType": "HYPERLINK",
+              "structValue": {
+                "fields": {
+                  "display_name": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "url": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            },
+            "cloudLoggingQueryUri": {
+              "listValues": {
+                "propertyDataTypes": [{
+                  "dataType": "HYPERLINK",
+                  "structValue": {
+                    "fields": {
+                      "display_name": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "url": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }]
+              }
+            }
+          }
+        }
+      },
+      "detectionCategory": {
+        "structValue": {
+          "fields": {
+            "technique": {
+              "primitiveDataType": "STRING"
+            },
+            "indicator": {
+              "primitiveDataType": "STRING"
+            },
+            "ruleName": {
+              "primitiveDataType": "STRING"
+            },
+            "subRuleName": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "affectedResources": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "gcpResourceName": {
+                  "primitiveDataType": "STRING"
+                }
+              }
+            }
+          }]
+        }
+      },
+      "properties": {
+        "structValue": {
+          "fields": {
+            "serviceAccountGetsOwnIamPolicy": {
+              "structValue": {
+                "fields": {
+                  "principalEmail": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "projectId": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "callerIp": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "callerUserAgent": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "rawUserAgent": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "severity": "LOW",
+    "workflowState": "NEW",
+    "canonicalName": "projects/927667932961/sources/7454665460954730982/findings/fU6CUasU7pMmGJexNfdVr22",
+    "findingClass": "THREAT"
+  },
+  "resource": {
+    "name": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "projectName": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "projectDisplayName": "prj-dev",
+    "parentName": "//cloudresourcemanager.googleapis.com/folders/561421552790",
+    "parentDisplayName": "palani",
+    "type": "google.cloud.resourcemanager.Project",
+    "folders": [{
+      "resourceFolder": "//cloudresourcemanager.googleapis.com/folders/561421552790",
+      "resourceFolderDisplayName": "palani"
+    }],
+    "displayName": "prj-dev"
+  }
+},{
+  "finding": {
+    "name": "organizations/614830067722/sources/7454665460954730982/findings/mqGHBkH1qKzqE6VWjfB2Mg",
+    "parent": "organizations/614830067722/sources/7454665460954730982",
+    "resourceName": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "state": "ACTIVE",
+    "category": "Discovery: Service Account Self-Investigation",
+    "sourceProperties": {
+      "sourceId": {
+        "projectNumber": "927667932961",
+        "customerOrganizationNumber": "614830067722"
+      },
+      "detectionCategory": {
+        "technique": "discovery",
+        "indicator": "audit_log",
+        "ruleName": "iam_anomalous_behavior",
+        "subRuleName": "service_account_gets_own_iam_policy"
+      },
+      "detectionPriority": "LOW",
+      "affectedResources": [{
+        "gcpResourceName": "//cloudresourcemanager.googleapis.com/projects/927667932961"
+      }],
+      "evidence": [{
+        "sourceLogId": {
+          "projectId": "prj-dev",
+          "resourceContainer": "projects/prj-dev",
+          "timestamp": {
+            "seconds": "1623530364",
+            "nanos": 8.43725E8
+          },
+          "insertId": "1y3jbme10s0e"
+        }
+      }],
+      "properties": {
+        "serviceAccountGetsOwnIamPolicy": {
+          "principalEmail": "srv-acct-admin@prj-dev.iam.gserviceaccount.com",
+          "projectId": "prj-dev",
+          "callerIp": "8.8.8.8",
+          "callerUserAgent": "google-api-go-client/0.5,gzip(gfe)",
+          "rawUserAgent": "google-api-go-client/0.5,gzip(gfe)"
+        }
+      },
+      "contextUris": {
+        "mitreUri": {
+          "displayName": "Permission Groups Discovery: Cloud Groups",
+          "url": "https://attack.mitre.org/techniques/T1069/003/"
+        },
+        "cloudLoggingQueryUri": [{
+          "displayName": "Cloud Logging Query Link",
+          "url": "https://console.cloud.google.com/logs/query;query\u003dtimestamp%3D%222021-06-12T20:39:24.843725Z%22%0AinsertId%3D%221y3jbme10s0e%22%0Aresource.labels.project_id%3D%22prj-dev%22?project\u003dprj-dev"
+        }]
+      }
+    },
+    "securityMarks": {
+      "name": "organizations/614830067722/sources/7454665460954730982/findings/mqGHBkH1qKzqE6VWjfB2Mg/securityMarks"
+    },
+    "eventTime": "2021-06-12T20:39:24.843Z",
+    "createTime": "2021-06-12T20:39:27.918Z",
+    "propertyDataTypes": {
+      "sourceId": {
+        "structValue": {
+          "fields": {
+            "projectNumber": {
+              "primitiveDataType": "STRING"
+            },
+            "customerOrganizationNumber": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "evidence": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "sourceLogId": {
+                  "structValue": {
+                    "fields": {
+                      "projectId": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "resourceContainer": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "timestamp": {
+                        "dataType": "TIMESTAMP",
+                        "structValue": {
+                          "fields": {
+                            "seconds": {
+                              "primitiveDataType": "STRING"
+                            },
+                            "nanos": {
+                              "primitiveDataType": "NUMBER"
+                            }
+                          }
+                        }
+                      },
+                      "insertId": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }]
+        }
+      },
+      "detectionPriority": {
+        "primitiveDataType": "STRING"
+      },
+      "contextUris": {
+        "structValue": {
+          "fields": {
+            "mitreUri": {
+              "dataType": "HYPERLINK",
+              "structValue": {
+                "fields": {
+                  "display_name": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "url": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            },
+            "cloudLoggingQueryUri": {
+              "listValues": {
+                "propertyDataTypes": [{
+                  "dataType": "HYPERLINK",
+                  "structValue": {
+                    "fields": {
+                      "display_name": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "url": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }]
+              }
+            }
+          }
+        }
+      },
+      "detectionCategory": {
+        "structValue": {
+          "fields": {
+            "technique": {
+              "primitiveDataType": "STRING"
+            },
+            "indicator": {
+              "primitiveDataType": "STRING"
+            },
+            "ruleName": {
+              "primitiveDataType": "STRING"
+            },
+            "subRuleName": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "affectedResources": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "gcpResourceName": {
+                  "primitiveDataType": "STRING"
+                }
+              }
+            }
+          }]
+        }
+      },
+      "properties": {
+        "structValue": {
+          "fields": {
+            "serviceAccountGetsOwnIamPolicy": {
+              "structValue": {
+                "fields": {
+                  "principalEmail": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "projectId": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "callerIp": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "callerUserAgent": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "rawUserAgent": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "severity": "LOW",
+    "workflowState": "NEW",
+    "canonicalName": "projects/927667932961/sources/7454665460954730982/findings/mqGHBkH1qKzqE6VWjfB2Mg",
+    "findingClass": "THREAT"
+  },
+  "resource": {
+    "name": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "projectName": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "projectDisplayName": "prj-dev",
+    "parentName": "//cloudresourcemanager.googleapis.com/folders/561421552790",
+    "parentDisplayName": "palani",
+    "type": "google.cloud.resourcemanager.Project",
+    "folders": [{
+      "resourceFolder": "//cloudresourcemanager.googleapis.com/folders/561421552790",
+      "resourceFolderDisplayName": "palani"
+    }],
+    "displayName": "prj-dev"
+  }
+},{
+  "finding": {
+    "name": "organizations/614830067722/sources/7454665460954730982/findings/qNc922ciwBhWcerKGXEQJ22",
+    "parent": "organizations/614830067722/sources/7454665460954730982",
+    "resourceName": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "state": "ACTIVE",
+    "category": "Discovery: Service Account Self-Investigation",
+    "sourceProperties": {
+      "sourceId": {
+        "projectNumber": "927667932961",
+        "customerOrganizationNumber": "614830067722"
+      },
+      "detectionCategory": {
+        "technique": "discovery",
+        "indicator": "audit_log",
+        "ruleName": "iam_anomalous_behavior",
+        "subRuleName": "service_account_gets_own_iam_policy"
+      },
+      "detectionPriority": "LOW",
+      "affectedResources": [{
+        "gcpResourceName": "//cloudresourcemanager.googleapis.com/projects/927667932961"
+      }],
+      "evidence": [{
+        "sourceLogId": {
+          "projectId": "prj-dev",
+          "resourceContainer": "projects/prj-dev",
+          "timestamp": {
+            "seconds": "1629175317",
+            "nanos": 7.09126E8
+          },
+          "insertId": "-vcoy51e1rmdc"
+        }
+      }],
+      "properties": {
+        "serviceAccountGetsOwnIamPolicy": {
+          "principalEmail": "srv-acct-admin@prj-dev.iam.gserviceaccount.com",
+          "projectId": "prj-dev",
+          "callerIp": "8.8.8.8",
+          "callerUserAgent": "google-api-go-client/0.5,gzip(gfe)",
+          "rawUserAgent": "google-api-go-client/0.5,gzip(gfe)"
+        }
+      },
+      "contextUris": {
+        "mitreUri": {
+          "displayName": "MITRE Link",
+          "url": "https://attack.mitre.org/techniques/T1069/003/"
+        },
+        "cloudLoggingQueryUri": [{
+          "displayName": "Cloud Logging Query Link",
+          "url": "https://console.cloud.google.com/logs/query;query\u003dtimestamp%3D%222021-08-17T04:41:57.709126Z%22%0AinsertId%3D%22-vcoy51e1rmdc%22%0Aresource.labels.project_id%3D%22prj-dev%22?project\u003dprj-dev"
+        }]
+      }
+    },
+    "securityMarks": {
+      "name": "organizations/614830067722/sources/7454665460954730982/findings/qNc922ciwBhWcerKGXEQJ22/securityMarks"
+    },
+    "eventTime": "2021-08-17T04:41:57.709Z",
+    "createTime": "2021-08-17T04:42:01.866Z",
+    "propertyDataTypes": {
+      "sourceId": {
+        "structValue": {
+          "fields": {
+            "projectNumber": {
+              "primitiveDataType": "STRING"
+            },
+            "customerOrganizationNumber": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "evidence": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "sourceLogId": {
+                  "structValue": {
+                    "fields": {
+                      "projectId": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "resourceContainer": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "timestamp": {
+                        "dataType": "TIMESTAMP",
+                        "structValue": {
+                          "fields": {
+                            "seconds": {
+                              "primitiveDataType": "STRING"
+                            },
+                            "nanos": {
+                              "primitiveDataType": "NUMBER"
+                            }
+                          }
+                        }
+                      },
+                      "insertId": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }]
+        }
+      },
+      "detectionPriority": {
+        "primitiveDataType": "STRING"
+      },
+      "contextUris": {
+        "structValue": {
+          "fields": {
+            "mitreUri": {
+              "dataType": "HYPERLINK",
+              "structValue": {
+                "fields": {
+                  "display_name": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "url": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            },
+            "cloudLoggingQueryUri": {
+              "listValues": {
+                "propertyDataTypes": [{
+                  "dataType": "HYPERLINK",
+                  "structValue": {
+                    "fields": {
+                      "display_name": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "url": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }]
+              }
+            }
+          }
+        }
+      },
+      "detectionCategory": {
+        "structValue": {
+          "fields": {
+            "technique": {
+              "primitiveDataType": "STRING"
+            },
+            "indicator": {
+              "primitiveDataType": "STRING"
+            },
+            "ruleName": {
+              "primitiveDataType": "STRING"
+            },
+            "subRuleName": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "affectedResources": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "gcpResourceName": {
+                  "primitiveDataType": "STRING"
+                }
+              }
+            }
+          }]
+        }
+      },
+      "properties": {
+        "structValue": {
+          "fields": {
+            "serviceAccountGetsOwnIamPolicy": {
+              "structValue": {
+                "fields": {
+                  "principalEmail": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "projectId": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "callerIp": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "callerUserAgent": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "rawUserAgent": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "severity": "LOW",
+    "workflowState": "NEW",
+    "canonicalName": "projects/927667932961/sources/7454665460954730982/findings/qNc922ciwBhWcerKGXEQJ22",
+    "mute": "UNMUTED",
+    "findingClass": "THREAT"
+  },
+  "resource": {
+    "name": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "projectName": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "projectDisplayName": "prj-dev",
+    "parentName": "//cloudresourcemanager.googleapis.com/folders/561421552790",
+    "parentDisplayName": "palani",
+    "type": "google.cloud.resourcemanager.Project",
+    "folders": [{
+      "resourceFolder": "//cloudresourcemanager.googleapis.com/folders/561421552790",
+      "resourceFolderDisplayName": "palani"
+    }],
+    "displayName": "prj-dev"
+  }
+},{
+  "finding": {
+    "name": "organizations/614830067722/sources/7454665460954730982/findings/skAU52Ssmjw4TYwsVA732x",
+    "parent": "organizations/614830067722/sources/7454665460954730982",
+    "resourceName": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "state": "ACTIVE",
+    "category": "Discovery: Service Account Self-Investigation",
+    "sourceProperties": {
+      "sourceId": {
+        "projectNumber": "927667932961",
+        "customerOrganizationNumber": "614830067722"
+      },
+      "detectionCategory": {
+        "technique": "discovery",
+        "indicator": "audit_log",
+        "ruleName": "iam_anomalous_behavior",
+        "subRuleName": "service_account_gets_own_iam_policy"
+      },
+      "detectionPriority": "LOW",
+      "affectedResources": [{
+        "gcpResourceName": "//cloudresourcemanager.googleapis.com/projects/927667932961"
+      }],
+      "evidence": [{
+        "sourceLogId": {
+          "projectId": "prj-dev",
+          "resourceContainer": "projects/prj-dev",
+          "timestamp": {
+            "seconds": "1627062399",
+            "nanos": 3.28812E8
+          },
+          "insertId": "4zudnuddjfk"
+        }
+      }],
+      "properties": {
+        "serviceAccountGetsOwnIamPolicy": {
+          "principalEmail": "srv-acct-admin@prj-dev.iam.gserviceaccount.com",
+          "projectId": "prj-dev",
+          "callerIp": "8.8.8.8",
+          "callerUserAgent": "google-api-go-client/0.5,gzip(gfe)",
+          "rawUserAgent": "google-api-go-client/0.5,gzip(gfe)"
+        }
+      },
+      "contextUris": {
+        "mitreUri": {
+          "displayName": "MITRE Link",
+          "url": "https://attack.mitre.org/techniques/T1069/003/"
+        },
+        "cloudLoggingQueryUri": [{
+          "displayName": "Cloud Logging Query Link",
+          "url": "https://console.cloud.google.com/logs/query;query\u003dtimestamp%3D%222021-07-23T17:46:39.328812Z%22%0AinsertId%3D%224zudnuddjfk%22%0Aresource.labels.project_id%3D%22prj-dev%22?project\u003dprj-dev"
+        }]
+      }
+    },
+    "securityMarks": {
+      "name": "organizations/614830067722/sources/7454665460954730982/findings/skAU52Ssmjw4TYwsVA732x/securityMarks"
+    },
+    "eventTime": "2021-07-23T17:46:39.328Z",
+    "createTime": "2021-07-23T17:46:42.824Z",
+    "propertyDataTypes": {
+      "sourceId": {
+        "structValue": {
+          "fields": {
+            "projectNumber": {
+              "primitiveDataType": "STRING"
+            },
+            "customerOrganizationNumber": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "evidence": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "sourceLogId": {
+                  "structValue": {
+                    "fields": {
+                      "projectId": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "resourceContainer": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "timestamp": {
+                        "dataType": "TIMESTAMP",
+                        "structValue": {
+                          "fields": {
+                            "seconds": {
+                              "primitiveDataType": "STRING"
+                            },
+                            "nanos": {
+                              "primitiveDataType": "NUMBER"
+                            }
+                          }
+                        }
+                      },
+                      "insertId": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }]
+        }
+      },
+      "detectionPriority": {
+        "primitiveDataType": "STRING"
+      },
+      "contextUris": {
+        "structValue": {
+          "fields": {
+            "mitreUri": {
+              "dataType": "HYPERLINK",
+              "structValue": {
+                "fields": {
+                  "display_name": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "url": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            },
+            "cloudLoggingQueryUri": {
+              "listValues": {
+                "propertyDataTypes": [{
+                  "dataType": "HYPERLINK",
+                  "structValue": {
+                    "fields": {
+                      "display_name": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "url": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }]
+              }
+            }
+          }
+        }
+      },
+      "detectionCategory": {
+        "structValue": {
+          "fields": {
+            "technique": {
+              "primitiveDataType": "STRING"
+            },
+            "indicator": {
+              "primitiveDataType": "STRING"
+            },
+            "ruleName": {
+              "primitiveDataType": "STRING"
+            },
+            "subRuleName": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "affectedResources": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "gcpResourceName": {
+                  "primitiveDataType": "STRING"
+                }
+              }
+            }
+          }]
+        }
+      },
+      "properties": {
+        "structValue": {
+          "fields": {
+            "serviceAccountGetsOwnIamPolicy": {
+              "structValue": {
+                "fields": {
+                  "principalEmail": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "projectId": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "callerIp": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "callerUserAgent": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "rawUserAgent": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "severity": "LOW",
+    "workflowState": "NEW",
+    "canonicalName": "projects/927667932961/sources/7454665460954730982/findings/skAU52Ssmjw4TYwsVA732x",
+    "findingClass": "THREAT",
+    "indicator": {
+    }
+  },
+  "resource": {
+    "name": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "projectName": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "projectDisplayName": "prj-dev",
+    "parentName": "//cloudresourcemanager.googleapis.com/folders/561421552790",
+    "parentDisplayName": "palani",
+    "type": "google.cloud.resourcemanager.Project",
+    "folders": [{
+      "resourceFolder": "//cloudresourcemanager.googleapis.com/folders/561421552790",
+      "resourceFolderDisplayName": "palani"
+    }],
+    "displayName": "prj-dev"
+  }
+},{
+  "finding": {
+    "name": "organizations/614830067722/sources/7454665460954730982/findings/uWDm7StseHdZyBarJUXQu22",
+    "parent": "organizations/614830067722/sources/7454665460954730982",
+    "resourceName": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "state": "ACTIVE",
+    "category": "Discovery: Service Account Self-Investigation",
+    "sourceProperties": {
+      "sourceId": {
+        "projectNumber": "927667932961",
+        "customerOrganizationNumber": "614830067722"
+      },
+      "detectionCategory": {
+        "technique": "discovery",
+        "indicator": "audit_log",
+        "ruleName": "iam_anomalous_behavior",
+        "subRuleName": "service_account_gets_own_iam_policy"
+      },
+      "detectionPriority": "LOW",
+      "affectedResources": [{
+        "gcpResourceName": "//cloudresourcemanager.googleapis.com/projects/927667932961"
+      }],
+      "evidence": [{
+        "sourceLogId": {
+          "projectId": "prj-dev",
+          "resourceContainer": "projects/prj-dev",
+          "timestamp": {
+            "seconds": "1628666841",
+            "nanos": 7.53605E8
+          },
+          "insertId": "-4zpnd1e14wm4"
+        }
+      }],
+      "properties": {
+        "serviceAccountGetsOwnIamPolicy": {
+          "principalEmail": "srv-acct-admin@prj-dev.iam.gserviceaccount.com",
+          "projectId": "prj-dev",
+          "callerIp": "8.8.8.8",
+          "callerUserAgent": "google-api-go-client/0.5,gzip(gfe)",
+          "rawUserAgent": "google-api-go-client/0.5,gzip(gfe)"
+        }
+      },
+      "contextUris": {
+        "mitreUri": {
+          "displayName": "MITRE Link",
+          "url": "https://attack.mitre.org/techniques/T1069/003/"
+        },
+        "cloudLoggingQueryUri": [{
+          "displayName": "Cloud Logging Query Link",
+          "url": "https://console.cloud.google.com/logs/query;query\u003dtimestamp%3D%222021-08-11T07:27:21.753605Z%22%0AinsertId%3D%22-4zpnd1e14wm4%22%0Aresource.labels.project_id%3D%22prj-dev%22?project\u003dprj-dev"
+        }]
+      }
+    },
+    "securityMarks": {
+      "name": "organizations/614830067722/sources/7454665460954730982/findings/uWDm7StseHdZyBarJUXQu22/securityMarks"
+    },
+    "eventTime": "2021-08-11T07:27:21.753Z",
+    "createTime": "2021-08-11T07:27:24.259Z",
+    "propertyDataTypes": {
+      "sourceId": {
+        "structValue": {
+          "fields": {
+            "projectNumber": {
+              "primitiveDataType": "STRING"
+            },
+            "customerOrganizationNumber": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "evidence": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "sourceLogId": {
+                  "structValue": {
+                    "fields": {
+                      "projectId": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "resourceContainer": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "timestamp": {
+                        "dataType": "TIMESTAMP",
+                        "structValue": {
+                          "fields": {
+                            "seconds": {
+                              "primitiveDataType": "STRING"
+                            },
+                            "nanos": {
+                              "primitiveDataType": "NUMBER"
+                            }
+                          }
+                        }
+                      },
+                      "insertId": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }]
+        }
+      },
+      "detectionPriority": {
+        "primitiveDataType": "STRING"
+      },
+      "contextUris": {
+        "structValue": {
+          "fields": {
+            "mitreUri": {
+              "dataType": "HYPERLINK",
+              "structValue": {
+                "fields": {
+                  "display_name": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "url": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            },
+            "cloudLoggingQueryUri": {
+              "listValues": {
+                "propertyDataTypes": [{
+                  "dataType": "HYPERLINK",
+                  "structValue": {
+                    "fields": {
+                      "display_name": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "url": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }]
+              }
+            }
+          }
+        }
+      },
+      "detectionCategory": {
+        "structValue": {
+          "fields": {
+            "technique": {
+              "primitiveDataType": "STRING"
+            },
+            "indicator": {
+              "primitiveDataType": "STRING"
+            },
+            "ruleName": {
+              "primitiveDataType": "STRING"
+            },
+            "subRuleName": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "affectedResources": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "gcpResourceName": {
+                  "primitiveDataType": "STRING"
+                }
+              }
+            }
+          }]
+        }
+      },
+      "properties": {
+        "structValue": {
+          "fields": {
+            "serviceAccountGetsOwnIamPolicy": {
+              "structValue": {
+                "fields": {
+                  "principalEmail": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "projectId": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "callerIp": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "callerUserAgent": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "rawUserAgent": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "severity": "LOW",
+    "workflowState": "NEW",
+    "canonicalName": "projects/927667932961/sources/7454665460954730982/findings/uWDm7StseHdZyBarJUXQu22",
+    "mute": "UNMUTED",
+    "findingClass": "THREAT"
+  },
+  "resource": {
+    "name": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "projectName": "//cloudresourcemanager.googleapis.com/projects/927667932961",
+    "projectDisplayName": "prj-dev",
+    "parentName": "//cloudresourcemanager.googleapis.com/folders/561421552790",
+    "parentDisplayName": "palani",
+    "type": "google.cloud.resourcemanager.Project",
+    "folders": [{
+      "resourceFolder": "//cloudresourcemanager.googleapis.com/folders/561421552790",
+      "resourceFolderDisplayName": "palani"
+    }],
+    "displayName": "prj-dev"
+  }
+}]

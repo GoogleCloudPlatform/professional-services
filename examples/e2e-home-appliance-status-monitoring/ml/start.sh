@@ -102,7 +102,7 @@ else
   fi
 fi
 
-DATA_DIR="gs://gcp_blog/e2e_demo"
+DATA_DIR="./data"
 PKG_FLAGS="--train-file=${DATA_DIR}/train.csv \
            --eval-file=${DATA_DIR}/valid.csv \
            --test-file=${DATA_DIR}/test.csv \
