@@ -49,8 +49,8 @@ This diagram explains the example solution's flow:
     https://cloud.google.com/build/docs/automating-builds/create-manage-triggers   
 
     Set Trigger's substitution variables : _GCS_BUCKET and _DBT_SERVICE_ACCOUNT   
-    _GCS_BUCKET : A GCS bucket id for storing dbt documentation files
-    _DBT_SERVICE_ACCOUNT : A service account to run dbt from Cloud Build. 
+    _GCS_BUCKET : A GCS bucket id for storing dbt documentation files.   
+    _DBT_SERVICE_ACCOUNT : A service account to run dbt from Cloud Build.     
 5. BigQuery API enabled
 6. Service account to run dbt commands
 7. Kubernetes Secret to be binded with the service account   
