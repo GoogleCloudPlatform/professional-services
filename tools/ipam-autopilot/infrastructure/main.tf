@@ -13,9 +13,8 @@
 // limitations under the License.
 
 locals {
-  apis = [ "iam.googleapis.com", "run.googleapis.com", "compute.googleapis.com", "pubsub.googleapis.com", "cloudasset.googleapis.com", "cloudresourcemanager.googleapis.com", "securitycenter.googleapis.com"]
+  apis = ["iam.googleapis.com", "run.googleapis.com", "compute.googleapis.com", "cloudasset.googleapis.com", "sql-component.googleapis.com", "cloudapis.googleapis.com", "sqladmin.googleapis.com", "secretmanager.googleapis.com",  "artifactregistry.googleapis.com"]
 }
-
 
 data "google_project" "project" {
   project_id = var.project_id
@@ -23,74 +22,128 @@ data "google_project" "project" {
 
 resource "google_project_service" "project" {
   for_each = toset(local.apis)
-  project = data.google_project.project.project_id
-  service = each.key
+  project  = data.google_project.project.project_id
+  service  = each.key
 
-  //disable_dependent_services = true
   disable_on_destroy = false
 }
 
+resource "google_artifact_registry_repository" "ipam" {
+  provider = google-beta
+
+  location = var.artifact_registry_location
+  project = data.google_project.project.project_id
+  repository_id = "ipam"
+  description = "Docker repository for IPAM Autopilot"
+  format = "DOCKER"
+
+  depends_on = [
+    google_project_service.project
+  ]
+}
+
+/*
+docker buildx -t ${var.artifact_registry_location}-docker.pkg.dev/${var.project_id}/ipam/ipam:${var.container_version} ../container
+docker push ${var.artifact_registry_location}-docker.pkg.dev/${var.project_id}/ipam/ipam:${var.container_version}
+
+
+docker buildx build --platform linux/amd64,linux/arm64 --push -t europe-docker.pkg.dev/ipam-autopilot-showcase/ipam/ipam:1 ../container
+*/
+resource "null_resource" docker_image {
+
+  provisioner "local-exec" {
+    command = <<EOT
+gcloud auth configure-docker ${var.artifact_registry_location}-docker.pkg.dev
+docker buildx build --platform linux/amd64,linux/arm64 --push -t ${var.artifact_registry_location}-docker.pkg.dev/${var.project_id}/ipam/ipam:${var.container_version} ../container
+EOT
+  }
+}
+
 data "google_organization" "org" {
-    organization = "organizations/${var.organization_id}"
+  organization = "organizations/${var.organization_id}"
 }
 
 resource "google_service_account" "autopilot" {
-  account_id = "ipam-autopilot-sa"
+  account_id   = "ipam-autopilot-sa"
   display_name = "Service Account for the IPAM Autopilot"
   depends_on = [
     google_project_service.project
   ]
 }
 
-resource "google_organization_iam_member" "service_account_roles" {
-  for_each = toset([
-    "roles/securitycenter.controlServiceAgent"
-  ])
-
-  org_id = data.google_organization.org.org_id
-  role = each.value
-  member = "serviceAccount:${google_service_account.autopilot.email}"
+resource "google_project_iam_member" "sql_client" {
+  project = data.google_project.project.id
+  role    = "roles/cloudsql.client"
+  member  = "serviceAccount:${google_service_account.autopilot.email}"
 }
 
+resource "google_cloud_run_service" "default" {
+  provider = google-beta
+  name     = "ipam"
+  location = var.region
+  project = data.google_project.project.project_id
 
-resource "google_scc_source" "autopilot_source" {
-  display_name = "IPAM Autopilot"
-  organization = data.google_organization.org.org_id
-  description  = "A custom scanner for listening to subnet creations"
-
-  depends_on = [
-    google_project_service.project
-  ]
-}
-
-resource "google_cloud_asset_organization_feed" "organization_feed" {
-  billing_project = var.project_id
-  org_id          = data.google_organization.org.org_id
-  feed_id         = google_pubsub_topic.feed_output.name
-  content_type    = "RESOURCE"
-
-  asset_types = [
-    "compute.googleapis.com/Subnetwork"
-  ]
-
-  feed_output_config {
-    pubsub_destination {
-      topic = google_pubsub_topic.feed_output.id
+  metadata {
+    annotations = {
+      //"run.googleapis.com/ingress" : "internal-and-cloud-load-balancing"
     }
   }
-}
+  
+  template {
+    spec {
+      service_account_name = google_service_account.autopilot.email
+      containers {
+        image = "${var.artifact_registry_location}-docker.pkg.dev/${var.project_id}/ipam/ipam:${var.container_version}"
+        ports {
+          name = "http1"
+          container_port = 8080
+        }
+        env {
+          name = "DATABASE_NET"
+          value = "unix"
+        }
+        env {
+          name = "DATABASE_NAME"
+          value = google_sql_database.database.name
+        }
+        env {
+          name = "DATABASE_USER"
+          value = google_sql_user.user.name
+        }
+        env {
+          name = "DATABASE_PASSWORD"
+          value_from {
+            secret_key_ref {
+              name = google_secret_manager_secret.secret.secret_id
+              key = "latest"
+            }
+          }
+        }
+        env {
+          name = "DATABASE_HOST"
+          value = "/cloudsql/${google_sql_database_instance.instance.connection_name}"
+        }
+      }
+    }
+    metadata {
+      annotations = {
+        "autoscaling.knative.dev/maxScale"      = "100" 
+        "run.googleapis.com/cloudsql-instances" = google_sql_database_instance.instance.connection_name
+        "run.googleapis.com/client-name"        = "ipam"
+      }
+    }
+  }
 
-resource "google_pubsub_topic" "feed_output" {
-  name     = "ipam_changes"
+  traffic {
+    percent         = 100
+    latest_revision = true
+  }
 
   depends_on = [
-    google_project_service.project
+    google_project_service.project,
+    google_sql_database.database,
+    google_sql_user.user,
+    google_secret_manager_secret_iam_member.secret-access,
+    google_project_iam_member.sql_client,
   ]
-}
-
-resource "google_pubsub_topic_iam_member" "cloud_asset_writer" {
-  project = var.project_id
-  topic   = google_pubsub_topic.feed_output.id
-  role    = "roles/pubsub.publisher"
-  member  = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-cloudasset.iam.gserviceaccount.com"
 }

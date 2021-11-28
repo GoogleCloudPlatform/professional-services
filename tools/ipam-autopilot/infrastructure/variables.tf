@@ -6,8 +6,14 @@ variable "region" {
   default = "europe-west1"
 }
 
-variable "project_id" {
+variable "artifact_registry_location" {
+  default = "europe"
 }
 
-variable "deployment_sa" {
+
+variable "container_version" {
+  default = "3"
+}
+
+variable "project_id" {
 }

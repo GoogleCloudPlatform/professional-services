@@ -1,28 +1,40 @@
 package main
 
 import (
-	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"os"
 	"strconv"
 
+	"github.com/go-sql-driver/mysql"
 	"github.com/gofiber/fiber/v2"
-	"github.com/jackc/pgx/v4/pgxpool"
 )
+
+var db *sql.DB
 
 func main() {
 	var err error
-	err = InitDatabase()
+
+	cfg := mysql.Config{
+		User:                 os.Getenv("DATABASE_USER"),
+		Passwd:               os.Getenv("DATABASE_PASSWORD"),
+		Net:                  os.Getenv("DATABASE_NET"),
+		Addr:                 os.Getenv("DATABASE_HOST"),
+		DBName:               os.Getenv("DATABASE_NAME"),
+		MultiStatements:      true,
+		AllowNativePasswords: true,
+	}
+	// Get a database handle.
+	db, err = sql.Open("mysql", cfg.FormatDSN())
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+	err = MigrateDatabase(os.Getenv("DATABASE_NAME"), db)
 	if err != nil {
 		log.Fatal("Unable to initalize database")
 	}
-
-	dbpool, err = pgxpool.Connect(context.Background(), os.Getenv("DB_URL"))
-	if err != nil {
-		log.Panicf("Unable to connect to database: %v\n", err)
-	}
-	defer dbpool.Close()
 
 	app := fiber.New()
 	// No static assets right now app.Static("/", "./public")

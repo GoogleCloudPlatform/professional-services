@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 
@@ -15,9 +16,9 @@ type UpdateRoutingDomainRequest struct {
 }
 
 type RangeRequest struct {
-	Parent     string
-	Name       string
-	Range_size int
+	Parent     string `json:"parent"`
+	Name       string `json:"name"`
+	Range_size int    `json:"range_size"`
 }
 
 func GetRanges(c *fiber.Ctx) error {
@@ -97,9 +98,9 @@ func CreateNewRange(c *fiber.Ctx) error {
 	}
 
 	// Instantiate new RangeRequest struct
-	p := new(RangeRequest)
+	p := RangeRequest{}
 	//  Parse body into RangeRequest struct
-	if err := c.BodyParser(p); err != nil {
+	if err := c.BodyParser(&p); err != nil {
 		return c.Status(400).JSON(&fiber.Map{
 			"success": false,
 			"message": fmt.Sprintf("Bad format %v", err),
@@ -129,37 +130,39 @@ func CreateNewRange(c *fiber.Ctx) error {
 		})
 	}
 
-	// Integrating ranges from the VPC -- start
-	vpcs := strings.Split(routingDomain.Vpcs, ",")
-	for i := 0; i < len(vpcs); i++ {
-		vpc := vpcs[i]
-		ranges, err := GetRangesForNetwork(fmt.Sprintf("organizations/%s", "203384149598"), vpc) // TODO orgId needs to be extranlized
-		if err != nil {
-			return c.Status(503).JSON(&fiber.Map{
-				"success": false,
-				"message": fmt.Sprintf("error %v", err),
-			})
-		}
-
-		for j := 0; j < len(ranges); j++ {
-			vpc_range := ranges[j]
-			if !ContainsRange(subnet_ranges, vpc_range.cidr) {
-				subnet_ranges = append(subnet_ranges, Range{
-					Cidr: vpc_range.cidr,
+	if os.Getenv("CONNECT_TO_CAI") == "TRUE" {
+		// Integrating ranges from the VPC -- start
+		vpcs := strings.Split(routingDomain.Vpcs, ",")
+		for i := 0; i < len(vpcs); i++ {
+			vpc := vpcs[i]
+			ranges, err := GetRangesForNetwork(fmt.Sprintf("organizations/%s", "203384149598"), vpc) // TODO orgId needs to be extranlized
+			if err != nil {
+				return c.Status(503).JSON(&fiber.Map{
+					"success": false,
+					"message": fmt.Sprintf("error %v", err),
 				})
 			}
 
-			for k := 0; k < len(vpc_range.secondaryRanges); k++ {
-				secondaryRange := vpc_range.secondaryRanges[k]
-				if !ContainsRange(subnet_ranges, secondaryRange.cidr) {
+			for j := 0; j < len(ranges); j++ {
+				vpc_range := ranges[j]
+				if !ContainsRange(subnet_ranges, vpc_range.cidr) {
 					subnet_ranges = append(subnet_ranges, Range{
-						Cidr: secondaryRange.cidr,
+						Cidr: vpc_range.cidr,
 					})
+				}
+
+				for k := 0; k < len(vpc_range.secondaryRanges); k++ {
+					secondaryRange := vpc_range.secondaryRanges[k]
+					if !ContainsRange(subnet_ranges, secondaryRange.cidr) {
+						subnet_ranges = append(subnet_ranges, Range{
+							Cidr: secondaryRange.cidr,
+						})
+					}
 				}
 			}
 		}
+		// Integrating ranges from the VPC -- end
 	}
-	// Integrating ranges from the VPC -- end
 
 	// TODO loop verifyNoOverlap until lastSubnet is true
 	subnet, subnetOnes, err := createNewSubnetLease(parent.Cidr, int(range_size), 0)

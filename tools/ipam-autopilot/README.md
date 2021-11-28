@@ -6,4 +6,5 @@ It connects to Cloud Asset Inventory to also retrieve already existing subnets a
 
 ## Open Tasks
 * Cleanup Code
-* Make CloudRun ready (maybe switch from PostgreSQL to MySQL)
+* Authentication (CloudRun is limiting access anyway to users with role invoker)
+

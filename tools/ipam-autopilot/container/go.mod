@@ -1,14 +1,14 @@
-module github.com/cgrotz/simple-ipam
+module github.com/cgrotz/ipam-autopilot
 
 go 1.14
 
 require (
 	cloud.google.com/go v0.95.0 // indirect
 	cloud.google.com/go/asset v1.0.0 // indirect
-	cloud.google.com/go/firestore v1.5.0
-	cloud.google.com/go/pubsub v1.17.0
 	github.com/apparentlymart/go-cidr v1.1.0
+	github.com/go-sql-driver/mysql v1.5.0 // indirect
 	github.com/gofiber/fiber/v2 v2.17.0
+	github.com/golang-migrate/migrate v3.5.4+incompatible // indirect
 	github.com/golang-migrate/migrate/v4 v4.14.1
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/google/uuid v1.3.0

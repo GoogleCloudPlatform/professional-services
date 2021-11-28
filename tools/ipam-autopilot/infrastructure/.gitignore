@@ -63,3 +63,4 @@ override.tf.json
 terraform-provider-simple-ipam
 test.sh
 *.env
+*.tfvars
