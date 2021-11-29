@@ -3,8 +3,8 @@ HOSTNAME=github.com
 NAMESPACE=cgrotz
 NAME=ipam
 BINARY=terraform-provider-${NAME}
-VERSION=0.3
-OS_ARCH=linux_amd64
+VERSION=0.6
+OS_ARCH=darwin_arm64
 
 default: install
 
