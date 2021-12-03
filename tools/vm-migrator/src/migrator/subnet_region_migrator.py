@@ -108,7 +108,7 @@ def bulk_delete_instances(file_name) -> bool:
     return result
 
 
-def bulk_delete_disks(file_name) -> bool:
+def bulk_delete_disks(file_name, source_project) -> bool:
     result = True
     with open(file_name, 'r') as read_obj:
         csv_dict_reader = DictReader(read_obj)
@@ -126,7 +126,8 @@ def bulk_delete_disks(file_name) -> bool:
                     if row['disk_name_' + str(i + 1)] != '':
                         disk_future.append(
                             executor.submit(disk.delete, instance_uri,
-                                            row['disk_name_' + str(i + 1)]))
+                                            row['disk_name_' + str(i + 1)],
+                                            source_project))
                         count = count + 1
 
             for future in concurrent.futures.as_completed(disk_future):
@@ -635,7 +636,7 @@ def main(step, machine_image_region, source_project,
             logging.info('Deleting all the instances present in the inventory')
             if bulk_delete_instances(input_csv):
                 logging.info('Deleting all the disks present in the inventory')
-                if bulk_delete_disks(input_csv):
+                if bulk_delete_disks(input_csv, source_project):
                     logging.info('Successfully deleted all disks present in '
                                  'the inventory')
                 else:

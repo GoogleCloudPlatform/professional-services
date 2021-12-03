@@ -29,7 +29,7 @@ def delete_disk(disk, project_zone: uri.ProjectZone, disk_name: str):
                        disk=disk_name).execute()
 
 
-def delete(instance_uri: uri.Instance, disk_name):
+def delete(instance_uri: uri.Instance, disk_name, source_project):
     try:
         waited_time = instance.RATE_LIMIT.wait()  # wait before starting the task
         logging.info('  task: waited for %s secs', waited_time)
@@ -52,7 +52,11 @@ def delete(instance_uri: uri.Instance, disk_name):
             return disk_name
         else:
             raise NotFoundException(
-                'Can\'t delete the disk as machine image not found')
+                'Can\'t delete the disk {} as machine image {} was not found. '
+                ' (machine project = {}, source project = {}, please report '
+                'if these values differ)'.format(disk_name, instance_uri.name,
+                                                 instance_uri.project,
+                                                 source_project))
     except Exception as ex:
         logging.error(ex)
         raise ex
