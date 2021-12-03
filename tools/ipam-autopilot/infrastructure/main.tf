@@ -42,19 +42,12 @@ resource "google_artifact_registry_repository" "ipam" {
   ]
 }
 
-/*
-docker buildx -t ${var.artifact_registry_location}-docker.pkg.dev/${var.project_id}/ipam/ipam:${var.container_version} ../container
-docker push ${var.artifact_registry_location}-docker.pkg.dev/${var.project_id}/ipam/ipam:${var.container_version}
-
-
-docker buildx build --platform linux/amd64,linux/arm64 --push -t europe-docker.pkg.dev/ipam-autopilot-showcase/ipam/ipam:1 ../container
-*/
 resource "null_resource" docker_image {
 
   provisioner "local-exec" {
     command = <<EOT
 gcloud auth configure-docker ${var.artifact_registry_location}-docker.pkg.dev
-docker buildx build --platform linux/amd64,linux/arm64 --push -t ${var.artifact_registry_location}-docker.pkg.dev/${var.project_id}/ipam/ipam:${var.container_version} ../container
+docker buildx build --platform linux/amd64 --push -t ${var.artifact_registry_location}-docker.pkg.dev/${var.project_id}/ipam/ipam:${var.container_version} ../container
 EOT
   }
 }

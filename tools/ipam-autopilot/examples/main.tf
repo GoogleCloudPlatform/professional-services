@@ -12,22 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-variable "organization_id" {
-  description = "Organisation which should be scanned"
+terraform {
+  required_providers {
+    ipam = {
+      version = "0.6"
+      source = "github.com/GoogleCloudPlatform/professional-services/ipam-autopilot"
+    }
+  }
 }
 
-variable "region" {
-  default = "europe-west1"
+provider "ipam" {
+  url = "http://localhost:8080"
 }
 
-variable "artifact_registry_location" {
-  default = "europe"
+resource "ipam_ip_range" "pod-ranges" {
+  range_size = "22"
+  name = "gke services range"
 }
 
-
-variable "container_version" {
-  default = "3"
-}
-
-variable "project_id" {
+output "range" {
+  value = ipam_ip_range.pod-ranges.cidr
 }

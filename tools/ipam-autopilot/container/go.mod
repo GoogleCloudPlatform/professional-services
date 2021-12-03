@@ -1,4 +1,4 @@
-module github.com/cgrotz/ipam-autopilot
+module github.com/GoogleCloudPlatform/professional-services/ipam-autopilot
 
 go 1.14
 

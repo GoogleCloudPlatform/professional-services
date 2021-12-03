@@ -1,4 +1,4 @@
-module github.com/cgrotz/terraform-provider-ipam
+module github.com/GoogleCloudPlatform/professional-services/terraform-provider-ipam
 
 go 1.14
 
