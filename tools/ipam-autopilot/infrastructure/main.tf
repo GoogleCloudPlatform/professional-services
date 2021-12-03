@@ -43,11 +43,10 @@ resource "google_artifact_registry_repository" "ipam" {
 }
 
 resource "null_resource" docker_image {
-
   provisioner "local-exec" {
     command = <<EOT
 gcloud auth configure-docker ${var.artifact_registry_location}-docker.pkg.dev
-docker buildx build --platform linux/amd64 --push -t ${var.artifact_registry_location}-docker.pkg.dev/${var.project_id}/ipam/ipam:${var.container_version} ../container
+docker buildx build --platform linux/amd64 --push -t ${var.artifact_registry_location}-docker.pkg.dev/${var.project_id}/ipam/ipam:${var.container_version} ../
 EOT
   }
 }
@@ -78,7 +77,7 @@ resource "google_cloud_run_service" "default" {
 
   metadata {
     annotations = {
-      //"run.googleapis.com/ingress" : "internal-and-cloud-load-balancing"
+      "run.googleapis.com/ingress" : "all" // internal-and-cloud-load-balancing
     }
   }
   

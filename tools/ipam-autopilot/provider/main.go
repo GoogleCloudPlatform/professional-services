@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
 
-	"github.com/GoogleCloudPlatform/professional-services/terraform-provider-ipam/ipam"
+	"github.com/GoogleCloudPlatform/professional-services/terraform-provider-ipam-autopilot/ipam"
 )
 
 func main() {

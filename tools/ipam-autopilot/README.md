@@ -18,3 +18,12 @@ The following GCP services are used as part of the deployment, and might cause c
 
 ## Building and providing the Terraform Provider
 You can build the Terrafrom provider by calling `make release` from the provider folder.
+
+You will need a pgp key for the provider to build.
+
+~/.terraformrc
+```
+credentials "<cloud run hostname>" {
+  token = "<identity token>"
+}
+```

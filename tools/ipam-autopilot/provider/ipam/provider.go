@@ -18,8 +18,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/GoogleCloudPlatform/professional-services/terraform-provider-ipam/ipam/config"
-	"github.com/GoogleCloudPlatform/professional-services/terraform-provider-ipam/ipam/resources"
+	"github.com/GoogleCloudPlatform/professional-services/terraform-provider-ipam-autopilot/ipam/config"
+	"github.com/GoogleCloudPlatform/professional-services/terraform-provider-ipam-autopilot/ipam/resources"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )

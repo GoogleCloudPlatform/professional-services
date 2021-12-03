@@ -22,7 +22,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/GoogleCloudPlatform/professional-services/terraform-provider-ipam/ipam/config"
+	"github.com/GoogleCloudPlatform/professional-services/terraform-provider-ipam-autopilot/ipam/config"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/idtoken"

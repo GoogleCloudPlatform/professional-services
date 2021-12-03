@@ -15,14 +15,14 @@
 terraform {
   required_providers {
     ipam = {
-      version = "0.6"
-      source = "github.com/GoogleCloudPlatform/professional-services/ipam-autopilot"
+      version = "0.1"
+      source = "ipam-pdk3svnohq-ew.a.run.app/ipam/ipam-autopilot"
     }
   }
 }
 
 provider "ipam" {
-  url = "http://localhost:8080"
+  url = "https://ipam-pdk3svnohq-ew.a.run.app"
 }
 
 resource "ipam_ip_range" "pod-ranges" {

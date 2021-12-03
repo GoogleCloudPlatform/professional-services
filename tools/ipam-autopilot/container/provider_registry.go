@@ -12,22 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-variable "organization_id" {
-  description = "Organisation which should be scanned"
-}
+package main
 
-variable "region" {
-  default = "europe-west1"
-}
+import (
+	"github.com/gofiber/fiber/v2"
+)
 
-variable "artifact_registry_location" {
-  default = "europe"
-}
-
-
-variable "container_version" {
-  default = "4"
-}
-
-variable "project_id" {
+func GetTerraformDiscovery(c *fiber.Ctx) error {
+	return c.Status(200).JSON(&fiber.Map{
+		"providers.v1": "/terraform/providers/v1/",
+	})
 }
