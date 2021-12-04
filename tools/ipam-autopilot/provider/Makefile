@@ -3,7 +3,7 @@ HOSTNAME=ipam-pdk3svnohq-ew.a.run.app
 NAMESPACE=ipam-autopilot
 NAME=ipam
 BINARY=terraform-provider-${NAME}
-VERSION=0.5.0
+VERSION=0.1.0
 OS_ARCH=darwin_arm64
 
 default: install

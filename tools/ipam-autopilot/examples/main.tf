@@ -23,7 +23,6 @@ terraform {
 
 provider "ipam" {
   url = "https://ipam-pdk3svnohq-ew.a.run.app"
-  //url = "http://localhost:8080"
 }
 
 resource "ipam_ip_range" "pod-ranges" {

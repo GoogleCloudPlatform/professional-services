@@ -12,10 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-variable "organization_id" {
-  description = "Organisation which should be scanned"
-}
-
 variable "region" {
   default = "europe-west1"
 }
@@ -24,9 +20,8 @@ variable "artifact_registry_location" {
   default = "europe"
 }
 
-
 variable "container_version" {
-  default = "12"
+  default = "1"
 }
 
 variable "project_id" {
@@ -37,7 +32,7 @@ variable "provider_binary_folder" {
 }
 
 variable "provider_version" {
-  default = "0.5.0"
+  default = "0.1.0"
 }
 
 variable "sa_key" {

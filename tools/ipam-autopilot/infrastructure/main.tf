@@ -60,10 +60,6 @@ EOT
   ]
 }
 
-data "google_organization" "org" {
-  organization = "organizations/${var.organization_id}"
-}
-
 resource "google_service_account" "autopilot" {
   account_id   = "ipam-autopilot-sa"
   display_name = "Service Account for the IPAM Autopilot"
