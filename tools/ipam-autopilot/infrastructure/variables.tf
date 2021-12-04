@@ -26,8 +26,20 @@ variable "artifact_registry_location" {
 
 
 variable "container_version" {
-  default = "4"
+  default = "12"
 }
 
 variable "project_id" {
+}
+
+variable "provider_binary_folder" {
+  default = "../provider/bin"
+}
+
+variable "provider_version" {
+  default = "0.5.0"
+}
+
+variable "sa_key" {
+  description = "Needed for creating signed URLS for GCS access"
 }

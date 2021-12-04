@@ -65,12 +65,27 @@ func resourceCreate(d *schema.ResourceData, meta interface{}) error {
 	parent := d.Get("parent").(string)
 	name := d.Get("name").(string)
 	url := fmt.Sprintf("%s/ranges", config.Url)
-
-	postBody, _ := json.Marshal(map[string]interface{}{
-		"range_size": range_size,
-		"name":       name,
-		"parent":     parent,
-	})
+	var postBody []byte
+	var err error
+	if parent == "" {
+		postBody, err = json.Marshal(map[string]interface{}{
+			"range_size": range_size,
+			"name":       name,
+		})
+		if err != nil {
+			return fmt.Errorf("failed marshalling json: %v", err)
+		}
+	} else {
+		postBody, err = json.Marshal(map[string]interface{}{
+			"range_size": range_size,
+			"name":       name,
+			"parent":     parent,
+		})
+		if err != nil {
+			return fmt.Errorf("failed marshalling json: %v", err)
+		}
+	}
+	fmt.Printf("%s", string(postBody))
 	responseBody := bytes.NewBuffer(postBody)
 	accessToken, err := getIdentityToken()
 	if err != nil {
@@ -81,6 +96,7 @@ func resourceCreate(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("failed creating request: %v", err)
 	}
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+	req.Header.Set("Content-Type", "application/json")
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -101,7 +117,12 @@ func resourceCreate(d *schema.ResourceData, meta interface{}) error {
 		d.Set("cidr", response["cidr"].(string))
 		return nil
 	} else {
-		return fmt.Errorf("failed creating range status_code=%d", resp.StatusCode)
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("failed creating range status_code=%d, status=%s", resp.StatusCode, resp.Status)
+		}
+
+		return fmt.Errorf("failed creating range status_code=%d, status=%s,body=%s", resp.StatusCode, resp.Status, string(body))
 	}
 }
 
@@ -138,7 +159,12 @@ func resourceRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("cidr", response["cidr"].(string))
 		return nil
 	} else {
-		return fmt.Errorf("failed querying range status_code=%d url=%s", resp.StatusCode, url)
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("failed reading range status_code=%d, status=%s", resp.StatusCode, resp.Status)
+		}
+
+		return fmt.Errorf("failed reading range status_code=%d, status=%s,body=%s", resp.StatusCode, resp.Status, string(body))
 	}
 }
 
@@ -164,7 +190,12 @@ func resourceDelete(d *schema.ResourceData, meta interface{}) error {
 	if resp.StatusCode == 200 {
 		return nil
 	} else {
-		return fmt.Errorf("failed releasing range status_code=%d", resp.StatusCode)
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("failed releasing range status_code=%d, status=%s", resp.StatusCode, resp.Status)
+		}
+
+		return fmt.Errorf("failed releasing range status_code=%d, status=%s,body=%s", resp.StatusCode, resp.Status, string(body))
 	}
 }
 

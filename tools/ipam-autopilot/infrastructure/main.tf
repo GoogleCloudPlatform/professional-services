@@ -42,13 +42,22 @@ resource "google_artifact_registry_repository" "ipam" {
   ]
 }
 
-resource "null_resource" docker_image {
+resource "null_resource" "docker_image" {
   provisioner "local-exec" {
     command = <<EOT
 gcloud auth configure-docker ${var.artifact_registry_location}-docker.pkg.dev
 docker buildx build --platform linux/amd64 --push -t ${var.artifact_registry_location}-docker.pkg.dev/${var.project_id}/ipam/ipam:${var.container_version} ../
 EOT
   }
+
+  triggers = {
+    "variable" = var.container_version
+  }
+
+  depends_on = [
+    local_file.version_json,
+    local_file.versions_json
+  ]
 }
 
 data "google_organization" "org" {
@@ -137,5 +146,6 @@ resource "google_cloud_run_service" "default" {
     google_sql_user.user,
     google_secret_manager_secret_iam_member.secret-access,
     google_project_iam_member.sql_client,
+    null_resource.docker_image
   ]
 }

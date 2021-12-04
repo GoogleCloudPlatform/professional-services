@@ -115,6 +115,7 @@ func CreateNewRange(c *fiber.Ctx) error {
 	p := RangeRequest{}
 	//  Parse body into RangeRequest struct
 	if err := c.BodyParser(&p); err != nil {
+		fmt.Printf("Failed parsing body. %s Bad format %v", string(c.Body()), err)
 		return c.Status(400).JSON(&fiber.Map{
 			"success": false,
 			"message": fmt.Sprintf("Bad format %v", err),

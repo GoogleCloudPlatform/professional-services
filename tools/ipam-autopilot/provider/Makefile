@@ -1,9 +1,9 @@
 TEST?=$$(go list ./... | grep -v 'vendor')
-HOSTNAME=github.com
-NAMESPACE=GoogleCloudPlatform
-NAME=ipam-autopilot
+HOSTNAME=ipam-pdk3svnohq-ew.a.run.app
+NAMESPACE=ipam-autopilot
+NAME=ipam
 BINARY=terraform-provider-${NAME}
-VERSION=0.1.0
+VERSION=0.5.0
 OS_ARCH=darwin_arm64
 
 default: install
@@ -25,10 +25,6 @@ release:
 	GOOS=openbsd GOARCH=386 go build -o ./bin/${BINARY}_${VERSION}_openbsd_386
 	GOOS=openbsd GOARCH=amd64 go build -o ./bin/${BINARY}_${VERSION}_openbsd_amd64
 	GOOS=solaris GOARCH=amd64 go build -o ./bin/${BINARY}_${VERSION}_solaris_amd64
-	gpg --export -a > public.key
-	node registry.js ./bin/ ./terraform/ public.key ${BINARY} ${VERSION}
-	cd ./terraform && shasum -a 256 *.zip > shasums 
-	cd ./terraform && gpg --output shasums.sig  --detach-sign shasums
 
 install: build
 	mkdir -p ~/.terraform.d/plugins/${HOSTNAME}/${NAMESPACE}/${NAME}/${VERSION}/${OS_ARCH}

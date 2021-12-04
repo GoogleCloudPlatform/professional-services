@@ -15,18 +15,19 @@
 terraform {
   required_providers {
     ipam = {
-      version = "0.1"
-      source = "ipam-pdk3svnohq-ew.a.run.app/ipam/ipam-autopilot"
+      version = "0.5"
+      source = "ipam-pdk3svnohq-ew.a.run.app/ipam-autopilot/ipam"
     }
   }
 }
 
 provider "ipam" {
   url = "https://ipam-pdk3svnohq-ew.a.run.app"
+  //url = "http://localhost:8080"
 }
 
 resource "ipam_ip_range" "pod-ranges" {
-  range_size = "22"
+  range_size = 22
   name = "gke services range"
 }
 

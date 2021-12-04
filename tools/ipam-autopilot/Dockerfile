@@ -21,6 +21,6 @@ RUN go build -tags docker -o /go/bin/app *.go
 
 FROM gcr.io/distroless/base-debian10
 COPY ./container/migrations /migrations
-COPY ./provider/terraform /terraform
+COPY ./infrastructure/output /terraform
 COPY --from=build /go/bin/app /
 CMD ["/app"] 
