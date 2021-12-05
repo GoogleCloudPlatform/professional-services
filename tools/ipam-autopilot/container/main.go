@@ -55,8 +55,9 @@ func main() {
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("IPAM Autopilot up and running 👋!")
 	})
-	app.Static("/terraform/providers/v1", "/terraform")
 	app.Get("/.well-known/terraform.json", GetTerraformDiscovery)
+	app.Get("/terraform/providers/v1/ipam-autopilot/ipam/versions", GetTerraformVersions)
+	app.Get("/terraform/providers/v1/ipam-autopilot/ipam/:version/download/:os/:arch", GetTerraformVersionDownload)
 
 	app.Post("/ranges", CreateNewRange)
 	app.Get("/ranges", GetRanges)

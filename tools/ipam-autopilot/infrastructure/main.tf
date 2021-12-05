@@ -74,6 +74,18 @@ resource "google_project_iam_member" "sql_client" {
   member  = "serviceAccount:${google_service_account.autopilot.email}"
 }
 
+resource "google_project_iam_member" "token_creator" {
+  project = data.google_project.project.id
+  role    = "roles/iam.serviceAccountTokenCreator"
+  member  = "serviceAccount:${google_service_account.autopilot.email}"
+}
+
+resource "google_organization_iam_member" "cai_viewer" {
+  org_id = var.organization_id
+  role    = "roles/cloudasset.viewer"
+  member  = "serviceAccount:${google_service_account.autopilot.email}"
+}
+
 resource "google_cloud_run_service" "default" {
   provider = google-beta
   name     = "ipam"
@@ -94,6 +106,14 @@ resource "google_cloud_run_service" "default" {
         ports {
           name = "http1"
           container_port = 8080
+        }
+        env {
+          name = "CAI_ORG_ID"
+          value = var.organization_id
+        }
+        env {
+          name = "STORAGE_BUCKET"
+          value = google_storage_bucket.provider.name
         }
         env {
           name = "DATABASE_NET"
@@ -142,6 +162,8 @@ resource "google_cloud_run_service" "default" {
     google_sql_user.user,
     google_secret_manager_secret_iam_member.secret-access,
     google_project_iam_member.sql_client,
+    google_project_iam_member.token_creator,
+    google_organization_iam_member.cai_viewer,
     null_resource.docker_image
   ]
 }

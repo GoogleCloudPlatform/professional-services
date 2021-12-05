@@ -145,12 +145,12 @@ func CreateNewRange(c *fiber.Ctx) error {
 		})
 	}
 
-	if os.Getenv("CONNECT_TO_CAI") == "TRUE" {
+	if os.Getenv("CAI_ORG_ID") != "" {
 		// Integrating ranges from the VPC -- start
 		vpcs := strings.Split(routingDomain.Vpcs, ",")
 		for i := 0; i < len(vpcs); i++ {
 			vpc := vpcs[i]
-			ranges, err := GetRangesForNetwork(fmt.Sprintf("organizations/%s", "203384149598"), vpc) // TODO orgId needs to be extranlized
+			ranges, err := GetRangesForNetwork(fmt.Sprintf("organizations/%s", os.Getenv("CAI_ORG_ID")), vpc)
 			if err != nil {
 				return c.Status(503).JSON(&fiber.Map{
 					"success": false,

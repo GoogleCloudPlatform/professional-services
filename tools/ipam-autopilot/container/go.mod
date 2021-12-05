@@ -3,8 +3,8 @@ module github.com/GoogleCloudPlatform/professional-services/ipam-autopilot
 go 1.14
 
 require (
-	cloud.google.com/go v0.95.0 // indirect
 	cloud.google.com/go/asset v1.0.0 // indirect
+	cloud.google.com/go/storage v1.18.2 // indirect
 	github.com/apparentlymart/go-cidr v1.1.0
 	github.com/go-sql-driver/mysql v1.5.0 // indirect
 	github.com/gofiber/fiber/v2 v2.17.0
@@ -19,7 +19,7 @@ require (
 	golang.org/x/net v0.0.0-20210924151903-3ad01bbaa167 // indirect
 	golang.org/x/sys v0.0.0-20210927052749-1cf2251ac284 // indirect
 	golang.org/x/text v0.3.7 // indirect
-	google.golang.org/api v0.57.0
-	google.golang.org/genproto v0.0.0-20210924002016-3dee208752a0 // indirect
+	google.golang.org/api v0.58.0
+	google.golang.org/genproto v0.0.0-20211016002631-37fc39342514 // indirect
 	google.golang.org/grpc v1.41.0 // indirect
 )

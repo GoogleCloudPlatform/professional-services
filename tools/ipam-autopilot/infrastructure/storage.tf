@@ -53,12 +53,29 @@ data "local_file" "public_key" {
     resource.local_file.shasum
   ]
 }
+resource "random_string" "random" {
+  length           = 5
+  upper = false
+  special = false
+}
+resource "google_storage_bucket" "provider" {
+  name          = "ipam_provider_${random_string.random.result}"
+  location      = "EU"
+  force_destroy = true
 
+  uniform_bucket_level_access = true
+}
+
+resource "google_storage_bucket_iam_member" "zips_member" {
+  bucket = google_storage_bucket.provider.name
+  role = "roles/storage.objectViewer"
+  member = "serviceAccount:${google_service_account.autopilot.email}"
+}
 
 resource "google_storage_bucket_object" "zips" {
   for_each = fileset("${path.module}/.temp", "*.zip")
   name   = each.value
-  bucket = "ipam-provider"
+  bucket = google_storage_bucket.provider.name
   source = "${path.module}/.temp/${each.value}"
 
   depends_on = [
@@ -66,16 +83,9 @@ resource "google_storage_bucket_object" "zips" {
   ]
 }
 
-data "google_storage_object_signed_url" "zips" {
-  for_each = google_storage_bucket_object.zips
-  bucket = "ipam-provider"
-  path   =  each.value.output_name
-  credentials = var.sa_key
-}
-
 resource "google_storage_bucket_object" "shasums" {
   name   = "shasums"
-  bucket = "ipam-provider"
+  bucket = google_storage_bucket.provider.name
   source = "${path.module}/.temp/shasums"
 
   depends_on = [
@@ -83,57 +93,69 @@ resource "google_storage_bucket_object" "shasums" {
   ]
 }
 
-data "google_storage_object_signed_url" "shasums_url" {
-  bucket = "ipam-provider"
-  path   =  google_storage_bucket_object.shasums.output_name
-  credentials = var.sa_key
-}
-
 resource "google_storage_bucket_object" "shasums_sig" {
   name   = "shasums.sig"
-  bucket = "ipam-provider"
+  bucket = google_storage_bucket.provider.name
   source = "${path.module}/.temp/shasums.sig"
   depends_on = [
     null_resource.shasums_sig
   ]
 }
 
-data "google_storage_object_signed_url" "shasums_sig_url" {
-  bucket = "ipam-provider"
-  path   =  google_storage_bucket_object.shasums_sig.output_name
-  credentials = var.sa_key
-}
-
 resource "local_file" "version_json" {
-  for_each = data.google_storage_object_signed_url.zips
+  for_each = google_storage_bucket_object.zips
   content = templatefile("${path.module}/templates/version_json.tpl", {
       zip: each.value,
-      shasums_url: data.google_storage_object_signed_url.shasums_url,
-      shasums_sig_url: data.google_storage_object_signed_url.shasums_sig_url,
+      shasums_url: google_storage_bucket_object.shasums,
+      shasums_sig_url: google_storage_bucket_object.shasums_sig,
       public_key: data.local_file.public_key.content
   })
-  filename = "${path.module}/output/ipam-autopilot/ipam/${var.provider_version}/download/${split("_", each.value.path)[2]}/${replace(split("_", each.value.path)[3],".zip","")}"
-
-  depends_on = [
-    data.google_storage_object_signed_url.zips,
-    data.google_storage_object_signed_url.shasums_url,
-    data.google_storage_object_signed_url.shasums_sig_url
-  ]
+  filename = "${path.module}/output/ipam-autopilot/ipam/${var.provider_version}/download/${split("_", each.value.name)[2]}/${replace(split("_", each.value.name)[3],".zip","")}"
 }
 
 resource "local_file" "versions_json" {
   content = templatefile("${path.module}/templates/versions_json.tpl", {
       version: var.provider_version,
       platforms: [
-        for zip in data.google_storage_object_signed_url.zips : {
-          os = split("_", zip.path)[2]
-          arch   = replace(split("_", zip.path)[3],".zip","")
+        for zip in google_storage_bucket_object.zips : {
+          os = split("_", zip.name)[2]
+          arch   = replace(split("_", zip.name)[3],".zip","")
         }
       ]
   })
   filename = "${path.module}/output/ipam-autopilot/ipam/versions"
 
+}
+
+/*
+data "google_storage_object_signed_url" "zips" {
+  provider = google.impersonate
+  for_each = google_storage_bucket_object.zips
+  bucket = google_storage_bucket.provider.name
+  path   =  each.value.output_name
+
   depends_on = [
-    data.google_storage_object_signed_url.zips
+    google_storage_bucket_iam_member.zips_member
   ]
 }
+
+data "google_storage_object_signed_url" "shasums_url" {
+  provider = google.impersonate
+  bucket = google_storage_bucket.provider.name
+  path   =  google_storage_bucket_object.shasums.output_name
+
+  depends_on = [
+    google_storage_bucket_iam_member.zips_member
+  ]
+}
+
+data "google_storage_object_signed_url" "shasums_sig_url" {
+  provider = google.impersonate
+  bucket = google_storage_bucket.provider.name
+  path   =  google_storage_bucket_object.shasums_sig.output_name
+
+  depends_on = [
+    google_storage_bucket_iam_member.zips_member
+  ]
+}
+*/

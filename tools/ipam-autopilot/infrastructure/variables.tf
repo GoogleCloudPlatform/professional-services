@@ -11,6 +11,9 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+variable "organization_id" {
+  description = "Organization ID, required for accessing CAI"  
+}
 
 variable "region" {
   default = "europe-west1"
@@ -21,7 +24,7 @@ variable "artifact_registry_location" {
 }
 
 variable "container_version" {
-  default = "1"
+  default = "104"
 }
 
 variable "project_id" {
@@ -33,8 +36,4 @@ variable "provider_binary_folder" {
 
 variable "provider_version" {
   default = "0.1.0"
-}
-
-variable "sa_key" {
-  description = "Needed for creating signed URLS for GCS access"
 }

@@ -10,7 +10,7 @@ IPAM Autopilot consists of two parts, a [backend service](./container) that prov
 The provider uses application default credentials to authenticate against the backend.
 
 ## IPAM Autopilot Backend
-The [infrastructure](./infrastructure) folder contains a sample Terraform setup with which the IPAM Autopilot backend can be deployed to CloudRun. It provisions a CloudSQL instance as well. The container is also build as part of this setup.
+The [infrastructure](./infrastructure) folder contains a sample Terraform setup with which the IPAM Autopilot backend can be deployed to CloudRun. The required APIs are created during the deployment. The deployment instructions also provision a small CloudSQL instance as well. The container is build as part of the deployment. The `Dockerfile`containing the build instructions is at the top level, since the container needs files that are generated during the infrastructure deployment.
 
 The following GCP services are used as part of the deployment, and might cause cost:
   * [Cloud Run](https://cloud.google.com/run)
@@ -18,18 +18,17 @@ The following GCP services are used as part of the deployment, and might cause c
   * [Secret Manager](https://cloud.google.com/secret-manager)
   * [Google Cloud Storage](https://cloud.google.com/storage)
 
-The backend deployments contains a self-contained registry for discovery of the provider. Please be aware, this approach towards Terraform provider registry can be brittle.
+A self-contained registry for discovery of the provider is part of the backend and the deployment. It uses GCS with signed URL for providing the provider binaries. Please be aware, this approach towards Terraform provider registry can be brittle.
 
 ## Deploying
-In order to be able to use the provider later from terraform we need to provide the providers binaries in a way that Terraform can resolve them
-For this we need to first build the providers binary. The Terraform deployment instructions will use the binaries to bundle the provider for discovery by the Terraform clients. For this you will need to have PGP set up so that the checksum file that accompanies the binaries can be signed.
-You will also need to create a service account and download the key for this 
+In order to use the provider later from terraform we need to provide the providers binaries in a way that Terraform can resolve them.
+For this we need to first build the provider binaries. The Terraform deployment instructions will use the binaries to bundle the provider for discovery by the Terraform clients. For this you will need to have PGP set up so that the checksum file that accompanies the binaries can be signed.
 
 The infrastructure deployment takes the following variables, you can either set them via environment variables TF_VAR_<name> or in a .tfvars file.
 | Variable                   	| Default Value   	| Description                                                                                                                                                	|
 |----------------------------	|-----------------	|------------------------------------------------------------------------------------------------------------------------------------------------------------	|
+| organization_id                 	|                 	| ID of the organization, that holds the subnets that are queried via Cloud Asset Inventory.
 | project_id                 	|                 	| Project ID of the project to which the IPAM Autopilot should be deployed.                                                                                  	|
-| sa_key                     	|                 	| Service Account JSON key file location. Used to create signed URLs for the provider files.                                                                 	|
 | region                     	| europe-west1    	| GCP region that should contain the resources.                                                                                                              	|
 | artifact_registry_location 	| europe          	| Location for the Artifact Registry location, containing the Docker container image for the IPAM Autopilot backend.                                         	|
 | container_version          	| 1               	| Version of the container, since the container is build by the infrastructure automation, you can use this variable to trigger a new container image build. 	|
@@ -42,7 +41,7 @@ In order deploy, you will need to execute the following commands.
 1. Deploy the infrastructure `terraform init` and `terraform apply`
 
 ## Setting up the local Terraform setup
-In order to be able to download the provider from the CloudRun service, the Terraform CLI will need to authenticate against CloudRun. You will need to setup your `~/.terraformrc` file so that it conaints a valid identity token for a user with `roles/run.invoker`. You can obtain that token with `gcloud auth print-identity-token`.
+In order to be able to download the provider from the CloudRun service, the Terraform CLI will need to authenticate against CloudRun. You will need to setup your `~/.terraformrc` file so that it conaints a valid identity token for a user with `roles/run.invoker`. You can obtain that token with `gcloud auth print-identity-token` and manually create the entry in your terraformrc file.
 ```
 credentials "<cloud run hostname>" {
   token = "<identity token>"

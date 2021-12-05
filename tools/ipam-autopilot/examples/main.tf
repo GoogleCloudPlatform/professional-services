@@ -15,7 +15,7 @@
 terraform {
   required_providers {
     ipam = {
-      version = "0.5"
+      version = "0.1"
       source = "ipam-pdk3svnohq-ew.a.run.app/ipam-autopilot/ipam"
     }
   }
