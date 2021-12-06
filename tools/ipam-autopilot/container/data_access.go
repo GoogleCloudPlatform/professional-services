@@ -75,7 +75,7 @@ func GetRangesFromDB() ([]Range, error) {
 
 func GetRangesForParentFromDB(tx *sql.Tx, parent_id int64) ([]Range, error) {
 	var ranges []Range
-	rows, err := tx.Query("SELECT subnet_id, parent_id, routing_domain_id, name, cidr FROM subnets WHERE parent_id = ?", parent_id)
+	rows, err := tx.Query("SELECT subnet_id, parent_id, routing_domain_id, name, cidr FROM subnets WHERE parent_id = ? FOR UPDATE", parent_id)
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +138,7 @@ func GetRangeByCidrFromDB(tx *sql.Tx, cidr_request string) (*Range, error) {
 	var name string
 	var cidr string
 
-	err := tx.QueryRow("SELECT subnet_id, parent_id, routing_domain_id, name, cidr FROM subnets WHERE cidr = ?", cidr_request).Scan(&subnet_id, &tmp, &routing_domain_id, &name, &cidr)
+	err := tx.QueryRow("SELECT subnet_id, parent_id, routing_domain_id, name, cidr FROM subnets WHERE cidr = ?  FOR UPDATE", cidr_request).Scan(&subnet_id, &tmp, &routing_domain_id, &name, &cidr)
 
 	if err != nil {
 		return nil, err
@@ -238,7 +238,7 @@ func GetDefaultRoutingDomainFromDB(tx *sql.Tx) (*RoutingDomain, error) {
 	var name string
 	var vpcs sql.NullString
 
-	err := tx.QueryRow("SELECT routing_domain_id, name, vpcs FROM routing_domains LIMIT 1").Scan(&routing_domain_id, &name, &vpcs)
+	err := tx.QueryRow("SELECT routing_domain_id, name, vpcs FROM routing_domains LIMIT 1 FOR UPDATE").Scan(&routing_domain_id, &name, &vpcs)
 	if err != nil {
 		return nil, err
 	}
