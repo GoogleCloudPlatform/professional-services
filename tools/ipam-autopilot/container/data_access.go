@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"strings"
 
 	"github.com/apparentlymart/go-cidr/cidr"
 	"github.com/jackc/pgtype"
@@ -131,17 +132,22 @@ func GetRangeFromDB(id int64) (*Range, error) {
 	}, nil
 }
 
-func GetRangeByCidrFromDB(tx *sql.Tx, cidr_request string) (*Range, error) {
+func GetRangeByCidrFromDB(tx *sql.Tx, routing_domain_id int, cidr_request string) (*Range, error) {
 	var subnet_id int
-	var routing_domain_id int
 	tmp := pgtype.Int4{}
 	var name string
 	var cidr string
 
-	err := tx.QueryRow("SELECT subnet_id, parent_id, routing_domain_id, name, cidr FROM subnets WHERE cidr = ?  FOR UPDATE", cidr_request).Scan(&subnet_id, &tmp, &routing_domain_id, &name, &cidr)
-
-	if err != nil {
-		return nil, err
+	if cidr_request != "" {
+		err := tx.QueryRow("SELECT subnet_id, parent_id, name, cidr FROM subnets WHERE cidr = ? and routing_domain_id = $2 FOR UPDATE", cidr_request, routing_domain_id).Scan(&subnet_id, &tmp, &name, &cidr)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		err := tx.QueryRow("SELECT subnet_id, parent_id, name, cidr FROM subnets WHERE routing_domain_id = ? LIMIT 1 FOR UPDATE", routing_domain_id).Scan(&subnet_id, &tmp, &name, &cidr)
+		if err != nil {
+			return nil, err
+		}
 	}
 	parent_id := -1
 	if tmp.Status == pgtype.Present {
@@ -159,6 +165,15 @@ func GetRangeByCidrFromDB(tx *sql.Tx, cidr_request string) (*Range, error) {
 
 func DeleteRangeFromDb(id int64) error {
 	_, err := db.Query("DELETE FROM subnets WHERE subnet_id = ?", id)
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func DeleteRoutingDomainFromDB(id int64) error {
+	_, err := db.Query("DELETE FROM routing_domains WHERE routing_domain_id = ?", id)
 
 	if err != nil {
 		return err
@@ -286,10 +301,34 @@ func GetRoutingDomainFromDB(id int64) (*RoutingDomain, error) {
 	}, nil
 }
 
-func UpdateRoutingDomainOnDb(id int64, vpcs string) error {
-	_, err := db.Query("UPDATE routing_domains SET vpcs = $2 WHERE routing_domain_id = ?", id, vpcs)
-	if err != nil {
-		return err
+func UpdateRoutingDomainOnDb(id int64, name JSONString, vpcs JSONStringArray) error {
+	if name.Set && vpcs.Set {
+		_, err := db.Query("UPDATE routing_domains SET name = $2, vpcs = $3 WHERE routing_domain_id = ?", id, name.Value, strings.Join(vpcs.Value, ","))
+		if err != nil {
+			return err
+		}
+	} else if vpcs.Set {
+		_, err := db.Query("UPDATE routing_domains SET vpcs = $2 WHERE routing_domain_id = ?", id, strings.Join(vpcs.Value, ","))
+		if err != nil {
+			return err
+		}
+	} else if name.Set {
+		_, err := db.Query("UPDATE routing_domains SET name = $2 WHERE routing_domain_id = ?", id, name.Value)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
+}
+
+func CreateRoutingDomainOnDb(name string, vpcs []string) (int64, error) {
+	res, err := db.Exec("INSERT INTO routing_domains (name, vpcs) VALUES (?,?);", name, strings.Join(vpcs, ","))
+	if err != nil {
+		return -1, err
+	}
+	domain_id, err := res.LastInsertId()
+	if err != nil {
+		return -1, err
+	}
+	return domain_id, nil
 }

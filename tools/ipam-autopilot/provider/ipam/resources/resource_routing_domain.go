@@ -16,86 +16,55 @@ package resources
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 
 	"github.com/GoogleCloudPlatform/professional-services/terraform-provider-ipam-autopilot/ipam/config"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"golang.org/x/oauth2/google"
-	"google.golang.org/api/idtoken"
 )
 
-func ResourceIpRange() *schema.Resource {
+func ResourceRoutingDomain() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceCreate,
-		Read:   resourceRead,
-		//Update: resourceUpdate,
-		Delete: resourceDelete,
+		Create: routingDomainCreate,
+		Read:   routingDomainRead,
+		Update: routingDomainUpdate,
+		Delete: routingDomainDelete,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
+				ForceNew: false,
 			},
-			"range_size": {
-				Type:     schema.TypeInt,
-				Required: true,
-				ForceNew: true,
-			},
-			"parent": {
-				Type:     schema.TypeString,
+			"vpcs": {
+				Type: schema.TypeList,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+				Required: false,
+				ForceNew: false,
 				Optional: true,
-				ForceNew: true,
-			},
-			"domain": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-			},
-			"cidr": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: false,
-				ForceNew: true,
 			},
 		},
 	}
 }
-func resourceCreate(d *schema.ResourceData, meta interface{}) error {
+
+func routingDomainCreate(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(config.Config)
-	range_size := d.Get("range_size").(int)
-	parent := d.Get("parent").(string)
+	vpcs := d.Get("vpcs").([]interface{})
 	name := d.Get("name").(string)
-	domain := d.Get("domain").(string)
-	cidr := d.Get("cidr").(string)
-	url := fmt.Sprintf("%s/ranges", config.Url)
+	url := fmt.Sprintf("%s/domains", config.Url)
 	var postBody []byte
 	var err error
-	if parent == "" {
-		postBody, err = json.Marshal(map[string]interface{}{
-			"range_size": range_size,
-			"name":       name,
-			"domain":     domain,
-			"cidr":       cidr,
-		})
-		if err != nil {
-			return fmt.Errorf("failed marshalling json: %v", err)
-		}
-	} else {
-		postBody, err = json.Marshal(map[string]interface{}{
-			"range_size": range_size,
-			"name":       name,
-			"domain":     domain,
-			"parent":     parent,
-			"cidr":       cidr,
-		})
-		if err != nil {
-			return fmt.Errorf("failed marshalling json: %v", err)
-		}
+	postBody, err = json.Marshal(map[string]interface{}{
+		"name": name,
+		"vpcs": vpcs,
+	})
+	if err != nil {
+		return fmt.Errorf("failed marshalling json: %v", err)
 	}
 	fmt.Printf("%s", string(postBody))
 	responseBody := bytes.NewBuffer(postBody)
@@ -126,21 +95,22 @@ func resourceCreate(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("unable to unmarshal response body: %v", err)
 		}
 		d.SetId(fmt.Sprintf("%d", int(response["id"].(float64))))
-		d.Set("cidr", response["cidr"].(string))
+		d.Set("name", name)
+		d.Set("vpcs", vpcs)
 		return nil
 	} else {
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return fmt.Errorf("failed creating range status_code=%d, status=%s", resp.StatusCode, resp.Status)
+			return fmt.Errorf("failed creating routing domain status_code=%d, status=%s", resp.StatusCode, resp.Status)
 		}
 
-		return fmt.Errorf("failed creating range status_code=%d, status=%s,body=%s", resp.StatusCode, resp.Status, string(body))
+		return fmt.Errorf("failed creating routing domain status_code=%d, status=%s,body=%s", resp.StatusCode, resp.Status, string(body))
 	}
 }
 
-func resourceRead(d *schema.ResourceData, meta interface{}) error {
+func routingDomainRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(config.Config)
-	url := fmt.Sprintf("%s/ranges/%s", config.Url, d.Id())
+	url := fmt.Sprintf("%s/domains/%s", config.Url, d.Id())
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -168,7 +138,13 @@ func resourceRead(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("unable to unmarshal response body: %v", err)
 		}
 		d.SetId(fmt.Sprintf("%d", int(response["id"].(float64))))
-		d.Set("cidr", response["cidr"].(string))
+		d.Set("name", response["name"].(string))
+		if response["vpcs"].(string) != "" {
+			d.Set("vpcs", strings.Split(response["vpcs"].(string), ","))
+		} else {
+			d.Set("vpcs", []string{})
+		}
+
 		return nil
 	} else {
 		body, err := ioutil.ReadAll(resp.Body)
@@ -180,15 +156,15 @@ func resourceRead(d *schema.ResourceData, meta interface{}) error {
 	}
 }
 
-func resourceDelete(d *schema.ResourceData, meta interface{}) error {
+func routingDomainDelete(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(config.Config)
 
-	url := fmt.Sprintf("%s/ranges/%s", config.Url, d.Id())
+	url := fmt.Sprintf("%s/domains/%s", config.Url, d.Id())
 
 	client := &http.Client{}
 	req, err := http.NewRequest("DELETE", url, nil)
 	if err != nil {
-		return fmt.Errorf("failed creating release request: %v", err)
+		return fmt.Errorf("failed deleting routing domain request: %v", err)
 	}
 	accessToken, err := getIdentityToken()
 	if err != nil {
@@ -197,42 +173,72 @@ func resourceDelete(d *schema.ResourceData, meta interface{}) error {
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
 	resp, err := client.Do(req)
 	if err != nil {
-		return fmt.Errorf("failed releasing range: %v", err)
+		return fmt.Errorf("failed deleting routing domains: %v", err)
 	}
 	if resp.StatusCode == 200 {
 		return nil
 	} else {
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return fmt.Errorf("failed releasing range status_code=%d, status=%s", resp.StatusCode, resp.Status)
+			return fmt.Errorf("failed deleting routing domain status_code=%d, status=%s", resp.StatusCode, resp.Status)
 		}
 
-		return fmt.Errorf("failed releasing range status_code=%d, status=%s,body=%s", resp.StatusCode, resp.Status, string(body))
+		return fmt.Errorf("failed deleting routing domain status_code=%d, status=%s,body=%s", resp.StatusCode, resp.Status, string(body))
 	}
 }
 
-func getIdentityToken() (string, error) {
-	ctx := context.Background()
-	audience := "http://ipam-autopilot.com"
-	ts, err := idtoken.NewTokenSource(ctx, audience)
+func routingDomainUpdate(d *schema.ResourceData, meta interface{}) error {
+	config := meta.(config.Config)
+	vpcs := d.Get("vpcs").([]interface{})
+	name := d.Get("name").(string)
+	url := fmt.Sprintf("%s/domains/%s", config.Url, d.Id())
+	var postBody []byte
+	var err error
+	postBody, err = json.Marshal(map[string]interface{}{
+		"name": name,
+		"vpcs": vpcs,
+	})
 	if err != nil {
-		if err.Error() != `idtoken: credential must be service_account, found "authorized_user"` {
-			return "", err
-		}
-		gts, err := google.DefaultTokenSource(ctx)
-		if err != nil {
-			return "", err
-		}
-		token, err := gts.Token()
-		if err != nil {
-			return "", err
-		}
-		identityToken := token.Extra("id_token").(string)
-		return identityToken, nil
+		return fmt.Errorf("failed marshalling json: %v", err)
 	}
-	token, err := ts.Token()
+	fmt.Printf("%s", string(postBody))
+	responseBody := bytes.NewBuffer(postBody)
+	accessToken, err := getIdentityToken()
 	if err != nil {
-		return "", err
+		return fmt.Errorf("unable to retrieve access token: %v", err)
 	}
-	return token.AccessToken, nil
+	req, err := http.NewRequest("PUT", url, responseBody)
+	if err != nil {
+		return fmt.Errorf("failed creating request: %v", err)
+	}
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed creating range: %v", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode == 200 {
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("unable to read response: %v", err)
+		}
+		response := map[string]interface{}{}
+		err = json.Unmarshal(body, &response)
+		if err != nil {
+			return fmt.Errorf("unable to unmarshal response body: %v", err)
+		}
+		d.SetId(fmt.Sprintf("%d", int(response["id"].(float64))))
+		d.Set("name", name)
+		d.Set("vpcs", vpcs)
+		return nil
+	} else {
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("failed creating routing domain status_code=%d, status=%s", resp.StatusCode, resp.Status)
+		}
+
+		return fmt.Errorf("failed creating routing domain status_code=%d, status=%s,body=%s", resp.StatusCode, resp.Status, string(body))
+	}
 }

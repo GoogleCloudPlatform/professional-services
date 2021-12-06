@@ -15,19 +15,47 @@
 terraform {
   required_providers {
     ipam = {
-      version = "0.1"
+      version = "0.2"
       source = "ipam-pdk3svnohq-ew.a.run.app/ipam-autopilot/ipam"
     }
   }
 }
 
 provider "ipam" {
-  url = "https://ipam-pdk3svnohq-ew.a.run.app"
+  //url = "https://ipam-pdk3svnohq-ew.a.run.app"
+  url = "http://localhost:8080"
+}
+
+resource "ipam_routing_domain" "test" {
+  name = "Test Domain"
+}
+
+resource "ipam_ip_range" "main" {
+  range_size = 8
+  name = "main range"
+  domain = ipam_routing_domain.test.id
+  cidr = "10.0.0.0/8"
 }
 
 resource "ipam_ip_range" "pod-ranges" {
   range_size = 22
   name = "gke services range"
+  domain = ipam_routing_domain.test.id
+}
+
+resource "ipam_ip_range" "pod-ranges2" {
+  range_size = 22
+  name = "gke services range2"
+}
+
+resource "ipam_ip_range" "pod-ranges3" {
+  range_size = 24
+  name = "gke services range3"
+}
+
+resource "ipam_ip_range" "pod-ranges4" {
+  range_size = 20
+  name = "gke services range4"
 }
 
 output "range" {

@@ -64,11 +64,11 @@ func main() {
 	app.Get("/ranges/:id", GetRange)
 	app.Delete("/ranges/:id", DeleteRange)
 
-	//TODO implement someday app.Post("/domains", CreateNew)
 	app.Get("/domains", GetRoutingDomains)
 	app.Get("/domains/:id", GetRoutingDomain)
 	app.Put("/domains/:id", UpdateRoutingDomain)
-	// TODO implement someday app.Delete("/domains/:id", DeleteRange)
+	app.Post("/domains", CreateRoutingDomain)
+	app.Delete("/domains/:id", DeleteRoutingDomain)
 
 	app.Post("/cai/subnets", SubnetChanged)
 	app.Get("/cai/refresh", RefreshSubnetsFromCai)

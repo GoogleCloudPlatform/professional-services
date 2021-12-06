@@ -16,6 +16,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net"
@@ -27,14 +28,22 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+type CreateRoutingDomainRequest struct {
+	Name string   `json:"name"`
+	Vpcs []string `json:"vpcs"`
+}
+
 type UpdateRoutingDomainRequest struct {
-	Vpcs string
+	Name JSONString      `json:"name"`
+	Vpcs JSONStringArray `json:"vpcs"`
 }
 
 type RangeRequest struct {
 	Parent     string `json:"parent"`
 	Name       string `json:"name"`
 	Range_size int    `json:"range_size"`
+	Domain     string `json:"domain"`
+	Cidr       string `json:"cidr"`
 }
 
 func GetRanges(c *fiber.Ctx) error {
@@ -110,16 +119,6 @@ func CreateNewRange(c *fiber.Ctx) error {
 		log.Fatal(err)
 	}
 
-	routingDomain, err := GetDefaultRoutingDomainFromDB(tx)
-	if err != nil {
-		fmt.Printf("Error %v", err)
-		tx.Rollback()
-		return c.Status(503).JSON(&fiber.Map{
-			"success": false,
-			"message": "Couldn't retrieve default routing domain",
-		})
-	}
-
 	// Instantiate new RangeRequest struct
 	p := RangeRequest{}
 	//  Parse body into RangeRequest struct
@@ -131,96 +130,161 @@ func CreateNewRange(c *fiber.Ctx) error {
 			"message": fmt.Sprintf("Bad format %v", err),
 		})
 	}
-	range_size := p.Range_size
-	var parent_range string
-	if p.Parent != "" {
-		parent_range = p.Parent
+
+	var routingDomain *RoutingDomain
+	if p.Domain == "" {
+		routingDomain, err = GetDefaultRoutingDomainFromDB(tx)
+		if err != nil {
+			fmt.Printf("Error %v", err)
+			tx.Rollback()
+			return c.Status(503).JSON(&fiber.Map{
+				"success": false,
+				"message": "Couldn't retrieve default routing domain",
+			})
+		}
 	} else {
-		// Default to 10.0.0.0/8 if no parent is provided
-		parent_range = "10.0.0.0/8"
+		domain_id, err := strconv.ParseInt(p.Domain, 10, 64)
+		if err != nil {
+			return c.Status(400).JSON(&fiber.Map{
+				"success": false,
+				"message": fmt.Sprintf("%v", err),
+			})
+		}
+		routingDomain, err = GetRoutingDomainFromDB(domain_id)
+		if err != nil {
+			fmt.Printf("Error %v", err)
+			tx.Rollback()
+			return c.Status(503).JSON(&fiber.Map{
+				"success": false,
+				"message": "Couldn't retrieve default routing domain",
+			})
+		}
 	}
 
-	parent, err := GetRangeByCidrFromDB(tx, parent_range)
-	if err != nil {
-		tx.Rollback()
-		return c.Status(503).JSON(&fiber.Map{
-			"success": false,
-			"message": fmt.Sprintf("Unable to create new Subnet Lease  %v", err),
-		})
-	}
-	subnet_ranges, err := GetRangesForParentFromDB(tx, int64(parent.Subnet_id))
-	if err != nil {
-		tx.Rollback()
-		return c.Status(503).JSON(&fiber.Map{
-			"success": false,
-			"message": fmt.Sprintf("Unable to create new Subnet Lease  %v", err),
-		})
-	}
-	if os.Getenv("CAI_ORG_ID") != "" {
-		// Integrating ranges from the VPC -- start
-		vpcs := strings.Split(routingDomain.Vpcs, ",")
-		for i := 0; i < len(vpcs); i++ {
-			vpc := vpcs[i]
-			ranges, err := GetRangesForNetwork(fmt.Sprintf("organizations/%s", os.Getenv("CAI_ORG_ID")), vpc)
+	if p.Cidr != "" {
+		parent_id := int64(-1)
+		if p.Parent != "" {
+			parent_id, err = strconv.ParseInt(p.Parent, 10, 64)
 			if err != nil {
-				tx.Rollback()
-				return c.Status(503).JSON(&fiber.Map{
+				return c.Status(400).JSON(&fiber.Map{
 					"success": false,
-					"message": fmt.Sprintf("error %v", err),
+					"message": fmt.Sprintf("%v", err),
 				})
 			}
+		}
+		domain_id, err := strconv.ParseInt(p.Domain, 10, 64)
+		if err != nil {
+			return c.Status(400).JSON(&fiber.Map{
+				"success": false,
+				"message": fmt.Sprintf("%v", err),
+			})
+		}
+		id, err := CreateRangeInDb(tx, parent_id,
+			int(domain_id),
+			p.Name,
+			p.Cidr)
 
-			for j := 0; j < len(ranges); j++ {
-				vpc_range := ranges[j]
-				if !ContainsRange(subnet_ranges, vpc_range.cidr) {
-					subnet_ranges = append(subnet_ranges, Range{
-						Cidr: vpc_range.cidr,
+		if err != nil {
+			tx.Rollback()
+			return c.Status(503).JSON(&fiber.Map{
+				"success": false,
+				"message": fmt.Sprintf("Unable to create new Subnet Lease %v", err),
+			})
+		}
+
+		err = tx.Commit()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		return c.Status(200).JSON(&fiber.Map{
+			"id":   id,
+			"cidr": p.Cidr,
+		})
+	} else {
+		parent, err := GetRangeByCidrFromDB(tx, routingDomain.Id, p.Parent)
+		if err != nil {
+			tx.Rollback()
+			return c.Status(503).JSON(&fiber.Map{
+				"success": false,
+				"message": fmt.Sprintf("Unable to create new Subnet Lease  %v", err),
+			})
+		}
+		range_size := p.Range_size
+		subnet_ranges, err := GetRangesForParentFromDB(tx, int64(parent.Subnet_id))
+		if err != nil {
+			tx.Rollback()
+			return c.Status(503).JSON(&fiber.Map{
+				"success": false,
+				"message": fmt.Sprintf("Unable to create new Subnet Lease  %v", err),
+			})
+		}
+		if os.Getenv("CAI_ORG_ID") != "" {
+			// Integrating ranges from the VPC -- start
+			vpcs := strings.Split(routingDomain.Vpcs, ",")
+			for i := 0; i < len(vpcs); i++ {
+				vpc := vpcs[i]
+				ranges, err := GetRangesForNetwork(fmt.Sprintf("organizations/%s", os.Getenv("CAI_ORG_ID")), vpc)
+				if err != nil {
+					tx.Rollback()
+					return c.Status(503).JSON(&fiber.Map{
+						"success": false,
+						"message": fmt.Sprintf("error %v", err),
 					})
 				}
 
-				for k := 0; k < len(vpc_range.secondaryRanges); k++ {
-					secondaryRange := vpc_range.secondaryRanges[k]
-					if !ContainsRange(subnet_ranges, secondaryRange.cidr) {
+				for j := 0; j < len(ranges); j++ {
+					vpc_range := ranges[j]
+					if !ContainsRange(subnet_ranges, vpc_range.cidr) {
 						subnet_ranges = append(subnet_ranges, Range{
-							Cidr: secondaryRange.cidr,
+							Cidr: vpc_range.cidr,
 						})
+					}
+
+					for k := 0; k < len(vpc_range.secondaryRanges); k++ {
+						secondaryRange := vpc_range.secondaryRanges[k]
+						if !ContainsRange(subnet_ranges, secondaryRange.cidr) {
+							subnet_ranges = append(subnet_ranges, Range{
+								Cidr: secondaryRange.cidr,
+							})
+						}
 					}
 				}
 			}
+			// Integrating ranges from the VPC -- end
 		}
-		// Integrating ranges from the VPC -- end
-	}
 
-	subnet, subnetOnes, err := findNextSubnet(int(range_size), parent.Cidr, subnet_ranges)
-	if err != nil {
-		tx.Rollback()
-		return c.Status(503).JSON(&fiber.Map{
-			"success": false,
-			"message": fmt.Sprintf("Unable to create new Subnet Lease %v", err),
+		subnet, subnetOnes, err := findNextSubnet(int(range_size), parent.Cidr, subnet_ranges)
+		if err != nil {
+			tx.Rollback()
+			return c.Status(503).JSON(&fiber.Map{
+				"success": false,
+				"message": fmt.Sprintf("Unable to create new Subnet Lease %v", err),
+			})
+		}
+		nextSubnet, _ := cidr.NextSubnet(subnet, int(range_size))
+		log.Printf("next subnet will be starting with %s", nextSubnet.IP.String())
+
+		id, err := CreateRangeInDb(tx, int64(parent.Subnet_id), routingDomain.Id, p.Name, fmt.Sprintf("%s/%d", subnet.IP.To4().String(), subnetOnes))
+
+		if err != nil {
+			tx.Rollback()
+			return c.Status(503).JSON(&fiber.Map{
+				"success": false,
+				"message": fmt.Sprintf("Unable to create new Subnet Lease %v", err),
+			})
+		}
+
+		err = tx.Commit()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		return c.Status(200).JSON(&fiber.Map{
+			"id":   id,
+			"cidr": fmt.Sprintf("%s/%d", subnet.IP.To4().String(), subnetOnes),
 		})
 	}
-	nextSubnet, _ := cidr.NextSubnet(subnet, int(range_size))
-	log.Printf("next subnet will be starting with %s", nextSubnet.IP.String())
-
-	id, err := CreateRangeInDb(tx, int64(parent.Subnet_id), routingDomain.Id, p.Name, fmt.Sprintf("%s/%d", subnet.IP.To4().String(), subnetOnes))
-
-	if err != nil {
-		tx.Rollback()
-		return c.Status(503).JSON(&fiber.Map{
-			"success": false,
-			"message": fmt.Sprintf("Unable to create new Subnet Lease %v", err),
-		})
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return c.Status(200).JSON(&fiber.Map{
-		"id":   id,
-		"cidr": fmt.Sprintf("%s/%d", subnet.IP.To4().String(), subnetOnes),
-	})
 }
 
 func findNextSubnet(range_size int, sourceRange string, existingRanges []Range) (*net.IPNet, int, error) {
@@ -268,6 +332,25 @@ func GetRoutingDomain(c *fiber.Ctx) error {
 	})
 }
 
+func DeleteRoutingDomain(c *fiber.Ctx) error {
+	id, err := strconv.ParseInt(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(&fiber.Map{
+			"success": false,
+			"message": fmt.Sprintf("%v", err),
+		})
+	}
+	err = DeleteRoutingDomainFromDB(id)
+	if err != nil {
+		return c.Status(503).JSON(&fiber.Map{
+			"success": false,
+			"message": fmt.Sprintf("%v", err),
+		})
+	}
+
+	return c.Status(200).JSON(&fiber.Map{})
+}
+
 func GetRoutingDomains(c *fiber.Ctx) error {
 	var results []*fiber.Map
 	domains, err := GetRoutingDomainsFromDB()
@@ -307,8 +390,31 @@ func UpdateRoutingDomain(c *fiber.Ctx) error {
 			"message": fmt.Sprintf("Bad format %v", err),
 		})
 	}
-	UpdateRoutingDomainOnDb(id, p.Vpcs)
+	UpdateRoutingDomainOnDb(id, p.Name, p.Vpcs)
 	return nil
+}
+
+func CreateRoutingDomain(c *fiber.Ctx) error {
+	// Instantiate new UpdateRoutingDomainRequest struct
+	p := new(CreateRoutingDomainRequest)
+	//  Parse body into UpdateRoutingDomainRequest struct
+	if err := c.BodyParser(p); err != nil {
+		return c.Status(400).JSON(&fiber.Map{
+			"success": false,
+			"message": fmt.Sprintf("Bad format %v", err),
+		})
+	}
+	id, err := CreateRoutingDomainOnDb(p.Name, p.Vpcs)
+	if err != nil {
+		return c.Status(503).JSON(&fiber.Map{
+			"success": false,
+			"message": fmt.Sprintf("Unable to create new routing domain %v", err),
+		})
+	}
+
+	return c.Status(200).JSON(&fiber.Map{
+		"id": id,
+	})
 }
 
 func SubnetChanged(c *fiber.Ctx) error {
@@ -332,4 +438,34 @@ func ContainsRange(array []Range, cidr string) bool {
 		}
 	}
 	return false
+}
+
+type JSONString struct {
+	Value string
+	Set   bool
+}
+
+func (i *JSONString) UnmarshalJSON(data []byte) error {
+	i.Set = true
+	var val string
+	if err := json.Unmarshal(data, &val); err != nil {
+		return err
+	}
+	i.Value = val
+	return nil
+}
+
+type JSONStringArray struct {
+	Value []string
+	Set   bool
+}
+
+func (i *JSONStringArray) UnmarshalJSON(data []byte) error {
+	i.Set = true
+	var val []string
+	if err := json.Unmarshal(data, &val); err != nil {
+		return err
+	}
+	i.Value = val
+	return nil
 }

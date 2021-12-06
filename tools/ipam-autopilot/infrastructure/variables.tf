@@ -24,7 +24,7 @@ variable "artifact_registry_location" {
 }
 
 variable "container_version" {
-  default = "1"
+  default = "113"
 }
 
 variable "project_id" {
