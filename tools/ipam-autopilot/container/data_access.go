@@ -73,9 +73,9 @@ func GetRangesFromDB() ([]Range, error) {
 	return ranges, nil
 }
 
-func GetRangesForParentFromDB(parent_id int64) ([]Range, error) {
+func GetRangesForParentFromDB(tx *sql.Tx, parent_id int64) ([]Range, error) {
 	var ranges []Range
-	rows, err := db.Query("SELECT subnet_id, parent_id, routing_domain_id, name, cidr FROM subnets WHERE parent_id = ?", parent_id)
+	rows, err := tx.Query("SELECT subnet_id, parent_id, routing_domain_id, name, cidr FROM subnets WHERE parent_id = ?", parent_id)
 	if err != nil {
 		return nil, err
 	}
@@ -131,14 +131,14 @@ func GetRangeFromDB(id int64) (*Range, error) {
 	}, nil
 }
 
-func GetRangeByCidrFromDB(cidr_request string) (*Range, error) {
+func GetRangeByCidrFromDB(tx *sql.Tx, cidr_request string) (*Range, error) {
 	var subnet_id int
 	var routing_domain_id int
 	tmp := pgtype.Int4{}
 	var name string
 	var cidr string
 
-	err := db.QueryRow("SELECT subnet_id, parent_id, routing_domain_id, name, cidr FROM subnets WHERE cidr = ?", cidr_request).Scan(&subnet_id, &tmp, &routing_domain_id, &name, &cidr)
+	err := tx.QueryRow("SELECT subnet_id, parent_id, routing_domain_id, name, cidr FROM subnets WHERE cidr = ?", cidr_request).Scan(&subnet_id, &tmp, &routing_domain_id, &name, &cidr)
 
 	if err != nil {
 		return nil, err
@@ -166,9 +166,9 @@ func DeleteRangeFromDb(id int64) error {
 	return nil
 }
 
-func CreateRangeInDb(parent_id int64, routing_domain_id int, name string, cidr string) (int64, error) {
+func CreateRangeInDb(tx *sql.Tx, parent_id int64, routing_domain_id int, name string, cidr string) (int64, error) {
 	if parent_id == -1 {
-		res, err := db.Exec("INSERT INTO subnets (routing_domain_id, name, cidr) VALUES (?,?,?);", routing_domain_id, name, cidr)
+		res, err := tx.Exec("INSERT INTO subnets (routing_domain_id, name, cidr) VALUES (?,?,?);", routing_domain_id, name, cidr)
 		if err != nil {
 			return -1, err
 		}
@@ -178,7 +178,7 @@ func CreateRangeInDb(parent_id int64, routing_domain_id int, name string, cidr s
 		}
 		return subnet_id, nil
 	} else {
-		res, err := db.Exec("INSERT INTO subnets (parent_id, routing_domain_id, name, cidr) VALUES (?,?,?,?);", parent_id, routing_domain_id, name, cidr)
+		res, err := tx.Exec("INSERT INTO subnets (parent_id, routing_domain_id, name, cidr) VALUES (?,?,?,?);", parent_id, routing_domain_id, name, cidr)
 		if err != nil {
 			return -1, err
 		}
@@ -233,12 +233,12 @@ func netMask(mask net.IPMask) int {
 	return ones
 }
 
-func GetDefaultRoutingDomainFromDB() (*RoutingDomain, error) {
+func GetDefaultRoutingDomainFromDB(tx *sql.Tx) (*RoutingDomain, error) {
 	var routing_domain_id int
 	var name string
 	var vpcs sql.NullString
 
-	err := db.QueryRow("SELECT routing_domain_id, name, vpcs FROM routing_domains LIMIT 1").Scan(&routing_domain_id, &name, &vpcs)
+	err := tx.QueryRow("SELECT routing_domain_id, name, vpcs FROM routing_domains LIMIT 1").Scan(&routing_domain_id, &name, &vpcs)
 	if err != nil {
 		return nil, err
 	}

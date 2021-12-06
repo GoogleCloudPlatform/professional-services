@@ -15,8 +15,10 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"net"
 	"os"
 	"strconv"
 	"strings"
@@ -102,9 +104,16 @@ func DeleteRange(c *fiber.Ctx) error {
 }
 
 func CreateNewRange(c *fiber.Ctx) error {
-	routingDomain, err := GetDefaultRoutingDomainFromDB()
+	ctx := context.Background()
+	tx, err := db.BeginTx(ctx, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	routingDomain, err := GetDefaultRoutingDomainFromDB(tx)
 	if err != nil {
 		fmt.Printf("Error %v", err)
+		tx.Rollback()
 		return c.Status(503).JSON(&fiber.Map{
 			"success": false,
 			"message": "Couldn't retrieve default routing domain",
@@ -116,6 +125,7 @@ func CreateNewRange(c *fiber.Ctx) error {
 	//  Parse body into RangeRequest struct
 	if err := c.BodyParser(&p); err != nil {
 		fmt.Printf("Failed parsing body. %s Bad format %v", string(c.Body()), err)
+		tx.Rollback()
 		return c.Status(400).JSON(&fiber.Map{
 			"success": false,
 			"message": fmt.Sprintf("Bad format %v", err),
@@ -130,21 +140,22 @@ func CreateNewRange(c *fiber.Ctx) error {
 		parent_range = "10.0.0.0/8"
 	}
 
-	parent, err := GetRangeByCidrFromDB(parent_range)
+	parent, err := GetRangeByCidrFromDB(tx, parent_range)
 	if err != nil {
+		tx.Rollback()
 		return c.Status(503).JSON(&fiber.Map{
 			"success": false,
 			"message": fmt.Sprintf("Unable to create new Subnet Lease  %v", err),
 		})
 	}
-	subnet_ranges, err := GetRangesForParentFromDB(int64(parent.Subnet_id))
+	subnet_ranges, err := GetRangesForParentFromDB(tx, int64(parent.Subnet_id))
 	if err != nil {
+		tx.Rollback()
 		return c.Status(503).JSON(&fiber.Map{
 			"success": false,
 			"message": fmt.Sprintf("Unable to create new Subnet Lease  %v", err),
 		})
 	}
-
 	if os.Getenv("CAI_ORG_ID") != "" {
 		// Integrating ranges from the VPC -- start
 		vpcs := strings.Split(routingDomain.Vpcs, ",")
@@ -152,6 +163,7 @@ func CreateNewRange(c *fiber.Ctx) error {
 			vpc := vpcs[i]
 			ranges, err := GetRangesForNetwork(fmt.Sprintf("organizations/%s", os.Getenv("CAI_ORG_ID")), vpc)
 			if err != nil {
+				tx.Rollback()
 				return c.Status(503).JSON(&fiber.Map{
 					"success": false,
 					"message": fmt.Sprintf("error %v", err),
@@ -179,47 +191,58 @@ func CreateNewRange(c *fiber.Ctx) error {
 		// Integrating ranges from the VPC -- end
 	}
 
-	// TODO loop verifyNoOverlap until lastSubnet is true
-	subnet, subnetOnes, err := createNewSubnetLease(parent.Cidr, int(range_size), 0)
+	subnet, subnetOnes, err := findNextSubnet(int(range_size), parent.Cidr, subnet_ranges)
 	if err != nil {
+		tx.Rollback()
 		return c.Status(503).JSON(&fiber.Map{
 			"success": false,
 			"message": fmt.Sprintf("Unable to create new Subnet Lease %v", err),
 		})
 	}
-	log.Printf("new subnet lease %s/%d", subnet.IP.String(), subnetOnes)
-
-	var lastSubnet = false
-	for {
-		err = verifyNoOverlap(parent.Cidr, subnet_ranges, subnet)
-		if err == nil {
-			break
-		} else if !lastSubnet {
-			subnet, lastSubnet = cidr.NextSubnet(subnet, int(range_size))
-		} else {
-			return c.Status(503).JSON(&fiber.Map{
-				"success": false,
-				"message": "Can't allocate subnet",
-			})
-		}
-	}
-
 	nextSubnet, _ := cidr.NextSubnet(subnet, int(range_size))
 	log.Printf("next subnet will be starting with %s", nextSubnet.IP.String())
 
-	id, err := CreateRangeInDb(int64(parent.Subnet_id), routingDomain.Id, p.Name, fmt.Sprintf("%s/%d", subnet.IP.To4().String(), subnetOnes))
+	id, err := CreateRangeInDb(tx, int64(parent.Subnet_id), routingDomain.Id, p.Name, fmt.Sprintf("%s/%d", subnet.IP.To4().String(), subnetOnes))
 
 	if err != nil {
+		tx.Rollback()
 		return c.Status(503).JSON(&fiber.Map{
 			"success": false,
 			"message": fmt.Sprintf("Unable to create new Subnet Lease %v", err),
 		})
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	return c.Status(200).JSON(&fiber.Map{
 		"id":   id,
 		"cidr": fmt.Sprintf("%s/%d", subnet.IP.To4().String(), subnetOnes),
 	})
+}
+
+func findNextSubnet(range_size int, sourceRange string, existingRanges []Range) (*net.IPNet, int, error) {
+	subnet, subnetOnes, err := createNewSubnetLease(sourceRange, range_size, 0)
+	if err != nil {
+		return nil, -1, err
+	}
+	log.Printf("new subnet lease %s/%d", subnet.IP.String(), subnetOnes)
+
+	var lastSubnet = false
+	for {
+		err = verifyNoOverlap(sourceRange, existingRanges, subnet)
+		if err == nil {
+			break
+		} else if !lastSubnet {
+			subnet, lastSubnet = cidr.NextSubnet(subnet, int(range_size))
+		} else {
+			return nil, -1, err
+		}
+	}
+
+	return subnet, subnetOnes, nil
 }
 
 func GetRoutingDomain(c *fiber.Ctx) error {
