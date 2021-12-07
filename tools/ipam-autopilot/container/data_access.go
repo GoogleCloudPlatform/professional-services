@@ -139,7 +139,7 @@ func GetRangeByCidrFromDB(tx *sql.Tx, routing_domain_id int, cidr_request string
 	var cidr string
 
 	if cidr_request != "" {
-		err := tx.QueryRow("SELECT subnet_id, parent_id, name, cidr FROM subnets WHERE cidr = ? and routing_domain_id = $2 FOR UPDATE", cidr_request, routing_domain_id).Scan(&subnet_id, &tmp, &name, &cidr)
+		err := tx.QueryRow("SELECT subnet_id, parent_id, name, cidr FROM subnets WHERE cidr = ? and routing_domain_id = ? FOR UPDATE", cidr_request, routing_domain_id).Scan(&subnet_id, &tmp, &name, &cidr)
 		if err != nil {
 			return nil, err
 		}
@@ -303,17 +303,17 @@ func GetRoutingDomainFromDB(id int64) (*RoutingDomain, error) {
 
 func UpdateRoutingDomainOnDb(id int64, name JSONString, vpcs JSONStringArray) error {
 	if name.Set && vpcs.Set {
-		_, err := db.Query("UPDATE routing_domains SET name = $2, vpcs = $3 WHERE routing_domain_id = ?", id, name.Value, strings.Join(vpcs.Value, ","))
+		_, err := db.Query("UPDATE routing_domains SET name = ?, vpcs = ? WHERE routing_domain_id = ?", id, name.Value, strings.Join(vpcs.Value, ","))
 		if err != nil {
 			return err
 		}
 	} else if vpcs.Set {
-		_, err := db.Query("UPDATE routing_domains SET vpcs = $2 WHERE routing_domain_id = ?", id, strings.Join(vpcs.Value, ","))
+		_, err := db.Query("UPDATE routing_domains SET vpcs = ? WHERE routing_domain_id = ?", id, strings.Join(vpcs.Value, ","))
 		if err != nil {
 			return err
 		}
 	} else if name.Set {
-		_, err := db.Query("UPDATE routing_domains SET name = $2 WHERE routing_domain_id = ?", id, name.Value)
+		_, err := db.Query("UPDATE routing_domains SET name = ? WHERE routing_domain_id = ?", id, name.Value)
 		if err != nil {
 			return err
 		}

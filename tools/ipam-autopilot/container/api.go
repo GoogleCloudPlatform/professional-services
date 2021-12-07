@@ -391,7 +391,7 @@ func UpdateRoutingDomain(c *fiber.Ctx) error {
 		})
 	}
 	UpdateRoutingDomainOnDb(id, p.Name, p.Vpcs)
-	return nil
+	return c.Status(200).JSON(&fiber.Map{})
 }
 
 func CreateRoutingDomain(c *fiber.Ctx) error {

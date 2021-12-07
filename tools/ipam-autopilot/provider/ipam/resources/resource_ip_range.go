@@ -59,7 +59,7 @@ func ResourceIpRange() *schema.Resource {
 			"cidr": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: false,
+				Computed: true,
 				ForceNew: true,
 			},
 		},

@@ -220,7 +220,7 @@ func routingDomainUpdate(d *schema.ResourceData, meta interface{}) error {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == 200 {
-		body, err := ioutil.ReadAll(resp.Body)
+		/*body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			return fmt.Errorf("unable to read response: %v", err)
 		}
@@ -228,8 +228,8 @@ func routingDomainUpdate(d *schema.ResourceData, meta interface{}) error {
 		err = json.Unmarshal(body, &response)
 		if err != nil {
 			return fmt.Errorf("unable to unmarshal response body: %v", err)
-		}
-		d.SetId(fmt.Sprintf("%d", int(response["id"].(float64))))
+		}*/
+		//d.SetId(fmt.Sprintf("%d", int(response["id"].(float64))))
 		d.Set("name", name)
 		d.Set("vpcs", vpcs)
 		return nil

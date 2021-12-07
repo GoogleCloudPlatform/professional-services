@@ -65,7 +65,9 @@ test.sh
 *.env
 bin/
 terraform/
-public.key
-examples/
-
+public.key#
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars 
 .temp/
+public.key
