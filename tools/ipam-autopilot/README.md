@@ -48,6 +48,9 @@ credentials "<cloud run hostname>" {
 }
 ```
 
+Or as a condensed command
+`echo "credentials \"<cloud run hostname>\" { \n token = \"$(gcloud auth print-identity-token)\" \n }" > ~/.terraformrc`
+
 ## An example configuration
 Below is a Terraform example for using IPAM Autopilot
 ```
