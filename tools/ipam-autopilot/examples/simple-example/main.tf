@@ -16,13 +16,21 @@ terraform {
   required_providers {
     ipam = {
       version = "0.2"
+<<<<<<< HEAD:tools/ipam-autopilot/examples/simple-example/main.tf
       source = "<cloud_run_host>/ipam-autopilot/ipam"
+=======
+      source = "<cloudrun_host>/ipam-autopilot/ipam"
+>>>>>>> 448f4a490bee126684e413775a685f5de4be9f78:tools/ipam-autopilot/examples/main.tf
     }
   }
 }
 
 provider "ipam" {
+<<<<<<< HEAD:tools/ipam-autopilot/examples/simple-example/main.tf
   url = "https://<cloud_run_host>"
+=======
+  url = "https://<cloudrun_host>.a.run.app"
+>>>>>>> 448f4a490bee126684e413775a685f5de4be9f78:tools/ipam-autopilot/examples/main.tf
 }
 
 resource "ipam_routing_domain" "test" {
@@ -50,6 +58,6 @@ resource "ipam_ip_range" "services-ranges" {
   parent = ipam_ip_range.main.cidr
 }
 
-output "range" {
+output "pod-range" {
   value = ipam_ip_range.pod-ranges.cidr
 }
