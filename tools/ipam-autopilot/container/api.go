@@ -177,7 +177,7 @@ func directInsert(c *fiber.Ctx, tx *sql.Tx, p RangeRequest, routingDomain *Routi
 		if err != nil {
 			return c.Status(400).JSON(&fiber.Map{
 				"success": false,
-				"message": fmt.Sprintf("%v", err),
+				"message": fmt.Sprintf("Parent needes to be an integer %v", err),
 			})
 		}
 	}
@@ -185,7 +185,7 @@ func directInsert(c *fiber.Ctx, tx *sql.Tx, p RangeRequest, routingDomain *Routi
 	if err != nil {
 		return c.Status(400).JSON(&fiber.Map{
 			"success": false,
-			"message": fmt.Sprintf("%v", err),
+			"message": fmt.Sprintf("Domain needs to be an integer %v", err),
 		})
 	}
 	id, err := CreateRangeInDb(tx, parent_id,
@@ -221,7 +221,7 @@ func findNewLeaseAndInsert(c *fiber.Ctx, tx *sql.Tx, p RangeRequest, routingDoma
 		if err != nil {
 			return c.Status(400).JSON(&fiber.Map{
 				"success": false,
-				"message": fmt.Sprintf("%v", err),
+				"message": fmt.Sprintf("Parent needs to be an integer %v", err),
 			})
 		}
 
