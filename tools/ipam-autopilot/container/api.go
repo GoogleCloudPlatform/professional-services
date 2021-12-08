@@ -171,16 +171,6 @@ func CreateNewRange(c *fiber.Ctx) error {
 
 func directInsert(c *fiber.Ctx, tx *sql.Tx, p RangeRequest, routingDomain *RoutingDomain) error {
 	var err error
-	parent_id := int64(-1)
-	if p.Parent != "" {
-		parent_id, err = strconv.ParseInt(p.Parent, 10, 64)
-		if err != nil {
-			return c.Status(400).JSON(&fiber.Map{
-				"success": false,
-				"message": fmt.Sprintf("Parent needes to be an integer %v", err),
-			})
-		}
-	}
 	domain_id, err := strconv.ParseInt(p.Domain, 10, 64)
 	if err != nil {
 		return c.Status(400).JSON(&fiber.Map{
@@ -188,6 +178,22 @@ func directInsert(c *fiber.Ctx, tx *sql.Tx, p RangeRequest, routingDomain *Routi
 			"message": fmt.Sprintf("Domain needs to be an integer %v", err),
 		})
 	}
+
+	parent_id := int64(-1)
+	if p.Parent != "" {
+		parent_id, err = strconv.ParseInt(p.Parent, 10, 64)
+		if err != nil {
+			rangeFromDb, err := getRangeByCidrAndRoutingDomain(tx, p.Parent, int(domain_id))
+			if err != nil {
+				return c.Status(400).JSON(&fiber.Map{
+					"success": false,
+					"message": fmt.Sprintf("Parent needs to be either a cidr range within the routing domain or the id of a valid range %v", err),
+				})
+			}
+			parent_id = int64(rangeFromDb.Subnet_id)
+		}
+	}
+
 	id, err := CreateRangeInDb(tx, parent_id,
 		int(domain_id),
 		p.Name,
@@ -215,23 +221,25 @@ func directInsert(c *fiber.Ctx, tx *sql.Tx, p RangeRequest, routingDomain *Routi
 func findNewLeaseAndInsert(c *fiber.Ctx, tx *sql.Tx, p RangeRequest, routingDomain *RoutingDomain) error {
 	var err error
 	var parent *Range
-	parent_id := int64(-1)
 	if p.Parent != "" {
-		parent_id, err = strconv.ParseInt(p.Parent, 10, 64)
+		parent_id, err := strconv.ParseInt(p.Parent, 10, 64)
 		if err != nil {
-			return c.Status(400).JSON(&fiber.Map{
-				"success": false,
-				"message": fmt.Sprintf("Parent needs to be an integer %v", err),
-			})
-		}
-
-		parent, err = GetRangeFromDBWithTx(tx, parent_id)
-		if err != nil {
-			tx.Rollback()
-			return c.Status(503).JSON(&fiber.Map{
-				"success": false,
-				"message": fmt.Sprintf("Unable to create new Subnet Lease  %v", err),
-			})
+			parent, err = getRangeByCidrAndRoutingDomain(tx, p.Parent, routingDomain.Id)
+			if err != nil {
+				return c.Status(400).JSON(&fiber.Map{
+					"success": false,
+					"message": fmt.Sprintf("Parent needs to be either a cidr range within the routing domain or the id of a valid range %v", err),
+				})
+			}
+		} else {
+			parent, err = GetRangeFromDBWithTx(tx, parent_id)
+			if err != nil {
+				tx.Rollback()
+				return c.Status(503).JSON(&fiber.Map{
+					"success": false,
+					"message": fmt.Sprintf("Unable to create new Subnet Lease  %v", err),
+				})
+			}
 		}
 	} else {
 		return c.Status(400).JSON(&fiber.Map{
