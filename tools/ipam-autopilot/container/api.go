@@ -16,6 +16,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -162,129 +163,156 @@ func CreateNewRange(c *fiber.Ctx) error {
 	}
 
 	if p.Cidr != "" {
-		parent_id := int64(-1)
-		if p.Parent != "" {
-			parent_id, err = strconv.ParseInt(p.Parent, 10, 64)
-			if err != nil {
-				return c.Status(400).JSON(&fiber.Map{
-					"success": false,
-					"message": fmt.Sprintf("%v", err),
-				})
-			}
-		}
-		domain_id, err := strconv.ParseInt(p.Domain, 10, 64)
+		return directInsert(c, tx, p, routingDomain)
+	} else {
+		return findNewLeaseAndInsert(c, tx, p, routingDomain)
+	}
+}
+
+func directInsert(c *fiber.Ctx, tx *sql.Tx, p RangeRequest, routingDomain *RoutingDomain) error {
+	var err error
+	parent_id := int64(-1)
+	if p.Parent != "" {
+		parent_id, err = strconv.ParseInt(p.Parent, 10, 64)
 		if err != nil {
 			return c.Status(400).JSON(&fiber.Map{
 				"success": false,
 				"message": fmt.Sprintf("%v", err),
 			})
 		}
-		id, err := CreateRangeInDb(tx, parent_id,
-			int(domain_id),
-			p.Name,
-			p.Cidr)
-
-		if err != nil {
-			tx.Rollback()
-			return c.Status(503).JSON(&fiber.Map{
-				"success": false,
-				"message": fmt.Sprintf("Unable to create new Subnet Lease %v", err),
-			})
-		}
-
-		err = tx.Commit()
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		return c.Status(200).JSON(&fiber.Map{
-			"id":   id,
-			"cidr": p.Cidr,
+	}
+	domain_id, err := strconv.ParseInt(p.Domain, 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(&fiber.Map{
+			"success": false,
+			"message": fmt.Sprintf("%v", err),
 		})
+	}
+	id, err := CreateRangeInDb(tx, parent_id,
+		int(domain_id),
+		p.Name,
+		p.Cidr)
+
+	if err != nil {
+		tx.Rollback()
+		return c.Status(503).JSON(&fiber.Map{
+			"success": false,
+			"message": fmt.Sprintf("Unable to create new Subnet Lease %v", err),
+		})
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return c.Status(200).JSON(&fiber.Map{
+		"id":   id,
+		"cidr": p.Cidr,
+	})
+}
+
+func findNewLeaseAndInsert(c *fiber.Ctx, tx *sql.Tx, p RangeRequest, routingDomain *RoutingDomain) error {
+	var err error
+	var parent *Range
+	parent_id := int64(-1)
+	if p.Parent != "" {
+		parent_id, err = strconv.ParseInt(p.Parent, 10, 64)
+		if err != nil {
+			return c.Status(400).JSON(&fiber.Map{
+				"success": false,
+				"message": fmt.Sprintf("%v", err),
+			})
+		}
+
+		parent, err = GetRangeFromDBWithTx(tx, parent_id)
+		if err != nil {
+			tx.Rollback()
+			return c.Status(503).JSON(&fiber.Map{
+				"success": false,
+				"message": fmt.Sprintf("Unable to create new Subnet Lease  %v", err),
+			})
+		}
 	} else {
-		parent, err := GetRangeByCidrFromDB(tx, routingDomain.Id, p.Parent)
-		if err != nil {
-			tx.Rollback()
-			return c.Status(503).JSON(&fiber.Map{
-				"success": false,
-				"message": fmt.Sprintf("Unable to create new Subnet Lease  %v", err),
-			})
-		}
-		range_size := p.Range_size
-		subnet_ranges, err := GetRangesForParentFromDB(tx, int64(parent.Subnet_id))
-		if err != nil {
-			tx.Rollback()
-			return c.Status(503).JSON(&fiber.Map{
-				"success": false,
-				"message": fmt.Sprintf("Unable to create new Subnet Lease  %v", err),
-			})
-		}
-		if os.Getenv("CAI_ORG_ID") != "" {
-			// Integrating ranges from the VPC -- start
-			vpcs := strings.Split(routingDomain.Vpcs, ",")
-			for i := 0; i < len(vpcs); i++ {
-				vpc := vpcs[i]
-				ranges, err := GetRangesForNetwork(fmt.Sprintf("organizations/%s", os.Getenv("CAI_ORG_ID")), vpc)
-				if err != nil {
-					tx.Rollback()
-					return c.Status(503).JSON(&fiber.Map{
-						"success": false,
-						"message": fmt.Sprintf("error %v", err),
+		return c.Status(400).JSON(&fiber.Map{
+			"success": false,
+			"message": "Please provide the ID of a parent range",
+		})
+	}
+	range_size := p.Range_size
+	subnet_ranges, err := GetRangesForParentFromDB(tx, int64(parent.Subnet_id))
+	if err != nil {
+		tx.Rollback()
+		return c.Status(503).JSON(&fiber.Map{
+			"success": false,
+			"message": fmt.Sprintf("Unable to create new Subnet Lease  %v", err),
+		})
+	}
+	if os.Getenv("CAI_ORG_ID") != "" {
+		// Integrating ranges from the VPC -- start
+		vpcs := strings.Split(routingDomain.Vpcs, ",")
+		for i := 0; i < len(vpcs); i++ {
+			vpc := vpcs[i]
+			ranges, err := GetRangesForNetwork(fmt.Sprintf("organizations/%s", os.Getenv("CAI_ORG_ID")), vpc)
+			if err != nil {
+				tx.Rollback()
+				return c.Status(503).JSON(&fiber.Map{
+					"success": false,
+					"message": fmt.Sprintf("error %v", err),
+				})
+			}
+
+			for j := 0; j < len(ranges); j++ {
+				vpc_range := ranges[j]
+				if !ContainsRange(subnet_ranges, vpc_range.cidr) {
+					subnet_ranges = append(subnet_ranges, Range{
+						Cidr: vpc_range.cidr,
 					})
 				}
 
-				for j := 0; j < len(ranges); j++ {
-					vpc_range := ranges[j]
-					if !ContainsRange(subnet_ranges, vpc_range.cidr) {
+				for k := 0; k < len(vpc_range.secondaryRanges); k++ {
+					secondaryRange := vpc_range.secondaryRanges[k]
+					if !ContainsRange(subnet_ranges, secondaryRange.cidr) {
 						subnet_ranges = append(subnet_ranges, Range{
-							Cidr: vpc_range.cidr,
+							Cidr: secondaryRange.cidr,
 						})
-					}
-
-					for k := 0; k < len(vpc_range.secondaryRanges); k++ {
-						secondaryRange := vpc_range.secondaryRanges[k]
-						if !ContainsRange(subnet_ranges, secondaryRange.cidr) {
-							subnet_ranges = append(subnet_ranges, Range{
-								Cidr: secondaryRange.cidr,
-							})
-						}
 					}
 				}
 			}
-			// Integrating ranges from the VPC -- end
 		}
+		// Integrating ranges from the VPC -- end
+	}
 
-		subnet, subnetOnes, err := findNextSubnet(int(range_size), parent.Cidr, subnet_ranges)
-		if err != nil {
-			tx.Rollback()
-			return c.Status(503).JSON(&fiber.Map{
-				"success": false,
-				"message": fmt.Sprintf("Unable to create new Subnet Lease %v", err),
-			})
-		}
-		nextSubnet, _ := cidr.NextSubnet(subnet, int(range_size))
-		log.Printf("next subnet will be starting with %s", nextSubnet.IP.String())
-
-		id, err := CreateRangeInDb(tx, int64(parent.Subnet_id), routingDomain.Id, p.Name, fmt.Sprintf("%s/%d", subnet.IP.To4().String(), subnetOnes))
-
-		if err != nil {
-			tx.Rollback()
-			return c.Status(503).JSON(&fiber.Map{
-				"success": false,
-				"message": fmt.Sprintf("Unable to create new Subnet Lease %v", err),
-			})
-		}
-
-		err = tx.Commit()
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		return c.Status(200).JSON(&fiber.Map{
-			"id":   id,
-			"cidr": fmt.Sprintf("%s/%d", subnet.IP.To4().String(), subnetOnes),
+	subnet, subnetOnes, err := findNextSubnet(int(range_size), parent.Cidr, subnet_ranges)
+	if err != nil {
+		tx.Rollback()
+		return c.Status(503).JSON(&fiber.Map{
+			"success": false,
+			"message": fmt.Sprintf("Unable to create new Subnet Lease %v", err),
 		})
 	}
+	nextSubnet, _ := cidr.NextSubnet(subnet, int(range_size))
+	log.Printf("next subnet will be starting with %s", nextSubnet.IP.String())
+
+	id, err := CreateRangeInDb(tx, int64(parent.Subnet_id), routingDomain.Id, p.Name, fmt.Sprintf("%s/%d", subnet.IP.To4().String(), subnetOnes))
+
+	if err != nil {
+		tx.Rollback()
+		return c.Status(503).JSON(&fiber.Map{
+			"success": false,
+			"message": fmt.Sprintf("Unable to create new Subnet Lease %v", err),
+		})
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return c.Status(200).JSON(&fiber.Map{
+		"id":   id,
+		"cidr": fmt.Sprintf("%s/%d", subnet.IP.To4().String(), subnetOnes),
+	})
 }
 
 func findNextSubnet(range_size int, sourceRange string, existingRanges []Range) (*net.IPNet, int, error) {

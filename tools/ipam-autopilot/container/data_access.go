@@ -132,6 +132,32 @@ func GetRangeFromDB(id int64) (*Range, error) {
 	}, nil
 }
 
+func GetRangeFromDBWithTx(tx *sql.Tx, id int64) (*Range, error) {
+	var subnet_id int
+	var routing_domain_id int
+	tmp := pgtype.Int4{}
+	var name string
+	var cidr string
+
+	err := tx.QueryRow("SELECT subnet_id, parent_id, routing_domain_id, name, cidr FROM subnets WHERE subnet_id = ? FOR UPDATE", id).Scan(&subnet_id, &tmp, &routing_domain_id, &name, &cidr)
+
+	if err != nil {
+		return nil, err
+	}
+	parent_id := -1
+	if tmp.Status == pgtype.Present {
+		tmp.AssignTo(&parent_id)
+	}
+
+	return &Range{
+		Subnet_id:         subnet_id,
+		Parent_id:         parent_id,
+		Routing_domain_id: routing_domain_id,
+		Name:              name,
+		Cidr:              cidr,
+	}, nil
+}
+
 func GetRangeByCidrFromDB(tx *sql.Tx, routing_domain_id int, cidr_request string) (*Range, error) {
 	var subnet_id int
 	tmp := pgtype.Int4{}

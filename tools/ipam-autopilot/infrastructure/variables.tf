@@ -35,5 +35,5 @@ variable "provider_binary_folder" {
 }
 
 variable "provider_version" {
-  default = "0.2.0"
+  default = "0.3.0"
 }
