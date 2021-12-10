@@ -75,15 +75,15 @@ def bulk_image_create(project, machine_image_region, file_name='export.csv') \
     return result
 
 
-def bulk_delete_instances(file_name) -> bool:
+def bulk_delete_instances_and_disks(file_name, source_project) -> bool:
     result = True
     with open(file_name, 'r') as read_obj:
-        csv_dict_reader = DictReader(read_obj)
+        csv_dict_reader = list(DictReader(read_obj))
         count = 0
         tracker = 0
         instance_future = []
         instance_name = ''
-
+        deleted_instances = []
         # We can use a with statement to ensure threads are cleaned up promptly
         with concurrent.futures.ThreadPoolExecutor(
                 max_workers=100) as executor:
@@ -97,6 +97,7 @@ def bulk_delete_instances(file_name) -> bool:
             for future in concurrent.futures.as_completed(instance_future):
                 try:
                     instance_name = future.result()
+                    deleted_instances.append(instance_name)
                     tracker = tracker + 1
                     logging.info('%r machine deleted sucessfully',
                                  instance_name)
@@ -105,13 +106,6 @@ def bulk_delete_instances(file_name) -> bool:
                     logging.error(
                         'machine deletion generated an exception: %s', exc)
                     result = False
-    return result
-
-
-def bulk_delete_disks(file_name, source_project) -> bool:
-    result = True
-    with open(file_name, 'r') as read_obj:
-        csv_dict_reader = DictReader(read_obj)
         count = 0
         tracker = 0
         disk_future = []
@@ -124,11 +118,18 @@ def bulk_delete_disks(file_name, source_project) -> bool:
                 instance_uri = uri.Instance.from_uri(row['self_link'])
                 for i in range(9):
                     if row['disk_name_' + str(i + 1)] != '':
-                        disk_future.append(
-                            executor.submit(disk.delete, instance_uri,
-                                            row['disk_name_' + str(i + 1)],
-                                            source_project))
-                        count = count + 1
+                        if instance_uri.name in deleted_instances:
+                            disk_future.append(
+                                executor.submit(disk.delete, instance_uri,
+                                                row['disk_name_' + str(i + 1)],
+                                                source_project))
+                            count = count + 1
+                        else:
+                            logging.info(
+                                'Since instance {} was not deleted, disk {} '
+                                'is being left undeleted as well.'
+                                .format(instance_uri.name,
+                                        row['disk_name_' + str(i + 1)]))
 
             for future in concurrent.futures.as_completed(disk_future):
                 try:
@@ -630,23 +631,20 @@ def main(step, machine_image_region, source_project,
             csv_dict_reader = DictReader(read_obj)
             count = len(list(csv_dict_reader))
         response = query_yes_no('Are you sure you want to delete the (%s) '
-                                'instances present in the inventory ?' % count,
-                                default='no')
+                                'instances and disks present in the inventory '
+                                '?' % count, default='no')
         if response:
-            logging.info('Deleting all the instances present in the inventory')
-            if bulk_delete_instances(input_csv):
-                logging.info('Deleting all the disks present in the inventory')
-                if bulk_delete_disks(input_csv, source_project):
-                    logging.info('Successfully deleted all disks present in '
-                                 'the inventory')
-                else:
-                    logging.info('Deleting all disks in the inventory failed')
-                    return False
+            logging.info('Deleting all the instances and disks present in the '
+                         'inventory')
+            if bulk_delete_instances_and_disks(input_csv, source_project):
+                logging.info('Successfully deleted all instances and disks '
+                             'present in the inventory')
             else:
-                logging.info('Deleting all instances in the inventory failed')
+                logging.info('Deleting all instances and disks in the '
+                             'inventory failed')
                 return False
         else:
-            logging.info('Not deleting any instances')
+            logging.info('Not deleting any instances nor disks')
             return False
 
     elif step == 'clone_subnet':
