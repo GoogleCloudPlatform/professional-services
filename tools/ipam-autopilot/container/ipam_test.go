@@ -15,6 +15,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net"
 	"testing"
@@ -80,4 +81,16 @@ func TestRangeCreationWithExisting3(t *testing.T) {
 	_, network, _ := net.ParseCIDR("10.0.8.0/24")
 	assert.Equal(t, network, subnet)
 	assert.Equal(t, 24, subnet_ones)
+}
+
+func TestRangeCreationWithExisting4(t *testing.T) {
+	existingRanges := []Range{
+		Range{
+			Cidr: "10.128.0.0/20",
+		},
+	}
+	_, _, err := findNextSubnet(22, "10.128.0.0/20", existingRanges)
+
+	assert.NotNil(t, err)
+	assert.Equal(t, err, fmt.Errorf("no_address_range_available_in_parent"))
 }

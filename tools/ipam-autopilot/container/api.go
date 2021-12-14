@@ -257,38 +257,42 @@ func findNewLeaseAndInsert(c *fiber.Ctx, tx *sql.Tx, p RangeRequest, routingDoma
 		})
 	}
 	if os.Getenv("CAI_ORG_ID") != "" {
+		log.Printf("CAI for org %s enabled", os.Getenv("CAI_ORG_ID"))
 		// Integrating ranges from the VPC -- start
 		vpcs := strings.Split(routingDomain.Vpcs, ",")
-		for i := 0; i < len(vpcs); i++ {
-			vpc := vpcs[i]
-			ranges, err := GetRangesForNetwork(fmt.Sprintf("organizations/%s", os.Getenv("CAI_ORG_ID")), vpc)
-			if err != nil {
-				tx.Rollback()
-				return c.Status(503).JSON(&fiber.Map{
-					"success": false,
-					"message": fmt.Sprintf("error %v", err),
+		log.Printf("Looking for subnets in vpcs %v", vpcs)
+		ranges, err := GetRangesForNetwork(fmt.Sprintf("organizations/%s", os.Getenv("CAI_ORG_ID")), vpcs)
+		if err != nil {
+			tx.Rollback()
+			return c.Status(503).JSON(&fiber.Map{
+				"success": false,
+				"message": fmt.Sprintf("error %v", err),
+			})
+		}
+		log.Printf("Found %d subnets in vpcs %v", len(ranges), vpcs)
+
+		for j := 0; j < len(ranges); j++ {
+			vpc_range := ranges[j]
+			if !ContainsRange(subnet_ranges, vpc_range.cidr) {
+				log.Printf("Adding range %s from CAI", vpc_range.cidr)
+				subnet_ranges = append(subnet_ranges, Range{
+					Cidr: vpc_range.cidr,
 				})
 			}
 
-			for j := 0; j < len(ranges); j++ {
-				vpc_range := ranges[j]
-				if !ContainsRange(subnet_ranges, vpc_range.cidr) {
+			for k := 0; k < len(vpc_range.secondaryRanges); k++ {
+				secondaryRange := vpc_range.secondaryRanges[k]
+				if !ContainsRange(subnet_ranges, secondaryRange.cidr) {
+					log.Printf("Adding secondary range %s from CAI", vpc_range.cidr)
 					subnet_ranges = append(subnet_ranges, Range{
-						Cidr: vpc_range.cidr,
+						Cidr: secondaryRange.cidr,
 					})
-				}
-
-				for k := 0; k < len(vpc_range.secondaryRanges); k++ {
-					secondaryRange := vpc_range.secondaryRanges[k]
-					if !ContainsRange(subnet_ranges, secondaryRange.cidr) {
-						subnet_ranges = append(subnet_ranges, Range{
-							Cidr: secondaryRange.cidr,
-						})
-					}
 				}
 			}
 		}
 		// Integrating ranges from the VPC -- end
+	} else {
+		log.Printf("Not checking CAI, env variable with Org ID not set")
 	}
 
 	subnet, subnetOnes, err := findNextSubnet(int(range_size), parent.Cidr, subnet_ranges)
@@ -324,6 +328,11 @@ func findNewLeaseAndInsert(c *fiber.Ctx, tx *sql.Tx, p RangeRequest, routingDoma
 }
 
 func findNextSubnet(range_size int, sourceRange string, existingRanges []Range) (*net.IPNet, int, error) {
+	_, parentNet, err := net.ParseCIDR(sourceRange)
+	if err != nil {
+		return nil, -1, err
+	}
+
 	subnet, subnetOnes, err := createNewSubnetLease(sourceRange, range_size, 0)
 	if err != nil {
 		return nil, -1, err
@@ -337,6 +346,9 @@ func findNextSubnet(range_size int, sourceRange string, existingRanges []Range) 
 			break
 		} else if !lastSubnet {
 			subnet, lastSubnet = cidr.NextSubnet(subnet, int(range_size))
+			if !parentNet.Contains(subnet.IP) {
+				return nil, -1, fmt.Errorf("no_address_range_available_in_parent")
+			}
 		} else {
 			return nil, -1, err
 		}
@@ -451,20 +463,6 @@ func CreateRoutingDomain(c *fiber.Ctx) error {
 	return c.Status(200).JSON(&fiber.Map{
 		"id": id,
 	})
-}
-
-func SubnetChanged(c *fiber.Ctx) error {
-	//ctx := context.Background()
-	log.Printf("Received Subnet %v", string(c.Body()))
-	return nil
-}
-
-func RefreshSubnetsFromCai(c *fiber.Ctx) error {
-	//ctx := context.Background()
-	//log.Printf("Received Subnet %v", string(c.Body()))
-	GetRangesForNetwork(fmt.Sprintf("organizations/%s", "203384149598"), "https://www.googleapis.com/compute/v1/projects/gjx-p-shared-base-c44d/global/networks/vpc-p-shared-base-spoke")
-
-	return nil
 }
 
 func ContainsRange(array []Range, cidr string) bool {

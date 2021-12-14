@@ -37,7 +37,7 @@ type CaiRange struct {
 	secondaryRanges []CaiSecondaryRange
 }
 
-func GetRangesForNetwork(parent string, network string) ([]CaiRange, error) {
+func GetRangesForNetwork(parent string, networks []string) ([]CaiRange, error) {
 	ctx := context.Background()
 	client, err := asset.NewClient(ctx)
 	if err != nil {
@@ -62,7 +62,7 @@ func GetRangesForNetwork(parent string, network string) ([]CaiRange, error) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		if asset.Resource.Data.Fields["network"].GetStringValue() == network {
+		if containsValue(networks, asset.Resource.Data.Fields["network"].GetStringValue()) {
 			var secondaryRanges []CaiSecondaryRange = make([]CaiSecondaryRange, 0)
 			secondary := asset.Resource.Data.Fields["secondaryIpRanges"].GetListValue().AsSlice()
 			for i := 0; i < len(secondary); i++ {
@@ -92,8 +92,19 @@ func GetRangesForNetwork(parent string, network string) ([]CaiRange, error) {
 				cidr:            asset.Resource.Data.Fields["ipCidrRange"].GetStringValue(),
 				secondaryRanges: secondaryRanges,
 			})
+		} else {
+			log.Printf("Ignoring network %s", asset.Resource.Data.Fields["network"].GetStringValue())
 		}
 		asset, err = itr.Next()
 	}
 	return ranges, nil
+}
+
+func containsValue(array []string, lookup string) bool {
+	for i := 0; i < len(array); i++ {
+		if lookup == array[i] {
+			return true
+		}
+	}
+	return false
 }

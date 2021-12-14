@@ -41,6 +41,8 @@ func main() {
 	}
 	// Get a database handle.
 	db, err = sql.Open("mysql", cfg.FormatDSN())
+	db.SetMaxOpenConns(100)
+	db.SetMaxIdleConns(5)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -69,9 +71,6 @@ func main() {
 	app.Put("/domains/:id", UpdateRoutingDomain)
 	app.Post("/domains", CreateRoutingDomain)
 	app.Delete("/domains/:id", DeleteRoutingDomain)
-
-	app.Post("/cai/subnets", SubnetChanged)
-	app.Get("/cai/refresh", RefreshSubnetsFromCai)
 
 	var port int64
 	if os.Getenv("PORT") != "" {

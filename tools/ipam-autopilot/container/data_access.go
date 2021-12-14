@@ -282,7 +282,6 @@ func verifyNoOverlap(parentCidr string, subnetRanges []Range, newSubnet *net.IPN
 	for i := 0; i < len(subnetRanges); i++ {
 		subnetRange := subnetRanges[i]
 		netAddr, subnetCidr, err := net.ParseCIDR(subnetRange.Cidr)
-		log.Printf("subnet:\t%s", subnetCidr)
 		if err != nil {
 			return fmt.Errorf("can't parse CIDR %v", err)
 		}
@@ -318,20 +317,22 @@ func GetDefaultRoutingDomainFromDB(tx *sql.Tx) (*RoutingDomain, error) {
 
 func GetRoutingDomainsFromDB() ([]RoutingDomain, error) {
 	var domains []RoutingDomain
-	rows, err := db.Query("SELECT routing_domain_id, name FROM routing_domains")
+	rows, err := db.Query("SELECT routing_domain_id, name, vpcs FROM routing_domains")
 	if err != nil {
 		return nil, err
 	}
 	for rows.Next() {
 		var routing_domain_id int
 		var name string
-		err := rows.Scan(&routing_domain_id, &name)
+		var vpcs sql.NullString
+		err := rows.Scan(&routing_domain_id, &name, &vpcs)
 		if err != nil {
 			return nil, err
 		}
 		domains = append(domains, RoutingDomain{
 			Id:   routing_domain_id,
 			Name: name,
+			Vpcs: vpcs.String,
 		})
 	}
 	return domains, nil
@@ -340,8 +341,9 @@ func GetRoutingDomainsFromDB() ([]RoutingDomain, error) {
 func GetRoutingDomainFromDB(id int64) (*RoutingDomain, error) {
 	var routing_domain_id int
 	var name string
+	var vpcs sql.NullString
 
-	err := db.QueryRow("SELECT routing_domain_id, name FROM routing_domains WHERE routing_domain_id = ?", id).Scan(&routing_domain_id, &name)
+	err := db.QueryRow("SELECT routing_domain_id, name, vpcs FROM routing_domains WHERE routing_domain_id = ?", id).Scan(&routing_domain_id, &name, &vpcs)
 	if err != nil {
 		return nil, err
 	}
@@ -349,6 +351,7 @@ func GetRoutingDomainFromDB(id int64) (*RoutingDomain, error) {
 	return &RoutingDomain{
 		Id:   routing_domain_id,
 		Name: name,
+		Vpcs: vpcs.String,
 	}, nil
 }
 
