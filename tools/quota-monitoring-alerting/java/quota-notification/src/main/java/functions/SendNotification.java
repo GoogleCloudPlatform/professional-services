@@ -32,6 +32,7 @@ import com.google.cloud.logging.Logging;
 import com.google.cloud.logging.LoggingOptions;
 import com.google.cloud.logging.Payload.StringPayload;
 import com.google.cloud.logging.Severity;
+import com.google.cloud.logging.Synchronicity;
 import functions.eventpojos.PubSubMessage;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -128,6 +129,8 @@ public class SendNotification implements BackgroundFunction<PubSubMessage> {
     logger.info(text);
     LoggingOptions logging = LoggingOptions.getDefaultInstance();
     Logging log_client = logging.getService();
+    // Configure logger to write entries synchronously
+    log_client.setWriteSynchronicity(Synchronicity.SYNC);
     LogEntry entry =
         LogEntry.newBuilder(StringPayload.of(text))
             .setSeverity(Severity.INFO)
@@ -135,7 +138,6 @@ public class SendNotification implements BackgroundFunction<PubSubMessage> {
             .setResource(MonitoredResource.newBuilder("global").build())
             .build();
 
-    // Writes the log entry asynchronously
     log_client.write(Collections.singleton(entry));
   }
 }

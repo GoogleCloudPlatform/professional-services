@@ -95,7 +95,7 @@ Success! The app is now created. Please use `gcloud app deploy` to deploy your f
 ### 3.3 Create Service Account
 1. In local workstation, setup environment variables. Replace the name of the Service Account in the commands below
 ```
-DEFAULT_PROJECT_ID=$(gcloud config get-value core/project 2> /dev/null)
+export DEFAULT_PROJECT_ID=$(gcloud config get-value core/project 2> /dev/null)
 export SERVICE_ACCOUNT_ID="sa-"$DEFAULT_PROJECT_ID 
 export DISPLAY_NAME="sa-"$DEFAULT_PROJECT_ID 
 ```
@@ -254,9 +254,9 @@ gcloud iam service-accounts keys create CREDENTIALS_FILE.json \
 ```
 mkdir terraform
 cd terraform
-gsutil cp gs://quota-monitoring-solution-demo-bucket/main.tf .
-gsutil cp gs://quota-monitoring-solution-demo-bucket/variables.tf .
-gsutil cp gs://quota-monitoring-solution-demo-bucket/terraform.tfvars .
+gsutil cp gs://quota-monitoring-solution-source/v4.0/main.tf .
+gsutil cp gs://quota-monitoring-solution-source/v4.0/variables.tf .
+gsutil cp gs://quota-monitoring-solution-source/v4.0/terraform.tfvars .
 ```
 2. Verify that you have these 4 files in your local directory:
    - CREDENTIALS_FILE.json

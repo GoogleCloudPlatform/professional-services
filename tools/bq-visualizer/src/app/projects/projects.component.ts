@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 import {HttpClient, HttpHeaders} from '@angular/common/http';
-import {Component, EventEmitter, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
-import {MatSelect} from '@angular/material/select';
-// import {OAuthService} from 'angular-oauth2-oidc';
+import {Component, EventEmitter, OnDestroy, OnInit, AfterViewInit, Output, ViewChild} from '@angular/core';
 import * as _ from 'lodash';
 import {defer, EMPTY, Observable, of, Subject, Subscription} from 'rxjs';
 import {catchError, filter, takeUntil} from 'rxjs/operators';
@@ -24,7 +22,7 @@ import {catchError, filter, takeUntil} from 'rxjs/operators';
 import {BigQueryService} from '../big-query.service';
 import {GoogleAuthService} from '../google-auth.service';
 import {LogService} from '../log.service';
-import {BqProject, BqProjectListResponse} from '../rest_interfaces';
+import {BqProject, GetJobsRequest} from '../rest_interfaces';
 
 /** UI for 'download from GCP'. */
 @Component({
@@ -32,17 +30,19 @@ import {BqProject, BqProjectListResponse} from '../rest_interfaces';
   templateUrl: './projects.component.html',
   styleUrls: ['./projects.component.css']
 })
-export class ProjectsComponent implements OnInit, OnDestroy {
-  allProjects: BqProject[];  // All the projects that are available.
-  projects: BqProject[];  // The list of projects matching the current filter.
+
+export class ProjectsComponent implements OnInit, OnDestroy , AfterViewInit{
+  allProjects: BqProject[] =[];  // All the projects that are available.
+  projects: BqProject[] = [];  // The list of projects matching the current filter.
   projectFilter = '';
-  selectedProject: BqProject;
-  isLoading: boolean;
+  allUsers = false;
+  selectedProject: BqProject | null = null;
+  isLoading = false;
   private readonly destroy = new Subject<void>();
-  @ViewChild('projectSelect') projectSelect;
+  @ViewChild('projectSelect') projectSelect:any|null;
 
   // Emitted events.
-  @Output() getJobs = new EventEmitter<BqProject>();
+  @Output() getJobs = new EventEmitter<GetJobsRequest>();
   public isLoggedIn: boolean;
   constructor(
       private http: HttpClient, private oauthService: GoogleAuthService,
@@ -52,11 +52,12 @@ export class ProjectsComponent implements OnInit, OnDestroy {
         (isloggedIn: boolean) => this.register_login(isloggedIn));
   }
 
-  private register_login(isloggedIn) {
+  private register_login(isloggedIn:boolean) {
     this.isLoggedIn = isloggedIn;
   }
-  async ngOnInit() {
-    this.projectSelect.selectionChange.subscribe(event => {
+  async ngOnInit() { }
+  async ngAfterViewInit() {  
+    this.projectSelect.selectionChange.subscribe((event:any) => {
       // Store the last selected project in the local storage.
       localStorage.setItem('lastProjectId', event.value.id);
     });
@@ -137,12 +138,17 @@ export class ProjectsComponent implements OnInit, OnDestroy {
 
   listJobs(): void {
     if (this.selectedProject) {
-      this.getJobs.emit(this.selectedProject);
+      const request: GetJobsRequest = {
+        project: this.selectedProject,
+        limit: 1000,
+        allUsers: this.allUsers
+      };
+      this.getJobs.emit(request);
     }
   }
 
   public getProjectsLabel(): string {
-    if (this.oauthService.isLoggedIn) {
+    if (this.oauthService.isLoggedIn()) {
       if (this.allProjects.length > 0) {
         return 'Refresh Projects';
       } else {
