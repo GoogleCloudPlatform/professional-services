@@ -13,7 +13,7 @@
 // limitations under the License.
 
 locals {
-  apis = ["iam.googleapis.com", "run.googleapis.com", "compute.googleapis.com", "cloudasset.googleapis.com", "sql-component.googleapis.com", "cloudapis.googleapis.com", "sqladmin.googleapis.com", "secretmanager.googleapis.com",  "artifactregistry.googleapis.com"]
+  apis = ["iam.googleapis.com", "run.googleapis.com", "compute.googleapis.com", "cloudasset.googleapis.com", "sql-component.googleapis.com", "cloudapis.googleapis.com", "sqladmin.googleapis.com", "secretmanager.googleapis.com", "artifactregistry.googleapis.com"]
 }
 
 data "google_project" "project" {
@@ -31,11 +31,11 @@ resource "google_project_service" "project" {
 resource "google_artifact_registry_repository" "ipam" {
   provider = google-beta
 
-  location = var.artifact_registry_location
-  project = data.google_project.project.project_id
+  location      = var.artifact_registry_location
+  project       = data.google_project.project.project_id
   repository_id = "ipam"
-  description = "Docker repository for IPAM Autopilot"
-  format = "DOCKER"
+  description   = "Docker repository for IPAM Autopilot"
+  format        = "DOCKER"
 
   depends_on = [
     google_project_service.project
@@ -82,49 +82,49 @@ resource "google_project_iam_member" "token_creator" {
 
 resource "google_organization_iam_member" "cai_viewer" {
   org_id = var.organization_id
-  role    = "roles/cloudasset.viewer"
-  member  = "serviceAccount:${google_service_account.autopilot.email}"
+  role   = "roles/cloudasset.viewer"
+  member = "serviceAccount:${google_service_account.autopilot.email}"
 }
 
 resource "google_cloud_run_service" "default" {
   provider = google-beta
   name     = "ipam"
   location = var.region
-  project = data.google_project.project.project_id
+  project  = data.google_project.project.project_id
 
   metadata {
     annotations = {
       "run.googleapis.com/ingress" : "all" // internal-and-cloud-load-balancing
     }
   }
-  
+
   template {
     spec {
       service_account_name = google_service_account.autopilot.email
       containers {
         image = "${var.artifact_registry_location}-docker.pkg.dev/${var.project_id}/ipam/ipam:${var.container_version}"
         ports {
-          name = "http1"
+          name           = "http1"
           container_port = 8080
         }
         env {
-          name = "CAI_ORG_ID"
+          name  = "CAI_ORG_ID"
           value = var.organization_id
         }
         env {
-          name = "STORAGE_BUCKET"
+          name  = "STORAGE_BUCKET"
           value = google_storage_bucket.provider.name
         }
         env {
-          name = "DATABASE_NET"
+          name  = "DATABASE_NET"
           value = "unix"
         }
         env {
-          name = "DATABASE_NAME"
+          name  = "DATABASE_NAME"
           value = google_sql_database.database.name
         }
         env {
-          name = "DATABASE_USER"
+          name  = "DATABASE_USER"
           value = google_sql_user.user.name
         }
         env {
@@ -132,19 +132,19 @@ resource "google_cloud_run_service" "default" {
           value_from {
             secret_key_ref {
               name = google_secret_manager_secret.secret.secret_id
-              key = "latest"
+              key  = "latest"
             }
           }
         }
         env {
-          name = "DATABASE_HOST"
+          name  = "DATABASE_HOST"
           value = "/cloudsql/${google_sql_database_instance.instance.connection_name}"
         }
       }
     }
     metadata {
       annotations = {
-        "autoscaling.knative.dev/maxScale"      = "100" 
+        "autoscaling.knative.dev/maxScale"      = "100"
         "run.googleapis.com/cloudsql-instances" = google_sql_database_instance.instance.connection_name
         "run.googleapis.com/client-name"        = "ipam"
       }

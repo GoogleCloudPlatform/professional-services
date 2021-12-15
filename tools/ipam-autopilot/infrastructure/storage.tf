@@ -14,23 +14,23 @@
 
 data "archive_file" "provider_archive" {
   for_each = fileset(var.provider_binary_folder, "*")
-  type        = "zip"
-  
-  source_file = "${var.provider_binary_folder}/terraform-provider-ipam_${split("_",each.value)[1]}_${split("_",each.value)[2]}_${split("_",each.value)[3]}"
-  output_path = "${path.module}/.temp/terraform-provider-ipam_${split("_",each.value)[1]}_${split("_",each.value)[2]}_${split("_",each.value)[3]}.zip"
+  type     = "zip"
+
+  source_file = "${var.provider_binary_folder}/terraform-provider-ipam_${split("_", each.value)[1]}_${split("_", each.value)[2]}_${split("_", each.value)[3]}"
+  output_path = "${path.module}/.temp/terraform-provider-ipam_${split("_", each.value)[1]}_${split("_", each.value)[2]}_${split("_", each.value)[3]}.zip"
 }
 
 resource "local_file" "shasum" {
-    content     = templatefile("${path.module}/templates/shasum.tpl", {
-        zips: fileset("${path.module}/.temp", "*.zip")
-    })
-    filename = "${path.module}/.temp/shasums"
+  content = templatefile("${path.module}/templates/shasum.tpl", {
+    zips : fileset("${path.module}/.temp", "*.zip")
+  })
+  filename = "${path.module}/.temp/shasums"
 
-    depends_on = [
-      data.archive_file.provider_archive
-    ]
+  depends_on = [
+    data.archive_file.provider_archive
+  ]
 }
-resource "null_resource" shasums_sig {
+resource "null_resource" "shasums_sig" {
   provisioner "local-exec" {
     command = <<EOT
 gpg --export -a > ./public.key	
@@ -38,7 +38,7 @@ rm ./.temp/shasums.sig
 gpg --output ./.temp/shasums.sig  --detach-sign ./.temp/shasums
 EOT
   }
-  
+
   depends_on = [
     resource.local_file.shasum
   ]
@@ -54,8 +54,8 @@ data "local_file" "public_key" {
   ]
 }
 resource "random_string" "random" {
-  length           = 5
-  upper = false
+  length  = 5
+  upper   = false
   special = false
 }
 resource "google_storage_bucket" "provider" {
@@ -68,15 +68,15 @@ resource "google_storage_bucket" "provider" {
 
 resource "google_storage_bucket_iam_member" "zips_member" {
   bucket = google_storage_bucket.provider.name
-  role = "roles/storage.objectViewer"
+  role   = "roles/storage.objectViewer"
   member = "serviceAccount:${google_service_account.autopilot.email}"
 }
 
 resource "google_storage_bucket_object" "zips" {
   for_each = fileset("${path.module}/.temp", "*.zip")
-  name   = each.value
-  bucket = google_storage_bucket.provider.name
-  source = "${path.module}/.temp/${each.value}"
+  name     = each.value
+  bucket   = google_storage_bucket.provider.name
+  source   = "${path.module}/.temp/${each.value}"
 
   depends_on = [
     data.archive_file.provider_archive
@@ -105,23 +105,23 @@ resource "google_storage_bucket_object" "shasums_sig" {
 resource "local_file" "version_json" {
   for_each = google_storage_bucket_object.zips
   content = templatefile("${path.module}/templates/version_json.tpl", {
-      zip: each.value,
-      shasums_url: google_storage_bucket_object.shasums,
-      shasums_sig_url: google_storage_bucket_object.shasums_sig,
-      public_key: data.local_file.public_key.content
+    zip : each.value,
+    shasums_url : google_storage_bucket_object.shasums,
+    shasums_sig_url : google_storage_bucket_object.shasums_sig,
+    public_key : data.local_file.public_key.content
   })
-  filename = "${path.module}/output/ipam-autopilot/ipam/${var.provider_version}/download/${split("_", each.value.name)[2]}/${replace(split("_", each.value.name)[3],".zip","")}"
+  filename = "${path.module}/output/ipam-autopilot/ipam/${var.provider_version}/download/${split("_", each.value.name)[2]}/${replace(split("_", each.value.name)[3], ".zip", "")}"
 }
 
 resource "local_file" "versions_json" {
   content = templatefile("${path.module}/templates/versions_json.tpl", {
-      version: var.provider_version,
-      platforms: [
-        for zip in google_storage_bucket_object.zips : {
-          os = split("_", zip.name)[2]
-          arch   = replace(split("_", zip.name)[3],".zip","")
-        }
-      ]
+    version : var.provider_version,
+    platforms : [
+      for zip in google_storage_bucket_object.zips : {
+        os   = split("_", zip.name)[2]
+        arch = replace(split("_", zip.name)[3], ".zip", "")
+      }
+    ]
   })
   filename = "${path.module}/output/ipam-autopilot/ipam/versions"
 

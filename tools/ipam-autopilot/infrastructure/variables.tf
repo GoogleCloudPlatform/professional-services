@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 variable "organization_id" {
-  description = "Organization ID, required for accessing CAI"  
+  description = "Organization ID, required for accessing CAI"
 }
 
 variable "region" {
