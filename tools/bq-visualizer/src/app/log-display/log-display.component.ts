@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {PageEvent} from '@angular/material';
+import {PageEvent} from '@angular/material/paginator';
 import {Subject, Subscription} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
 
