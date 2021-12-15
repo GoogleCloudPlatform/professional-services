@@ -15,7 +15,7 @@
 terraform {
   required_providers {
     ipam = {
-      version = "0.2"
+      version = "0.3"
       source = "<cloud_run_host>/ipam-autopilot/ipam"
     }
   }
