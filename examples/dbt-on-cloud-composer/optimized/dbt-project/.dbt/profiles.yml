@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 dbt_airflow_on_gcp:
   target: local
   outputs:
@@ -36,3 +37,15 @@ dbt_airflow_on_gcp:
       location: "{{ var('bigquery_location') }}"
       priority: batch
       retries: 5
+
+    cloud-build:
+      type: bigquery
+      method: oauth
+      project: "{{ var('project_id') }}"
+      schema: dev
+      threads: 2
+      timeout_seconds: 10
+      location: "{{ var('bigquery_location') }}"
+      priority: batch
+      retries: 0
+      impersonate_service_account: "{{ var('impersonate_service_account') }}"
