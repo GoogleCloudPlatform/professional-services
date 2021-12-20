@@ -1,9 +1,11 @@
-FROM golang:1.14
+FROM golang:1.16
 
 WORKDIR /go/src/github.com/rosmo/gcs2bq
+COPY go.mod .
+COPY go.sum .
 COPY main.go .
 
-RUN go get -v ./... 
+RUN go get -v ./
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /gcs2bq .
 
 FROM google/cloud-sdk:slim
