@@ -1,0 +1,11 @@
+click
+google-api-python-client
+google-auth
+google-auth-httplib2
+google-cloud-asset
+google-cloud-kms
+google-cloud-pubsub
+google-cloud-storage
+google-cloud-bigquery
+google-cloud-billing
+table_logger
