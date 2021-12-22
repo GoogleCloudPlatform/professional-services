@@ -24,7 +24,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNormal(t *testing.T) {
+func TestPathwise(t *testing.T) {
 	doc, err := openapi3.NewLoader().LoadFromData([]byte(`openapi: 3.0.0
 info:
   title: test
@@ -87,7 +87,7 @@ components:
 	}
 	flag.Parse()
 	rules := []Rule{}
-	rules, err = GenerateNormalRules(rules, doc)
+	rules, err = GeneratePathwiseRules(rules, doc)
 	if err != nil {
 		log.Fatal(err)
 		t.FailNow()
@@ -95,11 +95,9 @@ components:
 	}
 
 	assert.Equal(t, 2, len(rules))
-	assert.Equal(t, "(request.method=='GET') && request.path.matches('/pets/([^/]*)$')", rules[0].Match.Expr.Expression)
-	assert.Equal(t, "(request.method=='GET') && request.path.matches('/users/([^/]*)$')", rules[1].Match.Expr.Expression)
 }
 
-func TestTransposed(t *testing.T) {
+func TestMethodwise(t *testing.T) {
 	doc, err := openapi3.NewLoader().LoadFromData([]byte(`openapi: 3.0.0
 info:
   title: test
@@ -162,7 +160,7 @@ components:
 	}
 	flag.Parse()
 	rules := []Rule{}
-	rules, err = GenerateTransposedRules(rules, doc)
+	rules, err = GenerateMethodwiseRules(rules, doc)
 	if err != nil {
 		log.Fatal(err)
 		t.FailNow()
@@ -171,8 +169,8 @@ components:
 
 	assert.Equal(t, 1, len(rules))
 	assert.Contains(t, rules[0].Match.Expr.Expression, "request.method=='GET'")
-	assert.Contains(t, rules[0].Match.Expr.Expression, "/users/([^/]*)$")
-	assert.Contains(t, rules[0].Match.Expr.Expression, "/pets/([^/]*)$")
+	assert.Contains(t, rules[0].Match.Expr.Expression, "/users/[^/]*$")
+	assert.Contains(t, rules[0].Match.Expr.Expression, "/pets/[^/]*$")
 }
 
 func TestCompressed(t *testing.T) {
@@ -264,8 +262,8 @@ components:
 
 	assert.Equal(t, 1, len(rules))
 	assert.Contains(t, rules[0].Match.Expr.Expression, "(request.method=='GET')")
-	assert.Contains(t, rules[0].Match.Expr.Expression, "/users/([^/]*)$")
-	assert.Contains(t, rules[0].Match.Expr.Expression, "/pets/([^/]*)$")
+	assert.Contains(t, rules[0].Match.Expr.Expression, "/users/[^/]*$")
+	assert.Contains(t, rules[0].Match.Expr.Expression, "/pets/[^/]*$")
 }
 
 func TestRegex(t *testing.T) {
@@ -282,19 +280,19 @@ func TestRegex(t *testing.T) {
 
 func TestFilterPaths(t *testing.T) {
 	paths := []string{
-		"/pet/([^/]*)$",
+		"/pet/[^/]*$",
 		"/user/login$",
-		"/user/([^/]*)$",
+		"/user/[^/]*$",
 		"/pet/findByStatus$",
 		"/pet/findByTags$",
 		"/store/inventory$",
-		"/store/order/([^/]*)$",
+		"/store/order/[^/]*$",
 		"/user/logout$",
 	}
 	filtered := FilterPaths(paths)
 	assert.Equal(t, 4, len(filtered))
-	assert.Contains(t, filtered, "/pet/([^/]*)$")
-	assert.Contains(t, filtered, "/user/([^/]*)$")
+	assert.Contains(t, filtered, "/pet/[^/]*$")
+	assert.Contains(t, filtered, "/user/[^/]*$")
 	assert.Contains(t, filtered, "/store/inventory$")
-	assert.Contains(t, filtered, "/store/order/([^/]*)$")
+	assert.Contains(t, filtered, "/store/order/[^/]*$")
 }

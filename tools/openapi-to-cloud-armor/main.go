@@ -58,13 +58,13 @@ func main() {
 		}
 	} else {
 		if *methodwise {
-			rules, err = GenerateTransposedRules(rules, doc)
+			rules, err = GenerateMethodwiseRules(rules, doc)
 			if err != nil {
-				log.Fatalf("Failed creating transposed rules: %v", err)
+				log.Fatalf("Failed creating methodwise rules: %v", err)
 				return
 			}
 		} else if *pathwise {
-			rules, err = GenerateNormalRules(rules, doc)
+			rules, err = GeneratePathwiseRules(rules, doc)
 			if err != nil {
 				log.Fatalf("Failed creating rules: %v", err)
 				return
@@ -84,7 +84,7 @@ func main() {
 	fmt.Print(string(output))
 }
 
-func GenerateNormalRules(rules []Rule, doc *openapi3.T) ([]Rule, error) {
+func GeneratePathwiseRules(rules []Rule, doc *openapi3.T) ([]Rule, error) {
 	priority := *startPriority
 	var paths = []string{}
 	for path, _ := range doc.Paths {
@@ -124,7 +124,7 @@ func GenerateNormalRules(rules []Rule, doc *openapi3.T) ([]Rule, error) {
 	return rules, nil
 }
 
-func GenerateTransposedRules(rules []Rule, doc *openapi3.T) ([]Rule, error) {
+func GenerateMethodwiseRules(rules []Rule, doc *openapi3.T) ([]Rule, error) {
 	methodToPaths := make(map[string][]string)
 	for path, v := range doc.Paths {
 		for method, _ := range v.Operations() {
@@ -227,7 +227,7 @@ func ToRegEx(input string) string {
 		log.Fatalf("Failed parsing input file: %v", err)
 		return ""
 	}
-	return fmt.Sprintf("%s$", regex.ReplaceAllString(strings.TrimSpace(input), "([^/]*)"))
+	return fmt.Sprintf("%s$", regex.ReplaceAllString(strings.TrimSpace(input), "[^/]*"))
 }
 
 func Contains(array []string, value string) bool {
