@@ -28,7 +28,7 @@ environments_regex="^(development|non-production|production|shared)$"
 
 tf_apply_diff() {
 local input=$root_dir/logs/user_resources_folder_diff.log
-input_rows=$(cat $input)
+input_rows=$(cat "$input")
   for env_path in $input_rows; do
     env="$(basename "$env_path")"
     component=$(basename "$(dirname "$env_path")")
@@ -68,7 +68,8 @@ tf_apply() {
     terraform apply -input=false -auto-approve "${tmp_plan}/${tf_component}-${tf_env}.tfplan" || exit 1
     cd "$base_dir" || exit
   else
-    echo "ERROR:  ${path} does not exist"
+    echo "ERROR:  
+    ${path} does not exist"
   fi
 }
 

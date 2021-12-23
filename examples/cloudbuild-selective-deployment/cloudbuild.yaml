@@ -37,7 +37,7 @@ steps:
   - -c
   - |
     echo "command: . build-files/delta-changes.sh $PROJECT_ID $_DELTA_TRIGGER_NAME $BUILD_ID $COMMIT_SHA $TRIGGER_NAME $_PREVIOUS_COMMIT_SHA"
-    . build-files/delta-changes.sh $PROJECT_ID $_DELTA_TRIGGER_NAME $BUILD_ID $COMMIT_SHA $TRIGGER_NAME "$_PREVIOUS_COMMIT_SHA" || exit 1
+    . build-files/delta-changes.sh "$PROJECT_ID" "$_DELTA_TRIGGER_NAME" "$BUILD_ID" "$COMMIT_SHA" "$TRIGGER_NAME" "$_PREVIOUS_COMMIT_SHA" || exit 1
 - id: 'setup'
   name: gcr.io/cloud-builders/gcloud
   entrypoint: bash
