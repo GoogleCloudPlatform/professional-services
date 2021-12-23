@@ -6,7 +6,7 @@ To run the tool simply call the following, from within the directory.
 go run main.go -input https://raw.githubusercontent.com/openapitools/openapi-generator/master/modules/openapi-generator/src/test/resources/3_0/petstore.yaml
 ```
 
-The resulting yaml can be loaded into CloudRun using 
+The resulting yaml can be loaded into Cloud Armor using 
 ```
 gcloud compute security-policies create <policy_name> --file-format yaml --file-name <filename>.yaml
 ```
