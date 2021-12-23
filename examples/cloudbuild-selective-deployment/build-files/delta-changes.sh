@@ -35,8 +35,11 @@ done
 
 # Make sure there is a logs dir and a file for logging.
 create_logs_dir() {
-local logs_dir=$1
-if [ ! -d $logs_dir ]; then mkdir $logs_dir; else rm -rf $logs_dir/**; fi
+    local logs_dir=$1
+    
+    # Create logs directory.
+    if [ -d "${logs_dir}" ]; then rm -rf "$logs_dir"; fi
+    mkdir "$logs_dir"
 }
 
 # Find trigger id from trigger name.
