@@ -1,4 +1,5 @@
-## Selective deployment
+# Selective deployment
+
 Organizing code across multiple folders within a single version control repositiroy such as github is a very common practice, and we're referring this as multi-folder repository.  
 
 **Selective deployment** approach lets you find the folders changed within your repository and only run the logic for changed folders.  
@@ -12,7 +13,7 @@ This approach genrally has following benefits:
 
 Example multi-folder repository structure
 
-```
+```txt
 └── single-repo
     ├── build-files
     │   └── compile.sh
@@ -28,7 +29,7 @@ Example multi-folder repository structure
             └── qa-env
 ```
 
-#### Note: A Mono repo is always a multi-folder repository, however vice versa is not always true. Checkout https://www.hashicorp.com/blog/terraform-mono-repo-vs-multi-repo-the-great-debate article for more information on mono vs multi repos for IaC.
+``` Note: A Mono repo is always a multi-folder repository, however vice versa is not always true. Checkout https://www.hashicorp.com/blog/terraform-mono-repo-vs-multi-repo-the-great-debate article for more information on mono vs multi repos for IaC.```
 
 
 ## Solution
@@ -37,7 +38,7 @@ This can be addressed in multiple different ways, and our approach is as below:
 
 ### Step 1: Find the commit associated with last successful build.
 
-```
+```sh
 nth_successful_commit() {
   local n=$1  # n=1 --> Last successful commit.
   local trigger_name=$2
@@ -52,27 +53,31 @@ nth_successful_commit() {
 ```
 
 ### Step 2: Find the differece between current commit and last successful commit.  
-```
+
+```sh
 previous_commit_sha=$(nth_successful_commit 1 $apply_trigger_name $project) || exit 1
 
 git diff --name-only ${previous_commit_sha} ${commit_sha} | sort -u > $logs_dir/diff.log || exit 1
 ```
 This step will give you a list of files/folders that were modified after the commit associated with last successful build.  
 
-### Step 3: Iterate over changed folders.   
-Similar to the legacy approach, one can now iterate over only the changed folders received from Step 2 in the $logs_dir/diff.log file.
+### Step 3: Iterate over changed folders.
+  
+You can now iterate over only the changed folders received from Step 2 in the $logs_dir/diff.log file.
 
 ## Implementation steps
 
 ### Pre-requisites
+
 - A cloud source repository (or any other source control repositories).
 - A cloud build configuration file with basic steps to be executed on a single folder of the repository.
 
-#### Note: We are assuming that the pipeline is built on Google cloud build. If the pipeline is built on other platforms, you might need to retrofit this solution accordingly.
+```Note: We are assuming that the pipeline is built on Google cloud build. If the pipeline is built on other platforms, you might need to retrofit this solution accordingly.```
 
 ### Setup Clooud build
 Add the right values for the below CloudBuild substitution variables in the `cloudbuild.yaml` file.  
-```
+
+```sh
   _TF_SA_EMAIL: ''
   _PREVIOUS_COMMIT_SHA: ''
   _RUN_ALL_PROJECTS: 'false'
@@ -85,9 +90,13 @@ Add the right values for the below CloudBuild substitution variables in the `clo
     - for detecting and fixing any configurations drifts, especially when manual changes are performed.
 
 ## Important points
+
 Use unshallow copy of git clone.  
 
 Cloud build in its default behaviour uses shallow a copy of the repository (i.e. only the code associated with the commit with which the current build was triggered). Shallow copy prevents us from performing git operations like git diff. However, we can use following step in the cloud build to fetch unshallow copy:
+
+```yaml
   - id: 'unshallow'
     name: gcr.io/cloud-builders/git
     args: ['fetch', '--unshallow']
+```

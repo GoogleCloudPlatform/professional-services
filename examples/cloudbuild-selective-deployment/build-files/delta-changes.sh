@@ -21,15 +21,22 @@ apply_trigger_name=$2
 build_id=$3
 commit_sha=$4
 current_trigger_name=$5
-manual_previous_commit_sha=$6
+manual_previous_commit_sha=$6 # Optional
 # Signifies that last successful build and commit associated with it can be found within given limit. Increase the value if last successful build does not exists in given limit.
 build_find_limit=400
+
+for ((i = 1; i < 6; i++ )); do
+  if [[ -z ${!i} ]]; 
+  then
+      echo "Missing required argument ${i} for delta-changes.sh"
+      exit 1
+  fi
+done
 
 # Make sure there is a logs dir and a file for logging.
 create_logs_dir() {
 local logs_dir=$1
 if [ ! -d $logs_dir ]; then mkdir $logs_dir; else rm -rf $logs_dir/**; fi
-if [ ! -d $logs_dir/_ ]; then touch $logs_dir/_; fi
 }
 
 # Find trigger id from trigger name.
@@ -42,9 +49,9 @@ get_trigger_value() {
     echo $ret_value
 }
 
-## Find the nth successful commit associated with nth successful build.
+## Find the nth successful commit associated with nth successful build. n=1 implies last/latest successful build's commit.
 nth_successful_commit() {
-  local n=$1  # n=1 -> Last successful commit.
+  local n=$1  # 
   local apply_trigger_name=$2
   local project=$3
   local apply_trigger_id=$(get_trigger_value $apply_trigger_name $project "id")
