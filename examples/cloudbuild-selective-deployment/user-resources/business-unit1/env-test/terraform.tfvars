@@ -14,4 +14,12 @@
  * limitations under the License.
  */
 
-project = ""
+project         = "UPDATEME"
+service_account = "UPDATEME"
+network         = "default"
+environment     = "test"
+name            = "test-vm-test-01"
+labels = {
+  env = "test"
+  app = "business-unit1"
+}

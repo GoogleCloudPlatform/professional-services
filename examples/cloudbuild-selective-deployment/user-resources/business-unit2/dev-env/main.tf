@@ -14,38 +14,13 @@
  * limitations under the License.
  */
 
-data "google_project" "project" {
-  project_id = var.project
-}
-
-resource "random_string" "random" {
-  length      = 3
-  min_numeric = 3
-}
-
-resource "google_compute_instance" "vm" {
-  name                      = "${var.name}-${var.environment}-${random_string.random.result}"
-  project                   = var.project
-  machine_type              = var.machine_type
-  zone                      = var.zone
-  allow_stopping_for_update = true
-  boot_disk {
-    initialize_params {
-      image = "debian-cloud/debian-9"
-    }
-  }
-
-  network_interface {
-    network = var.network
-
-    access_config {
-      // Ephemeral public IP
-    }
-  }
-
-  labels = var.labels
-  service_account {
-    email  = "${data.google_project.project.number}-compute@developer.gserviceaccount.com"
-    scopes = ["cloud-platform"]
-  }
+module "vm" {
+  source          = "../../../modules/vm"
+  name            = "${var.name}-${var.environment}"
+  project         = var.project
+  machine_type    = var.machine_type
+  zone            = var.zone
+  network         = var.network
+  labels          = var.labels
+  service_account = var.service_account
 }

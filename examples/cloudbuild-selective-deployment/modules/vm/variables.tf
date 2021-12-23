@@ -1,3 +1,4 @@
+
 /**
  * Copyright 2021 Google LLC
  *
@@ -14,19 +15,24 @@
  * limitations under the License.
  */
 
-variable "project" {
-  description = "The project id"
-  type        = string
-}
 
 variable "name" {
-  description = "name of instances"
+  description = "Base name of the GCE VM."
   type        = string
 }
 
-variable "environment" {
-  description = "environment of instances"
+variable "network" {
+  description = "GCE VM network."
   type        = string
+}
+
+variable "labels" {
+  type        = map(any)
+  description = "Labels on the vm"
+  default = {
+    env = "dev"
+    app = "business-unit1"
+  }
 }
 
 variable "machine_type" {
@@ -41,16 +47,15 @@ variable "zone" {
   default     = "us-central1-a"
 }
 
-variable "network" {
-  description = "Network to deploy to. Only one of network or subnetwork should be specified."
-}
-
-variable "labels" {
-  type        = map(any)
-  description = "Labels on the vm"
+variable "project" {
+  description = "The project id"
+  type        = string
 }
 
 variable "service_account" {
   description = "SA attached to the VM"
   type        = string
 }
+
+
+

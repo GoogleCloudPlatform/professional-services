@@ -16,5 +16,5 @@
 
 output "instances_self_link" {
   description = "Self-links for compute instance"
-  value       = google_compute_instance.vm.self_link
+  value       = module.vm.instances_self_link
 }

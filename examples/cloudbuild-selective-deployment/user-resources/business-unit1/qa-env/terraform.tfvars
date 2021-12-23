@@ -14,4 +14,13 @@
  * limitations under the License.
  */
 
-project = ""
+
+project         = "UPDATEME"
+service_account = "UPDATEME"
+network         = "default"
+environment     = "qa"
+name            = "test-vm-qa-01"
+labels = {
+  env = "qa"
+  app = "business-unit1"
+}

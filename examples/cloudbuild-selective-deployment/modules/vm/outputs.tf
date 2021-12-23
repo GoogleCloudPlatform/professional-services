@@ -1,3 +1,4 @@
+
 /**
  * Copyright 2021 Google LLC
  *
@@ -14,13 +15,7 @@
  * limitations under the License.
  */
 
-
-project         = "UPDATEME"
-service_account = "UPDATEME"
-network         = "default"
-environment     = "test"
-name            = "test-vm-test-02"
-labels = {
-  env = "test"
-  app = "business-unit2"
+output "instances_self_link" {
+  description = "Self-links for compute instance"
+  value       = google_compute_instance.vm.self_link
 }

@@ -17,19 +17,16 @@
 variable "project" {
   description = "The project id"
   type        = string
-  default     = "blackmercury"
 }
 
 variable "name" {
   description = "name of instances"
   type        = string
-  default     = "test-vm-02"
 }
 
 variable "environment" {
   description = "environment of instances"
   type        = string
-  default     = "test"
 }
 
 variable "machine_type" {
@@ -46,14 +43,14 @@ variable "zone" {
 
 variable "network" {
   description = "Network to deploy to. Only one of network or subnetwork should be specified."
-  default     = "default"
 }
 
 variable "labels" {
   type        = map(any)
   description = "Labels on the vm"
-  default = {
-    env = "test"
-    app = "business-unit1"
-  }
+}
+
+variable "service_account" {
+  description = "SA attached to the VM"
+  type        = string
 }
