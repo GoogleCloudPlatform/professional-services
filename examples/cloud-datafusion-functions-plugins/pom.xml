@@ -29,8 +29,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <cdap.plugin.version>2.3.0-SNAPSHOT</cdap.plugin.version>
     <spark.version>2.1.3</spark.version>
-    <hydrator.version>2.3.0</hydrator.version>
-    <cdap.version>6.0.0-SNAPSHOT</cdap.version>
+    <cdap.version>6.5.1</cdap.version>
     <hadoop.version>2.8.0</hadoop.version>
     <guava.version>28.0-jre</guava.version>
     <!-- properties for script build step that creates the config files for the artifacts -->
@@ -217,7 +216,7 @@
     <dependency>
       <groupId>io.cdap.cdap</groupId>
       <artifactId>hydrator-test</artifactId>
-      <version>6.1.1</version>
+      <version>${cdap.version}</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>
@@ -232,6 +231,10 @@
           <groupId>com.google.guava</groupId>
           <artifactId>guava</artifactId>
         </exclusion>
+	<exclusion>
+	  <groupId>io.cdap.cdap</groupId>
+	  <artifactId>cdap-elastic</artifactId>
+	</exclusion>
       </exclusions>
     </dependency>
 	 
