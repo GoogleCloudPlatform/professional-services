@@ -71,7 +71,7 @@ nth_successful_commit() {
 
 base_dir=$(pwd)
 logs_dir=$base_dir/logs
-user_resources_regex="user-resources\/[_a-zA-Z0-9-]*[/][_a-zA-Z0-9-]*[/]"
+user_resources_regex="user-resources\\/[_a-zA-Z0-9-]*[/][_a-zA-Z0-9-]*[/]"
 
 # Make sure there is a logs dir and a file for logging.
 create_logs_dir "$logs_dir"  || exit 1
