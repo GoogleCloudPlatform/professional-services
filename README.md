@@ -119,6 +119,7 @@ creates relationships between assets and outputs a format compatible with [graph
 * [Machine Learning Auto Exploratory Data Analysis and Feature Recommendation](tools/ml-auto-eda) - A tool to perform comprehensive auto EDA, based on which feature recommendations are made, and a summary report will be generated.
 * [Maven Archetype Dataflow](tools/maven-archetype-dataflow) - A maven archetype which bootstraps a Dataflow project with common plugins pre-configured to help maintain high code quality.
 * [Netblock Monitor](tools/netblock-monitor) - An Apps Script project that will automatically provide email notifications when changes are made to Google’s IP ranges.
+* [OpenAPI to Cloud Armor converter](tools/openapi-to-cloud-armor) - A simple tool to generate Cloud Armor policies from OpenAPI specifications.
 * [Permission Discrepancy Finder](tools/permission-discrepancy-finder) - A tool to find the principals with missing permissions on a resource within a project, subsequently, grants them the missing permissions.
 * [Pubsub2Inbox](tools/pubsub2inbox) - A generic Cloud Function-based tool that takes input from Pub/Sub messages and turns them into email, webhooks or GCS objects.
 * [Quota Manager](tools/quota-manager) - A python module to programmatically update GCP service quotas such as bigquery.googleapis.com.
