@@ -70,6 +70,7 @@ def get_jinja_escaping(template_name):
 
 def get_jinja_environment():
     env = Environment(autoescape=get_jinja_escaping)
+    env.globals = {**env.globals, **{'env': os.environ}}
     env.filters.update(get_jinja_filters())
     env.tests.update(get_jinja_tests())
     return env
