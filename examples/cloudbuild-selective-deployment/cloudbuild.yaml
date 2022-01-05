@@ -1,0 +1,67 @@
+# Copyright 2021 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+timeout: 1200s
+substitutions:
+  _TF_SA_EMAIL: ''
+  _PREVIOUS_COMMIT_SHA: ''
+  _RUN_ALL_PROJECTS: 'false'
+steps:
+- id: 'unshallow'
+  name: gcr.io/cloud-builders/git
+  args: ['fetch', '--unshallow']
+- id: 'Making build shell scripts executable'
+  name: gcr.io/$PROJECT_ID/terraform:latest
+  entrypoint: bash
+  args:
+  - -c
+  - |
+    echo "Making build shell scripts executable."
+    chmod -R 755 build-files/
+# [START Terraform]
+- id: 'selective deployment'
+  name: gcr.io/$PROJECT_ID/terraform:latest
+  entrypoint: bash
+  args: 
+  - -c
+  - |
+    echo "command: . build-files/delta-changes.sh $PROJECT_ID $_DELTA_TRIGGER_NAME $BUILD_ID $COMMIT_SHA $TRIGGER_NAME $_PREVIOUS_COMMIT_SHA"
+    . build-files/delta-changes.sh "$PROJECT_ID" "$_DELTA_TRIGGER_NAME" "$BUILD_ID" "$COMMIT_SHA" "$TRIGGER_NAME" "$_PREVIOUS_COMMIT_SHA" || exit 1
+- id: 'setup'
+  name: gcr.io/cloud-builders/gcloud
+  entrypoint: bash
+  args:
+  - -c
+  - |
+    tf_sa_email=${_TF_SA_EMAIL}
+    if [[ -n ${tf_sa_email} ]]; then
+      echo "Setting up gcloud for impersonation"
+      gcloud config set auth/impersonate_service_account $tf_sa_email
+    fi
+# [START tf-apply]
+- id: 'tf apply'
+  name: gcr.io/$PROJECT_ID/terraform:latest
+  entrypoint: bash
+  args:
+  - -c
+  - |
+      if [ "$_RUN_ALL_PROJECTS" == "true" ]  ; then
+        echo "Running ./build-files/tf-wrapper.sh apply_all on all projects ..."
+        ./build-files/tf-wrapper.sh apply_all "${BRANCH_NAME}"
+      elif [ -s logs/user_resources_folder_diff.log ]; then
+        echo "Running ./build-files/tf-wrapper.sh apply_diff on changed projects ..."
+        ./build-files/tf-wrapper.sh apply_diff "${BRANCH_NAME}"
+      else
+        echo "No difference was found in project folders or modules."
+      fi
