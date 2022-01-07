@@ -1,10 +1,5 @@
 package functions;
 
-import static functions.ScanProjectQuotas.ALIGNER;
-import static functions.ScanProjectQuotas.DURATION;
-import static functions.ScanProjectQuotas.GROUP_BY_CLAUSE_1;
-import static functions.ScanProjectQuotas.GROUP_BY_CLAUSE_2;
-import static functions.ScanProjectQuotas.REDUCER;
 import static functions.ScanProjectQuotas.THRESHOLD;
 import static functions.ScanProjectQuotas.TIME_INTERVAL_START;
 
@@ -17,19 +12,16 @@ import com.google.cloud.bigquery.InsertAllResponse;
 import com.google.cloud.bigquery.TableId;
 import com.google.cloud.monitoring.v3.MetricServiceClient;
 import com.google.cloud.monitoring.v3.MetricServiceClient.ListTimeSeriesPagedResponse;
-import com.google.monitoring.v3.Aggregation;
 import com.google.monitoring.v3.ListTimeSeriesRequest;
 import com.google.monitoring.v3.TimeInterval;
 import com.google.monitoring.v3.TimeSeries;
 import com.google.protobuf.Descriptors.FieldDescriptor;
-import com.google.protobuf.Duration;
 import com.google.protobuf.util.Timestamps;
 import functions.eventpojos.GCPResourceClient;
 import functions.eventpojos.ProjectQuota;
 import functions.eventpojos.TimeSeriesQuery;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -86,15 +78,12 @@ public class ScanProjectQuotasHelper {
    * */
   static ListTimeSeriesPagedResponse getQuota(String projectName, String filter) {
     ListTimeSeriesPagedResponse projectQuotas = null;
-    try {
-      MetricServiceClient metricServiceClient = MetricServiceClient.create();
-      Aggregation aggregation = getAggregation();
+    try (MetricServiceClient metricServiceClient = MetricServiceClient.create()) {
       TimeInterval interval = getTimeInterval();
       // Prepares the list time series request with headers
       ListTimeSeriesRequest request =
           ListTimeSeriesRequest.newBuilder()
               .setName(projectName)
-              .setAggregation(aggregation)
               .setFilter(filter)
               .setInterval(interval)
               .build();
@@ -108,30 +97,6 @@ public class ScanProjectQuotasHelper {
           e);
     }
     return projectQuotas;
-  }
-
-  /*
-   * API to build Time Series query Aggregator
-   * */
-  private static Aggregation getAggregation() {
-    List<String> groupBy =
-        new ArrayList<>() {
-          {
-            add(GROUP_BY_CLAUSE_1);
-            add(GROUP_BY_CLAUSE_2);
-          }
-        };
-
-    Duration duration = Duration.newBuilder().setSeconds(DURATION).build();
-    Aggregation aggregation =
-        Aggregation.newBuilder()
-            .setAlignmentPeriod(duration)
-            .setPerSeriesAligner(ALIGNER)
-            .addAllGroupByFields(groupBy)
-            .setCrossSeriesReducer(REDUCER)
-            .build();
-
-    return aggregation;
   }
 
   /*

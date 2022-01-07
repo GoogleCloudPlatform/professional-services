@@ -270,7 +270,7 @@ gsutil cp gs://quota-monitoring-solution-source/v4.0/terraform.tfvars .
 ```
 vi terraform.tfvars
 ```
-<img src="img/edit_terraform_variables.png" align="center" />
+<img src="img/terraform-updated.png" align="center" />
 
 ### 3.8 Run Terraform
 1. Run terraform commands
@@ -293,20 +293,20 @@ vi terraform.tfvars
 <img src="img/test_bigquery_table.png" align="center" />
 
 ### 3.10 Data Studio Dashboard setup
-1. Go to the [Data studio dashboard template](https://datastudio.google.com/s/jVC2WvaxTNU) . If this link is not accessible, reach out to pso-quota-monitoring@google.com to share the dashboard template with your email id. A data studio dashboard will look like this:
-<img src="img/ds_template.png" align="center" />
+1. Go to the [Data studio dashboard template](https://datastudio.google.com/c/u/0/reporting/41cc9be3-6a55-4f32-b904-37f63e4f2c75/page/xxWVB) . If this link is not accessible, reach out to pso-quota-monitoring@google.com to share the dashboard template with your email id. A data studio dashboard will look like this:
+<img src="img/ds-updated-quotas-dashboard.png" align="center" />
 2. Make a copy of the template from the copy icon at the top bar (top - right corner)
-<img src="img/ds_copy.png" align="center" />
+<img src="img/ds-dropdown-copy.png" align="center" />
 3. Click on ‘Copy Report’ button
-<img src="img/ds_copy_report.png" align="center" />
+<img src="img/ds-copy-report-fixed-new-data-source.png" align="center" />
 4. This will create a copy of the report and open in Edit mode. If not click on ‘Edit’ button on top right corner in copied template:
-<img src="img/ds_template_copy.png" align="center" />
+<img src="img/ds-edit-mode-updated.png" align="center" />
 5. Select any one table like below ‘Disks Total GB - Quotas’ is selected. On the right panel in ‘Data’ tab, click on icon ‘edit data source’
 <img src="img/ds_edit_data_source.png" align="center" />
 It will open the data source details
 <img src="img/ds_datasource_config_step_1.png" align="center" />
 6. In the panel, select BigQuery project, dataset id and table name
-<img src="img/ds_edit_data_source_big_query.png" align="center" />
+<img src="img/bigquery-orderby-consumption.png" align="center" />
 7. Verify the query by running in BigQuery Editor to make sure query returns right results and there are no syntax errors:
 Note: Replace BigQuery project id, dataset id and table name:
 
@@ -344,7 +344,7 @@ FROM (
     END
       ) AS usage,
   FROM
-    `quota-monitoring-project-34.quota_monitoring_dataset`.quota_monitoring_table
+    `quota-monitoring-project-49.quota_monitoring_dataset`.quota_monitoring_table
   WHERE DATE(addedAt) = CURRENT_DATE()
   GROUP BY
     1,
@@ -356,6 +356,7 @@ WHERE
   AND q_limit != 'null'
   AND usage != '0'
   AND q_limit != '0'
+ORDER BY consumption DESC
 ````
 
 8. After making sure that query is returning results, replace it in the Data studio, click on the ‘Reconnect’ button in the data source pane.
@@ -363,11 +364,11 @@ WHERE
 9. In the next window, click on the ‘Done’ button.
 <img src="img/ds_data_source_config_step_2.png" align="center" />
 10. Click on ‘Region’ tab and repeat steps from 5 - 9 above with different query:
-<img src="img/ds_region_datasource_config.png" align="center" />
+<img src="img/ds-region-middle.png" align="center" />
 And query is as follows: (Replace the project id, dataset id and table name and verify query running in Bigquery editor)
 
 ```
-SELECT region, metric FROM quota-monitoring-project-34.quota_monitoring_dataset.quota_monitoring_table
+SELECT region, metric FROM quota-monitoring-project-49.quota_monitoring_dataset.quota_monitoring_table
 WHERE m_value not like "0%"
 GROUP BY
     org_id,
@@ -382,12 +383,12 @@ GROUP BY
 
 11. Once the data source is configured, click on the ‘View’ button on the top right corner. 
 Note: make additional changes in the layout like which metrics to be displayed on Dashboard, color shades for consumption column, number of rows for each table etc in the ‘Edit’ mode.
-<img src="img/ds_switch_view_mode.png" align="center" />
+<img src="img/ds-switch-to-view-mode.png" align="center" />
 
 ### 3.11 Scheduled Reporting
 Quota monitoring reports can be scheduled from the Data Studio dashboard using ‘Schedule email delivery’. The screenshot of the Data studio dashboard will be delivered as a pdf report to the configured email Ids.
 
-<img src="img/datastudio_schedule_email.png" align="center" />
+<img src="img/ds-schedule-email-button.png" align="center" />
 
 ### 3.11 Alerting
 The alerts about services nearing their quota limits can be configured to be sent via email as well as following external services:
@@ -436,10 +437,9 @@ You should now receive alerts in your Slack channel whenever a quota reaches the
 - Out of the box solution is configured to scan quotas ‘once every day’. The SQL query to build the dashboard uses current date to filter the records. If you change the frequency, make changes to the query to rightly reflect the latest data. 
 
 ## 5. What is Next?
-1. List top ten quota metrics with highest usage on the Dashboard
-2. Graphs (Quota utilization over a period of time)
-3. Search project, folder, org, region
-4. Threshold configurable for each metric
+1. Graphs (Quota utilization over a period of time)
+2. Search project, folder, org, region
+3. Threshold configurable for each metric
 
 ## 5. Contact Us
 For any comments, issues or feedback, please reach out to us at pso-quota-monitoring@google.com
