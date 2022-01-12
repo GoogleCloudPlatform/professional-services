@@ -30,6 +30,6 @@ The pipelines configuration takes name to the group/project that should be grant
 
 The location of the configuration file can configured via the Environment Variable *GCS_CONFIG_LINK* (e.g. gs://bucketname/objectname) and *CONFIG_REFRESH_INTERVAL* interval in minutes after which the configuration is refetched (disabled with 0; default value 5)
 
-The service account running SAPRO is needed to be able to read the file from GCS (e.g. _roles/storage.objectViewer_ on the file).
+The service account running SAPRO is needed to be able to read the file from GCS (e.g. _roles/storage.objectViewer_ on the file). The service account also needs the roles _roles/iam.serviceAccountUser_ and _roles/iam.serviceAccountTokenCreator_
 
-The SA running SAPRO also needs the roles _roles/iam.serviceAccountUser_ and _roles/iam.serviceAccountTokenCreator_
+You can find an example infrastructure deployment in the infrastructure folder.
