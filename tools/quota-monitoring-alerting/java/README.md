@@ -306,7 +306,7 @@ vi terraform.tfvars
 It will open the data source details
 <img src="img/ds_datasource_config_step_1.png" align="center" />
 6. In the panel, select BigQuery project, dataset id and table name
-<img src="img/bigquery-orderby-consumption.png" align="center" />
+<img src="img/updated-bq-only-latest-row.png" align="center" />
 7. Verify the query by running in BigQuery Editor to make sure query returns right results and there are no syntax errors:
 Note: Replace BigQuery project id, dataset id and table name:
 
