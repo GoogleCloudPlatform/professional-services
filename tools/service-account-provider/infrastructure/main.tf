@@ -15,7 +15,7 @@
  */
 
 locals {
-  apis = ["iam.googleapis.com","run.googleapis.com"]
+  apis = ["iam.googleapis.com", "run.googleapis.com"]
 }
 
 data "google_project" "project" {
@@ -23,9 +23,9 @@ data "google_project" "project" {
 }
 
 resource "google_project_service" "project" {
-  for_each = toset(local.apis)
-  project = data.google_project.project.project_id
-  service = each.key
+  for_each           = toset(local.apis)
+  project            = data.google_project.project.project_id
+  service            = each.key
   disable_on_destroy = false
 }
 
@@ -39,9 +39,9 @@ resource "google_service_account" "service_account" {
 }
 
 resource "google_storage_bucket" "bucket" {
-  name          = "sapro_bucket"
-  location      = "EU"
-  force_destroy = true
+  name                        = "sapro_bucket"
+  location                    = "EU"
+  force_destroy               = true
   uniform_bucket_level_access = true
 
   depends_on = [
@@ -51,14 +51,14 @@ resource "google_storage_bucket" "bucket" {
 
 resource "google_storage_bucket_iam_member" "member" {
   bucket = google_storage_bucket.bucket.name
-  role = "roles/storage.objectViewer"
+  role   = "roles/storage.objectViewer"
   member = "serviceAccount:${google_service_account.service_account.email}"
 }
 
 resource "google_storage_bucket_object" "config_file" {
   name   = "sapro/config.yaml"
   source = "config.yaml"
-  bucket =  google_storage_bucket.bucket.name
+  bucket = google_storage_bucket.bucket.name
 }
 
 resource "google_cloud_run_service" "sapro" {
@@ -70,12 +70,12 @@ resource "google_cloud_run_service" "sapro" {
       containers {
         image = var.sapro_container_image
         env {
-          name = "GCS_CONFIG_LINK"
+          name  = "GCS_CONFIG_LINK"
           value = "${google_storage_bucket.bucket.url}${var.config_storage_path}"
         }
         env {
-          name = "CONFIG_REFRESH_INTERVAL"
-          value =  var.refresh_interval
+          name  = "CONFIG_REFRESH_INTERVAL"
+          value = var.refresh_interval
         }
       }
       service_account_name = google_service_account.service_account.email
@@ -83,18 +83,18 @@ resource "google_cloud_run_service" "sapro" {
 
     metadata {
       annotations = {
-        "autoscaling.knative.dev/maxScale"      = "1"
-        "autoscaling.knative.dev/minScale"      = "0"
+        "autoscaling.knative.dev/maxScale" = "1"
+        "autoscaling.knative.dev/minScale" = "0"
       }
     }
   }
 
-    metadata {
-      annotations = {
-        //"run.googleapis.com/ingress" = "internal"
-        "run.googleapis.com/launch-stage" = "BETA"
-      }
+  metadata {
+    annotations = {
+      //"run.googleapis.com/ingress" = "internal"
+      "run.googleapis.com/launch-stage" = "BETA"
     }
+  }
   autogenerate_revision_name = true
 
   depends_on = [

@@ -18,7 +18,7 @@ variable "project" {
 }
 
 variable "refresh_interval" {
-    default = "5"
+  default = "5"
 }
 
 variable "sapro_container_image" {
