@@ -311,52 +311,55 @@ It will open the data source details
 Note: Replace BigQuery project id, dataset id and table name:
 
 ```
-SELECT
-  project_id,
-  region,
-  metric,
-  HOUR,
-  CASE
-    WHEN q_limit='9223372036854775807' THEN 'unlimited'
-  ELSE
-  q_limit
+WITH quota AS
+( SELECT
+project_id as project_id,
+region,
+metric,
+DATE_TRUNC(addedAt, HOUR) AS HOUR,
+MAX(CASE
+WHEN mv_type='limit' THEN m_value
+ELSE
+NULL
 END
-  AS q_limit,
-  usage,
-  ROUND((SAFE_DIVIDE(CAST(t.usage AS BIGNUMERIC),
-        CAST(t.q_limit AS BIGNUMERIC))*100),2) AS consumption
+) AS q_limit,
+MAX(CASE
+WHEN mv_type='usage' THEN m_value
+ELSE
+NULL
+END
+) AS usage
+FROM
+quota-monitoring-project-34.quota_monitoring_dataset.quota_monitoring_table 
+GROUP BY
+1,
+2,
+3,
+4 ) 
+SELECT
+project_id,
+region,
+metric,
+HOUR,
+CASE
+WHEN q_limit='9223372036854775807' THEN 'unlimited'
+ELSE
+q_limit
+END
+AS q_limit,
+usage,
+ROUND((SAFE_DIVIDE(CAST(t.usage AS BIGNUMERIC),
+CAST(t.q_limit AS BIGNUMERIC))*100),2) AS consumption
 FROM (
-  SELECT
-    project_id,
-    region,
-    metric,
-    DATE_TRUNC(addedAt, HOUR) AS HOUR,
-    MAX(CASE
-        WHEN mv_type='limit' THEN m_value
-      ELSE
-      NULL
-    END
-      ) AS q_limit,
-    MAX(CASE
-        WHEN mv_type='usage' THEN m_value
-      ELSE
-      NULL
-    END
-      ) AS usage,
-  FROM
-    `quota-monitoring-project-49.quota_monitoring_dataset`.quota_monitoring_table
-  WHERE DATE(addedAt) = CURRENT_DATE()
-  GROUP BY
-    1,
-    2,
-    3,
-    4 ) t
+select *,
+RANK() OVER (PARTITION BY project_id,region,metric ORDER BY HOUR desc) AS latest_row 
+FROM quota) t
 WHERE
-  usage != 'null'
-  AND q_limit != 'null'
-  AND usage != '0'
-  AND q_limit != '0'
-ORDER BY consumption DESC
+latest_row=1
+AND usage is not null
+AND q_limit is not null
+AND usage != '0'
+AND q_limit != '0'
 ````
 
 8. After making sure that query is returning results, replace it in the Data studio, click on the ‘Reconnect’ button in the data source pane.
