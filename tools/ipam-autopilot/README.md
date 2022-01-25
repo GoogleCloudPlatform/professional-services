@@ -7,7 +7,7 @@ It connects to Cloud Asset Inventory to also retrieve already existing subnets a
 
 IPAM Autopilot consists of two parts, a [backend service](./container) that provides a Rest API and a [terraform provider](./provider).
 
-The provider uses application default credentials to authenticate against the backend.
+The provider uses application default credentials to authenticate against the backend. Alternatively you can directly provide an identity token via the `GCP_IDENTITY_TOKEN` environment variable to access the Cloud Run instance, the audience for the identity token should be the domain of the Cloud Run service.
 
 ## IPAM Autopilot Backend
 The [infrastructure](./infrastructure) folder contains a sample Terraform setup with which the IPAM Autopilot backend can be deployed to CloudRun. The required APIs are created during the deployment. The deployment instructions also provision a small CloudSQL instance as well. The container is build as part of the deployment. The `Dockerfile` containing the build instructions is at the top level, since the container needs files that are generated during the infrastructure deployment.
