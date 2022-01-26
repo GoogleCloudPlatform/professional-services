@@ -2,10 +2,10 @@
 echo "Initing Terraform"
 
 if [ -z "${lifetime}" ]; then
-    lifetime = "https%3A%2F%2Fwww%2Egoogleapis%2Ecom%2Fauth%2Fcloud%2Dplatform"
+    lifetime="https%3A%2F%2Fwww%2Egoogleapis%2Ecom%2Fauth%2Fcloud%2Dplatform"
 fi
 if [ -z "${lifetime}" ]; then
-    lifetime = "60"
+    lifetime="60"
 fi
 
 url="https://sapro.com/access?sa=${service_account}&scopes=$scopes&lifetime=${lifetime}"

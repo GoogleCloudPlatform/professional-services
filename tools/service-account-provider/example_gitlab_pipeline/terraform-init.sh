@@ -9,6 +9,7 @@ if [ -z "${lifetime}" ]; then
 fi
 
 url="https://sapro.com/access?sa=${service_account}&scopes=${SCOPE}&lifetime=${LIFETIME}"
+status_code=200
 access=$(gcloud auth print-identity-token --quiet)
 response=$(curl --silent --write-out "STATUS_CODE:%{http_code}" -H "Gitlab-Token: ${CI_JOB_JWT}" -H "Authorization: Bearer ${access}" ${url})
 token=$(echo $response | sed -e 's/.*STATUS_CODE://')

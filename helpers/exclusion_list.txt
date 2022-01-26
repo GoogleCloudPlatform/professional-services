@@ -23,6 +23,7 @@
 ./tools/ml-dataprep
 ./tools/ml-auto-eda
 ./tools/netblock-monitor
+./tools/service-account-provider/example_gitlab_pipeline
 ./tools/site-verification-group-sync
 ./tools/terraform-module-update-scanner
 ./tools/bigquery-hive-external-table-loader
