@@ -1,10 +1,10 @@
 #!/bin/sh
 echo "Initing Terraform"
 
-if [ -z "${lifetime}"]; then
+if [ -z "${lifetime}" ]; then
     lifetime = "https%3A%2F%2Fwww%2Egoogleapis%2Ecom%2Fauth%2Fcloud%2Dplatform"
 fi
-if [ -z "${lifetime}"]; then
+if [ -z "${lifetime}" ]; then
     lifetime = "60"
 fi
 
