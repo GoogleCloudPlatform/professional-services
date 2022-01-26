@@ -128,6 +128,10 @@ resource "google_cloud_run_service" "default" {
           value = google_sql_user.user.name
         }
         env {
+          name  = "DISABLE_DATABASE_MIGRATION"
+          value = var.disable_database_migration
+        }
+        env {
           name = "DATABASE_PASSWORD"
           value_from {
             secret_key_ref {
