@@ -21,7 +21,12 @@ variable "refresh_interval" {
   default = "5"
 }
 
-variable "sapro_container_image" {
+variable "artifact_registry_location" {
+  default = "europe"
+}
+
+variable "container_version" {
+  default = "1"
 }
 
 variable "region" {
@@ -31,4 +36,3 @@ variable "region" {
 variable "config_storage_path" {
   default = "/sapro"
 }
-

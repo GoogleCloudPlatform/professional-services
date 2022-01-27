@@ -15,7 +15,7 @@
  */
 
 locals {
-  apis = ["iam.googleapis.com", "run.googleapis.com"]
+  apis = ["iam.googleapis.com", "run.googleapis.com", "artifactregistry.googleapis.com"]
 }
 
 data "google_project" "project" {
@@ -61,6 +61,39 @@ resource "google_storage_bucket_object" "config_file" {
   bucket = google_storage_bucket.bucket.name
 }
 
+resource "google_artifact_registry_repository" "ipam" {
+  provider = google-beta
+
+  location      = var.artifact_registry_location
+  project       = data.google_project.project.project_id
+  repository_id = "sapro"
+  description   = "Docker repository for Service Account Provider"
+  format        = "DOCKER"
+
+  depends_on = [
+    google_project_service.project
+  ]
+}
+
+
+resource "null_resource" "docker_image" {
+  provisioner "local-exec" {
+    command = <<EOT
+gcloud auth configure-docker ${var.artifact_registry_location}-docker.pkg.dev
+docker buildx build --platform linux/amd64 --push -t ${var.artifact_registry_location}-docker.pkg.dev/${var.project_id}/sapro/sapro:${var.container_version} ../
+EOT
+  }
+
+  triggers = {
+    "variable" = var.container_version
+  }
+
+  depends_on = [
+    local_file.version_json,
+    local_file.versions_json
+  ]
+}
+
 resource "google_cloud_run_service" "sapro" {
   name     = "sapro-srv"
   location = var.region
@@ -68,7 +101,7 @@ resource "google_cloud_run_service" "sapro" {
   template {
     spec {
       containers {
-        image = var.sapro_container_image
+        image = "${var.artifact_registry_location}-docker.pkg.dev/${var.project_id}/sapro/sapro:${var.container_version}"
         env {
           name  = "GCS_CONFIG_LINK"
           value = "${google_storage_bucket.bucket.url}${var.config_storage_path}"
@@ -91,7 +124,7 @@ resource "google_cloud_run_service" "sapro" {
 
   metadata {
     annotations = {
-      //"run.googleapis.com/ingress" = "internal"
+      "run.googleapis.com/ingress" = "all"
       "run.googleapis.com/launch-stage" = "BETA"
     }
   }
