@@ -3,6 +3,9 @@ stages:
   - plan
   - deploy
 
+variables:
+  SERVICE_ACCOUNT: service-account-name-to-use@project-id.iam.gserviceaccount.com
+
 validate:
   stage: validate
   script:
