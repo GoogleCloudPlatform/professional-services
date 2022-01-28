@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 echo "Planning Terraform"
 
 if [ -z "${SCOPES}" ]; then
