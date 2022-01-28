@@ -12,7 +12,7 @@ STATUS_CODE=500
 url="https://sapro.com/access?sa=${SERVICE_ACCOUNT}&scopes=$SCOPES&lifetime=${LIFETIME}"
 access=$(gcloud auth print-identity-token --quiet)
 response=$(curl --silent --write-out "STATUS_CODE:%{http_code}" -H "Gitlab-Token: ${CI_JOB_JWT}" -H "Authorization: Bearer ${access}" "${url}")
-token=$(echo $response | sed -e 's/.*STATUS_CODE://')
+token=${response/*STATUS_CODE:/}
 
 if [ -n "$STATUS_CODE" ] && [ "$STATUS_CODE" = '200' ]; then
   echo "Succesfully retrieved token"
