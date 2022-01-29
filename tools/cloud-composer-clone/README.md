@@ -83,6 +83,7 @@ pip3 install -r requirements.txt
 ### Airflow versions and backups
 Restore operations need to happen on composer environments with exactly the same Airflow version. This limitation is mainly due to the fact that, even with minor Airflow versions there can be differences in the DB schema.
 
+## 
 ## Contributing
 See ["CONTRIBUTING.md"](docs/contributing.md) for details.
 

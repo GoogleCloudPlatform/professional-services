@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 Hello
 """
@@ -20,32 +19,27 @@ from google.cloud import storage
 
 
 def sh(command, output=subprocess.PIPE, err=subprocess.STDOUT, use_shell=False):
-  """
-  A wrapper around subprocess for executing shell commands
-  """
-  proc = subprocess.Popen(command, stdout=output, shell=use_shell)
+    """
+    A wrapper around subprocess for executing shell commands
+    """
+    with subprocess.Popen(command, stdout=output, stderr=err,
+                          shell=use_shell) as proc:
+        try:
+            command_result = proc.communicate(timeout=15)
+            return command_result
+        except subprocess.TimeoutExpired:
+            proc.kill()
 
-  try:
-    outs, errs = proc.communicate(timeout=15)
-    return outs
-  except subprocess.TimeoutExpired:
-    proc.kill()
 
 def upload_blob(bucket_name, source_file_name, destination_blob_name):
-  """
-  Uploads a local file to a given bucket
-  """
-  storage_client = storage.Client()
-  bucket = storage_client.bucket(bucket_name)
-  blob = bucket.blob(destination_blob_name)
-  blob.upload_from_filename(source_file_name)
+    """
+    Uploads a local file to a given bucket
+    """
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(destination_blob_name)
+    blob.upload_from_filename(source_file_name)
+
 
 def copy_gcs_folder(bucket_from, bucket_to):
-  sh([
-    'gsutil',
-    '-m',
-    'rsync',
-    '-r',
-    bucket_from,
-    bucket_to
-  ])
+    sh(['gsutil', '-m', 'rsync', '-r', bucket_from, bucket_to])
