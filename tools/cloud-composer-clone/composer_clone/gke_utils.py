@@ -17,18 +17,18 @@ airflow / composer GKE cluster and its components.
 """
 import re
 import base64
-import utils
+import command_utils
 from kubernetes import client, config
 import google.auth
 from googleapiclient.discovery import build
 
 
-def set_cluster(cluster, zone, project):
+def set_cluster(cluster, zone, project) -> None:
     """
     Runs the underlying gCloud command for fetching
     cluster endpoint and auth data and generates kubeconfig entry
     """
-    utils.sh([
+    command_utils.sh([
         'gcloud', 'container', 'clusters', 'get-credentials', cluster, '--zone',
         zone, '--project', project
     ])
@@ -112,4 +112,4 @@ def rotate_fernet_key(pod_name, namespace, source_fernet_key,
         'airflow rotate-fernet-key'
     ]
 
-    utils.sh(command)
+    command_utils.sh(command)

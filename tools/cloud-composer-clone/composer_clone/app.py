@@ -17,14 +17,21 @@ The user can invoke it to do the following:
   - Run a full composer environment backup and store on GCS
   - Recover/restore a composer environment from an existing backup on GCS
 """
+import sys
 from datetime import datetime
+import logging
 import gke_utils
 import db_utils
-import utils
+import command_utils
+from google.cloud import storage
+import google.cloud.logging
 from composer_env import ComposerEnv
 
+log_client = google.cloud.logging.Client()
+log_client.setup_logging()
 
-def create_backup_datetime() -> str:
+
+def _create_backup_datetime() -> str:
     """
     Generates a simple DateTime signature to use for temp
     dump file names and the destination backup folder
@@ -33,54 +40,91 @@ def create_backup_datetime() -> str:
     return now.strftime('%d-%m-%Y_%H:%M:%S')
 
 
-def backup(env_name, project_id, location, backup_bucket_name) -> None:
+def _upload_blob(bucket_name: str, source_file_name: str,
+                 destination_blob_name: str):
     """
-    Performs the backup operation with several steps:
-    -
+    Uploads a local file to a given GCS bucket path
     """
-    backup_datetime_str = create_backup_datetime()
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(destination_blob_name)
+    blob.upload_from_filename(source_file_name)
+
+
+def _copy_gcs_folder(bucket_from: str, bucket_to: str):
+    command_utils.sh(['gsutil', '-m', 'rsync', '-r', bucket_from, bucket_to])
+
+def _check_cli_depdendencies():
+    missing_cmd = command_utils.check_commands([
+        'kubectl',
+        'gsutil',
+        'gcloud',
+        'psql',
+        'pg_dump'
+    ])
+
+    if len(missing_cmd) > 0:
+        msg = f'Backup failed {",".join(missing_cmd)} are missing.'
+        logging.error(msg)
+        sys.exit(msg)
+
+def backup(env_name: str, project_id: str, location: str,
+           backup_bucket_name: str) -> None:
+    """
+    Performs the backup operation
+    """
+    _check_cli_depdendencies()
+
+    backup_datetime_str = _create_backup_datetime()
     gke_cluster = gke_utils.get_gke_cluster(env_name, project_id, location)
 
     gke_utils.set_cluster(gke_cluster['c'], gke_cluster['z'], gke_cluster['p'])
 
     env = ComposerEnv.from_current_context()
 
-    print('Downloading SQL dump...')
+    logging.info('Downloading SQL dump...')
     dump_path = db_utils.extract_db_dump(
         env.worker_pod_vars['SQL_USER'], env.worker_pod_vars['SQL_PASSWORD'],
         env.sql_proxy_pod_ip, '3306', env.worker_pod_vars['SQL_DATABASE'],
         f'composer-db-dump-{backup_datetime_str}.sql')
 
-    print('Building sequence file...')
+    logging.info('Building sequence file...')
     sequence_file_path = db_utils.build_sequence_file(
         env.worker_pod_vars['SQL_USER'], env.worker_pod_vars['SQL_PASSWORD'],
         env.sql_proxy_pod_ip, '3306', env.worker_pod_vars['SQL_DATABASE'],
         f'composer-db-sequence-{backup_datetime_str}.sql')
 
-    print('Uploading files...')
-    utils.upload_blob(backup_bucket_name, dump_path,
-                      f'{env_name}_{backup_datetime_str}/composer-db-dump.sql')
+    logging.info('Uploading files...')
+    logging.info('Airflow DB sql dump')
+    _upload_blob(backup_bucket_name, dump_path,
+                 f'{env_name}_{backup_datetime_str}/composer-db-dump.sql')
 
-    utils.upload_blob(
-        backup_bucket_name, sequence_file_path,
-        f'{env_name}_{backup_datetime_str}/composer-db-sequence.sql')
+    logging.info('Airflow sequence sql')
+    _upload_blob(backup_bucket_name, sequence_file_path,
+                 f'{env_name}_{backup_datetime_str}/composer-db-sequence.sql')
 
-    utils.copy_gcs_folder(
+    logging.info('Copying dag folder')
+    _copy_gcs_folder(
         env.get_dag_folder_path(),
         f'gs://{backup_bucket_name}/{env_name}_{backup_datetime_str}/dags/')
 
-    utils.copy_gcs_folder(
+    logging.info('Copying plugins folder')
+    _copy_gcs_folder(
         env.get_plugins_folder_path(),
         f'gs://{backup_bucket_name}/{env_name}_{backup_datetime_str}/plugins/')
 
+    logging.info('Uploading composer env pickle')
     env.save_to_gcs(backup_bucket_name,
                     f'{env_name}_{backup_datetime_str}/composer_env.pickle')
 
 
-def restore(env_name, project_id, location, bucket, folder):
+def restore(env_name: str, project_id: str, location: str, bucket: str,
+            folder: str) -> None:
     """
-    Entrypoint for performing a restore operation
+    Performs a restore operation based on a previous backup
     """
+    _check_cli_depdendencies()
+
     gke_cluster = gke_utils.get_gke_cluster(env_name, project_id, location)
     gke_utils.set_cluster(gke_cluster['c'], gke_cluster['z'], gke_cluster['p'])
 
@@ -88,18 +132,21 @@ def restore(env_name, project_id, location, bucket, folder):
     source_composer_env = ComposerEnv.from_gcs(bucket,
                                                f'{folder}/composer_env.pickle')
 
-    print('Copying GCS DAG folder...')
-    utils.copy_gcs_folder(source_composer_env.get_dag_folder_path(),
-                          destination_env.get_dag_folder_path())
+    logging.info('Importing GCS dag and plugin folders')
+    _copy_gcs_folder(source_composer_env.get_dag_folder_path(),
+                     destination_env.get_dag_folder_path())
 
-    print('Importing backup DB...')
+    _copy_gcs_folder(source_composer_env.get_plugins_folder_path(),
+                     destination_env.get_plugins_folder_path())
+
+    logging.info('Importing backup DB')
     db_utils.import_db(destination_env.worker_pod_vars['SQL_USER'],
                        destination_env.worker_pod_vars['SQL_PASSWORD'],
                        destination_env.sql_proxy_pod_ip, '3306',
                        destination_env.worker_pod_vars['SQL_DATABASE'],
                        f'gs://{bucket}/{folder}/composer-db-dump.sql')
 
-    print('Applying DB sequence')
+    logging.info('Importing DB sequence')
     db_utils.import_db(destination_env.worker_pod_vars['SQL_USER'],
                        destination_env.worker_pod_vars['SQL_PASSWORD'],
                        destination_env.sql_proxy_pod_ip, '3306',
@@ -108,6 +155,7 @@ def restore(env_name, project_id, location, bucket, folder):
 
     gke_utils.create_client()
 
+    logging.info('Rotating fernet key on target airflow worker')
     gke_utils.rotate_fernet_key(
         destination_env.worker_pod['pod_name'], destination_env.namespace,
         source_composer_env.worker_pod_vars['AIRFLOW__CORE__FERNET__KEY'],

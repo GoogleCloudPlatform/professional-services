@@ -16,20 +16,27 @@ Module implements a set of utility functions for interacting with the
 airflow postgres database mainly for dump and import operations.
 """
 from postgres import Database
-import utils
+import command_utils
 
 
-def extract_db_dump(username, password, host, port, database, dump_file_name):
+def extract_db_dump(username: str, password: str, host: str, port: str,
+                    database: str, dump_file_name: str) -> str:
+    """
+    Applies a pg_dump command and saves it to /tmp, returns back a string
+    with the full path e.g. /tmp/composer-db-dump-10-10-2020:10:30:00.sql
+    """
     connection = f'postgresql://{username}:{password}@{host}:{port}/{database}'
     command = [
         'pg_dump', '--clean', f'{connection}', '-f', f'/tmp/{dump_file_name}'
     ]
-    utils.sh(command)
+    command_utils.sh(command)
     return f'/tmp/{dump_file_name}'
 
 
 def build_sequence_file(username, password, host, port, database,
                         sequence_file_name):
+    """Applies a pg_dump command and saves it to /tmp, returns back a string
+    with the full path e.g. /tmp/composer-db-dump-10-10-2020:10:30:00.sql"""
     db = Database(host, database, username, password, port)
 
     table_sequences = db.execute_query("""
@@ -63,11 +70,11 @@ def build_sequence_file(username, password, host, port, database,
 
 
 def import_db(username, password, host, port, database, gcs_sql_file_path):
-    utils.sh(['gsutil', 'cp', gcs_sql_file_path, '/tmp/'])
+    command_utils.sh(['gsutil', 'cp', gcs_sql_file_path, '/tmp/'])
 
     split_path = gcs_sql_file_path.split('/')
 
-    return utils.sh([
+    return command_utils.sh([
         'psql', '-d',
         f'postgresql://{username}:{password}@{host}:{port}/{database}', '-f',
         f'/tmp/{split_path[-1]}'

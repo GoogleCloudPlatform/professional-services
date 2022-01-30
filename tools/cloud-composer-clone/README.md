@@ -42,7 +42,12 @@ python src restore \
            --source_folder="source-composer-backup-path"
 ```
 #### Steps performed
-- 
+- Lookup the GKE cluster related to the target composer environment to import into and update kubeconfig with the approproiate credentials
+- Extract the backup environment details from GCS bucket
+- Import GCS dag and plugins folders to the target composer environment GCS
+- Apply an import on the target postgres DB by importing the backup sql dump
+- Apply an import on the postgres sequence file on the target
+- Rotate the fernet key of the target environment against the backup fernet key
 
 ## Install
 ### Prerequisites
@@ -83,7 +88,6 @@ pip3 install -r requirements.txt
 ### Airflow versions and backups
 Restore operations need to happen on composer environments with exactly the same Airflow version. This limitation is mainly due to the fact that, even with minor Airflow versions there can be differences in the DB schema.
 
-## 
 ## Contributing
 See ["CONTRIBUTING.md"](docs/contributing.md) for details.
 
