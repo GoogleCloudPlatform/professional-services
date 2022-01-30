@@ -1,9 +1,7 @@
 # Composer clone
-A utility enables you to automate backup and restore operations on cloud composer environments running on Google Cloud Platform.
+A command line utility that enables you to automate backup and restore operations on cloud composer environments running on Google Cloud Platform. The tool performs two main operations: Backup and recovery on a given composer environment following several steps, as summarized in the next section.
 
 ## How it works
-The tool performs two main operations: Backup and recovery on a given composer environment following several steps, as summarized below:
-
 ### Backup
 #### Usage
 ```
@@ -85,14 +83,14 @@ python3 -m pip install --upgrade setuptools
 pip3 install -r requirements.txt
 ```
 ## Usage
+### Airflow DAG runs
+Before applying a backup or a restore on a given Airflow environment, please make sure all DAGs are turned off and not running or scheduled to run while the backup operation is taking place.
+
 ### Airflow versions and backups
 Restore operations need to happen on composer environments with exactly the same Airflow version. This limitation is mainly due to the fact that, even with minor Airflow versions there can be differences in the DB schema.
 
-## Contributing
-See ["CONTRIBUTING.md"](docs/contributing.md) for details.
-
 ## License
-Apache 2.0; see ["LICENSE"](LICENSE) for details.
+Apache 2.0
 
 ## Disclaimer
 This project is not an official Google project. It is not supported by
