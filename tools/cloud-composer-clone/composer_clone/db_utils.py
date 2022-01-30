@@ -33,10 +33,14 @@ def extract_db_dump(username: str, password: str, host: str, port: str,
     return f'/tmp/{dump_file_name}'
 
 
-def build_sequence_file(username, password, host, port, database,
-                        sequence_file_name):
-    """Applies a pg_dump command and saves it to /tmp, returns back a string
-    with the full path e.g. /tmp/composer-db-dump-10-10-2020:10:30:00.sql"""
+def build_sequence_file(username: str, password: str, host: str, port: str,
+                        database: str, sequence_file_name: str):
+    """
+    Queries the Airflow postgres DB information_schema to extract serial
+    sequences. Generates setval statements to update all serial sequences
+    based on the max value of the associated field. Writes statements to
+    a sql file in /tmp and return the path.
+    """
     db = Database(host, database, username, password, port)
 
     table_sequences = db.execute_query("""
@@ -69,7 +73,11 @@ def build_sequence_file(username, password, host, port, database,
     return output_write_path
 
 
-def import_db(username, password, host, port, database, gcs_sql_file_path):
+def import_db(username: str, password: str, host: str, port: str, database: str,
+              gcs_sql_file_path: str) -> None:
+    """
+    Extract a SQL filefrom a GCS path and imports it into postgres
+    """
     command_utils.sh(['gsutil', 'cp', gcs_sql_file_path, '/tmp/'])
 
     split_path = gcs_sql_file_path.split('/')

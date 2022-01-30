@@ -49,7 +49,8 @@ def gke(namespace: str, pod_name: str, cmd: list) -> str:
         return sh(kube_command.extend(cmd))
     raise ValueError('kubectl command not found')
 
-def check_commands(commands:list) -> list:
+
+def check_commands(commands: list) -> list:
     """
     Checks if all commands in the list exist in the system / environment
     returns a list of all missing commands

@@ -18,7 +18,7 @@ import argparse
 import app
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(
         description='Cloud composer backup and restore utility')
     subparsers = parser.add_subparsers(dest='command')

@@ -25,10 +25,10 @@ class Database(object):
     """
 
     def __init__(self,
-                 host,
-                 database,
-                 user,
-                 password,
+                 host:str,
+                 database:str,
+                 user:str,
+                 password:str,
                  port=5432,
                  min_connection=1,
                  max_connection=20):

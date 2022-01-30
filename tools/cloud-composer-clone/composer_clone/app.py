@@ -51,22 +51,19 @@ def _upload_blob(bucket_name: str, source_file_name: str,
     blob.upload_from_filename(source_file_name)
 
 
-def _copy_gcs_folder(bucket_from: str, bucket_to: str):
+def _copy_gcs_folder(bucket_from: str, bucket_to: str) -> None:
     command_utils.sh(['gsutil', '-m', 'rsync', '-r', bucket_from, bucket_to])
 
-def _check_cli_depdendencies():
-    missing_cmd = command_utils.check_commands([
-        'kubectl',
-        'gsutil',
-        'gcloud',
-        'psql',
-        'pg_dump'
-    ])
+
+def _check_cli_depdendencies() -> None:
+    missing_cmd = command_utils.check_commands(
+        ['kubectl', 'gsutil', 'gcloud', 'psql', 'pg_dump'])
 
     if len(missing_cmd) > 0:
         msg = f'Backup failed {",".join(missing_cmd)} are missing.'
         logging.error(msg)
         sys.exit(msg)
+
 
 def backup(env_name: str, project_id: str, location: str,
            backup_bucket_name: str) -> None:

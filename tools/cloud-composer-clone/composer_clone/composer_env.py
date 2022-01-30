@@ -14,6 +14,7 @@
 """
 Module defining the ComposerEnv class.
 """
+from __future__ import annotations
 import pickle
 import gke_utils
 from google.cloud import storage
@@ -33,7 +34,7 @@ class ComposerEnv(object):
         self.sql_proxy_pod_ip = sql_proxy_pod_ip
 
     @classmethod
-    def from_current_context(cls):
+    def from_current_context(cls) -> ComposerEnv:
         """
         Initializes a new environment object based on the GKE instance in
         the current kubectl context
@@ -63,7 +64,7 @@ class ComposerEnv(object):
         return composer_env_instance
 
     @classmethod
-    def from_gcs(cls, gcs_bucket: str, gcs_file_path: str):
+    def from_gcs(cls, gcs_bucket: str, gcs_file_path: str) -> ComposerEnv:
         """
         Initializes a new environment object based on a saved pickle
         available on GCS
