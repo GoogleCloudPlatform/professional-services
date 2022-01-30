@@ -27,8 +27,16 @@ from google.cloud import storage
 import google.cloud.logging
 from composer_env import ComposerEnv
 
+# Setup GCP Cloud logging
 log_client = google.cloud.logging.Client()
 log_client.setup_logging()
+
+# Setup a handler for printing INFO logs to the console
+console = logging.StreamHandler()
+console.setLevel(logging.INFO)
+formatter = logging.Formatter('%(levelname)-8s %(message)s')
+console.setFormatter(formatter)
+logging.getLogger('').addHandler(console)
 
 
 def _create_backup_datetime() -> str:
@@ -52,7 +60,7 @@ def _upload_blob(bucket_name: str, source_file_name: str,
 
 
 def _copy_gcs_folder(bucket_from: str, bucket_to: str) -> None:
-    command_utils.sh(['gsutil', '-m', 'rsync', '-r', bucket_from, bucket_to])
+    command_utils.sh(['gsutill', '-m', 'rsync', '-r', bucket_from, bucket_to])
 
 
 def _check_cli_depdendencies() -> None:
