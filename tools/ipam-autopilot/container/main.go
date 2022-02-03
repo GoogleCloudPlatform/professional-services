@@ -47,9 +47,11 @@ func main() {
 		log.Fatal(err)
 	}
 	defer db.Close()
-	err = MigrateDatabase(os.Getenv("DATABASE_NAME"), db)
-	if err != nil {
-		log.Fatal("Unable to initalize database")
+	if os.Getenv("DISABLE_DATABASE_MIGRATION") != "TRUE" {
+		err = MigrateDatabase(os.Getenv("DATABASE_NAME"), db)
+		if err != nil {
+			log.Fatal("Unable to initalize database")
+		}
 	}
 
 	app := fiber.New()
