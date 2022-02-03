@@ -29,7 +29,7 @@ from google.oauth2.credentials import Credentials
 from google.cloud import storage
 from python_http_client import exceptions
 from msal import ConfidentialClientApplication
-import httplib2
+import requests
 import json
 
 
@@ -341,7 +341,7 @@ class MailOutput(Output):
 
         content = mail['text_body']
         contentType = 'text'
-        if mail['html_body'] != '':
+        if 'html_body' in mail and mail['html_body'] != '':
           content = mail['html_body']
           contentType = 'html'
 
@@ -362,17 +362,15 @@ class MailOutput(Output):
         }
         messageJSON = json.dumps(message, default=lambda o: o.__dict__)
         messageJSON = messageJSON.replace('\\\\n','\\n')
-        http = httplib2.Http()
         self.logger.debug('Sending email through MS Graph API.')
-        response, content = http.request(
-            url,
-            "POST",
+        response = requests.post(url,
             headers=headers,
-            body=messageJSON)
-        if int(response['status']) >= 200 and int(response['status']) <= 299:
+            data=messageJSON
+        )
+        if response.status_code >= 200 and response.status_code <= 299:
             return True
         self.logger.error('Failed to send via MS Graph API.',
-                              extra={'status_code': response['status'], 'response': content})
+                              extra={'status_code': response.status_code, 'response': response.text})
         return False
 
     def embed_images(self, config):

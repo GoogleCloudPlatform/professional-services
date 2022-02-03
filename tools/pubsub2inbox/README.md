@@ -79,8 +79,8 @@ pull information from GCP:
 
 Available output processors are:
 
-  - [mail.py](output/mail.py): can send HTML and/or text emails via SMTP gateways 
-    or SendGrid.
+  - [mail.py](output/mail.py): can send HTML and/or text emails via SMTP gateways,
+    SendGrid or MS Graph API (Graph API implementation lacks attachment support)
   - [gcs.py](output/gcs.py): can create objects on GCS from any inputs.
   - [webhook.py](output/webhook.py): can send arbitrary HTTP requests, optionally
     with added OAuth2 bearer token from GCP.
