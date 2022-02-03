@@ -8,8 +8,6 @@ import static functions.ScanProjectQuotasHelper.loadBigQueryTable;
 import com.google.cloud.functions.BackgroundFunction;
 import com.google.cloud.functions.Context;
 import com.google.cloud.monitoring.v3.MetricServiceClient.ListTimeSeriesPagedResponse;
-import com.google.monitoring.v3.Aggregation.Aligner;
-import com.google.monitoring.v3.Aggregation.Reducer;
 import com.google.monitoring.v3.ProjectName;
 import functions.eventpojos.GCPProject;
 import functions.eventpojos.GCPResourceClient;
@@ -30,14 +28,8 @@ public class ScanProjectQuotas implements BackgroundFunction<PubSubMessage> {
   public static final String BIG_QUERY_TABLE = System.getenv("BIG_QUERY_TABLE");
 
   // ==== Time Series Filters ====
-  // Last 7 days
-  public static final Integer DURATION = 7 * 24 * 60 * 60;
-  public static final Aligner ALIGNER = Aligner.ALIGN_MAX;
-  public static final Reducer REDUCER = Reducer.REDUCE_MAX;
-  // Last 7 days
-  public static final Integer TIME_INTERVAL_START = 7 * 24 * 60 * 60 * 1000;
-  public static final String GROUP_BY_CLAUSE_1 = "metric.quota_metric";
-  public static final String GROUP_BY_CLAUSE_2 = "resource.location";
+  // Last 1 day
+  public static final Integer TIME_INTERVAL_START = 24 * 60 * 60 * 1000;
 
   private static final Logger logger = Logger.getLogger(ScanProjectQuotas.class.getName());
 
