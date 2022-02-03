@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 
 	"github.com/GoogleCloudPlatform/professional-services/terraform-provider-ipam-autopilot/ipam/config"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -212,6 +213,10 @@ func resourceDelete(d *schema.ResourceData, meta interface{}) error {
 }
 
 func getIdentityToken() (string, error) {
+	if os.Getenv("GCP_IDENTITY_TOKEN") != "" {
+		return os.Getenv("GCP_IDENTITY_TOKEN"), nil
+	}
+
 	ctx := context.Background()
 	audience := "http://ipam-autopilot.com"
 	ts, err := idtoken.NewTokenSource(ctx, audience)
