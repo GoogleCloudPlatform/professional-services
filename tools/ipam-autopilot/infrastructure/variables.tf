@@ -37,3 +37,7 @@ variable "provider_binary_folder" {
 variable "provider_version" {
   default = "0.3.0"
 }
+
+variable "disable_database_migration" {
+  default = "FALSE"
+}
