@@ -79,8 +79,8 @@ pull information from GCP:
 
 Available output processors are:
 
-  - [mail.py](output/mail.py): can send HTML and/or text emails via SMTP gateways 
-    or SendGrid.
+  - [mail.py](output/mail.py): can send HTML and/or text emails via SMTP gateways,
+    SendGrid or MS Graph API (Graph API implementation lacks attachment support)
   - [gcs.py](output/gcs.py): can create objects on GCS from any inputs.
   - [webhook.py](output/webhook.py): can send arbitrary HTTP requests, optionally
     with added OAuth2 bearer token from GCP.
@@ -137,6 +137,7 @@ parameters in when using as a module:
   - `config_file` (string, optional): function configuration YAML file location (defaults to `config.yaml`)
   - `service_account` (string, optional): service account name for the function (defaults to `function_name`)
   - `bucket_name` (string, optional): bucket where to host the Cloud Function archive (defaults to `cf-pubsub2inbox`)
+  - `bucket_location` (string, optional): location of the bucket for Cloud Function archive (defaults to `EU`)
   - `helper_bucket_name` (string, optional): specify an additional Cloud Storage bucket where the service account is granted `storage.objectAdmin` on
   - `function_timeout` (number, optional): a timeout for the Cloud Function (defaults to `240` seconds)
 
@@ -152,7 +153,7 @@ Let's define some variables first:
 export PROJECT_ID=your-project # Project ID where function will be deployed
 export REGION=europe-west1 # Where to deploy the functions
 export SECRET_ID=pubsub2inbox # Secret Manager secret name
-export SA_NAME=pubsub2inbox # Service account name
+export SERVICE_ACCOUNT=pubsub2inbox # Service account name
 export SECRET_URL="projects/$PROJECT_ID/secrets/$SECRET_ID/versions/latest"
 export FUNCTION_NAME="pubsub2inbox"
 export PUBSUB_TOPIC="billing-alerts" # projects/$PROJECT_ID/topics/billing-alerts
