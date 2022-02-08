@@ -28,6 +28,9 @@ from sendgrid.helpers.mail import Attachment
 from google.oauth2.credentials import Credentials
 from google.cloud import storage
 from python_http_client import exceptions
+from msal import ConfidentialClientApplication
+import requests
+import json
 
 
 class InvalidSchemeException(Exception):
@@ -47,6 +50,10 @@ class GroupNotFoundException(Exception):
 
 
 class AllTransportsFailedException(Exception):
+    pass
+
+
+class OAuthTokenFetchException(Exception):
     pass
 
 
@@ -70,6 +77,14 @@ class MailOutput(Output):
                 extra={'url': url})
             return None, None
         return os.path.basename(blob.name), blob_string
+
+    def _fetch_ms_access_token(self, client_id, client_secret, tenant_id):
+        authority = 'https://login.microsoftonline.com/%s' % urllib.parse.quote_plus(tenant_id)
+        app = ConfidentialClientApplication(client_id, client_credential=client_secret, authority=authority)
+        result = app.acquire_token_for_client(['https://graph.microsoft.com/.default'])
+        if not 'access_token' in result:
+            raise OAuthTokenFetchException(result.get('error_description'))
+        return result['access_token']
 
     def expand_recipients(self, mail, config):
         """Expands group recipients using the Directory API"""
@@ -302,6 +317,62 @@ class MailOutput(Output):
             return True
         return False
 
+    def send_via_msgraphapi(self, transport, mail, embedded_images, config):
+        if 'client_id' not in transport:
+            raise NotConfiguredException(
+                'No client_id for MS Graph API configured!')
+        if 'client_secret' not in transport:
+            raise NotConfiguredException(
+                'No client_secret for MS Graph API configured!')
+        if 'tenant_id' not in transport:
+            raise NotConfiguredException(
+                'No tenant_id for MS Graph API configured!')
+
+        token = self._fetch_ms_access_token(transport['client_id'], transport['client_secret'], transport['tenant_id'])
+        url = 'https://graph.microsoft.com/v1.0/users/%s/sendMail' % urllib.parse.quote_plus(mail['mail_from'])
+        recipients = []
+        for addr in mail['mail_to'].split(','):
+            recipient = {
+                "emailAddress": {
+                    "address": addr.strip()
+                }
+            }
+            recipients.append(recipient)
+
+        content = mail['text_body']
+        contentType = 'text'
+        if 'html_body' in mail and mail['html_body'] != '':
+          content = mail['html_body']
+          contentType = 'html'
+
+        message = {
+            'message': {
+                'subject': mail['mail_subject'],
+                'body': {
+                    'contentType': contentType,
+                    'content': content
+                },
+                'toRecipients': recipients
+            }
+        }
+        headers = {
+            'User-agent': self._get_user_agent(),
+            'Content-type': 'application/json',
+            'Authorization': 'Bearer %s' % token
+        }
+        messageJSON = json.dumps(message, default=lambda o: o.__dict__)
+        messageJSON = messageJSON.replace('\\\\n','\\n')
+        self.logger.debug('Sending email through MS Graph API.')
+        response = requests.post(url,
+            headers=headers,
+            data=messageJSON
+        )
+        if response.status_code >= 200 and response.status_code <= 299:
+            return True
+        self.logger.error('Failed to send via MS Graph API.',
+                              extra={'status_code': response.status_code, 'response': response.text})
+        return False
+
     def embed_images(self, config):
         embedded_images = {}
         for image in config['body']['images']:
@@ -404,6 +475,11 @@ class MailOutput(Output):
                         break
                 elif transport['type'] == 'sendgrid':
                     sent_successfully = self.send_via_sendgrid(
+                        transport, mail, embedded_images, self.output_config)
+                    if sent_successfully:
+                        break
+                elif transport['type'] == 'msgraphapi':
+                    sent_successfully = self.send_via_msgraphapi(
                         transport, mail, embedded_images, self.output_config)
                     if sent_successfully:
                         break

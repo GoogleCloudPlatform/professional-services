@@ -72,6 +72,13 @@ variable "bucket_name" {
   default = "cf-pubsub2inbox"
 }
 
+variable "bucket_location" {
+  type        = string
+  description = "Location of a bucket for storing the Cloud Function"
+
+  default = "EU"
+}
+
 variable "helper_bucket_name" {
   type        = string
   description = "Helper bucket name for granting IAM permission (storage.objectAdmin)"
