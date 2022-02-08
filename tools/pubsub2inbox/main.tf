@@ -36,6 +36,10 @@ resource "google_secret_manager_secret" "config-secret" {
   replication {
     automatic = true
   }
+
+  depends_on = [
+    google_project_service.secret-manager-api
+  ]
 }
 
 # Secret version for the function config
@@ -109,6 +113,13 @@ resource "google_project_service" "service-account-apis" {
   disable_on_destroy = false
 }
 
+# Activate the Secrets Manager API
+resource "google_project_service" "secret-manager-api" {
+  project  = var.project_id
+  service  = "secretmanager.googleapis.com"
+  disable_on_destroy = false
+}
+
 # Add necessary project permissions to the service account in the project
 resource "google_project_iam_member" "service-account-project" {
   for_each = toset(concat(["roles/serviceusage.serviceUsageConsumer"], local.project_permissions))
@@ -154,6 +165,7 @@ resource "random_id" "bucket-suffix" {
 # Bucket for storing the function archive
 resource "google_storage_bucket" "function-bucket" {
   name                        = format("%s-%s", var.bucket_name, random_id.bucket-suffix.hex)
+  location                    = var.bucket_location
   uniform_bucket_level_access = true
 }
 
