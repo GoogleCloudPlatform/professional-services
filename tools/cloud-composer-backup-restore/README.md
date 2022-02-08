@@ -1,11 +1,11 @@
-# Composer clone
+# Composer backup and recovery tool
 A command line utility that enables you to automate backup and restore operations on cloud composer environments running on Google Cloud Platform. The tool performs two main operations: Backup and recovery on a given composer environment following several steps, as summarized in the next section.
 
 ## How it works
 ### Backup
 #### Usage
 ```
-python src backup \
+python composer_br backup \
            --composer_env="composer-env-name" \
            --project_id="composer-project-id" \
            --composer_env_location="composer-env-location" \
@@ -32,7 +32,7 @@ python src backup \
 ### Recovery
 #### Usage
 ```
-python src restore \
+python composer_br restore \
            --composer_env="target-composer-env-name" \
            --project_id="target-composer-project-id" \
            --composer_env_location="target-composer-env-location" \
@@ -58,7 +58,7 @@ Before installing the tool, the following dependencies need to be available on t
 
 Kubectl 
 ```
-sudo apt-get install kubectl
+gcloud components install kubectl
 ```
 
 Python build dependencies
@@ -88,6 +88,17 @@ Before applying a backup or a restore on a given Airflow environment, please mak
 
 ### Airflow versions and backups
 Restore operations need to happen on composer environments with exactly the same Airflow version. This limitation is mainly due to the fact that, even with minor Airflow versions there can be differences in the DB schema.
+
+## Contributing to this tool
+PRs related to adding features or fixing bugs for this tool are welcome and should follow the guidelines of the parent / host repository this tool is part of. At a minimum, all code contributed should be formatted to follow the Google python style guide for open source projects. The below checks can be run to ensure that along with the `.pylintcr` file included in this project.
+
+```
+flake8 --exclude=.git,__pycache__,.env,env --select=E9,F,C
+pylint composer_br/*
+
+# Optional auto formatting
+python3 -m yapf -i -r --style="google" composer_clone/*
+```
 
 ## License
 Apache 2.0
