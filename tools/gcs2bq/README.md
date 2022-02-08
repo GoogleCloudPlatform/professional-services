@@ -8,6 +8,14 @@ This small applications discovers all buckets from a Google Cloud Platform organ
 then fetches all the objects in those and creates an Avro file containing all the objects 
 and their attributes. This can be then imported into BigQuery.
 
+### Installing
+
+You can install the binary on your computer by running:
+
+```sh
+go install github.com/GoogleCloudPlatform/professional-services/tools/gcs2bq@latest
+```
+
 ### Building
 
 You can build it either manually, or using the supplied `Dockerfile`:
