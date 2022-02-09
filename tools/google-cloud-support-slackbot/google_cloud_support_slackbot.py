@@ -678,7 +678,7 @@ def list_tracked_cases(channel_id, channel_name, user_id):
         client.chat_postEphemeral(
             channel=channel_id,
             user=user_id,
-            text=f"There are no cases currently being tracked in this channel")
+            text="There are no cases currently being tracked in this channel")
 
 
 def list_tracked_cases_all(channel_id, user_id):
@@ -708,7 +708,7 @@ def list_tracked_cases_all(channel_id, user_id):
         client.chat_postEphemeral(
             channel=channel_id,
             user=user_id,
-            text=f"There are no cases currently being tracked in Slack")
+            text="There are no cases currently being tracked in Slack")
 
 
 def case_details(channel_id, case, user_id):

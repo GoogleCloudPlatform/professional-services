@@ -45,6 +45,9 @@ spec:
       - address: {{ cp_node }}
 {% endfor %}
   clusterNetwork:
+{% if multi_nic is defined %}
+    multipleNetworkInterfaces: {{ multi_nic }}
+{% endif %}
     pods:
       cidrBlocks:
       - {{ pod_cidr }}
@@ -83,7 +86,11 @@ spec:
       maxPodsPerNode: {{ max_pod_per_node }}
     containerRuntime: {{ container_runtime }}
   nodeAccess:
+{% if node_login_user is defined %}
+    loginUser: {{ node_login_user }}
+{% else %}
     loginUser: {{ login_user }}
+{% endif %}
 {% if (cluster_type != 'admin') and groups['worker_nodes'] %}
 ---
 apiVersion: baremetal.cluster.gke.io/v1
@@ -98,4 +105,3 @@ spec:
   - address: {{ worker_node }}
 {% endfor %}
 {% endif %}
-  

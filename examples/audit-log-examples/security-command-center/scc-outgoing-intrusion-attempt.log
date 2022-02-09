@@ -1,0 +1,43 @@
+{
+"finding": {
+    "canonicalName": "projects/1022877695365/sources/6502152802547706269/findings/468ba37bbb16d358e4021f3a197badbf",
+    "category": "outgoing_intrusion_attempt",
+    "createTime": "2019-04-30T09:03:15.998Z",
+    "eventTime": "2019-08-06T21:30:06Z",
+    "findingClass": "THREAT",
+    "name": "organizations/793924137099/sources/6502152802547706269/findings/468ba37bbb16d358e4021f3a197badbf",
+    "parent": "organizations/793924137099/sources/6502152802547706269",
+    "resourceName": "//cloudresourcemanager.googleapis.com/projects/1022877695365",
+    "securityMarks": {
+    "name": "organizations/793924137099/sources/6502152802547706269/findings/468ba37bbb16d358e4021f3a197badbf/securityMarks"
+    },
+    "sourceProperties": {
+    "action_taken": "Notification sent",
+    "end_datetime_UTC": "2019-08-06 20:46:00 UTC",
+    "end_time_usec": "1565124360000000",
+    "finding_type": "Abuse originating from a resource in your organization.",
+    "remote_port": "3389",
+    "remote_port_connections_count": "23267",
+    "start_datetime_UTC": "2019-08-06 20:14:00 UTC",
+    "start_time_usec": "1565122440000000",
+    "summary_message": "We have  recently detected that your Google Cloud Project has been performing intrusion attempts against a third-party and appears to be violating our Terms of Service.",
+    "vm_host_and_zone_names": "domain-active-directory-prod:us-central1-c",
+    "vm_identifier_0": "domain-vpc-svc-dev/instance/3631797160546850879",
+    "vm_ips": "35.238.138.238"
+    },
+    "state": "ACTIVE"
+},
+"resource": {
+    "folders": [
+    {
+        "resourceFolder": "//cloudresourcemanager.googleapis.com/folders/881996463846",
+        "resourceFolderDisplayName": "domain-dev"
+    }
+    ],
+    "name": "//cloudresourcemanager.googleapis.com/projects/1022877695365",
+    "parentDisplayName": "domain-dev",
+    "parentName": "//cloudresourcemanager.googleapis.com/folders/881996463846",
+    "projectDisplayName": "domain-vpc-svc-dev",
+    "projectName": "//cloudresourcemanager.googleapis.com/projects/1022877695365"
+}
+}

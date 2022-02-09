@@ -32,6 +32,7 @@ import com.google.cloud.logging.Logging;
 import com.google.cloud.logging.LoggingOptions;
 import com.google.cloud.logging.Payload.StringPayload;
 import com.google.cloud.logging.Severity;
+import com.google.cloud.logging.Synchronicity;
 import functions.eventpojos.PubSubMessage;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -69,7 +70,7 @@ public class SendNotification implements BackgroundFunction<PubSubMessage> {
       BigQuery bigquery = BigQueryOptions.getDefaultInstance().getService();
       QueryJobConfiguration queryConfig =
           QueryJobConfiguration.newBuilder(
-                  "SELECT metric, usage, value "
+                  "SELECT metric, usage, consumption "
                       + "FROM `"
                       + HOME_PROJECT
                       + "."
@@ -102,7 +103,7 @@ public class SendNotification implements BackgroundFunction<PubSubMessage> {
         // Get all values
         String metric = row.get("metric").getStringValue();
         String usage = row.get("usage").getStringValue();
-        Float consumption = row.get("value").getNumericValue().floatValue();
+        Float consumption = row.get("consumption").getNumericValue().floatValue();
         alerts.add(
             String.format(
                 "Metric name: %s usage: %s consumption: %.2f%s", metric, usage, consumption, "%"));
@@ -128,6 +129,8 @@ public class SendNotification implements BackgroundFunction<PubSubMessage> {
     logger.info(text);
     LoggingOptions logging = LoggingOptions.getDefaultInstance();
     Logging log_client = logging.getService();
+    // Configure logger to write entries synchronously
+    log_client.setWriteSynchronicity(Synchronicity.SYNC);
     LogEntry entry =
         LogEntry.newBuilder(StringPayload.of(text))
             .setSeverity(Severity.INFO)
@@ -135,7 +138,6 @@ public class SendNotification implements BackgroundFunction<PubSubMessage> {
             .setResource(MonitoredResource.newBuilder("global").build())
             .build();
 
-    // Writes the log entry asynchronously
     log_client.write(Collections.singleton(entry));
   }
 }

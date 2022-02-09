@@ -20,7 +20,6 @@ The architecture is built using Google Cloud managed services - Cloud Functions,
 - The solution is architected to scale using Pub/Sub.
 - Cloud Scheduler is used to trigger Cloud Functions. This is also an user interface to configure frequency, parent nodes, alert threshold and email Ids. Parent node could be an organization Id, folder id, list of organization Ids or list of folder Ids.
 - Cloud Functions are used to scan quotas across projects for the configured parent node.
-- DataFlow is used to load data in BigQuery.
 - BigQuery is used to store data. 
 - Alert threshold will be applicable across all metrics. 
 - Alerts can be received by Email, Mobile App, PagerDuty, SMS, Slack, Web Hooks and Pub/Sub. Cloud Monitoring custom log metric has been leveraged to create Alerts.
@@ -96,7 +95,7 @@ Success! The app is now created. Please use `gcloud app deploy` to deploy your f
 ### 3.3 Create Service Account
 1. In local workstation, setup environment variables. Replace the name of the Service Account in the commands below
 ```
-DEFAULT_PROJECT_ID=$(gcloud config get-value core/project 2> /dev/null)
+export DEFAULT_PROJECT_ID=$(gcloud config get-value core/project 2> /dev/null)
 export SERVICE_ACCOUNT_ID="sa-"$DEFAULT_PROJECT_ID 
 export DISPLAY_NAME="sa-"$DEFAULT_PROJECT_ID 
 ```
@@ -134,6 +133,16 @@ Created service account [sa-quota-monitoring-project-1].
   - Cloud Asset Viewer
   - Compute Network Viewer
   - Compute Viewer
+- Monitoring
+  - Notification Channel Editor
+  - Alert Policy Editor
+  - Viewer
+  - Metric Writer
+- Logs
+  - Logs Configuration Writer	
+  - Log Writer
+- IAM
+  - Security Admin
 
 2. Run following commands to assign the roles:
 ```
@@ -158,59 +167,22 @@ gcloud projects add-iam-policy-binding $DEFAULT_PROJECT_ID --member="serviceAcco
 gcloud projects add-iam-policy-binding $DEFAULT_PROJECT_ID --member="serviceAccount:$SERVICE_ACCOUNT_ID@$DEFAULT_PROJECT_ID.iam.gserviceaccount.com" --role="roles/compute.networkViewer" --condition=None
 
 gcloud projects add-iam-policy-binding $DEFAULT_PROJECT_ID --member="serviceAccount:$SERVICE_ACCOUNT_ID@$DEFAULT_PROJECT_ID.iam.gserviceaccount.com" --role="roles/compute.viewer" --condition=None
+
+gcloud projects add-iam-policy-binding $DEFAULT_PROJECT_ID --member="serviceAccount:$SERVICE_ACCOUNT_ID@$DEFAULT_PROJECT_ID.iam.gserviceaccount.com" --role="roles/monitoring.notificationChannelEditor" --condition=None
+
+gcloud projects add-iam-policy-binding $DEFAULT_PROJECT_ID --member="serviceAccount:$SERVICE_ACCOUNT_ID@$DEFAULT_PROJECT_ID.iam.gserviceaccount.com" --role="roles/monitoring.alertPolicyEditor" --condition=None
+
+gcloud projects add-iam-policy-binding $DEFAULT_PROJECT_ID --member="serviceAccount:$SERVICE_ACCOUNT_ID@$DEFAULT_PROJECT_ID.iam.gserviceaccount.com" --role="roles/logging.configWriter" --condition=None
+
+gcloud projects add-iam-policy-binding $DEFAULT_PROJECT_ID --member="serviceAccount:$SERVICE_ACCOUNT_ID@$DEFAULT_PROJECT_ID.iam.gserviceaccount.com" --role="roles/logging.logWriter" --condition=None
+
+gcloud projects add-iam-policy-binding $DEFAULT_PROJECT_ID --member="serviceAccount:$SERVICE_ACCOUNT_ID@$DEFAULT_PROJECT_ID.iam.gserviceaccount.com" --role="roles/monitoring.viewer" --condition=None
+
+gcloud projects add-iam-policy-binding $DEFAULT_PROJECT_ID --member="serviceAccount:$SERVICE_ACCOUNT_ID@$DEFAULT_PROJECT_ID.iam.gserviceaccount.com" --role="roles/monitoring.metricWriter" --condition=None
+
+gcloud projects add-iam-policy-binding $DEFAULT_PROJECT_ID --member="serviceAccount:$SERVICE_ACCOUNT_ID@$DEFAULT_PROJECT_ID.iam.gserviceaccount.com" --role="roles/iam.securityAdmin" --condition=None
 ```
-The output should look like:
-```
-Updated IAM policy for project [quota-monitoring-project-1].
-bindings:
-- members:
-  - serviceAccount:sa-quota-monitoring-project-1@quota-monitoring-project-1.iam.gserviceaccount.com
-  role: roles/bigquery.dataEditor
-- members:
-  - serviceAccount:sa-quota-monitoring-project-1@quota-monitoring-project-1.iam.gserviceaccount.com
-  role: roles/bigquery.jobUser
-- members:
-  - serviceAccount:sa-quota-monitoring-project-1@quota-monitoring-project-1.iam.gserviceaccount.com
-  role: roles/cloudasset.viewer
-- members:
-  - serviceAccount:sa-quota-monitoring-project-1@quota-monitoring-project-1.iam.gserviceaccount.com
-  role: roles/cloudfunctions.admin
-- members:
-  - serviceAccount:sa-quota-monitoring-project-1@quota-monitoring-project-1.iam.gserviceaccount.com
-  role: roles/cloudscheduler.admin
-- members:
-  - serviceAccount:sa-quota-monitoring-project-1@quota-monitoring-project-1.iam.gserviceaccount.com
-  role: roles/compute.networkViewer
-- members:
-  - serviceAccount:sa-quota-monitoring-project-1@quota-monitoring-project-1.iam.gserviceaccount.com
-  role: roles/compute.storageAdmin
-- members:
-  - serviceAccount:sa-quota-monitoring-project-1@quota-monitoring-project-1.iam.gserviceaccount.com
-  role: roles/compute.viewer
-- members:
-  - serviceAccount:sa-quota-monitoring-project-1@quota-monitoring-project-1.iam.gserviceaccount.com
-  role: roles/dataflow.admin
-- members:
-  - serviceAccount:sa-quota-monitoring-project-1@quota-monitoring-project-1.iam.gserviceaccount.com
-  role: roles/dataflow.worker
-- members:
-  - serviceAccount:sa-quota-monitoring-project-1@quota-monitoring-project-1.iam.gserviceaccount.com
-  role: roles/iam.serviceAccountUser
-- members:
-  - user:anuradhabajpai@google.com
-  role: roles/owner
-- members:
-  - serviceAccount:sa-quota-monitoring-project-1@quota-monitoring-project-1.iam.gserviceaccount.com
-  role: roles/pubsub.admin
-- members:
-  - serviceAccount:sa-quota-monitoring-project-1@quota-monitoring-project-1.iam.gserviceaccount.com
-  role: roles/serviceusage.serviceUsageAdmin
-- members:
-  - serviceAccount:sa-quota-monitoring-project-1@quota-monitoring-project-1.iam.gserviceaccount.com
-  role: roles/storage.admin
-etag: BwW7VRmcQVU=
-version: 1
-```
+
 #### 3.4.2 Grant Roles in the Target Folder
 1. SKIP THIS STEP IF THE FOLDER IS NOT THE TARGET TO SCAN QUOTA. 
 
@@ -219,6 +191,7 @@ If you want to scan projects in the folder,  add following roles to the Service 
 - Compute Network Viewer
 - Compute Viewer
 - Folder Viewer
+- Monitoring Viewer
 
 2. Set target folder id
 ```
@@ -233,33 +206,12 @@ gcloud alpha resource-manager folders add-iam-policy-binding  $TARGET_FOLDER_ID 
 gcloud alpha resource-manager folders add-iam-policy-binding  $TARGET_FOLDER_ID --member="serviceAccount:$SERVICE_ACCOUNT_ID@$DEFAULT_PROJECT_ID.iam.gserviceaccount.com" --role="roles/compute.viewer"
 
 gcloud alpha resource-manager folders add-iam-policy-binding  $TARGET_FOLDER_ID --member="serviceAccount:$SERVICE_ACCOUNT_ID@$DEFAULT_PROJECT_ID.iam.gserviceaccount.com" --role="roles/resourcemanager.folderViewer"
+
+gcloud alpha resource-manager folders add-iam-policy-binding  $TARGET_FOLDER_ID --member="serviceAccount:$SERVICE_ACCOUNT_ID@$DEFAULT_PROJECT_ID.iam.gserviceaccount.com" --role="roles/monitoring.viewer"
 ```
 
 Note: If this fails, run the commands again
 
-The output should look like:
-```
-Updated IAM policy for folder [38659473572].
-bindings:
-- members:
-  - serviceAccount:sa-quota-monitoring-project-1@quota-monitoring-project-1.iam.gserviceaccount.com
-  role: roles/cloudasset.viewer
-- members:
-  - serviceAccount:sa-quota-monitoring-project-1@quota-monitoring-project-1.iam.gserviceaccount.com
-  role: roles/compute.networkViewer
-- members:
-  - serviceAccount:sa-quota-monitoring-project-1@quota-monitoring-project-1.iam.gserviceaccount.com
-  role: roles/compute.viewer
-- members:
-  - user:anuradhabajpai@google.com
-  role: roles/resourcemanager.folderAdmin
-- members:
-  - user:anuradhabajpai@google.com
-  role: roles/resourcemanager.folderEditor
-etag: BwW7WC-HaKQ=
-version: 1
-
-```
 #### 3.4.3 Grant Roles in the Target Organization
 1. SKIP THIS STEP IF THE ORGANIZATION IS NOT THE TARGET. 
 
@@ -269,6 +221,7 @@ If you want to scan projects in the org, add following roles to the Service acco
 - Compute Viewer
 - Org Viewer
 - Folder Viewer
+- Monitoring Viewer
 
 <img src="img/service_account_roles.png" align="center" />
 
@@ -287,6 +240,8 @@ gcloud organizations add-iam-policy-binding  $TARGET_ORG_ID --member="serviceAcc
 gcloud organizations add-iam-policy-binding  $TARGET_ORG_ID --member="serviceAccount:$SERVICE_ACCOUNT_ID@$DEFAULT_PROJECT_ID.iam.gserviceaccount.com"  --role="roles/resourcemanager.folderViewer" --condition=None
 
 gcloud organizations add-iam-policy-binding  $TARGET_ORG_ID --member="serviceAccount:$SERVICE_ACCOUNT_ID@$DEFAULT_PROJECT_ID.iam.gserviceaccount.com"  --role="roles/resourcemanager.organizationViewer" --condition=None
+
+gcloud organizations add-iam-policy-binding  $TARGET_ORG_ID --member="serviceAccount:$SERVICE_ACCOUNT_ID@$DEFAULT_PROJECT_ID.iam.gserviceaccount.com"  --role="roles/monitoring.viewer" --condition=None
 ```
 ### 3.5 Download Service Account Key File
 Create Service Account key from host project A. The service account key file will be downloaded to your machine as CREDENTIALS_FILE.json. After you download the key file, you cannot download it again.
@@ -299,9 +254,9 @@ gcloud iam service-accounts keys create CREDENTIALS_FILE.json \
 ```
 mkdir terraform
 cd terraform
-gsutil cp gs://quota-monitoring-solution-demo-bucket/main.tf .
-gsutil cp gs://quota-monitoring-solution-demo-bucket/variables.tf .
-gsutil cp gs://quota-monitoring-solution-demo-bucket/terraform.tfvars .
+gsutil cp gs://quota-monitoring-solution-source/v4.0/main.tf .
+gsutil cp gs://quota-monitoring-solution-source/v4.0/variables.tf .
+gsutil cp gs://quota-monitoring-solution-source/v4.0/terraform.tfvars .
 ```
 2. Verify that you have these 4 files in your local directory:
    - CREDENTIALS_FILE.json
@@ -315,7 +270,7 @@ gsutil cp gs://quota-monitoring-solution-demo-bucket/terraform.tfvars .
 ```
 vi terraform.tfvars
 ```
-<img src="img/edit_terraform_variables.png" align="center" />
+<img src="img/terraform-updated.png" align="center" />
 
 ### 3.8 Run Terraform
 1. Run terraform commands
@@ -338,63 +293,73 @@ vi terraform.tfvars
 <img src="img/test_bigquery_table.png" align="center" />
 
 ### 3.10 Data Studio Dashboard setup
-1. Go to the [Data studio dashboard template](https://datastudio.google.com/reporting/61f8c09f-c593-4950-afa9-c290180482c9) . If this link is not accessible, reach out to pso-quota-monitoring@google.com to share the dashboard template with your email id. A data studio dashboard will look like this:
-<img src="img/ds_template.png" align="center" />
+1. Go to the [Data studio dashboard template](https://datastudio.google.com/c/u/0/reporting/41cc9be3-6a55-4f32-b904-37f63e4f2c75/page/xxWVB) . If this link is not accessible, reach out to pso-quota-monitoring@google.com to share the dashboard template with your email id. A data studio dashboard will look like this:
+<img src="img/ds-updated-quotas-dashboard.png" align="center" />
 2. Make a copy of the template from the copy icon at the top bar (top - right corner)
-<img src="img/ds_copy.png" align="center" />
+<img src="img/ds-dropdown-copy.png" align="center" />
 3. Click on ‘Copy Report’ button
-<img src="img/ds_copy_report.png" align="center" />
+<img src="img/ds-copy-report-fixed-new-data-source.png" align="center" />
 4. This will create a copy of the report and open in Edit mode. If not click on ‘Edit’ button on top right corner in copied template:
-<img src="img/ds_template_copy.png" align="center" />
+<img src="img/ds-edit-mode-updated.png" align="center" />
 5. Select any one table like below ‘Disks Total GB - Quotas’ is selected. On the right panel in ‘Data’ tab, click on icon ‘edit data source’
 <img src="img/ds_edit_data_source.png" align="center" />
 It will open the data source details
 <img src="img/ds_datasource_config_step_1.png" align="center" />
 6. In the panel, select BigQuery project, dataset id and table name
-<img src="img/ds_edit_data_source_big_query.png" align="center" />
+<img src="img/updated-bq-only-latest-row.png" align="center" />
 7. Verify the query by running in BigQuery Editor to make sure query returns right results and there are no syntax errors:
 Note: Replace BigQuery project id, dataset id and table name:
 
 ```
-WITH
-  cte AS (
-  SELECT
-    MAX(addedAt) add,
-    metric,
-    project,
-    vpc_name,
-    region,
-    org_id,
-    targetpool_name
-  FROM
-   `quota-monitoring-project-8.quota_monitoring_dataset_1.quota_monitoring_table_1`
-  WHERE
-    DATE(addedAt) = CURRENT_DATE("America/Los_Angeles")
-  GROUP BY
-    org_id,
-    project,
-    metric,
-    region,
-    vpc_name,
-    targetpool_name,
-    DATE(addedAt))
-SELECT
-  quota.*,
-  cte.add
+WITH quota AS
+( SELECT
+project_id as project_id,
+region,
+metric,
+DATE_TRUNC(addedAt, HOUR) AS HOUR,
+MAX(CASE
+WHEN mv_type='limit' THEN m_value
+ELSE
+NULL
+END
+) AS q_limit,
+MAX(CASE
+WHEN mv_type='usage' THEN m_value
+ELSE
+NULL
+END
+) AS usage
 FROM
-  `quota-monitoring-project-8.quota_monitoring_dataset_1.quota_monitoring_table_1` AS quota
-JOIN
-  cte
-ON
-  cte.metric = quota.metric
-  AND cte.project = quota.project
+quota-monitoring-project-34.quota_monitoring_dataset.quota_monitoring_table 
+GROUP BY
+1,
+2,
+3,
+4 ) 
+SELECT
+project_id,
+region,
+metric,
+HOUR,
+CASE
+WHEN q_limit='9223372036854775807' THEN 'unlimited'
+ELSE
+q_limit
+END
+AS q_limit,
+usage,
+ROUND((SAFE_DIVIDE(CAST(t.usage AS BIGNUMERIC),
+CAST(t.q_limit AS BIGNUMERIC))*100),2) AS consumption
+FROM (
+select *,
+RANK() OVER (PARTITION BY project_id,region,metric ORDER BY HOUR desc) AS latest_row 
+FROM quota) t
 WHERE
-  quota.addedAt= cte.add
-  AND quota.metric = cte.metric
-  AND quota.region = cte.region
-  AND (cte.vpc_name = quota.vpc_name
-    OR cte.vpc_name IS NULL)
-  AND DATE(addedAt) = CURRENT_DATE("America/Los_Angeles")
+latest_row=1
+AND usage is not null
+AND q_limit is not null
+AND usage != '0'
+AND q_limit != '0'
 ````
 
 8. After making sure that query is returning results, replace it in the Data studio, click on the ‘Reconnect’ button in the data source pane.
@@ -402,81 +367,57 @@ WHERE
 9. In the next window, click on the ‘Done’ button.
 <img src="img/ds_data_source_config_step_2.png" align="center" />
 10. Click on ‘Region’ tab and repeat steps from 5 - 9 above with different query:
-<img src="img/ds_region_datasource_config.png" align="center" />
+<img src="img/ds-region-middle.png" align="center" />
 And query is as follows: (Replace the project id, dataset id and table name and verify query running in Bigquery editor)
 
 ```
-WITH
-  cte AS (
-  SELECT
-    MAX(addedAt) add,
+SELECT region, metric FROM quota-monitoring-project-49.quota_monitoring_dataset.quota_monitoring_table
+WHERE m_value not like "0%"
+GROUP BY
+    org_id,
+    project_id,
     metric,
-    project,
-    vpc_name,
-    region
-  FROM
-    `quota-monitoring-project-8.quota_monitoring_dataset_1.quota_monitoring_table_1`
-  WHERE
-    DATE(addedAt) = CURRENT_DATE("America/Los_Angeles")
-  GROUP BY
     region,
     vpc_name,
-    project,
-    metric,
-    DATE(addedAt))
-SELECT
-  quota.*,
-  cte.add
-FROM
-  `quota-monitoring-project-8.quota_monitoring_dataset_1.quota_monitoring_table_1` AS quota
-JOIN
-  cte
-ON
-  cte.metric = quota.metric
-  AND cte.project = quota.project
-WHERE
-  quota.addedAt= cte.add
-  AND quota.metric = cte.metric
-  AND quota.region = cte.region
-  AND (cte.vpc_name = quota.vpc_name
-    OR cte.vpc_name IS NULL)
-  AND DATE(addedAt) = CURRENT_DATE("America/Los_Angeles")
+    targetpool_name,
+    threshold,
+    m_value 
 ```
 
 11. Once the data source is configured, click on the ‘View’ button on the top right corner. 
 Note: make additional changes in the layout like which metrics to be displayed on Dashboard, color shades for consumption column, number of rows for each table etc in the ‘Edit’ mode.
-<img src="img/ds_switch_view_mode.png" align="center" />
+<img src="img/ds-switch-to-view-mode.png" align="center" />
 
 ### 3.11 Scheduled Reporting
 Quota monitoring reports can be scheduled from the Data Studio dashboard using ‘Schedule email delivery’. The screenshot of the Data studio dashboard will be delivered as a pdf report to the configured email Ids.
 
-<img src="img/datastudio_schedule_email.png" align="center" />
+<img src="img/ds-schedule-email-button.png" align="center" />
 
-
-### 4. Alerting
+### 3.11 Alerting
 The alerts about services nearing their quota limits can be configured to be sent via email as well as following external services:
 - Slack
 - PagerDuty
 - SMS
 - Custom Webhooks
 
-##### Slack Configuration
+#### 3.11.1 Slack Configuration
 To configure notifications to be sent to a Slack channel, you must have the Monitoring NotificationChannel Editor role on the host project.
-###### Create Notification Channel
+
+##### 3.11.1.1 Create Notification Channel
 1. In the Cloud Console, use the project picker to select your Google Cloud project, and then select Monitoring, or click the link here: Go to Monitoring
 2. In the Monitoring navigation pane, click  Alerting.
 3. Click Edit notification channels.
 4. In the Slack section, click Add new. This brings you to the Slack sign-in page:
-   *  Select your Slack workspace.
-   * Click Allow to enable Google Cloud Monitoring access to your Slack workspace. This action takes you back to the Monitoring configuration page for your notification channel.
-   * Enter the name of the Slack channel you want to use for notifications.
-   * Enter a display name for the notification channel.
+  - Select your Slack workspace.
+  - Click Allow to enable Google Cloud Monitoring access to your Slack workspace. This action takes you back to the Monitoring configuration page for your notification channel.
+  - Enter the name of the Slack channel you want to use for notifications.
+  - Enter a display name for the notification channel.
 5. In your Slack workspace:
-   * Invite the Monitoring app to the channel by sending the following message in the channel:
-   * `/invite @Google Cloud Monitoring`
-   * Be sure you invite the Monitoring app to the channel you specified when creating the notification channel in Monitoring.
+  - Invite the Monitoring app to the channel by sending the following message in the channel:
+  - /invite @Google Cloud Monitoring
+  - Be sure you invite the Monitoring app to the channel you specified when creating the notification channel in Monitoring.
 
-##### Configuring Alerting Policy
+##### 3.11.1.2 Configuring Alerting Policy
 1. In the Alerting section, click on Policies.
 2. Find the Policy named ‘Resource Reaching Quotas’. This policy was created via Terraform code above.
 3. Click Edit.
@@ -486,14 +427,22 @@ To configure notifications to be sent to a Slack channel, you must have the Moni
 
 You should now receive alerts in your Slack channel whenever a quota reaches the specified threshold limit.
 
+## 4. Release Note
 
+### 4.1 V4: Quota Monitoring across GCP services
 
+#### New
+- The new version provides visibility into Quotas across various GCP services beyond the original GCE (Compute). 
+- New Data Studio Dashboard template reporting metrics across GCP services
 
-## 5. What is Next? 
-1. Include quota metrics beyond compute
-2. Graphs (Quota utilization over a period of time)
-3. Search project, folder, org, region
-4. Threshold configurable for each metric
+#### Known Limitations
+- The records are grouped by hour. Scheduler need to be configured to start running preferably at the beginning of the hour. 
+- Out of the box solution is configured to scan quotas ‘once every day’. The SQL query to build the dashboard uses current date to filter the records. If you change the frequency, make changes to the query to rightly reflect the latest data. 
+
+## 5. What is Next?
+1. Graphs (Quota utilization over a period of time)
+2. Search project, folder, org, region
+3. Threshold configurable for each metric
 
 ## 5. Contact Us
 For any comments, issues or feedback, please reach out to us at pso-quota-monitoring@google.com

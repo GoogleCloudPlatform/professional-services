@@ -269,6 +269,16 @@ bmctl_download_url: gs://anthos-baremetal-release/bmctl/1.6.2/linux-amd64/bmctl
 ```
 
 
+The location of bmctl executable is defaulted to `/usr/local/sbin` which can be changed through below variable.
+
+
+*vars/anthos_vars.yml*
+
+```
+bmctl_path: /home/user1/baremetal
+```
+
+
 
 ## 4. Google Cloud Configuration
 
@@ -377,6 +387,8 @@ The variable file is placed in the**vars** directory under the root of the code 
 login_user: anthos
 login_user_group: anthos
 login_user_home: /home/anthos
+# node login user, when "login_user" used for admin node is different for worker node.
+# node_login_user: anthos2
 # Possible values: ubuntu | rhel 
 # Use rhel for CentOS as well
 os_type: "ubuntu"
@@ -428,6 +440,8 @@ lb_address_pool:
 admin_kubeconfig_path: [ADMIN_CLUSTER_KUBECONFIG]
 cgw_members: 
 - [email id of IAM user or service account]
+# Provide multiple NIC for pods - https://cloud.google.com/anthos/clusters/docs/bare-metal/latest/how-to/multi-nic
+# multi_nic: true
 ```
 
 
@@ -652,6 +666,7 @@ You need to set the _cluster\_type_ and _cluster\_name_ variables in the variabl
 login_user: anthos
 login_user_group: anthos
 login_user_home: /home/anthos
+node_login_user: anthos2
 os_type: "ubuntu"
 ws_docker: "yes"
 gcloud_sdk: "yes"

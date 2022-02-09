@@ -2,40 +2,33 @@
 # without warranty or representation for any use or purpose.
 # Your use of it is subject to your agreement with Google.
 
-PROJECT=delivery-center-poc
-MACHINE_IMAGE_REGION=us-central1
-
+MACHINE_IMAGE_REGION=europe-west3
+SOURCE_CSV=source.csv # actual default value
 INPUT_CSV=export.csv
 
-# SOURCE_SUBNET=projects/pso-suchit/regions/us-west1/subnetworks/sub-01
-# SUBNET_NAME=sub-01 # The subnet to be deleted and moved
-# SOURCE_ZONE=us-west1-b
-# SOUCE_ZONE_2=us-west1-a
-# SOURCE_REGION=us-west1
-
-# TARGET_REGION=us-west1
-# TARGET_SUBNET=projects/pso-suchit/regions/us-west1/subnetworks/sub-02
-# TARGET_NETWORK=projects/pso-suchit/global/networks/vpc1
-# TARGET_ZONE=us-west1-c
+SOURCE_PROJECT=my-service-project
+SOURCE_SUBNET=projects/my-host-project/regions/europe-west3/subnetworks/source-subnet
+SOURCE_ZONE=europe-west3-c
+SOURCE_ZONE_2=
+SOURCE_ZONE_3=
 
 
-SOURCE_SUBNET=projects/delivery-center-poc/regions/us-central1/subnetworks/default
-SUBNET_NAME=default # The subnet to be deleted and moved
-SOURCE_ZONE=us-central1-a
-SOURCE_ZONE_3=us-central1-b
-SOURCE_REGION=us-central1
+#TARGET_PROJECT=${SOURCE_PROJECT}
+# use the default target service account
+#TARGET_PROJECT_SA=
+#TARGET_PROJECT_SA_SCOPES=https://www.googleapis.com/auth/cloud-platform
+TARGET_SUBNET=projects/my-host-project/regions/us-central1/subnetworks/target-subnet
 
-TARGET_REGION=us-west1
-TARGET_SUBNET=projects/delivery-center-poc/regions/us-west1/subnetworks/sub-01
-TARGET_NETWORK=projects/delivery-center-poc/global/networks/vpc1
-
+# actual default values
+EXPORT_CSV=export.csv
+FILTER_CSV=filter.csv
+LOG_LEVEL=INFO
 
 STEP=prepare_inventory 
 #  The steps can be any of prepare_inventory | filter_inventory | 
 #  shutdown_instances | create_machine_images | delete_instances | release_ip | 
 #  release_ip_for_subnet | 
 #  clone_subnet | create_instances | create_instances_without_ip
-
 
 clean-pyc:
 	find . -name '*.pyc' -exec rm --force {} +
@@ -57,6 +50,10 @@ install-requirements:
 install:
 	pip3 install -e . 
 
+.PHONY: test
+test:
+	pytest --import-mode=importlib
+
 format:
 	find . -type f -name "*.py" | xargs yapf -i -r 
 
@@ -64,6 +61,13 @@ lint:
 	find . -type f -name "*.py" | xargs pylint 
 
 migrate-subnet:
-	python3 -m migrator.subnet_region_migrator --step=$(STEP) --source_zone=$(SOURCE_ZONE) --source_zone_2=$(SOUCE_ZONE_2) --source_zone_3=$(SOURCE_ZONE_3) --source_subnet=$(SOURCE_SUBNET) --project=$(PROJECT) --input_csv=$(INPUT_CSV) --target_subnet=$(TARGET_SUBNET) --machine_image_region=$(MACHINE_IMAGE_REGION) --subnet_name=$(SUBNET_NAME) --source_region=$(SOURCE_REGION) --target_region=$(TARGET_REGION)
-
-#  make SOURCE_ZONE=us-west1-a SOURCE_SUBNET=projects/delivery-center-poc/regions/us-west1/subnetworks/sub-03 TARGET_SUBNET=projects/delivery-center-poc/regions/us-central1/subnetworks/sub-01 TARGET_ZONE=us-central1-a export-subnet
+	python3 -m migrator.subnet_region_migrator --step=$(STEP) \
+		--machine_image_region=$(MACHINE_IMAGE_REGION) \
+		--source_project=$(SOURCE_PROJECT) --source_subnet=$(SOURCE_SUBNET) \
+		--source_zone=$(SOURCE_ZONE) --source_zone_2=$(SOURCE_ZONE_2) \
+		--source_zone_3=$(SOURCE_ZONE_3) --target_project=$(TARGET_PROJECT) \
+		--target_project_sa=$(TARGET_PROJECT_SA) \
+		--target_project_sa_scopes=$(TARGET_PROJECT_SA_SCOPES) \
+		--target_subnet=$(TARGET_SUBNET) --source_csv=$(SOURCE_CSV) \
+		--filter_csv=$(FILTER_CSV) --input_csv=$(INPUT_CSV) \
+		--log_level=$(LOG_LEVEL)

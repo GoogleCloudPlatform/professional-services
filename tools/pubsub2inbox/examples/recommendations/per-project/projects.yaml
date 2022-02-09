@@ -1,0 +1,50 @@
+#   Copyright 2021 Google LLC
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+#
+retryPeriod: 3 day ago
+
+# This example searches for all projects in GCP that have a label called 
+# owner. The found projects are then written to a Pub/Sub topic, where
+# the recommendations function will pick them up and generate a recommendation
+# report per project owner.
+#
+# The messages sent to Pub/Sub will be JSON encoded project data:
+#
+# {
+#   "projectNumber": "12345678", 
+#   "projectId": "project-id", 
+#   "lifecycleState": "ACTIVE", 
+#   "name": "Project name", 
+#   "labels": {"charging-code": "1234567", "owner": "admin"}, 
+#   "createTime": "2021-03-01T11:58:51.351Z", 
+#   "parent": {"type": "folder", "id": "987654321"}
+# }
+
+processors:
+  - projects
+
+projects:
+  filter: 'lifecycleState:ACTIVE labels.owner:*'
+  indexing: projectId
+  # You can additionally filter
+  #jinjaFilter: |
+  #  {% if projectId.startswith('my-prefix') %}1{% endif %}
+
+outputs:
+  - type: pubsub
+    topic: projects/YOUR-PROJECT/topics/recommendations-report
+    messages: |
+      {{ projects|json_encode }}
+    content: |
+      {{ value|json_encode }}

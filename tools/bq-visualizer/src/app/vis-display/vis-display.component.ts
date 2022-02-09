@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, OnInit, ViewChild} from '@angular/core';
+import {Component, AfterViewInit, ViewChild} from '@angular/core';
 import * as vis from 'vis';
 
-import {BqQueryPlan} from '../bq_query_plan';
+import {BqQueryPlan, Edge} from '../bq_query_plan';
 import {DagreLayoutService} from '../dagre-layout.service';
 import {LogService} from '../log.service';
 import {PlanSideDisplayComponent} from '../plan-side-display/plan-side-display.component';
 import {PlanStatusCardComponent} from '../plan-status-card/plan-status-card.component';
-import {QueryStage, QueryStep} from '../rest_interfaces';
+import {QueryStage} from '../rest_interfaces';
 
 type ResizeCallback = (chart: TreeChart, params: object) => void;
 type NodeSelectCallback =
@@ -37,10 +37,10 @@ type EdgeDeselectCallback = (chart: TreeChart, params: object) => void;
   templateUrl: './vis-display.component.html',
   styleUrls: ['./vis-display.component.css']
 })
-export class VisDisplayComponent implements OnInit {
-  public graph: TreeChart;
+export class VisDisplayComponent implements AfterViewInit {
+  public graph: TreeChart | null;
   private layout: any;  // dqagre layout result;
-  private plan: BqQueryPlan;
+  private plan: BqQueryPlan | null;
   private haveDoneDraw = false;
 
   @ViewChild('status_card') statusCard: PlanStatusCardComponent;
@@ -49,9 +49,10 @@ export class VisDisplayComponent implements OnInit {
   constructor(
       private layoutSvc: DagreLayoutService, private logSvc: LogService) {}
 
-  ngOnInit() {
+  ngAfterViewInit() {
     this.statusCard.dislayOptionEvent.subscribe(
-        (displayOption: string) => this.invalidateGraph());
+     (displayOption: string) => this.invalidateGraph()
+    );
   }
   async loadPlan(plan: BqQueryPlan) {
     this.plan = plan;
@@ -59,6 +60,7 @@ export class VisDisplayComponent implements OnInit {
     this.statusCard.loadPlan(plan);
     this.sideDisplay.stepDetails = [];
     this.sideDisplay.stageDetails = '';
+    this.clearGraph();
   }
 
   private invalidateGraph() {
@@ -78,8 +80,8 @@ export class VisDisplayComponent implements OnInit {
     this.graph = this.drawGraph(
         this.plan,
         (chart: TreeChart, resizeData: object) => {
-            // console.log('canvas resize', this);
-            // console.log(resizeData);
+             //console.log('canvas resize', this);
+             //console.log(resizeData);
         },
         (chart: TreeChart, node: any, params: any) => {
           if (node) {
@@ -91,7 +93,7 @@ export class VisDisplayComponent implements OnInit {
     this.resizeToWindow();
   }
 
-  resizeWindow(event) {
+  resizeWindow(event:any) {
     this.resizeToWindow();
   }
 
@@ -106,7 +108,7 @@ export class VisDisplayComponent implements OnInit {
 
   private clearGraph() {
     if (this.graph) {
-      this.graph.network.setData(new vis.DataSet([]), new vis.DataSet([]));
+      this.graph.network.setData({nodes: new vis.DataSet([]), edges: new vis.DataSet([])});
       this.graph.network.redraw();
     }
   }
@@ -114,13 +116,13 @@ export class VisDisplayComponent implements OnInit {
       plan: BqQueryPlan, onResizeEvent?: ResizeCallback,
       onNodeSelect?: NodeSelectCallback, onNodeDeselect?: NodeDeselectCallback,
       onEdgeSelect?: EdgeSelectCallback,
-      onEdgeDeselect?: EdgeDeselectCallback): TreeChart {
-    let visnodes = new vis.DataSet([]);
-    let visedges = new vis.DataSet([]);
+      onEdgeDeselect?: EdgeDeselectCallback): TreeChart | null {
+    let visnodes = new vis.DataSet<vis.Edge>([]);
+    let visedges = new vis.DataSet<vis.Edge>([]);
 
     if (plan.nodes.length === 0) {
       this.logSvc.warn('Current Plan has no nodes.');
-      return;
+      return null;
     } else {
       const allnodes = (this.statusCard.stageDisplayOption ===
                         this.statusCard.SHOWREPARTIION) ?
@@ -139,6 +141,7 @@ export class VisDisplayComponent implements OnInit {
           title: node.name,
           widthConstraint: 60,
           shape: node.isExternal ? 'database' : 'box',
+          color: node.status === 'RUNNING' ? '#FF8080' : '#D2E5FF',
           physics: false,
           x: layout.node(node.id).x,
           y: layout.node(node.id).y
@@ -148,7 +151,7 @@ export class VisDisplayComponent implements OnInit {
       visedges = new vis.DataSet(plan.edges.map(edge => {
         let nrRecords = edge.from.recordsWritten;
         if (nrRecords === undefined) {
-          nrRecords = edge.to.recordsRead;
+          nrRecords = this.estimate_recordsRead(edge, plan).toString();
         }
         return {
           from: edge.from.id,
@@ -163,7 +166,7 @@ export class VisDisplayComponent implements OnInit {
     const container = document.getElementById('visGraph');
     if (!container) {
       console.error(`Unable to find 'visGraph'`);
-      return;
+      return null;
     }
 
     // create a network
@@ -172,7 +175,6 @@ export class VisDisplayComponent implements OnInit {
     const me = this;
     if (onResizeEvent) {
       network.on('resize', params => {
-        // console.log('resize....');
         onResizeEvent(chart, params);
       });
     }
@@ -191,7 +193,7 @@ export class VisDisplayComponent implements OnInit {
     if (onEdgeSelect) {
       network.on('selectEdge', params => {
         const edgeId = params.edges[0];
-        const foundEdge = visedges.get()[edgeId];
+        const foundEdge:vis.Edge = visedges.get()[edgeId];
         const fromNode = plan.getNode(foundEdge.from);
         const toNode = plan.getNode(foundEdge.to);
         const detail = {
@@ -212,6 +214,31 @@ export class VisDisplayComponent implements OnInit {
     return chart;
   }
 
+  /**
+   * calculate an estimate of records processed in an edge.
+   * @param edge
+   */
+  private estimate_recordsRead(edge: Edge, plan: BqQueryPlan): number {
+    const targetNode = edge.to;
+    const totalRecordsRead = Number(targetNode.recordsRead);
+
+    const allIncomingEdges = plan.edges.filter(other_edge => {
+      return (
+          (other_edge.to.id === targetNode.id) &&
+          (other_edge.from.id !== edge.from.id));
+    });
+
+    const all_record_reads = allIncomingEdges.map(edge => {
+      return (edge.from.recordsWritten === undefined) ?
+          '0' :
+          edge.from.recordsWritten;
+    });
+
+    const total = all_record_reads.reduce((a, b) => a + Number(b), 0);
+    const remainder = Number(targetNode.recordsRead) - total;
+
+    return remainder;
+  }
   private getVisOptions(): vis.Options {
     return {
       autoResize: false,
@@ -223,7 +250,7 @@ export class VisDisplayComponent implements OnInit {
         },
         selectionWidth: 5,
         color: {color: '#A0A0FF', highlight: '#8080FF'},
-        smooth: {enabled: true, type: 'cubicBezier'}
+        smooth: {enabled: true, type: 'cubicBezier', roundness: 0.5}
       },
       nodes: {},
 
