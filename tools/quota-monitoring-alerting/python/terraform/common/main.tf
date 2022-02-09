@@ -18,16 +18,13 @@ locals {
 
   path = "${path.module}/../.."
 
-  sa_project_roles = [
-    "roles/bigquery.admin",
-    "roles/pubsub.admin",
-  ]
   sa_org_roles = [
     "roles/monitoring.admin",
     "roles/resourcemanager.folderViewer",
     "roles/viewer",
   ]
 }
+
 
 provider "google" {
   # Since this will be executed from cloud-shell for credentials use
@@ -80,86 +77,103 @@ resource "google_service_account" "scheduler_invoker_service_account" {
 }
 
 
-data "google_iam_policy" "project_policy" {
-  binding {
-    role = "roles/iam.serviceAccountUser"
-    members = [
-      "serviceAccount:${resource.google_service_account.quota_export_service_account.email}"
-    ]
-  }
-
-  binding {
-    role = "roles/bigquery.admin"
-    members = [
-      "serviceAccount:${resource.google_service_account.quota_export_service_account.email}"
-    ]
-  }
-
-  binding {
-    role = "roles/pubsub.admin"
-    members = [
-      "serviceAccount:${resource.google_service_account.quota_export_service_account.email}"
-    ]
-  }
-
-  binding {
-    role = "roles/run.serviceAgent"
-
-    members = [
-      "serviceAccount:service-${var.project_number}@serverless-robot-prod.iam.gserviceaccount.com"
-    ]
-  }
-
-  binding {
-    role = "roles/cloudbuild.serviceAgent"
-
-    members = [
-      "serviceAccount:${var.project_number}@cloudbuild.gserviceaccount.com"
-    ]
-  }
-
-  binding {
-    role = "roles/cloudscheduler.serviceAgent"
-
-    members = [
-      "serviceAccount:service-${var.project_number}@gcp-sa-cloudscheduler.iam.gserviceaccount.com"
-    ]
-  }
-
-  binding {
-    role = "roles/iam.serviceAccountTokenCreator"
-
-    members = [
-      "serviceAccount:service-${var.project_number}@gcp-sa-pubsub.iam.gserviceaccount.com"
-    ]
-  }
-
-  binding {
-    role = "roles/run.invoker"
-    members = [
-      "serviceAccount:${resource.google_service_account.pubsub_invoker_service_account.email}",
-      "serviceAccount:${resource.google_service_account.scheduler_invoker_service_account.email}",
-    ]
-  }
-}
-
-
 resource "null_resource" "service_accounts" {
-  depends_on = [resource.google_service_account.quota_export_service_account,
+  depends_on = [
+    module.project_services,
+    resource.google_service_account.quota_export_service_account,
     resource.google_service_account.pubsub_invoker_service_account,
-  resource.google_service_account.scheduler_invoker_service_account, ]
+    resource.google_service_account.scheduler_invoker_service_account,
+  ]
 }
 
 
-resource "google_project_iam_policy" "project_iam" {
-  project     = var.project
-  policy_data = data.google_iam_policy.project_policy.policy_data
-
-  depends_on = [module.project_services, resource.null_resource.service_accounts]
+resource "google_project_iam_member" "quota_export_sa_role_1" {
+  project    = var.project
+  role       = "roles/iam.serviceAccountUser"
+  member     = "serviceAccount:${resource.google_service_account.quota_export_service_account.email}"
+  depends_on = [resource.null_resource.service_accounts]
 }
 
 
-resource "google_organization_iam_member" "sa_org_iam" {
+resource "google_project_iam_member" "quota_export_sa_role_2" {
+  project    = var.project
+  role       = "roles/bigquery.admin"
+  member     = "serviceAccount:${resource.google_service_account.quota_export_service_account.email}"
+  depends_on = [resource.null_resource.service_accounts]
+}
+
+
+resource "google_project_iam_member" "quota_export_sa_role_3" {
+  project    = var.project
+  role       = "roles/pubsub.admin"
+  member     = "serviceAccount:${resource.google_service_account.quota_export_service_account.email}"
+  depends_on = [resource.null_resource.service_accounts]
+}
+
+
+resource "google_project_iam_member" "quota_export_sa_role_4" {
+  project    = var.project
+  role       = "roles/run.serviceAgent"
+  member     = "serviceAccount:service-${var.project_number}@serverless-robot-prod.iam.gserviceaccount.com"
+  depends_on = [resource.null_resource.service_accounts]
+}
+
+
+resource "google_project_iam_member" "quota_export_sa_role_5" {
+  project    = var.project
+  role       = "roles/cloudbuild.serviceAgent"
+  member     = "serviceAccount:${var.project_number}@cloudbuild.gserviceaccount.com"
+  depends_on = [resource.null_resource.service_accounts]
+}
+
+
+resource "google_project_iam_member" "quota_export_sa_role_6" {
+  project    = var.project
+  role       = "roles/cloudscheduler.serviceAgent"
+  member     = "serviceAccount:service-${var.project_number}@gcp-sa-cloudscheduler.iam.gserviceaccount.com"
+  depends_on = [resource.null_resource.service_accounts]
+}
+
+
+resource "google_project_iam_member" "quota_export_sa_role_7" {
+  project    = var.project
+  role       = "roles/iam.serviceAccountTokenCreator"
+  member     = "serviceAccount:service-${var.project_number}@gcp-sa-pubsub.iam.gserviceaccount.com"
+  depends_on = [resource.null_resource.service_accounts]
+}
+
+
+resource "google_project_iam_member" "quota_export_sa_role_8" {
+  project    = var.project
+  role       = "roles/run.invoker"
+  member     = "serviceAccount:${resource.google_service_account.pubsub_invoker_service_account.email}"
+  depends_on = [resource.null_resource.service_accounts]
+}
+
+resource "google_project_iam_member" "quota_export_sa_role_9" {
+  project    = var.project
+  role       = "roles/run.invoker"
+  member     = "serviceAccount:${resource.google_service_account.scheduler_invoker_service_account.email}"
+  depends_on = [resource.null_resource.service_accounts]
+}
+
+
+resource "null_resource" "project_iam" {
+  depends_on = [
+    resource.google_project_iam_member.quota_export_sa_role_1,
+    resource.google_project_iam_member.quota_export_sa_role_2,
+    resource.google_project_iam_member.quota_export_sa_role_3,
+    resource.google_project_iam_member.quota_export_sa_role_4,
+    resource.google_project_iam_member.quota_export_sa_role_5,
+    resource.google_project_iam_member.quota_export_sa_role_6,
+    resource.google_project_iam_member.quota_export_sa_role_7,
+    resource.google_project_iam_member.quota_export_sa_role_8,
+    resource.google_project_iam_member.quota_export_sa_role_9,
+  ]
+}
+
+
+resource "google_organization_iam_member" "org_iam" {
   count = length(local.sa_org_roles)
 
   org_id = var.org
@@ -188,8 +202,9 @@ resource "google_bigquery_dataset" "quota" {
   dataset_id = local.config.export["bigquery"]["dataset"]
 
   depends_on = [module.project_services,
-    resource.google_organization_iam_member.sa_org_iam,
-  resource.google_project_iam_policy.project_iam]
+    resource.google_organization_iam_member.org_iam,
+    resource.null_resource.project_iam,
+  ]
 }
 
 
@@ -251,7 +266,9 @@ resource "google_bigquery_table" "dashboard_view" {
 
   depends_on = [resource.google_bigquery_dataset.quota,
     resource.google_bigquery_table.metrics,
-  resource.google_bigquery_table.thresholds]
+    resource.google_bigquery_table.thresholds,
+  ]
+
   deletion_protection = false
 }
 
@@ -260,7 +277,11 @@ resource "google_bigquery_table" "dashboard_view" {
 #...............................................................................
 resource "null_resource" "build" {
   provisioner "local-exec" {
-    command = "gcloud builds submit ${local.path} --tag gcr.io/$PROJECT/$SERVICE"
+    command =<<-EOT
+      gcloud beta builds submit ${local.path} \
+        --config ${local.path}/cloudbuild.yaml \
+        --substitutions=_SERVICE=$SERVICE,_PROJECT=$PROJECT
+    EOT
 
     environment = {
       PROJECT = var.project
@@ -269,8 +290,9 @@ resource "null_resource" "build" {
   }
 
   depends_on = [module.project_services,
-    resource.google_organization_iam_member.sa_org_iam,
-  resource.google_project_iam_policy.project_iam]
+    resource.google_organization_iam_member.org_iam,
+    resource.null_resource.project_iam,
+  ]
 }
 
 
@@ -303,8 +325,8 @@ resource "google_cloud_run_service" "crun" {
 resource "null_resource" "pubsub" {
 
   depends_on = [module.project_services,
-    resource.google_organization_iam_member.sa_org_iam,
-  resource.google_project_iam_policy.project_iam]
+    resource.google_organization_iam_member.org_iam,
+  resource.null_resource.project_iam]
 
 }
 
@@ -423,8 +445,9 @@ resource "google_pubsub_subscription" "bigquery_sub" {
 resource "null_resource" "scheduler" {
 
   depends_on = [module.project_services,
-    resource.google_organization_iam_member.sa_org_iam,
-  resource.google_project_iam_policy.project_iam]
+    resource.google_organization_iam_member.org_iam,
+    resource.null_resource.project_iam,
+  ]
 
 }
 
