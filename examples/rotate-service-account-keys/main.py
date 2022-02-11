@@ -27,7 +27,7 @@ def rotate_service_account_keys_in_secret_manager(event, context):
         client = secretmanager.SecretManagerServiceClient()
         current_secret_with_version = client.list_secret_versions(
             request={
-                "parent": secret_name
+                'parent': secret_name
             }).versions[0].name
         current_secret = client.access_secret_version(
             name=current_secret_with_version)
