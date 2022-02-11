@@ -20,8 +20,8 @@ from google.cloud import secretmanager
 
 def rotate_service_account_keys_in_secret_manager(event, context):
 
-    event_type = event["attributes"]["eventType"]
-    secret_name = event["attributes"]["secretId"]
+    event_type = event['attributes']['eventType']
+    secret_name = event['attributes']['secretId']
 
     if (event_type == "SECRET_ROTATE"):
         client = secretmanager.SecretManagerServiceClient()
