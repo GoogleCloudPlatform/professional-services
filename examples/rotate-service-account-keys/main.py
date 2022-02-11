@@ -57,4 +57,4 @@ def rotate_service_account_keys_in_secret_manager(event, context):
         client.disable_secret_version(
             request={"name": current_secret_with_version})
         client.destroy_secret_version(
-            request={"name": current_secret_with_version})
+            request={'name': current_secret_with_version})
