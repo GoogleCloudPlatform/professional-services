@@ -42,8 +42,7 @@ def rotate_service_account_keys_in_secret_manager(event, context):
 
         ### Create a new service account and add a key as a new secret version
         new_key = service.projects().serviceAccounts().keys().create(
-            name='projects/' + project_id + '/serviceAccounts/' +
-            service_account,
+            name=f'projects/{project_id}/serviceAccounts/{service_account}',
             body={}).execute()
         new_service_key_json = base64.b64decode(new_key['privateKeyData'])
         client.add_secret_version(parent=secret_name,
