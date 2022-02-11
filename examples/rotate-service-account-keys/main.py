@@ -23,7 +23,7 @@ def rotate_service_account_keys_in_secret_manager(event, context):
     event_type = event['attributes']['eventType']
     secret_name = event['attributes']['secretId']
 
-    if (event_type == "SECRET_ROTATE"):
+    if (event_type == 'SECRET_ROTATE'):
         client = secretmanager.SecretManagerServiceClient()
         current_secret_with_version = client.list_secret_versions(
             request={
