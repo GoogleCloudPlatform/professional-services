@@ -49,10 +49,7 @@ def rotate_service_account_keys_in_secret_manager(event, context):
                                   payload={'data': new_service_key_json})
 
         ### Delete the old service account
-        key_to_delete = "projects/{project_id}/serviceAccounts/{service_account}/keys/{key_id}".format(
-            project_id=project_id,
-            service_account=service_account,
-            key_id=key_id)
+        key_to_delete = f'projects/{project_id}/serviceAccounts/{service_account}/keys/{key_id}'
         service.projects().serviceAccounts().keys().delete(
             name=key_to_delete).execute()
 
