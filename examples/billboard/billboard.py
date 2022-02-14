@@ -14,14 +14,10 @@
 
 from google.cloud import bigquery
 from google.cloud import billing
-from google.api_core.exceptions import BadRequest
-from google.api_core.exceptions import AlreadyExists
-from google.api_core.exceptions import NotFound
 from google.api_core.exceptions import PermissionDenied
 from google.cloud.exceptions import NotFound
 import argparse
 import sys
-from colorama import Fore
 from colorama import Back
 from colorama import Style
 
