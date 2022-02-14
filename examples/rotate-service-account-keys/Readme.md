@@ -43,7 +43,7 @@ The program helps to rotate the service account key in secret manager.
     --role "roles/pubsub.publisher"
     ```
 
-- **Step 5:** Deploy the function.
+- **Step 4:** Deploy the function.
     The secret manager publishes a message to the Notification Topic  which invokes the Cloud Function.Cloud function (Update Secrets) creates a new service account Key and uploads the service account key as a new secret version in secret manager. The Cloud function then deletes the service account key from Cloud IAM service account and  then disables and deletes the secret version from secret manager.
 
     In order to deploy Cloud Function run:
@@ -55,7 +55,7 @@ The program helps to rotate the service account key in secret manager.
         --trigger-event google.pubsub.topic.publish
         ```
 
-    By default Cloud function uses App Engine default service account (PROJECT_ID@appspot.gserviceaccount.com) as its identity for function execution. If required, individual service accounts can be created and used for your function by using the steps defined here. The service account used by the cloud function should have the following permissions two permission:
+    By default Cloud function uses App Engine default service account (PROJECT_ID@appspot.gserviceaccount.com) as its identity for function execution. If required, individual service accounts can be created and used for your function by using the steps defined [here](https://cloud.google.com/functions/docs/securing/function-identity#individual). The service account used by the cloud function should have the following permissions two permission:
     - Service Account Key Admin(roles/iam.serviceAccountKeyAdmin): This role allow the cloud function to create new service account keys and delete the old service account keys.
-    - Secret Manager Secret Version Manager (roles/secretmanager.admin): This role allows the cloud function to create a new version of the secret and delete the old versions. By default Cloud function uses App Engine default service account (PROJECT_ID@appspot.gserviceaccount.com) as its identity for function execution. If required, individual service accounts can be created and used for your function by using the steps defined here.
+    - Secret Manager Secret Version Manager (roles/secretmanager.admin): This role allows the cloud function to create a new version of the secret and delete the old versions.
 
