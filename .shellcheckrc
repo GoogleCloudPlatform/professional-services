@@ -1,0 +1,3 @@
+# Ignore [ ! -n "$VAR" ] tests (instead of [ -z "$VAR" ])
+# https://github.com/koalaman/shellcheck/wiki/SC2236
+disable=SC2236
