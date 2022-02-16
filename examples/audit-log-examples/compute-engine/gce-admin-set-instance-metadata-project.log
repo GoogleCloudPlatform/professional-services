@@ -1,0 +1,36 @@
+Query: protoPayload.methodName: "v1.compute.projects.setCommonInstanceMetadata"
+Setting Projectwide Metadata:
+{
+  "protoPayload": {
+    "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+    "authenticationInfo": {
+      "principalEmail": "user@domain.com"
+    },
+    "requestMetadata": {
+      "callerIp": "8.8.8.8",
+      "callerSuppliedUserAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36,gzip(gfe),gzip(gfe)"
+    },
+    "serviceName": "compute.googleapis.com",
+    "methodName": "v1.compute.projects.setCommonInstanceMetadata",
+    "resourceName": "projects/gsec-monitoring-prod",
+    "request": {
+      "@type": "type.googleapis.com/compute.projects.setCommonInstanceMetadata"
+    }
+  },
+  "insertId": "-yy1s4wd38ia",
+  "resource": {
+    "type": "gce_project",
+    "labels": {
+      "project_id": "598897393088"
+    }
+  },
+  "timestamp": "2021-09-13T02:52:27.803980Z",
+  "severity": "NOTICE",
+  "logName": "projects/gsec-monitoring-prod/logs/cloudaudit.googleapis.com%2Factivity",
+  "operation": {
+    "id": "operation-1631501536060-5cbd78d81e54a-d0e05d0c-dc9f8e1f",
+    "producer": "compute.googleapis.com",
+    "last": true
+  },
+  "receiveTimestamp": "2021-09-13T02:52:28.409066149Z"
+}

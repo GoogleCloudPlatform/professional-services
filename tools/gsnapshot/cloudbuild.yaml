@@ -1,0 +1,56 @@
+#   Copyright 2022 Google LLC
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+steps:
+  - id: 'Build Linux'
+    name: mcr.microsoft.com/dotnet/sdk:5.0
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+          apt-get update &&
+          apt-get install -y make zip &&
+          make linux-x64
+
+  - id: 'Build OS X'
+    name: mcr.microsoft.com/dotnet/sdk:5.0
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+          apt-get update &&
+          apt-get install -y make zip &&
+          make osx-x64
+
+  - id: 'Build Windows'
+    name: mcr.microsoft.com/dotnet/sdk:5.0
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+          apt-get update &&
+          apt-get install -y make zip msitools wixl &&
+          make win-x64 win-x86
+  
+substitutions:
+  _VERSION: '1.2.0'
+  _ARTIFACT_BUCKET: 'your-artifact-bucket-here'
+
+artifacts:
+  objects:
+    location: 'gs://${_ARTIFACT_BUCKET}/$REPO_NAME/$BRANCH_NAME/$BUILD_ID'
+    paths: 
+      - bin/gsnapshot-${_VERSION}-osx-x64.tar.gz
+      - bin/gsnapshot-${_VERSION}-linux-x64.tar.gz
+      - bin/gsnapshot-${_VERSION}-x64.msi
+      - bin/gsnapshot-${_VERSION}-x86.msi

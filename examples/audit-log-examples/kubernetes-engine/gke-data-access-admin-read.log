@@ -1,0 +1,113 @@
+Query: protopayload_auditlog.serviceName:"k8s.io"
+Data Access Log (GKE):
+{
+  "logName": "projects/sample-project/logs/cloudaudit.googleapis.com%2Fdata_access",
+  "resource": {
+    "type": "k8s_cluster",
+    "labels": {
+    "location": "us-central1",
+    "instance_group_manager_name": null,
+    "project_id": "sample-project",
+    "instance_group_manager_id": null,
+    "zone": null,
+    "disk_id": null,
+    "service": null,
+    "method": null,
+    "version": null,
+    "dataset_id": null,
+    "cluster_name": "elk",
+    "name": null,
+    "subscription_id": null,
+    "bucket_name": null,
+    "database_id": null,
+    "region": null,
+    "network_id": null,
+    "instance_id": null,
+    "firewall_rule_id": null,
+    "function_name": null,
+    "reserved_address_id": null,
+    "unique_id": null,
+    "email_id": null,
+    "operation_name": null,
+    "key_ring_id": null,
+    "backend_service_id": null,
+    "instance_group_id": null,
+    "instance_group_name": null,
+    "instance_template_name": null,
+    "instance_template_id": null,
+    "route_id": null,
+    "subnetwork_name": null,
+    "subnetwork_id": null,
+    "health_check_id": null,
+    "forwarding_rule_id": null,
+    "target_http_proxy_id": null,
+    "target_https_proxy_id": null,
+    "ssl_certificate_id": null,
+    "ssl_certificate_name": null,
+    "target_ssl_proxy_id": null,
+    "url_map_id": null,
+    "backend_bucket_id": null,
+    "snapshot_id": null,
+    "policy_name": null
+    }
+  },
+  "protopayload_auditlog": {
+    "serviceName": "k8s.io",
+    "methodName": "io.k8s.coordination.v1.leases.get",
+    "resourceName": "coordination.k8s.io/v1/namespaces/kube-system/leases/kube-scheduler",
+    "resourceLocation": null,
+    "numResponseItems": null,
+    "status": null,
+    "authenticationInfo": {
+    "principalEmail": "system:kube-scheduler",
+    "authoritySelector": null,
+    "serviceAccountKeyName": null,
+    "serviceAccountDelegationInfo": [],
+    "principalSubject": null
+    },
+    "authorizationInfo": [
+    {
+      "resource": "coordination.k8s.io/v1/namespaces/kube-system/leases/kube-scheduler",
+      "permission": "io.k8s.coordination.v1.leases.get",
+      "granted": true,
+      "resourceAttributes": null
+    }
+    ],
+    "requestMetadata": {
+    "callerIp": "2600::111",
+    "callerSuppliedUserAgent": "kube-scheduler/v1.20.8 (linux/amd64) kubernetes/28ab850/leader-election",
+    "callerNetwork": null,
+    "requestAttributes": null,
+    "destinationAttributes": null
+    },
+    "requestJson": null,
+    "servicedata_v1_bigquery": null,
+    "metadataJson": null,
+    "servicedata_v1_iam": null,
+    "responseJson": null
+  },
+  "textPayload": null,
+  "timestamp": "2021-08-11 15:35:06.914207 UTC",
+  "receiveTimestamp": "2021-08-11 15:35:09.210099 UTC",
+  "severity": null,
+  "insertId": "07bc266b-33e8-4353-b731-2db2450d9420",
+  "httpRequest": null,
+  "operation": {
+    "id": "07bc266b-33e8-4353-b731-2db2450d9420",
+    "producer": "k8s.io",
+    "first": true,
+    "last": true
+  },
+  "trace": null,
+  "spanId": null,
+  "traceSampled": null,
+  "sourceLocation": null,
+  "labels": {
+    "authorization_k8s_io_decision": "allow",
+    "authorization_k8s_io_reason": "RBAC: allowed by ClusterRoleBinding \"system:kube-scheduler\" of ClusterRole \"system:kube-scheduler\" to User \"system:kube-scheduler\"",
+    "k8s_io_deprecated": null,
+    "k8s_io_removed_release": null,
+    "audit_k8s_io_truncated": null,
+    "authentication_k8s_io_legacy_token": null
+  }
+}

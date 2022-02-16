@@ -1,0 +1,91 @@
+Query: protoPayload.methodName: "storage.buckets.create"
+Creating Bucket:
+{
+  "protoPayload": {
+    "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+    "status": {},
+    "authenticationInfo": {
+      "principalEmail": "benyan@organization.com"
+    },
+    "requestMetadata": {
+      "callerIp": "8.8.8.8",
+      "callerSuppliedUserAgent": "apitools Python/3.7.3 gsutil/4.66 (linux) analytics/disabled interactive/True command/mb google-cloud-sdk/352.0.0,gzip(gfe)",
+      "requestAttributes": {
+        "time": "2021-08-13T20:52:17.413982948Z",
+        "auth": {}
+      },
+      "destinationAttributes": {}
+    },
+    "serviceName": "storage.googleapis.com",
+    "methodName": "storage.buckets.create",
+    "authorizationInfo": [
+      {
+        "resource": "projects/_/buckets/usage-logs-test-benyan",
+        "permission": "storage.buckets.create",
+        "granted": true,
+        "resourceAttributes": {}
+      }
+    ],
+    "resourceName": "projects/_/buckets/usage-logs-test-benyan",
+    "serviceData": {
+      "@type": "type.googleapis.com/google.iam.v1.logging.AuditData",
+      "policyDelta": {
+        "bindingDeltas": [
+          {
+            "action": "ADD",
+            "role": "roles/storage.legacyBucketOwner",
+            "member": "projectEditor:testproject-320520"
+          },
+          {
+            "action": "ADD",
+            "role": "roles/storage.legacyBucketOwner",
+            "member": "projectOwner:testproject-320520"
+          },
+          {
+            "action": "ADD",
+            "role": "roles/storage.legacyBucketReader",
+            "member": "projectViewer:testproject-320520"
+          }
+        ]
+      }
+    },
+    "request": {
+      "defaultObjectAcl": {
+        "@type": "type.googleapis.com/google.iam.v1.Policy",
+        "bindings": [
+          {
+            "members": [
+              "projectViewer:testproject-320520"
+            ],
+            "role": "roles/storage.legacyObjectReader"
+          },
+          {
+            "role": "roles/storage.legacyObjectOwner",
+            "members": [
+              "projectOwner:testproject-320520",
+              "projectEditor:testproject-320520"
+            ]
+          }
+        ]
+      }
+    },
+    "resourceLocation": {
+      "currentLocations": [
+        "us"
+      ]
+    }
+  },
+  "insertId": "yz4x09e8y5hc",
+  "resource": {
+    "type": "gcs_bucket",
+    "labels": {
+      "bucket_name": "usage-logs-test-benyan",
+      "location": "us",
+      "project_id": "testproject-320520"
+    }
+  },
+  "timestamp": "2021-08-13T20:52:17.406366080Z",
+  "severity": "NOTICE",
+  "logName": "projects/testproject-320520/logs/cloudaudit.googleapis.com%2Factivity",
+  "receiveTimestamp": "2021-08-13T20:52:18.480958763Z"
+}

@@ -17,7 +17,7 @@ import json
 
 class StorageProcessor(Processor):
 
-    def process(self):
+    def process(self, config_key=None):
         data = json.loads(self.data)
         return {
             'object': data,

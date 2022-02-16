@@ -1,0 +1,51 @@
+Query: protoPayload.methodName:"google.admin.AdminService.createUser"
+Workspace Create User:
+{
+  "protoPayload": {
+    "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+    "authenticationInfo": {
+      "principalEmail": "garrettwong@organization.com"
+    },
+    "requestMetadata": {
+      "callerIp": "8.8.8.8",
+      "requestAttributes": {},
+      "destinationAttributes": {}
+    },
+    "serviceName": "admin.googleapis.com",
+    "methodName": "google.admin.AdminService.createUser",
+    "resourceName": "organizations/358329783625/userSettings",
+    "metadata": {
+      "event": [
+        {
+          "eventName": "CREATE_USER",
+          "eventType": "USER_SETTINGS",
+          "parameter": [
+            {
+              "value": "ben@organization.com",
+              "type": "TYPE_STRING",
+              "name": "USER_EMAIL",
+              "label": "LABEL_OPTIONAL"
+            }
+          ]
+        }
+      ],
+      "activityId": {
+        "uniqQualifier": "-8375579481294953117",
+        "timeUsec": "1628889268267000"
+      },
+      "@type": "type.googleapis.com/ccc_hosted_reporting.ActivityProto"
+    }
+  },
+  "insertId": "5u1wmtcnbb",
+  "resource": {
+    "type": "audited_resource",
+    "labels": {
+      "service": "admin.googleapis.com",
+      "method": "google.admin.AdminService.createUser"
+    }
+  },
+  "timestamp": "2021-08-13T21:14:28.267Z",
+  "severity": "NOTICE",
+  "logName": "organizations/358329783625/logs/cloudaudit.googleapis.com%2Factivity",
+  "receiveTimestamp": "2021-08-13T21:14:29.314977415Z"
+}

@@ -1,0 +1,27 @@
+stages:
+  - validate
+  - plan
+  - deploy
+
+variables:
+  SERVICE_ACCOUNT: service-account-name-to-use@project-id.iam.gserviceaccount.com
+
+validate:
+  stage: validate
+  script:
+    - ./terraform-validate.sh
+
+plan:
+  stage: plan
+  script: 
+    - ./terraform-init.sh
+    - ./terraform-plan.sh
+  artifacts:
+    paths:
+      - tfplan.plan
+      - .terraform
+
+deploy:
+  stage: deploy
+  script: 
+    - ./terraform-apply.sh

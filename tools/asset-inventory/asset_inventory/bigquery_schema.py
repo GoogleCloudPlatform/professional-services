@@ -399,9 +399,13 @@ def sanitize_property_value(property_value, depth=0, num_properties=0):
 
     # sanitize each nested list element.
     if isinstance(property_value, list):
-        for array_item in property_value:
-            sanitize_property_value(array_item, depth, num_properties)
-
+        for i in range(len(property_value)):
+            if isinstance(property_value[i], (dict, list)):
+                sanitize_property_value(property_value[i], depth, num_properties)
+            else:
+                # if the list element has a primitive type, we need to re-affect the sanitized value
+                property_value[i] = sanitize_property_value(property_value[i], depth, num_properties)
+    
     # and each nested json object.
     if isinstance(property_value, dict):
         remove_duplicates(property_value)

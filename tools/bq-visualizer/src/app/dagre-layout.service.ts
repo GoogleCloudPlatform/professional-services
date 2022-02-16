@@ -20,7 +20,7 @@ import {QueryStage} from './rest_interfaces';
 
 @Injectable({providedIn: 'root'})
 export class DagreLayoutService {
-  private hasNodeWithId(nodeList, id) {
+  private hasNodeWithId(nodeList:QueryStage[], id:string|number) {
     return nodeList.find(node => node.id === id);
   }
 
@@ -28,10 +28,14 @@ export class DagreLayoutService {
     const g = new dagre.graphlib.Graph();
 
     // define the key options: Top to bottom, and the separation increments
-    g.setGraph({});
-    g.rankDir = 'TB';
-    g.nodesep = 120;
-    g.ranksep = 120;
+    g.setGraph({
+      rankdir: 'TB',
+      nodesep: 120,
+      ranksep:120
+    });
+    //g.rankDir = 'TB';
+    //g.nodesep = 120;
+    //g.ranksep = 120;
 
     // Default to assigning a new object as a label for each new edge.
     g.setDefaultEdgeLabel(() => ({}));

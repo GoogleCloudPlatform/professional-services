@@ -9,6 +9,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [Anthos Service Mesh Multi-Cluster](examples/anthos-service-mesh-multicluster) - Solution to federate two private GKE clusters using Anthos Service Mesh.
 * [Anthos CICD with Gitlab](examples/anthos-cicd-with-gitlab) - A step-by-step guide to create an example CI/CD solution using Anthos and Gitlab.
 * [Audio Content Profiling](examples/ml-audio-content-profiling) - A tool that builds a pipeline to scale the process of moderating audio files for inappropriate content using machine learning APIs.
+* [Cloud Audit Log Samples](examples/audit-log-examples/) - A sample collection of Audit Logs for Users and Customers to better the structure, contents, and values contained in various log events.
 * [BigQuery Audit Log Dashboard](examples/bigquery-audit-log) - Solution to help audit BigQuery usage using Data Studio for visualization and a sample SQL script to query the back-end data source consisting of audit logs.
 * [BigQuery Audit Log Anomaly Detection](examples/bigquery-auditlog-anomaly-detection) - Sample of using BigQuery audit logs for automated anomaly detection and outlier analysis. Generates user friendly graphs for quick bq environment analysis.
 * [BigQuery Automated Email Exports](examples/bq-email-exports) - Serverless solution to automate the sending of BigQuery export results via email on a scheduled interval. The email will contain a link to a signed or unsigned URL, allowing the recipient to view query results as a JSON, CSV, or Avro file.
@@ -46,8 +47,10 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [Dataflow DLP Hashpipeline](examples/dataflow-dlp-hash-pipeline) - Match DLP Social Security Number findings against a hashed dictionary in Firestore. Use Secret Manager for the hash key.
 * [Dataflow Template Pipelines](https://github.com/GoogleCloudPlatform/DataflowTemplates) - Pre-implemented Dataflow template pipelines for solving common data tasks on Google Cloud Platform.
 * [Dataflow Production Ready](examples/dataflow-production-ready) - Reference implementation for best practices around Beam, pipeline structuring, testing and continuous deployment.
+* [Dataflow XML to BigQuery](examples/dataflow-xmlio-to-bq) - Example of loading XML data into BigQuery with DataFlow via XMLIO.
 * [Dataproc GCS Connector](examples/dataproc-gcs-connector) - Install and test unreleased features on the GCS Connector for Dataproc.
 * [Dataproc Persistent History Server for Ephemeral Clusters](examples/dataproc-persistent-history-server) - Example of writing logs from an ephemeral cluster to GCS and using a separate single node cluster to look at Spark and YARN History UIs.
+* [dbt-on-cloud-composer](examples/dbt-on-cloud-composer) - Example of using dbt to manage BigQuery data pipelines, utilizing Cloud Composer to run and schedule the dbt runs.
 * [Dialogflow Webhook Example](examples/dialogflow-webhook-example) - Webhook example for dialogflow in Python.
 * [Dialogflow Entities Creation and Update](examples/dialogflow-entities-example) - Creation and update of entities for Dialogflow in Python.
 * [DLP API Examples](examples/dlp) - Examples of the DLP API usage.
@@ -67,12 +70,14 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [TensorFlow Unit Testing](examples/tensorflow-unit-testing) - Examples how to write unit tests for TensorFlow ML models.
 * [Terraform Internal HTTP Load Balancer](examples/terraform-ilb) - Terraform example showing how to deploy an internal HTTP load balancer.
 * [Uploading files directly to Google Cloud Storage by using Signed URL](examples/direct-upload-to-gcs) - Example architecture to enable uploading files directly to GCS by using [Signed URL](https://cloud.google.com/storage/docs/access-control/signed-urls).
+* [Vertex AI MLOps Pipeline](examples/vertex_pipeline) - Demonstrates end-to-end MLOps process using Vertex AI platform and Smart Analytics technology capabilities.
 
 ## Tools
 The tools folder contains ready-made utilities which can simplify Google Cloud Platform usage.
 
 * [Agile Machine Learning API](tools/agile-machine-learning-api) - A web application which provides the ability to train and deploy ML models on Google Cloud Machine Learning Engine, and visualize the predicted results using LIME through simple post request.
 * [Airpiler](tools/airpiler) - A python script to convert Autosys JIL files to dag-factory format to be executed in Cloud Composer (managed airflow environment).
+* [Anthos Bare Metal Installer](tools/anthosbm-ansible-module) - An [ansible](https://www.ansible.com/resources/get-started) playbook that can be used to install [Anthos Bare Metal](https://cloud.google.com/anthos/clusters/docs/bare-metal).
 * [Apache Beam Client Throttling](tools/apachebeam-throttling) - A library that can be used to limit the number of requests from an Apache Beam pipeline to an external service. It buffers requests to not overload the external service and activates client-side throttling when the service starts rejecting requests due to out of quota errors.
 * [API Key Rotation Checker](tools/api-key-rotation) - A tool that checks your GCP organization for API keys and compares them to a customizable rotation period. Regularly rotating API keys is a Google and industry standard recommended best practice.
 * [AssetInventory](tools/asset-inventory) - Import Cloud Asset Inventory resourcs into BigQuery.
@@ -91,6 +96,7 @@ The tools folder contains ready-made utilities which can simplify Google Cloud P
   either raw images or image annotation files in PASCAL VOC format.
 * [CUD Prioritized Attribution](tools/cuds-prioritized-attribution) - A tool that allows GCP customers who purchased Committed Use Discounts (CUDs) to prioritize a specific scope (e.g. project or folder) to attribute CUDs first before letting any unconsumed discount float to other parts of an organization.
 * [Custom Role Manager](tools/custom-role-manager) - Manages organization- or project-level custom roles by combining predefined roles and including and removing permissions with wildcards. Can run as Cloud Function or output Terraform resources.
+* [Composer Backup and Recovery](tools/cloud-composer-backup-restore) - A command line tool for applying backup and recovery operations on Cloud Composer Airflow environments. 
 * [DNS Sync](tools/dns-sync) - Sync a Cloud DNS zone with GCE resources. Instances and load balancers are added to the cloud DNS zone as they start from compute_engine_activity log events sent from a pub/sub push subscription. Can sync multiple projects to a single Cloud DNS zone.
 * [Firewall Enforcer](tools/firewall-enforcer) - Automatically watch & remove illegal firewall rules across organization. Firewall rules are monitored by a Cloud Asset Inventory Feed, which trigger a Cloud Function that inspects the firewall rule and deletes it if it fails a test.
 * [GCE Disk Encryption Converter](tools/gce-google-keys-to-cmek) - A tool that converts disks attached to a GCE VM instance from Google-managed keys to a customer-managed key stored in Cloud KMS.
@@ -109,14 +115,17 @@ creates relationships between assets and outputs a format compatible with [graph
 * [GSuite Exporter](tools/gsuite-exporter/) - A Python package that automates syncing Admin SDK APIs activity reports to a GCP destination. The module takes entries from the chosen Admin SDK API, converts them into the appropriate format for the destination, and exports them to a destination (e.g: Stackdriver Logging).
 * [Hive to BigQuery](tools/hive-bigquery/) - A Python framework to migrate Hive table to BigQuery using Cloud SQL to keep track of the migration progress.
 * [IAM Recommender at Scale](tools/iam-recommender-at-scale) - A python package that automates applying iam recommendations.
+* [IPAM Autopilot](tools/ipam-autopilot) - A simple tool for managing IP address ranges for GCP subnets.
 * [LabelMaker](tools/labelmaker) - A tool that reads key:value pairs from a json file and labels the running instance and all attached drives accordingly.
 * [Machine Learning Auto Exploratory Data Analysis and Feature Recommendation](tools/ml-auto-eda) - A tool to perform comprehensive auto EDA, based on which feature recommendations are made, and a summary report will be generated.
 * [Maven Archetype Dataflow](tools/maven-archetype-dataflow) - A maven archetype which bootstraps a Dataflow project with common plugins pre-configured to help maintain high code quality.
 * [Netblock Monitor](tools/netblock-monitor) - An Apps Script project that will automatically provide email notifications when changes are made to Google’s IP ranges.
+* [OpenAPI to Cloud Armor converter](tools/openapi-to-cloud-armor) - A simple tool to generate Cloud Armor policies from OpenAPI specifications.
 * [Permission Discrepancy Finder](tools/permission-discrepancy-finder) - A tool to find the principals with missing permissions on a resource within a project, subsequently, grants them the missing permissions.
 * [Pubsub2Inbox](tools/pubsub2inbox) - A generic Cloud Function-based tool that takes input from Pub/Sub messages and turns them into email, webhooks or GCS objects.
 * [Quota Manager](tools/quota-manager) - A python module to programmatically update GCP service quotas such as bigquery.googleapis.com.
 * [Secret Manager Helper](tools/secret-manager-helper) - A Java library to make it easy to replace placeholder strings with Secret Manager secret payloads.
+* [Service Account Provider](tools/service-account-provider) - A tool to exchange GitLab CI JWT tokens against GCP IAM access tokens, in order to allow GitLab CI jobs to access Google Cloud APIs
 * [Site Verification Group Sync](tools/site-verification-group-sync) - A tool to provision "verified owner" permissions (to create GCS buckets with custom dns) based on membership of a Google Group.
 * [SLO Generator](tools/slo-generator/) - A Python package that automates computation of Service Level Objectives, Error Budgets and Burn Rates on GCP,  and export the computation results to available exporters (e.g: PubSub, BigQuery, Stackdriver Monitoring), using policies written in JSON format.
 * [Snowflake_to_BQ](tools/snowflake2bq/) - A shell script to transfer tables (schema & data) from Snowflake to BigQuery.

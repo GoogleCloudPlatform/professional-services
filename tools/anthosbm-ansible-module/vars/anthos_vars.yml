@@ -16,6 +16,9 @@ login_user: anthos
 login_user_group: anthos
 login_user_home: /home/anthos
 
+# node login user, when "login_user" used for admin node is different for worker node.
+# node_login_user: anthos2
+
 # Possible values: ubuntu | rhel 
 # Use rhel for CentOS as well
 os_type: "ubuntu"
@@ -65,3 +68,5 @@ admin_kubeconfig_path:
 cgw_members: 
 - user:EXAMPLE_USER@google.com
 - serviceAccount:EXAMPLE_SA@GCP_PROJECT_ID.iam.gserviceaccount.com
+# Provide multiple NIC for pods - https://cloud.google.com/anthos/clusters/docs/bare-metal/latest/how-to/multi-nic
+# multi_nic: true

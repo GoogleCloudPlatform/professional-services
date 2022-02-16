@@ -49,3 +49,13 @@ override.tf.json
 .terraformrc
 terraform.rc
 /cloudbuild/.terraform.lock.hcl
+.vscode/
+tools/ipam-autopilot/provider/bin/terraform-provider-ipam_0.3_darwin_amd64
+tools/ipam-autopilot/provider/bin/terraform-provider-ipam_0.3_darwin_arm64
+tools/ipam-autopilot/provider/bin/terraform-provider-ipam_0.3_freebsd_386
+tools/ipam-autopilot/provider/bin/terraform-provider-ipam_0.3_freebsd_amd64
+tools/ipam-autopilot/provider/examples/.terraform.lock.hcl
+tools/ipam-autopilot/container/.vscode/launch.json
+tools/ipam-autopilot/infrastructure/.terraform.lock.hcl
+tools/ipam-autopilot/container/.vscode/launch.json
+tools/ipam-autopilot/examples/.terraform.lock.hcl

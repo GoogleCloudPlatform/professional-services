@@ -1,0 +1,41 @@
+# Copyright 2021 Google LLC. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Deploy Model
+inputs:
+- {name: project_id, type: String}
+- {name: data_region, type: String}
+- {name: data_pipeline_root, type: String}
+- {name: machine_type, type: String}
+- {name: min_replica_count, type: Integer}
+- {name: max_replica_count, type: Integer}
+- {name: model, type: Model}
+- {name: endpoint, type: Artifact}
+outputs:
+implementation:
+  container:
+    image: {{af_registry_location}}-docker.pkg.dev/{{project_id}}/{{af_registry_name}}/component-base:latest
+    command: [python, /pipelines/component/src/deploy.py]
+    args: [
+      --executor_input, {executorInput: null},
+      --function_to_execute, deploy_model,
+      --project-id, {inputValue: project_id},
+      --data-region, {inputValue: data_region},
+      --data-pipeline-root, {inputValue: data_pipeline_root},
+      --machine-type, {inputValue: machine_type},
+      --min-replica-count, {inputValue: min_replica_count},
+      --max-replica-count, {inputValue: max_replica_count},
+      --model, {inputPath: model},
+      --endpoint, {inputPath: endpoint}
+    ]
