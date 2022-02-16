@@ -29,7 +29,7 @@ The Demo dashboard showing the final output is available <a href="https://datast
     account(SA) that would be executing the deployment steps. An admin can create a custom role and assign it to the user/SA by following the example <a href="https://cloud.google.com/iam/docs/creating-custom-roles#creating_a_custom_role" target="_blank">here</a>
     * resourcemanager.organizations.getIamPolicy
     * resourcemanager.organizations.setIamPolicy
-  * Assign the following permissions at project level to the user or service account that
+  * Assign the following roles at project level to the user or service account that
     would be executing the deployment steps
     * roles/appengine.appCreator
     * roles/appengine.appViewer
