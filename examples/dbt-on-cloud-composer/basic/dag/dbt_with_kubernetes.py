@@ -45,8 +45,7 @@ default_args = {
 
 # Select and use the correct Docker image from the private Google Cloud Repository (GCR)
 IMAGE = 'gcr.io/{project}/dbt-builder-basic:latest'.format(
-    project=project,
-    env=env
+    project=project
 )
 
 # A Secret is an object that contains a small amount of sensitive data such as
