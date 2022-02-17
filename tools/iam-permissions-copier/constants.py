@@ -29,12 +29,8 @@ ALL_RESOURCES_IN_PROCESSING_ORDER = [
     Organization,
 ]
 
-ORGANIZATION_NAME = "sampleorg.com"
+ORGANIZATION_NAME = "mydomain.com"
 MATCHER_EXPRESSION = rf"user:(.*)%{ORGANIZATION_NAME}@gtempaccount.com"
-FORMAT_MATCHER = lambda match: "user:{name}@{ORGANIZATION_NAME}".format(
-    name=match.group(1)
+FORMAT_MATCHER = lambda match: "user:{name}@{org}".format(
+    name=match.group(1), org=ORGANIZATION_NAME
 )
-
-if __name__ == "__main__":
-    print(MATCHER_EXPRESSION)
-    print(FORMAT_MATCHER)
