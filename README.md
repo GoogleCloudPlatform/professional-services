@@ -50,14 +50,11 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [Dataflow XML to BigQuery](examples/dataflow-xmlio-to-bq) - Example of loading XML data into BigQuery with DataFlow via XMLIO.
 * [Dataproc GCS Connector](examples/dataproc-gcs-connector) - Install and test unreleased features on the GCS Connector for Dataproc.
 * [Dataproc Persistent History Server for Ephemeral Clusters](examples/dataproc-persistent-history-server) - Example of writing logs from an ephemeral cluster to GCS and using a separate single node cluster to look at Spark and YARN History UIs.
-<<<<<<< HEAD
-* [Dialoflow Webhook Example](examples/dialogflow-webhook-example) - Webhook example for dialogflow in Python.
-=======
 * [dbt-on-cloud-composer](examples/dbt-on-cloud-composer) - Example of using dbt to manage BigQuery data pipelines, utilizing Cloud Composer to run and schedule the dbt runs.
 * [Dialogflow Webhook Example](examples/dialogflow-webhook-example) - Webhook example for dialogflow in Python.
 * [Dialogflow Entities Creation and Update](examples/dialogflow-entities-example) - Creation and update of entities for Dialogflow in Python.
->>>>>>> upstream/main
 * [DLP API Examples](examples/dlp) - Examples of the DLP API usage.
+* [firestore-pubsub-dfdl-example](example/firestore-pubsub-dfdl-example) - Daffodil libraries to process binaries using DFDL definitions and transform into json. The example uses firestore to storage the definition to be applied and pubsub messaging system to request a transformation and send back the transform binary in a json format.
 * [GCE Access to Google AdminSDK](examples/gce-to-adminsdk) - Example to help manage access to Google's AdminSDK using GCE's service account identity
 * [Home Appliance Status Monitoring from Smart Power Readings](examples/e2e-home-appliance-status-monitoring) - An end-to-end demo system featuring a suite of Google Cloud Platform products such as IoT Core, ML Engine, BigQuery, etc.
 * [IAP User Profile](examples/iap-user-profile) - An example to retrieve user profile from an IAP-enabled GAE application.
