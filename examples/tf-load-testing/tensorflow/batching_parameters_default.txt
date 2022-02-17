@@ -1,4 +1,0 @@
-max_batch_size {{ value: {max_batch_size} }}
-batch_timeout_micros {{ value: {batch_timeout_micros} }}
-max_enqueued_batches {{ value: {max_enqueued_batches} }}
-num_batch_threads {{ value: {num_batch_threads} }}
