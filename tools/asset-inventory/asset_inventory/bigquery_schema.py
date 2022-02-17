@@ -36,6 +36,7 @@ This module helps import json documents into BigQuery.
 """
 
 import copy
+from collections import defaultdict
 from numbers import Number
 import re
 
@@ -48,8 +49,10 @@ TIMESTAMP_REGEX = re.compile(
 DATE_REGEX = re.compile(r'^\d\d\d\d-\d\d-\d\d$')
 BQ_MAX_NUMERIC = 99999999999999999999999999999.999999999
 BQ_MIN_NUMERIC = -99999999999999999999999999999.999999999
-MAX_BQ_COL_NAME_LENGTH = 128
+BQ_MAX_COL_NAME_LENGTH = 128
 BQ_NUMERIC_SCALE_DIGITS = 9
+BQ_MAX_DEPTH = 15
+BQ_MAX_COLUMNS = 10000
 
 
 def is_number(s):
@@ -121,6 +124,13 @@ def get_field_by_name(fields, field_name):
     return None, None
 
 
+def is_additonal_properties(fields):
+    return fields and len(fields) == 2 and all(
+        (f.get('name', None) == 'name'
+         and f.get('description', None) == 'additionalProperties name')
+        or (f.get('name', None) == 'value') for f in fields)
+
+
 def _merge_fields(destination_field, source_field):
     """Combines two SchemaField like dicts.
 
@@ -140,19 +150,46 @@ def _merge_fields(destination_field, source_field):
     sd = source_field.get('description', None)
     dft = destination_field.get('field_type', None)
     sft = source_field.get('field_type', None)
-    # use the  field with more information.
+    # use the field with more information.
     if ((not dd and sd) or (sd and dd and len(dd) < len(sd))):
         field['description'] = sd
         field['field_type'] = sft
-    # use the less specific type.
+    # use the less specific type. and join fields
     elif ((dft != 'RECORD' and dft != 'STRING') and sft == 'STRING'):
         field['field_type'] = sft
-    df = destination_field.get('fields', [])
+
+    # https://github.com/GoogleCloudPlatform/professional-services/issues/614
+    # Use the schema with the additonalProperties overrides. See
+    # api_schema._get_properties_map_field_list which creates the
+    # additionalProperties RECORD type and enforce_schema_data_types for where
+    # documents of type RECORD are converted to the REPEATED additonalProperties
+    # name value pairs.
+    def merge_additional_properties_fields(apf, fields):
+        i, value_field = get_field_by_name(apf, 'value')
+        for f in fields:
+            if f.get('name', None) not in ('name', 'value'):
+                value_field = _merge_fields(value_field, f)
+        apf[i] = value_field
+
     sf = source_field.get('fields', [])
-    merged_fields = _merge_schema(df, sf)
-    # recursivly merge nested fields.
-    if merged_fields != df:
-        field['fields'] = merged_fields
+    df = destination_field.get('fields', [])
+    if is_additonal_properties(sf) and not is_additonal_properties(df):
+        field['mode'] = 'REPEATED'
+        sf = copy.deepcopy(sf)
+        merge_additional_properties_fields(sf, df)
+        field['fields'] = sf
+    elif is_additonal_properties(df) and not is_additonal_properties(sf):
+        field['mode'] = 'REPEATED'
+        merge_additional_properties_fields(df, sf)
+        field['fields'] = df
+    elif is_additonal_properties(df) and is_additonal_properties(sf):
+        field['mode'] = 'REPEATED'
+        merge_additional_properties_fields(df, sf)
+        field['fields'] = df
+    else:
+        mf = _merge_schema(df, sf)
+        if mf:
+            field['fields'] = mf
     return field
 
 
@@ -223,10 +260,10 @@ def _convert_labels_dict_to_list(parent):
     return parent
 
 
-def _sanitize_property(property_name, parent, depth):
+def _sanitize_property(property_name, parent, depth, num_properties):
     """Clean up json property for import into BigQuery.
 
-    Enforces some BigQuery requirements (see _santize_property_value for some
+    Enforces some BigQuery requirements (see _sanitize_property_value for some
     others):
 
     1. Covert all properties named "labels" from maps into list of "name",
@@ -250,6 +287,7 @@ def _sanitize_property(property_name, parent, depth):
         property_name: Name of the property in the json oject.
         parent: The json object containing the property.
         depth: How nested within the original document we are.
+        num_properties: How many properties into the document we are.
     """
     # if property was removed earlier, nothing to sanitize.
     if property_name not in parent:
@@ -257,10 +295,14 @@ def _sanitize_property(property_name, parent, depth):
 
     # enforce column name requirements (condition #2).
     new_property_name = CLEAN_UP_REGEX.sub('', property_name)
+    # contains only non-word characters. just drop the property.
+    if not new_property_name:
+        parent.pop(property_name)
+        return
     first_character = new_property_name[0]
     if not first_character.isalpha() and first_character != '_':
         new_property_name = '_' + new_property_name
-    new_property_name = new_property_name[:MAX_BQ_COL_NAME_LENGTH]
+    new_property_name = new_property_name[:BQ_MAX_COL_NAME_LENGTH]
 
     # check if property was changed.
     if property_name != new_property_name:
@@ -275,7 +317,8 @@ def _sanitize_property(property_name, parent, depth):
     property_value = parent[new_property_name]
 
     # recursivly descend.
-    sanitized = sanitize_property_value(property_value, depth=depth + 1)
+    sanitized = sanitize_property_value(property_value, depth=depth + 1,
+                                        num_properties=num_properties)
 
     # else the value could have changed.
     parent[new_property_name] = sanitized
@@ -288,32 +331,32 @@ def _sanitize_property(property_name, parent, depth):
         # prune the value.
         parent.pop(new_property_name)
 
-    # remove duplicates (condition #4)
-    remove_duplicates(new_property_name, parent)
 
-
-def remove_duplicates(property_name, properties):
-    """Ensure no other property in properties share the same name.
+def remove_duplicates(properties):
+    """Ensure no two property in properties share the same name.
 
     Args:
-        property_name: name of property to check for.
         properties: dictionary to modify.
 
     BigQuery is case insensitive, remove any lexically greater property
     in the dictionary that differ only by case.
     """
-    duplicates = []
-    for k in properties.keys():
-        if k.lower() == property_name.lower():
-            duplicates.append(k)
-    if len(duplicates) > 1:
-        selected_property = min(duplicates)
-        for p in duplicates:
-            if p != selected_property:
-                properties.pop(p)
+    duplicates = defaultdict(list)
+    # find duplicate properties
+    for k in properties:
+        duplicates[k.casefold()] += [k]
+
+    for k in duplicates:
+        duplicate_properties = duplicates[k]
+        # remove any properties that are duplicate
+        if len(duplicate_properties) > 1:
+            selected_property = min(duplicate_properties)
+            for p in duplicate_properties:
+                if p != selected_property:
+                    properties.pop(p)
 
 
-def sanitize_property_value(property_value, depth=0):
+def sanitize_property_value(property_value, depth=0, num_properties=0):
     """Modifies supplied json object for BigQuery load.
 
     Traverses the json object and modifies it to conform to BigQuery
@@ -326,17 +369,24 @@ def sanitize_property_value(property_value, depth=0):
     2. rounds/truncates numeric values to be between BigQuery limits for NUMERIC
     values.
 
+    3. Prunes any value after the 10,000'th property.
+
     Args:
         property_value: Json object.
-        depth: Level of embedding within the json document.
+        depth: Level of embedding within the document.
+        num_properties: Number of properties processed within the document.
     Returns:
         Modified json object.
 
     """
 
-    # BigQuery can't deal with more then 15 nested fields.
+    # BigQuery can't deal with too many nested fields.
     # prune it.
-    if depth > 15:
+    if depth > BQ_MAX_DEPTH:
+        return {}
+
+    # BigQuery can't handle too many columns.
+    if num_properties > BQ_MAX_COLUMNS:
         return {}
 
     # NUMERIC data type is an exact numeric value with 38 digits of precision
@@ -349,14 +399,22 @@ def sanitize_property_value(property_value, depth=0):
 
     # sanitize each nested list element.
     if isinstance(property_value, list):
-        for array_item in property_value:
-            sanitize_property_value(array_item, depth)
-
+        for i in range(len(property_value)):
+            if isinstance(property_value[i], (dict, list)):
+                sanitize_property_value(property_value[i], depth, num_properties)
+            else:
+                # if the list element has a primitive type, we need to re-affect the sanitized value
+                property_value[i] = sanitize_property_value(property_value[i], depth, num_properties)
+    
     # and each nested json object.
     if isinstance(property_value, dict):
+        remove_duplicates(property_value)
         for child_property in dict(property_value):
-            _sanitize_property(child_property, property_value, depth)
-
+            # count it.
+            num_properties += 1
+            # sanitize each property.
+            _sanitize_property(child_property, property_value, depth,
+                               num_properties)
     return property_value
 
 
@@ -426,7 +484,14 @@ def enforce_schema_data_types(resource, schema):
         if field_name in resource:
             resource_value = resource[field_name]
             if field.get('mode', 'NULLABLE') == 'REPEATED':
-                if not isinstance(resource_value, list):
+                # satisfy array condition by converting dict into
+                # repeated name value records.
+                # this handles any 'additonalProperties' types.
+                if (field['field_type'] == 'RECORD' and
+                    isinstance(resource_value, dict)):
+                    resource_value = [{'name': key, 'value': val}
+                                      for (key, val) in resource_value.items()]
+                elif not isinstance(resource_value, list):
                     resource_value = [resource_value]
                 new_array = []
                 for value in resource_value:

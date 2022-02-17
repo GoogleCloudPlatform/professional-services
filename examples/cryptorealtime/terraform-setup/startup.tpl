@@ -23,7 +23,7 @@ sudo python3 get-pip.py
 sudo pip3 install virtualenv
 virtualenv -p python3 venv
 source venv/bin/activate
-sudo apt -y --allow-downgrades install openjdk-8-jdk git maven google-cloud-sdk=271.0.0-0 google-cloud-sdk-cbt=271.0.0-0 
+sudo apt -y --allow-downgrades install openjdk-8-jdk git maven google-cloud-sdk=271.0.0-0 google-cloud-sdk-cbt=271.0.0-0
 cd ~
 git clone https://github.com/galic1987/professional-services
 cd professional-services/examples/cryptorealtime/

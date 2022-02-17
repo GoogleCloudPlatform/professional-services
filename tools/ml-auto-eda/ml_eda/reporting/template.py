@@ -42,6 +42,10 @@ SUB_SUB_SUB_SECTION_TITLE = """
 ##### {content}
 """
 
+DESCRIPTION_TEMPLATE = """
+{content}
+"""
+
 BOLD = "**{content}**"
 
 LIST_TEMPLATE = """{level}* {content}"""
@@ -91,9 +95,28 @@ TARGET_METRIC_HIGHLIGHT_TEMPLATE = """
 {row_content}
 """
 
+TARGET_HEADLINE_TEMPLATE = """
+Target: {target}
+      
+Type: {target_type}
+"""
 TARGET_METRIC_HIGHLIGHT_ROW_TEMPLATE = "**{name}**|{values}"
 
-HIGH_CARDINALITY = "{name} has a high cardinality: {value} distinct values"
-HIGH_MISSING = "{name} has {value} missing values"
-HIGH_CORRELATION = "{name_one} is highly correlated with {name_two} ({metric} = {value})"  # pylint: disable=line-too-long
-LOW_P_VALUE = "{name_one} is correlated with {name_two} ({metric} = {value} from {test_name})"  # pylint: disable=line-too-long
+HIGH_CARDINALITY = "`{name}` has a high cardinality: {value} distinct values"
+HIGH_MISSING = "`{name}` has {value} missing values"
+HIGH_CORRELATION = "`{name_one}` is highly correlated with `{name_two}` ({metric} = {value})"  # pylint: disable=line-too-long
+LOW_P_VALUE = "`{name_one}` is correlated with `{name_two}` ({metric} = {value})"  # pylint: disable=line-too-long
+
+JOB_CONFIG_TEMPLATE = """
+```ini
+{config_content}
+```
+"""
+
+CLI_PARAM_LIST_TEMPLATE = """{param}={value}"""
+
+CLI_PARAM_TEMPLATE = """
+```shell
+{param_content}
+```
+"""

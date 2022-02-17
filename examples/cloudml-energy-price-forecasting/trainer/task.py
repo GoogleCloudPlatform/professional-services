@@ -34,10 +34,10 @@ import model
 
 def initialise_params():
     """Parses all arguments and assigns default values when missing.
-    
+
     Convert argument strings to objects and assign them as attributes of the
     namespace.
-    
+
     Returns:
         An object containing all the parsed arguments for script to use.
     """

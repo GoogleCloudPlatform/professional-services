@@ -27,15 +27,16 @@ class DataPreprocessor(metaclass=ABCMeta):
   preprocessing engine should implement."""
 
   @abstractmethod
-  def extract_anova_data(self, categorical_column, numeric_column):
+  def extract_anova_data(self, categorical_column,
+                         numeric_column, sampling_rate):
     """Abstract method for data extraction of anova test"""
 
   @abstractmethod
-  def extract_categorical_aggregation(self, categorical_columns):
+  def extract_categorical_aggregation(self, categorical_columns, sampling_rate):
     """Abstract method for data extraction of categorical data aggregation"""
 
   @abstractmethod
-  def extract_pearson_correlation_data(self, numerical_columns):
+  def extract_pearson_correlation_data(self, numerical_columns, sampling_rate):
     """Abstract method for data extraction of pearson correlation computation"""
 
   @abstractmethod

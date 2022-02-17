@@ -7,7 +7,7 @@ Step 2 launches a GCE VM Instance from the image created by Step 1.
 
 ## What is an Edge Node?
 
-An Edge Node is a user-facing VM Instance configured to interact with a remote Dataproc cluster. 
+An Edge Node is a user-facing VM Instance configured to interact with a remote Dataproc cluster.
 
 The relationship is similar to a reverse proxy placed in front of a web application.
 
@@ -25,7 +25,7 @@ Additional work would be required to configure an edge nodes to interact with a 
 If you are operating a secure cluster, the cluster is kerberized, and firewall rules allow only a limited set of ports for your edge nodes to communicate with the master and worker nodes. Your security policy will require authorization and auditing of SSH access to edge nodes, master and worker nodes, which may require integration with Active Directory using a third party tool. Your users will need to store kerberos keytabs on edge nodes to interact with kerberized services. A detailed consideration all of these necessary is unfortunately outside the scope of this example.
 
 
-## Additional Warning 
+## Additional Warning
 
 Proper use of edge nodes requires advanced configuration and understanding of Hadoop and Dataproc. Edge nodes are completely unsupported and actively recommended against by the Dataproc engineering team because of the significant amount of work required to maintain and troubleshoot the complex issues that arise as a result of using edge nodes.
 
@@ -41,7 +41,7 @@ This repository is provided only to demonstrate the possible foundations of a so
 
 ### Edge Node Launch
 
-1. Modify [edgenode_env](edgenode_env) to configure variables used to create a Dataproc Edge 
+1. Modify [edgenode_env](edgenode_env) to configure variables used to create a Dataproc Edge
 Node
 2. Run `2_launch-edgenode.sh` to launch a GCE VM Instance from the edgenode image.
 
@@ -92,7 +92,7 @@ Node
 
 ```
 ERROR org.apache.spark.deploy.yarn.ApplicationMaster: User class threw exception: java.io.IOException: Cannot run program "/opt/conda/default/bin/python": error=2, No such file or directory
-```    
+```
 
 `spark-submit` may fail due to version mismatch even when `spark-shell` or `pyspark` run correctly.
 
@@ -112,14 +112,14 @@ As of March 2019, `1.3-deb9` image version uses Python 2.7 while `preview` uses 
 1. Find the Dataproc Server cluster name and the image version to be referenced in the automation script
 
 2. Decide the network tag to be used for the Dataproc client VM and use that to set up the firewall rules for the following ports to be opened.
-- Client to master connection: for example, Hive: 10000 (hive server),9083 (hive metastore), spark: 7077 (spark master port), 7078 (spark worker port) 
-- Spark web server: 18080 (spark master web ui port), - user temrinal to master
+- Client to master connection: for example, Hive: 10000 (hive server),9083 (hive metastore), spark: 7077 (spark master port), 7078 (spark worker port)
+- Spark web server: 18080 (spark master web ui port), - user terminal to master
 
 3. Create Client Dataproc VM with the above instructions
 
 4. Validate the success criterion have been met
 - Test Hive CLI: User should be able to query tables stored on master Dataproc hive server
-- Test Spark Shell ( `spark-shell` for scala and `pyspark` for python): Note that it might take a while to initiate the shell. The job submitted on client VM should be shown on master Dataproc spark history-server UI (http://<spark_host_ip>:18080) - but it may only be shown after `exit()` the shell. 
+- Test Spark Shell ( `spark-shell` for scala and `pyspark` for python): Note that it might take a while to initiate the shell. The job submitted on client VM should be shown on master Dataproc spark history-server UI (http://<spark_host_ip>:18080) - but it may only be shown after `exit()` the shell.
 - Test spark-submit: The job submitted on client VM should be shown on master Dataproc spark history-server UI (http://<spark_host_ip>:18080)
 
 

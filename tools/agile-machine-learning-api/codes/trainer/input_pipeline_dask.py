@@ -75,7 +75,7 @@ class InputReader(object):
         """
         A Wrapper function for parsing csv files
 
-        Returns: 
+        Returns:
             _parse_csv function
         """
         return self._parse_csv()

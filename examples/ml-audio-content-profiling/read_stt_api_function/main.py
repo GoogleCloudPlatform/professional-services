@@ -392,7 +392,7 @@ def main(data: dict, context) -> None:
                 # Speech-to-text returned an empty response.
                 if stt_response is None:
                     error_message = '''
-                                    Speech-to-text API request returned empty 
+                                    Speech-to-text API request returned empty
                                     response.'''
                     logging.error(error_message)
                     copy_file(gcs_client, staging_bucket_name,
@@ -420,8 +420,8 @@ def main(data: dict, context) -> None:
                                     job['file'])
                     else:
                         error_message = '''
-                                        STT API request completed. Parsing the 
-                                        output returned a blank response. 
+                                        STT API request completed. Parsing the
+                                        output returned a blank response.
                                         Transcription may be blank, indicating no
                                         audio found.'''
                         logging.error(error_message)

@@ -18,7 +18,7 @@ from datetime import datetime
 import json
 
 from tzlocal import get_localzone
-from . import make_iap_request as iap
+import make_iap_request as iap
 
 
 def main():

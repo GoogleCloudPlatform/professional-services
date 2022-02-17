@@ -1,0 +1,31 @@
+# Copyright 2021 Google LLC. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+gcp:
+  project_id: woven-rush-197905
+  af_registry_location: asia-southeast1
+  af_registry_name: mlops-vertex-kit
+
+pipelines:
+  pipeline_region: asia-southeast1
+  pipeline_storage_path: gs://vertex_pipeline_demo_root/root
+  pipeline_component_directory: ../components
+
+train:
+  name: training-pipeline-template
+  pipeline_job_spec_path: pipeline_spec/training_pipeline_job.json
+
+predict:
+  name: batch-prediction-pipeline-template
+  pipeline_job_spec_path: pipeline_spec/batch_prediction_pipeline_job.json

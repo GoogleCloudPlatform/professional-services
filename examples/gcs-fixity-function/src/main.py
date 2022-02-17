@@ -24,8 +24,8 @@ import json
 from datetime import datetime
 from google.cloud import storage, bigquery
 
-FIXITY_MANIFEST_NAME = 'manifest-md5sum.txt'
-DATA_DIRECTORY_NAME = 'data'  # Do not include trailing slash here
+FIXITY_MANIFEST_NAME = "manifest-md5sum.txt"
+DATA_DIRECTORY_NAME = "data"  # Do not include trailing slash here
 
 
 def main(event, context):
@@ -34,12 +34,12 @@ def main(event, context):
         event (obj): PubSub event data
         context (obj): Object that contains event context information
     """
-    if 'data' in event:
-        event = json.loads(base64.b64decode(event['data']).decode('utf-8'))
-    print('Event: ' + str(event))
-    print('Context: ' + str(context))
-    if event == {} or is_manifest(context) == False:
-        bucket_name = os.environ['BUCKET']
+    if "data" in event:
+        event = json.loads(base64.b64decode(event["data"]).decode("utf-8"))
+    print("Event: " + str(event))
+    print("Context: " + str(context))
+    if event == {} or is_manifest(context) is False:
+        bucket_name = os.environ["BUCKET"]
         storage_client = storage.Client()
         bucket = storage_client.get_bucket(bucket_name)
         bags = get_bags(bucket, None)
@@ -56,7 +56,7 @@ def match_bag(context, bags):
         context (obj): Object that contains event context information
         bags (set): List of bags to match against
     """
-    filename = context.resource['name']
+    filename = context.resource["name"]
     for bag in bags:
         if bag in filename:
             return [bag]
@@ -70,9 +70,9 @@ def get_bags(bucket, top_prefix=None):
     prefixes = set()
     top_prefixes = get_prefixes(bucket, top_prefix)
     for prefix in top_prefixes:
-        if prefix.endswith(f'{DATA_DIRECTORY_NAME}/'):
+        if prefix.endswith(f"{DATA_DIRECTORY_NAME}/"):
             prefixes.add(
-                re.sub(r'\/' + re.escape(DATA_DIRECTORY_NAME) + r'\/$', '',
+                re.sub(r"\/" + re.escape(DATA_DIRECTORY_NAME) + r"\/$", "",
                        prefix))  # remove data/ from bag name
         else:
             prefixes.update(get_bags(bucket, prefix))
@@ -85,7 +85,7 @@ def get_prefixes(bucket, prefix=None):
         bucket (obj): Bucket object to retrieve prefixes against
         prefix (str): Prefix to look for nested prefixes underneath
     """
-    iterator = bucket.list_blobs(prefix=prefix, delimiter='/')
+    iterator = bucket.list_blobs(prefix=prefix, delimiter="/")
     prefixes = []
     for page in iterator.pages:
         prefixes.extend(list(page.prefixes))
@@ -98,7 +98,7 @@ def is_manifest(context):
     Args:
         context (obj): Object that contains event context information
     """
-    return FIXITY_MANIFEST_NAME in context.resource['name']
+    return FIXITY_MANIFEST_NAME in context.resource["name"]
 
 
 class BagIt:
@@ -112,7 +112,7 @@ class BagIt:
             bag (str): Name of bag to run Fixity against.∂∂∂∂
         """
         self.bag = bag
-        self.bucket_name = os.environ['BUCKET']
+        self.bucket_name = os.environ["BUCKET"]
         self.bucket = bucket
         self.blobs = self.get_blobs()
         self.bigquery_client = bigquery.Client()
@@ -125,7 +125,7 @@ class BagIt:
     def get_blobs(self):
         """Retrieve files with metadata present in a bag"""
         blobs = self.bucket.list_blobs(
-            prefix=f'{self.bag}/{DATA_DIRECTORY_NAME}/')
+            prefix=f"{self.bag}/{DATA_DIRECTORY_NAME}/")
         blobs_with_metadata = []
         for blob in blobs:
             blobs_with_metadata.append(self.get_metadata(blob.name))
@@ -139,44 +139,53 @@ class BagIt:
 
         def decode_hash(hash_bytes):
             return binascii.hexlify(
-                base64.urlsafe_b64decode(hash_bytes)).decode('utf-8')
+                base64.urlsafe_b64decode(hash_bytes)).decode("utf-8")
 
         blob = self.bucket.get_blob(blob_name)
         return {
-            'name': blob.name,
-            'id': blob.id,
-            'size': blob.size,
-            'updated': blob.updated,
-            'crc32c': decode_hash(blob.crc32c),
-            'md5sum': decode_hash(blob.md5_hash)
+            "name": blob.name,
+            "id": blob.id,
+            "size": blob.size,
+            "updated": blob.updated,
+            "crc32c": decode_hash(blob.crc32c),
+            "md5sum": decode_hash(blob.md5_hash),
         }
 
     def write_to_bigquery(self):
         """Writes dict object into BigQuery using Streaming Inserts"""
-        dataset_id = 'fixity_data'  # replace with your dataset ID
-        table_id = 'records'  # replace with your table ID
+        dataset_id = "fixity_data"  # replace with your dataset ID
+        table_id = "records"  # replace with your table ID
         table_ref = self.bigquery_client.dataset(dataset_id).table(table_id)
         table = self.bigquery_client.get_table(table_ref)  # API request
         rows_to_insert = list(
             map(
-                lambda blob: (self.bucket_name, self.bag, blob['name'], blob[
-                    'size'], blob['updated'], blob['crc32c'], blob['md5sum'],
-                              self.fixity_date), self.blobs))
+                lambda blob: (
+                    self.bucket_name,
+                    self.bag,
+                    blob["name"],
+                    blob["size"],
+                    blob["updated"],
+                    blob["crc32c"],
+                    blob["md5sum"],
+                    self.fixity_date,
+                ),
+                self.blobs,
+            ))
         try:
             errors = self.bigquery_client.insert_rows(table, rows_to_insert)
             assert errors == []
             print(
-                f'Wrote {len(rows_to_insert)} records to BigQuery for {self.bucket_name}:{self.bag}'
+                f"Wrote {len(rows_to_insert)} records to BigQuery for {self.bucket_name}:{self.bag}"
             )
         except AssertionError:
-            raise AssertionError('Error with BigQuery streaming inserts')
+            raise AssertionError("Error with BigQuery streaming inserts")
 
     def write_and_upload_manifest(self):
         """Writes a manifest file into bag top-level directory"""
         manifest = ""
         for blob in self.blobs:
-            manifest = manifest + blob['name'] + '\t' + blob['md5sum'] + '\n'
+            manifest = manifest + blob["name"] + "\t" + blob["md5sum"] + "\n"
 
-        manifest_blob = self.bucket.blob(f'{self.bag}/{FIXITY_MANIFEST_NAME}')
+        manifest_blob = self.bucket.blob(f"{self.bag}/{FIXITY_MANIFEST_NAME}")
         manifest_blob.upload_from_string(manifest)
-        print(f'Wrote manifest file for {self.bucket_name}:{self.bag}')
+        print(f"Wrote manifest file for {self.bucket_name}:{self.bag}")

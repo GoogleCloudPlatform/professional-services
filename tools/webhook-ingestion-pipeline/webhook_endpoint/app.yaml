@@ -1,0 +1,10 @@
+runtime: python37
+
+instance_class: F1
+automatic_scaling:
+  target_cpu_utilization: 0.80
+  min_instances: 1
+  max_instances: 10
+  min_pending_latency: 30ms  # default value
+  max_pending_latency: automatic
+  max_concurrent_requests: 50

@@ -36,7 +36,7 @@ function setup_local_airflow() {
   FERNET_KEY=$(python3 -c "from cryptography.fernet import Fernet; \
   print(Fernet.generate_key().decode('utf-8'))")
   export FERNET_KEY
-  
+
   get_conns
 
   echo "uploading connections."
@@ -50,7 +50,7 @@ function setup_local_airflow() {
   echo "imported airflow vaiables:"
   airflow variables --export /tmp/AirflowVariables.json.exported
   cat /tmp/AirflowVariables.json.exported
-  
+
 
   echo "setting up DAGs."
   rsync -r dags $AIRFLOW_HOME
@@ -75,7 +75,7 @@ function set_local_conn() {
   echo "Upload $1 to local Airflow failed"
 }
 
-# Run DAG validation tests. 
+# Run DAG validation tests.
 function run_tests() {
   python3 -m unittest discover tests
 }
@@ -84,16 +84,18 @@ function clean_up() {
   echo "cleaning up AIRFLOW_HOME"
   rm -rf $AIRFLOW_HOME
   unset AIRFLOW_HOME
+  rm -rf airflow-env
 }
 
 # Might be necessary if we chose another image.
-function install_airflow() {
-  python3 -m venv airflow-env
-  # shellcheck disable=SC1091
+function install_venv() {
+  python3 -m virtualenv airflow-env
+  chmod +x airflow-env/bin/activate
   source airflow-env/bin/activate
-  pip3 install -r requirements-dev.txt
+  pip install -r requirements.txt
 }
 
+install_venv
 setup_local_airflow
 run_tests
 TEST_STATUS=$?

@@ -1,7 +1,7 @@
 ## Indexing documents into Elasticsearch using Cloud Dataflow
 This example Cloud Dataflow pipeline demonstrates the process of reading JSON documents from Cloud Pub/Sub, enhancing the document using metadata stored in Cloud Bigtable and indexing those documents into [Elasticsearch](https://www.elastic.co/). The pipeline also validates the documents for correctness and availability of metadata and publishes any documents that fail validation into another Cloud Pub/Sub topic for debugging and eventual reprocessing.
 
-### Workflow Overview 
+### Workflow Overview
 
 ***
 
@@ -85,7 +85,7 @@ The sample pipeline is written in Java and requires Java 8 and [Apache Maven](ht
 The following high-level steps describe the setup needed to run this example:
 
 1. Create a Cloud Pub/Sub topic and subscription for consuming the documents to be indexed.
-2. Create a Cloud Pub/Sub topic and subscription for publising the invalid documents.
+2. Create a Cloud Pub/Sub topic and subscription for publishing the invalid documents.
 3. Create a Cloud Bigtable table to store the metadata. The metadata can be stored in a single column family (for e.g. *cf*).
 4. Identify the following relevant fields for the existing Elasticsearch index where the documents will be published.
 

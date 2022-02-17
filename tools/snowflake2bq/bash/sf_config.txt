@@ -1,10 +1,10 @@
-[connections]          
+[connections]
 # *WARNING* *WARNING* *WARNING* *WARNING* *WARNING* *WARNING*
-# 
+#
 # The Snowflake user password is stored in plain text in this file.
 # Pay special attention to the management of this file.
 # Thank you.
-# 
+#
 # *WARNING* *WARNING* *WARNING* *WARNING* *WARNING* *WARNING*
 
 [connections.<snowflake-connection-name>]

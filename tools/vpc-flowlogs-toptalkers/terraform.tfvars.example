@@ -1,0 +1,3 @@
+logs_project_id = "exampleorg-vpc-flowlogs-project"
+vpc_project_ids = ["exampleorg-hub-prod-prj-0001"]
+dataset_name = "toptalkers_dataset"

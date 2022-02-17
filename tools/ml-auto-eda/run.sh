@@ -15,5 +15,12 @@
 # limitations under the License.
 # ==============================================================================
 
+# shellcheck disable=SC2145
 echo "Parameters: $@"
-python -m ml_eda.runner $@
+if [[ ! "$(python3 -V)" =~ "Python 3" ]]; then
+  echo "This tool is only compatible with Python 3"
+  exit 1
+fi
+
+python3 -m ml_eda.runner "$@" \
+  --key_file ./pso-ml-eda.json

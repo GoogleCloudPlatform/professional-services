@@ -1,503 +1,503 @@
 {
     "fields": [
         {
-            "type": "STRING", 
-            "name": "string1", 
+            "type": "STRING",
+            "name": "string1",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "STRING", 
-            "name": "string2", 
+            "type": "STRING",
+            "name": "string2",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "STRING", 
-            "name": "string3", 
+            "type": "STRING",
+            "name": "string3",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "STRING", 
-            "name": "string4", 
+            "type": "STRING",
+            "name": "string4",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "STRING", 
-            "name": "string5", 
+            "type": "STRING",
+            "name": "string5",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "STRING", 
-            "name": "string6", 
+            "type": "STRING",
+            "name": "string6",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "STRING", 
-            "name": "string7", 
+            "type": "STRING",
+            "name": "string7",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "STRING", 
-            "name": "string8", 
+            "type": "STRING",
+            "name": "string8",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "STRING", 
-            "name": "string9", 
+            "type": "STRING",
+            "name": "string9",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "STRING", 
-            "name": "string10", 
+            "type": "STRING",
+            "name": "string10",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric1", 
+            "type": "NUMERIC",
+            "name": "numeric1",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric2", 
+            "type": "NUMERIC",
+            "name": "numeric2",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric3", 
+            "type": "NUMERIC",
+            "name": "numeric3",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric4", 
+            "type": "NUMERIC",
+            "name": "numeric4",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric5", 
+            "type": "NUMERIC",
+            "name": "numeric5",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric6", 
+            "type": "NUMERIC",
+            "name": "numeric6",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric7", 
+            "type": "NUMERIC",
+            "name": "numeric7",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric8", 
+            "type": "NUMERIC",
+            "name": "numeric8",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric9", 
+            "type": "NUMERIC",
+            "name": "numeric9",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric10", 
+            "type": "NUMERIC",
+            "name": "numeric10",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric11", 
+            "type": "NUMERIC",
+            "name": "numeric11",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric12", 
+            "type": "NUMERIC",
+            "name": "numeric12",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric13", 
+            "type": "NUMERIC",
+            "name": "numeric13",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric14", 
+            "type": "NUMERIC",
+            "name": "numeric14",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric15", 
+            "type": "NUMERIC",
+            "name": "numeric15",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric16", 
+            "type": "NUMERIC",
+            "name": "numeric16",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric17", 
+            "type": "NUMERIC",
+            "name": "numeric17",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric18", 
+            "type": "NUMERIC",
+            "name": "numeric18",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric19", 
+            "type": "NUMERIC",
+            "name": "numeric19",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric20", 
+            "type": "NUMERIC",
+            "name": "numeric20",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric21", 
+            "type": "NUMERIC",
+            "name": "numeric21",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric22", 
+            "type": "NUMERIC",
+            "name": "numeric22",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric23", 
+            "type": "NUMERIC",
+            "name": "numeric23",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric24", 
+            "type": "NUMERIC",
+            "name": "numeric24",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric25", 
+            "type": "NUMERIC",
+            "name": "numeric25",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric26", 
+            "type": "NUMERIC",
+            "name": "numeric26",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric27", 
+            "type": "NUMERIC",
+            "name": "numeric27",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric28", 
+            "type": "NUMERIC",
+            "name": "numeric28",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric29", 
+            "type": "NUMERIC",
+            "name": "numeric29",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric30", 
+            "type": "NUMERIC",
+            "name": "numeric30",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric31", 
+            "type": "NUMERIC",
+            "name": "numeric31",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric32", 
+            "type": "NUMERIC",
+            "name": "numeric32",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric33", 
+            "type": "NUMERIC",
+            "name": "numeric33",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric34", 
+            "type": "NUMERIC",
+            "name": "numeric34",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric35", 
+            "type": "NUMERIC",
+            "name": "numeric35",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric36", 
+            "type": "NUMERIC",
+            "name": "numeric36",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric37", 
+            "type": "NUMERIC",
+            "name": "numeric37",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric38", 
+            "type": "NUMERIC",
+            "name": "numeric38",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric39", 
+            "type": "NUMERIC",
+            "name": "numeric39",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric40", 
+            "type": "NUMERIC",
+            "name": "numeric40",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric41", 
+            "type": "NUMERIC",
+            "name": "numeric41",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric42", 
+            "type": "NUMERIC",
+            "name": "numeric42",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric43", 
+            "type": "NUMERIC",
+            "name": "numeric43",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric44", 
+            "type": "NUMERIC",
+            "name": "numeric44",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric45", 
+            "type": "NUMERIC",
+            "name": "numeric45",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric46", 
+            "type": "NUMERIC",
+            "name": "numeric46",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric47", 
+            "type": "NUMERIC",
+            "name": "numeric47",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric48", 
+            "type": "NUMERIC",
+            "name": "numeric48",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric49", 
+            "type": "NUMERIC",
+            "name": "numeric49",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric50", 
+            "type": "NUMERIC",
+            "name": "numeric50",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric51", 
+            "type": "NUMERIC",
+            "name": "numeric51",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric52", 
+            "type": "NUMERIC",
+            "name": "numeric52",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric53", 
+            "type": "NUMERIC",
+            "name": "numeric53",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric54", 
+            "type": "NUMERIC",
+            "name": "numeric54",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric55", 
+            "type": "NUMERIC",
+            "name": "numeric55",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric56", 
+            "type": "NUMERIC",
+            "name": "numeric56",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric57", 
+            "type": "NUMERIC",
+            "name": "numeric57",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric58", 
+            "type": "NUMERIC",
+            "name": "numeric58",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric59", 
+            "type": "NUMERIC",
+            "name": "numeric59",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric60", 
+            "type": "NUMERIC",
+            "name": "numeric60",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric61", 
+            "type": "NUMERIC",
+            "name": "numeric61",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric62", 
+            "type": "NUMERIC",
+            "name": "numeric62",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric63", 
+            "type": "NUMERIC",
+            "name": "numeric63",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric64", 
+            "type": "NUMERIC",
+            "name": "numeric64",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric65", 
+            "type": "NUMERIC",
+            "name": "numeric65",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric66", 
+            "type": "NUMERIC",
+            "name": "numeric66",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric67", 
+            "type": "NUMERIC",
+            "name": "numeric67",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric68", 
+            "type": "NUMERIC",
+            "name": "numeric68",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric69", 
+            "type": "NUMERIC",
+            "name": "numeric69",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric70", 
+            "type": "NUMERIC",
+            "name": "numeric70",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric71", 
+            "type": "NUMERIC",
+            "name": "numeric71",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric72", 
+            "type": "NUMERIC",
+            "name": "numeric72",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric73", 
+            "type": "NUMERIC",
+            "name": "numeric73",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric74", 
+            "type": "NUMERIC",
+            "name": "numeric74",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric75", 
+            "type": "NUMERIC",
+            "name": "numeric75",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric76", 
+            "type": "NUMERIC",
+            "name": "numeric76",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric77", 
+            "type": "NUMERIC",
+            "name": "numeric77",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric78", 
+            "type": "NUMERIC",
+            "name": "numeric78",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric79", 
+            "type": "NUMERIC",
+            "name": "numeric79",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric80", 
+            "type": "NUMERIC",
+            "name": "numeric80",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric81", 
+            "type": "NUMERIC",
+            "name": "numeric81",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric82", 
+            "type": "NUMERIC",
+            "name": "numeric82",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric83", 
+            "type": "NUMERIC",
+            "name": "numeric83",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric84", 
+            "type": "NUMERIC",
+            "name": "numeric84",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric85", 
+            "type": "NUMERIC",
+            "name": "numeric85",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric86", 
+            "type": "NUMERIC",
+            "name": "numeric86",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric87", 
+            "type": "NUMERIC",
+            "name": "numeric87",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric88", 
+            "type": "NUMERIC",
+            "name": "numeric88",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric89", 
+            "type": "NUMERIC",
+            "name": "numeric89",
             "mode": "REQUIRED"
-        }, 
+        },
         {
-            "type": "NUMERIC", 
-            "name": "numeric90", 
+            "type": "NUMERIC",
+            "name": "numeric90",
             "mode": "REQUIRED"
         }
     ]

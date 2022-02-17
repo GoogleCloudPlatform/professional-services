@@ -224,7 +224,7 @@ class TestAverageSpeedEnhancer(unittest.TestCase):
           u"store_and_fwd_flag": u"N",
           u"average_speed": 18.523489932885905
         })
-        
+
         actual_enhancement = self.average_speed_enhancer.enhance_with_avg_speed(example_record)
 
         self.assertEqual(actual_enhancement, expected_enhancement)

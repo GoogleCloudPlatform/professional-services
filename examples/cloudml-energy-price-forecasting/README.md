@@ -1,17 +1,17 @@
 # Energy Price Forecasting Example
 
-This repository contains example code to forecast energy prices. Specifically, given a historical time series of hourly spot prices and weather, it predicts future hourly spot prices multiple days into the future. 
+This repository contains example code to forecast energy prices. Specifically, given a historical time series of hourly spot prices and weather, it predicts future hourly spot prices multiple days into the future.
 
-The code takes in raw data from BigQuery, transforms and prepares the data, uses Google Cloud Machine Learning Engine to train a TensorFlow DNN regression model on historical spot prices, and then makes predictions of future spot prices using the model. 
+The code takes in raw data from BigQuery, transforms and prepares the data, uses Google Cloud Machine Learning Engine to train a TensorFlow DNN regression model on historical spot prices, and then makes predictions of future spot prices using the model.
 
 # Data preparation instructions
 
-1. Raw data for this problem is publicly available in BigQuery in the following tables:  
+1. Raw data for this problem is publicly available in BigQuery in the following tables:
 
-* `dpe-cloud-mle.Energy.MarketPricePT` - Historical hourly energy prices.  
+* `dpe-cloud-mle.Energy.MarketPricePT` - Historical hourly energy prices.
 * `dpe-cloud-mle.Energy.historical_weather` - Historical hourly weather forecasts.
 
-   Disclaimer: The data for both tables was downloaded from http://complatt.smartwatt.net/. This website hosts a closed competition meant to solve the energy price forecasting problem. The data was not collected or vetted by Google LLC and hence, we can't guarantee the veracity or qualitty of it.
+   Disclaimer: The data for both tables was downloaded from http://complatt.smartwatt.net/. This website hosts a closed competition meant to solve the energy price forecasting problem. The data was not collected or vetted by Google LLC and hence, we can't guarantee the veracity or quality of it.
 
 2. Run: ```python -m data_preparation.data_prep``` to generate training/validation/testing data as well as to generate constants needed for normalization. The produced data has the following columns:
 * price - FLOAT - Energy price.

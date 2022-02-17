@@ -35,7 +35,7 @@ cd professional-services/examples/web-instrumentation
 WI_HOME=`pwd`
 ```
 
-Set Google Cloud SDK to the current project 
+Set Google Cloud SDK to the current project
 
 ```shell
 export GOOGLE_CLOUD_PROJECT=[Your project]
@@ -279,7 +279,7 @@ bq --location=US mk -d \
   web_instr_container
 ```
 
-Create a log export for the container logs 
+Create a log export for the container logs
 
 ```shell
 LOG_SA=$(gcloud logging sinks create web-instr-container-logs \
@@ -315,7 +315,7 @@ LOG_SA=$(gcloud logging sinks create web-instr-load-balancer-logs \
   --format='value("writerIdentity")')
 ```
 
-Note that the service account id changes so that you need to note that anre 
+Note that the service account id changes so that you need to note that anre
 repeat the step for granting write access BigQuery
 
 ```shell

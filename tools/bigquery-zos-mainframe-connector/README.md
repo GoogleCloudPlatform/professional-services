@@ -11,7 +11,7 @@ The utility is deployed as a cataloged procedure called by the [JCL EXEC stateme
 
 Users can make multiple calls in a single step by entering commands on separate lines or delimited by semicolon (`;`).
 
-Typically a JES job will contain multiple steps, each step executing the `BQSH` procedure with one or more `gsutil` or `bq` commands. 
+Typically a JES job will contain multiple steps, each step executing the `BQSH` procedure with one or more `gsutil` or `bq` commands.
 
 
 ### Example JCL
@@ -37,7 +37,7 @@ bq load --project_id=myproject \
 /*
 //COND03 IF (STEP02.RC = 0) THEN
 //STEP03 EXEC BQSH
-//QUERY DD DSN=<HLQ>.QUERY.FILENAME,DISP=SHR 
+//QUERY DD DSN=<HLQ>.QUERY.FILENAME,DISP=SHR
 //STDIN DD *
 bq query --project_id=myproject \
   myproject:DATASET.TABLE \
@@ -75,7 +75,7 @@ Delete objects in GCS
   --allow_non_ascii        allow non ascii characters
   --stats_table <value>    tablespec of table to insert stats
   --max_error_pct <value>  job failure threshold for row decoding errors (default: 0.0
-```  
+```
 
 #### bq load
 
@@ -136,7 +136,7 @@ Repeat this flag to specify multiple schema update options.
   --sync <value>           If set to true, wait for the command to complete before returning, and use the job completion status as the error code. If set to false, the job is created, and successful completion status is used for the error code. The default value is true.
   --stats_table <value>    tablespec of table to insert stats
 
-```  
+```
 
 #### bq mk
 
@@ -184,7 +184,7 @@ Usage: mk [options] tablespec
   --sync <value>           If set to true, wait for the command to complete before returning, and use the job completion status as the error code. If set to false, the job is created, and successful completion status is used for the error code. The default value is true.
   --stats_table <value>    tablespec of table to insert stats
 
-```  
+```
 
 #### bq query
 
@@ -244,7 +244,7 @@ new fields to be added
   --sync <value>           If set to true, wait for the command to complete before returning, and use the job completion status as the error code. If set to false, the job is created, and successful completion status is used for the error code. The default value is true.
   --stats_table <value>    tablespec of table to insert stats
 
-```  
+```
 
 #### bq rm
 
@@ -278,7 +278,7 @@ Usage: rm [options] tablespec
 
 ## Development Environment Setup
 
-1. Extract IBM JDK using gunzip and pax 
+1. Extract IBM JDK using gunzip and pax
 
 ```sh
 gunzip -c SDK8_64bit_SR5_FP30.PAX.Z | pax -r

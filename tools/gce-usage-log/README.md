@@ -211,12 +211,12 @@ export DESTINATION_TABLE=_gce_usage_log_interval
 export TIME_INTERVAL_UNIT=your_interval_unit
 export TIME_INTERVAL_AMOUNT=your_interval_amount
 ````
-where: 
+where:
 
 * `your_table` is the desired name for where the result will live
 * `your_interval_unit` is DAY, HOUR, MINUTE, SECOND or any [supported date format](https://cloud.google.com/bigquery/docs/reference/standard-sql/timestamp_functions#timestamp_trunc)
-* `your_interval_amount` is any integer representing the frequency of intervals to calculate. 
-For example, if you wanted to create a time-series dataset looking at the inventory of VMs on an 
+* `your_interval_amount` is any integer representing the frequency of intervals to calculate.
+For example, if you wanted to create a time-series dataset looking at the inventory of VMs on an
 hourly cadence, you would choose `HOUR` for `TIME_INTERVAL_UNIT` and `1` for `TIME_INTERVAL_AMOUNT`.
 If you wanted to see the inventory at 5-minute increments, you would choose `MINUTE` and 5, respectively.
 
@@ -246,7 +246,7 @@ There is also no default expiration set, but this can be added if you only need 
 
 Now that your dataset is ready, how do you query it?
 
-The interval view allows to see aggregated point-in-time statistics. To find resource usage for a specific time-frame, you can query for the aggregate usage information for the month of 
+The interval view allows to see aggregated point-in-time statistics. To find resource usage for a specific time-frame, you can query for the aggregate usage information for the month of
 September by using the sample query below as an example. You can adjust the timeframe by altering the WHERE clause
 or choose to only select certain fields depending on what you are trying to predict.
 
@@ -260,7 +260,7 @@ SELECT
   SUM(pd_standard_size_gb) as total_pd_standard_size_gb,
   SUM(pd_ssd_size_gb) as total_pd_ssd_size_gb,
   SUM(local_ssd_size_gb) as total_local_ssd_size_gb
-  
+
 FROM `gce_usage_log._gce_usage_log_interval`
 
 WHERE
@@ -269,21 +269,21 @@ WHERE
 GROUP BY 1
 ```
 
-The results will look something like this (Note that the aggregated statistics will most likely 
+The results will look something like this (Note that the aggregated statistics will most likely
 vary for workloads as VM resources change over hour, but they do not in this example.)
 
 ![interval_query](images/interval-query-results.png)
 
 ### 3.2.2 How to Create a Time-Series Graph on the Interval View
 
-If you want to see the same data in a time-series graph rather than a data table, you can do this 
-in Data Studio. This allows you to create time-series graphs to monitor changes and spikes of inventory 
-over time. This can be done on whichever metrics that your team would like to use for capacity planning, 
+If you want to see the same data in a time-series graph rather than a data table, you can do this
+in Data Studio. This allows you to create time-series graphs to monitor changes and spikes of inventory
+over time. This can be done on whichever metrics that your team would like to use for capacity planning,
 such as looking at the total count of instances over time, cores, memory, etc.
 
 
-1. Open up DataStudio and create a copy of [this data source](https://datastudio.google.com/datasources/c4ed9ce7-50a2-4045-8de1-859ed5aaac6f) 
-by selecting the copy button. 
+1. Open up DataStudio and create a copy of [this data source](https://datastudio.google.com/datasources/c4ed9ce7-50a2-4045-8de1-859ed5aaac6f)
+by selecting the copy button.
 ![copy data source](images/copy-data-source.png)
 2. Rename the Data Source to the name that you'd like. Click on 'Edit Connection'.
 3. If this is your first time using Data Studio, click 'Authorize'.
@@ -294,7 +294,7 @@ by selecting the copy button.
 8. Make a copy of the [report](https://datastudio.google.com/open/1mpyXSxvkuu3PWXf1j0rzzyhiYP0qC_jR).
 ![copy report](images/copy-report.png)
 9. When prompted to choose your data source, select your newly created data source.
-10. Click on 'Create Report' and name yours accordingly, including any other metrics to analyze. 
+10. Click on 'Create Report' and name yours accordingly, including any other metrics to analyze.
 11. View the graph
 ![graph](images/usage-graph.png)
 
@@ -314,7 +314,7 @@ SELECT
   SUM(pd_standard_size_gb) as total_pd_standard_size_gb,
   SUM(pd_ssd_size_gb) as total_pd_ssd_size_gb,
   SUM(local_ssd_size_gb) as total_local_ssd_size_gb
-  
+
 FROM `gce_usage_log._gce_usage_log`
 
 WHERE inserted < '2019-08-23 08:00:00.000 UTC'

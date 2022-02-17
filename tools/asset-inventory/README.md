@@ -52,7 +52,7 @@ And many more!
 
 ## Install Steps
 
-It's suggested to create a new project to hold the asset inventory resources. Especially if using App engine to perform the export as it will require assignign the App Engine service account the `roles/cloudasset.viewer` role and all App Engine jobs in a single project run with the same credentials.
+It's suggested to create a new project to hold the asset inventory resources. Especially if using App engine to perform the export as it will require assigning the App Engine service account the `roles/cloudasset.viewer` role and all App Engine jobs in a single project run with the same credentials.
 
 1. Create a new project and gcloud configuration to host our service (optional, you can use an existing project and gcloud configuration.)
 
@@ -62,7 +62,7 @@ It's suggested to create a new project to hold the asset inventory resources. Es
     export CONFIG_ACCOUNT=`gcloud config get-value account`
     export CONFIG_ZONE=`gcloud config get-value compute/zone`
     export CONFIG_REGION=`gcloud config get-value compute/region`
-    # create a new gcloud configuration for the project, not cessary if running in the cloud shell.
+    # create a new gcloud configuration for the project, not necessary if running in the cloud shell.
     gcloud config configurations create $PROJECT_ID
     gcloud config set account $CONFIG_ACCOUNT
     gcloud config set compute/zone $CONFIG_ZONE
@@ -77,7 +77,7 @@ It's suggested to create a new project to hold the asset inventory resources. Es
     export ORGANIZATION_ID=`gcloud projects describe $PROJECT_ID --format='value(parent.id)'`
     ```
 
-1. Create a GCS bucket in the projec. The export requires that the bucket bet in the same project as the service account performing the export, even if the service account has access to the bucket in a different project the export will fail.
+1. Create a GCS bucket in the project. The export requires that the bucket bet in the same project as the service account performing the export, even if the service account has access to the bucket in a different project the export will fail.
 
     ```
     export BUCKET=gs://${ORGANIZATION_ID}-assets
@@ -96,7 +96,7 @@ It's suggested to create a new project to hold the asset inventory resources. Es
 
 ## 1. Automated Scheduled Imports By Deploying to App Engine
 
-This requires downloading this source repository, changing a config file and deploying an app engine application and granting necessary privliges to the App Engine Default service account.
+This requires downloading this source repository, changing a config file and deploying an app engine application and granting necessary privileges to the App Engine Default service account.
 
 - The App Engine service account needs asset inventory export privileges for the organization/project,
 - The Dataflow service account running the pipeline jobs needs the ability to write to the GCS bucket and load data and update schema into BigQuery, and delete/create BigQuery tables if using write_disposition=WRITE_EMPTY.
@@ -122,7 +122,7 @@ The deployment steps are:
     sed -i  "s|<ENTER-PROJECT>|$PROJECT_ID|" config.yaml
     ```
 
-1. If using a Shared VPC to run the Dataflow job you must supply the `network` and `subnetwork` values in the import_pipeline_runtime_environment json map in the `config.yaml` file as described [here](https://cloud.google.com/dataflow/docs/guides/specifying-networks). Additionally the Dataflow Agent Serviece Account `service-<PROJECT-NUMBER>@dataflow-service-producer-prod.iam.gserviceaccount.com` needs the compute.networkUser role on the Shared VPC subnet. The dataflow job requires the ability to make external calls to `https://*.googleapis.com/$discovery/rest?version=*` endpoints in order to download discovery documents.
+1. If using a Shared VPC to run the Dataflow job you must supply the `network` and `subnetwork` values in the import_pipeline_runtime_environment json map in the `config.yaml` file as described [here](https://cloud.google.com/dataflow/docs/guides/specifying-networks). Additionally the Dataflow Agent Service Account `service-<PROJECT-NUMBER>@dataflow-service-producer-prod.iam.gserviceaccount.com` needs the compute.networkUser role on the Shared VPC subnet. The dataflow job requires the ability to make external calls to `https://*.googleapis.com/$discovery/rest?version=*` endpoints in order to download discovery documents.
 
 1. The config.yaml limits Dataflow jos to one worker. This is because the VPC used might not allow internal communication between Dataflow workers as described [here](https://cloud.google.com/dataflow/docs/guides/routes-firewall). If you follow those steps or are using the default VPC and don't see a warning about missing firewall rules you can safely increase the maxWorkers configuration.
 
@@ -319,13 +319,82 @@ This repository contains some command line tools that let you run the export/imp
    ```
 
 
+## Input Schema Changes
+
+Sometimes the import schema will change. This can happen upstream when a backwards incompatible change is made to an API, such as a change in the datatype of a value or when the code in the pipeline changes the import format. This can cause imports with ```write_disposition=WRITE_APPEND``` to fail with an error simliar to this:
+
+  ```
+  "./asset_inventory/import_pipeline.py", line 422, in finish_bundle raise e
+  File "./asset_inventory/import_pipeline.py", line 419, in finish_bundle load_job.result()
+  File "/usr/local/lib/python3.7/site-packages/google/cloud/bigquery/job.py", line 733, in result return super(_AsyncJob, self).result(timeout=timeout)
+
+  File "/usr/local/lib/python3.7/site-packages/google/api_core/future/polling.py", line 127, in result raise self._exception google.api_core.exceptions.BadRequest: 400 Provided Schema does not match Table project-1:assets.run_googleapis_com_Revision. Field resource.data.spec.containers.livenessProbe.handler.exec.command has changed mode from NULLABLE to REPEATED [while running 'load_to_bigquery/load_to_bigquery']
+  ```
+
+To resume the import process there are three options.
+
+### 1. Delete the dataset and recreate it.
+
+The simplest option, this will discard all your data losing prior history but will let you continue the import. You can also try deleting the tables that fail to import if just a few of them.
+
+
+  ```
+  bq rm my_dataset_name
+  bq mk my_dataset_name
+  ```
+
+### 1. Copy the data to a new dataset, delete and recreate the existing dataset.
+
+This will preserve all your data in separate tables so no data is lost by copying the tables to a new datset using the bigquery transfer service.
+
+  ```
+  # enable BigQuery Transfer Service (only needs to be done once)
+  gcloud services enable bigquerydatatransfer.googleapis.com
+
+  # create new dataset to copy tables to
+  bq mk my_new_dataset_name
+  bq mk --transfer_config  --data_source=cross_region_copy --target_dataset=my_new_dataset_name  --display_name=copy --params='{"source_dataset_id":"my_dataest_name","source_project_id":"my-project-id","overwrite_destination_table":"false"}'
+
+  # wait for transfer config to be completed.
+  bq show --transfer_config projects/123/locations/us/transferConfigs/my-tranferconfigid
+  ....
+
+  # delete old tables by deleting and recreating the dataset.
+  bq rm my_dataset_name
+  bq mk my_dataset_name
+  ```
+
+### 1. Change import configurations.
+
+to import to a new dataset, or set write_disposition=WRITE_EMPTY.
+Changing the dataset the pipeline imports to will create new tables or setting write_disposition to WRITE_EMPTY (which will delete existing data) will allow imports to resume. This is done by changing either the ```config.yaml``` if using the scheduled import process or the ```--parameters`` value in the gcloud command when invoking the template via gcloud.
+
+## Upgrading from version 1.0.0 to 2.0.0
+
+The 2.0.0 pipeline release unfortunately changed the import schema to resolve [issue #533](https://github.com/GoogleCloudPlatform/professional-services/issues/533). Now some user specified and dynamic properties are represented as record arrays of key value pairs rather then just flat records. This was done to keep a more regular schema and prevent accumulation of columns from overflowing table limits. This change could require changes in how you query the data for example, previously to query the App Engine traffic split across two versions you would write:
+
+```
+SELECT resource.data.split.allocations._20190115t172957,
+       resource.data.split.allocations._20190921t233039
+FROM `asset_inventory.appengine_googleapis_com_Service`
+```
+
+The new query would look like:
+
+```
+SELECT allocations.value
+FROM `asset_inventory.appengine_googleapis_com_Service` join
+       unnest(resource.data.split.allocations) allocations
+WHERE  allocations.name='_20190115t172957' or allocations.name = '_20190921t233039'
+```
+
 ## Troubleshooting.
 
 1. The Cloud Asset Inventory  export operation failed with the error: "PERMISSION_DENIED. Failed to write to: gs://<my-export-path>" yet I know I have write permissions?
 
     You need to invoke the export API with a service account that's owned by the same project that owns the bucket. See Step 1.1 where you can have gcloud authenticate with a service account. When using the command line tools like asset_inventory/export.py or asset_inventory/main.py  use the  GOOGLE_APPLICATION_CREDENTIALS environment variable to point to the service account key or run then within a compute engine instance with a service account that has the required privileges (see access control section).
 
-    Another possible problem is that the write operation will be peformed by the Asset Inventory Agent service account which should have the name: `service-<project-number>@gcp-sa-cloudasset.iam.gserviceaccount.com`. It's this service account which must have write privleges to the ucket we are performing the export too. By default it will have storageAdmin on the project on which the Asset Inventory API was enabled but
+    Another possible problem is that the write operation will be performed by the Asset Inventory Agent service account which should have the name: `service-<project-number>@gcp-sa-cloudasset.iam.gserviceaccount.com`. It's this service account which must have write privileges to the bucket we are performing the export too. By default it will have storageAdmin on the project on which the Asset Inventory API was enabled but
 
 
 1. The Cloud Asset Inventory  export operation failed with the error:  "PermissionDenied: 403 Your application has authenticated using end user credentials from the Google Cloud SDK"
@@ -369,9 +438,9 @@ This repository contains some command line tools that let you run the export/imp
     SyntaxError: invalid syntax
     ```
 
-    You have installed the python2.7 version of httplib2. We need the python3 version. Perhaps you didn't supply the "--no-deps" argument to pip command and you have python2 installed locally. Try removing the gae/lib directory contents and runnng the pip command with the "-no-deps" argument.
+    You have installed the python2.7 version of httplib2. We need the python3 version. Perhaps you didn't supply the "--no-deps" argument to pip command and you have python2 installed locally. Try removing the gae/lib directory contents and running the pip command with the "-no-deps" argument.
 
-1. The Dataflow job failes to start because it lacks access to the Shared VPC subnet.
+1. The Dataflow job fails to start because it lacks access to the Shared VPC subnet.
 
     When using a Shared VPC, it necessary to grant the Dataflow Agent Service Account access to the subnet. This service account is created for you when you enable the Dataflow API and is called `service-<PROJECT-NUMBER>@dataflow-service-producer-prod.iam.gserviceaccount.com`.
 

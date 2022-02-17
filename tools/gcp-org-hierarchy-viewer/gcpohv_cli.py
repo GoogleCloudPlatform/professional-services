@@ -59,8 +59,14 @@ def setup_clients(credentials_file):
           Manager.
     """
     creds = setup_credentials(credentials_file)
-    crm_v1 = discovery.build('cloudresourcemanager', 'v1', credentials=creds)
-    crm_v2 = discovery.build('cloudresourcemanager', 'v2', credentials=creds)
+    crm_v1 = discovery.build('cloudresourcemanager',
+                             'v1',
+                             credentials=creds,
+                             static_discovery=True)
+    crm_v2 = discovery.build('cloudresourcemanager',
+                             'v2',
+                             credentials=creds,
+                             static_discovery=True)
     return crm_v1, crm_v2
 
 
@@ -85,7 +91,6 @@ def resource_filter(value, resource, field='displayName'):
 
 class Cli:
     """ Represents the entire CLI, UX, and the logic required to support it. """
-
     def __init__(self, credentials_file, organization, folder, use_org_id):
         """ Inits Cli class.
 
@@ -112,16 +117,16 @@ class Cli:
         fold_parents = collections.defaultdict(list)
 
         gen = (p for p in projs['projects']
-               if 'parent' in p and p['parent']['type'] == 'folder' and
-               p['lifecycleState'] == 'ACTIVE')
+               if 'parent' in p and p['parent']['type'] == 'folder'
+               and p['lifecycleState'] == 'ACTIVE')
         for p in gen:
             fold_parents[p['parent']['id']].append(p)
 
         org_parents = collections.defaultdict(list)
 
         gen = (p for p in projs['projects']
-               if 'parent' in p and p['parent']['type'] == 'organization' and
-               p['lifecycleState'] == 'ACTIVE')
+               if 'parent' in p and p['parent']['type'] == 'organization'
+               and p['lifecycleState'] == 'ACTIVE')
         for p in gen:
             org_parents[p['parent']['id']].append(p)
 
@@ -175,10 +180,9 @@ class Cli:
                 raise SystemExit('No organizations found')
 
             org_id = [
-                org['name'].split('/')[1]
-                for org in orgs
-                if self.organization in org['displayName'] or
-                self.organization in org['name']
+                org['name'].split('/')[1] for org in orgs
+                if self.organization in org['displayName']
+                or self.organization in org['name']
             ][0]
 
             if self.use_org_id:

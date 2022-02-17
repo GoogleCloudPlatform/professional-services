@@ -1,0 +1,155 @@
+Query: protoPayload.request.metadata.versioning.enabled=true
+Enable Object Versioning:
+{
+  "protoPayload": {
+    "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+    "status": {},
+    "authenticationInfo": {
+      "principalEmail": "terraform@anon-terraform-prod.iam.gserviceaccount.com",
+      "serviceAccountKeyName": "//iam.googleapis.com/projects/anon-terraform-prod/serviceAccounts/terraform@anon-terraform-prod.iam.gserviceaccount.com/keys/cbf7d9769c83853e97a2dc08240872c54de991f2"
+    },
+    "requestMetadata": {
+      "callerIp": "2600::1",
+      "callerSuppliedUserAgent": "apitools Python/3.6.8 gsutil/4.61 (darwin) analytics/enabled interactive/True command/versioning google-cloud-sdk/339.0.0,gzip(gfe)",
+      "requestAttributes": {
+        "time": "2021-08-19T17:51:31.844550548Z",
+        "auth": {}
+      },
+      "destinationAttributes": {}
+    },
+    "serviceName": "storage.googleapis.com",
+    "methodName": "storage.buckets.update",
+    "authorizationInfo": [
+      {
+        "resource": "projects/_/buckets/s3.anon.net",
+        "permission": "storage.buckets.update",
+        "granted": true,
+        "resourceAttributes": {}
+      }
+    ],
+    "resourceName": "projects/_/buckets/s3.anon.net",
+    "request": {
+      "bucket": "s3.anon.net",
+      "metadata": {
+        "versioning": {
+          "enabled": true
+        },
+        "name": "s3.anon.net",
+        "id": "s3.anon.net"
+      },
+      "projection": "NO_ACL"
+    },
+    "response": {
+      "etag": "CAM=",
+      "metageneration": "3",
+      "storageClass": "STANDARD",
+      "updated": "2021-08-19T17:51:31.954Z",
+      "timeCreated": "2018-07-20T00:46:43.093Z",
+      "id": "s3.anon.net",
+      "versioning": {
+        "enabled": true
+      },
+      "iamConfiguration": {
+        "uniformBucketLevelAccess": {}
+      },
+      "projectNumber": "417127842024",
+      "name": "s3.anon.net",
+      "locationType": "multi-region",
+      "location": "US"
+    },
+    "resourceLocation": {
+      "currentLocations": [
+        "us"
+      ]
+    }
+  },
+  "insertId": "slfn9ddc3sc",
+  "resource": {
+    "type": "gcs_bucket",
+    "labels": {
+      "location": "us",
+      "bucket_name": "s3.anon.net",
+      "project_id": "anon-logs-prod"
+    }
+  },
+  "timestamp": "2021-08-19T17:51:31.834523489Z",
+  "severity": "NOTICE",
+  "logName": "projects/anon-logs-prod/logs/cloudaudit.googleapis.com%2Factivity",
+  "receiveTimestamp": "2021-08-19T17:51:32.286951460Z"
+}
+
+Disable Object Versioning:
+{
+  "protoPayload": {
+    "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+    "status": {},
+    "authenticationInfo": {
+      "principalEmail": "terraform@anon-terraform-prod.iam.gserviceaccount.com",
+      "serviceAccountKeyName": "//iam.googleapis.com/projects/anon-terraform-prod/serviceAccounts/terraform@anon-terraform-prod.iam.gserviceaccount.com/keys/cbf7d9769c83853e97a2dc08240872c54de991f2"
+    },
+    "requestMetadata": {
+      "callerIp": "2600::1",
+      "callerSuppliedUserAgent": "apitools Python/3.6.8 gsutil/4.61 (darwin) analytics/enabled interactive/True command/versioning google-cloud-sdk/339.0.0,gzip(gfe)",
+      "requestAttributes": {
+        "time": "2021-08-19T17:50:00.957623571Z",
+        "auth": {}
+      },
+      "destinationAttributes": {}
+    },
+    "serviceName": "storage.googleapis.com",
+    "methodName": "storage.buckets.update",
+    "authorizationInfo": [
+      {
+        "resource": "projects/_/buckets/s3.anon.net",
+        "permission": "storage.buckets.update",
+        "granted": true,
+        "resourceAttributes": {}
+      }
+    ],
+    "resourceName": "projects/_/buckets/s3.anon.net",
+    "request": {
+      "bucket": "s3.anon.net",
+      "projection": "NO_ACL",
+      "metadata": {
+        "versioning": {},
+        "name": "s3.anon.net",
+        "id": "s3.anon.net"
+      }
+    },
+    "response": {
+      "id": "s3.anon.net",
+      "metageneration": "2",
+      "versioning": {},
+      "locationType": "multi-region",
+      "iamConfiguration": {
+        "uniformBucketLevelAccess": {}
+      },
+      "updated": "2021-08-19T17:50:01.276Z",
+      "timeCreated": "2018-07-20T00:46:43.093Z",
+      "storageClass": "STANDARD",
+      "location": "US",
+      "etag": "CAI=",
+      "projectNumber": "417127842024",
+      "name": "s3.anon.net"
+    },
+    "resourceLocation": {
+      "currentLocations": [
+        "us"
+      ]
+    }
+  },
+  "insertId": "m746z2e4p8ig",
+  "resource": {
+    "type": "gcs_bucket",
+    "labels": {
+      "project_id": "anon-logs-prod",
+      "bucket_name": "s3.anon.net",
+      "location": "us"
+    }
+  },
+  "timestamp": "2021-08-19T17:50:00.944333981Z",
+  "severity": "NOTICE",
+  "logName": "projects/anon-logs-prod/logs/cloudaudit.googleapis.com%2Factivity",
+  "receiveTimestamp": "2021-08-19T17:50:01.746774237Z"
+}
+

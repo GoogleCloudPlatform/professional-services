@@ -1,0 +1,7 @@
+lightgbm==3.2.1
+gcsfs==2021.6.1
+tensorflow==2.6.0
+pandas==1.1.5
+pandas-gbq==0.14.1
+scikit-learn==0.24.2
+google-cloud-aiplatform==1.1.1

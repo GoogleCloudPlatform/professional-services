@@ -16,7 +16,7 @@ import logging
 import google.auth
 from google.auth import iam
 from google.auth.credentials import with_scopes_if_required
-from google.auth._default import _load_credentials_from_file
+from google.auth._default import load_credentials_from_file
 from google.auth.transport import requests
 from google.oauth2 import service_account
 from googleapiclient import discovery
@@ -26,7 +26,12 @@ logger = logging.getLogger(__name__)
 _TOKEN_URI = 'https://accounts.google.com/o/oauth2/token'
 _TOKEN_SCOPE = frozenset(['https://www.googleapis.com/auth/iam'])
 
-def build_service(api, version, credentials_path=None, user_email=None, scopes=None):
+
+def build_service(api,
+                  version,
+                  credentials_path=None,
+                  user_email=None,
+                  scopes=None):
     """Build and returns a service object.
 
     Allows delegation of GSuite permissions to the service account when the `user_email` argument is passed.
@@ -43,18 +48,17 @@ def build_service(api, version, credentials_path=None, user_email=None, scopes=N
     """
     if credentials_path is not None:
         logger.info("Getting credentials from file '%s' ...", credentials_path)
-        credentials, _ = _load_credentials_from_file(credentials_path)
+        credentials, _ = load_credentials_from_file(credentials_path)
     else:
         logger.info("Getting default application credentials ...")
         credentials, _ = google.auth.default()
 
     if user_email is not None:  # make delegated credentials
-        credentials = _make_delegated_credentials(
-                credentials,
-                user_email,
-                scopes)
+        credentials = _make_delegated_credentials(credentials, user_email,
+                                                  scopes)
 
     return discovery.build(api, version, credentials=credentials)
+
 
 def _make_delegated_credentials(credentials, user_email, scopes):
     """Make delegated credentials.
@@ -74,13 +78,9 @@ def _make_delegated_credentials(credentials, user_email, scopes):
     credentials = with_scopes_if_required(credentials, _TOKEN_SCOPE)
     credentials.refresh(request)
     email = credentials.service_account_email
-    signer = iam.Signer(
-        request,
-        credentials,
-        email)
-    return service_account.Credentials(
-        signer,
-        email,
-        _TOKEN_URI,
-        scopes=scopes,
-        subject=user_email)
+    signer = iam.Signer(request, credentials, email)
+    return service_account.Credentials(signer,
+                                       email,
+                                       _TOKEN_URI,
+                                       scopes=scopes,
+                                       subject=user_email)

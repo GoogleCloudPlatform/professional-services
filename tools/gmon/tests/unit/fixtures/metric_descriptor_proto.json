@@ -1,0 +1,7 @@
+{
+  "name": "projects/[PROJECT_ID]/metricDescriptors/custom.googleapis.com/invoice/paid/amount",
+  "type": "custom.googleapis.com/invoice/paid/amount",
+  "unit": "test",
+  "description": "Invoice paid amount",
+  "display_name": "invoice_paid_amount"
+}

@@ -22,6 +22,11 @@
 #   TRIAL (optional): The trial number to use.
 . ./bin/_common.sh
 
+if [ "$#" -lt 1 ]; then
+  echo "Illegal number of parameters. Should be >= 1, given $#."
+  exit 1
+fi
+
 MODEL_OUTPUTS_DIR=$1
 TRIAL=${2:-${DEFAULT_TRIAL}}
 

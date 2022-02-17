@@ -32,7 +32,7 @@ google-fluentd
 google-dataproc-agent-membership
 google-dataproc-agent
 google-dataproc-disk-mount"
-for svc in $SERVICES; do 
+for svc in $SERVICES; do
   systemctl stop $svc
   systemctl disable $svc
   [ -f "/etc/init.d/${svc}" ] && rm -rf "/etc/init.d/${svc}"

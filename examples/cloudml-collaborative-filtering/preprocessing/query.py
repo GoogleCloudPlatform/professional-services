@@ -84,8 +84,8 @@ query = """
       GROUP BY song
     )
   SELECT user, song, artist, tags, albums, user_tags,
-    IF(user_song_listens > 2, 
-       SQRT(user_song_listens/user_max_listen), 
+    IF(user_song_listens > 2,
+       SQRT(user_song_listens/user_max_listen),
        1/user_song_listens) AS weight,
     IF(user_song_listens > 2, 1, 0) as label
   FROM user_songs

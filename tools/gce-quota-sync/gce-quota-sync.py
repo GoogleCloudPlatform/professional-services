@@ -23,6 +23,7 @@ to set alert policies or create charts.
 
 import datetime
 import logging
+import os
 import warnings
 
 import click
@@ -56,6 +57,7 @@ def _add_series(project_id, series, client=None):
   """
   client = client or monitoring_v3.MetricServiceClient()
   project_name = client.project_path(project_id)
+  os.environ["GOOGLE_CLOUD_PROJECT"] = project_id
   if isinstance(series, monitoring_v3.types.TimeSeries):
     series = [series]
   try:

@@ -174,7 +174,7 @@ class BQPipeline(object):
             if len(parts) == 1 and \
                 self.default_project is not None:
                 dataset_id = self.default_project + '.' + dataset
-        return dataset_id 
+        return dataset_id
 
     def create_dataset(self, dataset, exists_ok=False):
         """
@@ -267,7 +267,7 @@ class BQPipeline(object):
         return job
 
     def run_queries(self, query_paths, batch=True, wait=True, create=True,
-                    overwrite=True, append=False timeout=20*60, **kwargs):
+                    overwrite=True, append=False, timeout=20*60, **kwargs):
         """
         :param query_paths: List[Union[str,Tuple[str,str]]] path to sql file or
                tuple of (path, destination tablespec)

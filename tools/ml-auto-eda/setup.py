@@ -17,11 +17,21 @@
 from setuptools import find_packages
 from setuptools import setup
 
-REQUIRED_PACKAGES = ['google-cloud-bigquery>=1.9.0', 'matplotlib']
+REQUIRED_PACKAGES = [
+    'google-cloud-bigquery>=1.9.0',
+    'google-cloud-core>=0.27.0',
+    'pandas>=0.24.0',
+    'numpy>=1.16.3',
+    'scipy>=1.2.2',
+    'protobuf>=3.7.1',
+    'matplotlib>=3.0.3',
+    'seaborn>=0.9.0',
+    'markdown2'
+]
 
 setup(
-    name='ml_eda',
-    version='1.0',
+    name='ml_auto_eda',
+    version='1.1',
     description='Machine Learning exploratory data analysis automation tool',
     author='Shixin Luo, Dan Anghel, Barbara Fusinska',
     install_requires=REQUIRED_PACKAGES,

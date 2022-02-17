@@ -42,7 +42,7 @@ WITH BQAudit AS (
       protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.startTime, SECOND)) / 60) AS INT64)
       AS executionMinuteBuckets,
     IF(COALESCE(protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.totalProcessedBytes,
-      protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.totalSlotMs, 
+      protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.totalSlotMs,
       protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatus.error.code) IS NULL, TRUE, FALSE
     ) AS isCached,
     protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.totalSlotMs,
@@ -60,8 +60,8 @@ WITH BQAudit AS (
   WHERE
     protopayload_auditlog.serviceName = 'bigquery.googleapis.com'
     AND protopayload_auditlog.methodName = 'jobservice.jobcompleted'
-    AND protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.eventName IN 
-    ( 
+    AND protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.eventName IN
+    (
       'table_copy_job_completed',
       'query_job_completed',
       'extract_job_completed',

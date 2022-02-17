@@ -1,10 +1,10 @@
 ## Dataflow pipeline to change the key of a Bigtable
 
 For an optimal performance of our requests to a Bigtable instance, [it is crucial to choose
-a good key for our records](https://cloud.google.com/bigtable/docs/schema-design), 
-so that both read and writes are evenly distributed across the keys space. Although we have tools 
-such as [Key Visualizer](https://cloud.google.com/bigtable/docs/keyvis-overview), to diagnose how 
-our key is performing, it is not obvious how to change or update a key for all the records in a table.  
+a good key for our records](https://cloud.google.com/bigtable/docs/schema-design),
+so that both read and writes are evenly distributed across the keys space. Although we have tools
+such as [Key Visualizer](https://cloud.google.com/bigtable/docs/keyvis-overview), to diagnose how
+our key is performing, it is not obvious how to change or update a key for all the records in a table.
 
 This example contains a Dataflow pipeline to read data from a table in a
 Bigtable instance, and to write the same records to another table with the same
@@ -20,7 +20,7 @@ The build process is managed using Maven. To compile, just run
 
 To create a package for the pipeline, run
 
-`mvn package` 
+`mvn package`
 
 ### Setup `cbt`
 
@@ -87,7 +87,7 @@ $ ./scripts/copy_schema_to_new_table.sh MY_INPUT_TABLE MY_OUTPUT_TABLE
 
 In addition to the [Dataflow command line
 options](https://cloud.google.com/dataflow/docs/guides/specifying-exec-params),
-this pipeline has three addditional required options:
+this pipeline has three additional required options:
 
 * ``--bigtableInstance``, the name of the Bigtable instances where all the
   tables are located
@@ -144,7 +144,7 @@ You should see a job with a simple graph, similar to this one:
 
 You can now check that the destination table has the same records as the input
 table, and that the key has changed.  You can use `cbt count` and `cbt read` for
-that purpose, by comparing with the results of the original table. 
+that purpose, by comparing with the results of the original table.
 
 ### Change the update key function
 
@@ -176,11 +176,11 @@ It is only provided as an example so it is easier to write your own function.
 ```
 
 The function has two input parameters:
- 
+
 * `key`: the current key of the record
 * `record`: the full record, with all the column families, columns,
    values/cells, versions of cells, etc.
- 
+
 The `record` is of type
 [com.google.bigtable.v2.Row](http://googleapis.github.io/googleapis/java/all/latest/apidocs/com/google/bigtable/v2/Row.html).
 You can traverse the record to recover all the elements. See [an example of how

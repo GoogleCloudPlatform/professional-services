@@ -1,0 +1,6 @@
+sendgrid.env
+*/target
+.*
+!/.gitignore
+
+/quota-scan/src/main/java/functions/StackdriverQuotaMonitoring.java

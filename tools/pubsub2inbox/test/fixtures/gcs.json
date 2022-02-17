@@ -1,0 +1,19 @@
+[
+  {
+    "ackId": "IT4wPkVTRFAGFixdRkhRNxkIaFEOT14jPzUgKEUSAgJPAihdeTFRNUFedmhRDRlyfWByb1hBV1cWU3tYURsHaE5tdSVxDB9weGNwb1wVAgVDUnhaUjOnsK6v14GQPwNORbqk-pYmIYGIxqRuZiU9XhJLLD5-IDxFQV5AEkwrCURJUytDCypYEU4EIQ",
+    "message": {
+      "attributes": {
+        "bucketId": "sample-bucket",
+        "eventTime": "2020-10-15T11:21:56.590318Z",
+        "eventType": "OBJECT_FINALIZE",
+        "notificationConfig": "projects/_/buckets/sample-bucket/notificationConfigs/3",
+        "objectGeneration": "1602760916590540",
+        "objectId": "sample-file.pdf",
+        "payloadFormat": "JSON_API_V1"
+      },
+      "data": "ewogICJraW5kIjogInN0b3JhZ2Ujb2JqZWN0IiwKICAiaWQiOiAic2FtcGxlLWJ1Y2tldC9zYW1wbGUtZmlsZS5wZGYvMTYwMjc2MDkxNjU5MDU0MCIsCiAgInNlbGZMaW5rIjogImh0dHBzOi8vd3d3Lmdvb2dsZWFwaXMuY29tL3N0b3JhZ2UvdjEvYi9zYW1wbGUtYnVja2V0L28vc2FtcGxlLWZpbGUucGRmIiwKICAibmFtZSI6ICJzYW1wbGUtZmlsZS5wZGYiLAogICJidWNrZXQiOiAic2FtcGxlLWJ1Y2tldCIsCiAgImdlbmVyYXRpb24iOiAiMTYwMjc2MDkxNjU5MDU0MCIsCiAgIm1ldGFnZW5lcmF0aW9uIjogIjEiLAogICJjb250ZW50VHlwZSI6ICJhcHBsaWNhdGlvbi9wZGYiLAogICJ0aW1lQ3JlYXRlZCI6ICIyMDIwLTEwLTE1VDExOjIxOjU2LjU5MFoiLAogICJ1cGRhdGVkIjogIjIwMjAtMTAtMTVUMTE6MjE6NTYuNTkwWiIsCiAgInN0b3JhZ2VDbGFzcyI6ICJTVEFOREFSRCIsCiAgInRpbWVTdG9yYWdlQ2xhc3NVcGRhdGVkIjogIjIwMjAtMTAtMTVUMTE6MjE6NTYuNTkwWiIsCiAgInNpemUiOiAiMTU0MzMxOSIsCiAgIm1kNUhhc2giOiAiTHB2WGpFczNuM3JDK2tsQldHZ1djZz09IiwKICAibWVkaWFMaW5rIjogImh0dHBzOi8vd3d3Lmdvb2dsZWFwaXMuY29tL2Rvd25sb2FkL3N0b3JhZ2UvdjEvYi9zYW1wbGUtYnVja2V0L28vc2FtcGxlLWZpbGUucGRmP2dlbmVyYXRpb249MTYwMjc2MDkxNjU5MDU0MCZhbHQ9bWVkaWEiLAogICJjcmMzMmMiOiAid0hyeDZ3PT0iLAogICJldGFnIjogIkNNeS8zOWk5dHV3Q0VBRT0iCn0K",
+      "messageId": "1625255663761659",
+      "publishTime": "2020-10-15T11:21:57.217Z"
+    }
+  }
+]

@@ -1,3 +1,5 @@
-apache-airflow[gcp]==1.10.3
-apache-beam>=2.15.0
+apache-airflow[gcp,crypto]==1.10.3
+apache-beam[gcp]==2.19.0
+werkzeug==0.15.4
 tzlocal>=1.5.1
+pyspark==2.4.0

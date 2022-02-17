@@ -18,7 +18,7 @@ CREATE STORAGE INTEGRATION gcs_int
   STORAGE_PROVIDER = GCS
   ENABLED = TRUE
   STORAGE_ALLOWED_LOCATIONS = ('gs://from-sf/sf-data/');
-```  
+```
 
 
 ### Obtain GCP Service Account
@@ -48,10 +48,10 @@ A parquet file format can be created in Snowflake as follows to unload snowflake
 ```
 USE DB_NAME;
 USE SCHEMA_NAME;
-CREATE 
+CREATE
 OR REPLACE FILE FORMAT parquet_unload_file_format
 TYPE = PARQUET
-SNAPPY_COMPRESSION = TRUE 
+SNAPPY_COMPRESSION = TRUE
 COMMENT = 'FILE FORMAT FOR UNLOADING AS PARQUET FILES';
 ```
 
@@ -62,18 +62,18 @@ In Snowflake, an EXTERNAL STAGE object references data files stored in a locatio
 ```
 USE DB_NAME;
 USE SCHEMA SCHEMA_NAME;
-CREATE OR REPLACE STAGE parquet_unload_gcs_stage 
-URL = 'gcs://from-sf/sf-data/' 
+CREATE OR REPLACE STAGE parquet_unload_gcs_stage
+URL = 'gcs://from-sf/sf-data/'
 storage_integration  = gcs_int
-FILE_FORMAT = parquet_unload_file_format 
-COMMENT = 'GCS Stage for the Snowflake external Parquet export'; 
+FILE_FORMAT = parquet_unload_file_format
+COMMENT = 'GCS Stage for the Snowflake external Parquet export';
 ```
 
 ## Unload Snowflake Data
 
 From Snowflake, use the COPY command in Snowflake to unload data from a Snowflake, table into a GCS bucket
 
-/* 
+/*
 To retain the column names in the output file, use the HEADER = TRUE copy option.
 */
 
@@ -104,24 +104,24 @@ Use “bq load” to load the parquet files into BigQuery
 On Mac,
 ```brew cask install snowflake-snowsql```
 
-Snowsql is installed at 
+Snowsql is installed at
 /Applications/SnowSQL.app/Contents/MacOS/snowsql
 
 Snowsql gets added to the PATH. Open a new shell terminal or source the ~/.bash_profile to use the updated PATH.
 
 ```source ~/.bash_profile```
 
-Then snowsql can be run from the command line as 
+Then snowsql can be run from the command line as
 
 ```snowsql ```
 
 without providing the full path.
 
-## Migration Script 
+## Migration Script
 The `snowflake-bq.sh` script uses the Snowflake `snowsql` command line tool and the BigQuery `bq load` command line tool to migrate snowflake tables from Snowflake to BigQuery.
 
 ### Snowflake Config File
-A config file is used by snowsql to obtaion connection parameters for Snowflake. A sample snowflake config file `sf_config.txt` has been provided in this project. A named connection is defined by the config file as follows.
+A config file is used by snowsql to obtain connection parameters for Snowflake. A sample snowflake config file `sf_config.txt` has been provided in this project. A named connection is defined by the config file as follows.
 
 ```
 [connections.<snowflake-connection-name>]
@@ -134,7 +134,7 @@ schemaname=<snowflake-schema>
 warehousename=<snowflake-warehouse>
 rolename=<snowflake-role>
 ```
-The Snowflake Role should have the appropriate privileges on the various Snowflake Objects. For example, a Role can be created in Snowflake as follows  
+The Snowflake Role should have the appropriate privileges on the various Snowflake Objects. For example, a Role can be created in Snowflake as follows
 
 ```
 CREATE ROLE <SF_ROLE>;
@@ -150,20 +150,20 @@ GRANT ROLE <SF_ROLE> TO <SNOWFLAKE_USER>;
 ### Snowflake Tables List
 A file with the list of tables to be migrated can be used to migrate a set of Snowflake tables. The following parameters are required for each Snowflake table.
 
-SF_CONFIG = Snowflake Config File Full Path  
-SF_CONN = Snowflake Named Connection defined in the Config File  
-SF_DB = Snowflake Database   
-SF_SCHEMA = Snowflake Schema Name  
-SF_TABLE = Snowflake Table Name  
-SF_STAGE = Snowflake Stage Name  
-GCS_OUT_PATH = GCS path where data needs to be unloaded (should be one of the paths provided in the GCS Integration)  
-GCP_PROJECT = GCP Project ID  
-BQ_DATASET = BigQuery Dataset Name    
-BQ_TABLE = BigQuery Table Name    
+SF_CONFIG = Snowflake Config File Full Path
+SF_CONN = Snowflake Named Connection defined in the Config File
+SF_DB = Snowflake Database
+SF_SCHEMA = Snowflake Schema Name
+SF_TABLE = Snowflake Table Name
+SF_STAGE = Snowflake Stage Name
+GCS_OUT_PATH = GCS path where data needs to be unloaded (should be one of the paths provided in the GCS Integration)
+GCP_PROJECT = GCP Project ID
+BQ_DATASET = BigQuery Dataset Name
+BQ_TABLE = BigQuery Table Name
 
 ### Executing the script
 
-The GCP Account used by the script should have the appropriate IAM Roles for GCS and BigQuery. The -P parameter determines the parallelism of the script.   
+The GCP Account used by the script should have the appropriate IAM Roles for GCS and BigQuery. The -P parameter determines the parallelism of the script.
 
-For Example  
+For Example
 `cat tables.list  | xargs -P 3 -L 1 ./snowflake-bq.sh`

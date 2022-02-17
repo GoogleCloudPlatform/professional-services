@@ -48,12 +48,12 @@ class Optimizer(object):
         """Total number of arguments any optimizer can take.
 
         Arguments:
-            rho : A Tensor containing the value to minimize or a callable taking no arguments which returns the value to minimize. 
+            rho : A Tensor containing the value to minimize or a callable taking no arguments which returns the value to minimize.
                   When eager execution is enabled it must be a callable.
             epsilon : Small value to avoid zero denominator.
             use_locking : boolean, If True use locks for update operations.
             global_step : tf.train.get_global_step() object
-            initial_gradient_squared_accumulator_value : float, 
+            initial_gradient_squared_accumulator_value : float,
             l1_regularization_strength : A float value, must be greater than or equal to zero.
             l2_regularization_strength : A float value, must be greater than or equal to zero.
             beta1 : A float value or a constant float tensor. The exponential decay rate for the 1st moment estimates.
@@ -62,12 +62,12 @@ class Optimizer(object):
             initial_accumulator_value : The starting value for accumulators. Only zero or positive values are allowed.
             accum_name : The suffix for the variable that keeps the gradient squared accumulator. If not present, defaults to name.
             linear_name : The suffix for the variable that keeps the linear gradient accumulator. If not present, defaults to name + "_1".
-            l2_shrinkage_regularization_strength : A float value, must be greater than or equal to zero. 
-                    This differs from L2 above in that the L2 above is a stabilization penalty, whereas this L2 shrinkage is a magnitude penalty. 
+            l2_shrinkage_regularization_strength : A float value, must be greater than or equal to zero.
+                    This differs from L2 above in that the L2 above is a stabilization penalty, whereas this L2 shrinkage is a magnitude penalty.
             momentum : A scalar tensor.
             use_nesterov :  If True use Nesterov Momentum. See Sutskever et al., 2013.
                           This implementation always computes gradients at the value of the variable(s) passed to the optimizer.
-                          Using Nesterov Momentum makes the variable(s) track the values called theta_t + mu*v_t in the paper. 
+                          Using Nesterov Momentum makes the variable(s) track the values called theta_t + mu*v_t in the paper.
             decay : Discounting factor for the history/coming gradient
             centered : boolean, If True, gradients are normalized by the estimated variance of the gradient; if False, by the uncentered second moment.
                     Setting this to True may help with training, but is slightly more expensive in terms of computation and memory. Defaults to False.
@@ -269,8 +269,8 @@ class Optimizer(object):
             name : str, Name of the optimizer to be used
             learning_rate : float, Learning rate for the optimizer
             decay : Boolean, whether or not to use learning rate decay
-        Returns: 
-            _set_opt function 
+        Returns:
+            _set_opt function
         """
         return self._set_opt(name, learning_rate, decay)
 

@@ -18,6 +18,6 @@ sources are monitored by this alert.
 data ingestion.
 
 ### Case 2: At least 1 time-series absent
-1. The time series that has gone absent should be able to be identified with 
+1. The time series that has gone absent should be able to be identified with
 by the chart for metric: ${metric.display_name}.
 2. Investigate the specific data sources. The resource type is: ${resource.type}

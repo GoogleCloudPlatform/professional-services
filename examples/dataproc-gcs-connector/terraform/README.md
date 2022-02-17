@@ -11,7 +11,7 @@
 
 ## How to Use
 
-This Terraform code builds a Dataproc cluster with the GCS connector from the master branch of the [GoogleCloudDataproc/hadoop-connectors](https://github.com/GoogleCloudDataproc/hadoop-connectors) GitHub. It will include creating a Google Cloud Storage bucket to store the JAR file of the GCS connector (see [this README](../README.md) for building the JAR) and the [initialization action](https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/init-actions) for the Dataproc cluster. 
+This Terraform code builds a Dataproc cluster with the GCS connector from the master branch of the [GoogleCloudDataproc/hadoop-connectors](https://github.com/GoogleCloudDataproc/hadoop-connectors) GitHub. It will include creating a Google Cloud Storage bucket to store the JAR file of the GCS connector (see [this README](../README.md) for building the JAR) and the [initialization action](https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/init-actions) for the Dataproc cluster.
 
 Before running this code, you will need to confirm that the file path to the JAR on Line 23 of `main.tf` and the file path to the initialization action on Line 29 of `main.tf` are correct.
 

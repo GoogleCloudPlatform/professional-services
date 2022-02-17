@@ -1,5 +1,0 @@
-pyhive[hive]>=0.6.1
-pymysql>=0.9.3
-google-cloud-bigquery>=1.9.0
-google-cloud-storage>=1.14.0
-google-cloud-kms>=1.0.0

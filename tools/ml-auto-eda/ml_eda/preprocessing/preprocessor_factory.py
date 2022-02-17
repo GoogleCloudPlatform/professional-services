@@ -18,8 +18,11 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
-from ml_eda.constants import c
 from ml_eda.preprocessing.preprocessors.bigquery import bq_preprocessor
+
+# Preprocessing backends
+BIGQUERY = 'BIGQUERY'
+DATAFLOW = 'DATAFLOW'
 
 
 class PreprocessorFactory:
@@ -28,7 +31,7 @@ class PreprocessorFactory:
   @staticmethod
   def new_preprocessor(config):
     """Creat new preprocessor instance"""
-    if config.preprocessing_backend == c.preprocessing.BIGQUERY:
+    if config.preprocessing_backend == 'BIGQUERY':
       return bq_preprocessor.BqPreprocessor(config)
 
     raise ValueError('Preprocessor type {} not supported yet.'.format(

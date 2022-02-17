@@ -19,34 +19,39 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 from collections import OrderedDict
-from typing import Set, Dict, List, Union
-from decimal import Decimal
+from typing import Set, Dict, List, Union, Text
 
+from ml_eda.proto import analysis_entity_pb2
+from ml_eda.preprocessing.analysis_query import query_constants
 from ml_eda.reporting import template
-from ml_eda.metadata import run_metadata_pb2
-from ml_eda.constants import COMMON_ORDER, NUMERICAL_ORDER, CATEGORICAL_ORDER
 from ml_eda.reporting import visualization
+from ml_eda.reporting import formatting
+
+Analysis = analysis_entity_pb2.Analysis
+TableMetric = analysis_entity_pb2.TableMetric
+ScalarMetric = analysis_entity_pb2.ScalarMetric
+Attribute = analysis_entity_pb2.Attribute
 
 
 def create_table_descriptive_row_from_analysis(
-    attribute_name: str,
-    base_analysis: run_metadata_pb2.Analysis,
-    additional_analysis: run_metadata_pb2.Analysis,
-    figure_base_path: str
-) -> str:
+    attribute_name: Text,
+    base_analysis: Analysis,
+    additional_analysis: Analysis,
+    figure_base_path: Text
+) -> Text:
   # pylint: disable-msg=too-many-locals
   """Create makrdown formatted descriptive analysis result
 
   Args:
       attribute_name: (string), name of the attribute
-      base_analysis: (run_metadata_pb2.Analysis), analysis holding
+      base_analysis: (analysis_entity_pb2.Analysis), analysis holding
       all the metrics
-      additional_analysis: (run_metadata_pb2.Analysis), histogram for
+      additional_analysis: (analysis_entity_pb2.Analysis), histogram for
       numerical attribute, value_counts for categorical attributes
       figure_base_path: (string), the folder for holding figures
 
   Returns:
-      string, markdown formated content
+      string, markdown formatted content
   """
   row_template = template.TABLE_DESCRIPTIVE_ROW_TEMPLATE
   stats_template = template.TABLE_DESCRIPTIVE_STATS_TEMPLATE
@@ -55,20 +60,20 @@ def create_table_descriptive_row_from_analysis(
   attribute_type = base_analysis.features[0].type
 
   # Make sure the display order of each attribute is consistent
-  common_order = COMMON_ORDER
-  if attribute_type == run_metadata_pb2.Attribute.NUMERICAL:
-    detail_order = NUMERICAL_ORDER
+  common_order = query_constants.COMMON_ORDER
+  if attribute_type == Attribute.NUMERICAL:
+    detail_order = query_constants.NUMERICAL_ORDER
   else:
-    detail_order = CATEGORICAL_ORDER
+    detail_order = query_constants.CATEGORICAL_ORDER
   # Use a OrderedDict to store the result
   result_holder = OrderedDict(
       [(item, 0) for item in common_order + detail_order])
   for item in metrics:
-    name = run_metadata_pb2.ScalarMetric.Name.Name(item.name)
-    value = "{0:.2f}".format(item.value)
+    name = ScalarMetric.Name.Name(item.name)
+    value = formatting.numeric_formatting(item.value)
     result_holder[name] = value
 
-  # Construct the markdown formated row
+  # Construct the markdown formatted row
   row_stats_contents = []
   for item in result_holder:
     row_stats_contents.append(stats_template.format(
@@ -80,15 +85,14 @@ def create_table_descriptive_row_from_analysis(
                                              figure_base_path)
   return row_template.format(
       name=attribute_name,
-      type=run_metadata_pb2.Attribute.Type.Name(attribute_type),
+      type=Attribute.Type.Name(attribute_type),
       stats=' <br/> '.join(row_stats_contents),
       url=figure_path,
       alt_text=attribute_name,
   )
 
 
-def create_table_from_TableMetric(
-    table_metric: run_metadata_pb2.TableMetric) -> str:
+def create_table_from_table_metric(table_metric: TableMetric) -> Text:
   """Create a table for a TableMetric object. Currently, this function is
   used for Contingency_Table and TABLE_DESCRIPTIVE
 
@@ -98,15 +102,15 @@ def create_table_from_TableMetric(
   frequency|108114952.0|74475448.0|797730.0|369844.0|255082.0|192063.0
 
   Args:
-      table_metric: (run_metadata_pb2.TableMetric)
+      table_metric: (analysis_entity_pb2.TableMetric)
 
   Returns:
       string
   """
 
   supported_metric = {
-      run_metadata_pb2.TableMetric.CONTINGENCY_TABLE,
-      run_metadata_pb2.TableMetric.TABLE_DESCRIPTIVE
+      TableMetric.CONTINGENCY_TABLE,
+      TableMetric.TABLE_DESCRIPTIVE
   }
 
   assert table_metric.name in supported_metric
@@ -123,7 +127,7 @@ def create_table_from_TableMetric(
     # row header is in BOLD
     row_header = template.BOLD.format(
         content=str(row.row_index).strip())
-    row_values = [row_header] + ["{0:.2f}".format(item.value)
+    row_values = [row_header] + [formatting.numeric_formatting(item.value)
                                  for item in row.cells]
     table_content.append("|".join(row_values))
 
@@ -136,10 +140,12 @@ def create_table_from_TableMetric(
   )
 
 
-def create_pairwise_metric_table(row_list: Set[str],
-                                 column_list: Set[str],
-                                 name_value_map: Dict[str, float],
-                                 same_match_value) -> str:
+def create_pairwise_metric_table(
+    row_list: Set[Text],
+    column_list: Set[Text],
+    name_value_map: Dict[Text, float],
+    same_match_value
+) -> Text:
   """Construct table for pair-wise computed metrics, e.g.,
   PEARSON_CORRELATION, ANOVA, CHI_SQUARE, INFORMATION_GAIN
 
@@ -183,7 +189,7 @@ def create_pairwise_metric_table(row_list: Set[str],
       if isinstance(value, str):
         row_values.append(same_match_value)
       else:
-        row_values.append("{:.2E}".format(Decimal(str(value))))
+        row_values.append(formatting.numeric_formatting(value))
 
     table_content.append("|".join(row_values))
 
@@ -197,14 +203,15 @@ def create_pairwise_metric_table(row_list: Set[str],
 
 
 def create_no_order_pair_metric_section(
-    analysis_list: List[run_metadata_pb2.Analysis],
-    same_match_value: Union[str, float],
-    figure_base_path: str,
-    table_name: str = "NA") -> str:
+    analysis_list: List[Analysis],
+    same_match_value: Union[Text, float],
+    figure_base_path: Text,
+    table_name: Text = "NA"
+) -> Text:
   """Create metric table for pairwise comparison
 
   Args:
-      analysis_list: (List[run_metadata_pb2.Analysis])
+      analysis_list: (List[analysis_entity_pb2.Analysis])
       same_match_value: (Union[str, float])
       figure_base_path: (string), the folder for holding figures
       table_name: (str)
@@ -247,12 +254,13 @@ def create_no_order_pair_metric_section(
 
 
 def create_order_pair_metric_section(
-    analysis_list: List[run_metadata_pb2.Analysis],
-    same_match_value: Union[str, float]) -> str:
+    analysis_list: List[Analysis],
+    same_match_value: Union[Text, float]
+) -> Text:
   """Create metric table for pairwise comparison
 
   Args:
-      analysis_list: (List[run_metadata_pb2.Analysis])
+      analysis_list: (List[analysis_entity_pb2.Analysis])
       same_match_value: (Union[str, float])
 
   Returns:
@@ -276,24 +284,24 @@ def create_order_pair_metric_section(
 
 
 def create_target_metrics_highlight(
-    target_name: str,
-    metric_name_list: List[str],
-    metric_analysis_list: List[List[run_metadata_pb2.Analysis]]
-) -> str:
+    target_name: Text,
+    metric_name_list: List[Text],
+    metric_analysis_list: List[List[Analysis]]
+) -> Text:
   # pylint: disable-msg=too-many-locals
   """Create the content for highlight section regarding a target attribute
 
   Args:
       target_name: (string)
       metric_name_list: (List(string)
-      metric_analysis_list: (List[List[run_metadata_pb2.Analysis]])
+      metric_analysis_list: (List[List[analysis_entity_pb2.Analysis]])
 
   Returns:
 
   """
 
   assert len(metric_name_list) == len(metric_analysis_list)
-  # Every metric should have the same length, i.e., target v.s. remainings
+  # Every metric should have the same length, i.e., target v.s. remaining
   assert len({len(item) for item in metric_analysis_list}) == 1
 
   name_enrich = {
@@ -318,7 +326,7 @@ def create_target_metrics_highlight(
   metric_holders = {metric: {} for metric in metric_name_list}
   for i in range(num_metrics):
     for analysis in metric_analysis_list[i]:
-      metric_name = run_metadata_pb2.Analysis.Name.Name(analysis.name)
+      metric_name = Analysis.Name.Name(analysis.name)
       attribute_name = [att.name for att in analysis.features
                         if att.name != target_name][0]
       attribute_set.add(attribute_name)
@@ -328,7 +336,7 @@ def create_target_metrics_highlight(
   row_content_list = []
   for attribute in attribute_set:
     values_str = '|'.join(
-        ["{:.2E}".format(Decimal(str(metric_holders[metric][attribute])))
+        [formatting.numeric_formatting(metric_holders[metric][attribute])
          for metric in metric_name_list])
     row_content_list.append(row_template.format(
         name=attribute,
@@ -343,7 +351,7 @@ def create_target_metrics_highlight(
   )
 
 
-def create_content_list(contents: List[str]) -> str:
+def create_content_list(contents: List[Text]) -> Text:
   """Format list of string into markdown list
 
   Args:
@@ -352,14 +360,15 @@ def create_content_list(contents: List[str]) -> str:
   Returns:
     String
   """
+  # print(contents)
   return '\n'.join(
       [template.LIST_TEMPLATE.format(
           level='',
           content=item
-      ) for item in contents])
+      ) for item in contents if item.strip()])
 
 
-def create_warning_notes(warnings: List[str]) -> str:
+def create_warning_notes(warnings: List[Text]) -> Text:
   """Format list of warnings into markdown list
 
   Args:

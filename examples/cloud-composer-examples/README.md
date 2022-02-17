@@ -1,5 +1,5 @@
-## Cloud Composer Examples: 
-This repo constains the following examples of using Cloud Composer, Google Cloud Platform's managed Apache Airflow service:
+## Cloud Composer Examples:
+This repo contains the following examples of using Cloud Composer, Google Cloud Platform's managed Apache Airflow service:
 
 1. [Composer Dataflow Examples](composer_dataflow_examples/README.md)
 

@@ -159,7 +159,7 @@ def copy_file(client: google.cloud.storage.Client, source_bucket_name: str,
     Returns:
         None; Logs message to Stackdriver.
     """
-    log_message = (f'Starting copy file {file_name} from {source_bucket_name}' 
+    log_message = (f'Starting copy file {file_name} from {source_bucket_name}'
                    f'to {destination_bucket_name}.')
     logging.info(log_message)
     source_bucket = client.get_bucket(source_bucket_name)

@@ -107,7 +107,7 @@ def get_pipeline_options(args, config):
             "../setup.py")),
         "staging_location": os.path.join(args.job_dir, "staging"),
         "temp_location": os.path.join(args.job_dir, "tmp"),
-        "zone": config.get("zone")
+        "region": config.get("region"),
     })
   pipeline_options = beam.pipeline.PipelineOptions(flags=[], **options)
   return pipeline_options

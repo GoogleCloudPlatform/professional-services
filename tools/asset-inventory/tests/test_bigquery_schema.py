@@ -22,6 +22,7 @@ from asset_inventory import bigquery_schema
 
 class TestBigQuerySchema(unittest.TestCase):
 
+
     def test_record(self):
         document = {'record_field': {'string_field': 'string_value'}}
         schema = bigquery_schema.translate_json_to_schema(
@@ -156,6 +157,7 @@ class TestBigQuerySchema(unittest.TestCase):
             'empyty_dict': {},
             'empyty_dict_list': [{}, {}],
             'a' * 200: 'value0',
+            '@!@': 'deleteme',
             '@2_3': 'value1',
             'invalid_numeric': 9.300000191734863,
             'labels': {
@@ -255,6 +257,51 @@ class TestBigQuerySchema(unittest.TestCase):
         self.assertEqual(bigquery_schema.enforce_schema_data_types(
             {'property_7': [{'property_1': 'invalid'}, 33]}, schema), {})
 
+    def test_addtional_properties_repeated_string(self):
+        schema = [
+            {'name': 'property_1',
+             'field_type': 'RECORD',
+             'description': 'description-1',
+             'mode': 'REPEATED',
+             'fields': [{'name': 'name',
+                         'field_type': 'STRING',
+                         'description': 'additionalProperties name',
+                         'mode': 'NULLABLE'},
+                        {'name': 'value',
+                         'field_type': 'STRING',
+                         'description': 'description-1.',
+                         'mode': 'NULLABLE'}]}]
+        self.assertEqual(
+            bigquery_schema.enforce_schema_data_types(
+                {'property_1': {'key1': 'a', 'key2': 'b'}}, schema),
+            {'property_1': [{'name': 'key1', 'value': 'a'},
+                            {'name': 'key2', 'value': 'b'}]})
+
+    def test_addtional_properties_repeated_record(self):
+        schema = [
+            {'name': 'property_1',
+             'field_type': 'RECORD',
+             'description': 'description-1',
+             'mode': 'REPEATED',
+             'fields': [{'name': 'name',
+                         'field_type': 'STRING',
+                         'description': 'additionalProperties name',
+                         'mode': 'NULLABLE'},
+                        {'name': 'value',
+                         'field_type': 'RECORD',
+                         'description': 'description-1.',
+                         'mode': 'NULLABLE',
+                         'fields': [{'name': 'property_2',
+                                     'field_type': 'STRING',
+                                     'description': 'description-2.',
+                                     'mode': 'NULLABLE'}]}]}]
+        self.assertEqual(
+            bigquery_schema.enforce_schema_data_types(
+                {'property_1': {'key1': {'property_2': 'a'},
+                                'key2': {'property_2': 'b'}}}, schema),
+            {'property_1': [{'name': 'key1', 'value': {'property_2': 'a'}},
+                            {'name': 'key2', 'value': {'property_2': 'b'}}]})
+
     def test_remove_duplicate_property(self):
         doc = {
             'ipAddress': 'value',
@@ -268,6 +315,123 @@ class TestBigQuerySchema(unittest.TestCase):
         self.assertIn('IPAddress', sanitized)
         self.assertEqual(sanitized['IPAddress'], 'other_value')
         self.assertEqual(sanitized['array'], [{'IPAddress': 'other_value'}])
+
+    def test_prune_max_properties(self):
+        doc = {'prop-' + str(i): 'value' for i in range(0, 10000)}
+        sanitized = bigquery_schema.sanitize_property_value(doc)
+        self.assertEqual(len(sanitized), 10000)
+
+        # prune the 10,000'th
+        doc['prop-10001'] = 'value'
+        sanitized = bigquery_schema.sanitize_property_value(doc)
+        self.assertEqual(len(sanitized), 10000)
+
+        # prune last added property
+        doc['z'] = 'value'
+        sanitized = bigquery_schema.sanitize_property_value(doc)
+        self.assertEqual(len(sanitized), 10000)
+        self.assertNotIn('z', sanitized)
+
+    def test_addtional_properties_merge_schema_simple(self):
+        rest_schema = [
+            {'name': 'property_1',
+             'field_type': 'STRING',
+             'description': 'description-1',
+             'mode': 'NULLABLE'
+            },
+            {'name': 'property_2',
+             'field_type': 'RECORD',
+             'description': 'description-2',
+             'mode': 'REPEATED',
+             'fields': [{'name': 'name',
+                         'field_type': 'STRING',
+                         'description': 'additionalProperties name',
+                         'mode': 'NULLABLE'},
+                        {'name': 'value',
+                         'field_type': 'STRING',
+                         'description': 'description-2.',
+                         'mode': 'NULLABLE'}]}]
+
+        document = {
+            'property_1': 'value_1',
+            'property_2': {
+                'add_prop_1': 'add_value_1',
+                'add_prop_2': 'add_value_2'
+                },
+            'property_3': 'value_3'
+        }
+
+        document_schema = bigquery_schema.translate_json_to_schema(
+            document)
+
+        self.assertEqual(
+            bigquery_schema.merge_schemas(
+                [rest_schema, document_schema]
+            ),
+            rest_schema + [{'name': 'property_3',
+                            'field_type': 'STRING',
+                            'mode': 'NULLABLE'
+                           }])
+
+    def test_addtional_properties_merge_schema_object(self):
+        self.maxDiff = None
+        rest_schema = [
+            {'name': 'property_1',
+             'field_type': 'STRING',
+             'description': 'description-1',
+             'mode': 'NULLABLE'
+            },
+            {'name': 'property_2',
+             'field_type': 'RECORD',
+             'description': 'description-2',
+             'mode': 'REPEATED',
+             'fields': [{'name': 'name',
+                         'field_type': 'STRING',
+                         'description': 'additionalProperties name',
+                         'mode': 'NULLABLE'},
+                        {'name': 'value',
+                         'field_type': 'RECORD',
+                         'mode': 'NULLABLE'}]}]
+
+        document = {
+            'property_1': 'value_1',
+            'property_2': {
+                'add_prop_1': {'key_1': 1},
+                'add_prop_2': {'key_1': 2}
+                },
+            'property_3': 'value_3'
+        }
+
+        document_schema = bigquery_schema.translate_json_to_schema(
+            document)
+
+        self.assertEqual(
+            bigquery_schema.merge_schemas(
+                [rest_schema, document_schema]
+            ),
+            [{'name': 'property_1',
+              'field_type': 'STRING',
+              'description': 'description-1',
+              'mode': 'NULLABLE'
+             },
+             {'name': 'property_2',
+              'field_type': 'RECORD',
+              'description': 'description-2',
+              'mode': 'REPEATED',
+              'fields': [{'name': 'name',
+                          'field_type': 'STRING',
+                          'description': 'additionalProperties name',
+                          'mode': 'NULLABLE'},
+                         {'name': 'value',
+                          'field_type': 'RECORD',
+                          'mode': 'NULLABLE',
+                          'fields': [{'name': 'key_1',
+                                      'field_type': 'NUMERIC',
+                                      'mode': 'NULLABLE'}]}]
+             },
+             {'name': 'property_3',
+              'field_type': 'STRING',
+              'mode': 'NULLABLE'}])
 
 
 if __name__ == '__main__':

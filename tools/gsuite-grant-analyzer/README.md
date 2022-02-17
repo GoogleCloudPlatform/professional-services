@@ -107,68 +107,68 @@ for simplicity):
 ```
 
 Below are some samples of possible queries on this schema. By customizing the
-queries, it is possible to perform the desired analysis on users, apps and 
+queries, it is possible to perform the desired analysis on users, apps and
 scopes.
 
 - All apps granted by a given user:
 
 ```
-SELECT DISTINCT clientId, displayText 
-FROM `my-project.app_scopes.app_scopes_20190606_111451_976536` 
+SELECT DISTINCT clientId, displayText
+FROM `my-project.app_scopes.app_scopes_20190606_111451_976536`
 WHERE user = "user@example.com"
 ```
 
 - All scopes granted by a given user:
 
 ```
-SELECT DISTINCT scope 
-FROM `my-project.app_scopes.app_scopes_20190606_111451_976536` 
+SELECT DISTINCT scope
+FROM `my-project.app_scopes.app_scopes_20190606_111451_976536`
 WHERE user = "user@example.com"
 ```
 
 - All scopes requested by a given app:
 
 ```
-SELECT DISTINCT scope 
-FROM `my-project.app_scopes.app_scopes_20190606_111451_976536` 
+SELECT DISTINCT scope
+FROM `my-project.app_scopes.app_scopes_20190606_111451_976536`
 WHERE clientId = "123-abc.apps.googleusercontent.com"
 ```
 
 - All users using a given app:
 
 ```
-SELECT DISTINCT user 
-FROM `my-project.app_scopes.app_scopes_20190606_111451_976536` 
+SELECT DISTINCT user
+FROM `my-project.app_scopes.app_scopes_20190606_111451_976536`
 WHERE clientId = "123-abc.apps.googleusercontent.com"
 ```
 
 - All apps using a given set of scopes:
 
 ```
-SELECT DISTINCT clientId, displayText 
-FROM `my-project.app_scopes.app_scopes_20190606_111451_976536` 
-WHERE scope = 'https://www.googleapis.com/auth/drive' 
+SELECT DISTINCT clientId, displayText
+FROM `my-project.app_scopes.app_scopes_20190606_111451_976536`
+WHERE scope = 'https://www.googleapis.com/auth/drive'
 OR scope = 'https://www.googleapis.com/auth/drive.readonly'
 ```
 
-Note how we can use SELECT DISTINCT on both the clientId and displayText, as a 
+Note how we can use SELECT DISTINCT on both the clientId and displayText, as a
 given clientId will always have the same displayText. However, keep in mind that
 the opposite is usually not true.
 
 - All users using a given set of scopes:
 
 ```
-SELECT DISTINCT user 
-FROM `my-project.app_scopes.app_scopes_20190606_111451_976536` 
-WHERE scope = 'https://www.googleapis.com/auth/drive' 
+SELECT DISTINCT user
+FROM `my-project.app_scopes.app_scopes_20190606_111451_976536`
+WHERE scope = 'https://www.googleapis.com/auth/drive'
 OR scope = 'https://www.googleapis.com/auth/drive.readonly'
 ```
 
 - All apps requiring any Google Drive scope (both critical and non critical):
 
 ```
-SELECT DISTINCT clientId, displayText 
-FROM `my-project.app_scopes.app_scopes_20190606_111451_976536` 
+SELECT DISTINCT clientId, displayText
+FROM `my-project.app_scopes.app_scopes_20190606_111451_976536`
 WHERE (scope LIKE '%/drive%' OR scope LIKE '%/sheets%'
   OR scope LIKE '%/presentations%' OR scope LIKE '%/documents%')
 ```
@@ -177,31 +177,31 @@ The query uses LIKE to capture both read/write and readonly scopes, but it can
 be easily customized to query for r/w scopes only (by entering the exact URLs).
 Also, consider that other G Suite apps, like Sheets or Slides,
 have their own scopes, and these allow to access that specific kind of
-document as well. That's why they are included. See 
+document as well. That's why they are included. See
 https://developers.google.com/identity/protocols/googlescopes
 for a comprehensive list of scopes.
 
 - All apps or users requiring only non-high-risk scopes in Drive:
 
 ```
-SELECT DISTINCT clientId, displayText 
+SELECT DISTINCT clientId, displayText
 FROM `my-project.app_scopes.app_scopes_20190606_111451_976536`
-WHERE (scope LIKE '%/drive%' OR scope LIKE '%/sheets%' 
+WHERE (scope LIKE '%/drive%' OR scope LIKE '%/sheets%'
   OR scope LIKE '%/presentations%' OR scope LIKE '%/documents%')
 AND clientId NOT IN (
   SELECT DISTINCT clientId
-  FROM `my-project.app_scopes.app_scopes_20190606_111451_976536` 
+  FROM `my-project.app_scopes.app_scopes_20190606_111451_976536`
   WHERE (
     (scope LIKE '%/drive%' OR scope LIKE '%/sheets%'
       OR scope LIKE '%/presentations%' OR scope LIKE '%/documents%')
-    AND scope != 'https://www.googleapis.com/auth/drive.appfolder' 
-    AND scope != 'https://www.googleapis.com/auth/drive.file' 
+    AND scope != 'https://www.googleapis.com/auth/drive.appfolder'
+    AND scope != 'https://www.googleapis.com/auth/drive.file'
     AND scope != 'https://www.googleapis.com/auth/drive.install'
   )
 )
 ```
 
-Let's explain this query. The inner SELECT retrieves apps that are asking for 
+Let's explain this query. The inner SELECT retrieves apps that are asking for
 any drive scope, except non-high-risk scopes. That is, these apps use ONLY high
 risk scopes.
 The outer query then selects the apps that ask for any drive scope, but are not
@@ -225,7 +225,7 @@ The script will create a different table each time it runs, with the name:
 app_scopes_YYYYMMDD_HHMMSS_microsecs
 
 The script will create a new dataset in the specified project. The dataset name
-and location can be configured by adjusting the following variables in the 
+and location can be configured by adjusting the following variables in the
 script:
 
 ```
@@ -243,7 +243,7 @@ dataset.
   --domain DOMAIN    Domain of your organization
   --ou OU            (Optional) Organizational Unit path, default is /
   --sa SA            Path to Service Account credentials file
-  --admin ADMIN      Administrator email acount
+  --admin ADMIN      Administrator email account
   --project PROJECT  Project where BigQuery dataset will be created
   --dry-run          (Optional) Do not load data into BigQuery
   --processes        (Optional) Number of concurrent processes to use (default: 4)

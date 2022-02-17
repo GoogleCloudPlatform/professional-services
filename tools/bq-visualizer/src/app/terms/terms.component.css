@@ -13,27 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
  .view {
     font-family: Roboto, Helvetica, sans-serif;
     padding: 1em;
     max-width: 700px;
   }
-  
+
   .flex-spacer {
       flex-grow: 1;
   }
-  
+
   nav {
     text-align: center;
   }
-  
+
   .back {
     margin-top: 2em;
   }
-  
+
   a.policy-link {
     color: #4285f4;
     font-weight: 400;
   }
-  

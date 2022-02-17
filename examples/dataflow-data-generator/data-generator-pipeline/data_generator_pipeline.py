@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-A Dataflow pipeline which reads a schema to simulate or "fake" data 
-from a json file and writes random data of the schema's shape to a 
-BigQuery table or as CSV or AVRO files on GCS. This can be used to 
+A Dataflow pipeline which reads a schema to simulate or "fake" data
+from a json file and writes random data of the schema's shape to a
+BigQuery table or as CSV or AVRO files on GCS. This can be used to
 ease apprehension about BQ costs, unblock integration testing before
-real data can be provided by the business, or create dummy datasets 
+real data can be provided by the business, or create dummy datasets
 for stress testing in the event of large data growth.
 """
 

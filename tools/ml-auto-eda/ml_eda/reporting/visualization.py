@@ -17,7 +17,7 @@
 # pylint: disable-msg=wrong-import-position
 import re
 import os
-from typing import Set, Dict, List
+from typing import Set, Dict, List, Text
 
 import pandas as pd
 import matplotlib
@@ -26,24 +26,24 @@ matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 import seaborn as sns
 
-from ml_eda.metadata import run_metadata_pb2
+from ml_eda.proto import analysis_entity_pb2
 
 FIGURE_SIZE = (10, 8)
 XLABEL_SIZE = 10
 
+Analysis = analysis_entity_pb2.Analysis
 
-def _trim_xlabel(xlabels: List[str]) -> List[str]:
+
+def _trim_xlabel(xlabels: List[Text]) -> List[Text]:
   return [item[0:XLABEL_SIZE] if len(item) > XLABEL_SIZE else item
           for item in xlabels]
 
 
-def plot_bar_chart(
-    analysis: run_metadata_pb2.Analysis,
-    figure_base_path: str) -> str:
+def plot_bar_chart(analysis: Analysis, figure_base_path: Text) -> Text:
   """Create histogram for numerical attributes or bar chart for categorical
 
   Args:
-      analysis: (run_metadata_pb2.Analysis), the analysis should be one of
+      analysis: (analysis_pb2.Analysis), the analysis should be one of
       the following
       - HISTOGRAM for histogram of numerical attribute
       - VALUE_COUNTS for bar chart of categorical attributes
@@ -53,10 +53,7 @@ def plot_bar_chart(
       string, path of the generated figure
   """
   # pylint: disable-msg=too-many-locals
-  supported_analysis = {
-      run_metadata_pb2.Analysis.HISTOGRAM,
-      run_metadata_pb2.Analysis.VALUE_COUNTS
-  }
+  supported_analysis = {Analysis.HISTOGRAM, Analysis.VALUE_COUNTS}
 
   assert analysis.name in supported_analysis
 
@@ -65,7 +62,7 @@ def plot_bar_chart(
   attribute_name = analysis.features[0].name
 
   columns = []
-  if analysis.name == run_metadata_pb2.Analysis.HISTOGRAM:
+  if analysis.name == Analysis.HISTOGRAM:
     boundaries = table_metric.column_indexes
     for item in boundaries:
       # For better display, the midpoint of a bin is computed
@@ -103,12 +100,13 @@ def plot_bar_chart(
 
 
 def plot_heat_map_for_metric_table(
-    heat_map_name: str,
-    row_list: Set[str],
-    column_list: Set[str],
-    name_value_map: Dict[str, float],
+    heat_map_name: Text,
+    row_list: Set[Text],
+    column_list: Set[Text],
+    name_value_map: Dict[Text, float],
     same_match_value: float,
-    figure_base_path: str) -> str:
+    figure_base_path: Text
+) -> Text:
   """Creat heat map for pair-wised analysis. Currently, this is done for
   numerical pearson correlation and categorical information gain.
 

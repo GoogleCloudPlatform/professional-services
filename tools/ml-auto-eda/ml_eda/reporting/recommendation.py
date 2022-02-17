@@ -15,11 +15,11 @@
 
 """Utilities for provide recommendation based on analysis results"""
 
-from decimal import Decimal
-from typing import Union
+from typing import Union, Text
 
-from ml_eda.metadata import run_metadata_pb2
+from ml_eda.proto import analysis_entity_pb2
 from ml_eda.reporting import template
+from ml_eda.reporting import formatting
 
 # Thresholds
 MISSING_THRESHOLD = 0.1
@@ -27,15 +27,19 @@ CARDINALITY_THRESHOLD = 100
 CORRELATION_COEFFICIENT_THRESHOLD = 0.3
 P_VALUE_THRESHOLD = 0.05
 
+Analysis = analysis_entity_pb2.Analysis
+ScalarMetric = analysis_entity_pb2.ScalarMetric
 
-def check_missing(attribute_name: str,
-                  analysis: run_metadata_pb2.Analysis
-                  ) -> Union[None, str]:
+
+def check_missing(
+    attribute_name: Text,
+    analysis: Analysis
+) -> Union[None, Text]:
   """Check whether % of missing exceed threshold
 
   Args:
       attribute_name: (string),
-      analysis: (run_metadata_pb2.Analysis), analysis that contain the result
+      analysis: (analysis_entity_pb2.Analysis), analysis that contain the result
       of number of missing values
 
   Returns:
@@ -46,9 +50,9 @@ def check_missing(attribute_name: str,
   missing = 0
 
   for item in metrics:
-    if item.name == run_metadata_pb2.ScalarMetric.TOTAL_COUNT:
+    if item.name == ScalarMetric.TOTAL_COUNT:
       total = item.value
-    elif item.name == run_metadata_pb2.ScalarMetric.MISSING:
+    elif item.name == ScalarMetric.MISSING:
       missing = item.value
 
   if total == 0:
@@ -65,14 +69,15 @@ def check_missing(attribute_name: str,
   return None
 
 
-def check_cardinality(attribute_name: str,
-                      analysis: run_metadata_pb2.Analysis
-                      ) -> Union[None, str]:
+def check_cardinality(
+    attribute_name: Text,
+    analysis: Analysis
+) -> Union[None, Text]:
   """Check whether the cardinality exceeds the predefined threshold
 
   Args:
       attribute_name: (string),
-      analysis: (run_metadata_pb2.Analysis), analysis that contain the result
+      analysis: (analysis_entity_pb2.Analysis), analysis that contain the result
       of cardinality
 
   Returns:
@@ -82,7 +87,7 @@ def check_cardinality(attribute_name: str,
   cardinality = 0
 
   for item in metrics:
-    if item.name == run_metadata_pb2.ScalarMetric.CARDINALITY:
+    if item.name == ScalarMetric.CARDINALITY:
       cardinality = item.value
 
   if cardinality > CARDINALITY_THRESHOLD:
@@ -94,12 +99,11 @@ def check_cardinality(attribute_name: str,
   return None
 
 
-def check_pearson_correlation(analysis: run_metadata_pb2.Analysis
-                              ) -> Union[None, str]:
+def check_pearson_correlation(analysis: Analysis) -> Union[None, Text]:
   """Check whether the correlation coefficients exceed the predefined threshold
 
   Args:
-      analysis: (run_metadata_pb2.Analysis), analysis that contain the result
+      analysis: (analysis_entity_pb2.Analysis), analysis that contain the result
       of pearson correlation
 
   Returns:
@@ -110,7 +114,7 @@ def check_pearson_correlation(analysis: run_metadata_pb2.Analysis
   coefficient = 0
 
   for item in metrics:
-    if item.name == run_metadata_pb2.ScalarMetric.CORRELATION_COEFFICIENT:
+    if item.name == ScalarMetric.CORRELATION_COEFFICIENT:
       coefficient = item.value
 
   if abs(coefficient) > CORRELATION_COEFFICIENT_THRESHOLD:
@@ -124,20 +128,18 @@ def check_pearson_correlation(analysis: run_metadata_pb2.Analysis
   return None
 
 
-def check_p_value(analysis: run_metadata_pb2.Analysis
-                  ) -> Union[None, str]:
+def check_p_value(analysis: Analysis) -> Union[None, Text]:
   """Check whether the p-value of statistical tests
   exceed the predefined threshold
 
   Args:
-      analysis: (run_metadata_pb2.Analysis), analysis that contain the result
+      analysis: (analysis_entity_pb2.Analysis), analysis that contain the result
       of statistical test
 
   Returns:
     Union[None, string]
   """
   metric = analysis.smetrics[0]
-  analysis_name = run_metadata_pb2.Analysis.Name.Name(analysis.name)
   name_list = [att.name for att in analysis.features]
   p_value = metric.value
 
@@ -146,8 +148,7 @@ def check_p_value(analysis: run_metadata_pb2.Analysis
         name_one=name_list[0],
         name_two=name_list[1],
         metric='p-value',
-        value="{:.2E}".format(Decimal(str(p_value))),
-        test_name=analysis_name
+        value=formatting.numeric_formatting(p_value)
     )
 
   return None

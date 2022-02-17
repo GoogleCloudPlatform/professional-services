@@ -85,9 +85,15 @@ This example connects to a Cloud Firestore with a collection with the following 
              }
 
 Examples how to add data to a collection can be found [here](https://cloud.google.com/firestore/docs/quickstart-servers#add_data).
+<<<<<<< HEAD
             
     from google.cloud import firestore
     
+=======
+
+    from google.cloud import firestore
+
+>>>>>>> upstream/main
     user_dict= {
       u'user_id': u'123456',
       u'first_name': u'Pedro',
@@ -145,7 +151,11 @@ Examples how to add data to a collection can be found [here](https://cloud.googl
 
 ### Running the sample from Dialogflow console
 
+<<<<<<< HEAD
 In [Dialogflow's console](https://console.dialogflow.com), in the simulator on the right, query your Dialogflow agent with `I neeed assistance` and respond to the questions your Dialogflow agent asks.
+=======
+In [Dialogflow's console](https://console.dialogflow.com), in the simulator on the right, query your Dialogflow agent with `I need assistance` and respond to the questions your Dialogflow agent asks.
+>>>>>>> upstream/main
 
 ### Running the sample using gcloud util
 

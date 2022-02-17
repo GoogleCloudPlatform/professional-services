@@ -73,8 +73,8 @@ class TestReadSTTAPIFunction(unittest.TestCase):
                                     'results': [{
                                         'alternatives': [{
                                             'transcript': """
-                                                       Hi and welcome to episode number 
-                                                       83 of the weekly Google Cloud 
+                                                       Hi and welcome to episode number
+                                                       83 of the weekly Google Cloud
                                                        platform podcast.
                                                        """,
                                             'confidence': 0.7370642,
@@ -139,8 +139,8 @@ class TestReadSTTAPIFunction(unittest.TestCase):
                                                 {'alternatives': [{}]}]}}
         actual_output = main.parse_transcript_output(sample_resp)
         expected_output = [{'transcript': """
-                                          Hi and welcome to episode number 
-                                          83 of the weekly Google Cloud 
+                                          Hi and welcome to episode number
+                                          83 of the weekly Google Cloud
                                           platform podcast.
                                           """,
                             'start_time': '00:00:04',

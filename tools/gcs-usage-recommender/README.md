@@ -2,40 +2,40 @@
 
 <h3> 1.1 Overview </h3>
 
-This tool helps an organization better understand its GCS bucket usage patterns, 
+This tool helps an organization better understand its GCS bucket usage patterns,
 across all of its projects by computing aggregation statistics related to bucket
 access patterns in order to help better generate object lifecycle management.
 
 This tool utilizes GCS audit logs in order to find how often objects are read
-within a bucket, and then displays the corresponding statistics. Once these 
+within a bucket, and then displays the corresponding statistics. Once these
 are computed, the tool then creates a recommended OLM policy, such as by telling
 a user to downgrade the storage classes of objects within a bucket to "nearline"
 if they have not been read in over 30 days. This will help optimize costs
 for an organization as otherwise it may be hard to know how often buckets are
-being accessed and if they are configured with the appropriate 
+being accessed and if they are configured with the appropriate
 storage class/OLM based on its access patterns.
 
 <h3> 1.2 GCS Audit Logs </h3>
 
-An organization-level audit log sink captures create, read, and delete events 
+An organization-level audit log sink captures create, read, and delete events
 for any GCS bucket, and stores those into two daily tables, `cloudaudit_googleapis_com_activity_<date>`
-and `cloudaudit_googleapis_com_data_access_<date>` in a BigQuery dataset. These 
-events include relevant metadata about the object such as labels, location, and 
+and `cloudaudit_googleapis_com_data_access_<date>` in a BigQuery dataset. These
+events include relevant metadata about the object such as labels, location, and
 details about where the request is coming from.
 
-The audit logs will have separate entries for the creation and read of a GCS 
-bucket or object, but these entries are generic audit log entries and we’ll need 
-to do some additional work to surface the metadata interesting to us. 
+The audit logs will have separate entries for the creation and read of a GCS
+bucket or object, but these entries are generic audit log entries and we’ll need
+to do some additional work to surface the metadata interesting to us.
 
 <h2>2. Set-up/Prerequisites</h2>
 
-<h3> 2.1 Prerequsitites</h3>
+<h3> 2.1 Prerequisites</h3>
 Before starting, let’s gather some prerequisite information.
 
 * `OUTPUT_PROJECT_ID`: The ID of the project where you want to create the table.
 * `OUTPUT_DATASET_ID`: The ID of the BigQuery dataset where you want to create the table.
-* `BQ_LOCATON`: BigQuery location to use for your dataset, such as 'US' or 'EU'.
-* `ORG_ID`: The numeric ID of the GCP organization 
+* `BQ_LOCATION`: BigQuery location to use for your dataset, such as 'US' or 'EU'.
+* `ORG_ID`: The numeric ID of the GCP organization
 
 Now export them as environment variables in your Cloud Shell for subsequent use.
 The following are example values of what you may use.
@@ -88,7 +88,7 @@ You will need these permissions only during initial setup.
 Let’s walk through the steps necessary to create and populate the dataset.
 
 <h4> 2.3.1 Creating the dataset </h4>
-Let’s create the dataset inside the project you specified above. 
+Let’s create the dataset inside the project you specified above.
 <b>Note that this does not specify a partition expiration. Audit logs can get
 costly, so it is recommended to choose a default partition expiration for this
 dataset, such as 90 days.</b>
@@ -100,18 +100,18 @@ bq mk --location=${BQ_LOCATION} -d "${OUTPUT_PROJECT_ID}:${OUTPUT_DATASET_ID}"
 <h4> 2.3.2 Create the audit log sink </h4>
 
 For GCS, we'll be enabling two types of [audit logs](https://cloud.google.com/storage/docs/audit-logs):
-* <b>Admin Activity logs</b>: Entries for operations that modify the 
+* <b>Admin Activity logs</b>: Entries for operations that modify the
 configuration or metadata of a project, bucket, or object.
- 
-* <b>Data Access logs</b>: Entries for operations that modify objects or read a 
+
+* <b>Data Access logs</b>: Entries for operations that modify objects or read a
 project, bucket, or object. There are several sub-types of data access logs:
-    * <b>ADMIN_READ</b>: Entries for operations that read the configuration or 
+    * <b>ADMIN_READ</b>: Entries for operations that read the configuration or
     metadata of a project, bucket, or object.
     * <b>DATA_READ</b>: Entries for operations that read an object.
     * <b>DATA_WRITE</b>: Entries for operations that create or modify an object.
 
-By default, only admin activity logs are enabled for organizations. However, data 
-access logs are not configured by default. For this example, we will enable them in 
+By default, only admin activity logs are enabled for organizations. However, data
+access logs are not configured by default. For this example, we will enable them in
 the GCP console; however, you could do so with the CLI or programmatically, as well.
 
 To do this, go to the [console](https://console.cloud.google.com/iam-admin/audit?_ga=2.160269630.-2040617453.1540660549).
@@ -134,7 +134,7 @@ gcloud logging sinks create gcs_usage \
   --organization=${ORG_ID} --include-children
 ````
 
-This command will create and return a service account ID, such as 
+This command will create and return a service account ID, such as
 serviceAccount:o125240632470-886280@gcp-sa-logging.iam.gserviceaccount.com.
 
 Note down the account name, as we'll use it in the next step!
@@ -153,7 +153,7 @@ To do this:
 * In the dropdown, select <b>Convert to advanced filter</b>.
 ![](images/stackdriver_create_advanced_filter.png)
 
-* In the expansion panel, enter the following filtering query, which should match what you used to create the sink in the previous step: 
+* In the expansion panel, enter the following filtering query, which should match what you used to create the sink in the previous step:
 ````
 resource.type="gcs_bucket" AND
   (protoPayload.methodName:"storage.buckets.delete" OR
@@ -169,41 +169,41 @@ resource.type="gcs_bucket" AND
    * <b>Name:</b> GCS_Data_Access_Logs_Filter
    * <b>Description:</b> Excluding GCS Data Access logs by enabling direct export to BigQuery sync for bucket usage intelligence.
    * <b>Percent to Exclude:</b> 100
-* Click 'Create Exclusion'. 
-* A warning will appear, specifying that logs can still go to our BigQuery sink. 
+* Click 'Create Exclusion'.
+* A warning will appear, specifying that logs can still go to our BigQuery sink.
 Click 'Create Exclusion'.
- 
 
-<h4> 2.3.3 Allow the service account to write to our dataset </h4> 
-Taking the service account created in the last step, let’s assign to it the 
+
+<h4> 2.3.3 Allow the service account to write to our dataset </h4>
+Taking the service account created in the last step, let’s assign to it the
 narrowest privileges needed for this tool - in this case, “BigQuery Data Editor.”
 
-This can be done a number of ways, and here we’ll just follow the 
+This can be done a number of ways, and here we’ll just follow the
 [manual process](https://cloud.google.com/bigquery/docs/dataset-access-controls#controlling_access_to_a_dataset).
 
 <h4> 2.3.4 Test that the dataset is receiving audit log entries </h4>
 
-Create a GCS object in any project in your GCP organization, and you should see 
+Create a GCS object in any project in your GCP organization, and you should see
 an entry arrive in the `${OUTPUT_DATASET_ID}` dataset.
 
-The daily BigQuery tables named `cloudaudit_googleapis_com_activity_<date>` and 
-`cloudaudit_googleapis_com_data_access_<date>` will appear in your project the 
-first time a GCS object/bucket is created or read after the audit log sink is 
-created. If you are not seeing tables being created, you may have a permissions 
-issue. Troubleshoot by looking at [your project activity](https://console.cloud.google.com/home/activity) 
-in the project where you created the GCS resource. There you should see your 
+The daily BigQuery tables named `cloudaudit_googleapis_com_activity_<date>` and
+`cloudaudit_googleapis_com_data_access_<date>` will appear in your project the
+first time a GCS object/bucket is created or read after the audit log sink is
+created. If you are not seeing tables being created, you may have a permissions
+issue. Troubleshoot by looking at [your project activity](https://console.cloud.google.com/home/activity)
+in the project where you created the GCS resource. There you should see your
 audit log sink service account creating the daily audit log BigQuery tables.
 
 <h3> 2.4 Scanning for existing GCS objects </h3>
-Currently, you are now collecting the raw audit log events representing GCS 
-objects/buckets. The missing link, however, is the events for the set of 
+Currently, you are now collecting the raw audit log events representing GCS
+objects/buckets. The missing link, however, is the events for the set of
 buckets/objects which were created before the sink started generating these events.
 
-We’ll run a process to populate a new, separate table in our dataset with an 
-inventory of the currently existing buckets in your GCP organization to fill in 
+We’ll run a process to populate a new, separate table in our dataset with an
+inventory of the currently existing buckets in your GCP organization to fill in
 this missing link.
 
-This process only needs to be run once and would benefit from a low-latency 
+This process only needs to be run once and would benefit from a low-latency
 network location to GCP. In our example we will run it in the cloud shell.
 
 <h4> 2.4.1 Clone the code repository </h4>
@@ -222,7 +222,7 @@ gcloud auth application-default login
 ````
 
 <h4> 2.4.3 Run the process </h4>
-This process uses the Python Cloud Resource Manager client library to fetch all the 
+This process uses the Python Cloud Resource Manager client library to fetch all the
 projects your account has access to within a specified org. It then finds
 all existing GCS buckets in each of the projects.
 
@@ -260,7 +260,7 @@ export audit_log_query=$(cat audit_log_query.sql | sed -e "s/{OUTPUT_PROJECT_ID}
 
 ````
 
-Upload the logic to generate a scheduled query job. This is recommended to run 
+Upload the logic to generate a scheduled query job. This is recommended to run
 daily as it computes the read count over days.
 ````
 bq query \
@@ -273,8 +273,8 @@ bq query \
 ````
 
 This will prompt you to enter an authorization code on your first time. Go
-to the URL that the prompt specifies, copy the code, and paste it back 
-into the terminal. After this, your scheduled query is created successfully. 
+to the URL that the prompt specifies, copy the code, and paste it back
+into the terminal. After this, your scheduled query is created successfully.
 Verify this by checking in the [cloud console](https://console.cloud.google.com/bigquery/scheduled-queries)
 
 <h2>3. Using the Data</h2>
@@ -284,5 +284,5 @@ Verify this by checking in the [cloud console](https://console.cloud.google.com/
 The table that is created uses the schema described above.
 
 Note that this will only be interesting after audit logs have been enabled for
-at least a few days. All backfilled inventory also defaults to "-1", meaning 
-that it has yet to have been accessed. 
+at least a few days. All backfilled inventory also defaults to "-1", meaning
+that it has yet to have been accessed.

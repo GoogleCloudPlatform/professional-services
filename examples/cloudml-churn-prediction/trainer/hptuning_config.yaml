@@ -40,4 +40,3 @@ trainingInput:
             minValue: 0.0001
             maxValue: 0.5
             scaleType: UNIT_LINEAR_SCALE
-            

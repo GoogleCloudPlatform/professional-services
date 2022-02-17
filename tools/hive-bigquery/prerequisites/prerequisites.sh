@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Copyright 2019 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +14,7 @@
 # limitations under the License.
 
 apt-get -h
-if [ $? -eq 0 ]; then
+if apt-get -h ; then
     echo "Package manager is apt"
     apt-get update
     apt-get install -y wget
@@ -24,10 +24,9 @@ if [ $? -eq 0 ]; then
     apt install -y python3-pip
 
 else
-    yum -h
-    if [ $? -eq 0 ]; then
+    if yum -h ; then
         echo "Package manager is yum"
-        yum -y update
+        yum -y makecache
         yum install -y wget
         yum install -y mysql
         yum install -y gcc gcc-c++ cyrus-sasl-devel
@@ -41,7 +40,7 @@ else
 fi
 
 function err() {
-  echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]: $@" >&2
+  echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]: $*" >&2
   return 1
 }
 
