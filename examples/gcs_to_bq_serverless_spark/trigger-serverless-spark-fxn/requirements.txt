@@ -1,0 +1,3 @@
+requests
+google-auth
+google-cloud-pubsub
