@@ -16,7 +16,7 @@ In this solution, we build an approch to ingestion flat files (in GCS) to BigQue
         -e OBJECT_FINALIZE \
         -f json gs://${GCS_BUCKET_NAME}
     ```
-- **Step 2:** Build and copy jar to a GCS bucket(Create a GCS bucket to store the jar if you dont have one)
+- **Step 2:** Build and copy jar to a GCS bucket(Create a GCS bucket to store the jar if you dont have one). There are number of dataproce templates that are avaliable to [use](https://github.com/GoogleCloudPlatform/dataproc-templates). 
   
     ```
     GCS_ARTIFACT_REPO=<<artifact repo name>>
