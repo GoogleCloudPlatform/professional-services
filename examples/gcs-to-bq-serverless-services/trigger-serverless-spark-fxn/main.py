@@ -82,15 +82,16 @@ def invoke_sreverless_spark(event, context):
         logging.info("Submitted job successfully")
     else:
         publisher = pubsub_v1.PublisherClient()
-        topic_path = publisher.topic_path(project_id, topic_id)
+        topic_path = publisher.topic_path(project_id, error_topic)
         dlq_data = {
-            "projectId": f"{projectId}",
+            "projectId": f"{project_id}",
             "inputFileLocation": f"{bucket_object}",
             "inputFileFormat": "CSV",
             "bqDataset": f"{bq_temp_bucket}",
             "bqTable": f"{bq_table}",
             "deadLetterQueue": f"projects/{project_id}/topics/{error_topic}"
         }
+        publish_futures = []
         publish_future = publisher.publish(topic_path,
                                            json.dumps(dlq_data).encode("utf-8"),
                                            oid=gcs_message_json['id'])
