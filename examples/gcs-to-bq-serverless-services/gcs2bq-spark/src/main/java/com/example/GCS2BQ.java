@@ -21,11 +21,17 @@ import com.google.api.core.ApiFutures;
 import com.google.api.gax.rpc.ApiException;
 import com.google.cloud.pubsub.v1.Publisher;
 import com.google.cloud.spark.bigquery.repackaged.org.json.JSONObject;
+import com.google.cloud.storage.Blob;
+import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.Storage.BlobField;
+import com.google.cloud.storage.Storage.BlobGetOption;
+import com.google.cloud.storage.StorageOptions;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.PubsubMessage;
 import com.google.pubsub.v1.TopicName;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import org.apache.spark.sql.Dataset;
@@ -38,6 +44,7 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Spec;
+
 
 @Command(name = "defaults", mixinStandardHelpOptions = true, version = "defaults 0.1")
 public class GCS2BQ implements Runnable {
@@ -121,11 +128,21 @@ public class GCS2BQ implements Runnable {
     String[] dlqElements = dlq.split("/");
     TopicName topicName = TopicName.of(dlqElements[1], dlqElements[3]);
     Publisher publisher = null;
+    Storage storage = StorageOptions.newBuilder().build().getService();
 
     try {
+
+      String[] tokens = inputFileLocation.replace("gs://", "").split("/");
+      String bucketNme = tokens[0];
+      String object = String.join("/", Arrays.copyOfRange(tokens, 1, tokens.length));
+      Blob blobId = storage.get(bucketNme, object, BlobGetOption.fields(BlobField.values()));
       publisher = Publisher.newBuilder(topicName).build();
       ByteString data = ByteString.copyFromUtf8(jsonString);
-      PubsubMessage pubsubMessage = PubsubMessage.newBuilder().setData(data).build();
+      PubsubMessage pubsubMessage =
+          PubsubMessage.newBuilder()
+              .setData(data)
+              .putAttributes("oid", blobId.getGeneratedId())
+              .build();
       ApiFuture<String> future = publisher.publish(pubsubMessage);
       ApiFutures.addCallback(
           future,

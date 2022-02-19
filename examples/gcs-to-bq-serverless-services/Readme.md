@@ -1,6 +1,6 @@
 # Ingesting GCS files to BigQuery using Cloud Functions and Serverless Spark
 
-In this solution, we build an approch to ingestion flat files (in GCS) to BigQuery using serverless technology. We use [Daily Shelter Occupancy](https://open.toronto.ca/dataset/daily-shelter-occupancy/) data in this example. Figure below shows an overall approach. Once the object is uploaded in the GCS bucket, a object notification is recevied by the Pub/Sub Topic. Pub/Sub Topic triggers a cloud function which then invokes the serverless spark. Any error during the cloud function invocation and serverless spark execution is send to dead letter topic.
+In this solution, we build an approch to ingestion flat files (in GCS) to BigQuery using serverless technology. This solution might be not be performanct if you have frequent small files that lands to GCP. We use [Daily Shelter Occupancy](https://open.toronto.ca/dataset/daily-shelter-occupancy/) data in this example. Figure below shows an overall approach. Once the object is uploaded in the GCS bucket, a object notification is recevied by the Pub/Sub Topic. Pub/Sub Topic triggers a cloud function which then invokes the serverless spark. Any error during the cloud function invocation and serverless spark execution is send to dead letter topic.
 
 ![](docs/gcs2bq_serverless_spark.jpg)
 
@@ -97,7 +97,7 @@ In this solution, we build an approch to ingestion flat files (in GCS) to BigQue
         error_topic=<<ERROR_TOPIC>>
         ```
 
-- **Step 5:** The cloud function is triggered one the object is copies to bucket.  The cloud function triggers the Servereless spark
+- **Step 5:** The cloud function is triggered once the object is copied to bucket.  The cloud function triggers the Servereless spark
   
   Deploy the function.
 
@@ -109,5 +109,10 @@ In this solution, we build an approch to ingestion flat files (in GCS) to BigQue
     --trigger-event google.pubsub.topic.publish
     ```
 
-- **Step 6:** Invoke the end-to-end pipeline. Download [2020 Daily Center Data](https://ckan0.cf.opendata.inter.prod-toronto.ca/download_resource/800cc97f-34b3-4d4d-9bc1-6e2ce2d6f44a?format=csv) and upload to the GCS bucket(GCS_BUCKET_NAME)
+- **Step 6:** Invoke the end-to-end pipeline. Download [2020 Daily Center Data](https://ckan0.cf.opendata.inter.prod-toronto.ca/download_resource/800cc97f-34b3-4d4d-9bc1-6e2ce2d6f44a?format=csv) and upload to the GCS bucket(<<GCS_BUCKET_NAME>>) in Step 1.
+  
+  
+**Debugging Pipelines**
+
+  Error message for the failed data pipelines are publish to Pub/Sub topic (ERROR_TOPIC) created in Step 4(Create Deadletter Topic and Subscription). The errors from both cloud function and spark are forwarded to Pub/Sub. Pub/Sub topic might have multiple entry for the same data-pipeline instance. Messages in Pub/Sub topic can be filtered using "oid" attribute. The attribute(oid) is unique for each pipeline run and holds full object name with the [generation id](https://cloud.google.com/storage/docs/metadata#generation-number).
   

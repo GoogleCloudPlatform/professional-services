@@ -22,12 +22,6 @@ from google.cloud import pubsub_v1
 from concurrent import futures
 from typing import Callable
 
-bq_temp_bucket = "<<GCS_TEMP_BUCKET>>"
-gcs_artifact_rep = "<<GCS_ARTIFACT_REPO>>"
-dataset = "<<DATASET_NAME>>"
-bq_table = "<<TABLE_NAME>>"
-error_topic = "<<ERROR_TOPIC>>"
-
 
 def get_callback(
         publish_future: pubsub_v1.publisher.futures.Future,
@@ -44,6 +38,11 @@ def get_callback(
 
 
 def invoke_sreverless_spark(event, context):
+    bq_temp_bucket = "<<GCS_TEMP_BUCKET>>"
+    gcs_artifact_rep = "<<GCS_ARTIFACT_REPO>>"
+    dataset = "<<DATASET_NAME>>"
+    bq_table = "<<TABLE_NAME>>"
+    error_topic = "<<ERROR_TOPIC>>"
     gcs_message = base64.b64decode(event['data']).decode('utf-8')
     gcs_message_json = json.loads(gcs_message)
     credentials, project_id = google.auth.default(
@@ -83,18 +82,18 @@ def invoke_sreverless_spark(event, context):
         logging.info("Submitted job successfully")
     else:
         publisher = pubsub_v1.PublisherClient()
-        topic_path = publisher.topic_path(project_id, error_topic)
+        topic_path = publisher.topic_path(project_id, topic_id)
         dlq_data = {
-            "projectId": f"{project_id}",
+            "projectId": f"{projectId}",
             "inputFileLocation": f"{bucket_object}",
             "inputFileFormat": "CSV",
             "bqDataset": f"{bq_temp_bucket}",
             "bqTable": f"{bq_table}",
             "deadLetterQueue": f"projects/{project_id}/topics/{error_topic}"
         }
-        publish_futures = []
         publish_future = publisher.publish(topic_path,
-                                           json.dumps(dlq_data).encode("utf-8"))
+                                           json.dumps(dlq_data).encode("utf-8"),
+                                           oid=gcs_message_json['id'])
         publish_future.add_done_callback(
             get_callback(publish_future, gcs_message))
         publish_futures.append(publish_future)
