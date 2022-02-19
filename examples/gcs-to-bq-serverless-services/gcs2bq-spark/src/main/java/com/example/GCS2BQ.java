@@ -45,7 +45,6 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Spec;
 
-
 @Command(name = "defaults", mixinStandardHelpOptions = true, version = "defaults 0.1")
 public class GCS2BQ implements Runnable {
 
