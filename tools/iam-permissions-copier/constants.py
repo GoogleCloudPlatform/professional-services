@@ -18,7 +18,6 @@ from resources.billing_account import BillingAccount
 from resources.gcs_bucket import GcsBucket
 from resources.bigquery_dataset import BqDataset
 from resources.folder import Folder
-import re
 
 ALL_RESOURCES_IN_PROCESSING_ORDER = [
     GcsBucket,
