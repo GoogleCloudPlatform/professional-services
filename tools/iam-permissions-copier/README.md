@@ -9,13 +9,13 @@ Table of contents
 - [FAQ](#faq)
 
 ## Overview
-This tool allows you to copy supported Google Cloud Platform IAM permissions from unmanaged users to managed, Cloud Identity users. 
+This tool allows you to copy supported Google Cloud Platform IAM permissions from unmanaged users to managed Cloud Identity users. 
 
 This tool is best used for accounts in conflict status, or for users that have access to GCP with personal Google accounts that need to use corporate accounts.
 
 ### Example Use Cases
-- Google Cloud Platform users have been using their personal accounts  (e.g. @gmail.com), but need to begin using corporate-managed accounts
-- Users with conflicting accounts, those ending in @gtempaccount.com, that need to copy permissions to a managed, corporate account
+- Google Cloud Platform users have been using their personal accounts  (e.g. @gmail.com), but need to begin using corporate-managed accounts (e.g. @mydomain.com)
+- Users with conflicting accounts (those ending in @gtempaccount.com) that need to copy permissions to a managed, corporate account
 
 ### Supported Modes
 This tool can copy permissions between user accounts using either a regular expression pattern or a static mapping file.
@@ -168,7 +168,7 @@ The script does not copy users with the "roles/resourcemanager.projectOwnerInvit
 Currently the script does not provide a mechanism for reverting IAM changes. However, the pending IAM changes are printed to the console for your review and approval before the changes are made. Additionally, once the script has executed, you will have an audit trail of all IAM changes with the csv output file.
 
 ### How are the permissions updated? 
-The pending updates are determined by the mapping file (provided at runtime) and dynamic mapping configuration (@gtempaccount.com => @sampleorg.com). The script evaluates the permissions that are assigned to a user’s consumer account (e.g., user@gmail.com, user%mydomain.com@gtempaccount.com) on the supported resources and adds any permission that is not yet assigned to the user’s target managed account (i.e., user@mydomain.com). It is additive, meaning that no permissions are revoked or overwritten in the process.
+The pending updates are determined by the mapping file (provided at runtime) and dynamic mapping configuration (@gtempaccount.com => @mydomain.com). The script evaluates the permissions that are assigned to a user’s consumer account (e.g., user@gmail.com, user%mydomain.com@gtempaccount.com) on the supported resources and adds any permission that is not yet assigned to the user’s target managed account (i.e., user@mydomain.com). It is additive, meaning that no permissions are revoked or overwritten in the process.
 
 ### What happens if a target account already has the permission being copied from the corresponding temporary account?
 Nothing. If the user account already has the permission, then the script continues to the next permission.
