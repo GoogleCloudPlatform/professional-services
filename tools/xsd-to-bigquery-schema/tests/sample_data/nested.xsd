@@ -1,0 +1,51 @@
+<!--
+Copyright 2022 Google LLC
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    https://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:element name="document">
+      <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="simpleFieldDate" type="xsd:date" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="firstNestedField" type="NestedTypeOne" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="secondNestedField" type="NestedTypeTwo" minOccurs="1" maxOccurs="unbounded"/>
+          </xsd:sequence>
+      </xsd:complexType>
+  </xsd:element>
+    <xsd:complexType name="NestedTypeOne">
+        <xsd:sequence>
+            <xsd:element name="simpleFieldStr1" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="simpleFieldStr2" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="NestedTypeTwo">
+        <xsd:sequence>
+            <xsd:element name="simpleNumberField1" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="simpleNumberField2" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="thirdNestedField" type="NestedTypeThree" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="NestedTypeThree">
+        <xsd:sequence>
+            <xsd:element name="percentField1" type="MyPercent" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="percentField2" type="MyPercent" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="MyPercent">
+        <xsd:restriction base="xsd:decimal">
+            <xsd:minInclusive value="0"/>
+            <xsd:maxInclusive value="100"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+</xsd:schema>
