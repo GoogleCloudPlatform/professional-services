@@ -137,6 +137,7 @@ creates relationships between assets and outputs a format compatible with [graph
 * [Webhook Ingestion Data Pipeline](tools/webhook-ingestion-pipeline) - A deployable app to accept and ingest unauthenticated webhook data to BigQuery.
 * [gmon](tools/gmon/) - A command-line interface (CLI) for Cloud Monitoring written in Python.
 * [Quota Monitoring and Alerting](tools/quota-monitoring-alerting) - An easy-to-deploy Data Studio Dashboard with alerting capabilities, showing usage and quota limits in an organization or folder.
+* [XSD to BigQuery Schema Generator](tools/xsd-to-bigquery-schema) - A command line tool for converting an XSD schema representing deeply nested and repeated XML content into a BigQuery compatible table schema represented in JSON.
 
 ## Contributing
 See the contributing [instructions](/CONTRIBUTING.md) to get started contributing.
