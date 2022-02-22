@@ -1,4 +1,4 @@
-# DFDL Processor Example
+# Data Format Description Language ([DFDL](https://en.wikipedia.org/wiki/Data_Format_Description_Language)) Processor Example
 This module is a example how to process a binary using a DFDL definition.
 The DFDL definitions are stored in a Firestore database.
 
