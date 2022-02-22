@@ -18,4 +18,3 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface DfdlDefRepository extends FirestoreReactiveRepository<DfdlDef> {}
-

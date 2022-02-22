@@ -42,4 +42,3 @@ public class MessageController {
     return new RedirectView("/");
   }
 }
-

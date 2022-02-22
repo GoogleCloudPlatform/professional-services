@@ -45,4 +45,3 @@ public class DfdlDef {
     this.definition = definition;
   }
 }
-

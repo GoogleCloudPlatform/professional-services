@@ -159,4 +159,3 @@ public class PubSubServer {
     void sendToPubsub(@Header(GcpPubSubHeaders.TOPIC) String topic, String message);
   }
 }
-
