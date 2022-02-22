@@ -1,19 +1,16 @@
 /**
  * Copyright 2022 Google LLC
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-
 package com.example.dfdl;
 
 import java.io.ByteArrayInputStream;
@@ -38,7 +35,7 @@ import org.springframework.stereotype.Service;
 /**
  * Transforms messages using the {@link Daffodil} DFDL processor.
  *
- * The {@link Daffodil} object is a factory object to create a {@link Compiler}. The Compiler
+ * <p>The {@link Daffodil} object is a factory object to create a {@link Compiler}. The Compiler
  * provides a method to compile a provided DFDL schema into a {@link ProcessorFactory}, which
  * creates a {@link DataProcessor}.
  */
@@ -95,9 +92,10 @@ public class DfdlService {
    * @param inputStream
    * @param infosetOutputter
    * @return ParseResult that contains information about the parse, such as whether or not the
-   * processing succeeded any diagnostic information.
+   *     processing succeeded any diagnostic information.
    */
-  private ParseResult parse(DataProcessor dataProcessor,
+  private ParseResult parse(
+      DataProcessor dataProcessor,
       InputSourceDataInputStream inputStream,
       InfosetOutputter infosetOutputter) {
     // The DataProcessor.parse method is thread-safe and may be called multiple times without the
@@ -123,9 +121,10 @@ public class DfdlService {
     int messageLength = message.length();
     byte[] convertedMessage = new byte[messageLength / 2];
     for (int currentIndex = 0; currentIndex < messageLength; currentIndex += 2) {
-      convertedMessage[currentIndex / 2] = (byte) (
-          (Character.digit(message.charAt(currentIndex), 16) << 4)
-              + Character.digit(message.charAt(currentIndex + 1), 16));
+      convertedMessage[currentIndex / 2] =
+          (byte)
+              ((Character.digit(message.charAt(currentIndex), 16) << 4)
+                  + Character.digit(message.charAt(currentIndex + 1), 16));
     }
     return convertedMessage;
   }

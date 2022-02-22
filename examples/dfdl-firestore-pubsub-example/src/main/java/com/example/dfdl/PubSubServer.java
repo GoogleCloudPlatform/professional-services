@@ -1,19 +1,16 @@
 /**
  * Copyright 2022 Google LLC
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-
 package com.example.dfdl;
 
 import com.google.cloud.spring.pubsub.core.PubSubTemplate;
@@ -39,53 +36,57 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 
 /**
- *  Publishes and subscribes to topics using channels adapters.
+ * Publishes and subscribes to topics using channels adapters.
  *
- *  The receiver:
- *    - The Inbound Channel Adapter listens to messages from a Google Cloud Pub/Sub subscription and
- *      sends them to a Spring channel in an application
- *    - The Input Channel receives the message in a Spring Channel
- *    - The ServiceActivator processes the received messages in a Spring Channel
- *   The sender:
- *    - The Message Gateway will write messages to the Spring Channel;
- *    - The ServiceActivator will consume the messages in the Spring Channel and sends them
- *      to the GCP Topic;
- *    - The Output Channel Adapter will ensure that the messages are delivered to the GCP Topic.
+ * <p>The receiver:
+ *
+ * <ul>
+ *   <li>The Inbound Channel Adapter listens to messages from a Google Cloud Pub/Sub subscription
+ *       and sends them to a Spring channel in an application.
+ *   <li>The Input Channel receives the message in a Spring Channel.
+ *   <li>The ServiceActivator processes the received messages in a Spring Channel.
+ * </ul>
+ *
+ * <p>The sender:
+ *
+ * <ul>
+ *   <li>The Message Gateway will write messages to the Spring Channel.
+ *   <li>The ServiceActivator will consume the messages in the Spring Channel and sends them to the
+ *       GCP Topic.
+ *   <li>The Output Channel Adapter will ensure that the messages are delivered to the GCP Topic.
+ * </ul>
  */
 @SpringBootApplication
 public class PubSubServer {
 
   private static final Log LOGGER = LogFactory.getLog(PubSubServer.class);
 
-  @Autowired
-  private DfdlService dfdlService;
+  @Value("${pubsub.data.binary.subscription}")
+  String pubsubDataBinarySub;
 
-  @Autowired
-  private FirestoreService firestoreService;
+  @Value("${pubsub.data.json.topic}")
+  String pubsubDataJsonTopic;
 
-  @Autowired
-  private PubsubOutboundGateway messagingGateway;
+  @Value("${dfdl.definition.name}")
+  String dfdlDefName;
 
-  @Value("${pubsub.data.binary.subscription}") String pubsubDataBinarySub;
-  @Value("${pubsub.data.json.topic}") String pubsubDataJsonTopic;
-  @Value("${dfdl.definition.name}") String dfdlDefName;
+  @Autowired private DfdlService dfdlService;
+  @Autowired private FirestoreService firestoreService;
+  @Autowired private PubsubOutboundGateway messagingGateway;
 
-  /**
-   * Returns a channel where the adapter sends the received messages.
-   */
+  /** Returns a channel where the adapter sends the received messages. */
   @Bean
   public MessageChannel inputChannel() {
     return new DirectChannel();
   }
 
   /**
-   * Returns an inbound channel adapter to listen to a subscription and send
-   * messages to the input message channel.
+   * Returns an inbound channel adapter to listen to a subscription and send messages to the input
+   * message channel.
    */
   @Bean
   public PubSubInboundChannelAdapter inboundChannelAdapter(
-      @Qualifier("inputChannel") MessageChannel messageChannel,
-      PubSubTemplate pubSubTemplate) {
+      @Qualifier("inputChannel") MessageChannel messageChannel, PubSubTemplate pubSubTemplate) {
     PubSubInboundChannelAdapter adapter =
         new PubSubInboundChannelAdapter(pubSubTemplate, pubsubDataBinarySub);
     adapter.setOutputChannel(messageChannel);
@@ -95,9 +96,8 @@ public class PubSubServer {
   }
 
   /**
-   * Processes the received message in a spring channel.
-   * The received message is the one to be interpreted or transform using the dfdl definition
-   * and be republished in a new topic.
+   * Processes the received message in a spring channel. The received message is the one to be
+   * interpreted or transform using the dfdl definition and be republished in a new topic.
    */
   @Bean
   @ServiceActivator(inputChannel = "inputChannel")
@@ -111,8 +111,8 @@ public class PubSubServer {
         System.out.println("Definition from Firestore: " + dfdlDef.getDefinition());
 
         // Transform message using the dfdl definition.
-        String messageConverted = dfdlService.convertDataMessage(
-            (String) message.getPayload(), dfdlDef);
+        String messageConverted =
+            dfdlService.convertDataMessage((String) message.getPayload(), dfdlDef);
 
         // Republish the message in json format in a new topic
         messagingGateway.sendToPubsub(pubsubDataJsonTopic, messageConverted);
@@ -121,8 +121,9 @@ public class PubSubServer {
         e.printStackTrace();
       }
       BasicAcknowledgeablePubsubMessage originalMessage =
-          message.getHeaders().get(GcpPubSubHeaders.ORIGINAL_MESSAGE,
-              BasicAcknowledgeablePubsubMessage.class);
+          message
+              .getHeaders()
+              .get(GcpPubSubHeaders.ORIGINAL_MESSAGE, BasicAcknowledgeablePubsubMessage.class);
       originalMessage.ack();
     };
   }
@@ -130,7 +131,8 @@ public class PubSubServer {
   /**
    * Listens to messages on the spring channel amd publishes then to the outbound channel adapter
    * which will deliver the message to the GCP topic.
-   * @return  PubSubMessageHandler adapter.
+   *
+   * @return PubSubMessageHandler adapter.
    */
   @Bean
   @ServiceActivator(inputChannel = "outputChannel")
@@ -145,19 +147,15 @@ public class PubSubServer {
 
           @Override
           public void onSuccess(String result) {
-            LOGGER.info(
-                "Message was sent via the outbound channel adapter to a topic"
-            );
+            LOGGER.info("Message was sent via the outbound channel adapter to a topic");
           }
         });
     return adapter;
   }
 
-  /**
-   *  Allows publishing messages to the spring output channel.
-   */
+  /** Allows publishing messages to the spring output channel. */
   @MessagingGateway(defaultRequestChannel = "outputChannel")
   public interface PubsubOutboundGateway {
-    void sendToPubsub(@Header (GcpPubSubHeaders.TOPIC) String topic, String message);
+    void sendToPubsub(@Header(GcpPubSubHeaders.TOPIC) String topic, String message);
   }
 }
