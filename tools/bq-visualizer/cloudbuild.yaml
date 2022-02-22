@@ -1,0 +1,36 @@
+
+#  Copyright 2019 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+steps:
+
+  # Install node packages
+  - name:  node:16
+    entrypoint: npm
+    args: [ 'install' ]
+    dir: 'tools/bq-visualizer'
+
+  # build
+  - name: node:16
+    entrypoint: npm
+    args: ['run', 'build', '--', '--prod' ]
+    dir: 'tools/bq-visualizer'
+
+artifacts:
+  objects:
+    location: 'gs://${_BQVISUALISER_BUCKET}/deployment_$BUILD_ID'
+    paths: ['tools/bq-visualizer/dist/*']
+
+

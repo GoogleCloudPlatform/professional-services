@@ -1,0 +1,15 @@
+*.pyc
+*.pyo
+*.pyd
+*__pycache__
+*egg-info
+.pytest_cache
+*.swp
+credentials
+build
+venv
+*tmp*
+*INT*
+*.terraform*
+*.tfstate*
+*debug*.py

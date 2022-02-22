@@ -1,0 +1,301 @@
+# This is an example pipeline template (NOT for production usage) that can be used by any application to generate a
+#  a pipeline to take a docker image, deploy it to dev, run tests, and then deploy to prod
+# The nomenclature it includes (account names, etc.) is according the Spinnaker POC provided by Google PSO, so it
+#  would need to be modified to properly function with a different Spinnaker instance
+
+schema: "1"
+id: examplePipelineTemplate
+metadata:
+  name: examplePipeline
+  description: an example pipeline that deploys into a dev env, runs tests, and then updates prod
+  owner: anonymous
+  scopes: []
+protect: false
+
+# variables that can be overridden for any pipeline using this template
+# the value of a variable 'foo' can be referenced via {{ foo }}
+variables:
+- name: gcpProject
+  type: string
+  defaultValue: spinnaker-gke-poc
+  group: Defaults
+- name: registryHost
+  type: string
+  defaultValue: gcr.io
+  group: Defaults
+- name: appName
+  type: string
+  description: Name of this application
+  group: Service
+- name: imageOrg
+  type: string
+  description: Organization in the Docker image registry that holds the image for this service
+  group: Service
+- name: imageName
+  type: string
+  description: Name of the Docker image repository for this service
+  group: Service
+- name: servicePort
+  type: int
+  description: Port that the service listens on
+  group: Service
+  defaultValue: 80
+- name: devInstanceCount
+  type: int
+  description: Number of instances to deploy in dev environment
+  group: Service
+  defaultValue: 1
+- name: prodInstanceCount
+  type: int
+  description: Number of instances to deploy in prod environment
+  group: Service
+  defaultValue: 1
+- name: testImageName
+  type: string
+  description: Name of image to use to run functional test
+  group: Testing
+  defaultValue: centos
+- name: testImageTag
+  type: string
+  description: Tag to use for the functional test image
+  group: Testing
+  defaultValue: 'latest'
+- name: funcTestCommand
+  type: string
+  description: Command to run for functional test
+  group: Testing
+  defaultValue: 'curl www.google.com'
+
+configuration:
+  concurrentExecutions:
+    parallel: null
+    limitConcurrent: true
+  # as of version 1.5.0, spinnaker does not read this section of the template, so the below trigger will NOT automatically be configured in pipelines that are created with it
+  triggers:
+  - account: my-gcr-account
+    enabled: true
+    name: mainContainer
+    organization: '{{ imageOrg }}'
+    repository: '{{ imageOrg }}/{{ imageName }}'
+    tag: null
+    type: docker
+  parameters: []
+  notifications: []
+
+# below are the stages that execute as part of the pipeline
+stages:
+- id: destroyDev
+  type: destroyServerGroup
+  dependsOn: []
+  name: Delete Existing Dev Environment
+  config:
+    cloudProvider: kubernetes
+    cloudProviderType: kubernetes
+    cluster: '{{ appName }}'
+    completeOtherBranchesThenFail: false
+    continuePipeline: true
+    credentials: dev
+    failPipeline: false
+    interestingHealthProviderNames:
+    - KubernetesService
+    namespaces:
+    - default
+    target: current_asg_dynamic
+- id: checkDevDestroyed
+  type: checkPreconditions
+  dependsOn:
+  - destroyDev
+  name: Confirm No Dev Environments Exist
+  config:
+    preconditions:
+    - cloudProvider: kubernetes
+      context:
+        cluster: '{{ appName }}'
+        comparison: ==
+        credentials: dev
+        expected: 0
+        regions:
+        - dummy
+      failPipeline: true
+      type: clusterSize
+- id: deployDev
+  type: deploy
+  dependsOn:
+  - checkDevDestroyed
+  name: Deploy Dev Environment
+  config:
+    clusters:
+    - account: dev
+      application: '{{ appName }}'
+      cloudProvider: kubernetes
+      containers:
+      - args: []
+        command: []
+        envVars: []
+        imageDescription:
+          account: my-gcr-account
+          fromTrigger: true
+          imageId: '{{ registryHost }}/{{ imageOrg }}/{{ imageName }}'
+          registry: '{{ registryHost }}'
+          repository: '{{ imageOrg }}/{{ imageName }}'
+          tag: null
+        imagePullPolicy: IFNOTPRESENT
+        limits:
+          cpu: null
+          memory: null
+        livenessProbe: null
+        name: '{{ imageOrg }}-{{ imageName }}'
+        ports:
+        - containerPort: '{{ servicePort }}'
+          hostIp: null
+          hostPort: null
+          name: http
+          protocol: TCP
+        readinessProbe: null
+        requests:
+          cpu: null
+          memory: null
+        volumeMounts: []
+      deployment:
+        deploymentStrategy:
+          rollingUpdate:
+            maxSurge: 1
+            maxUnavailable: 1
+          type: RollingUpdate
+        enabled: false
+        minReadySeconds: 0
+      dnsPolicy: ClusterFirst
+      interestingHealthProviderNames:
+      - KubernetesContainer
+      - KubernetesPod
+      loadBalancers:
+      - '{{ appName }}'
+      namespace: default
+      nodeSelector: {}
+      podAnnotations: {}
+      provider: kubernetes
+      region: default
+      replicaSetAnnotations: {}
+      strategy: ''
+      targetSize: '{{ devInstanceCount }}'
+      terminationGracePeriodSeconds: 30
+      volumeSources: []
+- id: runFuncTests
+  type: runJob
+  dependsOn:
+  - deployDev
+  name: Functional Tests
+  config:
+    account: dev
+    annotations: {}
+    application: '{{ appName }}'
+    cloudProvider: kubernetes
+    cloudProviderType: kubernetes
+    container:
+      args: []
+      command:
+      - /bin/bash
+      - -c
+      - '{{ funcTestCommand }}'
+      envVars: []
+      imageDescription:
+        account: my-gcr-account
+        fromTrigger: false
+        organization: '{{ imageOrg }}'
+        repository: '{{ testImageName }}'
+        tag: '{{ testImageTag }}'
+      name: job
+      volumeMounts: []
+    dnsPolicy: ClusterFirst
+    labels: {}
+    namespace: default
+    volumeSources: []
+- id: approveProdDeploy
+  name: Approve Prod Deploy
+  type: manualJudgment
+  dependsOn:
+  - runFuncTests
+  config:
+    failPipeline: true
+    judgmentInputs: []
+    notifications: []
+- id: deployNewProd
+  type: deploy
+  dependsOn:
+  - approveProdDeploy
+  name: Deploy New Instances to Prod
+  config:
+    clusters:
+    - account: prod
+      application: '{{ appName }}'
+      cloudProvider: kubernetes
+      containers:
+      - args: []
+        command: []
+        envVars: []
+        imageDescription:
+          account: my-gcr-account
+          fromTrigger: true
+          imageId: '{{ registryHost }}/{{ imageOrg }}/{{ imageName }}'
+          registry: '{{ registryHost }}'
+          repository: '{{ imageOrg }}/{{ imageName }}'
+          tag: null
+        imagePullPolicy: IFNOTPRESENT
+        limits:
+          cpu: null
+          memory: null
+        livenessProbe: null
+        name: '{{ imageOrg }}-{{ imageName }}'
+        ports:
+        - containerPort: '{{ servicePort }}'
+          hostIp: null
+          hostPort: null
+          name: http
+          protocol: TCP
+        readinessProbe: null
+        requests:
+          cpu: null
+          memory: null
+        volumeMounts: []
+      deployment:
+        deploymentStrategy:
+          rollingUpdate:
+            maxSurge: 1
+            maxUnavailable: 1
+          type: RollingUpdate
+        enabled: false
+        minReadySeconds: 0
+      dnsPolicy: ClusterFirst
+      interestingHealthProviderNames:
+      - KubernetesContainer
+      - KubernetesPod
+      loadBalancers:
+      - '{{ appName }}'
+      namespace: default
+      nodeSelector: {}
+      podAnnotations: {}
+      provider: kubernetes
+      region: default
+      replicaSetAnnotations: {}
+      strategy: ''
+      targetSize: '{{ prodInstanceCount }}'
+      terminationGracePeriodSeconds: 30
+      volumeSources: []
+    completeOtherBranchesThenFail: false
+    continuePipeline: false
+    failPipeline: true
+- id: destroyPrevProd
+  type: destroyServerGroup
+  dependsOn:
+  - deployNewProd
+  name: Delete Old Instances from Prod
+  config:
+    cloudProvider: kubernetes
+    cloudProviderType: kubernetes
+    cluster: '{{ appName }}'
+    credentials: prod
+    interestingHealthProviderNames:
+    - KubernetesService
+    namespaces:
+    - default
+    target: ancestor_asg_dynamic

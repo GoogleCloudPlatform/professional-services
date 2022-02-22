@@ -1,0 +1,82 @@
+# Copyright 2018 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: redis-pdb
+spec:
+  minAvailable: 66%
+  selector:
+    matchLabels:
+      app: redis
+      redis-type: cache
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-cache
+spec:
+  selector:
+    matchLabels:
+      app: redis
+  replicas: 6
+  template:
+    metadata:
+      labels:
+        app: redis
+        redis-type: cache
+    spec:
+      hostNetwork: true
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - redis
+              topologyKey: "kubernetes.io/hostname"
+      containers:
+        - name: redis-server
+          image: "redis:4.0-alpine"
+          imagePullPolicy: Always
+          command:
+            - "redis-server"
+          args:
+            - "/etc/redis/redis.conf"
+            - "--protected-mode"
+            - "no"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "1Gi"
+          ports:
+            - name: redis
+              containerPort: 6379
+              protocol: "TCP"
+            - name: redis-cluster
+              containerPort: 16379
+              protocol: "TCP"
+          volumeMounts:
+            - name: "redis-conf"
+              mountPath: "/etc/redis"
+      volumes:
+        - name: "redis-conf"
+          configMap:
+            name: "redis-conf"
+            items:
+              - key: "redis.conf"
+                path: "redis.conf"

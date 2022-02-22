@@ -1,0 +1,198 @@
+<!--
+Copyright 2017 Google Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0"/>
+  <title>Starter Template - Materialize</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.1/css/materialize.min.css" type="text/css" rel="stylesheet" media="screen,projection"/>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="css/style.css" type="text/css" rel="stylesheet" media="screen,projection"/>
+  <script type="text/javascript" src="https://unpkg.com/vue/dist/vue.js"></script>
+  <script type="text/javascript" src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+</head>
+<body>
+  <div id="app"></div>
+</body>
+
+<script type="text/x-template" id="app-template">
+  <div>
+  <div class="loading-container" v-if="showLoading">
+     <img src="images/loader.gif" class="loading"/>
+  </div>
+  <nav class="light-blue lighten-1" role="navigation">
+    <div class="nav-wrapper container">
+      <a href="/logout" class="right" >Logout</a>
+      <ul class="left">
+        <li><router-link to="/home"><a>Home</a> </router-link></li>
+<!--
+        TODO: uncomment when /projects page supports connecting projects and project syncing.
+
+        <li><router-link to="/projects"><a>Projects</a></router-link></li>
+-->
+        <li><router-link to="/zones"><a @click="nowLoading">Zones</a></router-link></li>
+      </ul>
+    </div>
+  </nav>
+  <div class="section no-pad-bot" id="index-banner" v-if="error">
+    <div class="container">
+      <br><br>
+      <div class="header center red-text">{{ errorMessage }}</div>
+      <br><br>
+    </div>
+  </div>
+
+  <div class="section no-pad-bot" id="index-banner">
+    <div class="container">
+      <br><br>
+      <h1 class="header center orange-text">Dns Sync</h1>
+      <div class="row center">
+        <h5 class="header col s12 light">Define DNS records for GCE resources within Cloud DNS Zones.</h5>
+      </div>
+      <br><br>
+    </div>
+  </div>
+  <div class="container">
+    <router-view v-on:loading="loading" v-on:error="error" ></router-view>
+  </div>
+  </div>
+</script>
+
+<script type="text/x-template" id="home-template">
+    <div class="section">
+      <div class="row">
+<!--
+        <div class="col s12 m6">
+          <h2 class="center light-blue-text">Projects</h2>
+          <h5 class="center">Projects Containing GCE Resources</h5>
+          <p class="center light">Projects containing GCE resources we are synced with.</p>
+          <div class="row center">
+            <router-link to="/projects"><a class="btn-large waves-effect waves-light orange">Projects</a></router-link>
+          </div>
+        </div>
+-->
+        <div class="col s12 m6">
+          <h2 class="center light-blue-text">Zones</h2>
+          <h5 class="center">Cloud DNS Zones</h5>
+          <p class="center light">The DNS Zones and Records currently being managed.</p>
+          <div class="row center">
+            <router-link to="/zones"><a class="btn-large waves-effect waves-light orange" @click="nowLoading" >Zones</a></router-link>
+          </div>
+        </div>
+      </div>
+<!--
+      <div class="row">
+        <div class="center header">
+          <h2 class="center light-blue-text">Metrics</h2>
+          <h5 class="center">Metrics</h5>
+          <p class="center light">A bunch of numbers.</p>
+          <div class="row center">
+            <a href="http://materializecss.com/getting-started.html" id="download-button" class="btn-large waves-effect waves-light orange">Metrics</a>
+          </div>
+        </div>
+      </div>
+-->
+    </div>
+</script>
+
+
+<script type="text/x-template" id="projects-template">
+    <div class="section">
+     We are syncing projects with account: <>
+     Current projects synced with DNS Sync:
+     Sync projects with DNS Sync:
+      <div class="row">
+        <div class="center header">
+          <div class="icon-block">
+            <h2 class="center light-blue-text">Metrics</h2>
+            <h5 class="center">Metrics</h5>
+            <p class="center light">A bunch of numbers.</p>
+            <div class="row center">
+              <a href="http://materializecss.com/getting-started.html" id="download-button" class="btn-large waves-effect waves-light orange">Metrics</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+</script>
+
+<script type="text/x-template" id="zones-template">
+  <div class="section">
+    <form class="col s12">
+     <div class="row">
+        <div class="inline input-field col s6">
+         DNS Project <select @change="getProjectZones(zoneConfig.dns_project)" v-model="zoneConfig.dns_project" id="dns_project">
+            <option disabled selected value="">Select Project</option>
+            <option v-for="project in projects" v-bind:value="project">{{ project }}</option>
+          </select>
+        </div>
+     </div>
+
+     DNS Zone Mapping:
+    <div id="zone-mapping">
+      <div class="row"  v-for="(entry, index) in zoneConfig.regular_expression_zone_mapping">
+        <div class="input-field col s3" >
+          <input v-model="zoneConfig.regular_expression_zone_mapping[index][0]">
+        </div>
+        <div class="input-field col s3" >
+          <select v-model="zoneConfig.regular_expression_zone_mapping[index][1]" :id="index">
+            <option disabled selected value="">Select A Zone</option>
+            <option v-for="zone in availableZones" :value="zone">{{ zone }}</option>
+          </select>
+        </div>
+        <a  @click="zoneConfig.regular_expression_zone_mapping.splice(index, 1)" class="btn-floating btn-large waves-effect waves-light black"><i class="material-icons">delete</i></a>
+      </div>
+      <div class="row">
+        <a  @click="addZoneMapping" class="left btn-floating btn-large waves-effect waves-light red"><i  class="material-icons">add</i></a>
+      </div>
+    </div>
+    <div class="row">
+       <div class="input-field col s6">
+         <!-- <input v-model="zoneConfig.default_zone" placeholder="Default Zone Name" id="default_zone" type="text" class="validate"> -->
+         Default Zone:
+         <select class="inline" v-model="zoneConfig.default_zone" id="default_zone">
+           <option disabled selected value="">Select A Zone</option>
+           <option v-for="zone in availableZones" :value="zone">{{ zone }}</option>
+         </select>
+       </div>
+    </div>
+
+     <div class="row">
+        <div class="input-field col s6">
+          Pubsub Shared Secret:
+          <input class="inline" v-model="zoneConfig.pubsub_shared_secret" id="pubsub_shared_secret">
+        </div>
+     </div>
+
+
+    <div class="row center">
+      <a @click="save" id="save-button" class="btn-large waves-effect waves-light orange">Save</a>
+    </div>
+    </form>
+  </div>
+</script>
+
+
+
+  <!--  Scripts-->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.1/js/materialize.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.1/axios.js"></script>
+  <script type="text/javascript" src="js/dns-sync.js"></script>
+
+</html>

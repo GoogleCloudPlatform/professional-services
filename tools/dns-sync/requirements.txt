@@ -1,0 +1,8 @@
+google-cloud-datastore
+google-cloud-resource-manager
+google-api-python-client
+webapp2
+webapp2_static
+webob
+pyyaml
+oauth2client==3.0.0

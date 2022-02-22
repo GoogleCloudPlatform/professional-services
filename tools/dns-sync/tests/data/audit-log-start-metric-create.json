@@ -1,0 +1,15 @@
+{
+  "displayName": "dns sync gce audit log delay ",
+  "name": "projects/project-1/metricDescriptors/custom.googleapis.com/audit_event_delay",
+  "metricKind": "GAUGE",
+  "valueType": "INT64",
+  "labels": [
+    {
+      "description": "the API call the delay is for. (insert/delete)",
+      "key": "call"
+    }
+  ],
+  "type": "custom.googleapis.com/audit_event_delay",
+  "unit": "msecs",
+  "description": "ms delay for receiving GCE audit log events."
+}

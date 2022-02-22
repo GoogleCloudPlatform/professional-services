@@ -1,0 +1,41 @@
+insert_job: PARENT_BOX    
+job_type: box
+description: The Parent Box
+owner: autosys
+timezone: US/Eastern
+days_of_week: su,mo,tu,we,th,fr,sa
+start_times: "19:00"
+avg_runtime: 136
+timezone: US/Eastern
+
+insert_job: CHILD_BOX
+job_type: box
+description: The Child Box
+owner: autosys
+box_name: PARENT_BOX 
+max_run_alarm: 80
+alarm_if_fail: y
+alarm_if_terminated: y
+avg_runtime: 59
+
+insert_job: JOB_1
+job_type: cmd
+description: Sample cmd Job
+machine: machine_name
+owner: autosys
+box_name: CHILD_BOX
+command: echo 'job 1'
+
+insert_job: JOB_2
+job_type: cmd
+description: Sample cmd Job
+machine: machine_name
+condition: s(JOB_1)
+owner: autosys
+box_name: CHILD_BOX
+max_run_alarm: 0
+alarm_if_fail: y
+alarm_if_terminated: y
+avg_runtime: 1
+command: echo 'job 2'
+

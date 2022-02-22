@@ -1,0 +1,42 @@
+#   Copyright 2021 Google LLC
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+#
+retryPeriod: 3 day ago
+
+# This example reads a list of Cloud Identity groups from the API, filters them
+# and then submits the group IDs to another Pub/Sub topic (one message per group).
+# The other example (groups-example-2.yaml) is meant to be run on the other
+# topic, and will fetch the individual group and create a report for it.
+#
+
+processors:
+  - groups
+
+groups:
+  query: "parent=='customers/C0000000' && 'cloudidentity.googleapis.com/groups.discussion_forum' in labels"
+  # Regular expression
+  filter: "^your-group-"
+
+outputs:
+  - type: pubsub
+    # Target Pub/Sub topic
+    topic: projects/my-project/topics/group-example
+    # By default, Pub/Sub output will create a single message, but by defining a messages
+    # configuration, we can create messages for any iterable type.
+    messages: |
+      {{ all_groups|json_encode }}
+    attributes: |
+      {% set attributes = dict({ "group" : all_groups[key]['displayName']}) %}{{ attributes|json_encode }}
+    content: |
+      {% set message = { "group" : key } %}{{ message|json_encode }}

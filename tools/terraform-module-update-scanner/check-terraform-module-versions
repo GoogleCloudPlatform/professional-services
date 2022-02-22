@@ -1,0 +1,150 @@
+#! /usr/bin/env bash -e
+
+# Recusively searches the current working directory for remote terraform module
+# usage. For each module found, its referenced tag is compared with the latest
+# tag of the remote repository, outputting a message if they do not match.
+# Additionally, it notifies if no tag is used.
+# Valid git remote forms: https://www.terraform.io/docs/modules/sources.html
+
+set -o pipefail
+
+# Exit codes and strings:
+WARNING_TEXT="No remote modules were found OR remote modules were found \
+and one or more does not reference a tag (while all other remotes are up to date)"
+WARNING=1
+
+ERROR_TEXT="One or more remote modules found that are behind the latest tag"
+ERROR=2
+
+OK=0
+EXIT_CODE="$OK"
+
+main(){
+  # a list of the right values of matching "source" lines
+  # "grep -v '^.*#'" excludes comments
+  # "cut -d '"' -f2" strips the wrapping quote characters
+  # "sort -u" sorts, dropping duplicates
+  all_terraform_remotes=( $(\
+  grep -h -r --exclude-dir={.terraform,.git}  \
+  -e 'source[[:space:]]\+=[[:space:]]\+"git::' \
+  -e 'source[[:space:]]\+=[[:space:]]\+"github.com' \
+  -e 'source[[:space:]]\+=[[:space:]]\+"git@github.com:' \
+  -e 'source[[:space:]]\+=[[:space:]]\+"bitbucket.org/' \
+  .  | grep -v '^.*#' | awk '{print $3}' | cut -d '"' -f2 |sort -u ))
+
+  if [[ "${#all_terraform_remotes[@]}" -eq 0 ]] ; then
+    echo $WARNING_TEXT
+    exit "$WARNING"
+  fi
+
+  for tf_remote_module in "${all_terraform_remotes[@]}" ; do
+    local_tag=$(echo "$tf_remote_module" | awk -F'(=)|(=tags/)' '{print $2}' )
+    if [[ "$local_tag" == "" ]] ; then
+      echo "Notice: the remote module "$tf_remote_module" is referenced without a git tag."
+      echo
+      if [[ "$EXIT_CODE" -ne "$ERROR" ]] ; then
+        EXIT_CODE=$WARNING
+      fi
+      continue
+    fi
+
+    local TAG_PREFIX=""
+    # Does the local tag have a tag prefix? ie. "@atlaskit/util-service-support@3.0.5" ?
+    # If so, set TAG_PREFIX to its value, else, set it to ""
+    TAG_PREFIX=$(echo $local_tag |grep -o '@.*@' || echo "")
+    # revise the value of local tag to the string after the prefix
+    local_tag=${local_tag#"$TAG_PREFIX"}
+
+    # if $tf_remote_module is a module with a package subdir, eg. `git::ssh://git@repo.example.com/example/repository.git?ref=v4.2.0//modules/a_terraform_module`
+    # then everything after the second set of '//'' is removed before setting git_repository
+    git_repository_pass1=$(echo "$tf_remote_module" | sed 's_\(.*//.*\)//.*_\1_')
+
+    # any trailing '?...' needs removal
+    git_repository=$(echo "$git_repository_pass1" | cut -d '?' -f1)
+
+    latest_tag=$(get_latest_tag "$git_repository" )
+
+    if [[ "$local_tag" != "$latest_tag" ]]; then
+      echo "For the referenced remote repository: "$git_repository" "
+      echo "A newer tag is available: "$latest_tag" ("$local_tag" found)"
+      echo "Occurs in:"
+      grep -l -r --exclude-dir={.terraform,.git} "$tf_remote_module" .
+      echo
+      EXIT_CODE="$ERROR"
+    fi
+  done
+
+  case "$EXIT_CODE" in
+    $WARNING )
+      echo $WARNING_TEXT
+      exit $WARNING
+      ;;
+    $ERROR )
+      echo $ERROR_TEXT
+      exit $ERROR
+      ;;
+    esac
+}
+
+# takes in a git repository specified as a terraform remote module, returns the
+# repository's latest tag
+get_latest_tag(){
+  local git_repository="$1"
+  local latest_tag
+
+  case "${git_repository:0:10}" in
+    git::ssh:/|git::https )
+      # generic git over ssh or https
+
+      # the following line obtains the latest tag by listing the tags and parsing
+      # 'cut -f2': the second field has the ref
+      # 'sort -Vr': reverse version sort
+      # 'cut -d '/' -f3': 3rd field contains the tag
+      # 'head -1': retrieve only the first
+      if [[ -z "$TAG_PREFIX" ]] ; then
+        latest_tag=$(git ls-remote --refs --tags "${git_repository#'git::'}" | cut -f2 | sort -Vr | cut -d '/' -f3 | head -1)
+      else
+        latest_tag=$(git ls-remote --refs --tags "${git_repository#'git::'}" | grep "$TAG_PREFIX" | cut -f2 | sort -Vr | cut -d '/' -f3 | head -1)
+        # after sorting, remove prefix:
+        latest_tag=${latest_tag#"$TAG_PREFIX"}
+
+      fi
+      ;;
+    github.com )
+      # github over https
+      this_repo="${git_repository//github.com\//git@github.com:}"
+      if [[ -z "$TAG_PREFIX" ]] ; then
+        latest_tag=$(git ls-remote --refs --tags "$this_repo" | cut -f2 | sort -Vr | cut -d '/' -f3 | head -1)
+      else
+        latest_tag=$(git ls-remote --refs --tags "$this_repo"| grep "$TAG_PREFIX" | cut -f2 | sort -Vr | cut -d '/' -f3 | head -1)
+        # after sorting, remove prefix:
+        latest_tag=${latest_tag#"$TAG_PREFIX"}
+      fi
+      ;;
+    git@github )
+      # github over ssh
+      if [[ -z "$TAG_PREFIX" ]] ; then
+        latest_tag=$(git ls-remote --refs --tags "$git_repository" | cut -f2 | sort -Vr | cut -d '/' -f3 | head -1)
+      else
+        latest_tag=$(git ls-remote --refs --tags "$git_repository"| grep "$TAG_PREFIX" | cut -f2 | sort -Vr | cut -d '/' -f3 | head -1)
+        # after sorting, remove prefix:
+        latest_tag=${latest_tag#"$TAG_PREFIX"}
+      fi
+      ;;
+    bitbucket. )
+      # bitbucket over https
+      this_repo="${git_repository//bitbucket.org/https://bitbucket.org}"
+      if [[ -z "$TAG_PREFIX" ]] ; then
+        latest_tag=$(git ls-remote --refs --tags "$this_repo" | cut -f2 | sort -Vr | sed 's_refs/tags/__' | head -1)
+      else
+        latest_tag=$(git ls-remote --refs --tags "$this_repo" | grep "$TAG_PREFIX" | cut -f2 | sort -Vr | sed 's_refs/tags/__' | head -1)
+        # after sorting, remove prefix:
+        latest_tag=${latest_tag#"$TAG_PREFIX"}
+      fi
+      ;;
+    esac
+    echo "$latest_tag"
+}
+
+
+main "$@"

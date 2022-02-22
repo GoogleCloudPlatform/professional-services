@@ -1,0 +1,94 @@
+#   Copyright 2021 Google LLC
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+#
+# Input processors to use
+processors:
+  - budget
+
+#
+# Evaluate a template to check whether to process a message or not
+processIf: |
+  {% if budget.cost_amount > budget.amount_units %}1{% endif %}
+
+# Will only process messages that are fresher than 7 days ago (default
+# period is 2 days), this prevents sending failures from constantly 
+# getting reprocessed.
+retryPeriod: 7 days ago
+
+# Resend interval:
+# - Sets a Cloud Storage bucket and key name
+# - Key is rendered Jinja template and then hashed, a corresponding file stored in the bucket
+# - If the file is newer than the resend interval, do not resend the message
+#
+# For example, budget alerts are sent out roughly every 10 minutes and users most likely don't
+# want to receive a notification every 10 minutes.
+#
+# To prevent the bucket from accumulating file for every message, set an object lifecycle
+# policy to delete old objects.
+resendBucket: pubsub2inbox-resend-bucket
+resendKey: |
+  budget-alert-{% for project in projects %}{{ project[0] }}{% endfor %}
+resendPeriod: 8 hours
+
+outputs:
+  - type: mail
+    # Transports will be tried in sequence, until one succeeds
+    transports:
+      - type: smtp
+        host: your.email.server.smtp
+        port: 587
+        starttls: true
+        # ssl: false
+      - type: sendgrid
+        apiKey: your-sendgrid-api-key
+    from: notifications@your.domain
+    to: billing@your.domain
+    #
+    # Example of programmatically creating list of recipient
+    # to: |
+    #  {% for project in projects %}
+    #   owners-{{ project[0] }}@your.domain
+    #  {% endfor %}
+    #
+    # If set to true, expands group recipients from Cloud Identity
+    # (Useful if you can't receive email directly to CI group email addresses)
+    # expandGroupRecipients: true
+    #
+    # Ignore non-existing groups during group membership expansion.
+    # ignoreNonexistentGroups: true
+    subject: |
+      Your project(s) are over the budget: {% for project in projects %}{{ project[2] }}{% if not loop.last %}, {% endif %}{% endfor %}
+    body:
+      # attachments: # Will be rendered as Jinja templates
+      #  - gs://bucket-name/object-name
+      html: |
+        <html><head><title>Project over budget</title></head>
+        <body>
+          <h1>Project budget exceeded!</h1>
+          The following projects have gone over budget:
+            <ul>
+              {% for project in projects %}
+              <li>{{ project[2] }} ({{ project[0] }})</li>
+              {% endfor %}
+            </ul>
+        </body>
+        </html>
+      text: |
+        *Project budget exceeded!*
+
+        The following projects have gone over budget:
+
+        {% for project in projects %}
+          - {{ project[2] }} ({{ project[0] }})
+        {% endfor %}

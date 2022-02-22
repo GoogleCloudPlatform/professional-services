@@ -1,0 +1,234 @@
+{
+  "configuration": {
+    "jobType": "UNKNOWN",
+    "query": {
+      "allowLargeResults": false,
+      "createDisposition": "CREATE_IF_NEEDED",
+      "destinationTable": {
+        "datasetId": "_2275b2de904f04341b9fe7e976126a9151569205",
+        "projectId": "stephanmeyn-playground",
+        "tableId": "anon3c2dabe652a31bcb2a1716ae20c36880bdb1e6e0"
+      },
+      "priority": "INTERACTIVE",
+      "query": "SELECT\n  trade_id AS tradeId,\n  maturity_date AS maturityDate,\n  timepoint_id AS reportingDate,\n  scenarios\nFROM\n  `stephanmeyn-playground.raven.tradeData`\nLIMIT\n  1000",
+      "useLegacySql": false,
+      "useQueryCache": true,
+      "writeDisposition": "WRITE_TRUNCATE"
+    }
+  },
+  "etag": "\"NSrA2TwvIwFWwcdeSRqwLw1CVp4/PFQp0Yday1JU4gym-UyqbzUFk64\"",
+  "id": "stephanmeyn-playground:US.bquxjob_5b806654_1644a71f31e",
+  "jobReference": {
+    "jobId": "bquxjob_5b806654_1644a71f31e",
+    "location": "US",
+    "projectId": "stephanmeyn-playground"
+  },
+  "kind": "bigquery#job",
+  "selfLink": "https://www.googleapis.com/bigquery/v2/projects/stephanmeyn-playground/jobs/bquxjob_5b806654_1644a71f31e?location=US",
+  "statistics": {
+    "creationTime": "1530263024591",
+    "endTime": "1530263027522",
+    "query": {
+      "billingTier": 1,
+      "cacheHit": false,
+      "estimatedBytesProcessed": "1043885556480",
+      "queryPlan": [
+        {
+          "completedParallelInputs": "1",
+          "computeMsAvg": "107",
+          "computeMsMax": "107",
+          "computeRatioAvg": 0.09700815956482321,
+          "computeRatioMax": 0.09700815956482321,
+          "endMs": "1530263025457",
+          "id": "0",
+          "name": "S00: Input",
+          "parallelInputs": "5000",
+          "readMsAvg": "107",
+          "readMsMax": "107",
+          "readRatioAvg": 0.09700815956482321,
+          "readRatioMax": 0.09700815956482321,
+          "recordsRead": "25637",
+          "recordsWritten": "1000",
+          "shuffleOutputBytes": "9039292",
+          "shuffleOutputBytesSpilled": "0",
+          "startMs": "1530263025193",
+          "status": "COMPLETE",
+          "steps": [
+            {
+              "kind": "READ",
+              "substeps": [
+                "$1:trade_id, $2:maturity_date, $3:timepoint_id, $4:scenarios",
+                "FROM stephanmeyn-playground.raven.tradeData"
+              ]
+            },
+            {
+              "kind": "LIMIT",
+              "substeps": [
+                "1000"
+              ]
+            },
+            {
+              "kind": "WRITE",
+              "substeps": [
+                "$1, $2, $3, $4",
+                "TO __stage00_output"
+              ]
+            }
+          ],
+          "waitMsAvg": "0",
+          "waitMsMax": "0",
+          "waitRatioAvg": 0.0,
+          "waitRatioMax": 0.0,
+          "writeMsAvg": "95",
+          "writeMsMax": "95",
+          "writeRatioAvg": 0.08612873980054397,
+          "writeRatioMax": 0.08612873980054397
+        },
+        {
+          "completedParallelInputs": "1",
+          "computeMsAvg": "75",
+          "computeMsMax": "75",
+          "computeRatioAvg": 0.06799637352674524,
+          "computeRatioMax": 0.06799637352674524,
+          "endMs": "1530263025709",
+          "id": "1",
+          "inputStages": [
+            "0"
+          ],
+          "name": "S01: Compute",
+          "parallelInputs": "1",
+          "readMsAvg": "0",
+          "readMsMax": "0",
+          "readRatioAvg": 0.0,
+          "readRatioMax": 0.0,
+          "recordsRead": "1000",
+          "recordsWritten": "1000",
+          "shuffleOutputBytes": "9039292",
+          "shuffleOutputBytesSpilled": "0",
+          "startMs": "1530263025476",
+          "status": "COMPLETE",
+          "steps": [
+            {
+              "kind": "READ",
+              "substeps": [
+                "$1, $2, $3, $4",
+                "FROM __stage00_output"
+              ]
+            },
+            {
+              "kind": "LIMIT",
+              "substeps": [
+                "1000"
+              ]
+            },
+            {
+              "kind": "WRITE",
+              "substeps": [
+                "$1, $2, $3, $4",
+                "TO __stage01_output"
+              ]
+            }
+          ],
+          "waitMsAvg": "247",
+          "waitMsMax": "247",
+          "waitRatioAvg": 0.22393472348141433,
+          "waitRatioMax": 0.22393472348141433,
+          "writeMsAvg": "110",
+          "writeMsMax": "110",
+          "writeRatioAvg": 0.09972801450589303,
+          "writeRatioMax": 0.09972801450589303
+        },
+        {
+          "completedParallelInputs": "1",
+          "computeMsAvg": "1103",
+          "computeMsMax": "1103",
+          "computeRatioAvg": 1.0,
+          "computeRatioMax": 1.0,
+          "endMs": "1530263026778",
+          "id": "2",
+          "inputStages": [
+            "1"
+          ],
+          "name": "S02: Output",
+          "parallelInputs": "1",
+          "readMsAvg": "0",
+          "readMsMax": "0",
+          "readRatioAvg": 0.0,
+          "readRatioMax": 0.0,
+          "recordsRead": "1000",
+          "recordsWritten": "1000",
+          "shuffleOutputBytes": "8029292",
+          "shuffleOutputBytesSpilled": "0",
+          "startMs": "1530263025894",
+          "status": "COMPLETE",
+          "steps": [
+            {
+              "kind": "READ",
+              "substeps": [
+                "$1, $2, $3, $4",
+                "FROM __stage01_output"
+              ]
+            },
+            {
+              "kind": "WRITE",
+              "substeps": [
+                "$1, $2, $3, $4",
+                "TO __stage02_output"
+              ]
+            }
+          ],
+          "waitMsAvg": "176",
+          "waitMsMax": "176",
+          "waitRatioAvg": 0.15956482320942883,
+          "waitRatioMax": 0.15956482320942883,
+          "writeMsAvg": "238",
+          "writeMsMax": "238",
+          "writeRatioAvg": 0.2157751586582049,
+          "writeRatioMax": 0.2157751586582049
+        }
+      ],
+      "referencedTables": [
+        {
+          "datasetId": "raven",
+          "projectId": "stephanmeyn-playground",
+          "tableId": "tradeData"
+        }
+      ],
+      "statementType": "SELECT",
+      "timeline": [
+        {
+          "activeUnits": "1",
+          "completedUnits": "1",
+          "elapsedMs": "1072",
+          "pendingUnits": "5000",
+          "totalSlotMs": "261"
+        },
+        {
+          "activeUnits": "1",
+          "completedUnits": "2",
+          "elapsedMs": "1588",
+          "pendingUnits": "5000",
+          "totalSlotMs": "493"
+        },
+        {
+          "activeUnits": "1",
+          "completedUnits": "3",
+          "elapsedMs": "2868",
+          "pendingUnits": "4999",
+          "totalSlotMs": "1375"
+        }
+      ],
+      "totalBytesBilled": "1043885719552",
+      "totalBytesProcessed": "1043885556480",
+      "totalPartitionsProcessed": "0",
+      "totalSlotMs": "2184"
+    },
+    "startTime": "1530263024864",
+    "totalBytesProcessed": "1043885556480",
+    "totalSlotMs": "2184"
+  },
+  "status": {
+    "state": "DONE"
+  },
+  "user_email": "stephanmeyn@google.com"
+}

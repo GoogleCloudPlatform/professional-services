@@ -1,0 +1,27 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: web-instrumentation-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-instrumentation
+  template:
+    metadata:
+      labels:
+        app: web-instrumentation
+    spec:
+      containers:
+      - name: web-instrumentation-app
+        # Replace with your project ID
+        image: gcr.io/{{PROJECT-ID}}/web-instrumentation:latest
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 8080
+        env:
+          - name: PORT
+            value: "8080"

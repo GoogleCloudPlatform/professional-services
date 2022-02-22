@@ -1,0 +1,55 @@
+<!--
+/*
+ * Copyright (C) 2021 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+-->
+<mat-card class="status-card">
+  <mat-card-content class="plan-status">
+    <mat-tab-group [dynamicHeight]="true">
+      <mat-tab label="Overview">
+        <pre>{{ overview }}</pre>
+      </mat-tab>
+      <mat-tab label="Status">
+        <pre>{{ status }}</pre>
+      </mat-tab>
+      <mat-tab label="SQL">
+        <pre>{{ sql }}</pre>
+      </mat-tab>
+      <mat-tab label="Timings">
+        <pre>{{ timings }}</pre>
+      </mat-tab>
+      <mat-tab label="Statistics">
+        <pre>{{ statistics }}</pre>
+      </mat-tab>
+      <mat-tab label="Settings">
+        <pre> {{ settings }}</pre>
+      </mat-tab>
+      <mat-tab label="Display Options">
+        <mat-card-header>
+          <mat-card-title>Select display options</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <mat-form-field>
+            <mat-label>Query Stages Display</mat-label>
+            <mat-select [(value)]='stageDisplayOption' (selectionChange)="changeStageDisplayOption($event)">
+              <mat-option value="hideRepartition">Hide Repartition</mat-option>
+              <mat-option value="showRepartition">Show Repartition</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </mat-card-content>
+      </mat-tab>
+    </mat-tab-group>
+  </mat-card-content>
+</mat-card>

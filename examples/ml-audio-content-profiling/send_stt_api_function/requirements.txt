@@ -1,0 +1,4 @@
+google-cloud-storage==1.18.0
+google-cloud-pubsub==0.45.0
+google-api-core==1.14.2
+google-cloud-speech==1.2.0

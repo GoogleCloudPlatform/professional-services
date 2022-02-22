@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ~ Copyright (C) 2017 Google Inc.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License"); you may not
+  ~ use this file except in compliance with the License. You may obtain a copy of
+  ~ the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+  ~ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+  ~ License for the specific language governing permissions and limitations under
+  ~ the License.
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+      <groupId>com.google.cloud.demo.iot.nirvana</groupId>
+      <artifactId>google-cloud-demo-iot-nirvana</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>google-cloud-demo-iot-nirvana-fronted</artifactId>
+    <version>0.1-SNAPSHOT</version>
+    <packaging>war</packaging>
+
+    <name>IoT Nirvana Frontend</name>
+    <inceptionYear>2018</inceptionYear>
+    <organization>
+      <name>Google Cloud Consulting Services</name>
+      <url>https://cloud.google.com/consulting/</url>
+    </organization>
+    <licenses>
+      <license>
+        <name>The Apache Software License, Version 2.0</name>
+        <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        <distribution>repo</distribution>
+      </license>
+    </licenses>
+
+    <properties>
+        <!-- AppEngine -->
+        <app.id>[PROJECT_ID]</app.id>
+        <app.version>v1</app.version>
+        <appengine.version>1.9.64</appengine.version>
+
+        <!-- packages version -->
+        <com.google.http-client.version>1.23.0</com.google.http-client.version>
+        <com.googlecode.objectify.version>5.1.22</com.googlecode.objectify.version>
+        <com.google.code.gson.version>2.8.2</com.google.code.gson.version>
+        <com.google.guava.version>24.1.1-jre</com.google.guava.version>
+        <com.github.rholder.version>2.0.0</com.github.rholder.version>
+        <com.google.api-client.version>1.23.0</com.google.api-client.version>
+        <commons.codec.version>1.9</commons.codec.version>
+        <commons.io.version>2.5</commons.io.version>
+        <google-api-services-compute.version>v1-rev171-1.23.0</google-api-services-compute.version>
+        <google-api-services-cloudiot.version>v1-rev25-1.23.0</google-api-services-cloudiot.version>
+        <gcloud.plugin.version>2.0.9.133.v201611104</gcloud.plugin.version>
+        <iot.nirvana.common.version>0.1-SNAPSHOT</iot.nirvana.common.version>
+        <javax.servlet.version>2.5</javax.servlet.version>
+        <jstl.version>1.2</jstl.version>
+        <maven.war.plugin.version>2.6</maven.war.plugin.version>
+        <versions.maven.plugin.version>2.1</versions.maven.plugin.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <maven.compiler.showDeprecation>true</maven.compiler.showDeprecation>
+        <archiveClasses>true</archiveClasses>
+    </properties>
+
+    <prerequisites>
+        <maven>3.3.9</maven>
+    </prerequisites>
+
+    <dependencies>
+      <!-- Compile/runtime dependencies -->
+      <dependency>
+          <groupId>com.google.appengine</groupId>
+          <artifactId>appengine-api-1.0-sdk</artifactId>
+          <version>${appengine.version}</version>
+      </dependency>
+      <dependency>
+          <groupId>javax.servlet</groupId>
+          <artifactId>servlet-api</artifactId>
+          <version>${javax.servlet.version}</version>
+          <scope>provided</scope>
+      </dependency>
+      <dependency>
+          <groupId>jstl</groupId>
+          <artifactId>jstl</artifactId>
+          <version>${jstl.version}</version>
+      </dependency>
+
+      <!-- Google HTTP Client Libraries -->
+      <dependency>
+          <groupId>com.google.http-client</groupId>
+          <artifactId>google-http-client</artifactId>
+          <version>${com.google.http-client.version}</version>
+      </dependency>
+
+      <!-- Google Jackson2 -->
+      <dependency>
+          <groupId>com.google.http-client</groupId>
+          <artifactId>google-http-client-jackson2</artifactId>
+          <version>${com.google.http-client.version}</version>
+      </dependency>
+
+      <!-- Objectify -->
+      <dependency>
+          <groupId>com.googlecode.objectify</groupId>
+          <artifactId>objectify</artifactId>
+          <version>${com.googlecode.objectify.version}</version>
+      </dependency>
+
+      <!-- GSON -->
+      <dependency>
+          <groupId>com.google.code.gson</groupId>
+          <artifactId>gson</artifactId>
+          <version>${com.google.code.gson.version}</version>
+      </dependency>
+
+      <!-- Guava -->
+      <dependency>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+          <version>${com.google.guava.version}</version>
+      </dependency>
+
+      <!-- Guava Retrying -->
+      <dependency>
+          <groupId>com.github.rholder</groupId>
+          <artifactId>guava-retrying</artifactId>
+          <version>${com.github.rholder.version}</version>
+      </dependency>
+
+      <!-- Google API Client -->
+      <dependency>
+          <groupId>com.google.api-client</groupId>
+          <artifactId>google-api-client</artifactId>
+          <version>${com.google.api-client.version}</version>
+      </dependency>
+
+      <!-- Google App Engine Default Credentials -->
+      <dependency>
+          <groupId>com.google.api-client</groupId>
+          <artifactId>google-api-client-appengine</artifactId>
+          <version>${com.google.api-client.version}</version>
+      </dependency>
+
+      <!-- Google Compute Engine APIs -->
+      <dependency>
+          <groupId>com.google.apis</groupId>
+          <artifactId>google-api-services-compute</artifactId>
+          <version>${google-api-services-compute.version}</version>
+      </dependency>
+
+      <!-- Google Cloud IoT Core -->
+      <dependency>
+          <groupId>com.google.apis</groupId>
+          <artifactId>google-api-services-cloudiot</artifactId>
+          <version>${google-api-services-cloudiot.version}</version>
+      </dependency>
+
+      <!-- Apache Commons IO -->
+      <dependency>
+        <groupId>commons-io</groupId>
+        <artifactId>commons-io</artifactId>
+        <version>${commons.io.version}</version>
+      </dependency>
+
+      <!-- Apache Commons Codec -->
+      <dependency>
+        <groupId>commons-codec</groupId>
+        <artifactId>commons-codec</artifactId>
+        <version>${commons.codec.version}</version>
+      </dependency>
+
+      <!-- Test Dependencies -->
+      <dependency>
+          <groupId>com.google.appengine</groupId>
+          <artifactId>appengine-testing</artifactId>
+          <version>${appengine.version}</version>
+          <scope>test</scope>
+      </dependency>
+      <dependency>
+          <groupId>com.google.appengine</groupId>
+          <artifactId>appengine-api-stubs</artifactId>
+          <version>${appengine.version}</version>
+          <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.google.cloud.demo.iot.nirvana</groupId>
+        <artifactId>google-cloud-demo-iot-nirvana-common</artifactId>
+        <version>${iot.nirvana.common.version}</version>
+      </dependency>
+    </dependencies>
+
+    <build>
+        <!-- for hot reload of the web application -->
+        <outputDirectory>${project.build.directory}/${project.build.finalName}/WEB-INF/classes</outputDirectory>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>versions-maven-plugin</artifactId>
+                <version>${versions.maven.plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>${maven.war.plugin.version}</version>
+                <configuration>
+                    <archiveClasses>true</archiveClasses>
+                    <webResources>
+                        <!-- in order to interpolate version from pom into appengine-web.xml -->
+                        <resource>
+                            <directory>${basedir}/src/main/webapp/WEB-INF</directory>
+                            <filtering>true</filtering>
+                            <targetPath>WEB-INF</targetPath>
+                        </resource>
+                    </webResources>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.google.appengine</groupId>
+                <artifactId>appengine-maven-plugin</artifactId>
+                <version>${appengine.version}</version>
+                <configuration>
+                    <enableJarClasses>false</enableJarClasses>
+                    <version>${app.version}</version>
+                    <!-- Comment in the below snippet to bind to all IPs instead of just
+                        localhost -->
+                    <address>0.0.0.0</address>
+                    <port>8081</port>
+                    <!-- Comment in the below snippet to enable local debugging with a remote
+                        debugger like those included with Eclipse or IntelliJ -->
+                    <jvmFlags>
+                        <jvmFlag>-agentlib:jdwp=transport=dt_socket,address=8000,server=y,suspend=n</jvmFlag>
+                    </jvmFlags>
+                </configuration>
+            </plugin>
+            <!--
+            <plugin>
+                <groupId>com.google.appengine</groupId>
+                <artifactId>gcloud-maven-plugin</artifactId>
+                <version>${gcloud.plugin.version}</version>
+                <configuration>
+                    <set_default>true</set_default>
+                </configuration>
+            </plugin>
+            -->
+        </plugins>
+    </build>
+</project>

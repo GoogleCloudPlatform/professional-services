@@ -1,0 +1,11 @@
+runtime: python37
+
+handlers:
+- url: /upload
+  script: auto
+
+env_variables:
+  MODEL_NAME: 'EnergyDisaggregationModel'
+  SEQ_LEN: 20
+  DATASET_ID: 'EnergyDisaggregation'
+  PUB_TOPIC: 'pred'

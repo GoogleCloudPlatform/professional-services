@@ -1,0 +1,1482 @@
+{
+ "kind": "bigquery#jobList",
+ "etag": "\"NSrA2TwvIwFWwcdeSRqwLw1CVp4/v1SlLPb2mbl0fvt198m2oiBooNY\"",
+ "jobs": [
+  {
+   "id": "stephanmeyn-train-cbp:EU.bquxjob_7397faf7_1679db86d97",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "bquxjob_7397faf7_1679db86d97",
+    "location": "EU"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1544539501387",
+    "startTime": "1544539501855",
+    "endTime": "1544539506050",
+    "totalBytesProcessed": "1308367084",
+    "query": {
+     "totalPartitionsProcessed": "0",
+     "totalBytesProcessed": "1308367084",
+     "totalBytesBilled": "1308622848",
+     "billingTier": 1,
+     "cacheHit": false,
+     "referencedTables": [
+      {
+       "projectId": "stephanmeyn-train-cbp",
+       "datasetId": "logExport",
+       "tableId": "dataflow_googleapis_com_worker_20181211"
+      }
+     ],
+     "statementType": "SELECT"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:EU.bquxjob_4b17886_1679db7b090",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "bquxjob_4b17886_1679db7b090",
+    "location": "EU"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1544539369030",
+    "startTime": "1544539369501",
+    "endTime": "1544539370775",
+    "totalBytesProcessed": "69081710",
+    "query": {
+     "totalPartitionsProcessed": "0",
+     "totalBytesProcessed": "69081710",
+     "totalBytesBilled": "69206016",
+     "billingTier": 1,
+     "cacheHit": false,
+     "referencedTables": [
+      {
+       "projectId": "stephanmeyn-train-cbp",
+       "datasetId": "logExport",
+       "tableId": "dataflow_googleapis_com_worker_20181211"
+      }
+     ],
+     "statementType": "SELECT"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.bquxjob_13e5e02e_16783e9e43a",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "bquxjob_13e5e02e_16783e9e43a",
+    "location": "US"
+   },
+   "state": "DONE",
+   "errorResult": {
+    "reason": "invalid",
+    "location": "prod-scotty-7660c6d3-1534-4257-98f7-e21e219dbc7f",
+    "message": "Error while reading data, error message: Failed to parse JSON: No object found when new array is started.; BeginArray returned false; Parser terminated before end of string"
+   },
+   "statistics": {
+    "creationTime": "1544106403901",
+    "startTime": "1544106404455",
+    "endTime": "1544106404702"
+   },
+   "status": {
+    "state": "DONE",
+    "errorResult": {
+     "reason": "invalid",
+     "location": "prod-scotty-7660c6d3-1534-4257-98f7-e21e219dbc7f",
+     "message": "Error while reading data, error message: Failed to parse JSON: No object found when new array is started.; BeginArray returned false; Parser terminated before end of string"
+    }
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.bquxjob_141e1a57_16783e9579b",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "bquxjob_141e1a57_16783e9579b",
+    "location": "US"
+   },
+   "state": "DONE",
+   "errorResult": {
+    "reason": "invalid",
+    "location": "prod-scotty-88984f21-df21-4448-8f9c-eb5706139223",
+    "message": "Error while reading data, error message: Failed to parse JSON: Unexpected end of string; Unexpected end of string; Expected key"
+   },
+   "statistics": {
+    "creationTime": "1544106367895",
+    "startTime": "1544106368462",
+    "endTime": "1544106368772"
+   },
+   "status": {
+    "state": "DONE",
+    "errorResult": {
+     "reason": "invalid",
+     "location": "prod-scotty-88984f21-df21-4448-8f9c-eb5706139223",
+     "message": "Error while reading data, error message: Failed to parse JSON: Unexpected end of string; Unexpected end of string; Expected key"
+    }
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.bquxjob_29725259_16783e716b2",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "bquxjob_29725259_16783e716b2",
+    "location": "US"
+   },
+   "state": "DONE",
+   "errorResult": {
+    "reason": "invalid",
+    "location": "prod-scotty-846c3846-ceeb-4fb1-a909-d40f58d18418",
+    "message": "Error while reading data, error message: Failed to parse JSON: No object found when new array is started.; BeginArray returned false"
+   },
+   "statistics": {
+    "creationTime": "1544106220106",
+    "startTime": "1544106220644",
+    "endTime": "1544106220947"
+   },
+   "status": {
+    "state": "DONE",
+    "errorResult": {
+     "reason": "invalid",
+     "location": "prod-scotty-846c3846-ceeb-4fb1-a909-d40f58d18418",
+     "message": "Error while reading data, error message: Failed to parse JSON: No object found when new array is started.; BeginArray returned false"
+    }
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.bquxjob_5be671f2_16783e64d7c",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "bquxjob_5be671f2_16783e64d7c",
+    "location": "US"
+   },
+   "state": "DONE",
+   "errorResult": {
+    "reason": "invalid",
+    "location": "prod-scotty-e56eaa40-908b-49ad-8bcb-1ad4db1e6ff2",
+    "message": "Error while reading data, error message: Failed to parse JSON: No object found when new array is started.; BeginArray returned false"
+   },
+   "statistics": {
+    "creationTime": "1544106168778",
+    "startTime": "1544106169358",
+    "endTime": "1544106169659"
+   },
+   "status": {
+    "state": "DONE",
+    "errorResult": {
+     "reason": "invalid",
+     "location": "prod-scotty-e56eaa40-908b-49ad-8bcb-1ad4db1e6ff2",
+     "message": "Error while reading data, error message: Failed to parse JSON: No object found when new array is started.; BeginArray returned false"
+    }
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.bquxjob_1be19625_16783e4b7a2",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "bquxjob_1be19625_16783e4b7a2",
+    "location": "US"
+   },
+   "state": "DONE",
+   "errorResult": {
+    "reason": "invalid",
+    "location": "prod-scotty-4bb00f4c-1251-4bc6-aa83-6128073e3f84",
+    "message": "Error while reading data, error message: Failed to parse JSON: No object found when new array is started.; BeginArray returned false"
+   },
+   "statistics": {
+    "creationTime": "1544106064769",
+    "startTime": "1544106065270",
+    "endTime": "1544106065534"
+   },
+   "status": {
+    "state": "DONE",
+    "errorResult": {
+     "reason": "invalid",
+     "location": "prod-scotty-4bb00f4c-1251-4bc6-aa83-6128073e3f84",
+     "message": "Error while reading data, error message: Failed to parse JSON: No object found when new array is started.; BeginArray returned false"
+    }
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.bquxjob_5cbea7f8_16783e11783",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "bquxjob_5cbea7f8_16783e11783",
+    "location": "US"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1544105834030",
+    "startTime": "1544105834219",
+    "endTime": "1544105834249",
+    "totalBytesProcessed": "0",
+    "query": {
+     "totalBytesProcessed": "0",
+     "totalBytesBilled": "0",
+     "cacheHit": true,
+     "statementType": "SELECT"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.bquxjob_15b841f8_16783e0c24e",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "bquxjob_15b841f8_16783e0c24e",
+    "location": "US"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1544105826295",
+    "startTime": "1544105826431",
+    "endTime": "1544105826469",
+    "totalBytesProcessed": "0",
+    "query": {
+     "totalBytesProcessed": "0",
+     "totalBytesBilled": "0",
+     "cacheHit": true,
+     "statementType": "SELECT"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.bquxjob_6a4e6956_16783e0ab89",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "bquxjob_6a4e6956_16783e0ab89",
+    "location": "US"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1544105804556",
+    "startTime": "1544105805162",
+    "endTime": "1544105805603",
+    "totalBytesProcessed": "3200334",
+    "query": {
+     "totalPartitionsProcessed": "0",
+     "totalBytesProcessed": "3200334",
+     "totalBytesBilled": "10485760",
+     "billingTier": 1,
+     "cacheHit": false,
+     "referencedTables": [
+      {
+       "projectId": "stephanmeyn-train-cbp",
+       "datasetId": "powerco",
+       "tableId": "combinedJ"
+      }
+     ],
+     "statementType": "SELECT"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.bquxjob_20bdc228_16783539b6b",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "bquxjob_20bdc228_16783539b6b",
+    "location": "US"
+   },
+   "state": "DONE",
+   "errorResult": {
+    "reason": "invalidQuery",
+    "location": "query",
+    "message": "Unsupported subquery with table in join predicate."
+   },
+   "statistics": {
+    "creationTime": "1544096593778",
+    "startTime": "1544096593892",
+    "endTime": "1544096593892"
+   },
+   "status": {
+    "state": "DONE",
+    "errorResult": {
+     "reason": "invalidQuery",
+     "location": "query",
+     "message": "Unsupported subquery with table in join predicate."
+    }
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:australia-southeast1.cda65fec-d283-4c64-8573-ba8c39401ffc",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "cda65fec-d283-4c64-8573-ba8c39401ffc",
+    "location": "australia-southeast1"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1543459382803",
+    "startTime": "1543459383132",
+    "endTime": "1543459383150",
+    "totalBytesProcessed": "0",
+    "query": {
+     "totalBytesProcessed": "0",
+     "totalBytesBilled": "0",
+     "cacheHit": true,
+     "statementType": "SELECT"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:australia-southeast1.bquxjob_742bfd85_1675d575d45",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "bquxjob_742bfd85_1675d575d45",
+    "location": "australia-southeast1"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1543459288565",
+    "startTime": "1543459288969",
+    "endTime": "1543459290269",
+    "totalBytesProcessed": "14452504",
+    "query": {
+     "totalPartitionsProcessed": "0",
+     "totalBytesProcessed": "14452504",
+     "totalBytesBilled": "14680064",
+     "billingTier": 1,
+     "cacheHit": false,
+     "referencedTables": [
+      {
+       "projectId": "nrldatajam2018",
+       "datasetId": "nrldatajam_notationdata",
+       "tableId": "trxs"
+      }
+     ],
+     "statementType": "SELECT"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:australia-southeast1.6a75fa6a-d874-4df8-bdcc-b368379c6f89",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "6a75fa6a-d874-4df8-bdcc-b368379c6f89",
+    "location": "australia-southeast1"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1543459227750",
+    "startTime": "1543459228043",
+    "endTime": "1543459228055",
+    "totalBytesProcessed": "0",
+    "query": {
+     "totalBytesProcessed": "0",
+     "totalBytesBilled": "0",
+     "cacheHit": true,
+     "statementType": "SELECT"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:australia-southeast1.654b6de8-d9d0-4fe3-8ed0-9a82ee6ae285",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "654b6de8-d9d0-4fe3-8ed0-9a82ee6ae285",
+    "location": "australia-southeast1"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1543459203168",
+    "startTime": "1543459203668",
+    "endTime": "1543459225807",
+    "totalBytesProcessed": "800273218",
+    "query": {
+     "totalPartitionsProcessed": "0",
+     "totalBytesProcessed": "800273218",
+     "totalBytesBilled": "801112064",
+     "billingTier": 1,
+     "cacheHit": false,
+     "referencedTables": [
+      {
+       "projectId": "nrldatajam2018",
+       "datasetId": "nrldatajam_notationdata",
+       "tableId": "trxs"
+      }
+     ],
+     "statementType": "SELECT"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.3499911e-6b1a-422e-96f4-192fd50c838e",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "3499911e-6b1a-422e-96f4-192fd50c838e",
+    "location": "US"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1543459104171",
+    "startTime": "1543459104342",
+    "endTime": "1543459104361",
+    "totalBytesProcessed": "0",
+    "query": {
+     "totalBytesProcessed": "0",
+     "totalBytesBilled": "0",
+     "cacheHit": true,
+     "statementType": "SELECT"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.106d998f-0ba0-4ea1-8eb0-1b32305923c7",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "106d998f-0ba0-4ea1-8eb0-1b32305923c7",
+    "location": "US"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1543458978515",
+    "startTime": "1543458978793",
+    "endTime": "1543458979110",
+    "totalBytesProcessed": "65935918",
+    "query": {
+     "totalPartitionsProcessed": "0",
+     "totalBytesProcessed": "65935918",
+     "totalBytesBilled": "66060288",
+     "billingTier": 1,
+     "cacheHit": false,
+     "referencedTables": [
+      {
+       "projectId": "bigquery-public-data",
+       "datasetId": "usa_names",
+       "tableId": "usa_1910_2013"
+      }
+     ],
+     "statementType": "SELECT"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:australia-southeast1.bquxjob_3633e414_16758b72911",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "bquxjob_3633e414_16758b72911",
+    "location": "australia-southeast1"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1543381742396",
+    "startTime": "1543381742683",
+    "endTime": "1543381744465",
+    "totalBytesProcessed": "800273218",
+    "query": {
+     "totalPartitionsProcessed": "0",
+     "totalBytesProcessed": "800273218",
+     "totalBytesBilled": "801112064",
+     "billingTier": 1,
+     "cacheHit": false,
+     "referencedTables": [
+      {
+       "projectId": "nrldatajam2018",
+       "datasetId": "nrldatajam_notationdata",
+       "tableId": "trxs"
+      }
+     ],
+     "statementType": "SELECT"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:australia-southeast1.bquxjob_73e058bf_16758b020d3",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "bquxjob_73e058bf_16758b020d3",
+    "location": "australia-southeast1"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1543381658304",
+    "startTime": "1543381658599",
+    "endTime": "1543381660096",
+    "totalBytesProcessed": "800273218",
+    "query": {
+     "totalPartitionsProcessed": "0",
+     "totalBytesProcessed": "800273218",
+     "totalBytesBilled": "801112064",
+     "billingTier": 1,
+     "cacheHit": false,
+     "referencedTables": [
+      {
+       "projectId": "nrldatajam2018",
+       "datasetId": "nrldatajam_notationdata",
+       "tableId": "trxs"
+      }
+     ],
+     "statementType": "SELECT"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:australia-southeast1.bquxjob_100ed980_16758afccd3",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "bquxjob_100ed980_16758afccd3",
+    "location": "australia-southeast1"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1543381197348",
+    "startTime": "1543381197639",
+    "endTime": "1543381199117",
+    "totalBytesProcessed": "800273218",
+    "query": {
+     "totalPartitionsProcessed": "0",
+     "totalBytesProcessed": "800273218",
+     "totalBytesBilled": "801112064",
+     "billingTier": 1,
+     "cacheHit": false,
+     "referencedTables": [
+      {
+       "projectId": "nrldatajam2018",
+       "datasetId": "nrldatajam_notationdata",
+       "tableId": "trxs"
+      }
+     ],
+     "statementType": "SELECT"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:australia-southeast1.bquxjob_2de80111_16758761cef",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "bquxjob_2de80111_16758761cef",
+    "location": "australia-southeast1"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1543381175969",
+    "startTime": "1543381176274",
+    "endTime": "1543381178313",
+    "totalBytesProcessed": "800273218",
+    "query": {
+     "totalPartitionsProcessed": "0",
+     "totalBytesProcessed": "800273218",
+     "totalBytesBilled": "801112064",
+     "billingTier": 1,
+     "cacheHit": false,
+     "referencedTables": [
+      {
+       "projectId": "nrldatajam2018",
+       "datasetId": "nrldatajam_notationdata",
+       "tableId": "trxs"
+      }
+     ],
+     "statementType": "SELECT"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:australia-southeast1.bquxjob_ba7553_167589472f7",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "bquxjob_ba7553_167589472f7",
+    "location": "australia-southeast1"
+   },
+   "state": "DONE",
+   "errorResult": {
+    "reason": "invalid",
+    "message": "Cannot read and write in different locations: source: australia-southeast1, destination: US"
+   },
+   "statistics": {
+    "creationTime": "1543379383571",
+    "startTime": "1543379383929",
+    "endTime": "1543379384315"
+   },
+   "status": {
+    "state": "DONE",
+    "errorResult": {
+     "reason": "invalid",
+     "message": "Cannot read and write in different locations: source: australia-southeast1, destination: US"
+    }
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:australia-southeast1.bquxjob_bf791fe_1675875267f",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "bquxjob_bf791fe_1675875267f",
+    "location": "australia-southeast1"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1543377395137",
+    "startTime": "1543377395414",
+    "endTime": "1543377730574",
+    "totalBytesProcessed": "10893918560",
+    "query": {
+     "totalPartitionsProcessed": "0",
+     "totalBytesProcessed": "10893918560",
+     "totalBytesBilled": "10894704640",
+     "billingTier": 1,
+     "cacheHit": false,
+     "referencedTables": [
+      {
+       "projectId": "nrldatajam2018",
+       "datasetId": "nrldatajam_trackingdata",
+       "tableId": "gamedevice"
+      }
+     ],
+     "statementType": "SELECT"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.beam_load_writecombinedbqstephanmeyn1121032916c52ad34f_5cedbaaa8c1c42e19764592009be4908_e7c93cd2709cb9d951656d0f97fead3a_00001_00000-0",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "beam_load_writecombinedbqstephanmeyn1121032916c52ad34f_5cedbaaa8c1c42e19764592009be4908_e7c93cd2709cb9d951656d0f97fead3a_00001_00000-0",
+    "location": "US"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1542770960654",
+    "startTime": "1542770962339",
+    "endTime": "1542770964426",
+    "load": {
+     "inputFiles": "1",
+     "inputFileBytes": "0",
+     "outputRows": "0",
+     "outputBytes": "0",
+     "badRecords": "0"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.bquxjob_77ca2972_1673446bbd5",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "bquxjob_77ca2972_1673446bbd5",
+    "location": "US"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1542770441626",
+    "startTime": "1542770441787",
+    "endTime": "1542770441804",
+    "totalBytesProcessed": "0",
+    "query": {
+     "totalBytesProcessed": "0",
+     "totalBytesBilled": "0",
+     "cacheHit": true,
+     "statementType": "SELECT"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.bquxjob_3dd10fe5_16734460fed",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "bquxjob_3dd10fe5_16734460fed",
+    "location": "US"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1542770310198",
+    "startTime": "1542770310488",
+    "endTime": "1542770310847",
+    "totalBytesProcessed": "764328",
+    "query": {
+     "totalPartitionsProcessed": "0",
+     "totalBytesProcessed": "764328",
+     "totalBytesBilled": "10485760",
+     "billingTier": 1,
+     "cacheHit": false,
+     "referencedTables": [
+      {
+       "projectId": "stephanmeyn-train-cbp",
+       "datasetId": "powerco",
+       "tableId": "combinedJ"
+      }
+     ],
+     "statementType": "SELECT"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.bquxjob_3d459fe6_1671ae4567d",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "bquxjob_3d459fe6_1671ae4567d",
+    "location": "US"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1542344437567",
+    "startTime": "1542344437762",
+    "endTime": "1542344440483",
+    "totalBytesProcessed": "1141827",
+    "query": {
+     "totalPartitionsProcessed": "0",
+     "totalBytesProcessed": "1141827",
+     "totalBytesBilled": "10485760",
+     "billingTier": 1,
+     "cacheHit": false,
+     "referencedTables": [
+      {
+       "projectId": "stephanmeyn-train-cbp",
+       "datasetId": "dataflowLogs",
+       "tableId": "dataflow_googleapis_com_worker_20181115"
+      }
+     ],
+     "statementType": "SELECT"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.bquxjob_5540fdd5_16715e7e658",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "bquxjob_5540fdd5_16715e7e658",
+    "location": "US"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1542260789555",
+    "startTime": "1542260789724",
+    "endTime": "1542260790252",
+    "totalBytesProcessed": "2667144",
+    "query": {
+     "totalPartitionsProcessed": "0",
+     "totalBytesProcessed": "2667144",
+     "totalBytesBilled": "10485760",
+     "billingTier": 1,
+     "cacheHit": false,
+     "referencedTables": [
+      {
+       "projectId": "stephanmeyn-train-cbp",
+       "datasetId": "powerco",
+       "tableId": "combinedJ"
+      }
+     ],
+     "statementType": "SELECT"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.bquxjob_ee71419_16715e74c01",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "bquxjob_ee71419_16715e74c01",
+    "location": "US"
+   },
+   "state": "DONE",
+   "errorResult": {
+    "reason": "invalidQuery",
+    "location": "query",
+    "message": "Unrecognized name: ICP_idenrtifier; Did you mean icp_identifier? at [1:66]"
+   },
+   "statistics": {
+    "creationTime": "1542260778774",
+    "startTime": "1542260779130",
+    "endTime": "1542260779130"
+   },
+   "status": {
+    "state": "DONE",
+    "errorResult": {
+     "reason": "invalidQuery",
+     "location": "query",
+     "message": "Unrecognized name: ICP_idenrtifier; Did you mean icp_identifier? at [1:66]"
+    }
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.bquxjob_7d59aab6_16715e6daa2",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "bquxjob_7d59aab6_16715e6daa2",
+    "location": "US"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1542260739255",
+    "startTime": "1542260739388",
+    "endTime": "1542260739702",
+    "totalBytesProcessed": "2667144",
+    "query": {
+     "totalPartitionsProcessed": "0",
+     "totalBytesProcessed": "2667144",
+     "totalBytesBilled": "10485760",
+     "billingTier": 1,
+     "cacheHit": false,
+     "referencedTables": [
+      {
+       "projectId": "stephanmeyn-train-cbp",
+       "datasetId": "powerco",
+       "tableId": "combinedJ"
+      }
+     ],
+     "statementType": "SELECT"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.bquxjob_18f7a8ec_16715e6aa53",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "bquxjob_18f7a8ec_16715e6aa53",
+    "location": "US"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1542260710229",
+    "startTime": "1542260710354",
+    "endTime": "1542260711328",
+    "totalBytesProcessed": "2667144",
+    "query": {
+     "totalPartitionsProcessed": "0",
+     "totalBytesProcessed": "2667144",
+     "totalBytesBilled": "10485760",
+     "billingTier": 1,
+     "cacheHit": false,
+     "referencedTables": [
+      {
+       "projectId": "stephanmeyn-train-cbp",
+       "datasetId": "powerco",
+       "tableId": "combinedJ"
+      }
+     ],
+     "statementType": "SELECT"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.bquxjob_82e185a_16715e5efc6",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "bquxjob_82e185a_16715e5efc6",
+    "location": "US"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1542260698043",
+    "startTime": "1542260698186",
+    "endTime": "1542260698606",
+    "totalBytesProcessed": "2667144",
+    "query": {
+     "totalPartitionsProcessed": "0",
+     "totalBytesProcessed": "2667144",
+     "totalBytesBilled": "10485760",
+     "billingTier": 1,
+     "cacheHit": false,
+     "referencedTables": [
+      {
+       "projectId": "stephanmeyn-train-cbp",
+       "datasetId": "powerco",
+       "tableId": "combinedJ"
+      }
+     ],
+     "statementType": "SELECT"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.bquxjob_315f5e76_16715e5b4ec",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "bquxjob_315f5e76_16715e5b4ec",
+    "location": "US"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1542260650107",
+    "startTime": "1542260650278",
+    "endTime": "1542260650585",
+    "totalBytesProcessed": "2667144",
+    "query": {
+     "totalPartitionsProcessed": "0",
+     "totalBytesProcessed": "2667144",
+     "totalBytesBilled": "10485760",
+     "billingTier": 1,
+     "cacheHit": false,
+     "referencedTables": [
+      {
+       "projectId": "stephanmeyn-train-cbp",
+       "datasetId": "powerco",
+       "tableId": "combinedJ"
+      }
+     ],
+     "statementType": "SELECT"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.bquxjob_67cc70c0_16715e56018",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "bquxjob_67cc70c0_16715e56018",
+    "location": "US"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1542260635037",
+    "startTime": "1542260635193",
+    "endTime": "1542260635578",
+    "totalBytesProcessed": "2667144",
+    "query": {
+     "totalPartitionsProcessed": "0",
+     "totalBytesProcessed": "2667144",
+     "totalBytesBilled": "10485760",
+     "billingTier": 1,
+     "cacheHit": false,
+     "referencedTables": [
+      {
+       "projectId": "stephanmeyn-train-cbp",
+       "datasetId": "powerco",
+       "tableId": "combinedJ"
+      }
+     ],
+     "statementType": "SELECT"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.beam_load_writecombinedbqstephanmeyn10270105458d0b13f8_26a9bc43bc5c44c4b3b07c14800322ce_ded9ce99c09d09aa1dc9ddb8686737cf_00001_00000-0",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "beam_load_writecombinedbqstephanmeyn10270105458d0b13f8_26a9bc43bc5c44c4b3b07c14800322ce_ded9ce99c09d09aa1dc9ddb8686737cf_00001_00000-0",
+    "location": "US"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1540602410078",
+    "startTime": "1540602411720",
+    "endTime": "1540602904847",
+    "load": {
+     "inputFiles": "1325",
+     "inputFileBytes": "3625450",
+     "outputRows": "1325",
+     "outputBytes": "533190",
+     "badRecords": "0"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.beam_load_writecombinedbqstephanmeyn1027005537b7632522_62a48773d62c4c57b77874af426be48f_ded9ce99c09d09aa1dc9ddb8686737cf_00001_00000-0",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "beam_load_writecombinedbqstephanmeyn1027005537b7632522_62a48773d62c4c57b77874af426be48f_ded9ce99c09d09aa1dc9ddb8686737cf_00001_00000-0",
+    "location": "US"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1540601807080",
+    "startTime": "1540601808692",
+    "endTime": "1540602309136",
+    "load": {
+     "inputFiles": "1325",
+     "inputFileBytes": "3625995",
+     "outputRows": "1325",
+     "outputBytes": "533257",
+     "badRecords": "0"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.beam_load_writecombinedbqstephanmeyn10270048334b47079e_efbd9da64326434d98bb81c19f1bb153_ded9ce99c09d09aa1dc9ddb8686737cf_00001_00000-0",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "beam_load_writecombinedbqstephanmeyn10270048334b47079e_efbd9da64326434d98bb81c19f1bb153_ded9ce99c09d09aa1dc9ddb8686737cf_00001_00000-0",
+    "location": "US"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1540601317647",
+    "startTime": "1540601319793",
+    "endTime": "1540601324171",
+    "load": {
+     "inputFiles": "3",
+     "inputFileBytes": "7716",
+     "outputRows": "3",
+     "outputBytes": "1127",
+     "badRecords": "0"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.beam_load_writecombinedbqstephanmeyn10261816557438523f_d981838861ee4d8cbde6b345d34e5185_ded9ce99c09d09aa1dc9ddb8686737cf_00001_00000-2",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "beam_load_writecombinedbqstephanmeyn10261816557438523f_d981838861ee4d8cbde6b345d34e5185_ded9ce99c09d09aa1dc9ddb8686737cf_00001_00000-2",
+    "location": "US"
+   },
+   "state": "DONE",
+   "errorResult": {
+    "reason": "invalid",
+    "location": "gs://stephanmeyn-train-cbp/staging/BigQueryWriteTemp/beam_load_writecombinedbqstephanmeyn10261816557438523f_d981838861ee4d8cbde6b345d34e5185/962af98f-fbd9-4af3-9d73-b7d7f0f9c9b2",
+    "message": "Error while reading data, error message: JSON table encountered too many errors, giving up. Rows: 1; errors: 1. Please look into the error stream for more details."
+   },
+   "statistics": {
+    "creationTime": "1540577832102",
+    "startTime": "1540577833301",
+    "endTime": "1540577835303"
+   },
+   "status": {
+    "state": "DONE",
+    "errorResult": {
+     "reason": "invalid",
+     "location": "gs://stephanmeyn-train-cbp/staging/BigQueryWriteTemp/beam_load_writecombinedbqstephanmeyn10261816557438523f_d981838861ee4d8cbde6b345d34e5185/962af98f-fbd9-4af3-9d73-b7d7f0f9c9b2",
+     "message": "Error while reading data, error message: JSON table encountered too many errors, giving up. Rows: 1; errors: 1. Please look into the error stream for more details."
+    }
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.beam_load_writecombinedbqstephanmeyn10261816557438523f_d981838861ee4d8cbde6b345d34e5185_ded9ce99c09d09aa1dc9ddb8686737cf_00001_00000-1",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "beam_load_writecombinedbqstephanmeyn10261816557438523f_d981838861ee4d8cbde6b345d34e5185_ded9ce99c09d09aa1dc9ddb8686737cf_00001_00000-1",
+    "location": "US"
+   },
+   "state": "DONE",
+   "errorResult": {
+    "reason": "invalid",
+    "location": "gs://stephanmeyn-train-cbp/staging/BigQueryWriteTemp/beam_load_writecombinedbqstephanmeyn10261816557438523f_d981838861ee4d8cbde6b345d34e5185/962af98f-fbd9-4af3-9d73-b7d7f0f9c9b2",
+    "message": "Error while reading data, error message: JSON table encountered too many errors, giving up. Rows: 1; errors: 1. Please look into the error stream for more details."
+   },
+   "statistics": {
+    "creationTime": "1540577825622",
+    "startTime": "1540577827369",
+    "endTime": "1540577829241"
+   },
+   "status": {
+    "state": "DONE",
+    "errorResult": {
+     "reason": "invalid",
+     "location": "gs://stephanmeyn-train-cbp/staging/BigQueryWriteTemp/beam_load_writecombinedbqstephanmeyn10261816557438523f_d981838861ee4d8cbde6b345d34e5185/962af98f-fbd9-4af3-9d73-b7d7f0f9c9b2",
+     "message": "Error while reading data, error message: JSON table encountered too many errors, giving up. Rows: 1; errors: 1. Please look into the error stream for more details."
+    }
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.beam_load_writecombinedbqstephanmeyn10261816557438523f_d981838861ee4d8cbde6b345d34e5185_ded9ce99c09d09aa1dc9ddb8686737cf_00001_00000-0",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "beam_load_writecombinedbqstephanmeyn10261816557438523f_d981838861ee4d8cbde6b345d34e5185_ded9ce99c09d09aa1dc9ddb8686737cf_00001_00000-0",
+    "location": "US"
+   },
+   "state": "DONE",
+   "errorResult": {
+    "reason": "invalid",
+    "location": "gs://stephanmeyn-train-cbp/staging/BigQueryWriteTemp/beam_load_writecombinedbqstephanmeyn10261816557438523f_d981838861ee4d8cbde6b345d34e5185/962af98f-fbd9-4af3-9d73-b7d7f0f9c9b2",
+    "message": "Error while reading data, error message: JSON table encountered too many errors, giving up. Rows: 1; errors: 1. Please look into the error stream for more details."
+   },
+   "statistics": {
+    "creationTime": "1540577819216",
+    "startTime": "1540577821015",
+    "endTime": "1540577823814"
+   },
+   "status": {
+    "state": "DONE",
+    "errorResult": {
+     "reason": "invalid",
+     "location": "gs://stephanmeyn-train-cbp/staging/BigQueryWriteTemp/beam_load_writecombinedbqstephanmeyn10261816557438523f_d981838861ee4d8cbde6b345d34e5185/962af98f-fbd9-4af3-9d73-b7d7f0f9c9b2",
+     "message": "Error while reading data, error message: JSON table encountered too many errors, giving up. Rows: 1; errors: 1. Please look into the error stream for more details."
+    }
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.beam_load_writecombinedbqstephanmeyn1026181452e445c86b_6af32bacdab14a478648d64b8aa98e04_ded9ce99c09d09aa1dc9ddb8686737cf_00001_00000-0",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "beam_load_writecombinedbqstephanmeyn1026181452e445c86b_6af32bacdab14a478648d64b8aa98e04_ded9ce99c09d09aa1dc9ddb8686737cf_00001_00000-0",
+    "location": "US"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1540577695854",
+    "startTime": "1540577697404",
+    "endTime": "1540577701990",
+    "load": {
+     "inputFiles": "3",
+     "inputFileBytes": "111",
+     "outputRows": "3",
+     "outputBytes": "51",
+     "badRecords": "0"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.beam_load_writecombinedbqstephanmeyn1026181032b92f7b6b_cdef7327e5f4470d97e826a729c86bd4_ded9ce99c09d09aa1dc9ddb8686737cf_00001_00000-0",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "beam_load_writecombinedbqstephanmeyn1026181032b92f7b6b_cdef7327e5f4470d97e826a729c86bd4_ded9ce99c09d09aa1dc9ddb8686737cf_00001_00000-0",
+    "location": "US"
+   },
+   "state": "DONE",
+   "statistics": {
+    "creationTime": "1540577435895",
+    "startTime": "1540577437492",
+    "endTime": "1540577442391",
+    "load": {
+     "inputFiles": "3",
+     "inputFileBytes": "111",
+     "outputRows": "3",
+     "outputBytes": "51",
+     "badRecords": "0"
+    }
+   },
+   "status": {
+    "state": "DONE"
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.beam_load_writecombinedbqstephanmeyn10261809441dbb1160_7b916b2dc22c4098bad05fcb7d235043_ded9ce99c09d09aa1dc9ddb8686737cf_00001_00000-2",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "beam_load_writecombinedbqstephanmeyn10261809441dbb1160_7b916b2dc22c4098bad05fcb7d235043_ded9ce99c09d09aa1dc9ddb8686737cf_00001_00000-2",
+    "location": "US"
+   },
+   "state": "DONE",
+   "errorResult": {
+    "reason": "invalid",
+    "location": "gs://stephanmeyn-train-cbp/staging/BigQueryWriteTemp/beam_load_writecombinedbqstephanmeyn10261809441dbb1160_7b916b2dc22c4098bad05fcb7d235043/0614d0d5-4500-4f7e-a21f-83b2656ed122",
+    "message": "Error while reading data, error message: JSON table encountered too many errors, giving up. Rows: 1; errors: 1. Please look into the error stream for more details."
+   },
+   "statistics": {
+    "creationTime": "1540577398448",
+    "startTime": "1540577399498",
+    "endTime": "1540577401355"
+   },
+   "status": {
+    "state": "DONE",
+    "errorResult": {
+     "reason": "invalid",
+     "location": "gs://stephanmeyn-train-cbp/staging/BigQueryWriteTemp/beam_load_writecombinedbqstephanmeyn10261809441dbb1160_7b916b2dc22c4098bad05fcb7d235043/0614d0d5-4500-4f7e-a21f-83b2656ed122",
+     "message": "Error while reading data, error message: JSON table encountered too many errors, giving up. Rows: 1; errors: 1. Please look into the error stream for more details."
+    }
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.beam_load_writecombinedbqstephanmeyn10261809441dbb1160_7b916b2dc22c4098bad05fcb7d235043_ded9ce99c09d09aa1dc9ddb8686737cf_00001_00000-1",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "beam_load_writecombinedbqstephanmeyn10261809441dbb1160_7b916b2dc22c4098bad05fcb7d235043_ded9ce99c09d09aa1dc9ddb8686737cf_00001_00000-1",
+    "location": "US"
+   },
+   "state": "DONE",
+   "errorResult": {
+    "reason": "invalid",
+    "location": "gs://stephanmeyn-train-cbp/staging/BigQueryWriteTemp/beam_load_writecombinedbqstephanmeyn10261809441dbb1160_7b916b2dc22c4098bad05fcb7d235043/0614d0d5-4500-4f7e-a21f-83b2656ed122",
+    "message": "Error while reading data, error message: JSON table encountered too many errors, giving up. Rows: 1; errors: 1. Please look into the error stream for more details."
+   },
+   "statistics": {
+    "creationTime": "1540577393627",
+    "startTime": "1540577394961",
+    "endTime": "1540577396747"
+   },
+   "status": {
+    "state": "DONE",
+    "errorResult": {
+     "reason": "invalid",
+     "location": "gs://stephanmeyn-train-cbp/staging/BigQueryWriteTemp/beam_load_writecombinedbqstephanmeyn10261809441dbb1160_7b916b2dc22c4098bad05fcb7d235043/0614d0d5-4500-4f7e-a21f-83b2656ed122",
+     "message": "Error while reading data, error message: JSON table encountered too many errors, giving up. Rows: 1; errors: 1. Please look into the error stream for more details."
+    }
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.beam_load_writecombinedbqstephanmeyn10261809441dbb1160_7b916b2dc22c4098bad05fcb7d235043_ded9ce99c09d09aa1dc9ddb8686737cf_00001_00000-0",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "beam_load_writecombinedbqstephanmeyn10261809441dbb1160_7b916b2dc22c4098bad05fcb7d235043_ded9ce99c09d09aa1dc9ddb8686737cf_00001_00000-0",
+    "location": "US"
+   },
+   "state": "DONE",
+   "errorResult": {
+    "reason": "invalid",
+    "location": "gs://stephanmeyn-train-cbp/staging/BigQueryWriteTemp/beam_load_writecombinedbqstephanmeyn10261809441dbb1160_7b916b2dc22c4098bad05fcb7d235043/0614d0d5-4500-4f7e-a21f-83b2656ed122",
+    "message": "Error while reading data, error message: JSON table encountered too many errors, giving up. Rows: 1; errors: 1. Please look into the error stream for more details."
+   },
+   "statistics": {
+    "creationTime": "1540577387206",
+    "startTime": "1540577388802",
+    "endTime": "1540577390869"
+   },
+   "status": {
+    "state": "DONE",
+    "errorResult": {
+     "reason": "invalid",
+     "location": "gs://stephanmeyn-train-cbp/staging/BigQueryWriteTemp/beam_load_writecombinedbqstephanmeyn10261809441dbb1160_7b916b2dc22c4098bad05fcb7d235043/0614d0d5-4500-4f7e-a21f-83b2656ed122",
+     "message": "Error while reading data, error message: JSON table encountered too many errors, giving up. Rows: 1; errors: 1. Please look into the error stream for more details."
+    }
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.beam_load_writecombinedbqstephanmeyn1026180856e4933853_85acb4043d5c4429af93d46c017cc5d9_ded9ce99c09d09aa1dc9ddb8686737cf_00001_00000-2",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "beam_load_writecombinedbqstephanmeyn1026180856e4933853_85acb4043d5c4429af93d46c017cc5d9_ded9ce99c09d09aa1dc9ddb8686737cf_00001_00000-2",
+    "location": "US"
+   },
+   "state": "DONE",
+   "errorResult": {
+    "reason": "invalid",
+    "location": "gs://stephanmeyn-train-cbp/staging/BigQueryWriteTemp/beam_load_writecombinedbqstephanmeyn1026180856e4933853_85acb4043d5c4429af93d46c017cc5d9/e4a54304-ea8e-46e0-af50-89c27678e89c",
+    "message": "Error while reading data, error message: JSON table encountered too many errors, giving up. Rows: 1; errors: 1. Please look into the error stream for more details."
+   },
+   "statistics": {
+    "creationTime": "1540577351790",
+    "startTime": "1540577352991",
+    "endTime": "1540577354798"
+   },
+   "status": {
+    "state": "DONE",
+    "errorResult": {
+     "reason": "invalid",
+     "location": "gs://stephanmeyn-train-cbp/staging/BigQueryWriteTemp/beam_load_writecombinedbqstephanmeyn1026180856e4933853_85acb4043d5c4429af93d46c017cc5d9/e4a54304-ea8e-46e0-af50-89c27678e89c",
+     "message": "Error while reading data, error message: JSON table encountered too many errors, giving up. Rows: 1; errors: 1. Please look into the error stream for more details."
+    }
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.beam_load_writecombinedbqstephanmeyn1026180856e4933853_85acb4043d5c4429af93d46c017cc5d9_ded9ce99c09d09aa1dc9ddb8686737cf_00001_00000-1",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "beam_load_writecombinedbqstephanmeyn1026180856e4933853_85acb4043d5c4429af93d46c017cc5d9_ded9ce99c09d09aa1dc9ddb8686737cf_00001_00000-1",
+    "location": "US"
+   },
+   "state": "DONE",
+   "errorResult": {
+    "reason": "invalid",
+    "location": "gs://stephanmeyn-train-cbp/staging/BigQueryWriteTemp/beam_load_writecombinedbqstephanmeyn1026180856e4933853_85acb4043d5c4429af93d46c017cc5d9/e4a54304-ea8e-46e0-af50-89c27678e89c",
+    "message": "Error while reading data, error message: JSON table encountered too many errors, giving up. Rows: 1; errors: 1. Please look into the error stream for more details."
+   },
+   "statistics": {
+    "creationTime": "1540577345545",
+    "startTime": "1540577346873",
+    "endTime": "1540577348699"
+   },
+   "status": {
+    "state": "DONE",
+    "errorResult": {
+     "reason": "invalid",
+     "location": "gs://stephanmeyn-train-cbp/staging/BigQueryWriteTemp/beam_load_writecombinedbqstephanmeyn1026180856e4933853_85acb4043d5c4429af93d46c017cc5d9/e4a54304-ea8e-46e0-af50-89c27678e89c",
+     "message": "Error while reading data, error message: JSON table encountered too many errors, giving up. Rows: 1; errors: 1. Please look into the error stream for more details."
+    }
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.beam_load_writecombinedbqstephanmeyn1026180856e4933853_85acb4043d5c4429af93d46c017cc5d9_ded9ce99c09d09aa1dc9ddb8686737cf_00001_00000-0",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "beam_load_writecombinedbqstephanmeyn1026180856e4933853_85acb4043d5c4429af93d46c017cc5d9_ded9ce99c09d09aa1dc9ddb8686737cf_00001_00000-0",
+    "location": "US"
+   },
+   "state": "DONE",
+   "errorResult": {
+    "reason": "invalid",
+    "location": "gs://stephanmeyn-train-cbp/staging/BigQueryWriteTemp/beam_load_writecombinedbqstephanmeyn1026180856e4933853_85acb4043d5c4429af93d46c017cc5d9/e4a54304-ea8e-46e0-af50-89c27678e89c",
+    "message": "Error while reading data, error message: JSON table encountered too many errors, giving up. Rows: 1; errors: 1. Please look into the error stream for more details."
+   },
+   "statistics": {
+    "creationTime": "1540577339805",
+    "startTime": "1540577341536",
+    "endTime": "1540577343513"
+   },
+   "status": {
+    "state": "DONE",
+    "errorResult": {
+     "reason": "invalid",
+     "location": "gs://stephanmeyn-train-cbp/staging/BigQueryWriteTemp/beam_load_writecombinedbqstephanmeyn1026180856e4933853_85acb4043d5c4429af93d46c017cc5d9/e4a54304-ea8e-46e0-af50-89c27678e89c",
+     "message": "Error while reading data, error message: JSON table encountered too many errors, giving up. Rows: 1; errors: 1. Please look into the error stream for more details."
+    }
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.beam_load_writecombinedbqstephanmeyn1026180641260e73f_cab67c79eaf949f7b3c2aaad85ec045f_ded9ce99c09d09aa1dc9ddb8686737cf_00001_00000-2",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "beam_load_writecombinedbqstephanmeyn1026180641260e73f_cab67c79eaf949f7b3c2aaad85ec045f_ded9ce99c09d09aa1dc9ddb8686737cf_00001_00000-2",
+    "location": "US"
+   },
+   "state": "DONE",
+   "errorResult": {
+    "reason": "invalid",
+    "location": "gs://stephanmeyn-train-cbp/staging/BigQueryWriteTemp/beam_load_writecombinedbqstephanmeyn1026180641260e73f_cab67c79eaf949f7b3c2aaad85ec045f/c90fe91e-93ae-47a3-a649-76b30557b71c",
+    "message": "Error while reading data, error message: JSON table encountered too many errors, giving up. Rows: 1; errors: 1. Please look into the error stream for more details."
+   },
+   "statistics": {
+    "creationTime": "1540577214724",
+    "startTime": "1540577216042",
+    "endTime": "1540577217875"
+   },
+   "status": {
+    "state": "DONE",
+    "errorResult": {
+     "reason": "invalid",
+     "location": "gs://stephanmeyn-train-cbp/staging/BigQueryWriteTemp/beam_load_writecombinedbqstephanmeyn1026180641260e73f_cab67c79eaf949f7b3c2aaad85ec045f/c90fe91e-93ae-47a3-a649-76b30557b71c",
+     "message": "Error while reading data, error message: JSON table encountered too many errors, giving up. Rows: 1; errors: 1. Please look into the error stream for more details."
+    }
+   }
+  },
+  {
+   "id": "stephanmeyn-train-cbp:US.beam_load_writecombinedbqstephanmeyn1026180641260e73f_cab67c79eaf949f7b3c2aaad85ec045f_ded9ce99c09d09aa1dc9ddb8686737cf_00001_00000-1",
+   "kind": "bigquery#job",
+   "jobReference": {
+    "projectId": "stephanmeyn-train-cbp",
+    "jobId": "beam_load_writecombinedbqstephanmeyn1026180641260e73f_cab67c79eaf949f7b3c2aaad85ec045f_ded9ce99c09d09aa1dc9ddb8686737cf_00001_00000-1",
+    "location": "US"
+   },
+   "state": "DONE",
+   "errorResult": {
+    "reason": "invalid",
+    "location": "gs://stephanmeyn-train-cbp/staging/BigQueryWriteTemp/beam_load_writecombinedbqstephanmeyn1026180641260e73f_cab67c79eaf949f7b3c2aaad85ec045f/c90fe91e-93ae-47a3-a649-76b30557b71c",
+    "message": "Error while reading data, error message: JSON table encountered too many errors, giving up. Rows: 1; errors: 1. Please look into the error stream for more details."
+   },
+   "statistics": {
+    "creationTime": "1540577209880",
+    "startTime": "1540577211095",
+    "endTime": "1540577212958"
+   },
+   "status": {
+    "state": "DONE",
+    "errorResult": {
+     "reason": "invalid",
+     "location": "gs://stephanmeyn-train-cbp/staging/BigQueryWriteTemp/beam_load_writecombinedbqstephanmeyn1026180641260e73f_cab67c79eaf949f7b3c2aaad85ec045f/c90fe91e-93ae-47a3-a649-76b30557b71c",
+     "message": "Error while reading data, error message: JSON table encountered too many errors, giving up. Rows: 1; errors: 1. Please look into the error stream for more details."
+    }
+   }
+  }
+ ]
+}
