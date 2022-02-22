@@ -1,0 +1,59 @@
+<!--
+/*
+ * Copyright (C) 2021 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+-->
+<mat-card class="dashboard-card" [style.overflow]="'hidden'">
+  <mat-card-title>Download from Google Cloud </mat-card-title>
+  <mat-card-subtitle>
+    List jobs by project
+  </mat-card-subtitle>
+  <mat-card-content class="dashboard-card-content">
+    <mat-grid-list cols="10" rowHeight="25px">
+      <mat-grid-tile colspan="7">
+        <mat-form-field>
+          <input matInput placeholder="Filter projects" [(ngModel)]="projectFilter" (keyup)="updateFilter()" />
+        </mat-form-field>
+      </mat-grid-tile>
+
+      <mat-grid-tile colspan="3">
+        <button mat-button id="btnGetProjects" aria-label="getProjectsLabel()" (click)="getProjects()"
+          *ngIf="!isLoading">
+          Get Projects
+        </button>
+        <h4 *ngIf="isLoading">Please wait... Loaded {{ this.allProjects.length }}</h4>
+      </mat-grid-tile>
+      <mat-grid-tile colspan="7">
+        <mat-form-field>
+          <mat-select #projectSelect placeholder="Select a project" [(value)]="selectedProject"
+            [disabled]="!(this.projects&&this.projects.length)">
+            <mat-option *ngFor="let project of projects" [value]="project">
+              {{ project.id }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </mat-grid-tile>
+      <mat-grid-tile colspan="3">
+        <button mat-button id="btnListJobs" [disabled]="!selectedProject || !isLoggedIn" aria-label="List"
+          (click)="listJobs()">
+          List Jobs
+        </button>
+      </mat-grid-tile>
+      <mat-grid-tile colspan="10">
+        <mat-checkbox [(ngModel)]="allUsers">List jobs for all users</mat-checkbox>
+      </mat-grid-tile>
+    </mat-grid-list>
+  </mat-card-content>
+</mat-card>

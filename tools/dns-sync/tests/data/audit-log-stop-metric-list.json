@@ -1,0 +1,19 @@
+{
+  "metricDescriptors": [
+    {
+      "displayName": "API Request Count",
+      "name": "projects/project-1/metricDescriptors/agent.googleapis.com/agent/api_request_count",
+      "metricKind": "CUMULATIVE",
+      "valueType": "INT64",
+      "labels": [
+        {
+          "description": "Request state",
+          "key": "state"
+        }
+      ],
+      "type": "agent.googleapis.com/agent/api_request_count",
+      "unit": "1",
+      "description": "API request count"
+    }
+  ]
+}

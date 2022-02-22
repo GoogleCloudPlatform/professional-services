@@ -1,0 +1,102 @@
+{
+  "items": {
+    "regions/asia-northeast1": {
+      "warning": {
+        "message": "There are no results for scope 'regions/asia-northeast1' on this page.",
+        "code": "NO_RESULTS_ON_PAGE",
+        "data": [
+          {
+            "key": "scope",
+            "value": "regions/asia-northeast1"
+          }
+        ]
+      }
+    },
+    "regions/us-west1": {
+      "warning": {
+        "message": "There are no results for scope 'regions/us-west1' on this page.",
+        "code": "NO_RESULTS_ON_PAGE",
+        "data": [
+          {
+            "key": "scope",
+            "value": "regions/us-west1"
+          }
+        ]
+      }
+    },
+    "regions/us-east1": {
+      "warning": {
+        "message": "There are no results for scope 'regions/us-east1' on this page.",
+        "code": "NO_RESULTS_ON_PAGE",
+        "data": [
+          {
+            "key": "scope",
+            "value": "regions/us-east1"
+          }
+        ]
+      }
+    },
+    "global": {
+      "forwardingRules": [
+        {
+          "kind": "compute#forwardingRule",
+          "description": "",
+          "IPAddress": "130.211.7.192",
+          "portRange": "80-80",
+          "name": "global-forwarding-rule-1",
+          "loadBalancingScheme": "EXTERNAL",
+          "IPProtocol": "TCP",
+          "creationTimestamp": "2016-09-01T11:58:36.365-07:00",
+          "id": "731282377030354099",
+          "selfLink": "https://www.googleapis.com/compute/v1/projects/project-2/global/forwardingRules/global-forwarding-rule-1",
+          "target": "https://www.googleapis.com/compute/v1/projects/project-2/global/targetHttpProxies/target-proxy"
+        }
+      ]
+    },
+    "regions/europe-west1": {
+      "warning": {
+        "message": "There are no results for scope 'regions/europe-west1' on this page.",
+        "code": "NO_RESULTS_ON_PAGE",
+        "data": [
+          {
+            "key": "scope",
+            "value": "regions/europe-west1"
+          }
+        ]
+      }
+    },
+    "regions/asia-east1": {
+      "warning": {
+        "message": "There are no results for scope 'regions/asia-east1' on this page.",
+        "code": "NO_RESULTS_ON_PAGE",
+        "data": [
+          {
+            "key": "scope",
+            "value": "regions/asia-east1"
+          }
+        ]
+      }
+    },
+    "regions/us-central1": {
+      "forwardingRules": [
+        {
+          "kind": "compute#forwardingRule",
+          "description": "",
+          "portRange": "8000-8000",
+          "region": "https://www.googleapis.com/compute/v1/projects/project-2/regions/us-central1",
+          "name": "forwarding-rule-1",
+          "creationTimestamp": "2016-12-07T18:36:37.585-08:00",
+          "loadBalancingScheme": "EXTERNAL",
+          "IPProtocol": "TCP",
+          "IPAddress": "104.198.254.183",
+          "id": "7947413190498154970",
+          "selfLink": "https://www.googleapis.com/compute/v1/projects/project-2/regions/us-central1/forwardingRules/forwarding-rule-1",
+          "target": "https://www.googleapis.com/compute/v1/projects/project-2/regions/us-central1/targetPools/forwarding-rule-1-target-pool"
+        }
+      ]
+    }
+  },
+  "kind": "compute#forwardingRuleAggregatedList",
+  "id": "projects/project-2/aggregated/forwardingRules",
+  "selfLink": "https://www.googleapis.com/compute/v1/projects/project-2/aggregated/forwardingRules"
+}

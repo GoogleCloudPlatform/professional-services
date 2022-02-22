@@ -1,0 +1,4 @@
+# Requirements for development and testing.
+-r requirements.txt
+pytest==4.6.3
+pytest-cov==2.7.1

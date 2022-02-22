@@ -1,0 +1,52 @@
+{
+  "name": "Import Cloud Asset Inventory",
+  "description": "Import Cloud Asset Inventory exports to BigQuery.",
+  "parameters": [{
+    "name": "load_time",
+    "label": "The timestamp to assign to the loaded data.",
+    "help_text": "Current date or time in iso8601 format (2019-01-05T11:16:08.0 for example).",
+    "regexes": ["^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]([T ][0-9][0-9]:[0-9][0-9](:[0-9][0-9](\\.[0-9]{1,6})?( ?Z| ?[\\+-][0-9][0-9]:[0-9][0-9]| [A-Z]{3})?)?)?$"]
+  },
+  {
+    "name": "input",
+    "label": "The gcs url or pattern to load assets from.",
+    "help_text": "GCS url or pattern pointing to the assets, for example gs://bucket/objects-*.json",
+    "regexes": ["^gs:\\/\\/[^\\n\\r]+$"]
+  },
+  {
+    "name": "stage",
+    "label": "GCS location to write intermediary BigQuery load files.",
+    "help_text": "GCS location to write intermediary BigQuery load files. for example gs://bucket/objects/stage",
+    "regexes": ["^gs:\\/\\/[^\\n\\r]+$"]
+  },
+  {
+    "name": "group_by",
+    "label": "How to group the assets in BigQuery.",
+    "help_text": "Either 'ASSET_TYPE' or 'ASSET_TYPE_VERSION'.",
+    "regexes": ["^(ASSET_TYPE|ASSET_TYPE_VERSION|NONE)$"]
+  },
+  {
+    "name": "write_disposition",
+    "label": "To truncate or append to BigQuery tables.",
+    "help_text": "Either 'WRITE_APPEND' or WRITE_EMPTY.",
+    "regexes": ["^(WRITE_APPEND|WRITE_EMPTY)$"]
+  },
+  {
+    "name": "add_load_date_suffix",
+    "label": "If the load date [YYYYMMDD] is added as a table suffix.",
+    "help_text": "Either 'true' or 'false'.",
+    "isOptional": true,
+    "regexes": ["^(true|false)$"]
+  },
+  {
+    "name": "dataset",
+    "label": "BigQuery dataset to load to.",
+    "help_text": "BigQuery dataset name such as project-1.dataset_id or just dataset_id.",
+  },
+  {
+    "name": "num_shards",
+    "label": "number of shards to run for each asset type.",
+    "help_text": "Number of shards to use per asset type. List of asset types and the number of shardes to use for that type with '*' is a default. For example 'google.compute.VpnTunnel=1,*=10'",
+    "is_optional": true
+  }]
+}

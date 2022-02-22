@@ -1,0 +1,14 @@
+{
+  "kind": "dns#managedZone",
+  "name": "my-dns-zone",
+  "nameServers": [
+    "ns-cloud-c1.googledomains.com.",
+    "ns-cloud-c2.googledomains.com.",
+    "ns-cloud-c3.googledomains.com.",
+    "ns-cloud-c4.googledomains.com."
+  ],
+  "creationTime": "2016-03-24T17:37:01.583Z",
+  "dnsName": "mydnsdomain.com.",
+  "id": "5846861217846032396",
+  "description": ""
+}

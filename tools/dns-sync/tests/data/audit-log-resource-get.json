@@ -1,0 +1,64 @@
+{
+  "status": "RUNNING",
+  "cpuPlatform": "Intel Sandy Bridge",
+  "kind": "compute#instance",
+  "machineType": "https://www.googleapis.com/compute/v1/projects/project-1/zones/us-central1-c/machineTypes/n1-standard-1",
+  "description": "",
+  "zone": "https://www.googleapis.com/compute/v1/projects/project-1/zones/us-central1-c",
+  "tags": {
+    "fingerprint": "42WmSpB8rSM="
+  },
+  "disks": [
+    {
+      "index": 0,
+      "kind": "compute#attachedDisk",
+      "autoDelete": true,
+      "deviceName": "dns-sync-test",
+      "boot": true,
+      "source": "https://www.googleapis.com/compute/v1/projects/project-1/zones/us-central1-c/disks/dns-sync-test",
+      "mode": "READ_WRITE",
+      "interface": "SCSI",
+      "licenses": [
+        "https://www.googleapis.com/compute/v1/projects/debian-cloud/global/licenses/debian-8-jessie"
+      ],
+      "type": "PERSISTENT"
+    }
+  ],
+  "name": "dns-sync-test",
+  "scheduling": {
+    "automaticRestart": true,
+    "preemptible": false,
+    "onHostMaintenance": "MIGRATE"
+  },
+  "canIpForward": false,
+  "serviceAccounts": [
+    {
+      "scopes": [
+        "https://www.googleapis.com/auth/cloud-platform"
+      ],
+      "email": "1@project.gserviceaccount.com"
+    }
+  ],
+  "networkInterfaces": [
+    {
+      "accessConfigs": [
+        {
+          "kind": "compute#accessConfig",
+          "type": "ONE_TO_ONE_NAT",
+          "name": "External NAT",
+          "natIP": "104.197.235.103"
+        }
+      ],
+      "networkIP": "10.240.0.7",
+      "network": "https://www.googleapis.com/compute/v1/projects/project-1/global/networks/default",
+      "name": "nic0"
+    }
+  ],
+  "creationTimestamp": "2017-01-05T18:18:32.400-08:00",
+  "id": "2362933447644889239",
+  "selfLink": "https://www.googleapis.com/compute/v1/projects/project-1/zones/us-central1-c/instances/dns-sync-test",
+  "metadata": {
+    "kind": "compute#metadata",
+    "fingerprint": "DfW_wAsYGRk="
+  }
+}

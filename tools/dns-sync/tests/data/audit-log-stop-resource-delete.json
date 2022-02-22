@@ -1,0 +1,16 @@
+{
+  "status": "PENDING",
+  "kind": "compute#operation",
+  "name": "operation-1483405017904-5452625267381-4ff56efd-e2aa4c23",
+  "zone": "https://www.googleapis.com/compute/v1/projects/project-1/zones/us-central1-a",
+  "startTime": "2017-01-02T16:56:59.779-08:00",
+  "insertTime": "2017-01-02T16:56:58.921-08:00",
+  "targetId": "5331911861103708213",
+  "targetLink": "https://www.googleapis.com/compute/v1/projects/project-1/zones/us-central1-c/instances/dns-sync-test",
+  "operationType": "delete",
+  "progress": 100,
+  "endTime": "2017-01-02T16:57:21.131-08:00",
+  "id": "4886770945056262198",
+  "selfLink": "https://www.googleapis.com/compute/v1/projects/project-1/zones/us-central1-c/operations/operation-1483405017904-5452625267381-4ff56efd-e2aa4c23",
+  "user": "user@example.com"
+}

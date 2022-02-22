@@ -1,0 +1,59 @@
+# Copyright 2018 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: redis-create-cluster
+spec:
+  backoffLimit: 5
+  activeDeadlineSeconds: 600
+  template:
+    spec:
+      containers:
+      - name: redis-cli
+        image: ubuntu
+        command: ["/bin/bash", "-c"]
+        args: ["apt-get update && \
+          DEBIAN_FRONTEND=noninteractive apt-get install -yq tzdata && \
+          ln -fs /usr/share/zoneinfo/Asia/Tokyo /etc/localtime && \
+          dpkg-reconfigure --frontend noninteractive tzdata && \
+          DEBIAN_FRONTEND=noninteractive apt-get install -yq curl gcc make libjemalloc-dev expect && \
+          cd /tmp && \
+          curl -LO http://download.redis.io/redis-stable.tar.gz && \
+          tar zxvf redis-stable.tar.gz && \
+          cd redis-stable && \
+          make distclean && \
+          make && \
+          expect -f /tmp/redis-expect/redis-expect.script"]
+        volumeMounts:
+          - name: "redis-nodes"
+            mountPath: "/tmp/redis-nodes"
+          - name: "redis-expect"
+            mountPath: "/tmp/redis-expect"
+      restartPolicy: Never
+      volumes:
+        - name: "redis-nodes"
+          configMap:
+            name: "redis-nodes"
+            items:
+              - key: "redis-nodes.txt"
+                path: "redis-nodes.txt"
+        - name: "redis-expect"
+          configMap:
+            name: "redis-expect"
+            items:
+              - key: "redis-expect.script"
+                path: "redis-expect.script"
+

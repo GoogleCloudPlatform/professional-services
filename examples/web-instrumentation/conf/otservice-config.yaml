@@ -1,0 +1,25 @@
+receivers:
+  opencensus:
+    endpoint: 0.0.0.0:55678
+
+exporters:
+  stackdriver:
+    project: "[your project]"
+processors:
+  batch:
+  queued_retry:
+
+extensions:
+  pprof:
+    endpoint: :1888
+
+service:
+  extensions: [pprof]
+  pipelines:
+    traces:
+      receivers: [opencensus]
+      exporters: [stackdriver]
+      processors: [batch, queued_retry]
+    metrics:
+      receivers: [opencensus]
+      exporters: [stackdriver]

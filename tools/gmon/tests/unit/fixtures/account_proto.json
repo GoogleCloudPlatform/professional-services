@@ -1,0 +1,23 @@
+{
+  "createTime": "2018-04-18T17:57:35Z",
+  "hostProjectId": "fake-host-project-id",
+  "hostProjectNumber": "[ACCOUNT_ID]",
+  "monitoredProjects": [
+    {
+      "createTime": "2019-09-04T13:35:16.731Z",
+      "name": "accounts/[ACCOUNT_ID]/projects/[PROJECT_NUMBER]",
+      "projectId": "fake-monitored-project-id-1",
+      "projectNumber": "[PROJECT_NUMBER]",
+      "updateTime": "2019-09-04T13:35:18.811066Z"
+    },
+    {
+      "createTime": "2018-07-19T18:38:13Z",
+      "name": "accounts/[ACCOUNT_ID]/projects/356064007554",
+      "projectId": "fake-monitored-project-id-2",
+      "projectNumber": "356064007554",
+      "updateTime": "2018-08-18T16:03:51.235133Z"
+    }
+  ],
+  "name": "accounts/[ACCOUNT_ID]",
+  "updateTime": "2018-08-18T16:03:51.235133Z"
+}

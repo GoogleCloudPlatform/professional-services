@@ -1,0 +1,8 @@
+        {0:s} =
+		(
+		    CASE
+                WHEN u.{0:s} IS NOT NULL
+                    THEN u.{0:s}
+                ELSE m.{0:s}
+            END
+		)

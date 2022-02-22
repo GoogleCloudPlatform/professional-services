@@ -1,0 +1,14 @@
+{
+  "rrsets": [
+    {
+      "rrdatas": [
+        "192.134.22.2"
+      ],
+      "kind": "dns#resourceRecordSet",
+      "type": "A",
+      "name": "instance-1.project-1.mydomain.com.",
+      "ttl": 300
+    }
+  ],
+  "kind": "dns#resourceRecordSetsListResponse"
+}

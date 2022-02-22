@@ -1,0 +1,32 @@
+MERGE `{0:s}.user_updater_test.test_user_info_final` m
+USING `{0:s}.user_updater_test.test_temp_user_info_updates` u
+ON m.userId = u.userId
+WHEN MATCHED THEN
+	UPDATE SET
+		ingestTimestamp = u.ingestTimestamp,
+        attribute1 =
+		(
+		    CASE
+                WHEN u.attribute1 IS NOT NULL
+                    THEN u.attribute1
+                ELSE m.attribute1
+            END
+		),
+        attribute2 =
+		(
+		    CASE
+                WHEN u.attribute2 IS NOT NULL
+                    THEN u.attribute2
+                ELSE m.attribute2
+            END
+		),
+        attribute3 =
+		(
+		    CASE
+                WHEN u.attribute3 IS NOT NULL
+                    THEN u.attribute3
+                ELSE m.attribute3
+            END
+		)
+WHEN NOT MATCHED THEN
+	INSERT ROW

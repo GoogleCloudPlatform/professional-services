@@ -1,0 +1,392 @@
+{
+  "keepWaitingPipelines": false,
+  "lastModifiedBy": "anonymous",
+  "limitConcurrent": true,
+  "notifications": [],
+  "parameterConfig": [],
+  "stages": [
+    {
+      "cloudProvider": "kubernetes",
+      "cloudProviderType": "kubernetes",
+      "cluster": "nodeapp",
+      "completeOtherBranchesThenFail": false,
+      "continuePipeline": true,
+      "credentials": "dev",
+      "failPipeline": false,
+      "id": "0f8dc067-84fa-4d3d-aa1b-813b4c2d5fcd",
+      "interestingHealthProviderNames": [
+        "KubernetesService"
+      ],
+      "name": "Delete Existing Dev Environment",
+      "namespaces": [
+        "default"
+      ],
+      "refId": "destroyDev",
+      "requisiteStageRefIds": [],
+      "target": "current_asg_dynamic",
+      "type": "destroyServerGroup"
+    },
+    {
+      "id": "5b73fcd7-b896-4e14-bbb4-96c8190e8807",
+      "name": "Confirm No Dev Environments Exist",
+      "preconditions": [
+        {
+          "cloudProvider": "kubernetes",
+          "context": {
+            "cluster": "nodeapp",
+            "comparison": "==",
+            "credentials": "dev",
+            "expected": 0,
+            "regions": [
+              "dummy"
+            ]
+          },
+          "failPipeline": true,
+          "type": "clusterSize"
+        }
+      ],
+      "refId": "checkDevDestroyed",
+      "requisiteStageRefIds": [
+        "destroyDev"
+      ],
+      "type": "checkPreconditions"
+    },
+    {
+      "clusters": [
+        {
+          "account": "dev",
+          "application": "nodeapp",
+          "cloudProvider": "kubernetes",
+          "containers": [
+            {
+              "args": [],
+              "command": [],
+              "envVars": [],
+              "imageDescription": {
+                "account": "my-gcr-account",
+                "fromTrigger": true,
+                "imageId": "us.gcr.io/spinnaker-gke-poc/example-service-node",
+                "registry": "us.gcr.io",
+                "repository": "spinnaker-gke-poc/example-service-node",
+                "tag": null
+              },
+              "imagePullPolicy": "IFNOTPRESENT",
+              "limits": {
+                "cpu": null,
+                "memory": null
+              },
+              "livenessProbe": null,
+              "name": "spinnaker-gke-poc-example-service-node",
+              "ports": [
+                {
+                  "containerPort": 80,
+                  "hostIp": null,
+                  "hostPort": null,
+                  "name": "http",
+                  "protocol": "TCP"
+                }
+              ],
+              "readinessProbe": null,
+              "requests": {
+                "cpu": null,
+                "memory": null
+              },
+              "volumeMounts": []
+            }
+          ],
+          "deployment": {
+            "deploymentStrategy": {
+              "rollingUpdate": {
+                "maxSurge": 1,
+                "maxUnavailable": 1
+              },
+              "type": "RollingUpdate"
+            },
+            "enabled": false,
+            "minReadySeconds": 0
+          },
+          "dnsPolicy": "ClusterFirst",
+          "interestingHealthProviderNames": [
+            "KubernetesContainer",
+            "KubernetesPod"
+          ],
+          "loadBalancers": [
+            "nodeapp"
+          ],
+          "namespace": "default",
+          "nodeSelector": {},
+          "podAnnotations": {},
+          "provider": "kubernetes",
+          "region": "default",
+          "replicaSetAnnotations": {},
+          "strategy": null,
+          "targetSize": 1,
+          "terminationGracePeriodSeconds": 30,
+          "volumeSources": []
+        }
+      ],
+      "id": "54b8186e-7fbd-4070-add0-f766ff155c36",
+      "name": "Deploy Dev Environment",
+      "refId": "deployDev",
+      "requisiteStageRefIds": [
+        "checkDevDestroyed"
+      ],
+      "type": "deploy"
+    },
+    {
+      "account": "dev",
+      "annotations": {},
+      "application": "nodeapp",
+      "cloudProvider": "kubernetes",
+      "cloudProviderType": "kubernetes",
+      "container": {
+        "args": [],
+        "command": [
+          "/bin/bash",
+          "-c",
+          "curl nodeapp"
+        ],
+        "envVars": [],
+        "imageDescription": {
+          "account": "my-gcr-account",
+          "fromTrigger": false,
+          "organization": "spinnaker-gke-poc",
+          "repository": "centos",
+          "tag": "latest"
+        },
+        "name": "job",
+        "volumeMounts": []
+      },
+      "dnsPolicy": "ClusterFirst",
+      "id": "837bad66-295b-4b26-9a27-df57a548b371",
+      "labels": {},
+      "name": "Functional Tests",
+      "namespace": "default",
+      "refId": "runFuncTests",
+      "requisiteStageRefIds": [
+        "deployDev"
+      ],
+      "type": "runJob",
+      "volumeSources": []
+    },
+    {
+      "failPipeline": true,
+      "id": "849d3437-ec5c-4ac3-85a6-a85b712b7fdb",
+      "instructions": "Choose whether to deploy a Canary Release",
+      "judgmentInputs": [],
+      "name": "Approve Canary Deploy",
+      "notifications": [],
+      "refId": "approveProdDeploy",
+      "requisiteStageRefIds": [
+        "runFuncTests"
+      ],
+      "type": "manualJudgment"
+    },
+    {
+      "clusters": [
+        {
+          "account": "prod",
+          "application": "nodeapp",
+          "cloudProvider": "kubernetes",
+          "containers": [
+            {
+              "args": [],
+              "command": [],
+              "envVars": [],
+              "imageDescription": {
+                "account": "my-gcr-account",
+                "fromTrigger": true,
+                "imageId": "us.gcr.io/spinnaker-gke-poc/example-service-node",
+                "registry": "us.gcr.io",
+                "repository": "spinnaker-gke-poc/example-service-node",
+                "tag": null
+              },
+              "imagePullPolicy": "IFNOTPRESENT",
+              "limits": {
+                "cpu": null,
+                "memory": null
+              },
+              "livenessProbe": null,
+              "name": "spinnaker-gke-poc-example-service-node",
+              "ports": [
+                {
+                  "containerPort": 80,
+                  "hostIp": null,
+                  "hostPort": null,
+                  "name": "http",
+                  "protocol": "TCP"
+                }
+              ],
+              "readinessProbe": null,
+              "requests": {
+                "cpu": null,
+                "memory": null
+              },
+              "volumeMounts": []
+            }
+          ],
+          "deployment": {
+            "deploymentStrategy": {
+              "rollingUpdate": {
+                "maxSurge": 1,
+                "maxUnavailable": 1
+              },
+              "type": "RollingUpdate"
+            },
+            "enabled": false,
+            "minReadySeconds": 0
+          },
+          "dnsPolicy": "ClusterFirst",
+          "interestingHealthProviderNames": [
+            "KubernetesContainer",
+            "KubernetesPod"
+          ],
+          "loadBalancers": [
+            "nodeapp"
+          ],
+          "namespace": "default",
+          "nodeSelector": {},
+          "podAnnotations": {},
+          "provider": "kubernetes",
+          "region": "default",
+          "replicaSetAnnotations": {},
+          "strategy": null,
+          "targetSize": 1,
+          "terminationGracePeriodSeconds": 30,
+          "volumeSources": []
+        }
+      ],
+      "completeOtherBranchesThenFail": false,
+      "continuePipeline": false,
+      "failPipeline": true,
+      "id": "94d61f2b-b2d5-42ed-9463-2fee49b1c873",
+      "name": "Deploy Canary",
+      "refId": "deployNewProd",
+      "requisiteStageRefIds": [
+        "approveProdDeploy"
+      ],
+      "type": "deploy"
+    },
+    {
+      "cloudProvider": "kubernetes",
+      "cloudProviderType": "kubernetes",
+      "cluster": "nodeapp",
+      "credentials": "prod",
+      "id": "df5ec920-04d4-45e7-b892-e096696419ab",
+      "interestingHealthProviderNames": [
+        "KubernetesService"
+      ],
+      "name": "Delete Old Instances from Prod",
+      "namespaces": [
+        "default"
+      ],
+      "refId": "destroyPrevProd",
+      "requisiteStageRefIds": [
+        "2"
+      ],
+      "stageEnabled": {
+        "expression": "${ #judgment(\"Deploy Prod or Rollback\").equals(\"Continue\")}",
+        "type": "expression"
+      },
+      "target": "ancestor_asg_dynamic",
+      "type": "destroyServerGroup"
+    },
+    {
+      "failPipeline": true,
+      "judgmentInputs": [
+        {
+          "value": "Continue"
+        },
+        {
+          "value": "Rollback"
+        }
+      ],
+      "name": "Deploy Prod or Rollback",
+      "notifications": [],
+      "refId": "1",
+      "requisiteStageRefIds": [
+        "deployNewProd"
+      ],
+      "type": "manualJudgment"
+    },
+    {
+      "action": "scale_exact",
+      "capacity": {
+        "desired": 5
+      },
+      "cloudProvider": "kubernetes",
+      "cloudProviderType": "kubernetes",
+      "cluster": "nodeapp",
+      "credentials": "prod",
+      "name": "Finish Prod Deploy",
+      "namespaces": [
+        "default"
+      ],
+      "refId": "2",
+      "requisiteStageRefIds": [
+        "1"
+      ],
+      "resizeType": "exact",
+      "stageEnabled": {
+        "expression": "${ #judgment(\"Deploy Prod or Rollback\").equals(\"Continue\")}",
+        "type": "expression"
+      },
+      "target": "current_asg_dynamic",
+      "type": "resizeServerGroup"
+    },
+    {
+      "cloudProvider": "kubernetes",
+      "cloudProviderType": "kubernetes",
+      "cluster": "nodeapp",
+      "credentials": "prod",
+      "interestingHealthProviderNames": [
+        "KubernetesService"
+      ],
+      "name": "Delete Canary",
+      "namespaces": [
+        "default"
+      ],
+      "refId": "3",
+      "requisiteStageRefIds": [
+        "1"
+      ],
+      "stageEnabled": {
+        "expression": "${ #judgment(\"Deploy Prod or Rollback\").equals(\"Rollback\")}",
+        "type": "expression"
+      },
+      "target": "current_asg_dynamic",
+      "type": "destroyServerGroup"
+    },
+    {
+      "application": "myapp",
+      "failPipeline": true,
+      "isNew": true,
+      "name": "Pipeline",
+      "pipeline": "b351d9c6-b158-4146-a45f-dc621d28f4fa",
+      "pipelineParameters": {},
+      "refId": "4",
+      "requisiteStageRefIds": [
+        "2"
+      ],
+      "type": "pipeline",
+      "waitForCompletion": true
+    }
+  ],
+  "trigger": {
+    "artifacts": [],
+    "resolvedExpectedArtifacts": [],
+    "type": "manual",
+    "user": "anonymous"
+  },
+  "triggers": [
+    {
+      "account": "my-gcr-account",
+      "enabled": true,
+      "organization": "spinnaker-gke-poc",
+      "registry": "us.gcr.io",
+      "repository": "spinnaker-gke-poc/example-service-node",
+      "type": "docker"
+    }
+  ],
+  "updateTs": "1513200180712"
+}

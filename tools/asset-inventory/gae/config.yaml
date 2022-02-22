@@ -1,0 +1,90 @@
+# Copyright 2019 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#            http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Where the export is written to. A GCS path like gs://my-bucket-name/asset_export
+# see import_pipeline_runtime_environment for another location to override this value.
+gcs_destination: <ENTER-BUCKET-URL>
+
+# Organization number (organizations/123) or project id (projects/id) or number (projects/123)
+export_parent: <ENTER-PARENT>
+
+# BigQuery dataset to load to.
+import_dataset: <ENTER-DATASET>
+
+# Location to write intermediary data to load from from. A GCS path like gs://my-bucket-name/asset_export/stage
+import_stage: <ENTER-STAGE>
+
+# Project id to run the dataflow job in when using the template or dataflow runner.
+import_dataflow_project: <ENTER-PROJECT>
+
+# When using the template runner. Supply values as a json representation of
+# RuntimeEnvironment:
+#
+# https://cloud.google.com/dataflow/docs/reference/rest/v1b3/RuntimeEnvironment
+
+# If you don't get a warning about firewall rules preventing shuffle operations
+# it's safe to set maxWorkers higher. To increase the machine size for faster
+# loads try "machineType": "n1-standard-8", and to use a Shared VPC supply the
+# network and subnetwork values
+# "network": "https://www.googleapis.com/compute/v1/projects/<project>/networks/<network>"
+# "subnetwork": "https://www.googleapis.com/compute/v1/projects/<project>/regions/<region>/subnetworks/<subnetwork>"
+# Or try the new (faster) shuffler by adding  "additionalExperiments": ["shuffle_mode=service"]
+import_pipeline_runtime_environment: >
+  {
+    "tempLocation": "<ENTER-BUCKET-URL>/dataflow_temp",
+    "maxWorkers": 1
+  }
+
+# When using direct or dataflow running these are the other arguments to supply to import pipeline.
+import_pipeline_arguments: --max_num_workers=1 --temp_location <ENTER-BUCKET-URL>/dataflow_temp
+
+# Export resources, iam_policy or both.
+export_content_types:
+- RESOURCE
+- IAM_POLICY
+
+# List of asset types to export such as google.compute.Firewall and google.compute.HealthCheck default is '*' for everything.
+export_asset_types:
+- '*'
+
+# Can be direct, dataflow or template (however App Engine Standard doesn't support the direct or dataflow runner).
+import_pipeline_runner: template
+
+# Region to run the dataflow pipeline in, must be a valid Dataflow region as listed here:
+#
+# https://cloud.google.com/dataflow/docs/concepts/regional-endpoints
+#
+# this doesn't have to be the same region the works run it, but it should be close.
+import_template_region: us-central1
+
+# If running a template. This is the template location.
+import_template_location: gs://professional-services-tools-asset-inventory/latest/import_pipeline
+
+# How to group exported resources into Bigquery tables. Either NONE, ASSET_TYPE_VERSION or ASSET_TYPE
+import_group_by: ASSET_TYPE
+
+# If tables should be ovewritten (WRITE_EMPTY) or appended (WRITE_APPEND) to.
+import_write_disposition: WRITE_APPEND
+
+# Number of shards to use per asset type. If you have a large number of a
+# particular asset type like BigQuery tables you can speed up the pipeline by
+# sharding, For example: num_shards:
+# *=1,resource=100,google.cloud.bigquery.Table=100
+import_num_shards: "*=1"
+
+# If the load date [YYYYMMDD] is added as a table suffix.
+import_add_load_date_suffix: False
+
+# If we are running on App Engine and only want to be invoked by cron tasks for security reasons.
+restrict_to_cron_tasks: True

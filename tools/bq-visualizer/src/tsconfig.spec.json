@@ -1,0 +1,20 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../out-tsc/spec",
+    "module": "commonjs",
+    "strictPropertyInitialization": false,
+    "strictNullChecks": false
+  },
+  "files": [
+    "test.ts",
+    "polyfills.ts"
+  ],
+  "exclude": [
+    "test/*"
+  ],
+  "include": [
+    "**/*.spec.ts",
+    "**/*.d.ts"
+  ]
+}
