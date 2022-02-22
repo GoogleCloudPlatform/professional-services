@@ -31,6 +31,7 @@ public class MessageController {
 
   @Value("${pubsub.message.controller.topic}")
   String pubsubMessageControllerTopic;
+
   @Autowired private PubSubServer.PubsubOutboundGateway messagingGateway;
 
   @PostMapping("/publish")
