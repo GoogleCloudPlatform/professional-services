@@ -1,0 +1,67 @@
+[
+    {
+      "mode": "NULLABLE",
+      "name": "_id",
+      "type": "INTEGER"
+    },
+    {
+      "mode": "NULLABLE",
+      "name": "OCCUPANCY_DATE",
+      "type": "STRING"
+    },
+    {
+      "mode": "NULLABLE",
+      "name": "ORGANIZATION_NAME",
+      "type": "STRING"
+    },
+    {
+      "mode": "NULLABLE",
+      "name": "SHELTER_NAME",
+      "type": "STRING"
+    },
+    {
+      "mode": "NULLABLE",
+      "name": "SHELTER_ADDRESS",
+      "type": "STRING"
+    },
+    {
+      "mode": "NULLABLE",
+      "name": "SHELTER_CITY",
+      "type": "STRING"
+    },
+    {
+      "mode": "NULLABLE",
+      "name": "SHELTER_PROVINCE",
+      "type": "STRING"
+    },
+    {
+      "mode": "NULLABLE",
+      "name": "SHELTER_POSTAL_CODE",
+      "type": "STRING"
+    },
+    {
+      "mode": "NULLABLE",
+      "name": "FACILITY_NAME",
+      "type": "STRING"
+    },
+    {
+      "mode": "NULLABLE",
+      "name": "PROGRAM_NAME",
+      "type": "STRING"
+    },   
+    {
+      "mode": "NULLABLE",
+      "name": "SECTOR",
+      "type": "STRING"
+    },
+    {
+      "mode": "NULLABLE",
+      "name": "OCCUPANCY",
+      "type": "INTEGER"
+    },
+    {
+      "mode": "NULLABLE",
+      "name": "CAPACITY",
+      "type": "INTEGER"
+    }
+  ]
