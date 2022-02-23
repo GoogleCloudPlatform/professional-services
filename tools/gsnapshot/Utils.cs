@@ -35,7 +35,7 @@ namespace GSnapshot {
   public class Utils {
     private readonly ILogger<Runner> _logger;
     public static string Version = "1.2.0";
-    public static string ApplicationName = $"Google-GSnapshot/{Version}";
+    public static string ApplicationName = $"google-pso-tool/gsnapshot/{Version}";
 
     public Utils(ILogger<Runner> logger) {
       _logger = logger;
