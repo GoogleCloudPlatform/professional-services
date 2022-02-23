@@ -15,6 +15,6 @@
 # limitations under the License.
 #
 
-mvn compile -X exec:java \
+mvn compile exec:java \
   -Dexec.mainClass="com.google.cloud.pso.security.CustomRoleAnalyzer" \
   -Dexec.args="$1 $2 $3 $4" 
