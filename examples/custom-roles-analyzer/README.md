@@ -46,7 +46,7 @@ Please set `export GOOGLE_APPLICATION_CREDENTIALS=<service-account.json>` before
 Build and package the entire project using the maven package command.
  
 ```
-mvn clean package
+mvn clean install
 ```
  
 This will create an executable jar inside the `target` folder which will be used from the `analyze.sh` script.

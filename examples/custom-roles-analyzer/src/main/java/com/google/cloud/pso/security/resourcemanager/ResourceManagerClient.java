@@ -15,111 +15,102 @@ limitations under the License.
 */
 package com.google.cloud.pso.security.resourcemanager;
 
+import com.google.cloud.resourcemanager.v3.Folder;
+import com.google.cloud.resourcemanager.v3.FoldersClient;
+import com.google.cloud.resourcemanager.v3.FoldersClient.ListFoldersPagedResponse;
+import com.google.cloud.resourcemanager.v3.Project;
+import com.google.cloud.resourcemanager.v3.ProjectsClient;
+import com.google.cloud.resourcemanager.v3.ProjectsClient.ListProjectsPagedResponse;
+import com.google.common.flogger.GoogleLogger;
 import java.io.IOException;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-
 import java.util.Map;
 import java.util.Set;
 
-import com.google.cloud.resourcemanager.v3.Project;
-import com.google.cloud.resourcemanager.v3.Folder;
-
-import com.google.cloud.resourcemanager.v3.FoldersClient;
-import com.google.cloud.resourcemanager.v3.ProjectsClient;
-
-import com.google.cloud.resourcemanager.v3.FoldersClient.ListFoldersPagedResponse;
-import com.google.cloud.resourcemanager.v3.ProjectsClient.ListProjectsPagedResponse;
-import com.google.common.flogger.GoogleLogger;
-
 public class ResourceManagerClient {
 
-    private static final GoogleLogger logger = GoogleLogger.forEnclosingClass();
+  private static final GoogleLogger logger = GoogleLogger.forEnclosingClass();
 
-    Map<Folder, Set<Project>> folderProjectMap = null;
-    ProjectsClient projectsClient = null;
+  Map<Folder, Set<Project>> folderProjectMap = null;
+  ProjectsClient projectsClient = null;
 
-    FoldersClient foldersClient = null;
+  FoldersClient foldersClient = null;
 
-    public ResourceManagerClient() {
-        folderProjectMap = new HashMap<Folder, Set<Project>>();
+  public ResourceManagerClient() {
+    folderProjectMap = new HashMap<Folder, Set<Project>>();
 
-        try {
-            projectsClient = ProjectsClient.create();
-            foldersClient = FoldersClient.create();
-        } catch (IOException e) {
-            logger.atSevere().withCause(e).log("Error Creating Project or Folder client");
-        }
-
+    try {
+      projectsClient = ProjectsClient.create();
+      foldersClient = FoldersClient.create();
+    } catch (IOException e) {
+      logger.atSevere().withCause(e).log("Error Creating Project or Folder client");
     }
+  }
 
-    /**
-     * Fetch folder and projects recursively.
-     * 
-     * @param parent Organization ID
-     * @return Map of folder with projects.
-     */
-    public Map<Folder, Set<Project>> fetchFoldersAndProjects(String parent) {
+  /**
+   * Fetch folder and projects recursively.
+   *
+   * @param parent Organization ID
+   * @return Map of folder with projects.
+   */
+  public Map<Folder, Set<Project>> fetchFoldersAndProjects(String parent) {
 
-        logger.atInfo().log("Fetching resources from " + parent);
+    logger.atInfo().log("Fetching resources from " + parent);
 
-        ListFoldersPagedResponse response = foldersClient.listFolders(parent);
+    ListFoldersPagedResponse response = foldersClient.listFolders(parent);
 
-        Iterable<Folder> folders = response.iterateAll();
-        Iterator<Folder> iterableFolders = folders.iterator();
+    Iterable<Folder> folders = response.iterateAll();
+    Iterator<Folder> iterableFolders = folders.iterator();
 
-        while (iterableFolders.hasNext()) {
-            Folder folder = iterableFolders.next();
-            fetchFolders(folder);
-
-        }
-        return folderProjectMap;
-
+    while (iterableFolders.hasNext()) {
+      Folder folder = iterableFolders.next();
+      fetchFolders(folder);
     }
+    return folderProjectMap;
+  }
 
-    /**
-     * Fetch folders recursively.
-     * @param folder
-     */
-    private void fetchFolders(Folder folder) {
+  /**
+   * Fetch folders recursively.
+   *
+   * @param folder
+   */
+  private void fetchFolders(Folder folder) {
 
-        logger.atInfo().log("Listing folders from " + folder.getDisplayName());
+    logger.atInfo().log("Listing folders from " + folder.getDisplayName());
 
-        fetchProjects(folder);
+    fetchProjects(folder);
 
-        ListFoldersPagedResponse response = foldersClient.listFolders(folder.getName());
+    ListFoldersPagedResponse response = foldersClient.listFolders(folder.getName());
 
-        Iterable<Folder> folders = response.iterateAll();
-        Iterator<Folder> iterableFolders = folders.iterator();
+    Iterable<Folder> folders = response.iterateAll();
+    Iterator<Folder> iterableFolders = folders.iterator();
 
-        while (iterableFolders.hasNext()) {
-            folder = iterableFolders.next();
-            fetchFolders(folder);
-        }
-
+    while (iterableFolders.hasNext()) {
+      folder = iterableFolders.next();
+      fetchFolders(folder);
     }
+  }
 
-    /**
-     * Fetch projects within folder
-     * @param folder
-     */
-    private void fetchProjects(Folder folder) {
+  /**
+   * Fetch projects within folder
+   *
+   * @param folder
+   */
+  private void fetchProjects(Folder folder) {
 
-        logger.atInfo().log("Fetching projects from " + folder.getDisplayName());
+    logger.atInfo().log("Fetching projects from " + folder.getDisplayName());
 
-        Set<Project> projectSet = new HashSet<Project>();
-        ListProjectsPagedResponse projectsResponse = projectsClient.listProjects(folder.getName());
-        Iterable<Project> iterableProjects = projectsResponse.iterateAll();
-        Iterator<Project> projects = iterableProjects.iterator();
+    Set<Project> projectSet = new HashSet<Project>();
+    ListProjectsPagedResponse projectsResponse = projectsClient.listProjects(folder.getName());
+    Iterable<Project> iterableProjects = projectsResponse.iterateAll();
+    Iterator<Project> projects = iterableProjects.iterator();
 
-        while (projects.hasNext()) {
-            Project project = projects.next();
-            projectSet.add(project);
-
-        }
-        folderProjectMap.put(folder, projectSet);
-
+    while (projects.hasNext()) {
+      Project project = projects.next();
+      projectSet.add(project);
     }
+    folderProjectMap.put(folder, projectSet);
+  }
 }

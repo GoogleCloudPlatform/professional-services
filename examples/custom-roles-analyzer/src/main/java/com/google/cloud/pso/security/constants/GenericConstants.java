@@ -17,23 +17,23 @@ package com.google.cloud.pso.security.constants;
 
 /** Constants around mgmt APIs call sand result */
 public class GenericConstants {
-    public static final String ORGANIZATIONS = "organizations";
-    public static final String PROJECTS = "projects";
-    public static final String SEPARATOR = "/";
-    public static final String CLOUD_RESOURCE_MANAGER_API = "//cloudresourcemanager.googleapis.com";
-    public static final String DEFAULT_FORMAT = "csv";
-    public static final String JSON_FORMAT = "json";
-    public static final String RESULT_FILENAME = "CustomRoleAnalysisResult";
-    public static final String COLUMN_CUSTOM_ROLE = "Custom Role";
-    public static final String COLUMN_PARENT = "Parent";
-    public static final String COLUMN_PREDEFINED_ROLES = "List of predefined roles";
-    public static final String COLUMN_ADDITIONAL_PERMISSIONS = "Aditional permissions required";
-    public static final String COLUMN_EXACT_MATCH = "Is Exact Match";
+  public static final String ORGANIZATIONS = "organizations";
+  public static final String PROJECTS = "projects";
+  public static final String SEPARATOR = "/";
+  public static final String CLOUD_RESOURCE_MANAGER_API = "//cloudresourcemanager.googleapis.com";
+  public static final String DEFAULT_FORMAT = "csv";
+  public static final String JSON_FORMAT = "json";
+  public static final String RESULT_FILENAME = "CustomRoleAnalysisResult";
+  public static final String COLUMN_CUSTOM_ROLE = "Custom Role";
+  public static final String COLUMN_PARENT = "Parent";
+  public static final String COLUMN_PREDEFINED_ROLES = "List of predefined roles";
+  public static final String COLUMN_ADDITIONAL_PERMISSIONS = "Aditional permissions required";
+  public static final String COLUMN_EXACT_MATCH = "Is Exact Match";
 
-    public static final String OPTIONS_HELP = "Please provide the commandline options. \n"
-            + "-o OrgID Organization ID required parameters. \n"
-            + "-f Result format (optional parameter; defaults to csv and support json). \n";
+  public static final String OPTIONS_HELP =
+      "Please provide the commandline options. \n"
+          + "-o OrgID Organization ID required parameters. \n"
+          + "-f Result format (optional parameter; defaults to csv and support json). \n";
 
-    private GenericConstants() {
-    }
+  private GenericConstants() {}
 }

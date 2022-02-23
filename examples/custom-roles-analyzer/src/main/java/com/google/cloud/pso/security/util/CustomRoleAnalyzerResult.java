@@ -18,54 +18,52 @@ package com.google.cloud.pso.security.util;
 
 import java.util.Set;
 
-/**
- * Result data.
- */
+/** Result data. */
 public class CustomRoleAnalyzerResult {
 
-    String customRole;
-    String parent;
-    Set<String> listofPredefinedRoles;
-    Set<String> additionPermissionsRequired;
-    boolean isExactMatch;
+  String customRole;
+  String parent;
+  Set<String> listofPredefinedRoles;
+  Set<String> additionPermissionsRequired;
+  boolean isExactMatch;
 
-    public boolean isExactMatch() {
-        return isExactMatch;
-    }
+  public boolean isExactMatch() {
+    return isExactMatch;
+  }
 
-    public void setExactMatch(boolean isExactMatch) {
-        this.isExactMatch = isExactMatch;
-    }
+  public void setExactMatch(boolean isExactMatch) {
+    this.isExactMatch = isExactMatch;
+  }
 
-    public String getCustomRole() {
-        return customRole;
-    }
+  public String getCustomRole() {
+    return customRole;
+  }
 
-    public void setCustomRole(String customRole) {
-        this.customRole = customRole;
-    }
+  public void setCustomRole(String customRole) {
+    this.customRole = customRole;
+  }
 
-    public String getParent() {
-        return parent;
-    }
+  public String getParent() {
+    return parent;
+  }
 
-    public void setParent(String parent) {
-        this.parent = parent;
-    }
+  public void setParent(String parent) {
+    this.parent = parent;
+  }
 
-    public Set<String> getListofPredefinedRoles() {
-        return listofPredefinedRoles;
-    }
+  public Set<String> getListofPredefinedRoles() {
+    return listofPredefinedRoles;
+  }
 
-    public void setListofPredefinedRoles(Set<String> listofPredefinedRoles) {
-        this.listofPredefinedRoles = listofPredefinedRoles;
-    }
+  public void setListofPredefinedRoles(Set<String> listofPredefinedRoles) {
+    this.listofPredefinedRoles = listofPredefinedRoles;
+  }
 
-    public Set<String> getAdditionPermissionsRequired() {
-        return additionPermissionsRequired;
-    }
+  public Set<String> getAdditionPermissionsRequired() {
+    return additionPermissionsRequired;
+  }
 
-    public void setAdditionPermissionsRequired(Set<String> additionPermissionsRequired) {
-        this.additionPermissionsRequired = additionPermissionsRequired;
-    }
+  public void setAdditionPermissionsRequired(Set<String> additionPermissionsRequired) {
+    this.additionPermissionsRequired = additionPermissionsRequired;
+  }
 }

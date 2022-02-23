@@ -16,48 +16,52 @@ limitations under the License.
 
 package com.google.cloud.pso.security;
 
-import java.util.Arrays;
-import java.util.List;
-
 import com.google.cloud.pso.security.constants.GenericConstants;
 import com.google.cloud.pso.security.util.CustomRoleAnalyzerHelper;
 import com.google.common.flogger.GoogleLogger;
-/**
- * Main class.
- */
+import java.util.Arrays;
+import java.util.List;
+
+/** Main class. */
 public class CustomRoleAnalyzer {
 
-    private static final GoogleLogger logger = GoogleLogger.forEnclosingClass();
+  private static final GoogleLogger logger = GoogleLogger.forEnclosingClass();
 
-    public static void main(String[] args) {
-        
-        String orgId = "";
-        String resultFormat = GenericConstants.DEFAULT_FORMAT;
+  public static void main(String[] args) {
 
-        List<String> commandlineArgs = null;
-        if (args != null && args.length > 0) {
-            commandlineArgs = Arrays.asList(args);
-          } else {
-             logger.atInfo().log(GenericConstants.OPTIONS_HELP);
-            System.exit(1);
-          }
-          if (commandlineArgs.contains("-o")) {
-            orgId = (String) commandlineArgs.get(commandlineArgs.indexOf("-o") + 1);
-          } else {
-            logger.atInfo().log(GenericConstants.OPTIONS_HELP);
-           System.exit(1);
-         } if (commandlineArgs.contains("-f")) {
-            resultFormat = (String) commandlineArgs.get(commandlineArgs.indexOf("-f") + 1);
-          } 
+    String orgId = "";
+    String resultFormat = GenericConstants.DEFAULT_FORMAT;
 
-        logger.atInfo().log("Staring custom role analysis for org : " + orgId);
-
-        CustomRoleAnalyzerHelper analyzerHelper = new CustomRoleAnalyzerHelper();
-        analyzerHelper.initilize(orgId, resultFormat);
-
-        analyzerHelper.processOrgLevelCustomRoles(orgId);
-        analyzerHelper.processProjectLevelCustomRoles(orgId);
-
+    List<String> commandlineArgs = null;
+    if (args != null && args.length > 0) {
+      commandlineArgs = Arrays.asList(args);
+    } else {
+      logger.atInfo().log(GenericConstants.OPTIONS_HELP);
+      System.exit(1);
     }
+    if (commandlineArgs.contains("-o")
+        && commandlineArgs.size() > (commandlineArgs.indexOf("-o") + 1)) {
+      orgId = (String) commandlineArgs.get(commandlineArgs.indexOf("-o") + 1);
+    } else {
+      logger.atInfo().log(GenericConstants.OPTIONS_HELP);
+      System.exit(1);
+    }
+    if (commandlineArgs.contains("-f")
+        && commandlineArgs.size() > (commandlineArgs.indexOf("-o") + 1)) {
+      resultFormat = (String) commandlineArgs.get(commandlineArgs.indexOf("-f") + 1);
+      if (!resultFormat.equals(GenericConstants.JSON_FORMAT)
+          || !resultFormat.equals(GenericConstants.DEFAULT_FORMAT)) {
+        logger.atWarning().log("Unsupported format: " + resultFormat);
+        logger.atInfo().log("Using defualt format: " + GenericConstants.DEFAULT_FORMAT);
+        resultFormat = GenericConstants.DEFAULT_FORMAT;
+      }
+    }
+    logger.atInfo().log("Staring custom role analysis for org : " + orgId);
 
+    CustomRoleAnalyzerHelper analyzerHelper = new CustomRoleAnalyzerHelper();
+    analyzerHelper.initilize(orgId, resultFormat);
+
+    analyzerHelper.processOrgLevelCustomRoles(orgId);
+    analyzerHelper.processProjectLevelCustomRoles(orgId);
+  }
 }
