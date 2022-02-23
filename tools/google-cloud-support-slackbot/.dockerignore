@@ -1,0 +1,7 @@
+Dockerfile
+error.log
+env.list
+freeze.txt
+.dockerignore
+archive/*
+archive
