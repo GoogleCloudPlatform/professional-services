@@ -141,14 +141,14 @@ gcloud run deploy google-cloud-support-slackbot \
 --port=5000 \
 --project=$DEVSHELL_PROJECT_ID;
 ```
-This will output a URL. Copy this URL to use in **Setup Part 3**. If you need to find this URL again, you can find it under **Cloud Run** by clicking on the google-cloud-support-slackbot service. You will find the URL near the top of the Service details page   
+This will output a URL. Copy this URL to use in **Setup Part 3**. If you need to find this URL again, you can find it under **Cloud Run** by clicking on the **google-cloud-support-slackbot** service. You will find the URL near the top of the Service details page   
 
 ## Setup Part 3 - Slack App
 
 Return to [Slack Apps](http://api.slack.com/apps) to do the following:
 
 1. Go to **Features > Slash Commands** and click the **pencil icon**:
-	1. Update the `Request URL`'s `CLOUDRUN_SERVICE_URL` placeholder with the url generated in Setup Part 2 and then click **Save**
+	1. Update the `Request URL`'s `CLOUDRUN_SERVICE_URL` placeholder with the url generated in **Setup Part 2** and then click **Save**
  
 ## Testing
 
