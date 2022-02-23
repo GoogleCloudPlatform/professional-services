@@ -116,6 +116,7 @@ creates relationships between assets and outputs a format compatible with [graph
 * [GSuite Exporter Cloud Function](tools/gsuite-exporter-cloud-function/) - A script that deploys a Cloud Function and Cloud Scheduler job that executes the GSuite Exporter tool automatically on a cadence.
 * [GSuite Exporter](tools/gsuite-exporter/) - A Python package that automates syncing Admin SDK APIs activity reports to a GCP destination. The module takes entries from the chosen Admin SDK API, converts them into the appropriate format for the destination, and exports them to a destination (e.g: Stackdriver Logging).
 * [Hive to BigQuery](tools/hive-bigquery/) - A Python framework to migrate Hive table to BigQuery using Cloud SQL to keep track of the migration progress.
+* [IAM Permissions Copier](tools/iam-permissions-copier) - This tool allows you to copy supported GCP IAM permissions from unmanaged users to managed Cloud Identity users.
 * [IAM Recommender at Scale](tools/iam-recommender-at-scale) - A python package that automates applying iam recommendations.
 * [IPAM Autopilot](tools/ipam-autopilot) - A simple tool for managing IP address ranges for GCP subnets.
 * [LabelMaker](tools/labelmaker) - A tool that reads key:value pairs from a json file and labels the running instance and all attached drives accordingly.
