@@ -31,7 +31,7 @@ Go to [Slack Apps](http://api.slack.com/apps) to do the following:
 1. Click **Create New App** and select **From an app manifest**
 2. Select the workspace where you want to add the app and then click **Next**
 3. Copy and paste in the following YAML and then click **Next**:
-'''
+```
 display_information:
   name: Google Cloud Support Bot
 features:
@@ -54,7 +54,7 @@ settings:
   org_deploy_enabled: false
   socket_mode_enabled: false
   token_rotation_enabled: false
-'''
+```
 4. Click **Create**
 5. Under **Settings > Basic Information**, scroll down to **Display Information** and upload the [google_cloud_support_buddy_big.png](google_cloud_sup$
 6. Go to **Settings > Basic Information** and under **Building Apps for Slack > Install your app**, click **Install to Workspace**. On the next screen click **Allow**. You may need Slack admin approval to install the app
@@ -69,7 +69,7 @@ Go to [Google Cloud](https://console.cloud.google.com/) to do the following:
 2. Click the **Activate Cloud Shell** button to open the Cloud Shell Terminal. Confirm the Cloud Shell is set to the project where you want to host the app. If it isn't, set it using the `gcloud config set project PROJECT_ID` command. Authorize the command if prompted.
 3. **WARNING**: Running step 4 will delete the default VPC and its associated firewall rules as they aren't needed by our app when it operates in Cloud Run. If you dont want to do this, delete lines 8-12 in the step 4's code block 
 4. Update the following code block with your `SIGNING_SECRET` and `SLACK_TOKEN` from **Setup Part 1**, and then run it in your **Cloud Shell**:
-'''
+```
 SIGNING_SECRET=SIGNING_SECRET
 SLACK_TOKEN=SLACK_TOKEN
 TAG=2.0
@@ -140,7 +140,7 @@ gcloud run deploy google-cloud-support-slackbot \
 --region=us-central1 \
 --port=5000 \
 --project=$DEVSHELL_PROJECT_ID;
-'''
+```
 This will output a URL. Copy this URL to use in **Setup Part 3**. If you need to find this URL again, you can find it under **Cloud Run** by clicking on the google-cloud-support-slackbot service. You will find the URL near the top of the Service details page   
 
 ## Setup Part 3 - Slack App
