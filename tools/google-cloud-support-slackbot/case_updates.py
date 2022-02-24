@@ -25,7 +25,7 @@ from get_firestore_cases import get_firestore_cases
 from get_firestore_first_in import get_firestore_first_in
 from firestore_delete_cases import firestore_delete_cases
 from notify_slack import notify_slack
-from SupportCase import SupportCase
+from support_case import SupportCase
 
 logger = logging.getLogger(__name__)
 
