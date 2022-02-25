@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Copyright 2022 Google LLC
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+Data Format Description Language (DFDL) definition for the binary example used
+in this code. -->
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://example.com/dfdl/helloworld/"
+    xmlns:dfdl="http://www.ogf.org/dfdl/dfdl-1.0/">
+
+  <xs:include
+      schemaLocation="org/apache/daffodil/xsd/DFDLGeneralFormat.dfdl.xsd"/>
+  <xs:annotation>
+    <xs:appinfo source="http://www.ogf.org/dfdl/">
+      <dfdl:format ref="GeneralFormat"/>
+    </xs:appinfo>
+  </xs:annotation>
+
+  <xs:element name="binary_example">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="w" type="xs:int">
+          <xs:annotation>
+            <xs:appinfo source="http://www.ogf.org/dfdl/">
+              <dfdl:element representation="binary"
+                  binaryNumberRep="binary"
+                  byteOrder="bigEndian"
+                  lengthKind="implicit"/>
+            </xs:appinfo>
+          </xs:annotation>
+        </xs:element>
+        <xs:element name="x" type="xs:int">
+          <xs:annotation>
+            <xs:appinfo source="http://www.ogf.org/dfdl/">
+              <dfdl:element representation="binary"
+                  binaryNumberRep="binary"
+                  byteOrder="bigEndian"
+                  lengthKind="implicit"/>
+            </xs:appinfo>
+          </xs:annotation>
+        </xs:element>
+        <xs:element name="y" type="xs:double">
+          <xs:annotation>
+            <xs:appinfo source="http://www.ogf.org/dfdl/">
+              <dfdl:element representation="binary"
+                  binaryFloatRep="ieee"
+                  byteOrder="bigEndian"
+                  lengthKind="implicit"/>
+            </xs:appinfo>
+          </xs:annotation>
+        </xs:element>
+        <xs:element name="z" type="xs:float">
+          <xs:annotation>
+            <xs:appinfo source="http://www.ogf.org/dfdl/">
+              <dfdl:element representation="binary"
+                  byteOrder="bigEndian"
+                  lengthKind="implicit"
+                  binaryFloatRep="ieee"/>
+            </xs:appinfo>
+          </xs:annotation>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

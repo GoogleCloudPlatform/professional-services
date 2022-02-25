@@ -7,8 +7,8 @@ steps:
   name: google/cloud-sdk
   args: [gcloud, builds, submit, tools/hive-bigquery/, --config=tools/hive-bigquery/cloudbuild.yaml]
   waitFor: ['-']
-- id: examples/cloud-composer-examples
-  name: google/cloud-sdk
-  args: [gcloud, builds, submit, examples/cloud-composer-examples/,
-    --config=examples/cloud-composer-examples/cloudbuild.yaml]
-  waitFor: ['-']
+#- id: examples/cloud-composer-examples
+#  name: google/cloud-sdk
+#  args: [gcloud, builds, submit, examples/cloud-composer-examples/,
+#    --config=examples/cloud-composer-examples/cloudbuild.yaml]
+#  waitFor: ['-']
