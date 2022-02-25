@@ -59,9 +59,30 @@ public class CustomRoleAnalyzer {
     logger.atInfo().log("Staring custom role analysis for org : " + orgId);
 
     CustomRoleAnalyzerHelper analyzerHelper = new CustomRoleAnalyzerHelper();
-    analyzerHelper.initilize(orgId, resultFormat);
+    try {
+      analyzerHelper.initilize(orgId, resultFormat);
+    } catch (Exception e) {
+      logger.atSevere().withCause(e).log("Unable to initialize custom role analyzer tool.");
+      System.exit(1);
+    }
 
-    analyzerHelper.processOrgLevelCustomRoles(orgId);
-    analyzerHelper.processProjectLevelCustomRoles(orgId);
+    try {
+      analyzerHelper.processOrgLevelCustomRoles(orgId);
+    } catch (Exception e) {
+      logger.atSevere().withCause(e).log("Unable to process org level custom roles.");
+      System.exit(1);
+    }
+    try {
+      analyzerHelper.processProjectLevelCustomRoles(orgId);
+    } catch (Exception e) {
+      logger.atSevere().withCause(e).log("Unable to process project level custom roles.");
+      System.exit(1);
+    }
+    logger.atInfo().log(
+        "Successfully executed custom role analysis and results are written to: "
+            + GenericConstants.RESULT_FILENAME
+            + "."
+            + resultFormat);
+    System.exit(1);
   }
 }

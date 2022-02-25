@@ -35,8 +35,8 @@ It provides result in CSV or JSON format. Default is CSV.
 ## Requirements:
 * Java 11
 * Maven 3
-* GCP roles - roles/iam.organizationRoleViewer and roles/resourcemanager.folderViewer
-* APIs to enable - `Cloud Resource Manager API` needs to be enabled for the project from which the service account is coming.
+* GCP roles - roles/iam.organizationRoleViewer and roles/resourcemanager.folderViewer at org level.
+* APIs to enable - `Cloud Resource Manager API` needs to be enabled for the project from which the service account is created.
  
 Please set `export GOOGLE_APPLICATION_CREDENTIALS=<service-account.json>` before executing `analyze.sh` script.
  

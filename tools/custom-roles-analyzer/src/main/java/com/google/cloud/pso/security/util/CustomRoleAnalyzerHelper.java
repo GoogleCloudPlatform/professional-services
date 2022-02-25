@@ -58,8 +58,9 @@ public class CustomRoleAnalyzerHelper {
    * permissions to role and removing testing permissions from predefined roles.
    *
    * @param orgId
+   * @throws Exception
    */
-  public void initilize(String orgId, String resultFormat) {
+  public void initilize(String orgId, String resultFormat) throws Exception {
     this.resultFormat = resultFormat.toLowerCase();
     logger.atInfo().log("Initializing analysis.");
     iamClient = new IamClient();
@@ -81,6 +82,7 @@ public class CustomRoleAnalyzerHelper {
 
     } catch (IOException | GeneralSecurityException e) {
       logger.atSevere().withCause(e).log("Unable to create IAM Service");
+      throw e;
     }
 
     roleUtil = new RoleUtil();
@@ -206,8 +208,9 @@ public class CustomRoleAnalyzerHelper {
    * Process org level custom roles.
    *
    * @param org_id
+   * @throws Exception
    */
-  public void processOrgLevelCustomRoles(String org_id) {
+  public void processOrgLevelCustomRoles(String org_id) throws Exception {
 
     String parent = GenericConstants.ORGANIZATIONS + GenericConstants.SEPARATOR + org_id;
 
@@ -221,8 +224,9 @@ public class CustomRoleAnalyzerHelper {
    *
    * @param parent org id or project id.
    * @param isOrgLevel
+   * @throws Exception
    */
-  private void processCustomRoles(String parent, boolean isOrgLevel) {
+  private void processCustomRoles(String parent, boolean isOrgLevel) throws Exception {
 
     logger.atInfo().log("Processing custom roles: " + parent);
     Set<Role> customRole = null;
@@ -237,6 +241,14 @@ public class CustomRoleAnalyzerHelper {
 
     } catch (IOException | GeneralSecurityException e) {
       logger.atSevere().withCause(e).log("Exception while feching custom roles: " + parent);
+      try {
+        if (resultsFile != null) {
+          resultsFile.close();
+        }
+      } catch (IOException ie) {
+        logger.atSevere().withCause(ie).log("Exception while closing file steam.");
+      }
+      throw e;
     }
 
     logger.atInfo().log("Total number of custom roles at " + parent + ":" + customRole.size());
@@ -266,8 +278,9 @@ public class CustomRoleAnalyzerHelper {
    * Process project level custom roles with additional adjustments to permissions at project level.
    *
    * @param org_id
+   * @throws Exception
    */
-  public void processProjectLevelCustomRoles(String org_id) {
+  public void processProjectLevelCustomRoles(String org_id) throws Exception {
 
     logger.atInfo().log("Processing project level custom roles.");
 
@@ -281,8 +294,20 @@ public class CustomRoleAnalyzerHelper {
 
     Map<Folder, Set<Project>> folderAndProjectsMap = null;
 
-    folderAndProjectsMap = resourceManagerClient.fetchFoldersAndProjects(parentOrg);
+    try {
+      folderAndProjectsMap = resourceManagerClient.fetchFoldersAndProjects(parentOrg);
+    } catch (Exception e) {
 
+      logger.atSevere().log("Exception while fetching folders and projects.");
+      try {
+        if (resultsFile != null) {
+          resultsFile.close();
+        }
+      } catch (IOException ie) {
+        logger.atSevere().withCause(ie).log("Exception while closing file steam.");
+      }
+      throw e;
+    }
     for (Iterator<Map.Entry<Folder, Set<Project>>> it = folderAndProjectsMap.entrySet().iterator();
         it.hasNext(); ) {
       Map.Entry<Folder, Set<Project>> entry = it.next();
@@ -315,6 +340,14 @@ public class CustomRoleAnalyzerHelper {
             } catch (IOException | GeneralSecurityException e) {
               logger.atSevere().withCause(e).log(
                   "Exception while feching permissions: " + resourcePath);
+              try {
+                if (resultsFile != null) {
+                  resultsFile.close();
+                }
+              } catch (IOException ie) {
+                logger.atSevere().withCause(ie).log("Exception while closing file steam.");
+              }
+              throw e;
             }
             allPermissionsProjectLevel =
                 permissionUtil.convertPermissionsToStringSet(permissionsProjectLevel);
@@ -336,9 +369,11 @@ public class CustomRoleAnalyzerHelper {
       }
     }
     try {
-      resultsFile.close();
-    } catch (IOException e) {
-      logger.atSevere().withCause(e).log("Exception while closing file steam.");
+      if (resultsFile != null) {
+        resultsFile.close();
+      }
+    } catch (IOException ie) {
+      logger.atSevere().withCause(ie).log("Exception while closing file steam.");
     }
   }
 }
