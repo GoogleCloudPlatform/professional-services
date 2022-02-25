@@ -26,3 +26,4 @@ tftest~=1.6.0
 msal~=1.16.0
 requests~=2.26.0
 responses~=0.18.0
+markupsafe~=2.0.0

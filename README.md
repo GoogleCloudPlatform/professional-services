@@ -51,10 +51,12 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [Dataproc GCS Connector](examples/dataproc-gcs-connector) - Install and test unreleased features on the GCS Connector for Dataproc.
 * [Dataproc Persistent History Server for Ephemeral Clusters](examples/dataproc-persistent-history-server) - Example of writing logs from an ephemeral cluster to GCS and using a separate single node cluster to look at Spark and YARN History UIs.
 * [dbt-on-cloud-composer](examples/dbt-on-cloud-composer) - Example of using dbt to manage BigQuery data pipelines, utilizing Cloud Composer to run and schedule the dbt runs.
+* [Data Format Description Language (DFDL) Processesor with Firestore and Pubsub](examples/dfdl-firestore-pubsub-example) - Example to process a binary using DFDL definition and Daffodil libraries. The DFDL definition is stored in firestore, the request to process is done through a pubsub subcription and the output is published is a JSON format in a Pubsub topic.
 * [Dialogflow Webhook Example](examples/dialogflow-webhook-example) - Webhook example for dialogflow in Python.
 * [Dialogflow Entities Creation and Update](examples/dialogflow-entities-example) - Creation and update of entities for Dialogflow in Python.
 * [DLP API Examples](examples/dlp) - Examples of the DLP API usage.
 * [GCE Access to Google AdminSDK](examples/gce-to-adminsdk) - Example to help manage access to Google's AdminSDK using GCE's service account identity
+* [GCS to BQ using serverless services](examples/gcs-to-bq-serverless-services) - Example to ingest GCS to BigQuery using serverless services such as Cloud Function, Pub/Sub and Serverless Spark.
 * [Home Appliance Status Monitoring from Smart Power Readings](examples/e2e-home-appliance-status-monitoring) - An end-to-end demo system featuring a suite of Google Cloud Platform products such as IoT Core, ML Engine, BigQuery, etc.
 * [IAP User Profile](examples/iap-user-profile) - An example to retrieve user profile from an IAP-enabled GAE application.
 * [IoT Nirvana](examples/iot-nirvana) - An end-to-end Internet of Things architecture running on Google Cloud Platform.
@@ -95,6 +97,7 @@ The tools folder contains ready-made utilities which can simplify Google Cloud P
   there are a few scripts for generating an AutoML Vision dataset CSV file from
   either raw images or image annotation files in PASCAL VOC format.
 * [CUD Prioritized Attribution](tools/cuds-prioritized-attribution) - A tool that allows GCP customers who purchased Committed Use Discounts (CUDs) to prioritize a specific scope (e.g. project or folder) to attribute CUDs first before letting any unconsumed discount float to other parts of an organization.
+* [Custom Role Analyzer](tools/custom-roles-analyzer) - This tool will provide useful insights with respect to custom roles at organization level as well as project level to find predefined roles from which the custom role is built.
 * [Custom Role Manager](tools/custom-role-manager) - Manages organization- or project-level custom roles by combining predefined roles and including and removing permissions with wildcards. Can run as Cloud Function or output Terraform resources.
 * [Composer Backup and Recovery](tools/cloud-composer-backup-restore) - A command line tool for applying backup and recovery operations on Cloud Composer Airflow environments. 
 * [DNS Sync](tools/dns-sync) - Sync a Cloud DNS zone with GCE resources. Instances and load balancers are added to the cloud DNS zone as they start from compute_engine_activity log events sent from a pub/sub push subscription. Can sync multiple projects to a single Cloud DNS zone.
@@ -114,6 +117,7 @@ creates relationships between assets and outputs a format compatible with [graph
 * [GSuite Exporter Cloud Function](tools/gsuite-exporter-cloud-function/) - A script that deploys a Cloud Function and Cloud Scheduler job that executes the GSuite Exporter tool automatically on a cadence.
 * [GSuite Exporter](tools/gsuite-exporter/) - A Python package that automates syncing Admin SDK APIs activity reports to a GCP destination. The module takes entries from the chosen Admin SDK API, converts them into the appropriate format for the destination, and exports them to a destination (e.g: Stackdriver Logging).
 * [Hive to BigQuery](tools/hive-bigquery/) - A Python framework to migrate Hive table to BigQuery using Cloud SQL to keep track of the migration progress.
+* [IAM Permissions Copier](tools/iam-permissions-copier) - This tool allows you to copy supported GCP IAM permissions from unmanaged users to managed Cloud Identity users.
 * [IAM Recommender at Scale](tools/iam-recommender-at-scale) - A python package that automates applying iam recommendations.
 * [IPAM Autopilot](tools/ipam-autopilot) - A simple tool for managing IP address ranges for GCP subnets.
 * [LabelMaker](tools/labelmaker) - A tool that reads key:value pairs from a json file and labels the running instance and all attached drives accordingly.
@@ -137,6 +141,7 @@ creates relationships between assets and outputs a format compatible with [graph
 * [Webhook Ingestion Data Pipeline](tools/webhook-ingestion-pipeline) - A deployable app to accept and ingest unauthenticated webhook data to BigQuery.
 * [gmon](tools/gmon/) - A command-line interface (CLI) for Cloud Monitoring written in Python.
 * [Quota Monitoring and Alerting](tools/quota-monitoring-alerting) - An easy-to-deploy Data Studio Dashboard with alerting capabilities, showing usage and quota limits in an organization or folder.
+* [XSD to BigQuery Schema Generator](tools/xsd-to-bigquery-schema) - A command line tool for converting an XSD schema representing deeply nested and repeated XML content into a BigQuery compatible table schema represented in JSON.
 
 ## Contributing
 See the contributing [instructions](/CONTRIBUTING.md) to get started contributing.
