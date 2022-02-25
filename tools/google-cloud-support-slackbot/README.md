@@ -8,6 +8,9 @@ The app currently supports the following commands:
 * /google-cloud-support track-case [case_number] -- case updates will be posted to this channel
 * /google-cloud-support add-comment [case_number] [comment] -- adds a comment to the case
 * /google-cloud-support change-priority [case_number] [priority, e.g. P2] -- changes the priority of the case
+* /google-cloud-support subscribe [case number] [email 1] ... [email n] -- subscribes the given emails addresses to the case to receive updates to their inboxes. This overwrites the previous list of emails
+* /google-cloud-support escalate [case number] [reason] [justification] -- escalates the support case. Reason must be either RESOLUTION_TIME, TECHNICAL_EXPERTISE, or BUSINESS_IMPACT
+* /google-cloud-support close-case [case number] -- closes a case
 * /google-cloud-support stop-tracking [case_number] -- case updates will no longer be posted to this channel
 * /google-cloud-support list-tracked-cases -- lists all cases being tracked in this channel
 * /google-cloud-support list-tracked-cases-all -- lists all cases being tracked in the workspace
@@ -21,126 +24,132 @@ The app currently supports the following commands:
 **Before proceeding, you will need Premium Support to use the Cloud Support API and by association the slackbot**  
 Setting up your first Slack app can be a daunting task, which is why we are providing a step-by-step guide.
 
-## Setup Part 1 - Allow list the Support API
-
-To get access to the API, you will need to send your Techincal Account Manager the following:
-
-1. The **org id** where you have Premium Support enabled
-2. A **project id** where the API will be allow listed
-3. The name of a **service account** in the project from step 2, with the service account having the following roles at the org level:
-	1. **Tech Support Editor**
-	1. **Org Viewer**
-4. The **email addresses** of the people that will be enabling the API in the project
-
-Your Techincal Account Manager will file a request with the Support API team to give you access. The team typically processes these requests within 24 hours
-
-## Setup Part 2 - Google Cloud Phase 1 
-
-In the first phase of our Google Cloud setup, we will verify that our network is setup properly, create a lightweight VM to house our bot, and enable our Cloud Support API and create ourselves an API key. Go to [Google Cloud](https://cloud.google.com/console). **These steps need to be carried out in the project you specified in Part 1 of this setup guide.**
-
-### Networking
-
-From **VPC network > Firewall rules**, verify rules exist to **allow SSH and HTTP**.
-
-1. **If your project doesn't have a VPC, you will need to create one from VPC networks**. Select **Automatic** for your Subnet creation mode, and **allow-ssh** from **Firewall rules**
-2. If it doesn't exist, create the following firewall rule:
-	1. Name: `default-allow-http`
-	1. Priority: `1000`
-	1. Direction: `Ingress`
-	1. Action on match: `Allow`
-	1. Targets: `Specified target tags`
-	1. Target tags: `http-server`
-	1. Source filter: `IP ranges`
-	1. Source IP ranges: `0.0.0.0/0`
-	1. Protocols and Ports: `Specified protocols and ports`
-	1. tcp: `80`
-3. If an SSH firewall rule doesn't exist, create the following firewall rule:
-	1. Name: `default-allow-ssh`
-	1. Priority: `65534`
-	1. Direction: `Ingress`
-	1. Action on match: `Allow`
-	1. Targets: `All instances in the network`
-	1. Source filter: `IP ranges`
-	1. Source IP ranges: `0.0.0.0/0`
-	1. Protocols and Ports: `Specified protocols and ports`
-	1. tcp: `22`
-
-*Note that if you had to create the SSH firewall rule in Step 3, you will want to disable it after you complete the entire setup*
-
-### VM
-
-Go to **Compute Engine > VM instances** and perform the following:
-
-1. Click **+ Create Instance**
-	1. Under **Machine Configuration**, set the **Machine type** field to **e2-micro**. This should suffice for most implementations. If your team makes heavy use of the Cloud Support and the bot, you may need to upgrade the machine type
-	1. Under **Identity and API access > Service Account**, select your **service account** that was allow listed for the Cloud Support API
-	1. Under **Firewall**, select **Allow HTTP traffic**. If this option isn't available and you create the firewall rule in the Networking steps, then you will want to contact your Networking team about policies that may be preventing HTTP traffic
-	1. Click to expand **Management, security, disks, networking, sole tenancy**
-		1. Select the **Networking** tab
-		1. Under **Network interfaces**, click the network interface box
-			1. Set **Network** to the VPC where you have your firewall rules
-			1. Under **External IP**, select **Create IP address**. Choose whichever name and network service tier you prefer
-	1. Click **Create**
-
-### API Enablement and the API Key
-
-From **APIs & Services > Library** ...
-
-1. Search for and enable the **Cloud Logging API**
-2. Search for and enable the **Cloud Support API**
-
-From **APIs & Services > Credentials**
-
-1. Click **+Create** and select **API key**
-2. Copy your key and choose to **Restrict Key**
-	1. Under **Application restrictions**, you may select **IP addresses** to restrict usage the VM you created
-	1. Under **API restrictions**, select **Restrict Key** and from the **Select APIs** dropdown, click **Google Cloud Support API**
-
-## Setup Part 3 - Slack App
+## Setup Part 1 - Slack App Phase 1
 
 Go to [Slack Apps](http://api.slack.com/apps) to do the following:
 
-1. Click **Create New App** and select **From scratch**. Name your app `Google Cloud Support Bot` and select your workspace
-2. Under **Settings > Basic Information**, scroll down to **Display Information** and upload the [google_cloud_support_buddy_big.png](google_cloud_support_buddy_big.png) or an icon of your choosing
-3. Go to **Features > Slash Commands** and create the following command:
-	1. Command: `/google-cloud-support `
-	1. Request URL: `http://<your_vm_external_ip>/google-cloud-support`
-	1. Short description: `Track and manage your Google Cloud support cases in Slack. Use /google-cloud-support help for the list of commands`
-	1. Usage Hint: `[command] [parameter 1] [parameter 2] [parameter 3]`
-4. Go to **Features > OAuth & Permissions**. Scroll down to **Scopes** and add the **chat:write** scope. Add the **commands** scope if it isn't listed already listed
-5. At the top of the **Features > OAuth & Permissions** page, under **OAuth Tokens for Your Workspace**, click **Install to Workspace**. Copy the token. You may need Slack admin approval to install the app
-6. Go to **Settings > Basic Information** and under **App Credentials** copy the `Signing Secret`
+1. Click **Create New App** and select **From an app manifest**
+2. Select the workspace where you want to add the app and then click **Next**
+3. Copy and paste in the following YAML and then click **Next**:
+```
+display_information:
+  name: Google Cloud Support Bot
+features:
+  bot_user:
+    display_name: Google Cloud Support Bot
+    always_online: false
+  slash_commands:
+    - command: /google-cloud-support
+      url: https://CLOUDRUN_SERVICE_URL/google-cloud-support
+      description: Track and manage your Google Cloud support cases in Slack. Use /google-cloud-support help for the list of commands
+      usage_hint: "[command] [parameter 1] [parameter 2]"
+      should_escape: false
+oauth_config:
+  scopes:
+    bot:
+      - chat:write
+      - channels:history
+      - commands
+settings:
+  org_deploy_enabled: false
+  socket_mode_enabled: false
+  token_rotation_enabled: false
+```
+4. Click **Create**
+5. Under **Settings > Basic Information**, scroll down to **Display Information** and upload the [google_cloud_support_buddy_big.png](google_cloud_sup$
+6. Go to **Settings > Basic Information** and under **Building Apps for Slack > Install your app**, click **Install to Workspace**. On the next screen click **Allow**. You may need Slack admin approval to install the app
+7. Go to **Settings > Basic Information** and under **App Credentials** copy the `Signing Secret`. You will need this for **Setup Part 2**
+8. Go to  the **Features > OAuth & Permissions** page, under **OAuth Tokens for Your Workspace**. Copy the `Bot User OAuth Token`. You will need this for **Setup Part 2**
 
-## Setup Part 4 - Google Cloud Phase 2
+## Setup Part 2 - Google Cloud
 
-Return to [Google Cloud](https://cloud.google.com/console) and from **Compute Engine > VM instances**, perform the following:
+Go to [Google Cloud](https://console.cloud.google.com/) to do the following:
 
-1. SSH into the VM that you created in part 2 of this setup guide
-2. Run the following commands:
-	1. `sudo apt-get update`
-	1. `sudo apt-get -y install subversion`
-	1. `sudo apt-get -y install python3-pip`
-	1. `sudo apt-get -y install nginx`
-	1. `cd /`
-	1. `sudo svn export https://github.com/GoogleCloudPlatform/professional-services/trunk/tools/google-cloud-support-slackbot`
-	1. `cd /google-cloud-support-slackbot`
-	1. Use sudo to open the `default` file with your editor of choice, and replace <STATIC_IP> with the external ip address of your VM. Then save and close the file
-	1. `sudo mv default /etc/nginx/sites-available/`
-	1. Use sudo to open the `.env` file with your editor of choice. Enter your API Key, Slack Token, and numeric org id in their respective locations. Then save and close the file
-	1. `sudo chmod +x google_cloud_support_slackbot.py`
-3. Close the SSH session
-4. From Compute Engine > VM instances, click your VM name to go to your VM instance details
-5. Stop the VM
-6. Once the VM is stopped, click the 'EDIT' button
-7. Scroll down to the Custom metadata section and add the following key-value pair:
-	1. key: `startup-script`
-	1. value:  
-	`cd /google-cloud-support-slackbot`  
-	`pip3 install -r requirements.txt`   
-	`/google-cloud-support-slackbot/google_cloud_support_slackbot.py`
-8. Scroll to the bottom of the page and click 'Save'
-9. Start your VM
+1. Go to the project dropdown at the top of the page and select it. From the list, select the project where you want to host the app, or create a new project for it. After completing the rest of the steps, the app will have support ticket access for all projects in your org
+2. Click the **Activate Cloud Shell** button to open the Cloud Shell Terminal. Confirm the Cloud Shell is set to the project where you want to host the app. If it isn't, set it using the `gcloud config set project PROJECT_ID` command. Authorize the command if prompted.
+3. **WARNING**: Running step 4 will delete the default VPC and its associated firewall rules as they aren't needed by our app when it operates in Cloud Run. If you dont want to do this, delete lines 8-12 in the step 4's code block 
+4. Update the following code block with your `SIGNING_SECRET` and `SLACK_TOKEN` from **Setup Part 1**, and then run it in your **Cloud Shell**:
+```
+SIGNING_SECRET=SIGNING_SECRET
+SLACK_TOKEN=SLACK_TOKEN
+TAG=2.0
+alias gcurl='curl -H "Authorization: Bearer $(gcloud auth print-access-token)" -H "Content-Type: application/json"';
+ORG_ID=$(gcurl -X POST https://cloudresourcemanager.googleapis.com/v1/projects/$DEVSHELL_PROJECT_ID:getAncestry | jq '.ancestor[] | select(.resourceId.type == "organization")' | jq '.resourceId.id' | sed 's/"//g');
+PROJECT_NUMBER=`gcloud projects list --filter="${DEVSHELL_PROJECT_ID}" --format="value(PROJECT_NUMBER)"`;
+gcloud services enable firestore.googleapis.com cloudsupport.googleapis.com logging.googleapis.com compute.googleapis.com iam.googleapis.com artifactregistry.googleapis.com run.googleapis.com serviceusage.googleapis.com appengine.googleapis.com;
+yes | gcloud compute firewall-rules delete default-allow-icmp;
+yes | gcloud compute firewall-rules delete default-allow-internal;
+yes | gcloud compute firewall-rules delete default-allow-rdp;
+yes | gcloud compute firewall-rules delete default-allow-ssh;
+yes | gcloud compute networks delete default;
+gcloud iam service-accounts create support-slackbot \
+    --description="Used by the Google Cloud Support Slackbot" \
+    --display-name="Support Slackbot";
+gcloud organizations add-iam-policy-binding $ORG_ID \
+    --member="serviceAccount:support-slackbot@$DEVSHELL_PROJECT_ID.iam.gserviceaccount.com" \
+    --role="roles/cloudsupport.techSupportEditor";
+gcloud organizations add-iam-policy-binding $ORG_ID \
+    --member="serviceAccount:support-slackbot@$DEVSHELL_PROJECT_ID.iam.gserviceaccount.com" \
+    --role="roles/datastore.owner";
+gcloud organizations add-iam-policy-binding $ORG_ID \
+    --member="serviceAccount:support-slackbot@$DEVSHELL_PROJECT_ID.iam.gserviceaccount.com" \
+    --role="roles/resourcemanager.organizationViewer";
+gcloud auth configure-docker us-central1-docker.pkg.dev
+gcloud artifacts repositories create google-cloud-support-slackbot \
+    --repository-format=Docker \
+    --location=us-central1 \
+    --description="Docker images for the Google Cloud Support Slackbot";
+gcloud app create --region=us-central;
+gcloud alpha firestore databases create --region=us-central;
+docker pull thelancelord/google-cloud-support-slackbot:2.0;
+docker tag thelancelord/google-cloud-support-slackbot:2.0 us-central1-docker.pkg.dev/$DEVSHELL_PROJECT_ID/google-cloud-support-slackbot/google-cloud-support-slackbot:2.0;
+docker push us-central1-docker.pkg.dev/$DEVSHELL_PROJECT_ID/google-cloud-support-slackbot/google-cloud-support-slackbot:2.0;
+gcurl https://apikeys.googleapis.com/v2/projects/$PROJECT_NUMBER/locations/global/keys \
+  --request POST \
+  --data '{
+    "displayName": "Support Slackbot",
+    "restrictions": {
+      "api_targets": [
+        {
+          "service": "cloudsupport.googleapis.com",
+          "methods": [
+            "Get*"
+          ]
+        },
+        {
+          "service" : "firestore.googleapis.com",
+          "methods": [
+            "Get*"
+          ]
+        }
+      ]
+    },
+  }';
+KEY_PATH=$(gcurl https://apikeys.googleapis.com/v2/projects/$PROJECT_NUMBER/locations/global/keys | jq ".keys[].name" | sed 's/"//g' | sed -n '([^\/]+$)');
+API_KEY="${KEY_PATH##*/}";
+gcloud run deploy google-cloud-support-slackbot \
+--image=us-central1-docker.pkg.dev/$DEVSHELL_PROJECT_ID/google-cloud-support-slackbot/google-cloud-support-slackbot:$TAG \
+--allow-unauthenticated \
+--service-account=support-slackbot@$DEVSHELL_PROJECT_ID.iam.gserviceaccount.com \
+--min-instances=1 \
+--max-instances=3 \
+--set-env-vars=TEST_CHANNEL_ID=$TEST_CHANNEL_ID,TEST_CHANNEL_NAME=$TEST_CHANNEL_NAME,TEST_USER_ID=$TEST_USER_ID,TEST_USER_NAME=$TEST_USER_NAME,ORG_ID=$ORG_ID,SLACK_TOKEN=$SLACK_TOKEN,SIGNING_SECRET=$SIGNING_SECRET,API_KEY=$API_KEY,PROJECT_ID=$DEVSHELL_PROJECT_ID,TEST_PROJECT_NUMBER=$PROJECT_NUMBER \
+--no-use-http2 \
+--no-cpu-throttling \
+--platform=managed \
+--region=us-central1 \
+--port=5000 \
+--project=$DEVSHELL_PROJECT_ID;
+```
+This will output a URL. Copy this URL to use in **Setup Part 3**. If you need to find this URL again, you can find it under **Cloud Run** by clicking on the **google-cloud-support-slackbot** service. You will find the URL near the top of the Service details page   
 
+## Setup Part 3 - Slack App
+
+Return to [Slack Apps](http://api.slack.com/apps) to do the following:
+
+1. Go to **Features > Slash Commands** and click the **pencil icon**:
+	1. Update the `Request URL`'s `CLOUDRUN_SERVICE_URL` placeholder with the url generated in **Setup Part 2** and then click **Save**
+ 
 ## Testing
 
 To verify that everything was setup correctly, do the following:
@@ -154,12 +163,4 @@ To verify that everything was setup correctly, do the following:
 
 With that you should be all setup! And as a reminder, if you had to create the SSH firewall rule, it is recommended that you go back and disable it. If you ever need to SSH into the machine you can always enable the rule again as needed.
 
-As the Cloud Support API continues to expand and we collect more feedback for requested features, we will release newer versions of the bot and move the previous version into the archive folder. To replace your current bot with the latest version you will only need to do the following:
-
-1. SSH into your VM instance
-2. Run the following commands:
-	1. `cd /google-cloud-support-slackbot`
-	1. `sudo svn export --force https://github.com/GoogleCloudPlatform/professional-services/trunk/tools/google-cloud-support-slackbot/google_cloud_support_slackbot.py`
-	1. `sudo chmod +x google_cloud_support_slackbot.py`
-3. Close your SSH session
-4. Stop and Start your VM
+As the Cloud Support API continues to expand and we collect more feedback for requested features, we will release newer versions of the bot and move the previous version into the archive folder.
