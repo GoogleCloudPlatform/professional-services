@@ -44,7 +44,7 @@ public class CustomRoleAnalyzerResult {
   public void setNoOfadditionalPermissions(int noOfadditionalPermissions) {
     this.noOfadditionalPermissions = noOfadditionalPermissions;
   }
-  
+
   public boolean isExactMatch() {
     return isExactMatch;
   }

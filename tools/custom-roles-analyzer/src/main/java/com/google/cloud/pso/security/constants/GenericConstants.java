@@ -32,7 +32,6 @@ public class GenericConstants {
   public static final String COLUMN_NO_OF_ADDITIONAL_PERMISSIONS = "No of additional permissions";
   public static final String COLUMN_NO_OF_ORIGINAL_PERMISSIONS = "No of original permissions";
 
-
   public static final String OPTIONS_HELP =
       "Please provide the commandline options. \n"
           + "-o OrgID Organization ID required parameters. \n"

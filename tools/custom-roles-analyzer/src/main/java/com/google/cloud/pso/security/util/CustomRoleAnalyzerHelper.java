@@ -131,7 +131,7 @@ public class CustomRoleAnalyzerHelper {
     }
 
     analyzerResult.setNoOfOriginalPermissions(customRolePermissions.size());
-    
+
     customRolePermissions.removeAll(tallySet);
 
     analyzerResult.setNoOfadditionalPermissions(customRolePermissions.size());
