@@ -130,7 +130,11 @@ public class CustomRoleAnalyzerHelper {
       analyzerResult.setExactMatch(false);
     }
 
+    analyzerResult.setNoOfOriginalPermissions(customRolePermissions.size());
+    
     customRolePermissions.removeAll(tallySet);
+
+    analyzerResult.setNoOfadditionalPermissions(customRolePermissions.size());
 
     analyzerResult.setAdditionPermissionsRequired(customRolePermissions);
 
@@ -157,6 +161,8 @@ public class CustomRoleAnalyzerHelper {
           headers.append(GenericConstants.COLUMN_PARENT + ",");
           headers.append(GenericConstants.COLUMN_PREDEFINED_ROLES + ",");
           headers.append(GenericConstants.COLUMN_ADDITIONAL_PERMISSIONS + ",");
+          headers.append(GenericConstants.COLUMN_NO_OF_ADDITIONAL_PERMISSIONS + ",");
+          headers.append(GenericConstants.COLUMN_NO_OF_ORIGINAL_PERMISSIONS + ",");
           headers.append(GenericConstants.COLUMN_EXACT_MATCH + "\n");
           resultsFile.append(headers);
         }
@@ -181,6 +187,10 @@ public class CustomRoleAnalyzerHelper {
                 + predefinedRoleLStringBuffer
                 + ", "
                 + additionPermissionsStringBuffer
+                + ","
+                + analyzerResult.getNoOfadditionalPermissions()
+                + ","
+                + analyzerResult.getNoOfOriginalPermissions()
                 + ","
                 + analyzerResult.isExactMatch
                 + "\n");

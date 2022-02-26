@@ -26,7 +26,25 @@ public class CustomRoleAnalyzerResult {
   Set<String> listofPredefinedRoles;
   Set<String> additionPermissionsRequired;
   boolean isExactMatch;
+  int noOfOriginalPermissions;
+  int noOfadditionalPermissions;
 
+  public int getNoOfOriginalPermissions() {
+    return noOfOriginalPermissions;
+  }
+
+  public void setNoOfOriginalPermissions(int noOfOriginalPermissions) {
+    this.noOfOriginalPermissions = noOfOriginalPermissions;
+  }
+
+  public int getNoOfadditionalPermissions() {
+    return noOfadditionalPermissions;
+  }
+
+  public void setNoOfadditionalPermissions(int noOfadditionalPermissions) {
+    this.noOfadditionalPermissions = noOfadditionalPermissions;
+  }
+  
   public boolean isExactMatch() {
     return isExactMatch;
   }
