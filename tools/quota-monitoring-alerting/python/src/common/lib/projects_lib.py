@@ -106,9 +106,9 @@ def _get_parent_details(parent_type, parent_id, flds_client):
     return parent_name
 
 
-def _get_all_active_prjs_data(prjs_client):
+def _get_prjs_data(filter_str, prjs_client):
     """Query and paginate all active projects."""
-    request = prjs_client.list(filter='lifecycleState:ACTIVE')
+    request = prjs_client.list(filter=filter_str)
     while request is not None:
         response = gcp.execute_request(request)
         if not response:
@@ -138,33 +138,21 @@ def _project(project_json, prjs_client, flds_client):
     return project
 
 
-def _project_data(project_id, prjs_client=None, creds=None):
-    """Query and get active project."""
+def _paginate_projects_data(filter_str='lifecycleState:ACTIVE',
+                            prjs_client=None,
+                            creds=None):
+    """Paginate through project 'list' API results."""
     prjs_client = prjs_client or gcp.projects_service(creds=creds)
-    request = prjs_client.get(projectId=project_id)
-    return gcp.execute_request(request)
-
-
-def _paginate_projects_data(prjs_client=None, creds=None):
-    """Paginate through project 'list' API results.
-
-    Args:
-        creds: obj, service_account.Credentials objects.
-
-    Yields:
-       list, project data(json).
-    """
-    prjs_client = prjs_client or gcp.projects_service(creds=creds)
-    all_data = _get_all_active_prjs_data(prjs_client)
+    all_data = _get_prjs_data(filter_str, prjs_client)
     for projects_data in all_data:
         yield projects_data
 
 
-def get_all(creds=None):
-    """Return each project that has access to a given region.
+def _paginate_projects(filter_str, creds=None):
+    """Return projects based on the input filter.
 
     Args:
-        creds: obj, service_account.Credentials objects.
+        filter_str: str, to filter the projects returned.
 
     Yields:
         Project, object.
@@ -175,10 +163,56 @@ def get_all(creds=None):
                                 prjs_client=prjs_client,
                                 flds_client=flds_client)
 
-    all_projects_data = _paginate_projects_data(prjs_client, creds)
+    all_projects_data = _paginate_projects_data(filter_str, prjs_client, creds)
     for page_data in all_projects_data:
         for prj_data in page_data:
             yield project(prj_data)
+
+
+def get_all(creds=None):
+    """Return all projects.
+
+    Args:
+        creds: obj, service_account.Credentials objects.
+
+    Yields:
+        Project, object.
+    """
+    filter_str = 'lifecycleState:ACTIVE'
+    projects = _paginate_projects(filter_str, creds)
+    for project in projects:
+        yield project
+
+
+def get_all_folder(folder_id, creds=None):
+    """Return all projects under a folder.
+
+    Args:
+        folder_id: str, folder id.
+        creds: obj, service_account.Credentials objects.
+
+    Yields:
+        Project, object.
+    """
+    filter_str = 'parent.type:folder parent.id:%s lifecycleState:ACTIVE'
+    projects = _paginate_projects(filter_str % folder_id, creds)
+    for project in projects:
+        yield project
+
+
+def get_filtered(filter_str, creds=None):
+    """Return all projects based on the filter.
+
+    Args:
+        filter_str: str, filter str, for example: 'label.env:test'.
+        creds: obj, service_account.Credentials objects.
+
+    Yields:
+        Project, object.
+    """
+    projects = _paginate_projects(filter_str, creds)
+    for project in projects:
+        yield project
 
 
 def get_selective(project_ids, creds=None):
@@ -205,11 +239,9 @@ def get(project_id, creds=None):
     Returns:
         Project, object.
     """
-    prjs_client = gcp.projects_service(creds=creds)
-    flds_client = gcp.folders_service(creds=creds)
-    project = functools.partial(_project,
-                                prjs_client=prjs_client,
-                                flds_client=flds_client)
-
-    prj_data = _project_data(project_id)
-    return project(prj_data)
+    filter_str = 'projectId:%s lifecycleState:ACTIVE' % project_id
+    projects = _paginate_projects(filter_str, creds)
+    try:
+        return next(projects)
+    except StopIteration:
+        return None

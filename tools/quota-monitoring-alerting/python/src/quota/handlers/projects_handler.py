@@ -14,6 +14,7 @@
 """Handle project related endpoint requests."""
 
 import logging
+import itertools
 
 from src.common.lib import projects_lib
 from src.common.lib import pubsub_lib
@@ -22,15 +23,19 @@ from src.common.utils import common_utils
 from src.common.utils import config_utils
 
 _ALL = 'ALL'
+_FILTER = 'FILTERS'
+_FOLDER = 'FOLDERS'
+_PROJECT = 'PROJECTS'
 
 
-def _publish_project_details(project, config, batch_id):
+def _publish_project_details(project, config, batch_id, published_projects):
     """Publish project data to pubsub topic.
 
     Args:
         project: obj, projects_lib._Project object.
         config: obj, config_utils._Config object.
         batch_id: random number.
+        published_projects: set, to keep track of processed projects.
 
     Returns:
       bool, true if published.
@@ -38,8 +43,11 @@ def _publish_project_details(project, config, batch_id):
     if not project:
         logging.debug('Projects: No project details found - %s', project)
         return False
-    logging.info('Projects: Trying to publish %s', project)
+    if project.id in published_projects:
+        logging.debug('Projects: Project already published - %s', project)
+        return False
 
+    logging.info('Projects: Trying to publish %s', project)
     message = pubsub_lib.build_message(project.to_dict(), batch_id=batch_id)
     host_project_id = config.value('project')
     topic = config.value('export.pubsub.metrics_topic')
@@ -49,6 +57,8 @@ def _publish_project_details(project, config, batch_id):
     topic = config.value('export.pubsub.thresholds_topic')
     res = pubsub_lib.publish_message(host_project_id, topic, message)
     logging.info('Projects: Publish results %s to topic %s', res, topic)
+
+    published_projects.add(project.id)
     return True
 
 
@@ -62,13 +72,48 @@ def publish(config_filepath):
     config = config_utils.config(config_filepath)
     batch_id = common_utils.get_unique_id()
     timestamp = common_utils.zulu_timestamp()
+    published_projects = set()
 
-    projects = config.value('export.projects', default=[])
-    if _ALL in projects:
-        projects = projects_lib.get_all()
+    resources = config.value('export.resources', default=tuple())
+    for resource in resources:
+        projects = _get_resource_projects(resource)
+        for project in projects:
+            project.timestamp = timestamp
+            _publish_project_details(project, config, batch_id,
+                                     published_projects)
+
+
+def _get_resource_projects(resource):
+    """Return projects for the resource defined in config."""
+    resource_type = resource.get('type', '').upper()
+    resource_values = resource.get('include', tuple())
+
+    projects = tuple()
+    if resource_type == _FOLDER:
+        projects = _get_folder_projects(resource_values)
+    elif resource_type == _PROJECT:
+        projects = _get_projects(resource_values)
+    elif resource_type == _FILTER:
+        projects = _get_filtered_projects(resource_values)
     else:
-        projects = projects_lib.get_selective(projects)
+        logging.info('Projects: No projects for resource %s', resource_type)
+    return projects
 
-    for project in projects:
-        project.timestamp = timestamp
-        _publish_project_details(project, config, batch_id)
+
+def _get_filtered_projects(filters):
+    """Return projects for 'filters' type resource."""
+    projects_itr = (projects_lib.get_filtered(f) for f in filters)
+    return itertools.chain.from_iterable(projects_itr)
+
+
+def _get_folder_projects(folder_ids):
+    """Return projects for 'folders' type resource."""
+    projects_itr = (projects_lib.get_all_folder(fid) for fid in folder_ids)
+    return itertools.chain.from_iterable(projects_itr)
+
+
+def _get_projects(project_ids):
+    """Return projects for 'projects' type resource."""
+    if _ALL in project_ids:
+        return projects_lib.get_all()
+    return projects_lib.get_selective(project_ids)
