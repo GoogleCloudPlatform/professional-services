@@ -24,19 +24,21 @@ It will print results in file which contains following fields:
 1. Custom Role - Name of the custom role.
 2. Parent - Parent of the custom role. It can be an organization or project.
 3. List of predefined roles - List of predefined roles by which this custom role is made of.
-4. Additional permissions required - Any additional permission apart from predefined roles we need to build this custom role again.
-5. Is Exact Match - If this custom role matches exactly to 1 or more predefined roles then it is set to True otherwise false.
- 
-It provides result in CSV or JSON format. Default is CSV.
- 
+4. Additional permissions required - Any additional permission apart from predefined roles we need to rebuild this custom role.
+5. No of additional permissions - Total number of additional permissions required to rebuild this custom role.
+6. No of original permissions - Total number of permissions originally this custom role has.
+7. Is Exact Match - If this custom role matches exactly to 1 or more predefined roles then it is set to True otherwise false.
+
+It provides results in CSV or JSON format. Default is CSV.
+
  
 # Getting Started
  
 ## Requirements:
 * Java 11
 * Maven 3
-* GCP roles - roles/iam.organizationRoleViewer and roles/resourcemanager.folderViewer
-* APIs to enable - `Cloud Resource Manager API` needs to be enabled for the project from which the service account is coming.
+* GCP roles - roles/iam.organizationRoleViewer and roles/resourcemanager.folderViewer at org level.
+* APIs to enable - `Cloud Resource Manager API` needs to be enabled for the project from which the service account is created.
  
 Please set `export GOOGLE_APPLICATION_CREDENTIALS=<service-account.json>` before executing `analyze.sh` script.
  
