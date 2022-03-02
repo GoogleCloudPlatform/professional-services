@@ -200,8 +200,12 @@ def get_latest_operation_by_prefix(services: Services,
             break
 
         for operation in response['operations']:
-            object_conditions = \
-                operation['metadata']['transferSpec']['objectConditions']
+            transfer_spec = operation['metadata']['transferSpec']
+
+            if 'objectConditions' not in transfer_spec:
+                continue
+
+            object_conditions = transfer_spec['objectConditions']
 
             if 'includePrefixes' not in object_conditions:
                 continue
