@@ -1,0 +1,22 @@
+{
+  "classification": {
+    "displayName": "Access Transparency > Access Transparency > None",
+    "id": "100H44Q1CDHMASRJ41A74OBEEDO62SJ5DPHNI6GJ85HM6PBJECG58SJ1DPPN0OBICLN66U920H76URJ5"
+  },
+  "createTime": "2018-07-16T23:39:24Z",
+  "creator": {
+    "displayName": "supportapi-integration@anilgcp-project.iam.gserviceaccount.com",
+    "email": "supportapi-integration@anilgcp-project.iam.gserviceaccount.com"
+  },
+  "displayName": "Test Case from API",
+  "name": "projects/206675117367/cases/16387061",
+  "state": "NEW",
+  "subscriberEmailAddresses": [
+    "test_email@example.com",
+    "test_email2@google.com"
+  ],
+  "testCase": true,
+  "updateTime": "2022-01-04T20:51:18Z",
+  "priority": "P4",
+  "severity": "S2"
+}
