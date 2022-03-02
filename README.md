@@ -27,6 +27,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [Cloud Data Fusion Functions and Plugins](examples/cloud-datafusion-functions-plugins) - Examples of Cloud Data Fusion Functions and Plugins.
 * [Cloud Function VM Delete Event Handler Example](examples/gcf-pubsub-vm-delete-event-handler) - Solution to automatically delete A records in Cloud DNS when a VM is deleted.  This solution implements a [Google Cloud Function][gcf] [Background Function][gcf-bg] triggered on `compute.instances.delete` events published through [Stackdriver Logs Export][logs-export].
 * [Cloud SQL Custom Metric](examples/cloud-sql-custom-metric) - An example of creating a Stackdriver custom metric monitoring Cloud SQL Private Services IP consumption.
+* [Cloud Support API](examples/cloud-support) - Sample code using Cloud Support API
 * [CloudML Bank Marketing](examples/cloudml-bank-marketing) - Notebook for creating a classification model for marketing using CloudML.
 * [CloudML Bee Health Detection](examples/cloudml-bee-health-detection) - Detect if a bee is unhealthy based on an image of it and its subspecies.
 * [CloudML Churn Prediction](examples/cloudml-churn-prediction) - Predict users' propensity to churn using Survival Analysis.
@@ -68,7 +69,6 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [Redis Cluster on GKE Example](examples/redis-cluster-gke) - Deploying Redis cluster on GKE.
 * [Spanner Interleave Subquery](examples/spanner-interleave-subquery) - Example code to benchmark Cloud Spanner's subqueries for interleaved tables.
 * [Spinnaker](examples/spinnaker) - Example pipelines for a Canary / Production deployment process.
-* [Support API](examples/support) - Sample code using Support API
 * [TensorFlow Serving on GKE and Load Testing](examples/tf-load-testing) - Examples how to implement Tensorflow model inference on GKE and to perform a load testing of such solution.
 * [TensorFlow Unit Testing](examples/tensorflow-unit-testing) - Examples how to write unit tests for TensorFlow ML models.
 * [Terraform Internal HTTP Load Balancer](examples/terraform-ilb) - Terraform example showing how to deploy an internal HTTP load balancer.
