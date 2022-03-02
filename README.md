@@ -68,6 +68,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [Redis Cluster on GKE Example](examples/redis-cluster-gke) - Deploying Redis cluster on GKE.
 * [Spanner Interleave Subquery](examples/spanner-interleave-subquery) - Example code to benchmark Cloud Spanner's subqueries for interleaved tables.
 * [Spinnaker](examples/spinnaker) - Example pipelines for a Canary / Production deployment process.
+* [Support API](examples/support) - Sample code using Support API
 * [TensorFlow Serving on GKE and Load Testing](examples/tf-load-testing) - Examples how to implement Tensorflow model inference on GKE and to perform a load testing of such solution.
 * [TensorFlow Unit Testing](examples/tensorflow-unit-testing) - Examples how to write unit tests for TensorFlow ML models.
 * [Terraform Internal HTTP Load Balancer](examples/terraform-ilb) - Terraform example showing how to deploy an internal HTTP load balancer.
