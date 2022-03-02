@@ -41,7 +41,7 @@ public class Starter {
       // for example, cloudSupport.cases().get("name of case").execute();
 
       System.out.println("CloudSupport API is ready to use: " + cloudSupport);
-      
+
     } catch (IOException e) {
       System.out.println("IOException caught! \n" + e);
 
