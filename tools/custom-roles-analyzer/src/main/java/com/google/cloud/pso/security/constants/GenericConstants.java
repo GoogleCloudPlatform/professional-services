@@ -27,8 +27,10 @@ public class GenericConstants {
   public static final String COLUMN_CUSTOM_ROLE = "Custom Role";
   public static final String COLUMN_PARENT = "Parent";
   public static final String COLUMN_PREDEFINED_ROLES = "List of predefined roles";
-  public static final String COLUMN_ADDITIONAL_PERMISSIONS = "Aditional permissions required";
+  public static final String COLUMN_ADDITIONAL_PERMISSIONS = "Additional permissions required";
   public static final String COLUMN_EXACT_MATCH = "Is Exact Match";
+  public static final String COLUMN_NO_OF_ADDITIONAL_PERMISSIONS = "No of additional permissions";
+  public static final String COLUMN_NO_OF_ORIGINAL_PERMISSIONS = "No of original permissions";
 
   public static final String OPTIONS_HELP =
       "Please provide the commandline options. \n"
