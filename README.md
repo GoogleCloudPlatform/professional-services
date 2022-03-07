@@ -27,6 +27,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [Cloud Data Fusion Functions and Plugins](examples/cloud-datafusion-functions-plugins) - Examples of Cloud Data Fusion Functions and Plugins.
 * [Cloud Function VM Delete Event Handler Example](examples/gcf-pubsub-vm-delete-event-handler) - Solution to automatically delete A records in Cloud DNS when a VM is deleted.  This solution implements a [Google Cloud Function][gcf] [Background Function][gcf-bg] triggered on `compute.instances.delete` events published through [Stackdriver Logs Export][logs-export].
 * [Cloud SQL Custom Metric](examples/cloud-sql-custom-metric) - An example of creating a Stackdriver custom metric monitoring Cloud SQL Private Services IP consumption.
+* [Cloud Support API](examples/cloud-support) - Sample code using Cloud Support API
 * [CloudML Bank Marketing](examples/cloudml-bank-marketing) - Notebook for creating a classification model for marketing using CloudML.
 * [CloudML Bee Health Detection](examples/cloudml-bee-health-detection) - Detect if a bee is unhealthy based on an image of it and its subspecies.
 * [CloudML Churn Prediction](examples/cloudml-churn-prediction) - Predict users' propensity to churn using Survival Analysis.
