@@ -31,7 +31,7 @@ limitations under the License.
 <dependency>
   <groupId>com.google.cloud</groupId>
   <artifactId>google-iam-admin</artifactId>
-  <version>1.1.1</version>
+  <version>1.1.4</version>
 </dependency>
 <dependency>
   <groupId>com.google.apis</groupId>
@@ -59,11 +59,16 @@ limitations under the License.
   <artifactId>guava</artifactId>
   <version>31.0.1-jre</version>
 </dependency>
-    <dependency>
-      <groupId>com.google.flogger</groupId>
-      <artifactId>google-extensions</artifactId>
-      <version>0.7.4</version>
-    </dependency>
+<dependency>
+  <groupId>com.google.flogger</groupId>
+  <artifactId>google-extensions</artifactId>
+  <version>0.7.4</version>
+</dependency>
+<dependency>
+  <groupId>com.google.cloud</groupId>
+  <artifactId>google-cloud-asset</artifactId>
+  <version>3.2.14</version>
+</dependency>
 </dependencies>
   <build>
     <plugins>
