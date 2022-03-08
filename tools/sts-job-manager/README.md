@@ -189,7 +189,7 @@ optional arguments:
 
 ## Limits
 
-When preparing a loaded table one may have to wait up to 90 minutes before [rows are available](https://cloud.google.com/bigquery/streaming-data-into-bigquery#dataavailability) the STS Job Manager tool. It is recommended to follow the [latest limits on BigQuery's Data Manipulation Language (DML)](https://cloud.google.com/bigquery/docs/reference/standard-sql/data-manipulation-language#limitations) while using this tool.
+When preparing a loaded table one may have to wait up to 90 minutes before [rows are available](https://cloud.google.com/bigquery/streaming-data-into-bigquery#dataavailability) for the STS Job Manager tool. It is recommended to follow the [latest limits on BigQuery's Data Manipulation Language (DML)](https://cloud.google.com/bigquery/docs/reference/standard-sql/data-manipulation-language#limitations) while using this tool.
 
 It is recommended to follow the latest [ramp-up practices for Google Cloud Storage](https://cloud.google.com/storage/docs/request-rate#ramp-up) for a smoother transfer experience.
 
