@@ -17,4 +17,4 @@
 
 mvn compile exec:java \
   -Dexec.mainClass="com.google.cloud.pso.security.CustomRoleAnalyzer" \
-  -Dexec.args="$1 $2 $3 $4" 
+  -Dexec.args="$1 $2 $3 $4 $5 $6" 
