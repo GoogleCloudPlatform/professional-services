@@ -16,6 +16,7 @@ limitations under the License.
 
 package com.google.cloud.pso.security;
 
+import com.google.cloud.pso.security.asset.AssetServiceUtil;
 import com.google.cloud.pso.security.constants.GenericConstants;
 import com.google.cloud.pso.security.util.CustomRoleAnalyzerHelper;
 import com.google.common.flogger.GoogleLogger;
@@ -31,6 +32,8 @@ public class CustomRoleAnalyzer {
 
     String orgId = "";
     String resultFormat = GenericConstants.DEFAULT_FORMAT;
+    boolean binding = false;
+    boolean customRoleAnalysis = false;
 
     List<String> commandlineArgs = null;
     if (args != null && args.length > 0) {
@@ -39,16 +42,16 @@ public class CustomRoleAnalyzer {
       logger.atInfo().log(GenericConstants.OPTIONS_HELP);
       System.exit(1);
     }
-    if (commandlineArgs.contains("-o")
-        && commandlineArgs.size() > (commandlineArgs.indexOf("-o") + 1)) {
-      orgId = (String) commandlineArgs.get(commandlineArgs.indexOf("-o") + 1);
+    if (commandlineArgs.contains("--org")
+        && commandlineArgs.size() > (commandlineArgs.indexOf("--org") + 1)) {
+      orgId = (String) commandlineArgs.get(commandlineArgs.indexOf("--org") + 1);
     } else {
       logger.atInfo().log(GenericConstants.OPTIONS_HELP);
       System.exit(1);
     }
-    if (commandlineArgs.contains("-f")
-        && commandlineArgs.size() > (commandlineArgs.indexOf("-o") + 1)) {
-      resultFormat = (String) commandlineArgs.get(commandlineArgs.indexOf("-f") + 1);
+    if (commandlineArgs.contains("--format")
+        && commandlineArgs.size() > (commandlineArgs.indexOf("--org") + 1)) {
+      resultFormat = (String) commandlineArgs.get(commandlineArgs.indexOf("--format") + 1);
       if (!resultFormat.equals(GenericConstants.JSON_FORMAT)
           || !resultFormat.equals(GenericConstants.DEFAULT_FORMAT)) {
         logger.atWarning().log("Unsupported format: " + resultFormat);
@@ -56,33 +59,66 @@ public class CustomRoleAnalyzer {
         resultFormat = GenericConstants.DEFAULT_FORMAT;
       }
     }
-    logger.atInfo().log("Staring custom role analysis for org : " + orgId);
 
-    CustomRoleAnalyzerHelper analyzerHelper = new CustomRoleAnalyzerHelper();
-    try {
-      analyzerHelper.initilize(orgId, resultFormat);
-    } catch (Exception e) {
-      logger.atSevere().withCause(e).log("Unable to initialize custom role analyzer tool.");
-      System.exit(1);
+    if (commandlineArgs.contains("--binding-analysis")) {
+      binding = true;
+    }
+    if (commandlineArgs.contains("--role-analysis")) {
+      customRoleAnalysis = true;
+    }
+    if (!binding && !customRoleAnalysis) {
+      logger.atInfo().log("Choosing execution of default tool as custom role analysis.");
+      customRoleAnalysis = true;
     }
 
-    try {
-      analyzerHelper.processOrgLevelCustomRoles(orgId);
-    } catch (Exception e) {
-      logger.atSevere().withCause(e).log("Unable to process org level custom roles.");
-      System.exit(1);
+    if (customRoleAnalysis) {
+
+      logger.atInfo().log("Staring custom role analysis for org : " + orgId);
+
+      CustomRoleAnalyzerHelper analyzerHelper = new CustomRoleAnalyzerHelper();
+      try {
+        analyzerHelper.initilize(orgId, resultFormat);
+      } catch (Exception e) {
+        logger.atSevere().withCause(e).log("Unable to initialize custom role analyzer tool.");
+        System.exit(1);
+      }
+
+      try {
+        analyzerHelper.processOrgLevelCustomRoles(orgId);
+      } catch (Exception e) {
+        logger.atSevere().withCause(e).log("Unable to process org level custom roles.");
+        System.exit(1);
+      }
+      try {
+        analyzerHelper.processProjectLevelCustomRoles(orgId);
+      } catch (Exception e) {
+        logger.atSevere().withCause(e).log("Unable to process project level custom roles.");
+        System.exit(1);
+      }
+      logger.atInfo().log(
+          "Successfully executed custom role analysis and results are written to: "
+              + GenericConstants.RESULT_FILENAME
+              + "."
+              + resultFormat);
     }
-    try {
-      analyzerHelper.processProjectLevelCustomRoles(orgId);
-    } catch (Exception e) {
-      logger.atSevere().withCause(e).log("Unable to process project level custom roles.");
-      System.exit(1);
+
+    if (binding) {
+      String scope = GenericConstants.ORGANIZATIONS + GenericConstants.SEPARATOR + orgId;
+      String query = "";
+      logger.atInfo().log("Staring role binding analysis for scope : " + scope);
+      AssetServiceUtil assetServiceUtil = new AssetServiceUtil();
+      try {
+        assetServiceUtil.analyzeBindings(scope, query);
+      } catch (Exception e) {
+        logger.atSevere().withCause(e).log("Unable to process bindings for the roles.");
+        System.exit(1);
+      }
+      logger.atInfo().log(
+          "Successfully executed role binding analysis and results are written to: "
+              + GenericConstants.RESULT_FILENAME_ROLE_BINDING
+              + "."
+              + GenericConstants.DEFAULT_FORMAT);
     }
-    logger.atInfo().log(
-        "Successfully executed custom role analysis and results are written to: "
-            + GenericConstants.RESULT_FILENAME
-            + "."
-            + resultFormat);
     System.exit(1);
   }
 }

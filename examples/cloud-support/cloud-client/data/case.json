@@ -1,0 +1,15 @@
+{
+    "classification": {
+      "displayName": "Access Transparency > Access Transparency > None",
+      "id": "100H44Q1CDHMASRJ41A74OBEEDO62SJ5DPHNI6GJ85HM6PBJECG58SJ1DPPN0OBICLN66U920H76URJ5"
+    },
+    "displayName": "Test Case",
+    "description": "This is a sample support case description",
+    "name": "",
+    "severity": "S2",
+    "state": "NEW",
+    "subscriberEmailAddresses": [
+      "test_email@google.com"
+    ],
+    "testCase": true
+  }

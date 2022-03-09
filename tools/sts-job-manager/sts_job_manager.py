@@ -105,13 +105,10 @@ def set_prefixes_to_status(prefixes: List[str], status: str,
 
     # API does not support table names for preparameterized queries
     # https://cloud.google.com/bigquery/docs/parameterized-queries
-    # We can't UPDATE jobs that are currently in a stream, so defer for later
-    # https://cloud.google.com/bigquery/docs/reference/standard-sql/data-manipulation-language#limitations
     query = f"""
     UPDATE `{table}`
     SET status = @status, last_updated = CURRENT_TIMESTAMP()
     WHERE prefix IN UNNEST(@prefixes)
-    AND last_updated < TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 90 MINUTE)
     """
 
     params = [
@@ -136,13 +133,10 @@ def set_job_name(prefix: str, job_name: str, services: Services,
 
     # API does not support table names for preparameterized queries
     # https://cloud.google.com/bigquery/docs/parameterized-queries
-    # We can't UPDATE jobs that are currently in a stream, so defer for later
-    # https://cloud.google.com/bigquery/docs/reference/standard-sql/data-manipulation-language#limitations
     query = f"""
     UPDATE `{table}`
     SET job_name = @job_name, last_updated = CURRENT_TIMESTAMP()
     WHERE prefix = @prefix
-    AND last_updated < TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 90 MINUTE)
     """
 
     params = [
@@ -192,6 +186,7 @@ def get_latest_operation_by_prefix(services: Services,
         name='transferOperations', filter=job_filter, pageSize=256)
 
     latest_operation_by_prefix: Dict[str, dict] = {}
+    operation_to_prefix: Dict[str, str] = {}
 
     while request is not None:
         response = request.execute()
@@ -225,8 +220,11 @@ def get_latest_operation_by_prefix(services: Services,
                 continue
 
             for prefix in object_conditions['includePrefixes']:
+                operation_to_set_for_prefix = None
+
                 if prefix not in latest_operation_by_prefix:
-                    latest_operation_by_prefix[prefix] = operation
+                    # The prefix does not have an operation, let's use this one
+                    operation_to_set_for_prefix = operation
                 elif 'endTime' not in operation['metadata'] or \
                         'endTime' not in latest_operation_by_prefix[prefix][
                             'metadata']:
@@ -239,10 +237,48 @@ def get_latest_operation_by_prefix(services: Services,
                 elif operation['metadata']['endTime'] > \
                         latest_operation_by_prefix[prefix]['metadata'][
                             'endTime']:
+                    # This operation is newer than the assigned operation
+                    operation_to_set_for_prefix = operation
+
+                # Set the operation for the prefix
+                if operation_to_set_for_prefix:
+                    # unreference existing operation to prefix, if exists
+                    operation_to_prefix.pop(operation['name'], None)
+
                     latest_operation_by_prefix[prefix] = operation
+                    operation_to_prefix[operation['name']] = prefix
 
         request = services.sts.transferOperations().list_next(
             previous_request=request, previous_response=response)
+
+    # If the latest transferOperation is from a deleted job, we should not
+    # consider the operation for state management
+    deleted_job_request = services.sts.transferJobs().list(
+        filter=json.dumps({
+            "project_id": services.bigquery.project,
+            "jobStatuses": ["DELETED"]
+        }), pageSize=256)
+
+    while deleted_job_request is not None:
+        deleted_job_response = deleted_job_request.execute()
+
+        if not deleted_job_response:
+            break
+
+        for transferJob in deleted_job_response['transferJobs']:
+            if 'latestOperationName' not in transferJob:
+                continue
+
+            operation_to_remove = transferJob['latestOperationName']
+
+            prefix = operation_to_prefix.pop(operation_to_remove, None)
+
+            if prefix:
+                latest_operation_by_prefix.pop(prefix, None)
+
+        deleted_job_request = services.sts.transferJobs().list_next(
+            previous_request=deleted_job_request,
+            previous_response=deleted_job_response)
 
     return latest_operation_by_prefix
 
