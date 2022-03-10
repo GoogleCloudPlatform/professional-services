@@ -92,6 +92,7 @@ def shutdown(instance_uri: uri.Instance) -> str:
                                           zone=instance_uri.zone,
                                           instance=instance_uri.name).execute()
         wait_for_zonal_operation(compute, instance_uri, result['name'])
+        wait_for_instance(compute, instance_uri)
         return instance_uri.name
     except Exception as ex:
         logging.error(ex)
