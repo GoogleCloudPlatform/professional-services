@@ -38,10 +38,10 @@ public class GenericConstants {
 
   public static final String OPTIONS_HELP =
       "Please provide the commandline options. \n"
-          + "--org Organization ID required parameters. \n"
-          + "--format Result format (optional parameter; defaults to csv and supports json). \n"
-          + "--role-analysis Run custom role analysis (Optional parameter; default to custom role analysis). \n"
-          + "--binding-analysis Run role binding analysis (Optional parameter; default to custom role analysis). \n";
+          + "--org - Organization ID required parameters. \n"
+          + "--format - Result format (optional parameter; defaults to csv and supports json). \n"
+          + "--role-analysis - Run custom role analysis (Optional parameter; default to custom role analysis). \n"
+          + "--binding-analysis - Run role binding analysis (Optional parameter; default to custom role analysis). \n";
 
   private GenericConstants() {}
 }
