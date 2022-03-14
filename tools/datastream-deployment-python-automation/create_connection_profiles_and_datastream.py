@@ -6,49 +6,34 @@ Usage: create_connection_profiles_and_datastream.py [options]
 This script will be used to create datastream from Cloud SQL(MySQL) to Cloud
 Storage
 
-Options:
-  -h, --help            show this help message and exit
-  --project_id=PROJECT_ID
-                        Specify GCP project id
-  --location=LOCATION   Specify GCP location, example us-central1
-  --source_profile_name=SOURCE_PROFILE_NAME
-                        Enter source connection profile name
-  --source_profile_id=SOURCE_PROFILE_ID
-                        Enter source connection profile id
-  --source_db_hostname=SOURCE_DB_HOSTNAME
-                        Enter source database hostname/public-ip
-  --source_db_port=SOURCE_DB_PORT
-                        Enter source database port name as integer, example
-                        3306
-  --source_db_username=SOURCE_DB_USERNAME
-                        Enter DB username who has REPLICATION SLAVE, SELECT,
-                        RELOAD, REPLICATION CLIENT, LOCK TABLES, EXECUTE
-                        access
-  --destination_profile_name=DESTINATION_PROFILE_NAME
-                        Enter destination connection profile name
-  --destination_profile_id=DESTINATION_PROFILE_ID
-                        Enter destination connection profile id
-  --storage_bucket_name=STORAGE_BUCKET_NAME
-                        Enter storage bucket name where stream data will be
-                        stored
-  --storage_bucket_prefix=STORAGE_BUCKET_PREFIX
-                        Enter storage bucket prefix
-  --stream_id=STREAM_ID
-                        Enter Stream ID
-  --stream_name=STREAM_NAME
-                        Enter Stream name
+Please update all config variables in variables.py file
 """
 from getpass import getpass
 import json
-import optparse
 import sys
 import time
 import requests
+from variables import PROJECT_ID, GCP_LOCATION, source_profile_config, \
+    destination_profile_config, stream_config
 
 
-def create_source_connection_profile(profile_name, profile_id, db_hostname,
-                                     db_port, db_username, db_password,
+def create_source_connection_profile(source_config, db_password,
                                      token, project, location):
+    """
+    This function will create the source connection profile in Google Cloud DataStream
+    :param source_config: source config from variables.py
+    :param db_password: password of DB user mentioned in variables.py
+    :param token: Google Cloud auth token
+    :param project: Google Cloud project id mentioned in variables.py
+    :param location: Google Cloud resource location, for example us-central1
+    :return: True or False
+    """
+    profile_name = source_config["source_profile_name"]
+    profile_id = source_config["source_profile_id"]
+    db_hostname = source_config["source_db_hostname"]
+    db_port = source_config["source_db_port"]
+    db_username = source_config["source_db_username"]
+
     url = f"https://datastream.googleapis.com/v1/projects/{project}/" \
           f"locations/{location}/connectionProfiles" \
           f"?connectionProfileId={profile_id}"
@@ -71,18 +56,31 @@ def create_source_connection_profile(profile_name, profile_id, db_hostname,
     response = requests.request("POST", url, headers=headers, data=payload)
     if response.status_code == 200:
         print(f"Source connection profile {profile_name} created successfully")
-        return True
+        source_connection_profile_stat = True
     elif response.status_code == 409:
         print(f"Source connection profile {profile_name} already exist")
-        return True
+        source_connection_profile_stat = True
     else:
         print(f"Issue while creating source connection profile: {response.text}")
-        return False
+        source_connection_profile_stat = False
+    return source_connection_profile_stat
 
 
-def create_destination_connection_profile(project, location, d_profile_name,
-                                          d_profile_id, bucket_name,
-                                          bucket_prefix, token):
+def create_destination_connection_profile(project, location, destination_config, token):
+    """
+    This function will create the destination connection profile in Google Cloud DataStream
+    :param project: Google Cloud project id mentioned in variables.py
+    :param location: Google Cloud resource location, for example us-central1
+    :param destination_config: destination config from variables.py
+    :param token: Google Cloud auth token
+    :return: True or False
+    """
+
+    d_profile_name = destination_config["destination_profile_name"]
+    d_profile_id = destination_config["destination_profile_id"]
+    bucket_name = destination_config["storage_bucket_name"]
+    bucket_prefix = destination_config["storage_bucket_prefix"]
+
     url = f"https://datastream.clients6.google.com/v1alpha1/" \
           f"projects/{project}/locations/{location}" \
           f"/connectionProfiles?connectionProfileId={d_profile_id}"
@@ -103,17 +101,31 @@ def create_destination_connection_profile(project, location, d_profile_name,
 
     if response.status_code == 200:
         print(f"Destination connection profile {d_profile_id} created successfully")
-        return True
+        destination_connection_profile_stat = True
     elif response.status_code == 409:
         print(f"Destination connection profile {d_profile_id} already exist")
-        return True
+        destination_connection_profile_stat = True
     else:
         print(f"Issue while creating destination connection profile: {response.text}")
-        return False
+        destination_connection_profile_stat = False
+    return destination_connection_profile_stat
 
 
-def create_stream(project, location, stream_id, name, source_connection_id,
-                  destination_connection_id, token):
+def create_stream(project, location, s_config, token):
+    """
+    This function will create the stream in Google Cloud DataStream
+    :param project: Google Cloud project id mentioned in variables.py
+    :param location: Google Cloud resource location, for example us-central1
+    :param s_config: stream config from variables.py
+    :param token: Google Cloud auth token
+    :return: True or False
+    """
+
+    stream_id = s_config["stream_id"]
+    name = s_config["stream_name"]
+    source_connection_id = source_profile_config["source_profile_id"]
+    destination_connection_id = destination_profile_config["destination_profile_id"]
+
     url = f"https://datastream.clients6.google.com/v1alpha1/projects/{project}/" \
           f"locations/{location}/streams?streamId={stream_id}"
     source_connection_path = f"projects/{project}/locations/{location}/" \
@@ -154,16 +166,29 @@ def create_stream(project, location, stream_id, name, source_connection_id,
 
     if response.status_code == 200:
         print(f"Stream {name} created successfully")
-        return True
+        create_stream_stat = True
     elif response.status_code == 409:
         print(f"Stream {name} already exist")
-        return True
+        create_stream_stat = True
     else:
         print(f"Issue while creating stream: {response.text}")
-        return False
+        create_stream_stat = False
+    return create_stream_stat
 
 
-def start_stream(project, location, stream_id, token, name):
+def start_stream(project, location, token, s_config):
+    """
+    This function will start the stream in Google Cloud DataStream
+    :param project: Google Cloud project id mentioned in variables.py
+    :param location: Google Cloud resource location, for example us-central1
+    :param token: Google Cloud auth token
+    :param s_config: stream config from variables.py
+    :return: True or False
+    """
+
+    stream_id = s_config["stream_id"]
+    name = s_config["stream_name"]
+
     url = f"https://datastream.googleapis.com/v1/" \
           f"projects/{project}/locations/{location}/streams/{stream_id}?" \
           "updateMask=state"
@@ -180,102 +205,18 @@ def start_stream(project, location, stream_id, token, name):
 
     if response.status_code == 200:
         print(f"Stream {name} started successfully")
-        return True
+        start_stream_stat = True
     else:
         print(f"Issue while starting stream: {response.text}")
-        return False
+        start_stream_stat = False
+    return start_stream_stat
 
 
-def main(args):
-    parser = optparse.OptionParser(description="This script will be used to create datastream "
-                                               "from Cloud SQL(MySQL) to Cloud Storage")
-    parser.add_option('--project_id', help="Specify GCP project id")
-    parser.add_option('--location', help="Specify GCP location, example us-central1")
-    parser.add_option('--source_profile_name', help="Enter source connection profile name")
-    parser.add_option('--source_profile_id', help="Enter source connection profile id")
-    parser.add_option('--source_db_hostname', help="Enter source database hostname/public-ip")
-    parser.add_option('--source_db_port', help="Enter source database port name as "
-                                               "integer, example 3306")
-    parser.add_option('--source_db_username', help="Enter DB username who has "
-                                                   "REPLICATION SLAVE, SELECT, "
-                                                   "RELOAD, REPLICATION CLIENT, "
-                                                   "LOCK TABLES, EXECUTE access")
-    parser.add_option('--destination_profile_name', help="Enter destination "
-                                                         "connection profile name")
-    parser.add_option('--destination_profile_id', help="Enter destination connection "
-                                                       "profile id")
-    parser.add_option('--storage_bucket_name', help="Enter storage bucket name where "
-                                                    "stream data will be stored")
-    parser.add_option('--storage_bucket_prefix', help="Enter storage bucket prefix")
-    parser.add_option('--stream_id', help="Enter Stream ID")
-    parser.add_option('--stream_name', help="Enter Stream name")
-
-    options, remaining_args = parser.parse_args(args)
-
-    if options.project_id:
-        project_id = options.project_id
-    else:
-        raise Exception('Invalid or missing --project_id option')
-
-    if options.location:
-        location = options.location
-    else:
-        raise Exception('Invalid or missing --location option')
-
-    if options.source_profile_name:
-        source_profile_name = options.source_profile_name
-    else:
-        raise Exception('Invalid or missing --source_profile_name option')
-
-    if options.source_profile_id:
-        source_profile_id = options.source_profile_id
-    else:
-        raise Exception('Invalid or missing --source_profile_id option')
-
-    if options.source_db_hostname:
-        source_db_hostname = options.source_db_hostname
-    else:
-        raise Exception('Invalid or missing --source_db_hostname option')
-
-    if options.source_db_port:
-        source_db_port = options.source_db_port
-    else:
-        raise Exception('Invalid or missing --source_db_port option')
-
-    if options.source_db_username:
-        source_db_username = options.source_db_username
-    else:
-        raise Exception('Invalid or missing --source_db_username option')
-
-    if options.destination_profile_name:
-        destination_profile_name = options.destination_profile_name
-    else:
-        raise Exception('Invalid or missing --destination_profile_name option')
-
-    if options.destination_profile_id:
-        destination_profile_id = options.destination_profile_id
-    else:
-        raise Exception('Invalid or missing --destination_profile_id option')
-
-    if options.storage_bucket_name:
-        storage_bucket_name = options.storage_bucket_name
-    else:
-        raise Exception('Invalid or missing --storage_bucket_name option')
-
-    if options.storage_bucket_prefix:
-        storage_bucket_prefix = options.storage_bucket_prefix
-    else:
-        raise Exception('Invalid or missing --storage_bucket_prefix option')
-
-    if options.stream_id:
-        stream_id = options.stream_id
-    else:
-        raise Exception('Invalid or missing --stream_id option')
-
-    if options.stream_name:
-        stream_name = options.stream_name
-    else:
-        raise Exception('Invalid or missing --stream_name option')
+def main():
+    """
+    This is the main function
+    :return: Print statement if everything works fine else exit with status 1
+    """
 
     auth_token = getpass('Enter auth_token, you can generate auth token by '
                          'running gcloud config set project <project_id> && '
@@ -285,29 +226,22 @@ def main(args):
 
     auth_token = "Bearer " + auth_token
 
-    source_connection_profile_status = create_source_connection_profile(source_profile_name,
-                                                                        source_profile_id,
-                                                                        source_db_hostname,
-                                                                        int(source_db_port),
-                                                                        source_db_username,
+    source_connection_profile_status = create_source_connection_profile(source_profile_config,
                                                                         source_db_password,
                                                                         auth_token,
-                                                                        project_id, location)
+                                                                        PROJECT_ID, GCP_LOCATION)
     if source_connection_profile_status:
         destination_connection_profile_status = create_destination_connection_profile\
-            (project_id, location, destination_profile_name, destination_profile_id,
-             storage_bucket_name, storage_bucket_prefix, auth_token)
+            (PROJECT_ID, GCP_LOCATION, destination_profile_config, auth_token)
         if destination_connection_profile_status:
-            create_stream_status = create_stream(project_id, location,
-                                                 stream_id, stream_name,
-                                                 source_profile_id,
-                                                 destination_profile_id,
+            create_stream_status = create_stream(PROJECT_ID, GCP_LOCATION,
+                                                 stream_config,
                                                  auth_token)
             if create_stream_status:
                 time.sleep(60)
-                start_stream_status = start_stream(project_id, location,
-                                                   stream_id, auth_token,
-                                                   stream_name)
+                start_stream_status = start_stream(PROJECT_ID, GCP_LOCATION,
+                                                   auth_token,
+                                                   stream_config)
                 if start_stream_status:
                     print("Process Completed!")
                 else:
@@ -319,4 +253,4 @@ def main(args):
 
 
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    main()
