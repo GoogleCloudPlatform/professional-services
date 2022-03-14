@@ -1,4 +1,4 @@
-# Copyright 2019 Google LLC
+# Copyright 2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -42,25 +42,32 @@ def main(event, context):
         bucket_name = os.environ["BUCKET"]
         storage_client = storage.Client()
         bucket = storage_client.get_bucket(bucket_name)
-        bags = get_bags(bucket, None)
-        matched_bags = match_bag(context, bags)
+        matched_bags = match_bag(context, bucket)
         for bag in matched_bags:
             bagit = BagIt(bucket, bag)
             bagit.commit()
 
 
-def match_bag(context, bags):
+def match_bag(context, bucket):
     """Matches bag to the file for which an event is triggered and returns bag
     or list of all bags to run Fixity against.
     Args:
         context (obj): Object that contains event context information
-        bags (set): List of bags to match against
+        bucket (obj): Bucket to match against
     """
     filename = context.resource["name"]
-    for bag in bags:
-        if bag in filename:
-            return [bag]
-    return bags
+    matcher = re.search(
+        r"projects/_/buckets/" + bucket.name + r"/objects/(.*)/data/.*",
+        filename)
+    try:
+        return [matcher.group(1)
+               ]  # Only match on changes to files within data/ directory
+    except:
+        bags = get_bags(bucket, None)
+        for bag in bags:
+            if bag in filename:
+                return [bag]
+        return bags
 
 
 def get_bags(bucket, top_prefix=None):
