@@ -54,6 +54,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [dbt-on-cloud-composer](examples/dbt-on-cloud-composer) - Example of using dbt to manage BigQuery data pipelines, utilizing Cloud Composer to run and schedule the dbt runs.
 * [Data Format Description Language (DFDL) Processesor with Firestore and Pubsub](examples/dfdl-firestore-pubsub-example) - Example to process a binary using DFDL definition and Daffodil libraries. The DFDL definition is stored in firestore, the request to process is done through a pubsub subcription and the output is published is a JSON format in a Pubsub topic.
 * [Dialogflow Webhook Example](examples/dialogflow-webhook-example) - Webhook example for dialogflow in Python.
+* [Dialogflow CX Private Webhook Example](examples/dialogflowcx-private-webhook-example) - Webhook example for Dialogflow CX in Python.
 * [Dialogflow Entities Creation and Update](examples/dialogflow-entities-example) - Creation and update of entities for Dialogflow in Python.
 * [DLP API Examples](examples/dlp) - Examples of the DLP API usage.
 * [GCE Access to Google AdminSDK](examples/gce-to-adminsdk) - Example to help manage access to Google's AdminSDK using GCE's service account identity
