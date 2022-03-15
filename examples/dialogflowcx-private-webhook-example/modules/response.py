@@ -12,6 +12,8 @@
 # limitations under the License.
 '''Dialogflow CX response structure.'''
 
+# pylint: disable=no-name-in-module, too-few-public-methods, invalid-name
+
 from typing import Any, List, Dict, Optional
 from pydantic import BaseModel
 

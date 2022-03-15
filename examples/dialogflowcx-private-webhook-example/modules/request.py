@@ -11,6 +11,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 '''Dialogflow CX request data model.'''
+
+# pylint: disable=no-name-in-module, too-few-public-methods, invalid-name
+
 from typing import Any, List, Dict, Optional
 from pydantic import BaseModel
 
