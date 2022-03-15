@@ -1,0 +1,49 @@
+version: "3.3"
+
+services:
+
+  traefik:
+    image: "traefik:2.1"
+    networks:
+      net:
+        ipv4_address: 10.0.16.10
+    command:
+      - "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--providers.file.directory=/certificates/"
+      - "--providers.file.watch=true"
+      - "--providers.docker.network=net"
+    ports:
+      - "80:80"
+      - "8080:8080"
+      - "443:443"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./certificates/:/certificates/"
+
+  web:
+    build: .
+    container_name: "web-service"
+    networks:
+      net:
+        ipv4_address: 10.0.16.11
+    ports:
+      - "8081:8081"
+    labels:
+      - "traefik.enable=true"
+      - "treafik.docker.network=net"
+      - "traefik.http.services.web.loadbalancer.server.port=8081"
+      - "traefik.http.routers.web.rule=Host(`webhook.internal`)"
+      - "traefik.http.routers.websecure.rule=Host(`webhook.internal`)"
+      - "traefik.http.routers.websecure.tls=true"
+
+networks:
+  net:
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.0.16.0/24
