@@ -72,7 +72,9 @@ docker-compose up -d
 
 ### Configure DialogFlow CX Agent
 Configure your Dialogflow CX agent:
-- [Configure the Dialgoflow agent webhook](https://cloud.google.com/dialogflow/cx/docs/concept/webhook#sd) to use Service Directory for private network access. The webhook URL is `https://webhook.internal/weebhook`.
+- [Configure the Dialgoflow agent webhook](https://cloud.google.com/dialogflow/cx/docs/concept/webhook#sd) to use Service Directory for private network access. 
+  - The webhook URL is `https://webhook.internal/weebhook`. 
+  - Upload the `DER` self-signed certificate created.
 - Configure the Dialogflow intent to use the configured webhook. 
 
 ## Test your Agent - Webhook interaction
