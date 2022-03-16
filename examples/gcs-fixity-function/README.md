@@ -52,7 +52,8 @@ The setup instructions create the following BigQuery views:
 - `fixity.file_operations`: A running list of all file operations (file updated, file changed, file created) across all bags.
 
 ## Setup
-[Setup Instructions](./docs/setup.md)
+Use **[Setup Instructions](./docs/setup.md)** to setup Fixity functions.
+Use **[Removal Instructions](./docs/remove.md)** to disable or remove Fixity functions.
 
 ## Limitations
 This Cloud Functions has a default memory limit of 256MB per function invocation. To avoid hitting memory limits, distribute bags and objects across many different buckets. It's recommended to maintain under 250,000 objects per bucket to avoid running into memory limitations.

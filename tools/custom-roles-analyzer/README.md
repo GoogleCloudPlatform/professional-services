@@ -15,7 +15,9 @@ limitations under the License.
 *-->
  
 # Custom Role Analyzer
- 
+
+## Custom role analysis
+
 While working with custom roles once created it is hard to find out if those roles are based out of any of the predefined roles.
 In custom roles you will see a set of permissions as it is possible that many roles have common permissions.
  
@@ -31,14 +33,23 @@ It will print results in file which contains following fields:
 
 It provides results in CSV or JSON format. Default is CSV.
 
+## Role bindings analysis
+ 
+To find role binding at each resource level run this tool with `--binding-analysis`. This tool will write results in separate `CSV` file which includes following fields:
+1. Role - Any pre-defined or customer role.
+2. Resource - Resource to which bindings are available.
+3. Bindings - Bindings associated with resource and role.
+
  
 # Getting Started
  
 ## Requirements:
 * Java 11
 * Maven 3
-* GCP roles - roles/iam.organizationRoleViewer and roles/resourcemanager.folderViewer at org level.
-* APIs to enable - `Cloud Resource Manager API` needs to be enabled for the project from which the service account is created.
+* GCP roles for custom role analysis - `roles/iam.organizationRoleViewer` and `roles/resourcemanager.folderViewer` at org level.
+* GCP roles for bindings analysis - `roles/cloudasset.viewer` at org level.
+* APIs to enable for custom role analysis - `Cloud Resource Manager API` needs to be enabled for the project from which the service account is created.
+* APIs to enable for binding analysis - `Cloud Asset API` needs to be enabled for the project from which the service account is created.
  
 Please set `export GOOGLE_APPLICATION_CREDENTIALS=<service-account.json>` before executing `analyze.sh` script.
  
@@ -56,16 +67,30 @@ This will create an executable jar inside the `target` folder which will be used
 ## Running the tool
 Run following command:
 ```
-analyze.sh -o <org_id> -f <format>
+analyze.sh --org <org_id> --format <format> --role-analysis --binding-analysis
 ```
 Parameters: \
--o --org       : GCP Organization Id (mandatory parameter). \
--f --format    : Result format (optional parameter; defaults to csv and supports json).
+--org       : GCP Organization Id (mandatory parameter). \
+--format    : Result format (optional parameter; defaults to csv and supports json). \
+--role-analysis      : Run custom role analysis (Optional parameter; default to custom role analysis). \
+--binding-analysis   : Run role binding analysis (Optional parameter; default to custom role analysis).
+You can simply run as follows to get default format and custom role analysis:
+```
+analyze.sh --org <org_id>
+```
  
-You can simply run as follows to get default format:
+You can run tool as follows to find the role bindings:
  
 ```
-analyze.sh -o <org_id>
+analyze.sh --org <org_id> --binding-analysis
 ```
+ 
+To run both customer role analysis and binding analysis:
+ 
+```
+analyze.sh --org <org_id> --role-analysis --binding-analysis
+```
+
+
 ## Assumptions
-* It is assumed that custom role does not have any "TESTING" stage permissions. If it does then those will be shows as `Additional permissions required` column in the result and `Is Exact Match` will be set to false.
+* It is assumed that custom roles do not have any "TESTING" stage permissions. If it does then those will be shown as `Additional permissions required` column in the result and `Is Exact Match` will be set to false.

@@ -16,3 +16,6 @@ prepare:
 
 deploy:
 		./deploy.sh
+
+remove:
+		./remove.sh

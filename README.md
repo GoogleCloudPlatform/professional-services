@@ -27,6 +27,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [Cloud Data Fusion Functions and Plugins](examples/cloud-datafusion-functions-plugins) - Examples of Cloud Data Fusion Functions and Plugins.
 * [Cloud Function VM Delete Event Handler Example](examples/gcf-pubsub-vm-delete-event-handler) - Solution to automatically delete A records in Cloud DNS when a VM is deleted.  This solution implements a [Google Cloud Function][gcf] [Background Function][gcf-bg] triggered on `compute.instances.delete` events published through [Stackdriver Logs Export][logs-export].
 * [Cloud SQL Custom Metric](examples/cloud-sql-custom-metric) - An example of creating a Stackdriver custom metric monitoring Cloud SQL Private Services IP consumption.
+* [Cloud Support API](examples/cloud-support) - Sample code using Cloud Support API
 * [CloudML Bank Marketing](examples/cloudml-bank-marketing) - Notebook for creating a classification model for marketing using CloudML.
 * [CloudML Bee Health Detection](examples/cloudml-bee-health-detection) - Detect if a bee is unhealthy based on an image of it and its subspecies.
 * [CloudML Churn Prediction](examples/cloudml-churn-prediction) - Predict users' propensity to churn using Survival Analysis.
@@ -54,6 +55,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [Data Format Description Language (DFDL) Processesor with Firestore and Pubsub](examples/dfdl-firestore-pubsub-example) - Example to process a binary using DFDL definition and Daffodil libraries. The DFDL definition is stored in firestore, the request to process is done through a pubsub subcription and the output is published is a JSON format in a Pubsub topic.
 * [Data Format Description Language (DFDL) Processesor with Bigtable and Pubsub](examples/dfdl-bigtable-pubsub-example) - Example to process a binary using DFDL definition and Daffodil libraries. The DFDL definition is stored in bigtable, the request to process is done through a pubsub subcription and the output is published is a JSON format in a Pubsub topic.
 * [Dialogflow Webhook Example](examples/dialogflow-webhook-example) - Webhook example for dialogflow in Python.
+* [Dialogflow CX Private Webhook Example](examples/dialogflowcx-private-webhook-example) - Webhook example for Dialogflow CX in Python.
 * [Dialogflow Entities Creation and Update](examples/dialogflow-entities-example) - Creation and update of entities for Dialogflow in Python.
 * [DLP API Examples](examples/dlp) - Examples of the DLP API usage.
 * [GCE Access to Google AdminSDK](examples/gce-to-adminsdk) - Example to help manage access to Google's AdminSDK using GCE's service account identity
@@ -101,6 +103,7 @@ The tools folder contains ready-made utilities which can simplify Google Cloud P
 * [Custom Role Analyzer](tools/custom-roles-analyzer) - This tool will provide useful insights with respect to custom roles at organization level as well as project level to find predefined roles from which the custom role is built.
 * [Custom Role Manager](tools/custom-role-manager) - Manages organization- or project-level custom roles by combining predefined roles and including and removing permissions with wildcards. Can run as Cloud Function or output Terraform resources.
 * [Composer Backup and Recovery](tools/cloud-composer-backup-restore) - A command line tool for applying backup and recovery operations on Cloud Composer Airflow environments. 
+* [DataStream Deployment Automation](tools/datastream-deployment-python-automation) - Python script to automate the deployment of Google Cloud DataStream. This script will create connection profiles, create stream and start stream.
 * [DNS Sync](tools/dns-sync) - Sync a Cloud DNS zone with GCE resources. Instances and load balancers are added to the cloud DNS zone as they start from compute_engine_activity log events sent from a pub/sub push subscription. Can sync multiple projects to a single Cloud DNS zone.
 * [Firewall Enforcer](tools/firewall-enforcer) - Automatically watch & remove illegal firewall rules across organization. Firewall rules are monitored by a Cloud Asset Inventory Feed, which trigger a Cloud Function that inspects the firewall rule and deletes it if it fails a test.
 * [GCE Disk Encryption Converter](tools/gce-google-keys-to-cmek) - A tool that converts disks attached to a GCE VM instance from Google-managed keys to a customer-managed key stored in Cloud KMS.
