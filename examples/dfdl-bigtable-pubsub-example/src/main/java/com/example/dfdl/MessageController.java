@@ -24,7 +24,7 @@ import org.springframework.web.servlet.view.RedirectView;
 /**
  * Publishes message to a topic.
  *
- * Usage: curl --data "message=0000000500779e8c169a54dd0a1b4a3fce2946f6" localhost:8081/publish
+ * <p>Usage: curl --data "message=0000000500779e8c169a54dd0a1b4a3fce2946f6" localhost:8081/publish
  */
 @RestController
 public class MessageController {
@@ -32,12 +32,10 @@ public class MessageController {
   @Value("${pubsub.message.controller.topic}")
   String pubsubMessageControllerTopic;
 
-  @Autowired
-  private PubSubServer.PubsubOutboundGateway messagingGateway;
+  @Autowired private PubSubServer.PubsubOutboundGateway messagingGateway;
 
   @PostMapping("/publish")
-  public RedirectView publishMessage(@RequestParam("message") String message)
-      throws IOException {
+  public RedirectView publishMessage(@RequestParam("message") String message) throws IOException {
     System.out.println("Message being sent  for processing: " + message);
     messagingGateway.sendToPubsub(pubsubMessageControllerTopic, message);
     return new RedirectView("/");

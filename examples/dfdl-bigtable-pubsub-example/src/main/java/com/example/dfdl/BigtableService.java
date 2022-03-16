@@ -38,33 +38,30 @@ public class BigtableService {
     this.bigtableServer = bigtableServer;
   }
 
-  /**
-   * Returns the dfdl definition.
-   */
+  /** Returns the dfdl definition. */
   public DfdlDef getDfdlDef(String name) throws IOException {
     return queryBigtable(name);
   }
 
-  /**
-   * Filters and queries Bigtable for the dfdl definition.
-   */
+  /** Filters and queries Bigtable for the dfdl definition. */
   public DfdlDef queryBigtable(String name) throws IOException {
     BigtableDataSettings settings = bigtableServer.getBigtableDataSetting();
     BigtableDataClient bigtableDataClient = bigtableServer.getBigtableClient(settings);
-    Filter filterByName = FILTERS
-        .chain()
-        // Gets specific columns.
-        .filter(FILTERS.qualifier().exactMatch("name"))
-        .filter(FILTERS.value().exactMatch(name))
-        // each output row includes the N most recent cells from each column and omits all other
-        // cells from that column.
-        .filter(FILTERS.limit().cellsPerColumn(1));
+    Filter filterByName =
+        FILTERS
+            .chain()
+            // Gets specific columns.
+            .filter(FILTERS.qualifier().exactMatch("name"))
+            .filter(FILTERS.value().exactMatch(name))
+            // each output row includes the N most recent cells from each column and omits all other
+            // cells from that column.
+            .filter(FILTERS.limit().cellsPerColumn(1));
     Query query = Query.create(tableId).filter(filterByName);
     ServerStream<Row> rows = bigtableDataClient.readRows(query);
 
     for (Row row : rows) {
       Row rowDefinition = bigtableDataClient.readRow(tableId, row.getKey());
-      RowCell cellName = rowDefinition.getCells( "dfdl", "name").get(0);
+      RowCell cellName = rowDefinition.getCells("dfdl", "name").get(0);
       System.out.printf(
           "Family: %s    Qualifier: %s   Timestamp: %s   Value: %s%n",
           cellName.getFamily(),
@@ -85,7 +82,7 @@ public class BigtableService {
     return new DfdlDef();
   }
 
-  private DfdlDef buildDfdlDef (RowCell name, RowCell definition) {
+  private DfdlDef buildDfdlDef(RowCell name, RowCell definition) {
     return new DfdlDef(name.getValue().toStringUtf8(), definition.getValue().toStringUtf8());
   }
 }

@@ -21,11 +21,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 
-/**
- *  Initializes components, configurations and services.
- */
+/** Initializes components, configurations and services. */
 @SpringBootApplication
-public class ProcessorService  {
+public class ProcessorService {
 
   @Value("${server.port}")
   String port;
@@ -34,9 +32,7 @@ public class ProcessorService  {
     SpringApplication.run(ProcessorService.class, args);
   }
 
-  /**
-   * Runs on start up. Retrieves all the beans that were created by the {@link ProcessorService}
-   */
+  /** Runs on start up. Retrieves all the beans that were created by the {@link ProcessorService} */
   @Bean
   public CommandLineRunner commandLineRunner(ApplicationContext ctx) {
 

@@ -38,7 +38,7 @@ import org.springframework.stereotype.Service;
 /**
  * Transforms messages using the {@link Daffodil} DFDL processor.
  *
- * The {@link Daffodil} object is a factory object to create a {@link Compiler}. The Compiler
+ * <p>The {@link Daffodil} object is a factory object to create a {@link Compiler}. The Compiler
  * provides a method to compile a provided DFDL schema into a {@link ProcessorFactory}, which
  * creates a {@link DataProcessor}.
  */
@@ -103,9 +103,10 @@ public class DfdlService {
    * @param inputStream
    * @param infosetOutputter
    * @return ParseResult that contains information about the parse, such as whether or not the
-   * processing succeeded any diagnostic information.
+   *     processing succeeded any diagnostic information.
    */
-  private ParseResult parse(DataProcessor dataProcessor,
+  private ParseResult parse(
+      DataProcessor dataProcessor,
       InputSourceDataInputStream inputStream,
       InfosetOutputter infosetOutputter) {
     // The DataProcessor.parse method is thread-safe and may be called multiple times without the
@@ -137,9 +138,10 @@ public class DfdlService {
     int messageLength = message.length();
     byte[] convertedMessage = new byte[messageLength / 2];
     for (int currentIndex = 0; currentIndex < messageLength; currentIndex += 2) {
-      convertedMessage[currentIndex / 2] = (byte) (
-          (Character.digit(message.charAt(currentIndex), 16) << 4)
-              + Character.digit(message.charAt(currentIndex + 1), 16));
+      convertedMessage[currentIndex / 2] =
+          (byte)
+              ((Character.digit(message.charAt(currentIndex), 16) << 4)
+                  + Character.digit(message.charAt(currentIndex + 1), 16));
     }
     return convertedMessage;
   }

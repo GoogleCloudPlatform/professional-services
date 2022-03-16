@@ -27,18 +27,24 @@ import org.springframework.core.env.Environment;
 @SpringBootApplication
 public class BigtableServer {
 
-  @Value("${spring.cloud.gcp.project-id}") String projectId;
-  @Value("${bigtable.instance-id}") String instanceId;
-  @Value("${bigtable.table-id}") String tableId;
+  @Value("${spring.cloud.gcp.project-id}")
+  String projectId;
+
+  @Value("${bigtable.instance-id}")
+  String instanceId;
+
+  @Value("${bigtable.table-id}")
+  String tableId;
 
   @Bean
   ApplicationRunner bigtableServerApplicationRunner(Environment environment) {
     return args -> {
-      System.out.println("Content of application.properties: "
-          + "instance-id="
-          + environment.getProperty("bigtable.instance-id")
-          + " table-id="
-          + environment.getProperty("bigtable.table-id"));
+      System.out.println(
+          "Content of application.properties: "
+              + "instance-id="
+              + environment.getProperty("bigtable.instance-id")
+              + " table-id="
+              + environment.getProperty("bigtable.table-id"));
     };
   }
 
@@ -46,7 +52,8 @@ public class BigtableServer {
   public BigtableDataSettings getBigtableDataSetting() {
     return BigtableDataSettings.newBuilder()
         .setProjectId(projectId)
-        .setInstanceId(instanceId).build();
+        .setInstanceId(instanceId)
+        .build();
   }
 
   @Bean
@@ -56,8 +63,7 @@ public class BigtableServer {
   }
 
   @Bean
-  public BigtableTableAdminSettings getBigtableAdminSettings()
-      throws IOException {
+  public BigtableTableAdminSettings getBigtableAdminSettings() throws IOException {
     return BigtableTableAdminSettings.newBuilder()
         .setProjectId(projectId)
         .setInstanceId(instanceId)
@@ -67,7 +73,7 @@ public class BigtableServer {
   @Bean
   public BigtableTableAdminClient getBigtableAdminClient(
       BigtableTableAdminSettings bigtableTableAdminSettings) throws IOException {
-     return BigtableTableAdminClient.create(bigtableTableAdminSettings);
+    return BigtableTableAdminClient.create(bigtableTableAdminSettings);
   }
 
   @Bean
