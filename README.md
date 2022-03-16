@@ -52,6 +52,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [Dataproc Persistent History Server for Ephemeral Clusters](examples/dataproc-persistent-history-server) - Example of writing logs from an ephemeral cluster to GCS and using a separate single node cluster to look at Spark and YARN History UIs.
 * [dbt-on-cloud-composer](examples/dbt-on-cloud-composer) - Example of using dbt to manage BigQuery data pipelines, utilizing Cloud Composer to run and schedule the dbt runs.
 * [Data Format Description Language (DFDL) Processesor with Firestore and Pubsub](examples/dfdl-firestore-pubsub-example) - Example to process a binary using DFDL definition and Daffodil libraries. The DFDL definition is stored in firestore, the request to process is done through a pubsub subcription and the output is published is a JSON format in a Pubsub topic.
+* [Data Format Description Language (DFDL) Processesor with Bigtable and Pubsub](examples/dfdl-bigtable-pubsub-example) - Example to process a binary using DFDL definition and Daffodil libraries. The DFDL definition is stored in bigtable, the request to process is done through a pubsub subcription and the output is published is a JSON format in a Pubsub topic.
 * [Dialogflow Webhook Example](examples/dialogflow-webhook-example) - Webhook example for dialogflow in Python.
 * [Dialogflow Entities Creation and Update](examples/dialogflow-entities-example) - Creation and update of entities for Dialogflow in Python.
 * [DLP API Examples](examples/dlp) - Examples of the DLP API usage.
