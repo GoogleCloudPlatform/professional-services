@@ -122,6 +122,7 @@ creates relationships between assets and outputs a format compatible with [graph
 * [Hive to BigQuery](tools/hive-bigquery/) - A Python framework to migrate Hive table to BigQuery using Cloud SQL to keep track of the migration progress.
 * [IAM Permissions Copier](tools/iam-permissions-copier) - This tool allows you to copy supported GCP IAM permissions from unmanaged users to managed Cloud Identity users.
 * [IAM Recommender at Scale](tools/iam-recommender-at-scale) - A python package that automates applying iam recommendations.
+* [Instance Mapper](tools/instance_mapper) - Maps different IaaS VM instance types from EC2 and Azure Compute to Google Cloud Platform instance types using a customizable score-based method. Also supports database instances.
 * [IPAM Autopilot](tools/ipam-autopilot) - A simple tool for managing IP address ranges for GCP subnets.
 * [LabelMaker](tools/labelmaker) - A tool that reads key:value pairs from a json file and labels the running instance and all attached drives accordingly.
 * [Machine Learning Auto Exploratory Data Analysis and Feature Recommendation](tools/ml-auto-eda) - A tool to perform comprehensive auto EDA, based on which feature recommendations are made, and a summary report will be generated.
