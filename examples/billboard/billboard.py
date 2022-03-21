@@ -39,6 +39,7 @@ output_url = ""
 isDetailedExportDifferentLocation = False
 detailedBBDataset = ""
 
+app_version="2.0"
 
 # This function checks if billboard dataset already exists or not
 # so that we are not recreating it
@@ -209,7 +210,10 @@ def remove_billboard_dataset(args):
 
 def main(argv):
 
+    
     global detailedBBDataset
+
+    print("Billboard Script version="+app_version +"\n")
 
     parser = argparse.ArgumentParser(description='Billing Export information')
     parser.add_argument('-pr',
