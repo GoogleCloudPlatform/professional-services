@@ -24,11 +24,15 @@ This step includes the following:
 python billboard.py -h
 ```
 ## Create billboard dataset
- -se  standard billing export dataset
- 
+ -se standard billing export dataset
+ -de detailed billing export dataset 
  -bb billboard dataset to be created
 ```
+
 python billboard.py -pr <project id> -se <standard billing ds> -bb <billboard_ds>
+
+python billboard.py -pr <project id> -se <standard billing ds> -de <detailed billing ds> -bb <billboard_ds>
+
 ```
 ## Clean up
 ```
