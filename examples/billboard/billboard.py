@@ -58,7 +58,6 @@ def check_billboard_dataset_exists(dataset_id):
 def create_dataset(args):
 
     global detailedBBDataset
-
     standard_source_id = "{}.{}.{}".format(
         args.PROJECT_ID, args.STANDARD_BILLING_EXPORT_DATASET_NAME,
         args.standard_table)
@@ -70,6 +69,7 @@ def create_dataset(args):
     standard_table_info = None
     detailed_table_info = None
 
+    print("Creating standard Dataset.")
     try:
         standard_table_info = bq_client.get_table(standard_source_id)
         print("Exported {} in GEO Location={}".format(
@@ -82,7 +82,13 @@ def create_dataset(args):
         print(
             "Table {} is not found please check the export and proceed.".format(
                 standard_source_id))
+        #standard is mandatory so program will fail if doesnot exists.
         sys.exit()
+
+    if args.DETAILED_BILLING_EXPORT_DATASET_NAME is None:
+        return True
+    
+    print("Creating detailed Dataset.")
 
     try:
         detailed_table_info = bq_client.get_table(detailed_source_id)
@@ -101,7 +107,8 @@ def create_dataset(args):
         print(
             "Table {} is not found please check the export and proceed.".format(
                 detailed_source_id))
-        sys.exit()
+        #Skip failing if detailed is not there.
+        # sys.exit()
 
 
 # Creates billboard dataset based on billing exported location
@@ -213,9 +220,12 @@ def main(argv):
     
     global detailedBBDataset
 
-    print("Billboard Script version="+app_version +"\n")
+  
+    parser = argparse.ArgumentParser(description='Billing Export information, Version='+app_version)
+    parser.add_argument('-v',
+                        action='version',
+                         version='Version of %(prog)s '+app_version)
 
-    parser = argparse.ArgumentParser(description='Billing Export information')
     parser.add_argument('-pr',
                         dest='PROJECT_ID',
                         type=str,
@@ -238,14 +248,19 @@ def main(argv):
                         dest='clean',
                         type=str,
                         help='Only when you need cleanup, provide "yes"')
+    
+    
 
     args = parser.parse_args()
+    print('Version of billboard.py  '+app_version+"\n")
+    
+
     if args.DETAILED_BILLING_EXPORT_DATASET_NAME is None:
-        print("Detailed export not provided so setting default to Standard.")
-        args.DETAILED_BILLING_EXPORT_DATASET_NAME = args.STANDARD_BILLING_EXPORT_DATASET_NAME
+       print("Detailed export not provided so setting default to Standard.")
+       args.DETAILED_BILLING_EXPORT_DATASET_NAME = args.STANDARD_BILLING_EXPORT_DATASET_NAME
 
     # Detailed Export could be in different region so name will be modified as {}_detail in logic
-    # So storing in global variable.
+    # So we are storing in global variable.
     detailedBBDataset = '{}'.format(args.BILLBOARD_DATASET_NAME_TO_BE_CREATED)
 
     project_id_temp = "projects/{}".format(args.PROJECT_ID)
@@ -272,6 +287,7 @@ def main(argv):
     if args.clean is None:
         create_dataset(args)  # to create dataset
         create_billboard_view(args, True)  # to create standard view
+        #if args.DETAILED_BILLING_EXPORT_DATASET_NAME is not None:
         create_billboard_view(args, False)  # to create detailed view
         generate_datastudio_url(args)  # to create urls
     else:

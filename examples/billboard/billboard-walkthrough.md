@@ -7,6 +7,8 @@ This code implements billboard dataset for standard and detailed billing
 
 You can set-up the right python environment as follows:
 ```
+ cd examples/billboard
+ rm -rf bill-env
  pip install virtualenv
  virtualenv bill-env
  source bill-env/bin/activate
