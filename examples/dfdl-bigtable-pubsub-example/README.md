@@ -19,7 +19,7 @@ applies the definition and publishes the json result to a topic in pubsub.
                └── com.example.dfdl
                    ├── BigtableServer # Configures bigtable database
                    ├── BigtableService # Reads dfdl definitons from a bigtable database
-                   ├── DfdlDef # Embedded entiites
+                   ├── DfdlDef # Embedded entities
                    ├── DfdlService # Processes the binary using a dfdl definition and output a json
                    ├── MessageController # Publishes message to a topic with a binary to be processed.
                    ├── ProcessorService # Initializes components, configurations and services.
