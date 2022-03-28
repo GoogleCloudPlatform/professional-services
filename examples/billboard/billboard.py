@@ -39,7 +39,8 @@ output_url = ""
 isDetailedExportDifferentLocation = False
 detailedBBDataset = ""
 
-app_version="2.0"
+app_version = "2.0"
+
 
 # This function checks if billboard dataset already exists or not
 # so that we are not recreating it
@@ -79,15 +80,14 @@ def create_dataset(args):
                                     args.BILLBOARD_DATASET_NAME_TO_BE_CREATED)
         create_dataset_by_location(dataset_id, standard_table_info.location)
     except NotFound:
-        print(
-            "Table {} is not found please check the export and proceed.".format(
-                standard_source_id))
-        #standard is mandatory so program will fail if doesnot exists.
+        print("Table {} is not found check the export and proceed.".format(
+            standard_source_id))
+        # Standard is mandatory so program will fail if doesnot exists.
         sys.exit()
 
     if args.DETAILED_BILLING_EXPORT_DATASET_NAME is None:
         return True
-    
+
     print("Creating detailed Dataset.")
 
     try:
@@ -99,15 +99,14 @@ def create_dataset(args):
             detailedBBDataset = '{}_detail'.format(
                 args.BILLBOARD_DATASET_NAME_TO_BE_CREATED)
             dataset_id = "{}.{}".format(args.PROJECT_ID, detailedBBDataset)
-            print(
-                "Creating another dataset {} based on detailed export location".
-                format(dataset_id))
+            print("Creating another dataset {} in detailed export loc".format(
+                dataset_id))
             create_dataset_by_location(dataset_id, detailed_table_info.location)
+
     except NotFound:
-        print(
-            "Table {} is not found please check the export and proceed.".format(
-                detailed_source_id))
-        #Skip failing if detailed is not there.
+        print("Table {} is not found check the export.".format(
+            detailed_source_id))
+        # Skip failing if detailed is not there.
         # sys.exit()
 
 
@@ -117,7 +116,8 @@ def create_dataset_by_location(dataset_id, location):
     # Check if billboard dataset exists
     if check_billboard_dataset_exists(dataset_id) is True:
         return
-    # Since we need to create, construct a full Dataset object to send to the API.
+    # Since we need to create, construct a full
+    # Dataset object to send to the API.
     dataset = bigquery.Dataset(dataset_id)
     dataset.location = location
     # Send the dataset to the API for creation, with an explicit timeout.
@@ -217,14 +217,12 @@ def remove_billboard_dataset(args):
 
 def main(argv):
 
-    
     global detailedBBDataset
-
-  
-    parser = argparse.ArgumentParser(description='Billing Export information, Version='+app_version)
+    parser = argparse.ArgumentParser(
+        description='Billing Export information, Version=' + app_version)
     parser.add_argument('-v',
                         action='version',
-                         version='Version of %(prog)s '+app_version)
+                        version='Version of %(prog)s ' + app_version)
 
     parser.add_argument('-pr',
                         dest='PROJECT_ID',
@@ -248,16 +246,13 @@ def main(argv):
                         dest='clean',
                         type=str,
                         help='Only when you need cleanup, provide "yes"')
-    
-    
 
     args = parser.parse_args()
-    print('Version of billboard.py  '+app_version+"\n")
-    
+    print('Version of billboard.py  ' + app_version + "\n")
 
     if args.DETAILED_BILLING_EXPORT_DATASET_NAME is None:
-       print("Detailed export not provided so setting default to Standard.")
-       args.DETAILED_BILLING_EXPORT_DATASET_NAME = args.STANDARD_BILLING_EXPORT_DATASET_NAME
+        print("Detailed export not provided so setting default to Standard.")
+        args.DETAILED_BILLING_EXPORT_DATASET_NAME = args.STANDARD_BILLING_EXPORT_DATASET_NAME
 
     # Detailed Export could be in different region so name will be modified as {}_detail in logic
     # So we are storing in global variable.
@@ -287,7 +282,7 @@ def main(argv):
     if args.clean is None:
         create_dataset(args)  # to create dataset
         create_billboard_view(args, True)  # to create standard view
-        #if args.DETAILED_BILLING_EXPORT_DATASET_NAME is not None:
+        # if args.DETAILED_BILLING_EXPORT_DATASET_NAME is not None:
         create_billboard_view(args, False)  # to create detailed view
         generate_datastudio_url(args)  # to create urls
     else:
