@@ -19,8 +19,7 @@ public class DfdlDef {
 
   String definition;
 
-  public DfdlDef() {
-  }
+  public DfdlDef() {}
 
   public DfdlDef(String name, String definition) {
     this.name = name;
