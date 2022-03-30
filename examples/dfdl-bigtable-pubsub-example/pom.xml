@@ -45,10 +45,6 @@
       <version>2.0.4</version>
     </dependency>
     <dependency>
-      <groupId>com.google.cloud</groupId>
-      <artifactId>spring-cloud-gcp-starter-data-firestore</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
@@ -74,11 +70,6 @@
     </dependency>
     <dependency>
       <groupId>com.google.cloud</groupId>
-      <artifactId>spring-cloud-gcp-starter-data-firestore</artifactId>
-      <version>2.0.5</version>
-    </dependency>
-    <dependency>
-      <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-bigtable</artifactId>
     </dependency>
     <dependency>
@@ -98,9 +89,6 @@
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
         <version>1.6.0</version>
-        <configuration>
-          <mainClass>com.example.mfol.BigtableInitializer</mainClass>
-        </configuration>
       </plugin>
     </plugins>
   </build>

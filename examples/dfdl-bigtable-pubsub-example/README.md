@@ -19,7 +19,7 @@ applies the definition and publishes the json result to a topic in pubsub.
                └── com.example.dfdl
                    ├── BigtableServer # Configures bigtable database
                    ├── BigtableService # Reads dfdl definitons from a bigtable database
-                   ├── DfdlDef # Embedded entiites
+                   ├── DfdlDef # Embedded entities
                    ├── DfdlService # Processes the binary using a dfdl definition and output a json
                    ├── MessageController # Publishes message to a topic with a binary to be processed.
                    ├── ProcessorService # Initializes components, configurations and services.
@@ -101,7 +101,7 @@ Generate a credentials file by running the
 ### Bigtable Setup
 How to create a Bigtable database instance can be found [here](https://cloud.google.com/bigtable/docs/creating-instance)
 
-#### How to add data to firestore
+#### How to add data to bigtable
 The following doc, [Writing to Bigtable](https://cloud.google.com/bigtable/docs/writing-data),
 can be used to add data to bigtable to run the example.
 
@@ -115,6 +115,7 @@ The configuration can be changed by changing the application.properties file.
             dfdl => 
                Column Family Qualifier => 
                    binary_example => {
+                       'name': "dfdl-name"
                        'definiton':
                         "<?xml version"1.0" encoding="UTF-8"?>
                            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
