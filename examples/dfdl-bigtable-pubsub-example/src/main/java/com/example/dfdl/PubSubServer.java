@@ -38,23 +38,12 @@ import org.springframework.util.concurrent.ListenableFutureCallback;
 /**
  * Publishes and subscribes to topics using channels adapters.
  *
- * <p>The receiver:
- *
- * <ul>
- *   <li>The Inbound Channel Adapter listens to messages from a Google Cloud Pub/Sub subscription
- *       and sends them to a Spring channel in an application.
- *   <li>The Input Channel receives the message in a Spring Channel.
- *   <li>The ServiceActivator processes the received messages in a Spring Channel.
- * </ul>
- *
- * <p>The sender:
- *
- * <ul>
- *   <li>The Message Gateway will write messages to the Spring Channel.
- *   <li>The ServiceActivator will consume the messages in the Spring Channel and sends them to the
- *       GCP Topic.
- *   <li>The Output Channel Adapter will ensure that the messages are delivered to the GCP Topic.
- * </ul>
+ * <p>The receiver: - The Inbound Channel Adapter listens to messages from a Google Cloud Pub/Sub
+ * subscription and sends them to a Spring channel in an application - The Input Channel receives
+ * the message in a Spring Channel - The ServiceActivator processes the received messages in a
+ * Spring Channel The sender: - The Message Gateway will write messages to the Spring Channel; - The
+ * ServiceActivator will consume the messages in the Spring Channel and sends them to the GCP Topic;
+ * - The Output Channel Adapter will ensure that the messages are delivered to the GCP Topic.
  */
 @SpringBootApplication
 public class PubSubServer {
@@ -71,7 +60,7 @@ public class PubSubServer {
   String dfdlDefName;
 
   @Autowired private DfdlService dfdlService;
-  @Autowired private FirestoreService firestoreService;
+  @Autowired private BigtableService bigtableService;
   @Autowired private PubsubOutboundGateway messagingGateway;
 
   /** Returns a channel where the adapter sends the received messages. */
@@ -106,9 +95,9 @@ public class PubSubServer {
       LOGGER.info("Message arrived! Payload: " + message.getPayload());
       DfdlDef dfdlDef;
       try {
-        // Get DFDL Definition Getting from Firestore.
-        dfdlDef = firestoreService.getDfdlDef(dfdlDefName);
-        System.out.println("Definition from Firestore: " + dfdlDef.getDefinition());
+        // Get DFDL Definition from Bigtable.
+        dfdlDef = bigtableService.getDfdlDef(dfdlDefName);
+        System.out.println("Definition from Bigtable: " + dfdlDef.getDefinition());
 
         // Transform message using the dfdl definition.
         String messageConverted =
@@ -117,16 +106,14 @@ public class PubSubServer {
         // Republish the message in json format in a new topic
         messagingGateway.sendToPubsub(pubsubDataJsonTopic, messageConverted);
 
-        // Acknowledge incoming Pub/Sub message
-        BasicAcknowledgeablePubsubMessage originalMessage =
-            message
-                .getHeaders()
-                .get(GcpPubSubHeaders.ORIGINAL_MESSAGE, BasicAcknowledgeablePubsubMessage.class);
-        originalMessage.ack();
-
       } catch (IOException e) {
         e.printStackTrace();
       }
+      BasicAcknowledgeablePubsubMessage originalMessage =
+          message
+              .getHeaders()
+              .get(GcpPubSubHeaders.ORIGINAL_MESSAGE, BasicAcknowledgeablePubsubMessage.class);
+      originalMessage.ack();
     };
   }
 
@@ -149,7 +136,7 @@ public class PubSubServer {
 
           @Override
           public void onSuccess(String result) {
-            LOGGER.info("Message was sent via the outbound channel adapter to a topic");
+            LOGGER.info("Message was sent via the outbound channel adapter to a topic ");
           }
         });
     return adapter;
@@ -158,7 +145,6 @@ public class PubSubServer {
   /** Allows publishing messages to the spring output channel. */
   @MessagingGateway(defaultRequestChannel = "outputChannel")
   public interface PubsubOutboundGateway {
-
     void sendToPubsub(@Header(GcpPubSubHeaders.TOPIC) String topic, String message);
   }
 }
