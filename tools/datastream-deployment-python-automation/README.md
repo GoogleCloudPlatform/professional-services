@@ -21,6 +21,11 @@ pip3 install -r requirements.txt
 
  PROJECT_ID = Specify GCP project id
  LOCATION = Specify GCP location, example us-central1
+ source_database_type = Add type of source database, should be 
+                        either mysql or oracle
+ source_profile_connection_type = Enter source profile connection type
+                                    should be either staticServiceIpConnectivity
+                                    or privateConnectivity
  source_profile_name = Enter source connection profile name
  source_profile_id = Enter source connection profile id
  source_db_hostname = Enter source database hostname/public-ip
@@ -28,6 +33,16 @@ pip3 install -r requirements.txt
  source_db_username = Enter DB username who has REPLICATION SLAVE, SELECT,
                         RELOAD, REPLICATION CLIENT, LOCK TABLES, EXECUTE
                         access
+ private_conn_display_name = Enter private connection display name
+ private_conn_id = Enter private connection id
+ vpc_path = Enter path of VPC where source DB is
+ subnet_range = Provide a subnet range for peering
+ private_source_profile_name = Enter source connection profile name
+ private_source_profile_id = Enter source connection profile id
+ private_source_db_hostname = Enter source database hostname/public-ip
+ private_source_db_port = Enter source database port name as integer, example 1521
+ private_source_db_username = Enter DB username
+ private_source_db_service = Enter Oracle DB SID
  destination_profile_name = Enter destination connection profile name
  destination_profile_id = Enter destination connection profile id
  storage_bucket_name = Enter storage bucket name where stream data will be
