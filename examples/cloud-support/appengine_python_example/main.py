@@ -1,8 +1,20 @@
+# Copyright 2022 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#            http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from flask import Flask, render_template, request, redirect
-
-import googleapiclient.discovery
-
 from flask_bootstrap import Bootstrap
+import googleapiclient.discovery
 
 app = Flask(__name__)
 bootstrap = Bootstrap(app)
@@ -27,6 +39,7 @@ print("fetched Cloud Support API ")
 def entry_point():
     return redirect('/index')
 
+
 # The route below is the default home page, which uses a template to render the web form.
 
 
@@ -40,6 +53,7 @@ def index():
         parent=ORGANIZATION_AS_PARENT).execute()
     print("case list:" + str(case_list))
     return render_template('index.html', title="page")
+
 
 # The route below is what is reached after you submit the webform, where
 # the Support API attempts to create a Support Case with the data from the form.
@@ -56,9 +70,11 @@ def create_support_case():
 
     # This try block attempts to create a page. If there aren't errors, a confirmation page is loaded.
     try:
-        response_message = call_create_support_case_api(
-            component, project, impact, googlemeet_link, subscribers, comments)
-        return render_template('created_support_case.html', title="page",
+        response_message = call_create_support_case_api(component, project,
+                                                        impact, googlemeet_link,
+                                                        subscribers, comments)
+        return render_template('created_support_case.html',
+                               title="page",
                                created_meeting_id=googlemeet_link,
                                response_message=response_message["level"],
                                organization_id=ORGANIZATION_ID,
@@ -75,12 +91,15 @@ def create_support_case():
                         "comments=[" + comments + "], because " + \
             e.error_details
         print(e)
-        return render_template('index.html', title="page", error_message=error_message)
+        return render_template('index.html',
+                               title="page",
+                               error_message=error_message)
 
 
 # The method below actually calls the Create Case method from the Support API.
 # It builds the JSON request body from the fields submitted from the web form.
-def call_create_support_case_api(component, project, impact, googlemeet_link, subscribers, comments):
+def call_create_support_case_api(component, project, impact, googlemeet_link,
+                                 subscribers, comments):
     display_name = "TEST CASE - Please Join Google Meet Link: " + googlemeet_link + " ASAP"
 
     if impact:
@@ -88,7 +107,6 @@ def call_create_support_case_api(component, project, impact, googlemeet_link, su
 
     if not comments:
         comments += display_name
-
     """
     The request_body below contains the details used when creating a support case. 
 
@@ -99,16 +117,23 @@ def call_create_support_case_api(component, project, impact, googlemeet_link, su
     """
 
     request_body = {
-        'display_name': display_name,
-        'description': build_description_value(project, impact, googlemeet_link, comments, ''),
+        'display_name':
+            display_name,
+        'description':
+            build_description_value(project, impact, googlemeet_link, comments,
+                                    ''),
         'classification': {
-
             'id': component
         },
-        'time_zone': "-06:00",
-        'testCase': True,
-        'subscriber_email_addresses': [email.strip() for email in subscribers.split(',')] if subscribers else [],
-        'severity': "S3"
+        'time_zone':
+            "-06:00",
+        'testCase':
+            True,
+        'subscriber_email_addresses': [
+            email.strip() for email in subscribers.split(',')
+        ] if subscribers else [],
+        'severity':
+            "S3"
     }
 
     error_message = ""
@@ -147,12 +172,14 @@ def build_response(level, create_case_response):
         "error_message": ""
     }
 
+
 # The function below builds the string to be used for the Support Cases' description.
 # The description is a required field, so in this example, it will be populated
 # even when multiple web form fields are empty.
 
 
-def build_description_value(project, impact, googlemeet_link, comments, error_message):
+def build_description_value(project, impact, googlemeet_link, comments,
+                            error_message):
     description = ""
     if project:
         description += "Project Number: " + project + "\n"
@@ -168,8 +195,8 @@ def build_description_value(project, impact, googlemeet_link, comments, error_me
 
     return description
 
-# The snippet below is boilerplate code for App Engine Standard applications.
 
+# The snippet below is boilerplate code for App Engine Standard applications.
 
 if __name__ == '__main__':
 
