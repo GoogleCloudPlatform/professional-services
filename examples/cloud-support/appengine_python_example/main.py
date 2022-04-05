@@ -12,7 +12,7 @@ bootstrap = Bootstrap(app)
 SERVICE_NAME = "cloudsupport"
 API_VERSION = "v2beta" 
 API_DEFINITION_URL = ""
-ORGANIZATION_ID = # TODO add organization ID eg: '1234567890'
+ORGANIZATION_ID = '1234567890' #TODO add organization ID: 
 ORGANIZATION_AS_PARENT = 'organizations/' + ORGANIZATION_ID
 API_DEFINITION_URL = "https://cloudsupport.googleapis.com/$discovery/rest?version=" + API_VERSION
 
@@ -33,8 +33,7 @@ def entry_point():
 
 @app.route("/index")
 def index():
-    app.logger.info('Create Support Case form is opened')
-
+    
     # The method below will log the "List Cases" method when the page loads.
     # This means that if the page loads successfully, the setup steps have been configured correctly.
     
