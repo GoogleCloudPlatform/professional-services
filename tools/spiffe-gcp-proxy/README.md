@@ -4,6 +4,19 @@ This is a simple GOLANG application that provides an Auth proxy for On-Prem work
 
 Secure Production Identity Framework for Everyone [SPIFFE](https://spiffe.io/) is a framework defined by the Cloud Native Computing Foundation, that solves the security and identity challenges for workloads. 
 
+![](img/spiffe_gcp_proxy_overview.png)
+
+The workflow this proxy implements executes the following steps:
+1. The workload requests a GCP Auth token via `http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/<sa>/token`.
+1. The proxy requests a JSON Web Token (JWT) from the local Spire Agent.
+1. The Spire Agents requests the JWT from the Spire Server.
+1. The proxy takes the SPIFFE JWT and requests a new token from the Security Token Service (STS) API.
+1. STS verifies that the passed SPIFFE JWT is valid, by verifiying the issuer by retrieving the `.well-known/openid-configuration` and the JWKS.
+1. STS creates and passes back an access token. This token can only be used to impersonate a service account.
+1. The proxy requests a service account access token using the "impersonation token".
+1. The proxy responds to the workload with the GCP IAM access token for the service account.
+1. The workload can use the access token to authenticate and authorize against Google Cloud APIs.
+
 ## Setup and Running
 This tool requires a working SPIFFE setup with OIDC enabled (see the [SPIRE getting started](https://spiffe.io/docs/latest/try/) and setup the [OIDC discovery provider](https://github.com/spiffe/spire/tree/main/support/oidc-discovery-provider)). You also have integrated your SPIRE setup with [Workload Identity Federation](https://cloud.google.com/iam/docs/workload-identity-federation) by creating a pool and provider. 
 
