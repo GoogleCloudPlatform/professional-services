@@ -34,7 +34,7 @@ After the proxy is setup you can just retrieve a GCP access token like you used 
 curl "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token" -H "Metadata-Flavor: Google"
 ````
 
-In order to run the proxz will need to checkout the sources and use `go build main.go` to build the proxy. Afterwards you can run the binary but you will need to pass the required configuration via command line. See the full table of options below.
+In order to run the proxy will need to checkout the sources and use `go build main.go` to build the proxy. Afterwards you can run the binary but you will need to pass the required configuration via command line. See the full table of options below.
 
 ### Proxy Configuration Parameters
 | Name                     	| Default                                        	| Description                                                                    	|
