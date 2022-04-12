@@ -22,8 +22,9 @@ Out of the box, you'll have the following functionality:
 
   - [Budget alert notifications](examples/budget-config.yaml)
     - [How to set up programmatic notifications from billing budgets](https://cloud.google.com/billing/docs/how-to/budgets-programmatic-notifications)
-  - [Cloud Security Command Center notifications](examples/scc-config.yaml)
-    - [How to set up finding notifications from SCC](https://cloud.google.com/security-command-center/docs/how-to-notifications)
+  - [Cloud Security Command Center](https://cloud.google.com/security-command-center)
+    - [Email notifications of findings](examples/scc-config.yaml) ([how to set up finding notifications from SCC](https://cloud.google.com/security-command-center/docs/how-to-notifications))
+    - [Create custom findings](examples/scc-finding-config.yaml)
   - [Cloud Storage notifications](examples/storage-config.yaml)
     - [How to set up Cloud Storage notifications](https://cloud.google.com/storage/docs/reporting-changes)
     - For example, you can automatically send reports via email that are generated in a Cloud Storage bucket
