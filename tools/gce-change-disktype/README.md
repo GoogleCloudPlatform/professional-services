@@ -1,6 +1,6 @@
 # Update GCE Instance disk-type
 
-Update disks attached to a GCE instance.
+Script to change disk type of disks attached to a GCE instance.
 
 ## Script Process
 
@@ -9,6 +9,7 @@ Update disks attached to a GCE instance.
 1. For each disk attached to the instance
     1. Detach the disk from the VM instance
     1. Snapshot the disk
+    1. Create a user supplied disk-type from snapshot
 1. Attach the disk to the VM instance
 1. Start the VM instance
 1. Delete the old disks and snapshots created during the process (if 
@@ -21,9 +22,7 @@ following
 usage:
 
 ```
-usage: main.py [-h] --project PROJECT --zone ZONE --instance INSTANCE --new_disk_type
-KEYVERSION [--key-global]
-               [--destructive]
+usage: main.py [-h] --project PROJECT --zone ZONE --instance INSTANCE --new_disk_type [--destructive]
 arguments:
   -h, --help            show this help message and exit
   --project PROJECT     Project containing the GCE instance.
@@ -37,9 +36,3 @@ arguments:
 
 The script uses Google [Application Default 
 Credentials](https://cloud.google.com/docs/authentication/production).
-
-If further automation is required, e.g. running the process for multiple 
-GCP
-instances, the `migrate_instance_to_cmek` function is a good starting 
-point and
-it takes the same parameters as the command-line interface.
