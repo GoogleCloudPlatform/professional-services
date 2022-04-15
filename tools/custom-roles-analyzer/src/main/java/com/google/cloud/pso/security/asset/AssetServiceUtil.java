@@ -34,6 +34,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /** Search all IAM policies, manipulate then and print the result. */
 public class AssetServiceUtil {
@@ -74,8 +75,9 @@ public class AssetServiceUtil {
    * @param scope
    * @param query
    * @throws IOException
+   * @throws InterruptedException
    */
-  public void analyzeBindings(String scope, String query) throws IOException {
+  public void analyzeBindings(String scope, String query) throws IOException, InterruptedException {
     logger.atInfo().log("Analysing bindings");
     List<IamPolicySearchResult> iamPolicySearchResults = null;
     try {
@@ -96,9 +98,10 @@ public class AssetServiceUtil {
    * @param query
    * @return IamPolicySearchResult
    * @throws IOException
+   * @throws InterruptedException
    */
   public List<IamPolicySearchResult> searchAllIamPolicies(String scope, String query)
-      throws IOException {
+      throws IOException, InterruptedException {
 
     logger.atInfo().log("Searching all IAM policies.");
 
@@ -133,6 +136,14 @@ public class AssetServiceUtil {
               .setPageSize(pageSize)
               .setPageToken(response.getNextPageToken());
       request = builder.build();
+      /*
+       * To avoid below error around quota adding sleep. Quota limits are mentioned at:
+       * https://cloud.google.com/asset-inventory/docs/quota
+       * RESOURCE_EXHAUSTED: Quota exceeded for quota metric 'SearchAllIamPolicies
+       * Requests' and limit 'SearchAllIamPolicies Requests per minute' of service
+       * 'cloudasset.googleapis.com' for consumer project
+       */
+      TimeUnit.SECONDS.sleep(1);
     } while (!response.getNextPageToken().equals(""));
     return iamPolicySearchResults;
   }
