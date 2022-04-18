@@ -82,7 +82,7 @@ def create_newdisk_process(project, zone, instance, disktype, destructive):
         disk_url = source_disk['source']
         boot = source_disk['boot']
         auto_delete = source_disk['autoDelete']
-        device_name = source_disk['device_name'][0:46]
+        deviceName = source_disk['deviceName'][0:46]
         existing_disk_name = re.search(DISK_REGEXP, disk_url).group(3)
 
         snapshot_name = '{}-update-disk-{}'.format(
@@ -94,10 +94,10 @@ def create_newdisk_process(project, zone, instance, disktype, destructive):
         create_disk(compute, project, region, zone, snapshot_name,
                     new_disk_name, disktype)
 
-        detach_disk(compute, project, zone, instance, device_name)
+        detach_disk(compute, project, zone, instance, deviceName)
 
         attach_disk(compute, project, zone, instance, new_disk_name, boot,
-                    auto_delete, device_name)
+                    auto_delete, deviceName)
         if destructive:
             delete_disk(compute, project, zone, existing_disk_name)
             delete_snapshot(compute, project, snapshot_name)
@@ -158,7 +158,7 @@ def delete_snapshot(compute, project, snapshot_name):
 
 
 def attach_disk(compute, project, zone, instance, disk, boot, auto_delete,
-                device_name):
+                deviceName):
     """ Attaches disk to instance.
 
     Requries iam.serviceAccountUser
@@ -167,7 +167,7 @@ def attach_disk(compute, project, zone, instance, disk, boot, auto_delete,
     body = {
         'autoDelete': auto_delete,
         'boot': boot,
-        'device_name': device_name,
+        'deviceName': deviceName,
         'source': disk_url,
     }
     logging.debug('Attaching disk project=%s, zone=%s, instance=%s, disk=%s',
@@ -189,7 +189,7 @@ def detach_disk(compute, project, zone, instance, disk):
     operation = compute.instances().detachDisk(project=project,
                                                zone=zone,
                                                instance=instance,
-                                               device_name=disk).execute()
+                                               deviceName=disk).execute()
     result = wait_for_zonal_operation(compute, project, zone, operation)
     logging.debug(
         'Detaching disk project=%s, zone=%s, instance=%s, disk=%s complete.',
