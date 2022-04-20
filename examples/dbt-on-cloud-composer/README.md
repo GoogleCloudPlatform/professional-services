@@ -56,6 +56,8 @@ This diagram explains the example solution's flow:
 7. Kubernetes Secret to be binded with the service account   
     https://cloud.google.com/kubernetes-engine/docs/concepts/secret
 
+    Alternatively, instead of using Kubernetes Secret, Workload Identity federation can be used (recommended approach). More details in **Authentication** section below.
+
 ### Profiles for running the dbt project
 Check in the /dbt-project/.dbt/profiles.yml, you will find 2 options to run the dbt:   
 1. local    
@@ -108,3 +110,127 @@ In the dbt script, you can use the variable like this:
 location: "{{ var('bigquery_location') }}"
 ```
 
+### Authentication
+When provisioning DBT runtime environment using KubernetesPodOperator there are two available options for authentication of the DBT process. To achieve better separation of concerns and follow good security practices, the identity of the DBT process (Service Account) should be different than the Cloud Composer Service Account.
+
+Authentication options are:
+
+- Service Account key stored as Kubernetes Secret
+
+Create a the SA key using the command (Note: SA keys are very sensitive and easy to misuse which can be a security risk. They should be kept protected and only be used under special circunstances)
+```bash
+gcloud iam service-accounts keys create key-file \
+    --iam-account=sa-name@project-id.iam.gserviceaccount.com
+```
+
+Then save the key json file as *key.json* and configure *kubectl* command line tool to access the GKE cluster used by the Cloud Composer environment.
+
+```bash
+gcloud container clusters get-credentials gke-cluster-name --zone cluster-zone --project project-name
+```
+
+Onced authenticated, create dbt secret in the default namespace by running
+```
+kubectl create secret generic dbt-sa-secret --from-file key.json=./key.json
+```
+
+Since then, in the DAG code, when creating a container, the service account key will extracted from K8s Secret and then be be mounted under /var/secrets/google paht in the container filesystem and available for DBT in the runtime.
+
+- Workload Identity federation [**Recommended**]
+
+A better way to manage the identity and authentication for K8s workloads is to avoid using SA Keys as Secrets and use Workload Identity federation mechanism [[documentation](https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity)]
+
+Depending on the Composer version you might need to enable Workload Identity in the cluster, configure the node pool to use the GKE_METADATA metadata server to request a short-lived auth tokens. 
+
+- Composer 1
+
+To enable Workload Identity on a new cluster, run the following command:
+```bash
+gcloud container clusters create CLUSTER_NAME \
+    --region=COMPUTE_REGION \
+    --workload-pool=PROJECT_ID.svc.id.goog
+```
+Create new node pool (recommended) or update the existing one (might break the airflow setup and require extra steps):
+
+```bash
+gcloud container node-pools create NODEPOOL_NAME \
+    --cluster=CLUSTER_NAME \
+    --workload-metadata=GKE_METADATA
+```
+
+- Composer 2
+
+No further actions required, as the GKE is already using Workload Identity and thanks to the Autopilot mode there's no need to manage the node pool manually.
+
+To let the DAG to use the Workload Identity the following steps are required:
+
+1) Create a namespace for the Kubernetes service account:
+```bash
+kubectl create namespace NAMESPACE
+```
+2) Create a Kubernetes service account for your application to use
+```bash
+kubectl create serviceaccount KSA_NAME \
+    --namespace NAMESPACE
+```
+3) Assuming that the dbt-sa already exists and has a right permissions to trigger BigQuery jobs, the special binding has to be added to allow the Kubernetes service account as the IAM service account:
+
+```bash
+gcloud iam service-accounts add-iam-policy-binding GSA_NAME@GSA_PROJECT.iam.gserviceaccount.com \
+    --role roles/iam.workloadIdentityUser \
+    --member "serviceAccount:PROJECT_ID.svc.id.goog[NAMESPACE/KSA_NAME]"
+```
+
+4) Using *kubectl* tool annotate the Kubernetes service account with the email address of the IAM service account.
+
+```bash
+kubectl annotate serviceaccount KSA_NAME \
+    --namespace NAMESPACE \
+    iam.gke.io/gcp-service-account=GSA_NAME@GSA_PROJECT.iam.gserviceaccount.com
+```
+
+To make use of the Workload Identity in our DAG, replace the existing KubernetesPodOperator call with the one that uses the Workload Identity.
+
+1) Composer 1
+Use example configuration from the snippet below:
+
+```python
+KubernetesPodOperator(
+(...)
+    namespace='dbt-namespace',
+    service_account_name="dbt-k8s-sa",
+    affinity={
+        'nodeAffinity': {
+            'requiredDuringSchedulingIgnoredDuringExecution': {
+                'nodeSelectorTerms': [{
+                    'matchExpressions': [{
+                        'key': 'cloud.google.com/gke-nodepool',
+                        'operator': 'In',
+                        'values': [
+                            'dbt-pool',
+                        ]
+                    }]
+                }]
+            }
+        }
+    }
+(...)
+).execute(context)
+```
+
+The affinity configuration lets GKE to schedule the pod in one of the specific node-pools that are set up to use Workload Identity.
+
+2) Composer 2
+
+In case of Composer 2 (Autopilot), the configuration is simpler, example snippet:
+
+```python
+KubernetesPodOperator(
+(...)
+    namespace='dbt-tasks',
+    service_account_name="dbt-k8s-sa"
+(...)
+).execute(context)
+```
+
+When using Workload Identity option there is no need to store the IAM SA key as a Secret in GKE what massively improves the maintenance efforts and is generally considered more secure, as there is no need to generate and export the SA Key.
