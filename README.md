@@ -140,6 +140,7 @@ creates relationships between assets and outputs a format compatible with [graph
 * [Site Verification Group Sync](tools/site-verification-group-sync) - A tool to provision "verified owner" permissions (to create GCS buckets with custom dns) based on membership of a Google Group.
 * [SLO Generator](tools/slo-generator/) - A Python package that automates computation of Service Level Objectives, Error Budgets and Burn Rates on GCP,  and export the computation results to available exporters (e.g: PubSub, BigQuery, Stackdriver Monitoring), using policies written in JSON format.
 * [Snowflake_to_BQ](tools/snowflake2bq/) - A shell script to transfer tables (schema & data) from Snowflake to BigQuery.
+* [SPIFFE GCP Proxy](tools/spiffe-gcp-proxy) - A tool to ease the integration of [SPIFFE](https://spiffe.io/) supported On-Prem workloads with GCP APIs using Workload Identity Federation
 * [STS Job Manager](tools/sts-job-manager/) - A petabyte-scale bucket migration tool utilizing [Storage Transfer Service](https://cloud.google.com/storage-transfer-service)
 * [VPC Flow Logs Analysis](tools/vpc-flowlogs-analysis) - A configurable Log sink + BigQuery report that shows traffic attributed to the projects in the Shared VPCs.
 * [VPC Flow Logs Enforcer](tools/vpc-flowlogs-enforcer) - A Cloud Function that will automatically enable VPC Flow Logs when a subnet is created or modified in any project under a particular folder or folders.

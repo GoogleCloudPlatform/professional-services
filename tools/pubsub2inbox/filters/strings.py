@@ -25,6 +25,7 @@ import base64
 import magic
 import re
 import logging
+import hashlib
 
 
 def make_list(s):
@@ -140,3 +141,9 @@ def generate_signed_url(url, expiration, **kwargs):
                                           version='v4',
                                           **kwargs)
     return signed_url
+
+
+def hash_string(v, hash_type='md5'):
+    h = hashlib.new(hash_type)
+    h.update(v.encode('utf-8'))
+    return h.hexdigest()
