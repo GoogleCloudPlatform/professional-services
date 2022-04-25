@@ -11,7 +11,7 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-from datetime import datetime
+from datetime import datetime, timezone
 from time import mktime
 import parsedatetime
 from recurrent.event_parser import RecurringEvent
@@ -28,6 +28,21 @@ class InvalidRecurringDateException(Exception):
 
 def strftime(timestamp_string, strftime_format):
     dt = datetime.now()
+    if timestamp_string and timestamp_string != '':
+        if isinstance(timestamp_string, int):  # Unix time
+            dt = datetime.utcfromtimestamp(timestamp_string)
+        else:
+            parsed = parsedatetime.Calendar().parse(timestamp_string)
+            if len(parsed) > 1:
+                dt = datetime.fromtimestamp(mktime(parsed[0]))
+            else:
+                dt = datetime.fromtimestamp(mktime(parsed))
+
+    return dt.strftime(strftime_format)
+
+
+def utc_strftime(timestamp_string, strftime_format):
+    dt = datetime.now(timezone.utc)
     if timestamp_string and timestamp_string != '':
         if isinstance(timestamp_string, int):  # Unix time
             dt = datetime.utcfromtimestamp(timestamp_string)

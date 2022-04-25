@@ -12,6 +12,7 @@
 
 steps:
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '-t', 'gcr.io/${_PROJECT}/${_SERVICE}', '.']
+  args: ['build', '-t', 'gcr.io/${_PROJECT}/${_SERVICE}:${_TAG}', '.']
+images: ['gcr.io/${_PROJECT}/${_SERVICE}:${_TAG}']
 options:
   logging: CLOUD_LOGGING_ONLY

@@ -7,6 +7,8 @@ This code implements billboard dataset for standard and detailed billing
 
 You can set-up the right python environment as follows:
 ```
+ cd examples/billboard
+ rm -rf bill-env
  pip install virtualenv
  virtualenv bill-env
  source bill-env/bin/activate
@@ -22,11 +24,15 @@ This step includes the following:
 python billboard.py -h
 ```
 ## Create billboard dataset
- -se  standard billing export dataset
- 
+ -se standard billing export dataset
+ -de detailed billing export dataset 
  -bb billboard dataset to be created
 ```
+
 python billboard.py -pr <project id> -se <standard billing ds> -bb <billboard_ds>
+
+python billboard.py -pr <project id> -se <standard billing ds> -de <detailed billing ds> -bb <billboard_ds>
+
 ```
 ## Clean up
 ```

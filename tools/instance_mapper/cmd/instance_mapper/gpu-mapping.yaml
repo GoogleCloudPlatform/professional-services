@@ -1,0 +1,36 @@
+#
+#   Copyright 2022 Google LLC
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+
+# PLEASE NOTE:
+# The performance numbers have been collected from various online sources
+# and may not represent the performance of  the accelerator accurately. 
+# Only provided for comparison purposes. Please adjust the mappings as
+# they work for your workloads.
+#
+gpu_mapping:                    # Product name                            Memory    FP16      FP32       FP64
+  "": ""
+  "A100": "nvidia-tesla-a100"   # Tesla GA100 Ampere                      +40GB     77.97     19.49      9.74
+  "A10G": "nvidia-tesla-a100"   # Tesla GA102 Ampere                       12GB     31.52     31.52      0.98
+  "Gaudi HL-205": ""            # Habana Labs Gaudi Mezzanine              32GB     -         -          -
+  "K520": ""                    # Grid K520 (dual GK104 Kepler)            8GB      -         2.28       0.95
+  "K80": "nvidia-tesla-k80"     # Tesla GK210 (dual Kepler 2.0)           +12GB     -         4.11       1.37
+  "M60" : ""                    # Maxwell GM204 (dual Maxwell 2.0)         16GB     -         4.82       0.15
+  "Radeon Pro V520": ""         # Navi 12 (RDNA 1.0)                       8GB      14.75     7.37       0.46
+  "T4": "nvidia-tesla-t4"       # Tesla TU104 Turing                       16GB     65.13     8.14       0.25
+  "T4g": "nvidia-tesla-t4"      # Tesla TU104 Turing (Graviton)            16GB     65.13     8.14       0.25
+  "V100": "nvidia-tesla-v100"   # Tesla GV100 Volta                       +16GB     28.26     14.13      7.06
+  # "": "nvidia-tesla-p100"     # Tesla GP100 Pascal                      +16GB     19.05     9.52       4.76  
+  # "": "nvidia-tesla-p4"       # Tesla GP104 Pascal                      +8GB      0.89      5.7        0.17
+  
