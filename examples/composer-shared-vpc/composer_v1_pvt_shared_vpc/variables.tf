@@ -87,12 +87,6 @@ variable "disk_size" {
   default     = "100"
 }
 
-variable "oauth_scopes" {
-  description = "Google API scopes to be made available on all node."
-  type        = set(string)
-  default     = ["https://www.googleapis.com/auth/cloud-platform"]
-}
-
 variable "tags" {
   description = "Tags applied to all nodes. Tags are used to identify valid sources or targets for network firewalls."
   type        = set(string)
