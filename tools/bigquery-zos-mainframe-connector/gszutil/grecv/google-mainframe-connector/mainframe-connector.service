@@ -1,0 +1,15 @@
+[Unit]
+Description = Google Cloud Mainframe Connector
+After=network.target
+Before=stunnel.service
+
+[Service]
+Restart = always
+RestartSec = 1
+SuccessExitStatus = 143
+ExecStart = /opt/jdk/bin/java -Xms14g -Xmx14g \
+ -cp '/opt/google-mainframe-connector/lib/*' \
+ com.google.cloud.imf.GRecv
+
+[Install]
+WantedBy=multi-user.target

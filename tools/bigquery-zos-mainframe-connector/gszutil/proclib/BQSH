@@ -1,0 +1,81 @@
+//BQSH PROC
+//*******************************************************************
+//*
+//* Copyright 2019 Google LLC All Rights Reserved.
+//*
+//* Licensed under the Apache License, Version 2.0 (the "License");
+//* you may not use this file except in compliance with the License.
+//* You may obtain a copy of the License at
+//*
+//*     http://www.apache.org/licenses/LICENSE-2.0
+//*
+//* Unless required by applicable law or agreed to in writing, software
+//* distributed under the License is distributed on an "AS IS" BASIS,
+//* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//* See the License for the specific language governing permissions and
+//* limitations under the License.
+//*
+//*******************************************************************
+//BQSH EXEC PGM=JVMLDM86,REGION=0M,
+//  PARM='/+I com.google.cloud.bqsh.Bqsh'
+//SYSPRINT DD SYSOUT=*
+//SYSOUT   DD SYSOUT=*
+//STDOUT   DD SYSOUT=*
+//STDERR   DD SYSOUT=*
+//CEEDUMP  DD SYSOUT=*
+//ABNLIGNR DD DUMMY
+//STDIN    DD DUMMY
+//QUERY    DD DUMMY
+//INFILE   DD DUMMY
+//COPYBOOK DD DUMMY
+//KEYFILE  DD DUMMY
+//STDENV   DD *,SYMBOLS=EXECSYS
+
+export JOBNAME=&JOBNAME
+export JOBDATE=&YYMMDD
+export JOBTIME=&HHMMSS
+
+# IBM JZOS JDK Location
+JH="/usr/lpp/java/alias"
+export JAVA_HOME="$JH"
+export PATH="/bin:$JH/bin"
+
+# Log Level
+export BQSH_ROOT_LOGGER=DEBUG
+
+# Service Account Keyfile
+export GKEYFILE="/path/to/keyfile.json"
+
+# Binary Data Sets
+export GCSDSNURI="gs://databucket/prefix"
+
+# Generational Data Sets
+export GCSGDGURI="gs://versionedbucket/prefix"
+
+# Transcoded ORC files
+export GCSOUTURI="gs://outputbucket/prefix"
+
+# Transcoding Server IP Address or Hostname
+export SRVREMOTE="0.0.0.0"
+
+# Transcoding Server Port
+export SRVPORT=51770
+
+# Native Libraries
+JL="$JH/lib"
+LP="/lib:/usr/lib:$JH/bin:$JL/s390x:$JL/s390x/j9vm:$JH/bin/classic"
+export LIBPATH="$LP:/usr/lib/java_runtime64"
+
+# Path to directory containing google jar files
+LD=/opt/google/lib
+
+# Java Classpath
+CP="$LD/*:$JL:$JL/ext:/usr/include/java_classes/*"
+export CLASSPATH="$CP"
+
+# JVM options
+IJO="-Xms1g -Xmx1g -Xcompressedrefs -Djava.net.preferIPv4Stack=true"
+export IBM_JAVA_OPTIONS="$IJO"
+export JZOS_MAIN_ARGS=""
+/*
+// PEND
