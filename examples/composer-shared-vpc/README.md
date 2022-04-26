@@ -1,7 +1,19 @@
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
+* A folder in org where projects will be created
+* A service account which will be used by terraform having below permissions 
+   * at above folder level
+       * "roles/resourcemanager.projectCreator"
+       * "roles/compute.xpnAdmin"
+   * at org level
+       * "roles/browser"
+   * At billing account level
+       * "roles/billing.admin"
+   * At bucket(used to store state) level
+       * "roles/storage.objectAdmin"
 
-No requirements.
+* User/Service account executing terraform code need to have below permissions on above service account
+  * "roles/iam.serviceAccountTokenCreator"
 
 ## Providers
 
