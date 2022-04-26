@@ -34,7 +34,15 @@ python billboard.py -h
 python billboard.py -pr <project id> -se <standard billing ds> -de <detailed billing ds> -bb <billboard_ds>
 
 ```
-## Clean up ( optional for removing BQ Billboard Views if you want to remove Billboard )
+
+Explore the datastudio dashboard and explore your billing by clicking the link which was the output of the script
+
+#
+
+# If you want to remove this billboard app from your project for any reason, use clean
+
+
+## Clean up ( optional for removing BQ Billboard Views )
 
 ```
 
