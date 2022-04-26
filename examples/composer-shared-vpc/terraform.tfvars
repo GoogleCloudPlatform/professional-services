@@ -1,8 +1,8 @@
-org_id                    = "726061586403"
-prefix                    = "pw"
-terraform_service_account = "composer-e2e-cicd@prj-b-cicd-b1e4.iam.gserviceaccount.com"
-billing_account           = "01FD6D-BC7824-263CC9"
-folder_name               = "composer-e2e"
+org_id                    = ""
+prefix                    = ""
+terraform_service_account = ""
+billing_account           = ""
+folder_name               = ""
 composer_subnets = {
   subnet-composer1-private-us-ea4 = {
     description    = "This is a subnet for composer1 private env"
