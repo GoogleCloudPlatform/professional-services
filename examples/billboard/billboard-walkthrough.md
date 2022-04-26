@@ -1,5 +1,7 @@
 # Billboard Overview
-This code implements billboard dataset for standard and detailed billing
+This code implements billboard dataset using standard and detailed billing exports and creates necessary BQ views.
+
+Datastudio template report/dashboard is used to show prebuilt reports based on the BQ views.
 
 
 
@@ -29,13 +31,13 @@ python billboard.py -h
  -bb billboard dataset to be created
 ```
 
-python billboard.py -pr <project id> -se <standard billing ds> -bb <billboard_ds>
-
 python billboard.py -pr <project id> -se <standard billing ds> -de <detailed billing ds> -bb <billboard_ds>
 
 ```
-## Clean up
+## Clean up ( optional for removing BQ Billboard Views if you want to remove Billboard )
+
 ```
-python billboard.py -pr <project id> -se <standard billing ds> -bb <billboard_ds> -clean yes
+
+python billboard.py -pr <project id> -se <standard billing ds> -de <detailed billing ds> -bb <billboard_ds> -clean yes
 
 ```
