@@ -12,9 +12,9 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 from .regex import regex_replace
-from .lists import split, index
-from .strings import add_links, urlencode, generate_signed_url, json_encode, json_decode, b64decode, csv_encode, re_escape, html_table_to_xlsx, make_list, read_gcs_object, filemagic
-from .date import strftime, recurring_date
+from .lists import split, index, merge_dict
+from .strings import add_links, urlencode, generate_signed_url, json_encode, json_decode, b64decode, csv_encode, re_escape, html_table_to_xlsx, make_list, read_gcs_object, filemagic, hash_string
+from .date import strftime, utc_strftime, recurring_date
 from .gcp import format_cost, get_cost
 from .tests import test_contains
 
@@ -28,10 +28,12 @@ def get_jinja_filters():
         'regex_replace': regex_replace,
         'split': split,
         'index': index,
+        'merge_dict': merge_dict,
         'add_links': add_links,
         'urlencode': urlencode,
         'generate_signed_url': generate_signed_url,
         'strftime': strftime,
+        'utc_strftime': utc_strftime,
         'json_encode': json_encode,
         'json_decode': json_decode,
         'b64decode': b64decode,
@@ -43,5 +45,6 @@ def get_jinja_filters():
         'recurring_date': recurring_date,
         'make_list': make_list,
         'read_gcs_object': read_gcs_object,
-        'filemagic': filemagic
+        'filemagic': filemagic,
+        'hash_string': hash_string,
     }

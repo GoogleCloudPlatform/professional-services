@@ -51,7 +51,7 @@ def list_tracked_cases(channel_id, channel_name, user_id):
         client.chat_postEphemeral(
             channel=channel_id,
             user=user_id,
-            text=f"There are no cases currently being tracked in this channel")
+            text="There are no cases currently being tracked in this channel")
 
 
 if __name__ == "__main__":

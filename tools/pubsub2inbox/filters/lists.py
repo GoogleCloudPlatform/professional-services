@@ -19,3 +19,7 @@ def index(l, from_index, to_index=None):
     if not to_index:
         return l[from_index]
     return l[from_index:to_index]
+
+
+def merge_dict(d1, d2):
+    return {**d1, **d2}

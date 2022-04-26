@@ -109,6 +109,7 @@ The tools folder contains ready-made utilities which can simplify Google Cloud P
 * [DNS Sync](tools/dns-sync) - Sync a Cloud DNS zone with GCE resources. Instances and load balancers are added to the cloud DNS zone as they start from compute_engine_activity log events sent from a pub/sub push subscription. Can sync multiple projects to a single Cloud DNS zone.
 * [Firewall Enforcer](tools/firewall-enforcer) - Automatically watch & remove illegal firewall rules across organization. Firewall rules are monitored by a Cloud Asset Inventory Feed, which trigger a Cloud Function that inspects the firewall rule and deletes it if it fails a test.
 * [GCE Disk Encryption Converter](tools/gce-google-keys-to-cmek) - A tool that converts disks attached to a GCE VM instance from Google-managed keys to a customer-managed key stored in Cloud KMS.
+* [GCE switch disk-type](tools/gce-change-disktype) - A tool that changes type of disks attached to a GCE instance.
 * [GCE Quota Sync](tools/gce-quota-sync) - A tool that fetches resource quota usage from the GCE API and synchronizes it to Stackdriver as a custom metric, where it can be used to define automated alerts.
 * [GCE Usage Log](tools/gce-usage-log) - Collect GCE instance events into a BigQuery dataset, surfacing your vCPUs, RAM, and Persistent Disk, sliced by project, zone, and labels.
 * [GCP Architecture Visualizer](https://github.com/forseti-security/forseti-visualizer) - A tool that takes CSV output from a Forseti Inventory scan and draws out a dynamic hierarchical tree diagram of org -> folders -> projects -> gcp_resources using the D3.js javascript library.
@@ -140,6 +141,7 @@ creates relationships between assets and outputs a format compatible with [graph
 * [Site Verification Group Sync](tools/site-verification-group-sync) - A tool to provision "verified owner" permissions (to create GCS buckets with custom dns) based on membership of a Google Group.
 * [SLO Generator](tools/slo-generator/) - A Python package that automates computation of Service Level Objectives, Error Budgets and Burn Rates on GCP,  and export the computation results to available exporters (e.g: PubSub, BigQuery, Stackdriver Monitoring), using policies written in JSON format.
 * [Snowflake_to_BQ](tools/snowflake2bq/) - A shell script to transfer tables (schema & data) from Snowflake to BigQuery.
+* [SPIFFE GCP Proxy](tools/spiffe-gcp-proxy) - A tool to ease the integration of [SPIFFE](https://spiffe.io/) supported On-Prem workloads with GCP APIs using Workload Identity Federation
 * [STS Job Manager](tools/sts-job-manager/) - A petabyte-scale bucket migration tool utilizing [Storage Transfer Service](https://cloud.google.com/storage-transfer-service)
 * [VPC Flow Logs Analysis](tools/vpc-flowlogs-analysis) - A configurable Log sink + BigQuery report that shows traffic attributed to the projects in the Shared VPCs.
 * [VPC Flow Logs Enforcer](tools/vpc-flowlogs-enforcer) - A Cloud Function that will automatically enable VPC Flow Logs when a subnet is created or modified in any project under a particular folder or folders.
