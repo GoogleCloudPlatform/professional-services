@@ -49,4 +49,5 @@ module "composer-env" {
   cloud_sql_ipv4_cidr              = each.value.cloud_sql_cidr
   web_server_ipv4_cidr             = each.value.web_server_cidr
   master_ipv4_cidr                 = each.value.control_plane_cidr
+  firewall_rules_create            = var.deny_all_egrees_rule_create
 }

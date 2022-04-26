@@ -1,4 +1,13 @@
 <!-- BEGIN_TF_DOCS -->
+# Cloud Composer in Shared VPC
+
+This repo uses terraform to create below resources in order to deploy a private composer environment in shared VPC.
+* Two projects, one for shared VPC and other for composer environment
+* One shared VPC and subnets in host project
+* Neccesary IAM permissions and firewall rules in order to deploy composer env
+* Service Account for composer workers
+* Composer env itself
+
 ## Requirements
 * A folder in org where projects will be created
 * A service account which will be used by terraform having below permissions 
@@ -12,7 +21,7 @@
    * At bucket(used to store state) level
        * "roles/storage.objectAdmin"
 
-* User/Service account executing terraform code need to have below permissions on above service account
+* User/Service account executing terraform code need to have below permissions on above service account used by terraform.
   * "roles/iam.serviceAccountTokenCreator"
 
 ## Providers
