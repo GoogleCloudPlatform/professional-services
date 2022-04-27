@@ -23,7 +23,7 @@ resources:
   properties:
     network: {{ properties["network"] }}
     region: {{ region }}
- 
+
 {% if bgp %}
 - name: {{ id }}-router
   type: compute.v1.router
@@ -41,7 +41,7 @@ resources:
     IPProtocol: ESP
     region: {{ region }}
     target: $(ref.{{ id }}.selfLink)
-  
+
 - name: {{ id }}-rule-udp500
   type: compute.v1.forwardingRule
   properties:
@@ -50,7 +50,7 @@ resources:
     portRange: 500
     region: {{ region }}
     target: $(ref.{{ id }}.selfLink)
-  
+
 - name: {{ id }}-rule-udp4500
   type: compute.v1.forwardingRule
   properties:
@@ -59,7 +59,7 @@ resources:
     portRange: 4500
     region: {{ region}}
     target: $(ref.{{ id }}.selfLink)
- 
+
 {% for i in properties["tunnels"] %}
 {% set oindex = loop.index %}
 - name:  {{ id }}-tunnel{{oindex}}
@@ -75,13 +75,13 @@ resources:
     router: $(ref.{{ id }}-router.selfLink)
     {% endif %}
     {% if "localTrafficSelector" in i%}
-    localTrafficSelector: 
+    localTrafficSelector:
     {% for j in i["localTrafficSelector"] %}
     - {{ j }}
     {% endfor %}
     {% endif %}
     {% if "remoteTrafficSelector" in i%}
-    remoteTrafficSelector: 
+    remoteTrafficSelector:
     {% for j in i["remoteTrafficSelector"] %}
     - {{ j }}
     {% endfor %}

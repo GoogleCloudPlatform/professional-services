@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import print_function
+
 
 import os
 import sys
@@ -66,10 +66,10 @@ def query_data():
     for row in table.read_rows(row_set=query_builder()):
         date_string = datetime.fromtimestamp(
             int(row.row_key.decode('utf-8').split("#")[-2][0:-3]))
-        for column_family, cell in row.cells.items():
+        for column_family, cell in list(row.cells.items()):
             trades_values[column_family]["key"].append(
                 row.row_key.decode('utf-8'))
-            for column_name, cell_value in cell.items():
+            for column_name, cell_value in list(cell.items()):
                 trades_values[column_family][column_name].append(
                     cell_value[0].value.decode('utf-8'))
                 trades_timestamps[column_family][column_name].append(
@@ -83,12 +83,12 @@ def query_data():
 
     # SAMPLING
     sample_size = 5000
-    for trades, columns in trades_values.items():
-        for column_name, values in columns.items():
+    for trades, columns in list(trades_values.items()):
+        for column_name, values in list(columns.items()):
             trades_values_numpy[trades][column_name] = np.array(values)[::max(
                 len(values) / sample_size, 1)]
-    for trades, columns in trades_timestamps.items():
-        for column_name, values in columns.items():
+    for trades, columns in list(trades_timestamps.items()):
+        for column_name, values in list(columns.items()):
             trades_timestamp_values_numpy[trades][column_name] = np.array(
                 values)[::max(len(values) / sample_size, 1)]
     endsamplingtime = time.time()

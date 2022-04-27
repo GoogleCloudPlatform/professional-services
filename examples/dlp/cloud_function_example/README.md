@@ -1,5 +1,5 @@
 # Redacting Sensitive Data Using the DLP API
-  
+
 This example illustrates how to use the DLP api in a Cloud Function to redact
 sensitive data from log exports. The scrubbed logs will then be posted to a
 Pub/Sub topic to be ingested elsewhere.
@@ -39,6 +39,8 @@ export LOG_EXPORT_TOPIC_NAME=log-export
 
 export DLP_SCRUBBED_TOPIC_NAME=scrubbed-log-export
 
+export LOG_EXPORT_NAME=log-export-destination
+
 export DLP_SCRUBBED_SUBSCRIPTION_NAME=scrubbed-log-export-subscription
 ```
 
@@ -62,7 +64,7 @@ Create the export.
 export PROJECT_ID=$(gcloud config get-value project)
 
 gcloud logging sinks create $LOG_EXPORT_NAME \
-  pubsub.googleapis.com/projects/$PROJECT_ID/topics/$LOG_EXPORT_TOPIC_NAME \
+  $LOG_EXPORT_TOPIC_NAME pubsub.googleapis.com/projects/$PROJECT_ID/topics/$LOG_EXPORT_TOPIC_NAME \
   --log-filter resource.type="global"
 ```
 
@@ -87,7 +89,7 @@ git clone https://github.com/GoogleCloudPlatform/professional-services.git
 
 Deploy the Cloud Function.
 ```
-gcloud functions deploy dlp-log-scrubber 
+gcloud functions deploy dlp-log-scrubber \
   --runtime python37 \
   --trigger-topic $LOG_EXPORT_TOPIC_NAME \
   --entry-point process_log_entry \

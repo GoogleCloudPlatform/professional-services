@@ -20,8 +20,8 @@ from __future__ import print_function
 import json
 import os
 
+from tensorboard.plugins import projector
 import tensorflow as tf
-from tensorflow.contrib.tensorboard.plugins import projector
 import tensorflow_transform as tft
 
 # pylint: disable=g-bad-import-order

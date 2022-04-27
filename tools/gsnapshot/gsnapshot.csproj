@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp5.0</TargetFramework>
+
+    <Copyright>Copyright (c) 2022 Google LLC</Copyright>
+    <PackageLicenseExpression>Apache License 2.0</PackageLicenseExpression>
+    <Version>1.2.0</Version>
+    <Authors>Google Professional Services Organization</Authors>
+    <Description>Creates snapshots of the disks of an instance and allows rolling back to those snapshots.</Description>
+
+    <AnalysisMode>All</AnalysisMode>
+    <AnalysisLevel>preview</AnalysisLevel>
+    <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ByteSize" Version="2.0.0" />
+    <PackageReference Include="CommandLineParser" Version="2.8.0" />
+    <PackageReference Include="ConsoleUI.ConsoleMenu" Version="2.1.0" />
+    <PackageReference Include="Google.Apis.Auth" Version="1.51.0" />
+    <PackageReference Include="Google.Apis.CloudResourceManager.v1" Version="1.51.0.2281" />
+    <PackageReference Include="Google.Apis.Compute.beta" Version="1.51.0.2272" />
+    <PackageReference Include="Google.Apis.Compute.v1" Version="1.51.0.2272" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="NLog" Version="4.7.7" />
+    <PackageReference Include="NLog.Extensions.Logging" Version="1.7.0" />
+    <PackageReference Include="ReadLine" Version="2.0.1" />
+  </ItemGroup>
+
+</Project>

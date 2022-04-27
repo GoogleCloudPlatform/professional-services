@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import
 import argparse
 from google.cloud import bigquery
 from google.api_core.exceptions import NotFound, BadRequest
@@ -83,17 +82,16 @@ class BigQueryTableResizer(object):
             list(self.client.list_datasets())
             self.project = project
         except BadRequest:
-            raise ArgumentError(
+            raise argparse.ArgumentError(
                 "BigQuery is not setup in project: {}".format(project))
 
         source_table_ref = self.client.dataset(source_dataset).table(
-            source_table
-        )
+            source_table)
 
         try:  # Validate source_table
             self.source_table = self.client.get_table(source_table_ref)
         except NotFound:
-            raise ArgumentError(
+            raise argparse.ArgumentError(
                 "Source table {} does not exist in {}.{}".format(
                     source_table, project, source_dataset))
 
@@ -106,7 +104,7 @@ class BigQueryTableResizer(object):
             self.dest_table_ref = self.source_table.reference
 
         if target_gb:
-            target_bytes = target_gb * 1024 ** 3
+            target_bytes = target_gb * 1024**3
             increase_pct = target_bytes / self.source_table.num_bytes
             self.target_rows = int(self.source_table.num_rows * increase_pct)
 
@@ -131,14 +129,13 @@ class BigQueryTableResizer(object):
 
             except NotFound:
                 dest_table = self.client.create_table(
-                    bigquery.Table(self.dest_table_ref)
-                )
+                    bigquery.Table(self.dest_table_ref))
 
             # Get the latest size of the dest_table.
             # Note that for the first call these properties are None.
             dest_rows = dest_table.num_rows
             dest_bytes = dest_table.num_bytes
-            dest_gb = dest_bytes / float(1024 ** 3)
+            dest_gb = dest_bytes / float(1024**3)
 
             # Recalculate the gap.
             if dest_rows:
@@ -146,10 +143,9 @@ class BigQueryTableResizer(object):
             else:
                 gap = self.target_rows
 
-            print('{} rows in table of size {} GB, with a target of {}, '
-                  'leaving a gap of {}'.format(
-                    dest_rows,
-                    round(dest_gb, 2), self.target_rows, gap))
+            print(('{} rows in table of size {} GB, with a target of {}, '
+                   'leaving a gap of {}'.format(dest_rows, round(dest_gb, 2),
+                                                self.target_rows, gap)))
 
             # Greedily copy the largest of dest_table and source_table into
             # dest_table without going over the target rows. The last query
@@ -179,8 +175,7 @@ class BigQueryTableResizer(object):
                     # Location must match that of the dataset(s) referenced in
                     # the query and of the destination table.
                     location=self.location,
-                    job_config=job_config
-                )
+                    job_config=job_config)
                 # Wait for query_job to finish.
                 query_job.result()
             else:
@@ -207,52 +202,65 @@ def parse_data_resizer_args(argv):
     """
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--project', dest='project', required=True,
+    parser.add_argument('--project',
+                        dest='project',
+                        required=True,
                         help='Name of the project containing source and '
-                             'destination tables')
+                        'destination tables')
 
-    parser.add_argument('--source_dataset', dest='source_dataset',
+    parser.add_argument('--source_dataset',
+                        dest='source_dataset',
                         required=True,
                         help='Name of the dataset in which the source table is'
-                             ' located')
+                        ' located')
 
-    parser.add_argument('--source_table', dest='source_table', required=True,
+    parser.add_argument('--source_table',
+                        dest='source_table',
+                        required=True,
                         help='Name of the source table')
 
-    parser.add_argument('--destination_dataset', dest='destination_dataset',
+    parser.add_argument('--destination_dataset',
+                        dest='destination_dataset',
                         required=False,
                         help='Name of the dataset in which the destination '
-                             'table is located')
+                        'table is located')
 
-    parser.add_argument('--destination_table', dest='destination_table',
+    parser.add_argument('--destination_table',
+                        dest='destination_table',
                         required=False,
                         help='Name of the destination table')
 
-    parser.add_argument('--target_rows', dest='target_rows', required=False,
+    parser.add_argument('--target_rows',
+                        dest='target_rows',
+                        required=False,
                         type=int,
                         help='Number of records (rows) desired in the '
-                        'destination table', default=10000)
+                        'destination table',
+                        default=10000)
 
-    parser.add_argument('--target_gb', dest='target_gb', required=False,
+    parser.add_argument('--target_gb',
+                        dest='target_gb',
+                        required=False,
                         type=float,
                         help='Size in GB desired for the destination table',
                         default=None)
 
-    parser.add_argument('--location', dest='location',
+    parser.add_argument('--location',
+                        dest='location',
                         required=False,
                         help='The location of the BigQuery Tables.',
                         default='US')
 
     data_args = parser.parse_args(argv)
     return BigQueryTableResizer(
-                project=data_args.project,
-                source_dataset=data_args.source_dataset,
-                destination_dataset=data_args.destination_dataset,
-                source_table=data_args.source_table,
-                destination_table=data_args.destination_table,
-                target_rows=data_args.target_rows,
-                target_gb=data_args.target_gb,
-                location=data_args.location)
+        project=data_args.project,
+        source_dataset=data_args.source_dataset,
+        destination_dataset=data_args.destination_dataset,
+        source_table=data_args.source_table,
+        destination_table=data_args.destination_table,
+        target_rows=data_args.target_rows,
+        target_gb=data_args.target_gb,
+        location=data_args.location)
 
 
 def run(argv=None):

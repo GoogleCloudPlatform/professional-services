@@ -1,19 +1,21 @@
 # Table of Contents
-1. [Problem](#problem)
-1. [Proposed Solution](#proposed-solution)
-1. [The DNS Server](#the-dns-server)
-1. [Syncing With Cloud Resources](#syncing-with-cloud-resources)
-1. [Configuring Cloud DNS](#accessing-the-dns-server)
-1. [Enable Compute Engine Activity Log Export](#enable-compute-engine-activity-log-export)
-1. [Grant the Application Access To the GCE Project](#grant-the-application-access-to-the-gce-project)
-1. [Configure and Deploy the Application](#configure-and-deploy-the-application)
-1. [Testing the Application](#testing-the-application)
-1. [Building and Unit Tests](#building-and-unit-tests)
+- [Table of Contents](#table-of-contents)
+- [Sync Cloud DNS with GCE Resources](#sync-cloud-dns-with-gce-resources)
+  - [Problem](#problem)
+  - [Proposed Solution](#proposed-solution)
+    - [The DNS Server](#the-dns-server)
+    - [Syncing with Cloud Resources](#syncing-with-cloud-resources)
+  - [Configuring Cloud DNS](#configuring-cloud-dns)
+  - [Enable Compute Engine Activity Log Export](#enable-compute-engine-activity-log-export)
+  - [Grant the Application Access To the GCE Project](#grant-the-application-access-to-the-gce-project)
+  - [Configure and Deploy the Application](#configure-and-deploy-the-application)
+  - [Testing the Application](#testing-the-application)
+  - [Building and Unit Tests](#building-and-unit-tests)
 
 # Sync Cloud DNS with GCE Resources
 
 DNS "A" records are added to a Cloud DNS zone as GCE instance and load balancer
-start and stoped events are received from compute engine activity logs exported
+start and stopped events are received from compute engine activity logs exported
 to a pub/sub topic. Can sync multiple projects to a single Cloud DNS zone.
 
 
@@ -139,7 +141,7 @@ new event source exists.
 To perform the same action using the command line utility:
 
 ```
-> gcloud --project dns-sync-gce-proejct beta logging sinks create compute_engine_activity pubsub.googleapis.com/projects/dns-sync-gce-project/topics/compute_engine_activity --log compute.googleapis.com/activity_log --output-version-format 'V1'
+> gcloud --project dns-sync-gce-project beta logging sinks create compute_engine_activity pubsub.googleapis.com/projects/dns-sync-gce-project/topics/compute_engine_activity --log compute.googleapis.com/activity_log --output-version-format 'V1'
 ```
 
 We next need to create a push subscription to this topic from the project

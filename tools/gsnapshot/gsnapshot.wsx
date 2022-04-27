@@ -1,0 +1,58 @@
+<?xml version='1.0' encoding='windows-1252'?>
+<!--
+   Copyright 2022 Google LLC
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<?if $(var.TargetPlatform) = x64 ?>
+  <?define Win64 = "yes" ?>
+  <?define PlatformProgramFilesFolder = "ProgramFiles64Folder" ?>
+<?else ?>
+  <?define Win64 = "no" ?>
+  <?define PlatformProgramFilesFolder = "ProgramFilesFolder" ?>
+<?endif ?>
+<Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
+  <Product Name='GSnapshot 1.2.0' Id='1ef59c37-2f2a-4bbd-8908-65296a66dadc' UpgradeCode='8e651fbb-ec84-44ec-b37f-bbe2e37acbe8 '
+    Language='1033' Codepage='1252' Version='1.2.0' Manufacturer='Google LLC Professional Services (open source)'>
+
+    <Package Id='*' Keywords='Installer' Description="Google PSO's GSnapshot 1.2.0 Installer"
+      Comments='Licensed under Apache License 2.0' Manufacturer='Google LLC Professional Services (open source)'
+      InstallerVersion='200' Languages='1033' Compressed='yes' SummaryCodepage='1252' />
+
+    <Media Id='1' Cabinet='Sample.cab' EmbedCab='yes' DiskPrompt="CD-ROM #1" />
+    <Property Id='DiskPrompt' Value="Google PSO's GSnapshot 1.2.0 Installation [1]" />
+
+    <Directory Id='TARGETDIR' Name='SourceDir'>
+      <Directory Id="$(var.PlatformProgramFilesFolder)" Name='PFiles'>
+        <Directory Id='GooglePSO' Name='Google PSO'>
+          <Directory Id='INSTALLDIR' Name='GSnapshot 1.2.0'>
+
+            <Component Id='MainExecutable' Guid='63517f9e-ef43-446f-9d3b-6c968303166e' Win64="$(var.Win64)">
+              <File Id='GSnapshotEXE' Name='gsnapshot.exe' DiskId='1' Source='$(var.PublishDirectory)/gsnapshot.exe' KeyPath='yes'/>
+              <File Id='GSnapshotDLLCompression' Name='clrcompression.dll' DiskId='1' Source='$(var.PublishDirectory)/clrcompression.dll' KeyPath='no'/>
+              <File Id='GSnapshotDLLClrjit' Name='clrjit.dll' DiskId='1' Source='$(var.PublishDirectory)/clrjit.dll' KeyPath='no'/>
+              <File Id='GSnapshotDLLCoreclr' Name='coreclr.dll' DiskId='1' Source='$(var.PublishDirectory)/coreclr.dll' KeyPath='no'/>
+              <File Id='GSnapshotDLLMscordaccore' Name='mscordaccore.dll' DiskId='1' Source='$(var.PublishDirectory)/mscordaccore.dll' KeyPath='no'/>
+            </Component>
+
+          </Directory>
+        </Directory>
+      </Directory>
+    </Directory>
+
+    <Feature Id='Complete' Level='1'>
+      <ComponentRef Id='MainExecutable' />
+    </Feature>
+
+  </Product>
+</Wix>

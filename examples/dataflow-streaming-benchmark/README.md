@@ -1,17 +1,17 @@
 # Dataflow Streaming Benchmark
 
 When developing Dataflow pipelines, it's common to want to benchmark them at a specific QPS using
-fake or generated data. This pipeline takes in a QPS parameter, a path to a schema file, and 
+fake or generated data. This pipeline takes in a QPS parameter, a path to a schema file, and
 generates fake JSON messages matching the schema to a Pub/Sub topic at the rate of the QPS.
 
 ## Pipeline
 
 [StreamingBenchmark](src/main/java/com/google/cloud/pso/pipeline/StreamingBenchmark.java) -
-A streaming pipeline which generates messages at a specified rate to a Pub/Sub topic. The messages 
-are generated according to a schema template which instructs the pipeline how to populate the 
+A streaming pipeline which generates messages at a specified rate to a Pub/Sub topic. The messages
+are generated according to a schema template which instructs the pipeline how to populate the
 messages with fake data compliant to constraints.
 
-> Note the number of workers executing the pipeline must be large enough to support the supplied 
+> Note the number of workers executing the pipeline must be large enough to support the supplied
 > QPS. Use a general rule of 2,500 QPS per core in the worker pool when configuring your pipeline.
 
 
@@ -32,13 +32,20 @@ mvn clean compile
 ```
 
 ### Creating the Schema File
-The schema file used to generate JSON messages with fake data is based on the 
+The schema file used to generate JSON messages with fake data is based on the
 [json-data-generator](https://github.com/vincentrussell/json-data-generator) library. This library
-allows for the structuring of a sample JSON schema and injection of common faker functions to 
-instruct the data generator of what type of fake data to create in each field. See the 
-json-data-generator [docs](https://github.com/vincentrussell/json-data-generator) for more 
+allows for the structuring of a sample JSON schema and injection of common faker functions to
+instruct the data generator of what type of fake data to create in each field. See the
+json-data-generator [docs](https://github.com/vincentrussell/json-data-generator) for more
 information on the faker functions.
 
+#### Message Attributes
+If the message schema contains fields matching (case-insensitive) the following names then such fields
+will be added to the output Pub/Sub message attributes:
+eventId, eventTimestamp
+
+Attribute fields can be helpful in various scenarios like deduping messages, inspecting message timestamps etc
+ 
 #### Example Schema File
 Below is an example schema file which generates fake game event payloads with random data.
 ```javascript
@@ -71,6 +78,8 @@ Pub/Sub topic.
   "completed": false
 }
 ```
+Since the schema includes the reserved field names of `eventId` and `eventTimestamp`, the output Pub/Sub 
+message will also contain these fields in the message attributes in addition to the regular payload.
 
 ### Executing the Pipeline
 ```bash

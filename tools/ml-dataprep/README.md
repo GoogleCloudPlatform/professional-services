@@ -4,9 +4,9 @@
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
   You may obtain a copy of the License at
- 
+
        http://www.apache.org/licenses/LICENSE-2.0
- 
+
   Unless required by applicable law or agreed to in writing, software
   distributed under the License is distributed on an "AS IS" BASIS,
   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -68,25 +68,25 @@ Make sure you have the access rights required to read the data from the BigQuery
 
 ## Using the tool
 
-This section will describe how to make the default configuration working. Then it will guide you to adjust it to your specific use case. The input is the source of the data in BigQuery. The output is the traning and validation datasets saved in BigQuery tables and Google Cloud Storage files.
+This section will describe how to make the default configuration working. Then it will guide you to adjust it to your specific use case. The input is the source of the data in BigQuery. The output is the training and validation datasets saved in BigQuery tables and Google Cloud Storage files.
 
 The inputs of the tool are the following:
-* Source BigQuery project, dataset and table - provided as parameteres to the script.
-* Destinatipn BigQuery project and datasets - provided as parameteres to the script.
+* Source BigQuery project, dataset and table - provided as parameters to the script.
+* Destination BigQuery project and datasets - provided as parameters to the script.
 * Destination Cloud Storage path - passed as a parameter to the script.
 * Columns related parameters (column names, SQL transformations, target columns) - configured in the [ml_dataprep.config](ml_dataprep/config.py) module.
 * Split ratio between training and validation data - optional parameter passed to the script.
 * Column names parameters - optional parameter passed to the script.
 
 The result of the script execution is:
-* Two BigQuery tables containg training and validation data named *\<source_table_name\>\_training\_\<timestamp\>* and *\<source_table_name\>\_validation\_\<timestamp\>* respectively located in the *\<destination_project\>.\<destination_dataset\>* dataset
+* Two BigQuery tables containing training and validation data named *\<source_table_name\>\_training\_\<timestamp\>* and *\<source_table_name\>\_validation\_\<timestamp\>* respectively located in the *\<destination_project\>.\<destination_dataset\>* dataset
 * A Cloud Storage folder named *\<source_table_name\>\_\<timestamp\>* located in *\<cloud_storage_path\>* containing the training and validation data files located
-* Traning data files named *training\_\<index\>.csv* located in the above mentioned folder
+* Training data files named *training\_\<index\>.csv* located in the above mentioned folder
 * Validation data files named *validation\_\<index\>.csv* located in the above mentioned folder
 
 Depending on the size of the source table more than one file for both the training and validation datasets can be create.
 
-### Running the default 
+### Running the default
 
 The default tool configuration allows you to experiment using one of the [public BigQuery datasets](https://cloud.google.com/bigquery/public-data/) from the [International Census Data](https://console.cloud.google.com/bigquery?p=bigquery-public-data&d=census_bureau_international). We used the *age_specific_fertility_rates* table of this dataset.
 
@@ -115,11 +115,11 @@ The training and validation datasets will also be present in the following Cloud
 
 ## Running your example
 
-Starting from the default tool configuration, to change the BigQuery source you need to provide the *source_project*, *source_dataset* and *source_table* parameters in the [run.sh](run.sh) file. 
+Starting from the default tool configuration, to change the BigQuery source you need to provide the *source_project*, *source_dataset* and *source_table* parameters in the [run.sh](run.sh) file.
 
 **IMPORTANT** Changing the source data would mean the table structure (and hence columns) will be different. You will need to specify the following variables in the [ml_dataprep.config](ml_dataprep/config.py) module:
 * *COLUMNS* - array of column names that you want to be in the final dataset unchanged.
-* *TARGET_COLUMNS_SHUFFLE* - array of the column names that would be regarded as target values in the machine learning training; as per the default example you, can create additional target columns as SQL combinations of source columns and naming them. 
+* *TARGET_COLUMNS_SHUFFLE* - array of the column names that would be regarded as target values in the machine learning training; as per the default example you, can create additional target columns as SQL combinations of source columns and naming them.
 * *TARGET_COLUMNS_EXPORT* - array of the target column names that would be copied to the final train/validation split.
 
 All arrays can contain parameterized names. Column names parameters can be set up using *parameters* when running the *run.sh* script. All columns can also be specified directly or as constructed ones using SQL syntax. However it is recommended that *TARGET_COLUMNS_EXPORT* uses the names of the columns as they were defined in *TARGET_COLUMNS_SHUFFLE*.

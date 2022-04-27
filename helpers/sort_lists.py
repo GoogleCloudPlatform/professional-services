@@ -29,6 +29,7 @@ def sort_list(matches):
     sorted_list = sorted(list_text.splitlines(), key=lambda v: v.upper())
     return '\n'.join(sorted_list) + '\n'
 
+
 def main():
     '''Entrypoint for command-line script'''
     filename = sys.argv[1]
@@ -39,5 +40,6 @@ def main():
         f.seek(0)
         f.write(sorted_contents)
         f.truncate()
+
 
 main()

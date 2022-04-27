@@ -32,8 +32,8 @@ import copy
 from datetime import datetime
 import json
 import logging
-import random
 import pprint
+import random
 
 import apache_beam as beam
 from apache_beam.io import ReadFromText
@@ -44,7 +44,6 @@ from apache_beam.transforms import core
 from asset_inventory import api_schema
 from asset_inventory import bigquery_schema
 from asset_inventory.api_schema import APISchema
-from asset_inventory.cai_to_api import CAIToAPI
 from six import string_types
 
 from google.api_core.exceptions import BadRequest
@@ -165,17 +164,12 @@ class BigQuerySanitize(beam.DoFn):
 class ProduceResourceJson(beam.DoFn):
     """Create a json only element for every element."""
 
-    def __init__(self, load_time, group_by):
-        if isinstance(load_time, string_types):
-            load_time = StaticValueProvider(str, load_time)
+    def __init__(self, group_by):
         if isinstance(group_by, string_types):
             group_by = StaticValueProvider(str, group_by)
-        self.load_time = load_time
         self.group_by = group_by
 
     def process(self, element):
-        # add load timestamp.
-        element['timestamp'] = self.load_time.get()
         if ('resource' in element and
             'data' in element['resource']):
             resource = element['resource']
@@ -195,15 +189,16 @@ class ProduceResourceJson(beam.DoFn):
                 yield element
 
 
-class MapCAIProperties(beam.DoFn):
-    """Corrects CAI properties to match API object properties."""
+class AddLoadTime(beam.DoFn):
+    """Add timestamp field to track load time."""
+
+    def __init__(self, load_time):
+        if isinstance(load_time, string_types):
+            load_time = StaticValueProvider(str, load_time)
+        self.load_time = load_time
 
     def process(self, element):
-        if ('resource' in element and 'data' in element['resource']):
-            if element['asset_type'].startswith('compute.googleapis.com'):
-                CAIToAPI.cai_to_api_properties(
-                    element['resource']['discovery_name'],
-                    element['resource']['data'])
+        element[1]['timestamp'] = self.load_time.get()
         yield element
 
 
@@ -300,10 +295,17 @@ class WriteToGCS(beam.DoFn):
 class BigQueryDoFn(beam.DoFn):
     """Superclass for a DoFn that requires BigQuery dataset information."""
 
-    def __init__(self, dataset):
+    def __init__(self, dataset, add_load_date_suffix, load_time):
         if isinstance(dataset, string_types):
             dataset = StaticValueProvider(str, dataset)
         self.dataset = dataset
+        if isinstance(add_load_date_suffix, string_types):
+            add_load_date_suffix = StaticValueProvider(
+                str, add_load_date_suffix)
+        self.add_load_date_suffix = add_load_date_suffix
+        if isinstance(load_time, string_types):
+            load_time = StaticValueProvider(str, load_time)
+        self.load_time = load_time
         self.bigquery_client = None
         self.dataset_location = None
         self.load_jobs = {}
@@ -322,7 +324,12 @@ class BigQueryDoFn(beam.DoFn):
         return None
 
     def asset_type_to_table_name(self, asset_type):
-        return asset_type.replace('.', '_').replace('/', '_')
+        suffix = ''
+        add_load_date_suffix = self.add_load_date_suffix.get()
+        if (add_load_date_suffix and
+            add_load_date_suffix.lower() in ('yes', 'true', 't', '1')):
+            suffix = '_' + self.load_time.get()[0:10].replace('-', '')
+        return asset_type.replace('.', '_').replace('/', '_') + suffix
 
     def start_bundle(self):
         if not self.bigquery_client:
@@ -338,8 +345,12 @@ class DeleteDataSetTables(BigQueryDoFn):
     dataset before loading so that no old asset types remain.
     """
 
-    def __init__(self, dataset, write_disposition):
-        super(DeleteDataSetTables, self).__init__(dataset)
+    def __init__(self, dataset, add_load_date_suffix, load_time,
+                 write_disposition):
+        # Can't use super().
+        # https://issues.apache.org/jira/browse/BEAM-6158?focusedCommentId=16919945
+        # super(DeleteDataSetTables, self).__init__(dataset)
+        BigQueryDoFn.__init__(self, dataset, add_load_date_suffix, load_time)
         if isinstance(write_disposition, string_types):
             write_disposition = StaticValueProvider(str, write_disposition)
         self.write_disposition = write_disposition
@@ -365,11 +376,11 @@ class LoadToBigQuery(BigQueryDoFn):
     this must be done within the workers.
     """
 
-    def __init__(self, dataset, load_time):
-        super(LoadToBigQuery, self).__init__(dataset)
-        if isinstance(load_time, string_types):
-            load_time = StaticValueProvider(str, load_time)
-        self.load_time = load_time
+    def __init__(self, dataset, add_load_date_suffix, load_time):
+        # Can't use super().
+        # https://issues.apache.org/jira/browse/BEAM-6158?focusedCommentId=16919945
+        # super(LoadToBigQuery, self).__init__(dataset)
+        BigQueryDoFn.__init__(self, dataset, add_load_date_suffix, load_time)
 
     def to_bigquery_schema(self, fields):
         """Convert list of dicts into `bigquery.SchemaFields`."""
@@ -464,6 +475,11 @@ class ImportAssetOptions(PipelineOptions):
             help='Load time of the data (YYYY-MM-DD[HH:MM:SS])).')
 
         parser.add_value_provider_argument(
+            '--add_load_date_suffix',
+            default='False',
+            help='If the load date [YYYYMMDD] is added as a table suffix.')
+
+        parser.add_value_provider_argument(
             '--dataset', help='BigQuery dataset to load to.')
 
 
@@ -477,9 +493,8 @@ def run(argv=None):
     # Cleanup json documents.
     sanitized = (
         p | 'read' >> ReadFromText(options.input, coder=JsonCoder())
-        | 'map_cai_properties' >> beam.ParDo(MapCAIProperties())
         | 'produce_resource_json' >> beam.ParDo(ProduceResourceJson(
-            options.load_time, options.group_by))
+            options.group_by))
         | 'bigquery_sanitize' >> beam.ParDo(BigQuerySanitize()))
 
     # Joining all iam_policy objects with resources of the same name.
@@ -500,16 +515,21 @@ def run(argv=None):
     pvalue_schemas = beam.pvalue.AsDict(schemas)
     # Write to GCS and load to BigQuery.
     # pylint: disable=expression-not-assigned
-    (keyed_assets | 'group_by_key_before_enforce' >> beam.GroupByKey()
+    (keyed_assets
+     | 'add_load_time' >> beam.ParDo(AddLoadTime(options.load_time))
+     | 'group_by_key_before_enforce' >> beam.GroupByKey()
      | 'enforce_schema' >> beam.ParDo(EnforceSchemaDataTypes(), pvalue_schemas)
      | 'group_by_key_before_write' >> beam.GroupByKey()
      | 'write_to_gcs' >> beam.ParDo(
          WriteToGCS(options.stage, options.load_time))
      | 'group_written_objects_by_key' >> beam.GroupByKey()
      | 'delete_tables' >> beam.ParDo(
-         DeleteDataSetTables(options.dataset, options.write_disposition))
+         DeleteDataSetTables(options.dataset, options.add_load_date_suffix,
+                             options.load_time,
+                             options.write_disposition))
      | 'load_to_bigquery' >> beam.ParDo(
-         LoadToBigQuery(options.dataset, options.load_time),
+         LoadToBigQuery(options.dataset, options.add_load_date_suffix,
+                        options.load_time),
          beam.pvalue.AsDict(schemas)))
 
     return p.run()

@@ -3,7 +3,7 @@ A simple machine learning system capable of recommending songs given a user as a
 using collaborative filtering and TensorFlow.
 
 Unlike classic matrix factorization approaches, using a neural network allows
-user and item features to be included during training. 
+user and item features to be included during training.
 
 This example covers how distributed data preprocessing, training, and serving
 can be done on [Google Cloud Platform](https://cloud.google.com/)(GCP).
@@ -26,12 +26,19 @@ Create a new project on GCP and set up GCP credentials:
 gcloud auth login
 gcloud auth application-default login
 ```
+
+Enable the following APIS:
+- [Dataflow](http://console.cloud.google.com/apis/api/dataflow.googleapis.com)
+- [AI Platform](http://console.cloud.google.com/apis/api/ml.googleapis.com)
+
 Using the `preprocessing/config.example.ini` template, create
 `preprocessing/config.ini` with the GCP project id fields filled in.
+Additionally, you will need to create a GCS bucket. This code assumes a bucket
+exists by the name of `[project-id]-bucket`.
 
 Set up your python environment:
 ```shell
-virtualenv venv -p python3
+python3 -m venv venv
 source ./venv/bin/activate
 pip install -r requirements.txt
 ```
@@ -59,7 +66,7 @@ The steps involved are as follows:
    text files. Leave users and items under a set frequency threshold out of the
    vocabularies.
 3. Filter away user-item pairs where either element is outside of its
-   cooresponding vocabulary.
+   corresponding vocabulary.
 4. Split the data into train, validation, and test sets.
 5. Write each dataset as TFRecords to GCS.
 
@@ -74,7 +81,7 @@ The steps involved are as follows:
 ## Training
 A [Custom Estimator](https://www.tensorflow.org/guide/custom_estimators) is
 trained using TensorFlow and [Cloud AI Platform](https://cloud.google.com/ai-platform/)(CAIP).
-The trainng steps are as follows:
+The training steps are as follows:
 1. Read TFRecords from GCS and create a `tf.data.Dataset` for each of them that
    yields data in batches.
 2. Use the TensorFlow Transform output from preprocessing to transform usernames
@@ -113,7 +120,8 @@ Model training can be monitored on Tensorboard using the following command:
 tensorboard --logdir <path to model dir>/<trial number>
 ```
 Tensorboard's projector, in particular, is very useful for debugging
-or analyzing embeddings.
+or analyzing embeddings. In the projector tab in Tensorboard, try setting the
+label to `name`.
 
 ## Serving
 Models can be hosted on CAIP, which can be used to make online and batch predictions via JSON requests.

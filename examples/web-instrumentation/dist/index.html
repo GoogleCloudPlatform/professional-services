@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Web monitoring demo</title>
+    <link href="style.css" rel="stylesheet">
+	<meta name="traceparent" content="00-ab42124a3c573678d4d8b21ba52df3bf-d21f7bc17caa5aba-01">
+  </head>
+  <body>
+  	<h1>Web monitoring demo</h1>
+    <form id="testForm">
+      <div>
+        <label for="nameTF">
+          Test name:
+        </label>
+        <input type="text" id="nameTF" required/>
+      </div>
+      <div>
+        <label for="numIterTF">
+          Number of requests:
+        </label>
+        <input type="number" id="numIterTF" min="1" value="50"/>
+      </div>
+      <div>
+        <label for="delayTF">
+          Time between requests (ms):
+        </label>
+        <input type="number" id="delayTF" min="0" value="100"/>
+      </div>
+      <div>
+        <button id="submitButton" data-ocweb-id="Start load test">
+          Start test
+        </button>
+      </div>
+    </form>
+    <div id="summaryDiv">
+      <h4>Test Summary</h4>
+      <p id="testStatusP"></p>
+      <p id="testNameP"></p>
+      <p id="numIterP"></p>
+      <p id="numSentP"></p>
+      <p id="numSuccessP"></p>
+      <p id="numFailP"></p>
+    </div>
+    <div id="logStatus"></div>
+  	<script type="module" src="main.js"></script>
+  </body>
+</html>

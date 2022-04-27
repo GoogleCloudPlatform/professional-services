@@ -1,6 +1,6 @@
-# This is an example pipeline template (NOT for production usage) that can be used by any application to generate a 
+# This is an example pipeline template (NOT for production usage) that can be used by any application to generate a
 #  a pipeline to take a docker image, deploy it to dev, run tests, and then deploy to prod
-# The nomenclature it includes (account names, etc.) is according the Spinnaker POC provided by Google PSO, so it 
+# The nomenclature it includes (account names, etc.) is according the Spinnaker POC provided by Google PSO, so it
 #  would need to be modified to properly function with a different Spinnaker instance
 
 schema: "1"
@@ -64,7 +64,7 @@ variables:
   type: string
   description: Command to run for functional test
   group: Testing
-  defaultValue: 'curl www.google.com' 
+  defaultValue: 'curl www.google.com'
 
 configuration:
   concurrentExecutions:

@@ -1,0 +1,65 @@
+VPC Service Controls Deny:
+{
+  "protoPayload": {
+    "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+    "status": {
+      "code": 7,
+      "message": "PERMISSION_DENIED",
+      "details": [
+        {
+          "@type": "type.googleapis.com/google.rpc.PreconditionFailure",
+          "violations": [
+            {
+              "type": "VPC_SERVICE_CONTROLS",
+              "description": "ljv4RZNmza4g69MMoOXBtRrlNKRYTcQdoxQiqlfhmDZhClaMVgjoWA"
+            }
+          ]
+        }
+      ]
+    },
+    "authenticationInfo": {},
+    "requestMetadata": {
+      "callerIp": "8.8.8.8",
+      "requestAttributes": {},
+      "destinationAttributes": {}
+    },
+    "serviceName": "storage.googleapis.com",
+    "methodName": "google.storage.buckets.get",
+    "resourceName": "projects/598897393088",
+    "metadata": {
+      "securityPolicyInfo": {
+        "servicePerimeterName": "accessPolicies/30507210272/servicePerimeters/gsec_monitoring_prod",
+        "organizationId": "614830067722"
+      },
+      "vpcServiceControlsUniqueId": "ljv4RZNmza4g69MMoOXBtRrlNKRYTcQdoxQiqlfhmDZhClaMVgjoWA",
+      "accessLevels": [
+        "accessPolicies/30507210272/accessLevels/thingy",
+        "accessPolicies/30507210272/accessLevels/test_us"
+      ],
+      "@type": "type.googleapis.com/google.cloud.audit.VpcServiceControlAuditMetadata",
+      "ingressViolations": [
+        {
+          "servicePerimeter": "accessPolicies/30507210272/servicePerimeters/gsec_monitoring_prod",
+          "targetResource": "projects/598897393088/buckets/scc-export-sample"
+        }
+      ],
+      "violationReason": "NO_MATCHING_ACCESS_LEVEL",
+      "resourceNames": [
+        "projects/598897393088/buckets/scc-export-sample"
+      ]
+    }
+  },
+  "insertId": "d21cmyd7av9",
+  "resource": {
+    "type": "audited_resource",
+    "labels": {
+      "project_id": "gsec-monitoring-prod",
+      "method": "google.storage.buckets.get",
+      "service": "storage.googleapis.com"
+    }
+  },
+  "timestamp": "2021-09-13T03:10:14.801613786Z",
+  "severity": "ERROR",
+  "logName": "projects/gsec-monitoring-prod/logs/cloudaudit.googleapis.com%2Fpolicy",
+  "receiveTimestamp": "2021-09-13T03:10:15.410616031Z"
+}

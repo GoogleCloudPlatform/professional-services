@@ -1,7 +1,7 @@
 # Scikit-learn pipeline trainer for AI Platform
 
-This is a example for building a scikit-learn-based machine learning pipeline trainer 
-that can be run on AI Platform, which is built on top of the [scikit-learn template](https://github.com/GoogleCloudPlatform/cloudml-samples/tree/master/sklearn/sklearn-template/template). 
+This is a example for building a scikit-learn-based machine learning pipeline trainer
+that can be run on AI Platform, which is built on top of the [scikit-learn template](https://github.com/GoogleCloudPlatform/cloudml-samples/tree/master/sklearn/sklearn-template/template).
 The pipeline can be trained locally or remotely on AI platform. The trained model can be further deployed on AI platform
 to serve online traffic. The entire pipeline includes three major components:
 
@@ -14,24 +14,24 @@ this example has the following additional feature:
 
 1. Support both Classification and Regression, which can be specified in the configuration
 2. Support serving for both JSON and List of Value formats
-3. Support additional custome transformation logics besides typical pre-processing provided by scikit-learn
+3. Support additional custom transformation logics besides typical pre-processing provided by scikit-learn
 
 Google Cloud tools used:
-- [Google Cloud Platform](https://cloud.google.com/) (GCP) lets you build and 
-host applications and websites, store data, and analyze data on Google's 
+- [Google Cloud Platform](https://cloud.google.com/) (GCP) lets you build and
+host applications and websites, store data, and analyze data on Google's
 scalable infrastructure.
-- [Cloud ML Engine](https://cloud.google.com/ml-engine/) is a managed service 
-that enables you to easily build machine learning models that work on any type 
-of data, of any size. This is now part of 
+- [Cloud ML Engine](https://cloud.google.com/ml-engine/) is a managed service
+that enables you to easily build machine learning models that work on any type
+of data, of any size. This is now part of
 [AI Platform](https://cloud.google.com/ai-platform/).
-- [Google Cloud Storage](https://cloud.google.com/storage/) (GCS) is a unified 
-object storage for developers and enterprises, from live data serving to data 
+- [Google Cloud Storage](https://cloud.google.com/storage/) (GCS) is a unified
+object storage for developers and enterprises, from live data serving to data
 analytics/ML to data archiving.
-- [Cloud SDK](https://cloud.google.com/sdk/) is a set of tools for Google Cloud 
-Platform, which contains e.g. gcloud, gsutil, and bq command-line tools to 
+- [Cloud SDK](https://cloud.google.com/sdk/) is a set of tools for Google Cloud
+Platform, which contains e.g. gcloud, gsutil, and bq command-line tools to
 interact with Google Cloud products and services.
-- [Google BigQuery](https://cloud.google.com/bigquery/) A fast, highly scalable, 
-cost-effective, and fully managed cloud data warehouse for analytics, with even 
+- [Google BigQuery](https://cloud.google.com/bigquery/) A fast, highly scalable,
+cost-effective, and fully managed cloud data warehouse for analytics, with even
 built-in machine learning.
 
 ## Pipeline overview
@@ -43,10 +43,10 @@ The overall flow of the pipeline can be summarized as follows and illustrated in
 
 ## Repository structure
 ```
-template 
+template
     |__ config
         |__ config.yaml             # for running normal training job on AI Platform
-        |__ hptuning_config.yaml    # for running hyperparameter tunning job on AI Platform    
+        |__ hptuning_config.yaml    # for running hyperparameter tunning job on AI Platform
     |__ scripts
         |__ train.sh                # convenience script for running machine learning training jobs
         |__ deploy.sh               # convenience script for deploying trained scikit-learn model
@@ -56,21 +56,21 @@ template
         |__ util                    # utility functions
             |__ utils.py            # utility functions including e.g. loading data from bigquery and cloud storage
             |__ preprocess_utils.py # utility functions for constructing preprocessing pipeline
-            |__ transform_utils.py  # utility functions for constructing transform pipeline            
+            |__ transform_utils.py  # utility functions for constructing transform pipeline
         |__ metadata.py             # dataset metadata and feature columns definitions
         |__ constants.py            # constants used in the project
         |__ model.py                # pre-processing and machine learning model pipeline definition
         |__ task.py                 # training job entry point, handling the parameters passed from command line
-        |__ transform_config.py     # configuration for transform pipeline construction"        
+        |__ transform_config.py     # configuration for transform pipeline construction"
     |__ predictor.py                # define custom prediction behavior
     |__ setup.py                    # specify necessary dependency for running job on AI Platform
-    |__ requirements.txt            # specify necessary dependency, helper for setup environemnt for local development
+    |__ requirements.txt            # specify necessary dependency, helper for setup environment for local development
 ```
 
 ## Using the template
 ### Step 0. Prerequisites
-Before you follow the instructions below to adapt the tempate to your machine learning job, 
-you need a Google cloud project if you don't have one. You can find detailed instructions 
+Before you follow the instructions below to adapt the template to your machine learning job,
+you need a Google cloud project if you don't have one. You can find detailed instructions
 [here](https://cloud.google.com/dataproc/docs/guides/setup-project).
 
 - Make sure the following API & Services are enabled.
@@ -85,14 +85,14 @@ you need a Google cloud project if you don't have one. You can find detailed ins
   $ export PROJECT_ID=[your-google-project-id]
   $ export BUCKET_ID=[your-google-cloud-storage-bucket-name]
   ```
-  
-- Set up a service account for calls to GCP APIs.  
-  More information on setting up a service account can be found 
+
+- Set up a service account for calls to GCP APIs.
+  More information on setting up a service account can be found
   [here](https://cloud.google.com/docs/authentication/getting-started).
-  
+
 ### Step 1. Tailor the scikit-learn trainer to your data
-`metadata.py` is where the dataset's metadata is defined. 
-By default, the file is configured to train on the Census dataset, which can be found at 
+`metadata.py` is where the dataset's metadata is defined.
+By default, the file is configured to train on the Census dataset, which can be found at
 [`bigquery-public-data.ml_datasets.census_adult_income`](https://bigquery.cloud.google.com/table/bigquery-public-data:ml_datasets.census_adult_income).
 
 ```python
@@ -122,7 +122,7 @@ LABEL = 'income_bracket'
 PROBLEM_TYPE = 'classification'  # 'regression' or 'classification'
 ```
 
-In most cases, only the following items need to be modified, in order to adapt to the target dataset. 
+In most cases, only the following items need to be modified, in order to adapt to the target dataset.
 - **COLUMNS**: the schema of ths data, only required for data stored in GCS
 - **NUMERIC_FEATURES**: columns those will be treated as numerical features
 - **CATEGORICAL_FEATURES**: columns those will be treated as categorical features
@@ -132,7 +132,7 @@ In most cases, only the following items need to be modified, in order to adapt t
 `transform_config.py` is where the logic of generating new features out of raw dataset is defined.
 There are two parts need to be provided for each new feature generating logic:
 
-* User defined function that handle the generation of new feature. There would be four cases in terms of the 
+* User defined function that handle the generation of new feature. There would be four cases in terms of the
 combinations of the dimensions of input and output as listed below:
     * ()->(): scalar to scalar
     * (n) -> (): multi-inputs to scalar
@@ -168,9 +168,9 @@ entire pipeline, an additional entry need to be added to `TRANSFORM_CONFIG` with
     * input_columns: name of columns needed for as inputs to the transform function
     * process_functions: transform function
     * output_columns: names assigned to the output columns, data type indicator (N: for numerical, C: for categorical)
- 
+
 The example below is the counter part of the user defined function in previous section.
- 
+
 ```python
 # this is an example for generating new categorical feature using single
 # column from the raw data
@@ -196,12 +196,12 @@ one since Python 2.7 is [deprecated](https://pythonclock.org/) soon.
 trainingInput:
   scaleTier: STANDARD_1   # Machine type
   runtimeVersion: "1.13"  # Scikit-learn version
-  # Note that both Python 2.7 and Python 3.5 are supported, but Python 3.5 is the 
+  # Note that both Python 2.7 and Python 3.5 are supported, but Python 3.5 is the
   # recommended one since 2.7 is deprecated soon
-  pythonVersion: "3.5"    
+  pythonVersion: "3.5"
 ```
 
-More information on supported runtime version can be found 
+More information on supported runtime version can be found
 [here](https://cloud.google.com/ml-engine/docs/tensorflow/runtime-version-list).
 
 ### Step 4. Submit scikit-learn training job
@@ -236,14 +236,14 @@ where:
 - VERSION_NAME: Version of the model to be deployed.
 - MODEL_DIR: Path to directory containing trained and exported scikit-learn model.
 
-**Note**: Please make sure the following parameters are properly set in deploy.sh 
+**Note**: Please make sure the following parameters are properly set in deploy.sh
 ```shell
 REGION=us-central1
 
 # The following two parameters should be aligned with those used during
 # training job, i.e., specified in the yaml files under config/
 RUN_TIME=1.13
-# Note that both Python 2.7 and Python 3.5 are supported, 
+# Note that both Python 2.7 and Python 3.5 are supported,
 # but Python 3.5 is the recommended one since 2.7 is deprecated soon
 PYTHON_VERSION=3.5
 ```
@@ -251,8 +251,8 @@ PYTHON_VERSION=3.5
 ### Step 6. Run predictions using the deployed model
 
 After the model is successfully deployed, you can send small samples of new data to the API associated with the model,
-and it would return predictions in the response. 
-There are two helper scripts available, `predict.sh` and `predict.py`, which use gcloud and Python API for 
+and it would return predictions in the response.
+There are two helper scripts available, `predict.sh` and `predict.py`, which use gcloud and Python API for
 requesting predictions respectively.
 
 ```shell
@@ -261,8 +261,8 @@ bash scripts/predict.sh [INPUT_DATA_FILE] [MODEL_NAME] [VERSION_NAME]
 
 where:
 
-- INPUT_DATA_FILE: Path to sample file contained data in line-delimited JSON format. 
-  See `sample_data/sample_list.txt` or `sample_data/sample_json.txt` for an example. More information can be found 
+- INPUT_DATA_FILE: Path to sample file contained data in line-delimited JSON format.
+  See `sample_data/sample_list.txt` or `sample_data/sample_json.txt` for an example. More information can be found
   [here](https://cloud.google.com/ml-engine/docs/scikit/online-predict#formatting_instances_as_lists).
 - MODEL_NAME: Name of the deployed model to use.
 - VERSION_NAME: Version of the deployed model to use.

@@ -177,9 +177,59 @@ class APISchema(object):
             return cls._get_properties_map_field_list(
                 property_name, property_value['items'],
                 resources, seen_resources)
-        # we can't safely process labels or additionalProperties fields so
-        # skip them
+        # convert additionalProperties fields to a dict
+        # of name value pairs for a more regular schema.
+        if 'additionalProperties' in property_value:
+            fields = [{'name': 'name',
+                       'field_type': 'STRING',
+                       'description': 'additionalProperties name',
+                       'mode': 'NULLABLE'}]
+            fields.append(
+                cls._property_to_field(
+                    'value',
+                    property_value['additionalProperties'],
+                    resources, seen_resources))
+            return fields
+        # unknown property type.
         return None
+
+    @classmethod
+    def _property_to_field(cls, property_name, property_value,
+                           resources, seen_resources):
+        """Convert api property to BigQuery field.
+
+        Args:
+            property_name: name of API property
+            property_value: value of the API property.
+            resources: dict of all other resources that might be referenced by
+            the API schema through reference types ($ref values).
+            seen_resources: dict of types we have processed to prevent endless
+        Returns:
+            BigQuery field or None if the field should be skipped.
+        """
+        field = {'name': property_name}
+        property_type = property_value.get('type', None)
+        bigquery_type = cls._get_bigquery_type_for_property(
+            property_value, resources)
+        field['field_type'] = bigquery_type
+        if 'description' in property_value:
+            field['description'] = property_value['description'][:1024]
+
+        # array fields are BigQuery repeated fields, and convert
+        # additionalProperties to repeated lists of key value pairs.
+        if (property_type == 'array' or
+            'additionalProperties' in property_value):
+            field['mode'] = 'REPEATED'
+        else:
+            field['mode'] = 'NULLABLE'
+
+        if bigquery_type == 'RECORD':
+            fields_list = cls._get_properties_map_field_list(
+                property_name, property_value, resources, seen_resources)
+            if not fields_list:
+                return None
+            field['fields'] = fields_list
+        return field
 
     @classmethod
     def _properties_map_to_field_list(cls, properties_map, resources,
@@ -198,24 +248,10 @@ class APISchema(object):
         """
         fields = []
         for property_name, property_value in properties_map.items():
-            field = {'name': property_name}
-            property_type = property_value.get('type', None)
-            bigquery_type = cls._get_bigquery_type_for_property(
-                property_value, resources)
-            field['field_type'] = bigquery_type
-            if 'description' in property_value:
-                field['description'] = property_value['description'][:1024]
-            if property_type == 'array':
-                field['mode'] = 'REPEATED'
-            else:
-                field['mode'] = 'NULLABLE'
-            if bigquery_type == 'RECORD':
-                fields_list = cls._get_properties_map_field_list(
-                    property_name, property_value, resources, seen_resources)
-                if not fields_list:
-                    continue
-                field['fields'] = fields_list
-            fields.append(field)
+            field = cls._property_to_field(property_name, property_value,
+                                           resources, seen_resources)
+            if field is not None:
+                fields.append(field)
         return fields
 
     @classmethod
@@ -233,7 +269,7 @@ class APISchema(object):
     def _get_document_resources(cls, document):
         if document.get('schemas'):
             return document['schemas']
-        return document['definitions']
+        return document.get('definitions', [])
 
     @classmethod
     def _translate_resource_to_schema(cls, resource_name, document):
@@ -277,10 +313,15 @@ class APISchema(object):
             'field_type': 'STRING',
             'description': 'Asset name.',
             'mode': 'REQUIRED'
+        }, {
+            'name': 'timestamp',
+            'field_type': 'TIMESTAMP',
+            'description': 'Load time.',
+            'mode': 'NULLABLE'
         }]
         if include_resource:
             resource_schema = list(schema)
-            last_modified, _ = bigquery_schema.get_field_by_name(
+            _, last_modified = bigquery_schema.get_field_by_name(
                 resource_schema,
                 'lastModifiedTime')
             if not last_modified:

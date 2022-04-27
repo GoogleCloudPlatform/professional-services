@@ -8,18 +8,18 @@ aggregated YARN logs from short-lived clusters on GCS.
 ## Directory structure
 - `cluster_templates/`
   - `history_server.yaml`
-  - `ephemeral_cluster.yaml` 
+  - `ephemeral_cluster.yaml`
 - `init_actions`
   - `disable_history_servers.sh`
 - `workflow_templates`
   - `spark_mr_workflow_template.yaml`
 - `terraform`
-  - `variables.tf` 
-  - `network.tf` 
-  - `history-server.tf` 
-  - `history-bucket.tf` 
+  - `variables.tf`
+  - `network.tf`
+  - `history-server.tf`
+  - `history-bucket.tf`
   - `long-running-cluster.tf`
-  - `firewall.tf` 
+  - `firewall.tf`
   - `service-account.tf`
 
 ## Usage
@@ -37,26 +37,26 @@ dataproc.googleapis.com
 - [Install Google Cloud SDK](https://cloud.google.com/sdk/)
 - Enable the following APIs if not already enabled.
   - `gcloud services enable compute.googleapis.com dataproc.googleapis.com`
-- \[Optional\] [Install Terraform](https://learn.hashicorp.com/terraform/getting-started/install.html) 
+- \[Optional\] [Install Terraform](https://learn.hashicorp.com/terraform/getting-started/install.html)
 
 ### Disclaimer
 This is for example purposes only. You should take a much closer look at the firewall
 rules that make sense for your organization's security requirements.
 
 ### Should I run with Terraform or `gcloud` SDK ?
-This repo provides artifacts to spin up the infrastructure for persisting 
-job history and yarn logs with terraform or with gcloud. The recommended 
-way to use this is to modify the Terraform code to fit your needs for 
+This repo provides artifacts to spin up the infrastructure for persisting
+job history and yarn logs with terraform or with gcloud. The recommended
+way to use this is to modify the Terraform code to fit your needs for
 long running resources.
 
-However, the cluster templates are included as an example of 
-standardiznig cluster creation for ephemeral clusters. 
-You might ask, "Why is there a cluster template for the history server?". 
+However, the cluster templates are included as an example of
+standardizing cluster creation for ephemeral clusters.
+You might ask, "Why is there a cluster template for the history server?".
 The history server is simply a cleaner interface for reading your logs
 from GCS. For Spark, it is stateless and you may wish to only spin up
  a history server when you'll actually be using it. For MapReduce,
 the history server will only be aware of the files on GCS when it was
-created and those files which it moves from intermediate done directory 
+created and those files which it moves from intermediate done directory
 to the done directory. For this reason, MapReduce workflows should
 use a persistent history server.
 
@@ -69,11 +69,11 @@ properties:
  - `spark:spark.history.fs.cleaner.enabled`
  - `spark:spark.history.fs.cleaner.maxAge`
  - `mapred:mapreduce.jobhistory.cleaner.enable`
- - `mapred:mapreduce.jobhistory.cleaner.max-age-ms`
+ - `mapred:mapreduce.jobhistory.max-age-ms`
 
 ### Terraform
-To spin up the whole example you could simply edit the 
-`terraform.tfvars` file to set the variables to the 
+To spin up the whole example you could simply edit the
+`terraform.tfvars` file to set the variables to the
 desired values and run the following commands.
 
 Note, this assumes that you have an existing project and
@@ -92,7 +92,7 @@ This will create:
 1. A GCS Bucket for YARN log aggregation, and Spark MapReduce Job History
 as well as initialization actions for your clusters.
 
-### Alternatively, with Google Cloud SDK 
+### Alternatively, with Google Cloud SDK
 These instructions detail how to run this entire example with `gcloud`.
 1.  Replace `PROJECT` with your GCP project id in each file.
 1.  Replace `HISTORY_BUCKET` with your GCS bucket for logs in each file.
@@ -118,7 +118,7 @@ sed -i 's/ZONE/us-central1-f/g' *
 sed -i 's/SUBNET/your-subnet-id/g' *
 ```
 
-Stage an empty file to create the spark-events path on GCS. 
+Stage an empty file to create the spark-events path on GCS.
 
 ```
 touch .keep

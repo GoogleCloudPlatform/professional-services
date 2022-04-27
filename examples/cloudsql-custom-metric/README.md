@@ -3,20 +3,20 @@ This example demonstrates how to create a custom metric for Stackdriver Monitori
 estimates the number of IP's consumed in a CloudSQL private services subnet.
 ![Cloud SQL Metric Architecture](images/CloudSQL_Metric.png)
 ## Component Description
-A Stackdriver log sink at the organization level populates BigQuery with logs when a CloudSQL 
-instance is created or deleted.  The metric app periodically querries BigQuery to determine
+A Stackdriver log sink at the organization level populates BigQuery with logs when a CloudSQL
+instance is created or deleted.  The metric app periodically queries BigQuery to determine
 which projects have CloudSQL instances with private networks.  This means the app can avoid
 polling the organization for a list of projects then iterating over each project to determine
 if there are relevant CloudSQL instances.
 
-Once the projects with CloudSQL instances are known, then the app querries the CloudSQL Admin
+Once the projects with CloudSQL instances are known, then the app queries the CloudSQL Admin
 API for more information on each CloudSQL instance.  A list of instances is aggregated for the
 organization and a count is calculated.
 
 This information is then converted to a StackDriver Monitoring TimeSeries which is fed to the
 StackDriver Monitoring API.
 ## Caveats
-This code is a prototype and not engineered for production use.  Error handling 
+This code is a prototype and not engineered for production use.  Error handling
 is incomplete or inappropriate for usage beyond a development sample.
 
 ## Pre-Requisites
@@ -24,14 +24,14 @@ This requires GKE.  The following scopes must be enabled on the nodes in the
 resource pool.
 
 * BigQuery   - Enabled
-* Loging     - Write Only
+* Logging     - Write Only
 * Monitoring - Full
 * CloudSQL   - Enabled
 
 ## Project Setup
 Log in to gcloud
 ```shell
-glcoud auth login
+gcloud auth login
 ```
 Enable the necessary API's
 ```
@@ -60,7 +60,7 @@ bq --location=US mk -d --description "This is a dataset for the CloudSQL Sink." 
 ## Create the Sink
 Export the organization ID
 ```shell
-export ORG_ID=<your-organizaion-id>
+export ORG_ID=<your-organization-id>
 ```
 Export the project ID.
 ```shell

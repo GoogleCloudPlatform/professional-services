@@ -1,0 +1,41 @@
+#   Copyright 2022 Google LLC
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+
+# Example JSON input:
+# {
+#    "recipientEmailAddresses": [
+#      "recipientOne@mydomain.com",
+#      "recipientTwo@mydomain.com"
+#    ],
+#    "subject": "MS GraphAPI email send test",
+#    "htmlBody": "<html><head><title>My notification</title></head><body><h1>My notification</h1><p>Some text</p><p> bla bla</p></body></html>"
+# }
+processors:
+  - genericjson
+
+outputs:
+  - type: mail
+    transports:
+      - type: msgraphapi
+        client_id: "my_client_id"
+        client_secret: "my_client_secret"
+        tenant_id: "my_tenant_id"
+    from: email_sender@mydomain.com
+    to: |
+      {{ data.recipientEmailAddresses|join(',') }}
+    subject: |
+      {{ data.subject }}
+    body:
+      html: |
+       {{ data.htmlBody }}

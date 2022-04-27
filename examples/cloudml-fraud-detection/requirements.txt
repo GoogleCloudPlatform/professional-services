@@ -1,4 +1,4 @@
-tensorflow==1.13.1
+tensorflow==1.15.2
 apache_beam[gcp]==2.12.0
 tensorflow-transform==0.4.0
 matplotlib

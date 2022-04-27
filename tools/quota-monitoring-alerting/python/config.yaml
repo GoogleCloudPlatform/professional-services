@@ -1,0 +1,59 @@
+# Copyright 2021 Google Inc. All Rights Reserved.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#   http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+# Configuration data for building Quota dashboards and pushing custom
+# metrics.
+name: 'quota'
+# Host project settings.
+project: '$PROJECT'
+templates_outputs_dir: 'templates/outputs'
+
+
+# List of metrics and their thresholds for triggering Quota threshold report.
+# fixme: This should accomodate multiple thresholds.
+thresholds:
+  'ALL': 80  # This signifies all have same threshold.
+
+
+# Settings that are applicable to exporting/publishing metric data.
+export:
+  bigquery:
+    # BQ table to which data should be exported.
+    dataset: 'quota'
+    tables:
+      metrics_table_id: 'metrics'
+      thresholds_table_id: 'thresholds'
+  pubsub: # Pubsub topic details
+    metrics_topic: 'metrics'
+    thresholds_topic: 'thresholds'
+    bigquery_topic: 'bigquery'
+  # The resources section helps in identifying the projects for which we would
+  # like to export metric(s).
+  resources:
+    - type: 'projects'  # Possible values are folders, projects, filters.
+      include:
+      # List project ids or 'ALL'
+      - 'ALL'  # This signifies that all projects in an ORG are of interest.
+    #- type: 'folders'  # Possible values are folders, projects, filters.
+    #  include:
+    #  # List folder ids for including projects under a specific folder.
+    #  - 123456789344
+    #- type: 'filters'
+    #  include:
+    #  # See https://cloud.google.com/resource-manager/reference/rest/v1/projects/list
+    #  # and query parameter filter syntax
+    #  - 'labels.env:demo lifecycleState:ACTIVE'
+    #  - 'labels.env:dev lifecycleState:ACTIVE'
+  metrics:
+    # This list tells which metrics should be considered for export.
+    # Mention individual metric names or 'ALL'.
+    - 'ALL'  # This signifies that all metrics are of interest.

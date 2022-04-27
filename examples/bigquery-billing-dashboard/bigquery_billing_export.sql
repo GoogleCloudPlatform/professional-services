@@ -4,11 +4,11 @@
  * Description:
  * This SQL script transforms the billing export table to anonymize user data
  * and included a linear projection for daily running cost. The output table
- * powers the Cloud Billing Dashboard 
+ * powers the Cloud Billing Dashboard
  * (https://cloud.google.com/billing/docs/how-to/visualize-data).
  */
 
-WITH 
+WITH
 -- Generate dates in the current month.
 current_month_dates AS (
   SELECT gen_date
@@ -17,8 +17,8 @@ current_month_dates AS (
       GENERATE_DATE_ARRAY(
         DATE_TRUNC(CURRENT_DATE(), MONTH),
         DATE_SUB(DATE_TRUNC(
-          DATE_ADD(CURRENT_DATE(), INTERVAL 1 MONTH), MONTH), 
-        INTERVAL 1 DAY), 
+          DATE_ADD(CURRENT_DATE(), INTERVAL 1 MONTH), MONTH),
+        INTERVAL 1 DAY),
       INTERVAL 1 DAY)
     ) AS gen_date),
 
@@ -41,11 +41,11 @@ avg_daily_cost AS (
 
 -- Calculate projected_running_cost
 projected_cost AS (
-SELECT 
+SELECT
   daily_cost.gen_date AS date,
   daily_cost.cost AS daily_cost,
   avg_daily_cost.cost AS avg_daily_cost,
-  (DATE_DIFF(daily_cost.gen_date, DATE_TRUNC(CURRENT_DATE, MONTH), DAY) + 1) * 
+  (DATE_DIFF(daily_cost.gen_date, DATE_TRUNC(CURRENT_DATE, MONTH), DAY) + 1) *
     avg_daily_cost.cost AS projected_running_cost
 FROM daily_cost
 CROSS JOIN avg_daily_cost)

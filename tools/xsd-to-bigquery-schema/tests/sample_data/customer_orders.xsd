@@ -1,0 +1,78 @@
+<!--
+Copyright 2022 Google LLC
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    https://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<?xml version="1.0" encoding="utf-8" ?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name='Root'>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name='Customers'>
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name='Customer' type='CustomerType' minOccurs='0' maxOccurs='unbounded' />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name='Orders'>
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name='Order' type='OrderType' minOccurs='0' maxOccurs='unbounded' />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:complexType name='CustomerType'>
+    <xs:sequence>
+      <xs:element name='CompanyName' type='xs:string'/>
+      <xs:element name='ContactName' type='xs:string'/>
+      <xs:element name='ContactTitle' type='xs:string'/>
+      <xs:element name='Phone' type='xs:string'/>
+      <xs:element name='Fax' minOccurs='0' type='xs:string'/>
+      <xs:element name='FullAddress' type='AddressType'/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name='AddressType'>
+    <xs:sequence>
+      <xs:element name='Address' type='xs:string'/>
+      <xs:element name='City' type='xs:string'/>
+      <xs:element name='Region' type='xs:string'/>
+      <xs:element name='PostalCode' type='xs:string' />
+      <xs:element name='Country' type='xs:string'/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name='OrderType'>
+    <xs:sequence>
+      <xs:element name='CustomerID' type='xs:token'/>
+      <xs:element name='EmployeeID' type='xs:token'/>
+      <xs:element name='OrderDate' type='xs:dateTime'/>
+      <xs:element name='RequiredDate' type='xs:dateTime'/>
+      <xs:element name='ShipInfo' type='ShipInfoType'/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name='ShipInfoType'>
+    <xs:sequence>
+      <xs:element name='ShipVia' type='xs:integer'/>
+      <xs:element name='Freight' type='xs:decimal'/>
+      <xs:element name='ShipName' type='xs:string'/>
+      <xs:element name='ShipAddress' type='xs:string'/>
+      <xs:element name='ShipCity' type='xs:string'/>
+      <xs:element name='ShipRegion' type='xs:string'/>
+      <xs:element name='ShipPostalCode' type='xs:string'/>
+      <xs:element name='ShipCountry' type='xs:string'/>
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>

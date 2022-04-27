@@ -1,0 +1,3 @@
+        FIRST_VALUE(
+            {0:s} IGNORE NULLS
+        ) OVER(win) {1:s}

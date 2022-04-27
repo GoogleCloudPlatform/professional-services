@@ -11,17 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
-A Dataflow pipeline which reads a schema to simulate or "fake" data 
-from a json file and writes random data of the schema's shape to a 
-BigQuery table or as CSV or AVRO files on GCS. This can be used to 
+A Dataflow pipeline which reads a schema to simulate or "fake" data
+from a json file and writes random data of the schema's shape to a
+BigQuery table or as CSV or AVRO files on GCS. This can be used to
 ease apprehension about BQ costs, unblock integration testing before
-real data can be provided by the business, or create dummy datasets 
+real data can be provided by the business, or create dummy datasets
 for stress testing in the event of large data growth.
 """
 
-from __future__ import absolute_import
 import json
 import logging
 
@@ -32,7 +30,6 @@ from data_generator.PrettyDataGenerator import DataGenerator, FakeRowGen, \
 parse_data_generator_args, validate_data_args, fetch_schema,\
 write_n_line_file_to_gcs
 
-import avro.schema
 import fastavro
 import os
 
@@ -60,8 +57,7 @@ def run(argv=None):
 
     temp_location = pipeline_options.display_data()['temp_location']
     temp_blob = write_n_line_file_to_gcs(
-        pipeline_options.display_data()['project'],
-        temp_location,
+        pipeline_options.display_data()['project'], temp_location,
         data_args.num_records)
 
     data_gen = DataGenerator(bq_schema_filename=data_args.schema_file,
@@ -83,82 +79,71 @@ def run(argv=None):
     # store temp files, and what the project id is and what runner to use.
     p = beam.Pipeline(options=pipeline_options)
 
-    rows = (p
+    rows = (
+        p
         # Read the file we created with num_records newlines.
         | 'Read file with num_records lines' >> beam.io.ReadFromText(
-                os.path.join('gs://', temp_blob.bucket.name, temp_blob.name)
-            )
+            os.path.join('gs://', temp_blob.bucket.name, temp_blob.name))
 
         # Use our instance of our custom DataGenerator Class to generate 1 fake
         # datum with the appropriate schema for each element in the PColleciton
         # created above.
         | 'Generate Data' >> beam.ParDo(FakeRowGen(data_gen))
-        | 'Parse Json Strings' >> beam.FlatMap(lambda row: [json.loads(row)])
-
-    )
+        | 'Parse Json Strings' >> beam.FlatMap(lambda row: [json.loads(row)]))
 
     if data_args.primary_key_cols:
         for key in data_args.primary_key_cols.split(','):
-            rows |= 'Enforcing primary key: {}'.format(key) >> EnforcePrimaryKeys(
-                        key)
+            rows |= 'Enforcing primary key: {}'.format(
+                key) >> EnforcePrimaryKeys(key)
 
     if data_args.csv_schema_order:
         (rows
-            | 'Order fields for CSV writing.' >> beam.FlatMap(lambda d: 
-                   [dict_to_csv(d, data_args.csv_schema_order.split(','))])
-
-            | 'Write to GCS' >> beam.io.textio.WriteToText(
-                   file_path_prefix=data_args.output_prefix,
-                   file_name_suffix='.csv')
-        )
+         | 'Order fields for CSV writing.' >> beam.FlatMap(
+             lambda d: [dict_to_csv(d, data_args.csv_schema_order.split(','))])
+         | 'Write to GCS' >> beam.io.textio.WriteToText(
+             file_path_prefix=data_args.output_prefix, file_name_suffix='.csv')
+         )
 
     if data_args.avro_schema_file:
-        avsc = avro.schema.parse(open(data_args.avro_schema_file, 'rb').read())
         fastavro_avsc = fastavro.schema.load_schema(data_args.avro_schema_file)
 
         (rows
-            # Need to convert time stamps from strings to timestamp-micros
-            | 'Fix date and time Types for Avro.' >> beam.FlatMap(lambda row:
-                fix_record_for_avro(row, avsc))
-            | 'Write to Avro.' >> beam.io.avroio.WriteToAvro(
-                    file_path_prefix=data_args.output_prefix,
-                    codec='null',
-                    file_name_suffix='.avro',
-                    use_fastavro=True,
-                    schema=fastavro_avsc
-                )
-        )
+         # Need to convert time stamps from strings to timestamp-micros
+         | 'Fix date and time Types for Avro.' >>
+         beam.FlatMap(lambda row: fix_record_for_avro(row, fastavro_avsc))
+         | 'Write to Avro.' >> beam.io.avroio.WriteToAvro(
+             file_path_prefix=data_args.output_prefix,
+             codec='null',
+             file_name_suffix='.avro',
+             use_fastavro=True,
+             schema=fastavro_avsc))
 
     if data_args.write_to_parquet:
         with open(data_args.schema_file, 'r') as infile:
             str_schema = json.load(infile)
         pa_schema = get_pyarrow_translated_schema(str_schema)
         (rows
-            | 'Fix data and time Types for Parquet.' >>
-            beam.FlatMap(lambda row: fix_record_for_parquet(row, str_schema))
-            | 'Write to Parquet.' >> beam.io.WriteToParquet(
-                    file_path_prefix=data_args.output_prefix,
-                    codec='null',
-                    file_name_suffix='.parquet',
-                    schema=pa_schema
-                )
-        )
+         | 'Fix data and time Types for Parquet.' >>
+         beam.FlatMap(lambda row: fix_record_for_parquet(row, str_schema))
+         | 'Write to Parquet.' >> beam.io.WriteToParquet(
+             file_path_prefix=data_args.output_prefix,
+             codec='null',
+             file_name_suffix='.parquet',
+             schema=pa_schema))
 
     if data_args.output_bq_table:
         (rows
-            | 'Write to BigQuery.' >> beam.io.gcp.bigquery.WriteToBigQuery(
-                 # The table name is a required argument for the BigQuery sink.
-                 # In this case we use the value passed in from the command
-                 # line.
-                 data_args.output_bq_table,
-                 schema=None if schema_inferred else data_gen.get_bq_schema(),
-                 # Creates the table in BigQuery if it does not yet exist.
-                 create_disposition=beam.io.BigQueryDisposition.CREATE_IF_NEEDED,
-                 write_disposition=data_gen.write_disp,
-                 # Use the max recommended batch size.
-                 batch_size=500
-            )
-        )
+         | 'Write to BigQuery.' >> beam.io.gcp.bigquery.WriteToBigQuery(
+             # The table name is a required argument for the BigQuery sink.
+             # In this case we use the value passed in from the command
+             # line.
+             data_args.output_bq_table,
+             schema=None if schema_inferred else data_gen.get_bq_schema(),
+             # Creates the table in BigQuery if it does not yet exist.
+             create_disposition=beam.io.BigQueryDisposition.CREATE_IF_NEEDED,
+             write_disposition=data_gen.write_disp,
+             # Use the max recommended batch size.
+             batch_size=500))
 
     p.run().wait_until_finish()
 

@@ -1,0 +1,11 @@
+{
+  "id": "1",
+  "folder_ids": "396521612401",
+  "commitments_unit_type": "RAM",
+  "commitments_cud_type": "Regular Usage",
+  "commitments_amount": 50,
+  "commitments_region": "us-west1",
+  "commit_start_date": "2017-01-01",
+  "commit_end_date": "2020-01-01"
+}
+
