@@ -235,7 +235,8 @@ def main(argv):
                         required=True)
     parser.add_argument('-de',
                         dest='DETAILED_BILLING_EXPORT_DATASET_NAME',
-                        type=str)
+                        type=str,
+                        required=True)
 
     parser.add_argument('-bb',
                         dest='BILLBOARD_DATASET_NAME_TO_BE_CREATED',
