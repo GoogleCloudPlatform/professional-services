@@ -149,8 +149,32 @@ variable "composer_sa_permissions" {
   ]
 }
 
-variable "assign_robot_sa_permissions" {
-  description = "Assign permissions to GKE and Composer robot agent service accpunts for Shared VPC"
-  type        = bool
-  default     = true
+variable "airflow_config_overrides" {
+  type        = map(string)
+  description = "Airflow configuration properties to override. Property keys contain the section and property names, separated by a hyphen, for example \"core-dags_are_paused_at_creation\"."
+  default     = {}
+}
+
+variable "env_variables" {
+  type        = map(string)
+  description = "Variables of the airflow environment."
+  default     = {}
+}
+
+variable "image_version" {
+  type        = string
+  description = "The version of the aiflow running in the cloud composer environment."
+  default     = null
+}
+
+variable "pypi_packages" {
+  type        = map(string)
+  description = " Custom Python Package Index (PyPI) packages to be installed in the environment. Keys refer to the lowercase package name (e.g. \"numpy\")."
+  default     = {}
+}
+
+variable "python_version" {
+  description = "The default version of Python used to run the Airflow scheduler, worker, and webserver processes."
+  type        = string
+  default     = "3"
 }

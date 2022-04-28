@@ -72,6 +72,13 @@ variable "composer_v1_private_envs" {
     web_server_cidr       = string
     cloud_sql_cidr        = string
     tags                  = list(string)
+    software_config = object({
+      airflow_config_overrides = map(string)
+      env_variables            = map(string)
+      image_version            = string
+      pypi_packages            = map(string)
+      python_version           = string
+    })
   }))
   default = {}
 }

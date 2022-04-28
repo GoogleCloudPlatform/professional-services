@@ -50,4 +50,9 @@ module "composer-env" {
   web_server_ipv4_cidr             = each.value.web_server_cidr
   master_ipv4_cidr                 = each.value.control_plane_cidr
   firewall_rules_create            = var.deny_all_egrees_rule_create
+  airflow_config_overrides         = each.value.software_config.airflow_config_overrides
+  env_variables                    = each.value.software_config.env_variables
+  image_version                    = each.value.software_config.image_version
+  pypi_packages                    = each.value.software_config.pypi_packages
+  python_version                   = each.value.software_config.python_version
 }

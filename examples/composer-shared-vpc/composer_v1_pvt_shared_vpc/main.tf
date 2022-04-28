@@ -30,9 +30,9 @@ locals {
   )
   subnet_primary_cidr_range    = data.google_compute_subnetwork.subnetwork.ip_cidr_range
   subnet_pod_cidr_range        = [for secondary_range in data.google_compute_subnetwork.subnetwork.secondary_ip_range : secondary_range.ip_cidr_range if secondary_range.range_name == var.pod_ip_allocation_range_name][0]
-  gke_agents_permissions       = var.assign_robot_sa_permissions ? ["roles/compute.networkUser", "roles/compute.securityAdmin", "roles/container.hostServiceAgentUser"] : []
-  composer_agents_permissions  = var.assign_robot_sa_permissions ? ["roles/compute.networkUser", "roles/composer.sharedVpcAgent"] : []
-  cloudservices_sa_permissions = var.assign_robot_sa_permissions ? ["roles/compute.networkUser"] : []
+  gke_agents_permissions       = ["roles/compute.networkUser", "roles/compute.securityAdmin", "roles/container.hostServiceAgentUser"]
+  composer_agents_permissions  = ["roles/compute.networkUser", "roles/composer.sharedVpcAgent"]
+  cloudservices_sa_permissions = ["roles/compute.networkUser"]
 }
 
 data "google_compute_subnetwork" "subnetwork" {
@@ -63,8 +63,14 @@ module "composer-v1-private" {
   machine_type                     = var.machine_type
   disk_size                        = var.disk_size
   web_server_allowed_ip_ranges     = var.web_server_allowed_ip_ranges
+  airflow_config_overrides         = var.airflow_config_overrides
+  env_variables                    = var.env_variables
+  image_version                    = var.image_version
+  pypi_packages                    = var.pypi_packages
+  python_version                   = var.python_version
   use_ip_aliases                   = true
   enable_private_endpoint          = true
+
   depends_on = [
     module.egress-firewall-rules,
     google_project_iam_member.iam_member_composer_worker_roles,

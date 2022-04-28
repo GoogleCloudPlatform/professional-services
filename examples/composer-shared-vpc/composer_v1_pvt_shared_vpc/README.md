@@ -34,22 +34,25 @@ No requirements.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_assign_robot_sa_permissions"></a> [assign\_robot\_sa\_permissions](#input\_assign\_robot\_sa\_permissions) | Assign permissions to GKE and Composer robot agent service accpunts for Shared VPC | `bool` | `true` | no |
+| <a name="input_airflow_config_overrides"></a> [airflow\_config\_overrides](#input\_airflow\_config\_overrides) | Airflow configuration properties to override. Property keys contain the section and property names, separated by a hyphen, for example "core-dags\_are\_paused\_at\_creation". | `map(string)` | `{}` | no |
 | <a name="input_cloud_sql_ipv4_cidr"></a> [cloud\_sql\_ipv4\_cidr](#input\_cloud\_sql\_ipv4\_cidr) | The CIDR block from which IP range in tenant project will be reserved for Cloud SQL. | `string` | `null` | no |
 | <a name="input_composer_env_name"></a> [composer\_env\_name](#input\_composer\_env\_name) | Name of Cloud Composer Environment | `string` | n/a | yes |
 | <a name="input_composer_sa_permissions"></a> [composer\_sa\_permissions](#input\_composer\_sa\_permissions) | IAM Roles assigned to composer SA | `list(string)` | <pre>[<br>  "roles/composer.worker",<br>  "roles/iam.serviceAccountUser",<br>  "roles/logging.logWriter"<br>]</pre> | no |
 | <a name="input_composer_service_account"></a> [composer\_service\_account](#input\_composer\_service\_account) | Service Account for running Cloud Composer. | `string` | `null` | no |
 | <a name="input_composer_service_account_create"></a> [composer\_service\_account\_create](#input\_composer\_service\_account\_create) | Create composer service account | `bool` | `true` | no |
 | <a name="input_disk_size"></a> [disk\_size](#input\_disk\_size) | The disk size for nodes. | `string` | `"100"` | no |
+| <a name="input_env_variables"></a> [env\_variables](#input\_env\_variables) | Variables of the airflow environment. | `map(string)` | `{}` | no |
 | <a name="input_firewall_rules_create"></a> [firewall\_rules\_create](#input\_firewall\_rules\_create) | Create Egress firewall rules for composer env, needed where egress is denied | `bool` | `true` | no |
+| <a name="input_image_version"></a> [image\_version](#input\_image\_version) | The version of the aiflow running in the cloud composer environment. | `string` | `null` | no |
 | <a name="input_machine_type"></a> [machine\_type](#input\_machine\_type) | Machine type of Cloud Composer nodes. | `string` | `"n1-standard-8"` | no |
 | <a name="input_master_ipv4_cidr"></a> [master\_ipv4\_cidr](#input\_master\_ipv4\_cidr) | The CIDR block from which IP range in tenant project will be reserved for the master. | `string` | `null` | no |
 | <a name="input_network"></a> [network](#input\_network) | The VPC network to host the composer cluster. | `string` | n/a | yes |
 | <a name="input_network_project_id"></a> [network\_project\_id](#input\_network\_project\_id) | The project ID of the shared VPC's host (for shared vpc support) | `string` | n/a | yes |
 | <a name="input_node_count"></a> [node\_count](#input\_node\_count) | Number of worker nodes in Cloud Composer Environment. | `number` | `3` | no |
-| <a name="input_oauth_scopes"></a> [oauth\_scopes](#input\_oauth\_scopes) | Google API scopes to be made available on all node. | `set(string)` | <pre>[<br>  "https://www.googleapis.com/auth/cloud-platform"<br>]</pre> | no |
 | <a name="input_pod_ip_allocation_range_name"></a> [pod\_ip\_allocation\_range\_name](#input\_pod\_ip\_allocation\_range\_name) | The name of the cluster's secondary range used to allocate IP addresses to pods. | `string` | `null` | no |
 | <a name="input_project_id"></a> [project\_id](#input\_project\_id) | Project ID where Cloud Composer Environment is created. | `string` | n/a | yes |
+| <a name="input_pypi_packages"></a> [pypi\_packages](#input\_pypi\_packages) | Custom Python Package Index (PyPI) packages to be installed in the environment. Keys refer to the lowercase package name (e.g. "numpy"). | `map(string)` | `{}` | no |
+| <a name="input_python_version"></a> [python\_version](#input\_python\_version) | The default version of Python used to run the Airflow scheduler, worker, and webserver processes. | `string` | `"3"` | no |
 | <a name="input_region"></a> [region](#input\_region) | Region where the Cloud Composer Environment is created. | `string` | `"us-central1"` | no |
 | <a name="input_service_ip_allocation_range_name"></a> [service\_ip\_allocation\_range\_name](#input\_service\_ip\_allocation\_range\_name) | The name of the services' secondary range used to allocate IP addresses to the cluster. | `string` | `null` | no |
 | <a name="input_subnetwork"></a> [subnetwork](#input\_subnetwork) | The subnetwork to host the composer cluster. | `string` | n/a | yes |
