@@ -26,7 +26,7 @@ variable "artifact_registry_location" {
 }
 
 variable "container_version" {
-  default = "4"
+  default = "1"
 }
 
 variable "region" {
