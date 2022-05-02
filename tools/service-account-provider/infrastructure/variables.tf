@@ -26,7 +26,7 @@ variable "artifact_registry_location" {
 }
 
 variable "container_version" {
-  default = "1"
+  default = "4"
 }
 
 variable "region" {
@@ -34,5 +34,5 @@ variable "region" {
 }
 
 variable "config_storage_path" {
-  default = "/sapro"
+  default = "sapro"
 }
