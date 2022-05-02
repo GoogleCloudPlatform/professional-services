@@ -1,23 +1,23 @@
-#!/bin/bash
-echo "Applying Terraform"
+#!/bin/sh
+echo "Applying Terraform Apply"
 
-if [ -z "${SCOPES}" ]; then
-    SCOPES="https%3A%2F%2Fwww%2Egoogleapis%2Ecom%2Fauth%2Fcloud%2Dplatform"
+if [ -z "${scope}"]; then
+    SCOPE="https%3A%2F%2Fwww%2Egoogleapis%2Ecom%2Fauth%2Fcloud%2Dplatform"
 fi
-if [ -z "${LIFETIME}" ]; then
+if [ -z "${lifetime}"]; then
     LIFETIME="60"
 fi
 
-STATUS_CODE=500
-url="https://sapro.com/access?sa=${SERVICE_ACCOUNT}&scopes=$SCOPES&lifetime=${LIFETIME}"
+url="https://sapro.com/access?sa=${service_account}&scopes=${SCOPE}&lifetime=${LIFETIME}"
 access=$(gcloud auth print-identity-token --quiet)
-response=$(curl --silent --write-out "STATUS_CODE:%{http_code}" -H "Gitlab-Token: ${CI_JOB_JWT}" -H "Authorization: Bearer ${access}" "${url}")
-token=${response/*STATUS_CODE:/}
+response=$(curl --silent --write-out "STATUS_CODE:%{http_code}" -H "Gitlab-Token: ${CI_JOB_JWT}" -H "Authorization: Bearer ${access}" ${url})
+export TF_VAR_ACCESS_TOKEN=$(echo $response | sed -e 's/STATUS_CODE\:.*//g')
+status_code=$(echo $response | tr -d '\n' | sed -e 's/.*STATUS_CODE://')
 
-if [ -n "$STATUS_CODE" ] && [ "$STATUS_CODE" = '200' ]; then
+if [ -n "$status_code" -a "$status_code" = '200' ]; then 
   echo "Succesfully retrieved token"
 else
-  echo "Failed retrieving token $STATUS_CODE - $token"
+  echo "Failed retrieving token for ${service_account} _${status_code}_ - ${TF_VAR_access_token}"
   exit 1
 fi
 
