@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # shellcheck disable=SC2001
 echo "Applying Terraform"
 
@@ -13,7 +13,7 @@ url="https://sapro.com/access?sa=${service_account}&scopes=${SCOPE}&lifetime=${L
 access=$(gcloud auth print-identity-token --quiet)
 response=$(curl --silent --write-out "STATUS_CODE:%{http_code}" -H "Gitlab-Token: ${CI_JOB_JWT}" -H "Authorization: Bearer ${access}" ${url})
 TF_VAR_ACCESS_TOKEN=$(echo "$response" | sed -e 's/STATUS_CODE\:.*//g')
-export TF_VAR_ACCESS_TOKEN
+export $TF_VAR_ACCESS_TOKEN
 status_code=$(echo "$response" | tr -d '\n' | sed -e 's/.*STATUS_CODE://')
 
 if [ -n "$status_code" ] && [ "$status_code" = '200' ]; then 
