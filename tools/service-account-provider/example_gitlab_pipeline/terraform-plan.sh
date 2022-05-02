@@ -1,5 +1,5 @@
 #!/bin/sh
-echo "Creating plan for Terraform"
+echo "Planning Terraform"
 
 if [ -z "${scope}"]; then
     SCOPE="https%3A%2F%2Fwww%2Egoogleapis%2Ecom%2Fauth%2Fcloud%2Dplatform"
