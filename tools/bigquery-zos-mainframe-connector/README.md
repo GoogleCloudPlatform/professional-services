@@ -23,7 +23,7 @@ All usage is driven by JCL and divided into Job Steps. Input datasets are provid
 
 Users can execute multiple commands in a single step by entering commands on separate lines or delimited by semicolon.
 
-Typically a JES job will contain multiple steps, each step executing the BQSH procedure with one or more gsutil or bq commands.
+Typically a JES job will contain multiple steps, each step executing the [BQSH procedure](./gszutil/proclib/BQSH) with one or more gsutil or bq commands.
 
 
 ### DD Names (Dataset Definition)
@@ -79,17 +79,23 @@ bq query --project_id=$PROJECT \
 /*
 ```
 
+**Note** for variables such as project ids and bucket names can also be placed in
+BQSH proclib and referenced across several JCL as environment variables, thus 
+avoiding specifying them in each JCL. Furthermore this approach can provide seamless
+transition between prod and nonprod since environment specific variables are set
+it the enviroment's BQSH proclib. 
+
 ### Enabling Debug Logging
 Debug logging can be enabled by editing the BQSH Procedure and setting the environment variable BQSH_ROOT_LOGGER=DEBUG \
 Debug logging can be disabled by commenting out the line or setting the variable to anything other than DEBUG.
 
 ## Using with Google Cloud Storage
 
-Check the [Using with Google Cloud Storage](./USING_WITH_GCS) guide.
+Check the [Using with Google Cloud Storage](./USING_WITH_GCS.md) guide.
 
 ## Using with BigQuery
 
-Check the [Using with BigQuery](./USING_WITH_BQ) guide.
+Check the [Using with BigQuery](./USING_WITH_BQ.md) guide.
 
 
 ## Installation
@@ -132,6 +138,7 @@ Build jar:
 
 Set env variables and run BQSH main class:
 ```
+cd ./target/scala-2.13
 export COPYBOOK="./gszutil/src/test/resources/exportCopybook.txt"
 export INFILE_DSN="./gszutil/src/test/resources/mload1.dat"
 export INFILE_LRECL=111
