@@ -35,7 +35,7 @@ Scale the spot-node-pool to 0:
 `gcloud container clusters resize "${TF_VAR_project_id}-gke" --node-pool=spot-node-pool --num-nodes=0 --zone=europe-west1-b`
 
 Now simulate spot VMs being available again by enabling autoscaling again:
-`gcloud container clusters update "${TF_VAR_project_id}-gke" --enable-autoscaling --node-pool=spot-node-pool  --min-nodes=1 --max-nodes=3 --zone=europe-west1-b`
+`gcloud container clusters update "${TF_VAR_project_id}-gke" --enable-autoscaling --node-pool=spot-node-pool  --min-nodes=1 --max-nodes=5 --zone=europe-west1-b`
 
 Wait for the drain-job to drain the on-demand nodes and watch your pods being scheduled back to the spot nodes. The drain-job is configured to run every 15 minutes, so this might take a while.
 

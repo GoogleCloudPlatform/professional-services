@@ -100,5 +100,8 @@ resource "kubernetes_pod_disruption_budget" "my_app_pdb" {
       }
     }
   }
+  depends_on = [
+    kubernetes_namespace.my_app_ns
+  ]
 }
 
