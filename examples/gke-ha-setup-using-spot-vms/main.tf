@@ -15,7 +15,7 @@
  */
 
 locals {
-    apis = ["container.googleapis.com"]
+  apis = ["container.googleapis.com"]
 }
 
 resource "google_project_service" "project" {

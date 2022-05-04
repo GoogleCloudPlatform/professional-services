@@ -14,12 +14,6 @@
  * limitations under the License.
  */
 
-provider "google" {
-}
-
-provider "google-beta" {
-}
-
 provider "kubernetes" {
   host  = "https://${google_container_cluster.cluster.endpoint}"
   token = data.google_client_config.provider.access_token

@@ -18,10 +18,10 @@
 resource "google_container_cluster" "cluster" {
   name     = "${var.project_id}-gke"
   location = var.zone
-  project = var.project_id
-  
+  project  = var.project_id
+
   remove_default_node_pool = true
-  initial_node_count  = 1
+  initial_node_count       = 1
 
   depends_on = [
     google_project_service.project
@@ -34,8 +34,8 @@ resource "google_container_node_pool" "spot_pool" {
   provider = google-beta
 
   name       = "spot-node-pool"
-  location   = var.zone 
-  project = var.project_id
+  location   = var.zone
+  project    = var.project_id
   cluster    = google_container_cluster.cluster.name
   node_count = 1
   autoscaling {
@@ -52,7 +52,9 @@ resource "google_container_node_pool" "spot_pool" {
       env = var.project_id
     }
 
+    # enabling usage of spot nodes for this pool
     spot = true
+
     machine_type = var.machine_type
     tags         = ["gke-spot-node"]
     metadata = {
@@ -64,8 +66,8 @@ resource "google_container_node_pool" "spot_pool" {
 # On-demand pool
 resource "google_container_node_pool" "on_demand_pool" {
   name       = "on-demand-node-pool"
-  location   = var.zone 
-  project = var.project_id
+  location   = var.zone
+  project    = var.project_id
   cluster    = google_container_cluster.cluster.name
   node_count = 1
   autoscaling {
@@ -87,10 +89,10 @@ resource "google_container_node_pool" "on_demand_pool" {
     metadata = {
       disable-legacy-endpoints = "true"
     }
-    taint = [ {
+    taint = [{
       effect = "PREFER_NO_SCHEDULE"
-      key = "type"
-      value = "on-demand"
-    } ]
+      key    = "type"
+      value  = "on-demand"
+    }]
   }
 }

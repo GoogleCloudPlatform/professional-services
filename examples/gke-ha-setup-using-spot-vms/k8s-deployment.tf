@@ -68,19 +68,19 @@ resource "kubernetes_deployment" "my_app" {
               weight = 1
               preference {
                 match_expressions {
-                  key = "cloud.google.com/gke-spot"
+                  key      = "cloud.google.com/gke-spot"
                   operator = "In"
-                  values = [true]
+                  values   = [true]
                 }
               }
             }
           }
         }
         toleration {
-          key = "type"
-          value = "on-demand"
+          key      = "type"
+          value    = "on-demand"
           operator = "Equal"
-          effect = "PreferNoSchedule"
+          effect   = "PreferNoSchedule"
         }
       }
     }
@@ -89,11 +89,11 @@ resource "kubernetes_deployment" "my_app" {
 
 resource "kubernetes_pod_disruption_budget" "my_app_pdb" {
   metadata {
-    name = "${var.app_name}-pdb"
+    name      = "${var.app_name}-pdb"
     namespace = var.app_name
   }
   spec {
-    max_unavailable = "20%"
+    max_unavailable = "50%"
     selector {
       match_labels = {
         run = var.app_name

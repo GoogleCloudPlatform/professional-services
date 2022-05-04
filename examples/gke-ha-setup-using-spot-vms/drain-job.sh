@@ -1,3 +1,5 @@
+#!/bin/sh
+
 # get names of all nodes which are not spot (and therefore on-demand)
 echo "Starting drain script (every 15 mins)"
 nodes_to_drain_arr=$(kubectl get nodes --selector='!cloud.google.com/gke-spot' -o=custom-columns=NAME:.metadata.name);

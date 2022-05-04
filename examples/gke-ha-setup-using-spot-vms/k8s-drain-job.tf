@@ -121,8 +121,8 @@ resource "kubernetes_cron_job_v1" "drain_job" {
             name = var.drain_job_name
           }
           spec {
-            service_account_name = "${var.drain_job_name}-sa"
-            restart_policy = "OnFailure"
+            service_account_name             = "${var.drain_job_name}-sa"
+            restart_policy                   = "OnFailure"
             termination_grace_period_seconds = 30
             container {
               name  = var.drain_job_name
@@ -141,5 +141,23 @@ resource "kubernetes_cron_job_v1" "drain_job" {
   depends_on = [
     google_container_node_pool.spot_pool,
     google_container_node_pool.on_demand_pool
+  ]
+}
+
+resource "kubernetes_pod_disruption_budget" "drain_job_pdb" {
+  metadata {
+    name      = "${var.drain_job_name}-pdb"
+    namespace = var.drain_job_name
+  }
+  spec {
+    max_unavailable = "50%"
+    selector {
+      match_labels = {
+        run = var.drain_job_name
+      }
+    }
+  }
+  depends_on = [
+    kubernetes_namespace.drain_job_ns
   ]
 }

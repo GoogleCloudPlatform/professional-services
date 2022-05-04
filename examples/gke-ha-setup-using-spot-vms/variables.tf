@@ -15,23 +15,29 @@
  */
 
 variable "project_id" {
-}
-
-variable "region" {
-  default = "europe-west1"
+  type        = string
+  description = "GCP project ID of project to deploy this sample into"
 }
 
 variable "zone" {
-  default = "europe-west1-b"
+  type        = string
+  description = "GCP zone in which to deploy the GKE cluster"
+  default     = "europe-west1-b"
 }
 variable "drain_job_name" {
-  default = "drain-job"
+  type        = string
+  description = "Name for the drain job, this also affects the K8S namespace"
+  default     = "drain-job"
 }
 
 variable "app_name" {
-  default = "my-app"
+  type        = string
+  description = "Name for the sample container, this also affects the K8S namespace"
+  default     = "my-app"
 }
 
 variable "machine_type" {
-  default = "e2-medium"
+  type        = string
+  description = "Machine type to use for nodes within the GKE node pools"
+  default     = "e2-medium"
 }
