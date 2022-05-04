@@ -3,7 +3,11 @@
 This feature was created for migrating data into Bigquery. The primary use 
 case is copying a mainframe dataset directly to GCS, then invoking the 
 associated [gRPC server](./gszutil/grecv/environment/README.md) to transcode 
-the mainframe dataset to ORC
+the mainframe dataset to ORC.
+
+The [gRPC server](./gszutil/grecv/environment/README.md) allows the connector to
+run on a server the transcoding of binary files to ORC. This significantly reduces
+the level of MIPs consumed by this tool.
 
 ## gsutil cp 
 
