@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-# Retrieve an access token as the Terraform runners
-data "google_client_config" "provider" {}
-
 resource "kubernetes_namespace" "drain_job_ns" {
   metadata {
     name = var.drain_job_name
