@@ -14,14 +14,9 @@
  * limitations under the License.
  */
 
-locals {
-  apis = ["container.googleapis.com"]
-}
-
 resource "google_project_service" "project" {
-  for_each           = toset(local.apis)
   project            = var.project_id
-  service            = each.key
+  service            = "container.googleapis.com"
   disable_on_destroy = false
 }
 
