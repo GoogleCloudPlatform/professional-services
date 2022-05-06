@@ -138,7 +138,7 @@ Build jar:
 
 Set env variables and run BQSH main class:
 ```
-cd ./target/scala-2.13
+cd ./gszutil/target/scala-2.13
 export COPYBOOK="./gszutil/src/test/resources/exportCopybook.txt"
 export INFILE_DSN="./gszutil/src/test/resources/mload1.dat"
 export INFILE_LRECL=111
@@ -164,12 +164,13 @@ Build jar:
 
 Start server locally:
 ```
-cd ./target/scala-2.13
+cd ./gszutil/target/scala-2.13
 java -cp './*' com.google.cloud.imf.GRecv --port=51771 --chain="/path/to/server1.pem" --key="/path/to/server1.key"
 ```
 
 Run client locally 
 ```
+cd ./gszutil/target/scala-2.13
 export N=3
 export BUCKET=<test-bucket>
 export TRUST_CERT_COLLECTION_FILE_PATH="/path/to/ca.pem"

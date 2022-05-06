@@ -1,4 +1,14 @@
 # Using with BigQuery
+Typical flow involves the following steps:
+1. Reading mainframe dataset, 
+2. Transcoding dataset to ORC, 
+3. Registering as an external table* 
+4. Running a MERGE DML statement to load new incremental of data into target 
+table 
+
+*Note: if dataset does not require further modifications after loading, then 
+loading into a native table is a better option than loading into an external
+table
 
 ## bq query
 
@@ -72,7 +82,11 @@ new fields to be added
   --stats_table <value>    tablespec of table to insert stats
 ```
 
-
+**Notes**: 
+- Queries can be provided in a variaty of ways: inline, separate dataset via DD, separate dataset via DSN.
+- Custom parameterization tokens can be applied to the query datasets separately 
+from what is provided by the connector. This requires a preceding job step 
+to replace parameter tokens to produce the query dataset.
 
 
 ## bq load
@@ -152,6 +166,9 @@ Repeat this flag to specify multiple schema update options.
 
 
 ## bq mk
+
+This command is most commonly used to create external tables or native tables 
+that need partitioning and clustering to be set up
 
 ### Help text for bq mk:
 ```
