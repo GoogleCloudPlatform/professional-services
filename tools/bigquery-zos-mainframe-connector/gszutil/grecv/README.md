@@ -2,13 +2,13 @@
 
 grecv offloads decoding and encoding from the mainframe.
 
-The server is a java application which terminates TLS and decompresses a GZIP stream 
-of blocks sent by the client. The server maintains an array of decoders to 
-decode fields in the input dataset. After decoding, an ORC Writer appends batches 
-of data to an ORC file in GCS. The target ORC partition size is 128 MB. After a 
+The server is a java application which terminates TLS and decompresses a GZIP stream
+of blocks sent by the client. The server maintains an array of decoders to
+decode fields in the input dataset. After decoding, an ORC Writer appends batches
+of data to an ORC file in GCS. The target ORC partition size is 128 MB. After a
 partition exceeds the target size, a new writer is created automatically.
 
-The client reads blocks from the input dataset and sends round-robin across one or 
+The client reads blocks from the input dataset and sends round-robin across one or
 more sockets to the server.
 
 
@@ -16,7 +16,7 @@ more sockets to the server.
 
 ### Client Handshake
 
-Upon connecting, the client sends an integer indicating the number of 
+Upon connecting, the client sends an integer indicating the number of
 bytes in the serialized request message.
 The serialized request message is sent immediately after the length.
 The server replies with 200 if it was able to deserialize the message.
@@ -29,9 +29,9 @@ The client connects one or more sockets and initializes a GZIPOutputStream for e
 The server accepts exactly the number of connections specified during the handshake.
 Before each data block, the client sends an integer indicating the size of the block.
 A value of less than 1 is sent to indicate end of stream.
-Upon receiving the end of stream message, the server sends the number of blocks it has 
+Upon receiving the end of stream message, the server sends the number of blocks it has
 received and closes the connection.
-The client confirms the block count and closes the connection. 
+The client confirms the block count and closes the connection.
 
 
 ## Deployment
@@ -44,10 +44,13 @@ Each version of grecv will have the following objects:
 - `jre.tar` JVM
 - `pki.tar` TLS certificate and private key
 
-The `pkgUri` passed to grecv will be different for each environment.
-* Prod version for dev should be located at `gs://prod-bucket/prefix/<version>`
-* Dev version for dev should be located at `gs://dev-bucket/prefix/SNAPSHOT`
+### Scaling and sizing the service
+Since service is stateless, it could be placed behind a load balancer.
 
+An easier alternative is to create a larger instance, since the main bottleneck
+is the upload bandwidth from the mainframe. Furthermore the risks of running
+out of disk storage is low since the service does not use any disk storage
+and logs directly to cloud logging
 
 ## Package contents
 
