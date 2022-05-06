@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 Google LLC
+ * Copyright 2022 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,18 @@
  * limitations under the License.
  */
 
-variable "project" {
+resource "google_project_service" "project" {
+  project            = var.project_id
+  service            = "container.googleapis.com"
+  disable_on_destroy = false
 }
 
-variable "refresh_interval" {
-  default = "5"
+# Retrieve an access token as the Terraform runners
+data "google_client_config" "provider" {
+  depends_on = [
+    google_container_cluster.cluster
+  ]
 }
 
-variable "artifact_registry_location" {
-  default = "europe"
-}
 
-variable "container_version" {
-  default = "1"
-}
 
-variable "region" {
-  default = "europe-west1"
-}
-
-variable "config_storage_path" {
-  default = "sapro"
-}

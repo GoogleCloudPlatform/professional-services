@@ -30,7 +30,8 @@ resource "google_project_service" "project" {
 }
 
 resource "google_service_account" "service_account" {
-  account_id   = "sapro-sa"
+  account_id   = lower("${var.project}-sapro")
+  project       = data.google_project.project.project_id
   display_name = "Service Account for SAPRO"
 
   depends_on = [
@@ -39,7 +40,7 @@ resource "google_service_account" "service_account" {
 }
 
 resource "google_storage_bucket" "bucket" {
-  name                        = "sapro_bucket"
+  name                        = lower("${var.project}-sapro")
   location                    = "EU"
   force_destroy               = true
   uniform_bucket_level_access = true
@@ -56,17 +57,17 @@ resource "google_storage_bucket_iam_member" "member" {
 }
 
 resource "google_storage_bucket_object" "config_file" {
-  name   = "sapro/config.yaml"
+  name   = "${var.config_storage_path}/config.yaml"
   source = "config.yaml"
   bucket = google_storage_bucket.bucket.name
 }
 
-resource "google_artifact_registry_repository" "ipam" {
+resource "google_artifact_registry_repository" "registry" {
   provider = google-beta
 
   location      = var.artifact_registry_location
   project       = data.google_project.project.project_id
-  repository_id = "sapro"
+  repository_id = lower("${var.project}-sapro")
   description   = "Docker repository for Service Account Provider"
   format        = "DOCKER"
 
@@ -80,18 +81,13 @@ resource "null_resource" "docker_image" {
   provisioner "local-exec" {
     command = <<EOT
 gcloud auth configure-docker ${var.artifact_registry_location}-docker.pkg.dev
-docker buildx build --platform linux/amd64 --push -t ${var.artifact_registry_location}-docker.pkg.dev/${var.project_id}/sapro/sapro:${var.container_version} ../
+docker buildx build --platform linux/amd64 --push -t ${var.artifact_registry_location}-docker.pkg.dev/${var.project}/${var.project}-sapro/sapro:${var.container_version} .
 EOT
   }
 
   triggers = {
     "variable" = var.container_version
   }
-
-  depends_on = [
-    local_file.version_json,
-    local_file.versions_json
-  ]
 }
 
 resource "google_cloud_run_service" "sapro" {
@@ -101,10 +97,10 @@ resource "google_cloud_run_service" "sapro" {
   template {
     spec {
       containers {
-        image = "${var.artifact_registry_location}-docker.pkg.dev/${var.project_id}/sapro/sapro:${var.container_version}"
+        image = "${var.artifact_registry_location}-docker.pkg.dev/${var.project}/${var.project}-sapro/sapro:${var.container_version}"
         env {
           name  = "GCS_CONFIG_LINK"
-          value = "${google_storage_bucket.bucket.url}${var.config_storage_path}"
+          value = "${google_storage_bucket.bucket.url}/${var.config_storage_path}"
         }
         env {
           name  = "CONFIG_REFRESH_INTERVAL"
@@ -131,6 +127,7 @@ resource "google_cloud_run_service" "sapro" {
   autogenerate_revision_name = true
 
   depends_on = [
+    null_resource.docker_image,
     google_project_service.project,
     google_storage_bucket_iam_member.member,
     google_storage_bucket_object.config_file,

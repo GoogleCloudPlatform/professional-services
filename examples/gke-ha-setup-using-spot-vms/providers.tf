@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 Google LLC
+ * Copyright 2022 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,10 @@
  * limitations under the License.
  */
 
-variable "project" {
-}
-
-variable "refresh_interval" {
-  default = "5"
-}
-
-variable "artifact_registry_location" {
-  default = "europe"
-}
-
-variable "container_version" {
-  default = "1"
-}
-
-variable "region" {
-  default = "europe-west1"
-}
-
-variable "config_storage_path" {
-  default = "sapro"
+provider "kubernetes" {
+  host  = "https://${google_container_cluster.cluster.endpoint}"
+  token = data.google_client_config.provider.access_token
+  cluster_ca_certificate = base64decode(
+    google_container_cluster.cluster.master_auth[0].cluster_ca_certificate,
+  )
 }
