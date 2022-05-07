@@ -1,12 +1,16 @@
 # Cloud Function "Act As" Caller
 
+> tl;dr The Terraform project in this repository deploys a single simple Python Cloud Function that executes a simple action against Google Cloud API using identity of the function caller illustrating the full flow described above.
+
+---
+
 This example describes one possible solution of reducing the set of Google Cloud IAM permissions required by a Service Account running a Google Cloud Function by executing the Cloud Function on behalf of and with IAM permissions of the caller identity.
 
 Often the Google Cloud Functions are used for automation tasks, e.g. cloud infrastrcuture automation. In big Google Cloud organizations such automation needs access to all organization tenants and because of that the Cloud Function Service Account needs wide scope IAM permissions at the organization or similar level.
 
 Following the Principle of Least Privilege the Service Account that the Cloud Function executes under needs to have only IAM permissions required for its successful execution. In the case when a common Cloud Function automation is called by multiple tenants for performing operations on their individual tenant Google Cloud resources it would only require IAM permissions to the GCP resources of that tenant at a time. Those are typically permissions that the tenant is already having or can obtain for its tenant Service Accounts or Workload Identity.
 
-This example illustrates the way of reducing the set of Cloud Function IAM permissions to the temporary set of permissions defined by the context of the Cloud Function caller and its identity in particular. 
+This example illustrates a possible approach of reducing the set of Cloud Function IAM permissions to the temporary set of permissions defined by the context of the Cloud Function caller and its identity in particular. 
 
 The example contains a solution for the GitHub based CI/CD workflow caller of a Google Cloud Function based on the Workload Idenitty Federation mechanism supported by GitHub and [google-github-actions/auth](https://github.com/google-github-actions/auth) GitHub Action.
 
@@ -17,7 +21,7 @@ The Terraform project in this repository deploys a single simple Python Cloud Fu
 
 One of the typical security concerns in Cloud SaaS based CI/CD pipelines that manage and manipulate Google Cloud resources is the need to securely authenticate the caller process on the Google Cloud side. 
 
-A typical way of authenticating is using Google Cloud Serivce Account keys stored on the caller side that effectively are being used as long lived client secrets that need to be prtected and kept in secret. The need to manage and protect the long lived Service Account keys is a security challenge for the client.
+A typical way of authenticating is using Google Cloud Serivce Account keys stored on the caller side that effectively are being used as long lived client secrets that need to be protected and kept in secret. The need to manage and protect the long lived Service Account keys is a security challenge for the client.
 
 The recommended way to improve the secruity posture of the CI/CD automation is to remove the need to authenticate with Google Cloud using Service Account keys altogether. The Workload Identity Federation is the mechanism that allows secure authentication with no long lived secrets managed by the client based on the Open ID Connect authentication flow.
 
@@ -29,7 +33,7 @@ The following diagram describes the authentication process that does not require
 
 The Cloud Function Service Account is not granted any IAM permissions in the tenant GCP project. The only permissions it requires is read access to the ephemeal temporary Google Secret Manager Secret resource in its own project where the Cloud Function is defined and running.
 
-The Caller is the GitHub Runner that executes the GitHub Workflow defined in this source repository in the [.github/workflows/call-function.yml]() file. It authenticates to GCP as a Workload Identity using Workflow Identity Fedederation set up by the Terraform project in this repository.
+The Caller is the GitHub Runner that executes the GitHub Workflow defined in this source repository in the [.github/workflows/call-function.yml](./.github/workflows/call-function.yml) file. It authenticates to GCP as a Workload Identity using Workflow Identity Fedederation set up by the Terraform project in this repository.
 
 The Service Account "mapped" to the Workload Identity of the GitHub Workflow run has needed read/write permissions to the GCP resources that the Cloud Function needs to manipulate.
 
@@ -41,9 +45,9 @@ The following diagram shows the simplest case of the Cloud Function invocation i
 
 ![Invocation with the secret in the application project](images/cf-act-as0.png?raw=true "Invocation with the secret in the application project")
 
-1. The GitHub Workflow (the Caller) authenticates to the GCP using the [google-github-actions/auth](https://github.com/google-github-actions/auth) GitHub Action. After this step the GitHub Workflow has short lived GCP access token available to the sunsequent workflow steps to execute and connect to the GCP to call the Cloud Function.
-2. The Caller passes the GCP access token obtained on the previous step in the Cloud Function invocation HTTP request payload or header.
-3. The Cloud Function authenticates to the Google API using the access token extracted from the GSM Secret on the previous step and accesses the target GCP resource on behalf and with IAM permissions of the Caller.
+1. The GitHub Workflow (the Caller) authenticates to the GCP using the [google-github-actions/auth](https://github.com/google-github-actions/auth) GitHub Action. After this step the GitHub Workflow has short lived GCP access token available to the subsequent workflow steps to execute and connect to the GCP to call the Cloud Function.
+2. The Caller passes the GCP access token obtained on the previous step in the Cloud Function invocation HTTPS request payload or header.
+3. The Cloud Function authenticates to the Google API using the access token extracted from the Secret Manager Secret on the previous step and accesses the target GCP resource on behalf and with IAM permissions of the Caller.
 
 ### Invocation with Secret
 
@@ -51,13 +55,13 @@ In some cases, such as when the logic represented by a Cloud Function is impleme
 
 ![Invocation with the secret in the application project](images/cf-act-as3.png?raw=true "Invocation with the secret in the application project")
 
-1. The GitHub Workflow (the Caller) authenticates to the GCP using the [google-github-actions/auth](https://github.com/google-github-actions/auth) GitHub Action. After this step the GitHub Workflow has short lived GCP access token available to the sunsequent workflow steps to execute and connect to the GCP to call the Cloud Function.
-2. The Caller passes the GCP access token obtained on the previous step in the Cloud Function invocation HTTP request payload or header.
-3. The first Cloud Function extracts the GCP access token obtained on the previous step from the incoming message paylod and stores it in an ephemeral GSM Secret in the central project location.
-4. The Cloud Function extracts the access token from the ephemeral GSM Secret
-5. The Cloud Function authenticates to the Google API using the access token extracted from the GSM Secret on the previous step and accesses the target GCP resource on behalf and with IAM permissions of the Caller.
-6. (Optionally) The Cloud Function drops the ephemeral GSM Secret resource.
-7. (Optionally) The Caller double checks and drops the ephemeral GSM Secret resource.
+1. The GitHub Workflow (the Caller) authenticates to the GCP using the [google-github-actions/auth](https://github.com/google-github-actions/auth) GitHub Action. After this step the GitHub Workflow has short lived GCP access token available to the subsequent workflow steps to execute and connect to the GCP to call the Cloud Function.
+2. The Caller passes the GCP access token obtained on the previous step in the Cloud Function invocation HTTPS request payload or header.
+3. The first Cloud Function extracts the GCP access token obtained on the previous step from the incoming message payload and stores it in an ephemeral Secret Manager Secret in the central project location.
+4. The Cloud Function extracts the access token from the ephemeral Secret Manager Secret
+5. The Cloud Function authenticates to the Google API using the access token extracted from the Secret Manager Secret on the previous step and accesses the target GCP resource on behalf and with IAM permissions of the Caller.
+6. (Optionally) The Cloud Function drops the ephemeral Secret Manager Secret resource.
+7. (Optionally) The Caller double checks and drops the ephemeral Secret Manager Secret resource.
 
 ## Service Accounts and IAM Permissions
 
@@ -67,10 +71,10 @@ This project creates two GCP Service Accounts:
 
 | Service Account     | Role                                        | Description                                       |
 |---------------------|---------------------------------------------|---------------------------------------------------|
-| `cf-sample-account` | `roles/secretmanager.secretVersionManager`  | To create the GSM secret for access token for the "Invocation with central secret" case |
-|                     | `roles/secretmanager.secretAccessor`        | To read the access token from GSM secret  |
-| `wi-sample-account` | `roles/secretmanager.secretVersionManager`  | To create the GSM secret for access token for the "Invocation with application owned secret" case |
-|                     |                                             | To store the access token in the GSM secret in the "Invocation with application owned secret" case |
+| `cf-sample-account` | `roles/secretmanager.secretVersionManager`  | To create the Secret Manager secret for access token for the "Invocation with central secret" case |
+|                     | `roles/secretmanager.secretAccessor`        | To read the access token from Secret Manager secret  |
+| `wi-sample-account` | `roles/secretmanager.secretVersionManager`  | To create the Secret Manager secret for access token for the "Invocation with application owned secret" case |
+|                     |                                             | To store the access token in the Secret Manager secret in the "Invocation with application owned secret" case |
 |                     | `roles/iam.workloadIdentityUser`            | Maps the external GitHub Workload Identity to the Workload Identity Service Account |
 |                     | `roles/cloudfunctions.developer`            | `cloudfunctions.functions.call` permission to invoke the sample Cloud Function  |
 |                     | `roles/viewer`                              | Sample IAM permissions to list GCE VM instances granted to the Workload Identity Service Account but not to the Cloud Function Service Account  |
@@ -111,7 +115,7 @@ gcloud functions call sample-function --region=${REGION} --data '{}'
 The sample Cloud Function calls Google Compute Engine API v1 and [lists](https://cloud.google.com/compute/docs/reference/rest/v1/instances/list) Google Compte Engine instances in the specified region.
 
 The Cloud Function deployed by this project runs as `cf-sample-account@${PROJECT_ID}.iam.gserviceaccount.com` service account.
-This service account doesn't have any granted permissions in GCP except for the read access to the GSM Secret. Hence, the Cloud Function cannot reach the GCE API and list the VMs by default.
+This service account doesn't have any granted permissions in GCP except for the read access to the Secret Manager Secret. Hence, the Cloud Function cannot reach the GCE API and list the VMs by default.
 
 For this action to successfully complete from the command line as illustrated above, the Cloud Function service
 account `cf-sample-account@${PROJECT_ID}.iam.gserviceaccount.com` needs to have `compute.instances.list` permission in the target GCP project.
@@ -163,25 +167,42 @@ result: "Error: <HttpError 403 when requesting https://compute.googleapis.com/co
 
 Now you can try to pass the access token that represents an account that has GCE VM instances list permissions. E.g. if your current user account has that permission:
 ```
-gcloud functions call sample-function --region=europe-west3 --data "{ \"access_token\": \"$(gcloud auth print-access-token)\" }"
+gcloud functions call sample-function --region=${REGION} --data "{ \"access_token\": \"$(gcloud auth print-access-token)\" }"
 ```
 This time the call should succeed and show the list of GCE VMs, e.g.
 ```
 executionId: 76wkh0r8yhjf
-result: ', jumpbox'
+result: 'jumpbox'
 ```
 
-Alternatively, you can pass the access token via GSM Secret in the same way as GitHub workflow does.
+Alternatively, you can pass the access token via Secret Manager Secret in the same way as GitHub workflow does.
 
-Save the access token to the GSM Secret created by this Terraform project and pass the GSM secret resource name in the call to the sample Cloud Function instead of the access token:
+Save the access token to the Secret Manager Secret created by this Terraform project and pass the Secret Manager secret resource name in the call to the sample Cloud Function instead of the access token:
 ```
-gcloud functions call sample-function --region=europe-west3 \
+gcloud functions call sample-function --region=${REGION} \
     --data "{ \"secret_resource\": \"$(echo -n $(gcloud auth print-access-token) | \
     gcloud secrets versions add access-token-secret --data-file=- --format json | \
     jq -r .name)\" }"
 ```
 
-This call should succeed as well. The sample Cloud Function will extract the access token of the current user account from the GSM secret and call GCE API provding that access token for authentication.
+This call should succeed as well. The sample Cloud Function will extract the access token of the current user account from the Secret Manager secret and call GCE API provding that access token for authentication.
+
+## Cleaning up
+
+To avoid incurring charges to your Google Cloud account for the resources used in this tutorial, you can use Terraform to delete most of the resources. If you 
+created a new project for deploying the resources, you can also delete the entire project.
+
+To delete resources using Terraform, run the following command:
+
+    terraform destroy
+
+To delete the project, do the following:
+
+1.  In the Cloud Console, go to the [Projects page](https://console.cloud.google.com/iam-admin/projects).
+1.  In the project list, select the project you want to delete and click **Delete**.
+1.  In the dialog, type the project ID, and then click **Shut down** to delete the project.
+---
+
 
 ## Useful Commands
 
@@ -197,4 +218,11 @@ gcloud auth application-default print-access-token
 ```
 echo -n "$(gcloud auth print-access-token)" | \
     gcloud secrets versions add access-token-secret --data-file=-
+```
+
+### Develop and Debugg the Cloud Function locally 
+Within the [function](./function) folder run following commds to start the function framework locally:
+```
+pip install -r requirements.txt
+functions-framework --target main --debug
 ```
