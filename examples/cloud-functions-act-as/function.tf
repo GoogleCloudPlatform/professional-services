@@ -55,7 +55,7 @@ resource "google_cloudfunctions_function" "function" {
   source_archive_bucket = google_storage_bucket_object.archive.bucket
   source_archive_object = google_storage_bucket_object.archive.name
   timeout               = 60
-  entry_point           = "hello_world"
+  entry_point           = "main"
   trigger_http          = true
   /* event_trigger {
     event_type = "google.pubsub.topic.publish"

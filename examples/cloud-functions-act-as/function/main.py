@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """
 Entry point to the Sample function
 """
@@ -20,6 +21,7 @@ import sys
 
 from googleapiclient import discovery
 import google.oauth2.credentials
+import functions_framework
 
 from google.cloud import secretmanager
 
@@ -49,24 +51,23 @@ def list_instances(project_id: str, zone: str, access_token: str = None):
         print("With OAuth2 Credentials")
     else:
         service = discovery.build('compute', 'v1')
-        print("Default Credentials")
+        print("Default Application Credentials")
 
     request = service.instances().list(project=project_id, zone=zone)
-    res = ""
+    instances = []
     while request is not None:
         response = request.execute()
 
         for instance in response['items']:
             print(instance['name'])
-            res = res + ", " + instance['name']
+            instances.append(instance['name'])
 
         request = service.instances().list_next(previous_request=request,
                                                 previous_response=response)
+    return ", ".join(instances)
 
-    return res
-
-
-def hello_world(request):
+@functions_framework.http
+def main(request):
     """
     Cloud Function entry point
     """
@@ -103,22 +104,22 @@ def hello_world(request):
         return err_msg
 
 
-def main():
-    """
-    Main function when called from the command line
-    """
-    access_token = None
-    if len(sys.argv) > 1:
-        access_token = sys.argv[1]
-    print(f"Access Token: { access_token }")
+# def main():
+#     """
+#     Main function when called from the command line
+#     """
+#     access_token = None
+#     if len(sys.argv) > 1:
+#         access_token = sys.argv[1]
+#     print(f"Access Token: { access_token }")
 
-    gcp_project = os.environ.get('GCP_PROJECT', '')
-    gcp_zone = os.environ.get('GCP_ZONE', '')
-    try:
-        list_instances(gcp_project, gcp_zone, access_token)
-    except Exception as exp:
-        print(f"Error: { exp }")
+#     gcp_project = os.environ.get('GCP_PROJECT', '')
+#     gcp_zone = os.environ.get('GCP_ZONE', '')
+#     try:
+#         list_instances(gcp_project, gcp_zone, access_token)
+#     except Exception as exp:
+#         print(f"Error: { exp }")
 
 
-if __name__ == '__main__':
-    main()
+# if __name__ == '__main__':
+#     main()
