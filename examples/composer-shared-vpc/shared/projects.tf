@@ -56,9 +56,9 @@ module "project-composer" {
   svpc_host_project_id        = "${var.prefix}-comp-shared-vpc"
   activate_apis = [
     "compute.googleapis.com",
+    "container.googleapis.com",
     "composer.googleapis.com",
-    "logging.googleapis.com",
-    "iap.googleapis.com"
+    "logging.googleapis.com"
   ]
   labels = {
     application-name = "composer-envs"
