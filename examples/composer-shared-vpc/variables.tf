@@ -83,12 +83,6 @@ variable "composer_v1_private_envs" {
   default = {}
 }
 
-variable "composer_v2_private_envs" {
-  description = "composer v2 private envs"
-  type        = map(string)
-  default     = {}
-}
-
 variable "prefix" {
   description = "prefix for resource names"
   type        = string

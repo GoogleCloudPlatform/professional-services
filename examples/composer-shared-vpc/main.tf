@@ -14,11 +14,8 @@
  * limitations under the License.
  */
 
-
 locals {
-  composer_envs    = merge(var.composer_v1_private_envs, var.composer_v2_private_envs)
-  service_accounts = { for env in keys(local.composer_envs) : env => env }
-  network_tags     = concat(flatten([for env in local.composer_envs : env.tags]))
+  network_tags     = distinct(concat(flatten([for env in var.composer_v1_private_envs : env.tags])))
 }
 
 module "shared" {
