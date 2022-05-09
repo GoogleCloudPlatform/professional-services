@@ -530,12 +530,6 @@ The current COBOL Copy Book parser may not support all possible PIC strings. Not
 implemented by the emulators included in this utility. Command-line argument compatibility is made on a best-effort
 basis.
 
-## Future Work
-
-Future versions of this utility will provide enhanced offload functionality with deployment of an intermediate VM
-between the mainframe and GCS. CPU consumption on the mainframe may be slightly reduced by performing streaming
-transcoding from COBOL encodings to ORC on the VM.
-
 ## Disclaimer
 
 This is not an official Google product.
