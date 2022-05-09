@@ -13,7 +13,3 @@ Install the [Example PROC](BQUPDT) to a mainframe dataset added to PROCLIB. Call
 //JAVA EXEC PROC=BQUPDT
 ```
 
-
-## Disclaimer
-
-This is not an officially supported Google product.
