@@ -178,3 +178,37 @@ export dns_alt_name="foo.test.google.fr"
 java -cp './*' com.google.cloud.imf.GRecvTest 
 ```
 
+
+
+## LOAD_STATISTICS Table
+The LOAD_STATISTIC table is to collect statistical info at the end of completed
+BMLU command or executed query (case when multiple queries in script file) and 
+then writes statistical data into BQ table. 
+
+In order to write statistics into BQ table for BMLU command should be provided 
+argument --stats_table with BQ table name (or path). The stats_table argument 
+is optional, in case it’s not provided statistics will not be written for the 
+job. The command must be able to get projectId and datasetId as well, those 
+data could be provided by other arguments (project_id and dataset_id) or inside 
+of stats_table argument, possible options:
+
+```
+--stats_table=<DatasetId>.<TableName>   --project_id=<ProjectId>
+--stats_table=<ProjectId>:<DataSetId>.<TableName
+--stats_table=<ProjectId>:<TableName>   --dataset_id=<DatasetId>
+--stats_table=<TableName>   --project_id=<ProjectId>   --dataset_id=<DatasetId>
+```
+
+Currently LOAD_STATISTIC is supported by the following BMLU commands:
+- bq export
+- gsutil cp
+- bq query
+- bq load
+
+Common LOAD_STATISTIC columns include:
+- job_name
+- job_date
+- job_time
+- timestamp
+- job_id
+- job_type
