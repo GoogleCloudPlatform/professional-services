@@ -179,7 +179,6 @@ java -cp './*' com.google.cloud.imf.GRecvTest
 ```
 
 
-
 ## LOAD_STATISTICS Table
 The LOAD_STATISTIC table is to collect statistical info at the end of completed
 BMLU command or executed query (case when multiple queries in script file) and 

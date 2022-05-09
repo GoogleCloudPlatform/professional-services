@@ -26,7 +26,7 @@ object GsUtilOptionParser extends OptionParser[GsUtilConfig]("gsutil") with ArgP
   override def parse(args: Seq[String], env: Map[String,String]): Option[GsUtilConfig] = {
     val envCfg = GsUtilConfig(
       remoteHost = env.getOrElse("SRVHOSTNAME",""),
-      remotePort = env.getOrElse("SRVPORT","51770").toInt
+      remotePort = env.getOrElse("SRVPORT","52701").toInt
     )
     parse(args, envCfg)
   }
@@ -82,7 +82,7 @@ object GsUtilOptionParser extends OptionParser[GsUtilConfig]("gsutil") with ArgP
       opt[Int]("remotePort")
         .optional()
         .action{(x,c) => c.copy(remotePort = x)}
-        .text("remote port (default: 51770)"),
+        .text("remote port (default: 52701)"),
 
       opt[Int]("connections")
         .optional()

@@ -22,7 +22,7 @@ case class GsZUtilConfig(
                           cobDsn: String = "",
                           transformDsn: String = "",
                           remoteHost: String = "",
-                          remotePort: Int = 51770,
+                          remotePort: Int = 52701,
                           statsTable: String = "",
                           projectId: String = "",
                           datasetId: String = "",

@@ -91,4 +91,4 @@ After init script run new instance will have new running 3 services on top of cl
 
 - Cloud Monitoring service
 - gszutil server service (default port is 51771)
-- stunnel service (default port is 51770)
+- stunnel service (default port is 52701)

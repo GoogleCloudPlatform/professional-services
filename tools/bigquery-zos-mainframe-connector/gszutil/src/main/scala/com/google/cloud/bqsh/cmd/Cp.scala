@@ -103,7 +103,7 @@ object Cp extends Command[GsUtilConfig] with Logging {
         val c2 =
           if (c.remoteHost.isEmpty)
             c1.copy(remoteHost = env.getOrElse("SRVHOSTNAME", ""),
-                    remotePort = env.getOrElse("SRVPORT","51770").toInt,
+                    remotePort = env.getOrElse("SRVPORT","52701").toInt,
                     trustCertCollectionFilePath = env.getOrElse("TRUST_CERT_COLLECTION_FILE_PATH", ""))
           else c1
         GRecvClient.write(c2, zos, in, schemaProvider, GRecvClient)

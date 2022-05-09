@@ -96,7 +96,7 @@ object Export extends Command[ExportConfig] with Logging {
   private def remoteExport(sql: String, copybook: String, gcs: Storage, cfg: ExportConfig, zos: MVS, env: Map[String, String]): Result = {
     logger.debug(s"Using remote export, bucket=${cfg.bucket}")
     val (host, port, trustCertCollectionFilePath) = if (cfg.remoteHost.isEmpty) {
-      (env.getOrElse("SRVHOSTNAME", ""), env.getOrElse("SRVPORT", "51770").toInt, env.getOrElse("TRUST_CERT_COLLECTION_FILE_PATH", ""))
+      (env.getOrElse("SRVHOSTNAME", ""), env.getOrElse("SRVPORT", "52701").toInt, env.getOrElse("TRUST_CERT_COLLECTION_FILE_PATH", ""))
     } else (cfg.remoteHost, cfg.remotePort, cfg.trustCertCollectionFilePath)
     val cfg1 = cfg.copy(remoteHost = host, remotePort = port, trustCertCollectionFilePath = trustCertCollectionFilePath)
 

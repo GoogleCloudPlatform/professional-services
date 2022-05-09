@@ -34,7 +34,7 @@ else
   JAVA_XMX_GB=$(curl "http://metadata.google.internal/computeMetadata/v1/instance/attributes/java-xmx-gb" -H "Metadata-Flavor: Google")
 
   _APP_PORT=51771
-  _TLS_PROXY_PORT=51770
+  _TLS_PROXY_PORT=52701
 
   # Install base tools
   apt-get update

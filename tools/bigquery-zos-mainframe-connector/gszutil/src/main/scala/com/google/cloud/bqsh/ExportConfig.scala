@@ -31,7 +31,7 @@ case class ExportConfig(
 
                          bucket: String = "",
                          remoteHost: String = "",
-                         remotePort: Int = 51770,
+                         remotePort: Int = 52701,
                          trustCertCollectionFilePath: String = "",
                          keepAliveTimeInSeconds: Int = 480,
 

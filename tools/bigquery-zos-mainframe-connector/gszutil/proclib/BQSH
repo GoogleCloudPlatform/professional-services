@@ -59,7 +59,7 @@ export GCSOUTURI="gs://outputbucket/prefix"
 export SRVREMOTE="0.0.0.0"
 
 # Transcoding Server Port
-export SRVPORT=51770
+export SRVPORT=52701
 
 # Native Libraries
 JL="$JH/lib"

@@ -24,7 +24,7 @@ with ArgParser[GsZUtilConfig]{
     val envCfg = GsZUtilConfig(
       gcsOutUri = env.getOrElse("GCSOUTURI", ""),
       remoteHost = env.getOrElse("SRVHOSTNAME",""),
-      remotePort = env.getOrElse("SRVPORT","51770").toInt,
+      remotePort = env.getOrElse("SRVPORT","52701").toInt,
     )
     parse(args, envCfg)
   }
@@ -56,7 +56,7 @@ with ArgParser[GsZUtilConfig]{
 
   opt[String]("remotePort")
     .optional
-    .text("port of GRecv transcoding service (default: 51770 or SRVPORT environment variable)")
+    .text("port of GRecv transcoding service (default: 52701 or SRVPORT environment variable)")
     .action((x,c) => c.copy(remoteHost = x))
 
   opt[String]("pic_t_charset")

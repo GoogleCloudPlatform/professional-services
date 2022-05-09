@@ -73,7 +73,7 @@ object ExportOptionParser
   opt[Int]("remotePort")
     .optional()
     .action{(x,c) => c.copy(remotePort = x)}
-    .text("remote port (default: 51770)")
+    .text("remote port (default: 52701)")
 
   opt[Int]("timeOutMinutes")
     .optional()

@@ -112,7 +112,7 @@ Usage: gszutil [options] gcsOutUri
   --inDsn<value>                  DSN of data set to be transcoded to ORC
   --gcsOutUri<value>              Cloud Storage path for output ORC files (format: gs://BUCKET/PREFIX)
   --remoteHost<value>             Remote host or ip address
-  --remotePort<value>             Remote port (default: 51770)
+  --remotePort<value>             Remote port (default: 52701)
   --pic_t_charset<value>          Charset used for encoding and decoding international strings, used with PIC T copybook type, default is EBCDIC
   --timeOutMinutes<value>         Timeout in minutes for GRecvExportGrpc call. (default for GCS: 90 minutes)
   --keepAliveTimeInSeconds<value> Keep alive timeout in seconds for http channel. (default: 480 seconds)

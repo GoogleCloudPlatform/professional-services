@@ -110,7 +110,7 @@ Usage: gszutil [options] gcsOutUri
   --inDsn<value>                  DSN of data set to be transcoded to ORC
   --gcsOutUri<value>              Cloud Storage path for output ORC files (format: gs://BUCKET/PREFIX)
   --remoteHost<value>             Remote host or ip address
-  --remotePort<value>             Remote port (default: 51770)
+  --remotePort<value>             Remote port (default: 52701)
   --pic_t_charset<value>          Charset used for encoding and decoding international strings, used with PIC T copybook type, default is EBCDIC
   --timeOutMinutes<value>         Timeout in minutes for GRecvExportGrpc call. (default for GCS: 90 minutes)
   --keepAliveTimeInSeconds<value> Keep alive timeout in seconds for http channel. (default: 480 seconds)
@@ -332,7 +332,7 @@ Usage: export [options]
   --vartext                       When specified, write pipe-delimited string output.
   --bucket<value>                 GCS bucket where to write
   --remoteHost<value>             Remote host or ip address
-  --remotePort<value>             Remote port (default: 51770)
+  --remotePort<value>             Remote port (default: 52701)
   --timeOutMinutes<value>         Timeout in minutes for GRecvExportGrpc call. (default for GCS: 90 minutes)
   --keepAliveTimeInSeconds<value> Keep alive timeout in seconds for http channel. (default: 480 seconds)
   --keepAliveTimeInSeconds<value> Keep alive timeout in seconds for http channel. (default: 480 seconds)
@@ -440,7 +440,7 @@ When upstream or downstream system is not BMLU some reverse engineering is requi
 |GCSDSNURI|no|Default destination Google Cloud Storage Bucket for scp(Simple file copy) command. (Format: gs://bucket/prefix)|
 |GCSGDGURI|no|Default destination Google Cloud Storage Bucket for scp(Simple file copy) command when source is versioned dataset (GDG - Generation Data Groups) (Example: gs://bucket-with-versioning/prefix)|
 |SRVHOSTNAME|no|BMLU GRPC server DNS hostname or IP|
-|SRVPORT|51770|BMLU GRPC server port|
+|SRVPORT|52701|BMLU GRPC server port|
 |TRUST_CERT_COLLECTION_FILE_PATH|no|Path to trustCertCollectionFilePath for gRPC TLS authentication|
 |GCSOUTURI|no|Default Cloud Storage prefix for output ORC files (Format: gs://BUCKET/PREFIX)|
 |JOBDATE|UNKNOWN|JCL job starting date}|
