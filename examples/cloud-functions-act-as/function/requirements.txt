@@ -1,0 +1,7 @@
+PyYAML==5.3.1
+google-auth==2.6.2
+google-api-python-client==2.42.0
+google-auth-httplib2==0.1.0
+google-cloud-pubsub==2.11.0
+google-cloud-compute==1.1.0
+google-cloud-secret-manager==2.10.0
