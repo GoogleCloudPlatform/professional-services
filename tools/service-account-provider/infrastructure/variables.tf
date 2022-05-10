@@ -34,5 +34,5 @@ variable "region" {
 }
 
 variable "config_storage_path" {
-  default = "/sapro"
+  default = "sapro"
 }
