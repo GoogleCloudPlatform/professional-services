@@ -1,0 +1,7 @@
+project_id      = "sshsergey-main"
+project_number  = "861675023757"
+location        = "europe-west3"
+zone            = "europe-west3-c"
+wi_pool_name    = "wi-pool"
+github_repo     = "GoogleCloudPlatform/professional-services"
+github_ref      = "refs/heads/main"

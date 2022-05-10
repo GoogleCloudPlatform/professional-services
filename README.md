@@ -23,6 +23,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [Bigtable Dataflow Update Table Key Pipeline](examples/bigtable-change-key) - Dataflow pipeline with an example of how to update the key of an existing table. It works with any table, regardless the schema. It shows how to update your key for a table with existing data, to try out different alternatives to improve performance.
 * [BigQuery Automated Schema Management](tools/bqman) - Command-line utility for automated provisioning and management of BigQuery datasets and tables.
 * [Cloud Composer Examples](examples/cloud-composer-examples) - Examples of using Cloud Composer, GCP's managed Apache Airflow service.
+* [Cloud Function Act As](examples/cloud-function-act-as) - Example of executing a Cloud Function on behalf and with IAM permissions of the GitHub Workload Identity caller.
 * [Cloud Composer CI/CD](examples/cloud-composer-cicd) - Examples of using Cloud Build to deploy airflow DAGs to Cloud Composer.
 * [Cloud Data Fusion Functions and Plugins](examples/cloud-datafusion-functions-plugins) - Examples of Cloud Data Fusion Functions and Plugins.
 * [Cloud Function VM Delete Event Handler Example](examples/gcf-pubsub-vm-delete-event-handler) - Solution to automatically delete A records in Cloud DNS when a VM is deleted.  This solution implements a [Google Cloud Function][gcf] [Background Function][gcf-bg] triggered on `compute.instances.delete` events published through [Stackdriver Logs Export][logs-export].
@@ -60,6 +61,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [DLP API Examples](examples/dlp) - Examples of the DLP API usage.
 * [GCE Access to Google AdminSDK](examples/gce-to-adminsdk) - Example to help manage access to Google's AdminSDK using GCE's service account identity
 * [GCS to BQ using serverless services](examples/gcs-to-bq-serverless-services) - Example to ingest GCS to BigQuery using serverless services such as Cloud Function, Pub/Sub and Serverless Spark.
+* [GKE HA setup using spot VMs](examples/gke-ha-setup-using-spot-vms/) - Example for running an application with high availability requirements on GKE spot nodes using on-demand nodes as fallback
 * [Grpc Server connected to Spanner Database](examples/grpc_spanner_example) - Basic example of a Grpc server that is connected to a Spanner database.
 * [Grpc Server connected to Redis](examples/grpc_redis_example) - Basic example of a Grpc server that is connected to Redis.
 * [Home Appliance Status Monitoring from Smart Power Readings](examples/e2e-home-appliance-status-monitoring) - An end-to-end demo system featuring a suite of Google Cloud Platform products such as IoT Core, ML Engine, BigQuery, etc.
