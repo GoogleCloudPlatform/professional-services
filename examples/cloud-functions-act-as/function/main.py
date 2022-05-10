@@ -11,13 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 Entry point to the Sample function
 """
 import logging
 import os
-import sys
 
 from googleapiclient import discovery
 import google.oauth2.credentials
@@ -66,6 +64,7 @@ def list_instances(project_id: str, zone: str, access_token: str = None):
                                                 previous_response=response)
     return ", ".join(instances)
 
+
 @functions_framework.http
 def main(request):
     """
@@ -104,22 +103,5 @@ def main(request):
         return err_msg
 
 
-# def main():
-#     """
-#     Main function when called from the command line
-#     """
-#     access_token = None
-#     if len(sys.argv) > 1:
-#         access_token = sys.argv[1]
-#     print(f"Access Token: { access_token }")
-
-#     gcp_project = os.environ.get('GCP_PROJECT', '')
-#     gcp_zone = os.environ.get('GCP_ZONE', '')
-#     try:
-#         list_instances(gcp_project, gcp_zone, access_token)
-#     except Exception as exp:
-#         print(f"Error: { exp }")
-
-
-# if __name__ == '__main__':
-#     main()
+if __name__ == "__main__":
+    print("Please invoke with functions-framework --target main")
