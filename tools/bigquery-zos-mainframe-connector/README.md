@@ -11,7 +11,7 @@ The streaming transcode feature eliminates intermediate processing steps prior t
 
 The Mainframe Connector consists of two main componets:
 
-* mainframe-connector-util: It is added as a dependency to provide interfaces to commonly used services like Cloud Storage, BigQuery, and Cloud Logging. It also includes a custom SSLSocketFactory which forces use of TLS ciphers supported by IBM Hardware Crypto cards. 
+* mainframe-connector-util: It is added as a dependency to provide interfaces to commonly used services like Cloud Storage, BigQuery, and Cloud Logging. It also includes a custom SSLSocketFactory which forces use of TLS ciphers supported by IBM Hardware Crypto cards.
 
 * gszutil: provides gsutil and bq equivalent utilities for IBM mainframes running z/OS.
 
@@ -80,10 +80,14 @@ bq query --project_id=$PROJECT \
 ```
 
 **Note** for variables such as project ids and bucket names can also be placed in
-BQSH proclib and referenced across several JCL as environment variables, thus 
+BQSH proclib and referenced across several JCL as environment variables, thus
 avoiding specifying them in each JCL. Furthermore this approach can provide seamless
 transition between prod and nonprod since environment specific variables are set
-it the enviroment's BQSH proclib. 
+it the enviroment's BQSH proclib.
+
+In this example standard input is provided as in-stream data to the STDIN DD.
+Alternatively users can provide this input via a DSN, making it easier to
+manage symbol substitution if needed.
 
 ### Enabling Debug Logging
 Debug logging can be enabled by editing the BQSH Procedure and setting the environment variable BQSH_ROOT_LOGGER=DEBUG \
@@ -123,7 +127,7 @@ To reduce MIPs usage the Mainframe Connectors provides funtionalitites to use an
 
 The gszutil provides a gRPC server and client in order to delegate execution to remote server.
 
-For more detail see [this section](./gszutil/grecv/environment/README.md).
+For more detail see [this section](./gszutil/grecv/README.md).
 
 
 
@@ -153,7 +157,7 @@ Input the following command through stdin
 gsutil cp --replace --pic_t_charset="UTF-8" --remote=false gs://<my-bucket>/tablename.orc
 ```
 
-## Test server - client locally 
+## Test server - client locally
 
 Build jar:
 ```
@@ -168,7 +172,7 @@ cd ./gszutil/target/scala-2.13
 java -cp './*' com.google.cloud.imf.GRecv --port=51771 --chain="/path/to/server1.pem" --key="/path/to/server1.key"
 ```
 
-Run client locally 
+Run client locally
 ```
 cd ./gszutil/target/scala-2.13
 export N=3
@@ -181,14 +185,14 @@ java -cp './*' com.google.cloud.imf.GRecvTest
 
 ## LOAD_STATISTICS Table
 The LOAD_STATISTIC table is to collect statistical info at the end of completed
-BMLU command or executed query (case when multiple queries in script file) and 
-then writes statistical data into BQ table. 
+BMLU command or executed query (case when multiple queries in script file) and
+then writes statistical data into BQ table.
 
-In order to write statistics into BQ table for BMLU command should be provided 
-argument --stats_table with BQ table name (or path). The stats_table argument 
-is optional, in case it’s not provided statistics will not be written for the 
-job. The command must be able to get projectId and datasetId as well, those 
-data could be provided by other arguments (project_id and dataset_id) or inside 
+In order to write statistics into BQ table for BMLU command should be provided
+argument --stats_table with BQ table name (or path). The stats_table argument
+is optional, in case it’s not provided statistics will not be written for the
+job. The command must be able to get projectId and datasetId as well, those
+data could be provided by other arguments (project_id and dataset_id) or inside
 of stats_table argument, possible options:
 
 ```
