@@ -1,0 +1,30 @@
+steps:
+- id: "install"
+  name: python
+  entrypoint: pip
+  args: ["install", "-r", "requirements.txt", "-r", "requirements-test.txt", "--user"]
+
+- id: "pyint"
+  name: python
+  entrypoint: python
+  args: ["-m", "pylint", "main.py", "main_test.py", "--fail-under=8.0"]
+
+  # Run unit tests
+- id: "unittest"
+  name: python
+  entrypoint: python
+  args: ["-m", "pytest", "--junitxml=${SHORT_SHA}_test_log.xml"]
+
+- id: 'setup'
+  name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  args: ['gcloud', 'config', 'set', 'auth/impersonate_service_account', '${_SA_EMAIL}']
+
+# Build the container image
+- id: 'build'
+  name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  args: ['gcloud', 'docker', '--', 'build', '-t', '${_REPO_NAME}/cr-to-bq', '.']
+
+# Push the container image to Container Registry
+- id: 'push'
+  name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  args: ['gcloud', 'docker', '--', 'push', '${_REPO_NAME}/cr-to-bq']
