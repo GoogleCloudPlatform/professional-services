@@ -28,7 +28,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [Cloud Composer CI/CD](examples/cloud-composer-cicd) - Examples of using Cloud Build to deploy airflow DAGs to Cloud Composer.
 * [Cloud Data Fusion Functions and Plugins](examples/cloud-datafusion-functions-plugins) - Examples of Cloud Data Fusion Functions and Plugins.
 * [Cloud Function VM Delete Event Handler Example](examples/gcf-pubsub-vm-delete-event-handler) - Solution to automatically delete A records in Cloud DNS when a VM is deleted.  This solution implements a [Google Cloud Function][gcf] [Background Function][gcf-bg] triggered on `compute.instances.delete` events published through [Stackdriver Logs Export][logs-export].
-* [Cloud Run to BQ](examples/clouddrun-to-bq) - Solution to accept events/data on HTTP REST Endpoint and insert into BQ.
+* [Cloud Run to BQ](examples/cloudrun-to-bq) - Solution to accept events/data on HTTP REST Endpoint and insert into BQ.
 * [Cloud SQL Custom Metric](examples/cloud-sql-custom-metric) - An example of creating a Stackdriver custom metric monitoring Cloud SQL Private Services IP consumption.
 * [Cloud Support API](examples/cloud-support) - Sample code using Cloud Support API
 * [CloudML Bank Marketing](examples/cloudml-bank-marketing) - Notebook for creating a classification model for marketing using CloudML.

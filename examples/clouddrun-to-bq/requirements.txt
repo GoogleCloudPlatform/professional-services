@@ -1,6 +1,0 @@
-Flask==2.1.0
-gunicorn==20.1.0
-google-cloud-bigquery==1.8.1
-google-cloud-core==0.29.1
-google-cloud-logging
-jsonschema
