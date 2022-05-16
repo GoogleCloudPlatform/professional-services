@@ -16,6 +16,20 @@ This sample shows how to deploy a application to Cloud Run which gets the data o
 ```sh
 gcloud docker -- build -t <GCR_REPO>/cr-to-bq .
 ```
+## Test Locally
+```sh
+
+# Store default credentials in docker volume
+docker run -ti --name gcloud-config gcr.io/google.com/cloudsdktool/cloud-sdk gcloud auth application-default login
+
+# Run container locally, replace dataset and table names with your dataset and table names
+docker run --rm --volumes-from gcloud-config -e BQ_DATASET=person -e BQ_TABLE=person -e GCP_PROJECT=<project_id> --network=host  <GCR_REPO>/cr-to-bq
+
+# Send HTTP Request
+curl  -X POST  -H 'Content-Type: application/json' http://localhost:8080/events -d '{"Name": "Tom", "Age": 36}'
+
+{"status":"success"}
+```
 
 ## Push
 ```sh

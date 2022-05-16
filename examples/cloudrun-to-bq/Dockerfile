@@ -11,14 +11,16 @@
 
 # Use the official lightweight Python image.
 # https://hub.docker.com/_/python
-FROM python:3.10-slim
-ENV PYTHONUNBUFFERED True
-ENV SERVING_PORT 8080
 
-# Copy local code to the container image.
-ENV APP_HOME /app
-WORKDIR $APP_HOME
+FROM python:3.10-slim as pythonBuilder
+WORKDIR /app
 COPY . ./
+RUN pip3 install --target=/app/dependencies -r requirements.txt
 
-RUN pip install --no-cache-dir -r requirements.txt
+FROM python:3.10-slim
+ENV SERVING_PORT 8080
+WORKDIR /app
+COPY --from=pythonBuilder       /app .
+ENV PYTHONPATH="${PYTHONPATH}:/app/dependencies"
+ENV PATH="${PATH}:/app/dependencies/bin"
 CMD exec gunicorn --bind :$SERVING_PORT --workers 1 --threads 8 --timeout 0 main:app
