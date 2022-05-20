@@ -84,6 +84,10 @@
   shell:
     cmd: "kubectl --kubeconfig {{ kubeconfig_location.stdout }} create serviceaccount anthos-ksa"
 
+- name: Create Kubernetes Service Account Token Secret
+  shell:
+    cmd: "kubectl create secret generic --type=kubernetes.io/service-account-token --dry-run -o yaml anthos-ksa-token | kubectl annotate --local -o yaml -f - kubernetes.io/service-account.name=anthos-ksa | kubectl --kubeconfig {{ kubeconfig_location.stdout }} apply -f -"
+
 - name: Grant view cluster role to Kubernetes Service Account
   shell:
     cmd: "kubectl --kubeconfig {{ kubeconfig_location.stdout }} create clusterrolebinding anthos-cluster-view --clusterrole view --serviceaccount default:anthos-ksa"
@@ -92,14 +96,9 @@
   shell:
     cmd: "kubectl --kubeconfig {{ kubeconfig_location.stdout }} create clusterrolebinding anthos-cloud-console-reader --clusterrole cloud-console-reader --serviceaccount default:anthos-ksa"
 
-- name: Get Kubernetes Service Account Secret Name
-  shell: 
-    cmd: "kubectl --kubeconfig {{ kubeconfig_location.stdout }} get serviceaccount anthos-ksa -o jsonpath='{$.secrets[0].name}'"
-  register: secret_name
-
 - name: Get Authentication Token
   shell: 
-    cmd: "kubectl --kubeconfig {{ kubeconfig_location.stdout }} get secret {{ secret_name.stdout }} -o jsonpath='{$.data.token}' | base64 --decode"
+    cmd: "kubectl --kubeconfig {{ kubeconfig_location.stdout }} get secret anthos-ksa-token -o jsonpath='{$.data.token}' | base64 --decode"
   register: auth_token
 
 - name: Print Authentication Token
