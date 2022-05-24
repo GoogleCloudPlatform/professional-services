@@ -167,36 +167,22 @@ terraform apply
 
 #### 2.9 Setup DataStudio Dashboard
 
-* Open the [dashboard template](https://datastudio.google.com/reporting/50bdadac-9ea0-4dcd-bee2-f323c968186d)
+* Navigate to the URL output from the following command
+  ```
+  terraform output copy_dashboard_url
+  ```
 
-* Make a copy by clicking the "Make a copy" button at the top right hand side, as shown below.
+* After navigating to the URL, click 'Edit and Share' button
+  <img src="docs/edit_and_share.png" align="center" />
 
-  <img src="docs/make_a_copy.png" align="center" />
-
-* On the "Copy this report" screen, the goal is to do the following mappings
-  * dashboard_view(original data source) to dashboard_view(new data source)
-  * thresholds_public(original data source) to thresholds(new data source)
-
-  <img src="docs/copy_report_end_state.png" align="center" />
-
-* For each "Original Data Source" create and link the "New Data Source" by
-  clicking "CREATE NEW DATA SOURCE"
-
-  <img src="docs/copy_report.png" align="center" />
-
-* From connectors screen select "Bigquery" connector
-
-  <img src="docs/connectors.png" align="center" />
-
-* Select the correct Project(the one where BQ resources got deployed), Dataset and Table on the bigquery connector screen and click "Connect" at top right corner
-
-  <img src="docs/bigquery_connector.png" align="center" />
-
-* Click "ADD TO REPORT" at the top right corner
-
+* Click 'ADD TO REPORT' button. Example Screenshot
   <img src="docs/add_to_report.png" align="center" />
 
-* After all the data sources are mapped, click "Copy Report".
+* Update title from "Copy-QMS" to "Quota Monitoring Dashboard" and click "View"
+  button
+  <img src="docs/change_title.png" align="center" />
+
+* Done
 
 
 #### 2.9 Bootstrap Metric Descriptor

@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# get names of all nodes which are not pre-emptible (and therefore on-demand)
-nodes_to_drain_arr=$(kubectl get nodes --selector='!cloud.google.com/gke-spot' -o=custom-columns=NAME:.metadata.name)
+# get names of all nodes which are not pre-spot (and therefore on-demand)
+nodes_to_drain_arr=$(kubectl get nodes --selector='!cloud.google.com/gke-spot' -o=custom-columns=NAME:.metadata.name
 
 
 for node_name in $nodes_to_drain_arr; do
