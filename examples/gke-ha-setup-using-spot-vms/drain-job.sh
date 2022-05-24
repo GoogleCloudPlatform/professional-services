@@ -7,7 +7,7 @@ nodes_to_drain_arr=$(kubectl get nodes --selector='!cloud.google.com/gke-spot' -
 for node_name in $nodes_to_drain_arr; do
 # avoid using NAME headline as node name
   if [ "$node_name" != "NAME" ]; then 
-    echo "Attempting to drain $node_name from preemptible pods"
+    echo "Attempting to drain $node_name from spot pods"
     kubectl drain "$node_name" --pod-selector=run=my-app --delete-emptydir-data
   fi
 done
