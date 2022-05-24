@@ -53,7 +53,7 @@ This diagram explains the example solution's flow:
     _DBT_SERVICE_ACCOUNT : A service account to run dbt from Cloud Build.     
 5. BigQuery API enabled
 6. Service account to run dbt commands
-7. Kubernetes Secret to be binded with the service account   
+7. Kubernetes Secret to be bound with the service account   
     https://cloud.google.com/kubernetes-engine/docs/concepts/secret
 
     Alternatively, instead of using Kubernetes Secret, Workload Identity federation can be used (recommended approach). More details in **Authentication** section below.
@@ -115,9 +115,15 @@ When provisioning DBT runtime environment using KubernetesPodOperator there are 
 
 Authentication options are:
 
+- Workload Identity federation [**Recommended**]
+
+A better way to manage the identity and authentication for K8s workloads is to avoid using SA Keys as Secrets and use Workload Identity federation mechanism [[documentation](https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity)]
+
+Depending on the Composer version you might need to enable Workload Identity in the cluster, configure the node pool to use the GKE_METADATA metadata server to request a short-lived auth tokens. 
+
 - Service Account key stored as Kubernetes Secret
 
-Create a the SA key using the command (Note: SA keys are very sensitive and easy to misuse which can be a security risk. They should be kept protected and only be used under special circunstances)
+Create a the SA key using the command (Note: SA keys are very sensitive and easy to misuse which can be a security risk. They should be kept protected and only be used under special circumstances)
 ```bash
 gcloud iam service-accounts keys create key-file \
     --iam-account=sa-name@project-id.iam.gserviceaccount.com
@@ -134,13 +140,7 @@ Onced authenticated, create dbt secret in the default namespace by running
 kubectl create secret generic dbt-sa-secret --from-file key.json=./key.json
 ```
 
-Since then, in the DAG code, when creating a container, the service account key will extracted from K8s Secret and then be be mounted under /var/secrets/google paht in the container filesystem and available for DBT in the runtime.
-
-- Workload Identity federation [**Recommended**]
-
-A better way to manage the identity and authentication for K8s workloads is to avoid using SA Keys as Secrets and use Workload Identity federation mechanism [[documentation](https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity)]
-
-Depending on the Composer version you might need to enable Workload Identity in the cluster, configure the node pool to use the GKE_METADATA metadata server to request a short-lived auth tokens. 
+Since then, in the DAG code, when creating a container, the service account key will extracted from K8s Secret and then be be mounted under /var/secrets/google path in the container filesystem and available for DBT in the runtime.
 
 - Composer 1
 
@@ -173,7 +173,7 @@ kubectl create namespace NAMESPACE
 kubectl create serviceaccount KSA_NAME \
     --namespace NAMESPACE
 ```
-3) Assuming that the dbt-sa already exists and has a right permissions to trigger BigQuery jobs, the special binding has to be added to allow the Kubernetes service account as the IAM service account:
+3) Assuming that the dbt-sa already exists and has the right permissions to trigger BigQuery jobs, the special binding has to be added to allow the Kubernetes service account as the IAM service account:
 
 ```bash
 gcloud iam service-accounts add-iam-policy-binding GSA_NAME@GSA_PROJECT.iam.gserviceaccount.com \
@@ -233,4 +233,4 @@ KubernetesPodOperator(
 ).execute(context)
 ```
 
-When using Workload Identity option there is no need to store the IAM SA key as a Secret in GKE what massively improves the maintenance efforts and is generally considered more secure, as there is no need to generate and export the SA Key.
+When using Workload Identity option there is no need to store the IAM SA key as a Secret in GKE which massively improves the maintenance efforts and is generally considered more secure, as there is no need to generate and export the SA Key.

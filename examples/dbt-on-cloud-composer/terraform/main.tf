@@ -1,9 +1,9 @@
 module "composer_project" {
-  source          = "github.com/terraform-google-modules/cloud-foundation-fabric//modules/project?ref=v8.0.0"
+  source          = "https://github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/project?ref=v8.0.0"
   parent          = var.root_node
   billing_account = var.billing_account_id
   prefix          = var.prefix
-  name            = "<gcp_project_name>"
+  name            = var.project_id
   iam_additive = {
     "roles/owner" = var.owners
   }
@@ -20,7 +20,7 @@ module "composer_project" {
 }
 
 module "composer_vpc" {
-  source     = "github.com/terraform-google-modules/cloud-foundation-fabric//modules/net-vpc?ref=v8.0.0"
+  source     = "https://github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-vpc?ref=v8.0.0"
   project_id = module.composer_project.project_id
   name       = "composer-vpc"
   subnets = [{
@@ -38,7 +38,7 @@ module "composer_vpc" {
 }
 
 module "dbt_bucket" {
-  source        = "github.com/terraform-google-modules/cloud-foundation-fabric//modules/gcs?ref=v8.0.0"
+  source        = "https://github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/gcs?ref=v8.0.0"
   project_id    = module.composer_project.project_id
   name          = "${module.composer_project.project_id}-dbt-docs"
   location      = var.region
@@ -47,7 +47,7 @@ module "dbt_bucket" {
 }
 
 module "composer_sa" {
-  source     = "github.com/terraform-google-modules/cloud-foundation-fabric//modules/iam-service-account?ref=v5.1.0"
+  source     = "https://github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account?ref=v5.1.0"
   project_id = module.composer_project.project_id
   name       = "composer-sa"
   iam_project_roles = {
@@ -63,7 +63,7 @@ module "composer_sa" {
 }
 
 module "dbt_sa" {
-  source     = "github.com/terraform-google-modules/cloud-foundation-fabric//modules/iam-service-account?ref=v5.1.0"
+  source     = "https://github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account?ref=v5.1.0"
   project_id = module.composer_project.project_id
   name       = "dbt-sa"
   iam_project_roles = {
@@ -77,14 +77,14 @@ module "dbt_sa" {
 }
 
 module "composer_firewall" {
-  source       = "github.com/terraform-google-modules/cloud-foundation-fabric//modules/net-vpc-firewall"
+  source       = "https://github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-vpc-firewall"
   project_id   = module.composer_project.project_id
   network      = module.composer_vpc.name
   admin_ranges = [module.composer_vpc.subnet_ips["${var.region}/default"]]
 }
 
 module "composer_nat" {
-  source         = "github.com/terraform-google-modules/cloud-foundation-fabric//modules/net-cloudnat"
+  source         = "https://github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-cloudnat"
   project_id     = module.composer_project.project_id
   region         = var.region
   name           = "default"
@@ -98,12 +98,12 @@ resource "google_composer_environment" "dbt-on-cloud-composer1" {
   project = module.composer_project.project_id
   config {
     software_config {
-      image_version  = "composer-1.17.7-airflow-2.1.4"
+      image_version  = var.composer1_image
       python_version = "3"
       env_variables = {
-        AIRFLOW_VAR_BIGQUERY_LOCATION = "us"
-        AIRFLOW_VAR_RUN_ENVIRONMENT = "remote"
-        AIRFLOW_VAR_SOURCE_DATA_PROJECT = "bigquery-public-data"
+        AIRFLOW_VAR_BIGQUERY_LOCATION = var.region
+        AIRFLOW_VAR_RUN_ENVIRONMENT = var.dbt_run_environment
+        AIRFLOW_VAR_SOURCE_DATA_PROJECT = var.dbt_source_data_project
        }
     }
 
@@ -134,11 +134,11 @@ resource "google_composer_environment" "dbt-on-cloud-composer2" {
   project = module.composer_project.project_id
   config {
     software_config {
-      image_version  = "composer-2.0.0-preview.3-airflow-2.1.2"
+      image_version  = var.composer2_image
       env_variables = {
-        AIRFLOW_VAR_BIGQUERY_LOCATION = "us"
-        AIRFLOW_VAR_RUN_ENVIRONMENT = "remote"
-        AIRFLOW_VAR_SOURCE_DATA_PROJECT = "bigquery-public-data"
+        AIRFLOW_VAR_BIGQUERY_LOCATION = var.region
+        AIRFLOW_VAR_RUN_ENVIRONMENT = var.dbt_run_environment
+        AIRFLOW_VAR_SOURCE_DATA_PROJECT = var.dbt_source_data_project
        }
     }
 
