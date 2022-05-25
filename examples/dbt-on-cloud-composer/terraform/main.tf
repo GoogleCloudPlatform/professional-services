@@ -1,5 +1,5 @@
 module "composer_project" {
-  source          = "https://github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/project?ref=v8.0.0"
+  source          = "github.com/GoogleCloudPlatform/cloud-foundation-fabric/modules/project"
   parent          = var.root_node
   billing_account = var.billing_account_id
   prefix          = var.prefix
@@ -20,7 +20,7 @@ module "composer_project" {
 }
 
 module "composer_vpc" {
-  source     = "https://github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-vpc?ref=v8.0.0"
+  source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric/modules/net-vpc"
   project_id = module.composer_project.project_id
   name       = "composer-vpc"
   subnets = [{
@@ -38,7 +38,7 @@ module "composer_vpc" {
 }
 
 module "dbt_bucket" {
-  source        = "https://github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/gcs?ref=v8.0.0"
+  source        = "github.com/GoogleCloudPlatform/cloud-foundation-fabric/modules/gcs"
   project_id    = module.composer_project.project_id
   name          = "${module.composer_project.project_id}-dbt-docs"
   location      = var.region
@@ -47,7 +47,7 @@ module "dbt_bucket" {
 }
 
 module "composer_sa" {
-  source     = "https://github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account?ref=v5.1.0"
+  source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric/modules/iam-service-account?ref=v5.1.0"
   project_id = module.composer_project.project_id
   name       = "composer-sa"
   iam_project_roles = {
@@ -63,7 +63,7 @@ module "composer_sa" {
 }
 
 module "dbt_sa" {
-  source     = "https://github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account?ref=v5.1.0"
+  source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric/modules/iam-service-account?ref=v5.1.0"
   project_id = module.composer_project.project_id
   name       = "dbt-sa"
   iam_project_roles = {
@@ -77,14 +77,14 @@ module "dbt_sa" {
 }
 
 module "composer_firewall" {
-  source       = "https://github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-vpc-firewall"
+  source       = "github.com/GoogleCloudPlatform/cloud-foundation-fabric/modules/net-vpc-firewall"
   project_id   = module.composer_project.project_id
   network      = module.composer_vpc.name
   admin_ranges = [module.composer_vpc.subnet_ips["${var.region}/default"]]
 }
 
 module "composer_nat" {
-  source         = "https://github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-cloudnat"
+  source         = "github.com/GoogleCloudPlatform/cloud-foundation-fabric/modules/net-cloudnat"
   project_id     = module.composer_project.project_id
   region         = var.region
   name           = "default"
