@@ -253,7 +253,7 @@ def parse_args():
         '-k',
         '--key-file',
         help='Path to service account credentials. If you chose to omit this, '
-        'SDK will fall ba ck to default credentials and possibly spew '
+        'SDK will fall back to default credentials and possibly spew '
         'warnings.')
     parser.add_argument('--use-id',
                         action='store_true',
