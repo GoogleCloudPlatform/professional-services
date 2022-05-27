@@ -1,3 +1,19 @@
+/*
+#   Copyright 2022 Google LLC
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+#
+*/
 package main
 
 import (
@@ -38,6 +54,7 @@ func main() {
 	queryFilePtr := flag.String("query-file", "query.js", "location of Gizmo query file")
 	graphFilePtr := flag.String("graph-file", "graph.db", "location of Graph & Asset database file")
 	resourceInventoryFilePtr := flag.String("resource-inventory-file", "resource_inventory.json", "location of resource inventory file from Cloud Asset Inventory")
+	resourceDataPtr := flag.Bool("resource-data", false, "adds resource data to graph under `data` predicate")
 	graphTitlePtr := flag.String("graph-title", "", "Title for the graph")
 	noColorPtr := flag.Bool("no-color", false, "disables color in output")
 	noBannerPtr := flag.Bool("no-banner", false, "disables banner")
@@ -106,7 +123,10 @@ func main() {
 			log.Fatalf("Failed to create graph file: %v", err)
 		}
 
-		err = viz.ReadAssetsFromFile(*resourceInventoryFilePtr)
+		if *resourceDataPtr {
+			log.Print("Including resource data in graph - this increases memory consumption for the graph.")
+		}
+		err = viz.ReadAssetsFromFile(*resourceInventoryFilePtr, *resourceDataPtr)
 		if err != nil {
 			log.Fatalf("Failed read assets from resource inventory: %v", err)
 		}
