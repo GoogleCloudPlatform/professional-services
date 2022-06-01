@@ -70,3 +70,10 @@ cgw_members:
 - serviceAccount:EXAMPLE_SA@GCP_PROJECT_ID.iam.gserviceaccount.com
 # Provide multiple NIC for pods - https://cloud.google.com/anthos/clusters/docs/bare-metal/latest/how-to/multi-nic
 # multi_nic: true
+
+# kubelet config file on each node
+kubelet_config_file: /var/lib/kubelet/config.yaml
+# configuration values to be set in the kubelet config
+serialize_image_pulls:
+registry_pull_qps:
+registry_burst:
