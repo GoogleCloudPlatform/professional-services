@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 # Copyright 2022 Google LLC
 #
@@ -19,11 +19,11 @@ Usage: python3 cloud_function_automation.py
 
 This script will be used to workflow/pipeline where user can
 route filtered logs to pubsub and trigger cloud function
-based on pub/sub events
+based on pub/sub events.
 
 resource => log sink => pub/sub => cloud function
 
-Please update all config variables in variables.py file
+Please update all config variables in variables.py file.
 """
 
 import time
@@ -37,12 +37,11 @@ from variables import PROJECT_ID, PUBSUB_TOPIC_NAME, SINK_NAME, \
 
 def enable_required_service_apis(project_num, token):
     """
-    This function will be used to enable all services required in this script
-    :param project_num: Google Cloud project number mentioned in variables.py
-    :param token: Google Cloud auth token
-    :return: True or False
+    This function will be used to enable all services required in this script.
+    :param project_num: Google Cloud project number mentioned in variables.py.
+    :param token: Google Cloud auth token.
+    :return: True or False.
     """
-
     url = f"https://serviceusage.googleapis.com/v1/projects/{project_num}/services:batchEnable"
 
     payload = json.dumps({
@@ -69,9 +68,9 @@ def enable_required_service_apis(project_num, token):
 
 def get_pubsub_topic(project_id):
     """
-    This function will be used to get a list of existing pubsub topics
-    :param project_id: Google Cloud project id mentioned in variables.py
-    :return: list of existing pubsub topics
+    This function will be used to get a list of existing pubsub topics.
+    :param project_id: Google Cloud project id mentioned in variables.py.
+    :return: list of existing pubsub topics.
     """
     publisher = pubsub_v1.PublisherClient()
     project_path = f"projects/{project_id}"
@@ -85,10 +84,10 @@ def get_pubsub_topic(project_id):
 
 def create_pubsub_topic(project_id, pubsub_topic_name):
     """
-    This function will be used to create pubsub topic if not already present
-    :param project_id: Google Cloud project id mentioned in variables.py
-    :param pubsub_topic_name: Google Cloud Pub/Sub topic name mentioned in variables.py
-    :return: True or False
+    This function will be used to create pubsub topic if not already present.
+    :param project_id: Google Cloud project id mentioned in variables.py.
+    :param pubsub_topic_name: Google Cloud Pub/Sub topic name mentioned in variables.py.
+    :return: True or False.
     """
     publisher = pubsub_v1.PublisherClient()
     full_topic_name = f'projects/{project_id}/topics/{pubsub_topic_name}'
@@ -105,11 +104,11 @@ def create_pubsub_topic(project_id, pubsub_topic_name):
 
 def create_sink(sink_name, full_topic_name, log_sink_filter):
     """
-    This function will be used to create Log Sink from Log Router
-    :param sink_name: Log Sink name mentioned in variables.py
-    :param full_topic_name: Pub/Sub topic associated with log sink
-    :param log_sink_filter: log sink filer mentioned in variables.py
-    :return: True or False
+    This function will be used to create Log Sink from Log Router.
+    :param sink_name: Log Sink name mentioned in variables.py.
+    :param full_topic_name: Pub/Sub topic associated with log sink.
+    :param log_sink_filter: log sink filer mentioned in variables.py.
+    :return: True or False.
     """
     logging_client = logging.Client()
     destination = f"pubsub.googleapis.com/{full_topic_name}"
@@ -126,14 +125,13 @@ def create_sink(sink_name, full_topic_name, log_sink_filter):
 
 def create_cloud_function(function_config, project_id, full_topic_name):
     """
-    This function will be used to create and deploy cloud function
+    This function will be used to create and deploy cloud function.
     :param function_config: dictionary containing cloud function configurations
-    mentioned in variables.py
-    :param project_id: Google Cloud project id mentioned in variables.py
-    :param full_topic_name: Pub/Sub topic associated with Cloud function
+    mentioned in variables.py.
+    :param project_id: Google Cloud project id mentioned in variables.py.
+    :param full_topic_name: Pub/Sub topic associated with Cloud function.
     :return:
     """
-
     function_zip_file_path = function_config["CLOUD_FUNCTION_ZIP_FILE_PATH"]
     function_location = function_config["CLOUD_FUNCTION_LOCATION"]
     function_name = function_config["CLOUD_FUNCTION_NAME"]
@@ -169,10 +167,9 @@ def create_cloud_function(function_config, project_id, full_topic_name):
 
 def main():
     """
-    This is the main function
+    This is the main function.
     :return:
     """
-
     auth_token = getpass('Enter auth_token, you can generate auth token by '
                          'running gcloud config set project <project_id> && '
                          'gcloud auth print-access-token: ')
@@ -194,3 +191,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

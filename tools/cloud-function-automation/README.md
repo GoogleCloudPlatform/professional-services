@@ -10,10 +10,10 @@ Sample Diagram for reference
 
 ![img.png](img.png)
 ## Prerequisites
-1. Make sure that you have the required access to create log sink, cloud pub/sub topic and cloud function.
+1. Make sure that you have the required access to create Log Sink, Cloud Pub/Sub topic and Cloud Function.
 2. Create a bucket and upload the cloud function code as a zip file. 
-(Refer [Link](https://cloud.google.com/functions/docs/writing#functions-writing-helloworld-http-python)
-for details about how to write cloud function)
+Refer [Link](https://cloud.google.com/functions/docs/writing#functions-writing-helloworld-http-python)
+for details about how to write cloud function
 3. Install required python modules
 ```commandline
 python3 -m pip install -r requirements.txt
@@ -34,6 +34,7 @@ python3 -m pip install -r requirements.txt
 ## How to run
 
 ### Example
+Supported python versions 3.7, 3.8, 3.9
 ```commandline
 python3 cloud_function_automation.py
 ```

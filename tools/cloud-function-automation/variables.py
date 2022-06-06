@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """
-This file has all the variables used by cloud_function_automation.py script
+This file has all the variables used by cloud_function_automation.py script.
 """
 # Provide GCP Project ID
 PROJECT_ID = "abc"
@@ -44,3 +44,4 @@ CLOUD_FUNCTION_CONFIG = {"CLOUD_FUNCTION_NAME": "hello_pubsub",
                              "gs://cloud_funtion_abc/function-source.zip",
                          "CLOUD_FUNCTION_LOCATION": "us-central1",
                          "CLOUD_FUNCTION_RUNTIME": "python39"}
+
