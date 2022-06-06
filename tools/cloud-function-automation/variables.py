@@ -15,11 +15,14 @@
 """
 This file has all the variables used by cloud_function_automation.py script.
 """
+# Action to be taken, Values can be either CREATE or DELETE
+ACTION = "DELETE"
+
 # Provide GCP Project ID
-PROJECT_ID = "abc"
+PROJECT_ID = "arunsinghk"
 
 # Provide GCP Project Number
-PROJECT_NUMBER = "123"
+PROJECT_NUMBER = "440748470212"
 
 # Provide GCP Pub/Sub name to be created
 PUBSUB_TOPIC_NAME = "sampletopic"
@@ -41,7 +44,6 @@ LOG_SINK_FILTER = 'resource.type="gce_instance" protoPayload.methodName=' \
 # CLOUD_FUNCTION_RUNTIME: Runtime for cloud function
 CLOUD_FUNCTION_CONFIG = {"CLOUD_FUNCTION_NAME": "hello_pubsub",
                          "CLOUD_FUNCTION_ZIP_FILE_PATH":
-                             "gs://cloud_funtion_abc/function-source.zip",
+                             "gs://cloud_funtion_arunsinghk/function-source.zip",
                          "CLOUD_FUNCTION_LOCATION": "us-central1",
                          "CLOUD_FUNCTION_RUNTIME": "python39"}
-

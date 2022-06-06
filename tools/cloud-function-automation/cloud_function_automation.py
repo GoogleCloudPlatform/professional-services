@@ -29,10 +29,11 @@ Please update all config variables in variables.py file.
 import time
 import json
 from getpass import getpass
+from google.api_core.exceptions import AlreadyExists
 import requests
 from google.cloud import pubsub_v1, logging, functions_v1
 from variables import PROJECT_ID, PUBSUB_TOPIC_NAME, SINK_NAME, \
-    LOG_SINK_FILTER, CLOUD_FUNCTION_CONFIG, PROJECT_NUMBER
+    LOG_SINK_FILTER, CLOUD_FUNCTION_CONFIG, PROJECT_NUMBER, ACTION
 
 
 def enable_required_service_apis(project_num, token):
@@ -55,8 +56,14 @@ def enable_required_service_apis(project_num, token):
         'Authorization': token,
         'Content-Type': 'application/json'
     }
-
-    response = requests.request("POST", url, headers=headers, data=payload)
+    try:
+        response = requests.request("POST", url, headers=headers, data=payload)
+    except requests.exceptions.Timeout as exc:
+        raise SystemExit(f"Timeout Error while calling enable service API - {exc}")
+    except requests.exceptions.TooManyRedirects as exc:
+        raise SystemExit(f"TooManyRedirects Error while calling enable service API - {exc}")
+    except requests.exceptions.RequestException as exc:
+        raise SystemExit(f"RequestException while calling enable service API - {exc}")
 
     if response.status_code == 200:
         services_enabled = True
@@ -66,22 +73,6 @@ def enable_required_service_apis(project_num, token):
     return services_enabled
 
 
-def get_pubsub_topic(project_id):
-    """
-    This function will be used to get a list of existing pubsub topics.
-    :param project_id: Google Cloud project id mentioned in variables.py.
-    :return: list of existing pubsub topics.
-    """
-    publisher = pubsub_v1.PublisherClient()
-    project_path = f"projects/{project_id}"
-    topics_list = []
-    for topic in publisher.list_topics(request={"project": project_path}):
-        full_topic_names = topic.name
-        topic_name = full_topic_names.split("/")[-1]
-        topics_list.append(topic_name)
-    return topics_list
-
-
 def create_pubsub_topic(project_id, pubsub_topic_name):
     """
     This function will be used to create pubsub topic if not already present.
@@ -89,16 +80,18 @@ def create_pubsub_topic(project_id, pubsub_topic_name):
     :param pubsub_topic_name: Google Cloud Pub/Sub topic name mentioned in variables.py.
     :return: True or False.
     """
-    publisher = pubsub_v1.PublisherClient()
+    try:
+        publisher = pubsub_v1.PublisherClient()
+    except Exception as exc:
+        raise SystemExit(exc)
     full_topic_name = f'projects/{project_id}/topics/{pubsub_topic_name}'
-    topics_list = get_pubsub_topic(project_id)
-    if pubsub_topic_name in topics_list:
-        print(f"PubSub Topic {pubsub_topic_name} already exist, stopping script")
-        created_pubsub_topic = False
-    else:
+    try:
         publisher.create_topic(name=full_topic_name)
         print(f"PubSub Topic {full_topic_name} has been created")
         created_pubsub_topic = True
+    except AlreadyExists:
+        print(f"{full_topic_name} already exists.")
+        created_pubsub_topic = False
     return created_pubsub_topic
 
 
@@ -110,14 +103,20 @@ def create_sink(sink_name, full_topic_name, log_sink_filter):
     :param log_sink_filter: log sink filer mentioned in variables.py.
     :return: True or False.
     """
-    logging_client = logging.Client()
+    try:
+        logging_client = logging.Client()
+    except Exception as exc:
+        raise SystemExit(exc)
     destination = f"pubsub.googleapis.com/{full_topic_name}"
     sink = logging_client.sink(sink_name, filter_=log_sink_filter, destination=destination)
     if sink.exists():
         print(f"Log Router Sink {sink.name} already exists.")
         created_sink = False
     else:
-        sink.create()
+        try:
+            sink.create()
+        except Exception as exc:
+            raise SystemExit(exc)
         print(f"Log Router Sink {sink.name} has been created")
         created_sink = True
     return created_sink
@@ -138,7 +137,10 @@ def create_cloud_function(function_config, project_id, full_topic_name):
     function_runtime = function_config["CLOUD_FUNCTION_RUNTIME"]
     full_location = f"projects/{project_id}/locations/{function_location}"
     # Create a client
-    client = functions_v1.CloudFunctionsServiceClient()
+    try:
+        client = functions_v1.CloudFunctionsServiceClient()
+    except Exception as exc:
+        raise SystemExit(exc)
 
     # Initialize request argument(s)
     function = functions_v1.CloudFunction()
@@ -154,7 +156,10 @@ def create_cloud_function(function_config, project_id, full_topic_name):
     )
 
     # Make the request
-    operation = client.create_function(request=request)
+    try:
+        operation = client.create_function(request=request)
+    except Exception as exc:
+        raise SystemExit(exc)
 
     print("Waiting for operation to complete...")
 
@@ -163,6 +168,74 @@ def create_cloud_function(function_config, project_id, full_topic_name):
     # Handle the response
     print(response)
     print(f"Cloud function {function_name} has been created")
+
+
+def delete_cloud_pubsub_topic(project_id, topic_id):
+    """
+    This function will be used to delete Cloud Pub/Sub Topic if exist as per variables.py.
+    :param project_id: Google Cloud project id mentioned in variables.py.
+    :param topic_id: Pub/Sub topic associated with Cloud function.
+    :return:
+    """
+    try:
+        publisher = pubsub_v1.PublisherClient()
+    except Exception as exc:
+        raise SystemExit(exc)
+    topic_path = publisher.topic_path(project_id, topic_id)
+    try:
+        publisher.delete_topic(request={"topic": topic_path})
+        print(f"Topic deleted: {topic_path}")
+    except Exception as exc:
+        print(exc)
+
+
+def delete_cloud_log_sink(sink_name):
+    """
+    This function will be used to delete GCP Log Sink.
+    :param sink_name: Log Sink name.
+    :return:
+    """
+    try:
+        logging_client = logging.Client()
+    except Exception as exc:
+        raise SystemExit(exc)
+    sink = logging_client.sink(sink_name)
+    try:
+        sink.delete()
+        print("Deleted sink {}".format(sink.name))
+    except Exception as exc:
+        print(exc)
+
+
+def delete_cloud_function(project_id, function_config):
+    """
+    This function will be used to delete GCP Cloud Function.
+    :param project_id: Google Cloud project id mentioned in variables.py.
+    :param function_config: ictionary containing cloud function configurations
+    mentioned in variables.py.
+    :return:
+    """
+    function_location = function_config["CLOUD_FUNCTION_LOCATION"]
+    function_name = function_config["CLOUD_FUNCTION_NAME"]
+    full_function_name = f"projects/{project_id}/locations/{function_location}/functions/{function_name}"
+    try:
+        client = functions_v1.CloudFunctionsServiceClient()
+    except Exception as exc:
+        raise SystemExit(exc)
+
+    request = functions_v1.DeleteFunctionRequest(
+        name=full_function_name
+    )
+
+    # Make the request
+    try:
+        operation = client.delete_function(request=request)
+        print(f"Cloud function {function_name} deleted")
+    except Exception as exc:
+        raise SystemExit(exc)
+
+    response = operation.result()
+    print(response)
 
 
 def main():
@@ -176,19 +249,29 @@ def main():
 
     auth_token = "Bearer " + auth_token
 
-    services_enabled_status = enable_required_service_apis(PROJECT_NUMBER, auth_token)
-    if services_enabled_status:
-        time.sleep(10)
-        full_topic_name = f'projects/{PROJECT_ID}/topics/{PUBSUB_TOPIC_NAME}'
-        created_pubsub_topic = create_pubsub_topic(PROJECT_ID, PUBSUB_TOPIC_NAME)
-        if created_pubsub_topic:
+    if ACTION == "CREATE":
+        services_enabled_status = enable_required_service_apis(PROJECT_NUMBER, auth_token)
+        if services_enabled_status:
             time.sleep(10)
-            created_sink = create_sink(SINK_NAME, full_topic_name, LOG_SINK_FILTER)
-            if created_sink:
+            full_topic_name = f'projects/{PROJECT_ID}/topics/{PUBSUB_TOPIC_NAME}'
+            created_pubsub_topic = create_pubsub_topic(PROJECT_ID, PUBSUB_TOPIC_NAME)
+            if created_pubsub_topic:
                 time.sleep(10)
-                create_cloud_function(CLOUD_FUNCTION_CONFIG, PROJECT_ID, full_topic_name)
+                created_sink = create_sink(SINK_NAME, full_topic_name, LOG_SINK_FILTER)
+                if created_sink:
+                    time.sleep(10)
+                    create_cloud_function(CLOUD_FUNCTION_CONFIG, PROJECT_ID, full_topic_name)
+    elif ACTION == "DELETE":
+        to_be_deleted = input("Do you really want to delete, enter yes or no: ")
+        if to_be_deleted == "yes":
+            delete_cloud_pubsub_topic(PROJECT_ID, PUBSUB_TOPIC_NAME)
+            delete_cloud_log_sink(SINK_NAME)
+            delete_cloud_function(PROJECT_ID, CLOUD_FUNCTION_CONFIG)
+        elif to_be_deleted == "no":
+            print("Exiting, since user entered no")
+        else:
+            print("please enter either yes or no")
 
 
 if __name__ == '__main__':
     main()
-

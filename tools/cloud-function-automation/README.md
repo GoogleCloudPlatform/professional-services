@@ -15,6 +15,8 @@ Sample Diagram for reference
 Refer [Link](https://cloud.google.com/functions/docs/writing#functions-writing-helloworld-http-python)
 for details about how to write cloud function
 3. Install required python modules
+
+Supported python versions are 3.7, 3.8, 3.9
 ```commandline
 python3 -m pip install -r requirements.txt
 ```
@@ -22,7 +24,7 @@ python3 -m pip install -r requirements.txt
 
 1. Update variables.py with configuration parameters, configuration parameters are explained below
 ```text
-
+ ACTION = Specify CREATE or DELETE
  PROJECT_ID = Specify GCP project id
  PROJECT_NUMBER = Specify GCP Project number
  PUBSUB_TOPIC_NAME = Add a name for GCP Pub/Sub Topic
@@ -34,7 +36,7 @@ python3 -m pip install -r requirements.txt
 ## How to run
 
 ### Example
-Supported python versions 3.7, 3.8, 3.9
+Supported python versions are 3.7, 3.8, 3.9
 ```commandline
 python3 cloud_function_automation.py
 ```
