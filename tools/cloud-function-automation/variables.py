@@ -47,3 +47,4 @@ CLOUD_FUNCTION_CONFIG = {"CLOUD_FUNCTION_NAME": "hello_pubsub",
                              "gs://cloud_funtion_arunsinghk/function-source.zip",
                          "CLOUD_FUNCTION_LOCATION": "us-central1",
                          "CLOUD_FUNCTION_RUNTIME": "python39"}
+
