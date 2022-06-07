@@ -70,11 +70,11 @@ Left-shift validation intends to streamline the development process by providing
 
 Here's what a typical CI/CD pipeline might look like with OSS policy validations throughout. In this case, we use Gatekeeper to define Constraints and ConstraintTemplates, and they are stored in a Git Repo that can be accessed by the pipeline (Jenkins, Google Cloud Build, etc.).
 
-![A Sample Ci/CD Pipeline with Policy Validation Built-in](images/sample-cicd-pipeline.png)
+![A Sample Ci/CD Pipeline with Policy Validation Built-in](readme-images/sample-cicd-pipeline.png)
 
 And what left-shift validation does is extend these redundant validation steps into the developer's local development environment, much earlier in the pipeline, like so:
 
-![Left-shift validation Architectural Diagram](images/leftshift-validate-architecture.png)
+![Left-shift validation Architectural Diagram](readme-images/leftshift-validate-architecture.png)
 
 ---
 
@@ -112,7 +112,7 @@ Let's go a bit further into how everything works together. The idea is that you 
 
 When configured as a pre-commit script (taken care of by `setup.sh`), `validate.sh` will take the locations of your Constraints and ConstraintTemplates, which you provided in `setup.sh`, and obtain those manifests. Whether they're stored in one or two repositories, stored locally, or if you want to continue with the sample policies in the OPA Gatekeeper Library, the script supports all of those combinations. Here's how that decision flow works:
 
-![validate-decision-tree](images/validate-decision-tree.png)
+![validate-decision-tree](readme-images/validate-decision-tree.png)
 
 
 ---
