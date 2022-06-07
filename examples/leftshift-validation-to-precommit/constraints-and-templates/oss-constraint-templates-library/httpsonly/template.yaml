@@ -1,0 +1,36 @@
+apiVersion: templates.gatekeeper.sh/v1
+kind: ConstraintTemplate
+metadata: # kpt-merge: /k8shttpsonly
+  name: k8shttpsonly
+  annotations:
+    description: >-
+      Requires Ingress resources to be HTTPS only.
+
+      Ingress resources must: - include a valid TLS configuration - include the `kubernetes.io/ingress.allow-http` annotation, set to
+
+        `false`.
+
+      https://kubernetes.io/docs/concepts/services-networking/ingress/#tls
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sHttpsOnly
+  targets:
+  - target: admission.k8s.gatekeeper.sh
+    rego: |
+      package k8shttpsonly
+
+      violation[{"msg": msg}] {
+        input.review.object.kind == "Ingress"
+        re_match("^(extensions|networking.k8s.io)/", input.review.object.apiVersion)
+        ingress := input.review.object
+        not https_complete(ingress)
+        msg := sprintf("Ingress should be https. tls configuration and allow-http=false annotation are required for %v", [ingress.metadata.name])
+      }
+
+      https_complete(ingress) = true {
+        ingress.spec["tls"]
+        count(ingress.spec.tls) > 0
+        ingress.metadata.annotations["kubernetes.io/ingress.allow-http"] == "false"
+      }
