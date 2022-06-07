@@ -28,7 +28,7 @@ unset CDPATH
 
 # Send errors to STDERR
 err() {
-  echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]: $*" >&2
+    echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]: $*" >&2
 }
 
 # Define tput sequences for bold text output to terminal
@@ -44,9 +44,9 @@ readonly KPT_DOWNLOAD_BASE_URL="https://api.github.com/repos/GoogleContainerTool
 # Determine OS and System Architecture
 opsys=windows
 if [[ "$OSTYPE" == linux* ]]; then
-  opsys=linux
+    opsys=linux
 elif [[ "$OSTYPE" == darwin* ]]; then
-  opsys=darwin
+    opsys=darwin
 fi
 
 case $(uname -m) in
@@ -74,17 +74,18 @@ esac
 echo $'\nInstalling Dependencies\n'
 
 # Create install directory and create a file to track versions/defaults
-mkdir -p $PWD/$INSTALL_DIR/
-cd $PWD/$INSTALL_DIR/
-    # create empty config.json file if it doesn't exits already.
-    # if it does exist, store value of each line in the file to a variable
+mkdir -p "$PWD"/$INSTALL_DIR/
+cd "$PWD"/$INSTALL_DIR/ || exit
+# create empty config.json file if it doesn't exits already.
+# if it does exist, store value of each line in the file to a variable
 touch dependency_info.txt
+
+# shellcheck source=dependency_info.txt
 source dependency_info.txt &>/dev/null
 system_info=$SYS_INFO
 last_kpt_version=$KPT_VERSION
 last_kustomize_version=$KUSTOMIZE_VERSION
 last_gator_version=$GATOR_VERSION
-
 
 #######################################################
 ################### DEFINE FUNCTIONS ##################
@@ -102,14 +103,13 @@ last_gator_version=$GATOR_VERSION
 function readlink_f {
     TARGET_FILE=$1
 
-    cd "$(dirname "$TARGET_FILE")"
+    cd "$(dirname "$TARGET_FILE")" || exit
     TARGET_FILE=$(basename "$TARGET_FILE")
 
     # Iterate down a (possible) chain of symlinks
-    while [ -L "$TARGET_FILE" ]
-    do
+    while [ -L "$TARGET_FILE" ]; do
         TARGET_FILE=$(readlink "$TARGET_FILE")
-        cd "$(dirname "$TARGET_FILE")"
+        cd "$(dirname "$TARGET_FILE")" || exit
         TARGET_FILE=$(readlink "$TARGET_FILE")
     done
 
@@ -122,7 +122,7 @@ function readlink_f {
 
 #######################################
 # Check if a dependency needs an update.
-# If it's determined the dependency doesn't exist or is out of date, 
+# If it's determined the dependency doesn't exist or is out of date,
 # it will install the latest version.
 # Arguments:
 #   $1 = Base URL of the Github repo
@@ -134,7 +134,7 @@ function readlink_f {
 #######################################
 function install_dependency {
 
-    where="$(readlink_f $(printf "%q\n" "$(PWD)"))/"
+    where="$(readlink_f "$(printf "%q\n" "$(PWD)")")/"
 
     # Verify the script can rationalize the current directory into an absolute path
     if ! test -d "$where"; then
@@ -147,7 +147,7 @@ function install_dependency {
     fi
 
     # Create temp directory to pull release history into
-    tmpDir=`mktemp -d`
+    tmpDir=$(mktemp -d)
     if [[ ! "$tmpDir" || ! -d "$tmpDir" ]]; then
         err "Could not create temp dir."
         exit 1
@@ -155,24 +155,24 @@ function install_dependency {
 
     # Run installation in temp directory to enable parallel installations
     function cleanup {
-    rm -rf "$tmpDir"
+        rm -rf "$tmpDir"
     }
     trap cleanup EXIT ERR
-    pushd "$tmpDir" >& /dev/null
+    pushd "$tmpDir" >&/dev/null || exit
 
     #  Find Latest Release and pull down from repo history
-    releases=$(curl -s $1)
+    releases=$(curl -s "$1")
     if [[ $releases == *"API rate limit exceeded"* ]]; then
-    err $'\nGithub rate-limiter failed the request. Either authenticate or wait a couple of minutes.'
-    exit 1
+        err $'\nGithub rate-limiter failed the request. Either authenticate or wait a couple of minutes.'
+        exit 1
     fi
 
     # Find most up-to-date release URL and compare to what exists in dependency_info already
     # This step will determine if the latest version is already installed, or if it needs to update
-    RELEASE_URL=$(echo "${releases}" |\
-    grep $4 |\
-    cut -d '"' -f 4 |\
-    sort -V | tail -n 1)
+    RELEASE_URL=$(echo "${releases}" |
+        grep "$4" |
+        cut -d '"' -f 4 |
+        sort -V | tail -n 1)
 
     # Grab the latest version from dependency_info.txt
     # If dependency_info.txt shows a version, but the command doesn't exist, download it.
@@ -183,14 +183,14 @@ function install_dependency {
         else
             echo "Version Change Detected. Installing $2"
             # Get latest release from github
-            curl -sLO $RELEASE_URL
+            curl -sLO "$RELEASE_URL"
             # extract file and overwrite the older file if it exists in here
-            tar -xvf  $3
+            tar -xvf "$3"
             # delete source file when finished extracting
-            rm $3
+            rm "$3"
             # Bring function into depency folder
-            cp ./$2 "$where"
-            chmod 775 ${where}$2
+            cp ./"$2" "$where"
+            chmod 775 "${where}""$2"
             echo $'\n'
             echo "$2 installed to $where/$2"
             # Figure out which var to update in dependency_info.txt
@@ -212,14 +212,14 @@ function install_dependency {
     else
         echo "Config lists version, but it is not installed. Installing $2"
         # Get latest release from github
-        curl -sLO $RELEASE_URL
+        curl -sLO "$RELEASE_URL"
         # extract file and overwrite the older file if it exists in here
-        tar -xvf  $3
+        tar -xvf "$3"
         # delete source file when finished extracting
-        rm $3
+        rm "$3"
         # Bring function into depency folder
-        cp ./$2 "$where"
-        chmod +x ${where}$2
+        cp ./"$2" "$where"
+        chmod +x "${where}""$2"
         echo $'\n'
         echo "$2 installed to $where/$2"
         # Figure out which var to update in dependency_info.txt
@@ -238,7 +238,7 @@ function install_dependency {
             ;;
         esac
     fi
-    popd >& /dev/null
+    popd >&/dev/null || exit
 }
 
 ######################################################
@@ -246,25 +246,25 @@ function install_dependency {
 ######################################################
 
 install_dependency \
-$KUSTOMIZE_DOWNLOAD_BASE_URL \
-kustomize \
-kustomize_v*_${opsys}_${arch}.tar.gz \
-browser_download.*${opsys}_${arch} \
-$last_kustomize_version
+    $KUSTOMIZE_DOWNLOAD_BASE_URL \
+    kustomize \
+    kustomize_v*_${opsys}_${arch}.tar.gz \
+    browser_download.*${opsys}_${arch} \
+    "$last_kustomize_version"
 
 install_dependency \
-$GATORCLI_DOWNLOAD_BASE_URL \
-gator \
-gator-v*-${opsys}-${arch}.tar.gz \
-browser_download.*${opsys}-${arch} \
-$last_gator_version
+    $GATORCLI_DOWNLOAD_BASE_URL \
+    gator \
+    gator-v*-${opsys}-${arch}.tar.gz \
+    browser_download.*${opsys}-${arch} \
+    "$last_gator_version"
 
 install_dependency \
-$KPT_DOWNLOAD_BASE_URL \
-kpt \
-kpt_${opsys}_${arch}*.tar.gz \
-browser_download.*${opsys}_${arch} \
-$last_kpt_version
+    $KPT_DOWNLOAD_BASE_URL \
+    kpt \
+    kpt_${opsys}_${arch}*.tar.gz \
+    browser_download.*${opsys}_${arch} \
+    "$last_kpt_version"
 
 echo $'\nDependencies installed/updated.'
 
@@ -279,7 +279,7 @@ if [[ $system_info != "${opsys}_${arch}" ]]; then
 fi
 
 # Reconcile dependency_info text file
-cat > dependency_info.txt << EOL
+cat >dependency_info.txt <<EOL
 LAST_UPDATED=$(date)
 SYS_INFO=${system_info}
 KPT_VERSION=${last_kpt_version}
@@ -306,7 +306,7 @@ fi
 # Move validate.sh script to pre-commit hook folder
 echo $'\nUpdating pre-commit hook...'
 cp validate.sh .git/hooks/
-cd .git/hooks/
+cd .git/hooks/ || exit
 mv validate.sh pre-commit
 
 # Make pre-commit hook an executable
@@ -323,10 +323,9 @@ echo $'\n-----\n'
 #########################################################
 
 # This section will allow a user to easily update their configuration without
-# needing to run the main validation script which will be inaccessible in the 
+# needing to run the main validation script which will be inaccessible in the
 # .git/hooks folder. This configuration includes information on which directories
 # to use for constraints, constraint templates, and kubernetes manifests.
-
 
 # Warn user that this script will overwrite their current configuration.
 read -r -p "This script will overwrite your current pre-validate configuration. Are you sure you want to continue? [y/N] " response
@@ -334,7 +333,6 @@ if [[ ! "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
     exit 0
 fi
 echo $'\n-----\n'
-
 
 ########################################################
 ################### Obtain Policies ###################
@@ -367,8 +365,9 @@ fi
 
 # Obtain CONSTRAINT TEMPLATES location
 echo $'\n'
+echo "${bold}CONSTRAINTS${normal} location:"
 while [[ -z $constraints_location ]]; do
-    read -r -p "${bold}CONSTRAINTS${normal} location:`echo $'\n> '`" constraints_location
+    read -r -p "> " constraints_location
 done
 
 # Obtain KUBERNETES MANIFESTS location
@@ -381,7 +380,6 @@ if [[ -z $kubernetes_filepath ]]; then
 fi
 echo $'\n-----\n'
 
-
 ########################################################
 ############# Prepare Variables for Hook ###############
 ########################################################
@@ -390,7 +388,7 @@ echo $'\n-----\n'
 touch .env
 
 # Reconcile constraints into text file ---- TODO: STILL NECESSARY IF COULD EXPORT VARS?
-cat > .env << EOL
+cat >.env <<EOL
 TEMPLATES_LOCATION=$templates_location
 CONSTRAINTS_LOCATION=$constraints_location
 KUBERNETES_DIR=$kubernetes_filepath
@@ -399,4 +397,3 @@ EOL
 # Leave and Exit
 cd ..
 echo "Configuration Updated"
-
