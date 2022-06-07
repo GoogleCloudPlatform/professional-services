@@ -80,7 +80,7 @@ cd "$PWD"/$INSTALL_DIR/ || exit
 # if it does exist, store value of each line in the file to a variable
 touch dependency_info.txt
 
-# shellcheck source=dependency_info.txt
+# shellcheck source=/dev/null
 source dependency_info.txt &>/dev/null
 system_info=$SYS_INFO
 last_kpt_version=$KPT_VERSION
@@ -314,7 +314,7 @@ echo $'Making pre-commit hook executable...'
 chmod +x pre-commit
 
 # Return to project root directory
-cd ../../
+cd ../../ || exit
 echo $'Done!'
 echo $'\n-----\n'
 
