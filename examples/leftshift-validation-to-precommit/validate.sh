@@ -26,7 +26,7 @@
 echo "Checking for updated Kubernetes manifests..."
 updated_yamls="git diff --staged --stat | grep -o '.*\.yaml'"
 
-if [ -z $(eval "$updated_yamls") ]; then
+if [ -z "$(eval "$updated_yamls")" ]; then
 	echo "No updated manifests found." # Exit script if no updated manifests found
 	exit 0
 else
@@ -46,6 +46,10 @@ unset CDPATH
 err() {
 	echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]: $*" >&2
 }
+
+# Define tput sequences for bold text output to terminal
+bold=$(tput bold)
+normal=$(tput sgr0)
 
 # Instantiate FULL_COMMAND_PATH which will be updated to tell the rest
 # of the script where the dependencies live
@@ -85,16 +89,16 @@ function update_path {
 #######################################
 function check_dependency {
 
-	if command -v $1 &>/dev/null; then
+	if command -v "$1" &>/dev/null; then
 		echo "$1 exists in your path:"
-		printf "$PATH\n\n"
+		printf '%s \n\n' "$PATH" 
 		echo "Using preconfigured command, $1"
-		update_path $1 "$1"
+		update_path "$1" "$1"
 		return
 	elif [[ -f .oss_dependencies/$1 ]]; then
 		echo "$1 exists in your dependency folder. Using:"
-		printf ".oss_dependencies/$1 \n\n"
-		update_path $1 ".oss_dependencies/$1"
+		printf '%s \n\n' ".oss_dependencies/$1"
+		update_path "$1" ".oss_dependencies/$1"
 		return
 	else
 		err "Could not find $1. Please make sure it is installed, either to your PATH, or via the setup.sh script."
@@ -118,10 +122,10 @@ echo $'Dependencies installed and properly configured.\n'
 ########################################################
 
 # Get constraint, template, and k8s locations from setup.sh
-export $(xargs <.env)
-echo 'Templates location:' $TEMPLATES_LOCATION
-echo 'Constraints location:' $CONSTRAINTS_LOCATION
-echo 'K8s Manifests location:' $KUBERNETES_DIR
+eval 'export $(xargs < .env)'
+echo 'Templates location:' "$TEMPLATES_LOCATION"
+echo 'Constraints location:' "$CONSTRAINTS_LOCATION"
+echo 'K8s Manifests location:' "$KUBERNETES_DIR"
 
 # First, open STDIN for user input, which is closed by default for git hooks
 exec </dev/tty
@@ -157,8 +161,8 @@ exec <&-
 rm -rf .oss_dependencies/.hydrated_manifests
 # Hydrate manifests and apply kustomize overlays
 mkdir -p .oss_dependencies/.hydrated_manifests/
-$FULL_COMMAND_PATH_KUSTOMIZE build $KUBERNETES_DIR/$environment \
-	> .oss_dependencies/.hydrated_manifests/${environment}.yaml
+$FULL_COMMAND_PATH_KUSTOMIZE build "$KUBERNETES_DIR"/"$environment" \
+	> .oss_dependencies/.hydrated_manifests/"$environment".yaml
 
 ########################################################
 ############## STEP 3 - DOWNLOAD POLICIES ##############
@@ -180,11 +184,11 @@ function download_policies() {
 	if [[ "$1" == "http"* ]]; then
 		# Downloading remote repo containing constraints
 		$FULL_COMMAND_PATH_KPT version
-		$FULL_COMMAND_PATH_KPT pkg get $1 constraints-and-templates/$2
+		$FULL_COMMAND_PATH_KPT pkg get "$1" constraints-and-templates/"$2"
 	else
 		# Copying local constraints to directory
-		mkdir constraints-and-templates/$2
-		cp -a $1 constraints-and-templates/$2
+		mkdir constraints-and-templates/"$2"
+		cp -a "$1" constraints-and-templates/"$2"
 	fi
 }
 
@@ -192,7 +196,7 @@ if [[ "$TEMPLATES_LOCATION" == *"/constraints-and-templates/oss-constraint-templ
 
 	# Templates are OSS, get constraints where located
 	OSS=TRUE
-	download_policies $CONSTRAINTS_LOCATION "constraints"
+	download_policies "$CONSTRAINTS_LOCATION" "constraints"
 
 else
 	# Temporarily move OSS templates
@@ -202,12 +206,12 @@ else
 
 	# Constraints and templates in same location
 	if [[ "$TEMPLATES_LOCATION" == "$CONSTRAINTS_LOCATION" ]]; then
-		download_policies $CONSTRAINTS_LOCATION ""
+		download_policies "$CONSTRAINTS_LOCATION" ""
 
 	# Constraints and templates in different locations
 	else
-		download_policies $CONSTRAINTS_LOCATION "constraints"
-		download_policies $TEMPLATES_LOCATION "templates"
+		download_policies "$CONSTRAINTS_LOCATION" "constraints"
+		download_policies "$TEMPLATES_LOCATION" "templates"
 
 	fi
 fi
@@ -218,9 +222,7 @@ fi
 
 # Validates that all resources comply with all policies.
 echo 'Validating against Policies'
-
-pass_or_fail=$($FULL_COMMAND_PATH_GATOR test -f=.oss_dependencies/.hydrated_manifests/$environment.yaml -f=constraints-and-templates)
-
+pass_or_fail=$($FULL_COMMAND_PATH_GATOR test -f=.oss_dependencies/.hydrated_manifests/"$environment".yaml -f=constraints-and-templates)
 
 # Remove constraints and templates and reset environment
 if [[ "$OSS" == "TRUE" ]]; then
@@ -233,6 +235,6 @@ fi
 if [[ -z $pass_or_fail ]]; then
 	echo "Congrats! No policy violations found."
 else
-	echo $'\nViolations found. See details below:\n\n' && echo $pass_or_fail
+	echo $'\nViolations found. See details below:\n\n' && echo "$pass_or_fail"
 	exit 1
 fi
