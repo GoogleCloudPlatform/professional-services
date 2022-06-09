@@ -134,7 +134,7 @@ function readlink_f {
 #######################################
 function install_dependency {
 
-    where="$(readlink_f "$(printf "%q\n" "$(PWD)")")/"
+    where="$(readlink_f "$(printf "%q\\n" "$(PWD)")")/"
 
     # Verify the script can rationalize the current directory into an absolute path
     if ! test -d "$where"; then
@@ -394,6 +394,4 @@ CONSTRAINTS_LOCATION=$constraints_location
 KUBERNETES_DIR=$kubernetes_filepath
 EOL
 
-# Leave and Exit
-cd ..
-echo "Configuration Updated"
+echo "Setup done and configuration Updated"

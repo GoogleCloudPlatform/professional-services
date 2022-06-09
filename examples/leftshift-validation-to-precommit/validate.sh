@@ -24,7 +24,7 @@
 
 # Only run pre-commit hook if any manifests are updated.
 echo "Checking for updated Kubernetes manifests..."
-updated_yamls="git diff --staged --stat | grep -o '.*\.yaml'"
+updated_yamls="git diff --staged --stat | grep -o '.*\\.yaml'"
 
 if [ -z "$(eval "$updated_yamls")" ]; then
 	echo "No updated manifests found." # Exit script if no updated manifests found

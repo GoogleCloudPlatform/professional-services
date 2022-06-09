@@ -76,7 +76,7 @@ fi
 #############################################
 
 # Determine if user has run this code from the correct directory
-where="$(readlink_f "$(printf "%q\n" "$(PWD)")")/"
+where="$(readlink_f "$(printf "%q\\n" "$(PWD)")")/"
 if [[ ! -f $where/.git/hooks/pre-commit  ]]; then
     err "It seems this code is either not being run in a git repository, or being run in the wrong place and can't access your pre-commit hook. Please Make sure you run this command in your project root."
     exit 1
