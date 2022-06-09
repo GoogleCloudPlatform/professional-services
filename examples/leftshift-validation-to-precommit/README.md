@@ -58,6 +58,10 @@ Left-shift validation is intended to run as a pre-commit hook, so it has been de
 3. Run `gator test`, which validates the unified yaml file against the policies (Constraints and ConstraintTemplates).
 4. Fail the commit if violations are found. If there are no errors, continue the commit.
 
+***In order for `gator test` (the validation iteslf) to work, ensure the *only* `.yaml` files in the `/constraint-and-templates` directory are for the Constraint and ConstraintTemplates.***
+- For ConstraintTemplate `.yaml` files, ensure `kind: ConstraintTemplate`
+- For Constraint `.yaml` files, ensure `kind: <name of ConstraintTemplate>`
+
 **Using the Open-Source ConstraintTemplates**
 We have [pre-included](constraints-and-templates/oss-constraint-templates-library/) the constraint templates from the open-source OPA repository. If you are using these templates, you specify so during setup.sh and the pre-commit hook will use the /constraints-and-templates directory as the location for the templates.
 To manually specify:
