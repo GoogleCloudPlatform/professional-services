@@ -46,14 +46,14 @@ readonly INSTALL_DIR=".oss_dependencies"
 function readlink_f {
     TARGET_FILE=$1
 
-    cd "$(dirname "$TARGET_FILE")"
+    cd "$(dirname "$TARGET_FILE")" || exit
     TARGET_FILE=$(basename "$TARGET_FILE")
 
     # Iterate down a (possible) chain of symlinks
     while [ -L "$TARGET_FILE" ]
     do
         TARGET_FILE=$(readlink "$TARGET_FILE")
-        cd "$(dirname "$TARGET_FILE")"
+        cd "$(dirname "$TARGET_FILE")" || exit
         TARGET_FILE=$(readlink "$TARGET_FILE")
     done
 
@@ -76,14 +76,14 @@ fi
 #############################################
 
 # Determine if user has run this code from the correct directory
-where="$(readlink_f $(printf "%q\n" "$(PWD)"))/"
+where="$(readlink_f "$(printf "%q\n" "$(PWD)")")/"
 if [[ ! -f $where/.git/hooks/pre-commit  ]]; then
     err "It seems this code is either not being run in a git repository, or being run in the wrong place and can't access your pre-commit hook. Please Make sure you run this command in your project root."
     exit 1
 fi
 
 # Delete Pre-Commit Hook
-rm $where/.git/hooks/pre-commit
+rm "$where"/.git/hooks/pre-commit
 
 #############################################################
 ###### STEP 2 - Delete Necessary Files and Directories ######
