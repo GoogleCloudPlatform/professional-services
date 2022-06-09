@@ -34,7 +34,7 @@ $ ./setup.sh
 
 Now, whenever you go to commit code and updated Kubernetes yaml files are found, the pre-commit hook will test your changes against the policy constraints you've specified. Nifty!
 
-**After initial installation**
+**After initial installation**<br/>
 `Setup.sh` is primarily for dependency installations and contains a guided walkthrough of obtaining the locations of your Constraint and ConstraintTemplates. We suggest only running `setup.sh` when needing to run these tasks again, as necessary.
 
 Otherwise, the locations will be set as environment variables in your `.env` file for `validate.sh` (pre-commit hook) to use. You can directly change these variables as necessary without having to run `setup.sh`. The pre-commit hook will run every time you attempt to commit!
@@ -62,7 +62,7 @@ Left-shift validation is intended to run as a pre-commit hook, so it has been de
 - For ConstraintTemplate `.yaml` files, ensure `kind: ConstraintTemplate`
 - For Constraint `.yaml` files, ensure `kind: <name of ConstraintTemplate>`
 
-**Using the Open-Source ConstraintTemplates**
+<br/>**Using the Open-Source ConstraintTemplates**<br/>
 We have [pre-included](constraints-and-templates/oss-constraint-templates-library/) the constraint templates from the open-source OPA repository. If you are using these templates, you specify so during setup.sh and the pre-commit hook will use the /constraints-and-templates directory as the location for the templates.
 To manually specify:
 - In your `.env` file, make sure the `TEMPLATES_LOCATION` environment variable is set to `/constraints-and-templates`.	
