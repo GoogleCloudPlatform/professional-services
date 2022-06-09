@@ -8,7 +8,7 @@ Using left-shift validate means you learn *if your deployments are going to fail
 
 ---
 
-# Setting Up left-shift validation
+# Setup
 
 Using left-shift validation is simple!
 
@@ -57,6 +57,12 @@ Left-shift validation is intended to run as a pre-commit hook, so it has been de
 4. Gather the Constraints and ConstraintTemplates and save them to a local folder. Run `kpt` if from a remote repo.
 3. Run `gator test`, which validates the unified yaml file against the policies (Constraints and ConstraintTemplates).
 4. Fail the commit if violations are found. If there are no errors, continue the commit.
+
+**Using the Open-Source ConstraintTemplates**
+We have [pre-included](constraints-and-templates/oss-constraint-templates-library/) the constraint templates from the open-source OPA repository. If you are using these templates, you specify so during setup.sh and the pre-commit hook will use the /constraints-and-templates directory as the location for the templates.
+To manually specify:
+- In your `.env` file, make sure the `TEMPLATES_LOCATION` environment variable is set to `/constraints-and-templates`.	
+
 
 ---
 
