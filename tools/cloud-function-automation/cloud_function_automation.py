@@ -80,10 +80,7 @@ def create_pubsub_topic(project_id, pubsub_topic_name):
     :param pubsub_topic_name: Google Cloud Pub/Sub topic name mentioned in variables.py.
     :return: True or False.
     """
-    try:
-        publisher = pubsub_v1.PublisherClient()
-    except Exception as exc:
-        raise SystemExit(exc)
+    publisher = pubsub_v1.PublisherClient()
     full_topic_name = f'projects/{project_id}/topics/{pubsub_topic_name}'
     try:
         publisher.create_topic(name=full_topic_name)
@@ -103,20 +100,14 @@ def create_sink(sink_name, full_topic_name, log_sink_filter):
     :param log_sink_filter: log sink filer mentioned in variables.py.
     :return: True or False.
     """
-    try:
-        logging_client = logging.Client()
-    except Exception as exc:
-        raise SystemExit(exc)
+    logging_client = logging.Client()
     destination = f"pubsub.googleapis.com/{full_topic_name}"
     sink = logging_client.sink(sink_name, filter_=log_sink_filter, destination=destination)
     if sink.exists():
         print(f"Log Router Sink {sink.name} already exists.")
         created_sink = False
     else:
-        try:
-            sink.create()
-        except Exception as exc:
-            raise SystemExit(exc)
+        sink.create()
         print(f"Log Router Sink {sink.name} has been created")
         created_sink = True
     return created_sink
@@ -136,11 +127,9 @@ def create_cloud_function(function_config, project_id, full_topic_name):
     function_name = function_config["CLOUD_FUNCTION_NAME"]
     function_runtime = function_config["CLOUD_FUNCTION_RUNTIME"]
     full_location = f"projects/{project_id}/locations/{function_location}"
+
     # Create a client
-    try:
-        client = functions_v1.CloudFunctionsServiceClient()
-    except Exception as exc:
-        raise SystemExit(exc)
+    client = functions_v1.CloudFunctionsServiceClient()
 
     # Initialize request argument(s)
     function = functions_v1.CloudFunction()
@@ -156,10 +145,7 @@ def create_cloud_function(function_config, project_id, full_topic_name):
     )
 
     # Make the request
-    try:
-        operation = client.create_function(request=request)
-    except Exception as exc:
-        raise SystemExit(exc)
+    operation = client.create_function(request=request)
 
     print("Waiting for operation to complete...")
 
@@ -177,16 +163,10 @@ def delete_cloud_pubsub_topic(project_id, topic_id):
     :param topic_id: Pub/Sub topic associated with Cloud function.
     :return:
     """
-    try:
-        publisher = pubsub_v1.PublisherClient()
-    except Exception as exc:
-        raise SystemExit(exc)
+    publisher = pubsub_v1.PublisherClient()
     topic_path = publisher.topic_path(project_id, topic_id)
-    try:
-        publisher.delete_topic(request={"topic": topic_path})
-        print(f"Topic deleted: {topic_path}")
-    except Exception as exc:
-        print(exc)
+    publisher.delete_topic(request={"topic": topic_path})
+    print(f"Topic deleted: {topic_path}")
 
 
 def delete_cloud_log_sink(sink_name):
@@ -195,16 +175,10 @@ def delete_cloud_log_sink(sink_name):
     :param sink_name: Log Sink name.
     :return:
     """
-    try:
-        logging_client = logging.Client()
-    except Exception as exc:
-        raise SystemExit(exc)
+    logging_client = logging.Client()
     sink = logging_client.sink(sink_name)
-    try:
-        sink.delete()
-        print("Deleted sink {}".format(sink.name))
-    except Exception as exc:
-        print(exc)
+    sink.delete()
+    print("Deleted sink {}".format(sink.name))
 
 
 def delete_cloud_function(project_id, function_config):
@@ -218,21 +192,15 @@ def delete_cloud_function(project_id, function_config):
     function_location = function_config["CLOUD_FUNCTION_LOCATION"]
     function_name = function_config["CLOUD_FUNCTION_NAME"]
     full_function_name = f"projects/{project_id}/locations/{function_location}/functions/{function_name}"
-    try:
-        client = functions_v1.CloudFunctionsServiceClient()
-    except Exception as exc:
-        raise SystemExit(exc)
+    client = functions_v1.CloudFunctionsServiceClient()
 
     request = functions_v1.DeleteFunctionRequest(
         name=full_function_name
     )
 
     # Make the request
-    try:
-        operation = client.delete_function(request=request)
-        print(f"Cloud function {function_name} deleted")
-    except Exception as exc:
-        raise SystemExit(exc)
+    operation = client.delete_function(request=request)
+    print(f"Cloud function {function_name} deleted")
 
     response = operation.result()
     print(response)
@@ -275,4 +243,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
