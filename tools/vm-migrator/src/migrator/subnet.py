@@ -255,7 +255,8 @@ def release_ip(project: str, subnet_uri: uri.Subnet) -> bool:
     ips = compute.addresses().list(project=project,
                                    region=subnet_uri.region,
                                    filter='subnetwork="' +
-                                   subnet_uri.abs_beta_uri + '"').execute()
+                                   subnet_uri.abs_beta_uri + '"',
+                                   maxResults=3000).execute()
 
     result = True
     if ips.get('items'):
