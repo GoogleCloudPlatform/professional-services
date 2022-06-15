@@ -1,0 +1,423 @@
+[
+    {
+      "mode": "NULLABLE",
+      "name": "logName",
+      "type": "STRING"
+    },
+    {
+      "fields": [
+        {
+          "mode": "NULLABLE",
+          "name": "type",
+          "type": "STRING"
+        },
+        {
+          "fields": [
+            {
+              "mode": "NULLABLE",
+              "name": "location",
+              "type": "STRING"
+            },
+            {
+              "mode": "NULLABLE",
+              "name": "project_id",
+              "type": "STRING"
+            },
+            {
+              "mode": "NULLABLE",
+              "name": "subnetwork_id",
+              "type": "STRING"
+            },
+            {
+              "mode": "NULLABLE",
+              "name": "subnetwork_name",
+              "type": "STRING"
+            }
+          ],
+          "mode": "NULLABLE",
+          "name": "labels",
+          "type": "RECORD"
+        }
+      ],
+      "mode": "NULLABLE",
+      "name": "resource",
+      "type": "RECORD"
+    },
+    {
+      "mode": "NULLABLE",
+      "name": "textPayload",
+      "type": "STRING"
+    },
+    {
+      "fields": [
+        {
+          "mode": "NULLABLE",
+          "name": "start_time",
+          "type": "STRING"
+        },
+        {
+          "mode": "NULLABLE",
+          "name": "bytes_sent",
+          "type": "STRING"
+        },
+        {
+          "fields": [
+            {
+              "mode": "NULLABLE",
+              "name": "dest_ip",
+              "type": "STRING"
+            },
+            {
+              "mode": "NULLABLE",
+              "name": "protocol",
+              "type": "FLOAT"
+            },
+            {
+              "mode": "NULLABLE",
+              "name": "src_ip",
+              "type": "STRING"
+            },
+            {
+              "mode": "NULLABLE",
+              "name": "src_port",
+              "type": "FLOAT"
+            },
+            {
+              "mode": "NULLABLE",
+              "name": "dest_port",
+              "type": "FLOAT"
+            }
+          ],
+          "mode": "NULLABLE",
+          "name": "connection",
+          "type": "RECORD"
+        },
+        {
+          "fields": [
+            {
+              "mode": "NULLABLE",
+              "name": "vpc_name",
+              "type": "STRING"
+            },
+            {
+              "mode": "NULLABLE",
+              "name": "project_id",
+              "type": "STRING"
+            },
+            {
+              "mode": "NULLABLE",
+              "name": "subnetwork_name",
+              "type": "STRING"
+            }
+          ],
+          "mode": "NULLABLE",
+          "name": "dest_vpc",
+          "type": "RECORD"
+        },
+        {
+          "fields": [
+            {
+              "mode": "NULLABLE",
+              "name": "project_id",
+              "type": "STRING"
+            },
+            {
+              "mode": "NULLABLE",
+              "name": "region",
+              "type": "STRING"
+            },
+            {
+              "mode": "NULLABLE",
+              "name": "zone",
+              "type": "STRING"
+            },
+            {
+              "mode": "NULLABLE",
+              "name": "vm_name",
+              "type": "STRING"
+            }
+          ],
+          "mode": "NULLABLE",
+          "name": "src_instance",
+          "type": "RECORD"
+        },
+        {
+          "fields": [
+            {
+              "mode": "NULLABLE",
+              "name": "vm_name",
+              "type": "STRING"
+            },
+            {
+              "mode": "NULLABLE",
+              "name": "project_id",
+              "type": "STRING"
+            },
+            {
+              "mode": "NULLABLE",
+              "name": "zone",
+              "type": "STRING"
+            },
+            {
+              "mode": "NULLABLE",
+              "name": "region",
+              "type": "STRING"
+            }
+          ],
+          "mode": "NULLABLE",
+          "name": "dest_instance",
+          "type": "RECORD"
+        },
+        {
+          "fields": [
+            {
+              "mode": "NULLABLE",
+              "name": "project_id",
+              "type": "STRING"
+            },
+            {
+              "mode": "NULLABLE",
+              "name": "vpc_name",
+              "type": "STRING"
+            },
+            {
+              "mode": "NULLABLE",
+              "name": "subnetwork_name",
+              "type": "STRING"
+            }
+          ],
+          "mode": "NULLABLE",
+          "name": "src_vpc",
+          "type": "RECORD"
+        },
+        {
+          "mode": "NULLABLE",
+          "name": "packets_sent",
+          "type": "STRING"
+        },
+        {
+          "mode": "NULLABLE",
+          "name": "reporter",
+          "type": "STRING"
+        },
+        {
+          "mode": "NULLABLE",
+          "name": "end_time",
+          "type": "STRING"
+        },
+        {
+          "mode": "NULLABLE",
+          "name": "rtt_msec",
+          "type": "STRING"
+        },
+        {
+          "fields": [
+            {
+              "mode": "NULLABLE",
+              "name": "country",
+              "type": "STRING"
+            },
+            {
+              "mode": "NULLABLE",
+              "name": "continent",
+              "type": "STRING"
+            },
+            {
+              "mode": "NULLABLE",
+              "name": "asn",
+              "type": "FLOAT"
+            }
+          ],
+          "mode": "NULLABLE",
+          "name": "dest_location",
+          "type": "RECORD"
+        }
+      ],
+      "mode": "NULLABLE",
+      "name": "jsonPayload",
+      "type": "RECORD"
+    },
+    {
+      "mode": "NULLABLE",
+      "name": "timestamp",
+      "type": "TIMESTAMP"
+    },
+    {
+      "mode": "NULLABLE",
+      "name": "receiveTimestamp",
+      "type": "TIMESTAMP"
+    },
+    {
+      "mode": "NULLABLE",
+      "name": "severity",
+      "type": "STRING"
+    },
+    {
+      "mode": "NULLABLE",
+      "name": "insertId",
+      "type": "STRING"
+    },
+    {
+      "fields": [
+        {
+          "mode": "NULLABLE",
+          "name": "requestMethod",
+          "type": "STRING"
+        },
+        {
+          "mode": "NULLABLE",
+          "name": "requestUrl",
+          "type": "STRING"
+        },
+        {
+          "mode": "NULLABLE",
+          "name": "requestSize",
+          "type": "INTEGER"
+        },
+        {
+          "mode": "NULLABLE",
+          "name": "status",
+          "type": "INTEGER"
+        },
+        {
+          "mode": "NULLABLE",
+          "name": "responseSize",
+          "type": "INTEGER"
+        },
+        {
+          "mode": "NULLABLE",
+          "name": "userAgent",
+          "type": "STRING"
+        },
+        {
+          "mode": "NULLABLE",
+          "name": "remoteIp",
+          "type": "STRING"
+        },
+        {
+          "mode": "NULLABLE",
+          "name": "serverIp",
+          "type": "STRING"
+        },
+        {
+          "mode": "NULLABLE",
+          "name": "referer",
+          "type": "STRING"
+        },
+        {
+          "mode": "NULLABLE",
+          "name": "cacheLookup",
+          "type": "BOOLEAN"
+        },
+        {
+          "mode": "NULLABLE",
+          "name": "cacheHit",
+          "type": "BOOLEAN"
+        },
+        {
+          "mode": "NULLABLE",
+          "name": "cacheValidatedWithOriginServer",
+          "type": "BOOLEAN"
+        },
+        {
+          "mode": "NULLABLE",
+          "name": "cacheFillBytes",
+          "type": "INTEGER"
+        },
+        {
+          "mode": "NULLABLE",
+          "name": "protocol",
+          "type": "STRING"
+        }
+      ],
+      "mode": "NULLABLE",
+      "name": "httpRequest",
+      "type": "RECORD"
+    },
+    {
+      "fields": [
+        {
+          "mode": "NULLABLE",
+          "name": "id",
+          "type": "STRING"
+        },
+        {
+          "mode": "NULLABLE",
+          "name": "producer",
+          "type": "STRING"
+        },
+        {
+          "mode": "NULLABLE",
+          "name": "first",
+          "type": "BOOLEAN"
+        },
+        {
+          "mode": "NULLABLE",
+          "name": "last",
+          "type": "BOOLEAN"
+        }
+      ],
+      "mode": "NULLABLE",
+      "name": "operation",
+      "type": "RECORD"
+    },
+    {
+      "mode": "NULLABLE",
+      "name": "trace",
+      "type": "STRING"
+    },
+    {
+      "mode": "NULLABLE",
+      "name": "spanId",
+      "type": "STRING"
+    },
+    {
+      "mode": "NULLABLE",
+      "name": "traceSampled",
+      "type": "BOOLEAN"
+    },
+    {
+      "fields": [
+        {
+          "mode": "NULLABLE",
+          "name": "file",
+          "type": "STRING"
+        },
+        {
+          "mode": "NULLABLE",
+          "name": "line",
+          "type": "INTEGER"
+        },
+        {
+          "mode": "NULLABLE",
+          "name": "function",
+          "type": "STRING"
+        }
+      ],
+      "mode": "NULLABLE",
+      "name": "sourceLocation",
+      "type": "RECORD"
+    },
+    {
+      "fields": [
+        {
+          "mode": "NULLABLE",
+          "name": "uid",
+          "type": "STRING"
+        },
+        {
+          "mode": "NULLABLE",
+          "name": "index",
+          "type": "INTEGER"
+        },
+        {
+          "mode": "NULLABLE",
+          "name": "totalSplits",
+          "type": "INTEGER"
+        }
+      ],
+      "mode": "NULLABLE",
+      "name": "split",
+      "type": "RECORD"
+    }
+]

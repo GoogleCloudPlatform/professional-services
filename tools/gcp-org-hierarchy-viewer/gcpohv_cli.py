@@ -105,6 +105,19 @@ class Cli:
         self.use_org_id = use_org_id
         self._crm_v1, self._crm_v2 = setup_clients(credentials_file)
 
+    # Default projects.list() returns limited number of items and a nextPageToken
+    # This function will recursively load all projects
+    def load_all_projects(self,token = None):
+        projects = None
+        if token == None:
+            projects = self._crm_v1.projects().list().execute()
+        else:
+            projects = self._crm_v1.projects().list(pageToken=token).execute()
+        if "nextPageToken" in projects:
+            next_page_projects = self.load_all_projects(projects["nextPageToken"])
+            projects["projects"] = projects["projects"] + next_page_projects["projects"]
+        return projects
+
     def _get_projects(self):
         """ Gets all available projects and organize by parent type,
           organization and folder.
@@ -112,8 +125,8 @@ class Cli:
         Returns:
             2-tuple of dicts
         """
-        projs = self._crm_v1.projects().list().execute()
-
+        projs = self.load_all_projects()
+        
         fold_parents = collections.defaultdict(list)
 
         gen = (p for p in projs['projects']
