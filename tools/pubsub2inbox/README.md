@@ -44,6 +44,8 @@ Out of the box, you'll have the following functionality:
   - [Groups that allow external members](examples/external-groups-example.yaml) ([general example for Directory API](examples/directory-example.yaml))
   - [GCP projects](examples/projects-example.yaml)
      - Retrieves a list of projects using Cloud Resource Manager API
+  - [Send SMS messages](examples/twilio-example.yaml)
+     - Retrieves a list of projects using Cloud Resource Manager API
   - Any JSON
     - [See the example of generic JSON processing](examples/generic-config.yaml)
 
@@ -89,6 +91,8 @@ Available output processors are:
   - [logger.py](output/logger.py): Logs message in Cloud Logging.
   - [pubsub.py](output/pubsub.py): Sends one or more Pub/Sub messages.
   - [bigquery.py](output/bigquery.py): Sends output to a BigQuery table via a load job.
+  - [scc.py](output/scc.py): Sends findings to Cloud Security Command Center.
+  - [twilio.py](output/twilio.py): Sends SMS messages via Twilio API.
 
 Please note that the output processors have some IAM requirements to be able to
 pull information from GCP:
