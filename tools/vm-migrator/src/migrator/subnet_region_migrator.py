@@ -190,7 +190,7 @@ def bulk_instance_start(file_name) -> bool:
             for row in csv_dict_reader:
                 instance_uri = uri.Instance.from_uri(row['self_link'])
                 instance_future.append(
-                    executor.submit(instance.shutdown, instance_uri))
+                    executor.submit(instance.start, instance_uri))
                 count = count + 1
 
             for future in concurrent.futures.as_completed(instance_future):
