@@ -15,7 +15,7 @@ This code also enables replication between volumes if *replication* variable is 
 
 ## Enable Network Peering
 Run the below commands to establish Network Peering between your project and NetApp Project. You will also get a prompt to run these commands manually when you try to create a volume from the Qwikstart.
-![Alt text](/Enable-Network-Peering-popup.png?raw=true)
+![Alt text](/Enable-Network-Peering-popup.png)
 ```
 export PROJECT_ID=<PROJECT_ID>
 ```
