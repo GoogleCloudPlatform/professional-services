@@ -1,4 +1,4 @@
-# Quota Monitoring Solution
+# Quota Monitoring and Alerting
 
 ## Release Notes
 > Last Updated on Jun 21, 2022
