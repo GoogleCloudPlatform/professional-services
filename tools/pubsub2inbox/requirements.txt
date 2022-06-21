@@ -27,3 +27,4 @@ msal~=1.16.0
 requests~=2.26.0
 responses~=0.18.0
 markupsafe~=2.0.0
+twilio~=7.9.0

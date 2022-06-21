@@ -25,6 +25,7 @@ from .exceptions import GCPOperationException, NotFoundException
 from ratemate import RateLimit
 from . import uri
 from typing import Optional
+import re
 
 RATE_LIMIT = RateLimit(max_count=2000, per=100)
 
@@ -215,7 +216,7 @@ def reserve_internal_ip(compute, instance_uri: uri.Instance, name,
     return insert_operation['selfLink']
 
 
-def create_instance(compute, instance_uri: uri.Instance, network,
+def prepare_create_instance(compute, instance_uri: uri.Instance, network,
                     subnet_uri: uri.Subnet, alias_ip_ranges, node_group,
                     disk_names, ip, target_machine_type_uri: uri.MachineType,
                     image_project, target_service_account, target_scopes) \
@@ -310,9 +311,11 @@ def create_instance(compute, instance_uri: uri.Instance, network,
                 i = i + 1
         config['networkInterfaces'][0]['aliasIpRanges'] = alias_ip_ranges
 
-    return compute.instances().insert(project=instance_uri.project,
-                                      zone=instance_uri.zone,
-                                      body=config).execute()
+    return {
+        "project": instance_uri.project,
+        "zone": instance_uri.zone,
+        "body": config
+    }
 
 
 def wait_for_instance(compute, instance_uri: uri.Instance):
@@ -348,25 +351,42 @@ def create(instance_uri: uri.Instance,
     """
     Main function to create the instance.
     """
-    try:
-        waited_time = RATE_LIMIT.wait()  # wait before starting the task
-        logging.info('  task: waited for %s secs', waited_time)
-        compute = get_compute()
-        logging.info('Creating instance %s', instance_uri.name)
+    waited_time = RATE_LIMIT.wait()  # wait before starting the task
+    logging.info('  task: waited for %s secs', waited_time)
+    compute = get_compute()
+    logging.info('Creating instance %s', instance_uri.name)
 
-        operation = create_instance(compute, instance_uri, network, subnet,
-                                    alias_ip_ranges, node_group, disk_names,
-                                    ip, machine_type_uri, image_project,
-                                    target_service_account, target_scopes)
+    kwargs = prepare_create_instance(compute, instance_uri, network, subnet,
+                                alias_ip_ranges, node_group, disk_names,
+                                ip, machine_type_uri, image_project,
+                                target_service_account, target_scopes)
 
-        if wait:
-            wait_for_zonal_operation(compute, instance_uri, operation['name'])
-            result = wait_for_instance(compute, instance_uri)
-        created_instance_uri = uri.Instance.from_uri(result['selfLink'])
-        logging.info('Instance %s created from source MachineImage %s and '
-                     'successfully started', created_instance_uri,
-                     instance_uri.name)
-        return created_instance_uri.name
-    except Exception as ex:
-        logging.error(ex)
-        raise ex
+    retry_count=0
+    while True:
+        try:
+            if 0 < retry_count:
+                wait_time = min(retry_count * 30, 300)
+                logging.info("Retry #{} for instance {}: Waiting {} seconds.".format(retry_count, instance_uri.name, wait_time))
+                time.sleep(wait_time)
+                logging.info("Retry #{} for instance {}: Sleeping finished, attempting creation...".format(retry_count, instance_uri.name))
+
+            operation = compute.instances().insert(**kwargs).execute()
+
+            if wait:
+                wait_for_zonal_operation(compute, instance_uri, operation['name'])
+                result = wait_for_instance(compute, instance_uri)
+            created_instance_uri = uri.Instance.from_uri(result['selfLink'])
+            logging.info('Instance %s created from source MachineImage %s and '
+                        'successfully started', created_instance_uri,
+                        instance_uri.name)
+            return created_instance_uri.name
+        except Exception as ex:
+            if re.search("INTERNAL_ERROR", str(ex)):
+                if retry_count < 5:
+                    logging.warn("Retry #{} for instance {} failed.".format(retry_count, instance_uri.name))
+                    retry_count += 1
+                    continue
+                else:
+                    logging.error("Retry #{} for instance {} failed.".format(retry_count, instance_uri.name))
+            logging.error(ex)
+            raise ex
