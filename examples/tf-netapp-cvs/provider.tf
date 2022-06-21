@@ -16,7 +16,7 @@ terraform {
   }
 
   backend "gcs" {
-    bucket = "tf-state-samp123"
+    bucket = "bucket-name" # the bucket which store terraform state goes here
     prefix = "nfs"
   }
 }
@@ -32,6 +32,6 @@ provider "google-beta" {
 }
 
 provider "netapp-gcp" {
-  project     = 97656261064 # BUG: Provider doesn't handle the project name to number convertion
+  project     = 1234567890 # project number goes here. BUG: Provider doesn't handle the project name to number convertion
   credentials = base64decode(google_service_account_key.nfs-key.private_key)
 }

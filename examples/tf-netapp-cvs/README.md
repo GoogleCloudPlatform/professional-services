@@ -46,6 +46,9 @@ gcloud --project=$PROJECT compute networks peerings update netapp-cv-nw-customer
 ```
 
 ## Deploy
+Before you deploy, make sure that you modify the below parameters in  provider.tf
+1. bucket - bucket name which stores the terraform state
+1. project - project number in which you want to deploy the volumes
 ```
 terraform init
 ```
