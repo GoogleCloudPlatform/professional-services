@@ -29,6 +29,10 @@
 #    using the notification channel you created
 #  - Configure Pubsub2Inbox function with this configuration configured with your settings
 #    and trigger it on the Pub/Sub topic you created
+#  - Provide access rights for the created Service Account to post from the SCC source  https://cloud.google.com/security-command-center/docs/how-to-api-create-manage-security-sources#set-cloud-iam-policies
+#    Change member in the python script to the service account:
+#         service_account_mail = "custom-scc-findings@<PROJECT_ID>.iam.gserviceaccount.com"
+#         binding.members.append("serviceAccount:{}".format(service_account_mail))
 #
 # (tip: you can also locally test the function with python3 main.py --config examples/scc-finding-config.yaml test/fixtures/monitoring-alert.json)
 #
@@ -42,7 +46,7 @@ processors:
 outputs:
   - type: scc
     source: organizations/1234567/sources/98765654
-    finding_id: "{{ data.incident.incident_url|hash_string('md5') }}"
+    finding_id: "{{ data.incident.url|hash_string('md5') }}"
     vars: # Additional variables to register in Jinja, useful for lookup dicts
       severity:
         SERIAL_PORT_ACCESS_TURNED_ON: "MEDIUM"
