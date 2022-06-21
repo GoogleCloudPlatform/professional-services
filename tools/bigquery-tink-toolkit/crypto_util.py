@@ -48,7 +48,23 @@ class CipherManager(object):
 
     def _retrieve_keysets(
         self, column_names, table_name="deterministic", dataset_name="deterministic"
-    ):  # Note: Using a default string (eg. 'deterministic' in this case) could be a way to have just a single row for a given column in the Keysets table, rather than needing multiple row for the same column type in different tables that would be using the same key (since the same key needs to be used for deterministic encryption to be usable for joins across tables)
+    ):
+        """Retrieves the keysets required for the provided columns. Queries the keysets table in BigQuery via an Authorized TVF.
+
+        Note: Using a default string (eg. 'deterministic' in this case) could be a way to have just a single row for a given column in the Keysets table, rather than needing multiple row for the same column type in different tables that would be using the same key (since the same key needs to be used for deterministic encryption to be usable for joins across tables).
+
+        TVF definition reference:
+            CREATE TABLE FUNCTION dataset_name.get_all_keysets(col_names ARRAY<STRING>, tbl_name STRING, ds_name STRING) AS
+                SELECT
+                column_name, kms_resource, first_level_keyset, associated_data
+                FROM
+                `project_id.security.keysets`
+                WHERE
+                SESSION_USER() IN UNNEST(permitted_access)
+                AND table_name=tbl_name
+                AND dataset_name=ds_name
+                AND column_name IN UNNEST(col_names)
+        """
         KEYSETS_TVF_PROJECT = "project_id"
         KEYSETS_TVF_DATASET = "dataset_name"
         KEYSETS_ALL_TVF_NAME = "get_all_keysets"
@@ -61,18 +77,6 @@ class CipherManager(object):
         )
         results = query_job.result()
         return results
-        _tvf_definition_reference = """
-            CREATE TABLE FUNCTION dataset_name.get_all_keysets(col_names ARRAY<STRING>, tbl_name STRING, ds_name STRING) AS
-            SELECT 
-              column_name, kms_resource, first_level_keyset, associated_data
-            FROM
-              `project_id.security.keysets`
-            WHERE
-              SESSION_USER() IN UNNEST(permitted_access)
-              AND table_name=tbl_name
-              AND dataset_name=ds_name
-              AND column_name IN UNNEST(col_names)
-            """
 
     def encrypt(self, column_name, plaintext):
         """Returns output of the encrypt operation for using a given column's cipher."""
