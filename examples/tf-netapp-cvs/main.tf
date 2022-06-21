@@ -150,10 +150,10 @@ resource "netapp-gcp_volume_replication" "volume-replication" {
   for_each              = netapp-gcp_volume.replication-volume
   provider              = netapp-gcp
   name                  = "${each.key}-replication"
-  region                = each.value.region                                                                             # This is not well documented - this region should match the endpoint-type, therefore is the DESTINATION aka where the replica volume is located
-  remote_region         = lookup({ us-west2 = "us-central1", us-central1 = "us-west2" }, var.region, "us-west2") # This should be the region opposite
-  destination_volume_id = netapp-gcp_volume.replication-volume[each.key].id                                             # This takes the UUID of the replica volume
-  source_volume_id      = netapp-gcp_volume.nfs-volume[each.key].id                                                     # This takes in the UUID of the source volume
+  region                = each.value.region
+  remote_region         = lookup({ us-west2 = "us-central1", us-central1 = "us-west2" }, var.region, "us-west2") # This should be the opposite region. Full list of region pairs here: https://cloud.google.com/architecture/partners/netapp-cloud-volumes/volume-replication#requirements_and_considerations_for_volume_replication
+  destination_volume_id = netapp-gcp_volume.replication-volume[each.key].id                                      # This takes the UUID of the replica volume
+  source_volume_id      = netapp-gcp_volume.nfs-volume[each.key].id                                              # This takes in the UUID of the source volume
   schedule              = "hourly"
-  endpoint_type         = "dst" # This is not well documented - only examples show "dst". Note "src" does NOT work!
+  endpoint_type         = "dst"
 }
