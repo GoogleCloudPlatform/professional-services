@@ -118,6 +118,7 @@ The tools folder contains ready-made utilities which can simplify Google Cloud P
 * [GCE Usage Log](tools/gce-usage-log) - Collect GCE instance events into a BigQuery dataset, surfacing your vCPUs, RAM, and Persistent Disk, sliced by project, zone, and labels.
 * [GCP Architecture Visualizer](https://github.com/forseti-security/forseti-visualizer) - A tool that takes CSV output from a Forseti Inventory scan and draws out a dynamic hierarchical tree diagram of org -> folders -> projects -> gcp_resources using the D3.js javascript library.
 * [GCP Organization Hierarchy Viewer](tools/gcp-org-hierarchy-viewer) - A CLI utility for visualizing your organization hierarchy in the terminal.
+* [GCP SA to assume AWS ARN Role](tools/gcp-sa-to-assume-aws-arn-role) - A CLI utility to let a GCP Service account being able to assume AWS ARN Role when used from a VM/Container with the awscli.
 * [GCPViz](tools/gcpviz) - a visualization tool that takes input from [Cloud Asset Inventory](https://cloud.google.com/asset-inventory/docs/overview),
 creates relationships between assets and outputs a format compatible with [graphviz](http://graphviz.gitlab.io/).
 * [GCS Bucket Mover](tools/gcs-bucket-mover) - A tool to move user's bucket, including objects, metadata, and ACL, from one project to another.
