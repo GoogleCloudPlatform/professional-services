@@ -5,7 +5,7 @@ For sample dashboard [see here](https://datastudio.google.com/c/u/0/reporting/6c
 
 
 ## Introduction
-The Cost Optimization dashboard builds on top of existing [GCP billing dashboard](https://cloud.google.com/billing/docs/how-to/visualize-data) and adds following addtional insights to the dashboard.
+The Cost Optimization dashboard builds on top of existing [GCP billing dashboard](https://cloud.google.com/billing/docs/how-to/visualize-data) and adds following additional insights to the dashboard.
 * Compute Engine Insights
 * Cloud Storage Insights
 * BigQuery Insights

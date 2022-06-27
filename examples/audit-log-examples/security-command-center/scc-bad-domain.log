@@ -1,0 +1,1261 @@
+[{
+  "finding": {
+    "name": "organizations/614830067722/sources/7454665460954730982/findings/071f5c11d2e14a8c9f94d784836b9020",
+    "parent": "organizations/614830067722/sources/7454665460954730982",
+    "resourceName": "//cloudresourcemanager.googleapis.com/projects/598897393088",
+    "state": "ACTIVE",
+    "category": "Malware: Bad Domain",
+    "sourceProperties": {
+      "sourceId": {
+        "projectNumber": "598897393088",
+        "customerOrganizationNumber": "614830067722"
+      },
+      "detectionCategory": {
+        "technique": "C2",
+        "indicator": "domain",
+        "ruleName": "bad_domain"
+      },
+      "detectionPriority": "HIGH",
+      "affectedResources": [{
+        "gcpResourceName": "//cloudresourcemanager.googleapis.com/projects/598897393088"
+      }],
+      "evidence": [{
+        "sourceLogId": {
+          "projectId": "gsec-monitoring-prod",
+          "resourceContainer": "projects/gsec-monitoring-prod",
+          "timestamp": {
+            "seconds": "1618870130",
+            "nanos": 2.93990317E8
+          },
+          "insertId": "gnh8maea3ktx"
+        }
+      }],
+      "properties": {
+        "domains": ["etd-coinmining-trigger.goog"],
+        "instanceDetails": "/projects/gsec-monitoring-prod/zones/us-central1-a/instances/instance-3",
+        "network": {
+          "project": "gsec-monitoring-prod",
+          "location": "us-central1"
+        },
+        "dnsContexts": [{
+          "authAnswer": true,
+          "sourceIp": "10.128.0.38",
+          "queryName": "etd-coinmining-trigger.goog",
+          "queryType": "A",
+          "responseCode": "NOERROR",
+          "responseData": [{
+            "domainName": "etd-coinmining-trigger.goog.",
+            "responseClass": "IN",
+            "responseType": "A",
+            "ttl": 299.0,
+            "responseValue": "216.239.32.29"
+          }]
+        }]
+      },
+      "findingId": "071f5c11d2e14a8c9f94d784836b9020",
+      "contextUris": {
+        "mitreUri": {
+          "displayName": "MITRE Link",
+          "url": "https://attack.mitre.org/techniques/T1568/"
+        },
+        "virustotalIndicatorQueryUri": [{
+          "displayName": "VirusTotal Domain Link",
+          "url": "https://www.virustotal.com/gui/domain/etd-coinmining-trigger.goog/detection"
+        }],
+        "cloudLoggingQueryUri": [{
+          "displayName": "Cloud Logging Query Link",
+          "url": "https://console.cloud.google.com/logs/query;query\u003dtimestamp%3D%222021-04-19T22:08:50.293990317Z%22%0AinsertId%3D%22gnh8maea3ktx%22%0Aresource.labels.project_id%3D%22gsec-monitoring-prod%22?project\u003dgsec-monitoring-prod"
+        }],
+        "relatedFindingUri": {
+          "displayName": "Related Bad Domain Findings",
+          "url": "https://console.cloud.google.com/security/command-center/findings?organizationId\u003d614830067722\u0026pageState\u003d(%22cscc-inventory%22:(%22f%22:%22%255B%257B_22k_22_3A_22sourceProperties.detectionCategory.ruleName_22_2C_22t_22_3A10_2C_22v_22_3A_22_5C_22bad_domain_5C_22_22%257D_2C%257B_22k_22_3A_22_22_2C_22t_22_3A10_2C_22v_22_3A_22_5C_22%2528sourceProperties.properties.domains_3A_5C_5C_5C_22etd-coinmining-trigger.goog_5C_5C_5C_22%2529_5C_22_22%257D%255D%22))"
+        }
+      }
+    },
+    "securityMarks": {
+      "name": "organizations/614830067722/sources/7454665460954730982/findings/071f5c11d2e14a8c9f94d784836b9020/securityMarks"
+    },
+    "eventTime": "2021-04-19T22:08:52.763Z",
+    "createTime": "2021-04-19T22:08:53.188Z",
+    "propertyDataTypes": {
+      "sourceId": {
+        "structValue": {
+          "fields": {
+            "projectNumber": {
+              "primitiveDataType": "STRING"
+            },
+            "customerOrganizationNumber": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "evidence": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "sourceLogId": {
+                  "structValue": {
+                    "fields": {
+                      "projectId": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "resourceContainer": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "timestamp": {
+                        "dataType": "TIMESTAMP",
+                        "structValue": {
+                          "fields": {
+                            "seconds": {
+                              "primitiveDataType": "STRING"
+                            },
+                            "nanos": {
+                              "primitiveDataType": "NUMBER"
+                            }
+                          }
+                        }
+                      },
+                      "insertId": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }]
+        }
+      },
+      "detectionPriority": {
+        "primitiveDataType": "STRING"
+      },
+      "findingId": {
+        "primitiveDataType": "STRING"
+      },
+      "contextUris": {
+        "structValue": {
+          "fields": {
+            "mitreUri": {
+              "dataType": "HYPERLINK",
+              "structValue": {
+                "fields": {
+                  "display_name": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "url": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            },
+            "virustotalIndicatorQueryUri": {
+              "listValues": {
+                "propertyDataTypes": [{
+                  "dataType": "HYPERLINK",
+                  "structValue": {
+                    "fields": {
+                      "display_name": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "url": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }]
+              }
+            },
+            "cloudLoggingQueryUri": {
+              "listValues": {
+                "propertyDataTypes": [{
+                  "dataType": "HYPERLINK",
+                  "structValue": {
+                    "fields": {
+                      "display_name": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "url": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }]
+              }
+            },
+            "relatedFindingUri": {
+              "dataType": "HYPERLINK",
+              "structValue": {
+                "fields": {
+                  "display_name": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "url": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "detectionCategory": {
+        "structValue": {
+          "fields": {
+            "technique": {
+              "primitiveDataType": "STRING"
+            },
+            "indicator": {
+              "primitiveDataType": "STRING"
+            },
+            "ruleName": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "affectedResources": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "gcpResourceName": {
+                  "primitiveDataType": "STRING"
+                }
+              }
+            }
+          }]
+        }
+      },
+      "properties": {
+        "structValue": {
+          "fields": {
+            "domains": {
+              "listValues": {
+                "propertyDataTypes": [{
+                  "primitiveDataType": "STRING"
+                }]
+              }
+            },
+            "instanceDetails": {
+              "primitiveDataType": "STRING"
+            },
+            "network": {
+              "structValue": {
+                "fields": {
+                  "project": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "location": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            },
+            "dnsContexts": {
+              "listValues": {
+                "propertyDataTypes": [{
+                  "structValue": {
+                    "fields": {
+                      "authAnswer": {
+                        "primitiveDataType": "BOOL"
+                      },
+                      "sourceIp": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "queryName": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "queryType": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "responseCode": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "responseData": {
+                        "listValues": {
+                          "propertyDataTypes": [{
+                            "structValue": {
+                              "fields": {
+                                "domainName": {
+                                  "primitiveDataType": "STRING"
+                                },
+                                "responseClass": {
+                                  "primitiveDataType": "STRING"
+                                },
+                                "responseType": {
+                                  "primitiveDataType": "STRING"
+                                },
+                                "ttl": {
+                                  "primitiveDataType": "NUMBER"
+                                },
+                                "responseValue": {
+                                  "primitiveDataType": "STRING"
+                                }
+                              }
+                            }
+                          }]
+                        }
+                      }
+                    }
+                  }
+                }]
+              }
+            }
+          }
+        }
+      }
+    },
+    "severity": "HIGH",
+    "workflowState": "NEW",
+    "canonicalName": "projects/598897393088/sources/7454665460954730982/findings/071f5c11d2e14a8c9f94d784836b9020",
+    "findingClass": "THREAT"
+  },
+  "resource": {
+    "name": "//cloudresourcemanager.googleapis.com/projects/598897393088",
+    "projectName": "//cloudresourcemanager.googleapis.com/projects/598897393088",
+    "projectDisplayName": "gsec-monitoring-prod",
+    "parentName": "//cloudresourcemanager.googleapis.com/organizations/614830067722",
+    "parentDisplayName": "domain.com",
+    "type": "google.cloud.resourcemanager.Project",
+    "displayName": "gsec-monitoring-prod"
+  }
+},{
+  "finding": {
+    "name": "organizations/614830067722/sources/7454665460954730982/findings/5c3736a8b94b4ece98d890c3aa18012a",
+    "parent": "organizations/614830067722/sources/7454665460954730982",
+    "resourceName": "//cloudresourcemanager.googleapis.com/projects/598897393088",
+    "state": "ACTIVE",
+    "category": "Malware: Bad Domain",
+    "sourceProperties": {
+      "sourceId": {
+        "projectNumber": "598897393088",
+        "customerOrganizationNumber": "614830067722"
+      },
+      "detectionCategory": {
+        "technique": "malware",
+        "indicator": "domain",
+        "ruleName": "bad_domain"
+      },
+      "detectionPriority": "HIGH",
+      "affectedResources": [{
+        "gcpResourceName": "//cloudresourcemanager.googleapis.com/projects/598897393088"
+      }],
+      "evidence": [{
+        "sourceLogId": {
+          "projectId": "gsec-monitoring-prod",
+          "resourceContainer": "projects/gsec-monitoring-prod",
+          "timestamp": {
+            "seconds": "1618870123",
+            "nanos": 2.90425977E8
+          },
+          "insertId": "1gq46l5esbuuu"
+        }
+      }],
+      "properties": {
+        "domains": ["etd-malware-trigger.goog"],
+        "instanceDetails": "/projects/gsec-monitoring-prod/zones/us-central1-a/instances/instance-3",
+        "network": {
+          "project": "gsec-monitoring-prod",
+          "location": "us-central1"
+        },
+        "dnsContexts": [{
+          "authAnswer": true,
+          "sourceIp": "10.128.0.38",
+          "queryName": "etd-malware-trigger.goog",
+          "queryType": "A",
+          "responseCode": "NOERROR",
+          "responseData": [{
+            "domainName": "etd-malware-trigger.goog.",
+            "responseClass": "IN",
+            "responseType": "A",
+            "ttl": 299.0,
+            "responseValue": "216.239.32.29"
+          }]
+        }]
+      },
+      "findingId": "5c3736a8b94b4ece98d890c3aa18012a",
+      "contextUris": {
+        "mitreUri": {
+          "displayName": "MITRE Link",
+          "url": "https://attack.mitre.org/techniques/T1568/"
+        },
+        "virustotalIndicatorQueryUri": [{
+          "displayName": "VirusTotal Domain Link",
+          "url": "https://www.virustotal.com/gui/domain/etd-malware-trigger.goog/detection"
+        }],
+        "cloudLoggingQueryUri": [{
+          "displayName": "Cloud Logging Query Link",
+          "url": "https://console.cloud.google.com/logs/query;query\u003dtimestamp%3D%222021-04-19T22:08:43.290425977Z%22%0AinsertId%3D%221gq46l5esbuuu%22%0Aresource.labels.project_id%3D%22gsec-monitoring-prod%22?project\u003dgsec-monitoring-prod"
+        }],
+        "relatedFindingUri": {
+          "displayName": "Related Bad Domain Findings",
+          "url": "https://console.cloud.google.com/security/command-center/findings?organizationId\u003d614830067722\u0026pageState\u003d(%22cscc-inventory%22:(%22f%22:%22%255B%257B_22k_22_3A_22sourceProperties.detectionCategory.ruleName_22_2C_22t_22_3A10_2C_22v_22_3A_22_5C_22bad_domain_5C_22_22%257D_2C%257B_22k_22_3A_22_22_2C_22t_22_3A10_2C_22v_22_3A_22_5C_22%2528sourceProperties.properties.domains_3A_5C_5C_5C_22etd-malware-trigger.goog_5C_5C_5C_22%2529_5C_22_22%257D%255D%22))"
+        }
+      }
+    },
+    "securityMarks": {
+      "name": "organizations/614830067722/sources/7454665460954730982/findings/5c3736a8b94b4ece98d890c3aa18012a/securityMarks"
+    },
+    "eventTime": "2021-04-19T22:08:45.130Z",
+    "createTime": "2021-04-19T22:08:45.635Z",
+    "propertyDataTypes": {
+      "sourceId": {
+        "structValue": {
+          "fields": {
+            "projectNumber": {
+              "primitiveDataType": "STRING"
+            },
+            "customerOrganizationNumber": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "evidence": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "sourceLogId": {
+                  "structValue": {
+                    "fields": {
+                      "projectId": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "resourceContainer": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "timestamp": {
+                        "dataType": "TIMESTAMP",
+                        "structValue": {
+                          "fields": {
+                            "seconds": {
+                              "primitiveDataType": "STRING"
+                            },
+                            "nanos": {
+                              "primitiveDataType": "NUMBER"
+                            }
+                          }
+                        }
+                      },
+                      "insertId": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }]
+        }
+      },
+      "detectionPriority": {
+        "primitiveDataType": "STRING"
+      },
+      "findingId": {
+        "primitiveDataType": "STRING"
+      },
+      "contextUris": {
+        "structValue": {
+          "fields": {
+            "mitreUri": {
+              "dataType": "HYPERLINK",
+              "structValue": {
+                "fields": {
+                  "display_name": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "url": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            },
+            "virustotalIndicatorQueryUri": {
+              "listValues": {
+                "propertyDataTypes": [{
+                  "dataType": "HYPERLINK",
+                  "structValue": {
+                    "fields": {
+                      "display_name": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "url": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }]
+              }
+            },
+            "cloudLoggingQueryUri": {
+              "listValues": {
+                "propertyDataTypes": [{
+                  "dataType": "HYPERLINK",
+                  "structValue": {
+                    "fields": {
+                      "display_name": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "url": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }]
+              }
+            },
+            "relatedFindingUri": {
+              "dataType": "HYPERLINK",
+              "structValue": {
+                "fields": {
+                  "display_name": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "url": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "detectionCategory": {
+        "structValue": {
+          "fields": {
+            "technique": {
+              "primitiveDataType": "STRING"
+            },
+            "indicator": {
+              "primitiveDataType": "STRING"
+            },
+            "ruleName": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "affectedResources": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "gcpResourceName": {
+                  "primitiveDataType": "STRING"
+                }
+              }
+            }
+          }]
+        }
+      },
+      "properties": {
+        "structValue": {
+          "fields": {
+            "domains": {
+              "listValues": {
+                "propertyDataTypes": [{
+                  "primitiveDataType": "STRING"
+                }]
+              }
+            },
+            "instanceDetails": {
+              "primitiveDataType": "STRING"
+            },
+            "network": {
+              "structValue": {
+                "fields": {
+                  "project": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "location": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            },
+            "dnsContexts": {
+              "listValues": {
+                "propertyDataTypes": [{
+                  "structValue": {
+                    "fields": {
+                      "authAnswer": {
+                        "primitiveDataType": "BOOL"
+                      },
+                      "sourceIp": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "queryName": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "queryType": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "responseCode": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "responseData": {
+                        "listValues": {
+                          "propertyDataTypes": [{
+                            "structValue": {
+                              "fields": {
+                                "domainName": {
+                                  "primitiveDataType": "STRING"
+                                },
+                                "responseClass": {
+                                  "primitiveDataType": "STRING"
+                                },
+                                "responseType": {
+                                  "primitiveDataType": "STRING"
+                                },
+                                "ttl": {
+                                  "primitiveDataType": "NUMBER"
+                                },
+                                "responseValue": {
+                                  "primitiveDataType": "STRING"
+                                }
+                              }
+                            }
+                          }]
+                        }
+                      }
+                    }
+                  }
+                }]
+              }
+            }
+          }
+        }
+      }
+    },
+    "severity": "HIGH",
+    "workflowState": "NEW",
+    "canonicalName": "projects/598897393088/sources/7454665460954730982/findings/5c3736a8b94b4ece98d890c3aa18012a",
+    "findingClass": "THREAT"
+  },
+  "resource": {
+    "name": "//cloudresourcemanager.googleapis.com/projects/598897393088",
+    "projectName": "//cloudresourcemanager.googleapis.com/projects/598897393088",
+    "projectDisplayName": "gsec-monitoring-prod",
+    "parentName": "//cloudresourcemanager.googleapis.com/organizations/614830067722",
+    "parentDisplayName": "domain.com",
+    "type": "google.cloud.resourcemanager.Project",
+    "displayName": "gsec-monitoring-prod"
+  }
+},{
+  "finding": {
+    "name": "organizations/614830067722/sources/7454665460954730982/findings/9b33889cf9f04771870f8e1443b698d1",
+    "parent": "organizations/614830067722/sources/7454665460954730982",
+    "resourceName": "//cloudresourcemanager.googleapis.com/projects/598897393088",
+    "state": "ACTIVE",
+    "category": "Malware: Bad Domain",
+    "sourceProperties": {
+      "sourceId": {
+        "projectNumber": "598897393088",
+        "customerOrganizationNumber": "614830067722"
+      },
+      "detectionCategory": {
+        "technique": "phishing",
+        "indicator": "domain",
+        "ruleName": "bad_domain"
+      },
+      "detectionPriority": "HIGH",
+      "affectedResources": [{
+        "gcpResourceName": "//cloudresourcemanager.googleapis.com/projects/598897393088"
+      }],
+      "evidence": [{
+        "sourceLogId": {
+          "projectId": "gsec-monitoring-prod",
+          "resourceContainer": "projects/gsec-monitoring-prod",
+          "timestamp": {
+            "seconds": "1618870135",
+            "nanos": 3.96016637E8
+          },
+          "insertId": "w789wne8gnpr"
+        }
+      }],
+      "properties": {
+        "domains": ["etd-phishing-trigger.goog"],
+        "instanceDetails": "/projects/gsec-monitoring-prod/zones/us-central1-a/instances/instance-3",
+        "network": {
+          "project": "gsec-monitoring-prod",
+          "location": "us-central1"
+        },
+        "dnsContexts": [{
+          "authAnswer": true,
+          "sourceIp": "10.128.0.38",
+          "queryName": "etd-phishing-trigger.goog",
+          "queryType": "A",
+          "responseCode": "NOERROR",
+          "responseData": [{
+            "domainName": "etd-phishing-trigger.goog.",
+            "responseClass": "IN",
+            "responseType": "A",
+            "ttl": 299.0,
+            "responseValue": "216.239.32.29"
+          }]
+        }]
+      },
+      "findingId": "9b33889cf9f04771870f8e1443b698d1",
+      "contextUris": {
+        "mitreUri": {
+          "displayName": "MITRE Link",
+          "url": "https://attack.mitre.org/techniques/T1568/"
+        },
+        "virustotalIndicatorQueryUri": [{
+          "displayName": "VirusTotal Domain Link",
+          "url": "https://www.virustotal.com/gui/domain/etd-phishing-trigger.goog/detection"
+        }],
+        "cloudLoggingQueryUri": [{
+          "displayName": "Cloud Logging Query Link",
+          "url": "https://console.cloud.google.com/logs/query;query\u003dtimestamp%3D%222021-04-19T22:08:55.396016637Z%22%0AinsertId%3D%22w789wne8gnpr%22%0Aresource.labels.project_id%3D%22gsec-monitoring-prod%22?project\u003dgsec-monitoring-prod"
+        }],
+        "relatedFindingUri": {
+          "displayName": "Related Bad Domain Findings",
+          "url": "https://console.cloud.google.com/security/command-center/findings?organizationId\u003d614830067722\u0026pageState\u003d(%22cscc-inventory%22:(%22f%22:%22%255B%257B_22k_22_3A_22sourceProperties.detectionCategory.ruleName_22_2C_22t_22_3A10_2C_22v_22_3A_22_5C_22bad_domain_5C_22_22%257D_2C%257B_22k_22_3A_22_22_2C_22t_22_3A10_2C_22v_22_3A_22_5C_22%2528sourceProperties.properties.domains_3A_5C_5C_5C_22etd-phishing-trigger.goog_5C_5C_5C_22%2529_5C_22_22%257D%255D%22))"
+        }
+      }
+    },
+    "securityMarks": {
+      "name": "organizations/614830067722/sources/7454665460954730982/findings/9b33889cf9f04771870f8e1443b698d1/securityMarks"
+    },
+    "eventTime": "2021-04-19T22:08:57.354Z",
+    "createTime": "2021-04-19T22:08:57.773Z",
+    "propertyDataTypes": {
+      "sourceId": {
+        "structValue": {
+          "fields": {
+            "projectNumber": {
+              "primitiveDataType": "STRING"
+            },
+            "customerOrganizationNumber": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "evidence": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "sourceLogId": {
+                  "structValue": {
+                    "fields": {
+                      "projectId": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "resourceContainer": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "timestamp": {
+                        "dataType": "TIMESTAMP",
+                        "structValue": {
+                          "fields": {
+                            "seconds": {
+                              "primitiveDataType": "STRING"
+                            },
+                            "nanos": {
+                              "primitiveDataType": "NUMBER"
+                            }
+                          }
+                        }
+                      },
+                      "insertId": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }]
+        }
+      },
+      "detectionPriority": {
+        "primitiveDataType": "STRING"
+      },
+      "findingId": {
+        "primitiveDataType": "STRING"
+      },
+      "contextUris": {
+        "structValue": {
+          "fields": {
+            "mitreUri": {
+              "dataType": "HYPERLINK",
+              "structValue": {
+                "fields": {
+                  "display_name": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "url": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            },
+            "virustotalIndicatorQueryUri": {
+              "listValues": {
+                "propertyDataTypes": [{
+                  "dataType": "HYPERLINK",
+                  "structValue": {
+                    "fields": {
+                      "display_name": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "url": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }]
+              }
+            },
+            "cloudLoggingQueryUri": {
+              "listValues": {
+                "propertyDataTypes": [{
+                  "dataType": "HYPERLINK",
+                  "structValue": {
+                    "fields": {
+                      "display_name": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "url": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }]
+              }
+            },
+            "relatedFindingUri": {
+              "dataType": "HYPERLINK",
+              "structValue": {
+                "fields": {
+                  "display_name": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "url": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "detectionCategory": {
+        "structValue": {
+          "fields": {
+            "technique": {
+              "primitiveDataType": "STRING"
+            },
+            "indicator": {
+              "primitiveDataType": "STRING"
+            },
+            "ruleName": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "affectedResources": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "gcpResourceName": {
+                  "primitiveDataType": "STRING"
+                }
+              }
+            }
+          }]
+        }
+      },
+      "properties": {
+        "structValue": {
+          "fields": {
+            "domains": {
+              "listValues": {
+                "propertyDataTypes": [{
+                  "primitiveDataType": "STRING"
+                }]
+              }
+            },
+            "instanceDetails": {
+              "primitiveDataType": "STRING"
+            },
+            "network": {
+              "structValue": {
+                "fields": {
+                  "project": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "location": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            },
+            "dnsContexts": {
+              "listValues": {
+                "propertyDataTypes": [{
+                  "structValue": {
+                    "fields": {
+                      "authAnswer": {
+                        "primitiveDataType": "BOOL"
+                      },
+                      "sourceIp": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "queryName": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "queryType": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "responseCode": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "responseData": {
+                        "listValues": {
+                          "propertyDataTypes": [{
+                            "structValue": {
+                              "fields": {
+                                "domainName": {
+                                  "primitiveDataType": "STRING"
+                                },
+                                "responseClass": {
+                                  "primitiveDataType": "STRING"
+                                },
+                                "responseType": {
+                                  "primitiveDataType": "STRING"
+                                },
+                                "ttl": {
+                                  "primitiveDataType": "NUMBER"
+                                },
+                                "responseValue": {
+                                  "primitiveDataType": "STRING"
+                                }
+                              }
+                            }
+                          }]
+                        }
+                      }
+                    }
+                  }
+                }]
+              }
+            }
+          }
+        }
+      }
+    },
+    "severity": "HIGH",
+    "workflowState": "NEW",
+    "canonicalName": "projects/598897393088/sources/7454665460954730982/findings/9b33889cf9f04771870f8e1443b698d1",
+    "findingClass": "THREAT"
+  },
+  "resource": {
+    "name": "//cloudresourcemanager.googleapis.com/projects/598897393088",
+    "projectName": "//cloudresourcemanager.googleapis.com/projects/598897393088",
+    "projectDisplayName": "gsec-monitoring-prod",
+    "parentName": "//cloudresourcemanager.googleapis.com/organizations/614830067722",
+    "parentDisplayName": "domain.com",
+    "type": "google.cloud.resourcemanager.Project",
+    "displayName": "gsec-monitoring-prod"
+  }
+},{
+  "finding": {
+    "name": "organizations/614830067722/sources/7454665460954730982/findings/d3945282c73c464483bc04709aad45df",
+    "parent": "organizations/614830067722/sources/7454665460954730982",
+    "resourceName": "//cloudresourcemanager.googleapis.com/projects/598897393088",
+    "state": "ACTIVE",
+    "category": "Malware: Bad Domain",
+    "sourceProperties": {
+      "sourceId": {
+        "projectNumber": "598897393088",
+        "customerOrganizationNumber": "614830067722"
+      },
+      "detectionCategory": {
+        "technique": "malware",
+        "indicator": "domain",
+        "ruleName": "bad_domain"
+      },
+      "detectionPriority": "HIGH",
+      "affectedResources": [{
+        "gcpResourceName": "//cloudresourcemanager.googleapis.com/projects/598897393088"
+      }],
+      "evidence": [{
+        "sourceLogId": {
+          "projectId": "gsec-monitoring-prod",
+          "resourceContainer": "projects/gsec-monitoring-prod",
+          "timestamp": {
+            "seconds": "1618869403",
+            "nanos": 6.93871239E8
+          },
+          "insertId": "1acpfvleo0cnc"
+        }
+      }],
+      "properties": {
+        "domains": ["etd-malware-trigger.goog"],
+        "instanceDetails": "/projects/gsec-monitoring-prod/zones/us-central1-a/instances/instance-1",
+        "network": {
+          "project": "gsec-monitoring-prod",
+          "location": "us-central1"
+        },
+        "dnsContexts": [{
+          "authAnswer": true,
+          "sourceIp": "10.128.0.37",
+          "queryName": "etd-malware-trigger.goog",
+          "queryType": "AAAA",
+          "responseCode": "NOERROR"
+        }]
+      },
+      "findingId": "d3945282c73c464483bc04709aad45df",
+      "contextUris": {
+        "mitreUri": {
+          "displayName": "MITRE Link",
+          "url": "https://attack.mitre.org/techniques/T1568/"
+        },
+        "virustotalIndicatorQueryUri": [{
+          "displayName": "VirusTotal Domain Link",
+          "url": "https://www.virustotal.com/gui/domain/etd-malware-trigger.goog/detection"
+        }],
+        "cloudLoggingQueryUri": [{
+          "displayName": "Cloud Logging Query Link",
+          "url": "https://console.cloud.google.com/logs/query;query\u003dtimestamp%3D%222021-04-19T21:56:43.693871239Z%22%0AinsertId%3D%221acpfvleo0cnc%22%0Aresource.labels.project_id%3D%22gsec-monitoring-prod%22?project\u003dgsec-monitoring-prod"
+        }],
+        "relatedFindingUri": {
+          "displayName": "Related Bad Domain Findings",
+          "url": "https://console.cloud.google.com/security/command-center/findings?organizationId\u003d614830067722\u0026pageState\u003d(%22cscc-inventory%22:(%22f%22:%22%255B%257B_22k_22_3A_22sourceProperties.detectionCategory.ruleName_22_2C_22t_22_3A10_2C_22v_22_3A_22_5C_22bad_domain_5C_22_22%257D_2C%257B_22k_22_3A_22_22_2C_22t_22_3A10_2C_22v_22_3A_22_5C_22%2528sourceProperties.properties.domains_3A_5C_5C_5C_22etd-malware-trigger.goog_5C_5C_5C_22%2529_5C_22_22%257D%255D%22))"
+        }
+      }
+    },
+    "securityMarks": {
+      "name": "organizations/614830067722/sources/7454665460954730982/findings/d3945282c73c464483bc04709aad45df/securityMarks"
+    },
+    "eventTime": "2021-04-19T21:56:45.252Z",
+    "createTime": "2021-04-19T21:56:46.058Z",
+    "propertyDataTypes": {
+      "sourceId": {
+        "structValue": {
+          "fields": {
+            "projectNumber": {
+              "primitiveDataType": "STRING"
+            },
+            "customerOrganizationNumber": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "evidence": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "sourceLogId": {
+                  "structValue": {
+                    "fields": {
+                      "projectId": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "resourceContainer": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "timestamp": {
+                        "dataType": "TIMESTAMP",
+                        "structValue": {
+                          "fields": {
+                            "seconds": {
+                              "primitiveDataType": "STRING"
+                            },
+                            "nanos": {
+                              "primitiveDataType": "NUMBER"
+                            }
+                          }
+                        }
+                      },
+                      "insertId": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }]
+        }
+      },
+      "detectionPriority": {
+        "primitiveDataType": "STRING"
+      },
+      "findingId": {
+        "primitiveDataType": "STRING"
+      },
+      "contextUris": {
+        "structValue": {
+          "fields": {
+            "mitreUri": {
+              "dataType": "HYPERLINK",
+              "structValue": {
+                "fields": {
+                  "display_name": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "url": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            },
+            "virustotalIndicatorQueryUri": {
+              "listValues": {
+                "propertyDataTypes": [{
+                  "dataType": "HYPERLINK",
+                  "structValue": {
+                    "fields": {
+                      "display_name": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "url": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }]
+              }
+            },
+            "cloudLoggingQueryUri": {
+              "listValues": {
+                "propertyDataTypes": [{
+                  "dataType": "HYPERLINK",
+                  "structValue": {
+                    "fields": {
+                      "display_name": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "url": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }]
+              }
+            },
+            "relatedFindingUri": {
+              "dataType": "HYPERLINK",
+              "structValue": {
+                "fields": {
+                  "display_name": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "url": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "detectionCategory": {
+        "structValue": {
+          "fields": {
+            "technique": {
+              "primitiveDataType": "STRING"
+            },
+            "indicator": {
+              "primitiveDataType": "STRING"
+            },
+            "ruleName": {
+              "primitiveDataType": "STRING"
+            }
+          }
+        }
+      },
+      "affectedResources": {
+        "listValues": {
+          "propertyDataTypes": [{
+            "structValue": {
+              "fields": {
+                "gcpResourceName": {
+                  "primitiveDataType": "STRING"
+                }
+              }
+            }
+          }]
+        }
+      },
+      "properties": {
+        "structValue": {
+          "fields": {
+            "domains": {
+              "listValues": {
+                "propertyDataTypes": [{
+                  "primitiveDataType": "STRING"
+                }]
+              }
+            },
+            "instanceDetails": {
+              "primitiveDataType": "STRING"
+            },
+            "network": {
+              "structValue": {
+                "fields": {
+                  "project": {
+                    "primitiveDataType": "STRING"
+                  },
+                  "location": {
+                    "primitiveDataType": "STRING"
+                  }
+                }
+              }
+            },
+            "dnsContexts": {
+              "listValues": {
+                "propertyDataTypes": [{
+                  "structValue": {
+                    "fields": {
+                      "authAnswer": {
+                        "primitiveDataType": "BOOL"
+                      },
+                      "sourceIp": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "queryName": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "queryType": {
+                        "primitiveDataType": "STRING"
+                      },
+                      "responseCode": {
+                        "primitiveDataType": "STRING"
+                      }
+                    }
+                  }
+                }]
+              }
+            }
+          }
+        }
+      }
+    },
+    "severity": "HIGH",
+    "workflowState": "NEW",
+    "canonicalName": "projects/598897393088/sources/7454665460954730982/findings/d3945282c73c464483bc04709aad45df",
+    "findingClass": "THREAT"
+  },
+  "resource": {
+    "name": "//cloudresourcemanager.googleapis.com/projects/598897393088",
+    "projectName": "//cloudresourcemanager.googleapis.com/projects/598897393088",
+    "projectDisplayName": "gsec-monitoring-prod",
+    "parentName": "//cloudresourcemanager.googleapis.com/organizations/614830067722",
+    "parentDisplayName": "domain.com",
+    "type": "google.cloud.resourcemanager.Project",
+    "displayName": "gsec-monitoring-prod"
+  }
+}]

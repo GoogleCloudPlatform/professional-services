@@ -84,7 +84,7 @@ interface Query {
   totalSlotMs: string;
   useQueryCache?: string;
   queryPlan?: QueryStage[];
-  timeline: Timeline;
+  timeline: Timeline[];
 }
 
 interface ReservationUsage {
@@ -192,4 +192,10 @@ export interface BqProjectListResponse {
   nextPageToken?: string;
   projects: BqProject[];
   totalItems: number;
+}
+
+export interface GetJobsRequest {
+  project: BqProject;
+  limit: number;
+  allUsers: boolean;
 }

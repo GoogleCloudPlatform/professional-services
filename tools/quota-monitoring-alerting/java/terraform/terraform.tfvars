@@ -1,5 +1,5 @@
 /*
-Copyright 20210 Google LLC
+Copyright 2022 Google LLC
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -14,17 +14,17 @@ Copyright 20210 Google LLC
    limitations under the License.
 */
 //Update values
-project_id                    = ""
-region                        = ""
-service_account_email         = ""
-folders                       = "[]"
-organizations                 = "[]"
-alert_log_bucket_name         = ""
-notification_email_address    = ""
+project_id                 = ""
+region                     = ""
+service_account_email      = ""
+folders                    = "[]"
+organizations              = "[]"
+alert_log_bucket_name      = ""
+notification_email_address = ""
 //Optional to update
-source_code_bucket_name       = "quota-monitoring-solution-demo-bucket"
-source_code_zip               = "quota-monitoring-solution-v3.zip"
-source_code_notification_zip  = "quota-monitoring-notification.zip"
+source_code_bucket_name       = "quota-monitoring-solution-source"
+source_code_zip               = "v4.2/quota-monitoring-solution-v4.2.zip"
+source_code_notification_zip  = "v4.2/quota-monitoring-notification-v4.2.zip"
 scheduler_cron_job_frequency  = "0 0 * * *"
 Alert_data_scanning_frequency = "every 12 hours"
 threshold                     = "80"

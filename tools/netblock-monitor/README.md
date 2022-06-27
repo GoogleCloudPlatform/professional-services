@@ -28,7 +28,7 @@ following scopes are required for the Netblock Monitor to function:
 
 ## Configuration and Usage
 
-The script is generally expected to be initalized once via manual execution,
+The script is generally expected to be initialized once via manual execution,
 followed by triggered execution on a daily basis. Additionally, a few helper
 functions are provided to help with ongoing visibility of the tool's execution.
 

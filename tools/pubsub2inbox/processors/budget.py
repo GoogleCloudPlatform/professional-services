@@ -29,7 +29,7 @@ class BudgetProcessor(Processor):
     def _get_budget_request(self):
         return GetBudgetRequest()
 
-    def process(self):
+    def process(self, config_key=None):
         if 'budgetId' not in self.event[
                 'attributes'] or 'billingAccountId' not in self.event[
                     'attributes']:

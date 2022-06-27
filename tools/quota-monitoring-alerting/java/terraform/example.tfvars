@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Google LLC
+Copyright 2022 Google LLC
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ region                        = "us-west3"
 service_account_email         = "sa-quota-monitoring-project-id@quota-monitoring-project-id.iam.gserviceaccount.com"
 folders                       = "[38659473572,38659473573]"
 organizations                 = "[172338721810,172338721811]"
-notification_email_address    = "email@domain.com"
 alert_log_bucket_name         = "quota-monitoring-solution-alert-log-bucket"
 source_code_bucket_name       = "quota-monitoring-solution-demo-bucket"
 source_code_zip               = "quota-monitoring-solution-v3.zip"

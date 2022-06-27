@@ -1,0 +1,118 @@
+Query: protoPayload.methodName: "storage.objects.create"
+Creating Bucket Objects:
+{
+  "protoPayload": {
+    "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+    "status": {},
+    "authenticationInfo": {
+      "principalEmail": "cloud-storage-millwheel@system.gserviceaccount.com"
+    },
+    "requestMetadata": {
+      "callerSuppliedUserAgent": "BigstoreFile BigstoreIO (cr/389232958) ",
+      "requestAttributes": {
+        "time": "2021-08-15T20:10:20.357569420Z",
+        "reason": "8uSywAYeWhxCaWdzdG9yZS5HZXRXcml0YWJsZUJsb2JQYXRo",
+        "auth": {}
+      },
+      "destinationAttributes": {}
+    },
+    "serviceName": "storage.googleapis.com",
+    "methodName": "storage.objects.create",
+    "authorizationInfo": [
+      {
+        "resource": "projects/_/buckets/usage-logs-test-benyan/objects/logfile_usage_2021_08_15_19_00_00_06d27191b52e6e1c4d_v0",
+        "permission": "storage.objects.delete",
+        "granted": true,
+        "resourceAttributes": {}
+      },
+      {
+        "resource": "projects/_/buckets/usage-logs-test-benyan/objects/logfile_usage_2021_08_15_19_00_00_06d27191b52e6e1c4d_v0",
+        "permission": "storage.objects.create",
+        "granted": true,
+        "resourceAttributes": {}
+      }
+    ],
+    "resourceName": "projects/_/buckets/usage-logs-test-benyan/objects/logfile_usage_2021_08_15_19_00_00_06d27191b52e6e1c4d_v0",
+    "serviceData": {
+      "@type": "type.googleapis.com/google.iam.v1.logging.AuditData",
+      "policyDelta": {
+        "bindingDeltas": [
+          {
+            "action": "ADD",
+            "role": "roles/storage.legacyObjectOwner",
+            "member": "projectOwner:testproject-320520"
+          },
+          {
+            "action": "ADD",
+            "role": "roles/storage.legacyObjectOwner",
+            "member": "projectEditor:testproject-320520"
+          },
+          {
+            "action": "ADD",
+            "role": "roles/storage.legacyObjectOwner",
+            "member": "serviceAccount:cloud-storage-millwheel@system.gserviceaccount.com"
+          },
+          {
+            "action": "ADD",
+            "role": "roles/storage.legacyObjectReader",
+            "member": "projectViewer:testproject-320520"
+          }
+        ]
+      }
+    },
+    "request": {
+      "objectChecksums": {
+        "crc32c": 2088304583,
+        "md5Hash": "5eb6839ec5107877b7b781841fc83ae6"
+      },
+      "checksummedData": {
+        "crc32c": 2088304583
+      },
+      "insertObjectSpec": {
+        "projection": "NO_ACL",
+        "resource": {
+          "bucket": "usage-logs-test-benyan",
+          "md5Hash": "XraDnsUQeHe3t4GEH8g65g==",
+          "storageClass": "STANDARD",
+          "crc32c": 2088304583,
+          "contentType": "application/octet-stream",
+          "name": "logfile_usage_2021_08_15_19_00_00_06d27191b52e6e1c4d_v0"
+        }
+      }
+    },
+    "response": {
+      "metageneration": "1",
+      "etag": "CMmIreTqs/ICEAE=",
+      "bucket": "usage-logs-test-benyan",
+      "crc32c": 2088304583,
+      "name": "logfile_usage_2021_08_15_19_00_00_06d27191b52e6e1c4d_v0",
+      "updated": "2021-08-15T20:10:20.401Z",
+      "id": "usage-logs-test-benyan/logfile_usage_2021_08_15_19_00_00_06d27191b52e6e1c4d_v0/1629058220377161",
+      "timeStorageClassUpdated": "2021-08-15T20:10:20.401Z",
+      "timeCreated": "2021-08-15T20:10:20.401Z",
+      "md5Hash": "XraDnsUQeHe3t4GEH8g65g==",
+      "storageClass": "STANDARD",
+      "generation": "1629058220377161",
+      "contentType": "application/octet-stream",
+      "size": "561"
+    },
+    "resourceLocation": {
+      "currentLocations": [
+        "us"
+      ]
+    }
+  },
+  "insertId": "-o4yyxge33m2s",
+  "resource": {
+    "type": "gcs_bucket",
+    "labels": {
+      "project_id": "testproject-320520",
+      "location": "us",
+      "bucket_name": "usage-logs-test-benyan"
+    }
+  },
+  "timestamp": "2021-08-15T20:10:20.353382499Z",
+  "severity": "INFO",
+  "logName": "projects/testproject-320520/logs/cloudaudit.googleapis.com%2Fdata_access",
+  "receiveTimestamp": "2021-08-15T20:10:21.408680699Z"
+}

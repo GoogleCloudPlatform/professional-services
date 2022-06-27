@@ -17,6 +17,6 @@ import json
 
 class GenericjsonProcessor(Processor):
 
-    def process(self):
+    def process(self, config_key=None):
         data = json.loads(self.data)
         return {'data': data}

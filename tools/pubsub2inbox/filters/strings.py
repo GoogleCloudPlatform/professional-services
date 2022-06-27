@@ -23,6 +23,9 @@ import io
 from tablepyxl import tablepyxl
 import base64
 import magic
+import re
+import logging
+import hashlib
 
 
 def make_list(s):
@@ -39,8 +42,29 @@ def urlencode(s):
     return urllib.parse.quote(s)
 
 
+def re_escape(s):
+    return re.escape(s)
+
+
 def json_encode(v):
-    return json.dumps(v)
+    try:
+        return json.dumps(v)
+    except Exception as exc:
+        logger = logging.getLogger('pubsub2inbox')
+        logger.error('Exception when trying to encode JSON!',
+                     extra={
+                         'value': v,
+                         'error': str(exc)
+                     })
+        raise exc
+
+
+def json_decode(v):
+    return json.decode(v)
+
+
+def b64decode(v):
+    return base64.b64decode(v.encode()).decode()
 
 
 def csv_encode(v, **kwargs):
@@ -117,3 +141,9 @@ def generate_signed_url(url, expiration, **kwargs):
                                           version='v4',
                                           **kwargs)
     return signed_url
+
+
+def hash_string(v, hash_type='md5'):
+    h = hashlib.new(hash_type)
+    h.update(v.encode('utf-8'))
+    return h.hexdigest()

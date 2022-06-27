@@ -1,5 +1,5 @@
 /*
-Copyright 20210 Google LLC
+Copyright 2022 Google LLC
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@ Copyright 20210 Google LLC
    limitations under the License.
 */
 variable "project_id" {
-  description = "Value of the Project Id to deploy the solution in"
+  description = "Value of the Project Id to deploy the solution"
   type        = string
 }
 
@@ -250,7 +250,7 @@ variable "folders" {
 }
 
 variable "organizations" {
-  description = "Value of the list of organization Ids to be scanned for quota"
+  description = "Value of the list of organization Ids to scanned for quota"
   type        = string
 }
 

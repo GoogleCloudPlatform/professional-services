@@ -45,7 +45,7 @@ Instead, the generated file `ip-range-labels.yaml` will be ingested by Terraform
 
 ### Report settings
 
-There are several Terraform input variables which change the report output. They do not affect thevolume of the logs exported to Big Query or the tables scanned to generate the report.
+There are several Terraform input variables which change the report output. They do not affect the volume of the logs exported to Big Query or the tables scanned to generate the report.
 
 - `enable_split_by_destination` - set to `false`, if you are interested only in having source IPs in the report
 - `enable_split_by_protocol` - set to `false`, if you are not interested in split by the protocol
@@ -72,3 +72,17 @@ Example of the generated output:
 ## Costs
 
 If you enable VPC flow logs, they will be sent by default to the `_Default` log sink. You can either disable the `_Default` log sink (not recommended) or create an exclusion rule that skips VPC flow logs.
+
+## Troubleshooting
+
+If you get an error like this:
+
+> │ Error: googleapi: Error 400: Field name dest_vpc does not exist in STRUCT<start_time STRING, src_instance STRUCT<project_id STRING, vm_name STRING, region STRING, ...>, src_vpc STRUCT<project_id STRING, subnetwork_name STRING, vpc_name STRING>, ...> at [213:19], invalidQuery
+
+It is probably because the VPC flow logs are not generating specific type of traffic that implicitly creates all the required columns in the BigQuery Tables. In order to fix this, please execute the following command:
+
+```
+bq ls --format json <BG_PROJECT>:<BQ_DATASET> | jq -r '.[].id' | grep compute_googleapis_com_vpc_flows_ | xargs -I{} bq update {} $(pwd)/vpc_flows_schema.json
+```
+
+This will apply the predefined schema stored in this project to all the tables inside the dataset dedicated to this utility after which `terraform apply` should succeed.

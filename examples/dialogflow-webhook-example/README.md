@@ -145,7 +145,7 @@ Examples how to add data to a collection can be found [here](https://cloud.googl
 
 ### Running the sample from Dialogflow console
 
-In [Dialogflow's console](https://console.dialogflow.com), in the simulator on the right, query your Dialogflow agent with `I neeed assistance` and respond to the questions your Dialogflow agent asks.
+In [Dialogflow's console](https://console.dialogflow.com), in the simulator on the right, query your Dialogflow agent with `I need assistance` and respond to the questions your Dialogflow agent asks.
 
 ### Running the sample using gcloud util
 

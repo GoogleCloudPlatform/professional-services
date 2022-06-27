@@ -1,9 +1,24 @@
-// Copyright 2020 Google LLC
+/*
+   Copyright 2020-2022 Google LLC
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 package main
 
 import (
 	"bufio"
 	"context"
+	"embed"
 	"encoding/hex"
 	"fmt"
 	"os"
@@ -13,21 +28,28 @@ import (
 	"cloud.google.com/go/storage"
 	"google.golang.org/api/cloudresourcemanager/v1"
 	"google.golang.org/api/iterator"
+	"google.golang.org/api/option"
 
 	"flag"
 
 	"github.com/golang/glog"
 	"gopkg.in/avro.v0"
+
+	_ "embed"
 )
 
 var (
 	outputFile      *string
 	includeVersions *bool
-	VERSION         string = "0.1"
+	VERSION         string = "0.2.0"
 	BUFFER_SIZE     *int
 	GOMAXPROCS      *int
-	EXIT_STATUS     int    = 0
-	AVRO_SCHEMA     string = "gcs2bq.avsc"
+	EXIT_STATUS     int = 0
+	AVRO_SCHEMA     *string
+	USER_AGENT      string = "google-pso-tool/gcs2bq/0.2.0"
+
+	//go:embed gcs2bq.avsc
+	f embed.FS
 )
 
 type GcsFile struct {
@@ -144,7 +166,7 @@ func processProject(wg *sync.WaitGroup, ctx *context.Context, objectCh chan GcsF
 
 	glog.Warningf("Processing project %s.", project.ProjectId)
 
-	client, err := storage.NewClient(*ctx)
+	client, err := storage.NewClient(*ctx, option.WithUserAgent(USER_AGENT))
 	if err != nil {
 		panic(err)
 	}
@@ -183,13 +205,15 @@ func main() {
 	includeVersions = flag.Bool("versions", false, "include GCS object versions")
 	GOMAXPROCS = flag.Int("concurrency", 4, "concurrency (GOMAXPROCS)")
 	BUFFER_SIZE = flag.Int("buffer_size", 1000, "file buffer")
+	AVRO_SCHEMA = flag.String("avro_schema", "embedded", "Avro schema (default: use embedded)")
+	flag.Set("logtostderr", "true")
 	flag.Parse()
 
 	glog.Infof("Performance settings: GOMAXPROCS=%d, buffer size=%d", *GOMAXPROCS, *BUFFER_SIZE)
 	runtime.GOMAXPROCS(*GOMAXPROCS)
 	ctx := context.Background()
 
-	crmService, err := cloudresourcemanager.NewService(ctx)
+	crmService, err := cloudresourcemanager.NewService(ctx, option.WithUserAgent(USER_AGENT))
 	if err != nil {
 		panic(err)
 	}
@@ -231,16 +255,28 @@ func main() {
 		close(objectCh)
 	}()
 
-	_, err = os.Stat(AVRO_SCHEMA)
-	if os.IsNotExist(err) {
-		glog.Fatalf("Could not read Avro schema file: %s", AVRO_SCHEMA)
-		os.Exit(1)
+	var schema avro.Schema
+	if (*AVRO_SCHEMA) != "embedded" {
+		_, err = os.Stat(*AVRO_SCHEMA)
+		if os.IsNotExist(err) {
+			glog.Fatalf("Could not read Avro schema file: %s", *AVRO_SCHEMA)
+			os.Exit(1)
+		}
+
+		glog.Infof("Using custom Avro schema: %s", *AVRO_SCHEMA)
+		schema, err = avro.ParseSchemaFile(*AVRO_SCHEMA)
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		glog.Infof("Using embedded Avro schema")
+		schemaData, _ := f.ReadFile("gcs2bq.avsc")
+		schema, err = avro.ParseSchema(string(schemaData))
+		if err != nil {
+			panic(err)
+		}
 	}
 
-	schema, err := avro.ParseSchemaFile(AVRO_SCHEMA)
-	if err != nil {
-		panic(err)
-	}
 	writer := avro.NewSpecificDatumWriter()
 	writer.SetSchema(schema)
 

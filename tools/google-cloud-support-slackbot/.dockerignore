@@ -1,0 +1,11 @@
+Dockerfile
+error.log
+env.list
+freeze.txt
+.dockerignore
+archive/*
+archive
+google_cloud_support_slackbot_icon_big.png
+google_cloud_support_slackbot_icon_small.png
+google_cloud_support_slackbot_icon.svg
+README.md

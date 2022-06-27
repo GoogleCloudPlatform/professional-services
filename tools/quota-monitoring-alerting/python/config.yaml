@@ -36,11 +36,23 @@ export:
     metrics_topic: 'metrics'
     thresholds_topic: 'thresholds'
     bigquery_topic: 'bigquery'
-  # The projects for which we would like to export metric(s).
-  projects:
-    # This list tells which projects should be considered for export.
-    # Mention individual project ids or 'ALL'.
-    - 'ALL'  # This signifies that all project are of interest.
+  # The resources section helps in identifying the projects for which we would
+  # like to export metric(s).
+  resources:
+    - type: 'projects'  # Possible values are folders, projects, filters.
+      include:
+      # List project ids or 'ALL'
+      - 'ALL'  # This signifies that all projects in an ORG are of interest.
+    #- type: 'folders'  # Possible values are folders, projects, filters.
+    #  include:
+    #  # List folder ids for including projects under a specific folder.
+    #  - 123456789344
+    #- type: 'filters'
+    #  include:
+    #  # See https://cloud.google.com/resource-manager/reference/rest/v1/projects/list
+    #  # and query parameter filter syntax
+    #  - 'labels.env:demo lifecycleState:ACTIVE'
+    #  - 'labels.env:dev lifecycleState:ACTIVE'
   metrics:
     # This list tells which metrics should be considered for export.
     # Mention individual metric names or 'ALL'.

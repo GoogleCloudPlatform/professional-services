@@ -59,7 +59,7 @@ LIFECYCLE_POLICY_FILE="./lifecycle.json"
 gsutil mb -p $PROJECT_ID -l $REGION --retention 900s gs://$UPLOADABLE_BUCKET
 # Creates the bucket for distribution
 gsutil mb -p $PROJECT_ID -l $REGION gs://$DISTRIBUTION_BUCKET
-# Set lifecyle for the uploadable bucket
+# Set lifecycle for the uploadable bucket
 gsutil lifecycle set $LIFECYCLE_POLICY_FILE gs://$UPLOADABLE_BUCKET
 # Publish all objects to all users
 gsutil iam ch allUsers:objectViewer gs://$DISTRIBUTION_BUCKET

@@ -1,0 +1,38 @@
+Query: resource.type="http_load_balancer" AND (optionally) jsonPayload.statusDetails="response_from_cache"
+CDN Cache Hit:
+{
+  insertId: "1oek5rg3l3fxj7"
+  jsonPayload: {
+    @type: "type.googleapis.com/google.cloud.loadbalancing.type.LoadBalancerLogEntry"
+    cacheId: "SFO-fbae48ad"
+    statusDetails: "response_from_cache"
+  }
+  httpRequest: {
+    requestMethod: "GET"
+    requestUrl: "http://99.88.77.66/static/us/three-cats.jpg"
+    requestSize: "577"
+    status: 304
+    responseSize: "157"
+    userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.61 Safari/537.36"
+    remoteIp: "99.88.77.66"
+    cacheHit: true
+    cacheLookup: true
+  }
+  resource: {
+    type: "http_load_balancer"
+    labels: {
+      zone: "global"
+      url_map_name: "URL_MAP_NAME"
+      forwarding_rule_name: "FORWARDING_RULE_NAME"
+      target_proxy_name: "TARGET_PROXY_NAME"
+      backend_service_name: ""
+      project_id: "PROJECT_ID"
+    }
+  }
+  timestamp: "2020-06-08T23:41:30.078651Z"
+  severity: "INFO"
+  logName: "projects/PROJECT_ID/logs/requests"
+  trace: "projects/PROJECT_ID/traces/241d69833e64b3bf83fabac8c873d992"
+  receiveTimestamp: "2020-06-08T23:41:30.588272510Z"
+  spanId: "7b6537d3672e08e1"
+}

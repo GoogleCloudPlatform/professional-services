@@ -1,0 +1,53 @@
+# GCP Sample Logs 
+## Overview
+This is a sample repository of GCP Audit Logs intended to help Operations and Security teams understand the structure and fields of logs for a variety of services. Each log file contains the log event, a brief description of the event, and the Cloud Logging query used to find events of that type.
+
+Sample GCP logs for include logs for:
+- [Google Workspace / Identity](./cloud-identity)
+  - [Adding Groupmember](./cloud-identity/identity-add-groupmember.log)
+  - [User Creation](./cloud-identity/identity-create-user.log)
+  - [User Login](./cloud-identity/identity-user-login.log)
+- [Cloud Storage ](./compute-engine)
+  - [Create Bucket (Admin Activity)](./cloud-storage/gcs-admin-activity.log)
+  - [Set Bucket IAM Permissions](./cloud-storage/gcs-admin-set-iam-permissions.log)
+  - [Create Object (Data Write)](./cloud-storage/gcs-data-access-object-create.log)
+  - [Get Object (Data Read)](./cloud-storage/gcs-data-access-object-get.log)
+  - [List Object (Data Read)](./cloud-storage/gcs-data-access-object-list.log)
+  - [Enable/Disable Object Versioning](./cloud-storage/gcs-obj-vers.log)
+  - [Public Bucket Usage](./cloud-storage/gcs-usage.log)
+- [Compute Engine](./compute-engine)
+  - [Set Instance Metadata](./compute-engine/gce-admin-set-instance-metadata-instance.log)
+  - [Set Instance Project Metadata (1)](./compute-engine/gce-admin-set-instance-metadata-project.log)
+  - [Set Instance Project Metadata (2)](./compute-engine/gce-admin-set-instance-metadata-project-2.log)
+  - [Compute Engine Logging Agent](./compute-engine/gce-os-agent-logging.log)
+- [Kubernetes Engine](./kubernetes-engine)
+  - [Create GKE Cluster (Admin Activity)](./kubernetes-engine/gke-admin-create-cluster.log)
+  - [AuditD Logs](./kubernetes-engine/gke-auditD.log)
+  - [View GKE Config (Admin Read)](./kubernetes-engine/gke-data-access-admin-read.log)
+  - [Intranode Visibility (Flow Log)](./kubernetes-engine/gke-intranode-visibility.log)
+  - [Kubernetes Log](./kubernetes-engine/gke-k8s.log)
+- [Network Telemetry](./network)
+  - [Cloud CDN](./network/cloud-cdn-response.log)
+  - [Cloud DNS Record Creation](./network/create-dns-record.log)
+  - [Cloud DNS Query](./network/dns-query.log)
+  - [HTTPS Load Balancer](./network/https-load-balancer-response.log)
+  - [Identity Aware Proxy](./network/identity-aware-proxy.log)
+  - [Cloud NAT](./network/network-cloud-nat.log)
+  - [Firewall](./network/firewall-rule.log)
+  - [VPC Flow](./network/network-vpc-flow.log)
+- [GCP Organization](./organization)
+  - [Org Policy Deny Service Account Creation](./organization/org-policy-deny-service-account-creation.log)
+  - [Org Policy Deny Service Account Key Creation](./organization/org-policy-deny-service-account-key-creation.log)
+- [Security Command Center](./security-command-center)
+  - [Bad Domain Finding](./security-command-center/scc-bad-domain.log)
+  - [Bad IP Finding](./security-command-center/scc-bad-ip.log)
+  - [Cryptocurrency Mining Finding](./security-command-center/scc-coin-mining.log)
+  - [Leaked Credential Finding](./security-command-center/scc-leaked-credentials.log)
+  - [Outgoing Intrusion Attempt Finding](./security-command-center/scc-outgoing-intrusion-attempt.log)
+  - [Account Self Investigation Finding](./security-command-center/scc-self-account-investigation.log)
+- [VPC Service Controls](./vpc-service-controls)
+  - [VPC Service Control Violation](./vpc-service-controls/vpc-sc-policy-violation.log)
+
+Coming Soon:
+- Cloud IDS
+- and more!
