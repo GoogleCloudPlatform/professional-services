@@ -130,11 +130,11 @@ The gszutil provides a gRPC server and client in order to delegate execution to 
 For more detail see [this section](./gszutil/grecv/README.md).
 
 
-
 ## Test connector locally
 
-Build jar:
+After downloading the repo, build jar:
 ```
+cd professional-services/tools/bigquery-zos-mainframe-connector
 (cd  mainframe-util ; sbt "clean;publishLocal")
 (cd  gszutil ; sbt "clean;assemblyPackageDependency" )
 (cd  gszutil ; export appjar=true ; sbt "assembly" )
@@ -143,14 +143,13 @@ Build jar:
 Set env variables and run BQSH main class:
 ```
 cd ./gszutil/target/scala-2.13
-export COPYBOOK="./gszutil/src/test/resources/exportCopybook.txt"
-export INFILE_DSN="./gszutil/src/test/resources/mload1.dat"
+export COPYBOOK="../../src/test/resources/exportCopybook.txt"
+export INFILE_DSN="../../src/test/resources/mload1.dat"
 export INFILE_LRECL=111
 export INFILE_BLKSIZE=1110
 
 java -cp './*' com.google.cloud.bqsh.Bqsh 
 ```
-
 
 Input the following command through stdin
 ```
@@ -159,7 +158,7 @@ gsutil cp --replace --pic_t_charset="UTF-8" --remote=false gs://<my-bucket>/tabl
 
 ## Test server - client locally
 
-Build jar:
+After downloading the repo, build jar:
 ```
 (cd  mainframe-util ; sbt "clean;publishLocal")
 (cd  gszutil ; sbt "clean;assemblyPackageDependency" )
