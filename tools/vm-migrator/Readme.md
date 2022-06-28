@@ -49,7 +49,8 @@ The variables NOT marked as "[Optional]" are **mandatory**.
 | TARGET_PROJECT | [Optional] If different from the source project, the Project ID where the new subnet will exist |
 | TARGET_PROJECT_SA | Required if the target project is different than the source project, otherwise [Optional]. Used as Service Account on the target VMs. |
 | TARGET_PROJECT_SA_SCOPES | [Optional] If the target project is different than the source project, scopes to assign to the Service Account on the VMs |
-| TARGET_SUBNET | Leave this argument empty if you're just migrating VMs within the same subnet (and region) into a different service project. Otherwise the target subnetwork URI, for example, "projects/nstrelkova-joonix-playground/regions/europe-west2/subnetworks/sap-migrator-test-subnet-0" |
+| TARGET_SUBNET | Leave this argument empty if you're just migrating VMs within the same subnet (and region) into a different service project. Otherwise the target subnetwork URI, for example, "projects/my-host-project/regions/us-central1/subnetworks/target-subnet" |
+| BACKUP_SUBNET | [Optional] If you want to back up your instances to this subnet, specify its URI, for example, "projects/my-host-project/regions/us-central1/subnetworks/backup-subnet" |
 | SOURCE_CSV | [Optional] (by default `source.csv`) The filename used by `prepare_inventory` |
 | FILTER_CSV | [Optional] (by default `filter.csv`) File that contains the instance names that will be included by `filter_inventory` |
 | INPUT_CSV | [Optional] (by default `export.csv`) The filtered list of machines created by `filter_inventory` used as input for the migration. |
@@ -72,6 +73,9 @@ While you can move all the machines in a subnet to the destination subnet, you h
 | shutdown_instances | This will shutdown all the machines whose details are found in the `INPUT_CSV` file, this is particularly useful when you want to shutdown the instances before taking their machine image |
 | start_instances | This will start all the machines whose details are found in the `INPUT_CSV` file, this is particularly useful when you want to rollback the shutdown step |
 | create_machine_images | This will create the machine image of the instances which are specifed in the `INPUT_CSV` file | 
+| backup_instances | The backup functionality moves the original instances to a backup subnet you specify in the `BACKUP_SUBNET` variable. Please see the section "Backup" below for more information |
+| prepare_rollback | This populates the `rollback.csv` file with instances to be moved from the backup subnet to the original one. Please see the section "Rollback" below for more information |
+| rollback_instances | This moves the instances listed in `rollback.csv` from `BACKUP_SUBNET` to `SOURCE_SUBNET`. Please see the section "Rollback" below for more information |
 | disable_deletionprotection_instances | This will disable the deletion protection on all instances in the `INPUT_CSV` file. In case it's enabled on any instances, this should be run before `delete_instances`. |
 | delete_instances | This will delete the instances which are specifed in the `INPUT_CSV` file |
 | release_ip | This will release all the internal static IP addresses of the instances which are specifed in the `INPUT_CSV` file |
@@ -108,25 +112,27 @@ In the case of migrating VMs in a Shared VPC, the source and target projects are
 
 In the process of migration you can optimize the machine types based on the usage. You can do that by providing the source and destination machine type mappings in ```machine_type_mapping.py```, e.g `n1-standard-1`: `n1-standard-4` would upgrade all the machines running with `n1-standard-1` to `n1-standard-4`.
 
-## Backup
-The backup functionality (`backup_instances` step) moves the original instances to a backup subnet you specify in the `BACKUP_SUBNET` variable. You have to create a subnet for this manually since you need to specify a CIDR block that will work for you.
+## Backup and rollback
+
+### Backup
+The optionala backup functionality (`backup_instances` step) moves the original instances to a backup subnet you specify in the `BACKUP_SUBNET` variable. You have to create a subnet for this manually since you need to specify a CIDR block that will work for you.
 
 **Notes**:
 1. Current limitations:
-a. within one project
-b. within one zone
-c. only one internal IP of the instances is taken into account
-d. instances should only have one nic
+    - work onlye within one project
+    - works only within one zone
+    - only one internal IP of the instances is taken into account
+    - instances should only have one nic
 2. In order to work the function needs a "fingerprint" - a unique identifier of the network interface of an instance. This is collected during the `prepare_inventory` step. The `backup_instances` step checks for those fingerprints and aborts if any are not found.
 
-## Rollback
+### Rollback
 1. If you did not use the backup functionality, in order to rollback the changes please change the parameters of the source file and interchange the source and destination parameters. Please note that some steps like `crate_machine_image` would not be required to run, as the machine images have already been created.
 
 2. Otherwise, with backup, you first have to prepare the rollback with the `prepare_rollback` step, which populates the `rollback.csv` file with instances to be moved. This will also check the `export.csv` file to find the previous IPs of the instances and match them to the instances. If at least one is not found, the function aborts. Once the rollback file is populated, please check it to ensure the necessary instances get rolled back and that the right IP addresses get assigned.
 
     Then you execute the `rollback_instances` step, which moves the instances listed in `rollback.csv` from `BACKUP_SUBNET` to `SOURCE_SUBNET`.
 
-## Cleanup backup
+### Cleanup backup
 If you backed up your instances and everything went well - you can just delete the backed up instances (this does NOT delete the backup subnet). But first you should list them to `rollback.csv` with the `prepare_rollback` step, so that you can check what will be deleted. Then:
 ```
 make STEP=delete_instances INPUT_CSV=rollback.csv migrate-subnet
@@ -166,10 +172,6 @@ make STEP=prepare_inventory migrate-subnet
 make STEP=filter_inventory migrate-subnet
 make STEP=shutdown_instances migrate-subnet
 make STEP=create_machine_images migrate-subnet
-
-make STEP=backup_instances migrate-subnet
-
-
 make STEP=delete_instances migrate-subnet
 # remove reserved static ips for this subnetwork
 make STEP=release_ip_for_subnet migrate-subnet
@@ -177,11 +179,8 @@ make STEP=release_ip_for_subnet migrate-subnet
 make STEP=clone_subnet migrate-subnet
 # recreate instances with the same IP in the recreated subnet
 make STEP=create_instances migrate-subnet
-
 make STEP=prepare_rollback migrate-subnet
 make STEP=rollback_instances migrate-subnet
-
-
 ```
 
 **Note**: This case is particularly interesting if VMs need to stay *in the same VPC*. Otherwise, use the next example (move VMs to an existing subnet is a better fit).
