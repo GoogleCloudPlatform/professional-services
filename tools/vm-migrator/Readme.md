@@ -119,7 +119,7 @@ The optionala backup functionality (`backup_instances` step) moves the original 
 
 **Notes**:
 1. Current limitations:
-    - work onlye within one project
+    - work only within one project
     - works only within one zone
     - only one internal IP of the instances is taken into account
     - instances should only have one nic
