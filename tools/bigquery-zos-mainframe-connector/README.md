@@ -160,6 +160,7 @@ gsutil cp --replace --pic_t_charset="UTF-8" --remote=false gs://<my-bucket>/tabl
 
 After downloading the repo, build jar:
 ```
+cd professional-services/tools/bigquery-zos-mainframe-connector
 (cd  mainframe-util ; sbt "clean;publishLocal")
 (cd  gszutil ; sbt "clean;assemblyPackageDependency" )
 (cd  gszutil ; export appjar=true ; sbt "assembly" )
