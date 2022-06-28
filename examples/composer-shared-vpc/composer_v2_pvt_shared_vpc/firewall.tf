@@ -117,7 +117,10 @@ module "egress-firewall-rules" {
       }
       allow = [{
         protocol = "tcp"
-        ports    = ["3306", "6379", "443"]
+        ports    = ["3306", "6379", "443", "53"]
+      },{
+        protocol = "udp"
+        ports    = ["8125", "53"]
       }]
       ranges                  = [local.subnet_svc_cidr_range]
       target_tags             = var.tags
