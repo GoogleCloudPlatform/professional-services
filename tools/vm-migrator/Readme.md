@@ -1,52 +1,55 @@
 # GCP VM Migrator
 
-This utility automates migrating Virtual Machine instances within GCP. You can migrate VM's from one zone to another zone/region within the same or different projects.
+This utility automates migrating Virtual Machine instances within GCP. You can migrate VMs from one zone to another zone/region within the same or different projects.
 
-## Prerequisite
+## Prerequisites
 
-To be able to execute the utility, the following prerequisites are to be met:
-1. Access to Code repository
-3. Python3 environment
-3. The service account with which you are running this script should be able to
-    * Create/Delete/Shutdown GCE
+To be able to execute the utility, you should meet the following prerequisites:
+1. Have access to this repository
+2. Have at least Python 3.7 installed
+3. Ideally have a Python3 environment
+4. The service account with which you are running this script should be able to:
+    * Create/Delete/Shutdown GCE VMs
     * Create/Delete VPC subnets
     * Create/Delete machine images
-4. Ablity to create files on the filesytem to store the inventory data
-5. You need at least python 3.7 installed
+5. You should be able to create files on your filesystem to store the inventory data
 
 ## Setup
 
-1. Clone the code repository
-2. cd in the code directoy
+1. Clone this repository
+2. Change directory to this directoy (tools/vm-migrator)
 3. Optional if using a virtual environment: ```python3 -m venv venv```
 4. Optional if using a virtual environment: ```source venv/bin/activate```
-5. run ```make install-requirements```
-6. run ```make install-tools```
-7. run ```make install```
+5. Run ```make install-requirements```
+6. Run ```make install-tools```
+7. Run ```make install```
 
 ## Testing
 
-1. run ```make test```
+1. Run ```make test```
 
 ## Configuration
-The `Makefile` has different variables which are passed to the subnet_region_migratory.py these variables can be overridden from the command line 
+The `Makefile` has different variables which are passed to the subnet_region_migratory.py.
 
-```make VARIABLE=VALUE migrate-subnet```
-
+These variables can be overridden from the command line:
+```
+make VARIABLE=VALUE migrate-subnet
+```
+The variables NOT marked as "[Optional]" are **mandatory**.
 
 | Variable      | Value                              |
 | ------------- | ---------------------------------- |
 | STEP | The name of the step to run |
-| MACHINE_IMAGE_REGION | The region where you want to store your machine images e.g us-central1 |
+| MACHINE_IMAGE_REGION | The region where you want to store your machine images, e.g "us-central1" |
 | SOURCE_PROJECT | Project ID where the VMs to be migrated are located |
-| SOURCE_SUBNET | The source subnetwork uri |
-| SOURCE_ZONE | The zone in which the source subnet is present, this is used to fetch the inventory details |
+| SOURCE_SUBNET | The source subnetwork URI, for example, "projects/my-host-project/regions/europe-west3/subnetworks/source-subnet" |
+| SOURCE_ZONE | The zone in which the source subnet is present, this is used to fetch the inventory details, for example, "europe-west3-c" |
 | SOURCE_ZONE_2 | [Optional] The second zone in which the source subnet is present, this is used to fetch the inventory details |
 | SOURCE_ZONE_3 | [Optional] The third zone in which the source subnet is present, this is used to fetch the inventory details |
 | TARGET_PROJECT | [Optional] If different from the source project, the Project ID where the new subnet will exist |
-| TARGET_PROJECT_SA | [Optional] Required if the target project is different than the source project. Used as Service Account on the target VMs. |
+| TARGET_PROJECT_SA | Required if the target project is different than the source project, otherwise [Optional]. Used as Service Account on the target VMs. |
 | TARGET_PROJECT_SA_SCOPES | [Optional] If the target project is different than the source project, scopes to assign to the Service Account on the VMs |
-| TARGET_SUBNET | [Optional] Leave this argument empty if you're just migrating VMs within the same subnet (and region) into a different service project. |
+| TARGET_SUBNET | Leave this argument empty if you're just migrating VMs within the same subnet (and region) into a different service project. Otherwise the target subnetwork URI, for example, "projects/nstrelkova-joonix-playground/regions/europe-west2/subnetworks/sap-migrator-test-subnet-0" |
 | SOURCE_CSV | [Optional] (by default `source.csv`) The filename used by `prepare_inventory` |
 | FILTER_CSV | [Optional] (by default `filter.csv`) File that contains the instance names that will be included by `filter_inventory` |
 | INPUT_CSV | [Optional] (by default `export.csv`) The filtered list of machines created by `filter_inventory` used as input for the migration. |
@@ -54,14 +57,13 @@ The `Makefile` has different variables which are passed to the subnet_region_mig
 
 ## Supported Functionality
 
-VM Migrator supports multiple functionality, each feature is triggered via step name which is passed as a variable to the the script. 
+VM Migrator supports multiple functionality, each feature is triggered via the step name which is passed as a variable to the the script (see above).
 
-While we can move all the machines in a subnet to the destination subnet we have given flexibility to go with two approaches 
+While you can move all the machines in a subnet to the destination subnet, you have the flexibility to go with two approaches:
 
-1. Bulk move approach, where in you export all the machines running in one zone and subnet to destination zone and subnet. Since we are moving all the machines we can drain the entire subnet, clone and recreate the subnet in the destination region.
+1. Bulk move approach, where you export all the machines running in one zone and subnet to destination zone and subnet. Since you are moving all the machines, you can drain the entire subnet, clone and recreate the subnet in the destination region.
     * This approach lets you keep the same IP ( Internal + Alias IPs ) of the source VM in the destination subnet
-2. Individual machine move, in this approach you can move only some of the machines to the destination subnet. Since we are not draining the entire subnet the cloned machines created will have a different ip from the source machine.
-
+2. Individual machine move, in this approach you can move only some of the machines to the destination subnet. Since you are not draining the entire subnet, the cloned machines created will have a different IP from the source machine.
 
 | STEP      | Description                              |
 | ------------- | ---------------------------------- |
@@ -70,41 +72,60 @@ While we can move all the machines in a subnet to the destination subnet we have
 | shutdown_instances | This will shutdown all the machines whose details are found in the `INPUT_CSV` file, this is particularly useful when you want to shutdown the instances before taking their machine image |
 | start_instances | This will start all the machines whose details are found in the `INPUT_CSV` file, this is particularly useful when you want to rollback the shutdown step |
 | create_machine_images | This will create the machine image of the instances which are specifed in the `INPUT_CSV` file | 
-| disable_deletionprotection_instances | This will disable the deletion protection on all instances in the `INPUT_CSV` file. In case enabled in any instances, this should be run before `delete_instances`. |
+| disable_deletionprotection_instances | This will disable the deletion protection on all instances in the `INPUT_CSV` file. In case it's enabled on any instances, this should be run before `delete_instances`. |
 | delete_instances | This will delete the instances which are specifed in the `INPUT_CSV` file |
-| release_ip | This will release all the internal static ip addresses of the instances which are specifed in the `INPUT_CSV` file |
-| release_ip_for_subnet | This will release all the internal static ip addresses of the source subnet | 
-| clone_subnet | This will delete and re create the subnet in the destination region with the same config as the source subnet, this is required when you want to drain the entire subnet and create it in the destination region. Keep in mind that subnets can't be deleted from VPCs with auto subnet mode. |
+| release_ip | This will release all the internal static IP addresses of the instances which are specifed in the `INPUT_CSV` file |
+| release_ip_for_subnet | This will release all the internal static IP addresses of the source subnet | 
+| clone_subnet | This will delete and re-create the subnet in the destination region with the same config as the source subnet, this is required when you want to drain the entire subnet and create it in the destination region. Keep in mind that subnets can't be deleted from VPCs with auto subnet mode. |
 | add_machineimage_iampolicies | This will provide the target project service account with the right permissions to access the source project machine images |
-| create_instances | This will create the instances from the machine images in the destination subnet/region, it requires the destination subnet to be in place ( if you are cloning the subnet it will automatically be created  ) |
-| create_instances_without_ip | This is similar to the create_instances step jus that it will not preserve the source ips, this is useful in situation when you are moving some of the machine to the destination subenet which has a different CIDR range |
+| create_instances | This will create the instances from the machine images in the destination subnet/region, it requires the destination subnet to be in place (if you are cloning the subnet, it will automatically be created) |
+| create_instances_without_ip | This is similar to the create_instances step, just that it will not preserve the source IPs, this is useful in a situation when you are moving some of the machines to the destination subnet which has a different CIDR range |
 
 ## Running the Utility
 
+Before running, please ensure that
+- the latest code is pulled from repository
+- the prerequisites are met
+- your setup is complete
+
 Run ```make STEP=<step name> migrate-subnet```
 
-Once your setup is complete and prerequisites are met, you need to ensure the latest code is pulled from repository
+The tool will log to the file "migrator.log", located in the same directory.
 
 ## Zone Mapping
 
 Based on the source zones indicated via variables, the respective target zones will be chosen by matching the source zone in the file `zone_mapping.py`.
 
-## Sole Tenant
+## Sole Tenant nodes
 
-The file ```node_group_mapping.py``` has the mapping of source and destination node groups if you are moving machines which are running on sole tenants then the create_instances/create_instances_without_ip step will look for mapping of node groups and it finds the mapping it will use the specified node group in the destination subnet/region to the run the VM on automatically. 
+The file ```node_group_mapping.py``` has the mapping of source and destination node groups. If you are moving machines which are running on sole tenant nodes, then the create_instances/create_instances_without_ip step will look for mapping of node groups, and it finds the mapping, it will use the specified node group in the destination subnet/region to run the VM on automatically.
 
 ## Shared VPC
 
-In the case of migrating VMs in a Shared VPC, the source and target projects are the service projects where the VMs live. The host project is implicitly indicated in the uri of the source and target subnet.
+In the case of migrating VMs in a Shared VPC, the source and target projects are the service projects where the VMs live. The host project is implicitly indicated in the URI of the source and target subnet.
 
 ## Upgrading Machine Types
 
-In the process of migration you can optimize the machine types based on the usage you can do that by providing the source and destination machine type mappings in ```machine_type_mapping.py``` e.g `n1-standard-1`: `n1-standard-4` would upgrade all the machines running with `n1-standard-1` to `n1-standard-4`
+In the process of migration you can optimize the machine types based on the usage. You can do that by providing the source and destination machine type mappings in ```machine_type_mapping.py```, e.g `n1-standard-1`: `n1-standard-4` would upgrade all the machines running with `n1-standard-1` to `n1-standard-4`.
 
+## Backup
+The backup functionality moves the original instances to a backup subnet you specify in the `BACKUP_SUBNET` variable. You have to create a subnet for this manually since you need to specify a CIDR block that will work for you.
+
+**Note**: currently backup only works with one zone and one internal IP of the instances, which can only have one nic.
 
 ## Rollback
-In order to rollback the changes please change the parameters of the source file and interchange the source and destination parameters.
-Please note that some steps like `crate_machine_image` would not be required to run as the machine images have already been created.
+1. If you did not use the backup functionality, in order to rollback the changes please change the parameters of the source file and interchange the source and destination parameters. Please note that some steps like `crate_machine_image` would not be required to run, as the machine images have already been created.
+
+2. Otherwise, with backup, you first have to prepare the rollback with the `prepare_rollback` step, which populates the `rollback.csv` file with instances to be moved. This will also check the `export.csv` file to find the previous IPs of the instances and match them to the instances. If at least one is not found, the function aborts. Once the rollback file is populated, please check it to ensure the necessary instances get rolled back and that the right IP addresses get assigned.
+
+    Then you execute the `rollback_instances` step, which moves the instances listed in `rollback.csv` from `BACKUP_SUBNET` to `SOURCE_SUBNET`.
+
+## Cleanup backup
+If you backed up your instances and everything went well - you can just delete the backed up instances (this does NOT delete the backup subnet). But first you should list them to `rollback.csv` with the `prepare_rollback` step, so that you can check what will be deleted. Then:
+```
+make STEP=delete_instances INPUT_CSV=rollback.csv migrate-subnet
+```
+Be sure to specify the `rollback.csv` as input.
 
 ## Examples
 
@@ -139,6 +160,10 @@ make STEP=prepare_inventory migrate-subnet
 make STEP=filter_inventory migrate-subnet
 make STEP=shutdown_instances migrate-subnet
 make STEP=create_machine_images migrate-subnet
+
+make STEP=backup_instances migrate-subnet
+
+
 make STEP=delete_instances migrate-subnet
 # remove reserved static ips for this subnetwork
 make STEP=release_ip_for_subnet migrate-subnet
@@ -146,10 +171,14 @@ make STEP=release_ip_for_subnet migrate-subnet
 make STEP=clone_subnet migrate-subnet
 # recreate instances with the same IP in the recreated subnet
 make STEP=create_instances migrate-subnet
+
+make STEP=prepare_rollback migrate-subnet
+make STEP=rollback_instances migrate-subnet
+
+
 ```
 
-Notes:
-* This case is particularly interesting if VMs need to stay *in the same VPC*. Otherwise, the next example (move VMs to an existing subnet is a better fit).
+**Note**: This case is particularly interesting if VMs need to stay *in the same VPC*. Otherwise, use the next example (move VMs to an existing subnet is a better fit).
 
 ### Move VMs to a different (existing) subnet
 
@@ -169,3 +198,40 @@ make STEP=create_instances_without_ip migrate-subnet
 ```
 
 This recipe is fully compatible with moving across projects. In this case, please specify the `TARGET_PROJECT*` variables additionally and execute `make STEP=add_machineimage_iampolicies migrate-subnet` before creating the instances as well.
+
+
+### Backup and Rollback
+
+The backup functionality moves the original instances to a backup subnet you specify in the `BACKUP_SUBNET` variable.
+
+It is illustrated best on the example above - "Move VMs across regions (recreate subnet)".
+
+```
+# standard
+make STEP=prepare_inventory migrate-subnet
+make STEP=filter_inventory migrate-subnet
+make STEP=shutdown_instances migrate-subnet
+make STEP=create_machine_images migrate-subnet
+# back up instances - move them to the backup subnet
+make STEP=backup_instances migrate-subnet
+make STEP=delete_instances migrate-subnet
+# remove reserved static ips for this subnetwork
+make STEP=release_ip_for_subnet migrate-subnet
+# remove and recreate subnet in the same VPC but in the target region
+make STEP=clone_subnet migrate-subnet
+# recreate instances with the same IP in the recreated subnet
+make STEP=create_instances migrate-subnet
+```
+
+If anything went wrong - rollback:
+```
+make STEP=prepare_rollback migrate-subnet
+make STEP=rollback_instances migrate-subnet
+# optionally start the instances
+make STEP=start_instances INPUT_CSV=rollback.csv migrate-subnet
+```
+
+If everything went well - delete backed up instances (this does NOT delete the backup subnet):
+```
+make STEP=delete_instances INPUT_CSV=rollback.csv migrate-subnet
+```
