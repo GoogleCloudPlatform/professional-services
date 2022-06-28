@@ -109,9 +109,15 @@ In the case of migrating VMs in a Shared VPC, the source and target projects are
 In the process of migration you can optimize the machine types based on the usage. You can do that by providing the source and destination machine type mappings in ```machine_type_mapping.py```, e.g `n1-standard-1`: `n1-standard-4` would upgrade all the machines running with `n1-standard-1` to `n1-standard-4`.
 
 ## Backup
-The backup functionality moves the original instances to a backup subnet you specify in the `BACKUP_SUBNET` variable. You have to create a subnet for this manually since you need to specify a CIDR block that will work for you.
+The backup functionality (`backup_instances` step) moves the original instances to a backup subnet you specify in the `BACKUP_SUBNET` variable. You have to create a subnet for this manually since you need to specify a CIDR block that will work for you.
 
-**Note**: currently backup only works with one zone and one internal IP of the instances, which can only have one nic.
+**Notes**:
+1. Current limitations:
+a. within one project
+b. within one zone
+c. only one internal IP of the instances is taken into account
+d. instances should only have one nic
+2. In order to work the function needs a "fingerprint" - a unique identifier of the network interface of an instance. This is collected during the `prepare_inventory` step. The `backup_instances` step checks for those fingerprints and aborts if any are not found.
 
 ## Rollback
 1. If you did not use the backup functionality, in order to rollback the changes please change the parameters of the source file and interchange the source and destination parameters. Please note that some steps like `crate_machine_image` would not be required to run, as the machine images have already been created.
