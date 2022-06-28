@@ -20,7 +20,7 @@ import logging
 import concurrent.futures
 import googleapiclient.discovery
 from googleapiclient.errors import HttpError
-from csv import DictWriter
+from csv import DictReader, DictWriter
 from .exceptions import GCPOperationException
 from . import instance
 from . import fields
@@ -148,6 +148,11 @@ def export_instances(project, zone, zone_2, zone_3, subnet_uri: uri.Subnet,
             if instance.is_hosted_on_sole_tenant(instances):
                 csv['node_group'] = instance.get_node_group(instances)
 
+            fingerprint = instances['networkInterfaces'][0].get('fingerprint')
+            if fingerprint:
+                logging.info('Found instance nic0 finger print for %s', instances['name'])
+                csv['fingerprint'] = fingerprint
+
             mydict[instances['selfLink']] = csv
         else:
             logging.debug(
@@ -206,6 +211,93 @@ def export_instances(project, zone, zone_2, zone_3, subnet_uri: uri.Subnet,
 
     logging.info('Successfully written %i records to %s', len(mydict),
                  file_name)
+
+    return True
+
+
+def list_instances_for_rollback(project, zone, backup_subnet_uri: uri.Subnet, previous_instances_file, to_file):
+    # ONLY DEALING WITH ONE ZONE AND ONE INTERNAL IP SO FAR!
+    print("LISTING FOR ROLLBACK")
+    # get previous internal IPs of the instances, because rollback wants the instances
+    # to have the same IPs like they had before
+    internal_ips = {}
+    try:
+        with open(previous_instances_file, 'r') as read_obj:
+            csv_dict_reader = DictReader(read_obj)
+            for row in csv_dict_reader:
+                #print("reading %s", row)
+                internal_ips[row['id']] = row['internal_ip']
+        #print(json.dumps(internal_ips))
+    except Exception as exc:
+        logging.error('Can not get previous IPs of instances: %s', exc)
+        return False
+    if not internal_ips:
+        logging.error('Can not find previous IPs of instances')
+        return False
+    compute = get_compute()
+
+    logging.info('fetching the inventory for the source subnet %s and zone %s',
+                 backup_subnet_uri.uri, zone)
+    result = compute.instances().list(project=project,
+                                      zone=zone,
+                                      maxResults=10000).execute()
+    if not result.get('items'):
+        result = {'items': []}
+
+    mydict = {}
+
+    logging.info('Identified %i potential instance(s) in the given zones',
+                 len(result['items']))
+
+    prev_ip_question = "Previous IP for instance {} not found, would you like to continue?"
+    for instances in result['items']:
+        if instances['networkInterfaces'][0]['subnetwork'] \
+                .endswith(backup_subnet_uri.uri):
+            # taking all instances in the backup subnet
+            csv = {
+                'name': instances['name'],
+                'id': instances['id'],
+                'machine_type': instances['machineType'],
+                'self_link': instances['selfLink'],
+                'network': instances['networkInterfaces'][0]['network'],
+                'internal_ip': instances['networkInterfaces'][0]['networkIP'],
+                'subnet': instances['networkInterfaces'][0]['subnetwork']
+            }
+            instance_uri = uri.Instance.from_uri(instances['selfLink'])
+
+            # most important part: get the network interface fingerprint
+            # without it the instance can't be moved to the previous subnet
+            # (method updateNetworkInterface will fail)
+            fingerprint = instances['networkInterfaces'][0].get('fingerprint')
+            if fingerprint:
+                csv['fingerprint'] = fingerprint
+            else:
+                logging.error('Instance %s fingerprint for nic0 not found, aborting',
+                              instances['name'])
+                return False
+
+            if instances['id'] not in internal_ips: # previous IP not found
+                logging.error('No previous IP found for instance %s', instances['name'])
+                return False
+
+            csv['previous_internal_ip'] = internal_ips[instances['id']]
+            mydict[instances['selfLink']] = csv
+        else:
+            logging.debug(
+                'Ignoring VM {} in subnet {} (looking for subnet {})'.format(
+                    instances['name'],
+                    instances['networkInterfaces'][0]['subnetwork'],
+                    backup_subnet_uri.uri))
+
+    with open(to_file, 'w') as csvfile:
+        fieldnames = fields.HEADERS
+        fieldnames.append('previous_internal_ip')
+        writer = DictWriter(csvfile, fieldnames = fieldnames)
+        writer.writeheader()
+        writer.writerows(mydict.values())
+
+    logging.info('Successfully written %i records to %s', len(mydict),
+                 to_file)
 
     return True
 

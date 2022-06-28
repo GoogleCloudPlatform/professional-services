@@ -17,6 +17,7 @@ This file is used to create instance from a machine image.
 """
 
 import time
+from unittest import removeResult
 import googleapiclient.discovery
 import logging
 from . import node_group_mapping
@@ -26,6 +27,7 @@ from ratemate import RateLimit
 from . import uri
 from typing import Optional
 import re
+import json
 
 RATE_LIMIT = RateLimit(max_count=2000, per=100)
 
@@ -334,6 +336,40 @@ def wait_for_instance(compute, instance_uri: uri.Instance):
             return result
 
         time.sleep(10)
+
+def move_to_subnet(instance_uri: uri.Instance, row, to_subnet_uri) -> str:
+    # ONLY DEALING WITH ONE ZONE SO FAR!
+    print("MOVING TO SUBNETTT, got instance %s and subnet %s", instance_uri, to_subnet_uri)
+    try:
+        waited_time = RATE_LIMIT.wait()  # wait before starting the task
+        logging.info('  task: waited for %s secs', waited_time)
+        compute = get_compute()
+        logging.info('Updating Network Interface for Instance %s ', instance_uri.name)
+        request_body = {
+            "network": row['network'],
+            "subnetwork": to_subnet_uri.uri,
+            "fingerprint": row['fingerprint'],
+        }
+        if 'previous_internal_ip' in row and row['previous_internal_ip'] != None:
+            request_body['networkIP'] = row['previous_internal_ip']
+        kwargs = {
+            "project": instance_uri.project,
+            "zone": instance_uri.zone,
+            "instance": instance_uri.name,
+            "networkInterface": "nic0",
+            "body": request_body
+        }
+
+        print('sending kwargs:')
+        print(json.dumps(kwargs))
+        result = compute.instances().updateNetworkInterface(**kwargs).execute()
+        wait_for_zonal_operation(compute, instance_uri, result['name'])
+        print('got result:')
+        print(json.dumps(result))
+        return instance_uri.name
+    except Exception as ex:
+        logging.error(ex)
+        raise ex
 
 
 def create(instance_uri: uri.Instance,
