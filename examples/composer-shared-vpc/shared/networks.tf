@@ -43,7 +43,7 @@ Create Shared VPC with Primary Subnets
 module "network" {
   source           = "terraform-google-modules/network/google"
   project_id       = module.project-networking.project_id
-  version          = "~> 3.4.0"
+  version          = "~> 5.1.0"
   network_name     = local.shared_vpc_name
   shared_vpc_host  = "true"
   routing_mode     = "GLOBAL"
@@ -71,7 +71,7 @@ Private DNS Zone & records for shared VPC.
 module "private-dns-zones-shared" {
   for_each    = { for zone in local.private_zones : zone => zone }
   source      = "terraform-google-modules/cloud-dns/google"
-  version     = "~> 4.0"
+  version     = "~> 4.1"
   project_id  = module.project-networking.project_id
   type        = "private"
   name        = "zone-${replace(each.value, ".", "-")}"

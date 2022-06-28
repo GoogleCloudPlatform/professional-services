@@ -83,6 +83,29 @@ variable "composer_v1_private_envs" {
   default = {}
 }
 
+variable "composer_v2_private_envs" {
+  description = "composer v2 private envs"
+  type = map(object({
+    region                      = string
+    zone                        = string
+    pod_ip_range_name           = string
+    service_ip_range_name       = string
+    subnet                      = string
+    control_plane_cidr          = string
+    composer_network_ipv4_cidr  = string
+    cloud_sql_cidr              = string
+    tags                        = list(string)
+    software_config = object({
+      airflow_config_overrides = map(string)
+      env_variables            = map(string)
+      image_version            = string
+      pypi_packages            = map(string)
+      python_version           = string
+    })
+  }))
+  default = {}
+}
+
 variable "prefix" {
   description = "prefix for resource names"
   type        = string

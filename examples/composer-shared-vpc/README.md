@@ -34,7 +34,8 @@ This repo uses terraform to create below resources in order to deploy a private 
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_composer-env"></a> [composer-env](#module\_composer-env) | ./composer_v1_pvt_shared_vpc | n/a |
+| <a name="module_composer-v1-env"></a> [composer-v1-env](#module\_composer-v1-env) | ./composer_v1_pvt_shared_vpc | n/a |
+| <a name="module_composer-v2-env"></a> [composer-v2-env](#module\_composer-v2-env) | ./composer_v2_pvt_shared_vpc | n/a |
 | <a name="module_shared"></a> [shared](#module\_shared) | ./shared/ | n/a |
 
 ## Resources
@@ -50,6 +51,7 @@ This repo uses terraform to create below resources in order to deploy a private 
 | <a name="input_billing_account"></a> [billing\_account](#input\_billing\_account) | The ID of the billing account to associate this project with | `string` | n/a | yes |
 | <a name="input_composer_subnets"></a> [composer\_subnets](#input\_composer\_subnets) | subnets for composer workers | <pre>map(object({<br>    description    = string<br>    cidr_range     = string<br>    region         = string<br>    private_access = bool<br>    flow_logs      = bool<br>    secondary_ranges = list(object({<br>      range_name    = string<br>      ip_cidr_range = string<br>    }))<br>  }))</pre> | `{}` | no |
 | <a name="input_composer_v1_private_envs"></a> [composer\_v1\_private\_envs](#input\_composer\_v1\_private\_envs) | composer v1 private envs | <pre>map(object({<br>    region                = string<br>    zone                  = string<br>    pod_ip_range_name     = string<br>    service_ip_range_name = string<br>    subnet                = string<br>    control_plane_cidr    = string<br>    web_server_cidr       = string<br>    cloud_sql_cidr        = string<br>    tags                  = list(string)<br>    software_config = object({<br>      airflow_config_overrides = map(string)<br>      env_variables            = map(string)<br>      image_version            = string<br>      pypi_packages            = map(string)<br>      python_version           = string<br>    })<br>  }))</pre> | `{}` | no |
+| <a name="input_composer_v2_private_envs"></a> [composer\_v2\_private\_envs](#input\_composer\_v2\_private\_envs) | composer v2 private envs | <pre>map(object({<br>    region                = string<br>    zone                  = string<br>    pod_ip_range_name     = string<br>    service_ip_range_name = string<br>    subnet                = string<br>    control_plane_cidr    = string<br>    composer_network_ipv4_cidr       = string<br>    cloud_sql_cidr        = string<br>    tags                  = list(string)<br>    software_config = object({<br>      airflow_config_overrides = map(string)<br>      env_variables            = map(string)<br>      image_version            = string<br>      pypi_packages            = map(string)<br>      python_version           = string<br>    })<br>  }))</pre> | `{}` | no |
 | <a name="input_deny_all_egrees_rule_create"></a> [deny\_all\_egrees\_rule\_create](#input\_deny\_all\_egrees\_rule\_create) | Create deny all egress | `bool` | `true` | no |
 | <a name="input_folder_name"></a> [folder\_name](#input\_folder\_name) | Parent folder for projects, folder should be child of organization | `string` | n/a | yes |
 | <a name="input_org_id"></a> [org\_id](#input\_org\_id) | The organization id for the associated services | `string` | n/a | yes |

@@ -24,7 +24,7 @@ Create host project for Shared VPC
 ************************************/
 module "project-networking" {
   source                         = "terraform-google-modules/project-factory/google"
-  version                        = "~> 11.1.1"
+  version                        = "~> 13.0.0"
   name                           = "${var.prefix}-comp-shared-vpc"
   disable_services_on_destroy    = false
   folder_id                      = data.google_active_folder.composer_e2e.name
@@ -47,7 +47,7 @@ Create Service project for Composer Envs
 *****************************************/
 module "project-composer" {
   source                      = "terraform-google-modules/project-factory/google"
-  version                     = "~> 11.1.1"
+  version                     = "~> 13.0.0"
   name                        = "${var.prefix}-comp-envs"
   disable_services_on_destroy = false
   folder_id                   = data.google_active_folder.composer_e2e.name
