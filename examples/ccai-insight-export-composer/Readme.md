@@ -80,9 +80,9 @@ We have already enabled composer in Step 1. [Create a composer environment](http
     gcloud composer environments run $COMPOSER_ENVIRONEMNT \
         --location $REGION \
         variables set -- ccai_dag_config \
-        '{ "GCP_PROJECT_ID_FOR_CCAI_INSIGHT": "<<project_id_for_ccai>>", \
-            "GCP_PROJECT_ID_FOR_BQ": "<<project_id_for_bq>>", \
-            "BQ_DATASET": "ccai_ds", "BQ_TABLE": "ccai" \
+        '{ "GCP_PROJECT_ID_FOR_CCAI_INSIGHT": "<<project_id_for_ccai>>", 
+            "GCP_PROJECT_ID_FOR_BQ": "<<project_id_for_bq>>", 
+            "BQ_DATASET": "ccai_ds", "BQ_TABLE": "ccai" 
         }'
     ```
     Make sure to change the <<project_id_for_ccai>>, <<project_id_for_bq>>, BQ_DATASET (ccai_ds) and BQ_TABLE (ccai). 
