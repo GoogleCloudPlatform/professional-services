@@ -48,16 +48,16 @@ We have already enabled composer in Step 1. [Create a composer environment](http
 
     You can add the connection using the following command:
 
-        ```
-        export COMPOSER_ENVIRONEMNT = <<NAME_OF_COMPOSER>>
-        export REGION = "us-central1"
-        gcloud composer environments run $COMPOSER_ENVIRONEMNT   \
-              --location $REGION  \
-              connections -- add insights_http  \
-              --conn-type=HTTP    \
-              --conn-host=contactcenterinsights.googleapis.com/v1/ \
-              --conn-schema=https
-        ```
+    ```
+    export COMPOSER_ENVIRONEMNT = <<NAME_OF_COMPOSER>>
+    export REGION = "us-central1"
+    gcloud composer environments run $COMPOSER_ENVIRONEMNT   \
+            --location $REGION  \
+            connections -- add insights_http  \
+            --conn-type=HTTP    \
+            --conn-host=contactcenterinsights.googleapis.com/v1/ \
+            --conn-schema=https
+    ```
 
 - **Step 2:** Create dataset and table to copy data from insight to BQ
 
@@ -95,6 +95,6 @@ We have already enabled composer in Step 1. [Create a composer environment](http
     Get the project number from the project where CCAI is enabled. Give the ccai insight service account (service-PROJECT_NUMBER@gcp-sa-contactcenterinsights.iam.gserviceaccount.com), BigQuery editor permission (`roles/bigquery.editor) on the ccai_ds dataset.
 
 
-- **Step 5:** Copy the python file (ccai-bq-export.py) to GCS bucket for DAG in composer. The job will first export the conversations to BQ which have been created in the last 15 minutes. Then it will check the status of the export to ensure it was successful. Below is the visualization of the DAG graph view.
+- **Step 5:** Copy the python file (dag/ccai-bq-export.py) to GCS bucket for DAG in composer. The job will first export the conversations to BQ which have been created in the last 15 minutes. Then it will check the status of the export to ensure it was successful. Below is the visualization of the DAG graph view.
 
     ![CCAI-Insights DAG Grapg](images/export_dag.jpg)
