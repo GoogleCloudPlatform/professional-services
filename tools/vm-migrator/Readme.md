@@ -23,12 +23,15 @@ To be able to execute the utility, you should meet the following prerequisites:
 5. Run ```make install-requirements```
 6. Run ```make install-tools```
 7. Run ```make install```
+8. Configure (see below)
 
 ## Testing
 
-1. Run ```make test```
+Run ```make test```
 
 ## Configuration
+
+### 1. Edit Makefile - or set variables in the command line
 The `Makefile` has different variables which are passed to the subnet_region_migratory.py.
 
 These variables can be overridden from the command line:
@@ -50,11 +53,17 @@ The variables NOT marked as "[Optional]" are **mandatory**.
 | TARGET_PROJECT_SA | Required if the target project is different than the source project, otherwise [Optional]. Used as Service Account on the target VMs. |
 | TARGET_PROJECT_SA_SCOPES | [Optional] If the target project is different than the source project, scopes to assign to the Service Account on the VMs |
 | TARGET_SUBNET | Leave this argument empty if you're just migrating VMs within the same subnet (and region) into a different service project. Otherwise the target subnetwork URI, for example, "projects/my-host-project/regions/us-central1/subnetworks/target-subnet" |
-| BACKUP_SUBNET | [Optional] If you want to back up your instances to this subnet, specify its URI, for example, "projects/my-host-project/regions/us-central1/subnetworks/backup-subnet" |
+| BACKUP_SUBNET | [Optional] If you want to back up your instances to a subnet, specify the subnet's URI, for example, "projects/my-host-project/regions/us-central1/subnetworks/backup-subnet" |
 | SOURCE_CSV | [Optional] (by default `source.csv`) The filename used by `prepare_inventory` |
 | FILTER_CSV | [Optional] (by default `filter.csv`) File that contains the instance names that will be included by `filter_inventory` |
 | INPUT_CSV | [Optional] (by default `export.csv`) The filtered list of machines created by `filter_inventory` used as input for the migration. |
 | LOG_LEVEL | [Optional] Debugging level |
+
+### 2. Edit the filter file
+The FILTER_CSV variable from above has the name of the file that contains the instance names that will be included by the `filter_inventory` step. It is basically the list of the instances you actually want to migrate. Please either edit the filter.csv file or provide your file and change the variable value.
+
+### 3. Edit the zone mapping file
+The file ```src/migrator/zone_mapping.py``` contains the mapping of the zones - which will be migrated to which. If your zones are not there, please edit it and add them there.
 
 ## Supported Functionality
 
@@ -90,15 +99,11 @@ While you can move all the machines in a subnet to the destination subnet, you h
 Before running, please ensure that
 - the latest code is pulled from repository
 - the prerequisites are met
-- your setup is complete
+- your setup and configuration are complete
 
 Run ```make STEP=<step name> migrate-subnet```
 
 The tool will log to the file "migrator.log", located in the same directory.
-
-## Zone Mapping
-
-Based on the source zones indicated via variables, the respective target zones will be chosen by matching the source zone in the file `zone_mapping.py`.
 
 ## Sole Tenant nodes
 
@@ -115,7 +120,7 @@ In the process of migration you can optimize the machine types based on the usag
 ## Backup and rollback
 
 ### Backup
-The optionala backup functionality (`backup_instances` step) moves the original instances to a backup subnet you specify in the `BACKUP_SUBNET` variable. You have to create a subnet for this manually since you need to specify a CIDR block that will work for you.
+The optional backup functionality (`backup_instances` step) moves the original instances to a backup subnet you specify in the `BACKUP_SUBNET` variable. You have to create a subnet for this manually since you need to specify a CIDR block that will work for you. For usage see the examples below.
 
 **Notes**:
 1. Current limitations:
@@ -124,6 +129,7 @@ The optionala backup functionality (`backup_instances` step) moves the original 
     - only one internal IP of the instances is taken into account
     - instances should only have one nic
 2. In order to work the function needs a "fingerprint" - a unique identifier of the network interface of an instance. This is collected during the `prepare_inventory` step. The `backup_instances` step checks for those fingerprints and aborts if any are not found.
+3. Please make sure you keep the `export.csv` file intact, since if you will need to roll back, this file will be needed (see next section).
 
 ### Rollback
 1. If you did not use the backup functionality, in order to rollback the changes please change the parameters of the source file and interchange the source and destination parameters. Please note that some steps like `crate_machine_image` would not be required to run, as the machine images have already been created.
@@ -131,8 +137,10 @@ The optionala backup functionality (`backup_instances` step) moves the original 
 2. Otherwise, with backup, you first have to prepare the rollback with the `prepare_rollback` step, which populates the `rollback.csv` file with instances to be moved. This will also check the `export.csv` file to find the previous IPs of the instances and match them to the instances. If at least one is not found, the function aborts. Once the rollback file is populated, please check it to ensure the necessary instances get rolled back and that the right IP addresses get assigned.
 
     Then you execute the `rollback_instances` step, which moves the instances listed in `rollback.csv` from `BACKUP_SUBNET` to `SOURCE_SUBNET`.
+    
+    See the examples below.
 
-### Cleanup backup
+### Clean up backup
 If you backed up your instances and everything went well - you can just delete the backed up instances (this does NOT delete the backup subnet). But first you should list them to `rollback.csv` with the `prepare_rollback` step, so that you can check what will be deleted. Then:
 ```
 make STEP=delete_instances INPUT_CSV=rollback.csv migrate-subnet
@@ -179,8 +187,6 @@ make STEP=release_ip_for_subnet migrate-subnet
 make STEP=clone_subnet migrate-subnet
 # recreate instances with the same IP in the recreated subnet
 make STEP=create_instances migrate-subnet
-make STEP=prepare_rollback migrate-subnet
-make STEP=rollback_instances migrate-subnet
 ```
 
 **Note**: This case is particularly interesting if VMs need to stay *in the same VPC*. Otherwise, use the next example (move VMs to an existing subnet is a better fit).
@@ -209,8 +215,15 @@ This recipe is fully compatible with moving across projects. In this case, pleas
 
 The backup functionality moves the original instances to a backup subnet you specify in the `BACKUP_SUBNET` variable.
 
-It is illustrated best on the example above - "Move VMs across regions (recreate subnet)".
+Only backup itself:
+```
+make STEP=prepare_inventory migrate-subnet
+make STEP=filter_inventory migrate-subnet
+make STEP=shutdown_instances migrate-subnet
+make STEP=backup_instances migrate-subnet
+```
 
+Backup as part of the example above - "Move VMs across regions (recreate subnet)".
 ```
 # standard
 make STEP=prepare_inventory migrate-subnet
