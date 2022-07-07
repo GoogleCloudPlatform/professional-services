@@ -24,9 +24,9 @@ import airflow
 
 default_dag_args = {
     'depends_on_past':
-    False,
+        False,
     'start_date':
-    datetime.combine(datetime.today() - timedelta(1), datetime.min.time()),
+        datetime.combine(datetime.today() - timedelta(1), datetime.min.time()),
 }
 
 
