@@ -120,7 +120,7 @@ In the process of migration you can optimize the machine types based on the usag
 ## Backup and rollback
 
 ### Backup
-The optional backup functionality (`backup_instances` step) moves the original instances to a backup subnet you specify in the `BACKUP_SUBNET` variable. You have to create a subnet for this manually since you need to specify a CIDR block that will work for you. For usage see the examples below.
+The optional backup functionality (`backup_instances` step) moves the original instances to a backup subnet you specify in the `BACKUP_SUBNET` variable. You have to create a subnet for this manually since you need to specify a CIDR block that will work for you. This subnet has to be in the same region as the source subnet! For usage see the examples below.
 
 **Notes**:
 1. Current limitations:
