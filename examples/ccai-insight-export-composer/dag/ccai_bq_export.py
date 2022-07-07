@@ -11,12 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Example DAG to copy CCAI Insight data to BigQuerye."""
 
 from datetime import timedelta, datetime
 import json
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.http_operator import SimpleHttpOperator
 from airflow.sensors.http_sensor import HttpSensor
+import google.auth
+import google.auth.transport.request
 import airflow
 
 default_dag_args = {
@@ -28,8 +31,7 @@ default_dag_args = {
 
 
 def get_auth_token():
-    import google.auth
-    import google.auth.transport.requests
+    """OAuth token to Authenticate the HTTPS Request"""
     credentials, project_id = google.auth.default(
         scopes=["https://www.googleapis.com/auth/cloud-platform"])
     auth_req = google.auth.transport.requests.Request()
