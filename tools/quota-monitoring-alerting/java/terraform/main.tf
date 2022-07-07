@@ -324,7 +324,6 @@ resource "google_bigquery_dataset" "quota_usage_alert_dataset" {
 resource "google_logging_metric" "quota_logging_metric" {
   name        = "resource_usage"
   description = "Tracks logs for quota usage above threshold"
-  #filter     = "logName=\"projects/${var.project_id}/logs/quota-alerts\""
   filter      = "logName:\"projects/${var.project_id}/logs/\" jsonPayload.message:\"|ProjectId | Scope |\""
   depends_on  = [module.project-services]
   metric_descriptor {
