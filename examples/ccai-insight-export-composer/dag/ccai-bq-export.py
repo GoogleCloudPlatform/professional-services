@@ -19,11 +19,11 @@ from airflow.operators.http_operator import SimpleHttpOperator
 from airflow.sensors.http_sensor import HttpSensor
 import airflow
 
-
 default_dag_args = {
-    'depends_on_past': False,
-    'start_date': datetime.combine(datetime.today() - timedelta(1),
-                                   datetime.min.time()),
+    'depends_on_past':
+    False,
+    'start_date':
+    datetime.combine(datetime.today() - timedelta(1), datetime.min.time()),
 }
 
 
@@ -49,13 +49,16 @@ with airflow.DAG("Export_Insight_Data_to_BQ",
 
     export_insight_data_to_BQ = SimpleHttpOperator(
         task_id="export_insight_data_to_BQ",
-        endpoint='projects/{{ var.json.ccai_dag_config.GCP_PROJECT_ID_FOR_CCAI_INSIGHT }}/locations/us-central1/insightsdata:export',
+        endpoint=
+        'projects/{{ var.json.ccai_dag_config.GCP_PROJECT_ID_FOR_CCAI_INSIGHT }}/locations/us-central1/insightsdata:export',
         method='POST',
         headers={
             "Content-Type": "application/json",
-            "Authorization": "Bearer " +
-            get_auth_token()},
-        data="{ big_query_destination: { project_id: '{{ var.json.ccai_dag_config.GCP_PROJECT_ID_FOR_BQ }}', dataset: '{{ var.json.ccai_dag_config.BQ_DATASET }}', table: '{{ var.json.ccai_dag_config.BQ_TABLE }}' }," +
+            "Authorization": "Bearer " + get_auth_token()
+        },
+        data=
+        "{ big_query_destination: { project_id: '{{ var.json.ccai_dag_config.GCP_PROJECT_ID_FOR_BQ }}', dataset: '{{ var.json.ccai_dag_config.BQ_DATASET }}', table: '{{ var.json.ccai_dag_config.BQ_TABLE }}' },"
+        +
         "filter: 'create_time>\"{{ execution_date + macros.timedelta(minutes=-15) }}\" create_time<\"{{ execution_date }}\"'}",
         response_check=lambda response: response.ok,
         http_conn_id='insights_http',
@@ -63,14 +66,15 @@ with airflow.DAG("Export_Insight_Data_to_BQ",
 
     check_upload_status_to_BQ = HttpSensor(
         task_id="check_upload_status_to_BQ",
-        endpoint='{{(task_instance.xcom_pull(task_ids="export_insight_data_to_BQ") | fromjson)["name"]}}',
+        endpoint=
+        '{{(task_instance.xcom_pull(task_ids="export_insight_data_to_BQ") | fromjson)["name"]}}',
         method='GET',
         headers={
             "Content-Type": "application/json",
-            "Authorization": "Bearer " +
-            get_auth_token()},
-        response_check=lambda response: 'done' in response.json() and bool(response.json()[
-            'done']),
+            "Authorization": "Bearer " + get_auth_token()
+        },
+        response_check=lambda response: 'done' in response.json() and bool(
+            response.json()['done']),
         poke_interval=5,
         timeout=300,
         http_conn_id='insights_http')
