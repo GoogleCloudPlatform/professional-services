@@ -19,7 +19,7 @@ from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.http_operator import SimpleHttpOperator
 from airflow.sensors.http_sensor import HttpSensor
 import google.auth
-import google.auth.transport.request
+import google.auth.transport.requests
 import airflow
 
 default_dag_args = {
