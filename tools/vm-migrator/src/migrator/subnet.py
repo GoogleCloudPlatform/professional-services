@@ -148,9 +148,10 @@ def export_instances(project, zone, zone_2, zone_3, subnet_uri: uri.Subnet,
             if instance.is_hosted_on_sole_tenant(instances):
                 csv['node_group'] = instance.get_node_group(instances)
 
+            # if backup will be needed - get fingerprint
             fingerprint = instances['networkInterfaces'][0].get('fingerprint')
             if fingerprint:
-                logging.info('Found instance nic0 finger print for %s', instances['name'])
+                logging.info('Found instance nic0 fingerprint for %s', instances['name'])
                 csv['fingerprint'] = fingerprint
 
             mydict[instances['selfLink']] = csv
@@ -217,7 +218,6 @@ def export_instances(project, zone, zone_2, zone_3, subnet_uri: uri.Subnet,
 
 def list_instances_for_rollback(project, zone, backup_subnet_uri: uri.Subnet, previous_instances_file, to_file):
     # ONLY DEALING WITH ONE ZONE AND ONE INTERNAL IP SO FAR!
-    print("LISTING FOR ROLLBACK")
     # get previous internal IPs of the instances, because rollback wants the instances
     # to have the same IPs like they had before
     internal_ips = {}
@@ -225,9 +225,7 @@ def list_instances_for_rollback(project, zone, backup_subnet_uri: uri.Subnet, pr
         with open(previous_instances_file, 'r') as read_obj:
             csv_dict_reader = DictReader(read_obj)
             for row in csv_dict_reader:
-                #print("reading %s", row)
                 internal_ips[row['id']] = row['internal_ip']
-        #print(json.dumps(internal_ips))
     except Exception as exc:
         logging.error('Can not get previous IPs of instances: %s', exc)
         return False

@@ -339,7 +339,6 @@ def wait_for_instance(compute, instance_uri: uri.Instance):
 
 def move_to_subnet(instance_uri: uri.Instance, row, to_subnet_uri) -> str:
     # ONLY DEALING WITH ONE ZONE SO FAR!
-    print("MOVING TO SUBNETTT, got instance %s and subnet %s", instance_uri, to_subnet_uri)
     try:
         waited_time = RATE_LIMIT.wait()  # wait before starting the task
         logging.info('  task: waited for %s secs', waited_time)
@@ -360,12 +359,8 @@ def move_to_subnet(instance_uri: uri.Instance, row, to_subnet_uri) -> str:
             "body": request_body
         }
 
-        print('sending kwargs:')
-        print(json.dumps(kwargs))
         result = compute.instances().updateNetworkInterface(**kwargs).execute()
         wait_for_zonal_operation(compute, instance_uri, result['name'])
-        print('got result:')
-        print(json.dumps(result))
         return instance_uri.name
     except Exception as ex:
         logging.error(ex)
