@@ -14,6 +14,8 @@
 
 
 locals {
+  timestamp = formatdate("YYYYMMDDhhmmss", timestamp())
+
   config = yamldecode(file("${path.module}/../../config.yaml"))
 
   path = "${path.module}/../.."
@@ -276,16 +278,21 @@ resource "google_bigquery_table" "dashboard_view" {
 # Cloud Run
 #...............................................................................
 resource "null_resource" "build" {
+  triggers = {
+    always_run = local.timestamp
+  }
+
   provisioner "local-exec" {
     command =<<-EOT
       gcloud beta builds submit ${local.path} \
         --config ${local.path}/cloudbuild.yaml \
-        --substitutions=_SERVICE=$SERVICE,_PROJECT=$PROJECT
+        --substitutions=_SERVICE=$SERVICE,_PROJECT=$PROJECT,_TAG=$TAG
     EOT
 
     environment = {
       PROJECT = var.project
       SERVICE = var.name
+      TAG     = local.timestamp
     }
   }
 
@@ -293,6 +300,15 @@ resource "null_resource" "build" {
     resource.google_organization_iam_member.org_iam,
     resource.null_resource.project_iam,
   ]
+}
+
+data "google_container_registry_image" "qms_image_latest" {
+  name = var.name
+  project = var.project
+
+  tag = local.timestamp
+
+  depends_on = [resource.null_resource.build]
 }
 
 
@@ -303,7 +319,7 @@ resource "google_cloud_run_service" "crun" {
   template {
     spec {
       containers {
-        image = "gcr.io/${var.project}/${var.name}"
+        image = data.google_container_registry_image.qms_image_latest.image_url
       }
 
       container_concurrency = 5
@@ -315,8 +331,6 @@ resource "google_cloud_run_service" "crun" {
     percent         = 100
     latest_revision = true
   }
-
-  depends_on = [resource.null_resource.build]
 }
 
 
@@ -497,4 +511,20 @@ resource "google_cloud_scheduler_job" "quota_export_thresholds_job" {
   }
 
   depends_on = [resource.null_resource.scheduler]
+}
+
+
+# Outputs
+#...............................................................................
+output "copy_dashboard_url" {
+  value = join("", [
+    "https://datastudio.google.com/reporting/create?",
+    "c.reportId=50bdadac-9ea0-4dcd-bee2-f323c968186d&r.reportName=Copy-QMS",
+    "&ds.ds01.connector=BigQuery&ds.ds01.projectId=${var.project}",
+    "&ds.ds01.type=TABLE&ds.ds01.datasetId=quota&ds.ds01.tableId=",
+    "${resource.google_bigquery_table.thresholds.table_id}",
+    "&ds.ds02.connector=BigQuery&ds.ds02.projectId=${var.project}",
+    "&ds.ds02.type=TABLE&ds.ds02.datasetId=quota&ds.ds02.tableId=",
+    "${resource.google_bigquery_table.dashboard_view.table_id}"
+  ])
 }

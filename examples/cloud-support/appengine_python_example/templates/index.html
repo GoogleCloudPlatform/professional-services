@@ -1,0 +1,231 @@
+<!--Copyright 2020 Google Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+
+This software is provided as-is,
+without warranty or representation for any use or purpose.
+Your use of it is subject to your agreement with Google.-->
+<!DOCTYPE html>
+<html>
+  <head>
+      {% block head %}
+        <title>Red Button Support</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <style>
+            .form-group.required .col-form-label:after {
+                content:"*";
+                color:red;
+            }
+        </style>
+
+        {% block styles %}
+            <!-- Bootstrap CSS -->
+            {{ bootstrap.load_css() }}
+        {% endblock %}
+
+        {% block scripts %}
+            {{ bootstrap.load_js() }}
+        {% endblock %}
+
+      {% endblock %}
+  </head>
+
+  <body>
+      {% block content %}
+        <div class="container">
+          <div class="row">
+            <div class="col-sm-10 align-self-center">
+
+
+                <div class="card text-center">
+                    <div class="card-header">
+                          <div class="container">
+                              <div class="row">
+                                <div class="col align-self-center">
+                                    <h1>Cymbal Group Red Button</h1>
+                                </div>
+                              </div>
+                              <div class="row">
+                                <div class="col align-self-center">
+                              This is a demo application to create Cloud Support cases for critical incidents impacting Cymbal Group's customer journey, without needing to go through the Cloud Console. 
+                                    The goal is to engage Google's support engineers via Google Meet to verbally provide context of the issue as quickly as possible.
+
+                                    <b>Note: Creating cases from this page should only be done for CRITICAL incidents. Otherwise, extensive details should be filled out to provide support engineers more context.</b>
+                                </div>
+                              </div>
+                          </div>
+                    </div>
+                    <div class="card-body">
+
+                        <!-- start form container -->
+                        <div class="container">
+                            {% if error_message %}
+                                  <div class="row">
+                                    <div class="col align-self-center text-danger">
+                                  {{ error_message }}
+                                    </div>
+                                  </div>
+                            {% endif %}
+
+                          <div class="row">
+                            <div class="col align-self-center">
+
+                                <form id="create-case-form" action="/create_support_case" method="post">
+                                  <div class="form-group row">
+                                    <label for="componentIdField" class="col-sm-3 col-form-label text-right">Component</label>
+                                    <div class="col-sm-9">
+                                      <select class="custom-select mr-sm-2" id="componentIdField" name="component">
+                                        <!-- The values in the options below are hardcoded from Cases Classification searches:
+                                        https://cloud.google.com/support/docs/reference/rest/v2beta/caseClassifications/search -->  
+                                        <option value="283K6RRDE1QN8P8Q2D0N0S108LN6EQBECKG56T31DPI62SJ4482KUT38CLP440G804" selected>App Engine Standard</option>
+                                        <option value="28444QB741262T3138444QB7A5QMASJP482KUT38CLP440G804" selected>Big Query</option>
+                                        <option value="289L6T3FE9GMEP904OG48OBKC5H62SR5ECD0QGRCDTQM882JEHNN4OB7CKH0AJRKD1IN4GG2100G">Cloud Storage</option> 
+                                        <option value="283K6RRDE1QN8P8Q1P1MURBGELQ6A825DPJMIRJ5482KUT38CLP440G804">Compute Engine</option>
+                                        <option value="2884QOB3D1KMSP909HIM2SJED5N6E6GIAHINGT1DEHNIQKRGCLIM6Q108584I8G59TQ6GPBI8810G08">Text to Speech API</option>
+                                        <option value="283K6RRDE1QN8P8Q2T5NAOJ5E9N6AT35ECG4ARJ7D5N6A8188T5KAA920L7N8Q35E9104201">GKE</option>
+                                        <option value="2854SPBKETNN4QR9DPJHK3IMA11I0JJ5EHRMUSJBD5N6E8G59TQ6GPBI8810G08">VPC Networking</option>
+                                      </select>
+                                    </div>
+                                  </div>
+
+                                  <div class="form-group row">
+                                    <label for="projectIdField" class="col-sm-3 col-form-label text-right">Project ID / Project Number</label>
+                                    <div class="col-sm-9">
+                                      <input type="text" class="form-control" id="projectIdField" name="project"
+                                             placeholder="project id"
+                                             pattern="[a-z0-9-]+"
+                                             onkeyup="fieldIsChanged(this)"
+                                             oninvalid="this.setCustomValidity('Incorrect Project value. Can only contain lowercase letters, numbers, and hyphens')"
+                                             oninput="setCustomValidity('')"
+                                             title="can only contain lowercase letters, numbers, and hyphens">
+                                      <span hidden class="text-danger" id="invalid_projectIdField">Can only contain lowercase letters, numbers, and hyphens</span>
+                                    </div>
+                                  </div>
+
+                                  <div class="form-group row">
+                                    <label for="impactDescriptionIdField" class="col-sm-3 col-form-label text-right">Impact Description</label>
+                                    <div class="col-sm-9">
+                                      <input type="text" class="form-control" id="impactDescriptionIdField" name="impact"
+                                             placeholder="" value="Cymbal Group Red Button Support">
+                                    </div>
+                                  </div>
+
+                                  <div class="form-group row required">
+                                    <label for="googlemeetLinkIdField" class="col-sm-3 col-form-label text-right">Google Meet Link</label>
+                                    <div class="col-sm-9">
+                                      <input required type="text" class="form-control"
+                                             id="googlemeetLinkIdField"
+                                             name="googlemeet_link"
+                                             placeholder="https://meet.google.com/XYZ"
+                                             pattern="https://meet.google.com/[a-z0-9-/]+"
+                                             onkeyup="fieldIsChanged(this)"
+                                             oninvalid="this.setCustomValidity('Incorrect Google Meet Link value. Link should start with https://meet.google.com/...')"
+                                             oninput="setCustomValidity('')"
+                                             title="Link should start with https://meet.google.com/...">
+                                        <span hidden class="text-danger" id="invalid_googlemeetLinkIdField">Incorrect Google Meet Link value. Link should start with https://meet.google.com/...</span>
+                                    </div>
+                                  </div>
+
+                                  <div class="form-group row">
+                                    <label for="subscribersIdField" class="col-sm-3 col-form-label text-right">Subscribers (cc'd emails)</label>
+                                    <div class="col-sm-9">
+                                      <input type="text" class="form-control" id="subscribersIdField" name="subscribers"
+                                             placeholder="email(s), for multiple emails please separate them with comma"
+                                             pattern="\s*(([a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,})\s*,?\s*)+$"
+                                             oninvalid="this.setCustomValidity('This email(s) is not valid, for multiple emails please separate them with comma')"
+                                             oninput="setCustomValidity('')"
+                                             onkeyup="fieldIsChanged(this)">
+                                      <span hidden class="text-danger" id="invalid_subscribersIdField">This email(s) is not valid, for multiple emails please separate them with comma</span>
+                                    </div>
+                                  </div>
+
+                                   <div class="form-group row">
+                                    <label for="commentsField" class="col-sm-3 col-form-label text-right">Comments</label>
+                                    <div class="col-sm-9">
+                                      <textarea class="form-control" id="commentsField" name="comments" rows="2" placeholder="comments..."></textarea>
+                                    </div>
+                                  </div>
+
+                                  <div class="form-group row">
+                                    <div class="col-sm-12">
+                                      <button id="submit-button" onKeyDown="doValidation()" class="btn btn btn-danger" disabled>Create Support Case</button>
+                                    </div>
+                                  </div>
+                                </form>
+
+                            </div>
+                          </div>
+                        </div>
+                        <!-- end form container -->
+
+                    </div>
+                </div>
+            </div>
+          </div>
+        </div>
+
+      <script type="text/javascript">
+
+          function fieldIsChanged(el) {
+              $('#invalid_' + el.id).hide();
+              $("#submit-button").attr("disabled", false);
+          }
+
+          function doValidation() {
+                var googlemeetLink = $('#googlemeetLinkIdField');
+                var subscribers = $('#subscribersIdField');
+                var project = $('#projectIdField');
+
+                if (project.val() !== '') {
+                    var regex = /^(([a-z]*\d*[a-z]*)+-?)+([a-z]|\d)$/;
+                     if(!regex.test(project.val())) {
+                        $('#invalid_projectIdField').show();
+                        return false;
+                     }
+                }
+
+                if (googlemeetLink.val() !== '') {
+                     var regex = /^https\:\/\/meet\.google\..+$/;
+                     if(!regex.test(googlemeetLink.val())) {
+                        $('#invalid_googlemeetLinkIdField').show();
+                        return false;
+                     }
+                }
+
+                if (subscribers.val() !== '') {
+                    var regex = /^\s*((([a-zA-Z0-9_\.\-\+])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+)\s*,?\s*)+$/;
+                     if(!regex.test(subscribers.val())) {
+                        $('#invalid_subscribersIdField').show();
+                        return false;
+                     }
+                }
+                $("#submit-button").attr("disabled", true);
+                return true
+          };
+
+          $(document).ready(function () {
+                $('#invalid_subscribersIdField').hide();
+                $('#invalid_googlemeetLinkIdField').hide();
+                $('#invalid_projectIdField').hide();
+                $("#create-case-form").submit(function () {
+                    return doValidation();
+                });
+          });
+
+      </script>
+
+      {% endblock %}
+  </body>
+</html>

@@ -117,14 +117,16 @@ public class PubSubServer {
         // Republish the message in json format in a new topic
         messagingGateway.sendToPubsub(pubsubDataJsonTopic, messageConverted);
 
+        // Acknowledge incoming Pub/Sub message
+        BasicAcknowledgeablePubsubMessage originalMessage =
+            message
+                .getHeaders()
+                .get(GcpPubSubHeaders.ORIGINAL_MESSAGE, BasicAcknowledgeablePubsubMessage.class);
+        originalMessage.ack();
+
       } catch (IOException e) {
         e.printStackTrace();
       }
-      BasicAcknowledgeablePubsubMessage originalMessage =
-          message
-              .getHeaders()
-              .get(GcpPubSubHeaders.ORIGINAL_MESSAGE, BasicAcknowledgeablePubsubMessage.class);
-      originalMessage.ack();
     };
   }
 
@@ -156,6 +158,7 @@ public class PubSubServer {
   /** Allows publishing messages to the spring output channel. */
   @MessagingGateway(defaultRequestChannel = "outputChannel")
   public interface PubsubOutboundGateway {
+
     void sendToPubsub(@Header(GcpPubSubHeaders.TOPIC) String topic, String message);
   }
 }

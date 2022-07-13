@@ -1,5 +1,7 @@
 # Billboard Overview
-This code implements billboard dataset for standard and detailed billing
+This code implements billboard dataset using standard and detailed billing exports and creates necessary BQ views.
+
+Datastudio template report/dashboard is used to show prebuilt reports based on the BQ views.
 
 
 
@@ -7,6 +9,8 @@ This code implements billboard dataset for standard and detailed billing
 
 You can set-up the right python environment as follows:
 ```
+ cd examples/billboard
+ rm -rf bill-env
  pip install virtualenv
  virtualenv bill-env
  source bill-env/bin/activate
@@ -22,14 +26,26 @@ This step includes the following:
 python billboard.py -h
 ```
 ## Create billboard dataset
- -se  standard billing export dataset
- 
+ -se standard billing export dataset
+ -de detailed billing export dataset 
  -bb billboard dataset to be created
 ```
-python billboard.py -pr <project id> -se <standard billing ds> -bb <billboard_ds>
+
+python billboard.py -pr <project id> -se <standard billing ds> -de <detailed billing ds> -bb <billboard_ds>
+
 ```
-## Clean up
+
+Explore the datastudio dashboard and explore your billing by clicking the link which was the output of the script
+
+#
+
+# If you want to remove this billboard app from your project for any reason, use clean
+
+
+## Clean up ( optional for removing BQ Billboard Views )
+
 ```
-python billboard.py -pr <project id> -se <standard billing ds> -bb <billboard_ds> -clean yes
+
+python billboard.py -pr <project id> -se <standard billing ds> -de <detailed billing ds> -bb <billboard_ds> -clean yes
 
 ```

@@ -22,8 +22,9 @@ Out of the box, you'll have the following functionality:
 
   - [Budget alert notifications](examples/budget-config.yaml)
     - [How to set up programmatic notifications from billing budgets](https://cloud.google.com/billing/docs/how-to/budgets-programmatic-notifications)
-  - [Cloud Security Command Center notifications](examples/scc-config.yaml)
-    - [How to set up finding notifications from SCC](https://cloud.google.com/security-command-center/docs/how-to-notifications)
+  - [Cloud Security Command Center](https://cloud.google.com/security-command-center)
+    - [Email notifications of findings](examples/scc-config.yaml) ([how to set up finding notifications from SCC](https://cloud.google.com/security-command-center/docs/how-to-notifications))
+    - [Create custom findings](examples/scc-finding-config.yaml)
   - [Cloud Storage notifications](examples/storage-config.yaml)
     - [How to set up Cloud Storage notifications](https://cloud.google.com/storage/docs/reporting-changes)
     - For example, you can automatically send reports via email that are generated in a Cloud Storage bucket
@@ -42,6 +43,8 @@ Out of the box, you'll have the following functionality:
      - Useful for example building membership review reports
   - [Groups that allow external members](examples/external-groups-example.yaml) ([general example for Directory API](examples/directory-example.yaml))
   - [GCP projects](examples/projects-example.yaml)
+     - Retrieves a list of projects using Cloud Resource Manager API
+  - [Send SMS messages](examples/twilio-example.yaml)
      - Retrieves a list of projects using Cloud Resource Manager API
   - Any JSON
     - [See the example of generic JSON processing](examples/generic-config.yaml)
@@ -88,6 +91,8 @@ Available output processors are:
   - [logger.py](output/logger.py): Logs message in Cloud Logging.
   - [pubsub.py](output/pubsub.py): Sends one or more Pub/Sub messages.
   - [bigquery.py](output/bigquery.py): Sends output to a BigQuery table via a load job.
+  - [scc.py](output/scc.py): Sends findings to Cloud Security Command Center.
+  - [twilio.py](output/twilio.py): Sends SMS messages via Twilio API.
 
 Please note that the output processors have some IAM requirements to be able to
 pull information from GCP:

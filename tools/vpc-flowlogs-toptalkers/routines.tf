@@ -204,5 +204,5 @@ EOF
     name      = "ip_str"
     data_type = "{\"typeKind\" :  \"STRING\"}"
   }
-  depends_on    = [module.destination]
+  depends_on    = [module.destination, google_bigquery_routine.IP_VERSION]
 }
