@@ -18,6 +18,8 @@ nature with less user input and auto public ip and shared key creation. Customer
 
 ## Terraform variables and values
 
+Modify below variables in terraform.tfvars according to your setup
+
 | variable           | Description                                                                                                                             | Required | Default |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------- |
 | gcp_project_id     | gcp project ID.                                                                                                                         | yes      |         |
