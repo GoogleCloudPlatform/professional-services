@@ -17,17 +17,18 @@ This file is used to create instance from a machine image.
 """
 
 import time
-from unittest import removeResult
 import googleapiclient.discovery
 import logging
+import re
+import json
+
 from . import node_group_mapping
 from . import machine_image
 from .exceptions import GCPOperationException, NotFoundException
 from ratemate import RateLimit
 from . import uri
 from typing import Optional
-import re
-import json
+from unittest import removeResult
 
 RATE_LIMIT = RateLimit(max_count=2000, per=100)
 
@@ -337,7 +338,12 @@ def wait_for_instance(compute, instance_uri: uri.Instance):
 
         time.sleep(10)
 
-def move_to_subnet(instance_uri: uri.Instance, row, to_subnet_uri) -> str:
+def move_to_subnet_and_rename(instance_uri: uri.Instance, row, to_subnet_uri, direction: str) -> str:
+    if direction != 'backup' and direction != 'rollback':
+        logging.error(
+            "bulk_move_instances_to_subnet function: specify a direction: either 'backup' or 'rollback'"
+        )
+        return False
     # ONLY DEALING WITH ONE ZONE SO FAR!
     try:
         waited_time = RATE_LIMIT.wait()  # wait before starting the task
@@ -351,16 +357,31 @@ def move_to_subnet(instance_uri: uri.Instance, row, to_subnet_uri) -> str:
         }
         if 'previous_internal_ip' in row and row['previous_internal_ip'] != None:
             request_body['networkIP'] = row['previous_internal_ip']
-        kwargs = {
+        kwargs_base = {
             "project": instance_uri.project,
             "zone": instance_uri.zone,
-            "instance": instance_uri.name,
-            "networkInterface": "nic0",
-            "body": request_body
+            "instance": instance_uri.name
         }
+        kwargs = kwargs_base.copy()
+        kwargs["networkInterface"] = "nic0"
+        kwargs["body"] = request_body
 
         result = compute.instances().updateNetworkInterface(**kwargs).execute()
         wait_for_zonal_operation(compute, instance_uri, result['name'])
+
+        kwargs = kwargs_base.copy()
+        # rename
+        if direction == 'backup':
+            new_name = kwargs["instance"] + '0'
+        else: # rollback
+            new_name = kwargs["instance"][:-1]
+        kwargs["body"] = {
+            "currentName": kwargs["instance"],
+            "name": new_name
+        }
+        result = compute.instances().setName(**kwargs).execute()
+        wait_for_zonal_operation(compute, instance_uri, result['name'])
+
         return instance_uri.name
     except Exception as ex:
         logging.error(ex)

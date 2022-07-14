@@ -120,12 +120,16 @@ In the process of migration you can optimize the machine types based on the usag
 ## Backup and rollback
 
 ### Backup
-The optional backup functionality (`backup_instances` step) moves the original instances to a backup subnet you specify in the `BACKUP_SUBNET` variable. You have to create a subnet for this manually since you need to specify a CIDR block that will work for you. This subnet has to be in the same region as the source subnet! For usage see the examples below.
+The optional backup functionality (`backup_instances` step) does the following:
+1. It moves the original instances to a backup subnet you specify in the `BACKUP_SUBNET` variable. You have to create a subnet for this manually since you need to specify a CIDR block that will work for you. This subnet has to be in the same region as the source subnet!
+2. Renames the instances: adds a '0' symbol at the end of each instance's name. This is done so that you can still migrate your original instances with the same names. Please make sure that your instances' names are not too long and one more symbol can be added! This is not being checked in the script.
+
+For usage see the examples below.
 
 **Notes**:
 1. Current limitations:
     - work only within one project
-    - works only within one zone
+    - takes into account only one zone (no variables ZONE_2 and so on)
     - only one internal IP of the instances is taken into account
     - instances should only have one nic
 2. In order to work the function needs a "fingerprint" - a unique identifier of the network interface of an instance. This is collected during the `prepare_inventory` step. The `backup_instances` step checks for those fingerprints and aborts if any are not found.
@@ -136,7 +140,7 @@ The optional backup functionality (`backup_instances` step) moves the original i
 
 2. Otherwise, with backup, you first have to prepare the rollback with the `prepare_rollback` step, which populates the `rollback.csv` file with instances to be moved. This will also check the `export.csv` file to find the previous IPs of the instances and match them to the instances. If at least one is not found, the function aborts. Once the rollback file is populated, please check it to ensure the necessary instances get rolled back and that the right IP addresses get assigned.
 
-    Then you execute the `rollback_instances` step, which moves the instances listed in `rollback.csv` from `BACKUP_SUBNET` to `SOURCE_SUBNET`.
+    Then you execute the `rollback_instances` step, which moves the instances listed in `rollback.csv` from `BACKUP_SUBNET` to `SOURCE_SUBNET` and renames them to their original names.
     
     See the examples below.
 

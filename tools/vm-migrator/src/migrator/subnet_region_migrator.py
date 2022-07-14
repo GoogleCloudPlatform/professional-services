@@ -21,6 +21,8 @@ import argparse
 import logging
 import sys
 import concurrent.futures
+import copy
+import json
 
 from . import machine_image
 from . import instance
@@ -33,8 +35,6 @@ from . import fields
 from . import project
 from csv import DictReader
 from csv import DictWriter
-import copy
-import json
 
 
 def bulk_image_create(project, machine_image_region, file_name='export.csv') \
@@ -207,7 +207,12 @@ def bulk_instance_start(file_name) -> bool:
     return result
 
 
-def bulk_move_instances_to_subnet(file_name, to_subnet_uri: uri.Subnet) -> bool:
+def bulk_move_instances_to_subnet(file_name, to_subnet_uri: uri.Subnet, direction: str) -> bool:
+    if direction != 'backup' and direction != 'rollback':
+        logging.error(
+            "bulk_move_instances_to_subnet function: specify a direction: either 'backup' or 'rollback'"
+        )
+        return False
     result = True
     # first go through the whole file and check for instance fingerprints
     with open(file_name, 'r') as read_obj:
@@ -231,7 +236,7 @@ def bulk_move_instances_to_subnet(file_name, to_subnet_uri: uri.Subnet) -> bool:
                 if not row['fingerprint']:
                     logging.error('Missing fingerprint for %s, aborting', row['name'])
                 instance_future.append(
-                    executor.submit(instance.move_to_subnet, instance_uri, row, to_subnet_uri))
+                    executor.submit(instance.move_to_subnet_and_rename, instance_uri, row, to_subnet_uri, direction))
                 count = count + 1
             for future in concurrent.futures.as_completed(instance_future):
                 try:
@@ -612,7 +617,7 @@ def main(step, machine_image_region, source_project,
 
     elif step == 'rollback_instances':
         logging.info('Performing rollback of instances in file %s', rollback_csv)
-        if bulk_move_instances_to_subnet(rollback_csv, source_subnet_uri):
+        if bulk_move_instances_to_subnet(rollback_csv, source_subnet_uri, 'rollback'):
             logging.info('Instances rollback completed successfully')
         else:
             logging.info('Rollback failed, please see the log file for details')
@@ -760,7 +765,7 @@ def main(step, machine_image_region, source_project,
         logging.info(
             'Backing up instances in file %s to backup_subnet_uri=%s',
             input_csv, backup_subnet_uri)
-        if bulk_move_instances_to_subnet(input_csv, backup_subnet_uri):
+        if bulk_move_instances_to_subnet(input_csv, backup_subnet_uri, 'backup'):
             logging.info('Instances backed up successfully')
         else:
             logging.error('Backup of instances failed')
