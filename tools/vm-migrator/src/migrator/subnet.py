@@ -247,7 +247,6 @@ def list_instances_for_rollback(project, zone, backup_subnet_uri: uri.Subnet, pr
     logging.info('Identified %i potential instance(s) in the given zones',
                  len(result['items']))
 
-    prev_ip_question = "Previous IP for instance {} not found, would you like to continue?"
     for instances in result['items']:
         if instances['networkInterfaces'][0]['subnetwork'] \
                 .endswith(backup_subnet_uri.uri):
