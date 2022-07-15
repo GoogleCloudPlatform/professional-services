@@ -134,14 +134,17 @@ For usage see the examples below.
     - instances should only have one nic
 2. In order to work the function needs a "fingerprint" - a unique identifier of the network interface of an instance. This is collected during the `prepare_inventory` step. The `backup_instances` step checks for those fingerprints and aborts if any are not found.
 3. Please make sure you keep the `export.csv` file intact, since if you will need to roll back, this file will be needed (see next section).
+4. **Important**: remember that for any operation requiring moving the instance between subnets it has to be stopped.
 
 ### Rollback
-1. If you did not use the backup functionality, in order to rollback the changes please change the parameters of the source file and interchange the source and destination parameters. Please note that some steps like `crate_machine_image` would not be required to run, as the machine images have already been created.
+1. If you did not use the backup functionality, in order to rollback the changes please change the parameters of the source file and interchange the source and destination parameters. Please note that some steps like `create_machine_image` would not be required to run, as the machine images have already been created.
 
 2. Otherwise, with backup, you first have to prepare the rollback with the `prepare_rollback` step, which populates the `rollback.csv` file with instances to be moved. This will also check the `export.csv` file to find the previous IPs of the instances and match them to the instances. If at least one is not found, the function aborts. Once the rollback file is populated, please check it to ensure the necessary instances get rolled back and that the right IP addresses get assigned.
 
     Then you execute the `rollback_instances` step, which moves the instances listed in `rollback.csv` from `BACKUP_SUBNET` to `SOURCE_SUBNET` and renames them to their original names.
     
+    **Important**: remember that for any operation requiring moving the instance between subnets it has to be stopped.
+
     See the examples below.
 
 ### Clean up backup
