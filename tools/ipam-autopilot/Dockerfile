@@ -19,7 +19,7 @@ ADD ./container /go/src/app
 
 RUN go build -tags docker -o /go/bin/app *.go
 
-FROM gcr.io/distroless/base-debian10
+FROM gcr.io/distroless/base-debian11
 COPY ./container/migrations /migrations
 COPY ./infrastructure/output /terraform
 COPY --from=build /go/bin/app /
