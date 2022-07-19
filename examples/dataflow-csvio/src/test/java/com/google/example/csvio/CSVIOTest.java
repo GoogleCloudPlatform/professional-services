@@ -38,51 +38,49 @@ class CSVIOTest {
 
   private static final String HEADER2 = "ID,VALUE";
 
-  private static final List<CSVRecord> HEADER1_EXPECTED_ROWS = Arrays.asList(
-      TestHelpers.recordFrom(resourceId(1), 1L, HEADER1, "97,a"),
-      TestHelpers.recordFrom(resourceId(1), 2L, HEADER1, "98,b"),
-      TestHelpers.recordFrom(resourceId(1), 3L, HEADER1, "99,c"),
-      TestHelpers.recordFrom(resourceId(2), 1L, HEADER1, "100,d"),
-      TestHelpers.recordFrom(resourceId(2), 2L, HEADER1, "101,e"),
-      TestHelpers.recordFrom(resourceId(2), 3L, HEADER1, "102,f"),
-      TestHelpers.recordFrom(resourceId(3), 1L, HEADER1, "103,g"),
-      TestHelpers.recordFrom(resourceId(3), 2L, HEADER1, "104,h"),
-      TestHelpers.recordFrom(resourceId(3), 3L, HEADER1, "105,i")
-  );
+  private static final List<CSVRecord> HEADER1_EXPECTED_ROWS =
+      Arrays.asList(
+          TestHelpers.recordFrom(resourceId(1), 1L, HEADER1, "97,a"),
+          TestHelpers.recordFrom(resourceId(1), 2L, HEADER1, "98,b"),
+          TestHelpers.recordFrom(resourceId(1), 3L, HEADER1, "99,c"),
+          TestHelpers.recordFrom(resourceId(2), 1L, HEADER1, "100,d"),
+          TestHelpers.recordFrom(resourceId(2), 2L, HEADER1, "101,e"),
+          TestHelpers.recordFrom(resourceId(2), 3L, HEADER1, "102,f"),
+          TestHelpers.recordFrom(resourceId(3), 1L, HEADER1, "103,g"),
+          TestHelpers.recordFrom(resourceId(3), 2L, HEADER1, "104,h"),
+          TestHelpers.recordFrom(resourceId(3), 3L, HEADER1, "105,i"));
 
-  private static final List<CSVRecord> HEADER2_EXPECTED_ROWS = Arrays.asList(
-      TestHelpers.recordFrom(resourceId(4), 1L, HEADER2, "1,0.5"),
-      TestHelpers.recordFrom(resourceId(4), 2L, HEADER2, "2,1.0"),
-      TestHelpers.recordFrom(resourceId(4), 3L, HEADER2, "3,1.5"),
-      TestHelpers.recordFrom(resourceId(5), 1L, HEADER2, "4,2.0"),
-      TestHelpers.recordFrom(resourceId(5), 2L, HEADER2, "5,2.5"),
-      TestHelpers.recordFrom(resourceId(5), 3L, HEADER2, "6,3.0"),
-      TestHelpers.recordFrom(resourceId(6), 1L, HEADER2, "7,3.5"),
-      TestHelpers.recordFrom(resourceId(6), 2L, HEADER2, "8,4.0"),
-      TestHelpers.recordFrom(resourceId(6), 3L, HEADER2, "9,4.5")
-  );
+  private static final List<CSVRecord> HEADER2_EXPECTED_ROWS =
+      Arrays.asList(
+          TestHelpers.recordFrom(resourceId(4), 1L, HEADER2, "1,0.5"),
+          TestHelpers.recordFrom(resourceId(4), 2L, HEADER2, "2,1.0"),
+          TestHelpers.recordFrom(resourceId(4), 3L, HEADER2, "3,1.5"),
+          TestHelpers.recordFrom(resourceId(5), 1L, HEADER2, "4,2.0"),
+          TestHelpers.recordFrom(resourceId(5), 2L, HEADER2, "5,2.5"),
+          TestHelpers.recordFrom(resourceId(5), 3L, HEADER2, "6,3.0"),
+          TestHelpers.recordFrom(resourceId(6), 1L, HEADER2, "7,3.5"),
+          TestHelpers.recordFrom(resourceId(6), 2L, HEADER2, "8,4.0"),
+          TestHelpers.recordFrom(resourceId(6), 3L, HEADER2, "9,4.5"));
 
-  private static final Map<String, List<CSVRecord>> EXPECTED = new HashMap<>() {{
-    this.put(HEADER1, HEADER1_EXPECTED_ROWS);
-    this.put(HEADER2, HEADER2_EXPECTED_ROWS);
-  }};
+  private static final Map<String, List<CSVRecord>> EXPECTED =
+      new HashMap<>() {
+        {
+          this.put(HEADER1, HEADER1_EXPECTED_ROWS);
+          this.put(HEADER2, HEADER2_EXPECTED_ROWS);
+        }
+      };
 
   @Test
   void read() {
     Pipeline p = Pipeline.create();
-    CSVIOReadConfiguration configuration = CSVIOReadConfiguration.builder()
-        .setFilePattern(FILE_PATTERN)
-        .build();
+    CSVIOReadConfiguration configuration =
+        CSVIOReadConfiguration.builder().setFilePattern(FILE_PATTERN).build();
 
-    CSVIO.Read.Result result = p.apply(
-        CSVIO.read()
-            .setConfiguration(configuration)
-            .build()
-    );
+    CSVIO.Read.Result result = p.apply(CSVIO.read().setConfiguration(configuration).build());
 
     for (Entry<String, List<CSVRecord>> expected : EXPECTED.entrySet()) {
-      PCollection<CSVRecord> actual = result.getSuccess()
-          .apply(Filter.by(new FilterByHeader(expected.getKey())));
+      PCollection<CSVRecord> actual =
+          result.getSuccess().apply(Filter.by(new FilterByHeader(expected.getKey())));
       PAssert.that(expected.getKey(), actual).containsInAnyOrder(expected.getValue());
     }
 

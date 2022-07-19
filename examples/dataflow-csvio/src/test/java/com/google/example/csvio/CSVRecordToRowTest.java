@@ -48,8 +48,8 @@ class CSVRecordToRowTest {
 
   private static final String UNREGISTERED_HEADER = "ID,NAME";
 
-  private static final String UNREGISTERED_HEADER_ERROR = String.format(
-      CSVRecordToRow.HEADER_ERROR_FORMAT, UNREGISTERED_HEADER);
+  private static final String UNREGISTERED_HEADER_ERROR =
+      String.format(CSVRecordToRow.HEADER_ERROR_FORMAT, UNREGISTERED_HEADER);
 
   private static final Schema.Field ACTIVE_FIELD = Schema.Field.of("ACTIVE", FieldType.BOOLEAN);
 
@@ -62,101 +62,111 @@ class CSVRecordToRowTest {
   private static final Schema SCHEMA1 = Schema.of(ID_FIELD, NAME_FIELD, VALUE_FIELD);
   private static final Schema SCHEMA2 = Schema.of(ID_FIELD, NAME_FIELD, ACTIVE_FIELD);
 
-  private static final Map<String, Schema> HEADER_REGISTRY = new HashMap<>() {{
-    this.put(REGISTERED_HEADER1, SCHEMA1);
-    this.put(REGISTERED_HEADER2, SCHEMA2);
-  }};
+  private static final Map<String, Schema> HEADER_REGISTRY =
+      new HashMap<>() {
+        {
+          this.put(REGISTERED_HEADER1, SCHEMA1);
+          this.put(REGISTERED_HEADER2, SCHEMA2);
+        }
+      };
 
-  private static final List<CSVRecord> REGISTERED_RECORDS = Arrays.asList(
-      TestHelpers.recordFrom(RESOURCE_ID1, 1L, REGISTERED_HEADER1, "1,a,1.5"),
-      TestHelpers.recordFrom(RESOURCE_ID1, 2L, REGISTERED_HEADER1, "2,b,2.5"),
-      TestHelpers.recordFrom(RESOURCE_ID1, 3L, REGISTERED_HEADER1, "3,c,3.5"),
-      TestHelpers.recordFrom(RESOURCE_ID2, 1L, REGISTERED_HEADER2, "1,a,true"),
-      TestHelpers.recordFrom(RESOURCE_ID2, 2L, REGISTERED_HEADER2, "2,b,false"),
-      TestHelpers.recordFrom(RESOURCE_ID2, 3L, REGISTERED_HEADER2, "3,c,true")
-  );
+  private static final List<CSVRecord> REGISTERED_RECORDS =
+      Arrays.asList(
+          TestHelpers.recordFrom(RESOURCE_ID1, 1L, REGISTERED_HEADER1, "1,a,1.5"),
+          TestHelpers.recordFrom(RESOURCE_ID1, 2L, REGISTERED_HEADER1, "2,b,2.5"),
+          TestHelpers.recordFrom(RESOURCE_ID1, 3L, REGISTERED_HEADER1, "3,c,3.5"),
+          TestHelpers.recordFrom(RESOURCE_ID2, 1L, REGISTERED_HEADER2, "1,a,true"),
+          TestHelpers.recordFrom(RESOURCE_ID2, 2L, REGISTERED_HEADER2, "2,b,false"),
+          TestHelpers.recordFrom(RESOURCE_ID2, 3L, REGISTERED_HEADER2, "3,c,true"));
 
-  private static final List<CSVRecord> UNREGISTERED_RECORDS = Arrays.asList(
-      TestHelpers.recordFrom(RESOURCE_ID1, 1L, UNREGISTERED_HEADER, "1,a"),
-      TestHelpers.recordFrom(RESOURCE_ID1, 2L, UNREGISTERED_HEADER, "2,b"),
-      TestHelpers.recordFrom(RESOURCE_ID1, 3L, UNREGISTERED_HEADER, "3,c")
-  );
+  private static final List<CSVRecord> UNREGISTERED_RECORDS =
+      Arrays.asList(
+          TestHelpers.recordFrom(RESOURCE_ID1, 1L, UNREGISTERED_HEADER, "1,a"),
+          TestHelpers.recordFrom(RESOURCE_ID1, 2L, UNREGISTERED_HEADER, "2,b"),
+          TestHelpers.recordFrom(RESOURCE_ID1, 3L, UNREGISTERED_HEADER, "3,c"));
 
-  private static final Map<String, List<Row>> EXPECTED_REGISTERED_ROWS = new HashMap<>() {{
-    this.put(REGISTERED_HEADER1, Arrays.asList(
-        Row.withSchema(SCHEMA1)
-            .withFieldValue(ID_FIELD.getName(), 1L)
-            .withFieldValue(NAME_FIELD.getName(), "a")
-            .withFieldValue(VALUE_FIELD.getName(), 1.5)
-            .build(),
-        Row.withSchema(SCHEMA1)
-            .withFieldValue(ID_FIELD.getName(), 2L)
-            .withFieldValue(NAME_FIELD.getName(), "b")
-            .withFieldValue(VALUE_FIELD.getName(), 2.5)
-            .build(),
-        Row.withSchema(SCHEMA1)
-            .withFieldValue(ID_FIELD.getName(), 3L)
-            .withFieldValue(NAME_FIELD.getName(), "c")
-            .withFieldValue(VALUE_FIELD.getName(), 3.5)
-            .build()
-    ));
-    this.put(REGISTERED_HEADER2, Arrays.asList(
-        Row.withSchema(SCHEMA2)
-            .withFieldValue(ID_FIELD.getName(), 1L)
-            .withFieldValue(NAME_FIELD.getName(), "a")
-            .withFieldValue(ACTIVE_FIELD.getName(), true)
-            .build(),
-        Row.withSchema(SCHEMA2)
-            .withFieldValue(ID_FIELD.getName(), 2L)
-            .withFieldValue(NAME_FIELD.getName(), "b")
-            .withFieldValue(ACTIVE_FIELD.getName(), false)
-            .build(),
-        Row.withSchema(SCHEMA2)
-            .withFieldValue(ID_FIELD.getName(), 3L)
-            .withFieldValue(NAME_FIELD.getName(), "c")
-            .withFieldValue(ACTIVE_FIELD.getName(), true)
-            .build()
-    ));
-  }};
+  private static final Map<String, List<Row>> EXPECTED_REGISTERED_ROWS =
+      new HashMap<>() {
+        {
+          this.put(
+              REGISTERED_HEADER1,
+              Arrays.asList(
+                  Row.withSchema(SCHEMA1)
+                      .withFieldValue(ID_FIELD.getName(), 1L)
+                      .withFieldValue(NAME_FIELD.getName(), "a")
+                      .withFieldValue(VALUE_FIELD.getName(), 1.5)
+                      .build(),
+                  Row.withSchema(SCHEMA1)
+                      .withFieldValue(ID_FIELD.getName(), 2L)
+                      .withFieldValue(NAME_FIELD.getName(), "b")
+                      .withFieldValue(VALUE_FIELD.getName(), 2.5)
+                      .build(),
+                  Row.withSchema(SCHEMA1)
+                      .withFieldValue(ID_FIELD.getName(), 3L)
+                      .withFieldValue(NAME_FIELD.getName(), "c")
+                      .withFieldValue(VALUE_FIELD.getName(), 3.5)
+                      .build()));
+          this.put(
+              REGISTERED_HEADER2,
+              Arrays.asList(
+                  Row.withSchema(SCHEMA2)
+                      .withFieldValue(ID_FIELD.getName(), 1L)
+                      .withFieldValue(NAME_FIELD.getName(), "a")
+                      .withFieldValue(ACTIVE_FIELD.getName(), true)
+                      .build(),
+                  Row.withSchema(SCHEMA2)
+                      .withFieldValue(ID_FIELD.getName(), 2L)
+                      .withFieldValue(NAME_FIELD.getName(), "b")
+                      .withFieldValue(ACTIVE_FIELD.getName(), false)
+                      .build(),
+                  Row.withSchema(SCHEMA2)
+                      .withFieldValue(ID_FIELD.getName(), 3L)
+                      .withFieldValue(NAME_FIELD.getName(), "c")
+                      .withFieldValue(ACTIVE_FIELD.getName(), true)
+                      .build()));
+        }
+      };
 
-  private static final List<Row> ERRORS = Arrays.asList(
-      TestHelpers.errorFrom(TestHelpers.recordFrom(RESOURCE_ID1, 1L, UNREGISTERED_HEADER, "1,a"),
-          UNREGISTERED_HEADER_ERROR),
-      TestHelpers.errorFrom(TestHelpers.recordFrom(RESOURCE_ID1, 2L, UNREGISTERED_HEADER, "2,b"),
-          UNREGISTERED_HEADER_ERROR),
-      TestHelpers.errorFrom(TestHelpers.recordFrom(RESOURCE_ID1, 3L, UNREGISTERED_HEADER, "3,c"),
-          UNREGISTERED_HEADER_ERROR)
-  );
+  private static final List<Row> ERRORS =
+      Arrays.asList(
+          TestHelpers.errorFrom(
+              TestHelpers.recordFrom(RESOURCE_ID1, 1L, UNREGISTERED_HEADER, "1,a"),
+              UNREGISTERED_HEADER_ERROR),
+          TestHelpers.errorFrom(
+              TestHelpers.recordFrom(RESOURCE_ID1, 2L, UNREGISTERED_HEADER, "2,b"),
+              UNREGISTERED_HEADER_ERROR),
+          TestHelpers.errorFrom(
+              TestHelpers.recordFrom(RESOURCE_ID1, 3L, UNREGISTERED_HEADER, "3,c"),
+              UNREGISTERED_HEADER_ERROR));
 
-  private static final List<TestCase> CASES = Arrays.asList(
-      testCase(
-          "records matching registered headers should populate success PCollection",
-          REGISTERED_RECORDS,
-          EXPECTED_REGISTERED_ROWS,
-          Collections.emptyList()
-      ),
-      testCase(
-          "records matching unregistered headers should populate failure PCollection",
-          UNREGISTERED_RECORDS,
-          new HashMap<>() {{
-            this.put(REGISTERED_HEADER1, Collections.emptyList());
-          }},
-          ERRORS
-      )
-  );
+  private static final List<TestCase> CASES =
+      Arrays.asList(
+          testCase(
+              "records matching registered headers should populate success PCollection",
+              REGISTERED_RECORDS,
+              EXPECTED_REGISTERED_ROWS,
+              Collections.emptyList()),
+          testCase(
+              "records matching unregistered headers should populate failure PCollection",
+              UNREGISTERED_RECORDS,
+              new HashMap<>() {
+                {
+                  this.put(REGISTERED_HEADER1, Collections.emptyList());
+                }
+              },
+              ERRORS));
 
   @Test
   void testRouteCSVRecordsToMatchingHeaderRegistry() {
     for (TestCase caze : CASES) {
       Pipeline p = Pipeline.create();
       PCollection<CSVRecord> input = p.apply(Create.of(caze.input));
-      Result result = input.apply(CSVRecordToRow.builder()
-          .setHeaderSchemaRegistry(HEADER_REGISTRY)
-          .build());
+      Result result =
+          input.apply(CSVRecordToRow.builder().setHeaderSchemaRegistry(HEADER_REGISTRY).build());
 
       PAssert.that(caze.name, result.getFailure()).containsInAnyOrder(caze.expectedFailure);
-      for (Entry<String, PCollection<Row>> actualSuccess : result.getSuccess().getAll()
-          .entrySet()) {
+      for (Entry<String, PCollection<Row>> actualSuccess :
+          result.getSuccess().getAll().entrySet()) {
         List<Row> expected = Collections.emptyList();
         if (caze.expectedSuccess.containsKey(actualSuccess.getKey())) {
           expected = caze.expectedSuccess.get(actualSuccess.getKey());
@@ -186,8 +196,11 @@ class CSVRecordToRowTest {
     }
   }
 
-  private static TestCase testCase(String name, List<CSVRecord> input,
-      Map<String, List<Row>> expectedSuccess, List<Row> expectedFailure) {
+  private static TestCase testCase(
+      String name,
+      List<CSVRecord> input,
+      Map<String, List<Row>> expectedSuccess,
+      List<Row> expectedFailure) {
     return new TestCase(name, input, expectedSuccess, expectedFailure);
   }
 
@@ -198,8 +211,11 @@ class CSVRecordToRowTest {
     private final Map<String, List<Row>> expectedSuccess;
     private final List<Row> expectedFailure;
 
-    private TestCase(String name, List<CSVRecord> input,
-        Map<String, List<Row>> expectedSuccess, List<Row> expectedFailure) {
+    private TestCase(
+        String name,
+        List<CSVRecord> input,
+        Map<String, List<Row>> expectedSuccess,
+        List<Row> expectedFailure) {
       this.name = name;
       this.input = input;
       this.expectedSuccess = expectedSuccess;

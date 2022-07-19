@@ -35,9 +35,7 @@ import org.apache.beam.sdk.values.TupleTag;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import com.google.example.csvio.CSVIO.Read.Result;
 
-/**
- * PTransforms for CSV file processing.
- */
+/** PTransforms for CSV file processing. */
 public class CSVIO {
 
   static final Schema.Field ERROR_FIELD = Schema.Field.of("error", Schema.FieldType.STRING);
@@ -51,21 +49,19 @@ public class CSVIO {
   }
 
   /**
-   * PTransform for reading CSV files based on a {@link CSVIOReadConfiguration}.  Each CSV file must
+   * PTransform for reading CSV files based on a {@link CSVIOReadConfiguration}. Each CSV file must
    * contain a header line but need not share the same header.
    *
-   * The resulting {@link CSVRecord} {@link PCollection} contains the CSV file line as well as its
-   * corresponding header.
+   * <p>The resulting {@link CSVRecord} {@link PCollection} contains the CSV file line as well as
+   * its corresponding header.
    */
   @AutoValue
-  public static abstract class Read extends PTransform<PBegin, Result> {
+  public abstract static class Read extends PTransform<PBegin, Result> {
 
     private static final String TAG_BASE = CSVIO.TAG_BASE + "/" + Read.class.getSimpleName();
 
-    static final TupleTag<CSVRecord> SUCCESS = new TupleTag<>() {
-    };
-    static final TupleTag<Row> FAILURE = new TupleTag<>() {
-    };
+    static final TupleTag<CSVRecord> SUCCESS = new TupleTag<>() {};
+    static final TupleTag<Row> FAILURE = new TupleTag<>() {};
 
     public abstract CSVIOReadConfiguration getConfiguration();
 
@@ -81,32 +77,25 @@ public class CSVIO {
       PCollection<Row> rawRows =
           input.apply(
               TAG_BASE + "/" + ContextualTextIO.class.getSimpleName(),
-              ContextualTextIO.read().from(configuration.getFilePattern()).withRecordNumMetadata()
-          );
+              ContextualTextIO.read().from(configuration.getFilePattern()).withRecordNumMetadata());
 
-      SortContextualHeadersAndRows.Result sortResult = rawRows.apply(
-          TAG_BASE + "/" + SortContextualHeadersAndRows.class.getSimpleName(),
-          SortContextualHeadersAndRows.builder()
-              .setConfiguration(configuration)
-              .build()
-      );
+      SortContextualHeadersAndRows.Result sortResult =
+          rawRows.apply(
+              TAG_BASE + "/" + SortContextualHeadersAndRows.class.getSimpleName(),
+              SortContextualHeadersAndRows.builder().setConfiguration(configuration).build());
 
-      return sortResult.apply(
-          new JoinContextualHeadersAndRows()
-      );
+      return sortResult.apply(new JoinContextualHeadersAndRows());
     }
 
     @AutoValue.Builder
-    public static abstract class Builder {
+    public abstract static class Builder {
 
       public abstract Builder setConfiguration(CSVIOReadConfiguration value);
 
       public abstract Read build();
     }
 
-    /**
-     * The result of a CSV file processing operation.
-     */
+    /** The result of a CSV file processing operation. */
     public static class Result implements PInput, POutput {
 
       private final Pipeline pipeline;
@@ -134,16 +123,17 @@ public class CSVIO {
 
       @Override
       public Map<TupleTag<?>, PValue> expand() {
-        return new HashMap<>() {{
-          this.put(SUCCESS, getSuccess());
-          this.put(FAILURE, getFailure());
-        }};
+        return new HashMap<>() {
+          {
+            this.put(SUCCESS, getSuccess());
+            this.put(FAILURE, getFailure());
+          }
+        };
       }
 
       @Override
-      public void finishSpecifyingOutput(String transformName, PInput input,
-          PTransform<?, ?> transform) {
-      }
+      public void finishSpecifyingOutput(
+          String transformName, PInput input, PTransform<?, ?> transform) {}
     }
   }
 }

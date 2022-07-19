@@ -45,106 +45,86 @@ import com.google.example.csvio.CSVRecordToRow;
  */
 public class ExampleRead {
 
-  private static final String MET_IMAGES_HEADER = "object_id,public_caption,title,original_image_url,caption,is_oasc,gcs_url";
-  private static final String MET_OBJECTS_HEADER = "object_number,is_highlight,is_public_domain,object_id,department,object_name,title,culture,period,dynasty,reign,portfolio,artist_role,artist_prefix,artist_display_name,artist_display_bio,artist_suffix,artist_alpha_sort,artist_nationality,artist_begin_date,artist_end_date,object_date,object_begin_date,object_end_date,medium,dimensions,credit_line,geography_type,city,state,county,country,region,subregion,locale,locus,excavation,river,classification,rights_and_reproduction,link_resource,metadata_date,repository";
+  private static final String MET_IMAGES_HEADER =
+      "object_id,public_caption,title,original_image_url,caption,is_oasc,gcs_url";
+  private static final String MET_OBJECTS_HEADER =
+      "object_number,is_highlight,is_public_domain,object_id,department,object_name,title,culture,period,dynasty,reign,portfolio,artist_role,artist_prefix,artist_display_name,artist_display_bio,artist_suffix,artist_alpha_sort,artist_nationality,artist_begin_date,artist_end_date,object_date,object_begin_date,object_end_date,medium,dimensions,credit_line,geography_type,city,state,county,country,region,subregion,locale,locus,excavation,river,classification,rights_and_reproduction,link_resource,metadata_date,repository";
   private static final AutoValueSchema AUTO_VALUE_SCHEMA = new AutoValueSchema();
-  private static final Map<String, Schema> HEADER_SCHEMA_REGISTRY = new HashMap<>() {{
-    this.put(MET_IMAGES_HEADER, MetImage.getSchema());
-    this.put(MET_OBJECTS_HEADER, MetObject.getSchema());
-  }};
+  private static final Map<String, Schema> HEADER_SCHEMA_REGISTRY =
+      new HashMap<>() {
+        {
+          this.put(MET_IMAGES_HEADER, MetImage.getSchema());
+          this.put(MET_OBJECTS_HEADER, MetObject.getSchema());
+        }
+      };
 
   public static void main(String[] args) {
-    ExampleReadOptions options = PipelineOptionsFactory
-        .fromArgs(args)
-        .withValidation()
-        .as(ExampleReadOptions.class);
+    ExampleReadOptions options =
+        PipelineOptionsFactory.fromArgs(args).withValidation().as(ExampleReadOptions.class);
 
     Pipeline p = Pipeline.create(options);
 
-    CSVIOReadConfiguration configuration = CSVIOReadConfiguration.builder()
-        .setFilePattern(options.getSource())
-        .build();
+    CSVIOReadConfiguration configuration =
+        CSVIOReadConfiguration.builder().setFilePattern(options.getSource()).build();
 
-    CSVIO.Read.Result readResult = p.apply(
-        "ReadCSV",
-        CSVIO.read()
-            .setConfiguration(configuration)
-            .build()
-    );
+    CSVIO.Read.Result readResult =
+        p.apply("ReadCSV", CSVIO.read().setConfiguration(configuration).build());
 
-    readResult.getFailure().apply(
-        "ReadCSV/ErrorsToJson",
-        ToJson.of()
-    ).apply(
-        "ReadCSV/WriteQuarantine",
-        TextIO.write().to(options.getQuarantine())
-    );
+    readResult
+        .getFailure()
+        .apply("ReadCSV/ErrorsToJson", ToJson.of())
+        .apply("ReadCSV/WriteQuarantine", TextIO.write().to(options.getQuarantine()));
 
-    CSVRecordToRow.Result csvRecordToRowResult = readResult.getSuccess().apply(
-        "ParseCSV",
-        CSVRecordToRow.builder()
-            .setHeaderSchemaRegistry(HEADER_SCHEMA_REGISTRY)
-            .build()
-    );
+    CSVRecordToRow.Result csvRecordToRowResult =
+        readResult
+            .getSuccess()
+            .apply(
+                "ParseCSV",
+                CSVRecordToRow.builder().setHeaderSchemaRegistry(HEADER_SCHEMA_REGISTRY).build());
 
-    csvRecordToRowResult.getFailure().apply(
-        "ParseCSV/ErrorsToJson",
-        ToJson.of()
-    ).apply(
-        "ParseCSV/WriteQuarantine",
-        TextIO.write().to(options.getQuarantine())
-    );
+    csvRecordToRowResult
+        .getFailure()
+        .apply("ParseCSV/ErrorsToJson", ToJson.of())
+        .apply("ParseCSV/WriteQuarantine", TextIO.write().to(options.getQuarantine()));
 
     PCollectionRowTuple pcrt = csvRecordToRowResult.getSuccess();
     PCollection<Row> imageRows = pcrt.get(MET_IMAGES_HEADER);
     PCollection<Row> objectRows = pcrt.get(MET_OBJECTS_HEADER);
 
-    PCollection<MetImage> images = imageRows.apply(
-        "Serialize/MetImage",
-        MapElements.into(
-            TypeDescriptor.of(MetImage.class)
-        ).via(MetImage.getFromRowSerializeableFunction())
-    );
+    PCollection<MetImage> images =
+        imageRows.apply(
+            "Serialize/MetImage",
+            MapElements.into(TypeDescriptor.of(MetImage.class))
+                .via(MetImage.getFromRowSerializeableFunction()));
 
-    PCollection<MetObject> objects = objectRows.apply(
-        "Serialize/MetObject",
-        MapElements.into(
-            TypeDescriptor.of(MetObject.class)
-        ).via(MetObject.getFromRowSerializeableFunction())
-    );
+    PCollection<MetObject> objects =
+        objectRows.apply(
+            "Serialize/MetObject",
+            MapElements.into(TypeDescriptor.of(MetObject.class))
+                .via(MetObject.getFromRowSerializeableFunction()));
 
-    images.apply(
-        "MetImage/ToJson",
-        ToJson.of()
-    ).apply(
-        "MetImage/Write",
-        TextIO.write().to(options.getSink() + "/images")
-    );
+    images
+        .apply("MetImage/ToJson", ToJson.of())
+        .apply("MetImage/Write", TextIO.write().to(options.getSink() + "/images"));
 
-    objects.apply(
-        "MetObjects/ToJson",
-        ToJson.of()
-    ).apply(
-        "MetObjects/Write",
-        TextIO.write().to(options.getSink() + "/objects")
-    );
+    objects
+        .apply("MetObjects/ToJson", ToJson.of())
+        .apply("MetObjects/Write", TextIO.write().to(options.getSink() + "/objects"));
 
     p.run();
   }
 
-  /**
-   * A representation of the Metropolitan Museum of Art BigQuery dataset's images table.
-   */
+  /** A representation of the Metropolitan Museum of Art BigQuery dataset's images table. */
   @DefaultSchema(AutoValueSchema.class)
   @SchemaCaseFormat(CaseFormat.LOWER_UNDERSCORE)
   @AutoValue
-  static abstract class MetImage {
+  abstract static class MetImage {
 
     private static final TypeDescriptor<MetImage> TYPE_DESCRIPTOR =
         TypeDescriptor.of(MetImage.class);
     private static final Schema SCHEMA = AUTO_VALUE_SCHEMA.schemaFor(TYPE_DESCRIPTOR);
-    private static final SerializableFunction<Row, MetImage> FROM_ROW_SERIALIZABLE_FUNCTION
-        = AUTO_VALUE_SCHEMA.fromRowFunction(TYPE_DESCRIPTOR);
+    private static final SerializableFunction<Row, MetImage> FROM_ROW_SERIALIZABLE_FUNCTION =
+        AUTO_VALUE_SCHEMA.fromRowFunction(TYPE_DESCRIPTOR);
 
     static Schema getSchema() {
       return SCHEMA;
@@ -172,7 +152,7 @@ public class ExampleRead {
     abstract String getGcsUrl();
 
     @AutoValue.Builder
-    static abstract class Builder {
+    abstract static class Builder {
 
       abstract Builder setObjectId(Integer value);
 
@@ -192,19 +172,17 @@ public class ExampleRead {
     }
   }
 
-  /**
-   * A representation of the Metropolitan Museum of Art BigQuery dataset's objects table.
-   */
+  /** A representation of the Metropolitan Museum of Art BigQuery dataset's objects table. */
   @DefaultSchema(AutoValueSchema.class)
   @SchemaCaseFormat(CaseFormat.LOWER_UNDERSCORE)
   @AutoValue
-  static abstract class MetObject {
+  abstract static class MetObject {
 
     private static final TypeDescriptor<MetObject> TYPE_DESCRIPTOR =
         TypeDescriptor.of(MetObject.class);
     private static final Schema SCHEMA = AUTO_VALUE_SCHEMA.schemaFor(TYPE_DESCRIPTOR);
-    private static final SerializableFunction<Row, MetObject> FROM_ROW_SERIALIZABLE_FUNCTION
-        = AUTO_VALUE_SCHEMA.fromRowFunction(TYPE_DESCRIPTOR);
+    private static final SerializableFunction<Row, MetObject> FROM_ROW_SERIALIZABLE_FUNCTION =
+        AUTO_VALUE_SCHEMA.fromRowFunction(TYPE_DESCRIPTOR);
 
     static Schema getSchema() {
       return SCHEMA;
@@ -333,7 +311,7 @@ public class ExampleRead {
     abstract String getRepository();
 
     @AutoValue.Builder
-    static abstract class Builder {
+    abstract static class Builder {
 
       public abstract Builder setObjectNumber(String value);
 

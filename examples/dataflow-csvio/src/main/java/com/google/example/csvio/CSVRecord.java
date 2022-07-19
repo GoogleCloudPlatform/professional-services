@@ -20,61 +20,41 @@ import com.google.auto.value.AutoValue;
 import org.apache.beam.sdk.schemas.AutoValueSchema;
 import org.apache.beam.sdk.schemas.annotations.DefaultSchema;
 
-/**
- * The result of processing CSV files.
- */
+/** The result of processing CSV files. */
 @DefaultSchema(AutoValueSchema.class)
 @AutoValue
 public abstract class CSVRecord {
 
-  /**
-   * Instantiates a {@link Builder}.
-   */
+  /** Instantiates a {@link Builder}. */
   public static Builder builder() {
     return new AutoValue_CSVRecord.Builder();
   }
 
-  /**
-   * The contextual header of the CSV record.
-   */
+  /** The contextual header of the CSV record. */
   public abstract String getHeader();
 
-  /**
-   * The data of the CSV record.
-   */
+  /** The data of the CSV record. */
   public abstract String getRecord();
 
-  /**
-   * The original file from which the CSV record was parsed.
-   */
+  /** The original file from which the CSV record was parsed. */
   public abstract String getResourceId();
 
-  /**
-   * The contextual line number of the CSV record.
-   */
+  /** The contextual line number of the CSV record. */
   public abstract Long getLineNumber();
 
   @AutoValue.Builder
-  public static abstract class Builder {
+  public abstract static class Builder {
 
-    /**
-     * The contextual header of the CSV record.
-     */
+    /** The contextual header of the CSV record. */
     public abstract Builder setHeader(String value);
 
-    /**
-     * The data of the CSV record.
-     */
+    /** The data of the CSV record. */
     public abstract Builder setRecord(String value);
 
-    /**
-     * The original file from which the CSV record was parsed.
-     */
+    /** The original file from which the CSV record was parsed. */
     public abstract Builder setResourceId(String value);
 
-    /**
-     * The contextual line number of the CSV record.
-     */
+    /** The contextual line number of the CSV record. */
     public abstract Builder setLineNumber(Long value);
 
     public abstract CSVRecord build();

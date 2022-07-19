@@ -38,8 +38,7 @@ class TestHelpers {
         .build();
   }
 
-  static CSVRecord recordFrom(String resourceId, Long recordNum, String header,
-      String record) {
+  static CSVRecord recordFrom(String resourceId, Long recordNum, String header, String record) {
     Row row = rowFrom(resourceId, record, recordNum);
     RecordWithMetadataHelper helper = RecordWithMetadataHelper.of(row);
     return CSVRecord.builder()
@@ -99,8 +98,7 @@ class TestHelpers {
     }
 
     @Override
-    public @Nullable
-    String getFilename() {
+    public @Nullable String getFilename() {
       return this.name;
     }
 

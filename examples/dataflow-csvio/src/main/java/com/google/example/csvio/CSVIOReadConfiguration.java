@@ -20,9 +20,7 @@ import com.google.auto.value.AutoValue;
 import java.io.Serializable;
 import javax.annotation.Nullable;
 
-/**
- * Configuration for reading CSV files used in combination with {@link CSVIO.Read}.
- */
+/** Configuration for reading CSV files used in combination with {@link CSVIO.Read}. */
 @AutoValue
 public abstract class CSVIOReadConfiguration implements Serializable {
 
@@ -30,20 +28,14 @@ public abstract class CSVIOReadConfiguration implements Serializable {
     return new AutoValue_CSVIOReadConfiguration.Builder();
   }
 
-  /**
-   * The source file path blob pattern for the CSV files.
-   */
+  /** The source file path blob pattern for the CSV files. */
   public abstract String getFilePattern();
 
-  /**
-   * The expected header position line number.  Defaults to finding the first non-empty line.
-   */
+  /** The expected header position line number. Defaults to finding the first non-empty line. */
   @Nullable
   public abstract Long getHeaderPosition();
 
-  /**
-   * The header regular expression to match when finding the header line.
-   */
+  /** The header regular expression to match when finding the header line. */
   @Nullable
   public abstract String getHeaderMatchRegex();
 
@@ -60,7 +52,7 @@ public abstract class CSVIOReadConfiguration implements Serializable {
   }
 
   @AutoValue.Builder
-  public static abstract class Builder {
+  public abstract static class Builder {
 
     public abstract Builder setFilePattern(String value);
 

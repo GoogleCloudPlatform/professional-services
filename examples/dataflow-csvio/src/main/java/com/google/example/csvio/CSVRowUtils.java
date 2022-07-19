@@ -29,9 +29,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 
-/**
- * Helpers to process CSV data into its expected {@link Schema.Field} types.
- */
+/** Helpers to process CSV data into its expected {@link Schema.Field} types. */
 class CSVRowUtils {
 
   static Row csvLineToRow(CSVFormat csvFormat, String header, String line, Schema schema) {
@@ -42,11 +40,7 @@ class CSVRowUtils {
       List<CSVRecord> headerRecordsRaw = headerParser.getRecords();
       if (headerRecordsRaw.size() != 1) {
         throw new IllegalArgumentException(
-            String.format(
-                "header should be a single CSVRecord, got: %d",
-                headerRecordsRaw.size()
-            )
-        );
+            String.format("header should be a single CSVRecord, got: %d", headerRecordsRaw.size()));
       }
 
       CSVRecord headerRecord = headerRecordsRaw.get(0);
@@ -54,11 +48,7 @@ class CSVRowUtils {
       List<CSVRecord> lineRecordsRaw = lineParser.getRecords();
       if (lineRecordsRaw.size() != 1) {
         throw new IllegalArgumentException(
-            String.format(
-                "line should be a single CSVRecord, got: %d",
-                headerRecordsRaw.size()
-            )
-        );
+            String.format("line should be a single CSVRecord, got: %d", headerRecordsRaw.size()));
       }
 
       CSVRecord lineRecord = lineRecordsRaw.get(0);
@@ -67,20 +57,14 @@ class CSVRowUtils {
         throw new IllegalArgumentException(
             String.format(
                 "mismatch of header size and schema size. header: %d vs schema: %d",
-                headerRecord.size(),
-                schema.getFieldCount()
-            )
-        );
+                headerRecord.size(), schema.getFieldCount()));
       }
 
       if (lineRecord.size() != schema.getFieldCount()) {
         throw new IllegalArgumentException(
             String.format(
                 "mismatch of line size and schema size. line: %d vs schema: %d",
-                lineRecord.size(),
-                schema.getFieldCount()
-            )
-        );
+                lineRecord.size(), schema.getFieldCount()));
       }
 
       return csvRecordToRow(headerRecord, lineRecord, schema);
@@ -106,17 +90,13 @@ class CSVRowUtils {
     return Row.withSchema(schema).withFieldValues(fieldValues).build();
   }
 
-  /**
-   * Populates fieldValues of a {@link Field} and {@link String} value.
-   */
+  /** Populates fieldValues of a {@link Field} and {@link String} value. */
   static void parseField(Map<String, Object> fieldValues, Field field, String value) {
     Object castedValue = autoCastField(field, value);
     fieldValues.put(field.getName(), castedValue);
   }
 
-  /**
-   * Converts the rawObj informed by the {@link Schema.Field} field {@link FieldType}.
-   */
+  /** Converts the rawObj informed by the {@link Schema.Field} field {@link FieldType}. */
   static Object autoCastField(Schema.Field field, @Nullable Object rawObj) {
     if (rawObj == null) {
       if (!field.getType().getNullable()) {
@@ -148,8 +128,7 @@ class CSVRowUtils {
       case DOUBLE:
         return Double.valueOf(raw);
       default:
-        throw new UnsupportedOperationException(
-            String.format("type %s is not supported", type));
+        throw new UnsupportedOperationException(String.format("type %s is not supported", type));
     }
   }
 }

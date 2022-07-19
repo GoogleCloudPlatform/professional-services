@@ -24,38 +24,34 @@ import org.junit.jupiter.api.Test;
 
 class CSVIOReadConfigurationTest {
 
-  private static final List<TestCase> cases = Arrays.asList(
-      testCase(
-          "default configuration should be valid",
-          CSVIOReadConfiguration.builder().setFilePattern("source")
-      ),
-      testCase(
-          "fixed header >= 0 should be valid",
-          CSVIOReadConfiguration.builder().setFilePattern("source")
-              .setHeaderPosition(0L)
-      ),
-      testCase(
-          "setting header regex match only should be valid",
-          CSVIOReadConfiguration.builder().setFilePattern("source")
-              .setHeaderMatchRegex("id,name,active")
-      ),
-      testCase(
-          "setting both header position and header regex should be invalid",
-          CSVIOReadConfiguration.builder().setFilePattern("source")
-              .setHeaderMatchRegex("^matchme.*$")
-              .setHeaderPosition(1L)
-      ).inValidExpected(),
-      testCase(
-          "setting header position < 0 should be invalid",
-          CSVIOReadConfiguration.builder().setFilePattern("source")
-              .setHeaderPosition(-1L)
-      ).inValidExpected(),
-      testCase(
-          "setting empty regex match should be invalid",
-          CSVIOReadConfiguration.builder().setFilePattern("source")
-              .setHeaderMatchRegex("")
-      ).inValidExpected()
-  );
+  private static final List<TestCase> cases =
+      Arrays.asList(
+          testCase(
+              "default configuration should be valid",
+              CSVIOReadConfiguration.builder().setFilePattern("source")),
+          testCase(
+              "fixed header >= 0 should be valid",
+              CSVIOReadConfiguration.builder().setFilePattern("source").setHeaderPosition(0L)),
+          testCase(
+              "setting header regex match only should be valid",
+              CSVIOReadConfiguration.builder()
+                  .setFilePattern("source")
+                  .setHeaderMatchRegex("id,name,active")),
+          testCase(
+                  "setting both header position and header regex should be invalid",
+                  CSVIOReadConfiguration.builder()
+                      .setFilePattern("source")
+                      .setHeaderMatchRegex("^matchme.*$")
+                      .setHeaderPosition(1L))
+              .inValidExpected(),
+          testCase(
+                  "setting header position < 0 should be invalid",
+                  CSVIOReadConfiguration.builder().setFilePattern("source").setHeaderPosition(-1L))
+              .inValidExpected(),
+          testCase(
+                  "setting empty regex match should be invalid",
+                  CSVIOReadConfiguration.builder().setFilePattern("source").setHeaderMatchRegex(""))
+              .inValidExpected());
 
   @Test
   void validate() {

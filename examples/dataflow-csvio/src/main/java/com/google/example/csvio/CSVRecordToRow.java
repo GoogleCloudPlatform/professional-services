@@ -41,12 +41,12 @@ import org.apache.commons.csv.CSVFormat;
 /**
  * PTransform that converts a {@link CSVRecord} {@link PCollection} to a {@link Result}.
  *
- * For each header {@link Schema} pair, the resulting {@link PCollectionRowTuple} contains a {@link
- * Row} {@link PCollection} tagged with the header.
+ * <p>For each header {@link Schema} pair, the resulting {@link PCollectionRowTuple} contains a
+ * {@link Row} {@link PCollection} tagged with the header.
  */
 @AutoValue
-public abstract class CSVRecordToRow extends
-    PTransform<PCollection<CSVRecord>, CSVRecordToRow.Result> {
+public abstract class CSVRecordToRow
+    extends PTransform<PCollection<CSVRecord>, CSVRecordToRow.Result> {
 
   public static Builder builder() {
     return new AutoValue_CSVRecordToRow.Builder();
@@ -54,8 +54,7 @@ public abstract class CSVRecordToRow extends
 
   private static final String TAG_BASE = CSVRecordToRow.class.getSimpleName();
 
-  static final TupleTag<Row> FAILURE = new TupleTag<>() {
-  };
+  static final TupleTag<Row> FAILURE = new TupleTag<>() {};
   static final String HEADER_ERROR_FORMAT = "header not found in schema registry: %s";
 
   private static final Gson GSON = new Gson();
@@ -63,15 +62,13 @@ public abstract class CSVRecordToRow extends
   private Map<String, TupleTag<Row>> tupleTags;
   private TupleTagList tupleTagList;
 
-  /**
-   * The mapping of a header to its expected {@link Schema}.
-   */
+  /** The mapping of a header to its expected {@link Schema}. */
   public abstract Map<String, Schema> getHeaderSchemaRegistry();
 
   /**
    * The expected {@link CSVFormat} of the CSV records and header.
    *
-   * Defaults to {@link CSVFormat#DEFAULT}.
+   * <p>Defaults to {@link CSVFormat#DEFAULT}.
    */
   @Nullable
   public abstract CSVFormat getCSVFormat();
@@ -106,11 +103,10 @@ public abstract class CSVRecordToRow extends
   @Override
   public Result expand(PCollection<CSVRecord> input) {
     TupleTagList tupleTagList = getOrCreateTupleTagList();
-    PCollectionTuple pct = input.apply(
-        TAG_BASE + "/" + CSVRecordToRowFn.class.getSimpleName(),
-        ParDo.of(new CSVRecordToRowFn(this))
-            .withOutputTags(FAILURE, tupleTagList)
-    );
+    PCollectionTuple pct =
+        input.apply(
+            TAG_BASE + "/" + CSVRecordToRowFn.class.getSimpleName(),
+            ParDo.of(new CSVRecordToRowFn(this)).withOutputTags(FAILURE, tupleTagList));
 
     PCollectionRowTuple success = PCollectionRowTuple.empty(input.getPipeline());
     for (TupleTag<Row> tag : getOrCreateTupleTags().values()) {
@@ -118,13 +114,11 @@ public abstract class CSVRecordToRow extends
       success = success.and(tag.getId(), pct.get(tag).setRowSchema(schema));
     }
 
-    return new Result(input.getPipeline(), pct.get(FAILURE).setRowSchema(CSVIO.ERROR_SCHEMA),
-        success);
+    return new Result(
+        input.getPipeline(), pct.get(FAILURE).setRowSchema(CSVIO.ERROR_SCHEMA), success);
   }
 
-  /**
-   * The {@link DoFn} responsible for converting a {@link CSVRecord} into a {@link Row}.
-   */
+  /** The {@link DoFn} responsible for converting a {@link CSVRecord} into a {@link Row}. */
   static class CSVRecordToRowFn extends DoFn<CSVRecord, Row> {
 
     private final CSVRecordToRow spec;
@@ -153,20 +147,20 @@ public abstract class CSVRecordToRow extends
             Row.withSchema(CSVIO.ERROR_SCHEMA)
                 .withFieldValue(CSVIO.ERROR_FIELD.getName(), e.getMessage())
                 .withFieldValue(CSVIO.REFERENCE_FIELD.getName(), GSON.toJson(input))
-                .build()
-        );
+                .build());
       }
     }
 
     private void process(ProcessContext ctx, TupleTag<Row> tag, Schema schema, CSVRecord input) {
-      Row row = CSVRowUtils.csvLineToRow(spec.getOrDefaultCSVFormat(), input.getHeader(),
-          input.getRecord(), schema);
+      Row row =
+          CSVRowUtils.csvLineToRow(
+              spec.getOrDefaultCSVFormat(), input.getHeader(), input.getRecord(), schema);
       ctx.output(tag, row);
     }
   }
 
   @AutoValue.Builder
-  public static abstract class Builder {
+  public abstract static class Builder {
 
     public abstract Builder setHeaderSchemaRegistry(Map<String, Schema> value);
 
@@ -175,17 +169,14 @@ public abstract class CSVRecordToRow extends
     public abstract CSVRecordToRow build();
   }
 
-  /**
-   * The result of processing CSV records into a schema aware {@link Row} {@link PCollection}.
-   */
+  /** The result of processing CSV records into a schema aware {@link Row} {@link PCollection}. */
   public static class Result implements POutput {
 
     private final Pipeline pipeline;
     private final PCollection<Row> failure;
     private final PCollectionRowTuple success;
 
-    Result(Pipeline pipeline,
-        PCollection<Row> failure, PCollectionRowTuple success) {
+    Result(Pipeline pipeline, PCollection<Row> failure, PCollectionRowTuple success) {
       this.pipeline = pipeline;
       this.failure = failure;
       this.success = success;
@@ -210,9 +201,7 @@ public abstract class CSVRecordToRow extends
     }
 
     @Override
-    public void finishSpecifyingOutput(String transformName, PInput input,
-        PTransform<?, ?> transform) {
-
-    }
+    public void finishSpecifyingOutput(
+        String transformName, PInput input, PTransform<?, ?> transform) {}
   }
 }

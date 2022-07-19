@@ -54,16 +54,16 @@ class JoinContextualHeadersAndRows
     PCollection<Row> headers = input.getHeaders();
     PCollection<Row> rows = input.getRows();
 
-    PCollection<Row> joined = rows.apply(
-        TAG_BASE + "/LeftOuterJoin",
-        Join.<Row, Row>leftOuterJoin(headers).using(resourceIdFieldName)
-    );
+    PCollection<Row> joined =
+        rows.apply(
+            TAG_BASE + "/LeftOuterJoin",
+            Join.<Row, Row>leftOuterJoin(headers).using(resourceIdFieldName));
 
-    PCollectionTuple pct = joined.apply(
-        TAG_BASE + "/" + ParseJoinedHeadersAndRowsFn.class.getSimpleName(),
-        ParDo.of(new ParseJoinedHeadersAndRowsFn())
-            .withOutputTags(SUCCESS, TupleTagList.of(FAILURE))
-    );
+    PCollectionTuple pct =
+        joined.apply(
+            TAG_BASE + "/" + ParseJoinedHeadersAndRowsFn.class.getSimpleName(),
+            ParDo.of(new ParseJoinedHeadersAndRowsFn())
+                .withOutputTags(SUCCESS, TupleTagList.of(FAILURE)));
 
     return new CSVIO.Read.Result(pct);
   }
@@ -79,18 +79,20 @@ class JoinContextualHeadersAndRows
       Row input = Objects.requireNonNull(ctx.element());
       SortContextualHeadersAndRows.RecordWithMetadataHelper row =
           SortContextualHeadersAndRows.RecordWithMetadataHelper.of(input.getRow(Join.LHS_TAG));
-      CSVRecord.Builder builder = CSVRecord.builder()
-          .setLineNumber(row.getRecordNum())
-          .setRecord(row.getValue())
-          .setResourceId(row.getResourceId());
+      CSVRecord.Builder builder =
+          CSVRecord.builder()
+              .setLineNumber(row.getRecordNum())
+              .setRecord(row.getValue())
+              .setResourceId(row.getResourceId());
 
       if (input.getRow(Join.RHS_TAG) == null) {
         CSVRecord record = builder.setHeader("").build();
         String reference = GSON.toJson(record);
-        Row error = Row.withSchema(ERROR_SCHEMA)
-            .withFieldValue(ERROR_FIELD.getName(), NULL_HEADER_MESSAGE)
-            .withFieldValue(REFERENCE_FIELD.getName(), reference)
-            .build();
+        Row error =
+            Row.withSchema(ERROR_SCHEMA)
+                .withFieldValue(ERROR_FIELD.getName(), NULL_HEADER_MESSAGE)
+                .withFieldValue(REFERENCE_FIELD.getName(), reference)
+                .build();
         ctx.output(FAILURE, error);
         return;
       }
