@@ -62,8 +62,10 @@ public class CSVIO {
 
     private static final String TAG_BASE = CSVIO.TAG_BASE + "/" + Read.class.getSimpleName();
 
-    static final TupleTag<CSVRecord> SUCCESS = new TupleTag<>(){};
-    static final TupleTag<Row> FAILURE = new TupleTag<>(){};
+    static final TupleTag<CSVRecord> SUCCESS = new TupleTag<>() {
+    };
+    static final TupleTag<Row> FAILURE = new TupleTag<>() {
+    };
 
     public abstract CSVIOReadConfiguration getConfiguration();
 
@@ -132,7 +134,7 @@ public class CSVIO {
 
       @Override
       public Map<TupleTag<?>, PValue> expand() {
-        return new HashMap<>(){{
+        return new HashMap<>() {{
           this.put(SUCCESS, getSuccess());
           this.put(FAILURE, getFailure());
         }};
@@ -140,7 +142,8 @@ public class CSVIO {
 
       @Override
       public void finishSpecifyingOutput(String transformName, PInput input,
-          PTransform<?, ?> transform) {}
+          PTransform<?, ?> transform) {
+      }
     }
   }
 }

@@ -24,66 +24,67 @@ import org.junit.jupiter.api.Test;
 
 class CSVIOReadConfigurationTest {
 
-    private static final List<TestCase> cases = Arrays.asList(
-            testCase(
-                    "default configuration should be valid",
-                    CSVIOReadConfiguration.builder().setFilePattern("source")
-            ),
-            testCase(
-                    "fixed header >= 0 should be valid",
-                    CSVIOReadConfiguration.builder().setFilePattern("source")
-                            .setHeaderPosition(0L)
-            ),
-            testCase(
-                    "setting header regex match only should be valid",
-                    CSVIOReadConfiguration.builder().setFilePattern("source")
-                            .setHeaderMatchRegex("id,name,active")
-            ),
-            testCase(
-                    "setting both header position and header regex should be invalid",
-                    CSVIOReadConfiguration.builder().setFilePattern("source")
-                            .setHeaderMatchRegex("^matchme.*$")
-                            .setHeaderPosition(1L)
-            ).inValidExpected(),
-            testCase(
-                    "setting header position < 0 should be invalid",
-                    CSVIOReadConfiguration.builder().setFilePattern("source")
-                            .setHeaderPosition(-1L)
-            ).inValidExpected(),
-            testCase(
-                    "setting empty regex match should be invalid",
-                    CSVIOReadConfiguration.builder().setFilePattern("source")
-                            .setHeaderMatchRegex("")
-            ).inValidExpected()
-    );
+  private static final List<TestCase> cases = Arrays.asList(
+      testCase(
+          "default configuration should be valid",
+          CSVIOReadConfiguration.builder().setFilePattern("source")
+      ),
+      testCase(
+          "fixed header >= 0 should be valid",
+          CSVIOReadConfiguration.builder().setFilePattern("source")
+              .setHeaderPosition(0L)
+      ),
+      testCase(
+          "setting header regex match only should be valid",
+          CSVIOReadConfiguration.builder().setFilePattern("source")
+              .setHeaderMatchRegex("id,name,active")
+      ),
+      testCase(
+          "setting both header position and header regex should be invalid",
+          CSVIOReadConfiguration.builder().setFilePattern("source")
+              .setHeaderMatchRegex("^matchme.*$")
+              .setHeaderPosition(1L)
+      ).inValidExpected(),
+      testCase(
+          "setting header position < 0 should be invalid",
+          CSVIOReadConfiguration.builder().setFilePattern("source")
+              .setHeaderPosition(-1L)
+      ).inValidExpected(),
+      testCase(
+          "setting empty regex match should be invalid",
+          CSVIOReadConfiguration.builder().setFilePattern("source")
+              .setHeaderMatchRegex("")
+      ).inValidExpected()
+  );
 
-    @Test
-    void validate() {
-        for (TestCase caze : cases) {
-            CSVIOReadConfiguration configuration = caze.input.build();
-            if (!caze.expectValid) {
-                assertThrows(IllegalArgumentException.class, configuration::validate, caze.name);
-            }
-        }
+  @Test
+  void validate() {
+    for (TestCase caze : cases) {
+      CSVIOReadConfiguration configuration = caze.input.build();
+      if (!caze.expectValid) {
+        assertThrows(IllegalArgumentException.class, configuration::validate, caze.name);
+      }
+    }
+  }
+
+  private static TestCase testCase(String name, CSVIOReadConfiguration.Builder input) {
+    return new TestCase(name, input);
+  }
+
+  private static class TestCase {
+
+    private final String name;
+    private final CSVIOReadConfiguration.Builder input;
+    private boolean expectValid = true;
+
+    TestCase(String name, CSVIOReadConfiguration.Builder input) {
+      this.name = name;
+      this.input = input;
     }
 
-    private static TestCase testCase(String name, CSVIOReadConfiguration.Builder input) {
-        return new TestCase(name, input);
+    TestCase inValidExpected() {
+      this.expectValid = false;
+      return this;
     }
-
-    private static class TestCase {
-        private final String name;
-        private final CSVIOReadConfiguration.Builder input;
-        private boolean expectValid = true;
-
-        TestCase(String name, CSVIOReadConfiguration.Builder input) {
-            this.name = name;
-            this.input = input;
-        }
-
-        TestCase inValidExpected() {
-            this.expectValid = false;
-            return this;
-        }
-    }
+  }
 }

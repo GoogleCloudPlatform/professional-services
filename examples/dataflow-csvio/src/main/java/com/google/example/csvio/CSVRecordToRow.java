@@ -41,11 +41,12 @@ import org.apache.commons.csv.CSVFormat;
 /**
  * PTransform that converts a {@link CSVRecord} {@link PCollection} to a {@link Result}.
  *
- * For each header {@link Schema} pair, the resulting {@link PCollectionRowTuple} contains a
- * {@link Row} {@link PCollection} tagged with the header.
+ * For each header {@link Schema} pair, the resulting {@link PCollectionRowTuple} contains a {@link
+ * Row} {@link PCollection} tagged with the header.
  */
 @AutoValue
-public abstract class CSVRecordToRow extends PTransform<PCollection<CSVRecord>, CSVRecordToRow.Result> {
+public abstract class CSVRecordToRow extends
+    PTransform<PCollection<CSVRecord>, CSVRecordToRow.Result> {
 
   public static Builder builder() {
     return new AutoValue_CSVRecordToRow.Builder();
@@ -53,7 +54,8 @@ public abstract class CSVRecordToRow extends PTransform<PCollection<CSVRecord>, 
 
   private static final String TAG_BASE = CSVRecordToRow.class.getSimpleName();
 
-  static final TupleTag<Row> FAILURE = new TupleTag<>(){};
+  static final TupleTag<Row> FAILURE = new TupleTag<>() {
+  };
   static final String HEADER_ERROR_FORMAT = "header not found in schema registry: %s";
 
   private static final Gson GSON = new Gson();
@@ -61,7 +63,9 @@ public abstract class CSVRecordToRow extends PTransform<PCollection<CSVRecord>, 
   private Map<String, TupleTag<Row>> tupleTags;
   private TupleTagList tupleTagList;
 
-  /** The mapping of a header to its expected {@link Schema}. */
+  /**
+   * The mapping of a header to its expected {@link Schema}.
+   */
   public abstract Map<String, Schema> getHeaderSchemaRegistry();
 
   /**
@@ -114,7 +118,8 @@ public abstract class CSVRecordToRow extends PTransform<PCollection<CSVRecord>, 
       success = success.and(tag.getId(), pct.get(tag).setRowSchema(schema));
     }
 
-    return new Result(input.getPipeline(), pct.get(FAILURE).setRowSchema(CSVIO.ERROR_SCHEMA), success);
+    return new Result(input.getPipeline(), pct.get(FAILURE).setRowSchema(CSVIO.ERROR_SCHEMA),
+        success);
   }
 
   /**
@@ -123,6 +128,7 @@ public abstract class CSVRecordToRow extends PTransform<PCollection<CSVRecord>, 
   static class CSVRecordToRowFn extends DoFn<CSVRecord, Row> {
 
     private final CSVRecordToRow spec;
+
     CSVRecordToRowFn(CSVRecordToRow spec) {
       this.spec = spec;
     }
@@ -153,7 +159,8 @@ public abstract class CSVRecordToRow extends PTransform<PCollection<CSVRecord>, 
     }
 
     private void process(ProcessContext ctx, TupleTag<Row> tag, Schema schema, CSVRecord input) {
-      Row row = CSVRowUtils.csvLineToRow(spec.getOrDefaultCSVFormat(), input.getHeader(), input.getRecord(), schema);
+      Row row = CSVRowUtils.csvLineToRow(spec.getOrDefaultCSVFormat(), input.getHeader(),
+          input.getRecord(), schema);
       ctx.output(tag, row);
     }
   }
@@ -172,6 +179,7 @@ public abstract class CSVRecordToRow extends PTransform<PCollection<CSVRecord>, 
    * The result of processing CSV records into a schema aware {@link Row} {@link PCollection}.
    */
   public static class Result implements POutput {
+
     private final Pipeline pipeline;
     private final PCollection<Row> failure;
     private final PCollectionRowTuple success;

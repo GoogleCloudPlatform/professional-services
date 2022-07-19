@@ -26,42 +26,48 @@ import javax.annotation.Nullable;
 @AutoValue
 public abstract class CSVIOReadConfiguration implements Serializable {
 
-    public static Builder builder() {
-        return new AutoValue_CSVIOReadConfiguration.Builder();
+  public static Builder builder() {
+    return new AutoValue_CSVIOReadConfiguration.Builder();
+  }
+
+  /**
+   * The source file path blob pattern for the CSV files.
+   */
+  public abstract String getFilePattern();
+
+  /**
+   * The expected header position line number.  Defaults to finding the first non-empty line.
+   */
+  @Nullable
+  public abstract Long getHeaderPosition();
+
+  /**
+   * The header regular expression to match when finding the header line.
+   */
+  @Nullable
+  public abstract String getHeaderMatchRegex();
+
+  void validate() {
+    if (getHeaderPosition() != null && getHeaderMatchRegex() != null) {
+      throw new IllegalArgumentException("cannot set both header position and header match regex");
     }
-
-    /** The source file path blob pattern for the CSV files. */
-    public abstract String getFilePattern();
-
-    /** The expected header position line number.  Defaults to finding the first non-empty line. */
-    @Nullable
-    public abstract Long getHeaderPosition();
-
-    /** The header regular expression to match when finding the header line. */
-    @Nullable
-    public abstract String getHeaderMatchRegex();
-
-    void validate() {
-        if (getHeaderPosition() != null && getHeaderMatchRegex() != null) {
-            throw new IllegalArgumentException("cannot set both header position and header match regex");
-        }
-        if (getHeaderPosition() != null && getHeaderPosition() < 0) {
-            throw new IllegalArgumentException("header position must be >= 0");
-        }
-        if (getHeaderMatchRegex() != null && getHeaderMatchRegex().isEmpty()) {
-            throw new IllegalArgumentException("configured header match regex cannot be an empty string");
-        }
+    if (getHeaderPosition() != null && getHeaderPosition() < 0) {
+      throw new IllegalArgumentException("header position must be >= 0");
     }
-
-    @AutoValue.Builder
-    public static abstract class Builder {
-
-        public abstract Builder setFilePattern(String value);
-
-        public abstract Builder setHeaderPosition(Long value);
-
-        public abstract Builder setHeaderMatchRegex(String value);
-
-        public abstract CSVIOReadConfiguration build();
+    if (getHeaderMatchRegex() != null && getHeaderMatchRegex().isEmpty()) {
+      throw new IllegalArgumentException("configured header match regex cannot be an empty string");
     }
+  }
+
+  @AutoValue.Builder
+  public static abstract class Builder {
+
+    public abstract Builder setFilePattern(String value);
+
+    public abstract Builder setHeaderPosition(Long value);
+
+    public abstract Builder setHeaderMatchRegex(String value);
+
+    public abstract CSVIOReadConfiguration build();
+  }
 }

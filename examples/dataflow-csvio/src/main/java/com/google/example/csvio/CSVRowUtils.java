@@ -33,6 +33,7 @@ import org.apache.commons.csv.CSVRecord;
  * Helpers to process CSV data into its expected {@link Schema.Field} types.
  */
 class CSVRowUtils {
+
   static Row csvLineToRow(CSVFormat csvFormat, String header, String line, Schema schema) {
     try {
       CSVParser headerParser = CSVParser.parse(header, csvFormat);
@@ -84,7 +85,7 @@ class CSVRowUtils {
 
       return csvRecordToRow(headerRecord, lineRecord, schema);
 
-    } catch(IOException e) {
+    } catch (IOException e) {
       throw new IllegalArgumentException(
           String.format("Could not parse CSV records from %s with format %s", line, csvFormat), e);
     }

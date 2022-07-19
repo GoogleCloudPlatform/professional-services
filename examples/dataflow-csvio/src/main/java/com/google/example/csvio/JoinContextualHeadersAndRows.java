@@ -36,69 +36,70 @@ import org.apache.beam.sdk.values.Row;
 import org.apache.beam.sdk.values.TupleTagList;
 
 /**
- * A {@link PTransform} that converts a {@link SortContextualHeadersAndRows.Result} into a
- * {@link CSVIO.Read.Result}.
+ * A {@link PTransform} that converts a {@link SortContextualHeadersAndRows.Result} into a {@link
+ * CSVIO.Read.Result}.
  */
 class JoinContextualHeadersAndRows
-        extends PTransform<SortContextualHeadersAndRows.Result, CSVIO.Read.Result> {
+    extends PTransform<SortContextualHeadersAndRows.Result, CSVIO.Read.Result> {
 
-    private static final String TAG_BASE = JoinContextualHeadersAndRows.class.getSimpleName();
+  private static final String TAG_BASE = JoinContextualHeadersAndRows.class.getSimpleName();
 
-    static final String NULL_HEADER_MESSAGE = "header is null for resource";
+  static final String NULL_HEADER_MESSAGE = "header is null for resource";
 
-    private static final Gson GSON = new Gson();
+  private static final Gson GSON = new Gson();
 
-    @Override
-    public CSVIO.Read.Result expand(SortContextualHeadersAndRows.Result input) {
-        String resourceIdFieldName = RecordWithMetadata.RESOURCE_ID;
-        PCollection<Row> headers = input.getHeaders();
-        PCollection<Row> rows = input.getRows();
+  @Override
+  public CSVIO.Read.Result expand(SortContextualHeadersAndRows.Result input) {
+    String resourceIdFieldName = RecordWithMetadata.RESOURCE_ID;
+    PCollection<Row> headers = input.getHeaders();
+    PCollection<Row> rows = input.getRows();
 
-        PCollection<Row> joined = rows.apply(
-            TAG_BASE + "/LeftOuterJoin",
-            Join.<Row, Row>leftOuterJoin(headers).using(resourceIdFieldName)
-        );
+    PCollection<Row> joined = rows.apply(
+        TAG_BASE + "/LeftOuterJoin",
+        Join.<Row, Row>leftOuterJoin(headers).using(resourceIdFieldName)
+    );
 
-        PCollectionTuple pct = joined.apply(
-                TAG_BASE + "/" + ParseJoinedHeadersAndRowsFn.class.getSimpleName(),
-                ParDo.of(new ParseJoinedHeadersAndRowsFn())
-                        .withOutputTags(SUCCESS, TupleTagList.of(FAILURE))
-        );
+    PCollectionTuple pct = joined.apply(
+        TAG_BASE + "/" + ParseJoinedHeadersAndRowsFn.class.getSimpleName(),
+        ParDo.of(new ParseJoinedHeadersAndRowsFn())
+            .withOutputTags(SUCCESS, TupleTagList.of(FAILURE))
+    );
 
-        return new CSVIO.Read.Result(pct);
+    return new CSVIO.Read.Result(pct);
+  }
+
+  /**
+   * A {@link DoFn} responsible for processing the result of a {@link Join} of header and rows from
+   * a {@link ContextualTextIO#read()}.
+   */
+  static class ParseJoinedHeadersAndRowsFn extends DoFn<Row, CSVRecord> {
+
+    @ProcessElement
+    public void process(ProcessContext ctx) {
+      Row input = Objects.requireNonNull(ctx.element());
+      SortContextualHeadersAndRows.RecordWithMetadataHelper row =
+          SortContextualHeadersAndRows.RecordWithMetadataHelper.of(input.getRow(Join.LHS_TAG));
+      CSVRecord.Builder builder = CSVRecord.builder()
+          .setLineNumber(row.getRecordNum())
+          .setRecord(row.getValue())
+          .setResourceId(row.getResourceId());
+
+      if (input.getRow(Join.RHS_TAG) == null) {
+        CSVRecord record = builder.setHeader("").build();
+        String reference = GSON.toJson(record);
+        Row error = Row.withSchema(ERROR_SCHEMA)
+            .withFieldValue(ERROR_FIELD.getName(), NULL_HEADER_MESSAGE)
+            .withFieldValue(REFERENCE_FIELD.getName(), reference)
+            .build();
+        ctx.output(FAILURE, error);
+        return;
+      }
+
+      SortContextualHeadersAndRows.RecordWithMetadataHelper header =
+          SortContextualHeadersAndRows.RecordWithMetadataHelper.of(input.getRow(Join.RHS_TAG));
+      CSVRecord record = builder.setHeader(header.getValue()).build();
+
+      ctx.output(SUCCESS, record);
     }
-
-    /**
-     * A {@link DoFn} responsible for processing the result of a {@link Join} of header and rows
-     * from a {@link ContextualTextIO#read()}.
-     */
-    static class ParseJoinedHeadersAndRowsFn extends DoFn<Row, CSVRecord> {
-        @ProcessElement
-        public void process(ProcessContext ctx) {
-            Row input = Objects.requireNonNull(ctx.element());
-            SortContextualHeadersAndRows.RecordWithMetadataHelper row =
-                    SortContextualHeadersAndRows.RecordWithMetadataHelper.of(input.getRow(Join.LHS_TAG));
-            CSVRecord.Builder builder = CSVRecord.builder()
-                    .setLineNumber(row.getRecordNum())
-                    .setRecord(row.getValue())
-                    .setResourceId(row.getResourceId());
-
-            if (input.getRow(Join.RHS_TAG) == null) {
-                CSVRecord record = builder.setHeader("").build();
-                String reference = GSON.toJson(record);
-                Row error = Row.withSchema(ERROR_SCHEMA)
-                        .withFieldValue(ERROR_FIELD.getName(), NULL_HEADER_MESSAGE)
-                        .withFieldValue(REFERENCE_FIELD.getName(), reference)
-                        .build();
-                ctx.output(FAILURE, error);
-                return;
-            }
-
-            SortContextualHeadersAndRows.RecordWithMetadataHelper header =
-                    SortContextualHeadersAndRows.RecordWithMetadataHelper.of(input.getRow(Join.RHS_TAG));
-            CSVRecord record = builder.setHeader(header.getValue()).build();
-
-            ctx.output(SUCCESS, record);
-        }
-    }
+  }
 }

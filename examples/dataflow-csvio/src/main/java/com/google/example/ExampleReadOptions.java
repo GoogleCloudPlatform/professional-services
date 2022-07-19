@@ -21,18 +21,22 @@ import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.options.Validation.Required;
 
 public interface ExampleReadOptions extends PipelineOptions {
+
   @Description("Source File Pattern Blob")
   @Required
   public String getSource();
+
   public void setSource(String value);
 
   @Description("Sink File Pattern Blob")
   @Required
   public String getSink();
+
   public void setSink(String value);
 
   @Description("Path to quarantine of invalid records")
   @Required
   public String getQuarantine();
+
   public void setQuarantine(String value);
 }

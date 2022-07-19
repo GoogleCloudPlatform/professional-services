@@ -62,7 +62,7 @@ class CSVIOTest {
       TestHelpers.recordFrom(resourceId(6), 3L, HEADER2, "9,4.5")
   );
 
-  private static final Map<String, List<CSVRecord>> EXPECTED = new HashMap<>(){{
+  private static final Map<String, List<CSVRecord>> EXPECTED = new HashMap<>() {{
     this.put(HEADER1, HEADER1_EXPECTED_ROWS);
     this.put(HEADER2, HEADER2_EXPECTED_ROWS);
   }};
@@ -92,6 +92,7 @@ class CSVIOTest {
   private static class FilterByHeader extends SimpleFunction<CSVRecord, Boolean> {
 
     private final String header;
+
     private FilterByHeader(String header) {
       this.header = header;
     }

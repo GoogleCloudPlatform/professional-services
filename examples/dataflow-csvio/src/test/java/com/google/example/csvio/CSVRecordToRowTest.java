@@ -62,7 +62,7 @@ class CSVRecordToRowTest {
   private static final Schema SCHEMA1 = Schema.of(ID_FIELD, NAME_FIELD, VALUE_FIELD);
   private static final Schema SCHEMA2 = Schema.of(ID_FIELD, NAME_FIELD, ACTIVE_FIELD);
 
-  private static final Map<String, Schema> HEADER_REGISTRY = new HashMap<>(){{
+  private static final Map<String, Schema> HEADER_REGISTRY = new HashMap<>() {{
     this.put(REGISTERED_HEADER1, SCHEMA1);
     this.put(REGISTERED_HEADER2, SCHEMA2);
   }};
@@ -82,7 +82,7 @@ class CSVRecordToRowTest {
       TestHelpers.recordFrom(RESOURCE_ID1, 3L, UNREGISTERED_HEADER, "3,c")
   );
 
-  private static final Map<String, List<Row>> EXPECTED_REGISTERED_ROWS = new HashMap<>(){{
+  private static final Map<String, List<Row>> EXPECTED_REGISTERED_ROWS = new HashMap<>() {{
     this.put(REGISTERED_HEADER1, Arrays.asList(
         Row.withSchema(SCHEMA1)
             .withFieldValue(ID_FIELD.getName(), 1L)
@@ -120,9 +120,12 @@ class CSVRecordToRowTest {
   }};
 
   private static final List<Row> ERRORS = Arrays.asList(
-      TestHelpers.errorFrom(TestHelpers.recordFrom(RESOURCE_ID1, 1L, UNREGISTERED_HEADER, "1,a"), UNREGISTERED_HEADER_ERROR),
-      TestHelpers.errorFrom(TestHelpers.recordFrom(RESOURCE_ID1, 2L, UNREGISTERED_HEADER, "2,b"), UNREGISTERED_HEADER_ERROR),
-      TestHelpers.errorFrom(TestHelpers.recordFrom(RESOURCE_ID1, 3L, UNREGISTERED_HEADER, "3,c"), UNREGISTERED_HEADER_ERROR)
+      TestHelpers.errorFrom(TestHelpers.recordFrom(RESOURCE_ID1, 1L, UNREGISTERED_HEADER, "1,a"),
+          UNREGISTERED_HEADER_ERROR),
+      TestHelpers.errorFrom(TestHelpers.recordFrom(RESOURCE_ID1, 2L, UNREGISTERED_HEADER, "2,b"),
+          UNREGISTERED_HEADER_ERROR),
+      TestHelpers.errorFrom(TestHelpers.recordFrom(RESOURCE_ID1, 3L, UNREGISTERED_HEADER, "3,c"),
+          UNREGISTERED_HEADER_ERROR)
   );
 
   private static final List<TestCase> CASES = Arrays.asList(
@@ -135,7 +138,7 @@ class CSVRecordToRowTest {
       testCase(
           "records matching unregistered headers should populate failure PCollection",
           UNREGISTERED_RECORDS,
-          new HashMap<>(){{
+          new HashMap<>() {{
             this.put(REGISTERED_HEADER1, Collections.emptyList());
           }},
           ERRORS
@@ -148,11 +151,12 @@ class CSVRecordToRowTest {
       Pipeline p = Pipeline.create();
       PCollection<CSVRecord> input = p.apply(Create.of(caze.input));
       Result result = input.apply(CSVRecordToRow.builder()
-              .setHeaderSchemaRegistry(HEADER_REGISTRY)
+          .setHeaderSchemaRegistry(HEADER_REGISTRY)
           .build());
 
       PAssert.that(caze.name, result.getFailure()).containsInAnyOrder(caze.expectedFailure);
-      for (Entry<String, PCollection<Row>> actualSuccess : result.getSuccess().getAll().entrySet()) {
+      for (Entry<String, PCollection<Row>> actualSuccess : result.getSuccess().getAll()
+          .entrySet()) {
         List<Row> expected = Collections.emptyList();
         if (caze.expectedSuccess.containsKey(actualSuccess.getKey())) {
           expected = caze.expectedSuccess.get(actualSuccess.getKey());
@@ -188,6 +192,7 @@ class CSVRecordToRowTest {
   }
 
   private static class TestCase {
+
     private final String name;
     private final List<CSVRecord> input;
     private final Map<String, List<Row>> expectedSuccess;

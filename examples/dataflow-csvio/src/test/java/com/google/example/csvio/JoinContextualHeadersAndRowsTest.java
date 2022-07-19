@@ -62,12 +62,18 @@ class JoinContextualHeadersAndRowsTest {
   );
 
   private static final List<Row> EXPECTED_FAILURE = Arrays.asList(
-      TestHelpers.errorFrom(TestHelpers.recordFrom(FILE_NAME1, 1L, "", "1,a,true"), JoinContextualHeadersAndRows.NULL_HEADER_MESSAGE),
-      TestHelpers.errorFrom(TestHelpers.recordFrom(FILE_NAME2, 1L, "", "2,b,false"), JoinContextualHeadersAndRows.NULL_HEADER_MESSAGE),
-      TestHelpers.errorFrom(TestHelpers.recordFrom(FILE_NAME3, 1L, "", "3,c,true"), JoinContextualHeadersAndRows.NULL_HEADER_MESSAGE),
-      TestHelpers.errorFrom(TestHelpers.recordFrom(FILE_NAME1, 2L, "", "4,d,true"), JoinContextualHeadersAndRows.NULL_HEADER_MESSAGE),
-      TestHelpers.errorFrom(TestHelpers.recordFrom(FILE_NAME2, 2L, "", "5,e,false"), JoinContextualHeadersAndRows.NULL_HEADER_MESSAGE),
-      TestHelpers.errorFrom(TestHelpers.recordFrom(FILE_NAME3, 2L, "", "6,f,true"), JoinContextualHeadersAndRows.NULL_HEADER_MESSAGE)
+      TestHelpers.errorFrom(TestHelpers.recordFrom(FILE_NAME1, 1L, "", "1,a,true"),
+          JoinContextualHeadersAndRows.NULL_HEADER_MESSAGE),
+      TestHelpers.errorFrom(TestHelpers.recordFrom(FILE_NAME2, 1L, "", "2,b,false"),
+          JoinContextualHeadersAndRows.NULL_HEADER_MESSAGE),
+      TestHelpers.errorFrom(TestHelpers.recordFrom(FILE_NAME3, 1L, "", "3,c,true"),
+          JoinContextualHeadersAndRows.NULL_HEADER_MESSAGE),
+      TestHelpers.errorFrom(TestHelpers.recordFrom(FILE_NAME1, 2L, "", "4,d,true"),
+          JoinContextualHeadersAndRows.NULL_HEADER_MESSAGE),
+      TestHelpers.errorFrom(TestHelpers.recordFrom(FILE_NAME2, 2L, "", "5,e,false"),
+          JoinContextualHeadersAndRows.NULL_HEADER_MESSAGE),
+      TestHelpers.errorFrom(TestHelpers.recordFrom(FILE_NAME3, 2L, "", "6,f,true"),
+          JoinContextualHeadersAndRows.NULL_HEADER_MESSAGE)
   );
 
   private static final List<TestCase> CASES = Arrays.asList(
@@ -103,7 +109,8 @@ class JoinContextualHeadersAndRowsTest {
       List<CSVRecord> expectedSuccess,
       List<Row> expectedFailure
   ) {
-    return new TestCase(name, headers, JoinContextualHeadersAndRowsTest.INPUT_ROWS, expectedSuccess, expectedFailure);
+    return new TestCase(name, headers, JoinContextualHeadersAndRowsTest.INPUT_ROWS, expectedSuccess,
+        expectedFailure);
   }
 
   private static class TestCase {
@@ -122,8 +129,10 @@ class JoinContextualHeadersAndRowsTest {
     ) {
       this.name = name;
       PCollectionTuple input = PCollectionTuple
-          .of(SortContextualHeadersAndRows.HEADERS, p.apply(Create.of(headers).withRowSchema(RecordWithMetadata.getSchema())))
-          .and(SortContextualHeadersAndRows.ROWS, p.apply(Create.of(rows).withRowSchema(RecordWithMetadata.getSchema())));
+          .of(SortContextualHeadersAndRows.HEADERS,
+              p.apply(Create.of(headers).withRowSchema(RecordWithMetadata.getSchema())))
+          .and(SortContextualHeadersAndRows.ROWS,
+              p.apply(Create.of(rows).withRowSchema(RecordWithMetadata.getSchema())));
       this.input = new SortContextualHeadersAndRows.Result(input);
       this.expectedSuccess = expectedSuccess;
       this.expectedFailure = expectedFailure;

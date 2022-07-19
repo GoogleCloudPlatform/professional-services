@@ -26,38 +26,57 @@ import org.apache.beam.sdk.schemas.annotations.DefaultSchema;
 @DefaultSchema(AutoValueSchema.class)
 @AutoValue
 public abstract class CSVRecord {
-    /** Instantiates a {@link Builder}. */
-    public static Builder builder() {
-        return new AutoValue_CSVRecord.Builder();
-    }
 
-    /** The contextual header of the CSV record. */
-    public abstract String getHeader();
+  /**
+   * Instantiates a {@link Builder}.
+   */
+  public static Builder builder() {
+    return new AutoValue_CSVRecord.Builder();
+  }
 
-    /** The data of the CSV record. */
-    public abstract String getRecord();
+  /**
+   * The contextual header of the CSV record.
+   */
+  public abstract String getHeader();
 
-    /** The original file from which the CSV record was parsed. */
-    public abstract String getResourceId();
+  /**
+   * The data of the CSV record.
+   */
+  public abstract String getRecord();
 
-    /** The contextual line number of the CSV record. */
-    public abstract Long getLineNumber();
+  /**
+   * The original file from which the CSV record was parsed.
+   */
+  public abstract String getResourceId();
 
-    @AutoValue.Builder
-    public static abstract class Builder {
+  /**
+   * The contextual line number of the CSV record.
+   */
+  public abstract Long getLineNumber();
 
-        /** The contextual header of the CSV record. */
-        public abstract Builder setHeader(String value);
+  @AutoValue.Builder
+  public static abstract class Builder {
 
-        /** The data of the CSV record. */
-        public abstract Builder setRecord(String value);
+    /**
+     * The contextual header of the CSV record.
+     */
+    public abstract Builder setHeader(String value);
 
-        /** The original file from which the CSV record was parsed. */
-        public abstract Builder setResourceId(String value);
+    /**
+     * The data of the CSV record.
+     */
+    public abstract Builder setRecord(String value);
 
-        /** The contextual line number of the CSV record. */
-        public abstract Builder setLineNumber(Long value);
+    /**
+     * The original file from which the CSV record was parsed.
+     */
+    public abstract Builder setResourceId(String value);
 
-        public abstract CSVRecord build();
-    }
+    /**
+     * The contextual line number of the CSV record.
+     */
+    public abstract Builder setLineNumber(Long value);
+
+    public abstract CSVRecord build();
+  }
 }

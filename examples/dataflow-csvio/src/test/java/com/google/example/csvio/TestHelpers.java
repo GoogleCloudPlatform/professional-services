@@ -99,7 +99,8 @@ class TestHelpers {
     }
 
     @Override
-    public @Nullable String getFilename() {
+    public @Nullable
+    String getFilename() {
       return this.name;
     }
 

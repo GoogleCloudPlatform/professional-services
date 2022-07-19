@@ -83,8 +83,8 @@ public class ExampleRead {
     CSVRecordToRow.Result csvRecordToRowResult = readResult.getSuccess().apply(
         "ParseCSV",
         CSVRecordToRow.builder()
-        .setHeaderSchemaRegistry(HEADER_SCHEMA_REGISTRY)
-        .build()
+            .setHeaderSchemaRegistry(HEADER_SCHEMA_REGISTRY)
+            .build()
     );
 
     csvRecordToRowResult.getFailure().apply(
