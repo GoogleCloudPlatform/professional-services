@@ -17,6 +17,9 @@
 package com.google.example;
 
 import com.google.auto.value.AutoValue;
+import com.google.example.csvio.CSVIO;
+import com.google.example.csvio.CSVIOReadConfiguration;
+import com.google.example.csvio.CSVRecordToRow;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -35,9 +38,6 @@ import org.apache.beam.sdk.values.PCollectionRowTuple;
 import org.apache.beam.sdk.values.Row;
 import org.apache.beam.sdk.values.TypeDescriptor;
 import org.apache.beam.vendor.guava.v26_0_jre.com.google.common.base.CaseFormat;
-import com.google.example.csvio.CSVIO;
-import com.google.example.csvio.CSVIOReadConfiguration;
-import com.google.example.csvio.CSVRecordToRow;
 
 /**
  * An example demonstrating the use of {@link CSVIO.Read} with the Metropolatan Museum of Art

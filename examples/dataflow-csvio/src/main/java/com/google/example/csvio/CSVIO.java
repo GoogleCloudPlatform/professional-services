@@ -17,6 +17,7 @@
 package com.google.example.csvio;
 
 import com.google.auto.value.AutoValue;
+import com.google.example.csvio.CSVIO.Read.Result;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.beam.sdk.Pipeline;
@@ -33,7 +34,6 @@ import org.apache.beam.sdk.values.PValue;
 import org.apache.beam.sdk.values.Row;
 import org.apache.beam.sdk.values.TupleTag;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import com.google.example.csvio.CSVIO.Read.Result;
 
 /** PTransforms for CSV file processing. */
 public class CSVIO {

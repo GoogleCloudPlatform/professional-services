@@ -7,6 +7,7 @@
 plugins {
     id("java")
     id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("com.diffplug.spotless") version "6.8.0"
 }
 
 group = "com.google.example"
@@ -53,6 +54,14 @@ dependencies {
 
     compileOnly("com.google.auto.value:auto-value-annotations:$autoValueVersion")
     annotationProcessor("com.google.auto.value:auto-value:$autoValueVersion")
+}
+
+spotless {
+    java {
+        importOrder()
+        removeUnusedImports()
+        googleJavaFormat()
+    }
 }
 
 tasks.getByName<Test>("test") {
