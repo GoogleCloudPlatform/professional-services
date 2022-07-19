@@ -1,0 +1,7 @@
+this is a csv file
+it is really interesting
+below is where the csv file starts
+ID,NAME,ACTIVE
+1,foo,true
+2,bar,false
+4,baz,true

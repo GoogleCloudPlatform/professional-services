@@ -45,6 +45,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [Cost Optimization DataStudio Dashboard](examples/cost-optimization-dashboard) - SQL scripts to help build Cost Optimization DataStudio Dashboard.
 * [Data Generator](examples/dataflow-data-generator) - Generate random data with a custom schema at scale for integration tests or demos.
 * [Dataflow BigQuery Transpose Example](examples/dataflow-bigquery-transpose) - An example pipeline to transpose/pivot/rotate a BigQuery table.
+* [Dataflow CSV IO Example](examples/dataflow-csvio) - An example that demonstrates processing CSV files into Schema aware PCollections using Apache Beam where we expect different headers.
 * [Dataflow Elasticsearch Indexer](examples/dataflow-elasticsearch-indexer) - An example pipeline that demonstrates the process of reading JSON documents from Cloud Pub/Sub, enhancing the document using metadata stored in Cloud Bigtable and indexing those documents into [Elasticsearch](https://www.elastic.co/).
 * [Dataflow Python Examples](examples/dataflow-python-examples) - Various ETL examples using the Dataflow Python SDK.
 * [Dataflow Scala Example: Kafka2Avro](examples/dataflow-scala-kafka2avro) - Example to read objects from Kafka, and persist them encoded in Avro in Google Cloud Storage, using Dataflow with SCIO.

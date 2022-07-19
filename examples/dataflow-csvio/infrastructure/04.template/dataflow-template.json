@@ -1,0 +1,24 @@
+{
+  "description": "A batch pipeline that processes the CSV files",
+  "name": "CsvIO Read",
+  "parameters": [
+    {
+      "name": "source",
+      "helpText": "Source File Pattern Blob",
+      "isOptional": false,
+      "label": "Source File Pattern Blob"
+    },
+    {
+      "name": "sink",
+      "helpText": "Sink File Pattern Blob",
+      "isOptional": false,
+      "label": "Sink File Pattern Blob"
+    },
+    {
+      "name": "quarantine",
+      "helpText": "Path to quarantine of invalid records",
+      "isOptional": false,
+      "label": "Path to quarantine of invalid records"
+    }
+  ]
+}

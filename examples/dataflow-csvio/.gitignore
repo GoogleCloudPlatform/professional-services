@@ -1,0 +1,19 @@
+### Gradle Related ###
+.gradle
+build/
+
+### IDE Related ###
+.vscode/
+.idea/
+
+### Mac OS ###
+.DS_Store
+
+### Terraform related
+*.tfstate
+*.tfstate.backup
+*.tfstate.lock.info
+.terraform/
+*.tfvars
+*.pkrvars.hcl
+*.lock.hcl
