@@ -11,7 +11,6 @@
  * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.eenclona.app;
 
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
@@ -35,7 +34,6 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -48,7 +46,7 @@ public class App {
   // Shared constants
   static final String CLOUD_SUPPORT_SCOPE = "https://www.googleapis.com/auth/cloudsupport";
 
-  //TODO (developer): update PROJECT_NUMBER with your project number
+  // TODO (developer): update PROJECT_NUMBER with your project number
   static final String PROJECT_NUMBER = "projects/1234567";
 
   public static void main(String[] args) {
@@ -60,7 +58,7 @@ public class App {
 
       // 2) Get a case with this method
 
-      //getCase(PROJECT_NUMBER + "/cases/1234567");
+      // getCase(PROJECT_NUMBER + "/cases/1234567");
 
       // 3) Update a case with this method
       // TODO (developer): create a json file similar to updateCase.json and put path here
@@ -74,15 +72,16 @@ public class App {
 
       // listValidClassifcations();
       // TODO (developer): create a json file similar to case.json and put path here
-      //String createCasePath = ".../<case's path>/case.json";
-      //createCase(PROJECT_NUMBER, createCasePath);
+      // String createCasePath = ".../<case's path>/case.json";
+      // createCase(PROJECT_NUMBER, createCasePath);
 
       // 5) Email update POC
       // this method will update the cc field of each case to include the new email
       // address. Please take caution as this will apply the new email to ALL open support case
-      // If you want to apply the email to specific support cases, you may use the updateCaseWithNewEmail()
+      // If you want to apply the email to specific support cases, you may use the
+      // updateCaseWithNewEmail()
 
-      //updateAllEmailsWith("newemail@gmail.com");
+      // updateAllEmailsWith("newemail@gmail.com");
 
       // 6) Close a case
       // use this method to close the cases that were opened for testing purposes
@@ -139,9 +138,10 @@ public class App {
 
     ListCasesResponse listCasesResponse = supportService.cases().list(parentResource).execute();
 
-    //this code has a filter to only list those that are open
-    //ListCasesResponse listCasesResponse = supportService.cases().list(parentResource).setFilter("state=OPEN").execute();
-    
+    // this code has a filter to only list those that are open
+    // ListCasesResponse listCasesResponse =
+    // supportService.cases().list(parentResource).setFilter("state=OPEN").execute();
+
     List<CloudSupportCase> listCases = listCasesResponse.getCases();
 
     System.out.println(
@@ -224,8 +224,7 @@ public class App {
 
     for (CloudSupportCase csc : listCases) {
 
-        updateCaseWithNewEmail(csc, email);
-
+      updateCaseWithNewEmail(csc, email);
     }
   }
 
@@ -247,9 +246,9 @@ public class App {
 
       CloudSupportCase updatedCase = caseToBeUpdated.setSubscriberEmailAddresses(currentAddresses);
 
-      //this is needed in recent update to support API or else code throws an error saying 
-      //there cannot be both a severity and a priority at the same time
-      updatedCase.setSeverity(null); 
+      // this is needed in recent update to support API or else code throws an error saying
+      // there cannot be both a severity and a priority at the same time
+      updatedCase.setSeverity(null);
 
       supportService.cases().patch(caseToBeUpdated.getName(), updatedCase).execute();
       System.out.println("I updated the email for: \n" + updatedCase + "\n");
