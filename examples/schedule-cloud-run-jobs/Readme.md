@@ -13,7 +13,8 @@ Once such example is running copying some objects from bucket (i.e., GCS or S3) 
     export PROJECT_NUMBER=<<project-number>>
     export SERVICE_ACCOUNT=cloud-run-sa
 
-    gcloud services enable cloudscheduler.googleapis.com run.googleapis.com cloudbuild.googleapis.com cloudscheduler.googleapis.com --project ${PROJECT_ID}
+    gcloud services enable cloudscheduler.googleapis.com run.googleapis.com cloudbuild.googleapis.com \
+        cloudscheduler.googleapis.com --project ${PROJECT_ID}
 
     gcloud iam service-accounts create ${SERVICE_ACCOUNT} \
         --description="Cloud run to copy cloud storage objects between buckets" \
