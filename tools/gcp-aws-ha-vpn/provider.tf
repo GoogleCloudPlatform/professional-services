@@ -14,6 +14,19 @@
  * limitations under the License.
  */
 
+terraform {
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = "~> 4.31.0"
+    }
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 4.24.0"
+    }
+  }
+}
+
 provider "google" {
   region  = var.gcp_region
   project = var.gcp_project_id

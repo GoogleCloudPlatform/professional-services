@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 data "aws_vpc" "aws_vpn_network" {
   id = var.aws_vpc_id
 }
