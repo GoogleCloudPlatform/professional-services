@@ -39,11 +39,11 @@ public class ListCases {
   public static void main(String[] args) {
 
     try {
-      // TODO(developer): Replace this variable with your project id
+      // TODO(developer): Replace this variable with your project number
       // PARENT_RESOURCE can also be other parent resource like
       // organizations/<---organization id--->
-      String projectId = "00000";
-      String PARENT_RESOURCE = String.format("projects/%s", projectId);
+      String projectNumber = "00000";
+      String PARENT_RESOURCE = String.format("projects/%s", projectNumber);
 
       List<CloudSupportCase> allCases = listAllCases(PARENT_RESOURCE);
 

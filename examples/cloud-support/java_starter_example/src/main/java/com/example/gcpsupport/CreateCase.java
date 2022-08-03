@@ -53,10 +53,10 @@ public class CreateCase {
     // see an example under support/cloud-client/data/case.json
     String createCasePath = "/<---path--->/*.json";
 
-    // TODO(developer): Replace this variable with your project id
-    String projectId = "00000";
+    // TODO(developer): Replace this variable with your project number
+    String projectNumber = "00000";
 
-    String PARENT_RESOURCE = String.format("projects/%s", projectId);
+    String PARENT_RESOURCE = String.format("projects/%s", projectNumber);
 
     try {
       CloudSupportCase csc = createCase(PARENT_RESOURCE, createCasePath);

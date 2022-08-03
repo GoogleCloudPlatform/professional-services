@@ -47,9 +47,9 @@ public class UpdateCase {
       // see an example under support/cloud-client/data/updateCase.json
       String updatedCasePath = "/<---path--->/*.json";
 
-      // TODO(developer): Replace this variable with your project id
-      String projectId = "00000";
-      String PARENT_RESOURCE = String.format("projects/%s", projectId);
+      // TODO(developer): Replace this variable with your project number
+      String projectNumber = "00000";
+      String PARENT_RESOURCE = String.format("projects/%s", projectNumber);
 
       // TODO(developer): Replace this variable with your case id
       String caseId = "00000";
