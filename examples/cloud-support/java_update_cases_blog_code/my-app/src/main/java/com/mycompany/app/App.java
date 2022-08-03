@@ -28,6 +28,7 @@ import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import javax.swing.JOptionPane;
 
 // starter code for cloud support API to initialize it
 public class App {
@@ -35,8 +36,7 @@ public class App {
   // Shared constants
   static final String CLOUD_SUPPORT_SCOPE = "https://www.googleapis.com/auth/cloudsupport";
 
-  // TODO: update PROJECT with your project number
-  static final String PROJECT = "projects/123456789";
+  static String projectResource = "projects/";
 
   public static void main(String[] args) {
 
@@ -46,6 +46,11 @@ public class App {
       // for example, cloudSupport.cases().get("name of case").execute();
 
       System.out.println("CloudSupport API is ready to use: " + cloudSupport);
+
+      projectResource =
+          projectResource + JOptionPane.showInputDialog("Please enter your project number: ");
+
+      updateAllEmailsWith("example_email@gmail.com");
 
     } catch (IOException e) {
       System.out.println("IOException caught! \n" + e);
@@ -76,7 +81,7 @@ public class App {
   public static void updateAllEmailsWith(String email)
       throws IOException, GeneralSecurityException {
 
-    List<CloudSupportCase> listCases = listAllCases(PROJECT);
+    List<CloudSupportCase> listCases = listAllCases(projectResource);
 
     for (CloudSupportCase csc : listCases) {
       System.out.println("I'm going to update email address for case: " + csc.getName() + "\n");
