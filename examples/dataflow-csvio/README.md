@@ -62,7 +62,7 @@ i.e. different headers
 
 This example demonstrates, within an Apache Beam context, a method to process
 multiple CSV files where we expect different headers and schema representations.
-The result is a Schema aware PCollection that allows for the benefits of
+The contextualCSVRecordToRowResult is a Schema aware PCollection that allows for the benefits of
 informed data structures and types to downstream PTransforms.
 
 ## What does Schema aware mean?
@@ -102,7 +102,7 @@ bundling the headers with the corresponding line records.
 ```
 Pipeline p = ...;
 
-CSVIO.Read.Result readResult = p.apply(
+CSVIO.Read.Result readCSVIOReadResult = p.apply(
     "ReadCSV",
     CSVIO
         .read()
@@ -135,7 +135,7 @@ final static final Map<String, Schema> HEADER_SCHEMA_REGISTRY =
 b. Call the [CSVRecordToRow](src/main/java/com/google/example/csvio/CSVRecordToRow.java) transform.
 
 ```
-CSVRecordToRow.Result csvRecordToRowResult = readResult.getSuccess().apply(
+CSVRecordToRow.Result csvRecordToRowContextualCSVRecordToRowResult = readCSVIOReadResult.getSuccess().apply(
     "ParseCSV",
     CSVRecordToRow
         .builder()
@@ -166,7 +166,7 @@ deploying to [Google Cloud Dataflow](https://cloud.google.com/dataflow).
 
 ### 2. Execute the Dataflow Template
 
-The result of the previous step provisioned all required Google Cloud
+The contextualCSVRecordToRowResult of the previous step provisioned all required Google Cloud
 resources as well as a Custom Dataflow template to execute this pipeline.
 
 #### 2.1 Create Dataflow Job From Template

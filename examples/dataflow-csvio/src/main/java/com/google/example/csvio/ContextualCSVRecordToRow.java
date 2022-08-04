@@ -17,10 +17,10 @@
 package com.google.example.csvio;
 
 import com.google.auto.value.AutoValue;
+import com.google.example.csvio.ContextualCSVRecordToRow.ContextualCSVRecordToRowResult;
 import com.google.gson.Gson;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import javax.annotation.Nullable;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.schemas.Schema;
@@ -39,20 +39,21 @@ import org.apache.beam.sdk.values.TupleTagList;
 import org.apache.commons.csv.CSVFormat;
 
 /**
- * PTransform that converts a {@link CSVRecord} {@link PCollection} to a {@link Result}.
+ * PTransform that converts a {@link ContextualCSVRecord} {@link PCollection} to a {@link
+ * ContextualCSVRecordToRowResult}.
  *
  * <p>For each header {@link Schema} pair, the resulting {@link PCollectionRowTuple} contains a
  * {@link Row} {@link PCollection} tagged with the header.
  */
 @AutoValue
-public abstract class CSVRecordToRow
-    extends PTransform<PCollection<CSVRecord>, CSVRecordToRow.Result> {
+public abstract class ContextualCSVRecordToRow
+    extends PTransform<PCollection<ContextualCSVRecord>, ContextualCSVRecordToRowResult> {
 
   public static Builder builder() {
-    return new AutoValue_CSVRecordToRow.Builder();
+    return new AutoValue_ContextualCSVRecordToRow.Builder();
   }
 
-  private static final String TAG_BASE = CSVRecordToRow.class.getSimpleName();
+  private static final String TAG_BASE = ContextualCSVRecordToRow.class.getSimpleName();
 
   static final TupleTag<Row> FAILURE = new TupleTag<>() {};
   static final String HEADER_ERROR_FORMAT = "header not found in schema registry: %s";
@@ -101,12 +102,12 @@ public abstract class CSVRecordToRow
   }
 
   @Override
-  public Result expand(PCollection<CSVRecord> input) {
+  public ContextualCSVRecordToRowResult expand(PCollection<ContextualCSVRecord> input) {
     TupleTagList tupleTagList = getOrCreateTupleTagList();
     PCollectionTuple pct =
         input.apply(
-            TAG_BASE + "/" + CSVRecordToRowFn.class.getSimpleName(),
-            ParDo.of(new CSVRecordToRowFn(this)).withOutputTags(FAILURE, tupleTagList));
+            TAG_BASE + "/" + ContextualCSVRecordToRowFn.class.getSimpleName(),
+            ParDo.of(new ContextualCSVRecordToRowFn(this)).withOutputTags(FAILURE, tupleTagList));
 
     PCollectionRowTuple success = PCollectionRowTuple.empty(input.getPipeline());
     for (TupleTag<Row> tag : getOrCreateTupleTags().values()) {
@@ -114,48 +115,51 @@ public abstract class CSVRecordToRow
       success = success.and(tag.getId(), pct.get(tag).setRowSchema(schema));
     }
 
-    return new Result(
+    return new ContextualCSVRecordToRowResult(
         input.getPipeline(), pct.get(FAILURE).setRowSchema(CSVIO.ERROR_SCHEMA), success);
   }
 
-  /** The {@link DoFn} responsible for converting a {@link CSVRecord} into a {@link Row}. */
-  static class CSVRecordToRowFn extends DoFn<CSVRecord, Row> {
+  /**
+   * The {@link DoFn} responsible for converting a {@link ContextualCSVRecord} into a {@link Row}.
+   */
+  static class ContextualCSVRecordToRowFn extends DoFn<ContextualCSVRecord, Row> {
 
-    private final CSVRecordToRow spec;
+    private final ContextualCSVRecordToRow spec;
 
-    CSVRecordToRowFn(CSVRecordToRow spec) {
+    ContextualCSVRecordToRowFn(ContextualCSVRecordToRow spec) {
       this.spec = spec;
     }
 
     @ProcessElement
-    public void process(ProcessContext ctx) {
-      CSVRecord input = Objects.requireNonNull(ctx.element());
+    public void process(@Element ContextualCSVRecord input, MultiOutputReceiver receiver) {
 
       try {
         String header = input.getHeader();
         if (spec.getHeaderSchemaRegistry().containsKey(header)) {
           TupleTag<Row> tag = spec.getOrCreateTupleTags().get(header);
-          process(ctx, tag, spec.getHeaderSchemaRegistry().get(header), input);
+
+          Row row =
+              CSVRowUtils.csvLineToRow(
+                  spec.getOrDefaultCSVFormat(),
+                  input.getHeader(),
+                  input.getRecord(),
+                  spec.getHeaderSchemaRegistry().get(header));
+
+          receiver.get(tag).output(row);
           return;
         }
 
         throw new IllegalArgumentException(String.format(HEADER_ERROR_FORMAT, header));
 
       } catch (IllegalArgumentException e) {
-        ctx.output(
-            FAILURE,
-            Row.withSchema(CSVIO.ERROR_SCHEMA)
-                .withFieldValue(CSVIO.ERROR_FIELD.getName(), e.getMessage())
-                .withFieldValue(CSVIO.REFERENCE_FIELD.getName(), GSON.toJson(input))
-                .build());
+        receiver
+            .get(FAILURE)
+            .output(
+                Row.withSchema(CSVIO.ERROR_SCHEMA)
+                    .withFieldValue(CSVIO.ERROR_FIELD.getName(), e.getMessage())
+                    .withFieldValue(CSVIO.REFERENCE_FIELD.getName(), GSON.toJson(input))
+                    .build());
       }
-    }
-
-    private void process(ProcessContext ctx, TupleTag<Row> tag, Schema schema, CSVRecord input) {
-      Row row =
-          CSVRowUtils.csvLineToRow(
-              spec.getOrDefaultCSVFormat(), input.getHeader(), input.getRecord(), schema);
-      ctx.output(tag, row);
     }
   }
 
@@ -166,17 +170,18 @@ public abstract class CSVRecordToRow
 
     public abstract Builder setCSVFormat(CSVFormat value);
 
-    public abstract CSVRecordToRow build();
+    public abstract ContextualCSVRecordToRow build();
   }
 
   /** The result of processing CSV records into a schema aware {@link Row} {@link PCollection}. */
-  public static class Result implements POutput {
+  public static class ContextualCSVRecordToRowResult implements POutput {
 
     private final Pipeline pipeline;
     private final PCollection<Row> failure;
     private final PCollectionRowTuple success;
 
-    Result(Pipeline pipeline, PCollection<Row> failure, PCollectionRowTuple success) {
+    ContextualCSVRecordToRowResult(
+        Pipeline pipeline, PCollection<Row> failure, PCollectionRowTuple success) {
       this.pipeline = pipeline;
       this.failure = failure;
       this.success = success;

@@ -22,8 +22,12 @@ import static com.google.example.csvio.CSVIO.REFERENCE_FIELD;
 import static com.google.example.csvio.CSVIO.Read.FAILURE;
 import static com.google.example.csvio.CSVIO.Read.SUCCESS;
 
+import com.google.example.csvio.CSVIO.Read.CSVIOReadResult;
+import com.google.example.csvio.SortContextualHeadersAndRows.RecordWithMetadataHelper;
+import com.google.example.csvio.SortContextualHeadersAndRows.SortContextualHeadersAndRowsResult;
 import com.google.gson.Gson;
 import java.util.Objects;
+import javax.annotation.Nonnull;
 import org.apache.beam.sdk.io.contextualtextio.ContextualTextIO;
 import org.apache.beam.sdk.io.contextualtextio.RecordWithMetadata;
 import org.apache.beam.sdk.schemas.transforms.Join;
@@ -36,11 +40,11 @@ import org.apache.beam.sdk.values.Row;
 import org.apache.beam.sdk.values.TupleTagList;
 
 /**
- * A {@link PTransform} that converts a {@link SortContextualHeadersAndRows.Result} into a {@link
- * CSVIO.Read.Result}.
+ * A {@link PTransform} that converts a {@link SortContextualHeadersAndRowsResult} into a {@link
+ * CSVIOReadResult}.
  */
 class JoinContextualHeadersAndRows
-    extends PTransform<SortContextualHeadersAndRows.Result, CSVIO.Read.Result> {
+    extends PTransform<SortContextualHeadersAndRowsResult, CSVIOReadResult> {
 
   private static final String TAG_BASE = JoinContextualHeadersAndRows.class.getSimpleName();
 
@@ -49,7 +53,7 @@ class JoinContextualHeadersAndRows
   private static final Gson GSON = new Gson();
 
   @Override
-  public CSVIO.Read.Result expand(SortContextualHeadersAndRows.Result input) {
+  public CSVIOReadResult expand(SortContextualHeadersAndRowsResult input) {
     String resourceIdFieldName = RecordWithMetadata.RESOURCE_ID;
     PCollection<Row> headers = input.getHeaders();
     PCollection<Row> rows = input.getRows();
@@ -65,43 +69,44 @@ class JoinContextualHeadersAndRows
             ParDo.of(new ParseJoinedHeadersAndRowsFn())
                 .withOutputTags(SUCCESS, TupleTagList.of(FAILURE)));
 
-    return new CSVIO.Read.Result(pct);
+    return new CSVIOReadResult(pct);
   }
 
   /**
    * A {@link DoFn} responsible for processing the result of a {@link Join} of header and rows from
    * a {@link ContextualTextIO#read()}.
    */
-  static class ParseJoinedHeadersAndRowsFn extends DoFn<Row, CSVRecord> {
+  static class ParseJoinedHeadersAndRowsFn extends DoFn<Row, ContextualCSVRecord> {
 
     @ProcessElement
-    public void process(ProcessContext ctx) {
-      Row input = Objects.requireNonNull(ctx.element());
-      SortContextualHeadersAndRows.RecordWithMetadataHelper row =
-          SortContextualHeadersAndRows.RecordWithMetadataHelper.of(input.getRow(Join.LHS_TAG));
-      CSVRecord.Builder builder =
-          CSVRecord.builder()
-              .setLineNumber(row.getRecordNum())
-              .setRecord(row.getValue())
-              .setResourceId(row.getResourceId());
+    public void process(@Nonnull @Element Row input, MultiOutputReceiver receiver) {
+      Row row = Objects.requireNonNull(input.getRow(Join.LHS_TAG));
+      RecordWithMetadataHelper.validateSchema(row);
+      ContextualCSVRecord.Builder builder =
+          ContextualCSVRecord.builder()
+              .setLineNumber(RecordWithMetadataHelper.getRecordNum(row))
+              .setRecord(RecordWithMetadataHelper.getValue(row))
+              .setResourceId(RecordWithMetadataHelper.getResourceId(row));
 
-      if (input.getRow(Join.RHS_TAG) == null) {
-        CSVRecord record = builder.setHeader("").build();
+      Row header = input.getRow(Join.RHS_TAG);
+
+      if (header == null) {
+        ContextualCSVRecord record = builder.setHeader("").build();
         String reference = GSON.toJson(record);
         Row error =
             Row.withSchema(ERROR_SCHEMA)
                 .withFieldValue(ERROR_FIELD.getName(), NULL_HEADER_MESSAGE)
                 .withFieldValue(REFERENCE_FIELD.getName(), reference)
                 .build();
-        ctx.output(FAILURE, error);
+        receiver.get(FAILURE).output(error);
         return;
       }
 
-      SortContextualHeadersAndRows.RecordWithMetadataHelper header =
-          SortContextualHeadersAndRows.RecordWithMetadataHelper.of(input.getRow(Join.RHS_TAG));
-      CSVRecord record = builder.setHeader(header.getValue()).build();
+      RecordWithMetadataHelper.validateSchema(header);
+      ContextualCSVRecord record =
+          builder.setHeader(RecordWithMetadataHelper.getValue(header)).build();
 
-      ctx.output(SUCCESS, record);
+      receiver.get(SUCCESS).output(record);
     }
   }
 }

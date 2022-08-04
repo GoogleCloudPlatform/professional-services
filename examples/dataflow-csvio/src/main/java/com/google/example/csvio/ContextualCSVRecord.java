@@ -23,11 +23,11 @@ import org.apache.beam.sdk.schemas.annotations.DefaultSchema;
 /** The result of processing CSV files. */
 @DefaultSchema(AutoValueSchema.class)
 @AutoValue
-public abstract class CSVRecord {
+public abstract class ContextualCSVRecord {
 
   /** Instantiates a {@link Builder}. */
   public static Builder builder() {
-    return new AutoValue_CSVRecord.Builder();
+    return new AutoValue_ContextualCSVRecord.Builder();
   }
 
   /** The contextual header of the CSV record. */
@@ -57,6 +57,6 @@ public abstract class CSVRecord {
     /** The contextual line number of the CSV record. */
     public abstract Builder setLineNumber(Long value);
 
-    public abstract CSVRecord build();
+    public abstract ContextualCSVRecord build();
   }
 }

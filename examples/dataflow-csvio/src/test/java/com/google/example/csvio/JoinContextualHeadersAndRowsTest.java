@@ -16,6 +16,8 @@
 
 package com.google.example.csvio;
 
+import com.google.example.csvio.CSVIO.Read.CSVIOReadResult;
+import com.google.example.csvio.SortContextualHeadersAndRows.SortContextualHeadersAndRowsResult;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -52,34 +54,34 @@ class JoinContextualHeadersAndRowsTest {
           TestHelpers.rowFrom(FILE_NAME2, "5,e,false", 2L),
           TestHelpers.rowFrom(FILE_NAME3, "6,f,true", 2L));
 
-  private static final List<CSVRecord> EXPECTED_SUCCESS =
+  private static final List<ContextualCSVRecord> EXPECTED_SUCCESS =
       Arrays.asList(
-          TestHelpers.recordFrom(FILE_NAME1, 1L, HEADER, "1,a,true"),
-          TestHelpers.recordFrom(FILE_NAME2, 1L, HEADER, "2,b,false"),
-          TestHelpers.recordFrom(FILE_NAME3, 1L, HEADER, "3,c,true"),
-          TestHelpers.recordFrom(FILE_NAME1, 2L, HEADER, "4,d,true"),
-          TestHelpers.recordFrom(FILE_NAME2, 2L, HEADER, "5,e,false"),
-          TestHelpers.recordFrom(FILE_NAME3, 2L, HEADER, "6,f,true"));
+          TestHelpers.contextualCSVRecordFrom(FILE_NAME1, 1L, HEADER, "1,a,true"),
+          TestHelpers.contextualCSVRecordFrom(FILE_NAME2, 1L, HEADER, "2,b,false"),
+          TestHelpers.contextualCSVRecordFrom(FILE_NAME3, 1L, HEADER, "3,c,true"),
+          TestHelpers.contextualCSVRecordFrom(FILE_NAME1, 2L, HEADER, "4,d,true"),
+          TestHelpers.contextualCSVRecordFrom(FILE_NAME2, 2L, HEADER, "5,e,false"),
+          TestHelpers.contextualCSVRecordFrom(FILE_NAME3, 2L, HEADER, "6,f,true"));
 
   private static final List<Row> EXPECTED_FAILURE =
       Arrays.asList(
           TestHelpers.errorFrom(
-              TestHelpers.recordFrom(FILE_NAME1, 1L, "", "1,a,true"),
+              TestHelpers.contextualCSVRecordFrom(FILE_NAME1, 1L, "", "1,a,true"),
               JoinContextualHeadersAndRows.NULL_HEADER_MESSAGE),
           TestHelpers.errorFrom(
-              TestHelpers.recordFrom(FILE_NAME2, 1L, "", "2,b,false"),
+              TestHelpers.contextualCSVRecordFrom(FILE_NAME2, 1L, "", "2,b,false"),
               JoinContextualHeadersAndRows.NULL_HEADER_MESSAGE),
           TestHelpers.errorFrom(
-              TestHelpers.recordFrom(FILE_NAME3, 1L, "", "3,c,true"),
+              TestHelpers.contextualCSVRecordFrom(FILE_NAME3, 1L, "", "3,c,true"),
               JoinContextualHeadersAndRows.NULL_HEADER_MESSAGE),
           TestHelpers.errorFrom(
-              TestHelpers.recordFrom(FILE_NAME1, 2L, "", "4,d,true"),
+              TestHelpers.contextualCSVRecordFrom(FILE_NAME1, 2L, "", "4,d,true"),
               JoinContextualHeadersAndRows.NULL_HEADER_MESSAGE),
           TestHelpers.errorFrom(
-              TestHelpers.recordFrom(FILE_NAME2, 2L, "", "5,e,false"),
+              TestHelpers.contextualCSVRecordFrom(FILE_NAME2, 2L, "", "5,e,false"),
               JoinContextualHeadersAndRows.NULL_HEADER_MESSAGE),
           TestHelpers.errorFrom(
-              TestHelpers.recordFrom(FILE_NAME3, 2L, "", "6,f,true"),
+              TestHelpers.contextualCSVRecordFrom(FILE_NAME3, 2L, "", "6,f,true"),
               JoinContextualHeadersAndRows.NULL_HEADER_MESSAGE));
 
   private static final List<TestCase> CASES =
@@ -99,7 +101,7 @@ class JoinContextualHeadersAndRowsTest {
   void testJoinContextualHeadersAndRows() {
     for (TestCase caze : CASES) {
       Pipeline p = caze.getPipeline();
-      CSVIO.Read.Result actual = caze.input.apply(new JoinContextualHeadersAndRows());
+      CSVIOReadResult actual = caze.input.apply(new JoinContextualHeadersAndRows());
       PAssert.that(caze.name, actual.getSuccess()).containsInAnyOrder(caze.expectedSuccess);
       PAssert.that(caze.name, actual.getFailure()).containsInAnyOrder(caze.expectedFailure);
 
@@ -108,7 +110,10 @@ class JoinContextualHeadersAndRowsTest {
   }
 
   private static TestCase testCase(
-      String name, List<Row> headers, List<CSVRecord> expectedSuccess, List<Row> expectedFailure) {
+      String name,
+      List<Row> headers,
+      List<ContextualCSVRecord> expectedSuccess,
+      List<Row> expectedFailure) {
     return new TestCase(
         name,
         headers,
@@ -119,17 +124,17 @@ class JoinContextualHeadersAndRowsTest {
 
   private static class TestCase {
 
-    private final Pipeline p = Pipeline.create();
+    private final Pipeline p = TestHelpers.createTestPipeline();
     private final String name;
-    private final SortContextualHeadersAndRows.Result input;
-    private final List<CSVRecord> expectedSuccess;
+    private final SortContextualHeadersAndRowsResult input;
+    private final List<ContextualCSVRecord> expectedSuccess;
     private final List<Row> expectedFailure;
 
     private TestCase(
         String name,
         List<Row> headers,
         List<Row> rows,
-        List<CSVRecord> expectedSuccess,
+        List<ContextualCSVRecord> expectedSuccess,
         List<Row> expectedFailure) {
       this.name = name;
       PCollectionTuple input =
@@ -139,7 +144,7 @@ class JoinContextualHeadersAndRowsTest {
               .and(
                   SortContextualHeadersAndRows.ROWS,
                   p.apply(Create.of(rows).withRowSchema(RecordWithMetadata.getSchema())));
-      this.input = new SortContextualHeadersAndRows.Result(input);
+      this.input = new SortContextualHeadersAndRowsResult(input);
       this.expectedSuccess = expectedSuccess;
       this.expectedFailure = expectedFailure;
     }

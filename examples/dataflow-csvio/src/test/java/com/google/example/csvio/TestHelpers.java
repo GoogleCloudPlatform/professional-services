@@ -19,13 +19,23 @@ package com.google.example.csvio;
 import com.google.example.csvio.SortContextualHeadersAndRows.RecordWithMetadataHelper;
 import com.google.gson.Gson;
 import java.util.Arrays;
+import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.contextualtextio.RecordWithMetadata;
 import org.apache.beam.sdk.io.fs.ResolveOptions;
 import org.apache.beam.sdk.io.fs.ResourceId;
+import org.apache.beam.sdk.options.PipelineOptions;
+import org.apache.beam.sdk.options.PipelineOptions.CheckEnabled;
+import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.values.Row;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 class TestHelpers {
+
+  static Pipeline createTestPipeline() {
+    PipelineOptions opts = PipelineOptionsFactory.create();
+    opts.setStableUniqueNames(CheckEnabled.OFF);
+    return Pipeline.create(opts);
+  }
 
   static Row rowFrom(String resourceId, String value, Long recordNum) {
     return Row.withSchema(RecordWithMetadata.getSchema())
@@ -38,18 +48,18 @@ class TestHelpers {
         .build();
   }
 
-  static CSVRecord recordFrom(String resourceId, Long recordNum, String header, String record) {
+  static ContextualCSVRecord contextualCSVRecordFrom(
+      String resourceId, Long recordNum, String header, String record) {
     Row row = rowFrom(resourceId, record, recordNum);
-    RecordWithMetadataHelper helper = RecordWithMetadataHelper.of(row);
-    return CSVRecord.builder()
-        .setResourceId(helper.getResourceId())
+    return ContextualCSVRecord.builder()
+        .setResourceId(RecordWithMetadataHelper.getResourceId(row))
         .setLineNumber(recordNum)
         .setHeader(header)
         .setRecord(record)
         .build();
   }
 
-  static Row errorFrom(CSVRecord record, String message) {
+  static Row errorFrom(ContextualCSVRecord record, String message) {
     Gson gson = new Gson();
     return Row.withSchema(CSVIO.ERROR_SCHEMA)
         .withFieldValue(CSVIO.ERROR_FIELD.getName(), message)

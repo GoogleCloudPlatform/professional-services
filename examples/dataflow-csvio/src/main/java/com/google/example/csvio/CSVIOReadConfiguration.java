@@ -18,6 +18,7 @@ package com.google.example.csvio;
 
 import com.google.auto.value.AutoValue;
 import java.io.Serializable;
+import java.util.Optional;
 import javax.annotation.Nullable;
 
 /** Configuration for reading CSV files used in combination with {@link CSVIO.Read}. */
@@ -39,18 +40,6 @@ public abstract class CSVIOReadConfiguration implements Serializable {
   @Nullable
   public abstract String getHeaderMatchRegex();
 
-  void validate() {
-    if (getHeaderPosition() != null && getHeaderMatchRegex() != null) {
-      throw new IllegalArgumentException("cannot set both header position and header match regex");
-    }
-    if (getHeaderPosition() != null && getHeaderPosition() < 0) {
-      throw new IllegalArgumentException("header position must be >= 0");
-    }
-    if (getHeaderMatchRegex() != null && getHeaderMatchRegex().isEmpty()) {
-      throw new IllegalArgumentException("configured header match regex cannot be an empty string");
-    }
-  }
-
   @AutoValue.Builder
   public abstract static class Builder {
 
@@ -58,8 +47,28 @@ public abstract class CSVIOReadConfiguration implements Serializable {
 
     public abstract Builder setHeaderPosition(Long value);
 
+    abstract Optional<Long> getHeaderPosition();
+
     public abstract Builder setHeaderMatchRegex(String value);
 
-    public abstract CSVIOReadConfiguration build();
+    abstract Optional<String> getHeaderMatchRegex();
+
+    public abstract CSVIOReadConfiguration autoBuild();
+
+    public final CSVIOReadConfiguration build() {
+      if (getHeaderPosition().isPresent() && getHeaderMatchRegex().isPresent()) {
+        throw new IllegalArgumentException(
+            "cannot set both header position and header match regex");
+      }
+      if (getHeaderPosition().isPresent() && getHeaderPosition().get() < 0) {
+        throw new IllegalArgumentException("header position must be >= 0");
+      }
+      if (getHeaderMatchRegex().isPresent() && getHeaderMatchRegex().get().isEmpty()) {
+        throw new IllegalArgumentException(
+            "configured header match regex cannot be an empty string");
+      }
+
+      return autoBuild();
+    }
   }
 }

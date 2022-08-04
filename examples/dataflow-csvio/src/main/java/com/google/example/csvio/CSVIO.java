@@ -17,12 +17,12 @@
 package com.google.example.csvio;
 
 import com.google.auto.value.AutoValue;
-import com.google.example.csvio.CSVIO.Read.Result;
+import com.google.example.csvio.CSVIO.Read.CSVIOReadResult;
+import com.google.example.csvio.SortContextualHeadersAndRows.SortContextualHeadersAndRowsResult;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.contextualtextio.ContextualTextIO;
-import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.schemas.Schema;
 import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.values.PBegin;
@@ -33,7 +33,6 @@ import org.apache.beam.sdk.values.POutput;
 import org.apache.beam.sdk.values.PValue;
 import org.apache.beam.sdk.values.Row;
 import org.apache.beam.sdk.values.TupleTag;
-import org.checkerframework.checker.nullness.qual.Nullable;
 
 /** PTransforms for CSV file processing. */
 public class CSVIO {
@@ -52,39 +51,35 @@ public class CSVIO {
    * PTransform for reading CSV files based on a {@link CSVIOReadConfiguration}. Each CSV file must
    * contain a header line but need not share the same header.
    *
-   * <p>The resulting {@link CSVRecord} {@link PCollection} contains the CSV file line as well as
-   * its corresponding header.
+   * <p>The resulting {@link ContextualCSVRecord} {@link PCollection} contains the CSV file line as
+   * well as its corresponding header.
    */
   @AutoValue
-  public abstract static class Read extends PTransform<PBegin, Result> {
+  public abstract static class Read extends PTransform<PBegin, CSVIOReadResult> {
 
     private static final String TAG_BASE = CSVIO.TAG_BASE + "/" + Read.class.getSimpleName();
 
-    static final TupleTag<CSVRecord> SUCCESS = new TupleTag<>() {};
+    static final TupleTag<ContextualCSVRecord> SUCCESS = new TupleTag<>() {};
     static final TupleTag<Row> FAILURE = new TupleTag<>() {};
 
     public abstract CSVIOReadConfiguration getConfiguration();
 
     @Override
-    public void validate(@Nullable PipelineOptions options) {
-      getConfiguration().validate();
-    }
-
-    @Override
-    public Result expand(PBegin input) {
+    public CSVIOReadResult expand(PBegin input) {
       CSVIOReadConfiguration configuration = getConfiguration();
 
       PCollection<Row> rawRows =
           input.apply(
               TAG_BASE + "/" + ContextualTextIO.class.getSimpleName(),
+              // TODO: consider an alternative to withRecordNumMetadata()
               ContextualTextIO.read().from(configuration.getFilePattern()).withRecordNumMetadata());
 
-      SortContextualHeadersAndRows.Result sortResult =
+      SortContextualHeadersAndRowsResult sortSortContextualHeadersAndRowsResult =
           rawRows.apply(
               TAG_BASE + "/" + SortContextualHeadersAndRows.class.getSimpleName(),
               SortContextualHeadersAndRows.builder().setConfiguration(configuration).build());
 
-      return sortResult.apply(new JoinContextualHeadersAndRows());
+      return sortSortContextualHeadersAndRowsResult.apply(new JoinContextualHeadersAndRows());
     }
 
     @AutoValue.Builder
@@ -96,19 +91,19 @@ public class CSVIO {
     }
 
     /** The result of a CSV file processing operation. */
-    public static class Result implements PInput, POutput {
+    public static class CSVIOReadResult implements PInput, POutput {
 
       private final Pipeline pipeline;
-      private final PCollection<CSVRecord> success;
+      private final PCollection<ContextualCSVRecord> success;
       private final PCollection<Row> failure;
 
-      Result(PCollectionTuple pct) {
+      CSVIOReadResult(PCollectionTuple pct) {
         this.pipeline = pct.getPipeline();
         this.success = pct.get(SUCCESS);
         this.failure = pct.get(FAILURE).setRowSchema(ERROR_SCHEMA);
       }
 
-      public PCollection<CSVRecord> getSuccess() {
+      public PCollection<ContextualCSVRecord> getSuccess() {
         return success;
       }
 

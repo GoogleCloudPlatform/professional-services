@@ -16,6 +16,8 @@
 
 package com.google.example.csvio;
 
+import com.google.example.csvio.SortContextualHeadersAndRows.SortContextualHeadersAndRowsResult;
+import com.google.example.csvio.SortContextualHeadersAndRows.SortMappedFixedPositionHeadersAndRowsFn;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -65,23 +67,23 @@ class SortContextualHeadersAndRowsTest {
 
   private static final List<TestCase> CASES =
       Arrays.asList(
-          testCase(CSVIOReadConfiguration.builder(), EMPTY_SPACE_BEFORE_HEADER)
+          testCase(EMPTY_SPACE_BEFORE_HEADER)
               .withExpectedRawRowOffsets(Arrays.asList(0L, 1L, 2L, 3L, 4L, 5L, 6L))
               .withExpectedNonEmptyRowOffsets(Arrays.asList(3L, 4L, 5L, 6L)),
-          testCase(CSVIOReadConfiguration.builder(), HEADER_AT_FIRST_POSITION)
+          testCase(HEADER_AT_FIRST_POSITION)
               .withExpectedRawRowOffsets(Arrays.asList(0L, 1L, 2L, 3L))
               .withExpectedNonEmptyRowOffsets(Arrays.asList(0L, 1L, 2L, 3L)),
-          testCase(CSVIOReadConfiguration.builder(), HEADER_AT_NON_ZERO_POSITION)
+          testCase(HEADER_AT_NON_ZERO_POSITION)
               .withExpectedRawRowOffsets(Arrays.asList(0L, 1L, 2L, 3L, 4L, 5L, 6L))
               .withExpectedNonEmptyRowOffsets(Arrays.asList(0L, 1L, 2L, 3L, 4L, 5L, 6L)),
-          testCase(CSVIOReadConfiguration.builder(), SPACE_BETWEEN_ROWS)
+          testCase(SPACE_BETWEEN_ROWS)
               .withExpectedRawRowOffsets(Arrays.asList(0L, 1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L))
               .withExpectedNonEmptyRowOffsets(Arrays.asList(0L, 1L, 6L, 10L)));
 
   @Test
   void testSortContextualHeadersAndRows() {
     for (Map.Entry<String, Long> entry : EXPECT_HEADER_POSITION.entrySet()) {
-      Pipeline p = Pipeline.create();
+      Pipeline p = TestHelpers.createTestPipeline();
       PCollection<Row> input = readCSV(p, entry.getKey());
       Long expectedHeaderPosition = entry.getValue();
       CSVIOReadConfiguration configuration =
@@ -90,13 +92,13 @@ class SortContextualHeadersAndRowsTest {
               .setHeaderPosition(expectedHeaderPosition)
               .build();
 
-      SortContextualHeadersAndRows.Result result =
+      SortContextualHeadersAndRowsResult sortContextualHeadersAndRowsResult =
           input.apply(
               SortContextualHeadersAndRows.builder().setConfiguration(configuration).build());
 
-      PCollection<String> actualHeader = headers(result);
+      PCollection<String> actualHeader = headers(sortContextualHeadersAndRowsResult);
       PAssert.that(entry.getKey(), actualHeader).containsInAnyOrder(EXPECT_HEADER);
-      PCollection<String> actualRows = rows(result);
+      PCollection<String> actualRows = rows(sortContextualHeadersAndRowsResult);
       PAssert.that(entry.getKey(), actualRows).containsInAnyOrder(EXPECT_ROWS);
 
       p.run().waitUntilFinish();
@@ -106,20 +108,24 @@ class SortContextualHeadersAndRowsTest {
   @Test
   void testSortFixedHeaderAndRows() {
     for (TestCase caze : CASES) {
-      Pipeline p = Pipeline.create();
+      Pipeline p = TestHelpers.createTestPipeline();
       PCollection<Row> input = readCSV(p, caze.getResourceNameAbsolutePath());
       String resourceId = caze.getResourceNameAbsolutePath();
       Long expectedHeaderPosition = EXPECT_HEADER_POSITION.get(resourceId);
 
       CSVIOReadConfiguration configuration =
-          caze.configuration.setHeaderPosition(expectedHeaderPosition).build();
+          CSVIOReadConfiguration.builder()
+              .setFilePattern(caze.resourceName)
+              .setHeaderPosition(expectedHeaderPosition)
+              .build();
 
-      SortContextualHeadersAndRows.Result result =
+      SortContextualHeadersAndRowsResult sortContextualHeadersAndRowsResult =
           input.apply(new SortContextualHeadersAndRows.SortFixedHeaderAndRows(configuration));
 
-      PCollection<String> actualHeader = headers(result);
+      PCollection<String> actualHeader = headers(sortContextualHeadersAndRowsResult);
       PAssert.that(caze.resourceName, actualHeader).containsInAnyOrder(EXPECT_HEADER);
-      PCollection<String> actualRows = rows(result).apply(Filter.by((value) -> !value.isEmpty()));
+      PCollection<String> actualRows =
+          rows(sortContextualHeadersAndRowsResult).apply(Filter.by((value) -> !value.isEmpty()));
       PAssert.that(caze.resourceName, actualRows).containsInAnyOrder(EXPECT_ROWS);
 
       p.run().waitUntilFinish();
@@ -129,16 +135,20 @@ class SortContextualHeadersAndRowsTest {
   @Test
   void testSortMatchedHeaderAndRows() {
     for (TestCase caze : CASES) {
-      Pipeline p = Pipeline.create();
+      Pipeline p = TestHelpers.createTestPipeline();
       PCollection<Row> input = readCSV(p, caze.getResourceNameAbsolutePath());
       CSVIOReadConfiguration configuration =
-          caze.configuration.setHeaderMatchRegex(EXPECT_HEADER).build();
+          CSVIOReadConfiguration.builder()
+              .setFilePattern(caze.resourceName)
+              .setHeaderMatchRegex(EXPECT_HEADER)
+              .build();
 
-      SortContextualHeadersAndRows.Result result =
+      SortContextualHeadersAndRowsResult sortContextualHeadersAndRowsResult =
           input.apply(new SortContextualHeadersAndRows.SortMatchedHeaderAndRows(configuration));
-      PCollection<String> actualHeader = headers(result);
+      PCollection<String> actualHeader = headers(sortContextualHeadersAndRowsResult);
       PAssert.that(caze.resourceName, actualHeader).containsInAnyOrder(EXPECT_HEADER);
-      PCollection<String> actualRows = rows(result).apply(Filter.by((value) -> !value.isEmpty()));
+      PCollection<String> actualRows =
+          rows(sortContextualHeadersAndRowsResult).apply(Filter.by((value) -> !value.isEmpty()));
       PAssert.that(caze.resourceName, actualRows).containsInAnyOrder(EXPECT_ROWS);
 
       p.run().waitUntilFinish();
@@ -147,14 +157,14 @@ class SortContextualHeadersAndRowsTest {
 
   @Test
   void testSortMinimumHeaderAndRows() {
-    Pipeline p = Pipeline.create();
-    TestCase caze = testCase(CSVIOReadConfiguration.builder(), EMPTY_SPACE_BEFORE_HEADER);
+    Pipeline p = TestHelpers.createTestPipeline();
+    TestCase caze = testCase(EMPTY_SPACE_BEFORE_HEADER);
     PCollection<Row> input = readCSV(p, caze.getResourceNameAbsolutePath());
-    SortContextualHeadersAndRows.Result result =
+    SortContextualHeadersAndRowsResult sortContextualHeadersAndRowsResult =
         input.apply(new SortContextualHeadersAndRows.SortMinimumHeaderAndRows());
-    PCollection<String> actualHeader = headers(result);
+    PCollection<String> actualHeader = headers(sortContextualHeadersAndRowsResult);
     PAssert.that(caze.resourceName, actualHeader).containsInAnyOrder(EXPECT_HEADER);
-    PCollection<String> actualRows = rows(result);
+    PCollection<String> actualRows = rows(sortContextualHeadersAndRowsResult);
     PAssert.that(caze.resourceName, actualRows).containsInAnyOrder(EXPECT_ROWS);
 
     p.run().waitUntilFinish();
@@ -163,26 +173,25 @@ class SortContextualHeadersAndRowsTest {
   @Test
   void testSortFixedPositionHeadersAndRowsFn() {
     for (TestCase caze : CASES) {
-      Pipeline p = Pipeline.create();
+      Pipeline p = TestHelpers.createTestPipeline();
       String resourceId = caze.getResourceNameAbsolutePath();
       Long expectedHeaderPosition = EXPECT_HEADER_POSITION.get(resourceId);
-      PCollectionView<Long> headerPositionView =
-          p.apply(Create.of(expectedHeaderPosition)).apply(View.asSingleton());
       PCollection<Row> input = readCSV(p, caze.getResourceNameAbsolutePath());
       PCollectionTuple pct =
           input.apply(
               ParDo.of(
                       new SortContextualHeadersAndRows.SortFixedPositionHeadersAndRowsFn(
-                          headerPositionView))
-                  .withSideInput("", headerPositionView)
+                          expectedHeaderPosition))
                   .withOutputTags(
                       SortContextualHeadersAndRows.HEADERS,
                       TupleTagList.of(SortContextualHeadersAndRows.ROWS)));
 
-      SortContextualHeadersAndRows.Result result = new SortContextualHeadersAndRows.Result(pct);
-      PCollection<String> actualHeader = headers(result);
+      SortContextualHeadersAndRowsResult sortContextualHeadersAndRowsResult =
+          new SortContextualHeadersAndRowsResult(pct);
+      PCollection<String> actualHeader = headers(sortContextualHeadersAndRowsResult);
       PAssert.that(caze.resourceName, actualHeader).containsInAnyOrder(EXPECT_HEADER);
-      PCollection<String> actualRows = rows(result).apply(Filter.by((value) -> !value.isEmpty()));
+      PCollection<String> actualRows =
+          rows(sortContextualHeadersAndRowsResult).apply(Filter.by((value) -> !value.isEmpty()));
       PAssert.that(caze.resourceName, actualRows).containsInAnyOrder(EXPECT_ROWS);
 
       p.run().waitUntilFinish();
@@ -192,7 +201,7 @@ class SortContextualHeadersAndRowsTest {
   @Test
   void testFindMatchedHeaderFn() {
     for (TestCase caze : CASES) {
-      Pipeline p = Pipeline.create();
+      Pipeline p = TestHelpers.createTestPipeline();
       PCollection<Row> input = readCSV(p, caze.getResourceNameAbsolutePath());
       PCollectionView<String> headerMatchRegexView =
           p.apply(Create.of(EXPECT_HEADER)).apply(View.asSingleton());
@@ -203,8 +212,11 @@ class SortContextualHeadersAndRowsTest {
 
       PCollection<KV<String, Long>> actual =
           input.apply(
-              ParDo.of(new SortContextualHeadersAndRows.FindMatchedHeaderFn(headerMatchRegexView))
-                  .withSideInput("", headerMatchRegexView));
+              ParDo.of(new SortContextualHeadersAndRows.FindMatchedHeaderFn(EXPECT_HEADER))
+                  .withSideInput(
+                      SortMappedFixedPositionHeadersAndRowsFn
+                          .MAPPED_RESOURCE_ID_HEADER_POSITION_VIEW_TAG,
+                      headerMatchRegexView));
 
       PAssert.that(caze.resourceName, actual).containsInAnyOrder(expected);
 
@@ -215,23 +227,26 @@ class SortContextualHeadersAndRowsTest {
   @Test
   void testSortMappedFixedPositionHeadersAndRowsFn() {
     for (TestCase caze : CASES) {
-      Pipeline p = Pipeline.create();
+      Pipeline p = TestHelpers.createTestPipeline();
       PCollection<Row> input = readCSV(p, caze.getResourceNameAbsolutePath());
       PCollectionView<Map<String, Long>> mappedResourceIdHeaderPositionView =
           expectMappedResourceIdHeaderPositionView(p);
       PCollectionTuple pct =
           input.apply(
-              ParDo.of(
-                      new SortContextualHeadersAndRows.SortMappedFixedPositionHeadersAndRowsFn(
-                          mappedResourceIdHeaderPositionView))
-                  .withSideInput("", mappedResourceIdHeaderPositionView)
+              ParDo.of(new SortMappedFixedPositionHeadersAndRowsFn())
+                  .withSideInput(
+                      SortMappedFixedPositionHeadersAndRowsFn
+                          .MAPPED_RESOURCE_ID_HEADER_POSITION_VIEW_TAG,
+                      mappedResourceIdHeaderPositionView)
                   .withOutputTags(
                       SortContextualHeadersAndRows.HEADERS,
                       TupleTagList.of(SortContextualHeadersAndRows.ROWS)));
-      SortContextualHeadersAndRows.Result result = new SortContextualHeadersAndRows.Result(pct);
-      PCollection<String> actualHeader = headers(result);
+      SortContextualHeadersAndRowsResult sortContextualHeadersAndRowsResult =
+          new SortContextualHeadersAndRowsResult(pct);
+      PCollection<String> actualHeader = headers(sortContextualHeadersAndRowsResult);
       PAssert.that(caze.resourceName, actualHeader).containsInAnyOrder(EXPECT_HEADER);
-      PCollection<String> actualRows = rows(result).apply(Filter.by((value) -> !value.isEmpty()));
+      PCollection<String> actualRows =
+          rows(sortContextualHeadersAndRowsResult).apply(Filter.by((value) -> !value.isEmpty()));
       PAssert.that(caze.resourceName, actualRows).containsInAnyOrder(EXPECT_ROWS);
 
       p.run().waitUntilFinish();
@@ -241,7 +256,7 @@ class SortContextualHeadersAndRowsTest {
   @Test
   void testIsNotEmptyFn() {
     for (TestCase caze : CASES) {
-      Pipeline p = Pipeline.create();
+      Pipeline p = TestHelpers.createTestPipeline();
       PCollection<Long> actual =
           readCSV(p, caze.getResourceNameAbsolutePath())
               .apply(Filter.by(new SortContextualHeadersAndRows.IsNotEmptyFn()))
@@ -255,7 +270,7 @@ class SortContextualHeadersAndRowsTest {
   @Test
   void testRowKVFn() {
     for (TestCase caze : CASES) {
-      Pipeline p = Pipeline.create();
+      Pipeline p = TestHelpers.createTestPipeline();
       PCollection<KV<String, Long>> actual =
           readCSV(p, caze.getResourceNameAbsolutePath())
               .apply(MapElements.via(new SortContextualHeadersAndRows.RowKVFn()));
@@ -284,30 +299,29 @@ class SortContextualHeadersAndRowsTest {
             }));
   }
 
-  static PCollection<String> headers(SortContextualHeadersAndRows.Result result) {
-    return values(result.getHeaders());
+  static PCollection<String> headers(
+      SortContextualHeadersAndRowsResult sortContextualHeadersAndRowsResult) {
+    return values(sortContextualHeadersAndRowsResult.getHeaders());
   }
 
-  static PCollection<String> rows(SortContextualHeadersAndRows.Result result) {
-    return values(result.getRows());
+  static PCollection<String> rows(
+      SortContextualHeadersAndRowsResult sortContextualHeadersAndRowsResult) {
+    return values(sortContextualHeadersAndRowsResult.getRows());
   }
 
-  private static TestCase testCase(
-      CSVIOReadConfiguration.Builder configuration, String resourceName) {
-    return new TestCase(configuration, resourceName);
+  private static TestCase testCase(String resourceName) {
+    return new TestCase(resourceName);
   }
 
   private static class TestCase {
 
-    private final CSVIOReadConfiguration.Builder configuration;
     private final String resourceName;
 
     private List<Long> expectedOffsets = Collections.emptyList();
 
     private List<Long> expectNonEmptyOffsets = Collections.emptyList();
 
-    private TestCase(CSVIOReadConfiguration.Builder configuration, String resourceName) {
-      this.configuration = configuration.setFilePattern(resourceName);
+    private TestCase(String resourceName) {
       this.resourceName = resourceName;
     }
 

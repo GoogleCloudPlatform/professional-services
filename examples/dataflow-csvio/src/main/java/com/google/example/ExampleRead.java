@@ -18,8 +18,10 @@ package com.google.example;
 
 import com.google.auto.value.AutoValue;
 import com.google.example.csvio.CSVIO;
+import com.google.example.csvio.CSVIO.Read.CSVIOReadResult;
 import com.google.example.csvio.CSVIOReadConfiguration;
-import com.google.example.csvio.CSVRecordToRow;
+import com.google.example.csvio.ContextualCSVRecordToRow;
+import com.google.example.csvio.ContextualCSVRecordToRow.ContextualCSVRecordToRowResult;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -40,7 +42,7 @@ import org.apache.beam.sdk.values.TypeDescriptor;
 import org.apache.beam.vendor.guava.v26_0_jre.com.google.common.base.CaseFormat;
 
 /**
- * An example demonstrating the use of {@link CSVIO.Read} with the Metropolatan Museum of Art
+ * An example demonstrating the use of {@link CSVIO.Read} with the Metropolitan Museum of Art
  * BigQuery public dataset exported to CSV files.
  */
 public class ExampleRead {
@@ -67,27 +69,29 @@ public class ExampleRead {
     CSVIOReadConfiguration configuration =
         CSVIOReadConfiguration.builder().setFilePattern(options.getSource()).build();
 
-    CSVIO.Read.Result readResult =
+    CSVIOReadResult readCSVIOReadResult =
         p.apply("ReadCSV", CSVIO.read().setConfiguration(configuration).build());
 
-    readResult
+    readCSVIOReadResult
         .getFailure()
         .apply("ReadCSV/ErrorsToJson", ToJson.of())
         .apply("ReadCSV/WriteQuarantine", TextIO.write().to(options.getQuarantine()));
 
-    CSVRecordToRow.Result csvRecordToRowResult =
-        readResult
+    ContextualCSVRecordToRowResult csvRecordToRowContextualCSVRecordToRowResult =
+        readCSVIOReadResult
             .getSuccess()
             .apply(
                 "ParseCSV",
-                CSVRecordToRow.builder().setHeaderSchemaRegistry(HEADER_SCHEMA_REGISTRY).build());
+                ContextualCSVRecordToRow.builder()
+                    .setHeaderSchemaRegistry(HEADER_SCHEMA_REGISTRY)
+                    .build());
 
-    csvRecordToRowResult
+    csvRecordToRowContextualCSVRecordToRowResult
         .getFailure()
         .apply("ParseCSV/ErrorsToJson", ToJson.of())
         .apply("ParseCSV/WriteQuarantine", TextIO.write().to(options.getQuarantine()));
 
-    PCollectionRowTuple pcrt = csvRecordToRowResult.getSuccess();
+    PCollectionRowTuple pcrt = csvRecordToRowContextualCSVRecordToRowResult.getSuccess();
     PCollection<Row> imageRows = pcrt.get(MET_IMAGES_HEADER);
     PCollection<Row> objectRows = pcrt.get(MET_OBJECTS_HEADER);
 

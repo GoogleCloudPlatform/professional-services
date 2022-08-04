@@ -17,13 +17,13 @@
 package com.google.example.csvio;
 
 import com.google.auto.value.AutoValue;
+import com.google.example.csvio.CSVIO.Read.CSVIOReadResult;
+import com.google.example.csvio.SortContextualHeadersAndRows.SortContextualHeadersAndRowsResult;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.contextualtextio.ContextualTextIO;
 import org.apache.beam.sdk.io.contextualtextio.RecordWithMetadata;
-import org.apache.beam.sdk.options.PipelineOptions;
-import org.apache.beam.sdk.transforms.Create;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.Filter;
 import org.apache.beam.sdk.transforms.MapElements;
@@ -42,8 +42,6 @@ import org.apache.beam.sdk.values.PValue;
 import org.apache.beam.sdk.values.Row;
 import org.apache.beam.sdk.values.TupleTag;
 import org.apache.beam.sdk.values.TupleTagList;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * A {@link PTransform} responsible for bundling the raw {@link ContextualTextIO#read()} {@link Row}
@@ -51,7 +49,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 @AutoValue
 abstract class SortContextualHeadersAndRows
-    extends PTransform<PCollection<Row>, SortContextualHeadersAndRows.Result> {
+    extends PTransform<PCollection<Row>, SortContextualHeadersAndRowsResult> {
 
   private static final String TAG_BASE = SortContextualHeadersAndRows.class.getSimpleName();
 
@@ -65,12 +63,7 @@ abstract class SortContextualHeadersAndRows
   abstract CSVIOReadConfiguration getConfiguration();
 
   @Override
-  public void validate(@Nullable PipelineOptions options) {
-    getConfiguration().validate();
-  }
-
-  @Override
-  public Result expand(PCollection<Row> input) {
+  public SortContextualHeadersAndRowsResult expand(PCollection<Row> input) {
     PCollection<Row> nonEmpty =
         input.apply(TAG_BASE + "/ExcludeEmptyLines", Filter.by(new IsNotEmptyFn()));
     CSVIOReadConfiguration configuration = getConfiguration();
@@ -101,13 +94,13 @@ abstract class SortContextualHeadersAndRows
    * The result of processing the raw {@link ContextualTextIO#read()} {@link Row} {@link
    * PCollection} output into the corresponding CSV headers and rows.
    */
-  static class Result implements POutput, PInput {
+  static class SortContextualHeadersAndRowsResult implements POutput, PInput {
 
     private final Pipeline pipeline;
     private final PCollection<Row> headers;
     private final PCollection<Row> rows;
 
-    Result(PCollectionTuple pct) {
+    SortContextualHeadersAndRowsResult(PCollectionTuple pct) {
       this.pipeline = pct.getPipeline();
       this.headers = pct.get(HEADERS).setRowSchema(RecordWithMetadata.getSchema());
       this.rows = pct.get(ROWS).setRowSchema(RecordWithMetadata.getSchema());
@@ -136,7 +129,8 @@ abstract class SortContextualHeadersAndRows
       };
     }
 
-    public CSVIO.Read.Result apply(PTransform<? super Result, CSVIO.Read.Result> t) {
+    public CSVIOReadResult apply(
+        PTransform<? super SortContextualHeadersAndRowsResult, CSVIOReadResult> t) {
       return t.expand(this);
     }
 
@@ -150,7 +144,8 @@ abstract class SortContextualHeadersAndRows
    * Row} {@link PCollection} output into the corresponding CSV headers and rows in the setting
    * where a fixed header position is expected.
    */
-  static class SortFixedHeaderAndRows extends PTransform<PCollection<Row>, Result> {
+  static class SortFixedHeaderAndRows
+      extends PTransform<PCollection<Row>, SortContextualHeadersAndRowsResult> {
 
     private static final String TAG_BASE =
         SortContextualHeadersAndRows.TAG_BASE + "/" + SortFixedHeaderAndRows.class.getSimpleName();
@@ -162,20 +157,14 @@ abstract class SortContextualHeadersAndRows
     }
 
     @Override
-    public Result expand(PCollection<Row> input) {
-      PCollectionView<Long> headerPositionView =
-          input
-              .getPipeline()
-              .apply(TAG_BASE + "/HeaderPositionView", Create.of(configuration.getHeaderPosition()))
-              .apply(View.asSingleton());
-      PCollectionTuple pct =
+    public SortContextualHeadersAndRowsResult expand(PCollection<Row> input) {
+      PCollectionTuple headerAndRowsPCollectionTuple =
           input.apply(
               TAG_BASE + "/" + SortMappedFixedPositionHeadersAndRowsFn.class.getSimpleName(),
-              ParDo.of(new SortFixedPositionHeadersAndRowsFn(headerPositionView))
-                  .withSideInput("", headerPositionView)
+              ParDo.of(new SortFixedPositionHeadersAndRowsFn(configuration.getHeaderPosition()))
                   .withOutputTags(HEADERS, TupleTagList.of(ROWS)));
 
-      return new Result(pct);
+      return new SortContextualHeadersAndRowsResult(headerAndRowsPCollectionTuple);
     }
   }
 
@@ -184,7 +173,8 @@ abstract class SortContextualHeadersAndRows
    * Row} {@link PCollection} output into the corresponding CSV headers and rows in the setting
    * where a regular expression header matching is expected.
    */
-  static class SortMatchedHeaderAndRows extends PTransform<PCollection<Row>, Result> {
+  static class SortMatchedHeaderAndRows
+      extends PTransform<PCollection<Row>, SortContextualHeadersAndRowsResult> {
 
     private static final String TAG_BASE =
         SortContextualHeadersAndRows.TAG_BASE
@@ -197,30 +187,26 @@ abstract class SortContextualHeadersAndRows
     }
 
     @Override
-    public Result expand(PCollection<Row> input) {
-      PCollectionView<String> matchHeaderRegexView =
-          input
-              .getPipeline()
-              .apply(
-                  TAG_BASE + "/MatchHeaderRegexView",
-                  Create.of(configuration.getHeaderMatchRegex()))
-              .apply(View.asSingleton());
-
+    public SortContextualHeadersAndRowsResult expand(PCollection<Row> input) {
       PCollection<KV<String, Long>> resourceIdHeaderPosition =
           input.apply(
               TAG_BASE + "/" + FindMatchedHeaderFn.class.getSimpleName(),
-              ParDo.of(new FindMatchedHeaderFn(matchHeaderRegexView))
-                  .withSideInput("", matchHeaderRegexView));
+              ParDo.of(new FindMatchedHeaderFn(configuration.getHeaderMatchRegex())));
+
       PCollectionView<Map<String, Long>> mappedHeaderPositionView =
           resourceIdHeaderPosition.apply(View.asMap());
-      PCollectionTuple pct =
+
+      PCollectionTuple headerAndRowsPCollectionTuple =
           input.apply(
               TAG_BASE + "/" + SortMappedFixedPositionHeadersAndRowsFn.class.getSimpleName(),
-              ParDo.of(new SortMappedFixedPositionHeadersAndRowsFn(mappedHeaderPositionView))
-                  .withSideInput("", mappedHeaderPositionView)
+              ParDo.of(new SortMappedFixedPositionHeadersAndRowsFn())
+                  .withSideInput(
+                      SortMappedFixedPositionHeadersAndRowsFn
+                          .MAPPED_RESOURCE_ID_HEADER_POSITION_VIEW_TAG,
+                      mappedHeaderPositionView)
                   .withOutputTags(HEADERS, TupleTagList.of(ROWS)));
 
-      return new Result(pct);
+      return new SortContextualHeadersAndRowsResult(headerAndRowsPCollectionTuple);
     }
   }
 
@@ -229,7 +215,8 @@ abstract class SortContextualHeadersAndRows
    * Row} {@link PCollection} output into the corresponding CSV headers and rows in the setting
    * where the header is expected at the first non-empty line of the CSV file.
    */
-  static class SortMinimumHeaderAndRows extends PTransform<PCollection<Row>, Result> {
+  static class SortMinimumHeaderAndRows
+      extends PTransform<PCollection<Row>, SortContextualHeadersAndRowsResult> {
 
     private static final String TAG_BASE =
         SortContextualHeadersAndRows.TAG_BASE
@@ -237,7 +224,7 @@ abstract class SortContextualHeadersAndRows
             + SortMinimumHeaderAndRows.class.getSimpleName();
 
     @Override
-    public Result expand(PCollection<Row> input) {
+    public SortContextualHeadersAndRowsResult expand(PCollection<Row> input) {
       PCollection<KV<String, Long>> resourceIdRecordOffsetKV =
           input
               .apply(
@@ -247,20 +234,24 @@ abstract class SortContextualHeadersAndRows
                   TAG_BASE + "/MapElements/" + RowKVFn.class.getSimpleName(),
                   MapElements.via(new RowKVFn()));
 
+      // TODO: need reevaluation of calculating RecordNum when withRecordNumMetadata is not used
       PCollection<KV<String, Long>> minimumResourceIdRecordOffsetKV =
           resourceIdRecordOffsetKV.apply(TAG_BASE + "/Min", Min.longsPerKey());
 
       PCollectionView<Map<String, Long>> minimumResourceIdHeaderMapView =
           minimumResourceIdRecordOffsetKV.apply(TAG_BASE + "/Min/View", View.asMap());
 
-      PCollectionTuple pct =
+      PCollectionTuple headerAndRowsPCollectionTuple =
           input.apply(
               TAG_BASE + "/" + SortMappedFixedPositionHeadersAndRowsFn.class.getSimpleName(),
-              ParDo.of(new SortMappedFixedPositionHeadersAndRowsFn(minimumResourceIdHeaderMapView))
-                  .withSideInput("", minimumResourceIdHeaderMapView)
+              ParDo.of(new SortMappedFixedPositionHeadersAndRowsFn())
+                  .withSideInput(
+                      SortMappedFixedPositionHeadersAndRowsFn
+                          .MAPPED_RESOURCE_ID_HEADER_POSITION_VIEW_TAG,
+                      minimumResourceIdHeaderMapView)
                   .withOutputTags(HEADERS, TupleTagList.of(ROWS)));
 
-      return new Result(pct);
+      return new SortContextualHeadersAndRowsResult(headerAndRowsPCollectionTuple);
     }
   }
 
@@ -270,44 +261,44 @@ abstract class SortContextualHeadersAndRows
    */
   static class SortFixedPositionHeadersAndRowsFn extends DoFn<Row, Row> {
 
-    private final PCollectionView<Long> headerPositionView;
+    private final Long headerPosition;
 
-    SortFixedPositionHeadersAndRowsFn(PCollectionView<Long> headerPositionView) {
-      this.headerPositionView = headerPositionView;
+    public SortFixedPositionHeadersAndRowsFn(Long headerPosition) {
+      this.headerPosition = headerPosition;
     }
 
     @ProcessElement
-    public void process(ProcessContext ctx) {
-      Long headerPosition = ctx.sideInput(this.headerPositionView);
-      Row input = ctx.element();
-      RecordWithMetadataHelper record = RecordWithMetadataHelper.of(input);
-      Long recordNum = record.getRecordNum();
+    public void process(@Element Row input, MultiOutputReceiver receiver) {
+      RecordWithMetadataHelper.validateSchema(input);
+      Long recordNum = RecordWithMetadataHelper.getRecordNum(input);
       if (recordNum < headerPosition) {
         return;
       }
       if (recordNum.equals(headerPosition)) {
-        ctx.output(HEADERS, input);
+        receiver.get(HEADERS).output(input);
       } else {
-        ctx.output(ROWS, input);
+        receiver.get(ROWS).output(input);
       }
     }
   }
 
   static class FindMatchedHeaderFn extends DoFn<Row, KV<String, Long>> {
 
-    private final PCollectionView<String> headerMatchRegexView;
+    private final String headerMatchRegex;
 
-    FindMatchedHeaderFn(PCollectionView<String> headerMatchRegexView) {
-      this.headerMatchRegexView = headerMatchRegexView;
+    FindMatchedHeaderFn(String headerMatchRegex) {
+      this.headerMatchRegex = headerMatchRegex;
     }
 
     @ProcessElement
-    public void process(ProcessContext ctx) {
-      Row input = ctx.element();
-      RecordWithMetadataHelper record = RecordWithMetadataHelper.of(input);
-      String headerMatchRegex = ctx.sideInput(headerMatchRegexView);
-      if (record.getValue() != null && record.getValue().equals(headerMatchRegex)) {
-        ctx.output(KV.of(record.getResourceId(), record.getRecordNum()));
+    public void process(@Element Row input, OutputReceiver<KV<String, Long>> receiver) {
+      RecordWithMetadataHelper.validateSchema(input);
+      String value = RecordWithMetadataHelper.getValue(input);
+      if (value.equals(headerMatchRegex)) {
+        String resourceId = RecordWithMetadataHelper.getResourceId(input);
+        // TODO: refactor for cases not using withRecordNumMetadata
+        Long recordNum = RecordWithMetadataHelper.getRecordNum(input);
+        receiver.output(KV.of(resourceId, recordNum));
       }
     }
   }
@@ -317,25 +308,22 @@ abstract class SortContextualHeadersAndRows
    * CSV records. The header is mapped to the exact position expected.
    */
   static class SortMappedFixedPositionHeadersAndRowsFn extends DoFn<Row, Row> {
-
-    private final PCollectionView<Map<String, Long>> mappedResourceIdHeaderPositionView;
-
-    SortMappedFixedPositionHeadersAndRowsFn(
-        PCollectionView<Map<String, Long>> mappedResourceIdHeaderPositionView) {
-      this.mappedResourceIdHeaderPositionView = mappedResourceIdHeaderPositionView;
-    }
+    static final String MAPPED_RESOURCE_ID_HEADER_POSITION_VIEW_TAG =
+        "mappedResourceIdHeaderPositionView";
 
     @ProcessElement
-    public void process(ProcessContext ctx) {
-      Row input = ctx.element();
-      RecordWithMetadataHelper record = RecordWithMetadataHelper.of(input);
-      String resourceId = record.getResourceId();
-      Long recordOffset = record.getRecordNum();
+    public void process(
+        @Element Row input,
+        @SideInput(MAPPED_RESOURCE_ID_HEADER_POSITION_VIEW_TAG)
+            Map<String, Long> resourceIdHeaderPosition,
+        MultiOutputReceiver receiver) {
+      RecordWithMetadataHelper.validateSchema(input);
+      String resourceId = RecordWithMetadataHelper.getResourceId(input);
+      // TODO: refactor when using alternative to withRecordNumMetadata
+      Long recordOffset = RecordWithMetadataHelper.getRecordNum(input);
 
-      Map<String, Long> resourceIdHeaderPosition =
-          ctx.sideInput(this.mappedResourceIdHeaderPositionView);
       if (!resourceIdHeaderPosition.containsKey(resourceId)) {
-        ctx.output(ROWS, input);
+        receiver.get(ROWS).output(input);
         return;
       }
 
@@ -344,9 +332,9 @@ abstract class SortContextualHeadersAndRows
         return;
       }
       if (recordOffset.equals(headerPosition)) {
-        ctx.output(HEADERS, input);
+        receiver.get(HEADERS).output(input);
       } else {
-        ctx.output(ROWS, input);
+        receiver.get(ROWS).output(input);
       }
     }
   }
@@ -361,7 +349,7 @@ abstract class SortContextualHeadersAndRows
       if (input == null) {
         return false;
       }
-      return !RecordWithMetadataHelper.of(input).getValue().isEmpty();
+      return !RecordWithMetadataHelper.getValue(input).isEmpty();
     }
   }
 
@@ -373,8 +361,10 @@ abstract class SortContextualHeadersAndRows
 
     @Override
     public KV<String, Long> apply(Row input) {
-      RecordWithMetadataHelper helper = RecordWithMetadataHelper.of(input);
-      return KV.of(helper.getResourceId(), helper.getRecordNum());
+      return KV.of(
+          RecordWithMetadataHelper.getResourceId(input),
+          // TODO: refactor for cases not using withRecordNumMetadata
+          RecordWithMetadataHelper.getRecordNum(input));
     }
   }
 
@@ -382,22 +372,15 @@ abstract class SortContextualHeadersAndRows
    * A convenience wrapper for the {@link Row} with the expected {@link
    * RecordWithMetadata#getSchema()}.
    */
-  public static class RecordWithMetadataHelper {
+  static class RecordWithMetadataHelper {
 
-    public static RecordWithMetadataHelper of(Row row) {
-      return new RecordWithMetadataHelper(row);
-    }
-
-    private final Row row;
-
-    private RecordWithMetadataHelper(@NonNull Row row) {
+    static void validateSchema(Row row) {
       if (!row.getSchema().assignableTo(RecordWithMetadata.getSchema())) {
         throw new IllegalArgumentException("row is not assignable to expected schema");
       }
-      this.row = row;
     }
 
-    String getResourceId() {
+    static String getResourceId(Row row) {
       Object value = row.getValue(RecordWithMetadata.RESOURCE_ID);
       if (value == null) {
         throw new IllegalArgumentException(
@@ -406,7 +389,7 @@ abstract class SortContextualHeadersAndRows
       return value.toString();
     }
 
-    String getValue() {
+    static String getValue(Row row) {
       String value = row.getString(RecordWithMetadata.VALUE);
       if (value == null) {
         throw new IllegalArgumentException(
@@ -415,7 +398,7 @@ abstract class SortContextualHeadersAndRows
       return value;
     }
 
-    Long getRecordNum() {
+    static Long getRecordNum(Row row) {
       Long value = row.getInt64(RecordWithMetadata.RECORD_NUM);
       if (value == null) {
         throw new IllegalArgumentException(

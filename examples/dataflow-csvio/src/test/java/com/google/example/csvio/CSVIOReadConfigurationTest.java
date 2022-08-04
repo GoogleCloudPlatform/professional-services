@@ -56,9 +56,8 @@ class CSVIOReadConfigurationTest {
   @Test
   void validate() {
     for (TestCase caze : cases) {
-      CSVIOReadConfiguration configuration = caze.input.build();
       if (!caze.expectValid) {
-        assertThrows(IllegalArgumentException.class, configuration::validate, caze.name);
+        assertThrows(IllegalArgumentException.class, caze.input::build, caze.name);
       }
     }
   }

@@ -19,7 +19,7 @@ package com.google.example.csvio;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.google.example.csvio.CSVRecordToRow.Result;
+import com.google.example.csvio.ContextualCSVRecordToRow.ContextualCSVRecordToRowResult;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -36,7 +36,7 @@ import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.Row;
 import org.junit.jupiter.api.Test;
 
-class CSVRecordToRowTest {
+class ContextualContextualCSVRecordToRowTest {
 
   private static final String RESOURCE_ID1 = "notrealfile1.csv";
 
@@ -49,7 +49,7 @@ class CSVRecordToRowTest {
   private static final String UNREGISTERED_HEADER = "ID,NAME";
 
   private static final String UNREGISTERED_HEADER_ERROR =
-      String.format(CSVRecordToRow.HEADER_ERROR_FORMAT, UNREGISTERED_HEADER);
+      String.format(ContextualCSVRecordToRow.HEADER_ERROR_FORMAT, UNREGISTERED_HEADER);
 
   private static final Schema.Field ACTIVE_FIELD = Schema.Field.of("ACTIVE", FieldType.BOOLEAN);
 
@@ -70,20 +70,20 @@ class CSVRecordToRowTest {
         }
       };
 
-  private static final List<CSVRecord> REGISTERED_RECORDS =
+  private static final List<ContextualCSVRecord> REGISTERED_RECORDS =
       Arrays.asList(
-          TestHelpers.recordFrom(RESOURCE_ID1, 1L, REGISTERED_HEADER1, "1,a,1.5"),
-          TestHelpers.recordFrom(RESOURCE_ID1, 2L, REGISTERED_HEADER1, "2,b,2.5"),
-          TestHelpers.recordFrom(RESOURCE_ID1, 3L, REGISTERED_HEADER1, "3,c,3.5"),
-          TestHelpers.recordFrom(RESOURCE_ID2, 1L, REGISTERED_HEADER2, "1,a,true"),
-          TestHelpers.recordFrom(RESOURCE_ID2, 2L, REGISTERED_HEADER2, "2,b,false"),
-          TestHelpers.recordFrom(RESOURCE_ID2, 3L, REGISTERED_HEADER2, "3,c,true"));
+          TestHelpers.contextualCSVRecordFrom(RESOURCE_ID1, 1L, REGISTERED_HEADER1, "1,a,1.5"),
+          TestHelpers.contextualCSVRecordFrom(RESOURCE_ID1, 2L, REGISTERED_HEADER1, "2,b,2.5"),
+          TestHelpers.contextualCSVRecordFrom(RESOURCE_ID1, 3L, REGISTERED_HEADER1, "3,c,3.5"),
+          TestHelpers.contextualCSVRecordFrom(RESOURCE_ID2, 1L, REGISTERED_HEADER2, "1,a,true"),
+          TestHelpers.contextualCSVRecordFrom(RESOURCE_ID2, 2L, REGISTERED_HEADER2, "2,b,false"),
+          TestHelpers.contextualCSVRecordFrom(RESOURCE_ID2, 3L, REGISTERED_HEADER2, "3,c,true"));
 
-  private static final List<CSVRecord> UNREGISTERED_RECORDS =
+  private static final List<ContextualCSVRecord> UNREGISTERED_RECORDS =
       Arrays.asList(
-          TestHelpers.recordFrom(RESOURCE_ID1, 1L, UNREGISTERED_HEADER, "1,a"),
-          TestHelpers.recordFrom(RESOURCE_ID1, 2L, UNREGISTERED_HEADER, "2,b"),
-          TestHelpers.recordFrom(RESOURCE_ID1, 3L, UNREGISTERED_HEADER, "3,c"));
+          TestHelpers.contextualCSVRecordFrom(RESOURCE_ID1, 1L, UNREGISTERED_HEADER, "1,a"),
+          TestHelpers.contextualCSVRecordFrom(RESOURCE_ID1, 2L, UNREGISTERED_HEADER, "2,b"),
+          TestHelpers.contextualCSVRecordFrom(RESOURCE_ID1, 3L, UNREGISTERED_HEADER, "3,c"));
 
   private static final Map<String, List<Row>> EXPECTED_REGISTERED_ROWS =
       new HashMap<>() {
@@ -130,13 +130,13 @@ class CSVRecordToRowTest {
   private static final List<Row> ERRORS =
       Arrays.asList(
           TestHelpers.errorFrom(
-              TestHelpers.recordFrom(RESOURCE_ID1, 1L, UNREGISTERED_HEADER, "1,a"),
+              TestHelpers.contextualCSVRecordFrom(RESOURCE_ID1, 1L, UNREGISTERED_HEADER, "1,a"),
               UNREGISTERED_HEADER_ERROR),
           TestHelpers.errorFrom(
-              TestHelpers.recordFrom(RESOURCE_ID1, 2L, UNREGISTERED_HEADER, "2,b"),
+              TestHelpers.contextualCSVRecordFrom(RESOURCE_ID1, 2L, UNREGISTERED_HEADER, "2,b"),
               UNREGISTERED_HEADER_ERROR),
           TestHelpers.errorFrom(
-              TestHelpers.recordFrom(RESOURCE_ID1, 3L, UNREGISTERED_HEADER, "3,c"),
+              TestHelpers.contextualCSVRecordFrom(RESOURCE_ID1, 3L, UNREGISTERED_HEADER, "3,c"),
               UNREGISTERED_HEADER_ERROR));
 
   private static final List<TestCase> CASES =
@@ -159,14 +159,16 @@ class CSVRecordToRowTest {
   @Test
   void testRouteCSVRecordsToMatchingHeaderRegistry() {
     for (TestCase caze : CASES) {
-      Pipeline p = Pipeline.create();
-      PCollection<CSVRecord> input = p.apply(Create.of(caze.input));
-      Result result =
-          input.apply(CSVRecordToRow.builder().setHeaderSchemaRegistry(HEADER_REGISTRY).build());
+      Pipeline p = TestHelpers.createTestPipeline();
+      PCollection<ContextualCSVRecord> input = p.apply(Create.of(caze.input));
+      ContextualCSVRecordToRowResult contextualCSVRecordToRowResult =
+          input.apply(
+              ContextualCSVRecordToRow.builder().setHeaderSchemaRegistry(HEADER_REGISTRY).build());
 
-      PAssert.that(caze.name, result.getFailure()).containsInAnyOrder(caze.expectedFailure);
+      PAssert.that(caze.name, contextualCSVRecordToRowResult.getFailure())
+          .containsInAnyOrder(caze.expectedFailure);
       for (Entry<String, PCollection<Row>> actualSuccess :
-          result.getSuccess().getAll().entrySet()) {
+          contextualCSVRecordToRowResult.getSuccess().getAll().entrySet()) {
         List<Row> expected = Collections.emptyList();
         if (caze.expectedSuccess.containsKey(actualSuccess.getKey())) {
           expected = caze.expectedSuccess.get(actualSuccess.getKey());
@@ -198,7 +200,7 @@ class CSVRecordToRowTest {
 
   private static TestCase testCase(
       String name,
-      List<CSVRecord> input,
+      List<ContextualCSVRecord> input,
       Map<String, List<Row>> expectedSuccess,
       List<Row> expectedFailure) {
     return new TestCase(name, input, expectedSuccess, expectedFailure);
@@ -207,13 +209,13 @@ class CSVRecordToRowTest {
   private static class TestCase {
 
     private final String name;
-    private final List<CSVRecord> input;
+    private final List<ContextualCSVRecord> input;
     private final Map<String, List<Row>> expectedSuccess;
     private final List<Row> expectedFailure;
 
     private TestCase(
         String name,
-        List<CSVRecord> input,
+        List<ContextualCSVRecord> input,
         Map<String, List<Row>> expectedSuccess,
         List<Row> expectedFailure) {
       this.name = name;

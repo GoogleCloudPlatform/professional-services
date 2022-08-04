@@ -39,29 +39,31 @@ class CSVRowUtils {
 
       List<CSVRecord> headerRecordsRaw = headerParser.getRecords();
       if (headerRecordsRaw.size() != 1) {
-        throw new IllegalArgumentException(
-            String.format("header should be a single CSVRecord, got: %d", headerRecordsRaw.size()));
+        throw new IllegalStateException(
+            String.format(
+                "header should be a single ContextualCSVRecord, got: %d", headerRecordsRaw.size()));
       }
 
       CSVRecord headerRecord = headerRecordsRaw.get(0);
 
       List<CSVRecord> lineRecordsRaw = lineParser.getRecords();
       if (lineRecordsRaw.size() != 1) {
-        throw new IllegalArgumentException(
-            String.format("line should be a single CSVRecord, got: %d", headerRecordsRaw.size()));
+        throw new IllegalStateException(
+            String.format(
+                "line should be a single ContextualCSVRecord, got: %d", headerRecordsRaw.size()));
       }
 
       CSVRecord lineRecord = lineRecordsRaw.get(0);
 
       if (headerRecord.size() != schema.getFieldCount()) {
-        throw new IllegalArgumentException(
+        throw new IllegalStateException(
             String.format(
                 "mismatch of header size and schema size. header: %d vs schema: %d",
                 headerRecord.size(), schema.getFieldCount()));
       }
 
       if (lineRecord.size() != schema.getFieldCount()) {
-        throw new IllegalArgumentException(
+        throw new IllegalStateException(
             String.format(
                 "mismatch of line size and schema size. line: %d vs schema: %d",
                 lineRecord.size(), schema.getFieldCount()));
@@ -70,7 +72,7 @@ class CSVRowUtils {
       return csvRecordToRow(headerRecord, lineRecord, schema);
 
     } catch (IOException e) {
-      throw new IllegalArgumentException(
+      throw new IllegalStateException(
           String.format("Could not parse CSV records from %s with format %s", line, csvFormat), e);
     }
   }
@@ -85,15 +87,10 @@ class CSVRowUtils {
       String column = header.get(i);
       String value = line.get(i);
       Field field = schema.getField(column);
-      parseField(fieldValues, field, value);
+      Object castedValue = autoCastField(field, value);
+      fieldValues.put(field.getName(), castedValue);
     }
     return Row.withSchema(schema).withFieldValues(fieldValues).build();
-  }
-
-  /** Populates fieldValues of a {@link Field} and {@link String} value. */
-  static void parseField(Map<String, Object> fieldValues, Field field, String value) {
-    Object castedValue = autoCastField(field, value);
-    fieldValues.put(field.getName(), castedValue);
   }
 
   /** Converts the rawObj informed by the {@link Schema.Field} field {@link FieldType}. */
