@@ -28,15 +28,15 @@ public interface ExampleReadOptions extends PipelineOptions {
 
   public void setSource(String value);
 
-  @Description("Sink File Pattern Blob")
+  @Description("Output file path prefix")
   @Required
-  public String getSink();
+  public String getOutput();
 
-  public void setSink(String value);
+  public void setOutput(String value);
 
   @Description("Path to quarantine of invalid records")
   @Required
-  public String getQuarantine();
+  public String getDeadLetterSink();
 
-  public void setQuarantine(String value);
+  public void setDeadLetterSink(String value);
 }

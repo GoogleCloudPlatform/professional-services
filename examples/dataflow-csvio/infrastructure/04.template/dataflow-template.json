@@ -9,13 +9,13 @@
       "label": "Source File Pattern Blob"
     },
     {
-      "name": "sink",
-      "helpText": "Sink File Pattern Blob",
+      "name": "output",
+      "helpText": "Output file path prefix",
       "isOptional": false,
-      "label": "Sink File Pattern Blob"
+      "label": "Output file path prefix"
     },
     {
-      "name": "quarantine",
+      "name": "deadLetterSink",
       "helpText": "Path to quarantine of invalid records",
       "isOptional": false,
       "label": "Path to quarantine of invalid records"

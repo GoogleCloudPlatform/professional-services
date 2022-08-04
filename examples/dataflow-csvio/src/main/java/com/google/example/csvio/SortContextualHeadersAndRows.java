@@ -274,7 +274,7 @@ abstract class SortContextualHeadersAndRows
       if (recordNum < headerPosition) {
         return;
       }
-      if (recordNum.equals(headerPosition)) {
+      if (recordNum == headerPosition) {
         receiver.get(HEADERS).output(input);
       } else {
         receiver.get(ROWS).output(input);

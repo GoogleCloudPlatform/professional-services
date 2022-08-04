@@ -75,7 +75,7 @@ public class ExampleRead {
     readCSVIOReadResult
         .getFailure()
         .apply("ReadCSV/ErrorsToJson", ToJson.of())
-        .apply("ReadCSV/WriteQuarantine", TextIO.write().to(options.getQuarantine()));
+        .apply("ReadCSV/WriteQuarantine", TextIO.write().to(options.getDeadLetterSink()));
 
     ContextualCSVRecordToRowResult csvRecordToRowContextualCSVRecordToRowResult =
         readCSVIOReadResult
@@ -89,7 +89,7 @@ public class ExampleRead {
     csvRecordToRowContextualCSVRecordToRowResult
         .getFailure()
         .apply("ParseCSV/ErrorsToJson", ToJson.of())
-        .apply("ParseCSV/WriteQuarantine", TextIO.write().to(options.getQuarantine()));
+        .apply("ParseCSV/WriteQuarantine", TextIO.write().to(options.getDeadLetterSink()));
 
     PCollectionRowTuple pcrt = csvRecordToRowContextualCSVRecordToRowResult.getSuccess();
     PCollection<Row> imageRows = pcrt.get(MET_IMAGES_HEADER);
@@ -109,11 +109,11 @@ public class ExampleRead {
 
     images
         .apply("MetImage/ToJson", ToJson.of())
-        .apply("MetImage/Write", TextIO.write().to(options.getSink() + "/images"));
+        .apply("MetImage/Write", TextIO.write().to(options.getOutput() + "/images"));
 
     objects
         .apply("MetObjects/ToJson", ToJson.of())
-        .apply("MetObjects/Write", TextIO.write().to(options.getSink() + "/objects"));
+        .apply("MetObjects/Write", TextIO.write().to(options.getOutput() + "/objects"));
 
     p.run();
   }
