@@ -151,7 +151,10 @@ def export_instances(project, zone, zone_2, zone_3, subnet_uri: uri.Subnet,
             # if backup will be needed - get fingerprint
             fingerprint = instances['networkInterfaces'][0].get('fingerprint')
             if fingerprint:
-                logging.info('Found instance nic0 fingerprint for %s', instances['name'])
+                logging.info(
+                    'Found instance nic0 fingerprint for %s',
+                    instances['name']
+                )
                 csv['fingerprint'] = fingerprint
 
             mydict[instances['selfLink']] = csv
@@ -210,15 +213,21 @@ def export_instances(project, zone, zone_2, zone_3, subnet_uri: uri.Subnet,
         writer.writeheader()
         writer.writerows(mydict.values())
 
-    logging.info('Successfully written %i records to %s', len(mydict),
-                 file_name)
+    logging.info(
+        'Successfully written %i records to %s', len(mydict),
+        file_name
+    )
 
     return True
 
 
-def list_instances_for_rollback(project, zone, backup_subnet_uri: uri.Subnet, previous_instances_file, to_file):
+def list_instances_for_rollback(
+        project, zone, backup_subnet_uri: uri.Subnet,
+        previous_instances_file, to_file
+    ):
     # ONLY DEALING WITH ONE ZONE AND ONE INTERNAL IP SO FAR!
-    # get previous internal IPs of the instances, because rollback wants the instances
+    # get previous internal IPs of the instances,
+    # because rollback wants the instances
     # to have the same IPs like they had before
     internal_ips = {}
     try:
@@ -260,7 +269,6 @@ def list_instances_for_rollback(project, zone, backup_subnet_uri: uri.Subnet, pr
                 'internal_ip': instances['networkInterfaces'][0]['networkIP'],
                 'subnet': instances['networkInterfaces'][0]['subnetwork']
             }
-            instance_uri = uri.Instance.from_uri(instances['selfLink'])
 
             # most important part: get the network interface fingerprint
             # without it the instance can't be moved to the previous subnet
@@ -269,12 +277,17 @@ def list_instances_for_rollback(project, zone, backup_subnet_uri: uri.Subnet, pr
             if fingerprint:
                 csv['fingerprint'] = fingerprint
             else:
-                logging.error('Instance %s fingerprint for nic0 not found, aborting',
-                              instances['name'])
+                logging.error(
+                    'Instance %s fingerprint for nic0 not found, aborting',
+                    instances['name']
+                )
                 return False
 
             if instances['id'] not in internal_ips: # previous IP not found
-                logging.error('No previous IP found for instance %s', instances['name'])
+                logging.error(
+                    'No previous IP found for instance %s',
+                    instances['name']
+                )
                 return False
 
             csv['previous_internal_ip'] = internal_ips[instances['id']]
@@ -376,7 +389,7 @@ def release_ip(project: str, subnet_uri: uri.Subnet) -> bool:
                         'releasing ip generated an exception: %s', exc)
                     result = False
     else:
-        logging.warn(
+        logging.warning(
             'No reserved internal IP addresses found in the subnet %s',
             subnet_uri.uri)
     return result

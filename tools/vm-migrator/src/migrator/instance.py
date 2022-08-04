@@ -20,7 +20,6 @@ import time
 import googleapiclient.discovery
 import logging
 import re
-import json
 
 from . import node_group_mapping
 from . import machine_image
@@ -28,7 +27,6 @@ from .exceptions import GCPOperationException, NotFoundException
 from ratemate import RateLimit
 from . import uri
 from typing import Optional
-from unittest import removeResult
 
 RATE_LIMIT = RateLimit(max_count=2000, per=100)
 
@@ -315,9 +313,9 @@ def prepare_create_instance(compute, instance_uri: uri.Instance, network,
         config['networkInterfaces'][0]['aliasIpRanges'] = alias_ip_ranges
 
     return {
-        "project": instance_uri.project,
-        "zone": instance_uri.zone,
-        "body": config
+        'project': instance_uri.project,
+        'zone': instance_uri.zone,
+        'body': config
     }
 
 
@@ -338,10 +336,14 @@ def wait_for_instance(compute, instance_uri: uri.Instance):
 
         time.sleep(10)
 
-def move_to_subnet_and_rename(instance_uri: uri.Instance, row, to_subnet_uri, direction: str) -> str:
-    if direction != 'backup' and direction != 'rollback':
+
+def move_to_subnet_and_rename(instance_uri: uri.Instance, row,
+                             to_subnet_uri, direction: str) \
+        -> str:
+    if direction not in ['backup', 'rollback']:
         logging.error(
-            "bulk_move_instances_to_subnet function: specify a direction: either 'backup' or 'rollback'"
+            "move_to_subnet_and_rename: specify a direction"
+            "('backup' or 'rollback')"
         )
         return False
     # ONLY DEALING WITH ONE ZONE SO FAR!
@@ -349,22 +351,24 @@ def move_to_subnet_and_rename(instance_uri: uri.Instance, row, to_subnet_uri, di
         waited_time = RATE_LIMIT.wait()  # wait before starting the task
         logging.info('  task: waited for %s secs', waited_time)
         compute = get_compute()
-        logging.info('Updating Network Interface for Instance %s ', instance_uri.name)
+        logging.info('Updating Network Interface for Instance %s ',
+                     instance_uri.name)
         request_body = {
-            "network": row['network'],
-            "subnetwork": to_subnet_uri.uri,
-            "fingerprint": row['fingerprint'],
+            'network': row['network'],
+            'subnetwork': to_subnet_uri.uri,
+            'fingerprint': row['fingerprint'],
         }
-        if 'previous_internal_ip' in row and row['previous_internal_ip'] != None:
+        if 'previous_internal_ip' in row \
+            and row['previous_internal_ip'] is not None:
             request_body['networkIP'] = row['previous_internal_ip']
         kwargs_base = {
-            "project": instance_uri.project,
-            "zone": instance_uri.zone,
-            "instance": instance_uri.name
+            'project': instance_uri.project,
+            'zone': instance_uri.zone,
+            'instance': instance_uri.name
         }
         kwargs = kwargs_base.copy()
-        kwargs["networkInterface"] = "nic0"
-        kwargs["body"] = request_body
+        kwargs['networkInterface'] = 'nic0'
+        kwargs['body'] = request_body
 
         result = compute.instances().updateNetworkInterface(**kwargs).execute()
         wait_for_zonal_operation(compute, instance_uri, result['name'])
@@ -372,12 +376,12 @@ def move_to_subnet_and_rename(instance_uri: uri.Instance, row, to_subnet_uri, di
         kwargs = kwargs_base.copy()
         # rename
         if direction == 'backup':
-            new_name = kwargs["instance"] + '0'
+            new_name = kwargs['instance'] + '0'
         else: # rollback
-            new_name = kwargs["instance"][:-1]
-        kwargs["body"] = {
-            "currentName": kwargs["instance"],
-            "name": new_name
+            new_name = kwargs['instance'][:-1]
+        kwargs['body'] = {
+            'currentName': kwargs['instance'],
+            'name': new_name
         }
         result = compute.instances().setName(**kwargs).execute()
         wait_for_zonal_operation(compute, instance_uri, result['name'])
@@ -418,14 +422,23 @@ def create(instance_uri: uri.Instance,
         try:
             if 0 < retry_count:
                 wait_time = min(retry_count * 30, 300)
-                logging.info("Retry #{} for instance {}: Waiting {} seconds.".format(retry_count, instance_uri.name, wait_time))
+                logging.info(
+                    'Retry #{} for instance {}: Waiting {} seconds.'
+                    .format(retry_count, instance_uri.name, wait_time)
+                )
                 time.sleep(wait_time)
-                logging.info("Retry #{} for instance {}: Sleeping finished, attempting creation...".format(retry_count, instance_uri.name))
+                logging.info(
+                    'Retry #{} for instance {}: Sleeping finished,'
+                    'attempting creation...'
+                    .format(retry_count, instance_uri.name)
+                )
 
             operation = compute.instances().insert(**kwargs).execute()
 
             if wait:
-                wait_for_zonal_operation(compute, instance_uri, operation['name'])
+                wait_for_zonal_operation(
+                    compute, instance_uri, operation['name']
+                )
                 result = wait_for_instance(compute, instance_uri)
             created_instance_uri = uri.Instance.from_uri(result['selfLink'])
             logging.info('Instance %s created from source MachineImage %s and '
@@ -433,12 +446,18 @@ def create(instance_uri: uri.Instance,
                         instance_uri.name)
             return created_instance_uri.name
         except Exception as ex:
-            if re.search("INTERNAL_ERROR", str(ex)):
+            if re.search('INTERNAL_ERROR', str(ex)):
                 if retry_count < 5:
-                    logging.warn("Retry #{} for instance {} failed.".format(retry_count, instance_uri.name))
+                    logging.warning(
+                        'Retry #{} for instance {} failed.'
+                        .format(retry_count, instance_uri.name)
+                    )
                     retry_count += 1
                     continue
                 else:
-                    logging.error("Retry #{} for instance {} failed.".format(retry_count, instance_uri.name))
+                    logging.error(
+                        'Retry #{} for instance {} failed.'
+                        .format(retry_count, instance_uri.name)
+                    )
             logging.error(ex)
             raise ex

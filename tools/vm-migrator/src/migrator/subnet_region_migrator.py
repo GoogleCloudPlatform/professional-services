@@ -207,10 +207,13 @@ def bulk_instance_start(file_name) -> bool:
     return result
 
 
-def bulk_move_instances_to_subnet(file_name, to_subnet_uri: uri.Subnet, direction: str) -> bool:
+def bulk_move_instances_to_subnet(
+        file_name, to_subnet_uri: uri.Subnet, direction: str
+    ) -> bool:
     if direction != 'backup' and direction != 'rollback':
         logging.error(
-            "bulk_move_instances_to_subnet function: specify a direction: either 'backup' or 'rollback'"
+            "bulk_move_instances_to_subnet: specify a direction \
+            ('backup' or 'rollback')"
         )
         return False
     result = True
@@ -219,7 +222,10 @@ def bulk_move_instances_to_subnet(file_name, to_subnet_uri: uri.Subnet, directio
         csv_dict_reader = DictReader(read_obj)
         for row in csv_dict_reader:
             if not row['fingerprint']:
-                logging.error('Missing fingerprint for instance %s, aborting', row['name'])
+                logging.error(
+                    'Missing fingerprint for instance %s, aborting',
+                    row['name']
+                )
                 return False
     # all fingerprints there, proceeding
     with open(file_name, 'r') as read_obj:
@@ -234,9 +240,15 @@ def bulk_move_instances_to_subnet(file_name, to_subnet_uri: uri.Subnet, directio
             for row in csv_dict_reader:
                 instance_uri = uri.Instance.from_uri(row['self_link'])
                 if not row['fingerprint']:
-                    logging.error('Missing fingerprint for %s, aborting', row['name'])
+                    logging.error(
+                        'Missing fingerprint for %s, aborting',
+                        row['name']
+                    )
                 instance_future.append(
-                    executor.submit(instance.move_to_subnet_and_rename, instance_uri, row, to_subnet_uri, direction))
+                    executor.submit(
+                        instance.move_to_subnet_and_rename, instance_uri,
+                        row, to_subnet_uri, direction)
+                    )
                 count = count + 1
             for future in concurrent.futures.as_completed(instance_future):
                 try:
@@ -246,8 +258,10 @@ def bulk_move_instances_to_subnet(file_name, to_subnet_uri: uri.Subnet, directio
                                  machine_name, to_subnet_uri)
                     logging.info('%i out of %i moved to subnet', tracker, count)
                 except Exception as exc:
-                    logging.error('Moving machine to subnet %s generated an exception: %s',
-                                 to_subnet_uri, exc)
+                    logging.error(
+                        'Moving machine to subnet %s: exception: %s',
+                        to_subnet_uri, exc
+                    )
                     result = False
     return result
 
@@ -440,7 +454,9 @@ def bulk_instance_disable_deletionprotection(file_name) -> bool:
                     logging.info('%i out of %i set ', tracker, count)
                 except Exception as exc:
                     logging.error(
-                        'disable deletion protection generated an exception: %s', exc)
+                        'Disable deletion protection: exception: %s',
+                        exc
+                    )
                     result = False
     return result
 
