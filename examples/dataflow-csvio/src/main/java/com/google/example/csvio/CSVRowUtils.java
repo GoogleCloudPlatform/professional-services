@@ -46,6 +46,13 @@ class CSVRowUtils {
 
       CSVRecord headerRecord = headerRecordsRaw.get(0);
 
+      if (headerRecord.size() != schema.getFieldCount()) {
+        throw new IllegalStateException(
+            String.format(
+                "mismatch of header size and schema size. header: %d vs schema: %d",
+                headerRecord.size(), schema.getFieldCount()));
+      }
+
       List<CSVRecord> lineRecordsRaw = lineParser.getRecords();
       if (lineRecordsRaw.size() != 1) {
         throw new IllegalStateException(
@@ -54,13 +61,6 @@ class CSVRowUtils {
       }
 
       CSVRecord lineRecord = lineRecordsRaw.get(0);
-
-      if (headerRecord.size() != schema.getFieldCount()) {
-        throw new IllegalStateException(
-            String.format(
-                "mismatch of header size and schema size. header: %d vs schema: %d",
-                headerRecord.size(), schema.getFieldCount()));
-      }
 
       if (lineRecord.size() != schema.getFieldCount()) {
         throw new IllegalStateException(
