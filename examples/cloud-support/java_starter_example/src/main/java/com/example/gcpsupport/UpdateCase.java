@@ -13,25 +13,29 @@
  */
 package com.example.gcpsupport;
 
-// [START gcpsupport_list_cases]
+// [START gcpsupport_update_cases]
 
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.JsonObjectParser;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.cloudsupport.v2beta.CloudSupport;
 import com.google.api.services.cloudsupport.v2beta.model.CloudSupportCase;
-import com.google.api.services.cloudsupport.v2beta.model.ListCasesResponse;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.GoogleCredentials;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
-import java.util.List;
 
-// sample code to list support cases using support API
-public class ListCases {
+// sample code to update a support case using support API
+public class UpdateCase {
 
   // Shared constants
   static final String CLOUD_SUPPORT_SCOPE = "https://www.googleapis.com/auth/cloudsupport";
@@ -39,20 +43,21 @@ public class ListCases {
   public static void main(String[] args) {
 
     try {
-      // TODO(developer): Replace this variable with your project id
-      // PARENT_RESOURCE can also be other parent resource like
-      // organizations/<---organization id--->
-      String projectId = "00000";
-      String PARENT_RESOURCE = String.format("projects/%s", projectId);
+      // TODO(developer): Create a json object with your new case and put path here
+      // see an example under support/cloud-client/data/updateCase.json
+      String updatedCasePath = "/<---path--->/*.json";
 
-      List<CloudSupportCase> allCases = listAllCases(PARENT_RESOURCE);
+      // TODO(developer): Replace this variable with your project number
+      String projectNumber = "00000";
+      String PARENT_RESOURCE = String.format("projects/%s", projectNumber);
 
-      System.out.println(
-          "Printing all " + allCases.size() + " cases of parent resource: " + PARENT_RESOURCE);
+      // TODO(developer): Replace this variable with your case id
+      String caseId = "00000";
+      String CASE = String.format("/cases/%s", caseId);
 
-      for (CloudSupportCase csc : allCases) {
-        System.out.println(csc + "\n\n");
-      }
+      CloudSupportCase updatedCase = updateCase(PARENT_RESOURCE + CASE, updatedCasePath);
+
+      System.out.println("Updated case object is: " + updatedCase + "\n\n\n");
     } catch (IOException e) {
       System.out.println("IOException caught! \n" + e);
     }
@@ -87,15 +92,29 @@ public class ListCases {
     return null;
   }
 
-  // list all cases
-  public static List<CloudSupportCase> listAllCases(String parentResource) throws IOException {
+  // helper method to get a CloudSupportCase object
+  private static CloudSupportCase getCloudSupportCaseJsonObject(String jsonPathName)
+      throws IOException {
+
+    JsonFactory jsonFactory = GsonFactory.getDefaultInstance();
+    JsonObjectParser parser = new JsonObjectParser(jsonFactory);
+    InputStream stream = new FileInputStream(new File(jsonPathName));
+    Reader reader = new InputStreamReader(stream, "UTF-8");
+
+    return parser.parseAndClose(reader, CloudSupportCase.class);
+  }
+
+  // update one case
+  public static CloudSupportCase updateCase(String nameOfCase, String updatedCasePath)
+      throws IOException {
 
     CloudSupport supportService = getCloudSupportService();
-    ListCasesResponse listCasesResponse = supportService.cases().list(parentResource).execute();
-    List<CloudSupportCase> listCases = listCasesResponse.getCases();
+    CloudSupportCase updateCase = getCloudSupportCaseJsonObject(updatedCasePath);
+    CloudSupportCase updateCaseResponse =
+        supportService.cases().patch(nameOfCase, updateCase).execute();
 
-    return listCases;
+    return updateCaseResponse;
   }
 }
 
-// [END gcpsupport_list_cases]
+// [END gcpsupport_update_cases]
