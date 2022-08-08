@@ -2,10 +2,15 @@
 
 Disclaimer: THIS IS NOT A PRODUCTION READY CODE. It's meant to be used as a PoC.
 
+It can be needed to access to one or more AWS services from a GCP compute service, it can be needed for many reasons like a migration process or a multi-cluster setup.
 
+How can we honor the security best-practice, "don't bring around sec keys", if we are operating over two different providers?
 
-It can be needed to have access to one or more AWS services from a GCP compute service without the exchange of any security keys.  
-It can be a VM, a container inside a GKE cluster, a Cloud Run container, you name it.
+As usual, technology comes to help, OpenID Connect (OIDC) in our case.
+
+OIDC allows you to establish granular short-lived trust relationships between platforms supporting it without exchanging any long term secrets. The implementation is called Workload Identity Federation on Google Cloud and Web Identity on AWS.
+
+To achieve our goal here, we'll need to create one or more AWS roles but with federated OIDC identity. It means, basically, to create a role and specify the the "real" provider is one of the supported IdP (Identity Provider), GCP in our case; where we'll use a gcp service account as connected identity to the AWS Role.
 
 By using this code, it will be possible to assume an AWS ARN Role, without the need to create and store any credentials on both sides.
 
@@ -29,3 +34,5 @@ export GCP_AUTH_SERVICE=arn:aws:iam::000000000:role/access-to-s3-from-gcp
 ```
 
 There's one last step that should be taken, connect our GCP Service Account to the AWS S3 ARN. During the creation of the AWS ARN, it's possibile to specify it as Trusted Identity, select Web identity and then Google. By pasting the GCP SA Unique ID into the Audience box the final step is completed.
+
+We tested this tools with the AWS CLI only but (not tested) could be used to extend any other tools that actually use the aws credentials file.
