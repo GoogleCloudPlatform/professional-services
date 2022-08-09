@@ -92,7 +92,7 @@ class TestBucketMoverService(unittest.TestCase):
                                                bucket_mock, None, 'email')
 
         spinner_mock.ok.assert_called_once_with(bucket_mover_service._CHECKMARK)
-        bucket_mock.acl.save_predefined.assert_called_once_with('private')
+        #bucket_mock.acl.save_predefined.assert_called_once_with('private')
         bucket_mock.set_iam_policy.assert_called_once()
 
     @mock.patch('google.cloud.storage.Bucket')
@@ -234,6 +234,7 @@ class TestBucketMoverService(unittest.TestCase):
         bucket_mover_service._create_bucket(mock.MagicMock(), mock.MagicMock(),
                                             mock.MagicMock(), mock.MagicMock(),
                                             details)
+        
 
         self.assertEqual(details.default_kms_key_name,
                          mock_bucket_instance.default_kms_key_name)
