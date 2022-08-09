@@ -51,8 +51,16 @@ class BucketDetails(object):
         # These properties can be skipped with cmd line params, so use the property setters to
         # make the checks
         self.iam_policy = source_bucket.get_iam_policy()
-        self.acl_entities = source_bucket.acl.get_entities()
-        self.default_obj_acl_entities = source_bucket.default_object_acl.get_entities()
+        #change by Audax Labs - start
+        self.is_uniform_bucket = vars(source_bucket)["_properties"]["iamConfiguration"]["uniformBucketLevelAccess"]["enabled"]
+        
+        if not self.is_uniform_bucket:
+            self.acl_entities = source_bucket.acl.get_entities()
+            self.default_obj_acl_entities = source_bucket.default_object_acl.get_entities()
+        else:
+            self.acl_entities = None
+            self.default_obj_acl_entities = None
+        #change by Audax Labs - end
         self.requester_pays = source_bucket.requester_pays
         self.cors = source_bucket.cors
         self.default_kms_key_name = source_bucket.default_kms_key_name
