@@ -180,11 +180,11 @@ def _check_bucket_lock(cloud_logger, config, bucket, source_bucket_details):
             cloud_logger.log_text(
                 json.dumps(source_bucket_details.iam_policy.to_api_repr()))
             
-            #change by Audax Labs - start
+            
             if source_bucket_details.acl_entities:
                 for entity in source_bucket_details.acl_entities:
                     cloud_logger.log_text(str(entity))
-            #change by Audax Labs - end
+
             _lock_down_bucket(
                 spinner, cloud_logger, bucket, config.lock_file_name,
                 config.source_project_credentials.service_account_email)  # pylint: disable=no-member
@@ -213,13 +213,6 @@ def _lock_down_bucket(spinner, cloud_logger, bucket, lock_file_name,
     msg = 'Locking down the bucket by revoking all ACLs/IAM policies'
     spinner.text = msg
     cloud_logger.log_text(msg)
-
-    #change by Audax Labs - start
-    # is_uniform_bucket = vars(bucket)["_properties"]["iamConfiguration"]["uniformBucketLevelAccess"]["enabled"]
-    # if not is_uniform_bucket:
-    #     # Turn off any bucket ACLs
-    #     bucket.acl.save_predefined('private')
-    #change by Audax Labs - end
 
     # Revoke all IAM access and only set the service account as an admin
     policy = api_core_iam.Policy()
