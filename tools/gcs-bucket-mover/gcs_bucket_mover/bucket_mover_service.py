@@ -768,7 +768,7 @@ def _run_and_wait_for_sts_job(sts_client, target_project, source_bucket_name,
             sleep(10)
 
     if job_status == sts_job_status.StsJobStatus.success:
-        print()
+  
         return True
 
     # Execution will only reach this code if something went wrong with the STS job
