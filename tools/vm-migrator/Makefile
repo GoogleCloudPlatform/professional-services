@@ -18,6 +18,7 @@ SOURCE_ZONE_3=
 #TARGET_PROJECT_SA=
 #TARGET_PROJECT_SA_SCOPES=https://www.googleapis.com/auth/cloud-platform
 TARGET_SUBNET=projects/my-host-project/regions/us-central1/subnetworks/target-subnet
+#BACKUP_SUBNET=projects/my-host-project/regions/us-central1/subnetworks/backup-subnet
 
 # actual default values
 EXPORT_CSV=export.csv
@@ -43,6 +44,7 @@ clean-build:
 install-tools:
 	pip3 install yapf
 	pip3 install pylint
+	pip3 install pytest
 
 install-requirements:
 	pip3 install -r requirements.txt
@@ -69,5 +71,6 @@ migrate-subnet:
 		--target_project_sa=$(TARGET_PROJECT_SA) \
 		--target_project_sa_scopes=$(TARGET_PROJECT_SA_SCOPES) \
 		--target_subnet=$(TARGET_SUBNET) --source_csv=$(SOURCE_CSV) \
+		--backup_subnet=$(BACKUP_SUBNET) \
 		--filter_csv=$(FILTER_CSV) --input_csv=$(INPUT_CSV) \
 		--log_level=$(LOG_LEVEL)
