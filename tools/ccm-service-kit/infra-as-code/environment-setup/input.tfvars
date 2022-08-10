@@ -1,0 +1,10 @@
+#TODO: Set values for these variables
+# project_id = ""
+# project_number = ""
+# region = ""
+# zone = ""
+bigquery_location = "US"
+ccm-trigger-pubsub-topic = "ccm-composer-trigger"
+ccm-delete-pubsub-topic = "ccm-composer-delete"
+ccm-scheduler-trigger-name = "ccm-scheduler-trigger"
+ccm-scheduler-trigger-frecuency = "* 1 * * *"
