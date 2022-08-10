@@ -1,5 +1,5 @@
 gcp_source_project_service_account_key: </PATH/TO/YOUR/SOURCE-PROJECT_SERVICE_ACCOUNT_KEY.JSON>
-gcp_target_project_service_account_key: </PATH/TO/YOUR/TARGET-PROJECT_SERVICE_ACCOUNT_KEY.JSON>
+gcp_target_project_service_account_key: </PATH/TO/YOUR/TARGET-PROJECT_SERVICE_ACCOUNT_KEY.JSON
 
 lock_file_name: _locks/all.lock
 
