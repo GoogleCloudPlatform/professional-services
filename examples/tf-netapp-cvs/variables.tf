@@ -18,6 +18,11 @@ variable "project_id" {
   type        = string
 }
 
+variable "apis" {
+  description = "The list of APIs to be enabled"
+  type        = list(any)
+}
+
 variable "region" {
   description = "The GCP region for NFS volumes"
   type        = string

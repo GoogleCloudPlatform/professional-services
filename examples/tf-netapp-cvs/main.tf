@@ -14,15 +14,17 @@
 # limitations under the License.
 
 
-module "nfs-api" {
-  source  = "terraform-google-modules/project-factory/google//modules/project_services"
-  version = "10.1.1"
+resource "google_project_service" "apis" {
+  project = var.project_id
+  count   = length(var.apis)
+  service = var.apis[count.index]
 
-  project_id = var.project_id
-  activate_apis = [
-    "cloudvolumesgcp-api.netapp.com",
-    "serviceusage.googleapis.com"
-  ]
+  timeouts {
+    create = "15m"
+    update = "20m"
+  }
+
+  disable_dependent_services = true
 }
 
 resource "google_service_account" "service_account" {

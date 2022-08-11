@@ -13,6 +13,7 @@
 # limitations under the License.
 
 project_id = "project-id"
+apis       = ["cloudvolumesgcp-api.netapp.com", "serviceusage.googleapis.com"]
 nfs-volumes = {
   "vol-1" = {
     protocol_types     = ["NFSv3"]
