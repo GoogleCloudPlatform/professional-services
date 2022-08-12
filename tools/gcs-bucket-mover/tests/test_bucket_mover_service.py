@@ -87,7 +87,7 @@ class TestBucketMoverService(unittest.TestCase):
 
         spinner_mock = mock.MagicMock()
         cloud_logger_mock = mock.MagicMock()
-        bucket_mock = mock.MagicMock()
+        bucket_mock = common.get_mock_source_bucket()
         bucket_mover_service._lock_down_bucket(spinner_mock, cloud_logger_mock,
                                                bucket_mock, None, 'email')
 
