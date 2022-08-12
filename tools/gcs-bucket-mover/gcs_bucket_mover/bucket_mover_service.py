@@ -214,6 +214,12 @@ def _lock_down_bucket(spinner, cloud_logger, bucket, lock_file_name,
     spinner.text = msg
     cloud_logger.log_text(msg)
 
+    
+    is_uniform_bucket = vars(bucket)["_properties"]["iamConfiguration"]["uniformBucketLevelAccess"]["enabled"]
+    if not is_uniform_bucket:
+        # Turn off any bucket ACLs
+        bucket.acl.save_predefined('private')
+
     # Revoke all IAM access and only set the service account as an admin
     policy = api_core_iam.Policy()
     policy['roles/storage.admin'].add('serviceAccount:' + service_account_email)
