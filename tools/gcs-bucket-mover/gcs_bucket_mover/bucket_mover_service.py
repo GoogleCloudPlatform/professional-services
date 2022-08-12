@@ -443,7 +443,7 @@ def _create_bucket(spinner, cloud_logger, config, bucket_name,
             spinner, cloud_logger,
             'ACLs successfully copied over from the source bucket')
     else:
-        print('setting target bucket to uniform level asses')
+        _print_and_log(cloud_logger,"setting target bucket to uniform level access")
         bucket.iam_configuration.uniform_bucket_level_access_enabled = True
         bucket.patch()
 
