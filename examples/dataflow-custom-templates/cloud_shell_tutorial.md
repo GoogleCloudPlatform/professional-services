@@ -156,10 +156,12 @@ First, set your GitHub organization or username:
 GITHUB_REPO_OWNER=<change me>
 ```
 
-Next, set the repository name.
+Next, set expected defaults.  (_Note: Normally it makes sense to default terraform
+variables instead of doing this._)
 
 ```sh
 GITHUB_REPO_NAME=professional-services
+WORKING_DIR_PREFIX=examples/dataflow-custom-templates
 ```
 
 Run the terraform workflow in
@@ -172,17 +174,17 @@ type `yes` to proceed.
 ```sh
 DIR=infrastructure/04.template
 terraform -chdir=$DIR init
-terraform -chdir=$DIR apply -var="project=$(gcloud config get-value project)" -var="github_repository_owner=$GITHUB_REPO_OWNER" -var="github_repository_name=$GITHUB_REPO_NAME"
+terraform -chdir=$DIR apply -var="project=$(gcloud config get-value project)" -var="github_repository_owner=$GITHUB_REPO_OWNER" -var="github_repository_name=$GITHUB_REPO_NAME" -var="working_dir_prefix=$WORKING_DIR_PREFIX"
 ```
 
 ## 7. Run Cloud Build Trigger
 
-Navigate to https://console.cloud.google.com/cloud-build/triggers.
+Navigate to [cloud-build/triggers](https://console.cloud.google.com/cloud-build/triggers).
 You should see a Cloud Build trigger listed for each language of this example.
 Click the `RUN` button next to the created Cloud Build trigger to execute the
 custom template Cloud Build trigger for your language of choice manually.
 
-See https://cloud.google.com/build/docs/automating-builds/create-manual-triggers?hl=en#running_manual_triggers
+See [Create Manual Triggers](https://cloud.google.com/build/docs/automating-builds/create-manual-triggers?hl=en#running_manual_triggers)
 for more information.
 
 This step will take several minutes to complete.
@@ -194,7 +196,7 @@ This step will take several minutes to complete.
 There are multiple ways to run a Dataflow Job from a custom template.  We will
 use the Google Cloud Web UI.
 
-To start the process, navigate to https://console.cloud.google.com/dataflow/createjob.
+To start the process, navigate to [dataflow/createjob](https://console.cloud.google.com/dataflow/createjob).
 
 ### 2. Select Custom Template
 
@@ -216,36 +218,6 @@ click the `RUN` button.
 
 ### 5. Monitor the Dataflow Job
 
-Navigate to https://console.cloud.google.com/dataflow/jobs to locate the job
+Navigate to [dataflow/jobs](https://console.cloud.google.com/dataflow/jobs) to locate the job
 you just created.  Clicking on the job will let you navigate to the job
 monitoring screen.
-
-## 9. Clean up
-
-To clean up resources provisioned by the terraform modules, run the following:
-
-Terraform will ask you to confirm with `yes` to proceed.
-
-Destroy the Cloud Build triggers:
-```sh
-DIR=infrastructure/04.template
-terraform -chdir=$DIR destroy -var="project=$(gcloud config get-value project)" -var="github_repository_owner=$GITHUB_REPO_OWNER"
-```
-
-Destroy the Google Cloud storage resources:
-```sh
-DIR=infrastructure/03.io
-terraform -chdir=$DIR destroy -var="project=$(gcloud config get-value project)"
-```
-
-Destroy the custom networking resources
-```sh
-DIR=infrastructure/02.network
-terraform -chdir=$DIR destroy -var="project=$(gcloud config get-value project)"
-```
-
-Destroy the provisioned setup resources
-```sh
-DIR=infrastructure/01.setup
-terraform -chdir=$DIR destroy -var="project=$(gcloud config get-value project)"
-```

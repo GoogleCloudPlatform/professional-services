@@ -38,4 +38,4 @@ if __name__ == '__main__':
          | "Split" >> SplitString()
          | "Count" >> beam.combiners.Count.PerElement()
          | "Format" >> beam.Map(_format_kv)
-         | "Log Results" >> beam.io.WriteToText(output))
+         | "Write Results" >> beam.io.WriteToText(output))

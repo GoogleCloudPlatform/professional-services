@@ -71,6 +71,11 @@ variable "artifact_registry_id" {
   default     = "wordcount"
 }
 
+variable "working_dir_prefix" {
+  type        = string
+  description = "The working directory prefix within which to execute builds"
+}
+
 variable "github_repository_name" {
   type        = string
   description = "The name of the GitHub repository. For example the repository name for https://github.com/example/foo is 'foo'."

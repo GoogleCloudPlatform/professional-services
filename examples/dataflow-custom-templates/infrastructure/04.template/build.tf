@@ -41,7 +41,7 @@ resource "google_cloudbuild_trigger" "dataflow_template_build_trigger_java" {
   build {
     timeout = "1800s"
     step {
-      dir        = "java"
+      dir        = "${var.working_dir_prefix}/java"
       id         = "wordcount:build_jar"
       name       = "gradle:jdk11"
       entrypoint = "gradle"
@@ -59,10 +59,10 @@ resource "google_cloudbuild_trigger" "dataflow_template_build_trigger_java" {
         "gs://${google_storage_bucket.dataflow_templates.name}/${var.image_prefix}-java-batch.json",
         "--project=${var.project}",
         "--image-gcr-path=${var.region}-docker.pkg.dev/${var.project}/${var.artifact_registry_id}/${var.image_prefix}-java",
-        "--metadata-file=/workspace/infrastructure/04.template/dataflow-template.json",
+        "--metadata-file=/workspace/${var.working_dir_prefix}/infrastructure/04.template/dataflow-template.json",
         "--sdk-language=JAVA",
         "--flex-template-base-image=JAVA11",
-        "--jar=/workspace/java/build/libs/${lower(var.java_class_name)}-latest-all.jar",
+        "--jar=/workspace/${var.working_dir_prefix}/java/build/libs/${lower(var.java_class_name)}-latest-all.jar",
         "--env=FLEX_TEMPLATE_JAVA_MAIN_CLASS=${var.java_package_name}.${var.java_class_name}",
         "--network=${data.google_compute_network.default.name}",
         "--subnetwork=regions/${var.region}/subnetworks/${data.google_compute_subnetwork.default.name}",
@@ -87,7 +87,7 @@ resource "google_cloudbuild_trigger" "dataflow_template_build_trigger_python" {
     timeout = "1800s"
 
     step {
-      dir        = "python"
+      dir        = "${var.working_dir_prefix}/python"
       id         = "wordcount:build_docker_image"
       name       = "gcr.io/google.com/cloudsdktool/cloud-sdk"
       entrypoint = "gcloud"
@@ -109,7 +109,7 @@ resource "google_cloudbuild_trigger" "dataflow_template_build_trigger_python" {
         "gs://${google_storage_bucket.dataflow_templates.name}/${var.python_file_name}-python-batch.json",
         "--project=${var.project}",
         "--image=${var.region}-docker.pkg.dev/${var.project}/${var.artifact_registry_id}/wordcount-python",
-        "--metadata-file=/workspace/infrastructure/04.template/dataflow-template.json",
+        "--metadata-file=/workspace/${var.working_dir_prefix}/infrastructure/04.template/dataflow-template.json",
         "--sdk-language=PYTHON",
         "--network=${data.google_compute_network.default.name}",
         "--subnetwork=regions/${var.region}/subnetworks/${data.google_compute_subnetwork.default.name}",

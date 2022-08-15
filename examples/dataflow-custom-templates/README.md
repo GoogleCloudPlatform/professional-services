@@ -34,7 +34,7 @@ without installing anything on your local machine.
 
 For an easy walkthrough without installing anything on your local machine:
 
-[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https%3A%2F%2Fgithub.com%2FGoogleCloudPlatform%2Fprofessional-services&cloudshell_git_branch=main&cloudshell_workspace=examples%2Fdataflow-custom-templates&cloudshell_tutorial=examples%2Fdataflow-custom-templates%2Fcloud_shell_tutorial.md)
+[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https%3A%2F%2Fgithub.com%2FGoogleCloudPlatform%2Fprofessional-services&cloudshell_git_branch=main&cloudshell_workspace=examples%2Fdataflow-custom-templates&cloudshell_tutorial=cloud_shell_tutorial.md)
 
 # Requirements
 
@@ -177,10 +177,11 @@ First, set your GitHub organization or username:
 GITHUB_REPO_OWNER=<change me>
 ```
 
-Next, set the repository name.
+Next, set expected defaults.
 
 ```sh
 GITHUB_REPO_NAME=professional-services
+WORKING_DIR_PREFIX=examples/dataflow-custom-templates
 ```
 
 Run the terraform workflow in
@@ -193,7 +194,7 @@ type `yes` to proceed.
 ```sh
 DIR=infrastructure/04.template
 terraform -chdir=$DIR init
-terraform -chdir=$DIR apply -var="project=$(gcloud config get-value project)" -var="github_repository_owner=$GITHUB_REPO_OWNER" -var="github_repository_name=$GITHUB_REPO_NAME"
+terraform -chdir=$DIR apply -var="project=$(gcloud config get-value project)" -var="github_repository_owner=$GITHUB_REPO_OWNER" -var="github_repository_name=$GITHUB_REPO_NAME" -var="working_dir_prefix=$WORKING_DIR_PREFIX"
 ```
 
 ## 7. Run Cloud Build Trigger
