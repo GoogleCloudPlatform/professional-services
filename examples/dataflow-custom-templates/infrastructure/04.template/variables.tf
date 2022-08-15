@@ -74,7 +74,6 @@ variable "artifact_registry_id" {
 variable "github_repository_name" {
   type        = string
   description = "The name of the GitHub repository. For example the repository name for https://github.com/example/foo is 'foo'."
-  default     = "custom-dataflow-template-example"
 }
 
 variable "github_repository_owner" {
@@ -87,4 +86,3 @@ variable "github_repository_branch" {
   description = "The GitHub repository branch regex to match cloud build trigger"
   default     = "main"
 }
-

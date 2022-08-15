@@ -177,6 +177,12 @@ First, set your GitHub organization or username:
 GITHUB_REPO_OWNER=<change me>
 ```
 
+Next, set the repository name.
+
+```sh
+GITHUB_REPO_NAME=professional-services
+```
+
 Run the terraform workflow in
 the [infrastructure/04.template](infrastructure/04.template) directory.
 
@@ -187,7 +193,7 @@ type `yes` to proceed.
 ```sh
 DIR=infrastructure/04.template
 terraform -chdir=$DIR init
-terraform -chdir=$DIR apply -var="project=$(gcloud config get-value project)" -var="github_repository_owner=$GITHUB_REPO_OWNER"
+terraform -chdir=$DIR apply -var="project=$(gcloud config get-value project)" -var="github_repository_owner=$GITHUB_REPO_OWNER" -var="github_repository_name=$GITHUB_REPO_NAME"
 ```
 
 ## 7. Run Cloud Build Trigger
