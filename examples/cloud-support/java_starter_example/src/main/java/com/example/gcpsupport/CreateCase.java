@@ -13,7 +13,7 @@
  */
 package com.example.gcpsupport;
 
-// [START gcpsupport_update_cases]
+// [START gcpsupport_create_case]
 
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.HttpRequestInitializer;
@@ -23,6 +23,7 @@ import com.google.api.client.json.JsonObjectParser;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.cloudsupport.v2beta.CloudSupport;
 import com.google.api.services.cloudsupport.v2beta.model.CloudSupportCase;
+import com.google.api.services.cloudsupport.v2beta.model.SearchCaseClassificationsResponse;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.GoogleCredentials;
 import java.io.File;
@@ -33,31 +34,33 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
+import java.util.Map;
 
-// sample code to update a support case using support API
-public class UpdateCase {
+// sample code to create a support case using support API
+public class CreateCase {
 
   // Shared constants
   static final String CLOUD_SUPPORT_SCOPE = "https://www.googleapis.com/auth/cloudsupport";
 
   public static void main(String[] args) {
 
+    // Before creating a new case, list all valid classifications of a case with
+    // listValidClassifications() first to get a valid classification.
+    // A valid classification is required for creating a new case.
+    listValidClassifcations();
+
+    // TODO(developer): Create a json object with your new case and put path here
+    // see an example under support/cloud-client/data/case.json
+    String createCasePath = "/<---path--->/*.json";
+
+    // TODO(developer): Replace this variable with your project number
+    String projectNumber = "00000";
+
+    String PARENT_RESOURCE = String.format("projects/%s", projectNumber);
+
     try {
-      // TODO(developer): Create a json object with your new case and put path here
-      // see an example under support/cloud-client/data/updateCase.json
-      String updatedCasePath = "/<---path--->/*.json";
-
-      // TODO(developer): Replace this variable with your project id
-      String projectId = "00000";
-      String PARENT_RESOURCE = String.format("projects/%s", projectId);
-
-      // TODO(developer): Replace this variable with your case id
-      String caseId = "00000";
-      String CASE = String.format("/cases/%s", caseId);
-
-      CloudSupportCase updatedCase = updateCase(PARENT_RESOURCE + CASE, updatedCasePath);
-
-      System.out.println("Updated case object is: " + updatedCase + "\n\n\n");
+      CloudSupportCase csc = createCase(PARENT_RESOURCE, createCasePath);
+      System.out.println("Name of new case is: " + csc.getName());
     } catch (IOException e) {
       System.out.println("IOException caught! \n" + e);
     }
@@ -65,7 +68,7 @@ public class UpdateCase {
 
   // helper method will return a CloudSupport object which is required for the
   // main API service to be used.
-  private static CloudSupport getCloudSupportService() {
+  private static CloudSupport getCloudSupportService() throws IOException {
 
     try {
 
@@ -82,39 +85,51 @@ public class UpdateCase {
 
       return new CloudSupport.Builder(httpTransport, jsonFactory, requestInitializer).build();
 
-    } catch (IOException e) {
-      System.out.println("IOException caught in getCloudSupportService()! \n" + e);
-
     } catch (GeneralSecurityException e) {
-      System.out.println("GeneralSecurityException caught in getCloudSupportService! \n" + e);
+      throw new IOException(
+          "HttpTransport object threw a GeneralSecurityException with message:" + e.getMessage());
     }
-
-    return null;
   }
 
   // helper method to get a CloudSupportCase object
   private static CloudSupportCase getCloudSupportCaseJsonObject(String jsonPathName)
       throws IOException {
-
     JsonFactory jsonFactory = GsonFactory.getDefaultInstance();
     JsonObjectParser parser = new JsonObjectParser(jsonFactory);
     InputStream stream = new FileInputStream(new File(jsonPathName));
     Reader reader = new InputStreamReader(stream, "UTF-8");
-
     return parser.parseAndClose(reader, CloudSupportCase.class);
   }
 
-  // update one case
-  public static CloudSupportCase updateCase(String nameOfCase, String updatedCasePath)
+  // this helper method is used for createCase()
+  private static void listValidClassifcations() {
+
+    try {
+      CloudSupport supportService = getCloudSupportService();
+
+      SearchCaseClassificationsResponse request =
+          supportService.caseClassifications().search().execute();
+
+      for (Map.Entry<String, Object> entry : request.entrySet()) {
+        System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
+      }
+
+    } catch (IOException e) {
+      System.out.println("IOException caught in listValidClassifications()! \n" + e);
+    }
+  }
+
+  // create a new case
+  public static CloudSupportCase createCase(String parentResource, String newCasePath)
       throws IOException {
 
     CloudSupport supportService = getCloudSupportService();
-    CloudSupportCase updateCase = getCloudSupportCaseJsonObject(updatedCasePath);
-    CloudSupportCase updateCaseResponse =
-        supportService.cases().patch(nameOfCase, updateCase).execute();
+    CloudSupportCase newContent = getCloudSupportCaseJsonObject(newCasePath);
+    CloudSupportCase newCaseResponse =
+        supportService.cases().create(parentResource, newContent).execute();
 
-    return updateCaseResponse;
+    return newCaseResponse;
   }
 }
 
-// [END gcpsupport_update_cases]
+// [END gcpsupport_create_case]
