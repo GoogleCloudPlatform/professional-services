@@ -47,18 +47,6 @@ def get_mock_args():
     args.skip_notifications = False
     args.skip_requester_pays = False
     args.skip_versioning = False
-    
-    args._properties={"iamConfiguration":{
-            "uniformBucketLevelAccess":{"enabled":False}
-        }}
-    if args._properties["iamConfiguration"]["uniformBucketLevelAccess"]["enabled"]:
-        args.acl.get_entities.return_value = None
-        args.default_object_acl.get_entities.return_value = None
-        args.is_uniform_bucket=True
-    else:
-        args.acl.get_entities.return_value = 'bucket_acl_entities'
-        args.default_object_acl.get_entities.return_value = 'bucket_default_obj_acl_entities'
-        args.is_uniform_bucket=False
     return args
 
 
@@ -68,7 +56,8 @@ def get_mock_source_bucket():
     bucket.location = 'bucket_location'
     bucket.storage_class = 'bucket_storage_class'
     bucket.get_iam_policy.return_value = 'bucket_iam_policy'
-
+    bucket.acl.get_entities.return_value = 'bucket_acl_entities'
+    bucket.default_object_acl.get_entities.return_value = 'bucket_default_obj_acl_entities'
     bucket.requester_pays = 'bucket_requester_pays'
     bucket.cors = 'bucket_cors'
     bucket.default_kms_key_name = 'projects/my-proj/locations/global/keyRings/abc/cryptoKeys/tester'
@@ -80,19 +69,4 @@ def get_mock_source_bucket():
     }
     bucket.versioning_enabled = 'bucket_versioning'
     bucket.list_notifications.return_value = ['bucket_notifications']
-    bucket._properties={"iamConfiguration":{
-            "uniformBucketLevelAccess":{"enabled":False}
-        }}
-    if bucket._properties["iamConfiguration"]["uniformBucketLevelAccess"]["enabled"]:
-        bucket.acl.get_entities.return_value = None
-        bucket.default_object_acl.get_entities.return_value = None
-    else:
-        bucket.acl.get_entities.return_value = 'bucket_acl_entities'
-        bucket.default_object_acl.get_entities.return_value = 'bucket_default_obj_acl_entities'
-   
-
     return bucket
-
-
-
-
