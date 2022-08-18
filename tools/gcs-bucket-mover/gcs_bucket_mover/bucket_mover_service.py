@@ -179,11 +179,8 @@ def _check_bucket_lock(cloud_logger, config, bucket, source_bucket_details):
                 'Logging source bucket IAM and ACLs to Stackdriver')
             cloud_logger.log_text(
                 json.dumps(source_bucket_details.iam_policy.to_api_repr()))
-            
-            
-            if source_bucket_details.acl_entities:
-                for entity in source_bucket_details.acl_entities:
-                    cloud_logger.log_text(str(entity))
+            for entity in source_bucket_details.acl_entities:
+                cloud_logger.log_text(str(entity))
 
             _lock_down_bucket(
                 spinner, cloud_logger, bucket, config.lock_file_name,
@@ -214,11 +211,8 @@ def _lock_down_bucket(spinner, cloud_logger, bucket, lock_file_name,
     spinner.text = msg
     cloud_logger.log_text(msg)
 
-    
-    is_uniform_bucket = vars(bucket)["_properties"]["iamConfiguration"]["uniformBucketLevelAccess"]["enabled"]
-    if not is_uniform_bucket:
-        # Turn off any bucket ACLs
-        bucket.acl.save_predefined('private')
+    # Turn off any bucket ACLs
+    bucket.acl.save_predefined('private')
 
     # Revoke all IAM access and only set the service account as an admin
     policy = api_core_iam.Policy()
@@ -433,8 +427,7 @@ def _create_bucket(spinner, cloud_logger, config, bucket_name,
         _write_spinner_and_log(
             spinner, cloud_logger,
             'IAM policies successfully copied over from the source bucket')
-    
-    
+
     if source_bucket_details.acl_entities:
         new_acl = _update_acl_entities(config,
                                        source_bucket_details.acl_entities)
@@ -442,10 +435,6 @@ def _create_bucket(spinner, cloud_logger, config, bucket_name,
         _write_spinner_and_log(
             spinner, cloud_logger,
             'ACLs successfully copied over from the source bucket')
-    else:
-        _print_and_log(cloud_logger,"setting target bucket to uniform level access")
-        bucket.iam_configuration.uniform_bucket_level_access_enabled = True
-        bucket.patch()
 
     if source_bucket_details.default_obj_acl_entities:
         new_default_obj_acl = _update_acl_entities(
@@ -774,7 +763,7 @@ def _run_and_wait_for_sts_job(sts_client, target_project, source_bucket_name,
             sleep(10)
 
     if job_status == sts_job_status.StsJobStatus.success:
-  
+        print()
         return True
 
     # Execution will only reach this code if something went wrong with the STS job
@@ -944,7 +933,7 @@ def _print_and_log(cloud_logger, message):
         cloud_logger: A GCP logging client instance
         message: The message to log
     """
-   
+    print(message)
     cloud_logger.log_text(message)
 
 
