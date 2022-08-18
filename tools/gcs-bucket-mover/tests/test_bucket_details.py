@@ -37,7 +37,6 @@ class TestBucketDetails(unittest.TestCase):
         # Test that the properties are set to the parsed_args/source_bucket values
         self.assertEqual(self.parsed_args.location, details.location)
         self.assertEqual(self.parsed_args.storage_class, details.storage_class)
-        self.assertEqual(self.parsed_args.is_uniform_bucket,details.is_uniform_bucket)
         self.assertEqual(self.source_bucket.get_iam_policy(),
                          details.iam_policy)
         self.assertEqual(self.source_bucket.acl.get_entities(),
