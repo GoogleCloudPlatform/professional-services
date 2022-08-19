@@ -14,8 +14,7 @@
 
 from airflow.providers.google.cloud.hooks.gcs import GCSHook
 from airflow.models import BaseOperator
-from typing import Dict, List, Any, Optional
-import json
+from typing import Dict, Any, Optional
 import requests
 
 class LoadFileFromAPI(BaseOperator):
@@ -31,7 +30,7 @@ class LoadFileFromAPI(BaseOperator):
             load the data.
         prefix (Optional[str]): The prefix for files. Optional, defaults
             to None.
-        proxies(str): The proxy to reach public internet. Optional, defaults to None
+        proxy(str): The proxy to reach public internet. Optional, defaults to None
         token(str): The token for the API. Optional, defaults to None
         url(str): the url for the API. 
         file_name(str): name of the file
@@ -54,14 +53,14 @@ class LoadFileFromAPI(BaseOperator):
         mime_type: str,
         bucket_name: str,
         prefix: Optional[str] = None,
-        proxies: Optional[str] = None,
+        proxy: Optional[str] = None,
         token: Optional[str] = None,
         gcp_conn_id: str = 'google_cloud_default',
         **kwargs
     ) -> None:
 
         super().__init__(**kwargs)
-        
+
         self.bucket_name: str = bucket_name
         self.prefix: Optional[str] = prefix
         self.proxy: Optional[str]= proxy
@@ -77,9 +76,9 @@ class LoadFileFromAPI(BaseOperator):
         head = {'Authorization': 'token {}'.format(self.token)}
  
         file_from_api = requests.get(
-            url = url,
-            #proxies = proxies
-            #headers = head
+            url = self.url,
+            proxies = self.proxy
+            headers = head
         )
         data = file_from_api.content
 
