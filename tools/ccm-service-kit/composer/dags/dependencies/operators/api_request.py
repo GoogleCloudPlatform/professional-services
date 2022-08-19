@@ -48,6 +48,7 @@ class LoadFileFromAPI(BaseOperator):
 
     def __init__(
         self,
+        *,
         bucket_name: str,
         prefix: Optional[str] = None,
         proxies: Optional[str] = None,
@@ -58,7 +59,7 @@ class LoadFileFromAPI(BaseOperator):
         gcp_conn_id: str = 'google_cloud_default',
         **kwargs
     ) -> None:
-        super().__init__(**kwargs)
+
         self.bucket_name: str = bucket_name
         self.prefix: Optional[str] = prefix
         self.proxy: Optional[str]= proxy
@@ -67,6 +68,7 @@ class LoadFileFromAPI(BaseOperator):
         self.file_name: str = file_name
         self.mime_type: str = mime_type
         self.gcp_conn_id: str = gcp_conn_id
+        super().__init__(**kwargs)
     
     def execute(self, context: Dict[str, Any]) -> None:
 
