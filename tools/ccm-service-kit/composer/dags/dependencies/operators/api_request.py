@@ -77,7 +77,7 @@ class LoadFileFromAPI(BaseOperator):
  
         file_from_api = requests.get(
             url = self.url,
-            proxies = self.proxy
+            proxies = self.proxy,
             headers = head
         )
         data = file_from_api.content
