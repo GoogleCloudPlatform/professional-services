@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from airflow.models import Variable
-from dependencies.queries.schemas import Schema
+from dependencies.scripts.variable_reader import getVariables
 
 class QueriesCCM():
 

@@ -24,9 +24,7 @@ from airflow.providers.google.cloud.transfers.gcs_to_gcs import GCSToGCSOperator
 from airflow.providers.google.cloud.transfers.gcs_to_bigquery import GCSToBigQueryOperator
 from airflow.operators.python import PythonOperator
 from airflow import DAG
-from airflow.models import Variable
 
-import os
 
 # The purpose of this DAG is to invoke an Storage transfer operator to access the information from Azure/AWS
 # and store it in CS bucket for later use. 
@@ -34,6 +32,7 @@ import os
 # Use the getVariables.py script or load the json file into airflow and use airflow.model Variable.
 #If you want to use the getVariables.py you have to replace the provided json file path with you own
 # If you want to use the airflow variables, you have to call the variables like this: project_id = Variable.get("project_id")
+# and import airflow.models.Variable
 
 variables = getVariables()
 

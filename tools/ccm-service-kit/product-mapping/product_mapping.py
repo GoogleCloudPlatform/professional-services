@@ -72,7 +72,6 @@ def get_azure_pricing(limit_tuple):
     request_result = requests.get(base_url).json()
     next_url = request_result["NextPageLink"]
     items_trimmed = list(map(lambda x: {k:v for k, v in x.items() if k in filtered_fields }, request_result["Items"]))
-    dict_list = items_trimmed
 
     items = []
 
@@ -196,7 +195,7 @@ def list_google_skus(parent_value):
     return items
 
 
-def write_to_gcs():
+def write_to_gcs(bucket_name):
     filename = "product_mapping.json"
     bucket = storage.Client().get_bucket(bucket_name)
     blob = bucket.blob(filename)
@@ -249,7 +248,7 @@ def main():
     google_result = google_ext()
     print("------ GCP extraction is done! ------")
 
-    final_results = json.dumps(azure_result + aws_result + google_result)
+    
 
     #Write to a file
     file_name = "extract.json"

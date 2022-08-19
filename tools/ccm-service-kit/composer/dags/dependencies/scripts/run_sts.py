@@ -14,10 +14,9 @@
 
 from googleapiclient import discovery
 from oauth2client.client import GoogleCredentials
-from airflow.exceptions import AirflowSkipException, AirflowException
+from airflow.exceptions import AirflowException
 import time
-import os
-import logging
+
 
 def invoke_sts_job(sts_id,project):
 

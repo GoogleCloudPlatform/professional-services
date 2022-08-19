@@ -31,9 +31,11 @@ class LoadFileFromAPI(BaseOperator):
             load the data.
         prefix (Optional[str]): The prefix for files. Optional, defaults
             to None.
-        proxy(str): The proxy to reach public internet. Optional, defaults to None
+        proxies(str): The proxy to reach public internet. Optional, defaults to None
         token(str): The token for the API. Optional, defaults to None
-        url(str): the url for the API.  
+        url(str): the url for the API. 
+        file_name(str): name of the file
+        mime_type: type of file
         gcp_conn_id (str): The connection ID to use for
             interacting with GCS. Like we mentioned above,
             the connection contains the credentails

@@ -13,14 +13,9 @@
 # limitations under the License.
 
 from datetime import datetime, timedelta
-from airflow.contrib.operators import bigquery_operator
-from airflow.providers.google.cloud.transfers.gcs_to_gcs import GCSToGCSOperator
-from airflow.operators.python import PythonOperator
 from airflow.operators.bash import BashOperator
 # The DAG object we'll need this to instantiate a DAG
 from airflow import DAG
-from airflow.models import Variable
-import os
 
 
 default_args = {
