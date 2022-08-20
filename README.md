@@ -82,6 +82,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [TensorFlow Unit Testing](examples/tensorflow-unit-testing) - Examples how to write unit tests for TensorFlow ML models.
 * [Terraform Internal HTTP Load Balancer](examples/terraform-ilb) - Terraform example showing how to deploy an internal HTTP load balancer.
 * [Uploading files directly to Google Cloud Storage by using Signed URL](examples/direct-upload-to-gcs) - Example architecture to enable uploading files directly to GCS by using [Signed URL](https://cloud.google.com/storage/docs/access-control/signed-urls).
+* [Terraform NetApp CVS](examples/tf-netapp-cvs) - This example shows how to deploy NetApp CVS volumes using terraform.
 * [Vertex AI MLOps Pipeline](examples/vertex_pipeline) - Demonstrates end-to-end MLOps process using Vertex AI platform and Smart Analytics technology capabilities.
 
 ## Tools
@@ -117,6 +118,7 @@ The tools folder contains ready-made utilities which can simplify Google Cloud P
 * [GCE switch disk-type](tools/gce-change-disktype) - A tool that changes type of disks attached to a GCE instance.
 * [GCE Quota Sync](tools/gce-quota-sync) - A tool that fetches resource quota usage from the GCE API and synchronizes it to Stackdriver as a custom metric, where it can be used to define automated alerts.
 * [GCE Usage Log](tools/gce-usage-log) - Collect GCE instance events into a BigQuery dataset, surfacing your vCPUs, RAM, and Persistent Disk, sliced by project, zone, and labels.
+* [GCP AWS HA VPN Connection terraform ](tools/gcp-aws-ha-vpn) - Terraform script to setup HA VPN between GCP and AWS.
 * [GCP Architecture Visualizer](https://github.com/forseti-security/forseti-visualizer) - A tool that takes CSV output from a Forseti Inventory scan and draws out a dynamic hierarchical tree diagram of org -> folders -> projects -> gcp_resources using the D3.js javascript library.
 * [GCP Organization Hierarchy Viewer](tools/gcp-org-hierarchy-viewer) - A CLI utility for visualizing your organization hierarchy in the terminal.
 * [GCPViz](tools/gcpviz) - a visualization tool that takes input from [Cloud Asset Inventory](https://cloud.google.com/asset-inventory/docs/overview),
