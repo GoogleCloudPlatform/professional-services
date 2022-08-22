@@ -26,9 +26,10 @@ resource "google_service_account" "dataflow_runner" {
 resource "google_project_iam_member" "dataflow_runner_service_account_roles" {
   depends_on = [google_project_service.required_services]
   for_each = toset([
+    "roles/artifactregistry.reader",
     "roles/dataflow.worker",
-    "roles/dataflow.serviceAgent",
-    "roles/artifactregistry.reader"
+    // Needed as objectViewer/objectCreator do not have storage.objects.update
+    "roles/storage.objectAdmin",
   ])
   role    = each.key
   member  = "serviceAccount:${google_service_account.dataflow_runner.email}"

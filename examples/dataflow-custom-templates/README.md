@@ -102,9 +102,13 @@ terraform -chdir=$DIR apply -var="project=$(gcloud config get-value project)"
 Best practice recommends a Dataflow job to:
 1) Utilize a custom network and subnetwork
 2) Minimally necessary network firewall rules
-3) Building Python custom templates additionally requires the use of a
-   [Cloud NAT](https://cloud.google.com/nat/docs/overview); per best practice we
-   execute the Dataflow job using private IPs
+3) Execute the Dataflow job using private IPs
+
+Note: Building Python custom templates additionally requires the use of a
+[Cloud NAT](https://cloud.google.com/nat/docs/overview).  During the Python
+Dataflow job initialization, the worker accesses PyPI to install dependencies.
+Therefore, we need Cloud NAT in the setting of private IPs to access these
+resources outside the virtual private network.
 
 Therefore, this step will:
 
