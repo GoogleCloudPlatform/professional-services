@@ -13,7 +13,7 @@ Under the composer directory you will find the following scripts:
 - dags/dependencies
     - This directory contains the following folders:
         - operators: we created the LoadFileFromAPI operator to get a file over an API request and load it into GCS. You can extend this operator based on your needs.
-        - queries:this folder has all the queries needed to create and refresh the unified schema. If you need, you can modify or extend the queries.
+        - queries: this folder has all the queries needed to create and refresh the unified schema. If you need, you can modify or extend the queries.
         - scripts: under this folder you will find a script that executes a transfer service job and the variable_reader script.
         - variables: you will find a json file with the variables that the dags will be using. You have to edit this file.
 
