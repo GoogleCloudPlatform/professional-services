@@ -29,7 +29,7 @@
 CREATE TABLE `projectid.cloud_cost_staging.unified_list`
 (
   cloud_provider_id INT64 NOT NULL,
-  Invoice_id STRING,
+  invoice_id STRING,
   billing_account_id STRING,
   billing_start_date TIMESTAMP,
   billing_end_date TIMESTAMP,
