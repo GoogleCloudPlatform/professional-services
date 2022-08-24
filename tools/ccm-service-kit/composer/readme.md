@@ -2,7 +2,7 @@
 
 ## Introduction
 
-We recommend Composer to orchestrate the whole pipeline. You will find the scripts in the git repository. It is important to understand that this architecture is just a standard and each customer is free to choose another tool to develop this ETL.
+We recommend Composer to orchestrate the whole pipeline. You will find the scripts in the git repository. It is important to understand that this architecture is just a standard and each user is free to choose another tool to develop this ETL.
 
 ## Airflow scripts
 Under the composer directory you will find the following scripts:
