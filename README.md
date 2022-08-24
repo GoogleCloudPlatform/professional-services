@@ -45,6 +45,8 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [Cost Optimization DataStudio Dashboard](examples/cost-optimization-dashboard) - SQL scripts to help build Cost Optimization DataStudio Dashboard.
 * [Data Generator](examples/dataflow-data-generator) - Generate random data with a custom schema at scale for integration tests or demos.
 * [Dataflow BigQuery Transpose Example](examples/dataflow-bigquery-transpose) - An example pipeline to transpose/pivot/rotate a BigQuery table.
+* [Dataflow Custom Templates Example](examples/dataflow-custom-templates) - An
+  example that demonstrates how to build custom Dataflow templates.
 * [Dataflow Elasticsearch Indexer](examples/dataflow-elasticsearch-indexer) - An example pipeline that demonstrates the process of reading JSON documents from Cloud Pub/Sub, enhancing the document using metadata stored in Cloud Bigtable and indexing those documents into [Elasticsearch](https://www.elastic.co/).
 * [Dataflow Python Examples](examples/dataflow-python-examples) - Various ETL examples using the Dataflow Python SDK.
 * [Dataflow Scala Example: Kafka2Avro](examples/dataflow-scala-kafka2avro) - Example to read objects from Kafka, and persist them encoded in Avro in Google Cloud Storage, using Dataflow with SCIO.
@@ -118,6 +120,7 @@ The tools folder contains ready-made utilities which can simplify Google Cloud P
 * [GCE switch disk-type](tools/gce-change-disktype) - A tool that changes type of disks attached to a GCE instance.
 * [GCE Quota Sync](tools/gce-quota-sync) - A tool that fetches resource quota usage from the GCE API and synchronizes it to Stackdriver as a custom metric, where it can be used to define automated alerts.
 * [GCE Usage Log](tools/gce-usage-log) - Collect GCE instance events into a BigQuery dataset, surfacing your vCPUs, RAM, and Persistent Disk, sliced by project, zone, and labels.
+* [GCP AWS HA VPN Connection terraform ](tools/gcp-aws-ha-vpn) - Terraform script to setup HA VPN between GCP and AWS.
 * [GCP Architecture Visualizer](https://github.com/forseti-security/forseti-visualizer) - A tool that takes CSV output from a Forseti Inventory scan and draws out a dynamic hierarchical tree diagram of org -> folders -> projects -> gcp_resources using the D3.js javascript library.
 * [GCP Organization Hierarchy Viewer](tools/gcp-org-hierarchy-viewer) - A CLI utility for visualizing your organization hierarchy in the terminal.
 * [GCPViz](tools/gcpviz) - a visualization tool that takes input from [Cloud Asset Inventory](https://cloud.google.com/asset-inventory/docs/overview),
