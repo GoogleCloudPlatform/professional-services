@@ -96,7 +96,7 @@ def _rename_bucket(cloud_logger, config, source_bucket, source_bucket_details,
                                                 config, target_bucket)
     _run_and_wait_for_sts_job(sts_client, config.target_project,
                               config.bucket_name, config.target_bucket_name,
-                              cloud_logger)
+                              cloud_logger,config)
 
     _delete_empty_source_bucket(cloud_logger, source_bucket)
     _remove_sts_permissions(cloud_logger, sts_account_email, config,
@@ -123,7 +123,7 @@ def _move_bucket(cloud_logger, config, source_bucket, source_bucket_details,
                                                 config, target_temp_bucket)
     _run_and_wait_for_sts_job(sts_client, config.target_project,
                               config.bucket_name, config.temp_bucket_name,
-                              cloud_logger)
+                              cloud_logger,config)
 
     _delete_empty_source_bucket(cloud_logger, source_bucket)
     _recreate_source_bucket(cloud_logger, config, source_bucket_details)
@@ -131,7 +131,7 @@ def _move_bucket(cloud_logger, config, source_bucket, source_bucket_details,
                                           config)
     _run_and_wait_for_sts_job(sts_client, config.target_project,
                               config.temp_bucket_name, config.bucket_name,
-                              cloud_logger)
+                              cloud_logger,config)
 
     _delete_empty_temp_bucket(cloud_logger, target_temp_bucket)
     _remove_sts_permissions(cloud_logger, sts_account_email, config,
@@ -736,7 +736,7 @@ def _assign_target_project_to_topic(spinner, cloud_logger, config, topic_name,
     wait_exponential_max=120000,
     stop_max_attempt_number=10)
 def _run_and_wait_for_sts_job(sts_client, target_project, source_bucket_name,
-                              sink_bucket_name, cloud_logger):
+                              sink_bucket_name, cloud_logger,config):
     """Kick off the STS job and wait for it to complete. Retry if it fails.
 
     Args:
@@ -761,7 +761,7 @@ def _run_and_wait_for_sts_job(sts_client, target_project, source_bucket_name,
     cloud_logger.log_text(spinner_text)
     with yaspin(text=spinner_text) as spinner:
         sts_job_name = _execute_sts_job(sts_client, target_project,
-                                        source_bucket_name, sink_bucket_name)
+                                        source_bucket_name, sink_bucket_name,config)
         spinner.ok(_CHECKMARK)
 
     # Check every 10 seconds until STS job is complete
@@ -790,7 +790,7 @@ def _run_and_wait_for_sts_job(sts_client, target_project, source_bucket_name,
 
 
 def _execute_sts_job(sts_client, target_project, source_bucket_name,
-                     sink_bucket_name):
+                     sink_bucket_name,config):
     """Start the STS job.
 
     Args:
@@ -804,6 +804,11 @@ def _execute_sts_job(sts_client, target_project, source_bucket_name,
     """
 
     now = datetime.date.today()
+    if config.bucket_name == sink_bucket_name:
+        time_preserved = None
+    else:
+        time_preserved= "TIME_CREATED_PRESERVE_AS_CUSTOM_TIME"
+    
     transfer_job = {
         'description':
         'Move bucket {} to {} in project {}'.format(
@@ -831,6 +836,9 @@ def _execute_sts_job(sts_client, target_project, source_bucket_name,
             },
             "transferOptions": {
                 "deleteObjectsFromSourceAfterTransfer": True,
+                "metadataOptions": {
+                    "timeCreated": time_preserved
+                }
             }
         }
     }
