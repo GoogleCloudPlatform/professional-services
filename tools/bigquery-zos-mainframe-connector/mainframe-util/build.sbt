@@ -17,7 +17,7 @@ organization := "com.google.cloud.imf"
 name := "mainframe-util"
 version := "2.2.0"
 
-scalaVersion := "2.13.1"
+scalaVersion := "2.13.8"
 
 val exGapiClient = ExclusionRule(organization = "com.google.api-client", name = "google-api-client")
 val exGuava = ExclusionRule(organization = "com.google.guava")
@@ -51,31 +51,32 @@ libraryDependencies ++= Seq(
 )
 
 // Don't run tests during assembly
-test in assembly := Seq()
+assembly / test := Seq()
 
 Test / testOptions := Seq(Tests.Filter(!_.endsWith("ITSpec")))
 
-assemblyMergeStrategy in assembly := {
+assembly / assemblyMergeStrategy := {
   case PathList("META-INF", _) => MergeStrategy.discard
   case _ => MergeStrategy.first
 }
 
 // Exclude IBM jars from assembly jar since they will be provided
-assemblyExcludedJars in assembly := {
-  val IBMJars = Set("ibmjzos.jar", "ibmjcecca.jar")
-  (fullClasspath in assembly).value
+assembly / assemblyExcludedJars := {
+  val IBMJars = Set("ibmjzos.jar", "ibmjcecca.jar", "isfjcall.jar", "dataaccess.jar")
+  (assembly / fullClasspath).value
     .filter(file => IBMJars.contains(file.data.getName))
 }
 
 publishMavenStyle := false
 
-resourceGenerators in Compile += Def.task {
-  val file = (resourceDirectory in Compile).value / "mainframe-util-build.txt"
+Compile/ resourceGenerators += Def.task {
+  val file = (Compile / resourceDirectory).value / "mainframe-util-build.txt"
   val fmt = new java.text.SimpleDateFormat("yyyy/MM/dd HH:mm:ss")
   val timestamp = fmt.format(new java.util.Date)
   IO.write(file, timestamp)
   Seq(file)
 }.taskValue
+
 scalacOptions ++= Seq(
   "-opt:l:inline",
   "-opt-inline-from:**",
