@@ -111,7 +111,7 @@ class QueriesCCM():
             SELECT
               *
             FROM
-                `ccm-dev-sandbox.cloud_cost_staging.service_compare`
+                `{project_id}.{dataset_staging}.service_compare`
             WHERE
                 cloud_provider = 'AWS') AS compare
             ON
