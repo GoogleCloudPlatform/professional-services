@@ -57,7 +57,7 @@ def getVariables():
     return variables
 ```
 
-> **_NOTE:_**  If you want you can use the airflow variables instead of the variable reader. You can load the variables using the load_vars_and_execute.py dag, loading manually in the airflow UI or create a CI/CD pipeline to do it.
+> **_NOTE:_**  If you want you can use the airflow variables instead of the variable reader. You can load the variables manually in the airflow UI or create a CI/CD pipeline to do it.
 
 Register the billing export schema of AWS and Azure
 

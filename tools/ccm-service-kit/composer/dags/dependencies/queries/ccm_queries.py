@@ -106,7 +106,7 @@ class QueriesCCM():
                 'other'),
             current_date AS loading_date
             FROM
-            `ccm-dev-sandbox.cloud_cost_staging.aws_billing` AS row_data
+            `{project_id}.{dataset_staging}.aws_billing` AS row_data
             LEFT OUTER JOIN(
             SELECT
               *

@@ -64,28 +64,28 @@ Instead of using sts you can get the files from each cloud provider with the API
 
 Two BigQuery datasets with their respective tables:
 
-cloud_cost_staging
-├── gcp_billing
-├── azure_billing
-├── aws_billing
-├── unified_list
-├── location_compare
-└── service_compare
+- cloud_cost_staging
+    - gcp_billing
+    - azure_billing
+    - aws_billing
+    - unified_list
+    - location_compare
+    - service_compare
 
 
-cloud_cost_final
-├── project
-├── service_type
-├── resource_location
-├── product_name
-├── usage_unit_of_measure
-├── cloud_provider
-├── charge_type
-├── billing_account
-├── service
-├── charge
-├── currency
-└── unified_cloud_billing
+- cloud_cost_final
+    - project
+    - service_type
+    - resource_location
+    - product_name
+    - usage_unit_of_measure
+    - cloud_provider
+    - charge_type
+    - billing_account
+    - service
+    - charge
+    - currency
+    - unified_cloud_billing
 
 
 ### Networking
