@@ -25,17 +25,17 @@ First you need to edit the following variables:
 
 ```
 {
-    "project_id" : "ccm-dev-sandbox",
-    "ccm_bucket" : "ccm-zgnzp0",
-    "prefix_azure_lz" : "azure-lz",
-    "prefix_aws_lz" : "aws-lz",
-    "prefix_hist_azure" : "azure-historical",
-    "prefix_hist_aws" : "aws-historical",
-    "sts_id_azure" : "transferJobs/13017487796363048406",
-    "sts_id_aws" : "transferJobs/16024774301148900524",
-    "gcp_billing_table" : "gcp_billing",
-    "ccm_staging_dataset" : "cloud_cost_staging",
-    "ccm_final_dataset" : "cloud_cost_final"
+    "project_id" : "<your-project>",
+    "ccm_bucket" : "<bucket-name>",
+    "prefix_azure_lz" : "<folder-name>",
+    "prefix_aws_lz" : "<folder-name>",
+    "prefix_hist_azure" : "<folder-name>",
+    "prefix_hist_aws" : "<folder-name>",
+    "sts_id_azure" : "<transferJobs/id>",
+    "sts_id_aws" : "<transferJobs/id>",
+    "gcp_billing_table" : "<table-name>",
+    "ccm_staging_dataset" : "<dataset-id>",
+    "ccm_final_dataset" : "<dataset-id>"
 }
 ```
 
