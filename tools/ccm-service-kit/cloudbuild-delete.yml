@@ -13,10 +13,10 @@
 # limitations under the License.
 
 steps:
-- name: 'gcr.io/ccm-dev-sandbox/terraform'
+- name: 'gcr.io/$PROJECT_ID/terraform'
   dir: 'infra-as-code/environment-deploy'
   args: ['init']
 
-- name: 'gcr.io/ccm-dev-sandbox/terraform'
+- name: 'gcr.io/$PROJECT_ID/terraform'
   dir: 'infra-as-code/environment-deploy'
   args: ['destroy','-var-file=input.tfvars','-auto-approve']
