@@ -135,6 +135,6 @@ CREATE TABLE `projectid.cloud_cost_final.unified_cloud_billing`
   usage_end_date TIMESTAMP,
   usage_quantity FLOAT64,
   cost FLOAT64,
-  UPLOAD_DATE DATE
+  upload_date DATE
 )
 PARTITION BY DATE(_PARTITIONTIME);

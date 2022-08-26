@@ -1,7 +1,9 @@
 # Multi Cloud Billing Solution
 
 ## Introduction
-The Multi Cloud Billing Solution enable customers to analyze how different teams at the organization are spending across projects, teams and resources to identify where, when and why teams are spending budget to optimize cloud spend. See where credits and promotional discounts are being applied and analyze recommendations for cutting costs. Centralized storage, harmonization, and standardization of billing data enables the mapping of services, resources, and similar SKUs across all cloud providers. The solution is configurable and customizable.
+The Multi Cloud Billing Solution enable customers to analyze how different teams at the organization are spending across projects, teams and resources to identify where, when and why teams are spending budget to optimize cloud spend. See where credits and promotional discounts are being applied and analyze recommendations for cutting costs. Centralized storage, harmonization, and standardization of billing data enables the mapping of services, resources, and similar SKUs across all cloud providers. The asset is configurable and customizable.
+
+The prupose of this asset is to provide a baseline and an example of how you can build the data pipeline to create the multi-cloud unified schema in BigQuery in order to use the [Cloud Cost Management Phase 2](https://marketplace.looker.com/marketplace/detail/multicloud-billing-bq-export) block in Looker. 
 
 ## Asset components
 This asset has the following structure
