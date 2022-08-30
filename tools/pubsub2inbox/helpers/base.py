@@ -21,7 +21,7 @@ import google_auth_httplib2
 import google.auth
 from googleapiclient import http
 
-PUBSUB2INBOX_VERSION = '1.2.0'
+PUBSUB2INBOX_VERSION = '1.3.0'
 
 
 class NoCredentialsException(Exception):
@@ -133,4 +133,29 @@ class BaseHelper:
                     _var[k] = self._jinja_expand_string(v)
             else:
                 _var[k] = self._jinja_expand_dict(_var[k])
+        return _var
+
+    def _jinja_expand_dict_all(self, _var, _tpl='config'):
+        if not isinstance(_var, dict):
+            return _var
+        for k, v in _var.items():
+            if not isinstance(v, dict):
+                if isinstance(v, str):
+                    _var[k] = self._jinja_expand_string(v)
+                if isinstance(v, list):
+                    for idx, lv in enumerate(_var[k]):
+                        if isinstance(lv, dict):
+                            _var[k][idx] = self._jinja_expand_dict_all(lv)
+                        if isinstance(lv, str):
+                            _var[k][idx] = self._jinja_expand_string(lv)
+                else:
+                    _var[k] = self._jinja_expand_dict_all(_var[k])
+        return _var
+
+    def _jinja_expand_list(self, _var, _tpl='config'):
+        if not isinstance(_var, list):
+            return _var
+        for idx, v in enumerate(_var):
+            if isinstance(v, str):
+                _var[idx] = self._jinja_expand_string(v)
         return _var

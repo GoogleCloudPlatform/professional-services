@@ -115,6 +115,9 @@ Output parameters:
 Permissions:
 
   - Browser (`roles/browser`) to fetch project details.
+  - `roles/securitycenter.findingsEditor` and `roles/securitycenter.findingSecurityMarksWriter` for writing
+    findings to a custom SCC source.
+  - Network Viewer (`roles/compute.networkViewer`) for Cloud IDS network ID resolving.
 
 Output parameters:
 

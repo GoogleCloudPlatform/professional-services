@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#   Copyright 2021 Google LLC
+#   Copyright 2022 Google LLC
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ logger = None
 
 
 def load_configuration(file_name):
-    if os.getenv('CONFIG'):
+    if os.getenv('CONFIG') and os.getenv('CONFIG') != '':
         logger = logging.getLogger('pubsub2inbox')
         secret_manager_url = os.getenv('CONFIG')
         if secret_manager_url.startswith('projects/'):
@@ -93,6 +93,14 @@ class NoOutputsConfiguredException(Exception):
 
 
 class NoDataFieldException(Exception):
+    pass
+
+
+class NoMessageReceivedException(Exception):
+    pass
+
+
+class InvalidMessageFormatException(Exception):
     pass
 
 
@@ -263,11 +271,16 @@ def process_message(config, data, event, context):
             try:
                 output_instance.output()
             except Exception as exc:
-                logger.error('Output processor %s failed, trying next...' %
-                             (output_type),
-                             extra={'exception': traceback.format_exc()})
-                if 'allOutputsMustSucceed' in config and config[
-                        'allOutputsMustSucceed']:
+                if len(config['outputs']) > 1:
+                    logger.error('Output processor %s failed, trying next...' %
+                                 (output_type),
+                                 extra={'exception': traceback.format_exc()})
+                    if 'allOutputsMustSucceed' in config and config[
+                            'allOutputsMustSucceed']:
+                        raise exc
+                else:
+                    logger.error('Output processor %s failed.' % (output_type),
+                                 extra={'exception': traceback.format_exc()})
                     raise exc
 
     else:
@@ -298,7 +311,7 @@ def decode_and_process(logger, config, event, context):
                  extra={'event_id': context.event_id})
 
 
-def process_pubsub(event, context):
+def process_pubsub(event, context, message_too_old_exception=False):
     """Function that is triggered by Pub/Sub incoming message.
     Args:
          event (dict):  The dictionary with data specific to this type of
@@ -333,13 +346,79 @@ def process_pubsub(event, context):
                          'error': str(exc),
                      })
         raise exc
-    except MessageTooOldException:
-        pass
+    except MessageTooOldException as mtoe:
+        if not message_too_old_exception:
+            pass
+        else:
+            raise (mtoe)
+
+
+class CloudRunServer:
+
+    def on_get(self, req, res):
+        try:
+            import falcon
+
+            res.content_type = falcon.MEDIA_TEXT
+            res.status = falcon.HTTP_400
+            res.text = 'Bad Request: expecting POST'
+        except ImportError as e:
+            logger.error(
+                'Falcon is required for web server mode, run: pip install falcon'
+            )
+
+    def on_post(self, req, res):
+        try:
+            import falcon
+            res.content_type = falcon.MEDIA_TEXT
+
+            try:
+                envelope = req.media
+            except falcon.MediaNotFoundError:
+                raise NoMessageReceivedException('No Pub/Sub message received')
+            except falcon.MediaMalformedError:
+                raise InvalidMessageFormatException('Invalid Pub/Sub JSON')
+
+            if not isinstance(envelope, dict) or 'message' not in envelope:
+                raise InvalidMessageFormatException(
+                    'Invalid Pub/Sub message format')
+
+            event = {
+                'data':
+                    envelope['message']['data'],
+                'attributes':
+                    envelope['message']['attributes']
+                    if 'attributes' in envelope['message'] else {}
+            }
+
+            context = Context(eventId=envelope['message']['messageId'],
+                              timestamp=envelope['message']['publishTime'])
+            process_pubsub(event, context, message_too_old_exception=True)
+            res.status = falcon.HTTP_200
+            res.text = 'Message processed.'
+        except (NoMessageReceivedException,
+                InvalidMessageFormatException) as me:
+            # Do not attempt to retry malformed messages
+            logger.error('%s' % (me),
+                         extra={'exception': traceback.format_exc()})
+            res.status = falcon.HTTP_204
+            res.text = 'Bad Request: %s' % (str(me))
+        except MessageTooOldException as mtoe:
+            res.status = falcon.HTTP_202
+            res.text = 'Message ignored: %s' % (mtoe)
+        except ImportError as e:
+            logger.error(
+                'Falcon is required for web server mode, run: pip install falcon'
+            )
+        except Exception as e:
+            traceback.print_exc()
+            res.status = falcon.HTTP_500
+            res.text = 'Internal Server Error: %s' % (e)
 
 
 def setup_logging():
     logger = logging.getLogger('pubsub2inbox')
-    if os.getenv('LOG_LEVEL'):
+    if os.getenv('LOG_LEVEL') and os.getenv('LOG_LEVEL') != '':
         logger.setLevel(int(os.getenv('LOG_LEVEL')))
     else:
         logger.setLevel(logging.INFO)
@@ -350,6 +429,31 @@ def setup_logging():
     return logger
 
 
+def run_webserver(run_locally=False):
+    global logger
+    if not logger:
+        logger = setup_logging()
+    try:
+        import falcon
+        app = falcon.App()
+        server = CloudRunServer()
+        app.add_route('/', server)
+        if run_locally:
+            from waitress import serve
+            port = 8080 if not os.getenv('PORT') or os.getenv(
+                'PORT') == '' else int(os.getenv('PORT'))
+            serve(app, listen='*:%d' % (port))
+        return app
+    except ImportError as e:
+        logger.error(
+            'Falcon and waitress is required for web server mode, run: pip install falcon waitress'
+        )
+
+
+app = None
+if os.getenv('WEBSERVER') == '1':
+    app = run_webserver()
+
 if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser(
         description='Pub/Sub to Inbox, turn Pub/Sub messages into emails')
@@ -358,26 +462,37 @@ if __name__ == '__main__':
         '--ignore-period',
         action='store_true',
         help='Ignore the message timestamp (for skipping retry period)')
+    arg_parser.add_argument('--webserver',
+                            action='store_true',
+                            help='Run the function as a web server')
     arg_parser.add_argument('message',
                             type=str,
+                            nargs='?',
                             help='JSON file containing the message(s)')
     args = arg_parser.parse_args()
     if args.config:
         config_file_name = args.config
-    with open(args.message) as f:
-        contents = f.read()
-        messages = json.loads(contents)
-        for message in messages:
-            event = {
-                'data':
-                    message['message']['data'],
-                'attributes':
-                    message['message']['attributes']
-                    if 'attributes' in message['message'] else {}
-            }
-            context = Context(eventId=message['message']['messageId'],
-                              timestamp=message['message']['publishTime'])
-            if args.ignore_period:
-                context.timestamp = datetime.utcnow().strftime(
-                    '%Y-%m-%dT%H:%M:%S.%fZ')
-            process_pubsub(event, context)
+    if args.webserver or os.getenv('WEBSERVER') == '1':
+        run_webserver(True)
+    else:
+        if not args.message:
+            print(
+                'Specify a file containing the message to process on the command line.'
+            )
+        with open(args.message) as f:
+            contents = f.read()
+            messages = json.loads(contents)
+            for message in messages:
+                event = {
+                    'data':
+                        message['message']['data'],
+                    'attributes':
+                        message['message']['attributes']
+                        if 'attributes' in message['message'] else {}
+                }
+                context = Context(eventId=message['message']['messageId'],
+                                  timestamp=message['message']['publishTime'])
+                if args.ignore_period:
+                    context.timestamp = datetime.utcnow().strftime(
+                        '%Y-%m-%dT%H:%M:%S.%fZ')
+                process_pubsub(event, context)
