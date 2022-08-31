@@ -362,7 +362,7 @@ class CloudRunServer:
             res.content_type = falcon.MEDIA_TEXT
             res.status = falcon.HTTP_400
             res.text = 'Bad Request: expecting POST'
-        except ImportError as e:
+        except ImportError:
             logger.error(
                 'Falcon is required for web server mode, run: pip install falcon'
             )
@@ -406,7 +406,7 @@ class CloudRunServer:
         except MessageTooOldException as mtoe:
             res.status = falcon.HTTP_202
             res.text = 'Message ignored: %s' % (mtoe)
-        except ImportError as e:
+        except ImportError:
             logger.error(
                 'Falcon is required for web server mode, run: pip install falcon'
             )
@@ -444,7 +444,7 @@ def run_webserver(run_locally=False):
                 'PORT') == '' else int(os.getenv('PORT'))
             serve(app, listen='*:%d' % (port))
         return app
-    except ImportError as e:
+    except ImportError:
         logger.error(
             'Falcon and waitress is required for web server mode, run: pip install falcon waitress'
         )
