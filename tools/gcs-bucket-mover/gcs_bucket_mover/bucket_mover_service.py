@@ -807,7 +807,21 @@ def _execute_sts_job(sts_client, target_project, source_bucket_name,
     if config.bucket_name == sink_bucket_name:
         time_preserved = None
     else:
-        time_preserved= "TIME_CREATED_PRESERVE_AS_CUSTOM_TIME"
+        if config.preserve_custom_time == None:
+            time_preserved = None
+
+        elif config.preserve_custom_time == "TIME_CREATED_PRESERVE_AS_CUSTOM_TIME":
+            time_preserved= config.preserve_custom_time
+
+        elif config.preserve_custom_time == "TIME_CREATED_SKIP":
+            time_preserved = config.preserve_custom_time
+        
+        elif config.preserve_custom_time == "TIME_CREATED_UNSPECIFIED":
+            time_preserved = config.preserve_custom_time
+
+        else:
+            msg = 'Time created value is not available'
+            raise SystemExit(msg)
     
     transfer_job = {
         'description':
