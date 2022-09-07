@@ -80,6 +80,7 @@ def _check_log_values(cloud_logger,config):
     log_states_list = ['SUCCEEDED', 'FAILED']	
     log_action_final = []
     log_states_final= []
+
     if config.log_action and not(config.log_action_state):
         log_action = config.log_action.split(",")
         for ele in log_action:
@@ -93,21 +94,20 @@ def _check_log_values(cloud_logger,config):
                     spinner.ok(_CHECKMARK)
                 raise Exception(msg)
         transfer_log_value={"logActions": log_action_final}
+
     elif not(config.log_action) and (config.log_action_state):
         log_states = config.log_action_state.split(",")
         for ele in log_states:
-            
-
             if ele in log_states_list:
                 log_states_final.append(ele) 
             else:
                 msg="Entered log states is incorrect'"
                 cloud_logger.log_text(msg)
                 with yaspin(text=msg) as spinner:
-        
                     spinner.ok(_CHECKMARK)
                 raise Exception(msg)
         transfer_log_value={"logActionStates": log_states_final}
+
     elif (config.log_action) and (config.log_action_state):
         log_action = config.log_action.split(",")
         for ele in log_action:
@@ -122,8 +122,6 @@ def _check_log_values(cloud_logger,config):
                 raise Exception(msg)
         log_states = config.log_action_state.split(",")
         for ele in log_states:
-            
-
             if ele in log_states_list:
                 log_states_final.append(ele) 
             else:
@@ -135,9 +133,7 @@ def _check_log_values(cloud_logger,config):
                 raise Exception(msg)
         transfer_log_value={"logActions": log_action_final,
     "logActionStates": log_states_final}
-        
-        
-
+    
     else:
         transfer_log_value=None
     return transfer_log_value
