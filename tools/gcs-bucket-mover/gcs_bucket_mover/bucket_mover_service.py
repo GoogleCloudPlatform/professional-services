@@ -89,8 +89,7 @@ def _check_log_values(cloud_logger,config):
             else:
                 msg="Entered log action is incorrect'"
                 cloud_logger.log_text(msg)
-                with yaspin(text=msg) as spinner:
-        
+                with yaspin(text=msg) as spinner:      
                     spinner.ok(_CHECKMARK)
                 raise Exception(msg)
         transfer_log_value={"logActions": log_action_final}
@@ -116,8 +115,7 @@ def _check_log_values(cloud_logger,config):
             else:
                 msg="Entered log action is incorrect'"
                 cloud_logger.log_text(msg)
-                with yaspin(text=msg) as spinner:
-        
+                with yaspin(text=msg) as spinner:     
                     spinner.ok(_CHECKMARK)
                 raise Exception(msg)
         log_states = config.log_action_state.split(",")
@@ -127,13 +125,12 @@ def _check_log_values(cloud_logger,config):
             else:
                 msg="Entered log states is incorrect'"
                 cloud_logger.log_text(msg)
-                with yaspin(text=msg) as spinner:
-        
+                with yaspin(text=msg) as spinner:       
                     spinner.ok(_CHECKMARK)
                 raise Exception(msg)
         transfer_log_value={"logActions": log_action_final,
     "logActionStates": log_states_final}
-    
+
     else:
         transfer_log_value=None
     return transfer_log_value
