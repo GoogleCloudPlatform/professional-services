@@ -113,7 +113,7 @@ def _check_log_values(cloud_logger,config):
             if ele in log_action_list:
                 log_action_final.append(ele) 
             else:
-                msg="Entered log action is incorrect'"
+                msg="Entered log action or log state is incorrect'"
                 cloud_logger.log_text(msg)
                 with yaspin(text=msg) as spinner:     
                     spinner.ok(_CHECKMARK)
