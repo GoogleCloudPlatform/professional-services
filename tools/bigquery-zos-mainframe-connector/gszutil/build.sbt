@@ -75,8 +75,6 @@ Compile / resourceGenerators += Def.task {
 Test / testOptions := Seq(Tests.Filter(!_.endsWith("ITSpec")))
 
 scalacOptions ++= Seq(
-  "-opt:l:inline",
-  "-opt-inline-from:**",
   "-deprecation",
   "-opt-warnings",
   "-feature"
