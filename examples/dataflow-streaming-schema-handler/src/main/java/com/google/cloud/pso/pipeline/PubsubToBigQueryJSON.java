@@ -31,8 +31,6 @@ import com.google.cloud.pso.util.BQDatasetSchemas;
 import com.google.cloud.pso.util.Constants;
 import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
-import org.apache.beam.sdk.coders.StringUtf8Coder;
-import org.apache.beam.sdk.extensions.gcp.util.Transport;
 import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
 import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.CreateDisposition;
 import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.WriteDisposition;
@@ -74,10 +72,7 @@ import org.slf4j.LoggerFactory;
  * --runner=DataflowRunner
  */
 public class PubsubToBigQueryJSON {
-
   private static final Logger LOG = LoggerFactory.getLogger(PubsubToBigQueryJSON.class);
-  private static final com.google.api.client.json.JsonFactory JSON_FACTORY =
-      Transport.getJsonFactory();
 
   /**
    * Options supported by {@link PubsubToBigQueryJSONOptions}.
@@ -98,21 +93,15 @@ public class PubsubToBigQueryJSON {
 
     /** Set the GCP BigQuery dataset that will be used, default is "activstat_dev_dataset". */
     @Description("The name of the GCP dataset in BigQuery to be used")
-    @Default.String("activstat_dev_dataset")
+    @Default.String("example")
     String getDataset();
 
     void setDataset(String value);
 
-    @Description("Table spec to write the output to")
-    @Default.String("error table")
-    ValueProvider<String> getOutputTableSpec();
-
-    void setOutputTableSpec(ValueProvider<String> value);
-
     @Description(
         "The dead-letter table to output to within BigQuery in <project-id>:<dataset>.<table> "
             + "format. If it doesn't exist, it will be created during pipeline execution.")
-    @Default.String("activstat_dev_dataset.error_dataflow_stream")
+    @Default.String("example.error_dataflow_stream")
     ValueProvider<String> getOutputDeadletterTable();
 
     void setOutputDeadletterTable(ValueProvider<String> value);

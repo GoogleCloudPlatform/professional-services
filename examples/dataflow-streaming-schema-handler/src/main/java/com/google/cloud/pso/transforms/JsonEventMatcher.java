@@ -18,12 +18,19 @@ import org.apache.beam.sdk.values.KV;
  * incoming JSON file with the schema in BigQuery.
  */
 public class JsonEventMatcher extends DoFn<KV<String, String>, KV<String, String>> {
-  private BQDatasetSchemas bqDatasetSchema;
   private static BQDatasetSchemas testBqDatasetSchema;
 
-  public JsonEventMatcher(String dataset) {
-    this.bqDatasetSchema = BQDatasetSchemas.getInstance();
-    BQDatasetSchemas.setDataset(dataset);
+  private BQDatasetSchemas bqDatasetSchema;
+  private String datasetName;
+
+  public JsonEventMatcher(String datasetName) {
+    this.datasetName = datasetName;
+  }
+
+  @Setup
+  public void setup() {
+    BQDatasetSchemas.setDataset(datasetName);
+    bqDatasetSchema = BQDatasetSchemas.getInstance();
   }
 
   @ProcessElement
