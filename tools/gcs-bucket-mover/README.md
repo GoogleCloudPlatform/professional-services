@@ -208,11 +208,14 @@ optional arguments:
                         A topic name to set up a notification for on the test bucket
   --preserve_custom_time
   			 Preserves the source objects time created metadata in the custom time field in the destination object
+<<<<<<< HEAD
    --log_action LOG_ACTION
          see logs in log explorer like "COPY,FIND"
    --log_action_state LOG_ACTION_STATE
          See  succeeded or failed log in log explorer like "FAILED,SUCCEEDED"
          
+=======
+>>>>>>> eea3fb8c1af57dabffc55a8a16d7ee6f93dc50b6
 ```
 
 ## Test Run

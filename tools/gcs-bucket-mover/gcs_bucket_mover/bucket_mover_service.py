@@ -155,7 +155,11 @@ def _rename_bucket(cloud_logger, config, source_bucket, source_bucket_details,
                                                 config, target_bucket)
     _run_and_wait_for_sts_job(sts_client, config.target_project,
                               config.bucket_name, config.target_bucket_name,
+<<<<<<< HEAD
                               cloud_logger,config,transfer_log_value)
+=======
+                              cloud_logger,config)
+>>>>>>> eea3fb8c1af57dabffc55a8a16d7ee6f93dc50b6
 
     _delete_empty_source_bucket(cloud_logger, source_bucket)
     _remove_sts_permissions(cloud_logger, sts_account_email, config,
@@ -182,7 +186,11 @@ def _move_bucket(cloud_logger, config, source_bucket, source_bucket_details,
                                                 config, target_temp_bucket)
     _run_and_wait_for_sts_job(sts_client, config.target_project,
                               config.bucket_name, config.temp_bucket_name,
+<<<<<<< HEAD
                               cloud_logger,config,transfer_log_value)
+=======
+                              cloud_logger,config)
+>>>>>>> eea3fb8c1af57dabffc55a8a16d7ee6f93dc50b6
 
     _delete_empty_source_bucket(cloud_logger, source_bucket)
     _recreate_source_bucket(cloud_logger, config, source_bucket_details)
@@ -190,7 +198,11 @@ def _move_bucket(cloud_logger, config, source_bucket, source_bucket_details,
                                           config)
     _run_and_wait_for_sts_job(sts_client, config.target_project,
                               config.temp_bucket_name, config.bucket_name,
+<<<<<<< HEAD
                               cloud_logger,config,transfer_log_value)
+=======
+                              cloud_logger,config)
+>>>>>>> eea3fb8c1af57dabffc55a8a16d7ee6f93dc50b6
 
     _delete_empty_temp_bucket(cloud_logger, target_temp_bucket)
     _remove_sts_permissions(cloud_logger, sts_account_email, config,
@@ -795,7 +807,11 @@ def _assign_target_project_to_topic(spinner, cloud_logger, config, topic_name,
     wait_exponential_max=120000,
     stop_max_attempt_number=10)
 def _run_and_wait_for_sts_job(sts_client, target_project, source_bucket_name,
+<<<<<<< HEAD
                               sink_bucket_name, cloud_logger,config,transfer_log_value):
+=======
+                              sink_bucket_name, cloud_logger,config):
+>>>>>>> eea3fb8c1af57dabffc55a8a16d7ee6f93dc50b6
     """Kick off the STS job and wait for it to complete. Retry if it fails.
 
     Args:
@@ -820,7 +836,11 @@ def _run_and_wait_for_sts_job(sts_client, target_project, source_bucket_name,
     cloud_logger.log_text(spinner_text)
     with yaspin(text=spinner_text) as spinner:
         sts_job_name = _execute_sts_job(sts_client, target_project,
+<<<<<<< HEAD
                                         source_bucket_name, sink_bucket_name,config,transfer_log_value)
+=======
+                                        source_bucket_name, sink_bucket_name,config)
+>>>>>>> eea3fb8c1af57dabffc55a8a16d7ee6f93dc50b6
         spinner.ok(_CHECKMARK)
 
     # Check every 10 seconds until STS job is complete
@@ -849,7 +869,11 @@ def _run_and_wait_for_sts_job(sts_client, target_project, source_bucket_name,
 
 
 def _execute_sts_job(sts_client, target_project, source_bucket_name,
+<<<<<<< HEAD
                      sink_bucket_name,config,transfer_log_value):
+=======
+                     sink_bucket_name,config):
+>>>>>>> eea3fb8c1af57dabffc55a8a16d7ee6f93dc50b6
     """Start the STS job.
 
     Args:
@@ -880,7 +904,11 @@ def _execute_sts_job(sts_client, target_project, source_bucket_name,
 
         else:
             msg = 'Time created value is not available'
+<<<<<<< HEAD
             raise SystemExit(msg)	
+=======
+            raise SystemExit(msg)
+>>>>>>> eea3fb8c1af57dabffc55a8a16d7ee6f93dc50b6
     
     transfer_job = {
         'description':
@@ -911,7 +939,11 @@ def _execute_sts_job(sts_client, target_project, source_bucket_name,
                 "deleteObjectsFromSourceAfterTransfer": True,
                 "metadataOptions": {
                     "timeCreated": time_preserved
+<<<<<<< HEAD
                 }         
+=======
+                }
+>>>>>>> eea3fb8c1af57dabffc55a8a16d7ee6f93dc50b6
             }
         }
     }
