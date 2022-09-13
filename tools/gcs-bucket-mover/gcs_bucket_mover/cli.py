@@ -178,6 +178,12 @@ def _get_parsed_args():
     parser.add_argument(
         '--preserve_custom_time',
         help='Preserves the source objects time created metadata in the custom time field in the destination object')
+    parser.add_argument(
+        '--log_action',
+        help='A log action to see log on google log  console')
+    parser.add_argument(
+        '--log_action_state',
+        help='A log action state for successfull and failed to see log on google log  console')
 
     return parser.parse_args()
 
