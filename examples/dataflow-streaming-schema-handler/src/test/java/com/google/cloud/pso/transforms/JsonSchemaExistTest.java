@@ -71,9 +71,9 @@ public class JsonSchemaExistTest {
 
     // Act
     PCollectionTuple testPCollTuple =
-    testPColl.apply(
-        ParDo.of(new JsonSchemaExist("test_dataset").withTestServices(mockBQDatasetSchema))
-            .withOutputTags(Constants.MAIN_TAG, TupleTagList.of(Constants.UNKNOWN_SCHEMA_TAG)));
+        testPColl.apply(
+            ParDo.of(new JsonSchemaExist("test_dataset").withTestServices(mockBQDatasetSchema))
+                .withOutputTags(Constants.MAIN_TAG, TupleTagList.of(Constants.UNKNOWN_SCHEMA_TAG)));
 
     PCollection<KV<String, String>> pCollResMain = testPCollTuple.get(Constants.MAIN_TAG);
     PCollection<KV<String, String>> pCollResUnknown =

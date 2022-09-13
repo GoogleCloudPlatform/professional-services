@@ -90,13 +90,13 @@ public class JsonEventMatcherTest {
     PCollection<KV<String, String>> testPColl =
         pipeline.apply(
             Create.of(KV.of("dlog_test", buildCorrectCDLVanguardJsonSample().toString())));
-            when(mockBQDatasetSchema.getFieldList("dlog_test")).thenReturn(esportsMatchStartFields);
+    when(mockBQDatasetSchema.getFieldList("dlog_test")).thenReturn(esportsMatchStartFields);
 
     // Act
     PCollectionTuple testPCollTuple =
-    testPColl.apply(
-        ParDo.of(new JsonEventMatcher("mockdataset").withTestServices(mockBQDatasetSchema))
-            .withOutputTags(Constants.MAIN_TAG, TupleTagList.of(Constants.UNMATCH_SCHEMA_TAG)));
+        testPColl.apply(
+            ParDo.of(new JsonEventMatcher("mockdataset").withTestServices(mockBQDatasetSchema))
+                .withOutputTags(Constants.MAIN_TAG, TupleTagList.of(Constants.UNMATCH_SCHEMA_TAG)));
     PCollection<KV<String, String>> pCollResMain = testPCollTuple.get(Constants.MAIN_TAG);
     PCollection<KV<String, String>> pCollResUnmatch =
         testPCollTuple.get(Constants.UNMATCH_SCHEMA_TAG);
@@ -116,15 +116,15 @@ public class JsonEventMatcherTest {
     PCollection<KV<String, String>> testPColl =
         pipeline.apply(
             Create.of(KV.of("dlog_test", buildMissingFieldCDLVanguardJsonSample().toString())));
-            when(mockBQDatasetSchema.getFieldList("dlog_test")).thenReturn(esportsMatchStartFields);
+    when(mockBQDatasetSchema.getFieldList("dlog_test")).thenReturn(esportsMatchStartFields);
 
     // Act
     PCollectionTuple testPCollTuple =
-    testPColl.apply(
-        ParDo.of(new JsonEventMatcher("mockdataset").withTestServices(mockBQDatasetSchema))
-            .withOutputTags(Constants.MAIN_TAG, TupleTagList.of(Constants.UNMATCH_SCHEMA_TAG)));
-ObjectNode expected = (ObjectNode) buildMissingFieldCDLVanguardJsonSample();
-expected.set("sneak_defuses", NullNode.getInstance());
+        testPColl.apply(
+            ParDo.of(new JsonEventMatcher("mockdataset").withTestServices(mockBQDatasetSchema))
+                .withOutputTags(Constants.MAIN_TAG, TupleTagList.of(Constants.UNMATCH_SCHEMA_TAG)));
+    ObjectNode expected = (ObjectNode) buildMissingFieldCDLVanguardJsonSample();
+    expected.set("sneak_defuses", NullNode.getInstance());
     PCollection<KV<String, String>> pCollResMain = testPCollTuple.get(Constants.MAIN_TAG);
     PCollection<KV<String, String>> pCollResUnmatch =
         testPCollTuple.get(Constants.UNMATCH_SCHEMA_TAG);
