@@ -44,11 +44,8 @@ class Configuration(object):
     lock_file_name = attrib()
     is_rename = attrib()
     preserve_custom_time = attrib()
-<<<<<<< HEAD
     log_action=attrib()
     log_action_state=attrib()
-=======
->>>>>>> eea3fb8c1af57dabffc55a8a16d7ee6f93dc50b6
 
     @classmethod
     def from_conf(cls, conf):
@@ -106,10 +103,6 @@ class Configuration(object):
             is_rename=is_rename,
             disable_bucket_lock=conf.disable_bucket_lock,
             lock_file_name=conf.lock_file_name,
-<<<<<<< HEAD
             preserve_custom_time=conf.preserve_custom_time,
             log_action=conf.log_action,
             log_action_state=conf.log_action_state)
-=======
-            preserve_custom_time=conf.preserve_custom_time)
->>>>>>> eea3fb8c1af57dabffc55a8a16d7ee6f93dc50b6
