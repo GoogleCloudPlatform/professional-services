@@ -175,6 +175,9 @@ def _get_parsed_args():
     parser.add_argument(
         '--test_topic_name',
         help='A topic name to set up a notification for on the test bucket')
+    parser.add_argument(
+        '--preserve_custom_time',
+        help='Preserves the source objects time created metadata in the custom time field in the destination object')
 
     return parser.parse_args()
 
