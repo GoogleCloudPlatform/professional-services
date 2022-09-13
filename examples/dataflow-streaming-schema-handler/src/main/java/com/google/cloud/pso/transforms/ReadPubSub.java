@@ -28,7 +28,7 @@ public class ReadPubSub extends DoFn<String, KV<String, String>> {
 
       context.output(KV.of(field.getKey(), field.getValue().toString()));
     } catch (JsonProcessingException e) {
-      e.printStackTrace();
+      LOG.error("Unable to parse JSON Message, check the format of the JSON", e);
     }
   }
 }

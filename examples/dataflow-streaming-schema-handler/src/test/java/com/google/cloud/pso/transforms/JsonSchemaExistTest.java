@@ -41,7 +41,6 @@ public class JsonSchemaExistTest {
   public final void setup() throws Exception {}
 
   @Test
-  @SuppressWarnings("unchecked")
   public void buildMatchedJsonNodeFromTableSchema_returnJsonNodeMatchesSchema()
       throws JsonMappingException, JsonProcessingException {
     // Arrange
@@ -64,18 +63,18 @@ public class JsonSchemaExistTest {
   }
 
   @Test
-  @SuppressWarnings("unchecked")
   public void buildMatchedJsonNodeFromTableSchema_returnJsonNodeUnknownSchema()
       throws JsonMappingException, JsonProcessingException {
     // Arrange
     PCollection<KV<String, String>> testPColl = pipeline.apply(Create.of(MOCK_INPUT));
-    PCollectionTuple testPCollTuple =
-        testPColl.apply(
-            ParDo.of(new JsonSchemaExist("test_dataset").withTestServices(mockBQDatasetSchema))
-                .withOutputTags(Constants.MAIN_TAG, TupleTagList.of(Constants.UNKNOWN_SCHEMA_TAG)));
+    when(mockBQDatasetSchema.isTableSchemaExist("dlog_test")).thenReturn(false);
 
     // Act
-    when(mockBQDatasetSchema.isTableSchemaExist("dlog_test")).thenReturn(false);
+    PCollectionTuple testPCollTuple =
+    testPColl.apply(
+        ParDo.of(new JsonSchemaExist("test_dataset").withTestServices(mockBQDatasetSchema))
+            .withOutputTags(Constants.MAIN_TAG, TupleTagList.of(Constants.UNKNOWN_SCHEMA_TAG)));
+
     PCollection<KV<String, String>> pCollResMain = testPCollTuple.get(Constants.MAIN_TAG);
     PCollection<KV<String, String>> pCollResUnknown =
         testPCollTuple.get(Constants.UNKNOWN_SCHEMA_TAG);

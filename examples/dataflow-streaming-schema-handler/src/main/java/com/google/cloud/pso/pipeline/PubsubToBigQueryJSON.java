@@ -26,8 +26,8 @@ import com.google.cloud.bigquery.BigQueryException;
 import com.google.cloud.pso.transforms.JsonEventMatcher;
 import com.google.cloud.pso.transforms.JsonSchemaExist;
 import com.google.cloud.pso.transforms.ReadPubSub;
-import com.google.cloud.pso.util.BigQueryConverters;
 import com.google.cloud.pso.util.BQDatasetSchemas;
+import com.google.cloud.pso.util.BigQueryConverters;
 import com.google.cloud.pso.util.Constants;
 import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
@@ -149,7 +149,7 @@ public class PubsubToBigQueryJSON {
                         TupleTagList.of(
                             Constants
                                 .UNKNOWN_SCHEMA_TAG))); // Separate known schema and the unknown
-                                                        // schema
+    // schema
 
     PCollection<KV<String, String>> unknownSchemaCollection =
         pCollectionTuple.get(Constants.UNKNOWN_SCHEMA_TAG);

@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import org.apache.beam.sdk.io.gcp.bigquery.TableRowJsonCoder;
-import org.apache.beam.sdk.coders.Coder.Context;
 
 public class BigQueryConverters {
 
@@ -22,8 +21,8 @@ public class BigQueryConverters {
     // Parse the JSON into a {@link TableRow} object.
     try (InputStream inputStream =
         new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8))) {
-      row = TableRowJsonCoder.of().decode(inputStream, Context.OUTER);
 
+      row = TableRowJsonCoder.of().decode(inputStream);
     } catch (IOException e) {
       throw new RuntimeException("Failed to serialize json to table row: " + json, e);
     }
