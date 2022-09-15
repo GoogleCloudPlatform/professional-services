@@ -6,9 +6,11 @@ Policy checks are typically instantiated after code is pushed to the repository,
 
 Using left-shift validate means you learn *if your deployments are going to fail* on the order of seconds as it happens right before committing, rather than minutes or hours after it has already undergone multiple parts, or even most, of your CI/CD pipeline.
 
+While these scripts were first designed to work in environemnts using Kustomize, they've been adapted to work for whatever file organization structure you provide. `validate.sh` uses git diff to find any and all staged yaml files, and then will validate each against the Constraints and ConstraintTemplates you provide.
+
 ---
 
-# Setup
+# Setting Up left-shift validation
 
 Using left-shift validation is simple!
 
@@ -17,27 +19,31 @@ Using left-shift validation is simple!
 
 - `validate.sh`
 - `setup.sh`
-- `/constraints-and-templates` directory
+- `constraints-and-templates/` directory
+    
+    *If you don't want to clone the whole project, you can use `wget` to download the specific files. For example:*
 
-2. Place these in the same directory as your `.git` folder. `Setup.sh` will move `validate.sh` into your hooks from there.
+    `wget https://raw.githubusercontent.com/tdesrosi/pre-validate/main/validate.sh`
+
+2. Place these items into the same directory as your `.git` folder. `setup.sh` will move `validate.sh` into your hooks from there.
 
 3. Make both files executable, which can be accomplished by:
-```
-$ chmod +x setup.sh && \
-chmod +x validate.sh
-```
+
+    `$ chmod +x setup.sh && chmod +x validate.sh`
+
 4. After this step, run `setup.sh`
-```
-$ ./setup.sh
-```
+
+    `$ ./setup.sh`
+
 5. Answer the prompts, and then you're done!
 
 Now, whenever you go to commit code and updated Kubernetes yaml files are found, the pre-commit hook will test your changes against the policy constraints you've specified. Nifty!
 
-**After initial installation**<br/>
-`Setup.sh` is primarily for dependency installations and contains a guided walkthrough of obtaining the locations of your Constraint and ConstraintTemplates. We suggest only running `setup.sh` when needing to run these tasks again, as necessary.
+**After initial installation:**
 
-Otherwise, the locations will be set as environment variables in your `.env` file for `validate.sh` (pre-commit hook) to use. You can directly change these variables as necessary without having to run `setup.sh`. The pre-commit hook will run every time you attempt to commit!
+`setup.sh` is primarily for dependency installations and contains a guided walkthrough of obtaining the locations of your Constraint and ConstraintTemplates. If your policy constraints change, you can run this script again, which will automatically update dependencies as well.
+
+The locations you specify for your Constraints, ConstraintTemplates, and (if using Kustomize) base Kustomization folder will be written into a settings file in `.oss_dependencies` for `validate.sh` (pre-commit hook) to use. You can directly change these variables as necessary without having to run `setup.sh`. The pre-commit hook will run every time you attempt a commit!
 
 ---
 
@@ -48,25 +54,15 @@ Left-shift validation is intended to run as a pre-commit hook, so it has been de
 **setup.sh**
 1. Install or update dependencies.
 2. Turn `validate.sh` into a pre commit hook.
-3. Determine locations of Constraints/ConstraintTemplates to use, then save the path/remote repository URL to `.env`. 
+3. Determine the locations of Constraints/ConstraintTemplates to use, then save the path/remote repository URL to `.env`. 
 
 **validate.sh (Pre-commit Hook)**
 
 1. When `git commit` runs, check if any yaml files have been updated.
-2. Run `kustomize` to build a unified yaml file for evaluation.
-4. Gather the Constraints and ConstraintTemplates and save them to a local folder. Run `kpt` if from a remote repo.
+2. (If you're using Kustomize) Run `kustomize` to build a unified yaml file for evaluation.
+4. Gather the Constraints and ConstraintTemplates and save them to a local folder. Use `kpt` if from a remote repo.
 3. Run `gator test`, which validates the unified yaml file against the policies (Constraints and ConstraintTemplates).
 4. Fail the commit if violations are found. If there are no errors, continue the commit.
-
-***In order for `gator test` (the validation iteslf) to work, ensure the *only* `.yaml` files in the `/constraint-and-templates` directory are for the Constraint and ConstraintTemplates.***
-- For ConstraintTemplate `.yaml` files, ensure `kind: ConstraintTemplate`
-- For Constraint `.yaml` files, ensure `kind: <name of ConstraintTemplate>`
-
-<br/>**Using the Open-Source ConstraintTemplates**<br/>
-We have [pre-included](constraints-and-templates/oss-constraint-templates-library/) the constraint templates from the open-source OPA repository. If you are using these templates, you specify so during setup.sh and the pre-commit hook will use the /constraints-and-templates directory as the location for the templates.
-To manually specify:
-- In your `.env` file, make sure the `TEMPLATES_LOCATION` environment variable is set to `/constraints-and-templates/oss-constraint-templates-library`.	
-
 
 ---
 
@@ -106,7 +102,7 @@ Left-shift validation uses the follwing dependencies:
 | [kustomize](https://github.com/kubernetes-sigs/kustomize) | Collates and hydrates raw yaml files into formats that work best with validation steps. |
 | [gator](https://open-policy-agent.github.io/gatekeeper/website/docs/gator/) | Allows for evaluating Gatekeeper ConstraintTemplates and Constraints in a local environment. |
 
-In order for left-shift validation to work, these tools must be installed on your system. `setup.sh` will install or update each tool, and they will be accessible to the validation script via a dependency folder. if you'd like to handle installation yourself, you may! As long as the commands are in your `$PATH`, `validate.sh` will recognize and use them. In this case, when you run setup.sh, be sure to skip the dependency installation step. More details are provided in the setup instructions.
+In order for left-shift validation to work, these tools must be installed on your system. `setup.sh` will install or update each tool, and they will be accessible to the validation script via a dependency folder. If you'd like to handle installation yourself, you may! As long as the commands are in your `$PATH`, `validate.sh` will recognize and use them.
 
 ---
 
@@ -118,7 +114,7 @@ Let's go a bit further into how everything works together. The idea is that you 
 - Resetting the default behavior of your pre-commit hook, if you make changes that break the code.
 - Describing new Constraints and/or ConstraintTemplates to use. We have a collection of samples from the [OPA Gatekeeper Library](https://github.com/open-policy-agent/gatekeeper-library) that you can use, but you can also supply your own repository. If you have separate repositories for your Constraints and Templates, that is also supported.
 
-`validate.sh` depends on `setup.sh` to take care of the more time-consuming steps in order to run as fast as possible. It's for this reason that `setup.sh` handles all aspects of setting up the environment, Then, `validate.sh` only needs to kustomize changed yamls, gather Constraints and ConstraintTemplates with kpt, and finally run `gator test` to produce an outcome.
+`validate.sh` depends on `setup.sh` to take care of the more time-consuming steps in order to run as fast as possible. It's for this reason that `setup.sh` handles all aspects of setting up the environment, Then, `validate.sh` only needs to identify changed resources, gather Constraints and ConstraintTemplates with kpt, and finally run `gator test` to produce an outcome.
 
 When configured as a pre-commit script (taken care of by `setup.sh`), `validate.sh` will take the locations of your Constraints and ConstraintTemplates, which you provided in `setup.sh`, and obtain those manifests. Whether they're stored in one or two repositories, stored locally, or if you want to continue with the sample policies in the OPA Gatekeeper Library, the script supports all of those combinations. Here's how that decision flow works:
 
@@ -136,7 +132,7 @@ Done with left-shift validation? Uninstalling is easy! Since we installed depend
 
 You can simply use `cleanup.sh`, which will automatically delete folders like `.oss_dependencies/` and any manifests, Constraints, or ConstraintTemplates that are still lingering around.
 
-**IMPORTANT:** When you install left-shift validation, it becomes `pre-commit` in the `.git/hooks/` directory. This script will delete the file, rather than renaming it by appending `.sample` to the filename.
+<span style="color: red">**IMPORTANT:** When you install left-shift validation, it becomes `pre-commit` in the `.git/hooks/` directory. This script will delete the file, rather than renaming it by appending `.sample` to the filename.</span>
 
 ## Manual Uninstall
 
@@ -145,7 +141,7 @@ To remove left-shift validation, you must delete all of the files that have been
 - `setup.sh`
 - `.oss_dependencies/*` (which can be found in the root directory of your project)
 
-Then, you must go into your .git/hooks/ folder, and either delete `pre-commit`, or add ".sample" to the end of the filename, which tells git not to run it in the future.
+Then, you must go into your .git/hooks/ folder, and either delete `pre-commit`, or add ".sample" to the end of the filename, which tells Git not to run it in the future.
 
 ---
 
