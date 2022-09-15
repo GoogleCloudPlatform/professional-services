@@ -16,11 +16,14 @@
 #
 # Precommit Hook for K8s Manifest Validation pre-CI/CD pipeline.
 # Janine Bariuan and Thomas Desrosiers
-# Using: kpt, kustomize, gator cli
 
 #########################################################
 ####### STEP 0 - DEPENDENCY INSTALLATION PRE-WORK #######
 #########################################################
+
+# Colors
+green='\033[0;32m'
+nocolor='\033[0m'
 
 # Unset CDPATH to restore default cd behavior. An exported CDPATH can
 # cause cd to output the current directory to STDOUT.
@@ -46,14 +49,14 @@ readonly INSTALL_DIR=".oss_dependencies"
 function readlink_f {
     TARGET_FILE=$1
 
-    cd "$(dirname "$TARGET_FILE")" || exit
+    cd "$(dirname "$TARGET_FILE")"
     TARGET_FILE=$(basename "$TARGET_FILE")
 
     # Iterate down a (possible) chain of symlinks
     while [ -L "$TARGET_FILE" ]
     do
         TARGET_FILE=$(readlink "$TARGET_FILE")
-        cd "$(dirname "$TARGET_FILE")" || exit
+        cd "$(dirname "$TARGET_FILE")"
         TARGET_FILE=$(readlink "$TARGET_FILE")
     done
 
@@ -76,14 +79,14 @@ fi
 #############################################
 
 # Determine if user has run this code from the correct directory
-where="$(readlink_f "$(printf "%q\\n" "$(PWD)")")/"
+where="$(readlink_f $(printf "%q\n" "$(PWD)"))/"
 if [[ ! -f $where/.git/hooks/pre-commit  ]]; then
     err "It seems this code is either not being run in a git repository, or being run in the wrong place and can't access your pre-commit hook. Please Make sure you run this command in your project root."
     exit 1
 fi
 
-# Delete Pre-Commit Hook
-rm "$where"/.git/hooks/pre-commit
+# Rename Pre-Commit Hook with .sample
+mv $where/.git/hooks/pre-commit $where/.git/hooks/pre-commit.sample
 
 #############################################################
 ###### STEP 2 - Delete Necessary Files and Directories ######
@@ -92,11 +95,8 @@ rm "$where"/.git/hooks/pre-commit
 # Delete Dependencies (Folder marked by $INSTALL_DIR)
 rm -rf $INSTALL_DIR
 
-# Delete User Configuration (.pre-validate-config)
-rm -rf .pre-validate-config
-
-# Delete Hydrated Manifests (Generated in validate.sh, storing Kuztomized files in .hydrated-manifests)
-rm -rf .hydrated-manifests
+# Delete locally downloaded ConstraintTemplates
+rm -rf constraints_and_templates
 
 ###############################################
 ###### STEP 2 - Remove Remaining Scripts ######
@@ -111,5 +111,5 @@ rm -f cleanup.sh
 #############################################
 
 # Finish
-echo "Pre-Validate has been removed. Thank you for trying it out!"
-echo "Visit https://github.com/~~~~~~~~OUR REPO~~~~~~~ for more information."
+echo "${green}Pre-Validate has been removed. Thank you for trying it out!"
+echo "Visit https://github.com/tdesrosi/pre-validate for more information.${nocolor}"
