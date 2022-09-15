@@ -16,7 +16,14 @@
 #
 # Precommit Hook for K8s Manifest Validation pre-CI/CD pipeline.
 # Janine Bariuan and Thomas Desrosiers
-# Using: kpt, kustomize, gator cli
+
+# Colors and Formatting
+bold=$(tput bold)
+normal=$(tput sgr0)
+green='\033[0;32m'
+red='\033[0;31m'
+yellow='\033[0;33m'
+nocolor='\033[0m'
 
 ########################################################
 #################### PRE-CHECK #########################
@@ -24,9 +31,9 @@
 
 # Only run pre-commit hook if any manifests are updated.
 echo "Checking for updated Kubernetes manifests..."
-updated_yamls="git diff --staged --stat | grep -o '.*\\.yaml'"
+updated_yamls=$(git diff --staged --stat | grep -o '.*\.yaml')
 
-if [ -z "$(eval "$updated_yamls")" ]; then
+if [ -z $updated_yamls ]; then
 	echo "No updated manifests found." # Exit script if no updated manifests found
 	exit 0
 else
@@ -44,12 +51,9 @@ unset CDPATH
 
 # Send errors to STDERR
 err() {
-	echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]: $*" >&2
+	printf "\n${red}> [$(date +'%Y-%m-%dT%H:%M:%S%z')]: $*${nocolor}\n" >&2
+	exit 1
 }
-
-# Define tput sequences for bold text output to terminal
-bold=$(tput bold)
-normal=$(tput sgr0)
 
 # Instantiate FULL_COMMAND_PATH which will be updated to tell the rest
 # of the script where the dependencies live
@@ -89,20 +93,20 @@ function update_path {
 #######################################
 function check_dependency {
 
-	if command -v "$1" &>/dev/null; then
+	if command -v $1 &>/dev/null; then
 		echo "$1 exists in your path:"
-		printf '%s \n\n' "$PATH" 
-		echo "Using preconfigured command, $1"
-		update_path "$1" "$1"
+		printf "$PATH\n"
+		printf "Using preconfigured command, $1\n\n"
+
+		update_path $1 "$1"
 		return
 	elif [[ -f .oss_dependencies/$1 ]]; then
 		echo "$1 exists in your dependency folder. Using:"
-		printf '%s \n\n' ".oss_dependencies/$1"
-		update_path "$1" ".oss_dependencies/$1"
+		printf ".oss_dependencies/$1 \n\n"
+		update_path $1 ".oss_dependencies/$1"
 		return
 	else
 		err "Could not find $1. Please make sure it is installed, either to your PATH, or via the setup.sh script."
-		exit 1
 	fi
 }
 
@@ -121,48 +125,18 @@ echo $'Dependencies installed and properly configured.\n'
 ############ STEP 2 - PREPARE CONFIGURATION ############
 ########################################################
 
-# Get constraint, template, and k8s locations from setup.sh
-eval 'export $(xargs < .env)'
-echo 'Templates location:' "$TEMPLATES_LOCATION"
-echo 'Constraints location:' "$CONSTRAINTS_LOCATION"
-echo 'K8s Manifests location:' "$KUBERNETES_DIR"
+# Get constraint, template, and k8s locations from dependency_info.txt
+export $(xargs <.oss_dependencies/user_config.txt)
+printf "${yellow}Templates location: $TEMPLATES_LOCATION\n"
+printf "Constraints location: $CONSTRAINTS_LOCATION\n"
 
-# First, open STDIN for user input, which is closed by default for git hooks
-exec </dev/tty
-
-# This step builds the final manifests for the app
-# using kustomize and the configuration files
-# available in the repository.
-echo $'\n'
-echo "${bold}KUSTOMIZE SOURCES:${normal}"
-echo "* If you are NOT using Kustomize to generate resources, ${bold}leave BLANK and press ENTER${normal}"
-echo "* If you are using Kustomize, please enter the path to your current environment's overlays."
-echo "* i.e. For the Following Folder Structure:"
-echo "* "
-echo "* sample-app/"
-echo "* | -- base/"
-echo "* | 	 | -- deployment.yaml"
-echo "* |	 | -- kustomization.yaml"
-echo "* | -- overlays/"
-echo "*      | -- prod/"
-echo "*      |    | -- deployment.yaml"
-echo "*      |    | -- kustomization.yaml"
-echo "*      | -- dev/"
-echo "*           | -- deployment.yaml"
-echo "*           | -- kustomization.yaml"
-echo "* "
-echo "* You might enter ${bold}overlays/prod${normal} to build and test your production manifests, etc."
-read -r -p "> " environment
-
-# Reclose STDIN
-exec <&-
-
-# Cleaning hydrated manifests and building new Kustomization
-rm -rf .oss_dependencies/.hydrated_manifests
-# Hydrate manifests and apply kustomize overlays
-mkdir -p .oss_dependencies/.hydrated_manifests/
-$FULL_COMMAND_PATH_KUSTOMIZE build "$KUBERNETES_DIR"/"$environment" \
-	> .oss_dependencies/.hydrated_manifests/"$environment".yaml
+if [[ -z $KUSTOMIZED_FILES ]]; then
+	printf "Using Kustomize: NO\n"
+	printf "K8s Manifests location: <Not using Kustomize>${nocolor}\n"
+else
+	printf "Using Kustomize: $KUSTOMIZED_FILES\n"
+	printf "K8s Manifests location: $KUBERNETES_DIR ${nocolor}\n"
+fi
 
 ########################################################
 ############## STEP 3 - DOWNLOAD POLICIES ##############
@@ -184,11 +158,11 @@ function download_policies() {
 	if [[ "$1" == "http"* ]]; then
 		# Downloading remote repo containing constraints
 		$FULL_COMMAND_PATH_KPT version
-		$FULL_COMMAND_PATH_KPT pkg get "$1" constraints-and-templates/"$2"
+		$FULL_COMMAND_PATH_KPT pkg get $1 constraints-and-templates/$2
 	else
 		# Copying local constraints to directory
-		mkdir constraints-and-templates/"$2"
-		cp -a "$1" constraints-and-templates/"$2"
+		mkdir constraints-and-templates/$2
+		cp -a $1 constraints-and-templates/$2
 	fi
 }
 
@@ -196,7 +170,7 @@ if [[ "$TEMPLATES_LOCATION" == *"/constraints-and-templates/oss-constraint-templ
 
 	# Templates are OSS, get constraints where located
 	OSS=TRUE
-	download_policies "$CONSTRAINTS_LOCATION" "constraints"
+	download_policies $CONSTRAINTS_LOCATION "constraints"
 
 else
 	# Temporarily move OSS templates
@@ -206,23 +180,83 @@ else
 
 	# Constraints and templates in same location
 	if [[ "$TEMPLATES_LOCATION" == "$CONSTRAINTS_LOCATION" ]]; then
-		download_policies "$CONSTRAINTS_LOCATION" ""
+		download_policies $CONSTRAINTS_LOCATION ""
 
 	# Constraints and templates in different locations
 	else
-		download_policies "$CONSTRAINTS_LOCATION" "constraints"
-		download_policies "$TEMPLATES_LOCATION" "templates"
+		download_policies $CONSTRAINTS_LOCATION "constraints"
+		download_policies $TEMPLATES_LOCATION "templates"
 
 	fi
 fi
 
-########################################################
-########## STEP 4 - VALIDATE AGAINST POLICIES ##########
-########################################################
+# Hydrate manifests if user is using Kustomize
+# If user isn't using Kustomize, use git diff to fill gator command
+# Validate in each situation
 
-# Validates that all resources comply with all policies.
-echo 'Validating against Policies'
-pass_or_fail=$($FULL_COMMAND_PATH_GATOR test -f=.oss_dependencies/.hydrated_manifests/"$environment".yaml -f=constraints-and-templates)
+if [[ $KUSTOMIZED_FILES == "YES" ]]; then
+	# First, open STDIN for user input, which is closed by default for git hooks
+	exec </dev/tty
+	# This step builds the final manifests for the app
+	# using kustomize and the configuration files
+	# available in the repository.
+	echo $'\n'
+	echo "${bold}KUSTOMIZE SOURCES:${normal}"
+	printf "* ${red}${bold}If you are NOT using Kustomize to generate resources, rerun setup.sh${normal}${nocolor}\n"
+	echo "* If you are using Kustomize, please enter the path to your current environment's overlays."
+	echo "* i.e. For the Following Folder Structure:"
+	echo "* "
+	echo "* sample-app/"
+	echo "* | -- base/"
+	echo "* | 	 | -- deployment.yaml"
+	echo "* |	 | -- kustomization.yaml"
+	echo "* | -- overlays/"
+	echo "*      | -- prod/"
+	echo "*      |    | -- deployment.yaml"
+	echo "*      |    | -- kustomization.yaml"
+	echo "*      | -- dev/"
+	echo "*           | -- deployment.yaml"
+	echo "*           | -- kustomization.yaml"
+	echo "* "
+	echo "* You might enter ${bold}overlays/prod${normal} to build and test your production manifests, etc."
+	read -r -p "> " environment
+
+	if [[ -z $environment ]]; then
+		err "If using Kustomize, you can't leave ${bold}KUSTOMIZE SOURCES:${normal} blank. Please rerun setup.sh if you aren't using Kustomize."
+	fi
+	# Reclose STDIN
+	exec <&-
+
+	# Cleaning hydrated manifests and building new Kustomization
+	rm -rf .oss_dependencies/.hydrated_manifests
+	# Hydrate manifests and apply kustomize overlays
+	mkdir -p .oss_dependencies/.hydrated_manifests
+	$FULL_COMMAND_PATH_KUSTOMIZE build $KUBERNETES_DIR/$environment >.oss_dependencies/.hydrated_manifests/kustomization.yaml
+	using_kustomize="true"
+	# Validates that all resources comply with all policies.
+	echo 'Validating against Policies'
+	pass_or_fail=$($FULL_COMMAND_PATH_GATOR test -f=.oss_dependencies/.hydrated_manifests/kustomization.yaml -f=constraints-and-templates)
+	if [[ -z $pass_or_fail ]] || [[ $pass_or_fail == 'null' ]]; then
+		printf "\n${green}> Congrats! No policy violations found.${nocolor}\n"
+	else
+		found_violations=true
+		printf "\n${red}> Violations found in Kustomized File: .oss_dependencies/.hydrated_manifests/kustomization.yaml\n"
+		printf "> See details below:\n\n${nocolor}" && echo $pass_or_fail
+	fi
+else
+	# Loop through updated yamls and run gator test against them.
+	IFS=$'' read -d '' -r -a files_to_check <<<"$updated_yamls"
+	for yaml in $files_to_check; do
+		printf "\n> Checking file: $yaml"
+		pass_or_fail=$($FULL_COMMAND_PATH_GATOR test -f=constraints-and-templates -f=$yaml)
+		if [[ -z $pass_or_fail ]] || [[ $pass_or_fail == 'null' ]]; then
+			printf "\n${green}> Congrats! No policy violations found.${nocolor}\n"
+		else
+			found_violations=true
+			printf "\n${red}> Violations found. See details below:\n\n${nocolor}" && echo $pass_or_fail
+		fi
+	done
+fi
 
 # Remove constraints and templates and reset environment
 if [[ "$OSS" == "TRUE" ]]; then
@@ -232,9 +266,15 @@ else
 	mv .temp constraints-and-templates
 fi
 
-if [[ -z $pass_or_fail ]]; then
-	echo "Congrats! No policy violations found."
-else
-	echo $'\nViolations found. See details below:\n\n' && echo "$pass_or_fail"
-	exit 1
+# Ask user if they want to 
+# Open STDIN
+exec </dev/tty
+if [[ $found_violations = true ]]; then
+	printf "\n${red}> Some resources have policy violations. Would you like to halt the commit and fix these files? [y/N]${nocolor}\n"
+	read -r -p "> " halt_commit
+	if [[ "$halt_commit" =~ ^([yY][eE][sS]|[yY])$ ]]; then
+		err "Halting commit due to policy violations."
+	fi
 fi
+# Reclose STDIN
+exec <&-
