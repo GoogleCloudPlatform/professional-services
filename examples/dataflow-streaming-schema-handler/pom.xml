@@ -30,34 +30,18 @@
   </organization>
 
   <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <avro.version>1.8.2</avro.version>
     <checkstyle.version>8.7</checkstyle.version>
     <beam.version>2.41.0</beam.version>
-    <extra.enforcer.rules.version>1.3</extra.enforcer.rules.version>
     <hamcrest.version>2.1</hamcrest.version>
     <java.version>1.8</java.version>
     <junit.version>4.13</junit.version>
-    <surefire.version>2.21.0</surefire.version>
-    <maven-checkstyle-plugin.version>3.0.0</maven-checkstyle-plugin.version>
     <maven-compiler-plugin.version>3.6.2</maven-compiler-plugin.version>
-    <maven-dependency-plugin.version>3.0.1</maven-dependency-plugin.version>
-    <maven-enforcer-plugin.version>3.0.0-M1</maven-enforcer-plugin.version>
-    <maven-javadoc-plugin.version>3.0.0-M1</maven-javadoc-plugin.version>
-    <maven-jar-plugin.version>3.0.2</maven-jar-plugin.version>
     <maven-shade-plugin.version>3.0.0</maven-shade-plugin.version>
     <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
     <mockito-core.version>3.8.0</mockito-core.version>
-    <mock-server-netty.version>5.11.1</mock-server-netty.version>
     <os-maven-plugin.version>1.5.0.Final</os-maven-plugin.version>
-    <open-census.version>0.24.0</open-census.version>
-    <protobuf.version>3.11.1</protobuf.version>
     <json.version>20200518</json.version>
-    <junit.jupiter.version>5.5.2</junit.jupiter.version>
     <re2j.version>1.4</re2j.version>
-    <codehaus-jackson.version>1.9.13</codehaus-jackson.version>
-    <commons-csv.version>1.8</commons-csv.version>
-    <commons-text.version>1.9</commons-text.version>
     <google-cloud-bigquery.version>1.108.0</google-cloud-bigquery.version>
     <grpc.version>1.13.1</grpc.version>
     <mvn-target-dir>${basedir}/target</mvn-target-dir>
@@ -67,13 +51,8 @@
     <autovalue.annotations.version>1.7.4</autovalue.annotations.version>
     <autovalue.version>1.7.4</autovalue.version>
     <excluded.spanner.tests>com.google.cloud.teleport.spanner.IntegrationTest</excluded.spanner.tests>
-    <tensorflow.version>1.15.0</tensorflow.version>
     <truth.version>1.0.1</truth.version>
     <dlp.version>2.1.0</dlp.version>
-    <hadoop.version>2.8.5</hadoop.version>
-    <hbase.version>1.4.5</hbase.version>
-    <scassandra.version>1.1.2</scassandra.version>
-    <cassandra.driver.version>3.6.0</cassandra.driver.version>
     <kms.version>1.40.0</kms.version>
     <proto-kms.version>0.87.0</proto-kms.version>
     <spotless-maven-plugin.version>2.12.1</spotless-maven-plugin.version>
@@ -157,48 +136,10 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-api</artifactId>
-      <version>${junit.jupiter.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>com.google.truth</groupId>
       <artifactId>truth</artifactId>
       <version>${truth.version}</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.mock-server</groupId>
-      <artifactId>mockserver-netty</artifactId>
-      <version>${mock-server-netty.version}</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-ext</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-api</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.mock-server</groupId>
-      <artifactId>mockserver-junit-rule</artifactId>
-      <version>${mock-server-netty.version}</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-ext</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-api</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
 
     <!-- Misc -->
@@ -229,28 +170,6 @@
       <version>${autovalue.annotations.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.codehaus.jackson</groupId>
-      <artifactId>jackson-core-asl</artifactId>
-      <version>${codehaus-jackson.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.codehaus.jackson</groupId>
-      <artifactId>jackson-mapper-asl</artifactId>
-      <version>${codehaus-jackson.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-csv</artifactId>
-      <version>${commons-csv.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-text</artifactId>
-      <version>${commons-text.version}</version>
-    </dependency>
-
-    <dependency>
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
       <version>${commons-codec.version}</version>
@@ -259,11 +178,6 @@
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
       <version>${commons-io.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.opencensus</groupId>
-      <artifactId>opencensus-api</artifactId>
-      <version>${open-census.version}</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -291,11 +205,6 @@
       <groupId>com.google.api.grpc</groupId>
       <artifactId>proto-google-cloud-kms-v1</artifactId>
       <version>${proto-kms.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.tensorflow</groupId>
-      <artifactId>proto</artifactId>
-      <version>${tensorflow.version}</version>
     </dependency>
   </dependencies>
 
@@ -386,77 +295,6 @@
           </execution>
         </executions>
       </plugin>
-      <plugin>
-        <groupId>org.xolstice.maven.plugins</groupId>
-        <artifactId>protobuf-maven-plugin</artifactId>
-        <version>0.5.1</version>
-        <configuration>
-          <protocArtifact>com.google.protobuf:protoc:${protobuf.version}:exe:${os.detected.classifier}</protocArtifact>
-          <pluginId>grpc-java</pluginId>
-          <pluginArtifact>io.grpc:protoc-gen-grpc-java:${grpc.version}:exe:${os.detected.classifier}</pluginArtifact>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>compile</goal>
-              <goal>compile-custom</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>${surefire.version}</version>
-        <configuration>
-          <!-- Exclude Cloud Spanner integration tests that require a GCP project to run.
-          They can be run run manually using
-          'mvn -Dexcluded.spanner.tests="" -Dtest=<testname> test' -->
-          <systemProperties>
-            <property>
-              <name>nashorn.args</name>
-              <value>--no-deprecation-warning</value>
-            </property>
-          </systemProperties>
-          <excludedGroups>${excluded.spanner.tests}</excludedGroups>
-        </configuration>
-      </plugin>
     </plugins>
   </build>
-
-  <profiles>
-    <!-- The following snapshot profile allows us to test teleport with
-         unreleased apache sw. E.g. to test with a snapshot version of beam we
-         could do
-              mvn test -Psnapshot -Dbeam.version=A.B.C-SNAPSHOT
-      -->
-    <profile>
-      <id>snapshot</id>
-      <repositories>
-        <repository>
-          <id>apache.snapshots</id>
-          <url>https://repository.apache.org/content/repositories/snapshots</url>
-        </repository>
-      </repositories>
-    </profile>
-    <profile>
-      <id>missing-artifact-repos</id>
-      <activation>
-          <activeByDefault>true</activeByDefault>
-      </activation>
-      <repositories>
-          <repository>
-              <!-- Required for io.confluent:kafka-avro-serializer artifact -->
-              <id>confluent</id>
-              <url>https://packages.confluent.io/maven/</url>
-          </repository>
-          <repository>
-              <!-- Required for org.pentaho:pentaho-aggdesigner-algorithm artifact -->
-              <id>pentaho</id>
-              <url>https://public.nexus.pentaho.org/repository/proxy-public-3rd-party-release</url>
-          </repository>
-      </repositories>
-        </profile>
-  </profiles>
-
 </project>
