@@ -151,10 +151,10 @@ public class PubsubToBigQueryJSON {
                                 .UNKNOWN_SCHEMA_TAG))); // Separate known schema and the unknown
     // schema
 
-    PCollection<KV<String, String>> unknownSchemaCollection =
-        pCollectionTuple.get(Constants.UNKNOWN_SCHEMA_TAG);
+    if (pCollectionTuple.has(Constants.UNKNOWN_SCHEMA_TAG)) {
+      PCollection<KV<String, String>> unknownSchemaCollection =
+          pCollectionTuple.get(Constants.UNKNOWN_SCHEMA_TAG);
 
-    if (unknownSchemaCollection != null) {
       unknownSchemaCollection.apply(
           "Unknown schema",
           BigQueryIO.<KV<String, String>>write()
@@ -257,10 +257,10 @@ public class PubsubToBigQueryJSON {
               In case of there are schema evolution detected, it will write to another DLT (Dead letter table)
     */
 
-    PCollection<KV<String, String>> wrongSchemaCollection =
-        pCollectionSchemaExistTuple.get(Constants.UNMATCH_SCHEMA_TAG);
+    if (pCollectionSchemaExistTuple.has(Constants.UNMATCH_SCHEMA_TAG)) {
+      PCollection<KV<String, String>> wrongSchemaCollection =
+          pCollectionSchemaExistTuple.get(Constants.UNMATCH_SCHEMA_TAG);
 
-    if (wrongSchemaCollection != null) {
       wrongSchemaCollection.apply(
           "Write to BQ when schema evolution detected",
           BigQueryIO.<KV<String, String>>write()

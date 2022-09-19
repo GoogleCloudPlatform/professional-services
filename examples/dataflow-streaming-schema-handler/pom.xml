@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  ~ Copyright (C) 2020 Google Inc.
+  ~ Copyright (C) 2022 Google Inc.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License"); you may not
   ~ use this file except in compliance with the License. You may obtain a copy of
@@ -30,11 +30,11 @@
   </organization>
 
   <properties>
-    <checkstyle.version>8.7</checkstyle.version>
     <beam.version>2.41.0</beam.version>
     <hamcrest.version>2.1</hamcrest.version>
     <java.version>1.8</java.version>
     <junit.version>4.13</junit.version>
+    <surefire.version>2.21.0</surefire.version>
     <maven-compiler-plugin.version>3.6.2</maven-compiler-plugin.version>
     <maven-shade-plugin.version>3.0.0</maven-shade-plugin.version>
     <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
@@ -43,13 +43,10 @@
     <json.version>20200518</json.version>
     <re2j.version>1.4</re2j.version>
     <google-cloud-bigquery.version>1.108.0</google-cloud-bigquery.version>
-    <grpc.version>1.13.1</grpc.version>
     <mvn-target-dir>${basedir}/target</mvn-target-dir>
     <derby.version>10.14.2.0</derby.version>
     <commons-codec.version>1.14</commons-codec.version>
     <commons-io.version>2.4</commons-io.version>
-    <autovalue.annotations.version>1.7.4</autovalue.annotations.version>
-    <autovalue.version>1.7.4</autovalue.version>
     <excluded.spanner.tests>com.google.cloud.teleport.spanner.IntegrationTest</excluded.spanner.tests>
     <truth.version>1.0.1</truth.version>
     <dlp.version>2.1.0</dlp.version>
@@ -116,25 +113,6 @@
       <version>${mockito-core.version}</version>
       <scope>test</scope>
     </dependency>
-    
-    <dependency>
-      <groupId>org.apache.derby</groupId>
-      <artifactId>derby</artifactId>
-      <version>${derby.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.derby</groupId>
-      <artifactId>derbyclient</artifactId>
-      <version>${derby.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.derby</groupId>
-      <artifactId>derbynet</artifactId>
-      <version>${derby.version}</version>
-      <scope>test</scope>
-    </dependency>
     <dependency>
       <groupId>com.google.truth</groupId>
       <artifactId>truth</artifactId>
@@ -144,11 +122,6 @@
 
     <!-- Misc -->
     <dependency>
-      <groupId>com.google.re2j</groupId>
-      <artifactId>re2j</artifactId>
-      <version>${re2j.version}</version>
-    </dependency>
-    <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-bigquery</artifactId>
       <version>${google-cloud-bigquery.version}</version>
@@ -157,17 +130,6 @@
       <groupId>org.json</groupId>
       <artifactId>json</artifactId>
       <version>${json.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.google.auto.value</groupId>
-      <artifactId>auto-value</artifactId>
-      <version>${autovalue.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.google.auto.value</groupId>
-      <artifactId>auto-value-annotations</artifactId>
-      <version>${autovalue.annotations.version}</version>
     </dependency>
     <dependency>
       <groupId>commons-codec</groupId>
@@ -184,6 +146,11 @@
       <artifactId>junit</artifactId>
       <version>${junit.version}</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.surefire</groupId>
+      <artifactId>surefire-testng</artifactId>
+      <version>${surefire.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.cloud</groupId>

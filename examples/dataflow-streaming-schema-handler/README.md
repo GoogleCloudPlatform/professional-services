@@ -1,7 +1,7 @@
 # Dataflow Streaming Schema Handler
 
 This package contains a set of components required to handle unanticipated incoming streaming data into BigQuery with schema mismatch.
-The code will uses Schema enforcement and DLT (Dead Letter Table) approach to store schema incompability. In case of schema incompability detected from the incoming message, the incoming message will be evolved to match the targeted table schema by adding and removing fields which then will be store in the targetted table; In addition, the original message (with schema incomability) will be store in the DLT for debugging and record purposes.
+The code will uses Schema enforcement and DLT (Dead Letter Table) approach to store schema incompability. In case of schema incompability detected from the incoming message, the incoming message will be evolved to match the targeted table schema by adding and removing fields which then will be store in the targetted table. In addition, the original message (with schema incomability) will be store in the DLT for debugging and record purposes.
 
 ## Pipeline
 
@@ -27,8 +27,8 @@ Schema mismatch:
 
 ### Requirements
 
-* Gcloud
-* Java 8
+* [gcloud sdk](https://cloud.google.com/sdk/docs/install-sdk)
+* Java 11
 * Maven 3
 
 ### Building the Project
