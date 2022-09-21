@@ -142,6 +142,8 @@ usage: bucket_mover [-h] [--config CONFIG]
                     [--test_topic_name TEST_TOPIC_NAME]
                     [--preserve_custom_time]
                     bucket_name source_project target_project
+                    [--log_action] LOG_ACTION
+                    [--log_action_state] LOG_ACTION_STATE             
 
 Moves a GCS bucket from one project to another, along with all objects and optionally copying all other bucket settings. Args that start with '--' (eg. --gcp_source_project_service_account_key) can also be set in a config file (specified via --config). The config file uses YAML syntax and must represent a YAML 'mapping' (for details, see http://learn.getgrav.org/advanced/yaml). If an arg is specified in more than one place, then commandline values override config file values which override defaults.
 
@@ -206,6 +208,11 @@ optional arguments:
                         A topic name to set up a notification for on the test bucket
   --preserve_custom_time
   			 Preserves the source objects time created metadata in the custom time field in the destination object
+   --log_action LOG_ACTION
+         see logs in log explorer like "COPY,FIND"
+   --log_action_state LOG_ACTION_STATE
+         See  succeeded or failed log in log explorer like "FAILED,SUCCEEDED"
+         
 ```
 
 ## Test Run
