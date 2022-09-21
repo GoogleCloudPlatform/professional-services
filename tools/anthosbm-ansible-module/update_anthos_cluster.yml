@@ -12,18 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-all:
-  hosts:
-  children:
-    workstation:
-      hosts:
-        10.200.0.7:
-    cp_nodes:
-      hosts:
-        10.200.0.2:
-        10.200.0.3:
-        10.200.0.4:
-    worker_nodes:
-      hosts:
-        10.200.0.5:
-        10.200.0.6:
+---
+# Playbook To Update Anthos Cluster
+- hosts: all
+  remote_user: "{{ login_user }}"
+  gather_facts: "no"
+  roles:
+    - role: ubuntu-prereq
+      become: yes
+      become_method: sudo
+      when: os_type == "ubuntu"
+    - role: rhel-prereq
+      become: yes
+      become_method: sudo
+      when: os_type == "rhel"
+
+- hosts: workstation
+  remote_user: "{{ login_user }}"
+  gather_facts: "no"
+  roles:
+    - role: update-cluster

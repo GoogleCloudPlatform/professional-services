@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+- name: Authenticate with the pre-req service account 
+  shell: >
+     gcloud auth activate-service-account "{{ gcloud_preq_sa_name }}@{{ project_id }}.iam.gserviceaccount.com" --key-file="{{ gcp_sa_key_dir }}/{{ gcloud_preq_sa_name }}.json" --project={{ project_id }}
+  ignore_errors: yes   
+
 - name: Enable Google Cloud APIs
   shell: >
     gcloud services enable --project "{{ project_id }}"
@@ -54,8 +59,12 @@
   shell: > 
     kubectl --kubeconfig="{{ login_user_home }}/bmctl-workspace/{{ cluster_name }}/{{ cluster_name }}-kubeconfig"
     apply -f "{{ login_user_home }}/admin-permission.yaml"
-
 - name: Delete impersonate.yaml file
   ansible.builtin.file:
     path: "{{ login_user_home }}/admin-permission.yaml"
     state: absent
+
+- name: Revoke access with pre-req service account 
+  shell: >
+     gcloud auth revoke "{{ gcloud_preq_sa_name }}@{{ project_id }}.iam.gserviceaccount.com"
+  ignore_errors: yes  

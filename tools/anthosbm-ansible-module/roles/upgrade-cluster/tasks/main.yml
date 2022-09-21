@@ -12,18 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Reset Hybrid Cluster
-  shell:
-    cmd: |
-      export GOOGLE_APPLICATION_CREDENTIALS="{{ gcp_sa_key_dir }}/{{ gcloud_preq_sa_name }}.json"
-      bmctl reset cluster -c "{{ cluster_name }}"
-    chdir: "{{ login_user_home }}"
-  when: cluster_type != "user"
+- name: Create And Copy Updated Cluster Config file
+  ansible.builtin.template:
+    src: ../../shared-files/cluster_config.yaml.j2
+    dest: "{{ login_user_home }}/{{ bmctl_workspace_dir }}/{{ cluster_name }}/{{ cluster_name}}.yaml"
+    owner: "{{ login_user }}"
+    group: "{{ login_user_group }}"
 
-- name: Reset User Cluster
+- name: Upgrade Anthos Cluster Version
   shell:
     cmd: |
       export GOOGLE_APPLICATION_CREDENTIALS="{{ gcp_sa_key_dir }}/{{ gcloud_preq_sa_name }}.json"
-      bmctl reset cluster -c "{{ cluster_name }}" --admin-kubeconfig "{{ admin_kubeconfig_path }}"
+      bmctl upgrade cluster -c "{{ cluster_name }}" --kubeconfig "{{ admin_kubeconfig_path }}" --bootstrap-cluster-pod-cidr="{{ kind_pod_cidr }}" --bootstrap-cluster-service-cidr="{{ kind_service_cidr }}"
     chdir: "{{ login_user_home }}"
-  when: cluster_type == "user"
