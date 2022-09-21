@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Google LLC All Rights Reserved
+ * Copyright 2022 Google LLC All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-organization := "com.google.cloud.imf"
-name := "jzos-shim"
-version := "0.2"
 
-scalaVersion := "2.13.1"
+package com.ibm.jzos.fields.daa;
 
-libraryDependencies ++= Seq(
-  "org.scalatest" %% "scalatest" % "3.2.9" % Test
-)
-
-publishMavenStyle := true
+public class PackedSignedIntP7Field {
+    public PackedSignedIntP7Field(int len) {}
+    public void putInt(int testValue, byte[] exampleData, int i) {
+        throw new RuntimeException("not implemented - add IBM jzos jars to classpath");
+    }
+}
