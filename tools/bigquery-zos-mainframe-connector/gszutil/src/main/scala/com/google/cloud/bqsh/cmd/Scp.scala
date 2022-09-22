@@ -31,9 +31,6 @@ import com.google.common.io.CountingOutputStream
 /** Simple binary copy
   * Single connection - not recommended for large uploads
   * Writes gzip compressed object
-  * If GCSDSNURI envvar is set, output URI is automatically set
-  * by appending the DSN to the base URI, thus does not
-  * need to be specified via command-line arguments.
   */
 object Scp extends Command[ScpConfig] with Logging {
   override val name: String = "scp"

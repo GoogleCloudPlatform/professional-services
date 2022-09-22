@@ -41,23 +41,7 @@ class CopyBookSpec extends AnyFlatSpec with Logging {
     "PIC 9(9) COMP." -> (UnsignedLongDecoder(4), LongToBinaryEncoder(4)),
     "PIC 9(10) COMP." -> (UnsignedLongDecoder(8), LongToBinaryEncoder(8)),
     "PIC 9(18) COMP." -> (UnsignedLongDecoder(8), LongToBinaryEncoder(8)),
-    "PIC 9." -> (new StringAsIntDecoder(Ebcdic, 1), UnsignedIntStringEncoder(transcoder, 1)),
-    "PIC 99." -> (new StringAsIntDecoder(Ebcdic, 2), UnsignedIntStringEncoder(transcoder, 2)),
-    "PIC 999." -> (new StringAsIntDecoder(Ebcdic, 3), UnsignedIntStringEncoder(transcoder, 3)),
-    "PIC 9999." -> (new StringAsIntDecoder(Ebcdic, 4), UnsignedIntStringEncoder(transcoder, 4)),
-    "PIC 99999." -> (new StringAsIntDecoder(Ebcdic, 5), UnsignedIntStringEncoder(transcoder, 5)),
-    "PIC 999999." -> (new StringAsIntDecoder(Ebcdic, 6), UnsignedIntStringEncoder(transcoder, 6)),
-    "PIC 9(4)V9(1)." -> (new StringAsDecimalDecoder(Ebcdic, 5, 5, 1), UnsignedDecimalStringEncoder(transcoder, 5,1)),
-    "PIC 9(6)V9(2)." -> (new StringAsDecimalDecoder(Ebcdic, 8, 8, 2), UnsignedDecimalStringEncoder(transcoder, 8,2)),
-    "PIC 9(6)V9(4)." -> (new StringAsDecimalDecoder(Ebcdic, 10, 10, 4), UnsignedDecimalStringEncoder(transcoder, 10,4)),
-    "PIC 9(6)V9(6)." -> (new StringAsDecimalDecoder(Ebcdic, 12, 12, 6), UnsignedDecimalStringEncoder(transcoder, 12,6)),
-    "PIC 9(8)V9(2)." -> (new StringAsDecimalDecoder(Ebcdic, 10, 10, 2), UnsignedDecimalStringEncoder(transcoder, 10,2)),
-    "PIC 9(9)V9(5)." -> (new StringAsDecimalDecoder(Ebcdic, 14, 14, 5), UnsignedDecimalStringEncoder(transcoder, 14,5)),
-    "PIC 9(10)V9(2)." -> (new StringAsDecimalDecoder(Ebcdic, 12, 12, 2), UnsignedDecimalStringEncoder(transcoder, 12,2)),
     "PIC X." -> (new NullableStringDecoder(transcoder, 1, Array.emptyByteArray), StringToBinaryEncoder(transcoder, 1)),
-    "PIC XX." -> (new NullableStringDecoder(transcoder, 2, Array.emptyByteArray), StringToBinaryEncoder(transcoder, 2)),
-    "PIC XXX." -> (new NullableStringDecoder(transcoder, 3, Array.emptyByteArray), StringToBinaryEncoder(transcoder, 3)),
-    "PIC XXXX." -> (new NullableStringDecoder(transcoder, 4, Array.emptyByteArray), StringToBinaryEncoder(transcoder, 4)),
     "PIC X(8)." -> (new NullableStringDecoder(transcoder, 8, Array.emptyByteArray), StringToBinaryEncoder(transcoder, 8)),
     "PIC X(16)." -> (new NullableStringDecoder(transcoder, 16, Array.emptyByteArray), StringToBinaryEncoder(transcoder, 16)),
     "PIC X(30)." -> (new NullableStringDecoder(transcoder, 30, Array.emptyByteArray), StringToBinaryEncoder(transcoder, 30)),
@@ -150,7 +134,7 @@ class CopyBookSpec extends AnyFlatSpec with Logging {
       val picString = x._1
       val expectedDecoder = x._2._1
       val decoder = Decoding.typeMap(picString, transcoder, picTCharset, filler = false, isDate = false)
-      assert(decoder == expectedDecoder, s"$picString expected decoder $expectedDecoder")
+      assert(decoder == expectedDecoder)
     }
   }
 
@@ -160,7 +144,7 @@ class CopyBookSpec extends AnyFlatSpec with Logging {
       val expectedEncoder = x._2._2
       val decoder = Decoding.typeMap(picString, transcoder, picTCharset, filler = false, isDate = true)
       val encoder = Encoding.getEncoder(CopyBookField("", decoder, picString), transcoder, picTCharset)
-      assert(encoder == expectedEncoder, s"$picString expected $expectedEncoder")
+      assert(encoder == expectedEncoder)
     }
   }
 

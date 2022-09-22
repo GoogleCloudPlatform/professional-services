@@ -22,12 +22,9 @@ import com.google.cloud.gszutil.io.CloudRecordReader
 import com.google.cloud.imf.util.{Logging, StatsUtil}
 import com.google.cloud.storage.{Blob, BlobId, Storage}
 
-/**  Cloud Data Set features enhance convenience of storing and
-  *  retrieving data sets to/from Cloud Storage Buckets.
-  *  To enable, set the optional environment variable:
-  *  export GCSDSNURI=gs://[BUCKET]/[PREFIX]
-  *  export GCSGDGURI=gs://[BUCKET]/[PREFIX]
-  *  Note that the GDG bucket must have object versioning enabled.
+/**  add these lines to environment file:
+  *  export GCSDSNURI=gs://bucket/prefix
+  *  export GCSGDGURI=gs://bucket-with-versioning/prefix
   */
 object CloudDataSet extends Logging {
   val DsnVar = "GCSDSNURI"

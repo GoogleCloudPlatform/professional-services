@@ -211,7 +211,7 @@ object Decoding extends Logging {
         .setTyp(Field.FieldType.STRING)
   }
 
-  case class StringAsIntDecoder(transcoder: Transcoder,
+  class StringAsIntDecoder(transcoder: Transcoder,
                            override val size: Int,
                            override val filler: Boolean = false) extends Decoder {
     override def get(buf: ByteBuffer, col: ColumnVector, i: Int): Unit = {
@@ -411,7 +411,7 @@ object Decoding extends Logging {
   }
 
 
-  case class StringAsDecimalDecoder(transcoder: Transcoder,
+  class StringAsDecimalDecoder(transcoder: Transcoder,
                                override val size: Int,
                                val precision: Int,
                                val scale: Int,
@@ -726,12 +726,6 @@ object Decoding extends Logging {
           if (isDate && size == 10) Array.fill(size)(EBCDIC0)
           else Array.emptyByteArray
         new NullableStringDecoder(transcoder, size, filler = filler, nullIf = nullIfBytes)
-      case charRegex3(s) =>
-        val size = s.length
-        val nullIfBytes =
-          if (isDate && size == 10) Array.fill(size)(EBCDIC0)
-          else Array.emptyByteArray
-        new NullableStringDecoder(transcoder, size, filler = filler, nullIf = nullIfBytes)
       case charRegex2(s) =>
         val size = s.toInt
         val nullIfBytes =
@@ -744,18 +738,10 @@ object Decoding extends Logging {
         new BytesDecoder(s.toInt, filler)
       case numStrRegex(size) =>
         new StringDecoder(transcoder, size.toInt, filler = filler)
-      case numStrRegex2(s) =>
-        val size = s.length
-        new StringAsIntDecoder(transcoder, size, filler = filler)
       case decRegex(p) if p.toInt >= 1 =>
         Decimal64Decoder(p.toInt, 0, filler = filler)
       case decRegex2(p, s) if p.toInt >= 1 =>
         Decimal64Decoder(p.toInt, s.toInt, filler = filler)
-      case decStrRegex(p, s) if p.toInt >= 1 =>
-        val scale = s.toInt
-        val precision = p.toInt + scale
-        val size = precision
-        new StringAsDecimalDecoder(transcoder, size, precision, scale, filler = filler)
       case decRegex3(p, s) if p.toInt >= 1 =>
         Decimal64Decoder(p.toInt, s.length, filler = filler)
       case "PIC S9 COMP" =>

@@ -31,68 +31,50 @@
 //KEYFILE  DD DUMMY
 //STDENV   DD *,SYMBOLS=EXECSYS
 
-# Service Account Keyfile
-# Edit the line below to specify a unix filesystem path where
-# the service account keyfile is stored.
-# The service account should be granted Storage, BigQuery and Logging permissions.
-export GKEYFILE="/path/to/keyfile.json"
-
-# Path to directory containing google jar files
-# Edit this to set actual path selected for your site
-# it's recommended to have a path with a version identifier
-# and create a symlink to the directory of the latest version
-GOOGLE_DIR="/opt/google/mainframe-connector/latest/lib"
-GOOGLE_CLASSPATH="$GOOGLE_DIR/*"
-
-# Do not modify the 3 lines below
-# Collect system symbols from JES
 export JOBNAME=&JOBNAME
 export JOBDATE=&YYMMDD
 export JOBTIME=&HHMMSS
 
 # IBM JZOS JDK Location
-JH="/usr/lpp/java/J8.0_64"
+JH="/usr/lpp/java/alias"
 export JAVA_HOME="$JH"
 export PATH="/bin:$JH/bin"
 
 # Log Level
 export BQSH_ROOT_LOGGER=DEBUG
 
+# Service Account Keyfile
+export GKEYFILE="/path/to/keyfile.json"
+
 # Binary Data Sets
-# Uncomment the line below to set a default output bucket for scp.
-# The DSN of the input file is used as the object name.
-# this may greatly reduce effort across many job steps
-#export GCSDSNURI="gs://[BUCKET]/[PREFIX]"
+export GCSDSNURI="gs://databucket/prefix"
 
 # Generational Data Sets
-# Uncomment the line below to set a default output bucket for scp GDG datasets.
-# The Cloud GDG feature emulates a GDG dataset in a versioned object.
-# Cloud Storage objects take precedence over local DSN when this is set.
-#export GCSGDGURI="gs://[BUCKET]/[PREFIX]"
+export GCSGDGURI="gs://versionedbucket/prefix"
 
-# Uncomment the line below to set a default output bucket for the gszutil command.
-#export GCSOUTURI="gs://[BUCKET]/[PREFIX]"
+# Transcoded ORC files
+export GCSOUTURI="gs://outputbucket/prefix"
 
-# Mainframe Connector gRPC service
-# Uncomment and edit the lines below to set the Hostname or IP Address and
-# port of the gRPC data set transcoding service.
-# The gRPC service converts z/OS datasets to ORC format on VMs running in
-# Google Cloud VPC. This is strongly recommended when processing high volumes
-# of data.
-#export SRVREMOTE=
-#export SRVPORT=
+# Transcoding Server IP Address or Hostname
+export SRVREMOTE="0.0.0.0"
+
+# Transcoding Server Port
+export SRVPORT=52701
 
 # Native Libraries
 JL="$JH/lib"
 LP="/lib:/usr/lib:$JH/bin:$JL/s390x:$JL/s390x/j9vm:$JH/bin/classic"
 export LIBPATH="$LP:/usr/lib/java_runtime64"
 
+# Path to directory containing google jar files
+LD=/opt/google/lib
+
 # Java Classpath
-CP="$JL:$JL/ext:/usr/include/java_classes/*"
-export CLASSPATH="$CP:GOOGLE_CLASSPATH"
+CP="$LD/*:$JL:$JL/ext:/usr/include/java_classes/*"
+export CLASSPATH="$CP"
 
 # JVM options
-IJO="-Xms512m -Xmx512m -Xcompressedrefs -Djava.net.preferIPv4Stack=true"
+IJO="-Xms1g -Xmx1g -Xcompressedrefs -Djava.net.preferIPv4Stack=true"
 export IBM_JAVA_OPTIONS="$IJO"
 export JZOS_MAIN_ARGS=""
 /*
