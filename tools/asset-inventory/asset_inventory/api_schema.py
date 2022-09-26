@@ -41,7 +41,7 @@ class APISchema(object):
         discovery_document = None
         # Ignore discovery document urls that aren't urls.
         if dd_url and dd_url.startswith('http'):
-            response = requests.get(dd_url)
+            response = requests.get(dd_url, timeout=3.05)
             if response.status_code == 200:
                 try:
                     discovery_document = response.json()
