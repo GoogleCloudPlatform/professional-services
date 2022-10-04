@@ -25,6 +25,7 @@ import com.google.cloud.bigquery.Table;
 import com.google.common.collect.ImmutableMap;
 import com.google.zetasql.*;
 
+import com.pso.bigquery.optimization.exceptions.CatalogDuplicateDatasetNameException;
 import java.util.List;
 import java.util.Optional;
 

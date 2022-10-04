@@ -15,9 +15,11 @@
  */
 package com.pso.bigquery.optimization.catalog;
 
+import com.google.api.services.bigquery.model.TableReference;
 import com.google.cloud.bigquery.Field;
 import com.google.cloud.bigquery.StandardSQLTypeName;
 import com.google.cloud.bigquery.Table;
+import com.google.cloud.bigquery.TableId;
 import com.google.zetasql.SimpleColumn;
 import com.google.zetasql.StructType.StructField;
 import com.google.zetasql.Type;
@@ -35,13 +37,18 @@ public class BigQuerySchemaConverter {
     // Given a BigQuery API Table object, return a list of
     // ita columns in as ZetaSQL SimpleColumns.
     public static List<SimpleColumn> extractTableColumns(Table table) {
-        BigQueryTableSpec tableSpec = BigQueryTableSpec.fromTable(table);
+        TableId tableId = table.getTableId();
+        TableReference tableRef = BigQueryTableParser.buildTableReference(
+            tableId.getProject(),
+            tableId.getDataset(),
+            tableId.getTable());
+
         List<SimpleColumn> columns = table
                 .getDefinition()
                 .getSchema()
                 .getFields()
                 .stream()
-                .map(field -> BigQuerySchemaConverter.createSimpleColumn(tableSpec, field))
+                .map(field -> BigQuerySchemaConverter.createSimpleColumn(tableRef, field))
                 .collect(Collectors.toList());
 
         return columns;
@@ -49,9 +56,9 @@ public class BigQuerySchemaConverter {
 
     // Create a ZetaSQL SimpleColumn from a BigQuery API table Field
     // for a particular table.
-    private static SimpleColumn createSimpleColumn(BigQueryTableSpec tableSpec, Field field) {
+    private static SimpleColumn createSimpleColumn(TableReference tableRef, Field field) {
         return new SimpleColumn(
-                tableSpec.getStdTablePath(),
+                BigQueryTableParser.getStdTablePathFromTableRef(tableRef),
                 field.getName(),
                 BigQuerySchemaConverter.extractColumnType(field)
         );

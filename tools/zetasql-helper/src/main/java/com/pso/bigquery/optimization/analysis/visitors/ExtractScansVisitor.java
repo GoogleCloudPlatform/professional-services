@@ -18,7 +18,6 @@ package com.pso.bigquery.optimization.analysis.visitors;
 import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.resolvedast.ResolvedColumn;
 import com.google.zetasql.resolvedast.ResolvedNodes.*;
-
 import java.util.*;
 import java.util.stream.Collectors;
 

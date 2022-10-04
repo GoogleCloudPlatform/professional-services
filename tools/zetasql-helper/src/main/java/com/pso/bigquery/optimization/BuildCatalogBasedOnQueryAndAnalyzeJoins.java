@@ -15,10 +15,13 @@
  */
 package com.pso.bigquery.optimization;
 
+import com.google.zetasql.SimpleCatalog;
 import com.pso.bigquery.optimization.analysis.QueryAnalyzer;
+import com.pso.bigquery.optimization.analysis.QueryAnalyzer.CatalogScope;
 import com.pso.bigquery.optimization.analysis.visitors.ExtractScansVisitor;
 import com.pso.bigquery.optimization.analysis.visitors.ExtractScansVisitor.QueryScan;
 import com.pso.bigquery.optimization.catalog.BigQueryTableService;
+import com.pso.bigquery.optimization.catalog.CatalogUtils;
 import io.vavr.control.Try;
 import java.util.List;
 
@@ -36,11 +39,11 @@ public class BuildCatalogBasedOnQueryAndAnalyzeJoins {
         + " t1.col2 is not null\n"
         + " AND t2.col2 is not null\n";
 
-
     //setup ZetaSQL
     BigQueryTableService bigQueryTableService = BigQueryTableService.buildDefault();
     QueryAnalyzer parser = new QueryAnalyzer(bigQueryTableService);
-    Try<List<QueryScan>> tryScans = parser.getScansInQuery(PROJECT_ID, QUERY);
+    SimpleCatalog catalog = CatalogUtils.createEmptyCatalog();
+    Try<List<QueryScan>> tryScans = parser.getScansInQuery(PROJECT_ID, QUERY, catalog, CatalogScope.QUERY);
 
     //scan query
     List<ExtractScansVisitor.QueryScan> scanResults = tryScans.get();

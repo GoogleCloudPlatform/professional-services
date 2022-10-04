@@ -15,6 +15,7 @@
  */
 package com.pso.bigquery.optimization.analysis;
 
+import com.google.api.services.bigquery.model.TableReference;
 import com.google.cloud.bigquery.Table;
 import com.google.gson.JsonElement;
 import com.google.zetasql.*;
@@ -25,26 +26,26 @@ import com.pso.bigquery.optimization.analysis.visitors.ExtractScansVisitor.Query
 import com.pso.bigquery.optimization.catalog.BigQuerySchemaConverter;
 import com.pso.bigquery.optimization.catalog.BigQueryTableParser;
 import com.pso.bigquery.optimization.catalog.BigQueryTableService;
-import com.pso.bigquery.optimization.catalog.BigQueryTableSpec;
 import com.pso.bigquery.optimization.catalog.CatalogUtils;
 import com.pso.bigquery.optimization.catalog.*;
 import io.vavr.collection.Seq;
 import io.vavr.control.Try;
 import org.apache.commons.lang3.StringUtils;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
-// The QueryAnalyzer parses a BigQuery job using ZetaSQL and
-// extracts information from it.
-// It returns a QueryAnalysisResult with findings if the job
-// is successfully parsed with ZetaSQL.
+/**
+ * The QueryAnalyzer parses a BigQuery job using ZetaSQL and
+ * extracts information from it.
+ * It returns a QueryAnalysisResult with findings if the job
+ * is successfully parsed with ZetaSQL.
+ */
 public class QueryAnalyzer {
 
     private final BigQueryTableService bqTableService;
 
     public QueryAnalyzer() {
-        this.bqTableService = null;
+        this(null);
     }
 
     public QueryAnalyzer(BigQueryTableService bqTableService) {
@@ -120,10 +121,11 @@ public class QueryAnalyzer {
             return Try.failure(tryUpdateCatalog.getCause());
         }
 
-        while (ParsingUtils.hasNextStatement(parseResumeLocation)) {
+        AnalyzerOptions analyzerOpts = this.getAnalyzerOptions();
+        while (hasNextStatement(parseResumeLocation)) {
             Try<ResolvedStatement> tryParsedStatement = Try.of(() ->
                     Analyzer.analyzeNextStatement(
-                            parseResumeLocation, this.getAnalyzerOptions(), catalog
+                            parseResumeLocation, analyzerOpts, catalog
                     )
             );
 
@@ -141,24 +143,28 @@ public class QueryAnalyzer {
         return Try.success(visitor.getResult());
     }
 
-    public Try<List<QueryScan>> getScansInQuery(String projectId, String query) {
-        SimpleCatalog catalog = CatalogUtils.createEmptyCatalog();
+    public Try<List<QueryScan>> getScansInQuery(String projectId, String query, SimpleCatalog catalog, CatalogScope catalogScope) {
+
+        //SimpleCatalog catalog = CatalogUtils.createEmptyCatalog();
 
         ParseResumeLocation parseResumeLocation = new ParseResumeLocation(query);
         ExtractScansVisitor visitor = new ExtractScansVisitor(projectId, catalog);
 
-        Try<Void> tryUpdateCatalog = this.updateCatalogFromSQL(
+        if(catalogScope.equals(CatalogScope.QUERY)){
+            Try<Void> tryUpdateCatalog = this.updateCatalogFromSQL(
                 projectId, query, catalog
-        );
-
-        if (tryUpdateCatalog.isFailure()) {
-            return Try.failure(tryUpdateCatalog.getCause());
+            );
+            if (tryUpdateCatalog.isFailure()) {
+                return Try.failure(tryUpdateCatalog.getCause());
+            }
         }
 
-        while (ParsingUtils.hasNextStatement(parseResumeLocation)) {
+
+        AnalyzerOptions analyzerOpts = this.getAnalyzerOptions();
+        while (hasNextStatement(parseResumeLocation)) {
             Try<ResolvedStatement> tryParsedStatement = Try.of(() ->
                     Analyzer.analyzeNextStatement(
-                            parseResumeLocation, this.getAnalyzerOptions(), catalog
+                            parseResumeLocation, analyzerOpts, catalog
                     )
             );
 
@@ -186,45 +192,17 @@ public class QueryAnalyzer {
         );
     }
 
-    // Performs the analysis on a BigQuery job in the context of a project ID.
-    // The project ID should be the project where the job was run.
-    public Try<QueryAnalysisResult> runAnalysis(String projectId, String query) {
-        // 1. Extract referenced tables from the job
-        Try<List<BigQueryTableSpec>> tryReferencedTables = this.extractReferencedTables(projectId, query)
-                .map(tables ->
-                        tables
-                                .stream()
-                                .map(BigQueryTableParser::fromTable)
-                                .collect(Collectors.toList())
-                );
+    public static boolean hasNextStatement(ParseResumeLocation parseResumeLocation) {
+        return parseResumeLocation.getInput().getBytes().length > parseResumeLocation.getBytePosition();
+    }
 
-        if(tryReferencedTables.isFailure()) {
-            return Try.failure(tryReferencedTables.getCause());
-        }
-
-        // 2. Generate the query structure JSON object based on the query
-        Try<JsonElement> tryJsonQueryStructure = this.parseQueryIntoJsonObject(projectId, query);
-
-        if(tryJsonQueryStructure.isFailure()) {
-            return Try.failure(tryJsonQueryStructure.getCause());
-        }
-
-        // 3. Extract the scans performed by the query
-        Try<List<ExtractScansVisitor.QueryScan>> tryScans = this.getScansInQuery(projectId, query);
-
-        if(tryScans.isFailure()) {
-            return Try.failure(tryScans.getCause());
-        }
-
-        // 4. Gather the results in a QueryAnalysisResult
-        QueryAnalysisResult result = new QueryAnalysisResult(
-                query,
-                tryReferencedTables.get(),
-                tryJsonQueryStructure.get(),
-                tryScans.get()
-        );
-
-        return Try.success(result);
+    /**
+     * gives information whether the catalog has been populated for a PROJECT or
+     * if the analyzer should populate it based on tables in the QUERY
+     */
+    public enum CatalogScope {
+        PROJECT,
+        QUERY
     }
 
 }
