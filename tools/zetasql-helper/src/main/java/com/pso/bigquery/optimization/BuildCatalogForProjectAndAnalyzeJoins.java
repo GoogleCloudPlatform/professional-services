@@ -19,9 +19,10 @@ import com.google.zetasql.Analyzer;
 import com.google.zetasql.ParseResumeLocation;
 import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedStatement;
-import com.pso.bigquery.optimization.analysis.ParsingUtils;
 import com.pso.bigquery.optimization.analysis.QueryAnalyzer;
+import com.pso.bigquery.optimization.analysis.QueryAnalyzer.CatalogScope;
 import com.pso.bigquery.optimization.analysis.visitors.ExtractScansVisitor;
+import com.pso.bigquery.optimization.analysis.visitors.ExtractScansVisitor.QueryScan;
 import com.pso.bigquery.optimization.catalog.CatalogUtils;
 import io.vavr.control.Try;
 import java.util.List;
@@ -30,7 +31,6 @@ public class BuildCatalogForProjectAndAnalyzeJoins {
 
 
     public static void main(String[] args) throws InterruptedException {
-        // add your project id here
         String PROJECT_ID = "MY_PROJECT";
         // add a query that references actual tables in your projets
         String QUERY = "SELECT \n"
@@ -46,30 +46,11 @@ public class BuildCatalogForProjectAndAnalyzeJoins {
         // Create Catalog and add all datasets in a project
         SimpleCatalog catalog = CatalogUtils.createCatalogForProject(PROJECT_ID);
 
-        //setup ZetatSQL
+        // setup ZetatSQL
         QueryAnalyzer parser = new QueryAnalyzer();
-        ParseResumeLocation parseResumeLocation = new ParseResumeLocation(QUERY);
-        ExtractScansVisitor visitor = new ExtractScansVisitor(PROJECT_ID, catalog);
+        Try<List<QueryScan>> tryScans = parser.getScansInQuery(PROJECT_ID, QUERY, catalog, CatalogScope.PROJECT);
+        List<ExtractScansVisitor.QueryScan> scanResults = tryScans.get();
 
-        // iterate over AST
-        while (ParsingUtils.hasNextStatement(parseResumeLocation)) {
-            Try<ResolvedStatement> tryParsedStatement = Try.of(() ->
-                Analyzer.analyzeNextStatement(
-                    parseResumeLocation, parser.getAnalyzerOptions(), catalog
-                )
-            );
-
-            if (tryParsedStatement.isFailure()) {
-                System.out.println(tryParsedStatement.getCause());
-            }
-
-            tryParsedStatement.forEach(resolvedStatement -> {
-                resolvedStatement.accept(visitor);
-            });
-        }
-
-        // print result
-        List<ExtractScansVisitor.QueryScan> scanResults = visitor.getResult();
         scanResults.stream()
             .map(ExtractScansVisitor.QueryScan::toMap)
             .forEach(scanResult -> System.out.println(scanResult));

@@ -15,19 +15,20 @@
  */
 package com.pso.bigquery.optimization.exceptions;
 
-import com.pso.bigquery.optimization.catalog.BigQueryTableSpec;
+import com.google.api.services.bigquery.model.TableReference;
+import com.pso.bigquery.optimization.catalog.BigQueryTableParser;
 
 public class TableNotFound extends QueryPatternAnalyzerException {
 
-    private final BigQueryTableSpec tableSpec;
+    private final TableReference tableRef;
 
-    public TableNotFound(BigQueryTableSpec tableSpec) {
-        super(String.format("Table not found: %s", tableSpec.getStdTablePath()));
-        this.tableSpec = tableSpec;
+    public TableNotFound(TableReference tableRef) {
+        super(String.format("Table not found: %s", BigQueryTableParser.getStdTablePathFromTableRef(tableRef)));
+        this.tableRef = tableRef;
     }
 
-    public BigQueryTableSpec getTableSpec() {
-        return this.tableSpec;
+    public TableReference getTableRef() {
+        return this.tableRef;
     }
 
 }

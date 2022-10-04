@@ -17,6 +17,7 @@ package com.pso.bigquery.optimization.catalog;
 
 import com.google.api.gax.rpc.FixedHeaderProvider;
 import com.google.api.gax.rpc.HeaderProvider;
+import com.google.api.services.bigquery.model.TableReference;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.BigQueryOptions;
 import com.google.cloud.bigquery.Table;
@@ -54,19 +55,19 @@ public class BigQueryTableService {
     }
 
     // Fetches a BigQuery table from the API, given it's table spec
-    private Try<Table> getBQTableFromAPI(BigQueryTableSpec tableSpec) {
-        TableId tableRef = TableId.of(
-                tableSpec.getProjectId(),
-                tableSpec.getDatasetId(),
-                tableSpec.getTableName()
+    private Try<Table> getBQTableFromAPI(TableReference tableRef) {
+        TableId tableId = TableId.of(
+                tableRef.getProjectId(),
+                tableRef.getDatasetId(),
+                tableRef.getTableId()
         );
 
-        return Try.of(() -> this.client.getTable(tableRef))
+        return Try.of(() -> this.client.getTable(tableId))
                 .flatMap(table ->
                         table != null
                             ? Try.success(table)
                             : Try.failure(
-                                    new TableNotFound(tableSpec)
+                                    new TableNotFound(tableRef)
                             )
                 );
     }
@@ -77,10 +78,10 @@ public class BigQueryTableService {
     public Try<Table> getBQTable(String projectId, String tableId) {
         return BigQueryTableParser
                 .fromTableId(projectId, tableId)
-                .map(tableSpec ->
+                .map(tableRef ->
                         this.cachedTables.computeIfAbsent(
-                            tableSpec.getStdTablePath(),
-                            key -> this.getBQTableFromAPI(tableSpec).get()
+                            BigQueryTableParser.getStdTablePathFromTableRef(tableRef),
+                            key -> this.getBQTableFromAPI(tableRef).get()
                         )
                 );
     }

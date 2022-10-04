@@ -23,7 +23,6 @@ import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.resolvedast.ResolvedColumn;
 import com.google.zetasql.resolvedast.ResolvedNode;
 import com.google.zetasql.resolvedast.ResolvedNodes.*;
-
 import java.util.List;
 import java.util.Objects;
 import java.util.Stack;

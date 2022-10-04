@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.pso.bigquery.optimization.catalog;
+package com.pso.bigquery.optimization.exceptions;
 
 public class CatalogDuplicateDatasetNameException extends RuntimeException{
   /**

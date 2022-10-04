@@ -15,10 +15,11 @@
  */
 package com.pso.bigquery.optimization.analysis;
 
+import com.google.api.services.bigquery.model.TableReference;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.pso.bigquery.optimization.analysis.visitors.ExtractScansVisitor.QueryScan;
-import com.pso.bigquery.optimization.catalog.BigQueryTableSpec;
+
 
 import java.util.List;
 
@@ -27,13 +28,14 @@ import java.util.List;
 public class QueryAnalysisResult {
 
     private final String query;
-    private final List<BigQueryTableSpec> referencedTables;
+    private final List<TableReference> referencedTables;
     private final JsonElement queryStructure;
     private final List<QueryScan> scans;
+    private final Gson gson = new Gson();
 
     public QueryAnalysisResult(
             String query,
-            List<BigQueryTableSpec> referencedTables,
+            List<TableReference> referencedTables,
             JsonElement queryStructure,
             List<QueryScan> joins
     ) {
@@ -47,7 +49,7 @@ public class QueryAnalysisResult {
         return query;
     }
 
-    public List<BigQueryTableSpec> getReferencedTables() {
+    public List<TableReference> getReferencedTables() {
         return referencedTables;
     }
 
@@ -55,9 +57,7 @@ public class QueryAnalysisResult {
         return queryStructure;
     }
 
-    public String getQueryStructureAsString() {
-        return new Gson().toJson(this.queryStructure);
-    }
+    public String getQueryStructureAsString() { return gson.toJson(this.queryStructure); }
 
     public List<QueryScan> getScans() {
         return scans;

@@ -15,22 +15,25 @@
  */
 package com.pso.bigquery.optimization.analysis.visitors;
 
+import com.google.api.services.bigquery.model.TableReference;
 import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.SimpleColumn;
 import com.google.zetasql.ZetaSQLFunctions;
 import com.google.zetasql.resolvedast.ResolvedNodes.*;
 import com.pso.bigquery.optimization.catalog.BigQueryTableParser;
-import com.pso.bigquery.optimization.catalog.BigQueryTableSpec;
 import com.pso.bigquery.optimization.catalog.CatalogUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-// Base class for Visitors created in the project.
-// It handles keeping the catalog up to date when the SQl we're parsing
-// creates tables or functions.
-// This is necessary for parsing anything that, for example, relies on
-// creating TEMP tables and later using them (very common).
+
+/**
+ * Base class for Visitors created in the project.
+ * It handles keeping the catalog up to date when the SQl we're parsing
+ * creates tables or functions.
+ * This is necessary for parsing anything that, for example, relies on
+ * creating TEMP tables and later using them (very common).
+ */
 public class BaseAnalyzerVisitor extends Visitor {
     // TODO: Consider composition instead of inheritance to achieve this
     //      It would make it more sensible to create complex visitors
@@ -75,29 +78,8 @@ public class BaseAnalyzerVisitor extends Visitor {
                 createTableStmt
         );
 
-        if (tableNamePath.size() == 1) {
-            CatalogUtils.createTableInCatalog(
-                    this.catalog,
-                    tableName,
-                    columns
-            );
-        } else {
-            String tableId = String.join(".", tableNamePath);
-            BigQueryTableSpec tableSpec = BigQueryTableParser.fromTableId(
-                    this.projectId,
-                    tableId
-            ).get();
-
-            CatalogUtils.createTableInCatalog(
-                    this.catalog,
-                    tableSpec.getProjectId(),
-                    tableSpec.getDatasetId(),
-                    tableSpec.getTableName(),
-                    columns
-            );
-        }
+        visitResolvedCreateTable(tableNamePath, tableName, columns);
     }
-
 
     @Override
     public void visit(ResolvedCreateTableAsSelectStmt createTableAsSelectStmt) {
@@ -109,32 +91,34 @@ public class BaseAnalyzerVisitor extends Visitor {
                 createTableAsSelectStmt
         );
 
+        visitResolvedCreateTable(tableNamePath, tableName, columns);
+    }
+
+    public void visitResolvedCreateTable(List<String> tableNamePath, String tableName, List<SimpleColumn> columns) {
         if (tableNamePath.size() == 1) {
             CatalogUtils.createTableInCatalog(
-                    this.catalog,
-                    tableName,
-                    columns
+                this.catalog,
+                tableName,
+                columns
             );
         } else {
             String tableId = String.join(".", tableNamePath);
-            BigQueryTableSpec tableSpec = BigQueryTableParser.fromTableId(
-                    this.projectId,
-                    tableId
+            TableReference tableRef = BigQueryTableParser.fromTableId(
+                this.projectId,
+                tableId
             ).get();
 
             CatalogUtils.createTableInCatalog(
-                    this.catalog,
-                    tableSpec.getProjectId(),
-                    tableSpec.getDatasetId(),
-                    tableSpec.getTableName(),
-                    columns
+                this.catalog,
+                tableRef.getProjectId(),
+                tableRef.getDatasetId(),
+                tableRef.getTableId(),
+                columns
             );
         }
-
     }
 
     // CREATE [TEMP|TEMPORARY] FUNCTION
-
     public void visit(ResolvedCreateFunctionStmt createFunctionStmt) {
         CatalogUtils.createFunctionInCatalog(
                 this.catalog,
