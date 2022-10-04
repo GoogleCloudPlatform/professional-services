@@ -125,13 +125,10 @@ As you can see, after analyzing a query, we can use its AST to understand the SQ
 
 The tool requires the user to be authenticated to GCP using Application Default Credentials, either through a service account or user credentials.
 This principal needs to have the following permissions:
-* Read permission on `INFORMATION_SCHEMA.JOBS_BY_ORGANIZATION` in the project specified by `--project_id`
-* Write permission to the output table specified by `--output_table`
+* Must run on Linux
 * `bigquery.tables.get` permissions on the tables or views that are used by the analyzed queries
     * If the tool runs into a table it can't get the metadata for, the analysis will fail
     * See the [What if the query can not be parsed](#what-if-the-query-can-not-be-parsed) section
-
-Also, the output table has to exist.
 
 
 ## Limitations
