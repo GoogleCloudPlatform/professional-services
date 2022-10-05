@@ -17,8 +17,30 @@ package com.pso.bigquery.optimization.analysis.visitors;
 
 import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.resolvedast.ResolvedColumn;
-import com.google.zetasql.resolvedast.ResolvedNodes.*;
-import java.util.*;
+import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCast;
+import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedColumnRef;
+import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateFunctionStmt;
+import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateTableAsSelectStmt;
+import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateTableStmt;
+import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedExpr;
+import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedFilterScan;
+import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedFunctionCall;
+import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedFunctionCallBase;
+import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedJoinScan;
+import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedProjectScan;
+import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedScan;
+import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedTableScan;
+import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedWithRefScan;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.Stack;
 import java.util.stream.Collectors;
 
 // Visitor instance that, given the AST, extract the scans the
@@ -27,199 +49,179 @@ import java.util.stream.Collectors;
 // JOIN conditions.
 public class ExtractScansVisitor extends BaseAnalyzerVisitor {
 
-    public static class TableScan {
+  private final List<QueryScan> queryScans = new ArrayList<>();
+  private final Stack<QueryScan> scanStack = new Stack<>();
 
-        private final String table;
-        private final Set<String> filterColumns = new HashSet<>();
-        private String joinType = null;
-        private final Set<String> joinColumns = new HashSet<>();
+  public ExtractScansVisitor(String projectId, SimpleCatalog catalog) {
+    super(projectId, catalog);
+  }
 
-        public TableScan(String table) {
-            this.table = table;
-        }
+  public List<QueryScan> getResult() {
+    return this.queryScans;
+  }
 
-        public String getTable() {
-            return table;
-        }
-
-        public Set<String> getFilterColumns() {
-            return filterColumns;
-        }
-
-        public Optional<String> getJoinType() {
-            return Optional.ofNullable(this.joinType);
-        }
-
-        public Set<String> getJoinColumns() {
-            return joinColumns;
-        }
-
-        public void setJoinType(String joinType) {
-            this.joinType = joinType;
-        }
-
-        public void addFilterColumn(String column) {
-            this.filterColumns.add(column);
-        }
-
-        public void addJoinColumn(String column) {
-            this.joinColumns.add(column);
-        }
-
-        public Map<String, Object> toMap() {
-            return Map.of(
-                    "table", this.table,
-                    "filterColumns", this.filterColumns,
-                    "joinType", Objects.requireNonNullElse(this.joinType, ""),
-                    "joinColumns", this.joinColumns
-            );
-        }
-
+  private QueryScan currentScan() {
+    // TODO: implement a better way to handle
+    //  empty stack errors when there are scans outside
+    //  an enclosing ProjectScan.
+    if (this.scanStack.empty()) {
+      return new QueryScan();
     }
 
-    public static class QueryScan {
+    return this.scanStack.peek();
+  }
 
-        private final Map<String, TableScan> tableScans = new HashMap<>();
+  private Set<ResolvedColumn> getColumnsFromExpression(ResolvedExpr expr) {
+    if (expr instanceof ResolvedColumnRef) {
+      return Set.of(((ResolvedColumnRef) expr).getColumn());
+    } else if (expr instanceof ResolvedFunctionCallBase) {
+      return ((ResolvedFunctionCall) expr)
+          .getArgumentList().stream()
+              .map(this::getColumnsFromExpression)
+              .flatMap(Collection::stream)
+              .collect(Collectors.toSet());
+    } else if (expr instanceof ResolvedCast) {
+      return this.getColumnsFromExpression(((ResolvedCast) expr).getExpr());
+    } else {
+      return Set.of();
+    }
+  }
 
-        public List<TableScan> getTableScans() {
-            return new ArrayList<>(tableScans.values());
-        }
+  public void visit(ResolvedProjectScan scan) {
+    this.scanStack.push(new QueryScan());
+    super.visit(scan);
+    this.queryScans.add(this.scanStack.pop());
+  }
 
-        public void createTableScan(String table) {
-            this.tableScans.computeIfAbsent(table, TableScan::new);
-        }
+  public void visit(ResolvedTableScan tableScan) {
+    this.currentScan().createTableScan(tableScan.getTable().getFullName());
+  }
 
-        public TableScan getOrCreateTableScan(String table) {
-            return this.tableScans.computeIfAbsent(table, TableScan::new);
-        }
+  public void visit(ResolvedWithRefScan withRefScan) {
+    this.currentScan().createTableScan(withRefScan.getWithQueryName());
+  }
 
-        public boolean isEmpty() {
-            return this.tableScans.isEmpty();
-        }
+  public void visit(ResolvedJoinScan joinScan) {
+    ResolvedScan leftScan = joinScan.getLeftScan();
+    ResolvedScan rightScan = joinScan.getRightScan();
+    leftScan.accept(this);
+    rightScan.accept(this);
 
-        public Map<String, Object> toMap() {
-            List<Map<String, Object>> tableScansAsMaps = this.tableScans
-                    .values()
-                    .stream()
-                    .map(TableScan::toMap)
-                    .collect(Collectors.toList());
-            return Map.of(
-                    "tableScans", tableScansAsMaps
-            );
-        }
+    Optional<String> rightScanName =
+        rightScan.getColumnList().stream().findFirst().map(ResolvedColumn::getTableName);
 
+    rightScanName.ifPresent(
+        s -> this.currentScan().getOrCreateTableScan(s).setJoinType(joinScan.getJoinType().name()));
+
+    Set<ResolvedColumn> joinColumns = this.getColumnsFromExpression(joinScan.getJoinExpr());
+    for (ResolvedColumn column : joinColumns) {
+      this.currentScan()
+          .getOrCreateTableScan(column.getTableName())
+          .addJoinColumn(column.getName());
+    }
+  }
+
+  public void visit(ResolvedFilterScan filterScan) {
+    filterScan.getInputScan().accept(this);
+    Set<ResolvedColumn> filterColumns = this.getColumnsFromExpression(filterScan.getFilterExpr());
+    for (ResolvedColumn column : filterColumns) {
+      this.currentScan()
+          .getOrCreateTableScan(column.getTableName())
+          .addFilterColumn(column.getName());
+    }
+  }
+
+  @Override
+  public void visit(ResolvedCreateTableStmt createTableStmt) {
+    super.visit(createTableStmt);
+  }
+
+  @Override
+  public void visit(ResolvedCreateTableAsSelectStmt createTableAsSelectStmt) {
+    super.visit(createTableAsSelectStmt);
+    createTableAsSelectStmt.getQuery().accept(this);
+  }
+
+  // CREATE [TEMP|TEMPORARY] TABLE
+
+  public void visit(ResolvedCreateFunctionStmt createFunctionStmt) {
+    super.visit(createFunctionStmt);
+  }
+
+  public static class TableScan {
+
+    private final String table;
+    private final Set<String> filterColumns = new HashSet<>();
+    private final Set<String> joinColumns = new HashSet<>();
+    private String joinType = null;
+
+    public TableScan(String table) {
+      this.table = table;
     }
 
-    private final List<QueryScan> queryScans = new ArrayList<>();
-    private final Stack<QueryScan> scanStack = new Stack<>();
-
-    public ExtractScansVisitor(String projectId, SimpleCatalog catalog) {
-        super(projectId, catalog);
+    public String getTable() {
+      return table;
     }
 
-    public List<QueryScan> getResult() {
-        return this.queryScans;
+    public Set<String> getFilterColumns() {
+      return filterColumns;
     }
 
-    private QueryScan currentScan() {
-        // TODO: implement a better way to handle
-        //  empty stack errors when there are scans outside
-        //  an enclosing ProjectScan.
-        if(this.scanStack.empty()) {
-            return new QueryScan();
-        }
-
-        return this.scanStack.peek();
+    public Optional<String> getJoinType() {
+      return Optional.ofNullable(this.joinType);
     }
 
-    private Set<ResolvedColumn> getColumnsFromExpression(ResolvedExpr expr) {
-        if(expr instanceof ResolvedColumnRef) {
-            return Set.of(((ResolvedColumnRef) expr).getColumn());
-        } else if(expr instanceof ResolvedFunctionCallBase) {
-            return ((ResolvedFunctionCall) expr).getArgumentList()
-                    .stream()
-                    .map(this::getColumnsFromExpression)
-                    .flatMap(Collection::stream)
-                    .collect(Collectors.toSet());
-        } else if(expr instanceof ResolvedCast) {
-            return this.getColumnsFromExpression(((ResolvedCast) expr).getExpr());
-        } else {
-            return Set.of();
-        }
+    public void setJoinType(String joinType) {
+      this.joinType = joinType;
     }
 
-    public void visit(ResolvedProjectScan scan) {
-        this.scanStack.push(new QueryScan());
-        super.visit(scan);
-        this.queryScans.add(this.scanStack.pop());
+    public Set<String> getJoinColumns() {
+      return joinColumns;
     }
 
-    public void visit(ResolvedTableScan tableScan) {
-        this.currentScan().createTableScan(tableScan.getTable().getFullName());
+    public void addFilterColumn(String column) {
+      this.filterColumns.add(column);
     }
 
-    public void visit(ResolvedWithRefScan withRefScan) {
-        this.currentScan().createTableScan(withRefScan.getWithQueryName());
+    public void addJoinColumn(String column) {
+      this.joinColumns.add(column);
     }
 
-    public void visit(ResolvedJoinScan joinScan) {
-        ResolvedScan leftScan = joinScan.getLeftScan();
-        ResolvedScan rightScan = joinScan.getRightScan();
-        leftScan.accept(this);
-        rightScan.accept(this);
+    public Map<String, Object> toMap() {
+      return Map.of(
+          "table", this.table,
+          "filterColumns", this.filterColumns,
+          "joinType", Objects.requireNonNullElse(this.joinType, ""),
+          "joinColumns", this.joinColumns);
+    }
+  }
 
-        Optional<String> rightScanName = rightScan
-                .getColumnList()
-                .stream()
-                .findFirst()
-                .map(ResolvedColumn::getTableName);
+  // CREATE [TEMP|TEMPORARY] FUNCTION
 
-        rightScanName.ifPresent(s ->
-                this.currentScan()
-                    .getOrCreateTableScan(s)
-                    .setJoinType(joinScan.getJoinType().name())
-        );
+  public static class QueryScan {
 
-        Set<ResolvedColumn> joinColumns = this.getColumnsFromExpression(
-                joinScan.getJoinExpr()
-        );
-        for(ResolvedColumn column: joinColumns) {
-            this.currentScan()
-                    .getOrCreateTableScan(column.getTableName())
-                    .addJoinColumn(column.getName());
-        }
+    private final Map<String, TableScan> tableScans = new HashMap<>();
+
+    public List<TableScan> getTableScans() {
+      return new ArrayList<>(tableScans.values());
     }
 
-    public void visit(ResolvedFilterScan filterScan) {
-        filterScan.getInputScan().accept(this);
-        Set<ResolvedColumn> filterColumns = this.getColumnsFromExpression(
-                filterScan.getFilterExpr()
-        );
-        for(ResolvedColumn column: filterColumns) {
-            this.currentScan()
-                    .getOrCreateTableScan(column.getTableName())
-                    .addFilterColumn(column.getName());
-        }
+    public void createTableScan(String table) {
+      this.tableScans.computeIfAbsent(table, TableScan::new);
     }
 
-    // CREATE [TEMP|TEMPORARY] TABLE
-
-    @Override
-    public void visit(ResolvedCreateTableStmt createTableStmt) {
-        super.visit(createTableStmt);
+    public TableScan getOrCreateTableScan(String table) {
+      return this.tableScans.computeIfAbsent(table, TableScan::new);
     }
 
-
-    @Override
-    public void visit(ResolvedCreateTableAsSelectStmt createTableAsSelectStmt) {
-        super.visit(createTableAsSelectStmt);
-        createTableAsSelectStmt.getQuery().accept(this);
+    public boolean isEmpty() {
+      return this.tableScans.isEmpty();
     }
 
-    // CREATE [TEMP|TEMPORARY] FUNCTION
-
-    public void visit(ResolvedCreateFunctionStmt createFunctionStmt) {
-        super.visit(createFunctionStmt);
+    public Map<String, Object> toMap() {
+      List<Map<String, Object>> tableScansAsMaps =
+          this.tableScans.values().stream().map(TableScan::toMap).collect(Collectors.toList());
+      return Map.of("tableScans", tableScansAsMaps);
     }
-
+  }
 }

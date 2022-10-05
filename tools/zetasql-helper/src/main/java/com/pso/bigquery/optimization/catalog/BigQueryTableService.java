@@ -25,65 +25,51 @@ import com.google.cloud.bigquery.TableId;
 import com.google.common.collect.ImmutableMap;
 import com.pso.bigquery.optimization.exceptions.TableNotFound;
 import io.vavr.control.Try;
-
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 // Service for getting tables from the BigQuery API
 // It caches tables internally, so subsequent requests for the same table don't hit the API
 public class BigQueryTableService {
 
-    private final BigQuery client;
-    private final Map<String, Table> cachedTables = new HashMap<>();
-    private static final String USER_AGENT_HEADER = "user-agent";
-    private static final String USER_AGENT_VALUE = "google-pso-tool/zetasql-helper/0.0.1";
+  private static final String USER_AGENT_HEADER = "user-agent";
+  private static final String USER_AGENT_VALUE = "google-pso-tool/zetasql-helper/0.0.1";
+  private final BigQuery client;
+  private final Map<String, Table> cachedTables = new HashMap<>();
 
-    public BigQueryTableService(BigQuery client) {
-        this.client = client;
-    }
+  public BigQueryTableService(BigQuery client) {
+    this.client = client;
+  }
 
-    public static BigQueryTableService buildDefault() {
-        HeaderProvider headerProvider =
-            FixedHeaderProvider.create(
-                ImmutableMap.of(USER_AGENT_HEADER, USER_AGENT_VALUE));
+  public static BigQueryTableService buildDefault() {
+    HeaderProvider headerProvider =
+        FixedHeaderProvider.create(ImmutableMap.of(USER_AGENT_HEADER, USER_AGENT_VALUE));
 
-        BigQuery bigquery =
-            BigQueryOptions.newBuilder().setHeaderProvider(headerProvider).build().getService();
+    BigQuery bigquery =
+        BigQueryOptions.newBuilder().setHeaderProvider(headerProvider).build().getService();
 
-        return new BigQueryTableService(
-            bigquery
-        );
-    }
+    return new BigQueryTableService(bigquery);
+  }
 
-    // Fetches a BigQuery table from the API, given it's table spec
-    private Try<Table> getBQTableFromAPI(TableReference tableRef) {
-        TableId tableId = TableId.of(
-                tableRef.getProjectId(),
-                tableRef.getDatasetId(),
-                tableRef.getTableId()
-        );
+  // Fetches a BigQuery table from the API, given it's table spec
+  private Try<Table> getBQTableFromAPI(TableReference tableRef) {
+    TableId tableId =
+        TableId.of(tableRef.getProjectId(), tableRef.getDatasetId(), tableRef.getTableId());
 
-        return Try.of(() -> this.client.getTable(tableId))
-                .flatMap(table ->
-                        table != null
-                            ? Try.success(table)
-                            : Try.failure(
-                                    new TableNotFound(tableRef)
-                            )
-                );
-    }
+    return Try.of(() -> this.client.getTable(tableId))
+        .flatMap(
+            table -> table != null ? Try.success(table) : Try.failure(new TableNotFound(tableRef)));
+  }
 
-    // Gets a BQ table given its project ID and table ID.
-    // It caches tables so that consequent requests for the same table
-    // will not hit the API.
-    public Try<Table> getBQTable(String projectId, String tableId) {
-        return BigQueryTableParser
-                .fromTableId(projectId, tableId)
-                .map(tableRef ->
-                        this.cachedTables.computeIfAbsent(
-                            BigQueryTableParser.getStdTablePathFromTableRef(tableRef),
-                            key -> this.getBQTableFromAPI(tableRef).get()
-                        )
-                );
-    }
-
+  // Gets a BQ table given its project ID and table ID.
+  // It caches tables so that consequent requests for the same table
+  // will not hit the API.
+  public Try<Table> getBQTable(String projectId, String tableId) {
+    return BigQueryTableParser.fromTableId(projectId, tableId)
+        .map(
+            tableRef ->
+                this.cachedTables.computeIfAbsent(
+                    BigQueryTableParser.getStdTablePathFromTableRef(tableRef),
+                    key -> this.getBQTableFromAPI(tableRef).get()));
+  }
 }

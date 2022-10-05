@@ -15,10 +15,7 @@
  */
 package com.pso.bigquery.optimization;
 
-import com.google.zetasql.Analyzer;
-import com.google.zetasql.ParseResumeLocation;
 import com.google.zetasql.SimpleCatalog;
-import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedStatement;
 import com.pso.bigquery.optimization.analysis.QueryAnalyzer;
 import com.pso.bigquery.optimization.analysis.QueryAnalyzer.CatalogScope;
 import com.pso.bigquery.optimization.analysis.visitors.ExtractScansVisitor;
@@ -29,11 +26,11 @@ import java.util.List;
 
 public class BuildCatalogForProjectAndAnalyzeJoins {
 
-
-    public static void main(String[] args) throws InterruptedException {
-        String PROJECT_ID = "MY_PROJECT";
-        // add a query that references actual tables in your projets
-        String QUERY = "SELECT \n"
+  public static void main(String[] args) throws InterruptedException {
+    String PROJECT_ID = "MY_PROJECT";
+    // add a query that references actual tables in your projets
+    String QUERY =
+        "SELECT \n"
             + "  t1.col1 \n"
             + "FROM \n"
             + "  `MY_PROJECT.MY_DATASET.test_table_1` t1\n"
@@ -43,17 +40,17 @@ public class BuildCatalogForProjectAndAnalyzeJoins {
             + " t1.col2 is not null\n"
             + " AND t2.col2 is not null\n";
 
-        // Create Catalog and add all datasets in a project
-        SimpleCatalog catalog = CatalogUtils.createCatalogForProject(PROJECT_ID);
+    // Create Catalog and add all datasets in a project
+    SimpleCatalog catalog = CatalogUtils.createCatalogForProject(PROJECT_ID);
 
-        // setup ZetatSQL
-        QueryAnalyzer parser = new QueryAnalyzer();
-        Try<List<QueryScan>> tryScans = parser.getScansInQuery(PROJECT_ID, QUERY, catalog, CatalogScope.PROJECT);
-        List<ExtractScansVisitor.QueryScan> scanResults = tryScans.get();
+    // setup ZetatSQL
+    QueryAnalyzer parser = new QueryAnalyzer();
+    Try<List<QueryScan>> tryScans =
+        parser.getScansInQuery(PROJECT_ID, QUERY, catalog, CatalogScope.PROJECT);
+    List<ExtractScansVisitor.QueryScan> scanResults = tryScans.get();
 
-        scanResults.stream()
-            .map(ExtractScansVisitor.QueryScan::toMap)
-            .forEach(scanResult -> System.out.println(scanResult));
-    }
-
+    scanResults.stream()
+        .map(ExtractScansVisitor.QueryScan::toMap)
+        .forEach(scanResult -> System.out.println(scanResult));
+  }
 }

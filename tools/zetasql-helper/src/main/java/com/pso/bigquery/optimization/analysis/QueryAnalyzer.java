@@ -15,11 +15,14 @@
  */
 package com.pso.bigquery.optimization.analysis;
 
-import com.google.api.services.bigquery.model.TableReference;
 import com.google.cloud.bigquery.Table;
 import com.google.gson.JsonElement;
-import com.google.zetasql.*;
-import com.google.zetasql.resolvedast.ResolvedNodes.*;
+import com.google.zetasql.Analyzer;
+import com.google.zetasql.AnalyzerOptions;
+import com.google.zetasql.LanguageOptions;
+import com.google.zetasql.ParseResumeLocation;
+import com.google.zetasql.SimpleCatalog;
+import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedStatement;
 import com.pso.bigquery.optimization.analysis.visitors.CreateJsonQueryStructureVisitor;
 import com.pso.bigquery.optimization.analysis.visitors.ExtractScansVisitor;
 import com.pso.bigquery.optimization.analysis.visitors.ExtractScansVisitor.QueryScan;
@@ -27,182 +30,155 @@ import com.pso.bigquery.optimization.catalog.BigQuerySchemaConverter;
 import com.pso.bigquery.optimization.catalog.BigQueryTableParser;
 import com.pso.bigquery.optimization.catalog.BigQueryTableService;
 import com.pso.bigquery.optimization.catalog.CatalogUtils;
-import com.pso.bigquery.optimization.catalog.*;
 import io.vavr.collection.Seq;
 import io.vavr.control.Try;
-import org.apache.commons.lang3.StringUtils;
-import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 
 /**
- * The QueryAnalyzer parses a BigQuery job using ZetaSQL and
- * extracts information from it.
- * It returns a QueryAnalysisResult with findings if the job
- * is successfully parsed with ZetaSQL.
+ * The QueryAnalyzer parses a BigQuery job using ZetaSQL and extracts information from it. It
+ * returns a QueryAnalysisResult with findings if the job is successfully parsed with ZetaSQL.
  */
 public class QueryAnalyzer {
 
-    private final BigQueryTableService bqTableService;
+  private final BigQueryTableService bqTableService;
 
-    public QueryAnalyzer() {
-        this(null);
+  public QueryAnalyzer() {
+    this(null);
+  }
+
+  public QueryAnalyzer(BigQueryTableService bqTableService) {
+    this.bqTableService = bqTableService;
+  }
+
+  public static boolean hasNextStatement(ParseResumeLocation parseResumeLocation) {
+    return parseResumeLocation.getInput().getBytes().length > parseResumeLocation.getBytePosition();
+  }
+
+  public AnalyzerOptions getAnalyzerOptions() {
+    LanguageOptions languageOptions = new LanguageOptions().enableMaximumLanguageFeatures();
+    languageOptions.setSupportsAllStatementKinds();
+
+    AnalyzerOptions analyzerOptions = new AnalyzerOptions();
+    analyzerOptions.setLanguageOptions(languageOptions);
+    analyzerOptions.setCreateNewColumnForEachProjectedOutput(true);
+    return analyzerOptions;
+  }
+
+  private Try<List<Table>> extractReferencedTables(String projectId, String query) {
+    return Try.of(
+            () ->
+                Analyzer.extractTableNamesFromScript(query, this.getAnalyzerOptions()).stream()
+                    .map(tablePath -> String.join(".", tablePath))
+                    .distinct()
+                    .filter(BigQueryTableParser::isValidTableId)
+                    .map(tableId -> this.bqTableService.getBQTable(projectId, tableId))
+                    .collect(Collectors.toList()))
+        .flatMap(Try::sequence)
+        .map(Seq::asJava);
+  }
+
+  // Extracts the reference tables from a SQL query and adds them to a catalog
+  // Remember that, in order to analyze a query, all its referenced tables need
+  // to exist in the catalog.
+  private Try<Void> updateCatalogFromSQL(String projectId, String query, SimpleCatalog catalog) {
+    Try<List<Table>> tryReferencedTables = this.extractReferencedTables(projectId, query);
+
+    if (tryReferencedTables.isFailure()) {
+      return Try.failure(tryReferencedTables.getCause());
     }
 
-    public QueryAnalyzer(BigQueryTableService bqTableService) {
-        this.bqTableService = bqTableService;
+    for (Table table : tryReferencedTables.get()) {
+      CatalogUtils.createTableInCatalog(
+          catalog,
+          table.getTableId().getProject(),
+          table.getTableId().getDataset(),
+          table.getTableId().getTable(),
+          BigQuerySchemaConverter.extractTableColumns(table));
     }
 
-    public AnalyzerOptions getAnalyzerOptions() {
-        LanguageOptions languageOptions = new LanguageOptions()
-                .enableMaximumLanguageFeatures();
-        languageOptions.setSupportsAllStatementKinds();
+    return Try.success(null);
+  }
 
-        AnalyzerOptions analyzerOptions = new AnalyzerOptions();
-        analyzerOptions.setLanguageOptions(languageOptions);
-        analyzerOptions.setCreateNewColumnForEachProjectedOutput(true);
-        return analyzerOptions;
+  public Try<JsonElement> parseQueryIntoJsonObject(String projectId, String query) {
+    SimpleCatalog catalog = CatalogUtils.createEmptyCatalog();
+
+    ParseResumeLocation parseResumeLocation = new ParseResumeLocation(query);
+    CreateJsonQueryStructureVisitor visitor =
+        new CreateJsonQueryStructureVisitor(projectId, catalog);
+
+    Try<Void> tryUpdateCatalog = this.updateCatalogFromSQL(projectId, query, catalog);
+
+    if (tryUpdateCatalog.isFailure()) {
+      return Try.failure(tryUpdateCatalog.getCause());
     }
 
-    private Try<List<Table>> extractReferencedTables(
-            String projectId, String query
-    ) {
-        return Try.of(() ->
-                        Analyzer
-                                .extractTableNamesFromScript(query, this.getAnalyzerOptions())
-                                .stream()
-                                .map(tablePath -> String.join(".", tablePath))
-                                .distinct()
-                                .filter(BigQueryTableParser::isValidTableId)
-                                .map(tableId -> this.bqTableService.getBQTable(projectId, tableId))
-                                .collect(Collectors.toList())
-                )
-                .flatMap(Try::sequence)
-                .map(Seq::asJava);
+    AnalyzerOptions analyzerOpts = this.getAnalyzerOptions();
+    while (hasNextStatement(parseResumeLocation)) {
+      Try<ResolvedStatement> tryParsedStatement =
+          Try.of(() -> Analyzer.analyzeNextStatement(parseResumeLocation, analyzerOpts, catalog));
+
+      if (tryParsedStatement.isFailure()) {
+        return Try.failure(tryParsedStatement.getCause());
+      }
+
+      tryParsedStatement.forEach(
+          resolvedStatement -> {
+            visitor.prepareVisit();
+            resolvedStatement.accept(visitor);
+            visitor.finishVisit();
+          });
     }
 
-    // Extracts the reference tables from a SQL query and adds them to a catalog
-    // Remember that, in order to analyze a query, all its referenced tables need
-    // to exist in the catalog.
-    private Try<Void> updateCatalogFromSQL(
-            String projectId,
-            String query,
-            SimpleCatalog catalog
-    ) {
-        Try<List<Table>> tryReferencedTables = this.extractReferencedTables(projectId, query);
+    return Try.success(visitor.getResult());
+  }
 
-        if (tryReferencedTables.isFailure()) {
-            return Try.failure(tryReferencedTables.getCause());
-        }
+  public Try<List<QueryScan>> getScansInQuery(
+      String projectId, String query, SimpleCatalog catalog, CatalogScope catalogScope) {
 
-        for (Table table : tryReferencedTables.get()) {
-            CatalogUtils.createTableInCatalog(
-                    catalog,
-                    table.getTableId().getProject(),
-                    table.getTableId().getDataset(),
-                    table.getTableId().getTable(),
-                    BigQuerySchemaConverter.extractTableColumns(table)
-            );
-        }
+    // SimpleCatalog catalog = CatalogUtils.createEmptyCatalog();
 
-        return Try.success(null);
+    ParseResumeLocation parseResumeLocation = new ParseResumeLocation(query);
+    ExtractScansVisitor visitor = new ExtractScansVisitor(projectId, catalog);
+
+    if (catalogScope.equals(CatalogScope.QUERY)) {
+      Try<Void> tryUpdateCatalog = this.updateCatalogFromSQL(projectId, query, catalog);
+      if (tryUpdateCatalog.isFailure()) {
+        return Try.failure(tryUpdateCatalog.getCause());
+      }
     }
 
-    public Try<JsonElement> parseQueryIntoJsonObject(String projectId, String query) {
-        SimpleCatalog catalog = CatalogUtils.createEmptyCatalog();
+    AnalyzerOptions analyzerOpts = this.getAnalyzerOptions();
+    while (hasNextStatement(parseResumeLocation)) {
+      Try<ResolvedStatement> tryParsedStatement =
+          Try.of(() -> Analyzer.analyzeNextStatement(parseResumeLocation, analyzerOpts, catalog));
 
-        ParseResumeLocation parseResumeLocation = new ParseResumeLocation(query);
-        CreateJsonQueryStructureVisitor visitor = new CreateJsonQueryStructureVisitor(projectId, catalog);
+      if (tryParsedStatement.isFailure()) {
+        return Try.failure(tryParsedStatement.getCause());
+      }
 
-        Try<Void> tryUpdateCatalog = this.updateCatalogFromSQL(
-                projectId, query, catalog
-        );
-
-        if (tryUpdateCatalog.isFailure()) {
-            return Try.failure(tryUpdateCatalog.getCause());
-        }
-
-        AnalyzerOptions analyzerOpts = this.getAnalyzerOptions();
-        while (hasNextStatement(parseResumeLocation)) {
-            Try<ResolvedStatement> tryParsedStatement = Try.of(() ->
-                    Analyzer.analyzeNextStatement(
-                            parseResumeLocation, analyzerOpts, catalog
-                    )
-            );
-
-            if (tryParsedStatement.isFailure()) {
-                return Try.failure(tryParsedStatement.getCause());
-            }
-
-            tryParsedStatement.forEach(resolvedStatement -> {
-                visitor.prepareVisit();
-                resolvedStatement.accept(visitor);
-                visitor.finishVisit();
-            });
-        }
-
-        return Try.success(visitor.getResult());
+      tryParsedStatement.forEach(
+          resolvedStatement -> {
+            resolvedStatement.accept(visitor);
+          });
     }
 
-    public Try<List<QueryScan>> getScansInQuery(String projectId, String query, SimpleCatalog catalog, CatalogScope catalogScope) {
+    return Try.success(visitor.getResult());
+  }
 
-        //SimpleCatalog catalog = CatalogUtils.createEmptyCatalog();
+  private String removeBeginEndFromQuery(String query) {
+    // Not ideal, but having redundant BEGIN and END statements
+    // is a common pattern for and ZetaSQL does not support it.
+    return StringUtils.removeStart(StringUtils.removeEnd(query.trim(), "END;"), "BEGIN");
+  }
 
-        ParseResumeLocation parseResumeLocation = new ParseResumeLocation(query);
-        ExtractScansVisitor visitor = new ExtractScansVisitor(projectId, catalog);
-
-        if(catalogScope.equals(CatalogScope.QUERY)){
-            Try<Void> tryUpdateCatalog = this.updateCatalogFromSQL(
-                projectId, query, catalog
-            );
-            if (tryUpdateCatalog.isFailure()) {
-                return Try.failure(tryUpdateCatalog.getCause());
-            }
-        }
-
-
-        AnalyzerOptions analyzerOpts = this.getAnalyzerOptions();
-        while (hasNextStatement(parseResumeLocation)) {
-            Try<ResolvedStatement> tryParsedStatement = Try.of(() ->
-                    Analyzer.analyzeNextStatement(
-                            parseResumeLocation, analyzerOpts, catalog
-                    )
-            );
-
-            if (tryParsedStatement.isFailure()) {
-                return Try.failure(tryParsedStatement.getCause());
-            }
-
-            tryParsedStatement.forEach(resolvedStatement -> {
-                resolvedStatement.accept(visitor);
-            });
-        }
-
-        return Try.success(visitor.getResult());
-    }
-
-    private String removeBeginEndFromQuery(String query) {
-        // Not ideal, but having redundant BEGIN and END statements
-        // is a common pattern for and ZetaSQL does not support it.
-        return StringUtils.removeStart(
-                StringUtils.removeEnd(
-                        query.trim(),
-                        "END;"
-                ),
-                "BEGIN"
-        );
-    }
-
-    public static boolean hasNextStatement(ParseResumeLocation parseResumeLocation) {
-        return parseResumeLocation.getInput().getBytes().length > parseResumeLocation.getBytePosition();
-    }
-
-    /**
-     * gives information whether the catalog has been populated for a PROJECT or
-     * if the analyzer should populate it based on tables in the QUERY
-     */
-    public enum CatalogScope {
-        PROJECT,
-        QUERY
-    }
-
+  /**
+   * gives information whether the catalog has been populated for a PROJECT or if the analyzer
+   * should populate it based on tables in the QUERY
+   */
+  public enum CatalogScope {
+    PROJECT,
+    QUERY
+  }
 }

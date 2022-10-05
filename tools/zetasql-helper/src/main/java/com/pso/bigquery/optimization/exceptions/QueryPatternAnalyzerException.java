@@ -16,11 +16,10 @@
 package com.pso.bigquery.optimization.exceptions;
 
 public class QueryPatternAnalyzerException extends RuntimeException {
-    // TODO: Add more domain exceptions and handle errors
-    //  throughout the project
+  // TODO: Add more domain exceptions and handle errors
+  //  throughout the project
 
-    public QueryPatternAnalyzerException(String message) {
-        super(message);
-    }
-
+  public QueryPatternAnalyzerException(String message) {
+    super(message);
+  }
 }
