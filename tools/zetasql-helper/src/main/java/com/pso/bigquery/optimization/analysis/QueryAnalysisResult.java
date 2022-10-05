@@ -19,48 +19,46 @@ import com.google.api.services.bigquery.model.TableReference;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.pso.bigquery.optimization.analysis.visitors.ExtractScansVisitor.QueryScan;
-
-
 import java.util.List;
 
 // Dataclass containing the result of analyzing a BigQuery
 // job using the Query Analyzer
 public class QueryAnalysisResult {
 
-    private final String query;
-    private final List<TableReference> referencedTables;
-    private final JsonElement queryStructure;
-    private final List<QueryScan> scans;
-    private final Gson gson = new Gson();
+  private final String query;
+  private final List<TableReference> referencedTables;
+  private final JsonElement queryStructure;
+  private final List<QueryScan> scans;
+  private final Gson gson = new Gson();
 
-    public QueryAnalysisResult(
-            String query,
-            List<TableReference> referencedTables,
-            JsonElement queryStructure,
-            List<QueryScan> joins
-    ) {
-        this.query = query;
-        this.referencedTables = referencedTables;
-        this.queryStructure = queryStructure;
-        this.scans = joins;
-    }
+  public QueryAnalysisResult(
+      String query,
+      List<TableReference> referencedTables,
+      JsonElement queryStructure,
+      List<QueryScan> joins) {
+    this.query = query;
+    this.referencedTables = referencedTables;
+    this.queryStructure = queryStructure;
+    this.scans = joins;
+  }
 
-    public String getQuersy() {
-        return query;
-    }
+  public String getQuersy() {
+    return query;
+  }
 
-    public List<TableReference> getReferencedTables() {
-        return referencedTables;
-    }
+  public List<TableReference> getReferencedTables() {
+    return referencedTables;
+  }
 
-    public JsonElement getQueryStructure() {
-        return queryStructure;
-    }
+  public JsonElement getQueryStructure() {
+    return queryStructure;
+  }
 
-    public String getQueryStructureAsString() { return gson.toJson(this.queryStructure); }
+  public String getQueryStructureAsString() {
+    return gson.toJson(this.queryStructure);
+  }
 
-    public List<QueryScan> getScans() {
-        return scans;
-    }
-
+  public List<QueryScan> getScans() {
+    return scans;
+  }
 }

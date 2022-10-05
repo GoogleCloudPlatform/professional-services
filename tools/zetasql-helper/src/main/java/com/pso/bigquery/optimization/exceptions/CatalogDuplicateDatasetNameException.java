@@ -15,18 +15,18 @@
  */
 package com.pso.bigquery.optimization.exceptions;
 
-public class CatalogDuplicateDatasetNameException extends RuntimeException{
+public class CatalogDuplicateDatasetNameException extends RuntimeException {
   /**
-   * Constructs a new CatalogDuplicateDatasetNameException with null as its detail message. The cause is not
-   * initialized, and may subsequently be initialized by a call to initCause.
+   * Constructs a new CatalogDuplicateDatasetNameException with null as its detail message. The
+   * cause is not initialized, and may subsequently be initialized by a call to initCause.
    */
   public CatalogDuplicateDatasetNameException() {
     super();
   }
 
   /**
-   * Constructs a new CatalogDuplicateDatasetNameException with the specified detail message. The cause is not
-   * initialized, and may subsequently be initialized by a call to initCause.
+   * Constructs a new CatalogDuplicateDatasetNameException with the specified detail message. The
+   * cause is not initialized, and may subsequently be initialized by a call to initCause.
    *
    * @param message – the detail message. The detail message is saved for later retrieval by the
    *     getMessage() method.

@@ -17,14 +17,14 @@ package com.pso.bigquery.optimization.exceptions;
 
 public class InvalidTableReference extends QueryPatternAnalyzerException {
 
-    private final String tableId;
+  private final String tableId;
 
-    public InvalidTableReference(String tableId) {
-        super(String.format("Invalid table reference: %s", tableId));
-        this.tableId = tableId;
-    }
+  public InvalidTableReference(String tableId) {
+    super(String.format("Invalid table reference: %s", tableId));
+    this.tableId = tableId;
+  }
 
-    public String getTableId() {
-        return tableId;
-    }
+  public String getTableId() {
+    return tableId;
+  }
 }

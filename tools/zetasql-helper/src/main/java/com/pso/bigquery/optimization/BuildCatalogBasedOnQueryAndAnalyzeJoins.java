@@ -29,31 +29,30 @@ public class BuildCatalogBasedOnQueryAndAnalyzeJoins {
   public static void main(String[] args) {
     String PROJECT_ID = "MY_PROJECT";
     // add a query that references actual tables in your projets
-    String QUERY = "SELECT \n"
-        + "  t1.col1 \n"
-        + "FROM \n"
-        + "  `MY_PROJECT.MY_DATASET.test_table_1` t1\n"
-        + "LEFT JOIN\n"
-        + "  `MY_PROJECT.MY_DATASET.test_table_2` t2 ON t1.unique_key=t2.unique_key\n"
-        + "WHERE\n"
-        + " t1.col2 is not null\n"
-        + " AND t2.col2 is not null\n";
+    String QUERY =
+        "SELECT \n"
+            + "  t1.col1 \n"
+            + "FROM \n"
+            + "  `MY_PROJECT.MY_DATASET.test_table_1` t1\n"
+            + "LEFT JOIN\n"
+            + "  `MY_PROJECT.MY_DATASET.test_table_2` t2 ON t1.unique_key=t2.unique_key\n"
+            + "WHERE\n"
+            + " t1.col2 is not null\n"
+            + " AND t2.col2 is not null\n";
 
-    //setup ZetaSQL
+    // setup ZetaSQL
     BigQueryTableService bigQueryTableService = BigQueryTableService.buildDefault();
     QueryAnalyzer parser = new QueryAnalyzer(bigQueryTableService);
     SimpleCatalog catalog = CatalogUtils.createEmptyCatalog();
-    Try<List<QueryScan>> tryScans = parser.getScansInQuery(PROJECT_ID, QUERY, catalog, CatalogScope.QUERY);
+    Try<List<QueryScan>> tryScans =
+        parser.getScansInQuery(PROJECT_ID, QUERY, catalog, CatalogScope.QUERY);
 
-    //scan query
+    // scan query
     List<ExtractScansVisitor.QueryScan> scanResults = tryScans.get();
 
-    //print results
+    // print results
     scanResults.stream()
         .map(ExtractScansVisitor.QueryScan::toMap)
         .forEach(scanResult -> System.out.println(scanResult));
   }
-
-
-
 }
