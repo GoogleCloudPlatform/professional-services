@@ -146,7 +146,6 @@ public class ZetaSQLStrings {
    * @param date Number of days since 1970-01-01
    * @return A string of format "YYYY-MM-DD" for this date
    */
-  @SuppressWarnings("GoodTime") // should accept a java.time.LocalDate
   public static String convertDateToString(int date) {
     DateTime d = EPOCH.plusDays(date);
     return String.format("%04d-%02d-%02d", d.getYear(), d.getMonthOfYear(), d.getDayOfMonth());
