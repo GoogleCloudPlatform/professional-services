@@ -31,6 +31,7 @@ from lib.options import PrepareTableOptions
 from lib.services import Services
 from lib.table_util import create_dataset, create_table, get_table_ref
 
+logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(os.environ.get("LOGLEVEL", "INFO").upper())
 
