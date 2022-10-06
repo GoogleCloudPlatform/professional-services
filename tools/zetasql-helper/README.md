@@ -47,7 +47,6 @@ Both examples above follow different approaches to populating the catalog. Both
 will yield the same output
 
 Sample query:
-
 ```
 SELECT
   t1.col1
