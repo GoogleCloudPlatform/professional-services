@@ -37,7 +37,6 @@ This project includes classes and logic necessary to build a Catalog.
 * [BuildCatalogForProjectAndAnalyzeJoins](./src/main/java/com/pso/bigquery/optimization/BuildCatalogForProjectAndAnalyzeJoins.java):
   this sample code will add to the catalog all the tables from a given project.
   It will then analyze a BigQuery SQL and output a scan of the joins.
-
 * [BuildCatalogBasedOnQueryAndAnalyzeJoins](./src/main/java/com/pso/bigquery/optimization/BuildCatalogBasedOnQueryAndAnalyzeJoins.java):
   this sample code will analyze a BigQuery SQL and output a scan of the joins.
   It will add to the Catalog only the tables referenced by the query.
