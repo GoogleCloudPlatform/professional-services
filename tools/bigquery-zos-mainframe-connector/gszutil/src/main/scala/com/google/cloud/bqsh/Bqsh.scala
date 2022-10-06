@@ -141,6 +141,8 @@ object Bqsh extends Logging {
               runCommand(Query, subArgs, zos, cmd.env)
             case "export" =>
               runCommand(Export, subArgs, zos, cmd.env)
+            case "extract" =>
+              runCommand(Extract, subArgs, zos, cmd.env)
             case "load" =>
               runCommand(Load, subArgs, zos, cmd.env)
             case "rm" =>
