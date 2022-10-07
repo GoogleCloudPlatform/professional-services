@@ -91,6 +91,7 @@ case class GsUtilConfig(source: String = "INFILE",
                         // Custom
                         schemaProvider: Option[SchemaProvider] = None,
                         picTCharset: Option[String] = None,
+                        encoding: Option[String] = None,
                         statsTable: String = "",
                         remote: Boolean = false,
                         remoteHost: String = "",
