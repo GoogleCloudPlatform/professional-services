@@ -162,6 +162,11 @@ object ExportOptionParser
     .action((x,c) => c.copy(sync = x))
 
   // Custom Options
+  opt[String]("encoding")
+    .optional()
+    .text("(optional) charset used for encoding and decoding character fields. Overrides default set by ENCODING environment variable.")
+    .action((x, c) => c.copy(encoding = Option(x)))
+
   opt[String]("stats_table")
     .optional()
     .text("tablespec of table to insert stats")
