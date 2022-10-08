@@ -13,26 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.pso.bigquery.optimization.exceptions;
 
-package com.google.cloud.imf.gzos
+public class InvalidTableReference extends QueryPatternAnalyzerException {
 
-import java.nio.charset.Charset
+  private final String tableId;
 
-import com.google.cloud.gszutil.Transcoder
-
-/** Default Transcoder
-  * Uses EBCDIC US charset by default.
-  * Obtains charset name from ENCODING environment variable.
-  */
-case object Ebcdic extends Transcoder {
-  override final val charset: Charset = {
-    sys.env.get("ENCODING") match {
-      case Some(charset) =>
-        System.out.println(s"Using Charset '$charset'")
-        Charset.forName(charset)
-      case None =>
-        new EBCDIC1()
-    }
+  public InvalidTableReference(String tableId) {
+    super(String.format("Invalid table reference: %s", tableId));
+    this.tableId = tableId;
   }
-  override val SP: Byte = 0x40
+
+  public String getTableId() {
+    return tableId;
+  }
 }
