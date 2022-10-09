@@ -16,10 +16,6 @@
 # CONDITIONS OF ANY KIND, and is not intended for production use.
 """Setup installation module for gcs_bucket_mover."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 from setuptools import find_packages
 from setuptools import setup
 
@@ -51,9 +47,7 @@ setup(
         'License :: OSI Approved :: Apache Software License',
         'Natural Language :: English',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.6',
-        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
         'Topic :: System :: Filesystems',
         'Topic :: Utilities',
     ],
