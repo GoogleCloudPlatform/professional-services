@@ -122,7 +122,7 @@ resource "google_cloudbuild_trigger" "dataflow_template_build_trigger_python" {
 
 // Provision Go Dataflow Custom template build trigger
 resource "google_cloudbuild_trigger" "dataflow_template_build_trigger_go" {
-  name = "dataflow-template-build-trigger-python"
+  name = "dataflow-template-build-trigger-go"
   github {
     owner = var.github_repository_owner
     name  = var.github_repository_name
