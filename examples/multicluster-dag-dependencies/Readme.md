@@ -1,10 +1,10 @@
 ## DAG to DAG dependency between multiple Composer Clusters
 
 Dependencies between Airflow DAGs might be inevitable. Within a composer instance, one can define a dag to dag dependency easily using operators like TriggerDagRunOperator and ExternalTaskSensor, for example, when you have a task in one DAG that triggers another DAG in the same Airflow environment. Sometimes a single instance of Composer doesn’t fulfill all the needs of the organization. Requirements that can create a need for having multiple Composer clusters in production are:
-- As the data analytics need of an organization expands, multiple teams/business units might need their own Composer environment, access to those clusters provided accordingly to the team that the user belongs to
-- Workload priority, schedule and pattern. Environments which runs on-demand workloads, or over-provisioned when the environment needs to run DAGs every hour. Environment that has to access to certain domains (e.g. finance, HR etc.), so all workloads should run on one environment.
+    - As the data analytics need of an organization expands, multiple teams/business units might need their own Composer environment, access to those clusters provided accordingly to the team that the user belongs.
+    - Workload priority, schedule and pattern. Environments which runs on-demand workloads, or over-provisioned when the environment needs to run DAGs every hour. Environment that has to access to certain domains (e.g. finance, HR etc.), so all workloads should run on one environment.
 
-In this solution, we provide an approach to maintain dag dependency between multiple Composer environments. This solution guides you through the process and accompanies complete terraform code and airflow code. The first step is to define the message format while publishing the message to Pub/Sub.
+In this solution, we provide an approach to maintain dag dependency between multiple Composer environments. This solution guides you through the process and accompanies complete terraform code and airflow code. We start by defining the Pub/Sub message schema used by DAGs (`/pattern-1/terraform/workflow_schema.json`).
 
 #### Pattern 1: Using PubSub and PubSubPull Sensors
 
