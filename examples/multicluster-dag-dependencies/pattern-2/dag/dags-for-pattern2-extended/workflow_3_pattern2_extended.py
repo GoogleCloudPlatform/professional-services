@@ -81,7 +81,7 @@ external_task_sensor = ExternalTaskSensor(task_id='external_task_sensor',
                                           soft_fail=False,
                                           retries=10,
                                           external_task_id='task2',
-                                          external_dag_id='workflow_2_pattern2_extended',
+                                          external_dag_id='workflow_1_pattern2_extended',
                                           allowed_states=['success'],
                                           dag=dag)
 

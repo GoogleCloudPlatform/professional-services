@@ -8,7 +8,7 @@ In this solution, we provide an approach to maintain dag dependency between mult
 
 #### Pattern 1: Using PubSub and PubSubPull Sensors
 
-In this pattern, each upstream DAG needs to publish a message on success and failure of the workflow. The downstream DAG that has the dependency on the upstream DAG will create a subscription and consume the message. Each downstream DAG or workflow needs to create its own subscription from the topic. A Dependent DAG uses PubSub Sensor to pull and continue its workstream. 
+In this pattern, each upstream DAG needs to publish a message on success and failure of the workflow. The downstream DAG that has the dependency on the upstream DAG will create a subscription and consume the message. Each downstream DAG or workflow needs to create its own subscription from the topic. A Dependent DAG uses PubSub Sensor to pull and continue its workstream.
 
 ![](images/pattern-1.jpg)
 
@@ -44,7 +44,7 @@ In this pattern, the upstream DAG publishes PubSub Topic and cloud function is t
 ![](images/pattern-2.jpg)
 
 
-In this approch, we stored the dag-dependency data in the GCS bucket, you can choose any transactional database to store the mapping (e.g., CloudSQL, Firestore). We create an object for each source workflow and name the object `{source_workflow_id}.json`. 
+In this approch, we stored the dag-dependency data in the GCS bucket, you can choose any transactional database to store the mapping (e.g., CloudSQL, Firestore). We create an object for each source workflow and name the object `{source_workflow_id}.json`.
 
 
 ```
@@ -83,7 +83,7 @@ Pattern 2 can be extended if you don't want to modify the upstream DAG or the te
 ![](images/extend-pattern-2.jpg)
 
 
-To run the pattern, please update the values for varaibles such as `<<project-id>>`, and  `<<composer-service-account>>` in `nprd.tfvars` file. Run the following commands to create topics, subscription and service account permission. Make sure the updae the backend bucket anme and prefix
+To run the pattern, please update the values for varaibles such as `<<project-id>>`, and  `<<composer-service-account>>` in `nprd.tfvars` file. Run the following commands to create topics, subscription and service account permission. Make sure the updae the backend bucket name and prefix
 
 ```
 terraform init -backend-config="bucket=<<bucket_name>>" -backend-config="prefix=<<prefix>>" 
