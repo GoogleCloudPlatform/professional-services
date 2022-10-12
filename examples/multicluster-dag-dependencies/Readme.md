@@ -91,4 +91,4 @@ terraform plan  -var-file="nprd.tfvars" ## Validate the resources created by ter
 terraform apply  -var-file="nprd.tfvars"
 ```
 
-Copy the dags files from `pattern-2/dag/pattern2` and `pattern-2/dag/dag-for-pattern2-extended` and update the values in the composer-url-mapping-dev.json to depict the dependency.
+Copy the dags files from `pattern-2/dag/pattern2` and `pattern-2/dag/dag-for-pattern2-extended` and update the values in the composer-url-mapping-dev.json to depict the dependency. Copy the dependency files in the `pattern-2/dag_dependencies_config_files/` in the `<<dag_dependency_bucket>>` bucket. The files contains the mapping between composer environment and URL and the dependencies.
