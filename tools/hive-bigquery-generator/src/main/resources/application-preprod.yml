@@ -1,0 +1,24 @@
+view-generator:
+  thread-pool: 50
+  hive:
+    thrift-uris: "thrift://10.116.1.35:9083,thrift://10.116.1.58:9083,thrift://10.116.1.61:9083"
+    filters:
+      db-allow-list: ["bigfoot_external_neo","bigfoot_journal","bigfoot_snapshot","bigfoot_common","test_bigfoot_external_neo"]
+      table-deny-list: "bigfoot_external_neo.sp_darwin__listing_quality_profile_history_fact"
+      table-type-deny-list: "VIRTUAL_VIEW"
+      file-format-deny-list: "JSON"
+      delta-processing: false
+
+  bigquery:
+    location: "asia-south1"
+    project: "fks-batch-gcs-storage"
+    external-table-dataset-prefix: "testbqext_"
+    view-dataset-prefix: "testbqview_"
+    authorize-view-datasets: true
+    require-partition-filter: false
+    audit:
+      dataset: "view_generator_audit"
+      hive-metastore-stats-table: "hive_table_stats"
+      tool-execution-stats-table: "bq_external_view_stats"
+      bigquery-metastore-stats-table: "bq_ext_stats_from_bqmetastore"
+      select-view-check: true

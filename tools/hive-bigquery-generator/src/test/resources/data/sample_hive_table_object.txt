@@ -1,0 +1,28 @@
+Table(tableName:hive_ext_complex, dbName:default, owner:hduser, createTime:1654596475, lastAccessTime:0, retention:0,
+sd:StorageDescriptor(
+   cols:[FieldSchema(name:numeric_int, type:int, comment:null),
+     FieldSchema(name:complex_arr_integer, type:array<int>, comment:null),
+     FieldSchema(name:complex_arr_string, type:array<string>, comment:null),
+     FieldSchema(name:complex_arr_timestamp, type:array<timestamp>, comment:null),
+     FieldSchema(name:complex_struct, type:struct<numeric_integer:int,numeric_double:double,dt_timestamp:timestamp,str_col:string,bool_col:boolean>, comment:null),
+     FieldSchema(name:complex_arr_struct, type:array<struct<numeric_integer:int,str_col:string>>, comment:null)],
+
+location:gs://fk-data-validation-demo-warehouse-1/reference/hive_ext_complex,
+inputFormat:org.apache.hadoop.hive.ql.io.orc.OrcInputFormat,
+outputFormat:org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat,
+compressed:false, numBuckets:-1,
+serdeInfo:SerDeInfo(name:null, serializationLib:org.apache.hadoop.hive.ql.io.orc.OrcSerde, parameters:{serialization.format=1}), bucketCols:[], sortCols:[], parameters:{}, skewedInfo:SkewedInfo(skewedColNames:[], skewedColValues:[], skewedColValueLocationMaps:{}), storedAsSubDirectories:false),
+partitionKeys:[FieldSchema(name:day, type:date, comment:null), FieldSchema(name:ts, type:timestamp, comment:null)],
+parameters:{transient_lastDdlTime=1654596475, bucketing_version=2, EXTERNAL=TRUE},
+viewOriginalText:null,
+viewExpandedText:null,
+tableType:EXTERNAL_TABLE,
+rewriteEnabled:false,
+catName:hive,
+ownerType:USER)
+
+
+
+View:
+Table(tableName:dart_wsr_scp_ekl_firstmilereturnrequest_1_0_14d, dbName:bigfoot_journal, owner:fk-bigfoot-azkaban, createTime:1650565004, lastAccessTime:0, retention:0, sd:StorageDescriptor(cols:[FieldSchema(name:data, type:struct<sourceid:bigint,createdat:timestamp,returntrackingid:string,sourcetype:string,destinationtype:string,id:bigint,destinationid:bigint,remarks:string,updatedat:timestamp,status:string,trackingid:string>, comment:null), FieldSchema(name:updatedat, type:bigint, comment:null), FieldSchema(name:day, type:string, comment:null), FieldSchema(name:entityid, type:string, comment:null)], location:null, inputFormat:org.apache.hadoop.mapred.SequenceFileInputFormat, outputFormat:org.apache.hadoop.hive.ql.io.HiveSequenceFileOutputFormat, compressed:false, numBuckets:-1, serdeInfo:SerDeInfo(name:null, serializationLib:null, parameters:{}), bucketCols:[], sortCols:[], parameters:{}, skewedInfo:SkewedInfo(skewedColNames:[], skewedColValues:[], skewedColValueLocationMaps:{}), storedAsSubDirectories:false), partitionKeys:[], parameters:{transient_lastDdlTime=1471642980}, viewOriginalText:select data as data, updatedat as updatedat,day as day, entityId from dart_wsr_scp_ekl_FirstMileReturnRequest_1_0 where day >= 20160806, viewExpandedText:select `dart_wsr_scp_ekl_firstmilereturnrequest_1_0`.`data` as `data`, `dart_wsr_scp_ekl_firstmilereturnrequest_1_0`.`updatedat` as `updatedat`,`dart_wsr_scp_ekl_firstmilereturnrequest_1_0`.`day` as `day`, `dart_wsr_scp_ekl_firstmilereturnrequest_1_0`.`entityid` from `bigfoot_journal`.`dart_wsr_scp_ekl_FirstMileReturnRequest_1_0` where `dart_wsr_scp_ekl_firstmilereturnrequest_1_0`.`day` >= 20160806, tableType:VIRTUAL_VIEW, rewriteEnabled:false, catName:hive, ownerType:USER)
+

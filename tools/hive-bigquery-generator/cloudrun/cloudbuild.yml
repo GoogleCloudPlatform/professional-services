@@ -1,0 +1,16 @@
+# This is build file used by gcloud builds submit command used in run.sh
+
+steps:
+- name: gradle:7.4.1-jdk8
+  entrypoint: gradle
+  args: ['clean','bootJar']
+- name: 'gcr.io/cloud-builders/docker'
+  args: [ 'build', '-t', $_IMAGE, '--build-arg=_JAR_FILE=$_JAR_FILE', '--build-arg=_PROPERTIES_YML=$_PROPERTIES_YML',  '.' ]
+
+images:
+- $_IMAGE
+substitutions:
+# These are default values. Not used
+  _JAR_FILE: "hive-bq-external-tool-*.jar"
+  _IMAGE: "test"
+  _PROPERTIES_YML: "src/main/resources/test.yml"

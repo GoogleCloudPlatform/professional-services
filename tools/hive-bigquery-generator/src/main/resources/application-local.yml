@@ -1,0 +1,41 @@
+spring:
+  main:
+    web-application-type: SERVLET
+
+logging:
+  level:
+    com.google.cloud.pso: DEBUG
+
+view-generator:
+  thread-pool: 70
+  hive:
+    thrift-uris: "thrift://34.100.192.203:9083"
+    time-zone: "Asia/Kolkata"
+    filters:
+      table-type-deny-list: "VIRTUAL_VIEW"
+      file-format-deny-list: "JSON"
+      db-allow-list: "adhoc_Deeptha"
+      table-allow-list: "*"
+      table-deny-list: "adhoc_deeptha.samp2"
+      delta-processing: false
+
+  bigquery:
+    location: "asia-south1"
+    project: "fk-data-validation-demo"
+    external-table-dataset-prefix: "bqexternal_"
+    view-dataset-prefix: "bqview_"
+    sql-batch-size: 100
+    authorize-view-datasets: true
+    require-partition-filter: true
+    hive-bq-sync: true
+    audit:
+      dataset: "test_view_generator_audit"
+      hive-metastore-stats-table: "hive_table_stats"
+      tool-execution-stats-table: "bq_external_view_stats"
+      bigquery-metastore-stats-table: "bq_ext_stats_from_bqmetastore"
+      select-view-check: true
+
+  logfiles:
+    output-folder: "output"
+
+

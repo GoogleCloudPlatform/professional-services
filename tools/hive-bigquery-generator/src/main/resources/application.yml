@@ -1,0 +1,37 @@
+spring:
+  profiles:
+    default: production
+  main:
+    web-application-type: none
+
+logging:
+  level:
+    com.google.cloud.pso: INFO
+
+view-generator:
+  thread-pool: 50
+  logfiles:
+    output-folder: "output"
+
+  bigquery:
+    sql-batch-size: 100
+    authorize-view-datasets: true
+    require-partition-filter: false
+    hive-bq-sync: true
+    audit:
+      dataset: "view_generator_audit"
+      hive-metastore-stats-table: "hive_metastore_stats"
+      bigquery-metastore-stats-table: "bigquery_metastore_stats"
+      tool-execution-stats-table: "tool_execution_stats"
+      tool-stats-table-partition-expiry-days: 7
+      select-view-check: true
+
+  hive:
+    time-zone: "Asia/Kolkata"
+    filters:
+      db-allow-list: "*"
+      table-allow-list: "*"
+      table-deny-list: []
+      table-type-deny-list: "VIRTUAL_VIEW"
+      file-format-deny-list: "*"
+      delta-processing: true
