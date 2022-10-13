@@ -63,7 +63,7 @@ object Export extends Command[ExportConfig] with Logging {
         CopyBook(zos.readDSNLines(MVSStorage.parseDSN(cfg.cobDsn)).mkString("\n"), picTCharset = cfg.picTCharset)
       } else {
         logger.info(s"reading copybook from DD:COPYBOOK")
-        zos.loadCopyBook("COPYBOOK",  cfg.picTCharset)
+        zos.loadCopyBook("COPYBOOK", cfg.encoding,  cfg.picTCharset)
       }
 
     try {
