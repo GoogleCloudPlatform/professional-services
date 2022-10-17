@@ -1,0 +1,49 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+version: '3'
+
+services:
+  gcloud_ssh_proxy:
+    build: .
+    entrypoint:
+      '/gssh_proxy.sh'
+    ports:
+      - '$PORT:$PORT'
+    healthcheck:
+      test: 'netstat -ltn | grep -c $PORT || exit 1'
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    environment:
+      - PORT=$PORT
+      - ZONE=$ZONE
+      - PROXY_SERVER=$PROXY_SERVER
+      - PROJECT_ID=$PROJECT_ID
+
+  # proxy_waiter runs a dummy container to wait for healtcheck of gcloud ssh proxy
+  proxy_waiter:
+    image: gcr.io/cloud-builders/gcloud-slim:latest
+    depends_on:
+      gcloud_ssh_proxy:
+        condition: service_healthy
+
+# docker-compose uses builders_default network by default.
+# cloudbuild steps uses docker network cloudbuild by default.
+# must specify cloudbuild network explicitly if running in cloudbuild.
+networks:
+  default:
+    external:
+      name: cloudbuild
+
