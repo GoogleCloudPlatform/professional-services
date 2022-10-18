@@ -309,6 +309,10 @@ Platform usage.
 *   [Composer Backup and Recovery](tools/cloud-composer-backup-restore) - A
     command line tool for applying backup and recovery operations on Cloud
     Composer Airflow environments.
+*   [Dataproc Event Driven Spark Recommendations](tools/dataproc-event-driven-spark-recommendations/) -
+    A Cloud Function that is triggered by dataproc cluster creation.  Analyzes 
+    spark properties and provides cluster recommendations based on Google Cloud 
+    best practices.
 *   [DataStream Deployment Automation](tools/datastream-deployment-python-automation) -
     Python script to automate the deployment of Google Cloud DataStream. This
     script will create connection profiles, create stream and start stream.
