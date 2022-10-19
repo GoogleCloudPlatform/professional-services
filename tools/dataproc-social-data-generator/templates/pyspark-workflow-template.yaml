@@ -1,0 +1,31 @@
+---
+jobs:
+  - pysparkJob:
+      properties:
+        spark.pyspark.driver.python: '/usr/bin/python3'
+      args:
+        - /RC_2022-06.zst
+        - %%GCS_BUCKET_NAME%%
+        - "16384"
+      mainPythonFileUri: gs://%%PROJECT_ID%%-services/scripts/social_data_generator.py
+    stepId: social-data-generator
+  placement:
+    managedCluster:
+      clusterName: %%CLUSTER_NAME%%
+      config:
+        gceClusterConfig:
+          zoneUri: %%REGION%%-a
+        masterConfig:
+          diskConfig:
+            bootDiskSizeGb: 500
+          machineTypeUri: n1-standard-4
+          imageUri: projects/%%PROJECT_ID%%/global/images/%%IMAGE_NAME%%
+        workerConfig:
+          diskConfig:
+            bootDiskSizeGb: 500
+          machineTypeUri: n1-standard-4
+          numInstances: 2
+          imageUri: projects/%%PROJECT_ID%%/global/images/%%IMAGE_NAME%%
+        initializationActions:
+          - executableFile: gs://%%GCS_BUCKET_NAME%%/scripts/initialize.sh
+            executionTimeout: '3600s'

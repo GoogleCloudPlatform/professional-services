@@ -312,6 +312,11 @@ Platform usage.
 *   [DataStream Deployment Automation](tools/datastream-deployment-python-automation) -
     Python script to automate the deployment of Google Cloud DataStream. This
     script will create connection profiles, create stream and start stream.
+*   [Dataproc Social Data Generator](tools/dataproc-social-data-generator) - 
+    Use Dataproc Custom Images and Dataproc Workflow Templates to deploy a
+    cluster that pulls social media data archives, enhances the data, and 
+    uploads files of a specified size to Google Cloud Storage.  Great for
+    generating sample data of varying file sizes.
 *   [DNS Sync](tools/dns-sync) - Sync a Cloud DNS zone with GCE resources.
     Instances and load balancers are added to the cloud DNS zone as they start
     from compute_engine_activity log events sent from a pub/sub push
