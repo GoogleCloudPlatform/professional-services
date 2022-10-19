@@ -309,7 +309,7 @@ Platform usage.
 *   [Composer Backup and Recovery](tools/cloud-composer-backup-restore) - A
     command line tool for applying backup and recovery operations on Cloud
     Composer Airflow environments.
-*   [Dataproc Event Driven Spark Recommendations](tools/dataproc-event-driven-spark-recommendations/)
+*   [Dataproc Event Driven Spark Recommendations](tools/dataproc-event-driven-spark-recommendations/) - 
     Use Google Cloud Functions to analyze Cloud Dataproc clusters and recommend
     best practices for Apache Spark jobs.  Also logs cluster configurations for
     future reference.
