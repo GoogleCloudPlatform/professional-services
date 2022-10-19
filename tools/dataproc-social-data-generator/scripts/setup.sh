@@ -42,7 +42,7 @@ echo "===================================================="
 echo " Setting up Google Cloud Storage artifacts ..."
 
 gsutil mb gs://"$GCS_BUCKET_NAME"
-gsutil cp scripts/small_file_generator.py gs://"$GCS_BUCKET_NAME"/scripts/
+gsutil cp scripts/social_data_generator.py gs://"$GCS_BUCKET_NAME"/scripts/
 gsutil cp scripts/customize.sh gs://"$GCS_BUCKET_NAME"/scripts/
 gsutil cp scripts/initialize.sh gs://"$GCS_BUCKET_NAME"/scripts/
 
