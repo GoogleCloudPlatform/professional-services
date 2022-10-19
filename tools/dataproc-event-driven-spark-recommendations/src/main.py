@@ -57,8 +57,8 @@ def load_machine_type_info(m_type_str):
 
 def upload_blob(bucket_name, destination_blob_name, data_from_flowfile_astring):
     """
-  Uploads a file to the bucket.
-  """
+    Uploads a file to the bucket.
+    """
 
     storage_client = storage.Client()
     bucket = storage_client.bucket(bucket_name)
@@ -68,11 +68,11 @@ def upload_blob(bucket_name, destination_blob_name, data_from_flowfile_astring):
 
 def evaluate_properties(cluster):
     """
-  Evaluate each cluster's spark properties based on standardized
-  best practices.
+    Evaluate each cluster's spark properties based on standardized
+    best practices.
 
-  Return report of necessary changes.
-  """
+    Return report of necessary changes.
+    """
     w_map = cluster.config.worker_config
     p_map = cluster.config.software_config.properties
 
@@ -195,26 +195,26 @@ def evaluate_properties(cluster):
 
 def gb_to_mb_property(prop):
     """
-  Helper function to convert GB to MB
-  """
+    Helper function to convert GB to MB
+    """
     tmp = int(prop[:-1]) * 1024
     return str(tmp) + 'm'
 
 
 def evaluate_persistent_disk(cluster):
     """
-  Evaluate the size of a persistent disk config
-  for a cluster
-  """
+    Evaluate the size of a persistent disk config
+    for a cluster
+    """
     #TODO
     print(cluster)
 
 
 def evaluate_dataproc_clusters():
     """
-  iterate through all dataproc clusters in a gcp project and
-  evaluate their properties.
-  """
+    iterate through all dataproc clusters in a gcp project and
+    evaluate their properties.
+    """
     # Create a client
     client = dataproc_v1.ClusterControllerClient(client_options={
         'api_endpoint': f'{_REGION}-dataproc.googleapis.com:443'
@@ -239,6 +239,6 @@ def evaluate_dataproc_clusters():
 @functions_framework.cloud_event
 def execute(trigger):
     """
-  Cloud Function entry point.
-  """
+    Cloud Function entry point.
+    """
     evaluate_dataproc_clusters()
