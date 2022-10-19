@@ -144,8 +144,8 @@ def modify(comment_obj):
             else:
                 com_reading_ease = 'difficult'
 
-            com_reading_grade_level = textstat.text_standard(
-                clean_com, float_output=False)
+            com_reading_grade_level = textstat.text_standard(clean_com,
+                                                             float_output=False)
 
             # censor and lower
             censored_comment = profanity.censor(clean_com).lower()
@@ -193,8 +193,7 @@ def execute():
             file_count = 0
             com_modified_count = 0
             while True:
-                fname = source_compressed_file + "_" + str(
-                    file_count) + ".json"
+                fname = source_compressed_file + "_" + str(file_count) + ".json"
                 opened_file = open("/files" + fname, "a")
                 chunk_count = 0
                 while chunk_count < 1:  # chunk_count * chunk = file_size
