@@ -31,8 +31,7 @@ from oauth2client.client import GoogleCredentials
 _PROJECT_ID = os.environ.get('PROJECT_ID', 'Environment variable is not set.')
 _REGION = os.environ.get('REGION', 'Environment variable is not set.')
 _ZONE = os.environ.get('ZONE', 'Environment variable is not set.')
-_BUCKET_NAME = os.environ.get('BUCKET_NAME',
-                              'Environment variable is not set.')
+_BUCKET_NAME = os.environ.get('BUCKET_NAME', 'Environment variable is not set.')
 
 
 def load_machine_type_info(m_type_str):
@@ -56,8 +55,7 @@ def load_machine_type_info(m_type_str):
     return dataproc_m_types
 
 
-def upload_blob(bucket_name, destination_blob_name,
-                data_from_flowfile_astring):
+def upload_blob(bucket_name, destination_blob_name, data_from_flowfile_astring):
     """
     Uploads a file to the bucket.
     """
@@ -92,8 +90,7 @@ def evaluate_properties(cluster):
     executor_instances = str(p_map['spark:spark.executor.instances'])
     executor_memory = str(p_map['spark:spark.executor.memory'])
     driver_memory = str(p_map['spark:spark.driver.memory'])
-    executor_memory_overhead = str(
-        p_map['spark:spark.executor.memoryOverhead'])
+    executor_memory_overhead = str(p_map['spark:spark.executor.memoryOverhead'])
     default_parallelism = str(p_map['spark:spark.default.parallelism'])
     sql_shuffle_partitions = str(p_map['spark:spark.sql.shuffle.partitions'])
     shuffle_spill_compress = str(p_map['spark:spark.shuffle.spill.compress'])
@@ -219,10 +216,9 @@ def evaluate_dataproc_clusters():
     evaluate their properties.
     """
     # Create a client
-    client = dataproc_v1.ClusterControllerClient(
-        client_options={
-            'api_endpoint': f'{_REGION}-dataproc.googleapis.com:443'
-        })
+    client = dataproc_v1.ClusterControllerClient(client_options={
+        'api_endpoint': f'{_REGION}-dataproc.googleapis.com:443'
+    })
 
     # Initialize request argument(s)
     request = client.list_clusters(
