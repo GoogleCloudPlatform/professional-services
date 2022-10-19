@@ -56,7 +56,7 @@ object GsZUtil extends Command[GsZUtilConfig] with Logging {
         CopyBook(zos.readDSNLines(MVSStorage.parseDSN(c.cobDsn)).mkString("\n"), picTCharset = c.picTCharset)
       } else {
         logger.info(s"reading copybook from DD:COPYBOOK")
-        zos.loadCopyBook("COPYBOOK", c.picTCharset)
+        zos.loadCopyBook("COPYBOOK", c.encoding, c.picTCharset)
       }
     //TODO read FLDINFO DD and merge field info
 

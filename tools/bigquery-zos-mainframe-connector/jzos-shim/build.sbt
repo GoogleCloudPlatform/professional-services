@@ -15,7 +15,7 @@
  */
 organization := "com.google.cloud.imf"
 name := "jzos-shim"
-version := "0.1"
+version := "0.2"
 
 scalaVersion := "2.13.1"
 
@@ -24,11 +24,3 @@ libraryDependencies ++= Seq(
 )
 
 publishMavenStyle := true
-
-scalacOptions ++= Seq(
-  "-opt:l:inline",
-  "-opt-inline-from:**",
-  "-deprecation",
-  "-opt-warnings",
-  "-feature"
-)
