@@ -15,6 +15,6 @@
 
 # Dataproc cluster init script
 
-cd /
+cd / || exit
 mkdir files
 wget https://files.pushshift.io/reddit/comments/RC_2022-06.zst
