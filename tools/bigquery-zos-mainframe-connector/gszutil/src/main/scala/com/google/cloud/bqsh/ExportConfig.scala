@@ -27,6 +27,7 @@ case class ExportConfig(
                          timeoutMinutes: Int = 90,
                          vartext: Boolean = false,
                          runMode: String = "parallel",
+                         encoding: Option[String] = None,
                          picTCharset: Option[String] = None,
 
                          bucket: String = "",

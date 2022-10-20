@@ -15,7 +15,7 @@ from .regex import regex_replace
 from .lists import split, index, merge_dict
 from .strings import add_links, urlencode, generate_signed_url, json_encode, json_decode, b64decode, csv_encode, re_escape, html_table_to_xlsx, make_list, read_gcs_object, filemagic, hash_string
 from .date import strftime, utc_strftime, recurring_date
-from .gcp import format_cost, get_cost
+from .gcp import format_cost, get_cost, get_gcp_resource
 from .tests import test_contains
 
 
@@ -42,6 +42,7 @@ def get_jinja_filters():
         'html_table_to_xlsx': html_table_to_xlsx,
         'format_cost': format_cost,
         'get_cost': get_cost,
+        'get_gcp_resource': get_gcp_resource,
         'recurring_date': recurring_date,
         'make_list': make_list,
         'read_gcs_object': read_gcs_object,
