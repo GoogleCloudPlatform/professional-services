@@ -175,7 +175,7 @@ def modify(comment_obj):
                 'comment_day': com_dt.day
             }
             return commentjson
-    return ""
+    return None
 
 
 def execute():
