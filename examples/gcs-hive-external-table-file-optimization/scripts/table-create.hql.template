@@ -299,8 +299,6 @@ TBLPROPERTIES("parquet.compress"="GZIP")
 ;
 
 msck repair table %%TABLE%%;
-msck repair table %%TABLE%%_csv;
-msck repair table %%TABLE%%_csv_gz;
 msck repair table %%TABLE%%_json;
 msck repair table %%TABLE%%_json_gz;
 msck repair table %%TABLE%%_avro;
