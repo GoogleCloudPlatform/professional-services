@@ -214,7 +214,7 @@ def execute():
                                 print("comments modified = " +
                                       str(com_modified_count))
                             final_data = json.dumps(formatted_com_obj)
-                            if final_data != 'null':
+                            if final_data != 'null' and final_data != "":
                                 opened_file.write(
                                     json.dumps(formatted_com_obj) + "\n")
                         previous_line = lines[-1]
