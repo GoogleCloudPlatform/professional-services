@@ -48,13 +48,33 @@ class SccOutput(Output):
         finding = self._jinja_expand_dict(self.output_config['finding'],
                                           'finding')
         finding['name'] = '%s/findings/%s' % (source, finding_id)
-        if 'sourceProperties' in finding:
-            if not isinstance(finding['sourceProperties'], dict):
-                try:
-                    props = json.loads(finding['sourceProperties'])
-                    finding['sourceProperties'] = props
-                except Exception:
-                    pass
+
+        json_fields = [
+            'sourceProperties', 'indicator', 'vulnerability', 'connections',
+            'processes', 'compliances', 'iamBindings', 'containers'
+        ]
+        for json_field in json_fields:
+            if json_field in finding:
+                if not isinstance(finding[json_field], dict) and not isinstance(
+                        finding[json_field], list):
+                    try:
+                        props = json.loads(finding[json_field])
+                        finding[json_field] = props
+                    except Exception:
+                        pass
+                elif isinstance(finding[json_field], dict):
+                    finding[json_field] = self._jinja_expand_dict_all(
+                        finding[json_field], 'finding')
+                elif isinstance(finding[json_field], list):
+                    finding[json_field] = self._jinja_expand_list(
+                        finding[json_field], 'finding')
+
+        self.logger.debug('Sending finding to Security Command Center.',
+                          extra={
+                              'source': source,
+                              'finding_id': finding_id,
+                              'finding': finding
+                          })
 
         scc_service = discovery.build('securitycenter',
                                       'v1',
