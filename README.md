@@ -178,6 +178,9 @@ them to fit your particular use case.
 *   [DLP API Examples](examples/dlp) - Examples of the DLP API usage.
 *   [GCE Access to Google AdminSDK](examples/gce-to-adminsdk) - Example to help
     manage access to Google's AdminSDK using GCE's service account identity
+*   [GCS Hive External Table File Optimization](examples/gcs-hive-external-table-file-optimization) - 
+    Example solution to showcase impact of file count, file size, and file
+    type on Hive external tables and query speeds.
 *   [GCS to BQ using serverless services](examples/gcs-to-bq-serverless-services) -
     Example to ingest GCS to BigQuery using serverless services such as Cloud
     Function, Pub/Sub and Serverless Spark.
