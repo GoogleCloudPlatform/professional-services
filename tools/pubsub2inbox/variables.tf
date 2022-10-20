@@ -1,4 +1,4 @@
-#   Copyright 2021 Google LLC
+#   Copyright 2022 Google LLC
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -84,8 +84,33 @@ variable "helper_bucket_name" {
   description = "Helper bucket name for granting IAM permission (storage.objectAdmin)"
   default     = ""
 }
+
 variable "function_timeout" {
   type        = number
   description = "Cloud Function timeout (maximum 540 seconds)"
   default     = 240
+}
+
+variable "retry_minimum_backoff" {
+  type        = string
+  description = "Minimum retry backoff (value between 0-600 seconds, suffixed with s, default 10s, Cloud Run only)"
+  default     = "10s"
+}
+
+variable "retry_maximum_backoff" {
+  type        = string
+  description = "Maximum retry backoff (value between 0-600 seconds, suffixed with s, default 600s, Cloud Run Only)"
+  default     = "600s"
+}
+
+variable "cloud_run" {
+  type        = bool
+  description = "Deploy via Cloud Run"
+  default     = false
+}
+
+variable "cloud_run_container" {
+  type        = string
+  description = "Container URL when deploying via Cloud Run"
+  default     = ""
 }
